@@ -2232,7 +2232,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'workspace.tier': "уровень {n}",
   'journal.title': "Журнал проекта",
   'journal.reading': "читаем журнал…",
-  'journal.empty': "Журнал пуст — он заполняется по мере событий.",
+  'journal.empty': "Журнал пуст. Он заполняется по мере событий.",
   'session.state.running': "работает",
   'session.state.idle': "простаивает",
   'session.state.ended': "завершена",

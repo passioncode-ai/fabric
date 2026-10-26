@@ -215,7 +215,7 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
         <section className="hx-agents" aria-labelledby="hx-agents-title">
           <h3 id="hx-agents-title">{t('acts.agentsTitle')}</h3>
           {/* Unread projects keep the feed unread too, so «nothing yet» never renders as «nothing» (the unread boundary). */}
-          {feedFailed && !feed ? <p className="hx-problem" role="status">{t('acts.agentsUnread')}</p> : <AgentWork events={feedProjects || projectsFailed ? (feed ? feed.filter((e) => (!filters.who || e.actor.kind === filters.who) && (!filters.project || e.project_id === filters.project)) : null) : null} projects={feedProjects ?? null} sessions={sessions} onOpen={onOpen} />}
+          {feedFailed && !feed ? <p className="hx-problem" role="status">{t('acts.agentsUnread')}</p> : <AgentWork events={feedProjects || projectsFailed ? (feed ? feed.filter((e) => (!filters.who || e.actor.kind === filters.who) && (!filters.project || e.project_id === filters.project)) : null) : null} narrowed={Boolean(filters.who || filters.project)} onReset={reset} projects={feedProjects ?? null} sessions={sessions} onOpen={onOpen} />}
         </section>
       )}
       <OpsLog />
@@ -228,8 +228,11 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
  * did it (the agent by its program, «Вы», Fabric), the act in a sentence and the project, never the journal's `#seq`.
  * A row opens what it is about when a screen can focus it, the same act the journal feed offers (`feedAct`).
  */
-function AgentWork({ events, projects, sessions, onOpen }: {
+function AgentWork({ events, narrowed = false, onReset, projects, sessions, onOpen }: {
   events: FeedEvent[] | null
+  /** «Кто» or «Проект» narrows this list: an empty answer is then «nothing found», never «the journal is empty» (0.3.13 review, iteration 3, UX-1). */
+  narrowed?: boolean
+  onReset?: () => void
   /** Null while unread; the events are null then too, so the list says it is reading. */
   projects: ProjectRow[] | null
   sessions: TerminalSession[] | null
@@ -238,6 +241,12 @@ function AgentWork({ events, projects, sessions, onOpen }: {
   const t = useT()
   const locale = useLocale()
   if (events === null) return <p className="hx-muted" role="status">{t('journal.reading')}</p>
+  if (events.length === 0 && narrowed) return (
+    <div className="hx-problem" role="status">
+      <p className="hx-empty">{t('acts.filter.none')}</p>
+      {onReset && <button type="button" className="hx-button" onClick={onReset}>{t('acts.filter.reset')}</button>}
+    </div>
+  )
   if (events.length === 0) return <p className="hx-empty">{t('journal.empty')}</p>
   const nameOf = (id: string | null): string | null => (id ? (projects ?? []).find((p) => p.id === id)?.name ?? null : null)
   const who = (e: FeedEvent): string =>

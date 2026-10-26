@@ -64,6 +64,29 @@ const lowerValueIsSecret = (name: string, separator: string, value: string): boo
   return /pass/.test(name) ? value.length >= 4 : value.length >= 8
 }
 
+/**
+ * A QUOTED value under a credential name that is taken as a secret, one test for the quoted JSON, authorization and YAML
+ * fields (0.3.13 review, iteration 3, ER-2 and DA-4: the three rules disagreed on the same value). No space and 8 or more
+ * characters, and not something a person or a config writes in a secret's place: a phrase of lower-case words joined by
+ * hyphens or underscores (`ask-the-operator`, `not_required`), a single word under 16 letters (`required`), an
+ * environment variable's name (`OPENAI_API_KEY`), a dotted reference (`process.env.SECRET`), a path, a date, or a
+ * template (`${TOKEN}`, `{{ token }}`, `<token>`). A long word (`correcthorsebatterystaple`) is a passphrase.
+ */
+export const quotedValueIsSecret = (value: string): boolean => {
+  if (value.startsWith('[redacted:')) return true
+  if (value.length < 8 || /\s/.test(value) || PLAIN_VALUE.test(value)) return false
+  // A phrase is short words (`see-the-onboarding-doc`); a key's own part is longer (`sk_live_<random>`).
+  if (/^[a-z]{1,10}(?:[-_][a-z]{1,10})+$/.test(value)) return false
+  if (/^[A-Za-z]+$/.test(value) && value.length < 16) return false
+  if (/^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/.test(value) && !/\d/.test(value)) return false
+  // A reference holds no digit (`process.env.SECRET`); a token with dots does (`ya29.…`, a JWT).
+  if (/^[A-Za-z_$]+(?:\.[A-Za-z_$]+)+$/.test(value)) return false
+  if (/^(?:~?\/|\.{1,2}\/|[A-Za-z]:\\)/.test(value)) return false
+  if (/^\d{4}-\d{2}-\d{2}(?:[T ][\d:.]+Z?)?$/.test(value)) return false
+  if (/^(?:\$\{.*\}|\{\{.*\}\}|<[^>]*>|%[A-Za-z_]+%)$/.test(value)) return false
+  return true
+}
+
 /** A `{ name, value }` pair's value worth taking as a credential: a string, not a count or a plain word. */
 const pairValueIsSecret = (value: unknown): boolean =>
   typeof value === 'string' && value !== '' && !PLAIN_VALUE.test(value) && !/^\d{1,6}$/.test(value)
@@ -136,7 +159,9 @@ const RULES: Rule[] = [
     // And escaped (`\"Authorization\":\"Bearer …\"`, a JSON-printed environment) or single-quoted
     // (`{'Authorization': 'Bearer …'}`, a Python dict) — audit 2026-10-06 DA-4 / DO-15.
     re: /\b((?:proxy-)?authorization(?:\\*["'])?\s*:\s*(?:\\*["'])?(?:bearer|basic|token)\s+)(\[redacted: authorization\](?=$|[\s"',;)}\]\\]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|[^\s"'\\,;]+)/gi,
-    keep: (m) => `${m[1]}[redacted: authorization]`
+    // The `Token` scheme word is also prose (`authorization: token expired`): after it only a token-shaped value is one
+    // (16 or more token characters, as the `bearer` rule asks; iteration 3, ER-2).
+    keep: (m) => (/token\s+$/i.test(m[1]) && !m[2].startsWith('[redacted:') && !/^[A-Za-z0-9._~+/-]{16,}=*$/.test(m[2]) ? m[0] : `${m[1]}[redacted: authorization]`)
   },
   {
     name: 'header-credential',
@@ -160,8 +185,8 @@ const RULES: Rule[] = [
     // escaped. Both quotes are required, as for `api-key-field`; a value that starts with a scheme word is the
     // `authorization` rule's, which keeps the word. A value with a space is prose, not a credential (ER-6), and so is a short or digitless word (`'none'`,
     // `"ask-the-operator"`; iteration 2, ER-2): the value must look like a token, 12 or more characters with a digit.
-    re: /(\\*["'](?:proxy-)?authorization\\*["']\s*:\s*\\*["'])(?!(?:bearer|basic|token)\s)(\[redacted: authorization-field\](?=\\*["'])|\[redacted:[^"'\n]*|(?=[^"'\\\s]*\d)[^"'\\\s]{12,}(?=\\*["']))/gi,
-    keep: (m) => (m[2].startsWith('[redacted:') ? m[0] : `${m[1]}[redacted: authorization-field]`)
+    re: /(\\*["'](?:proxy-)?authorization\\*["']\s*:\s*\\*["'])(?!(?:bearer|basic|token)\s)(\[redacted: authorization-field\](?=\\*["'])|\[redacted:[^"'\n]*|[^"'\\\s]+(?=\\*["']))/gi,
+    keep: (m) => (m[2].startsWith('[redacted:') || !quotedValueIsSecret(m[2]) ? m[0] : `${m[1]}[redacted: authorization-field]`)
   },
   {
     name: 'json-credential-field',
@@ -169,8 +194,8 @@ const RULES: Rule[] = [
     // `"refresh_token"`, `"id_token"`, `"client_secret"`, `"password"`, `"passwd"`, `"secret"`, `"token"`, with a quoted
     // value that looks like a secret: no space, 8 or more characters with a digit or a sign, or 16 or more; so a word such
     // as `"required"` and a sentence stay.
-    re: /(\\*["'](?:access_token|refresh_token|id_token|client_secret|password|passwd|secret|token)\\*["']\s*:\s*\\*["'])(\[redacted: json-credential-field\](?=\\*["'])|(?=[^"'\\\s]*[^A-Za-z"'\\\s])[^"'\\\s]{8,}(?=\\*["'])|[^"'\\\s]{16,}(?=\\*["']))/gi,
-    keep: (m) => `${m[1]}[redacted: json-credential-field]`
+    re: /(\\*["'](?:access_token|refresh_token|id_token|client_secret|password|passwd|secret|token)\\*["']\s*:\s*\\*["'])(\[redacted: json-credential-field\](?=\\*["'])|[^"'\\\s]+(?=\\*["']))/gi,
+    keep: (m) => (quotedValueIsSecret(m[2]) ? `${m[1]}[redacted: json-credential-field]` : m[0])
   },
   {
     name: 'yaml-credential',
@@ -179,8 +204,8 @@ const RULES: Rule[] = [
     // digit, no dot or space) or a quoted one, so a type (`password: string`), prose (`authorization: required`) and code
     // (`secret: process.env.SECRET`) stay; a quoted value with a space is prose, never a token (0.3.13 review ER-6:
     // `Password: "must be at least 12 characters"` was rewritten for good before it reached the journal).
-    re: /^([ \t]*(?:proxy-)?(?:authorization|(?:[a-z0-9_]*_)?(?:api_?key|apikey|token|secret|password|passwd)):[ \t]*)(?!(?:bearer|basic|token)\s)(?!\[redacted:)("(?=[^"\s]*\d)[^"\s]{12,}"|'(?=[^'\s]*\d)[^'\s]{12,}'|(?=[A-Za-z0-9_~+/=-]*\d)[A-Za-z0-9_~+/=-]{16,}(?=[ \t]*$))/gim,
-    keep: (m) => `${m[1]}[redacted: yaml-credential]`
+    re: /^([ \t]*(?:proxy-)?(?:authorization|(?:[a-z0-9_]*_)?(?:api_?key|apikey|token|secret|password|passwd)):[ \t]*)(?!(?:bearer|basic|token)\s)(?!\[redacted:)("[^"\s]+"|'[^'\s]+'|(?=[A-Za-z0-9_~+/=-]*\d)[A-Za-z0-9_~+/=-]{16,}(?=[ \t]*$))/gim,
+    keep: (m) => (/^["']/.test(m[2]) && !quotedValueIsSecret(m[2].slice(1, -1)) ? m[0] : `${m[1]}[redacted: yaml-credential]`)
   },
   {
     name: 'bearer',

@@ -21,6 +21,12 @@ export const TELL_QUIET_MS = 30 * 60_000
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
 export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
+/** The sweep's reads, as a receipt's `unread` names them, and the reads that can stop at their bounds, as its `capped`
+ *  does: one list each for the sweep and the receipt's ingress rules (iteration 3, DA-5). */
+export const SWEEP_READS = ['claims', 'tasks', 'requests', 'terminals'] as const
+export type SweepRead = (typeof SWEEP_READS)[number]
+export const SWEEP_CAPS = ['claims', 'threads', 'messages'] as const
+export type SweepCap = (typeof SWEEP_CAPS)[number]
 
 export interface SweepClaim {
   claimId: string

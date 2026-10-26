@@ -76,7 +76,9 @@ session, handoff and status in their head»: an abandoned task finds its agent w
   (`shared/commandIngress.ts`; without them every receipt was refused, DA-1). It carries counts by kind and the names of
   the reads that failed or were cut, never an item (DO-11: the requirement's «naming every finding» is the queue's, SW-9,
   not the receipt's). It is appended when a sweep told an agent, released a claim, or read blind or capped; a sweep that
-  found only what it had already told writes none (DA-2), nor one that runs into a quit (ER-5).
+  found only what it had already told writes none (DA-2), nor one that runs into a quit (ER-5). Since iteration 2 (DA-1)
+  a read that stays blind or capped is recorded when that changes, and since iteration 3 (ER-3) the change counts as
+  recorded only once the journal took its receipt.
 - SW-3: a stalled terminal is still since its own last output or input, not since the observer marked it (ER-4).
 - The running-tasks read stops at 500 rows without saying so; CO-439 records it.
 

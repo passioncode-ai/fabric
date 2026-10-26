@@ -91,10 +91,12 @@ function silentLine(r: RosterRow, t: Translate): string {
   return t('agentsPlace.line.silent', { time: r.heardAt ? since(r.heardAt, t) : '?' })
 }
 
-/** One line of what it does: its task, else what it said it is doing, else what the state means for it. */
-function lineOf(r: RosterRow, t: Translate, locale: string): string {
+/** One line of what it does: its task, else what it said it is doing, else what the state means for it. When who
+ *  works was not read, a working console's line says so instead of «has not said» (0.3.13 review, iteration 3, UX-2). */
+function lineOf(r: RosterRow, t: Translate, locale: string, workUnread = false): string {
   if (r.task) return t('launch.home.agents.workingOn', { task: r.task.summary })
   if (r.doing) return r.doing.text
+  if (workUnread && !r.live && (r.state === 'working' || r.state === 'quiet')) return t('agentPage.doingUnread')
   switch (r.state) {
     case 'waiting': return silentLine(r, t)
     case 'working': case 'quiet': return t('launch.home.agents.silent')
@@ -231,7 +233,7 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
       {hub.read.at === 'ready' && hub.read.ov.keptOut && !hub.read.ov.keptOut.readable && <p className="lp-meta" role="status">{t('joined.outUnreadable')}</p>}
       {everyRead === 'reading' && <p className="lp-meta" role="status">{t('agentsPlace.reading')}</p>}
       {nothingRead ? null : AGENT_GROUPS.map((g) => (
-        <Group key={g} group={g} rows={roster[g]} read={groupRead[g]} selected={chosen?.key ?? null} onSelect={select} locale={locale} />
+        <Group key={g} group={g} rows={roster[g]} read={groupRead[g]} workUnread={home.view === null && home.problem !== null} selected={chosen?.key ?? null} onSelect={select} locale={locale} />
       ))}
     </section>
   )
@@ -265,9 +267,11 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
   )
 }
 
-function Group({ group, rows, read, selected, onSelect, locale }: {
+function Group({ group, rows, read, workUnread, selected, onSelect, locale }: {
   group: AgentGroup
   rows: RosterRow[]
+  /** The read of who works failed: a console's line says what was not read. */
+  workUnread: boolean
   /** Where the reads that fill this group stand: empty is said only once they answered. */
   read: ReadState
   selected: string | null
@@ -294,7 +298,7 @@ function Group({ group, rows, read, selected, onSelect, locale }: {
                   {r.heardAt && r.state !== 'free' && <small className="ag-heard">{since(r.heardAt, t)}</small>}
                 </span>
                 <span className="lp-meta ag-row-project">{r.projectName ?? (r.sessionId ? t('launch.home.agents.noProject') : '')}</span>
-                <span className="ag-row-line">{lineOf(r, t, locale)}</span>
+                <span className="ag-row-line">{lineOf(r, t, locale, workUnread)}</span>
               </button>
             </li>
           ))}
@@ -360,7 +364,7 @@ function Centre({ row, tab, onTab, mark, hub, homeUnread, onOpenProject, onOpenT
         </span>
       </div>
       {note}
-      <p>{lineOf(row, t, locale)}</p>
+      <p>{lineOf(row, t, locale, homeUnread)}</p>
       {row.install && <p className="lp-meta">{t('settings.agents.install')} <code>{row.install}</code></p>}
       {row.state === 'signin' && <p className="lp-meta">{t('agentsPlace.signinHow', { name })}</p>}
     </section>

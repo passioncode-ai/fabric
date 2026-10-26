@@ -878,7 +878,7 @@ export const en = {
 
   'journal.title': 'Project journal',
   'journal.reading': 'reading the journal…',
-  'journal.empty': 'The journal is empty — it fills as things happen.',
+  'journal.empty': 'The journal is empty. It fills as things happen.',
   'journal.open': 'Open',
   'notify.burst': '{count} things are waiting for you',
   'journal.subjectHere': 'the thing this row is about is the row you are looking at',

@@ -9,8 +9,8 @@
  *   SW-4  every finding waits as a nudge its session reads in its next fabric_work_list or fabric_heartbeat answer;
  *         nothing is ever typed into a terminal (the 0.3.13 review's ER-2: Enter could answer a waiting prompt)
  *   SW-5  a finding is told once, then not again for 30 minutes while it stays (`toTell`)
- *   SW-7  one `work.swept@1` journal receipt per sweep that told, released, or read blind or capped (migration 124,
- *         DA-2); a sweep that only found what it had told writes none
+ *   SW-7  one `work.swept@1` journal receipt per sweep that told or released, or whose blind or capped reads changed
+ *         (migration 124, DA-2; iteration 2, DA-1); a sweep that only found what it had told writes none
  *   SW-8  a lapsed claim found by two sweeps in a row is released as lapsed, when this process knew it or it has
  *         expired, and its task has no unresolved run
  *   SW-9  the latest sweep's findings, read-only (`current`), for the operator's attention queue
@@ -28,7 +28,9 @@ import {
   type Finding,
   type SweepClaim,
   type SweepRequest,
-  type SweepTerminal
+  type SweepTerminal,
+  type SweepCap,
+  type SweepRead
 } from '../shared/abandonedSweep.ts'
 import type { CommsMessage, CommsPageReply, CommsThreadPageReply, CommsFactsReply } from '../shared/commsRead.ts'
 import { ops as opsSink } from './opsSink.ts'
@@ -53,7 +55,7 @@ export interface SweepRunningTask {
 }
 
 /** What the board read could not finish within its bounds: past them a request is judged at a later sweep. */
-export type BoardCap = 'threads' | 'messages'
+export type BoardCap = Exclude<SweepCap, 'claims'>
 
 export interface AbandonedSweepDeps {
   now(): number
@@ -79,7 +81,7 @@ export interface AbandonedSweepDeps {
   ops?: Pick<typeof opsSink, 'failed' | 'record' | 'correlate'>
 }
 
-type Source = 'claims' | 'tasks' | 'requests' | 'terminals'
+type Source = SweepRead
 /** Which kinds each read finds, so a failed read keeps what was told about them (SW-5 across a blind sweep). */
 const KINDS_OF: Record<Source, AbandonedKind[]> = {
   claims: ['claim-silent', 'claim-lapsed', 'task-unclaimed'],
@@ -95,9 +97,9 @@ export interface SweptReceipt {
   queued: number
   released: number
   /** The reads that failed, so what they find was judged blind this sweep. */
-  unread?: string[]
+  unread?: SweepRead[]
   /** The reads that stopped at their bounds. */
-  capped?: string[]
+  capped?: SweepCap[]
 }
 
 export interface SweepResult {
@@ -271,18 +273,20 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     // or read blind or capped; a sweep that found only what it had already told writes nothing (0.3.13 review,
     // iteration 1, DA-2: one stuck item wrote a receipt every three minutes), nor one that runs into a quit (ER-5).
     // A receipt the journal refused is said in the ops log; the sweep stands.
-    const capped = [...(claimRead?.capped ? ['claims'] : []), ...(requestRead?.capped ?? [])]
+    const capped: SweepCap[] = [...(claimRead?.capped ? ['claims' as const] : []), ...(requestRead?.capped ?? [])]
     // A read that stays blind or capped is recorded when that changes, not on every sweep it lasts (iteration 2, DA-1:
-    // a board read stuck at its bound wrote 480 receipts a day).
+    // a board read stuck at its bound wrote 480 receipts a day). The state counts as recorded only once its receipt is
+    // in the journal, so a receipt the journal refused is tried again at the next sweep (iteration 3, ER-3, DA-1).
     const readState = JSON.stringify({ unread: [...failedReads].sort(), capped: [...capped].sort() })
     const readsChanged = readState !== lastReadState
-    lastReadState = readState
+    if (!failedReads.length && !capped.length) lastReadState = readState
     if ((decided.tell.length || released || ((failedReads.length || capped.length) && readsChanged)) && !deps.quitting()) {
       const found: Partial<Record<AbandonedKind, number>> = {}
       for (const f of findings) found[f.kind] = (found[f.kind] ?? 0) + 1
       const receipt: SweptReceipt = { found, told: decided.tell.length, queued, released, ...(failedReads.length ? { unread: failedReads } : {}), ...(capped.length ? { capped } : {}) }
       try {
         await deps.recordSwept(receipt)
+        lastReadState = readState
       } catch (e) {
         ops.failed('work.sweep-receipt', e, { note: 'the sweep ran; its work.swept@1 receipt was not journalled', found: findings.length })
       }

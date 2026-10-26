@@ -199,7 +199,7 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     // OBSERVED since 0.3.13's schema step (migration 124): the sweep that checks it journals what it found.
     mode: 'OBSERVED',
     scope: 'fabric_mediated',
-    evidence: 'work.swept@1 records each sweep of abandoned work that told an agent, released a claim, or read blind or capped (main/abandonedSweepRun.ts, SW-7); a sweep that only found what it had told records nothing'
+    evidence: 'work.swept@1 records each sweep of abandoned work that told an agent or released a claim, and each change of the reads that were blind or capped (main/abandonedSweepRun.ts, SW-7); a sweep that only found what it had told records nothing'
   },
   // CO-426 TO-1 (the operator, 2026-10-26: «Когда я говорю одному агенту, это равно я сказал всем … другой агент уже
   // не спрашивает»).

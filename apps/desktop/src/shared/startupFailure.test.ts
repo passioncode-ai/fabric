@@ -357,14 +357,22 @@ describe('a half-up stack Fabric tried to heal', () => {
   it('the heal\'s stop itself failed: its own remedy, with the stop\'s words as the detail, in Russian too', () => {
     // Since iteration 2 (UX-1) only the heal's stop carries this code; a start that fails after it is thrown as the
     // start's own failure (main/stackHalfUp.ts#resolveHealingHalfUp).
-    const e = Object.assign(new Error('Command failed: supabase stop\nError: cannot connect to the Docker daemon'), { code: STACK_HEAL_FAILED })
+    const e = Object.assign(new Error('Command failed: supabase stop\nError: failed to remove container supabase_rest_fabric: permission denied'), { code: STACK_HEAL_FAILED })
     const f = classifyStartupFailure(e)
     expect(f).toMatchObject({ cause: 'stack-up-but-silent', remedyKey: 'startup.stack-up-but-silent.remedy.healFailed' })
-    expect(f.detail).toContain('cannot connect to the Docker daemon')
+    expect(f.detail).toContain('permission denied')
     expect(f.remedy).toMatch(/the stop itself failed/)
     const d = startupDialog(f, { retryable: true, logPath: '/l', say: sayRu })
     expect(d.detail).toContain(ruRegistry['startup.stack-up-but-silent.remedy.healFailed'])
-    expect(d.detail).toContain('cannot connect to the Docker daemon')
+    expect(d.detail).toContain('permission denied')
     expect(en['startup.stack-up-but-silent.remedy.healFailed']).toBeTruthy()
+  })
+  it('iteration 3 UX-4: a heal\'s stop refused because Docker does not answer is said by the Docker words and waited out', async () => {
+    const { startupHeals } = await import('./stackWatch.ts')
+    const e = Object.assign(new Error('Command failed: supabase stop\nCannot connect to the Docker daemon at unix:///Users/x/.orbstack/run/docker.sock. Is the docker daemon running?'), { code: STACK_HEAL_FAILED })
+    const f = classifyStartupFailure(e)
+    expect(f.cause).not.toBe('stack-up-but-silent')
+    expect(f.remedyKey).not.toBe('startup.stack-up-but-silent.remedy.healFailed')
+    expect(startupHeals(f)).toBe(true)
   })
 })

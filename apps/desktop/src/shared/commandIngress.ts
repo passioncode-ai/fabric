@@ -10,7 +10,7 @@ import { redact, type RedactionCount } from './redact.ts'
 import { validateAnswer, type AnswerOption, type ValidatedAnswer } from './answerCommit.ts'
 import { ABOUT_NAMESPACES, INSIGHT_CATEGORIES } from './memoryContract.ts'
 import { ORIGIN_KINDS } from './origin.ts'
-import { ABANDONED_KINDS } from './abandonedSweep.ts'
+import { ABANDONED_KINDS, SWEEP_CAPS, SWEEP_READS } from './abandonedSweep.ts'
 
 export type JsonValue = null | boolean | number | string | JsonValue[] | JsonObject
 export interface JsonObject { [key: string]: JsonValue }
@@ -198,9 +198,9 @@ const EVENT_FIELDS: Record<string, Fields> = {
   'work.swept@1': {
     found: required(object(Object.fromEntries(ABANDONED_KINDS.map((k) => [k, optional(integer(0))])))),
     told: required(integer(0)), queued: required(integer(0)), released: required(integer(0)),
-    unread: optional(list(enumeration(['claims', 'tasks', 'requests', 'terminals']))),
+    unread: optional(list(enumeration([...SWEEP_READS]))),
     // The names of the reads that stopped at their bounds, never free text (iteration 2, DA-2).
-    capped: optional(list(enumeration(['claims', 'threads', 'messages']))), ...metadata
+    capped: optional(list(enumeration([...SWEEP_CAPS]))), ...metadata
   },
   // A turn's facts from the working-with-fabric hooks (D4): ids and counts, no path and no content.
   'session.turn.observed@1': { session_id: required(uuid), runtime: required(reference), runtime_session_id: required(reference),

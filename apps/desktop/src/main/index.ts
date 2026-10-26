@@ -768,7 +768,7 @@ async function resolveEnvStartingStackIfNeeded(): ReturnType<typeof resolveSupab
         if (!stackAlreadyRunning(e instanceof Error ? e.message : String(e))) throw e
       }
       // CO-428: a start that found the database up may have left rest and auth gone; heal that once.
-      return await resolveHealingHalfUp(halfUpDeps(() => startStack((line) => { lastLine = line })))
+      return await resolveHealingHalfUp(halfUpDeps(() => startStack((line) => { lastLine = line }), (line) => { lastLine = line }))
     } finally {
       clearInterval(tick)
       splash?.destroy()

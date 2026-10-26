@@ -223,6 +223,21 @@ describe('История filters and the act in full (CO-414)', () => {
     expect(await screen.findByRole('list', { name: en['acts.list'] })).toBeTruthy()
   })
 
+  it('iteration 3 UX-1: «Кто» that matches no agent work says «nothing found» with «Сбросить фильтры», never «the journal is empty»', async () => {
+    const history = vi.fn(async () => ({ rows: [row(12, { actor: { kind: 'system', id: 'f' } })], next: null }))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history, undo: vi.fn() } } }))
+    const feed = [{ estate_id: 'e', seq: 7, type: 'task.moved@1', actor: { kind: 'agent', id: 's1' }, project_id: 'p1', occurred_at: new Date().toISOString(), payload: { to: 'review' } }]
+    render(<I18nProvider locale="en"><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }]} mark={0} feed={feed as never} feedProjects={[{ id: 'p1', name: 'Atlas' } as never]} /></I18nProvider>)
+    await screen.findByRole('list', { name: en['acts.list'] })
+    fireEvent.change(select(en['acts.filter.who']), { target: { value: 'system' } })
+    const agents = (await screen.findByRole('heading', { name: en['acts.agentsTitle'] })).parentElement as HTMLElement
+    expect(await within(agents).findByText(en['acts.filter.none'])).toBeTruthy()
+    expect(within(agents).queryByText(en['journal.empty'])).toBeNull()
+    fireEvent.click(within(agents).getByRole('button', { name: en['acts.filter.reset'] }))
+    await waitFor(() => expect(select(en['acts.filter.who']).value).toBe(''))
+    expect(within(agents).queryByText(en['acts.filter.none'])).toBeNull()
+  })
+
   it('the filters stay when the person leaves История and comes back', async () => {
     mount([{ rows: [row(12)], next: null }, { rows: [row(12)], next: null }])
     await screen.findByRole('list', { name: en['acts.list'] })

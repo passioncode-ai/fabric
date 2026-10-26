@@ -160,7 +160,8 @@ export async function recoverStack(): Promise<'started' | 'already-running'> {
   // answered (ER-1, `stackHalfUp.ts#recoverThenHeal`). A healthy stack costs one `supabase status`.
   return recoverThenHeal(
     () => recoveryStart(() => startStackOnce(), { stopped: () => stopRequested, pingDocker: (socket) => pingDocker(socket) }),
-    () => resolveHealingHalfUp(halfUpDeps(() => startStackOnce())),
+    // The watch also heals by the containers: rest alone gone leaves the keys in status (iteration 3, ER-4).
+    () => resolveHealingHalfUp({ ...halfUpDeps(() => startStackOnce()), partial: async () => (await stackDatabaseContainer()) === 'partial' }),
     () => stopRequested
   )
 }
@@ -171,12 +172,14 @@ export async function stopStackKeepingData(): Promise<void> {
   await run('supabase', ['stop'], { cwd: repoRoot(), encoding: 'utf8', timeout: 120_000 })
 }
 
-/** The heal of a half-up stack, with this process's stop, the given start and one ops line (CO-428). */
-export function halfUpDeps(start: () => Promise<void>): HalfUpDeps<SupabaseEnv> {
+/** The heal of a half-up stack, with this process's stop, the given start and one ops line (CO-428); `say` gives the
+ *  splash a line before the stop (iteration 3, UX-5). */
+export function halfUpDeps(start: () => Promise<void>, say?: (line: string) => void): HalfUpDeps<SupabaseEnv> {
   return {
     resolve: resolveSupabaseEnv,
     stop: stopStackKeepingData,
     start,
+    say,
     stopped: () => stopRequested,
     record: (r) => ops.record({ op: 'stack.half-up-healed', outcome: r.outcome, level: r.outcome === 'ok' ? 'info' : 'warn',
       detail: { note: 'the database was up without rest and auth; Fabric stopped the stack keeping its data and started it again', ...(r.why ? { why: r.why } : {}) },

@@ -19,6 +19,7 @@
 // file carries the shapes as recorded.
 
 import { stackFolderFor } from './stackFolder.ts'
+import { dockerIsUnreachable } from './stackStartRetry.ts'
 
 export type StartupCause =
   | 'supabase-cli-missing'
@@ -47,10 +48,12 @@ export interface StartupFailure {
 }
 
 /**
- * The code of the error the half-up heal throws when its own restart (`supabase stop` keeping the data, then the start)
- * failed (`main/stackHalfUp.ts#resolveHealingHalfUp`), its message the restart's own words. It is said apart from a
- * restart that ran and still found no keys (0.3.13 review, iteration 1, UX-8): «Fabric restarted the stack» would be
- * false, and the restart's words are the ones the person needs.
+ * The code of the error the half-up heal throws when its own `supabase stop` (keeping the data) failed
+ * (`main/stackHalfUp.ts#resolveHealingHalfUp`), its message the stop's own words; a start that fails after the stop is
+ * thrown as the start's own failure (0.3.13 review, iteration 2, UX-1). It is said apart from a restart that ran and
+ * still found no keys (iteration 1, UX-8): «Fabric restarted the stack» would be false. A stop refused because Docker
+ * does not answer is not this code's to say: it is classified by the Docker words, which waiting heals (iteration 3,
+ * UX-4).
  */
 export const STACK_HEAL_FAILED = 'FABRIC_STACK_HEAL_FAILED'
 
@@ -146,9 +149,10 @@ function classifyCause(e: unknown): StartupFailure {
       detail
     }
 
-  // Before the stack's own words are matched: the restart's words may read «Command failed: supabase start» or name a
-  // missing binary, and the person still needs to know they came from Fabric's restart of a half-up stack (UX-8).
-  if (code === STACK_HEAL_FAILED)
+  // Before the stack's own words are matched: the stop's words may read «Command failed: supabase stop» or name a
+  // missing binary, and the person still needs to know they came from Fabric's heal of a half-up stack (UX-8). A stop
+  // refused because Docker does not answer falls through to the Docker words below, which the start waits out (UX-4).
+  if (code === STACK_HEAL_FAILED && !dockerIsUnreachable(detail))
     return {
       cause: 'stack-up-but-silent',
       title: 'The local stack is running but did not report its connection details.',

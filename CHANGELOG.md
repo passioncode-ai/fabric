@@ -58,8 +58,8 @@ and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
   business the person set) now also holds when the projects are rebuilt from the journal.
 - **Every project shows when it last moved.** «Тихо уже …» is read for each project from its own newest event, so a
   project quiet for longer than the estate's newest 3 000 events still says how long.
-- **The sweep of abandoned work leaves a receipt.** A sweep that told an agent, released a claim or could not read
-  everything is recorded in the journal (`work.swept@1`, counts only), so the every-three-minutes rule is observed rather
+- **The sweep of abandoned work leaves a receipt.** A sweep that told an agent or released a claim, and each change
+  in what it could not read whole, is recorded in the journal (`work.swept@1`, counts only), so the every-three-minutes rule is observed rather
   than only advised.
 - **Агенты is a screen of agents.** The chosen agent sits in the centre with «Работа» (its task, project, what it does
   and did) and «Консоль»; every agent is on the right, grouped as «Работают сейчас», «Возможно, ждут вас» (a console
@@ -73,11 +73,14 @@ and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
   the operator's decision for one act or mandate for a task; the hub checks its shape, passes it on unchanged and
   records whose words it was.
 - **The stack comes back when rest or kong is gone.** The stack watch reads the database, PostgREST and Kong, and a
-  database running without rest or without kong is started again, which heals it, instead of waited for.
+  database running without rest or without kong is started again and, when Docker still shows it so, stopped keeping its
+  data and started once, instead of waited for.
 - **Why a feed row does not open is said in your language.** The reason under a row that cannot be opened is in the
   interface's language.
-- **Two more credential shapes are kept out of the journal.** An authorization field with no scheme word and a token
-  in a YAML block are redacted; quoted prose under such a name is left as it is.
+- **Four more credential shapes are kept out of the journal.** An authorization field with no scheme word, a credential
+  in a YAML block, a quoted credential field in JSON (`access_token`, `password`, `client_secret` and their kind) and a
+  token after the `Token` scheme are redacted; prose, a placeholder such as `ask-the-operator`, a variable's name, a path
+  or a date under such a name is left as it is.
 
 ## 0.3.12
 

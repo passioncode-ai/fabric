@@ -685,3 +685,25 @@ test('iteration 2 DA-2: the receipt\'s capped names are the reads\' own, never f
   assert.equal(prepareEventPayload('work.swept@1', { found: {}, told: 0, queued: 0, released: 0, capped: ['anything at all here'] }).state, 'rejected')
   assert.equal(prepareEventPayload('work.swept@1', { found: {}, told: 0, queued: 0, released: 0, capped: ['claims', 'threads'] }).state, 'prepared')
 })
+
+// The 0.3.13 review, iteration 3: ER-3 and DA-1, a blind read's receipt the journal refused is tried again; DA-5, the
+// receipt's read and bound names are the sweep's own lists, so a read the sweep marks is never refused at the door.
+test('iteration 3 ER-3: a blind read whose one receipt the journal refused is recorded at the next sweep', async () => {
+  const w = world()
+  const sweep = createAbandonedSweep(w.deps)
+  w.fail.add('claims')
+  w.receiptFails = true
+  await sweepOnce(sweep); w.tick(3 * MIN)
+  assert.equal(w.receipts.length, 0)
+  w.receiptFails = false
+  await sweepOnce(sweep); w.tick(3 * MIN)
+  assert.equal(w.receipts.length, 1, 'the refused receipt is written once the journal takes it')
+  await sweepOnce(sweep)
+  assert.equal(w.receipts.length, 1, 'and only once')
+})
+
+test('iteration 3 DA-5: every read and bound name the sweep can mark passes the receipt\'s ingress', async () => {
+  const { SWEEP_READS, SWEEP_CAPS } = await import(path.resolve(import.meta.dirname, '../src/shared/abandonedSweep.ts'))
+  assert.equal(prepareEventPayload('work.swept@1', { found: {}, told: 0, queued: 0, released: 0, unread: [...SWEEP_READS], capped: [...SWEEP_CAPS] }).state, 'prepared')
+  assert.ok(SWEEP_READS.includes('tasks') && SWEEP_CAPS.includes('claims'))
+})

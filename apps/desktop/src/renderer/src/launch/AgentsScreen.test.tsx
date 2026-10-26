@@ -248,9 +248,18 @@ describe('Агенты (CO-419)', () => {
     show([session({})])
     const row = (await screen.findByText('Claude Code')).closest('button')!
     fireEvent.click(row)
-    expect(await screen.findByText(en['agentPage.taskUnread'])).toBeTruthy()
-    expect(screen.getByText(en['agentPage.doingUnread'])).toBeTruthy()
+    const page = await screen.findByTestId('agent-page')
+    expect(await within(page).findByText(en['agentPage.taskUnread'])).toBeTruthy()
+    expect(within(page).getByText(en['agentPage.doingUnread'])).toBeTruthy()
     expect(screen.queryByText(en['agentPage.noTask'])).toBeNull()
+  })
+
+  it('iteration 3 UX-2: the list\'s row says what was not read too, never «has not said yet»', async () => {
+    stub({ home: async () => { throw new Error('stack refused') }, overview: async () => hub({ agents: [] }), exec: async () => [] })
+    show([session({})])
+    const row = (await screen.findByText('Claude Code')).closest('button')!
+    expect(row.textContent).toContain(en['agentPage.doingUnread'])
+    expect(row.textContent).not.toContain(en['launch.home.agents.silent'])
   })
 
   it('iteration 2 UX-4: an agent at work with no console here is said to work outside Fabric, never to be not working', async () => {

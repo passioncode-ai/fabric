@@ -355,3 +355,25 @@ describe('JSON credential fields and the Token scheme (iteration 2, DA-5)', () =
       expect(redact(keep).text, keep).toBe(keep)
   })
 })
+
+// The 0.3.13 review, iteration 3, ER-2 and DA-4: one test for a quoted value under a credential name, the same in JSON,
+// a quoted authorization field and YAML; the `Token` scheme takes only a token-shaped value. Synthetic values only.
+describe('iteration 3: one value test for the quoted credential fields', () => {
+  it('keeps placeholders, names, references, paths and dates, in JSON and in YAML alike', () => {
+    for (const line of [
+      '{"token": "ask-the-operator"}', '{"token": "see-the-onboarding-doc"}', '{"password": "see-the-vault"}',
+      '{"secret": "process.env.SECRET"}', '{"token": "not_required"}', "{'secret': 'not-set-yet'}", '{"secret": "OPENAI_API_KEY"}',
+      '{"token": "/Users/x/.config/token"}', '{"secret": "2026-10-26"}', '{"token": "${TOKEN}"}', '{"authorization": "ask-the-operator"}',
+      'api_key: "ask-the-operator"', 'password: "see-the-vault"', 'authorization: token expired'
+    ]) expect(redact(line).text, line).toBe(line)
+  })
+  it('redacts short passwords and passphrases in YAML as in JSON, and a token after the Token scheme', () => {
+    for (const [line, rule] of [
+      ['password: "hunter2!x"', 'yaml-credential'], ['password: "Tr0ub4dor&3"', 'yaml-credential'],
+      ["db_password: 'correcthorsebatterystaple'", 'yaml-credential'], ['api_key: "sk_live_abcdefghijkl"', 'yaml-credential'],
+      ['{"password": "hunter2!x"}', 'json-credential-field'], ['{"password": "correcthorsebatterystaple"}', 'json-credential-field'],
+      ['Authorization: Token fakefakefake0123456789', 'authorization']
+    ]) expect(redact(line).text, line).toContain(`[redacted: ${rule}]`)
+  })
+})
+

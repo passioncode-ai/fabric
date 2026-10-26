@@ -114,3 +114,46 @@ test('iteration 2 UX-1: a start that fails after the heal\'s stop is thrown as t
   assert.equal(thrown, docker)
   assert.notEqual(thrown.code, 'FABRIC_STACK_HEAL_FAILED')
 })
+
+// The 0.3.13 review, iteration 3: ER-1, a quit during the first status read spawns no stop; ER-4, rest alone gone leaves
+// the keys in status, so the watch heals by the containers; UX-5, the splash is told before the stop.
+test('iteration 3 ER-1: a quit that came during the status read spawns no stop', async () => {
+  const calls = []
+  await assert.rejects(resolveHealingHalfUp({
+    resolve: async () => { calls.push('resolve'); throw silent() },
+    stop: async () => { calls.push('stop') },
+    start: async () => { calls.push('start') },
+    record: (r) => calls.push(`record:${r.outcome}`),
+    stopped: () => true
+  }), /did not yield API_URL/)
+  assert.deepEqual(calls, ['resolve', 'record:failed'], 'no stop once Fabric is quitting')
+})
+
+test('iteration 3 ER-4: a status that names the keys while Docker shows the stack partial is healed by stop and start', async () => {
+  const calls = []
+  let partial = true
+  const got = await resolveHealingHalfUp({
+    resolve: async () => { calls.push('resolve'); return env },
+    stop: async () => { calls.push('stop') },
+    start: async () => { calls.push('start'); partial = false },
+    record: (r) => calls.push(`record:${r.outcome}`),
+    partial: async () => { calls.push('partial'); return partial }
+  })
+  assert.deepEqual(got, env)
+  assert.deepEqual(calls, ['resolve', 'partial', 'stop', 'start', 'resolve', 'record:ok'])
+  // A healthy stack: one status and one container read, nothing stopped; a container read that fails heals nothing.
+  const quiet = []
+  await resolveHealingHalfUp({ resolve: async () => env, stop: async () => { quiet.push('stop') }, start: async () => { quiet.push('start') }, record: () => {}, partial: async () => false })
+  await resolveHealingHalfUp({ resolve: async () => env, stop: async () => { quiet.push('stop') }, start: async () => { quiet.push('start') }, record: () => {}, partial: async () => { throw new Error('docker ps failed') } })
+  assert.deepEqual(quiet, [])
+})
+
+test('iteration 3 UX-5: the splash is told the stack is being restarted before the stop, in the person\'s language', async () => {
+  const { HEAL_LINE } = await import(path.resolve(import.meta.dirname, '../src/main/stackHalfUp.ts'))
+  const { splashProgress } = await import(path.resolve(import.meta.dirname, '../src/shared/splashProgress.ts'))
+  const said = []
+  await resolveHealingHalfUp({ resolve: (() => { let n = 0; return async () => { if (n++ === 0) throw silent(); return env } })(), stop: async () => { said.push('stop') }, start: async () => {}, record: () => {}, say: (line) => said.push(line) })
+  assert.deepEqual(said, [HEAL_LINE, 'stop'])
+  assert.match(splashProgress({ elapsedMs: 1000, lastLine: HEAL_LINE, locale: 'ru' }), /Перезапускаю локальную базу, данные сохраняются/)
+  assert.match(splashProgress({ elapsedMs: 1000, lastLine: HEAL_LINE, locale: 'en' }), /Restarting the local stack, keeping its data/)
+})
