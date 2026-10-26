@@ -475,8 +475,7 @@ test('finding 6: readRunningTasks reads who last moved each task', async () => {
   let columns = ''
   const rows = [{ id: 't1', project_id: 'p1', moved_at: iso(T0), started_at: null, moved_by_kind: 'person' }]
   const q = { eq: () => q, limit: async () => ({ data: rows, error: null }) }
-  const none = { in: () => none, order: () => none, limit: async () => ({ data: [], error: null }) }
-  const out = await readRunningTasks({ select: (t, c) => { if (t === 'work_claims') return none; columns = c; return q } })
+  const out = await readRunningTasks({ select: (_t, c) => { columns = c; return q }, selectIn: async () => ({ rows: [], failed: null }) })
   assert.match(columns, /moved_by_kind/)
   assert.deepEqual(out, [{ taskId: 't1', projectId: 'p1', movedAt: iso(T0), movedByKind: 'person', movedBy: null, lastClaimedAt: null, lastClaim: null }])
 })
@@ -635,14 +634,13 @@ test('B2: readRunningTasks reads the newest claim of each running task, bounded 
     { work_id: 't2', claimed_at: iso(T0 - 60 * MIN), released_at: iso(T0 - 30 * MIN), released_how: 'done', owner_session: 's2' }
   ]
   let claimError = null
-  const claimsQuery = (columns) => {
-    const a = { table: 'work_claims', columns }
-    asked.push(a)
-    const c = { in: (col, values) => { a.column = col; a.values = values; return c }, order: (col, o) => { a.order = [col, o.ascending]; return c },
-      limit: async (n) => { a.limit = n; return { data: claimError ? null : claimRows, error: claimError } } }
-    return c
+  const store = {
+    select: () => q,
+    selectIn: async (table, columns, column, values, _chunk, _signal, _eq, order) => {
+      asked.push({ table, columns, column, values, order: order ? [order.column, order.ascending] : null, limit: order?.limit })
+      return claimError ? { rows: [], failed: claimError } : { rows: claimRows, failed: null }
+    }
   }
-  const store = { select: (t, c) => (t === 'work_claims' ? claimsQuery(c) : q) }
   const out = await readRunningTasks(store)
   assert.deepEqual(asked.map((a) => [a.table, a.column, a.values]), [['work_claims', 'work_id', ['t1', 't2']]], 'the running tasks read, no more')
   assert.match(asked[0].columns, /released_how/)
@@ -654,7 +652,7 @@ test('B2: readRunningTasks reads the newest claim of each running task, bounded 
   claimRows = Array.from({ length: 1000 }, (_, i) => ({ work_id: 't1', claimed_at: iso(T0 - (i + 1) * MIN), released_at: iso(T0 - i * MIN), released_how: 'let-go', owner_session: 's1' }))
   const capped = await readRunningTasks(store)
   assert.deepEqual(capped.map((t) => t.taskId), ['t1'], 't2 has no row in a full answer: left out this sweep')
-  claimError = { message: 'refused' }
+  claimError = 'refused'
   await assert.rejects(readRunningTasks(store), /refused/, 'an unread claim history is never "no claim since"')
 })
 

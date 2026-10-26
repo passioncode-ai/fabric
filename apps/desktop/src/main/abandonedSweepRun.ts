@@ -535,10 +535,10 @@ export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>
   const unjudged = new Set<string>()
   for (let i = 0; i < rows.length; i += CLAIMS_CHUNK) {
     const ids = rows.slice(i, i + CLAIMS_CHUNK).map((t) => t.id)
-    const claims = await store.select('work_claims', 'work_id,claimed_at,released_at,released_how,owner_session')
-      .in('work_id', ids).order('claimed_at', { ascending: false }).limit(GATEWAY_ROWS)
-    if (claims.error) throw new Error(`the claims of the tasks in work could not be read: ${claims.error.message}`)
-    const got = (claims.data ?? []) as Array<{ work_id: string; claimed_at: string; released_at: string | null; released_how: string | null; owner_session?: string | null }>
+    const claims = await store.selectIn('work_claims', 'work_id,claimed_at,released_at,released_how,owner_session', 'work_id', ids, CLAIMS_CHUNK, undefined, [],
+      { column: 'claimed_at', ascending: false, limit: GATEWAY_ROWS })
+    if (claims.failed) throw new Error(`the claims of the tasks in work could not be read: ${claims.failed}`)
+    const got = claims.rows as Array<{ work_id: string; claimed_at: string; released_at: string | null; released_how: string | null; owner_session?: string | null }>
     for (const c of got) {
       const prior = last.get(c.work_id)
       if (!prior || Date.parse(c.claimed_at) > Date.parse(prior.claimedAt))

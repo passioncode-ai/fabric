@@ -76,7 +76,10 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       /** Aborts every chunk's request (a caller's deadline); a refused chunk is `failed`, as any other. */
       signal?: AbortSignal,
       /** Equalities every chunk also carries, so a partial index on them can serve the read (0.3.7 review DA-7). */
-      eq: ReadonlyArray<readonly [column: string, value: string]> = []
+      eq: ReadonlyArray<readonly [column: string, value: string]> = [],
+      /** Each chunk ordered, and bounded at `limit` rows (the 0.3.14 review, iteration 2, DA-3): a caller that needs the
+       *  newest rows of each chunk under the gateway's 1 000 asks here, and compares a chunk's count to its limit. */
+      order?: { column: string; ascending: boolean; limit: number }
     ): Promise<{ rows: Record<string, unknown>[]; failed: string | null }> {
       const filters = scopeFilters(table, scope)
       if (!values.length) return { rows: [], failed: null }
@@ -85,7 +88,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
         let q = db.from(table).select(columns)
         for (const [c, value] of filters) q = q.eq(c, value)
         for (const [c, value] of eq) q = q.eq(c, value)
-        const filtered = q.in(column, values.slice(i, i + chunk) as string[])
+        const inList = q.in(column, values.slice(i, i + chunk) as string[])
+        const filtered = order ? inList.order(order.column, { ascending: order.ascending }).limit(order.limit) : inList
         const { data, error } = await (signal ? filtered.abortSignal(signal) : filtered)
         // NOT `?? []`. A read that did not happen is not a read that found
         // nothing, and every caller of this function is deciding whether to act.
