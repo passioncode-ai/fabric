@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "90d5535029155d7d824731469d3201434b7822a2",
+  "report": "docs/evidence/reviews/0.3.13/iteration-3/2026-10-26-plan.md",
+  "reportSha256": "5a6baa11a1f56a100c374a1f326be8c65d123479adbd73676b0a2cb97c26c576",
+  "reviewerRun": "release-0313-i3-plan-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V3-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: correction `661a5e1a` on `cf5d97f7` (CO-445, 0.3.14)"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V3-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-453 filed and answered (`693a7937` on `6a334fcc`); the CT-143 row on the owed list"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V3-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Owed section says the Release close follows the rollout; the handoff's order"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V3-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the owed list"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V3-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: steps 1, 7 and 9"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V3-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-27, the handoff's Next task (`main` merged into the final candidate, the knowledge base before the tag)"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V3-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-308, CO-315, CO-326, CO-365, CO-366, CO-372, CO-378 read 0.4.0 in their cells, CO-432 and CO-437 name a decision point; the plan's Composition names its source; the link points at the heading"
+      ]
+    }
+  ]
+}

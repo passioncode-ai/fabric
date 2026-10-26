@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "90d5535029155d7d824731469d3201434b7822a2",
+  "report": "docs/evidence/reviews/0.3.13/iteration-3/2026-10-26-data.md",
+  "reportSha256": "f2cc275c4ad2353ca7c2ad9c6106ea054fdca1541dd819589454cfe31ba6fcea",
+  "reviewerRun": "release-0313-i3-data-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V3-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V3-10 and V3-8 "
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V3-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: step 9 dumps Colima first, and 0.3.11's own first start rewrites the stack folder before the restore"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V3-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V3-11; CO-222's status names what is still unredacted "
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V3-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V3-7 "
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V3-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `SWEEP_READS` and `SWEEP_CAPS` in `shared/abandonedSweep.ts`, read by the sweep and the ingress rules (`abandoned-sweep-run.test.mjs` «iteration 3 DA-5»)"
+      ]
+    }
+  ]
+}

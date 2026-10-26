@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "90d5535029155d7d824731469d3201434b7822a2",
+  "report": "docs/evidence/reviews/0.3.13/iteration-3/2026-10-26-errors.md",
+  "reportSha256": "ec3a7aea71e2cf9cd3aac0be2a8d6765f8751f230f28b2cdd14bef87d3a1b0d7",
+  "reviewerRun": "release-0313-i3-errors-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V3-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: no stop once Fabric is quitting (`stackHalfUp.ts#resolveHealingHalfUp`; «iteration 3 ER-1», watched failing)"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V3-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one test, `redact.ts#quotedValueIsSecret`, for JSON, the authorization field and YAML; `Token` takes only a token-shaped value (`redact.test.ts` «iteration 3: one value test», watched failing on the candidate's `redact.ts`); the rest ruled: CO-222"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V3-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the reads' state counts as recorded only once the journal took it (`abandonedSweepRun.ts`; `abandoned-sweep-run.test.mjs` «iteration 3 ER-3», watched failing)"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V3-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the watch also heals by the containers, a status with keys while Docker shows the stack partial is stopped keeping its data and started once (`stackHalfUp.ts`, `partial`; `env.ts#recoverStack`; «iteration 3 ER-4», watched failing); CHANGELOG and AGENTS.md say so"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V3-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the module header, the obligation's evidence, AGENTS.md, the sweep spec, SCN-140's amendment, CHANGELOG"
+      ]
+    }
+  ]
+}

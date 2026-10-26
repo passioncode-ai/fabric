@@ -15,7 +15,7 @@
       "source": "V2-32",
       "status": "fixed",
       "evidence": [
-        "as V2-11"
+        "fixed: as V2-11 "
       ]
     },
     {
@@ -39,7 +39,7 @@
       "source": "V2-35",
       "status": "fixed",
       "evidence": [
-        "as V2-12: steps 1, 3, 4 and 9"
+        "fixed: as V2-12: steps 1, 3, 4 and 9 "
       ]
     },
     {

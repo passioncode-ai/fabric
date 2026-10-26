@@ -101,7 +101,8 @@ publication do not wait for the rollout.
   `661a5e1a` on `cf5d97f7` (CO-445). The row promised on `198866e6` (reply `69dea81c`) for CT-143's item 1: filed when
   the contract publishes its DEC (due 2026-11-07), and said there.
 - After the tag, on `main`, one documents commit: the runbook's "0.3.13 (not yet released)" made "0.3.13"; CO-454 filed
-  (the final verifier's F-3); CO-222's note for the final verifier's F-2; dated notes on CO-421 and CO-130 for N-4.
+  (the first final verifier's F-3); the second verifier's F-3 on CO-437, F-4 in `shared/scope.ts`'s comment, F-5 on
+  CO-370; CO-222's note for the final verifier's F-2; dated notes on CO-421 and CO-130 for N-4.
 - Fabric's requirements for the form of N-4 (what a local plan hands over, how the chosen one is addressed; CO-421,
   CO-130) on board thread `bd508780` by 2026-10-29, after Vesta's proposal of 2026-10-27 (fabric-workspace's ask,
   2026-10-26).
@@ -257,17 +258,31 @@ DA-4). The UX reviewer found История's agent list saying the journal is e
 contradicting its page (UX-2). The plan reviewer found one board reply that the register contradicts (PL-1) and
 DEC-0134 unanswered (PL-2).
 
-The fixes, with `main` merged in (its workspace pin), make the final candidate `617e5c14`
-(`617e5c14ffafdd9854a4e8765a4a6b5f7c62ec04`); the receipts and the release gate name it. A fresh verifier read
-`c83af249..617e5c14` and passed it ([its report](../../reports/2026-10-26-release-0313/2026-10-26-final-candidate-verification.md)):
-every code fix held, each watched test failed with its fix reverted in a scratch copy, the whole vitest suite (2672
-tests) and both type checks passed, and the candidates' history clears the gate. Its F-1 (nine cells of this ledger
-that began "as V…", which the gate does not read as a disposition) is fixed in the release commit; F-2 (three shapes
-the one value test keeps that `c83af249` redacted: a base64 value starting with `/`, a lower-case joined passphrase, a
-short token after `Token`; none redacted by 0.3.12) is ruled to CO-222; F-3 (while rest stays gone, the heal by
-containers stops and starts the stack at every watch try and records it as healed) is ruled to CO-454, and the CHANGELOG
-says so. The full tier ran on a disposable stack on the hosted runner (`workflow_dispatch`, run `40352863482`), the
-operator's Mac having too little disk and swap for a second stack.
+The fixes, with `main` merged in (its workspace pin), made a first final candidate `617e5c14`
+(`617e5c14ffafdd9854a4e8765a4a6b5f7c62ec04`). A fresh verifier read `c83af249..617e5c14` and passed it
+([its report](../../reports/2026-10-26-release-0313/2026-10-26-final-candidate-verification.md)): every code fix held,
+each watched test failed with its fix reverted in a scratch copy, the whole vitest suite (2672 tests) and both type
+checks passed, and the candidates' history cleared the gate. Its F-1 (nine cells of this ledger that began "as V…",
+which the gate does not read as a disposition) is fixed here; F-2 (three shapes the one value test keeps that
+`c83af249` redacted: a base64 value starting with `/`, a lower-case joined passphrase, a short token after `Token`; none
+redacted by 0.3.12) is ruled to CO-222; F-3 (while rest stays gone, the heal by containers stops and starts the stack at
+every watch try and records it as healed) is ruled to CO-454, and the CHANGELOG says so. The full tier ran green on a
+disposable stack on the hosted runner (`workflow_dispatch`, run `40352863482`), the operator's Mac having too little
+disk and swap for a second stack.
+
+Then, before the tag, the contract found that migration 124 narrowed the board's unread count for every reader against
+its DEC-0135 DR-4 (board thread `7ef21793`, finding `6045afec`; CO-437). Fabric held the narrowing: migration
+`20261026000125_board_reader_count_held.sql` (schema 98) gives `board_list_reader` and `board_status` back v0.3.12's
+answer. That makes the final candidate `90d55350` (`90d5535029155d7d824731469d3201434b7822a2`); the receipts and the
+release gate name it. A second fresh verifier read `617e5c14..90d55350` and passed it
+([its report](../../reports/2026-10-26-release-0313/2026-10-26-final-candidate-verification-2.md)): 125's functions give
+v0.3.12's answer (278 page and count comparisons on a random board of 48 messages matched migration 120's body, where 124
+alone hid 9 messages from 4 of 5 readers), grants and everything else unchanged, the schema suite watched failing
+without 125, the owned-cluster suites and the gates green. Its F-1 (the CHANGELOG still said agents no longer see a
+thank-you as unread) and F-2 (the handoff and this section still named `617e5c14`) are fixed in the release commit; F-3
+(the operator's Comms count and a project's own `com.status` now differ on replies, as intended), F-4 (a comment in
+`shared/scope.ts`) and F-5 (CO-370's punctuation) go into the documents commit on `main` after the tag. The full tier
+ran again on the hosted runner (run `40361601345`).
 
 | Finding | Level id | What | Disposition |
 |---|---|---|---|

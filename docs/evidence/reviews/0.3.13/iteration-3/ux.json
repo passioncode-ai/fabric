@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.13",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "90d5535029155d7d824731469d3201434b7822a2",
+  "report": "docs/evidence/reviews/0.3.13/iteration-3/2026-10-26-ux.md",
+  "reportSha256": "18e039b4fbd035fd9e10c49950af2d052a2dffc8ab2f7e48f6131f431923963d",
+  "reviewerRun": "release-0313-i3-ux-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V3-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Ничего не найдено.» with «Сбросить фильтры» (`HistoryScreen.tsx#AgentWork`, `narrowed`; `HistoryScreen.test.tsx` «iteration 3 UX-1», watched failing with the change reverted); the old sentence loses its em dash in both languages"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V3-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the row says «Не удалось прочитать, что он делает.» (`AgentsScreen.tsx#lineOf`, `workUnread`; `AgentsScreen.test.tsx` «iteration 3 UX-2», watched failing)"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V3-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: dated amendments to SCN-161, SCN-166, SCN-168, SCN-173, SCR-87, SCR-88; `startupFailure.ts`'s two comments"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V3-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: such a stop is classified by Docker's words and waited out (`startupFailure.ts#classifyStartupFailure`; `startupFailure.test.ts` «iteration 3 UX-4», watched failing)"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V3-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `HEAL_LINE` before the stop, said in the person's language (`splashProgress.ts`; `stack-half-up.test.mjs` «iteration 3 UX-5», watched failing); Copylot `32cc6df4-48cf-4245-ba58-685402552091`"
+      ]
+    }
+  ]
+}

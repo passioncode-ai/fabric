@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## 0.3.13 (unreleased)
+## 0.3.13
 
 **Upgrading.** This version moves the local database to schema 98 (two migrations since 0.3.12,
 `20261026000124_one_schema_step.sql` and `20261026000125_board_reader_count_held.sql`). A 0.3.12 database (96) takes
@@ -48,9 +48,11 @@ and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
   Claude Code session starts in as trusted, so Claude Code does not ask about it and that folder's own Claude Code
   settings and hooks run. An install upgraded from before 0.3.7 got both without choosing them. Both are now in
   Настройки → «Запуск агентов»: «Разрешения агентов», and beside it the folder trust switch, on by default.
-- **A reply reaches the one it answers.** On the board, a reply goes to the sender of the message it answers instead of
-  to every participant, so a thread of sixteen projects no longer gives fifteen of them an unread message for each
-  thank-you; it stays in the thread for anyone who reads it.
+- **A reply is delivered to the one it answers.** On the board, a reply is delivered to the sender of the message it
+  answers instead of to every participant, so the operator's Comms count and the mirror no longer show fifteen projects
+  an unread message for each thank-you. An agent's `com.list` and `com.status` still count it as unread until it is
+  marked, as 0.3.12 did: the contract allows narrowing that count only for agents pinned to its DEC-0135, which comes
+  with Fabric's next contract pin.
 - **What waits counts only someone who can answer.** A responder whose lease ran out no longer counts as able to answer:
   the receipt's `noResponder`, the home's waiting count and the per-project waiting list now say the same thing.
 - **A decision taken back stays taken back.** Taking an answer back now also closes a correction of its decision made
@@ -75,7 +77,8 @@ and `c6cf39e0`) is rebuilt from a fresh stack rather than upgraded.
   records whose words it was.
 - **The stack comes back when rest or kong is gone.** The stack watch reads the database, PostgREST and Kong, and a
   database running without rest or without kong is started again and, when Docker still shows it so, stopped keeping its
-  data and started once, instead of waited for.
+  data and started again, instead of waited for. While rest cannot come back at all, that restart is tried at every
+  watch try.
 - **Why a feed row does not open is said in your language.** The reason under a row that cannot be opened is in the
   interface's language.
 - **Four more credential shapes are kept out of the journal.** An authorization field with no scheme word, a credential
