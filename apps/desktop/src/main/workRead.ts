@@ -362,10 +362,16 @@ const SESSION_TASK_COLUMNS = 'id,project_id,title,brief_what,brief_why,brief_exp
 export async function readSessionTasks(store: Store, sessionId: unknown): Promise<SessionTasksView> {
   if (typeof sessionId !== 'string' || !SESSION_UUID.test(sessionId)) throw new Error('Invalid session identity')
   const CLAIMS = SESSION_TASKS_LIMIT * 2
-  const [claims, launched] = await Promise.all([
+  const [claims, launched, attached] = await Promise.all([
     store.select('work_claims', 'work_id,project_id,claimed_at,released_at,released_how').eq('owner_session', sessionId).order('claimed_at', { ascending: false }).limit(CLAIMS),
-    store.select('project_tasks', SESSION_TASK_COLUMNS).eq('session_id', sessionId).order('started_at', { ascending: false }).limit(SESSION_TASKS_LIMIT)
+    store.select('project_tasks', SESSION_TASK_COLUMNS).eq('session_id', sessionId).order('started_at', { ascending: false }).limit(SESSION_TASKS_LIMIT),
+    // The 0.3.14 review, iteration 1, DA-5: a launched task is dated by when Fabric attached it to this session, not by
+    // when the task was created (indexed by `journal_by_session_id`, migration 116).
+    store.select('journal', 'occurred_at,payload').eq('payload->>session_id', sessionId).eq('type', 'task.session.attached@1').order('seq', { ascending: false }).limit(SESSION_TASKS_LIMIT)
   ])
+  const attachedAt: Record<string, string> = {}
+  for (const e of must(attached as never, "the session's launches") as Array<{ occurred_at: string; payload: { id?: unknown } | null }>)
+    if (typeof e.payload?.id === 'string' && !attachedAt[e.payload.id]) attachedAt[e.payload.id] = e.occurred_at
   const claimRows = must(claims as never, "the session's claims") as SessionClaimRow[]
   const launchedRows = must(launched as never, "the session's launched tasks") as SessionTaskRow[]
   const launchedIds = new Set(launchedRows.map((t) => t.id))
@@ -380,6 +386,7 @@ export async function readSessionTasks(store: Store, sessionId: unknown): Promis
     launched: launchedRows,
     tasks: tasks.rows as unknown as SessionTaskRow[],
     projects: projects.rows as unknown as Array<{ id: string; name: string }>,
+    attachedAt,
     readCapped: claimRows.length >= CLAIMS || launchedRows.length >= SESSION_TASKS_LIMIT
   })
 }

@@ -3,7 +3,8 @@
  * One agent session's tasks, newest first (0.3.14, the operator's request of 2026-10-26: «перейти на агента,
  * посмотреть его флоу, как он по задачам шёл»): every task the session claimed (`work_claims.owner_session`, live and
  * released) and every task Fabric launched in it (`project_tasks.session_id`), one row per task. The newest claim of a
- * task wins and its claims are counted; a launched task with no claim is dated by when it started. Pure: the main
+ * task wins and its claims are counted; a launched task with no claim is dated by when Fabric attached it to this
+ * session (`task.session.attached@1`, the 0.3.14 review, iteration 1, DA-5), else when it started. Pure: the main
  * process reads the rows (`main/workRead.ts#readSessionTasks`) and a failed read THROWS there, so an empty list here
  * always means the session holds no task, never a read that did not happen.
  */
@@ -70,6 +71,8 @@ export function composeSessionTasks(input: {
   projects: ReadonlyArray<{ id: string; name: string }>
   /** One of the main process's reads stopped at its limit. */
   readCapped?: boolean
+  /** When each launched task was attached to this session (its newest `task.session.attached@1`), by task id. */
+  attachedAt?: Readonly<Record<string, string>>
   limit?: number
 }): SessionTasksView {
   const limit = input.limit ?? SESSION_TASKS_LIMIT
@@ -102,8 +105,9 @@ export function composeSessionTasks(input: {
   }
   const out: SessionTask[] = [...newest.values()].map((c) => view(c.work_id, c.project_id, c.claimed_at, { at: c.released_at, how: c.released_how }, 'claim'))
   for (const t of input.launched) {
-    if (newest.has(t.id) || !t.started_at) continue
-    out.push(view(t.id, t.project_id, t.started_at, { at: null, how: null }, 'launch'))
+    const at = input.attachedAt?.[t.id] ?? t.started_at
+    if (newest.has(t.id) || !at) continue
+    out.push(view(t.id, t.project_id, at, { at: null, how: null }, 'launch'))
   }
   out.sort((a, b) => b.claimedAt.localeCompare(a.claimedAt))
   return { tasks: out.slice(0, limit), capped: !!input.readCapped || out.length > limit }

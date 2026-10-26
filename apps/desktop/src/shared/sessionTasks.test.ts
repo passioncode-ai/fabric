@@ -46,6 +46,18 @@ describe('composeSessionTasks', () => {
     expect(v.tasks[0]).toMatchObject({ projectName: 'Site', claimedAt: '2026-10-26T12:00:00Z', releasedAt: null })
   })
 
+  it('the 0.3.14 review, iteration 1, DA-5: a launched task is dated by when Fabric attached it to this session, not its creation', () => {
+    const v = composeSessionTasks({
+      claims: [claim('t1', '2026-10-26T08:00:00Z')],
+      // A board task created days ago and launched in this session at 09:00: it is the newest.
+      launched: [task('t3', { started_at: '2026-10-20T12:00:00Z' })],
+      tasks: [task('t1')],
+      projects,
+      attachedAt: { t3: '2026-10-26T09:00:00Z' }
+    })
+    expect(v.tasks.map((t) => [t.taskId, t.claimedAt])).toEqual([['t3', '2026-10-26T09:00:00Z'], ['t1', '2026-10-26T08:00:00Z']])
+  })
+
   it('keeps a task with no title or brief, and a task whose row was not found, with an empty summary', () => {
     const v = composeSessionTasks({ claims: [claim('t1', '2026-10-26T08:00:00Z'), claim('t9', '2026-10-26T07:00:00Z')], launched: [], tasks: [task('t1', { title: null })], projects: [] })
     expect(v.tasks.map((t) => [t.taskId, t.summary, t.status, t.projectName])).toEqual([['t1', '', 'running', null], ['t9', '', 'unknown', null]])

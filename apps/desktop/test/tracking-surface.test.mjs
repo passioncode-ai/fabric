@@ -272,3 +272,39 @@ test('0.3.14: fabric_whoami carries the project\'s waiting block, and a board it
   assert.match(tools.get('fabric_whoami'), /what waits for the project/)
   assert.doesNotMatch(tools.get('fabric_whoami'), /\u2014/)
 })
+
+// The 0.3.14 review, iteration 1, PL-10: the rule every session reads claims with fabric_task_claim, so its answer names
+// the brief's missing parts, as fabric_work_claim's does. A database that holds one backlog task with only its what.
+test('PL-10: fabric_task_claim names the brief\'s missing parts and fabric_task_brief, and still claims', async (t) => {
+  const TASK = '11111111-2222-4333-8444-555555555555'
+  const until = new Date(Date.now() + 30 * 60_000).toISOString()
+  const rows = {
+    project_tasks: { id: TASK, status: 'backlog', title: 'Write the plan', instruction: 'Write the plan', brief_what: 'The plan', brief_why: null, brief_expected: '' },
+    leases: { owner_session: 's-c', expires_at: until }
+  }
+  const db = {
+    from(table) {
+      const chain = new Proxy({}, {
+        get(_t, prop) {
+          if (prop === 'then') return (resolve) => resolve({ data: [], error: null })
+          if (prop === 'maybeSingle' || prop === 'single') return async () => ({ data: rows[table] ?? null, error: null })
+          return () => chain
+        }
+      })
+      return chain
+    },
+    rpc: async () => ({ data: null, error: null })
+  }
+  const { surface } = await surfaceWith([], { db, journal: { append: async () => ({ seq: 1 }) } })
+  t.after(() => surface.stop())
+  const scope = surface.mint('p', 's-c', null, { cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-c' })
+  const client = await connect(surface, scope.token)
+  t.after(() => client.close())
+  const r = await call(client, 'fabric_task_claim', { taskId: TASK })
+  assert.equal(r.claimed, true, JSON.stringify(r))
+  assert.deepEqual(r.brief_missing, ['why', 'expected'])
+  assert.match(r.brief_next, /fabric_task_brief/)
+  const tools = new Map((await client.listTools()).tools.map((x) => [x.name, x.description]))
+  assert.match(tools.get('fabric_task_claim'), /brief_missing/)
+  assert.doesNotMatch(tools.get('fabric_task_claim'), /—/)
+})

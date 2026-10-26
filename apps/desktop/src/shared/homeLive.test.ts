@@ -270,9 +270,10 @@ describe("composeHome: an agent's current task (0.3.14)", () => {
     expect(v.projects.find((p) => p.projectId === P1)).toMatchObject({ live: 1, inWork: 1 })
   })
 
-  it('else the task its newest stage report names, in that report\'s project', () => {
+  it('else the task its newest stage report names, in that report\'s project, while that task is running', () => {
     const v = composeHome({
       ...base, where: where([session('s1', P1)], []), briefs: [],
+      runningTasks: [{ id: 'x1', project_id: P2, title: null, brief_what: null, status: 'running', session_id: null, updated_at: '2026-10-26T09:30:00Z' }],
       stages: [
         stage('s1', P2, 'Older step', '2026-10-26T09:00:00Z', { task_id: 'x-old' }),
         stage('s1', P2, 'Building the board', '2026-10-26T10:00:00Z', { task_id: 'x1' }),
@@ -280,6 +281,16 @@ describe("composeHome: an agent's current task (0.3.14)", () => {
       ]
     })
     expect(v.live[0].task).toEqual({ id: 'x1', projectId: P2, summary: '' })
+  })
+
+  it('the 0.3.14 review, iteration 1, DA-6, ER-11: never a finished task its stage report named', () => {
+    const named = [stage('s1', P1, 'Wrapping up', '2026-10-26T10:00:00Z', { task_id: 'x1' })]
+    for (const status of ['review', 'done', 'cancelled']) {
+      const v = composeHome({ ...base, where: where([session('s1', P1)], []), briefs: [], stages: named,
+        doneTasks: status === 'done' ? [{ id: 'x1', project_id: P1, title: 'Finished long ago', brief_what: null, status }] : [],
+        reviewTasks: status === 'review' ? [{ id: 'x1', project_id: P1, title: 'Finished long ago', brief_what: null, status }] : [] })
+      expect(v.live[0].task, status).toBeNull()
+    }
   })
 
   it('keeps an untitled claimed task, with an empty summary the screens say as untitled', () => {

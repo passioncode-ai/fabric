@@ -121,6 +121,12 @@ test("an agent's tasks in main (0.3.14): its claims and launched tasks by its se
   await assert.rejects(readSessionTasks(fake(tables, { 'in:project_tasks': 'refused' }), S), /tasks could not be read: refused/)
   await assert.rejects(readSessionTasks(fake(tables), 'not-a-session'), /Invalid session identity/)
   assert.deepEqual(await readSessionTasks(fake({}), S), { tasks: [], capped: false }, 'a session with no task reads as an empty list')
+  // The 0.3.14 review, iteration 1, DA-5: the launch's own event dates a launched task.
+  const attachedView = await readSessionTasks(fake({ ...tables, journal: [{ occurred_at: '2026-10-26T09:30:00Z', payload: { id: 't3', session_id: S } }] }), S)
+  assert.deepEqual(attachedView.tasks.map((t) => [t.taskId, t.claimedAt]), [['t2', '2026-10-26T10:00:00Z'], ['t3', '2026-10-26T09:30:00Z'], ['t1', '2026-10-26T08:00:00Z']])
+  const launches = calls.findLast((c) => c.table === 'journal')
+  assert.deepEqual(launches.eq, [['payload->>session_id', S], ['type', 'task.session.attached@1']])
+  await assert.rejects(readSessionTasks(fake(tables, { journal: 'refused' }), S), /launches could not be read: refused/)
 })
 
 test('the board pages «Готово» (0.3.14): the finished tasks are read up to the limit asked, 20 by default, and capped there', async () => {

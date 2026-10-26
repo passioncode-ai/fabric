@@ -1,5 +1,6 @@
 import { closeHttpServer } from './closeHttpServer.ts'
 import { pidAlive } from './hub.ts'
+import { briefNext, specGaps, type BriefParts } from '../shared/taskSpec.ts'
 // The agent surface — Fabric's own door, opened toward the agents working in it.
 //
 // Every session Fabric starts gets a scoped credential and an `mcp.json` pointing
@@ -2183,7 +2184,7 @@ export class AgentSurface {
       {
         title: 'Take a task',
         description:
-          'Claim a task before working on it, so another agent does not start the same work. The claim expires — if you are still on it when it does, claim again. Refused when someone else holds it, and it tells you who and until when.',
+          'Claim a task before working on it, so another agent does not start the same work. The claim expires: if you are still on it when it does, claim again. Refused when someone else holds it, and it tells you who and until when. When the task\'s brief misses a part, the answer names it (brief_missing) and how to write it (brief_next): write it with fabric_task_brief.',
         inputSchema: {
           taskId: z.string().uuid(),
           minutes: z.number().int().min(1).max(240).optional().describe('How long you expect to need. Default 30'),
@@ -2278,7 +2279,15 @@ export class AgentSurface {
                              write_scopes: (n.write_scopes as string[]) ?? [] }))
           )
         }
+        // #region task-claim-brief — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#review-iteration-1
+        // The 0.3.14 review, iteration 1, PL-10: the rule every session reads claims with fabric_task_claim, so its
+        // answer names the brief's missing parts as fabric_work_claim's does. Advisory: a brief that could not be read
+        // adds nothing and refuses nothing.
+        const brief = await store.select('project_tasks', 'brief_what,brief_why,brief_expected').eq('id', taskId).maybeSingle()
+        const gaps = brief.error || !brief.data ? [] : specGaps(brief.data as BriefParts)
+        // #endregion task-claim-brief
         return json({ claimed: true, task_id: taskId, until: settled.expires_at,
+                      ...(gaps.length ? { brief_missing: gaps, brief_next: briefNext(gaps) } : {}),
                       ...(scopeConflicts.length
                         ? { scope_conflicts: scopeConflicts,
                             note: 'a task lease does not protect a file — coordinate these paths explicitly' }

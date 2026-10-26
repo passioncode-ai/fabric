@@ -205,8 +205,9 @@ export function composeHome(input: {
     if (claim) return { id: claim.taskId, projectId: claim.projectId, summary: taskSummary(briefById.get(claim.taskId), claim.title) }
     const launched = launchedBySession.get(sessionId)
     if (launched) return { id: launched.id, projectId: launched.project_id, summary: taskSummary(launched) }
+    // The 0.3.14 review, iteration 1, DA-6, ER-11: a stage report names the current task only while that task is running.
     const named = namedStageBySession.get(sessionId)
-    if (named?.task_id) return { id: named.task_id, projectId: named.project_id, summary: taskSummary(anyTask.get(named.task_id)) }
+    if (named?.task_id && anyTask.get(named.task_id)?.status === 'running') return { id: named.task_id, projectId: named.project_id, summary: taskSummary(anyTask.get(named.task_id)) }
     return null
   }
 
