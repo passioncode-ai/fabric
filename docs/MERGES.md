@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-26T15:30:00Z · `—` · agent/0313-rerule (with agent/0313-agents) → main · fast-forward
+- run: r-182fa592b059
+- files: apps/desktop/src/renderer/src/launch/AgentsScreen.tsx, agentRoster.ts, AgentPage.tsx, HistoryScreen.tsx, App.tsx, launch.css, i18n en and ru, their tests; SCN-166, SCN-167, SCN-168, the product model and mockup; the ledger (CO-419, CO-414 resolved, CO-438 added, five partial rows decided), backlog, the plan; the map
+- conflicts: docs/ux/scenarios.md (SCN-168: CO-430's amendment kept with CO-414's), generated reports rebuilt
+- summary: Fabric 0.3.13: Агенты as an agents screen (CO-419), История's filters and detail pane (CO-414), and decisions on the remaining partial rows.
+
 ### 2026-10-26T14:00:00Z · `—` · agent/0313-co374 → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/src/main/stackServices.ts, stackWatch.ts, env.ts, shared/stackWatch.ts, test/stack-services.test.mjs, test/stack-watch.test.mjs; AGENTS.md, the ledger (CO-374 resolved), backlog, the plan; the map
