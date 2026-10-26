@@ -41,6 +41,7 @@ import {
   type SourceRow
 } from '../shared/workClaims.ts'
 import { readRunHolds, readWork, type SessionSign } from './workRead.ts'
+import type { Nudge } from '../shared/abandonedSweep.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import { currentLeases, type LeaseRefsRead } from './agentSyncLeases.ts'
 
@@ -104,6 +105,9 @@ export interface WorkToolDeps {
   /** This session's nudges from the sweep of abandoned work, taken (and so cleared) by the answer that carries them
    *  (0.3.13 wave 2, SW-4; `abandonedSweepRun.ts#createAbandonedSweep`). */
   nudges?(): string[]
+  /** The same queue as `nudges`, each nudge whole, for a turn's answer (0.3.14 wave 2): a turn is observed on every
+   *  prompt, a heartbeat about once a day. */
+  turnNudges?(): Nudge[]
 }
 
 // #region work-session-end-guards — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
@@ -654,7 +658,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     {
       title: 'Record a turn of this session, or its end',
       description:
-        'For the working-with-fabric session hooks: one turn\'s facts (event turn) or the session\'s end (event end, with its reason): the HEAD commit, the number of files that differ from it and the lines added and removed. Counts and ids only: no path, no branch, no message, no diff. runtimeSessionId is the one this session enrolled with, or the one it was renamed to when the agent\'s session id changed (after /clear). The same idempotencyKey records nothing twice. An end ends this session in Fabric once the answer has gone, except three, which record nothing and keep the session with its claims: an end with reason clear (session-kept: /clear keeps the agent and its fabric-mcp), an end observed before this session enrolled (stale-end: an earlier process of the same agent session), and an end sent while the agent\'s own fabric-mcp still signs (agent-still-connected: that fabric-mcp records the end and releases the claims when it leaves). A session whose end is already recorded answers already-ended.',
+        'For the working-with-fabric session hooks: one turn\'s facts (event turn) or the session\'s end (event end, with its reason): the HEAD commit, the number of files that differ from it and the lines added and removed. Counts and ids only: no path, no branch, no message, no diff. runtimeSessionId is the one this session enrolled with, or the one it was renamed to when the agent\'s session id changed (after /clear). The same idempotencyKey records nothing twice. An end ends this session in Fabric once the answer has gone, except three, which record nothing and keep the session with its claims: an end with reason clear (session-kept: /clear keeps the agent and its fabric-mcp), an end observed before this session enrolled (stale-end: an earlier process of the same agent session), and an end sent while the agent\'s own fabric-mcp still signs (agent-still-connected: that fabric-mcp records the end and releases the claims when it leaves). A session whose end is already recorded answers already-ended. A turn\'s answer may carry nudges: reminders from Fabric\'s sweep of abandoned work, each {kind, says, task_id or request_id}, given once. Act on them before you go on: claim, move or release the task, answer or read the board request, as each says.',
       inputSchema: {
         event: z.enum(['turn', 'end']),
         runtime: z.string().regex(/^[a-z][a-z0-9-]{1,40}$/),
@@ -696,7 +700,12 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       }
       if (event === 'turn') {
         const e = await deps.append({ type: 'session.turn.observed@1', payload: facts })
-        return reply({ recorded: true, seq: e.seq })
+        // #region turn-nudges — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
+        // 0.3.14 wave 2: the sweep's nudges ride on every turn, taken only once the turn is recorded, so a turn the
+        // journal refused loses none; none, no field.
+        const nudges = deps.turnNudges?.() ?? []
+        return reply({ recorded: true, seq: e.seq, ...(nudges.length ? { nudges } : {}) })
+        // #endregion turn-nudges
       }
       // DA-1: one end per session. The agent's own fabric-mcp leaving records it too (agentSurface.ts#recordAgentLeft).
       if (deps.claimEndRecord && !deps.claimEndRecord())

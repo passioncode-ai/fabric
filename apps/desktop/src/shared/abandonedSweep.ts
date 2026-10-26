@@ -183,6 +183,20 @@ export function nudgeText(f: Finding): string {
   return `Fabric: ${SUBJECT[f.kind](f)} has been still for ${Math.floor(f.stillMs / 60_000)} min. ${f.nextStep}`
 }
 
+/** One nudge as an agent's answer carries it (0.3.14 wave 2): what kind of finding, the line it is told, and the task
+ *  or board request it is about, when the finding names one. Snake case: it is read in an MCP tool's JSON answer. */
+export interface Nudge {
+  kind: AbandonedKind
+  says: string
+  task_id?: string
+  request_id?: string
+}
+
+/** A finding as the nudge an agent is given. */
+export function nudgeOf(f: Finding): Nudge {
+  return { kind: f.kind, says: nudgeText(f), ...(f.taskId ? { task_id: f.taskId } : {}), ...(f.requestId ? { request_id: f.requestId } : {}) }
+}
+
 /** Lapsed claims seen in two sweeps in a row are released (SW-8); `seen` carries this sweep's lapsed keys forward. */
 export function lapsedTwice(seen: ReadonlySet<string>, findings: Finding[]): { release: Finding[]; seen: Set<string> } {
   const lapsed = findings.filter((f) => f.kind === 'claim-lapsed')

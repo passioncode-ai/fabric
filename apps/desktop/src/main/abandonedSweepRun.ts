@@ -20,12 +20,13 @@
 import {
   findAbandoned,
   lapsedTwice,
-  nudgeText,
+  nudgeOf,
   sweepDue,
   toTell,
   TELL_QUIET_MS,
   type AbandonedKind,
   type Finding,
+  type Nudge,
   type SweepClaim,
   type SweepRequest,
   type SweepTerminal,
@@ -113,7 +114,7 @@ export interface SweepResult {
 /** A finding as the operator's queue reads it (SW-9): since when it has stood still, fixed at the sweep that found it. */
 export type SweptFinding = Finding & { stillSince: number }
 
-interface ProjectNudge { key: string; text: string; at: number; takenBy: Set<string> }
+interface ProjectNudge { key: string; nudge: Nudge; at: number; takenBy: Set<string> }
 
 const kindOf = (key: string): AbandonedKind => key.slice(0, key.indexOf(':')) as AbandonedKind
 
@@ -130,7 +131,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   /** SW-9: what the latest sweep found, for the operator's queue; null before the first sweep. */
   let latest: { at: number; findings: SweptFinding[] } | null = null
   /** Per session, at most one line per finding key: a newer telling replaces the older (finding 2). */
-  const bySession = new Map<string, Map<string, string>>()
+  const bySession = new Map<string, Map<string, Nudge>>()
   const byProject = new Map<string, ProjectNudge[]>()
 
   const push = <T,>(list: T[], item: T): void => {
@@ -207,22 +208,22 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     dropStale(new Set(findings.map((f) => f.key)), blind)
     let queued = 0
     for (const f of decided.tell) {
-      const text = nudgeText(f)
+      const nudge = nudgeOf(f)
       // A lapsed claim's session has ended: there is nobody to wake but the project's other agents.
       const own = f.kind === 'claim-lapsed' ? null : f.sessionId
       // 0.3.13 review, iteration 1, ER-2: nothing is ever typed into a terminal. A line ends in Enter, and a terminal
       // quiet on a running task may be a coding agent waiting on a permission prompt, where Enter approves. A stalled
       // terminal's finding waits as that session's nudge like every other, and the operator sees it in «На проверке».
       if (own) {
-        const lines = bySession.get(own) ?? new Map<string, string>()
+        const lines = bySession.get(own) ?? new Map<string, Nudge>()
         lines.delete(f.key)
-        lines.set(f.key, text)
+        lines.set(f.key, nudge)
         while (lines.size > NUDGES_PER_KEY) lines.delete(lines.keys().next().value as string)
         bySession.set(own, lines)
         queued++
       } else if (f.projectId) {
         const list = prune(f.projectId, now).filter((n) => n.key !== f.key)
-        push(list, { key: f.key, text, at: now, takenBy: new Set<string>() })
+        push(list, { key: f.key, nudge, at: now, takenBy: new Set<string>() })
         byProject.set(f.projectId, list)
         queued++
       }
@@ -305,6 +306,14 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     return { findings, told: decided.tell.length, queued, released, failedReads }
   }
 
+  const takeNudgeItems = (sessionId: string, projectId: string | null): Nudge[] => {
+    const own = [...(bySession.get(sessionId)?.values() ?? [])]
+    bySession.delete(sessionId)
+    const shared = projectId ? prune(projectId, deps.now()).filter((n) => !n.takenBy.has(sessionId)) : []
+    for (const n of shared) n.takenBy.add(sessionId)
+    return [...own, ...shared.map((n) => n.nudge)]
+  }
+
   return {
     /** What the latest sweep found, a copy (SW-9): the operator's attention queue reads it. Null before the first sweep. */
     current(): { at: number; findings: SweptFinding[] } | null {
@@ -323,13 +332,12 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
         inFlight = false
       }
     },
-    /** This session's nudges, and its project's it has not yet taken; the session's own are cleared (SW-4). */
+    /** This session's nudges, and its project's it has not yet taken; the session's own are cleared (SW-4). One
+     *  queue for every answer that carries them: a turn's (0.3.14 wave 2) takes what fabric_work_list then does not. */
+    takeNudgeItems,
+    /** The same nudges as the lines fabric_work_list and fabric_heartbeat carry. */
     takeNudges(sessionId: string, projectId: string | null): string[] {
-      const own = [...(bySession.get(sessionId)?.values() ?? [])]
-      bySession.delete(sessionId)
-      const shared = projectId ? prune(projectId, deps.now()).filter((n) => !n.takenBy.has(sessionId)) : []
-      for (const n of shared) n.takenBy.add(sessionId)
-      return [...own, ...shared.map((n) => n.text)]
+      return takeNudgeItems(sessionId, projectId).map((n) => n.says)
     }
   }
 }

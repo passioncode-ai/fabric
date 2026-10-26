@@ -172,3 +172,46 @@ test('TR-1: a turn naming the session\'s current (renamed) runtime id is this se
   const other = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: { ...hookTurn({}), runtimeSessionId: 'rt-x', idempotencyKey: 'rt-x:0001' } }))
   assert.equal(other.code, 'not-this-session')
 })
+
+// 0.3.14 wave 2: reminders ride on every turn. The hook sends a turn on every prompt (5 929 in the live audit of
+// 2026-10-26) while a heartbeat ran about once a day, so the sweep's nudges reach the agent here too: the same
+// per-session queue `fabric_work_list` takes from, each given once, absent when there is nothing.
+test('a turn\'s answer carries the session\'s nudges, taken once, after the turn is recorded', async () => {
+  const queue = [{ kind: 'claim-silent', says: 'Fabric: task t1 you claimed has been still for 20 min. Move it.', task_id: 't1' },
+    { kind: 'answer-unread', says: 'Fabric: the answer to board request r1 has been still for 5 min. Read it.', request_id: 'r1' }]
+  let takes = 0
+  const h = await connect('rt-hook-1', { turnNudges: () => { takes++; return queue.splice(0) } })
+  const first = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: hookTurn({ filesChanged: 2 }) }))
+  assert.equal(first.recorded, true)
+  assert.deepEqual(first.nudges, [
+    { kind: 'claim-silent', says: 'Fabric: task t1 you claimed has been still for 20 min. Move it.', task_id: 't1' },
+    { kind: 'answer-unread', says: 'Fabric: the answer to board request r1 has been still for 5 min. Read it.', request_id: 'r1' }
+  ])
+  const second = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: { ...hookTurn({}), idempotencyKey: 'rt-hook-1:0001780000001' } }))
+  assert.equal(second.recorded, true)
+  assert.equal('nudges' in second, false, 'taken once: the next turn has none, and no empty field')
+  assert.equal(takes, 2)
+})
+
+test('a turn whose record fails takes no nudge, and an end carries none', async () => {
+  let takes = 0
+  const h = await connect('rt-hook-1', {
+    turnNudges: () => { takes++; return [{ kind: 'claim-silent', says: 'x' }] },
+    append: async () => { throw new Error('journal refused') }
+  })
+  const r = await h.client.callTool({ name: 'fabric_session_observe', arguments: hookTurn({}) })
+  assert.equal(r.isError, true)
+  assert.equal(takes, 0, 'a turn that was not recorded leaves the nudges for the next one')
+  const h2 = await connect('rt-hook-1', { turnNudges: () => { takes++; return [{ kind: 'claim-silent', says: 'x' }] } })
+  const end = said(await h2.client.callTool({ name: 'fabric_session_observe', arguments: { ...hookTurn({}), event: 'end', reason: 'other' } }))
+  assert.equal('nudges' in end, false)
+  assert.equal(takes, 0)
+})
+
+test('the tool\'s description tells the agent to act on a turn\'s nudges', async () => {
+  const h = await connect()
+  const tools = (await h.client.listTools()).tools
+  const d = tools.find((t) => t.name === 'fabric_session_observe').description
+  assert.match(d, /nudges/)
+  assert.doesNotMatch(d, /—/)
+})

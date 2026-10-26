@@ -90,6 +90,7 @@ import { currentLeases } from './agentSyncLeases.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import type { LeaseRefsRead } from './agentSyncLeases.ts'
 import { CLAIM_DEFAULT_MINUTES, refusalAfterWrite, runHoldRefusal, sessionStale, type CameIn } from '../shared/workClaims.ts'
+import type { Nudge } from '../shared/abandonedSweep.ts'
 import { readRunHolds } from './workRead.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 
@@ -286,6 +287,8 @@ export interface AgentSurfaceDeps {
   /** A session's nudges from the sweep of abandoned work, taken by the answer that carries them (0.3.13 wave 2, SW-4;
    *  `abandonedSweepRun.ts#createAbandonedSweep`). Absent: no answer carries nudges. */
   nudges?: (sessionId: string, projectId: string) => string[]
+  /** The same queue, each nudge whole, for a turn's answer (`fabric_session_observe`, 0.3.14 wave 2). */
+  nudgeItems?: (sessionId: string, projectId: string) => Nudge[]
   db: SupabaseClient
   journal: Journal
   /** Read late, and it can answer NOTHING. The surface starts listening before
@@ -2907,6 +2910,7 @@ export class AgentSurface {
       sessions: () => this.projectSessions(scope.projectId),
       session: (id) => this.sessionSign(id),
       nudges: () => this.deps.nudges?.(scope.sessionId, scope.projectId) ?? [],
+      turnNudges: () => this.deps.nudgeItems?.(scope.sessionId, scope.projectId) ?? [],
       resolveSource: (source) =>
         this.deps.work
           ? this.deps.work.resolveSource(scope.projectId, source)

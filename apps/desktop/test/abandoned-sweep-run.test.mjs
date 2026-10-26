@@ -707,3 +707,23 @@ test('iteration 3 DA-5: every read and bound name the sweep can mark passes the 
   assert.equal(prepareEventPayload('work.swept@1', { found: {}, told: 0, queued: 0, released: 0, unread: [...SWEEP_READS], capped: [...SWEEP_CAPS] }).state, 'prepared')
   assert.ok(SWEEP_READS.includes('tasks') && SWEEP_CAPS.includes('claims'))
 })
+
+// ── 0.3.14 wave 2: nudges on every turn ───────────────────────────────────────────────────────────────────────
+test('takeNudgeItems: each nudge as {kind, says, task_id | request_id}, from the same queue takeNudges reads, once', async () => {
+  const w = world({
+    claims: [silentClaim('c1', 's-enrolled')],
+    requests: [{ requestId: 'r1', targetProjectId: 'p1', requesterProjectId: 'p2', state: 'queued', movedAt: iso(T0 - 10 * MIN), answerUnreadSince: null }]
+  })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  const items = sweep.takeNudgeItems('s-enrolled', 'p1')
+  assert.deepEqual(items.map((n) => Object.keys(n).sort()), [['kind', 'says', 'task_id'], ['kind', 'request_id', 'says']])
+  assert.deepEqual(items.map((n) => n.kind), ['claim-silent', 'request-unmoved'])
+  assert.equal(items[0].task_id, 'task-c1')
+  assert.equal(items[1].request_id, 'r1')
+  assert.match(items[0].says, /^Fabric: task task-c1 you claimed has been still for 20 min\./)
+  assert.deepEqual(sweep.takeNudgeItems('s-enrolled', 'p1'), [], 'taken once')
+  assert.deepEqual(sweep.takeNudges('s-enrolled', 'p1'), [], 'and gone from the strings fabric_work_list reads too')
+  assert.equal(sweep.takeNudges('s-other', 'p1').length, 1, 'the project nudge still reaches another session')
+  assert.deepEqual(sweep.takeNudgeItems('s-other', 'p1'), [], 'once per session, whichever answer took it')
+})
