@@ -1,0 +1,135 @@
+// #region abandoned-sweep — docs: docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md#requirements
+/**
+ * The sweep of abandoned work (0.3.13 wave 2, CO-427; the operator, 2026-10-26: «Раз в три минуты обязательный чек
+ * для всех агентов, чтобы у нас никогда задачи никакие не было»). Pure: the main process reads the claims, tasks,
+ * board requests and its own terminals, hands them in, and tells what comes back. Nothing here reads or writes.
+ */
+import { SESSION_STALE_MS } from './workClaims'
+
+/** The one-minute cycle sweeps on every third pass (SW-1): three minutes, without a timer of its own. */
+export const SWEEP_EVERY_TICKS = 3
+/** How long work stands still before it is abandoned (SW-2). */
+export const STILL_MS = 3 * 60_000
+/** A finding is told once, then not again for this long while it stays the same (SW-5). */
+export const TELL_QUIET_MS = 30 * 60_000
+
+export type AbandonedKind =
+  | 'claim-silent'
+  | 'claim-lapsed'
+  | 'task-unclaimed'
+  | 'request-unmoved'
+  | 'answer-unread'
+  | 'terminal-stalled'
+
+export interface SweepClaim {
+  claimId: string
+  taskId: string | null
+  projectId: string | null
+  sessionId: string
+  expiresAt: string
+  claimedAt: string
+  renewedAt: string | null
+  /** The holding session's last sign; null when Fabric no longer holds that session. */
+  session: { lastSignAt: number | null } | null
+}
+
+export interface SweepTask { taskId: string; projectId: string | null; state: string; movedAt: string; claimed: boolean }
+
+export interface SweepRequest {
+  requestId: string
+  targetProjectId: string
+  requesterProjectId: string
+  state: string
+  movedAt: string
+  /** When the answer reached the requester and stayed unread; null when there is no answer or it was read. */
+  answerUnreadSince: string | null
+}
+
+export interface SweepTerminal { sessionId: string; projectId: string | null; taskId: string | null; liveness: string; since: string }
+
+export interface SweepInput { now: number; claims: SweepClaim[]; tasks: SweepTask[]; requests: SweepRequest[]; terminals: SweepTerminal[] }
+
+export interface Finding {
+  kind: AbandonedKind
+  /** One key per item and kind: what SW-5 remembers. */
+  key: string
+  projectId: string | null
+  taskId: string | null
+  requestId: string | null
+  sessionId: string | null
+  claimId: string | null
+  /** How long it has stood still (SW-3). */
+  stillMs: number
+  /** What the agent that is woken does next, in its own reading. */
+  nextStep: string
+}
+
+const OPEN_REQUEST = new Set(['queued', 'claimed', 'accepted'])
+
+/** Every third pass, counting from one (SW-1). */
+export function sweepDue(pass: number): boolean {
+  return pass > 0 && pass % SWEEP_EVERY_TICKS === 0
+}
+
+/** What stands still now (SW-2), each with its owner and how long (SW-3). */
+export function findAbandoned(input: SweepInput): Finding[] {
+  const { now } = input
+  const out: Finding[] = []
+  const base = { taskId: null, requestId: null, sessionId: null, claimId: null }
+  for (const c of input.claims) {
+    const own = Math.max(Date.parse(c.claimedAt), c.renewedAt ? Date.parse(c.renewedAt) : 0)
+    if (c.session === null) {
+      out.push({ ...base, kind: 'claim-lapsed', key: `claim-lapsed:${c.claimId}`, projectId: c.projectId, taskId: c.taskId,
+        sessionId: c.sessionId, claimId: c.claimId, stillMs: now - own,
+        nextStep: 'The session that claimed this task has ended. Take the task if it is yours to continue; otherwise Fabric returns it to the backlog.' })
+      continue
+    }
+    const sign = Math.max(own, c.session.lastSignAt ?? 0)
+    if (Date.parse(c.expiresAt) <= now && now - sign >= SESSION_STALE_MS)
+      out.push({ ...base, kind: 'claim-silent', key: `claim-silent:${c.claimId}`, projectId: c.projectId, taskId: c.taskId,
+        sessionId: c.sessionId, claimId: c.claimId, stillMs: now - sign,
+        nextStep: 'You hold this task and have not moved it: move it, hand it over or let it go (fabric_work_release).' })
+  }
+  for (const t of input.tasks) {
+    const still = now - Date.parse(t.movedAt)
+    if (t.state === 'running' && !t.claimed && still >= STILL_MS)
+      out.push({ ...base, kind: 'task-unclaimed', key: `task-unclaimed:${t.taskId}`, projectId: t.projectId, taskId: t.taskId, stillMs: still,
+        nextStep: 'This task is running and nobody holds it: claim it (fabric_work_claim) and continue, or move it back to the backlog.' })
+  }
+  for (const r of input.requests) {
+    const still = now - Date.parse(r.movedAt)
+    if (OPEN_REQUEST.has(r.state) && still >= STILL_MS)
+      out.push({ ...base, kind: 'request-unmoved', key: `request-unmoved:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
+        nextStep: 'A board request addressed to your project has not moved: read it (com.get) and answer it (com.reply), or say why it waits.' })
+    if (r.answerUnreadSince && now - Date.parse(r.answerUnreadSince) >= STILL_MS)
+      out.push({ ...base, kind: 'answer-unread', key: `answer-unread:${r.requestId}`, projectId: r.requesterProjectId, requestId: r.requestId,
+        stillMs: now - Date.parse(r.answerUnreadSince),
+        nextStep: 'A board request your project sent has been answered and the answer is unread: read it (com.list unread) and carry on.' })
+  }
+  for (const s of input.terminals) {
+    if (s.liveness === 'stalled' && s.taskId)
+      out.push({ ...base, kind: 'terminal-stalled', key: `terminal-stalled:${s.sessionId}`, projectId: s.projectId, taskId: s.taskId,
+        sessionId: s.sessionId, stillMs: now - Date.parse(s.since),
+        nextStep: 'This session holds a task and has been still: continue it, or say what blocks it (fabric_heartbeat with phase blocked).' })
+  }
+  return out
+}
+
+/** Which findings to tell now (SW-5): once per key, then quiet for TELL_QUIET_MS; keys no longer found are forgotten. */
+export function toTell(findings: Finding[], told: ReadonlyMap<string, number>, now: number): { tell: Finding[]; told: Map<string, number> } {
+  const next = new Map<string, number>()
+  const tell: Finding[] = []
+  for (const f of findings) {
+    if (next.has(f.key)) continue
+    const last = told.get(f.key)
+    if (last === undefined || now - last >= TELL_QUIET_MS) { tell.push(f); next.set(f.key, now) } else next.set(f.key, last)
+  }
+  return { tell, told: next }
+}
+
+/** Lapsed claims seen in two sweeps in a row are released (SW-8); `seen` carries this sweep's lapsed keys forward. */
+export function lapsedTwice(seen: ReadonlySet<string>, findings: Finding[]): { release: Finding[]; seen: Set<string> } {
+  const lapsed = findings.filter((f) => f.kind === 'claim-lapsed')
+  return { release: lapsed.filter((f) => seen.has(f.key)), seen: new Set(lapsed.map((f) => f.key)) }
+}
+// #endregion abandoned-sweep
