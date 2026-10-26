@@ -112,4 +112,15 @@ export function composeSessionTasks(input: {
   out.sort((a, b) => b.claimedAt.localeCompare(a.claimedAt))
   return { tasks: out.slice(0, limit), capped: !!input.readCapped || out.length > limit }
 }
+/** The lanes of an agent's tasks (the operator's second review, 2026-10-26, v2 §4.9, R-12): in work, on review, handed
+ *  on (released by the session other than done, the task not finished), and done (finished or cancelled). */
+export const SESSION_LANES = ['inWork', 'review', 'handed', 'done'] as const
+export type SessionLane = typeof SESSION_LANES[number]
+
+export function laneOf(x: SessionTask): SessionLane {
+  if (x.status === 'review') return 'review'
+  if (x.status === 'done' || x.status === 'cancelled' || x.status === 'unknown') return 'done'
+  if (x.releasedAt && x.releasedHow !== 'done') return 'handed'
+  return 'inWork'
+}
 // #endregion session-tasks

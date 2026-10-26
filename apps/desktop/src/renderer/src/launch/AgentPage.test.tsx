@@ -212,12 +212,14 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={onOpenTask} />)
     const list = await screen.findByRole('list', { name: en['agentPage.tasks'] })
     expect(session).toHaveBeenCalledWith('s1')
+    // The operator's second review (R-12): in lanes; the first lane with a task is open, the others counted.
+    const lanes = screen.getByRole('group', { name: en['agentScreen.lanes'] })
+    expect(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.review']}`) }).getAttribute('aria-pressed')).toBe('true')
+    expect(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.done']}`) }).textContent).toContain('1')
     const rows = list.querySelectorAll(':scope > li')
-    expect(rows).toHaveLength(2)
+    expect(rows).toHaveLength(1)
     expect(rows[0].textContent).toContain('Task t2')
     expect(rows[0].textContent).toContain(en['board.review'])
-    expect(rows[1].textContent).toContain(en['launch.home.work.untitled'])
-    expect(rows[1].textContent).toContain(en['agentPage.ended.done'].replace(' {time}', ''))
     const first = rows[0].querySelector('details')!
     expect(first.open).toBe(false)
     fireEvent.click(first.querySelector('summary')!)
@@ -228,6 +230,11 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     const history = (await screen.findByRole('list', { name: en['agentPage.did'] })).closest('details')!
     expect(history.open).toBe(false)
     expect(list.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    fireEvent.click(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.done']}`) }))
+    const done = screen.getByRole('list', { name: en['agentPage.tasks'] }).querySelectorAll(':scope > li')
+    expect(done).toHaveLength(1)
+    expect(done[0].textContent).toContain(en['launch.home.work.untitled'])
+    expect(done[0].textContent).toContain(en['agentPage.ended.done'].replace(' {time}', ''))
   })
 
   // The 0.3.14 review, iteration 1: UX-8, each ending in words of its own and an unknown one said as not recorded, in
@@ -237,14 +244,15 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [ended('operator'), ended('lapsed'), ended('weird-how'), task('l1', { via: 'launch', claims: 0 })], capped: false }))
     vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history: vi.fn(async () => []) } } }))
     render(<I18nProvider locale="ru"><AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={vi.fn()} /></I18nProvider>)
-    const list = await screen.findByRole('list', { name: ru['agentPage.tasks'] })
+    expect((await screen.findByRole('list', { name: ru['agentPage.tasks'] })).textContent).toContain('Запущена через Fabric')
+    fireEvent.click(within(screen.getByRole('group', { name: ru['agentScreen.lanes'] })).getByRole('button', { name: new RegExp(`^${ru['agentScreen.lane.handed']}`) }))
+    const list = screen.getByRole('list', { name: ru['agentPage.tasks'] })
     const text = list.textContent ?? ''
     expect(text).toContain(ru['agentPage.ended.operator']!.replace(' {time}', ''))
     expect(text).toContain(ru['agentPage.ended.lapsed']!.replace(' {time}', ''))
     expect(text).toContain('как именно, не записано')
     expect(text).not.toContain('weird-how')
     expect(text).not.toContain('Закончил ')
-    expect(text).toContain('Запущена через Fabric')
   })
 
   it('UX-4: the history\'s heading stands outside its disclosure, which says what it opens', async () => {

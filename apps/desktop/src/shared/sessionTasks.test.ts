@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { composeSessionTasks, SESSION_TASKS_LIMIT, type SessionClaimRow, type SessionTaskRow } from './sessionTasks'
+import { composeSessionTasks, laneOf, SESSION_TASKS_LIMIT, type SessionClaimRow, type SessionTask, type SessionTaskRow } from './sessionTasks'
 
 const claim = (work_id: string, claimed_at: string, extra: Partial<SessionClaimRow> = {}): SessionClaimRow => ({
   work_id, project_id: 'p1', claimed_at, released_at: null, released_how: null, ...extra
@@ -75,5 +75,21 @@ describe('composeSessionTasks', () => {
 
   it('no tasks is an empty list, not a failure', () => {
     expect(composeSessionTasks({ claims: [], launched: [], tasks: [], projects })).toEqual({ tasks: [], capped: false })
+  })
+})
+
+// The operator's second review, 2026-10-26 (v2 §4.9, R-12): an agent's tasks in lanes: in work, on review, handed on,
+// and done.
+describe('laneOf', () => {
+  const t = (over: Partial<SessionTask>): SessionTask => ({ taskId: 'x', projectId: 'p', projectName: null, summary: '', brief: { what: null, why: null, expected: null },
+    status: 'running', claimedAt: 'a', releasedAt: null, releasedHow: null, claims: 1, via: 'claim', ...over })
+  it('puts each task in its lane by its column and how the session let it go', () => {
+    expect(laneOf(t({ status: 'running' }))).toBe('inWork')
+    expect(laneOf(t({ status: 'backlog', via: 'launch', claims: 0 }))).toBe('inWork')
+    expect(laneOf(t({ status: 'review', releasedAt: 'b', releasedHow: 'done' }))).toBe('review')
+    expect(laneOf(t({ status: 'running', releasedAt: 'b', releasedHow: 'handed-over' }))).toBe('handed')
+    expect(laneOf(t({ status: 'backlog', releasedAt: 'b', releasedHow: 'let-go' }))).toBe('handed')
+    expect(laneOf(t({ status: 'done', releasedAt: 'b', releasedHow: 'done' }))).toBe('done')
+    expect(laneOf(t({ status: 'cancelled' }))).toBe('done')
   })
 })

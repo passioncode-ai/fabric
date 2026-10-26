@@ -23,7 +23,7 @@
 import { useEffect, useState } from 'react'
 import type { LiveAgent } from '../../../shared/homeLive'
 import type { FeedEvent } from '../../../shared/types'
-import type { SessionTask, SessionTasksView } from '../../../shared/sessionTasks'
+import { laneOf, SESSION_LANES, type SessionLane, type SessionTask, type SessionTasksView } from '../../../shared/sessionTasks.ts'
 import { subjectOfEvent } from '../../../shared/eventSubject.ts'
 import { mayHaveEarlier, SESSION_HISTORY_WINDOW, shownHistory } from '../../../shared/sessionHistory.ts'
 import { lastPhase, taskTrail, type TaskTrail } from '../../../shared/agentTrail.ts'
@@ -85,6 +85,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   }, [agent.sessionId, mark, attempt])
   const [tasksRead, setTasksRead] = useState<TasksRead & { of: string }>({ at: 'reading', of: agent.sessionId })
   const [tasksAttempt, setTasksAttempt] = useState(0)
+  const [lane, setLane] = useState<SessionLane | null>(null)
   useEffect(() => {
     let alive = true
     const of = agent.sessionId
@@ -134,6 +135,10 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const trails = events ? taskTrail(events, holds) : null
   const phase = events ? lastPhase(events) : null
   const current = agent.task ? (tasksView?.tasks.find((x) => x.taskId === agent.task!.id) ?? null) : null
+  const laneCounts = Object.fromEntries(SESSION_LANES.map((l) => [l, (tasksView?.tasks ?? []).filter((x) => laneOf(x) === l).length])) as Record<SessionLane, number>
+  // Until the person picks one, the first lane that has a task is open.
+  const shownLane: SessionLane = lane ?? SESSION_LANES.find((l) => laneCounts[l] > 0) ?? 'inWork'
+  const laneTasks = (tasksView?.tasks ?? []).filter((x) => laneOf(x) === shownLane)
   const currentTrail = agent.task && trails ? (trails.get(agent.task.id) ?? null) : null
   const historyFull = events ? mayHaveEarlier(events) : false
   const heard = agent.lastSignAt ?? agent.startedAt
@@ -235,11 +240,21 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
               <button type="button" className="lp-button" onClick={() => setTasksAttempt((n) => n + 1)}>{t('agentPage.tasksRetry')}</button>
             </>
           )}
+          {tasksView && tasksView.tasks.length > 0 && (
+            // The operator's second review (R-12): the tasks in lanes, each with its count; the lane opened is the person's.
+            <div className="lp-tabs as-lanes" role="group" aria-label={t('agentScreen.lanes')}>
+              {SESSION_LANES.map((l) => (
+                <button key={l} type="button" className="lp-tab" aria-pressed={shownLane === l} onClick={() => setLane(l)}>
+                  {t(`agentScreen.lane.${l}` as 'agentScreen.lane.inWork')} <span className="lp-count">{laneCounts[l]}</span>
+                </button>
+              ))}
+            </div>
+          )}
           {tasksView && (tasksView.tasks.length === 0
             ? (tasksMine.at === 'ready' && <p className="lp-meta">{t('agentPage.noTasks')}</p>)
-            : (
+            : laneTasks.length === 0 ? <p className="lp-meta">{t('agentScreen.laneEmpty')}</p> : (
               <ul className="hx-list ap-tasks" aria-label={t('agentPage.tasks')}>
-                {tasksView.tasks.map((x) => {
+                {laneTasks.map((x) => {
                   const brief = [['task.what', x.brief.what], ['task.why', x.brief.why], ['task.expected', x.brief.expected]] as const
                   return (
                     <li key={x.taskId} className="hx-row">
