@@ -337,21 +337,21 @@ describe('a responder grant, as main sends it (ADR-0149 §2)', () => {
     expect(sayGrant(tEn, askLines(respondRow(null))[0], () => 'Atlas')).toBe('answer analytics.cohorts and analytics.retention requests for Atlas')
     expect(sayAsk(tEn, askLines(respondRow(null))[0])).toBe('answer analytics.cohorts and analytics.retention requests for this project')
   })
-  it('Russian says where requests come FROM in the dative — «присылают проекту «Atlas»» / «этому проекту» — never the locative (wave-2 product finding 4)', () => {
+  it('Russian says where requests come FROM in the dative — «присылают/отправляют проекту «Atlas»» / «этому проекту» — never the locative (wave-2 product finding 4)', () => {
     const named = pendingFacts(respondRow(), false), unnamed = pendingFacts(respondRow(null), false)
-    expect(sayRequest(tRu, named).what).toContain('присылают проекту «Atlas»')
+    expect(sayRequest(tRu, named).what).toContain('отправляют проекту «Atlas»')
     expect(consentPrompt(tRu, named).statement).toContain('присылают проекту «Atlas»')
-    expect(sayRequest(tRu, unnamed).what).toContain('присылают этому проекту')
+    expect(sayRequest(tRu, unnamed).what).toContain('отправляют этому проекту')
     expect(consentPrompt(tRu, unnamed).statement).toContain('присылают этому проекту')
     for (const f of [named, unnamed]) {
       expect(sayRequest(tRu, f).what).not.toMatch(/присылают в /)
       expect(consentPrompt(tRu, f).statement).not.toMatch(/присылают в /)
     }
   })
-  it('the detail line keeps the contract\'s caveat: the grant itself allows no spend, publish or delete, the agent keeps its own tools, a request is never an approval (wave-2 product finding 10)', () => {
+  it('the detail line keeps the contract\'s caveat: the grant itself allows no spend, publish or delete, the agent keeps its own tools, a request is not an approval without the operator\'s words, place and scope (wave-2 product finding 10; DEC-0126)', () => {
     const f = pendingFacts(respondRow(), false)
-    expect(consentPrompt(tEn, f).detail).toContain('This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is never an approval.')
-    expect(consentPrompt(tRu, f).detail).toContain('Само это разрешение не даёт ему ни тратить деньги, ни публиковать, ни удалять; свои инструменты у него остаются, а запрос никогда не одобрение.')
+    expect(consentPrompt(tEn, f).detail).toContain('This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is not an approval unless it carries your own words, when and where you said them, and what you approved.')
+    expect(consentPrompt(tRu, f).detail).toContain('Само это разрешение не даёт ему ни тратить деньги, ни публиковать, ни удалять; свои инструменты у него остаются. Запрос не считается одобрением, если в нём нет ваших собственных слов, сведений о том, когда и где вы их сказали, и указания, что именно вы одобрили.')
   })
   it('says nothing of the machine, and every Russian sentence is Russian once the untrusted values are gone', () => {
     for (const t of [tEn, tRu]) for (const row of [respondRow(), respondRow(null)]) {

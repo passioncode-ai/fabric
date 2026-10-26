@@ -768,7 +768,7 @@ lands beside SCN-132.
 | `access.ask.respondThis` | answer {capabilities} requests for this project | apps/desktop/src/renderer/src/i18n/en.ts:1062 | SCN-145 (responder grant) | proposed |
 | `access.respond.title` | Let {name} answer {capabilities} requests for {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1063 | SCN-145 (responder grant) | proposed |
 | `access.respond.message` | {name} asks to answer the requests other projects send to {project} | apps/desktop/src/renderer/src/i18n/en.ts:1064 | SCN-145 (responder grant) | proposed |
-| `access.respond.what` | It may take and answer the requests other projects send to {project} for these capabilities. This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is never an approval. | apps/desktop/src/renderer/src/i18n/en.ts:1065 | SCN-145 (responder grant) | proposed |
+| `access.respond.what` | It may take and answer the requests other projects send to {project} for these capabilities. This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is not an approval unless it carries your own words, when and where you said them, and what you approved. | apps/desktop/src/renderer/src/i18n/en.ts:1065 | SCN-145 (responder grant); DEC-0126, CO-435 (Copylot d1af4aae) | proposed |
 | `access.respond.projectTo` | {name} | apps/desktop/src/renderer/src/i18n/en.ts:1066 | SCN-145 (responder grant) | proposed |
 | `access.respond.thisProjectTo` | this project | apps/desktop/src/renderer/src/i18n/en.ts:1067 | SCN-145 (responder grant) | proposed |
 | `access.respond.revoke` | For a year, unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts:1068 | SCN-145 (responder grant) | proposed |
@@ -786,7 +786,8 @@ languages, never «без названия», which claimed the project had no n
 
 The responder grant (SCN-145, ADR-0149 §2 and Amendment 2) has its own rows above. Its `access.respond.what` keeps the
 contract's caveat — the grant itself lets the agent spend, publish or delete nothing, it keeps its own tools, and a
-request is never an approval — and the project requests are sent TO has its own slot, `access.respond.projectTo` /
+request is not an approval unless it carries the operator's own words, when and where they said them, and what they
+approved (since 2026-10-26, DEC-0126, CO-435) — and the project requests are sent TO has its own slot, `access.respond.projectTo` /
 `access.respond.thisProjectTo`, because Russian needs the dative there («присылают проекту «{name}»» / «этому проекту»)
 where the enrollment's slot is the locative («в проекте «{name}»»), wave-2 product findings 4 and 10 (2026-10-13).
 

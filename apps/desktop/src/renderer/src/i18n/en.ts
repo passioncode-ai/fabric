@@ -1169,7 +1169,7 @@ export const en = {
   'access.ask.resolve': 'read which Fabric project a folder belongs to',
   'access.respond.title': 'Let {name} answer {capabilities} requests for {project}?',
   'access.respond.message': '{name} asks to answer the requests other projects send to {project}',
-  'access.respond.what': 'It may take and answer the requests other projects send to {project} for these capabilities. This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is never an approval.',
+  'access.respond.what': 'It may take and answer the requests other projects send to {project} for these capabilities. This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is not an approval unless it carries your own words, when and where you said them, and what you approved.',
   'access.respond.projectTo': '{name}',
   'access.respond.thisProjectTo': 'this project',
   'access.respond.revoke': 'For a year, unless you revoke it under Agent access in settings.',

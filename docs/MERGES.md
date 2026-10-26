@@ -10,6 +10,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - conflicts: none
 - summary: Fabric 0.3.13: a half-up stack (the database up, rest and auth gone) heals itself once at start and in the watch's recovery.
 
+### 2026-10-26T12:00:00Z · `—` · agent/0313-co435 → main · fast-forward
+- run: r-182fa592b059
+- files: apps/desktop/src/shared/protocolObligations.ts and its tests, accessWords.test.ts, i18n en and ru (access.respond.what); SCN-145, the plan, the carry-over ledger (CO-435); the map
+- conflicts: none
+- summary: Fabric 0.3.13, wave 4 step 2: an approval the operator gave, relayed with its words, place, time and scope from the operator's own Project, binds (DEC-0126); the board rule and Settings no longer say a request is never an approval.
+
 ### 2026-10-26T11:00:00Z · `—` · agent/0313-repin → main · fast-forward
 - run: r-182fa592b059
 - files: apps/desktop/test/fixtures/fabric-agent-contract (211 files), contract-consumer-fixtures.mjs, boardService.ts, boardTools.ts, commsTransition.ts, the board and hub tests; the wave 4 contract delta and the plan; the carry-over ledger and backlog (CO-434 to CO-436); the map

@@ -38,3 +38,24 @@ describe('wave 2 rules', () => {
     expect(joined).toMatch(/do not ask the operator again/)
   })
 })
+
+// CO-435 (DEC-0126 OA-1 to OA-5, contract 39c8977): the board rule no longer calls every board message "never an
+// approval"; a relayed approval of the operator with its four parts, from the operator's own Project or machine, binds.
+describe('relayed approvals (CO-435, DEC-0126)', () => {
+  it('the board rule accepts a relayed approval with the four parts from the operator\'s own Project and keeps the rest as data', () => {
+    const o = byId('board.message-is-data')
+    expect(o?.text).not.toMatch(/never an approval/)
+    expect(o?.text).toMatch(/verbatim/)
+    expect(o?.text).toMatch(/when and where/)
+    expect(o?.text).toMatch(/scope/)
+    expect(o?.text).toMatch(/own Projects/)
+    expect(o?.text).toMatch(/is data/)
+    expect(o?.text).toMatch(/passkey signature/)
+  })
+  it('the told-one-is-told-all rule names the same four parts and the same boundary', () => {
+    const o = byId('operator.told-one-is-told-all')
+    expect(o?.text).toMatch(/verbatim/)
+    expect(o?.text).toMatch(/scope/)
+    expect(o?.text).toMatch(/own Projects/)
+  })
+})
