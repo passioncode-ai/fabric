@@ -625,3 +625,48 @@ test('R3: a silent claim held by a Fabric terminal session is queued as a nudge,
   assert.equal(lines.length, 1)
   assert.match(lines[0], /task task-c1 you claimed/)
 })
+
+// SW-9: the operator's attention queue reads the latest sweep's findings (`current`), one per finding key.
+test('SW-9: current() is null before the first sweep, then lists what the latest sweep found with since when', async () => {
+  const w = world({ claims: [silentClaim('c1', 's-enrolled')] })
+  const sweep = createAbandonedSweep(w.deps)
+  assert.equal(sweep.current(), null, 'no sweep yet: nothing is claimed about abandoned work')
+  await sweepOnce(sweep)
+  const now = sweep.current()
+  assert.equal(now.at, T0)
+  assert.deepEqual(now.findings.map((f) => f.key), ['claim-silent:c1'])
+  assert.equal(now.findings[0].stillSince, T0 - now.findings[0].stillMs)
+  now.findings.length = 0
+  assert.equal(sweep.current().findings.length, 1, 'a copy: the caller cannot change what the sweep holds')
+})
+
+test('SW-9: a finding the next sweep no longer finds leaves current()', async () => {
+  const w = world({ claims: [silentClaim('c1', 's-enrolled')] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  w.claims = []
+  w.tick(3 * MIN)
+  await sweepOnce(sweep)
+  assert.deepEqual(sweep.current().findings, [])
+})
+
+test('SW-9: a read that failed keeps its kinds\' last findings, at their first since', async () => {
+  const w = world({ claims: [silentClaim('c1', 's-enrolled')] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  const since = sweep.current().findings[0].stillSince
+  w.fail.add('claims')
+  w.tick(3 * MIN)
+  await sweepOnce(sweep)
+  assert.deepEqual(sweep.current().findings.map((f) => [f.key, f.stillSince]), [['claim-silent:c1', since]])
+})
+
+test('SW-9: a lapsed claim this sweep released is gone from current() at once', async () => {
+  const w = world({ claims: [lapsedClaim('c1'), lapsedClaim('c2')], started: T0 - 30 * MIN, unresolved: ['task-c2'] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  w.tick(3 * MIN)
+  await sweepOnce(sweep)
+  assert.deepEqual(w.released.map((r) => r.claimId), ['c1'])
+  assert.deepEqual(sweep.current().findings.map((f) => f.key), ['claim-lapsed:c2'], 'c2 is held by its run and stays')
+})

@@ -55,9 +55,15 @@ session, handoff and status in their head»: an abandoned task finds its agent w
   `terminal-stalled` kind is written into a Fabric terminal, every other kind (a silent claim included) waits as a
   nudge for that session, so a line ending in Enter never lands on a pending prompt for a claim.
 - One sweep at a time; nothing is released or written while the app is quitting.
+- SW-9, built 2026-10-26: the sweep keeps its latest findings in memory and hands a copy to the attention read
+  (`apps/desktop/src/main/abandonedSweepRun.ts#createAbandonedSweep`, `current`); `work.swept@1` is not the source
+  because its payload carries counts only, never the items. Each finding is an `abandoned` item keyed by its finding key
+  (`apps/desktop/src/shared/attention.ts#attentionKey`), so the notifier's `told` tells it once and it leaves when a
+  later sweep no longer finds it; a read that failed keeps that read's last findings; a lapsed claim the sweep released
+  leaves at once. Scenario: SCN-173, amendment of 2026-10-26.
 - Deferred, recorded in CO-427: SW-7's journal receipt waits for the release's schema step (until then one `work.swept`
   ops line, with a `capped` field when the claims or board read was cut; the running tasks read stops at 500 rows and
-  does not say so yet); SW-9, the findings in the operator's view, is not built; SW-6
+  does not say so yet); SW-6
   moves from ADVICE to OBSERVED once SW-7's receipt exists. TO-2 outside Fabric was asked of fabric-workspace in a
   cross-session message on 2026-10-26, not on the board.
 

@@ -342,6 +342,7 @@ import {
   attentionOf,
   obligationReceipts,
   resolutionsOf,
+  sweptSources,
   type AttentionItem,
   type AttentionSources,
   type JournalActRow
@@ -3239,11 +3240,17 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // `work_id` is a task id only when a task carries it; it was asked here for
     // a TITLE and the answer thrown away, so `AttentionPanel` went on treating
     // every lease as a task and opening a page for one that does not exist.
+    // SW-9: the latest sweep's findings join the queue as abandoned work; the tasks they name are read here with the
+    // leases', for a title and to know whether each is a task.
+    const swept = abandonedSweep?.current() ?? null
     const taskRead = await store.selectIn(
       'project_tasks',
       'id,title,instruction',
       'id',
-      (expired.data ?? []).map((l) => l.work_id as string)
+      [...new Set([
+        ...(expired.data ?? []).map((l) => l.work_id as string),
+        ...(swept?.findings ?? []).map((f) => f.taskId).filter((id): id is string => id !== null)
+      ])]
     )
     if (taskRead.failed) ops.failed('leases.titles-unreadable', new Error(taskRead.failed))
     const titles = Object.fromEntries(
@@ -3303,6 +3310,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         // cannot open this" is the safe direction.
         is_task: isTask.has(l.work_id as string)
       })),
+      swept: sweptSources(swept?.findings ?? [], titles, isTask),
       resolutions: resolutionsOf((grants.data ?? []) as JournalActRow[], (refusals.data ?? []) as JournalActRow[]),
       refusals: (refusals.data ?? [])
         .filter((row) => (row.payload as { verdict?: string }).verdict === 'refuse')

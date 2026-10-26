@@ -136,3 +136,31 @@ describe('История while only the projects fail (CO-405)', () => {
     expect(list.textContent).not.toContain(en['journal.reading'])
   })
 })
+
+describe('a task Fabric released names no agent (CO-430)', () => {
+  it('says Fabric released it because its session ended, and an agent\'s own release still says an agent did', async () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+    const at = new Date().toISOString()
+    const released = (seq: number, actor: { kind: string; id: string }) => ({ estate_id: 'e', seq, type: 'work.released@1', actor, project_id: 'p1', occurred_at: at, payload: { work: 't1', how: 'lapsed' } })
+    const feed = [released(51, { kind: 'system', id: 'work-sweep' }), released(50, { kind: 'agent', id: 's1' })]
+    render(<I18nProvider locale="en"><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }]} mark={0} feed={feed} feedProjects={[{ id: 'p1', name: 'Atlas' } as never]} /></I18nProvider>)
+    await screen.findByRole('heading', { name: en['acts.agentsTitle'] })
+    const rows = [...document.querySelectorAll('.hx-agents .hx-act')]
+    expect(rows).toHaveLength(2)
+    expect(rows[0].querySelector('.hx-who')!.textContent).toBe(en['acts.actor.fabric'])
+    expect(rows[0].querySelector('.hx-said')!.textContent).toContain(en['acts.releasedByFabric'])
+    expect(rows[0].textContent).not.toContain(en['event.work.released@1'])
+    expect(rows[1].querySelector('.hx-said')!.textContent).toContain(en['event.work.released@1'])
+  })
+
+  it('says it in Russian without an agent too', async () => {
+    const { ru } = await import('../i18n/ru')
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+    const feed = [{ estate_id: 'e', seq: 51, type: 'work.released@1', actor: { kind: 'system', id: 'session-end' }, project_id: 'p1', occurred_at: new Date().toISOString(), payload: {} }]
+    render(<I18nProvider locale="ru"><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }]} mark={0} feed={feed} feedProjects={[{ id: 'p1', name: 'Atlas' } as never]} /></I18nProvider>)
+    await screen.findByRole('heading', { name: ru['acts.agentsTitle'] })
+    const said = document.querySelector('.hx-agents .hx-said')!.textContent
+    expect(said).toContain(ru['acts.releasedByFabric'])
+    expect(said).not.toContain(ru['event.work.released@1'])
+  })
+})

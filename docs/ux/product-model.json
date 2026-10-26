@@ -35466,7 +35466,7 @@
       "errors_recovery": "a failed undo changes nothing and says so; an undo whose outcome is unknown reads the object again before the button is enabled, so a second press never doubles the inverse.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4196
+        "line": 4197
       }
     },
     {
@@ -35485,7 +35485,7 @@
       "errors_recovery": "a failed save puts the old value back and says so beside the control; the rest of the page stays usable.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4216
+        "line": 4217
       }
     },
     {
@@ -35504,7 +35504,7 @@
       "errors_recovery": "a path that fails keeps everything chosen and typed, says what failed in our words, and offers «Повторить»; an add that half-succeeded lists which projects were added and which were not.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4241
+        "line": 4242
       }
     },
     {
@@ -35525,7 +35525,7 @@
       "errors_recovery": "a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said under the header and the console in Fabric stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4264
+        "line": 4265
       }
     },
     {
@@ -35544,7 +35544,7 @@
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4286
+        "line": 4287
       }
     },
     {
@@ -35563,7 +35563,7 @@
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4312
+        "line": 4314
       }
     },
     {
@@ -35580,7 +35580,7 @@
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4334
+        "line": 4336
       }
     },
     {
@@ -35597,7 +35597,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4357
+        "line": 4359
       }
     },
     {
@@ -35614,7 +35614,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4379
+        "line": 4381
       }
     },
     {
@@ -35633,7 +35633,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4402
+        "line": 4404
       }
     }
   ],

@@ -991,3 +991,15 @@ Proposed Russian rows (Status: proposed for each; English primaries unchanged):
 - `estate.quotaNoCredential` — «Нет учётных данных для чтения квоты: на этом компьютере не выполнен вход в Claude Code.» · apps/desktop/src/renderer/src/i18n/ru.ts:66 · SCN-030 · proposed
 - `agents.historyEarlier` — «Показаны последние события: {count}. Более ранние события этой сессии в список не вошли.» · apps/desktop/src/renderer/src/i18n/ru.ts:1570 · SCN-130 · proposed
 - `launch.comms.request.effect` — «Внешнее действие» · apps/desktop/src/renderer/src/i18n/ru.ts:1248 · SCN-143 · proposed
+
+**Abandoned work the sweep found, and a release Fabric made, added 2026-10-26 (0.3.13: SW-9, CO-430).** The «На проверке» rows the sweep of abandoned work adds say why each is abandoned in one line, one per finding kind; История's «Что делали агенты» says a release Fabric made without naming an agent. English checked by Copylot (reports dbc34a0f-2749-488d-89c0-33101677e0bf, f342ef66-5934-4254-aeee-42108a098f73); Russian is Copylot's adaptation (job job_c26560df3774e89ec7f8fe9b, check report 971db110-ec21-4ee0-8a12-beb3c156be73, judge score 83).
+
+| Key | Text (primary) | Location | Scenario | Status |
+|---|---|---|---|---|
+| `attention.swept.claim-silent` | The agent holding it has gone quiet | apps/desktop/src/renderer/src/i18n/en.ts:1126 | SCN-173 (SW-9) | proposed |
+| `attention.swept.claim-lapsed` | The session that held it has ended | apps/desktop/src/renderer/src/i18n/en.ts:1127 | SCN-173 (SW-9) | proposed |
+| `attention.swept.task-unclaimed` | In work, and no agent holds it | apps/desktop/src/renderer/src/i18n/en.ts:1128 | SCN-173 (SW-9) | proposed |
+| `attention.swept.request-unmoved` | A board request nobody has picked up | apps/desktop/src/renderer/src/i18n/en.ts:1129 | SCN-173 (SW-9) | proposed |
+| `attention.swept.answer-unread` | An answer on the board that nobody has read | apps/desktop/src/renderer/src/i18n/en.ts:1130 | SCN-173 (SW-9) | proposed |
+| `attention.swept.terminal-stalled` | Its terminal has gone quiet with the task in work | apps/desktop/src/renderer/src/i18n/en.ts:1131 | SCN-173 (SW-9) | proposed |
+| `acts.releasedByFabric` | released a task because its session ended | apps/desktop/src/renderer/src/i18n/en.ts:2884 | SCN-168 (CO-430) | proposed |

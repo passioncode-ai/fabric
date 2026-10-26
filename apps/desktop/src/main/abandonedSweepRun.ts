@@ -12,6 +12,7 @@
  *   SW-7  one `work.swept@1` journal receipt per sweep that found something (migration 124); an idle sweep writes none
  *   SW-8  a lapsed claim found by two sweeps in a row is released as lapsed, when this process knew it or it has
  *         expired, and its task has no unresolved run
+ *   SW-9  the latest sweep's findings, read-only (`current`), for the operator's attention queue
  *
  * One sweep at a time, and none once the app is quitting. A queued nudge lives only while its finding does.
  */
@@ -114,6 +115,9 @@ export interface SweepResult {
   failedReads: Source[]
 }
 
+/** A finding as the operator's queue reads it (SW-9): since when it has stood still, fixed at the sweep that found it. */
+export type SweptFinding = Finding & { stillSince: number }
+
 interface ProjectNudge { key: string; text: string; at: number; takenBy: Set<string> }
 
 const kindOf = (key: string): AbandonedKind => key.slice(0, key.indexOf(':')) as AbandonedKind
@@ -128,6 +132,8 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   /** Sessions this process has seen live on a claim: a claim of one of them that lapses is this process's to release. */
   let seenLive = new Set<string>()
   let inFlight = false
+  /** SW-9: what the latest sweep found, for the operator's queue; null before the first sweep. */
+  let latest: { at: number; findings: SweptFinding[] } | null = null
   /** Per session, at most one line per finding key: a newer telling replaces the older (finding 2). */
   const bySession = new Map<string, Map<string, string>>()
   const byProject = new Map<string, ProjectNudge[]>()
@@ -251,6 +257,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
 
     // SW-8. A blind claims read breaks no row: what was seen stays seen until the claims are read again.
     let released = 0
+    const releasedClaims = new Set<string>()
     if (claimRead) {
       const twice = lapsedTwice(lapsedSeen, findings)
       lapsedSeen = twice.seen
@@ -281,7 +288,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
         if (deps.quitting()) break
         try {
           const r = await deps.releaseLapsed(f.claimId, LAPSED_REASON)
-          if (r.released) released++
+          if (r.released) { released++; releasedClaims.add(f.claimId) }
           if (r.failed) ops.failed('work.sweep-release', new Error(r.failed), { claim_id: f.claimId, note: 'the claim is released; its task stays where it is' })
         } catch (e) {
           ops.failed('work.sweep-release', e, { claim_id: f.claimId, note: 'the lapsed claim was not released; the next sweep tries again' })
@@ -302,10 +309,25 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
         ops.failed('work.sweep-receipt', e, { note: 'the sweep ran; its work.swept@1 receipt was not journalled', found: findings.length })
       }
     }
+    // SW-9. The operator's queue reads this sweep's findings: what a failed read could not see keeps its last finding
+    // (as SW-5 keeps its telling), and a lapsed claim this sweep released is gone now, not at the next sweep.
+    const foundKeys = new Set(findings.map((f) => f.key))
+    latest = {
+      at: now,
+      findings: [
+        ...findings.filter((f) => !(f.kind === 'claim-lapsed' && f.claimId && releasedClaims.has(f.claimId)))
+          .map((f) => ({ ...f, stillSince: now - f.stillMs })),
+        ...(latest?.findings ?? []).filter((f) => blind.has(f.kind) && !foundKeys.has(f.key))
+      ]
+    }
     return { findings, told: decided.tell.length, delivered, queued, released, failedReads }
   }
 
   return {
+    /** What the latest sweep found, a copy (SW-9): the operator's attention queue reads it. Null before the first sweep. */
+    current(): { at: number; findings: SweptFinding[] } | null {
+      return latest ? { at: latest.at, findings: latest.findings.map((f) => ({ ...f })) } : null
+    },
     /** One pass of the cycle: every third one sweeps (SW-1). Null when this pass does not. */
     async onPass(): Promise<SweepResult | null> {
       // Nothing once quitting; and one sweep at a time: a pass that falls due while one is in flight is skipped.

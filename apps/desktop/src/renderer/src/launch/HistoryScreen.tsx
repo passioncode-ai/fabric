@@ -171,7 +171,7 @@ function AgentWork({ events, projects, sessions, onOpen }: {
             <div className="hx-act">
               <time className="hx-time" dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</time>
               <span className="hx-who">{who(e)}</span>
-              <span className="hx-said" title={'why' in act ? act.why : undefined}>{describeEvent(t, e.type)}{project && <small className="hx-project">{project}</small>}</span>
+              <span className="hx-said" title={'why' in act ? act.why : undefined}>{saidOf(t, e)}{project && <small className="hx-project">{project}</small>}</span>
               <span className="hx-end">
                 {'ref' in act && onOpen && <button type="button" className="hx-undo" onClick={() => onOpen(act.projectId, act.ref)}>{t('journal.open')}</button>}
               </span>
@@ -181,6 +181,16 @@ function AgentWork({ events, projects, sessions, onOpen }: {
       }))}
     </ul>
   )
+}
+
+/**
+ * The act in a sentence. A task Fabric released (CO-430: the sweep's lapsed release, a session's end, the app's quit) is
+ * said without an agent: the journal's sentence for `work.released@1` names one, and «Fabric» beside «агент освободил
+ * задачу» told the operator an agent did what Fabric did.
+ */
+function saidOf(t: Translate, e: FeedEvent): string {
+  if (e.type === 'work.released@1' && e.actor.kind === 'system') return t('acts.releasedByFabric')
+  return describeEvent(t, e.type)
 }
 
 /**

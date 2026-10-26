@@ -4,6 +4,7 @@
 
 import { sayQueueTitle, type Say } from '../../shared/accessWords.ts'
 import type { PendingRequestFacts } from '../../shared/access.ts'
+import type { AbandonedKind } from '../../shared/abandonedSweep.ts'
 import { pluralForm, type Locale } from './i18n/translate.ts'
 
 export function titleOf(item: { title: string; access?: PendingRequestFacts }, t: Say): string {
@@ -14,7 +15,9 @@ export function titleOf(item: { title: string; access?: PendingRequestFacts }, t
  *  said here in the interface's language (0.3.12 review, iteration 2, UX-10). Any other detail is the asker's own words. */
 const BLOCKING = /^blocking (\d+) tasks?$/
 
-export function detailOf(item: { kind: string; detail: string | null }, t: Say, locale: Locale): string | null {
+export function detailOf(item: { kind: string; detail: string | null; swept?: { kind: AbandonedKind } }, t: Say, locale: Locale): string | null {
+  // SW-9: abandoned work the sweep found carries its kind as a value; it is said here, never shown as the machine's word.
+  if (item.swept) return t(`attention.swept.${item.swept.kind}`)
   const blocks = item.kind === 'question' && item.detail ? BLOCKING.exec(item.detail) : null
   if (!blocks) return item.detail
   const count = Number(blocks[1])

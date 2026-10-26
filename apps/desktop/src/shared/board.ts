@@ -23,7 +23,7 @@
 // AND THERE IS NO `seen`. Not on the type, not in the cut, nowhere. The absence
 // is the design.
 
-import type { AttentionItem, AttentionKind } from './attention.ts'
+import { attentionKey, type AttentionItem, type AttentionKind } from './attention.ts'
 import { obligationRef, type EntityRef } from './entityRef.ts'
 import {
   obligationPriority,
@@ -98,6 +98,8 @@ export interface BoardEntry {
   grantable?: AttentionItem['grantable']
   proposal?: AttentionItem['proposal']
   access?: AttentionItem['access']
+  /** Abandoned work the sweep found (SW-9): its kind, said by `detailOf` in the operator's language. */
+  swept?: AttentionItem['swept']
   /** Present only on an authored question: what the answer form needs, and the
    *  revision it must be submitted against. */
   question?: { revision: number; options: { id: string; label: string; consequence?: string }[] }
@@ -144,7 +146,8 @@ export function boardEntries(input: {
   const fromAttention: BoardEntry[] = input.attention.map((a) => {
     const { priority, components } = obligationPriority(a.kind, input.projectWeightOf(a.projectId))
     return {
-      ref: obligationRef(a.kind, a.ref),
+      // The queue's own key (`attentionKey`): a sweep's finding is addressed by its finding key (SW-9).
+      ref: attentionKey(a),
       subject: a.ref,
       origin: 'derived',
       kind: a.kind,
@@ -158,7 +161,8 @@ export function boardEntries(input: {
       components,
       ...(a.grantable ? { grantable: a.grantable } : {}),
       ...(a.proposal ? { proposal: a.proposal } : {}),
-      ...(a.access ? { access: a.access } : {})
+      ...(a.access ? { access: a.access } : {}),
+      ...(a.swept ? { swept: a.swept } : {})
     }
   })
 

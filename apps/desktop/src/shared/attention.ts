@@ -18,6 +18,7 @@
 // place for the transcript that is not the estate's journal (§4). None of that
 // is scheduled, so none of it is half-built here.
 
+import type { AbandonedKind, Finding } from './abandonedSweep.ts'
 import type { PendingRequestFacts } from './access.ts'
 import { obligationRef, type EntityRef } from './entityRef.ts'
 import { refusedBy, type ReadEnvelope, type SourceReceipt } from './readEnvelope.ts'
@@ -65,6 +66,12 @@ export interface AttentionItem {
    * or expires — derived, like everything here.
    */
   access?: PendingRequestFacts
+  /**
+   * Abandoned work the latest sweep found (0.3.13 SW-9). Present only on an `abandoned` item that came from the sweep,
+   * never on an expired lease: it carries the finding's key, which is the obligation's address (one item per key, see
+   * `attentionKey`), and its kind, which the screens say in the operator's language.
+   */
+  swept?: { key: string; kind: AbandonedKind }
 }
 
 /**
@@ -117,6 +124,23 @@ export interface AttentionSources {
   }[]
   /** Access requests from registered agents, waiting on the operator and not yet expired (ADR-0115). */
   access?: PendingRequestFacts[]
+  /**
+   * What the latest sweep of abandoned work found (0.3.13 SW-9, `abandonedSweepRun.ts#createAbandonedSweep`), one row
+   * per finding key. Absent before the first sweep. A finding leaves when a later sweep no longer finds it.
+   */
+  swept?: {
+    key: string
+    kind: AbandonedKind
+    project_id: string | null
+    task_id: string | null
+    request_id: string | null
+    /** Since when it has stood still: the sweep's time less how long it stood still (SW-3). */
+    still_since: string
+    /** The task's title or instruction, when the finding names a task the read found. */
+    title: string | null
+    /** Whether `task_id` names a row in `project_tasks`, measured the way an expired lease's is. */
+    is_task: boolean
+  }[]
   names: Record<string, string>
 }
 
@@ -157,6 +181,35 @@ export function resolutionsOf(grants: readonly JournalActRow[], decisions: reado
     floor_class: typeof row.payload.floor_class === 'string' ? row.payload.floor_class : 'unknown',
     target: typeof row.payload.target === 'string' ? row.payload.target : 'unknown'
   }))
+}
+
+/**
+ * The sweep's findings as the queue's source (SW-9), one row per finding key. `titles` and `isTask` are the task read the
+ * attention read already makes for expired leases: a finding over a task it did not find is unnavigable, never wrongly
+ * navigable.
+ */
+export function sweptSources(
+  findings: readonly (Finding & { stillSince: number })[],
+  titles: Readonly<Record<string, string>>,
+  isTask: ReadonlySet<string>
+): NonNullable<AttentionSources['swept']> {
+  const seen = new Set<string>()
+  const out: NonNullable<AttentionSources['swept']> = []
+  for (const f of findings) {
+    if (seen.has(f.key)) continue
+    seen.add(f.key)
+    out.push({
+      key: f.key,
+      kind: f.kind,
+      project_id: f.projectId,
+      task_id: f.taskId,
+      request_id: f.requestId,
+      still_since: new Date(f.stillSince).toISOString(),
+      title: f.taskId ? (titles[f.taskId] ?? null) : null,
+      is_task: f.taskId !== null && isTask.has(f.taskId)
+    })
+  }
+  return out
 }
 
 export function openRefusals(
@@ -250,6 +303,27 @@ export function attentionOf(sources: AttentionSources): AttentionItem[] {
       detail: row.owner_session,
       since: row.expires_at
     })
+  // #region attention-swept — docs: docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md#requirements
+  // SW-9: the sweep's findings are abandoned work like an expired lease, on the same queue, «На проверке» and notifier.
+  // The subject is the task when the finding names one (navigable when the read found it), else the project: a board
+  // request has no page of its own, and its project is where it is answered.
+  for (const row of sources.swept ?? []) {
+    const ref: EntityRef = row.task_id
+      ? { kind: row.is_task ? 'task' : 'work', id: row.task_id }
+      : { kind: 'project', id: row.project_id ?? row.request_id ?? row.key }
+    items.push({
+      kind: 'abandoned',
+      ref,
+      projectId: row.project_id,
+      projectName: row.project_id ? (sources.names[row.project_id] ?? null) : null,
+      title: row.title ?? row.task_id ?? row.request_id ?? row.key,
+      // The kind, as a value: every screen says it through `detailOf` in the operator's language.
+      detail: row.kind,
+      since: row.still_since,
+      swept: { key: row.key, kind: row.kind }
+    })
+  }
+  // #endregion attention-swept
   return items.sort((a, b) =>
     RANK[a.kind] !== RANK[b.kind]
       ? RANK[a.kind] - RANK[b.kind]
@@ -300,8 +374,10 @@ export function attentionByProject(
  * over the same task are two things waiting, and one key for both would tell
  * the operator about only the first of them, forever.
  */
-export function attentionKey(item: AttentionItem): string {
-  return obligationRef(item.kind, item.ref)
+export function attentionKey(item: Pick<AttentionItem, 'kind' | 'ref' | 'swept'>): string {
+  // A finding's key is its own address (SW-9): two findings over one task (a silent claim and a stalled terminal), or
+  // a finding and an expired lease over it, are separate obligations and are told separately, each once.
+  return item.swept ? `${item.kind}/${item.swept.key}` : obligationRef(item.kind, item.ref)
 }
 
 /**
