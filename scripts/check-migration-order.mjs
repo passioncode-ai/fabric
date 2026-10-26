@@ -5,11 +5,13 @@
 //   node scripts/check-migration-order.mjs                 check; exit 1 naming each problem
 //   node scripts/check-migration-order.mjs --base <ref>    also: the ledger at <ref> is a prefix of this one
 //   node scripts/check-migration-order.mjs --record        append new files that sort after the newest, then check
+//   node scripts/check-migration-order.mjs --history       also: every commit that changed the ledger kept the one before
+//                                                          it as a prefix (CO-342), and this tree keeps HEAD's
 import { execFileSync } from 'node:child_process'
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { ledgerProblems, recordNew } from './lib/migration-ledger.mjs'
+import { historyProblems, ledgerProblems, recordNew } from './lib/migration-ledger.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const DIR = path.join(ROOT, 'supabase', 'migrations')
@@ -38,8 +40,27 @@ if (at >= 0) {
 }
 
 const problems = ledgerProblems({ files, ledger, base })
+
+// CO-342: the ledger's history on this branch, oldest first, then the working tree. A clone without the history (a
+// shallow checkout) says so and checks what it has.
+let history = 0
+if (argv.includes('--history')) {
+  const git = (...a) => execFileSync('git', ['-C', ROOT, ...a], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+  try {
+    const commits = git('log', '--first-parent', '--format=%H', '--', 'supabase/migration-ledger.json').trim().split('\n').filter(Boolean).reverse()
+    const steps = []
+    for (const c of commits) {
+      try { steps.push({ commit: c.slice(0, 8), ledger: JSON.parse(git('show', `${c}:supabase/migration-ledger.json`)) }) } catch { /* a commit that removed it: nothing to compare */ }
+    }
+    steps.push({ commit: 'the working tree', ledger })
+    history = steps.length
+    problems.push(...historyProblems(steps))
+  } catch (e) {
+    console.log(`NOT_CHECKED migration order: the ledger's history could not be read (${String(e.message).split('\n')[0]})`)
+  }
+}
 if (problems.length) {
   for (const p of problems) console.error(`FAIL migration order: ${p}`)
   process.exit(1)
 }
-console.log(`PASS migration order: ${ledger.migrations.length} applied migration(s) recorded in merge order with their bytes; nothing sorts below ${ledger.migrations.at(-1)?.file ?? 'the start'}${base ? '; the base ledger is a prefix' : ''}`)
+console.log(`PASS migration order: ${ledger.migrations.length} applied migration(s) recorded in merge order with their bytes; nothing sorts below ${ledger.migrations.at(-1)?.file ?? 'the start'}${base ? '; the base ledger is a prefix' : ''}${history ? `; ${history} ledger versions in history, each a prefix of the next` : ''}`)

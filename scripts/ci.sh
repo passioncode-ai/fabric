@@ -85,9 +85,10 @@ node scripts/check-regions.mjs
 # CO-199 (0.4.0 wave 1): migrations apply in the order they were merged. supabase/migration-ledger.json records each
 # applied file with its bytes; a file sorting below the newest recorded one is refused with the number to renumber
 # past, an applied file edited or removed is refused, and against origin/main (when this clone has it) the ledger
-# there is a prefix of this one.
+# there is a prefix of this one. CO-342 (0.3.13): --history walks every commit that changed the ledger, so an entry
+# rewritten between two commits past the base is refused too (scripts/lib/migration-ledger.mjs#historyProblems).
 node --test scripts/test/check-migration-order.test.mjs
-if git rev-parse --verify -q origin/main >/dev/null; then node scripts/check-migration-order.mjs --base origin/main; else node scripts/check-migration-order.mjs; fi
+if git rev-parse --verify -q origin/main >/dev/null; then node scripts/check-migration-order.mjs --history --base origin/main; else node scripts/check-migration-order.mjs --history; fi
 
 step "probe templates"
 # 2026-10-01. The public re-creation of the history left receipts addressing commits a fresh

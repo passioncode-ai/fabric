@@ -63,3 +63,32 @@ test('line endings do not change a migration\'s recorded bytes (a Windows checko
   assert.equal(digest('select 1;\r\nselect 2;\r\n'), digest('select 1;\nselect 2;\n'))
   assert.notEqual(digest('select 1;\n'), digest('select 2;\n'))
 })
+
+// CO-342 (0.3.7 review DA-5): a ledger entry rewritten on main between two commits, which no --base comparison saw
+// because both commits were past the base. The history check walks every commit that changed the ledger.
+import { historyProblems } from '../lib/migration-ledger.mjs'
+
+test('the ledger\'s history: each commit\'s ledger is a prefix of the next one\'s', () => {
+  const steps = [{ commit: 'c1', ledger: L(a) }, { commit: 'c2', ledger: L(a, b) }, { commit: 'c3', ledger: L(a, b, c) }]
+  assert.deepEqual(historyProblems(steps), [])
+})
+
+test('a rewritten entry between two commits on main is refused, naming both commits', () => {
+  const edited = { ...b, text: b.text + 'select 2;\n' }
+  const steps = [{ commit: 'c1', ledger: L(a, b) }, { commit: 'c2', ledger: L(a, edited, c) }]
+  const problems = historyProblems(steps)
+  assert.equal(problems.length, 1)
+  assert.match(problems[0], /20261004000080_hub_authority_boundaries\.sql\) recorded at c1 was rewritten at c2/)
+})
+
+test('a rewrite the repository accepted as history (with its reason) is not refused again', () => {
+  const edited = { ...b, text: b.text + 'select 2;\n' }
+  const steps = [{ commit: 'c1', ledger: L(a, b) }, { commit: 'c2', ledger: L(a, edited, c) }]
+  assert.deepEqual(historyProblems(steps, { accepted: { c2: 'migration 115, 0.3.7 (CO-342): kept, a development database is rebuilt' } }), [])
+})
+
+test('the repository\'s own ledger history holds, apart from the rewrites it names', async () => {
+  const { execFileSync } = await import('node:child_process')
+  const out = execFileSync('node', [path.join(ROOT, 'scripts', 'check-migration-order.mjs'), '--history'], { encoding: 'utf8' })
+  assert.match(out, /PASS migration order/)
+})

@@ -65,6 +65,44 @@ export function ledgerProblems({ files, ledger, base = null }) {
   return problems
 }
 
+/**
+ * The rewrites of a ledger entry the repository accepted, by the commit that made them, each with why (CO-342). Both
+ * edited migration 115 after it was recorded on main (the 0.3.7 review, DA-5); migration 116 re-asserted what a
+ * development database that applied the earlier bytes lacked. Two more were found when the check first walked the whole
+ * history (2026-10-26): a renumbering at a branch's integration and a comment. Nothing is added here without a reason.
+ */
+export const ACCEPTED_REWRITES = Object.freeze({
+  '7675b03a': 'migration 115 gained schema 93 in its archive function after it was recorded (0.3.7, DA-5); migration 116 admits 93 again',
+  'c6cf39e0': 'migration 115 flipped run.stop_attestation_revoked@1 to journal-only after it was recorded (0.3.7, DA-5); release installs carry the final bytes',
+  '7189d7e6': 'the 0.4.0 wave 2 branch renumbered its work_claims migration from 92 to 95 when it merged main (main had taken 92 to 94), before any release held it',
+  '8100be6b': 'the 0.3.9 release integration corrected a path in migration 120\'s header comment before 0.3.9 shipped; no SQL changed'
+})
+
+/**
+ * Problems of the ledger's history (CO-342): each step's ledger, oldest first, is a prefix of the next one's, so an
+ * entry recorded on main is never rewritten later on main. `--base` compares only the base and the tip, and missed a
+ * rewrite between two commits both past the base. A step whose commit is accepted (by an abbreviation of it) passes.
+ * @param {{ commit: string, ledger: unknown }[]} steps
+ * @param {{ accepted?: Record<string, string> }} [options]
+ */
+export function historyProblems(steps, { accepted = ACCEPTED_REWRITES } = {}) {
+  const problems = []
+  const isAccepted = (commit) => Object.keys(accepted).some((k) => commit.startsWith(k) || k.startsWith(commit))
+  for (let i = 1; i < steps.length; i++) {
+    const before = steps[i - 1], after = steps[i]
+    const old = before.ledger?.migrations, now = after.ledger?.migrations
+    if (!Array.isArray(old) || !Array.isArray(now)) continue
+    for (const [k, m] of old.entries()) {
+      const here = now[k]
+      if (here && here.file === m.file && here.sha256 === m.sha256) continue
+      if (!isAccepted(after.commit))
+        problems.push(`the ledger entry ${k + 1} (${m.file}) recorded at ${before.commit} was rewritten at ${after.commit}: an applied migration's entry is appended to, never rewritten; write a new migration`)
+      break
+    }
+  }
+  return problems
+}
+
 /** The ledger with every unrecorded file that sorts after the newest appended, in order; throws on one that does not. */
 export function recordNew({ files, ledger }) {
   const recorded = new Set(ledger.migrations.map((m) => m.file))
