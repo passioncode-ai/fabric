@@ -12,6 +12,7 @@ import { useState } from 'react'
 import type { LiveAgent } from '../../../shared/homeLive'
 import type { ProjectRow } from '../../../shared/types'
 import { groupInWork, type InWorkCard } from '../../../shared/homeProjects.ts'
+import { sessionStatus, type SessionStatus } from '../../../shared/sessionStatus.ts'
 import { pluralForm, useLocale, useT } from '../i18n'
 import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
@@ -21,8 +22,10 @@ import { CappedNote, KeptNote, type HomeReading } from './HomeWork'
 /** How many quiet projects the line names before «и ещё N». */
 const QUIET_NAMED = 5
 
-export function HomeInWork({ reading, projects, waitingByProject, onProject, onAgent, onTask }: {
+export function HomeInWork({ reading, projects, waitingByProject, onProject, onAgent, onTask, terminals = null }: {
   reading: HomeReading
+  /** The consoles Fabric holds, for each agent's status (R-19); null while unread. */
+  terminals?: ReadonlyArray<{ sessionId: string; state: 'running' | 'idle' | 'ended'; exitCode: number | null }> | null
   projects: ProjectRow[] | null
   /** What waits for the person, by project (the shell's count); null while unknown. */
   waitingByProject: Record<string, number> | null
@@ -49,7 +52,7 @@ export function HomeInWork({ reading, projects, waitingByProject, onProject, onA
       {g && g.cards.length === 0 && <p className="lp-meta">{t('launch.home.inWork.none')}</p>}
       {g?.cards.map((c) => (
         <Card key={c.projectId ?? 'none'} card={c} waiting={c.projectId && waitingByProject ? (waitingByProject[c.projectId] ?? 0) : 0}
-          onProject={onProject} onAgent={onAgent} onTask={onTask} plural={plural} />
+          onProject={onProject} onAgent={onAgent} onTask={onTask} plural={plural} terminals={terminals} />
       ))}
       {g && g.quiet.length > 0 && (
         <p className="lh-inwork-quiet">
@@ -69,8 +72,9 @@ export function HomeInWork({ reading, projects, waitingByProject, onProject, onA
   )
 }
 
-function Card({ card, waiting, onProject, onAgent, onTask, plural }: {
+function Card({ card, waiting, onProject, onAgent, onTask, plural, terminals }: {
   card: InWorkCard
+  terminals: ReadonlyArray<{ sessionId: string; state: 'running' | 'idle' | 'ended'; exitCode: number | null }> | null
   waiting: number
   onProject(projectId: string): void
   onAgent(sessionId: string): void
@@ -100,7 +104,10 @@ function Card({ card, waiting, onProject, onAgent, onTask, plural }: {
       </div>
       {card.agents.length > 0 && (
         <ul className="lh-proj-agents" aria-label={t('launch.home.inWork.agentsOf', { name })}>
-          {card.agents.map((a) => <AgentRow key={a.sessionId} agent={a} onAgent={onAgent} onTask={onTask} />)}
+          {card.agents.map((a) => (
+            <AgentRow key={a.sessionId} agent={a} onAgent={onAgent} onTask={onTask}
+              status={sessionStatus({ stale: a.stale, terminal: a.console ? (terminals?.find((x) => x.sessionId === a.sessionId) ?? null) : null })} />
+          ))}
         </ul>
       )}
       {card.orphans.map((w) => (
@@ -114,13 +121,13 @@ function Card({ card, waiting, onProject, onAgent, onTask, plural }: {
   )
 }
 
-function AgentRow({ agent: a, onAgent, onTask }: { agent: LiveAgent; onAgent(sessionId: string): void; onTask(projectId: string, taskId: string): void }): React.JSX.Element {
+function AgentRow({ agent: a, onAgent, onTask, status }: { agent: LiveAgent; onAgent(sessionId: string): void; onTask(projectId: string, taskId: string): void; status: SessionStatus }): React.JSX.Element {
   const t = useT()
   const heard = since(a.lastSignAt ?? a.startedAt, t)
   return (
     <li className={`lh-arow ${a.stale ? 'is-stale' : ''}`}>
       <button type="button" className="lh-arow-who" onClick={() => onAgent(a.sessionId)} title={t('launch.home.inWork.openAgent')}>
-        <b><span className={a.stale ? 'rail-dot quiet' : 'rail-dot live'} aria-hidden="true" />{runnerLabel(a.agent, t)}</b>
+        <b><span className={`rail-dot s-${status}`} aria-hidden="true" />{runnerLabel(a.agent, t)}</b>
         {a.branch
           ? <span className="rail-branch">{a.branch}</span>
           : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
@@ -153,7 +160,10 @@ function AgentRow({ agent: a, onAgent, onTask }: { agent: LiveAgent; onAgent(ses
           ) : <span className="lp-meta">{t('launch.home.agents.silent')}</span>}
         </p>
       </div>
-      <p className="lh-arow-when">{a.stale ? t('launch.home.inWork.quietFor', { time: heard }) : t('launch.home.inWork.heard', { time: heard })}</p>
+      <p className="lh-arow-when">
+        {status !== 'working' && <span className={`lh-status s-${status}`}>{t(`status.${status}` as 'status.idle')}</span>}
+        {a.stale ? t('launch.home.inWork.quietFor', { time: heard }) : t('launch.home.inWork.heard', { time: heard })}
+      </p>
     </li>
   )
 }

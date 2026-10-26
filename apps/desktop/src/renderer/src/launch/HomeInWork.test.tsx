@@ -99,6 +99,15 @@ describe('«В работе» grouped by project', () => {
     expect(screen.getByRole('article', { name: 'Fabric' }).querySelector('.lh-proj-aim')?.textContent).toBe(en['launch.home.inWork.next'].replace('{text}', 'Release notes'))
   })
 
+  // R-19: the status from the console Fabric holds, in a word beside the dot's colour and shape.
+  it('says an agent\'s status in a word when it is not simply working', () => {
+    show({ terminals: [{ sessionId: 's1', state: 'idle', exitCode: null }] })
+    const rows = within(screen.getByRole('article', { name: 'Fabric' })).getAllByRole('listitem')
+    expect(rows[0].textContent).toContain(en['status.waiting'])
+    expect(rows[0].querySelector('.rail-dot')?.className).toContain('s-waiting')
+    expect(rows[1].textContent).toContain(en['status.idle'])
+  })
+
   it('names a task in work no agent holds on a line of its own', () => {
     const p = show()
     const card = screen.getByRole('article', { name: 'Fabric' })

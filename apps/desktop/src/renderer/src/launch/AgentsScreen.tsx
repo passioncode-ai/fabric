@@ -283,7 +283,8 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
       <h2 className="visually-hidden" tabIndex={-1}>{t('agents.title')}</h2>
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       {chosen ? (
-        <Centre row={chosen} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab} />
+        <Centre row={chosen} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab}
+          terminal={chosen.sessionId ? ((sessions ?? []).find((x) => x.sessionId === chosen.sessionId) ?? null) : null} />
       ) : home.view === null && home.problem && rows.length === 0 ? (
         <div className="lp-meta ag-pick" role="status">
           <p>{t('agentPage.unread')}</p>
@@ -342,8 +343,10 @@ function Group({ group, rows, read, workUnread, selected, onSelect, locale }: {
   )
 }
 
-function Centre({ row, mark, hub, homeUnread, onOpenProject, onOpenTask, onAsTab }: {
+function Centre({ row, mark, hub, homeUnread, onOpenProject, onOpenTask, onAsTab, terminal = null }: {
   row: RosterRow
+  /** Its console as Fabric holds it, for the status word (R-19). */
+  terminal?: TerminalSession | null
   mark: number
   hub: ReturnType<typeof useHub>
   /** Who works was not read (`work.home` failed first): a console's task and action are unknown, not none (UX-3). */
@@ -377,7 +380,7 @@ function Centre({ row, mark, hub, homeUnread, onOpenProject, onOpenTask, onAsTab
   const where = row.console && row.sessionId ? 'fabric' : hub.read.at === 'failed' ? 'unknown' : 'terminal'
   return live ? (
     <AgentPage key={live.sessionId} agent={live} mark={mark} title={name} state={waitingState} actions={act} note={note}
-      where={where} onConsole={row.console && row.sessionId ? onAsTab : undefined}
+      where={where} onConsole={row.console && row.sessionId ? onAsTab : undefined} terminal={terminal}
       workUnread={homeUnread && !row.live} onOpenProject={onOpenProject} onOpenTask={onOpenTask} />
   ) : (
     <section className="lp-panel lh-agent-page" aria-labelledby="agent-page-title" data-testid="agent-card">

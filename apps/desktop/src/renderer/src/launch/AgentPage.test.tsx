@@ -171,6 +171,17 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     expect(screen.getByRole('region', { name: en['agentScreen.goal'] }).textContent).toContain(en['launch.home.inWork.noGoal'])
   })
 
+  // R-19: the header's chip is the status, from the console and the agent's own word.
+  it('says the session\'s status in its chip: an error when its console failed, waiting when the agent says it waits', async () => {
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} terminal={{ state: 'ended', exitCode: 1 }} />)
+    expect(document.querySelector('.as-status')?.textContent).toContain(en['status.error'])
+    cleanup()
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => [ev(1, 'agent.heartbeat@1', { phase: 'waiting' })]) } } }))
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} />)
+    await waitFor(() => expect(document.querySelector('.as-status')?.textContent).toContain(en['status.waiting']))
+  })
+
   it('a task row opens to «Чем закончил» in the agent\'s words and its «Вехи», or says there are none', async () => {
     const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [
       { taskId: 't5', projectId: 'p1', projectName: 'Fabric', summary: 'Nudge work without a task', brief: { what: null, why: null, expected: null },

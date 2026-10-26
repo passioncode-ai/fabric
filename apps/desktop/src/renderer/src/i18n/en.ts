@@ -2962,6 +2962,11 @@ export const en = {
   'rail.agents.branchUnknownWhy': "The agent joined from its own terminal, or git did not answer for its folder",
   'rail.agents.openSession': "Open the session of {name}",
   'rail.agents.elsewhere': "The session runs in a terminal outside Fabric",
+  'status.error': "Error",
+  'status.waiting': "Waiting",
+  'status.working': "Working",
+  'status.idle': "Idle",
+  'status.ended': "Ended",
   // 0.3.7 wave 3: an act in words (ADR-0160 §2, SCN-169), for the act line and История. Impersonal: the act line is
   // the person's own act; История names the actor beside it.
   'act.undo': "Undo",

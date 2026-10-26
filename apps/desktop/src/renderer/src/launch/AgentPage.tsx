@@ -27,6 +27,7 @@ import { laneOf, SESSION_LANES, type SessionLane, type SessionTask, type Session
 import { subjectOfEvent } from '../../../shared/eventSubject.ts'
 import { mayHaveEarlier, SESSION_HISTORY_WINDOW, shownHistory } from '../../../shared/sessionHistory.ts'
 import { lastPhase, taskTrail, type TaskTrail } from '../../../shared/agentTrail.ts'
+import { sessionStatus } from '../../../shared/sessionStatus.ts'
 import { describeEvent, pluralForm, useLocale, useT } from '../i18n'
 import { runnerLabel } from '../runnerLabel'
 import { since } from '../duration'
@@ -47,7 +48,7 @@ export function taskOfEvent(e: FeedEvent): { projectId: string; taskId: string }
   return { projectId: e.project_id, taskId: subject.ref.id }
 }
 
-export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread, where }: {
+export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread, where, terminal }: {
   agent: LiveAgent
   /** Who works was not read: the task and the action are unknown, never said as none (0.3.13 review, iteration 2, UX-3). */
   workUnread?: boolean
@@ -57,6 +58,8 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   onConsole?(sessionId: string): void
   /** Where the session runs: a console Fabric holds, a terminal outside Fabric, or not known (who joined was not read). */
   where?: 'fabric' | 'terminal' | 'unknown'
+  /** Its console as Fabric holds it, for the status word (R-19); absent when it runs elsewhere. */
+  terminal?: { state: 'running' | 'idle' | 'ended'; exitCode: number | null } | null
   onOpenProject(projectId: string): void
   onOpenTask?(projectId: string, taskId: string): void
   /** The agent's name when the caller knows it better than its runner id (a joined agent's own name). */
@@ -142,7 +145,9 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const currentTrail = agent.task && trails ? (trails.get(agent.task.id) ?? null) : null
   const historyFull = events ? mayHaveEarlier(events) : false
   const heard = agent.lastSignAt ?? agent.startedAt
-  const stateChip = state ?? (agent.stale ? t('agentScreen.state.quiet', { time: since(heard, t) }) : t('agentScreen.state.working'))
+  // The status from what Fabric observes and the agent's own word (R-19, `sessionStatus.ts`), said in a word.
+  const status = sessionStatus({ stale: agent.stale, phase: phase?.phase ?? null, terminal: terminal ?? null })
+  const stateChip = state ?? (status === 'working' ? t('agentScreen.state.working') : status === 'idle' ? t('agentScreen.state.quiet', { time: since(heard, t) }) : t(`status.${status}` as 'status.idle'))
   const name = title ?? runnerLabel(agent.agent, t)
   const placeOf = where ?? (agent.console ? 'fabric' : 'terminal')
   const trailOf = (x: SessionTask): React.ReactNode => {
@@ -174,7 +179,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
             {agent.branch
               ? <span className="rail-branch">{agent.branch}</span>
               : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
-            <span className={`lp-pill ${agent.stale || state ? '' : 'live'}`}>{stateChip}</span>
+            <span className={`lp-pill as-status s-${status} ${status === 'working' && !state ? 'live' : ''}`}><span className={`rail-dot s-${status}`} aria-hidden="true" /> {stateChip}</span>
           </p>
         </div>
         <span className="lh-agents-actions">

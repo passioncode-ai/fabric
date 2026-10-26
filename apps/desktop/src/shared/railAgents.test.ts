@@ -35,4 +35,11 @@ describe('railAgents', () => {
     const rows = railAgents([live('s1', null), live('s2', 'Zulu')], 'en')
     expect(rows.map((r) => r.sessionId)).toEqual(['s2', 's1'])
   })
+
+  it('carries each agent\'s status word from what Fabric observes of its console (R-19)', () => {
+    const rows = railAgents([live('s1', 'A'), live('s2', 'B'), live('s3', 'C', { stale: true })], 'en', [
+      { sessionId: 's1', state: 'idle', exitCode: null }, { sessionId: 's2', state: 'ended', exitCode: 2 }
+    ])
+    expect(rows.map((r) => r.status)).toEqual(['waiting', 'error', 'idle'])
+  })
 })

@@ -547,7 +547,7 @@ export function EstateHome({
         <div className="lh-main-column">
           {/* 0.3.14, the simple Fabric §2b: «В работе» by project, its agents with branch, task and last report. It replaces
               «Где остановились», the two lanes and «Агенты в работе»; finished work lives on the agent's and project's pages. */}
-          <HomeInWork reading={home} projects={projects}
+          <HomeInWork reading={home} projects={projects} terminals={sessions}
             waitingByProject={waitingForYou === undefined ? (counts ? Object.fromEntries(Object.entries(counts).map(([id, c]) => [id, c.total])) : null) : (waitingForYou?.byProject ?? null)}
             onProject={onOpen}
             onAgent={(sessionId) => {

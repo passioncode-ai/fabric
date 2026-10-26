@@ -290,14 +290,14 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                   <li key={a.sessionId}>
                     <a href="#" className="rail-agent" title={name} {...current(agentSession === a.sessionId)}
                       onClick={(e) => go(e, () => props.onAgent(a.sessionId))}>
-                      <span className={a.state === 'working' ? 'rail-dot live' : 'rail-dot quiet'} aria-hidden="true" />
+                      <span className={`rail-dot s-${a.status ?? (a.state === 'working' ? 'working' : 'idle')}`} aria-hidden="true" />
                       <span className="rail-agent-words">
                         <span className="rail-name">{name}</span>
                         <span className="rail-agent-line">
                           {a.branch
                             ? <span className="rail-branch">{a.branch}</span>
                             : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
-                          {a.state === 'quiet' && <span> · {t('launch.home.agents.stale')}</span>}
+                          {(a.status ?? (a.state === 'working' ? 'working' : 'idle')) !== 'working' && <span> · {t(`status.${a.status ?? 'idle'}` as 'status.idle')}</span>}
                         </span>
                       </span>
                     </a>

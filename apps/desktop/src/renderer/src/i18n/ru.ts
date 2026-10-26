@@ -2831,6 +2831,11 @@ export const ru: Partial<Record<StringKey, string>> = {
   'rail.agents.branchUnknownWhy': "Агент подключился из своего терминала, или git не ответил для его папки",
   'rail.agents.openSession': "Открыть сессию: {name}",
   'rail.agents.elsewhere': "Сессия идёт в терминале вне Fabric",
+  'status.error': "Ошибка",
+  'status.waiting': "Ждёт",
+  'status.working': "Работает",
+  'status.idle': "Простаивает",
+  'status.ended': "Закончилась",
   // 0.3.7, волна 3: действие словами (ADR-0160 §2, SCN-169), для строки действия и Истории.
   'act.undo': "Отменить",
   'act.undoing': "Отменяю…",

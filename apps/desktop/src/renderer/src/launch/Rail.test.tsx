@@ -18,7 +18,7 @@ const project = (id: string, name: string, over: Partial<ProjectRow> = {}): Proj
   created_at: '2026-10-01T00:00:00Z', memory_backend: 'local', default_agent: 'claude-code', mcp_servers: [], ...over
 })
 const agent = (sessionId: string, projectName: string | null, over: Partial<RailAgent> = {}): RailAgent => ({
-  sessionId, runner: 'claude-code', projectId: projectName ? `p-${projectName}` : null, projectName, branch: null, state: 'working',
+  sessionId, runner: 'claude-code', projectId: projectName ? `p-${projectName}` : null, projectName, branch: null, state: 'working', status: 'working',
   heardAt: '2026-10-26T12:00:00Z', console: true, ...over
 })
 
@@ -34,7 +34,7 @@ function shell(over: Partial<LaunchShellProps> = {}, locale: 'en' | 'ru' = 'en',
     pins: ['p1'],
     live: new Set(['p2']),
     waiting: { total: 3, byProject: { p3: 2 } },
-    agents: { rows: [agent('s1', 'Fabric', { branch: 'release/0.3.14' }), agent('s2', 'Kimi', { runner: 'kimi-code', state: 'quiet' })], problem: null },
+    agents: { rows: [agent('s1', 'Fabric', { branch: 'release/0.3.14' }), agent('s2', 'Kimi', { runner: 'kimi-code', state: 'quiet', status: 'idle' })], problem: null },
     machine: 'ok',
     onPlace: vi.fn(),
     onCreateProject: vi.fn(),
@@ -135,7 +135,10 @@ describe('the left column', () => {
     expect(rows[0].textContent).toContain('Claude Code · Fabric')
     expect(rows[0].textContent).toContain('release/0.3.14')
     expect(rows[1].textContent).toContain(en['rail.agents.branchUnknown'])
-    expect(rows[1].textContent).toContain(en['launch.home.agents.stale'])
+    // The status in a word beside its colour, never the colour alone (R-19).
+    expect(rows[1].textContent).toContain(en['status.idle'])
+    expect(rows[1].querySelector('.rail-dot')?.className).toContain('s-idle')
+    expect(rows[0].textContent).not.toContain(en['status.working'])
     fireEvent.click(rows[0])
     expect(props.onAgent).toHaveBeenCalledWith('s1')
   })

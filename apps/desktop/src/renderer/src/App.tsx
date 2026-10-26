@@ -789,7 +789,7 @@ function Shell({
   const liveProjects = new Set((sessions ?? []).filter((x) => x.running).map((x) => x.projectId))
   // 0.3.14, the simple Fabric: ONE reading of who works, for the left column's «Агенты» and the home (`useHome`).
   const homeReading = useHome(markOf(marks, ['work', 'task', 'agent', 'session']), isMainWindow)
-  const railAgentRows = homeReading.view ? railAgents(homeReading.view.live, settings.locale) : null
+  const railAgentRows = homeReading.view ? railAgents(homeReading.view.live, settings.locale, sessions) : null
 
   // The act line: the person's acts since they came to the place on screen (ADR-0160 §1, `ActLine.tsx`).
   const placeKey = showSettings ? 'settings' : active.kind === 'project' ? `project:${active.projectId}` : active.kind === 'draft' ? `draft:${active.id}` : active.kind === 'start' ? `start:${active.path}` : active.kind === 'console' ? `console:${active.sessionId}` : active.kind

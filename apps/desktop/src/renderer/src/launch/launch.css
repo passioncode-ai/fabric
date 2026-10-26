@@ -828,3 +828,12 @@ button.lg-node{ cursor: pointer; }
 .xp-form select,.xp-form input{width:100%}
 .lh-proj-aim{margin:2px 0 0;font-size:13px;color:var(--app-ink)}
 .as-lanes{margin:0}
+/* A session's status (the operator's second review, R-19): a colour and a shape, always beside its word. */
+.rail-dot.s-working{background:var(--state-good);box-shadow:0 0 0 3px color-mix(in srgb,var(--state-good) 15%,transparent)}
+.rail-dot.s-waiting{background:var(--state-idle);border-radius:2px}
+.rail-dot.s-error{background:var(--state-danger);border-radius:1px;transform:rotate(45deg)}
+.rail-dot.s-idle{background:transparent;box-shadow:inset 0 0 0 1.5px var(--app-muted)}
+.rail-dot.s-ended{background:transparent;box-shadow:inset 0 0 0 1.5px var(--app-line-strong)}
+.lh-status{display:inline-block;margin-right:6px;font-weight:600}
+.lh-status.s-waiting{color:var(--state-idle)}.lh-status.s-error{color:var(--state-danger)}.lh-status.s-idle,.lh-status.s-ended{color:var(--app-muted)}
+.as-status{display:inline-flex;align-items:center;gap:6px}

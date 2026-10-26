@@ -10,6 +10,7 @@
  */
 import type { LiveAgent } from './homeLive.ts'
 import { nameCollator } from './railProjects.ts'
+import { sessionStatus, type SessionStatus } from './sessionStatus.ts'
 
 export interface RailAgent {
   sessionId: string
@@ -18,6 +19,8 @@ export interface RailAgent {
   projectName: string | null
   branch: string | null
   state: 'working' | 'quiet'
+  /** Its status word and colour (the operator's second review, R-19, `sessionStatus.ts`). */
+  status: SessionStatus
   /** Its newest sign of life, else when it started. */
   heardAt: string
   /** Fabric holds its console. */
@@ -29,7 +32,8 @@ const time = (iso: string | null | undefined): number => {
   return Number.isFinite(t) ? t : 0
 }
 
-export function railAgents(live: readonly LiveAgent[], locale: string): RailAgent[] {
+export function railAgents(live: readonly LiveAgent[], locale: string, terminals?: ReadonlyArray<{ sessionId: string; state: 'running' | 'idle' | 'ended'; exitCode: number | null }> | null): RailAgent[] {
+  const termOf = new Map((terminals ?? []).map((x) => [x.sessionId, x]))
   const collator = nameCollator(locale)
   return live
     .map((a): RailAgent => ({
@@ -39,6 +43,7 @@ export function railAgents(live: readonly LiveAgent[], locale: string): RailAgen
       projectName: a.projectName,
       branch: typeof a.branch === 'string' && a.branch.trim() ? a.branch.trim() : null,
       state: a.stale ? 'quiet' : 'working',
+      status: sessionStatus({ stale: a.stale, terminal: a.console ? (termOf.get(a.sessionId) ?? null) : null }),
       heardAt: a.lastSignAt ?? a.startedAt,
       console: a.console
     }))
