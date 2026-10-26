@@ -114,3 +114,30 @@ console.log('PASS launch receipt identity mismatch never spawns or dispatches ag
   assert.equal(f.calls.includes('stop'), false)
 }
 console.log('PASS a typed refusal before spawn classifies by the result, not by a stale session record')
+{
+  // CO-236 (REQ-33): a launch whose process started and whose bind was refused has an unknown outcome; while that
+  // process runs, the next launch in the same project — «Use another coding agent» — is refused before admission.
+  const { createFolderLocks } = await import('../src/main/launchFolderLock.ts')
+  const f = fixture('bind-refused')
+  const locks = createFolderLocks({ running: (sid) => f.sessions.get(sid)?.running === true })
+  f.deps.folder = { held: async () => locks.any() && Boolean(locks.holder('project')), lock: (p, s) => locks.lock(p, s) }
+  const first = await createManagedLaunch(f.deps)({ taskId: 'task', trigger: 'operator' })
+  assert.equal(first.reasonCode, 'launch_outcome_unknown')
+  assert.equal(locks.holder('project'), first.sessionId, 'the unresolved session holds the folder')
+  const g = fixture()
+  g.deps.folder = f.deps.folder
+  const second = await createManagedLaunch(g.deps)({ taskId: 'task', trigger: 'operator' })
+  assert.equal(second.started, false); assert.equal(second.reasonCode, 'folder_held')
+  assert.equal(second.admissionRecorded, false); assert.deepEqual(g.calls, [], 'refused before admission: nothing recorded, nothing spawned')
+  assert.match(second.says, /may still be running/)
+  // Its process is seen to end: the outcome is known and the folder is free again.
+  f.sessions.get(first.sessionId).running = false
+  const third = await createManagedLaunch(g.deps)({ taskId: 'task', trigger: 'operator' })
+  assert.equal(third.started, true, JSON.stringify(third)); assert.equal(locks.any(), false)
+  // A launch whose process never started holds nothing.
+  const h = fixture('validate-refused')
+  h.deps.folder = f.deps.folder
+  const refused = await createManagedLaunch(h.deps)({ taskId: 'task-3', trigger: 'operator' })
+  assert.equal(refused.started, false); assert.equal(locks.any(), false)
+}
+console.log('PASS CO-236: an unknown launch outcome holds the folder while its process runs; no second agent starts there')
