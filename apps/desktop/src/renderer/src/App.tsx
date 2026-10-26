@@ -987,6 +987,7 @@ function Shell({
         live={liveProjects}
         agents={{ rows: railAgentRows, problem: homeReading.problem }}
         onAgent={(session) => { setShowSettings(false); setWorkspaceFor(null); goTo({ kind: 'agents', session }) }}
+        onAgentConsole={(session) => void openConsole(session)}
         waiting={waiting}
         commsUnread={commsUnread}
         machine={machineOf({ read: feed !== null, failed: journalFailed }, error)}

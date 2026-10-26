@@ -809,3 +809,10 @@ button.lg-node{ cursor: pointer; }
 .fab-travel button[disabled]{color:var(--app-muted);opacity:.45;cursor:default}
 .fab-travel button[aria-current="page"]{border-color:var(--app-line)}
 .fab-travel button:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
+/* The console icon beside an agent (R-6): filled where Fabric holds the console, outlined where it runs elsewhere. */
+.rail-agents li{display:flex;align-items:flex-start;gap:2px}
+.rail-agents li>a{flex:1 1 auto;min-width:0}
+.rail-console{flex:none;margin-top:3px;width:24px;height:22px;display:grid;place-items:center;border:1px solid var(--app-line-strong);border-radius:6px;background:var(--app-panel-quiet);color:var(--app-ink);font-family:var(--font-mono);font-size:10px;cursor:pointer}
+.rail-console.elsewhere{background:transparent;border-style:dashed;color:var(--app-muted);cursor:default}
+.rail-console:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
+@media(max-width:900px){.rail-console{display:none}}

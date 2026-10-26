@@ -94,6 +94,9 @@ export interface LaunchShellProps {
   agents: { rows: RailAgent[] | null; problem: string | null }
   /** Opens an agent's screen. */
   onAgent(sessionId: string): void
+  /** The console icon beside an agent whose console Fabric holds (the operator's second review, R-6): opens its session
+   *  as a tab at once. Absent, no icon is drawn. */
+  onAgentConsole?(sessionId: string): void
   /** Projects where an agent works now. */
   live: ReadonlySet<string>
   /** «Нужны вы» (`PERSON_KINDS`), over the whole estate and by project; null while unknown (no count is a non-claim). */
@@ -298,6 +301,14 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                         </span>
                       </span>
                     </a>
+                    {props.onAgentConsole && (a.console
+                      ? (
+                        <button type="button" className="rail-console" aria-label={t('rail.agents.openSession', { name })} title={t('rail.agents.openSession', { name })}
+                          onClick={() => props.onAgentConsole?.(a.sessionId)}>
+                          <span aria-hidden="true">{t('glyph.console')}</span>
+                        </button>
+                      )
+                      : <span className="rail-console elsewhere" role="img" aria-label={t('rail.agents.elsewhere')} title={t('rail.agents.elsewhere')}>{t('glyph.console')}</span>)}
                   </li>
                 )
               })}

@@ -140,6 +140,20 @@ describe('the left column', () => {
     expect(props.onAgent).toHaveBeenCalledWith('s1')
   })
 
+  // The operator's second review, 2026-10-26 (v2 §4.3, R-5, R-6): a row opens the agent's screen; the console icon
+  // beside a console Fabric holds opens its session as a tab at once; an agent elsewhere says where, with no button.
+  it('opens an agent\'s session from the console icon beside its row; one outside Fabric says where it runs', () => {
+    const onAgentConsole = vi.fn()
+    shell({ onAgentConsole, agents: { rows: [agent('s1', 'Fabric'), agent('s2', 'Kimi', { console: false })], problem: null } })
+    fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))
+    const list = screen.getByRole('list', { name: en['rail.agents.list'] })
+    const icon = within(list).getByRole('button', { name: en['rail.agents.openSession'].replace('{name}', 'Claude Code · Fabric') })
+    fireEvent.click(icon)
+    expect(onAgentConsole).toHaveBeenCalledWith('s1')
+    expect(within(list).getAllByRole('button')).toHaveLength(1)
+    expect(within(list).getByLabelText(en['rail.agents.elsewhere'])).toBeTruthy()
+  })
+
   it('moves between Проекты and Агенты with the arrow keys, focus following', () => {
     shell()
     const projects = within(toggle()).getByRole('button', { name: en['rail.projects'] })

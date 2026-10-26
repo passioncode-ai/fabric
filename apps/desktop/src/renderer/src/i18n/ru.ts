@@ -2806,6 +2806,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'rail.agents.none': "Сейчас никто не работает.",
   'rail.agents.branchUnknown': "ветка неизвестна",
   'rail.agents.branchUnknownWhy': "Агент подключился из своего терминала, или git не ответил для его папки",
+  'rail.agents.openSession': "Открыть сессию: {name}",
+  'rail.agents.elsewhere': "Сессия идёт в терминале вне Fabric",
   // 0.3.7, волна 3: действие словами (ADR-0160 §2, SCN-169), для строки действия и Истории.
   'act.undo': "Отменить",
   'act.undoing': "Отменяю…",
