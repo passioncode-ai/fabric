@@ -34,7 +34,7 @@ export const TURN_WINDOW_MS = 15 * 60_000
  *  does: one list each for the sweep and the receipt's ingress rules (iteration 3, DA-5). */
 export const SWEEP_READS = ['claims', 'tasks', 'requests', 'terminals', 'turns', 'briefs'] as const
 export type SweepRead = (typeof SWEEP_READS)[number]
-export const SWEEP_CAPS = ['claims', 'threads', 'messages'] as const
+export const SWEEP_CAPS = ['claims', 'threads', 'messages', 'turns'] as const
 export type SweepCap = (typeof SWEEP_CAPS)[number]
 
 export interface SweepClaim {
@@ -88,13 +88,22 @@ export interface SweepTerminal {
   lastActivityAt: number
 }
 
-/** One turn the session hooks observed (`session.turn.observed@1`): when, and how many files differ from HEAD; null
- *  when git could not say. */
+/** One turn the session hooks observed (`session.turn.observed@1`): when, how many files differ from HEAD and the
+ *  lines added and removed against it; null when git could not say. */
 export interface SweepTurn {
   sessionId: string
   projectId: string | null
   at: string
   filesChanged: number | null
+  linesAdded?: number | null
+  linesRemoved?: number | null
+}
+
+/** Whether a session's working tree changed between two of its turns (the 0.3.14 review, iteration 1, DA-2): a count
+ *  both turns know that differs. A tree left dirty by someone else, and unchanged, is no change. */
+function treeChanged(a: SweepTurn, b: SweepTurn): boolean {
+  const known = (x: number | null | undefined, y: number | null | undefined): boolean => typeof x === 'number' && typeof y === 'number' && x !== y
+  return known(a.filesChanged, b.filesChanged) || known(a.linesAdded, b.linesAdded) || known(a.linesRemoved, b.linesRemoved)
 }
 
 export interface SweepInput {
@@ -189,19 +198,27 @@ export function findAbandoned(input: SweepInput): Finding[] {
   }
   // #endregion brief-missing
   // #region work-unclaimed — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
-  // 0.3.14 wave 2: a session whose turns changed files in the window and that holds nothing (no open claim of any life,
-  // no managed lease, no Fabric terminal on a task) is working on something nobody can see on the board.
+  // 0.3.14 wave 2: a session whose working tree changed between its turns in the window and that holds nothing (no open
+  // claim of any life, no managed lease, no Fabric terminal on a task) is working on something nobody can see on the
+  // board. The review, iteration 1, DA-2: judged by a change between its turns, not by a dirty tree, so a session that
+  // only reads in a checkout another left dirty is not told.
   const holding = new Set<string>([
     ...input.claims.map((c) => c.sessionId),
     ...(input.heldSessions ?? []),
     ...input.terminals.filter((t) => t.taskId).map((t) => t.sessionId)
   ])
-  const firstChange = new Map<string, { at: number; projectId: string | null }>()
+  const bySessionTurns = new Map<string, Array<SweepTurn & { ms: number }>>()
   for (const t of input.turns ?? []) {
-    const at = Date.parse(t.at)
-    if (!(t.filesChanged && t.filesChanged > 0) || !Number.isFinite(at) || now - at > TURN_WINDOW_MS || holding.has(t.sessionId)) continue
-    const prior = firstChange.get(t.sessionId)
-    if (!prior || at < prior.at) firstChange.set(t.sessionId, { at, projectId: t.projectId ?? prior?.projectId ?? null })
+    const ms = Date.parse(t.at)
+    if (!Number.isFinite(ms) || now - ms > TURN_WINDOW_MS || holding.has(t.sessionId)) continue
+    bySessionTurns.set(t.sessionId, [...(bySessionTurns.get(t.sessionId) ?? []), { ...t, ms }])
+  }
+  const firstChange = new Map<string, { at: number; projectId: string | null }>()
+  for (const [sessionId, turns] of bySessionTurns) {
+    turns.sort((a, b) => a.ms - b.ms)
+    const i = turns.findIndex((t, k) => k > 0 && treeChanged(turns[k - 1], t))
+    // Since the turn before the first change: the change began after it.
+    if (i > 0) firstChange.set(sessionId, { at: turns[i - 1].ms, projectId: turns[i].projectId ?? turns[i - 1].projectId ?? null })
   }
   for (const [sessionId, c] of firstChange)
     out.push({ ...base, kind: 'work-unclaimed', key: `work-unclaimed:${sessionId}`, projectId: c.projectId, sessionId, stillMs: Math.max(0, now - c.at),
@@ -235,7 +252,7 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
 
 /** A kind whose line is not "has been still": what it says, given the whole minutes. */
 const SAYS: Partial<Record<AbandonedKind, (f: Finding, min: number) => string>> = {
-  'work-unclaimed': (f, min) => `${SUBJECT[f.kind](f)} has changed files for ${min} min and holds no claim.`,
+  'work-unclaimed': (f, min) => `${SUBJECT[f.kind](f)} has been changing files between its turns for ${min} min and holds no claim.`,
   'brief-missing': (f, min) => `${SUBJECT[f.kind](f)} has been in work for ${min} min with its brief incomplete.`
 }
 
@@ -267,10 +284,20 @@ export interface SweepLastClaim {
   how: string | null
 }
 
-/** The running tasks whose last claim was released done with no move since (0.3.14 wave 2, task b2c42b88): the done
- *  release's move to review did not land. Not one something holds now. */
-export function doneLeftRunning(tasks: readonly { taskId: string; movedAt: string; lastClaim?: SweepLastClaim | null }[], held: ReadonlySet<string>): string[] {
+type ReleasedTask = { taskId: string; movedAt: string; movedByKind?: string | null; lastClaim?: SweepLastClaim | null }
+
+/** The running tasks whose last claim was released done and nothing holds now (0.3.14 wave 2, task b2c42b88): the done
+ *  release's move to review did not land. The review, iteration 1, ER-4: a done release made from backlog goes through
+ *  running after the release (TR-3), so a move since the release keeps the repair unless a person made it. */
+export function doneLeftRunning(tasks: readonly ReleasedTask[], held: ReadonlySet<string>): string[] {
   return tasks.filter((t) => t.lastClaim?.how === 'done' && t.lastClaim.releasedAt && !held.has(t.taskId) &&
+    (Date.parse(t.movedAt) <= Date.parse(t.lastClaim.releasedAt) || t.movedByKind !== 'person')).map((t) => t.taskId)
+}
+
+/** The running tasks whose last claim ended other than done, with no move since, and that nothing holds now (the 0.3.14
+ *  review, iteration 1, ER-6): the release's move back to backlog did not land. */
+export function releasedLeftRunning(tasks: readonly ReleasedTask[], held: ReadonlySet<string>): string[] {
+  return tasks.filter((t) => !!t.lastClaim?.how && t.lastClaim.how !== 'done' && t.lastClaim.releasedAt && !held.has(t.taskId) &&
     Date.parse(t.movedAt) <= Date.parse(t.lastClaim.releasedAt)).map((t) => t.taskId)
 }
 

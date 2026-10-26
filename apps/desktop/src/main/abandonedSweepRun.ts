@@ -20,6 +20,7 @@
 import {
   AGENT_ONLY_KINDS,
   doneLeftRunning,
+  releasedLeftRunning,
   findAbandoned,
   lapsedTwice,
   nudgeOf,
@@ -79,8 +80,9 @@ export interface AbandonedSweepDeps {
    *  holds without a claim (a managed launch). */
   /** `capped`: the claims or leases read stopped at its limit, so a task past it may be held. */
   readClaims(now: number): Promise<{ claims: SweepClaim[]; heldTaskIds: string[]; heldSessionIds?: string[]; capped?: boolean }>
-  /** The turns the session hooks observed in the last fifteen minutes (`readRecentTurns`); absent: none is judged. */
-  readTurns?(now: number): Promise<SweepTurn[]>
+  /** The turns the session hooks observed in the last fifteen minutes (`readRecentTurns`), `capped` when the read
+   *  stopped at its bound; absent: none is judged. */
+  readTurns?(now: number): Promise<{ turns: SweepTurn[]; capped: boolean }>
   /** The missing brief parts of these claimed tasks (`readBriefGaps`); absent: no brief is judged. */
   readBriefGaps?(taskIds: string[]): Promise<Record<string, SpecPart[]>>
   /** The tasks in running, with when each last moved. */
@@ -93,6 +95,9 @@ export interface AbandonedSweepDeps {
   /** Moves a running task whose last claim was released done to review (0.3.14 wave 2,
    *  `workRelease.ts#moveDoneLeftRunningToReview`); absent: no repair. */
   moveDoneToReview?(taskId: string, projectId: string | null): Promise<{ task_moved_to: 'review' | null; failed?: string }>
+  /** Moves a running task whose last claim ended other than done, with no move since, back to backlog (the 0.3.14
+   *  review, iteration 1, ER-6; `workRelease.ts#moveReleasedLeftRunningToBacklog`); absent: no retry. */
+  moveReleasedToBacklog?(taskId: string, projectId: string | null): Promise<{ task_moved_to: 'backlog' | null; failed?: string }>
   /** The task ids among these whose run Fabric has not proved stopped (`workRead.ts#readRunHolds`). */
   unresolvedRuns(taskIds: string[]): Promise<string[]>
   /** Appends the sweep's receipt, `work.swept@1` (SW-7): counts only, never a title or a body. */
@@ -107,7 +112,8 @@ export interface AbandonedSweepDeps {
 type Source = SweepRead
 /** Which kinds each read finds, so a failed read keeps what was told about them (SW-5 across a blind sweep). */
 const KINDS_OF: Record<Source, AbandonedKind[]> = {
-  claims: ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'work-unclaimed'],
+  // The 0.3.14 review, iteration 1, ER-3: the briefs are read from the claims, so a failed claims read blinds them too.
+  claims: ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'work-unclaimed', 'brief-missing'],
   tasks: ['task-unclaimed', 'terminal-stalled'],
   requests: ['request-unmoved', 'answer-unread'],
   terminals: ['terminal-stalled', 'task-unclaimed', 'work-unclaimed'],
@@ -199,6 +205,32 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     }
   }
 
+  // #region sweep-left-running-repairs — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#review-iteration-1
+  /** The repairs of a release whose task's move did not land (0.3.14 wave 2; the review, iteration 1, ER-4, ER-5, ER-6),
+   *  each read back; returns the tasks that moved. A failure is said in the ops log and tried again next sweep. Judged
+   *  only when every holder was read whole. */
+  async function repairLeftRunning(holders: ReadonlySet<string> | null, taskRead: SweepRunningTask[] | null): Promise<Set<string>> {
+    const moved = new Set<string>()
+    if (!holders || !taskRead) return moved
+    const projectOf = (id: string): string | null => taskRead.find((t) => t.taskId === id)?.projectId ?? null
+    const jobs: Array<{ taskId: string; op: string; move: () => Promise<{ task_moved_to: string | null; failed?: string }> }> = [
+      ...(deps.moveDoneToReview ? doneLeftRunning(taskRead, holders).map((id) => ({ taskId: id, op: 'work.sweep-done-review', move: () => deps.moveDoneToReview!(id, projectOf(id)) })) : []),
+      ...(deps.moveReleasedToBacklog ? releasedLeftRunning(taskRead, holders).map((id) => ({ taskId: id, op: 'work.sweep-released-backlog', move: () => deps.moveReleasedToBacklog!(id, projectOf(id)) })) : [])
+    ]
+    for (const j of jobs) {
+      if (deps.quitting()) break
+      try {
+        const r = await j.move()
+        if (r.task_moved_to) moved.add(j.taskId)
+        if (r.failed) ops.failed(j.op, new Error(r.failed), { task_id: j.taskId, note: 'the task stays in running and in «На проверке»; the next sweep tries again' })
+      } catch (e) {
+        ops.failed(j.op, e, { task_id: j.taskId, note: 'the task stays in running and in «На проверке»; the next sweep tries again' })
+      }
+    }
+    return moved
+  }
+  // #endregion sweep-left-running-repairs
+
   async function sweep(): Promise<SweepResult> {
     const now = deps.now()
     const failedReads: Source[] = []
@@ -223,25 +255,34 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     // 0.3.14 wave 2: the briefs of the claimed tasks, read after the claims (it needs their tasks), in its own try.
     const claimedTaskIds = [...new Set((claimRead?.claims ?? []).filter((c) => c.session !== null).map((c) => c.taskId).filter((id): id is string => id !== null))]
     const briefGaps = deps.readBriefGaps && claimedTaskIds.length ? await attempt('briefs', () => deps.readBriefGaps!(claimedTaskIds), failedReads) : null
-    // 0.3.14 wave 2: a done release whose move to review did not land is repaired below, not called unclaimed.
-    const doneRepairs = holders && taskRead && deps.moveDoneToReview ? new Set(doneLeftRunning(taskRead, holders)) : new Set<string>()
+    // 0.3.14 wave 2: a done release whose move to review did not land is moved to review; the review, iteration 1, ER-6:
+    // a release other than done whose move back to backlog did not land is moved there. Repaired before the judgement,
+    // so a task leaves the findings only once its repair read back (ER-5): a repair that keeps failing stays a
+    // `task-unclaimed` finding the operator sees in «На проверке», and the next sweep tries again.
+    const repaired = await repairLeftRunning(holders, taskRead)
     const findings = findAbandoned({
       now,
       claims: claimRead?.claims ?? [],
       tasks: holders && taskRead
-        ? taskRead.filter((t) => !doneRepairs.has(t.taskId)).map((t) => ({ taskId: t.taskId, projectId: t.projectId, state: 'running', movedAt: t.movedAt, claimed: holders.has(t.taskId), movedByKind: t.movedByKind ?? null, lastClaimedAt: t.lastClaimedAt ?? null }))
+        ? taskRead.filter((t) => !repaired.has(t.taskId)).map((t) => ({ taskId: t.taskId, projectId: t.projectId, state: 'running', movedAt: t.movedAt, claimed: holders.has(t.taskId), movedByKind: t.movedByKind ?? null, lastClaimedAt: t.lastClaimedAt ?? null }))
         : [],
       requests: requestRead?.requests ?? [],
       terminals: terminals ?? [],
       ...(taskRead ? { runningTaskIds: taskRead.map((t) => t.taskId) } : {}),
       // 0.3.14 wave 2: a session is judged by what it holds, so its turns are judged only when everything it could hold
-      // was read whole (the same condition as a running task's holders above).
-      ...(holders && turns ? { turns, heldSessions: claimRead?.heldSessionIds ?? [] } : {}),
+      // was read whole (the same condition as a running task's holders above), and only when the turns were (ER-12).
+      ...(holders && turns && !turns.capped ? { turns: turns.turns, heldSessions: claimRead?.heldSessionIds ?? [] } : {}),
       ...(briefGaps ? { briefGaps } : {})
     })
 
-    // SW-5. What a failed read could not see is not forgotten: its kinds keep their last telling.
-    const blind = new Set(failedReads.flatMap((s) => KINDS_OF[s]))
+    // SW-5. What a failed read could not see is not forgotten: its kinds keep their last telling. The review, iteration
+    // 1, ER-3 and ER-12: so do the kinds judged from the holders when the claims read stopped at its bound, and
+    // `work-unclaimed` when the turns read did.
+    const blind = new Set<AbandonedKind>([
+      ...failedReads.flatMap((s) => KINDS_OF[s]),
+      ...(claimRead?.capped ? (['task-unclaimed', 'work-unclaimed'] as const) : []),
+      ...(turns?.capped ? (['work-unclaimed'] as const) : [])
+    ])
     const decided = toTell(findings, told, now)
     for (const [key, at] of told) if (!decided.told.has(key) && blind.has(kindOf(key))) decided.told.set(key, at)
     told = decided.told
@@ -311,22 +352,11 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       }
     }
 
-    // 0.3.14 wave 2: the repair of a done release left in running, read back; a failure is said and tried next sweep.
-    for (const taskId of doneRepairs) {
-      if (deps.quitting()) break
-      try {
-        const r = await deps.moveDoneToReview!(taskId, taskRead?.find((t) => t.taskId === taskId)?.projectId ?? null)
-        if (r.failed) ops.failed('work.sweep-done-review', new Error(r.failed), { task_id: taskId, note: 'the task stays in running; the next sweep tries again' })
-      } catch (e) {
-        ops.failed('work.sweep-done-review', e, { task_id: taskId, note: 'the task stays in running; the next sweep tries again' })
-      }
-    }
-
     // SW-7: one journal receipt of what this sweep did, counts only: written when it told an agent, released a claim,
     // or read blind or capped; a sweep that found only what it had already told writes nothing (0.3.13 review,
     // iteration 1, DA-2: one stuck item wrote a receipt every three minutes), nor one that runs into a quit (ER-5).
     // A receipt the journal refused is said in the ops log; the sweep stands.
-    const capped: SweepCap[] = [...(claimRead?.capped ? ['claims' as const] : []), ...(requestRead?.capped ?? [])]
+    const capped: SweepCap[] = [...(claimRead?.capped ? ['claims' as const] : []), ...(requestRead?.capped ?? []), ...(turns?.capped ? ['turns' as const] : [])]
     // A read that stays blind or capped is recorded when that changes, not on every sweep it lasts (iteration 2, DA-1:
     // a board read stuck at its bound wrote 480 receipts a day). The state counts as recorded only once its receipt is
     // in the journal, so a receipt the journal refused is tried again at the next sweep (iteration 3, ER-3, DA-1).
@@ -462,16 +492,20 @@ export async function readBriefGaps(store: Pick<Store, 'selectIn'>, taskIds: str
 /** The turns the session hooks observed in the last fifteen minutes (0.3.14 wave 2, work-unclaimed): newest first and
  *  bounded like the sweep's other reads, by the database's own time (`occurred_at`), never the agent's clock. A read
  *  that fails throws: unread turns are never "no session changed anything". */
-export async function readRecentTurns(store: Pick<Store, 'select'>, now: number): Promise<SweepTurn[]> {
+export async function readRecentTurns(store: Pick<Store, 'select'>, now: number): Promise<{ turns: SweepTurn[]; capped: boolean }> {
   const r = await store.select('journal', 'project_id,occurred_at,payload').eq('type', 'session.turn.observed@1')
     .gte('occurred_at', new Date(now - TURN_WINDOW_MS).toISOString()).order('seq', { ascending: false }).limit(SWEEP_READ_LIMIT)
   if (r.error) throw new Error(`the sessions' turns could not be read: ${r.error.message}`)
-  return ((r.data ?? []) as Array<{ project_id: string | null; occurred_at: string; payload: { session_id?: unknown; files_changed?: unknown } | null }>)
-    .filter((t) => typeof t.payload?.session_id === 'string')
-    .map((t) => ({
+  const rows = (r.data ?? []) as Array<{ project_id: string | null; occurred_at: string; payload: { session_id?: unknown; files_changed?: unknown; lines_added?: unknown; lines_removed?: unknown } | null }>
+  const count = (v: unknown): number | null => (typeof v === 'number' ? v : null)
+  return {
+    turns: rows.filter((t) => typeof t.payload?.session_id === 'string').map((t) => ({
       sessionId: t.payload!.session_id as string, projectId: t.project_id, at: t.occurred_at,
-      filesChanged: typeof t.payload!.files_changed === 'number' ? t.payload!.files_changed : null
-    }))
+      filesChanged: count(t.payload!.files_changed), linesAdded: count(t.payload!.lines_added), linesRemoved: count(t.payload!.lines_removed)
+    })),
+    // The review, iteration 1, DA-7, ER-12: a read that stopped at its bound is named (CO-310), never "every turn".
+    capped: rows.length >= SWEEP_READ_LIMIT
+  }
 }
 // #endregion sweep-recent-turns
 

@@ -158,23 +158,33 @@ describe('work-unclaimed: a session changing files with no claim', () => {
     expect(found).toHaveLength(1)
     expect(found[0]).toMatchObject({ kind: 'work-unclaimed', key: 'work-unclaimed:s1', sessionId: 's1', projectId: 'p1', taskId: null })
     expect(found[0].stillMs).toBe(12 * MIN)
-    expect(nudgeText(found[0])).toBe('Fabric: this session has changed files for 12 min and holds no claim. Claim the task you are working on (fabric_work_claim): its taskId, or a new row with a title and its origin.')
+    expect(nudgeText(found[0])).toBe('Fabric: this session has been changing files between its turns for 12 min and holds no claim. Claim the task you are working on (fabric_work_claim): its taskId, or a new row with a title and its origin.')
     expect(nudgeText(found[0])).not.toContain('\u2014')
   })
 
   it('is not found for a session that holds a claim, a managed launch or a Fabric terminal with a task', () => {
-    const turns = [turn('s1', 2 * MIN, 3)]
+    const turns = [turn('s1', 3 * MIN, 3), turn('s1', 2 * MIN, 4)]
+    expect(findAbandoned({ ...empty, turns }).map((f) => f.kind)).toEqual(['work-unclaimed'])
     expect(findAbandoned({ ...empty, turns, claims: [live('s1')] })).toEqual([])
     expect(findAbandoned({ ...empty, turns, heldSessions: ['s1'] })).toEqual([])
     expect(findAbandoned({ ...empty, turns, terminals: [{ sessionId: 's1', projectId: 'p1', taskId: 't1', liveness: 'active', since: ago(MIN), lastActivityAt: NOW }] })).toEqual([])
   })
 
   it('is not found for turns that changed nothing, could not say, or are older than the window', () => {
-    expect(findAbandoned({ ...empty, turns: [turn('s1', 2 * MIN, 0), turn('s2', 2 * MIN, null), turn('s3', TURN_WINDOW_MS + 1000, 5)] })).toEqual([])
+    expect(findAbandoned({ ...empty, turns: [turn('s1', 2 * MIN, 0), turn('s1', MIN, 0), turn('s2', 2 * MIN, null), turn('s2', MIN, 3),
+      turn('s3', TURN_WINDOW_MS + 1000, 5), turn('s3', MIN, 6)] })).toEqual([])
+  })
+
+  it('the 0.3.14 review, iteration 1, DA-2: a dirty tree that does not change between turns is not told; a change in its lines is', () => {
+    const dirty = [turn('s1', 14 * MIN, 4), turn('s1', 9 * MIN, 4), turn('s1', 4 * MIN, 4), turn('s1', MIN, 4)]
+    expect(findAbandoned({ ...empty, turns: dirty })).toEqual([])
+    expect(findAbandoned({ ...empty, turns: [turn('s1', 5 * MIN, 4)] }), 'one turn shows no change').toEqual([])
+    const lines = [{ ...turn('s1', 5 * MIN, 4), linesAdded: 10, linesRemoved: 0 }, { ...turn('s1', MIN, 4), linesAdded: 12, linesRemoved: 0 }]
+    expect(findAbandoned({ ...empty, turns: lines }).map((f) => [f.kind, f.stillMs])).toEqual([['work-unclaimed', 5 * MIN]])
   })
 
   it('is one finding per session, and every kind is listed for the receipt', () => {
-    const found = findAbandoned({ ...empty, turns: [turn('s1', 2 * MIN, 1), turn('s1', MIN, 2), turn('s2', MIN, 1, 'p2')] })
+    const found = findAbandoned({ ...empty, turns: [turn('s1', 3 * MIN, 1), turn('s1', 2 * MIN, 2), turn('s1', MIN, 3), turn('s2', 2 * MIN, 1, 'p2'), turn('s2', MIN, 2, 'p2')] })
     expect(found.map((f) => f.key).sort()).toEqual(['work-unclaimed:s1', 'work-unclaimed:s2'])
     expect(ABANDONED_KINDS).toContain('work-unclaimed')
   })

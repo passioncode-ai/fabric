@@ -10,6 +10,7 @@ import { RELEASE_OUTCOME } from '../shared/workClaims.ts'
 import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
 import type { ActorKind } from '@fabric/journal'
 import { ops } from './opsSink.ts'
+import { readRunHolds } from './workRead.ts'
 
 type Store = ReturnType<typeof createScopedStore>
 type Append = (e: { type: 'work.released@1' | 'task.moved@1'; actor: { kind: ActorKind; id: string }; projectId: string; payload: Record<string, unknown> }) => Promise<unknown>
@@ -65,9 +66,10 @@ export function backToBacklogNote(how: string, said: string | null): string {
   return `the claim on this task ended (${how}) and nothing else holds it, so it goes back to the backlog${said ? `: ${said}` : ''}`
 }
 
-/** Whether something other than this claim holds the task now: another open claim, or another session's live lease
- *  (a launch Fabric manages). A read that fails throws. */
-export async function taskHeldElsewhere(store: Pick<Store, 'select'>, taskId: string, claim: { id: string; owner_session: string }, now: number): Promise<boolean> {
+/** Whether something other than this claim holds the task now: another open claim, or another session's lease (a
+ *  launch Fabric manages) that is live, or lapsed while its run is not proved stopped (the 0.3.14 review, iteration 1,
+ *  ER-8: the hold `readWork` counts, CO-323). A read that fails throws. */
+export async function taskHeldElsewhere(store: Pick<Store, 'select' | 'selectIn'>, taskId: string, claim: { id: string; owner_session: string }, now: number): Promise<boolean> {
   const [claims, lease] = await Promise.all([
     store.select('work_claims', 'id').eq('work_id', taskId).is('released_at', null),
     store.select('leases', 'owner_session,expires_at').eq('work_id', taskId).maybeSingle()
@@ -76,7 +78,9 @@ export async function taskHeldElsewhere(store: Pick<Store, 'select'>, taskId: st
   if (lease.error) throw new Error(`the task's lease could not be read: ${lease.error.message}`)
   if (((claims.data ?? []) as Array<{ id: string }>).some((c) => c.id !== claim.id)) return true
   const l = lease.data as { owner_session: string; expires_at: string } | null
-  return !!l && l.owner_session !== claim.owner_session && Date.parse(l.expires_at) > now
+  if (!l || l.owner_session === claim.owner_session) return false
+  if (Date.parse(l.expires_at) > now) return true
+  return (await readRunHolds(store as Store, [taskId])).length > 0
 }
 
 /**
@@ -142,6 +146,20 @@ export async function moveDoneLeftRunningToReview(store: Store, append: Append, 
     append({ type: 'task.moved@1', actor, projectId, payload: { task_id: task.id, from: task.status, to, note: DONE_LEFT_RUNNING_NOTE } }))
 }
 // #endregion sweep-done-left-running
+
+/** The note of the sweep's retry of a release whose move back to backlog did not land (the 0.3.14 review, iteration 1,
+ *  ER-6). */
+export const RELEASED_LEFT_RUNNING_NOTE = 'its last claim ended and nothing holds it, but its move back to backlog did not land, so the sweep moves it to backlog'
+
+// #region sweep-released-left-running — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#review-iteration-1
+/** The sweep's retry (the 0.3.14 review, iteration 1, ER-6): a running task whose last claim ended other than done, with
+ *  no move since and nothing holding it now, goes back to backlog as its release meant, read back. */
+export async function moveReleasedLeftRunningToBacklog(store: Store, append: Append, taskId: string, projectId: string): Promise<{ task_moved_to: 'backlog' | null; task_status: TaskState | null; failed?: string }> {
+  const actor = { kind: 'system' as const, id: 'work-sweep' }
+  return returnClaimedTaskToBacklog('', () => taskOf(store, taskId), (id) => taskHeldElsewhere(store, id, { id: '', owner_session: '' }, Date.now()), (task, to) =>
+    append({ type: 'task.moved@1', actor, projectId, payload: { task_id: task.id, from: task.status, to, note: RELEASED_LEFT_RUNNING_NOTE } }))
+}
+// #endregion sweep-released-left-running
 
 /** A task of the store's estate by id: its status, or null. */
 async function taskOf(store: Store, taskId: string): Promise<{ id: string; status: TaskState } | null> {

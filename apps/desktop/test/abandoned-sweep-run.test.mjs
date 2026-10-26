@@ -28,7 +28,7 @@ function world(over = {}) {
   w.deps = {
     now: () => now,
     readClaims: read('claims', () => { w.reads++; return { claims: w.claims, heldTaskIds: w.held, heldSessionIds: w.heldSessions, ...(w.claimsCapped ? { capped: true } : {}) } }),
-    readTurns: read('turns', () => w.turns),
+    readTurns: read('turns', () => ({ turns: w.turns, capped: w.turnsCapped === true })),
     readRunningTasks: read('tasks', () => w.tasks),
     readRequests: read('requests', () => ({ requests: w.requests, capped: w.requestsCapped })),
     terminals: () => {
@@ -823,9 +823,11 @@ test('PL-1: a project nudge is shown once to each session\'s turns, and a new te
 // ── 0.3.14 wave 2: a session changing files with no claim ─────────────────────────────────────────────────────
 const { readRecentTurns } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
 const changedTurn = (sessionId, agoMin, filesChanged = 3) => ({ sessionId, projectId: 'p1', at: iso(T0 - agoMin * MIN), filesChanged })
+/** Two turns of a session whose working tree changed between them (the review, iteration 1, DA-2). */
+const changing = (sessionId, fromMin = 3, toMin = 1) => [changedTurn(sessionId, fromMin, 3), changedTurn(sessionId, toMin, 5)]
 
 test('work-unclaimed: a session changing files with no claim is nudged once in 30 minutes, in its own queue', async () => {
-  const w = world({ turns: [changedTurn('s-free', 6), changedTurn('s-free', 1)] })
+  const w = world({ turns: changing('s-free', 6, 1) })
   const sweep = createAbandonedSweep(w.deps)
   const r = await sweepOnce(sweep)
   assert.deepEqual(r.findings.map((f) => f.kind), ['work-unclaimed'])
@@ -842,14 +844,14 @@ test('work-unclaimed: a session changing files with no claim is nudged once in 3
 
 test('work-unclaimed: a session that holds a claim or a managed launch is not nudged', async () => {
   const claim = { ...silentClaim('c1', 's-claim'), expiresAt: iso(T0 + 10 * MIN), session: { lastSignAt: T0 } }
-  const w = world({ claims: [claim], heldSessions: ['s-lease'], turns: [changedTurn('s-claim', 2), changedTurn('s-lease', 2)] })
+  const w = world({ claims: [claim], heldSessions: ['s-lease'], turns: [...changing('s-claim'), ...changing('s-lease')] })
   const r = await sweepOnce(createAbandonedSweep(w.deps))
   assert.deepEqual(r.findings, [])
 })
 
 test('work-unclaimed: no session is judged unclaimed when the claims or terminals read failed or stopped at its cap', async () => {
   for (const over of [{ fail: new Set(['claims']) }, { fail: new Set(['terminals']) }, { claimsCapped: true }]) {
-    const w = world({ turns: [changedTurn('s-free', 2)], ...over })
+    const w = world({ turns: changing('s-free'), ...over })
     const r = await sweepOnce(createAbandonedSweep(w.deps))
     assert.deepEqual(r.findings.filter((f) => f.kind === 'work-unclaimed'), [], JSON.stringify(Object.keys(over)))
   }
@@ -864,7 +866,7 @@ test('work-unclaimed: a failed turns read is named in the receipt, and its recei
 })
 
 test('work-unclaimed is the agent\'s reminder, not the operator\'s queue: current() leaves it out', async () => {
-  const w = world({ turns: [changedTurn('s-free', 2)], tasks: [{ taskId: 't9', projectId: 'p1', movedAt: iso(T0 - 10 * MIN) }] })
+  const w = world({ turns: changing('s-free'), tasks: [{ taskId: 't9', projectId: 'p1', movedAt: iso(T0 - 10 * MIN) }] })
   const sweep = createAbandonedSweep(w.deps)
   await sweepOnce(sweep)
   assert.deepEqual(sweep.current().findings.map((f) => f.kind), ['task-unclaimed'])
@@ -873,17 +875,18 @@ test('work-unclaimed is the agent\'s reminder, not the operator\'s queue: curren
 test('readRecentTurns: the turns of the last 15 minutes, newest first and bounded, by the database\'s time', async () => {
   const calls = []
   const rows = [
-    { project_id: 'p1', occurred_at: iso(T0 - MIN), payload: { session_id: 's1', files_changed: 2 } },
+    { project_id: 'p1', occurred_at: iso(T0 - MIN), payload: { session_id: 's1', files_changed: 2, lines_added: 7, lines_removed: 1 } },
     { project_id: 'p2', occurred_at: iso(T0 - 2 * MIN), payload: { session_id: 's2', files_changed: null } },
     { project_id: 'p2', occurred_at: iso(T0 - 3 * MIN), payload: {} }
   ]
   const q = new Proxy({}, { get: (_t, prop) => prop === 'then' ? (res) => res({ data: rows, error: null }) : (...args) => { calls.push([prop, ...args]); return q } })
   const store = { select: (table, cols) => { calls.push(['select', table, cols]); return q } }
-  const turns = await readRecentTurns(store, T0)
+  const { turns, capped } = await readRecentTurns(store, T0)
   assert.deepEqual(turns, [
-    { sessionId: 's1', projectId: 'p1', at: iso(T0 - MIN), filesChanged: 2 },
-    { sessionId: 's2', projectId: 'p2', at: iso(T0 - 2 * MIN), filesChanged: null }
+    { sessionId: 's1', projectId: 'p1', at: iso(T0 - MIN), filesChanged: 2, linesAdded: 7, linesRemoved: 1 },
+    { sessionId: 's2', projectId: 'p2', at: iso(T0 - 2 * MIN), filesChanged: null, linesAdded: null, linesRemoved: null }
   ])
+  assert.equal(capped, false)
   assert.deepEqual(calls.find((c) => c[0] === 'eq'), ['eq', 'type', 'session.turn.observed@1'])
   assert.deepEqual(calls.find((c) => c[0] === 'gte'), ['gte', 'occurred_at', iso(T0 - 15 * MIN)])
   assert.ok(calls.some((c) => c[0] === 'limit'), 'bounded')
@@ -906,7 +909,7 @@ test('done left running: the sweep moves a running task whose last claim ended d
 
 test('done left running: not for a task moved since the release, one held now, one released otherwise, or a blind claims read', async () => {
   const cases = [
-    world({ tasks: [doneTask({ movedAt: iso(T0 - 20 * MIN) })] }),
+    world({ tasks: [doneTask({ movedAt: iso(T0 - 20 * MIN), movedByKind: 'person' })] }),
     world({ tasks: [doneTask()], held: ['t-done'] }),
     world({ tasks: [doneTask({ lastClaim: { claimedAt: iso(T0 - 60 * MIN), releasedAt: iso(T0 - 30 * MIN), how: 'let-go' } })] }),
     world({ tasks: [doneTask({ lastClaim: { claimedAt: iso(T0 - 20 * MIN), releasedAt: null, how: null } })] }),
@@ -926,6 +929,126 @@ test('done left running: a repair that fails is said in the ops log and the swee
   const r = await sweepOnce(createAbandonedSweep(w.deps))
   assert.ok(r)
   assert.ok(w.failed.some((f) => f.op === 'work.sweep-done-review' && /append refused/.test(f.message)))
+})
+
+// ── The 0.3.14 review, iteration 1: ER-4, ER-5, ER-6 (the sweep's repairs), ER-3, ER-12 (blind and capped reads) ───
+test('ER-4: a done release made from backlog, whose task then went to running and stopped there, is moved to review', async () => {
+  const moved = []
+  // TR-3: the release is appended, then backlog to running by the agent, then running to review failed.
+  const w = world({ tasks: [doneTask({ movedAt: iso(T0 - 29 * MIN), movedByKind: 'agent' })] })
+  w.deps.moveDoneToReview = async (taskId) => { moved.push(taskId); return { task_moved_to: 'review' } }
+  await sweepOnce(createAbandonedSweep(w.deps))
+  assert.deepEqual(moved, ['t-done'])
+})
+
+test('ER-5: a done repair that fails keeps its task in the operator\'s queue as task-unclaimed; a repair that lands does not', async () => {
+  const w = world({ tasks: [doneTask()] })
+  w.deps.moveDoneToReview = async () => ({ task_moved_to: null, failed: 'append refused' })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.deepEqual(sweep.current().findings.map((f) => [f.kind, f.taskId]), [['task-unclaimed', 't-done']], 'the operator sees it')
+  assert.ok(w.failed.some((f) => f.op === 'work.sweep-done-review'))
+  w.deps.moveDoneToReview = async () => ({ task_moved_to: 'review' })
+  w.tick(3 * MIN); await sweepOnce(sweep)
+  assert.deepEqual(sweep.current().findings, [], 'gone once the repair read back')
+})
+
+test('ER-6: a running task whose last claim ended other than done, with no move since and nothing holding it, goes back to backlog', async () => {
+  const left = (how, over = {}) => ({ taskId: `t-${how}`, projectId: 'p1', movedAt: iso(T0 - 40 * MIN),
+    lastClaim: { claimedAt: iso(T0 - 60 * MIN), releasedAt: iso(T0 - 30 * MIN), how }, ...over })
+  const moved = []
+  const w = world({ tasks: ['let-go', 'lapsed', 'session-ended', 'operator', 'handed-over'].map((h) => left(h)) })
+  w.deps.moveReleasedToBacklog = async (taskId) => { moved.push(taskId); return { task_moved_to: 'backlog' } }
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.deepEqual(moved, ['t-let-go', 't-lapsed', 't-session-ended', 't-operator', 't-handed-over'])
+  assert.deepEqual(sweep.current().findings, [], 'moved, not called unclaimed')
+  for (const [i, c] of [
+    world({ tasks: [left('let-go', { movedAt: iso(T0 - 20 * MIN) })] }),
+    world({ tasks: [left('let-go')], held: ['t-let-go'] }),
+    world({ tasks: [left('done')] }),
+    world({ tasks: [left('let-go')], fail: new Set(['claims']) })
+  ].entries()) {
+    const none = []
+    c.deps.moveReleasedToBacklog = async (taskId) => { none.push(taskId); return { task_moved_to: 'backlog' } }
+    await sweepOnce(createAbandonedSweep(c.deps))
+    assert.deepEqual(none, [], `case ${i}`)
+  }
+  const failing = world({ tasks: [left('let-go')] })
+  failing.deps.moveReleasedToBacklog = async () => ({ task_moved_to: null, failed: 'refused' })
+  const s2 = createAbandonedSweep(failing.deps)
+  await sweepOnce(s2)
+  assert.deepEqual(s2.current().findings.map((f) => f.kind), ['task-unclaimed'], 'a retry that fails stays in the operator\'s queue')
+  assert.ok(failing.failed.some((f) => f.op === 'work.sweep-released-backlog'))
+})
+
+test('ER-3: a failed claims read keeps brief-missing\'s quiet window and its queued nudge', async () => {
+  const w = world({ claims: [liveClaim()] })
+  w.deps.readBriefGaps = async () => ({ t1: ['why'] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  w.fail.add('claims'); w.tick(3 * MIN); await sweepOnce(sweep)
+  assert.equal(sweep.takeNudges('s-work', 'p1').length, 1, 'still queued across the blind sweep')
+  w.fail.delete('claims'); w.tick(3 * MIN); await sweepOnce(sweep)
+  assert.deepEqual(sweep.takeNudges('s-work', 'p1'), [], 'not told again inside 30 minutes')
+})
+
+test('ER-3: a capped claims read keeps work-unclaimed\'s quiet window', async () => {
+  const w = world({ turns: changing('s-free') })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.equal(sweep.takeNudges('s-free', 'p1').length, 1)
+  w.claimsCapped = true; w.tick(3 * MIN); await sweepOnce(sweep)
+  w.claimsCapped = false; w.turns = changing('s-free', 4, 1); w.tick(3 * MIN); await sweepOnce(sweep)
+  assert.deepEqual(sweep.takeNudges('s-free', 'p1'), [], 'not told again 6 minutes later')
+})
+
+test('DA-7, ER-12: a turns read stopped at its bound is named capped, judges no session and keeps the quiet window', async () => {
+  const w = world({ turns: changing('s-free') })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.equal(sweep.takeNudges('s-free', 'p1').length, 1)
+  w.turnsCapped = true; w.tick(3 * MIN)
+  const r = await sweepOnce(sweep)
+  assert.deepEqual(r.findings, [])
+  assert.ok(w.receipts.at(-1).capped.includes('turns'))
+  assert.equal(prepareEventPayload('work.swept@1', w.receipts.at(-1)).state, 'prepared')
+  w.turnsCapped = false; w.tick(3 * MIN); await sweepOnce(sweep)
+  assert.deepEqual(sweep.takeNudges('s-free', 'p1'), [], 'not told again')
+  const rows = Array.from({ length: 500 }, (_, i) => ({ project_id: 'p1', occurred_at: iso(T0 - MIN), payload: { session_id: `s${i}`, files_changed: 1 } }))
+  const q = new Proxy({}, { get: (_t, prop) => prop === 'then' ? (res) => res({ data: rows, error: null }) : () => q })
+  assert.equal((await readRecentTurns({ select: () => q }, T0)).capped, true)
+})
+
+test('ER-8: taskHeldElsewhere counts another session\'s lapsed lease whose run is not proved stopped, as readWork does', async () => {
+  const { taskHeldElsewhere } = await import(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'))
+  const storeWith = (lease, runs) => {
+    const q = (rows) => { const c = { eq: () => c, is: () => c, maybeSingle: async () => ({ data: rows[0] ?? null, error: null }), then: (res) => res({ data: rows, error: null }) }; return c }
+    return {
+      select: (table) => q(table === 'leases' && lease ? [lease] : []),
+      selectIn: async (table) => ({ rows: table === 'task_runs' ? runs : [], failed: null })
+    }
+  }
+  const lapsed = { owner_session: 's-launch', expires_at: iso(T0 - MIN) }
+  const run = { task_run_id: 'run1', task_id: 't1', session_id: 's-launch', state: 'running', outcome: null, ended_seq: null, created_at: iso(T0 - 30 * MIN) }
+  const claim = { id: 'c1', owner_session: 's-gone' }
+  assert.equal(await taskHeldElsewhere(storeWith(lapsed, [run]), 't1', claim, T0), true, 'a run not proved stopped holds its task')
+  assert.equal(await taskHeldElsewhere(storeWith(lapsed, []), 't1', claim, T0), false, 'a lapsed lease with no run holds nothing')
+  assert.equal(await taskHeldElsewhere(storeWith({ ...lapsed, expires_at: iso(T0 + MIN) }, []), 't1', claim, T0), true, 'a live lease holds')
+  assert.equal(await taskHeldElsewhere(storeWith({ ...lapsed, owner_session: 's-gone' }, [run]), 't1', claim, T0), false, 'the claim\'s own session is not elsewhere')
+})
+
+test('ER-6: moveReleasedLeftRunningToBacklog moves running to backlog as the sweep, read back; not while a claim holds it', async () => {
+  const { moveReleasedLeftRunningToBacklog, RELEASED_LEFT_RUNNING_NOTE } = await import(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'))
+  const held = releaseWorld()
+  assert.deepEqual(await moveReleasedLeftRunningToBacklog(held.store, held.append, 't1', 'p1'), { task_moved_to: null, task_status: 'running' }, 'an open claim holds it')
+  const w = releaseWorld()
+  await w.append({ type: 'work.released@1', payload: {} })
+  const r = await moveReleasedLeftRunningToBacklog(w.store, w.append, 't1', 'p1')
+  assert.deepEqual(r, { task_moved_to: 'backlog', task_status: 'backlog' })
+  const move = w.appended.find((e) => e.type === 'task.moved@1')
+  assert.deepEqual(move.actor, { kind: 'system', id: 'work-sweep' })
+  assert.deepEqual(move.payload, { task_id: 't1', from: 'running', to: 'backlog', note: RELEASED_LEFT_RUNNING_NOTE })
 })
 
 test('moveDoneLeftRunningToReview: running to review as the sweep, read back, with the note saying why', async () => {
