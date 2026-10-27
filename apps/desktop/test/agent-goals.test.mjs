@@ -55,6 +55,26 @@ test('a goal the root was spawned from, or the root\'s goal_id, leads with the g
   assert.equal(out.live[0].goal.taskId, 't2')
 })
 
+// UX-22 (the 0.3.14 review, iteration 3): a goal the person defined in Plan (the goals table) stays the agent's goal
+// when the agent works a task filed under it, by a `spawned` link to the goal or by the task's goal_id: the task is the
+// step, never its own goal, so the screens show «Цель: <goal title>».
+test('UX-22: a task an agent filed under a Plan goal is the step, the goal is named (not its own root)', async () => {
+  const byLink = fake({
+    links: [{ task_id: 't9', rel: 'spawned', target_kind: 'goal', target_id: 'g1' }],
+    tasks: [{ id: 't9', project_id: 'p1', title: 'Fix the counter', brief_what: null, goal_id: 'g1', origin_kind: 'agent' }],
+    goals: [{ id: 'g1', title: 'Ship 0.3.14 by Friday' }]
+  })
+  const a = await withGoals(view([live('s1', 't9')]), byLink)
+  assert.deepEqual(a.live[0].goal, { taskId: 't9', projectId: 'p1', text: 'Ship 0.3.14 by Friday', what: null, byPerson: false, isTask: false })
+  const byGoalId = fake({
+    tasks: [{ id: 't9', project_id: 'p1', title: 'Fix the counter', brief_what: null, goal_id: 'g1', origin_kind: 'agent' }],
+    goals: [{ id: 'g1', title: 'Ship 0.3.14 by Friday' }]
+  })
+  const b = await withGoals(view([live('s1', 't9')]), byGoalId)
+  assert.equal(b.live[0].goal.text, 'Ship 0.3.14 by Friday')
+  assert.equal(b.live[0].goal.isTask, false)
+})
+
 test('the walk stops at ten hops and at a cycle, never looping', async () => {
   const links = Array.from({ length: 15 }, (_, i) => ({ task_id: `t${i}`, rel: 'spawned', target_kind: 'task', target_id: `t${i + 1}` }))
   links.push({ task_id: 'c1', rel: 'spawned', target_kind: 'task', target_id: 'c2' }, { task_id: 'c2', rel: 'spawned', target_kind: 'task', target_id: 'c1' })

@@ -100,6 +100,16 @@ describe('«В работе» grouped by project', () => {
     expect(card.querySelector('.lh-proj-aim')?.textContent).toBe(en['launch.home.inWork.next'].replace('{text}', 'Release notes'))
   })
 
+  it('UX-22: a Plan goal over a task an agent filed under it leads the row as «Goal:», the task the step, and is the card\'s aim', () => {
+    // The shape `main/agentGoals.ts#withGoals` returns for the probe's case (test/agent-goals.test.mjs, UX-22).
+    const named: HomeView = { ...view, live: [{ ...view.live[0], goal: { taskId: 't1', projectId: 'fab', text: 'Ship 0.3.14 by Friday', what: null, byPerson: false, isTask: false } }, view.live[1]] }
+    show({ reading: { view: named, problem: null } })
+    const card = screen.getByRole('article', { name: 'Fabric' })
+    expect(card.textContent).toContain(en['launch.home.inWork.goal'].replace('{goal}', 'Ship 0.3.14 by Friday'))
+    expect(card.querySelector('.lh-arow-report')?.textContent).toContain('Fixes after the first review')
+    expect(card.querySelector('.lh-proj-aim')?.textContent).toContain('Ship 0.3.14 by Friday')
+  })
+
   it('ER-20: a failed goals read is said, and the plan\'s step is not shown as the aim', () => {
     show({ reading: { view: { ...view, goalsUnread: 'task_links refused' }, problem: null }, projects: [project('fab', 'Fabric', null, { done: [], next: ['Release notes'] }), ...projects.slice(1)] })
     expect(screen.getByText(en['launch.home.inWork.goalsUnread'])).toBeTruthy()

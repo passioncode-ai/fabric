@@ -5,8 +5,8 @@
  * The goal is the root of the current task's decomposition: from `LiveAgent.task`, walk `task_links` `spawned` (a task
  * spawned from its target) up to the root, at most 10 hops and never round a cycle. The root's title (else its
  * `brief_what`) is the goal; a goal the root was spawned from (`target_kind` goal), or the root's `goal_id`, leads with
- * the goal's own title. A task with no parent is its own goal (`isTask`). `origin_kind` person is said as «поставили
- * вы». No task, no goal named (null). A read that fails leaves every goal unknown (absent) and says why in
+ * the goal's own title, and the task is then the step under it (UX-22). A task with no parent and no Plan goal is its own
+ * goal (`isTask`). `origin_kind` person is said as «поставили вы». No task, no goal named (null). A read that fails leaves every goal unknown (absent) and says why in
  * `goalsUnread`: the home never says «Цель не названа» from a read that did not happen.
  */
 import type { HomeView } from '../shared/homeLive.ts'
@@ -88,7 +88,9 @@ export async function withGoals(view: HomeView, store: GoalStore): Promise<HomeV
             text,
             what: t ? str(t.brief_what) : null,
             byPerson: t?.origin_kind === 'person',
-            isTask: root.task === a.task.id
+            // UX-22: a goal the person defined in Plan (the goals table) is the goal even over a root task; the task
+            // is then the step under it, never its own goal. Only a root with no Plan goal is its own goal.
+            isTask: root.task === a.task.id && !fromGoal
           }
         }
       })
