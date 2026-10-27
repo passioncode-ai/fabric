@@ -34,6 +34,22 @@ released after the swap), as [the runbook](../../launch/release-mac.md) says, or
 0.3.13 mid-swap (measured 2026-10-26). The quit and the swap are the person's or fabric-workspace's, never an agent's.
 On 2026-10-27 the Mac had under 1 GB of free disk and swap at 37.3 of 38.4 GB, so the rollout waits until both allow it.
 
+## Rollout, as done on 2026-10-27
+
+After the Mac's reboot (52 GB free, swap 0, measured 03:26 UTC):
+
+- The bundle: `Fabric-0.3.14-universal.dmg` from the release, `SHA256SUMS` OK, `codesign --verify --deep --strict` OK,
+  `spctl`: accepted, Notarized Developer ID, version 0.3.14. The broker's hold on `fabric.desktop` (policy revision 19)
+  had outlived the reboot.
+- The swap: 0.3.13 moved aside as the way back (`~/DATA/_worktrees/fabric-0314-rollout/Fabric-0.3.13.app`), 0.3.14
+  copied into `/Applications` with `ditto`, `codesign` and `spctl` OK on the installed copy.
+- The person quit the 0.3.13 they had opened (pid 23952) at 03:27:33Z; the hold was lifted (revision 20) and
+  `lifecycle.ensure_running` reported ready at 03:27:55Z (pid 99745, `launch_services_open`).
+- Verified: `/Applications/Fabric.app` reads 0.3.14; `hub.json` names pid 99745 at `http://127.0.0.1:47070`;
+  `schema_version()` 98; the journal holds 31 776 events; this session enrolled again and `com.status` reads the board
+  ready. Announced on the board (`689a69b3` on `7ef21793`, `40cb37b3` on `d683f99d`).
+- Still owed: the person's look at the opened 0.3.14 (Главная, the left column, an agent's page, a reminder on a turn).
+
 ## Hosted CI on the final candidate
 
 The full tier needs a database this Mac cannot hold, so it runs on the hosted runner, as 0.3.13's did: run
