@@ -3,7 +3,7 @@
   "version": "0.3.15",
   "iteration": 3,
   "level": "ux",
-  "candidateCommit": "dbb69aa467347a9db806849c7c819a7107db4658",
+  "candidateCommit": "112779af7fccd9444779b4e72983c535ac160ebc",
   "report": "docs/evidence/reviews/0.3.15/iteration-3/2026-10-27-ux.md",
   "reportSha256": "493d6c90ea62104c920a824b5ddf44a1a84fde78f3f16b69a3c5083ca3a0d119",
   "reviewerRun": "release-0315-i3-ux-20261027",

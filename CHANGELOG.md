@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## 0.3.15 (unreleased)
+## 0.3.15
 
 **Upgrading.** No schema change: the local database stays at schema 98, as in 0.3.14, so upgrading is the new bundle
 alone, and going back to 0.3.14 is the 0.3.14 bundle alone.

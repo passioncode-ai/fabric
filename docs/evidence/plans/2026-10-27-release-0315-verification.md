@@ -47,6 +47,21 @@ verified commit. In order (the release review, iteration 3, PL-8):
    `node scripts/workspace.mjs publish` and `check --require-child`, the knowledge base's release row, the board post.
 6. The rollout above.
 
+## Hosted CI on the final candidate
+
+The push run of `ci.yml` on `112779af` is `40520347021`. The full tier needs a database this Mac cannot hold, so it runs
+on the hosted runner on the release commit once it is on `main`, and the release guard waits for `ci.yml` on that
+commit before the macOS, Windows and Linux builds (`docs/launch/release-mac.md`, step 4). Their conclusions are read
+before the tag and recorded in the release handoff; a failed job is a finding, never a pass.
+
+## Owed in 0.3.15's Release close
+
+- V3-19 (FV-1) as a carry-over row on `main` after the tag.
+- After the tag, on `main`: P-30 «released» and the Now line, `node scripts/workspace.mjs publish` and
+  `check --require-child`, the knowledge base's release row, the board post.
+- The rollout above, and the person's look at the opened 0.3.15: Главная at 900 to 1440 px in both themes, the left
+  column, an agent's page.
+
 ## Iteration 1
 
 Candidate `d1b0379dcdf0cdf566b3e457a17431f80e7582c7`. Five reviewers, one per level, read-only in a detached checkout; their reports are in
@@ -130,6 +145,13 @@ Candidate `dbb69aa467347a9db806849c7c819a7107db4658`. Five reviewers, one per le
 [`docs/evidence/reviews/0.3.15/iteration-3/`](../reviews/0.3.15/iteration-3/). 18 findings, none blocking. Iteration 2's dispositions held at the
 candidate, with the caveats the rows below take up (V2-11's test, V2-18's left column).
 
+Iteration 3's fixes made the final candidate `112779af7fccd9444779b4e72983c535ac160ebc` (`fix(0.3.15): the release review's
+iteration 3`). A fresh verifier read it in a detached checkout
+([report](../../reports/2026-10-27-release-0315/2026-10-27-final-candidate-verification.md), verdict «ready to tag»):
+the 18 dispositions V3-1 to V3-18 hold at the candidate, eight test files passed one at a time (the report's method line
+says nine; its table lists the eight that ran), the five documents gates exited 0, and both checkouts were left with no
+change. Its two low findings are V3-19 and V3-20 below. The candidate is the release gate's `verifiedCommit`. The receipts and the release gate name it, as 0.3.14 named its final candidate.
+
 | Finding | Level | Severity | What | Disposition |
 |---|---|---|---|---|
 | V3-1 | UX-17 | non-blocking | the rail's switch at 900 px cuts «Проек…» | ruled: CO-483, the release of 2026-11-05 |
@@ -150,5 +172,6 @@ candidate, with the caveats the rows below take up (V2-11's test, V2-18's left c
 | V3-16 | PL-8 | non-blocking | the Release section lacked the runbook's later steps | fixed: the «Release» section's ordered list |
 | V3-17 | PL-9 | non-blocking | P-30's status one iteration behind | fixed: as DO-10 |
 | V3-18 | PL-10 | non-blocking | the gap maps' closure only partly by row | fixed: the README names the rows not ticked and the evidence that stands for them |
-
+| V3-19 | FV-1 (final verifier) | non-blocking | `shared/homeProjects.ts#onWorkRow` keeps any agent that holds a task, so a connected agent that is not silent but holds a task carried from an earlier session id is counted in «молчат» though it is not stale; the strip and the cards still reconcile | ruled: a wording row for the release of 2026-11-05, filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
+| V3-20 | FV-2 (final verifier) | non-blocking | a console that has not printed yet no longer counts as printed (`main/index.ts#heldSessions`, `outputAt` null until the first output), so its first minute reads «подключён», not «работает» | ruled: intended by DA-20 (V3-15); no row |
 Exit for iteration 3: every finding has a disposition. Blocking findings open: none.
