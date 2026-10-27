@@ -23,6 +23,21 @@ their reports are committed under `docs/evidence/reviews/0.3.15/iteration-N/` as
 The rollout holds the broker target first and lifts the hold after the swap, as 0.3.14's did ([its Rollout, as
 done](2026-10-26-release-0314-verification.md#rollout-as-done-on-2026-10-27)); the bundle is checked (`SHA256SUMS`,
 `codesign`, `spctl`) and the old one kept aside as the way back. The quit is the person's.
+## Rollout, as done on 2026-10-27
+
+- The bundle: `Fabric-0.3.15-universal.dmg` from the release, `SHA256SUMS` OK, `codesign --verify --deep --strict` OK,
+  `spctl`: accepted, Notarized Developer ID, version 0.3.15; copied out of the image and checked again.
+- The hold: the broker target `fabric.desktop` held off at policy revision 23 (the broker service stopped for the edit,
+  as the runbook says), before the person was asked to quit. 0.3.14 ran untouched (pid 49764, started by the person).
+- The swap, by a detached watcher (`~/DATA/_worktrees/fabric-0315-rollout/swap.sh`): the person quit 0.3.14, observed at
+  18:52:12Z; 0.3.14 moved aside as the way back (`~/DATA/_worktrees/fabric-0315-rollout/Fabric-0.3.14.app`), 0.3.15
+  moved into `/Applications`, `codesign` and `spctl` OK on the installed copy; the hold released at revision 24, 18:52:44Z.
+- Verified: `/Applications/Fabric.app` reads 0.3.15; the person opened it (pid 54157, `hub.json` names it at
+  `http://127.0.0.1:47070`, started 18:55:40Z); the broker reads `fabric.desktop` ready; `com.status` reads the board
+  ready. Schema 98 unchanged, so no migration step.
+- Still owed: the person's look at the opened 0.3.15 (Главная at 900 to 1440 px in both themes, the left column, an
+  agent's page).
+
 ## Release
 
 The candidates keep version 0.3.14 (`apps/desktop/package.json`, `CHANGELOG.md`'s heading «0.3.15 (unreleased)») and
