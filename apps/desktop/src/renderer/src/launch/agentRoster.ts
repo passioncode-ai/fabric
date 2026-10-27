@@ -11,6 +11,7 @@
  *
  * Pure: nothing here reads, renders or knows the clock.
  */
+import { projectDisplayName } from '../../../shared/projectDisplayName.ts'
 import type { LiveAgent, Doing } from '../../../shared/homeLive'
 import type { TerminalSession } from '../../../shared/types'
 import type { ExecutorRow } from '../../../shared/startPaths'
@@ -73,7 +74,7 @@ export interface RosterInput {
   live: readonly LiveAgent[] | null
   /** The consoles Fabric holds; null while unread. */
   sessions: readonly TerminalSession[] | null
-  projects: ReadonlyArray<{ id: string; name: string }> | null
+  projects: ReadonlyArray<{ id: string; name: string; displayName?: string | null }> | null
   executors: readonly ExecutorRow[] | null
   /** Switchboard's catalogue, when it answered. */
   catalog: readonly CatalogAgent[] | null
@@ -110,7 +111,11 @@ export function joinedAgents(hub: HubOverview | null): Map<string, { name: strin
 }
 
 export function composeRoster(input: RosterInput): Roster {
-  const nameOf = (id: string | null): string | null => (id ? input.projects?.find((p) => p.id === id)?.name ?? null : null)
+  // The one name every screen prints (the mockup parity): the display name main resolved for the project's row.
+  const nameOf = (id: string | null): string | null => {
+    const p = id ? input.projects?.find((x) => x.id === id) : undefined
+    return p ? projectDisplayName(p) : null
+  }
   const joined = joinedAgents(input.hub)
   const keptOut = new Set((input.hub?.keptOut?.agents ?? []).map((o) => o.agentId))
   const rows: RosterRow[] = []
@@ -123,7 +128,7 @@ export function composeRoster(input: RosterInput): Roster {
     const state: AgentState = held?.state === 'ended' ? 'ended' : held?.state === 'idle' ? 'waiting' : l.stale ? 'quiet' : 'working'
     const joinedId = !l.console && l.agent && joined.has(l.agent) ? l.agent : null
     rows.push(blank({
-      key: `session:${l.sessionId}`, state, runner: l.agent, projectId: l.projectId, projectName: l.projectName ?? nameOf(l.projectId),
+      key: `session:${l.sessionId}`, state, runner: l.agent, projectId: l.projectId, projectName: nameOf(l.projectId) ?? l.projectName,
       sessionId: l.sessionId, console: l.console || held !== null, live: l, task: l.task, doing: l.doing,
       // A quiet console is dated by its last output: «молчит 10 мин» counts the console's silence (UX-3).
       heardAt: state === 'waiting' && held ? held.lastActivityAt : (l.lastSignAt ?? l.startedAt), joinedAgentId: joinedId

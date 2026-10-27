@@ -77,6 +77,11 @@ import { createBranchReader, withBranches } from './agentBranches.ts'
 import { readHandedInToday, withStrip } from './homeStrip.ts'
 import { withHeartbeats } from './agentHeartbeats.ts'
 import { withGoals } from './agentGoals.ts'
+import { createRhythmReader } from './workRhythm.ts'
+import { withWaitingList } from './commsWaitingList.ts'
+import { withIdentity } from './agentIdentity.ts'
+import { withWork } from './agentWork.ts'
+import { createDisplayNameReader, withDisplayNames } from './projectNames.ts'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
 import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
@@ -1460,7 +1465,7 @@ function heldSessions(projectId?: string): HeldSession[] {
     // A board session is a service answering the board's requests, not an agent at work: it is not counted or listed
     // among the sessions working (0.3.6 review i3 DA-2).
     if (s.surface === 'board') continue
-    out.set(s.sessionId, { sessionId: s.sessionId, projectId: s.projectId, agent: s.agent, cameIn: s.cameIn, console: false, startedAt: s.startedAt, lastSignAt: surface.sessionSign(s.sessionId)?.lastSignAt ?? null })
+    out.set(s.sessionId, { sessionId: s.sessionId, projectId: s.projectId, agent: s.agent, cameIn: s.cameIn, console: false, startedAt: s.startedAt, lastSignAt: surface.sessionSign(s.sessionId)?.lastSignAt ?? null, runtimeSessionId: s.runtimeSessionId ?? null })
   }
   for (const p of ptys?.list(projectId) ?? []) {
     if (!p.running) continue
@@ -1468,8 +1473,8 @@ function heldSessions(projectId?: string): HeldSession[] {
     const held = out.get(p.sessionId)
     // A running terminal is a console Fabric holds: «Open session» opens it (0.3.5 review UX-3).
     out.set(p.sessionId, held
-      ? { ...held, agent: held.agent ?? p.optionId, console: true, folder: p.cwd, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null }
-      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', console: true, folder: p.cwd, startedAt: Date.parse(p.startedAt), lastSignAt: at })
+      ? { ...held, agent: held.agent ?? p.optionId, console: true, folder: p.cwd, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null, outputAt: Number.isFinite(at) ? at : null }
+      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', console: true, folder: p.cwd, startedAt: Date.parse(p.startedAt), lastSignAt: at, outputAt: Number.isFinite(at) ? at : null })
   }
   return [...out.values()]
 }
@@ -3575,7 +3580,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const [obligations, questionRead, blockRead, projectRead, deferralRead] = await Promise.all([
       readAttentionWithSources(stamp),
       store
-        .select('questions', 'id,project_id,text,kind,asked_at,status,revision,options,asked_by_kind,asked_by_id')
+        .select('questions', 'id,project_id,text,why_blocked,kind,asked_at,status,revision,options,asked_by_kind,asked_by_id')
         .eq('estate_id', ACTIVE_ESTATE)
         .eq('status', 'open'),
       store.select('question_blocks', 'question_id').eq('estate_id', ACTIVE_ESTATE),
@@ -3604,6 +3609,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       projectId: (q.project_id as string | null) ?? null,
       projectName: projects.get(q.project_id as string)?.name ?? null,
       text: q.text as string,
+      // The mockup parity: the asker's own «why», the card's muted line (never the board's «blocks N tasks» count).
+      why: typeof q.why_blocked === 'string' ? q.why_blocked : null,
       kind: (q.kind as BoardQuestion['kind']) ?? 'decision',
       askedAt: q.asked_at as string,
       blocks: blocksOf.get(q.id as string) ?? 0,
@@ -3759,7 +3766,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.commsRelated, (_e, threadId: unknown): Promise<Returns<FabricApi['comms']['related']>> => commsRead.related(ACTIVE_ESTATE, threadId))
   handle(IPC.commsSearch, (_e, query: unknown, before: unknown): Promise<Returns<FabricApi['comms']['search']>> => commsRead.search(ACTIVE_ESTATE, query, before))
   handle(IPC.commsPending, (): Promise<Returns<FabricApi['comms']['pending']>> => commsRead.pending(ACTIVE_ESTATE))
-  handle(IPC.commsWaiting, (): Promise<Returns<FabricApi['comms']['waiting']>> => commsRead.waiting(ACTIVE_ESTATE))
+  // The mockup parity (home gap D11): the waiting requests themselves beside the count (`commsWaitingList.ts`).
+  handle(IPC.commsWaiting, async (): Promise<Returns<FabricApi['comms']['waiting']>> => withWaitingList(await commsRead.waiting(ACTIVE_ESTATE), {
+    store: store as never, now: Date.now,
+    responders: () => commsRead.responders(ACTIVE_ESTATE),
+    threads: () => commsRead.threadPage(ACTIVE_ESTATE, { kind: 'request', openOnly: true }, null, 50)
+  }))
   handle(IPC.commsOpenArtifact, (_e, url: unknown): Promise<Returns<FabricApi['comms']['openArtifact']>> => commsRead.openArtifact(url))
   // #endregion comms-screen
 
@@ -4967,6 +4979,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return readProject(input.id)
   })
 
+  // Every project's display name (rail gap §2, `projectNames.ts`), kept a minute; read by projects.list and the home.
+  const projectNames = createDisplayNameReader(store as never, () => (linkRegistry?.snapshot().entries ?? []).map((e) => ({ id: e.id, instance: e.instance, name: e.name, repository: e.repository, kind: e.kind })))
   handle(IPC.projectsList, async (): Promise<Returns<FabricApi['projects']['list']>> => {
     const { data, error } = await store
       .select('projects', '*')
@@ -4974,7 +4988,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       .eq('status', 'active')
       .order('created_at', { ascending: true })
     if (error) throw new Error(`projects list failed: ${error.message}`)
-    return (data ?? []) as ProjectRow[]
+    // The mockup parity (rail gap §2): each row carries the name screens print; a failed lookup leaves the stored names.
+    const names = await projectNames.read().catch((e: unknown) => { ops.failed('projects.display-names-unread', e, { note: 'the rows keep their stored names' }); return null })
+    return ((data ?? []) as ProjectRow[]).map((p) => (names?.[p.id] ? { ...p, displayName: names[p.id].name, displayNameFrom: names[p.id].from } : p))
   })
 
   // M109 — NARROWED to the contract. `journal.replay` selects every column and
@@ -5182,9 +5198,15 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const now = Date.now()
     // Each agent's goal (the operator's second review, R-3): the root of its task's spawned links (`agentGoals.ts`).
     // ER-18: each agent's newest heartbeat, so every screen judges its status from the same inputs (`agentHeartbeats.ts`).
-    const view = await withHeartbeats(await withGoals(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader), store as never), store as never)
+    // The mockup parity (home gaps D5, D6): an agent that re-enrolled keeps its stage reports, heartbeats and running
+    // task across its session ids (`agentIdentity.ts`), before its goal is walked from that task.
+    const identified = await withIdentity(await withHeartbeats(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader), store as never), store as never, held)
+    // Home gaps D3, D4, D7: at work apart from connected, ordered by work, not by keep-alive pings (`agentWork.ts`).
+    const view = await withWork(await withGoals(identified, store as never), store as never, held, now)
     // The strip's own reads (`homeStrip.ts`): «Сдано сегодня» and the sweep's «Работают без задачи», each said unread alone.
-    return withStrip(view, { handedIn: () => readHandedInToday(store as never, { now }), sweep: () => abandonedSweep?.current() ?? null })
+    const stripped = await withStrip(view, { handedIn: () => readHandedInToday(store as never, { now }), sweep: () => abandonedSweep?.current() ?? null })
+    // Every project's display name (rail gap §2, `projectNames.ts`).
+    return withDisplayNames(stripped, () => projectNames.read(), (e) => ops.failed('work.display-names-unread', e, { note: 'the screens print the stored names' }))
   })
   handle(IPC.workBoard, async (_e, projectId?: unknown, doneLimit?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
     readTaskBoard(store, {
@@ -5193,7 +5215,22 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       doneLimit: typeof doneLimit === 'number' && Number.isInteger(doneLimit) ? Math.min(500, Math.max(20, doneLimit)) : 20
     }))
   // 0.3.14: one agent's tasks for its page, newest first; a failed read rejects (`workRead.ts#readSessionTasks`).
-  handle(IPC.workSession, async (_e, sessionId: unknown): Promise<Returns<FabricApi['work']['session']>> => readSessionTasks(store, sessionId))
+  // The mockup parity (agent page): the session's runner and its version (`start.executors`, run at most every 10 min).
+  let executorsKept: { at: number; rows: Promise<Awaited<ReturnType<typeof detectExecutors>>> } | null = null
+  const executorsCached = (): ReturnType<typeof detectExecutors> => {
+    if (!executorsKept || Date.now() - executorsKept.at > 10 * 60_000) {
+      const rows = detectExecutors(AGENTS.filter((a) => a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string, connected: a.connectsToSurface })), { env: sessionEnvironment(process.env) })
+      executorsKept = { at: Date.now(), rows }
+      rows.catch(() => { executorsKept = null })
+    }
+    return executorsKept.rows
+  }
+  handle(IPC.workSession, async (_e, sessionId: unknown): Promise<Returns<FabricApi['work']['session']>> =>
+    readSessionTasks(store, sessionId, { runner: typeof sessionId === 'string' ? heldSessions().find((s) => s.sessionId === sessionId)?.agent ?? null : null, executors: executorsCached }))
+  // «Ритм работы» (the mockup parity, home gaps D1, D2): one bounded count per local day, finished days kept
+  // (`workRhythm.ts`); a day not read is unknown, never zero.
+  const rhythmReader = createRhythmReader(store as never)
+  handle(IPC.workRhythm, async (): Promise<Returns<FabricApi['work']['rhythm']>> => rhythmReader.read(Date.now()))
   handle(IPC.workRelease, async (_e, claimId: string): Promise<Returns<FabricApi['work']['release']>> => {
     if (typeof claimId !== 'string' || !/^[0-9a-f-]{36}$/.test(claimId)) return { released: false, reason: 'not-found' }
     // One press, no question (ADR-0160 §1); the act is recorded with «take it again» as its inverse.

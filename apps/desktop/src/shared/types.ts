@@ -105,6 +105,11 @@ export interface ProjectRow {
   plan?: { done: string[]; next: string[] } | null
   profiled_at?: string | null
   profiled_by?: string | null
+  /** The name screens print (`projectDisplayName.ts`; the mockup parity, rail gap §2): a service descriptor's name for
+   *  the project's folder or repository, else the slug humanised. `name` stays the identity. Absent: not resolved. */
+  displayName?: string | null
+  /** Where `displayName` came from; `slug` is a guess the screens may mark as such. */
+  displayNameFrom?: 'project' | 'descriptor' | 'slug'
 }
 
 /** One relation a project's profile names (migration 123). */
@@ -1667,6 +1672,10 @@ export interface FabricApi {
     /** One agent session's tasks, newest first (0.3.14): what it claimed (live and released) and what Fabric launched in
      *  it. A read that fails REJECTS, so an empty list is always "no task", never a read that did not happen. */
     session(sessionId: string): Promise<import('./sessionTasks.ts').SessionTasksView>
+    /** «Ритм работы» over 28 local days (the mockup parity, home gaps D1, D2): work events per day without the machine's
+     *  ticks, results (tasks handed in) and the person's decisions, by one definition (`workRhythm.ts`). A day not read
+     *  is null, never zero. */
+    rhythm(): Promise<import('./workRhythm.ts').WorkRhythm>
     /** The operator ends one claim; the agent is told on its next call. */
     release(claimId: string): Promise<OperatorRelease>
   }
@@ -1915,6 +1924,7 @@ export const IPC = {
   workHome: 'work:home',
   workBoard: 'work:board',
   workSession: 'work:session',
+  workRhythm: 'work:rhythm',
   workRelease: 'work:release',
   terminalGet: 'terminal:get',
   terminalScrollback: 'terminal:scrollback',

@@ -126,7 +126,8 @@ button:disabled { opacity: .4; cursor: default; }
   padding-bottom: calc(2.5rem + var(--space-3) * 2); }
 
 /* ── estate home ────────────────────────────────────────────── */
-.estate-home { padding: var(--space-4) var(--space-5); max-width: 1100px; }
+/* The home fills the main area, as the approved mockup does (mockup parity, gap map A2); launch.css sets its padding. */
+.estate-home { padding: var(--space-5) var(--space-5) var(--space-6); }
 .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--space-3); }
 
 /* ── onboarding ─────────────────────────────────────────────── */

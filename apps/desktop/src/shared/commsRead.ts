@@ -224,7 +224,27 @@ export type CommsPendingReply = { ok: true; projects: CommsPending[]; more: bool
 export interface CommsWaiting {
   requests: number
   oldestRequestAt?: string
+  /** The waiting requests themselves, oldest first, at most `COMMS_WAITING_LIST_LIMIT` (the mockup parity, home gap D11;
+   *  `commsWaitingList.ts`): who asked whom, for what, since when. Absent: not read (the count still stands). */
+  list?: CommsWaitingItem[]
+  /** The list holds every request the count counts (none cut by a bound, none it could not tell apart). */
+  listComplete?: boolean
 }
+
+/** One request nobody can answer now. `from`/`to` are project ids; the screens print their display names. */
+export interface CommsWaitingItem {
+  requestId: string
+  threadId: string
+  from: string | null
+  to: string
+  capability: string
+  /** The thread's subject; null when the board holds none. */
+  subject: string | null
+  /** When it was asked. */
+  at: string
+}
+
+export const COMMS_WAITING_LIST_LIMIT = 10
 export type CommsWaitingReply = ({ ok: true } & CommsWaiting) | { ok: false; error: CommsReadError }
 // #endregion board-core-holds-waiting
 

@@ -280,6 +280,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       home: () => ipc.invoke(IPC.workHome),
       board: (projectId?: string | null, doneLimit?: number) => ipc.invoke(IPC.workBoard, projectId ?? null, ...(doneLimit === undefined ? [] : [doneLimit])),
       session: (sessionId) => ipc.invoke(IPC.workSession, sessionId),
+      rhythm: () => ipc.invoke(IPC.workRhythm),
       release: (claimId) => ipc.invoke(IPC.workRelease, claimId)
     },
     terminal: {

@@ -7,10 +7,15 @@
  * every screen uses (the 0.3.14 review, iteration 2, ER-18). The branch is
  * the one Fabric read from the folder of a console it holds (`main/agentBranches.ts`); any other row carries null and
  * the column says «ветка неизвестна» (open choice 3: a terminal-joined agent's branch is 0.3.15's).
- * An agent only installed, idle or disconnected is not here: Настройки lists those.
+ * An agent only installed, idle or disconnected is not here: Настройки lists those. The mockup parity (home gap D3): when
+ * the reading judged work, an agent merely connected (fabric-mcp's keep-alive and nothing else) is not here either; an
+ * agent at work, and a quiet one that still holds its task, are (`onWorkRow`, the same rule as «В работе»). The project
+ * is printed by its display name (`HomeView.displayNames`).
  */
 import type { LiveAgent } from './homeLive.ts'
 import { nameCollator } from './railProjects.ts'
+import { projectDisplayName, type DisplayNames } from './projectDisplayName.ts'
+import { onWorkRow } from './homeProjects.ts'
 import { agentStatus, type SessionStatus, type StatusTerminal } from './sessionStatus.ts'
 
 export interface RailAgent {
@@ -33,15 +38,22 @@ const time = (iso: string | null | undefined): number => {
   return Number.isFinite(t) ? t : 0
 }
 
-export function railAgents(live: readonly LiveAgent[], locale: string, terminals?: ReadonlyArray<StatusTerminal & { sessionId: string }> | null): RailAgent[] {
+export function railAgents(
+  live: readonly LiveAgent[],
+  locale: string,
+  terminals?: ReadonlyArray<StatusTerminal & { sessionId: string }> | null,
+  names?: DisplayNames | null
+): RailAgent[] {
   const termOf = new Map((terminals ?? []).map((x) => [x.sessionId, x]))
   const collator = nameCollator(locale)
   return live
+    .filter(onWorkRow)
     .map((a): RailAgent => ({
       sessionId: a.sessionId,
       runner: a.agent,
       projectId: a.projectId,
-      projectName: a.projectName,
+      // The one name every screen prints (the mockup parity, rail gap 15).
+      projectName: a.projectName === null ? null : projectDisplayName({ id: a.projectId, name: a.projectName }, names),
       branch: typeof a.branch === 'string' && a.branch.trim() ? a.branch.trim() : null,
       state: a.stale ? 'quiet' : 'working',
       // ER-18: the same function and inputs as «В работе» and the agent page.

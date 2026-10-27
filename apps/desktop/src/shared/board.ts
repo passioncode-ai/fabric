@@ -52,6 +52,9 @@ export interface BoardQuestion {
   options: { id: string; label: string; consequence?: string }[]
   /** CO-391 (OF-14): who asked. An agent is named by its runner (`work_claims.agent`) when Fabric knows it, else null. */
   askedBy?: { kind: 'agent' | 'person'; agent: string | null }
+  /** Why it is asked, in the asker's own words (`questions.why_blocked`, «what cannot proceed»); null or absent when it
+   *  wrote none. The mockup parity: the card's muted line under the question. */
+  why?: string | null
 }
 
 /** CO-391 (OF-14): the kinds only a person can resolve; what an agent can settle stays on the Board, off the home. */
@@ -105,6 +108,9 @@ export interface BoardEntry {
   question?: { revision: number; options: { id: string; label: string; consequence?: string }[] }
   /** Present on a question when Fabric knows who asked (CO-391). */
   askedBy?: { kind: 'agent' | 'person'; agent: string | null }
+  /** A question's own explanation, the asker's words (`BoardQuestion.why`); `detail` stays the board's count of the
+   *  tasks it blocks. */
+  why?: string | null
 }
 
 const ageInDays = (since: string, now: Date): number =>
@@ -139,7 +145,8 @@ export function boardEntries(input: {
       priority,
       components,
       question: { revision: q.revision, options: q.options },
-      ...(q.askedBy ? { askedBy: q.askedBy } : {})
+      ...(q.askedBy ? { askedBy: q.askedBy } : {}),
+      ...(q.why && q.why.trim() ? { why: q.why.trim() } : {})
     }
   })
 

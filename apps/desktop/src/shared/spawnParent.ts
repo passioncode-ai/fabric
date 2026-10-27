@@ -29,6 +29,15 @@ export function spawnParentOf(
     return { parent: null, from: null, why: `no single claimed task: this session holds no live claim in this project, so nothing links this piece; claim the task it came from first (fabric_work_claim), or ${LINK_IT}` }
   return { parent: null, from: null, why: `no single claimed task: this session holds ${here.length} live claims in this project and Fabric cannot tell which one this piece came from; ${LINK_IT}` }
 }
+/**
+ * The task a stage report belongs to (the mockup parity, 2026-10-27, agent gaps «Вехи»): the task Fabric launched the
+ * session on, else the ONE task the session holds a live claim on in this project, by the same rule as `spawnParentOf`.
+ * None, several, or a claims read that failed: null, and the report is still recorded, unnamed.
+ */
+export function stageTaskOf(launchTask: string | null, projectId: string, claims: readonly LiveClaim[] | null, readError: string | null = null): string | null {
+  return spawnParentOf(launchTask, projectId, claims, readError).parent
+}
+
 /** One hop's read: the `spawned` parents of one task, or why the read failed. */
 export type SpawnedParentsRead = (taskId: string) => Promise<{ parents: readonly string[]; failed: string | null }>
 

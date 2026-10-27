@@ -9,17 +9,17 @@
  * as unread on its own number, never as zero, and never fails the home.
  */
 import type { HomeView } from '../shared/homeLive.ts'
+import { handedInTask } from '../shared/workRhythm.ts'
 
 type JournalRow = { type: string; occurred_at: string; payload: Record<string, unknown> | null }
 
-/** The tasks handed in among these events: moved to review, or closed as done; each task once. */
+/** The tasks handed in among these events: moved to review, or closed as done; each task once. The definition is
+ *  `shared/workRhythm.ts#handedInTask`, the one «Ритм работы» counts its results by (home gap D2). */
 export function countHandedIn(rows: readonly JournalRow[]): number {
   const tasks = new Set<string>()
   for (const r of rows) {
-    const p = r.payload ?? {}
-    const id = typeof p.task_id === 'string' ? p.task_id : typeof p.id === 'string' ? p.id : null
-    if (!id) continue
-    if ((r.type === 'task.moved@1' && p.to === 'review') || (r.type === 'task.closed@1' && p.outcome === 'done')) tasks.add(id)
+    const id = handedInTask(r)
+    if (id) tasks.add(id)
   }
   return tasks.size
 }

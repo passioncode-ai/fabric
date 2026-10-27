@@ -221,6 +221,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   workHome: MAIN_ONLY,
   workBoard: MAIN_ONLY,
   workSession: MAIN_ONLY,
+  workRhythm: MAIN_ONLY,
   workRelease: MAIN_ONLY,
   terminalGet: MAIN_AND_OWN_SESSION,
   terminalScrollback: MAIN_AND_OWN_SESSION,

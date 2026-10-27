@@ -65,3 +65,13 @@ describe('spawnedChainFrom', () => {
     expect(long).toBe(5)
   })
 })
+
+describe('stageTaskOf (the mockup parity: a stage report names the session\'s one live claim)', () => {
+  it('names the launch task, else the one claim in this project, else nothing', async () => {
+    const { stageTaskOf } = await import('./spawnParent')
+    expect(stageTaskOf('launch', 'p1', [])).toBe('launch')
+    expect(stageTaskOf(null, 'p1', [{ work_id: 't1', project_id: 'p1' }, { work_id: 't9', project_id: 'p2' }])).toBe('t1')
+    expect(stageTaskOf(null, 'p1', [{ work_id: 't1', project_id: 'p1' }, { work_id: 't2', project_id: 'p1' }])).toBeNull()
+    expect(stageTaskOf(null, 'p1', null, 'away')).toBeNull()
+  })
+})

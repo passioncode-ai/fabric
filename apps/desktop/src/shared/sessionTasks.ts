@@ -20,6 +20,8 @@ export interface SessionClaimRow {
   released_at: string | null
   /** `done`, `handed-over`, `let-go`, `operator`, `session-ended` or `lapsed` (migration 95). */
   released_how: string | null
+  /** What the agent said when it let go (`work_claims.release_note`); absent from an older read. */
+  release_note?: string | null
 }
 
 export interface SessionTaskRow {
@@ -39,6 +41,12 @@ export interface SessionTask {
   projectName: string | null
   /** What the agent wrote the task is for, else its title; empty when it has neither (the screen says «untitled»). */
   summary: string
+  /** The task's own title, apart from the brief's «what» (`brief.what`; the mockup parity: the row heads with the
+   *  title). Null when it has none. */
+  title?: string | null
+  /** How it ended in the agent's own words: its newest claim's release note (the mockup parity, «Чем закончил»), read
+   *  from the claim itself so an old task keeps it past the history window. Null when none was written. */
+  releaseNote?: string | null
   brief: { what: string | null; why: string | null; expected: string | null }
   /** The task's column now; `unknown` when its row was not found. */
   status: string
@@ -55,6 +63,27 @@ export interface SessionTasksView {
   tasks: SessionTask[]
   /** A read stopped at its limit, or more tasks than the page lists: older tasks exist that are not here. */
   capped: boolean
+  /** The questions this agent asked the person that are still open (`questions.asked_by_id` = its session id), newest
+   *  first (the mockup parity, agent page «Вопросы этого агента»). Absent: not read; `questionsUnread` says why. */
+  questions?: AgentQuestion[]
+  questionsUnread?: string
+  /** The coding agent the session runs and its version as this machine reports it (`start.executors`; the mockup's
+   *  «Агент» fact). Absent: not known. */
+  runner?: { id: string; label: string | null; version: string | null }
+}
+
+export interface AgentQuestion {
+  id: string
+  projectId: string | null
+  taskId: string | null
+  text: string
+  /** Why it was asked, in the agent's own words (`questions.why_blocked`); null when it wrote none. */
+  why: string | null
+  kind: string | null
+  options: unknown
+  askedAt: string
+  /** The revision the page shows, submitted back with an answer (`questions.answer` refuses a stale one). */
+  revision: number
 }
 
 const clean = (s: string | null | undefined): string | null => {
@@ -87,13 +116,15 @@ export function composeSessionTasks(input: {
     const prev = newest.get(c.work_id)
     if (!prev || prev.claimed_at < c.claimed_at) newest.set(c.work_id, c)
   }
-  const view = (id: string, projectId: string, claimedAt: string, released: { at: string | null; how: string | null }, via: SessionTask['via']): SessionTask => {
+  const view = (id: string, projectId: string, claimedAt: string, released: { at: string | null; how: string | null; note?: string | null }, via: SessionTask['via']): SessionTask => {
     const row = rowOf.get(id)
     return {
       taskId: id,
       projectId,
       projectName: names.get(projectId) ?? null,
       summary: taskSummary(row),
+      title: clean(row?.title),
+      releaseNote: clean(released.note),
       brief: { what: clean(row?.brief_what), why: clean(row?.brief_why), expected: clean(row?.brief_expected) },
       status: row?.status ?? 'unknown',
       claimedAt,
@@ -103,7 +134,7 @@ export function composeSessionTasks(input: {
       via
     }
   }
-  const out: SessionTask[] = [...newest.values()].map((c) => view(c.work_id, c.project_id, c.claimed_at, { at: c.released_at, how: c.released_how }, 'claim'))
+  const out: SessionTask[] = [...newest.values()].map((c) => view(c.work_id, c.project_id, c.claimed_at, { at: c.released_at, how: c.released_how, note: c.release_note ?? null }, 'claim'))
   for (const t of input.launched) {
     const at = input.attachedAt?.[t.id] ?? t.started_at
     if (newest.has(t.id) || !at) continue
@@ -133,5 +164,29 @@ export function laneOf(x: SessionTask): SessionLane {
   // person released (its line says «Снята вами»).
   if (x.releasedAt) return x.releasedHow && DROPPED_HOW.has(x.releasedHow) ? 'dropped' : 'handed'
   return 'inWork'
+}
+/** The runner's version among the machine's coding agents (`start.executors` rows); null when absent or not installed. */
+export function runnerOf(agentId: string | null | undefined, executors: ReadonlyArray<{ id: string; label?: string | null; version?: string | null }>): SessionTasksView['runner'] | undefined {
+  if (!agentId) return undefined
+  const row = executors.find((e) => e.id === agentId)
+  return { id: agentId, label: row?.label ?? null, version: row?.version ?? null }
+}
+
+/** The open questions an agent asked, as the page shows them; rows of other askers are dropped. */
+export function agentQuestions(sessionId: string, rows: ReadonlyArray<Record<string, unknown>>): AgentQuestion[] {
+  return rows
+    .filter((r) => r.asked_by_id === sessionId && r.status === 'open' && typeof r.id === 'string' && typeof r.text === 'string')
+    .map((r) => ({
+      id: r.id as string,
+      projectId: typeof r.project_id === 'string' ? r.project_id : null,
+      taskId: typeof r.task_id === 'string' ? r.task_id : null,
+      text: r.text as string,
+      why: typeof r.why_blocked === 'string' && r.why_blocked.trim() ? r.why_blocked.trim() : null,
+      kind: typeof r.kind === 'string' ? r.kind : null,
+      options: r.options ?? null,
+      askedAt: typeof r.asked_at === 'string' ? r.asked_at : '',
+      revision: typeof r.revision === 'number' ? r.revision : 1
+    }))
+    .sort((a, b) => b.askedAt.localeCompare(a.askedAt))
 }
 // #endregion session-tasks

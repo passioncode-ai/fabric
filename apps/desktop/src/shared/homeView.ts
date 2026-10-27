@@ -4,7 +4,10 @@
 // All three are computed from the displayed feed and nothing else, so the home cannot
 // disagree with the history it links to. The feed keeps only the newest FEED_WINDOW
 // events, and that bound is said rather than hidden: a day the window may have cut off is
-// UNKNOWN, never a zero.
+// UNKNOWN, never a zero. Главная's chart itself reads its own per-day counts from main (`work.rhythm`,
+// `workRhythm.ts`); Пульс still reads the feed, by the same definitions of a result and a decision.
+
+import { handedInTask, isHandedIn, isPersonDecision } from './workRhythm.ts'
 
 export const FEED_WINDOW = 500
 export const RHYTHM_DAYS = 28
@@ -37,18 +40,26 @@ export function rhythmDays(events: readonly Ev[] | null, now: Date, days = RHYTH
   return out
 }
 
-const DECISIONS = new Set(['question.answered@1', 'proposal.decided@1', 'policy.decided@1'])
-const RESULTS = new Set(['task.finished@1', 'delivery.accepted@1'])
-/** A task moved to done is a result too: that move is how the board closes one. */
-const isResult = (e: Ev): boolean => RESULTS.has(e.type) || (e.type === 'task.moved@1' && e.payload?.to === 'done')
+// One definition of a decision and a result for every screen (the mockup parity, home gap D2): `workRhythm.ts` owns
+// it, and «Ритм работы» on Главная, the strip's «сдано сегодня» and Пульс all count by it. A RESULT is a task handed in
+// (moved to review, or closed as done), each task once a day; a DECISION is the person's own (an answer, a proposal, an
+// access request or a policy decided by the person), never the same event written by an agent or by Fabric itself.
+const isResult = (e: Ev): boolean => isHandedIn({ type: e.type, occurred_at: e.occurred_at, payload: e.payload ?? null })
+const isDecision = (e: Ev): boolean => isPersonDecision({ type: e.type, occurred_at: e.occurred_at, actor: e.actor, payload: e.payload ?? null })
 
-/** Decisions and results inside the rhythm's days, and every event there. */
+/** Decisions and results inside the rhythm's days, and every event there. A task handed in twice on one day is one
+ *  result, as «Ритм работы» counts it. */
 export function rhythmTotals(events: readonly Ev[] | null, now: Date, days = RHYTHM_DAYS): { decisions: number; results: number; events: number } {
   const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1)).getTime()
   const inside = (events ?? []).filter((e) => Date.parse(e.occurred_at) >= from)
+  const results = new Set<string>()
+  for (const e of inside) {
+    const task = handedInTask({ type: e.type, occurred_at: e.occurred_at, payload: e.payload ?? null })
+    if (task) results.add(`${localDate(new Date(e.occurred_at))}|${task}`)
+  }
   return {
-    decisions: inside.filter((e) => DECISIONS.has(e.type)).length,
-    results: inside.filter(isResult).length,
+    decisions: inside.filter(isDecision).length,
+    results: results.size,
     events: inside.length
   }
 }
@@ -86,7 +97,7 @@ export function liveIsFresh(rows: readonly LiveRow[] | null, now: Date): boolean
 
 /** What an event counts as on the rhythm (SCR-42): a decision, a result, or neither. */
 export function eventKind(e: Ev): 'decision' | 'result' | 'other' {
-  return DECISIONS.has(e.type) ? 'decision' : isResult(e) ? 'result' : 'other'
+  return isDecision(e) ? 'decision' : isResult(e) ? 'result' : 'other'
 }
 
 /** One local day's events, newest first, optionally only decisions or results. */

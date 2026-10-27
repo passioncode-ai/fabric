@@ -3,6 +3,8 @@
 // and the places; these are the only tabs at the top. Each tab: the console sign, its project's name, its coding agent.
 // × takes the tab away and asks nothing: the session goes on running in the main process (ADR-0031 §2), and it is
 // opened again from wherever its console is offered. Not there at all while no console is open.
+// The mockup parity, 2026-10-27 (rail gaps 22, 23): one line «› {project} · {runner}», the project's name being
+// `projectDisplayName`'s (the caller's `consoleTitleOf`).
 
 import { useT } from '../i18n'
 
@@ -34,13 +36,13 @@ export function ConsoleTabs({
         {tabs.map((tab) => {
           const on = tab.sessionId === activeId
           const name = tab.title ?? t('consoles.reading')
+          const label = tab.runner ? t('consoles.tabTitle', { name, runner: tab.runner }) : name
           return (
             <li key={tab.sessionId} className={on ? 'fab-console on' : 'fab-console'}>
               <button type="button" className="fab-console-open" aria-current={on ? 'page' : undefined}
-                title={tab.runner ? t('consoles.tabTitle', { name, runner: tab.runner }) : name} onClick={() => onSelect(tab.sessionId)}>
-                <span className="fab-console-sign" aria-hidden="true">{t('glyph.console')}</span>
-                <span className="fab-console-name">{name}</span>
-                {tab.runner && <span className="fab-console-runner">{tab.runner}</span>}
+                title={label} onClick={() => onSelect(tab.sessionId)}>
+                <span className="fab-console-sign" aria-hidden="true">{t('glyph.consoleTab')}</span>
+                <span className="fab-console-name">{label}</span>
               </button>
               <button type="button" className="fab-console-close" aria-label={t('consoles.close', { name })}
                 onClick={() => onClose(tab.sessionId)}>

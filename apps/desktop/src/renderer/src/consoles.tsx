@@ -10,6 +10,7 @@
 
 import { createContext, useContext } from 'react'
 import type { ProjectRow, TerminalSession } from '../../shared/types'
+import { projectDisplayName } from '../../shared/projectDisplayName.ts'
 
 /** Opens one session's console. Resolves once it is shown; rejects with why it could not be. */
 export type OpenConsole = (sessionId: string) => Promise<void>
@@ -71,7 +72,7 @@ export function consoleTitleOf(
 ): string | null {
   if (!session) return null
   const project = (projects ?? []).find((p) => p.id === session.projectId)
-  if (project) return project.name
+  if (project) return projectDisplayName(project)
   const parts = session.cwd.split(/[\\/]/).filter(Boolean)
   return parts[parts.length - 1] ?? session.cwd
 }

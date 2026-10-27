@@ -45,15 +45,41 @@ describe('home: what waits on the board', () => {
     expect(container.textContent).toBe('')
   })
 
-  it('the hint says a reply from the asked project answers; it sends the operator to no grant (UX-7)', async () => {
+  it('the hint, now the kicker\'s hover (the mockup parity), says a reply from the asked project answers; it sends the operator to no grant (UX-7)', async () => {
     stubWaiting(async () => ({ ok: true, requests: 1, oldestRequestAt: days(1) }))
     show('en')
-    await waitFor(() => expect(screen.getByText(/A reply from the asked project answers/)).toBeTruthy())
-    expect(document.body.textContent).not.toMatch(/Agent access|allow it/)
+    await waitFor(() => expect(screen.getByTitle(/A reply from the asked project answers/)).toBeTruthy())
+    expect(document.body.textContent).not.toMatch(/A reply from the asked project|Agent access|allow it/)
     cleanup()
     show('ru')
-    await waitFor(() => expect(screen.getByText(/Ответ проекта, которого спросили/)).toBeTruthy())
+    await waitFor(() => expect(screen.getByTitle(/Ответ проекта, которого спросили/)).toBeTruthy())
     expect(document.body.textContent).not.toMatch(/Доступ агентов|разрешите/)
+  })
+
+  // The mockup parity (home gap D11): the requests themselves, one line each, in place of the long paragraph.
+  it('lists each request «from → to: subject» with who has not taken it and for how long, at most five, then «N more»', async () => {
+    const req = (i: number, subject: string | null = `Narrow the session list ${i}`) => ({ requestId: `r${i}`, threadId: `th${i}`, from: 'fab', to: 'dash', capability: 'ui.fix', subject, at: days(i) })
+    stubWaiting(async () => ({ ok: true, requests: 7, oldestRequestAt: days(6), list: [req(1), req(2, null), req(3), req(4), req(5), req(6)], listComplete: true }))
+    const onComms = vi.fn()
+    render(<I18nProvider locale="ru"><HomeBoardWaiting mark={1} onComms={onComms} nameOf={(id) => ({ fab: 'Fabric', dash: 'Dashboards' })[id] ?? id} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText('Fabric → Dashboards: «Narrow the session list 1»')).toBeTruthy())
+    expect(screen.getByText('Fabric → Dashboards')).toBeTruthy()
+    expect(screen.getAllByRole('listitem')).toHaveLength(5)
+    expect(screen.getAllByText(/^Dashboards не взял · 1 дн\.|^Dashboards не взял/).length).toBe(5)
+    expect(screen.getByText('ещё 2')).toBeTruthy()
+    // The whole list is here: the count sentence is not repeated.
+    expect(document.body.textContent).not.toMatch(/Запросов между проектами/)
+    fireEvent.click(screen.getByRole('button', { name: /Narrow the session list 1/ }))
+    expect(onComms).toHaveBeenCalled()
+    expect(document.body.textContent).not.toMatch(/\u2014/)
+  })
+
+  it('keeps the count sentence when the list is not the whole of what waits', async () => {
+    stubWaiting(async () => ({ ok: true, requests: 30, oldestRequestAt: days(2), list: [{ requestId: 'r1', threadId: 't1', from: null, to: 'dash', capability: 'x', subject: 'One', at: days(2) }], listComplete: false }))
+    show('en')
+    await waitFor(() => expect(screen.getByText('No project → dash: “One”')).toBeTruthy())
+    expect(screen.getByText(/no agent is answering now: 30\./)).toBeTruthy()
+    expect(screen.queryByText(/more$/)).toBeNull()
   })
 
   it('one request reads as one, and an unknown age is left out rather than shown as "?" (UX-10)', async () => {

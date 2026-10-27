@@ -26,6 +26,14 @@ describe('the stack exposure warning', () => {
     // Each copy button names what it copies (0.3.3 iteration 2, UX-9).
     expect(screen.getByRole('button', { name: en['first.exec.copyWhat'].replace('{what}', en['diagnostics.exposure.orbstack']) })).toBeTruthy()
     expect(screen.getByRole('button', { name: en['first.exec.copyWhat'].replace('{what}', en['diagnostics.exposure.docker']) })).toBeTruthy()
+    // Colima, the engine this Mac moved to (gap map A6): a Lima override, then a restart.
+    expect(screen.getByRole('button', { name: en['first.exec.copyWhat'].replace('{what}', en['diagnostics.exposure.colima']) })).toBeTruthy()
+    expect(screen.getByText(/portForwards:/).tagName).toBe('CODE')
+    expect(screen.getByText('colima restart').tagName).toBe('CODE')
+    // Compact: one line with the risk; the remedies sit behind one disclosure, closed until opened.
+    const fold = screen.getByText(en['diagnostics.exposure.remedyLabel']).closest('details') as HTMLDetailsElement
+    expect(fold.open).toBe(false)
+    expect(fold.contains(command)).toBe(true)
     // Why Fabric cannot fix it itself is one click away, not a paragraph above every screen.
     expect(screen.getByText(en['diagnostics.exposure.why']).closest('details')?.open).toBe(false)
   })

@@ -35,13 +35,24 @@ describe('the rhythm of work, 28 days', () => {
     expect(rhythmDays(null, NOW).every((d) => !d.known)).toBe(true)
   })
 
-  it('totals only what it can name: decisions and results', () => {
-    const events = [ev(1, '2026-09-29T09:00:00', 'question.answered@1'), ev(2, '2026-09-29T09:00:00', 'proposal.decided@1'),
-      ev(3, '2026-09-29T09:00:00', 'task.finished@1'), ev(4, '2026-09-29T09:00:00', 'task.created@1'), ev(5, '2026-08-01T09:00:00', 'task.finished@1')]
-    expect(rhythmTotals(events, NOW)).toEqual({ decisions: 2, results: 1, events: 4 })
-    const done = { ...ev(6, '2026-09-29T09:30:00', 'task.moved@1'), payload: { to: 'done' } }
-    const running = { ...ev(7, '2026-09-29T09:31:00', 'task.moved@1'), payload: { to: 'running' } }
-    expect(rhythmTotals([done, running], NOW).results, 'a move to done is a result; any other move is not').toBe(1)
+  it('totals only what it can name: the person\'s decisions and the tasks handed in (one definition, workRhythm.ts)', () => {
+    const agent = { kind: 'agent', id: 's1' }
+    const events = [ev(1, '2026-09-29T09:00:00', 'question.answered@1'), ev(2, '2026-09-29T09:00:00', 'access.decided@1'),
+      ev(3, '2026-09-29T09:00:00', 'question.answered@1', 'p1', agent), ev(4, '2026-09-29T09:00:00', 'task.created@1'),
+      { ...ev(5, '2026-09-29T09:00:00', 'task.moved@1'), payload: { task_id: 't1', to: 'review' } },
+      { ...ev(6, '2026-09-29T10:00:00', 'task.closed@1'), payload: { task_id: 't1', outcome: 'done' } },
+      { ...ev(7, '2026-08-01T09:00:00', 'task.moved@1'), payload: { task_id: 't2', to: 'review' } }]
+    expect(rhythmTotals(events, NOW), 'an agent\'s answer is not the person\'s decision; one task handed in twice in a day is one result')
+      .toEqual({ decisions: 2, results: 1, events: 6 })
+    const finished = ev(8, '2026-09-29T09:30:00', 'task.finished@1')
+    const running = { ...ev(9, '2026-09-29T09:31:00', 'task.moved@1'), payload: { task_id: 't3', to: 'running' } }
+    expect(rhythmTotals([finished, running], NOW).results, 'neither a finished run nor any other move hands a task in').toBe(0)
+  })
+
+  it('says each event as Пульс counts it, by the same definitions', () => {
+    expect(eventKind({ ...ev(1, '2026-09-29T09:00:00', 'task.moved@1'), payload: { task_id: 't', to: 'review' } })).toBe('result')
+    expect(eventKind(ev(2, '2026-09-29T09:00:00', 'access.decided@1'))).toBe('decision')
+    expect(eventKind(ev(3, '2026-09-29T09:00:00', 'access.decided@1', 'p1', { kind: 'system', id: 'fabric' }))).toBe('other')
   })
 })
 
@@ -92,7 +103,8 @@ describe('the live indicator', () => {
 })
 
 describe('a day of the rhythm, read closer (SCR-42)', () => {
-  const done = { ...ev(3, '2026-09-29T10:00:00', 'task.moved@1'), payload: { to: 'done' } }
+  // A task handed in (moved to review) is a result, the definition «Ритм работы» counts by (workRhythm.ts).
+  const done = { ...ev(3, '2026-09-29T10:00:00', 'task.moved@1'), payload: { task_id: 't1', to: 'review' } }
   const events = [ev(1, '2026-09-29T09:00:00', 'question.answered@1'), ev(2, '2026-09-29T09:30:00', 'task.created@1'), done, ev(4, '2026-09-28T09:00:00', 'proposal.decided@1')]
   it('names each event as a decision, a result or neither', () => {
     expect(events.map(eventKind)).toEqual(['decision', 'other', 'result', 'decision'])

@@ -24,6 +24,10 @@ export interface Ending { how: string | null; note: string; at: string }
 export interface Handoff { name: string; value: string; at: string }
 export interface TaskTrail { milestones: Milestone[]; endings: Ending[]; handoffs: Handoff[] }
 
+/** A stage report made this shortly BEFORE a claim, with no hold covering it, belongs to that claim (the mockup parity,
+ *  agent gaps «Вехи»: an agent often says what it starts, then claims the task; 19 of 49 reports fell outside any hold). */
+export const STAGE_BEFORE_CLAIM_MS = 5 * 60_000
+
 /** When the session held a task: from its claim to its release, or still. */
 export interface Hold { taskId: string; from: string; to: string | null }
 
@@ -51,7 +55,14 @@ export function taskTrail(events: readonly TrailEvent[], holds: readonly Hold[])
       const to = h.to ? time(h.to) : Infinity
       if (Number.isFinite(from) && when >= from && when <= to && (!best || from > time(best.from))) best = h
     }
-    return best?.taskId ?? null
+    if (best) return best.taskId
+    // No hold covers it: the first claim made within the grace after it.
+    let next: Hold | null = null
+    for (const h of holds) {
+      const from = time(h.from)
+      if (Number.isFinite(from) && from > when && from - when <= STAGE_BEFORE_CLAIM_MS && (!next || from < time(next.from))) next = h
+    }
+    return next?.taskId ?? null
   }
   const newestFirst = [...events].sort((a, b) => b.seq - a.seq)
   for (const e of newestFirst) {

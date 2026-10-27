@@ -1,9 +1,13 @@
 // One session in full: in a detached window of its own, or (OF-03, SCN-172) full size in the main window under its
 // console tab, where `onDetach` offers the separate window as a secondary control. The session itself lives in the
 // main process (ADR-0031 §2), so closing either never ends it.
+//
+// The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/agent.md, «Console view»): embedded, the console
+// leads. One quiet line above it: «← {runner} · {project}» back to the agent's page (when the shell passes `onBack`), the
+// folder, the state and the separate window as a small icon button; the terminal sits in a rounded, bordered box.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Banner, Button, EmptyState, StateChip } from './components'
+import { Banner, EmptyState, StateChip } from './components'
 import { sessionTone } from './sessionTone'
 import { SessionStop, StopStatus } from './SessionStop'
 import { FailureNote } from './OperatorError'
@@ -21,11 +25,17 @@ import { runnerLabel } from './runnerLabel'
 
 export function SessionWindow({
   sessionId,
-  onDetach
+  onDetach,
+  onBack,
+  projectName = null
 }: {
   sessionId: string
   /** In the main window only: «Open in a separate window». Resolves when it opened; rejects with why it did not. */
   onDetach?: () => Promise<void>
+  /** In the main window only: back to the agent's page («← {runner} · {project}»). Absent: the runner's name, no link. */
+  onBack?: () => void
+  /** The session's project, for the back link's words; null: the runner alone. */
+  projectName?: string | null
 }): React.JSX.Element {
   const t = useT()
   /** Why the separate window did not open, said under the header; null when nothing failed. */
@@ -102,25 +112,44 @@ export function SessionWindow({
     )
 
   const session = reading.answer!
+  const runner = runnerLabel(session.optionId, t)
+  const state = session.termination ? <StopStatus state={session.termination} session={session} /> : (
+    <StateChip tone={sessionTone(session.state)} dot>{t(`session.state.${session.state}`)}</StateChip>
+  )
+  const detach = (): void => {
+    setDetachProblem(null)
+    onDetach?.().catch((e: unknown) => setDetachProblem(unwrap(e instanceof Error ? e.message : String(e))))
+  }
   return (
     <div className={onDetach ? 'session-window session-embedded' : 'session-window'}>
-      <header className="session-head">
-        <strong>
-          {runnerLabel(session.optionId, t)}
-        </strong>
-        <span className="muted mono">{session.cwd}</span>
-        <>{session.termination ? <StopStatus state={session.termination} session={session} /> : <StateChip tone={sessionTone(session.state)} dot>
-          {t(`session.state.${session.state}`)}
-        </StateChip>}</>
-        {onDetach && (
-          <Button tone="ghost" onClick={() => {
-            setDetachProblem(null)
-            onDetach().catch((e: unknown) => setDetachProblem(unwrap(e instanceof Error ? e.message : String(e))))
-          }}>
-            {t('consoles.detach')}
-          </Button>
-        )}
-      </header>
+      {onDetach ? (
+        // Embedded: one quiet line, the console below it leads (the mockup's `#console`).
+        <div className="session-bar">
+          {onBack
+            ? <button type="button" className="lp-link session-back" onClick={onBack}>
+                {projectName ? t('session.back', { runner, project: projectName }) : t('session.backNoProject', { runner })}
+              </button>
+            : <strong>{runner}</strong>}
+          <span className="muted mono session-cwd" title={session.cwd}>{session.cwd}</span>
+          {state}
+          {/* Stop stays a control of the console, quiet in its line (the mockup has the console alone). */}
+          <span className="session-stop-slot">
+            <SessionStop key={session.sessionId} session={session} refresh={load}
+              onError={message => setReading(prev => afterRefusal(prev, message))} />
+          </span>
+          <button type="button" className="session-detach" aria-label={t('consoles.detach')} title={t('consoles.detach')} onClick={detach}>
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+              <path d="M9 2.5h4.5V7M13.5 2.5 8 8M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+      ) : (
+        <header className="session-head">
+          <strong>{runner}</strong>
+          <span className="muted mono">{session.cwd}</span>
+          {state}
+        </header>
+      )}
       {/* 0.3.7 review UX-16: our sentence, then the machine's words on their own line, never one paragraph. */}
       {detachProblem !== null && <FailureNote said={t('consoles.detachFailed')} detail={detachProblem} />}
       {/* A REFUSED REFRESH IS A CAVEAT, NOT A WALL. Taking the terminal away
@@ -130,9 +159,11 @@ export function SessionWindow({
       {reading.problem !== null && (
         <p className="muted">{t('session.stale', { reason: reading.problem })}</p>
       )}
-      <SessionStop key={session.sessionId} session={session} refresh={load}
-        onError={message => setReading(prev => afterRefusal(prev, message))} />
-      <TerminalView session={session} />
+      {!onDetach && <SessionStop key={session.sessionId} session={session} refresh={load}
+        onError={message => setReading(prev => afterRefusal(prev, message))} />}
+      {onDetach
+        ? <div className="session-box"><TerminalView session={session} /></div>
+        : <TerminalView session={session} />}
     </div>
   )
 }

@@ -120,13 +120,48 @@ test("an agent's tasks in main (0.3.14): its claims and launched tasks by its se
   await assert.rejects(readSessionTasks(fake(tables, { work_claims: 'database away' }), S), /claims could not be read: database away/)
   await assert.rejects(readSessionTasks(fake(tables, { 'in:project_tasks': 'refused' }), S), /tasks could not be read: refused/)
   await assert.rejects(readSessionTasks(fake(tables), 'not-a-session'), /Invalid session identity/)
-  assert.deepEqual(await readSessionTasks(fake({}), S), { tasks: [], capped: false }, 'a session with no task reads as an empty list')
+  assert.deepEqual(await readSessionTasks(fake({}), S), { tasks: [], capped: false, questions: [] }, 'a session with no task reads as an empty list, and no question of its own')
   // The 0.3.14 review, iteration 1, DA-5: the launch's own event dates a launched task.
   const attachedView = await readSessionTasks(fake({ ...tables, journal: [{ occurred_at: '2026-10-26T09:30:00Z', payload: { id: 't3', session_id: S } }] }), S)
   assert.deepEqual(attachedView.tasks.map((t) => [t.taskId, t.claimedAt]), [['t2', '2026-10-26T10:00:00Z'], ['t3', '2026-10-26T09:30:00Z'], ['t1', '2026-10-26T08:00:00Z']])
   const launches = calls.findLast((c) => c.table === 'journal')
   assert.deepEqual(launches.eq, [['payload->>session_id', S], ['type', 'task.session.attached@1']])
   await assert.rejects(readSessionTasks(fake(tables, { journal: 'refused' }), S), /launches could not be read: refused/)
+})
+
+test("an agent's page (the mockup parity): each task's title apart from its brief, its release note from the claim, the agent's own open questions, its runner's version", async () => {
+  const { readSessionTasks } = await import(path.resolve(import.meta.dirname, '../src/main/workRead.ts'))
+  const S = '11111111-2222-4333-8444-555555555555'
+  const calls = []
+  const fake = (tables, fail = {}) => ({
+    select: (table, columns) => {
+      const call = { table, columns, eq: [] }
+      calls.push(call)
+      const chain = {
+        is: () => chain, in: () => chain, limit: () => chain, order: () => chain,
+        eq: (k, v) => { call.eq.push([k, v]); return chain },
+        then: (ok) => ok(fail[table] ? { data: null, error: { message: fail[table] } } : { data: tables[table] ?? [], error: null })
+      }
+      return chain
+    },
+    selectIn: async (table, _c, key, values) => ({ rows: (tables[`in:${table}`] ?? []).filter((r) => values.includes(r[key])), failed: null })
+  })
+  const tables = {
+    work_claims: [{ work_id: 't1', project_id: 'p1', claimed_at: '2026-10-26T08:00:00Z', released_at: '2026-10-26T09:00:00Z', released_how: 'done', release_note: 'Shipped the read; tests green' }],
+    'in:project_tasks': [{ id: 't1', project_id: 'p1', title: 'The rhythm read', brief_what: 'Count work per day', brief_why: null, brief_expected: null, status: 'review', started_at: null }],
+    'in:projects': [{ id: 'p1', name: 'fabric' }],
+    questions: [{ id: 'q1', project_id: 'p1', task_id: 't1', text: 'Which zone?', why_blocked: ' The deploy waits on it. ', kind: 'decision', options: [], asked_by_id: S, asked_at: '2026-10-26T08:30:00Z', status: 'open', revision: 3 }]
+  }
+  const view = await readSessionTasks(fake(tables), S, { runner: 'claude-code', executors: async () => [{ id: 'claude-code', label: 'Claude Code', version: '2.4.1' }] })
+  assert.deepEqual([view.tasks[0].title, view.tasks[0].brief.what, view.tasks[0].releaseNote], ['The rhythm read', 'Count work per day', 'Shipped the read; tests green'])
+  assert.match(calls.find((c) => c.table === 'work_claims').columns, /release_note/)
+  assert.deepEqual(view.questions.map((q) => [q.id, q.text]), [['q1', 'Which zone?']])
+  assert.deepEqual([view.questions[0].why, view.questions[0].revision], ['The deploy waits on it.', 3], 'the asker\'s own «why» and the revision an answer is submitted against')
+  assert.deepEqual(calls.find((c) => c.table === 'questions').eq, [['asked_by_id', S], ['status', 'open']])
+  assert.deepEqual(view.runner, { id: 'claude-code', label: 'Claude Code', version: '2.4.1' })
+  const unread = await readSessionTasks(fake(tables, { questions: 'away' }), S)
+  assert.equal(unread.questions, undefined, 'a failed read is not «no questions»')
+  assert.match(unread.questionsUnread, /away/)
 })
 
 test('the board pages «Готово» (0.3.14): the finished tasks are read up to the limit asked, 20 by default, and capped there', async () => {

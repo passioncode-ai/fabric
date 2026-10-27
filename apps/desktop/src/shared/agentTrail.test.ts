@@ -50,3 +50,16 @@ describe('lastPhase', () => {
     expect(lastPhase([])).toBeNull()
   })
 })
+
+describe('a stage report just before a claim (the mockup parity, agent gaps «Вехи»)', () => {
+  it('belongs to the claim made within the grace after it; one made long before, or covered by another hold, does not', async () => {
+    const { STAGE_BEFORE_CLAIM_MS } = await import('./agentTrail.ts')
+    const trail = taskTrail([
+      ev(1, 'agent.stage.reported@1', '2026-10-27T09:58:00Z', { stage: 'Starting the rhythm read' }),
+      ev(2, 'agent.stage.reported@1', '2026-10-27T09:00:00Z', { stage: 'Long before' }),
+      ev(3, 'agent.stage.reported@1', '2026-10-27T10:30:00Z', { stage: 'Inside t1' })
+    ], [{ taskId: 't1', from: '2026-10-27T10:00:00Z', to: null }])
+    expect(STAGE_BEFORE_CLAIM_MS).toBe(5 * 60_000)
+    expect(trail.get('t1')?.milestones.map((m) => m.text)).toEqual(['Inside t1', 'Starting the rhythm read'])
+  })
+})

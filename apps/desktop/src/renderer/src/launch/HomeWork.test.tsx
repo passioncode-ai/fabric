@@ -314,3 +314,25 @@ describe('the home\'s statistics strip (0.3.14, the simple Fabric §2a)', () => 
     expect(screen.getByText(ru['launch.home.stats.unclaimed.one']!)).toBeTruthy()
   })
 })
+
+// The mockup parity (home gaps D3, D7): the strip counts the agents AT work and those at work holding no task, from the
+// same reading as «В работе», never every connected window and never the sweep's separate measure.
+describe('the strip counts work, not connection (the mockup parity)', () => {
+  it('«working» is atWork.agents and «working without a task» atWork.noTask, each opening its first session', () => {
+    const judged: HomeReading = { view: { ...view, unclaimed: 0, atWork: { agents: 4, connectedIdle: 30, noTask: 1, noTaskSessions: ['s1'] } }, problem: null }
+    const onAgents = vi.fn(), onUnclaimed = vi.fn()
+    show(<HomeStats reading={judged} waiting={0} onAgents={onAgents} onBoard={() => {}} onUnclaimed={onUnclaimed} />)
+    const working = screen.getByText(en['launch.home.stats.working.many'])
+    expect(working.previousSibling?.textContent).toBe('4')
+    const noTask = screen.getByText(en['launch.home.stats.unclaimed.one'])
+    expect(noTask.previousSibling?.textContent).toBe('1')
+    fireEvent.click(noTask)
+    expect(onUnclaimed).toHaveBeenCalled()
+  })
+
+  it('an older reading that did not judge work keeps counting the agents that signed and the sweep', () => {
+    show(<HomeStats reading={{ view: { ...view, unclaimed: 3 }, problem: null }} waiting={0} onAgents={() => {}} onBoard={() => {}} />)
+    expect(screen.getByText(/^agents? working$/).previousSibling?.textContent).toBe('1')
+    expect(screen.getByText(en['launch.home.stats.unclaimed.many']).previousSibling?.textContent).toBe('3')
+  })
+})

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { since, until } from './duration'
+import { heldFor, since, until } from './duration'
 
 afterEach(() => { vi.useRealTimers() })
 const at = (secondsAgo: number) => new Date(Date.parse('2026-09-29T12:00:00Z') - secondsAgo * 1000).toISOString()
@@ -22,5 +22,17 @@ describe('how long ago, in the shortest true unit', () => {
     vi.useFakeTimers(); vi.setSystemTime(new Date('2026-09-29T12:00:00Z'))
     const t = ((key: string, vars: { n: number }) => `${vars.n} ${key}`) as never
     expect(since(at(3 * 86_400), t)).toBe('3 duration.d')
+  })
+})
+
+describe('how long a task has been held (the mockup parity, home gap D9)', () => {
+  const NOW = Date.parse('2026-09-29T12:00:00Z')
+  it('says hours and minutes under two days, as the mockup does, and whole days after', () => {
+    expect(heldFor(at(104 * 60), undefined, NOW)).toBe('1h 44m')
+    expect(heldFor(at(38 * 60), undefined, NOW)).toBe('38m')
+    expect(heldFor(at(2 * 3600), undefined, NOW)).toBe('2h')
+    expect(heldFor(at(20), undefined, NOW)).toBe('20s')
+    expect(heldFor(at(3 * 86_400), undefined, NOW)).toBe('3d')
+    expect(heldFor('nope', undefined, NOW)).toBe('—')
   })
 })

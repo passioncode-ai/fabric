@@ -83,3 +83,57 @@ describe('groupInWork', () => {
     expect(by('obs').aim).toBeNull()
   })
 })
+
+describe('groupInWork by work, not by keep-alive (the mockup parity, home gaps D3, D4)', () => {
+  const now = '2026-10-27T10:00:00Z'
+  it('orders cards by the newest work, then what waits on the person, then the name; never by the newest ping', () => {
+    const g = groupInWork({
+      live: [
+        live('a1', 'fab', now, { atWork: true, workAt: '2026-10-27T09:00:00Z' }),
+        live('a2', 'cop', now, { atWork: true, workAt: '2026-10-27T09:30:00Z' }),
+        live('a3', 'obs', now, { atWork: true, workAt: '2026-10-27T09:00:00Z' }),
+        live('a4', 'res', '2026-10-27T10:00:05Z', { atWork: false, workAt: null })
+      ],
+      inWork: [], projects, locale: 'en', waitingByProject: { obs: 2 }
+    })
+    expect(g.cards.map((c) => c.projectId)).toEqual(['cop', 'obs', 'fab', 'res'])
+    expect(g.connectedIdle).toBe(1)
+  })
+  it('with atWorkOnly the connected agents fold out of the cards and are counted, not carded', () => {
+    const g = groupInWork({
+      live: [live('a1', 'fab', now, { atWork: true, workAt: '2026-10-27T09:00:00Z' }), live('a2', 'cop', now, { atWork: false, workAt: null }), live('a3', 'cop', now, { atWork: false, workAt: null, stale: true })],
+      inWork: [], projects, locale: 'en', atWorkOnly: true
+    })
+    expect(g.cards.map((c) => c.projectId)).toEqual(['fab'])
+    expect(g.connectedIdle).toBe(1)
+    expect(g.agentsAtWork).toBe(1)
+    expect(g.quiet.map((q) => q.id)).toContain('cop')
+  })
+  it('with atWorkOnly a quiet agent that still holds its task keeps its row, and its task is never «without an agent»', () => {
+    const t = { id: 't1', projectId: 'cop', summary: 'Links open in their own window' }
+    const g = groupInWork({
+      live: [live('a1', 'fab', now, { atWork: true, workAt: '2026-10-27T09:00:00Z' }), live('a2', 'cop', '2026-10-27T09:40:00Z', { atWork: false, workAt: '2026-10-27T09:20:00Z', stale: true, task: t })],
+      inWork: [work('t1', 'cop', 'a2', '2026-10-27T09:20:00Z', false)], projects, locale: 'en', atWorkOnly: true
+    })
+    const cop = g.cards.find((c) => c.projectId === 'cop')!
+    expect(cop.agents.map((a) => a.sessionId)).toEqual(['a2'])
+    expect(cop.orphans).toEqual([])
+    expect([g.agentsAtWork, g.agentsQuiet, g.connectedIdle]).toEqual([2, 1, 0])
+  })
+  it('prints and sorts every project by its display name, the slug kept as the identity', () => {
+    const slugs = [
+      { id: 'fab', name: 'fabric', status: 'active' as const },
+      { id: 'cop', name: 'copylot-agent', status: 'active' as const, displayName: 'Copylot' },
+      { id: 'obs', name: 'observatory', status: 'active' as const }
+    ]
+    const names = { fab: { name: 'Fabric', from: 'descriptor' as const, derived: false }, obs: { name: 'Observatory', from: 'slug' as const, derived: true } }
+    const g = groupInWork({ live: [live('a1', 'fab', now, { atWork: true, workAt: now })], inWork: [], projects: slugs, locale: 'en', atWorkOnly: true, names })
+    expect(g.cards[0].name).toBe('Fabric')
+    expect(g.quiet).toEqual([{ id: 'cop', name: 'Copylot' }, { id: 'obs', name: 'Observatory' }])
+  })
+  it('an older reading that did not judge work keeps every agent on its card, by its newest sign', () => {
+    const g = groupInWork({ live: [live('a1', 'fab', '2026-10-27T09:00:00Z'), live('a2', 'cop', '2026-10-27T09:30:00Z')], inWork: [], projects, locale: 'en', atWorkOnly: true })
+    expect(g.cards.map((c) => c.projectId)).toEqual(['cop', 'fab'])
+    expect(g.connectedIdle).toBe(0)
+  })
+})

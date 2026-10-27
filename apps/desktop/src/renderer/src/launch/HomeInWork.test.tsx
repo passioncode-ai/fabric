@@ -42,6 +42,8 @@ describe('«В работе» grouped by project', () => {
     show()
     const section = screen.getByRole('region', { name: en['launch.home.inWork.title'] })
     expect(section.textContent).toContain('1 project · 2 agents')
+    // The approved mockup (gap map E1): the cards sit on the page, the section is no panel of its own.
+    expect(section.className).not.toContain('lp-panel')
     const card = screen.getByRole('article', { name: 'Fabric' })
     // The operator's second review (R-1, R-2): the description is the name's hover, never the card's line.
     expect(card.textContent).not.toContain('A workplace for agents.')
@@ -62,6 +64,9 @@ describe('«В работе» grouped by project', () => {
     expect(rows[1].textContent).toContain(en['rail.agents.branchUnknown'])
     expect(rows[1].textContent).toContain(en['launch.home.agents.silent'])
     expect(rows[1].textContent).toContain(en['launch.home.inWork.noTask'])
+    // The mockup-parity pass (gap map E6): «no task» is said in the quiet report type, never as a task line.
+    expect(rows[1].querySelector('.lh-arow-task')).toBeNull()
+    expect(within(rows[1]).getByText(en['launch.home.inWork.noTask']).className).toContain('lh-arow-report')
     fireEvent.click(within(rows[0]).getByRole('button', { name: /Claude Code/ }))
     expect(p.onAgent).toHaveBeenCalledWith('s1')
     fireEvent.click(within(rows[0]).getByRole('button', { name: 'Fixes after the first review' }))
@@ -184,5 +189,45 @@ describe('«В работе» grouped by project', () => {
     show({}, 'ru')
     expect(screen.getByRole('region', { name: ru['launch.home.inWork.title'] }).textContent).toContain('1 проект · 2 агента')
     expect(screen.getByRole('article', { name: 'Fabric' }).textContent).toContain('1 ждёт вас')
+  })
+})
+
+// The mockup parity, wave 2 (docs/reports/2026-10-27-mockup-parity/gaps/home.md D3, D4, D9): rows only for agents at
+// work, the connected in one line, the task's title heading the row, the hold time under the time, display names.
+describe('«В работе» by work, not by connection (the mockup parity)', () => {
+  const atWork: HomeView = {
+    live: [
+      { sessionId: 'w1', projectId: 'fab', projectName: 'fabric', agent: 'claude-code', console: true, startedAt: now, lastSignAt: now, stale: false, atWork: true, workAt: minutesAgo(1),
+        doing: null, task: { id: 't1', projectId: 'fab', summary: 'Close the five levels of review before the release', title: 'Fixes after the first review', what: 'Close the five levels of review before the release', heldSince: minutesAgo(104) } },
+      { sessionId: 'w2', projectId: 'cop', projectName: 'copylot-agent', agent: 'codex', console: false, startedAt: now, lastSignAt: now, stale: false, atWork: true, workAt: minutesAgo(3),
+        doing: { text: 'Checking 12 languages', note: null, step: 3, ofSteps: 5, at: minutesAgo(3) }, task: null },
+      { sessionId: 'i1', projectId: 'mob', projectName: 'mobile-publisher', agent: 'claude-code', console: false, startedAt: now, lastSignAt: now, stale: false, atWork: false, workAt: null, doing: null, task: null },
+      { sessionId: 'i2', projectId: 'mob', projectName: 'mobile-publisher', agent: 'claude-code', console: false, startedAt: now, lastSignAt: now, stale: false, atWork: false, workAt: null, doing: null, task: null }
+    ],
+    inWork: [], review: [], done: [], projects: [], readAt: now,
+    atWork: { agents: 2, connectedIdle: 2, noTask: 1, noTaskSessions: ['w2'] },
+    displayNames: { cop: { name: 'Copylot', from: 'descriptor', derived: false }, mob: { name: 'Mobile Publisher', from: 'slug', derived: true } }
+  }
+  const slugs = [project('fab', 'fabric'), project('cop', 'copylot-agent'), project('mob', 'mobile-publisher')]
+
+  it('cards only the agents at work, ordered by their newest work; the merely connected are one quiet line', () => {
+    show({ reading: { view: atWork, problem: null }, projects: slugs, waitingByProject: {} })
+    const cards = screen.getAllByRole('article')
+    expect(cards.map((c) => within(c).getByRole('heading').textContent)).toEqual(['fabric', 'Copylot'])
+    expect(screen.queryByRole('list', { name: /Mobile Publisher/ })).toBeNull()
+    const idle = screen.getByText(en['launch.home.inWork.connectedIdle'].replace('{count}', '2'))
+    expect(idle.getAttribute('title')).toBe(en['launch.home.inWork.connectedIdleWhy'])
+    // The quiet line names the project with no agent at work by its display name.
+    expect(screen.getByRole('button', { name: 'Mobile Publisher' })).toBeTruthy()
+  })
+
+  it('heads a row with the task\'s title, its «what» the hover and the quiet line, and says how long it has held the task', () => {
+    show({ reading: { view: atWork, problem: null }, projects: slugs, waitingByProject: {} }, 'ru')
+    const row = screen.getAllByRole('listitem')[0]
+    const title = within(row).getByRole('button', { name: 'Fixes after the first review' })
+    expect(title.getAttribute('title')).toBe('Close the five levels of review before the release')
+    expect(row.querySelector('.lh-arow-what')?.textContent).toBe('Close the five levels of review before the release')
+    expect(row.querySelector('.lh-arow-held')?.textContent).toBe('держит 1 ч 44 мин')
+    expect(document.body.textContent).not.toMatch(/—/)
   })
 })

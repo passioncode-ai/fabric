@@ -48,7 +48,7 @@ describe('composeHome', () => {
     const a = view.live.find((l) => l.sessionId === 's1')!
     expect(a.projectName).toBe('Fabric')
     expect(a.doing).toEqual({ text: 'Выкатываем версию, в которой компьютер не засыпает', note: 'жду CI', step: 3, ofSteps: 5, at: '2026-10-14T08:55:00Z' })
-    expect(a.task).toEqual({ id: 't1', projectId: P1, summary: 'Компьютер не засыпает, пока работает агент' })
+    expect(a.task).toEqual({ id: 't1', projectId: P1, summary: 'Компьютер не засыпает, пока работает агент', title: 'keep-awake', what: 'Компьютер не засыпает, пока работает агент', heldSince: '2026-10-14T08:30:00Z' })
     expect(view.live.find((l) => l.sessionId === 's3')!.projectId).toBeNull()
   })
 
@@ -257,7 +257,7 @@ describe("composeHome: an agent's current task (0.3.14)", () => {
         { id: 'silent', project_id: P1, title: 'Silent', brief_what: null, status: 'running' }
       ]
     })
-    expect(v.live[0].task).toEqual({ id: 'new', projectId: P1, summary: 'New' })
+    expect(v.live[0].task).toMatchObject({ id: 'new', projectId: P1, summary: 'New' })
   })
 
   it('else the running task Fabric launched in its session', () => {
@@ -265,7 +265,7 @@ describe("composeHome: an agent's current task (0.3.14)", () => {
       ...base, where: where([session('s1', P1)], []), stages: [], briefs: [],
       runningTasks: [{ id: 'l1', project_id: P1, title: 'Launched', brief_what: null, status: 'running', session_id: 's1', updated_at: '2026-10-26T09:00:00Z' }]
     })
-    expect(v.live[0].task).toEqual({ id: 'l1', projectId: P1, summary: 'Launched' })
+    expect(v.live[0].task).toMatchObject({ id: 'l1', projectId: P1, summary: 'Launched' })
     expect(v.inWork.map((w) => [w.taskId, w.sessionId])).toEqual([['l1', 's1']])
     expect(v.projects.find((p) => p.projectId === P1)).toMatchObject({ live: 1, inWork: 1 })
   })
@@ -280,7 +280,7 @@ describe("composeHome: an agent's current task (0.3.14)", () => {
         stage('s1', P1, 'Reading', '2026-10-26T11:00:00Z')
       ]
     })
-    expect(v.live[0].task).toEqual({ id: 'x1', projectId: P2, summary: '' })
+    expect(v.live[0].task).toMatchObject({ id: 'x1', projectId: P2, summary: '' })
   })
 
   it('the 0.3.14 review, iteration 1, DA-6, ER-11: never a finished task its stage report named', () => {
@@ -295,7 +295,7 @@ describe("composeHome: an agent's current task (0.3.14)", () => {
 
   it('keeps an untitled claimed task, with an empty summary the screens say as untitled', () => {
     const v = composeHome({ ...base, where: where([session('s1', P1)], [claim('u1', P1, 's1', { title: '' })]), stages: [], briefs: [{ id: 'u1', project_id: P1, title: null, brief_what: null, status: 'running' }] })
-    expect(v.live[0].task).toEqual({ id: 'u1', projectId: P1, summary: '' })
+    expect(v.live[0].task).toMatchObject({ id: 'u1', projectId: P1, summary: '' })
   })
 })
 

@@ -18,6 +18,10 @@
  * card (`AgentPage`), with no «Работа» / «Консоль» tabs: the console opens as a tab along the top only when «Открыть
  * сессию» is pressed. The roster grouped by state is kept as `AgentRoster`, which Настройки shows for the agents that
  * are idle, installed or disconnected; picking one there opens its screen here.
+ *
+ * The mockup parity, wave 1: the page gets «← Главная» (`onHome`), the runner's version for its «Агент» fact (from the
+ * installed agents this screen already reads), its console's permission mode, and the project rows a task row's
+ * «Нужна правка в другом проекте» needs.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ActAnswer } from '../../../shared/acts.ts'
@@ -36,6 +40,7 @@ import { CappedNote, KeptNote, useHome } from './HomeWork'
 import { useRead } from './useRead'
 import { whyWords } from './actWords'
 import { AGENT_GROUPS, composeRoster, rosterRows, type AgentGroup, type RosterRow } from './agentRoster'
+import type { CrossProject } from './CrossProjectConsole'
 
 /** Where a read stands: still out, failed, or answered. */
 type ReadState = 'reading' | 'failed' | 'read'
@@ -117,7 +122,8 @@ function lineOf(r: RosterRow, t: Translate, locale: string, workUnread = false):
 
 /** A row read as an agent at work, for the agent page: `work.home`'s own, else the console Fabric holds. */
 function asLive(r: RosterRow): LiveAgent | null {
-  if (r.live) return r.live
+  // The project by the name every screen prints (the roster resolved it, `projectDisplayName`), never the raw slug.
+  if (r.live) return { ...r.live, projectName: r.projectName ?? r.live.projectName }
   if (!r.sessionId) return null
   return {
     sessionId: r.sessionId, projectId: r.projectId, projectName: r.projectName, agent: r.runner, console: r.console,
@@ -159,7 +165,9 @@ function useRoster(mark: number, hubMark: number, sessions: TerminalSession[] | 
     idle: together([reads.home, reads.sessions, reads.hub, reads.executors, reads.catalog]),
     off: together([reads.hub, reads.executors, reads.catalog])
   }
-  return { home, hub, roster, rows, reads, groupRead, everyRead: together(Object.values(reads)), executorsFailed, retryExecutors: () => setExecutorsAttempt((n) => n + 1) }
+  const versionOf = (runner: string | null): string | null =>
+    runner && executors && 'value' in executors ? (executors.value.find((x) => x.id === runner)?.version ?? null) : null
+  return { home, hub, roster, rows, reads, groupRead, everyRead: together(Object.values(reads)), executorsFailed, retryExecutors: () => setExecutorsAttempt((n) => n + 1), versionOf }
 }
 
 /**
@@ -213,7 +221,9 @@ export function AgentRoster({ mark, hubMark, sessions, projects, groups = AGENT_
   )
 }
 
-export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject, onOpenTask, onCreate, initialSession = null, initialAgent = null, onPick }: {
+export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject, onOpenTask, onCreate, initialSession = null, initialAgent = null, onPick, onHome }: {
+  /** «← Главная» above the agent's header; absent: no back link (the top bar's travel buttons remain). */
+  onHome?(): void
   /** The session to open on arrival (a row of the left column's «Агенты», a «В работе» row, a board card's
    *  «Сессия …»), as if the person had picked it. */
   initialSession?: string | null
@@ -228,7 +238,8 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
   hubMark: number
   /** The consoles Fabric holds; null while unread. */
   sessions: TerminalSession[] | null
-  projects: ReadonlyArray<{ id: string; name: string }> | null
+  /** The projects; a row's recorded business walls «Нужна правка в другом проекте» between businesses (DA-6). */
+  projects: ReadonlyArray<CrossProject> | null
   onOpenProject(projectId: string): void
   onOpenTask(projectId: string, taskId: string): void
   /** «Создать агента»: «Создать» on its agent path (SCN-166 step 4). */
@@ -284,7 +295,8 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       {chosen ? (
         <Centre row={chosen} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} goalsUnread={home.view?.goalsUnread ?? null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab}
-          terminal={chosen.sessionId ? ((sessions ?? []).find((x) => x.sessionId === chosen.sessionId) ?? null) : null} />
+          terminal={chosen.sessionId ? ((sessions ?? []).find((x) => x.sessionId === chosen.sessionId) ?? null) : null}
+          onHome={onHome} runnerVersion={r.versionOf(chosen.runner)} projectOf={(id) => (projects ?? []).find((p) => p.id === id) ?? null} />
       ) : home.view === null && home.problem && (rows.length === 0 || (initialSession && !chosen)) ? (
         // UX-25 (iteration 3): an arrival for a session while who works could not be read says the reading failed,
         // never that the session ended.
@@ -350,8 +362,12 @@ function Group({ group, rows, read, workUnread, selected, onSelect, locale }: {
   )
 }
 
-function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject, onOpenTask, onAsTab, terminal = null }: {
+function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject, onOpenTask, onAsTab, terminal = null, onHome, runnerVersion = null, projectOf }: {
   row: RosterRow
+  onHome?(): void
+  /** The runner's installed version, for the page's «Агент» fact. */
+  runnerVersion?: string | null
+  projectOf?(projectId: string): CrossProject | null
   /** The goals could not be read (ER-20). */
   goalsUnread?: string | null
   /** Its console as Fabric holds it, for the status word (R-19). */
@@ -390,9 +406,11 @@ function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject,
   return live ? (
     <AgentPage key={live.sessionId} agent={live} mark={mark} title={name} state={waitingState} actions={act} note={note}
       where={where} onConsole={row.console && row.sessionId ? onAsTab : undefined} terminal={terminal}
-      workUnread={homeUnread && !row.live} goalsUnread={goalsUnread} onOpenProject={onOpenProject} onOpenTask={onOpenTask} />
+      workUnread={homeUnread && !row.live} goalsUnread={goalsUnread} onOpenProject={onOpenProject} onOpenTask={onOpenTask}
+      onHome={onHome} runnerVersion={runnerVersion} permission={terminal?.permissionMode ?? null} projectOf={projectOf} />
   ) : (
     <section className="lp-panel lh-agent-page" aria-labelledby="agent-page-title" data-testid="agent-card">
+      {onHome && <p className="as-back"><button type="button" className="lp-link" onClick={onHome}>{t('agentScreen.backHome')}</button></p>}
       <div className="lp-panel-head">
         <div>
           {row.projectName && <p className="lp-kicker">{row.projectName}</p>}

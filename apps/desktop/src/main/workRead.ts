@@ -32,7 +32,7 @@ import {
 } from '../shared/workClaims.ts'
 import { composeHome, type HomeView, type StageRow, type TaskBrief } from '../shared/homeLive.ts'
 import { composeTaskBoard, type TaskBoardView } from '../shared/taskBoard.ts'
-import { composeSessionTasks, SESSION_TASKS_LIMIT, type SessionClaimRow, type SessionTaskRow, type SessionTasksView } from '../shared/sessionTasks.ts'
+import { agentQuestions, composeSessionTasks, runnerOf, SESSION_TASKS_LIMIT, type SessionClaimRow, type SessionTaskRow, type SessionTasksView } from '../shared/sessionTasks.ts'
 
 type Store = ReturnType<typeof createScopedStore>
 
@@ -183,6 +183,11 @@ export interface HeldSession {
   folder?: string | null
   startedAt: number
   lastSignAt: number | null
+  /** The coding agent's own session id (an enrolled agent's `runtimeSessionId`): the same agent across Fabric's session
+   *  ids when it re-enrols (home gaps D5, D6; `agentIdentity.ts`). Absent or null: not known. */
+  runtimeSessionId?: string | null
+  /** A console Fabric holds: when it last printed (ms), the work signal a keep-alive is not (home gap D3). */
+  outputAt?: number | null
 }
 
 export function sessionView(s: HeldSession, now: number): WorkSessionView {
@@ -367,11 +372,26 @@ const SESSION_TASK_COLUMNS = 'id,project_id,title,brief_what,brief_why,brief_exp
  * task's brief and project. Every read's error THROWS, so the agent page never says "no task" from a read that did
  * not happen. Claims are read twice the page's limit, so a task claimed again and again does not push the rest out.
  */
-export async function readSessionTasks(store: Store, sessionId: unknown): Promise<SessionTasksView> {
+export async function readSessionTasks(
+  store: Store,
+  sessionId: unknown,
+  /** The mockup parity (agent page): the session's runner and the machine's coding agents, for the «Агент» fact. */
+  opts: { runner?: string | null; executors?: () => Promise<ReadonlyArray<{ id: string; label?: string | null; version?: string | null }>> } = {}
+): Promise<SessionTasksView> {
   if (typeof sessionId !== 'string' || !SESSION_UUID.test(sessionId)) throw new Error('Invalid session identity')
   const CLAIMS = SESSION_TASKS_LIMIT * 2
+  // The agent's own open questions (the mockup's «Вопросы этого агента»); a failed read is said, never «none».
+  const questionsRead = Promise.resolve(store.select('questions', 'id,project_id,task_id,text,why_blocked,kind,options,asked_by_id,asked_at,status,revision')
+    .eq('asked_by_id', sessionId).eq('status', 'open').order('asked_at', { ascending: false }).limit(50))
+    .then(
+      (r): { rows: Array<Record<string, unknown>> } | { unread: string } => (r.error ? { unread: r.error.message } : { rows: (r.data ?? []) as unknown as Array<Record<string, unknown>> }),
+      (e: unknown): { unread: string } => ({ unread: e instanceof Error ? e.message : String(e) })
+    )
+  const runnerRead = opts.executors && opts.runner
+    ? opts.executors().then((rows) => runnerOf(opts.runner, rows), () => runnerOf(opts.runner, []))
+    : Promise.resolve(opts.runner ? runnerOf(opts.runner, []) : undefined)
   const [claims, launched, attached] = await Promise.all([
-    store.select('work_claims', 'work_id,project_id,claimed_at,released_at,released_how').eq('owner_session', sessionId).order('claimed_at', { ascending: false }).limit(CLAIMS),
+    store.select('work_claims', 'work_id,project_id,claimed_at,released_at,released_how,release_note').eq('owner_session', sessionId).order('claimed_at', { ascending: false }).limit(CLAIMS),
     store.select('project_tasks', SESSION_TASK_COLUMNS).eq('session_id', sessionId).order('started_at', { ascending: false }).limit(SESSION_TASKS_LIMIT),
     // The 0.3.14 review, iteration 1, DA-5: a launched task is dated by when Fabric attached it to this session, not by
     // when the task was created (indexed by `journal_by_session_id`, migration 116).
@@ -389,7 +409,7 @@ export async function readSessionTasks(store: Store, sessionId: unknown): Promis
   const projectIds = [...new Set([...claimRows.map((c) => c.project_id), ...launchedRows.map((t) => t.project_id)])]
   const projects = await store.selectIn('projects', 'id,name', 'id', projectIds)
   if (projects.failed) throw new Error(`the session's projects could not be read: ${projects.failed}`)
-  return composeSessionTasks({
+  const view = composeSessionTasks({
     claims: claimRows,
     launched: launchedRows,
     tasks: tasks.rows as unknown as SessionTaskRow[],
@@ -397,5 +417,11 @@ export async function readSessionTasks(store: Store, sessionId: unknown): Promis
     attachedAt,
     readCapped: claimRows.length >= CLAIMS || launchedRows.length >= SESSION_TASKS_LIMIT
   })
+  const [questions, runner] = await Promise.all([questionsRead, runnerRead])
+  return {
+    ...view,
+    ...('rows' in questions ? { questions: agentQuestions(sessionId, questions.rows) } : { questionsUnread: `the agent's questions could not be read: ${questions.unread}` }),
+    ...(runner ? { runner } : {})
+  }
 }
 // #endregion work-read

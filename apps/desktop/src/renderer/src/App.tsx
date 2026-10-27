@@ -66,6 +66,8 @@ import { swipeStart, swipeStep } from '../../shared/swipeTravel.ts'
 import { boundedMarks } from '../../shared/commsMarks.ts'
 import { NEEDS_YOU_FAMILIES } from './launch/HomeParts'
 import { railAgents } from '../../shared/railAgents.ts'
+import { liveProjectsOf } from '../../shared/railProjects.ts'
+import { projectDisplayName } from '../../shared/projectDisplayName.ts'
 import { useHome } from './launch/HomeWork'
 import './launch/launch.css'
 import { Onboarding } from './Onboarding'
@@ -240,6 +242,9 @@ function Shell({
    * first paint. A failed read joined them through the catch below.
    */
   const [error, setError] = useState<string | null>(null)
+  /** How many saved places of the last session were not reopened (M111): said once, quietly, never as a failure (the
+   *  mockup parity, 2026-10-27, home A5 and rail gap 26). */
+  const [notReopened, setNotReopened] = useState(0)
   /** The journal on this computer's stack did not answer: the rail's foot line, apart from other errors (UX-10). */
   const [journalFailed, setJournalFailed] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -408,8 +413,11 @@ function Shell({
         ])
         if (!draftStarted.current && r.active.kind !== 'home') setActive(r.active)
         // Dropped tabs are SAID. Quietly reopening four of five is how an
-        // operator concludes they closed one themselves.
-        if (r.dropped.length) setError((current) => [current, t('tabs.dropped', { count: r.dropped.length })].filter(Boolean).join(' · '))
+        // operator concludes they closed one themselves. The mockup parity (2026-10-27, home A5): said ONCE as a quiet
+        // notice, never through the error banner («Что-то не сработало» over a sentence in monospace). The working set is
+        // still read: it carries the drafts «Создать» lists and the place in front (`shared/tabs.ts#restoreTabs`), so it
+        // is not retired; once written back without the dropped ids the notice cannot come again.
+        if (r.dropped.length) setNotReopened(r.dropped.length)
         setTabsRestored(true)
       } catch {
         // A working set that cannot be read is not a reason to fail to start.
@@ -786,10 +794,13 @@ function Shell({
     }
     return () => { alive = false }
   }, [boardMark, isMainWindow])
-  const liveProjects = new Set((sessions ?? []).filter((x) => x.running).map((x) => x.projectId))
   // 0.3.14, the simple Fabric: ONE reading of who works, for the left column's «Агенты» and the home (`useHome`).
   const homeReading = useHome(markOf(marks, ['work', 'task', 'agent', 'session']), isMainWindow)
-  const railAgentRows = homeReading.view ? railAgents(homeReading.view.live, settings.locale, sessions) : null
+  // The rail's green dot: Fabric's own terminals AND every agent at work the reading names, terminal-joined ones
+  // included (the mockup parity, rail gap 4).
+  const liveProjects = liveProjectsOf(sessions, homeReading.view?.live ?? null, homeReading.view?.projects ?? null)
+  // The agents at work (the mockup parity, home gap D3: never the merely connected), each project by its display name.
+  const railAgentRows = homeReading.view ? railAgents(homeReading.view.live, settings.locale, sessions, homeReading.view.displayNames ?? null) : null
 
   // The act line: the person's acts since they came to the place on screen (ADR-0160 §1, `ActLine.tsx`).
   const placeKey = showSettings ? 'settings' : active.kind === 'project' ? `project:${active.projectId}` : active.kind === 'draft' ? `draft:${active.id}` : active.kind === 'start' ? `start:${active.path}` : active.kind === 'console' ? `console:${active.sessionId}` : active.kind
@@ -954,12 +965,27 @@ function Shell({
     : active.kind === 'project' ? { kind: 'project', projectId: active.projectId }
     : active.kind === 'console' && consoleSession ? { kind: 'project', projectId: consoleSession.projectId }
     : { kind: 'elsewhere' }
+  // The mockup parity (rail gaps 20, 21): an agent's screen is titled «{runner} · {project}», a session «Сессия ·
+  // {runner} · {project}»; the project's name is `projectDisplayName`'s (through `railAgents` and `consoleTitleOf`).
+  // From the whole reading, not the rail's rows: an agent merely connected is not on the rail but still has its screen.
+  const titledLive = railAt.kind === 'agents' && railAt.session ? homeReading.view?.live.find((a) => a.sessionId === railAt.session) : undefined
+  const titledAgent = titledLive ? {
+    runner: titledLive.agent,
+    projectName: titledLive.projectName === null ? null : projectDisplayName({ id: titledLive.projectId, name: titledLive.projectName }, homeReading.view?.displayNames ?? null)
+  } : undefined
+  const consoleProject = consoleTitleOf(consoleSession, projects)
+  const projectNameOf = (id: string | null | undefined): string | null => {
+    const p = id ? (projects ?? []).find((x) => x.id === id) : undefined
+    return p ? projectDisplayName(p) : null
+  }
   const placeTitle = showSettings ? t('rail.settings')
     : active.kind === 'home' ? t('rail.home')
+    : active.kind === 'agents' && titledAgent
+      ? t('rail.agentTitle', { runner: runnerLabel(titledAgent.runner, t), project: titledAgent.projectName ?? t('launch.home.agents.noProject') })
     : active.kind === 'agents' ? t('rail.agents')
     : active.kind === 'history' ? t('acts.title')
     : active.kind === 'start' || active.kind === 'draft' ? t('create.title')
-    : active.kind === 'project' || active.kind === 'guide' ? ((projects ?? []).find((p) => p.id === active.projectId)?.name ?? t('app.loading'))
+    : active.kind === 'project' || active.kind === 'guide' ? (projectNameOf(active.projectId) ?? t('app.loading'))
     : active.kind === 'board' ? t('launch.nav.board')
     : active.kind === 'comms' ? t('launch.nav.comms')
     : active.kind === 'graph' ? t('graph.title')
@@ -968,7 +994,8 @@ function Shell({
     : active.kind === 'where' ? t('launch.nav.where')
     : active.kind === 'persona' ? t('settings.more.persona')
     : active.kind === 'welcome' ? t('launch.brand.product')
-    : active.kind === 'console' ? (consoleTitleOf(consoleSession, projects) ?? t('consoles.reading'))
+    : active.kind === 'console'
+      ? (consoleSession && consoleProject ? t('consoles.sessionTitle', { runner: runnerLabel(consoleSession.optionId, t), project: consoleProject }) : (consoleProject ?? t('consoles.reading')))
     : t('launch.nav.fabric')
 
   return (
@@ -993,11 +1020,11 @@ function Shell({
         title={placeTitle}
         pins={pins}
         live={liveProjects}
+        pulses={homeReading.view?.projects ?? null}
         agents={{ rows: railAgentRows, problem: homeReading.problem, retry: homeReading.retry }}
         onAgent={(session) => { setShowSettings(false); setWorkspaceFor(null); goTo({ kind: 'agents', session }) }}
         onAgentConsole={(session) => void openConsole(session)}
         waiting={waiting}
-        commsUnread={commsUnread}
         machine={machineOf({ read: feed !== null, failed: journalFailed }, error)}
         onPlace={(place: RailPlace) => {
           setShowSettings(place === 'settings')
@@ -1028,6 +1055,13 @@ function Shell({
           {t(LINK_NOTICE_KEY[linkNotice])}
           {linksDropped > 0 && ` ${t('links.notice.dropped', { count: linksDropped })}`}
         </Banner>
+      )}
+
+      {notReopened > 0 && (
+        <p className="fab-notice" role="status">
+          <span>{t('tabs.dropped', { count: notReopened })}</span>
+          <button type="button" className="fab-notice-dismiss" onClick={() => setNotReopened(0)}>{t('common.dismiss')}</button>
+        </p>
       )}
 
       {error && (
@@ -1075,7 +1109,10 @@ function Shell({
       <main className="content" hidden={showSettings}>
         {active.kind === 'console' && (
           <SessionWindow key={active.sessionId} sessionId={active.sessionId}
-            onDetach={() => window.fabric.windows.openSession(active.sessionId)} />
+            onDetach={() => window.fabric.windows.openSession(active.sessionId)}
+            // The mockup parity: «← {runner} · {project}» back to the agent's page (agent gaps, console back link).
+            onBack={() => goTo({ kind: 'agents', session: active.sessionId })}
+            projectName={consoleProject} />
         )}
         {active.kind === 'history' && (
           <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} feed={feed} feedProjects={projects} feedFailed={journalFailed} projectsFailed={projectsProblem !== null} sessions={sessions} onOpen={openEntity} />
@@ -1265,7 +1302,8 @@ function Shell({
             }}
             sessions={sessions} projects={projects} onOpenProject={openProject}
             onOpenTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })}
-            onCreate={() => goTo({ kind: 'start', path: 'agent' })} />
+            onCreate={() => goTo({ kind: 'start', path: 'agent' })}
+            onHome={() => goTo({ kind: 'home' })} />
         )}
         {active.kind === 'home' && (
           <EstateHome

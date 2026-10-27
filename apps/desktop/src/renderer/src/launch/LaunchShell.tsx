@@ -10,10 +10,14 @@
 // The top bar holds the name and the open consoles as tabs (OF-03, SCN-172: `ConsoleTabs`, passed in as `consoles`)
 // and nothing else (OF-05, 2026-10-19): search is ⌘K, there is no profile block and no conversation with Fabric on
 // the rail (it opens from Help), and the foot line about this computer shows only when something needs a look.
+// The mockup parity, 2026-10-27 (docs/reports/2026-10-27-mockup-parity/gaps/rail.md): the projects AT WORK, with a last
+// row «Все проекты · N» that unfolds the whole list in place; the brand says «PassionCode.ai» and carries no count (the
+// home says what waits); Настройки carries no Comms count (Настройки → Ещё → Переписка does); an agent at work shows its
+// green dot and no word, every other status keeps its word. Every project name printed here is `projectDisplayName`'s.
 
 import { useEffect, useRef, useState } from 'react'
 import type { ProjectRow } from '../../../shared/types'
-import { railProjects } from '../../../shared/railProjects.ts'
+import { projectsAtWork, railProjects, type RailWork } from '../../../shared/railProjects.ts'
 import type { RailAgent } from '../../../shared/railAgents'
 import { runnerLabel } from '../runnerLabel'
 import { useLocale, useT } from '../i18n'
@@ -97,13 +101,12 @@ export interface LaunchShellProps {
   /** The console icon beside an agent whose console Fabric holds (the operator's second review, R-6): opens its session
    *  as a tab at once. Absent, no icon is drawn. */
   onAgentConsole?(sessionId: string): void
-  /** Projects where an agent works now. */
+  /** Projects where an agent works now (`liveProjectsOf`: Fabric's terminals and the agents that joined on their own). */
   live: ReadonlySet<string>
+  /** The home reading's pulse per project, which says which projects are at work (`projectsAtWork`); null while unread. */
+  pulses?: RailWork['pulses']
   /** «Нужны вы» (`PERSON_KINDS`), over the whole estate and by project; null while unknown (no count is a non-claim). */
   waiting: { total: number; byProject: Record<string, number> } | null
-  /** Comms threads with new messages (SCN-143's unread slice), carried on Настройки because Comms opens from
-   *  Настройки → Ещё since 0.3.7 wave 3 (0.3.7 review UX-4). Null or absent while the board has not answered. */
-  commsUnread?: { count: number; atLeast: boolean } | null
   /** How this computer is: the foot line, shown only on trouble (OF-05). */
   machine: 'reading' | 'ok' | 'trouble'
   onPlace(place: RailPlace): void
@@ -157,7 +160,17 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
     return () => window.removeEventListener('keydown', onKey)
   }, [onSearch])
   const current = (on: boolean) => (on ? { 'aria-current': 'page' as const, className: 'on' } : {})
-  const rows = projects ? railProjects(projects, props.pins, locale) : []
+  const allRows = projects ? railProjects(projects, props.pins, locale) : []
+  // The projects at work, the rest one press away (the mockup parity, rail gap 1). Unfolded, the whole list shows in
+  // place; the choice is the window's, as the toggle's is.
+  const working = projectsAtWork(allRows, {
+    live: props.live, pulses: props.pulses ?? null, waiting: props.waiting?.byProject ?? null,
+    current: at.kind === 'project' ? at.projectId : null
+  })
+  const [unfolded, setUnfolded] = useState(false)
+  const folds = working.length < allRows.length
+  const rows = unfolded || !folds ? allRows : working
+  const noneAtWork = allRows.length > 0 && rows.length === 0
   // The toggle (0.3.14): remembered for the window, as the scroll positions are; on an agent's screen it shows the agents.
   const [view, setView] = useState<RailView>(at.kind === 'agents' ? 'agents' : 'projects')
   const atAgents = at.kind === 'agents'
@@ -215,22 +228,21 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   return (
     <div className="fab-shell">
       <aside className="rail" aria-label={t('rail.aside')}>
-        {/* The brand is Главная (0.3.14): pressing it comes home; it carries the count of what waits for the person. */}
+        {/* The brand is Главная (0.3.14): pressing it comes home. No count on it (the mockup parity, rail gap 9): the home
+            itself says what waits for the person, and each project's row carries its own. */}
         <button type="button" className={at.kind === 'home' ? 'rail-brand rail-home on' : 'rail-brand rail-home'}
           aria-current={at.kind === 'home' ? 'page' : undefined} title={t('rail.home')}
-          aria-labelledby={`rail-name-home${props.waiting && props.waiting.total > 0 ? ' rail-count-home' : ''}`}
+          aria-labelledby="rail-name-home"
           onClick={() => props.onPlace('home')}>
           <img src={brandMark} alt="" width={26} height={26} />
-          <span className="rail-home-words"><b>{t('launch.brand.product')}</b><small>{t('rail.brand')}</small></span>
+          <span className="rail-home-words"><b>{t('launch.brand.product')}</b><small>{t('launch.brand.umbrella')}</small></span>
           <span className="visually-hidden" id="rail-name-home">{t('rail.home')}</span>
-          {props.waiting && props.waiting.total > 0 && (
-            <span className="rail-n" id="rail-count-home" aria-label={t('rail.waiting', { count: props.waiting.total })}>{props.waiting.total}</span>
-          )}
         </button>
         <button type="button" className={at.kind === 'create' ? 'rail-create on' : 'rail-create'}
           aria-current={at.kind === 'create' ? 'page' : undefined} aria-label={t('rail.create')}
           onClick={() => props.onPlace('create')}>
-          <span aria-hidden="true">{t('glyph.plus')}</span> {t('rail.create')}
+          {/* «+ Создать» as the mockup writes it: a plain plus, one space (rail gap 11). */}
+          <span aria-hidden="true">{t('glyph.new')}</span>{t('rail.create')}
         </button>
         <div className="rail-view" role="group" aria-label={t('rail.view.label')} onKeyDown={onViewKey}>
           {(['projects', 'agents'] as const).map((v) => (
@@ -251,20 +263,21 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
             </div>
           )}
           {projects === null && !props.projectsProblem && <p className="rail-muted" role="status">{t('rail.projects.reading')}</p>}
-          {projects !== null && rows.length === 0 && !props.projectsProblem && (
+          {projects !== null && allRows.length === 0 && !props.projectsProblem && (
             <>
               <p className="rail-muted">{t('rail.projects.none')}</p>
               <button type="button" className="rail-small" onClick={props.onCreateProject}>{t('rail.projects.create')}</button>
             </>
           )}
+          {noneAtWork && <p className="rail-muted">{t('rail.projects.quiet')}</p>}
           {rows.length > 0 && (
-            <ul aria-label={t('rail.projects')}>
+            <ul aria-label={t('rail.projects')} id="rail-projects-list">
               {rows.map((p) => {
                 const waiting = props.waiting?.byProject[p.id] ?? 0
                 const live = props.live.has(p.id)
                 return (
                   <li key={p.id}>
-                    <a href="#" title={p.name} {...current(at.kind === 'project' && at.projectId === p.id)}
+                    <a href="#" title={p.slug} {...current(at.kind === 'project' && at.projectId === p.id)}
                       onClick={(e) => go(e, () => props.onProject(p.id))}>
                       <span className={live ? 'rail-dot live' : 'rail-dot'} {...(live ? { role: 'img', 'aria-label': t('rail.live') } : { 'aria-hidden': true })} />
                       <span className="rail-name">{p.name}</span>
@@ -275,6 +288,14 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                 )
               })}
             </ul>
+          )}
+          {/* The quiet last row: the whole list in place, and back (the mockup parity, rail gap 1). */}
+          {folds && (
+            <button type="button" className="rail-more" aria-expanded={unfolded} aria-controls={rows.length > 0 ? 'rail-projects-list' : undefined}
+              title={t('rail.projects.all', { count: allRows.length })} onClick={() => setUnfolded((u) => !u)}>
+              <span className="rail-more-sign" aria-hidden="true">{t('glyph.more')}</span>
+              <span className="rail-name">{unfolded ? t('rail.projects.fold') : t('rail.projects.all', { count: allRows.length })}</span>
+            </button>
           )}
         </div>
         ) : (
@@ -289,22 +310,26 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
           {props.agents.rows !== null && props.agents.rows.length > 0 && (
             <ul aria-label={t('rail.agents.list')}>
               {props.agents.rows.map((a) => {
-                const name = `${runnerLabel(a.runner, t)} · ${a.projectName ?? t('launch.home.agents.noProject')}`
+                const name = t('rail.agentTitle', { runner: runnerLabel(a.runner, t), project: a.projectName ?? t('launch.home.agents.noProject') })
+                const status = a.status ?? (a.state === 'working' ? 'working' : 'idle')
                 return (
                   <li key={a.sessionId}>
-                    <a href="#" className="rail-agent" title={name} {...current(agentSession === a.sessionId)}
+                    {/* The class is merged, never replaced by `current`'s «on»: the open agent's row kept its layout only
+                        then (its dot fell to the branch's line, found by the mockup parity's screenshots). */}
+                    <a href="#" title={name} aria-current={agentSession === a.sessionId ? 'page' : undefined}
+                      className={agentSession === a.sessionId ? 'rail-agent on' : 'rail-agent'}
                       onClick={(e) => go(e, () => props.onAgent(a.sessionId))}>
-                      {/* UX-17: the status has a name for every reader, «working» included; the word shows beside it for every status (UX-26). */}
-                      <span className={`rail-dot s-${a.status ?? (a.state === 'working' ? 'working' : 'idle')}`} role="img"
-                        aria-label={t(`status.${a.status ?? (a.state === 'working' ? 'working' : 'idle')}` as 'status.idle')} />
+                      {/* UX-17: the status has a name for every reader, «working» included. */}
+                      <span className={`rail-dot s-${status}`} role="img" aria-label={t(`status.${status}` as 'status.idle')} />
                       <span className="rail-agent-words">
                         <span className="rail-name">{name}</span>
                         <span className="rail-agent-line">
                           {a.branch
                             ? <span className="rail-branch">{a.branch}</span>
                             : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
-                          {/* UX-26: the word is written for every status, «Работает» included, as CHANGELOG 0.3.14 says. */}
-                          <span> · {t(`status.${a.status ?? (a.state === 'working' ? 'working' : 'idle')}` as 'status.idle')}</span>
+                          {/* The mockup parity (rail gap 16): an agent at work says it by its green dot alone; every other
+                              status keeps its word beside its shape (UX-26, R-19), quiet as the mockup's «· молчит». */}
+                          {status !== 'working' && <span className="rail-word"> · {t(`status.${status}` as 'status.idle')}</span>}
                         </span>
                       </span>
                     </a>
@@ -324,22 +349,14 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
         </div>
         )}
         <nav className="rail-places rail-foot" aria-label={t('rail.label')}>
-          {FOOT.map((place) => {
-            const comms = place === 'settings' && props.commsUnread && props.commsUnread.count > 0 ? props.commsUnread : null
-            return (
-              <a key={place} href="#" title={t(`rail.${place}`)} aria-labelledby={`rail-name-${place}${comms ? ` rail-count-${place}` : ''}`}
-                {...current(at.kind === place)} onClick={(e) => go(e, () => props.onPlace(place))}>
-                <span className={`rail-i rail-i-${place}`} aria-hidden="true" />
-                <span className="rail-name" id={`rail-name-${place}`}>{t(`rail.${place}`)}</span>
-                {comms && (
-                  <span className="rail-c" id={`rail-count-${place}`}
-                    aria-label={t(comms.atLeast ? 'rail.commsUnreadMax' : 'rail.commsUnread', { count: comms.count })}>
-                    {comms.count}{comms.atLeast ? '+' : ''}
-                  </span>
-                )}
-              </a>
-            )
-          })}
+          {/* No count on Настройки (the mockup parity, rail gap 13): the Comms count stays inside Настройки → Ещё. */}
+          {FOOT.map((place) => (
+            <a key={place} href="#" title={t(`rail.${place}`)} aria-labelledby={`rail-name-${place}`}
+              {...current(at.kind === place)} onClick={(e) => go(e, () => props.onPlace(place))}>
+              <span className={`rail-i rail-i-${place}`} aria-hidden="true" />
+              <span className="rail-name" id={`rail-name-${place}`}>{t(`rail.${place}`)}</span>
+            </a>
+          ))}
         </nav>
         {props.machine === 'trouble' && (
           <p className="rail-machine" role="status" title={t('rail.machine.trouble')}>

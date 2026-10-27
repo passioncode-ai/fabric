@@ -8,11 +8,12 @@ import { useEffect, useState } from 'react'
 import { FAVOURITE_LIMIT, offersFavourites, partitionByFavourite } from '../../shared/favourites.ts'
 import { dayPart } from '../../shared/homeView.ts'
 import { FabricAvatar } from './launch/FabricAvatar'
-import { HomeBoard, HomeRhythm, NEEDS_YOU_FAMILIES } from './launch/HomeParts'
+import { HomeBoard, HomeRhythm, NEEDS_YOU_FAMILIES, useRhythm } from './launch/HomeParts'
 import { HomeStats, useHome, type HomeReading } from './launch/HomeWork'
 import { HomeBoardWaiting } from './launch/HomeBoardWaiting'
 import { HomeInWork } from './launch/HomeInWork'
 import { orderProjects } from '../../shared/homeLive.ts'
+import { projectDisplayName } from '../../shared/projectDisplayName.ts'
 import { since } from './duration'
 import {
   waitingCounts,
@@ -204,6 +205,9 @@ export function EstateHome({
    *  sessions — and its own 15 s tick for silence. */
   const ownHome = useHome(markOf(marks, ['work', 'task', 'agent', 'session']), reading === undefined)
   const home = reading ?? ownHome
+  // «Ритм работы» as main counts it (the mockup parity, home gaps D1, D2): per local day over 28 days, read again when the
+  // work, a task, an agent or a decision moves; the same definitions of a result and a decision as the strip and Пульс.
+  const rhythm = useRhythm(markOf(marks, ['work', 'task', 'agent', 'session', 'question', 'proposal', 'access', 'policy', 'grant']))
   const pulse = new Map((home.view?.projects ?? []).map((p) => [p.projectId, p]))
   useEffect(() => {
     // THE SAME call the CEO panel makes, grouped here rather than counted by a
@@ -278,13 +282,14 @@ export function EstateHome({
     const pp = pulse.get(p.id)
     /** «На проверке» here: the Board's count when the shell gives it (UX-2), else the tasks in review; null while unknown. */
     const reviewHere = toReview === undefined ? (pp?.review ?? 0) : toReview === null ? null : (toReview.byProject[p.id] ?? 0)
+    const shownName = projectDisplayName(p, home.view?.displayNames ?? null)
     return (
       <article key={p.id} className="lp-project-row">
-        <span className="lp-project-icon" aria-hidden="true">{(p.name.trim()[0] ?? '·').toUpperCase()}</span>
+        <span className="lp-project-icon" aria-hidden="true">{(shownName.trim()[0] ?? '·').toUpperCase()}</span>
         <div>
           {/* A link-looking control that opens the project; the row's tools are
               SIBLINGS, never nested inside it (a button inside a button). */}
-          <button type="button" className="lp-project-name" onClick={() => onOpen(p.id)}>{p.name}</button>
+          <button type="button" className="lp-project-name" title={p.name} onClick={() => onOpen(p.id)}>{shownName}</button>
           <p className="lp-meta">{p.purpose || t('project.noPurpose')}</p>
           {/* What the agents are doing here now, in their own words — or when it last moved. */}
           {pp?.now ? (
@@ -304,7 +309,7 @@ export function EstateHome({
           {pinning && (
             <>
               <button type="button" className="lp-button" aria-pressed={isPinned}
-                aria-label={`${isPinned ? t('estate.unpin') : t('estate.pin')}: ${p.name}`}
+                aria-label={`${isPinned ? t('estate.unpin') : t('estate.pin')}: ${shownName}`}
                 onClick={() =>
                   void window.fabric.favourites.toggle(p.id).then((r) => {
                     setPins(r.pins)
@@ -319,9 +324,9 @@ export function EstateHome({
               </button>
               {isPinned && (
                 <>
-                  <button type="button" className="lp-button" aria-label={t('launch.home.projects.up', { name: p.name })}
+                  <button type="button" className="lp-button" aria-label={t('launch.home.projects.up', { name: shownName })}
                     disabled={at <= 0} onClick={() => move(p, 'up')}>{t('glyph.up')}</button>
-                  <button type="button" className="lp-button" aria-label={t('launch.home.projects.down', { name: p.name })}
+                  <button type="button" className="lp-button" aria-label={t('launch.home.projects.down', { name: shownName })}
                     disabled={at < 0 || at >= pinned.length - 1} onClick={() => move(p, 'down')}>{t('glyph.down')}</button>
                 </>
               )}
@@ -379,7 +384,17 @@ export function EstateHome({
 
   // The 0.3.14 review, iteration 2, UX-16: each number opens where it is counted. «агентов работает» opens the first
   // agent working now; «работают без задачи» the first of the sessions the sweep counted; with none, Агенты itself.
-  const working = (home.view?.live ?? []).filter((a) => !a.stale).map((a) => a.sessionId)
+  // The mockup parity (home gaps D3, D7): the agents AT work, newest work first (the reading's order); «работают без
+  // задачи» opens the first of those at work holding no task. An older reading: the agents that signed, and the sweep's.
+  const working = home.view?.atWork
+    ? home.view.live.filter((a) => a.atWork).map((a) => a.sessionId)
+    : (home.view?.live ?? []).filter((a) => !a.stale).map((a) => a.sessionId)
+  // Every project name the home prints is `projectDisplayName`'s (the mockup parity, rail gap §2).
+  const nameOfProject = (id: string): string => {
+    const p = (projects ?? []).find((x) => x.id === id)
+    return projectDisplayName(p ?? { id, name: id }, home.view?.displayNames ?? null)
+  }
+  const noTaskSessions = home.view?.atWork ? home.view.atWork.noTaskSessions : (home.view?.unclaimedSessions ?? [])
   const openFirst = (sessions: readonly string[]): void => {
     const first = sessions.find((id) => home.view?.live.some((a) => a.sessionId === id))
     if (first && onAgent) onAgent(first)
@@ -490,7 +505,7 @@ export function EstateHome({
           }
         >
           <span data-testid="pin-full">
-            {t('estate.pinFull', { name: pinFull.name, limit: FAVOURITE_LIMIT })}
+            {t('estate.pinFull', { name: projectDisplayName(pinFull), limit: FAVOURITE_LIMIT })}
           </span>
           <Toolbar>
             {pinned.map((p) => (
@@ -506,7 +521,7 @@ export function EstateHome({
                   }).catch((e: unknown) => setPinProblem({ said: t('estate.pinFailed'), detail: e instanceof Error ? e.message : String(e) }))
                 }}
               >
-                {t('estate.pinRelease', { name: p.name })}
+                {t('estate.pinRelease', { name: projectDisplayName(p) })}
               </Button>
             ))}
           </Toolbar>
@@ -524,36 +539,32 @@ export function EstateHome({
         </p>
       )}
 
-      <div className="lh-top lh-top-stack">
-        {/* The operator's review, 2026-10-26: the CEO's face and greeting, then the activity chart, then the six numbers. */}
-        <header className="lh-overview lh-overview-two">
-          <div className="lh-identity">
+      {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
+      {/* The approved mockup (2026-10-26, `.cols`): ONE grid for the whole home. The left column holds the hero, the strip
+          and «В работе»; the right column holds «Нужны вы» and the unanswered requests from the very top (gap map A3). */}
+      <div className="lh-layout lh-home">
+        <div className="lh-main-column">
+          {/* The operator's review, 2026-10-26: the CEO's face and greeting, then the activity chart, as one framed card
+              laid out face | words | chart (gap map B1, B2). */}
+          <header className="lh-hero">
             <FabricAvatar size="small" label={t('launch.avatar.label')} />
-            <div>
-              <p className="lp-kicker">{t('launch.home.kicker')}</p>
+            <div className="lh-hero-words">
+              <p className="lh-hero-kicker">{t('launch.home.kicker')}</p>
               <h2 tabIndex={-1}>{t('launch.brand.product')}</h2>
               {/* SCN-163 step 1 (CO-391): the state in one sentence, counted from what only the person resolves. */}
               <p className="lh-greeting" data-testid="home-greeting">
                 {[t(`launch.home.greet.${dayPart(now)}` as 'launch.home.greet.day'),
                   personWaiting === null ? null : personWaiting > 0 ? t(`launch.home.greet.waiting.${pluralForm(locale, personWaiting)}`, { count: personWaiting }) : t('launch.home.greet.clear')].filter(Boolean).join(' ')}
               </p>
-              {onPersona && <button type="button" className="lp-button lh-text-link" onClick={onPersona}>{t('launch.home.persona')}</button>}
+              {onPersona && <button type="button" className="lp-link lh-persona" onClick={onPersona}>{t('launch.home.persona')}</button>}
             </div>
-          </div>
-          <HomeRhythm feed={feed} now={now} onPulse={onPulse} />
-        </header>
-        {/* 0.3.14, the simple Fabric §2a: the statistics strip, six numbers, each opening where it is counted. */}
-        <div className="lh-strip">
+            <HomeRhythm feed={feed} now={now} onPulse={onPulse} rhythm={rhythm} />
+          </header>
+          {/* 0.3.14, the simple Fabric §2a: the statistics strip, six numbers, each opening where it is counted. */}
           <HomeStats reading={home} waiting={waitingForYou === undefined ? (counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null) : personWaiting}
             toReview={toReview === undefined ? undefined : (toReview?.total ?? null)}
             onAgents={() => openFirst(working)} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} onReview={onReview}
-            onAbandoned={onBoard} onUnclaimed={() => openFirst(home.view?.unclaimedSessions ?? [])} />
-        </div>
-      </div>
-
-      {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
-      <div className="lh-layout">
-        <div className="lh-main-column">
+            onAbandoned={onBoard} onUnclaimed={() => openFirst(noTaskSessions)} />
           {/* 0.3.14, the simple Fabric §2b: «В работе» by project, its agents with branch, task and last report. It replaces
               «Где остановились», the two lanes and «Агенты в работе»; finished work lives on the agent's and project's pages. */}
           <HomeInWork reading={home} projects={projects} terminals={sessions}
@@ -625,9 +636,9 @@ export function EstateHome({
         {/* 0.3.14, the simple Fabric §4: the right column holds only what needs the person: «Нужны вы» and the board's
             requests no agent has answered. The live feed moved to История («Что делали агенты» shows it). */}
         <aside className="lh-side-column" aria-label={t('launch.home.side')}>
-          <HomeBoard onTotal={setOwnWaiting} feedMark={markOf(marks, NEEDS_YOU_FAMILIES)} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
+          <HomeBoard onTotal={setOwnWaiting} nameOf={nameOfProject} feedMark={markOf(marks, NEEDS_YOU_FAMILIES)} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
           {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
-          <HomeBoardWaiting mark={markOf(marks, ['comms'])} />
+          <HomeBoardWaiting mark={markOf(marks, ['comms'])} onComms={onComms} nameOf={nameOfProject} />
         </aside>
       </div>
     </div>

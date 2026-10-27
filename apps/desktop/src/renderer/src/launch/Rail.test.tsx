@@ -79,26 +79,18 @@ describe('the left column', () => {
     expect(within(screen.getByRole('complementary', { name: en['rail.aside'] })).getByRole('button', { name: new RegExp(`^${en['rail.home']}`) }).getAttribute('aria-current')).toBe('page')
   })
 
-  it('carries Главная\u2019s count of what waits for the person on the brand, and none when nothing waits or it is unknown', () => {
+  // The mockup parity, 2026-10-27 (rail gaps 8, 9, 13): the brand says «PassionCode.ai» under Fabric and carries no
+  // count (the home says what waits; each project's row keeps its own); Настройки carries no Comms count (Настройки →
+  // Ещё → Переписка does, SettingsScreen.test.tsx).
+  it('names the brand Fabric · PassionCode.ai and puts no count on the brand or on Настройки', () => {
     shell()
-    expect(screen.getByLabelText(en['rail.waiting'].replace('{count}', '3')).textContent).toBe('3')
-    expect(within(screen.getByRole('complementary', { name: en['rail.aside'] })).getByRole('button', { name: `${en['rail.home']} ${en['rail.waiting'].replace('{count}', '3')}` })).toBeTruthy()
-    cleanup()
-    shell({ waiting: null })
-    expect(screen.queryByLabelText(/wait for you/)).toBeNull()
-  })
-
-  // 0.3.7 review UX-4: the count of Comms threads with new messages went unseen when Comms moved under Настройки → Ещё.
-  it('carries the count of Comms threads with new messages on Настройки, "N+" when the board cut the heads', () => {
-    shell({ commsUnread: { count: 7, atLeast: false } })
-    const settings = within(foot()).getByRole('link', { name: new RegExp(`^${en['rail.settings']}`) })
-    expect(within(settings).getByLabelText(en['rail.commsUnread'].replace('{count}', '7')).textContent).toBe('7')
-    cleanup()
-    shell({ commsUnread: { count: 5000, atLeast: true } })
-    expect(screen.getByLabelText(en['rail.commsUnreadMax'].replace('{count}', '5000')).textContent).toBe('5000+')
-    cleanup()
-    shell({ commsUnread: { count: 3, atLeast: false } }, 'ru')
-    expect(screen.getByLabelText('Новые сообщения: 3')).toBeTruthy()
+    const brand = within(screen.getByRole('complementary', { name: en['rail.aside'] })).getByRole('button', { name: en['rail.home'] })
+    expect(brand.textContent).toContain(en['launch.brand.product'])
+    expect(brand.textContent).toContain(en['launch.brand.umbrella'])
+    expect(brand.textContent).not.toMatch(/\d/)
+    expect(screen.queryByLabelText(en['rail.waiting'].replace('{count}', '3'))).toBeNull()
+    const settings = within(foot()).getByRole('link', { name: en['rail.settings'] })
+    expect(settings.textContent).toBe(en['rail.settings'])
   })
 
   it('names each foot link in a tooltip and in its accessible name, and the sidebar apart from its navigation', () => {
@@ -125,6 +117,36 @@ describe('the left column', () => {
     expect(props.onProject).toHaveBeenCalledWith('p1')
   })
 
+  // The mockup parity, 2026-10-27 (rail gap 1, spec §1 item 3 amended): the projects at work, and «Все проекты · N».
+  it('lists the projects at work and unfolds every project in place from «Все проекты · N», and folds back', () => {
+    const props = shell({
+      projects: [project('p1', 'Nicegram'), project('p2', 'atlas'), project('p3', 'Fabric'), project('p4', 'Quiet'), project('p5', 'Busy'), project('p6', 'Open')],
+      pulses: [{ projectId: 'p5', live: 0, inWork: 1, review: 0 }, { projectId: 'p4', live: 0, inWork: 0, review: 0 }],
+      at: { kind: 'project', projectId: 'p6' }
+    })
+    const names = () => within(screen.getByRole('list', { name: en['rail.projects'] })).getAllByRole('link').map((r) => r.querySelector('.rail-name')?.textContent)
+    expect(names()).toEqual(['atlas', 'Busy', 'Fabric', 'Nicegram', 'Open'])
+    const more = screen.getByRole('button', { name: en['rail.projects.all'].replace('{count}', '6') })
+    expect(more.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(more)
+    expect(names()).toEqual(['atlas', 'Busy', 'Fabric', 'Nicegram', 'Open', 'Quiet'])
+    expect(more.getAttribute('aria-expanded')).toBe('true')
+    fireEvent.click(within(screen.getByRole('list', { name: en['rail.projects'] })).getByRole('link', { name: 'Quiet' }))
+    expect(props.onProject).toHaveBeenCalledWith('p4')
+    fireEvent.click(screen.getByRole('button', { name: en['rail.projects.fold'] }))
+    expect(names()).toHaveLength(5)
+  })
+
+  it('has no «Все проекты» row when every project is at work, and says so when none is', () => {
+    shell()
+    expect(screen.queryByRole('button', { name: /All projects/ })).toBeNull()
+    cleanup()
+    shell({ projects: [project('p4', 'Quiet')], pins: [], live: new Set(), waiting: null })
+    expect(screen.getByText(en['rail.projects.quiet'])).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['rail.projects.all'].replace('{count}', '1') }))
+    expect(within(screen.getByRole('list', { name: en['rail.projects'] })).getByRole('link', { name: 'Quiet' })).toBeTruthy()
+  })
+
   it('shows the agents at work with their project and branch when the toggle says Агенты, and opens one', () => {
     const props = shell()
     fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))
@@ -138,8 +160,9 @@ describe('the left column', () => {
     // The status in a word beside its colour, never the colour alone (R-19).
     expect(rows[1].textContent).toContain(en['status.idle'])
     expect(rows[1].querySelector('.rail-dot')?.className).toContain('s-idle')
-    // UX-26: the word is written for every status, «Работает» included, beside the dot's spoken name.
-    expect(rows[0].textContent).toContain(` · ${en['status.working']}`)
+    // The mockup parity (rail gap 16): an agent at work says it by its green dot alone, the dot still spoken (UX-17);
+    // every other status keeps its word (UX-26).
+    expect(rows[0].textContent).not.toContain(en['status.working'])
     expect(within(rows[0]).getByRole('img', { name: en['status.working'] })).toBeTruthy()
     fireEvent.click(rows[0])
     expect(props.onAgent).toHaveBeenCalledWith('s1')
@@ -177,6 +200,8 @@ describe('the left column', () => {
     const rows = within(screen.getByRole('list', { name: en['rail.agents.list'] })).getAllByRole('link')
     expect(rows[1].getAttribute('aria-current')).toBe('page')
     expect(rows[0].getAttribute('aria-current')).toBeNull()
+    // The open row keeps its own layout class beside «on» (the mockup parity's screenshots: it was replaced).
+    expect(rows[1].className.split(' ').sort()).toEqual(['on', 'rail-agent'])
   })
 
   it('says reading, failed and nobody apart in the agents view, never one for another', () => {
@@ -311,9 +336,10 @@ describe('the left column', () => {
     expect(screen.queryByRole('button', { name: new RegExp(en['chat.open']) })).toBeNull()
   })
 
-  it('keeps the rail compact: project rows at most 26 px, places at most 30 px (OF-04)', async () => {
+  it('keeps the rail compact: project rows the mockup\'s 28 px, places at most 30 px, the foot\'s links 28 px (OF-04)', async () => {
     const { readFileSync } = await import('node:fs')
-    const css = readFileSync(`${process.cwd()}/src/renderer/src/launch/rail.css`, 'utf8')
+    // Comments are not rules: one before a selector would otherwise read as part of it.
+    const css = readFileSync(`${process.cwd()}/src/renderer/src/launch/rail.css`, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
     const minHeight = (selector: string): number => {
       // The last rule naming the selector that sets a min-height wins, as in the cascade (same specificity).
       const rules = css.split('}').map((r) => r.trim().split('{')).filter(([sel, body]) =>
@@ -321,8 +347,12 @@ describe('the left column', () => {
       const m = rules.at(-1)?.[1].match(/min-height:(\d+)px/)
       return m ? Number(m[1]) : Number.NaN
     }
-    expect(minHeight('.rail-projects a')).toBeLessThanOrEqual(26)
+    expect(minHeight('.rail-projects a')).toBe(28)
     expect(minHeight('.rail-places a')).toBeLessThanOrEqual(30)
+    expect(minHeight('.rail-places.rail-foot a')).toBe(28)
+    // A long name ends in «…»: the list's one column may shrink below its text (rail gap 6).
+    expect(css).toMatch(/\.rail-projects ul\{[^}]*grid-template-columns:minmax\(0,1fr\)/)
+    expect(css).toMatch(/\.rail-projects li\{min-width:0\}/)
   })
 })
 

@@ -44,6 +44,18 @@ describe('railAgents', () => {
     expect(rows.map((r) => r.status)).toEqual(['idle', 'error', 'idle'])
   })
 
+  it('with a reading that judged work, lists the agents at work and the quiet ones holding a task, never the merely connected', () => {
+    const task = { id: 't', projectId: 'p-B', summary: 'x' }
+    const rows = railAgents([live('s1', 'A', { atWork: true }), live('s2', 'B', { atWork: false, stale: true, task }), live('s3', 'C', { atWork: false })], 'en')
+    expect(rows.map((r) => r.sessionId)).toEqual(['s1', 's2'])
+  })
+
+  it('prints the project by its display name, sorted by it', () => {
+    const names = { 'p-copylot-agent': { name: 'Copylot', from: 'descriptor' as const, derived: false } }
+    const rows = railAgents([live('s1', 'beta'), live('s2', 'copylot-agent')], 'en', null, names)
+    expect(rows.map((r) => r.projectName)).toEqual(['beta', 'Copylot'])
+  })
+
   it('ER-18: takes the agent\'s fresh heartbeat, as «В работе» and the agent page do; an old one falls back to what is observed', () => {
     const rows = railAgents([
       live('s1', 'A', { heartbeat: { phase: 'waiting', at: '2026-10-26T12:00:00Z', waitingOn: 'question' } }),

@@ -69,7 +69,7 @@ import {
 } from '../shared/memoryContract.ts'
 import { beginAttempt, type AttemptContext } from './toolTrace.ts'
 import { DEFAULT_BOUND, mayChain } from '../shared/loopBound.ts'
-import { spawnedChainFrom, spawnParentOf, type LiveClaim } from '../shared/spawnParent.ts'
+import { spawnedChainFrom, spawnParentOf, stageTaskOf, type LiveClaim } from '../shared/spawnParent.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
 import { fileProposal } from './commands/proposalCommands.ts'
 import { BOARD_SESSION_OPERATIONS, createBoard, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
@@ -1613,6 +1613,15 @@ export class AgentSurface {
         }
       },
       async ({ stage, step, ofSteps, note }) => {
+        // The mockup parity (agent gaps «Вехи»): a session Fabric did not launch on a task names the ONE task it holds a
+        // live claim on in this project (`spawnParent.ts#stageTaskOf`), so its milestones land on that task. A claims
+        // read that fails leaves the report unnamed; it is still recorded.
+        let taskId: string | null = scope.taskId
+        if (!taskId) {
+          const claims = await Promise.resolve(store.select('work_claims', 'work_id,project_id').eq('owner_session', scope.sessionId).is('released_at', null))
+            .catch((e: unknown) => ({ data: null, error: { message: e instanceof Error ? e.message : String(e) } }))
+          taskId = stageTaskOf(null, scope.projectId, (claims.data ?? []) as LiveClaim[], claims.error ? claims.error.message : null)
+        }
         const event = await this.appendRedacted({
           estateId: scope.estateId,
           type: 'agent.stage.reported@1',
@@ -1620,7 +1629,7 @@ export class AgentSurface {
           projectId: scope.projectId,
           payload: {
             session_id: scope.sessionId,
-            task_id: scope.taskId,
+            task_id: taskId,
             stage,
             step: step ?? null,
             of_steps: ofSteps ?? null,

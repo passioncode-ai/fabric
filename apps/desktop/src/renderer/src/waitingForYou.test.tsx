@@ -122,15 +122,16 @@ const board = (query?: { personOnly?: boolean; limit?: number }) => whole(cutBoa
 const strip = () => screen.getByRole('group', { name: en['launch.home.stats.label'] })
 
 describe('what waits for you, counted once', () => {
-  it('two questions, two reviews and a proposal: the greeting, the strip and the rail all say 2', async () => {
+  // The mockup parity (2026-10-27, rail gap 9): the brand carries no count; the rail says it on the project's row.
+  it('two questions, two reviews and a proposal: the greeting, the strip and the project\'s rail row all say 2', async () => {
     stub(board, whole(items))
     render(<App />)
     await waitFor(() => expect(screen.getByTestId('home-greeting').textContent).toContain(en['launch.home.greet.waiting.few'].replace('{count}', '2')))
     const strip = screen.getByRole('group', { name: en['launch.home.stats.label'] })
     const cell = within(strip).getByRole('button', { name: new RegExp(en['launch.home.stats.waiting']) })
     expect(cell.querySelector('b')?.textContent).toBe('2')
-    await waitFor(() => expect(screen.getByLabelText(en['rail.waiting'].replace('{count}', '2'))).toBeTruthy())
-    expect(screen.getByLabelText(en['rail.waitingProject'].replace('{count}', '2'))).toBeTruthy()
+    await waitFor(() => expect(screen.getByLabelText(en['rail.waitingProject'].replace('{count}', '2'))).toBeTruthy())
+    expect(screen.queryByLabelText(en['rail.waiting'].replace('{count}', '2'))).toBeNull()
   })
 
   // 0.3.12 review, iteration 3, UX-1: the rail beside the project said 2 while the project page's «Questions for you» said 5

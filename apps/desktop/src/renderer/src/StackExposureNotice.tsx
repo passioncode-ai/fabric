@@ -35,36 +35,49 @@ export function StackExposureNotice(): React.JSX.Element | null {
   }, [])
 
   if (!view || view.exposed.length === 0) return null
-  // Compact by design (0.3.3 UI pass): the risk in one sentence, then one row per engine with the
-  // command set as code and a copy button. Why Fabric cannot fix it itself is one click away, not a
-  // paragraph above every screen — it was four lines tall and pushed each screen's heading down.
+  // Compact (the mockup-parity pass, 2026-10-27, gap map A6): one line with the risk, everything else behind one
+  // disclosure, so the question no longer pushes the whole home down by a block. The check does not learn which
+  // container engine serves the stack (`main/stackExposure.ts` only connects to the ports), so every engine's remedy is
+  // listed: OrbStack, Docker Desktop and Colima, the engine this machine moved to (v2 R-26).
+  const ports = [...new Set(view.exposed.map((x) => x.port))].join(', ')
+  const ifaces = [...new Set(view.exposed.map((x) => x.iface))].join(', ')
   return (
-    <section className="home-question" aria-labelledby="exposure-question">
-      <h3 id="exposure-question">{t('diagnostics.exposure.title')}</h3>
-      <p>
-        {t('diagnostics.exposure.body', {
-          ports: [...new Set(view.exposed.map((x) => x.port))].join(', '),
-          ifaces: [...new Set(view.exposed.map((x) => x.iface))].join(', ')
-        })}
-      </p>
-      <ul className="banner-remedy" aria-label={t('diagnostics.exposure.remedyLabel')}>
-        <li>
-          <b>{t('diagnostics.exposure.orbstack')}</b>
-          <code>{t('diagnostics.exposure.orbstackCommand')}</code>
-          <CopyButton text={t('diagnostics.exposure.orbstackCommand')} what={t('diagnostics.exposure.orbstack')} />
-          <span>{t('diagnostics.exposure.orbstackAfter')}</span>
-        </li>
-        <li>
-          <b>{t('diagnostics.exposure.docker')}</b>
-          <span>{t('diagnostics.exposure.dockerBefore')}</span>
-          <code>{t('diagnostics.exposure.dockerSetting')}</code>
-          <CopyButton text={t('diagnostics.exposure.dockerSetting')} what={t('diagnostics.exposure.docker')} />
-          <span>{t('diagnostics.exposure.dockerAfter')}</span>
-        </li>
-      </ul>
-      <details className="banner-why">
-        <summary>{t('diagnostics.exposure.why')}</summary>
-        <p>{t('diagnostics.exposure.whyBody')}</p>
+    <section className="home-question lh-exposure" aria-labelledby="exposure-question">
+      <details>
+        <summary>
+          <span className="lh-exposure-dot" aria-hidden="true" />
+          <h3 id="exposure-question">{t('diagnostics.exposure.title')}</h3>
+          <span className="lh-exposure-ports">{ports}</span>
+          <span className="lh-exposure-how">{t('diagnostics.exposure.remedyLabel')}</span>
+        </summary>
+        <p>{t('diagnostics.exposure.body', { ports, ifaces })}</p>
+        <ul className="banner-remedy" aria-label={t('diagnostics.exposure.remedyLabel')}>
+          <li>
+            <b>{t('diagnostics.exposure.orbstack')}</b>
+            <code>{t('diagnostics.exposure.orbstackCommand')}</code>
+            <CopyButton text={t('diagnostics.exposure.orbstackCommand')} what={t('diagnostics.exposure.orbstack')} />
+            <span>{t('diagnostics.exposure.orbstackAfter')}</span>
+          </li>
+          <li>
+            <b>{t('diagnostics.exposure.docker')}</b>
+            <span>{t('diagnostics.exposure.dockerBefore')}</span>
+            <code>{t('diagnostics.exposure.dockerSetting')}</code>
+            <CopyButton text={t('diagnostics.exposure.dockerSetting')} what={t('diagnostics.exposure.docker')} />
+            <span>{t('diagnostics.exposure.dockerAfter')}</span>
+          </li>
+          <li>
+            <b>{t('diagnostics.exposure.colima')}</b>
+            <span>{t('diagnostics.exposure.colimaBefore')}</span>
+            <code className="lh-exposure-block">{t('diagnostics.exposure.colimaSetting')}</code>
+            <CopyButton text={t('diagnostics.exposure.colimaSetting')} what={t('diagnostics.exposure.colima')} />
+            <span>{t('diagnostics.exposure.colimaAfter')}</span>
+            <code>{t('diagnostics.exposure.colimaCommand')}</code>
+          </li>
+        </ul>
+        <details className="banner-why">
+          <summary>{t('diagnostics.exposure.why')}</summary>
+          <p>{t('diagnostics.exposure.whyBody')}</p>
+        </details>
       </details>
     </section>
   )

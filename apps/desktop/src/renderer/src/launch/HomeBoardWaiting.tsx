@@ -20,8 +20,16 @@ const REFRESH_MS = 60_000
 
 type Reading = { kind: 'reading' } | { kind: 'read'; reply: CommsWaitingReply } | { kind: 'failed'; detail: string }
 
+/** How many requests the home lists before «ещё N» (the approved mockup shows one or two). */
+export const WAITING_SHOWN = 5
+
 /** Reads `comms.waiting` when the journal's board events move and once a minute, so an age keeps counting. */
-export function HomeBoardWaiting({ mark, onComms }: { mark: number; onComms?: () => void }): React.JSX.Element | null {
+export function HomeBoardWaiting({ mark, onComms, nameOf }: {
+  mark: number
+  onComms?: () => void
+  /** A project's printed name by id (`projectDisplayName`); absent: the id. */
+  nameOf?: (projectId: string) => string
+}): React.JSX.Element | null {
   const t = useT()
   const locale = useLocale()
   const [reading, setReading] = useState<Reading>({ kind: 'reading' })
@@ -49,17 +57,35 @@ export function HomeBoardWaiting({ mark, onComms }: { mark: number; onComms?: ()
   const said = Number.isFinite(at)
     ? t('launch.home.boardWaiting.requests', { count, age: since(reply.oldestRequestAt as string, t) })
     : t('launch.home.boardWaiting.requestsNoAge', { count })
+  const name = (id: string | null): string => (id ? (nameOf ? nameOf(id) : id) : t('launch.home.boardWaiting.fromNone'))
+  const list = reply.list ?? null
+  const shown = (list ?? []).slice(0, WAITING_SHOWN)
+  // The mockup parity (home gap D11): one line per request, who asked whom and what, then who has not taken it and
+  // since when. The count sentence stays only when the list is not the whole of what is waiting (cut, or not read).
+  const whole = !!list && reply.listComplete === true
+  const more = whole ? reply.requests - shown.length : 0
+  // The approved mockup (2026-10-26, `.req`): inside the right column under a thin rule, a kicker «Запросы без ответа».
   return (
-    <section className="lp-panel lh-board-waiting" aria-labelledby="home-board-waiting-title" data-board-waiting={reply.requests}>
-      <div className="lp-panel-head">
-        <div>
-          <p className="lp-kicker">{t('launch.home.boardWaiting.kicker')}</p>
-          <h3 id="home-board-waiting-title">{t('launch.home.boardWaiting.title')}</h3>
-        </div>
-        {onComms && <button type="button" className="lp-button" onClick={onComms}>{t('launch.home.boardWaiting.open')}</button>}
-      </div>
-      <p>{said}</p>
-      <p className="lp-meta">{t('launch.home.boardWaiting.requestsHint')}</p>
+    <section className="lh-req" aria-labelledby="home-board-waiting-title" data-board-waiting={reply.requests}>
+      <h3 id="home-board-waiting-title" className="lp-kicker" title={t('launch.home.boardWaiting.requestsHint')}>{t('launch.home.boardWaiting.kicker')}</h3>
+      {shown.length > 0 && (
+        <ul className="lh-req-list" aria-label={t('launch.home.boardWaiting.listLabel')}>
+          {shown.map((r) => {
+            const line = r.subject
+              ? t('launch.home.boardWaiting.line', { from: name(r.from), to: name(r.to), subject: r.subject })
+              : t('launch.home.boardWaiting.lineNoSubject', { from: name(r.from), to: name(r.to) })
+            return (
+              <li key={r.requestId}>
+                <p className="lh-req-line">{onComms ? <button type="button" className="lp-link" onClick={onComms}>{line}</button> : line}</p>
+                <p className="lh-req-who">{t('launch.home.boardWaiting.untaken', { to: name(r.to), age: since(r.at, t) })}</p>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      {more > 0 && <p className="lh-req-more">{t('launch.home.boardWaiting.more', { count: more.toLocaleString(locale) })}</p>}
+      {!whole && <p className="lh-req-line">{said}</p>}
+      {onComms && !shown.length && <button type="button" className="lp-link lh-req-open" onClick={onComms}>{t('launch.home.boardWaiting.open')}</button>}
     </section>
   )
 }

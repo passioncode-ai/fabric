@@ -81,10 +81,10 @@ export function useHome(mark: number, enabled = true): HomeReading {
 }
 
 /** The home's statistics strip (0.3.14, the simple Fabric, docs/ux/2026-10-26-simple-fabric.md §2a): six numbers, each
- *  opening where it is counted. Agents working now (`live` without `stale`); tasks handed in today (`handedIn`, read in
+ *  opening where it is counted. Agents at work now (`atWork.agents`; an older reading: `live` without `stale`); tasks handed in today (`handedIn`, read in
  *  main from the journal since the local midnight); what waits for the person (the shell's count); in review, with how
- *  many waited longer than three days (`reviewOld`); abandoned work (`abandoned`); sessions working without a task (the
- *  sweep's `unclaimed`). A number not read shows «—» with its reason on hover, never 0; after a failed read the view's
+ *  many waited longer than three days (`reviewOld`); abandoned work (`abandoned`); agents at work holding no task
+ *  (`atWork.noTask`; an older reading: the sweep's `unclaimed`). A number not read shows «—» with its reason on hover, never 0; after a failed read the view's
  *  numbers are the last reading's and are not shown as current (0.3.6 review ER-7). `toReview`, when given, is what the
  *  Board's «На проверке» lists (0.3.12 review, iteration 3, UX-2). */
 export function HomeStats({ reading, waiting, toReview, onAgents, onBoard, onWaiting, onReview, onAbandoned, onUnclaimed }: {
@@ -102,13 +102,15 @@ export function HomeStats({ reading, waiting, toReview, onAgents, onBoard, onWai
   const v = reading.view
   const known = v && !reading.problem ? v : null
   const unreadWhy = reading.problem ? t('launch.home.work.unreadable') : undefined
-  const working = known ? known.live.filter((l) => !l.stale).length : null
+  // The mockup parity (home gaps D3, D7): the agents AT work and those at work holding no task, from the same reading as
+  // «В работе» (`agentWork.ts`); an older reading that did not judge work counts the agents that signed, and the sweep.
+  const working = known ? (known.atWork ? known.atWork.agents : known.live.filter((l) => !l.stale).length) : null
   const handed = known?.handedIn
   const handedN = handed && 'today' in handed ? `${handed.today}${handed.capped ? '+' : ''}` : null
   const handedWhy = unreadWhy ?? (handed && 'unread' in handed ? t('launch.home.stats.unread', { reason: handed.unread }) : handed ? undefined : t('launch.home.stats.unreadOld'))
   const reviewN = toReview !== undefined ? toReview : known ? `${known.review.length}${known.reviewCapped ? '+' : ''}` : null
   const abandoned = known?.abandoned ? known.abandoned.length : null
-  const unclaimed = known && typeof known.unclaimed === 'number' ? known.unclaimed : null
+  const unclaimed = known ? (known.atWork ? known.atWork.noTask : typeof known.unclaimed === 'number' ? known.unclaimed : null) : null
   const cell = (n: number | string | null, label: string, onClick: () => void, tone = '', why?: string, sub?: string | null) => (
     <button type="button" className={`lh-stat ${tone}`} onClick={onClick} title={n === null ? why : undefined}>
       <b>{n === null ? '—' : n}</b>

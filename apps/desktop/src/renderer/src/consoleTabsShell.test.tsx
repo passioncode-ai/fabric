@@ -146,7 +146,7 @@ describe('a console opens inside Fabric as a tab along the top', () => {
     })
     const tab = within(strip).getByRole('button', { name: /^fabric-dashboards/ })
     expect(tab.getAttribute('aria-current')).toBe('page')
-    expect(tab.textContent).toContain(en['glyph.console'])
+    expect(tab.textContent).toContain(en['glyph.consoleTab'])
     expect(api.windows.openSession).not.toHaveBeenCalled()
     // The console itself, full size in the content area: its folder in the header.
     await within(content()).findByText('/Users/me/DATA/fabric-dashboards')

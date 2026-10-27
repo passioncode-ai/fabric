@@ -28,3 +28,19 @@ export function until(iso: string, t?: Translate): string {
 function unitOf(s: number): [number, 's' | 'm' | 'h' | 'd'] {
   return s < 60 ? [s, 's'] : s < 3600 ? [Math.round(s / 60), 'm'] : s < 172_800 ? [Math.round(s / 3600), 'h'] : [Math.round(s / 86_400), 'd']
 }
+
+/**
+ * How long something has been held, to the minute under two days («1 ч 44 мин», «38 мин»), as the approved mockup says a
+ * claim's age (the mockup parity, home gap D9); from two days on, whole days, as `since` says them. Unknown: «—».
+ */
+export function heldFor(iso: string, t?: Translate, now = Date.now()): string {
+  const at = new Date(iso).getTime()
+  if (!Number.isFinite(at)) return '—'
+  const s = Math.max(0, Math.round((now - at) / 1000))
+  const say = (n: number, unit: 's' | 'm' | 'h' | 'd'): string => (t ? t(`duration.${unit}` as 'duration.s', { n }) : `${n}${unit}`)
+  if (s < 60) return say(s, 's')
+  if (s >= 172_800) return say(Math.round(s / 86_400), 'd')
+  const minutes = Math.floor(s / 60)
+  const h = Math.floor(minutes / 60), m = minutes % 60
+  return h === 0 ? say(m, 'm') : m === 0 ? say(h, 'h') : `${say(h, 'h')} ${say(m, 'm')}`
+}

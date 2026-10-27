@@ -25,9 +25,9 @@ describe('the console tabs', () => {
     const strip = screen.getByRole('navigation', { name: en['consoles.label'] })
     const items = within(strip).getAllByRole('listitem')
     expect(items).toHaveLength(2)
-    expect(items[0].textContent).toContain(en['glyph.console'])
-    expect(items[0].textContent).toContain('fabric-dashboards')
-    expect(items[0].textContent).toContain('Claude Code')
+    // The mockup parity (rail gap 22): one line «› {project} · {runner}».
+    expect(items[0].textContent).toContain(en['glyph.consoleTab'])
+    expect(items[0].querySelector('.fab-console-name')?.textContent).toBe('fabric-dashboards · Claude Code')
     expect(items[1].textContent).toContain('Nicegram')
   })
 

@@ -120,6 +120,25 @@ describe('a window onto one session', () => {
     expect(note.querySelector('.error-detail')?.textContent).toBe('no display')
   })
 
+  // The mockup parity, wave 1: embedded under its tab, one quiet line leads with «← runner · project» back to the
+  // agent, the folder, the state, Stop and the separate window as an icon button; the terminal sits in a box below.
+  it('embedded: the back link goes to the agent, Stop and the separate window stay, the terminal is boxed', async () => {
+    stub(async () => session())
+    const onBack = vi.fn(), onDetach = vi.fn(async () => {})
+    render(
+      <I18nProvider locale="en">
+        <SessionWindow sessionId="s1" onDetach={onDetach} onBack={onBack} projectName="Atlas" />
+      </I18nProvider>
+    )
+    ;(await screen.findByRole('button', { name: en['session.back'].replace('{runner}', 'Claude Code').replace('{project}', 'Atlas') })).click()
+    expect(onBack).toHaveBeenCalled()
+    screen.getByRole('button', { name: en['consoles.detach'] }).click()
+    expect(onDetach).toHaveBeenCalled()
+    expect(document.querySelector('.session-bar .session-stop-slot button')).toBeTruthy()
+    expect(document.querySelector('.session-box .terminal-host')).toBeTruthy()
+    expect(document.querySelector('.session-head')).toBeNull()
+  })
+
   it('shows the session when the read answers — the fixture is the working case', async () => {
     stub(async () => session())
     show()

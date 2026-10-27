@@ -12,13 +12,21 @@
  *
  * 0.3.14, the simple Fabric (docs/ux/2026-10-26-simple-fabric.md §3; the operator: «сначала мы показываем ... статус,
  * планинг ... справа ... её актуальную сессию ... и можно было открыть ее»): the agent's screen in two columns. Its
- * header names the runner and session, the project, the branch and the state. «Сейчас» on top: the task it holds with
+ * header names the runner, its state, the project, the branch and the session. «Сейчас» on top: the task it holds with
  * its brief's «Что должно произойти», its newest report with «шаг N из M», how long it has held the task, and the
  * task's milestones. Then «Задачи», newest first, each opening to its brief, «Чем закончил» and «Вехи»
  * (`shared/agentTrail.ts`). The raw history stays at the foot, closed. On the right the session card: what Fabric
  * observes, the agent's own word on its phase, where the session runs, and «Открыть сессию», which opens the console
  * as a tab only when pressed (no console mounts on choosing the agent). «Результаты» as event types are gone: a task's
  * «Чем закончил» says it in words.
+ *
+ * The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/agent.md): the layout of the approved mockup
+ * (docs/reports/2026-10-26-simple-fabric/mockup.html `#agent`). «← Главная» above the header; the header's status is a
+ * pill and comes first; v2's goal is a kicker line inside «Сейчас», never a box of its own; «Сейчас» always names the
+ * task; the step is a bar with «шаг N из M» in bold and the hold time in the muted tail; milestones are a timeline;
+ * the lanes are small chips on the «Задачи» row; each task is a card of its own with its status as a pill, its brief,
+ * «Чем закончил», «Вехи» and «Нужна правка в другом проекте» inline; the session card adds «Агент», and under it
+ * «Вопросы этого агента».
  */
 import { useEffect, useState } from 'react'
 import type { LiveAgent } from '../../../shared/homeLive'
@@ -27,22 +35,27 @@ import { laneOf, SESSION_LANES, type SessionLane, type SessionTask, type Session
 import { subjectOfEvent } from '../../../shared/eventSubject.ts'
 import { mayHaveEarlier, SESSION_HISTORY_WINDOW, shownHistory } from '../../../shared/sessionHistory.ts'
 import { lastPhase, taskTrail, type TaskTrail } from '../../../shared/agentTrail.ts'
-import { agentStatus, type StatusTerminal } from '../../../shared/sessionStatus.ts'
-import { describeEvent, pluralForm, useLocale, useT } from '../i18n'
+import { agentStatus, type SessionStatus, type StatusTerminal } from '../../../shared/sessionStatus.ts'
+import { describeEvent, pluralForm, useLocale, useT, type Translate } from '../i18n'
 import { runnerLabel } from '../runnerLabel'
-import { since } from '../duration'
+import { heldFor, since } from '../duration'
 import { FailureNote } from '../OperatorError'
 import { Progress } from './HomeInWork'
 import { dayLabel } from './HistoryScreen'
+import { CrossProjectConsole, type CrossProject } from './CrossProjectConsole'
+import { NeedsYouCard } from './HomeParts'
+import { boardEntries, type BoardEntry, type BoardQuestion } from '../../../shared/board.ts'
+import type { AgentQuestion } from '../../../shared/sessionTasks.ts'
 
 type Read = { at: 'reading' } | { at: 'ready'; events: FeedEvent[] } | { at: 'failed'; says: string; kept: FeedEvent[] | null }
 type TasksRead = { at: 'reading' } | { at: 'ready'; view: SessionTasksView } | { at: 'failed'; says: string; kept: SessionTasksView | null }
 
-const BOARD_STATUS = new Set(['backlog', 'running', 'review', 'done'])
 /** What a heartbeat can wait on (`fabric_heartbeat` waitingOn.kind), said in words; an unknown kind is said not at all
  *  (the 0.3.14 review, iteration 2, UX-19: the raw code showed in the Russian interface). */
 const WAITING_ON = new Set(['question', 'grant', 'continuation'])
 const RELEASED_HOW = new Set(['done', 'handed-over', 'let-go', 'operator', 'session-ended', 'lapsed'])
+/** The permission modes a console can be launched as (`shared/agents.ts`), said short in the session card. */
+const PERMISSIONS = new Set(['plan', 'ask', 'bypass'])
 
 /** The task a journal row is about, when `subjectOfEvent` can say so and the row names its project. */
 export function taskOfEvent(e: FeedEvent): { projectId: string; taskId: string } | null {
@@ -51,7 +64,31 @@ export function taskOfEvent(e: FeedEvent): { projectId: string; taskId: string }
   return { projectId: e.project_id, taskId: subject.ref.id }
 }
 
-export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread, where, terminal, goalsUnread }: {
+/** Whole days between a moment and today, by the calendar of this machine (0 = today, 1 = yesterday). */
+function daysAgo(iso: string): number {
+  const d = new Date(iso), now = new Date()
+  const startOf = (x: Date): number => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
+  return Math.round((startOf(now) - startOf(d)) / 86_400_000)
+}
+
+/** A moment said day-relative, as the mockup does: «в 17:58» today, «вчера в 17:58», else «26 окт. в 17:58». */
+export function atWords(iso: string, t: Translate, locale: string): string {
+  const d = new Date(iso)
+  if (!Number.isFinite(d.getTime())) return '?'
+  const time = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  const days = daysAgo(iso)
+  if (days === 0) return t('agentScreen.at.today', { time })
+  if (days === 1) return t('agentScreen.at.yesterday', { time })
+  return t('agentScreen.at.date', { date: d.toLocaleDateString(locale, { day: 'numeric', month: 'short' }), time })
+}
+
+/** The session's status as the mockup's pill: its colour and shape beside the word, never the colour alone (R-19). */
+function StatusPill({ status, words }: { status: SessionStatus; words: string }): React.JSX.Element {
+  return <span className={`as-status s-${status}`}><span className={`rail-dot s-${status}`} aria-hidden="true" />{words}</span>
+}
+
+export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread, where, terminal, goalsUnread,
+  onHome, runnerVersion, permission, onQuestion, projectOf }: {
   agent: LiveAgent
   /** The goals could not be read (`main/agentGoals.ts`): said where the goal would be, never «not named» (ER-20). */
   goalsUnread?: string | null
@@ -75,6 +112,17 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   actions?: React.ReactNode
   /** Under the header: a joined agent's proof line and a refused act's words. */
   note?: React.ReactNode
+  /** «← Главная» above the header (the mockup's back link); absent: no link, the top bar's travel buttons remain. */
+  onHome?(): void
+  /** The runner's installed version (`start.executors`), for the session card's «Агент»; absent: not known. */
+  runnerVersion?: string | null
+  /** The permission mode its console was launched as (`TerminalSession.permissionMode`); said only for a console
+   *  Fabric holds. */
+  permission?: string | null
+  /** Opens one of its questions on the board (its `BoardEntry.ref`); absent, a question card opens nothing. */
+  onQuestion?(ref: string): void
+  /** A project's row by id, for «Нужна правка в другом проекте» in a task row; absent or null: the action is not offered. */
+  projectOf?(projectId: string): CrossProject | null
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
@@ -94,6 +142,8 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const [tasksRead, setTasksRead] = useState<TasksRead & { of: string }>({ at: 'reading', of: agent.sessionId })
   const [tasksAttempt, setTasksAttempt] = useState(0)
   const [lane, setLane] = useState<SessionLane | 'all'>('all')
+  /** The task row whose «Нужна правка в другом проекте» is open; one at a time. */
+  const [xpOpen, setXpOpen] = useState<string | null>(null)
   useEffect(() => {
     let alive = true
     const of = agent.sessionId
@@ -109,15 +159,20 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const tasksMine = tasksRead.of === agent.sessionId ? tasksRead : ({ at: 'reading', of: agent.sessionId } as const)
   const tasksView = tasksMine.at === 'ready' ? tasksMine.view : tasksMine.at === 'failed' ? tasksMine.kept : null
   const nameOf = new Map((tasksView?.tasks ?? []).map((x) => [x.taskId, x.summary]))
-  const when = (iso: string): string => new Date(iso).toLocaleString(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-  const statusOf = (s: string): string =>
-    s === 'cancelled' ? t('launch.project.cancelled') : BOARD_STATUS.has(s) ? t(`board.${s}` as 'board.done') : s === 'unknown' ? t('agentPage.statusUnknown') : s
+  const at = (iso: string): string => atWords(iso, t, locale)
   // The 0.3.14 review, iteration 1, UX-8: each ending in words of its own (an ending the agent did not cause is not
-  // said as its own), and an ending code this build does not know is said as not recorded, never shown raw.
+  // said as its own), and an ending code this build does not know is said as not recorded, never shown raw. Handed in
+  // with the task now in review is said as the mockup says it: «сдал на проверку».
   const endedOf = (x: SessionTask): string =>
     x.releasedAt
-      ? t(x.releasedHow && RELEASED_HOW.has(x.releasedHow) ? (`agentPage.ended.${x.releasedHow}` as 'agentPage.ended.done') : 'agentPage.ended.unknown', { time: when(x.releasedAt) })
+      ? t(x.releasedHow === 'done' && x.status === 'review' ? 'agentPage.ended.doneReview'
+        : x.releasedHow && RELEASED_HOW.has(x.releasedHow) ? (`agentPage.ended.${x.releasedHow}` as 'agentPage.ended.done') : 'agentPage.ended.unknown', { time: at(x.releasedAt) })
       : x.via === 'claim' ? t('agentPage.taskHeld') : ''
+  /** A task's status as the row's pill: its lane in words; a cancelled task in «done» is said as cancelled. */
+  const pillOf = (x: SessionTask): { lane: SessionLane; words: string } => {
+    const l = laneOf(x)
+    return { lane: l, words: t(l === 'done' && x.status === 'cancelled' ? 'agentScreen.pill.cancelled' : (`agentScreen.pill.${l}` as 'agentScreen.pill.inWork')) }
+  }
   /** A history row's task: its name from the tasks read, else the event's own title, else the word «Задача». */
   const historyTask = (e: FeedEvent): React.ReactNode => {
     const of = taskOfEvent(e)
@@ -143,15 +198,28 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const trails = events ? taskTrail(events, holds) : null
   const phase = events ? lastPhase(events) : null
   const current = agent.task ? (tasksView?.tasks.find((x) => x.taskId === agent.task!.id) ?? null) : null
+  const nowTitle = agent.task ? ((agent.task.title ?? current?.title ?? '').trim() || agent.task.summary) : ''
+  const nowWhat = agent.task ? (agent.task.what ?? current?.brief.what ?? null) : null
+  // «Вопросы этого агента»: its open questions as «Нужны вы» cards (the same card and answers as Главная), from the
+  // session read; a read that did not happen is said as such, never «none».
+  const questionsRead: AgentQuestion[] | null = tasksView?.questions ?? null
+  const questionCards: BoardEntry[] = questionsRead ? boardEntries({
+    questions: questionsRead.map((q): BoardQuestion => ({
+      id: q.id, projectId: q.projectId, projectName: q.projectId ? (q.projectId === agent.projectId ? agent.projectName : projectOf?.(q.projectId)?.name ?? null) : null,
+      text: q.text, kind: (q.kind ?? 'decision') as BoardQuestion['kind'], askedAt: q.askedAt, blocks: 0, servesActiveGoal: false,
+      revision: q.revision, options: Array.isArray(q.options) ? (q.options as BoardQuestion['options']) : [], why: q.why
+    })),
+    attention: [], projectWeightOf: () => 1, now: new Date()
+  }) : []
   const laneCounts = Object.fromEntries(SESSION_LANES.map((l) => [l, (tasksView?.tasks ?? []).filter((x) => laneOf(x) === l).length])) as Record<SessionLane, number>
   // The 0.3.14 review, iteration 2, UX-20: «Все» first and open until the person picks a lane, every task newest first,
   // as the operator asked («сверху самая последняя»); a lane of tasks not found shows only when it holds one (DA-4).
+  // The mockup parity: the lanes are quiet chips, so an empty lane is not offered (unless it is the one pressed).
   const shownLane: SessionLane | 'all' = lane
   const laneTasks = (tasksView?.tasks ?? []).filter((x) => shownLane === 'all' || laneOf(x) === shownLane)
-  const tabs: Array<SessionLane | 'all'> = ['all', ...SESSION_LANES.filter((l) => l !== 'missing' || laneCounts.missing > 0)]
+  const tabs: Array<SessionLane | 'all'> = ['all', ...SESSION_LANES.filter((l) => laneCounts[l] > 0 || l === shownLane)]
   // UX-13: «Цель» only for a goal the agent split from, or one the person set; a task that is its own root is the task.
   const goal = agent.goal && (!agent.goal.isTask || agent.goal.byPerson) ? agent.goal : null
-  const goalSaysTask = !!goal && goal.isTask
   const currentTrail = agent.task && trails ? (trails.get(agent.task.id) ?? null) : null
   const historyFull = events ? mayHaveEarlier(events) : false
   const heard = agent.lastSignAt ?? agent.startedAt
@@ -161,101 +229,124 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const stateChip = state ?? (status === 'working' ? t('agentScreen.state.working') : status === 'idle' ? t('agentScreen.state.quiet', { time: since(heard, t) }) : t(`status.${status}` as 'status.idle'))
   const name = title ?? runnerLabel(agent.agent, t)
   const placeOf = where ?? (agent.console ? 'fabric' : 'terminal')
+  // How long it has held the task, to the minute as the mockup says it (`heldFor`, the same as «В работе»).
+  const held = current && current.via === 'claim' && !current.releasedAt ? t('agentScreen.held', { time: heldFor(current.claimedAt, t) }) : null
+  const startedWords = daysAgo(agent.startedAt) === 0
+    ? t('agentScreen.startedToday', { time: time(agent.startedAt) })
+    : at(agent.startedAt)
+  // «Агент»: the runner and its version (the caller's, else the session read's own, `start.executors` in main), and, for
+  // a console Fabric holds, the permission mode it was launched as.
+  const version = runnerVersion ?? tasksView?.runner?.version ?? null
+  const agentFact = [
+    version ? `${runnerLabel(agent.agent, t)} ${version}` : null,
+    placeOf === 'fabric' && permission && PERMISSIONS.has(permission) ? t(`agentScreen.permission.${permission}` as 'agentScreen.permission.ask') : null
+  ].filter(Boolean).join(' · ')
+  const goalLine = goalsUnread ? (
+    // ER-20: a failed goals read is said where the goal would be.
+    <p className="as-now-goal" title={goalsUnread}>{t('agentScreen.goalLine', { goal: t('launch.home.inWork.goalsUnread') })}</p>
+  ) : goal ? (
+    <p className="as-now-goal" title={goal.what ?? undefined}>
+      {goal.isTask ? t('agentScreen.goalIsTask') : t('agentScreen.goalLine', { goal: goal.text })}
+      {goal.byPerson && <> · {t('agentScreen.goalByPerson')}</>}
+      {onOpenTask && !goal.isTask && <> · <button type="button" className="lp-link" onClick={() => onOpenTask(goal.projectId, goal.taskId)}>{t('agentScreen.openGoal')}</button></>}
+    </p>
+  ) : null
   const trailOf = (x: SessionTask): React.ReactNode => {
-    if (!trails) return null
-    const tr: TaskTrail | undefined = trails.get(x.taskId)
+    if (!trails && !x.releaseNote) return null
+    const tr: TaskTrail | undefined = trails?.get(x.taskId)
+    const endings = tr ? [...tr.endings.map((e) => ({ key: `e-${e.at}`, text: e.note })), ...tr.handoffs.map((h) => ({ key: `h-${h.name}-${h.at}`, text: t('agentScreen.handoff', { name: h.name, value: h.value }) }))] : []
+    // The mockup parity: an older task's ending, past the history window, in the agent's own words from its claim.
+    if (!endings.length && x.releaseNote) endings.push({ key: `note-${x.taskId}`, text: x.releaseNote })
     return (
       <>
-        <h5>{t('agentScreen.endedHow')}</h5>
-        {tr && (tr.endings.length || tr.handoffs.length) ? (
-          <ul className="as-ending">
-            {tr.endings.map((e) => <li key={`e-${e.at}`}>{e.note}</li>)}
-            {tr.handoffs.map((h) => <li key={`h-${h.name}-${h.at}`}>{t('agentScreen.handoff', { name: h.name, value: h.value })}</li>)}
-          </ul>
-        ) : <p className="lp-meta">{t('agentScreen.noEnding')}</p>}
-        <h5>{t('agentScreen.milestones')}</h5>
-        <Milestones list={tr ? tr.milestones : null} empty={t('agentScreen.noTaskMilestones')} />
+        <div>
+          <h5 className="as-kicker">{t('agentScreen.endedHow')}</h5>
+          {endings.length === 1 ? <p className="ap-summary">{endings[0].text}</p>
+            : endings.length > 1 ? <ul className="ap-summary as-ending">{endings.map((e) => <li key={e.key}>{e.text}</li>)}</ul>
+            : <p className="lp-meta">{t('agentScreen.noEnding')}</p>}
+        </div>
+        <div>
+          <h5 className="as-kicker">{t('agentScreen.milestones')}</h5>
+          <Milestones list={tr ? tr.milestones : null} empty={t('agentScreen.noTaskMilestones')} current={laneOf(x) === 'inWork'} />
+        </div>
       </>
     )
   }
   return (
     <section className="as" aria-labelledby="agent-page-title" data-testid="agent-page">
+      {onHome && <p className="as-back"><button type="button" className="lp-link" onClick={onHome}>{t('agentScreen.backHome')}</button></p>}
       <header className="as-head">
         <div className="as-head-words">
-          <h3 id="agent-page-title" tabIndex={-1}>{t('agentScreen.title', { runner: name, id: agent.sessionId.slice(0, 8) })}</h3>
+          <h3 id="agent-page-title" tabIndex={-1}>{name}</h3>
           <p className="as-meta">
+            <StatusPill status={status} words={stateChip} />
             {agent.projectId
-              ? <button type="button" className="lp-link" onClick={() => onOpenProject(agent.projectId!)}>{agent.projectName ?? t('launch.home.agents.noProject')}</button>
+              ? <span>{t('agentScreen.projectWord')} <button type="button" className="lp-link" onClick={() => onOpenProject(agent.projectId!)}>{agent.projectName ?? t('launch.home.agents.noProject')}</button></span>
               : <span>{t('launch.home.agents.noProject')}</span>}
             {agent.branch
               ? <span className="rail-branch">{agent.branch}</span>
               : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
-            <span className={`lp-pill as-status s-${status} ${status === 'working' && !state ? 'live' : ''}`}><span className={`rail-dot s-${status}`} aria-hidden="true" /> {stateChip}</span>
+            <span>{t('agentScreen.sessionWord')} <span className="as-mono">{agent.sessionId.slice(0, 8)}</span></span>
           </p>
         </div>
         <span className="lh-agents-actions">
           {agent.task && onOpenTask && (
-            <button type="button" className="lp-button" onClick={() => onOpenTask(agent.task!.projectId, agent.task!.id)}>{t('agentPage.openTask')}</button>
+            <button type="button" className="lp-button" onClick={() => onOpenTask(agent.task!.projectId, agent.task!.id)}>{t('agentPage.openThisTask')}</button>
           )}
-          {agent.projectId && <button type="button" className="lp-button" onClick={() => onOpenProject(agent.projectId!)}>{t('launch.home.agents.openProject')}</button>}
+          {agent.projectId && <button type="button" className="lp-button" onClick={() => onOpenProject(agent.projectId!)}>{t('agentScreen.openProject')}</button>}
         </span>
       </header>
       {note}
       <div className="as-cols">
         <div className="as-main">
-          {/* The operator's second review (R-3): the goal, the root of its task's decomposition, above what it does now. */}
-          {goalsUnread ? (
-            // ER-20: a failed goals read is said where the goal would be.
-            <section className="as-goal" aria-labelledby="agent-goal-title">
-              <h4 id="agent-goal-title">{t('agentScreen.goal')}</h4>
-              <p className="lp-meta" title={goalsUnread}>{t('launch.home.inWork.goalsUnread')}</p>
-            </section>
-          ) : goal ? (
-            <section className="as-goal" aria-labelledby="agent-goal-title">
-              <h4 id="agent-goal-title">{t('agentScreen.goal')}</h4>
-              <p className="as-now-task">{goal.text}</p>
-              {goal.what && goal.what !== goal.text && <p className="lp-meta">{goal.what}</p>}
-              <p className="as-meta">
-                {goal.byPerson && <span>{t('agentScreen.goalByPerson')}</span>}
-                {onOpenTask && <button type="button" className="lp-link" onClick={() => onOpenTask(goal.projectId, goal.taskId)}>{t('agentScreen.openGoal')}</button>}
-              </p>
-            </section>
-          ) : agent.goal === null && agent.task ? (
-            <section className="as-goal" aria-labelledby="agent-goal-title">
-              <h4 id="agent-goal-title">{t('agentScreen.goal')}</h4>
-              <p className="lp-meta">{t('launch.home.inWork.noGoal')}</p>
-            </section>
-          ) : null}
           <section className="as-now" aria-labelledby="agent-now-title">
-            <h4 id="agent-now-title">{t('agentScreen.now')}</h4>
-            {agent.task && goalSaysTask ? null : agent.task ? (
+            <h4 id="agent-now-title" className="as-kicker">{t('agentScreen.now')}</h4>
+            {/* The operator's second review (R-3): the goal, the root of its task's decomposition, as a line above the
+                task (the mockup parity: one hero card, never a box of its own). */}
+            {goalLine}
+            {agent.task ? (
               <>
-                <p className="as-now-task">
-                  {onOpenTask
-                    ? <button type="button" className="lp-link" onClick={() => onOpenTask(agent.task!.projectId, agent.task!.id)}>{agent.task.summary || t('launch.home.work.untitled')}</button>
-                    : (agent.task.summary || t('launch.home.work.untitled'))}
-                </p>
-                {current?.brief.what && current.brief.what !== agent.task.summary && <p className="lp-meta">{current.brief.what}</p>}
+                {/* The mockup parity: the task's own title heads «Сейчас»; its brief's «what» is the muted line. */}
+                <p className="as-now-task">{nowTitle || t('launch.home.work.untitled')}</p>
+                {nowWhat && nowWhat !== nowTitle && <p className="as-now-what">{nowWhat}</p>}
               </>
-            ) : <p>{workUnread ? t('agentPage.taskUnread') : t('agentPage.noTask')}</p>}
-            <p className="as-now-report">
-              {workUnread && !agent.doing ? t('agentPage.doingUnread') : agent.doing ? (
+            ) : <p className="as-now-task-none">{workUnread ? t('agentPage.taskUnread') : t('agentPage.noTask')}</p>}
+            <p className="as-now-doing">
+              {workUnread && !agent.doing ? <span>{t('agentPage.doingUnread')}</span> : agent.doing ? (
                 <>
-                  {agent.doing.step && agent.doing.ofSteps ? <><Progress step={agent.doing.step} of={agent.doing.ofSteps} /><span className="lh-arow-step">{t('launch.home.agents.step', { step: agent.doing.step, of: agent.doing.ofSteps })} · </span></> : null}
-                  {agent.doing.text}
-                  <small className="lp-meta"> · {t('launch.home.inWork.heard', { time: since(agent.doing.at, t) })}</small>
+                  {agent.doing.step && agent.doing.ofSteps ? <Progress step={agent.doing.step} of={agent.doing.ofSteps} /> : null}
+                  <span className="as-now-stage">
+                    {agent.doing.step && agent.doing.ofSteps ? <><b>{t('launch.home.agents.step', { step: agent.doing.step, of: agent.doing.ofSteps })}</b> · </> : null}
+                    {agent.doing.text}
+                  </span>
                 </>
               ) : <span className="lp-meta">{t('launch.home.agents.silent')}</span>}
+              {(agent.doing || held) && (
+                <span className="as-now-tail">{[agent.doing ? t('launch.home.inWork.heard', { time: since(agent.doing.at, t) }) : null, held].filter(Boolean).join(' · ')}</span>
+              )}
             </p>
-            {current && current.via === 'claim' && !current.releasedAt && <p className="lp-meta">{t('agentScreen.held', { time: since(current.claimedAt, t) })}</p>}
             {agent.task && events && (
               <>
-                <h5>{t('agentScreen.nowMilestones')}</h5>
-                <Milestones list={currentTrail ? currentTrail.milestones : null} empty={t('agentScreen.noTaskMilestones')} />
+                <h5 className="as-kicker as-now-miles">{t('agentScreen.nowMilestones')}</h5>
+                <Milestones list={currentTrail ? currentTrail.milestones : null} empty={t('agentScreen.noTaskMilestones')} current={!!held} />
               </>
             )}
           </section>
-          <h4>{t('agentPage.tasks')}</h4>
+          <div className="as-tasks-head">
+            <h4>{t('agentPage.tasks')}</h4>
+            {tasksView && tasksView.tasks.length > 0 && <span className="lp-meta">{t('agentPage.tasksSub', { count: tasksView.tasks.length })}</span>}
+            {tasksView && tasksView.tasks.length > 0 && (
+              // The operator's second review (R-12): the tasks in lanes, each with its count; the lane opened is the
+              // person's. The mockup parity: small chips on the heading's row, never a full-width tab bar.
+              <div className="as-lanes" role="group" aria-label={t('agentScreen.lanes')}>
+                {tabs.map((l) => (
+                  <button key={l} type="button" className="as-chip" aria-pressed={shownLane === l} onClick={() => setLane(l)}>
+                    {t(`agentScreen.lane.${l}` as 'agentScreen.lane.inWork')} <span className="as-chip-n">{l === 'all' ? tasksView.tasks.length : laneCounts[l]}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           {tasksMine.at === 'reading' && <p className="lp-meta" role="status">{t('agentPage.tasksReading')}</p>}
           {tasksMine.at === 'failed' && (
             <>
@@ -263,42 +354,51 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
               <button type="button" className="lp-button" onClick={() => setTasksAttempt((n) => n + 1)}>{t('agentPage.tasksRetry')}</button>
             </>
           )}
-          {tasksView && tasksView.tasks.length > 0 && (
-            // The operator's second review (R-12): the tasks in lanes, each with its count; the lane opened is the person's.
-            <div className="lp-tabs as-lanes" role="group" aria-label={t('agentScreen.lanes')}>
-              {tabs.map((l) => (
-                <button key={l} type="button" className="lp-tab" aria-pressed={shownLane === l} onClick={() => setLane(l)}>
-                  {t(`agentScreen.lane.${l}` as 'agentScreen.lane.inWork')} <span className="lp-count">{l === 'all' ? tasksView.tasks.length : laneCounts[l]}</span>
-                </button>
-              ))}
-            </div>
-          )}
           {tasksView && (tasksView.tasks.length === 0
             ? (tasksMine.at === 'ready' && <p className="lp-meta">{t('agentPage.noTasks')}</p>)
             : laneTasks.length === 0 ? <p className="lp-meta">{t('agentScreen.laneEmpty')}</p> : (
-              <ul className="hx-list ap-tasks" aria-label={t('agentPage.tasks')}>
+              <ul className="ap-tasks" aria-label={t('agentPage.tasks')}>
                 {laneTasks.map((x) => {
-                  const brief = [['task.what', x.brief.what], ['task.why', x.brief.why], ['task.expected', x.brief.expected]] as const
+                  const brief = [['task.what', x.brief.what], ['task.why', x.brief.why], ['agentScreen.briefExpected', x.brief.expected]] as const
+                  const pill = pillOf(x)
+                  const xpProject = projectOf?.(x.projectId) ?? null
+                  const xpId = `ap-xp-${x.taskId}`
                   return (
-                    <li key={x.taskId} className="hx-row">
+                    <li key={x.taskId} className="ap-task">
                       <details>
                         <summary>
-                          <b>{x.summary || t('launch.home.work.untitled')}</b>
-                          <small className="lp-meta"> {[
-                            x.projectName,
-                            statusOf(x.status),
-                            t(x.via === 'launch' ? 'agentPage.taskLaunched' : 'agentPage.taskTaken', { time: when(x.claimedAt) }),
-                            endedOf(x),
-                            x.claims > 1 ? t(`agentPage.taskTimes.${pluralForm(locale, x.claims)}` as 'agentPage.taskTimes.many', { count: x.claims }) : null
-                          ].filter(Boolean).join(' · ')}</small>
+                          <span className="ap-chev" aria-hidden="true" />
+                          <span className="ap-task-words">
+                            <b className="ap-task-title">{(x.title ?? '').trim() || x.summary || t('launch.home.work.untitled')}</b>
+                            <small className="ap-task-meta">{[
+                              x.projectId !== agent.projectId ? x.projectName : null,
+                              t(x.via === 'launch' ? 'agentPage.taskLaunched' : 'agentPage.taskTaken', { time: at(x.claimedAt) }),
+                              endedOf(x),
+                              x.claims > 1 ? t(`agentPage.taskTimes.${pluralForm(locale, x.claims)}` as 'agentPage.taskTimes.many', { count: x.claims }) : null
+                            ].filter(Boolean).join(' · ')}</small>
+                          </span>
+                          <span className={`ap-pill l-${pill.lane}`}>{pill.words}</span>
                         </summary>
-                        {brief.some(([, v]) => v) ? (
-                          <dl>
-                            {brief.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{t(k)}</dt><dd>{v}</dd></div>)}
-                          </dl>
-                        ) : <p className="lp-meta">{t('agentPage.noBrief')}</p>}
-                        {trailOf(x)}
-                        {onOpenTask && <button type="button" className="lp-button" onClick={() => onOpenTask(x.projectId, x.taskId)}>{t('agentPage.openThisTask')}</button>}
+                        <div className="ap-task-body">
+                          {brief.some(([, v]) => v) ? (
+                            <dl className="ap-brief">
+                              {brief.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{t(k)}</dt><dd>{v}</dd></div>)}
+                            </dl>
+                          ) : <p className="lp-meta">{t('agentPage.noBrief')}</p>}
+                          {trailOf(x)}
+                          <div className="ap-task-acts">
+                            {onOpenTask && <button type="button" className="lp-button" onClick={() => onOpenTask(x.projectId, x.taskId)}>{t('agentPage.openThisTask')}</button>}
+                            {xpProject && (
+                              <button type="button" className="lp-button" aria-expanded={xpOpen === x.taskId} aria-controls={xpId}
+                                onClick={() => setXpOpen((o) => (o === x.taskId ? null : x.taskId))}>{t('xp.title')}</button>
+                            )}
+                          </div>
+                          {xpProject && xpOpen === x.taskId && (
+                            <div id={xpId}>
+                              <CrossProjectConsole inline project={xpProject} taskId={x.taskId} taskTitle={(x.title ?? '').trim() || x.summary || t('launch.home.work.untitled')} />
+                            </div>
+                          )}
+                        </div>
                       </details>
                     </li>
                   )
@@ -315,64 +415,77 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
           )}
           {mine.at === 'reading' && <p className="lp-meta" role="status">{t('estate.reading')}</p>}
           {events && (
-            <>
-              {/* UX-4: the heading stands outside the disclosure, which names what it opens. */}
-              <h4 id="agent-page-history">{t('agentPage.did')}</h4>
-              <details className="ap-history">
-                <summary>{t('agentPage.historyOpen')}</summary>
-                <p className="lp-meta">{t('agentPage.historyLede')}</p>
-                {newest.length === 0 ? <p className="lp-meta">{t('agents.noHistory')}</p> : (
-                  <ul className="hx-list" aria-label={t('agentPage.did')}>
-                    {days.map(({ day, rows }) => rows.map((e, i) => (
-                      <li key={e.seq} className="hx-row">
-                        {i === 0 && <p className="hx-day">{day}</p>}
-                        <div className="hx-act"><time className="hx-time" dateTime={e.occurred_at}>{time(e.occurred_at)}</time><span className="hx-said">{describeEvent(t, e.type)}{historyTask(e)}</span></div>
-                      </li>
-                    )))}
-                  </ul>
-                )}
-                {mayHaveEarlier(events) && <p className="lp-meta">{t('agents.historyEarlier', { count: SESSION_HISTORY_WINDOW })}</p>}
-              </details>
-            </>
+            // UX-4 then the mockup parity: no heading of its own; the disclosure is named for assistive technology and
+            // its summary says what it opens.
+            <details className="ap-history" aria-label={t('agentScreen.history')}>
+              <summary>{t('agentPage.historyOpen')}</summary>
+              <p className="lp-meta">{t('agentPage.historyLede')}</p>
+              {newest.length === 0 ? <p className="lp-meta">{t('agents.noHistory')}</p> : (
+                <ul className="hx-list" aria-label={t('agentPage.did')}>
+                  {days.map(({ day, rows }) => rows.map((e, i) => (
+                    <li key={e.seq} className="hx-row">
+                      {i === 0 && <p className="hx-day">{day}</p>}
+                      <div className="hx-act"><time className="hx-time" dateTime={e.occurred_at}>{time(e.occurred_at)}</time><span className="hx-said">{describeEvent(t, e.type)}{historyTask(e)}</span></div>
+                    </li>
+                  )))}
+                </ul>
+              )}
+              {mayHaveEarlier(events) && <p className="lp-meta">{t('agents.historyEarlier', { count: SESSION_HISTORY_WINDOW })}</p>}
+            </details>
           )}
         </div>
-        <aside className="as-session lp-panel" aria-labelledby="agent-session-title">
-          <h4 id="agent-session-title">{t('agentScreen.session')}</h4>
-          <dl className="as-facts">
-            <div><dt>{t('agentScreen.stateLabel')}</dt><dd>{stateChip}</dd></div>
-            <div><dt>{t('agentScreen.lastSign')}</dt><dd>{t('launch.home.inWork.heard', { time: since(heard, t) })}</dd></div>
-            {phase && (
-              <div><dt>{t('agentScreen.claim')}</dt><dd>
-                {t(`agentScreen.phase.${phase.phase}` as 'agentScreen.phase.working')}{phase.waitingOn && WAITING_ON.has(phase.waitingOn) ? ` (${t(`agentScreen.waitingOn.${phase.waitingOn}` as 'agentScreen.waitingOn.question')})` : ''}{' '}
-                <small className="lp-meta">{t('agentScreen.claimAt', { time: since(phase.at, t) })}</small>
-              </dd></div>
-            )}
-            <div><dt>{t('agentScreen.where')}</dt><dd>{t(`agentScreen.where.${placeOf}` as 'agentScreen.where.fabric')}</dd></div>
-            <div><dt>{t('agentScreen.started')}</dt><dd>{when(agent.startedAt)}</dd></div>
-          </dl>
-          {agent.console && onConsole ? (
-            <>
-              <button type="button" className="lp-button primary" onClick={() => onConsole(agent.sessionId)}>{t('agentScreen.openSession')}</button>
-              <p className="lp-meta">{t('agentScreen.openSessionNote')}</p>
-            </>
-          ) : <p className="lp-meta">{t(placeOf === 'unknown' ? 'agentScreen.sessionUnknown' : 'agentScreen.sessionElsewhere')}</p>}
-          {actions}
+        <aside className="as-side" aria-labelledby="agent-session-title">
+          <section className="as-session">
+            <h4 id="agent-session-title">{t('agentScreen.session')}</h4>
+            <dl className="as-facts">
+              <div><dt>{t('agentScreen.stateLabel')}</dt><dd><StatusPill status={status} words={stateChip} /></dd></div>
+              <div><dt>{t('agentScreen.lastSign')}</dt><dd>{t('launch.home.inWork.heard', { time: since(heard, t) })}</dd></div>
+              {phase && (
+                <div><dt>{t('agentScreen.claim')}</dt><dd>
+                  {t(`agentScreen.phase.${phase.phase}` as 'agentScreen.phase.working')}{phase.waitingOn && WAITING_ON.has(phase.waitingOn) ? ` (${t(`agentScreen.waitingOn.${phase.waitingOn}` as 'agentScreen.waitingOn.question')})` : ''}{' '}
+                  <small className="lp-meta as-claim-at">{t('agentScreen.claimAt', { time: since(phase.at, t) })}</small>
+                </dd></div>
+              )}
+              <div><dt>{t('agentScreen.where')}</dt><dd>{t(`agentScreen.where.${placeOf}` as 'agentScreen.where.fabric')}</dd></div>
+              <div><dt>{t('agentScreen.started')}</dt><dd>{startedWords}</dd></div>
+              {agentFact && <div><dt>{t('agentScreen.agentLabel')}</dt><dd>{agentFact}</dd></div>}
+            </dl>
+            {agent.console && onConsole ? (
+              <>
+                <button type="button" className="lp-button primary" onClick={() => onConsole(agent.sessionId)}>{t('agentScreen.openSession')}</button>
+                <p className="lp-meta">{t('agentScreen.openSessionNote')}</p>
+              </>
+            ) : <p className="lp-meta">{t(placeOf === 'unknown' ? 'agentScreen.sessionUnknown' : 'agentScreen.sessionElsewhere')}</p>}
+            {actions}
+          </section>
+          <section className="as-questions lh-qs" aria-labelledby="agent-questions-title">
+            <h4 id="agent-questions-title">{t('agentScreen.questions')}</h4>
+            {questionsRead === null
+              ? (tasksMine.at === 'reading' ? <p className="lp-meta" role="status">{t('estate.reading')}</p>
+                : <p className="lp-meta" title={tasksView?.questionsUnread}>{t('agentScreen.questionsNotRead')}</p>)
+              : questionCards.length === 0 ? <p className="lp-meta">{t('agentScreen.questionsNone')}</p>
+              : questionCards.map((item) => (
+                <NeedsYouCard key={item.ref} item={item} onOpen={onQuestion}
+                  meta={<>{item.projectName && <b>{item.projectName}</b>}{' '}<span>· {since(item.waitingSince, t)}</span></>} />
+              ))}
+          </section>
         </aside>
       </div>
     </section>
   )
 }
 
-/** A task's milestones, newest first: «Шаг N.» and the agent's words, with when it said them. `list` is null when the
- *  history (already read) holds no trail for the task: said as none, the same as an empty trail. */
-function Milestones({ list, empty }: { list: TaskTrail['milestones'] | null; empty: string }): React.JSX.Element {
+/** A task's milestones, newest first, as a timeline: «Шаг N.» and the agent's words, with when it said them; the newest
+ *  is marked current while the task is held. `list` is null when the history (already read) holds no trail for the
+ *  task: said as none, the same as an empty trail. */
+function Milestones({ list, empty, current = false }: { list: TaskTrail['milestones'] | null; empty: string; current?: boolean }): React.JSX.Element {
   const t = useT(), locale = useLocale()
   if (!list || !list.length) return <p className="lp-meta">{empty}</p>
   return (
     <ol className="as-miles">
-      {list.map((m) => (
-        <li key={`${m.at}-${m.text}`}>
-          <time className="hx-time" dateTime={m.at}>{new Date(m.at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</time>
+      {list.map((m, i) => (
+        <li key={`${m.at}-${m.text}`} className={current && i === 0 ? 'cur' : undefined}>
+          <time className="as-miles-time" dateTime={m.at}>{new Date(m.at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</time>
           <span>{m.step ? `${t('agentScreen.stepShort', { step: m.step })} ` : ''}{m.text}{m.note ? <small className="lp-meta"> · {m.note}</small> : null}</span>
         </li>
       ))}

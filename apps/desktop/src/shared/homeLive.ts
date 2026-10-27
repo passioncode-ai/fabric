@@ -56,7 +56,28 @@ export interface LiveAgent {
   /** What it works on now (0.3.14): its newest live claim whose task is still running, else the running task Fabric
    *  launched in its session, else the task its newest stage report names. `summary` is empty for a task with no
    *  title or brief: the screens say «untitled», the task is never dropped. `projectId` is the task's own project. */
-  task: { id: string; projectId: string; summary: string } | null
+  task: {
+    id: string
+    projectId: string
+    summary: string
+    /** The task's own title and the brief's «what», apart (the mockup parity, agent gaps «Сейчас»): the screen heads with
+     *  the title and puts the «what» under it. Null when the task has none. Absent from an older reader. */
+    title?: string | null
+    what?: string | null
+    /** When the agent took it (home gap D9): the claim's time, else when Fabric launched it in this session, else the
+     *  stage report that names it. Null when not known. */
+    heldSince?: string | null
+    /** It came from an earlier session id of the same coding-agent session (home gaps D5, D6; `agentIdentity.ts`):
+     *  that agent restarted or re-enrolled, and it still works on this running task. */
+    fromEarlierSession?: boolean
+  } | null
+  /** At work, not merely connected (home gaps D3, D4; `agentWork.ts`): it holds a task, or reported a stage, a working
+   *  heartbeat or a turn within `AT_WORK_MS`, or its Fabric console printed within it. A keep-alive ping keeps an agent
+   *  connected, never at work. Absent: not judged (an older reader). */
+  atWork?: boolean
+  /** Its newest WORK signal (claim, stage report, heartbeat, turn, console output), never a keep-alive ping; the home
+   *  sorts by it. Null when none is known. */
+  workAt?: string | null
   /** The git branch of the folder a console Fabric holds works in (0.3.14, the simple Fabric; `main/agentBranches.ts`).
    *  Absent or null: not known (a terminal-joined agent shares no folder, or git did not answer). */
   branch?: string | null
@@ -101,6 +122,10 @@ export interface ProjectPulse {
   inWork: number
   review: number
   lastActivityAt: string | null
+  /** Of `live`, the agents at work (home gap D3); absent: not judged. */
+  atWork?: number
+  /** The newest work signal of the project's agents (home gap D4); absent: not judged, null: none. */
+  workAt?: string | null
 }
 
 export interface HomeView {
@@ -138,6 +163,11 @@ export interface HomeView {
   unclaimedSessions?: string[]
   /** The goals could not be read (`main/agentGoals.ts`): every agent's goal is unknown, never «not named». */
   goalsUnread?: string
+  /** Agents at work apart from those merely connected (home gaps D3, D7; `agentWork.ts`). `noTask` is «работают без
+   *  задачи»: at work, holding no task. Absent: not judged. */
+  atWork?: { agents: number; connectedIdle: number; noTask: number; noTaskSessions: string[] }
+  /** Every project's display name (`projectDisplayName.ts`), by project id. Absent: not resolved. */
+  displayNames?: Record<string, import('./projectDisplayName.ts').ResolvedDisplayName>
 }
 
 const clean = (s: string | null | undefined): string | null => {
@@ -154,6 +184,11 @@ export function specFlag(t: TaskBrief | undefined): { specMissing?: boolean } {
 /** A task's summary: what the agent wrote it is for, else its title. Never the instruction (the prompt). */
 export function taskSummary(t: Pick<TaskBrief, 'title' | 'brief_what'> | null | undefined, fallbackTitle?: string): string {
   return clean(t?.brief_what) ?? clean(t?.title) ?? clean(fallbackTitle) ?? ''
+}
+
+/** A task's title and the brief's «what», each cleaned, apart (the mockup parity: the title heads, the «what» explains). */
+export function titleAndWhat(t: Pick<TaskBrief, 'title' | 'brief_what'> | null | undefined): { title: string | null; what: string | null } {
+  return { title: clean(t?.title), what: clean(t?.brief_what) }
 }
 
 function doingOf(s: StageRow | undefined): Doing | null {
@@ -224,12 +259,18 @@ export function composeHome(input: {
   for (const t of [...(input.doneTasks ?? []), ...input.reviewTasks, ...(input.runningTasks ?? []), ...input.briefs]) anyTask.set(t.id, t)
   const currentTask = (sessionId: string): LiveAgent['task'] => {
     const claim = claimBySession.get(sessionId)
-    if (claim) return { id: claim.taskId, projectId: claim.projectId, summary: taskSummary(briefById.get(claim.taskId), claim.title) }
+    if (claim) {
+      const b = briefById.get(claim.taskId)
+      return { id: claim.taskId, projectId: claim.projectId, summary: taskSummary(b, claim.title), ...titleAndWhat(b), heldSince: claim.since }
+    }
     const launched = launchedBySession.get(sessionId)
-    if (launched) return { id: launched.id, projectId: launched.project_id, summary: taskSummary(launched) }
+    if (launched) return { id: launched.id, projectId: launched.project_id, summary: taskSummary(launched), ...titleAndWhat(launched), heldSince: launched.updated_at ?? null }
     // The 0.3.14 review, iteration 1, DA-6, ER-11: a stage report names the current task only while that task is running.
     const named = namedStageBySession.get(sessionId)
-    if (named?.task_id && anyTask.get(named.task_id)?.status === 'running') return { id: named.task_id, projectId: named.project_id, summary: taskSummary(anyTask.get(named.task_id)) }
+    if (named?.task_id && anyTask.get(named.task_id)?.status === 'running') {
+      const t = anyTask.get(named.task_id)
+      return { id: named.task_id, projectId: named.project_id, summary: taskSummary(t), ...titleAndWhat(t), heldSince: named.reported_at }
+    }
     return null
   }
 

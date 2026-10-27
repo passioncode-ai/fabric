@@ -93,9 +93,14 @@ graph button.
 1. The column keeps the brand and «Создать» at the top.
 2. Below them a two-way toggle, «Проекты» | «Агенты» (a segmented control, the choice remembered for the window like the
    scroll positions are).
-3. **Проекты** lists every active project **alphabetically** (`localeCompare` on the name, the locale's collation). Each
-   row keeps the live dot (an agent at work in it), the star as a mark only, and the gold count of questions waiting.
-   A row opens the project page (SCR-86).
+3. **Проекты** lists the projects **at work**, **alphabetically** (`localeCompare` on the name, the locale's collation):
+   a project where an agent works, a task is in work or in review, something waits for the person, the person pinned
+   it, or it is on screen. A quiet last row «Все проекты · N» unfolds every active project in place, alphabetically,
+   and folds back. Each row keeps the live dot (an agent at work in it, a terminal-joined one included), the star as a
+   mark only, and the gold count of questions waiting. A row opens the project page (SCR-86). *Amended 2026-10-27 (the
+   mockup parity, [rail gap 1](../reports/2026-10-27-mockup-parity/gaps/rail.md)): the operator approved the mockup's
+   seven rows, not a list of every project; the rule is `apps/desktop/src/shared/railProjects.ts#projectsAtWork`,
+   tested in `railProjects.test.ts` «projectsAtWork».*
 4. **Агенты** lists every agent at work now, one row each: the runner («Claude Code», «Codex»), its project, and the git
    branch it works on in monospace, with a dot for its state (работает, молчит). Sorted by project name, then by most
    recent sign of life. A row opens the agent screen (part 3). An agent that is only installed, idle or disconnected is
