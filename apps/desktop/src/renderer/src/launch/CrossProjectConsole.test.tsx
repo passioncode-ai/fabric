@@ -118,6 +118,51 @@ describe('«Нужна правка в другом проекте»', () => {
     expect(api.terminal.open).toHaveBeenCalledTimes(1)
   })
 
+  it('ER-26: every started console is remembered; picking A again after B shows A\'s session and starts nothing', async () => {
+    let n = 0
+    const api = stub(vi.fn(async () => ({ sessionId: `s${++n}` })))
+    const opened: string[] = []
+    show(opened)
+    fireEvent.click(screen.getByText(en['xp.title']))
+    const select = await screen.findByLabelText(en['xp.project'])
+    fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Fix it' } })
+    fireEvent.change(select, { target: { value: 'pd' } })
+    fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Dashboards') }))
+    await waitFor(() => expect(opened).toEqual(['s1']))
+    fireEvent.change(select, { target: { value: 'pc' } })
+    fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'copylot') }))
+    fireEvent.click(screen.getByRole('button', { name: en['xp.openHome'] }))
+    await waitFor(() => expect(opened).toEqual(['s1', 's2']))
+    fireEvent.change(select, { target: { value: 'pd' } })
+    const again = screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Dashboards') }) as HTMLButtonElement
+    expect(again.disabled).toBe(true)
+    fireEvent.click(again)
+    expect(api.terminal.open).toHaveBeenCalledTimes(2)
+    expect(screen.getByRole('status').textContent).toContain('Dashboards')
+    fireEvent.click(screen.getByRole('button', { name: en['agentScreen.openSession'] }))
+    await waitFor(() => expect(opened).toEqual(['s1', 's2', 's1']))
+  })
+
+  it('ER-25, UX-23: a started console whose tab and note both fail says one thing; once its tab opens, the form says so', async () => {
+    const api = stub()
+    api.tasks.note = vi.fn(async () => { throw new Error('note refused') })
+    let tries = 0
+    render(<I18nProvider locale="en"><OpenConsoleContext.Provider value={async () => { if (tries++ === 0) throw new Error('tab refused') }}>
+      <CrossProjectConsole project={here} taskId="t1" taskTitle="Show nudges" />
+    </OpenConsoleContext.Provider></I18nProvider>)
+    fireEvent.click(screen.getByText(en['xp.title']))
+    fireEvent.change(await screen.findByLabelText(en['xp.project']), { target: { value: 'pd' } })
+    fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Fix it' } })
+    fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Dashboards') }))
+    expect(await screen.findByText(en['xp.tabFailed'].replace('{project}', 'Dashboards'))).toBeTruthy()
+    expect(screen.queryByText(en['xp.failed'])).toBeNull()
+    expect(screen.getByText(en['xp.noteFailed'])).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['agentScreen.openSession'] }))
+    await waitFor(() => expect(screen.queryByText(en['xp.tabFailed'].replace('{project}', 'Dashboards'))).toBeNull())
+    expect(screen.getByRole('status').textContent).toMatch(new RegExp('^' + en['xp.done'].split('{project}')[0] + 'Dashboards'))
+    expect(screen.getByText(en['xp.noteFailed'])).toBeTruthy()
+  })
+
   it('says a console that did not open, and writes no note', async () => {
     const api = stub(vi.fn(async () => { throw new Error('no such agent') }))
     show()
