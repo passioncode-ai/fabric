@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The wiki sync's failures reach the operator's private chat** (CO-411). From the second failure in a row the
+  scheduled sync says so in the chat once per failure streak, besides the notice on the Mac, and says once more when it
+  works again. It uses a key that can only send such a notice, read from the vault for that one call.
+
 - **A stack that stays half up is said lost, not healed again and again** (CO-454). After its heal (stop keeping the
   data, then start) Fabric asks Docker once more; a database still running without its gateway is reported as a failed
   heal, so the watch says the stack is lost instead of reporting it up and healing it again on every try.

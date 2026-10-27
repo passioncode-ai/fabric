@@ -477,6 +477,7 @@ node --test scripts/test/smoke-platform.test.mjs apps/desktop/test/app-launch.te
 # Lifecycle contract (ADR-0106): a scheduled job can never wedge — deadlines, process groups, the
 # publication lock, status and rotation.
 node --test scripts/test/bounded-run.test.mjs
+node --test scripts/test/communicator-notify.test.mjs
 
 step "measured runtimes: the private pipe adapters under Node and inside Electron main (E0, B1, B2a, B2b-1, B4)"
 # The registry and the native view host read a private Node pipe field and rely on libuv's

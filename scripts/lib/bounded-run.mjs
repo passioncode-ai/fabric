@@ -6,8 +6,9 @@
 // interval because the job still counted as running — 5 h 27 min of silence. A manual publish and the
 // scheduled one also raced each other on the same remotes, and the log grew 20 MB in 2.4 days.
 import { execFileSync, spawn } from 'node:child_process'
-import { chmodSync, copyFileSync, existsSync, linkSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, truncateSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, linkSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, statSync, truncateSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const live = new Set()
 // Inside a bounded run, commands stay in the run's process group instead of opening their own: a
@@ -53,6 +54,23 @@ export function tellPerson(text, { seconds = 5 } = {}) {
     spawn('/bin/sh', ['-c', `osascript -e "$1" & p=$!; (sleep ${seconds}; kill -9 $p 2>/dev/null) & wait $p`, 'sh', script], { detached: true, stdio: 'ignore' }).unref()
     return true
   } catch { return false } // no notice: the log and the status record still say it
+}
+
+/**
+ * A notice in the operator's private chat (CO-411), detached like `tellPerson` so it survives the job's exit and
+ * ended after `seconds`. The key reaches only the child, through `use_secret.py run --vault-only` from the vault slot
+ * `fabric/prod/COMMUNICATOR_NOTIFY_KEY`; `eventId` is the communicator's idempotency key, so one streak is told once.
+ * Its output goes to `log` when given. Answers false when it could not start; the log and the status record still say it.
+ */
+export function tellChat({ kind, eventId, text }, { log, seconds = 30, spawnImpl = spawn } = {}) {
+  try {
+    const script = path.join(path.dirname(fileURLToPath(import.meta.url)), 'communicator-notify.mjs')
+    const cmd = 'T="$(project-observatory full-path)/tools" && python3 "$T/use_secret.py" run --vault-only fabric COMMUNICATOR_NOTIFY_KEY -- "$1" "$2" "$3" "$4" "$5"'
+    const out = log ? openSync(log, 'a') : 'ignore'
+    const child = spawnImpl('/bin/sh', ['-c', `(${cmd}) & p=$!; (sleep ${seconds}; kill -9 $p 2>/dev/null) & wait $p`, 'sh', process.execPath, script, kind, eventId, String(text).slice(0, 3500)], { detached: true, stdio: ['ignore', out, out] })
+    child.unref?.()
+    return true
+  } catch { return false }
 }
 
 /**
@@ -253,7 +271,17 @@ export function failuresBefore(statusFile) {
   } catch { return 0 } // no record yet, or one this version cannot read: counted from zero, said by the status itself
 }
 
-export async function superviseJob({ name, statusFile, watchdogMs, log, guard = () => {}, onFailure = () => {} }, body) {
+/** When the failure streak the last record is in began (CO-411); null when the last run did not fail or the record
+ *  predates the field. A failed run carries it on, so every notice of one streak shares its id. */
+export function streakStart(statusFile) {
+  try {
+    const prev = JSON.parse(readFileSync(statusFile, 'utf8'))
+    const failing = prev?.outcome === 'failed' || prev?.outcome === 'timeout' || (prev?.outcome === 'running' && prev?.consecutive_failures > 0)
+    return failing && typeof prev?.streak_started_at === 'string' ? prev.streak_started_at : null
+  } catch { return null }
+}
+
+export async function superviseJob({ name, statusFile, watchdogMs, log, guard = () => {}, onFailure = () => {}, onRecovery = () => {} }, body) {
   const startedAt = new Date().toISOString()
   const say = (m) => console.log(`== ${name} ${m} · ${new Date().toISOString()}`)
   try { guard() } catch (e) { console.error(String(e?.message || e)); exitWithin(1); return }
@@ -261,14 +289,20 @@ export async function superviseJob({ name, statusFile, watchdogMs, log, guard = 
   // A run that keeps failing is counted, so the person can be told instead of the log alone (CO-390).
   const before = failuresBefore(statusFile)
   const failures = (outcome) => (outcome === 'failed' || outcome === 'timeout' ? before + 1 : outcome === 'running' ? before : 0)
-  const status = (outcome, reason) => writeStatus(statusFile, { schema: 'JobRun@1', job: name, pid: process.pid, started_at: startedAt, ended_at: outcome === 'running' ? null : new Date().toISOString(), outcome, reason: reason ?? null, consecutive_failures: failures(outcome) })
+  // CO-411: the streak this run belongs to: the earlier one when it carries on, else this run's own start.
+  const streak = (before > 0 && streakStart(statusFile)) || startedAt
+  const failing = (outcome) => outcome === 'failed' || outcome === 'timeout' || (outcome === 'running' && before > 0)
+  const status = (outcome, reason) => writeStatus(statusFile, { schema: 'JobRun@1', job: name, pid: process.pid, started_at: startedAt, ended_at: outcome === 'running' ? null : new Date().toISOString(), outcome, reason: reason ?? null, consecutive_failures: failures(outcome), streak_started_at: failing(outcome) ? streak : null })
   let ended = false
   const finish = (outcome, reason, code) => {
     if (ended) return
     ended = true
     try { status(outcome, reason) } catch (e) { console.error('status not written: ' + (e?.message || e)) }
     if (outcome === 'failed' || outcome === 'timeout') {
-      try { onFailure(failures(outcome), reason ?? outcome) } catch (e) { console.error('the failure was not told: ' + (e?.message || e)) }
+      try { onFailure(failures(outcome), reason ?? outcome, streak) } catch (e) { console.error('the failure was not told: ' + (e?.message || e)) }
+    } else if (before > 0 && outcome !== 'locked' && outcome !== 'stopped') {
+      // CO-411: a run that worked after failures ends the streak; the person told of it is told it is over.
+      try { onRecovery(before, streak) } catch (e) { console.error('the recovery was not told: ' + (e?.message || e)) }
     }
     say(outcome + (reason ? ': ' + reason : ''))
     exitWithin(code)

@@ -6,7 +6,7 @@ import path from 'node:path'
 import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,verifyCommittedSnapshot,receiptFor,checkArgs,pendingNotice} from './workspace-snapshot.mjs'
 import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons,syncLeftovers,dropChildLeftovers} from './workspace-sources.mjs'
 import {completedPublication,verifyDeployment,checkDeployCredentials,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
-import {boundedRun,nonInteractiveGitEnv,acquireLock,superviseJob,killAll,exitWithin,tellPerson} from './lib/bounded-run.mjs'
+import {boundedRun,nonInteractiveGitEnv,acquireLock,superviseJob,killAll,exitWithin,tellPerson,tellChat} from './lib/bounded-run.mjs'
 import {hostedCiVerdict} from './lib/hosted-verdict.mjs'
 const root=path.resolve(import.meta.dirname,'..'),child=path.join(root,'workspace')
 const config=()=>JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8'))
@@ -178,7 +178,10 @@ if(cmd==='status'){
   watchdogMs:Number(process.env.FABRIC_WORKSPACE_SYNC_DEADLINE_MS)||110*MIN,
   guard:()=>{if(!process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT||path.resolve(process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT)!==root)throw Error('sync moves its checkout to origin/main, so it runs only in the checkout FABRIC_WORKSPACE_SYNC_CHECKOUT names (scripts/install-workspace-sync.sh makes it)')},
   // CO-390: from the second failure in a row the person is told on this Mac, not only in the log.
-  onFailure:(count,reason)=>{if(count>=2)tellPerson(`The wiki sync failed ${count} times in a row: ${reason}`)}
+  // CO-411: and in the private chat, once per streak (the streak's start is the notice's id, so later failures of the
+  // same streak send nothing new), then once more when the sync works again.
+  onFailure:(count,reason,streak)=>{if(count>=2){tellPerson(`The wiki sync failed ${count} times in a row: ${reason}`);tellChat({kind:'failure',eventId:'fabric-workspace-sync-failure-'+streak,text:`Синхронизация вики Fabric падает ${count} раза подряд: ${reason}. Журнал: ${process.env.FABRIC_WORKSPACE_SYNC_LOG||'нет'}`},{log:process.env.FABRIC_WORKSPACE_SYNC_LOG})}},
+  onRecovery:(before,streak)=>{if(before>=2)tellChat({kind:'recovery',eventId:'fabric-workspace-sync-recovery-'+streak,text:`Синхронизация вики Fabric снова работает после ${before} неудачных запусков.`},{log:process.env.FABRIC_WORKSPACE_SYNC_LOG})}
  },async({remainingMs})=>{
  holdPublication()
  // CO-390: a git lock older than the watchdog belongs to no live run, since the publication lock above is held; it

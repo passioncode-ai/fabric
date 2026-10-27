@@ -6,7 +6,7 @@ import { mkdtempSync, writeFileSync, readFileSync, existsSync, statSync, rmSync 
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
-import { boundedRun, acquireLock, writeStatus, rotateLog, nonInteractiveGitEnv, failuresBefore } from '../lib/bounded-run.mjs'
+import { boundedRun, acquireLock, writeStatus, rotateLog, nonInteractiveGitEnv, failuresBefore, streakStart } from '../lib/bounded-run.mjs'
 
 const alive = (pid) => { try { process.kill(pid, 0); return true } catch { return false } }
 const tmp = () => mkdtempSync(path.join(tmpdir(), 'fabric-bounded-'))
@@ -302,4 +302,61 @@ test('the sync job removes a git lock older than its watchdog and leaves a fresh
     writeFileSync(lock, '')
     assert.equal(Date.now() - statSync(lock).mtimeMs > 110 * 60_000, false)
   } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+// CO-411: a failure streak has one start, carried from record to record, so the chat is told once per streak and
+// told again when the job works after it.
+test('CO-411: a streak keeps its start across failures and ends at the first success', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'streak-'))
+  const file = path.join(dir, 'status.json')
+  try {
+    assert.equal(streakStart(file), null, 'no record, no streak')
+    writeStatus(file, { outcome: 'failed', consecutive_failures: 1, streak_started_at: '2026-10-27T10:00:00.000Z' })
+    assert.equal(streakStart(file), '2026-10-27T10:00:00.000Z')
+    writeStatus(file, { outcome: 'failed', consecutive_failures: 2 })
+    assert.equal(streakStart(file), null, 'a record from before the streak field names no start')
+    writeStatus(file, { outcome: 'published', consecutive_failures: 0, streak_started_at: '2026-10-27T10:00:00.000Z' })
+    assert.equal(streakStart(file), null, 'a success ends the streak')
+  } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('CO-411: a failed run records its streak and tells onFailure; the next success tells onRecovery with the same streak', async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'recovery-'))
+  const statusFile = path.join(dir, 'status.json'), told = path.join(dir, 'told.jsonl')
+  const lib = path.join(import.meta.dirname, '..', 'lib', 'bounded-run.mjs')
+  const job = (outcome) => `import { superviseJob } from ${JSON.stringify(lib)}; import { appendFileSync } from 'node:fs'
+    const say = (x) => appendFileSync(${JSON.stringify(told)}, JSON.stringify(x) + '\\n')
+    await superviseJob({ name: 'probe', statusFile: ${JSON.stringify(statusFile)}, watchdogMs: 60000,
+      onFailure: (count, reason, streak) => say({ what: 'failure', count, streak }),
+      onRecovery: (before, streak) => say({ what: 'recovery', before, streak }) },
+      async () => { if (${JSON.stringify(outcome)} === 'fail') throw new Error('boom'); return { outcome: 'done' } })`
+  const runJob = (outcome) => new Promise((resolve) => spawn(process.execPath, ['--input-type=module', '-e', job(outcome)], { stdio: 'ignore' }).on('exit', resolve))
+  try {
+    await runJob('fail'); await runJob('fail'); await runJob('ok'); await runJob('ok')
+    const lines = readFileSync(told, 'utf8').trim().split('\n').map((l) => JSON.parse(l))
+    assert.deepEqual(lines.map((l) => [l.what, l.count ?? l.before]), [['failure', 1], ['failure', 2], ['recovery', 2]], 'one recovery, only after the streak')
+    assert.ok(lines[0].streak && lines.every((l) => l.streak === lines[0].streak), 'the streak keeps the first failure\'s start')
+    assert.equal(JSON.parse(readFileSync(statusFile, 'utf8')).streak_started_at ?? null, null)
+  } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('CO-411: tellChat runs the notice under use_secret with the vault slot, never with the key in argv', async () => {
+  const { tellChat } = await import('../lib/bounded-run.mjs')
+  const calls = []
+  const spawnImpl = (cmd, args, opts) => { calls.push({ cmd, args, opts }); return { unref() {} } }
+  assert.equal(tellChat({ kind: 'failure', eventId: 'e-1', text: 'it failed' }, { spawnImpl }), true)
+  const [{ cmd, args, opts }] = calls
+  assert.equal(cmd, '/bin/sh')
+  assert.match(args[1], /use_secret\.py" run --vault-only fabric COMMUNICATOR_NOTIFY_KEY --/)
+  assert.match(args[1], /sleep 30; kill -9/, 'bounded like tellPerson')
+  assert.deepEqual(args.slice(5), ['failure', 'e-1', 'it failed'])
+  assert.equal(args[3], process.execPath)
+  assert.match(args[4], /communicator-notify\.mjs$/)
+  assert.equal(opts.detached, true)
+})
+
+test('CO-411: the sync tells the chat from the second failure in a row, once per streak, and its recovery', () => {
+  const src = readFileSync(path.join(import.meta.dirname, '..', 'workspace.mjs'), 'utf8')
+  assert.match(src, /onFailure:\(count,reason,streak\)=>\{if\(count>=2\)\{tellPerson\([\s\S]*tellChat\(\{kind:'failure',eventId:'fabric-workspace-sync-failure-'\+streak/)
+  assert.match(src, /onRecovery:\(before,streak\)=>\{if\(before>=2\)tellChat\(\{kind:'recovery',eventId:'fabric-workspace-sync-recovery-'\+streak/)
 })
