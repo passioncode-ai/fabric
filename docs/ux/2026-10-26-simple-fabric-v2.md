@@ -15,8 +15,8 @@ release review's iteration 2: §4.5's «waiting» is said only for a wait Fabric
 Fabric console silent for a minute is «Простаивает» (DA-5, `f1799a2a`); §4.9's lanes gained «Все» first, «Брошено»
 and «Не найдены» (UX-14, UX-20, DA-4, `13b00fd9`).
 
-What follows was the proposal for the operator to accept or correct, kept as written apart from §4.2 and §8's
-announcement. Like v1 it changed no scenario: the scenarios it touches
+What follows was the proposal for the operator to accept or correct, kept as written apart from §4.2, §8's
+announcement and the settled note in §4.6 (the main session, DEC-0140, iteration 3's PL-11). Like v1 it changed no scenario: the scenarios it touches
 (SCN-140, SCN-158, SCN-166, SCN-172, SCN-173, SCN-174) are amended in the same change that builds each part
 (super-ux: scenarios first). Every Russian string below is a proposal; each is checked with Copylot (`copylot_check`,
 register `ui`, the project's voice) in the change that ships it.
@@ -346,7 +346,9 @@ What is missing:
    spawned from it (above). And the same sentence in the adapter's `working-with-fabric` skill (ask, §8). Until agents
    follow it, a task with no link is its own root, so the row shows the current task itself in the goal's place,
    labelled «Цель» only when the person set it (origin person; UX-13, `13b00fd9`); an agent holding no task says
-   «Задачи не взял» (UX-12), and «Цель не названа» is left for a row whose goal could not be found.
+   «Задачи не взял» (UX-12), and «Цель не названа» is left for a row whose goal could not be found. A goal the
+   person defined in Plan (the root's `goal_id`, or a goal the root was spawned from) leads over the task filed under
+   it, and the task is the step below it (the 0.3.14 release review, iteration 3, UX-22, `be03d084`).
 2. **One extra read** in `readHome` (`apps/desktop/src/main/workRead.ts#readHome`): `task_links` for `rel = 'spawned'`
    among the projects at work, and the root tasks' titles. Bounded like the other reads; capped is named in `capped`.
 
@@ -412,6 +414,15 @@ slot holder, and «просто работает» is every other session in the
   proposal: a reserved default capability every project's primary enrolls under (e.g. `project.work`), defined by the
   contract (ask, §8); until then Fabric marks the holder of the oldest live slot in the project as «основная» and
   lists the others with their capability.
+- **Settled 2026-10-27 (the 0.3.14 release review, iteration 3, PL-11; DEC-0140, the contract's `3adec43b` and
+  `1002bc73` on thread `6a8d2f9c`).** The fallback in the paragraph above is dropped. The main session is the holder
+  of the `project.work` slot (DEC-0140 PR-1); while that slot is `absent`, no session is «основная»; a `stale` holder
+  is shown as the main session not answering, with the move offered. The move is the operator's control in Fabric
+  only (DEC-0140 PR-2, narrowed by `1002bc73`); its agent twin waits for CT-125 (CO-434). The ids of the requests the
+  old holder had accepted are handed to the session that receives the slot, so it can replace the holder with a
+  transfer (`com.responder_replace` with `transfer`) instead of leaving them held. This is 0.3.15's (CO-457); the
+  paragraph below («Назначить основной» as a nudge, the operator's replacement waiting for the contract) is read
+  through this note.
 
 Handing the role on (R-22): when the holder ends, its lease lapses in 60 s and the slot waits for the next enroll; the
 project page says «На доске никто не дежурит» and offers «Назначить основной» on another session, delivered to that
@@ -615,15 +626,15 @@ Drafts for the lead to post with `com.submit`; each is a request unless marked. 
 
 Announcement to relay (kind announcement, through fabric-workspace; part (b) corrected 2026-10-26 by the 0.3.14 release
 review, iteration 2, DO-2, to the mechanism `3648fd30` ships, after the first wording promised a link Fabric made only
-for launched sessions):
+for launched sessions; its last clause worded as the screen shows it by iteration 3, DO-12):
 
 > From Fabric, on the operator's word of 2026-10-26 («Всем агентам PassionCode передай, что надо делать»): Fabric now
 > shows each agent's goal and its current step to the operator. To be seen correctly: (a) claim the person's request
 > as one task whose title is that request in one line; (b) file each piece you split off with fabric_task_create while
 > that task is the one task you hold claimed in the project: Fabric links it as spawned from that task (the answer's
 > spawned_from names it; with no claim or several, spawned_from_why says why, and you link it with fabric_task_link,
-> taskId the piece, targetTaskId the task it came from); without a link the operator sees your current task as your
-> goal; (c) report your stage with step and of_steps; (d) send a
+> taskId the piece, targetTaskId the task it came from); without a link the operator sees your current task in the
+> goal's place; (c) report your stage with step and of_steps; (d) send a
 > heartbeat with phase waiting before you wait on a question; (e) read your project's board at start and answer
 > requests addressed to it. Nothing here is new protocol.
 
