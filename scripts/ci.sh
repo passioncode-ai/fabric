@@ -256,7 +256,7 @@ node --experimental-strip-types --test apps/desktop/test/claude-trust.test.mjs
 # 0.3.7 review PL-4 (DEC-0092): fabric.project.resolve tells "not in Git" from "Git could not be read", against real git.
 node --experimental-strip-types --test --test-force-exit apps/desktop/test/git-facts.test.mjs
 # 0.3.7 review ER-4: at start Docker is asked over its own socket before the stack's failure is shown.
-node --experimental-strip-types --test --test-force-exit apps/desktop/test/docker-ping.test.mjs
+node --experimental-strip-types --test --test-force-exit apps/desktop/test/docker-ping.test.mjs apps/desktop/test/docker-launch.test.mjs
 # 0.3.13 review, iteration 1, DA-1: every event type the app appends has ingress rules or a named owner; the sweep of
 # abandoned work, its receipt and the half-up stack's heal, without a database. Only the full tier ran them before.
 node --experimental-strip-types --test apps/desktop/test/ingress-owners.test.mjs

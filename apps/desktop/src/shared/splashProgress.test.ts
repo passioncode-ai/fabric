@@ -65,3 +65,11 @@ describe('the splash speaks the interface\'s language (CO-306, SCN-161)', () => 
     for (const s of [at(PATIENCE_MS / 1000 + 5, 'line'), ru(PATIENCE_MS / 1000 + 5, 'line')]) expect(s).not.toMatch(/—/)
   })
 })
+
+describe('CO-294: Fabric starting Docker\'s own app', () => {
+  it('says which app it starts, in the person\'s language', () => {
+    expect(splashProgress({ elapsedMs: 0, lastLine: 'Starting OrbStack', locale: 'ru' })).toMatch(/Запускаю OrbStack$/)
+    expect(splashProgress({ elapsedMs: 0, lastLine: 'Starting Docker Desktop', locale: 'ru' })).toMatch(/Запускаю Docker Desktop$/)
+    expect(splashProgress({ elapsedMs: 0, lastLine: 'Starting OrbStack' })).toMatch(/Starting OrbStack$/)
+  })
+})

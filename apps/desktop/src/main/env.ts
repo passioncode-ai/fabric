@@ -16,6 +16,7 @@ import { STACK_EXCLUDED_SERVICES, afterOwnStop, removeExcludedContainers, stackC
 import type { StackContainers } from '../shared/stackWatch.ts'
 import { nameTheLimit, recoveryStart, startWithRetry } from '../shared/stackStartRetry.ts'
 import { pingDocker } from './dockerPing.ts'
+import { dockerAppFor, launchDockerApp } from './dockerLaunch.ts'
 import { recoverThenHeal, resolveHealingHalfUp, type HalfUpDeps } from './stackHalfUp.ts'
 import { ops } from './opsSink.ts'
 import { homedir } from 'node:os'
@@ -122,6 +123,19 @@ export function stopStartingStack(): void {
   starting = null
 }
 
+// CO-294: Docker's own app is started at most once per launch, and only before the stack has first come up; a Docker
+// the person quits while Fabric runs is waited for, never started again behind them.
+let dockerLaunchSpent = false
+async function launchDockerOnce(socket: string | null): Promise<string | null> {
+  if (dockerLaunchSpent) return null
+  dockerLaunchSpent = true
+  const app = dockerAppFor(socket)
+  if (!app) return null
+  const name = await launchDockerApp(app)
+  ops.record({ op: 'stack.start.docker-launched', outcome: name ? 'ok' : 'failed', level: name ? 'info' : 'warn', detail: { app: app.name }, ctx: { correlationId: ops.correlate() } })
+  return name
+}
+
 /**
  * Starts the stack, waiting out the moments it is still coming up (`stackStartRetry.ts`): a container that is
  * «not ready: starting» right after Docker returns is retried, never shown as «The local stack refused to start».
@@ -133,6 +147,8 @@ export async function startStack(onLine?: (line: string) => void): Promise<void>
     stopped: () => stopRequested,
     // ER-4: Docker away at start (a login before OrbStack or Docker Desktop has its socket) is waited for, not shown.
     pingDocker: (socket) => pingDocker(socket),
+    launchDocker: launchDockerOnce,
+    onDockerLaunch: (name) => onLine?.(`Starting ${name}`),
     onDockerWait: (waitedMs) => {
       if (!dockerWaitLogged) {
         dockerWaitLogged = true
@@ -145,6 +161,7 @@ export async function startStack(onLine?: (line: string) => void): Promise<void>
       onLine?.(`The stack is still starting, try ${attempt} of ${attempts}`)
     }
   })
+  dockerLaunchSpent = true
 }
 
 // #region stack-recover-once — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
@@ -159,7 +176,7 @@ export async function recoverStack(): Promise<'started' | 'already-running'> {
   // CO-428: a start may leave a half-up stack (the database up, rest and auth gone): heal it once, whatever the CLI
   // answered (ER-1, `stackHalfUp.ts#recoverThenHeal`). A healthy stack costs one `supabase status`.
   return recoverThenHeal(
-    () => recoveryStart(() => startStackOnce(), { stopped: () => stopRequested, pingDocker: (socket) => pingDocker(socket) }),
+    () => recoveryStart(() => startStackOnce(), { stopped: () => stopRequested, pingDocker: (socket) => pingDocker(socket), launchDocker: launchDockerOnce }),
     // The watch also heals by the containers: rest alone gone leaves the keys in status (iteration 3, ER-4).
     () => resolveHealingHalfUp({ ...halfUpDeps(() => startStackOnce()), partial: async () => (await stackDatabaseContainer()) === 'partial' }),
     () => stopRequested

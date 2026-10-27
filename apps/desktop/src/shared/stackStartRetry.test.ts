@@ -209,3 +209,59 @@ describe('one deadline for the whole start (CO-311)', () => {
     expect(nameTheLimit(refused, 150_000).message).toBe(refused.message)
   })
 })
+
+describe('CO-294: Docker away at start starts its own app once, then waits as before', () => {
+  const clock = () => { let t = 0; return { now: () => t, sleep: async (ms: number) => { t += ms } } }
+  const dockerWait = { totalMs: 90_000, pollMs: 2_000 }
+
+  it('starts the app the socket belongs to, says it, and starts the stack once Docker answers', async () => {
+    const c = clock()
+    let starts = 0, pings = 0
+    const launched: (string | null)[] = []
+    const onDockerLaunch = vi.fn()
+    await startWithRetry(async () => { if (starts++ === 0) throw new Error(NO_DOCKER) }, {
+      plan, sleep: c.sleep, now: c.now, dockerWait, onDockerLaunch,
+      pingDocker: async () => ++pings >= 3,
+      launchDocker: async (socket) => { launched.push(socket); return 'OrbStack' }
+    })
+    expect(launched).toEqual(['/Users/x/.orbstack/run/docker.sock'])
+    expect(onDockerLaunch).toHaveBeenCalledWith('OrbStack')
+    expect(starts).toBe(2)
+  })
+
+  it('a Docker that answers at once is not started again', async () => {
+    const c = clock()
+    let starts = 0
+    const launchDocker = vi.fn(async () => 'OrbStack')
+    await startWithRetry(async () => { if (starts++ === 0) throw new Error(NO_DOCKER) }, {
+      plan, sleep: c.sleep, now: c.now, dockerWait, pingDocker: async () => true, launchDocker
+    })
+    expect(launchDocker).not.toHaveBeenCalled()
+    expect(starts).toBe(2)
+  })
+
+  it('no app to start, or a start that throws, leaves the wait as it was', async () => {
+    for (const launchDocker of [async () => null, async () => { throw new Error('spawn ENOENT') }]) {
+      const c = clock()
+      let starts = 0, pings = 0
+      const onDockerLaunch = vi.fn()
+      await startWithRetry(async () => { if (starts++ === 0) throw new Error(NO_DOCKER) }, {
+        plan, sleep: c.sleep, now: c.now, dockerWait, onDockerLaunch, launchDocker,
+        pingDocker: async () => ++pings >= 4
+      })
+      expect(onDockerLaunch).not.toHaveBeenCalled()
+      expect(starts).toBe(2)
+      expect(pings).toBe(4)
+    }
+  })
+
+  it('a quit before the start launches nothing', async () => {
+    const c = clock()
+    const launchDocker = vi.fn(async () => 'OrbStack')
+    let quit = false
+    await expect(startWithRetry(async () => { quit = true; throw new Error(NO_DOCKER) }, {
+      plan, sleep: c.sleep, now: c.now, dockerWait, stopped: () => quit, pingDocker: async () => false, launchDocker
+    })).rejects.toThrow(/docker API/)
+    expect(launchDocker).not.toHaveBeenCalled()
+  })
+})

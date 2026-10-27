@@ -36,6 +36,8 @@ const DOCKER_WAIT = /^Waiting for Docker to answer \((\d+) s\)$/
 const STILL_STARTING = /^The stack is still starting, try (\d+) of (\d+)$/
 /** `main/stackHalfUp.ts#HEAL_LINE`: the half-up heal stops and starts the stack (0.3.13 review, iteration 3, UX-5). */
 const HEALING = /^Restarting the local stack, keeping its data$/
+/** `main/env.ts`, CO-294: Fabric starts Docker's own app. */
+const LAUNCHING = /^Starting (OrbStack|Docker Desktop)$/
 
 const WORDS = {
   en: {
@@ -44,7 +46,8 @@ const WORDS = {
     patient: 'a first run downloads images and is expected to be slow',
     docker: (n: string) => `Waiting for Docker to answer (${n} s)`,
     retry: (a: string, b: string) => `The stack is still starting, try ${a} of ${b}`,
-    healing: 'Restarting the local stack, keeping its data'
+    healing: 'Restarting the local stack, keeping its data',
+    launching: (app: string) => `Starting ${app}`
   },
   ru: {
     starting: 'Запускаю локальную базу',
@@ -52,7 +55,8 @@ const WORDS = {
     patient: 'первый запуск скачивает образы и идёт долго',
     docker: (n: string) => `Жду ответа Docker (${n} с)`,
     retry: (a: string, b: string) => `База ещё запускается, попытка ${a} из ${b}`,
-    healing: 'Перезапускаю локальную базу, данные сохраняются'
+    healing: 'Перезапускаю локальную базу, данные сохраняются',
+    launching: (app: string) => `Запускаю ${app}`
   }
 }
 
@@ -71,6 +75,7 @@ export function splashProgress(state: SplashState): string {
   if (docker) line = w.docker(docker[1])
   else if (retry) line = w.retry(retry[1], retry[2])
   else if (HEALING.test(line)) line = w.healing
+  else if (LAUNCHING.test(line)) line = w.launching(LAUNCHING.exec(line)![1])
   if (line) {
     // Stripped, not escaped. The main process writes this into a page, and a
     // stack that printed a tag could otherwise put markup on the screen — a

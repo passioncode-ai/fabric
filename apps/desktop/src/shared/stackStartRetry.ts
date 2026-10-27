@@ -136,6 +136,11 @@ export async function startWithRetry(
     now?: () => number
     /** Called while Docker is waited for, with the time waited so far. */
     onDockerWait?: (waitedMs: number) => void
+    /** CO-294: starts Docker's own app when Docker does not answer before the wait, once; the app's name, or null when
+     *  none was started (`main/dockerLaunch.ts`). Absent, nothing is started. */
+    launchDocker?: (socket: string | null) => Promise<string | null>
+    /** Called when `launchDocker` started an app, with its name, for the splash. */
+    onDockerLaunch?: (name: string) => void
   } = {}
 ): Promise<void> {
   const plan = opts.plan ?? STACK_START_RETRY
@@ -166,6 +171,10 @@ export async function startWithRetry(
         dockerWaited = true
         const socket = dockerSocketFrom(message)
         const waitBegun = now()
+        if (opts.launchDocker && !(await opts.pingDocker(socket).catch(() => false)) && !opts.stopped?.()) {
+          const started = await opts.launchDocker(socket).catch(() => null)
+          if (started) opts.onDockerLaunch?.(started)
+        }
         const waited = await waitForDocker(() => opts.pingDocker!(socket), { plan: opts.dockerWait, sleep, now: opts.now, stopped: opts.stopped, onWait: opts.onDockerWait })
         dockerSpent += now() - waitBegun
         if (waited === 'stopped') throw e
