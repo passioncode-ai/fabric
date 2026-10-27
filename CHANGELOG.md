@@ -9,10 +9,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-- **Fabric starts Docker when it is not running** (CO-294, the start half). When Docker does not answer at start and
-  its own app is installed (OrbStack or Docker Desktop, chosen by the socket the docker CLI would use), Fabric starts
-  that app once, in the background, says «Запускаю OrbStack» on the splash and waits for Docker as before. Nothing
-  is started on Linux, for a network engine or Colima, or once the stack has been up during this launch.
+- **Fabric starts Docker when it is not running** (CO-294, the start half). When Docker does not answer at start,
+  Fabric starts it once and waits for it as before, saying so on the splash («Запускаю Colima»). With Colima
+  installed it starts Colima and never OrbStack or Docker Desktop; it starts OrbStack or Docker Desktop only when
+  that app is the one runtime installed, because starting OrbStack switches the machine's docker context. It never
+  changes the docker context itself, and starts nothing on Linux, for a network engine, or once the stack has been
+  up during this launch.
 - **The wiki sync's failures reach the operator's private chat** (CO-411). From the second failure in a row the
   scheduled sync says so in the chat once per failure streak, besides the notice on the Mac, and says once more when it
   works again. It uses a key that can only send such a notice, read from the vault for that one call.

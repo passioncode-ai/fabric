@@ -71,5 +71,6 @@ describe('CO-294: Fabric starting Docker\'s own app', () => {
     expect(splashProgress({ elapsedMs: 0, lastLine: 'Starting OrbStack', locale: 'ru' })).toMatch(/Запускаю OrbStack$/)
     expect(splashProgress({ elapsedMs: 0, lastLine: 'Starting Docker Desktop', locale: 'ru' })).toMatch(/Запускаю Docker Desktop$/)
     expect(splashProgress({ elapsedMs: 0, lastLine: 'Starting OrbStack' })).toMatch(/Starting OrbStack$/)
+    expect(splashProgress({ elapsedMs: 0, lastLine: 'Starting Colima', locale: 'ru' })).toMatch(/Запускаю Colima$/)
   })
 })

@@ -37,7 +37,7 @@ const STILL_STARTING = /^The stack is still starting, try (\d+) of (\d+)$/
 /** `main/stackHalfUp.ts#HEAL_LINE`: the half-up heal stops and starts the stack (0.3.13 review, iteration 3, UX-5). */
 const HEALING = /^Restarting the local stack, keeping its data$/
 /** `main/env.ts`, CO-294: Fabric starts Docker's own app. */
-const LAUNCHING = /^Starting (OrbStack|Docker Desktop)$/
+const LAUNCHING = /^Starting (OrbStack|Docker Desktop|Colima)$/
 
 const WORDS = {
   en: {
