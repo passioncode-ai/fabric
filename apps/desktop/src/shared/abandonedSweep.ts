@@ -34,7 +34,7 @@ export const TURN_WINDOW_MS = 15 * 60_000
  *  does: one list each for the sweep and the receipt's ingress rules (iteration 3, DA-5). */
 export const SWEEP_READS = ['claims', 'tasks', 'requests', 'terminals', 'turns', 'briefs'] as const
 export type SweepRead = (typeof SWEEP_READS)[number]
-export const SWEEP_CAPS = ['claims', 'threads', 'messages', 'turns'] as const
+export const SWEEP_CAPS = ['claims', 'threads', 'messages', 'turns', 'tasks'] as const
 export type SweepCap = (typeof SWEEP_CAPS)[number]
 
 export interface SweepClaim {

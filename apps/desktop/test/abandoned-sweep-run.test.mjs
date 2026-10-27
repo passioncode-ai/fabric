@@ -463,6 +463,25 @@ test('finding 6: a capped claims read judges no task unclaimed', async () => {
   assert.deepEqual(out.findings.filter((f) => f.kind === 'task-unclaimed'), [])
 })
 
+// The 0.3.14 review, iteration 3, ER-23, DA-9: a task a full claims chunk left unjudged keeps its earlier finding and
+// telling (never told again next sweep), and the receipt names the cut as `tasks`, which the ingress takes.
+test('ER-23, DA-9: tasks left unjudged by a full claims chunk keep their finding, are not told again, and the cut is named', async () => {
+  const w = world({ tasks: [runningTask('t-free')] })
+  const sweep = createAbandonedSweep(w.deps)
+  await sweepOnce(sweep)
+  assert.deepEqual(sweep.current().findings.map((f) => [f.kind, f.taskId]), [['task-unclaimed', 't-free']])
+  const toldBefore = w.receipts.reduce((n, r) => n + r.told, 0)
+  w.tasks = { tasks: [], capped: true }
+  for (let i = 0; i < 2; i++) { w.tick(3 * MIN); await sweepOnce(sweep) }
+  assert.deepEqual(sweep.current().findings.map((f) => [f.kind, f.taskId]), [['task-unclaimed', 't-free']], 'kept while unjudged')
+  w.tasks = [runningTask('t-free')]
+  w.tick(3 * MIN); await sweepOnce(sweep)
+  assert.equal(w.receipts.reduce((n, r) => n + r.told, 0), toldBefore, 'judged again, not told again within its quiet window')
+  const cut = w.receipts.find((r) => r.capped?.includes('tasks'))
+  assert.ok(cut, 'the receipt names the cut')
+  assert.equal(prepareEventPayload('work.swept@1', cut).state, 'prepared')
+})
+
 test('finding 6: a task a person moved to running is not unclaimed', async () => {
   const w = world({ tasks: [{ ...runningTask('t-hand'), movedByKind: 'person' }, runningTask('t-free')] })
   const sweep = createAbandonedSweep(w.deps)
@@ -475,7 +494,7 @@ test('finding 6: readRunningTasks reads who last moved each task', async () => {
   let columns = ''
   const rows = [{ id: 't1', project_id: 'p1', moved_at: iso(T0), started_at: null, moved_by_kind: 'person' }]
   const q = { eq: () => q, limit: async () => ({ data: rows, error: null }) }
-  const out = await readRunningTasks({ select: (_t, c) => { columns = c; return q }, selectIn: async () => ({ rows: [], failed: null }) })
+  const { tasks: out } = await readRunningTasks({ select: (_t, c) => { columns = c; return q }, selectIn: async () => ({ rows: [], failed: null }) })
   assert.match(columns, /moved_by_kind/)
   assert.deepEqual(out, [{ taskId: 't1', projectId: 'p1', movedAt: iso(T0), movedByKind: 'person', movedBy: null, lastClaimedAt: null, lastClaim: null }])
 })
@@ -641,7 +660,8 @@ test('B2: readRunningTasks reads the newest claim of each running task, bounded 
       return claimError ? { rows: [], failed: claimError } : { rows: claimRows, failed: null }
     }
   }
-  const out = await readRunningTasks(store)
+  const { tasks: out, capped: whole } = await readRunningTasks(store)
+  assert.equal(whole, false)
   assert.deepEqual(asked.map((a) => [a.table, a.column, a.values]), [['work_claims', 'work_id', ['t1', 't2']]], 'the running tasks read, no more')
   assert.match(asked[0].columns, /released_how/)
   assert.deepEqual([asked[0].order, asked[0].limit], [['claimed_at', false], 1000], 'DA-3: newest first, at the gateway\'s 1 000 rows')
@@ -651,7 +671,8 @@ test('B2: readRunningTasks reads the newest claim of each running task, bounded 
   // DA-3: a chunk that came back full may miss a task's newest claim; that task is not judged, never "no claim".
   claimRows = Array.from({ length: 1000 }, (_, i) => ({ work_id: 't1', claimed_at: iso(T0 - (i + 1) * MIN), released_at: iso(T0 - i * MIN), released_how: 'let-go', owner_session: 's1' }))
   const capped = await readRunningTasks(store)
-  assert.deepEqual(capped.map((t) => t.taskId), ['t1'], 't2 has no row in a full answer: left out this sweep')
+  assert.deepEqual(capped.tasks.map((t) => t.taskId), ['t1'], 't2 has no row in a full answer: left out this sweep')
+  assert.equal(capped.capped, true, 'ER-23, DA-9: the cut is said')
   claimError = 'refused'
   await assert.rejects(readRunningTasks(store), /refused/, 'an unread claim history is never "no claim since"')
 })
@@ -1000,12 +1021,12 @@ test('ER-22: readRunningTasks reads the last move\'s from only for a possible re
     },
     selectIn: async () => ({ rows: claims, failed: null })
   }
-  const out = await readRunningTasks(store)
+  const { tasks: out } = await readRunningTasks(store)
   assert.deepEqual(journalAsked, [[['type', 'task.moved@1'], ['payload->>task_id', 't-step']]], 'only the possible step is read')
   assert.equal(out.find((t) => t.taskId === 't-step').movedFrom, 'review')
   assert.equal('movedFrom' in out.find((t) => t.taskId === 't-other'), false)
   journal = { data: null, error: { message: 'deadline' } }
-  const unread = await readRunningTasks(store)
+  const { tasks: unread } = await readRunningTasks(store)
   assert.equal(unread.find((t) => t.taskId === 't-step').movedFrom, null)
 })
 

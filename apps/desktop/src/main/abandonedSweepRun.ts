@@ -60,6 +60,9 @@ export const TURN_NUDGES_MAX = 5
 export const TURN_REPEAT_MS = 60 * 60_000
 const TURN_ANSWERS_MAX = 1000
 
+/** The running tasks read, and whether a claims chunk came back at the gateway's bound (ER-23, DA-9). */
+export interface SweepTasksRead { tasks: SweepRunningTask[]; capped: boolean }
+
 export interface SweepRunningTask {
   taskId: string
   projectId: string | null
@@ -90,8 +93,9 @@ export interface AbandonedSweepDeps {
   readTurns?(now: number): Promise<{ turns: SweepTurn[]; capped: boolean }>
   /** The missing brief parts of these claimed tasks (`readBriefGaps`); absent: no brief is judged. */
   readBriefGaps?(taskIds: string[]): Promise<Record<string, SpecPart[]>>
-  /** The tasks in running, with when each last moved. */
-  readRunningTasks(): Promise<SweepRunningTask[]>
+  /** The tasks in running, with when each last moved; `capped` when a claims chunk came back full and some were left
+   *  unjudged (`readRunningTasks`; the 0.3.14 review, iteration 3, ER-23, DA-9). A bare list is a whole read. */
+  readRunningTasks(): Promise<SweepRunningTask[] | SweepTasksRead>
   readRequests(now: number): Promise<{ requests: SweepRequest[]; capped: BoardCap[] }>
   /** Fabric's own terminals, with the runtime observer's liveness, the task each holds and its own last activity. */
   terminals(): SweepTerminal[]
@@ -239,13 +243,14 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   async function sweep(): Promise<SweepResult> {
     const now = deps.now()
     const failedReads: Source[] = []
-    const [claimRead, taskRead, requestRead, terminals, turns] = await Promise.all([
+    const [claimRead, tasksRead, requestRead, terminals, turns] = await Promise.all([
       attempt('claims', () => deps.readClaims(now), failedReads),
-      attempt('tasks', () => deps.readRunningTasks(), failedReads),
+      attempt('tasks', async () => { const r = await deps.readRunningTasks(); return Array.isArray(r) ? { tasks: r, capped: false } : r }, failedReads),
       attempt('requests', () => deps.readRequests(now), failedReads),
       attempt('terminals', () => deps.terminals(), failedReads),
       deps.readTurns ? attempt('turns', () => deps.readTurns!(now), failedReads) : Promise.resolve(null)
     ])
+    const taskRead = tasksRead?.tasks ?? null
     // A running task is unclaimed only when no open claim (any life: a silent or lapsed one is its own finding), no
     // lease of a managed launch and no Fabric terminal stands on it. Without the claims or the terminals read, that
     // cannot be judged, so no task is called unclaimed; nor when the claims read stopped at its limit (a claim past
@@ -286,7 +291,9 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     const blind = new Set<AbandonedKind>([
       ...failedReads.flatMap((s) => KINDS_OF[s]),
       ...(claimRead?.capped ? (['task-unclaimed', 'work-unclaimed'] as const) : []),
-      ...(turns?.capped ? (['work-unclaimed'] as const) : [])
+      ...(turns?.capped ? (['work-unclaimed'] as const) : []),
+      // ER-23, DA-9 (iteration 3): tasks a full claims chunk left unjudged keep their earlier tellings, never told again.
+      ...(tasksRead?.capped ? (['task-unclaimed', 'terminal-stalled'] as const) : [])
     ])
     const decided = toTell(findings, told, now)
     for (const [key, at] of told) if (!decided.told.has(key) && blind.has(kindOf(key))) decided.told.set(key, at)
@@ -361,7 +368,8 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     // or read blind or capped; a sweep that found only what it had already told writes nothing (0.3.13 review,
     // iteration 1, DA-2: one stuck item wrote a receipt every three minutes), nor one that runs into a quit (ER-5).
     // A receipt the journal refused is said in the ops log; the sweep stands.
-    const capped: SweepCap[] = [...(claimRead?.capped ? ['claims' as const] : []), ...(requestRead?.capped ?? []), ...(turns?.capped ? ['turns' as const] : [])]
+    const capped: SweepCap[] = [...(claimRead?.capped ? ['claims' as const] : []), ...(requestRead?.capped ?? []), ...(turns?.capped ? ['turns' as const] : []),
+      ...(tasksRead?.capped ? ['tasks' as const] : [])]
     // A read that stays blind or capped is recorded when that changes, not on every sweep it lasts (iteration 2, DA-1:
     // a board read stuck at its bound wrote 480 receipts a day). The state counts as recorded only once its receipt is
     // in the journal, so a receipt the journal refused is tried again at the next sweep (iteration 3, ER-3, DA-1).
@@ -523,7 +531,7 @@ export async function readRecentTurns(store: Pick<Store, 'select'>, now: number)
  *  (`workRead.ts#readHome`): `moved_at`, the time it last changed column, else `started_at`. Who moved it is the
  *  `moved_by_kind` column the projector writes with `moved_at` from the move's actor (`apply_move_provenance`), so no
  *  journal read and no migration is needed to tell a person's hand move. A read that fails throws. */
-export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>): Promise<SweepRunningTask[]> {
+export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>): Promise<SweepTasksRead> {
   const r = await store.select('project_tasks', 'id,project_id,moved_at,started_at,moved_by_kind,moved_by').eq('status', 'running').limit(SWEEP_READ_LIMIT)
   if (r.error) throw new Error(`the tasks in work could not be read: ${r.error.message}`)
   const rows = ((r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null; moved_by_kind: string | null; moved_by?: string | null }>)
@@ -550,7 +558,7 @@ export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>
     if (got.length >= GATEWAY_ROWS) for (const id of ids) if (!last.has(id)) unjudged.add(id)
   }
   if (unjudged.size) opsSink.record({ op: 'work.sweep-claims-capped', outcome: 'unknown', level: 'warn', ctx: { correlationId: opsSink.correlate() },
-    detail: { tasks: unjudged.size, note: 'a chunk of claims came back at the gateway\'s 1 000 rows; these tasks are judged next sweep' } })
+    detail: { tasks: unjudged.size, note: 'a chunk of claims came back at the gateway\'s 1 000 rows; these tasks are not judged while it stays full, their earlier findings kept, and the receipt names the cut (tasks)' } })
   const out: SweepRunningTask[] = rows.filter((t) => !unjudged.has(t.id)).map((t) => ({
     taskId: t.id, projectId: t.project_id, movedAt: (t.moved_at ?? t.started_at) as string, movedByKind: t.moved_by_kind ?? null,
     movedBy: t.moved_by ?? null, lastClaimedAt: last.get(t.id)?.claimedAt ?? null, lastClaim: last.get(t.id) ?? null
@@ -570,7 +578,7 @@ export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>
     const from = ((m.data ?? []) as Array<{ payload?: { from?: unknown } }>)[0]?.payload?.from
     t.movedFrom = typeof from === 'string' ? from : null
   }
-  return out
+  return { tasks: out, capped: unjudged.size > 0 }
 }
 
 /** The gateway answers at most this many rows (`supabase/config.toml` `max_rows`); a read that asks for more cannot
