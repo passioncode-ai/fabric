@@ -137,7 +137,7 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'piece you split off with fabric_task_create while that task is the one task you hold claimed in this project: ' +
       'Fabric links the piece as spawned from it (the answer\'s spawned_from names it, or spawned_from_why says why ' +
       'not), and the operator sees the goal above your current step. Nothing stops you skipping this; the cost is a ' +
-      'row that says no goal was named.',
+      'row that shows your current step in the goal\'s place, so the operator cannot see what it serves.',
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },
