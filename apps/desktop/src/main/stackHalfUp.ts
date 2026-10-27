@@ -76,14 +76,23 @@ async function heal<T>(deps: HalfUpDeps<T>, first: unknown): Promise<T> {
     deps.record({ outcome: 'failed', why: `the heal stopped the stack and could not start it: ${String(e).slice(0, 200)}` })
     throw e
   }
+  let healed: T
   try {
-    const healed = await deps.resolve()
-    deps.record({ outcome: 'ok' })
-    return healed
+    healed = await deps.resolve()
   } catch (again) {
     deps.record({ outcome: 'failed', why: `still no keys after the heal: ${String(again).slice(0, 200)}` })
     throw again
   }
+  // CO-454: the status names the keys while rest alone is gone, so the containers are read again; a heal that left the
+  // stack partial is a failed heal, thrown, and the watch tries again on its own backoff instead of recording it done
+  // and stopping and starting the stack at every try. A `docker ps` that fails says nothing, as before the heal.
+  if (deps.partial && !deps.stopped?.() && await deps.partial().catch(() => false)) {
+    const why = 'Docker still shows the database running without rest or kong after the heal'
+    deps.record({ outcome: 'failed', why })
+    throw Object.assign(new Error(why), { code: STACK_HEAL_FAILED })
+  }
+  deps.record({ outcome: 'ok' })
+  return healed
 }
 
 /**

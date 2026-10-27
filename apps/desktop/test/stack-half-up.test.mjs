@@ -6,6 +6,7 @@ import test from 'node:test'
 import path from 'node:path'
 
 const { resolveHealingHalfUp, isHalfUp, recoverThenHeal } = await import(path.resolve(import.meta.dirname, '../src/main/stackHalfUp.ts'))
+const { STACK_HEAL_FAILED } = await import(path.resolve(import.meta.dirname, '../src/shared/startupFailure.ts'))
 
 const silent = () => new Error('supabase status did not yield API_URL/SERVICE_ROLE_KEY (got: API_URL, DB_URL)')
 const env = { url: 'http://127.0.0.1:54321', serviceKey: 'k' }
@@ -140,7 +141,7 @@ test('iteration 3 ER-4: a status that names the keys while Docker shows the stac
     partial: async () => { calls.push('partial'); return partial }
   })
   assert.deepEqual(got, env)
-  assert.deepEqual(calls, ['resolve', 'partial', 'stop', 'start', 'resolve', 'record:ok'])
+  assert.deepEqual(calls, ['resolve', 'partial', 'stop', 'start', 'resolve', 'partial', 'record:ok'])
   // A healthy stack: one status and one container read, nothing stopped; a container read that fails heals nothing.
   const quiet = []
   await resolveHealingHalfUp({ resolve: async () => env, stop: async () => { quiet.push('stop') }, start: async () => { quiet.push('start') }, record: () => {}, partial: async () => false })
@@ -156,4 +157,20 @@ test('iteration 3 UX-5: the splash is told the stack is being restarted before t
   assert.deepEqual(said, [HEAL_LINE, 'stop'])
   assert.match(splashProgress({ elapsedMs: 1000, lastLine: HEAL_LINE, locale: 'ru' }), /Перезапускаю локальную базу, данные сохраняются/)
   assert.match(splashProgress({ elapsedMs: 1000, lastLine: HEAL_LINE, locale: 'en' }), /Restarting the local stack, keeping its data/)
+})
+
+test('CO-454: a heal that leaves Docker showing the stack partial is a failed heal, never recorded done', async () => {
+  const records = []
+  const calls = []
+  const env = { url: 'http://127.0.0.1:54321' }
+  const run = resolveHealingHalfUp({
+    resolve: async () => { calls.push('resolve'); return env },
+    stop: async () => { calls.push('stop') },
+    start: async () => { calls.push('start') },
+    record: (r) => records.push(r),
+    partial: async () => { calls.push('partial'); return true }
+  })
+  await assert.rejects(run, (e) => e.code === STACK_HEAL_FAILED && /without rest or kong after the heal/.test(e.message))
+  assert.deepEqual(calls, ['resolve', 'partial', 'stop', 'start', 'resolve', 'partial'])
+  assert.deepEqual(records.map((r) => r.outcome), ['failed'])
 })
