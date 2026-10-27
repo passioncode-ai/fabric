@@ -9,6 +9,15 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+**Upgrading.** This version moves the local database to schema 99 with one migration,
+`20261027000126_home_journal_indexes.sql`: two indexes on the journal, nothing else. A database at 98 (0.3.13 to 0.3.15)
+takes it; take a backup first. No older build opens a schema-99 database, so going back is the backup with the bundle
+you came from. The order is the runbook's ([docs/launch/release-mac.md](docs/launch/release-mac.md)).
+
+- **The home's reads of the journal have indexes of their own** (CO-469, CO-477 in part). The rhythm's marks, the
+  agents' turns, their enrolments and the requests waiting between projects were each a scan of the whole journal; on
+  200 000 events each now reads an index (10 to 22 ms in `journal-indexes-db.test.mjs`, which fails without the
+  migration).
 - **Fabric starts Docker when it is not running** (CO-294, the start half). When Docker does not answer at start,
   Fabric starts it once and waits for it as before, saying so on the splash («Запускаю Colima»). With Colima
   installed it starts Colima and never OrbStack or Docker Desktop; it starts OrbStack or Docker Desktop only when

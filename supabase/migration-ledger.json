@@ -393,6 +393,10 @@
     {
       "file": "20261026000125_board_reader_count_held.sql",
       "sha256": "6ec1ca1dc02fa79d6bb84bd6199d792fe76c241d626b1a605bfa03fbc97fe249"
+    },
+    {
+      "file": "20261027000126_home_journal_indexes.sql",
+      "sha256": "cf9c2f45b49a222a4e236cff392f8fb96af38efb555075849b206c2a7ef5f262"
     }
   ]
 }
