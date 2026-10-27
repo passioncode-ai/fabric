@@ -1,6 +1,6 @@
 // CO-322 (the operator, 2026-10-16): Fabric starts at login by default, quietly, and the person can turn it off.
 import { describe, expect, it } from 'vitest'
-import { loginItemFor, loginItemState, startsInBackground, type LoginItemState } from './loginItem'
+import { loginItemFor, loginItemState, startRecord, startsInBackground, type LoginItemState } from './loginItem'
 
 describe('launch at login', () => {
   it('registers the packaged app with the system, on by default and off when the person says so', () => {
@@ -40,5 +40,16 @@ describe('what Settings says about launch at login (0.3.7 review UX-3, ER-3)', (
   it('says unknown when the system cannot be read, rather than guessing', () => {
     expect(systemOf(loginItemState('darwin', true, () => { throw new Error('denied') }))).toBe('unknown')
     expect(systemOf(loginItemState('win32', true, () => ({})))).toBe('unknown')
+  })
+})
+
+describe('CO-365: every start says how it was started, so a reboot can be checked in the operations log', () => {
+  it('names a start the system opened at login, a background start and an ordinary one', () => {
+    expect(startRecord(['Fabric'], true, '0.3.16')).toEqual({ version: '0.3.16', atLogin: true, background: true })
+    expect(startRecord(['Fabric', '--background'], false, '0.3.16')).toEqual({ version: '0.3.16', atLogin: false, background: true })
+    expect(startRecord(['Fabric'], false, '0.3.16')).toEqual({ version: '0.3.16', atLogin: false, background: false })
+  })
+  it('a platform that cannot tell says unknown, never false', () => {
+    expect(startRecord(['Fabric'], null, '0.3.16')).toEqual({ version: '0.3.16', atLogin: 'unknown', background: false })
   })
 })

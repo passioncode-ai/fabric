@@ -45,7 +45,7 @@ import { promises as fsPromises } from 'node:fs'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { resolveProject } from '../shared/projectResolve.ts'
-import { loginItemFor, loginItemState, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
+import { loginItemFor, loginItemState, startRecord, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
 import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
@@ -643,8 +643,12 @@ let activatedDuringStartup = false
  */
 function applyLoginItem(enabled: boolean, atStart: boolean): void {
   try {
-    if (atStart && process.platform === 'darwin' && app.isPackaged)
-      BACKGROUND_LAUNCH = startsInBackground(process.argv, app.getLoginItemSettings().wasOpenedAtLogin)
+    if (atStart) {
+      const openedAtLogin = process.platform === 'darwin' && app.isPackaged ? app.getLoginItemSettings().wasOpenedAtLogin : null
+      if (openedAtLogin !== null) BACKGROUND_LAUNCH = startsInBackground(process.argv, openedAtLogin)
+      // CO-365: how this start began, so a reboot is checked in the operations log, not inferred from timings.
+      ops.record({ op: 'app.started', outcome: 'ok', level: 'info', detail: startRecord(process.argv, openedAtLogin, app.getVersion()), ctx: { correlationId: ops.correlate() } })
+    }
     const item = loginItemFor(enabled, process.platform, app.isPackaged)
     if (!item) return
     app.setLoginItemSettings(item)

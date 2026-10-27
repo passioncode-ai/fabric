@@ -44,4 +44,12 @@ export function loginItemState(platform: string, packaged: boolean, read: () => 
 export function startsInBackground(argv: readonly string[], openedAtLogin: boolean): boolean {
   return argv.includes('--background') || openedAtLogin
 }
+/**
+ * CO-365: what a start records about itself, so a reboot can be checked in the operations log: the version, whether
+ * the system opened it at login (`'unknown'` where the platform cannot tell, never false), and whether it starts in
+ * the background.
+ */
+export function startRecord(argv: readonly string[], openedAtLogin: boolean | null, version: string): { version: string; atLogin: boolean | 'unknown'; background: boolean } {
+  return { version, atLogin: openedAtLogin ?? 'unknown', background: startsInBackground(argv, openedAtLogin === true) }
+}
 // #endregion login-item

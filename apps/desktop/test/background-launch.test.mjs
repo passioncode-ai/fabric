@@ -11,7 +11,10 @@ const src = readFileSync(path.join(import.meta.dirname, '../src/main/index.ts'),
 
 test('the flag is read from argv, and a start at login counts as a background start (CO-322)', () => {
   assert.match(src, /let BACKGROUND_LAUNCH = process\.argv\.includes\('--background'\)/)
-  assert.match(src, /BACKGROUND_LAUNCH = startsInBackground\(process\.argv, app\.getLoginItemSettings\(\)\.wasOpenedAtLogin\)/)
+  assert.match(src, /const openedAtLogin = process\.platform === 'darwin' && app\.isPackaged \? app\.getLoginItemSettings\(\)\.wasOpenedAtLogin : null/)
+  assert.match(src, /if \(openedAtLogin !== null\) BACKGROUND_LAUNCH = startsInBackground\(process\.argv, openedAtLogin\)/)
+  // CO-365: every start records how it began, so a reboot is checked in the operations log.
+  assert.match(src, /op: 'app\.started', outcome: 'ok', level: 'info', detail: startRecord\(process\.argv, openedAtLogin, app\.getVersion\(\)\)/)
 })
 test('a background launch shows no splash', () => {
   // 0.3.9 ST-3: nor while the start-wait window already says what Fabric waits for.
