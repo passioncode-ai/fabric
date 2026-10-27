@@ -237,7 +237,6 @@
 .lh-spark i.unknown{height:100%;background:repeating-linear-gradient(135deg,transparent,transparent 3px,var(--app-line-strong) 3px,var(--app-line-strong) 4px)}
 .lh-totals{display:block;font-size:10px;color:var(--app-muted);line-height:1.6}
 .lh-totals>span{display:block;font-size:9px}
-.lh-totals>.lh-rhythm-stale{display:inline;font-size:inherit;color:var(--app-ink)}
 .lh-pulse-title{display:flex;align-items:center;gap:var(--space-2)}
 .lh-pulse-title>b{font-size:13px}
 .lh-pulse-title .fp-signal{font-size:22px;line-height:1}
@@ -794,6 +793,7 @@ button.lg-node{ cursor: pointer; }
 .estate-home .lh-rhythm-days{font-weight:400;color:var(--app-muted)}
 .estate-home .lh-rhythm-days .lh-text-link{display:inline;min-height:0;padding:0;border:0;background:none;font:inherit;color:inherit}
 .estate-home .lh-rhythm-days .lh-text-link:hover{text-decoration:underline}
+.estate-home .lh-totals>.lh-rhythm-stale{display:inline;font-size:inherit;color:var(--app-ink)}
 .estate-home .lh-totals{display:inline;font-size:12px;font-weight:400;line-height:inherit;color:var(--app-muted);white-space:nowrap}
 .estate-home .lh-hero .lh-spark{height:40px;gap:3px;margin:var(--space-2) 0 0}
 .estate-home .lh-spark>span:not(.unknown)>i{background:var(--app-muted);opacity:1}
