@@ -7,6 +7,15 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **A stack that stays half up is said lost, not healed again and again** (CO-454). After its heal (stop keeping the
+  data, then start) Fabric asks Docker once more; a database still running without its gateway is reported as a failed
+  heal, so the watch says the stack is lost instead of reporting it up and healing it again on every try.
+- **The sweep of abandoned work says when it read only part of the tasks in work** (CO-439, part 1). The tasks in work
+  are read oldest first, and a read that stops at its 500 rows is named in the sweep's receipt instead of passing as the
+  whole set; the tasks it could not see keep their earlier findings.
+
 ## 0.3.15
 
 **Upgrading.** No schema change: the local database stays at schema 98, as in 0.3.14, so upgrading is the new bundle
