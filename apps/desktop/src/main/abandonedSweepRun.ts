@@ -20,6 +20,7 @@
 import {
   AGENT_ONLY_KINDS,
   doneLeftRunning,
+  mayBeReleaseStep,
   releasedLeftRunning,
   findAbandoned,
   lapsedTwice,
@@ -71,6 +72,8 @@ export interface SweepRunningTask {
   lastClaimedAt?: string | null
   /** That claim, with when and how it ended (0.3.14 wave 2); null when none. */
   lastClaim?: SweepLastClaim | null
+  /** The column its last move left, read only for a possible done release step (ER-22); null: not read. */
+  movedFrom?: string | null
 }
 
 /** What the board read could not finish within its bounds: past them a request is judged at a later sweep. */
@@ -548,10 +551,26 @@ export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>
   }
   if (unjudged.size) opsSink.record({ op: 'work.sweep-claims-capped', outcome: 'unknown', level: 'warn', ctx: { correlationId: opsSink.correlate() },
     detail: { tasks: unjudged.size, note: 'a chunk of claims came back at the gateway\'s 1 000 rows; these tasks are judged next sweep' } })
-  return rows.filter((t) => !unjudged.has(t.id)).map((t) => ({
+  const out: SweepRunningTask[] = rows.filter((t) => !unjudged.has(t.id)).map((t) => ({
     taskId: t.id, projectId: t.project_id, movedAt: (t.moved_at ?? t.started_at) as string, movedByKind: t.moved_by_kind ?? null,
     movedBy: t.moved_by ?? null, lastClaimedAt: last.get(t.id)?.claimedAt ?? null, lastClaim: last.get(t.id) ?? null
   }))
+  // The 0.3.14 review, iteration 3, ER-22: a move by the releasing session within the minute after a done release is
+  // the release's own step only when it left backlog. Its `from` is read from the task's last move, only for those
+  // few; a read that fails leaves it unread, and an unread move is never taken for the release's own (no repair).
+  for (const t of out) {
+    if (!mayBeReleaseStep(t)) continue
+    const m = await store.select('journal', 'payload').eq('type', 'task.moved@1').eq('payload->>task_id', t.taskId).order('seq', { ascending: false }).limit(1)
+    if (m.error) {
+      opsSink.record({ op: 'work.sweep-move-unread', outcome: 'unknown', level: 'warn', ctx: { correlationId: opsSink.correlate() },
+        detail: { task_id: t.taskId, note: `the task's last move could not be read (${m.error.message}); its done release is not repaired this sweep` } })
+      t.movedFrom = null
+      continue
+    }
+    const from = ((m.data ?? []) as Array<{ payload?: { from?: unknown } }>)[0]?.payload?.from
+    t.movedFrom = typeof from === 'string' ? from : null
+  }
+  return out
 }
 
 /** The gateway answers at most this many rows (`supabase/config.toml` `max_rows`); a read that asks for more cannot

@@ -286,25 +286,39 @@ export interface SweepLastClaim {
   owner?: string | null
 }
 
-type ReleasedTask = { taskId: string; movedAt: string; movedByKind?: string | null; movedBy?: string | null; lastClaim?: SweepLastClaim | null }
+type ReleasedTask = {
+  taskId: string; movedAt: string; movedByKind?: string | null; movedBy?: string | null; lastClaim?: SweepLastClaim | null
+  /** The column the task's last move left (`task.moved@1` `from`), read only for a possible release step
+   *  (`mayBeReleaseStep`); absent or null: not read, and then no move is taken for the release's own. */
+  movedFrom?: string | null
+}
 
 /** How long after a done release its own TR-3 step (backlog to running, made by the releasing session) may land and
  *  still count as part of the release rather than a move since it. */
 export const RELEASE_STEP_MS = 60_000
 
-/** Whether the task's last move is the done release's own TR-3 step: made by the released claim's own session within
- *  `RELEASE_STEP_MS` after the release (`workTools.ts` releases, then moves backlog to running, then to review). */
-function isReleaseStep(t: ReleasedTask): boolean {
+/** Whether the task's last move may be the done release's own TR-3 step, by who and when: made by the released claim's
+ *  own session within `RELEASE_STEP_MS` after the release (`workTools.ts` releases, then moves backlog to running, then
+ *  to review). The runner reads the move's `from` only for these (`abandonedSweepRun.ts#readRunningTasks`). */
+export function mayBeReleaseStep(t: ReleasedTask): boolean {
   const c = t.lastClaim
-  if (!c?.releasedAt || !c.owner || !t.movedBy || t.movedBy !== c.owner) return false
+  if (c?.how !== 'done' || !c.releasedAt || !c.owner || !t.movedBy || t.movedBy !== c.owner) return false
   const since = Date.parse(t.movedAt) - Date.parse(c.releasedAt)
   return since >= 0 && since <= RELEASE_STEP_MS
+}
+
+/** Whether the task's last move IS the release's own step: as `mayBeReleaseStep`, and the move left backlog (the 0.3.14
+ *  review, iteration 3, ER-22). The step through running starts in backlog; the same session moving its handed-in task
+ *  back from review within the minute is a move since the release, never taken for the release's own. */
+function isReleaseStep(t: ReleasedTask): boolean {
+  return mayBeReleaseStep(t) && t.movedFrom === 'backlog'
 }
 
 /** The running tasks whose last claim was released done and nothing holds now (0.3.14 wave 2, task b2c42b88): the done
  *  release's move to review did not land. Only when NO move of the task happened since the release, by anyone (the 0.3.14
  *  review, iteration 2, ER-13: an agent that moved its handed-in task back to running, a relaunch, a person, are each
- *  left alone), except the release's own TR-3 step through running (iteration 1, ER-4; `isReleaseStep`). */
+ *  left alone), except the release's own TR-3 step from backlog through running (iteration 1, ER-4; iteration 3, ER-22;
+ *  `isReleaseStep`). */
 export function doneLeftRunning(tasks: readonly ReleasedTask[], held: ReadonlySet<string>): string[] {
   return tasks.filter((t) => t.lastClaim?.how === 'done' && t.lastClaim.releasedAt && !held.has(t.taskId) &&
     (Date.parse(t.movedAt) <= Date.parse(t.lastClaim.releasedAt) || isReleaseStep(t))).map((t) => t.taskId)

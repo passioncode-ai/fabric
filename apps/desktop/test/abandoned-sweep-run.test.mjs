@@ -956,11 +956,57 @@ test('done left running: a repair that fails is said in the ops log and the swee
 test('ER-4: a done release made from backlog, whose task then went to running and stopped there, is moved to review', async () => {
   const moved = []
   // TR-3: the release is appended, then backlog to running by the releasing session, then running to review failed.
-  const w = world({ tasks: [doneTask({ movedAt: iso(T0 - 30 * MIN + 2000), movedByKind: 'agent', movedBy: 's-rel',
+  const w = world({ tasks: [doneTask({ movedAt: iso(T0 - 30 * MIN + 2000), movedByKind: 'agent', movedBy: 's-rel', movedFrom: 'backlog',
     lastClaim: { claimedAt: iso(T0 - 60 * MIN), releasedAt: iso(T0 - 30 * MIN), how: 'done', owner: 's-rel' } })] })
   w.deps.moveDoneToReview = async (taskId) => { moved.push(taskId); return { task_moved_to: 'review' } }
   await sweepOnce(createAbandonedSweep(w.deps))
   assert.deepEqual(moved, ['t-done'])
+})
+
+// The 0.3.14 review, iteration 3, ER-22: the 60 s exception is the release's own step from backlog, never a move after
+// the release. The probe's case: released done at T0 (the move to review landed), then 30 s later the same session
+// moved it back from review to running on purpose; and a move whose `from` could not be read.
+test('ER-22: the releasing session\'s take-back from review within the minute is a move since the release, never repaired', async () => {
+  const released = { claimedAt: iso(T0 - 60 * MIN), releasedAt: iso(T0 - 30 * MIN), how: 'done', owner: 's-rel' }
+  const cases = [
+    doneTask({ taskId: 't-taken-back', movedAt: iso(T0 - 30 * MIN + 30_000), movedByKind: 'agent', movedBy: 's-rel', movedFrom: 'review', lastClaim: released }),
+    doneTask({ taskId: 't-from-unread', movedAt: iso(T0 - 30 * MIN + 2000), movedByKind: 'agent', movedBy: 's-rel', movedFrom: null, lastClaim: released })
+  ]
+  const moved = []
+  const w = world({ tasks: cases })
+  w.deps.moveDoneToReview = async (taskId) => { moved.push(taskId); return { task_moved_to: 'review' } }
+  await sweepOnce(createAbandonedSweep(w.deps))
+  assert.deepEqual(moved, [])
+})
+
+test('ER-22: readRunningTasks reads the last move\'s from only for a possible release step, and an unread one stays unread', async () => {
+  const { readRunningTasks } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
+  const rows = [
+    { id: 't-step', project_id: 'p1', moved_at: iso(T0 - 30 * MIN + 2000), started_at: null, moved_by_kind: 'agent', moved_by: 's-rel' },
+    { id: 't-other', project_id: 'p1', moved_at: iso(T0 - 40 * MIN), started_at: null, moved_by_kind: 'agent', moved_by: 's-rel' }
+  ]
+  const claims = [
+    { work_id: 't-step', claimed_at: iso(T0 - 60 * MIN), released_at: iso(T0 - 30 * MIN), released_how: 'done', owner_session: 's-rel' },
+    { work_id: 't-other', claimed_at: iso(T0 - 60 * MIN), released_at: iso(T0 - 30 * MIN), released_how: 'done', owner_session: 's-rel' }
+  ]
+  const journalAsked = []
+  let journal = { data: [{ payload: { task_id: 't-step', from: 'review', to: 'running' } }], error: null }
+  const store = {
+    select: (table) => {
+      const filters = []
+      const q = { eq: (c, v) => { filters.push([c, v]); return q }, order: () => q,
+        limit: async () => { if (table === 'journal') { journalAsked.push(filters); return journal } return { data: rows, error: null } } }
+      return q
+    },
+    selectIn: async () => ({ rows: claims, failed: null })
+  }
+  const out = await readRunningTasks(store)
+  assert.deepEqual(journalAsked, [[['type', 'task.moved@1'], ['payload->>task_id', 't-step']]], 'only the possible step is read')
+  assert.equal(out.find((t) => t.taskId === 't-step').movedFrom, 'review')
+  assert.equal('movedFrom' in out.find((t) => t.taskId === 't-other'), false)
+  journal = { data: null, error: { message: 'deadline' } }
+  const unread = await readRunningTasks(store)
+  assert.equal(unread.find((t) => t.taskId === 't-step').movedFrom, null)
 })
 
 test('ER-13: a done release is not repaired after ANY move since it: an agent\'s rework, a relaunch, a person, the owner much later', async () => {
