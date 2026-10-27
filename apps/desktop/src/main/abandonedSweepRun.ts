@@ -534,8 +534,10 @@ export async function readRecentTurns(store: Pick<Store, 'select'>, now: number)
 export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>): Promise<SweepTasksRead> {
   const r = await store.select('project_tasks', 'id,project_id,moved_at,started_at,moved_by_kind,moved_by').eq('status', 'running').limit(SWEEP_READ_LIMIT)
   if (r.error) throw new Error(`the tasks in work could not be read: ${r.error.message}`)
-  const rows = ((r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null; moved_by_kind: string | null; moved_by?: string | null }>)
-    .filter((t) => t.moved_at ?? t.started_at)
+  const read = (r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null; moved_by_kind: string | null; moved_by?: string | null }>
+  // CO-439 (1): a read that came back at its bound may have left running tasks out; it is said as capped, never the whole set.
+  const atBound = read.length >= SWEEP_READ_LIMIT
+  const rows = read.filter((t) => t.moved_at ?? t.started_at)
   // Round 2, B2: a person's move holds only until a claim opens after it, and a claim does not move a task already in
   // running. 0.3.14 wave 2: and a done release whose move to review did not land is found by its last claim. The claims
   // ever opened on the running tasks read (bounded by the read above), released ones included; the newest per task.
@@ -578,7 +580,7 @@ export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>
     const from = ((m.data ?? []) as Array<{ payload?: { from?: unknown } }>)[0]?.payload?.from
     t.movedFrom = typeof from === 'string' ? from : null
   }
-  return { tasks: out, capped: unjudged.size > 0 }
+  return { tasks: out, capped: atBound || unjudged.size > 0 }
 }
 
 /** The gateway answers at most this many rows (`supabase/config.toml` `max_rows`); a read that asks for more cannot

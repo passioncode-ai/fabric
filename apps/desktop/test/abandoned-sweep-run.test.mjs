@@ -677,6 +677,21 @@ test('B2: readRunningTasks reads the newest claim of each running task, bounded 
   await assert.rejects(readRunningTasks(store), /refused/, 'an unread claim history is never "no claim since"')
 })
 
+// CO-439 (1): the running tasks read stops at SWEEP_READ_LIMIT rows. A full read may leave running tasks out, so it is
+// said as capped (the receipt names `tasks` and their kinds keep their earlier tellings), never taken as the whole set.
+test('CO-439: a running tasks read that comes back at its bound is said as capped', async () => {
+  const { readRunningTasks, SWEEP_READ_LIMIT } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
+  const full = Array.from({ length: SWEEP_READ_LIMIT }, (_, i) => ({ id: `t${i}`, project_id: 'p1', moved_at: iso(T0 - 40 * MIN), started_at: null, moved_by_kind: 'agent' }))
+  let rows = full
+  const q = { eq: () => q, order: () => q, limit: async () => ({ data: rows, error: null }) }
+  const store = { select: () => q, selectIn: async () => ({ rows: [], failed: null }) }
+  const cut = await readRunningTasks(store)
+  assert.equal(cut.tasks.length, SWEEP_READ_LIMIT)
+  assert.equal(cut.capped, true, 'a read at its bound may have left running tasks out')
+  rows = full.slice(1)
+  assert.equal((await readRunningTasks(store)).capped, false, 'one row under the bound is the whole set')
+})
+
 test('R3: a silent claim held by a Fabric terminal session is queued as a nudge, never typed into the terminal', async () => {
   const w = world({ claims: [silentClaim('c1', 's-term')], running: new Set(['s-term']) })
   w.activity.set('s-term', T0 - 20 * MIN)
