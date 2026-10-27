@@ -55,7 +55,8 @@ reminders in `fabric_work_list` and `fabric_heartbeat` with any adapter.
   from the same signals: «Ошибка» for a console that ended with an error or was killed by a signal Fabric did not send,
   or an agent's fresh heartbeat saying it is blocked; «Ждёт» only for a wait Fabric observed (a fresh heartbeat saying
   it waits, with what it waits on in words); «Работает»; «Простаивает» for a quiet session, a
-  Fabric console silent for a minute included; «Закончилась». An agent's own word counts only while it is newer than
+  Fabric console silent for a minute included; «Закончилась», a console Fabric itself stopped included, whatever exit
+  code the program answered the stop with. An agent's own word counts only while it is newer than
   its last sign or within the 10-minute quiet window.
 - **Back, forward and home in the top bar.** «Назад», «Вперёд» and «Главная» sit at the left of the top bar, the same
   way back as ⌘[ and ⌘]; a button with nowhere to go, or whose earlier places are all gone (a removed project, a
