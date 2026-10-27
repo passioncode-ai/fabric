@@ -65,5 +65,7 @@ runs only on `ubuntu-latest`, so no unit or wire test ever runs on Windows.
 
 ## Next
 
-Land `fix/stability-wave` after 0.3.15's tag (rebased on `main`), update CO-454 and CO-439 in the register under the
-project lease, file the Windows CI row, and move CO-365 and the start half of CO-294 into P-29.
+Done on 2026-10-27: `fix/stability-wave` rebased on `main` after 0.3.15's tag; CO-454 resolved and CO-439's part 1 recorded
+in the register; CO-365 and the start half of CO-294 moved into the release of 2026-11-05 (P-29), which fabric-workspace
+recorded in its ledger; the Windows test job filed as CO-486. Next: CO-365 is read against the operations log at the
+next reboot, and the start half of CO-294 is built in P-29.
