@@ -4,6 +4,8 @@
 import path from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 
 const { withGoals } = await import(path.resolve(import.meta.dirname, '../src/main/agentGoals.ts'))
 
@@ -113,3 +115,111 @@ test('withHeartbeats puts each live agent\'s newest heartbeat on the reading; a 
   const failed = await withHeartbeats(view([live('s1', 't1')]), { selectIn: async () => ({ rows: [], failed: 'refused' }) })
   assert.equal(failed.live[0].heartbeat, undefined, 'the status falls back to what Fabric observes')
 })
+
+// The link this walk follows is written by `fabric_task_create` (main/agentSurface.ts). Through the real surface and
+// an MCP client, over a database held in memory (no stack):
+//   PL-13  (0.3.14 review, iteration 3): an enrolled session (no launch task) holding exactly one live claim files a
+//          piece spawned from the claimed task: the answer says `spawned_from` and `chained`, and `link_tasks` is asked
+//          for the piece spawned from that task; with a second claim nothing is linked and `spawned_from_why` says why.
+//   DA-7   the chain bound's proposal answer carries `spawned_from: null` and `spawned_from_why` like every other answer.
+//   ER-24, DA-8  a chain read that fails files the task without the spawned link and says why, never judging the
+//          depth from a read that did not happen.
+const { AgentSurface } = await import(path.resolve(import.meta.dirname, '../src/main/agentSurface.ts'))
+
+/** A database held in memory: rows per table, filtered by the `eq` and `is` the code asks for. */
+function memoryDb(tables, { fail = {} } = {}) {
+  const rpcs = []
+  const from = (table) => {
+    const filters = []
+    const run = () => {
+      if (fail[table]) return { data: null, error: { message: fail[table] } }
+      const rows = (tables[table] ?? []).filter((r) => filters.every(([col, v]) => !(col in r) || r[col] === v))
+      return { data: rows, error: null }
+    }
+    const chain = new Proxy({}, {
+      get(_t, prop) {
+        if (prop === 'then') return (resolve) => resolve(run())
+        if (prop === 'eq' || prop === 'is') return (col, v) => { filters.push([col, v]); return chain }
+        if (prop === 'maybeSingle' || prop === 'single') return async () => { const r = run(); return { data: r.data?.[0] ?? null, error: r.error } }
+        return () => chain
+      }
+    })
+    return chain
+  }
+  return {
+    rpcs,
+    from,
+    rpc: async (name, args) => { rpcs.push({ name, args }); return name === 'link_tasks' ? { data: { linked: true }, error: null } : { data: null, error: null } }
+  }
+}
+
+async function surfaceWith(db) {
+  const events = []
+  const journal = { append: async (e) => { events.push(e); return { seq: events.length, id: String(events.length) } } }
+  const surface = new AgentSurface({
+    db, journal, estateId: 'e',
+    ptys: () => ({ list: () => [], get: () => null }),
+    work: { resolveSource: async () => ({ ok: false, part: 'repository', reason: 'none' }), leaseRefs: async () => null, endSession: () => {} }
+  })
+  await surface.start()
+  return { surface, events }
+}
+async function enrolled(t, db) {
+  const { surface, events } = await surfaceWith(db)
+  t.after(() => surface.stop())
+  const scope = surface.mint('p', 's-enrolled', null, { cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-1' })
+  const client = new Client({ name: 'probe', version: '0.0.0' })
+  await client.connect(new StreamableHTTPClientTransport(new URL(surface.endpoint), { requestInit: { headers: { Authorization: 'Bearer ' + scope.token } } }))
+  t.after(() => client.close())
+  const create = async (title) => JSON.parse((await client.callTool({ name: 'fabric_task_create', arguments: { title, origin: { kind: 'observation', ref: 'probe' } } })).content[0].text)
+  return { create, events }
+}
+const claim = (work) => ({ estate_id: 'e', project_id: 'p', owner_session: 's-enrolled', work_id: work, released_at: null })
+const spawned = (task, target) => ({ estate_id: 'e', project_id: 'p', rel: 'spawned', target_kind: 'task', task_id: task, target_id: target })
+
+test('PL-13: an enrolled session with one live claim files a piece spawned from the claimed task', async (t) => {
+  const db = memoryDb({ work_claims: [claim('t-request')], task_links: [] })
+  const { create } = await enrolled(t, db)
+  const made = await create('the counter is off by one')
+  assert.equal(made.created, true)
+  assert.equal(made.spawned_from, 't-request')
+  assert.equal(made.chained_to, 't-request')
+  assert.equal(made.chained, true)
+  const link = db.rpcs.find((r) => r.name === 'link_tasks')
+  assert.deepEqual([link.args.p_task_id, link.args.p_rel, link.args.p_target_id], [made.id, 'spawned', 't-request'])
+})
+
+test('PL-13: with a second live claim nothing is linked and spawned_from_why says why', async (t) => {
+  const db = memoryDb({ work_claims: [claim('t-a'), claim('t-b')], task_links: [] })
+  const { create } = await enrolled(t, db)
+  const made = await create('found while on two tasks')
+  assert.equal(made.created, true)
+  assert.equal(made.spawned_from, null)
+  assert.match(made.spawned_from_why, /2 live claims/)
+  assert.equal(db.rpcs.some((r) => r.name === 'link_tasks'), false)
+})
+
+test('DA-7: the fourth hand-off in one chain is a proposal, and its answer names spawned_from and why', async (t) => {
+  const db = memoryDb({ work_claims: [claim('c3')], task_links: [spawned('c3', 'c2'), spawned('c2', 'c1'), spawned('c1', 'req')] })
+  const { create, events } = await enrolled(t, db)
+  const made = await create('one more hand-off')
+  assert.equal(made.created, false)
+  assert.equal(made.proposed, true)
+  assert.equal(made.depth, 4)
+  assert.equal(made.spawned_from, null)
+  assert.match(made.spawned_from_why, /hand-off 4 in one chain/)
+  assert.equal(events.some((e) => e.type === 'task.created@1'), false)
+})
+
+test('ER-24, DA-8: a chain read that fails files the task without the spawned link and says why', async (t) => {
+  const db = memoryDb({ work_claims: [claim('c3')] }, { fail: { task_links: 'deadline' } })
+  const { create, events } = await enrolled(t, db)
+  const made = await create('filed while the links cannot be read')
+  assert.equal(made.created, true)
+  assert.equal(made.spawned_from, null)
+  assert.match(made.spawned_from_why, /could not be read \(deadline\).*without its spawned link/)
+  assert.equal(made.chained_to, undefined)
+  assert.equal(db.rpcs.some((r) => r.name === 'link_tasks'), false)
+  assert.equal(events.some((e) => e.type === 'task.created@1'), true)
+})
+

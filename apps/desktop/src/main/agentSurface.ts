@@ -68,8 +68,8 @@ import {
   type CorrectionOutcome
 } from '../shared/memoryContract.ts'
 import { beginAttempt, type AttemptContext } from './toolTrace.ts'
-import { mayChain } from '../shared/loopBound.ts'
-import { spawnParentOf, type LiveClaim } from '../shared/spawnParent.ts'
+import { DEFAULT_BOUND, mayChain } from '../shared/loopBound.ts'
+import { spawnedChainFrom, spawnParentOf, type LiveClaim } from '../shared/spawnParent.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
 import { fileProposal } from './commands/proposalCommands.ts'
 import { BOARD_SESSION_OPERATIONS, createBoard, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
@@ -2016,15 +2016,25 @@ export class AgentSurface {
           claimsRead ? ((claimsRead.data ?? []) as LiveClaim[]) : [],
           claimsRead?.error ? claimsRead.error.message : null
         )
-        const parentTask = spawn.parent
+        let parentTask = spawn.parent
+        // ER-24, DA-8 (0.3.14 review, iteration 3): the chain is walked up from the parent a task at a time, each read's
+        // error kept. A read that failed cannot judge the depth as safe: the piece is filed WITHOUT the spawned link
+        // (never a too-deep chain let through, never a failed create), and `spawned_from_why` says why.
+        let chainUnread: string | null = null
+        let chainFrom: Record<string, string> = {}
         if (parentTask) {
-          const { data: links } = await store
-            .select('task_links', 'task_id,target_id')
-            .eq('rel', 'spawned')
-            .eq('target_kind', 'task')
-          const from: Record<string, string | undefined> = {}
-          for (const l of links ?? []) from[l.task_id as string] = l.target_id as string
-          const verdict = mayChain(from, parentTask)
+          const walk = await spawnedChainFrom(async (taskId) => {
+            const r = await store.select('task_links', 'task_id,target_id').eq('rel', 'spawned').eq('target_kind', 'task').eq('task_id', taskId)
+            return r.error ? { parents: [], failed: r.error.message } : { parents: ((r.data ?? []) as Array<{ target_id: string }>).map((l) => String(l.target_id)), failed: null }
+          }, parentTask, DEFAULT_BOUND + 1)
+          if (walk.failed) {
+            chainUnread = `the hand-off chain above ${parentTask} could not be read (${walk.failed}), so Fabric could not check the chain bound and filed this piece without its spawned link; link it with fabric_task_link once the chain reads again`
+            parentTask = null
+          }
+          chainFrom = walk.from
+        }
+        if (parentTask) {
+          const verdict = mayChain(chainFrom, parentTask)
           if (!verdict.ok) {
             // M168 — through the ONE door, with the surface's redacting
             // appender handed in. This used to append here, applying `mayChain`
@@ -2048,7 +2058,10 @@ export class AgentSurface {
               proposal_id: proposalId,
               depth: verdict.depth,
               bound: verdict.bound,
-              reason: verdict.reason
+              reason: verdict.reason,
+              // DA-7 (iteration 3): the proposal answer names the link like every other answer of this tool.
+              spawned_from: null,
+              spawned_from_why: verdict.reason ?? `the chain bound (${verdict.bound}) was reached`
             })
           }
         }
@@ -2104,7 +2117,7 @@ export class AgentSurface {
                           ...(chained.linked ? {} : { chain_reason: chained.says ?? chained.reason_code }) } : {}),
           // Which task this piece was spawned from, and when none: why (PL-1/DA-1).
           spawned_from: chained?.linked ? parentTask : null,
-          ...(chained?.linked ? {} : { spawned_from_why: spawn.why ?? chained?.says ?? chained?.reason_code ?? 'the link was refused' })
+          ...(chained?.linked ? {} : { spawned_from_why: chainUnread ?? spawn.why ?? chained?.says ?? chained?.reason_code ?? 'the link was refused' })
         })
       }
     )

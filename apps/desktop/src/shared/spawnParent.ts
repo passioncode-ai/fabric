@@ -29,4 +29,31 @@ export function spawnParentOf(
     return { parent: null, from: null, why: `no single claimed task: this session holds no live claim in this project, so nothing links this piece; claim the task it came from first (fabric_work_claim), or ${LINK_IT}` }
   return { parent: null, from: null, why: `no single claimed task: this session holds ${here.length} live claims in this project and Fabric cannot tell which one this piece came from; ${LINK_IT}` }
 }
+/** One hop's read: the `spawned` parents of one task, or why the read failed. */
+export type SpawnedParentsRead = (taskId: string) => Promise<{ parents: readonly string[]; failed: string | null }>
+
+/**
+ * The `spawned` links above `start`, walked a task at a time (the 0.3.14 review, iteration 3, ER-24, DA-8). The bound
+ * check used to read every `spawned` link of the project in one request: a refused read counted as no links, and past
+ * the gateway's 1 000 rows the map was silently partial, so the depth was undercounted and the bound failed open. Here
+ * each hop is one small read whose error is kept: `failed` names a read that did not happen, and the caller must not
+ * judge the depth as safe from it. At most `hops` reads; a walk that meets a task already seen stops (a cycle, which
+ * `loopBound.ts#mayChain` refuses on its own).
+ */
+export async function spawnedChainFrom(read: SpawnedParentsRead, start: string, hops: number): Promise<{ from: Record<string, string>; failed: string | null }> {
+  const from: Record<string, string> = {}
+  const seen = new Set([start])
+  let at = start
+  for (let hop = 0; hop < hops; hop++) {
+    const r = await read(at)
+    if (r.failed) return { from, failed: r.failed }
+    const parent = [...r.parents].sort()[0]
+    if (!parent) break
+    from[at] = parent
+    if (seen.has(parent)) break
+    seen.add(parent)
+    at = parent
+  }
+  return { from, failed: null }
+}
 // #endregion spawn-parent
