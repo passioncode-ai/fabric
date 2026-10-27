@@ -1795,7 +1795,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'xp.change': "Изменить",
   'xp.assign': "Поручить агенту {project} в Fabric",
   'xp.assignNoProject': "Поручить агенту в Fabric",
-  'xp.assignLater': "в 0.3.15",
+  'xp.assignLater': "в релизе от 5 ноября",
   'launch.home.work.kicker': "Доска",
   'launch.home.work.title': "Кто что делает",
   'launch.home.work.inWork': "В работе",

@@ -2,7 +2,7 @@
 // Work that needs another project (0.3.14, the simple Fabric, docs/ux/2026-10-26-simple-fabric.md §5, its first way): a
 // task page opens a coding agent's console in project B with the person's sentence and a link back to the task as its
 // first instruction, through Fabric's own console start, and leaves a note in the task. «Поручить агенту B в Fabric»
-// is 0.3.15's and is not offered.
+// belongs to the release of 5 November and is not offered.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from '../i18n'

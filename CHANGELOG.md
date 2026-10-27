@@ -7,6 +7,31 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## 0.3.15 (unreleased)
+
+**Upgrading.** No schema change: the local database stays at schema 98, as in 0.3.14, so upgrading is the new bundle
+alone, and going back to 0.3.14 is the 0.3.14 bundle alone.
+
+- **The screens look as the approved mockup.** Главная is one page in two columns: Fabric's face, greeting and work
+  rhythm in one card, the six numbers in one strip, «В работе» by project, and on the right, from the top, «Нужны вы»
+  as open cards with their answer buttons and «Запросы без ответа» as one line per request.
+- **«Работает» means at work.** An agent counts as working when it holds a task, reported a stage or a turn in the last
+  15 minutes, or its Fabric console printed; an agent window that only stays connected is counted apart, in one quiet
+  line «Подключены, без дела». Projects and agents are ordered by their newest work, not by the last keep-alive.
+- **An agent keeps its story across a restart.** When an agent joins again under a new session, its stage reports,
+  heartbeats and task from the earlier session stay with it, so a restart of Fabric no longer turns every row into
+  «Задачи не взял». A stage report is tied to the task the session holds.
+- **The work rhythm counts 28 days.** The chart reads one count per day from the journal instead of the newest 500
+  events, which covered less than two hours; results (handed in) and decisions (yours) are counted the same way on
+  Главная, Pulse and the chart.
+- **The left column lists the projects at work,** with «Все проекты · N» to unfold the rest, readable project names
+  (from the agent's own service file, else the folder name tidied), long names cut with «…», and no badges the page
+  already says.
+- **An agent's page tells its task.** «Сейчас» shows the task's title, its brief, the step bar and how long it is held;
+  the task's milestones on a timeline; its tasks as cards with their status; «Вопросы этого агента» with answer
+  buttons; the agent's version. A console opens in a framed box with a way back to the agent.
+- **The local database notice names Colima,** and it is one line with its fix behind a disclosure.
+
 ## 0.3.14
 
 **Upgrading.** No schema change: the local database stays at schema 98, the same as 0.3.13, so there is no migration to

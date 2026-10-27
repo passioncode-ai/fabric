@@ -2472,7 +2472,7 @@ export const en = {
   'xp.change': "Change",
   'xp.assign': "Assign it to the {project} agent in Fabric",
   'xp.assignNoProject': "Assign it to an agent in Fabric",
-  'xp.assignLater': "in 0.3.15",
+  'xp.assignLater': "in the 5 November release",
   'launch.home.work.kicker': "Board",
   'launch.home.work.title': "Who is doing what",
   'launch.home.work.inWork': "In work",

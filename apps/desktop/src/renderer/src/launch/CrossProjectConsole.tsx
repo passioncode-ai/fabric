@@ -5,7 +5,7 @@
  * sentence of what is needed; «Открыть консоль в B» starts B's coding agent through Fabric's own console start
  * (`terminal.open(projectId, optionId, firstInstruction)`, B's default agent) with that sentence and the way back to this
  * task as the first instruction, opens it as a tab, and leaves a note in this task. The second way, «Поручить агенту B
- * в Fabric», is 0.3.15's and is not offered here. The 0.3.14 review, iteration 2: a project with no repository says the
+ * в Fabric», belongs to the release of 2026-11-05 and is not offered here. The 0.3.14 review, iteration 2: a project with no repository says the
  * agent starts in the home folder and takes a second press (ER-14, as UXA-C04's launchers do); a project of another
  * recorded business is refused, so this task's words never reach it (DA-6); a started console is remembered, its task
  * noted even when its tab fails, and never started twice by a second press (ER-15, UX-15). Iteration 3: every started
@@ -15,7 +15,7 @@
  * The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/agent.md, «Cross-project panel»): no panel box,
  * a top rule as the mockup's `.xproj`; the agent page opens it inline in a task row (`inline`), with its own toggle; once
  * the project and the sentence are both filled and the person leaves the form, it folds to one line «Проект: X · «…»»
- * with «Изменить»; the second way, «Поручить агенту X в Fabric», is shown disabled with «в 0.3.15».
+ * with «Изменить»; the second way, «Поручить агенту X в Fabric», is shown disabled with «в релизе от 5 ноября».
  */
 import { useEffect, useRef, useState } from 'react'
 import type { ProjectRow } from '../../../shared/types'
@@ -158,7 +158,7 @@ export function CrossProjectConsole({ project, taskId, taskTitle, inline = false
         <button type="button" className="lp-button" disabled={!chosen || !sentence || busy || !!wall || alreadyStarted} aria-busy={busy} onClick={() => void open()}>
           {chosen ? t(place?.place === 'home' && homeAck === key ? 'xp.openHome' : 'xp.open', { project: chosen.name }) : t('xp.openNoProject')}
         </button>
-        {/* The second way (docs/ux/2026-10-26-simple-fabric.md §5) is 0.3.15's: shown, and said when it comes. */}
+        {/* The second way (docs/ux/2026-10-26-simple-fabric.md §5) belongs to the release of 2026-11-05: shown, and said when it comes. */}
         <button type="button" className="lp-button primary" disabled aria-describedby={`xp-later-${taskId}`}>
           {chosen ? t('xp.assign', { project: chosen.name }) : t('xp.assignNoProject')}
         </button>

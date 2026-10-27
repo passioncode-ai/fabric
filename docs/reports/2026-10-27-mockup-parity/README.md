@@ -16,8 +16,8 @@ status: in-progress
 - Shipped: Fabric 0.3.14, captured from the operator's window on 2026-10-27
   ([`shots/shipped-0314-home.png`](shots/shipped-0314-home.png)); the mockup's views in
   [`shots/`](shots/).
-- Gap maps, one row per difference with its cause at `file:line`: [home](gaps/home.md), [rail and shell](gaps/rail.md),
-  [agent page, cross-project panel, console](gaps/agent.md). Built read-only on `35757c9d`, database facts from
+- Gap maps, one row per difference with its cause at `file:line`: [home](gaps/2026-10-27-home.md), [rail and shell](gaps/2026-10-27-rail.md),
+  [agent page, cross-project panel, console](gaps/2026-10-27-agent.md). Built read-only on `35757c9d`, database facts from
   read-only `SELECT`s on the local stack.
 
 ## What the maps found
@@ -25,15 +25,15 @@ status: in-progress
 The difference has two causes of about equal weight.
 
 1. **Layout and copy.** The home's hero and strip sit outside the two-column grid, so «Нужны вы» starts low and narrow
-   ([home A3](gaps/home.md)); a flex rule overrides the hero's grid ([B2](gaps/home.md)); the strip is six cards, not
-   one strip ([C1](gaps/home.md)); «Нужны вы» renders closed `<details>` with hidden answers ([F3](gaps/home.md)); the
-   agent page keeps the 0.3.12 list styling ([agent](gaps/agent.md)); the rail clips names without an ellipsis and
-   carries two badges the mockup has not ([rail 6, 9, 13](gaps/rail.md)).
+   ([home A3](gaps/2026-10-27-home.md)); a flex rule overrides the hero's grid ([B2](gaps/2026-10-27-home.md)); the strip is six cards, not
+   one strip ([C1](gaps/2026-10-27-home.md)); «Нужны вы» renders closed `<details>` with hidden answers ([F3](gaps/2026-10-27-home.md)); the
+   agent page keeps the 0.3.12 list styling ([agent](gaps/2026-10-27-agent.md)); the rail clips names without an ellipsis and
+   carries two badges the mockup has not ([rail 6, 9, 13](gaps/2026-10-27-rail.md)).
 2. **Data.** The rhythm chart reads only the newest 500 events, under two hours of this journal
-   ([D1](gaps/home.md)); «working» means any ping in ten minutes, so every open agent window counts and the cards
-   reshuffle by ping time ([D3, D4](gaps/home.md)); every re-enrolment mints a new session id, so stage reports and
-   claims from the same agent's earlier ids are lost to the home and the agent page ([D5, D6](gaps/home.md)); the task
-   row shows the brief sentence as its title ([agent](gaps/agent.md), «Сейчас» rows).
+   ([D1](gaps/2026-10-27-home.md)); «working» means any ping in ten minutes, so every open agent window counts and the cards
+   reshuffle by ping time ([D3, D4](gaps/2026-10-27-home.md)); every re-enrolment mints a new session id, so stage reports and
+   claims from the same agent's earlier ids are lost to the home and the agent page ([D5, D6](gaps/2026-10-27-home.md)); the task
+   row shows the brief sentence as its title ([agent](gaps/2026-10-27-agent.md), «Сейчас» rows).
 
 ## How conflicts are decided
 
