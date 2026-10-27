@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "source_commit": "a59e03c9fcc03cc037e3afe2a8ace8f7af8dc632",
-  "workspace_commit": "f7873b1fe51591de8c40593a3983e2f6bf9f67b4",
-  "content_digest": "b9556c211e8241d26d4d7f41c1d680d6f35b2f9acfa035ce4c19f309c4c9f755",
+  "source_commit": "3e907519fc397fde2b9211a120ba394b883ac57b",
+  "workspace_commit": "e441f50749c544280c521fd52b08e5aa210ff2ee",
+  "content_digest": "9d3b119a3b6b50b5ae3effae061ec4601ec142986187bfaf9ab0c2f9fb9d0928",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "90bedaec-b544-4ea8-b387-d8d7863a1860",
-  "fabric_digest": "5d9e443ba6dc5f1004c37bd666615e783583bc12ce5dab9fea4865b68da82f28",
+  "deployment": "e511a97f-2d79-4ccf-a559-e57a4f257229",
+  "fabric_digest": "a9a9a112079a53df5c4e54713a86d3c0acf283c1f39d767b8aa0af0796f0e272",
   "sources": [
     {
       "id": "org-index",
@@ -17,26 +17,26 @@
     {
       "id": "fabric-agent-contract",
       "repository": "https://github.com/passioncode-ai/fabric-agent-contract",
-      "commit": "52872c254406a93f53e71c1f42421921465caaa0",
-      "files_digest": "a5f301779433f2c7e748ec904f13359bfa0e661aa320ce4843eb2dc66d443c6d"
+      "commit": "2cd33fb47c87c1b8678ecf5aca0929d8f4a84b1c",
+      "files_digest": "11dc828a399647e79d0f013877e2f0fad7542d954504c4e46a67e420f08571b0"
     },
     {
       "id": "fabric-agent-adapter",
       "repository": "https://github.com/passioncode-ai/fabric-agent-adapter",
-      "commit": "f3f2d14e381e3526600915a63eff25a912c7875d",
-      "files_digest": "dbe58523f93843beac8bd7662b369df62768e73b612afe69a53569dd32baf6b4"
+      "commit": "1708e99df0775dc359b4ffcc55dae70c3ed59890",
+      "files_digest": "3e52f1e54b77f6617439833b363b94510cb0fbd4d8be5c7154cb68bd51016193"
     },
     {
       "id": "fabric-inbox",
       "repository": "https://github.com/passioncode-ai/fabric-inbox",
-      "commit": "c3531056f38d9b7236b8ef856f7904e7e1d45f95",
-      "files_digest": "4774449dfe940e22a24a5fcd4eeafc94bc029162d27340ad721d5c9dbe33366a"
+      "commit": "a592d80ac74aa56748ff97230a9ad827388c33c9",
+      "files_digest": "8d0aba6f8cc0f7c966d78139d1652df87bf89f01aa4f5d4a8f2cd148caed0a5b"
     },
     {
       "id": "fabric-switchboard",
       "repository": "https://github.com/passioncode-ai/fabric-switchboard",
-      "commit": "b0295fe42466dbec1b92b0d3bfd8bdd9b4ed8738",
-      "files_digest": "01bfe3d859a1c51326ea06ca545285340262982f4d81a965ca2517fd07634b8e"
+      "commit": "47cb17396cecd97fd00cd4145b404a490fa880d5",
+      "files_digest": "945df023355e62745642e82578e0becc6de97393786c92342b61b6af906f6e17"
     },
     {
       "id": "fabric-vr",
@@ -47,14 +47,14 @@
     {
       "id": "fabric-dashboards",
       "repository": "https://github.com/passioncode-ai/fabric-dashboards",
-      "commit": "5ddff3a9ad68b79174c21101231fd0468b9e010b",
-      "files_digest": "9465170073a3b497a261d85f32c6d2f48306ed68fb0ddac879cd11959415408e"
+      "commit": "ea209becb420db3b182c00f6772eb3f56ee7779e",
+      "files_digest": "61ac529acc24c3357a7a6c742e18e1344a9f13f8ab3dcb6e0d1b4e62bd9658ef"
     },
     {
       "id": "project-observatory-dashboard",
       "repository": "https://github.com/passioncode-ai/project-observatory-dashboard",
-      "commit": "4141fc1487e74c2d57606b8324ebcdd413c8e9cd",
-      "files_digest": "b220730fb32a593fb9d46e71314c3a3f612a4ee06f9d9129b32145968579a02b"
+      "commit": "807d23b475bdd048a7b4df856eb5e4fad3fa5216",
+      "files_digest": "ab06d5ad84781a88a3162596048915fe4d93f113eaaa44123570b9cfa2b4e2fa"
     },
     {
       "id": "project-observatory-contract",
@@ -65,8 +65,8 @@
     {
       "id": "passioncode",
       "repository": "https://github.com/passioncode-ai/passioncode",
-      "commit": "d6d0d1d12697becee882b1a30c5f1ed44caf6fc7",
-      "files_digest": "f3253b27d7244a457a668b3bd1e6211aa4953dac7ff5b10969c4055000c2e23c"
+      "commit": "221a18a8bd827b86864fa1fd06f2f4321f78e6e8",
+      "files_digest": "936cc7b198371cf13884ccd7eb826623dadc83d99a2e1916c8881a3e30efd9d7"
     },
     {
       "id": "passioncode-ai.github.io",
