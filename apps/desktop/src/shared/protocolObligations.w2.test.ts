@@ -40,6 +40,12 @@ describe('wave 2 rules', () => {
     expect(t).toMatch(/spawned_from_why/)
   })
 
+  it('0.3.14 review, iteration 3, DO-12: without a goal the row shows the current task in the goal\'s place, as the screen does', () => {
+    const t = byId('claim.persons-request-as-goal')?.text ?? ''
+    expect(t).toMatch(/your current task in the goal's place/)
+    expect(t).not.toMatch(/current step in the goal's place/)
+  })
+
   it('a relayed instruction with the operator\'s quote and source is the operator\'s own (TO-1)', () => {
     const o = byId('operator.told-one-is-told-all')
     expect(o?.mode).toBe('ADVICE')
