@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "source_commit": "c05c30ef48a88798bac11336c7ebbcd334621c0b",
-  "workspace_commit": "067ec642244ed501b058efd49311529fd251ee5a",
-  "content_digest": "a38520bf2e68dad336699808400e56aa8e640194d582ab5ef38776e67363ae35",
+  "workspace_commit": "2d6bd67036d2cb207d3946b2112906ea225efc0b",
+  "content_digest": "5463f40016864b5d74081738ebc0f6065ef4c8fcbe889f51c3d6286e624e542e",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "3be78a9a-863c-4ad6-9860-9bb29b2a08c0",
+  "deployment": "03909b5e-effc-470c-9d44-f7489216d473",
   "fabric_digest": "56b2dedc537a8a791091faddb0b903a813efe0b2f2ca94eaa2165745d9d77ac2",
   "sources": [
     {
@@ -29,14 +29,14 @@
     {
       "id": "fabric-inbox",
       "repository": "https://github.com/passioncode-ai/fabric-inbox",
-      "commit": "16fbaf2101b3d6d2b60de3037cd1d92eae79f83b",
-      "files_digest": "dcb10c89116030446d8a8dd8529be39364a0de47ec97f1c429d3b980a0b6ba71"
+      "commit": "997061bfe8791cba3bf0268e15b766bfaf9114f8",
+      "files_digest": "fec11c44cfc9b3d2336d4fb7697f8b6df99c4e2950f8f564804c59f8491cadcb"
     },
     {
       "id": "fabric-switchboard",
       "repository": "https://github.com/passioncode-ai/fabric-switchboard",
-      "commit": "64eb3fa1d0ef2d7f66fe58540c545f747b7411a5",
-      "files_digest": "9489268891aa0061f98f765f5eb961646ee4c69a60fe27436d544e4ffa0236ad"
+      "commit": "2ad07ecd5e06c06c2e68daaa1b7b0cdd1ef889b5",
+      "files_digest": "62e80ffd30c621ec7c74513fc27c2dcdfa0d1c875ce301e9c3614d0bfba9fcb2"
     },
     {
       "id": "fabric-vr",
@@ -47,8 +47,8 @@
     {
       "id": "fabric-dashboards",
       "repository": "https://github.com/passioncode-ai/fabric-dashboards",
-      "commit": "18964b010c592a4701f174f090226d9a3111c3a3",
-      "files_digest": "f9c7bb4e05348549aca0d75dea60349a8edaface80bfe32e57c15ad0c19b4338"
+      "commit": "365d3f1443e52d4389bfb375a2a91fc08e68aa93",
+      "files_digest": "eb0c535cccfe3c9a9131f71b49dd518bb1ca4d7c9dc80db698f4182a5bd87804"
     },
     {
       "id": "project-observatory-dashboard",
