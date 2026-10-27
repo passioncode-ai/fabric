@@ -66,6 +66,7 @@ export function createDisplayNameReader(store: NamesStore, descriptors: () => re
       try {
         return await inFlight
       } catch (e) {
+        // Not silent: thrown with nothing kept, else told to `onStale`, which main logs as projects.display-names-stale.
         if (!kept) throw e
         onStale?.(e)
         return kept.names
@@ -79,6 +80,7 @@ export async function withDisplayNames(view: HomeView, read: () => Promise<Displ
   try {
     return { ...view, displayNames: { ...(await read()) } }
   } catch (e) {
+    // Not silent: `onError` is main's ops.failed('work.display-names-unread'); the screens print the stored names.
     onError(e)
     return view
   }

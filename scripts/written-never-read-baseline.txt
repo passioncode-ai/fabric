@@ -59,7 +59,6 @@ RetroPage.historyOnPage
 RunObservation.processRunning
 RunStatusView.runRef
 Subject.authUser
-Subject.displayName
 SwitchOperation.newGeneration
 TaskRow.brief_draft
 UsageObservation.contextIdentity

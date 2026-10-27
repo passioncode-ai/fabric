@@ -1618,7 +1618,9 @@ export class AgentSurface {
         // read that fails leaves the report unnamed; it is still recorded.
         let taskId: string | null = scope.taskId
         if (!taskId) {
-          const claims = await Promise.resolve(store.select('work_claims', 'work_id,project_id').eq('owner_session', scope.sessionId).is('released_at', null))
+          // Wrapped so a store that throws while building the query (not only one that answers an error) leaves the report
+          // unnamed and still recorded (the 0.3.15 gate: `contract-consumer.test.mjs`, a stage report with no database).
+          const claims = await (async () => store.select('work_claims', 'work_id,project_id').eq('owner_session', scope.sessionId).is('released_at', null))()
             .catch((e: unknown) => ({ data: null, error: { message: e instanceof Error ? e.message : String(e) } }))
           taskId = stageTaskOf(null, scope.projectId, (claims.data ?? []) as LiveClaim[], claims.error ? claims.error.message : null)
         }

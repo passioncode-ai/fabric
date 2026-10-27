@@ -76,7 +76,7 @@ export function createRhythmReader(store: RhythmStore, opts: { days?: number; ti
     const parts = await Promise.all([
       read('tasks handed in', (store.select('journal', cols) as Query<RhythmEvent[]>).eq('type', 'task.moved@1').eq('payload->>to', 'review')),
       read('tasks closed', (store.select('journal', cols) as Query<RhythmEvent[]>).eq('type', 'task.closed@1').eq('payload->>outcome', 'done')),
-      read('decisions', (store.select('journal', cols) as Query<RhythmEvent[]>).in('type', DECISION_TYPES).in('actor->>kind', ['person', 'operator']))
+      read('decisions', (store.select('journal', cols) as Query<RhythmEvent[]>).in('type', [...DECISION_TYPES]).in('actor->>kind', ['person', 'operator']))
     ])
     return { rows: parts.flat(), capped: parts.some((p) => p.length >= GATEWAY_ROWS) }
   }
@@ -125,6 +125,7 @@ export function createRhythmReader(store: RhythmStore, opts: { days?: number; ti
             counts.set(d.date, n)
             if (d.to <= now) settled.set(`${tz}|${d.date}`, n)
           } catch (e) {
+            // Not silent: the day is unknown (never zero) and its reason goes into `unread`, said on the chart's hover.
             counts.set(d.date, null)
             unread.push(`${d.date}: ${e instanceof Error ? e.message : String(e)}`)
           }
