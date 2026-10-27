@@ -73,8 +73,8 @@ reminders in `fabric_work_list` and `fabric_heartbeat` with any adapter.
   Главная shows; each reading also reads the git branch of every console's folder, walks the goals and counts today's
   handed-in tasks.
 - **An agent's screen shows its goal, what it does now and what it did.** Switch the left column to «Агенты» and pick
-  one. «Цель» is the root of its current task when there is one to name: the task it was split from, or a task the
-  person set; any other task that is its own root is shown once, as the current task, never as a goal. «Сейчас» is its
+  one. «Цель» is the root of its current task when there is one to name: the task it was split from, a task the
+  person set, or a goal you defined in Plan that the task was filed under; any other task that is its own root is shown once, as the current task, never as a goal. «Сейчас» is its
   current step with progress and the milestones it reported. Then its tasks: «Все», open by default and newest first,
   then «В работе», «На проверке», «Передано» (handed over or let go), «Брошено» (its claim lapsed or its session
   ended), «Готово» and, when a task's row was not found, «Не найдены»; each with its project, when it was taken and
@@ -96,7 +96,10 @@ reminders in `fabric_work_list` and `fabric_heartbeat` with any adapter.
   live claim on in that project; with no such claim or several it links nothing, and its answer says why
   (`spawned_from`, `spawned_from_why`). `fabric_task_link` now states the link's direction: `taskId` is the piece,
   `targetTaskId` the task it was split from. Without a link the agent's row shows its current task itself in the
-  goal's place.
+  goal's place. Because such a piece now has a parent, a session that joined from its own terminal meets the limit on
+  chains of hand-offs that a session Fabric launched always met: the fourth hand-off in one chain of spawned pieces is
+  filed as a proposal for you instead of a task, and the answer says why (`spawned_from_why` names the limit). When the
+  chain could not be read, the piece is filed without the link and the answer says that too.
 
 ## 0.3.13
 
