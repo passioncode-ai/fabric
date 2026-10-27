@@ -8,7 +8,7 @@
  * open question counts only when a caller passes `asking`, and no screen does in 0.3.14, DA-10),
  * working (a sign within the window), idle (gone quiet; a Fabric console silent for a minute is idle, never «waiting»:
  * silence is not an observed wait, the 0.3.14 review, iteration 2, DA-5). «Дежурит» (monitoring) needs roles and is
- * 0.3.15's; a limit stop read from Switchboard is CO-457's. The screens show the word beside the colour.
+ * the release of 2026-11-05's; a limit stop read from Switchboard is CO-457's. The screens show the word beside the colour.
  *
  * ONE function for every screen (the left column, «В работе», the agent page; ER-18): an agent's own word counts only
  * while it is fresh, newer than the agent's last sign of life or within the quiet window (`PHASE_FRESH_MS`, the stale

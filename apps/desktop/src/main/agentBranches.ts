@@ -9,7 +9,7 @@
  * the reading never waits on it past `timeoutMs` + 1 s; its git is killed with SIGKILL and its slot given back at that
  * deadline, counted from its spawn (ER-28). A folder git cannot read, and a detached HEAD, give no branch: the screens say
  * «ветка неизвестна», and the reading of who works is never failed by it. An agent that joined from its own terminal
- * shares no folder (`session.enrolled@1` keeps a digest only), so it carries none until 0.3.15 (open choice 3).
+ * shares no folder (`session.enrolled@1` keeps a digest only), so it carries none until the release of 2026-11-05 (open choice 3, CO-459).
  */
 import type { HomeView } from '../shared/homeLive.ts'
 import { gitRun } from './gitRun.ts'

@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "d1b0379dcdf0cdf566b3e457a17431f80e7582c7",
+  "report": "docs/evidence/reviews/0.3.15/iteration-1/2026-10-27-errors.md",
+  "reportSha256": "55458394655418930da75bfcfd644795182d676a9197646d4f015077650ce6c9",
+  "reviewerRun": "release-0315-i1-errors-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V1-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: only a claim that ended by itself within `CARRY_CLAIM_MS` in the same project is carried, one task to one agent, and a carried task alone is not work (`apps/desktop/src/shared/agentIdentity.ts#joinByRuntime`, `agentWork.ts#workOf`); tests `agentIdentity.test.ts` «ER-1: …», `agentWork.test.ts` «ER-1: …», watched failing with the carry rule removed"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V1-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: main answers a reading younger than `MIN_INTERVAL_MS` again and shares one in flight (`apps/desktop/src/main/workRhythm.ts#createRhythmReader`); test `test/work-rhythm.test.mjs` «ER-2: …»"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V1-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: three reads filtered by the database (`workRhythm.ts#createRhythmReader` `marks`); test «results and decisions come from three reads …»"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V1-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a 60 s tick (`HomeParts.tsx#useRhythm`, `RHYTHM_TICK_MS`) and «· не обновлено» on the line (`launch.home.rhythm.stale`)"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V1-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: turns under an agent's earlier ids count as its own (`LiveAgent.aliases`, `apps/desktop/src/main/agentWork.ts#withWork`) and `atWork.turnsUnread` says a failed read"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V1-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a failed read keeps the last names and is logged, a capped projects read is logged (`apps/desktop/src/main/projectNames.ts#createDisplayNameReader`); test `test/project-names.test.mjs` «ER-6: …», watched failing with the fallback removed"
+      ]
+    }
+  ]
+}

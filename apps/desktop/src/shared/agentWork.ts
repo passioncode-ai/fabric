@@ -1,10 +1,11 @@
-// #region agent-work — docs: docs/reports/2026-10-27-mockup-parity/gaps/home.md#d-data-bugs-wrong-numbers-order-or-missing-fields
+// #region agent-work — docs: docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-home.md#d-data-bugs-wrong-numbers-order-or-missing-fields
 /**
  * At work, apart from connected (the mockup parity, 2026-10-27, home gaps D3, D4, D7). «Working» used to mean any sign
  * of life within ten minutes, and fabric-mcp pings every two minutes on its own, so every open coding-agent window read
  * as working (37 on the operator's Mac with one claim open) and the cards reshuffled with the ping rotation.
  *
- * An agent is AT WORK when it holds a task (and still signs), or within `AT_WORK_MS` it reported a stage, sent a
+ * An agent is AT WORK when it still signs and either holds a task with a work signal within `TASK_WORK_MS` (a task carried
+ * from an earlier session id does not count alone), or within `AT_WORK_MS` it reported a stage, sent a
  * working heartbeat (`working`, `reading`, `verifying`), finished a turn (`session.turn.observed@1`, its own hook), or
  * its Fabric console printed. A keep-alive ping keeps it CONNECTED, never at work. Its WORK TIME is the newest of those
  * signals (the claim's time among them), never a ping; the home orders agents and projects by it.
@@ -16,6 +17,10 @@ import type { HomeView, LiveAgent } from './homeLive.ts'
 /** How recent a work signal must be for an agent to read as at work. */
 export const AT_WORK_MS = 15 * 60_000
 
+/** A task makes an agent at work only while one of its work signals (the claim among them) is this recent: an open
+ *  window that keeps an old claim alive by its ping is not at work (the 0.3.15 review, iteration 1, DA-3). */
+export const TASK_WORK_MS = 60 * 60_000
+
 /** The heartbeat phases that say the agent is working (waiting and blocked are not). */
 export const WORKING_PHASES: readonly string[] = ['working', 'reading', 'verifying']
 
@@ -24,6 +29,8 @@ export interface WorkSignals {
   turnAt?: ReadonlyMap<string, string>
   /** Each Fabric console's newest output, by session id. */
   outputAt?: ReadonlyMap<string, string>
+  /** The turns could not be read: the idle count is a floor and is said so (ER-5). */
+  turnsUnread?: boolean
 }
 
 const ms = (iso: string | null | undefined): number => {
@@ -41,8 +48,13 @@ export function workOf(a: LiveAgent, signals: WorkSignals, now: number): { atWor
   ]
   let workAt: string | null = null
   for (const s of [...recent, a.task?.heldSince]) if (s && Number.isFinite(ms(s)) && (!workAt || ms(s) > ms(workAt))) workAt = s
-  const fresh = recent.some((s) => { const t = ms(s); return Number.isFinite(t) && now - t <= AT_WORK_MS })
-  return { atWork: (!!a.task && !a.stale) || fresh, workAt }
+  const within = (bound: number) => (s: string | null | undefined): boolean => { const t = ms(s); return Number.isFinite(t) && now - t <= bound }
+  const fresh = recent.some(within(AT_WORK_MS))
+  // A task carried over from an earlier session id is shown, but alone it is not work now (ER-1); a task held with no
+  // work signal in an hour is not either (DA-3). An agent past its sign window is quiet, never at work (DA-10): the
+  // strip's count is then the cards' at-work count less the quiet ones, as the head says.
+  const taskWork = !!a.task && !a.task.fromEarlierSession && [...recent, a.task.heldSince].some(within(TASK_WORK_MS))
+  return { atWork: !a.stale && (taskWork || fresh), workAt }
 }
 
 /** Order: at work first, newest work first, then by agent name and session. */
@@ -67,7 +79,7 @@ export function withWorkSignals(view: HomeView, signals: WorkSignals, now: numbe
     ...view,
     live,
     projects,
-    atWork: { agents: atWork.length, connectedIdle: live.filter((a) => !a.atWork && !a.stale).length, noTask: noTask.length, noTaskSessions: noTask.map((a) => a.sessionId) }
+    atWork: { agents: atWork.length, connectedIdle: live.filter((a) => !a.atWork && !a.stale).length, noTask: noTask.length, noTaskSessions: noTask.map((a) => a.sessionId), ...(signals.turnsUnread ? { turnsUnread: true } : {}) }
   }
 }
 // #endregion agent-work

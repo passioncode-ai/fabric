@@ -1,4 +1,5 @@
 import { FALLBACK_OPTION, useFallbackChoice } from './useFallbackChoice'
+import { projectDisplayName } from '../../shared/projectDisplayName.ts'
 import { listedRunner } from '../../shared/builderChoice.ts'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -1310,7 +1311,9 @@ export function ProjectHeader({
           </p>
         )}
         <div>
-          <h1>{project.name}</h1>
+          {/* One project, one name (the 0.3.15 review, iteration 1, UX-4): the display name the rail and the top bar
+              print, the stored slug on hover. */}
+          <h1 title={project.name}>{projectDisplayName(project)}</h1>
           <p className="muted">{project.purpose || t('project.noPurpose')}</p>
           {/* A path is copied character for character, so it is set in mono; the sentence saying there is none is prose. */}
           <p className={project.repo_path ? 'muted mono' : 'muted'}>{project.repo_path ?? t('project.noRepo')}</p>

@@ -390,9 +390,12 @@ export function EstateHome({
     ? home.view.live.filter((a) => a.atWork).map((a) => a.sessionId)
     : (home.view?.live ?? []).filter((a) => !a.stale).map((a) => a.sessionId)
   // Every project name the home prints is `projectDisplayName`'s (the mockup parity, rail gap §2).
-  const nameOfProject = (id: string): string => {
+  // An id no list knows prints no id (the 0.3.15 review, iteration 1, UX-5): null, and the caller says it its own way.
+  const nameOfProject = (id: string): string | null => {
     const p = (projects ?? []).find((x) => x.id === id)
-    return projectDisplayName(p ?? { id, name: id }, home.view?.displayNames ?? null)
+    const names = home.view?.displayNames ?? null
+    if (!p && !names?.[id]) return null
+    return projectDisplayName(p ?? { id, name: id }, names)
   }
   const noTaskSessions = home.view?.atWork ? home.view.atWork.noTaskSessions : (home.view?.unclaimedSessions ?? [])
   const openFirst = (sessions: readonly string[]): void => {
@@ -585,7 +588,7 @@ export function EstateHome({
             <summary>{t('launch.home.more')}</summary>
             {/* 0.3.14: the projects table, the profile and the journal leave the main path (the simple Fabric §2b, §4). The
                 left column lists the projects alphabetically; the pins and their order (SCN-043) and the read position of
-                the journal (AX-07) have no other home yet, so they stay here, folded, until 0.3.15 gives them one. */}
+                the journal (AX-07) have no other home yet, so they stay here, folded, until the release of 2026-11-05 gives them one. */}
           <section className="lp-projects lh-projects" id="sec-estate-projects" aria-labelledby="home-projects-title">
               <div className="lp-panel-head">
                 <div>

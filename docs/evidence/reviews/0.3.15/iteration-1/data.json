@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "d1b0379dcdf0cdf566b3e457a17431f80e7582c7",
+  "report": "docs/evidence/reviews/0.3.15/iteration-1/2026-10-27-data.md",
+  "reportSha256": "fc51b97a28fa2a337610a47ca3e3088f02c2f25a3e2f315ea6082a67147a4888",
+  "reviewerRun": "release-0315-i1-data-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V1-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG 0.3.15 says so; Pulse is not in the mockup"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V1-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `heldSince` is the claim time only (`apps/desktop/src/shared/homeLive.ts#composeHome`)"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V1-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a task counts only with a work signal within `TASK_WORK_MS` (`agentWork.ts#workOf`); test `agentWork.test.ts` «holding a task is at work while …»"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V1-25",
+      "status": "ruled",
+      "evidence": [
+        "ruled: an index is a schema step and 0.3.15 is the bundle alone; CO-469"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V1-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-2"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V1-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the join keeps to the live agent's project (`agentIdentity.ts#joinByRuntime`); agents with no runtime id are named in CHANGELOG and are CO-473"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "source": "V1-28",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the known limit of one live claim; CO-470"
+      ]
+    },
+    {
+      "id": "DA-8",
+      "source": "V1-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-3"
+      ]
+    },
+    {
+      "id": "DA-9",
+      "source": "V1-30",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the screens outside the mockup; CO-471"
+      ]
+    },
+    {
+      "id": "DA-10",
+      "source": "V1-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an agent past its sign window is quiet, never at work, so the strip is the cards' count less the quiet ones (`agentWork.ts#workOf`); test `agentWork.test.ts`"
+      ]
+    }
+  ]
+}

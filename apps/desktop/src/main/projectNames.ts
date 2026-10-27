@@ -1,4 +1,4 @@
-// #region project-names-read — docs: docs/reports/2026-10-27-mockup-parity/gaps/rail.md#2-where-display-names-could-come-from
+// #region project-names-read — docs: docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-rail.md#2-where-display-names-could-come-from
 /**
  * Every active project's display name (`shared/projectDisplayName.ts#resolveDisplayName`): the projects and their
  * repositories (`project_repos.path`, whose basename is the folder, and `remote_key`) read once, matched against the
@@ -43,22 +43,33 @@ export function displayNamesOf(
   return out
 }
 
-export function createDisplayNameReader(store: NamesStore, descriptors: () => readonly DescriptorName[], now: () => number = Date.now) {
+export function createDisplayNameReader(store: NamesStore, descriptors: () => readonly DescriptorName[], now: () => number = Date.now, onCapped?: (rows: number) => void) {
   let kept: { at: number; names: Record<string, ResolvedDisplayName> } | null = null
   let inFlight: Promise<Record<string, ResolvedDisplayName>> | null = null
   async function readNow(): Promise<Record<string, ResolvedDisplayName>> {
     const { data, error } = await (store.select('projects', 'id,name') as ProjectsQuery).eq('status', 'active').limit(PROJECTS)
     if (error) throw new Error(`the projects could not be read: ${error.message}`)
     const projects = (data ?? []) as Array<{ id: string; name: string }>
+    // Past the bound the rest print their slug; said once per reading, never silent (ER-6).
+    if (projects.length >= PROJECTS) onCapped?.(projects.length)
     const repos = await store.selectIn('project_repos', 'project_id,path,remote_key', 'project_id', projects.map((p) => p.id))
     if (repos.failed) throw new Error(`the projects' repositories could not be read: ${repos.failed}`)
     return displayNamesOf(projects, repos.rows as Array<{ project_id: string }>, descriptors())
   }
   return {
-    async read(): Promise<DisplayNames> {
+    /** The names, read at most once per `TTL_MS`. A read that fails keeps the last names it had, so a passing failure
+     *  never turns «Research Agent» back into `research-agent` on every screen (the 0.3.15 review, iteration 1, ER-6);
+     *  `onStale` hears why. With nothing kept, the failure is thrown. */
+    async read(onStale?: (e: unknown) => void): Promise<DisplayNames> {
       if (kept && now() - kept.at < TTL_MS) return kept.names
       inFlight ??= readNow().then((names) => { kept = { at: now(), names }; return names }).finally(() => { inFlight = null })
-      return inFlight
+      try {
+        return await inFlight
+      } catch (e) {
+        if (!kept) throw e
+        onStale?.(e)
+        return kept.names
+      }
     }
   }
 }

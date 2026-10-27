@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "d1b0379dcdf0cdf566b3e457a17431f80e7582c7",
+  "report": "docs/evidence/reviews/0.3.15/iteration-1/2026-10-27-docs.md",
+  "reportSha256": "7f61a5e8d39d35e19a23a1490251c95dc4c9d7a45dcbbb21eb35c4213d8faff7",
+  "reviewerRun": "release-0315-i1-docs-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V1-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every region cites `gaps/2026-10-27-*.md`; `node scripts/check-regions.mjs` exit 0"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V1-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: spec v1 and the SCN-162 amendment link the dated maps; `bash scripts/check-docs.sh` exit 0"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V1-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: new top entries for the candidate and for these fixes, refreshed; `node scripts/check-design-map.mjs` exit 0"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the home's work reading row names the enrolments, earlier ids, turns and display names; a new row for the rhythm reading; the board reading row names the list (`AGENTS.md`, Lifecycle)"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V1-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG 0.3.15 says the definitions are shared and Pulse counts on the events it holds"
+      ]
+    }
+  ]
+}

@@ -20,7 +20,7 @@
  * as a tab only when pressed (no console mounts on choosing the agent). «Результаты» as event types are gone: a task's
  * «Чем закончил» says it in words.
  *
- * The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/agent.md): the layout of the approved mockup
+ * The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-agent.md): the layout of the approved mockup
  * (docs/reports/2026-10-26-simple-fabric/mockup.html `#agent`). «← Главная» above the header; the header's status is a
  * pill and comes first; v2's goal is a kicker line inside «Сейчас», never a box of its own; «Сейчас» always names the
  * task; the step is a bar with «шаг N из M» in bold and the hold time in the muted tail; milestones are a timeline;
@@ -230,7 +230,8 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const name = title ?? runnerLabel(agent.agent, t)
   const placeOf = where ?? (agent.console ? 'fabric' : 'terminal')
   // How long it has held the task, to the minute as the mockup says it (`heldFor`, the same as «В работе»).
-  const held = current && current.via === 'claim' && !current.releasedAt ? t('agentScreen.held', { time: heldFor(current.claimedAt, t) }) : null
+  const heldTime = current && current.via === 'claim' && !current.releasedAt ? heldFor(current.claimedAt, t) : null
+  const held = heldTime ? t('agentScreen.held', { time: heldTime }) : null
   const startedWords = daysAgo(agent.startedAt) === 0
     ? t('agentScreen.startedToday', { time: time(agent.startedAt) })
     : at(agent.startedAt)

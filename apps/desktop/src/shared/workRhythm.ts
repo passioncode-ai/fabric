@@ -1,4 +1,4 @@
-// #region work-rhythm — docs: docs/reports/2026-10-27-mockup-parity/gaps/home.md#d-data-bugs-wrong-numbers-order-or-missing-fields
+// #region work-rhythm — docs: docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-home.md#d-data-bugs-wrong-numbers-order-or-missing-fields
 /**
  * «Ритм работы» over 28 local days, and the one definition of its two totals (the mockup parity, 2026-10-27, home gaps
  * D1 and D2). The chart counted the renderer's newest 500 events, under two hours of this journal, so every day read as

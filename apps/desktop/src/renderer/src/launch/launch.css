@@ -237,6 +237,7 @@
 .lh-spark i.unknown{height:100%;background:repeating-linear-gradient(135deg,transparent,transparent 3px,var(--app-line-strong) 3px,var(--app-line-strong) 4px)}
 .lh-totals{display:block;font-size:10px;color:var(--app-muted);line-height:1.6}
 .lh-totals>span{display:block;font-size:9px}
+.lh-totals>.lh-rhythm-stale{display:inline;font-size:inherit;color:var(--app-ink)}
 .lh-pulse-title{display:flex;align-items:center;gap:var(--space-2)}
 .lh-pulse-title>b{font-size:13px}
 .lh-pulse-title .fp-signal{font-size:22px;line-height:1}
@@ -769,12 +770,14 @@ button.lg-node{ cursor: pointer; }
 .lh-inwork-quiet{margin:0 2px;font-size:12.5px;color:var(--app-muted)}
 @media(max-width:850px){.lh-arow{grid-template-columns:1fr}.lh-arow-when{text-align:left}}
 /* ── Главная as the approved mockup (docs/reports/2026-10-26-simple-fabric/mockup.html, gap map
-   docs/reports/2026-10-27-mockup-parity/gaps/home.md A to F). Scoped to `.estate-home` so it outranks the older
+   docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-home.md A to F). Scoped to `.estate-home` so it outranks the older
    launch rules above, which the product report (scripts/product/launch.mjs) still draws with. ── */
 .lp.estate-home{max-width:none;margin:0;padding:var(--space-5) var(--space-5) var(--space-6)}
 .estate-home .lh-home{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:var(--space-5);align-items:start}
 .estate-home .lh-home>.lh-main-column,.estate-home .lh-home>.lh-side-column{display:block;min-width:0}
-@media(max-width:1100px){.estate-home .lh-home{grid-template-columns:minmax(0,1fr)}}
+/* One column below 1100 px: «Нужны вы» right under the numbers, never under every project card (the 0.3.15 review,
+   iteration 1, UX-8). */
+@media(max-width:1100px){.estate-home .lh-home{grid-template-columns:minmax(0,1fr)}.estate-home .lh-home>.lh-main-column{display:contents}.estate-home .lh-home>.lh-main-column>*{order:3;min-width:0}.estate-home .lh-home>.lh-main-column>.lh-hero{order:0}.estate-home .lh-home>.lh-main-column>.lh-stats{order:1}.estate-home .lh-home>.lh-side-column{order:2}}
 /* The hero: one framed card, face | words | chart (B1 to B5, B8). */
 .estate-home .lh-hero{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(260px,360px);gap:var(--space-5);align-items:center;padding:var(--space-4) var(--space-5);border:1px solid var(--app-line);border-radius:var(--app-radius-panel);background:linear-gradient(135deg,color-mix(in srgb,var(--app-accent) 7%,var(--app-panel)),var(--app-panel) 55%);margin:0 0 var(--space-3)}
 .estate-home .lh-hero>.fp-face{width:72px;height:72px;min-width:72px;border-radius:24px;overflow:hidden;box-shadow:0 6px 18px color-mix(in srgb,var(--app-ink) 12%,transparent)}
@@ -909,7 +912,7 @@ button.lg-node{ cursor: pointer; }
 /* The console icon beside an agent (R-6): filled where Fabric holds the console, outlined where it runs elsewhere. */
 .rail-agents li{display:flex;align-items:flex-start;gap:2px}
 .rail-agents li>a{flex:1 1 auto;min-width:0}
-.rail-console{flex:none;margin-top:3px;width:24px;height:22px;display:grid;place-items:center;border:1px solid var(--app-line-strong);border-radius:6px;background:var(--app-panel-quiet);color:var(--app-ink);font-family:var(--font-mono);font-size:10px;cursor:pointer}
+.rail-console{flex:none;margin-top:3px;width:24px;height:22px;display:grid;place-items:center;border:1px solid var(--app-line-strong);border-radius:6px;background:var(--app-panel-quiet);color:var(--app-ink);font-family:var(--font-mono);font-size:10px;line-height:1;padding:0;box-sizing:border-box;cursor:pointer}
 .rail-console.elsewhere{background:transparent;border-style:dashed;color:var(--app-muted);cursor:default}
 .rail-console:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
 @media(max-width:900px){.rail-console{display:none}}
@@ -926,7 +929,7 @@ button.lg-node{ cursor: pointer; }
 .rail-dot.s-ended{background:transparent;box-shadow:inset 0 0 0 1.5px var(--app-line-strong)}
 .lh-status{display:inline-block;margin-right:6px;font-weight:600}
 .lh-status.s-waiting{color:var(--state-idle)}.lh-status.s-error{color:var(--state-danger)}.lh-status.s-idle,.lh-status.s-ended{color:var(--app-muted)}
-/* ── The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/agent.md): an agent's screen as the approved
+/* ── The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-agent.md): an agent's screen as the approved
    mockup draws it (docs/reports/2026-10-26-simple-fabric/mockup.html `#agent`, `#console`) ── */
 .as{display:grid;gap:var(--space-4);min-width:0}
 .as-back{margin:0;font-size:12px;color:var(--app-muted)}
@@ -1028,7 +1031,7 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 .as-questions h4{margin:0;font-size:11.5px;font-weight:600;color:var(--app-muted)}
 .as-questions>.lp-meta{margin:6px 0 0;font-size:12.5px}
 .as-questions-list{margin:6px 0 0;padding-left:1.1em;font-size:13px;display:grid;gap:4px}
-@media(max-width:1000px){.as-cols{grid-template-columns:1fr}.as-side{position:static}}
+@media(max-width:1000px){.as-cols{grid-template-columns:1fr}.as-side{position:static;order:-1}}
 @media(max-width:700px){.as-head{flex-wrap:wrap}.as-head .lh-agents-actions{margin-left:0}.ap-brief>div{grid-template-columns:1fr;gap:0}.ap-task-body{padding-left:14px}}
 /* «Нужна правка в другом проекте»: no panel box, a rule above it (the mockup's `.xproj`). */
 .xp{display:grid;gap:var(--space-2);border-top:1px solid var(--app-line);padding-top:var(--space-3);margin-top:var(--space-2);text-align:left}

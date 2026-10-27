@@ -12,7 +12,7 @@
  * console is kept by project and sentence (ER-26), and a started one is said as one session, its unsaved note on a line of
  * its own (ER-25, UX-23).
  *
- * The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/agent.md, «Cross-project panel»): no panel box,
+ * The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-agent.md, «Cross-project panel»): no panel box,
  * a top rule as the mockup's `.xproj`; the agent page opens it inline in a task row (`inline`), with its own toggle; once
  * the project and the sentence are both filled and the person leaves the form, it folds to one line «Проект: X · «…»»
  * with «Изменить»; the second way, «Поручить агенту X в Fabric», is shown disabled with «в релизе от 5 ноября».

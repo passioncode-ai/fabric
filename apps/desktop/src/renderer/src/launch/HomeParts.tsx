@@ -33,12 +33,19 @@ export type RhythmReading = { rhythm: WorkRhythm | null; problem: string | null 
 
 /** Reads `work.rhythm` when the journal moves, one reading in flight at a time (as `useHome`): a mark that arrives while
  *  one runs asks for ONE more after it lands. A failed read keeps the last reading and says why; never zeros. */
+/** How often the rhythm is asked again with no mark moving. */
+export const RHYTHM_TICK_MS = 60_000
+
 export function useRhythm(mark: number, enabled = true): RhythmReading {
   const [reading, setReading] = useState<RhythmReading>({ rhythm: null, problem: null })
   const flight = useRef({ busy: false, dirty: false, alive: true })
+  // A minute's tick, so a quiet machine still turns the chart over at midnight (the 0.3.15 review, iteration 1, ER-4);
+  // main answers a reading younger than 15 s again, so the tick costs nothing between marks.
+  const [tick, setTick] = useState(0)
   useEffect(() => {
     flight.current.alive = true
-    return () => { flight.current.alive = false }
+    const timer = window.setInterval(() => setTick((n) => n + 1), RHYTHM_TICK_MS)
+    return () => { flight.current.alive = false; window.clearInterval(timer) }
   }, [])
   useEffect(() => {
     if (!enabled) return
@@ -56,7 +63,7 @@ export function useRhythm(mark: number, enabled = true): RhythmReading {
       })
     }
     read()
-  }, [mark, enabled])
+  }, [mark, enabled, tick])
   return reading
 }
 
@@ -68,6 +75,10 @@ function rhythmOf(rhythm: RhythmReading | undefined, feed: FeedEvent[] | null, n
   decisions: string | null
   results: string | null
   why?: string
+  /** The last reading failed and the chart is the one before it (ER-4): said on the line, not only on hover. */
+  stale?: boolean
+  /** Main has not answered yet (UX-3): the line says it reads, never «не прочитаны». */
+  loading?: boolean
 } {
   if (rhythm) {
     const r = rhythm.rhythm
@@ -80,7 +91,9 @@ function rhythmOf(rhythm: RhythmReading | undefined, feed: FeedEvent[] | null, n
       days,
       decisions: known ? `${r!.totals.decisions}${plus}` : null,
       results: known ? `${r!.totals.results}${plus}` : null,
-      why: rhythm.problem ?? r?.unread?.join('; ')
+      why: rhythm.problem ?? r?.unread?.join('; '),
+      stale: !!rhythm.problem && !!r,
+      loading: !r && !rhythm.problem
     }
   }
   const totals = rhythmTotals(feed, now)
@@ -97,7 +110,7 @@ export function HomeRhythm({ feed, now, onPulse, rhythm }: {
   rhythm?: RhythmReading
 }): React.JSX.Element {
   const t = useT(), locale = useLocale()
-  const { days, decisions, results, why } = rhythmOf(rhythm, feed, now)
+  const { days, decisions, results, why, stale, loading } = rhythmOf(rhythm, feed, now)
   const max = Math.max(1, ...days.map((d) => d.count))
   const latest = feed && feed.length ? feed.reduce((a, b) => (b.seq > a.seq ? b : a)) : null
   const moving = latest !== null && sameDay(latest.occurred_at, now)
@@ -120,7 +133,7 @@ export function HomeRhythm({ feed, now, onPulse, rhythm }: {
               : span}
           </span>
         </span>
-        <span className="lh-totals" title={why}>{decisions !== null && results !== null ? t('launch.home.rhythm.totals', { decisions, results }) : t('launch.home.rhythm.totalsUnread')}</span>
+        <span className="lh-totals" title={why}>{decisions !== null && results !== null ? t('launch.home.rhythm.totals', { decisions, results }) : t(loading ? 'launch.home.rhythm.totalsReading' : 'launch.home.rhythm.totalsUnread')}{stale && <span className="lh-rhythm-stale">{t('launch.home.rhythm.stale')}</span>}</span>
       </div>
       <div className="lh-spark" role="list" aria-label={t('launch.home.rhythm.label', { days: RHYTHM_DAYS })}>
         {days.map((d) => (
@@ -168,10 +181,14 @@ export function whyOf(item: BoardEntry, t: ReturnType<typeof useT>, locale: Deta
 /** One «Нужны вы» card (the approved mockup, `.side .q`): who asks and how long ago, the question, why it is asked, and
  *  its answers as buttons, the first one gold. Answered where it is read; the question opens it on the board. Used on
  *  Главная and on an agent's page («Вопросы этого агента»), so a question looks and answers the same in both. */
+/** The card's project: the printed name when known, else the board's own name for it, never a bare id (UX-5). */
+const projectOf = (item: BoardEntry, nameOf?: (projectId: string) => string | null): string | null =>
+  (item.projectId && nameOf ? nameOf(item.projectId) : null) ?? item.projectName ?? null
+
 export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
   item: BoardEntry
   /** A project's printed name by id (`projectDisplayName`); absent: the name the board read. */
-  nameOf?(projectId: string): string
+  nameOf?(projectId: string): string | null
   /** Opens the item on the board; absent, the question is plain text and the card opens nothing. */
   onOpen?(ref: string): void
   /** The card's first line when the caller words it otherwise (the agent page names no asker: it is the page's agent). */
@@ -205,7 +222,7 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
         {meta ?? (
           <>
             {/* The spaces between the parts keep the line one sentence for a screen reader and for copying. */}
-            {(item.projectId && nameOf ? nameOf(item.projectId) : item.projectName) && <b>{item.projectId && nameOf ? nameOf(item.projectId) : item.projectName}</b>}
+            {projectOf(item, nameOf) && <b>{projectOf(item, nameOf)}</b>}
             {askerOf(item, t) && <>{' '}<span>· {askerOf(item, t)}</span></>}
             {' '}<span>· {since(item.waitingSince, t)}</span>
           </>
@@ -247,7 +264,7 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
 
 /** What the person resolves, from the SAME query the board runs, so the count here and the board never disagree (M151).
  *  The approved mockup (2026-10-26, `.side`): «Нужны вы» with a gold count, then one OPEN card per item (`NeedsYouCard`). */
-export function HomeBoard({ feedMark, onBoard, onTotal, nameOf }: { feedMark: number; onBoard(item?: string): void; /** A project's printed name by id (`projectDisplayName`). */ nameOf?(projectId: string): string; /** Kept for callers; the home no longer shows «Добавить тему» (gap map F4). */ onAddTopic?(): void; /** The person's count, for Главная's greeting (SCN-163). */ onTotal?(total: number | null): void }): React.JSX.Element {
+export function HomeBoard({ feedMark, onBoard, onTotal, nameOf }: { feedMark: number; onBoard(item?: string): void; /** A project's printed name by id (`projectDisplayName`); null when unknown. */ nameOf?(projectId: string): string | null; /** Kept for callers; the home no longer shows «Добавить тему» (gap map F4). */ onAddTopic?(): void; /** The person's count, for Главная's greeting (SCN-163). */ onTotal?(total: number | null): void }): React.JSX.Element {
   const t = useT()
   const [view, setView] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [problem, setProblem] = useState<string | null>(null)

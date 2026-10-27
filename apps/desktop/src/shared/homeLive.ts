@@ -66,11 +66,16 @@ export interface LiveAgent {
     what?: string | null
     /** When the agent took it (home gap D9): the claim's time, else when Fabric launched it in this session, else the
      *  stage report that names it. Null when not known. */
+    /** When its claim was taken; null for a task it was launched with or a stage report names, whose `updated_at` or
+     *  report time moves with every edit (the 0.3.15 review, iteration 1, DA-2). */
     heldSince?: string | null
     /** It came from an earlier session id of the same coding-agent session (home gaps D5, D6; `agentIdentity.ts`):
      *  that agent restarted or re-enrolled, and it still works on this running task. */
     fromEarlierSession?: boolean
   } | null
+  /** Its earlier Fabric session ids of the same coding-agent session (`agentIdentity.ts`): its turns under them count
+   *  as its own (the 0.3.15 review, iteration 1, ER-5). */
+  aliases?: string[]
   /** At work, not merely connected (home gaps D3, D4; `agentWork.ts`): it holds a task, or reported a stage, a working
    *  heartbeat or a turn within `AT_WORK_MS`, or its Fabric console printed within it. A keep-alive ping keeps an agent
    *  connected, never at work. Absent: not judged (an older reader). */
@@ -165,7 +170,7 @@ export interface HomeView {
   goalsUnread?: string
   /** Agents at work apart from those merely connected (home gaps D3, D7; `agentWork.ts`). `noTask` is «работают без
    *  задачи»: at work, holding no task. Absent: not judged. */
-  atWork?: { agents: number; connectedIdle: number; noTask: number; noTaskSessions: string[] }
+  atWork?: { agents: number; connectedIdle: number; noTask: number; noTaskSessions: string[]; turnsUnread?: boolean }
   /** Every project's display name (`projectDisplayName.ts`), by project id. Absent: not resolved. */
   displayNames?: Record<string, import('./projectDisplayName.ts').ResolvedDisplayName>
 }
@@ -264,12 +269,12 @@ export function composeHome(input: {
       return { id: claim.taskId, projectId: claim.projectId, summary: taskSummary(b, claim.title), ...titleAndWhat(b), heldSince: claim.since }
     }
     const launched = launchedBySession.get(sessionId)
-    if (launched) return { id: launched.id, projectId: launched.project_id, summary: taskSummary(launched), ...titleAndWhat(launched), heldSince: launched.updated_at ?? null }
+    if (launched) return { id: launched.id, projectId: launched.project_id, summary: taskSummary(launched), ...titleAndWhat(launched), heldSince: null }
     // The 0.3.14 review, iteration 1, DA-6, ER-11: a stage report names the current task only while that task is running.
     const named = namedStageBySession.get(sessionId)
     if (named?.task_id && anyTask.get(named.task_id)?.status === 'running') {
       const t = anyTask.get(named.task_id)
-      return { id: named.task_id, projectId: named.project_id, summary: taskSummary(t), ...titleAndWhat(t), heldSince: named.reported_at }
+      return { id: named.task_id, projectId: named.project_id, summary: taskSummary(t), ...titleAndWhat(t), heldSince: null }
     }
     return null
   }

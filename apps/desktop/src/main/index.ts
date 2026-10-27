@@ -4980,7 +4980,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
 
   // Every project's display name (rail gap §2, `projectNames.ts`), kept a minute; read by projects.list and the home.
-  const projectNames = createDisplayNameReader(store as never, () => (linkRegistry?.snapshot().entries ?? []).map((e) => ({ id: e.id, instance: e.instance, name: e.name, repository: e.repository, kind: e.kind })))
+  const projectNames = createDisplayNameReader(store as never, () => (linkRegistry?.snapshot().entries ?? []).map((e) => ({ id: e.id, instance: e.instance, name: e.name, repository: e.repository, kind: e.kind })), Date.now,
+    (rows) => ops.record({ op: 'projects.display-names-capped', outcome: 'ok', level: 'info', detail: { rows }, ctx: { correlationId: ops.correlate() } }))
+  const namesStale = (e: unknown): void => ops.failed('projects.display-names-stale', e, { note: 'the screens keep the names of the last reading' })
   handle(IPC.projectsList, async (): Promise<Returns<FabricApi['projects']['list']>> => {
     const { data, error } = await store
       .select('projects', '*')
@@ -4989,7 +4991,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       .order('created_at', { ascending: true })
     if (error) throw new Error(`projects list failed: ${error.message}`)
     // The mockup parity (rail gap §2): each row carries the name screens print; a failed lookup leaves the stored names.
-    const names = await projectNames.read().catch((e: unknown) => { ops.failed('projects.display-names-unread', e, { note: 'the rows keep their stored names' }); return null })
+    const names = await projectNames.read(namesStale).catch((e: unknown) => { ops.failed('projects.display-names-unread', e, { note: 'the rows keep their stored names' }); return null })
     return ((data ?? []) as ProjectRow[]).map((p) => (names?.[p.id] ? { ...p, displayName: names[p.id].name, displayNameFrom: names[p.id].from } : p))
   })
 
@@ -5200,13 +5202,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // ER-18: each agent's newest heartbeat, so every screen judges its status from the same inputs (`agentHeartbeats.ts`).
     // The mockup parity (home gaps D5, D6): an agent that re-enrolled keeps its stage reports, heartbeats and running
     // task across its session ids (`agentIdentity.ts`), before its goal is walked from that task.
-    const identified = await withIdentity(await withHeartbeats(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader), store as never), store as never, held)
+    const identified = await withIdentity(await withHeartbeats(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader), store as never), store as never, held, now)
     // Home gaps D3, D4, D7: at work apart from connected, ordered by work, not by keep-alive pings (`agentWork.ts`).
     const view = await withWork(await withGoals(identified, store as never), store as never, held, now)
     // The strip's own reads (`homeStrip.ts`): «Сдано сегодня» and the sweep's «Работают без задачи», each said unread alone.
     const stripped = await withStrip(view, { handedIn: () => readHandedInToday(store as never, { now }), sweep: () => abandonedSweep?.current() ?? null })
     // Every project's display name (rail gap §2, `projectNames.ts`).
-    return withDisplayNames(stripped, () => projectNames.read(), (e) => ops.failed('work.display-names-unread', e, { note: 'the screens print the stored names' }))
+    return withDisplayNames(stripped, () => projectNames.read(namesStale), (e) => ops.failed('work.display-names-unread', e, { note: 'the screens print the stored names' }))
   })
   handle(IPC.workBoard, async (_e, projectId?: unknown, doneLimit?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
     readTaskBoard(store, {

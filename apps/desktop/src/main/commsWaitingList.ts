@@ -1,4 +1,4 @@
-// #region comms-waiting-list-read — docs: docs/reports/2026-10-27-mockup-parity/gaps/home.md#d-data-bugs-wrong-numbers-order-or-missing-fields
+// #region comms-waiting-list-read — docs: docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-home.md#d-data-bugs-wrong-numbers-order-or-missing-fields
 /**
  * The reads behind the waiting requests' list (`shared/commsWaitingList.ts`; home gap D11), done only when the board's
  * count says something waits: the requests submitted in the last `WINDOW_DAYS` (newest first, at most the gateway's

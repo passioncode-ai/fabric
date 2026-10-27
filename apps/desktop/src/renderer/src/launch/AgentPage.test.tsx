@@ -382,7 +382,7 @@ describe('the agent page, review iteration 2 (UX-11, UX-13, ER-20, DA-4)', () =>
   })
 })
 
-// The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/agent.md).
+// The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-agent.md).
 describe('the agent page, the mockup parity (wave 1)', () => {
   const stub = (tasks: SessionTask[] = []) => vi.stubGlobal('window', Object.assign(window, {
     fabric: { work: { session: vi.fn(async () => ({ tasks, capped: false })) }, terminal: { history: vi.fn(async () => []) }, projects: { list: vi.fn(async () => []) } }

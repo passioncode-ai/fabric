@@ -126,7 +126,7 @@ describe('«В работе» grouped by project', () => {
     show({ reading: { view, problem: null } })
     const rows = within(screen.getByRole('article', { name: 'Fabric' })).getAllByRole('listitem')
     expect(rows[0].textContent).toContain(en['status.working'])
-    expect(document.querySelector('.lh-inwork-head')?.textContent).toContain(en['launch.home.inWork.agentsQuiet'].replace('{count}', '1'))
+    expect(document.querySelector('.lh-inwork-head')?.textContent).toContain(en['launch.home.inWork.agentsQuiet.one'].replace('{count}', '1'))
     cleanup()
     show({ reading: { view: null, problem: 'stack refused', retry } })
     fireEvent.click(screen.getByRole('button', { name: en['common.retry'] }))
@@ -192,7 +192,7 @@ describe('«В работе» grouped by project', () => {
   })
 })
 
-// The mockup parity, wave 2 (docs/reports/2026-10-27-mockup-parity/gaps/home.md D3, D4, D9): rows only for agents at
+// The mockup parity, wave 2 (docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-home.md D3, D4, D9): rows only for agents at
 // work, the connected in one line, the task's title heading the row, the hold time under the time, display names.
 describe('«В работе» by work, not by connection (the mockup parity)', () => {
   const atWork: HomeView = {

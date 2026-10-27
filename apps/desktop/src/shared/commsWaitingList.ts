@@ -1,4 +1,4 @@
-// #region comms-waiting-list — docs: docs/reports/2026-10-27-mockup-parity/gaps/home.md#d-data-bugs-wrong-numbers-order-or-missing-fields
+// #region comms-waiting-list — docs: docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-home.md#d-data-bugs-wrong-numbers-order-or-missing-fields
 /**
  * The board's waiting requests as a list (the mockup parity, 2026-10-27, home gap D11): «Fabric → Dashboards: «…»» with
  * how long it waits, beside the count `board_waiting_operator` gives. Composed without a new database function from

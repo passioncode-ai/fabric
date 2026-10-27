@@ -98,7 +98,7 @@ graph button.
    it, or it is on screen. A quiet last row «Все проекты · N» unfolds every active project in place, alphabetically,
    and folds back. Each row keeps the live dot (an agent at work in it, a terminal-joined one included), the star as a
    mark only, and the gold count of questions waiting. A row opens the project page (SCR-86). *Amended 2026-10-27 (the
-   mockup parity, [rail gap 1](../reports/2026-10-27-mockup-parity/gaps/rail.md)): the operator approved the mockup's
+   mockup parity, [rail gap 1](../reports/2026-10-27-mockup-parity/gaps/2026-10-27-rail.md)): the operator approved the mockup's
    seven rows, not a list of every project; the rule is `apps/desktop/src/shared/railProjects.ts#projectsAtWork`,
    tested in `railProjects.test.ts` «projectsAtWork».*
 4. **Агенты** lists every agent at work now, one row each: the runner («Claude Code», «Codex»), its project, and the git

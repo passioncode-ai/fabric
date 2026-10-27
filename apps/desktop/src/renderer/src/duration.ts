@@ -33,9 +33,10 @@ function unitOf(s: number): [number, 's' | 'm' | 'h' | 'd'] {
  * How long something has been held, to the minute under two days («1 ч 44 мин», «38 мин»), as the approved mockup says a
  * claim's age (the mockup parity, home gap D9); from two days on, whole days, as `since` says them. Unknown: «—».
  */
-export function heldFor(iso: string, t?: Translate, now = Date.now()): string {
+export function heldFor(iso: string, t?: Translate, now = Date.now()): string | null {
   const at = new Date(iso).getTime()
-  if (!Number.isFinite(at)) return '—'
+  // An unreadable time says nothing, never a dash in its place (the 0.3.15 review, iteration 1, UX-10).
+  if (!Number.isFinite(at)) return null
   const s = Math.max(0, Math.round((now - at) / 1000))
   const say = (n: number, unit: 's' | 'm' | 'h' | 'd'): string => (t ? t(`duration.${unit}` as 'duration.s', { n }) : `${n}${unit}`)
   if (s < 60) return say(s, 's')

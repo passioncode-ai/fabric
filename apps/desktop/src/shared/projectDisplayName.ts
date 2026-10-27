@@ -1,4 +1,4 @@
-// #region project-display-name — docs: docs/reports/2026-10-27-mockup-parity/gaps/rail.md#2-where-display-names-could-come-from
+// #region project-display-name — docs: docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-rail.md#2-where-display-names-could-come-from
 /**
  * The one name a screen prints for a project (the mockup parity, 2026-10-27, rail gaps 2 and 15). Every place in the
  * shell that shows a project's name (the rail's rows, an agent's row, a console's tab, the top bar's title) asks here, so
@@ -58,9 +58,12 @@ export function repoKey(url: string | null | undefined): string | null {
 }
 
 /** «research-agent» → «Research Agent»; «agent-stack» → «Agent Stack». Split on `-`, `_` and `.`; each word capitalised. */
+/** Words a slug carries that read as letters, not as a word (the 0.3.15 review, iteration 1, UX-9). */
+const ACRONYMS = new Set(['ai', 'api', 'aso', 'cli', 'css', 'db', 'gpt', 'html', 'id', 'ios', 'llm', 'mcp', 'os', 'pr', 'sdk', 'seo', 'sms', 'sql', 'tv', 'ui', 'ux', 'vpn', 'xr'])
+
 export function humaniseSlug(slug: string): string {
   const words = slug.split(/[-_.\s]+/).filter(Boolean)
-  return words.length ? words.map((w) => w[0].toUpperCase() + w.slice(1)).join(' ') : slug
+  return words.length ? words.map((w) => ACRONYMS.has(w.toLowerCase()) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(' ') : slug
 }
 
 const rank = (d: DescriptorName): number => (d.instance === 'default' ? 0 : d.instance === null ? 1 : 2)

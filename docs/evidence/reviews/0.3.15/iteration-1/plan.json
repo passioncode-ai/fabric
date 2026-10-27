@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "d1b0379dcdf0cdf566b3e457a17431f80e7582c7",
+  "report": "docs/evidence/reviews/0.3.15/iteration-1/2026-10-27-plan.md",
+  "reportSha256": "f2b8ab915db8615fc5d162940d0db506f5b86834732a698319031ccfdfd6cc17",
+  "reviewerRun": "release-0315-i1-plan-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V1-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the README's «What closed and what stays open» names each open gap with its reason and home"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V1-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the backlog Now line, the carry-over rows, the scenarios' note on «Поручить агенту B», v2's header note and four code comments name the release of 2026-11-05; `grep -rn \"0\\.3\\.15\" apps/desktop/src` prints only tests"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V1-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the waves table names every changed file group; status in-review"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V1-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rules apply recorded decisions (v2, the operator's theme setting, ADR-0100) as the README says; `shots/after-console-light.png` added"
+      ]
+    }
+  ]
+}

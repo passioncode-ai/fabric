@@ -6,7 +6,7 @@
  * The state is what Fabric observes (a sign within the window, else quiet); the status word is `agentStatus`, the one
  * every screen uses (the 0.3.14 review, iteration 2, ER-18). The branch is
  * the one Fabric read from the folder of a console it holds (`main/agentBranches.ts`); any other row carries null and
- * the column says «ветка неизвестна» (open choice 3: a terminal-joined agent's branch is 0.3.15's).
+ * the column says «ветка неизвестна» (open choice 3: a terminal-joined agent's branch belongs to the release of 2026-11-05, CO-459).
  * An agent only installed, idle or disconnected is not here: Настройки lists those. The mockup parity (home gap D3): when
  * the reading judged work, an agent merely connected (fabric-mcp's keep-alive and nothing else) is not here either; an
  * agent at work, and a quiet one that still holds its task, are (`onWorkRow`, the same rule as «В работе»). The project

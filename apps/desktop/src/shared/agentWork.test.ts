@@ -17,8 +17,13 @@ describe('workOf', () => {
   it('a keep-alive ping (a fresh last sign) alone is connected, not at work', () => {
     expect(workOf(agent('a'), {}, now)).toEqual({ atWork: false, workAt: null })
   })
-  it('holding a task is at work, and its claim time is the work time', () => {
-    expect(workOf(agent('a', { task: { id: 't', projectId: 'p1', summary: 's', heldSince: ago(90) } }), {}, now)).toEqual({ atWork: true, workAt: ago(90) })
+  it('holding a task is at work while a work signal is within the hour, and its claim time is the work time', () => {
+    expect(workOf(agent('a', { task: { id: 't', projectId: 'p1', summary: 's', heldSince: ago(45) } }), {}, now)).toEqual({ atWork: true, workAt: ago(45) })
+    // DA-3: an old claim kept alive by the window's ping alone is not at work.
+    expect(workOf(agent('a', { task: { id: 't', projectId: 'p1', summary: 's', heldSince: ago(90) } }), {}, now)).toEqual({ atWork: false, workAt: ago(90) })
+    expect(workOf(agent('a', { task: { id: 't', projectId: 'p1', summary: 's', heldSince: ago(90) }, doing: { text: 'x', note: null, step: null, ofSteps: null, at: ago(40) } }), {}, now).atWork).toBe(true)
+    // DA-10: past its sign window an agent is quiet, never at work.
+    expect(workOf(agent('a', { stale: true, doing: { text: 'x', note: null, step: null, ofSteps: null, at: ago(2) } }), {}, now).atWork).toBe(false)
   })
   it('a stage report, a working heartbeat, a turn or console output within the window is at work; older is not', () => {
     expect(workOf(agent('a', { doing: { text: 'x', note: null, step: null, ofSteps: null, at: ago(5) } }), {}, now).atWork).toBe(true)
@@ -44,5 +49,11 @@ describe('withWorkSignals', () => {
     expect(v.atWork).toEqual({ agents: 2, connectedIdle: 1, noTask: 1, noTaskSessions: ['noTask'] })
     expect(v.projects[0]).toMatchObject({ atWork: 2, workAt: ago(2) })
     expect(v.projects[1]).toMatchObject({ atWork: 0, workAt: null })
+  })
+  it('ER-1: a task carried from an earlier session id is not work now without a fresh sign', () => {
+    const now = Date.parse('2026-10-27T10:00:00Z')
+    const carried = agent('a', { task: { id: 't', projectId: 'p1', summary: 's', heldSince: '2026-10-27T08:00:00Z', fromEarlierSession: true } })
+    expect(workOf(carried, {}, now).atWork).toBe(false)
+    expect(workOf({ ...carried, doing: { text: 'x', note: null, step: null, ofSteps: null, at: '2026-10-27T09:55:00Z' } }, {}, now).atWork).toBe(true)
   })
 })

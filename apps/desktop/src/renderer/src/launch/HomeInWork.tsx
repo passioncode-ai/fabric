@@ -8,7 +8,7 @@
  * the agent's screen. A task in work no agent holds is a line of its own. Quiet projects fold into one line. Everything
  * comes from the home's one reading (`work.home`) and the projects as read: no read of its own.
  *
- * The mockup parity, wave 2 (docs/reports/2026-10-27-mockup-parity/gaps/home.md D3, D4, D9): only agents AT work make
+ * The mockup parity, wave 2 (docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-home.md D3, D4, D9): only agents AT work make
  * rows (a quiet one still holding its task keeps its «молчит» row), ordered by work; the merely connected are one line
  * «Подключены, без дела: N»; a row heads with the task's title, its brief's «what» the hover; under the time, how long
  * it has held the task; every project is printed by its display name.
@@ -56,7 +56,7 @@ export function HomeInWork({ reading, projects, waitingByProject, onProject, onA
     <section className="lh-inwork" aria-labelledby="home-inwork-title">
       <div className="lh-inwork-head">
         <h3 id="home-inwork-title">{t('launch.home.inWork.title')}</h3>
-        {g && <span className="lp-meta">{plural('projects', g.projectsAtWork)} · {plural('agents', g.agentsAtWork)}{g.agentsQuiet > 0 ? ` · ${t('launch.home.inWork.agentsQuiet', { count: g.agentsQuiet })}` : ''}</span>}
+        {g && <span className="lp-meta">{plural('projects', g.projectsAtWork)} · {plural('agents', g.agentsAtWork)}{g.agentsQuiet > 0 ? ` · ${t(`launch.home.inWork.agentsQuiet.${pluralForm(locale, g.agentsQuiet)}` as 'launch.home.inWork.agentsQuiet.many', { count: g.agentsQuiet })}` : ''}</span>}
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
       {/* UX-18: the reading can be asked again here, as the projects view beside it can. */}
@@ -198,7 +198,7 @@ function AgentRow({ agent: a, onAgent, onTask, status }: { agent: LiveAgent; onA
           ? <span className="lh-pill idle">{t('launch.home.inWork.quietFor', { time: heard })}</span>
           : <span className="lh-arow-heard">{t('launch.home.inWork.heard', { time: heard })}</span>}
         {/* Home gap D9: how long it has held its task, under the time, as the mockup says it («держит 1 ч 44 мин»). */}
-        {a.task?.heldSince && <span className="lh-arow-held">{t('launch.home.inWork.held', { time: heldFor(a.task.heldSince, t) })}</span>}
+        {a.task?.heldSince && heldFor(a.task.heldSince, t) && <span className="lh-arow-held">{t('launch.home.inWork.held', { time: heldFor(a.task.heldSince, t) as string })}</span>}
       </p>
     </li>
   )

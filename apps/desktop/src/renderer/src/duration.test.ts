@@ -32,7 +32,9 @@ describe('how long a task has been held (the mockup parity, home gap D9)', () =>
     expect(heldFor(at(38 * 60), undefined, NOW)).toBe('38m')
     expect(heldFor(at(2 * 3600), undefined, NOW)).toBe('2h')
     expect(heldFor(at(20), undefined, NOW)).toBe('20s')
+    // UX-10: an unreadable time says nothing, never a dash.
+    expect(heldFor('not a date', undefined, NOW)).toBeNull()
     expect(heldFor(at(3 * 86_400), undefined, NOW)).toBe('3d')
-    expect(heldFor('nope', undefined, NOW)).toBe('—')
+    expect(heldFor('nope', undefined, NOW)).toBeNull()
   })
 })

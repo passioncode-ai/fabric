@@ -28,7 +28,7 @@ export function HomeBoardWaiting({ mark, onComms, nameOf }: {
   mark: number
   onComms?: () => void
   /** A project's printed name by id (`projectDisplayName`); absent: the id. */
-  nameOf?: (projectId: string) => string
+  nameOf?: (projectId: string) => string | null
 }): React.JSX.Element | null {
   const t = useT()
   const locale = useLocale()
@@ -57,7 +57,8 @@ export function HomeBoardWaiting({ mark, onComms, nameOf }: {
   const said = Number.isFinite(at)
     ? t('launch.home.boardWaiting.requests', { count, age: since(reply.oldestRequestAt as string, t) })
     : t('launch.home.boardWaiting.requestsNoAge', { count })
-  const name = (id: string | null): string => (id ? (nameOf ? nameOf(id) : id) : t('launch.home.boardWaiting.fromNone'))
+  // A project no list knows is said so, never printed as its id (the 0.3.15 review, iteration 1, UX-5).
+  const name = (id: string | null): string => (id ? (nameOf ? (nameOf(id) ?? t('launch.home.boardWaiting.unknownProject')) : id) : t('launch.home.boardWaiting.fromNone'))
   const list = reply.list ?? null
   const shown = (list ?? []).slice(0, WAITING_SHOWN)
   // The mockup parity (home gap D11): one line per request, who asked whom and what, then who has not taken it and

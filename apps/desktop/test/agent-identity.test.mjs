@@ -35,14 +35,14 @@ const tables = {
   ],
   agent_stages: [{ session_id: 'old', project_id: 'p1', task_id: null, stage: 'Reading the journal', step: 1, of_steps: 3, note: null, reported_at: '2026-10-27T08:00:00Z' }],
   session_heartbeats: [],
-  work_claims: [{ work_id: 't1', project_id: 'p1', owner_session: 'old', claimed_at: '2026-10-27T07:00:00Z', released_at: '2026-10-27T08:30:00Z' }],
+  work_claims: [{ work_id: 't1', project_id: 'p1', owner_session: 'old', claimed_at: '2026-10-27T07:00:00Z', released_at: '2026-10-27T08:30:00Z', released_how: 'session-ended' }],
   project_tasks: [{ id: 't1', project_id: 'p1', title: 'The rhythm', brief_what: 'Read per day', status: 'running' }]
 }
 const held = [{ sessionId: 'new', projectId: 'p1', agent: 'claude-code', cameIn: 'enrolled', startedAt: 0, lastSignAt: 0, runtimeSessionId: 'rt-1' }]
 
 test('an agent that re-enrolled keeps its stage report and running task from its earlier session id', async () => {
   const store = fakeStore(tables)
-  const v = await withIdentity(view([agent('new')]), store, held)
+  const v = await withIdentity(view([agent('new')]), store, held, Date.parse('2026-10-27T10:00:00Z'))
   assert.equal(v.live[0].doing.text, 'Reading the journal')
   assert.equal(v.live[0].task.id, 't1')
   assert.equal(v.live[0].task.title, 'The rhythm')

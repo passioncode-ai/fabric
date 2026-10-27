@@ -15,18 +15,26 @@ alone, and going back to 0.3.14 is the 0.3.14 bundle alone.
 - **The screens look as the approved mockup.** Главная is one page in two columns: Fabric's face, greeting and work
   rhythm in one card, the six numbers in one strip, «В работе» by project, and on the right, from the top, «Нужны вы»
   as open cards with their answer buttons and «Запросы без ответа» as one line per request.
-- **«Работает» means at work.** An agent counts as working when it holds a task, reported a stage or a turn in the last
-  15 minutes, or its Fabric console printed; an agent window that only stays connected is counted apart, in one quiet
-  line «Подключены, без дела». Projects and agents are ordered by their newest work, not by the last keep-alive.
-- **An agent keeps its story across a restart.** When an agent joins again under a new session, its stage reports,
-  heartbeats and task from the earlier session stay with it, so a restart of Fabric no longer turns every row into
-  «Задачи не взял». A stage report is tied to the task the session holds.
+- **«Работает» means at work.** An agent counts as working while it still signs and either reported a stage or a turn in
+  the last 15 minutes, its Fabric console printed, or it holds a task with some work in the last hour; an agent window
+  that only stays connected is counted apart, in one quiet line «Подключены, без дела», and one past its sign window is
+  quiet, so the strip's number is the cards' less the quiet ones. Projects and agents are ordered by their newest work,
+  not by the last keep-alive. Every agent row in the left column still says its status in a word, «Работает» included.
+- **An agent keeps its story across a restart.** When an agent that sends its own session id (Claude Code) joins again
+  under a new Fabric session, its stage reports, heartbeats, turns and task from the earlier session stay with it, so a
+  restart of Fabric no longer turns every row into «Задачи не взял». A task comes along only when its claim ended by
+  itself in the last two hours and in the same project, and goes to one agent only. Codex and Kimi send no such id yet
+  (CO-473). A stage report is tied to the task the session holds.
 - **The work rhythm counts 28 days.** The chart reads one count per day from the journal instead of the newest 500
-  events, which covered less than two hours; results (handed in) and decisions (yours) are counted the same way on
-  Главная, Pulse and the chart.
-- **The left column lists the projects at work,** with «Все проекты · N» to unfold the rest, readable project names
-  (from the agent's own service file, else the folder name tidied), long names cut with «…», and no badges the page
-  already says.
+  events, which covered less than two hours, and its results (handed in) and decisions (yours) are filtered by the
+  database. Главная's strip, the chart and Pulse share one definition of a result and of a decision; Pulse still counts
+  them on the events it holds. The chart turns over at midnight on a quiet machine and says when it is not current.
+- **The left column lists the projects at work,** with «Все проекты · N» to unfold the rest (the whole list until the
+  first reading answers), readable project names (from the agent's own service file, else the folder name tidied,
+  «OS» and «MCP» kept upper case), long names cut with «…», and no badges the page already says. The project page's
+  heading prints the same name, the folder's slug on hover; a project no list knows is never printed as its id.
+- **Narrow windows keep what asks you first.** Below 1100 px «Нужны вы» comes right after the numbers, and below
+  1000 px an agent's session card comes before its tasks.
 - **An agent's page tells its task.** «Сейчас» shows the task's title, its brief, the step bar and how long it is held;
   the task's milestones on a timeline; its tasks as cards with their status; «Вопросы этого агента» with answer
   buttons; the agent's version. A console opens in a framed box with a way back to the agent.

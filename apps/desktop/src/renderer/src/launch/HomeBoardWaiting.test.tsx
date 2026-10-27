@@ -6,6 +6,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
+import { en } from '../i18n/en'
 import { HomeBoardWaiting } from './HomeBoardWaiting'
 
 const days = (n: number): string => new Date(Date.now() - n * 86_400_000).toISOString()
@@ -119,5 +120,12 @@ describe('home: what waits on the board', () => {
     cleanup()
     show('en')
     await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/no handler/))
+  })
+
+  it('UX-5: a project no list knows is said so, never printed as its id', async () => {
+    stubWaiting(async () => ({ ok: true, requests: 1, oldestRequestAt: days(1), list: [{ requestId: 'r1', threadId: 't1', from: 'p-known', to: '6b1f0c2e-unknown', capability: 'x', subject: 'One', at: days(1) }], listComplete: true }))
+    render(<I18nProvider locale="en"><HomeBoardWaiting mark={1} nameOf={(id) => (id === 'p-known' ? 'Known' : null)} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText(`Known → ${en['launch.home.boardWaiting.unknownProject']}: “One”`)).toBeTruthy())
+    expect(document.body.textContent).not.toContain('6b1f0c2e')
   })
 })

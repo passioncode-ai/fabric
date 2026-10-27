@@ -10,7 +10,7 @@
 // The top bar holds the name and the open consoles as tabs (OF-03, SCN-172: `ConsoleTabs`, passed in as `consoles`)
 // and nothing else (OF-05, 2026-10-19): search is ⌘K, there is no profile block and no conversation with Fabric on
 // the rail (it opens from Help), and the foot line about this computer shows only when something needs a look.
-// The mockup parity, 2026-10-27 (docs/reports/2026-10-27-mockup-parity/gaps/rail.md): the projects AT WORK, with a last
+// The mockup parity, 2026-10-27 (docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-rail.md): the projects AT WORK, with a last
 // row «Все проекты · N» that unfolds the whole list in place; the brand says «PassionCode.ai» and carries no count (the
 // home says what waits); Настройки carries no Comms count (Настройки → Ещё → Переписка does); an agent at work shows its
 // green dot and no word, every other status keeps its word. Every project name printed here is `projectDisplayName`'s.
@@ -168,7 +168,10 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
     current: at.kind === 'project' ? at.projectId : null
   })
   const [unfolded, setUnfolded] = useState(false)
-  const folds = working.length < allRows.length
+  // Until the home reading answers, nothing is known to be quiet: the whole list shows and nothing is said to rest (the
+  // 0.3.15 review, iteration 1, UX-2).
+  const read = props.pulses != null
+  const folds = read && working.length < allRows.length
   const rows = unfolded || !folds ? allRows : working
   const noneAtWork = allRows.length > 0 && rows.length === 0
   // The toggle (0.3.14): remembered for the window, as the scroll positions are; on an agent's screen it shows the agents.
@@ -327,9 +330,9 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                           {a.branch
                             ? <span className="rail-branch">{a.branch}</span>
                             : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
-                          {/* The mockup parity (rail gap 16): an agent at work says it by its green dot alone; every other
-                              status keeps its word beside its shape (UX-26, R-19), quiet as the mockup's «· молчит». */}
-                          {status !== 'working' && <span className="rail-word"> · {t(`status.${status}` as 'status.idle')}</span>}
+                          {/* Every status keeps its word beside its shape, «Работает» included (0.3.14's UX-26, R-19; the
+                              0.3.15 review, iteration 1, UX-1), quiet as the mockup's «· молчит». */}
+                          <span className="rail-word"> · {t(`status.${status}` as 'status.idle')}</span>
                         </span>
                       </span>
                     </a>

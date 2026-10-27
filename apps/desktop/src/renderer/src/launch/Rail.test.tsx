@@ -141,7 +141,12 @@ describe('the left column', () => {
     shell()
     expect(screen.queryByRole('button', { name: /All projects/ })).toBeNull()
     cleanup()
+    // UX-2: until the home reading answers, nothing is said to rest and the whole list shows.
     shell({ projects: [project('p4', 'Quiet')], pins: [], live: new Set(), waiting: null })
+    expect(screen.queryByText(en['rail.projects.quiet'])).toBeNull()
+    expect(within(screen.getByRole('list', { name: en['rail.projects'] })).getByRole('link', { name: 'Quiet' })).toBeTruthy()
+    cleanup()
+    shell({ projects: [project('p4', 'Quiet')], pins: [], live: new Set(), waiting: null, pulses: [] })
     expect(screen.getByText(en['rail.projects.quiet'])).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: en['rail.projects.all'].replace('{count}', '1') }))
     expect(within(screen.getByRole('list', { name: en['rail.projects'] })).getByRole('link', { name: 'Quiet' })).toBeTruthy()
@@ -160,9 +165,8 @@ describe('the left column', () => {
     // The status in a word beside its colour, never the colour alone (R-19).
     expect(rows[1].textContent).toContain(en['status.idle'])
     expect(rows[1].querySelector('.rail-dot')?.className).toContain('s-idle')
-    // The mockup parity (rail gap 16): an agent at work says it by its green dot alone, the dot still spoken (UX-17);
-    // every other status keeps its word (UX-26).
-    expect(rows[0].textContent).not.toContain(en['status.working'])
+    // Every status keeps its word, «Работает» included (0.3.14's UX-26; the 0.3.15 review, iteration 1, UX-1).
+    expect(rows[0].textContent).toContain(en['status.working'])
     expect(within(rows[0]).getByRole('img', { name: en['status.working'] })).toBeTruthy()
     fireEvent.click(rows[0])
     expect(props.onAgent).toHaveBeenCalledWith('s1')

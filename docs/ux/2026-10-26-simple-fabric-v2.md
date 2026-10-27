@@ -1,5 +1,7 @@
 # Simple Fabric, v2: the detailed design after the operator's second review
 
+> **Renumbered 2026-10-27 (MD-16).** Where this document says 0.3.15 for the simple Fabric's second part (P-29, target 2026-11-05), read **the release of 2026-11-05**, numbered at its tag: 0.3.15 is now the screens brought to the approved mockup (P-30, [plan](../reports/2026-10-27-mockup-parity/README.md)). The text below is kept as decided on 2026-10-26.
+
 **Status:** partly built in 0.3.14 · 2026-10-26 · follows [v1](2026-10-26-simple-fabric.md) and its
 [mockup](../reports/2026-10-26-simple-fabric/mockup.html) · release plans
 [0.3.14](../evidence/plans/2026-10-26-release-0314-plan.md) (P-28) and 0.3.15 (P-29, target 2026-11-05).

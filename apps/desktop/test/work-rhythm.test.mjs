@@ -4,7 +4,7 @@ import path from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-const { createRhythmReader, CONCURRENCY } = await import(path.resolve(import.meta.dirname, '../src/main/workRhythm.ts'))
+const { createRhythmReader, CONCURRENCY, MIN_INTERVAL_MS } = await import(path.resolve(import.meta.dirname, '../src/main/workRhythm.ts'))
 
 /** A fake store: `journal` count requests answer from `perDay`, the start-seq read and the marks read from their rows. */
 function fakeStore({ perDay = () => 5, marks = [], failDay = null, startSeq = 100 } = {}) {
@@ -34,7 +34,10 @@ function fakeStore({ perDay = () => 5, marks = [], failDay = null, startSeq = 10
           }
           if (columns === 'seq') { calls.start++; return Promise.resolve({ data: startSeq === null ? [] : [{ seq: startSeq }], error: null }).then(ok, bad) }
           calls.marks++
-          return Promise.resolve({ data: marks, error: null }).then(ok, bad)
+          calls.markFilters = [...(calls.markFilters ?? []), call.filters]
+          const at = (row, col) => { const [c, k] = col.split('->>'); return k ? row[c]?.[k] : row[c] }
+          const rows = marks.filter((row) => call.filters.every(([op, col, v]) => op === 'eq' ? at(row, col) === v : op === 'in' ? v.includes(at(row, col)) : true))
+          return Promise.resolve({ data: rows, error: null }).then(ok, bad)
         }
       }
       return chain
@@ -87,7 +90,7 @@ test('no event since the window opened: every day read and empty', async () => {
   assert.equal(calls.counts.length, 0)
 })
 
-test('results and decisions come from one read of the window, by the shared definition', async () => {
+test('results and decisions come from three reads of the window filtered by the database, by the shared definition', async () => {
   const now = new Date(2026, 9, 27, 15, 0).getTime()
   const today = new Date(2026, 9, 27, 10).toISOString()
   const marks = [
@@ -97,6 +100,21 @@ test('results and decisions come from one read of the window, by the shared defi
   ]
   const { store, calls } = fakeStore({ marks })
   const r = await createRhythmReader(store).read(now)
-  assert.equal(calls.marks, 1)
+  assert.equal(calls.marks, 3, 'ER-3: a move into review, a close as done and the person\'s decisions, each filtered by the database')
+  assert.ok(calls.markFilters.some((f) => f.some(([op, col, v]) => op === 'eq' && col === 'payload->>to' && v === 'review')))
+  assert.ok(calls.markFilters.some((f) => f.some(([op, col, v]) => op === 'in' && col === 'actor->>kind' && v.includes('person'))))
   assert.deepEqual(r.today, { results: 1, decisions: 1, events: 5 })
+})
+
+test('ER-2: readings within MIN_INTERVAL_MS are answered again, and concurrent callers share one reading', async () => {
+  const { store, calls } = fakeStore()
+  const reader = createRhythmReader(store)
+  const now = new Date(2026, 9, 27, 15, 0).getTime()
+  const [a, b] = await Promise.all([reader.read(now), reader.read(now)])
+  assert.equal(a, b)
+  const first = calls.counts.length
+  await reader.read(now + 5_000)
+  assert.equal(calls.counts.length, first, 'no new counts within the interval')
+  await reader.read(now + MIN_INTERVAL_MS + 1)
+  assert.ok(calls.counts.length > first, 'read again after the interval')
 })

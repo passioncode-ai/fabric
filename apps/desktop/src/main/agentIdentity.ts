@@ -1,4 +1,4 @@
-// #region agent-identity-read — docs: docs/reports/2026-10-27-mockup-parity/gaps/home.md#d-data-bugs-wrong-numbers-order-or-missing-fields
+// #region agent-identity-read — docs: docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-home.md#d-data-bugs-wrong-numbers-order-or-missing-fields
 /**
  * The reads behind one agent, one identity (`shared/agentIdentity.ts`; home gaps D5, D6): the live agents' runtime
  * session ids (held in memory by the agent surface), the enrolments that name the same runtime sessions
@@ -27,7 +27,7 @@ const need = (r: Rows, what: string): Array<Record<string, unknown>> => {
   return r.rows
 }
 
-export async function withIdentity(view: HomeView, store: IdentityStore, held: readonly HeldSession[]): Promise<HomeView> {
+export async function withIdentity(view: HomeView, store: IdentityStore, held: readonly HeldSession[], now: number = Date.now()): Promise<HomeView> {
   const liveIds = new Set(view.live.map((a) => a.sessionId))
   const runtimeOf = new Map<string, string>()
   for (const s of held) if (liveIds.has(s.sessionId) && typeof s.runtimeSessionId === 'string' && s.runtimeSessionId) runtimeOf.set(s.sessionId, s.runtimeSessionId)
@@ -48,7 +48,7 @@ export async function withIdentity(view: HomeView, store: IdentityStore, held: r
     const [stages, beats, claims] = await Promise.all([
       store.selectIn('agent_stages', 'session_id,project_id,task_id,stage,step,of_steps,note,reported_at', 'session_id', earlier),
       store.selectIn('session_heartbeats', 'session_id,phase,last_received_at,waiting_kind', 'session_id', all),
-      store.selectIn('work_claims', 'work_id,project_id,owner_session,claimed_at,released_at', 'owner_session', all, 100, undefined, [], { column: 'claimed_at', ascending: false, limit: CLAIM_ROWS })
+      store.selectIn('work_claims', 'work_id,project_id,owner_session,claimed_at,released_at,released_how', 'owner_session', all, 100, undefined, [], { column: 'claimed_at', ascending: false, limit: CLAIM_ROWS })
     ])
     const claimRows = need(claims, 'the agents\' earlier claims') as unknown as IdentityClaim[]
     const tasks = need(await store.selectIn('project_tasks', 'id,project_id,title,brief_what,status', 'id', [...new Set(claimRows.map((c) => c.work_id))]), 'the agents\' earlier tasks')
@@ -58,7 +58,8 @@ export async function withIdentity(view: HomeView, store: IdentityStore, held: r
       stages: need(stages, 'the agents\' earlier stage reports') as unknown as StageRow[],
       heartbeats: (need(beats, 'the agents\' heartbeats') as unknown as IdentityHeartbeat[]).filter((b) => typeof b.phase === 'string' && typeof b.last_received_at === 'string'),
       claims: claimRows,
-      tasks: tasks as unknown as TaskBrief[]
+      tasks: tasks as unknown as TaskBrief[],
+      now
     })
   } catch (e) {
     ops.failed('work.identity-unread', e, { note: 'each agent shows only what its current session id holds' })

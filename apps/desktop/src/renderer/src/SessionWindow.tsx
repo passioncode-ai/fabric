@@ -2,7 +2,7 @@
 // console tab, where `onDetach` offers the separate window as a secondary control. The session itself lives in the
 // main process (ADR-0031 §2), so closing either never ends it.
 //
-// The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/agent.md, «Console view»): embedded, the console
+// The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-agent.md, «Console view»): embedded, the console
 // leads. One quiet line above it: «← {runner} · {project}» back to the agent's page (when the shell passes `onBack`), the
 // folder, the state and the separate window as a small icon button; the terminal sits in a rounded, bordered box.
 
