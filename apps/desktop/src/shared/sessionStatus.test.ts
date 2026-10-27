@@ -18,6 +18,10 @@ describe('sessionStatus', () => {
   it('ER-19: a console killed by a signal Fabric did not send is an error; Fabric\'s own stop is ended', () => {
     expect(sessionStatus({ terminal: { state: 'ended', exitCode: 0, exitSignal: 9, stoppedByFabric: false } })).toBe('error')
     expect(sessionStatus({ terminal: { state: 'ended', exitCode: 0, exitSignal: 15, stoppedByFabric: true } })).toBe('ended')
+    // ER-27 (iteration 3): an agent that answers Fabric's stop by exiting with a code (143, 130) ended, it did not fail.
+    expect(sessionStatus({ terminal: { state: 'ended', exitCode: 143, exitSignal: null, stoppedByFabric: true } })).toBe('ended')
+    expect(sessionStatus({ terminal: { state: 'ended', exitCode: 130, exitSignal: null, stoppedByFabric: true } })).toBe('ended')
+    expect(sessionStatus({ terminal: { state: 'ended', exitCode: 143, exitSignal: null, stoppedByFabric: false } })).toBe('error')
   })
   it('is waiting only when Fabric observed a wait: the agent\'s fresh heartbeat, or an open question', () => {
     expect(sessionStatus({ stale: false, phase: 'waiting', ...fresh })).toBe('waiting')
