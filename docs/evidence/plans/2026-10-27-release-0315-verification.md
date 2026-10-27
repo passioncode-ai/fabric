@@ -54,6 +54,11 @@ on the hosted runner on the release commit once it is on `main`, and the release
 commit before the macOS, Windows and Linux builds (`docs/launch/release-mac.md`, step 4). Their conclusions are read
 before the tag and recorded in the release handoff; a failed job is a finding, never a pass.
 
+Read before the tag (2026-10-27): the push run `40535173547` on the release commit `a59e03c9` completed with success (its
+fast tier passed; the full job is skipped on a push), and the dispatched run `40535208686` on the same commit completed
+with success, the full tier with a disposable stack included. The tag `v0.3.15` was pushed on `a59e03c9` after both;
+the release run is `40540481722`.
+
 ## Owed in 0.3.15's Release close
 
 - V3-19 (FV-1) as a carry-over row on `main` after the tag.
