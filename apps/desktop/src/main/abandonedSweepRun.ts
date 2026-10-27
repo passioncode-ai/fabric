@@ -532,7 +532,9 @@ export async function readRecentTurns(store: Pick<Store, 'select'>, now: number)
  *  `moved_by_kind` column the projector writes with `moved_at` from the move's actor (`apply_move_provenance`), so no
  *  journal read and no migration is needed to tell a person's hand move. A read that fails throws. */
 export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>): Promise<SweepTasksRead> {
-  const r = await store.select('project_tasks', 'id,project_id,moved_at,started_at,moved_by_kind,moved_by').eq('status', 'running').limit(SWEEP_READ_LIMIT)
+  const r = await store.select('project_tasks', 'id,project_id,moved_at,started_at,moved_by_kind,moved_by').eq('status', 'running')
+    // CO-439 (1), the 0.3.13 review's DA-4: a stable order, so a read past the bound is the same oldest rows every sweep.
+    .order('moved_at', { ascending: true, nullsFirst: true }).order('id', { ascending: true }).limit(SWEEP_READ_LIMIT)
   if (r.error) throw new Error(`the tasks in work could not be read: ${r.error.message}`)
   const read = (r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null; started_at: string | null; moved_by_kind: string | null; moved_by?: string | null }>
   // CO-439 (1): a read that came back at its bound may have left running tasks out; it is said as capped, never the whole set.

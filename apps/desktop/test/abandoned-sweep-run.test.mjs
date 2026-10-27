@@ -493,7 +493,7 @@ test('finding 6: readRunningTasks reads who last moved each task', async () => {
   const { readRunningTasks } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
   let columns = ''
   const rows = [{ id: 't1', project_id: 'p1', moved_at: iso(T0), started_at: null, moved_by_kind: 'person' }]
-  const q = { eq: () => q, limit: async () => ({ data: rows, error: null }) }
+  const q = { eq: () => q, order: () => q, limit: async () => ({ data: rows, error: null }) }
   const { tasks: out } = await readRunningTasks({ select: (_t, c) => { columns = c; return q }, selectIn: async () => ({ rows: [], failed: null }) })
   assert.match(columns, /moved_by_kind/)
   assert.deepEqual(out, [{ taskId: 't1', projectId: 'p1', movedAt: iso(T0), movedByKind: 'person', movedBy: null, lastClaimedAt: null, lastClaim: null }])
@@ -646,7 +646,7 @@ test('B2: readRunningTasks reads the newest claim of each running task, bounded 
     { id: 't2', project_id: 'p1', moved_at: iso(T0 - 40 * MIN), started_at: null, moved_by_kind: 'agent' }
   ]
   const asked = []
-  const q = { eq: () => q, limit: async () => ({ data: rows, error: null }) }
+  const q = { eq: () => q, order: () => q, limit: async () => ({ data: rows, error: null }) }
   let claimRows = [
     { work_id: 't1', claimed_at: iso(T0 - 35 * MIN), released_at: null, released_how: null, owner_session: 's1' },
     { work_id: 't1', claimed_at: iso(T0 - 50 * MIN), released_at: iso(T0 - 45 * MIN), released_how: 'let-go', owner_session: 's0' },
@@ -683,11 +683,13 @@ test('CO-439: a running tasks read that comes back at its bound is said as cappe
   const { readRunningTasks, SWEEP_READ_LIMIT } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
   const full = Array.from({ length: SWEEP_READ_LIMIT }, (_, i) => ({ id: `t${i}`, project_id: 'p1', moved_at: iso(T0 - 40 * MIN), started_at: null, moved_by_kind: 'agent' }))
   let rows = full
-  const q = { eq: () => q, order: () => q, limit: async () => ({ data: rows, error: null }) }
+  const ordered = []
+  const q = { eq: () => q, order: (column, opts) => { ordered.push([column, opts?.ascending]); return q }, limit: async () => ({ data: rows, error: null }) }
   const store = { select: () => q, selectIn: async () => ({ rows: [], failed: null }) }
   const cut = await readRunningTasks(store)
   assert.equal(cut.tasks.length, SWEEP_READ_LIMIT)
   assert.equal(cut.capped, true, 'a read at its bound may have left running tasks out')
+  assert.deepEqual(ordered.slice(0, 2), [['moved_at', true], ['id', true]], 'DA-4: a stable order, oldest first')
   rows = full.slice(1)
   assert.equal((await readRunningTasks(store)).capped, false, 'one row under the bound is the whole set')
 })
