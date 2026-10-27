@@ -6,7 +6,8 @@
  * folder per 60 s (`BRANCH_TTL_MS`, above the home's 15 s reading, the 0.3.14 review, iteration 2, ER-16, DA-2), shared
  * by every console in that folder, at most `concurrency` folders at a time, each with its own deadline; a git that does
  * not answer by the deadline (one that ignores SIGTERM included) counts as unread and is held for the same 60 s, and
- * the reading never waits on it past `timeoutMs` + 1 s. A folder git cannot read, and a detached HEAD, give no branch: the screens say
+ * the reading never waits on it past `timeoutMs` + 1 s; its git is killed with SIGKILL and its slot given back at that
+ * deadline, counted from its spawn (ER-28). A folder git cannot read, and a detached HEAD, give no branch: the screens say
  * «ветка неизвестна», and the reading of who works is never failed by it. An agent that joined from its own terminal
  * shares no folder (`session.enrolled@1` keeps a digest only), so it carries none until 0.3.15 (open choice 3).
  */
@@ -33,18 +34,29 @@ export function createBranchReader(deps: {
   const now = deps.now ?? Date.now
   const limit = Math.max(1, deps.concurrency ?? 4)
   const timeoutMs = deps.timeoutMs ?? 3_000
-  const git = deps.git ?? ((folder: string, args: string[]) => gitRun(folder, args, { timeoutMs }))
+  const git = deps.git ?? ((folder: string, args: string[]) => gitRun(folder, args, { timeoutMs, killSignal: 'SIGKILL' }))
   const cache = new Map<string, { at: number; branch: Promise<string | null> }>()
+  // The 0.3.14 review, iteration 3, ER-28: a git's deadline counts from when it takes a slot (its spawn), and a git
+  // still running past it (one in uninterruptible I/O on a stalled mount, which even SIGKILL does not end at once) gives
+  // its slot back and is counted apart, at most `limit` such at a time; past that cap a slot is kept, so stuck runs never
+  // pile up. Queued work whose answer was already given (the reading's own bound passed) runs no git.
   let running = 0
+  let stuck = 0
   const queue: Array<() => void> = []
-  const slot = async <T>(work: () => Promise<T>): Promise<T> => {
+  const slot = async <T>(work: () => Promise<T>, wanted: () => boolean): Promise<T | null> => {
     if (running >= limit) await new Promise<void>((go) => queue.push(go))
+    if (!wanted()) { queue.shift()?.(); return null }
     running++
+    let freed = false
+    const free = (): void => { if (freed) return; freed = true; running--; queue.shift()?.() }
+    const overdue = setTimeout(() => { if (stuck < limit) { stuck++; free() } }, timeoutMs + 1_000)
     try {
       return await work()
     } finally {
-      running--
-      queue.shift()?.()
+      clearTimeout(overdue)
+      // Freed already means it ran past its deadline and was counted stuck: it leaves that count now.
+      if (freed) stuck--
+      else free()
     }
   }
   return {
@@ -54,15 +66,23 @@ export function createBranchReader(deps: {
       const kept = cache.get(repoPath)
       if (kept && at - kept.at <= ttl) return kept.branch
       let timer: ReturnType<typeof setTimeout> | undefined
+      let given = false
+      let ran = false
       const late = new Promise<null>((done) => { timer = setTimeout(() => done(null), timeoutMs + 1_000) })
-      const asked = slot(() => git(repoPath, ['rev-parse', '--abbrev-ref', 'HEAD'])).then(
+      const asked = slot(() => { ran = true; return git(repoPath, ['rev-parse', '--abbrev-ref', 'HEAD']) }, () => !given).then(
         (out) => {
-          const name = out.trim()
+          const name = (out ?? '').trim()
           return name && name !== 'HEAD' ? name : null
         },
         () => null
       )
-      const branch = Promise.race([asked, late]).finally(() => clearTimeout(timer))
+      const branch = Promise.race([asked, late]).finally(() => {
+        clearTimeout(timer)
+        given = true
+        // A folder answered unknown only because it waited for a slot never ran git: it is asked again next reading,
+        // not held unknown for the window (ER-28).
+        if (!ran && cache.get(repoPath)?.branch === branch) cache.delete(repoPath)
+      })
       cache.set(repoPath, { at, branch })
       // A folder no longer asked about leaves the cache once its window has passed.
       for (const [k, v] of cache) if (at - v.at > ttl * 4) cache.delete(k)

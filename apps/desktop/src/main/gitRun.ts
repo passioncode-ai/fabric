@@ -122,7 +122,7 @@ const DRIVER_PROGRAM = /^(filter\..+\.(clean|smudge|process)|diff\..+\.(textconv
  * `.git/info/attributes` assigns a filter without a tracked file. Global and system drivers — git-lfs —
  * are the operator's and stay. Reading config runs nothing.
  */
-async function repositoryDrivers(repoPath: string, env: Record<string, string>, args: readonly string[], timeoutMs: number): Promise<{ key: string; value: string }[]> {
+async function repositoryDrivers(repoPath: string, env: Record<string, string>, args: readonly string[], timeoutMs: number, killSignal?: NodeJS.Signals): Promise<{ key: string; value: string }[]> {
   let out: string
   try {
     ;({ stdout: out } = await exec(
@@ -130,7 +130,7 @@ async function repositoryDrivers(repoPath: string, env: Record<string, string>, 
       [...args, 'config', '-z', '--name-only', '--show-scope', '--includes', '--get-regexp', '^(filter|diff)\\.'],
       // The caller's budget, not a fixed one: an `include.path` at a FIFO hung this probe for a hard-coded
       // 5 s whatever the caller allowed, and eight such repositories starved a scan (iteration 3).
-      { cwd: repoPath, timeout: timeoutMs, maxBuffer: 1_000_000, env }
+      { cwd: repoPath, timeout: timeoutMs, maxBuffer: 1_000_000, env, ...(killSignal ? { killSignal } : {}) }
     ))
   } catch (e) {
     // Exit 1 is "no such key" — the ordinary case. Anything else (not a repository, a hung include) is
@@ -179,6 +179,9 @@ export interface GitRunOptions {
    * repo-state watcher.
    */
   timeoutMs?: number
+  /** The signal a git past its deadline is killed with (default SIGTERM, Node's); the branch reader uses SIGKILL, so a
+   *  git that ignores SIGTERM does not live on (the 0.3.14 review, iteration 3, ER-28). */
+  killSignal?: NodeJS.Signals
 }
 
 export async function gitRun(repoPath: string, args: string[], opts: GitRunOptions = {}): Promise<string> {
@@ -188,7 +191,7 @@ export async function gitRun(repoPath: string, args: string[], opts: GitRunOptio
   const env = hardenedGitEnv()
   // Driver overrides travel as GIT_CONFIG_KEY_n / VALUE_n, not `-c k=v`: a driver name may itself contain
   // `=`, which `-c` would split at the wrong place. Both are command scope and outrank the repository.
-  const overrides = await repositoryDrivers(repoPath, env, lead, timeout)
+  const overrides = await repositoryDrivers(repoPath, env, lead, timeout, opts.killSignal)
   overrides.forEach(({ key, value }, i) => {
     env[`GIT_CONFIG_KEY_${i}`] = key
     env[`GIT_CONFIG_VALUE_${i}`] = value
@@ -199,6 +202,7 @@ export async function gitRun(repoPath: string, args: string[], opts: GitRunOptio
   const { stdout } = await exec('git', [...lead, ...withSubmodulesIgnored(args)], {
     cwd: repoPath,
     timeout: left,
+    ...(opts.killSignal ? { killSignal: opts.killSignal } : {}),
     maxBuffer: 8_000_000,
     // A repository the operator is working in must not have its state read
     // through a pager or a hook that expects a terminal.
