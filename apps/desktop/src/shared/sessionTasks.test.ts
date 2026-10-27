@@ -97,5 +97,9 @@ describe('laneOf', () => {
     expect(laneOf(t({ status: 'running', releasedAt: 'b', releasedHow: 'lapsed' }))).toBe('dropped')
     expect(laneOf(t({ status: 'backlog', releasedAt: 'b', releasedHow: 'session-ended' }))).toBe('dropped')
     expect(laneOf(t({ status: 'backlog', releasedAt: 'b', releasedHow: 'operator' }))).toBe('handed')
+    // UX-24 (iteration 3): a released claim is never «В работе» for this agent: handed in as done and moved back to the
+    // queue (or still running until the sweep moves it to review) is «Передано», its line saying «Сдал …».
+    expect(laneOf(t({ status: 'backlog', releasedAt: 'b', releasedHow: 'done' }))).toBe('handed')
+    expect(laneOf(t({ status: 'running', releasedAt: 'b', releasedHow: 'done' }))).toBe('handed')
   })
 })
