@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "dbb69aa467347a9db806849c7c819a7107db4658",
+  "report": "docs/evidence/reviews/0.3.15/iteration-3/2026-10-27-data.md",
+  "reportSha256": "4ecef8471e69b303fa25823a4ca9aa78c123fce853a30fe2842e29d5f73a67f9",
+  "reviewerRun": "release-0315-i3-data-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-15",
+      "source": "V3-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/homeProjects.ts#onWorkRow` keeps any agent that holds a task, «Простаивает»; `connectedIdle` counts only agents with no task (`shared/agentWork.ts#withWorkSignals`); test «DA-15 (0.3.15 review, iteration 3)» in `homeProjects.test.ts`, watched failing"
+      ]
+    },
+    {
+      "id": "DA-16",
+      "source": "V3-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG says it is on Агенты only; V2-18 corrected by this row"
+      ]
+    },
+    {
+      "id": "DA-17",
+      "source": "V3-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-475 extended"
+      ]
+    },
+    {
+      "id": "DA-18",
+      "source": "V3-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-481"
+      ]
+    },
+    {
+      "id": "DA-19",
+      "source": "V3-14",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-482"
+      ]
+    },
+    {
+      "id": "DA-20",
+      "source": "V3-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/pty.ts` keeps `lastOutputAt` from output only and `main/index.ts#heldSessions` judges by it; test «typing moves the activity clock, never the output clock» in `test/delivery.test.mjs`"
+      ]
+    }
+  ]
+}

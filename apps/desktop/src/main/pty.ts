@@ -70,6 +70,8 @@ interface LiveSession {
   running: boolean
   startedAt: number
   lastActivityAt: number
+  /** When the console last printed: output only, never typed or delivered input (the 0.3.15 review, iteration 3, DA-20). */
+  lastOutputAt: number | null
   exitCode: number | null
   exitSignal: number | null
   /** Fabric itself asked this session to stop (its own SIGTERM or SIGKILL): an exit by that signal is a stop, not a
@@ -613,6 +615,7 @@ export class PtyManager {
       running: true,
       startedAt: now,
       lastActivityAt: now,
+      lastOutputAt: null,
       exitCode: null,
       exitSignal: null,
       stopRequested: false,
@@ -633,6 +636,7 @@ export class PtyManager {
         session.scrollback.push(data)
         session.written += data.length
         session.lastActivityAt = Date.now()
+        session.lastOutputAt = session.lastActivityAt
         this.events.onData(sessionId, data, session.written)
       })
       pty.onExit(async ({ exitCode, signal }) => {
@@ -963,6 +967,7 @@ export class PtyManager {
       state: this.stateOf(s),
       startedAt: new Date(s.startedAt).toISOString(),
       lastActivityAt: new Date(s.lastActivityAt).toISOString(),
+      lastOutputAt: s.lastOutputAt === null ? null : new Date(s.lastOutputAt).toISOString(),
       tail: s.scrollback.tailLine(),
       exitCode: s.exitCode,
       // ER-19: node-pty reports exit code 0 for a signalled child; the signal and whether Fabric asked for the stop say

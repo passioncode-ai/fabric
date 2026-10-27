@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "dbb69aa467347a9db806849c7c819a7107db4658",
+  "report": "docs/evidence/reviews/0.3.15/iteration-3/2026-10-27-docs.md",
+  "reportSha256": "9ad0c1de19c45fbf442cdd7f375d7fa4a29a734a18664a5d7145b48c16b5cef4",
+  "reviewerRun": "release-0315-i3-docs-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-10",
+      "source": "V3-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-30 names iteration 3 and the final candidate; this section"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "source": "V3-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Rollout follows 0.3.14's «Rollout, as done» and drops the engine"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "source": "V3-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG 0.3.15 names it"
+      ]
+    }
+  ]
+}

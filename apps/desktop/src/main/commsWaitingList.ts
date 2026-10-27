@@ -40,7 +40,9 @@ export async function withWaitingList(reply: CommsWaitingReply, deps: WaitingLis
     const [submittedRead, responders, threads] = await Promise.all([
       q.eq('type', 'comms.message_submitted@1').eq('payload->>kind', 'request').gte('occurred_at', since).order('seq', { ascending: false }).limit(GATEWAY_ROWS),
       deps.responders(),
-      deps.threads()
+      // The subjects are a nicety (below): a thread page that rejects drops them, never the list (the 0.3.15 review,
+      // iteration 3, ER-15); not silent, the requests then carry their own subjects.
+      Promise.resolve(deps.threads()).catch(() => ({ ok: false }) as unknown as Awaited<ReturnType<typeof deps.threads>>)
     ])
     if (submittedRead.error) throw new Error(`the requests could not be read: ${submittedRead.error.message}`)
     if (!responders.ok) throw new Error(`the responders could not be read: ${responders.error.message}`)

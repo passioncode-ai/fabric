@@ -321,6 +321,20 @@ for (const phase of ['before_enqueue', 'during_settle', 'during_gate']) {
   ok('a throwing manual write fences pending and future automatic delivery')
 }
 
+{
+  // DA-20 (the 0.3.15 review, iteration 3): «the console printed» is its output alone; typed input moves the activity
+  // clock but never the output clock the home judges work by.
+  const f = await fixture()
+  const row = () => f.manager.list().find((p) => p.sessionId === f.id)
+  assert.equal(row().lastOutputAt, null)
+  f.manager.write(f.id, 'typed\r')
+  assert.equal(row().lastOutputAt, null, 'typing is not output')
+  f.emit('printed')
+  assert.ok(row().lastOutputAt, 'output sets the output clock')
+  await f.manager.end(f.id)
+  ok('typing moves the activity clock, never the output clock')
+}
+
 // THE SUMMARY STAYS LAST. Anything below it runs with its failures counted by
 // nobody, and the file exits 0 while printing FAIL.
 if (failures > 0) {

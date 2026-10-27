@@ -79,7 +79,7 @@ export function withWorkSignals(view: HomeView, signals: WorkSignals, now: numbe
     ...view,
     live,
     projects,
-    atWork: { agents: atWork.length, connectedIdle: live.filter((a) => !a.atWork && !a.stale).length, noTask: noTask.length, noTaskSessions: noTask.map((a) => a.sessionId), ...(signals.turnsUnread ? { turnsUnread: true } : {}) }
+    atWork: { agents: atWork.length, connectedIdle: live.filter((a) => !a.atWork && !a.stale && !a.task).length, noTask: noTask.length, noTaskSessions: noTask.map((a) => a.sessionId), ...(signals.turnsUnread ? { turnsUnread: true } : {}) }
   }
 }
 // #endregion agent-work

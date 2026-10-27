@@ -9,7 +9,8 @@
  * the column says «ветка неизвестна» (open choice 3: a terminal-joined agent's branch belongs to the release of 2026-11-05, CO-459).
  * An agent only installed, idle or disconnected is not here: Настройки lists those. The mockup parity (home gap D3): when
  * the reading judged work, an agent merely connected (fabric-mcp's keep-alive and nothing else) is not here either; an
- * agent at work, and a quiet one that still holds its task, are (`onWorkRow`, the same rule as «В работе»). The project
+ * agent at work, and one that still holds its task (quiet, or only connected: «Простаивает»), are (`onWorkRow`, the
+ * same rule as «В работе»; the 0.3.15 review, iteration 3, DA-15). The project
  * is printed by its display name (`HomeView.displayNames`).
  */
 import type { LiveAgent } from './homeLive.ts'

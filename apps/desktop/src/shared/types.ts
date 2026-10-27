@@ -642,6 +642,9 @@ export interface TerminalSession {
   state: SessionState
   startedAt: string
   lastActivityAt: string
+  /** When it last printed (output only; typed or delivered input is not here), null before any output or from an older
+   *  host (the 0.3.15 review, iteration 3, DA-20). */
+  lastOutputAt?: string | null
   /** Last non-empty line of output — the short status on the agent tile. */
   tail: string
   exitCode: number | null

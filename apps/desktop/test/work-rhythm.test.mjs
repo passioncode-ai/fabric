@@ -134,7 +134,7 @@ test('ER-9: one capped read cuts the days before its oldest row for every family
   assert.ok(before.every((d) => d.results === null && d.decisions === null), 'every day before the cut is unknown')
 })
 
-test('ER-11: a reading that fails rejects every caller sharing it, and the next call reads again', async () => {
+test('ER-11, ER-14: a read whose store throws is said unread, never thrown as zeros, and the next call reads again', async () => {
   let fail = true
   const { store } = fakeStore()
   const flaky = { select: (...a) => { if (fail) throw new Error('database away'); return store.select(...a) } }
@@ -145,4 +145,22 @@ test('ER-11: a reading that fails rejects every caller sharing it, and the next 
   fail = false
   const again = await reader.read(now + 1)
   assert.ok(again.days.every((d) => d.events === 5), 'read again after the failure')
+})
+
+test('ER-14 (0.3.15 review, iteration 3): a failed reading is answered again for MIN_INTERVAL_MS, then read anew', async () => {
+  let fail = true, calls = 0
+  const { store } = fakeStore()
+  const flaky = { select: (...a) => { calls++; if (fail) throw new Error('database away'); return store.select(...a) } }
+  const reader = createRhythmReader(flaky)
+  const now = new Date(2026, 9, 27, 15, 0).getTime()
+  const r = await reader.read(now)
+  assert.ok(r.unread.length > 0)
+  fail = false
+  const before = calls
+  const kept = await reader.read(now + 1000)
+  assert.equal(calls, before, 'nothing read within the interval')
+  assert.ok(kept.unread.length > 0, 'the failed reading is said as failed, not as zeros')
+  const again = await reader.read(now + 16_000)
+  assert.ok(calls > before)
+  assert.ok(again.days.every((d) => d.events === 5))
 })

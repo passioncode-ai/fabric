@@ -120,6 +120,17 @@ describe('groupInWork by work, not by keep-alive (the mockup parity, home gaps D
     expect(cop.orphans).toEqual([])
     expect([g.agentsAtWork, g.agentsQuiet, g.connectedIdle]).toEqual([2, 1, 0])
   })
+  it('DA-15 (0.3.15 review, iteration 3): a connected agent that holds its task past the hour keeps its row, never «without an agent»', () => {
+    const t = { id: 't1', projectId: 'cop', summary: 'A long build' }
+    const g = groupInWork({
+      live: [live('a2', 'cop', now, { atWork: false, workAt: null, task: t })],
+      inWork: [work('t1', 'cop', 'a2', '2026-10-27T07:00:00Z', true)], projects, locale: 'en', atWorkOnly: true
+    })
+    const cop = g.cards.find((c) => c.projectId === 'cop')!
+    expect(cop.agents.map((a) => a.sessionId)).toEqual(['a2'])
+    expect(cop.orphans).toEqual([])
+    expect([g.agentsQuiet, g.connectedIdle]).toEqual([1, 0])
+  })
   it('prints and sorts every project by its display name, the slug kept as the identity', () => {
     const slugs = [
       { id: 'fab', name: 'fabric', status: 'active' as const },

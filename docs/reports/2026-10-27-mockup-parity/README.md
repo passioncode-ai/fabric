@@ -68,7 +68,10 @@ review, iteration 2, UX-15); [`after-home-light-1150.png`](shots/after-home-ligh
 Closed in 0.3.15, as the release review's plan level read the maps against the diff (iteration 1, PL-1): home A2, A3,
 A5, B1 to B3, C1, D1 to D7, D9, D11, F3 («Нужны вы» as open cards, answers shown); rail 1 to 6, 8 to 11, 13, 20 to 22; the agent page's header, step bar, milestones,
 questions card, console box and back link. The other rows of the maps were restyled in wave 1 and are not ticked one by
-one here; the later review iterations read them again against the shots.
+one here; the later review iterations read them again against the shots. That is the evidence for them, not a
+row-by-row tick: rail 12, 14 to 17, 23 and 26 to 28 and home A1, A4, A6, B4 to B8, C2 to C5, E1 to E6, F4, F5, G1 and G2
+were applied as their maps recommend or are «no change» rows there, and the three review iterations rendered the screens
+at 900 to 1440 px and named none of these rows as open (the release review, iteration 3, PL-10).
 
 Left open, each with its reason and its home:
 

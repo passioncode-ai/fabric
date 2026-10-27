@@ -16,7 +16,9 @@ import { projectDisplayName, type DisplayNames } from './projectDisplayName.ts'
  *  work, or it holds a task and has gone quiet (the mockup's «молчит 14 мин»: its task is still its own, never «a task
  *  without an agent»). A reading that did not judge work keeps every agent. */
 export function onWorkRow(a: Pick<LiveAgent, 'atWork' | 'stale' | 'task'>): boolean {
-  return a.atWork === undefined || a.atWork || (a.stale && !!a.task)
+  // An agent that holds a task keeps its row whether it is quiet or only connected, so its task is never said to have no
+  // agent (the 0.3.15 review, iteration 3, DA-15); it reads «Простаивает» there, never «Работает».
+  return a.atWork === undefined || a.atWork || !!a.task
 }
 
 export interface InWorkProjectInput {
@@ -105,7 +107,7 @@ export function groupInWork(input: {
   const folding = !!input.atWorkOnly && byWork
   let connectedIdle = 0
   for (const a of input.live) {
-    if (byWork && !a.atWork && !a.stale) connectedIdle++
+    if (byWork && !a.atWork && !a.stale && !a.task) connectedIdle++
     // A quiet agent that still holds its task keeps its row (`onWorkRow`); a connected one folds into one line.
     if (folding && !onWorkRow(a)) continue
     const c = cardOf(a.projectId, a.projectName)
@@ -152,7 +154,8 @@ export function groupInWork(input: {
     // D3: with the connected folded out, the agents on the cards: at work, and the quiet ones that still hold a task.
     agentsAtWork: folding ? input.live.filter(onWorkRow).length : input.live.length,
     // UX-21: how many of them are quiet, so the head says it beside the strip's «агентов работает», which counts the rest.
-    agentsQuiet: input.live.filter((a) => a.stale && (!folding || onWorkRow(a))).length,
+    // DA-15: with the folding, every row not at work is quiet (silent, or only connected while it holds its task).
+    agentsQuiet: input.live.filter((a) => (folding ? onWorkRow(a) && !a.atWork : a.stale)).length,
     connectedIdle
   }
 }

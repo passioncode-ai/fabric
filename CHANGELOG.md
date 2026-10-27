@@ -15,12 +15,12 @@ alone, and going back to 0.3.14 is the 0.3.14 bundle alone.
 - **The screens look as the approved mockup.** Главная is one page in two columns: Fabric's face, greeting and work
   rhythm in one card, the six numbers in one strip, «В работе» by project, and on the right, from the top, «Нужны вы»
   as open cards with their answer buttons and «Запросы без ответа» as one line per request.
-- **«Работает» means at work.** An agent counts as working while it still signs and either reported a stage or a turn in
-  the last 15 minutes, its Fabric console printed, or it holds a task with some work in the last hour; an agent window
+- **«Работает» means at work.** An agent counts as working while it still signs and either reported a stage, a working heartbeat or a
+  turn in the last 15 minutes, its Fabric console printed, or it holds a task with some work in the last hour; an agent window
   that only stays connected is counted apart, in one quiet line «Подключены, без дела», and one past its sign window is
   quiet, so the strip's number is the cards' less the quiet ones. Projects and agents are ordered by their newest work,
-  not by the last keep-alive. An agent gone quiet that holds no task is in none of Главная's numbers; it stays in the
-  left column and on Агенты. Агенты and an agent's own page say «Простаивает» for an agent that is only connected, as
+  not by the last keep-alive. An agent gone quiet that holds no task is in none of Главная's numbers and is listed on
+  Агенты only; one that holds its task keeps its row with «Простаивает», so its task is never said to have no agent. Агенты and an agent's own page say «Простаивает» for an agent that is only connected, as
   Главная counts it. The strip's «работают» says «прочитано не всё» when the agents' turns or earlier sessions could not
   be read whole. Every agent row in the left column still says its status in a word, «Работает» included.
 - **An agent keeps its story across a restart.** When an agent that sends its own session id (Claude Code) joins again

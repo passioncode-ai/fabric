@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "dbb69aa467347a9db806849c7c819a7107db4658",
+  "report": "docs/evidence/reviews/0.3.15/iteration-3/2026-10-27-errors.md",
+  "reportSha256": "b6d6975afcfcd86bc89cef28a3bac66752dfae442e9ee0b6150da9af86298549",
+  "reviewerRun": "release-0315-i3-errors-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-12",
+      "source": "V3-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-477 extended"
+      ]
+    },
+    {
+      "id": "ER-13",
+      "source": "V3-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-477 extended; a failed or slow read is said as partial (ER-7, ER-10)"
+      ]
+    },
+    {
+      "id": "ER-14",
+      "source": "V3-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: renamed to what it proves, and «ER-14 (0.3.15 review, iteration 3): a failed reading is answered again for MIN_INTERVAL_MS, then read anew» added (`test/work-rhythm.test.mjs`)"
+      ]
+    },
+    {
+      "id": "ER-15",
+      "source": "V3-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/commsWaitingList.ts#withWaitingList` drops the subjects only; test «ER-15 (0.3.15 review, iteration 3)» in `test/comms-waiting-list.test.mjs`"
+      ]
+    }
+  ]
+}

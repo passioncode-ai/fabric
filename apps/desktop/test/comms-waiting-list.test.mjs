@@ -52,3 +52,11 @@ test('a read that fails leaves the board\'s reply as it was; an unavailable boar
   const down = { ok: false, error: { code: 'unavailable', message: 'board away' } }
   assert.equal(await withWaitingList(down, deps()), down)
 })
+
+test('ER-15 (0.3.15 review, iteration 3): a thread page that rejects drops the subjects, never the list', async () => {
+  const d = deps()
+  d.threads = async () => { throw new Error('board away') }
+  const r = await withWaitingList({ ok: true, requests: 1, oldestRequestAt: '2026-10-25T09:00:00Z' }, d)
+  assert.equal(r.list.length, 1)
+  assert.equal(r.list[0].requestId, 'r1')
+})

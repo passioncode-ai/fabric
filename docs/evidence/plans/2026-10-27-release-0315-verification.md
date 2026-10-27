@@ -19,9 +19,10 @@ their reports are committed under `docs/evidence/reviews/0.3.15/iteration-N/` as
 
 ## Rollout on the operator's Mac
 
-0.3.15 is the bundle alone (schema 98 unchanged). The Mac runs Fabric 0.3.14 on Colima, under the broker target
-`fabric.desktop`. The rollout holds the broker target first (`lifecycle.py hold --target-id fabric.desktop`, released
-after the swap), as [the runbook](../../launch/release-mac.md) says. The quit is the person's.
+0.3.15 is the bundle alone (schema 98 unchanged). The Mac runs Fabric 0.3.14 under the broker target `fabric.desktop`.
+The rollout holds the broker target first and lifts the hold after the swap, as 0.3.14's did ([its Rollout, as
+done](2026-10-26-release-0314-verification.md#rollout-as-done-on-2026-10-27)); the bundle is checked (`SHA256SUMS`,
+`codesign`, `spctl`) and the old one kept aside as the way back. The quit is the person's.
 ## Release
 
 The candidates keep version 0.3.14 (`apps/desktop/package.json`, `CHANGELOG.md`'s heading «0.3.15 (unreleased)») and
@@ -31,6 +32,20 @@ release commit then raises `package.json` to 0.3.15, gives `CHANGELOG.md` its da
 `release-gate.json` in one change: version 0.3.15, this ledger, the verified commit, the release metadata and the
 receipts of iterations 1 to 3. `bash scripts/ci.sh fast` and the release gate run on that commit; the tag `v0.3.15` is
 pushed after they read green and `release.yml` is watched to its published assets. The rollout above follows.
+
+As 0.3.14 did, iteration 3's fixes make a final candidate after its reviewed one; a fresh verifier reads that final
+candidate (every iteration 3 disposition, the changed tests one file at a time, the documents gates) and it becomes the
+verified commit. In order (the release review, iteration 3, PL-8):
+
+1. The final candidate's verifier report, «ready to tag», committed as release metadata.
+2. The release commit: version, CHANGELOG heading, `release-gate.json`, this ledger, the handoff, `docs/MERGES.md`, the
+   design map's entry. Nothing outside the runbook's post-`verifiedCommit` list changes in it.
+3. The hosted `ci.yml` on `main` read before the tag (the full tier needs a database this Mac cannot hold); its run is
+   recorded here.
+4. The tag `v0.3.15`, `release.yml` to its published assets, the DMG checked (`SHA256SUMS`, `codesign`, `spctl`).
+5. After the tag, on `main`: P-30 «released» and the Now line (the register cannot change after the verified commit),
+   `node scripts/workspace.mjs publish` and `check --require-child`, the knowledge base's release row, the board post.
+6. The rollout above.
 
 ## Iteration 1
 
@@ -108,3 +123,32 @@ Candidate `acdf7ac3ab1645057ced0cd2d0cd4715747a8a24`. Five reviewers, one per le
 | V2-22 | PL-7 | non-blocking | three board asks unfiled | ruled: CO-478 (prowlagent's cancel door), CO-479 (DEC-0142 and DEC-0143), CO-480 (FAA-153 question 2), each answered on its thread |
 
 Exit for iteration 2: every finding has a disposition. Blocking findings open: none.
+
+## Iteration 3
+
+Candidate `dbb69aa467347a9db806849c7c819a7107db4658`. Five reviewers, one per level, read-only in a detached checkout; their reports are in
+[`docs/evidence/reviews/0.3.15/iteration-3/`](../reviews/0.3.15/iteration-3/). 18 findings, none blocking. Iteration 2's dispositions held at the
+candidate, with the caveats the rows below take up (V2-11's test, V2-18's left column).
+
+| Finding | Level | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-1 | UX-17 | non-blocking | the rail's switch at 900 px cuts «Проек…» | ruled: CO-483, the release of 2026-11-05 |
+| V3-2 | UX-18 | non-blocking | no highlighted rail row for the open session in the console shot | ruled: CO-483 (look in the real app; the harness fixture may lack it) |
+| V3-3 | ER-12 | non-blocking | earlier stage reports read unordered and unbounded; a full claims read not said | ruled: CO-477 extended |
+| V3-4 | ER-13 | non-blocking | the turns read has no `seq` bound or covering index | ruled: CO-477 extended; a failed or slow read is said as partial (ER-7, ER-10) |
+| V3-5 | ER-14 | non-blocking | the ER-11 rhythm test proved less than its title | fixed: renamed to what it proves, and «ER-14 (0.3.15 review, iteration 3): a failed reading is answered again for MIN_INTERVAL_MS, then read anew» added (`test/work-rhythm.test.mjs`) |
+| V3-6 | ER-15 | non-blocking | a rejected thread page dropped the whole waiting list | fixed: `main/commsWaitingList.ts#withWaitingList` drops the subjects only; test «ER-15 (0.3.15 review, iteration 3)» in `test/comms-waiting-list.test.mjs` |
+| V3-7 | DO-10 | non-blocking | P-30 one iteration behind; no iteration 3 section | fixed: P-30 names iteration 3 and the final candidate; this section |
+| V3-8 | DO-11 | non-blocking | the Rollout cited a runbook step it lacks, and Colima | fixed: the Rollout follows 0.3.14's «Rollout, as done» and drops the engine |
+| V3-9 | DO-12 | non-blocking | the CHANGELOG's «Работает» left out the working heartbeat | fixed: CHANGELOG 0.3.15 names it |
+| V3-10 | DA-15 | non-blocking | a connected agent holding its task past the hour vanished and its task read «without an agent» | fixed: `shared/homeProjects.ts#onWorkRow` keeps any agent that holds a task, «Простаивает»; `connectedIdle` counts only agents with no task (`shared/agentWork.ts#withWorkSignals`); test «DA-15 (0.3.15 review, iteration 3)» in `homeProjects.test.ts`, watched failing |
+| V3-11 | DA-16 | non-blocking | the CHANGELOG said a quiet agent with no task stays in the left column | fixed: CHANGELOG says it is on Агенты only; V2-18 corrected by this row |
+| V3-12 | DA-17 | non-blocking | the identity join does not reach the agent page | ruled: CO-475 extended |
+| V3-13 | DA-18 | non-blocking | a display name can be a sibling repository's or shared | ruled: CO-481 |
+| V3-14 | DA-19 | non-blocking | the waiting list and the strip can differ from the board and the chart | ruled: CO-482 |
+| V3-15 | DA-20 | non-blocking | typing into a console counted as its output | fixed: `main/pty.ts` keeps `lastOutputAt` from output only and `main/index.ts#heldSessions` judges by it; test «typing moves the activity clock, never the output clock» in `test/delivery.test.mjs` |
+| V3-16 | PL-8 | non-blocking | the Release section lacked the runbook's later steps | fixed: the «Release» section's ordered list |
+| V3-17 | PL-9 | non-blocking | P-30's status one iteration behind | fixed: as DO-10 |
+| V3-18 | PL-10 | non-blocking | the gap maps' closure only partly by row | fixed: the README names the rows not ticked and the evidence that stands for them |
+
+Exit for iteration 3: every finding has a disposition. Blocking findings open: none.

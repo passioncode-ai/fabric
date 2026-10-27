@@ -1470,11 +1470,14 @@ function heldSessions(projectId?: string): HeldSession[] {
   for (const p of ptys?.list(projectId) ?? []) {
     if (!p.running) continue
     const at = Date.parse(p.lastActivityAt)
+    // «Console printed» is its output alone, never what was typed or delivered into it (DA-20).
+    const printed = p.lastOutputAt ? Date.parse(p.lastOutputAt) : NaN
+    const outputAt = Number.isFinite(printed) ? printed : null
     const held = out.get(p.sessionId)
     // A running terminal is a console Fabric holds: «Open session» opens it (0.3.5 review UX-3).
     out.set(p.sessionId, held
-      ? { ...held, agent: held.agent ?? p.optionId, console: true, folder: p.cwd, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null, outputAt: Number.isFinite(at) ? at : null }
-      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', console: true, folder: p.cwd, startedAt: Date.parse(p.startedAt), lastSignAt: at, outputAt: Number.isFinite(at) ? at : null })
+      ? { ...held, agent: held.agent ?? p.optionId, console: true, folder: p.cwd, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null, outputAt }
+      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', console: true, folder: p.cwd, startedAt: Date.parse(p.startedAt), lastSignAt: at, outputAt })
   }
   return [...out.values()]
 }
