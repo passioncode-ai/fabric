@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "087bee4b09ab50d6a17d53e9f1a52dd1e5498d43",
+  "report": "docs/evidence/reviews/0.3.14/iteration-1/2026-10-26-plan.md",
+  "reportSha256": "dda21e68483743064e61e5b7ac383520ccd97c625c639f69f861dc58ffe00686",
+  "reviewerRun": "release-0314-i1-plan-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V1-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a turn shows at most five nudges, each once on its turns, and takes none; a repeat of its idempotencyKey answers the same; the rule every session reads says so (`b97ec351`: `apps/desktop/src/main/abandonedSweepRun.ts#createAbandonedSweep`, region `turn-nudges-shown`; `apps/desktop/src/shared/protocolObligations.ts`); tests `test/abandoned-sweep-run.test.mjs` «PL-1: …», «ER-2: …», `test/session-observe-wire.test.mjs`, `protocolObligations.w2.test.ts`, watched failing with the fix reverted"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V1-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a turn shows at most five nudges, each once on its turns, and takes none; a repeat of its idempotencyKey answers the same; the rule every session reads says so (`b97ec351`: `apps/desktop/src/main/abandonedSweepRun.ts#createAbandonedSweep`, region `turn-nudges-shown`; `apps/desktop/src/shared/protocolObligations.ts`); tests `test/abandoned-sweep-run.test.mjs` «PL-1: …», «ER-2: …», `test/session-observe-wire.test.mjs`, `protocolObligations.w2.test.ts`, watched failing with the fix reverted"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V1-40",
+      "status": "ruled",
+      "evidence": [
+        "ruled: review older than 3 days reaching the operator's queue is CO-456, 0.3.15 (P-29); the plan's «Left» says why (`693d14a6`)"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V1-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: Dashboards' answer `c443d88c` and the adapter's 0.51.2 (FAA-142) are in the plan's «Left»; Fabric's half of MD-12 is CO-457 (`693d14a6`)"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V1-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: Dashboards' answer `c443d88c` and the adapter's 0.51.2 (FAA-142) are in the plan's «Left»; Fabric's half of MD-12 is CO-457 (`693d14a6`)"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V1-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: the register's rows naming 0.3.14 for the slice carry a dated renumbering note (`693d14a6`); corrected again for the final numbering by iteration 2's DO-1 (`96e1f96c`)"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V1-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: P-28's status names the waves built (`693d14a6`)"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V1-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fabric-workspace relayed the final numbering to every PassionCode agent (`fbb79343`) and Fabric's own `451bbcad` on `7ef21793` (2026-10-27) gives it and corrects `1f60252c`"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V1-46",
+      "status": "ruled",
+      "evidence": [
+        "ruled: brief reminders cover claimed tasks only, said in the plan's «Left» (`693d14a6`); the rest is CO-462, 0.3.15 (P-29), filed by iteration 2's PL-7"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "source": "V1-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a stage report names the current task only while it runs; a launched task is dated by its `task.session.attached@1`; `fabric_task_claim` answers `brief_missing` and `brief_next` (`b0647bd2`)"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "source": "V1-48",
+      "status": "ruled",
+      "evidence": [
+        "ruled (P-28, the plan's «Review, iteration 1»): nudges are agent-facing protocol text and stay English like every `fabric_whoami` rule (`apps/desktop/src/shared/abandonedSweep.ts#nudgeText`); request `dfb43ffb`'s promise corrected on its thread by the lead"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "a9c7b7062bd6818c4e5b70262a6dae2c7bc5f8da",
+  "report": "docs/evidence/reviews/0.3.14/iteration-2/2026-10-26-errors.md",
+  "reportSha256": "6b58a29f11293efc0d9fe75cb7e32c4e1e34bf1013162886f3875be2bbb33ca5",
+  "reviewerRun": "release-0314-i2-errors-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-13",
+      "source": "V2-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the done repair acts only when nothing moved the task after the done release (the release's own step excepted), asks the holders again at the move and reads the claims history newest first (`7c0b7fc1`, `980b71b3`, `apps/desktop/src/shared/abandonedSweep.ts#doneLeftRunning`); test `test/abandoned-sweep-run.test.mjs`"
+      ]
+    },
+    {
+      "id": "ER-14",
+      "source": "V2-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Открыть консоль в B» names the home folder for a project with no repository and opens on a second press; a project of another recorded business is refused; a started console whose tab failed is said as started, noted, offered as «Открыть сессию» and never started twice (`505e1d31`, `apps/desktop/src/renderer/src/launch/CrossProjectConsole.tsx#CrossProjectConsole`); Copylot ru `35ae78e8-1c7e-49ec-941f-532a9f853f5a`, en `5aef1621-22fe-4f82-a705-17a901264412`; test `CrossProjectConsole.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-15",
+      "source": "V2-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Открыть консоль в B» names the home folder for a project with no repository and opens on a second press; a project of another recorded business is refused; a started console whose tab failed is said as started, noted, offered as «Открыть сессию» and never started twice (`505e1d31`, `apps/desktop/src/renderer/src/launch/CrossProjectConsole.tsx#CrossProjectConsole`); Copylot ru `35ae78e8-1c7e-49ec-941f-532a9f853f5a`, en `5aef1621-22fe-4f82-a705-17a901264412`; test `CrossProjectConsole.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-16",
+      "source": "V2-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one home reading in flight per reader, a mark meanwhile asks for one more; the branch kept 60 s, git never waited on past 4 s; review counts and «Сдано сегодня» at most 1 000 rows, said capped; the goal walk reads `spawned` links only; the claims history ordered and bounded per chunk; the lifecycle row says what each reading runs (`3c74ce13`, `980b71b3`); tests `HomeWork.test.tsx`, `test/agent-branches.test.mjs`, `test/agent-goals.test.mjs`, `test/home-strip.test.mjs`, `test/work-read-views.test.mjs`; the journal read's index is CO-463"
+      ]
+    },
+    {
+      "id": "ER-17",
+      "source": "V2-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "ER-18",
+      "source": "V2-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one status function with the same inputs on the left column, «В работе» and the agent page; «Ждёт» only for an observed wait, a silent console «Простаивает», a console killed by a signal Fabric did not send «Ошибка» (`f1799a2a`, `apps/desktop/src/shared/sessionStatus.ts#sessionStatus`); tests `sessionStatus.test.ts`, `railAgents.test.ts`, `HomeInWork.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-19",
+      "source": "V2-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one status function with the same inputs on the left column, «В работе» and the agent page; «Ждёт» only for an observed wait, a silent console «Простаивает», a console killed by a signal Fabric did not send «Ошибка» (`f1799a2a`, `apps/desktop/src/shared/sessionStatus.ts#sessionStatus`); tests `sessionStatus.test.ts`, `railAgents.test.ts`, `HomeInWork.test.tsx`"
+      ]
+    },
+    {
+      "id": "ER-20",
+      "source": "V2-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "ER-21",
+      "source": "V2-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Назад» and «Вперёд» are enabled only when a place they reach still exists (`26112a4a`); test `consoleTabsShell.test.tsx`"
+      ]
+    }
+  ]
+}

@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-27T01:18:53Z · `—` · main → release/0.3.14 · merge
+- run: release-0314-metadata-20261027
+- files: docs/workspace-receipt.json, workspace (the published workspace pin `067ec642`, main's `5a164adc` and `f42c7386`)
+- conflicts: none
+- summary: Fabric 0.3.14's release commit takes `main`'s workspace pin after the verified candidate `39c82b7b`, so the release lands on `main` by a fast-forward.
+
 ### 2026-10-26T15:26:56Z · `—` · main → release/0.3.13 · merge
 - run: r-182fa592b059
 - files: docs/workspace-receipt.json, workspace (the published workspace pin `10cc8cdf`)

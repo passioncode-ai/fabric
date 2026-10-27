@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "087bee4b09ab50d6a17d53e9f1a52dd1e5498d43",
+  "report": "docs/evidence/reviews/0.3.14/iteration-1/2026-10-26-errors.md",
+  "reportSha256": "1156b5086ad5be9f5f4b1f1cc832b5396d8e507ea637407963577b7eddc8ba6e",
+  "reviewerRun": "release-0314-i1-errors-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V1-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a turn shows at most five nudges, each once on its turns, and takes none; a repeat of its idempotencyKey answers the same; the rule every session reads says so (`b97ec351`: `apps/desktop/src/main/abandonedSweepRun.ts#createAbandonedSweep`, region `turn-nudges-shown`; `apps/desktop/src/shared/protocolObligations.ts`); tests `test/abandoned-sweep-run.test.mjs` «PL-1: …», «ER-2: …», `test/session-observe-wire.test.mjs`, `protocolObligations.w2.test.ts`, watched failing with the fix reverted"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V1-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a turn shows at most five nudges, each once on its turns, and takes none; a repeat of its idempotencyKey answers the same; the rule every session reads says so (`b97ec351`: `apps/desktop/src/main/abandonedSweepRun.ts#createAbandonedSweep`, region `turn-nudges-shown`; `apps/desktop/src/shared/protocolObligations.ts`); tests `test/abandoned-sweep-run.test.mjs` «PL-1: …», «ER-2: …», `test/session-observe-wire.test.mjs`, `protocolObligations.w2.test.ts`, watched failing with the fix reverted"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V1-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a turns read at its 500 bound is named `capped` and judges nobody; a failed claims read blinds `brief-missing`, a capped one the holder kinds, so no quiet window is dropped (`8fa083f8`); the journal index is CO-463"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V1-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the done repair covers a done release made from backlog; repairs run before the judgement and a failing one stays a `task-unclaimed` finding in «На проверке»; the sweep retries a release whose move back to backlog did not land (`8fa083f8`, `apps/desktop/src/main/workRelease.ts#moveReleasedLeftRunningToBacklog`)"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V1-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the done repair covers a done release made from backlog; repairs run before the judgement and a failing one stays a `task-unclaimed` finding in «На проверке»; the sweep retries a release whose move back to backlog did not land (`8fa083f8`, `apps/desktop/src/main/workRelease.ts#moveReleasedLeftRunningToBacklog`)"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V1-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the done repair covers a done release made from backlog; repairs run before the judgement and a failing one stays a `task-unclaimed` finding in «На проверке»; the sweep retries a release whose move back to backlog did not land (`8fa083f8`, `apps/desktop/src/main/workRelease.ts#moveReleasedLeftRunningToBacklog`)"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V1-17",
+      "status": "ruled",
+      "evidence": [
+        "ruled: a checked move needs a migration and 0.3.14 has no schema step; a claim landing in the one-read window stays open and its task can be moved or claimed again; CO-461, with the schema step of the organization slice of 2026-11-21 (P-27)"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V1-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `taskHeldElsewhere` counts another session's lapsed lease whose run is not proved stopped; the release tool says so (`8fa083f8`, `da2c9dff`)"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V1-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `waiting` reads the week, then the newest day and hour when the week does not fit, names `window_days: 7` and gives each part a 3 s deadline; `test/session-waiting.test.mjs` runs in the test chain and the fast tier (`da2c9dff`, `apps/desktop/src/main/sessionWaiting.ts#readWaiting`)"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `waiting` reads the week, then the newest day and hour when the week does not fit, names `window_days: 7` and gives each part a 3 s deadline; `test/session-waiting.test.mjs` runs in the test chain and the fast tier (`da2c9dff`, `apps/desktop/src/main/sessionWaiting.ts#readWaiting`)"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "source": "V1-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a stage report names the current task only while it runs; a launched task is dated by its `task.session.attached@1`; `fabric_task_claim` answers `brief_missing` and `brief_next` (`b0647bd2`)"
+      ]
+    },
+    {
+      "id": "ER-12",
+      "source": "V1-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a turns read at its 500 bound is named `capped` and judges nobody; a failed claims read blinds `brief-missing`, a capped one the holder kinds, so no quiet window is dropped (`8fa083f8`); the journal index is CO-463"
+      ]
+    }
+  ]
+}

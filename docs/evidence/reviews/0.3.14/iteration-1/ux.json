@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "087bee4b09ab50d6a17d53e9f1a52dd1e5498d43",
+  "report": "docs/evidence/reviews/0.3.14/iteration-1/2026-10-26-ux.md",
+  "reportSha256": "bf6a473eeb399358562b3be16ae7500f195fa91a2012dcdc9ab5db9294a3bb27",
+  "reviewerRun": "release-0314-i1-ux-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V1-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Брошено» cards name their session as text; Агенты keeps the picked agent in the route; the agent page's rows, links, task rows and history disclosure are styled; «Показать ещё» reads busy and stops at 500 with a sentence; the Russian link name starts with what it shows; arrival focus waits for the row; endings in words of their own; «Брошено» apart on a project's glance (`7df37865`)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Брошено» cards name their session as text; Агенты keeps the picked agent in the route; the agent page's rows, links, task rows and history disclosure are styled; «Показать ещё» reads busy and stops at 500 with a sentence; the Russian link name starts with what it shows; arrival focus waits for the row; endings in words of their own; «Брошено» apart on a project's glance (`7df37865`)"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V1-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Брошено» cards name their session as text; Агенты keeps the picked agent in the route; the agent page's rows, links, task rows and history disclosure are styled; «Показать ещё» reads busy and stops at 500 with a sentence; the Russian link name starts with what it shows; arrival focus waits for the row; endings in words of their own; «Брошено» apart on a project's glance (`7df37865`)"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V1-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Брошено» cards name their session as text; Агенты keeps the picked agent in the route; the agent page's rows, links, task rows and history disclosure are styled; «Показать ещё» reads busy and stops at 500 with a sentence; the Russian link name starts with what it shows; arrival focus waits for the row; endings in words of their own; «Брошено» apart on a project's glance (`7df37865`)"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V1-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Брошено» cards name their session as text; Агенты keeps the picked agent in the route; the agent page's rows, links, task rows and history disclosure are styled; «Показать ещё» reads busy and stops at 500 with a sentence; the Russian link name starts with what it shows; arrival focus waits for the row; endings in words of their own; «Брошено» apart on a project's glance (`7df37865`)"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V1-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Брошено» cards name their session as text; Агенты keeps the picked agent in the route; the agent page's rows, links, task rows and history disclosure are styled; «Показать ещё» reads busy and stops at 500 with a sentence; the Russian link name starts with what it shows; arrival focus waits for the row; endings in words of their own; «Брошено» apart on a project's glance (`7df37865`)"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V1-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Брошено» cards name their session as text; Агенты keeps the picked agent in the route; the agent page's rows, links, task rows and history disclosure are styled; «Показать ещё» reads busy and stops at 500 with a sentence; the Russian link name starts with what it shows; arrival focus waits for the row; endings in words of their own; «Брошено» apart on a project's glance (`7df37865`)"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V1-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Брошено» cards name their session as text; Агенты keeps the picked agent in the route; the agent page's rows, links, task rows and history disclosure are styled; «Показать ещё» reads busy and stops at 500 with a sentence; the Russian link name starts with what it shows; arrival focus waits for the row; endings in words of their own; «Брошено» apart on a project's glance (`7df37865`)"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V1-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Брошено» cards name their session as text; Агенты keeps the picked agent in the route; the agent page's rows, links, task rows and history disclosure are styled; «Показать ещё» reads busy and stops at 500 with a sentence; the Russian link name starts with what it shows; arrival focus waits for the row; endings in words of their own; «Брошено» apart on a project's glance (`7df37865`)"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "source": "V1-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Copylot's check, register `ui`, ran on 0.3.14's strings (ru `c75ef710-2609-4602-9373-3ec940208bd3`, en `e873528f-477f-460a-8aca-aad03b79fd9c`; wave build `a0601770-93c1-4816-9457-ff38aba4b9a9`, `6c7ec19e-6738-49a6-bdd6-7fdfd8fb9df4`) and on the strings the fix changes, voice «PassionCode.ai site voice v2» (ru `6fdd4a5b-a538-4aec-884b-ac4fcbb27442`, en `96a43f00-9be3-407d-a6b6-f4af387bbae0`), 0 findings each (`7df37865`)"
+      ]
+    }
+  ]
+}

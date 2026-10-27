@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "39c82b7b07ca5f32b4f414c60b00c3e5403baa59",
+  "report": "docs/evidence/reviews/0.3.14/iteration-3/2026-10-27-ux.md",
+  "reportSha256": "8169d5da4f32ea5e80d9d77f9576f85cd54b091e23779b569a56412f6e43b81c",
+  "reviewerRun": "release-0314-i3-ux-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-22",
+      "source": "V3-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a goal the person defined in Plan leads the row, the card's aim and the agent's page over a task an agent filed under it (`be03d084`, `apps/desktop/src/main/agentGoals.ts#withGoals`); tests `test/agent-goals.test.mjs` «UX-22: …», `HomeInWork.test.tsx` «UX-22: …»; CHANGELOG and v2 §4.2 `77127389`, `490015bd`; its residual edge is FV-1"
+      ]
+    },
+    {
+      "id": "UX-23",
+      "source": "V3-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every console the panel started is kept by project and sentence, so picking A again after B starts nothing; once an agent runs, «Консоль не открылась» is never said, an unsaved note is a line of its own (`803147d6`, `apps/desktop/src/renderer/src/launch/CrossProjectConsole.tsx#CrossProjectConsole`); tests `CrossProjectConsole.test.tsx` «ER-26: …», «ER-25, UX-23: …»"
+      ]
+    },
+    {
+      "id": "UX-24",
+      "source": "V3-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a released claim is never in «В работе»; «Передано» holds every release of an unfinished task that is not «Брошено», the person's own said «Снята вами» (`4e828fba`, `apps/desktop/src/shared/sessionTasks.ts#laneOf`); test `sessionTasks.test.ts`; CHANGELOG, the plan, v2, SCN-166 and SCR-87 say so"
+      ]
+    },
+    {
+      "id": "UX-25",
+      "source": "V3-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: arriving at an agent while who works could not be read says «Список агентов не прочитан, поэтому открыть агента нельзя.» with «Повторить» (`967780a9`, `apps/desktop/src/renderer/src/launch/AgentsScreen.tsx#AgentsScreen`); test `AgentsScreen.test.tsx` «UX-25: …»"
+      ]
+    },
+    {
+      "id": "UX-26",
+      "source": "V3-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the code, so the CHANGELOG's sentence is true: the left column writes the word beside the dot for every status, «Работает» included (`bd60cd3c`, `apps/desktop/src/renderer/src/launch/LaunchShell.tsx#LaunchShell`); test `Rail.test.tsx`; SCN-162's amendment `1adb402b`; held in the final verification"
+      ]
+    },
+    {
+      "id": "UX-27",
+      "source": "V3-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: SCN-158, SCN-162, SCN-166, SCN-174 and SCR-87 carry dated amendments of 2026-10-27 (`1adb402b`, `b329cd0d`)"
+      ]
+    }
+  ]
+}

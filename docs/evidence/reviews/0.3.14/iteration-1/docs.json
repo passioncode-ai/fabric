@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "087bee4b09ab50d6a17d53e9f1a52dd1e5498d43",
+  "report": "docs/evidence/reviews/0.3.14/iteration-1/2026-10-26-docs.md",
+  "reportSha256": "e5792bd2feaf12207a55f9e2ca7335241e5c149a01cfab6b1855d3f4764fea51",
+  "reviewerRun": "release-0314-i1-docs-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V1-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a turn shows at most five nudges, each once on its turns, and takes none; a repeat of its idempotencyKey answers the same; the rule every session reads says so (`b97ec351`: `apps/desktop/src/main/abandonedSweepRun.ts#createAbandonedSweep`, region `turn-nudges-shown`; `apps/desktop/src/shared/protocolObligations.ts`); tests `test/abandoned-sweep-run.test.mjs` «PL-1: …», «ER-2: …», `test/session-observe-wire.test.mjs`, `protocolObligations.w2.test.ts`, watched failing with the fix reverted"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V1-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `waiting` reads the week, then the newest day and hour when the week does not fit, names `window_days: 7` and gives each part a 3 s deadline; `test/session-waiting.test.mjs` runs in the test chain and the fast tier (`da2c9dff`, `apps/desktop/src/main/sessionWaiting.ts#readWaiting`)"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V1-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: P-28's status names the waves built (`693d14a6`)"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V1-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: the register's rows naming 0.3.14 for the slice carry a dated renumbering note (`693d14a6`); corrected again for the final numbering by iteration 2's DO-1 (`96e1f96c`)"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V1-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: (a) the `fabric_whoami` description says unread answers are a count (`da2c9dff`); (b) the release tool says a lapsed lease whose run is not proved stopped holds the task (`8fa083f8`, `da2c9dff`)"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V1-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `work-unclaimed` is a change of files or lines between a session's turns, not a dirty tree, and the nudge says so (`8fa083f8`, `apps/desktop/src/shared/abandonedSweep.ts#findAbandoned`)"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V1-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: the lifecycle table gains the agent page's `work.session` and the Board's paged «Готово» (`693d14a6`)"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V1-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Брошено» cards name their session as text; Агенты keeps the picked agent in the route; the agent page's rows, links, task rows and history disclosure are styled; «Показать ещё» reads busy and stops at 500 with a sentence; the Russian link name starts with what it shows; arrival focus waits for the row; endings in words of their own; «Брошено» apart on a project's glance (`7df37865`)"
+      ]
+    }
+  ]
+}

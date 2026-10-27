@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "a9c7b7062bd6818c4e5b70262a6dae2c7bc5f8da",
+  "report": "docs/evidence/reviews/0.3.14/iteration-2/2026-10-26-ux.md",
+  "reportSha256": "840c71dd0e90841c647d33a9a0a029b3def899f0de88fbb7405dcdc08fbcb27e",
+  "reviewerRun": "release-0314-i2-ux-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-11",
+      "source": "V2-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "source": "V2-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "source": "V2-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "UX-14",
+      "source": "V2-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "UX-15",
+      "source": "V2-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Открыть консоль в B» names the home folder for a project with no repository and opens on a second press; a project of another recorded business is refused; a started console whose tab failed is said as started, noted, offered as «Открыть сессию» and never started twice (`505e1d31`, `apps/desktop/src/renderer/src/launch/CrossProjectConsole.tsx#CrossProjectConsole`); Copylot ru `35ae78e8-1c7e-49ec-941f-532a9f853f5a`, en `5aef1621-22fe-4f82-a705-17a901264412`; test `CrossProjectConsole.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-16",
+      "source": "V2-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "UX-17",
+      "source": "V2-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "UX-18",
+      "source": "V2-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "UX-19",
+      "source": "V2-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "UX-20",
+      "source": "V2-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "UX-21",
+      "source": "V2-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "39c82b7b07ca5f32b4f414c60b00c3e5403baa59",
+  "report": "docs/evidence/reviews/0.3.14/iteration-3/2026-10-27-docs.md",
+  "reportSha256": "0b07fa0ffedc9f0357244113ee6d029c9029c90ed6ff77bbccf7de1e2b28e575",
+  "reviewerRun": "release-0314-i3-docs-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-9",
+      "source": "V3-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `AGENTS.md`'s lifecycle rows: the done repair skips a task anything moved after the release, the claims history read newest first and bounded, a full chunk named in the receipt; Главная uses the shell's reading (`68d6838e`)"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "source": "V3-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `AGENTS.md`'s lifecycle rows: the done repair skips a task anything moved after the release, the claims history read newest first and bounded, a full chunk named in the receipt; Главная uses the shell's reading (`68d6838e`)"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "source": "V3-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: SCN-158, SCN-162, SCN-166, SCN-174 and SCR-87 carry dated amendments of 2026-10-27 (`1adb402b`, `b329cd0d`)"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "source": "V3-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rule `claim.persons-request-as-goal` says «your current task» stands in the goal's place (`16021faa`, `apps/desktop/src/shared/protocolObligations.ts#OBLIGATIONS`); test `protocolObligations.w2.test.ts` «… DO-12: …», watched failing with the old word; documents `490015bd`"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "source": "V3-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the general plan: P-27 lists CO-461 and CO-463; P-28's status names iterations 2 and 3 (`490015bd`)"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "source": "V3-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a released claim is never in «В работе»; «Передано» holds every release of an unfinished task that is not «Брошено», the person's own said «Снята вами» (`4e828fba`, `apps/desktop/src/shared/sessionTasks.ts#laneOf`); test `sessionTasks.test.ts`; CHANGELOG, the plan, v2, SCN-166 and SCR-87 say so"
+      ]
+    }
+  ]
+}

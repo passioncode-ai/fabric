@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "39c82b7b07ca5f32b4f414c60b00c3e5403baa59",
+  "report": "docs/evidence/reviews/0.3.14/iteration-3/2026-10-27-errors.md",
+  "reportSha256": "e81f048be4222da3d61cb7cf03eafcfcaf9237e80a1ee33d97957d2ad90275c5",
+  "reviewerRun": "release-0314-i3-errors-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-22",
+      "source": "V3-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the done repair takes only a move from backlog for the release's own step (`73723448`, `apps/desktop/src/shared/abandonedSweep.ts#doneLeftRunning`); test `test/abandoned-sweep-run.test.mjs` (two ER-22 cases)"
+      ]
+    },
+    {
+      "id": "ER-23",
+      "source": "V3-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in part: `readRunningTasks` says when a claims chunk came back at the gateway's 1 000 rows, the tasks it left out keep their earlier findings and `work.swept@1`'s `capped` names `tasks` (`d8d60370`, `apps/desktop/src/main/abandonedSweepRun.ts#readRunningTasks`); test `test/abandoned-sweep-run.test.mjs` «ER-23, DA-9: …»; the re-read is ruled: CO-465, 0.3.15 (P-29)"
+      ]
+    },
+    {
+      "id": "ER-24",
+      "source": "V3-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `fabric_task_create` walks the chain up one read per hop, a failed read files the piece unlinked and says why in `spawned_from_why`, the bound's proposal answer names both; a wire test drives the tool from an enrolled session with one live claim and with two (`8c9ad5a7`, `apps/desktop/src/shared/spawnParent.ts`); tests `test/agent-goals.test.mjs` «PL-13: …», «DA-7: …», «ER-24, DA-8: …», `spawnParent.test.ts`; CHANGELOG `77127389`"
+      ]
+    },
+    {
+      "id": "ER-25",
+      "source": "V3-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every console the panel started is kept by project and sentence, so picking A again after B starts nothing; once an agent runs, «Консоль не открылась» is never said, an unsaved note is a line of its own (`803147d6`, `apps/desktop/src/renderer/src/launch/CrossProjectConsole.tsx#CrossProjectConsole`); tests `CrossProjectConsole.test.tsx` «ER-26: …», «ER-25, UX-23: …»"
+      ]
+    },
+    {
+      "id": "ER-26",
+      "source": "V3-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every console the panel started is kept by project and sentence, so picking A again after B starts nothing; once an agent runs, «Консоль не открылась» is never said, an unsaved note is a line of its own (`803147d6`, `apps/desktop/src/renderer/src/launch/CrossProjectConsole.tsx#CrossProjectConsole`); tests `CrossProjectConsole.test.tsx` «ER-26: …», «ER-25, UX-23: …»"
+      ]
+    },
+    {
+      "id": "ER-27",
+      "source": "V3-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a console Fabric stopped is «Закончилась» whatever its exit code; `sessionStatus`'s header no longer says an open question counts (`e58315d2`, `apps/desktop/src/shared/sessionStatus.ts#sessionStatus`); test `sessionStatus.test.ts`; CHANGELOG `f97218de`; the lifecycle row `68d6838e`; ER-27 (b) is the documented rule and stays"
+      ]
+    },
+    {
+      "id": "ER-28",
+      "source": "V3-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a git's deadline counts from its spawn, a git past it is killed with SIGKILL and gives its slot back, queued work already answered runs no git (`55757d7d`, `apps/desktop/src/main/agentBranches.ts#createBranchReader`, `apps/desktop/src/main/gitRun.ts`); test `test/agent-branches.test.mjs` «ER-28: …»"
+      ]
+    }
+  ]
+}

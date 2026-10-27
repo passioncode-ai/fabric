@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "a9c7b7062bd6818c4e5b70262a6dae2c7bc5f8da",
+  "report": "docs/evidence/reviews/0.3.14/iteration-2/2026-10-26-docs.md",
+  "reportSha256": "829dafed9c1106e019f197276772362068f11ce9314b49e23ee7fab81f088a72",
+  "reviewerRun": "release-0314-i2-docs-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V2-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: the register's 26 renumbering notes, CO-421, CO-423, CO-433, CO-456 and CO-459 name the slice of 2026-11-21 or their dependency; P-12, P-26, P-29, the Now and Next lines; lane 2 delivers P-28 and P-29; the 0.3.13 handoff (`96e1f96c`, `bc287624`)"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V2-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a session with no launch task links a piece from the one task it holds a live claim on in the project; none, several or a failed read link nothing and the answer says why (`spawned_from`, `spawned_from_why`); the rule, the CHANGELOG, v2 §4.2 and §8 say the same (`3648fd30`, `apps/desktop/src/shared/spawnParent.ts#spawnParentOf`; documents `e483e630`); tests `spawnParent.test.ts`, `protocolObligations.w2.test.ts`"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V2-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one home reading in flight per reader, a mark meanwhile asks for one more; the branch kept 60 s, git never waited on past 4 s; review counts and «Сдано сегодня» at most 1 000 rows, said capped; the goal walk reads `spawned` links only; the claims history ordered and bounded per chunk; the lifecycle row says what each reading runs (`3c74ce13`, `980b71b3`); tests `HomeWork.test.tsx`, `test/agent-branches.test.mjs`, `test/agent-goals.test.mjs`, `test/home-strip.test.mjs`, `test/work-read-views.test.mjs`; the journal read's index is CO-463"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V2-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: the CHANGELOG describes wave 4's screens; the console icon is a mark for an outside session; a session Fabric launched reports no turns (CHANGELOG, runbook, SCN-140); v1 says it was the proposal, v2 what 0.3.14 built; the plan's npm time, installed adapter, `4e6395c6` row and `laneOf` decision (`e483e630` and the plan's «Review, iteration 2»)"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V2-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: the CHANGELOG describes wave 4's screens; the console icon is a mark for an outside session; a session Fabric launched reports no turns (CHANGELOG, runbook, SCN-140); v1 says it was the proposal, v2 what 0.3.14 built; the plan's npm time, installed adapter, `4e6395c6` row and `laneOf` decision (`e483e630` and the plan's «Review, iteration 2»)"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V2-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: the CHANGELOG describes wave 4's screens; the console icon is a mark for an outside session; a session Fabric launched reports no turns (CHANGELOG, runbook, SCN-140); v1 says it was the proposal, v2 what 0.3.14 built; the plan's npm time, installed adapter, `4e6395c6` row and `laneOf` decision (`e483e630` and the plan's «Review, iteration 2»)"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V2-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: the CHANGELOG describes wave 4's screens; the console icon is a mark for an outside session; a session Fabric launched reports no turns (CHANGELOG, runbook, SCN-140); v1 says it was the proposal, v2 what 0.3.14 built; the plan's npm time, installed adapter, `4e6395c6` row and `laneOf` decision (`e483e630` and the plan's «Review, iteration 2»)"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V2-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the documents: the CHANGELOG describes wave 4's screens; the console icon is a mark for an outside session; a session Fabric launched reports no turns (CHANGELOG, runbook, SCN-140); v1 says it was the proposal, v2 what 0.3.14 built; the plan's npm time, installed adapter, `4e6395c6` row and `laneOf` decision (`e483e630` and the plan's «Review, iteration 2»)"
+      ]
+    }
+  ]
+}

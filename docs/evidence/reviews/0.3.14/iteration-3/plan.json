@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "39c82b7b07ca5f32b4f414c60b00c3e5403baa59",
+  "report": "docs/evidence/reviews/0.3.14/iteration-3/2026-10-27-plan.md",
+  "reportSha256": "9e545a67cba0705f53341cc647c462af53beb6e21dfba1571df7d629fd7f4ac0",
+  "reviewerRun": "release-0314-i3-plan-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-9",
+      "source": "V3-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: posted by the lead, Fabric's `621b24e1` on `d683f99d` names CO-457 and moves Dashboards' check to 0.3.15; CO-457 records it (`490015bd`)"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "source": "V3-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: posted by the lead, Fabric's `451bbcad` on `7ef21793` gives the final numbering and corrects `1f60252c`"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "source": "V3-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: answered by the lead on `6a8d2f9c` before DEC-0140's window: the main session holds `project.work`, the move is the operator's control (DEC-0140 PR-2, narrowed by `1002bc73`); CO-457 and v2 §4.6 record it (`490015bd`)"
+      ]
+    },
+    {
+      "id": "PL-12",
+      "source": "V3-27",
+      "status": "ruled",
+      "evidence": [
+        "ruled: (a) the contract's request `e2d4ecab` (CT-172) in CO-452, 0.4.0 (P-16); (b) webpilot's `44a26740`, answered `6dd910c2`, in CO-464 (`490015bd`)"
+      ]
+    },
+    {
+      "id": "PL-13",
+      "source": "V3-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `fabric_task_create` walks the chain up one read per hop, a failed read files the piece unlinked and says why in `spawned_from_why`, the bound's proposal answer names both; a wire test drives the tool from an enrolled session with one live claim and with two (`8c9ad5a7`, `apps/desktop/src/shared/spawnParent.ts`); tests `test/agent-goals.test.mjs` «PL-13: …», «DA-7: …», «ER-24, DA-8: …», `spawnParent.test.ts`; CHANGELOG `77127389`"
+      ]
+    }
+  ]
+}

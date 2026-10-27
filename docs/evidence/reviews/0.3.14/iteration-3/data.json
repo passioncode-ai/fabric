@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "39c82b7b07ca5f32b4f414c60b00c3e5403baa59",
+  "report": "docs/evidence/reviews/0.3.14/iteration-3/2026-10-27-data.md",
+  "reportSha256": "0914ab8c07e52b2eb4865bf827a91312b15f213b49187cb0c8c0eb0a48abc2c8",
+  "reviewerRun": "release-0314-i3-data-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-7",
+      "source": "V3-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `fabric_task_create` walks the chain up one read per hop, a failed read files the piece unlinked and says why in `spawned_from_why`, the bound's proposal answer names both; a wire test drives the tool from an enrolled session with one live claim and with two (`8c9ad5a7`, `apps/desktop/src/shared/spawnParent.ts`); tests `test/agent-goals.test.mjs` «PL-13: …», «DA-7: …», «ER-24, DA-8: …», `spawnParent.test.ts`; CHANGELOG `77127389`"
+      ]
+    },
+    {
+      "id": "DA-8",
+      "source": "V3-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `fabric_task_create` walks the chain up one read per hop, a failed read files the piece unlinked and says why in `spawned_from_why`, the bound's proposal answer names both; a wire test drives the tool from an enrolled session with one live claim and with two (`8c9ad5a7`, `apps/desktop/src/shared/spawnParent.ts`); tests `test/agent-goals.test.mjs` «PL-13: …», «DA-7: …», «ER-24, DA-8: …», `spawnParent.test.ts`; CHANGELOG `77127389`"
+      ]
+    },
+    {
+      "id": "DA-9",
+      "source": "V3-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in part: `readRunningTasks` says when a claims chunk came back at the gateway's 1 000 rows, the tasks it left out keep their earlier findings and `work.swept@1`'s `capped` names `tasks` (`d8d60370`, `apps/desktop/src/main/abandonedSweepRun.ts#readRunningTasks`); test `test/abandoned-sweep-run.test.mjs` «ER-23, DA-9: …»; the re-read is ruled: CO-465, 0.3.15 (P-29)"
+      ]
+    },
+    {
+      "id": "DA-10",
+      "source": "V3-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a console Fabric stopped is «Закончилась» whatever its exit code; `sessionStatus`'s header no longer says an open question counts (`e58315d2`, `apps/desktop/src/shared/sessionStatus.ts#sessionStatus`); test `sessionStatus.test.ts`; CHANGELOG `f97218de`; the lifecycle row `68d6838e`; ER-27 (b) is the documented rule and stays"
+      ]
+    }
+  ]
+}

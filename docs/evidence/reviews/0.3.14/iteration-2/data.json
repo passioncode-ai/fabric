@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.14",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "a9c7b7062bd6818c4e5b70262a6dae2c7bc5f8da",
+  "report": "docs/evidence/reviews/0.3.14/iteration-2/2026-10-26-data.md",
+  "reportSha256": "19f6e9c3e0753a7a62843c540577e3bc44dff82946a66efcb9cd64b2cc07a5e5",
+  "reviewerRun": "release-0314-i2-data-20261026",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V2-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a session with no launch task links a piece from the one task it holds a live claim on in the project; none, several or a failed read link nothing and the answer says why (`spawned_from`, `spawned_from_why`); the rule, the CHANGELOG, v2 §4.2 and §8 say the same (`3648fd30`, `apps/desktop/src/shared/spawnParent.ts#spawnParentOf`; documents `e483e630`); tests `spawnParent.test.ts`, `protocolObligations.w2.test.ts`"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V2-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one home reading in flight per reader, a mark meanwhile asks for one more; the branch kept 60 s, git never waited on past 4 s; review counts and «Сдано сегодня» at most 1 000 rows, said capped; the goal walk reads `spawned` links only; the claims history ordered and bounded per chunk; the lifecycle row says what each reading runs (`3c74ce13`, `980b71b3`); tests `HomeWork.test.tsx`, `test/agent-branches.test.mjs`, `test/agent-goals.test.mjs`, `test/home-strip.test.mjs`, `test/work-read-views.test.mjs`; the journal read's index is CO-463"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V2-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one home reading in flight per reader, a mark meanwhile asks for one more; the branch kept 60 s, git never waited on past 4 s; review counts and «Сдано сегодня» at most 1 000 rows, said capped; the goal walk reads `spawned` links only; the claims history ordered and bounded per chunk; the lifecycle row says what each reading runs (`3c74ce13`, `980b71b3`); tests `HomeWork.test.tsx`, `test/agent-branches.test.mjs`, `test/agent-goals.test.mjs`, `test/home-strip.test.mjs`, `test/work-read-views.test.mjs`; the journal read's index is CO-463"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V2-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the history rule tied to the class the page renders; «Задачи не взял»; «Цель» only for a goal; lanes «Все», «Брошено», «Не найдены»; the counts open the agent counted; every status named; «Повторить» after a failed reading; a heartbeat's wait in words; a failed goals read said (`13b00fd9`); Copylot ru `fdc9fdff-7ea7-4d3e-8b9b-17a29e942d74`, en `85064453-4b4b-462a-ac43-402e60e8cc8c`; tests `AgentPage.test.tsx`, `AgentsScreen.test.tsx`, `HomeInWork.test.tsx`, `HomeWork.test.tsx`, `Rail.test.tsx`, `sessionTasks.test.ts`, `test/home-strip.test.mjs`"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V2-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one status function with the same inputs on the left column, «В работе» and the agent page; «Ждёт» only for an observed wait, a silent console «Простаивает», a console killed by a signal Fabric did not send «Ошибка» (`f1799a2a`, `apps/desktop/src/shared/sessionStatus.ts#sessionStatus`); tests `sessionStatus.test.ts`, `railAgents.test.ts`, `HomeInWork.test.tsx`"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V2-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Открыть консоль в B» names the home folder for a project with no repository and opens on a second press; a project of another recorded business is refused; a started console whose tab failed is said as started, noted, offered as «Открыть сессию» and never started twice (`505e1d31`, `apps/desktop/src/renderer/src/launch/CrossProjectConsole.tsx#CrossProjectConsole`); Copylot ru `35ae78e8-1c7e-49ec-941f-532a9f853f5a`, en `5aef1621-22fe-4f82-a705-17a901264412`; test `CrossProjectConsole.test.tsx`"
+      ]
+    }
+  ]
+}
