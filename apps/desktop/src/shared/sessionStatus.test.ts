@@ -27,6 +27,12 @@ describe('sessionStatus', () => {
     expect(sessionStatus({ stale: false, phase: 'waiting', ...fresh })).toBe('waiting')
     expect(sessionStatus({ stale: false, asking: true })).toBe('waiting')
   })
+  it('UX-12 (0.3.15 review, iteration 2): an agent judged not at work is idle on every screen, a wait still says so', () => {
+    expect(sessionStatus({ stale: false, atWork: false })).toBe('idle')
+    expect(sessionStatus({ stale: false, atWork: true })).toBe('working')
+    expect(sessionStatus({ stale: false })).toBe('working')
+    expect(sessionStatus({ stale: false, atWork: false, asking: true })).toBe('waiting')
+  })
   it('DA-5: a Fabric console silent for a minute is idle, never «waiting»', () => {
     expect(sessionStatus({ stale: false, terminal: { state: 'idle', exitCode: null } })).toBe('idle')
   })

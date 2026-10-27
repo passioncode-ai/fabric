@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "acdf7ac3ab1645057ced0cd2d0cd4715747a8a24",
+  "report": "docs/evidence/reviews/0.3.15/iteration-2/2026-10-27-plan.md",
+  "reportSha256": "4237f896b60344aa340251850172a271090bad81b0b2b7f0eb04c42138ff4c5f",
+  "reviewerRun": "release-0315-i2-plan-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-5",
+      "source": "V2-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the «Release» section above; P-30 links this ledger and names the release commit's bump"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V2-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Pulse's counts are CO-474; README lists D10 (kept, v2 R-1, R-2) and F3 (closed); P-29 names CO-469 to CO-479; V1-33 corrected by V2-13; v2 §6 carries the renumbering note"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V2-22",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-478 (prowlagent's cancel door), CO-479 (DEC-0142 and DEC-0143), CO-480 (FAA-153 question 2), each answered on its thread"
+      ]
+    }
+  ]
+}

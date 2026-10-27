@@ -58,7 +58,9 @@ test('a read that fails leaves the reading as it was, never a guessed task', asy
   const before = view([agent('new')])
   for (const t of ['journal', 'work_claims', 'agent_stages']) {
     const v = await withIdentity(before, fakeStore(tables, t), held)
-    assert.equal(v, before, `${t} failing changes nothing`)
+    // ER-7 (the 0.3.15 review, iteration 2): the agents stay as they were, and the view says the join was not read.
+    assert.deepEqual(v, { ...before, identityUnread: true }, `${t} failing changes nothing but the flag`)
+    assert.equal(v.live, before.live)
   }
 })
 
@@ -89,4 +91,14 @@ test('withWork: a turns read that fails judges by the other signals, never all a
   const store = { select: () => { const chain = { eq: () => chain, gte: () => chain, order: () => chain, limit: () => Promise.resolve({ data: null, error: { message: 'away' } }) }; return chain } }
   const v = await withWork(view([agent('a')]), store, [], Date.parse('2026-10-27T10:00:00Z'))
   assert.equal(v.live[0].atWork, false)
+})
+
+test('ER-10 (0.3.15 review, iteration 2): a full turns read, or a full enrolment read, is said as partial on the view', async () => {
+  const turns = Array.from({ length: 500 }, (_, i) => ({ occurred_at: '2026-10-27T09:59:00Z', payload: { session_id: `other-${i}` } }))
+  const store = { select: () => { const chain = { eq: () => chain, gte: () => chain, order: () => chain, limit: () => Promise.resolve({ data: turns, error: null }) }; return chain } }
+  const v = await withWork(view([agent('a')]), store, [], Date.parse('2026-10-27T10:00:00Z'))
+  assert.equal(v.atWork.turnsUnread, true)
+  const many = { ...tables, journal: Array.from({ length: 1000 }, (_, i) => ({ type: 'session.enrolled@1', payload: { session_id: i ? `old-${i}` : 'new', runtime_session_id: 'rt-1' } })) }
+  const w = await withIdentity(view([agent('new')]), fakeStore(many), held, Date.parse('2026-10-27T10:00:00Z'))
+  assert.equal(w.identityUnread, true)
 })

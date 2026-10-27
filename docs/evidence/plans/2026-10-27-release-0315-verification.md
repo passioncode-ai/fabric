@@ -22,6 +22,16 @@ their reports are committed under `docs/evidence/reviews/0.3.15/iteration-N/` as
 0.3.15 is the bundle alone (schema 98 unchanged). The Mac runs Fabric 0.3.14 on Colima, under the broker target
 `fabric.desktop`. The rollout holds the broker target first (`lifecycle.py hold --target-id fabric.desktop`, released
 after the swap), as [the runbook](../../launch/release-mac.md) says. The quit is the person's.
+## Release
+
+The candidates keep version 0.3.14 (`apps/desktop/package.json`, `CHANGELOG.md`'s heading «0.3.15 (unreleased)») and
+`docs/launch/release-gate.json` stays 0.3.14's, because `release-gate.test` requires the package version to match the
+gate file. Iteration 3's candidate, once it closes with no blocking finding open, becomes the verified commit. The
+release commit then raises `package.json` to 0.3.15, gives `CHANGELOG.md` its dated heading and writes
+`release-gate.json` in one change: version 0.3.15, this ledger, the verified commit, the release metadata and the
+receipts of iterations 1 to 3. `bash scripts/ci.sh fast` and the release gate run on that commit; the tag `v0.3.15` is
+pushed after they read green and `release.yml` is watched to its published assets. The rollout above follows.
+
 ## Iteration 1
 
 Candidate `d1b0379dcdf0cdf566b3e457a17431f80e7582c7`. Five reviewers, one per level, read-only in a detached checkout; their reports are in
@@ -66,3 +76,35 @@ Candidate `d1b0379dcdf0cdf566b3e457a17431f80e7582c7`. Five reviewers, one per le
 | V1-35 | PL-4 | non-blocking | conflict rules only in the README; no light console shot | fixed: the rules apply recorded decisions (v2, the operator's theme setting, ADR-0100) as the README says; `shots/after-console-light.png` added |
 
 Exit for iteration 1: every finding has a disposition. Blocking findings open: none.
+
+## Iteration 2
+
+Candidate `acdf7ac3ab1645057ced0cd2d0cd4715747a8a24`. Five reviewers, one per level, read-only in a detached checkout; their reports are in
+[`docs/evidence/reviews/0.3.15/iteration-2/`](../reviews/0.3.15/iteration-2/). 22 findings, 2 blocking (UX-11, UX-12).
+
+| Finding | Level | Severity | What | Disposition |
+|---|---|---|---|---|
+| V2-1 | UX-11 | blocking | the hero's words column starved between 1101 and 1180 px | fixed: below 1260 px the hero is two columns with the chart under the words (`launch/launch.css`, the 1260 px rule); shot `after-home-light-1150.png` |
+| V2-2 | UX-12 | blocking | Агенты and the agent page said «работает» for an agent only connected | fixed: `shared/sessionStatus.ts#sessionStatus` takes `atWork` and says idle when it is false; `launch/agentRoster.ts` lists it under «Простаивают»; tests `sessionStatus.test.ts` «UX-12 (0.3.15 review, iteration 2)» and `AgentsScreen.test.tsx` «lists an agent judged connected but not at work under Простаивают», watched failing |
+| V2-3 | UX-13 | non-blocking | the cross-project panel printed slugs | fixed: `launch/CrossProjectConsole.tsx` names projects by `projectDisplayName` (the agent's instruction keeps the slug); test «UX-13 (0.3.15 review, iteration 2)», watched failing |
+| V2-4 | UX-14 | non-blocking | narrow-window order | fixed (a): below 1000 px «Сейчас» comes first, then the session card and questions, then the tasks (`launch/launch.css`; shot `after-agent-light-900.png`); ruled (b): the DOM order is CO-476, the release of 2026-11-05 |
+| V2-5 | UX-15 | non-blocking | the shots did not show the mockup's main row | fixed: the harness fixture carries a goal, a task title, a project line and a waiting request; the shots are retaken and the README says so |
+| V2-6 | UX-16 | non-blocking | a dash or «?» in place of an unreadable time («(dash) назад», «взял ?») | fixed: `duration.ts#knownTime` and `#untimed`; `AgentPage.tsx#atWords` answers null; each caller leaves the clause out; tests in `duration.test.ts`, `AgentPage.test.tsx`, `HomeInWork.test.tsx` and `HomeBoardWaiting.test.tsx` «UX-16 (0.3.15 review, iteration 2)», watched failing on the agent page and «В работе»; the `heldFor` comment corrected |
+| V2-7 | ER-7 | non-blocking | a failed identity read was shown as the truth | fixed: `main/agentIdentity.ts#withIdentity` sets `identityUnread`; the strip's «работают» says «прочитано не всё» (`HomeWork.tsx#HomeStats`); tests `agent-identity.test.mjs` «a read that fails leaves the reading as it was» and `HomeWork.test.tsx` «says «agents working» is partial», watched failing |
+| V2-8 | ER-8 | non-blocking | attribution across ids | fixed (1): an earlier id's stage report from another project is skipped (`shared/agentIdentity.ts#joinByRuntime`, test «ER-8 (0.3.15 review, iteration 2)», watched failing); not a defect (2): an open claim is the earlier session's by the board's record until the sweep releases it once lapsed, the comment on `CARRY_CLAIM_MS` says so; ruled (3): CO-475 |
+| V2-9 | ER-9 | non-blocking | the capped-marks cut used the union's oldest row | fixed: `shared/workRhythm.ts#composeRhythm` takes `marksCutAt`, the newest of the capped reads' oldest rows (`main/workRhythm.ts`); test «ER-9: one capped read cuts the days before its oldest row», watched failing |
+| V2-10 | ER-10 | non-blocking | caps logged but not said; unindexed lookup; unthrottled `comms.waiting` | fixed: a full turns read sets `turnsUnread`, a full enrolment chunk `identityUnread`, both said on the strip (test «ER-10 (0.3.15 review, iteration 2)»); ruled: the index and the throttle are CO-477 |
+| V2-11 | ER-11 | non-blocking | failure paths without tests | fixed: tests «ER-11: a reading that fails rejects every caller sharing it», the identity catch (ER-7's test) and the turns cap (ER-10's); `main/index.ts#executorsCached` drops only its own failed entry; not a defect: a runner that did not answer stays «не отвечает» for the 10 minutes detection keeps |
+| V2-12 | DO-6 | non-blocking | the rhythm row listed four mark families | fixed: `AGENTS.md` lists the nine, naming `shared/workRhythm.ts#DECISION_TYPES` |
+| V2-13 | DO-7 | non-blocking | V1-33's grep and V1-34's waves table overstated | fixed: this row corrects them: `apps/desktop/src` keeps «0.3.15» only in comments citing this release's review and in tests, no promise of the release of 2026-11-05; the README's waves table names the main file groups and says so |
+| V2-14 | DO-8 | non-blocking | no scenario amendment for the home and the agent page | fixed: SCN-158 and SCN-166 carry dated amendments of 2026-10-27 with their code and tests; `node scripts/sync-product-ux.mjs` and `build-product-report.mjs` rerun |
+| V2-15 | DO-9 | non-blocking | stale statements | fixed: P-28 released with its tag and ledger, the Now line no longer lists it as next; the map's candidate entry says the version went back; CO-427 names the organization slice; P-30 «in review» |
+| V2-16 | DA-11 | non-blocking | turns read for 15 minutes, task work counted for 60 | fixed: `main/agentWork.ts#withWork` reads turns over `TASK_WORK_MS`; `AGENTS.md` says 60 minutes |
+| V2-17 | DA-12 | non-blocking | the 2 h released-claim carry is mostly dead | not a defect: nothing false is shown; the comment on `CARRY_CLAIM_MS` and the CHANGELOG now say the open claim is what comes along |
+| V2-18 | DA-13 | non-blocking | a quiet agent with no task is in no count | not a defect: it stays in the left column and on Агенты; the CHANGELOG says so |
+| V2-19 | DA-14 | non-blocking | `operator` is not a journal actor kind | fixed: decisions are the person's alone (`shared/workRhythm.ts#isPersonDecision`, `main/workRhythm.ts`); test «results and decisions come from three reads» checks `eq actor->>kind person` |
+| V2-20 | PL-5 | non-blocking | the plan to release was not recorded | fixed: the «Release» section above; P-30 links this ledger and names the release commit's bump |
+| V2-21 | PL-6 | non-blocking | carry-over and wording gaps | fixed: Pulse's counts are CO-474; README lists D10 (kept, v2 R-1, R-2) and F3 (closed); P-29 names CO-469 to CO-479; V1-33 corrected by V2-13; v2 §6 carries the renumbering note |
+| V2-22 | PL-7 | non-blocking | three board asks unfiled | ruled: CO-478 (prowlagent's cancel door), CO-479 (DEC-0142 and DEC-0143), CO-480 (FAA-153 question 2), each answered on its thread |
+
+Exit for iteration 2: every finding has a disposition. Blocking findings open: none.

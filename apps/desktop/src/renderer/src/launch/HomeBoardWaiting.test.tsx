@@ -83,6 +83,15 @@ describe('home: what waits on the board', () => {
     expect(screen.queryByText(/more$/)).toBeNull()
   })
 
+  it('UX-16 (0.3.15 review, iteration 2): a request whose time does not parse says who has not taken it, without a dash', async () => {
+    stubWaiting(async () => ({ ok: true, requests: 1, oldestRequestAt: null, list: [{ requestId: 'r1', threadId: 't1', from: null, to: 'dash', capability: 'x', subject: 'One', at: 'not a time' }], listComplete: true }))
+    show('en')
+    await waitFor(() => expect(screen.getByText('No project → dash: “One”')).toBeTruthy())
+    const who = document.querySelector('.lh-req-who')?.textContent ?? ''
+    expect(who).toBe(en['launch.home.boardWaiting.untaken'].replace('{to}', 'dash').replace(' · {age}', ''))
+    expect(document.body.textContent).not.toMatch(/\u2014|NaN/)
+  })
+
   it('one request reads as one, and an unknown age is left out rather than shown as "?" (UX-10)', async () => {
     stubWaiting(async () => ({ ok: true, requests: 1 }))
     show('en')

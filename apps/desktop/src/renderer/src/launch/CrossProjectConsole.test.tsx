@@ -54,6 +54,19 @@ describe('«Нужна правка в другом проекте»', () => {
     expect(await screen.findByRole('status')).toBeTruthy()
   })
 
+  it('UX-13 (0.3.15 review, iteration 2): names each project as the rail does, its display name, never its slug', async () => {
+    const api = stub()
+    api.projects.list = vi.fn(async () => [here, project('pr', 'research-agent', { displayName: 'Research Agent', repo_path: '/work/ra' })])
+    show()
+    fireEvent.click(screen.getByText(en['xp.title']))
+    const select = await screen.findByLabelText(en['xp.project'])
+    expect([...(select as HTMLSelectElement).options].map((o) => o.textContent)).toEqual([en['xp.pick'], 'Research Agent'])
+    fireEvent.change(select, { target: { value: 'pr' } })
+    fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Add the search' } })
+    expect(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Research Agent') })).toBeTruthy()
+    expect(document.body.textContent).not.toContain('research-agent')
+  })
+
   it('waits for a project and a sentence before it offers to open, and offers no hand-off through Fabric', async () => {
     stub()
     show()

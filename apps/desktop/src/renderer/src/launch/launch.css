@@ -787,7 +787,9 @@ button.lg-node{ cursor: pointer; }
 .estate-home .lh-hero .lh-greeting{margin:0 0 4px;font-size:14px;line-height:1.5;color:var(--app-ink)}
 .estate-home .lh-persona{font-size:12px}
 .estate-home .lh-hero .lh-rhythm{min-width:0;max-width:none;border:0;border-left:1px solid var(--app-line);padding:0 0 0 var(--space-5)}
-@media(max-width:1100px){.estate-home .lh-hero{grid-template-columns:auto minmax(0,1fr)}.estate-home .lh-hero .lh-rhythm{grid-column:1/-1;border-left:0;padding-left:0}}
+/* The chart goes under the words before the words column can starve: at 1101 px it had none, at 1200 px 82 px (the
+   0.3.15 review, iteration 2, UX-11). Below 1260 px the hero is two columns whatever the page's grid. */
+@media(max-width:1260px){.estate-home .lh-hero{grid-template-columns:auto minmax(0,1fr)}.estate-home .lh-hero .lh-rhythm{grid-column:1/-1;border-left:0;padding-left:0}}
 .estate-home .lh-rhythm-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-3);font-size:12px;font-weight:600}
 .estate-home .lh-rhythm-title{display:inline;font-size:inherit;font-weight:inherit}
 .estate-home .lh-rhythm-days{font-weight:400;color:var(--app-muted)}
@@ -1031,7 +1033,9 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 .as-questions h4{margin:0;font-size:11.5px;font-weight:600;color:var(--app-muted)}
 .as-questions>.lp-meta{margin:6px 0 0;font-size:12.5px}
 .as-questions-list{margin:6px 0 0;padding-left:1.1em;font-size:13px;display:grid;gap:4px}
-@media(max-width:1000px){.as-cols{grid-template-columns:1fr}.as-side{position:static;order:-1}}
+/* One column under 1000 px: «Сейчас» first, then the session card and the agent's questions, then its tasks (the 0.3.15
+   review, iteration 2, UX-14a: the session facts no longer push what the agent is doing below the fold). */
+@media(max-width:1000px){.as-cols{grid-template-columns:1fr}.as-cols>.as-main{display:contents}.as-cols>.as-main>*{order:2;min-width:0}.as-cols>.as-main>.as-now{order:0}.as-side{position:static;order:1}}
 @media(max-width:700px){.as-head{flex-wrap:wrap}.as-head .lh-agents-actions{margin-left:0}.ap-brief>div{grid-template-columns:1fr;gap:0}.ap-task-body{padding-left:14px}}
 /* «Нужна правка в другом проекте»: no panel box, a rule above it (the mockup's `.xproj`). */
 .xp{display:grid;gap:var(--space-2);border-top:1px solid var(--app-line);padding-top:var(--space-3);margin-top:var(--space-2);text-align:left}

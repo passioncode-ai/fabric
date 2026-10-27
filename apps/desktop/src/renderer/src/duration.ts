@@ -17,6 +17,17 @@ export function since(iso: string, t?: Translate): string {
   return t ? t(`duration.${unit}` as 'duration.s', { n }) : `${n}${unit}`
 }
 
+/** Whether a time can be said at all. A clause whose time does not parse is left out by its caller, never said with a
+ *  dash or «?» in its place (the 0.3.15 review, iteration 2, UX-16). */
+export function knownTime(iso: string | null | undefined): iso is string {
+  return !!iso && Number.isFinite(new Date(iso).getTime())
+}
+
+/** A sentence whose time could not be said, with the empty slot closed up («сдал {time}» becomes «сдал»). */
+export function untimed(s: string): string {
+  return s.replace(/\s+([,.;:])/g, '$1').replace(/\s+/g, ' ').trim()
+}
+
 /** How long until, in the same units as `since`. */
 export function until(iso: string, t?: Translate): string {
   const s = Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000))
@@ -31,7 +42,8 @@ function unitOf(s: number): [number, 's' | 'm' | 'h' | 'd'] {
 
 /**
  * How long something has been held, to the minute under two days («1 ч 44 мин», «38 мин»), as the approved mockup says a
- * claim's age (the mockup parity, home gap D9); from two days on, whole days, as `since` says them. Unknown: «—».
+ * claim's age (the mockup parity, home gap D9); from two days on, whole days, as `since` says them. A time that does not
+ * parse answers null and the caller leaves the clause out.
  */
 export function heldFor(iso: string, t?: Translate, now = Date.now()): string | null {
   const at = new Date(iso).getTime()

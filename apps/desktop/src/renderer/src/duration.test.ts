@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { heldFor, since, until } from './duration'
+import { heldFor, knownTime, since, untimed, until } from './duration'
 
 afterEach(() => { vi.useRealTimers() })
 const at = (secondsAgo: number) => new Date(Date.parse('2026-09-29T12:00:00Z') - secondsAgo * 1000).toISOString()
@@ -36,5 +36,15 @@ describe('how long a task has been held (the mockup parity, home gap D9)', () =>
     expect(heldFor('not a date', undefined, NOW)).toBeNull()
     expect(heldFor(at(3 * 86_400), undefined, NOW)).toBe('3d')
     expect(heldFor('nope', undefined, NOW)).toBeNull()
+  })
+})
+
+describe('knownTime and untimed (the 0.3.15 review, iteration 2, UX-16)', () => {
+  it('tells a time that parses, and closes up a sentence whose time is left out', () => {
+    expect(knownTime('2026-10-27T10:00:00Z')).toBe(true)
+    expect(knownTime('nope')).toBe(false)
+    expect(knownTime(null)).toBe(false)
+    expect(untimed('сдал ')).toBe('сдал')
+    expect(untimed('закончилась , как именно, не записано')).toBe('закончилась, как именно, не записано')
   })
 })

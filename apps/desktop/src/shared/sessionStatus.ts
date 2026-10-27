@@ -40,6 +40,9 @@ export function sessionStatus(input: {
   asking?: boolean
   now?: number
   terminal?: StatusTerminal | null
+  /** The home's judgement (`agentWork.ts#workOf`): false is connected but not at work, read as idle on every screen
+   *  (the 0.3.15 review, iteration 2, UX-12); absent: not judged. */
+  atWork?: boolean
 }): SessionStatus {
   const term = input.terminal ?? null
   if (term?.state === 'ended') {
@@ -53,14 +56,14 @@ export function sessionStatus(input: {
   const phase = freshPhase(input)
   if (phase === 'blocked') return 'error'
   if (phase === 'waiting' || input.asking) return 'waiting'
-  if (input.stale || term?.state === 'idle') return 'idle'
+  if (input.stale || term?.state === 'idle' || input.atWork === false) return 'idle'
   return 'working'
 }
 
 /** The one call every screen makes for a live agent (ER-18): its observed staleness, its newest heartbeat, the console
  *  Fabric holds for it. `phase` overrides the heartbeat when a screen read a newer one from the agent's history. */
 export function agentStatus(
-  a: { stale: boolean; lastSignAt: string | null; startedAt: string; console: boolean; heartbeat?: { phase: string; at: string } | null },
+  a: { stale: boolean; lastSignAt: string | null; startedAt: string; console: boolean; heartbeat?: { phase: string; at: string } | null; atWork?: boolean },
   terminal: StatusTerminal | null | undefined,
   opts: { phase?: { phase: string; at: string } | null; now?: number } = {}
 ): SessionStatus {
@@ -71,7 +74,8 @@ export function agentStatus(
     phaseAt: beat?.at ?? null,
     heardAt: a.lastSignAt ?? a.startedAt,
     now: opts.now,
-    terminal: a.console ? (terminal ?? null) : null
+    terminal: a.console ? (terminal ?? null) : null,
+    atWork: a.atWork
   })
 }
 

@@ -44,6 +44,10 @@ describe('joinByRuntime', () => {
     const v = joinByRuntime(view([agent('new'), holder]), base)
     expect(v.live[0].task).toBeNull()
   })
+  it('ER-8 (0.3.15 review, iteration 2): an earlier id\'s stage report from another project stays that project\'s', () => {
+    const other = { ...base, stages: [{ ...stage('old2', 'Work in the other project', '2026-10-27T08:30:00Z'), project_id: 'p2' }, stage('old1', 'Older step', '2026-10-27T07:00:00Z')] }
+    expect(joinByRuntime(view([agent('new')]), other).live[0].doing?.text).toBe('Older step')
+  })
   it('ER-1: never carries a claim released on purpose or long ago, and gives one task to one agent', () => {
     const on = (how: string, at: string) => ({ ...base, claims: [{ work_id: 'tRun', project_id: 'p1', owner_session: 'old2', claimed_at: '2026-10-01T08:00:00Z', released_at: at, released_how: how }] })
     expect(joinByRuntime(view([agent('new')]), on('done', '2026-10-27T09:59:00Z')).live[0].task).toBeNull()

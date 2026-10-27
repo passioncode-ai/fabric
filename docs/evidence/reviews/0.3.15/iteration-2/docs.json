@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "acdf7ac3ab1645057ced0cd2d0cd4715747a8a24",
+  "report": "docs/evidence/reviews/0.3.15/iteration-2/2026-10-27-docs.md",
+  "reportSha256": "574aca08de5425323e340ae0ddabb6b0549db422635a28f0a68687002f72a2c4",
+  "reviewerRun": "release-0315-i2-docs-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-6",
+      "source": "V2-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `AGENTS.md` lists the nine, naming `shared/workRhythm.ts#DECISION_TYPES`"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V2-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: this row corrects them: `apps/desktop/src` keeps «0.3.15» only in comments citing this release's review and in tests, no promise of the release of 2026-11-05; the README's waves table names the main file groups and says so"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V2-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-158 and SCN-166 carry dated amendments of 2026-10-27 with their code and tests; `node scripts/sync-product-ux.mjs` and `build-product-report.mjs` rerun"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V2-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-28 released with its tag and ledger, the Now line no longer lists it as next; the map's candidate entry says the version went back; CO-427 names the organization slice; P-30 «in review»"
+      ]
+    }
+  ]
+}

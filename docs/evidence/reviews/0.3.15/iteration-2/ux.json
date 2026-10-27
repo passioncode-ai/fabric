@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "acdf7ac3ab1645057ced0cd2d0cd4715747a8a24",
+  "report": "docs/evidence/reviews/0.3.15/iteration-2/2026-10-27-ux.md",
+  "reportSha256": "6bc792ac8796f30f4d1e3eb4eff10f75b4a0843d07c301497fed782d5acc0d72",
+  "reviewerRun": "release-0315-i2-ux-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-11",
+      "source": "V2-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: below 1260 px the hero is two columns with the chart under the words (`launch/launch.css`, the 1260 px rule); shot `after-home-light-1150.png`"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "source": "V2-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/sessionStatus.ts#sessionStatus` takes `atWork` and says idle when it is false; `launch/agentRoster.ts` lists it under «Простаивают»; tests `sessionStatus.test.ts` «UX-12 (0.3.15 review, iteration 2)» and `AgentsScreen.test.tsx` «lists an agent judged connected but not at work under Простаивают», watched failing"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "source": "V2-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `launch/CrossProjectConsole.tsx` names projects by `projectDisplayName` (the agent's instruction keeps the slug); test «UX-13 (0.3.15 review, iteration 2)», watched failing"
+      ]
+    },
+    {
+      "id": "UX-14",
+      "source": "V2-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed (a): below 1000 px «Сейчас» comes first, then the session card and questions, then the tasks (`launch/launch.css`; shot `after-agent-light-900.png`); ruled (b): the DOM order is CO-476, the release of 2026-11-05"
+      ]
+    },
+    {
+      "id": "UX-15",
+      "source": "V2-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the harness fixture carries a goal, a task title, a project line and a waiting request; the shots are retaken and the README says so"
+      ]
+    },
+    {
+      "id": "UX-16",
+      "source": "V2-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `duration.ts#knownTime` and `#untimed`; `AgentPage.tsx#atWords` answers null; each caller leaves the clause out; tests in `duration.test.ts`, `AgentPage.test.tsx`, `HomeInWork.test.tsx` and `HomeBoardWaiting.test.tsx` «UX-16 (0.3.15 review, iteration 2)», watched failing on the agent page and «В работе»; the `heldFor` comment corrected"
+      ]
+    }
+  ]
+}

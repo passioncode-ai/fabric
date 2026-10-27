@@ -127,6 +127,21 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     await waitFor(() => expect(screen.getByText(en['agents.noHistory'])).toBeTruthy())
   })
 
+  it('UX-16 (0.3.15 review, iteration 2): a time that does not parse leaves its clause out, never a dash or «?»', async () => {
+    const bad = 'not a time'
+    const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [
+      { taskId: 't1', projectId: 'p1', projectName: 'Fabric', summary: 'Keep the computer awake', brief: { what: null, why: null, expected: null },
+        status: 'review', claimedAt: bad, releasedAt: bad, releasedHow: 'done', claims: 1, via: 'claim' }
+    ], capped: false }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history: vi.fn(async () => []) } } }))
+    const agent: LiveAgent = { ...agentA, lastSignAt: bad, startedAt: bad, doing: { ...agentA.doing!, at: bad } }
+    const { container } = show(<AgentPage agent={agent} mark={0} onOpenProject={vi.fn()} onOpenTask={vi.fn()} />)
+    await waitFor(() => expect(container.textContent).toContain(en['agentPage.ended.doneReview'].replace(' {time}', '')))
+    expect(container.textContent).toContain(en['duration.unknown'])
+    expect(container.textContent).not.toContain('\u2014')
+    expect(container.textContent).not.toMatch(/ \?|\? |NaN/)
+  })
+
   it('«Сейчас» names the task with its brief, its newest report with its step, how long it is held and its milestones', async () => {
     const t = (iso: string) => iso
     const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [

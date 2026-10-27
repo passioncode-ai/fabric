@@ -56,11 +56,11 @@ export function handedInTask(e: RhythmEvent): string | null {
 
 export const isHandedIn = (e: RhythmEvent): boolean => handedInTask(e) !== null
 
-/** The person's own decision: a decision type, written with the person (or the operator acting as one) as the actor. */
+/** The person's own decision: a decision type, written with the person as the actor (`packages/journal`'s `ActorKind`:
+ *  person, agent, system; no other kind is counted, the 0.3.15 review, iteration 2, DA-14). */
 export function isPersonDecision(e: RhythmEvent): boolean {
   if (!DECISION_TYPES.includes(e.type)) return false
-  const kind = e.actor?.kind
-  return kind === 'person' || kind === 'operator'
+  return e.actor?.kind === 'person'
 }
 
 /** A local calendar day on this machine's clock, `YYYY-MM-DD`. */
@@ -127,6 +127,10 @@ export function composeRhythm(input: {
   /** Result and decision events of the window; null: they could not be read. */
   marks: readonly RhythmEvent[] | null
   marksCapped?: boolean
+  /** When the marks come from several reads, the latest instant one of them was cut at: every day before it may have
+   *  lost marks (the 0.3.15 review, iteration 2, ER-9; the oldest mark across reads hides a capped one). Absent: the
+   *  oldest mark read. */
+  marksCutAt?: number | null
   unread?: readonly string[]
   timeZone?: string
 }): WorkRhythm {
@@ -145,7 +149,8 @@ export function composeRhythm(input: {
     else if (isPersonDecision(e)) decisions.set(day, (decisions.get(day) ?? 0) + 1)
   }
   // A capped read holds the newest events: a day that ends before the oldest one read may have lost some.
-  const marksKnown = (d: RhythmWindowDay): boolean => input.marks !== null && (!input.marksCapped || d.from >= oldestMark)
+  const cut = typeof input.marksCutAt === 'number' ? input.marksCutAt : oldestMark
+  const marksKnown = (d: RhythmWindowDay): boolean => input.marks !== null && (!input.marksCapped || d.from >= cut)
   const days: WorkRhythmDay[] = window.map((d) => {
     const known = marksKnown(d)
     const events = input.counts.get(d.date)

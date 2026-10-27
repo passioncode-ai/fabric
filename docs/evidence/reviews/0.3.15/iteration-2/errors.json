@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "acdf7ac3ab1645057ced0cd2d0cd4715747a8a24",
+  "report": "docs/evidence/reviews/0.3.15/iteration-2/2026-10-27-errors.md",
+  "reportSha256": "45553a8712b55f7d4f55f7274134d5fde176fba39dae1c5417092c52e248c1c7",
+  "reviewerRun": "release-0315-i2-errors-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-7",
+      "source": "V2-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/agentIdentity.ts#withIdentity` sets `identityUnread`; the strip's «работают» says «прочитано не всё» (`HomeWork.tsx#HomeStats`); tests `agent-identity.test.mjs` «a read that fails leaves the reading as it was» and `HomeWork.test.tsx` «says «agents working» is partial», watched failing"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V2-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed (1): an earlier id's stage report from another project is skipped (`shared/agentIdentity.ts#joinByRuntime`, test «ER-8 (0.3.15 review, iteration 2)», watched failing); not a defect (2): an open claim is the earlier session's by the board's record until the sweep releases it once lapsed, the comment on `CARRY_CLAIM_MS` says so; ruled (3): CO-475"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V2-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/workRhythm.ts#composeRhythm` takes `marksCutAt`, the newest of the capped reads' oldest rows (`main/workRhythm.ts`); test «ER-9: one capped read cuts the days before its oldest row», watched failing"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "source": "V2-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a full turns read sets `turnsUnread`, a full enrolment chunk `identityUnread`, both said on the strip (test «ER-10 (0.3.15 review, iteration 2)»); ruled: the index and the throttle are CO-477"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "source": "V2-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: tests «ER-11: a reading that fails rejects every caller sharing it», the identity catch (ER-7's test) and the turns cap (ER-10's); `main/index.ts#executorsCached` drops only its own failed entry; not a defect: a runner that did not answer stays «не отвечает» for the 10 minutes detection keeps"
+      ]
+    }
+  ]
+}

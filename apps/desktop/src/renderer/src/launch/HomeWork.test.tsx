@@ -289,6 +289,18 @@ describe('the home\'s statistics strip (0.3.14, the simple Fabric §2a)', () => 
     fireEvent.click(cell('working without a task')); expect(p.onUnclaimed).toHaveBeenCalled()
   })
 
+  it('says «agents working» is partial when the turns or the earlier sessions were not read (0.3.15 review, iteration 2, ER-7)', () => {
+    strip({ identityUnread: true })
+    expect(cell(/^agents? working$/).textContent).toContain(en['launch.home.stats.workingPartial'])
+    expect(cell(/^agents? working$/).getAttribute('title')).toBe(en['launch.home.stats.workingPartialWhy'])
+    cleanup()
+    strip({ atWork: { agents: 1, connectedIdle: 0, noTask: 0, noTaskSessions: [], turnsUnread: true } })
+    expect(cell(/^agents? working$/).textContent).toContain(en['launch.home.stats.workingPartial'])
+    cleanup()
+    strip({})
+    expect(cell(/^agents? working$/).textContent).not.toContain(en['launch.home.stats.workingPartial'])
+  })
+
   it('says an unread number as unread with its reason, never as zero', () => {
     strip({ handedIn: { unread: 'database away' }, unclaimed: null, abandoned: undefined })
     expect(cell('handed in today').querySelector('b')?.textContent).toBe('—')

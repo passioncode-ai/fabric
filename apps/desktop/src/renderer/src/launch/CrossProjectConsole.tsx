@@ -24,6 +24,11 @@ import { useLocale, useT } from '../i18n'
 import { useOpenConsole } from '../consoles'
 import { FailureNote } from '../OperatorError'
 import { launchPlace } from '../../../shared/launchPlace.ts'
+import { projectDisplayName } from '../../../shared/projectDisplayName.ts'
+
+/** A project as the person reads it: its display name, as the rail and the page say it; the slug stays only in what the
+ *  agent is told (the 0.3.15 review, iteration 2, UX-13). */
+const shown = (p: ProjectRow): string => projectDisplayName(p)
 
 /** A project's recorded business, compared as the board compares it (case and surrounding spaces aside); null: none. */
 const businessOf = (p: { business?: string | null }): string | null => (p.business?.trim() ? p.business.trim().toLowerCase() : null)
@@ -65,7 +70,7 @@ export function CrossProjectConsole({ project, taskId, taskTitle, inline = false
     Promise.resolve().then(() => window.fabric.projects.list()).then(
       (rows) => {
         const collator = nameCollator(locale)
-        setProjects({ at: 'ready', rows: rows.filter((p) => p.id !== project.id && p.status !== 'archived').sort((a, b) => collator.compare(a.name, b.name)) })
+        setProjects({ at: 'ready', rows: rows.filter((p) => p.id !== project.id && p.status !== 'archived').sort((a, b) => collator.compare(shown(a), shown(b))) })
       },
       (e: unknown) => setProjects({ at: 'failed', says: e instanceof Error ? e.message : String(e) })
     )
@@ -113,8 +118,8 @@ export function CrossProjectConsole({ project, taskId, taskTitle, inline = false
     } catch (e) {
       tabFailed = e instanceof Error ? e.message : String(e)
     }
-    const noted = await noteIt(chosen.name)
-    remember(key, { sessionId: session.sessionId, name: chosen.name, tabFailed, noted, home: place?.place === 'home',
+    const noted = await noteIt(shown(chosen))
+    remember(key, { sessionId: session.sessionId, name: shown(chosen), tabFailed, noted, home: place?.place === 'home',
       at: new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })
     setBusy(false)
   }
@@ -133,7 +138,7 @@ export function CrossProjectConsole({ project, taskId, taskTitle, inline = false
     <div className="xp-form" ref={form} onBlur={leave}>
       {folded && chosen && sentence ? (
         <p className="xp-line">
-          {t('xp.line', { project: chosen.name, what: sentence })}{' '}
+          {t('xp.line', { project: shown(chosen), what: sentence })}{' '}
           <button type="button" className="lp-link" onClick={() => setFolded(false)}>{t('xp.change')}</button>
         </p>
       ) : (
@@ -142,7 +147,7 @@ export function CrossProjectConsole({ project, taskId, taskTitle, inline = false
             {t('xp.project')}
             <select value={target} onChange={(e) => setTarget(e.target.value)}>
               <option value="">{t('xp.pick')}</option>
-              {projects.rows.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {projects.rows.map((p) => <option key={p.id} value={p.id}>{shown(p)}</option>)}
             </select>
           </label>
           <label className="lp-field">
@@ -152,15 +157,15 @@ export function CrossProjectConsole({ project, taskId, taskTitle, inline = false
           </label>
         </>
       )}
-      {wall && <p className="lp-meta" role="alert">{t('xp.wall', { project: wall.name })}</p>}
-      {!wall && place?.place === 'home' && <p className="lp-meta" role={homeAck === key ? 'alert' : undefined}>{t('xp.home', { project: chosen!.name })}</p>}
+      {wall && <p className="lp-meta" role="alert">{t('xp.wall', { project: shown(wall) })}</p>}
+      {!wall && place?.place === 'home' && <p className="lp-meta" role={homeAck === key ? 'alert' : undefined}>{t('xp.home', { project: shown(chosen!) })}</p>}
       <div className="xp-row">
         <button type="button" className="lp-button" disabled={!chosen || !sentence || busy || !!wall || alreadyStarted} aria-busy={busy} onClick={() => void open()}>
-          {chosen ? t(place?.place === 'home' && homeAck === key ? 'xp.openHome' : 'xp.open', { project: chosen.name }) : t('xp.openNoProject')}
+          {chosen ? t(place?.place === 'home' && homeAck === key ? 'xp.openHome' : 'xp.open', { project: shown(chosen) }) : t('xp.openNoProject')}
         </button>
         {/* The second way (docs/ux/2026-10-26-simple-fabric.md §5) belongs to the release of 2026-11-05: shown, and said when it comes. */}
         <button type="button" className="lp-button primary" disabled aria-describedby={`xp-later-${taskId}`}>
-          {chosen ? t('xp.assign', { project: chosen.name }) : t('xp.assignNoProject')}
+          {chosen ? t('xp.assign', { project: shown(chosen) }) : t('xp.assignNoProject')}
         </button>
         <small className="lp-meta xp-later" id={`xp-later-${taskId}`}>{t('xp.assignLater')}</small>
       </div>

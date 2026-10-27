@@ -4,7 +4,8 @@
  * session ids (held in memory by the agent surface), the enrolments that name the same runtime sessions
  * (`session.enrolled@1`, newest first, at most `ENROLMENT_ROWS` per chunk), then the earlier ids' stage reports,
  * heartbeats and claims, and the claimed tasks. Each read is bounded and its error read: a read that fails leaves the
- * reading as it was and is logged; the agents then show only what their current id holds, never a wrong task.
+ * reading as it was, is logged and is said on the view (`identityUnread`); the agents then show only what their current id
+ * holds, never a wrong task.
  */
 import type { HomeView, StageRow, TaskBrief } from '../shared/homeLive.ts'
 import { joinByRuntime, type IdentityClaim, type IdentityHeartbeat } from '../shared/agentIdentity.ts'
@@ -36,6 +37,9 @@ export async function withIdentity(view: HomeView, store: IdentityStore, held: r
   try {
     const enrolled = need(await store.selectIn('journal', 'payload', 'payload->>runtime_session_id', runtimes, 100, undefined,
       [['type', 'session.enrolled@1']], { column: 'seq', ascending: false, limit: ENROLMENT_ROWS }), 'the agents\' enrolments')
+    // A full chunk may have cut an agent's older ids: said on the view (the 0.3.15 review, iteration 2, ER-10).
+    const enrolCapped = enrolled.length >= ENROLMENT_ROWS
+    if (enrolCapped) ops.record({ op: 'work.identity-capped', outcome: 'ok', level: 'info', detail: { rows: enrolled.length }, ctx: { correlationId: ops.correlate() } })
     const siblings = new Map<string, string[]>()
     for (const e of enrolled) {
       const p = (e.payload ?? {}) as { runtime_session_id?: unknown; session_id?: unknown }
@@ -44,7 +48,7 @@ export async function withIdentity(view: HomeView, store: IdentityStore, held: r
     }
     const earlier = [...new Set([...siblings.values()].flat())].filter((id) => !liveIds.has(id))
     const all = [...new Set([...earlier, ...runtimeOf.keys()])]
-    if (!earlier.length) return view
+    if (!earlier.length) return enrolCapped ? { ...view, identityUnread: true } : view
     const [stages, beats, claims] = await Promise.all([
       store.selectIn('agent_stages', 'session_id,project_id,task_id,stage,step,of_steps,note,reported_at', 'session_id', earlier),
       store.selectIn('session_heartbeats', 'session_id,phase,last_received_at,waiting_kind', 'session_id', all),
@@ -52,7 +56,7 @@ export async function withIdentity(view: HomeView, store: IdentityStore, held: r
     ])
     const claimRows = need(claims, 'the agents\' earlier claims') as unknown as IdentityClaim[]
     const tasks = need(await store.selectIn('project_tasks', 'id,project_id,title,brief_what,status', 'id', [...new Set(claimRows.map((c) => c.work_id))]), 'the agents\' earlier tasks')
-    return joinByRuntime(view, {
+    const joined = joinByRuntime(view, {
       runtimeOf,
       siblings,
       stages: need(stages, 'the agents\' earlier stage reports') as unknown as StageRow[],
@@ -61,9 +65,10 @@ export async function withIdentity(view: HomeView, store: IdentityStore, held: r
       tasks: tasks as unknown as TaskBrief[],
       now
     })
+    return enrolCapped ? { ...joined, identityUnread: true } : joined
   } catch (e) {
     ops.failed('work.identity-unread', e, { note: 'each agent shows only what its current session id holds' })
-    return view
+    return { ...view, identityUnread: true }
   }
 }
 // #endregion agent-identity-read

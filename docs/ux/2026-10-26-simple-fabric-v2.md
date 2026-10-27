@@ -507,6 +507,9 @@ the contract allows an optional branch and the adapter sends it (v1 open choice 
 
 ## 6. Phasing
 
+*Renumbered 2026-10-27 (MD-16): «0.3.15» in this section is the release of 2026-11-05 (P-29), numbered at its tag;
+Fabric 0.3.15 is now the screens brought to the approved mockup (P-30).*
+
 Settled 2026-10-26: 0.3.14 built items 1 to 5 and item 6's lanes; «Вопросов к вам нет» moved to 0.3.15. The next release is 0.3.15 (P-29, 2026-11-05) as recommended below, and the organization slice is named by its date, 2026-11-21 (P-27), not «0.3.16». In the table, ER-7's checked move goes with that slice's schema step (CO-461), and CO-456 needs no schema step and stays in 0.3.15; a terminal agent's branch (CO-459) is 0.3.15's only if the contract decides the turn's `branch` by then.
 
 **0.3.14 (2026-10-29), already on `release/0.3.14`:** the left column with the toggle and branches (`7f014ec0`), the six

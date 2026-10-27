@@ -18,9 +18,13 @@ import { taskSummary, titleAndWhat, type HomeView, type LiveAgent, type StageRow
 export interface IdentityHeartbeat { session_id: string; phase: string; last_received_at: string; waiting_kind: string | null }
 export interface IdentityClaim { work_id: string; project_id: string; owner_session: string; claimed_at: string; released_at: string | null; released_how?: string | null }
 
-/** An earlier claim is carried to the live session only when it ended by itself (the session ended, or it lapsed) and
- *  recently: a claim the agent released on purpose (done, handed over, let go) or the operator released is never
- *  brought back, and one that lapsed hours ago is not the agent's task any more (the 0.3.15 review, iteration 1, ER-1). */
+/** An earlier claim is carried to the live session while it is open, or when it ended by itself (the session ended, or
+ *  it lapsed) and recently: a claim the agent released on purpose (done, handed over, let go) or the operator released is
+ *  never brought back, and one that lapsed hours ago is not the agent's task any more (the 0.3.15 review, iteration 1,
+ *  ER-1). A released claim returns its task to the backlog (`main/workRelease.ts#returnClaimedTaskToBacklog`) and only a
+ *  running task is carried, so in practice the open claim is what comes along; the ended branch covers the minutes
+ *  before that move lands (iteration 2, DA-12). An open claim is the earlier session's by the board's own record until
+ *  the sweep releases it once lapsed (iteration 2, ER-8). */
 export const CARRY_CLAIM_MS = 2 * 60 * 60_000
 const CARRIED_HOW = new Set(['session-ended', 'lapsed'])
 
@@ -61,7 +65,13 @@ export function joinByRuntime(view: HomeView, input: IdentityInput): HomeView {
     let next: LiveAgent = ids.size > 1 ? { ...a, aliases: [...ids].filter((id) => id !== a.sessionId) } : a
     // The newest stage report across its ids.
     let stage: StageRow | undefined
-    for (const id of ids) { const s = stagesBy.get(id); if (s && (!stage || t(stage.reported_at) < t(s.reported_at))) stage = s }
+    for (const id of ids) {
+      const s = stagesBy.get(id)
+      // An earlier id's report from another project is that project's stage, as its claims are (the 0.3.15 review,
+      // iteration 2, ER-8).
+      if (s && id !== a.sessionId && a.projectId && s.project_id && s.project_id !== a.projectId) continue
+      if (s && (!stage || t(stage.reported_at) < t(s.reported_at))) stage = s
+    }
     const said = stage?.stage.replace(/\s+/g, ' ').trim()
     if (stage && said && t(stage.reported_at) > t(a.doing?.at)) {
       next = { ...next, doing: { text: said, note: stage.note?.replace(/\s+/g, ' ').trim() || null, step: stage.step, ofSteps: stage.of_steps, at: stage.reported_at } }

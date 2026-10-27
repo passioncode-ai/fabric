@@ -13,7 +13,7 @@
 import { useEffect, useState } from 'react'
 import type { CommsWaitingReply } from '../../../shared/commsRead'
 import { useLocale, useT } from '../i18n'
-import { since } from '../duration'
+import { knownTime, since, untimed } from '../duration'
 import { FailureNote } from '../OperatorError'
 
 const REFRESH_MS = 60_000
@@ -78,7 +78,7 @@ export function HomeBoardWaiting({ mark, onComms, nameOf }: {
             return (
               <li key={r.requestId}>
                 <p className="lh-req-line">{onComms ? <button type="button" className="lp-link" onClick={onComms}>{line}</button> : line}</p>
-                <p className="lh-req-who">{t('launch.home.boardWaiting.untaken', { to: name(r.to), age: since(r.at, t) })}</p>
+                <p className="lh-req-who">{knownTime(r.at) ? t('launch.home.boardWaiting.untaken', { to: name(r.to), age: since(r.at, t) }) : untimed(t('launch.home.boardWaiting.untaken', { to: name(r.to), age: '' }).replace(/\s·\s*$/, ''))}</p>
               </li>
             )
           })}

@@ -65,7 +65,7 @@ export function createRhythmReader(store: RhythmStore, opts: { days?: number; ti
   /** The results and decisions, filtered by the database (the 0.3.15 review, iteration 1, ER-3): a move into review, a
    *  close as done, a decision by the person. Unfiltered, every move and every agent's decision filled the 1 000 rows in
    *  days, not 28. Three reads of at most the gateway's rows each, newest first; any full one is said `capped`. */
-  async function marks(from: number): Promise<{ rows: RhythmEvent[]; capped: boolean }> {
+  async function marks(from: number): Promise<{ rows: RhythmEvent[]; capped: boolean; cutAt: number | null }> {
     const since = new Date(from).toISOString()
     const read = async (what: string, q: Query<RhythmEvent[]>): Promise<RhythmEvent[]> => {
       const { data, error } = await q.gte('occurred_at', since).order('seq', { ascending: false }).limit(GATEWAY_ROWS)
@@ -76,9 +76,11 @@ export function createRhythmReader(store: RhythmStore, opts: { days?: number; ti
     const parts = await Promise.all([
       read('tasks handed in', (store.select('journal', cols) as Query<RhythmEvent[]>).eq('type', 'task.moved@1').eq('payload->>to', 'review')),
       read('tasks closed', (store.select('journal', cols) as Query<RhythmEvent[]>).eq('type', 'task.closed@1').eq('payload->>outcome', 'done')),
-      read('decisions', (store.select('journal', cols) as Query<RhythmEvent[]>).in('type', [...DECISION_TYPES]).in('actor->>kind', ['person', 'operator']))
+      read('decisions', (store.select('journal', cols) as Query<RhythmEvent[]>).in('type', [...DECISION_TYPES]).eq('actor->>kind', 'person'))
     ])
-    return { rows: parts.flat(), capped: parts.some((p) => p.length >= GATEWAY_ROWS) }
+    // A full read was cut at its oldest row; the day before the latest such cut is not whole for every family (ER-9).
+    const cuts = parts.filter((p) => p.length >= GATEWAY_ROWS).map((p) => Math.min(...p.map((r) => Date.parse(r.occurred_at)).filter(Number.isFinite)))
+    return { rows: parts.flat(), capped: cuts.length > 0, cutAt: cuts.length ? Math.max(...cuts) : null }
   }
 
   /** One reading at a time for every window, and a reading younger than `MIN_INTERVAL_MS` is answered again (the 0.3.15
@@ -136,7 +138,7 @@ export function createRhythmReader(store: RhythmStore, opts: { days?: number; ti
     // Kept days outside the window are dropped, so the cache holds at most the window.
     const inWindow = new Set(window.map((d) => `${tz}|${d.date}`))
     for (const k of [...settled.keys()]) if (!inWindow.has(k)) settled.delete(k)
-    return composeRhythm({ now, days, counts, marks: marksRead ? marksRead.rows : null, marksCapped: marksRead?.capped ?? false, unread, timeZone: tz })
+    return composeRhythm({ now, days, counts, marks: marksRead ? marksRead.rows : null, marksCapped: marksRead?.capped ?? false, marksCutAt: marksRead?.cutAt ?? null, unread, timeZone: tz })
   }
 }
 // #endregion work-rhythm-read

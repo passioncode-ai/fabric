@@ -19,7 +19,7 @@ import type { ProjectRow } from '../../../shared/types'
 import { groupInWork, type InWorkCard } from '../../../shared/homeProjects.ts'
 import { agentStatus, type SessionStatus, type StatusTerminal } from '../../../shared/sessionStatus.ts'
 import { pluralForm, useLocale, useT } from '../i18n'
-import { heldFor, since } from '../duration'
+import { heldFor, knownTime, since, untimed } from '../duration'
 import { runnerLabel } from '../runnerLabel'
 import { FailureNote } from '../OperatorError'
 import { CappedNote, KeptNote, type HomeReading } from './HomeWork'
@@ -146,7 +146,9 @@ function Card({ card, waiting, onProject, onAgent, onTask, plural, terminals }: 
 
 function AgentRow({ agent: a, onAgent, onTask, status }: { agent: LiveAgent; onAgent(sessionId: string): void; onTask(projectId: string, taskId: string): void; status: SessionStatus }): React.JSX.Element {
   const t = useT()
-  const heard = since(a.lastSignAt ?? a.startedAt, t)
+  // A time that does not parse is left out, never said as a dash (the 0.3.15 review, iteration 2, UX-16).
+  const heardAt = a.lastSignAt ?? a.startedAt
+  const heard = knownTime(heardAt) ? since(heardAt, t) : null
   return (
     <li className={`lh-arow ${a.stale ? 'is-stale' : ''}`}>
       <button type="button" className="lh-arow-who" onClick={() => onAgent(a.sessionId)} title={t('launch.home.inWork.openAgent')}>
@@ -195,8 +197,8 @@ function AgentRow({ agent: a, onAgent, onTask, status }: { agent: LiveAgent; onA
             type (11.5px, muted), on its own line above the time; a quiet agent's time is the mockup's idle pill. */}
         <span className={`lh-status s-${status}`}>{t(`status.${status}` as 'status.idle')}</span>
         {a.stale
-          ? <span className="lh-pill idle">{t('launch.home.inWork.quietFor', { time: heard })}</span>
-          : <span className="lh-arow-heard">{t('launch.home.inWork.heard', { time: heard })}</span>}
+          ? <span className="lh-pill idle">{heard ? t('launch.home.inWork.quietFor', { time: heard }) : untimed(t('launch.home.inWork.quietFor', { time: '' }))}</span>
+          : heard && <span className="lh-arow-heard">{t('launch.home.inWork.heard', { time: heard })}</span>}
         {/* Home gap D9: how long it has held its task, under the time, as the mockup says it («держит 1 ч 44 мин»). */}
         {a.task?.heldSince && heldFor(a.task.heldSince, t) && <span className="lh-arow-held">{t('launch.home.inWork.held', { time: heldFor(a.task.heldSince, t) as string })}</span>}
       </p>

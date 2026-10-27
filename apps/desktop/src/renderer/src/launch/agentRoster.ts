@@ -125,7 +125,7 @@ export function composeRoster(input: RosterInput): Roster {
     const held = input.sessions?.find((s) => s.sessionId === l.sessionId) ?? null
     seenSessions.add(l.sessionId)
     if (held?.optionId === PLAIN_SHELL || l.agent === PLAIN_SHELL) continue
-    const state: AgentState = held?.state === 'ended' ? 'ended' : held?.state === 'idle' ? 'waiting' : l.stale ? 'quiet' : 'working'
+    const state: AgentState = held?.state === 'ended' ? 'ended' : held?.state === 'idle' ? 'waiting' : l.stale || l.atWork === false ? 'quiet' : 'working'
     const joinedId = !l.console && l.agent && joined.has(l.agent) ? l.agent : null
     rows.push(blank({
       key: `session:${l.sessionId}`, state, runner: l.agent, projectId: l.projectId, projectName: nameOf(l.projectId) ?? l.projectName,

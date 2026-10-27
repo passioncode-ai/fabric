@@ -38,7 +38,7 @@ import { lastPhase, taskTrail, type TaskTrail } from '../../../shared/agentTrail
 import { agentStatus, type SessionStatus, type StatusTerminal } from '../../../shared/sessionStatus.ts'
 import { describeEvent, pluralForm, useLocale, useT, type Translate } from '../i18n'
 import { runnerLabel } from '../runnerLabel'
-import { heldFor, since } from '../duration'
+import { heldFor, knownTime, since, untimed } from '../duration'
 import { FailureNote } from '../OperatorError'
 import { Progress } from './HomeInWork'
 import { dayLabel } from './HistoryScreen'
@@ -72,9 +72,10 @@ function daysAgo(iso: string): number {
 }
 
 /** A moment said day-relative, as the mockup does: «в 17:58» today, «вчера в 17:58», else «26 окт. в 17:58». */
-export function atWords(iso: string, t: Translate, locale: string): string {
+export function atWords(iso: string, t: Translate, locale: string): string | null {
   const d = new Date(iso)
-  if (!Number.isFinite(d.getTime())) return '?'
+  // A time that does not parse says nothing, never «?» (the 0.3.15 review, iteration 2, UX-16).
+  if (!Number.isFinite(d.getTime())) return null
   const time = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
   const days = daysAgo(iso)
   if (days === 0) return t('agentScreen.at.today', { time })
@@ -159,14 +160,18 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const tasksMine = tasksRead.of === agent.sessionId ? tasksRead : ({ at: 'reading', of: agent.sessionId } as const)
   const tasksView = tasksMine.at === 'ready' ? tasksMine.view : tasksMine.at === 'failed' ? tasksMine.kept : null
   const nameOf = new Map((tasksView?.tasks ?? []).map((x) => [x.taskId, x.summary]))
-  const at = (iso: string): string => atWords(iso, t, locale)
+  const at = (iso: string): string | null => atWords(iso, t, locale)
+  /** A sentence with its moment, or the same sentence with the moment left out when it does not parse (UX-16). */
+  const withAt = (key: Parameters<typeof t>[0], iso: string): string => { const time = at(iso); return time ? t(key, { time }) : untimed(t(key, { time: '' })) }
+  /** «… назад», or nothing when the time does not parse (UX-16). */
+  const ago = (key: Parameters<typeof t>[0], iso: string | null | undefined): string | null => (knownTime(iso) ? t(key, { time: since(iso, t) }) : null)
   // The 0.3.14 review, iteration 1, UX-8: each ending in words of its own (an ending the agent did not cause is not
   // said as its own), and an ending code this build does not know is said as not recorded, never shown raw. Handed in
   // with the task now in review is said as the mockup says it: «сдал на проверку».
   const endedOf = (x: SessionTask): string =>
     x.releasedAt
-      ? t(x.releasedHow === 'done' && x.status === 'review' ? 'agentPage.ended.doneReview'
-        : x.releasedHow && RELEASED_HOW.has(x.releasedHow) ? (`agentPage.ended.${x.releasedHow}` as 'agentPage.ended.done') : 'agentPage.ended.unknown', { time: at(x.releasedAt) })
+      ? withAt(x.releasedHow === 'done' && x.status === 'review' ? 'agentPage.ended.doneReview'
+        : x.releasedHow && RELEASED_HOW.has(x.releasedHow) ? (`agentPage.ended.${x.releasedHow}` as 'agentPage.ended.done') : 'agentPage.ended.unknown', x.releasedAt)
       : x.via === 'claim' ? t('agentPage.taskHeld') : ''
   /** A task's status as the row's pill: its lane in words; a cancelled task in «done» is said as cancelled. */
   const pillOf = (x: SessionTask): { lane: SessionLane; words: string } => {
@@ -226,7 +231,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   // The status from what Fabric observes and the agent's own word (R-19, `sessionStatus.ts`), said in a word.
   // ER-18: the same function and inputs as the left column and «В работе»; a phase counts only while fresh.
   const status = agentStatus(agent, terminal ?? null, { phase: phase ? { phase: phase.phase, at: phase.at } : null })
-  const stateChip = state ?? (status === 'working' ? t('agentScreen.state.working') : status === 'idle' ? t('agentScreen.state.quiet', { time: since(heard, t) }) : t(`status.${status}` as 'status.idle'))
+  const stateChip = state ?? (status === 'working' ? t('agentScreen.state.working') : status === 'idle' ? (ago('agentScreen.state.quiet', heard) ?? t('status.idle')) : t(`status.${status}` as 'status.idle'))
   const name = title ?? runnerLabel(agent.agent, t)
   const placeOf = where ?? (agent.console ? 'fabric' : 'terminal')
   // How long it has held the task, to the minute as the mockup says it (`heldFor`, the same as «В работе»).
@@ -234,7 +239,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   const held = heldTime ? t('agentScreen.held', { time: heldTime }) : null
   const startedWords = daysAgo(agent.startedAt) === 0
     ? t('agentScreen.startedToday', { time: time(agent.startedAt) })
-    : at(agent.startedAt)
+    : (at(agent.startedAt) ?? '')
   // «Агент»: the runner and its version (the caller's, else the session read's own, `start.executors` in main), and, for
   // a console Fabric holds, the permission mode it was launched as.
   const version = runnerVersion ?? tasksView?.runner?.version ?? null
@@ -323,7 +328,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
                 </>
               ) : <span className="lp-meta">{t('launch.home.agents.silent')}</span>}
               {(agent.doing || held) && (
-                <span className="as-now-tail">{[agent.doing ? t('launch.home.inWork.heard', { time: since(agent.doing.at, t) }) : null, held].filter(Boolean).join(' · ')}</span>
+                <span className="as-now-tail">{[agent.doing ? ago('launch.home.inWork.heard', agent.doing.at) : null, held].filter(Boolean).join(' · ')}</span>
               )}
             </p>
             {agent.task && events && (
@@ -373,7 +378,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
                             <b className="ap-task-title">{(x.title ?? '').trim() || x.summary || t('launch.home.work.untitled')}</b>
                             <small className="ap-task-meta">{[
                               x.projectId !== agent.projectId ? x.projectName : null,
-                              t(x.via === 'launch' ? 'agentPage.taskLaunched' : 'agentPage.taskTaken', { time: at(x.claimedAt) }),
+                              withAt(x.via === 'launch' ? 'agentPage.taskLaunched' : 'agentPage.taskTaken', x.claimedAt),
                               endedOf(x),
                               x.claims > 1 ? t(`agentPage.taskTimes.${pluralForm(locale, x.claims)}` as 'agentPage.taskTimes.many', { count: x.claims }) : null
                             ].filter(Boolean).join(' · ')}</small>
@@ -440,11 +445,11 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
             <h4 id="agent-session-title">{t('agentScreen.session')}</h4>
             <dl className="as-facts">
               <div><dt>{t('agentScreen.stateLabel')}</dt><dd><StatusPill status={status} words={stateChip} /></dd></div>
-              <div><dt>{t('agentScreen.lastSign')}</dt><dd>{t('launch.home.inWork.heard', { time: since(heard, t) })}</dd></div>
+              <div><dt>{t('agentScreen.lastSign')}</dt><dd>{ago('launch.home.inWork.heard', heard) ?? t('duration.unknown')}</dd></div>
               {phase && (
                 <div><dt>{t('agentScreen.claim')}</dt><dd>
                   {t(`agentScreen.phase.${phase.phase}` as 'agentScreen.phase.working')}{phase.waitingOn && WAITING_ON.has(phase.waitingOn) ? ` (${t(`agentScreen.waitingOn.${phase.waitingOn}` as 'agentScreen.waitingOn.question')})` : ''}{' '}
-                  <small className="lp-meta as-claim-at">{t('agentScreen.claimAt', { time: since(phase.at, t) })}</small>
+                  {knownTime(phase.at) && <small className="lp-meta as-claim-at">{t('agentScreen.claimAt', { time: since(phase.at, t) })}</small>}
                 </dd></div>
               )}
               <div><dt>{t('agentScreen.where')}</dt><dd>{t(`agentScreen.where.${placeOf}` as 'agentScreen.where.fabric')}</dd></div>

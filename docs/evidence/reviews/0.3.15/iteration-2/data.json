@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.15",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "acdf7ac3ab1645057ced0cd2d0cd4715747a8a24",
+  "report": "docs/evidence/reviews/0.3.15/iteration-2/2026-10-27-data.md",
+  "reportSha256": "488a2f8697cca4a388d6f2a64bbc6be1812e5d38d6fb6bb0e4770ec172c20828",
+  "reviewerRun": "release-0315-i2-data-20261027",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-11",
+      "source": "V2-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/agentWork.ts#withWork` reads turns over `TASK_WORK_MS`; `AGENTS.md` says 60 minutes"
+      ]
+    },
+    {
+      "id": "DA-12",
+      "source": "V2-17",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: nothing false is shown; the comment on `CARRY_CLAIM_MS` and the CHANGELOG now say the open claim is what comes along"
+      ]
+    },
+    {
+      "id": "DA-13",
+      "source": "V2-18",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: it stays in the left column and on Агенты; the CHANGELOG says so"
+      ]
+    },
+    {
+      "id": "DA-14",
+      "source": "V2-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: decisions are the person's alone (`shared/workRhythm.ts#isPersonDecision`, `main/workRhythm.ts`); test «results and decisions come from three reads» checks `eq actor->>kind person`"
+      ]
+    }
+  ]
+}

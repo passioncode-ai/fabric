@@ -171,6 +171,9 @@ export interface HomeView {
   /** Agents at work apart from those merely connected (home gaps D3, D7; `agentWork.ts`). `noTask` is «работают без
    *  задачи»: at work, holding no task. Absent: not judged. */
   atWork?: { agents: number; connectedIdle: number; noTask: number; noTaskSessions: string[]; turnsUnread?: boolean }
+  /** The earlier session ids of re-enrolled agents could not be read (`main/agentIdentity.ts`): each agent shows only what
+   *  its current id holds, said on the home's «работают» number (the 0.3.15 review, iteration 2, ER-7). */
+  identityUnread?: boolean
   /** Every project's display name (`projectDisplayName.ts`), by project id. Absent: not resolved. */
   displayNames?: Record<string, import('./projectDisplayName.ts').ResolvedDisplayName>
 }

@@ -5223,7 +5223,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (!executorsKept || Date.now() - executorsKept.at > 10 * 60_000) {
       const rows = detectExecutors(AGENTS.filter((a) => a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string, connected: a.connectsToSurface })), { env: sessionEnvironment(process.env) })
       executorsKept = { at: Date.now(), rows }
-      rows.catch(() => { executorsKept = null })
+      // A failed detection is read again next time; only this entry is dropped, never a newer one (the 0.3.15 review,
+      // iteration 2, ER-11). A runner that did not answer stays «не отвечает» for the 10 minutes, as detection says it.
+      rows.catch(() => { if (executorsKept?.rows === rows) executorsKept = null })
     }
     return executorsKept.rows
   }

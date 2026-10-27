@@ -111,8 +111,11 @@ export function HomeStats({ reading, waiting, toReview, onAgents, onBoard, onWai
   const reviewN = toReview !== undefined ? toReview : known ? `${known.review.length}${known.reviewCapped ? '+' : ''}` : null
   const abandoned = known?.abandoned ? known.abandoned.length : null
   const unclaimed = known ? (known.atWork ? known.atWork.noTask : typeof known.unclaimed === 'number' ? known.unclaimed : null) : null
-  const cell = (n: number | string | null, label: string, onClick: () => void, tone = '', why?: string, sub?: string | null) => (
-    <button type="button" className={`lh-stat ${tone}`} onClick={onClick} title={n === null ? why : undefined}>
+  // ER-7 (the 0.3.15 review, iteration 2): the turns or an agent's earlier session ids not read leave «работают» counted
+  // from the rest of the signals; the number says it is partial instead of passing for the whole count.
+  const workingPartial = known && (known.identityUnread || known.atWork?.turnsUnread) ? t('launch.home.stats.workingPartial') : null
+  const cell = (n: number | string | null, label: string, onClick: () => void, tone = '', why?: string, sub?: string | null, subWhy?: string) => (
+    <button type="button" className={`lh-stat ${tone}`} onClick={onClick} title={n === null ? why : subWhy}>
       <b>{n === null ? '—' : n}</b>
       <span>{label}</span>
       {sub && <small className="lh-stat-sub">{sub}</small>}
@@ -121,7 +124,8 @@ export function HomeStats({ reading, waiting, toReview, onAgents, onBoard, onWai
   return (
     <div className="lh-stats lh-stats-six" role="group" aria-label={t('launch.home.stats.label')}>
       {/* UX-21: a label that agrees with its number («1 агент работает», «5 агентов работают»). */}
-      {cell(working, t(`launch.home.stats.working.${pluralForm(locale, working ?? 5)}` as 'launch.home.stats.working.many'), onAgents, working ? 'live' : '', unreadWhy)}
+      {cell(working, t(`launch.home.stats.working.${pluralForm(locale, working ?? 5)}` as 'launch.home.stats.working.many'), onAgents, working ? 'live' : '', unreadWhy,
+        workingPartial, workingPartial ? t('launch.home.stats.workingPartialWhy') : undefined)}
       {cell(handedN, t('launch.home.stats.handedIn'), onReview ?? onBoard, '', handedWhy)}
       {cell(waiting, t('launch.home.stats.waiting'), onWaiting ?? onBoard, waiting ? 'attention' : '', unreadWhy)}
       {cell(reviewN, t('launch.home.stats.review'), onReview ?? onBoard, '', unreadWhy,

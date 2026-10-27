@@ -153,6 +153,15 @@ describe('«В работе» grouped by project', () => {
     expect(rows[1].textContent).toContain(en['status.idle'])
   })
 
+  it('UX-16 (0.3.15 review, iteration 2): an agent whose last sign does not parse shows no «ago» clause, never a dash', () => {
+    show({ reading: { view: { ...view, live: view.live.map((a) => ({ ...a, lastSignAt: 'not a time', startedAt: 'not a time' })) }, problem: null } })
+    const card = screen.getByRole('article', { name: 'Fabric' })
+    expect(card.textContent).not.toMatch(/\u2014|NaN/)
+    const [working, quiet] = within(card).getAllByRole('listitem')
+    expect(working.textContent).not.toContain(en['launch.home.inWork.heard'].replace('{time}', '').trim())
+    expect(quiet.querySelector('.lh-pill.idle')?.textContent).toBe(en['launch.home.inWork.quietFor'].replace(' {time}', ''))
+  })
+
   it('names a task in work no agent holds on a line of its own', () => {
     const p = show()
     const card = screen.getByRole('article', { name: 'Fabric' })

@@ -93,6 +93,13 @@ describe('the roster (agentRoster.composeRoster)', () => {
     expect(waiting.working).toEqual([])
   })
 
+  // The 0.3.15 review, iteration 2, UX-12: an agent the home judged not at work is not «Работают сейчас» here either.
+  it('lists an agent judged connected but not at work under Простаивают, as Главная counts it', () => {
+    const r = composeRoster({ live: [{ ...working, atWork: false }], sessions: [session({})], projects, executors: [], catalog: null, hub: null })
+    expect(r.working).toEqual([])
+    expect(r.idle.map((x) => [x.key, x.state])).toEqual([['session:s1', 'quiet']])
+  })
+
   // 0.3.13 review, iteration 1, UX-3: a plain shell is a console, not an agent, and a minute of silence is only silence.
   it('leaves a plain shell out, and dates a quiet console by its last output, not by the agent\'s last sign', () => {
     const quietSince = new Date(Date.now() - 600_000).toISOString()

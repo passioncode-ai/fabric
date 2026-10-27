@@ -102,7 +102,8 @@ test('results and decisions come from three reads of the window filtered by the 
   const r = await createRhythmReader(store).read(now)
   assert.equal(calls.marks, 3, 'ER-3: a move into review, a close as done and the person\'s decisions, each filtered by the database')
   assert.ok(calls.markFilters.some((f) => f.some(([op, col, v]) => op === 'eq' && col === 'payload->>to' && v === 'review')))
-  assert.ok(calls.markFilters.some((f) => f.some(([op, col, v]) => op === 'in' && col === 'actor->>kind' && v.includes('person'))))
+  // DA-14 (iteration 2): the person alone, as `packages/journal`'s ActorKind names it.
+  assert.ok(calls.markFilters.some((f) => f.some(([op, col, v]) => op === 'eq' && col === 'actor->>kind' && v === 'person')))
   assert.deepEqual(r.today, { results: 1, decisions: 1, events: 5 })
 })
 
@@ -117,4 +118,31 @@ test('ER-2: readings within MIN_INTERVAL_MS are answered again, and concurrent c
   assert.equal(calls.counts.length, first, 'no new counts within the interval')
   await reader.read(now + MIN_INTERVAL_MS + 1)
   assert.ok(calls.counts.length > first, 'read again after the interval')
+})
+
+test('ER-9: one capped read cuts the days before its oldest row for every family, never shown as zero', async () => {
+  const now = new Date(2026, 9, 27, 15, 0).getTime()
+  const yesterday = new Date(2026, 9, 26, 10).toISOString()
+  const old = new Date(2026, 9, 10, 10).toISOString()
+  const moved = Array.from({ length: 1000 }, (_, i) => ({ type: 'task.moved@1', occurred_at: yesterday, actor: { kind: 'agent' }, payload: { task_id: `t${i}`, to: 'review' } }))
+  const marks = [...moved, { type: 'access.decided@1', occurred_at: old, actor: { kind: 'person' }, payload: {} }]
+  const { store } = fakeStore({ marks })
+  const r = await createRhythmReader(store).read(now)
+  assert.equal(r.marksCapped, true)
+  assert.deepEqual([r.today.results, r.today.decisions], [0, 0], 'today is after the cut: whole')
+  const before = r.days.filter((d) => !d.today)
+  assert.ok(before.every((d) => d.results === null && d.decisions === null), 'every day before the cut is unknown')
+})
+
+test('ER-11: a reading that fails rejects every caller sharing it, and the next call reads again', async () => {
+  let fail = true
+  const { store } = fakeStore()
+  const flaky = { select: (...a) => { if (fail) throw new Error('database away'); return store.select(...a) } }
+  const reader = createRhythmReader(flaky, { minIntervalMs: 0 })
+  const now = new Date(2026, 9, 27, 15, 0).getTime()
+  const r = await reader.read(now)
+  assert.ok(r.unread.length > 0, 'a failed read is said, not thrown as zeros')
+  fail = false
+  const again = await reader.read(now + 1)
+  assert.ok(again.days.every((d) => d.events === 5), 'read again after the failure')
 })
