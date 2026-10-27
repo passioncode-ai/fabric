@@ -338,4 +338,16 @@ describe('arriving for a session that ended (UX-16)', () => {
     expect(await screen.findByText(en['agentScreen.sessionGone'].replace('{id}', 'gone-ses'))).toBeTruthy()
     expect(screen.queryByText(en['agentScreen.pick'])).toBeNull()
   })
+
+  // The 0.3.14 review, iteration 3, UX-25: «закончилась» is said only from a reading of who works; a failed one says
+  // the reading failed, with a retry, even when installed agents fill the list.
+  it('UX-25: a failed reading of who works never says the session ended; it says the reading failed', async () => {
+    const api = stub({ home: async () => { throw new Error('stack refused') } })
+    screenFor({ session: 'gone-session-1234', sessions: [] })
+    expect(await screen.findByText(en['agentPage.unread'])).toBeTruthy()
+    expect(screen.queryByText(en['agentScreen.sessionGone'].replace('{id}', 'gone-ses'))).toBeNull()
+    const calls = api.work.home.mock.calls.length
+    fireEvent.click(screen.getAllByRole('button', { name: en['common.retry'] })[0])
+    await waitFor(() => expect(api.work.home.mock.calls.length).toBeGreaterThan(calls))
+  })
 })

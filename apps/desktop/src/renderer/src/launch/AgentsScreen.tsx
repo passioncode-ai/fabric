@@ -285,7 +285,9 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
       {chosen ? (
         <Centre row={chosen} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} goalsUnread={home.view?.goalsUnread ?? null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab}
           terminal={chosen.sessionId ? ((sessions ?? []).find((x) => x.sessionId === chosen.sessionId) ?? null) : null} />
-      ) : home.view === null && home.problem && rows.length === 0 ? (
+      ) : home.view === null && home.problem && (rows.length === 0 || (initialSession && !chosen)) ? (
+        // UX-25 (iteration 3): an arrival for a session while who works could not be read says the reading failed,
+        // never that the session ended.
         <div className="lp-meta ag-pick" role="status">
           <p>{t('agentPage.unread')}</p>
           {home.retry && <button type="button" className="lp-button" onClick={home.retry}>{t('common.retry')}</button>}
