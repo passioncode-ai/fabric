@@ -13,7 +13,8 @@ renumbered again, not «0.3.16» as §6, §8 and §9 below proposed. Where §4.2
 mechanism 0.3.14 ships is the one that section now states. Two rows of the proposal shipped narrower after the
 release review's iteration 2: §4.5's «waiting» is said only for a wait Fabric observed (a fresh heartbeat), and a
 Fabric console silent for a minute is «Простаивает» (DA-5, `f1799a2a`); §4.9's lanes gained «Все» first, «Брошено»
-and «Не найдены» (UX-14, UX-20, DA-4, `13b00fd9`).
+and «Не найдены» (UX-14, UX-20, DA-4, `13b00fd9`), and «Передано» holds the person's own release and a done release
+whose task went back to the queue (UX-24, DO-14, `4e828fba`).
 
 What follows was the proposal for the operator to accept or correct, kept as written apart from §4.2, §8's
 announcement and the settled note in §4.6 (the main session, DEC-0140, iteration 3's PL-11). Like v1 it changed no scenario: the scenarios it touches

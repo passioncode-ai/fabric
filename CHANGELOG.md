@@ -77,8 +77,9 @@ reminders in `fabric_work_list` and `fabric_heartbeat` with any adapter.
   one. «Цель» is the root of its current task when there is one to name: the task it was split from, a task the
   person set, or a goal you defined in Plan that the task was filed under; any other task that is its own root is shown once, as the current task, never as a goal. «Сейчас» is its
   current step with progress and the milestones it reported. Then its tasks: «Все», open by default and newest first,
-  then «В работе», «На проверке», «Передано» (handed over or let go), «Брошено» (its claim lapsed or its session
-  ended), «Готово» and, when a task's row was not found, «Не найдены»; each with its project, when it was taken and
+  then «В работе», «На проверке», «Передано» (released before the task was finished: handed over, let go, handed in
+  as done with the task back in the queue, or released by you, said «Снята вами»), «Брошено» (its claim lapsed or its
+  session ended), «Готово» and, when a task's row was not found, «Не найдены»; each with its project, when it was taken and
   how it ended, opening in place to its brief, how it ended in the agent's words, its milestones and «Открыть
   задачу». The session's history below, closed until you open it, names
   the task each row is about and opens it; going back from a task you opened there returns to the same agent. On the
