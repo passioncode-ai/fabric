@@ -138,7 +138,9 @@ describe('the left column', () => {
     // The status in a word beside its colour, never the colour alone (R-19).
     expect(rows[1].textContent).toContain(en['status.idle'])
     expect(rows[1].querySelector('.rail-dot')?.className).toContain('s-idle')
-    expect(rows[0].textContent).not.toContain(en['status.working'])
+    // UX-26: the word is written for every status, «Работает» included, beside the dot's spoken name.
+    expect(rows[0].textContent).toContain(` · ${en['status.working']}`)
+    expect(within(rows[0]).getByRole('img', { name: en['status.working'] })).toBeTruthy()
     fireEvent.click(rows[0])
     expect(props.onAgent).toHaveBeenCalledWith('s1')
   })

@@ -294,7 +294,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                   <li key={a.sessionId}>
                     <a href="#" className="rail-agent" title={name} {...current(agentSession === a.sessionId)}
                       onClick={(e) => go(e, () => props.onAgent(a.sessionId))}>
-                      {/* UX-17: the status has a name for every reader, «working» included; the word shows beside it when not working. */}
+                      {/* UX-17: the status has a name for every reader, «working» included; the word shows beside it for every status (UX-26). */}
                       <span className={`rail-dot s-${a.status ?? (a.state === 'working' ? 'working' : 'idle')}`} role="img"
                         aria-label={t(`status.${a.status ?? (a.state === 'working' ? 'working' : 'idle')}` as 'status.idle')} />
                       <span className="rail-agent-words">
@@ -303,7 +303,8 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                           {a.branch
                             ? <span className="rail-branch">{a.branch}</span>
                             : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
-                          {(a.status ?? (a.state === 'working' ? 'working' : 'idle')) !== 'working' && <span> · {t(`status.${a.status ?? 'idle'}` as 'status.idle')}</span>}
+                          {/* UX-26: the word is written for every status, «Работает» included, as CHANGELOG 0.3.14 says. */}
+                          <span> · {t(`status.${a.status ?? (a.state === 'working' ? 'working' : 'idle')}` as 'status.idle')}</span>
                         </span>
                       </span>
                     </a>
