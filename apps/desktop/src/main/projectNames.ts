@@ -5,7 +5,7 @@
  * service descriptors the agent registry already holds. Kept for `TTL_MS`, so the home's 15 s reading does not read the
  * repositories again each time; a read that fails throws (the caller keeps the stored names and says nothing new).
  */
-import { resolveDisplayName, type DescriptorName, type DisplayNames, type ResolvedDisplayName } from '../shared/projectDisplayName.ts'
+import { disambiguate, resolveDisplayName, type DescriptorName, type DisplayNames, type ResolvedDisplayName } from '../shared/projectDisplayName.ts'
 import type { HomeView } from '../shared/homeLive.ts'
 
 type Rows = { rows: Array<Record<string, unknown>>; failed: string | null }
@@ -40,7 +40,7 @@ export function displayNamesOf(
       remotes: mine.map((r) => (typeof r.remote_key === 'string' ? r.remote_key : null))
     }, descriptors)
   }
-  return out
+  return disambiguate(out, Object.fromEntries(projects.map((p) => [p.id, p.name])))
 }
 
 export function createDisplayNameReader(store: NamesStore, descriptors: () => readonly DescriptorName[], now: () => number = Date.now, onCapped?: (rows: number) => void) {

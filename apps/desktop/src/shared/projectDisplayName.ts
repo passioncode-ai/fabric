@@ -27,6 +27,8 @@ export interface ResolvedDisplayName {
   name: string
   from: 'project' | 'descriptor' | 'slug'
   derived: boolean
+  /** For a descriptor: matched by the project's own name, by one of its remotes, or by another of its folders (CO-481). */
+  via?: 'own' | 'repository' | 'folder'
 }
 
 export type DisplayNames = Readonly<Record<string, ResolvedDisplayName>>
@@ -70,8 +72,9 @@ const rank = (d: DescriptorName): number => (d.instance === 'default' ? 0 : d.in
 
 /**
  * A project's display name from the sources above. `folders` are the basenames of its repository paths, `remotes` its
- * repositories' remotes (`project_repos.remote_key`). A descriptor matched by its id is preferred over one matched by
- * its repository; among equals the `default` instance, then by key.
+ * repositories' remotes (`project_repos.remote_key`). The project's own descriptor (its id is the project's name) comes
+ * first, then one whose repository is a remote of the project, then one whose id is another of its folders, which may be
+ * a sibling repository's agent (CO-481, the 0.3.15 review's DA-18); among equals the `default` instance, then by key.
  */
 export function resolveDisplayName(
   project: { name: string; displayName?: string | null; folders?: readonly string[]; remotes?: ReadonlyArray<string | null> },
@@ -79,14 +82,47 @@ export function resolveDisplayName(
 ): ResolvedDisplayName {
   const own = (project.displayName ?? '').trim()
   if (own) return { name: own, from: 'project', derived: false }
-  const folders = new Set([project.name, ...(project.folders ?? [])].map((f) => f.trim().toLowerCase()).filter(Boolean))
+  const self = project.name.trim().toLowerCase()
+  const folders = new Set((project.folders ?? []).map((f) => f.trim().toLowerCase()).filter((f) => f && f !== self))
   const remotes = new Set((project.remotes ?? []).map(repoKey).filter((r): r is string => !!r))
   const named = descriptors.filter((d) => d.name.trim())
   const order = (a: DescriptorName, b: DescriptorName): number => rank(a) - rank(b) || `${a.id}.${a.instance ?? ''}`.localeCompare(`${b.id}.${b.instance ?? ''}`)
-  const byId = named.filter((d) => folders.has(d.id.toLowerCase())).sort(order)[0]
-  const byRepo = byId ? undefined : named.filter((d) => { const k = repoKey(d.repository); return !!k && remotes.has(k) }).sort(order)[0]
-  const hit = byId ?? byRepo
-  if (hit) return { name: hit.name.trim(), from: 'descriptor', derived: false }
+  const first = (pick: (d: DescriptorName) => boolean): DescriptorName | undefined => named.filter(pick).sort(order)[0]
+  const tiers: Array<[NonNullable<ResolvedDisplayName['via']>, (d: DescriptorName) => boolean]> = [
+    ['own', (d) => d.id.toLowerCase() === self],
+    ['repository', (d) => { const k = repoKey(d.repository); return !!k && remotes.has(k) }],
+    ['folder', (d) => folders.has(d.id.toLowerCase())]
+  ]
+  for (const [via, pick] of tiers) {
+    const hit = first(pick)
+    if (hit) return { name: hit.name.trim(), from: 'descriptor', derived: false, via }
+  }
   return { name: humaniseSlug(project.name), from: 'slug', derived: true }
+}
+/**
+ * Two projects that would print one name are told apart (CO-481): the one whose own descriptor it is keeps the name, and
+ * every other carries its slug after it, «Research Agent (research-agent-copy)». When none owns it, all of them do.
+ */
+export function disambiguate(
+  resolved: Readonly<Record<string, ResolvedDisplayName>>,
+  slugs: Readonly<Record<string, string>>
+): Record<string, ResolvedDisplayName> {
+  const groups = new Map<string, string[]>()
+  for (const [id, r] of Object.entries(resolved)) {
+    const k = r.name.trim().toLowerCase()
+    groups.set(k, [...(groups.get(k) ?? []), id])
+  }
+  const out: Record<string, ResolvedDisplayName> = { ...resolved }
+  for (const ids of groups.values()) {
+    if (ids.length < 2) continue
+    const owners = ids.filter((id) => resolved[id].from === 'project' || resolved[id].via === 'own')
+    const keeper = owners.length === 1 ? owners[0] : null
+    for (const id of ids) {
+      const slug = slugs[id]
+      if (id === keeper || !slug || slug.trim().toLowerCase() === resolved[id].name.trim().toLowerCase()) continue
+      out[id] = { ...resolved[id], name: `${resolved[id].name} (${slug})` }
+    }
+  }
+  return out
 }
 // #endregion project-display-name
