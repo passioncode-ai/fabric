@@ -34,6 +34,7 @@ import { declaredCoverage, restorability } from '../../shared/storageContract.ts
 import { cursorFor } from '../../shared/inbox.ts'
 import type { EntityRef } from '../../shared/entityRef'
 import { useOpenConsole } from './consoles'
+import { useMediaQuery } from './useMediaQuery'
 
 export function EstateHome({
   projects,
@@ -127,6 +128,8 @@ export function EstateHome({
   onComms?: () => void
 }): React.JSX.Element {
   const t = useT(), locale = useLocale()
+  // CO-476: the narrow layout (below 1100 px) puts the right column in its narrow place in the DOM.
+  const narrow = useMediaQuery('(max-width: 1100px)')
   const showConsole = useOpenConsole()
   const [now] = useState(() => new Date())
   const [moreOpen, setMoreOpen] = useState(false)
@@ -404,6 +407,16 @@ export function EstateHome({
     else onAgents()
   }
 
+  // 0.3.14, the simple Fabric §4: the right column holds only what needs the person: «Нужны вы» and the board's
+  // requests no agent has answered. The live feed moved to История («Что делали агенты» shows it). CO-476: below
+  // 1100 px it is rendered between the strip and «В работе», where the narrow layout shows it.
+  const side = (
+    <aside className="lh-side-column" aria-label={t('launch.home.side')}>
+      <HomeBoard onTotal={setOwnWaiting} nameOf={nameOfProject} feedMark={markOf(marks, NEEDS_YOU_FAMILIES)} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
+      {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
+      <HomeBoardWaiting mark={markOf(marks, ['comms'])} onComms={onComms} nameOf={nameOfProject} />
+    </aside>
+  )
   return (
     <div className="estate-home lp" data-launch-view="launch-home">
       {/* A question on Главная (ADR-0160 §5): the local database reachable from the network, with its fix. */}
@@ -568,6 +581,7 @@ export function EstateHome({
             toReview={toReview === undefined ? undefined : (toReview?.total ?? null)}
             onAgents={() => openFirst(working)} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} onReview={onReview}
             onAbandoned={onBoard} onUnclaimed={() => openFirst(noTaskSessions)} />
+          {narrow && side}
           {/* 0.3.14, the simple Fabric §2b: «В работе» by project, its agents with branch, task and last report. It replaces
               «Где остановились», the two lanes and «Агенты в работе»; finished work lives on the agent's and project's pages. */}
           <HomeInWork reading={home} projects={projects} terminals={sessions}
@@ -636,13 +650,7 @@ export function EstateHome({
       </Panel>
           </details>
         </div>
-        {/* 0.3.14, the simple Fabric §4: the right column holds only what needs the person: «Нужны вы» and the board's
-            requests no agent has answered. The live feed moved to История («Что делали агенты» shows it). */}
-        <aside className="lh-side-column" aria-label={t('launch.home.side')}>
-          <HomeBoard onTotal={setOwnWaiting} nameOf={nameOfProject} feedMark={markOf(marks, NEEDS_YOU_FAMILIES)} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
-          {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
-          <HomeBoardWaiting mark={markOf(marks, ['comms'])} onComms={onComms} nameOf={nameOfProject} />
-        </aside>
+        {!narrow && side}
       </div>
     </div>
   )

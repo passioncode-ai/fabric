@@ -259,3 +259,17 @@ describe('the favourites threshold, the limit, and what the operator is asked (U
   })
 })
 
+
+describe('CO-476: the home keeps its narrow reading order in the DOM', () => {
+  const media = (narrow: boolean) => vi.fn((query: string) => ({ matches: narrow && query === '(max-width: 1100px)', media: query, addEventListener: () => {}, removeEventListener: () => {} }))
+  for (const narrow of [false, true]) it(`«Нужны вы» ${narrow ? 'sits in the main column, after the strip' : 'is the side column beside the main one'} at ${narrow ? 'a narrow' : 'a wide'} window`, async () => {
+    Object.defineProperty(window, 'matchMedia', { configurable: true, writable: true, value: media(narrow) })
+    wrap(<EstateHome projects={[]} sessions={[]} feed={[]} marks={NO_MARKS} readThroughSeq={0} onRead={async () => {}} onOpen={() => {}} onNew={() => {}} />)
+    const side = await waitFor(() => { const s = document.querySelector('.lh-side-column'); expect(s).not.toBeNull(); return s as Element })
+    const main = document.querySelector('.lh-main-column') as Element
+    expect(main.contains(side)).toBe(narrow)
+    const hero = document.querySelector('.lh-hero') as Element
+    expect(!!(hero.compareDocumentPosition(side) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
+    Object.defineProperty(window, 'matchMedia', { configurable: true, writable: true, value: undefined })
+  })
+})

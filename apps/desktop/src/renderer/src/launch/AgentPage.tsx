@@ -44,6 +44,7 @@ import { Progress } from './HomeInWork'
 import { dayLabel } from './HistoryScreen'
 import { CrossProjectConsole, type CrossProject } from './CrossProjectConsole'
 import { NeedsYouCard } from './HomeParts'
+import { useMediaQuery } from '../useMediaQuery'
 import { boardEntries, type BoardEntry, type BoardQuestion } from '../../../shared/board.ts'
 import type { AgentQuestion } from '../../../shared/sessionTasks.ts'
 
@@ -127,6 +128,8 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
+  // CO-476: below 1000 px the session card follows «Сейчас» in the DOM, where the narrow layout shows it.
+  const narrow = useMediaQuery('(max-width: 1000px)')
   const [read, setRead] = useState<Read & { of: string }>({ at: 'reading', of: agent.sessionId })
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {
@@ -278,6 +281,44 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
       </>
     )
   }
+  const side = (
+    <aside className="as-side" aria-labelledby="agent-session-title">
+      <section className="as-session">
+        <h4 id="agent-session-title">{t('agentScreen.session')}</h4>
+        <dl className="as-facts">
+          <div><dt>{t('agentScreen.stateLabel')}</dt><dd><StatusPill status={status} words={stateChip} /></dd></div>
+          <div><dt>{t('agentScreen.lastSign')}</dt><dd>{ago('launch.home.inWork.heard', heard) ?? t('duration.unknown')}</dd></div>
+          {phase && (
+            <div><dt>{t('agentScreen.claim')}</dt><dd>
+              {t(`agentScreen.phase.${phase.phase}` as 'agentScreen.phase.working')}{phase.waitingOn && WAITING_ON.has(phase.waitingOn) ? ` (${t(`agentScreen.waitingOn.${phase.waitingOn}` as 'agentScreen.waitingOn.question')})` : ''}{' '}
+              {knownTime(phase.at) && <small className="lp-meta as-claim-at">{t('agentScreen.claimAt', { time: since(phase.at, t) })}</small>}
+            </dd></div>
+          )}
+          <div><dt>{t('agentScreen.where')}</dt><dd>{t(`agentScreen.where.${placeOf}` as 'agentScreen.where.fabric')}</dd></div>
+          <div><dt>{t('agentScreen.started')}</dt><dd>{startedWords}</dd></div>
+          {agentFact && <div><dt>{t('agentScreen.agentLabel')}</dt><dd>{agentFact}</dd></div>}
+        </dl>
+        {agent.console && onConsole ? (
+          <>
+            <button type="button" className="lp-button primary" onClick={() => onConsole(agent.sessionId)}>{t('agentScreen.openSession')}</button>
+            <p className="lp-meta">{t('agentScreen.openSessionNote')}</p>
+          </>
+        ) : <p className="lp-meta">{t(placeOf === 'unknown' ? 'agentScreen.sessionUnknown' : 'agentScreen.sessionElsewhere')}</p>}
+        {actions}
+      </section>
+      <section className="as-questions lh-qs" aria-labelledby="agent-questions-title">
+        <h4 id="agent-questions-title">{t('agentScreen.questions')}</h4>
+        {questionsRead === null
+          ? (tasksMine.at === 'reading' ? <p className="lp-meta" role="status">{t('estate.reading')}</p>
+            : <p className="lp-meta" title={tasksView?.questionsUnread}>{t('agentScreen.questionsNotRead')}</p>)
+          : questionCards.length === 0 ? <p className="lp-meta">{t('agentScreen.questionsNone')}</p>
+          : questionCards.map((item) => (
+            <NeedsYouCard key={item.ref} item={item} onOpen={onQuestion}
+              meta={<>{item.projectName && <b>{item.projectName}</b>}{' '}<span>· {since(item.waitingSince, t)}</span></>} />
+          ))}
+      </section>
+    </aside>
+  )
   return (
     <section className="as" aria-labelledby="agent-page-title" data-testid="agent-page">
       {onHome && <p className="as-back"><button type="button" className="lp-link" onClick={onHome}>{t('agentScreen.backHome')}</button></p>}
@@ -338,6 +379,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
               </>
             )}
           </section>
+          {narrow && side}
           <div className="as-tasks-head">
             <h4>{t('agentPage.tasks')}</h4>
             {tasksView && tasksView.tasks.length > 0 && <span className="lp-meta">{t('agentPage.tasksSub', { count: tasksView.tasks.length })}</span>}
@@ -440,42 +482,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
             </details>
           )}
         </div>
-        <aside className="as-side" aria-labelledby="agent-session-title">
-          <section className="as-session">
-            <h4 id="agent-session-title">{t('agentScreen.session')}</h4>
-            <dl className="as-facts">
-              <div><dt>{t('agentScreen.stateLabel')}</dt><dd><StatusPill status={status} words={stateChip} /></dd></div>
-              <div><dt>{t('agentScreen.lastSign')}</dt><dd>{ago('launch.home.inWork.heard', heard) ?? t('duration.unknown')}</dd></div>
-              {phase && (
-                <div><dt>{t('agentScreen.claim')}</dt><dd>
-                  {t(`agentScreen.phase.${phase.phase}` as 'agentScreen.phase.working')}{phase.waitingOn && WAITING_ON.has(phase.waitingOn) ? ` (${t(`agentScreen.waitingOn.${phase.waitingOn}` as 'agentScreen.waitingOn.question')})` : ''}{' '}
-                  {knownTime(phase.at) && <small className="lp-meta as-claim-at">{t('agentScreen.claimAt', { time: since(phase.at, t) })}</small>}
-                </dd></div>
-              )}
-              <div><dt>{t('agentScreen.where')}</dt><dd>{t(`agentScreen.where.${placeOf}` as 'agentScreen.where.fabric')}</dd></div>
-              <div><dt>{t('agentScreen.started')}</dt><dd>{startedWords}</dd></div>
-              {agentFact && <div><dt>{t('agentScreen.agentLabel')}</dt><dd>{agentFact}</dd></div>}
-            </dl>
-            {agent.console && onConsole ? (
-              <>
-                <button type="button" className="lp-button primary" onClick={() => onConsole(agent.sessionId)}>{t('agentScreen.openSession')}</button>
-                <p className="lp-meta">{t('agentScreen.openSessionNote')}</p>
-              </>
-            ) : <p className="lp-meta">{t(placeOf === 'unknown' ? 'agentScreen.sessionUnknown' : 'agentScreen.sessionElsewhere')}</p>}
-            {actions}
-          </section>
-          <section className="as-questions lh-qs" aria-labelledby="agent-questions-title">
-            <h4 id="agent-questions-title">{t('agentScreen.questions')}</h4>
-            {questionsRead === null
-              ? (tasksMine.at === 'reading' ? <p className="lp-meta" role="status">{t('estate.reading')}</p>
-                : <p className="lp-meta" title={tasksView?.questionsUnread}>{t('agentScreen.questionsNotRead')}</p>)
-              : questionCards.length === 0 ? <p className="lp-meta">{t('agentScreen.questionsNone')}</p>
-              : questionCards.map((item) => (
-                <NeedsYouCard key={item.ref} item={item} onOpen={onQuestion}
-                  meta={<>{item.projectName && <b>{item.projectName}</b>}{' '}<span>· {since(item.waitingSince, t)}</span></>} />
-              ))}
-          </section>
-        </aside>
+        {!narrow && side}
       </div>
     </section>
   )

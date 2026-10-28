@@ -533,3 +533,19 @@ describe('the agent page, the mockup parity (wave 1)', () => {
     await waitFor(() => expect(within(q()).getByTitle('away').textContent).toBe(en['agentScreen.questionsNotRead']))
   })
 })
+
+describe('CO-476: the narrow layout keeps the reading order in the DOM', () => {
+  const media = (narrow: boolean) => vi.fn((query: string) => ({ matches: narrow && query === '(max-width: 1000px)', media: query, addEventListener: () => {}, removeEventListener: () => {} }))
+  const follows = (a: Element, b: Element): boolean => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+  for (const narrow of [false, true]) it(`the session card ${narrow ? 'follows «Сейчас» and comes before the tasks' : 'is the side column after the main one'} at ${narrow ? 'a narrow' : 'a wide'} window`, async () => {
+    Object.defineProperty(window, 'matchMedia', { configurable: true, writable: true, value: media(narrow) })
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={() => {}} />)
+    const card = screen.getByRole('complementary', { name: en['agentScreen.session'] })
+    const nowCard = document.querySelector('.as-now') as Element
+    const tasks = document.querySelector('.as-tasks-head') as Element
+    expect(follows(nowCard, card)).toBe(true)
+    expect(follows(card, tasks)).toBe(narrow)
+    expect(card.parentElement?.classList.contains('as-main')).toBe(narrow)
+  })
+})

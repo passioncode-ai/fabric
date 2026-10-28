@@ -776,7 +776,8 @@ button.lg-node{ cursor: pointer; }
 .estate-home .lh-home>.lh-main-column,.estate-home .lh-home>.lh-side-column{display:block;min-width:0}
 /* One column below 1100 px: «Нужны вы» right under the numbers, never under every project card (the 0.3.15 review,
    iteration 1, UX-8). */
-@media(max-width:1100px){.estate-home .lh-home{grid-template-columns:minmax(0,1fr)}.estate-home .lh-home>.lh-main-column{display:contents}.estate-home .lh-home>.lh-main-column>*{order:3;min-width:0}.estate-home .lh-home>.lh-main-column>.lh-hero{order:0}.estate-home .lh-home>.lh-main-column>.lh-stats{order:1}.estate-home .lh-home>.lh-side-column{order:2}}
+/* CO-476: below 1100 px the right column is rendered inside the main one (EstateHome.tsx), in DOM order, never moved by `order`. */
+@media(max-width:1100px){.estate-home .lh-home{grid-template-columns:minmax(0,1fr)}.estate-home .lh-main-column>*{min-width:0}}
 /* The hero: one framed card, face | words | chart (B1 to B5, B8). */
 .estate-home .lh-hero{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(260px,360px);gap:var(--space-5);align-items:center;padding:var(--space-4) var(--space-5);border:1px solid var(--app-line);border-radius:var(--app-radius-panel);background:linear-gradient(135deg,color-mix(in srgb,var(--app-accent) 7%,var(--app-panel)),var(--app-panel) 55%);margin:0 0 var(--space-3)}
 .estate-home .lh-hero>.fp-face{width:72px;height:72px;min-width:72px;border-radius:24px;overflow:hidden;box-shadow:0 6px 18px color-mix(in srgb,var(--app-ink) 12%,transparent)}
@@ -1035,7 +1036,8 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 .as-questions-list{margin:6px 0 0;padding-left:1.1em;font-size:13px;display:grid;gap:4px}
 /* One column under 1000 px: «Сейчас» first, then the session card and the agent's questions, then its tasks (the 0.3.15
    review, iteration 2, UX-14a: the session facts no longer push what the agent is doing below the fold). */
-@media(max-width:1000px){.as-cols{grid-template-columns:1fr}.as-cols>.as-main{display:contents}.as-cols>.as-main>*{order:2;min-width:0}.as-cols>.as-main>.as-now{order:0}.as-side{position:static;order:1}}
+/* CO-476: below 1000 px the session card is rendered after «Сейчас» (AgentPage.tsx), in DOM order. */
+@media(max-width:1000px){.as-cols{grid-template-columns:1fr}.as-main>*{min-width:0}.as-side{position:static}}
 @media(max-width:700px){.as-head{flex-wrap:wrap}.as-head .lh-agents-actions{margin-left:0}.ap-brief>div{grid-template-columns:1fr;gap:0}.ap-task-body{padding-left:14px}}
 /* «Нужна правка в другом проекте»: no panel box, a rule above it (the mockup's `.xproj`). */
 .xp{display:grid;gap:var(--space-2);border-top:1px solid var(--app-line);padding-top:var(--space-3);margin-top:var(--space-2);text-align:left}
