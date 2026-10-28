@@ -64,11 +64,37 @@ test('a read that fails leaves the reading as it was, never a guessed task', asy
   }
 })
 
-test('an agent with no runtime session id is not looked up', async () => {
+test('an agent with no runtime session id is looked up by its own enrolment only, and joins nothing without a folder key', async () => {
   const store = fakeStore(tables)
   const before = view([agent('new')])
   assert.equal(await withIdentity(before, store, [{ ...held[0], runtimeSessionId: null }]), before)
-  assert.equal(store.calls.length, 0)
+  assert.deepEqual(store.calls.map((c) => c.key), ['payload->>session_id'], 'its own enrolment, which names no folder key here')
+})
+
+// CO-473 (0.3.15 review, iteration 1, DA-6): Codex and Kimi enrol with no runtime session id; one agent is the same binding
+// in the same folder, so its earlier enrolment's stage and running task come with it; a folder two live agents share is
+// left alone, and an earlier enrolment that named a runtime id is another agent's.
+test('CO-473: an agent with no runtime session id is joined by its binding and folder, never across two live agents', async () => {
+  const codex = (session_id, over = {}) => ({ type: 'session.enrolled@1', payload: { session_id, runner: 'codex', binding_id: 'b-codex', cwd_sha256: 'f1', ...over } })
+  const folderTables = {
+    ...tables,
+    journal: [codex('cx-new'), codex('cx-old'), codex('cx-claude', { runtime_session_id: 'rt-x' }), codex('cx-elsewhere', { cwd_sha256: 'f2' })],
+    agent_stages: [{ session_id: 'cx-old', project_id: 'p1', task_id: null, stage: 'Fixing the sweep', step: 1, of_steps: 2, note: null, reported_at: '2026-10-27T08:00:00Z' }],
+    work_claims: [{ work_id: 't1', project_id: 'p1', owner_session: 'cx-old', claimed_at: '2026-10-27T07:00:00Z', released_at: null, released_how: null }]
+  }
+  const bareHeld = [{ sessionId: 'cx-new', projectId: 'p1', agent: 'codex', cameIn: 'enrolled', startedAt: 0, lastSignAt: 0, runtimeSessionId: null }]
+  const store = fakeStore(folderTables)
+  const v = await withIdentity(view([agent('cx-new', { agent: 'codex' })]), store, bareHeld, Date.parse('2026-10-27T10:00:00Z'))
+  assert.equal(v.live[0].doing.text, 'Fixing the sweep')
+  assert.equal(v.live[0].task.id, 't1')
+  assert.deepEqual(v.live[0].aliases, ['cx-old'], 'only the same folder\'s enrolments with no runtime id')
+  const byBinding = store.calls.find((c) => c.key === 'payload->>binding_id')
+  assert.ok(byBinding.order && byBinding.order.limit > 0, 'the binding\'s enrolments read is bounded')
+  // Two live agents of one binding in one folder: neither is joined.
+  const two = await withIdentity(view([agent('cx-new', { agent: 'codex' }), agent('cx-old', { agent: 'codex' })]), fakeStore(folderTables),
+    [...bareHeld, { ...bareHeld[0], sessionId: 'cx-old' }], Date.parse('2026-10-27T10:00:00Z'))
+  assert.equal(two.live[0].aliases, undefined)
+  assert.equal(two.live[0].task, null)
 })
 
 test('withWork: a turn or console output makes an agent at work; the keep-alive ping alone does not', async () => {
