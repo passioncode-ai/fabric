@@ -126,7 +126,7 @@ const tools = (await client.listTools()).tools.map((t) => t.name).sort()
 // below; this one is friction: adding a tool to a credentialed security surface
 // should require acknowledging it somewhere a reviewer looks, and two copies
 // that drift together would pass a check comparing only those two.
-const expected = ['com.accept','com.cancel','com.claim','com.complete','com.directory','com.effect_begin','com.enroll','com.get','com.list','com.progress','com.read_ack','com.reconcile','com.renew','com.reply','com.responder_replace','com.status','com.submit','fabric_agents_list','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_project_profile','fabric_question_ask','fabric_question_check','fabric_session_observe','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami','fabric_work_claim','fabric_work_list','fabric_work_release']
+const expected = ['com.accept','com.cancel','com.claim','com.complete','com.directory','com.effect_begin','com.enroll','com.get','com.list','com.progress','com.read_ack','com.reconcile','com.renew','com.reply','com.responder_replace','com.status','com.submit','fabric_agents_list','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_project_profile','fabric_question_ask','fabric_question_check','fabric_session_observe','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_close','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami','fabric_work_claim','fabric_work_list','fabric_work_release']
 // The count is COMPUTED from the list. Written beside it as a word, it is one
 // more number that can disagree with the thing it counts.
 if (JSON.stringify(tools) === JSON.stringify(expected))
@@ -714,6 +714,24 @@ else fail('memory search returned ' + facts.facts.length)
   cannotSayDone
     ? ok('AN AGENT CANNOT EVEN PHRASE "done" — the schema has no such move, so there is nothing to retry')
     : fail('an agent marked its own work done')
+
+  // CO-478, ADR-0184: the close is the operator's, and an agent carries it only with their relayed words.
+  const closable = await call('fabric_task_create', { title: 'wave card to cancel', origin: { kind: 'person', ref: 'operator' } })
+  const raw = async (args, meta) => client.callTool({ name: 'fabric_task_close', arguments: args, ...(meta ? { _meta: meta } : {}) })
+  const words = { by: 'operator', via: 'relayed-instruction', action: 'task.close', target: String(closable.id).slice(0, 8), instruction: 'Отменить карточку волны. - сделай', at: new Date(Date.now() - 60_000).toISOString(), source: { project: 'prowlagent', session: sessionId } }
+  const bare = await raw({ taskId: closable.id, outcome: 'cancelled', reason: 'the project is closed' })
+  bare.isError === true && JSON.parse(bare.content[0].text).error?.code === 'operator-decision-required'
+    ? ok("without the operator's words a close is refused operator-decision-required") : fail('bare close: ' + JSON.stringify(bare))
+  const other = await raw({ taskId: closable.id, outcome: 'cancelled', reason: 'the project is closed', decision: { ...words, target: 'ffffffff' } })
+  other.isError === true && JSON.parse(other.content[0].text).error?.code === 'decision-invalid'
+    ? ok('a decision naming another task is refused decision-invalid') : fail('other target: ' + JSON.stringify(other))
+  const closedByWords = await raw({ taskId: closable.id, outcome: 'cancelled', reason: 'the project is closed' }, { decision: words })
+  const closedBody = JSON.parse(closedByWords.content[0].text)
+  const { data: closedRow } = await db.from('project_tasks').select('status,closed_reason').eq('id', closable.id).single()
+  const { data: closedEvent } = await db.from('journal').select('actor,payload').eq('type', 'task.closed@1').eq('payload->>task_id', closable.id).single()
+  closedBody.closed && closedRow?.status === 'cancelled' && closedEvent?.payload?.decision?.instruction === words.instruction && closedEvent.payload.decision.at === words.at
+    ? ok("with the operator's words in _meta.decision the task is cancelled, and the journal keeps who said it and when")
+    : fail('relayed close: ' + JSON.stringify({ closedBody, closedRow, closedEvent }))
 
   // The brief has two writers and keeps both (M130's rule applied to prose).
   const drafted = await call('fabric_task_brief', { taskId, section: 'what', body: 'remove one of the two declarations' })

@@ -84,7 +84,7 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
   },
   {
     id: 'ladder.no-self-close',
-    text: 'You cannot close a task yourself. Move it to review and a person decides.',
+    text: 'You cannot close a task yourself. Move it to review and a person decides; when the operator told you to close or cancel that very task, fabric_task_close carries their words.',
     mode: 'REFUSED',
     scope: 'fabric_mediated',
     enforcementPoint: 'apps/desktop/src/shared/ladder.ts#mayMove'

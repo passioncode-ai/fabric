@@ -259,3 +259,18 @@ describe('the Board\'s own words (SCR-41, L3b)', () => {
     expect(prepareTopic({ text: 'x'.repeat(501) })).toEqual({ state: 'rejected', code: 'too_large' })
   })
 })
+
+describe('CO-478: a close carries the operator\'s relayed decision', () => {
+  const id = '11111111-2222-4333-8444-555555555555'
+  const decision = { by: 'operator', via: 'relayed-instruction', action: 'task.close', target: '11111111', instruction: 'Отменить карточку. - сделай', at: '2026-10-27T02:40:00Z', source: { project: 'prowlagent', session: '5fefe0d0-335c-4f85-9606-42c8a54bc9c4' } }
+  it('accepts the decision and keeps its words', () => {
+    const r = prepareEventPayload('task.closed@1', { task_id: id, outcome: 'cancelled', reason: 'closed project', decision })
+    expect(r.state).toBe('prepared')
+    expect((r as unknown as { value: { decision: { instruction: string } } }).value.decision.instruction).toBe(decision.instruction)
+  })
+  it('refuses a decision with another shape or an unknown field', () => {
+    for (const bad of [{ ...decision, by: 'agent' }, { ...decision, extra: 1 }, { ...decision, instruction: ' ' }, { ...decision, at: 'yesterday' }]) {
+      expect(prepareEventPayload('task.closed@1', { task_id: id, outcome: 'cancelled', decision: bad }).state).toBe('rejected')
+    }
+  })
+})

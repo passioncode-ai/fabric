@@ -135,8 +135,15 @@ const occurrence = object({ system: required(reference), source_id: required(ref
 const timestamp: Rule = v => /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(string(v)) &&
   Number.isFinite(Date.parse(string(v))) ? v : refuse('invalid_shape')
 
+/** The operator's relayed decision a close carries (CO-478, ADR-0184; DEC-0121 `decision.schema.json`). The words go
+ *  through the same scrubbing as every text; the places are references. */
+const relayedDecision = object({
+  by: required(enumeration(['operator'])), via: required(enumeration(['relayed-instruction'])), action: required(reference),
+  target: optional(nullable(reference)), instruction: required(nonemptyText), at: required(timestamp),
+  source: optional(object({ project: required(reference), session: optional(reference), thread: optional(reference) }))
+})
 const EVENT_FIELDS: Record<string, Fields> = {
-  'task.closed@1': { task_id: required(uuid), outcome: required(enumeration(['done', 'cancelled'])), reason: optional(nullable(text)), ...metadata },
+  'task.closed@1': { task_id: required(uuid), outcome: required(enumeration(['done', 'cancelled'])), reason: optional(nullable(text)), decision: optional(relayedDecision), ...metadata },
   'memory.retrieved@1': { id: required(uuid), session_id: required(nullable(uuid)), store: required(enumeration(['facts', 'transcripts'])), query: required(text), hits: required(integer(0)), ...metadata },
   'project.repo.attached@1': {
     id: required(uuid), path: required(reference), label: required(text),

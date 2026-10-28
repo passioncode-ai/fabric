@@ -75,6 +75,7 @@ import { fileProposal } from './commands/proposalCommands.ts'
 import { BOARD_SESSION_OPERATIONS, createBoard, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
 import { registerBoardTools } from './boardTools.ts'
 import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
+import { checkRelayedClose } from './relayedClose.ts'
 import type { Journal } from '@fabric/journal'
 import type { PtyManager } from './pty'
 import type { Policy } from './policy'
@@ -2378,7 +2379,7 @@ export class AgentSurface {
       {
         title: 'Move a task on the board',
         description:
-          'Move a task between backlog, running and review. You cannot mark work done or cancelled — move it to review and say what you concluded; accepting it is the operator’s move.',
+          'Move a task between backlog, running and review. You cannot mark work done or cancelled on your own: move it to review and say what you concluded; accepting it is the operator’s move. When the operator told you to close or cancel this very task, use fabric_task_close with their words as the decision.',
         inputSchema: {
           taskId: z.string().uuid(),
           to: z.enum(['backlog', 'running', 'review']),
@@ -2400,6 +2401,55 @@ export class AgentSurface {
         return json({ moved: true, from: task.status, to, seq: event.seq })
       }
     )
+
+    // #region relayed-close-tool — docs: docs/adr/0184-an-agent-closes-a-task-on-the-operators-relayed-decision.md
+    // CO-478: the dashboard's close and cancel buttons as an agent's door, only with the operator's relayed words.
+    server.registerTool(
+      'fabric_task_close',
+      {
+        title: 'Close or cancel a task on the operator’s word',
+        description:
+          'Close a task as done or cancelled ONLY when the operator told you to, about this task (fabric-agent-contract DEC-0121 AP-2). ' +
+          'Pass their words as decision (or as _meta.decision): {by: "operator", via: "relayed-instruction", action: "task.close", target: the task id or its first 8 characters, ' +
+          'instruction: their words verbatim (at most 500 characters), at: when they said it (RFC 3339), source?: {project, session or thread} where they said it}. ' +
+          'Without it the answer is operator-decision-required: ask the operator, or move the task to review. Never write words the operator did not say. ' +
+          'A cancellation needs a reason. Fabric records the decision with the close.',
+        inputSchema: {
+          taskId: z.string().uuid(),
+          outcome: z.enum(['done', 'cancelled']),
+          reason: z.string().max(400).optional().describe('One line on why; required to cancel'),
+          decision: z.unknown().optional().describe('The operator’s decision, decision.schema.json')
+        }
+      },
+      async ({ taskId, outcome, reason, decision }, extra) => {
+        const relayed = decision ?? (extra as { _meta?: { decision?: unknown } } | undefined)?._meta?.decision
+        const verdict = checkRelayedClose(relayed, taskId, Date.now())
+        if (!verdict.ok) {
+          const error = { code: verdict.code, message: verdict.message, data: verdict.data }
+          return { content: [{ type: 'text' as const, text: JSON.stringify({ closed: false, error }) }], structuredContent: { closed: false, error }, isError: true }
+        }
+        if (outcome === 'cancelled' && (reason ?? '').trim().length === 0)
+          return json({ closed: false, reason: 'cancelling needs a reason: say what changed' })
+        const task = await ownTask(taskId)
+        if (!task) return json({ closed: false, reason: 'no such task in this project' })
+        // The decision is the person's move, relayed: the person's ladder applies, never the agent's.
+        const move = mayMove('person', task.status, outcome as TaskState)
+        if (!move.ok) return json({ closed: false, reason: move.reason })
+        const d = verdict.decision
+        const event = await this.appendRedacted({
+          estateId: scope.estateId,
+          type: 'task.closed@1',
+          actor: { kind: 'agent', id: scope.sessionId },
+          projectId: scope.projectId,
+          payload: {
+            task_id: taskId, outcome, reason: reason ?? null,
+            decision: { by: d.by, via: d.via, action: d.action, target: d.target ?? null, instruction: d.instruction, at: d.at, ...(d.source ? { source: d.source } : {}) }
+          }
+        })
+        return json({ closed: true, from: task.status, to: outcome, seq: event.seq })
+      }
+    )
+    // #endregion relayed-close-tool
 
     server.registerTool(
       'fabric_task_note',

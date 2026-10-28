@@ -2299,6 +2299,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'harness.tool.fabric_task_create': "Завести задачу на доске с указанием, откуда она взялась",
   'harness.tool.fabric_task_claim': "Взять задачу, чтобы другая сессия не начала ту же работу",
   'harness.tool.fabric_task_release': "Освободить задачу и указать, чем всё закончилось",
+  'harness.tool.fabric_task_close': "Закрыть или отменить задачу, только по переданному решению оператора",
   'harness.tool.fabric_task_move': "Перевести задачу между колонками «Бэклог», «В работе» и «На проверке», но не в «Готово»",
   'harness.tool.fabric_task_note': "Рабочие заметки к задаче: их можно только дописывать",
   'harness.tool.fabric_task_handoff': "Передать названный результат задаче, которая идёт следом",
