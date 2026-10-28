@@ -721,7 +721,7 @@ else fail('memory search returned ' + facts.facts.length)
   const words = { by: 'operator', via: 'relayed-instruction', action: 'task.close', target: String(closable.id).slice(0, 8), instruction: 'Отменить карточку волны. - сделай', at: new Date(Date.now() - 60_000).toISOString(), source: { project: 'prowlagent', session: sessionId } }
   const bare = await raw({ taskId: closable.id, outcome: 'cancelled', reason: 'the project is closed' })
   bare.isError === true && JSON.parse(bare.content[0].text).error?.code === 'operator-decision-required'
-    ? ok('without the operator\'s words a close is refused operator-decision-required') : fail('bare close: ' + JSON.stringify(bare))
+    ? ok("without the operator's words a close is refused operator-decision-required") : fail('bare close: ' + JSON.stringify(bare))
   const other = await raw({ taskId: closable.id, outcome: 'cancelled', reason: 'the project is closed', decision: { ...words, target: 'ffffffff' } })
   other.isError === true && JSON.parse(other.content[0].text).error?.code === 'decision-invalid'
     ? ok('a decision naming another task is refused decision-invalid') : fail('other target: ' + JSON.stringify(other))
@@ -730,7 +730,7 @@ else fail('memory search returned ' + facts.facts.length)
   const { data: closedRow } = await db.from('project_tasks').select('status,closed_reason').eq('id', closable.id).single()
   const { data: closedEvent } = await db.from('journal').select('actor,payload').eq('type', 'task.closed@1').eq('payload->>task_id', closable.id).single()
   closedBody.closed && closedRow?.status === 'cancelled' && closedEvent?.payload?.decision?.instruction === words.instruction && closedEvent.payload.decision.at === words.at
-    ? ok('with the operator\'s words in _meta.decision the task is cancelled, and the journal keeps who said it and when')
+    ? ok("with the operator's words in _meta.decision the task is cancelled, and the journal keeps who said it and when")
     : fail('relayed close: ' + JSON.stringify({ closedBody, closedRow, closedEvent }))
 
   // The brief has two writers and keeps both (M130's rule applied to prose).
