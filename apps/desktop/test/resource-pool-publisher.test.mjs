@@ -95,7 +95,9 @@ test('matching but stale lost observation is reconciled as committed and unusabl
  assert.equal((await f.publisher.publish()).state,'published')
 })
 test('timed-out committed write retains one slot across methods; late reply issues no readback until explicit reconcile',async()=>{
- const f=fixture({timeoutMs:10});let finish
+ // The write never answers until `finish`, so it times out at any deadline; the reconcile's read at the end must not. 10 ms
+ // read `unknown` there at load average 100 (2026-10-28, the CO-474 gate), so the deadline is one a loaded machine meets.
+ const f=fixture({timeoutMs:250});let finish
  f.rpcHook=()=>{f.row=f.pool();return new Promise(resolve=>finish=resolve)}
  assert.equal((await f.publisher.configure()).state,'unknown');const reads=f.reads
  for(let i=0;i<10;i++)for(const method of ['configure','publish','reconcile'])assert.equal((await f.publisher[method]()).reason,'io_outstanding')

@@ -14,12 +14,13 @@ const ev = (seq: number, at: string, type: string, project: string | null = 'p1'
 
 function mount({ feed = [ev(1, '2026-09-29T09:00:00', 'question.answered@1', 'p1', 'person'), ev(2, '2026-09-29T10:00:00', 'task.created@1'), ev(3, '2026-09-28T10:00:00', 'task.created@1', 'p2')] as FeedEvent[] | null,
   sessions = [] as TerminalSession[] | null, routines = [] as unknown[], projectId = null as string | null,
-  releases = { data: [], sources: [{ name: 'releases', status: 'ok' }] } as unknown } = {}) {
+  releases = { data: [], sources: [{ name: 'releases', status: 'ok' }] } as unknown, rhythm = undefined as unknown } = {}) {
   const api = {
     runs: { status: vi.fn(async () => ({ data: { observation: { liveness: 'waiting' }, claim: { phase: 'blocked' } } })) },
     routines: { list: vi.fn(async () => routines) },
     windows: { openSession: vi.fn(async () => {}) },
-    releases: { list: vi.fn(async () => releases) }
+    releases: { list: vi.fn(async () => releases) },
+    ...(rhythm === undefined ? {} : { work: { rhythm: vi.fn(async () => rhythm) } })
   }
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: api }))
   const on = { onBoard: vi.fn(), onProject: vi.fn(), onReleases: vi.fn() }
@@ -45,6 +46,30 @@ describe('the pulse (SCR-42)', () => {
     expect(screen.getByText(en['launch.pulse.notRead'])).toBeTruthy()
     fireEvent.change(screen.getByLabelText(en['launch.pulse.dayLabel']), { target: { value: '2026-09-22' } })
     expect(screen.getByText(en['launch.pulse.none']), 'a visible quiet day was called unknown').toBeTruthy()
+  })
+
+  // CO-474 (0.3.15 review, iteration 2, PL-6, DA-1): every project's pulse shows Главная's daily counts from the journal,
+  // not the window's; a day the window does not hold says its count is the journal's; one project keeps the window.
+  it('CO-474: every project\'s pulse reads the journal\'s daily counts, as Главная does', async () => {
+    const day = (date: string, events: number | null, results: number | null, decisions: number | null) => ({ date, events, results, decisions, today: date === '2026-09-29' })
+    const days = Array.from({ length: 28 }, (_, i) => {
+      const d = new Date(2026, 8, 2 + i), date = `2026-09-${String(d.getDate()).padStart(2, '0')}`
+      return date === '2026-09-29' ? day(date, 41, 3, 2) : date === '2026-09-20' ? day(date, 17, 1, 0) : date === '2026-09-21' ? day(date, null, null, null) : day(date, 0, 0, 0)
+    })
+    const rhythm = { days, totals: { results: 4, decisions: 2, events: 58 }, today: { results: 3, decisions: 2, events: 41 }, marksCapped: false, timeZone: 'Europe/Warsaw', readAt: '2026-09-29T12:00:00Z' }
+    const full = Array.from({ length: FEED_WINDOW }, (_, i) => ev(i + 1, i === 0 ? '2026-09-28T10:00:00' : '2026-09-29T10:00:00', 'task.created@1'))
+    const { api } = mount({ feed: full, rhythm })
+    await waitFor(() => expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', '2026-09-29').replace('{count}', '41') })).toBeTruthy())
+    expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', '2026-09-20').replace('{count}', '17') })).toBeTruthy()
+    expect(screen.getByRole('button', { name: en['launch.pulse.dayUnknown'].replace('{date}', '2026-09-21') }), 'a day the journal could not read is unknown').toBeTruthy()
+    fireEvent.change(screen.getByLabelText(en['launch.pulse.dayLabel']), { target: { value: '2026-09-20' } })
+    expect(screen.getByText(en['launch.pulse.countOnly'])).toBeTruthy()
+    expect(document.querySelector('.fp-formula p')?.textContent).toContain('2 decisions and 4 results')
+    cleanup()
+    const one = mount({ feed: full, rhythm, projectId: 'p1' })
+    expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', '2026-09-29').replace('{count}', String(FEED_WINDOW - 1)) })).toBeTruthy()
+    expect(one.api.work?.rhythm, 'one project does not read the estate\'s counts').not.toHaveBeenCalled()
+    expect(api.work?.rhythm).toHaveBeenCalled()
   })
 
   it('names what was observed of a running session, apart from what the agent says', async () => {

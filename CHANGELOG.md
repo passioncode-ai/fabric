@@ -59,8 +59,9 @@ alone, and going back to 0.3.14 is the 0.3.14 bundle alone.
   (CO-473). A stage report is tied to the task the session holds.
 - **The work rhythm counts 28 days.** The chart reads one count per day from the journal instead of the newest 500
   events, which covered less than two hours, and its results (handed in) and decisions (yours) are filtered by the
-  database. Главная's strip, the chart and Pulse share one definition of a result and of a decision; Pulse still counts
-  them on the events it holds. The chart turns over at midnight on a quiet machine and says when it is not current.
+  database. Главная's strip, the chart and Pulse share one definition of a result and of a decision, and Pulse over every
+  project reads the same daily counts, so one word shows one number on both screens; one project's Pulse counts the
+  events it holds. The chart turns over at midnight on a quiet machine and says when it is not current.
 - **The left column lists the projects at work,** with «Все проекты · N» to unfold the rest (the whole list until the
   first reading answers), readable project names (from the agent's own service file, else the folder name tidied,
   «OS» and «MCP» kept upper case), long names cut with «…», and no badges the page already says. The project page's

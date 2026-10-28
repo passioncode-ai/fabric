@@ -1796,6 +1796,7 @@ export const en = {
   'launch.pulse.kind.result': "Results",
   'launch.pulse.kind.decision': "Decisions",
   'launch.pulse.notRead': "This day is not held on this screen. It is not a day without work.",
+  'launch.pulse.countOnly': "The count for this day is read from the journal; the day's events are not loaded on this screen.",
   'launch.pulse.none': "No events of this kind on this day.",
   'launch.pulse.basis': "Where it comes from",
   'launch.pulse.basisBody': "Journal entry #{seq}, recorded by {actor}.",

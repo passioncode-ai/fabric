@@ -1118,6 +1118,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.pulse.kind.result': "Результаты",
   'launch.pulse.kind.decision': "Решения",
   'launch.pulse.notRead': "Данных за этот день на экране нет — это не значит, что работы не было.",
+  'launch.pulse.countOnly': "Число за этот день прочитано из журнала, а сами события этого дня на этом экране не загружены",
   'launch.pulse.none': "За этот день в выбранной категории событий нет.",
   'launch.pulse.basis': "Основание события",
   'launch.pulse.basisBody': "Запись журнала №{seq}, внёс {actor}.",

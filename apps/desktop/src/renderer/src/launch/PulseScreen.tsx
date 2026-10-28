@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { eventsOfDay, rhythmDays, rhythmTotals } from '../../../shared/homeView.ts'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import { latestVerified, type ReleaseEntry } from '../../../shared/releases.ts'
+import type { WorkRhythm } from '../../../shared/workRhythm.ts'
 import type { RunStatusView } from '../../../shared/runStatus.ts'
 import type { FeedEvent, ProjectRow, RoutineRow, TerminalSession } from '../../../shared/types'
 import { describeEvent, useLocale, useT } from '../i18n'
@@ -30,12 +31,22 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
   const [period, setPeriod] = useState<7 | 28>(28)
   const [kind, setKind] = useState<'all' | 'result' | 'decision'>('all')
   const scoped = feed === null ? null : projectId ? feed.filter((e) => e.project_id === projectId) : feed
+  // CO-474 (0.3.15 review, iteration 2, PL-6, DA-1): every project's pulse reads the same daily counts as Главная's
+  // «Ритм работы» (`main/workRhythm.ts`), so one word shows one number on both screens; one project's pulse, which the
+  // daily counts do not split, still counts the events the window holds. A failed read falls back to the window.
+  const rhythm = useJournalRhythm(projectId)
+  const journal = rhythm ? rhythm.days.slice(-period) : null
   // Which days the window can see is a fact about the WHOLE feed: filtered to one project, a day the
   // feed cut off is still unknown, never a quiet day of that project.
   const visible = rhythmDays(feed, now, period)
-  const days = rhythmDays(scoped, now, period).map((d, i) => (visible[i].known ? d : { ...d, known: false, count: 0 }))
+  const held = new Set(visible.filter((d) => d.known).map((d) => d.date))
+  const days = journal
+    ? journal.map((d) => ({ date: d.date, count: d.events ?? 0, known: d.events !== null }))
+    : rhythmDays(scoped, now, period).map((d, i) => (visible[i].known ? d : { ...d, known: false, count: 0 }))
   const [day, setDay] = useState(days[days.length - 1].date)
-  const totals = rhythmTotals(scoped, now, period)
+  const totals = journal
+    ? { results: journal.reduce((n, d) => n + (d.results ?? 0), 0), decisions: journal.reduce((n, d) => n + (d.decisions ?? 0), 0) }
+    : rhythmTotals(scoped, now, period)
   const max = Math.max(1, ...days.map((d) => d.count))
   const selected = days.find((d) => d.date === day) ?? days[days.length - 1]
   const shown = eventsOfDay(scoped, selected.date, kind)
@@ -63,7 +74,7 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
               <div className="lp-actions">
                 {([7, 28] as const).map((n) => (
                   <button key={n} type="button" className="lp-button" aria-pressed={period === n}
-                    onClick={() => { setPeriod(n); setDay(rhythmDays(scoped, now, n).slice(-1)[0].date) }}>{t('launch.home.rhythm.days', { days: n })}</button>
+                    onClick={() => { setPeriod(n); setDay(days[days.length - 1].date) }}>{t('launch.home.rhythm.days', { days: n })}</button>
                 ))}
               </div>
             </div>
@@ -92,6 +103,7 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
             <div className="fp-day">
               <h4>{selected.date}</h4>
               {!selected.known ? <p>{t('launch.pulse.notRead')}</p>
+                : !held.has(selected.date) ? <p>{t('launch.pulse.countOnly')}</p>
                 : shown.length === 0 ? <p>{t('launch.pulse.none')}</p>
                 : shown.map((e) => (
                   <article key={`${e.estate_id}:${e.seq}`} className="fp-event">
@@ -241,4 +253,19 @@ function ReleasePreview({ projectId, onOpen }: { projectId: string | null; onOpe
         )}
     </section>
   )
+}
+
+/** The journal's daily counts behind «Ритм работы» (`window.fabric.work.rhythm`), for every project's pulse only; null
+ *  for one project, before the answer, and when the read failed (the screen then counts the window it holds). */
+function useJournalRhythm(projectId: string | null): WorkRhythm | null {
+  const [rhythm, setRhythm] = useState<WorkRhythm | null>(null)
+  useEffect(() => {
+    setRhythm(null)
+    const read = window.fabric.work?.rhythm
+    if (projectId || !read) return
+    let alive = true
+    read().then((r) => { if (alive) setRhythm(r) }, () => { if (alive) setRhythm(null) })
+    return () => { alive = false }
+  }, [projectId])
+  return rhythm
 }
