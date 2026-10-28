@@ -8,7 +8,7 @@ import type { FeedEvent, ProjectRow, TerminalSession } from '../../../shared/typ
 
 beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-09-29T12:00:00')) })
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals() })
-const projects = [{ id: 'p1', name: 'Atlas', status: 'active' }, { id: 'p2', name: 'Studio', status: 'active' }] as unknown as ProjectRow[]
+const projects = [{ id: 'p1', name: 'atlas-repo', displayName: 'Atlas', status: 'active' }, { id: 'p2', name: 'Studio', status: 'active' }] as unknown as ProjectRow[]
 const ev = (seq: number, at: string, type: string, project: string | null = 'p1', actor = 'agent'): FeedEvent =>
   ({ estate_id: 'e', seq, type, actor: { kind: actor, id: 'x' }, project_id: project, occurred_at: at, payload: {} })
 
@@ -70,6 +70,14 @@ describe('the pulse (SCR-42)', () => {
     expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', '2026-09-29').replace('{count}', String(FEED_WINDOW - 1)) })).toBeTruthy()
     expect(one.api.work?.rhythm, 'one project does not read the estate\'s counts').not.toHaveBeenCalled()
     expect(api.work?.rhythm).toHaveBeenCalled()
+  })
+
+  // CO-471 (0.3.15 review DA-9): Pulse names a project as the rail does, by its display name, never its stored slug.
+  it('CO-471: names each event\'s project by its display name', async () => {
+    mount()
+    const places = [...document.querySelectorAll('.fp-event small')].map((x) => x.textContent ?? '')
+    expect(places.some((x) => x.endsWith('· Atlas'))).toBe(true)
+    expect(document.body.textContent).not.toContain('atlas-repo')
   })
 
   it('names what was observed of a running session, apart from what the agent says', async () => {

@@ -1980,8 +1980,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const answer = threadsRead.data as { ok?: boolean; threads?: unknown; error?: { message?: string } } | null
     if (!answer || answer.ok !== true || !Array.isArray(answer.threads)) throw new Error(`the board's threads could not be read: ${answer?.error?.message ?? 'an answer this build cannot read'}`)
     const threads = answer.threads as Array<{ participants?: unknown; messageCount?: unknown }>
+    // CO-471: the graph names a project as the rail and the other screens do; a failed lookup keeps the stored names.
+    const names = await projectNames.read(namesStale).catch((e: unknown) => { ops.failed('projects.display-names-unread', e, { note: 'the graph keeps the stored names' }); return null })
+    const graphProjects = (projectsRead.rows as unknown as Array<{ id: string; name: string; summary: string | null; business: string | null; repo_path: string | null }>)
+      .map((p) => (names?.[p.id] ? { ...p, name: names[p.id].name } : p))
     return composeGraph({
-      projects: projectsRead.rows as unknown as Array<{ id: string; name: string; summary: string | null; business: string | null; repo_path: string | null }>,
+      projects: graphProjects,
       relations: relationsRead.rows as unknown as Array<{ project_id: string; kind: 'depends-on' | 'used-by' | 'same-business' | 'talks-to' | 'other'; target: string }>,
       threads: threads.filter((x) => Array.isArray(x.participants)).map((x) => ({ participants: x.participants as string[], messageCount: typeof x.messageCount === 'number' ? x.messageCount : 0 }))
     })

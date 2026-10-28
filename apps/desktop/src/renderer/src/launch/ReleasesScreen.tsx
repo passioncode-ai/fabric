@@ -3,6 +3,7 @@
 // journal holds — none is invented; a release with no verification is a candidate, and a rollback
 // is a new release, so the release it replaced is shown exactly as it was recorded.
 
+import { projectDisplayName } from '../../../shared/projectDisplayName.ts'
 import { useEffect, useState } from 'react'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { ReleaseCommandResult, ReleaseEntry, ReleaseRef, ReleaseStatus } from '../../../shared/releases.ts'
@@ -45,6 +46,8 @@ export function ReleasesScreen({ projects, feed, projectId = null, releaseId = n
   const shown = rows.find((r) => r.id === picked) ?? rows[0] ?? null
   const unread = (read?.sources ?? []).filter((s) => s.status !== 'ok').map((s) => s.name)
   const nameOf = (id: string | null) => (id ? all.find((r) => r.id === id)?.name ?? id.slice(0, 8) : '')
+  /** CO-471: a release's project as the other screens name it, its stored name when the project is not in the list. */
+  const shownProject = (id: string | null | undefined, stored: string): string => { const p = (projects ?? []).find((x) => x.id === id); return p ? projectDisplayName(p) : stored }
   const when = (iso: string) => new Date(iso).toLocaleString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
   const status = (s: ReleaseStatus) => t(`launch.releases.status.${s}` as 'launch.releases.status.candidate')
   const formProject = form?.rollsBack?.projectId ?? (tab !== 'all' ? tab : live[0]?.id ?? null)
@@ -52,7 +55,7 @@ export function ReleasesScreen({ projects, feed, projectId = null, releaseId = n
 
   return (
     <div className="lp" data-launch-view="launch-releases">
-      <FeedStrip feed={feed} projectId={tab !== 'all' ? tab : null} projectName={tab !== 'all' ? (live.find((p) => p.id === tab)?.name ?? null) : null} onPulse={onPulse} />
+      <FeedStrip feed={feed} projectId={tab !== 'all' ? tab : null} projectName={tab !== 'all' ? (() => { const p = live.find((x) => x.id === tab); return p ? projectDisplayName(p) : null })() : null} onPulse={onPulse} />
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{t('launch.releases.kicker')}</p>
@@ -65,7 +68,7 @@ export function ReleasesScreen({ projects, feed, projectId = null, releaseId = n
         </div>
       </header>
       <div className="lp-tabs" role="group" aria-label={t('launch.releases.list')}>
-        {[...live.map((p) => [p.id, p.name] as const), ['all', t('launch.releases.all')] as const].map(([id, label]) => (
+        {[...live.map((p) => [p.id, projectDisplayName(p)] as const), ['all', t('launch.releases.all')] as const].map(([id, label]) => (
           <button key={id} type="button" className="lp-tab" aria-pressed={tab === id} onClick={() => { setTab(id); setPicked(null) }}>{label}</button>
         ))}
       </div>
@@ -89,7 +92,7 @@ export function ReleasesScreen({ projects, feed, projectId = null, releaseId = n
               <button key={x.id} type="button" className="fp-release-row" aria-pressed={shown.id === x.id} onClick={() => setPicked(x.id)}>
                 <small>{when(x.recordedAt)}</small>
                 <b>{x.name}</b>
-                <span>{status(x.status)}{tab === 'all' && x.projectName ? ` · ${x.projectName}` : ''}</span>
+                <span>{status(x.status)}{tab === 'all' && x.projectName ? ` · ${shownProject(x.projectId, x.projectName)}` : ''}</span>
               </button>
             ))}
           </aside>
@@ -262,7 +265,7 @@ function RecordForm({ projects, projectId, rollsBack, onCancel, onCommitted }: {
         <label className="lp-field">
           {t('launch.releases.form.project')}
           <select value={project} onChange={(e) => { setProject(e.target.value); setTasks([]); setDecisions([]) }}>
-            {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {projects.map((p) => <option key={p.id} value={p.id}>{projectDisplayName(p)}</option>)}
           </select>
         </label>
       )}

@@ -4,6 +4,7 @@
 // journal the window holds, the sessions and the routines; a day the window cannot see is said to be
 // unknown, a session nobody observed is not called working.
 
+import { projectDisplayName } from '../../../shared/projectDisplayName.ts'
 import { useEffect, useState } from 'react'
 import { eventsOfDay, rhythmDays, rhythmTotals } from '../../../shared/homeView.ts'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
@@ -50,7 +51,7 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
   const max = Math.max(1, ...days.map((d) => d.count))
   const selected = days.find((d) => d.date === day) ?? days[days.length - 1]
   const shown = eventsOfDay(scoped, selected.date, kind)
-  const nameOf = (id: string | null) => (id ? (projects ?? []).find((p) => p.id === id)?.name ?? id.slice(0, 8) : t('launch.pulse.estate'))
+  const nameOf = (id: string | null) => (id ? (() => { const p = (projects ?? []).find((x) => x.id === id); return p ? projectDisplayName(p) : id.slice(0, 8) })() : t('launch.pulse.estate'))
   const scopeName = projectId ? nameOf(projectId) : t('launch.pulse.allProjects')
   const time = (iso: string) => new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
   const label = (d: { date: string; count: number; known: boolean }) => (d.known ? t('launch.pulse.dayCount', { date: d.date, count: d.count }) : t('launch.pulse.dayUnknown', { date: d.date }))

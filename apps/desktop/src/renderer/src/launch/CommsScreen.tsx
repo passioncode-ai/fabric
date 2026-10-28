@@ -24,6 +24,7 @@
 // Each request names who answers it and how it ended; each message who read it and the files
 // it names; search and what waits for a project sit above the list.
 
+import { projectDisplayName } from '../../../shared/projectDisplayName.ts'
 import { useEffect, useRef, useState } from 'react'
 import type {
   CommsHead,
@@ -116,7 +117,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
   const t = useT()
   const locale = useLocale()
   const [mode, setMode] = useState<'feed' | 'threads' | 'announcements'>(initialMode)
-  const nameOf = (id: string): string => (projects ?? []).find((p) => p.id === id)?.name ?? shortId(id)
+  const nameOf = (id: string): string => (() => { const p = (projects ?? []).find((x) => x.id === id); return p ? projectDisplayName(p) : shortId(id) })()
 
   const [held, setHeld] = useState<Held | null>(null)
   const [textsMissing, setTextsMissing] = useState(0)
@@ -370,7 +371,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
                   {t('launch.comms.filters.project')}
                   <select value={filters.project ?? ''} onChange={(e) => setFilters((f) => ({ ...f, project: e.target.value || null }))}>
                     <option value="">{t('launch.comms.filters.allProjects')}</option>
-                    {(projects ?? []).filter((p) => p.status !== 'archived').map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {(projects ?? []).filter((p) => p.status !== 'archived').map((p) => <option key={p.id} value={p.id}>{projectDisplayName(p)}</option>)}
                   </select>
                 </label>
                 <label>

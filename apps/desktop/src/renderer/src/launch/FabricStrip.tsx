@@ -5,6 +5,7 @@
 // The prototype draws it on every launch view but Home and "Your Fabric" (scripts/product/launch.mjs).
 
 import type { FeedEvent } from '../../../shared/types'
+import { projectDisplayName } from '../../../shared/projectDisplayName.ts'
 import { useLocale, useT } from '../i18n'
 import { FabricAvatar } from './FabricAvatar'
 import { FabricName } from './persona'
@@ -54,15 +55,15 @@ export function FeedStrip({ feed, projectId, projectName, onPulse }: {
 }
 /** The strip in one project's scope, when the caller already holds that project's newest event. */
 export function ProjectStrip({ project, lastEventAt, onPulse }: {
-  project: { name: string }
+  project: { id?: string; name: string; displayName?: string | null }
   lastEventAt: string | null
   onPulse?: () => void
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
   const text = lastEventAt
-    ? t('launch.project.observed', { time: new Date(lastEventAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' }), project: project.name })
-    : t('launch.project.unobserved', { project: project.name })
+    ? t('launch.project.observed', { time: new Date(lastEventAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' }), project: projectDisplayName(project) })
+    : t('launch.project.unobserved', { project: projectDisplayName(project) })
   return <FabricStrip text={text} onPulse={onPulse} />
 }
 // #endregion fabric-strip

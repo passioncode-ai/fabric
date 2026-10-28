@@ -8,6 +8,7 @@
  * detail pane beside the list that reads one act whole. Still not here: the agents' own acts through their MCP tools
  * (today only acts recorded as `act.recorded@1` are listed as acts; what the agents did is the journal's list below).
  */
+import { projectDisplayName } from '../../../shared/projectDisplayName.ts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ACT_CATEGORIES, type ActActor, type ActCategory, type ActHistoryPage, type ActHistoryQuery, type ActView } from '../../../shared/acts.ts'
 import { describeEvent, useLocale, useT, type Translate } from '../i18n'
@@ -161,7 +162,7 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
     opener.current = null
   }, [open])
   const chosen = shown?.rows.find((r) => r.seq === open) ?? null
-  const nameOf = (id: string | null): string | null => (id ? (projects ?? []).find((p) => p.id === id)?.name ?? null : null)
+  const nameOf = (id: string | null): string | null => (id ? (() => { const p = (projects ?? []).find((x) => x.id === id); return p ? projectDisplayName(p) : null })() : null)
   const dayOf = (iso: string): string => dayLabel(iso, t, locale)
   const days: Array<{ day: string; rows: ActView[] }> = []
   for (const r of shown?.rows ?? []) {
@@ -248,7 +249,7 @@ function AgentWork({ events, narrowed = false, onReset, projects, sessions, onOp
     </div>
   )
   if (events.length === 0) return <p className="hx-empty">{t('journal.empty')}</p>
-  const nameOf = (id: string | null): string | null => (id ? (projects ?? []).find((p) => p.id === id)?.name ?? null : null)
+  const nameOf = (id: string | null): string | null => (id ? (() => { const p = (projects ?? []).find((x) => x.id === id); return p ? projectDisplayName(p) : null })() : null)
   const who = (e: FeedEvent): string =>
     e.actor.kind === 'person' ? t('acts.actor.you')
       : e.actor.kind === 'system' ? t('acts.actor.fabric')
@@ -339,7 +340,7 @@ function Filters({ filters, typed, onTyped, onChange, projects }: {
         <span>{t('acts.filter.project')}</span>
         <select value={filters.project} onChange={(e) => onChange({ project: e.target.value })}>
           <option value="">{t('acts.filter.projectAll')}</option>
-          {(projects ?? []).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          {(projects ?? []).map((p) => <option key={p.id} value={p.id}>{projectDisplayName(p)}</option>)}
           {filters.project && !known && <option value={filters.project}>{t('joined.someProject')}</option>}
         </select>
       </label>
