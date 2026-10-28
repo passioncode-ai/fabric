@@ -129,7 +129,8 @@ describe('groupInWork by work, not by keep-alive (the mockup parity, home gaps D
     const cop = g.cards.find((c) => c.projectId === 'cop')!
     expect(cop.agents.map((a) => a.sessionId)).toEqual(['a2'])
     expect(cop.orphans).toEqual([])
-    expect([g.agentsQuiet, g.connectedIdle]).toEqual([1, 0])
+    // CO-484: connected and holding its task is idle, not silent.
+    expect([g.agentsQuiet, g.agentsIdle, g.connectedIdle]).toEqual([0, 1, 0])
   })
   it('prints and sorts every project by its display name, the slug kept as the identity', () => {
     const slugs = [

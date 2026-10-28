@@ -56,7 +56,7 @@ export function HomeInWork({ reading, projects, waitingByProject, onProject, onA
     <section className="lh-inwork" aria-labelledby="home-inwork-title">
       <div className="lh-inwork-head">
         <h3 id="home-inwork-title">{t('launch.home.inWork.title')}</h3>
-        {g && <span className="lp-meta">{plural('projects', g.projectsAtWork)} · {plural('agents', g.agentsAtWork)}{g.agentsQuiet > 0 ? ` · ${t(`launch.home.inWork.agentsQuiet.${pluralForm(locale, g.agentsQuiet)}` as 'launch.home.inWork.agentsQuiet.many', { count: g.agentsQuiet })}` : ''}</span>}
+        {g && <span className="lp-meta">{plural('projects', g.projectsAtWork)} · {plural('agents', g.agentsAtWork)}{g.agentsQuiet > 0 ? ` · ${t(`launch.home.inWork.agentsQuiet.${pluralForm(locale, g.agentsQuiet)}` as 'launch.home.inWork.agentsQuiet.many', { count: g.agentsQuiet })}` : ''}{g.agentsIdle > 0 ? ` · ${t(`launch.home.inWork.agentsIdle.${pluralForm(locale, g.agentsIdle)}` as 'launch.home.inWork.agentsIdle.many', { count: g.agentsIdle })}` : ''}</span>}
       </div>
       {reading.problem && <FailureNote said={t('launch.home.work.unreadable')} detail={reading.problem} />}
       {/* UX-18: the reading can be asked again here, as the projects view beside it can. */}

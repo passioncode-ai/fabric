@@ -60,6 +60,8 @@ export interface InWorkGroups {
   agentsAtWork: number
   /** Of them, the quiet ones (stale): the strip's «агентов работает» counts the others (UX-21). */
   agentsQuiet: number
+  /** Of them, the connected ones that hold a task and are not at work: idle, not silent (CO-484). */
+  agentsIdle: number
   /** With `atWorkOnly` (home gap D3): the agents connected but not at work, folded out of the cards into one line.
    *  Without it: those among `live` judged not at work, still on the cards. */
   connectedIdle: number
@@ -154,8 +156,10 @@ export function groupInWork(input: {
     // D3: with the connected folded out, the agents on the cards: at work, and the quiet ones that still hold a task.
     agentsAtWork: folding ? input.live.filter(onWorkRow).length : input.live.length,
     // UX-21: how many of them are quiet, so the head says it beside the strip's «агентов работает», which counts the rest.
-    // DA-15: with the folding, every row not at work is quiet (silent, or only connected while it holds its task).
-    agentsQuiet: input.live.filter((a) => (folding ? onWorkRow(a) && !a.atWork : a.stale)).length,
+    // DA-15: with the folding, every row not at work is either silent (stale) or idle (connected, holding its task);
+    // CO-484: only the silent ones are «молчат», the others are counted apart as «простаивают».
+    agentsQuiet: input.live.filter((a) => (folding ? onWorkRow(a) && !a.atWork && a.stale : a.stale)).length,
+    agentsIdle: folding ? input.live.filter((a) => onWorkRow(a) && !a.atWork && !a.stale).length : 0,
     connectedIdle
   }
 }
