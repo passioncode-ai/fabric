@@ -63,3 +63,23 @@ describe('a stage report just before a claim (the mockup parity, agent gaps «В
     expect(trail.get('t1')?.milestones.map((m) => m.text)).toEqual(['Inside t1', 'Starting the rhythm read'])
   })
 })
+
+// CO-470 (0.3.15 review, iteration 1, DA-7): a report stamped with task A, made just before the agent released A and
+// claimed B, is B's; one stamped with a task the session kept holding stays on it.
+describe('a stamped stage report and the next claim (CO-470)', () => {
+  it('moves to the task claimed within the grace when the stamped one was released within it; stays otherwise', () => {
+    const holds = [
+      { taskId: 'A', from: '2026-10-27T09:00:00Z', to: '2026-10-27T10:01:00Z' },
+      { taskId: 'B', from: '2026-10-27T10:02:00Z', to: null },
+      { taskId: 'C', from: '2026-10-27T08:00:00Z', to: null }
+    ]
+    const trail = taskTrail([
+      ev(1, 'agent.stage.reported@1', '2026-10-27T10:00:00Z', { task_id: 'A', stage: 'Starting the next fix' }),
+      ev(2, 'agent.stage.reported@1', '2026-10-27T09:30:00Z', { task_id: 'A', stage: 'Halfway through A' }),
+      ev(3, 'agent.stage.reported@1', '2026-10-27T10:00:30Z', { task_id: 'C', stage: 'Still on C' })
+    ], holds)
+    expect(trail.get('B')?.milestones.map((m) => m.text)).toEqual(['Starting the next fix'])
+    expect(trail.get('A')?.milestones.map((m) => m.text)).toEqual(['Halfway through A'])
+    expect(trail.get('C')?.milestones.map((m) => m.text)).toEqual(['Still on C'])
+  })
+})

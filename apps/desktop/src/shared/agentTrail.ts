@@ -64,12 +64,31 @@ export function taskTrail(events: readonly TrailEvent[], holds: readonly Hold[])
     }
     return next?.taskId ?? null
   }
+  // CO-470 (0.3.15 review, iteration 1, DA-7): a report stamped with the task the session held when it spoke belongs to
+  // the task it claimed next when it released the stamped one and claimed another within the grace after speaking: an
+  // agent says what it starts, then moves its claim.
+  const restamped = (stamped: string, at: string): string => {
+    const when = time(at)
+    if (!Number.isFinite(when)) return stamped
+    const released = holds.some((h) => {
+      const from = time(h.from), to = h.to ? time(h.to) : NaN
+      return h.taskId === stamped && Number.isFinite(from) && from <= when && Number.isFinite(to) && to >= when && to - when <= STAGE_BEFORE_CLAIM_MS
+    })
+    if (!released) return stamped
+    let next: Hold | null = null
+    for (const h of holds) {
+      const from = time(h.from)
+      if (h.taskId !== stamped && Number.isFinite(from) && from > when && from - when <= STAGE_BEFORE_CLAIM_MS && (!next || from < time(next.from))) next = h
+    }
+    return next?.taskId ?? stamped
+  }
   const newestFirst = [...events].sort((a, b) => b.seq - a.seq)
   for (const e of newestFirst) {
     const p = e.payload ?? {}
     if (e.type === 'agent.stage.reported@1') {
       const said = text(p.stage)
-      const task = text(p.task_id) ?? heldAt(e.occurred_at)
+      const stamped = text(p.task_id)
+      const task = stamped ? restamped(stamped, e.occurred_at) : heldAt(e.occurred_at)
       if (said && task) of(task).milestones.push({ text: said, step: num(p.step), ofSteps: num(p.of_steps), note: text(p.note), at: e.occurred_at })
     } else if (e.type === 'work.released@1') {
       const task = text(p.work)
