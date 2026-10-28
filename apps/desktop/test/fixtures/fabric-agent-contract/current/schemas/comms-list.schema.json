@@ -20,7 +20,7 @@
       "maximum": 100
     },
     "unread": {
-      "description": "true: only messages this reader's Project has not marked read (DEC-0098). Either filter makes every message of the page carry read; a cursor is bound to the filter.",
+      "description": "true: only messages delivered to this reader's Project (DEC-0135 DR-1 to DR-5) that it has not marked read (DEC-0098). Either filter makes every message of the page carry read; a cursor is bound to the filter.",
       "type": "boolean"
     },
     "since": {

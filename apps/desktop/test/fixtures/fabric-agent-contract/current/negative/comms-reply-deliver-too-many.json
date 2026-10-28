@@ -1,0 +1,29 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "reply-2026-10-26-0006"
+  },
+  "replyTo": "msg_K9j8H7g6F5",
+  "body": {
+    "text": "Too many."
+  },
+  "deliverTo": [
+    "proj-a0x",
+    "proj-b1x",
+    "proj-c2x",
+    "proj-d3x",
+    "proj-e4x",
+    "proj-f5x",
+    "proj-g6x",
+    "proj-h7x",
+    "proj-i8x",
+    "proj-j9x",
+    "proj-k10x",
+    "proj-l11x",
+    "proj-m12x",
+    "proj-n13x",
+    "proj-o14x",
+    "proj-p15x",
+    "proj-q16x"
+  ]
+}

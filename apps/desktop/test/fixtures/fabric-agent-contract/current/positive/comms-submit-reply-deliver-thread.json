@@ -1,0 +1,15 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "reply-2026-10-26-0005"
+  },
+  "thread": {
+    "id": "thr_8Hc2kQ9xA1"
+  },
+  "kind": "reply",
+  "replyTo": "msg_Q2w3e4r5t6",
+  "deliverTo": "thread",
+  "body": {
+    "text": "Done, for everyone here."
+  }
+}

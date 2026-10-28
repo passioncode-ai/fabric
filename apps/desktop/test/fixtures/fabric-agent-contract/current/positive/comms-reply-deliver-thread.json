@@ -1,0 +1,11 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "reply-2026-10-26-0001"
+  },
+  "replyTo": "msg_K9j8H7g6F5",
+  "deliverTo": "thread",
+  "body": {
+    "text": "Released for everyone on this thread: v1.4.2."
+  }
+}

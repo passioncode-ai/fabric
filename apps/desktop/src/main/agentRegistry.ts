@@ -41,7 +41,9 @@ const REMOTE_ORIGIN = /^https:\/\/([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2
 const PROVIDER_URL = /^http:\/\/127\.0\.0\.1:([1-9][0-9]{2,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])\/mcp$/
 const LABEL = /^[A-Za-z0-9][A-Za-z0-9._-]{2,254}$/
 const HEADER = /^[A-Za-z][A-Za-z0-9-]{0,63}$/
-const LOCAL_PATH = /^(~\/|\/)[^\0]*$/
+// service-common's `localPath` at the pinned contract (3830a33; DEC-0032, DEC-0057, DEC-0145): POSIX `/…` or `~/…`, Windows
+// drive-absolute (`C:\…`, `C:/…`) or `~\…`; never a network share (`\\server\…`, `\\?\…`, `//server/…`), on either system.
+const LOCAL_PATH = /^(?=[^]{1,1024}$)(~[\\/]|\/(?![\\/])|[A-Za-z]:[\\/])[^\0]*$/
 const SECRET_REF = /^secret-ref:[A-Za-z0-9][A-Za-z0-9._/:@-]{0,255}$/
 const ENV_NAME = /^[A-Z_][A-Z0-9_]*$/
 /** A descriptor is a few hundred bytes; anything this large is not one, and is not read. */
@@ -226,7 +228,7 @@ export function validateProviderEntry(raw: unknown): string[] {
   if (d.protocol !== PROVIDER_PROTOCOL) problems.push(`protocol must be ${PROVIDER_PROTOCOL}, not ${JSON.stringify(d.protocol)}`)
   if (!isStr(d.id) || !ID.test(d.id)) problems.push('id must be lowercase letters, digits and dashes')
   if (!isUri(d.providerId)) problems.push('providerId must be a URI')
-  if (!isStr(d.manifest) || !LOCAL_PATH.test(d.manifest) || !/(^|\/)fabric-agent\.json$/.test(d.manifest)) problems.push('manifest must be an absolute or ~/ path to fabric-agent.json')
+  if (!isStr(d.manifest) || !LOCAL_PATH.test(d.manifest) || !/(^|[\\/])fabric-agent\.json$/.test(d.manifest)) problems.push('manifest must be an absolute or ~/ path to fabric-agent.json')
   const mcp = isObj(d.run) ? d.run.mcp : undefined
   if (!isObj(d.run) || Object.keys(d.run).some((k) => k !== 'mcp') || !isObj(mcp)) problems.push('run must be {mcp: {stdio} or {url}}')
   else if ('url' in mcp) {

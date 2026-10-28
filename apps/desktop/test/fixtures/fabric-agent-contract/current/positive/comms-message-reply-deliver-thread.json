@@ -1,0 +1,21 @@
+{
+  "id": "msg_R7t8Y9u0I1",
+  "thread": "thr_8Hc2kQ9xA1",
+  "kind": "reply",
+  "sender": {
+    "project": "proj-analytics",
+    "principal": {
+      "kind": "agent",
+      "id": "enr_analytics_01",
+      "label": "Analytics agent",
+      "provenance": "trusted"
+    }
+  },
+  "at": "2026-10-26T15:00:00Z",
+  "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "body": {
+    "text": "Done, for everyone here."
+  },
+  "replyTo": "msg_Q2w3e4r5t6",
+  "deliverTo": "thread"
+}

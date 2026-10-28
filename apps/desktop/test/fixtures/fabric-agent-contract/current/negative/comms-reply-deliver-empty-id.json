@@ -1,0 +1,13 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "reply-2026-10-26-0008"
+  },
+  "replyTo": "msg_K9j8H7g6F5",
+  "body": {
+    "text": "An empty Project id."
+  },
+  "deliverTo": [
+    ""
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "reply-2026-10-26-0009"
+  },
+  "replyTo": "msg_K9j8H7g6F5",
+  "deliverTo": "sender",
+  "body": {
+    "text": "To you, who asked."
+  }
+}

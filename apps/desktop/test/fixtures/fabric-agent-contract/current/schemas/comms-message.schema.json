@@ -58,6 +58,10 @@
       "description": "Only on a reply to an announcement (DEC-0098).",
       "$ref": "comms-common.schema.json#/$defs/reaction"
     },
+    "deliverTo": {
+      "description": "On a reply only: the deliverTo its sender gave (DEC-0135 DR-4); absent, the reply was delivered as sender, except one stored before its board adopted DEC-0135, delivered as that board delivered it then. A host sends it only to a reader pinned at or after DEC-0135.",
+      "$ref": "comms-common.schema.json#/$defs/deliverTo"
+    },
     "request": {
       "type": "object",
       "required": [
@@ -123,7 +127,7 @@
       "$ref": "comms-common.schema.json#/$defs/finding"
     },
     "read": {
-      "description": "Whether the reader's Project has marked this message read. Present exactly when the page was asked with unread or since (DEC-0098); a page asked with neither carries none, as before.",
+      "description": "Present exactly on a page asked with unread or since (DEC-0098): true when the message is not unread to the reader's Project, that is when it marked it, sent it, or the message was not delivered to it (DEC-0135 DR-1 to DR-5).",
       "type": "boolean"
     }
   },
@@ -188,7 +192,8 @@
       },
       "else": {
         "properties": {
-          "reaction": false
+          "reaction": false,
+          "deliverTo": false
         }
       }
     }

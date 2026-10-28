@@ -153,8 +153,8 @@ test('every comms fixture the contract grades gets the same verdict from the pin
   // (the replace receipt's `transferred`: one positive, seven negatives) at f00a768, and DEC-0079's, DEC-0080's and
   // DEC-0081's fifty-nine (the held refusal and member, the structured finding, the owner's settlement) at a59d04b, and
   // twenty-six at 39c8977 (com.read_ack, the host's wait refusal, the unread filter, reactions, noResponder: ten positive,
-  // sixteen negative).
-  assert.equal(graded.length, 162)
+  // sixteen negative), and fourteen at 3830a33 (DEC-0135's reply audience, `deliverTo`: six positive, eight negative).
+  assert.equal(graded.length, 176)
   for (const entry of graded) {
     const validate = comms[entry.schema]
     assert.ok(validate, `${entry.name}: no compiled comms schema ${entry.schema}`)

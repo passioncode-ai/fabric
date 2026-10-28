@@ -1,0 +1,14 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "message-2026-10-26-0001"
+  },
+  "thread": {
+    "id": "thr_8Hc2kQ9xA1"
+  },
+  "kind": "message",
+  "deliverTo": "thread",
+  "body": {
+    "text": "Only a reply chooses its delivery."
+  }
+}

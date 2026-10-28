@@ -76,6 +76,10 @@
       "description": "With kind reply only, and only when replyTo is an announcement (DEC-0098).",
       "$ref": "comms-common.schema.json#/$defs/reaction"
     },
+    "deliverTo": {
+      "description": "With kind reply only (DEC-0135 DR-2).",
+      "$ref": "comms-common.schema.json#/$defs/deliverTo"
+    },
     "request": {
       "type": "object",
       "required": [
@@ -221,7 +225,8 @@
       },
       "else": {
         "properties": {
-          "reaction": false
+          "reaction": false,
+          "deliverTo": false
         }
       }
     }

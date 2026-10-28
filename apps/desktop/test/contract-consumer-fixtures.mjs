@@ -8,7 +8,7 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
 export const fixtureRoot = fileURLToPath(new URL('./fixtures/fabric-agent-contract/', import.meta.url))
-export const CURRENT_COMMIT = '39c8977380f0b37b7705f1416590c0211fccbe63'
+export const CURRENT_COMMIT = '3830a3353923e20f826d466610e1c479f120bec0'
 export const LEGACY_COMMIT = '2ce392291c6668598d12cd38327e24696b5ca15c'
 export const schemaPrefix = 'https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/'
 // fabric-project-comms/0.1 (DEC-0022, accepted 2026-10-05) joins at d4c8831: its schemas, and every comms
@@ -35,7 +35,9 @@ const positiveNames = ['comms-cancel', 'comms-claim', 'comms-complete', 'comms-d
   'comms-reconcile-owner', 'comms-refusal', 'comms-refusal-held', 'comms-reply-participant', 'comms-reply-reaction-row', 'comms-reply-responder',
   'comms-responder-replace', 'comms-status', 'comms-status-args', 'comms-status-epoch', 'comms-status-held', 'comms-submit-finding',
   'comms-submit-reply', 'comms-submit-reply-reaction', 'comms-submit-request', 'interop-agent-call', 'manifest-mcp', 'pipeline',
-  'service-well-known-capabilities']
+  'service-well-known-capabilities',
+  // The repin to 3830a33 (v0.1.0+2026-10-27.6): DEC-0135's reply audience (`deliverTo`), graded by the contract.
+  'comms-message-reply-deliver-thread', 'comms-reply-deliver-list', 'comms-reply-deliver-list-max', 'comms-reply-deliver-sender', 'comms-reply-deliver-thread', 'comms-submit-reply-deliver-thread']
 const negativeNames = ['comms-cancel-forged-sender', 'comms-cancel-reason-too-long', 'comms-claim-forged-project', 'comms-claim-without-idempotency',
   'comms-complete-outcome-unknown', 'comms-directory-args-forged-estate', 'comms-directory-args-limit-over-page', 'comms-directory-entry-held',
   'comms-directory-entry-with-content', 'comms-directory-entry-with-generation', 'comms-directory-held-not-boolean', 'comms-directory-over-page',
@@ -67,7 +69,8 @@ const negativeNames = ['comms-cancel-forged-sender', 'comms-cancel-reason-too-lo
   'comms-submit-finding-task-too-long', 'comms-submit-finding-with-evidence', 'comms-submit-finding-without-affects',
   'comms-submit-finding-without-consequence', 'comms-submit-finding-without-dedupe-key', 'comms-submit-finding-without-severity',
   'comms-submit-forged-estate', 'comms-submit-forged-sender', 'comms-submit-reaction-on-message', 'comms-submit-reply-without-target',
-  'comms-submit-request-without-details', 'comms-submit-too-many-artifacts']
+  'comms-submit-request-without-details', 'comms-submit-too-many-artifacts',
+  'comms-message-deliver-on-message', 'comms-reply-deliver-duplicate', 'comms-reply-deliver-empty-id', 'comms-reply-deliver-empty-list', 'comms-reply-deliver-too-many', 'comms-reply-deliver-unknown', 'comms-reply-responder-deliver', 'comms-submit-deliver-on-message']
 export const expectedPaths = [
   ...currentSchemas.map(name => `current/schemas/${name}.schema.json`),
   ...positiveNames.map(name => `current/positive/${name}.json`),

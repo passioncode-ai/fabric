@@ -49,7 +49,7 @@
           "$ref": "comms-common.schema.json#/$defs/opaqueId"
         },
         "upTo": {
-          "description": "A message of that thread: every message of the thread delivered to the reader at or before it is marked, the oldest 1000 at most (the receipt says more).",
+          "description": "A message of that thread: every message of the thread the reader's Project did not send, at or before it, is marked, the oldest 1000 at most (the receipt says more).",
           "$ref": "comms-common.schema.json#/$defs/opaqueId"
         }
       },

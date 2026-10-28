@@ -50,7 +50,7 @@ test('Fabric\'s commsDigest reproduces every digest vector the contract publishe
   for (const r of vectors.refuses) assert.throws(() => commsDigest(r.operation, JSON.parse(r.argsJson)), CommsCanonicalError, r.name)
 })
 
-// What the pin (39c8977, v0.1.0+2026-10-26.3) grades valid and Fabric does not serve yet, each named with the node or row
+// What the pin (3830a33, v0.1.0+2026-10-27.6) grades valid and Fabric does not serve yet, each named with the node or row
 // that serves it and the contract decision behind it. Fabric refuses these today on purpose; the list is exact both ways — a new disagreement
 // fails the mirror tests, and so does a member Fabric starts serving without leaving this list.
 const OWED = new Map([
@@ -60,7 +60,15 @@ const OWED = new Map([
   // DEC-0098 item 7 (the typed reaction on a reply to an announcement) is new to Fabric: the board stores no reaction, so
   // it refuses one as an unknown member, as DEC-0098's compatibility note allows; serving it needs a migration.
   ['comms-submit-reply-reaction', 'CO-396: a typed reaction on com.submit kind reply to an announcement (DEC-0098 item 7)'],
-  ['comms-reply-reaction-row', 'CO-396: a typed reaction on com.reply to an announcement (DEC-0098 item 7)']
+  ['comms-reply-reaction-row', 'CO-396: a typed reaction on com.reply to an announcement (DEC-0098 item 7)'],
+  // DEC-0135 (at 3830a33): a reply names its audience. Fabric stores none yet and answers every reader as one pinned before
+  // DEC-0135 (migration 125), so it refuses `deliverTo` as an unknown member; storing and honouring it is CO-437.
+  ['comms-reply-deliver-sender', 'CO-437: `deliverTo` on com.reply (DEC-0135)'],
+  ['comms-reply-deliver-thread', 'CO-437: `deliverTo` on com.reply (DEC-0135)'],
+  ['comms-reply-deliver-list', 'CO-437: `deliverTo` on com.reply (DEC-0135)'],
+  ['comms-reply-deliver-list-max', 'CO-437: `deliverTo` on com.reply (DEC-0135)'],
+  ['comms-submit-reply-deliver-thread', 'CO-437: `deliverTo` on com.submit kind reply (DEC-0135)'],
+  ['comms-message-reply-deliver-thread', 'CO-437: `deliverTo` on a message read back (DEC-0135)']
 ])
 const verdict = (e, accepted, mirror) => {
   if (OWED.has(e.name)) assert.equal(accepted, false, `${e.name}: Fabric now serves it — take it out of OWED (${OWED.get(e.name)})`)
@@ -70,8 +78,9 @@ const verdict = (e, accepted, mirror) => {
 test('the input schema reaches the contract\'s verdict on every comms-submit fixture it grades', () => {
   const graded = catalogue.filter(e => e.schema === 'comms-submit.schema.json')
   // DEC-0022's eight, DEC-0080's structured finding (one positive, thirty-three negatives) at a59d04b, and DEC-0098's
-  // reaction (one positive reply carrying it, one negative on a plain message) at 39c8977.
-  assert.equal(graded.length, 44)
+  // reaction (one positive reply carrying it, one negative on a plain message) at 39c8977, and DEC-0135's `deliverTo`
+  // (one positive reply naming its thread, one negative on a plain message) at 3830a33.
+  assert.equal(graded.length, 46)
   for (const e of graded) {
     const doc = fixtures.document('current/' + e.path)
     verdict(e, commsSubmitSchema.safeParse(doc).success, 'schema')

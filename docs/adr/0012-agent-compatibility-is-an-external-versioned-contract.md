@@ -53,3 +53,6 @@ was observed failing before green acceptance.
 `test/fixtures/fabric-agent-contract/`); the link above to `48973705` is kept as written, the commit this record cited
 when it was accepted.
 
+**Note, 2026-10-28 (CO-479):** Fabric pins the contract at `3830a33` (`v0.1.0+2026-10-27.6`,
+`test/fixtures/fabric-agent-contract/`); the delta from `39c8977` and each decision's owner are in
+[the delta's map](../evidence/plans/2026-10-28-contract-delta-39c8977-3830a33.md).

@@ -1,0 +1,28 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "reply-2026-10-26-0016"
+  },
+  "replyTo": "msg_K9j8H7g6F5",
+  "deliverTo": [
+    "proj-p01",
+    "proj-p02",
+    "proj-p03",
+    "proj-p04",
+    "proj-p05",
+    "proj-p06",
+    "proj-p07",
+    "proj-p08",
+    "proj-p09",
+    "proj-p10",
+    "proj-p11",
+    "proj-p12",
+    "proj-p13",
+    "proj-p14",
+    "proj-p15",
+    "proj-p16"
+  ],
+  "body": {
+    "text": "Sixteen Projects, the most a reply names."
+  }
+}

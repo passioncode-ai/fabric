@@ -57,7 +57,7 @@
         "outcome_unknown",
         "answered"
       ],
-      "description": "answered (DEC-0098, DEC-0102): the target Project's participant message of any kind but request (never a responder's fenced reply or progress note) whose replyTo is the request moved it from queued, at once or on the board's pass for one that came while it was claimed. It is not open: no responder claims it and its deadline no longer expires it; the requester may still cancel it. A reply is not a completion: answered says the target answered, never that the asked work was done."
+      "description": "answered (DEC-0098, DEC-0102): the target Project's participant message of any kind but request (never a responder's fenced reply or progress note) whose replyTo is the request (delivered to the requester whatever its deliverTo says unless the requester is the replier's own Project or the board no longer holds the request, DEC-0135) moved it from queued, at once or on the board's pass for one that came while it was claimed. It is not open: no responder claims it and its deadline no longer expires it; the requester may still cancel it. A reply is not a completion: answered says the target answered, never that the asked work was done."
     },
     "effectState": {
       "enum": [
@@ -391,6 +391,26 @@
             "properties": {
               "due": false
             }
+          }
+        }
+      ]
+    },
+    "deliverTo": {
+      "description": "Who a reply is delivered to (DEC-0135 DR-2): sender (the default when absent) is the Project that sent the message answered, or every participant but the replier when the replier's own Project sent it or the board does not hold it; thread is every participant but the replier; a list names 1 to 16 participant Projects, never the replier's own. Delivery decides what is unread for a Project and what the transport mirror sends, never who may read the thread (C2): every participant reads every message of it. The replier's own Project in a list is refused invalid_arguments, checked before the participant check (a hold and a repeat of a stored key answer before both); a listed Project that is not a participant is refused immutable_participants. A reply to a request also reaches the requester whatever deliverTo says, unless it is the replier's own Project or the board no longer holds the request.",
+      "oneOf": [
+        {
+          "enum": [
+            "sender",
+            "thread"
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/projectId"
           }
         }
       ]

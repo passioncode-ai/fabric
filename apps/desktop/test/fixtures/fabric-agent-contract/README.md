@@ -2,10 +2,10 @@
 
 `SOURCE.json` owns the exact upstream repository, immutable revisions, file paths and
 SHA-256 byte receipts. All files named there are copied directly from the recorded Git
-objects, with no schema edits. The current closure, `39c8977` (tag `v0.1.0+2026-10-26.3`),
+objects, with no schema edits. The current closure, `3830a33` (tag `v0.1.0+2026-10-27.6`),
 compiles the four capability-name surfaces (manifest, interop-agent-call, service-well-known and
 pipeline) and the twenty-four `fabric-project-comms/0.1` surfaces, 37 schemas in all. It carries
-the contract's own `fixtures/catalogue.json` and every comms fixture it grades, 49 positive and 113
+the contract's own `fixtures/catalogue.json` and every comms fixture it grades, 55 positive and 121
 negative, so the consumer test reaches the same verdicts as the contract (ADR-0117). Shared
 dependency schemas are included because compilation must resolve the normative references
 (`decision`, `mandate` and `interop-common` since this pin: `interop-agent-call` refers to them).

@@ -95,7 +95,7 @@
           "items": {
             "$ref": "common.schema.json#/$defs/capabilityName"
           },
-          "description": "The capabilities (tool names) the task may call; absent, any capability whose effect is within effects."
+          "description": "The capabilities (tool names) the task may call; absent, any capability for a read or a draft, and none named for an external effect or a relayed action (MD-3); a hand-over never adds it where the scope in force has none (DEC-0136 MD-2a)."
         },
         "actions": {
           "type": "array",
@@ -105,7 +105,7 @@
           "items": {
             "$ref": "interop-common.schema.json#/$defs/requestKey"
           },
-          "description": "The relayed actions (extensions/actions/0.1 ids) the task may take as the operator's decision; absent, a relayed action is covered only through a listed capability that is its tool."
+          "description": "The relayed actions (extensions/actions/0.1 ids) the task may take as the operator's decision; absent, a relayed action is covered only through a listed capability that is its tool (for a job's input request, the job's capability, DEC-0141 MJ-1); a hand-over adds it only where the scope in force lists capabilities (DEC-0136 MD-2a)."
         },
         "effects": {
           "type": "array",
