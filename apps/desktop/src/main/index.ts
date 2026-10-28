@@ -78,7 +78,7 @@ import { readHandedInToday, withStrip } from './homeStrip.ts'
 import { withHeartbeats } from './agentHeartbeats.ts'
 import { withGoals } from './agentGoals.ts'
 import { createRhythmReader } from './workRhythm.ts'
-import { withWaitingList } from './commsWaitingList.ts'
+import { createWaitingReader } from './commsWaitingList.ts'
 import { withIdentity } from './agentIdentity.ts'
 import { withWork } from './agentWork.ts'
 import { createDisplayNameReader, withDisplayNames } from './projectNames.ts'
@@ -3774,11 +3774,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.commsSearch, (_e, query: unknown, before: unknown): Promise<Returns<FabricApi['comms']['search']>> => commsRead.search(ACTIVE_ESTATE, query, before))
   handle(IPC.commsPending, (): Promise<Returns<FabricApi['comms']['pending']>> => commsRead.pending(ACTIVE_ESTATE))
   // The mockup parity (home gap D11): the waiting requests themselves beside the count (`commsWaitingList.ts`).
-  handle(IPC.commsWaiting, async (): Promise<Returns<FabricApi['comms']['waiting']>> => withWaitingList(await commsRead.waiting(ACTIVE_ESTATE), {
+  // CO-477: one reading at a time, and the list read again only when the count moved or after 15 s.
+  const waitingReader = createWaitingReader(() => commsRead.waiting(ACTIVE_ESTATE), {
     store: store as never, now: Date.now,
     responders: () => commsRead.responders(ACTIVE_ESTATE),
     threads: () => commsRead.threadPage(ACTIVE_ESTATE, { kind: 'request', openOnly: true }, null, 50)
-  }))
+  })
+  handle(IPC.commsWaiting, (): Promise<Returns<FabricApi['comms']['waiting']>> => waitingReader.read())
   handle(IPC.commsOpenArtifact, (_e, url: unknown): Promise<Returns<FabricApi['comms']['openArtifact']>> => commsRead.openArtifact(url))
   // #endregion comms-screen
 

@@ -102,3 +102,13 @@ test('ER-10 (0.3.15 review, iteration 2): a full turns read, or a full enrolment
   const w = await withIdentity(view([agent('new')]), fakeStore(many), held, Date.parse('2026-10-27T10:00:00Z'))
   assert.equal(w.identityUnread, true)
 })
+
+test('CO-477 (0.3.15 review, ER-12, ER-13): earlier stage reports are read newest first and bounded; a full claims read is said as partial', async () => {
+  const store = fakeStore(tables)
+  const v = await withIdentity(view([agent('new')]), store, held, Date.parse('2026-10-27T10:00:00Z'))
+  assert.equal(v.identityUnread, undefined)
+  assert.deepEqual(store.calls.find((c) => c.table === 'agent_stages').order, { column: 'reported_at', ascending: false, limit: 1000 })
+  const claims = Array.from({ length: 1000 }, (_, i) => ({ work_id: 't1', project_id: 'p1', owner_session: 'old', claimed_at: `2026-10-26T${String(i % 24).padStart(2, '0')}:00:00Z`, released_at: null, released_how: null }))
+  const w = await withIdentity(view([agent('new')]), fakeStore({ ...tables, work_claims: claims }), held, Date.parse('2026-10-27T10:00:00Z'))
+  assert.equal(w.identityUnread, true)
+})

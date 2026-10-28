@@ -60,3 +60,56 @@ test('ER-15 (0.3.15 review, iteration 3): a thread page that rejects drops the s
   assert.equal(r.list.length, 1)
   assert.equal(r.list[0].requestId, 'r1')
 })
+
+// CO-477 (the 0.3.15 review, iteration 2, ER-10): every `comms` event asked for the whole list; the reader coalesces.
+const { createWaitingReader, LIST_MIN_INTERVAL_MS } = await import(path.resolve(import.meta.dirname, '../src/main/commsWaitingList.ts'))
+
+function reader({ counts, clock }) {
+  const d = deps()
+  d.now = () => clock.t
+  let i = 0
+  const r = createWaitingReader(async () => counts[Math.min(i++, counts.length - 1)], d)
+  return { r, lists: () => d.calls.filter((c) => c.columns === 'occurred_at,payload' && c.table === 'journal' && c.eq?.length === 2).length }
+}
+
+test('CO-477: an unchanged count within 15 s answers the kept list without reading it again', async () => {
+  const clock = { t: Date.parse('2026-10-27T10:00:00Z') }
+  const one = { ok: true, requests: 1, oldestRequestAt: '2026-10-25T09:00:00Z' }
+  const { r, lists } = reader({ counts: [one, one, one], clock })
+  const a = await r.read()
+  clock.t += LIST_MIN_INTERVAL_MS - 1
+  const b = await r.read()
+  assert.equal(lists(), 1)
+  assert.deepEqual(b.list, a.list)
+  clock.t += 1
+  await r.read()
+  assert.equal(lists(), 2, 'a list 15 s old is read again')
+})
+
+test('CO-477: a count that moved reads the list again at once', async () => {
+  const clock = { t: Date.parse('2026-10-27T10:00:00Z') }
+  const { r, lists } = reader({ counts: [{ ok: true, requests: 1, oldestRequestAt: '2026-10-25T09:00:00Z' }, { ok: true, requests: 2, oldestRequestAt: '2026-10-25T09:00:00Z' }], clock })
+  await r.read(); await r.read()
+  assert.equal(lists(), 2)
+})
+
+test('CO-477: readers at the same time share one reading', async () => {
+  const clock = { t: Date.parse('2026-10-27T10:00:00Z') }
+  const { r, lists } = reader({ counts: [{ ok: true, requests: 1, oldestRequestAt: '2026-10-25T09:00:00Z' }, { ok: true, requests: 9 }], clock })
+  const [a, b] = await Promise.all([r.read(), r.read()])
+  assert.equal(a, b)
+  assert.equal(lists(), 1)
+})
+
+test('CO-477: a list that failed is not kept, and an unavailable board is answered as it is', async () => {
+  const clock = { t: Date.parse('2026-10-27T10:00:00Z') }
+  const one = { ok: true, requests: 1, oldestRequestAt: '2026-10-25T09:00:00Z' }
+  const d = deps({ journalError: 'away' })
+  d.now = () => clock.t
+  const r = createWaitingReader(async () => one, d)
+  assert.equal((await r.read()).list, undefined)
+  assert.equal((await r.read()).list, undefined)
+  assert.equal(d.calls.length, 2, 'the failed list is read again, not answered from a cache')
+  const down = { ok: false, error: { code: 'unavailable', message: 'x' } }
+  assert.equal(await createWaitingReader(async () => down, deps()).read(), down)
+})

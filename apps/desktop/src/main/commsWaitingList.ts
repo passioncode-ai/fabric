@@ -6,7 +6,7 @@
  * subjects of the threads with open requests. Any read that fails leaves the reply as the board gave it (the count
  * alone) and is logged; the count is never touched.
  */
-import type { CommsRespondersReply, CommsThreadPageReply, CommsWaitingReply } from '../shared/commsRead.ts'
+import type { CommsRespondersReply, CommsThreadPageReply, CommsWaitingItem, CommsWaitingReply } from '../shared/commsRead.ts'
 import { composeWaitingList, type SubmittedRow, type TransitionRow } from '../shared/commsWaitingList.ts'
 import { GATEWAY_ROWS } from './homeStrip.ts'
 import { ops } from './opsSink.ts'
@@ -60,6 +60,41 @@ export async function withWaitingList(reply: CommsWaitingReply, deps: WaitingLis
   } catch (e) {
     ops.failed('comms.waiting-list-unread', e, { note: 'the home shows the count of waiting requests without the list' })
     return reply
+  }
+}
+
+/** How long a composed list is answered again while the board's count is unchanged (CO-477, the 0.3.15 review's ER-10). */
+export const LIST_MIN_INTERVAL_MS = 15_000
+
+/**
+ * The home's reading, coalesced as the rhythm reader is (`workRhythm.ts#createRhythmReader`): one reading at a time,
+ * callers meanwhile share it; the board's count is read on every reading, and the list (a thousand journal rows, a
+ * thread page and the transitions) is read again only when the count or its oldest request changed, or the last list
+ * is `LIST_MIN_INTERVAL_MS` old. Every `comms` event asked for the whole list before (CO-477). A list that could not be
+ * read is never kept.
+ */
+export function createWaitingReader(count: () => Promise<CommsWaitingReply>, deps: WaitingListDeps, opts: { minIntervalMs?: number } = {}) {
+  const minInterval = opts.minIntervalMs ?? LIST_MIN_INTERVAL_MS
+  let last: { at: number; requests: number; oldest: string | null; list: CommsWaitingItem[]; listComplete: boolean } | null = null
+  let flight: Promise<CommsWaitingReply> | null = null
+  const readNow = async (): Promise<CommsWaitingReply> => {
+    const reply = await count()
+    if (!reply.ok) return reply
+    const now = deps.now()
+    const oldest = reply.oldestRequestAt ?? null
+    if (last && last.requests === reply.requests && last.oldest === oldest && now - last.at >= 0 && now - last.at < minInterval) {
+      return { ...reply, list: last.list, listComplete: last.listComplete }
+    }
+    const full = await withWaitingList(reply, deps)
+    if (full.ok && full.list) last = { at: now, requests: reply.requests, oldest, list: full.list, listComplete: full.listComplete ?? false }
+    return full
+  }
+  return {
+    read(): Promise<CommsWaitingReply> {
+      if (flight) return flight
+      flight = readNow().finally(() => { flight = null })
+      return flight
+    }
   }
 }
 // #endregion comms-waiting-list-read

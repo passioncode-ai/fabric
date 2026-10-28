@@ -22,6 +22,9 @@ export interface IdentityStore {
 export const ENROLMENT_ROWS = 1000
 /** Claims read per chunk of session ids, newest first. */
 export const CLAIM_ROWS = 1000
+/** Stage reports read per chunk of session ids, newest first. `agent_stages` keeps one row per session, so a chunk of
+ *  100 ids never reaches it; the bound and the order keep the read what it says it is (CO-477, ER-12). */
+export const STAGE_ROWS = 1000
 
 const need = (r: Rows, what: string): Array<Record<string, unknown>> => {
   if (r.failed) throw new Error(`${what} could not be read: ${r.failed}`)
@@ -50,11 +53,15 @@ export async function withIdentity(view: HomeView, store: IdentityStore, held: r
     const all = [...new Set([...earlier, ...runtimeOf.keys()])]
     if (!earlier.length) return enrolCapped ? { ...view, identityUnread: true } : view
     const [stages, beats, claims] = await Promise.all([
-      store.selectIn('agent_stages', 'session_id,project_id,task_id,stage,step,of_steps,note,reported_at', 'session_id', earlier),
+      store.selectIn('agent_stages', 'session_id,project_id,task_id,stage,step,of_steps,note,reported_at', 'session_id', earlier, 100, undefined, [], { column: 'reported_at', ascending: false, limit: STAGE_ROWS }),
       store.selectIn('session_heartbeats', 'session_id,phase,last_received_at,waiting_kind', 'session_id', all),
       store.selectIn('work_claims', 'work_id,project_id,owner_session,claimed_at,released_at,released_how', 'owner_session', all, 100, undefined, [], { column: 'claimed_at', ascending: false, limit: CLAIM_ROWS })
     ])
     const claimRows = need(claims, 'the agents\' earlier claims') as unknown as IdentityClaim[]
+    // As many claims as one chunk's bound: an older claim may be cut, said on the view as the enrolments' cut is
+    // (CO-477, ER-13). Over several chunks this can say partial when nothing was cut; it never stays silent on a cut.
+    const claimsCapped = claimRows.length >= CLAIM_ROWS
+    if (claimsCapped) ops.record({ op: 'work.identity-capped', outcome: 'ok', level: 'info', detail: { rows: claimRows.length, read: 'claims' }, ctx: { correlationId: ops.correlate() } })
     const tasks = need(await store.selectIn('project_tasks', 'id,project_id,title,brief_what,status', 'id', [...new Set(claimRows.map((c) => c.work_id))]), 'the agents\' earlier tasks')
     const joined = joinByRuntime(view, {
       runtimeOf,
@@ -65,7 +72,7 @@ export async function withIdentity(view: HomeView, store: IdentityStore, held: r
       tasks: tasks as unknown as TaskBrief[],
       now
     })
-    return enrolCapped ? { ...joined, identityUnread: true } : joined
+    return enrolCapped || claimsCapped ? { ...joined, identityUnread: true } : joined
   } catch (e) {
     ops.failed('work.identity-unread', e, { note: 'each agent shows only what its current session id holds' })
     return { ...view, identityUnread: true }
