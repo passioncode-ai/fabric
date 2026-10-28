@@ -24,24 +24,30 @@ test('readHandedInToday reads the journal since the local midnight, bounded, and
   const calls = []
   const fake = (rows, error = null) => ({
     select: (table, columns) => {
-      const call = { table, columns, in: [], gte: [], limit: null }
+      const call = { table, columns, eq: [], gte: [], limit: null }
       calls.push(call)
       const chain = {
-        in: (k, v) => { call.in.push([k, v]); return chain },
+        eq: (k, v) => { call.eq.push([k, v]); return chain },
         gte: (k, v) => { call.gte.push([k, v]); return chain },
         order: () => chain,
         limit: (n) => { call.limit = n; return chain },
-        then: (ok) => ok(error ? { data: null, error: { message: error } } : { data: rows, error: null })
+        // The fake filters as the database would, so a read that forgot its filter counts what it should not.
+        then: (ok) => ok(error ? { data: null, error: { message: error } } : { data: rows.filter((r) => call.eq.every(([k, v]) => k === 'type' ? r.type === v : r.payload?.[k.slice(10)] === v)).slice(0, call.limit ?? Infinity), error: null })
       }
       return chain
     }
   })
   const now = new Date(2026, 9, 26, 18, 42).getTime()
-  const got = await readHandedInToday(fake([moved('t1', 'review'), closed('t2', 'done')]), { now, limit: 2 })
+  const got = await readHandedInToday(fake([moved('t1', 'review'), closed('t2', 'done')]), { now, limit: 1 })
   assert.deepEqual(got, { today: 2, capped: true })
   assert.equal(calls[0].table, 'journal')
-  assert.deepEqual(calls[0].in, [['type', ['task.moved@1', 'task.closed@1']]])
+  // CO-482: each read filtered in the database, as the rhythm's.
+  assert.deepEqual(calls.map((c) => c.eq), [[['type', 'task.moved@1'], ['payload->>to', 'review']], [['type', 'task.closed@1'], ['payload->>outcome', 'done']]])
   assert.deepEqual(calls[0].gte, [['occurred_at', new Date(localMidnight(now)).toISOString()]])
+  // Moves elsewhere no longer fill the bound: 1 000 moves to running and one to review count one, not a floor.
+  calls.length = 0
+  const noise = [...Array.from({ length: 1000 }, (_, i) => moved(`n${i}`, 'running')), moved('t9', 'review')]
+  assert.deepEqual(await readHandedInToday(fake(noise), { now }), { today: 1, capped: false })
   await assert.rejects(readHandedInToday(fake([], 'database away'), { now }), /handed in today could not be read: database away/)
   // DA-3: never more than the gateway answers, and a full answer is a floor (1 500 handed in read as «1000+», not 1000).
   calls.length = 0

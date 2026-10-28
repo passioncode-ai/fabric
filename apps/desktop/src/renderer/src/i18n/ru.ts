@@ -1693,6 +1693,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.home.boardWaiting.untaken': "{to} не взял · {age}",
   'launch.home.boardWaiting.fromNone': "Без проекта",
   'launch.home.boardWaiting.unknownProject': "проект вне списка",
+  'launch.home.boardWaiting.partial': "Список неполный: в нём могут быть запросы, которых нет в счёте выше",
   'launch.home.boardWaiting.more': "ещё {count}",
   'launch.home.boardWaiting.listLabel': "Запросы, которые не взял ни один агент",
   'launch.comms.request.state.answered': "получен ответ",

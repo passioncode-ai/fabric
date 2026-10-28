@@ -81,6 +81,8 @@ describe('home: what waits on the board', () => {
     await waitFor(() => expect(screen.getByText('No project → dash: “One”')).toBeTruthy())
     expect(screen.getByText(/no agent is answering now: 30\./)).toBeTruthy()
     expect(screen.queryByText(/more$/)).toBeNull()
+    // CO-482: the lines of an incomplete list are said to be partial.
+    expect(screen.getByText(en['launch.home.boardWaiting.partial'])).toBeTruthy()
   })
 
   it('UX-16 (0.3.15 review, iteration 2): a request whose time does not parse says who has not taken it, without a dash', async () => {

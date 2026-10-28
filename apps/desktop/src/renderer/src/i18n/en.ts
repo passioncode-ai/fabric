@@ -2371,6 +2371,7 @@ export const en = {
   'launch.home.boardWaiting.untaken': "{to} has not taken it · {age}",
   'launch.home.boardWaiting.fromNone': "No project",
   'launch.home.boardWaiting.unknownProject': "a project not in the list",
+  'launch.home.boardWaiting.partial': "This list is partial: it may hold requests the count above leaves out",
   'launch.home.boardWaiting.more': "{count} more",
   'launch.home.boardWaiting.listLabel': "Requests no agent has taken",
   'launch.comms.request.state.answered': "answered",

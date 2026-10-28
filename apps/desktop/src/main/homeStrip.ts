@@ -32,7 +32,7 @@ export function localMidnight(now: number): number {
 }
 
 interface JournalQuery {
-  in(column: string, values: string[]): JournalQuery
+  eq(column: string, value: string): JournalQuery
   gte(column: string, value: string): JournalQuery
   order(column: string, options: { ascending: boolean }): JournalQuery
   limit(n: number): PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>
@@ -42,18 +42,21 @@ interface JournalQuery {
  *  tell a capped answer from a whole one (CO-310; the 0.3.14 review, iteration 2, DA-3). */
 export const GATEWAY_ROWS = 1000
 
-/** «Сдано сегодня»: at most the gateway's 1 000 events read (a read at its bound makes the count a floor, `capped`,
- *  said as «N+»); throws when the journal does not answer. */
+/** «Сдано сегодня»: the moves to review and the closes as done, each filtered in the database as «Ритм работы» filters
+ *  them (`workRhythm.ts`; CO-482: the strip read every move of the day and filtered in memory, so other moves could
+ *  fill the gateway's 1 000 rows first). Each read at most the gateway's rows; one at its bound makes the count a floor,
+ *  `capped`, said as «N+». Throws when the journal does not answer. */
 export async function readHandedInToday(store: { select(table: string, columns: string): unknown }, opts: { now: number; limit?: number }): Promise<{ today: number; capped: boolean }> {
   const limit = Math.min(opts.limit ?? GATEWAY_ROWS, GATEWAY_ROWS)
-  const q = store.select('journal', 'type,occurred_at,payload') as JournalQuery
-  const { data, error } = await q.in('type', ['task.moved@1', 'task.closed@1'])
-    .gte('occurred_at', new Date(localMidnight(opts.now)).toISOString())
-    .order('seq', { ascending: false })
-    .limit(limit)
-  if (error) throw new Error(`the tasks handed in today could not be read: ${error.message}`)
-  const rows = (data ?? []) as JournalRow[]
-  return { today: countHandedIn(rows), capped: rows.length >= limit }
+  const since = new Date(localMidnight(opts.now)).toISOString()
+  const read = async (type: string, key: string, value: string): Promise<JournalRow[]> => {
+    const q = store.select('journal', 'type,occurred_at,payload') as JournalQuery
+    const { data, error } = await q.eq('type', type).eq(key, value).gte('occurred_at', since).order('seq', { ascending: false }).limit(limit)
+    if (error) throw new Error(`the tasks handed in today could not be read: ${error.message}`)
+    return (data ?? []) as JournalRow[]
+  }
+  const [moved, closed] = await Promise.all([read('task.moved@1', 'payload->>to', 'review'), read('task.closed@1', 'payload->>outcome', 'done')])
+  return { today: countHandedIn([...moved, ...closed]), capped: moved.length >= limit || closed.length >= limit }
 }
 
 /** The home's reading with the strip's two reads of its own: each failure kept on its number. */
