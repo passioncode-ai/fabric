@@ -35,7 +35,8 @@ import { laneOf, SESSION_LANES, type SessionLane, type SessionTask, type Session
 import { subjectOfEvent } from '../../../shared/eventSubject.ts'
 import { mayHaveEarlier, SESSION_HISTORY_WINDOW, shownHistory } from '../../../shared/sessionHistory.ts'
 import { lastPhase, taskTrail, type TaskTrail } from '../../../shared/agentTrail.ts'
-import { agentStatus, type SessionStatus, type StatusTerminal } from '../../../shared/sessionStatus.ts'
+import { agentStatus, type StatusTerminal } from '../../../shared/sessionStatus.ts'
+import { StatusPill } from './StatusPill'
 import { describeEvent, pluralForm, useLocale, useT, type Translate } from '../i18n'
 import { runnerLabel } from '../runnerLabel'
 import { heldFor, knownTime, since, untimed } from '../duration'
@@ -82,11 +83,6 @@ export function atWords(iso: string, t: Translate, locale: string): string | nul
   if (days === 0) return t('agentScreen.at.today', { time })
   if (days === 1) return t('agentScreen.at.yesterday', { time })
   return t('agentScreen.at.date', { date: d.toLocaleDateString(locale, { day: 'numeric', month: 'short' }), time })
-}
-
-/** The session's status as the mockup's pill: its colour and shape beside the word, never the colour alone (R-19). */
-function StatusPill({ status, words }: { status: SessionStatus; words: string }): React.JSX.Element {
-  return <span className={`as-status s-${status}`}><span className={`rail-dot s-${status}`} aria-hidden="true" />{words}</span>
 }
 
 export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread, where, terminal, goalsUnread,

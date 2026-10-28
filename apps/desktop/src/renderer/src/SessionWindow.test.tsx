@@ -31,6 +31,7 @@ import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { SessionWindow } from './SessionWindow'
 import { I18nProvider } from './i18n'
 import { en } from './i18n/en'
+import { ru } from './i18n/ru'
 import type { TerminalSession } from '../../shared/types'
 
 afterEach(() => {
@@ -137,6 +138,20 @@ describe('a window onto one session', () => {
     expect(document.querySelector('.session-bar .session-stop-slot button')).toBeTruthy()
     expect(document.querySelector('.session-box .terminal-host')).toBeTruthy()
     expect(document.querySelector('.session-head')).toBeNull()
+  })
+
+  // CO-472 (0.3.15 review UX-10): the console's header says the agent's status word and colour, as the agent page and the
+  // rail do, from the one `sessionStatus` function; never the terminal's own state chip.
+  it('CO-472: the header says the agent page\'s status word, not the terminal state', async () => {
+    stub(async () => session({ state: 'idle' }))
+    const { unmount } = render(<I18nProvider locale="ru"><SessionWindow sessionId="s1" /></I18nProvider>)
+    await waitFor(() => expect(document.querySelector('.session-head .as-status.s-idle')).toBeTruthy())
+    expect(document.querySelector('.session-head .as-status')?.textContent).toBe(ru['status.idle'])
+    expect(document.querySelector('.session-head .chip')).toBeNull()
+    unmount()
+    stub(async () => session())
+    render(<I18nProvider locale="ru"><SessionWindow sessionId="s1" /></I18nProvider>)
+    await waitFor(() => expect(document.querySelector('.session-head .as-status.s-working')?.textContent).toBe(ru['agentScreen.state.working']))
   })
 
   it('shows the session when the read answers — the fixture is the working case', async () => {

@@ -7,8 +7,9 @@
 // folder, the state and the separate window as a small icon button; the terminal sits in a rounded, bordered box.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Banner, EmptyState, StateChip } from './components'
-import { sessionTone } from './sessionTone'
+import { Banner, EmptyState } from './components'
+import { StatusPill } from './launch/StatusPill'
+import { sessionStatus, type SessionStatus } from '../../shared/sessionStatus.ts'
 import { SessionStop, StopStatus } from './SessionStop'
 import { FailureNote } from './OperatorError'
 import { unwrap } from '../../shared/errorText'
@@ -114,7 +115,9 @@ export function SessionWindow({
   const session = reading.answer!
   const runner = runnerLabel(session.optionId, t)
   const state = session.termination ? <StopStatus state={session.termination} session={session} /> : (
-    <StateChip tone={sessionTone(session.state)} dot>{t(`session.state.${session.state}`)}</StateChip>
+    // CO-472 (UX-10): the word and colour the agent page and the rail say for this agent, from the same function, not
+    // the terminal's own state in upper case; the console sees no heartbeat, so it says what Fabric observes.
+    <ConsoleStatus status={sessionStatus({ terminal: session })} />
   )
   const detach = (): void => {
     setDetachProblem(null)
@@ -166,4 +169,10 @@ export function SessionWindow({
         : <TerminalView session={session} />}
     </div>
   )
+}
+
+/** The console header's status, in the agent page's words (CO-472): «работает» while it runs, the shared status word otherwise. */
+function ConsoleStatus({ status }: { status: SessionStatus }): React.JSX.Element {
+  const t = useT()
+  return <StatusPill status={status} words={status === 'working' ? t('agentScreen.state.working') : t(`status.${status}` as 'status.idle')} />
 }

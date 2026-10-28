@@ -28,6 +28,9 @@ const delay = ms => new Promise(r => setTimeout(r, ms))
 const until = async (fn, label) => { const deadline = performance.now() + 4000; while (performance.now() < deadline) { if (await fn()) return; await delay(10) } throw Error(label) }
 const stamp = fd => { const s = fstatSync(fd, { bigint: true }); return `${s.dev}/${s.ino}/${s.rdev}/${s.mode}` }
 let serial = 10
+// CO-488: the registry's deadline covers only the start (spawn and capture), which no case here times; 1 200 ms read
+// `outcome_unknown` on a machine at load average 375. The control's own deadline below stays short where a case times it.
+const START_MS = 10_000
 async function owned({ mode = 'reply', native: over = {}, timeoutMs = 1000 } = {}) {
   const root = path.join(dir, 'root-' + serial++); mkdirSync(root, { recursive: true, mode: 0o700 })
   const state = { authority: { personId: id(2), revision: 1 } }, calls = { write: 0, bytes: [] }, hooks = {}
@@ -36,7 +39,7 @@ async function owned({ mode = 'reply', native: over = {}, timeoutMs = 1000 } = {
     boundary, fdIdentity: fd => { const r = stamp(fd); hooks.fdIdentity?.(); return r },
     write: (fd, bytes) => { calls.write++; calls.bytes.push(bytes.toString()); return hooks.write ? hooks.write(fd, bytes) : writeSync(fd, bytes) }, ...over,
   }
-  const registry = createOwnedBackendProcessRegistry({ rootDir: root, estateId: estate, recipe: { executable, executableSha256: hash, argv: [peer, mode], cwd: dir, env: { HOME: dir } }, timeoutMs: 1200, authority: () => { hooks.authority?.(); return state.authority } }, native)
+  const registry = createOwnedBackendProcessRegistry({ rootDir: root, estateId: estate, recipe: { executable, executableSha256: hash, argv: [peer, mode], cwd: dir, env: { HOME: dir } }, timeoutMs: START_MS, authority: () => { hooks.authority?.(); return state.authority } }, native)
   registries.push(registry)
   const n = serial++, a = { admitted: true, project_id: id(3), task_id: id(n), task_run_id: id(n + 1000), session_id: id(n + 2000), run_ordinal: 1 }
   const started = await registry.start(a, a.session_id, async () => true); assert.equal(started.state, 'owned', JSON.stringify(started))
