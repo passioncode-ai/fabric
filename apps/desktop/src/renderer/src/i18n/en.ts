@@ -662,6 +662,7 @@ export const en = {
   'harness.tool.fabric_task_create': "File work on the board, with the evidence it came from",
   'harness.tool.fabric_task_claim': "Take a task so a neighbour does not start the same work",
   'harness.tool.fabric_task_release': "Let a task go, saying how it ended",
+  'harness.tool.fabric_task_close': "Close or cancel a task, only on the operator's relayed decision",
   'harness.tool.fabric_task_move': "Move a task between backlog, running and review — never to done",
   'harness.tool.fabric_task_note': "Working notes on one task, append-only",
   'harness.tool.fabric_task_handoff': "Hand a named result on to whatever task follows this one",

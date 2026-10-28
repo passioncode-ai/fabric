@@ -56,6 +56,7 @@ export const SURFACE_TOOLS: readonly SurfaceTool[] = [
   { name: 'fabric_task_create', purpose: 'File work on the board, with the evidence it came from', records: true },
   { name: 'fabric_task_claim', purpose: 'Take a task so a neighbour does not start the same work', records: true },
   { name: 'fabric_task_release', purpose: 'Let a task go, saying how it ended', records: true },
+  { name: 'fabric_task_close', purpose: 'Close or cancel a task, only on the operator\'s relayed decision', records: true },
   { name: 'fabric_task_move', purpose: 'Move a task between backlog, running and review — never to done', records: true },
   { name: 'fabric_task_note', purpose: 'Working notes on one task, append-only', records: true },
   { name: 'fabric_task_handoff', purpose: 'Hand a NAMED result on to whatever task follows this one', records: true },
