@@ -372,17 +372,30 @@ const SESSION_TASK_COLUMNS = 'id,project_id,title,brief_what,brief_why,brief_exp
  * task's brief and project. Every read's error THROWS, so the agent page never says "no task" from a read that did
  * not happen. Claims are read twice the page's limit, so a task claimed again and again does not push the rest out.
  */
+/** How many earlier session ids of one agent its page reads (CO-475): the bound keeps the list filters short. */
+export const SESSION_ALIASES = 20
+
+/** The earlier session ids of an agent, as the renderer sends them: uuids only, never the live id, at most `SESSION_ALIASES`. */
+export function sessionAliases(aliases: unknown, sessionId: string): string[] {
+  if (!Array.isArray(aliases)) return []
+  return [...new Set(aliases.filter((a): a is string => typeof a === 'string' && SESSION_UUID.test(a) && a !== sessionId))].slice(0, SESSION_ALIASES)
+}
+
 export async function readSessionTasks(
   store: Store,
   sessionId: unknown,
   /** The mockup parity (agent page): the session's runner and the machine's coding agents, for the «Агент» fact. */
-  opts: { runner?: string | null; executors?: () => Promise<ReadonlyArray<{ id: string; label?: string | null; version?: string | null }>> } = {}
+  opts: { runner?: string | null; executors?: () => Promise<ReadonlyArray<{ id: string; label?: string | null; version?: string | null }>>; aliases?: unknown } = {}
 ): Promise<SessionTasksView> {
   if (typeof sessionId !== 'string' || !SESSION_UUID.test(sessionId)) throw new Error('Invalid session identity')
+  // CO-475 (0.3.15 review, iteration 2, ER-8; iteration 3, DA-17): a re-enrolled agent is one agent across its session
+  // ids (`agentIdentity.ts`, `LiveAgent.aliases`), so its questions, claims, launches and history are read across them;
+  // an id that is not a session's uuid is dropped, and at most `SESSION_ALIASES` earlier ids are read.
+  const sessionIds = [sessionId, ...sessionAliases(opts.aliases, sessionId)]
   const CLAIMS = SESSION_TASKS_LIMIT * 2
   // The agent's own open questions (the mockup's «Вопросы этого агента»); a failed read is said, never «none».
   const questionsRead = Promise.resolve(store.select('questions', 'id,project_id,task_id,text,why_blocked,kind,options,asked_by_id,asked_at,status,revision')
-    .eq('asked_by_id', sessionId).eq('status', 'open').order('asked_at', { ascending: false }).limit(50))
+    .in('asked_by_id', sessionIds).eq('status', 'open').order('asked_at', { ascending: false }).limit(50))
     .then(
       (r): { rows: Array<Record<string, unknown>> } | { unread: string } => (r.error ? { unread: r.error.message } : { rows: (r.data ?? []) as unknown as Array<Record<string, unknown>> }),
       (e: unknown): { unread: string } => ({ unread: e instanceof Error ? e.message : String(e) })
@@ -391,11 +404,11 @@ export async function readSessionTasks(
     ? opts.executors().then((rows) => runnerOf(opts.runner, rows), () => runnerOf(opts.runner, []))
     : Promise.resolve(opts.runner ? runnerOf(opts.runner, []) : undefined)
   const [claims, launched, attached] = await Promise.all([
-    store.select('work_claims', 'work_id,project_id,claimed_at,released_at,released_how,release_note').eq('owner_session', sessionId).order('claimed_at', { ascending: false }).limit(CLAIMS),
-    store.select('project_tasks', SESSION_TASK_COLUMNS).eq('session_id', sessionId).order('started_at', { ascending: false }).limit(SESSION_TASKS_LIMIT),
+    store.select('work_claims', 'work_id,project_id,claimed_at,released_at,released_how,release_note').in('owner_session', sessionIds).order('claimed_at', { ascending: false }).limit(CLAIMS),
+    store.select('project_tasks', SESSION_TASK_COLUMNS).in('session_id', sessionIds).order('started_at', { ascending: false }).limit(SESSION_TASKS_LIMIT),
     // The 0.3.14 review, iteration 1, DA-5: a launched task is dated by when Fabric attached it to this session, not by
     // when the task was created (indexed by `journal_by_session_id`, migration 116).
-    store.select('journal', 'occurred_at,payload').eq('payload->>session_id', sessionId).eq('type', 'task.session.attached@1').order('seq', { ascending: false }).limit(SESSION_TASKS_LIMIT)
+    store.select('journal', 'occurred_at,payload').in('payload->>session_id', sessionIds).eq('type', 'task.session.attached@1').order('seq', { ascending: false }).limit(SESSION_TASKS_LIMIT)
   ])
   const attachedAt: Record<string, string> = {}
   for (const e of must(attached as never, "the session's launches") as Array<{ occurred_at: string; payload: { id?: unknown } | null }>)
@@ -420,7 +433,7 @@ export async function readSessionTasks(
   const [questions, runner] = await Promise.all([questionsRead, runnerRead])
   return {
     ...view,
-    ...('rows' in questions ? { questions: agentQuestions(sessionId, questions.rows) } : { questionsUnread: `the agent's questions could not be read: ${questions.unread}` }),
+    ...('rows' in questions ? { questions: agentQuestions(sessionIds, questions.rows) } : { questionsUnread: `the agent's questions could not be read: ${questions.unread}` }),
     ...(runner ? { runner } : {})
   }
 }

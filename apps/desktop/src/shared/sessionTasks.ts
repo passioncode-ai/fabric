@@ -173,9 +173,10 @@ export function runnerOf(agentId: string | null | undefined, executors: Readonly
 }
 
 /** The open questions an agent asked, as the page shows them; rows of other askers are dropped. */
-export function agentQuestions(sessionId: string, rows: ReadonlyArray<Record<string, unknown>>): AgentQuestion[] {
+export function agentQuestions(sessionIds: string | readonly string[], rows: ReadonlyArray<Record<string, unknown>>): AgentQuestion[] {
+  const ids = new Set(typeof sessionIds === 'string' ? [sessionIds] : sessionIds)
   return rows
-    .filter((r) => r.asked_by_id === sessionId && r.status === 'open' && typeof r.id === 'string' && typeof r.text === 'string')
+    .filter((r) => typeof r.asked_by_id === 'string' && ids.has(r.asked_by_id) && r.status === 'open' && typeof r.id === 'string' && typeof r.text === 'string')
     .map((r) => ({
       id: r.id as string,
       projectId: typeof r.project_id === 'string' ? r.project_id : null,

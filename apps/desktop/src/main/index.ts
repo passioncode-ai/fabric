@@ -5238,8 +5238,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
     return executorsKept.rows
   }
-  handle(IPC.workSession, async (_e, sessionId: unknown): Promise<Returns<FabricApi['work']['session']>> =>
-    readSessionTasks(store, sessionId, { runner: typeof sessionId === 'string' ? heldSessions().find((s) => s.sessionId === sessionId)?.agent ?? null : null, executors: executorsCached }))
+  handle(IPC.workSession, async (_e, sessionId: unknown, aliases?: unknown): Promise<Returns<FabricApi['work']['session']>> =>
+    readSessionTasks(store, sessionId, { runner: typeof sessionId === 'string' ? heldSessions().find((s) => s.sessionId === sessionId)?.agent ?? null : null, executors: executorsCached, aliases }))
   // «Ритм работы» (the mockup parity, home gaps D1, D2): one bounded count per local day, finished days kept
   // (`workRhythm.ts`); a day not read is unknown, never zero.
   const rhythmReader = createRhythmReader(store as never)

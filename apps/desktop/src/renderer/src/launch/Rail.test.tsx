@@ -208,6 +208,22 @@ describe('the left column', () => {
     expect(rows[1].className.split(' ').sort()).toEqual(['on', 'rail-agent'])
   })
 
+  // CO-483 (0.3.15 review UX-17, UX-18): an open console marks its project and, in «Агенты», its agent's row; the toggle's
+  // buttons keep their words as their names when the narrow rail shows only a sign.
+  it('CO-483: an open console marks its agent\'s row; the toggle keeps its names beside its signs', () => {
+    shell({ at: { kind: 'project', projectId: 'p-Kimi', session: 's2' } })
+    for (const k of ['rail.projects', 'rail.agents'] as const) {
+      const b = within(toggle()).getByRole('button', { name: en[k] })
+      expect(b.getAttribute('title')).toBe(en[k])
+      expect(b.querySelector('svg.rail-view-sign')?.getAttribute('aria-hidden')).toBe('true')
+      expect(b.querySelector('.rail-view-word')?.textContent).toBe(en[k])
+    }
+    fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))
+    const rows = within(screen.getByRole('list', { name: en['rail.agents.list'] })).getAllByRole('link')
+    expect(rows[1].getAttribute('aria-current')).toBe('page')
+    expect(rows[0].getAttribute('aria-current')).toBeNull()
+  })
+
   it('says reading, failed and nobody apart in the agents view, never one for another', () => {
     shell({ agents: { rows: null, problem: null } })
     fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))

@@ -89,7 +89,7 @@ export interface LaunchShellProps {
   projectsReadAt: string | null
   onRetryProjects(): void
   /** Where the person is: a place of the rail, an open project, or somewhere reached from a place (a start path). */
-  at: { kind: Exclude<RailPlace, 'agents'> } | { kind: 'agents'; session?: string | null } | { kind: 'project'; projectId: string } | { kind: 'elsewhere' }
+  at: { kind: Exclude<RailPlace, 'agents'> } | { kind: 'agents'; session?: string | null } | { kind: 'project'; projectId: string; session?: string | null } | { kind: 'elsewhere' }
   /** The heading of the top bar: the place's or the project's name. */
   title: string
   /** Project ids the person pinned (favourites, local to this computer): a star beside the name, nothing more. */
@@ -186,7 +186,8 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
     setView(next)
     viewButtons.current[next]?.focus()
   }
-  const agentSession = at.kind === 'agents' ? (at.session ?? null) : null
+  // CO-483 (UX-18): an open console marks its project AND its agent's row, so «Агенты» shows which session is open.
+  const agentSession = at.kind === 'agents' || at.kind === 'project' ? (at.session ?? null) : null
   const readAt = props.projectsReadAt
     ? new Date(props.projectsReadAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
     : null
@@ -249,9 +250,17 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
         </button>
         <div className="rail-view" role="group" aria-label={t('rail.view.label')} onKeyDown={onViewKey}>
           {(['projects', 'agents'] as const).map((v) => (
+            // CO-483 (0.3.15 review UX-17): at 900 px and below the rail is 64 px and the word does not fit; a sign takes its
+            // place, and the word stays the button's name and its tooltip.
             <button key={v} type="button" aria-pressed={view === v} tabIndex={view === v ? 0 : -1}
+              aria-label={t(v === 'projects' ? 'rail.projects' : 'rail.agents')} title={t(v === 'projects' ? 'rail.projects' : 'rail.agents')}
               ref={(el) => { viewButtons.current[v] = el }} onClick={() => setView(v)}>
-              {t(v === 'projects' ? 'rail.projects' : 'rail.agents')}
+              <span className="rail-view-word">{t(v === 'projects' ? 'rail.projects' : 'rail.agents')}</span>
+              <svg className="rail-view-sign" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+                {v === 'projects'
+                  ? <path d="M2 4.5a1 1 0 0 1 1-1h3.2l1.3 1.5H13a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+                  : <><circle cx="8" cy="5.5" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.3" /><path d="M3 13.5c.6-2.4 2.6-3.7 5-3.7s4.4 1.3 5 3.7" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></>}
+              </svg>
             </button>
           ))}
         </div>

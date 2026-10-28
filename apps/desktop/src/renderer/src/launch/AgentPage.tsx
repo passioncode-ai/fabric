@@ -141,21 +141,23 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
   }, [agent.sessionId, mark, attempt])
   const [tasksRead, setTasksRead] = useState<TasksRead & { of: string }>({ at: 'reading', of: agent.sessionId })
   const [tasksAttempt, setTasksAttempt] = useState(0)
+  const aliasKey = (agent.aliases ?? []).join(',')
   const [lane, setLane] = useState<SessionLane | 'all'>('all')
   /** The task row whose «Нужна правка в другом проекте» is open; one at a time. */
   const [xpOpen, setXpOpen] = useState<string | null>(null)
   useEffect(() => {
     let alive = true
     const of = agent.sessionId
-    // A bridge without the read (an older preload) is a failed read, said as such, never «no task».
-    Promise.resolve().then(() => window.fabric.work.session(of)).then(
+    // A bridge without the read (an older preload) is a failed read, said as such, never «no task». CO-475: the agent's
+    // earlier session ids are read with the live one, so a question asked before a re-enrolment is still its question.
+    Promise.resolve().then(() => (aliasKey ? window.fabric.work.session(of, aliasKey.split(',')) : window.fabric.work.session(of))).then(
       (view) => { if (alive) setTasksRead({ at: 'ready', view, of }) },
       (e: unknown) => {
         if (alive) setTasksRead((r) => ({ at: 'failed', says: e instanceof Error ? e.message : String(e), kept: r.of === of && r.at === 'ready' ? r.view : null, of }))
       }
     )
     return () => { alive = false }
-  }, [agent.sessionId, mark, tasksAttempt])
+  }, [agent.sessionId, aliasKey, mark, tasksAttempt])
   const tasksMine = tasksRead.of === agent.sessionId ? tasksRead : ({ at: 'reading', of: agent.sessionId } as const)
   const tasksView = tasksMine.at === 'ready' ? tasksMine.view : tasksMine.at === 'failed' ? tasksMine.kept : null
   const nameOf = new Map((tasksView?.tasks ?? []).map((x) => [x.taskId, x.summary]))

@@ -1674,7 +1674,8 @@ export interface FabricApi {
     board(projectId?: string | null, doneLimit?: number): Promise<TaskBoardView>
     /** One agent session's tasks, newest first (0.3.14): what it claimed (live and released) and what Fabric launched in
      *  it. A read that fails REJECTS, so an empty list is always "no task", never a read that did not happen. */
-    session(sessionId: string): Promise<import('./sessionTasks.ts').SessionTasksView>
+    /** CO-475: `aliases` are the agent's earlier session ids (`LiveAgent.aliases`), read with the live one. */
+    session(sessionId: string, aliases?: readonly string[]): Promise<import('./sessionTasks.ts').SessionTasksView>
     /** «Ритм работы» over 28 local days (the mockup parity, home gaps D1, D2): work events per day without the machine's
      *  ticks, results (tasks handed in) and the person's decisions, by one definition (`workRhythm.ts`). A day not read
      *  is null, never zero. */

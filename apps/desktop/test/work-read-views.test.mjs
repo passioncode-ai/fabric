@@ -83,10 +83,11 @@ test("an agent's tasks in main (0.3.14): its claims and launched tasks by its se
   const calls = []
   const fake = (tables, fail = {}) => ({
     select: (table, columns) => {
-      const call = { table, columns, eq: [], orders: [] }
+      const call = { table, columns, eq: [], ins: [], orders: [] }
       calls.push(call)
       const chain = {
-        is: () => chain, in: () => chain, not: () => chain, limit: () => chain,
+        is: () => chain, not: () => chain, limit: () => chain,
+        in: (k, v) => { call.ins.push([k, v]); return chain },
         eq: (k, v) => { call.eq.push([k, v]); return chain },
         order: (k, o) => { call.orders.push([k, o?.ascending]); return chain },
         then: (ok) => ok(fail[table] ? { data: null, error: { message: fail[table] } } : { data: tables[table] ?? [], error: null })
@@ -114,9 +115,10 @@ test("an agent's tasks in main (0.3.14): its claims and launched tasks by its se
     ['t3', 'Launched', 'running', null, 'Fabric'], ['t2', 'Two', 'running', null, 'Fabric'], ['t1', 'One', 'done', 'done', 'Fabric']
   ])
   const claims = calls.find((c) => c.table === 'work_claims')
-  assert.deepEqual(claims.eq, [['owner_session', S]], 'released claims are read too: no released_at filter')
+  assert.deepEqual(claims.eq, [], 'released claims are read too: no released_at filter')
+  assert.deepEqual(claims.ins, [['owner_session', [S]]])
   assert.deepEqual(claims.orders, [['claimed_at', false]], 'the newest claims first')
-  assert.deepEqual(calls.find((c) => c.table === 'project_tasks').eq, [['session_id', S]])
+  assert.deepEqual(calls.find((c) => c.table === 'project_tasks').ins, [['session_id', [S]]])
   await assert.rejects(readSessionTasks(fake(tables, { work_claims: 'database away' }), S), /claims could not be read: database away/)
   await assert.rejects(readSessionTasks(fake(tables, { 'in:project_tasks': 'refused' }), S), /tasks could not be read: refused/)
   await assert.rejects(readSessionTasks(fake(tables), 'not-a-session'), /Invalid session identity/)
@@ -125,8 +127,21 @@ test("an agent's tasks in main (0.3.14): its claims and launched tasks by its se
   const attachedView = await readSessionTasks(fake({ ...tables, journal: [{ occurred_at: '2026-10-26T09:30:00Z', payload: { id: 't3', session_id: S } }] }), S)
   assert.deepEqual(attachedView.tasks.map((t) => [t.taskId, t.claimedAt]), [['t2', '2026-10-26T10:00:00Z'], ['t3', '2026-10-26T09:30:00Z'], ['t1', '2026-10-26T08:00:00Z']])
   const launches = calls.findLast((c) => c.table === 'journal')
-  assert.deepEqual(launches.eq, [['payload->>session_id', S], ['type', 'task.session.attached@1']])
+  assert.deepEqual(launches.ins, [['payload->>session_id', [S]]])
+  assert.deepEqual(launches.eq, [['type', 'task.session.attached@1']])
   await assert.rejects(readSessionTasks(fake(tables, { journal: 'refused' }), S), /launches could not be read: refused/)
+  // CO-475 (0.3.15 review ER-8, DA-17): a re-enrolled agent's page reads every one of its session ids; an id that is not
+  // a session's uuid is dropped, and the questions it asked under an earlier id are its questions.
+  const A = '99999999-2222-4333-8444-555555555555'
+  calls.length = 0
+  const q = (id, by) => ({ id, project_id: 'p1', task_id: null, text: 'Which?', why_blocked: null, kind: 'decision', options: null, asked_by_id: by, asked_at: '2026-10-26T09:00:00Z', status: 'open', revision: 1 })
+  const aliased = await readSessionTasks(fake({ ...tables, questions: [q('q1', A), q('q2', S), q('q3', 'someone-else')] }), S, { aliases: [A, S, 'nope', 7] })
+  for (const table of ['work_claims', 'project_tasks', 'journal', 'questions'])
+    assert.deepEqual(calls.find((c) => c.table === table).ins[0][1], [S, A], `${table} is read across the agent's ids`)
+  assert.deepEqual(aliased.questions.map((x) => x.id), ['q1', 'q2'], 'a question asked under an earlier id is the agent\'s')
+  const { sessionAliases, SESSION_ALIASES } = await import(path.resolve(import.meta.dirname, '../src/main/workRead.ts'))
+  const many = Array.from({ length: 25 }, (_, i) => `${String(i).padStart(8, '0')}-2222-4333-8444-555555555555`)
+  assert.equal(sessionAliases(many, S).length, SESSION_ALIASES, 'the list filter is bounded whatever the renderer sends (check-list-reads names it)')
 })
 
 test("an agent's page (the mockup parity): each task's title apart from its brief, its release note from the claim, the agent's own open questions, its runner's version", async () => {
@@ -157,7 +172,7 @@ test("an agent's page (the mockup parity): each task's title apart from its brie
   assert.match(calls.find((c) => c.table === 'work_claims').columns, /release_note/)
   assert.deepEqual(view.questions.map((q) => [q.id, q.text]), [['q1', 'Which zone?']])
   assert.deepEqual([view.questions[0].why, view.questions[0].revision], ['The deploy waits on it.', 3], 'the asker\'s own «why» and the revision an answer is submitted against')
-  assert.deepEqual(calls.find((c) => c.table === 'questions').eq, [['asked_by_id', S], ['status', 'open']])
+  assert.deepEqual(calls.find((c) => c.table === 'questions').eq, [['status', 'open']], 'the asker is read by its ids (CO-475), the state by equality')
   assert.deepEqual(view.runner, { id: 'claude-code', label: 'Claude Code', version: '2.4.1' })
   const unread = await readSessionTasks(fake(tables, { questions: 'away' }), S)
   assert.equal(unread.questions, undefined, 'a failed read is not «no questions»')

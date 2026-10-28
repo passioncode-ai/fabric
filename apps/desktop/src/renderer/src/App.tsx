@@ -963,7 +963,7 @@ function Shell({
     : active.kind === 'agents' ? { kind: 'agents', session: active.session ?? (active.agent?.startsWith('session:') ? active.agent.slice('session:'.length) : null) }
     : active.kind === 'start' || active.kind === 'draft' ? { kind: 'create' }
     : active.kind === 'project' ? { kind: 'project', projectId: active.projectId }
-    : active.kind === 'console' && consoleSession ? { kind: 'project', projectId: consoleSession.projectId }
+    : active.kind === 'console' && consoleSession ? { kind: 'project', projectId: consoleSession.projectId, session: consoleSession.sessionId }
     : { kind: 'elsewhere' }
   // The mockup parity (rail gaps 20, 21): an agent's screen is titled «{runner} · {project}», a session «Сессия ·
   // {runner} · {project}»; the project's name is `projectDisplayName`'s (through `railAgents` and `consoleTitleOf`).

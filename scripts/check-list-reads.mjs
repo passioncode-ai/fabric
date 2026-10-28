@@ -64,7 +64,9 @@ for (const file of files) {
     // URL cannot cross the limit. Named one at a time, with the reason, rather
     // than by loosening the rule: an allowance that says why can be checked,
     // and a weaker pattern cannot.
-    const BOUNDED_BY_A_VOCABULARY = ['q.kinds', 'q.categories']
+    // `sessionIds` (`workRead.ts#readSessionTasks`, CO-475): one agent's live session id and at most `SESSION_ALIASES`
+    // (20) earlier ones, cut by `sessionAliases` before any read, so 21 uuids at most whatever the data holds.
+    const BOUNDED_BY_A_VOCABULARY = ['q.kinds', 'q.categories', 'sessionIds']
     if (BOUNDED_BY_A_VOCABULARY.includes(argument)) {
       literals++
       return

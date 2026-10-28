@@ -161,7 +161,9 @@ describe('a console opens inside Fabric as a tab along the top', () => {
     await openFromAgents()
     await waitFor(() => expect(tabsStrip()).toBeTruthy())
     await openFromAgents()
-    await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBeNull())
+    // CO-483 (UX-18): the console is the current place, its tab marked, and the rail still marks its agent's row.
+    await waitFor(() => expect(within(tabsStrip()!).getByRole('button', { name: /^fabric-dashboards/ }).getAttribute('aria-current')).toBe('page'))
+    expect(agentRow().getAttribute('aria-current')).toBe('page')
     expect(within(tabsStrip()!).getAllByRole('listitem')).toHaveLength(1)
     expect(within(tabsStrip()!).getByRole('button', { name: /^fabric-dashboards/ }).getAttribute('aria-current')).toBe('page')
   })
@@ -193,10 +195,12 @@ describe('back and forward in the top bar', () => {
     expect(back.disabled).toBe(false)
     fireEvent.click(back)
     await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBe('page'))
+    expect(within(tabsStrip()!).getByRole('button', { name: /^fabric-dashboards/ }).getAttribute('aria-current'), 'back on the agent\'s screen, not the console').toBeNull()
     const [, forward] = await travel()
     expect(forward.disabled).toBe(false)
     fireEvent.click(forward)
-    await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBeNull())
+    // Forward is the console again: its tab is the current place (CO-483 keeps the agent's row marked there too).
+    await waitFor(() => expect(within(tabsStrip()!).getByRole('button', { name: /^fabric-dashboards/ }).getAttribute('aria-current')).toBe('page'))
   })
   it('ER-21: «Вперёд» is disabled once the only place it would reach (a console whose tab was closed) is gone', async () => {
     stub([session])
