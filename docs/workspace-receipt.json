@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "source_commit": "d582acf44b81c388bdcebbff00ff946a833a1bd3",
-  "workspace_commit": "70c8eb83a04b65e6105c85f9e822958ff6b558ce",
-  "content_digest": "83107a236ace12d1b0d01b03f8e40c03d4374c01d7a53ee15a50359fae53af29",
+  "workspace_commit": "960150c15540adf413914c15589d7b171c6f2b49",
+  "content_digest": "74e1e20fb77bd584b70acbd4491813ebea5448873a9c90dbe29637304fd621d0",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "0165f04a-aa5e-4185-b639-73a869460a83",
+  "deployment": "e18d34a2-b55f-4224-bd88-e0069192ddef",
   "fabric_digest": "f735ee99308fedae411b2327307a68fd8a51bb6f639b68bdf6a171fe6f751524",
   "sources": [
     {
@@ -77,8 +77,8 @@
     {
       "id": "okolos",
       "repository": "https://github.com/passioncode-ai/okolos",
-      "commit": "5d664c50835dbb0b85edcec6efe2706395af02ee",
-      "files_digest": "929a604360be2b0ac96b1ff1fef92e2024e530e406b6b4c7009b5f050d233a4d"
+      "commit": "ff6758661eb66dfc6d276f63fc602aef3d8e9e50",
+      "files_digest": "0d1d8a64926ee4ad14ee08d010d8c0042bf4ccfd434d11630726e23cb5845f08"
     },
     {
       "id": "org-github",
