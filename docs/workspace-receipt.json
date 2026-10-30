@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "source_commit": "d582acf44b81c388bdcebbff00ff946a833a1bd3",
-  "workspace_commit": "daad7b88a428a679c3d7efc4b48ac60604122e9b",
-  "content_digest": "3aaf3e2434827f19c35e5f55899bee5e263fe0a1c24ae5cdc26a558e88adcc57",
+  "workspace_commit": "1d94f2277c2e9c30ad73572824f54b074d8bddb5",
+  "content_digest": "2178bc0da838a70651e6094820ec5d18e030bf29f5e88dd6088e50008c5bd313",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "f3dc2f85-1b1b-4204-98e7-def41662c558",
+  "deployment": "cde1b216-d6e4-4ffb-9853-a72f9957d28d",
   "fabric_digest": "f735ee99308fedae411b2327307a68fd8a51bb6f639b68bdf6a171fe6f751524",
   "sources": [
     {
@@ -65,8 +65,8 @@
     {
       "id": "passioncode",
       "repository": "https://github.com/passioncode-ai/passioncode",
-      "commit": "cc89b2a485efffdfd77be1dc41f569aad3781f43",
-      "files_digest": "db39b339e1ffd1b87c6ca542ee850fbe44e1862ea5b3df29fdd480ed66f08b5f"
+      "commit": "2c50855f368cc64c903397d6ada2e11638a4ce35",
+      "files_digest": "39e03717d43f15696c03afeddc27ec901ecfa6992a175af1ff10cd42da357234"
     },
     {
       "id": "passioncode-ai.github.io",
