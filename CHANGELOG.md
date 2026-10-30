@@ -9,10 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-**Upgrading.** This version moves the local database to schema 99 with one migration,
-`20261027000126_home_journal_indexes.sql`: two indexes on the journal, nothing else. A database at 98 (0.3.13 to 0.3.15)
-takes it; take a backup first. No older build opens a schema-99 database, so going back is the backup with the bundle
-you came from. The order is the runbook's ([docs/launch/release-mac.md](docs/launch/release-mac.md)).
+**Upgrading.** This version moves the local database to schema 100 with two migrations:
+`20261027000126_home_journal_indexes.sql` (two indexes on the journal) and
+`20261030000127_archive_source_schemas_99_100.sql` (a private conversation archive taken at schema 99 or 100 is accepted,
+read as one taken at 98). A database at 98 (0.3.13 to 0.3.15) takes both; take a backup first. No older build opens a
+schema-100 database, so going back is the backup with the bundle you came from. The order is the runbook's ([docs/launch/release-mac.md](docs/launch/release-mac.md)).
 
 - **The home's reads of the journal have indexes of their own** (CO-469, CO-477 in part). The rhythm's marks, the
   agents' turns, their enrolments and the requests waiting between projects were each a scan of the whole journal; on

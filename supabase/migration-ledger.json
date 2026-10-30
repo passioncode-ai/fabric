@@ -397,6 +397,10 @@
     {
       "file": "20261027000126_home_journal_indexes.sql",
       "sha256": "cf9c2f45b49a222a4e236cff392f8fb96af38efb555075849b206c2a7ef5f262"
+    },
+    {
+      "file": "20261030000127_archive_source_schemas_99_100.sql",
+      "sha256": "4fa984580c7760b0f6c0191551c40ca1c64dce443b4aee769cf159e234f5445a"
     }
   ]
 }
