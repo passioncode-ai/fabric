@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "source_commit": "d582acf44b81c388bdcebbff00ff946a833a1bd3",
-  "workspace_commit": "177c66b3e043e18100415fd75e2c4f093edeeb91",
+  "workspace_commit": "6ecf42a84b464f030efd7cf9e7ee55e022061c32",
   "content_digest": "429d473ceda2185539598ff3edbf7dcc130e801dc0690ae3b1d148c97b2a6aea",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "60158f9e-9beb-44a0-8e03-74f83358679f",
+  "deployment": "ffd2d222-3ff0-4dcd-b246-d932a764a7b1",
   "fabric_digest": "f735ee99308fedae411b2327307a68fd8a51bb6f639b68bdf6a171fe6f751524",
   "sources": [
     {
