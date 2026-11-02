@@ -5,8 +5,20 @@ import { spawnedChainFrom, spawnParentOf } from './spawnParent'
 import { mayChain } from './loopBound'
 
 describe('spawnParentOf', () => {
-  it('a launched session links from its own task, whatever it claims', () => {
-    expect(spawnParentOf('t-launch', 'p1', [{ work_id: 't-other', project_id: 'p1' }])).toEqual({ parent: 't-launch', from: 'launch', why: null })
+  // CO-466: a launched session that claims one other task here, and not its own, works on that task now.
+  it('a launched session holding one other claim here links from the claimed task, and says why', () => {
+    const spawn = spawnParentOf('t-launch', 'p1', [{ work_id: 't-other', project_id: 'p1' }])
+    expect(spawn).toMatchObject({ parent: 't-other', from: 'claim' })
+    expect(spawn.why).toMatch(/t-other, the task this session claims.*not t-launch, the task Fabric launched it on/)
+  })
+
+  it('a launched session links from its own task otherwise: no claim, a claim on it, several, another project, or claims unread', () => {
+    const launch = { parent: 't-launch', from: 'launch', why: null }
+    expect(spawnParentOf('t-launch', 'p1', [])).toEqual(launch)
+    expect(spawnParentOf('t-launch', 'p1', [{ work_id: 't-launch', project_id: 'p1' }, { work_id: 't-other', project_id: 'p1' }])).toEqual(launch)
+    expect(spawnParentOf('t-launch', 'p1', [{ work_id: 'a', project_id: 'p1' }, { work_id: 'b', project_id: 'p1' }])).toEqual(launch)
+    expect(spawnParentOf('t-launch', 'p1', [{ work_id: 't-other', project_id: 'p2' }])).toEqual(launch)
+    expect(spawnParentOf('t-launch', 'p1', null, 'deadline')).toEqual(launch)
   })
 
   it('an enrolled session (no launch task) with exactly one live claim links from that claim', () => {

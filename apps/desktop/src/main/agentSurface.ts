@@ -2019,9 +2019,8 @@ export class AgentSurface {
         // terminal, enrolled, the hub) has no `scope.taskId`; its parent is the
         // ONE task it holds a live claim on here (0.3.14 review, iteration 2,
         // PL-1/DA-1). None or several: no link, and the answer says why.
-        const claimsRead = scope.taskId
-          ? null
-          : await store.select('work_claims', 'work_id,project_id').eq('owner_session', scope.sessionId).is('released_at', null)
+        // CO-466: read for a launched session too: one claimed task other than its own is what it works on now.
+        const claimsRead = await store.select('work_claims', 'work_id,project_id').eq('owner_session', scope.sessionId).is('released_at', null)
         const spawn = spawnParentOf(
           scope.taskId,
           scope.projectId,
@@ -2127,9 +2126,10 @@ export class AgentSurface {
           ...(linked?.ok ? { source: { repository: linked.repository, path: linked.path, id: linked.rowId, id_checked: linked.idChecked } } : {}),
           ...(chained ? { chained_to: parentTask, chained: chained.linked === true,
                           ...(chained.linked ? {} : { chain_reason: chained.says ?? chained.reason_code }) } : {}),
-          // Which task this piece was spawned from, and when none: why (PL-1/DA-1).
+          // Which task this piece was spawned from, and when none: why (PL-1/DA-1). CO-466: a link from the claimed task
+          // rather than the launch task says why too.
           spawned_from: chained?.linked ? parentTask : null,
-          ...(chained?.linked ? {} : { spawned_from_why: chainUnread ?? spawn.why ?? chained?.says ?? chained?.reason_code ?? 'the link was refused' })
+          ...(chained?.linked ? (spawn.why ? { spawned_from_why: spawn.why } : {}) : { spawned_from_why: chainUnread ?? spawn.why ?? chained?.says ?? chained?.reason_code ?? 'the link was refused' })
         })
       }
     )

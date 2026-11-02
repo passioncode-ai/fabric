@@ -2,7 +2,8 @@
 /**
  * The task a new piece was spawned FROM (iteration 2 of the 0.3.14 review, PL-1, DA-1, DO-2). `fabric_task_create`
  * links what an agent files as `spawned` from its parent, so the home can walk a piece up to the person's request
- * (`main/agentGoals.ts#withGoals`). The parent is the task Fabric launched the session on (`scope.taskId`); a session
+ * (`main/agentGoals.ts#withGoals`). The parent is the task Fabric launched the session on (`scope.taskId`), unless the
+ * session has since claimed exactly one other task here and not its own, which it then works on (CO-466); a session
  * that joined from its own terminal, enrolled or came through the hub has none, so its parent is the ONE task it holds
  * a live claim on in this project. None, several, or a claims read that failed: no parent, and `why` says so in a line
  * the agent can act on (the answer carries it), never a silent missing link.
@@ -10,7 +11,7 @@
 export interface LiveClaim { work_id: string; project_id: string | null }
 
 export type SpawnParent =
-  | { parent: string; from: 'launch' | 'claim'; why: null }
+  | { parent: string; from: 'launch' | 'claim'; why: string | null }
   | { parent: null; from: null; why: string }
 
 const LINK_IT = 'link it yourself with fabric_task_link {taskId: <this piece>, rel: "spawned", targetTaskId: <the task it came from>}'
@@ -21,7 +22,15 @@ export function spawnParentOf(
   claims: readonly LiveClaim[] | null,
   readError: string | null = null
 ): SpawnParent {
-  if (launchTask) return { parent: launchTask, from: 'launch', why: null }
+  if (launchTask) {
+    // CO-466: a session launched on L that holds ONE live claim here on another task C, and none on L, works on C now:
+    // what it files came from C, and the answer says so. Several claims, a claim on L itself, or claims not read: L.
+    const others = claims && !readError ? [...new Set(claims.filter((c) => c.project_id === projectId && !!c.work_id && c.work_id !== launchTask).map((c) => c.work_id))] : []
+    const holdsLaunch = claims?.some((c) => c.work_id === launchTask) ?? false
+    if (others.length === 1 && !holdsLaunch)
+      return { parent: others[0], from: 'claim', why: `linked from ${others[0]}, the task this session claims and works on now, not ${launchTask}, the task Fabric launched it on` }
+    return { parent: launchTask, from: 'launch', why: null }
+  }
   if (readError || !claims) return { parent: null, from: null, why: `this session's claims could not be read (${readError ?? 'no answer'}): ${LINK_IT}` }
   const here = [...new Set(claims.filter((c) => c.project_id === projectId && !!c.work_id).map((c) => c.work_id))]
   if (here.length === 1) return { parent: here[0], from: 'claim', why: null }
