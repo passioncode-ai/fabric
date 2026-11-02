@@ -33,6 +33,7 @@ import {
   type Nudge,
   type SweepClaim,
   type SweepLastClaim,
+  type SweepLaunch,
   type SweepRequest,
   type SweepTerminal,
   type SweepTurn,
@@ -62,6 +63,28 @@ const TURN_ANSWERS_MAX = 1000
 
 /** The running tasks read, and whether a claims chunk came back at the gateway's bound (ER-23, DA-9). */
 export interface SweepTasksRead { tasks: SweepRunningTask[]; capped: boolean }
+
+/** CO-462: the running tasks a session Fabric launched holds with no claim, each once: its Fabric terminal, else its
+ *  managed lease (`heldTaskIds` and `heldSessionIds` pair by index). A task a live claim holds is the claim's to be told
+ *  about; none is found when the claims or the running tasks were not read (nothing can be judged unclaimed then). */
+export function launchesOf(
+  claimRead: { claims: SweepClaim[]; heldTaskIds: string[]; heldSessionIds?: string[] } | null,
+  terminals: SweepTerminal[] | null,
+  tasks: SweepRunningTask[] | null
+): SweepLaunch[] {
+  if (!claimRead || !tasks) return []
+  const claimed = new Set(claimRead.claims.filter((c) => c.session !== null).map((c) => c.taskId).filter((id): id is string => id !== null))
+  const running = new Map(tasks.map((t) => [t.taskId, t]))
+  const out = new Map<string, SweepLaunch>()
+  const add = (taskId: string | null, sessionId: string | undefined): void => {
+    const t = taskId ? running.get(taskId) : undefined
+    if (!t || !sessionId || claimed.has(t.taskId) || out.has(t.taskId)) return
+    out.set(t.taskId, { sessionId, projectId: t.projectId, taskId: t.taskId, movedAt: t.movedAt })
+  }
+  for (const s of terminals ?? []) add(s.taskId, s.sessionId)
+  claimRead.heldTaskIds.forEach((taskId, i) => add(taskId, claimRead.heldSessionIds?.[i]))
+  return [...out.values()]
+}
 
 export interface SweepRunningTask {
   taskId: string
@@ -264,7 +287,10 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       : null
     // 0.3.14 wave 2: the briefs of the claimed tasks, read after the claims (it needs their tasks), in its own try.
     const claimedTaskIds = [...new Set((claimRead?.claims ?? []).filter((c) => c.session !== null).map((c) => c.taskId).filter((id): id is string => id !== null))]
-    const briefGaps = deps.readBriefGaps && claimedTaskIds.length ? await attempt('briefs', () => deps.readBriefGaps!(claimedTaskIds), failedReads) : null
+    // CO-462: and of the running tasks a session Fabric launched holds with no claim (its terminal, its managed lease).
+    const launches = launchesOf(claimRead, terminals, taskRead)
+    const briefTaskIds = [...new Set([...claimedTaskIds, ...launches.map((l) => l.taskId)])]
+    const briefGaps = deps.readBriefGaps && briefTaskIds.length ? await attempt('briefs', () => deps.readBriefGaps!(briefTaskIds), failedReads) : null
     // 0.3.14 wave 2: a done release whose move to review did not land is moved to review; the review, iteration 1, ER-6:
     // a release other than done whose move back to backlog did not land is moved there. Repaired before the judgement,
     // so a task leaves the findings only once its repair read back (ER-5): a repair that keeps failing stays a
@@ -282,7 +308,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       // 0.3.14 wave 2: a session is judged by what it holds, so its turns are judged only when everything it could hold
       // was read whole (the same condition as a running task's holders above), and only when the turns were (ER-12).
       ...(holders && turns && !turns.capped ? { turns: turns.turns, heldSessions: claimRead?.heldSessionIds ?? [] } : {}),
-      ...(briefGaps ? { briefGaps } : {})
+      ...(briefGaps ? { briefGaps, launches } : {})
     })
 
     // SW-5. What a failed read could not see is not forgotten: its kinds keep their last telling. The review, iteration

@@ -1275,3 +1275,23 @@ test('fabric_work_claim names the brief\'s missing sections and fabric_task_brie
   assert.equal('brief_missing' in whole, false)
   assert.equal('brief_next' in whole, false)
 })
+
+// CO-462: a session Fabric launched for a task holds it with no claim; its missing brief is told to that session.
+test('CO-462: a launched session holding its task with no claim is reminded of the brief, a claimed one is not doubled', async () => {
+  const asked = []
+  const w = world({
+    tasks: [{ taskId: 't-launch', projectId: 'p1', movedAt: iso(T0 - 15 * MIN) }, { taskId: 't-lease', projectId: 'p1', movedAt: iso(T0 - 15 * MIN) }, { taskId: 't1', projectId: 'p1', movedAt: iso(T0 - 15 * MIN) }],
+    terminals: [{ sessionId: 's-term', projectId: 'p1', taskId: 't-launch', liveness: 'active', since: iso(T0 - 15 * MIN) }],
+    held: ['t-lease'], heldSessions: ['s-lease'], running: new Set(['s-term']), activity: new Map([['s-term', T0]]),
+    claims: [liveClaim()]
+  })
+  w.deps.readBriefGaps = async (ids) => { asked.push([...ids].sort()); return { 't-launch': ['what'], 't-lease': ['why'], t1: ['expected'] } }
+  const sweep = createAbandonedSweep(w.deps)
+  const r = await sweepOnce(sweep)
+  assert.deepEqual(asked, [['t-launch', 't-lease', 't1']])
+  assert.deepEqual(r.findings.map((f) => f.kind), ['brief-missing', 'brief-missing', 'brief-missing'])
+  assert.deepEqual(sweep.current().findings, [], 'reminders to agents, not the operator\'s queue')
+  assert.deepEqual(sweep.takeNudgeItems('s-term', 'p1').map((n) => [n.kind, n.task_id]), [['brief-missing', 't-launch']])
+  assert.deepEqual(sweep.takeNudgeItems('s-lease', 'p1').map((n) => [n.kind, n.task_id]), [['brief-missing', 't-lease']])
+  assert.deepEqual(sweep.takeNudgeItems('s-work', 'p1').map((n) => [n.kind, n.task_id]), [['brief-missing', 't1']])
+})

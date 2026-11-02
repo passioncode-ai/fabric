@@ -119,8 +119,20 @@ export interface SweepInput {
   turns?: readonly SweepTurn[]
   /** Sessions that hold a task without a claim: the lease of a launch Fabric manages. */
   heldSessions?: readonly string[]
-  /** The missing parts of the brief of each claimed task read (`taskSpec.ts#specGaps`); a task absent was not read. */
+  /** The missing parts of the brief of each claimed or launched task read (`taskSpec.ts#specGaps`); a task absent was not read. */
   briefGaps?: Readonly<Record<string, readonly SpecPart[]>>
+  /** CO-462: running tasks Fabric launched in a session that holds them with no claim (its terminal or its managed lease),
+   *  with when the task went to running. */
+  launches?: readonly SweepLaunch[]
+}
+
+/** A session Fabric launched for a task, holding it without a claim (CO-462). */
+export interface SweepLaunch {
+  sessionId: string
+  projectId: string | null
+  taskId: string
+  /** When the task was moved to running: the launch, as near as the board knows it. */
+  movedAt: string
 }
 
 export interface Finding {
@@ -196,6 +208,15 @@ export function findAbandoned(input: SweepInput): Finding[] {
     out.push({ ...base, kind: 'brief-missing', key: `brief-missing:${c.claimId}`, projectId: c.projectId, taskId: c.taskId, sessionId: c.sessionId,
       claimId: c.claimId, stillMs: now - Date.parse(c.claimedAt), nextStep: briefNext(gaps) })
   }
+  // CO-462: a session Fabric launched for a task, holding it with no claim, is reminded the same way, ten minutes after the
+  // task went to running; it is told to that session, which is the one that must write the brief.
+  for (const l of input.launches ?? []) {
+    const gaps = input.briefGaps?.[l.taskId]
+    const still = now - Date.parse(l.movedAt)
+    if (!gaps?.length || !(still >= BRIEF_AFTER_MS)) continue
+    out.push({ ...base, kind: 'brief-missing', key: `brief-missing:launch:${l.taskId}:${l.sessionId}`, projectId: l.projectId, taskId: l.taskId,
+      sessionId: l.sessionId, stillMs: still, nextStep: briefNext(gaps) })
+  }
   // #endregion brief-missing
   // #region work-unclaimed — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
   // 0.3.14 wave 2: a session whose working tree changed between its turns in the window and that holds nothing (no open
@@ -247,7 +268,7 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'answer-unread': (f) => `the answer to board request ${f.requestId}`,
   'terminal-stalled': (f) => `task ${f.taskId} in this session`,
   'work-unclaimed': () => 'this session',
-  'brief-missing': (f) => `task ${f.taskId} you claimed`
+  'brief-missing': (f) => (f.claimId ? `task ${f.taskId} you claimed` : `task ${f.taskId} Fabric started you on`)
 }
 
 /** A kind whose line is not "has been still": what it says, given the whole minutes. */

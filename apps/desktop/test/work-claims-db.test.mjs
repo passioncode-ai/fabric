@@ -233,6 +233,10 @@ const { data: back34 } = await db.from('project_tasks').select('id,status').in('
 check((back34 ?? []).length === 2 && back34.every((t) => t.status === 'backlog'), 'a let-go of the session\'s claims takes their tasks back to backlog (DA-6)', back34)
 const allAgain = await a.call('fabric_work_release', { claims: 'session', outcome: 'let-go', reason: 'session end', idempotencyKey: 'end-0001' })
 check(allAgain.released === true && allAgain.claims.length === 0, 'releasing a session again releases nothing more', allAgain)
+// CO-462: a task in the queue names what its brief lacks, so the agent taking it sees it before it claims.
+const queued = await b.call('fabric_work_list')
+const t3Open = queued.open_tasks?.find((t) => t.id === T3)
+check(t3Open && JSON.stringify(t3Open.brief_missing) === JSON.stringify(['what', 'why', 'expected']), 'an open task with no brief names its missing parts in fabric_work_list (CO-462)', t3Open)
 
 // D4: observations, idempotent, this session's runtime only.
 const turn = { event: 'turn', runtime: 'claude-code', runtimeSessionId: 'rt-A', observedAt: new Date().toISOString(), head: 'a'.repeat(40), filesChanged: 3, linesAdded: 10, linesRemoved: 2, idempotencyKey: 'turn-0000001' }

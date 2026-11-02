@@ -210,3 +210,22 @@ describe('brief-missing: a claimed task whose brief is not written', () => {
     expect(findAbandoned({ ...empty, claims: [claim({ expiresAt: ago(MIN), session: { lastSignAt: NOW } })], briefGaps: { t1: ['why'] } })).toEqual([])
   })
 })
+
+// CO-462: a session Fabric launched for a task holds it with no claim; it is the one that must write the brief.
+describe('brief-missing: a task Fabric launched a session for, with no claim', () => {
+  const launch = (over = {}) => ({ sessionId: 's9', projectId: 'p1', taskId: 't9', movedAt: ago(BRIEF_AFTER_MS), ...over })
+
+  it('is told to the launched session ten minutes after the task went to running', () => {
+    const found = findAbandoned({ ...empty, launches: [launch()], briefGaps: { t9: ['what'] } })
+    expect(found).toHaveLength(1)
+    expect(found[0]).toMatchObject({ kind: 'brief-missing', key: 'brief-missing:launch:t9:s9', sessionId: 's9', taskId: 't9', claimId: null })
+    expect(nudgeText(found[0])).toContain('task t9 Fabric started you on has been in work for 10 min')
+    expect(nudgeText(found[0])).not.toContain('you claimed')
+  })
+
+  it('is not told before ten minutes, for a whole brief, or when the brief was not read', () => {
+    expect(findAbandoned({ ...empty, launches: [launch({ movedAt: ago(BRIEF_AFTER_MS - 1000) })], briefGaps: { t9: ['what'] } })).toEqual([])
+    expect(findAbandoned({ ...empty, launches: [launch()], briefGaps: { t9: [] } })).toEqual([])
+    expect(findAbandoned({ ...empty, launches: [launch()] })).toEqual([])
+  })
+})

@@ -13,7 +13,7 @@ import type { StackHealthView } from '../../shared/types'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-const up: StackHealthView = { stack: 'up', why: null, since: '2026-10-21T00:00:00Z', nextTryInS: null, trying: false, attempt: null, hold: null, platform: 'darwin', diskLow: false, freeDiskBytes: 50e9, diskLikelyCause: false }
+const up: StackHealthView = { stack: 'up', why: null, since: '2026-10-21T00:00:00Z', nextTryInS: null, trying: false, attempt: null, hold: null, platform: 'darwin', runtime: null, diskLow: false, freeDiskBytes: 50e9, diskLikelyCause: false }
 
 function mount(view: StackHealthView | null, locale: 'en' | 'ru' = 'en'): { push: (v: StackHealthView) => void } {
   let listener: ((v: StackHealthView) => void) | null = null
@@ -48,6 +48,14 @@ describe('the stack health notice', () => {
     const text = alert.textContent ?? ''
     expect(text).toContain('This disk has 0.7 GB free.')
     expect(text.indexOf('0.7 GB free')).toBeLessThan(text.indexOf(en['stack.health.docker']))
+  })
+
+  // CO-492: a Mac whose Docker is Colima is told about Colima, never «open OrbStack or Docker Desktop».
+  it('names Colima on a Mac whose Docker is Colima', async () => {
+    mount({ ...up, stack: 'down', why: 'docker', nextTryInS: 40, runtime: 'Colima' }, 'ru')
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain(ru['stack.health.docker.colima']!)
+    expect(alert.textContent).not.toContain('OrbStack')
   })
 
   it('warns about a low disk while the stack is up, and speaks Russian', async () => {

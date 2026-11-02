@@ -286,7 +286,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       const now = deps.now()
       const snap = await readWork(store, { now, session: deps.session })
       const [open, mine, leases] = await Promise.all([
-        store.select('project_tasks', 'id,title,instruction,status').in('status', ['backlog', 'running', 'review']).order('started_at', { ascending: false }).limit(40),
+        store.select('project_tasks', 'id,title,instruction,status,brief_what,brief_why,brief_expected').in('status', ['backlog', 'running', 'review']).order('started_at', { ascending: false }).limit(40),
         store.select('work_claims', 'id,work_id,owner_session,released_at,released_how,handed_to,release_note')
           .not('released_at', 'is', null).gte('released_at', new Date(now - 24 * 3600_000).toISOString())
           .or(`owner_session.eq.${scope.sessionId},handed_to.eq.${scope.sessionId}`).limit(50),
@@ -337,7 +337,8 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         open_tasks: ((open.data ?? []) as Array<Record<string, string | null>>)
           .filter((t) => !held.has(t.id as string))
           .slice(0, 20)
-          .map((t) => ({ id: t.id, title: (t.title ?? t.instruction ?? '').slice(0, 200), status: t.status })),
+          // CO-462: an agent taking a task from the queue sees what its brief lacks before it claims it.
+          .map((t) => { const gaps = specGaps(t as BriefParts); return { id: t.id, title: (t.title ?? t.instruction ?? '').slice(0, 200), status: t.status, ...(gaps.length ? { brief_missing: gaps } : {}) } }),
         waiting_for_you: recent
           .filter((r) => r.handed_to === scope.sessionId && r.released_how === 'handed-over' && !held.has(r.work_id as string))
           .map((r) => ({ task_id: r.work_id, from_session: r.owner_session, note: r.release_note, at: r.released_at })),

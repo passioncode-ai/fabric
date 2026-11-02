@@ -5671,7 +5671,9 @@ function ownsStack(): boolean {
 /** This machine's Docker runtime as the person knows it, for the words about a Docker that does not answer (CO-492); null
  *  when it cannot be told or the read throws. Reads the socket's path and the docker contexts only, never Docker itself. */
 function dockerRuntime(): string | null {
-  try { return dockerRuntimeFor(null) } catch { return null }
+  // Silent on purpose: the runtime only picks which words name Docker; an unreadable contexts folder leaves the usual
+  // words, and it is read on every view of the stack's health, so a record here would repeat with every tick.
+  try { return dockerRuntimeFor(null) } catch { /* the usual words stand: see above */ return null }
 }
 
 function startStackWatch(): void {
