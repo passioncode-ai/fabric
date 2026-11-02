@@ -26,7 +26,9 @@
 // says "this became a proposal, and a person will decide" is one it can report.
 
 /** task id → the task it was spawned FROM, if any. */
-export type SpawnedFrom = Readonly<Record<string, string | undefined>>
+/** Each task's `spawned` parents: one id, or every one when a task has several (CO-468: a second parent was dropped, so a
+ *  longer chain or a cycle through it went uncounted). */
+export type SpawnedFrom = Readonly<Record<string, string | readonly string[] | undefined>>
 
 /**
  * How many hand-offs separate this task from the one that started the chain.
@@ -59,17 +61,29 @@ export interface ChainReach {
 }
 
 export function chainReach(from: SpawnedFrom, taskId: string): ChainReach {
-  const seen = new Set<string>([taskId])
-  let depth = 0
-  let at = taskId
-  for (;;) {
-    const parent = from[at]
-    if (!parent) return { depth, cyclic: false }
-    if (seen.has(parent)) return { depth, cyclic: true }
-    seen.add(parent)
-    at = parent
-    depth++
+  // CO-468: every parent is followed, not the first. The depth is the LONGEST way back, because the hand-off count a
+  // task carries is that of its longest ancestry; a parent met again on the way being walked is a cycle.
+  const parentsOf = (id: string): readonly string[] => {
+    const p = from[id]
+    return p === undefined ? [] : typeof p === 'string' ? [p] : p
   }
+  const longest = new Map<string, number>()
+  const onPath = new Set<string>()
+  let cyclic = false
+  const walk = (id: string): number => {
+    const known = longest.get(id)
+    if (known !== undefined) return known
+    onPath.add(id)
+    let best = 0
+    for (const parent of parentsOf(id)) {
+      if (onPath.has(parent)) { cyclic = true; continue }
+      best = Math.max(best, 1 + walk(parent))
+    }
+    onPath.delete(id)
+    longest.set(id, best)
+    return best
+  }
+  return { depth: walk(taskId), cyclic }
 }
 
 /**

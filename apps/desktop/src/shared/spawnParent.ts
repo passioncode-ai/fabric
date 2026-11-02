@@ -49,20 +49,30 @@ export type SpawnedParentsRead = (taskId: string) => Promise<{ parents: readonly
  * judge the depth as safe from it. At most `hops` reads; a walk that meets a task already seen stops (a cycle, which
  * `loopBound.ts#mayChain` refuses on its own).
  */
-export async function spawnedChainFrom(read: SpawnedParentsRead, start: string, hops: number): Promise<{ from: Record<string, string>; failed: string | null }> {
-  const from: Record<string, string> = {}
+export async function spawnedChainFrom(read: SpawnedParentsRead, start: string, hops: number, maxReads = SPAWN_CHAIN_READS): Promise<{ from: Record<string, string[]>; failed: string | null }> {
+  // CO-468: every parent of every task above `start`, breadth first, at most `hops` levels up and `maxReads` reads. A
+  // level past `hops` is not needed (the bound has been passed by then); tasks left unread at `maxReads` make the walk
+  // unread, never a shorter chain judged safe.
+  const from: Record<string, string[]> = {}
   const seen = new Set([start])
-  let at = start
-  for (let hop = 0; hop < hops; hop++) {
-    const r = await read(at)
-    if (r.failed) return { from, failed: r.failed }
-    const parent = [...r.parents].sort()[0]
-    if (!parent) break
-    from[at] = parent
-    if (seen.has(parent)) break
-    seen.add(parent)
-    at = parent
+  let level = [start]
+  let reads = 0
+  for (let hop = 0; hop < hops && level.length > 0; hop++) {
+    const next: string[] = []
+    for (const at of level) {
+      if (reads >= maxReads) return { from, failed: `the hand-off chain above ${start} has more than ${maxReads} tasks to read` }
+      reads++
+      const r = await read(at)
+      if (r.failed) return { from, failed: r.failed }
+      const parents = [...new Set(r.parents)].sort()
+      if (parents.length) from[at] = parents
+      for (const p of parents) if (!seen.has(p)) { seen.add(p); next.push(p) }
+    }
+    level = next
   }
   return { from, failed: null }
 }
+
+/** How many tasks the walk above a new piece reads at most (CO-468): a chain within the bound with a few parents each. */
+export const SPAWN_CHAIN_READS = 40
 // #endregion spawn-parent

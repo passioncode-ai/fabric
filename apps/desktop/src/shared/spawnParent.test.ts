@@ -45,7 +45,7 @@ describe('spawnedChainFrom', () => {
 
   it('walks up from the parent and the bound judges the depth (the fourth hand-off in one chain is refused)', async () => {
     const walk = await spawnedChainFrom(read(), 'c3', 5)
-    expect(walk).toEqual({ from: { c3: 'c2', c2: 'c1', c1: 'req' }, failed: null })
+    expect(walk).toEqual({ from: { c3: ['c2'], c2: ['c1'], c1: ['req'] }, failed: null })
     expect(mayChain(walk.from, 'c3')).toMatchObject({ ok: false, depth: 4, bound: 4 })
   })
 
@@ -63,6 +63,30 @@ describe('spawnedChainFrom', () => {
     let long = 0
     await spawnedChainFrom(async (id) => { long++; return { parents: [id + 'x'], failed: null } }, 't', 5)
     expect(long).toBe(5)
+  })
+
+  // CO-468: a task with several `spawned` parents. The first one alone was followed, so a longer chain or a cycle
+  // through another parent went uncounted.
+  const graph = (links: Record<string, string[]>) => async (id: string) => ({ parents: links[id] ?? [], failed: null })
+
+  it('follows every parent, and the longest way back decides the bound', async () => {
+    // c3 came from a (short) and from b2, which is three hand-offs deep: the short parent sorts first.
+    const walk = await spawnedChainFrom(graph({ c3: ['a', 'b2'], b2: ['b1'], b1: ['b0'] }), 'c3', 5)
+    expect(walk.from).toEqual({ c3: ['a', 'b2'], b2: ['b1'], b1: ['b0'] })
+    expect(mayChain(walk.from, 'c3')).toMatchObject({ ok: false, depth: 4 })
+  })
+
+  it('refuses a cycle that runs through a second parent', async () => {
+    const walk = await spawnedChainFrom(graph({ t: ['a', 'z'], z: ['t'] }), 't', 5)
+    expect(mayChain(walk.from, 't')).toMatchObject({ ok: false })
+    expect(mayChain(walk.from, 't').reason).toMatch(/descends from itself/)
+  })
+
+  it('a chain wider than its read budget is unread, never judged short', async () => {
+    const wide: Record<string, string[]> = { t: Array.from({ length: 10 }, (_, i) => `p${i}`) }
+    for (let i = 0; i < 10; i++) wide[`p${i}`] = [`q${i}`]
+    const walk = await spawnedChainFrom(graph(wide), 't', 5, 5)
+    expect(walk.failed).toMatch(/more than 5 tasks/)
   })
 })
 

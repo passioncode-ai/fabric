@@ -124,3 +124,17 @@ describe('a cycle in provenance is not a short chain', () => {
     expect(verdict.reason).toMatch(/hand-off/i)
   })
 })
+
+// CO-468: a task with several parents carries the hand-offs of its longest ancestry, and a cycle through any of them.
+describe('every spawned parent counts', () => {
+  it('the longest way back is the depth', () => {
+    expect(chainReach({ d: ['a', 'c'], c: ['b'], b: ['a'] }, 'd')).toEqual({ depth: 3, cyclic: false })
+  })
+  it('a cycle through the second parent is a cycle', () => {
+    expect(chainReach({ t: ['a', 'z'], z: ['t'] }, 't').cyclic).toBe(true)
+    expect(mayChain({ t: ['a', 'z'], z: ['t'] }, 't').ok).toBe(false)
+  })
+  it('a diamond is not a cycle', () => {
+    expect(chainReach({ d: ['b', 'c'], b: ['a'], c: ['a'] }, 'd')).toEqual({ depth: 2, cyclic: false })
+  })
+})

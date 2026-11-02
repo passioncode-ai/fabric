@@ -2033,7 +2033,7 @@ export class AgentSurface {
         // error kept. A read that failed cannot judge the depth as safe: the piece is filed WITHOUT the spawned link
         // (never a too-deep chain let through, never a failed create), and `spawned_from_why` says why.
         let chainUnread: string | null = null
-        let chainFrom: Record<string, string> = {}
+        let chainFrom: Record<string, string[]> = {}
         if (parentTask) {
           const walk = await spawnedChainFrom(async (taskId) => {
             const r = await store.select('task_links', 'task_id,target_id').eq('rel', 'spawned').eq('target_kind', 'task').eq('task_id', taskId)

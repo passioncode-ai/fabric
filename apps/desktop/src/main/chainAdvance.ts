@@ -228,16 +228,17 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResu
       // follower gets as far as needing it. It FAILS CLOSED: a refused read used
       // to be an empty map, every chain then looked one link long, and the M68
       // guard — the only thing between a hand-off and a runaway — was gone.
-      let spawnedFrom: Record<string, string | undefined> | null = null
-      const provenance = async (): Promise<Record<string, string | undefined> | string> => {
+      let spawnedFrom: Record<string, string[] | undefined> | null = null
+      const provenance = async (): Promise<Record<string, string[] | undefined> | string> => {
         if (spawnedFrom) return spawnedFrom
         const read = await deps.store.selectAll('task_links', 'task_id,target_id', {
           eq: [['rel', 'spawned'], ['target_kind', 'task']],
           orderBy: ['task_id', 'target_id']
         })
         if (read.failed) return read.failed
-        const from: Record<string, string | undefined> = {}
-        for (const l of read.rows) from[l.task_id as string] = l.target_id as string
+        // CO-468: every parent of a task, not the last one read: the bound walks each of them.
+        const from: Record<string, string[] | undefined> = {}
+        for (const l of read.rows) (from[l.task_id as string] ??= []).push(l.target_id as string)
         spawnedFrom = from
         return from
       }
