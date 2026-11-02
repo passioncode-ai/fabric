@@ -136,6 +136,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   agentsList: MAIN_ONLY,
   agentsCreate: MAIN_ONLY,
   tasksFileIdea: MAIN_ONLY,
+  tasksAssignAcross: MAIN_ONLY,
   tasksResearch: MAIN_ONLY,
   reposList: MAIN_ONLY,
   reposChoose: MAIN_ONLY,

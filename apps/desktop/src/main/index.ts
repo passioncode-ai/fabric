@@ -394,6 +394,7 @@ import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.t
 import { detectExecutors } from './executorDetect.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
 import { readMachineSwitchboardSessions } from './switchboardSessions.ts'
+import { answerAssigned, assignAcross, type AssignDeps } from './crossProjectAssign.ts'
 import { readInbound, setInbound } from './claudeInbound.ts'
 import { readFabricReadiness } from './fabricReadinessRead.ts'
 import { FOLDER_HELD_SAYS, createFolderLocks } from './launchFolderLock.ts'
@@ -1111,6 +1112,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     turnNudges: (sessionId, projectId, turnKey) => abandonedSweep?.showTurnNudges(sessionId, projectId, turnKey) ?? [],
     // CO-459 (DEC-0140 PR-3): a turn's reported branch, for this machine's screens only, never journalled or shared.
     reportBranch: (sessionId, branch) => reportedBranches.set(sessionId, branch),
+    // CO-458: a task assigned from another project answers its board request once released done (never awaited).
+    onDoneInReview: (taskId) => { void answerAssigned(assignDeps(), taskId).then((r) => { if (r.reason) ops.record({ op: 'tasks.assign-answer', outcome: 'failed', level: 'warn', detail: { task_id: taskId, reason: r.reason }, ctx: { correlationId: ops.correlate() } }) }, (e: unknown) => ops.failed('tasks.assign-answer', e)) },
     // P-24: the interface's language is the agents' working language, read at each fabric_whoami.
     // OF-38: off in Settings, the hub names no working language and the agents keep their own.
     // A settings file that could not be read answers with defaults; unknown is not on, so it names no language
@@ -2951,6 +2954,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const facts = readGateway()
     return { reachable: facts.origin !== null, servers: Object.keys(facts.routes).sort() }
   })
+
+  // CO-458: «Поручить агенту B в Fabric», the operator's act from a task's page.
+  handle(IPC.tasksAssignAcross, (_e, input: { fromTaskId: string; toProjectId: string; text: string; key: string }): Promise<Returns<FabricApi['tasks']['assignAcross']>> =>
+    assignAcross(assignDeps(), { fromTaskId: String(input?.fromTaskId ?? ''), toProjectId: String(input?.toProjectId ?? ''), text: String(input?.text ?? ''), key: String(input?.key ?? randomUUID()).slice(0, 100) }))
 
   handle(IPC.tasksFileIdea, async (_e, projectId: string, text: string): Promise<Returns<FabricApi['tasks']['fileIdea']>> => {
     const verdict = prepareIdeaText(text)
@@ -5682,6 +5689,34 @@ function dockerRuntime(): string | null {
   // Silent on purpose: the runtime only picks which words name Docker; an unreadable contexts folder leaves the usual
   // words, and it is read on every view of the stack's health, so a record here would repeat with every tick.
   try { return dockerRuntimeFor(null) } catch { /* the usual words stand: see above */ return null }
+}
+
+/** CO-458: what «Поручить агенту B» and its done answer read and write: the projections, the journal's task events,
+ *  and the operator's door onto the board for the Project the act speaks for. */
+function assignDeps(): AssignDeps {
+  const one = async <T>(q: PromiseLike<{ data: unknown; error: { message: string } | null }>): Promise<T | null> => {
+    const r = await q
+    if (r.error) throw new Error(r.error.message)
+    return (r.data as T | null) ?? null
+  }
+  return {
+    readTask: (id) => one(store.select('project_tasks', 'id,project_id,title,instruction').eq('id', id).maybeSingle()),
+    readProject: (id) => one(store.select('projects', 'id,name').eq('id', id).maybeSingle()),
+    submit: (projectId, input) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id).submit(input),
+    reply: (projectId, input) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id).reply(input),
+    epoch: (projectId) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id).epoch(),
+    fileTask: async (projectId, title, instruction) => {
+      const id = randomUUID()
+      await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.created@1', actor: OPERATOR_ACTOR, projectId,
+        payload: { id, title, instruction, origin: { kind: 'person', ref: OPERATOR_ACTOR.id } } })
+      return { id }
+    },
+    note: async (taskId, projectId, body) => {
+      await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.note.added@1', actor: OPERATOR_ACTOR, projectId,
+        payload: { task_id: taskId, note_id: randomUUID(), body_md: body } })
+    },
+    notes: async (taskId) => ((await one<Array<{ body_md: string }>>(store.select('task_notes', 'body_md').eq('task_id', taskId).order('created_at', { ascending: false }).limit(50))) ?? []).map((n) => n.body_md)
+  }
 }
 
 function startStackWatch(): void {

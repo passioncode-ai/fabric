@@ -23,7 +23,7 @@ function stub(open = vi.fn(async () => ({ sessionId: 's9' }))) {
   const api = {
     projects: { list: vi.fn(async () => [here, project('pd', 'Dashboards', { default_agent: 'codex', repo_path: '/work/dashboards' }), project('pb', 'Bot', { status: 'archived' }), project('pc', 'copylot')]) },
     terminal: { open },
-    tasks: { note: vi.fn(async () => ({ ok: true })) }
+    tasks: { note: vi.fn(async () => ({ ok: true })), assignAcross: vi.fn(async (_i: unknown) => ({ ok: true, taskId: 'tb', requestId: 'r1', project: 'Dashboards' })) }
   }
   vi.stubGlobal('window', Object.assign(window, { fabric: api }))
   return api
@@ -33,6 +33,35 @@ const show = (opened: string[] = []) => render(<I18nProvider locale="en"><OpenCo
 </OpenConsoleContext.Provider></I18nProvider>)
 
 describe('«Нужна правка в другом проекте»', () => {
+  // CO-458: the second way, a task in B and a request on the board, sent once per project and sentence.
+  it('assigns the ask to the chosen project, says so, and does not send it twice', async () => {
+    const api = stub()
+    show()
+    fireEvent.click(screen.getByText(en['xp.title']))
+    fireEvent.change(await screen.findByLabelText(en['xp.project']), { target: { value: 'pd' } })
+    fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Add a retry' } })
+    const assign = screen.getByRole('button', { name: en['xp.assign'].replace('{project}', 'Dashboards') }) as HTMLButtonElement
+    expect(assign.disabled).toBe(false)
+    expect(screen.queryByText(/5 November|5 ноября/)).toBeNull()
+    fireEvent.click(assign)
+    await waitFor(() => expect(api.tasks.assignAcross).toHaveBeenCalledTimes(1))
+    const input = api.tasks.assignAcross.mock.calls[0]![0] as { fromTaskId: string; toProjectId: string; text: string; key: string }
+    expect([input.fromTaskId, input.toProjectId, input.text]).toEqual(['t1', 'pd', 'Add a retry'])
+    expect(input.key).toMatch(/^[0-9a-f-]{36}$/)
+    await waitFor(() => expect(assign.disabled).toBe(true))
+  })
+
+  it('says why an assignment was refused', async () => {
+    const api = stub()
+    api.tasks.assignAcross.mockResolvedValueOnce({ ok: false, reason: 'the board refused the request (not_authorized: two businesses)' } as never)
+    show()
+    fireEvent.click(screen.getByText(en['xp.title']))
+    fireEvent.change(await screen.findByLabelText(en['xp.project']), { target: { value: 'pd' } })
+    fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Add a retry' } })
+    fireEvent.click(screen.getByRole('button', { name: en['xp.assign'].replace('{project}', 'Dashboards') }))
+    await waitFor(() => expect(screen.getByText(en['xp.assignFailed'])).toBeTruthy())
+  })
+
   it('opens a console in the chosen project with the sentence and the way back to this task, and notes it in the task', async () => {
     const api = stub()
     const opened: string[] = []

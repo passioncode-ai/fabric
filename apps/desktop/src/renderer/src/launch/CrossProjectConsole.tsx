@@ -55,6 +55,9 @@ export function CrossProjectConsole({ project, taskId, taskTitle, inline = false
   const [what, setWhat] = useState('')
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState<string | null>(null)
+  // CO-458: «Поручить агенту B» — what each assignment by project and sentence answered, so one is never sent twice.
+  const [assigned, setAssigned] = useState<Record<string, { ok: true; name: string; at: string } | { ok: false; reason: string }>>({})
+  const [assignKeys] = useState(() => new Map<string, string>())
   // ER-15, UX-15: a console started for a project and sentence is never started twice by a second press. The 0.3.14
   // review, iteration 3, ER-26: every console this panel started is kept by its project and sentence, not only the last,
   // so picking A again after B shows A's running session instead of starting a second agent there.
@@ -97,6 +100,23 @@ export function CrossProjectConsole({ project, taskId, taskTitle, inline = false
   const remember = (k: string, s: Started): void => setStarted((all) => ({ ...all, [k]: s }))
   const noteIt = (name: string): Promise<boolean> =>
     window.fabric.tasks.note(taskId, t('xp.note', { project: name, what: sentence })).then(() => true, () => false)
+  const assign = async (): Promise<void> => {
+    if (!chosen || !sentence) return
+    const k = key
+    // One key per project and sentence for this panel's life: a retry after a lost answer is the same request.
+    if (!assignKeys.has(k)) assignKeys.set(k, crypto.randomUUID())
+    setBusy(true)
+    try {
+      const r = await window.fabric.tasks.assignAcross({ fromTaskId: taskId, toProjectId: chosen.id, text: sentence, key: assignKeys.get(k)! })
+      setAssigned((was) => ({ ...was, [k]: r.ok
+        ? { ok: true, name: shown(chosen), at: new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date()) }
+        : { ok: false, reason: r.reason } }))
+    } catch (e) {
+      setAssigned((was) => ({ ...was, [k]: { ok: false, reason: e instanceof Error ? e.message : String(e) } }))
+    } finally {
+      setBusy(false)
+    }
+  }
   const open = async (): Promise<void> => {
     if (!chosen || !sentence || busy || wall || alreadyStarted) return
     if (place?.place === 'home' && homeAck !== key) { setHomeAck(key); return }
@@ -163,11 +183,11 @@ export function CrossProjectConsole({ project, taskId, taskTitle, inline = false
         <button type="button" className="lp-button" disabled={!chosen || !sentence || busy || !!wall || alreadyStarted} aria-busy={busy} onClick={() => void open()}>
           {chosen ? t(place?.place === 'home' && homeAck === key ? 'xp.openHome' : 'xp.open', { project: shown(chosen) }) : t('xp.openNoProject')}
         </button>
-        {/* The second way (docs/ux/2026-10-26-simple-fabric.md §5) belongs to the release of 2026-11-05: shown, and said when it comes. */}
-        <button type="button" className="lp-button primary" disabled aria-describedby={`xp-later-${taskId}`}>
+        {/* CO-458: the second way (docs/ux/2026-10-26-simple-fabric.md §5): a task in B and a request on the board. */}
+        <button type="button" className="lp-button primary" disabled={!chosen || !sentence || busy || !!wall || assigned[key]?.ok === true} aria-busy={busy}
+          onClick={() => void assign()}>
           {chosen ? t('xp.assign', { project: shown(chosen) }) : t('xp.assignNoProject')}
         </button>
-        <small className="lp-meta xp-later" id={`xp-later-${taskId}`}>{t('xp.assignLater')}</small>
       </div>
     </div>
   )
@@ -183,6 +203,8 @@ export function CrossProjectConsole({ project, taskId, taskTitle, inline = false
       {fields}
       {/* «Консоль не открылась» only when no agent started; once one runs, the panel speaks of that session alone. */}
       {failed && !current && <FailureNote said={t('xp.failed')} detail={failed} />}
+      {assigned[key]?.ok === true && <p className="lp-meta" role="status">{t('xp.assigned', { project: (assigned[key] as { name: string }).name, time: (assigned[key] as { at: string }).at })}</p>}
+      {assigned[key]?.ok === false && <FailureNote said={t('xp.assignFailed')} detail={(assigned[key] as { reason: string }).reason} />}
       {current?.tabFailed && <FailureNote said={t('xp.tabFailed', { project: current.name })} detail={current.tabFailed} />}
       {current && !current.tabFailed && <p className="lp-meta" role="status">{t(current.home ? 'xp.doneHome' : 'xp.done', { project: current.name, time: current.at })}</p>}
       {/* ER-25, UX-23: a note that was not saved is its own line, never the detail of «Консоль не открылась». */}

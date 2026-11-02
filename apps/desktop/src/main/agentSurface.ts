@@ -296,6 +296,8 @@ export interface AgentSurfaceDeps {
   turnNudges?: (sessionId: string, projectId: string, turnKey: string) => Nudge[]
   /** CO-459 (DEC-0140 PR-3): a turn's reported branch, held by the host for this machine's screens only. */
   reportBranch?: (sessionId: string, branch: string | null) => void
+  /** CO-458: a task released done reached review; answers its cross-project board request, if it has one. */
+  onDoneInReview?: (taskId: string) => void
   db: SupabaseClient
   journal: Journal
   /** Read late, and it can answer NOTHING. The surface starts listening before
@@ -774,6 +776,27 @@ export class AgentSurface {
   }
 
   /** The board's own join check (the grants a binding holds on one Project), for the hub's read-again after a mint. */
+  /**
+   * CO-458: the operator's own acts on the board for one of their Projects, from Fabric's window («Поручить агенту B»):
+   * a request sent, a request answered, the epoch it submits under. The principal is the operator, trusted (the window is
+   * theirs); the board's walls apply as to any submit (another business is refused before anything is stored).
+   */
+  operatorBoard(projectId: string, operatorId: string): {
+    submit(input: unknown): Promise<Record<string, unknown>>
+    reply(input: unknown): Promise<Record<string, unknown>>
+    epoch(): Promise<number | null>
+  } {
+    const caller: BoardCaller = { estateId: this.deps.estateId, projectId, principal: { kind: 'operator', id: operatorId.slice(0, 200), provenance: 'trusted' }, surface: 'session' }
+    return {
+      submit: (input) => this.board.submit(caller, input) as Promise<Record<string, unknown>>,
+      reply: (input) => this.board.reply(caller, input) as Promise<Record<string, unknown>>,
+      epoch: async () => {
+        const s = await this.board.status(caller) as { idempotency?: { epoch?: unknown } }
+        return typeof s?.idempotency?.epoch === 'number' ? s.idempotency.epoch : null
+      }
+    }
+  }
+
   boardJoinCheck(bindingId: string, projectId: string): ReturnType<Board['joinCheck']> {
     return this.board.joinCheck(this.deps.estateId, bindingId, projectId)
   }
@@ -3031,6 +3054,7 @@ export class AgentSurface {
       nudges: () => this.deps.nudges?.(scope.sessionId, scope.projectId) ?? [],
       turnNudges: (turnKey) => this.deps.turnNudges?.(scope.sessionId, scope.projectId, turnKey) ?? [],
       reportBranch: (branch) => this.deps.reportBranch?.(scope.sessionId, branch),
+      onDoneInReview: (taskId) => this.deps.onDoneInReview?.(taskId),
       resolveSource: (source) =>
         this.deps.work
           ? this.deps.work.resolveSource(scope.projectId, source)

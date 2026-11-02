@@ -111,6 +111,8 @@ export interface WorkToolDeps {
   turnNudges?(idempotencyKey: string): Nudge[]
   /** CO-459 (DEC-0140 PR-3): the git branch a turn reports, held in this process for display only; never journalled. */
   reportBranch?(branch: string | null): void
+  /** CO-458: a task released done is in review; the host answers the board request it was assigned by, if any. */
+  onDoneInReview?(taskId: string): void
 }
 
 // #region work-session-end-guards — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
@@ -576,8 +578,11 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       if (!row) return reply({ released: false, code: 'not-held', reason: 'you hold no such claim in this project' })
       if (row.owner_session !== scope.sessionId) return reply({ released: false, code: 'not-yours', reason: 'another session holds that claim' })
       // The move of a done task, read back; a repeat calls it again to finish a move that did not land (ER-8).
+      // CO-458: a task assigned from another project answers its board request once it reaches review; never awaited by
+      // the release, and its failure is the host's to record, so the agent's release is never refused for it.
       const toReview = (taskId: string) =>
         moveDoneTaskToReview(() => ownTask(taskId), (task, to) => deps.append({ type: 'task.moved@1', payload: { task_id: task.id, from: task.status, to, note: said } }))
+          .then((m) => { if (m.task_moved_to === 'review' || m.task_status === 'review') deps.onDoneInReview?.(taskId); return m })
       const notMoved = (m: { task_status: TaskState | null; failed?: string }) => ({
         code: 'task-not-moved',
         task_status: m.task_status,

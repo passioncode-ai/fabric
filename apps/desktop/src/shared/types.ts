@@ -1091,6 +1091,9 @@ export interface FabricApi {
      * of while still letting the operator think out loud.
      */
     fileIdea(projectId: string, text: string): Promise<TaskRow>
+    /** CO-458 «Поручить агенту B»: file the ask as a task in B and a board request from this task's project to B. `key`
+     *  makes a retry the same request, never a second. */
+    assignAcross(input: { fromTaskId: string; toProjectId: string; text: string; key: string }): Promise<import('../main/crossProjectAssign.ts').AssignResult>
     /**
      * Spawn a research task FROM an idea and run it. The idea does not move: a
      * session attached to the idea's own card would be claimed and moved, and
@@ -1845,6 +1848,7 @@ export const IPC = {
   agentsList: 'agents:list',
   agentsCreate: 'agents:create',
   tasksFileIdea: 'tasks:fileIdea',
+  tasksAssignAcross: 'tasks:assignAcross',
   /** M134 — research SPAWNS a task from the idea; the idea does not move. */
   tasksResearch: 'tasks:research',
   reposList: 'repos:list',
