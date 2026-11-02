@@ -1132,6 +1132,9 @@ export interface FabricApi {
   agents: {
     /** Every agent created in this project, newest first. */
     list(projectId: string): Promise<CreatedAgent[]>
+    /** CO-457: the sessions Switchboard launched and the ones it holds on a usage limit, merged as Fabric Dashboards
+     *  merges them (read-only; `main/switchboardSessions.ts`). */
+    switchboardSessions(): Promise<import('./switchboardSessions.ts').SwitchboardSessions>
     /**
      * Create one. The servers it asks for are checked against what the project
      * grants: a request outside that ceiling is REFUSED here rather than trimmed,
@@ -1860,6 +1863,7 @@ export const IPC = {
   settingsRead: 'settings:read',
   settingsWrite: 'settings:write',
   settingsAgentCatalog: 'settings:agentCatalog',
+  agentsSwitchboardSessions: 'agents:switchboardSessions',
   settingsLoginItem: 'settings:loginItem',
   settingsFolderTrustLocked: 'settings:folderTrustLocked',
   settingsClaudeInbound: 'settings:claudeInbound',

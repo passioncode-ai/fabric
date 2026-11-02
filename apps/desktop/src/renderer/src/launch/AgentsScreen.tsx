@@ -24,6 +24,7 @@
  * «Нужна правка в другом проекте» needs.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { SwitchboardSessionsPanel } from './SwitchboardSessions'
 import type { ActAnswer } from '../../../shared/acts.ts'
 import type { HubOverview } from '../../../shared/access.ts'
 import type { SwitchboardCatalog } from '../../../shared/agentCatalog'
@@ -317,6 +318,8 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
         <div className="ag-pick">
           <p className="lp-meta">{t('agentScreen.pick')}</p>
           <button type="button" className="lp-button" onClick={onCreate}>{t('agentsPlace.create')}</button>
+          {/* CO-457: the sessions Switchboard runs and holds here, as Fabric Dashboards lists them. */}
+          <SwitchboardSessionsPanel />
         </div>
       )}
     </div>

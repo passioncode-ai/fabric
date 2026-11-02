@@ -393,6 +393,7 @@ import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
+import { readMachineSwitchboardSessions } from './switchboardSessions.ts'
 import { readInbound, setInbound } from './claudeInbound.ts'
 import { readFabricReadiness } from './fabricReadinessRead.ts'
 import { FOLDER_HELD_SAYS, createFolderLocks } from './launchFolderLock.ts'
@@ -4942,6 +4943,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // Read-only: Switchboard's catalogue of coding agents for Settings (0.6.31+; agentCatalogRead.ts).
   handle(IPC.settingsAgentCatalog, (): Promise<Returns<FabricApi['settings']['agentCatalog']>> =>
     readMachineAgentCatalog(sessionEnvironment(process.env)))
+  // CO-457: read-only, Switchboard's sessions and limit stops merged as Fabric Dashboards merges them.
+  handle(IPC.agentsSwitchboardSessions, (): Promise<Returns<FabricApi['agents']['switchboardSessions']>> =>
+    readMachineSwitchboardSessions(sessionEnvironment(process.env), Date.now()))
   // CO-407: Claude Code's cross-session messages, only by the person's switch; and the launcher doctor, only on asking.
   const inboundAnswer = (r: ReturnType<typeof readInbound>) =>
     'unreadable' in r ? { unreadable: true as const } : { accepting: r.accepting, value: r.value, ...(r.notSaved ? { notSaved: r.notSaved } : {}) }

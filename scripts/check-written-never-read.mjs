@@ -140,6 +140,9 @@ let fields = 0
 
 for (const f of files) {
   if (!f.includes('/shared/') || f.includes('.test.')) continue
+  // CO-457: a vendored module (`shared/vendor/`) keeps another repository's contract byte for byte; its fields are read
+  // where they were written (Fabric Dashboards), and trimming them here would make the copy drift from its source.
+  if (f.includes('/shared/vendor/')) continue
   const body = text.get(f)
   for (const m of body.matchAll(/export interface (\w+)\s*\{([^}]*)\}/g)) {
     const [, name, block] = m
@@ -189,6 +192,9 @@ if (paidOff.length)
 const declared = new Set()
 for (const f of files) {
   if (!f.includes('/shared/') || f.includes('.test.')) continue
+  // CO-457: a vendored module (`shared/vendor/`) keeps another repository's contract byte for byte; its fields are read
+  // where they were written (Fabric Dashboards), and trimming them here would make the copy drift from its source.
+  if (f.includes('/shared/vendor/')) continue
   for (const m of text.get(f).matchAll(/export interface (\w+)\s*\{([^}]*)\}/g))
     for (const fm of m[2].matchAll(/^\s*(\w+)\??\s*:/gm)) declared.add(`${m[1]}.${fm[1]}`)
 }
