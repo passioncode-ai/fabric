@@ -677,6 +677,34 @@ test('B2: readRunningTasks reads the newest claim of each running task, bounded 
   await assert.rejects(readRunningTasks(store), /refused/, 'an unread claim history is never "no claim since"')
 })
 
+// CO-465: one task claimed 1 000 times filled its chunk and left the other tasks of that chunk unjudged on every sweep.
+// The left-out tasks are read again over just themselves; an answer that is not full judges them.
+test('CO-465: the tasks a full claims answer left out are read again over themselves and judged', async () => {
+  const { readRunningTasks } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
+  const rows = ['hog', 't2', 't3'].map((id) => ({ id, project_id: 'p1', moved_at: iso(T0 - 40 * MIN), started_at: null, moved_by_kind: 'agent' }))
+  const q = { eq: () => q, order: () => q, limit: async () => ({ data: rows, error: null }) }
+  const claims = [
+    ...Array.from({ length: 1000 }, (_, i) => ({ work_id: 'hog', claimed_at: iso(T0 - (i + 1) * MIN), released_at: iso(T0 - i * MIN), released_how: 'let-go', owner_session: 's1' })),
+    { work_id: 't2', claimed_at: iso(T0 - 2000 * MIN), released_at: iso(T0 - 1990 * MIN), released_how: 'done', owner_session: 's2' }
+  ]
+  const asked = []
+  // A store that answers what was asked, newest first, at the gateway's 1 000 rows.
+  const store = {
+    select: () => q,
+    selectIn: async (_t, _c, _col, values, _chunk, _signal, _eq, order) => {
+      asked.push([...values])
+      const mine = claims.filter((c) => values.includes(c.work_id)).sort((a, b) => Date.parse(b.claimed_at) - Date.parse(a.claimed_at))
+      return { rows: mine.slice(0, order?.limit ?? mine.length), failed: null }
+    }
+  }
+  const read = await readRunningTasks(store)
+  assert.deepEqual(asked, [['hog', 't2', 't3'], ['t2', 't3']], 'the left-out tasks read again, over themselves')
+  assert.equal(read.capped, false, 'every task judged: nothing left out')
+  assert.deepEqual(read.tasks.map((t) => t.taskId).sort(), ['hog', 't2', 't3'])
+  assert.equal(read.tasks.find((t) => t.taskId === 't2').lastClaim.how, 'done', 't2\'s newest claim was found')
+  assert.equal(read.tasks.find((t) => t.taskId === 't3').lastClaim, null, 't3 has no claim, read from an answer that was not full')
+})
+
 // CO-439 (1): the running tasks read stops at SWEEP_READ_LIMIT rows. A full read may leave running tasks out, so it is
 // said as capped (the receipt names `tasks` and their kinds keep their earlier tellings), never taken as the whole set.
 test('CO-439: a running tasks read that comes back at its bound is said as capped', async () => {

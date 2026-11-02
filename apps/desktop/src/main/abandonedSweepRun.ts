@@ -574,8 +574,8 @@ export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>
   // its tasks without a claim row are not judged this sweep (left out), never "no claim".
   const last = new Map<string, SweepLastClaim>()
   const unjudged = new Set<string>()
-  for (let i = 0; i < rows.length; i += CLAIMS_CHUNK) {
-    const ids = rows.slice(i, i + CLAIMS_CHUNK).map((t) => t.id)
+  /** One read of these tasks' claims, newest first; true when it came back at the gateway's rows (it may miss some). */
+  const readClaims = async (ids: string[]): Promise<boolean> => {
     const claims = await store.selectIn('work_claims', 'work_id,claimed_at,released_at,released_how,owner_session', 'work_id', ids, CLAIMS_CHUNK, undefined, [],
       { column: 'claimed_at', ascending: false, limit: GATEWAY_ROWS })
     if (claims.failed) throw new Error(`the claims of the tasks in work could not be read: ${claims.failed}`)
@@ -585,7 +585,21 @@ export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>
       if (!prior || Date.parse(c.claimed_at) > Date.parse(prior.claimedAt))
         last.set(c.work_id, { claimedAt: c.claimed_at, releasedAt: c.released_at ?? null, how: c.released_how ?? null, owner: c.owner_session ?? null })
     }
-    if (got.length >= GATEWAY_ROWS) for (const id of ids) if (!last.has(id)) unjudged.add(id)
+    return got.length >= GATEWAY_ROWS
+  }
+  for (let i = 0; i < rows.length; i += CLAIMS_CHUNK) {
+    const ids = rows.slice(i, i + CLAIMS_CHUNK).map((t) => t.id)
+    let leftOut = (await readClaims(ids)) ? ids.filter((id) => !last.has(id)) : []
+    // CO-465: the tasks a full answer left without a row are read again over just themselves, until an answer is not full
+    // (a task still without a row then has no claim) or a round makes no progress (several such tasks fill it again).
+    // Without this, one task claimed 1 000 times kept the other 99 of its chunk unjudged for as long as it stayed full.
+    for (let round = 0; leftOut.length > 0 && round < CLAIMS_REREADS; round++) {
+      const before = leftOut.length
+      const full = await readClaims(leftOut)
+      leftOut = full ? leftOut.filter((id) => !last.has(id)) : []
+      if (leftOut.length === before) break
+    }
+    for (const id of leftOut) unjudged.add(id)
   }
   if (unjudged.size) opsSink.record({ op: 'work.sweep-claims-capped', outcome: 'unknown', level: 'warn', ctx: { correlationId: opsSink.correlate() },
     detail: { tasks: unjudged.size, note: 'a chunk of claims came back at the gateway\'s 1 000 rows; these tasks are not judged while it stays full, their earlier findings kept, and the receipt names the cut (tasks)' } })
@@ -616,6 +630,8 @@ export async function readRunningTasks(store: Pick<Store, 'select' | 'selectIn'>
 export const GATEWAY_ROWS = 1000
 /** Running tasks per claims request: the URL stays short (`scopedStore.ts#selectIn`). */
 const CLAIMS_CHUNK = 100
+/** CO-465: how many times one chunk's left-out tasks are read again over just themselves. */
+export const CLAIMS_REREADS = 10
 
 /** The operator's read door onto the board (`commsOperatorRead.ts`), the four reads this sweep uses. */
 export interface SweepComms {
