@@ -2250,6 +2250,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'agents.mode': "режим: {mode}",
   'agents.noMode': "режим разрешений не записан",
   'profile.title': "Что здесь сделано",
+  'profile.unread': "Записи не прочитаны, поэтому здесь ничего не посчитано.",
   'profile.lede': "Посчитано по записям. Оценок здесь нет.",
   'profile.tenure': "В работе дней: {days}, с {since}",
   'profile.tenureToday': "Начато сегодня.",

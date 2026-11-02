@@ -63,8 +63,6 @@ const show = (locale: 'en' | 'ru' = 'en') =>
         sessions={[]}
         feed={[]}
         marks={NO_MARKS}
-        readThroughSeq={0}
-        onRead={async () => {}}
         onOpen={vi.fn()}
         onNew={vi.fn()}
       />

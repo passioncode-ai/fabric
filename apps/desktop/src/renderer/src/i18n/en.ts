@@ -593,6 +593,7 @@ export const en = {
   // The profile (M131 · SCR-36). Real numbers; no invented name, no invented
   // level, and a portrait slot that says what it would take.
   'profile.title': 'What has been done here',
+  'profile.unread': "The records could not be read, so nothing is counted here.",
   'profile.lede': 'Counted from the record. Nothing here is an estimate.',
   'profile.tenure': 'Running for {days} days, since {since}',
   'profile.tenureToday': 'Started today.',

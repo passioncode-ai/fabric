@@ -19,6 +19,7 @@ import { FailureNote } from '../OperatorError'
 import { useOpenConsole } from '../consoles'
 import { ProjectProfile } from './ProjectProfile'
 import { ProjectAnalytics } from './ProjectAnalytics'
+import { ProjectStar } from './ProjectStar'
 
 export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onReview, onPlan, onPulse, onGraph, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
@@ -113,6 +114,8 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
           <button type="button" className="lp-button primary" onClick={() => onBoard()}>{t('launch.project.board')}</button>
           <button type="button" className="lp-button" onClick={onPlan}>{t('launch.project.plan')}</button>
           {onGraph && <button type="button" className="lp-button" onClick={onGraph}>{t('launch.project.graph')}</button>}
+          {/* CO-460: the star lives here since Главная lost its projects table (SCN-043). */}
+          <ProjectStar project={project} />
         </div>
       </header>
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}

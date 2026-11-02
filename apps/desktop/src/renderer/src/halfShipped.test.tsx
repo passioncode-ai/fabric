@@ -11,11 +11,11 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { NO_MARKS } from '../../shared/feedMarks'
-import { FAVOURITE_THRESHOLD } from '../../shared/favourites'
 import { en } from './i18n/en'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from './i18n'
 import { EstateHome } from './EstateHome'
+import { ProjectStar } from './launch/ProjectStar'
 import { ProjectStatusBar } from './ProjectHome'
 import type { ProjectRow, ProjectStats, RepoState } from '../../shared/types'
 import { whole } from '../../../test/envelopes'
@@ -135,127 +135,65 @@ describe('M57 — numbers about the code, not about our own storage', () => {
   })
 })
 
-describe('the favourites threshold, the limit, and what the operator is asked (UX28-10)', () => {
+// CO-460: a project is pinned from its own page (SCN-043); the home has no projects table and so no pin control.
+describe('the star on a project page, the limit, and what the operator is asked (UX28-10)', () => {
   const project = (id: string): ProjectRow =>
     ({ id, name: `p-${id}`, purpose: '', repo_path: null }) as ProjectRow
-  const many = (n: number): ProjectRow[] => Array.from({ length: n }, (_, i) => project(`p${i}`))
+  const stubPins = (fav: Record<string, unknown>, projects: ProjectRow[] = []) => {
+    ;(window as unknown as { fabric: unknown }).fabric = { favourites: fav, projects: { list: async () => projects } }
+  }
 
-  it('offers no pin control at or below the threshold', async () => {
-    // SCN-043 step 3 as amended 2026-09-29 to the launch design (SCR-30/SCR-01):
-    // ★ ↑ ↓ from the second project on; ranking one of one is still ceremony.
-    // The fixture is asserted to BE the boundary case.
-    expect(FAVOURITE_THRESHOLD).toBe(1)
-    wrap(
-      <EstateHome
-        projects={many(FAVOURITE_THRESHOLD)}
-        sessions={[]}
-        feed={[]}
-        marks={NO_MARKS}
-        readThroughSeq={0}
-      onRead={async () => {}}
-      onOpen={() => {}}
-        onNew={() => {}}
-      />
-    )
-    await waitFor(() => expect(screen.getAllByText('p-p0').length).toBeGreaterThan(0))
-    expect(screen.queryByRole('button', { name: new RegExp(`^${en['estate.pin']}: `) })).toBeNull()
-  })
-
-  it('and offers it above the threshold', async () => {
-    wrap(
-      <EstateHome
-        projects={many(FAVOURITE_THRESHOLD + 1)}
-        sessions={[]}
-        feed={[]}
-        marks={NO_MARKS}
-        readThroughSeq={0}
-      onRead={async () => {}}
-      onOpen={() => {}}
-        onNew={() => {}}
-      />
-    )
-    await waitFor(() => expect(screen.getAllByRole('button', { name: new RegExp(`^${en['estate.pin']}: `) }).length).toBeGreaterThan(0))
-  })
-
-  it('says when a pinned project is not in the list, and keeps it pinned', async () => {
-    // SCN-043's alt path. The skip is deliberate — deleting the id on a read
-    // would mean a transient failure to load a project quietly unpins it — so
-    // the surface must SAY so, or a pinned project is simply absent.
-    const pins = ['p0', 'gone']
-    const toggle = vi.fn(async () => ({ pins, saved: true }))
-    ;(window as unknown as { fabric: unknown }).fabric = {
-      favourites: { list: async () => pins, toggle, replace: vi.fn() },
-      attention: { list: async () => whole([]) },
-      workspace: { state: async () => ({ git: 'declined' }) },
-      estate: { profile: async () => null, summary: async () => null },
-      memory: { overview: async () => null },
-      board: { query: async () => ({ rows: [], total: 0 }) },
-      questions: { answer: async () => ({ ok: true }) }
-    }
-    render(
-      <I18nProvider locale="en">
-        <EstateHome
-          projects={many(8)}
-          sessions={[]}
-          feed={[]}
-          marks={NO_MARKS}
-          readThroughSeq={0}
-      onRead={async () => {}}
-      onOpen={() => {}}
-          onNew={() => {}}
-        />
-      </I18nProvider>
-    )
-    await waitFor(() => expect(screen.queryByTestId('pin-missing')).toBeTruthy())
-    expect(screen.getByTestId('pin-missing').textContent).toMatch(/1 pinned project/)
-    // And nothing was written to make it go away.
-    expect(toggle).not.toHaveBeenCalled()
+  it('pins and unpins the project it is on, saying which it is', async () => {
+    const toggle = vi.fn(async () => ({ pins: ['p6'], saved: true }))
+    stubPins({ list: async () => [], toggle, replace: vi.fn() })
+    render(<I18nProvider locale="en"><ProjectStar project={project('p6')} /></I18nProvider>)
+    const star = await screen.findByRole('button', { name: `${en['estate.pin']}: p-p6` })
+    await waitFor(() => expect((star as HTMLButtonElement).disabled).toBe(false))
+    expect(star.getAttribute('aria-pressed')).toBe('false')
+    star.click()
+    await waitFor(() => expect(screen.getByRole('button', { name: `${en['estate.unpin']}: p-p6` }).getAttribute('aria-pressed')).toBe('true'))
+    expect(toggle).toHaveBeenCalledWith('p6')
   })
 
   it('asks which to release when the set is full, and writes nothing until told', async () => {
-    // The pin comes back `atLimit`: nothing written, nothing dropped. The
-    // operator is shown one release per pinned project, because "pick one" with
-    // no list is a question nobody can answer.
+    // The pin comes back `atLimit`: nothing written, nothing dropped. The operator is shown one release per pinned
+    // project, because "pick one" with no list is a question nobody can answer.
     const five = ['p0', 'p1', 'p2', 'p3', 'p4']
     const toggle = vi.fn(async () => ({ pins: five, saved: true, atLimit: { limit: 5 } }))
     const replace = vi.fn(async () => ({ pins: ['p1', 'p2', 'p3', 'p4', 'p6'], saved: true }))
-    ;(window as unknown as { fabric: unknown }).fabric = {
-      favourites: { list: async () => five, toggle, replace },
-      attention: { list: async () => whole([]) },
-      workspace: { state: async () => ({ git: 'declined' }) },
-      estate: { profile: async () => null, summary: async () => null },
-      memory: { overview: async () => null },
-      board: { query: async () => ({ rows: [], total: 0 }) },
-      questions: { answer: async () => ({ ok: true }) }
-    }
-    render(
-      <I18nProvider locale="en">
-        <EstateHome
-          projects={many(8)}
-          sessions={[]}
-          feed={[]}
-          marks={NO_MARKS}
-          readThroughSeq={0}
-      onRead={async () => {}}
-      onOpen={() => {}}
-          onNew={() => {}}
-        />
-      </I18nProvider>
-    )
-    const pin = new RegExp(`^${en['estate.pin']}: `)
-    await waitFor(() => expect(screen.getAllByRole('button', { name: pin }).length).toBeGreaterThan(0))
-    screen.getAllByRole('button', { name: pin })[0].click()
-
+    stubPins({ list: async () => five, toggle, replace }, [...five, 'p6'].map(project))
+    render(<I18nProvider locale="en"><ProjectStar project={project('p6')} /></I18nProvider>)
+    const star = await screen.findByRole('button', { name: `${en['estate.pin']}: p-p6` })
+    await waitFor(() => expect((star as HTMLButtonElement).disabled).toBe(false))
+    star.click()
     await waitFor(() => expect(screen.queryByTestId('pin-full')).toBeTruthy())
-    // One release per pinned project — five of them.
     expect(screen.getAllByText(/^Release /).length).toBe(five.length)
-    // NOTHING has been replaced yet.
     expect(replace).not.toHaveBeenCalled()
-
     screen.getAllByText(/^Release /)[0].click()
     await waitFor(() => expect(replace).toHaveBeenCalledTimes(1))
     // ONE write, and it names both halves of the swap.
-    expect(replace.mock.calls[0]).toHaveLength(2)
+    expect(replace.mock.calls[0]).toEqual(['p0', 'p6'])
+  })
+
+  it('says when the favourites could not be read, and offers no star to press', async () => {
+    stubPins({ list: async () => { throw new Error('settings unreadable') }, toggle: vi.fn(), replace: vi.fn() })
+    render(<I18nProvider locale="en"><ProjectStar project={project('p6')} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText(en['estate.pinsUnread'])).toBeTruthy())
+    expect((screen.getByRole('button', { name: `${en['estate.pin']}: p-p6` }) as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('the home offers no pin control and no folded «Ещё»', async () => {
+    stubPins({ list: async () => [], toggle: vi.fn(), replace: vi.fn() })
+    ;(window as unknown as { fabric: Record<string, unknown> }).fabric = {
+      ...(window as unknown as { fabric: Record<string, unknown> }).fabric,
+      attention: { list: async () => whole([]) },
+      workspace: { state: async () => ({ git: 'declined' }) },
+      board: { query: async () => ({ rows: [], total: 0 }) }
+    }
+    wrap(<EstateHome projects={[project('p0'), project('p1')]} sessions={[]} feed={[]} marks={NO_MARKS} onOpen={() => {}} onNew={() => {}} />)
+    await waitFor(() => expect(document.querySelector('.lh-hero')).toBeTruthy())
+    expect(screen.queryByRole('button', { name: new RegExp(`^${en['estate.pin']}: `) })).toBeNull()
+    expect(document.getElementById('sec-estate-more')).toBeNull()
   })
 })
 
@@ -264,7 +202,7 @@ describe('CO-476: the home keeps its narrow reading order in the DOM', () => {
   const media = (narrow: boolean) => vi.fn((query: string) => ({ matches: narrow && query === '(max-width: 1100px)', media: query, addEventListener: () => {}, removeEventListener: () => {} }))
   for (const narrow of [false, true]) it(`«Нужны вы» ${narrow ? 'sits in the main column, after the strip' : 'is the side column beside the main one'} at ${narrow ? 'a narrow' : 'a wide'} window`, async () => {
     Object.defineProperty(window, 'matchMedia', { configurable: true, writable: true, value: media(narrow) })
-    wrap(<EstateHome projects={[]} sessions={[]} feed={[]} marks={NO_MARKS} readThroughSeq={0} onRead={async () => {}} onOpen={() => {}} onNew={() => {}} />)
+    wrap(<EstateHome projects={[]} sessions={[]} feed={[]} marks={NO_MARKS} onOpen={() => {}} onNew={() => {}} />)
     const side = await waitFor(() => { const s = document.querySelector('.lh-side-column'); expect(s).not.toBeNull(); return s as Element })
     const main = document.querySelector('.lh-main-column') as Element
     expect(main.contains(side)).toBe(narrow)

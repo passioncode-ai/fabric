@@ -19,6 +19,8 @@ import { go } from './evidence'
 export function ProfileSection({ onError }: { onError: (m: string) => void }): React.JSX.Element {
   const t = useT()
   const [summary, setSummary] = useState<EstateSummary | null>(null)
+  /** CO-460: a read that failed is said here, never left as «reading» for ever (the home passed an onError that dropped it). */
+  const [failed, setFailed] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -28,7 +30,9 @@ export function ProfileSection({ onError }: { onError: (m: string) => void }): R
         if (alive) setSummary(s)
       })
       .catch((e) => {
-        if (alive) onError(String(e))
+        if (!alive) return
+        setFailed(String(e))
+        onError(String(e))
       })
     return () => {
       alive = false
@@ -43,7 +47,8 @@ export function ProfileSection({ onError }: { onError: (m: string) => void }): R
   return (
     <Panel id="sec-profile" title={t('profile.title')}>
       <p className="muted">{t('profile.lede')}</p>
-      {summary === null && <EmptyState read={false}>{t('profile.lede')}</EmptyState>}
+      {summary === null && failed !== null && <p className="muted" role="status" title={failed}>{t('profile.unread')}</p>}
+      {summary === null && failed === null && <EmptyState read={false}>{t('profile.lede')}</EmptyState>}
       {summary && (
         <>
           <p className="muted">

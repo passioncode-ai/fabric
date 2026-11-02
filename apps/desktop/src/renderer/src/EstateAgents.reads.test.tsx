@@ -296,8 +296,6 @@ describe('the estate Board follows a monotonic mark, not a capped count', () => 
           marks={marks}
           onOpen={vi.fn()}
           onNew={vi.fn()}
-        readThroughSeq={0}
-        onRead={async () => {}}
       />
       </I18nProvider>
     )

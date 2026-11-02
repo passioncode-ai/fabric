@@ -7,8 +7,8 @@ import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
-function mount(read: unknown = { persona: { seed: 731, style: 'orbit' }, chosen: false }, save = vi.fn(async (next: unknown) => ({ persona: next, saved: true }))) {
-  vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { persona: { read: vi.fn(async () => read), save } } }))
+function mount(read: unknown = { persona: { seed: 731, style: 'orbit' }, chosen: false }, save = vi.fn(async (next: unknown) => ({ persona: next, saved: true })), summary: () => Promise<unknown> = async () => null) {
+  vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { persona: { read: vi.fn(async () => read), save }, estate: { summary: vi.fn(summary) } } }))
   const onDone = vi.fn()
   render(
     <I18nProvider locale="en">
@@ -54,5 +54,19 @@ describe('your Fabric (SCR-36)', () => {
     mount({ persona: { seed: 731, style: 'orbit' }, chosen: false, problem: 'local_state_read_failed' })
     await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/local_state_read_failed/))
     expect(screen.getByText(en['launch.persona.ledeFirst'])).toBeTruthy()
+  })
+})
+
+// CO-460: what has been done here (SCR-36) is on this screen since Главная lost its folded «Ещё».
+describe('the estate summary on «Мой облик»', () => {
+  it('shows what has been done here', async () => {
+    mount(undefined, undefined, async () => ({ tenure: { known: true, days: 12, since: '2026-10-21T00:00:00Z' }, projects: 3, sessions: 9, tasksClosed: 4, facts: 2, decisions: 1, grantsIssued: 0, events: 120 }))
+    await waitFor(() => expect(screen.getByRole('heading', { name: en['profile.title'] })).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(en['profile.tenure'].replace('{days}', '12').replace('{since}', '2026-10-21'))).toBeTruthy())
+  })
+
+  it('says when the records could not be read, never «reading» for ever', async () => {
+    mount(undefined, undefined, async () => { throw new Error('store refused') })
+    await waitFor(() => expect(screen.getByText(en['profile.unread'])).toBeTruthy())
   })
 })

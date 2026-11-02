@@ -643,6 +643,19 @@ function Shell({
   const [taskOrigin, setTaskOrigin] = useState<{ taskId: string; from: AppRoute['kind'] } | null>(null)
   // Leaving the project page forgets where its task came from, so a later visit's way back is the project's own.
   useEffect(() => { if (active.kind !== 'project') setTaskOrigin(null) }, [active.kind])
+  /** Move how far this operator has read the journal (AX-07). The cursor moves only from an act: this handler sits on a
+   *  button (История's «Отметить прочитанным» since CO-460), and nothing in the arrival path can reach it, the invariant
+   *  `inbox.ts` states. The read position ONLY (audit A7-008): this screen's copy of the settings was read at start, and
+   *  sending it back reverted the tabs main had saved since and could empty the workspace folder. */
+  const markRead = async (throughSeq: number): Promise<void> => {
+    const written = await window.fabric.settings.write({ readThroughSeq: throughSeq }).catch((e: unknown) => {
+      setError(t('settings.notSaved', { reason: explainError(e, t) }))
+      return null
+    })
+    if (!written) return
+    onSettings(written.settings)
+    if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
+  }
   const openEntity = (projectId: string, ref: EntityRef): void => {
     // BUILT THROUGH THE RESOLVER. `routeToEntity` refuses an address no surface
     // can focus and hands back where to go instead, so a fact or a transcript
@@ -1115,7 +1128,8 @@ function Shell({
             projectName={consoleProject} />
         )}
         {active.kind === 'history' && (
-          <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} feed={feed} feedProjects={projects} feedFailed={journalFailed} projectsFailed={projectsProblem !== null} sessions={sessions} onOpen={openEntity} />
+          <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} feed={feed} feedProjects={projects} feedFailed={journalFailed} projectsFailed={projectsProblem !== null} sessions={sessions} onOpen={openEntity}
+            readThroughSeq={settings.readThroughSeq} onRead={markRead} />
         )}
         {active.kind === 'board' && (
           <BoardScreen
@@ -1318,25 +1332,6 @@ function Shell({
             sessions={sessions}
             feed={feed}
             marks={marks}
-            // HOW FAR THIS OPERATOR HAS READ (AX-07). It travels from settings
-            // rather than being counted here, because it is a fact about a
-            // person on a machine and the feed is a fact about the estate.
-            readThroughSeq={settings.readThroughSeq}
-            onRead={async (throughSeq) => {
-              // The cursor moves only from an act: this handler exists on a
-              // button, and nothing in the arrival path can reach it. That is
-              // the invariant `inbox.ts` states and could not enforce while it
-              // had no callers at all.
-              // The read position ONLY (audit A7-008): this screen's copy of the settings was read at start, and
-              // sending it back reverted the tabs main had saved since and could empty the workspace folder.
-              const written = await window.fabric.settings.write({ readThroughSeq: throughSeq }).catch((e: unknown) => {
-                setError(t('settings.notSaved', { reason: explainError(e, t) }))
-                return null
-              })
-              if (!written) return
-              onSettings(written.settings)
-              if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
-            }}
             onOpen={openProject}
             onNew={() => goTo({ kind: 'start', path: 'menu' })}
             onBoard={() => setActive({ kind: 'board' })}

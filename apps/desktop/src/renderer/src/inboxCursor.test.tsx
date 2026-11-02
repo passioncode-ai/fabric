@@ -18,6 +18,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { EstateHome } from './EstateHome'
+import { HistoryScreen } from './launch/HistoryScreen'
 import { I18nProvider } from './i18n'
 import { en } from './i18n/en'
 import { NO_MARKS } from '../../shared/feedMarks'
@@ -55,19 +56,20 @@ function stub() {
   )
 }
 
-const show = (feed: FeedEvent[] | null, readThroughSeq: number, onRead = vi.fn(async () => {})) =>
+// CO-460: the read position lives in История since Главная lost the journal; the cursor's rules are unchanged (AX-07).
+const show = (feed: FeedEvent[] | null, readThroughSeq: number, onRead = vi.fn(async () => {})) => {
+  vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+  return render(
+    <I18nProvider locale="en">
+      <HistoryScreen projects={[]} mark={0} feed={feed} feedProjects={[]} readThroughSeq={readThroughSeq} onRead={onRead} />
+    </I18nProvider>
+  )
+}
+
+const showHome = () =>
   render(
     <I18nProvider locale="en">
-      <EstateHome
-        projects={[]}
-        sessions={[]}
-        feed={feed}
-        marks={NO_MARKS}
-        readThroughSeq={readThroughSeq}
-        onRead={onRead}
-        onOpen={vi.fn()}
-        onNew={vi.fn()}
-      />
+      <EstateHome projects={[]} sessions={[]} feed={[ev(1)]} marks={NO_MARKS} onOpen={vi.fn()} onNew={vi.fn()} />
     </I18nProvider>
   )
 
@@ -84,7 +86,7 @@ describe('the estate says how much of its history is unread', () => {
     // button that is always there is furniture.
     stub()
     show([ev(1), ev(2)], 2)
-    await waitFor(() => expect(screen.getByText(/Journal|History|What happened/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('heading', { name: en['acts.agentsTitle'] })).toBeTruthy())
     expect(screen.queryByText(/Mark .* as read/)).toBeNull()
   })
 
@@ -128,29 +130,32 @@ describe('a position from another generation does not hide the estate', () => {
     // not a restore, and printing the notice there would make it furniture.
     stub()
     show([ev(1), ev(2)], 2)
-    await waitFor(() => expect(screen.getByText(/Journal|History|What happened/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('heading', { name: en['acts.agentsTitle'] })).toBeTruthy())
     expect(screen.queryByText(/past everything this estate holds/i)).toBeNull()
   })
 })
 
 // 0.3.14, the simple Fabric (docs/ux/2026-10-26-simple-fabric.md §2b, §4): the home's main path is the strip and «В работе»
 // by project; «Где остановились», the two lanes, «Агенты в работе» and the live feed leave it. The journal (and its read
-// position) stays only under the folded «Ещё».
+// position) stayed under the folded «Ещё» until CO-460 moved it to История.
 describe('the simple home', () => {
   it('shows «В работе» by project and none of the blocks it replaces', async () => {
     stub()
-    show([ev(1)], 0)
+    showHome()
     expect(await screen.findByRole('region', { name: en['launch.home.inWork.title'] })).toBeTruthy()
     expect(screen.queryByText(en['launch.home.resume.kicker'])).toBeNull()
     expect(screen.queryByRole('heading', { name: en['launch.home.work.title'] })).toBeNull()
     expect(screen.queryByRole('heading', { name: new RegExp(`^${en['launch.home.agents.title']}`) })).toBeNull()
-    expect(document.getElementById('sec-estate-journal')?.closest('details')).toBeTruthy()
+    // CO-460: the folded «Ещё» left the home; the journal and its read position are in История.
+    expect(document.getElementById('sec-estate-journal')).toBeNull()
+    expect(document.getElementById('sec-estate-more')).toBeNull()
+    expect(screen.queryByText(/Mark .* as read/)).toBeNull()
   })
 
   // §4: the right column holds only what needs the person: «Нужны вы» and the requests no agent answered.
   it('keeps only «Нужны вы» and the unanswered requests in the right column, no live feed', async () => {
     stub()
-    show([ev(1)], 0)
+    showHome()
     const side = await screen.findByRole('complementary', { name: en['launch.home.side'] })
     expect(within(side).getByRole('heading', { name: new RegExp(`^${en['launch.home.board.title']}`) })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: new RegExp(`^${en['launch.home.live.title']}`) })).toBeNull()

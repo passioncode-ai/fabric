@@ -18,6 +18,7 @@ import { runnerLabel } from '../runnerLabel'
 import { DiagnosticsSection } from '../DiagnosticsSection'
 import type { EntityRef } from '../../../shared/entityRef'
 import type { FeedEvent, ProjectRow, TerminalSession } from '../../../shared/types'
+import { cursorFor } from '../../../shared/inbox.ts'
 
 const PAGE = 50
 /** How long the search waits after the last key before it reads (one read per word typed, not per letter). */
@@ -84,7 +85,7 @@ export function dayLabel(iso: string, t: Translate, locale: string): string {
   return d.toLocaleDateString(locale, { day: 'numeric', month: 'long' })
 }
 
-export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed = false, projectsFailed = false, sessions = null, onOpen }: {
+export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed = false, projectsFailed = false, sessions = null, onOpen, readThroughSeq, onRead }: {
   projects: ReadonlyArray<{ id: string; name: string }> | null
   mark: number
   /** OF-34 (the operator's walk, 2026-10-22): what the agents did, from the journal; null while unread, absent to hide. */
@@ -99,9 +100,18 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
   /** The sessions Fabric runs, to name the agent of an act by its program (CO-395); an agent not among them is «Агент». */
   sessions?: TerminalSession[] | null
   onOpen?: (projectId: string, focus: EntityRef) => void
+  /** How far this operator has read the journal (AX-07); with `onRead`, the agents' work offers «Отметить прочитанным»
+   *  here, its home since Главная lost the journal (CO-460). */
+  readThroughSeq?: number
+  /** Move the read position: called from the button and nowhere else (AX-07). */
+  onRead?: (throughSeq: number) => Promise<void>
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
+  // AX-07: what is ON SCREEN is what an act may mark read; a saved position past the journal (a restore) marks nothing.
+  const highestSeq = (feed ?? []).reduce((top, e) => (e.seq > top ? e.seq : top), 0)
+  const cursorReading = cursorFor({ saved: { throughSeq: readThroughSeq ?? 0 }, highestSeq })
+  const unread = (feed ?? []).filter((e) => e.seq > cursorReading.cursor.throughSeq).length
   const [read, setRead] = useState<Read>({ at: 'reading' })
   const [attempt, setAttempt] = useState(0)
   const [filters, setFilters] = useState<HistoryFilters>(rememberedFilters)
@@ -215,6 +225,11 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
       {feed !== undefined && (
         <section className="hx-agents" aria-labelledby="hx-agents-title">
           <h3 id="hx-agents-title">{t('acts.agentsTitle')}</h3>
+          {onRead && readThroughSeq !== undefined && unread > 0 && (
+            <button type="button" className="hx-button" disabled={highestSeq <= cursorReading.cursor.throughSeq}
+              onClick={() => void onRead(highestSeq)}>{t('journal.markRead', { count: unread })}</button>
+          )}
+          {onRead && !cursorReading.usable && <p className="hx-problem" role="status">{cursorReading.says}</p>}
           {/* Unread projects keep the feed unread too, so «nothing yet» never renders as «nothing» (the unread boundary). */}
           {feedFailed && !feed ? <p className="hx-problem" role="status">{t('acts.agentsUnread')}</p> : <AgentWork events={feedProjects || projectsFailed ? (feed ? feed.filter((e) => (!filters.who || e.actor.kind === filters.who) && (!filters.project || e.project_id === filters.project)) : null) : null} narrowed={Boolean(filters.who || filters.project)} onReset={reset} projects={feedProjects ?? null} sessions={sessions} onOpen={onOpen} />}
         </section>

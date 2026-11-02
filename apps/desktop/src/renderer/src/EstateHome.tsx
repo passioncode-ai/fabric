@@ -26,7 +26,6 @@ import {
   saidOfThrow,
   type WorkspaceSaid
 } from '../../shared/workspaceAct.ts'
-import { ProfileSection } from './ProfileSection'
 import { FailureNote, MachineDetail } from './OperatorError'
 import { pluralForm, useLocale, useT } from './i18n'
 import { en, type StringKey } from './i18n/en'
@@ -41,8 +40,6 @@ export function EstateHome({
   sessions,
   feed,
   marks,
-  readThroughSeq,
-  onRead,
   onOpen,
   onOpenEntity,
   onNew,
@@ -85,12 +82,6 @@ export function EstateHome({
    * this panel was left behind.
    */
   marks: FeedMarks
-  /** How far this operator has read the estate's history (AX-07). */
-  readThroughSeq: number
-  /** Move the read position. Called from an ACT and nowhere else — a cursor
-   *  advanced by arrival marks read what nobody looked at, and the unread count
-   *  then measures polling rather than attention. */
-  onRead: (throughSeq: number) => Promise<void>
   onOpen: (id: string) => void
   /**
    * Where a journal row opens (UXA-C06). Separate from `onOpen`, which takes a
@@ -132,7 +123,6 @@ export function EstateHome({
   const narrow = useMediaQuery('(max-width: 1100px)')
   const showConsole = useOpenConsole()
   const [now] = useState(() => new Date())
-  const [moreOpen, setMoreOpen] = useState(false)
   const [ownWaiting, setOwnWaiting] = useState<number | null>(null)
   /** One number for "what waits for you" on this screen and on the rail (UX-1). */
   const personWaiting = waitingForYou === undefined ? ownWaiting : (waitingForYou?.total ?? null)
@@ -150,32 +140,9 @@ export function EstateHome({
     })
   )
   // #endregion workspace-absences
-  /**
-   * The read position this build may actually use (AX-07).
-   *
-   * A cursor is a position in ONE journal, and a restore mints a new generation
-   * whose sequence starts again — so a saved position past everything the
-   * estate holds would mark the whole history read and show an empty feed to
-   * someone who has never looked at it.
-   */
-  const highestSeq = (feed ?? []).reduce((top, e) => (e.seq > top ? e.seq : top), 0)
-  const cursorReading = cursorFor({ saved: { throughSeq: readThroughSeq }, highestSeq })
-  const cursor = cursorReading.cursor
-  /** What is ON SCREEN, which is what an act may mark read. */
-  const visibleThroughSeq = highestSeq
-  const unread = (feed ?? []).filter((e) => e.seq > cursor.throughSeq).length
   const read = projects !== null
   const rows = projects ?? []
   const empty = read && rows.length === 0
-  const [pins, setPins] = useState<string[]>([])
-  /** A pin that did not reach the disk. `toggle` used to return the value it
-   *  HOPED had been written, so a full disk lost the pins silently (S14). */
-  /** A pin or order that did not save: our sentence, and the machine's reason apart from it (UX-5). */
-  const [pinProblem, setPinProblem] = useState<{ said: string; detail: string | null } | null>(null)
-  /** The project the operator tried to pin as the sixth. Held until they say
-   *  which to release — SCN-043 step 2 — because a silent drop undoes the
-   *  decision they made with a click (UX28-10). */
-  const [pinFull, setPinFull] = useState<ProjectRow | null>(null)
   /**
    * THREE STATES (UXA-C01). This was a bare record, and the effect below was
    * written `.catch(() => setWaiting({}))` — so an outage became "nothing is
@@ -198,11 +165,6 @@ export function EstateHome({
    * no version history both outlive the question.
    */
   const [wsSaid, setWsSaid] = useState<WorkspaceSaid | null>(null)
-  useEffect(() => {
-    // A failed read is said, never an empty set of pins that looks like none were chosen (0.3.6 review i2 ER-4).
-    window.fabric.favourites.list().then(setPins).catch((e: unknown) =>
-      setPinProblem({ said: t('estate.pinsUnread'), detail: e instanceof Error ? e.message : String(e) }))
-  }, [])
   /** Who is doing what (operator request 2026-10-14): one reading for the counts, the board's work lanes, the live
    *  agents and each project's «сейчас». It follows the families that change it — claims, tasks, stage reports and
    *  sessions — and its own 15 s tick for silence. */
@@ -247,99 +209,6 @@ export function EstateHome({
   const waitProblem = waitingForYou !== undefined && waitingForYou === null && waitingProblem !== null
     ? { kind: 'unreadable' as const, why: waitingProblem }
     : waitingProblemOf(waiting)
-  // PARTITION, not overlay: a pinned project shown here AND in the list below
-  // is the same card twice, and the operator can act on the wrong one.
-  const { pinned, rest, missing } = partitionByFavourite(rows, pins)
-  /** Below the threshold the whole step is ceremony (SCN-043 step 3): ranking
-   *  five of six saves nobody a scroll, and a control that appears before it is
-   *  useful teaches an operator to ignore it. */
-  const pinning = offersFavourites(rows.length)
-
-  /** Favourites first in the operator's own order (↑ ↓ move them); then the rest by their latest activity, newest
-   *  first (operator request 2026-10-14) — the project worked on last is the one looked for first. */
-  const shown = [...pinned, ...orderProjects(rest, [], (id) => pulse.get(id)?.lastActivityAt ?? null)]
-  const move = (p: ProjectRow, dir: 'up' | 'down'): void => {
-    void window.fabric.favourites
-      .move(p.id, dir, [])
-      .then((r) => {
-        setPins(r.pins)
-        setPinProblem(r.saved ? null : { said: t('launch.home.projects.moveFailed'), detail: r.reason ?? null })
-      })
-      .catch((e: unknown) => setPinProblem({ said: t('launch.home.projects.moveFailed'), detail: e instanceof Error ? e.message : String(e) }))
-  }
-
-  const row = (p: ProjectRow): React.JSX.Element => {
-    const live = (sessions ?? []).filter((s) => s.projectId === p.id && s.running).length
-    /** Null when nothing waits here AND when the estate cannot say — the two are
-     *  told apart by the banner above the list, not by a chip on every row. */
-    const obligations = counts?.[p.id] ?? null
-    // «Ждут вас» counts what the rail counts beside the project (UX-1); a refusal among the project's obligations still
-    // colours it, and a review is said by its own «на проверке» pill.
-    const youHere = waitingForYou === undefined ? null : (waitingForYou?.byProject[p.id] ?? 0)
-    const waits = waitingForYou === undefined ? obligations : youHere ? { total: youHere, refused: obligations?.refused ?? 0 } : null
-    /** The shell's count is wired and not known (not answered yet, or failed): the card says so, never nothing (ER-5, UX-7). */
-    const waitsUnknown = waitingForYou === null
-    const isPinned = pins.includes(p.id)
-    // Only favourites move by hand; the rest are ordered by activity.
-    const at = pinned.findIndex((g) => g.id === p.id)
-    const pp = pulse.get(p.id)
-    /** «На проверке» here: the Board's count when the shell gives it (UX-2), else the tasks in review; null while unknown. */
-    const reviewHere = toReview === undefined ? (pp?.review ?? 0) : toReview === null ? null : (toReview.byProject[p.id] ?? 0)
-    const shownName = projectDisplayName(p, home.view?.displayNames ?? null)
-    return (
-      <article key={p.id} className="lp-project-row">
-        <span className="lp-project-icon" aria-hidden="true">{(shownName.trim()[0] ?? '·').toUpperCase()}</span>
-        <div>
-          {/* A link-looking control that opens the project; the row's tools are
-              SIBLINGS, never nested inside it (a button inside a button). */}
-          <button type="button" className="lp-project-name" title={p.name} onClick={() => onOpen(p.id)}>{shownName}</button>
-          <p className="lp-meta">{p.purpose || t('project.noPurpose')}</p>
-          {/* What the agents are doing here now, in their own words — or when it last moved. */}
-          {pp?.now ? (
-            <p className="lh-project-now"><span className="lh-live-indicator" aria-hidden="true" />{t('launch.home.projects.now', { text: pp.now.text })}</p>
-          ) : pp?.lastActivityAt ? (
-            <p className="lp-meta lh-project-quiet">{t('launch.home.projects.quietSince', { when: since(pp.lastActivityAt, t) })}</p>
-          ) : null}
-        </div>
-        <div className="lp-project-tools">
-          {waits && <span className={`lp-pill ${waits.refused > 0 ? 'danger' : 'attention'}`}>{t('estate.waiting', { count: waits.total })}</span>}
-          {waitsUnknown && <span className="lp-pill" title={waitingProblem ?? undefined}>{t('estate.waitingUnknown')}</span>}
-          {(pp?.live ?? live) > 0 && <span className="lp-pill live">{t('launch.home.projects.live', { count: pp?.live ?? live })}</span>}
-          {(reviewHere ?? 0) > 0 && <span className="lp-pill">{t('launch.home.projects.review', { count: reviewHere! })}</span>}
-          {/* «idle» only from readings that happened: the home's, and the person's count and «На проверке» when wired;
-              before them, or after one failed, nothing is known (i2 ER-2, i3 UX-7). */}
-          {home.view && !home.problem && !waitsUnknown && reviewHere !== null && !waits && !obligations && !(pp?.live ?? live) && !reviewHere && <span className="lp-pill">{t('estate.idle')}</span>}
-          {pinning && (
-            <>
-              <button type="button" className="lp-button" aria-pressed={isPinned}
-                aria-label={`${isPinned ? t('estate.unpin') : t('estate.pin')}: ${shownName}`}
-                onClick={() =>
-                  void window.fabric.favourites.toggle(p.id).then((r) => {
-                    setPins(r.pins)
-                    setPinProblem(r.saved ? null : { said: t(r.reason ? 'estate.pinFailed' : 'estate.pinNotSaved'), detail: r.reason ?? null })
-                    // AT THE LIMIT IS NEITHER a failure nor a success: nothing was
-                    // written and nothing was dropped. The operator says which to
-                    // release, and until they do the set on screen is the set on disk.
-                    setPinFull(r.atLimit ? p : null)
-                  }).catch((e: unknown) => setPinProblem({ said: t('estate.pinFailed'), detail: e instanceof Error ? e.message : String(e) }))
-                }>
-                {isPinned ? t('glyph.star') : t('glyph.starEmpty')}
-              </button>
-              {isPinned && (
-                <>
-                  <button type="button" className="lp-button" aria-label={t('launch.home.projects.up', { name: shownName })}
-                    disabled={at <= 0} onClick={() => move(p, 'up')}>{t('glyph.up')}</button>
-                  <button type="button" className="lp-button" aria-label={t('launch.home.projects.down', { name: shownName })}
-                    disabled={at < 0 || at >= pinned.length - 1} onClick={() => move(p, 'down')}>{t('glyph.down')}</button>
-                </>
-              )}
-            </>
-          )}
-        </div>
-      </article>
-    )
-  }
-
   useEffect(() => {
     // An unread state is not an answer the person gave: say it and ask nothing, rather than record 'declined' (i2 ER-4).
     window.fabric.workspace.state().then(setWs).catch((e: unknown) => setWsUnread(e instanceof Error ? e.message : String(e)))
@@ -499,61 +368,6 @@ export function EstateHome({
           <MachineDetail text={wsUnread} />
         </Banner>
       )}
-      {pinProblem && (
-        <Banner tone="warn" actions={<Button tone="ghost" onClick={() => setPinProblem(null)}>{t('common.dismiss')}</Button>}>
-          {pinProblem.said}
-          <MachineDetail text={pinProblem.detail} />
-        </Banner>
-      )}
-
-      {/* WHICH TO RELEASE (SCN-043 step 2). The set is full, nothing has been
-          written, and the operator chooses — one release per pinned project,
-          because "pick one" with no list is a question nobody can answer. The
-          swap is ONE write: two would leave a window with four pinned and lose
-          the released one if the second failed. */}
-      {pinFull && (
-        <Banner
-          tone="warn"
-          actions={
-            <Button tone="ghost" onClick={() => setPinFull(null)}>
-              {t('common.keep')}
-            </Button>
-          }
-        >
-          <span data-testid="pin-full">
-            {t('estate.pinFull', { name: projectDisplayName(pinFull), limit: FAVOURITE_LIMIT })}
-          </span>
-          <Toolbar>
-            {pinned.map((p) => (
-              <Button
-                key={p.id}
-                tone="quiet"
-                onClick={() => {
-                  const add = pinFull
-                  setPinFull(null)
-                  void window.fabric.favourites.replace(p.id, add.id).then((r) => {
-                    setPins(r.pins)
-                    setPinProblem(r.saved ? null : { said: t(r.reason ? 'estate.pinFailed' : 'estate.pinNotSaved'), detail: r.reason ?? null })
-                  }).catch((e: unknown) => setPinProblem({ said: t('estate.pinFailed'), detail: e instanceof Error ? e.message : String(e) }))
-                }}
-              >
-                {t('estate.pinRelease', { name: projectDisplayName(p) })}
-              </Button>
-            ))}
-          </Toolbar>
-        </Banner>
-      )}
-
-      {/* A FAVOURITE WHOSE PROJECT IS NOT HERE (SCN-043 alt path). It is skipped
-          rather than unpinned — deleting the id on a read would mean a transient
-          failure to load a project quietly unpins it — and that is exactly why
-          it has to be SAID: otherwise a pinned project is simply absent, which
-          is a dead card's silent cousin. */}
-      {missing.length > 0 && (
-        <p className="muted" data-testid="pin-missing">
-          {t('estate.pinMissing', { count: missing.length })}
-        </p>
-      )}
 
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       {/* The approved mockup (2026-10-26, `.cols`): ONE grid for the whole home. The left column holds the hero, the strip
@@ -595,60 +409,6 @@ export function EstateHome({
             }}
             onTask={(projectId, taskId) => (onOpenEntity ? onOpenEntity(projectId, { kind: 'task', id: taskId }) : onOpen(projectId))} />
 
-          {/* Not on the launch home of the design: quotas live under Manage, the
-              journal under Pulse and the profile behind Profile. Until those
-              screens exist they stay here, folded, rather than disappear. */}
-          <details className="lp-panel" id="sec-estate-more" open={moreOpen} onToggle={(e) => setMoreOpen((e.currentTarget as HTMLDetailsElement).open)}>
-            <summary>{t('launch.home.more')}</summary>
-            {/* 0.3.14: the projects table, the profile and the journal leave the main path (the simple Fabric §2b, §4). The
-                left column lists the projects alphabetically; the pins and their order (SCN-043) and the read position of
-                the journal (AX-07) have no other home yet, so they stay here, folded, until the release of 2026-11-05 gives them one. */}
-          <section className="lp-projects lh-projects" id="sec-estate-projects" aria-labelledby="home-projects-title">
-              <div className="lp-panel-head">
-                <div>
-                  <p className="lp-kicker">{t('launch.home.projects.kicker')}</p>
-                  <h3 id="home-projects-title">{t('launch.home.projects.title')}</h3>
-                </div>
-                <button type="button" className="lp-button" onClick={onNew}>{t('launch.home.projects.new')}</button>
-              </div>
-              {/* ONE element, not a branch: `read` is what the component exists to decide. */}
-              {empty || !read ? (
-                <EmptyState read={read} loud waiting={t('estate.reading')}>
-                  {t('estate.empty')} <Button onClick={onNew}>{t('estate.createFirst')}</Button>
-                </EmptyState>
-              ) : (
-                <>
-                  {shown.map(row)}
-                  {pinning && <p className="lp-meta">{t('launch.home.projects.note')}</p>}
-                </>
-              )}
-            </section>
-
-            <ProfileSection onError={() => {}} />
-
-      <Panel
-        id="sec-estate-journal"
-        title={t('estate.journal')}
-        actions={
-          // Only when there IS something unread, and only over what is on
-          // screen: `visibleThroughSeq` is the highest seq RENDERED, not the
-          // highest known, so marking read cannot swallow rows the operator
-          // never saw (AX-07).
-          unread > 0 ? (
-            <Button
-              tone="ghost"
-              onClick={() => void onRead(visibleThroughSeq)}
-              disabled={visibleThroughSeq <= cursor.throughSeq}
-            >
-              {t('journal.markRead', { count: unread })}
-            </Button>
-          ) : undefined
-        }
-      >
-        {!cursorReading.usable && <p className="muted">{cursorReading.says}</p>}
-        <Feed events={feed} projects={rows} onOpen={onOpenEntity} />
-      </Panel>
-          </details>
         </div>
         {!narrow && side}
       </div>

@@ -152,8 +152,6 @@ const show = (marks: FeedMarks = NO_MARKS) =>
         sessions={[]}
         feed={[]}
         marks={marks}
-        readThroughSeq={0}
-        onRead={async () => {}}
         onOpen={vi.fn()}
         onNew={vi.fn()}
       />
@@ -161,6 +159,9 @@ const show = (marks: FeedMarks = NO_MARKS) =>
   )
 
 const at = (all: number): FeedMarks => ({ all, byFamily: {} })
+/** CO-460: the home's count of what waits is the strip's «need you» cell; the projects table and its per-card chips left
+ *  the home (the rail keeps each project's count). '—' when the count is not known. */
+const waitingShown = (): string | null | undefined => screen.queryByRole('button', { name: /need you/ })?.querySelector('b')?.textContent
 
 describe('what is waiting is either counted or said to be unreadable', () => {
   it('counts what the read returned — the fixture IS the waiting case', async () => {
@@ -168,7 +169,7 @@ describe('what is waiting is either counted or said to be unreadable', () => {
     // about a card that would never have shown a chip anyway.
     stub(async () => answered([refusal('p1', 7)]))
     show()
-    await waitFor(() => expect(screen.getByText(/1 waiting on you/)).toBeTruthy())
+    await waitFor(() => expect(waitingShown()).toBe('1'))
   })
 
   it('does NOT report an outage when the estate is genuinely calm', async () => {
@@ -179,7 +180,7 @@ describe('what is waiting is either counted or said to be unreadable', () => {
     show()
     await waitFor(() => expect(screen.getAllByText(/name-p1/).length).toBeGreaterThan(0))
     expect(screen.queryByText(/could not be read/i)).toBeNull()
-    expect(screen.queryByText(/waiting on you/)).toBeNull()
+    expect(waitingShown(), 'a measured calm is a count of none').toBe('0')
   })
 
   it('SAYS SO when the read could not be made, instead of showing calm cards', async () => {
@@ -193,7 +194,7 @@ describe('what is waiting is either counted or said to be unreadable', () => {
       expect(screen.getByText(/could not be read|not answering/i)).toBeTruthy()
     )
     // And it does not invent a count to go with the outage.
-    expect(screen.queryByText(/waiting on you/)).toBeNull()
+    expect(waitingShown(), 'no count is invented to go with the outage').toBe('—')
   })
 
   it('and a slow read cannot overwrite the answer that came after it', async () => {
@@ -216,20 +217,18 @@ describe('what is waiting is either counted or said to be unreadable', () => {
           sessions={[]}
           feed={[]}
           marks={at(2)}
-          readThroughSeq={0}
-          onRead={async () => {}}
           onOpen={vi.fn()}
           onNew={vi.fn()}
         />
       </I18nProvider>
     )
-    await waitFor(() => expect(screen.getByText(/1 waiting on you/)).toBeTruthy())
+    await waitFor(() => expect(waitingShown()).toBe('1'))
     releaseStale(answered([refusal('p1', 1), refusal('p1', 2), refusal('p1', 3)]))
     await stale
     await new Promise((r) => setTimeout(r, 0))
     expect(list).toHaveBeenCalledTimes(2)
-    expect(screen.getByText(/1 waiting on you/), 'the newer answer stands').toBeTruthy()
-    expect(screen.queryByText(/3 waiting on you/)).toBeNull()
+    expect(waitingShown(), 'the newer answer stands').toBe('1')
+    expect(waitingShown()).not.toBe('3')
   })
 })
 
@@ -240,7 +239,7 @@ describe('a partial read is not a complete one (UXA-C02)', () => {
     // the opposite mistake and just as wrong.
     stub(async () => partly([refusal('p1', 7)]))
     show()
-    await waitFor(() => expect(screen.getByText(/1 waiting on you/)).toBeTruthy())
+    await waitFor(() => expect(waitingShown()).toBe('1'))
   })
 
   it('and SAYS which source did not answer, so the counts are not read as totals', async () => {
@@ -262,7 +261,7 @@ describe('a partial read is not a complete one (UXA-C02)', () => {
     stub(async () => nothing())
     show()
     await waitFor(() => expect(screen.getByText(/could not be read|not answering/i)).toBeTruthy())
-    expect(screen.queryByText(/waiting on you/)).toBeNull()
+    expect(waitingShown()).toBe('—')
   })
 
   it('and a CUT refusal window is said too, though every source answered', async () => {
@@ -271,14 +270,14 @@ describe('a partial read is not a complete one (UXA-C02)', () => {
     // is the same lie in a different shape.
     stub(async () => cut([refusal('p1', 7)]))
     show()
-    await waitFor(() => expect(screen.getByText(/1 waiting on you/)).toBeTruthy())
+    await waitFor(() => expect(waitingShown()).toBe('1'))
     expect(screen.getByText(/older than|not read/i), 'the omission is on the screen').toBeTruthy()
   })
 
   it('but a COMPLETE read says nothing extra', async () => {
     stub(async () => answered([refusal('p1', 7)]))
     show()
-    await waitFor(() => expect(screen.getByText(/1 waiting on you/)).toBeTruthy())
+    await waitFor(() => expect(waitingShown()).toBe('1'))
     expect(screen.queryByText(/could not be read/i)).toBeNull()
     expect(screen.queryByText(/did not answer/i)).toBeNull()
     expect(screen.queryByText(/older than/i)).toBeNull()

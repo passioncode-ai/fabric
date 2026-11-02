@@ -7,6 +7,7 @@ import { PERSONA_NAME_MAX, PERSONA_STYLES, personaName, variantsOf, type Persona
 import { useT } from '../i18n'
 import { FabricAvatar } from './FabricAvatar'
 import { usePersona } from './persona'
+import { ProfileSection } from '../ProfileSection'
 
 export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Element {
   const t = useT()
@@ -92,6 +93,9 @@ export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Ele
           <p className="lp-meta">{t('launch.persona.where')}</p>
         </section>
       </div>
+      {/* CO-460: what has been done here (SCR-36), its home since Главная lost the folded «Ещё». A failed read is said by
+          the section itself («profile.unread»), so the screen takes no error of its own from it. */}
+      <ProfileSection onError={() => {}} />
     </div>
   )
 }
