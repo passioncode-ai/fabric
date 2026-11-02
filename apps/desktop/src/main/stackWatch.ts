@@ -53,6 +53,9 @@ export interface StackWatchDeps {
   readDeadlineMs?: number
   /** Whose words the view is for (UX-4); the process's own platform unless given. */
   platform?: string
+  /** The Docker runtime as the person knows it, read each time the view is made; a Mac on Colima is told about Colima
+   *  (CO-492). Absent or null: the platform's usual words. */
+  runtime?: (() => string | null) | null
   /** Called when the state changed, and on every tick while the stack is down (the refusal's wait shortens). */
   onChange: (view: StackHealthView, refusal: StackRefusal | null) => void
   now?: () => number
@@ -127,7 +130,7 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
   /** The hold last recorded, so a hold is recorded once per change, not once per re-check. */
   let heldRecorded: StackHold | null = null
 
-  const view = (): StackHealthView => stackHealthView(state, now(), platform)
+  const view = (): StackHealthView => stackHealthView(state, now(), platform, deps.runtime?.() ?? null)
   const publish = (): void => deps.onChange(view(), hubRefusalFor(state, now()))
 
   /** True when the database answered, false when it refused or broke, `'slow'` when it ran out of time (ER-4). */

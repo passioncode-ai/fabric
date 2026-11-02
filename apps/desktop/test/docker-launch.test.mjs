@@ -88,3 +88,17 @@ test('with Colima installed but no Colima context, nothing is started: OrbStack 
   assert.equal(dockerAppFor(`${HOME}/.orbstack/run/docker.sock`, { env, platform: 'darwin', exists: has(ORB), colima: { bin: COLIMA, host: null } }), null)
   assert.equal(dockerAppFor(null, { env, platform: 'darwin', exists: has(ORB), colima: { bin: COLIMA, host: null } }), null)
 })
+
+// CO-492: the words about a Docker that does not answer name the runtime this Mac runs, told by the same reading.
+test('the runtime is told by the app Fabric would start, else by the socket\'s path on macOS, else not at all', async () => {
+  const { dockerRuntimeFor } = await import(path.resolve(import.meta.dirname, '../src/main/dockerLaunch.ts'))
+  const COLIMA = '/opt/homebrew/bin/colima'
+  assert.equal(dockerRuntimeFor(`${HOME}/.colima/default/docker.sock`, { env, platform: 'darwin', exists: has(), colima: { bin: COLIMA, host: null } }), 'Colima')
+  // Colima's socket with no colima program found: still Colima's engine, so still Colima's words.
+  assert.equal(dockerRuntimeFor(`${HOME}/.colima/default/docker.sock`, { env, platform: 'darwin', exists: has(), colima: noColima }), 'Colima')
+  assert.equal(dockerRuntimeFor(`${HOME}/.orbstack/run/docker.sock`, { env, platform: 'darwin', exists: has(ORB, DD), colima: noColima }), 'OrbStack')
+  assert.equal(dockerRuntimeFor(`${HOME}/.docker/run/docker.sock`, { env, platform: 'darwin', exists: has(), colima: noColima }), 'Docker Desktop')
+  assert.equal(dockerRuntimeFor(null, { env, platform: 'darwin', exists: has(ORB, DD), colima: noColima }), null)
+  assert.equal(dockerRuntimeFor(`${HOME}/.colima/default/docker.sock`, { env, platform: 'linux', exists: has(), colima: noColima }), null)
+  assert.equal(dockerRuntimeFor(null, { env: { HOME, DOCKER_HOST: 'tcp://10.0.0.2:2375' }, platform: 'darwin', exists: has(ORB), colima: noColima }), null)
+})

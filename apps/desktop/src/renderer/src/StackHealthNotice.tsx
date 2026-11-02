@@ -54,7 +54,7 @@ export function StackHealthNotice(): React.JSX.Element | null {
       view.hold === 'external' ? 'stack.health.external'
         : view.hold === 'stopped' ? 'stack.health.stopped'
           : view.hold === 'running' ? 'stack.health.waitingContainers'
-            : view.why === 'docker' ? (platformKey('stack.health.docker', view.platform ?? 'darwin') as StringKey)
+            : view.why === 'docker' ? (platformKey('stack.health.docker', view.platform ?? 'darwin', view.runtime ?? null) as StringKey)
               : 'stack.health.database'
     return (
       <Banner>

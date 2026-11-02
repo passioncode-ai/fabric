@@ -12,7 +12,7 @@
  * operations log was polling reads); the events below fire on a transition and on nothing else.
  */
 import { dockerIsUnreachable, stackStartIsTransient } from './stackStartRetry.ts'
-import { LOW_DISK_BYTES, diskLowLine, type StartupFailure } from './startupFailure.ts'
+import { LOW_DISK_BYTES, diskLowLine, dockerWordsSuffix, type StartupFailure } from './startupFailure.ts'
 
 /** How often a running Fabric reads the stack's health. */
 export const STACK_WATCH_MS = 30_000
@@ -276,13 +276,16 @@ export interface StackHealthView {
   hold: StackHold | null
   /** The platform the words are for: each names its own Docker (UX-4). */
   platform: string
+  /** The Docker runtime on this machine when Fabric could tell it (`Colima`, `OrbStack`, `Docker Desktop`), else null:
+   *  a Mac on Colima is told about Colima (CO-492). */
+  runtime: string | null
   diskLow: boolean
   freeDiskBytes: number | null
   /** The stack is down on a low disk: the disk is the likely cause, and freeing space comes first. */
   diskLikelyCause: boolean
 }
 
-export function stackHealthView(state: StackWatchState, now: number, platform: string = typeof process === 'undefined' ? 'darwin' : process.platform): StackHealthView {
+export function stackHealthView(state: StackWatchState, now: number, platform: string = typeof process === 'undefined' ? 'darwin' : process.platform, runtime: string | null = null): StackHealthView {
   const down = state.stack === 'down'
   const diskLow = state.disk === 'low'
   const counting = down && !state.trying && state.hold === null && state.nextRecoveryAt !== null
@@ -298,15 +301,17 @@ export function stackHealthView(state: StackWatchState, now: number, platform: s
     attempt: trying ? state.recoveries + 1 : null,
     hold: down ? state.hold : null,
     platform,
+    runtime,
     diskLow,
     freeDiskBytes: state.freeDiskBytes,
     diskLikelyCause: down && diskLow
   }
 }
 /** The key for this platform's words, where they differ by OS: `.win32` names Docker Desktop, `.linux` Docker Engine,
- *  the plain key OrbStack or Docker Desktop on macOS (0.3.8 UX-1, 0.3.9 review UX-4; `diskLowLine` does the same). */
-export function platformKey(key: string, platform: string): string {
-  return platform === 'win32' ? `${key}.win32` : platform === 'linux' ? `${key}.linux` : key
+ *  `.colima` Colima on a Mac whose engine is Colima's (CO-492), the plain key OrbStack or Docker Desktop on macOS
+ *  (0.3.8 UX-1, 0.3.9 review UX-4; `diskLowLine` does the same). */
+export function platformKey(key: string, platform: string, runtime: string | null = null): string {
+  return `${key}${dockerWordsSuffix(platform, runtime)}`
 }
 
 /**
@@ -327,6 +332,8 @@ export function startupWaitLines(input: {
   freeDiskBytes: number | null
   locale: string
   platform: string
+  /** The Docker runtime when Fabric could tell it; Colima's is named on a Mac that runs it (CO-492). */
+  runtime?: string | null
   /** Seconds to the next try, or null while a try runs. */
   nextInS: number | null
   /** The try running, or the next one (1-based). */
@@ -336,12 +343,12 @@ export function startupWaitLines(input: {
   logPath: string
 }): Array<{ id: StartupWaitLine; text: string }> {
   const { say } = input
-  const low = diskLowLine(input.failure, { freeDiskBytes: input.freeDiskBytes, platform: input.platform, locale: input.locale })
+  const low = diskLowLine(input.failure, { freeDiskBytes: input.freeDiskBytes, platform: input.platform, runtime: input.runtime, locale: input.locale })
   const text: Record<StartupWaitLine, string> = {
     title: say('startup.wait.title'),
     disk: low ? say(low.key, { free: low.free }) : '',
     // Each OS names its own Docker (0.3.9 review UX-4, as 0.3.8 UX-1 did for the disk line).
-    cause: say(input.waitsForDocker ? platformKey('startup.wait.docker', input.platform) : 'startup.wait.database'),
+    cause: say(input.waitsForDocker ? platformKey('startup.wait.docker', input.platform, input.runtime) : 'startup.wait.database'),
     next: input.nextInS === null ? say('startup.wait.trying', { attempt: input.attempt }) : say('startup.wait.next', { seconds: input.nextInS, attempt: input.attempt }),
     agents: input.standby === null ? '' : input.standby.open ? say('startup.wait.agents') : say('startup.wait.agentsNoHub'),
     // Review iteration 3, UX-2: the standby's reason is the machine's, in English; it stands on its own quieter line,

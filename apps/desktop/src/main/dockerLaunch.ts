@@ -87,6 +87,25 @@ export function dockerAppFor(socket: string | null, opts: Opts = {}): DockerApp 
   return null
 }
 
+/**
+ * The Docker runtime the engine at `socket` belongs to, as the person knows it, for the words Fabric says about a Docker
+ * that does not answer (CO-492): the app Fabric would start, else what the socket's path names on macOS (a Colima
+ * profile's socket, OrbStack's, Docker Desktop's). Null when it cannot be told; the words then name the usual ones.
+ */
+export function dockerRuntimeFor(socket: string | null, opts: Opts = {}): DockerApp['name'] | null {
+  const app = dockerAppFor(socket, opts)
+  if (app) return app.name
+  const platform = opts.platform ?? process.platform
+  if (platform !== 'darwin') return null
+  const target = dockerTarget(socket, opts.env ?? process.env, platform)
+  if (!('socketPath' in target)) return null
+  const where = target.socketPath
+  if (colimaProfileOf(where)) return 'Colima'
+  if (where.includes('/.orbstack/')) return 'OrbStack'
+  if (where.includes('/.docker/run/') || where.includes('/.docker/desktop/')) return 'Docker Desktop'
+  return null
+}
+
 /** Starts `app` detached and unreferenced; its name once the system took the start, null when it could not. */
 export function launchDockerApp(app: DockerApp | null, opts: { spawnImpl?: typeof spawn } = {}): Promise<string | null> {
   if (!app) return Promise.resolve(null)

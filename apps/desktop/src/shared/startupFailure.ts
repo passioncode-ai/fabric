@@ -101,8 +101,8 @@ function wasKilled(e: unknown): boolean {
  * threw a string — turning a diagnosable failure into a silent one, which is
  * the exact defect this module exists to end.
  */
-export function classifyStartupFailure(e: unknown, platform: string = typeof process === 'undefined' ? 'darwin' : process.platform): StartupFailure {
-  const f = forPlatform(classifyCause(e), platform)
+export function classifyStartupFailure(e: unknown, platform: string = typeof process === 'undefined' ? 'darwin' : process.platform, runtime: string | null = null): StartupFailure {
+  const f = forPlatform(classifyCause(e), platform, runtime)
   return { ...f, remedy: f.remedy.replace('{stackFolder}', stackFolderFor(platform)) }
 }
 
@@ -112,17 +112,25 @@ export function classifyStartupFailure(e: unknown, platform: string = typeof pro
  * them, in English here and through `startup.<cause>.remedy.<platform>` in the registry, so no Windows or Linux user is
  * told to run brew, start OrbStack or open a DMG.
  */
-const PER_OS: Partial<Record<StartupCause, Record<'win32' | 'linux', string>>> = {
+/** The suffix of the words for this machine's Docker: `.win32` Docker Desktop, `.linux` Docker Engine, `.colima` Colima on a
+ *  Mac whose engine Fabric told as Colima's (CO-492), none for the macOS words that name OrbStack or Docker Desktop. */
+export function dockerWordsSuffix(platform: string, runtime: string | null = null): '' | '.win32' | '.linux' | '.colima' {
+  return platform === 'win32' ? '.win32' : platform === 'linux' ? '.linux' : runtime === 'Colima' ? '.colima' : ''
+}
+
+const PER_OS: Partial<Record<StartupCause, Partial<Record<'win32' | 'linux' | 'colima', string>>>> = {
   'supabase-cli-missing': {
     win32: 'Install it with scoop (`scoop bucket add supabase https://github.com/supabase/scoop-bucket.git`, then `scoop install supabase`), then open Fabric again. If it is already installed, it lives somewhere this app does not look — start Fabric from a terminal to confirm.',
     linux: 'Install it from the Supabase CLI releases (a .deb, .rpm or .apk package at https://github.com/supabase/cli/releases), then open Fabric again. If it is already installed, it lives somewhere this app does not look — start Fabric from a terminal to confirm.'
   },
   'stack-start-timed-out': {
     win32: 'This is almost always Docker: check that Docker Desktop is running with its WSL 2 engine and has finished starting, then retry. A first-ever start also has images to download, and that can genuinely take longer.',
+    colima: 'This is almost always Docker: check that Colima is running (`colima status` in Terminal) and has finished starting, then retry. A first-ever start also has images to download, and that can genuinely take longer.',
     linux: 'This is almost always Docker: check that Docker Engine is running (`systemctl status docker`) and that your user may use it, then retry. A first-ever start also has images to download, and that can genuinely take longer.'
   },
   'stack-would-not-start': {
     win32: 'The stack’s own words are below and they are usually specific. If they mention Docker, start Docker Desktop and retry; if a port is taken, `supabase stop` releases it.',
+    colima: 'The stack’s own words are below and they are usually specific. If they mention Docker, start Colima (`colima start` in Terminal) and retry; if a port is taken, `supabase stop` releases it.',
     linux: 'The stack’s own words are below and they are usually specific. If they mention Docker, start Docker Engine (`sudo systemctl start docker`) and retry; if a port is taken, `supabase stop` releases it.'
   },
   'repository-not-found': {
@@ -131,10 +139,12 @@ const PER_OS: Partial<Record<StartupCause, Record<'win32' | 'linux', string>>> =
   }
 }
 
-function forPlatform(f: StartupFailure, platform: string): StartupFailure {
-  if (platform !== 'win32' && platform !== 'linux') return f
-  const own = PER_OS[f.cause]?.[platform]
-  return own ? { ...f, remedy: own, remedyKey: `startup.${f.cause}.remedy.${platform}` } : f
+function forPlatform(f: StartupFailure, platform: string, runtime: string | null = null): StartupFailure {
+  const suffix = dockerWordsSuffix(platform, runtime)
+  if (!suffix) return f
+  const which = suffix.slice(1) as 'win32' | 'linux' | 'colima'
+  const own = PER_OS[f.cause]?.[which]
+  return own ? { ...f, remedy: own, remedyKey: `startup.${f.cause}.remedy.${which}` } : f
 }
 
 function classifyCause(e: unknown): StartupFailure {
@@ -288,10 +298,10 @@ export function freeDiskGb(bytes: number, locale?: string): string {
 const DISK_CAUSES: ReadonlySet<StartupCause> = new Set(['stack-would-not-start', 'stack-up-but-silent', 'stack-start-timed-out', 'database-unreachable', 'unknown'])
 
 /** The disk line's key for the platform and its number in the reader's locale (`freeDiskGb`). Null when there is room, when the free space could not be read, or for another cause. */
-export function diskLowLine(failure: Pick<StartupFailure, 'cause'>, opts: { freeDiskBytes?: number | null; platform?: string; locale?: string }): { key: string; free: string } | null {
+export function diskLowLine(failure: Pick<StartupFailure, 'cause'>, opts: { freeDiskBytes?: number | null; platform?: string; runtime?: string | null; locale?: string }): { key: string; free: string } | null {
   if (typeof opts.freeDiskBytes !== 'number' || !(opts.freeDiskBytes < LOW_DISK_BYTES) || !DISK_CAUSES.has(failure.cause)) return null
   const platform = opts.platform ?? (typeof process === 'undefined' ? 'darwin' : process.platform)
-  const key = platform === 'win32' ? 'startup.diskLow.win32' : platform === 'linux' ? 'startup.diskLow.linux' : 'startup.diskLow'
+  const key = `startup.diskLow${dockerWordsSuffix(platform, opts.runtime)}`
   return { key, free: freeDiskGb(opts.freeDiskBytes, opts.locale) }
 }
 // #endregion audit-038-disk
@@ -319,6 +329,7 @@ const ENGLISH: Record<string, string> = {
   'startup.copyAt': 'A copy of this is at:',
   'startup.diskLow': 'This disk has {free} GB free. Docker (OrbStack or Docker Desktop) stops when the disk runs out, and then the local stack cannot start: free some space first.',
   'startup.diskLow.win32': 'This disk has {free} GB free. Docker Desktop stops when the disk runs out, and then the local stack cannot start: free some space first.',
+  'startup.diskLow.colima': 'This disk has {free} GB free. Docker (Colima) stops when the disk runs out, and then the local stack cannot start: free some space first.',
   'startup.diskLow.linux': 'This disk has {free} GB free. Docker Engine stops when the disk runs out, and then the local stack cannot start: free some space first.',
   'startup.retry': 'Retry',
   'startup.copy': 'Copy the details',
@@ -337,7 +348,7 @@ const ENGLISH: Record<string, string> = {
  */
 export function startupDialog(
   failure: StartupFailure,
-  opts: { retryable: boolean; logPath: string; say?: StartupSay; platform?: string; freeDiskBytes?: number | null; locale?: string }
+  opts: { retryable: boolean; logPath: string; say?: StartupSay; platform?: string; runtime?: string | null; freeDiskBytes?: number | null; locale?: string }
 ): StartupDialog {
   const vars = { stackFolder: stackFolderFor(opts.platform ?? (typeof process === 'undefined' ? 'darwin' : process.platform)) }
   const say = (key: string, v?: Record<string, string | number>): string => {
