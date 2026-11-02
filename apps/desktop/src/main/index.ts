@@ -11,6 +11,7 @@ import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
 import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitReleaseCommand } from './commandIngressAdapters.ts'
 import { createHash, randomUUID } from 'node:crypto'
+import { dockerRuntimeFor } from './dockerLaunch'
 import { fixPath, halfUpDeps, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStartingStack } from './env'
 import { resolveHealingHalfUp } from './stackHalfUp.ts'
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
@@ -5539,6 +5540,7 @@ function startupWaitText(): Record<string, string> {
     freeDiskBytes: freeDiskNow(),
     locale,
     platform: process.platform,
+    runtime: dockerRuntime(),
     nextInS: w.timer ? Math.max(0, Math.ceil((w.nextAt - Date.now()) / 1000)) : null,
     attempt: w.attempt + 1,
     standby: hubStandby === null ? null : hubStandby.open ? { open: true } : { open: false, reason: hubStandby.reason },
@@ -5666,6 +5668,12 @@ function ownsStack(): boolean {
   return !(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
 }
 
+/** This machine's Docker runtime as the person knows it, for the words about a Docker that does not answer (CO-492); null
+ *  when it cannot be told or the read throws. Reads the socket's path and the docker contexts only, never Docker itself. */
+function dockerRuntime(): string | null {
+  try { return dockerRuntimeFor(null) } catch { return null }
+}
+
 function startStackWatch(): void {
   if (stackWatch) return
   const local = ownsStack()
@@ -5681,6 +5689,7 @@ function startStackWatch(): void {
     // (a database still coming up): 0.3.9 review ER-3.
     recover: local ? () => recoverStack() : null,
     containers: local ? () => stackDatabaseContainer() : null,
+    runtime: local ? dockerRuntime : null,
     onChange: (view, refusal) => {
       stackHealthNow = view
       surface?.setUnavailable(refusal)
@@ -5752,7 +5761,7 @@ async function startOrExplain(): Promise<void> {
     ops.failed('startup.bootstrap', e)
     // ST-3: Docker or the database not ready yet heals by waiting. Fabric stays up, its hub refuses with
     // `stack-starting`, the person sees what it waits for, and the start is tried again (10 s growing to 2 min).
-    const failure = classifyStartupFailure(e)
+    const failure = classifyStartupFailure(e, process.platform, dockerRuntime())
     if (!pastRetryPoint && !process.env.SMOKE && startupHeals(failure)) {
       waitAndRetryStart(failure)
       return
@@ -5775,7 +5784,7 @@ async function startOrExplain(): Promise<void> {
  * it does not work at all.
  */
 async function explainAndQuit(e: unknown): Promise<void> {
-  const failure = classifyStartupFailure(e)
+  const failure = classifyStartupFailure(e, process.platform, dockerRuntime())
 
   // SMOKE NEXT, and the order is not a detail: `showMessageBoxSync` is modal,
   // and a modal dialog in a headless run does not fail — it WAITS, forever, and
@@ -5830,7 +5839,7 @@ async function explainAndQuit(e: unknown): Promise<void> {
   const parent = new BrowserWindow({ width: 480, height: 160, resizable: false, minimizable: false, maximizable: false, fullscreenable: false, title: windowTitle, show: true, webPreferences: { sandbox: true, contextIsolation: true } })
   void parent.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(page))
   while (!quit.quitting) {
-    const plan = startupDialog(failure, { retryable: !pastRetryPoint, logPath, freeDiskBytes, locale, say: (key, vars) => say(key as StringKey, vars) })
+    const plan = startupDialog(failure, { retryable: !pastRetryPoint, logPath, freeDiskBytes, runtime: dockerRuntime(), locale, say: (key, vars) => say(key as StringKey, vars) })
     const { response: choice } = await dialog.showMessageBox(parent, {
       type: 'error',
       title: windowTitle,
