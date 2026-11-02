@@ -221,7 +221,7 @@ export function AgentRoster({ mark, hubMark, sessions, projects, groups = AGENT_
   )
 }
 
-export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject, onOpenTask, onCreate, initialSession = null, initialAgent = null, onPick, onHome }: {
+export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject, onOpenTask, onOpenGoal, onCreate, initialSession = null, initialAgent = null, onPick, onHome }: {
   /** «← Главная» above the agent's header; absent: no back link (the top bar's travel buttons remain). */
   onHome?(): void
   /** The session to open on arrival (a row of the left column's «Агенты», a «В работе» row, a board card's
@@ -242,6 +242,8 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
   projects: ReadonlyArray<CrossProject> | null
   onOpenProject(projectId: string): void
   onOpenTask(projectId: string, taskId: string): void
+  /** CO-467: the Plan goal that leads an agent's line. */
+  onOpenGoal?: (projectId: string, goalId: string) => void
   /** «Создать агента»: «Создать» on its agent path (SCN-166 step 4). */
   onCreate(): void
 }): React.JSX.Element {
@@ -294,7 +296,7 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
       <h2 className="visually-hidden" tabIndex={-1}>{t('agents.title')}</h2>
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       {chosen ? (
-        <Centre row={chosen} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} goalsUnread={home.view?.goalsUnread ?? null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onAsTab={openAsTab}
+        <Centre row={chosen} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} goalsUnread={home.view?.goalsUnread ?? null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onOpenGoal={onOpenGoal} onAsTab={openAsTab}
           terminal={chosen.sessionId ? ((sessions ?? []).find((x) => x.sessionId === chosen.sessionId) ?? null) : null}
           onHome={onHome} runnerVersion={r.versionOf(chosen.runner)} projectOf={(id) => (projects ?? []).find((p) => p.id === id) ?? null} />
       ) : home.view === null && home.problem && (rows.length === 0 || (initialSession && !chosen)) ? (
@@ -362,7 +364,7 @@ function Group({ group, rows, read, workUnread, selected, onSelect, locale }: {
   )
 }
 
-function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject, onOpenTask, onAsTab, terminal = null, onHome, runnerVersion = null, projectOf }: {
+function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject, onOpenTask, onOpenGoal, onAsTab, terminal = null, onHome, runnerVersion = null, projectOf }: {
   row: RosterRow
   onHome?(): void
   /** The runner's installed version, for the page's «Агент» fact. */
@@ -378,6 +380,8 @@ function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject,
   homeUnread: boolean
   onOpenProject(projectId: string): void
   onOpenTask(projectId: string, taskId: string): void
+  /** CO-467: the Plan goal that leads an agent's line. */
+  onOpenGoal?: (projectId: string, goalId: string) => void
   onAsTab(sessionId: string): void
 }): React.JSX.Element {
   const t = useT()
@@ -406,7 +410,7 @@ function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject,
   return live ? (
     <AgentPage key={live.sessionId} agent={live} mark={mark} title={name} state={waitingState} actions={act} note={note}
       where={where} onConsole={row.console && row.sessionId ? onAsTab : undefined} terminal={terminal}
-      workUnread={homeUnread && !row.live} goalsUnread={goalsUnread} onOpenProject={onOpenProject} onOpenTask={onOpenTask}
+      workUnread={homeUnread && !row.live} goalsUnread={goalsUnread} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onOpenGoal={onOpenGoal}
       onHome={onHome} runnerVersion={runnerVersion} permission={terminal?.permissionMode ?? null} projectOf={projectOf} />
   ) : (
     <section className="lp-panel lh-agent-page" aria-labelledby="agent-page-title" data-testid="agent-card">

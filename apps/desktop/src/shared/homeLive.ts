@@ -88,7 +88,9 @@ export interface LiveAgent {
   branch?: string | null
   /** Its goal (the operator's second review, R-3; `main/agentGoals.ts`): the root of its task's `spawned` links, else
    *  the task itself. Null: it holds no task, so no goal is named. Absent: not read. */
-  goal?: { taskId: string; projectId: string; text: string; what: string | null; byPerson: boolean; isTask: boolean } | null
+  goal?: { taskId: string; projectId: string; text: string; what: string | null; byPerson: boolean; isTask: boolean
+    /** CO-467: the Plan goal that leads, when one does; «Открыть цель» opens Plan then, not the root task. */
+    goalId?: string | null } | null
   /** Its newest heartbeat (`main/agentHeartbeats.ts`): the agent's own word, judged fresh or not by `sessionStatus`.
    *  Absent: none sent, or not read. */
   heartbeat?: { phase: string; at: string; waitingOn: string | null }

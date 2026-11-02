@@ -85,9 +85,11 @@ export function atWords(iso: string, t: Translate, locale: string): string | nul
   return t('agentScreen.at.date', { date: d.toLocaleDateString(locale, { day: 'numeric', month: 'short' }), time })
 }
 
-export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, title, state, actions, note, workUnread, where, terminal, goalsUnread,
+export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, onOpenGoal, title, state, actions, note, workUnread, where, terminal, goalsUnread,
   onHome, runnerVersion, permission, onQuestion, projectOf }: {
   agent: LiveAgent
+  /** CO-467: opens the Plan goal that leads this agent's line (Plan, at that goal's project). */
+  onOpenGoal?: (projectId: string, goalId: string) => void
   /** The goals could not be read (`main/agentGoals.ts`): said where the goal would be, never «not named» (ER-20). */
   goalsUnread?: string | null
   /** Who works was not read: the task and the action are unknown, never said as none (0.3.13 review, iteration 2, UX-3). */
@@ -255,7 +257,9 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, t
     <p className="as-now-goal" title={goal.what ?? undefined}>
       {goal.isTask ? t('agentScreen.goalIsTask') : t('agentScreen.goalLine', { goal: goal.text })}
       {goal.byPerson && <> · {t('agentScreen.goalByPerson')}</>}
-      {onOpenTask && !goal.isTask && <> · <button type="button" className="lp-link" onClick={() => onOpenTask(goal.projectId, goal.taskId)}>{t('agentScreen.openGoal')}</button></>}
+      {/* CO-467: a Plan goal opens Plan, where the person set it; a task goal opens its task. */}
+      {goal.goalId && onOpenGoal ? <> · <button type="button" className="lp-link" onClick={() => onOpenGoal(goal.projectId, goal.goalId!)}>{t('agentScreen.openGoal')}</button></>
+        : onOpenTask && !goal.isTask && !goal.goalId && <> · <button type="button" className="lp-link" onClick={() => onOpenTask(goal.projectId, goal.taskId)}>{t('agentScreen.openGoal')}</button></>}
     </p>
   ) : null
   const trailOf = (x: SessionTask): React.ReactNode => {

@@ -14,7 +14,6 @@ import { useEffect, useState } from 'react'
 import type { EstateSummary } from '../../shared/types'
 import { EmptyState, Panel, Stat, StatStrip } from './components'
 import { useT } from './i18n'
-import { go } from './evidence'
 
 export function ProfileSection({ onError }: { onError: (m: string) => void }): React.JSX.Element {
   const t = useT()
@@ -62,28 +61,22 @@ export function ProfileSection({ onError }: { onError: (m: string) => void }): R
                   })}
           </p>
           <StatStrip>
-            {/* M142 — two of these seven have a register ON THIS SCREEN and
-                open it. The other five are estate-wide sums whose rows live per
+            {/* M142 — two of these seven had a register on Главная and opened it
+                until CO-460 moved this summary to «Мой облик». The other five are estate-wide sums whose rows live per
                 project, and the estate has no cross-project surface for them.
                 They stay unpressable and promise nothing: a figure that names a
                 screen which does not exist is exactly the claim-wearing-a-
                 citation this rule removes. The gap is recorded rather than
                 papered over — see the milestone row. */}
-            <Stat
-              label={t('profile.projects')}
-              value={n(summary.projects)}
-              onClick={go('sec-estate-projects')}
-            />
+            {/* CO-460: the projects table and the journal left Главная, and «Мой облик» has neither: these two
+                figures promise no screen either, as the other five never did. */}
+            <Stat label={t('profile.projects')} value={n(summary.projects)} />
             <Stat label={t('profile.sessions')} value={n(summary.sessions)} />
             <Stat label={t('profile.tasksClosed')} value={n(summary.tasksClosed)} />
             <Stat label={t('profile.facts')} value={n(summary.facts)} />
             <Stat label={t('profile.decisions')} value={n(summary.decisions)} />
             <Stat label={t('profile.grants')} value={n(summary.grantsIssued)} />
-            <Stat
-              label={t('profile.events')}
-              value={n(summary.events)}
-              onClick={go('sec-estate-journal')}
-            />
+            <Stat label={t('profile.events')} value={n(summary.events)} />
           </StatStrip>
         </>
       )}

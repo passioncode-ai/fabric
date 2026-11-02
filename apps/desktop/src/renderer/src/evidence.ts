@@ -30,8 +30,6 @@ export const EVIDENCE_ANCHORS = [
   'sec-board',
   'sec-decisions',
   'sec-digest',
-  'sec-estate-journal',
-  'sec-estate-projects',
   'sec-files',
   'sec-harness',
   'sec-journal',

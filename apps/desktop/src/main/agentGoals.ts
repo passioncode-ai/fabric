@@ -68,15 +68,17 @@ export async function withGoals(view: HomeView, store: GoalStore): Promise<HomeV
       ...[...roots.values()].map((r) => r.goal),
       ...tasks.map((t) => str(t.goal_id))
     ].filter((g): g is string => !!g))]
-    const goals = goalIds.length ? await must(store.selectIn('goals', 'id,title', 'id', goalIds), 'the goals') : []
+    const goals = goalIds.length ? await must(store.selectIn('goals', 'id,title,project_id', 'id', goalIds), 'the goals') : []
     const goalTitle = new Map(goals.map((g) => [String(g.id), str(g.title)]))
+    const goalProject = new Map(goals.map((g) => [String(g.id), str(g.project_id)]))
     return {
       ...view,
       live: view.live.map((a) => {
         if (!a.task) return { ...a, goal: null }
         const root = roots.get(a.task.id)!
         const t = taskById.get(root.task)
-        const fromGoal = (root.goal && goalTitle.get(root.goal)) || (t && str(t.goal_id) ? goalTitle.get(String(t.goal_id)) : null) || null
+        const planGoal = (root.goal && goalTitle.get(root.goal) ? root.goal : null) ?? (t && str(t.goal_id) && goalTitle.get(String(t.goal_id)) ? String(t.goal_id) : null)
+        const fromGoal = planGoal ? goalTitle.get(planGoal) ?? null : null
         const own = t ? (str(t.title) ?? str(t.brief_what)) : null
         const text = fromGoal ?? own ?? (root.task === a.task.id ? str(a.task.summary) : null)
         if (!text) return { ...a, goal: null }
@@ -84,10 +86,13 @@ export async function withGoals(view: HomeView, store: GoalStore): Promise<HomeV
           ...a,
           goal: {
             taskId: root.task,
-            projectId: t ? String(t.project_id) : a.task.projectId,
+            // CO-467: a Plan goal leads as itself: its id (so «Открыть цель» opens Plan), its project, no brief of its own
+            // (a goal has none, and the root task's brief is not the goal's), and the person's, who set it in Plan.
+            goalId: planGoal,
+            projectId: (planGoal && goalProject.get(planGoal)) || (t ? String(t.project_id) : a.task.projectId),
             text,
-            what: t ? str(t.brief_what) : null,
-            byPerson: t?.origin_kind === 'person',
+            what: planGoal ? null : t ? str(t.brief_what) : null,
+            byPerson: planGoal ? true : t?.origin_kind === 'person',
             // UX-22: a goal the person defined in Plan (the goals table) is the goal even over a root task; the task
             // is then the step under it, never its own goal. Only a root with no Plan goal is its own goal.
             isTask: root.task === a.task.id && !fromGoal

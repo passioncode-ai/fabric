@@ -36,13 +36,13 @@ test('the goal is the root of the spawned links, with its brief and whether the 
     tasks: [{ id: 't1', project_id: 'p1', title: 'Ship 0.3.14', brief_what: 'The release the operator asked for', goal_id: null, origin_kind: 'person' }]
   })
   const out = await withGoals(view([live('s1', 't3')]), store)
-  assert.deepEqual(out.live[0].goal, { taskId: 't1', projectId: 'p1', text: 'Ship 0.3.14', what: 'The release the operator asked for', byPerson: true, isTask: false })
+  assert.deepEqual(out.live[0].goal, { taskId: 't1', goalId: null, projectId: 'p1', text: 'Ship 0.3.14', what: 'The release the operator asked for', byPerson: true, isTask: false })
 })
 
 test('a task with no parent is its own goal; an agent with no task has none named', async () => {
   const store = fake({ tasks: [{ id: 't5', project_id: 'p1', title: null, brief_what: 'Fix the board', goal_id: null, origin_kind: 'observation' }] })
   const out = await withGoals(view([live('s1', 't5'), live('s2', null)]), store)
-  assert.deepEqual(out.live[0].goal, { taskId: 't5', projectId: 'p1', text: 'Fix the board', what: 'Fix the board', byPerson: false, isTask: true })
+  assert.deepEqual(out.live[0].goal, { taskId: 't5', goalId: null, projectId: 'p1', text: 'Fix the board', what: 'Fix the board', byPerson: false, isTask: true })
   assert.equal(out.live[1].goal, null)
 })
 
@@ -67,7 +67,8 @@ test('UX-22: a task an agent filed under a Plan goal is the step, the goal is na
     goals: [{ id: 'g1', title: 'Ship 0.3.14 by Friday' }]
   })
   const a = await withGoals(view([live('s1', 't9')]), byLink)
-  assert.deepEqual(a.live[0].goal, { taskId: 't9', projectId: 'p1', text: 'Ship 0.3.14 by Friday', what: null, byPerson: false, isTask: false })
+  // CO-467: the Plan goal leads as itself: its id, and the person's, who set it in Plan.
+  assert.deepEqual(a.live[0].goal, { taskId: 't9', goalId: 'g1', projectId: 'p1', text: 'Ship 0.3.14 by Friday', what: null, byPerson: true, isTask: false })
   const byGoalId = fake({
     tasks: [{ id: 't9', project_id: 'p1', title: 'Fix the counter', brief_what: null, goal_id: 'g1', origin_kind: 'agent' }],
     goals: [{ id: 'g1', title: 'Ship 0.3.14 by Friday' }]
@@ -75,6 +76,23 @@ test('UX-22: a task an agent filed under a Plan goal is the step, the goal is na
   const b = await withGoals(view([live('s1', 't9')]), byGoalId)
   assert.equal(b.live[0].goal.text, 'Ship 0.3.14 by Friday')
   assert.equal(b.live[0].goal.isTask, false)
+})
+
+// CO-467 (FV-1): a Plan goal that leads shows the goal, not its root task: no task brief under the goal's title, «поставили
+// вы» from the goal (the person set it in Plan) rather than the task's origin, and its id so «Открыть цель» opens Plan.
+test('CO-467: a Plan goal over a root task is said as the goal, with its id, not with the task\'s brief or origin', async () => {
+  const store = fake({
+    tasks: [{ id: 'r1', project_id: 'p1', title: 'Root task', brief_what: 'the root task\'s brief', goal_id: 'g7', origin_kind: 'agent' }],
+    goals: [{ id: 'g7', title: 'Launch the beta', project_id: 'p2' }]
+  })
+  const out = await withGoals(view([live('s1', 'r1')]), store)
+  assert.deepEqual(out.live[0].goal, { taskId: 'r1', goalId: 'g7', projectId: 'p2', text: 'Launch the beta', what: null, byPerson: true, isTask: false })
+  // A root with no Plan goal keeps its own brief and origin, and no goal id.
+  const plain = fake({ tasks: [{ id: 'r2', project_id: 'p1', title: 'Root task', brief_what: 'brief', goal_id: null, origin_kind: 'agent' }] })
+  const p = await withGoals(view([live('s1', 'r2')]), plain)
+  assert.equal(p.live[0].goal.goalId, null)
+  assert.equal(p.live[0].goal.what, 'brief')
+  assert.equal(p.live[0].goal.byPerson, false)
 })
 
 test('the walk stops at ten hops and at a cycle, never looping', async () => {

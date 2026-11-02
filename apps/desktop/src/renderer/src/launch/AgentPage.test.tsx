@@ -172,6 +172,21 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
   // The operator's second review, 2026-10-26 (R-3, R-4): the goal, who set it, and «Открыть цель»; the step in «Сейчас»
   // carries its progress bar. The mockup parity, wave 1: the goal is a line inside «Сейчас», above the task, never a
   // box of its own, and a task with no goal named says nothing about it.
+  // CO-467 (FV-1): a Plan goal that leads is the goal: no task brief under it, the person's, and «Открыть цель» opens Plan.
+  it('a Plan goal that leads opens Plan, not the root task', async () => {
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
+    const onOpenTask = vi.fn(), onOpenGoal = vi.fn()
+    show(<AgentPage agent={{ ...agentA, goal: { taskId: 'r1', goalId: 'g7', projectId: 'p2', text: 'Launch the beta', what: null, byPerson: true, isTask: false } }}
+      mark={0} onOpenProject={vi.fn()} onOpenTask={onOpenTask} onOpenGoal={onOpenGoal} />)
+    const goal = screen.getByRole('region', { name: en['agentScreen.now'] }).querySelector('.as-now-goal') as HTMLElement
+    expect(goal.textContent).toContain(en['agentScreen.goalLine'].replace('{goal}', 'Launch the beta'))
+    expect(goal.textContent).toContain(en['agentScreen.goalByPerson'])
+    expect(goal.getAttribute('title')).toBeNull()
+    fireEvent.click(within(goal).getByRole('button', { name: en['agentScreen.openGoal'] }))
+    expect(onOpenGoal).toHaveBeenCalledWith('p2', 'g7')
+    expect(onOpenTask).not.toHaveBeenCalled()
+  })
+
   it('shows the goal as a line inside «Сейчас» above the task, with who set it, and the step as progress', async () => {
     vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
     const onOpenTask = vi.fn()

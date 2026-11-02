@@ -1316,6 +1316,8 @@ function Shell({
             }}
             sessions={sessions} projects={projects} onOpenProject={openProject}
             onOpenTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })}
+            // CO-467: a Plan goal that leads an agent's line opens Plan, at its project.
+            onOpenGoal={(projectId) => setActive({ kind: 'plan', projectId })}
             onCreate={() => goTo({ kind: 'start', path: 'agent' })}
             onHome={() => goTo({ kind: 'home' })} />
         )}
