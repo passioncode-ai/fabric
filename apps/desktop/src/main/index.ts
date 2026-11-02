@@ -174,7 +174,7 @@ import {
   type ManifestRead
 } from '../shared/buildManifest.ts'
 import { createOps } from './ops'
-import { boardEntries, cutBoard, PERSON_KINDS, scopeBoard, type BoardCut, type BoardQuestion } from '../shared/board'
+import { boardEntries, cutBoard, forPerson, scopeBoard, type BoardCut, type BoardQuestion } from '../shared/board'
 import { deferredEntries, resolvedEntries, type DeferredEntry, type ResolvedEntry } from '../shared/boardResolved.ts'
 import { releaseEntries, type ReleaseEntry } from '../shared/releases.ts'
 import { envelope, type Omission, type ReadEnvelope, type SourceReceipt } from '../shared/readEnvelope'
@@ -3246,7 +3246,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   }> => {
     const [reviews, expired, refusals, projects, proposals, grants] = await Promise.all([
       store
-        .select('project_tasks', 'id,project_id,title,brief_what,instruction,started_at')
+        .select('project_tasks', 'id,project_id,title,brief_what,instruction,started_at,moved_at')
         .eq('estate_id', ACTIVE_ESTATE)
         .eq('status', 'review'),
       store
@@ -3584,7 +3584,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   const readBoard = async (
     projectId: string | null,
     limit: number,
-    /** CO-391: only what a person can resolve (`PERSON_KINDS`), as the home's «Нужны вы» shows. */
+    /** CO-391: only what a person can resolve (`forPerson`: `PERSON_KINDS` and, since CO-456, the oldest overdue reviews), as the home's «Нужны вы» shows. */
     personOnly = false
   ): Promise<ReadEnvelope<BoardCut>> => {
     const now = new Date()
@@ -3650,7 +3650,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         }).weight,
       now
     })
-    const kinds = personOnly ? all.filter((e) => PERSON_KINDS.has(e.kind)) : all
+    const kinds = personOnly ? all.filter(forPerson) : all
     const scoped = projectId ? scopeBoard(kinds, projectId) : kinds
 
     const receipt = (name: string, r: { error: { message?: string } | null }): SourceReceipt =>

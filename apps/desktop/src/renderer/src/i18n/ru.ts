@@ -472,6 +472,7 @@ export const ru: Partial<Record<StringKey, string>> = {
     "Вопросы, которые агент не смог решить сам, и обязательства, оставшиеся после работы. Они упорядочены в одном списке; отметить что-то прочитанным здесь нельзя.",
   'needsYou.kind.question': 'Вопрос',
   'needsYou.kind.refused': 'Отказано',
+  'needsYou.overdueReview': "Задача ждёт проверки больше трёх дней. Откройте её, чтобы принять или вернуть агенту.",
   'needsYou.kind.review': "На проверке",
   'needsYou.kind.abandoned': 'Брошено',
   'needsYou.kind.proposal': 'Предложение',

@@ -35,9 +35,11 @@ export function notifyLineOf(item: { kind: string; title: string; detail: string
  *  said here in the interface's language (0.3.12 review, iteration 2, UX-10). Any other detail is the asker's own words. */
 const BLOCKING = /^blocking (\d+) tasks?$/
 
-export function detailOf(item: { kind: string; detail: string | null; swept?: { kind: AbandonedKind } }, t: Say, locale: Locale): string | null {
+export function detailOf(item: { kind: string; detail: string | null; swept?: { kind: AbandonedKind }; overdue?: true }, t: Say, locale: Locale): string | null {
   // SW-9: abandoned work the sweep found carries its kind as a value; it is said here, never shown as the machine's word.
   if (item.swept) return t(`attention.swept.${item.swept.kind}`)
+  // CO-456: a review brought to the person says why it is theirs and what to do.
+  if (item.overdue) return t('needsYou.overdueReview')
   const blocks = item.kind === 'question' && item.detail ? BLOCKING.exec(item.detail) : null
   if (!blocks) return item.detail
   const count = Number(blocks[1])

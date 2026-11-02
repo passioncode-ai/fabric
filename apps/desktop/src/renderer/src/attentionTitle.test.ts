@@ -45,3 +45,12 @@ describe('the title of a row the sweep found with no title read', () => {
     expect(notifyLineOf({ kind: 'review', title: 'Ship it', detail: null }, translator('en'), 'en')).toBe('Ship it')
   })
 })
+
+// CO-456: a review brought to the person says why it is theirs; any other review keeps no detail.
+describe('the why of an overdue review', () => {
+  it('says it waited more than three days and what to do, in both languages', () => {
+    expect(detailOf({ kind: 'review', detail: null, overdue: true }, translator('ru'), 'ru')).toBe(ru['needsYou.overdueReview'])
+    expect(detailOf({ kind: 'review', detail: null, overdue: true }, translator('en'), 'en')).toBe(en['needsYou.overdueReview'])
+    expect(detailOf({ kind: 'review', detail: null }, translator('en'), 'en')).toBe(null)
+  })
+})

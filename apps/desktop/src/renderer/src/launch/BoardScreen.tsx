@@ -11,7 +11,7 @@
 // that is stable per attempt, so a retry after a lost answer is the same act.
 
 import { useEffect, useRef, useState } from 'react'
-import { PERSON_KINDS, reviewCounts, type BoardCut, type BoardEntry } from '../../../shared/board'
+import { forPerson, reviewCounts, type BoardCut, type BoardEntry } from '../../../shared/board'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from '../../../shared/boardResolved.ts'
 import type { BoardTab } from '../../../shared/appRoute'
 import type { EntityRef } from '../../../shared/entityRef'
@@ -170,8 +170,8 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   // Named once among the FAILED sources: the person's read and the whole board's report the same names, and a source one
   // answered must not hide the other's failure of it (iteration 3, ER-2).
   const unread = consulted.filter((s) => s.status !== 'ok').filter((s, i, failed) => failed.findIndex((x) => x.name === s.name) === i)
-  const mine = (open?.data?.items ?? []).filter((e) => PERSON_KINDS.has(e.kind))
-  const toReview = (wholeOpen?.data?.items ?? []).filter((e) => !PERSON_KINDS.has(e.kind))
+  const mine = (open?.data?.items ?? []).filter(forPerson)
+  const toReview = (wholeOpen?.data?.items ?? []).filter((e) => !forPerson(e))
   /** The person's part cut at its first rows (exact: `personOnly` counts the whole part), and the whole board's cut, from
    *  which «На проверке» is filtered: past it, rows to review may be missing (iteration 2, ER-8, UX-5). */
   const mineCut = open?.data && open.data.hidden > 0 ? open.data : null

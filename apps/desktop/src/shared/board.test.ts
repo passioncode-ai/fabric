@@ -204,3 +204,44 @@ describe('the person\'s part of the board (CO-391)', () => {
     expect(e.askedBy).toEqual({ kind: 'agent', agent: 'codex' })
   })
 })
+
+describe('the oldest reviews past three days reach the person, a few at a time (CO-456)', () => {
+  const inReview = (id: string, days: number | null) =>
+    review({ ref: { kind: 'task', id }, title: id, since: daysAgo(30), ...(days === null ? {} : { reviewSince: daysAgo(days) }) })
+
+  it('marks the five oldest reviews past three days, oldest first, and nothing younger or of unknown age', async () => {
+    const { forPerson, OVERDUE_REVIEW_AT_ONCE } = await import('./board')
+    expect(OVERDUE_REVIEW_AT_ONCE).toBe(5)
+    const items = build([], [
+      inReview('t2', 2.9), inReview('t4', 4), inReview('t9', 9), inReview('t5', 5), inReview('t6', 6),
+      inReview('t7', 7), inReview('t8', 8), inReview('tu', null)
+    ])
+    const overdue = items.filter((e) => e.overdue).map((e) => e.title).sort()
+    expect(overdue).toEqual(['t5', 't6', 't7', 't8', 't9'])
+    expect(items.filter(forPerson).map((e) => e.title).sort()).toEqual(['t5', 't6', 't7', 't8', 't9'])
+    // t4 waits its turn: accept or send back one of the five and it takes the place.
+    const next = build([], [inReview('t2', 2.9), inReview('t4', 4), inReview('t5', 5), inReview('t6', 6), inReview('t7', 7), inReview('t8', 8)])
+    expect(next.filter((e) => e.overdue).map((e) => e.title).sort()).toEqual(['t4', 't5', 't6', 't7', 't8'])
+  })
+
+  it('a review waits from when it was put in review, else from when its work began', () => {
+    const [known] = build([], [inReview('t', 4)])
+    expect(known.waitingSince).toBe(daysAgo(4))
+    const [unknown] = build([], [inReview('t', null)])
+    expect(unknown.waitingSince).toBe(daysAgo(30))
+  })
+
+  it('the person\'s part and «На проверке» split the board without overlap', async () => {
+    const { forPerson, reviewCounts } = await import('./board')
+    const items = build([question()], [inReview('old', 10), inReview('new', 1)])
+    const whole = cutBoard(items, 50)
+    const mine = cutBoard(items.filter(forPerson), 50)
+    expect(mine.items.map((e) => e.title).sort()).toEqual(['old', 'which database version?'])
+    expect(reviewCounts(whole, mine).total).toBe(1)
+  })
+
+  it('carries the move time from the review source', () => {
+    const [item] = attentionOf({ reviews: [{ id: 't', project_id: 'p1', title: 'x', instruction: 'x', started_at: daysAgo(9), moved_at: daysAgo(4) }], expired: [], refusals: [], proposals: [], names: {} })
+    expect(item.reviewSince).toBe(daysAgo(4))
+  })
+})

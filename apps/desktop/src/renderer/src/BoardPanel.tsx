@@ -30,7 +30,7 @@ export function BoardPanel({
 }: {
   projectId?: string | null
   limit?: number
-  /** Only what the person alone resolves (`PERSON_KINDS`), the part the rail and Главная count (0.3.12 review, iteration 3,
+  /** Only what the person alone resolves (`forPerson`), the part the rail and Главная count (0.3.12 review, iteration 3,
    *  UX-1). */
   personOnly?: boolean
   /** Re-read on the journal's clock, so the board does not disagree with the

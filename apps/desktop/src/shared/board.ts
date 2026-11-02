@@ -60,6 +60,30 @@ export interface BoardQuestion {
 /** CO-391 (OF-14): the kinds only a person can resolve; what an agent can settle stays on the Board, off the home. */
 export const PERSON_KINDS: ReadonlySet<BoardEntry['kind']> = new Set(['question', 'access', 'refused'])
 
+// #region overdue-review — docs: docs/ux/scenarios.md#scn-163-see-on-главная-what-needs-me-what-is-being-done-now-and-my-projects
+/** CO-456: a task in review longer than this is the person's to accept or send back. */
+export const OVERDUE_REVIEW_MS = 3 * 24 * 3600_000
+/** CO-456's pacing: at most this many overdue reviews wait for the person at once, the oldest first; the next takes the
+ *  place of one accepted or sent back. 71 at once (the live audit of 2026-10-26) is a queue nobody reads. */
+export const OVERDUE_REVIEW_AT_ONCE = 5
+
+/** What waits for the person alone (the home's «Нужны вы», the rail's count): `PERSON_KINDS`, and the overdue reviews
+ *  `boardEntries` marked (CO-456). Every reader of the person's part filters with this one test. */
+export function forPerson(e: Pick<BoardEntry, 'kind' | 'overdue'>): boolean {
+  return PERSON_KINDS.has(e.kind) || e.overdue === true
+}
+
+/** The refs of the oldest `OVERDUE_REVIEW_AT_ONCE` reviews put there more than `OVERDUE_REVIEW_MS` before `now`; a review
+ *  whose move time is unknown is never overdue (its age is not measured). Ties go by ref, so a reading is stable. */
+export function overdueReviews(entries: readonly Pick<BoardEntry, 'kind' | 'ref' | 'reviewSince'>[], now: Date): Set<string> {
+  const before = now.getTime() - OVERDUE_REVIEW_MS
+  const old = entries
+    .filter((e) => e.kind === 'review' && e.reviewSince !== undefined && Date.parse(e.reviewSince) < before)
+    .sort((a, b) => Date.parse(a.reviewSince!) - Date.parse(b.reviewSince!) || (a.ref < b.ref ? -1 : a.ref > b.ref ? 1 : 0))
+  return new Set(old.slice(0, OVERDUE_REVIEW_AT_ONCE).map((e) => e.ref))
+}
+// #endregion overdue-review
+
 export interface BoardEntry {
   /**
    * One string that addresses exactly one thing, so a deep link survives a
@@ -103,6 +127,10 @@ export interface BoardEntry {
   access?: AttentionItem['access']
   /** Abandoned work the sweep found (SW-9): its kind, said by `detailOf` in the operator's language. */
   swept?: AttentionItem['swept']
+  /** A review: when the task was put in review, when known (CO-456). */
+  reviewSince?: string
+  /** One of the oldest reviews past three days, brought to the person (`overdueReviews`, CO-456). */
+  overdue?: true
   /** Present only on an authored question: what the answer form needs, and the
    *  revision it must be submitted against. */
   question?: { revision: number; options: { id: string; label: string; consequence?: string }[] }
@@ -162,21 +190,24 @@ export function boardEntries(input: {
       projectName: a.projectName,
       title: a.title,
       detail: a.detail,
-      waitingSince: a.since,
-      ageDays: ageInDays(a.since, input.now),
+      // A review waits from when it was put in review, when that is known (CO-456), not from when its work began.
+      waitingSince: a.reviewSince ?? a.since,
+      ageDays: ageInDays(a.reviewSince ?? a.since, input.now),
       priority,
       components,
       ...(a.grantable ? { grantable: a.grantable } : {}),
       ...(a.proposal ? { proposal: a.proposal } : {}),
       ...(a.access ? { access: a.access } : {}),
-      ...(a.swept ? { swept: a.swept } : {})
+      ...(a.swept ? { swept: a.swept } : {}),
+      ...(a.reviewSince ? { reviewSince: a.reviewSince } : {})
     }
   })
+  const overdue = overdueReviews(fromAttention, input.now)
 
   // One scale, one sort, deterministic ties — a board that reshuffles between
   // reading and clicking gets the wrong thing answered.
   return rankBoard(
-    [...fromQuestions, ...fromAttention].map((e) => ({ ...e, id: e.ref }))
+    [...fromQuestions, ...fromAttention].map((e) => ({ ...e, ...(overdue.has(e.ref) ? { overdue: true as const } : {}), id: e.ref }))
   ).map(({ id: _id, ...e }) => e as BoardEntry)
 }
 
@@ -209,13 +240,13 @@ export function scopeBoard(items: readonly BoardEntry[], projectId: string): Boa
 }
 
 /**
- * What the Board's «На проверке» lists (reviews, proposals and abandoned work: the open board less `PERSON_KINDS`), counted
+ * What the Board's «На проверке» lists (reviews, proposals and abandoned work: the open board less the person's part, `forPerson`), counted
  * from the two readings the renderer already makes: the whole board and the person's part (`personOnly`). While the whole
  * cut shows every row the count is its rows'; past the cut it is the two totals' difference, never less than the rows
  * listed (0.3.12 review, iteration 3, UX-1, UX-2). Per project the same, from `countsByProject`.
  */
 export function reviewCounts(whole: BoardCut, mine: BoardCut): { total: number; byProject: Record<string, number> } {
-  const rows = whole.items.filter((e) => !PERSON_KINDS.has(e.kind))
+  const rows = whole.items.filter((e) => !forPerson(e))
   if (whole.hidden === 0) {
     const byProject: Record<string, number> = {}
     for (const e of rows) if (e.projectId) byProject[e.projectId] = (byProject[e.projectId] ?? 0) + 1

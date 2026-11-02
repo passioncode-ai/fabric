@@ -105,7 +105,7 @@ export interface LaunchShellProps {
   live: ReadonlySet<string>
   /** The home reading's pulse per project, which says which projects are at work (`projectsAtWork`); null while unread. */
   pulses?: RailWork['pulses']
-  /** «Нужны вы» (`PERSON_KINDS`), over the whole estate and by project; null while unknown (no count is a non-claim). */
+  /** «Нужны вы» (`forPerson`), over the whole estate and by project; null while unknown (no count is a non-claim). */
   waiting: { total: number; byProject: Record<string, number> } | null
   /** How this computer is: the foot line, shown only on trouble (OF-05). */
   machine: 'reading' | 'ok' | 'trouble'

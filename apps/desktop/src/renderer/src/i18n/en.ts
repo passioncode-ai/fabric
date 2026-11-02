@@ -1153,6 +1153,7 @@ export const en = {
     'Questions an agent could not decide, and obligations the work has left standing. Ranked together; nothing here can be marked as read.',
   'needsYou.kind.question': 'Question',
   'needsYou.kind.refused': 'Refused',
+  'needsYou.overdueReview': "This task has waited in review for more than three days. Open it to accept it or send it back to the agent.",
   'needsYou.kind.review': 'Review',
   'needsYou.kind.abandoned': 'Abandoned',
   'needsYou.kind.proposal': 'Proposal',

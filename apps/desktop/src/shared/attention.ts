@@ -74,6 +74,9 @@ export interface AttentionItem {
    * in words through `attentionTitle.ts#titleOf`, never by its id (0.3.13 review, iteration 1, UX-7).
    */
   swept?: { key: string; kind: AbandonedKind; untitled?: true }
+  /** When a task in review was put there (`project_tasks.moved_at`); present only on a `review` item whose move is known.
+   *  The Board reads its age from it to bring the oldest reviews to the person (CO-456). */
+  reviewSince?: string
 }
 
 /**
@@ -87,7 +90,7 @@ export type AccessFacts = PendingRequestFacts
 export interface AttentionSources {
   /** Tasks an agent moved to review: it says it is done and cannot say so. */
   /** `brief_what` is the task's plain summary when an agent or the operator wrote one (2026-10-14). */
-  reviews: { id: string; project_id: string; title: string | null; brief_what?: string | null; instruction: string; started_at: string }[]
+  reviews: { id: string; project_id: string; title: string | null; brief_what?: string | null; instruction: string; started_at: string; moved_at?: string | null }[]
   /** Claims whose holder is gone; the work is neither running nor free. */
   expired: {
     work_id: string
@@ -276,7 +279,8 @@ export function attentionOf(sources: AttentionSources): AttentionItem[] {
       // Its plain summary — the brief, the title, else the instruction's first line cut at a word: never the prompt whole.
       title: legacyTaskLine({ title: row.title, brief_what: row.brief_what ?? null, instruction: row.instruction }),
       detail: null,
-      since: row.started_at
+      since: row.started_at,
+      ...(row.moved_at ? { reviewSince: row.moved_at } : {})
     })
   for (const row of sources.proposals)
     items.push({
