@@ -140,7 +140,8 @@ describe('what waits for you, counted once', () => {
     stub(board, whole(items))
     render(<App />)
     await waitFor(() => expect(screen.getByLabelText(en['rail.waitingProject'].replace('{count}', '2'))).toBeTruthy())
-    fireEvent.click(await waitFor(() => document.querySelector('.lp-project-name') as HTMLElement))
+    // CO-460: the home has no projects table; the project opens from its row in the rail.
+    fireEvent.click(await waitFor(() => document.querySelector('#rail-projects-list a') as HTMLElement))
     const panel = (await screen.findByText(en['launch.project.questions'])).closest('section')!
     await waitFor(() => expect(within(panel).getByText('Question q2')).toBeTruthy())
     expect(within(panel).getByText('2', { selector: '.lp-pill' })).toBeTruthy()
@@ -167,13 +168,14 @@ describe('what waits for you, counted once', () => {
 
   // 0.3.12 review, iteration 3, ER-5 and UX-7: when the person's count failed, each card's «waiting on you» vanished and a
   // project row could say «idle».
-  it('a count that could not be read is said on every card, never as nothing waiting or idle', async () => {
+  it('a count that could not be read is said, never as nothing waiting or idle', async () => {
     stub((query) => { if (query?.personOnly) throw new Error('statement timeout'); return board(query) }, whole(items))
     render(<App />)
     await waitFor(() => expect(screen.getByText(/What needs you could not be read: statement timeout/)).toBeTruthy())
-    const row = document.querySelector('.lp-project-row') as HTMLElement
-    expect(within(row).getByText(en['estate.waitingUnknown'])).toBeTruthy()
-    expect(within(row).queryByText(en['estate.idle'])).toBeNull()
+    // CO-460: the home's count is the strip's cell (the projects table and its cards left the home): not known, never 0.
+    const cell = within(strip()).getByRole('button', { name: new RegExp(en['launch.home.stats.waiting']) })
+    expect(cell.querySelector('b')?.textContent).toBe('—')
+    expect(screen.queryByText(en['estate.idle'])).toBeNull()
   })
 
   // 0.3.12 review, iteration 3, UX-3: the Board did not follow `access`, so a new access request moved the rail and not

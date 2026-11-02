@@ -294,6 +294,8 @@ export interface AgentSurfaceDeps {
   /** The nudges a turn's answer shows (`fabric_session_observe`, 0.3.14 wave 2; review iteration 1, PL-1): from the same
    *  queue, shown and never taken, at most five, the same for a repeat of the turn's idempotencyKey. */
   turnNudges?: (sessionId: string, projectId: string, turnKey: string) => Nudge[]
+  /** CO-459 (DEC-0140 PR-3): a turn's reported branch, held by the host for this machine's screens only. */
+  reportBranch?: (sessionId: string, branch: string | null) => void
   db: SupabaseClient
   journal: Journal
   /** Read late, and it can answer NOTHING. The surface starts listening before
@@ -3028,6 +3030,7 @@ export class AgentSurface {
       session: (id) => this.sessionSign(id),
       nudges: () => this.deps.nudges?.(scope.sessionId, scope.projectId) ?? [],
       turnNudges: (turnKey) => this.deps.turnNudges?.(scope.sessionId, scope.projectId, turnKey) ?? [],
+      reportBranch: (branch) => this.deps.reportBranch?.(scope.sessionId, branch),
       resolveSource: (source) =>
         this.deps.work
           ? this.deps.work.resolveSource(scope.projectId, source)

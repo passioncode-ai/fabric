@@ -19,7 +19,8 @@ export function ProjectStar({ project }: { project: ProjectRow }): React.JSX.Ele
   const [full, setFull] = useState<ProjectRow[] | null>(null)
   useEffect(() => {
     let alive = true
-    window.fabric.favourites.list().then(
+    // A read that throws before it answers is said the same way as one that fails (a missing bridge, a stale preload).
+    Promise.resolve().then(() => window.fabric.favourites.list()).then(
       (p) => { if (alive) setPins(p) },
       (e: unknown) => { if (alive) setProblem({ said: t('estate.pinsUnread'), detail: e instanceof Error ? e.message : String(e) }) }
     )

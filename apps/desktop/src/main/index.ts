@@ -74,7 +74,7 @@ import { refreshFileRootsFrom } from './fileRootsRefresh.ts'
 import { readSettings, readSettingsState, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
-import { createBranchReader, withBranches } from './agentBranches.ts'
+import { createBranchReader, createReportedBranches, withBranches } from './agentBranches.ts'
 import { readHandedInToday, withStrip } from './homeStrip.ts'
 import { withHeartbeats } from './agentHeartbeats.ts'
 import { withGoals } from './agentGoals.ts'
@@ -1108,6 +1108,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // 0.3.14 wave 2: and on every turn the session hooks observe (fabric_session_observe), from the same queue, shown
     // there and never taken (the review, iteration 1, PL-1: an adapter before 0.51.2 throws a turn's answer away).
     turnNudges: (sessionId, projectId, turnKey) => abandonedSweep?.showTurnNudges(sessionId, projectId, turnKey) ?? [],
+    // CO-459 (DEC-0140 PR-3): a turn's reported branch, for this machine's screens only, never journalled or shared.
+    reportBranch: (sessionId, branch) => reportedBranches.set(sessionId, branch),
     // P-24: the interface's language is the agents' working language, read at each fabric_whoami.
     // OF-38: off in Settings, the hub names no working language and the agents keep their own.
     // A settings file that could not be read answers with defaults; unknown is not on, so it names no language
@@ -1568,6 +1570,8 @@ function toTranscript(row: Record<string, unknown>): SessionTranscript {
 const repoStates = createRepoStateReader()
 /** The branch of each console Fabric holds, for the home's reading (0.3.14, the simple Fabric). */
 const agentBranchReader = createBranchReader()
+/** CO-459: the branches sessions report on their turns, held here for this machine's screens only (DEC-0140 PR-3). */
+const reportedBranches = createReportedBranches()
 /**
  * M57, reopened by M113 — what the code is doing, as opposed to what our own
  * storage holds. Its own reader with its own longer TTL: it is heavier than the
@@ -5216,7 +5220,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // ER-18: each agent's newest heartbeat, so every screen judges its status from the same inputs (`agentHeartbeats.ts`).
     // The mockup parity (home gaps D5, D6): an agent that re-enrolled keeps its stage reports, heartbeats and running
     // task across its session ids (`agentIdentity.ts`), before its goal is walked from that task.
-    const identified = await withIdentity(await withHeartbeats(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader), store as never), store as never, held, now)
+    const identified = await withIdentity(await withHeartbeats(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader, reportedBranches.get), store as never), store as never, held, now)
     // Home gaps D3, D4, D7: at work apart from connected, ordered by work, not by keep-alive pings (`agentWork.ts`).
     const view = await withWork(await withGoals(identified, store as never), store as never, held, now)
     // The strip's own reads (`homeStrip.ts`): «Сдано сегодня» and the sweep's «Работают без задачи», each said unread alone.

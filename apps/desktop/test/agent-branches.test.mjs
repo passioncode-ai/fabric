@@ -98,3 +98,18 @@ test('ER-28: stuck gits give their slots back at their deadline; queued work alr
   await new Promise((r) => setTimeout(r, 20))
   assert.equal(ran.includes('/b'), false)
 })
+
+// CO-459: an agent with no console here shows the branch it reported on its last turn; a console's own git wins.
+test('CO-459: a reported branch fills the row of an agent without a console here, and the store is bounded', async () => {
+  const { withBranches, createReportedBranches } = await import(path.resolve(import.meta.dirname, '../src/main/agentBranches.ts'))
+  const reported = createReportedBranches(2)
+  reported.set('s-term', 'feature/x')
+  reported.set('s-con', 'reported-but-console-wins')
+  const view = { live: [{ sessionId: 's-term', console: false }, { sessionId: 's-con', console: true }, { sessionId: 's-none', console: false }] }
+  const out = await withBranches(view, [{ sessionId: 's-con', folder: '/repo' }], { read: async () => 'main' }, reported.get)
+  assert.deepEqual(out.live.map((a) => a.branch), ['feature/x', 'main', null])
+  reported.set('s-3', 'b3')
+  assert.equal(reported.get('s-term'), null, 'the oldest report is dropped past the limit')
+  assert.equal(reported.get('s-3'), 'b3')
+})
+

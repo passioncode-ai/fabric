@@ -234,3 +234,26 @@ test('the tool\'s description tells the agent to act on a turn\'s nudges', async
   assert.match(d, /nudges/)
   assert.doesNotMatch(d, /\u2014/)
 })
+
+// CO-459 (DEC-0140 PR-3): a turn may report its git branch. It is held for this machine's screens only: never in the
+// journal's payload, so never on the board or a feed read off the machine.
+test('CO-459: a turn\'s reported branch is handed to the host and kept out of the journal', async () => {
+  const reported = []
+  const h = await connect('rt-hook-1', { reportBranch: (b) => reported.push(b) })
+  const r = await h.client.callTool({ name: 'fabric_session_observe', arguments: { ...hookTurn({}), branch: 'feature/co-459' } })
+  assert.equal(said(r).recorded, true)
+  assert.deepEqual(reported, ['feature/co-459'])
+  assert.equal(JSON.stringify(h.appended[0].payload).includes('co-459'), false, 'the branch is not journalled')
+  // null: the agent could not say; it is handed on as such, so a stale branch is not kept.
+  await h.client.callTool({ name: 'fabric_session_observe', arguments: { ...hookTurn({}), branch: null, idempotencyKey: 'rt-hook-1:0001780000001' } })
+  assert.deepEqual(reported, ['feature/co-459', null])
+})
+
+test('CO-459: a branch on an end, or a name with characters git does not use, is refused', async () => {
+  const h = await connect('rt-hook-1', { reportBranch: () => {} })
+  const end = await h.client.callTool({ name: 'fabric_session_observe', arguments: { ...END, branch: 'main' } })
+  assert.equal(said(end).recorded, false)
+  assert.equal(said(end).code, 'bad-input')
+  const odd = await h.client.callTool({ name: 'fabric_session_observe', arguments: { ...hookTurn({}), branch: 'main; rm -rf /' } })
+  assert.equal(odd.isError, true)
+})

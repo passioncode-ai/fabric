@@ -45,7 +45,9 @@ function stub(loaded: AppSettings) {
     favourites: { list: async () => [] },
     board: { query: async () => ({ rows: [], total: 0 }) },
     workspace: { state: async () => ({ path: '/mirror', git: 'yes' }) },
-    windows: { openSession: async () => {} }
+    windows: { openSession: async () => {} },
+    // CO-460: «Отметить прочитанным» is in История's agents' work since Главная lost the journal.
+    acts: { history: async () => ({ rows: [], next: null }), undo: vi.fn() }
   }
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: api }))
   return { write }
@@ -61,6 +63,7 @@ describe('Mark read', () => {
     }
     const { write } = stub(loaded)
     render(<App />)
+    fireEvent.click(await screen.findByRole('link', { name: en['rail.history'] }))
     const button = await screen.findByRole('button', { name: en['journal.markRead'].replace('{count}', '3') })
     fireEvent.click(button)
     await waitFor(() => expect(write).toHaveBeenCalled())

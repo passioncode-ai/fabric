@@ -109,6 +109,8 @@ export interface WorkToolDeps {
   /** The nudges a turn's answer shows, each whole (0.3.14 wave 2; the review, iteration 1, PL-1): shown, never taken, so
    *  `nudges` still gives each once; at most five; the same for a repeat of the turn's idempotencyKey (ER-2). */
   turnNudges?(idempotencyKey: string): Nudge[]
+  /** CO-459 (DEC-0140 PR-3): the git branch a turn reports, held in this process for display only; never journalled. */
+  reportBranch?(branch: string | null): void
 }
 
 // #region work-session-end-guards — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
@@ -217,6 +219,8 @@ export async function moveClaimedTaskToRunning(
 const reply = (value: Record<string, unknown>) => ({ content: [{ type: 'text' as const, text: JSON.stringify(value) }] })
 const KEY = z.string().regex(/^[A-Za-z0-9._:-]{8,128}$/)
 const RUNTIME_SESSION = /^[A-Za-z0-9._:-]{1,128}$/
+/** A git branch name as a turn may report it (CO-459): the characters git allows in practice, bounded. */
+const BRANCH = /^[A-Za-z0-9._@+\/-]{1,200}$/
 const minutesAgo = (now: number, at: number): number => Math.max(0, Math.round((now - at) / 60_000))
 
 function warningOf(related: Related[]): string | null {
@@ -627,15 +631,21 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         linesAdded: z.number().int().min(0).max(1_000_000_000).nullable().optional(),
         linesRemoved: z.number().int().min(0).max(1_000_000_000).nullable().optional(),
         reason: z.string().regex(/^[a-z][a-z0-9_-]{0,39}$/).optional().describe('end only: why the session ended, as the agent names it (clear, logout, prompt_input_exit, other)'),
+        // CO-459, DEC-0140 PR-3: a claim, for display only. Fabric shows it on this machine's screens and never writes it
+        // to the journal, the board or any feed read off the machine. null: the agent could not say.
+        branch: z.string().regex(BRANCH).nullable().optional().describe('turn only: the git branch the session works on, shown on this machine\'s screens and never stored or shared'),
         idempotencyKey: KEY
       }
     },
-    async ({ event, runtime, runtimeSessionId, observedAt, head, filesChanged, linesAdded, linesRemoved, reason, idempotencyKey }) => {
+    async ({ event, runtime, runtimeSessionId, observedAt, head, filesChanged, linesAdded, linesRemoved, reason, branch, idempotencyKey }) => {
       // TR-1: the id the session carries now (renamed after a /clear) is this session's too.
       const current = deps.currentRuntimeSessionId?.() ?? null
       if (runtimeSessionId !== scope.runtimeSessionId && runtimeSessionId !== current)
         return reply({ recorded: false, code: 'not-this-session', reason: 'runtimeSessionId is not the one this session enrolled with' })
       if (event === 'turn' && reason !== undefined) return reply({ recorded: false, code: 'bad-input', reason: 'reason belongs to an end' })
+      if (event === 'end' && branch !== undefined) return reply({ recorded: false, code: 'bad-input', reason: 'branch belongs to a turn' })
+      // CO-459: held before the journal is read, so even a repeated turn keeps the screens current; it is not in `facts`.
+      if (event === 'turn' && branch !== undefined) deps.reportBranch?.(branch)
       if (event === 'end') {
         // TR-1: /clear starts a new conversation in the same agent process; its fabric-mcp and this session go on.
         if (reason === 'clear')

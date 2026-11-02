@@ -95,13 +95,32 @@ export function createBranchReader(deps: {
 export async function withBranches(
   view: HomeView,
   held: ReadonlyArray<{ sessionId: string; folder?: string | null }>,
-  reader: BranchReader
+  reader: BranchReader,
+  /** CO-459: the branch a session without a console here reported on its last turn; null when it said none. */
+  reported: (sessionId: string) => string | null = () => null
 ): Promise<HomeView> {
   const folderOf = new Map(held.filter((h) => typeof h.folder === 'string' && h.folder).map((h) => [h.sessionId, h.folder as string]))
   const live = await Promise.all(view.live.map(async (a) => {
     const folder = a.console ? folderOf.get(a.sessionId) : undefined
-    return { ...a, branch: folder ? await reader.read(folder) : null }
+    return { ...a, branch: folder ? await reader.read(folder) : reported(a.sessionId) }
   }))
   return { ...view, live }
+}
+
+/**
+ * CO-459 (DEC-0140 PR-3): the branches sessions report on their turns, held in this process for this machine's screens.
+ * Never journalled, never sent to the board, a relay or any feed read off the machine; a restart forgets them until each
+ * session's next turn. Bounded: the oldest report is dropped past `limit` sessions.
+ */
+export function createReportedBranches(limit = 500): { set(sessionId: string, branch: string | null): void; get(sessionId: string): string | null } {
+  const held = new Map<string, string | null>()
+  return {
+    set(sessionId, branch) {
+      held.delete(sessionId)
+      held.set(sessionId, branch)
+      while (held.size > limit) held.delete(held.keys().next().value as string)
+    },
+    get: (sessionId) => held.get(sessionId) ?? null
+  }
 }
 // #endregion agent-branches
