@@ -327,3 +327,19 @@ describe('composeHome: abandoned work is apart from «В работе» (0.3.14)
     expect(composeHome({ ...base, where: where([], []), briefs: [] }).abandoned).toEqual([])
   })
 })
+
+// CO-499: words an agent has worked past for more than half an hour are marked old, so the screens do not show
+// yesterday's stage as today's work.
+describe('old words (CO-499)', () => {
+  const at = (iso: string) => composeHome({
+    where: where([session('s1', P1, { lastSignAt: iso })], []), projects,
+    stages: [stage('s1', P1, 'Checking the release', '2026-11-03T21:44:00Z')], briefs: [], reviewTasks: [], activity: new Map(), now: 'x'
+  }).live[0].doing
+  it('a stage report older than the newest sign by more than 30 minutes is old', () => {
+    expect(at('2026-11-04T17:28:00Z')).toMatchObject({ old: true, text: 'Checking the release', at: '2026-11-03T21:44:00Z' })
+  })
+  it('a stage report within 30 minutes of the newest sign, or a session with no sign, is current', () => {
+    expect(at('2026-11-03T22:10:00Z')?.old).toBeUndefined()
+    expect(at(null as never)?.old).toBeUndefined()
+  })
+})

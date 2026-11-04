@@ -24,6 +24,7 @@ import {
   releasedLeftRunning,
   findAbandoned,
   lapsedTwice,
+  CLOSED_REASON,
   nudgeOf,
   sweepDue,
   toTell,
@@ -145,7 +146,7 @@ type Source = SweepRead
 /** Which kinds each read finds, so a failed read keeps what was told about them (SW-5 across a blind sweep). */
 const KINDS_OF: Record<Source, AbandonedKind[]> = {
   // The 0.3.14 review, iteration 1, ER-3: the briefs are read from the claims, so a failed claims read blinds them too.
-  claims: ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'work-unclaimed', 'brief-missing'],
+  claims: ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'work-unclaimed', 'brief-missing', 'claim-closed'],
   tasks: ['task-unclaimed', 'terminal-stalled'],
   requests: ['request-unmoved', 'answer-unread'],
   terminals: ['terminal-stalled', 'task-unclaimed', 'work-unclaimed'],
@@ -388,6 +389,30 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
           ops.failed('work.sweep-release', e, { claim_id: f.claimId, note: 'the lapsed claim was not released; the next sweep tries again' })
         }
       }
+      // CO-499: a live claim whose task already left work is let go now, once: no second sweep is waited for, because
+      // its session lives and renews it. A run Fabric has not proved stopped still holds it, as above.
+      const closed = findings.filter((f) => f.kind === 'claim-closed' && f.claimId && !releasedClaims.has(f.claimId))
+      let runsHeld: Set<string> | null = new Set()
+      const closedTasks = closed.map((f) => f.taskId).filter((id): id is string => id !== null)
+      if (closedTasks.length) {
+        try {
+          runsHeld = new Set(await deps.unresolvedRuns(closedTasks))
+        } catch (e) {
+          ops.failed('work.sweep-release', e, { note: 'the runs could not be read; no claim on a closed task is let go this sweep' })
+          runsHeld = null
+        }
+      }
+      for (const f of runsHeld ? closed : []) {
+        if (!f.claimId || (f.taskId && runsHeld?.has(f.taskId))) continue
+        if (deps.quitting()) break
+        try {
+          const r = await deps.releaseLapsed(f.claimId, CLOSED_REASON)
+          if (r.released) { released++; releasedClaims.add(f.claimId) }
+          if (r.failed) ops.failed('work.sweep-release', new Error(r.failed), { claim_id: f.claimId, note: 'the claim is let go; its task stays where it is' })
+        } catch (e) {
+          ops.failed('work.sweep-release', e, { claim_id: f.claimId, note: 'the claim on a closed task was not let go; the next sweep tries again' })
+        }
+      }
     }
 
     // SW-7: one journal receipt of what this sweep did, counts only: written when it told an agent, released a claim,
@@ -512,7 +537,8 @@ export async function readSweepClaims(store: Store, now: number, session: Sessio
   return {
     claims: snap.claims.map((c) => ({
       claimId: c.id, taskId: c.work_id, projectId: c.project_id, sessionId: c.owner_session,
-      expiresAt: c.expires_at, claimedAt: c.claimed_at, renewedAt: c.renewed_at, session: session(c.owner_session)
+      expiresAt: c.expires_at, claimedAt: c.claimed_at, renewedAt: c.renewed_at, session: session(c.owner_session),
+      taskStatus: c.task.status
     })),
     heldTaskIds: snap.held.map((h) => h.task.id),
     heldSessionIds: snap.held.map((h) => h.owner_session),

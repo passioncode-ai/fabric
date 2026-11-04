@@ -241,6 +241,9 @@ export interface MintOrigin {
   /** The coding agent's process, as its own fabric-mcp named it at enrollment (TR-1); what tells a hook's end whether
    *  the agent still runs (review iteration 2, ER-2). */
   agentPid?: number | null
+  /** The folder the agent works in, as its enrollment resolved it (CO-498). Kept in memory only, for the screens and
+   *  the branch reading; the journal keeps its digest (`session.enrolled@1` `cwd_sha256`). */
+  folder?: string | null
 }
 
 /** What the claim tools need beyond the database (REQ-38, REQ-08; `workTools.ts`). Absent, they still serve, without backlog links or agent-sync leases. */
@@ -454,7 +457,7 @@ export class AgentSurface {
    * liveness signal other sessions' `fabric_work_list` and the operator's screens read. In memory: it is what this
    * process can vouch for, and a restart is exactly the moment those sessions' bearers stop working.
    */
-  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null; /** The last call of the session's own client, not a rejoin's (TR-2). */ lastOwnCallAt?: number | null; /** The agent's process (ER-2, i2). */ agentPid?: number | null }>()
+  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null; /** The last call of the session's own client, not a rejoin's (TR-2). */ lastOwnCallAt?: number | null; /** The agent's process (ER-2, i2). */ agentPid?: number | null; /** Its folder, in memory only (CO-498). */ folder?: string | null }>()
   /** Sessions holding a claim, and when their calls next renew it (REQ-38: "its calls renew the claim"). */
   private claimHolders = new Map<string, number>()
   /** Session-end releases in flight; `stop()` waits for them, bounded. */
@@ -640,7 +643,7 @@ export class AgentSurface {
     }
     const now = this.now()
     if (!known)
-      this.live.set(sessionId, { projectId, cameIn: scope.cameIn, agent: scope.agent, runtimeSessionId: scope.runtimeSessionId, mintedAt: now, lastCallAt: null, surface: scope.surface, bindingId: scope.bindingId, agentPid: origin?.agentPid ?? null })
+      this.live.set(sessionId, { projectId, cameIn: scope.cameIn, agent: scope.agent, runtimeSessionId: scope.runtimeSessionId, mintedAt: now, lastCallAt: null, surface: scope.surface, bindingId: scope.bindingId, agentPid: origin?.agentPid ?? null, folder: origin?.folder ?? null })
     // TR-1: a rejoin minted under a runtime id the session did not have is the rename the enrollment matched by the
     // agent's process (a /clear): the session carries the new id from now on.
     else if (origin?.rejoin && origin.runtimeSessionId && origin.runtimeSessionId !== known.runtimeSessionId)
@@ -648,6 +651,8 @@ export class AgentSurface {
     // ER-2 (i2): a process named later (an enrollment that matched the session) is kept; one already named is not
     // replaced by a rejoin's, which is found from the agent's session file and may be absent.
     if (known && typeof origin?.agentPid === 'number' && typeof known.agentPid !== 'number') known.agentPid = origin.agentPid
+    // CO-498: a folder named later (a rejoin that resolved it) is kept; one already named is not replaced.
+    if (known && typeof origin?.folder === 'string' && origin.folder && !known.folder) known.folder = origin.folder
     // #region surface-unclaimed-sweep — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
     // A bearer no client presented within its claim window is swept here (0.3.5 review iteration 2, ER-5): a hook
     // process that died before its initialize would otherwise stay in the map for the life of the app, because the
@@ -717,10 +722,10 @@ export class AgentSurface {
 
   // #region surface-session-registry-read — docs: docs/ux/scenarios.md#scn-141-see-where-work-is-across-every-project--sessions-claims-review-and-sessions-with-no-project
   /** The sessions this surface holds, one per session (CO-256): launched and enrolled, with their last call. */
-  heldSessions(projectId?: string): Array<{ sessionId: string; projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; startedAt: number; lastCallAt: number | null; surface: 'session' | 'board' }> {
+  heldSessions(projectId?: string): Array<{ sessionId: string; projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; startedAt: number; lastCallAt: number | null; surface: 'session' | 'board'; folder: string | null }> {
     return [...this.live.entries()]
       .filter(([, s]) => !projectId || s.projectId === projectId)
-      .map(([sessionId, s]) => ({ sessionId, projectId: s.projectId, cameIn: s.cameIn, agent: s.agent, runtimeSessionId: s.runtimeSessionId, startedAt: s.mintedAt, lastCallAt: s.lastCallAt, surface: s.surface ?? 'session' }))
+      .map(([sessionId, s]) => ({ sessionId, projectId: s.projectId, cameIn: s.cameIn, agent: s.agent, runtimeSessionId: s.runtimeSessionId, startedAt: s.mintedAt, lastCallAt: s.lastCallAt, surface: s.surface ?? 'session', folder: s.folder ?? null }))
   }
 
   /** What this surface holds of one session; null when nothing (ended, or minted by an earlier run of Fabric). */

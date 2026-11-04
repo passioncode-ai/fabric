@@ -18,7 +18,7 @@ const project = (id: string, name: string, over: Partial<ProjectRow> = {}): Proj
   created_at: '2026-10-01T00:00:00Z', memory_backend: 'local', default_agent: 'claude-code', mcp_servers: [], ...over
 })
 const agent = (sessionId: string, projectName: string | null, over: Partial<RailAgent> = {}): RailAgent => ({
-  sessionId, runner: 'claude-code', projectId: projectName ? `p-${projectName}` : null, projectName, branch: null, state: 'working', status: 'working',
+  sessionId, runner: 'claude-code', projectId: projectName ? `p-${projectName}` : null, projectName, branch: null, folder: null, state: 'working', status: 'working',
   heardAt: '2026-10-26T12:00:00Z', console: true, ...over
 })
 
@@ -34,7 +34,7 @@ function shell(over: Partial<LaunchShellProps> = {}, locale: 'en' | 'ru' = 'en',
     pins: ['p1'],
     live: new Set(['p2']),
     waiting: { total: 3, byProject: { p3: 2 } },
-    agents: { rows: [agent('s1', 'Fabric', { branch: 'release/0.3.14' }), agent('s2', 'Kimi', { runner: 'kimi-code', state: 'quiet', status: 'idle' })], problem: null },
+    agents: { rows: [agent('s1', 'Fabric', { branch: 'release/0.3.14', folder: '/Users/me/DATA/_worktrees/fabric-co409' }), agent('s2', 'Kimi', { runner: 'kimi-code', state: 'quiet', status: 'idle' })], problem: null },
     machine: 'ok',
     onPlace: vi.fn(),
     onCreateProject: vi.fn(),
@@ -161,6 +161,10 @@ describe('the left column', () => {
     const rows = within(list).getAllByRole('link')
     expect(rows[0].textContent).toContain('Claude Code · Fabric')
     expect(rows[0].textContent).toContain('release/0.3.14')
+    // CO-498: the folder by its last segment, the whole path on hover; none when Fabric knows no folder.
+    expect(rows[0].textContent).toContain('fabric-co409')
+    expect(rows[0].querySelector('.rail-folder')?.getAttribute('title')).toBe('/Users/me/DATA/_worktrees/fabric-co409')
+    expect(rows[1].querySelector('.rail-folder')).toBeNull()
     expect(rows[1].textContent).toContain(en['rail.agents.branchUnknown'])
     // The status in a word beside its colour, never the colour alone (R-19).
     expect(rows[1].textContent).toContain(en['status.idle'])

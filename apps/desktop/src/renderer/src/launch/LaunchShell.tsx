@@ -18,7 +18,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ProjectRow } from '../../../shared/types'
 import { projectsAtWork, railProjects, type RailWork } from '../../../shared/railProjects.ts'
-import type { RailAgent } from '../../../shared/railAgents'
+import { folderName, type RailAgent } from '../../../shared/railAgents'
 import { runnerLabel } from '../runnerLabel'
 import { useLocale, useT } from '../i18n'
 import brandMark from '../../../../../../assets/brand/favicon/transparent/passioncode-favicon-64.svg?url'
@@ -336,6 +336,8 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                       <span className="rail-agent-words">
                         <span className="rail-name">{name}</span>
                         <span className="rail-agent-line">
+                          {/* CO-498: the folder it works in, by its last segment, the whole path on hover. */}
+                          {folderName(a.folder) && <span className="rail-folder" title={a.folder ?? undefined}>{folderName(a.folder)} · </span>}
                           {a.branch
                             ? <span className="rail-branch">{a.branch}</span>
                             : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}

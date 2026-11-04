@@ -2,7 +2,7 @@
 // at work now, one row each, with its runner, project and git branch, sorted by project name, then by its newest sign.
 import { describe, expect, it } from 'vitest'
 import type { LiveAgent } from './homeLive.ts'
-import { railAgents } from './railAgents.ts'
+import { folderName, railAgents } from './railAgents.ts'
 
 const live = (sessionId: string, projectName: string | null, over: Partial<LiveAgent> = {}): LiveAgent => ({
   sessionId, projectId: projectName ? `p-${projectName}` : null, projectName, agent: 'claude-code', console: true,
@@ -62,5 +62,20 @@ describe('railAgents', () => {
       live('s2', 'B', { heartbeat: { phase: 'blocked', at: '2026-10-24T23:00:00Z', waitingOn: null } })
     ], 'en', [])
     expect(rows.map((r) => r.status)).toEqual(['waiting', 'working'])
+  })
+})
+
+describe('folderName (CO-498)', () => {
+  it('is the last segment of a POSIX or Windows folder, null for none', () => {
+    expect(folderName('/Users/me/DATA/_worktrees/fabric-co409-dispatch')).toBe('fabric-co409-dispatch')
+    expect(folderName('/Users/me/DATA/site/')).toBe('site')
+    expect(folderName('C:\\Users\\me\\work\\admin-vn')).toBe('admin-vn')
+    expect(folderName(null)).toBeNull()
+    expect(folderName('/')).toBeNull()
+  })
+  it('a rail row carries the folder its reading named, and null when none', () => {
+    const rows = railAgents([live('s1', 'A', { folder: '/w/site' }), live('s2', 'B')], 'ru')
+    expect(rows.find((r) => r.sessionId === 's1')?.folder).toBe('/w/site')
+    expect(rows.find((r) => r.sessionId === 's2')?.folder).toBeNull()
   })
 })

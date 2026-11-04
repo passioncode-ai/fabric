@@ -724,6 +724,8 @@ button.lg-node{ cursor: pointer; }
 .rail-branch{font-family:var(--font-mono);font-size:10.5px;color:var(--state-running);overflow:hidden;text-overflow:ellipsis;min-width:0}
 .rail-word{flex:none}
 .rail-branch.unknown{font-family:inherit;color:var(--app-muted)}
+/* CO-498: the folder an agent works in, before its branch. */
+.rail-folder{font-family:var(--font-mono);font-size:10.5px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin-right:4px}
 /* История and Настройки at the column's foot. */
 .rail-foot{margin-top:auto;padding-top:6px;border-top:1px solid var(--app-line)}
 @media(max-width:900px){

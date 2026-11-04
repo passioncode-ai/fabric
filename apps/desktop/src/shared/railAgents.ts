@@ -25,6 +25,8 @@ export interface RailAgent {
   projectId: string | null
   projectName: string | null
   branch: string | null
+  /** The folder it works in (CO-498), when Fabric knows it; the screens show `folderName` of it. */
+  folder: string | null
   state: 'working' | 'quiet'
   /** Its status word and colour (the operator's second review, R-19, `sessionStatus.ts`). */
   status: SessionStatus
@@ -56,6 +58,7 @@ export function railAgents(
       // The one name every screen prints (the mockup parity, rail gap 15).
       projectName: a.projectName === null ? null : projectDisplayName({ id: a.projectId, name: a.projectName }, names),
       branch: typeof a.branch === 'string' && a.branch.trim() ? a.branch.trim() : null,
+      folder: typeof a.folder === 'string' && a.folder.trim() ? a.folder : null,
       state: a.stale ? 'quiet' : 'working',
       // ER-18: the same function and inputs as «В работе» and the agent page.
       status: agentStatus(a, termOf.get(a.sessionId) ?? null),
@@ -71,5 +74,12 @@ export function railAgents(
       }
       return time(b.heardAt) - time(a.heardAt) || (a.sessionId < b.sessionId ? -1 : 1)
     })
+}
+/** The last segment of a folder, as the agent rows show it (CO-498); null for none. Both separators, so a Windows path
+ *  reads as well as a POSIX one. */
+export function folderName(folder: string | null | undefined): string | null {
+  if (typeof folder !== 'string') return null
+  const parts = folder.split(/[\\/]+/).filter(Boolean)
+  return parts.length ? parts[parts.length - 1] : null
 }
 // #endregion rail-agents

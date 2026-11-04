@@ -51,7 +51,7 @@ export interface EnrollDeps extends FolderDeps {
   liveGrants(binding: BindingRow): Promise<GrantRow[]>
   projectName(projectId: string): Promise<string | null>
   /** The same mint a launched session gets (`AgentSurface.mint`), told it is an enrollment and by which runner. */
-  mint(projectId: string, sessionId: string, taskId: null, origin: { cameIn: 'enrolled'; agent: string; runtimeSessionId: string | null; rejoin?: true; bindingId: string; agentPid?: number | null }): { token: string }
+  mint(projectId: string, sessionId: string, taskId: null, origin: { cameIn: 'enrolled'; agent: string; runtimeSessionId: string | null; rejoin?: true; bindingId: string; agentPid?: number | null; folder?: string | null }): { token: string }
   /** The enrolled sessions this process minted, by binding and grant: what a revocation ends. */
   sessions: EnrolledSessions
   /** Read again after the mint: the binding and the grant are both still live (the read-then-mint race). */
@@ -340,7 +340,7 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
     }
     if (!held || !(await deps.stillLive(binding.id, held.grantId))) return refuse
     const token = deps.sessions.rejoinBearer(held.sessionId, () =>
-      deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, rejoin: true, bindingId: binding.id }).token)
+      deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, rejoin: true, bindingId: binding.id, folder: folder.real }).token)
     if (!token) return refuse
     return { ok: true, session: { bearer: token, sessionId: held.sessionId, projectId: folder.projectId, projectName, how: folder.how } }
   }
@@ -385,7 +385,7 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
 
   const sessionId = randomUUID()
   // ER-2 (i2): the agent's process goes to the surface too, so a hook's end for an agent that died is not refused.
-  const { token } = deps.mint(folder.projectId, sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, bindingId: binding.id, ...(agentPid !== null ? { agentPid } : {}) })
+  const { token } = deps.mint(folder.projectId, sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, bindingId: binding.id, folder: folder.real, ...(agentPid !== null ? { agentPid } : {}) })
   // Registered before the re-read: a revocation from now on ends it through its listener, one before it is seen below.
   deps.sessions.add({ sessionId, bearer: token, bindingId: binding.id, grantId: grant.id, projectId: folder.projectId, mintedAt: now, runtimeSessionId, agentPid })
   try {

@@ -1,7 +1,7 @@
 // 0.3.13 wave 2, CO-427: the sweep of abandoned work. Spec:
 // docs/evidence/specs/2026-10-26-0313-w2-abandoned-work-sweep.md (SW-1, SW-2, SW-3, SW-5, SW-8).
 import { describe, expect, it } from 'vitest'
-import { findAbandoned, lapsedTwice, nudgeText, sweepDue, toTell, ABANDONED_KINDS, STILL_MS, TELL_QUIET_MS, TERMINAL_QUIET_MS, TURN_WINDOW_MS, BRIEF_AFTER_MS, type SweepInput } from './abandonedSweep'
+import { AGENT_ONLY_KINDS, findAbandoned, lapsedTwice, nudgeText, sweepDue, toTell, ABANDONED_KINDS, STILL_MS, TELL_QUIET_MS, TERMINAL_QUIET_MS, TURN_WINDOW_MS, BRIEF_AFTER_MS, type SweepInput } from './abandonedSweep'
 
 const NOW = Date.parse('2026-10-26T12:00:00Z')
 const ago = (ms: number) => new Date(NOW - ms).toISOString()
@@ -227,5 +227,27 @@ describe('brief-missing: a task Fabric launched a session for, with no claim', (
     expect(findAbandoned({ ...empty, launches: [launch({ movedAt: ago(BRIEF_AFTER_MS - 1000) })], briefGaps: { t9: ['what'] } })).toEqual([])
     expect(findAbandoned({ ...empty, launches: [launch()], briefGaps: { t9: [] } })).toEqual([])
     expect(findAbandoned({ ...empty, launches: [launch()] })).toEqual([])
+  })
+})
+
+// CO-499: a claim a living session keeps renewing on a task already out of work (review, done, back to the queue).
+describe('claim-closed (CO-499)', () => {
+  const claim = { claimId: 'c9', taskId: 't9', projectId: 'p1', sessionId: 's9', expiresAt: ago(-30 * MIN), claimedAt: ago(5 * 24 * 60 * MIN), renewedAt: ago(MIN), session: { lastSignAt: NOW - MIN } }
+  it('is found for a live claim whose task left work, and is the agent\'s alone', () => {
+    for (const taskStatus of ['review', 'done', 'cancelled', 'backlog']) {
+      const found = findAbandoned({ ...empty, claims: [{ ...claim, taskStatus }] })
+      expect(found.map((f) => f.kind), taskStatus).toEqual(['claim-closed'])
+      expect(found[0]).toMatchObject({ key: 'claim-closed:c9', claimId: 'c9', sessionId: 's9', taskId: 't9' })
+      expect(found[0].nextStep).toContain(taskStatus)
+    }
+    expect(AGENT_ONLY_KINDS.has('claim-closed')).toBe(true)
+  })
+  it('is not found while the task runs, or when its state was not read or is unknown', () => {
+    expect(findAbandoned({ ...empty, claims: [{ ...claim, taskStatus: 'running' }] })).toEqual([])
+    expect(findAbandoned({ ...empty, claims: [claim] })).toEqual([])
+    expect(findAbandoned({ ...empty, claims: [{ ...claim, taskStatus: 'unknown' }] })).toEqual([])
+  })
+  it('wins over the claim\'s other judgements, so it is let go at once, not after two sweeps', () => {
+    expect(findAbandoned({ ...empty, claims: [{ ...claim, session: null, taskStatus: 'review' }] }).map((f) => f.kind)).toEqual(['claim-closed'])
   })
 })

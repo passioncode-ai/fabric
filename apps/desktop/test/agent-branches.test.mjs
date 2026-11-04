@@ -113,3 +113,20 @@ test('CO-459: a reported branch fills the row of an agent without a console here
   assert.equal(reported.get('s-3'), 'b3')
 })
 
+
+test('CO-498: an agent enrolled from its own terminal carries its folder and the branch read there', async () => {
+  const reader = createBranchReader({ git: async (folder) => (folder === '/work/admin-vn' ? 'feat/calls\n' : 'main\n'), now: () => 0 })
+  const out = await withBranches(view([live('s1', { console: false }), live('s2', { console: false })]), [{ sessionId: 's1', folder: '/work/admin-vn' }, { sessionId: 's2' }], reader, (id) => (id === 's2' ? 'reported/branch' : null))
+  assert.equal(out.live[0].folder, '/work/admin-vn')
+  assert.equal(out.live[0].branch, 'feat/calls')
+  // No folder known: the branch its last turn reported (CO-459), and no folder.
+  assert.equal(out.live[1].folder, null)
+  assert.equal(out.live[1].branch, 'reported/branch')
+})
+
+test('CO-498: a folder git cannot name falls back to the branch the last turn reported', async () => {
+  const reader = createBranchReader({ git: async () => 'HEAD\n', now: () => 0 })
+  const out = await withBranches(view([live('s1', { console: false })]), [{ sessionId: 's1', folder: '/detached' }], reader, () => 'from-turn')
+  assert.equal(out.live[0].folder, '/detached')
+  assert.equal(out.live[0].branch, 'from-turn')
+})

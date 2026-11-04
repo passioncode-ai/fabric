@@ -6,6 +6,7 @@ import test from 'node:test'
 import path from 'node:path'
 
 const { createAbandonedSweep, readBoardRequests, LAPSED_REASON } = await import(path.resolve(import.meta.dirname, '../src/main/abandonedSweepRun.ts'))
+const { CLOSED_REASON } = await import(path.resolve(import.meta.dirname, '../src/shared/abandonedSweep.ts'))
 const { registerWorkTools } = await import(path.resolve(import.meta.dirname, '../src/main/workTools.ts'))
 const { prepareEventPayload } = await import(path.resolve(import.meta.dirname, '../src/shared/commandIngress.ts'))
 
@@ -163,6 +164,22 @@ test('(d) a lapsed claim is released only on the second sweep that finds it', as
   await sweepOnce(sweep)
   assert.deepEqual(w.released, [{ claimId: 'c1', reason: LAPSED_REASON }])
   assert.match(LAPSED_REASON, /^lapsed: its session ended and two sweeps found it/)
+})
+
+// CO-499: a live claim on a task that already left work is let go at the first sweep that sees it; a run Fabric has
+// not proved stopped still holds it.
+test('CO-499: a live claim on a task in review is let go at once, with its reason, and a held run keeps it', async () => {
+  const live = { claimId: 'c7', taskId: 'task-c7', projectId: 'p1', sessionId: 's7', claimedAt: iso(T0 - 5 * 24 * 60 * MIN), renewedAt: iso(T0 - MIN),
+    expiresAt: iso(T0 + 20 * MIN), session: { lastSignAt: T0 - MIN }, taskStatus: 'review' }
+  const w = world({ claims: [live] })
+  await sweepOnce(createAbandonedSweep(w.deps))
+  assert.deepEqual(w.released, [{ claimId: 'c7', reason: CLOSED_REASON }])
+  const held = world({ claims: [live], unresolved: ['task-c7'] })
+  await sweepOnce(createAbandonedSweep(held.deps))
+  assert.deepEqual(held.released, [], 'a run not proved stopped holds the claim')
+  const running = world({ claims: [{ ...live, taskStatus: 'running' }] })
+  await sweepOnce(createAbandonedSweep(running.deps))
+  assert.deepEqual(running.released, [])
 })
 
 test('(d) a lapsed claim gone between two sweeps is not released', async () => {

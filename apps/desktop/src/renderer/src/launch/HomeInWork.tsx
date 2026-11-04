@@ -23,6 +23,7 @@ import { heldFor, knownTime, since, untimed } from '../duration'
 import { runnerLabel } from '../runnerLabel'
 import { FailureNote } from '../OperatorError'
 import { CappedNote, KeptNote, type HomeReading } from './HomeWork'
+import { folderName } from '../../../shared/railAgents'
 
 /** A task's heading: its own title (the mockup parity), else the summary an older reading carries. */
 const taskTitle = (task: NonNullable<LiveAgent['task']>): string => (task.title ?? '').trim() || task.summary
@@ -153,6 +154,7 @@ function AgentRow({ agent: a, onAgent, onTask, status }: { agent: LiveAgent; onA
     <li className={`lh-arow ${a.stale ? 'is-stale' : ''}`}>
       <button type="button" className="lh-arow-who" onClick={() => onAgent(a.sessionId)} title={t('launch.home.inWork.openAgent')}>
         <b><span className={`rail-dot s-${status}`} aria-hidden="true" />{runnerLabel(a.agent, t)}</b>
+        {folderName(a.folder) && <span className="rail-folder" title={a.folder ?? undefined}>{folderName(a.folder)}</span>}
         {a.branch
           ? <span className="rail-branch">{a.branch}</span>
           : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
@@ -187,6 +189,8 @@ function AgentRow({ agent: a, onAgent, onTask, status }: { agent: LiveAgent; onA
             <>
               {a.doing.step && a.doing.ofSteps ? <><Progress step={a.doing.step} of={a.doing.ofSteps} /><span className="lh-arow-step">{t('launch.home.agents.step', { step: a.doing.step, of: a.doing.ofSteps })} · </span></> : null}
               {a.doing.text}
+              {/* CO-499: words the agent has worked past say when they were written. */}
+              {a.doing.old && <span className="lp-meta lh-arow-old"> · {t('launch.home.agents.doingOld', { time: since(a.doing.at, t) })}</span>}
             </>
           ) : a.task?.what && a.task.what !== taskTitle(a.task) ? <span className="lh-arow-what">{a.task.what}</span>
             : <span className="lp-meta">{t('launch.home.agents.silent')}</span>}

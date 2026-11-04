@@ -514,7 +514,23 @@ test('an enrolled mint tells the surface it is an enrollment, its runner, its ru
   const h = deps()
   h.d.mint = (projectId, sessionId, taskId, origin) => { origins.push(origin); return h.surface.mint(projectId, sessionId) }
   await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-9' }, h.d)
-  assert.deepEqual(origins, [{ cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-9', bindingId: binding.id }])
+  assert.deepEqual(origins, [{ cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-9', bindingId: binding.id, folder: '/Users/me/DATA/site' }])
+})
+
+// CO-498: the folder the enrollment resolved reaches the surface, so the screens show it and read its branch; the
+// journal still keeps only its digest.
+test('CO-498: an enrolled session carries its folder in the surface, the journal keeps only the digest', async (t) => {
+  const surface = await realSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e' })
+  await surface.start()
+  t.after(() => surface.stop())
+  const h = deps()
+  const journaled = []
+  const d = { ...h.d, mint: (p, s, task, origin) => surface.mint(p, s, task, origin), journal: async (type, projectId, payload) => { journaled.push(payload) } }
+  const out = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-5' }, d)
+  assert.ok(out.ok)
+  const held = surface.heldSessions().find((s) => s.sessionId === out.session.sessionId)
+  assert.equal(held.folder, '/Users/me/DATA/site')
+  assert.equal(JSON.stringify(journaled).includes('/Users/me/DATA/site'), false, 'the journal never holds the folder')
 })
 
 // 0.3.9 review iteration 2, ER-2: the agent's process goes to the surface with the mint, so a hook's end for an agent

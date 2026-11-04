@@ -91,7 +91,9 @@ export function createBranchReader(deps: {
   }
 }
 
-/** The home's reading with each live agent's branch: the folder's, for a console Fabric holds; null otherwise. */
+/** The home's reading with each live agent's folder and branch (CO-498): the folder of every held session that has
+ *  one, a console Fabric holds or an agent its enrollment placed; the branch read there, else the one its last turn
+ *  reported (CO-459); null when neither is known. */
 export async function withBranches(
   view: HomeView,
   held: ReadonlyArray<{ sessionId: string; folder?: string | null }>,
@@ -101,8 +103,9 @@ export async function withBranches(
 ): Promise<HomeView> {
   const folderOf = new Map(held.filter((h) => typeof h.folder === 'string' && h.folder).map((h) => [h.sessionId, h.folder as string]))
   const live = await Promise.all(view.live.map(async (a) => {
-    const folder = a.console ? folderOf.get(a.sessionId) : undefined
-    return { ...a, branch: folder ? await reader.read(folder) : reported(a.sessionId) }
+    const folder = folderOf.get(a.sessionId)
+    const read = folder ? await reader.read(folder) : null
+    return { ...a, folder: folder ?? null, branch: read ?? reported(a.sessionId) }
   }))
   return { ...view, live }
 }

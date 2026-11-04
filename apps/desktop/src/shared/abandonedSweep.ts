@@ -20,11 +20,11 @@ export const TELL_QUIET_MS = 30 * 60_000
 
 /** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
-export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing'] as const
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
 /** The kinds that are a reminder to the agent at work, not abandoned work for the operator's queue (0.3.14 wave 2):
  *  a session changing files without a claim is told to claim, and the operator's «На проверке» is not filled with it. */
-export const AGENT_ONLY_KINDS: ReadonlySet<AbandonedKind> = new Set<AbandonedKind>(['work-unclaimed', 'brief-missing'])
+export const AGENT_ONLY_KINDS: ReadonlySet<AbandonedKind> = new Set<AbandonedKind>(['work-unclaimed', 'brief-missing', 'claim-closed'])
 /** How long a claim lives before its task's missing brief is reminded (0.3.14 wave 2, brief-missing): the claim's own
  *  answer said it first. */
 export const BRIEF_AFTER_MS = 10 * 60_000
@@ -47,7 +47,15 @@ export interface SweepClaim {
   renewedAt: string | null
   /** The holding session's last sign; null when Fabric no longer holds that session. */
   session: { lastSignAt: number | null } | null
+  /** Its task's state as read with the claim (CO-499); absent when not read. */
+  taskStatus?: string | null
 }
+
+/** The task states a live claim is let go on (CO-499): the work is over or back in the queue, so a claim that a living
+ *  session's fabric-mcp keeps renewing must not keep saying «в работе». `unknown` (a task not found) is not one. */
+export const CLOSED_TASK_STATES: ReadonlySet<string> = new Set(['review', 'done', 'cancelled', 'backlog'])
+/** The reason a claim let go on a closed task carries (CO-499). */
+export const CLOSED_REASON = 'its task is no longer in work'
 
 export interface SweepTask {
   taskId: string
@@ -162,6 +170,16 @@ export function findAbandoned(input: SweepInput): Finding[] {
   const base = { taskId: null, requestId: null, sessionId: null, claimId: null }
   for (const c of input.claims) {
     const own = Math.max(Date.parse(c.claimedAt), c.renewedAt ? Date.parse(c.renewedAt) : 0)
+    // #region claim-closed — docs: docs/evidence/specs/2026-11-04-agents-logs-and-the-improvement-loop.md#22-a-status-that-does-not-outlive-its-work-co-499
+    // CO-499: a live claim on a task already out of work (moved to review, closed, sent back) is let go at once, before
+    // any other judgement of it: a living session renews it every two minutes, so it would otherwise never lapse.
+    if (c.taskId && typeof c.taskStatus === 'string' && CLOSED_TASK_STATES.has(c.taskStatus)) {
+      out.push({ ...base, kind: 'claim-closed', key: `claim-closed:${c.claimId}`, projectId: c.projectId, taskId: c.taskId,
+        sessionId: c.sessionId, claimId: c.claimId, stillMs: Math.max(0, now - own),
+        nextStep: `Fabric let go of your claim: its task is in ${c.taskStatus}, no longer in work. Claim the task you are working on now (fabric_work_claim), or say you are idle.` })
+      continue
+    }
+    // #endregion claim-closed
     if (c.session === null) {
       out.push({ ...base, kind: 'claim-lapsed', key: `claim-lapsed:${c.claimId}`, projectId: c.projectId, taskId: c.taskId,
         sessionId: c.sessionId, claimId: c.claimId, stillMs: now - own,
@@ -268,13 +286,16 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'answer-unread': (f) => `the answer to board request ${f.requestId}`,
   'terminal-stalled': (f) => `task ${f.taskId} in this session`,
   'work-unclaimed': () => 'this session',
-  'brief-missing': (f) => (f.claimId ? `task ${f.taskId} you claimed` : `task ${f.taskId} Fabric started you on`)
+  'brief-missing': (f) => (f.claimId ? `task ${f.taskId} you claimed` : `task ${f.taskId} Fabric started you on`),
+  'claim-closed': (f) => `task ${f.taskId} you claimed`
 }
 
 /** A kind whose line is not "has been still": what it says, given the whole minutes. */
 const SAYS: Partial<Record<AbandonedKind, (f: Finding, min: number) => string>> = {
   'work-unclaimed': (f, min) => `${SUBJECT[f.kind](f)} has been changing files between its turns for ${min} min and holds no claim.`,
-  'brief-missing': (f, min) => `${SUBJECT[f.kind](f)} has been in work for ${min} min with its brief incomplete.`
+  'brief-missing': (f, min) => `${SUBJECT[f.kind](f)} has been in work for ${min} min with its brief incomplete.`,
+  // CO-499: the line says what Fabric did, not how long it stood still.
+  'claim-closed': (f) => `${SUBJECT[f.kind](f)} is no longer in work, and your claim on it has been let go.`
 }
 
 /** The one line an agent is told (SW-4): what, how long it stood still in whole minutes (SW-3), what to do next. */

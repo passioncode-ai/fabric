@@ -22,7 +22,8 @@ const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.
   'task-unclaimed': 'attention.untitled.task',
   'terminal-stalled': 'attention.untitled.task',
   'work-unclaimed': 'attention.untitled.session',
-  'brief-missing': 'attention.untitled.task'
+  'brief-missing': 'attention.untitled.task',
+  'claim-closed': 'attention.untitled.task'
 }
 
 /** What a notification says about one row: its title, and for what the sweep found, why it was found (UX-7). */

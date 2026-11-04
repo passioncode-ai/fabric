@@ -48,6 +48,7 @@ import { NeedsYouCard } from './HomeParts'
 import { useMediaQuery } from '../useMediaQuery'
 import { boardEntries, type BoardEntry, type BoardQuestion } from '../../../shared/board.ts'
 import type { AgentQuestion } from '../../../shared/sessionTasks.ts'
+import { folderName } from '../../../shared/railAgents'
 
 type Read = { at: 'reading' } | { at: 'ready'; events: FeedEvent[] } | { at: 'failed'; says: string; kept: FeedEvent[] | null }
 type TasksRead = { at: 'reading' } | { at: 'ready'; view: SessionTasksView } | { at: 'failed'; says: string; kept: SessionTasksView | null }
@@ -332,6 +333,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
             {agent.projectId
               ? <span>{t('agentScreen.projectWord')} <button type="button" className="lp-link" onClick={() => onOpenProject(agent.projectId!)}>{agent.projectName ?? t('launch.home.agents.noProject')}</button></span>
               : <span>{t('launch.home.agents.noProject')}</span>}
+            {folderName(agent.folder) && <span className="rail-folder" title={agent.folder ?? undefined}>{folderName(agent.folder)}</span>}
             {agent.branch
               ? <span className="rail-branch">{agent.branch}</span>
               : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
@@ -367,6 +369,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
                   <span className="as-now-stage">
                     {agent.doing.step && agent.doing.ofSteps ? <><b>{t('launch.home.agents.step', { step: agent.doing.step, of: agent.doing.ofSteps })}</b> · </> : null}
                     {agent.doing.text}
+                    {agent.doing.old && <span className="lp-meta"> · {t('launch.home.agents.doingOld', { time: since(agent.doing.at, t) })}</span>}
                   </span>
                 </>
               ) : <span className="lp-meta">{t('launch.home.agents.silent')}</span>}

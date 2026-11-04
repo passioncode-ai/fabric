@@ -117,6 +117,10 @@ graph button.
   "no path, no branch" (`fabric_session_observe`, `apps/desktop/src/main/workTools.ts#registerWorkTools`). New: an
   optional `branch` on the turn, sent by the adapter's hook. 0.3.14 promises no new protocol, so this is 0.3.15; until
   then such a row says «ветка неизвестна» (open choice 3).
+- *Amended 2026-11-04 (CO-498, [spec](../evidence/specs/2026-11-04-agents-logs-and-the-improvement-loop.md) §2.1):*
+  the enrollment now hands its resolved folder to the surface, in memory only (the journal keeps the digest), so a
+  terminal-joined agent's branch is read in its folder like a console's, the turn's reported branch (CO-459) is the
+  fallback, and every row shows the folder's last segment before the branch, the whole path on hover.
 
 **Removed.** The rail's places list (Агенты becomes the toggle; Главная the brand), the graph button on each row (the
 project page's «Связи» stays the way to the graph), the favourites-first ordering.

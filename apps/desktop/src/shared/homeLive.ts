@@ -36,6 +36,9 @@ export interface TaskBrief {
 
 /** What a session says it is doing, in its own words; null when it has said nothing. */
 export interface Doing {
+  /** CO-499: the words are older than the session's newest sign by more than `DOING_OLD_MS`: it has worked since and not
+   *  said what it does now. The screens say when they were written. Absent: current. */
+  old?: true
   text: string
   note: string | null
   step: number | null
@@ -86,6 +89,9 @@ export interface LiveAgent {
   /** The git branch of the folder a console Fabric holds works in (0.3.14, the simple Fabric; `main/agentBranches.ts`).
    *  Absent or null: not known (a terminal-joined agent shares no folder, or git did not answer). */
   branch?: string | null
+  /** The folder it works in (CO-498): a console's, or the one an enrolled agent's enrollment resolved, kept in memory.
+   *  Absent or null: not known. Shown by its last segment, the whole path in the tooltip. */
+  folder?: string | null
   /** Its goal (the operator's second review, R-3; `main/agentGoals.ts`): the root of its task's `spawned` links, else
    *  the task itself. Null: it holds no task, so no goal is named. Absent: not read. */
   goal?: { taskId: string; projectId: string; text: string; what: string | null; byPerson: boolean; isTask: boolean
@@ -201,10 +207,16 @@ export function titleAndWhat(t: Pick<TaskBrief, 'title' | 'brief_what'> | null |
   return { title: clean(t?.title), what: clean(t?.brief_what) }
 }
 
-function doingOf(s: StageRow | undefined): Doing | null {
+/** How much older than the session's newest sign an agent's own words may be before the screens call them old
+ *  (CO-499): an agent that keeps making turns for half an hour without a stage report has moved on from them. */
+export const DOING_OLD_MS = 30 * 60_000
+
+function doingOf(s: StageRow | undefined, lastSignAt?: string | null): Doing | null {
   const text = clean(s?.stage)
   if (!s || !text) return null
-  return { text, note: clean(s.note), step: s.step, ofSteps: s.of_steps, at: s.reported_at }
+  const sign = lastSignAt ? Date.parse(lastSignAt) : NaN
+  const old = Number.isFinite(sign) && sign - Date.parse(s.reported_at) > DOING_OLD_MS
+  return { ...(old ? { old: true as const } : {}), text, note: clean(s.note), step: s.step, ofSteps: s.of_steps, at: s.reported_at }
 }
 
 export function composeHome(input: {
@@ -294,7 +306,7 @@ export function composeHome(input: {
       startedAt: s.startedAt,
       lastSignAt: s.lastSignAt,
       stale: s.stale,
-      doing: doingOf(stageBySession.get(s.sessionId)),
+      doing: doingOf(stageBySession.get(s.sessionId), s.lastSignAt),
       task: currentTask(s.sessionId)
     }
   })

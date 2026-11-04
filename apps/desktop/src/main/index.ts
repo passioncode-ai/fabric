@@ -1476,7 +1476,7 @@ function heldSessions(projectId?: string): HeldSession[] {
     // A board session is a service answering the board's requests, not an agent at work: it is not counted or listed
     // among the sessions working (0.3.6 review i3 DA-2).
     if (s.surface === 'board') continue
-    out.set(s.sessionId, { sessionId: s.sessionId, projectId: s.projectId, agent: s.agent, cameIn: s.cameIn, console: false, startedAt: s.startedAt, lastSignAt: surface.sessionSign(s.sessionId)?.lastSignAt ?? null, runtimeSessionId: s.runtimeSessionId ?? null })
+    out.set(s.sessionId, { sessionId: s.sessionId, projectId: s.projectId, agent: s.agent, cameIn: s.cameIn, console: false, folder: s.folder ?? null, startedAt: s.startedAt, lastSignAt: surface.sessionSign(s.sessionId)?.lastSignAt ?? null, runtimeSessionId: s.runtimeSessionId ?? null })
   }
   for (const p of ptys?.list(projectId) ?? []) {
     if (!p.running) continue
