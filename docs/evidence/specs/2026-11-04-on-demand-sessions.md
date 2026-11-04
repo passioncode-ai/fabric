@@ -95,7 +95,8 @@ The decision of §3.1 to §3.3 and the two-empty-runs rule of §3.6 are one pure
 
 The hub's dispatcher runs on every `comms` journal event of kind `request` and on the cycle (60 s, `TICK_MS`), so a
 request filed while Fabric was closed is found at the next start. A request is a candidate when it has no live
-responder, is not past the board's own deadline (`request.deadline`, explicit or seven days) and has no dispatch in
+responder, is at least 5 minutes before the board's own deadline (`request.deadline`, explicit or seven days;
+`boardDispatch.ts#LAUNCH_MARGIN_MS`: 120 s of silence, a cycle and the launch) and has no dispatch in
 flight, and it is `queued`, or `claimed` with an attempt whose lease lapsed, or `accepted` with no live holder (the
 next run takes it through `com.responder_replace` with the checkpoint, as §3.6 says; fabric-agent-adapter's question,
 thread `b3e60686`, 2026-11-04), or `in_progress` with no live holder (the
@@ -212,7 +213,9 @@ The dispatch's outcome is the hub's journal entry, never a state of the request:
   `accepted` is held and continues only through `com.responder_replace` with the checkpoint, `in_progress` stays until
   the next holder registers); the next cycle may dispatch once more; after two such runs Fabric stops and shows the
   request to the operator in «На проверке», unchanged, and takes the workflow back the same way to close it (`close: true`,
-  `status: blocked`); a request past its deadline is closed the same way;
+  `status: blocked`); an `accepted` or `in_progress` request past its deadline, which the contract never expires, is
+  shown to the operator and closed the same way (a run whose deadline falls less than 5 minutes after its own end
+  completes `failed_known` instead of leaving it accepted, fabric-agent-adapter's FAA-201);
 - a run past the time limit (60 min by default, earlier when the board's deadline is earlier) is stopped through
   Switchboard and ends `timed-out`; past the deadline the contract expires `queued` and `claimed` requests itself.
 

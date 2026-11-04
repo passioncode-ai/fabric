@@ -1,7 +1,7 @@
 // CO-409, wave 1: the dispatcher's decision. Spec: docs/evidence/specs/2026-11-04-on-demand-sessions.md (§3.1, §3.3,
 // §3.4, §3.5, §3.6).
 import { describe, expect, it } from 'vitest'
-import { decideDispatch, firstLine, parseFirstLine, refusalCheck, runEndsAt, DISPATCH_DEFAULTS, GRACE_MS, type DispatchInput } from './boardDispatch'
+import { decideDispatch, firstLine, parseFirstLine, refusalCheck, runEndsAt, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, type DispatchInput } from './boardDispatch'
 
 const NOW = Date.parse('2026-11-04T15:00:00Z')
 const MIN = 60_000
@@ -51,6 +51,17 @@ describe('decideDispatch (§3.1–§3.3)', () => {
       expect(decideDispatch(with_({}, { state })).path, state).toBe('none')
     expect(decideDispatch(with_({}, { deadline: new Date(NOW - 1).toISOString() })).path).toBe('none')
   })
+  it('starts nothing within five minutes of the deadline; past it an unsettled accepted or in-progress request with nobody on it goes to the operator', () => {
+    expect(decideDispatch(with_({}, { deadline: new Date(NOW + LAUNCH_MARGIN_MS - 1).toISOString() })).path).toBe('none')
+    expect(decideDispatch(with_({}, { deadline: new Date(NOW + LAUNCH_MARGIN_MS).toISOString() })).path).toBe('launch')
+    const past = { deadline: new Date(NOW - 1).toISOString() }
+    expect(decideDispatch(with_({}, { ...past, state: 'accepted' }))).toEqual({ path: 'to-operator' })
+    expect(decideDispatch(with_({}, { ...past, state: 'in_progress' }))).toEqual({ path: 'to-operator' })
+    expect(decideDispatch(with_({}, { ...past, state: 'accepted', holderLive: true })).path).toBe('none')
+    // queued and claimed expire by the contract itself.
+    expect(decideDispatch(with_({}, { ...past, state: 'queued' })).path).toBe('none')
+  })
+
   it('a dispatch in flight is never doubled (idempotent by request)', () => {
     expect(decideDispatch(with_({ inFlight: true }))).toEqual({ path: 'none' })
   })

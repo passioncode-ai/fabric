@@ -10,6 +10,9 @@
 export const GRACE_MS = 2 * 60_000
 /** After this many runs that ended without settling the request, no more are started for it (§3.6, option (b)). */
 export const EMPTY_RUNS_TO_OPERATOR = 2
+/** No run is started this close to the board's deadline: 120 s of the executor's silence before the workflow is taken
+ *  back (§3.4), a 60 s cycle and the launch (§3.1; fabric-agent-adapter's question, thread `b3e60686`). */
+export const LAUNCH_MARGIN_MS = 5 * 60_000
 
 export interface DispatchLimits {
   /** On-demand sessions running at once on this machine (§3.3). */
@@ -82,7 +85,7 @@ export function limitsOf(over: Partial<DispatchLimits> = {}): DispatchLimits {
 
 /** Whether the request is one a session may be started for (§3.1). */
 function candidate(r: DispatchInput['request'], now: number): boolean {
-  if (Date.parse(r.deadline) <= now) return false
+  if (Date.parse(r.deadline) - now < LAUNCH_MARGIN_MS) return false
   if (r.state === 'queued') return true
   if (r.state === 'claimed') return r.attemptLapsed
   // An accepted request whose holder is gone continues in the next run through com.responder_replace (§3.6).
@@ -92,7 +95,12 @@ function candidate(r: DispatchInput['request'], now: number): boolean {
 
 export function decideDispatch(input: DispatchInput): DispatchDecision {
   const { now, request } = input
-  if (input.inFlight || !candidate(request, now)) return { path: 'none' }
+  if (input.inFlight) return { path: 'none' }
+  // An accepted or in-progress request never expires by itself: past its deadline, unsettled and with nobody holding
+  // it, it goes to the operator (§3.6), and its workflow is closed.
+  if (Date.parse(request.deadline) <= now && (request.state === 'accepted' || request.state === 'in_progress') && !request.holderLive)
+    return { path: 'to-operator' }
+  if (!candidate(request, now)) return { path: 'none' }
   if (input.liveResponder) return { path: 'responder' }
   const waited = now - Date.parse(request.submittedAt)
   if (input.liveSession && waited < GRACE_MS) return { path: 'live-session' }
