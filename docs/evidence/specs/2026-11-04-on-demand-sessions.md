@@ -193,7 +193,14 @@ Switchboard's sessions history. A paid fallback agent obeys the machine's and th
 The run knows it was started on a request by its environment, `FABRIC_DISPATCH_WORKFLOW`, `FABRIC_DISPATCH_HANDOFF` and
 `FABRIC_DISPATCH_REQUEST`, and by the first line of its prompt, exactly
 `fabric-dispatch/1 workflow=wf_<16 hex> handoff=<handoff id> request=<request uuid>` (fields one space apart, in this
-order, then an empty line and the text; where the two disagree the environment wins and the run records the mismatch).
+order, then an empty line and the text). A session is the dispatched run only when both hold: its own first prompt
+line is that line and it names the same three ids as the environment. The environment alone never makes a session
+the run, because a child process inherits it: a reader or helper a run starts (Claude Code's Agent tool, a sub-shell)
+carries `FABRIC_DISPATCH_*` but its prompt does not begin with the line, so it is not the run. It takes no claim,
+writes no checkpoint, completes nothing on the board and reports only to the run that started it. Where the line and
+the environment disagree, the session is not the run either: it says so on the request's thread and stops
+(passioncode-vesta's VES-BOARD-SPAWN-HARDEN item 1, relayed by fabric-workspace on 2026-11-05; this replaces the
+earlier «the environment wins»).
 The dispatcher never passes a lease: the run reads the packet with `observatory_checkpoint_latest` and takes the lease
 with `observatory_handoff_accept`; only the lease holder writes the closing checkpoint, and Fabric writes nothing to the
 workflow after the hand-over (its `run-ends-at` checkpoint is written before it). Agreed with
