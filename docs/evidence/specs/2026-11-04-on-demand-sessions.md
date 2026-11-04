@@ -148,7 +148,13 @@ the time limit and the deadline, the same moment passed to Switchboard as `--tim
 its own from its own start (asked by passioncode-vesta on 2026-11-04, thread `0ad0b68c`; Vesta winds down 15 minutes
 before it). That checkpoint carries the packet's whole body unchanged (goal, constraints, artifacts, credentials) plus
 `run-ends-at`, because Observatory replaces a checkpoint's body whole; every later checkpoint of the run does the same
-with `checkpoint.body` from `observatory_handoff_accept`. Each dispatch makes a new hand-over and a new dispatch id (a
+with `checkpoint.body` from `observatory_handoff_accept`. One workflow serves a request across all its runs. A run
+that ends with the request unsettled keeps the workflow's lease and does not close it, so before a second dispatch
+Fabric takes the workflow back: once the dispatch has ended and the workflow's newest checkpoint is at least 120 s
+old, it creates a hand-over with no lease token, reason `restart` (`crash` when Switchboard reports the run failed),
+to `service:fabric`, accepts it for a lease of its own, writes the new `run-ends-at` checkpoint under that lease, and
+hands the workflow on with `plan_route` (fabric-agent-adapter's question, thread `b3e60686`, message `b51ec2a3`,
+answered 2026-11-04: Observatory refuses a checkpoint or a `plan_route` hand-over without the current lease). Each dispatch makes a new hand-over and a new dispatch id (a
 UUID v4, within Switchboard's `[A-Za-z0-9._-]{1,64}`, given to the run as `FABRIC_DISPATCH_ID`); an unaccepted older
 hand-over is never reused. Observatory's redactor keeps only `session:` and `commit:` references today, so
 `board-request:`, `board-thread:` and `fabric-project:` are scrubbed when the packet is written: until Observatory keeps
@@ -205,7 +211,8 @@ The dispatch's outcome is the hub's journal entry, never a state of the request:
   the contract gives it (`queued` stays queued, `claimed` is taken again by the next `com.claim` with a new attempt,
   `accepted` is held and continues only through `com.responder_replace` with the checkpoint, `in_progress` stays until
   the next holder registers); the next cycle may dispatch once more; after two such runs Fabric stops and shows the
-  request to the operator in «На проверке», unchanged;
+  request to the operator in «На проверке», unchanged, and takes the workflow back the same way to close it (`close: true`,
+  `status: blocked`); a request past its deadline is closed the same way;
 - a run past the time limit (60 min by default, earlier when the board's deadline is earlier) is stopped through
   Switchboard and ends `timed-out`; past the deadline the contract expires `queued` and `claimed` requests itself.
 
