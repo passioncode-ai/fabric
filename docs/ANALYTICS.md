@@ -53,6 +53,15 @@ Nothing else identifies the machine or the person.
 
 A count Fabric cannot read is left out of the event, never sent as zero.
 
+**A break in the series, not a finding:** from the day the PassionCode launcher 0.2.76 is published (PC-123,
+passioncode-platform's announcement `b5acfbee` on the board, 2026-11-04), the launcher creates the shared
+`installation.json` at its own first counted run, often before any app starts. On a machine the launcher set up,
+Fabric's `app_installed` then carries `first_passioncode_app: false`, so the share of `true` drops with no change in
+what people do. Read that drop as a break in the series from that date (Fabric Dashboards and Switchboard recorded the
+same, their `95647b7` and `7e49691`). Fabric writes `analytics: false` into the shared file only when the person
+answers (the notice or Settings), so the launcher, which reads it once and keeps it as its own off, never takes a value
+Fabric chose for the person.
+
 **Never sent:** project, agent, product or person names; e-mail addresses; paths; ids other than
 `install_id` (sent twice, as `install_id` and `iid`); message or task content; provider answers or errors. Props pass `cleanProps`, which keeps only
 finite numbers, booleans, and strings from a fixed list of kinds (`KNOWN_KINDS`): a free string could carry a
