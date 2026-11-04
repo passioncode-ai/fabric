@@ -135,7 +135,11 @@ reader's redaction), no absolute folder (the launch's working directory is the f
 Agreed with Project Observatory on 2026-11-04 (OBS-323), so it reads the packet without guessing and without a change to
 memory/0.1: `artifacts` carry one each of `kind: "other"` with `ref` `board-request:<uuid>`, `board-thread:<uuid>`,
 `capability:<name>`, `fabric-project:<uuid>` and `deadline:<ISO 8601 UTC>` (the board's own deadline); a packet without
-the request, the project or the deadline gets no keys. The keys a request needs are named
+the request, the project or the deadline gets no keys.
+Each dispatch also writes its own checkpoint with `ref` `run-ends-at:<ISO 8601 UTC>`: the earlier of its launch plus
+the time limit and the deadline, the same moment passed to Switchboard as `--timeout-minutes`; a second dispatch writes
+its own from its own start (asked by passioncode-vesta on 2026-11-04, thread `0ad0b68c`; Vesta winds down 15 minutes
+before it). The keys a request needs are named
 in the body's `credentials` block (`[{project, env, name, purpose}]`, names only); Observatory gives only those, only to
 the holder of the workflow's lease, only for the project `fabric-project` resolves to, and only until the deadline;
 without `credentials` it gives none. The run's last checkpoint closes the workflow: `status: done` for `completed`,
@@ -256,6 +260,13 @@ on by default, for new and existing installations: on first start Fabric shows a
 and error data only to improve the product, with the switch already on; the switch in Settings turns it off for Fabric
 alone. This supersedes the decision of 2026-11-03 (thread `b2e5df1f`: a baseline without consent, consent extends) and
 ADR-0127; a new ADR records it in the change that builds it, with the notice text through Copylot.
+
+**Errors our customers meet reach us** (the operator's word of 2026-11-04, relayed by fabric-workspace: «убедиться, что
+есть логирование ошибок. и мы можем корректно видеть, если появляются какие-то проблемы у наших клиентов»). Today
+Fabric keeps errors only on the machine (the operations log and `startup-failure.log`); none reaches us. CO-496 adds an
+`app_error` count under the same switch: a fixed code and the place it happened (`area`, `op`), the platform and the
+version, never the message text, a path, a project name or anything the person typed, as Fabric Inbox's `app_error`
+(v0.87.0).
 
 ## 9. Waves
 
