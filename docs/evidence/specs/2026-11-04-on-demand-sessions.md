@@ -151,8 +151,10 @@ without `credentials` it gives none. The run's last checkpoint closes the workfl
 Fabric creates the hand-over itself (`observatory_handoff_create` as `service:fabric`, reason `plan_route`, `to.provider`
 from the default agent in `switchboard agents`, no account) and asks Switchboard to start the session (SB-247, agreed
 2026-11-04, design in fabric-switchboard `docs/research/dispatch-2026-11-04.md`):
-`switchboard dispatch --dir <P's folder> --workflow <wf> --handoff <id> --reason request --permissions ask|all
---timeout-minutes <n> [--json]`, answering `{launch_id, agent, account_id, state: started|running|refused, reason?}`;
+`switchboard dispatch --dir <P's folder> --workflow <wf> --handoff <id> --request <uuid> --dispatch-id <id> --reason
+request --permissions ask|all --timeout-minutes <n> [--json]` (`--request` and `--dispatch-id` agreed with Switchboard
+on 2026-11-04 so its launch record carries `launched_by.dispatch {id, request, thread, project, workflow}` for Fabric
+Dashboards, FD-137; the dispatch id is the one in `board.dispatch.*`), answering `{launch_id, agent, account_id, state: started|running|refused, reason?}`;
 `switchboard dispatch stop --launch-id <id>` stops it. The started session accepts the hand-over, narrowing it to the
 account Switchboard chose; the workflow's lease never passes through Switchboard. A second `dispatch` for the same
 workflow while one runs answers the same `launch_id`. Refusal codes map to §3.3: `no_agent` to `deferred-no-agent`,
@@ -289,5 +291,6 @@ version, never the message text, a path, a project name or anything the person t
   session's process is gone afterwards (macOS and Windows).
 - With the switch off, nothing starts and `skipped-off` is recorded.
 - Caps hold under ten simultaneous requests.
-- A run killed mid-way returns the request to the queue; a second one closes it `failed_known` with a thread answer.
+- A run killed mid-way leaves the request in the state the contract gives it; after a second such run Fabric starts no
+  more for it and shows it to the operator in «На проверке», its state unchanged (§3.6, option (b)).
 - No packet, event, count or log line contains a secret or the request's text where §7 says it must not.
