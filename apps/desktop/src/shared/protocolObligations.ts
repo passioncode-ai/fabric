@@ -177,7 +177,8 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     scope: 'fabric_mediated'
   },
   // #region board-obligations — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
-  // The project board rule (COM-12). Its one home is fabric-workspace knowledge/agents-first.md "The project board";
+  // The project board rule (COM-12; answering at once, the operator 2026-11-04, relayed by webpilot on thread
+  // `11646774`). Its one home is fabric-workspace knowledge/agents-first.md "The project board";
   // these say it to every session through fabric_whoami, so an agent learns it from Fabric whatever plugin or
   // instruction file it has. All three are ADVICE: nothing checks that a session read the board, and Fabric cannot see
   // a HANDOFF written into another checkout. Only the payload fields com.submit refuses are a wall, and the board
@@ -190,10 +191,14 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'you. Acknowledge with com.read_ack only what you actually read; reading marks nothing. A board that answers ' +
       'not_available is unreachable, not empty: say so. A reply from this project on a request addressed to it ' +
       '(com.reply) answers that request: its state becomes answered and the asker sees it (DEC-0098, DEC-0102). Carrying ' +
-      'the request out as its responder is com.enroll, then com.claim, under a responder grant (board.respond) the ' +
-      'operator gives in Fabric, Settings → Agent access; without that grant com.enroll is not_authorized, and the reply ' +
-      'is still your answer. Reply only with the answer itself: a reply that only says the request waits closes it too, ' +
-      'so when you cannot answer, leave the request and tell the person a responder grant is needed.',
+      'the request out as its responder is com.enroll, then com.claim, under a responder grant (board.respond): ask ' +
+      'fabric.access.request for it, and on the operator\'s own machine it is allowed at once (ADR-0186); without it ' +
+      'com.enroll is not_authorized, and the reply is still your answer. Answer what waits on you in the same turn, ' +
+      'with the state now: what is done, where (branch or commit), when the rest will be ready and what blocks it; ' +
+      'a state with its nearest date is an answer (the operator, 2026-11-04). On a message or an announcement that is ' +
+      'com.reply. On a request addressed to this project a com.reply answers it and closes it, so a state that is not ' +
+      'yet the answer goes on its thread with com.submit, kind message, the thread\'s id and no replyTo, and the ' +
+      'result follows as a second message, the answer itself as com.reply.',
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },

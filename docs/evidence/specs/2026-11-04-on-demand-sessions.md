@@ -144,7 +144,14 @@ the request, the project or the deadline gets no keys.
 Each dispatch also writes its own checkpoint with `ref` `run-ends-at:<ISO 8601 UTC>`: the earlier of its launch plus
 the time limit and the deadline, the same moment passed to Switchboard as `--timeout-minutes`; a second dispatch writes
 its own from its own start (asked by passioncode-vesta on 2026-11-04, thread `0ad0b68c`; Vesta winds down 15 minutes
-before it). The keys a request needs are named
+before it). That checkpoint carries the packet's whole body unchanged (goal, constraints, artifacts, credentials) plus
+`run-ends-at`, because Observatory replaces a checkpoint's body whole; every later checkpoint of the run does the same
+with `checkpoint.body` from `observatory_handoff_accept`. Each dispatch makes a new hand-over and a new dispatch id (a
+UUID v4, within Switchboard's `[A-Za-z0-9._-]{1,64}`, given to the run as `FABRIC_DISPATCH_ID`); an unaccepted older
+hand-over is never reused. Observatory's redactor keeps only `session:` and `commit:` references today, so
+`board-request:`, `board-thread:` and `fabric-project:` are scrubbed when the packet is written: until Observatory keeps
+them (OBS-323) the dispatcher stays off and a run takes the request from `FABRIC_DISPATCH_REQUEST` and its first line
+(fabric-agent-adapter's finding, thread `7ae9ac3a`). The keys a request needs are named
 in the body's `credentials` block (`[{project, env, name, purpose}]`, names only); Observatory gives only those, only to
 the holder of the workflow's lease, only for the project `fabric-project` resolves to, and only until the deadline;
 without `credentials` it gives none. The run's last checkpoint closes the workflow: `status: done` for `completed`,

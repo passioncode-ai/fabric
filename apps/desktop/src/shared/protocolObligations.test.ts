@@ -60,13 +60,23 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).toMatch(/not_available[\s\S]*not empty/)
   })
 
-  it('says how a request is answered: a reply from this project answers it (DEC-0098, DEC-0102, CO-397); carrying it out is com.enroll then com.claim under the operator\'s board.respond grant (Settings → Agent access)', () => {
+  it('says how a request is answered: a reply from this project answers it (DEC-0098, DEC-0102, CO-397); carrying it out is com.enroll then com.claim under a board.respond grant, allowed at once on the operator\'s own machine (ADR-0186)', () => {
     const o = byId('board.read-at-start')
     expect(o.text).toMatch(/com\.reply\) answers that request: its state becomes answered/)
     expect(o.text).toMatch(/com\.enroll[\s\S]*com\.claim/)
     expect(o.text).toMatch(/board\.respond/)
-    expect(o.text).toMatch(/Settings → Agent access/)
+    expect(o.text).toMatch(/fabric\.access\.request[\s\S]*allowed at once[\s\S]*ADR-0186/)
+    expect(o.text).not.toMatch(/Settings → Agent access/)
     expect(o.text).not.toMatch(/stays queued/)
+  })
+
+  it('says to answer what waits in the same turn with the state now, and keeps a request open while doing it (the operator, 2026-11-04)', () => {
+    const o = byId('board.read-at-start')
+    expect(o.text).toMatch(/in the same turn/)
+    expect(o.text).toMatch(/a state with its nearest date is an answer/)
+    expect(o.text).toMatch(/com\.submit, kind message, the thread's id and no replyTo/)
+    expect(o.text).toMatch(/result follows as a second message/)
+    expect(o.text).not.toMatch(/Reply only with the answer itself/)
   })
 
   it('asks for the whole spec before a task starts, one question at a time, and says how the person sees a short brief (ADR-0176 §1)', () => {
