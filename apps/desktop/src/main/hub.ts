@@ -35,7 +35,8 @@ import { execFileSync } from 'node:child_process'
 import { protectedAclInvocation, windowsAclAccount } from './platform.ts'
 
 export const HUB_PROTOCOL = 'fabric-hub/0.1'
-/** Chosen to sit apart from the ports agent services on this machine commonly take; `FABRIC_HUB_PORT` overrides. */
+/** Chosen to sit apart from the ports agent services on this machine commonly take; the first user's port (CO-505,
+ *  `userHubPort`); `FABRIC_HUB_PORT` overrides. */
 export const DEFAULT_HUB_PORT = 47070
 
 export interface HubDocument {
@@ -61,10 +62,25 @@ export const HUB_FEATURES: readonly string[] = Object.freeze(['session-hooks/1']
 
 export type PortChoice = { ok: true; port: number } | { ok: false; reason: string; code: HubDownCode; fact: string }
 
-/** The configured hub port, or why the configuration is unusable. */
-export function hubPort(env: NodeJS.ProcessEnv = process.env): PortChoice {
+// #region hub-port-per-user — docs: docs/evidence/specs/2026-08-16-software-fabric-carryover.md#co-505--one-hub-port-per-user--2026-11-04
+/**
+ * The default port of this user's hub (CO-505): two people on one machine (the operator's Mac Studio, one macOS user per
+ * organization) each run their own Fabric, and both cannot hold 47070. The first user of the platform keeps 47070, as
+ * every machine has until now; the next take the ports after it, one per user id: macOS from uid 501, Linux from 1000,
+ * at most 100 users. Windows and an unknown uid keep 47070. Agents never guess it: they read this user's `hub.json`.
+ */
+export function userHubPort(who: { platform: NodeJS.Platform; uid: number | null } = { platform: process.platform, uid: typeof process.getuid === 'function' ? process.getuid() : null }): number {
+  const first = who.platform === 'darwin' ? 501 : who.platform === 'linux' ? 1000 : null
+  if (first === null || who.uid === null || !Number.isInteger(who.uid)) return DEFAULT_HUB_PORT
+  const offset = who.uid - first
+  return offset >= 0 && offset < 100 ? DEFAULT_HUB_PORT + offset : DEFAULT_HUB_PORT
+}
+// #endregion hub-port-per-user
+
+/** The configured hub port, or why the configuration is unusable. `FABRIC_HUB_PORT` wins over the per-user default. */
+export function hubPort(env: NodeJS.ProcessEnv = process.env, who?: { platform: NodeJS.Platform; uid: number | null }): PortChoice {
   const raw = env.FABRIC_HUB_PORT
-  if (raw === undefined || raw === '') return { ok: true, port: DEFAULT_HUB_PORT }
+  if (raw === undefined || raw === '') return { ok: true, port: userHubPort(who) }
   if (!/^\d{4,5}$/.test(raw) || Number(raw) < 1024 || Number(raw) > 65535)
     return { ok: false, code: 'port-setting', fact: `FABRIC_HUB_PORT=${JSON.stringify(raw)}`, reason: `the hub port setting (FABRIC_HUB_PORT=${JSON.stringify(raw)}) is not a port between 1024 and 65535. Correct or remove it, then quit and reopen Fabric` }
   return { ok: true, port: Number(raw) }

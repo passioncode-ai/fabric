@@ -7,7 +7,7 @@ import path from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-const { publishHub, withdrawHub, hubPort, checkPortUnclaimed, DEFAULT_HUB_PORT, HUB_PROTOCOL, writeAtomic } = await import(path.resolve(import.meta.dirname, '../src/main/hub.ts'))
+const { publishHub, withdrawHub, hubPort, userHubPort, checkPortUnclaimed, DEFAULT_HUB_PORT, HUB_PROTOCOL, writeAtomic } = await import(path.resolve(import.meta.dirname, '../src/main/hub.ts'))
 
 const mode = (f) => statSync(f).mode & 0o777
 
@@ -99,7 +99,7 @@ test('withdraw never blocks on, follows or removes a hub.json that is not a regu
 })
 
 test('the port: default, FABRIC_HUB_PORT, refused when malformed or claimed by a registered agent', () => {
-  assert.deepEqual(hubPort({}), { ok: true, port: DEFAULT_HUB_PORT })
+  assert.deepEqual(hubPort({}, { platform: 'darwin', uid: 501 }), { ok: true, port: DEFAULT_HUB_PORT })
   assert.deepEqual(hubPort({ FABRIC_HUB_PORT: '48000' }), { ok: true, port: 48000 })
   for (const bad of ['80', '70000', 'abc', '4800x']) assert.equal(hubPort({ FABRIC_HUB_PORT: bad }).ok, false)
   const claimed = new Map([[47070, 'example-agent.default']])
@@ -107,4 +107,17 @@ test('the port: default, FABRIC_HUB_PORT, refused when malformed or claimed by a
   assert.equal(r.ok, false)
   assert.match(r.reason, /claimed by the registered agent example-agent\.default/)
   assert.deepEqual(checkPortUnclaimed(47071, claimed), { ok: true, port: 47071 })
+})
+
+// CO-505: one Fabric per user on one machine (Mac Studio: aiteam1 501, sshlg 502, appvillis 503), each on its own port.
+test('CO-505: the default port is per user; FABRIC_HUB_PORT still wins; Windows and odd uids keep 47070', () => {
+  assert.equal(userHubPort({ platform: 'darwin', uid: 501 }), 47070)
+  assert.equal(userHubPort({ platform: 'darwin', uid: 502 }), 47071)
+  assert.equal(userHubPort({ platform: 'darwin', uid: 503 }), 47072)
+  assert.equal(userHubPort({ platform: 'linux', uid: 1000 }), 47070)
+  assert.equal(userHubPort({ platform: 'linux', uid: 1001 }), 47071)
+  for (const who of [{ platform: 'win32', uid: null }, { platform: 'darwin', uid: null }, { platform: 'darwin', uid: 0 }, { platform: 'darwin', uid: 700 }, { platform: 'linux', uid: 65534 }])
+    assert.equal(userHubPort(who), 47070, JSON.stringify(who))
+  assert.deepEqual(hubPort({}, { platform: 'darwin', uid: 503 }), { ok: true, port: 47072 })
+  assert.deepEqual(hubPort({ FABRIC_HUB_PORT: '48000' }, { platform: 'darwin', uid: 503 }), { ok: true, port: 48000 })
 })
