@@ -13,6 +13,11 @@ export const EMPTY_RUNS_TO_OPERATOR = 2
 /** No run is started this close to the board's deadline: 120 s of the executor's silence before the workflow is taken
  *  back (§3.4), a 60 s cycle and the launch (§3.1; fabric-agent-adapter's question, thread `b3e60686`). */
 export const LAUNCH_MARGIN_MS = 5 * 60_000
+/** How far past a run's own end (`run-ends-at`) the deadline must be for a run to leave the request accepted for the
+ *  next one: the decision comes at most 120 s of silence and a 60 s cycle after it, then `LAUNCH_MARGIN_MS`; 10 min
+ *  with room for a slow launch. Nearer, the run completes `failed_known` (§3.6; fabric-agent-adapter's FAA-201, its
+ *  question `aea81d66`). */
+export const RUN_END_TO_DEADLINE_MS = 10 * 60_000
 
 export interface DispatchLimits {
   /** On-demand sessions running at once on this machine (§3.3). */

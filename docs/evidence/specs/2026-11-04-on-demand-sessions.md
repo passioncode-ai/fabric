@@ -214,8 +214,10 @@ The dispatch's outcome is the hub's journal entry, never a state of the request:
   the next holder registers); the next cycle may dispatch once more; after two such runs Fabric stops and shows the
   request to the operator in «На проверке», unchanged, and takes the workflow back the same way to close it (`close: true`,
   `status: blocked`); an `accepted` or `in_progress` request past its deadline, which the contract never expires, is
-  shown to the operator and closed the same way (a run whose deadline falls less than 5 minutes after its own end
-  completes `failed_known` instead of leaving it accepted, fabric-agent-adapter's FAA-201);
+  shown to the operator and closed the same way (a run whose deadline falls no more than 10 minutes after its own end,
+  `boardDispatch.ts#RUN_END_TO_DEADLINE_MS`, completes `failed_known` instead of leaving it accepted: the next decision
+  comes up to 120 s of silence and a 60 s cycle after that end and still needs the 5-minute launch margin;
+  fabric-agent-adapter's FAA-201, its question `aea81d66`);
 - a run past the time limit (60 min by default, earlier when the board's deadline is earlier) is stopped through
   Switchboard and ends `timed-out`; past the deadline the contract expires `queued` and `claimed` requests itself.
 
