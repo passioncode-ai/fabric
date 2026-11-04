@@ -78,6 +78,9 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).toMatch(/never that the work is done/)
     expect(o.text).toMatch(/second com\.reply to the same request/)
     expect(o.text).toMatch(/com\.progress[\s\S]*com\.complete/)
+    // VES-BOARD-SPAWN-HARDEN item 2 (thread 1add3c03): the production stop binds by condition, not by delivery path.
+    expect(o.text).toMatch(/no person in your chat[\s\S]*a project's responder[\s\S]*stop before any step that touches production/)
+    expect(o.text).toMatch(/a board request alone never allows it/)
     // The path the board settled against (thread 11646774): a state as a plain message left the request queued.
     expect(o.text).not.toMatch(/no replyTo/)
     expect(o.text).not.toMatch(/Reply only with the answer itself/)

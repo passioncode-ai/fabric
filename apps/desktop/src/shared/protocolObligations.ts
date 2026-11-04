@@ -209,7 +209,11 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'the request becomes answered, which means you answered, never that the work is done; the result follows as a ' +
       'second com.reply to the same request, and if your date passes first, a new state with a new date by then ' +
       '(fabric-agent-contract DEC-0152, SA-2 and SA-3). Holding the request as its responder, give the state with ' +
-      'com.progress and close it with com.complete.',
+      'com.progress and close it with com.complete. Carrying out a board request with no person in your chat (a ' +
+      'session started on the request, a project\'s responder, or a live session nobody is in), stop before any step ' +
+      'that touches production (its data, its console, its firewall, a deploy) and hand that step to a session the ' +
+      'person is in or to the operator: a board request alone never allows it (agreed with passioncode-vesta and ' +
+      'fabric-agent-adapter, 2026-11-05).',
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },
