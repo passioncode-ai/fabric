@@ -89,6 +89,10 @@ asker ── com.submit(request, target P, capability C) ──▶ Fabric hub
 
 ### 3.1 Detection
 
+The decision of §3.1 to §3.3 and the two-empty-runs rule of §3.6 are one pure function,
+`apps/desktop/src/shared/boardDispatch.ts#decideDispatch`, with `runEndsAt`, `firstLine`, `parseFirstLine` and
+`refusalCheck` beside it (wave 1; tests `boardDispatch.test.ts`).
+
 The hub's dispatcher runs on every `comms` journal event of kind `request` and on the cycle (60 s, `TICK_MS`), so a
 request filed while Fabric was closed is found at the next start. A request is a candidate when it has no live
 responder, is not past the board's own deadline (`request.deadline`, explicit or seven days) and has no dispatch in
@@ -128,8 +132,8 @@ The dispatcher writes an Observatory workflow for the request (`observatory_chec
 meets `lease_expired` on the next call, `com.complete` included (passioncode-vesta, thread `0ad0b68c`), answer in the thread, complete the request, write the final
 checkpoint, end), the floors of §2 and the operator's mandate as the request carries it (DEC-0125, appended to only, the
 started session joining the chain as a callee, MD-2); `artifacts` carry references only; `open` names the one step. No
-message body travels in the packet (the session reads the thread with `com.get` under its own credential, with the
-reader's redaction), no absolute folder (the launch's working directory is the folder), no lease and no attempt or fence
+message body travels in the packet (the session reads the request with `com.get {message}` and the thread with
+`com.list {thread}` under its own credential, with the reader's redaction; fabric-agent-adapter, 2026-11-04), no absolute folder (the launch's working directory is the folder), no lease and no attempt or fence
 (the session takes its own `com.claim`). The packet holds no secret: keys are reached by name through
 `use_secret.py run` inside the session. The workflow id is the dispatch's handle across products.
 
