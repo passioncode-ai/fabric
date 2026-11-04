@@ -205,10 +205,11 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'fabric.access.request for it, and on the operator\'s own machine it is allowed at once (ADR-0186); without it ' +
       'com.enroll is not_authorized, and the reply is still your answer. Answer what waits on you in the same turn, ' +
       'with the state now: what is done, where (branch or commit), when the rest will be ready and what blocks it; ' +
-      'a state with its nearest date is an answer (the operator, 2026-11-04). On a message or an announcement that is ' +
-      'com.reply. On a request addressed to this project a com.reply answers it and closes it, so a state that is not ' +
-      'yet the answer goes on its thread with com.submit, kind message, the thread\'s id and no replyTo, and the ' +
-      'result follows as a second message, the answer itself as com.reply.',
+      'a state with its nearest date is an answer (the operator, 2026-11-04). Send it as com.reply, on a request too: ' +
+      'the request becomes answered, which means you answered, never that the work is done; the result follows as a ' +
+      'second com.reply to the same request, and if your date passes first, a new state with a new date by then ' +
+      '(fabric-agent-contract DEC-0152, SA-2 and SA-3). Holding the request as its responder, give the state with ' +
+      'com.progress and close it with com.complete.',
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },

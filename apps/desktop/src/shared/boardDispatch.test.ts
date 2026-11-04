@@ -36,14 +36,18 @@ describe('decideDispatch (§3.1–§3.3)', () => {
   it('starts a session for a queued request with nobody on it', () => {
     expect(decideDispatch(base)).toEqual({ path: 'launch' })
   })
-  it('takes a claimed request only when its attempt lapsed, and in_progress only with no live holder', () => {
+  it('takes a claimed request only when its attempt lapsed, and accepted or in_progress only with no live holder', () => {
     expect(decideDispatch(with_({}, { state: 'claimed' })).path).toBe('none')
     expect(decideDispatch(with_({}, { state: 'claimed', attemptLapsed: true })).path).toBe('launch')
     expect(decideDispatch(with_({}, { state: 'in_progress', holderLive: true })).path).toBe('none')
     expect(decideDispatch(with_({}, { state: 'in_progress' })).path).toBe('launch')
+    expect(decideDispatch(with_({}, { state: 'accepted', holderLive: true })).path).toBe('none')
+    expect(decideDispatch(with_({}, { state: 'accepted' })).path).toBe('launch')
+    // An accepted request left by two empty runs goes to the operator like any other (§3.6, option (b)).
+    expect(decideDispatch(with_({ emptyRuns: 2 }, { state: 'accepted' }))).toEqual({ path: 'to-operator' })
   })
-  it('never starts for a settled, accepted or expired request, or past the board deadline', () => {
-    for (const state of ['completed', 'failed_known', 'accepted', 'expired', 'cancelled', 'answered'] as const)
+  it('never starts for a settled or expired request, or past the board deadline', () => {
+    for (const state of ['completed', 'failed_known', 'expired', 'cancelled', 'answered'] as const)
       expect(decideDispatch(with_({}, { state })).path, state).toBe('none')
     expect(decideDispatch(with_({}, { deadline: new Date(NOW - 1).toISOString() })).path).toBe('none')
   })

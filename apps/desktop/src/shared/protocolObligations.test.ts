@@ -70,12 +70,16 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).not.toMatch(/stays queued/)
   })
 
-  it('says to answer what waits in the same turn with the state now, and keeps a request open while doing it (the operator, 2026-11-04)', () => {
+  it('says to answer what waits in the same turn with the state now, as com.reply on a request too (the operator, 2026-11-04; DEC-0152 SA-2, SA-3)', () => {
     const o = byId('board.read-at-start')
     expect(o.text).toMatch(/in the same turn/)
     expect(o.text).toMatch(/a state with its nearest date is an answer/)
-    expect(o.text).toMatch(/com\.submit, kind message, the thread's id and no replyTo/)
-    expect(o.text).toMatch(/result follows as a second message/)
+    expect(o.text).toMatch(/Send it as com\.reply, on a request too/)
+    expect(o.text).toMatch(/never that the work is done/)
+    expect(o.text).toMatch(/second com\.reply to the same request/)
+    expect(o.text).toMatch(/com\.progress[\s\S]*com\.complete/)
+    // The path the board settled against (thread 11646774): a state as a plain message left the request queued.
+    expect(o.text).not.toMatch(/no replyTo/)
     expect(o.text).not.toMatch(/Reply only with the answer itself/)
   })
 

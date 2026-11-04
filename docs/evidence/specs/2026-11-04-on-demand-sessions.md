@@ -96,7 +96,9 @@ The decision of §3.1 to §3.3 and the two-empty-runs rule of §3.6 are one pure
 The hub's dispatcher runs on every `comms` journal event of kind `request` and on the cycle (60 s, `TICK_MS`), so a
 request filed while Fabric was closed is found at the next start. A request is a candidate when it has no live
 responder, is not past the board's own deadline (`request.deadline`, explicit or seven days) and has no dispatch in
-flight, and it is `queued`, or `claimed` with an attempt whose lease lapsed, or `in_progress` with no live holder (the
+flight, and it is `queued`, or `claimed` with an attempt whose lease lapsed, or `accepted` with no live holder (the
+next run takes it through `com.responder_replace` with the checkpoint, as §3.6 says; fabric-agent-adapter's question,
+thread `b3e60686`, 2026-11-04), or `in_progress` with no live holder (the
 started session then enrolls, the contract records `lost_result`, and the session settles it from the workflow's
 checkpoints as an observation, or leaves `outcome_unknown` to the owner; contract review of 2026-11-04, CT-215). Grace G is 2 minutes from submission (a live
 session usually answers inside it); a request marked urgent by the asker skips the grace.

@@ -35,7 +35,7 @@ export interface DispatchInput {
     /** The board's own deadline (`request.deadline`, explicit or seven days). */
     deadline: string
     urgent: boolean
-    /** For `in_progress`: a holder whose lease is live. */
+    /** For `accepted` and `in_progress`: a holder whose lease is live. */
     holderLive: boolean
     /** For `claimed`: the attempt's lease lapsed. */
     attemptLapsed: boolean
@@ -85,7 +85,8 @@ function candidate(r: DispatchInput['request'], now: number): boolean {
   if (Date.parse(r.deadline) <= now) return false
   if (r.state === 'queued') return true
   if (r.state === 'claimed') return r.attemptLapsed
-  if (r.state === 'in_progress') return !r.holderLive
+  // An accepted request whose holder is gone continues in the next run through com.responder_replace (§3.6).
+  if (r.state === 'accepted' || r.state === 'in_progress') return !r.holderLive
   return false
 }
 
