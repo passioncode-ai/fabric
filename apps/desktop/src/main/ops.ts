@@ -107,6 +107,9 @@ export function createOps(opts: {
   sampleWindowMs?: number
   /** Which records are counted rather than written each time; `sampledByDefault` unless given. */
   sampled?: (input: { op: string; outcome: OpsOutcome; level?: OpsLevel; ms?: number }) => boolean
+  /** Every record, before it is written or counted (CO-500, ADR-0188 §1: the hourly reading counts sampled successes
+   *  too). Must not throw; a throw is swallowed with the record's. */
+  observe?: (op: string, outcome: OpsOutcome, at: number) => void
 }): Ops {
   const now = opts.now ?? (() => new Date())
   const file = path.join(opts.dir, 'operations.jsonl')
@@ -373,6 +376,7 @@ export function createOps(opts: {
       try {
         const at = now()
         const t = at.getTime()
+        opts.observe?.(input.op, input.outcome, t)
         closeWindow(t)
         if (sampled(input)) {
           if (windowStart === null) windowStart = t

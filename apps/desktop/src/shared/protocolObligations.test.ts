@@ -147,3 +147,14 @@ describe('coverage keeps unsupported and unknown apart', () => {
     expect(mixed.find((r) => r.obligationId === 'scope.one-project')?.status).toBe('unknown')
   })
 })
+
+// CO-502, ADR-0188 §5: every session is told to close its work with a retro, and the rule says it is advice.
+describe('retro-after-work', () => {
+  it('asks for a lesson and insights after work, and is ADVICE', () => {
+    const o = OBLIGATIONS.find((x) => x.id === 'retro-after-work')
+    expect(o?.mode).toBe('ADVICE')
+    expect(o?.text).toMatch(/observatory_lesson/)
+    expect(o?.text).toMatch(/insight\/1/)
+    expect(o?.text).toMatch(/release a claim as done|session is about to end/)
+  })
+})

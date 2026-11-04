@@ -50,6 +50,8 @@ import { loginItemFor, loginItemState, startRecord, startsInBackground, type Log
 import { existingTempRoots } from './tempRoots.ts'
 import { moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
 import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
+import { createOpsDigestRun, type OpsDigestRun } from './opsDigestRun.ts'
+import { risenRows } from '../shared/opsDigest.ts'
 import { readHome, readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, type HeldSession } from './workRead.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
@@ -576,6 +578,8 @@ const quit = createQuitCoordinator({
 const taskBySession = new Map<string, string>()
 /** The sweep of abandoned work (0.3.13 wave 2, CO-427), built with the cycle; the surface reads its nudges (SW-4). */
 let abandonedSweep: AbandonedSweep | null = null
+/** The hourly and daily reading of the operations log (CO-500); made before the sink, so it counts from the first record. */
+let opsDigest: OpsDigestRun | null = null
 /** When this process started: the sweep releases a lapsed claim only when this process knew it (CO-427, SW-8). */
 const PROCESS_STARTED_AT = Date.now()
 /** `tasks.start` calls that name the same task id, one at a time (taskRetry.ts#createKeyedQueue). */
@@ -814,7 +818,13 @@ let processFailuresRecorded = false
 async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   // FIRST, before anything that can fail. A monitor initialised after the thing
   // it is supposed to explain is a monitor that misses the startup.
-  useOps(createOps({ dir: path.join(app.getPath('userData'), 'logs') }))
+  // CO-500, ADR-0188 §1: every record is counted for the hourly and daily reading of this log, before it is written.
+  opsDigest ??= createOpsDigestRun({
+    dir: path.join(app.getPath('userData'), 'digests'),
+    onWriteFailed: (file, e) => ops.failed('ops.digest-write', e, { note: 'the digest was not written; counting goes on', file: path.basename(file) })
+  })
+  const digest = opsDigest
+  useOps(createOps({ dir: path.join(app.getPath('userData'), 'logs'), observe: (op, outcome, at) => digest.observe(op, outcome, at) }))
   // Audit A7-009: a stray rejection or exception reached a console a packaged app does not have, or
   // Electron's blocking error dialog. Both are recorded where Diagnostics reads them, and the process
   // goes on: the quit path (`quit.ts`) is what ends it, on its own deadline.
@@ -2878,6 +2888,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     } catch (e) {
       ops.failed('cycle.sweep', e, { note: 'the sweep of abandoned work failed this pass; the cycle receipt is still written' })
     }
+    // CO-500: an hour the clock has passed closes even when nothing was recorded since.
+    try {
+      opsDigest?.tick()
+    } catch (e) {
+      ops.failed('ops.digest-tick', e, { note: 'the hourly reading of the log did not close this pass' })
+    }
     try {
       await journal.append({
         estateId: ACTIVE_ESTATE,
@@ -3363,7 +3379,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         // cannot open this" is the safe direction.
         is_task: isTask.has(l.work_id as string)
       })),
-      swept: sweptSources(swept?.findings ?? [], titles, isTask),
+      // CO-500: the newest hour's rises in Fabric's own log join the queue beside the sweep's findings.
+      swept: [...sweptSources(swept?.findings ?? [], titles, isTask), ...risenRows(opsDigest?.latest() ?? null)],
       resolutions: resolutionsOf((grants.data ?? []) as JournalActRow[], (refusals.data ?? []) as JournalActRow[]),
       refusals: (refusals.data ?? [])
         .filter((row) => (row.payload as { verdict?: string }).verdict === 'refuse')

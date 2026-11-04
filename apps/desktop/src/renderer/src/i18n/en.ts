@@ -1167,6 +1167,7 @@ export const en = {
   'attention.swept.work-unclaimed': "A session is changing files and holds no task",
   'attention.swept.brief-missing': "In work with its brief incomplete",
   'attention.swept.claim-closed': "Still held after its task left work",
+  'attention.swept.failures-rose': "Failures in Fabric's log at least doubled in an hour (this hour / the hour before)",
   'attention.untitled.request': "A request from another project",
   'attention.untitled.answer': "An answer from another project",
   'attention.untitled.task': "A task that could not be read",

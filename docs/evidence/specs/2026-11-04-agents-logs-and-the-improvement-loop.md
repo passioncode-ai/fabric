@@ -76,6 +76,11 @@ Read on the operator's Mac on 2026-11-04 between 17:20 and 17:40 UTC.
   repeats by class key and promotes a lesson seen in two projects (its corroborator). Its daily summary is what the
   operator reads; Fabric shows the count and links to it.
 
+*Done 2026-11-04 (CO-500):* the counting, the hourly and daily folds and the «На проверке» rows, written to
+`userData/digests/` rather than the journal so the release of 2026-11-05 takes no schema step; the `retro-after-work`
+obligation is served (CO-502). Left: the retro counts and the session and request counts in the digest, and the daily
+digest sent to Observatory (CO-503).
+
 ### 2.4 Fabric updates itself by default (CO-501)
 
 ADR-0121's updater is built: on by default for new and existing installs, checks every six hours, downloads in the

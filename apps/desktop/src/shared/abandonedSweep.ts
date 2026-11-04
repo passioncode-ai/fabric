@@ -20,7 +20,7 @@ export const TELL_QUIET_MS = 30 * 60_000
 
 /** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
-export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed'] as const
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
 /** The kinds that are a reminder to the agent at work, not abandoned work for the operator's queue (0.3.14 wave 2):
  *  a session changing files without a claim is told to claim, and the operator's «На проверке» is not filled with it. */
@@ -287,7 +287,9 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'terminal-stalled': (f) => `task ${f.taskId} in this session`,
   'work-unclaimed': () => 'this session',
   'brief-missing': (f) => (f.claimId ? `task ${f.taskId} you claimed` : `task ${f.taskId} Fabric started you on`),
-  'claim-closed': (f) => `task ${f.taskId} you claimed`
+  'claim-closed': (f) => `task ${f.taskId} you claimed`,
+  // CO-500: never told to an agent; Fabric's own hourly reading puts it in the operator's queue (`opsDigestRun.ts`).
+  'failures-rose': () => 'Fabric\'s own log'
 }
 
 /** A kind whose line is not "has been still": what it says, given the whole minutes. */

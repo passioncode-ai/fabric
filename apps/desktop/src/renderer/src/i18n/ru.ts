@@ -485,6 +485,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'attention.swept.work-unclaimed': "Сессия меняет файлы, но не взяла задачу",
   'attention.swept.brief-missing': "В работе, а описание задачи не дописано",
   'attention.swept.claim-closed': "Задача уже не в работе, а захват держится",
+  'attention.swept.failures-rose': "Сбоев в журнале Fabric за час стало вдвое больше (этот час / прошлый)",
   'attention.untitled.request': "Запрос из другого проекта",
   'attention.untitled.answer': "Ответ из другого проекта",
   'attention.untitled.task': "Задача, которую не удалось прочитать",

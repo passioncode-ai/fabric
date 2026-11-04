@@ -176,6 +176,16 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },
+  // #region retro-after-work — docs: docs/adr/0188-fabric-reads-its-own-logs-observatory-keeps-what-every-agent-learned.md#decision
+  // CO-502, ADR-0188 §5: the improvement loop starts with the agent that did the work. ADVICE: nothing checks that a
+  // retro was written; Observatory's daily reading is what counts them.
+  {
+    id: 'retro-after-work',
+    text: 'When you finish a piece of work (you release a claim as done, or your session is about to end), write a retro in the same turn: what went wrong and what would have prevented it, with observatory_lesson (one class key per lesson), and what you learned about the product as insight/1 lines. Nothing worth saying is a retro too: say so in one line.',
+    mode: 'ADVICE',
+    scope: 'fabric_mediated'
+  },
+  // #endregion retro-after-work
   // #region board-obligations — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
   // The project board rule (COM-12; answering at once, the operator 2026-11-04, relayed by webpilot on thread
   // `11646774`). Its one home is fabric-workspace knowledge/agents-first.md "The project board";
