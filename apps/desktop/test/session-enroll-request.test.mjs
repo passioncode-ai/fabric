@@ -17,7 +17,7 @@ const resolveFolder = async (folder) =>
   : folder.startsWith('/Users/me/DATA/other') ? { ok: true, projectId: OTHER, root: '/Users/me/DATA/other', how: 'exact' }
   : { ok: false, message: 'This folder is not a project in Fabric yet.' }
 
-function harness({ keptOut = undefined, runner = (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: 'a coding agent' } : null), project = async (id) => (id === PROJECT || id === OTHER ? { id, name: id === PROJECT ? 'site' : 'other' } : null), available = async () => true, resolve = resolveFolder, admit = undefined, clock = { offset: 0 } } = {}) {
+function harness({ keptOut = undefined, registry = undefined, runner = (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: 'a coding agent' } : null), project = async (id) => (id === PROJECT || id === OTHER ? { id, name: id === PROJECT ? 'site' : 'other' } : null), available = async () => true, resolve = resolveFolder, admit = undefined, clock = { offset: 0 } } = {}) {
   const stamp = () => new Date(Date.now() + clock.offset).toISOString()
   const rows = new Map(), bindings = new Map(), grants = new Map()
   const appended = []
@@ -60,7 +60,7 @@ function harness({ keptOut = undefined, runner = (id) => (id === 'claude-code' ?
   }
   const service = new AccessService({
     store,
-    registry: { refresh() { throw Error('an enrollment ask must not read the service registry') }, resolve() { throw Error('nor resolve in it') } },
+    registry: registry ?? { refresh() { throw Error('an enrollment ask must not read the service registry') }, resolve() { throw Error('nor resolve in it') } },
     present: (r) => presented.push(r),
     connected: async () => { throw Error('Fabric itself is not a product to connect') },
     enrollment: { runner, project, available, resolve, admit },
@@ -261,15 +261,16 @@ test('board.respond: an agent the person disconnected is refused before any prom
   }
 })
 
-test('board.respond: a coding agent or a registered service asks once, with the project named in the snapshot', async () => {
+test('board.respond: a coding agent or a registered service asks once, with the project named in the snapshot, and is allowed at once (CO-494)', async () => {
+  const exampleRegistry = { refresh() {}, resolve: (id) => (id === 'example-agent' ? { ok: true, entry: { key: 'example-agent', kind: 'service', name: 'Example agent', installedBy: 'example-installer', repository: null, summary: null } } : { ok: false, reason: `${id} is not registered` }) }
   for (const [agentId, kind] of [['claude-code', 'runner'], ['example-agent', 'service']]) {
-    const h = respondHarness()
+    const h = harness({ registry: exampleRegistry })
     const r = await h.service.request({ kind: 'door' }, respondAsk(agentId))
-    assert.equal(r.ok, true, JSON.stringify(r))
+    assert.equal(r.ok, true, JSON.stringify(r)); assert.equal(r.status, 'allowed')
     const ev = h.appended.find((e) => e.type === 'access.requested@1')
     assert.deepEqual([ev.payload.capabilities, ev.payload.resources], [['board.respond'], [`board:${PROJECT}/analytics.retention`]])
     assert.equal(ev.payload.registry.kind, kind); assert.deepEqual(ev.payload.registry.project, { id: PROJECT, name: 'site', root: null, how: null })
-    assert.equal(h.presented.length, 1); assert.equal(h.presented[0].connected, true)
+    assert.equal(h.presented.length, 0, 'nothing reaches the person on the operator\'s own machine')
   }
 })
 
@@ -356,4 +357,24 @@ test('CO-363 / DO-19: a resolve credential never collected past the request\'s 1
   clock.offset = 11 * MIN
   await h.service.request({ kind: 'door' }, resolveAsk)
   assert.deepEqual(revokedIds(h), [stale], 'past them, the uncollected one goes; two live remain')
+})
+
+// CO-494 (the operator, 2026-11-04: «дай гранты всеем и передай фабрику чтобы давай и не лочил по дороге, всем апрув»):
+// board.respond joins the immediate local lanes of ADR-0160 on the operator's own machine. The request, the agent's own
+// decision and the revocable grant are journalled; nothing reaches the person.
+test('CO-494: board.respond is allowed at once on the operator\'s own machine, recorded as the agent\'s own revocable act', async () => {
+  const h = harness()
+  const r = await h.service.request({ kind: 'door' }, respondAsk())
+  assert.equal(r.ok, true, JSON.stringify(r))
+  assert.equal(r.status, 'allowed')
+  assert.ok(r.pollSecret, 'the credential is collected with the poll secret, as the other immediate lanes')
+  assert.equal(h.presented.length, 0, 'nothing reached the person')
+  const decided = h.appended.find((e) => e.type === 'access.decided@1')
+  assert.ok(decided, 'the decision is journalled')
+  assert.deepEqual(decided.actor, { kind: 'agent', id: 'claude-code' })
+  assert.equal(decided.payload.decision, 'allowed')
+  assert.deepEqual(decided.payload.grants.map((g) => [g.capability, g.resource]), [['board.respond', `board:${PROJECT}/analytics.retention`]])
+  const again = await h.service.request({ kind: 'door' }, respondAsk())
+  assert.equal(again.ok, true); assert.notEqual(again.status, 'pending', 'asking again never waits for the person')
+  assert.equal(h.presented.length, 0)
 })

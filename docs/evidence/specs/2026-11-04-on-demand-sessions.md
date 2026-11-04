@@ -53,8 +53,9 @@ What the other products already have, read the same day:
 3. With neither, after a short grace period Fabric starts an **on-demand session**: the machine's default agent in the
    project's folder, with the machine's default permissions, the whole request and its context as its first input. It does
    the work, reports in the request's thread, completes the request and ends.
-4. One request starts at most one session at a time; a session that ends without completing hands the request back to
-   the queue, and a second failure closes it as `failed_known` with the reason, shown to the operator.
+4. One request starts at most one session at a time. A run that ends without completing leaves the request in the state
+   the contract gives it; after two such runs Fabric stops starting sessions for it and shows it to the operator in
+   «На проверке», without changing its state (fabric-agent-contract's option (b), CT-215, 2026-11-04).
 
 Decisions taken here (the operator's latest word wins over earlier rows):
 
@@ -89,8 +90,11 @@ asker ── com.submit(request, target P, capability C) ──▶ Fabric hub
 ### 3.1 Detection
 
 The hub's dispatcher runs on every `comms` journal event of kind `request` and on the cycle (60 s, `TICK_MS`), so a
-request filed while Fabric was closed is found at the next start. A request is a candidate when it is `queued`, has no
-live responder, is not past its deadline and has no dispatch in flight. Grace G is 2 minutes from submission (a live
+request filed while Fabric was closed is found at the next start. A request is a candidate when it has no live
+responder, is not past the board's own deadline (`request.deadline`, explicit or seven days) and has no dispatch in
+flight, and it is `queued`, or `claimed` with an attempt whose lease lapsed, or `in_progress` with no live holder (the
+started session then enrolls, the contract records `lost_result`, and the session settles it from the workflow's
+checkpoints as an observation, or leaves `outcome_unknown` to the owner; contract review of 2026-11-04, CT-215). Grace G is 2 minutes from submission (a live
 session usually answers inside it); a request marked urgent by the asker skips the grace.
 
 ### 3.2 A live session
@@ -119,16 +123,19 @@ Each dispatch has an id; dispatching the same request again with a run in flight
 ### 3.4 The packet
 
 The dispatcher writes an Observatory workflow for the request (`observatory_checkpoint_write`, owner `service:fabric`):
-`goal` is the request's text; `constraints` carry the exit contract (answer in the thread, complete the request, write the
-final checkpoint, end), the floors of §2 and the operator's mandate when the request carries one (CO-495); `artifacts`
-carry the thread id, request id, capability, target project, deadline and the last messages of the thread (at most 20,
-each at most 4 KB); `open` names the one step. The packet holds no secret: keys are reached by name through
+`goal` names the request; `constraints` carry the exit contract (claim, renew the lease with `com.renew` or
+`com.progress` at least every 60 s during a long step, answer in the thread, complete the request, write the final
+checkpoint, end), the floors of §2 and the operator's mandate as the request carries it (DEC-0125, appended to only, the
+started session joining the chain as a callee, MD-2); `artifacts` carry references only; `open` names the one step. No
+message body travels in the packet (the session reads the thread with `com.get` under its own credential, with the
+reader's redaction), no absolute folder (the launch's working directory is the folder), no lease and no attempt or fence
+(the session takes its own `com.claim`). The packet holds no secret: keys are reached by name through
 `use_secret.py run` inside the session. The workflow id is the dispatch's handle across products.
 
 Agreed with Project Observatory on 2026-11-04 (OBS-323), so it reads the packet without guessing and without a change to
 memory/0.1: `artifacts` carry one each of `kind: "other"` with `ref` `board-request:<uuid>`, `board-thread:<uuid>`,
-`capability:<name>`, `fabric-project:<uuid>` and `deadline:<ISO 8601 UTC>`, and the project's folder as `kind: "file"`
-with `path`; a packet without the request, the project or the deadline gets no keys. The keys a request needs are named
+`capability:<name>`, `fabric-project:<uuid>` and `deadline:<ISO 8601 UTC>` (the board's own deadline); a packet without
+the request, the project or the deadline gets no keys. The keys a request needs are named
 in the body's `credentials` block (`[{project, env, name, purpose}]`, names only); Observatory gives only those, only to
 the holder of the workflow's lease, only for the project `fabric-project` resolves to, and only until the deadline;
 without `credentials` it gives none. The run's last checkpoint closes the workflow: `status: done` for `completed`,
@@ -136,8 +143,22 @@ without `credentials` it gives none. The run's last checkpoint closes the workfl
 
 ### 3.5 The start
 
-Fabric asks Switchboard to start the session: `switchboard dispatch --dir <P's folder> --workflow <wf> --reason request`
-(new, wave 1; it reuses `continue`'s account choice, isolation, ceilings and console hand-over). The session runs
+Fabric creates the hand-over itself (`observatory_handoff_create` as `service:fabric`, reason `plan_route`, `to.provider`
+from the default agent in `switchboard agents`, no account) and asks Switchboard to start the session (SB-247, agreed
+2026-11-04, design in fabric-switchboard `docs/research/dispatch-2026-11-04.md`):
+`switchboard dispatch --dir <P's folder> --workflow <wf> --handoff <id> --reason request --permissions ask|all
+--timeout-minutes <n> [--json]`, answering `{launch_id, agent, account_id, state: started|running|refused, reason?}`;
+`switchboard dispatch stop --launch-id <id>` stops it. The started session accepts the hand-over, narrowing it to the
+account Switchboard chose; the workflow's lease never passes through Switchboard. A second `dispatch` for the same
+workflow while one runs answers the same `launch_id`. Refusal codes map to §3.3: `no_agent` to `deferred-no-agent`,
+`not_in_group` to `skipped-no-folder`, `ceiling_reached` and `spend_unknown` to `deferred-cap` with the reason,
+`agent_not_installed` to `failed-to-start`. `--permissions all` runs Claude Code with `--dangerously-skip-permissions`
+and Codex with `--dangerously-bypass-approvals-and-sandbox`; an agent that asks less than the chosen mode allows is not
+taken (Switchboard's D-6). A refusal is an answer, not an error (`{ok: true, data: {launch_id: null, state: "refused",
+reason}}`, exit 0); bad input and no running Switchboard are errors (exit 1). With `--permissions ask` a `claude -p` run
+may lack the board and Observatory tools the person's settings do not allow, and `codex exec` needs a Git repository or a
+trusted folder; the dispatcher records such a run's outcome and does not retry it unchanged. On Windows wave 1 answers
+`handoff_refused` until Switchboard finds Observatory's engine there. The session runs
 non-interactively (`claude -p` with the packet as its prompt and the exit contract as an appended system prompt;
 `codex exec` for Codex), in the account's isolated home, in the group the folder belongs to. With «Open hand-overs in
 Fabric» on, the run is visible in Fabric's console; otherwise it runs without a window and writes its log under
@@ -148,15 +169,22 @@ error it cannot get past completes the request `failed_known` with the reason.
 
 ### 3.6 Watching and ending
 
-The dispatcher follows the request (`com.get`) and the run (Switchboard `sessions --launch-id`):
+The dispatcher follows the request (`com.get`) and the run (`switchboard --json sessions show <launch_id>`: `ended` is
+`exited` with its exit code, `stopped` or `timed_out`):
+
+The dispatch's outcome is the hub's journal entry, never a state of the request:
 
 - request `completed` or `failed_known`: the dispatch ends `finished`;
-- the run ended and the request is still `queued`, `claimed` or `accepted`: the dispatch ends `exited-without-answer`,
-  the request returns to the queue, and the next cycle may dispatch once more; after two such runs the hub answers the
-  thread with the reason and closes the request `failed_known`, and the operator sees it in «На проверке»;
-- `in_progress` when the run ended: `outcome_unknown` stays as the contract defines it, only a reconcile settles it;
-- a run past the time limit (60 min by default, the request's deadline when earlier) is stopped through Switchboard and
-  ends `timed-out`.
+- the run ended and the request is not settled: the dispatch ends `exited-without-answer`; the request keeps the state
+  the contract gives it (`queued` stays queued, `claimed` is taken again by the next `com.claim` with a new attempt,
+  `accepted` is held and continues only through `com.responder_replace` with the checkpoint, `in_progress` stays until
+  the next holder registers); the next cycle may dispatch once more; after two such runs Fabric stops and shows the
+  request to the operator in «На проверке», unchanged;
+- a run past the time limit (60 min by default, earlier when the board's deadline is earlier) is stopped through
+  Switchboard and ends `timed-out`; past the deadline the contract expires `queued` and `claimed` requests itself.
+
+A standing dispatcher on by default changes fabric-agent-contract's choice C5 of DEC-0022 («no background helper by
+default»); the contract records it as a DEC citing the operator's words of 2026-11-04 (CT-215).
 
 ## 4. Who does what
 

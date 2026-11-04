@@ -55,6 +55,10 @@ import type { Resolution } from './agentRegistry.ts'
 import { ops } from './opsSink.ts'
 
 /** Who is speaking to the hub: the door token (may only ask), or a binding (may call). */
+/** The lanes allowed at once on the operator's own machine, recorded as the asking agent's own revocable act (ADR-0160;
+ *  board.respond since CO-494, the operator's word of 2026-11-04). */
+const IMMEDIATE_LOCAL_LANES: ReadonlySet<string> = new Set([SESSION_ENROLL, PROJECT_RESOLVE, BOARD_RESPOND])
+
 export type HubPrincipal = { kind: 'door' } | { kind: 'binding'; binding: BindingRow }
 
 export type RequestAnswer =
@@ -414,7 +418,7 @@ export class AccessService {
         .find((r) => r.asked_by_binding === bindingId && requestSignature({ agentId: r.agent_id, callee: r.callee as AccessAsk['callee'], capabilities: r.capabilities, resources: r.resources }) === signature)
       if (same) {
         receipt('already-pending', entry.key)
-        if (ask.callee === FABRIC_SELF && (ask.capabilities[0] === SESSION_ENROLL || ask.capabilities[0] === PROJECT_RESOLVE)) {
+        if (ask.callee === FABRIC_SELF && IMMEDIATE_LOCAL_LANES.has(ask.capabilities[0])) {
           const decided = await this.decide(same.id, 'allowed', { kind: 'agent', id: entry.key })
           if (!decided.ok) return { ok: false, refused: `the local allow could not be recorded: ${decided.reason}` }
           return {
@@ -456,9 +460,10 @@ export class AccessService {
         ops.failed('hub.access.connection-read', e, { request_id: id })
       }
       ops.record({ op: 'hub.access.requested', outcome: 'ok', detail: { request_id: id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources, incremental: bindingId !== null }, ctx: { correlationId: ops.correlate() } })
-      if (ask.callee === FABRIC_SELF && (ask.capabilities[0] === SESSION_ENROLL || ask.capabilities[0] === PROJECT_RESOLVE)) {
-        // ADR-0160: only the local lanes are immediate: enrollment, and since 0.3.8 the read-only folder attribution. The request, the agent's own decision and the
-        // revocable grant are all journalled; no product connection, board grant or cross-machine authority changes.
+      if (ask.callee === FABRIC_SELF && IMMEDIATE_LOCAL_LANES.has(ask.capabilities[0])) {
+        // ADR-0160: only the local lanes are immediate: enrollment, since 0.3.8 the read-only folder attribution, and since CO-494 (the operator's
+        // «всем апрув», 2026-11-04) answering a project's requests. The request, the agent's own decision and the revocable grant are all
+        // journalled; no product connection or cross-machine authority changes.
         const decided = await this.decide(id, 'allowed', { kind: 'agent', id: entry.key })
         if (!decided.ok) return { ok: false, refused: `the local allow could not be recorded: ${decided.reason}` }
         if (ask.capabilities[0] === PROJECT_RESOLVE) await this.boundResolveBindings(entry.key, (await this.deps.store.request(id))?.granted_binding_id ?? null)
