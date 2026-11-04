@@ -124,7 +124,8 @@ Each dispatch has an id; dispatching the same request again with a run in flight
 
 The dispatcher writes an Observatory workflow for the request (`observatory_checkpoint_write`, owner `service:fabric`):
 `goal` names the request; `constraints` carry the exit contract (claim, renew the lease with `com.renew` or
-`com.progress` at least every 60 s during a long step, answer in the thread, complete the request, write the final
+`com.progress` about every 20 s during a long step, as the contract's 60 s lease expects, so a late renewal never
+meets `lease_expired` on the next call, `com.complete` included (passioncode-vesta, thread `0ad0b68c`), answer in the thread, complete the request, write the final
 checkpoint, end), the floors of §2 and the operator's mandate as the request carries it (DEC-0125, appended to only, the
 started session joining the chain as a callee, MD-2); `artifacts` carry references only; `open` names the one step. No
 message body travels in the packet (the session reads the thread with `com.get` under its own credential, with the
@@ -167,8 +168,14 @@ non-interactively (`claude -p` with the packet as its prompt and the exit contra
 `codex exec` for Codex), in the account's isolated home, in the group the folder belongs to. With «Open hand-overs in
 Fabric» on, the run is visible in Fabric's console; otherwise it runs without a window and writes its log under
 Switchboard's sessions history. A paid fallback agent obeys the machine's and the group's spending ceilings.
-The run knows it was started on a request by the environment variable `FABRIC_DISPATCH_WORKFLOW=<wf>` and by the first
-line of its prompt; `working-with-fabric` (FAA-201) then skips its usual preamble, follows the exit contract, and on an
+The run knows it was started on a request by its environment, `FABRIC_DISPATCH_WORKFLOW`, `FABRIC_DISPATCH_HANDOFF` and
+`FABRIC_DISPATCH_REQUEST`, and by the first line of its prompt, exactly
+`fabric-dispatch/1 workflow=wf_<16 hex> handoff=<handoff id> request=<request uuid>` (fields one space apart, in this
+order, then an empty line and the text; where the two disagree the environment wins and the run records the mismatch).
+The dispatcher never passes a lease: the run reads the packet with `observatory_checkpoint_latest` and takes the lease
+with `observatory_handoff_accept`; only the lease holder writes the closing checkpoint, and Fabric writes nothing to the
+workflow after the hand-over (its `run-ends-at` checkpoint is written before it). Agreed with
+fabric-agent-adapter for FAA-201 on 2026-11-04; `working-with-fabric` (FAA-201) then skips its usual preamble, follows the exit contract, and on an
 error it cannot get past completes the request `failed_known` with the reason.
 
 ### 3.6 Watching and ending
