@@ -351,3 +351,30 @@ test('0.3.8 review i2 DA-3: an agent the person disconnected gets no credential 
   assert.match(r.refused, /disconnected/)
   assert.equal(shown.length, 0)
 })
+
+test('CO-506: a decision and a revocation on the operator\'s relayed words keep the words, scrubbed, in the event; the log keeps none', async () => {
+  const { access, store } = setup()
+  const AGENT = { kind: 'agent', id: 'session-1' }
+  // A token-shaped string, built at run time so no literal token sits in the source.
+  const fakeToken = ['gh', 'p_', '0123456789abcdefghijklmnopqrstuvwxyzAB'].join('')
+  const r = await access.request(DOOR, ask())
+  const words = { by: 'operator', via: 'relayed-instruction', action: 'access.deny', target: r.requestId, instruction: `deny it, token ${fakeToken}`, at: '2026-10-04T09:59:00Z' }
+  assert.deepEqual(await access.decide(r.requestId, 'denied', AGENT, words), { ok: true })
+  const decided = store.events.find((e) => e.type === 'access.decided@1')
+  assert.deepEqual(decided.actor, AGENT)
+  assert.equal(decided.payload.decision, 'denied', 'the verdict keeps its key')
+  assert.equal(decided.payload.relayed.action, 'access.deny')
+  assert.ok(!decided.payload.relayed.instruction.includes(fakeToken), 'the relayed words are scrubbed')
+  assert.ok(decided.payload.relayed_redactions?.length, 'the scrub is counted')
+  // Without relayed words the payload is as before: its `decision` is the verdict, no relayed record.
+  const r2 = await access.request(DOOR, ask({ resources: ['other@example.com'] }))
+  await access.decide(r2.requestId, 'allowed', OPERATOR)
+  const plain = store.events.filter((e) => e.type === 'access.decided@1').at(-1)
+  assert.equal(plain.payload.decision, 'allowed')
+  assert.equal(plain.payload.relayed, undefined)
+  const grant = [...store.maps.grants.values()].find((g) => g.revoked_at === null)
+  const revokeWords = { ...words, action: 'access.revoke', target: grant.id, instruction: 'revoke it' }
+  assert.deepEqual(await access.revokeGrant(grant.id, AGENT, revokeWords), { ok: true })
+  const revoked = store.events.find((e) => e.type === 'access.grant.revoked@1')
+  assert.equal(revoked.payload.relayed.instruction, 'revoke it')
+})

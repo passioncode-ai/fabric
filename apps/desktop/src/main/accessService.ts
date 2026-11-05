@@ -53,6 +53,18 @@ import type { AccessActAnswer, AccessActRefusal } from '../shared/accessActs.ts'
 import type { AccessActor, AccessRequestRow, AccessStore, BindingRow, GrantRow } from './accessStore.ts'
 import type { Resolution } from './agentRegistry.ts'
 import { ops } from './opsSink.ts'
+import { operatorRecord, type OperatorDecision } from './hubAuthority.ts'
+import { redact } from '../shared/redact.ts'
+
+/** CO-506: the operator's words an agent relayed to decide Agent access, kept in the event scrubbed (the access events
+ *  are external policy, so the service scrubs them itself); the operations log keeps only the action, when and where. */
+function relayedPayload(relayed?: OperatorDecision): Record<string, unknown> {
+  if (!relayed) return {}
+  const { text, redactions } = redact(relayed.instruction)
+  // Its own key: `access.decided@1` already says the verdict as `decision`.
+  return { relayed: { ...relayed, instruction: text }, ...(redactions.length ? { relayed_redactions: redactions } : {}) }
+}
+const relayedDetail = (relayed?: OperatorDecision): Record<string, unknown> => (relayed ? { relayed: operatorRecord({ decision: relayed }) } : {})
 
 /** Who is speaking to the hub: the door token (may only ask), or a binding (may call). */
 /** The lanes allowed at once on the operator's own machine, recorded as the asking agent's own revocable act (ADR-0160;
@@ -544,7 +556,7 @@ export class AccessService {
   }
 
   /** The operator's answer. Refused when the request is no longer pending or has expired. */
-  decide(requestId: string, decision: 'allowed' | 'denied', actor: AccessActor): Promise<AccessActAnswer> {
+  decide(requestId: string, decision: 'allowed' | 'denied', actor: AccessActor, relayed?: OperatorDecision): Promise<AccessActAnswer> {
     return this.serial('operator', async () => {
       const row = await this.deps.store.request(requestId)
       if (!row) return refuse('not-found', 'no such request')
@@ -552,8 +564,8 @@ export class AccessService {
       const now = this.now()
       if (Date.parse(row.expires_at) <= now) return refuse('expired', 'that request expired before it was answered; the agent must ask again')
       if (decision === 'denied') {
-        await this.deps.store.append('access.decided@1', actor, { request_id: row.id, decision: 'denied' })
-        ops.record({ op: 'hub.access.decided', outcome: 'ok', detail: { request_id: row.id, decision, agent_id: row.agent_id }, ctx: { correlationId: ops.correlate() } })
+        await this.deps.store.append('access.decided@1', actor, { request_id: row.id, decision: 'denied', ...relayedPayload(relayed) })
+        ops.record({ op: 'hub.access.decided', outcome: 'ok', detail: { request_id: row.id, decision, agent_id: row.agent_id, ...relayedDetail(relayed) }, ctx: { correlationId: ops.correlate() } })
         return { ok: true }
       }
       let bindingId: string
@@ -575,8 +587,8 @@ export class AccessService {
       const grants = row.capabilities.flatMap((capability) => row.resources.map((resource) => ({
         id: held.get(`${capability}\u0000${resource}`) ?? randomUUID(), capability, resource, expires_at: expiresAt
       })))
-      await this.deps.store.append('access.decided@1', actor, { request_id: row.id, decision: 'allowed', binding_id: bindingId, new_binding: newBinding, grants })
-      ops.record({ op: 'hub.access.decided', outcome: 'ok', detail: { request_id: row.id, decision, agent_id: row.agent_id, binding_id: bindingId, grants: grants.length }, ctx: { correlationId: ops.correlate() } })
+      await this.deps.store.append('access.decided@1', actor, { request_id: row.id, decision: 'allowed', binding_id: bindingId, new_binding: newBinding, grants, ...relayedPayload(relayed) })
+      ops.record({ op: 'hub.access.decided', outcome: 'ok', detail: { request_id: row.id, decision, agent_id: row.agent_id, binding_id: bindingId, grants: grants.length, ...relayedDetail(relayed) }, ctx: { correlationId: ops.correlate() } })
       return { ok: true }
     })
   }
@@ -588,13 +600,13 @@ export class AccessService {
       .filter((g) => g.revoked_at === null && Date.parse(g.expires_at) > now)
   }
 
-  revokeGrant(grantId: string, actor: AccessActor): Promise<AccessActAnswer> {
+  revokeGrant(grantId: string, actor: AccessActor, relayed?: OperatorDecision): Promise<AccessActAnswer> {
     return this.serial('operator', async () => {
       // Read by its id (ER-8): never looked for in a page of other grants, where a live one could be missing.
       const g = typeof grantId === 'string' && /^[0-9a-f-]{36}$/.test(grantId) ? await this.deps.store.grant(grantId) : null
       const live = g && g.revoked_at === null ? g : null
       if (!live) return refuse('not-live', 'that grant is not live (already revoked, or no such grant)')
-      await this.deps.store.append('access.grant.revoked@1', actor, { grant_id: grantId })
+      await this.deps.store.append('access.grant.revoked@1', actor, { grant_id: grantId, ...relayedPayload(relayed) })
       for (const listener of this.grantRevokedListeners) {
         try {
           listener(grantId, live.binding_id)
@@ -643,11 +655,11 @@ export class AccessService {
     }
   }
 
-  revokeBinding(bindingId: string, actor: AccessActor): Promise<AccessActAnswer> {
+  revokeBinding(bindingId: string, actor: AccessActor, relayed?: OperatorDecision): Promise<AccessActAnswer> {
     return this.serial('operator', async () => {
       const b = await this.deps.store.binding(bindingId)
       if (!b || b.revoked_at) return refuse('not-live', 'that credential is not live (already revoked, or no such credential)')
-      await this.deps.store.append('access.binding.revoked@1', actor, { binding_id: bindingId })
+      await this.deps.store.append('access.binding.revoked@1', actor, { binding_id: bindingId, ...relayedPayload(relayed) })
       this.revokedBindings.add(bindingId)
       this.lastUsed.delete(bindingId)
       if (b.verifier) this.credentialVerifiers.delete(b.verifier)
