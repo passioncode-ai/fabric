@@ -1,6 +1,7 @@
 // The v1 control plane (ADR-0031 §2): the only Supabase client, the journal
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
+import { createRevokeAgent } from './relayedAccess.ts'
 import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powerMonitor, shell } from 'electron'
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
@@ -1144,14 +1145,14 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       request: (id) => accessStore.request(id),
       decide: (id, verdict, actor, relayed) => hubAccess.decide(id, verdict, actor, relayed),
       revokeGrant: (id, actor, relayed) => hubAccess.revokeGrant(id, actor, relayed),
-      revokeAgent: async (bindingId, actor, relayed) => {
-        const b = await accessStore.binding(bindingId).catch((e: unknown) => { ops.failed('hub.access.revoke-name-unreadable', e, { binding_id: bindingId }); return null })
-        const named = b ? ((await accessStore.request(b.request_id).catch(() => null))?.registry?.name ?? AGENTS.find((a) => a.id === b.agent_id)?.label ?? b.agent_id) : null
-        const done = await hubAccess.revokeBinding(bindingId, actor, relayed)
-        if (done.ok) await actsForSurface?.note({ kind: 'agent.disconnect', projectId: null, subject: { type: 'agent', id: bindingId, label: named },
-          said: { key: 'act.agent.disconnect', params: { agent: named } }, inverse: null, whyNot: 'credential_gone' })
-        return done
-      },
+      revokeAgent: createRevokeAgent({
+        nameOf: async (bindingId) => {
+          const b = await accessStore.binding(bindingId).catch((e: unknown) => { ops.failed('hub.access.revoke-name-unreadable', e, { binding_id: bindingId }); return null })
+          return b ? ((await accessStore.request(b.request_id).catch(() => null))?.registry?.name ?? AGENTS.find((a) => a.id === b.agent_id)?.label ?? b.agent_id) : null
+        },
+        revokeBinding: (bindingId, actor, relayed) => hubAccess.revokeBinding(bindingId, actor, relayed),
+        note: async (outcome, opts) => actsForSurface?.note(outcome, opts)
+      }),
       machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust },
       grantOwnRespond: (proof) => hubAccess.grantOwnProjectRespond(proof)
     },

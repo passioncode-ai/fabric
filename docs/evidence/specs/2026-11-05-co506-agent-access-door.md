@@ -38,7 +38,8 @@ goal, then the safest reversible option, and each says why. A new ADR records th
 2. **A `board.respond` asked through the hub waits for the operator.** Through the door or a binding the ask no longer
    proves whose it is, so another project's slot is decided in Agent access, by the button or by an agent relaying
    the operator's words (decision 4). Why: it is the coordinator's proposal on the board, it keeps decision 1's
-   promise, and it closes the door-token takeover of another project's slot. Reversible by putting the lane back.
+   promise, and it removes the direct route from the door token to another project's slot (the two-step route through
+   `session.enroll` remains, bounded by the door token's file permissions). Reversible by putting the lane back.
 3. **Capabilities are not narrowed.** No project declares capabilities apart from its slots and grants; the board's
    directory showed all 78 projects with empty lists (2026-11-03 and 2026-11-05), so a «declared capabilities» rule
    would refuse everything. The capability stays what the session names, within `CAPABILITY_PATTERN`.

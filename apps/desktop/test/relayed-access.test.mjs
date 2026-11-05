@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
 
-const { checkRelayedAccess, admitAccessAct, relayedDecide, relayedRevoke, DECISION_MAX_AGE_MS } = await import(path.resolve(import.meta.dirname, '../src/main/relayedAccess.ts'))
+const { checkRelayedAccess, admitAccessAct, relayedDecide, relayedRevoke, createRevokeAgent, DECISION_MAX_AGE_MS } = await import(path.resolve(import.meta.dirname, '../src/main/relayedAccess.ts'))
 
 const NOW = Date.parse('2026-11-05T20:00:00Z')
 const ID = '0b4b0d02-d15a-4596-8879-5a22ba74afe7'
@@ -94,4 +94,19 @@ test('relayedRevoke: exactly one id; a grant or a whole agent, on words naming i
   assert.equal(d.calls[0][0], 'revokeAgent')
   const org = door({ machineTrust: () => 'organization' })
   assert.equal((await relayedRevoke(org, CALLER, { grantId: ID, decision: words({ action: 'access.revoke' }) }, NOW)).code, 'human-step-required')
+})
+
+test('review F1: an agent revoked on relayed words is written in History as the session\'s act, never as the operator\'s', async () => {
+  const notes = []
+  const revoke = createRevokeAgent({
+    nameOf: async () => 'Example agent',
+    revokeBinding: async (id) => (id === ID ? { ok: true } : { ok: false, code: 'not-live', reason: 'that credential is not live' }),
+    note: async (outcome, opts) => { notes.push([outcome, opts]) }
+  })
+  const actor = { kind: 'agent', id: 'session-1' }
+  assert.deepEqual(await revoke(ID, actor, words({ action: 'access.revoke' })), { ok: true })
+  assert.deepEqual(notes[0][1], { actor })
+  assert.equal(notes[0][0].subject.label, 'Example agent')
+  await revoke('11111111-1111-4111-8111-111111111111', actor, words({ action: 'access.revoke' }))
+  assert.equal(notes.length, 1, 'a refused revocation writes no act')
 })

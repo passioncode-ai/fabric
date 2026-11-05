@@ -98,4 +98,22 @@ export async function relayedRevoke(door: AgentAccessDoor, caller: AccessCaller,
   const answer = args.grantId ? await door.revokeGrant(args.grantId, actor, checked.decision) : await door.revokeAgent(target, actor, checked.decision)
   return answer.ok ? { ok: true, done: { revoked: args.grantId ? { grantId: args.grantId } : { credentialId: target } } } : { ok: false, code: answer.code, message: answer.reason, data: {} }
 }
+
+/** The act History shows when an agent's credential is revoked: written as the actor who revoked it (the session, on the
+ *  operator's words, never «Вы»; the review of CO-506, F1), with the agent's name read before the revocation. */
+export interface RevokeAgentDeps {
+  nameOf(bindingId: string): Promise<string | null>
+  revokeBinding(bindingId: string, actor: AccessActor, relayed: OperatorDecision): Promise<AccessActAnswer>
+  note(outcome: { kind: 'agent.disconnect'; projectId: null; subject: { type: 'agent'; id: string; label: string | null }; said: { key: 'act.agent.disconnect'; params: { agent: string | null } }; inverse: null; whyNot: 'credential_gone' },
+    opts: { actor: AccessActor }): Promise<unknown>
+}
+export function createRevokeAgent(deps: RevokeAgentDeps): AgentAccessDoor['revokeAgent'] {
+  return async (bindingId, actor, relayed) => {
+    const named = await deps.nameOf(bindingId)
+    const done = await deps.revokeBinding(bindingId, actor, relayed)
+    if (done.ok) await deps.note({ kind: 'agent.disconnect', projectId: null, subject: { type: 'agent', id: bindingId, label: named },
+      said: { key: 'act.agent.disconnect', params: { agent: named } }, inverse: null, whyNot: 'credential_gone' }, { actor })
+    return done
+  }
+}
 // #endregion relayed-access
