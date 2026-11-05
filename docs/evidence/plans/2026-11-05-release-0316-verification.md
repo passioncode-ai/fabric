@@ -56,6 +56,11 @@ Done before the quit, 2026-11-05:
   table lost a row (receipt `pre-0.3.16-rehearsal.dump.rehearsal.json` beside the dump). It does not replace step 4's
   backup, which is taken with no writer.
 
+Promised on the board (thread `1add3c03`, message `2674b679`, to passioncode-vesta, 2026-11-05): right after step 7
+the dispatcher switch («Запускать агента на запрос доски, который некому взять») is turned off on this Mac and stays off
+until fabric-agent-adapter 0.63 or later is installed here (0.62.0 now, without FAA-201's dispatch rules); the live
+dispatcher check then runs on a scratch project, never on passioncode-vesta.
+
 Waiting on the person: step 2, the quit of Fabric 0.3.15 (the hold on `fabric.desktop` goes on right before it). Then
 steps 3 to 8 as 0.3.13's: the new bundle's first start writes migrations 126 and 127 into the stack folder, the backup
 `pre-0.3.16.dump`, `supabase migration up --local` to schema 100, the hold lifted, `ensure_running`, and the readings
