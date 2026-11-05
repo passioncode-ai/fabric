@@ -164,12 +164,16 @@ dispositions held except one blocking defect, B-1, verdict «not ready»
 candidate `822560c5baec3d9cf4181e7f65acc8b79dd4819e` (`fix(release 0.3.16): the final candidate's verification`), which a
 third fresh verifier read in full, with probes over the real dispatcher at both commits, verdict «ready»
 ([report](../../reports/2026-11-05-release-0316/2026-11-05-final-candidate-delta-verification.md)). The verifiers'
-findings are V3-41 to V3-59 below, and the fast tier's V3-60 and V3-61. The fast tier on the first release commit `8fa3c9976cd1f24a60012718db402fb206f88e44` then failed in the unified plan's
+findings are V3-41 to V3-59 below, and the fast tier's V3-60 to V3-62. The fast tier on the first release commit `8fa3c9976cd1f24a60012718db402fb206f88e44` then failed in the unified plan's
 canonical inventory: a note of iteration 3 on CO-411 sat after the row's closing pipe (V3-60). Its fix,
 `deee017bc10419fad32b614873d295bbf821c7fd` (`fix(release 0.3.16): CO-411's note inside its last cell`), changes that one
 cell and the design map's entry after `822560c5`'s verified tree and the release metadata; the release session read
-it, and the fast tier passes on the release commit built on it. It is the final candidate and the release gate's
-`verifiedCommit`; the receipts and the release gate name it, as 0.3.15 named its final candidate.
+it. The fast tier on the next release commit `0cc30b0d6fe39e9bffb5cf8f256443dca57f24ce` then stopped at the wiki
+projections: `docs/reports/plan.json` had not been rebuilt after iteration 3's edits to the backlog (V3-62). Its fix,
+`484be20fd4757c71b94e173952f78a34fdd5ca63` (`fix(release 0.3.16): the plan projection rebuilt after iteration 3`), is the
+generator's output and the design map's entry; the fast tier passes on the release commit built on it. It is the final
+candidate and the release gate's `verifiedCommit`; the receipts and the release gate name it, as 0.3.15 named its
+final candidate.
 
 | Finding | Level | Severity | What | Disposition |
 |---|---|---|---|---|
@@ -234,5 +238,6 @@ it, and the fast tier passes on the release commit built on it. It is the final 
 | V3-59 | FV2-5 (verifier of 822560c5) | non-blocking | two comments in `SessionWindow.tsx` keep the runner-first order | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
 | V3-60 | CI-1 (fast tier on `8fa3c997`) | blocking | iteration 3's note on CO-411 sat after the row's closing pipe, so the unified plan's inventory refused the register ("Malformed task table row") and `scripts/test/build-unified-plan.test.mjs` failed 19 tests | fixed in `deee017b`: the note is inside the status cell; `node scripts/unified-plan.mjs inventory` exit 0 |
 | V3-61 | CI-1 (fast tier on `8fa3c997`) | non-blocking | `node scripts/check-registers.mjs` passed the malformed row: it does not count a row's cells | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
+| V3-62 | CI-2 (fast tier on `0cc30b0d`) | blocking | `docs/reports/plan.json` was stale after iteration 3's edits to `docs/evidence/backlog.md` ("Plan projection stale") | fixed in `484be20f`: rebuilt with `node scripts/build-plan-projection.mjs`; `--check` passes |
 
 Exit for iteration 3: every finding has a disposition. Blocking findings open: none.

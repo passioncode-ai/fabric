@@ -3,7 +3,7 @@
   "version": "0.3.16",
   "iteration": 3,
   "level": "data",
-  "candidateCommit": "deee017bc10419fad32b614873d295bbf821c7fd",
+  "candidateCommit": "484be20fd4757c71b94e173952f78a34fdd5ca63",
   "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-data.md",
   "reportSha256": "01fd2566328b99392051bb38d558d467893b5398ddd7c35ef57fa43b0cc07d50",
   "reviewerRun": "release-0316-i3-data-20261105",

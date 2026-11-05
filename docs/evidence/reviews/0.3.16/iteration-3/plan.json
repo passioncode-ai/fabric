@@ -3,7 +3,7 @@
   "version": "0.3.16",
   "iteration": 3,
   "level": "plan",
-  "candidateCommit": "deee017bc10419fad32b614873d295bbf821c7fd",
+  "candidateCommit": "484be20fd4757c71b94e173952f78a34fdd5ca63",
   "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-plan.md",
   "reportSha256": "63e21d2f3269bae2107259f644c4171a5df2f5b1b83a60e4668fdbd7185d60e8",
   "reviewerRun": "release-0316-i3-plan-20261105",

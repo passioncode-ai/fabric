@@ -8,7 +8,7 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - run: r-5d9bed5352f5
 - files: the left column's rework, the board dispatcher (CO-409), forty agents at once, ADR-0186 (CO-494), CO-498 to CO-500, CO-505, the three review iterations' fixes and the final candidate's verification, then the release commit (version, CHANGELOG, release gate, ledger, receipts, reports, the map), the fix of CO-411's row and the release gate's final candidate
 - conflicts: none
-- summary: Fabric 0.3.16 lands on `main` by a fast-forward from the verified candidate `deee017b` (`822560c5` and the fix of CO-411's row); the workspace gitlink names its receipt's snapshot `77e81ea1`.
+- summary: Fabric 0.3.16 lands on `main` by a fast-forward from the verified candidate `484be20f` (`822560c5`, the fix of CO-411's row and the rebuilt plan projection); the workspace gitlink names its receipt's snapshot `77e81ea1`.
 
 ### 2026-10-27T14:27:20Z · `—` · main → feat/mockup-parity · merge
 - run: release-0315-metadata-20261027

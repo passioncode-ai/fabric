@@ -1,7 +1,7 @@
 {
   "version": "0.3.16",
   "ledger": "docs/evidence/plans/2026-11-05-release-0316-verification.md",
-  "verifiedCommit": "deee017bc10419fad32b614873d295bbf821c7fd",
+  "verifiedCommit": "484be20fd4757c71b94e173952f78a34fdd5ca63",
   "releaseMetadata": [
     "docs/reports/2026-11-05-release-0316/2026-11-05-final-candidate-docs-verification.md",
     "docs/reports/2026-11-05-release-0316/2026-11-05-final-candidate-code-verification.md",
@@ -74,7 +74,7 @@
       },
       {
         "iteration": 3,
-        "candidateCommit": "deee017bc10419fad32b614873d295bbf821c7fd",
+        "candidateCommit": "484be20fd4757c71b94e173952f78a34fdd5ca63",
         "reviews": [
           {
             "level": "ux",
