@@ -66,7 +66,7 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).toMatch(/com\.enroll[\s\S]*com\.claim/)
     expect(o.text).toMatch(/board\.respond/)
     expect(o.text).toMatch(/own Project it is given at your com\.enroll[\s\S]*ADR-0190/)
-    expect(o.text).toMatch(/another Project\'s waits for the operator/)
+    expect(o.text).toMatch(/another Project\'s is the operator\'s to give, and you have no tool to ask it/)
     expect(o.text).not.toMatch(/Settings → Agent access/)
     expect(o.text).not.toMatch(/stays queued/)
   })

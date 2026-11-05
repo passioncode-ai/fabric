@@ -543,7 +543,7 @@ test('com.enroll\'s description names the route a session has: its own Project g
   registerBoardTools({ registerTool: (name, meta) => described.set(name, meta.description) }, createBoard({ rpc: fake().rpc }), () => responder)
   assert.match(described.get('com.enroll'), /fabric\.access\.request, callee fabric, capability board\.respond/)
   assert.match(described.get('com.enroll'), /own Project the grant is given at this call, with no question, ADR-0190/)
-  assert.match(described.get('com.enroll'), /waits for the operator/)
+  assert.match(described.get('com.enroll'), /a session has no tool to ask it/)
   assert.doesNotMatch(described.get('com.enroll'), /never only to say it waits/)
   assert.match(described.get('com.enroll'), /DEC-0152/)
   // CO-397 (DEC-0098, DEC-0102): a reply from the request's target answers it; it no longer "stays queued".
