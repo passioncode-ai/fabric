@@ -115,16 +115,39 @@ export interface CallSubject {
   rpcId: string | null
 }
 
+/** An operation's name, DEC-0153 OD-2: the contract's `OP_NAME` and `OP_NAME_MAX`, as its branch states them until its
+ *  release tag carries them (CO-509). No empty segment, no space, at most 64 characters. */
+export const OP_NAME = /^[a-z][A-Za-z0-9_]*(?:[.:/-][A-Za-z0-9_]+)*$/
+export const OP_NAME_MAX = 64
+
+/** The methods MCP defines (both directions, so a client's notification is named too). Any other method a client sends
+ *  is counted under `mcp.other`: a name from a client's body is not an operation of Fabric's (0.3.16 review, ER-11). */
+export const MCP_METHODS: ReadonlySet<string> = new Set([
+  'initialize', 'ping', 'tools/list', 'tools/call', 'resources/list', 'resources/templates/list', 'resources/read',
+  'resources/subscribe', 'resources/unsubscribe', 'prompts/list', 'prompts/get', 'completion/complete',
+  'logging/setLevel', 'roots/list', 'sampling/createMessage', 'elicitation/create', 'notifications/initialized',
+  'notifications/cancelled', 'notifications/progress', 'notifications/message', 'notifications/roots/list_changed',
+  'notifications/resources/updated', 'notifications/resources/list_changed', 'notifications/tools/list_changed',
+  'notifications/prompts/list_changed'
+])
+
+/** Whether a name fits OD-2 and holds no `home`, `users` or `Users` segment (FAC-SEM-167's home-folder shape). */
+export function fitsOpName(op: string): boolean {
+  return op.length <= OP_NAME_MAX && OP_NAME.test(op) && !op.split(/[._/:-]/).some((seg) => /^(home|users)$/i.test(seg))
+}
+
 /** The operation name an MCP call is counted under (the contract's DEC-0153, OD-2 and FAC-SEM-167, asked on the board,
- *  thread `f7758225`, 2026-11-05): the tool or method comes from the client's own body, so a name outside the grammar,
- *  or with a segment `home`, `users` or `Users` after `.`, `/`, `_`, `-` or `:`, is counted as `tool.other` or
- *  `mcp.other`; one such name would otherwise drop the whole line of every digest that counts it. */
-export function callOpName(subject: CallSubject | null): string {
-  const kind = subject?.tool ? 'tool' : 'mcp'
-  const name = subject?.tool ?? subject?.method ?? 'unparsed'
-  const op = `${kind}.${name}`
-  const ok = /^[a-z][a-z0-9_.:/-]{0,79}$/.test(op) && !op.split(/[._/:-]/).some((seg) => /^(home|users)$/i.test(seg))
-  return ok ? op : `${kind}.other`
+ *  thread `f7758225`, 2026-11-05). The tool or method comes from the client's own body, so only a tool the surface
+ *  registers (`knownTool`) or a method MCP defines is counted by its name; anything else, an unreadable body included,
+ *  is `tool.other` or `mcp.other` (0.3.16 review, ER-11): one name outside the grammar would drop the whole line of
+ *  every digest that counts it, and a client's names would grow the day's names without bound. */
+export function callOpName(subject: CallSubject | null, knownTool: (name: string) => boolean): string {
+  if (subject?.tool) {
+    const op = `tool.${subject.tool}`
+    return knownTool(subject.tool) && fitsOpName(op) ? op : 'tool.other'
+  }
+  const op = `mcp.${subject?.method ?? ''}`
+  return subject && MCP_METHODS.has(subject.method) && fitsOpName(op) ? op : 'mcp.other'
 }
 
 export function describeCall(body: unknown): CallSubject | null {

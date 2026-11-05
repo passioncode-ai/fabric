@@ -78,6 +78,8 @@ export function beginAttempt(input: {
    *  known once the credential resolves, which is after this is installed; the
    *  caller fills the same object in and the record carries what was true. */
   ctx: AttemptContext
+  /** Whether the surface registers a tool of this name: only those are counted by their name (ER-11). */
+  knownTool: (name: string) => boolean
   now?: () => number
 }): Attempt {
   const now = input.now ?? (() => Date.now())
@@ -124,7 +126,7 @@ export function beginAttempt(input: {
     // A typed refusal is the tool answering as designed: warn with its code, never an error with no reason (CO-335).
     const mapped = outcome === 'threw' && refusalCode ? refusalOps(refusalCode) : OPS_OUTCOME[outcome]
     ops.record({
-      op: callOpName(subject),
+      op: callOpName(subject, input.knownTool),
       outcome: mapped.outcome,
       level: mapped.level,
       ms: now() - started,

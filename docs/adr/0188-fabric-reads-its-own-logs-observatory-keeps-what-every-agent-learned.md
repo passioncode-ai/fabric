@@ -68,3 +68,14 @@ an agent's work asks for one. Who keeps what, and who reads it, was written nowh
   line is folded once at Fabric's next start (DEC-0153 OD-5), so a Mac closed overnight still writes its days.
 - 2026-11-05, the 0.3.16 release review, iteration 3 (DO-4): the journal's counts the first amendment leaves to
   «CO-500's follow-up» are carried in CO-509 (CO-500 is closed, and CO-504 with it), due on `main` by 2026-11-18.
+- 2026-11-05, CO-509 (the contract's DEC-0153 as its branch states it, board thread `f7758225`): Fabric writes an hour
+  only when it observed itself in it (a record or the cycle's tick), so the hours the Mac slept are not written and the
+  hour after them compares with none; the hour Fabric quits in is kept whole in `digests/open-hour.json` and written at
+  the next start, before any closed day is folded, compared with the last hourly line, which is also `previous` at
+  start; a record dated before the open hour (the clock set back) is counted in it. Fabric's outcome map: its log
+  already speaks `ok`, `failed` and `unknown` (`shared/opsRecord.ts`; a typed refusal by design is `ok`, one that may
+  have run `unknown`, `shared/toolOutcome.ts#refusalOps`). Its overflow name is `ops.overflow`: past 4095 named
+  operations a UTC day the rest are counted under it (`shared/opsDigest.ts#OVERFLOW_OP`, `DAY_NAMES_MAX`). An MCP call
+  is counted by its name only for a tool a Fabric surface registers or a method MCP defines, else `tool.other` or
+  `mcp.other` (`shared/toolOutcome.ts#callOpName`). Hourly files are kept three months and daily files thirteen
+  (`main/opsDigestRun.ts#KEEP_HOURLY_MONTHS`, `KEEP_DAILY_MONTHS`). The journal's counts stay with CO-509.

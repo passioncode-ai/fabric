@@ -821,12 +821,19 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   // FIRST, before anything that can fail. A monitor initialised after the thing
   // it is supposed to explain is a monitor that misses the startup.
   // CO-500, ADR-0188 §1: every record is counted for the hourly and daily reading of this log, before it is written.
-  opsDigest ??= createOpsDigestRun({
-    dir: path.join(app.getPath('userData'), 'digests'),
-    onWriteFailed: (file, e) => ops.failed('ops.digest-write', e, { note: 'the digest was not written; counting goes on', file: path.basename(file) })
-  })
+  if (!opsDigest) {
+    opsDigest = createOpsDigestRun({
+      dir: path.join(app.getPath('userData'), 'digests'),
+      onWriteFailed: (file, e) => ops.failed('ops.digest-write', e, { note: 'the digest was not written; counting goes on', file: path.basename(file) })
+    })
+    // DEC-0153 OD-1 (CO-509): the hour Fabric quits in is kept with its counts and written at the next start.
+    const kept = opsDigest
+    quit.onQuit(() => kept.stop())
+  }
   const digest = opsDigest
   useOps(createOps({ dir: path.join(app.getPath('userData'), 'logs'), observe: (op, outcome, at) => digest.observe(op, outcome, at) }))
+  // After the ops log exists, so a digest write that fails at start is said (the 0.3.16 review, DA-3). Once.
+  digest.start()
   // Audit A7-009: a stray rejection or exception reached a console a packaged app does not have, or
   // Electron's blocking error dialog. Both are recorded where Diagnostics reads them, and the process
   // goes on: the quit path (`quit.ts`) is what ends it, on its own deadline.

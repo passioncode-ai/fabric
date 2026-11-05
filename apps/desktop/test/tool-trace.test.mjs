@@ -16,7 +16,7 @@ useOps({ correlate: () => 'test', record: (r) => logged.push(r), begin: () => ()
 function answered(code) {
   const req = Object.assign(new EventEmitter(), { destroyed: false })
   const res = Object.assign(new EventEmitter(), { statusCode: 200, write: () => true, end: () => res })
-  const a = beginAttempt({ req, res, ctx: { correlationId: 'c' } })
+  const a = beginAttempt({ req, res, ctx: { correlationId: 'c' }, knownTool: (n) => n === 'agent.call' })
   a.saw({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'agent.call', arguments: {} } })
   const body = JSON.stringify({ jsonrpc: '2.0', id: 1, result: { isError: true, structuredContent: { error: { code, message: 'x' } }, content: [{ type: 'text', text: 'x' }] } })
   res.end(body)

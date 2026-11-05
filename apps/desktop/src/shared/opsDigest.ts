@@ -45,6 +45,12 @@ export const RISE_MIN_FAILED = 10
 /** …and at least this many times the previous hour's (a previous hour with none counts as one). */
 export const RISE_FACTOR = 2
 
+/** DEC-0153 OD-3: at most 4095 named operations a UTC day, the rest counted under one fixed overflow name, published
+ *  with Fabric's outcome map (`docs/adr/0188-…`, the CO-509 amendment), so every hourly and daily line stays within the
+ *  contract's 4096. */
+export const DAY_NAMES_MAX = 4095
+export const OVERFLOW_OP = 'ops.overflow'
+
 const HOUR_MS = 60 * 60_000
 
 export function hourStart(at: number): number {

@@ -68,6 +68,8 @@ import {
   type CorrectionOutcome
 } from '../shared/memoryContract.ts'
 import { beginAttempt, type AttemptContext } from './toolTrace.ts'
+import { SURFACE_TOOLS } from '../shared/surfaceTools.ts'
+import { HUB_TOOLS } from './hubTools.ts'
 import { DEFAULT_BOUND, mayChain } from '../shared/loopBound.ts'
 import { spawnedChainFrom, spawnParentOf, stageTaskOf, type LiveClaim } from '../shared/spawnParent.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
@@ -117,6 +119,14 @@ function assertAgentReference(value: string | undefined): void {
  * late edit must not mutate it in place: the correction lands as a NEW
  * REVISION and every follower that consumed the old one is named stale.
  */
+
+/** Every tool a Fabric surface registers (the session's, the hub's, a board session's): only these are counted in the
+ *  operations digest by their own name (DEC-0153 OD-2, the 0.3.16 review's ER-11, `toolOutcome.ts#callOpName`). */
+const KNOWN_TOOLS: ReadonlySet<string> = new Set([
+  ...SURFACE_TOOLS.map((t) => t.name), ...HUB_TOOLS.door, ...HUB_TOOLS.binding, ...BOARD_SESSION_OPERATIONS
+])
+const isKnownTool = (name: string): boolean => KNOWN_TOOLS.has(name)
+
 export function handoffDisposition(
   hadPrior: boolean,
   followers: ReadonlyArray<{ id: string; status: string }>
@@ -904,7 +914,7 @@ export class AgentSurface {
     // SDK where a schema refusal is decided. The context object is filled in as
     // the credential resolves; the record reads it at the end.
     const ctx: AttemptContext = { correlationId: ops.correlate(), estateId: this.deps.estateId }
-    const attempt = beginAttempt({ req, res, ctx })
+    const attempt = beginAttempt({ req, res, ctx, knownTool: isKnownTool })
 
     const auth = req.headers.authorization ?? ''
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''

@@ -175,14 +175,32 @@ describe('how a typed refusal is logged (0.3.8 review ER-2)', () => {
   })
 })
 
-describe('callOpName (DEC-0153 OD-2, FAC-SEM-167)', () => {
-  it('counts a tool or method by its name when it fits, else under one fixed name', async () => {
+describe('callOpName (DEC-0153 OD-2, FAC-SEM-167; 0.3.16 review ER-11)', () => {
+  const known = (name: string): boolean => ['fabric_whoami', 'com.enroll', 'api.get_users/list', 'Home'].includes(name)
+  it('counts a tool the surface registers, or a method MCP defines, by its name', async () => {
     const { callOpName } = await import('./toolOutcome')
-    expect(callOpName({ method: 'tools/call', tool: 'fabric_whoami', rpcId: null })).toBe('tool.fabric_whoami')
-    expect(callOpName({ method: 'tools/list', tool: null, rpcId: null })).toBe('mcp.tools/list')
-    expect(callOpName(null)).toBe('mcp.unparsed')
-    for (const bad of ['api.get_users/list', 'my_users', 'Home', 'x'.repeat(200), 'drop table;', 'Ünï'])
-      expect(callOpName({ method: 'tools/call', tool: bad, rpcId: null })).toBe('tool.other')
-    expect(callOpName({ method: 'ui.home/open', tool: null, rpcId: null })).toBe('mcp.other')
+    expect(callOpName({ method: 'tools/call', tool: 'fabric_whoami', rpcId: null }, known)).toBe('tool.fabric_whoami')
+    expect(callOpName({ method: 'tools/call', tool: 'com.enroll', rpcId: null }, known)).toBe('tool.com.enroll')
+    expect(callOpName({ method: 'tools/list', tool: null, rpcId: null }, known)).toBe('mcp.tools/list')
+    expect(callOpName({ method: 'notifications/initialized', tool: null, rpcId: null }, known)).toBe('mcp.notifications/initialized')
+  })
+  it('counts an unreadable body, an unknown tool or an unknown method under one fixed name, never its own', async () => {
+    const { callOpName } = await import('./toolOutcome')
+    expect(callOpName(null, known)).toBe('mcp.other')
+    expect(callOpName({ method: '', tool: null, rpcId: null }, known)).toBe('mcp.other')
+    expect(callOpName({ method: 'tools/call', tool: 'not_registered', rpcId: null }, known)).toBe('tool.other')
+    // Registered or not, a name outside OD-2 or with a home segment is never counted by its name.
+    for (const bad of ['api.get_users/list', 'Home', 'x'.repeat(200), 'drop table;', 'Ünï', 'a..b'])
+      expect(callOpName({ method: 'tools/call', tool: bad, rpcId: null }, () => true)).toBe('tool.other')
+    expect(callOpName({ method: 'ui.home/open', tool: null, rpcId: null }, known)).toBe('mcp.other')
+    expect(callOpName({ method: 'custom/thing', tool: null, rpcId: null }, known)).toBe('mcp.other')
+  })
+  it('holds a name to OD-2: at most 64 characters, no empty segment', async () => {
+    const { fitsOpName } = await import('./toolOutcome')
+    expect(fitsOpName('tool.' + 'a'.repeat(59))).toBe(true)
+    expect(fitsOpName('tool.' + 'a'.repeat(60))).toBe(false)
+    expect(fitsOpName('mcp.tools//list')).toBe(false)
+    expect(fitsOpName('mcp.')).toBe(false)
+    expect(fitsOpName('work.session-end-task-back')).toBe(true)
   })
 })
