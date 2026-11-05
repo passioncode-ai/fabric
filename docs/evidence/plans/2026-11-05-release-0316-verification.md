@@ -36,6 +36,32 @@ candidate read-only; findings are disposed here and in the receipts under
   thread `44c43a06`: one line to fabric-workspace that CO-409's dispatcher ships in 0.3.16 after all, correcting what
   Fabric said there on 2026-11-03 (iteration 3, PL-6).
 
+## Rollout on the operator's Mac
+
+0.3.16 moves the database from schema 98 to 100 (migrations 126 and 127, the runbook's
+[upgrade](../../launch/release-mac.md#upgrading-an-existing-database)). The Mac runs Fabric 0.3.15 under the broker target
+`fabric.desktop`, opened by the person, so the quit is the person's; the steps are 0.3.13's
+([its Rollout](2026-10-26-release-0313-verification.md#rollout-as-done-on-2026-10-26)) with `FROM` 98.
+
+Done before the quit, 2026-11-05:
+
+- Step 0, disk: 22 GB free, swap 6.7 GB of 8 GB used; the database 159 MB (`pg_database_size`), schema 98, journal
+  83 471 events.
+- Step 1, the bundle: `Fabric-0.3.16-universal.dmg` from the
+  [release](https://github.com/passioncode-ai/fabric/releases/tag/v0.3.16), `SHA256SUMS` OK, `codesign --verify --deep
+  --strict` OK, `spctl`: accepted, Notarized Developer ID, version 0.3.16; copied out of the image to
+  `~/DATA/_worktrees/fabric-0316-rollout/Fabric.app`.
+- A rehearsal ahead of step 5 on a dump taken with Fabric running (`pre-0.3.16-rehearsal.dump`, sha256 `f071153a…`,
+  17 MB): `rehearse-upgrade --from 98 --ref v0.3.16` PASS, schema 98 → 100, journal 83 472 → 83 472, 79 tables, no
+  table lost a row (receipt `pre-0.3.16-rehearsal.dump.rehearsal.json` beside the dump). It does not replace step 4's
+  backup, which is taken with no writer.
+
+Waiting on the person: step 2, the quit of Fabric 0.3.15 (the hold on `fabric.desktop` goes on right before it). Then
+steps 3 to 8 as 0.3.13's: the new bundle's first start writes migrations 126 and 127 into the stack folder, the backup
+`pre-0.3.16.dump`, `supabase migration up --local` to schema 100, the hold lifted, `ensure_running`, and the readings
+(version 0.3.16, schema 100, the journal count, `hub.json`'s live pid, `com.status`). The way back is the 0.3.15 bundle
+and `pre-0.3.16.dump`.
+
 ## Iteration 1
 
 Candidate `a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d`. Five reviewers, one per level; their reports are in
