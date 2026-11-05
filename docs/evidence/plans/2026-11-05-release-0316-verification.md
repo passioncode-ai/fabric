@@ -63,6 +63,9 @@ dispatcher check then runs on a scratch project, never on passioncode-vesta.
 Widened the same evening (`92ff7a61`): the switch is turned on only once the running Switchboard owner reads 0.7.15 or
 later as well, and once the scratch project's live check has shown a launched run take `board.respond` (CO-494 in
 0.3.16) and answer; passioncode-vesta is told on that thread.
+Widened again (`6b165b76`): `dispatchBoardRequests: false` is written into this Mac's Fabric settings in step 3, after
+the quit and before 0.3.16's first start (0.3.16 has the switch on by default, `appSettings.ts`); and the switch waits
+also for Vesta's change to a refused first `com.enroll` and for the adapter's FAA-219, or for CO-506 shipped.
 
 Waiting on the person: step 2, the quit of Fabric 0.3.15 (the hold on `fabric.desktop` goes on right before it). Then
 steps 3 to 8 as 0.3.13's: the new bundle's first start writes migrations 126 and 127 into the stack folder, the backup
