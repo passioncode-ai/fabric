@@ -201,9 +201,9 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'you. Acknowledge with com.read_ack only what you actually read; reading marks nothing. A board that answers ' +
       'not_available is unreachable, not empty: say so. A reply from this project on a request addressed to it ' +
       '(com.reply) answers that request: its state becomes answered and the asker sees it (DEC-0098, DEC-0102). Carrying ' +
-      'the request out as its responder is com.enroll, then com.claim, under a responder grant (board.respond): ask ' +
-      'fabric.access.request for it, and on the operator\'s own machine it is allowed at once (ADR-0186); without it ' +
-      'com.enroll is not_authorized, and the reply is still your answer. Answer what waits on you in the same turn, ' +
+      'the request out as its responder is com.enroll, then com.claim, under a responder grant (board.respond): for ' +
+      'your own Project it is given at your com.enroll, with no question (ADR-0190); another Project\'s waits for the ' +
+      'operator (fabric.access.request); without it com.enroll is not_authorized, and the reply is still your answer. Answer what waits on you in the same turn, ' +
       'with the state now: what is done, where (branch or commit), when the rest will be ready and what blocks it; ' +
       'a state with its nearest date is an answer (the operator, 2026-11-04). Send it as com.reply, on a request too: ' +
       'the request becomes answered, which means you answered, never that the work is done; the result follows as a ' +

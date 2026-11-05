@@ -69,7 +69,9 @@ const relayedDetail = (relayed?: OperatorDecision): Record<string, unknown> => (
 /** Who is speaking to the hub: the door token (may only ask), or a binding (may call). */
 /** The lanes allowed at once on the operator's own machine, recorded as the asking agent's own revocable act (ADR-0160;
  *  board.respond since CO-494, the operator's word of 2026-11-04). */
-const IMMEDIATE_LOCAL_LANES: ReadonlySet<string> = new Set([SESSION_ENROLL, PROJECT_RESOLVE, BOARD_RESPOND])
+// CO-506 (ADR-0190): board.respond is no longer immediate for an ask through the hub, which cannot prove whose project
+// it is; a session's own project is granted at its com.enroll (`grantOwnProjectRespond`).
+const IMMEDIATE_LOCAL_LANES: ReadonlySet<string> = new Set([SESSION_ENROLL, PROJECT_RESOLVE])
 
 export type HubPrincipal = { kind: 'door' } | { kind: 'binding'; binding: BindingRow }
 
@@ -125,6 +127,8 @@ export interface AccessServiceDeps {
   /** ADR-0160 §3, SCN-167: the coding agents the person disconnected («Отключить», `keptOut.ts`), refused at the door
    *  until let back in. Absent, nobody is kept out. */
   keptOut?: (agentKey: string) => boolean
+  /** CO-506: `appSettings.machineTrust`; an `organization` machine grants no answering at once. Absent: the operator's own. */
+  machineTrust?: () => string | null
 }
 
 /** What Fabric resolved an asker's folder to (ADR-0134 amendment 2): the project, the admitted folder (real path) and
@@ -252,7 +256,7 @@ export class AccessService {
   }
 
   /** `fabric.access.request`. Unknown agents are refused before any prompt. */
-  request(principal: HubPrincipal, raw: Record<string, unknown>): Promise<RequestAnswer> {
+  request(principal: HubPrincipal, raw: Record<string, unknown>, own?: { projectId: string }): Promise<RequestAnswer> {
     return this.serial('agent', async () => {
       const receipt = (code: string, agentId?: string): void => {
         ops.record({ op: 'hub.access.refused', outcome: 'ok', level: 'warn', detail: { code, ...(agentId ? { agent_id: agentId } : {}) }, ctx: { correlationId: ops.correlate() } })
@@ -430,7 +434,7 @@ export class AccessService {
         .find((r) => r.asked_by_binding === bindingId && requestSignature({ agentId: r.agent_id, callee: r.callee as AccessAsk['callee'], capabilities: r.capabilities, resources: r.resources }) === signature)
       if (same) {
         receipt('already-pending', entry.key)
-        if (ask.callee === FABRIC_SELF && IMMEDIATE_LOCAL_LANES.has(ask.capabilities[0])) {
+        if (this.immediate(ask, own)) {
           const decided = await this.decide(same.id, 'allowed', { kind: 'agent', id: entry.key })
           if (!decided.ok) return { ok: false, refused: `the local allow could not be recorded: ${decided.reason}` }
           return {
@@ -472,7 +476,7 @@ export class AccessService {
         ops.failed('hub.access.connection-read', e, { request_id: id })
       }
       ops.record({ op: 'hub.access.requested', outcome: 'ok', detail: { request_id: id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources, incremental: bindingId !== null }, ctx: { correlationId: ops.correlate() } })
-      if (ask.callee === FABRIC_SELF && IMMEDIATE_LOCAL_LANES.has(ask.capabilities[0])) {
+      if (this.immediate(ask, own)) {
         // ADR-0160: only the local lanes are immediate: enrollment, since 0.3.8 the read-only folder attribution, and since CO-494 (the operator's
         // (every step approved, paraphrased), 2026-11-04) answering a project's requests. The request, the agent's own decision and the revocable grant are all
         // journalled; no product connection or cross-machine authority changes.
@@ -556,6 +560,41 @@ export class AccessService {
   }
 
   /** The operator's answer. Refused when the request is no longer pending or has expired. */
+  /** Whether an ask is allowed at once: Fabric's own local lanes, and since CO-506 a board.respond for exactly the
+   *  project a session proved at its com.enroll (`own`), unless this machine is marked as an organization's. */
+  private immediate(ask: AccessAsk, own?: { projectId: string }): boolean {
+    if (ask.callee !== FABRIC_SELF) return false
+    if (IMMEDIATE_LOCAL_LANES.has(ask.capabilities[0])) return true
+    return ask.capabilities[0] === BOARD_RESPOND && !!own && this.deps.machineTrust?.() !== 'organization'
+      && ask.resources.length > 0 && ask.resources.every((r) => boardResourceOf(r)?.project === own.projectId)
+  }
+
+  /**
+   * CO-506 (ADR-0190): a session takes its own project's responder slot without a question. Called before the session's
+   * com.enroll: the project is the session's bearer's, never an argument. The grant goes on the session's own credential,
+   * or for a launched session (none of its own) on the newest collected credential of its runner; with neither, nothing
+   * is granted and com.enroll answers not_authorized as before. Recorded like any immediate lane: the request, the
+   * agent's own decision and the revocable grant.
+   */
+  async grantOwnProjectRespond(proof: { projectId: string; capability: string; bindingId: string | null; runnerKey: string | null }): Promise<{ ok: true; granted: boolean } | { ok: false; refused: string }> {
+    if (this.deps.machineTrust?.() === 'organization') return { ok: false, refused: 'this computer is marked as an organization\'s' }
+    let binding: BindingRow | null = null
+    if (proof.bindingId) binding = await this.deps.store.binding(proof.bindingId)
+    else if (proof.runnerKey) binding = (await this.deps.store.liveBindings())
+      .filter((b) => b.agent_id === proof.runnerKey && b.revoked_at === null && b.verifier !== null)
+      .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0] ?? null
+    if (!binding || binding.revoked_at) return { ok: false, refused: 'no live credential of this session or its runner' }
+    const resource = `board:${proof.projectId}/${proof.capability}`
+    if ((await this.liveGrantsOf(binding)).some((g) => g.callee === FABRIC_SELF && g.capability === BOARD_RESPOND && g.resource === resource))
+      return { ok: true, granted: false }
+    const answer = await this.request({ kind: 'binding', binding }, {
+      agentId: binding.agent_id, callee: FABRIC_SELF, capabilities: [BOARD_RESPOND], resources: [resource],
+      reason: `A session of this project takes its responder slot for ${proof.capability} (com.enroll).`
+    }, { projectId: proof.projectId })
+    if (!answer.ok) return { ok: false, refused: answer.refused }
+    return answer.status === 'allowed' ? { ok: true, granted: true } : { ok: false, refused: `the ask is ${answer.status}` }
+  }
+
   decide(requestId: string, decision: 'allowed' | 'denied', actor: AccessActor, relayed?: OperatorDecision): Promise<AccessActAnswer> {
     return this.serial('operator', async () => {
       const row = await this.deps.store.request(requestId)

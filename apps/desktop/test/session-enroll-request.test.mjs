@@ -17,7 +17,7 @@ const resolveFolder = async (folder) =>
   : folder.startsWith('/Users/me/DATA/other') ? { ok: true, projectId: OTHER, root: '/Users/me/DATA/other', how: 'exact' }
   : { ok: false, message: 'This folder is not a project in Fabric yet.' }
 
-function harness({ keptOut = undefined, registry = undefined, runner = (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: 'a coding agent' } : null), project = async (id) => (id === PROJECT || id === OTHER ? { id, name: id === PROJECT ? 'site' : 'other' } : null), available = async () => true, resolve = resolveFolder, admit = undefined, clock = { offset: 0 } } = {}) {
+function harness({ keptOut = undefined, registry = undefined, runner = (id) => (id === 'claude-code' ? { key: 'claude-code', name: 'Claude Code', summary: 'a coding agent' } : null), project = async (id) => (id === PROJECT || id === OTHER ? { id, name: id === PROJECT ? 'site' : 'other' } : null), available = async () => true, resolve = resolveFolder, admit = undefined, clock = { offset: 0 }, machineTrust = undefined } = {}) {
   const stamp = () => new Date(Date.now() + clock.offset).toISOString()
   const rows = new Map(), bindings = new Map(), grants = new Map()
   const appended = []
@@ -65,7 +65,8 @@ function harness({ keptOut = undefined, registry = undefined, runner = (id) => (
     connected: async () => { throw Error('Fabric itself is not a product to connect') },
     enrollment: { runner, project, available, resolve, admit },
     now: () => Date.now() + clock.offset,
-    ...(keptOut ? { keptOut } : {})
+    ...(keptOut ? { keptOut } : {}),
+    ...(machineTrust ? { machineTrust } : {})
   })
   return { service, appended, presented, rows }
 }
@@ -261,16 +262,17 @@ test('board.respond: an agent the person disconnected is refused before any prom
   }
 })
 
-test('board.respond: a coding agent or a registered service asks once, with the project named in the snapshot, and is allowed at once (CO-494)', async () => {
+test('board.respond asked through the hub waits for the operator, with the project named in the snapshot (CO-506, ADR-0190; was immediate under CO-494)', async () => {
   const exampleRegistry = { refresh() {}, resolve: (id) => (id === 'example-agent' ? { ok: true, entry: { key: 'example-agent', kind: 'service', name: 'Example agent', installedBy: 'example-installer', repository: null, summary: null } } : { ok: false, reason: `${id} is not registered` }) }
   for (const [agentId, kind] of [['claude-code', 'runner'], ['example-agent', 'service']]) {
     const h = harness({ registry: exampleRegistry })
     const r = await h.service.request({ kind: 'door' }, respondAsk(agentId))
-    assert.equal(r.ok, true, JSON.stringify(r)); assert.equal(r.status, 'allowed')
+    assert.equal(r.ok, true, JSON.stringify(r)); assert.equal(r.status, 'pending')
     const ev = h.appended.find((e) => e.type === 'access.requested@1')
     assert.deepEqual([ev.payload.capabilities, ev.payload.resources], [['board.respond'], [`board:${PROJECT}/analytics.retention`]])
     assert.equal(ev.payload.registry.kind, kind); assert.deepEqual(ev.payload.registry.project, { id: PROJECT, name: 'site', root: null, how: null })
-    assert.equal(h.presented.length, 0, 'nothing reaches the person on the operator\'s own machine')
+    assert.equal(h.presented.length, 1, 'the ask reaches the operator: through the hub it proves no project')
+    assert.ok(!h.appended.some((e) => e.type === 'access.decided@1'), 'nothing is decided for the operator')
   }
 })
 
@@ -362,19 +364,36 @@ test('CO-363 / DO-19: a resolve credential never collected past the request\'s 1
 // CO-494 (the operator, 2026-11-04: (paraphrased: grant answering to every project, with no stop on the way)):
 // board.respond joins the immediate local lanes of ADR-0160 on the operator's own machine. The request, the agent's own
 // decision and the revocable grant are journalled; nothing reaches the person.
-test('CO-494: board.respond is allowed at once on the operator\'s own machine, recorded as the agent\'s own revocable act', async () => {
+// The credential a session holds: one immediate project.resolve ask makes a binding of claude-code.
+async function sessionBinding(h) {
+  await h.service.request({ kind: 'door' }, { agentId: 'claude-code', callee: 'fabric', capabilities: ['project.resolve'], resources: ['projects'], reason: 'attribute folders' })
+  return h.appended.find((e) => e.type === 'access.decided@1' && e.payload.new_binding).payload.binding_id
+}
+
+test('CO-506 (ADR-0190): a session\'s own project is granted at its com.enroll, at once, as the agent\'s own revocable act', async () => {
   const h = harness()
-  const r = await h.service.request({ kind: 'door' }, respondAsk())
-  assert.equal(r.ok, true, JSON.stringify(r))
-  assert.equal(r.status, 'allowed')
-  assert.ok(r.pollSecret, 'the credential is collected with the poll secret, as the other immediate lanes')
+  const bindingId = await sessionBinding(h)
+  const before = h.appended.length
+  const r = await h.service.grantOwnProjectRespond({ projectId: PROJECT, capability: 'analytics.retention', bindingId, runnerKey: null })
+  assert.deepEqual(r, { ok: true, granted: true })
   assert.equal(h.presented.length, 0, 'nothing reached the person')
-  const decided = h.appended.find((e) => e.type === 'access.decided@1')
-  assert.ok(decided, 'the decision is journalled')
+  const decided = h.appended.slice(before).find((e) => e.type === 'access.decided@1')
   assert.deepEqual(decided.actor, { kind: 'agent', id: 'claude-code' })
-  assert.equal(decided.payload.decision, 'allowed')
   assert.deepEqual(decided.payload.grants.map((g) => [g.capability, g.resource]), [['board.respond', `board:${PROJECT}/analytics.retention`]])
-  const again = await h.service.request({ kind: 'door' }, respondAsk())
-  assert.equal(again.ok, true); assert.notEqual(again.status, 'pending', 'asking again never waits for the person')
-  assert.equal(h.presented.length, 0)
+  assert.equal(decided.payload.binding_id, bindingId, 'on the session\'s own credential')
+  assert.deepEqual(await h.service.grantOwnProjectRespond({ projectId: PROJECT, capability: 'analytics.retention', bindingId, runnerKey: null }), { ok: true, granted: false }, 'a live grant is not asked for twice')
+})
+
+test('CO-506 (ADR-0190): another project\'s slot is never the session\'s own; an organization\'s machine grants nothing at once', async () => {
+  const h = harness()
+  const bindingId = await sessionBinding(h)
+  const binding = { id: bindingId, agent_id: 'claude-code', revoked_at: null }
+  const other = await h.service.request({ kind: 'binding', binding }, respondAsk('claude-code', [`board:${OTHER}/analytics.retention`]), { projectId: PROJECT })
+  assert.equal(other.status, 'pending', 'a resource of another project than the session\'s waits for the operator')
+  const org = harness({ machineTrust: () => 'organization' })
+  const orgBinding = await sessionBinding(org)
+  const refused = await org.service.grantOwnProjectRespond({ projectId: PROJECT, capability: 'analytics.retention', bindingId: orgBinding, runnerKey: null })
+  assert.equal(refused.ok, false)
+  const none = await harness().service.grantOwnProjectRespond({ projectId: PROJECT, capability: 'analytics.retention', bindingId: null, runnerKey: 'claude-code' })
+  assert.equal(none.ok, false, 'a launched session whose runner holds no collected credential gets nothing')
 })

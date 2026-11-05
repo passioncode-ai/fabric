@@ -60,12 +60,13 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).toMatch(/not_available[\s\S]*not empty/)
   })
 
-  it('says how a request is answered: a reply from this project answers it (DEC-0098, DEC-0102, CO-397); carrying it out is com.enroll then com.claim under a board.respond grant, allowed at once on the operator\'s own machine (ADR-0186)', () => {
+  it('says how a request is answered: a reply from this project answers it (DEC-0098, DEC-0102, CO-397); carrying it out is com.enroll then com.claim under a board.respond grant, given for its own Project at com.enroll (ADR-0190)', () => {
     const o = byId('board.read-at-start')
     expect(o.text).toMatch(/com\.reply\) answers that request: its state becomes answered/)
     expect(o.text).toMatch(/com\.enroll[\s\S]*com\.claim/)
     expect(o.text).toMatch(/board\.respond/)
-    expect(o.text).toMatch(/fabric\.access\.request[\s\S]*allowed at once[\s\S]*ADR-0186/)
+    expect(o.text).toMatch(/own Project it is given at your com\.enroll[\s\S]*ADR-0190/)
+    expect(o.text).toMatch(/another Project\'s waits for the operator/)
     expect(o.text).not.toMatch(/Settings → Agent access/)
     expect(o.text).not.toMatch(/stays queued/)
   })

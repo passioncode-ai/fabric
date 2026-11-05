@@ -294,6 +294,8 @@ export const DEFAULT_LIMITS: AgentSurfaceLimits = {
 /** CO-506: Agent access as an agent's door, with the read `fabric_access_list` shows. */
 export interface AgentAccessDoor extends RelayedAccessDoor {
   overview: AccessService['overview']
+  /** CO-506 (ADR-0190): the session's own project's board.respond, granted before its com.enroll. */
+  grantOwnRespond?: AccessService['grantOwnProjectRespond']
 }
 
 export interface AgentSurfaceDeps {
@@ -3168,7 +3170,25 @@ export class AgentSurface {
     })
 
     // The runner underneath, never a created agent's id (M125): board_grant_for compares the runner's binding (ADR-0149 §3).
-    registerBoardTools(server, this.board, () => this.boardCaller(scope, ptys()?.runnerOf?.(scope.sessionId) ?? ptys()?.get(scope.sessionId)?.optionId ?? null))
+    // CO-506 (ADR-0190): a session's com.enroll first grants its own project's answering, on its bearer's project; a
+    // refused grant leaves com.enroll to answer not_authorized as before. A board session (ADR-0149) has no such wrapper.
+    const runnerOfScope = (): string | null => ptys()?.runnerOf?.(scope.sessionId) ?? ptys()?.get(scope.sessionId)?.optionId ?? null
+    const ownBoard: Board = Object.assign(Object.create(this.board) as Board, {
+      enroll: async (caller: BoardCaller, args: unknown) => {
+        const grant = this.deps.access?.grantOwnRespond
+        const capability = (args as { capability?: unknown } | null)?.capability
+        if (grant && scope.projectId && typeof capability === 'string') {
+          try {
+            const r = await grant({ projectId: scope.projectId, capability, bindingId: scope.bindingId, runnerKey: runnerOfScope() })
+            if (!r.ok) ops.record({ op: 'board.own-respond', outcome: 'ok', level: 'info', detail: { session_id: scope.sessionId, reason: r.refused }, ctx: { correlationId: ops.correlate() } })
+          } catch (e) {
+            ops.failed('board.own-respond', e, { session_id: scope.sessionId }) // com.enroll still answers, not_authorized without a grant
+          }
+        }
+        return this.board.enroll(caller, args)
+      }
+    })
+    registerBoardTools(server, ownBoard, () => this.boardCaller(scope, runnerOfScope()))
 
     return server
   }

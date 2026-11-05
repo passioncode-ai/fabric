@@ -538,11 +538,12 @@ test('a board session is respond-only (ADR-0149 Amendment 2): submit, cancel, re
   assert.deepEqual([...BOARD_SESSION_OPERATIONS].sort(), ['com.accept', 'com.claim', 'com.complete', 'com.effect_begin', 'com.enroll', 'com.get', 'com.list',
     'com.progress', 'com.reconcile', 'com.renew', 'com.reply', 'com.responder_replace', 'com.status'])
 })
-test('com.enroll\'s description names the route a session has: fabric.access.request, allowed at once on the operator\'s machine (CO-494, ADR-0186); a state answers too (DEC-0152, 0.3.16 review PL-6)', () => {
+test('com.enroll\'s description names the route a session has: its own Project granted at this call (ADR-0190), another Project\'s through fabric.access.request; a state answers too (DEC-0152, 0.3.16 review PL-6)', () => {
   const described = new Map()
   registerBoardTools({ registerTool: (name, meta) => described.set(name, meta.description) }, createBoard({ rpc: fake().rpc }), () => responder)
   assert.match(described.get('com.enroll'), /fabric\.access\.request, callee fabric, capability board\.respond/)
-  assert.match(described.get('com.enroll'), /allowed at once, ADR-0186/)
+  assert.match(described.get('com.enroll'), /own Project the grant is given at this call, with no question, ADR-0190/)
+  assert.match(described.get('com.enroll'), /waits for the operator/)
   assert.doesNotMatch(described.get('com.enroll'), /never only to say it waits/)
   assert.match(described.get('com.enroll'), /DEC-0152/)
   // CO-397 (DEC-0098, DEC-0102): a reply from the request's target answers it; it no longer "stays queued".

@@ -1101,7 +1101,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       }
     },
     // ADR-0160 §3 (0.3.7 wave 3): an agent the person disconnected is refused at the door until let back in.
-    keptOut: (key) => keptOutAgents.has(key)
+    keptOut: (key) => keptOutAgents.has(key),
+    // CO-506: an organization's machine grants no answering at once; unreadable reads as unmarked, as the surface's.
+    machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust }
   })
   // #endregion session-enroll-wiring
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
@@ -1150,7 +1152,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
           said: { key: 'act.agent.disconnect', params: { agent: named } }, inverse: null, whyNot: 'credential_gone' })
         return done
       },
-      machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust }
+      machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust },
+      grantOwnRespond: (proof) => hubAccess.grantOwnProjectRespond(proof)
     },
     hub: {
       doorToken: () => hubState.doorToken,
