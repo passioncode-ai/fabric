@@ -233,9 +233,9 @@ function notSent(code: string, callee: string, capability: string): string {
   const name = productName(callee)
   switch (code) {
     case 'product-refused':
-      return `${name} refused Fabric's key before ${capability} ran, so nothing ran. The operator can see why in Fabric's operations log; if the key was revoked in ${name}, reconnecting it in Settings → Agent access fixes that.`
+      return `${name} refused Fabric's key before ${capability} ran, so nothing ran. The operator can see why in Fabric's operations log; if the key was revoked in ${name}, reconnecting it in Agent access fixes that.`
     case 'product-outdated':
-      return `${name}'s server is older than 0.9.0, so it cannot narrow a call to the mailboxes you were granted; Fabric sent nothing. The operator must update the ${name} server (and then reconnect it in Settings → Agent access).`
+      return `${name}'s server is older than 0.9.0, so it cannot narrow a call to the mailboxes you were granted; Fabric sent nothing. The operator must update the ${name} server (and then reconnect it in Agent access).`
     case 'product-unreachable':
       return `${name} could not be reached for ${capability}, and nothing reached it. A retry can succeed later.`
     default:
@@ -451,7 +451,7 @@ export function createAgentCall(deps: HubCallDeps) {
     connection = await deps.store.liveConnection(args.agentId)
     if (!connection) {
       await notSentSpan({ ...base, outcome: 'refused', error_code: 'product-not-connected', grant_ids: cover.grantIds, wall_ms: 0 })
-      return before(refusal('product-not-connected', `${args.agentId} is not connected to Fabric. Ask the operator to connect it (Settings → Agent access → Connect); nothing was sent.`))
+      return before(refusal('product-not-connected', `${args.agentId} is not connected to Fabric. Ask the operator to connect it (Agent access → Connect, in the left column); nothing was sent.`))
     }
     // Still covered and still connected: a remembered answer is given again, and nothing is sent.
     if (replay) {

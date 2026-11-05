@@ -58,14 +58,14 @@ export function tellPerson(text, { seconds = 5 } = {}) {
 
 /**
  * A notice in the operator's private chat (CO-411), detached like `tellPerson` so it survives the job's exit and
- * ended after `seconds`. The key reaches only the child, through `use_secret.py run --vault-only` from the vault slot
- * `fabric/prod/COMMUNICATOR_NOTIFY_KEY`; `eventId` is the communicator's idempotency key, so one streak is told once.
+ * ended after `seconds`. The key and the gateway's address reach only the child, through `use_secret.py run --vault-only`
+ * from the vault slots `fabric/prod/COMMUNICATOR_NOTIFY_KEY` and `COMMUNICATOR_URL`; `eventId` is the communicator's idempotency key, so one streak is told once.
  * Its output goes to `log` when given. Answers false when it could not start; the log and the status record still say it.
  */
 export function tellChat({ kind, eventId, text }, { log, seconds = 30, spawnImpl = spawn } = {}) {
   try {
     const script = path.join(path.dirname(fileURLToPath(import.meta.url)), 'communicator-notify.mjs')
-    const cmd = 'T="$(project-observatory full-path)/tools" && python3 "$T/use_secret.py" run --vault-only fabric COMMUNICATOR_NOTIFY_KEY -- "$1" "$2" "$3" "$4" "$5"'
+    const cmd = 'T="$(project-observatory full-path)/tools" && python3 "$T/use_secret.py" run --vault-only fabric COMMUNICATOR_NOTIFY_KEY,COMMUNICATOR_URL -- "$1" "$2" "$3" "$4" "$5"'
     const out = log ? openSync(log, 'a') : 'ignore'
     const child = spawnImpl('/bin/sh', ['-c', `(${cmd}) & p=$!; (sleep ${seconds}; kill -9 $p 2>/dev/null) & wait $p`, 'sh', process.execPath, script, kind, eventId, String(text).slice(0, 3500)], { detached: true, stdio: ['ignore', out, out] })
     child.unref?.()

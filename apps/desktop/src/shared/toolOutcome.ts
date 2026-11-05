@@ -115,6 +115,18 @@ export interface CallSubject {
   rpcId: string | null
 }
 
+/** The operation name an MCP call is counted under (the contract's DEC-0153, OD-2 and FAC-SEM-167, asked on the board,
+ *  thread `f7758225`, 2026-11-05): the tool or method comes from the client's own body, so a name outside the grammar,
+ *  or with a segment `home`, `users` or `Users` after `.`, `/`, `_`, `-` or `:`, is counted as `tool.other` or
+ *  `mcp.other`; one such name would otherwise drop the whole line of every digest that counts it. */
+export function callOpName(subject: CallSubject | null): string {
+  const kind = subject?.tool ? 'tool' : 'mcp'
+  const name = subject?.tool ?? subject?.method ?? 'unparsed'
+  const op = `${kind}.${name}`
+  const ok = /^[a-z][a-z0-9_.:/-]{0,79}$/.test(op) && !op.split(/[._/:-]/).some((seg) => /^(home|users)$/i.test(seg))
+  return ok ? op : `${kind}.other`
+}
+
 export function describeCall(body: unknown): CallSubject | null {
   if (typeof body !== 'object' || body === null) return null
   const b = body as { method?: unknown; params?: { name?: unknown }; id?: unknown }

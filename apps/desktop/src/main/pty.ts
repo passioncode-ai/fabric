@@ -538,7 +538,7 @@ export class PtyManager {
     if (option.connectsToSurface && !bundle)
       throw new RunnerUnavailable(
         `${option.label} was not started: Fabric's agent surface is not running, and this agent's permissions ` +
-        `and connection are given with it. Start the session again once the surface is up (Settings → Agent access).`
+        `and connection are given with it. Start the session again once the surface is up (Agent access, in the left column).`
       )
     // #endregion required-runner-surface
     // Asked before the spawn and outside its catch: a changed authority is a refused request, not a

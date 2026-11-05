@@ -122,15 +122,15 @@ describe('«Нужна правка в другом проекте»', () => {
 
   it('DA-6: a project of another recorded business is refused, and nothing of this task reaches it', async () => {
     const api = stub()
-    api.projects.list = vi.fn(async () => [{ ...here, business: 'Appvillis' }, project('px', 'Phonebot', { business: 'Other Co', repo_path: '/x' }), project('py', 'Same', { business: ' appvillis ', repo_path: '/y' })])
+    api.projects.list = vi.fn(async () => [{ ...here, business: 'Acme' }, project('px', 'Other', { business: 'Other Co', repo_path: '/x' }), project('py', 'Same', { business: ' acme ', repo_path: '/y' })])
     render(<I18nProvider locale="en"><OpenConsoleContext.Provider value={async () => {}}>
-      <CrossProjectConsole project={{ ...here, business: 'Appvillis' }} taskId="t1" taskTitle="Secret plan" />
+      <CrossProjectConsole project={{ ...here, business: 'Acme' }} taskId="t1" taskTitle="Secret plan" />
     </OpenConsoleContext.Provider></I18nProvider>)
     fireEvent.click(screen.getByText(en['xp.title']))
     fireEvent.change(await screen.findByLabelText(en['xp.project']), { target: { value: 'px' } })
     fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Do it' } })
-    expect(screen.getByText(en['xp.wall'].replaceAll('{project}', 'Phonebot'))).toBeTruthy()
-    const button = screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Phonebot') }) as HTMLButtonElement
+    expect(screen.getByText(en['xp.wall'].replaceAll('{project}', 'Other'))).toBeTruthy()
+    const button = screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Other') }) as HTMLButtonElement
     expect(button.disabled).toBe(true)
     fireEvent.click(button)
     expect(api.terminal.open).not.toHaveBeenCalled()

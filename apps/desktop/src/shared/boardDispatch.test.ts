@@ -24,9 +24,10 @@ describe('decideDispatch (§3.1–§3.3)', () => {
   it('a live responder takes it and nothing is started', () => {
     expect(decideDispatch(with_({ liveResponder: true }))).toEqual({ path: 'responder' })
   })
-  it('a live session of the project is woken by message inside the grace, and absent after it', () => {
+  it('0.3.16 review (ER-5, DO-2): a project with a live session never gets a second agent, inside the grace or after it', () => {
     expect(decideDispatch(with_({ liveSession: true }, { submittedAt: new Date(NOW - MIN).toISOString() }))).toEqual({ path: 'live-session' })
-    expect(decideDispatch(with_({ liveSession: true }, { submittedAt: new Date(NOW - GRACE_MS - 1).toISOString() })).path).toBe('launch')
+    expect(decideDispatch(with_({ liveSession: true }, { submittedAt: new Date(NOW - GRACE_MS - 1).toISOString() }))).toEqual({ path: 'live-session' })
+    expect(decideDispatch(with_({ liveSession: false }, { submittedAt: new Date(NOW - GRACE_MS - 1).toISOString() })).path).toBe('launch')
   })
   it('waits for the grace before starting anything, unless the asker marked it urgent', () => {
     const young = { submittedAt: new Date(NOW - MIN).toISOString() }

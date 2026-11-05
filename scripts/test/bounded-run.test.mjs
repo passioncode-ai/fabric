@@ -347,7 +347,7 @@ test('CO-411: tellChat runs the notice under use_secret with the vault slot, nev
   assert.equal(tellChat({ kind: 'failure', eventId: 'e-1', text: 'it failed' }, { spawnImpl }), true)
   const [{ cmd, args, opts }] = calls
   assert.equal(cmd, '/bin/sh')
-  assert.match(args[1], /use_secret\.py" run --vault-only fabric COMMUNICATOR_NOTIFY_KEY --/)
+  assert.match(args[1], /use_secret\.py" run --vault-only fabric COMMUNICATOR_NOTIFY_KEY,COMMUNICATOR_URL --/)
   assert.match(args[1], /sleep 30; kill -9/, 'bounded like tellPerson')
   assert.deepEqual(args.slice(5), ['failure', 'e-1', 'it failed'])
   assert.equal(args[3], process.execPath)

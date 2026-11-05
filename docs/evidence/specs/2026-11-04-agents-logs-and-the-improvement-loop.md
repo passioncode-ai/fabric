@@ -25,7 +25,7 @@ Read on the operator's Mac on 2026-11-04 between 17:20 and 17:40 UTC.
    held by such agents (`work_claims.came_in = 'enrolled'`).
 2. **A status that outlives its work.** Three mechanisms, each seen in the data:
    - a claim stays live while the agent's process lives, because `fabric-mcp`'s sign renews it every two minutes;
-     the claim of `telegram-gateway-agent` taken on 2026-10-30 was still live on 2026-11-04 while its task had been in
+     the claim of one personal agent taken on 2026-10-30 was still live on 2026-11-04 while its task had been in
      review for days (`work_claims.released_at is null`, `project_tasks.status = 'review'`);
    - the sweep releases a lapsed claim and moves a task whose last claim ended, but never releases a live claim on a
      task that is no longer running (`shared/abandonedSweep.ts`);

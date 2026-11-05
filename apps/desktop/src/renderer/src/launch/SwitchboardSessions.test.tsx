@@ -8,7 +8,7 @@ import { ru } from '../i18n/ru'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-const row = (over: Record<string, unknown>) => ({ id: 'sb:1', key: null, folder: '/Users/p/DATA/atlas', project: 'atlas', agent: 'claude-code', account: 'work@example.com',
+const row = (over: Record<string, unknown>) => ({ id: 'sb:1', key: null, folder: '/Users/example/DATA/atlas', project: 'atlas', agent: 'claude-code', account: 'work@example.com',
   context: null, contextName: null, origin: 'switchboard', state: 'running-terminal', group: 'running', actions: [], reason: null, openedInTerminal: false,
   startedAt: 1, endedAt: null, expectedAt: null, candidates: [], waitReason: null, resumable: false, consoleEmpty: false, launch: null, paid: null, at: 1, ...over })
 const mount = (answer: () => Promise<unknown>, locale: 'en' | 'ru' = 'en') => {

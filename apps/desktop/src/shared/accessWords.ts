@@ -2,7 +2,7 @@
 // Every sentence the operator consents on, phrased in the operator's language (verification iteration 1
 // for 0.3.1, UX-2). Main sends FACTS (`shared/access.ts`: AgentFacts, AskLine, ConnectProblem, refusal
 // codes); this module turns them into words through the i18n registries — the renderer with `useT()`,
-// the native prompt in main with `translator(locale)` — so the queue, Settings → Agent access and the
+// the native prompt in main with `translator(locale)` — so the queue, Agent access and the
 // prompt say the same thing in the same language. Untrusted parts (ids, names, addresses, the reason)
 // arrive already on one line (`oneLine`), and are only ever placed into a sentence, never parsed.
 //

@@ -81,7 +81,7 @@ test('Fabric not running (or its hub closed): one tool, an error that says both,
   // The agent is pointed at the lifecycle broker, never told to open the app itself: an "Open Fabric" read as
   // `open -a` is exactly what the machine's rules forbid (design §0 finding 10; agents-first.md "The project board").
   const said = a.content[0].text
-  assert.match(said, /^Fabric is not running, or its hub is closed \(Settings → Agent access says why\)\./)
+  assert.match(said, /^Fabric is not running, or its hub is closed \(Agent access, in the left column, says why\)\./)
   assert.match(said, /lifecycle\.list, lifecycle\.ensure_running, then lifecycle\.operation\.get/)
   assert.match(said, /never start, quit or kill it yourself \(no open -a, osascript or pkill\)/)
   assert.match(said, /held_off or in_use_by_person/)

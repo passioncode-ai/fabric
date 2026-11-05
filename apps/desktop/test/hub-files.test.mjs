@@ -109,7 +109,7 @@ test('the port: default, FABRIC_HUB_PORT, refused when malformed or claimed by a
   assert.deepEqual(checkPortUnclaimed(47071, claimed), { ok: true, port: 47071 })
 })
 
-// CO-505: one Fabric per user on one machine (Mac Studio: aiteam1 501, sshlg 502, appvillis 503), each on its own port.
+// CO-505: one Fabric per user on one machine (a machine with three macOS users, uids 501 to 503), each on its own port.
 test('CO-505: the default port is per user; FABRIC_HUB_PORT still wins; Windows and odd uids keep 47070', () => {
   assert.equal(userHubPort({ platform: 'darwin', uid: 501 }), 47070)
   assert.equal(userHubPort({ platform: 'darwin', uid: 502 }), 47071)

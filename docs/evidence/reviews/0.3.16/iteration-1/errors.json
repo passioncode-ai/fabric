@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d",
+  "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-errors.md",
+  "reportSha256": "535a3b411c0f93fb2d97e4c2b9f8e6126fabd743f229d16dfaac7cab08cad452",
+  "reviewerRun": "release-0316-i1-errors-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V1-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the record is written `starting` before Switchboard is asked and the next pass asks again with the same workflow, hand-over and dispatch id; a refusal or a start that never answered waits `REFUSAL_BACKOFF_MS` and reuses its workflow (`apps/desktop/src/main/boardDispatchRun.ts#createBoardDispatch`); tests `test/board-dispatch-run.test.mjs` «ER-1, ER-2: …» and the refusal case"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V1-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-1, and no Switchboard call or start once quitting (`DispatchDeps.quitting`); test «ER-2: quitting starts nothing and asks Switchboard nothing»"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V1-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: past its end plus `UNKNOWN_AFTER_END_MS` it ends with outcome `unknown`, not an empty run; test «ER-3: …»"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V1-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: two empty runs close the workflow (taken back first) and mark the request `to-operator`; the sweep shows it in «На проверке» in any open state (`apps/desktop/src/shared/abandonedSweep.ts#findAbandoned`, `SweepRequest.toOperator`); tests «PL-1: …» in `board-dispatch-run.test.mjs` and `abandonedSweep.test.ts` «CO-409 (0.3.16 review, PL-1): …»"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V1-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a project with a live session never gets a second agent (`apps/desktop/src/shared/boardDispatch.ts#decideDispatch`); test `boardDispatch.test.ts` «0.3.16 review (ER-5, DO-2): …»; the spec's wave row says the wake of §3.2 is not built"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V1-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runs are watched after this pass's read, and a state not read leaves the run for a later pass; test «ER-6: …»"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V1-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with the switch off and nothing in flight nothing is read; test «ER-7: …»"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V1-17",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-508"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V1-18",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-509"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "source": "V1-19",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-508"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "source": "V1-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a claim on a review or backlog task is let go only when the task moved there after the claim was taken; done and cancelled always (`abandonedSweep.ts#findAbandoned`, `SweepClaim.taskMovedAt`, `main/workRead.ts` reads `moved_at`); test `abandonedSweep.test.ts` «0.3.16 review, ER-11: …»"
+      ]
+    }
+  ]
+}

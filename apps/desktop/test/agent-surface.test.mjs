@@ -243,7 +243,7 @@ me.protocol?.hash && me.protocol?.version
     : fail('the profile did not land: ' + JSON.stringify({ wrote, proj, rels }))
   // DA-2 / ER-2: once a business is set, an agent can neither clear it nor change it; the person decides it.
   const cleared = await call('fabric_project_profile', { business: '' })
-  const changed = await call('fabric_project_profile', { goal: 'Another goal', business: 'Appvillis' })
+  const changed = await call('fabric_project_profile', { goal: 'Another goal', business: 'Acme' })
   const { data: after } = await db.from('projects').select('goal,business').eq('id', projectId).maybeSingle()
   cleared.written === false && /cannot clear/.test(cleared.reason) && changed.written === false && /project page/.test(changed.reason) &&
   after?.business === 'PassionCode' && after?.goal === 'Steer every project from one place'
@@ -718,7 +718,7 @@ else fail('memory search returned ' + facts.facts.length)
   // CO-478, ADR-0184: the close is the operator's, and an agent carries it only with their relayed words.
   const closable = await call('fabric_task_create', { title: 'wave card to cancel', origin: { kind: 'person', ref: 'operator' } })
   const raw = async (args, meta) => client.callTool({ name: 'fabric_task_close', arguments: args, ...(meta ? { _meta: meta } : {}) })
-  const words = { by: 'operator', via: 'relayed-instruction', action: 'task.close', target: String(closable.id).slice(0, 8), instruction: 'Отменить карточку волны. - сделай', at: new Date(Date.now() - 60_000).toISOString(), source: { project: 'prowlagent', session: sessionId } }
+  const words = { by: 'operator', via: 'relayed-instruction', action: 'task.close', target: String(closable.id).slice(0, 8), instruction: 'Отменить карточку волны. - сделай', at: new Date(Date.now() - 60_000).toISOString(), source: { project: 'example-project', session: sessionId } }
   const bare = await raw({ taskId: closable.id, outcome: 'cancelled', reason: 'the project is closed' })
   bare.isError === true && JSON.parse(bare.content[0].text).error?.code === 'operator-decision-required'
     ? ok("without the operator's words a close is refused operator-decision-required") : fail('bare close: ' + JSON.stringify(bare))

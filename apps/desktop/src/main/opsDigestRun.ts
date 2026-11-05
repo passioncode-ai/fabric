@@ -105,6 +105,43 @@ export function createOpsDigestRun(deps: {
     return { hourly, daily }
   }
 
+  /** DEC-0153 OD-5 (the 0.3.16 review, CO-509): once at start, every closed UTC day of this and the previous month that
+   *  has hourly lines and no daily line is folded from its hourly file, so a Mac closed overnight still writes its days.
+   *  A day with no hourly line has no daily line. */
+  const backfill = (): DailyDigest[] => {
+    const written: DailyDigest[] = []
+    const today = new Date(now()).toISOString().slice(0, 10)
+    const first = new Date(now())
+    const months = [today.slice(0, 7), new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() - 1, 1)).toISOString().slice(0, 7)]
+    const lines = (file: string): unknown[] => {
+      try {
+        return read(path.join(deps.dir, file)).split('\n').filter(Boolean).map((l) => {
+          try { return JSON.parse(l) } catch {
+            // A torn line is skipped, as the day's own reading does.
+            return null
+          }
+        })
+      } catch {
+        // No file yet: nothing to fold.
+        return []
+      }
+    }
+    for (const m of months) {
+      const done = new Set(lines(`daily-${m}.jsonl`).map((d) => (d as DailyDigest | null)?.schema === 'ops.digest.daily@1' ? (d as DailyDigest).day : null).filter(Boolean))
+      const days = new Set(lines(`hourly-${m}.jsonl`).map((h) => (h as HourlyDigest | null)?.schema === 'ops.digest.hourly@1' ? (h as HourlyDigest).from.slice(0, 10) : null).filter((d): d is string => !!d && d < today))
+      for (const day of [...days].sort()) {
+        if (done.has(day)) continue
+        const hours = hoursOf(day)
+        if (!hours.length) continue
+        const d = foldDay(day, hours)
+        write(`daily-${m}.jsonl`, d)
+        written.push(d)
+      }
+    }
+    return written
+  }
+  try { backfill() } catch { /* the digest never breaks the start: a day left unfolded is folded at a later start */ }
+
   return {
     observe(op, outcome, at) {
       try {

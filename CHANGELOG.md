@@ -15,27 +15,55 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 read as one taken at 98). A database at 98 (0.3.13 to 0.3.15) takes both; take a backup first. No older build opens a
 schema-100 database, so going back is the backup with the bundle you came from. The order is the runbook's ([docs/launch/release-mac.md](docs/launch/release-mac.md)).
 
-- **A board request no session answers starts an agent that does it and ends** (CO-409, the operator, 2026-11-05).
-  Every minute, beside the cycle, Fabric reads the board's requests of the last week, its responder slots and each
-  request's attempt. A request nobody takes for two minutes, in a project with no live session, gets a workflow in
-  Project Observatory (owner `service:fabric`) with its `run-ends-at` checkpoint, offered to the default agent and
-  started with `switchboard dispatch` in the project's folder. Fabric watches the run to its end; two runs that left the
-  request unsettled go to the operator in «На проверке». What was started is kept in `board-dispatches.json` in the
-  app's data folder, so a restart never starts a second run. Settings → «Запускать агента на запрос доски, который некому взять», on by
-  default; at most two runs on the machine and one per project at a time.
-- **Forty agents at once** (the operator, 2026-11-05). Every agent's turn asks the home, the left column and the
-  agent pages for a new reading; with many agents those readings ran back to back. A reading asked for by a mark now
-  starts no sooner than 1.5 s after the previous one started, so the cost stays the same whether five agents or forty
-  are working; the 15-second refresh and the reading in flight are unchanged.
+- **A board request nobody takes starts an agent that does it and ends** (CO-409, the operator, 2026-11-05). Every
+  minute, beside the cycle, Fabric reads the board's requests of the last week, its responder slots and each request's
+  attempt. A request nobody takes for two minutes, in a project with no live session and no live responder, gets a
+  workflow in Project Observatory (owner `service:fabric`) with its `run-ends-at` checkpoint, offered to the default
+  agent and started with `switchboard dispatch` in the project's folder. A project with a live session gets no second
+  agent in its folder: the request stays that session's. Fabric writes what it starts to `board-dispatches.json` in
+  the app's data folder before it asks Switchboard, so a timeout, a crash or a quit during the start never starts a
+  second run; a refusal waits 10 minutes before the request is tried again. Fabric watches each run to its end; after
+  two runs that left the request unsettled it starts no more, closes the request's workflow and shows the request in
+  «На проверке». Settings → «Запускать агента на запрос доски, который некому взять», on by default; at most two runs
+  on the machine, one per project at a time and 20 per project a day. With the switch off the board is not read.
+- **Forty agents at once** (the operator, 2026-11-05). Every agent's turn asks the home and the left column for a new
+  reading; with many agents those readings ran back to back. A reading asked for by a mark now starts no sooner than
+  1.5 s after the previous one started, so the cost stays the same whether five agents or forty are working; the
+  15-second refresh and the reading in flight are unchanged.
 - **The left column names each agent first** (the operator, 2026-11-05). An agent's row leads with its own name (its
   project's display name); its small line says what runs it and the folder it works in, and the branch moved to the
   agent's page. The Агенты screen, the agent's own page and the task page's agent card name it the same way, and a task held by its own agent says that agent's name rather than a piece of its session id: the project first, then what runs it and its folder (a runner nobody started keeps the runner's name). «Переписка» (with its unread count) and «Доступ агентов» are places of the column now, beside История
   and Настройки, and Settings no longer carry them; Agent access opens as a full page. The column's width is the
   person's: drag its edge or step it with the arrow keys, 180 to 420 px, kept on this computer.
+- **Answering a project's requests is allowed at once on the operator's machine** (CO-494, ADR-0186). An agent that
+  asks for `board.respond` gets it without a consent prompt, recorded in the journal and revocable in Agent access.
+- **«Поручить агенту B в Fabric»** (CO-458). Work another project should do becomes a task in that project and a board
+  request; the request is answered when that task is done.
+- **Агенты lists Switchboard's sessions and limit stops** (CO-457, first part), as Fabric Dashboards does.
+- **An agent closes a task on the operator's relayed decision** (CO-478, ADR-0184): `fabric_task_close` takes the
+  operator's words with their source and date, and is refused without them.
+- **Главная without the folded «Ещё»** (CO-460): the star, the read position and the summary moved to the pages that
+  own them. The oldest reviews waiting more than three days reach the person, five at a time (CO-456).
+- **The agents' lines are truer**: a terminal agent's reported branch shows (CO-459); a Plan goal leading an agent's
+  line is said as the goal and opens Plan (CO-467); a stage report made just before a claim moved belongs to the next
+  task (CO-470); an agent with no runtime session id is joined by its binding and folder (CO-473); one status word for
+  an agent (CO-472); an agent's page reads across its session ids (CO-475); the narrow rail and an open console's row
+  (CO-483); display names on every screen, from the project's own descriptor (CO-471, CO-481); «простаивают» is told
+  apart from «молчат» (CO-484).
+- **Pulse over every project reads the journal's daily counts** (CO-474), as Главная's rhythm does, so one word shows one
+  number on both screens; one project's Pulse counts the events it holds.
+- **Smaller fixes**: a launched session is reminded of its task's missing brief (CO-462); pieces of a launched session's
+  claimed task link to it (CO-466); the sweep re-reads the tasks a full claims answer left out (CO-465); the hand-off
+  bound follows every spawned parent and refuses a cycle (CO-468); the strip's handed-in count is filtered in the
+  database and a partial waiting list says so (CO-482); the waiting list is coalesced (CO-477); the narrow layouts are
+  in DOM order for screen readers (CO-476); a Mac on Colima is told about Colima (CO-492); the contract repinned to
+  v0.1.0+2026-10-27.6 with Windows paths in the registry (CO-479). `com.enroll` now says a state with its nearest date
+  answers a request too (DEC-0152).
 - **Every agent shows its folder and branch** (CO-498). An agent that joined from its own terminal said «ветка
   неизвестна»; Fabric now keeps the folder its enrollment resolved, in memory only, and reads the branch there.
-- **A status that does not outlive its work** (CO-499). A claim on a task already in review, done or back in the
-  queue is let go at the next sweep, and the agent is told; an agent's own words older than its newest sign by more
+- **A status that does not outlive its work** (CO-499). A claim on a task that is done or cancelled, or that moved to
+  review or back to the queue after the claim was taken, is let go at the next sweep, and the agent is told (a claim
+  taken on a task already in review is kept); an agent's own words older than its newest sign by more
   than 30 minutes are said as old, with their age.
 - **Fabric reads its own log every hour and every day** (CO-500, ADR-0188). Every record is counted by operation and
   outcome into hourly and daily digests in `userData/digests`, counts only; an operation whose failures reached 10 in
@@ -92,9 +120,8 @@ alone, and going back to 0.3.14 is the 0.3.14 bundle alone.
   (CO-473). A stage report is tied to the task the session holds.
 - **The work rhythm counts 28 days.** The chart reads one count per day from the journal instead of the newest 500
   events, which covered less than two hours, and its results (handed in) and decisions (yours) are filtered by the
-  database. Главная's strip, the chart and Pulse share one definition of a result and of a decision, and Pulse over every
-  project reads the same daily counts, so one word shows one number on both screens; one project's Pulse counts the
-  events it holds. The chart turns over at midnight on a quiet machine and says when it is not current.
+  database. Главная's strip, the chart and Pulse share one definition of a result and of a decision; Pulse still counts
+  them on the events it holds. The chart turns over at midnight on a quiet machine and says when it is not current.
 - **The left column lists the projects at work,** with «Все проекты · N» to unfold the rest (the whole list until the
   first reading answers), readable project names (from the agent's own service file, else the folder name tidied,
   «OS» and «MCP» kept upper case), long names cut with «…», and no badges the page already says. The project page's

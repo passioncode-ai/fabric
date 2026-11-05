@@ -137,6 +137,16 @@ describe('review fixes', () => {
     expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'claimed' }] })).toEqual([])
     expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'accepted' }] })).toEqual([])
   })
+
+  it('CO-409 (0.3.16 review, PL-1): a request the dispatcher gave to the operator shows in any open state, at once', () => {
+    const r = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(MIN), answerUnreadSince: null, toOperator: true }
+    for (const state of ['queued', 'claimed', 'accepted', 'in_progress']) {
+      const f = findAbandoned({ ...empty, requests: [{ ...r, state }] })
+      expect(f.map((x) => x.kind)).toEqual(['request-unmoved'])
+      expect(f[0].nextStep).toMatch(/waits for the operator/)
+    }
+    expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'completed' }] })).toEqual([])
+  })
 })
 
 // 0.3.13 review, iteration 1, ER-4: a stalled terminal is still since it went quiet, not since it was marked stalled.
@@ -235,7 +245,7 @@ describe('claim-closed (CO-499)', () => {
   const claim = { claimId: 'c9', taskId: 't9', projectId: 'p1', sessionId: 's9', expiresAt: ago(-30 * MIN), claimedAt: ago(5 * 24 * 60 * MIN), renewedAt: ago(MIN), session: { lastSignAt: NOW - MIN } }
   it('is found for a live claim whose task left work, and is the agent\'s alone', () => {
     for (const taskStatus of ['review', 'done', 'cancelled', 'backlog']) {
-      const found = findAbandoned({ ...empty, claims: [{ ...claim, taskStatus }] })
+      const found = findAbandoned({ ...empty, claims: [{ ...claim, taskStatus, taskMovedAt: ago(MIN) }] })
       expect(found.map((f) => f.kind), taskStatus).toEqual(['claim-closed'])
       expect(found[0]).toMatchObject({ key: 'claim-closed:c9', claimId: 'c9', sessionId: 's9', taskId: 't9' })
       expect(found[0].nextStep).toContain(taskStatus)
@@ -248,6 +258,14 @@ describe('claim-closed (CO-499)', () => {
     expect(findAbandoned({ ...empty, claims: [{ ...claim, taskStatus: 'unknown' }] })).toEqual([])
   })
   it('wins over the claim\'s other judgements, so it is let go at once, not after two sweeps', () => {
-    expect(findAbandoned({ ...empty, claims: [{ ...claim, session: null, taskStatus: 'review' }] }).map((f) => f.kind)).toEqual(['claim-closed'])
+    expect(findAbandoned({ ...empty, claims: [{ ...claim, session: null, taskStatus: 'review', taskMovedAt: ago(MIN) }] }).map((f) => f.kind)).toEqual(['claim-closed'])
+  })
+  it('0.3.16 review, ER-11: a claim taken on a task already in review or backlog is kept; done and cancelled always let go', () => {
+    for (const taskStatus of ['review', 'backlog']) {
+      expect(findAbandoned({ ...empty, claims: [{ ...claim, taskStatus, taskMovedAt: ago(6 * 24 * 60 * MIN) }] }).map((f) => f.kind), taskStatus).not.toContain('claim-closed')
+      expect(findAbandoned({ ...empty, claims: [{ ...claim, taskStatus, taskMovedAt: null }] }).map((f) => f.kind), taskStatus).not.toContain('claim-closed')
+    }
+    for (const taskStatus of ['done', 'cancelled'])
+      expect(findAbandoned({ ...empty, claims: [{ ...claim, taskStatus, taskMovedAt: ago(6 * 24 * 60 * MIN) }] }).map((f) => f.kind)).toEqual(['claim-closed'])
   })
 })

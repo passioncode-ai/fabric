@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d",
+  "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-ux.md",
+  "reportSha256": "31f86abbad0b87433efc8967e0870510d52b3e7db8267f34d75cc4620b68dc1c",
+  "reviewerRun": "release-0316-i1-ux-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V1-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rule names the panel itself (`.ceo-panel.ceo-page`, `apps/desktop/src/renderer/src/launch/rail.css`)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every product and agent-facing string names Agent access in the left column (14 files, `i18n/ru.ts`, `i18n/en.ts`, `main/hubCall.ts`, `main/agentSurface.ts`, `main/fabricMcp.ts` and others); text check reports `5c0ade5b` ru-RU, `922fccc5` en-US"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V1-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `aria-labelledby` names the word and the count (`launch/LaunchShell.tsx#LaunchShell`); test `Rail.test.tsx` «UX-3: «Переписка» says its unread count in its accessible name»"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V1-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG `## Unreleased` names CO-494, CO-458, CO-457, CO-478, CO-460, CO-456, the agents' lines (CO-459, CO-467, CO-470, CO-473, CO-472, CO-475, CO-483, CO-471, CO-481, CO-484), CO-474 and the smaller fixes"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V1-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-132, SCN-133 and SCN-143 amended 2026-11-05 (`docs/ux/scenarios.md`); the Comms count row in `AGENTS.md`"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V1-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the small line says «Без проекта» when the title is the runner (`launch/LaunchShell.tsx#LaunchShell`)"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V1-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-507"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V1-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-507"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V1-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `aria-valuetext` (`rail.resizeValue`), Home and End to the bounds, `pointercancel` ends a drag (`launch/LaunchShell.tsx#LaunchShell`); test `Rail.test.tsx` «0.3.16 review, UX-9: …»"
+      ]
+    }
+  ]
+}

@@ -48,9 +48,9 @@ const id = (n) => `79000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const row = (n, extra = {}) => ({ id: id(n), estate_id: E, name: `p${n}`, business: null, repo_path: null, status: 'active', ...extra })
 
 test('DA-4: archived Projects are read with their business, marked archived', async () => {
-  const { db } = projectsDb([row(1, { business: 'Appvillis', status: 'archived' }), row(2, { business: 'PhoneCo' }), row(3, { estate_id: 'other' })])
+  const { db } = projectsDb([row(1, { business: 'Acme', status: 'archived' }), row(2, { business: 'PhoneCo' }), row(3, { estate_id: 'other' })])
   const facts = await readProjectFacts(db, E)
-  assert.deepEqual(facts.map((f) => [f.name, f.business, f.archived]), [['p1', 'Appvillis', true], ['p2', 'PhoneCo', false]])
+  assert.deepEqual(facts.map((f) => [f.name, f.business, f.archived]), [['p1', 'Acme', true], ['p2', 'PhoneCo', false]])
 })
 
 test('DA-3: paged by id above the last read, a Project created mid-read neither pushes another past a page nor is read twice', async () => {
@@ -115,14 +115,14 @@ const post = (key) => ({ idempotency: { epoch: 1, key }, thread: { id: id(92) },
 const opened = (key, participants) => ({ idempotency: { epoch: 1, key }, thread: { new: { participants } }, kind: 'announcement', body: { text: 'hello' } })
 const facts = [
   { id: caller.projectId, name: 'phone-bot', business: 'PhoneCo', repo: null },
-  { id: id(22), name: 'messenger', business: 'Appvillis', repo: null, archived: true }
+  { id: id(22), name: 'messenger', business: 'Acme', repo: null, archived: true }
 ]
 
 test('DA-4: an archived Project\'s business still walls a thread it takes part in', async () => {
   const { board: b, calls } = board({ projectFacts: async () => facts })
   const r = await b.submit(caller, opened('wall-arch-01', [id(22)]))
   assert.equal(r.error?.code, 'not_authorized')
-  assert.match(r.error.message, /Appvillis \(messenger\)/)
+  assert.match(r.error.message, /Acme \(messenger\)/)
   assert.equal(calls.length, 0)
 })
 

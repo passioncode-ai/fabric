@@ -1,6 +1,6 @@
 # ADR-0184: An agent closes or cancels a task only on the operator's relayed decision
 
-**Status:** accepted · 2026-10-28, carry-over row CO-478 (the 0.3.15 release review, iteration 2, PL-7; prowlagent's
+**Status:** accepted · 2026-10-28, carry-over row CO-478 (the 0.3.15 release review, iteration 2, PL-7; another project's
 request `1c4d2a1c` on the board, thread `a888a8cb`) · the operator's dashboard-parity rule of 2026-10-24 ·
 fabric-agent-contract DEC-0121 AP-2 · narrows the agent half of `shared/ladder.ts#mayMove`, which stays as it is.
 
@@ -10,7 +10,7 @@ The board's ladder (`apps/desktop/src/shared/ladder.ts`) holds that an agent doe
 to review and the person accepts or cancels it. Its comment names the way out: "when we do want that automated, it goes
 through a grant like any other floored act". On 2026-10-24 the operator ruled that every action a dashboard offers them
 as a button is an agent action too when they say it in chat, with their words recorded as the reason. On 2026-10-27 the
-operator told prowlagent's session to cancel six wave cards of a closed project; the agent had no door
+operator told another project's session to cancel six wave cards of a closed project; the agent had no door
 (`fabric_task_move` knows backlog, running and review, and the obligation `ladder.no-self-close` is refused), so the
 cards waited in review for one click each.
 
@@ -41,7 +41,7 @@ target?, instruction, at, source?}`, which Fabric's hub already checks and forwa
 
 ## Consequences
 
-- prowlagent's six cards, and any later relayed close, take one call instead of a click per card.
+- another project's six cards, and any later relayed close, take one call instead of a click per card.
 - A relayed close is visible as such in the journal; the home, the rhythm and the analytics count it as a close, as
   they count the dashboard's.
 - Alignment with `docs/ux/vision.md` §6: the authority stays the person's (their words, recorded), so model confidence

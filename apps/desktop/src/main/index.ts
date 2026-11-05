@@ -1064,7 +1064,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     registry,
     // ADR-0160 §4 (0.3.7 wave 3): an agent's ask of a product's resources is a question on Главная (the board's access
     // item, Разрешить / Не разрешать), never a native prompt or a notification. The request is journalled and read from
-    // there (attention.ts); nothing pops up. The presenter stays for the queue Settings → Agent access still shows.
+    // there (attention.ts); nothing pops up. The presenter stays for the queue Agent access still shows.
     present: (request) => { ops.record({ op: 'hub.access.asked-on-home', outcome: 'ok', detail: { request_id: request.row.id }, ctx: { correlationId: ops.correlate() } }) },
     connected: async (product) => (await accessStore.liveConnection(product)) !== null,
     // Who may ask Fabric itself for a session: a coding agent of the runner catalogue whose program is found on this
@@ -2816,11 +2816,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // The sweep of abandoned work (CO-427): every third pass of the cycle below. Its reads are the screens' own (claims,
   // running tasks), the operator's read door onto the board, and the observer's last pass over Fabric's terminals.
   const sweepBoard = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
+  const dispatchHolder: { current: { toOperator(): Set<string> } | null } = { current: null }
   abandonedSweep = createAbandonedSweep({
     now: () => Date.now(),
     readClaims: (now) => readSweepClaims(store, now, sessionSignOf),
     readRunningTasks: () => readRunningTasks(store),
-    readRequests: (now) => readBoardRequests(sweepBoard, ACTIVE_ESTATE, now),
+    // CO-409 (the 0.3.16 review, PL-1): a request the dispatcher gave up on after two empty runs is the operator's,
+    // whatever its state, and shows in «На проверке».
+    readRequests: async (now) => {
+      const r = await readBoardRequests(sweepBoard, ACTIVE_ESTATE, now)
+      const given = dispatchHolder.current?.toOperator() ?? new Set<string>()
+      return given.size ? { ...r, requests: r.requests.map((x) => (given.has(x.requestId) ? { ...x, toOperator: true } : x)) } : r
+    },
     // 0.3.14 wave 2: the session hooks' turns, to see a session changing files with no claim.
     readTurns: (now) => readRecentTurns(store, now),
     // 0.3.14 wave 2: the claimed tasks' briefs, to remind a claim of the parts it has not written.
@@ -2860,10 +2867,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     repos: projectRepos,
     sessionLive: (projectId) => heldSessions(projectId).length > 0,
     switchOn: () => readSettings().dispatchBoardRequests,
+    quitting: () => quit.quitting,
     file: path.join(app.getPath('userData'), 'board-dispatches.json'),
     env: process.env,
     log: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
   })
+  dispatchHolder.current = dispatcher
   quit.onQuit(() => { void dispatcher.close() })
   // #endregion board-dispatch-cycle
 

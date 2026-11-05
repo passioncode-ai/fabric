@@ -103,7 +103,7 @@ test('UX-5: an Allow whose product could not be opened is followed by a message 
   const follow = h.log.filter((e) => e[0] === 'box')[1]
   assert.ok(follow, 'the operator was told nothing')
   assert.equal(follow[6], 'warning')
-  assert.match(follow[5], /^Allowed\. To connect it, open Agent access in settings\. It did not connect: Fabric Inbox could not be opened/)
+  assert.match(follow[5], /^Allowed\. To connect it, open Agent access in the left column\. It did not connect: Fabric Inbox could not be opened/)
   // Iteration 2, UX-5: the machine's words are the box's detail, never inside the sentence.
   assert.doesNotMatch(follow[5], /no handler/)
   assert.equal(h.details[1], 'What Fabric saw: no handler')

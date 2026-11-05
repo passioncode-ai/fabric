@@ -34,7 +34,7 @@ function shell(over: Partial<LaunchShellProps> = {}, locale: 'en' | 'ru' = 'en',
     pins: ['p1'],
     live: new Set(['p2']),
     waiting: { total: 3, byProject: { p3: 2 } },
-    agents: { rows: [agent('s1', 'Fabric', { branch: 'release/0.3.14', folder: '/Users/me/DATA/_worktrees/fabric-co409' }), agent('s2', 'Kimi', { runner: 'kimi-code', state: 'quiet', status: 'idle' })], problem: null },
+    agents: { rows: [agent('s1', 'Fabric', { branch: 'release/0.3.14', folder: '/Users/example/DATA/_worktrees/fabric-co409' }), agent('s2', 'Kimi', { runner: 'kimi-code', state: 'quiet', status: 'idle' })], problem: null },
     machine: 'ok',
     onPlace: vi.fn(),
     onCreateProject: vi.fn(),
@@ -164,7 +164,7 @@ describe('the left column', () => {
     expect(rows[0].textContent).not.toContain('release/0.3.14')
     // CO-498: the folder by its last segment, the whole path on hover; none when Fabric knows no folder.
     expect(rows[0].textContent).toContain('fabric-co409')
-    expect(rows[0].querySelector('.rail-folder')?.getAttribute('title')).toBe('/Users/me/DATA/_worktrees/fabric-co409')
+    expect(rows[0].querySelector('.rail-folder')?.getAttribute('title')).toBe('/Users/example/DATA/_worktrees/fabric-co409')
     expect(rows[1].querySelector('.rail-folder')).toBeNull()
     expect(rows[1].textContent).not.toContain(en['rail.agents.branchUnknown'])
     // The status in a word beside its colour, never the colour alone (R-19).
@@ -475,5 +475,24 @@ describe('the rail\u2019s width (the operator, 2026-11-05)', () => {
     expect(railWidthOf('10')).toBe(RAIL_MIN)
     expect(railWidthOf('9999')).toBe(RAIL_MAX)
     expect(railWidthOf('260.4')).toBe(260)
+  })
+  it('0.3.16 review, UX-9: the separator says its width in words, and Home and End go to the bounds', async () => {
+    const { RAIL_MIN, RAIL_MAX } = await import('./LaunchShell')
+    shell()
+    const sep = screen.getByRole('separator', { name: en['rail.resize'] })
+    expect(sep.getAttribute('aria-valuetext')).toMatch(/pixels wide/)
+    fireEvent.keyDown(sep, { key: 'End' })
+    expect(sep.getAttribute('aria-valuenow')).toBe(String(RAIL_MAX))
+    fireEvent.keyDown(sep, { key: 'Home' })
+    expect(sep.getAttribute('aria-valuenow')).toBe(String(RAIL_MIN))
+  })
+})
+
+describe('the rail\u2019s foot (0.3.16 review)', () => {
+  it('UX-3: «Переписка» says its unread count in its accessible name', () => {
+    shell({ commsUnread: { count: 4, atLeast: false } })
+    const link = screen.getAllByRole('link').find((a) => a.getAttribute('aria-labelledby')?.includes('rail-name-comms'))!
+    expect(link.getAttribute('aria-labelledby')).toBe('rail-name-comms rail-count-comms')
+    expect(document.getElementById('rail-count-comms')?.getAttribute('aria-label')).toContain('4')
   })
 })

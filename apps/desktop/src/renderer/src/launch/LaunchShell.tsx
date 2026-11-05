@@ -173,9 +173,10 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
     const x0 = e.clientX
     const w0 = railWidth
     const move = (ev: PointerEvent): void => setRail(w0 + ev.clientX - x0)
-    const up = (): void => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
+    const up = (): void => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up) }
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
   }
   const locale = useLocale()
   const { at, projects } = props
@@ -371,7 +372,8 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                       <span className="rail-agent-words">
                         <span className="rail-name">{title}</span>
                         <span className="rail-agent-line">
-                          <span className="rail-runner">{runnerLabel(a.runner, t)}</span>
+                          {/* With no project the title is already the runner: the line says «Без проекта» instead (0.3.16 review, UX-6). */}
+                          <span className="rail-runner">{a.projectName ? runnerLabel(a.runner, t) : t('launch.home.agents.noProject')}</span>
                           {/* CO-498: the folder it works in, by its last segment, the whole path on hover. */}
                           {folder && <span className="rail-folder" title={a.folder ?? undefined}> · {folder}</span>}
                           {/* Every status keeps its word beside its shape, «Работает» included (0.3.14's UX-26, R-19; the
@@ -396,14 +398,15 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
         </div>
         )}
         <nav className="rail-places rail-foot" aria-label={t('rail.label')}>
-          {/* No count on Настройки (the mockup parity, rail gap 13): the Comms count stays inside Настройки → Ещё. */}
+          {/* «Переписка» carries the unread count; it is part of the link's name, so a screen reader says it (0.3.16 review, UX-3). */}
           {FOOT.map((place) => (
-            <a key={place} href="#" title={t(`rail.${place}`)} aria-labelledby={`rail-name-${place}`}
+            <a key={place} href="#" title={t(`rail.${place}`)}
+              aria-labelledby={place === 'comms' && props.commsUnread && props.commsUnread.count > 0 ? 'rail-name-comms rail-count-comms' : `rail-name-${place}`}
               {...current(at.kind === place)} onClick={(e) => go(e, () => props.onPlace(place))}>
               <span className={`rail-i rail-i-${place}`} aria-hidden="true" />
               <span className="rail-name" id={`rail-name-${place}`}>{t(`rail.${place}`)}</span>
               {place === 'comms' && props.commsUnread && props.commsUnread.count > 0 && (
-                <span className="rail-c" aria-label={t(props.commsUnread.atLeast ? 'rail.commsUnreadMax' : 'rail.commsUnread', { count: props.commsUnread.count })}>
+                <span className="rail-c" id="rail-count-comms" aria-label={t(props.commsUnread.atLeast ? 'rail.commsUnreadMax' : 'rail.commsUnread', { count: props.commsUnread.count })}>
                   {props.commsUnread.count}{props.commsUnread.atLeast ? '+' : ''}
                 </span>
               )}
@@ -412,9 +415,13 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
         </nav>
         {/* Drag to set the rail's width; the arrows step it by 16 px for a keyboard. */}
         <div className="rail-resize" role="separator" aria-orientation="vertical" aria-label={t('rail.resize')}
-          aria-valuemin={RAIL_MIN} aria-valuemax={RAIL_MAX} aria-valuenow={railWidth} tabIndex={0}
+          aria-valuemin={RAIL_MIN} aria-valuemax={RAIL_MAX} aria-valuenow={railWidth} aria-valuetext={t('rail.resizeValue', { px: railWidth })} tabIndex={0}
           onPointerDown={startResize}
-          onKeyDown={(e) => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); setRail(railWidth + (e.key === 'ArrowRight' ? 16 : -16)) } }} />
+          onKeyDown={(e) => {
+            // Arrows step by 16 px; Home and End go to the narrowest and the widest (0.3.16 review, UX-9).
+            const next = e.key === 'ArrowLeft' ? railWidth - 16 : e.key === 'ArrowRight' ? railWidth + 16 : e.key === 'Home' ? RAIL_MIN : e.key === 'End' ? RAIL_MAX : null
+            if (next !== null) { e.preventDefault(); setRail(next) }
+          }} />
         {props.machine === 'trouble' && (
           <p className="rail-machine" role="status" title={t('rail.machine.trouble')}>
             <span className="rail-dot trouble" aria-hidden="true" />

@@ -38,7 +38,7 @@ type Store = ReturnType<typeof createScopedStore>
 
 export interface ClaimView extends ClaimRow {
   project_id: string
-  task: { id: string; title: string; status: string }
+  task: { id: string; title: string; status: string; movedAt?: string | null }
   source: SourceRow | null
   life: ClaimLife
   last_sign_at: string
@@ -113,7 +113,7 @@ export async function readWork(store: Store, opts: { now: number; session: Sessi
   const runOf = new Map((await readRunHolds(store, lapsed)).map((h) => [h.taskId, h]))
 
   const [tasks, sources, from, to] = await Promise.all([
-    store.selectIn('project_tasks', 'id,title,instruction,status', 'id', ids),
+    store.selectIn('project_tasks', 'id,title,instruction,status,moved_at', 'id', ids),
     store.selectIn('task_sources', 'task_id,repository,repo_path,path,row_id', 'task_id', ids),
     store.selectIn('task_links', 'task_id,rel,target_id,target_kind', 'task_id', ids),
     store.selectIn('task_links', 'task_id,rel,target_id,target_kind', 'target_id', ids)
@@ -122,7 +122,8 @@ export async function readWork(store: Store, opts: { now: number; session: Sessi
   const taskOf = new Map(tasks.rows.map((t) => [t.id as string, {
     id: t.id as string,
     title: ((t.title as string | null) ?? (t.instruction as string | null) ?? '').slice(0, 200),
-    status: t.status as string
+    status: t.status as string,
+    movedAt: typeof t.moved_at === 'string' ? t.moved_at : null
   }]))
   const sourceOf = new Map(sources.rows.map((s) => [s.task_id as string, s as unknown as SourceRow]))
   const seen = new Set<string>()

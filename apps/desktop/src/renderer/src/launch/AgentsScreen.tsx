@@ -54,7 +54,7 @@ function together(states: readonly ReadState[]): ReadState {
 type HubRead = { at: 'reading' } | { at: 'ready'; ov: HubOverview } | { at: 'failed'; says: string }
 type Refusal = { agentId: string; act: 'disconnect' | 'letIn'; why: string; says?: string }
 
-/** The joined and disconnected coding agents (`hub.overview`, as Settings → Agent access reads it) and the two acts on
+/** The joined and disconnected coding agents (`hub.overview`, as Agent access reads it) and the two acts on
  *  them; read again when the journal's act and access events move (`mark`), so an undo pressed elsewhere is seen. */
 function useHub(mark: number) {
   const [read, setRead] = useState<HubRead>({ at: 'reading' })

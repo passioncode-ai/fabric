@@ -480,9 +480,9 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.revokeFor` | Revoke for {name}: {line} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.revokeAllFor` | Revoke all for {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.clearFor` | Clear the denial for {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.allowedConnect` | Allowed. To connect it, open Agent access in settings. It did not connect: {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.lasts` | Access lasts a year unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.denyStands` | Deny keeps refusing this same request until you clear the denial in the list of denied requests under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
+| `access.allowedConnect` | Allowed. To connect it, open Agent access in the left column. It did not connect: {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.lasts` | Access lasts a year unless you revoke it under Agent access in the left column. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.denyStands` | Deny keeps refusing this same request until you clear the denial in the list of denied requests under Agent access in the left column. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
 | `access.denials.note` | Fabric refuses a denied request by itself each time the same agent asks for the same access again. Clearing the denial lets that agent ask you again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
 | `access.floor` | Fabric checked that an agent with this id is installed on this computer. Fabric cannot prove which program sent the request: any program running as you could use that id. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.incremental` | This agent already has access through Fabric; this adds to it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
@@ -565,7 +565,7 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.allowConnectFor` | Allow and connect {product} for {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.allowedConnectHere` | Allowed. Connect it in the products section above. {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.queue.allowed` | You allowed {name} to use {product}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
-| `access.queue.allowedNotConnected` | You allowed {name} to use {product}. To connect it, open Agent access in settings. It did not connect: {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
+| `access.queue.allowedNotConnected` | You allowed {name} to use {product}. To connect it, open Agent access in the left column. It did not connect: {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
 | `access.queue.denied` | You denied {name} access to {product}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.queue.enrolled` | You let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented (CO-207) |
 | `access.queue.enrollDenied` | You did not let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented (CO-207) |
@@ -747,7 +747,7 @@ lands beside SCN-132.
 | `access.enroll.title` | Let {name} work in {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1048 | SCN-132 (enrollment) | proposed |
 | `access.enroll.message` | {name}, opened outside Fabric, asks to work in {project} | apps/desktop/src/renderer/src/i18n/en.ts:1049 | SCN-132 (enrollment) | proposed |
 | `access.enroll.what` | It gets what a session Fabric starts gets, in {project} only: the project’s context, its tasks, board and memory, messages with other projects, and a record of its work. | apps/desktop/src/renderer/src/i18n/en.ts:1050 | SCN-132 (enrollment) | proposed |
-| `access.enroll.revoke` | Every later session of {name} in {project} joins without asking, for a year, unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts:1051 | SCN-132 (enrollment) | proposed |
+| `access.enroll.revoke` | Every later session of {name} in {project} joins without asking, for a year, unless you revoke it under Agent access in the left column. | apps/desktop/src/renderer/src/i18n/en.ts:1051 | SCN-132 (enrollment) | proposed |
 | `access.enroll.thisProject` | this project | apps/desktop/src/renderer/src/i18n/en.ts:1052 | SCN-132 (enrollment) | proposed |
 | `access.enroll.projectNamed` | {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 (enrollment) | proposed |
 | `access.enroll.floor` | Fabric cannot prove this is {name}: any program running as you can ask under that name. | apps/desktop/src/renderer/src/i18n/en.ts:1054 | SCN-132 (enrollment) | proposed |
@@ -771,7 +771,7 @@ lands beside SCN-132.
 | `access.respond.what` | It may take and answer the requests other projects send to {project} for these capabilities. This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is not an approval unless it carries your own words, when and where you said them, and what you approved. | apps/desktop/src/renderer/src/i18n/en.ts:1065 | SCN-145 (responder grant); DEC-0126, CO-435 (Copylot d1af4aae) | proposed |
 | `access.respond.projectTo` | {name} | apps/desktop/src/renderer/src/i18n/en.ts:1066 | SCN-145 (responder grant) | proposed |
 | `access.respond.thisProjectTo` | this project | apps/desktop/src/renderer/src/i18n/en.ts:1067 | SCN-145 (responder grant) | proposed |
-| `access.respond.revoke` | For a year, unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts:1068 | SCN-145 (responder grant) | proposed |
+| `access.respond.revoke` | For a year, unless you revoke it under Agent access in the left column. | apps/desktop/src/renderer/src/i18n/en.ts:1068 | SCN-145 (responder grant) | proposed |
 | `access.queue.respondTitle` | {name} asks to answer requests for {project} | apps/desktop/src/renderer/src/i18n/en.ts:1069 | SCN-145 (responder grant) | proposed |
 | `access.queue.responded` | You let {name} answer requests for {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1070 | SCN-145 (responder grant) | proposed |
 | `access.queue.respondDenied` | You did not let {name} answer requests for {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1071 | SCN-145 (responder grant) | proposed |

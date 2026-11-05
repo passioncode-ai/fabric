@@ -1,8 +1,8 @@
 # ADR-0186: Answering a project's requests is allowed at once on the operator's own machine
 
 **Status:** accepted · 2026-11-04 · carry-over row CO-494 · records the operator's word relayed by fabric-workspace from
-traffic-growth-agent's session `1d031d27` (about 09:50 UTC): «дай гранты всеем и передай фабрику чтобы давай и не лочил
-по дороге, всем апрув» · amends [ADR-0160](0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)
+another project's session `1d031d27` (about 09:50 UTC; paraphrased, ADR-0096 §5: grant answering to every project and
+let Fabric give it without a stop on the way) · amends [ADR-0160](0160-on-the-operators-machine-an-act-happens-at-once-is-recorded-and-can-be-undone.md)
 (its immediate local lanes) and [ADR-0149](0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md)
 §2 (responding is a grant the operator decides) · part of wave 1 of
 [the on-demand sessions spec](../evidence/specs/2026-11-04-on-demand-sessions.md) §2.
@@ -42,3 +42,12 @@ Tests: `apps/desktop/test/session-enroll-request.test.mjs`, «CO-494: board.resp
 own machine, recorded as the agent's own revocable act» and «board.respond: a coding agent or a registered service asks
 once, with the project named in the snapshot, and is allowed at once (CO-494)»; a planted defect (board.respond removed
 from the lanes) fails both.
+
+## Amendments
+
+- 2026-11-05, the 0.3.16 release review (DO-8): decision 4 is not what the code does. `IMMEDIATE_LOCAL_LANES`
+  (`apps/desktop/src/main/accessService.ts`) allows `board.respond` at once on every machine Fabric runs on, because
+  Fabric reads no machine's trust yet, so an organization machine is not told apart from the operator's. Telling them
+  apart, and narrowing the immediate grant to the asking agent's own project and the capabilities that project
+  declared, is carry-over row CO-506 (by 2026-11-12); until then the release notes say «on the operator's machine» of
+  the only machines Fabric is installed on.

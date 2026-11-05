@@ -10,16 +10,16 @@ const NOW = Date.parse('2026-11-02T12:00:00Z')
 const s = (t) => Math.floor(t / 1000)
 const SESSIONS = { data: { sessions: [
   { account_id: 'acc-1', agent: 'claude-code', label: 'work@example.com', provider: 'claude', pool: 'agents', mode: 'managed', state: 'running', in_place: false,
-    launched_at: s(NOW - 600_000), started_at: s(NOW - 590_000), working_directory: '/Users/p/DATA/atlas', home: 'runtimes' },
+    launched_at: s(NOW - 600_000), started_at: s(NOW - 590_000), working_directory: '/Users/example/DATA/atlas', home: 'runtimes' },
   // Ended two days ago: older than a day, so not listed.
   { account_id: 'acc-2', agent: 'codex', label: 'old@example.com', provider: 'codex', pool: 'default', mode: 'isolated', state: 'ended', in_place: true,
-    launched_at: s(NOW - 2 * 86_400_000), started_at: s(NOW - 2 * 86_400_000), working_directory: '/Users/p/DATA/old', home: 'homes' },
+    launched_at: s(NOW - 2 * 86_400_000), started_at: s(NOW - 2 * 86_400_000), working_directory: '/Users/example/DATA/old', home: 'homes' },
   { working_directory: 'relative/path', state: 'running' }
 ] } }
 const RECOVERY = { data: { coverage: 'registered_sessions_only', sessions: [
-  { stop: { event: 'cc-a1-1793600000', session: 'a1', directory: '/Users/p/DATA/beta', provider: 'claude', state: 'waiting', kind: 'limit', stopped_at: s(NOW - 3_600_000), attempt: 1, account: 'acc-1' },
+  { stop: { event: 'cc-a1-1793600000', session: 'a1', directory: '/Users/example/DATA/beta', provider: 'claude', state: 'waiting', kind: 'limit', stopped_at: s(NOW - 3_600_000), attempt: 1, account: 'acc-1' },
     ready: false, candidates: [], probe_at: s(NOW + 1_800_000), reason: 'no_account' },
-  { stop: { event: 'cc-b2-1793600001', session: 'b2', directory: '/Users/p/DATA/gamma', provider: 'claude', state: 'resumed', kind: 'limit', stopped_at: s(NOW - 3_600_000), attempt: 1 },
+  { stop: { event: 'cc-b2-1793600001', session: 'b2', directory: '/Users/example/DATA/gamma', provider: 'claude', state: 'resumed', kind: 'limit', stopped_at: s(NOW - 3_600_000), attempt: 1 },
     ready: true, candidates: ['acc-1'] }
 ] } }
 

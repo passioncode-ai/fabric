@@ -66,7 +66,7 @@ describe('an access request in the queue', () => {
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { hub: { decide } } }))
     render(<I18nProvider locale="en"><Harness item={itemOf(false)} onError={onError} /></I18nProvider>)
     fireEvent.click(screen.getByRole('button', { name: 'Allow and connect Fabric Inbox for Example agent' }))
-    await waitFor(() => expect(screen.getByText(/^Allowed\. To connect it, open Agent access in settings\. It did not connect: Fabric Inbox could not be opened/)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/^Allowed\. To connect it, open Agent access in the left column\. It did not connect: Fabric Inbox could not be opened/)).toBeTruthy())
     expect(screen.queryByRole('button', { name: /^Allow/ })).toBeNull()
     expect(onError).not.toHaveBeenCalled()
   })
@@ -90,7 +90,7 @@ describe('an access request in the queue', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Allow and connect Fabric Inbox for Example agent' }))
     await waitFor(() => expect(said).toHaveBeenCalled())
     const sentence = said.mock.calls[0][0] as string
-    expect(sentence.startsWith('You allowed Example agent to use Fabric Inbox. To connect it, open Agent access in settings. It did not connect:')).toBe(true)
+    expect(sentence.startsWith('You allowed Example agent to use Fabric Inbox. To connect it, open Agent access in the left column. It did not connect:')).toBe(true)
     expect(sentence.match(/allowed/gi)?.length).toBe(1)
   })
 

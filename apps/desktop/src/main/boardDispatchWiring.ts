@@ -69,10 +69,11 @@ export function wireBoardDispatch(o: {
   repos: (projectId: string) => Promise<Array<{ path: string; is_primary: boolean | null }>>
   sessionLive: (projectId: string) => boolean
   switchOn: () => boolean
+  quitting: () => boolean
   file: string
   env: NodeJS.ProcessEnv
   log: DispatchDeps['log']
-}): { onPass(): Promise<void>; close(): Promise<void> } {
+}): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Set<string> } {
   let probePath: Promise<string> | null = null
   const pathFor = (): Promise<string> => (probePath ??= widenProbePath(o.env.PATH ?? '', o.env))
   const bin = async (name: string): Promise<string | null> => findOnPath(name, await pathFor())
@@ -152,12 +153,14 @@ export function wireBoardDispatch(o: {
       writeFileSync(tmp, JSON.stringify(records), { mode: 0o600 })
       renameSync(tmp, o.file)
     },
-    log: o.log
+    log: o.log,
+    quitting: o.quitting
   }
   const dispatch = createBoardDispatch(deps)
   return {
     onPass: () => dispatch.onPass(),
-    close: () => observatory.close()
+    close: () => observatory.close(),
+    toOperator: () => dispatch.toOperator()
   }
 }
 // #endregion board-dispatch-wiring

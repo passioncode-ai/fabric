@@ -46,7 +46,7 @@ function deps(over = {}) {
     minted, journaled, surface, sessions,
     d: {
       liveGrants: async () => [grant()],
-      admittedFolders: async () => [{ projectId: P, path: '/Users/me/DATA/site' }],
+      admittedFolders: async () => [{ projectId: P, path: '/Users/example/DATA/site' }],
       projectName: async () => 'site',
       realpath: (f) => f,
       mint: (projectId, sessionId, taskId) => { minted.push({ projectId, sessionId, taskId }); return surface.mint(projectId, sessionId) },
@@ -61,7 +61,7 @@ function deps(over = {}) {
 
 test('a live grant on the folder\'s project mints one session for that project, no task, and journals it', async () => {
   const h = deps()
-  const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site/src', runtimeSessionId: 'abc-123' }, h.d)
+  const r = await enrollSession(binding, { cwd: '/Users/example/DATA/site/src', runtimeSessionId: 'abc-123' }, h.d)
   assert.equal(r.ok, true)
   assert.equal(r.session.projectId, P)
   assert.equal(r.session.how, 'ancestor')
@@ -77,7 +77,7 @@ test('a live grant on the folder\'s project mints one session for that project, 
 test('no grant, a revoked grant, an expired grant or a grant on another project: needs-grant, nothing minted', async () => {
   for (const grants of [[], [grant({ revoked_at: 'x' })], [grant({ expires_at: new Date(Date.now() - 1).toISOString() })], [grant({ resource: 'project:1b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d' })], [grant({ capability: 'agent.call' })]]) {
     const h = deps({ liveGrants: async () => grants })
-    const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+    const r = await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d)
     assert.deepEqual([r.ok, r.code, r.resource], [false, 'needs-grant', `project:${P}`])
     assert.equal(h.minted.length, 0)
     assert.equal(h.journaled.length, 0)
@@ -89,12 +89,12 @@ test('an unknown eligible Git folder is proposed for enrollment without a write 
     inspectFolder: async (cwd) => ({ path: cwd, name: 'newrepo', git: true, kind: 'repository', parent: null, branch: 'main', remote: null, lastCommit: null, stack: [] }),
     projectIdForFolder: () => P
   })
-  const proposed = await resolveAgentFolder('/Users/me/newrepo', h.d)
+  const proposed = await resolveAgentFolder('/Users/example/newrepo', h.d)
   assert.deepEqual(
     [proposed.ok, proposed.candidate, proposed.projectId, proposed.projectName, proposed.how, proposed.root],
-    [true, 'create', P, 'newrepo', 'create', '/Users/me/newrepo']
+    [true, 'create', P, 'newrepo', 'create', '/Users/example/newrepo']
   )
-  const r = await enrollSession(null, { cwd: '/Users/me/newrepo' }, h.d)
+  const r = await enrollSession(null, { cwd: '/Users/example/newrepo' }, h.d)
   assert.deepEqual([r.ok, r.code, r.projectId, r.projectName, r.resource], [false, 'needs-grant', P, 'newrepo', `project:${P}`])
   assert.equal(h.minted.length, 0)
   assert.equal(h.journaled.length, 0, 'the door proposal itself journals and creates nothing')
@@ -104,9 +104,9 @@ test('a non-Git folder becomes its own project at once, like a repository (opera
   const h = deps({
     inspectFolder: async (cwd) => ({ path: cwd, name: 'elsewhere', git: false, kind: 'folder', parent: null, branch: null, remote: null, lastCommit: null, stack: [] }),
     projectIdForFolder: () => P,
-    home: '/Users/me'
+    home: '/Users/example'
   })
-  const r = await enrollSession(binding, { cwd: '/Users/me/work/elsewhere' }, h.d)
+  const r = await enrollSession(binding, { cwd: '/Users/example/work/elsewhere' }, h.d)
   assert.notEqual(r.code, 'no-project', JSON.stringify(r))
   assert.equal(r.projectId ?? r.session?.projectId, P)
   assert.equal(r.projectName ?? r.session?.projectName, 'elsewhere')
@@ -114,8 +114,8 @@ test('a non-Git folder becomes its own project at once, like a repository (opera
 
 test('a non-Git folder that holds other projects, or sits right under home, is too broad', async () => {
   const plain = async () => ({ path: '', name: 'x', git: false, kind: 'folder', parent: null, branch: null, remote: null, lastCommit: null, stack: [] })
-  for (const cwd of ['/Users/me/Documents', '/Users/me/work']) {
-    const h = deps({ inspectFolder: plain, projectIdForFolder: () => P, home: '/Users/me', admittedFolders: async () => [{ path: '/Users/me/work/alpha', projectId: 'p-alpha' }] })
+  for (const cwd of ['/Users/example/Documents', '/Users/example/work']) {
+    const h = deps({ inspectFolder: plain, projectIdForFolder: () => P, home: '/Users/example', admittedFolders: async () => [{ path: '/Users/example/work/alpha', projectId: 'p-alpha' }] })
     const r = await enrollSession(binding, { cwd }, h.d)
     assert.deepEqual([r.ok, r.code], [false, 'no-project'], cwd)
     assert.match(r.message, /too broad/, cwd)
@@ -133,14 +133,14 @@ test('a relative, missing or non-string folder: bad-folder, said of this compute
 
 test('through the door (no binding) the folder\'s project is named, never a session', async () => {
   const h = deps()
-  const r = await enrollSession(null, { cwd: '/Users/me/DATA/site' }, h.d)
+  const r = await enrollSession(null, { cwd: '/Users/example/DATA/site' }, h.d)
   assert.deepEqual([r.ok, r.code, r.projectName], [false, 'needs-grant', 'site'])
   assert.equal(h.minted.length, 0)
 })
 
 test('the read-then-mint race: a grant found revoked when read again after the mint ends the session — needs-grant', async () => {
   const h = deps({ stillLive: async () => false })
-  const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+  const r = await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d)
   assert.deepEqual([r.ok, r.code], [false, 'needs-grant'])
   assert.equal(h.minted.length, 1, 'it was minted')
   assert.equal(h.surface.held.size, 0, 'and its bearer is gone again')
@@ -150,7 +150,7 @@ test('the read-then-mint race: a grant found revoked when read again after the m
 
 test('mint then journal: a journal that refuses the event takes the minted session with it, and the failure is thrown', async () => {
   const h = deps({ journal: async () => { throw new Error('the journal refused session.enrolled@1') } })
-  await assert.rejects(() => enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d), /journal refused/)
+  await assert.rejects(() => enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d), /journal refused/)
   assert.equal(h.minted.length, 1)
   assert.equal(h.surface.held.size, 0, 'no usable bearer the journal does not know of')
   assert.equal(h.sessions.size(), 0)
@@ -160,7 +160,7 @@ test('a loop of 200 enrolls hands out the one unspent bearer: one mint, one jour
   const h = deps()
   const bearers = new Set()
   for (let i = 0; i < 200; i++) {
-    const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+    const r = await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d)
     assert.equal(r.ok, true)
     bearers.add(r.session.bearer)
   }
@@ -173,7 +173,7 @@ test('a loop of 200 enrolls hands out the one unspent bearer: one mint, one jour
 test('pending bearers belong to one runtime identity, including the known/unknown boundary', async () => {
   for (const identities of [['rt-A', 'rt-B'], ['rt-A', null], [null, 'rt-B']]) {
     const h = deps()
-    const enroll = (runtimeSessionId) => enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId }, h.d)
+    const enroll = (runtimeSessionId) => enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId }, h.d)
     const [a, b] = await Promise.all(identities.map(enroll))
     assert.equal(a.ok, true)
     assert.equal(b.ok, true)
@@ -187,7 +187,7 @@ test('pending bearers belong to one runtime identity, including the known/unknow
     h.surface.claimAll()
     for (const [i, original] of [a, b].entries()) {
       const runtimeSessionId = identities[i]
-      const rejoin = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId, rejoinOnly: true }, h.d)
+      const rejoin = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId, rejoinOnly: true }, h.d)
       if (runtimeSessionId === null) assert.equal(rejoin.code, 'no-session')
       else assert.equal(rejoin.session.sessionId, original.session.sessionId, 'a hook rejoins its own session')
     }
@@ -197,7 +197,7 @@ test('pending bearers belong to one runtime identity, including the known/unknow
 test('concurrent same-runtime retries share one admitted pending bearer and journal event', async () => {
   const h = deps()
   const results = await Promise.all(Array.from({ length: 20 }, () =>
-    enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-same' }, h.d)))
+    enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-same' }, h.d)))
   assert.ok(results.every((r) => r.ok))
   assert.equal(new Set(results.map((r) => r.session.bearer)).size, 1)
   assert.equal(h.minted.length, 1)
@@ -209,7 +209,7 @@ test('a concurrent retry cannot receive a bearer while its admission will be ref
   const checking = new Promise((resolve) => { reachedCheck = resolve })
   const decision = new Promise((resolve) => { releaseCheck = resolve })
   const h = deps({ stillLive: async () => { reachedCheck(); return decision } })
-  const args = { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-same' }
+  const args = { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-same' }
   const first = enrollSession(binding, args, h.d)
   await checking
   const retry = enrollSession(binding, args, h.d)
@@ -234,7 +234,7 @@ test('a failed pending journal releases admission and a retry gets a fresh, jour
     if (++calls === 1) { reachedJournal(); return firstJournal }
     return normalJournal(...args)
   }
-  const args = { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-same' }
+  const args = { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-same' }
   const first = enrollSession(binding, args, h.d)
   const refusal = assert.rejects(first, /journal refused/)
   await journalling
@@ -258,11 +258,11 @@ test('pending admission in one binding does not serialize another binding', asyn
     if (id === binding.id) { reachedCheck(); return decision }
     return true
   } })
-  const first = enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-A' }, h.d)
+  const first = enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-A' }, h.d)
   await checking
   let secondFinished = false
   const second = enrollSession({ ...binding, id: 'b-other' }, {
-    cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-B'
+    cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-B'
   }, h.d).then((r) => { secondFinished = true; return r })
   try {
     await new Promise((resolve) => setImmediate(resolve))
@@ -275,10 +275,10 @@ test('pending admission in one binding does not serialize another binding', asyn
 
 test('a loop that spends every bearer is capped: the binding keeps at most MAX_ENROLLED_PER_BINDING live sessions, the oldest end', async () => {
   const h = deps()
-  const first = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+  const first = await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d)
   for (let i = 0; i < 199; i++) {
     h.surface.claimAll()
-    assert.equal((await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)).ok, true)
+    assert.equal((await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d)).ok, true)
   }
   assert.ok(h.surface.held.size <= MAX_ENROLLED_PER_BINDING, `the surface holds ${h.surface.held.size}`)
   assert.equal(h.sessions.size(), h.surface.held.size)
@@ -291,7 +291,7 @@ test('past the cap the least recently active session ends, never one that called
   const ids = []
   for (let i = 0; i < MAX_ENROLLED_PER_BINDING; i++) {
     now += 60_000
-    const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+    const r = await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d)
     ids.push(r.session.sessionId)
     h.surface.claimAll()
   }
@@ -299,7 +299,7 @@ test('past the cap the least recently active session ends, never one that called
   now += 30 * 60_000
   h.surface.signs.set(ids[0], now - 60_000)
   for (let i = 1; i < ids.length; i++) h.surface.signs.set(ids[i], 1_000_000 + i * 60_000 + 5_000)
-  const ninth = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+  const ninth = await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d)
   assert.equal(ninth.ok, true)
   assert.equal(h.surface.why.has(ids[0]), false, 'the live session is kept')
   assert.equal(h.surface.why.has(ids[1]), true, 'the session idle the longest ended')
@@ -309,18 +309,18 @@ test('past the cap the least recently active session ends, never one that called
   assert.doesNotMatch(h.surface.why.get(ids[1]), /restart/i)
   // A session with no call at all counts from its mint: the next to go is ids[2], still not the live one.
   h.surface.claimAll()
-  await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+  await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d)
   assert.equal(h.surface.why.has(ids[2]), true)
   assert.equal(h.surface.why.has(ids[0]), false)
 })
 
 test('the session hooks\' rejoins hold at most one bearer per session: an unspent one is handed out again, a spent one is replaced (0.3.5 review i2 ER-5)', async () => {
   const h = deps()
-  const first = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }, h.d)
+  const first = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1' }, h.d)
   h.surface.claimAll()
   const bearers = new Set()
   for (let i = 0; i < 50; i++) {
-    const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, h.d)
+    const r = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, h.d)
     assert.equal(r.ok, true)
     assert.equal(r.session.sessionId, first.session.sessionId)
     bearers.add(r.session.bearer)
@@ -354,7 +354,7 @@ async function enrolledWorld() {
   access.onBindingRevoked((bindingId) => sessions.endForBinding(bindingId))
   const d = {
     liveGrants: (x) => access.liveGrantsOf(x),
-    admittedFolders: async () => [{ projectId: P, path: '/Users/me/DATA/site' }],
+    admittedFolders: async () => [{ projectId: P, path: '/Users/example/DATA/site' }],
     projectName: async () => 'site', realpath: (f) => f, gitCommonDir: async () => null,
     mint: (projectId, sessionId, taskId) => surface.mint(projectId, sessionId, taskId),
     sessions, stillLive: (bid, gid) => access.enrollmentLive(bid, gid),
@@ -371,7 +371,7 @@ async function enrolledWorld() {
 test('revoking the grant ends the enrolled session: its bearer is refused on the next call, and the next enroll answers needs-grant', async (t) => {
   const w = await enrolledWorld()
   t.after(() => w.surface.stop())
-  const r = await enrollSession(w.binding, { cwd: '/Users/me/DATA/site' }, w.d)
+  const r = await enrollSession(w.binding, { cwd: '/Users/example/DATA/site' }, w.d)
   assert.equal(r.ok, true)
   assert.equal(w.surface.credentialState(r.session.bearer), 'unclaimed')
   const [g] = (await w.access.liveGrantsOf(w.binding)).filter((x) => x.capability === 'session.enroll')
@@ -380,18 +380,18 @@ test('revoking the grant ends the enrolled session: its bearer is refused on the
   const next = await w.call(r.session.bearer)
   assert.equal(next.status, 401)
   assert.match(next.text, /unknown or revoked credential/)
-  const again = await enrollSession(w.binding, { cwd: '/Users/me/DATA/site' }, w.d)
+  const again = await enrollSession(w.binding, { cwd: '/Users/example/DATA/site' }, w.d)
   assert.deepEqual([again.ok, again.code], [false, 'needs-grant'])
 })
 
 test('revoking the binding ends the enrolled session: its bearer is refused on the next call, and the next enroll answers needs-grant', async (t) => {
   const w = await enrolledWorld()
   t.after(() => w.surface.stop())
-  const r = await enrollSession(w.binding, { cwd: '/Users/me/DATA/site' }, w.d)
+  const r = await enrollSession(w.binding, { cwd: '/Users/example/DATA/site' }, w.d)
   assert.equal(r.ok, true)
   assert.equal((await w.access.revokeBinding(w.binding.id, { kind: 'operator', id: 'op' })).ok, true)
   assert.equal((await w.call(r.session.bearer)).status, 401)
-  const again = await enrollSession(w.binding, { cwd: '/Users/me/DATA/site' }, w.d)
+  const again = await enrollSession(w.binding, { cwd: '/Users/example/DATA/site' }, w.d)
   assert.deepEqual([again.ok, again.code], [false, 'needs-grant'])
 })
 
@@ -406,7 +406,7 @@ test('a revocation that lands between the mint and the re-read: the minted beare
     // The operator revokes while the enrollment awaits its re-read.
     stillLive: async (bid, gid) => { await w.access.revokeGrant(g.id, { kind: 'operator', id: 'op' }); return w.access.enrollmentLive(bid, gid) }
   }
-  const r = await enrollSession(w.binding, { cwd: '/Users/me/DATA/site' }, d)
+  const r = await enrollSession(w.binding, { cwd: '/Users/example/DATA/site' }, d)
   assert.deepEqual([r.ok, r.code], [false, 'needs-grant'])
   assert.equal(w.surface.credentialState(minted.token), null)
   assert.equal((await w.call(minted.token)).status, 401)
@@ -429,10 +429,10 @@ test('an enrolled agent that leaves (DELETE) ends its session and its claims go;
   t.after(() => surface.stop())
   const sessions = new EnrolledSessions({ end: (id, why) => surface.revokeSession(id, why), state: (tok) => surface.credentialState(tok), lastSign: (id) => surface.sessionSign(id)?.lastSignAt ?? null, drop: (tok) => surface.revokeCredential(tok) })
   const d = { ...deps().d, sessions, mint: (p, s, task, origin) => surface.mint(p, s, task, origin) }
-  const first = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }, d)
+  const first = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1' }, d)
   const mcp = await initialize(surface, first.session.bearer)
   assert.ok(mcp)
-  const hook = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, d)
+  const hook = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, d)
   const hookMcp = await initialize(surface, hook.session.bearer)
   // A leave without the session's handshake id is refused and ends nothing.
   assert.equal((await leave(surface, first.session.bearer, null)).status, 401)
@@ -456,10 +456,10 @@ test('an evicted session\'s next call is told it was evicted and that its claims
   t.after(() => surface.stop())
   const sessions = new EnrolledSessions({ end: (id, why) => surface.revokeSession(id, why), state: (tok) => surface.credentialState(tok), lastSign: (id) => surface.sessionSign(id)?.lastSignAt ?? null, drop: (tok) => surface.revokeCredential(tok) })
   const d = { ...deps().d, sessions, maxSessionsPerBinding: 1, mint: (p, s, task, origin) => surface.mint(p, s, task, origin) }
-  const first = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, d)
+  const first = await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, d)
   const mcp = await initialize(surface, first.session.bearer)
   assert.ok(mcp)
-  await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, d)
+  await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, d)
   const r = await fetch(`${surface.origin}/mcp`, { method: 'POST', headers: { authorization: `Bearer ${first.session.bearer}`, 'mcp-session-id': mcp, 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
     body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }) })
   assert.equal(r.status, 401)
@@ -481,9 +481,9 @@ test('a bearer minted and never presented does not stay: the next mint sweeps th
 // D2 (fabric-agent-adapter#53): the session hooks' fabric-mcp joins the session its coding agent already holds.
 test('a rejoin joins the live session of that runtime session — the same session, a second bearer, nothing journalled', async () => {
   const h = deps()
-  const first = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }, h.d)
+  const first = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1' }, h.d)
   h.surface.claimAll()
-  const again = await enrollSession(binding, { cwd: '/Users/me/DATA/site/src', runtimeSessionId: 'rt-1', rejoinOnly: true }, h.d)
+  const again = await enrollSession(binding, { cwd: '/Users/example/DATA/site/src', runtimeSessionId: 'rt-1', rejoinOnly: true }, h.d)
   assert.equal(again.ok, true)
   assert.equal(again.session.sessionId, first.session.sessionId, 'the same Fabric session')
   assert.notEqual(again.session.bearer, first.session.bearer, 'its own bearer: the first is spent by the agent')
@@ -494,18 +494,18 @@ test('a rejoin joins the live session of that runtime session — the same sessi
 test('a rejoin with no live session of that runtime session asks nothing and mints nothing', async () => {
   for (const args of [{ runtimeSessionId: 'rt-other', rejoinOnly: true }, { rejoinOnly: true }]) {
     const h = deps()
-    await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }, h.d)
-    const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site', ...args }, h.d)
+    await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1' }, h.d)
+    const r = await enrollSession(binding, { cwd: '/Users/example/DATA/site', ...args }, h.d)
     assert.deepEqual([r.ok, r.code], [false, 'no-session'])
     assert.equal(h.minted.length, 1, 'only the first enrollment minted')
   }
   const door = deps()
-  const r = await enrollSession(null, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, door.d)
+  const r = await enrollSession(null, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, door.d)
   assert.deepEqual([r.ok, r.code], [false, 'no-session'], 'through the door a rejoin is no-session, never needs-grant')
   const revoked = deps()
-  await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1' }, revoked.d)
+  await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1' }, revoked.d)
   revoked.d.stillLive = async () => false
-  const gone = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, revoked.d)
+  const gone = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1', rejoinOnly: true }, revoked.d)
   assert.deepEqual([gone.ok, gone.code], [false, 'no-session'], 'a grant no longer live joins nothing')
 })
 
@@ -513,8 +513,8 @@ test('an enrolled mint tells the surface it is an enrollment, its runner, its ru
   const origins = []
   const h = deps()
   h.d.mint = (projectId, sessionId, taskId, origin) => { origins.push(origin); return h.surface.mint(projectId, sessionId) }
-  await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-9' }, h.d)
-  assert.deepEqual(origins, [{ cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-9', bindingId: binding.id, folder: '/Users/me/DATA/site' }])
+  await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-9' }, h.d)
+  assert.deepEqual(origins, [{ cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-9', bindingId: binding.id, folder: '/Users/example/DATA/site' }])
 })
 
 // CO-498: the folder the enrollment resolved reaches the surface, so the screens show it and read its branch; the
@@ -526,11 +526,11 @@ test('CO-498: an enrolled session carries its folder in the surface, the journal
   const h = deps()
   const journaled = []
   const d = { ...h.d, mint: (p, s, task, origin) => surface.mint(p, s, task, origin), journal: async (type, projectId, payload) => { journaled.push(payload) } }
-  const out = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-5' }, d)
+  const out = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-5' }, d)
   assert.ok(out.ok)
   const held = surface.heldSessions().find((s) => s.sessionId === out.session.sessionId)
-  assert.equal(held.folder, '/Users/me/DATA/site')
-  assert.equal(JSON.stringify(journaled).includes('/Users/me/DATA/site'), false, 'the journal never holds the folder')
+  assert.equal(held.folder, '/Users/example/DATA/site')
+  assert.equal(JSON.stringify(journaled).includes('/Users/example/DATA/site'), false, 'the journal never holds the folder')
 })
 
 // 0.3.9 review iteration 2, ER-2: the agent's process goes to the surface with the mint, so a hook's end for an agent
@@ -539,7 +539,7 @@ test('ER-2 (i2): an enrollment that names its agent process mints the session wi
   const origins = []
   const h = deps()
   h.d.mint = (projectId, sessionId, taskId, origin) => { origins.push(origin); return h.surface.mint(projectId, sessionId) }
-  await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-7', agentPid: 4242 }, h.d)
+  await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-7', agentPid: 4242 }, h.d)
   assert.equal(origins[0].agentPid, 4242)
 })
 
@@ -586,7 +586,7 @@ test('board joins are capped per binding on their own: the least recently active
   // Nine coding-agent enrollments of the same binding leave the board sessions alone.
   const e = deps({ liveGrants: async () => [grant()] })
   const sessions = h.sessions
-  for (let i = 0; i < MAX_ENROLLED_PER_BINDING + 1; i++) { await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, { ...e.d, sessions, mint: (projectId, sessionId) => h.surface.mint(projectId, sessionId) }); h.surface.claimAll() }
+  for (let i = 0; i < MAX_ENROLLED_PER_BINDING + 1; i++) { await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, { ...e.d, sessions, mint: (projectId, sessionId) => h.surface.mint(projectId, sessionId) }); h.surface.claimAll() }
   assert.equal(sessions.liveOf(binding.id).filter((r) => r.surface === 'board').length, MAX_BOARD_SESSIONS_PER_BINDING, 'a coding agent\'s enrollment evicted a board session')
 })
 
@@ -654,14 +654,14 @@ test('board and coding calls share binding serialization but preserve separate s
   h.b.stillLive = async () => { enteredResolve(); return await new Promise(resolve => { finish = resolve }) }
   const board = joinBoardSession(binding, { projectId: P }, h.b)
   await entered
-  const coding = enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'native-A' }, h.d)
-  const other = await enrollSession({ ...binding, id: 'different-binding' }, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'other' }, h.d)
+  const coding = enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'native-A' }, h.d)
+  const other = await enrollSession({ ...binding, id: 'different-binding' }, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'other' }, h.d)
   assert.equal(other.ok, true, 'another binding remains independent')
   assert.equal(h.minted.length, 1, 'same-binding coding call waits behind the pending board join')
   finish(true)
   const [b, c] = await Promise.all([board, coding])
   assert.equal(b.ok, true); assert.equal(c.ok, true); assert.notEqual(b.session.bearer, c.session.bearer)
-  const unknown = await enrollSession(binding, { cwd: '/Users/me/DATA/site' }, h.d)
+  const unknown = await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d)
   assert.equal(unknown.ok, true); assert.notEqual(unknown.session.bearer, c.session.bearer)
   assert.equal(h.sessions.liveOf(binding.id).filter(s => s.surface === 'board').length, 1)
   assert.equal(h.sessions.liveOf(binding.id).filter(s => s.surface !== 'board').length, 2)
@@ -674,16 +674,16 @@ test('the enrollment cap is counted per project: a session in one project never 
   const Q = '1b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'
   const h = deps({
     liveGrants: async () => [grant(), grant({ id: 'g-2', resource: `project:${Q}` })],
-    admittedFolders: async () => [{ projectId: P, path: '/Users/me/DATA/site' }, { projectId: Q, path: '/Users/me/DATA/other' }],
+    admittedFolders: async () => [{ projectId: P, path: '/Users/example/DATA/site' }, { projectId: Q, path: '/Users/example/DATA/other' }],
     maxSessionsPerBinding: 1
   })
-  const a = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-a' }, h.d)
+  const a = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-a' }, h.d)
   h.surface.claimAll()
-  const b = await enrollSession(binding, { cwd: '/Users/me/DATA/other', runtimeSessionId: 'rt-b' }, h.d)
+  const b = await enrollSession(binding, { cwd: '/Users/example/DATA/other', runtimeSessionId: 'rt-b' }, h.d)
   assert.equal(a.ok && b.ok, true)
   assert.equal(h.sessions.liveOf(binding.id).length, 2, 'the session in the other project stayed')
   h.surface.claimAll()
-  const a2 = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-a2' }, h.d)
+  const a2 = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-a2' }, h.d)
   assert.equal(a2.ok, true)
   const live = h.sessions.liveOf(binding.id)
   assert.deepEqual(live.map((s) => s.projectId).sort(), [P, Q].sort(), 'the second session in P evicted the first in P, not the one in Q')
@@ -693,12 +693,12 @@ test('a binding still has a ceiling across all its projects', async () => {
   const projects = Array.from({ length: 5 }, (_, i) => `${i}b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d`)
   const h = deps({
     liveGrants: async () => projects.map((p, i) => grant({ id: `g-${i}`, resource: `project:${p}` })),
-    admittedFolders: async () => projects.map((p, i) => ({ projectId: p, path: `/Users/me/DATA/p${i}` })),
+    admittedFolders: async () => projects.map((p, i) => ({ projectId: p, path: `/Users/example/DATA/p${i}` })),
     maxSessionsPerBinding: 8,
     maxSessionsPerBindingTotal: 3
   })
   for (let i = 0; i < 5; i++) {
-    assert.equal((await enrollSession(binding, { cwd: `/Users/me/DATA/p${i}`, runtimeSessionId: `rt-${i}` }, h.d)).ok, true)
+    assert.equal((await enrollSession(binding, { cwd: `/Users/example/DATA/p${i}`, runtimeSessionId: `rt-${i}` }, h.d)).ok, true)
     h.surface.claimAll()
   }
   assert.equal(h.sessions.liveOf(binding.id).length, 3, 'the binding-wide ceiling evicts the least recently active anywhere')
@@ -711,16 +711,16 @@ test('a binding still has a ceiling across all its projects', async () => {
 // the new id.
 test('TR-1: a rejoin with a new runtime id finds its session by the agent pid, and the session is renamed', async () => {
   const h = deps()
-  const main = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-old', agentPid: 4242 }, h.d)
+  const main = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-old', agentPid: 4242 }, h.d)
   h.surface.claimAll()
-  const before = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true }, h.d)
+  const before = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true }, h.d)
   assert.equal(before.code, 'no-session', 'without the pid the new id finds nothing')
-  const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid: 4242 }, h.d)
+  const r = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid: 4242 }, h.d)
   assert.equal(r.ok, true, JSON.stringify(r))
   assert.equal(r.session.sessionId, main.session.sessionId, 'the same session')
   assert.equal(h.sessions.ofRuntime(binding.id, P, 'rt-new')?.sessionId, main.session.sessionId, 'the session carries the new id')
   assert.equal(h.sessions.ofRuntime(binding.id, P, 'rt-old'), null, 'and no longer the old one')
-  const again = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true }, h.d)
+  const again = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true }, h.d)
   assert.equal(again.session?.sessionId, main.session.sessionId, 'the next rejoin finds it by the new id alone')
   assert.equal(h.journaled.length, 1, 'no new session journalled')
 })
@@ -730,10 +730,10 @@ test('TR-1: the rejoin bearer minted for the old id is dropped on the rename; th
   const h = deps()
   const mint = h.d.mint
   h.d.mint = (projectId, sessionId, taskId, origin) => { minted.push(origin); return mint(projectId, sessionId, taskId, origin) }
-  await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-old', agentPid: 4242 }, h.d)
+  await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-old', agentPid: 4242 }, h.d)
   h.surface.claimAll()
-  const old = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-old', rejoinOnly: true }, h.d)
-  const renamed = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid: 4242 }, h.d)
+  const old = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-old', rejoinOnly: true }, h.d)
+  const renamed = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid: 4242 }, h.d)
   assert.notEqual(renamed.session.bearer, old.session.bearer)
   assert.equal(h.surface.held.has(old.session.bearer), false, 'the old id\'s rejoin bearer is revoked')
   assert.equal(minted.at(-1).runtimeSessionId, 'rt-new')
@@ -742,13 +742,13 @@ test('TR-1: the rejoin bearer minted for the old id is dropped on the rename; th
 
 test('TR-1: another agent\'s pid, a pid in another project, or a board session is never matched', async () => {
   const h = deps()
-  await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-old', agentPid: 4242 }, h.d)
+  await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-old', agentPid: 4242 }, h.d)
   h.surface.claimAll()
   for (const args of [{ agentPid: 999 }, { agentPid: 'x' }, {}]) {
-    const r = await enrollSession(binding, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, ...args }, h.d)
+    const r = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, ...args }, h.d)
     assert.equal(r.code, 'no-session', JSON.stringify(args))
   }
   const other = { id: 'b-2', agent_id: 'claude-code', revoked_at: null }
-  const r = await enrollSession(other, { cwd: '/Users/me/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid: 4242 }, h.d)
+  const r = await enrollSession(other, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid: 4242 }, h.d)
   assert.equal(r.code, 'no-session', 'another binding never borrows this one\'s session')
 })

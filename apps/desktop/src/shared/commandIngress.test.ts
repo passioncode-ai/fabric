@@ -262,7 +262,7 @@ describe('the Board\'s own words (SCR-41, L3b)', () => {
 
 describe('CO-478: a close carries the operator\'s relayed decision', () => {
   const id = '11111111-2222-4333-8444-555555555555'
-  const decision = { by: 'operator', via: 'relayed-instruction', action: 'task.close', target: '11111111', instruction: 'Отменить карточку. - сделай', at: '2026-10-27T02:40:00Z', source: { project: 'prowlagent', session: '5fefe0d0-335c-4f85-9606-42c8a54bc9c4' } }
+  const decision = { by: 'operator', via: 'relayed-instruction', action: 'task.close', target: '11111111', instruction: 'Отменить карточку. - сделай', at: '2026-10-27T02:40:00Z', source: { project: 'example-project', session: '5fefe0d0-335c-4f85-9606-42c8a54bc9c4' } }
   it('accepts the decision and keeps its words', () => {
     const r = prepareEventPayload('task.closed@1', { task_id: id, outcome: 'cancelled', reason: 'closed project', decision })
     expect(r.state).toBe('prepared')

@@ -4,21 +4,18 @@ Status: specification, 2026-11-04. Rows CO-409 (the wake), CO-494 (a responder w
 default, rewritten below). Implementation runs in waves across the PassionCode products (section 9); the coordinator,
 fabric-workspace, keeps the plan and the version matrix.
 
-The operator asked for it on 2026-11-04 in this repository's session `5d9bed98` (verbatim, speech-to-text kept):
-«Если есть агент, который подключен к проекту и ловит задачу, типа он ее обрабатывает, а если такого агента нет и никто
-задачу не поднял, значит должна бы инициироваться новая сессия, у которого у нас настроена дефолтная агентка со всеми
-permission'ами, типа включенными по дефолту, вот в этой версии. на вход ей туда вся информация типа в сессию. Она все это
-делает, заканчивает, отчитывается о завершении и выключается. Таким образом, нам не нужно держать открытые сессии во всех
-агентах, и по необходимости они открываются и закрываются. … и Windows, и Mac корректно … логи добавляем … аналитику
-для корректной оценки, отслеживания … И аналитику делаем по дефолту.» Relayed to every PassionCode project the same hour
-(board thread `b2e5df1f`, announcement `42a41db8`; direct messages to the coordinator and seven product sessions).
+The operator asked for it on 2026-11-04 in this repository's session `5d9bed98` (paraphrased, ADR-0096 §5): when an
+agent of the project is connected it takes the request; when none is and nobody picked the request up, a new session of
+the default agent starts with every permission on and all the request's facts, does the work, reports that it is done
+and ends, so no project needs a session kept open; it works on Windows and on the Mac, it is logged, and it is counted
+for analysis, with usage counts on by default. Relayed to every PassionCode project the same hour (board thread
+`b2e5df1f`, announcement `42a41db8`; direct messages to the coordinator and seven product sessions).
 
-Two more words of the same morning shape it, both relayed by fabric-workspace: «дай гранты всеем и передай фабрику чтобы
-давай и не лочил по дороге, всем апрув» (traffic-growth-agent's session `1d031d27`, about 09:50 UTC: `board.respond` for
-every project on its capabilities, with no consent stop on the way), and «Ройка должна быть очевидна и настраиваема, чтобы
-пользователи понимали, как ее настроить … в фабрике, в виде UI … без разрешения, разрешить все, или без журнала
-разрешения, чтобы мы все видели, какие разрешения, данные активные» (fabric-workspace's session `74a9440a`, about 10:00
-UTC: one screen in Fabric that shows and switches the agents' permissions and keeps their journal).
+Two more instructions of the same morning shape it, both relayed by fabric-workspace (paraphrased): grant `board.respond`
+to every project on its capabilities and let Fabric give it with no consent stop on the way (another project's session
+`1d031d27`, about 09:50 UTC); and make the permissions obvious and adjustable in one screen of Fabric, where the person
+switches between asking and allowing everything and sees the journal of what is granted (fabric-workspace's session
+`74a9440a`, about 10:00 UTC).
 
 Vision: it serves [§4 The user's role](../../ux/vision.md#4-the-users-role): the operator stops carrying which session
 must be open for which project. A request finds its agent, or an agent is started for it, without the operator.
@@ -159,8 +156,11 @@ answered 2026-11-04: Observatory refuses a checkpoint or a `plan_route` hand-ove
 UUID v4, within Switchboard's `[A-Za-z0-9._-]{1,64}`, given to the run as `FABRIC_DISPATCH_ID`); an unaccepted older
 hand-over is never reused. Observatory's redactor keeps only `session:` and `commit:` references today, so
 `board-request:`, `board-thread:` and `fabric-project:` are scrubbed when the packet is written: until Observatory keeps
-them (OBS-323) the dispatcher stays off and a run takes the request from `FABRIC_DISPATCH_REQUEST` and its first line
-(fabric-agent-adapter's finding, thread `7ae9ac3a`). The keys a request needs are named
+them (OBS-323) a run takes the request from `FABRIC_DISPATCH_REQUEST` and its first line, which Switchboard passes
+whatever the packet keeps, so the dispatcher runs without them (fabric-agent-adapter's finding, thread `7ae9ac3a`;
+corrected 2026-11-05 on the board, thread `1add3c03`: the earlier «the dispatcher stays off» no longer holds once
+0.3.16 turns it on). In 0.3.16 the dispatcher names no `credentials`; a run that needs a key asks for it as any
+session does. The keys a request needs are named
 in the body's `credentials` block (`[{project, env, name, purpose}]`, names only); Observatory gives only those, only to
 the holder of the workflow's lease, only for the project `fabric-project` resolves to, and only until the deadline;
 without `credentials` it gives none. The run's last checkpoint closes the workflow: `status: done` for `completed`,
@@ -198,9 +198,12 @@ line is that line and it names the same three ids as the environment. The enviro
 the run, because a child process inherits it: a reader or helper a run starts (Claude Code's Agent tool, a sub-shell)
 carries `FABRIC_DISPATCH_*` but its prompt does not begin with the line, so it is not the run. It takes no claim,
 writes no checkpoint, completes nothing on the board and reports only to the run that started it. Where the line and
-the environment disagree, the session is not the run either: it says so on the request's thread and stops
-(asked on the board, thread `1add3c03`, relayed by fabric-workspace on 2026-11-05; this replaces the
-earlier «the environment wins»).
+the environment disagree, the session is not the run either, in one of two ways (the adapter's 0.63.0, `bbcdc8c8`,
+agreed on the board, thread `1add3c03`, 2026-11-05): a `fabric-dispatch/1` line with no `FABRIC_DISPATCH_WORKFLOW` in
+the environment is a quotation, so the session is not a run and writes nothing on the thread; with
+`FABRIC_DISPATCH_WORKFLOW` set but the other two missing, or any of the three naming other ids than the line, the
+session says so on the request's thread and stops (asked on the board, thread `1add3c03`, relayed by fabric-workspace
+on 2026-11-05; this replaces the earlier «the environment wins»).
 The dispatcher never passes a lease: the run reads the packet with `observatory_checkpoint_latest` and takes the lease
 with `observatory_handoff_accept`; only the lease holder writes the closing checkpoint, and Fabric writes nothing to the
 workflow after the hand-over (its `run-ends-at` checkpoint is written before it). Agreed with
@@ -300,7 +303,7 @@ how many requests are answered by a live responder, a woken session or a started
 on by default, for new and existing installations: on first start Fabric shows a notice that it collects anonymous usage
 and error data only to improve the product, with the switch already on; the switch in Settings turns it off for Fabric
 alone. This supersedes the decision of 2026-11-03 (thread `b2e5df1f`: a baseline without consent, consent extends) and
-ADR-0127; a new ADR records it in the change that builds it, with the notice text through Copylot.
+ADR-0127; a new ADR records it in the change that builds it, with the notice text through the text checker.
 
 **Errors our customers meet reach us** (the operator's word of 2026-11-04, relayed by fabric-workspace: «убедиться, что
 есть логирование ошибок. и мы можем корректно видеть, если появляются какие-то проблемы у наших клиентов»). Today
@@ -315,7 +318,7 @@ version, never the message text, a path, a project name or anything the person t
 |---|---|---|
 | 1 | grants without a stop (CO-494); the dispatcher behind the switch (off until wave 2's verification), the packet, journal events; tests with a fake Switchboard | `switchboard dispatch`; the contract's packet and lifecycle; the adapter's skill section; Observatory's `service:fabric` workflow owner |
 | 2 | the switch on by default; usage counts by default (CO-496); the permissions screen (§6.1); the chain run on macOS and on Windows | the same switch and counts in every product; releases on both platforms |
-| 2, landed | 2026-11-05: the dispatcher on the real doors (`main/boardDispatchWiring.ts#wireBoardDispatch`: the board through the operator's read door, the slots through `board_responders_operator`, the attempt from the request facts, Switchboard's CLI, Observatory's stdio server), beside the cycle, the switch on by default (`shared/appSettings.ts`, `dispatchBoardRequests`) | |
+| 2, landed | 2026-11-05: the dispatcher on the real doors (`main/boardDispatchWiring.ts#wireBoardDispatch`: the board through the operator's read door, the slots through `board_responders_operator`, the attempt from the request facts, Switchboard's CLI, Observatory's stdio server), beside the cycle, the switch on by default (`shared/appSettings.ts`, `dispatchBoardRequests`); after the 0.3.16 review: the record written before each start, a refusal waits 10 minutes, a project with a live session gets no second agent (the wake of §3.2 is not built, so the request stays that session's), and two empty runs close the workflow and show the request in «На проверке». Not in 0.3.16: the journal events of §7 (the dispatcher logs to the operations log only), the permissions screen of §6.1, the counts of §8 (CO-496), the wake of §3.2, Claude Code as a fallback when no default agent is set (§3.5: none set is `deferred-no-agent`), and the run on Windows; carried in CO-409 | |
 | 3 | three-iteration verification of the chain and fixes; release | releases; fabric-workspace's version matrix shows every product current on both platforms |
 
 ## 10. Checks that prove it

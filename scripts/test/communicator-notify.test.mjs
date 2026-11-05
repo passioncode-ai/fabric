@@ -53,6 +53,8 @@ test('CO-411: no key, a bad kind or an empty text sends nothing', async () => {
   assert.equal((await notifyCommunicator({ key: '', eventId: 'e', kind: 'failure', text: 't', fetchImpl })).ok, false)
   assert.equal((await notifyCommunicator({ key: 'k', eventId: 'e', kind: 'shout', text: 't', fetchImpl })).ok, false)
   assert.equal((await notifyCommunicator({ key: 'k', eventId: 'e', kind: 'failure', text: '', fetchImpl })).ok, false)
+  // DA-1 (0.3.16 review): the gateway's address is not in this public repository; without it nothing is sent.
+  assert.equal((await notifyCommunicator({ url: '', key: 'k', eventId: 'e', kind: 'failure', text: 't', fetchImpl })).ok, false)
   assert.equal(called, 0)
-  assert.equal(COMMUNICATOR_URL, 'http://127.0.0.1:47835/mcp/personal-communicator')
+  assert.equal(COMMUNICATOR_URL, process.env.COMMUNICATOR_URL ?? '')
 })

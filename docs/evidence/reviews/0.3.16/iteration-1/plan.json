@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d",
+  "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-plan.md",
+  "reportSha256": "a570c37ecae9e09135b3e49d1c8ede5f1aa721c20286ab68323c03fa0abde235",
+  "reviewerRun": "release-0316-i1-plan-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V1-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-4"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V1-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-4 and DO-4"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V1-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-2"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V1-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-29 records the widening of 2026-11-05 (`docs/evidence/backlog.md`)"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V1-46",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-11; they stay in CO-409 and CO-496"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V1-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the description says a state with its nearest date answers too (DEC-0152) (`apps/desktop/src/main/boardTools.ts`); test `test/board-service.test.mjs` «com.enroll's description names the route …»"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V1-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-463 resolved in the register"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V1-49",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-3"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V1-50",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: the scheduled publication pins the newest snapshot after the release commit lands (`node scripts/workspace.mjs check --allow-pending 6`)"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "source": "V1-51",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Owed in 0.3.16's Release close» in docs/evidence/plans/2026-11-05-release-0316-verification.md carries it"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "source": "V1-52",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-503 decides by 2026-11-18 (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`)"
+      ]
+    }
+  ]
+}

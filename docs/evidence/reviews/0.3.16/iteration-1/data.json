@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d",
+  "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-data.md",
+  "reportSha256": "4b1b7c587dfdfd8db20776a89cbf45dec58562c4a8cc444cf60952824d45f001",
+  "reviewerRun": "release-0316-i1-data-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V1-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every flagged term on the lines added since 0.3.15 replaced with neutral words, the operator's words paraphrased (ADR-0096 §5), the notification gateway's address moved to the vault slot `fabric/prod/COMMUNICATOR_URL` (`scripts/lib/communicator-notify.mjs`, `scripts/lib/bounded-run.mjs#tellChat`); `check_private.py` over the lines added since v0.3.15 prints 0; the earlier history stays as published (ADR-0096's history decision is the operator's)"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V1-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-1"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V1-37",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-409 (the spec's wave row says §7 is not built in 0.3.16)"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V1-38",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-510"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V1-39",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: as DO-10"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V1-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the lifecycle rows say about 1 to 3 MB a month and list `board-dispatches.json` and the Observatory child; pruning is CO-509"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "source": "V1-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `noteOf` replaces paths with `<path>` in every note (`main/boardDispatchRun.ts#noteOf`)"
+      ]
+    }
+  ]
+}

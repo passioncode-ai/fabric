@@ -1,0 +1,126 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d",
+  "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-docs.md",
+  "reportSha256": "514b63d11d33be20446e0d8c30c932060cd1d6c1e3abc76167fa4d3d2f5684c2",
+  "reviewerRun": "release-0316-i1-docs-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V1-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-4; CHANGELOG says what is built"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V1-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-5, the code now matches the words"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V1-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: rows for the board dispatcher and Switchboard's sessions on Агенты; the Windows and Linux paragraph names both background reads (`AGENTS.md`, Lifecycle)"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V1-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the 0.3.15 section reads as it did at the tag; CO-474 is in `## Unreleased`"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V1-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG names the home and the left column only"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V1-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Comms count row, the home reading's git in every held session's folder, the Switchboard sessions row (`AGENTS.md`)"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V1-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-2; ADR-0186 amended"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V1-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0186 amendment of 2026-11-05 says what the code does; the narrowing is CO-506"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V1-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-4"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "source": "V1-30",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: migration texts are fixed by their hashes in `supabase/migration-ledger.json` (CO-199) and are not edited; the release notes' Upgrading paragraph, which a person reads, is correct"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "source": "V1-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the spec's wave row of 2026-11-05 names what 0.3.16 builds and what it does not (§7, §6.1, §8, §3.2, the fallback agent, Windows)"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "source": "V1-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0188 amendment of 2026-11-05"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "source": "V1-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DA-1"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "source": "V1-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/reports/map.html` iteration-2026-10-28-contract-repin"
+      ]
+    }
+  ]
+}

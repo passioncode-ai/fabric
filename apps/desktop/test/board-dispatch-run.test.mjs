@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
 
-const { createBoardDispatch } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+const { createBoardDispatch, REFUSAL_BACKOFF_MS, START_ATTEMPTS, UNKNOWN_AFTER_END_MS } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
 
 const T0 = Date.parse('2026-11-05T10:00:00Z')
 const MIN = 60_000
@@ -33,6 +33,7 @@ function world(over = {}) {
       return {}
     },
     launch: async (args) => { w.launches.push(args); return w.refuse ? { refused: w.refuse } : { launchId: `L${w.launches.length}` } },
+    quitting: () => w.quitting === true,
     runState: async (id) => w.runs.get(id) ?? 'running',
     requestState: async (id) => w.states.get(id) ?? 'queued',
     load: () => [],
@@ -114,8 +115,18 @@ test('a Switchboard refusal starts nothing and is named; a failure to open the w
   const w = world({ refuse: 'no_agent' })
   const d = createBoardDispatch(w.deps)
   await d.onPass()
-  assert.equal(d.records().length, 0)
+  assert.deepEqual(d.records().map((r) => [r.state, r.outcome, r.refused]), [['ended', 'refused', 'no_agent']])
   assert.ok(w.logs.some((l) => l.op === 'board.dispatch.decided' && l.detail.check === 'deferred-no-agent'))
+  // ER-1, DA-2: no new workflow, offer or start every minute after a refusal; after the back-off it asks again on the SAME workflow.
+  const opened = w.calls.filter(([n]) => n === 'observatory_checkpoint_write' && !n.workflowId).length
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  w.tick(REFUSAL_BACKOFF_MS)
+  await d.onPass()
+  assert.equal(w.launches.length, 2)
+  assert.equal(w.launches[1].workflow, w.launches[0].workflow)
+  assert.equal(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length, opened)
   const broken = world()
   broken.deps.observatory = async () => { throw new Error('Project Observatory is not installed on this computer') }
   await createBoardDispatch(broken.deps).onPass()
@@ -165,4 +176,75 @@ test('a request whose attempt is alive is not taken over even when the slot look
   const d = createBoardDispatch(w.deps)
   await d.onPass()
   assert.equal(w.launches.length, 0)
+})
+
+test('ER-1, ER-2: a start with no answer keeps its record and is asked again with the same workflow, never a second one', async () => {
+  const w = world()
+  let calls = 0
+  w.deps.launch = async (args) => { w.launches.push(args); calls++; return calls < 3 ? { refused: 'failed' } : { launchId: 'L-late' } }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(d.records()[0].state, 'starting')
+  assert.ok(w.saved.length >= 1 && w.saved[0][0].state === 'starting', 'the record is saved before Switchboard answers')
+  w.tick(MIN); await d.onPass()
+  w.tick(MIN); await d.onPass()
+  assert.equal(d.records().length, 1)
+  assert.equal(d.records()[0].state, 'running')
+  assert.equal(new Set(w.launches.map((l) => `${l.workflow}|${l.handoff}|${l.dispatchId}`)).size, 1)
+  // A start that never answers is recorded as failed after START_ATTEMPTS.
+  const w2 = world()
+  w2.deps.launch = async (args) => { w2.launches.push(args); return { refused: 'failed' } }
+  const d2 = createBoardDispatch(w2.deps)
+  for (let i = 0; i < START_ATTEMPTS + 2; i++) { await d2.onPass(); w2.tick(MIN) }
+  assert.equal(w2.launches.length, START_ATTEMPTS)
+  assert.equal(d2.records()[0].outcome, 'failed-to-start')
+})
+
+test('ER-2: quitting starts nothing and asks Switchboard nothing', async () => {
+  const w = world({ quitting: true })
+  await createBoardDispatch(w.deps).onPass()
+  assert.equal(w.launches.length, 0)
+  assert.equal(w.calls.length, 0)
+})
+
+test('ER-3: a run Switchboard cannot report on frees its place after its end and is not an empty run', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.runs.set('L1', 'unknown')
+  w.tick(30 * MIN); await d.onPass()
+  assert.equal(d.records()[0].state, 'running')
+  w.tick(30 * MIN + UNKNOWN_AFTER_END_MS + MIN); w.requests = []; await d.onPass()
+  assert.deepEqual([d.records()[0].state, d.records()[0].outcome, d.records()[0].emptyRuns], ['ended', 'unknown', 0])
+})
+
+test('ER-6: a run is not judged empty when the request cannot be read this pass', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.runs.set('L1', 'ended')
+  w.deps.requestState = async () => null
+  w.tick(MIN); await d.onPass()
+  assert.equal(d.records()[0].state, 'running')
+})
+
+test('ER-7: with the switch off and nothing in flight the board is not read', async () => {
+  const w = world({ on: false })
+  let reads = 0
+  w.deps.readRequests = async () => { reads++; return w.requests }
+  await createBoardDispatch(w.deps).onPass()
+  assert.equal(reads, 0)
+})
+
+test('PL-1: after two empty runs the request goes to the operator and its workflow is closed', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  for (const id of ['L1', 'L2']) { w.runs.set(id, 'ended'); w.tick(3 * MIN); await d.onPass() }
+  w.tick(3 * MIN); await d.onPass()
+  assert.equal(w.launches.length, 2)
+  assert.ok(d.toOperator().has(request().id))
+  const close = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true)
+  assert.ok(close, 'the workflow is closed')
+  assert.equal(close[1].status, 'blocked')
 })

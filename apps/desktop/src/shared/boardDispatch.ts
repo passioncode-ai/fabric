@@ -1,8 +1,7 @@
 // #region board-dispatch — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#3-the-flow
 /**
- * The dispatcher's decision (CO-409, wave 1; the operator, 2026-11-04: «если такого агента нет и никто задачу не
- * поднял, значит должна бы инициироваться новая сессия … Она все это делает, заканчивает, отчитывается о завершении и
- * выключается»). Pure: the main process reads the request, the responders, the sessions and the running dispatches,
+ * The dispatcher's decision (CO-409, wave 1; the operator, 2026-11-04, paraphrased: a request no agent of the project
+ * picked up starts a new session that does the work, reports that it is done and ends). Pure: the main process reads the request, the responders, the sessions and the running dispatches,
  * hands them in, and acts on what comes back. Nothing here reads, writes or starts anything.
  */
 
@@ -108,7 +107,9 @@ export function decideDispatch(input: DispatchInput): DispatchDecision {
   if (!candidate(request, now)) return { path: 'none' }
   if (input.liveResponder) return { path: 'responder' }
   const waited = now - Date.parse(request.submittedAt)
-  if (input.liveSession && waited < GRACE_MS) return { path: 'live-session' }
+  // The 0.3.16 review (ER-5, DO-2): a project with a live session gets no second agent in the same folder; the request
+  // is that session's (and, unanswered, the operator's in «На проверке»), until the live session's wake of §3.2 exists.
+  if (input.liveSession) return { path: 'live-session' }
   if (!request.urgent && waited < GRACE_MS) return { path: 'wait', check: 'grace' }
   if (input.emptyRuns >= EMPTY_RUNS_TO_OPERATOR) return { path: 'to-operator' }
   const limits = limitsOf(input.limits)

@@ -1,16 +1,17 @@
 // #region communicator-notify — docs: AGENTS.md#lifecycle
-// CO-411: a scheduled job's failure reaches the operator's private chat. The personal communicator's gateway
-// holds a key for the role `fabric-workspace-sync` that may call `communicator.notify` and nothing else
-// (sshlg-personal-os BL-1266, board thread fb4cea6b). The key lives in Observatory's vault slot
-// `fabric/prod/COMMUNICATOR_NOTIFY_KEY` and reaches this process only as an environment variable set by
-// `use_secret.py run --vault-only`; it is never printed, logged or put in argv.
+// CO-411: a scheduled job's failure reaches the operator's private chat through the operator's own notification
+// gateway, under a key for the role `fabric-workspace-sync` that may call `communicator.notify` and nothing else.
+// The key and the gateway's address live in Observatory's vault (`fabric/prod/COMMUNICATOR_NOTIFY_KEY`,
+// `fabric/prod/COMMUNICATOR_URL`) and reach this process only as environment variables set by
+// `use_secret.py run --vault-only`; neither is printed, logged, put in argv or kept in this public repository.
 //
-// As a command: `node scripts/lib/communicator-notify.mjs <kind> <eventId> <text>` with the key in
-// COMMUNICATOR_NOTIFY_KEY; exit 0 when the communicator took the notice, 1 otherwise.
+// As a command: `node scripts/lib/communicator-notify.mjs <kind> <eventId> <text>` with COMMUNICATOR_NOTIFY_KEY and
+// COMMUNICATOR_URL set; exit 0 when the communicator took the notice, 1 otherwise (and with either missing).
 
 import { pathToFileURL } from 'node:url'
 
-export const COMMUNICATOR_URL = 'http://127.0.0.1:47835/mcp/personal-communicator'
+/** The gateway's address, from the environment only (the 0.3.16 review, DA-1); absent, nothing is sent. */
+export const COMMUNICATOR_URL = process.env.COMMUNICATOR_URL ?? ''
 const KINDS = new Set(['failure', 'recovery'])
 
 /** The JSON-RPC answer in a response that is JSON or an event stream; null when there is none. */
@@ -32,6 +33,7 @@ function answerOf(text) {
  */
 export async function notifyCommunicator({ url = COMMUNICATOR_URL, key, eventId, kind, text, subject, fetchImpl = fetch, timeoutMs = 10_000 }) {
   if (!key) return { ok: false, reason: 'no key: the vault slot fabric/prod/COMMUNICATOR_NOTIFY_KEY is empty or was not passed' }
+  if (!url) return { ok: false, reason: 'no address: the vault slot fabric/prod/COMMUNICATOR_URL is empty or was not passed' }
   if (!KINDS.has(kind)) return { ok: false, reason: `kind ${kind} is not failure or recovery` }
   if (!text || !eventId) return { ok: false, reason: 'a notice needs a text and an eventId' }
   const headers = { 'content-type': 'application/json', accept: 'application/json, text/event-stream', 'x-agw-key': key }

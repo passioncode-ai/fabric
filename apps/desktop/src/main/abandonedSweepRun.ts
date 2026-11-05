@@ -538,7 +538,8 @@ export async function readSweepClaims(store: Store, now: number, session: Sessio
     claims: snap.claims.map((c) => ({
       claimId: c.id, taskId: c.work_id, projectId: c.project_id, sessionId: c.owner_session,
       expiresAt: c.expires_at, claimedAt: c.claimed_at, renewedAt: c.renewed_at, session: session(c.owner_session),
-      taskStatus: c.task.status
+      taskStatus: c.task.status,
+      taskMovedAt: c.task.movedAt ?? null
     })),
     heldTaskIds: snap.held.map((h) => h.task.id),
     heldSessionIds: snap.held.map((h) => h.owner_session),

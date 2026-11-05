@@ -67,8 +67,8 @@ describe('railAgents', () => {
 
 describe('folderName (CO-498)', () => {
   it('is the last segment of a POSIX or Windows folder, null for none', () => {
-    expect(folderName('/Users/me/DATA/_worktrees/fabric-co409-dispatch')).toBe('fabric-co409-dispatch')
-    expect(folderName('/Users/me/DATA/site/')).toBe('site')
+    expect(folderName('/Users/example/DATA/_worktrees/fabric-co409-dispatch')).toBe('fabric-co409-dispatch')
+    expect(folderName('/Users/example/DATA/site/')).toBe('site')
     expect(folderName('C:\\Users\\me\\work\\admin-vn')).toBe('admin-vn')
     expect(folderName(null)).toBeNull()
     expect(folderName('/')).toBeNull()

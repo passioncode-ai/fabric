@@ -49,6 +49,9 @@ export interface SweepClaim {
   session: { lastSignAt: number | null } | null
   /** Its task's state as read with the claim (CO-499); absent when not read. */
   taskStatus?: string | null
+  /** When its task last moved; a claim on a task in review or backlog is let go only when the task moved there after
+   *  the claim opened (the 0.3.16 review, ER-11: a claim may be taken on a task in review). */
+  taskMovedAt?: string | null
 }
 
 /** The task states a live claim is let go on (CO-499): the work is over or back in the queue, so a claim that a living
@@ -76,6 +79,9 @@ function personHolds(t: SweepTask): boolean {
   return t.movedByKind === 'person' && !(t.lastClaimedAt && Date.parse(t.lastClaimedAt) >= Date.parse(t.movedAt))
 }
 
+/** Board request states that are settled: nothing more is owed on them. */
+const SETTLED_REQUEST: ReadonlySet<string> = new Set(['completed', 'failed_known', 'answered', 'cancelled', 'expired'])
+
 export interface SweepRequest {
   requestId: string
   targetProjectId: string
@@ -84,6 +90,8 @@ export interface SweepRequest {
   movedAt: string
   /** When the answer reached the requester and stayed unread; null when there is no answer or it was read. */
   answerUnreadSince: string | null
+  /** CO-409: two runs Fabric started left it unsettled; it is the operator's now, whatever its state (§3.6). */
+  toOperator?: boolean
 }
 
 export interface SweepTerminal {
@@ -173,7 +181,8 @@ export function findAbandoned(input: SweepInput): Finding[] {
     // #region claim-closed — docs: docs/evidence/specs/2026-11-04-agents-logs-and-the-improvement-loop.md#22-a-status-that-does-not-outlive-its-work-co-499
     // CO-499: a live claim on a task already out of work (moved to review, closed, sent back) is let go at once, before
     // any other judgement of it: a living session renews it every two minutes, so it would otherwise never lapse.
-    if (c.taskId && typeof c.taskStatus === 'string' && CLOSED_TASK_STATES.has(c.taskStatus)) {
+    if (c.taskId && typeof c.taskStatus === 'string' && CLOSED_TASK_STATES.has(c.taskStatus)
+      && (c.taskStatus === 'done' || c.taskStatus === 'cancelled' || (c.taskMovedAt != null && Date.parse(c.taskMovedAt) > Date.parse(c.claimedAt)))) {
       out.push({ ...base, kind: 'claim-closed', key: `claim-closed:${c.claimId}`, projectId: c.projectId, taskId: c.taskId,
         sessionId: c.sessionId, claimId: c.claimId, stillMs: Math.max(0, now - own),
         nextStep: `Fabric let go of your claim: its task is in ${c.taskStatus}, no longer in work. Claim the task you are working on now (fabric_work_claim), or say you are idle.` })
@@ -202,7 +211,10 @@ export function findAbandoned(input: SweepInput): Finding[] {
     const still = now - Date.parse(r.movedAt)
     // Only a queued request stands still: a claimed or accepted one is being worked, and its own deadlines are the
     // board's (SCN-147, `board_tick`).
-    if (r.state === 'queued' && still >= STILL_MS)
+    if (r.toOperator && !SETTLED_REQUEST.has(r.state))
+      out.push({ ...base, kind: 'request-unmoved', key: `request-unmoved:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
+        nextStep: 'Two runs Fabric started for this board request ended without settling it: it waits for the operator, and Fabric starts no more for it.' })
+    else if (r.state === 'queued' && still >= STILL_MS)
       out.push({ ...base, kind: 'request-unmoved', key: `request-unmoved:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: 'A board request addressed to your project has not moved: read it (com.get) and answer it (com.reply), or say why it waits.' })
     if (r.answerUnreadSince && now - Date.parse(r.answerUnreadSince) >= STILL_MS)

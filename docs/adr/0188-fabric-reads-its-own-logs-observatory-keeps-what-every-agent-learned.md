@@ -56,3 +56,16 @@ an agent's work asks for one. Who keeps what, and who reads it, was written nowh
   CO-503 (the daily digest sent to Observatory). Observatory's, the contract's and the adapter's work is asked on the
   board, thread `f7758225`.
 - Until a product folds its own log, its failures stay unread; the coordinator follows that product by product.
+
+## Amendments
+
+- 2026-11-05, the 0.3.16 release review (DO-12): as built in 0.3.16 the hourly digest counts the operations log's
+  records only (`apps/desktop/src/main/opsDigestRun.ts`); the journal's counts (sessions started and left, board
+  requests waiting) of decision 1 and the retros asked and written of decision 5 are not folded yet. They stay with
+  CO-500's follow-up and CO-502 in the carry-over register; the digest's schema `ops.digest.hourly@1` carries only what
+  is counted.
+- 2026-11-05, agreed on the board (thread `f7758225`, the contract's DEC-0153 round 1, RW-4): of the retros, Fabric
+  counts only those it asked for (the `retro-after-work` obligation); a retro is counted written by Observatory, where
+  lessons and records land, and Fabric says `unknown` for one written through a call it does not carry. Decision 5's
+  «Fabric counts the retros asked and those written» is read that way. A closed UTC day with hourly lines and no daily
+  line is folded once at Fabric's next start (DEC-0153 OD-5), so a Mac closed overnight still writes its days.

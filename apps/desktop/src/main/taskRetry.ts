@@ -70,7 +70,7 @@ export function readbackFallbackRow(input: { id: string; projectId: string; titl
 export function refuseSetupWithoutSurface(runner: string, surfaceUp = true): void {
   if (!describeAgent(runner)?.connectsToSurface) throw new Error('task-refused:setup-needs-surface')
   // A runner that connects, with Fabric's agent surface not listening, would start with none of the tools either
-  // (iteration 3, ER-6/DA-1): said as its own reason, the person can start the surface (Settings → Agent access).
+  // (iteration 3, ER-6/DA-1): said as its own reason, the person can start the surface (Agent access, in the left column).
   if (!surfaceUp) throw new Error('task-refused:setup-surface-down')
 }
 // #endregion task-retry

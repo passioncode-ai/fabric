@@ -3,7 +3,7 @@ import { STACK_START_RETRY, dockerIsUnreachable, dockerSocketFrom, nameTheLimit,
 
 // The words measured on the operator's Mac, 2026-10-14.
 const STARTING = 'Command failed: supabase start -x realtime\nsupabase start is already running.\n\u001b[31msupabase_db_fabric container is not ready: starting\u001b[39m'
-const NO_DOCKER = 'Command failed: supabase start\nfailed to connect to the docker API at unix:///Users/x/.orbstack/run/docker.sock: connect: no such file or directory'
+const NO_DOCKER = 'Command failed: supabase start\nfailed to connect to the docker API at unix:///Users/example/.orbstack/run/docker.sock: connect: no such file or directory'
 const plan = { attempts: 3, waitMs: 5 }
 const sleep = vi.fn(async () => {})
 
@@ -60,7 +60,7 @@ describe('Docker that is not there yet (ER-4)', () => {
     expect(dockerIsUnreachable('Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?')).toBe(true)
     expect(dockerIsUnreachable('port 54322 is already allocated')).toBe(false)
     expect(dockerIsUnreachable(STARTING)).toBe(false)
-    expect(dockerSocketFrom(NO_DOCKER)).toBe('/Users/x/.orbstack/run/docker.sock')
+    expect(dockerSocketFrom(NO_DOCKER)).toBe('/Users/example/.orbstack/run/docker.sock')
     expect(dockerSocketFrom('error during connect: open //./pipe/docker_engine: npipe:////./pipe/docker_engine')).toBe('\\\\.\\pipe\\docker_engine')
     expect(dockerSocketFrom('no socket here')).toBeNull()
   })
@@ -76,7 +76,7 @@ describe('Docker that is not there yet (ER-4)', () => {
     })
     expect(starts).toBe(2)
     expect(pings).toBe(4)
-    expect(asked.every((s) => s === '/Users/x/.orbstack/run/docker.sock')).toBe(true)
+    expect(asked.every((s) => s === '/Users/example/.orbstack/run/docker.sock')).toBe(true)
     expect(onDockerWait).toHaveBeenCalledTimes(3)
     expect(c.now()).toBe(6_000)
   })
@@ -224,7 +224,7 @@ describe('CO-294: Docker away at start starts its own app once, then waits as be
       pingDocker: async () => ++pings >= 3,
       launchDocker: async (socket) => { launched.push(socket); return 'OrbStack' }
     })
-    expect(launched).toEqual(['/Users/x/.orbstack/run/docker.sock'])
+    expect(launched).toEqual(['/Users/example/.orbstack/run/docker.sock'])
     expect(onDockerLaunch).toHaveBeenCalledWith('OrbStack')
     expect(starts).toBe(2)
   })

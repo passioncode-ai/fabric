@@ -928,7 +928,7 @@ export class AgentSurface {
     // A grant that EXPIRES fires no revocation listener: the session it admitted is ended at its next call, the way a
     // revocation ends it — its slots released, its next bearer told why (ADR-0149 Amendment 2, wave-2 fix 14).
     if (st.scope.authorityUntil != null && now >= st.scope.authorityUntil) {
-      const why = 'this board session ended: the operator\'s board.respond grant it joined under expired. The operator grants it again in Fabric, Settings → Agent access; then join again with fabric.board.join'
+      const why = 'this board session ended: the operator\'s board.respond grant it joined under expired. The operator grants it again in Fabric, Agent access in the left column; then join again with fabric.board.join'
       const end = this.deps.work?.endSession
       if (end) end(st.scope.sessionId, why)
       else this.revokeSession(st.scope.sessionId, why)

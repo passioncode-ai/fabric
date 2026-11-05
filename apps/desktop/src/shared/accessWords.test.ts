@@ -43,7 +43,7 @@ describe('the prompt in English says what the 0.3.0 prompt said', () => {
     expect(t.detail).toContain('• list and search mail and read mail in news@example.com')
     expect(t.detail).toContain('“summarise the newsletter”')
     expect(t.detail).toContain('Fabric cannot prove which program sent the request')
-    expect(t.detail).toContain('Access lasts a year unless you revoke it under Agent access in settings.')
+    expect(t.detail).toContain('Access lasts a year unless you revoke it under Agent access in the left column.')
     expect(t.buttons).toEqual(['Deny', 'Allow'])
     expect([t.defaultId, t.cancelId]).toEqual([0, 0])
   })

@@ -130,12 +130,12 @@ const business = project => sql(`select coalesce(business, '-')||'|'||coalesce(b
 const profile = (project, payload, actor) => append('project.profiled@1', payload, project, actor)
 
 await test('CO-418 (W2-4): an agent names a business only while none is recorded and no person wrote one; a rebuild agrees', () => {
-  profile(Q, { business: 'Appvillis' }, agent)
-  assert.equal(business(Q), 'Appvillis|agent')
+  profile(Q, { business: 'Acme' }, agent)
+  assert.equal(business(Q), 'Acme|agent')
   profile(Q, { business: 'Someone else' }, agent)
-  assert.equal(business(Q), 'Appvillis|agent', 'an agent does not replace a recorded business')
+  assert.equal(business(Q), 'Acme|agent', 'an agent does not replace a recorded business')
   profile(Q, { business: '' }, agent)
-  assert.equal(business(Q), 'Appvillis|agent', 'nor clears it')
+  assert.equal(business(Q), 'Acme|agent', 'nor clears it')
   profile(Q, { business: 'PassionCode' }, person)
   assert.equal(business(Q), 'PassionCode|person')
   profile(Q, { business: '' }, person)

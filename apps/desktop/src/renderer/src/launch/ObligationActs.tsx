@@ -205,7 +205,7 @@ function AccessActs({ access, onError, reload, onDecided }: {
         {saw && <span className="lp-meta">{saw}</span>}
       </div>
     )
-  // The native prompt's facts in its order (`sayRequest`), the same as the card in Settings → Agent access: for an
+  // The native prompt's facts in its order (`sayRequest`), the same as the card in Agent access: for an
   // enrollment (ADR-0134) the folder is Fabric's own line and the floor is said of the name it asked under.
   const said = sayRequest(t, access)
   return (

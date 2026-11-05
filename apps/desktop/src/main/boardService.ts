@@ -291,7 +291,7 @@ export interface ProjectFact {
 /**
  * W2-5 (CO-368, the operator's rule of 2026-10-18 that unrelated businesses are never linked): the businesses a new
  * thread would join, when they are more than one. A Project whose business nobody recorded walls nothing. Compared
- * without case and surrounding spaces, so "Appvillis" and "appvillis " are one business.
+ * without case and surrounding spaces, so "Acme" and "acme " are one business.
  */
 export function businessesJoined(projects: readonly string[], facts: readonly ProjectFact[]): Array<{ business: string; projects: string[] }> {
   const byId = new Map(facts.map((f) => [f.id, f]))

@@ -538,11 +538,13 @@ test('a board session is respond-only (ADR-0149 Amendment 2): submit, cancel, re
   assert.deepEqual([...BOARD_SESSION_OPERATIONS].sort(), ['com.accept', 'com.claim', 'com.complete', 'com.effect_begin', 'com.enroll', 'com.get', 'com.list',
     'com.progress', 'com.reconcile', 'com.renew', 'com.reply', 'com.responder_replace', 'com.status'])
 })
-test('com.enroll\'s description names only routes a session has: no fabric.access.request, the operator\'s Settings → Agent access instead (wave-2 fix 16)', () => {
+test('com.enroll\'s description names the route a session has: fabric.access.request, allowed at once on the operator\'s machine (CO-494, ADR-0186); a state answers too (DEC-0152, 0.3.16 review PL-6)', () => {
   const described = new Map()
   registerBoardTools({ registerTool: (name, meta) => described.set(name, meta.description) }, createBoard({ rpc: fake().rpc }), () => responder)
-  assert.doesNotMatch(described.get('com.enroll'), /fabric\.access\.request/, 'a tool no project or board session has')
-  assert.match(described.get('com.enroll'), /Settings → Agent access/)
+  assert.match(described.get('com.enroll'), /fabric\.access\.request, callee fabric, capability board\.respond/)
+  assert.match(described.get('com.enroll'), /allowed at once, ADR-0186/)
+  assert.doesNotMatch(described.get('com.enroll'), /never only to say it waits/)
+  assert.match(described.get('com.enroll'), /DEC-0152/)
   // CO-397 (DEC-0098, DEC-0102): a reply from the request's target answers it; it no longer "stays queued".
   assert.match(described.get('com.enroll'), /com\.reply on the request is still your answer/)
   assert.doesNotMatch(described.get('com.enroll'), /stays queued/)
@@ -679,7 +681,7 @@ test('BD-1: the tool descriptions say what changed: a target\'s reply answers, u
   const facts = [
     { id: caller.projectId, name: 'phone-bot', business: 'PhoneCo', repo: '/w/phone-bot' },
     { id: P(21), name: 'phone-site', business: 'phoneco ', repo: '/w/phone-site' },
-    { id: P(22), name: 'messenger', business: 'Appvillis', repo: '/w/messenger' },
+    { id: P(22), name: 'messenger', business: 'Acme', repo: '/w/messenger' },
     { id: P(23), name: 'research-agent', business: null, repo: '/w/research-agent' },
     { id: P(24), name: 'research-agent', business: null, repo: '/w/research-agent-2/' }
   ]
@@ -689,7 +691,7 @@ test('BD-1: the tool descriptions say what changed: a target\'s reply answers, u
   test('the wall: businesses are compared without case, and a Project without one walls nothing', () => {
     assert.deepEqual(businessesJoined([caller.projectId, P(21), P(23)], facts), [])
     const joined = businessesJoined([caller.projectId, P(21), P(22)], facts)
-    assert.deepEqual(joined.map((g) => g.business).sort(), ['Appvillis', 'PhoneCo'])
+    assert.deepEqual(joined.map((g) => g.business).sort(), ['Acme', 'PhoneCo'])
     assert.deepEqual(joined.find((g) => g.business === 'PhoneCo').projects, ['phone-bot', 'phone-site'])
   })
 
@@ -699,7 +701,7 @@ test('BD-1: the tool descriptions say what changed: a target\'s reply answers, u
     const refused = await board.submit(caller, thread([P(21), P(22)]))
     assert.equal(refused.error.code, 'not_authorized')
     assert.match(refused.error.message, /different businesses/)
-    assert.match(refused.error.message, /Appvillis \(messenger\)/)
+    assert.match(refused.error.message, /Acme \(messenger\)/)
     assert.equal(calls.length, 0, 'nothing reached the board')
     assert.equal((await board.submit(caller, thread([P(21), P(23)]))).ok, true)
     assert.equal(calls.filter((c) => c.fn === 'board_submit').length, 1)
@@ -718,7 +720,7 @@ test('BD-1: the tool descriptions say what changed: a target\'s reply answers, u
       const refused = await board.submit(caller, post(P(92), kind, key))
       assert.equal(refused.error?.code, 'not_authorized', kind)
       assert.match(refused.error.message, /This thread joins Projects of different businesses/)
-      assert.match(refused.error.message, /Appvillis \(messenger\)/)
+      assert.match(refused.error.message, /Acme \(messenger\)/)
     }
     assert.equal(calls.length, 0, 'nothing reached the board')
   })

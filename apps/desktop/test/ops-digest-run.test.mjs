@@ -96,3 +96,18 @@ test('saying a failed write is itself a record: it neither recurses nor is lost'
   run.tick()
   assert.deepEqual(run.latest().ops.map((o) => o.op).sort(), ['ops.digest-write', 'y'])
 })
+
+test('DEC-0153 OD-5 (CO-509): a closed day with hourly lines and no daily line is folded once at the next start', () => {
+  const files = new Map()
+  const hour = (from, failed) => JSON.stringify({ schema: 'ops.digest.hourly@1', from, to: new Date(Date.parse(from) + HOUR).toISOString(), ops: [{ op: 'x', ok: 0, failed, unknown: 0 }], total: { ok: 0, failed, unknown: 0 }, risen: [] }) + '\n'
+  files.set('/d/hourly-2026-11.jsonl', hour('2026-11-03T10:00:00.000Z', 2) + hour('2026-11-03T11:00:00.000Z', 3) + hour('2026-11-04T09:00:00.000Z', 1) + hour('2026-11-05T08:00:00.000Z', 1))
+  files.set('/d/daily-2026-11.jsonl', JSON.stringify({ schema: 'ops.digest.daily@1', day: '2026-11-04', hours: 1, ops: [], risen: [] }) + '\n')
+  const make = () => createOpsDigestRun({ dir: '/d', now: () => Date.parse('2026-11-05T09:30:00Z'),
+    append: (file, line) => { files.set(file, (files.get(file) ?? '') + line) },
+    read: (file) => { if (!files.has(file)) throw new Error('ENOENT'); return files.get(file) } })
+  make()
+  const daily = files.get('/d/daily-2026-11.jsonl').split('\n').filter(Boolean).map((l) => JSON.parse(l))
+  assert.deepEqual(daily.map((d) => [d.day, d.hours]), [['2026-11-04', 1], ['2026-11-03', 2]], 'only the missing closed day; today is not folded')
+  make()
+  assert.equal(files.get('/d/daily-2026-11.jsonl').split('\n').filter(Boolean).length, 2, 'a second start folds nothing again')
+})

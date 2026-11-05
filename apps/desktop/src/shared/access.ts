@@ -688,7 +688,7 @@ export interface RequestRowLike {
   registry: RegistrySnapshot | null
 }
 
-/** One waiting request as facts, for the queue and Settings → Agent access alike (UX-2, UX-4). `home`, when the
+/** One waiting request as facts, for the queue and Agent access alike (UX-2, UX-4). `home`, when the
  *  caller knows it, is shown as `~` in an enrollment's folder. */
 export function pendingFacts(r: RequestRowLike, connected: boolean, home?: string): PendingRequestFacts {
   return {
@@ -720,7 +720,7 @@ function enrollFacts(registry: RegistrySnapshot | null, home: string | undefined
   return { projectName: p?.name ?? '', ...(p?.root ? { folder: { root: shortFolder(p.root, home), how: p.how } } : {}) }
 }
 
-/** What the operator's Agent access list shows (Settings → Agent access). No sentence crosses IPC. */
+/** What the operator's Agent access list shows (Agent access, in the left column). No sentence crosses IPC. */
 /** Why the hub is not listening: the port setting is invalid, a registered agent claims the port, another
  *  program holds it, or the surface could not start for another reason. */
 export type HubDownCode = 'port-setting' | 'port-claimed' | 'port-taken' | 'not-started'

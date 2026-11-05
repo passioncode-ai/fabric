@@ -187,7 +187,7 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
   },
   // #endregion retro-after-work
   // #region board-obligations — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
-  // The project board rule (COM-12; answering at once, the operator 2026-11-04, relayed by webpilot on thread
+  // The project board rule (COM-12; answering at once, the operator 2026-11-04, relayed by another of the operator's projects on thread
   // `11646774`). Its one home is fabric-workspace knowledge/agents-first.md "The project board";
   // these say it to every session through fabric_whoami, so an agent learns it from Fabric whatever plugin or
   // instruction file it has. All three are ADVICE: nothing checks that a session read the board, and Fabric cannot see

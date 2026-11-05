@@ -32,8 +32,15 @@ export interface DispatchRecord {
   launchId: string | null
   startedAt: number
   endsAt: string
-  state: 'running' | 'ended'
-  outcome?: 'finished' | 'exited-without-answer' | 'failed-to-start'
+  /** `starting`: written BEFORE Switchboard is asked (the 0.3.16 review, ER-1, ER-2), so a timeout, a crash or a quit
+   *  during the start never leaves a request without its record; the next pass asks Switchboard again with the same
+   *  workflow and hand-over, which answers the same launch when it did start. */
+  state: 'starting' | 'running' | 'ended'
+  outcome?: 'finished' | 'exited-without-answer' | 'failed-to-start' | 'refused' | 'unknown' | 'to-operator'
+  /** Switchboard's refusal code, when it refused. */
+  refused?: string
+  /** How many times Switchboard was asked for this record. */
+  attempts?: number
   /** Runs for this request that ended without settling it. */
   emptyRuns: number
 }
@@ -58,13 +65,26 @@ export interface DispatchDeps {
   requestState(requestId: string): Promise<string | null>
   load(): DispatchRecord[]
   save(records: DispatchRecord[]): void
+  /** The app is quitting: no new start, no new Switchboard call. */
+  quitting?(): boolean
   log(op: string, outcome: 'ok' | 'failed' | 'unknown', detail: Record<string, unknown>): void
 }
 
 const SETTLED = new Set(['completed', 'failed_known', 'answered', 'cancelled', 'expired'])
 const DAY_MS = 24 * 3600_000
+/** After a refusal or a start that never answered, Switchboard is not asked again for that request sooner than this (the 0.3.16 review, ER-1, DA-2). */
+export const REFUSAL_BACKOFF_MS = 10 * 60_000
+/** Times one start is asked of Switchboard before it is recorded as failed to start. */
+export const START_ATTEMPTS = 3
+/** A run Switchboard cannot report on is taken as ended this long after its own end (ER-3). */
+export const UNKNOWN_AFTER_END_MS = 10 * 60_000
 
-export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[] } {
+/** A failure's note for the log: its message without absolute paths (DA-7), at most 200 characters. */
+export function noteOf(e: unknown): string {
+  return (e instanceof Error ? e.message : String(e)).replace(/(?:[A-Za-z]:)?[\\/](?:[^\s'"\\/]+[\\/])+[^\s'"]*/g, '<path>').slice(0, 200)
+}
+
+export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[]; toOperator(): Set<string> } {
   let records = deps.load()
   let busy = false
   const decided = new Map<string, string>()
@@ -75,15 +95,27 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     deps.log('board.dispatch.decided', 'ok', { request: requestId, path: d.path, ...('check' in d ? { check: d.check } : {}) })
   }
 
-  const watch = async (): Promise<void> => {
+  const watch = async (now: number): Promise<void> => {
     let changed = false
     for (const r of records) {
       if (r.state !== 'running' || !r.launchId) continue
       const run = await deps.runState(r.launchId)
-      if (run !== 'ended') continue
+      if (run === 'running') continue
+      if (run === 'unknown') {
+        // ER-3: Switchboard cannot say. Past the run's own end plus a margin it is taken as ended, outcome unknown, so it
+        // no longer holds a place under the caps; it is not counted as an empty run.
+        if (now <= Date.parse(r.endsAt) + UNKNOWN_AFTER_END_MS) continue
+        r.state = 'ended'
+        r.outcome = 'unknown'
+        changed = true
+        deps.log('board.dispatch.ended', 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: r.outcome })
+        continue
+      }
+      // ER-6: the request's state as read in THIS pass; when it cannot be read the run is judged on a later pass.
       const state = await deps.requestState(r.requestId)
+      if (state === null) continue
       r.state = 'ended'
-      r.outcome = state !== null && SETTLED.has(state) ? 'finished' : 'exited-without-answer'
+      r.outcome = SETTLED.has(state) ? 'finished' : 'exited-without-answer'
       if (r.outcome === 'exited-without-answer') r.emptyRuns++
       changed = true
       deps.log('board.dispatch.ended', r.outcome === 'finished' ? 'ok' : 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: r.outcome, empty_runs: r.emptyRuns })
@@ -121,6 +153,14 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       if (typeof w.workflowId !== 'string' || typeof w.leaseId !== 'string') throw new Error(`the workflow was not opened: ${String(w.error ?? 'no id')}`)
       workflowId = w.workflowId
       leaseId = w.leaseId
+    } else if (leases.has(prior.workflowId)) {
+      // A start that was refused or failed: the offer was never accepted, so Fabric still holds the workflow.
+      workflowId = prior.workflowId
+      leaseId = leases.get(prior.workflowId)!
+      const w = await deps.observatory('observatory_checkpoint_write', {
+        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-ends`, stepId: 'run-ends-at', status: 'in_progress', workflowId, leaseId, body
+      })
+      if (w.error) throw new Error(`run-ends-at was not written: ${String(w.error)}`)
     } else {
       // §3.4: a run that left the request unsettled keeps the lease; Fabric takes the workflow back to itself.
       workflowId = prior.workflowId
@@ -140,10 +180,32 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-offer`, workflowId, to: { provider }, reason: 'plan_route', leaseId, offerTtlSeconds: 3600
     })
     if (typeof offer.handoffId !== 'string') throw new Error(`the hand-over was not offered: ${String(offer.error ?? 'no handoff')}`)
+    leases.set(workflowId, leaseId)
     return { workflowId, handoffId: offer.handoffId }
   }
 
+  // The workflow's lease while Fabric still holds it (an offer not yet accepted): kept in memory only, never in the file.
+  const leases = new Map<string, string>()
   const projectIds = new Map<string, string>()
+  /** §3.6: a request that goes to the operator has its workflow closed, taken back first when a run holds it. */
+  const closeWorkflow = async (r: DispatchRecord): Promise<void> => {
+    let leaseId = leases.get(r.workflowId)
+    if (!leaseId) {
+      const back = await deps.observatory('observatory_handoff_create', {
+        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close-back`, workflowId: r.workflowId, to: { provider: 'fabric' }, reason: 'restart'
+      })
+      if (typeof back.handoffId !== 'string') throw new Error('the workflow could not be taken back to close it')
+      const took = await deps.observatory('observatory_handoff_accept', { owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close-accept`, handoffId: back.handoffId })
+      if (typeof took.leaseId !== 'string') throw new Error('the workflow could not be accepted back to close it')
+      leaseId = took.leaseId
+    }
+    const w = await deps.observatory('observatory_checkpoint_write', {
+      owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close`, stepId: 'to-operator', status: 'blocked', workflowId: r.workflowId, leaseId, close: true,
+      body: { goal: `Answer the board request ${r.requestId} addressed to this project, then end.`, notes: 'Two runs left the request unsettled; it waits for the operator in «На проверке».' }
+    })
+    if (w.error) throw new Error('the workflow was not closed')
+    leases.delete(r.workflowId)
+  }
   const resolveProject = async (fabricProject: string): Promise<string> => {
     const known = projectIds.get(fabricProject)
     if (known) return known
@@ -155,15 +217,57 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     return r.canonical
   }
 
+  /** Asks Switchboard for a record written as `starting`; idempotent on Switchboard's side for one workflow. */
+  const start = async (r: DispatchRecord, dir: string, now: number): Promise<void> => {
+    r.attempts = (r.attempts ?? 0) + 1
+    const timeoutMinutes = Math.max(1, Math.floor((Date.parse(r.endsAt) - now) / 60_000))
+    const started = await deps.launch({ dir, workflow: r.workflowId, handoff: r.handoffId, request: r.requestId, dispatchId: r.dispatchId, timeoutMinutes })
+    if ('launchId' in started) {
+      r.launchId = started.launchId
+      r.state = 'running'
+      // The run accepts the hand-over: the lease is its now, and a later run takes the workflow back (§3.4).
+      leases.delete(r.workflowId)
+      deps.log('board.dispatch.started', 'ok', { request: r.requestId, dispatch: r.dispatchId, workflow: r.workflowId, launch: started.launchId, ends_at: r.endsAt })
+    } else if (started.refused !== 'failed') {
+      // A refusal is Switchboard's answer: nothing started. The request waits REFUSAL_BACKOFF_MS before it is asked again.
+      r.state = 'ended'
+      r.outcome = 'refused'
+      r.refused = started.refused
+      said(r.requestId, { path: 'wait', check: refusalCheck(started.refused) })
+    } else if (r.attempts >= START_ATTEMPTS) {
+      r.state = 'ended'
+      r.outcome = 'failed-to-start'
+      deps.log('board.dispatch.started', 'failed', { request: r.requestId, dispatch: r.dispatchId, attempts: r.attempts })
+    } else {
+      // No answer (a timeout or an unreadable one): it may have started. The record stays `starting` and the next pass
+      // asks again with the same workflow and hand-over, which Switchboard answers with the run it started, if any.
+      deps.log('board.dispatch.started', 'unknown', { request: r.requestId, dispatch: r.dispatchId, attempts: r.attempts })
+    }
+    deps.save(records)
+  }
+
   const pass = async (): Promise<void> => {
-    await watch()
     const now = deps.now()
+    const on = deps.switchOn()
+    const live = records.some((r) => r.state !== 'ended')
+    // ER-7: with the switch off and nothing of ours in flight the board is not read at all.
+    if (!on && !live) return
     const requests = await deps.readRequests()
+    await watch(now)
+    // Starts left without an answer are asked again first (ER-1, ER-2).
+    for (const r of records.filter((x) => x.state === 'starting')) {
+      if (deps.quitting?.()) return
+      const dir = await deps.folderOf(r.projectId)
+      if (!dir) { r.state = 'ended'; r.outcome = 'failed-to-start'; deps.save(records); continue }
+      await start(r, dir, now)
+    }
+    if (!on) return
     const limits = limitsOf()
     for (const req of requests) {
+      if (deps.quitting?.()) return
       const mine = records.filter((r) => r.requestId === req.id)
       const last = mine[mine.length - 1]
-      const running = records.filter((r) => r.state === 'running')
+      const active = records.filter((r) => r.state !== 'ended')
       const slotLive = await deps.responderLive(req.target, req.capability)
       const holderLive = req.attemptLive ?? slotLive
       const decision = decideDispatch({
@@ -171,40 +275,53 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         request: { id: req.id, state: req.state, submittedAt: req.submittedAt, deadline: req.deadline, urgent: false, holderLive, attemptLapsed: !holderLive },
         liveResponder: slotLive,
         liveSession: deps.sessionLive(req.target),
-        switchOn: deps.switchOn(),
+        switchOn: on,
         hasFolder: (await deps.folderOf(req.target)) !== null,
-        runningOnMachine: running.length,
-        runningInProject: running.filter((r) => r.projectId === req.target).length,
+        runningOnMachine: active.length,
+        runningInProject: active.filter((r) => r.projectId === req.target).length,
         dispatchesToday: records.filter((r) => r.projectId === req.target && now - r.startedAt < DAY_MS).length,
         emptyRuns: last?.emptyRuns ?? 0,
-        inFlight: last?.state === 'running',
+        inFlight: last !== undefined && last.state !== 'ended',
         limits
       })
       said(req.id, decision)
+      if (decision.path === 'to-operator') {
+        if (last && last.outcome !== 'to-operator' && !SETTLED.has(req.state)) {
+          try {
+            await closeWorkflow(last)
+          } catch (e) {
+            // Recorded through the caller's ops sink; the request still goes to the operator, closing is tried again.
+            deps.log('board.dispatch.closed', 'failed', { request: req.id, note: noteOf(e) })
+            continue
+          }
+          last.outcome = 'to-operator'
+          deps.save(records)
+        }
+        continue
+      }
       if (decision.path !== 'launch') continue
+      if ((last?.outcome === 'refused' || last?.outcome === 'failed-to-start') && now - last.startedAt < REFUSAL_BACKOFF_MS) continue
       const provider = await deps.defaultProvider()
       if (!provider) { said(req.id, { path: 'wait', check: 'deferred-no-agent' }); continue }
       const folder = await deps.folderOf(req.target)
       if (!folder) continue
       const dispatchId = randomUUID()
       const endsAt = runEndsAt(now, limits.runMinutes, req.deadline)
-      const timeoutMinutes = Math.max(1, Math.floor((Date.parse(endsAt) - now) / 60_000))
+      let opened: { workflowId: string; handoffId: string }
       try {
-        const { workflowId, handoffId } = await open(req, last, provider, endsAt, dispatchId)
-        firstLine({ workflow: workflowId, handoff: handoffId, request: req.id }) // the ids are well formed (§3.5)
-        const started = await deps.launch({ dir: folder, workflow: workflowId, handoff: handoffId, request: req.id, dispatchId, timeoutMinutes })
-        if ('refused' in started) {
-          said(req.id, { path: 'wait', check: refusalCheck(started.refused) })
-          continue
-        }
-        records.push({ requestId: req.id, projectId: req.target, dispatchId, workflowId, handoffId, launchId: started.launchId, startedAt: now, endsAt,
-          state: 'running', emptyRuns: last?.emptyRuns ?? 0 })
-        deps.save(records)
-        deps.log('board.dispatch.started', 'ok', { request: req.id, dispatch: dispatchId, workflow: workflowId, launch: started.launchId, ends_at: endsAt })
+        opened = await open(req, last, provider, endsAt, dispatchId)
+        firstLine({ workflow: opened.workflowId, handoff: opened.handoffId, request: req.id }) // the ids are well formed (§3.5)
       } catch (e) {
         // Recorded through the caller's ops sink (deps.log); the request is tried again on a later pass.
-        deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: e instanceof Error ? e.message.slice(0, 200) : String(e) })
+        deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(e) })
+        continue
       }
+      if (deps.quitting?.()) return
+      const r: DispatchRecord = { requestId: req.id, projectId: req.target, dispatchId, workflowId: opened.workflowId, handoffId: opened.handoffId, launchId: null,
+        startedAt: now, endsAt, state: 'starting', attempts: 0, emptyRuns: last?.emptyRuns ?? 0 }
+      records.push(r)
+      deps.save(records)
+      await start(r, folder, now)
     }
     // Keep a bounded history: the newest 500 records.
     if (records.length > 500) { records = records.slice(-500); deps.save(records) }
@@ -212,14 +329,15 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
 
   return {
     async onPass() {
-      if (busy) return
+      if (busy || deps.quitting?.()) return
       busy = true
       try { await pass() } catch (e) {
         // Recorded through the caller's ops sink (deps.log); the next pass reads the board again.
-        deps.log('board.dispatch.pass', 'failed', { note: e instanceof Error ? e.message.slice(0, 200) : String(e) })
+        deps.log('board.dispatch.pass', 'failed', { note: noteOf(e) })
       } finally { busy = false }
     },
-    records: () => records
+    records: () => records,
+    toOperator: () => new Set(records.filter((r) => r.outcome === 'to-operator').map((r) => r.requestId))
   }
 }
 

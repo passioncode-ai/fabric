@@ -77,7 +77,7 @@ const group = (key: 'working' | 'waiting' | 'idle' | 'off') => screen.getByRole(
 describe('the agent\'s name (the operator, 2026-11-05)', () => {
   const tr = (k: string) => (en as Record<string, string>)[k] ?? k
   const base = { key: 'session:s1', group: 'working', state: 'working', runner: 'claude-code', name: null, projectId: 'p1', projectName: 'AdOps', projectNames: [],
-    sessionId: 's1', console: true, live: { folder: '/Users/x/DATA/adops-agent' }, task: null, doing: null, heardAt: null } as never
+    sessionId: 's1', console: true, live: { folder: '/Users/example/DATA/adops-agent' }, task: null, doing: null, heardAt: null } as never
   it('a session in a project is named by the project; its small line is the runner and the folder', () => {
     expect(agentTitle(base, tr as never)).toBe('AdOps')
     expect(agentSubline(base, tr as never)).toBe('Claude Code · adops-agent')

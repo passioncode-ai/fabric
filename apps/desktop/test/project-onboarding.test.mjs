@@ -37,7 +37,7 @@ test('the instruction records through the hub and changes nothing in the reposit
 })
 
 test('DA-2: an agent cannot clear or change the business the person set; the person\'s correction stands after an agent run', () => {
-  const person = { business: 'Appvillis' }
+  const person = { business: 'Acme' }
   const cleared = agentProfilePayload({ business: '  ' }, person)
   assert.equal(cleared.ok, false)
   assert.match(cleared.reason, /cannot clear/)
@@ -46,11 +46,11 @@ test('DA-2: an agent cannot clear or change the business the person set; the per
   assert.match(changed.reason, /only the person changes it: the person sets the business on the project page/)
   // The person corrected an agent's guess; the next agent run, naming its guess again, leaves the correction standing.
   const corrected = { business: 'PassionCode' }
-  assert.equal(agentProfilePayload({ business: 'Appvillis', summary: 's' }, corrected).ok, false)
+  assert.equal(agentProfilePayload({ business: 'Acme', summary: 's' }, corrected).ok, false)
   // The same business (any case) is dropped, so the person's spelling stays; the rest is written.
   assert.deepEqual(agentProfilePayload({ summary: 's', business: ' passioncode ' }, corrected), { ok: true, payload: { summary: 's' } })
   // Nobody set one yet: the agent may record it.
-  assert.deepEqual(agentProfilePayload({ business: ' Appvillis ' }, { business: null }), { ok: true, payload: { business: 'Appvillis' } })
+  assert.deepEqual(agentProfilePayload({ business: ' Acme ' }, { business: null }), { ok: true, payload: { business: 'Acme' } })
   // An empty business is refused even when none is set: an agent never writes an empty one.
   assert.equal(agentProfilePayload({ business: '' }, { business: null }).ok, false)
   // A business that could not be read is not written over.
@@ -130,12 +130,12 @@ test('DA-9: the person\'s business for a project this estate does not hold is re
     readProject: async (id) => ({ row: rows.get(id) ?? null, error: null }),
     append: async (payload) => { appended.push(payload); rows.get(P).business = payload.business || null }
   }
-  await assert.rejects(writePersonBusiness(deps, '00000000-0000-4000-8000-0000000000ff', 'Appvillis'), /not in this estate/)
+  await assert.rejects(writePersonBusiness(deps, '00000000-0000-4000-8000-0000000000ff', 'Acme'), /not in this estate/)
   assert.equal(appended.length, 0)
   // The person's write always applies, whatever an agent recorded before (DA-2).
   rows.get(P).business = 'AgentGuess'
-  assert.equal((await writePersonBusiness(deps, P, ' Appvillis ')).business, 'Appvillis')
-  assert.deepEqual(appended, [{ business: 'Appvillis' }])
+  assert.equal((await writePersonBusiness(deps, P, ' Acme ')).business, 'Acme')
+  assert.deepEqual(appended, [{ business: 'Acme' }])
   await assert.rejects(writePersonBusiness({ ...deps, readProject: async () => ({ row: null, error: 'stack lost' }) }, P, 'X'), /could not be read: stack lost/)
   await assert.rejects(writePersonBusiness(deps, P, 'x'.repeat(81)), /at most 80/)
 })
@@ -166,24 +166,24 @@ test('DA-9: the person\'s business for a project this estate does not hold is re
     // The agent reads "none" first; the person's write is pressed while the agent is between its read and its append.
     const agent = writeAgentProfile({ ...w.agent, lock }, P, { business: 'AgentGuess', goal: 'g' })
     await tick(12)
-    const person = writePersonBusiness({ ...w.person, lock }, P, 'Appvillis')
+    const person = writePersonBusiness({ ...w.person, lock }, P, 'Acme')
     const [a, p] = await Promise.all([agent, person])
     assert.equal(a.written, true, 'the agent read none and wrote first')
-    assert.equal(p.business, 'Appvillis')
-    assert.equal(w.business, 'Appvillis', 'the person\'s business is the last one written')
+    assert.equal(p.business, 'Acme')
+    assert.equal(w.business, 'Acme', 'the person\'s business is the last one written')
     assert.deepEqual(w.journal.map((e) => e.actor), ['agent', 'person'])
   })
 
   test('ER-2: an agent\'s write pressed while the person\'s is in flight reads the person\'s business and is refused', async () => {
     const w = world({ person: 40 })
     const lock = createProjectProfileLock()
-    const person = writePersonBusiness({ ...w.person, lock }, P, 'Appvillis')
+    const person = writePersonBusiness({ ...w.person, lock }, P, 'Acme')
     await tick(8)
     const agent = writeAgentProfile({ ...w.agent, lock }, P, { business: 'AgentGuess' })
     const [p, a] = await Promise.all([person, agent])
-    assert.equal(p.business, 'Appvillis')
+    assert.equal(p.business, 'Acme')
     assert.equal(a.written, false)
-    assert.equal(w.business, 'Appvillis')
+    assert.equal(w.business, 'Acme')
     assert.deepEqual(w.journal.map((e) => e.actor), ['person'])
   })
 
@@ -200,7 +200,7 @@ test('DA-9: the person\'s business for a project this estate does not hold is re
 
   test('DA-2: a business the person cleared stays cleared: an agent may not set one; one nobody wrote, it may', async () => {
     const w = world()
-    await writePersonBusiness(w.person, P, 'Appvillis')
+    await writePersonBusiness(w.person, P, 'Acme')
     await writePersonBusiness(w.person, P, '')
     assert.equal(w.business, null)
     const refused = await writeAgentProfile(w.agent, P, { business: 'AgentGuess', summary: 's' })

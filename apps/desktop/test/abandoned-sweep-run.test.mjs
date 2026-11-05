@@ -170,7 +170,7 @@ test('(d) a lapsed claim is released only on the second sweep that finds it', as
 // not proved stopped still holds it.
 test('CO-499: a live claim on a task in review is let go at once, with its reason, and a held run keeps it', async () => {
   const live = { claimId: 'c7', taskId: 'task-c7', projectId: 'p1', sessionId: 's7', claimedAt: iso(T0 - 5 * 24 * 60 * MIN), renewedAt: iso(T0 - MIN),
-    expiresAt: iso(T0 + 20 * MIN), session: { lastSignAt: T0 - MIN }, taskStatus: 'review' }
+    expiresAt: iso(T0 + 20 * MIN), session: { lastSignAt: T0 - MIN }, taskStatus: 'review', taskMovedAt: iso(T0 - 2 * MIN) }
   const w = world({ claims: [live] })
   await sweepOnce(createAbandonedSweep(w.deps))
   assert.deepEqual(w.released, [{ claimId: 'c7', reason: CLOSED_REASON }])

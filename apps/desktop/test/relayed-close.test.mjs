@@ -7,7 +7,7 @@ const { checkRelayedClose, namesTask, CLOSE_ACTION } = await import(path.resolve
 
 const taskId = 'c3d81d42-1111-4222-8333-444455556666'
 const now = Date.parse('2026-10-27T03:00:00Z')
-const decision = (over = {}) => ({ by: 'operator', via: 'relayed-instruction', action: 'task.close', target: 'c3d81d42', instruction: 'Отменить 6 карточек волн. - сделай', at: '2026-10-27T02:40:00Z', source: { project: 'prowlagent', session: '5fefe0d0-335c-4f85-9606-42c8a54bc9c4' }, ...over })
+const decision = (over = {}) => ({ by: 'operator', via: 'relayed-instruction', action: 'task.close', target: 'c3d81d42', instruction: 'Отменить 6 карточек волн. - сделай', at: '2026-10-27T02:40:00Z', source: { project: 'example-project', session: '5fefe0d0-335c-4f85-9606-42c8a54bc9c4' }, ...over })
 
 test('without a decision the answer is operator-decision-required, naming the action and the task', () => {
   const v = checkRelayedClose(undefined, taskId, now)

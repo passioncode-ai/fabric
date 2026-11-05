@@ -451,7 +451,7 @@ export class FabricMcpProxy {
   waitingAnswer(): Record<string, unknown> {
     const s = this.state
     const said =
-      s.kind === 'not-running' ? `Fabric is not running, or its hub is closed (Settings → Agent access says why). ${ASK_THE_BROKER}`
+      s.kind === 'not-running' ? `Fabric is not running, or its hub is closed (Agent access, in the left column, says why). ${ASK_THE_BROKER}`
       : s.kind === 'not-a-hub' ? `Fabric's hub could not be verified (${s.reason}). Nothing is sent to it until it can be. If Fabric is not running, ask the local lifecycle broker to start it (lifecycle.ensure_running), never start it yourself; then call this tool again.`
       : s.kind === 'no-project' ? s.message
       : s.kind === 'waiting' ? `Waiting for the operator to allow this coding agent in Fabric to work in the project ${s.projectName} — Fabric is asking them: a prompt in its window, or a notification when Fabric is in the background. Call this tool again in a moment.`

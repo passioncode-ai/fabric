@@ -20,7 +20,7 @@
 // away — a trace that kept results would keep whatever secret was in one.
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { bodyFromEnds, classifyToolOutcome, describeCall, refusalOps, typedRefusalCode, type ToolOutcome } from '../shared/toolOutcome.ts'
+import { bodyFromEnds, callOpName, classifyToolOutcome, describeCall, refusalOps, typedRefusalCode, type ToolOutcome } from '../shared/toolOutcome.ts'
 import { ops } from './opsSink.ts'
 import type { OpsOutcome } from '../shared/opsLog.ts'
 
@@ -124,7 +124,7 @@ export function beginAttempt(input: {
     // A typed refusal is the tool answering as designed: warn with its code, never an error with no reason (CO-335).
     const mapped = outcome === 'threw' && refusalCode ? refusalOps(refusalCode) : OPS_OUTCOME[outcome]
     ops.record({
-      op: subject?.tool ? `tool.${subject.tool}` : `mcp.${subject?.method ?? 'unparsed'}`,
+      op: callOpName(subject),
       outcome: mapped.outcome,
       level: mapped.level,
       ms: now() - started,

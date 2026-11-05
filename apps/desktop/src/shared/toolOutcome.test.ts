@@ -174,3 +174,15 @@ describe('how a typed refusal is logged (0.3.8 review ER-2)', () => {
     expect(refusalOps('not_available'), 'the board may have stored it').toEqual({ outcome: 'unknown', level: 'warn' })
   })
 })
+
+describe('callOpName (DEC-0153 OD-2, FAC-SEM-167)', () => {
+  it('counts a tool or method by its name when it fits, else under one fixed name', async () => {
+    const { callOpName } = await import('./toolOutcome')
+    expect(callOpName({ method: 'tools/call', tool: 'fabric_whoami', rpcId: null })).toBe('tool.fabric_whoami')
+    expect(callOpName({ method: 'tools/list', tool: null, rpcId: null })).toBe('mcp.tools/list')
+    expect(callOpName(null)).toBe('mcp.unparsed')
+    for (const bad of ['api.get_users/list', 'my_users', 'Home', 'x'.repeat(200), 'drop table;', 'Ünï'])
+      expect(callOpName({ method: 'tools/call', tool: bad, rpcId: null })).toBe('tool.other')
+    expect(callOpName({ method: 'ui.home/open', tool: null, rpcId: null })).toBe('mcp.other')
+  })
+})

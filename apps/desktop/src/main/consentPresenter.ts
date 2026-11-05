@@ -10,7 +10,7 @@
 // window coming forward on its own (`index.ts` calls `bringForward` on focus) — shows the same prompt.
 //
 // IN THE OPERATOR'S LANGUAGE (UX-2): every word comes from the i18n registries through `say()`, the same
-// keys the queue and Settings → Agent access use (`shared/accessWords.ts`).
+// keys the queue and Agent access use (`shared/accessWords.ts`).
 //
 // ONE PROMPT AT A TIME. Requests that arrive while one is open wait their turn, and a request that
 // expired or was answered elsewhere (the queue, the settings list) is skipped rather than shown.
