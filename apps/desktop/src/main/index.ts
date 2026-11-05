@@ -870,6 +870,9 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
 }
 
 /** Reached only after this startup attempt has verified the database schema. */
+/** CO-506: History's acts, set once `registerIpc` made them, for the surface's Agent access door. */
+let actsForSurface: ReturnType<typeof createActs> | null = null
+
 async function bootstrapReady(): Promise<{ estateId: string; estateName: string }> {
   journal = createDesktopJournal(createJournal(db))
   store = createScopedStore(db, { kind: 'estate', estateId: ACTIVE_ESTATE })
@@ -1132,6 +1135,23 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     language: () => workingLanguageOfRead(readSettingsState()),
     // ADR-0176 §3: an unreadable settings file reads as not trusted (null), never as the person's last answer.
     machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust },
+    // CO-506: Agent access's buttons as an agent's door, on the operator's relayed words (`relayedAccess.ts`). Revoking a
+    // whole agent writes the same act History shows for the button.
+    access: {
+      overview: () => hubAccess.overview(),
+      request: (id) => accessStore.request(id),
+      decide: (id, verdict, actor, relayed) => hubAccess.decide(id, verdict, actor, relayed),
+      revokeGrant: (id, actor, relayed) => hubAccess.revokeGrant(id, actor, relayed),
+      revokeAgent: async (bindingId, actor, relayed) => {
+        const b = await accessStore.binding(bindingId).catch((e: unknown) => { ops.failed('hub.access.revoke-name-unreadable', e, { binding_id: bindingId }); return null })
+        const named = b ? ((await accessStore.request(b.request_id).catch(() => null))?.registry?.name ?? AGENTS.find((a) => a.id === b.agent_id)?.label ?? b.agent_id) : null
+        const done = await hubAccess.revokeBinding(bindingId, actor, relayed)
+        if (done.ok) await actsForSurface?.note({ kind: 'agent.disconnect', projectId: null, subject: { type: 'agent', id: bindingId, label: named },
+          said: { key: 'act.agent.disconnect', params: { agent: named } }, inverse: null, whyNot: 'credential_gone' })
+        return done
+      },
+      machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust }
+    },
     hub: {
       doorToken: () => hubState.doorToken,
       access: hubAccess,
@@ -4210,6 +4230,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       })
     }
   })
+  actsForSurface = acts
   handle(IPC.actsHistory, (_e, query?: unknown): Promise<Returns<FabricApi['acts']['history']>> => acts.history(actQueryOf(query)))
   handle(IPC.actsUndo, async (_e, seq: unknown): Promise<Returns<FabricApi['acts']['undo']>> => {
     if (typeof seq !== 'number' || !Number.isSafeInteger(seq) || seq < 1) return { ok: false, reason: 'not_an_act' }

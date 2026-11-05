@@ -11,6 +11,8 @@
 import { decisionSchema, type OperatorDecision } from './hubAuthority.ts'
 import { CLOCK_SKEW_MS, namesTask } from './relayedClose.ts'
 import { BOARD_RESPOND, FABRIC_SELF, PROJECT_RESOLVE, SESSION_ENROLL } from '../shared/access.ts'
+import type { AccessActAnswer } from '../shared/accessActs.ts'
+import type { AccessActor } from './accessStore.ts'
 
 export const ACCESS_ACTIONS = { allow: 'access.allow', deny: 'access.deny', revoke: 'access.revoke' } as const
 export type AccessVerb = keyof typeof ACCESS_ACTIONS
@@ -58,5 +60,42 @@ export function admitAccessAct(v: AdmitAccessAct): { ok: true } | RelayedAccessR
   if (v.request.asked_by_binding !== null && v.request.asked_by_binding === v.callerBindingId)
     return { ok: false, code: 'self-decision', message: 'A request your own credential asked is not yours to allow; another session or the operator decides it.', data: {} }
   return { ok: true }
+}
+
+/** Agent access as an agent's door (index.ts wires it to `AccessService`); only a session server uses it. */
+export interface AgentAccessDoor {
+  request(id: string): Promise<{ callee: string; capabilities: string[]; asked_by_binding: string | null } | null>
+  decide(id: string, verdict: 'allowed' | 'denied', actor: AccessActor, relayed: OperatorDecision): Promise<AccessActAnswer>
+  revokeGrant(id: string, actor: AccessActor, relayed: OperatorDecision): Promise<AccessActAnswer>
+  revokeAgent(bindingId: string, actor: AccessActor, relayed: OperatorDecision): Promise<AccessActAnswer>
+  /** `appSettings.machineTrust`; null when never set. */
+  machineTrust(): string | null
+}
+export interface AccessCaller { sessionId: string; bindingId: string | null }
+export type RelayedActAnswer = { ok: true; done: Record<string, unknown> } | { ok: false; code: string; message: string; data: Record<string, unknown> }
+
+/** «Разрешить» or «Отклонить», by the session, on the operator's words: checked, admitted, then the service's own answer. */
+export async function relayedDecide(door: AgentAccessDoor, caller: AccessCaller, args: { requestId: string; verdict: 'allow' | 'deny'; decision: unknown }, now: number): Promise<RelayedActAnswer> {
+  const checked = checkRelayedAccess(args.decision, { verb: args.verdict, targetId: args.requestId }, now)
+  if (!checked.ok) return checked
+  const row = await door.request(args.requestId)
+  if (!row) return { ok: false, code: 'not-found', message: 'no such request', data: {} }
+  const admit = admitAccessAct({ verb: args.verdict, request: row, callerBindingId: caller.bindingId, machineTrust: door.machineTrust() })
+  if (!admit.ok) return admit
+  const answer = await door.decide(args.requestId, args.verdict === 'allow' ? 'allowed' : 'denied', { kind: 'agent', id: caller.sessionId }, checked.decision)
+  return answer.ok ? { ok: true, done: { requestId: args.requestId, verdict: args.verdict } } : { ok: false, code: answer.code, message: answer.reason, data: {} }
+}
+
+/** «Отозвать» one grant, or everything an agent holds, by the session, on the operator's words. */
+export async function relayedRevoke(door: AgentAccessDoor, caller: AccessCaller, args: { grantId?: string; credentialId?: string; decision: unknown }, now: number): Promise<RelayedActAnswer> {
+  const target = args.grantId ?? args.credentialId
+  if (!target || (args.grantId && args.credentialId)) return { ok: false, code: 'invalid-arguments', message: 'Name exactly one: grantId or credentialId.', data: {} }
+  const checked = checkRelayedAccess(args.decision, { verb: 'revoke', targetId: target }, now)
+  if (!checked.ok) return checked
+  const admit = admitAccessAct({ verb: 'revoke', callerBindingId: caller.bindingId, machineTrust: door.machineTrust() })
+  if (!admit.ok) return admit
+  const actor: AccessActor = { kind: 'agent', id: caller.sessionId }
+  const answer = args.grantId ? await door.revokeGrant(args.grantId, actor, checked.decision) : await door.revokeAgent(target, actor, checked.decision)
+  return answer.ok ? { ok: true, done: { revoked: args.grantId ? { grantId: args.grantId } : { credentialId: target } } } : { ok: false, code: answer.code, message: answer.reason, data: {} }
 }
 // #endregion relayed-access

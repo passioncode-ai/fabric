@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
 
-const { checkRelayedAccess, admitAccessAct, DECISION_MAX_AGE_MS } = await import(path.resolve(import.meta.dirname, '../src/main/relayedAccess.ts'))
+const { checkRelayedAccess, admitAccessAct, relayedDecide, relayedRevoke, DECISION_MAX_AGE_MS } = await import(path.resolve(import.meta.dirname, '../src/main/relayedAccess.ts'))
 
 const NOW = Date.parse('2026-11-05T20:00:00Z')
 const ID = '0b4b0d02-d15a-4596-8879-5a22ba74afe7'
@@ -47,4 +47,51 @@ test('deny and revoke only restrict: allowed for any request; an organization\'s
   assert.equal(admitAccessAct({ verb: 'deny', callerBindingId: 'b1', machineTrust: null, request: { callee: 'gmail', capabilities: ['mail.read'], asked_by_binding: 'b1' } }).ok, true)
   assert.equal(admitAccessAct({ verb: 'revoke', callerBindingId: 'b1', machineTrust: 'mine' }).ok, true)
   assert.equal(admitAccessAct({ verb: 'revoke', callerBindingId: 'b1', machineTrust: 'organization' }).code, 'human-step-required')
+})
+
+function door(over = {}) {
+  const calls = []
+  return {
+    calls,
+    request: async (id) => (id === ID ? { callee: 'fabric', capabilities: ['board.respond'], asked_by_binding: 'b-other' } : null),
+    decide: async (...a) => { calls.push(['decide', ...a]); return { ok: true } },
+    revokeGrant: async (...a) => { calls.push(['revokeGrant', ...a]); return { ok: true } },
+    revokeAgent: async (...a) => { calls.push(['revokeAgent', ...a]); return { ok: true } },
+    machineTrust: () => null,
+    ...over
+  }
+}
+const CALLER = { sessionId: 'session-1', bindingId: 'b-mine' }
+
+test('relayedDecide: no words decide nothing; with them the session allows, recorded as its act with the words', async () => {
+  const d = door()
+  const bare = await relayedDecide(d, CALLER, { requestId: ID, verdict: 'allow', decision: undefined }, NOW)
+  assert.equal(bare.code, 'operator-decision-required')
+  assert.equal(d.calls.length, 0)
+  const done = await relayedDecide(d, CALLER, { requestId: ID, verdict: 'allow', decision: words() }, NOW)
+  assert.equal(done.ok, true)
+  const [verb, id, verdict, actor, relayed] = d.calls[0]
+  assert.deepEqual([verb, id, verdict, actor], ['decide', ID, 'allowed', { kind: 'agent', id: 'session-1' }])
+  assert.equal(relayed.instruction, 'allow it')
+})
+
+test('relayedDecide: a product is refused before the service is asked; the service\'s own refusal passes through', async () => {
+  const product = door({ request: async () => ({ callee: 'gmail', capabilities: ['mail.read'], asked_by_binding: null }) })
+  assert.equal((await relayedDecide(product, CALLER, { requestId: ID, verdict: 'allow', decision: words() }, NOW)).code, 'human-step-required')
+  assert.equal(product.calls.length, 0)
+  const late = door({ decide: async () => ({ ok: false, code: 'expired', reason: 'that request expired' }) })
+  const r = await relayedDecide(late, CALLER, { requestId: ID, verdict: 'allow', decision: words() }, NOW)
+  assert.deepEqual([r.ok, r.code], [false, 'expired'])
+  assert.equal((await relayedDecide(door(), CALLER, { requestId: '11111111-1111-4111-8111-111111111111', verdict: 'allow', decision: words({ target: '11111111-1111-4111-8111-111111111111' }) }, NOW)).code, 'not-found')
+})
+
+test('relayedRevoke: exactly one id; a grant or a whole agent, on words naming it', async () => {
+  const d = door()
+  assert.equal((await relayedRevoke(d, CALLER, { decision: words({ action: 'access.revoke' }) }, NOW)).code, 'invalid-arguments')
+  assert.equal((await relayedRevoke(d, CALLER, { grantId: ID, credentialId: ID, decision: words({ action: 'access.revoke' }) }, NOW)).code, 'invalid-arguments')
+  assert.equal((await relayedRevoke(d, CALLER, { grantId: ID, decision: words() }, NOW)).code, 'decision-invalid', 'words for allow do not revoke')
+  assert.equal((await relayedRevoke(d, CALLER, { credentialId: ID, decision: words({ action: 'access.revoke' }) }, NOW)).ok, true)
+  assert.equal(d.calls[0][0], 'revokeAgent')
+  const org = door({ machineTrust: () => 'organization' })
+  assert.equal((await relayedRevoke(org, CALLER, { grantId: ID, decision: words({ action: 'access.revoke' }) }, NOW)).code, 'human-step-required')
 })
