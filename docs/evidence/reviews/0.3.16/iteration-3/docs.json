@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "822560c5baec3d9cf4181e7f65acc8b79dd4819e",
+  "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-docs.md",
+  "reportSha256": "6d698930213605fc385bb99a5bc21e56f8dc5e6491e87068d181f6de23d8a5eb",
+  "reviewerRun": "release-0316-i3-docs-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V3-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: paraphrased in the on-demand spec §8, CO-492, CO-505 and the board-delivery report, and the report's rule name; a rescan joining consecutive added lines, for «…» after «operator» or «оператор» with no length floor, finds only interface strings, rule names and reviewers' quotations"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V3-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG says nothing new starts, a pending start ends and the board is read only to follow a run in flight; `AGENTS.md`'s dispatcher row and the spec §6 say the same; code as ER-4"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V3-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the row names every record in flight, each request's newest for 8 days and of the rest the newest 500; code as DA-2"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V3-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0188 amendment of 2026-11-05 (DO-4), a note in CO-500 and in CO-411"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V3-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: §2, §6 and §10 corrected; the wave row points at CO-409, which lists the five unbuilt items"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V3-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: dated amendments under §2.1 and §2.2, a note in CO-499, the sweep row describes the let-go of a claim whose task left work (`claim-closed`)"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V3-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the region header says `colima start` makes Colima's context current (CO-508); the 24-hour count and the switch's label"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V3-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the section above"
+      ]
+    }
+  ]
+}

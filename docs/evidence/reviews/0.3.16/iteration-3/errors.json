@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "822560c5baec3d9cf4181e7f65acc8b79dd4819e",
+  "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-errors.md",
+  "reportSha256": "29c81cf2399e0a945f55e004f9bbccf83da0702b9d7c99fa3993caafc2b41978",
+  "reviewerRun": "release-0316-i3-errors-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V3-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: at most `CLOSE_ATTEMPTS` (5) tries, then one `gave_up` line (`main/boardDispatchRun.ts#createBoardDispatch`); test `test/board-dispatch-run.test.mjs` «iteration 3, ER-1: …»"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V3-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a run Switchboard cannot report on, ended with its request unsettled, counts as empty; tests «iteration 3, ER-2: …» and «ER-3: a run Switchboard cannot report on frees its place …»"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V3-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Observatory's `WorkflowClosed` gives the request a new workflow; test «iteration 3, ER-3: …»"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V3-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: with the switch off a pending start ends as `unknown`, and the board is read only while a run is in flight; test «iteration 3, ER-4, DO-2: …»"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V3-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-409"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V3-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-409"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V3-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-409"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V3-14",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-409"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V3-15",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-409"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "source": "V3-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `noteOf` drops everything from a path after any of those, a `file://` URL, `~` or a drive letter (`main/boardDispatchRun.ts#noteOf`); test `test/board-dispatch-run.test.mjs` «iteration 3, ER-10, DA-4: …», watched failing with iteration 2's pattern"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "source": "V3-17",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-509"
+      ]
+    },
+    {
+      "id": "ER-12",
+      "source": "V3-18",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-509"
+      ]
+    }
+  ]
+}

@@ -30,6 +30,8 @@ candidate read-only; findings are disposed here and in the receipts under
   of CO-365 (item 2) is carried with CO-508 to the organization slice.
 - `node scripts/release-mac.mjs --check-only --tag v0.3.16` on the commit to be tagged reads green before the tag is
   pushed, its result written here (iteration 3, PL-1).
+- On `main` after the tag, one carry-over row for V3-56 to V3-59 (the verifier of `822560c5`, findings 2 to 5), since the
+  register cannot change after `verifiedCommit`.
 - On the board, threads `1add3c03` and `f7758225`: the `main` commit and the tag of 0.3.16, as promised on 2026-11-05; on
   thread `44c43a06`: one line to fabric-workspace that CO-409's dispatcher ships in 0.3.16 after all, correcting what
   Fabric said there on 2026-11-03 (iteration 3, PL-6).
@@ -154,7 +156,16 @@ Candidate `344b09e8ee09e88b4e9adc38d5a1d97b60fb103d`. Five reviewers, one per le
 [`docs/evidence/reviews/0.3.16/iteration-3/`](../reviews/0.3.16/iteration-3/). 40 findings, 10 blocking. The dispositions of
 iterations 1 and 2 held at the candidate except where the rows below take them up (V1-50, V2-15, V2-16).
 
-FINAL-CANDIDATE-PARAGRAPH
+Iteration 3's fixes made the candidate `23e1e89c56ed231b7db091793be92589e4d87739` (`fix(release 0.3.16): the third
+review iteration's findings`). Two fresh verifiers read it read-only: the documents and plan dispositions held, verdict
+«ready» ([report](../../reports/2026-11-05-release-0316/2026-11-05-final-candidate-docs-verification.md)); the code
+dispositions held except one blocking defect, B-1, verdict «not ready»
+([report](../../reports/2026-11-05-release-0316/2026-11-05-final-candidate-code-verification.md)). Its fix made the final
+candidate `822560c5baec3d9cf4181e7f65acc8b79dd4819e` (`fix(release 0.3.16): the final candidate's verification`), which a
+third fresh verifier read in full, with probes over the real dispatcher at both commits, verdict «ready»
+([report](../../reports/2026-11-05-release-0316/2026-11-05-final-candidate-delta-verification.md)). The verifiers'
+findings are V3-41 to V3-59 below. The final candidate is the release gate's `verifiedCommit`; the receipts and the
+release gate name it, as 0.3.15 named its final candidate.
 
 | Finding | Level | Severity | What | Disposition |
 |---|---|---|---|---|
@@ -177,7 +188,7 @@ FINAL-CANDIDATE-PARAGRAPH
 | V3-17 | ER-11 | non-blocking | `callOpName` counts empty and unknown MCP names | ruled: CO-509 |
 | V3-18 | ER-12 | non-blocking | the start's fold re-reads the hourly month file once per missing day | ruled: CO-509 |
 | V3-19 | DA-1 | blocking | two verbatim operator statements remained (CO-492, CO-505) | fixed: as DO-1 |
-| V3-20 | DA-2 | blocking | trimming the records dropped a request's only record and its count of empty runs | fixed: a request's newest record is kept while the board can hold the request (`KEEP_REQUEST_MS`, 8 days), records in flight always, the rest the newest 500; test «iteration 3, DA-2: …» |
+| V3-20 | DA-2 | blocking | trimming the records dropped a request's only record and its count of empty runs | fixed: a request's newest record is kept while the board can hold the request (`KEEP_REQUEST_MS`, 8 days), records in flight always, the rest the newest 500; test «iteration 3, DA-2: …»; completed by V3-41 (B-1) |
 | V3-21 | DA-3 | non-blocking | a digest write that fails before the operations log exists is said nowhere | ruled: CO-509 |
 | V3-22 | DA-4 | non-blocking | `noteOf` kept paths after `:`, `[`, `,` or `file://` | fixed: as ER-10 |
 | V3-23 | DA-5 | non-blocking | the notes said the board is not read with the switch off | fixed: as DO-2 |
@@ -186,7 +197,7 @@ FINAL-CANDIDATE-PARAGRAPH
 | V3-26 | DO-3 | blocking | `AGENTS.md` said the records file holds at most 500 records | fixed: the row names every record in flight, each request's newest for 8 days and of the rest the newest 500; code as DA-2 |
 | V3-27 | DO-4 | non-blocking | ADR-0188's amendment and CO-500 pointed away from CO-509; CO-411 named one slot | fixed: ADR-0188 amendment of 2026-11-05 (DO-4), a note in CO-500 and in CO-411 |
 | V3-28 | DO-5 | non-blocking | the on-demand spec stated permissions, the grant and `skipped-off` as current | fixed: §2, §6 and §10 corrected; the wave row points at CO-409, which lists the five unbuilt items |
-| V3-29 | DO-6 | non-blocking | the agents-and-logs spec, CO-499 and the sweep row described CO-499 and CO-498 as first built | fixed: dated amendments under §2.1 and §2.2, a note in CO-499, the sweep row names `claim-closed` |
+| V3-29 | DO-6 | non-blocking | the agents-and-logs spec, CO-499 and the sweep row described CO-499 and CO-498 as first built | fixed: dated amendments under §2.1 and §2.2, a note in CO-499, the sweep row describes the let-go of a claim whose task left work (`claim-closed`) |
 | V3-30 | DO-7 | non-blocking | code comments in `dockerLaunch.ts` and `boardDispatch.ts` said the old thing | fixed: the region header says `colima start` makes Colima's context current (CO-508); the 24-hour count and the switch's label |
 | V3-31 | DO-8 | non-blocking | «Owed in 0.3.16's Release close» placed the adapter prerequisite under the forty-sessions bullet | fixed: the section above |
 | V3-32 | PL-1 | blocking | the release preflight refuses the candidate's workspace pin | fixed: as V1-50's new disposition; `--check-only` is owed on the commit to be tagged (section above) |
@@ -198,5 +209,24 @@ FINAL-CANDIDATE-PARAGRAPH
 | V3-38 | PL-7 | non-blocking | P-29 and the 1105 plan named the scope wrongly | fixed: P-29 names CO-411, CO-454, CO-439's first part, CO-492, CO-502 and CO-365 as not shipping; CO-411's, CO-454's, CO-439's and CO-365's date cells; the 1105 plan's widening note and CO-294 row |
 | V3-39 | PL-8 | non-blocking | no fallback if the dispatcher's live check fails | fixed: the section above |
 | V3-40 | PL-9 | non-blocking | V1-2's disposition overstated the strings | fixed: V1-2's cell amended |
+| V3-41 | FV-B1 (verifier of 23e1e89c, code) | blocking | the trim dropped a to-operator record older than 8 days, so the request could be dispatched again | fixed in `822560c5`: a request's newest record stays while the request can come back (8 days, its own deadline kept as `until`, or read on the board this pass) (`main/boardDispatchRun.ts#createBoardDispatch`); tests «final candidate, B-1: …», watched failing on `23e1e89c`'s dispatcher |
+| V3-42 | FV-NB1 (verifier of 23e1e89c, code) | non-blocking | the closed-workflow check matched «closed», which a dropped connection also says | fixed in `822560c5`: matched by the typed name `WorkflowClosed`; test «final candidate, NB-1: …», watched failing |
+| V3-43 | FV-NB2 (verifier of 23e1e89c, code) | non-blocking | the switch ends a pending start whose run may already be live; a later start uses a new dispatch id | ruled: CO-409 |
+| V3-44 | FV-NB3 (verifier of 23e1e89c, code) | non-blocking | `noteOf` let a path through after a backtick, `<`, `;`, `|` or `{` | fixed in `822560c5`: the five characters added, with cases in «iteration 3, ER-10, DA-4: …» |
+| V3-45 | FV-NB4 (verifier of 23e1e89c, code) | non-blocking | two comments kept the runner-first order | fixed in `822560c5` (`App.tsx`, `SessionWindow.test.tsx`) |
+| V3-46 | FV-NB5 (verifier of 23e1e89c, code) | non-blocking | the 24-hour cap can undercount by one per request after a trim | ruled: CO-409 |
+| V3-47 | FV-NB6 (verifier of 23e1e89c, code) | non-blocking | a placeholder line in this section | fixed: the paragraph above |
+| V3-48 | FV-N1 (verifier of 23e1e89c, docs) | non-blocking | CO-439's date cell said shipped for the whole row | fixed in `822560c5`: part 1 shipped, parts 2 and 3 keep their date |
+| V3-49 | FV-N2 (verifier of 23e1e89c, docs) | non-blocking | the on-demand spec §3.3 said `skipped-off` is recorded | fixed in `822560c5`: §3.3 says nothing is recorded with the switch off |
+| V3-50 | FV-N3 (verifier of 23e1e89c, docs) | non-blocking | the CHANGELOG named Windows alone as not tried | fixed in `822560c5`: Windows and Linux |
+| V3-51 | FV-N4 (verifier of 23e1e89c, docs) | non-blocking | the CHANGELOG's board-rule bullet stated the stop before production as enforced | fixed in `822560c5`: the rule tells the session, nothing else enforces it |
+| V3-52 | FV-N5 (verifier of 23e1e89c, docs) | non-blocking | V3-29 said the sweep row names `claim-closed` | fixed: V3-29's cell says the row describes it |
+| V3-53 | FV-N6 (verifier of 23e1e89c, docs) | non-blocking | Windows fixture homes `C:\Users\p` in a test | fixed in `822560c5`: `C:\Users\example` (`apps/desktop/test/agent-registry.test.mjs`) |
+| V3-54 | FV-N7 (verifier of 23e1e89c, docs) | non-blocking | the text-check ids could not be re-read | not a defect: Copylot keeps the reports by id (`copylot_check` answers `reportId`); no tool here reads one back |
+| V3-55 | FV2-1 (verifier of 822560c5) | non-blocking | a far deadline keeps a request's record past the 8 days | not a defect: growth stays bounded by at most 20 dispatches per project a day and one kept record per request |
+| V3-56 | FV2-2 (verifier of 822560c5) | non-blocking | an unparsable deadline ends the whole pass (earlier than this change) | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
+| V3-57 | FV2-3 (verifier of 822560c5) | non-blocking | a run whose request was not read ends without counting as empty (earlier than this change) | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
+| V3-58 | FV2-4 (verifier of 822560c5) | non-blocking | a test stand-in throws a made-up closed-workflow message | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
+| V3-59 | FV2-5 (verifier of 822560c5) | non-blocking | two comments in `SessionWindow.tsx` keep the runner-first order | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
 
 Exit for iteration 3: every finding has a disposition. Blocking findings open: none.

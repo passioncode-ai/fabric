@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-05T17:14:15Z · `—` · feat/nav-wave1 → main · fast-forward
+- run: r-5d9bed5352f5
+- files: the left column's rework, the board dispatcher (CO-409), forty agents at once, ADR-0186 (CO-494), CO-498 to CO-500, CO-505, the three review iterations' fixes and the final candidate's verification, then the release commit (version, CHANGELOG, release gate, ledger, receipts, reports, the map)
+- conflicts: none
+- summary: Fabric 0.3.16 lands on `main` by a fast-forward from the verified candidate `822560c5`; the workspace gitlink names its receipt's snapshot `77e81ea1`.
+
 ### 2026-10-27T14:27:20Z · `—` · main → feat/mockup-parity · merge
 - run: release-0315-metadata-20261027
 - files: docs/workspace-receipt.json, workspace (the published workspace pin `9dfd0d1d`, main's `718e7a0f`, `23a32615`, `5e2e8ca5` and `9964cce8`)

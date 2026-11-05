@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "822560c5baec3d9cf4181e7f65acc8b79dd4819e",
+  "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-ux.md",
+  "reportSha256": "f6e29fcc0b52594b7952effd07f0f8bcdbf74a829bdc20d24093c0757d700bd2",
+  "reviewerRun": "release-0316-i3-ux-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V3-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `settings.permissions.lede` says the choice is for the agents the person starts and a board-request agent always runs with every permission (ru and en; text check `af015c1e` ru-RU, `bcbb620c` en-US)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V3-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the mark is offered only when no «Кто» or «Проект» filter narrows the feed (`launch/HistoryScreen.tsx#HistoryScreen`); test `HistoryScreen.test.tsx` «offers no mark while «Кто» narrows the feed …», watched failing with the guard removed"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V3-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-409 (a kind and words of its own in «На проверке»)"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V3-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `consoles.sessionTitle` «Сессия · {project} · {runner}» and `session.back` «← {project} · {runner}» in ru and en (text check `3890a5fb` ru-RU, `f4c4dc14` en-US)"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V3-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-511"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V3-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as a page it is a labelled `section`, as a side panel it stays an `aside` (`AgentAccessPanel.tsx`)"
+      ]
+    }
+  ]
+}

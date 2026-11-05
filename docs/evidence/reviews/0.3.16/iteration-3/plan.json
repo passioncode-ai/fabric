@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "822560c5baec3d9cf4181e7f65acc8b79dd4819e",
+  "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-plan.md",
+  "reportSha256": "63e21d2f3269bae2107259f644c4171a5df2f5b1b83a60e4668fdbd7185d60e8",
+  "reviewerRun": "release-0316-i3-plan-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V3-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V1-50's new disposition; `--check-only` is owed on the commit to be tagged (section above)"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V3-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-2; the CHANGELOG says the dispatcher has not been tried on Windows yet"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V3-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-409 carries the new workflow on `WorkflowClosed` (built) and CO-509 the stop hour before the fold and `OP_NAME`; CO-509's status names every open item"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V3-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-409's, CO-509's and CO-503's date cells say on `main` by the date, shipped in the release after 0.3.16"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V3-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the section above; the 1105 plan's checklist corrected"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V3-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the section above names `f7758225` and `44c43a06`"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V3-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-29 names CO-411, CO-454, CO-439's first part, CO-492, CO-502 and CO-365 as not shipping; CO-411's, CO-454's, CO-439's and CO-365's date cells; the 1105 plan's widening note and CO-294 row"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V3-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the section above"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V3-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: V1-2's cell amended"
+      ]
+    }
+  ]
+}

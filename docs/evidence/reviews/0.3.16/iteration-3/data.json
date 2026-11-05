@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "822560c5baec3d9cf4181e7f65acc8b79dd4819e",
+  "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-data.md",
+  "reportSha256": "01fd2566328b99392051bb38d558d467893b5398ddd7c35ef57fa43b0cc07d50",
+  "reviewerRun": "release-0316-i3-data-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V3-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-1"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V3-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a request's newest record is kept while the board can hold the request (`KEEP_REQUEST_MS`, 8 days), records in flight always, the rest the newest 500; test «iteration 3, DA-2: …»; completed by V3-41 (B-1)"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V3-21",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-509"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V3-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-10"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V3-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-2"
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.16
 
 **Upgrading.** This version moves the local database to schema 100 with two migrations:
 `20261027000126_home_journal_indexes.sql` (two indexes on the journal) and
