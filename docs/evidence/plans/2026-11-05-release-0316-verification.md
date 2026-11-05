@@ -17,13 +17,22 @@ candidate read-only; findings are disposed here and in the receipts under
 
 - The person's look at the opened 0.3.16, carried from 0.3.15's Release close (the 0.3.16 review, iteration 1, PL-10).
 - A live run of the board dispatcher on this Mac: a request filed to a project with no live session is answered by a
-  started run, which ends; with the switch off nothing starts (the on-demand spec §10).
+  started run, which ends; with the switch off nothing new starts and no decision is recorded (the on-demand spec §10,
+  as amended in iteration 3, DO-5). It needs fabric-agent-adapter 0.63.0 on this Mac, which arrives with PassionCode
+  launcher 0.2.76; the launcher waits for an analytics secret from the operator (the board, thread `cb1df3d5`), a human
+  gate. If the check fails after 0.3.16 is published, a point release turns the switch off by default; the decision is
+  the operator's (iteration 3, PL-8).
 - Forty agent sessions at once on this Mac: the home, the left column and Агенты stay responsive.
-  The live dispatcher check needs fabric-agent-adapter 0.63.0 on this Mac, which arrives with PassionCode launcher
-  0.2.76; the launcher waits for an analytics secret from the operator (the board, thread `cb1df3d5`), a human gate.
 - A live start of the local stack with the Docker engine stopped (CO-294's owed check; the 0.3.16 review, iteration 2,
-  PL-6).
-- On the board, thread `1add3c03`: the main commit and the tag of 0.3.16, as promised to two projects on 2026-11-05.
+  PL-6); expected: Colima's context becomes current (CO-508), not «the same context as before» (iteration 3, PL-5).
+- The live upgrade of the installed schema-98 database through migrations 126 and 127 after a backup: 0.3.15 refuses the
+  upgraded database and 0.3.16 opens it (the 1105 plan's release checklist, item 3; iteration 3, PL-5). The reboot check
+  of CO-365 (item 2) is carried with CO-508 to the organization slice.
+- `node scripts/release-mac.mjs --check-only --tag v0.3.16` on the commit to be tagged reads green before the tag is
+  pushed, its result written here (iteration 3, PL-1).
+- On the board, threads `1add3c03` and `f7758225`: the `main` commit and the tag of 0.3.16, as promised on 2026-11-05; on
+  thread `44c43a06`: one line to fabric-workspace that CO-409's dispatcher ships in 0.3.16 after all, correcting what
+  Fabric said there on 2026-11-03 (iteration 3, PL-6).
 
 ## Iteration 1
 
@@ -33,7 +42,7 @@ Candidate `a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d`. Five reviewers, one per le
 | Finding | Level | Severity | What | Disposition |
 |---|---|---|---|---|
 | V1-1 | UX-1 | blocking | Agent access did not open as a full page: the page rule never matched | fixed: the rule names the panel itself (`.ceo-panel.ceo-page`, `apps/desktop/src/renderer/src/launch/rail.css`) |
-| V1-2 | UX-2 | blocking | twelve strings still sent the person to «Настройки → Доступ агентов» | fixed: every product and agent-facing string names Agent access in the left column (14 files, `i18n/ru.ts`, `i18n/en.ts`, `main/hubCall.ts`, `main/agentSurface.ts`, `main/fabricMcp.ts` and others); text check reports `5c0ade5b` ru-RU, `922fccc5` en-US |
+| V1-2 | UX-2 | blocking | twelve strings still sent the person to «Настройки → Доступ агентов» | fixed: every product and agent-facing string names Agent access in the left column, except the board's own `not_authorized` refusal (migrations 107 and 124), which needs a schema step: CO-507 (amended in iteration 3, PL-9) (14 files, `i18n/ru.ts`, `i18n/en.ts`, `main/hubCall.ts`, `main/agentSurface.ts`, `main/fabricMcp.ts` and others); text check reports `5c0ade5b` ru-RU, `922fccc5` en-US |
 | V1-3 | UX-3 | blocking | the Comms unread count was not part of the link's accessible name | fixed: `aria-labelledby` names the word and the count (`launch/LaunchShell.tsx#LaunchShell`); test `Rail.test.tsx` «UX-3: «Переписка» says its unread count in its accessible name» |
 | V1-4 | UX-4 | non-blocking | the release notes left out user-visible changes | fixed: CHANGELOG `## Unreleased` names CO-494, CO-458, CO-457, CO-478, CO-460, CO-456, the agents' lines (CO-459, CO-467, CO-470, CO-473, CO-472, CO-475, CO-483, CO-471, CO-481, CO-484), CO-474 and the smaller fixes |
 | V1-5 | UX-5 | non-blocking | scenarios and the lifecycle row still placed Comms and Agent access in Settings | fixed: SCN-132, SCN-133 and SCN-143 amended 2026-11-05 (`docs/ux/scenarios.md`); the Comms count row in `AGENTS.md` |
@@ -81,7 +90,7 @@ Candidate `a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d`. Five reviewers, one per le
 | V1-47 | PL-6 | non-blocking | `com.enroll` still said never to reply only with a state | fixed: the description says a state with its nearest date answers too (DEC-0152) (`apps/desktop/src/main/boardTools.ts`); test `test/board-service.test.mjs` «com.enroll's description names the route …» |
 | V1-48 | PL-7 | non-blocking | CO-463 still open though migration 126 did it | fixed: CO-463 resolved in the register |
 | V1-49 | PL-8 | non-blocking | no lifecycle row for the dispatcher | fixed: as DO-3 |
-| V1-50 | PL-9 | non-blocking | a commit moved the workspace pin back four publications | not a defect: the scheduled publication pins the newest snapshot after the release commit lands (`node scripts/workspace.mjs check --allow-pending 6`) |
+| V1-50 | PL-9 | non-blocking | a commit moved the workspace pin back four publications | fixed in iteration 3 (PL-1), replacing «not a defect»: the scheduled publication had failed since 2026-11-03, so the iteration-3 fixes set the `workspace` gitlink to its receipt's commit `77e81ea1b75eafd5b77a633508251708b8d3092e` (`docs/workspace-receipt.json`); `scripts/lib/release-mac.mjs#workspacePinProblem` reads null at the final candidate |
 | V1-51 | PL-10 | non-blocking | 0.3.15's «the person's look at the opened 0.3.15» is neither done nor carried | fixed: «Owed in 0.3.16's Release close» above carries it |
 | V1-52 | PL-11 | non-blocking | CO-503's row did not carry the date given on the board | fixed: CO-503 decides by 2026-11-18 (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`) |
 
@@ -141,4 +150,53 @@ Exit for iteration 2: every finding has a disposition. Blocking findings open: n
 
 ## Iteration 3
 
-_Not started._
+Candidate `344b09e8ee09e88b4e9adc38d5a1d97b60fb103d`. Five reviewers, one per level, read-only in a detached checkout; their reports are in
+[`docs/evidence/reviews/0.3.16/iteration-3/`](../reviews/0.3.16/iteration-3/). 40 findings, 10 blocking. The dispositions of
+iterations 1 and 2 held at the candidate except where the rows below take them up (V1-50, V2-15, V2-16).
+
+FINAL-CANDIDATE-PARAGRAPH
+
+| Finding | Level | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-1 | UX-1 | blocking | Settings' permissions line said one choice covers every agent Fabric starts; the board-request agent always runs with every permission | fixed: `settings.permissions.lede` says the choice is for the agents the person starts and a board-request agent always runs with every permission (ru and en; text check `af015c1e` ru-RU, `bcbb620c` en-US) |
+| V3-2 | UX-2 | non-blocking | История's «Отметить прочитанным» marked the whole feed while a filter showed part of it | fixed: the mark is offered only when no «Кто» or «Проект» filter narrows the feed (`launch/HistoryScreen.tsx#HistoryScreen`); test `HistoryScreen.test.tsx` «offers no mark while «Кто» narrows the feed …», watched failing with the guard removed |
+| V3-3 | UX-3 | non-blocking | a request given to the person after two empty runs reads as one nobody picked up | ruled: CO-409 (a kind and words of its own in «На проверке») |
+| V3-4 | UX-4 | non-blocking | the console's top bar and back link still led with the runner | fixed: `consoles.sessionTitle` «Сессия · {project} · {runner}» and `session.back` «← {project} · {runner}» in ru and en (text check `3890a5fb` ru-RU, `f4c4dc14` en-US) |
+| V3-5 | UX-5 | non-blocking | «Поручить агенту B» writes its notes in Russian whatever the interface language | ruled: CO-511 |
+| V3-6 | UX-6 | non-blocking | Agent access as a page was a complementary landmark inside the place's main | fixed: as a page it is a labelled `section`, as a side panel it stays an `aside` (`AgentAccessPanel.tsx`) |
+| V3-7 | ER-1 | blocking | closing a given-up request was retried every minute forever on a permanent error | fixed: at most `CLOSE_ATTEMPTS` (5) tries, then one `gave_up` line (`main/boardDispatchRun.ts#createBoardDispatch`); test `test/board-dispatch-run.test.mjs` «iteration 3, ER-1: …» |
+| V3-8 | ER-2 | blocking | a run Switchboard reports `unknown` never counted as empty, so the stop after two never fired | fixed: a run Switchboard cannot report on, ended with its request unsettled, counts as empty; tests «iteration 3, ER-2: …» and «ER-3: a run Switchboard cannot report on frees its place …» |
+| V3-9 | ER-3 | non-blocking | a workflow the run closed itself made every later take-back fail | fixed: Observatory's `WorkflowClosed` gives the request a new workflow; test «iteration 3, ER-3: …» |
+| V3-10 | ER-4 | non-blocking | a `starting` record with the switch off never ended and kept the board read every minute | fixed: with the switch off a pending start ends as `unknown`, and the board is read only while a run is in flight; test «iteration 3, ER-4, DO-2: …» |
+| V3-11 | ER-5 | non-blocking | the take-back can steal a live run's lease and comes before the spec's 120 s of silence | ruled: CO-409 |
+| V3-12 | ER-6 | non-blocking | a persistent refusal is retried every 10 minutes for the request's life | ruled: CO-409 |
+| V3-13 | ER-7 | non-blocking | an accepted request past its deadline Fabric never started for reaches the person as a log line only | ruled: CO-409 |
+| V3-14 | ER-8 | non-blocking | the records file is checked for two fields only | ruled: CO-409 |
+| V3-15 | ER-9 | non-blocking | a workflow is left open on a quit between open and record, or a lost first checkpoint | ruled: CO-409 |
+| V3-16 | ER-10 | non-blocking | `noteOf` kept paths after `:`, `~`, `[`, `,` and in `file://` URLs | fixed: `noteOf` drops everything from a path after any of those, a `file://` URL, `~` or a drive letter (`main/boardDispatchRun.ts#noteOf`); test `test/board-dispatch-run.test.mjs` «iteration 3, ER-10, DA-4: …», watched failing with iteration 2's pattern |
+| V3-17 | ER-11 | non-blocking | `callOpName` counts empty and unknown MCP names | ruled: CO-509 |
+| V3-18 | ER-12 | non-blocking | the start's fold re-reads the hourly month file once per missing day | ruled: CO-509 |
+| V3-19 | DA-1 | blocking | two verbatim operator statements remained (CO-492, CO-505) | fixed: as DO-1 |
+| V3-20 | DA-2 | blocking | trimming the records dropped a request's only record and its count of empty runs | fixed: a request's newest record is kept while the board can hold the request (`KEEP_REQUEST_MS`, 8 days), records in flight always, the rest the newest 500; test «iteration 3, DA-2: …» |
+| V3-21 | DA-3 | non-blocking | a digest write that fails before the operations log exists is said nowhere | ruled: CO-509 |
+| V3-22 | DA-4 | non-blocking | `noteOf` kept paths after `:`, `[`, `,` or `file://` | fixed: as ER-10 |
+| V3-23 | DA-5 | non-blocking | the notes said the board is not read with the switch off | fixed: as DO-2 |
+| V3-24 | DO-1 | blocking | four verbatim operator quotations remained, two wrapping a line | fixed: paraphrased in the on-demand spec §8, CO-492, CO-505 and the board-delivery report, and the report's rule name; a rescan joining consecutive added lines, for «…» after «operator» or «оператор» with no length floor, finds only interface strings, rule names and reviewers' quotations |
+| V3-25 | DO-2 | blocking | the notes said the board is not read with the switch off | fixed: CHANGELOG says nothing new starts, a pending start ends and the board is read only to follow a run in flight; `AGENTS.md`'s dispatcher row and the spec §6 say the same; code as ER-4 |
+| V3-26 | DO-3 | blocking | `AGENTS.md` said the records file holds at most 500 records | fixed: the row names every record in flight, each request's newest for 8 days and of the rest the newest 500; code as DA-2 |
+| V3-27 | DO-4 | non-blocking | ADR-0188's amendment and CO-500 pointed away from CO-509; CO-411 named one slot | fixed: ADR-0188 amendment of 2026-11-05 (DO-4), a note in CO-500 and in CO-411 |
+| V3-28 | DO-5 | non-blocking | the on-demand spec stated permissions, the grant and `skipped-off` as current | fixed: §2, §6 and §10 corrected; the wave row points at CO-409, which lists the five unbuilt items |
+| V3-29 | DO-6 | non-blocking | the agents-and-logs spec, CO-499 and the sweep row described CO-499 and CO-498 as first built | fixed: dated amendments under §2.1 and §2.2, a note in CO-499, the sweep row names `claim-closed` |
+| V3-30 | DO-7 | non-blocking | code comments in `dockerLaunch.ts` and `boardDispatch.ts` said the old thing | fixed: the region header says `colima start` makes Colima's context current (CO-508); the 24-hour count and the switch's label |
+| V3-31 | DO-8 | non-blocking | «Owed in 0.3.16's Release close» placed the adapter prerequisite under the forty-sessions bullet | fixed: the section above |
+| V3-32 | PL-1 | blocking | the release preflight refuses the candidate's workspace pin | fixed: as V1-50's new disposition; `--check-only` is owed on the commit to be tagged (section above) |
+| V3-33 | PL-2 | blocking | the notes said the board is not read with the switch off and that runs on Windows are not in the release | fixed: as DO-2; the CHANGELOG says the dispatcher has not been tried on Windows yet |
+| V3-34 | PL-3 | non-blocking | board promises made after the candidate had no register home | fixed: CO-409 carries the new workflow on `WorkflowClosed` (built) and CO-509 the stop hour before the fold and `OP_NAME`; CO-509's status names every open item |
+| V3-35 | PL-4 | non-blocking | the board's dates had no release before 2026-11-21 | fixed: CO-409's, CO-509's and CO-503's date cells say on `main` by the date, shipped in the release after 0.3.16 |
+| V3-36 | PL-5 | non-blocking | the Release close omitted the schema-100 upgrade and CO-365, and expected an unchanged docker context | fixed: the section above; the 1105 plan's checklist corrected |
+| V3-37 | PL-6 | non-blocking | board follow-ups beyond `1add3c03` were owed nowhere | fixed: the section above names `f7758225` and `44c43a06` |
+| V3-38 | PL-7 | non-blocking | P-29 and the 1105 plan named the scope wrongly | fixed: P-29 names CO-411, CO-454, CO-439's first part, CO-492, CO-502 and CO-365 as not shipping; CO-411's, CO-454's, CO-439's and CO-365's date cells; the 1105 plan's widening note and CO-294 row |
+| V3-39 | PL-8 | non-blocking | no fallback if the dispatcher's live check fails | fixed: the section above |
+| V3-40 | PL-9 | non-blocking | V1-2's disposition overstated the strings | fixed: V1-2's cell amended |
+
+Exit for iteration 3: every finding has a disposition. Blocking findings open: none.

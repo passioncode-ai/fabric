@@ -49,11 +49,18 @@ Read on the operator's Mac on 2026-11-04 between 17:20 and 17:40 UTC.
   folder git cannot name, it keeps the branch the agent's last turn reported (CO-459, on main since 0.3.15).
 - `LiveAgent.folder` carries the folder; the left column, the home's «В работе» and the agent page show its last
   segment beside the branch («fabric-co409-dispatch · feat/reply-at-once»), the whole path in the tooltip.
+- *Amended 2026-11-05 (0.3.16, the left column's rework; noted by the 0.3.16 review, iteration 3, DO-6):* the left column
+  shows the agent's name with its runner and folder beneath and no branch; the branch is on the agent's page
+  (`renderer/src/launch/LaunchShell.tsx`, the comment above `folderName`).
 
 ### 2.2 A status that does not outlive its work (CO-499)
 
 - The sweep lets go of a live claim whose task is no longer `running` (review, done, cancelled, backlog), as the
   system `work-sweep`, with the reason «задача уже не в работе», and tells the session on its next answer.
+- *Amended 2026-11-05 (the 0.3.16 review, iteration 1, ER-11; noted in iteration 3, DO-6):* a claim on a task in review
+  or backlog is let go only when the task moved there after the claim was taken (`shared/abandonedSweep.ts#findAbandoned`,
+  `taskMovedAt`), so an agent may claim a task in review to finish it; the reason written is `its task is no longer in
+  work` (`CLOSED_REASON`).
 - An agent's own words older than its newest sign by more than 30 minutes (`shared/homeLive.ts#DOING_OLD_MS`) are
   shown as old: the row and the agent page say how long ago they were written and that it has worked since.
 

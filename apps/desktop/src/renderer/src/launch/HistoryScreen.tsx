@@ -225,7 +225,8 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
       {feed !== undefined && (
         <section className="hx-agents" aria-labelledby="hx-agents-title">
           <h3 id="hx-agents-title">{t('acts.agentsTitle')}</h3>
-          {onRead && readThroughSeq !== undefined && unread > 0 && (
+          {/* UX-2 (0.3.16 review, iteration 3): the mark covers the whole feed, so it is offered only when the whole feed is shown. */}
+          {onRead && readThroughSeq !== undefined && unread > 0 && !filters.who && !filters.project && (
             <button type="button" className="hx-button" disabled={highestSeq <= cursorReading.cursor.throughSeq}
               onClick={() => void onRead(highestSeq)}>{t('journal.markRead', { count: unread })}</button>
           )}

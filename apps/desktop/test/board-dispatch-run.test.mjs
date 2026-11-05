@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
 
-const { createBoardDispatch, REFUSAL_BACKOFF_MS, START_ATTEMPTS, UNKNOWN_AFTER_END_MS } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+const { createBoardDispatch, REFUSAL_BACKOFF_MS, START_ATTEMPTS, UNKNOWN_AFTER_END_MS, CLOSE_ATTEMPTS, noteOf } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
 
 const T0 = Date.parse('2026-11-05T10:00:00Z')
 const MIN = 60_000
@@ -208,7 +208,7 @@ test('ER-2: quitting starts nothing and asks Switchboard nothing', async () => {
   assert.equal(w.calls.length, 0)
 })
 
-test('ER-3: a run Switchboard cannot report on frees its place after its end and is not an empty run', async () => {
+test('ER-3: a run Switchboard cannot report on frees its place after its end; with its request unsettled it counts as empty (iteration 3, ER-2)', async () => {
   const w = world()
   const d = createBoardDispatch(w.deps)
   await d.onPass()
@@ -216,7 +216,7 @@ test('ER-3: a run Switchboard cannot report on frees its place after its end and
   w.tick(30 * MIN); await d.onPass()
   assert.equal(d.records()[0].state, 'running')
   w.tick(30 * MIN + UNKNOWN_AFTER_END_MS + MIN); w.requests = []; await d.onPass()
-  assert.deepEqual([d.records()[0].state, d.records()[0].outcome, d.records()[0].emptyRuns], ['ended', 'unknown', 0])
+  assert.deepEqual([d.records()[0].state, d.records()[0].outcome, d.records()[0].emptyRuns], ['ended', 'unknown', 1])
 })
 
 test('ER-6: a run is not judged empty when the request cannot be read this pass', async () => {
@@ -319,5 +319,97 @@ test('iteration 2, ER-8, DA-2: trimming never drops a record that gave its reque
   const d = createBoardDispatch(w.deps)
   await d.onPass()
   assert.ok(d.records().some((r) => r.outcome === 'to-operator'))
-  assert.ok(d.records().filter((r) => r.outcome !== 'to-operator' && r.state === 'ended').length <= 500)
+  // Iteration 3, DA-2: each request's newest record of the last eight days is kept too, so none of these is trimmed.
+  assert.equal(d.records().filter((r) => r.state === 'ended').length, 601)
+})
+
+test('iteration 3, ER-1: closing a given-up request is tried CLOSE_ATTEMPTS times, then given up', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  for (const id of ['L1', 'L2']) { w.runs.set(id, 'ended'); w.tick(3 * MIN); await d.onPass() }
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => { if (args.close) throw new Error('down'); return real(name, args) }
+  for (let i = 0; i < CLOSE_ATTEMPTS + 5; i++) { w.tick(MIN); await d.onPass() }
+  assert.equal(w.logs.filter((l) => l.op === 'board.dispatch.closed').length, CLOSE_ATTEMPTS)
+  assert.ok(d.toOperator().has(request().id))
+})
+
+test('iteration 3, ER-2: runs Switchboard cannot report on count as empty, so the stop after two holds', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  for (const id of ['L1', 'L2']) {
+    w.runs.set(id, 'unknown')
+    w.tick(60 * MIN + UNKNOWN_AFTER_END_MS + MIN); await d.onPass()
+    w.tick(3 * MIN); await d.onPass()
+  }
+  for (let i = 0; i < 5; i++) { w.tick(30 * MIN); await d.onPass() }
+  assert.equal(w.launches.length, 2)
+  assert.ok(d.toOperator().has(request().id))
+})
+
+test('iteration 3, ER-3: a workflow the run closed itself gives the request a new workflow, never a loop', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.runs.set('L1', 'ended'); w.tick(3 * MIN)
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => { if (name === 'observatory_handoff_create' && args.reason === 'restart') throw new Error('WorkflowClosed: the workflow is closed'); return real(name, args) }
+  await d.onPass()
+  assert.equal(w.launches.length, 2)
+  assert.ok(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length >= 2, 'a new workflow was opened')
+})
+
+test('iteration 3, ER-4, DO-2: with the switch off a pending start ends and the board is no longer read', async () => {
+  const w = world()
+  w.deps.launch = async (args) => { w.launches.push(args); return { refused: 'failed' } }
+  let reads = 0
+  const rr = w.deps.readRequests
+  w.deps.readRequests = async () => { reads++; return rr() }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.on = false
+  const before = reads
+  for (let i = 0; i < 5; i++) { w.tick(MIN); await d.onPass() }
+  assert.equal(d.records()[0].state, 'ended')
+  assert.equal(reads, before)
+  assert.equal(w.launches.length, 1)
+})
+
+test('iteration 3, DA-2: trimming keeps a request\'s newest record, so its empty runs are not forgotten', async () => {
+  const w = world()
+  const filler = Array.from({ length: 600 }, (_, i) => ({ requestId: `r${i}`, projectId: 'p', dispatchId: `d${i}`, workflowId: 'wf_0123456789abcdef', handoffId: 'h', launchId: 'L', startedAt: T0 - 9 * DAY + i, endsAt: new Date(T0).toISOString(), state: 'ended', outcome: 'finished', emptyRuns: 0 }))
+  const mine = { requestId: request().id, projectId: 'p-target', dispatchId: 'dm', workflowId: 'wf_0123456789abcdef', handoffId: 'h', launchId: 'L0', startedAt: T0 - 10 * DAY, endsAt: new Date(T0 - 10 * DAY).toISOString(), state: 'ended', outcome: 'exited-without-answer', emptyRuns: 1 }
+  w.deps.load = () => [mine, ...filler]
+  w.requests = []
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.ok(d.records().length <= 501)
+  const recent = { ...mine, startedAt: T0 - DAY }
+  const w2 = world()
+  w2.deps.load = () => [recent, ...filler]
+  w2.requests = []
+  const d2 = createBoardDispatch(w2.deps)
+  await d2.onPass()
+  assert.ok(d2.records().some((r) => r.dispatchId === 'dm'), 'the request\'s newest record within the week is kept')
+})
+
+test('iteration 3, ER-10, DA-4: a note keeps no path, whatever comes before it', () => {
+  const cases = [
+    'spawn failed: /Users/example/work/fabric',
+    'ENOENT, open \'/Users/example/x y/file.json\'',
+    'no folder [/Users/example/a]',
+    'cwd=/Users/example/a, then more',
+    'see file:///Users/example/a/b.log',
+    'read ~/Library/Application Support/x',
+    'open C:\\Users\\example\\x',
+    'list a,/Users/example/b'
+  ]
+  for (const c of cases) {
+    const n = noteOf(new Error(c))
+    assert.doesNotMatch(n, /Users|Library|example/, c)
+    assert.match(n, /<path>/, c)
+  }
+  assert.equal(noteOf(new Error('refused: no_agent')), 'refused: no_agent')
 })

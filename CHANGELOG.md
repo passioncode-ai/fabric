@@ -28,9 +28,10 @@ schema-100 database, so going back is the backup with the bundle you came from. 
   second run; a refusal waits 10 minutes before the request is tried again. Fabric watches each run to its end; after
   two runs that left the request unsettled it starts no more, closes the request's workflow and shows the request in
   «На проверке». Settings → «Запускать агента на запрос доски, который некому взять», on by default; at most two runs
-  on the machine, one per project at a time and 20 started runs per project in 24 hours. With the switch off nothing
-  starts and the board is not read. Not in this release: the journal events, the live session's wake and runs on
-  Windows (CO-409).
+  on the machine, one per project at a time and 20 started runs per project in 24 hours. With the switch off nothing new
+  starts: a start still waiting for Switchboard's answer is ended, and Fabric keeps reading the board only to follow a
+  run it already started, until that run ends. Not in this release: the journal events and the live session's wake
+  (CO-409). On Windows the dispatcher has not been tried yet.
 - **Forty agents at once** (the operator, 2026-11-05). Every agent's turn asks the home and the left column for a new
   reading; with many agents those readings ran back to back. A reading asked for by a mark now starts no sooner than
   1.5 s after the previous one started, so the cost stays the same whether five agents or forty are working; the
@@ -38,10 +39,14 @@ schema-100 database, so going back is the backup with the bundle you came from. 
 - **The left column names each agent first** (the operator, 2026-11-05). An agent's row leads with its own name (its
   project's display name); its small line says what runs it and the folder it works in, and the branch moved to the
   agent's page. The Агенты screen and the agent's own page name it the same way, the project first, then what runs it and its folder
-  (a runner nobody started keeps the runner's name); the task page's agent card leads with the project and the runner,
+  (a runner nobody started keeps the runner's name), and so do an open console's top bar and a session window's way back; the task page's agent card leads with the project and the runner,
   and a task held by its own agent says that agent's name rather than a piece of its session id. «Переписка» (with its unread count) and «Доступ агентов» are places of the column now, beside История
   and Настройки, and Settings no longer carry them; Agent access opens as a full page. The column's width is the
   person's: drag its edge or step it with the arrow keys, 180 to 420 px, kept on this computer.
+- **История marks read only what it shows.** «Отметить прочитанным» under «Что делали агенты» is offered when no «Кто» or
+  «Проект» filter narrows the list, so rows never shown are never marked read.
+- **Settings says who the permissions choice is for.** «Разрешения агентов» covers the agents you start; an agent
+  Fabric starts for a board request always runs with every permission.
 - **Answering a project's requests is allowed at once on the operator's machine** (CO-494, ADR-0186). An agent that
   asks for `board.respond` gets it without a consent prompt, recorded in the journal and revocable in Agent access.
 - **«Поручить агенту B в Fabric»** (CO-458). Work another project should do becomes a task in that project and a board

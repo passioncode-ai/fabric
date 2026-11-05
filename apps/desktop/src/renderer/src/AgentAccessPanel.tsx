@@ -160,9 +160,12 @@ export function AgentAccessPanel({ onClose, page = false }: { onClose: () => voi
   const listening = view.kind === 'read' && view.overview.hub.listening
   const keyStays = (name: string): Said => ({ tone: 'info', text: t('access.products.keyStays', { name }) })
   const head = (section: Section) => (el: HTMLHeadingElement | null) => { heads.current[section] = el }
+  const Box = page ? 'section' : 'aside'
 
   return (
-    <aside className={page ? 'ceo-panel ceo-page' : 'ceo-panel'} aria-label={t('access.title')}>
+    // UX-6 (0.3.16 review, iteration 3): as a page it is the place's own content (a labelled section inside the
+    // place's main), as a side panel it stays a complementary landmark.
+    <Box className={page ? 'ceo-panel ceo-page' : 'ceo-panel'} aria-label={t('access.title')}>
       <Panel title={t('access.title')} actions={page ? undefined : <Toolbar align="end"><Button tone="ghost" onClick={onClose}>{t('access.close')}</Button></Toolbar>}>
         <p className="muted">{t('access.what')}</p>
         {said && (said.tone === 'warn'
@@ -271,7 +274,7 @@ export function AgentAccessPanel({ onClose, page = false }: { onClose: () => voi
           </>
         )}
       </Panel>
-    </aside>
+    </Box>
   )
 }
 

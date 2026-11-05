@@ -45,6 +45,8 @@ export interface DispatchRecord {
   endedAt?: number
   /** For `to-operator`: the workflow is closed. Absent or false: closing is tried again each pass (ER-3). */
   closed?: boolean
+  /** Times closing was tried; after `CLOSE_ATTEMPTS` it is given up and said once (iteration 3, ER-1). */
+  closeAttempts?: number
   /** Runs for this request that ended without settling it. */
   emptyRuns: number
 }
@@ -82,12 +84,18 @@ export const REFUSAL_BACKOFF_MS = 10 * 60_000
 export const START_ATTEMPTS = 3
 /** A run Switchboard cannot report on is taken as ended this long after its own end (ER-3). */
 export const UNKNOWN_AFTER_END_MS = 10 * 60_000
+/** Times a to-operator workflow's close is tried before Fabric gives up on it (iteration 3, ER-1). */
+export const CLOSE_ATTEMPTS = 5
+/** How long a request's newest record is kept whatever the history bound (iteration 3, DA-2): past a week the board
+ *  has expired the request. */
+export const KEEP_REQUEST_MS = 8 * DAY_MS
 
 /** A failure's note for the log: its message without absolute paths (DA-7), at most 200 characters. */
 export function noteOf(e: unknown): string {
   // A path may hold spaces (a folder named with words), so everything from the first absolute path on is dropped
-  // (the 0.3.16 review, iteration 2, DA-5).
-  return (e instanceof Error ? e.message : String(e)).replace(/(^|[\s'"(=])(?:[A-Za-z]:)?[\\/][^\s'"]*[\s\S]*$/, '$1<path>').slice(0, 200)
+  // (the 0.3.16 review, iterations 2 and 3, DA-5, ER-10): after a space, a quote, `(`, `=`, `:`, `[` or `,`, as
+  // `/…`, `~/…`, `C:\…` or a `file://` URL.
+  return (e instanceof Error ? e.message : String(e)).replace(/(^|[\s'"(=:[,])(?:file:\/\/|~|[A-Za-z]:)?[\\/][\s\S]*$/, '$1<path>').slice(0, 200)
 }
 
 export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[]; toOperator(): Set<string> } {
@@ -114,8 +122,12 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         r.state = 'ended'
         r.outcome = 'unknown'
         r.endedAt = now
+        // Iteration 3, ER-2: a run nobody can account for counts as empty unless its request is settled, so the stop
+        // after two empty runs holds even when Switchboard cannot say how a run ended.
+        const settled = await deps.requestState(r.requestId)
+        if (!(settled !== null && SETTLED.has(settled))) r.emptyRuns++
         changed = true
-        deps.log('board.dispatch.ended', 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: r.outcome })
+        deps.log('board.dispatch.ended', 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: r.outcome, empty_runs: r.emptyRuns })
         continue
       }
       // ER-6: the request's state as read in THIS pass; when it cannot be read the run is judged on a later pass.
@@ -191,10 +203,21 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     } else {
       // §3.4: a run that left the request unsettled keeps the lease; Fabric takes the workflow back to itself.
       workflowId = prior.workflowId
-      const back = await deps.observatory('observatory_handoff_create', {
-        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-back`, workflowId, to: { provider: 'fabric' }, reason: 'restart'
-      })
-      if (typeof back.handoffId !== 'string') throw new Error(`the workflow could not be taken back: ${String(back.error ?? 'no handoff')}`)
+      let back: Record<string, unknown>
+      try {
+        back = await deps.observatory('observatory_handoff_create', {
+          owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-back`, workflowId, to: { provider: 'fabric' }, reason: 'restart'
+        })
+      } catch (e) {
+        // Iteration 3, ER-3 (agreed on the board, thread `1add3c03`): a run closed the workflow itself while the request
+        // stayed open, so it cannot be taken back; the request gets a workflow of its own again.
+        if (/closed/i.test(e instanceof Error ? e.message : String(e))) return open(req, undefined, provider, endsAt, dispatchId)
+        throw e
+      }
+      if (typeof back.handoffId !== 'string') {
+        if (/closed/i.test(String(back.error ?? ''))) return open(req, undefined, provider, endsAt, dispatchId)
+        throw new Error(`the workflow could not be taken back: ${String(back.error ?? 'no handoff')}`)
+      }
       const took = await deps.observatory('observatory_handoff_accept', { owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-accept`, handoffId: back.handoffId })
       if (typeof took.leaseId !== 'string') throw new Error(`the workflow could not be accepted back: ${String(took.error ?? 'no lease')}`)
       leaseId = took.leaseId
@@ -279,22 +302,34 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   const pass = async (): Promise<void> => {
     const now = deps.now()
     const on = deps.switchOn()
+    if (!on) {
+      // Iteration 3, ER-4, DO-2: a start still waiting for Switchboard's answer is not asked again with the switch off;
+      // it ends as unknown, so the board is not read for it and no run starts without a fresh decision.
+      let ended = false
+      for (const r of records.filter((x) => x.state === 'starting')) {
+        r.state = 'ended'; r.outcome = 'unknown'; r.endedAt = now; ended = true
+        deps.log('board.dispatch.ended', 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: 'switch-off' })
+      }
+      if (ended) deps.save(records)
+    }
     const live = records.some((r) => r.state !== 'ended')
     // ER-7: with the switch off and nothing of ours in flight the board is not read at all.
     if (!on && !live) return
     const requests = await deps.readRequests()
     await watch(now)
     // Iteration 2, ER-3, ER-2, DA-2: a request given to the operator has its workflow closed, retried until it is.
-    for (const r of records.filter((x) => x.outcome === 'to-operator' && !x.closed)) {
+    for (const r of records.filter((x) => x.outcome === 'to-operator' && !x.closed && (x.closeAttempts ?? 0) < CLOSE_ATTEMPTS)) {
       if (deps.quitting?.()) return
+      r.closeAttempts = (r.closeAttempts ?? 0) + 1
       try {
         await closeWorkflow(r)
         r.closed = true
-        deps.save(records)
       } catch (e) {
-        // Recorded through the caller's ops sink; the request is already the operator's, closing is tried again.
-        deps.log('board.dispatch.closed', 'failed', { request: r.requestId, note: noteOf(e) })
+        // Recorded through the caller's ops sink; the request is already the operator's. Closing is tried again up to
+        // CLOSE_ATTEMPTS times, then given up (iteration 3, ER-1): the open workflow is harmless, nobody holds it.
+        deps.log('board.dispatch.closed', 'failed', { request: r.requestId, attempt: r.closeAttempts, gave_up: r.closeAttempts >= CLOSE_ATTEMPTS, note: noteOf(e) })
       }
+      deps.save(records)
     }
     // Starts left without an answer are asked again first (ER-1, ER-2); with the switch off, not at all (iteration 2, ER-6).
     for (const r of on ? records.filter((x) => x.state === 'starting') : []) {
@@ -372,9 +407,12 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       deps.save(records)
       await start(r, folder, now)
     }
-    // A bounded history: never a record in flight or one that gave its request to the operator (iteration 2, ER-8,
-    // DA-2); of the rest, the newest, so the file holds at most 500 plus those.
-    const kept = (r: DispatchRecord): boolean => r.state !== 'ended' || r.outcome === 'to-operator'
+    // A bounded history (iteration 3, DA-2): never a record in flight, and never a request's newest record while the
+    // board can still hold the request (`KEEP_REQUEST_MS`), so its count of empty runs and a given-up request stay; of
+    // the rest, the newest 500. The file holds at most 500 plus one record per request of the last eight days.
+    const newest = new Map<string, DispatchRecord>()
+    for (const r of records) newest.set(r.requestId, r)
+    const kept = (r: DispatchRecord): boolean => r.state !== 'ended' || (newest.get(r.requestId) === r && now - r.startedAt < KEEP_REQUEST_MS)
     const rest = records.filter((r) => !kept(r))
     if (rest.length > 500) {
       const drop = new Set(rest.slice(0, rest.length - 500))

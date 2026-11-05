@@ -334,3 +334,23 @@ describe('История filters and the act in full (CO-414)', () => {
     }
   })
 })
+
+describe('«Отметить прочитанным» marks only what is shown (0.3.16 review, iteration 3, UX-2)', () => {
+  const feed = [1, 2, 3].map((seq) => ({ estate_id: 'e', seq, type: 'task.moved@1', actor: { kind: seq === 1 ? 'person' : 'agent', id: 's1' }, project_id: 'p1', occurred_at: '2026-10-22T10:00:00Z', payload: { to: 'review' } }))
+  const show = (onRead: (n: number) => Promise<void>) => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+    render(<I18nProvider locale="en"><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }]} mark={0} feed={feed as never} feedProjects={[{ id: 'p1', name: 'Atlas' } as never]} readThroughSeq={0} onRead={onRead} /></I18nProvider>)
+  }
+  it('offers the mark over the whole feed when no filter narrows it', async () => {
+    const onRead = vi.fn(async () => {})
+    show(onRead)
+    fireEvent.click(await screen.findByRole('button', { name: en['journal.markRead'].replace('{count}', '3') }))
+    expect(onRead).toHaveBeenCalledWith(3)
+  })
+  it('offers no mark while «Кто» narrows the feed, so rows never shown are never marked read', async () => {
+    window.sessionStorage.setItem('fabric.history.filters.v1', JSON.stringify({ who: 'person', project: '', text: '' }))
+    show(vi.fn(async () => {}))
+    expect(await screen.findByRole('heading', { name: en['acts.agentsTitle'] })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /as read/i })).toBeNull()
+  })
+})

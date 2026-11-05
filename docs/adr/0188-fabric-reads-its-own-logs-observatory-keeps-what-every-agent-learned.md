@@ -66,3 +66,5 @@ an agent's work asks for one. Who keeps what, and who reads it, was written nowh
   lessons and records land, and Fabric says `unknown` for one written through a call it does not carry. Decision 5's
   «Fabric counts the retros asked and those written» is read that way. A closed UTC day with hourly lines and no daily
   line is folded once at Fabric's next start (DEC-0153 OD-5), so a Mac closed overnight still writes its days.
+- 2026-11-05, the 0.3.16 release review, iteration 3 (DO-4): the journal's counts the first amendment leaves to
+  «CO-500's follow-up» are carried in CO-509 (CO-500 is closed, and CO-504 with it), due on `main` by 2026-11-18.

@@ -1,8 +1,9 @@
 // #region docker-launch — docs: docs/ux/scenarios.md#scn-161-fabric-opens-while-its-stack-is-still-starting
 /**
- * CO-294 (the start half): Docker that does not answer at start is started by Fabric, without ever changing the docker
- * context of the machine (fabric-workspace, 2026-10-27: OrbStack started again switched the whole machine's context to
- * itself and sent other projects' scripts to an empty engine).
+ * CO-294 (the start half): Docker that does not answer at start is started by Fabric, and never by an app that switches
+ * the machine's docker context to itself (fabric-workspace, 2026-10-27: OrbStack started again switched the whole
+ * machine's context to itself and sent other projects' scripts to an empty engine). `colima start` does make Colima's
+ * context current (CO-508), which is the engine the Colima socket already names.
  * - Colima installed: Fabric starts Colima (`colima start`, for the profile the socket or the Colima context names) and
  *   nothing else; with no Colima socket or context it starts nothing.
  * - Otherwise OrbStack or Docker Desktop is started only when it is the one runtime installed and the socket the CLI

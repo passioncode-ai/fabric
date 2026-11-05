@@ -23,7 +23,7 @@ export interface DispatchLimits {
   maxOnMachine: number
   /** On-demand sessions running at once for one project. */
   maxPerProject: number
-  /** Dispatches for one project per UTC day. */
+  /** Runs started for one project in the last 24 hours. */
   maxPerProjectPerDay: number
   /** A run's time limit in minutes, cut to the board's deadline when it is earlier (§3.6). */
   runMinutes: number
@@ -51,7 +51,7 @@ export interface DispatchInput {
   liveResponder: boolean
   /** A live session is enrolled in the target project. */
   liveSession: boolean
-  /** The switch «Запускать агентов по запросам доски». */
+  /** The switch «Запускать агента на запрос доски, который некому взять». */
   switchOn: boolean
   /** The target project has a folder on this machine. */
   hasFolder: boolean

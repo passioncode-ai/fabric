@@ -48,7 +48,7 @@ What the other products already have, read the same day:
    message and, when the session takes the responder slot, it answers as today. Fabric never types into a terminal
    (0.3.13, ER-2: an Enter can answer a prompt the session waits on).
 3. With neither, after a short grace period Fabric starts an **on-demand session**: the machine's default agent in the
-   project's folder, with the machine's default permissions, the whole request and its context as its first input. It does
+   project's folder, with every permission (`--permissions all`), the whole request and its context as its first input. It does
    the work, reports in the request's thread, completes the request and ends.
 4. One request starts at most one session at a time. A run that ends without completing leaves the request in the state
    the contract gives it; after two such runs Fabric stops starting sessions for it and shows it to the operator in
@@ -59,10 +59,12 @@ Decisions taken here (the operator's latest word wins over earlier rows):
 - On by default, with an off switch in Settings.
 - **Responders without a consent stop** (CO-494, by (every step approved, paraphrased)): every project of the operator gets `board.respond` on its
   declared capabilities, and a session of that project on the operator's own machine takes the slot when it enrolls; no
-  agent waits for a click. The grant is recorded as the operator's act with his words as the reason, and it is revocable
-  per project on the permissions screen (§6.1).
+  agent waits for a click. As built in 0.3.16 (ADR-0186 decision 1, `accessService.ts`) the grant is recorded as the
+  asking agent's own revocable act, for one project and up to eight capabilities it names; narrowing it to the agent's
+  own project is CO-506, and the permissions screen (§6.1) is not built yet.
 - The default agent is Switchboard's machine default, Claude Code when none is set.
-- Permissions follow `agentPermissions`; in this version a started session runs with «all on», as the operator asked. The
+- A started session runs with every permission (`--permissions all`), as the operator asked; `agentPermissions` applies
+  to the sessions the person starts, and Settings says so (the 0.3.16 review, iteration 3, UX-1). The
   three floors stay with a person: money, deletion and publication go through `fabric_effect_request`, and sign-ins, typed
   secrets and payments remain human steps.
 
@@ -262,10 +264,11 @@ Wave 2 runs the whole chain on a Windows machine before the release that turns t
 
 - Never more sessions than the caps; never a second run for the same request in flight.
 - Nothing is typed into a terminal; a live session is reached by message or nudge only.
-- The run has the machine's default permissions; money, deletion and publication still go through
+- The run has every permission (`--permissions all`); money, deletion and publication still go through
   `fabric_effect_request`, sign-ins, typed secrets and payments stay with the person.
 - No secret in the packet, the journal, the counts or the logs; keys by name.
-- The operator's switch stops new dispatches at once; runs in flight finish or reach their time limit.
+- The operator's switch stops new dispatches at once and ends a start still waiting for Switchboard's answer; runs in
+  flight finish or reach their time limit, and the board is read only to follow them.
 
 ### 6.1 The permissions screen
 
@@ -305,8 +308,8 @@ and error data only to improve the product, with the switch already on; the swit
 alone. This supersedes the decision of 2026-11-03 (thread `b2e5df1f`: a baseline without consent, consent extends) and
 ADR-0127; a new ADR records it in the change that builds it, with the notice text through the text checker.
 
-**Errors our customers meet reach us** (the operator's word of 2026-11-04, relayed by fabric-workspace: «убедиться, что
-есть логирование ошибок. и мы можем корректно видеть, если появляются какие-то проблемы у наших клиентов»). Today
+**Errors our customers meet reach us** (the operator's word of 2026-11-04, relayed by fabric-workspace: make sure errors are
+logged and that we can see correctly when our customers run into problems). Today
 Fabric keeps errors only on the machine (the operations log and `startup-failure.log`); none reaches us. CO-496 adds an
 `app_error` count under the same switch: a fixed code and the place it happened (`area`, `op`), the platform and the
 version, never the message text, a path, a project name or anything the person typed, as Fabric Inbox's `app_error`
@@ -318,14 +321,15 @@ version, never the message text, a path, a project name or anything the person t
 |---|---|---|
 | 1 | grants without a stop (CO-494); the dispatcher behind the switch (off until wave 2's verification), the packet, journal events; tests with a fake Switchboard | `switchboard dispatch`; the contract's packet and lifecycle; the adapter's skill section; Observatory's `service:fabric` workflow owner |
 | 2 | the switch on by default; usage counts by default (CO-496); the permissions screen (§6.1); the chain run on macOS and on Windows | the same switch and counts in every product; releases on both platforms |
-| 2, landed | 2026-11-05: the dispatcher on the real doors (`main/boardDispatchWiring.ts#wireBoardDispatch`: the board through the operator's read door, the slots through `board_responders_operator`, the attempt from the request facts, Switchboard's CLI, Observatory's stdio server), beside the cycle, the switch on by default (`shared/appSettings.ts`, `dispatchBoardRequests`); after the 0.3.16 review: the record written before each start, a refusal waits 10 minutes, a project with a live session gets no second agent (the wake of §3.2 is not built, so the request stays that session's), and two empty runs close the workflow and show the request in «На проверке». Not in 0.3.16: the dispatcher runs on the 60 s cycle only, not on board events (§3.1); the `crash` reason, the mandate, `com.get` reading and `timed-out` of §3.4 and §3.6 are not built; the journal events of §7 (the dispatcher logs to the operations log only), the permissions screen of §6.1, the counts of §8 (CO-496), the wake of §3.2, Claude Code as a fallback when no default agent is set (§3.5: none set is `deferred-no-agent`), and the run on Windows; carried in CO-409 | |
+| 2, landed | 2026-11-05: the dispatcher on the real doors (`main/boardDispatchWiring.ts#wireBoardDispatch`: the board through the operator's read door, the slots through `board_responders_operator`, the attempt from the request facts, Switchboard's CLI, Observatory's stdio server), beside the cycle, the switch on by default (`shared/appSettings.ts`, `dispatchBoardRequests`); after the 0.3.16 review: the record written before each start, a refusal waits 10 minutes, a project with a live session gets no second agent (the wake of §3.2 is not built, so the request stays that session's), and two empty runs close the workflow and show the request in «На проверке». Not in 0.3.16: the dispatcher runs on the 60 s cycle only, not on board events (§3.1); the `crash` reason, the mandate, `com.get` reading and `timed-out` of §3.4 and §3.6 are not built; the journal events of §7 (the dispatcher logs to the operations log only), the permissions screen of §6.1, the counts of §8 (CO-496), the wake of §3.2, Claude Code as a fallback when no default agent is set (§3.5: none set is `deferred-no-agent`), and the run on Windows; carried in CO-409, whose row lists each of them since the 0.3.16 review, iteration 3 (DO-5) | |
 | 3 | three-iteration verification of the chain and fixes; release | releases; fabric-workspace's version matrix shows every product current on both platforms |
 
 ## 10. Checks that prove it
 
 - A request filed to a project with no session is answered by a started session within the grace plus the run, and the
   session's process is gone afterwards (macOS and Windows).
-- With the switch off, nothing starts and `skipped-off` is recorded.
+- With the switch off, nothing starts and no decision is recorded (the pass returns before deciding; `skipped-off` is
+  `decideDispatch`'s answer for a caller that asks with the switch off).
 - Caps hold under ten simultaneous requests.
 - A run killed mid-way leaves the request in the state the contract gives it; after a second such run Fabric starts no
   more for it and shows it to the operator in «На проверке», its state unchanged (§3.6, option (b)).
