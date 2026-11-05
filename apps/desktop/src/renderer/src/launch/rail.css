@@ -5,7 +5,7 @@
    the page, a side panel and the act line stay put while the page scrolls (2026-10-22, the operator: «главный экран
    не скроллится»: the shell grew past `.app.launch-root`, which clips, and nothing scrolled).
    scripts/test/shell-scroll.browser.mjs holds this with the real nesting. */
-.fab-shell{display:grid;grid-template-columns:216px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:100%;min-height:0;background:var(--app-bg)}
+.fab-shell{display:grid;grid-template-columns:var(--rail-w,216px) minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:100%;min-height:0;background:var(--app-bg)}
 .rail{border-right:1px solid var(--app-line);padding:12px 10px;display:flex;flex-direction:column;gap:0;background:var(--app-panel);min-height:0;overflow:hidden;-webkit-app-region:drag}
 .rail a,.rail button{-webkit-app-region:no-drag}
 .rail-brand{display:flex;align-items:center;gap:9px;padding:20px 8px 12px}
@@ -22,6 +22,13 @@
 .rail-i-agents{border-radius:50%}
 .rail-i-history{border-style:dashed}
 .rail-i-settings{border-radius:3px 8px}
+.rail-i-comms{border-radius:6px 6px 6px 1px}
+.rail-i-access{border-radius:50% 50% 3px 3px}
+/* The operator, 2026-11-05: the rail's width is the person's, dragged at its edge. */
+.rail{position:relative}
+.rail-resize{position:absolute;top:0;right:-3px;width:6px;height:100%;cursor:col-resize;z-index:2;-webkit-app-region:no-drag}
+.rail-resize:hover,.rail-resize:focus-visible{background:var(--app-line)}
+.rail-runner{color:var(--app-muted)}
 .rail-sect{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--app-muted);padding:14px 8px 4px;margin:0}
 .rail-projects{flex:1 1 auto;min-height:0;overflow-y:auto}
 .rail-projects ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:0}
@@ -84,6 +91,8 @@
    the place's height, and it would grow past it instead of scrolling (Settings, 0.3.10 review ER-1). */
 .fab-place>.shell>.content{padding-bottom:var(--space-4)}
 .fab-place>.shell>.ceo-panel{min-height:0}
+/* Agent access as a place of the rail (the operator, 2026-11-05): the panel fills the page, no side-panel frame. */
+.fab-place>.shell>.ceo-panel.ceo-page{flex:1;width:auto;max-width:960px;border-left:0;box-shadow:none}
 /* An absolutely placed element inside a page (a visually hidden label) is placed against the page, never the window:
    placed against the window it made the document taller and the WINDOW scrolled the rail and the top bar away (0.3.10
    review, iteration 2, UX-1). The main window's document never scrolls; detached windows have no `.launch-root`. */
@@ -106,7 +115,8 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 @media(max-height:640px){.fab-place>:not(.shell):not(.act-line){max-height:15%;padding-block:2px}.fab-place>.shell{min-height:min(35%,calc(100% - 6rem))}.fab-place>.act-line{max-height:30%}}
 /* The window narrower than 900 px: the rail folds to its signs and counts; the names are in the tooltips. */
 @media(max-width:900px){
-  .fab-shell{grid-template-columns:64px minmax(0,1fr)}
+  .fab-shell{grid-template-columns:64px minmax(0,1fr)!important}
+  .rail-resize{display:none}
   .rail{padding:12px 8px}
   .rail-brand div,.rail-sect,.rail-projects .rail-name,.rail-places .rail-name,.rail-machine .rail-name,.rail-muted,.rail-problem p{display:none}
   .rail-create{font-size:0;margin:0 4px 10px}.rail-create span{font-size:15px}

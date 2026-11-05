@@ -106,6 +106,11 @@ graph button.
    recent sign of life. A row opens the agent screen (part 3). An agent that is only installed, idle or disconnected is
    not listed here: those live in Настройки → «Агенты для кода на этом компьютере» (SCR-89), which already lists them.
 5. At the foot, two quiet links: «История» and «Настройки». Главная is the brand itself (press it to come home).
+   *Amended 2026-11-05 (the operator):* the foot holds four places, «Переписка» (the Comms, with its unread count),
+   «Доступ агентов» (a full page, no longer a panel opened from Settings), «История» and «Настройки»; Settings keep
+   only settings. An agent's row leads with its own name (its project's display name) and says in its small line what
+   runs it and its folder; the branch is on its page. The column's width is the person's: dragged at its edge or
+   stepped with the arrow keys, 180 to 420 px, kept on this computer.
 
 **Where the branch comes from.**
 

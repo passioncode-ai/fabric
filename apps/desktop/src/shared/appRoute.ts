@@ -83,6 +83,9 @@ export type AppRoute =
   | { kind: 'board'; projectId?: string | null; item?: string | null; topic?: boolean; needs?: boolean; tab?: BoardTab }
   /** SCR-81. What projects tell each other, read by the operator. A single place, like the agents view. */
   | { kind: 'comms' }
+  /** Agent access as a place of the rail (the operator, 2026-11-05: «доступ агентов … вынести в меню слева … этот экран
+   *  должен быть основным»): which agents work with which products, each revocable. It was a panel opened from Settings. */
+  | { kind: 'access' }
   /** SCN-175 (W2 S5): how the projects relate; `projectId` centres the graph on one project and its neighbours. */
   | { kind: 'graph'; projectId?: string | null }
   /** SCR-40. Every project by default; `projectId` opens one project's goals. */

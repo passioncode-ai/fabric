@@ -972,7 +972,7 @@ function Shell({
   // «Создать»'s; a place reached from another one (the board, the plan, Help…) marks nothing on the rail.
   const railAt: React.ComponentProps<typeof LaunchShell>['at'] = showSettings
     ? { kind: 'settings' }
-    : active.kind === 'home' || active.kind === 'history' ? { kind: active.kind }
+    : active.kind === 'home' || active.kind === 'history' || active.kind === 'comms' || active.kind === 'access' ? { kind: active.kind }
     : active.kind === 'agents' ? { kind: 'agents', session: active.session ?? (active.agent?.startsWith('session:') ? active.agent.slice('session:'.length) : null) }
     : active.kind === 'start' || active.kind === 'draft' ? { kind: 'create' }
     : active.kind === 'project' ? { kind: 'project', projectId: active.projectId }
@@ -1001,6 +1001,7 @@ function Shell({
     : active.kind === 'project' || active.kind === 'guide' ? (projectNameOf(active.projectId) ?? t('app.loading'))
     : active.kind === 'board' ? t('launch.nav.board')
     : active.kind === 'comms' ? t('launch.nav.comms')
+    : active.kind === 'access' ? t('access.title')
     : active.kind === 'graph' ? t('graph.title')
     : active.kind === 'plan' ? t('launch.nav.plan')
     : active.kind === 'help' ? t('launch.nav.help')
@@ -1039,6 +1040,7 @@ function Shell({
         onAgentConsole={(session) => void openConsole(session)}
         waiting={waiting}
         machine={machineOf({ read: feed !== null, failed: journalFailed }, error)}
+        commsUnread={commsUnread}
         onPlace={(place: RailPlace) => {
           setShowSettings(place === 'settings')
           if (place === 'settings') return
@@ -1095,9 +1097,7 @@ function Shell({
         <SettingsScreen
           settings={settings}
           onOpenHistory={() => setPanel('history')}
-          onOpenAccess={() => setPanel('access')}
           onOpen={(to) => { setShowSettings(false); goTo({ kind: to }) }}
-          commsUnread={commsUnread}
           agentsRoster={<AgentRoster mark={markOf(marks, ['work', 'task', 'agent', 'session'])} hubMark={markOf(marks, ['act', 'access'])}
             sessions={sessions} projects={projects} groups={['idle', 'off']}
             onSelect={(agent) => { setShowSettings(false); setWorkspaceFor(null); goTo({ kind: 'agents', agent }) }} />}
@@ -1169,6 +1169,9 @@ function Shell({
         {active.kind === 'graph' && (
           <GraphScreen projectId={active.projectId ?? null} feedMark={markOf(marks, ['project'])}
             onProject={openProject} onWhole={() => setActive({ kind: 'graph' })} />
+        )}
+        {active.kind === 'access' && (
+          <AgentAccessPanel page onClose={() => goTo({ kind: 'home' })} />
         )}
         {active.kind === 'comms' && (
           <CommsScreen
@@ -1430,7 +1433,7 @@ function Shell({
 
 /** The route as a tab, where it is one. The agents view and the board are not. */
 function tabOf(route: AppRoute): Tab | null {
-  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'graph' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
+  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'access' || route.kind === 'graph' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
 }
 
 function keyOf(tab: Tab): string {

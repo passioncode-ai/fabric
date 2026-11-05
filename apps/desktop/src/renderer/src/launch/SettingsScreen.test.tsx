@@ -71,7 +71,7 @@ describe('the settings screen', () => {
     stub(async () => ({ source: 'absent', reason: 'not-installed', detail: null }))
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] } } as unknown as AppSettings
-    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} />)
     // The screen is the page's main region and its heading has focus on open (0.3.6 review i2 UX-2).
     expect(screen.getByRole('main')).toBeTruthy()
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: en['settings.screen.title'] }))
@@ -81,19 +81,13 @@ describe('the settings screen', () => {
   })
 })
 
-describe('the projects\u2019 messages, reached from Настройки → Ещё (0.3.7 review UX-4)', () => {
-  it('the button that opens Comms carries the count of threads with new messages', () => {
+describe('the Comms and Agent access are places of the rail, not of Настройки (the operator, 2026-11-05)', () => {
+  it('Настройки carry neither the Comms button nor the Agent access block', () => {
     stub(async () => ({ source: 'absent', reason: 'not-installed', detail: null }))
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] } } as unknown as AppSettings
-    const onOpen = vi.fn()
-    show(<SettingsScreen settings={settings} onChange={vi.fn()} onOpenHistory={() => {}} onOpenAccess={() => {}} onOpen={onOpen} commsUnread={{ count: 4, atLeast: false }} />)
-    const button = screen.getByRole('button', { name: new RegExp(`^${en['settings.more.comms']}`) })
-    expect(within(button).getByLabelText(en['rail.commsUnread'].replace('{count}', '4')).textContent).toBe('4')
-    fireEvent.click(button)
-    expect(onOpen).toHaveBeenCalledWith('comms')
-    cleanup()
-    show(<SettingsScreen settings={settings} onChange={vi.fn()} onOpenHistory={() => {}} onOpenAccess={() => {}} onOpen={onOpen} commsUnread={null} />)
-    expect(screen.queryByLabelText(/New messages/)).toBeNull()
+    show(<SettingsScreen settings={settings} onChange={vi.fn()} onOpenHistory={() => {}} onOpen={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: new RegExp(`^${en['settings.more.comms']}`) })).toBeNull()
+    expect(screen.queryByRole('button', { name: en['settings.access.open'] })).toBeNull()
   })
 })
 
@@ -139,11 +133,11 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     }))
     const base = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] }, launchAtLogin: true }
     const view = render(<I18nProvider locale="en"><SettingsScreen settings={{ ...base, agentPermissions: 'fewer-prompts' } as unknown as AppSettings}
-      onChange={vi.fn()} onOpenHistory={() => {}} onOpenAccess={() => {}} /></I18nProvider>)
+      onChange={vi.fn()} onOpenHistory={() => {}} /></I18nProvider>)
     await waitFor(() => expect(screen.getByText('gemini --yolo')).toBeTruthy())
     mode = 'ask'
     view.rerender(<I18nProvider locale="en"><SettingsScreen settings={{ ...base, agentPermissions: 'manual' } as unknown as AppSettings}
-      onChange={vi.fn()} onOpenHistory={() => {}} onOpenAccess={() => {}} /></I18nProvider>)
+      onChange={vi.fn()} onOpenHistory={() => {}} /></I18nProvider>)
     await waitFor(() => expect(screen.getByText('GOOSE_MODE=approve goose')).toBeTruthy())
     expect(screen.queryByText('gemini --yolo')).toBeNull()
     expect(screen.getByText('gemini')).toBeTruthy()
@@ -154,7 +148,7 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
       readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true } as AppSettings
-    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} />)
     const fewer = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.fewer']) }) as HTMLInputElement
     const manual = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.manual']) }) as HTMLInputElement
     expect(fewer.checked).toBe(true)
@@ -177,7 +171,7 @@ describe('the agents\' working language can be switched off (the operator\'s wal
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
       readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true } as AppSettings
-    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} />)
     const box = screen.getByRole('checkbox', { name: en['settings.agentLanguage'] }) as HTMLInputElement
     expect(box.checked).toBe(true)
     fireEvent.click(box)
@@ -196,7 +190,7 @@ describe('this computer\'s trust, said by the person (ADR-0176 §3)', () => {
     }))
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
       readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true } as AppSettings
-    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} />)
     return { onChange, select: screen.getByRole('combobox', { name: en['settings.machineTrust'] }) as HTMLSelectElement }
   }
 
@@ -231,7 +225,7 @@ describe('launch at login, only where it does something (CO-322; 0.3.7 review UX
   }))
   const open = (launchAtLogin: boolean, onChange = vi.fn()) => {
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] }, launchAtLogin } as unknown as AppSettings
-    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} />)
     return onChange
   }
 
@@ -280,7 +274,7 @@ describe('a refused settings write is said on the screen itself (CO-313)', () =>
     stub(async () => ({ source: 'absent', reason: 'not-installed', detail: null }))
     const onChange = vi.fn(async () => 'the disk is full' as string | null).mockResolvedValueOnce('the disk is full').mockResolvedValueOnce(null).mockResolvedValueOnce('read-only')
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', runnerFallback: { order: [] } } as unknown as AppSettings
-    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} onOpenAccess={() => {}} />)
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} />)
     const said = (reason: string) => en['settings.notSaved'].replace('{reason}', reason)
     fireEvent.change(screen.getByLabelText(en['power.label']), { target: { value: 'always' } })
     expect((await screen.findByRole('alert')).textContent).toContain(said('the disk is full'))
@@ -406,13 +400,13 @@ describe('the five sections, «Сохранено» after a change, and folder t
         analytics: { status: async () => ({ enabled: false, answered: true }) }
       }
     }))
-    show(<SettingsScreen settings={full(over)} onChange={onChange as never} onOpenHistory={() => {}} onOpenAccess={() => {}} onOpen={() => {}} />)
+    show(<SettingsScreen settings={full(over)} onChange={onChange as never} onOpenHistory={() => {}} onOpen={() => {}} />)
   }
 
   it('names its sections in the order of step 1, each a small label over what it holds', () => {
     open(vi.fn())
     const labels = screen.getAllByRole('heading', { level: 3 }).filter((h) => h.classList.contains('settings-group-label')).map((h) => h.textContent)
-    expect(labels).toEqual([en['settings.look.title'], en['settings.computer.title'], en['settings.launch.group'], en['settings.data.title'], en['settings.agentAccess'], en['settings.more.title']])
+    expect(labels).toEqual([en['settings.look.title'], en['settings.computer.title'], en['settings.launch.group'], en['settings.data.title'], en['settings.more.title']])
     const launch = screen.getByRole('group', { name: en['settings.launch.group'] })
     expect(within(launch).getByText(en['settings.permissions.title'])).toBeTruthy()
     expect(within(launch).getByText(en['settings.launch.title'])).toBeTruthy()

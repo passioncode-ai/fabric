@@ -78,7 +78,7 @@ export function revealSection(anchor: string, deadlineMs = 2000, settleMs = 1500
   requestAnimationFrame(step)
 }
 
-export type RailPlace = 'home' | 'agents' | 'history' | 'settings' | 'create'
+export type RailPlace = 'home' | 'agents' | 'comms' | 'access' | 'history' | 'settings' | 'create'
 
 export interface LaunchShellProps {
   /** Null until the list has been read: an unknown list is not an empty one (M108). */
@@ -121,6 +121,8 @@ export interface LaunchShellProps {
   placeKey?: string
   /** CO-388: this place was reached by going back or forward (⌘[, ⌘]); it opens where it was left, not at its top. */
   restoreScroll?: boolean
+  /** The Comms' unread count, on its place in the rail (it was on Settings → Ещё). */
+  commsUnread?: { count: number; atLeast: boolean } | null
   /** The open consoles as tabs in the top bar (OF-03, SCN-172); renders nothing while none is open. */
   consoles?: React.ReactNode
   /** Where the way back and forward can go (the operator's second review, 2026-10-26, R-7): the buttons are disabled,
@@ -131,8 +133,19 @@ export interface LaunchShellProps {
   children: React.ReactNode
 }
 
-/** The foot's two places (0.3.14): Главная is the brand, Агенты is the toggle. */
-const FOOT: ReadonlyArray<'history' | 'settings'> = ['history', 'settings']
+/** The foot's places: the Comms and Agent access came out of Settings (the operator, 2026-11-05); Главная is the brand,
+ *  Агенты the toggle. */
+const FOOT: ReadonlyArray<'comms' | 'access' | 'history' | 'settings'> = ['comms', 'access', 'history', 'settings']
+
+/** The rail's width the person dragged it to (the operator, 2026-11-05: «хорошо бы уметь настраивать ширину»), kept on
+ *  this computer; within these bounds, 216 px when never set. */
+export const RAIL_MIN = 180
+export const RAIL_MAX = 420
+const RAIL_KEY = 'fabric.rail.width'
+export function railWidthOf(raw: string | null): number {
+  const n = raw === null ? NaN : Number(raw)
+  return Number.isFinite(n) ? Math.min(RAIL_MAX, Math.max(RAIL_MIN, Math.round(n))) : 216
+}
 type RailView = 'projects' | 'agents'
 
 /**
@@ -146,6 +159,24 @@ export function machineOf(journal: { read: boolean; failed: boolean }, _shellErr
 
 export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   const t = useT()
+  // The rail's width (the operator, 2026-11-05), kept on this computer; a storage that refuses keeps the default.
+  const [railWidth, setRailWidth] = useState<number>(() => {
+    try { return railWidthOf(window.localStorage.getItem(RAIL_KEY)) } catch { return 216 }
+  })
+  const setRail = (px: number): void => {
+    const w = railWidthOf(String(px))
+    setRailWidth(w)
+    try { window.localStorage.setItem(RAIL_KEY, String(w)) } catch { /* kept for this window only */ }
+  }
+  const startResize = (e: React.PointerEvent<HTMLDivElement>): void => {
+    e.preventDefault()
+    const x0 = e.clientX
+    const w0 = railWidth
+    const move = (ev: PointerEvent): void => setRail(w0 + ev.clientX - x0)
+    const up = (): void => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
   const locale = useLocale()
   const { at, projects } = props
   const onSearch = props.onSearch
@@ -230,7 +261,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
     heading.focus({ preventScroll: true })
   }, [where])
   return (
-    <div className="fab-shell">
+    <div className="fab-shell" style={{ ['--rail-w' as string]: `${railWidth}px` }}>
       <aside className="rail" aria-label={t('rail.aside')}>
         {/* The brand is Главная (0.3.14): pressing it comes home. No count on it (the mockup parity, rail gap 9): the home
             itself says what waits for the person, and each project's row carries its own. */}
@@ -323,6 +354,10 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
             <ul aria-label={t('rail.agents.list')}>
               {props.agents.rows.map((a) => {
                 const name = t('rail.agentTitle', { runner: runnerLabel(a.runner, t), project: a.projectName ?? t('launch.home.agents.noProject') })
+                // The operator, 2026-11-05: the agent's own name leads (its project's display name); the small line says
+                // what runs it and in which folder; the branch is on the agent's page.
+                const title = a.projectName ?? runnerLabel(a.runner, t)
+                const folder = folderName(a.folder)
                 const status = a.status ?? (a.state === 'working' ? 'working' : 'idle')
                 return (
                   <li key={a.sessionId}>
@@ -334,13 +369,11 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                       {/* UX-17: the status has a name for every reader, «working» included. */}
                       <span className={`rail-dot s-${status}`} role="img" aria-label={t(`status.${status}` as 'status.idle')} />
                       <span className="rail-agent-words">
-                        <span className="rail-name">{name}</span>
+                        <span className="rail-name">{title}</span>
                         <span className="rail-agent-line">
+                          <span className="rail-runner">{runnerLabel(a.runner, t)}</span>
                           {/* CO-498: the folder it works in, by its last segment, the whole path on hover. */}
-                          {folderName(a.folder) && <span className="rail-folder" title={a.folder ?? undefined}>{folderName(a.folder)} · </span>}
-                          {a.branch
-                            ? <span className="rail-branch">{a.branch}</span>
-                            : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
+                          {folder && <span className="rail-folder" title={a.folder ?? undefined}> · {folder}</span>}
                           {/* Every status keeps its word beside its shape, «Работает» included (0.3.14's UX-26, R-19; the
                               0.3.15 review, iteration 1, UX-1), quiet as the mockup's «· молчит». */}
                           <span className="rail-word"> · {t(`status.${status}` as 'status.idle')}</span>
@@ -369,9 +402,19 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
               {...current(at.kind === place)} onClick={(e) => go(e, () => props.onPlace(place))}>
               <span className={`rail-i rail-i-${place}`} aria-hidden="true" />
               <span className="rail-name" id={`rail-name-${place}`}>{t(`rail.${place}`)}</span>
+              {place === 'comms' && props.commsUnread && props.commsUnread.count > 0 && (
+                <span className="rail-c" aria-label={t(props.commsUnread.atLeast ? 'rail.commsUnreadMax' : 'rail.commsUnread', { count: props.commsUnread.count })}>
+                  {props.commsUnread.count}{props.commsUnread.atLeast ? '+' : ''}
+                </span>
+              )}
             </a>
           ))}
         </nav>
+        {/* Drag to set the rail's width; the arrows step it by 16 px for a keyboard. */}
+        <div className="rail-resize" role="separator" aria-orientation="vertical" aria-label={t('rail.resize')}
+          aria-valuemin={RAIL_MIN} aria-valuemax={RAIL_MAX} aria-valuenow={railWidth} tabIndex={0}
+          onPointerDown={startResize}
+          onKeyDown={(e) => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); setRail(railWidth + (e.key === 'ArrowRight' ? 16 : -16)) } }} />
         {props.machine === 'trouble' && (
           <p className="rail-machine" role="status" title={t('rail.machine.trouble')}>
             <span className="rail-dot trouble" aria-hidden="true" />

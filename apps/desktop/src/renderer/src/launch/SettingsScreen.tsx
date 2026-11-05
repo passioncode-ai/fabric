@@ -300,7 +300,7 @@ function Section({ id, label, children }: { id: string; label: string; children:
   )
 }
 
-export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess, onOpen, commsUnread, agentsRoster }: {
+export function SettingsScreen({ settings, onChange, onOpenHistory, onOpen, agentsRoster }: {
   /** 0.3.14, the simple Fabric (open choice 4): the agents that are idle, installed or disconnected, which left Агенты
    *  for here (`AgentsScreen.tsx#AgentRoster`); a row opens the agent's screen. Absent, the section is not drawn. */
   agentsRoster?: React.ReactNode
@@ -308,12 +308,10 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
   /** Writes the patch; answers why it was not saved (said on this screen, CO-313), or nothing when it was. */
   onChange: (next: SettingsPatch) => Promise<string | null | void> | string | null | void
   onOpenHistory: () => void
-  onOpenAccess: () => void
   /** The places that left the rail in 0.3.7 wave 3 (plan §2, "off the rail") and are reached from here until wave 4
    *  gives each its home: the account limits, Help (and the first run), Fabric's name and look, the projects' messages. */
   onOpen?: (to: 'help' | 'persona' | 'comms') => void
   /** Comms threads with new messages, on the button that opens Comms (0.3.7 review UX-4); null while unknown. */
-  commsUnread?: { count: number; atLeast: boolean } | null
 }): React.JSX.Element {
   const t = useT()
   // The screen is the page's main region while it is open, and its heading takes focus, as the other screens' do (i2 UX-2).
@@ -432,30 +430,12 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpenAccess
             </div>
           </section>
         </Section>
-        <Section id="settings-access-title" label={t('settings.agentAccess')}>
-          <section className="lp-panel">
-            <p className="lp-meta">{t('settings.access.lede')}</p>
-            <div className="lp-actions">
-              <button type="button" className="lp-button" onClick={onOpenAccess}>{t('settings.access.open')}</button>
-            </div>
-          </section>
-        </Section>
+        {/* The operator, 2026-11-05: Agent access and the Comms are places of the rail now, not Settings'. */}
         {onOpen && (
           <Section id="settings-more-title" label={t('settings.more.title')}>
             <section className="lp-panel">
               <div className="lp-actions">
                 {/* D-3 (the operator's walk, 2026-10-22): account quotas are Switchboard's; Fabric no longer shows its own. */}
-                <button type="button" className="lp-button" onClick={() => onOpen('comms')}>
-                  {t('settings.more.comms')}
-                  {commsUnread && commsUnread.count > 0 && (
-                    <>
-                      {' '}
-                      <span className="lp-pill attention" aria-label={t(commsUnread.atLeast ? 'rail.commsUnreadMax' : 'rail.commsUnread', { count: commsUnread.count })}>
-                        {commsUnread.count}{commsUnread.atLeast ? '+' : ''}
-                      </span>
-                    </>
-                  )}
-                </button>
                 <button type="button" className="lp-button" onClick={() => onOpen('persona')}>{t('settings.more.persona')}</button>
                 <button type="button" className="lp-button" onClick={() => onOpen('help')}>{t('settings.more.help')}</button>
               </div>

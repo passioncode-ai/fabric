@@ -15,6 +15,26 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 read as one taken at 98). A database at 98 (0.3.13 to 0.3.15) takes both; take a backup first. No older build opens a
 schema-100 database, so going back is the backup with the bundle you came from. The order is the runbook's ([docs/launch/release-mac.md](docs/launch/release-mac.md)).
 
+- **The left column names each agent first** (the operator, 2026-11-05). An agent's row leads with its own name (its
+  project's display name); its small line says what runs it and the folder it works in, and the branch moved to the
+  agent's page. «Переписка» (with its unread count) and «Доступ агентов» are places of the column now, beside История
+  and Настройки, and Settings no longer carry them; Agent access opens as a full page. The column's width is the
+  person's: drag its edge or step it with the arrow keys, 180 to 420 px, kept on this computer.
+- **Every agent shows its folder and branch** (CO-498). An agent that joined from its own terminal said «ветка
+  неизвестна»; Fabric now keeps the folder its enrollment resolved, in memory only, and reads the branch there.
+- **A status that does not outlive its work** (CO-499). A claim on a task already in review, done or back in the
+  queue is let go at the next sweep, and the agent is told; an agent's own words older than its newest sign by more
+  than 30 minutes are said as old, with their age.
+- **Fabric reads its own log every hour and every day** (CO-500, ADR-0188). Every record is counted by operation and
+  outcome into hourly and daily digests in `userData/digests`, counts only; an operation whose failures reached 10 in
+  an hour and at least doubled is shown in «На проверке». Every session is told to write a retro after its work
+  (CO-502).
+- **One hub port per user on one machine** (CO-505). The platform's first user keeps 47070; each further user takes
+  the next port by uid, so several people can run Fabric on one Mac. `FABRIC_HUB_PORT` still wins.
+- **The board rule every session gets says to answer at once** (CO-409). A request is answered in the same turn with
+  the state now and its nearest date, as `com.reply`; the result follows as a second reply. A session carrying out a
+  board request with no person in its chat stops before any step that touches production, unless the operator's word
+  allows it; answering a project's requests is allowed at once on the operator's own machine (ADR-0186).
 - **The home's reads of the journal have indexes of their own** (CO-469, CO-477 in part). The rhythm's marks, the
   agents' turns, their enrolments and the requests waiting between projects were each a scan of the whole journal; on
   200 000 events each now reads an index (10 to 22 ms in `journal-indexes-db.test.mjs`, which fails without the

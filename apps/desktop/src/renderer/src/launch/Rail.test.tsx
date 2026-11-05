@@ -54,18 +54,17 @@ const foot = () => screen.getByRole('navigation', { name: en['rail.label'] })
 const toggle = () => screen.getByRole('group', { name: en['rail.view.label'] })
 
 describe('the left column', () => {
-  it('holds the brand as Главная, «Создать», the toggle and, at its foot, История and Настройки', () => {
+  it('holds the brand as Главная, «Создать», the toggle and, at its foot, Переписка, Доступ агентов, История and Настройки', () => {
     const props = shell()
     fireEvent.click(within(screen.getByRole('complementary', { name: en['rail.aside'] })).getByRole('button', { name: new RegExp(`^${en['rail.home']}`) }))
     expect(props.onPlace).toHaveBeenLastCalledWith('home')
     fireEvent.click(screen.getByRole('button', { name: en['rail.create'] }))
     expect(props.onPlace).toHaveBeenLastCalledWith('create')
     const links = within(foot()).getAllByRole('link')
-    expect(links.map((a) => a.textContent?.replace(/\d+\+?$/, ''))).toEqual([en['rail.history'], en['rail.settings']])
-    fireEvent.click(links[0])
-    expect(props.onPlace).toHaveBeenLastCalledWith('history')
-    fireEvent.click(links[1])
-    expect(props.onPlace).toHaveBeenLastCalledWith('settings')
+    // The operator, 2026-11-05: the Comms and Agent access came out of Настройки into the rail.
+    expect(links.map((a) => a.textContent?.replace(/\d+\+?$/, ''))).toEqual([en['rail.comms'], en['rail.access'], en['rail.history'], en['rail.settings']])
+    const placed = ['comms', 'access', 'history', 'settings']
+    links.forEach((link, i) => { fireEvent.click(link); expect(props.onPlace).toHaveBeenLastCalledWith(placed[i]) })
     // Агенты is no longer a place of its own: the toggle replaces it.
     expect(within(foot()).queryByRole('link', { name: new RegExp(`^${en['rail.agents']}`) })).toBeNull()
   })
@@ -152,20 +151,22 @@ describe('the left column', () => {
     expect(within(screen.getByRole('list', { name: en['rail.projects'] })).getByRole('link', { name: 'Quiet' })).toBeTruthy()
   })
 
-  it('shows the agents at work with their project and branch when the toggle says Агенты, and opens one', () => {
+  it('shows the agents at work by their name first, then what runs them and their folder, when the toggle says Агенты, and opens one', () => {
     const props = shell()
     fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))
     expect(within(toggle()).getByRole('button', { name: en['rail.agents'] }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.queryByRole('list', { name: en['rail.projects'] })).toBeNull()
     const list = screen.getByRole('list', { name: en['rail.agents.list'] })
     const rows = within(list).getAllByRole('link')
-    expect(rows[0].textContent).toContain('Claude Code · Fabric')
-    expect(rows[0].textContent).toContain('release/0.3.14')
+    // The operator, 2026-11-05: the agent's own name leads; the small line says what runs it and its folder, no branch.
+    expect(rows[0].querySelector('.rail-name')?.textContent).toBe('Fabric')
+    expect(rows[0].querySelector('.rail-agent-line')?.textContent).toContain('Claude Code')
+    expect(rows[0].textContent).not.toContain('release/0.3.14')
     // CO-498: the folder by its last segment, the whole path on hover; none when Fabric knows no folder.
     expect(rows[0].textContent).toContain('fabric-co409')
     expect(rows[0].querySelector('.rail-folder')?.getAttribute('title')).toBe('/Users/me/DATA/_worktrees/fabric-co409')
     expect(rows[1].querySelector('.rail-folder')).toBeNull()
-    expect(rows[1].textContent).toContain(en['rail.agents.branchUnknown'])
+    expect(rows[1].textContent).not.toContain(en['rail.agents.branchUnknown'])
     // The status in a word beside its colour, never the colour alone (R-19).
     expect(rows[1].textContent).toContain(en['status.idle'])
     expect(rows[1].querySelector('.rail-dot')?.className).toContain('s-idle')
@@ -463,5 +464,16 @@ describe('the place scroller', () => {
     rerender(<I18nProvider locale="en"><LaunchShell {...props({ kind: 'settings' }, 'Settings')} /></I18nProvider>)
     expect(document.activeElement).toBe(field)
     field.remove()
+  })
+})
+
+describe('the rail\u2019s width (the operator, 2026-11-05)', () => {
+  it('is kept within its bounds, and 216 px when never set or unreadable', async () => {
+    const { railWidthOf, RAIL_MIN, RAIL_MAX } = await import('./LaunchShell')
+    expect(railWidthOf(null)).toBe(216)
+    expect(railWidthOf('abc')).toBe(216)
+    expect(railWidthOf('10')).toBe(RAIL_MIN)
+    expect(railWidthOf('9999')).toBe(RAIL_MAX)
+    expect(railWidthOf('260.4')).toBe(260)
   })
 })

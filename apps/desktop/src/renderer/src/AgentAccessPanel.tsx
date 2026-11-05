@@ -74,7 +74,8 @@ const nameIn = (names: ProjectNames) => (id: string): string | null | undefined 
   names === null || names === 'unread' ? undefined : (names.get(id) ?? null)
 // #endregion enroll-words
 
-export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JSX.Element {
+/** `page`: shown as a place of the rail (the operator, 2026-11-05), with no close button; absent, the side panel. */
+export function AgentAccessPanel({ onClose, page = false }: { onClose: () => void; page?: boolean }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
   const [view, setView] = useState<View>({ kind: 'loading' })
@@ -161,8 +162,8 @@ export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JS
   const head = (section: Section) => (el: HTMLHeadingElement | null) => { heads.current[section] = el }
 
   return (
-    <aside className="ceo-panel" aria-label={t('access.title')}>
-      <Panel title={t('access.title')} actions={<Toolbar align="end"><Button tone="ghost" onClick={onClose}>{t('access.close')}</Button></Toolbar>}>
+    <aside className={page ? 'ceo-panel ceo-page' : 'ceo-panel'} aria-label={t('access.title')}>
+      <Panel title={t('access.title')} actions={page ? undefined : <Toolbar align="end"><Button tone="ghost" onClick={onClose}>{t('access.close')}</Button></Toolbar>}>
         <p className="muted">{t('access.what')}</p>
         {said && (said.tone === 'warn'
           ? <Banner tone="warn"><span>{said.text}</span>{said.detail && <span className="muted access-detail">{said.detail}</span>}</Banner>
