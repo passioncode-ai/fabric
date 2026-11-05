@@ -196,6 +196,7 @@ import { answerSaid, type AnswerOption } from '../shared/answerCommit'
 import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
+import { wireBoardDispatch } from './boardDispatchWiring.ts'
 import { createIpcOutcomeLog } from './ipcOutcome.ts'
 import { agentCounts, createAnalytics, installationPath, type Analytics } from './analytics'
 import { homedir } from 'node:os'
@@ -2851,6 +2852,21 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   const sweep = abandonedSweep
   // #endregion abandoned-sweep-wiring
 
+  // #region board-dispatch-cycle — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#3-the-flow
+  // CO-409 wave 2: a board request no session answers starts a run of the default agent, behind Settings' switch.
+  const dispatcher = wireBoardDispatch({
+    estateId: ACTIVE_ESTATE,
+    comms: sweepBoard,
+    repos: projectRepos,
+    sessionLive: (projectId) => heldSessions(projectId).length > 0,
+    switchOn: () => readSettings().dispatchBoardRequests,
+    file: path.join(app.getPath('userData'), 'board-dispatches.json'),
+    env: process.env,
+    log: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  quit.onQuit(() => { void dispatcher.close() })
+  // #endregion board-dispatch-cycle
+
   // #region cycle-run — docs: docs/adr/0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md#decision
   /**
    * One pass, and it leaves a receipt whether or not it did anything.
@@ -2888,6 +2904,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     } catch (e) {
       ops.failed('cycle.sweep', e, { note: 'the sweep of abandoned work failed this pass; the cycle receipt is still written' })
     }
+    // CO-409: the dispatcher runs beside the cycle, never inside its window: a start can wait on Switchboard for a
+    // minute, and its own guard keeps one pass at a time.
+    if (!quit.quitting) void dispatcher.onPass()
     // CO-500: an hour the clock has passed closes even when nothing was recorded since.
     try {
       opsDigest?.tick()

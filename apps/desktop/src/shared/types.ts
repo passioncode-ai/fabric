@@ -476,6 +476,12 @@ export interface AppSettings {
    * asks for itself. `FABRIC_TRUST_AGENT_FOLDERS=0` turns it off whatever this says (`appSettings.ts#trustsAgentFolders`).
    */
   trustAgentFolders: boolean
+  /**
+   * CO-409 (the operator, 2026-11-04: «если такого агента нет и никто задачу не поднял, значит должна бы инициироваться
+   * новая сессия»): a board request to a project nobody answers starts a session of the default agent, which does it,
+   * reports and ends. On by default; off, nothing starts and the dispatcher records `skipped-off`.
+   */
+  dispatchBoardRequests: boolean
 }
 
 export interface BoardFilters { project: string | null; agent: string | null; cancelled: boolean }
@@ -491,7 +497,7 @@ export type MachineTrust = 'mine' | 'organization' | null
  * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
  * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
  */
-export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders'>>
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders' | 'dispatchBoardRequests'>>
 // #endregion settings-patch
 
 /**
@@ -521,7 +527,9 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   machineTrust: null,
   boardFilters: { project: null, agent: null, cancelled: false },
   // CO-348: the operator's choice (2026-10-19), as Orca does; the person turns it off in Settings.
-  trustAgentFolders: true
+  trustAgentFolders: true,
+  // CO-409: the operator's word (2026-11-04); the person turns it off in Settings.
+  dispatchBoardRequests: true
 }
 
 export interface FeedEvent {

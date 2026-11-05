@@ -34,6 +34,7 @@ import type { TerminalSession } from '../../../shared/types'
 import { useLocale, useT, type Translate } from '../i18n'
 import { since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
+import { folderName } from '../../../shared/railAgents'
 import { FailureNote } from '../OperatorError'
 import { useOpenConsole } from '../consoles'
 import { AgentPage } from './AgentPage'
@@ -88,6 +89,19 @@ function useHub(mark: number) {
 export function agentName(r: RosterRow, t: Translate): string {
   const known = runnerLabel(r.runner, t)
   return known === r.runner && r.name ? r.name : r.runner ? known : (r.name ?? t('acts.actor.agent'))
+}
+
+/** The operator, 2026-11-05: an agent at work is named by its project first (AdOps, Аня), as the left column names it;
+ *  a runner nobody started, or a session in no project, keeps the runner's name. */
+export function agentTitle(r: RosterRow, t: Translate): string {
+  return r.sessionId && r.projectName ? r.projectName : agentName(r, t)
+}
+
+/** The small line under the title: what runs it and the folder it works in when the title is the project, else the
+ *  project as before. */
+export function agentSubline(r: RosterRow, t: Translate): string {
+  if (r.sessionId && r.projectName) return [r.runner ? runnerLabel(r.runner, t) : r.name, folderName(r.live?.folder)].filter(Boolean).join(' · ')
+  return r.projectName ?? (r.sessionId ? t('launch.home.agents.noProject') : '')
 }
 
 /** The row's state in words, never `running` / `idle` / `ended` (SX-3). */
@@ -352,11 +366,11 @@ function Group({ group, rows, read, workUnread, selected, onSelect, locale }: {
             <li key={r.key}>
               <button type="button" className={`lp-button ag-row ${selected === r.key ? 'is-selected' : ''}`} aria-pressed={selected === r.key} onClick={() => onSelect(r.key)}>
                 <span className="ag-row-head">
-                  <b>{agentName(r, t)}</b>
+                  <b>{agentTitle(r, t)}</b>
                   <span className="lp-pill">{stateWords(r, t)}</span>
                   {r.heardAt && r.state !== 'free' && <small className="ag-heard">{since(r.heardAt, t)}</small>}
                 </span>
-                <span className="lp-meta ag-row-project">{r.projectName ?? (r.sessionId ? t('launch.home.agents.noProject') : '')}</span>
+                <span className="lp-meta ag-row-project">{agentSubline(r, t)}</span>
                 <span className="ag-row-line">{lineOf(r, t, locale, workUnread)}</span>
               </button>
             </li>
@@ -389,7 +403,7 @@ function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject,
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
-  const name = agentName(row, t)
+  const name = agentTitle(row, t)
   const live = asLive(row)
   const agentId = row.joinedAgentId
   const busy = agentId !== null && hub.busy === agentId
@@ -401,7 +415,7 @@ function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject,
   const note = agentId === null ? null : (
     <div className="ag-joined">
       <p className="lp-meta">{row.state === 'out' ? stateWords(row, t) : t('joined.self')}</p>
-      <p className="lp-meta ag-proof">{t('joined.proof', { name })}</p>
+      <p className="lp-meta ag-proof">{t('joined.proof', { name: agentName(row, t) })}</p>
       {refusal && (
         <FailureNote said={`${t(refusal.act === 'disconnect' ? 'joined.disconnectFailed' : 'joined.letInFailed')} ${whyWords(t, refusal.why)}`} detail={refusal.says ?? null} />
       )}

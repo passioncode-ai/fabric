@@ -15,9 +15,21 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 read as one taken at 98). A database at 98 (0.3.13 to 0.3.15) takes both; take a backup first. No older build opens a
 schema-100 database, so going back is the backup with the bundle you came from. The order is the runbook's ([docs/launch/release-mac.md](docs/launch/release-mac.md)).
 
+- **A board request no session answers starts an agent that does it and ends** (CO-409, the operator, 2026-11-05).
+  Every minute, beside the cycle, Fabric reads the board's requests of the last week, its responder slots and each
+  request's attempt. A request nobody takes for two minutes, in a project with no live session, gets a workflow in
+  Project Observatory (owner `service:fabric`) with its `run-ends-at` checkpoint, offered to the default agent and
+  started with `switchboard dispatch` in the project's folder. Fabric watches the run to its end; two runs that left the
+  request unsettled go to the operator in «На проверке». What was started is kept in `board-dispatches.json` in the
+  app's data folder, so a restart never starts a second run. Settings → «Запускать агента на запрос доски, который некому взять», on by
+  default; at most two runs on the machine and one per project at a time.
+- **Forty agents at once** (the operator, 2026-11-05). Every agent's turn asks the home, the left column and the
+  agent pages for a new reading; with many agents those readings ran back to back. A reading asked for by a mark now
+  starts no sooner than 1.5 s after the previous one started, so the cost stays the same whether five agents or forty
+  are working; the 15-second refresh and the reading in flight are unchanged.
 - **The left column names each agent first** (the operator, 2026-11-05). An agent's row leads with its own name (its
   project's display name); its small line says what runs it and the folder it works in, and the branch moved to the
-  agent's page. «Переписка» (with its unread count) and «Доступ агентов» are places of the column now, beside История
+  agent's page. The Агенты screen, the agent's own page and the task page's agent card name it the same way, and a task held by its own agent says that agent's name rather than a piece of its session id: the project first, then what runs it and its folder (a runner nobody started keeps the runner's name). «Переписка» (with its unread count) and «Доступ агентов» are places of the column now, beside История
   and Настройки, and Settings no longer carry them; Agent access opens as a full page. The column's width is the
   person's: drag its edge or step it with the arrow keys, 180 to 420 px, kept on this computer.
 - **Every agent shows its folder and branch** (CO-498). An agent that joined from its own terminal said «ветка

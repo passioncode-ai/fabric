@@ -13,7 +13,7 @@ vi.mock('../SessionWindow', () => ({
 
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
-import { AgentRoster, AgentsScreen } from './AgentsScreen'
+import { AgentRoster, AgentsScreen, agentSubline, agentTitle } from './AgentsScreen'
 import { composeRoster } from './agentRoster'
 import type { HomeView, LiveAgent } from '../../../shared/homeLive'
 import type { HubOverview } from '../../../shared/access'
@@ -73,6 +73,21 @@ const screenFor = (o: { session?: string; agent?: string; sessions?: TerminalSes
   render(<I18nProvider locale="en"><AgentsScreen mark={0} hubMark={0} sessions={o.sessions === undefined ? [session({})] : o.sessions} projects={projects} onOpenProject={vi.fn()} onOpenTask={vi.fn()}
     onCreate={o.onCreate ?? vi.fn()} initialSession={o.session ?? null} initialAgent={o.agent ?? null} onPick={o.onPick} /></I18nProvider>)
 const group = (key: 'working' | 'waiting' | 'idle' | 'off') => screen.getByRole('heading', { name: new RegExp(`^${en[`agentsPlace.group.${key}`]}`) }).parentElement as HTMLElement
+
+describe('the agent\'s name (the operator, 2026-11-05)', () => {
+  const tr = (k: string) => (en as Record<string, string>)[k] ?? k
+  const base = { key: 'session:s1', group: 'working', state: 'working', runner: 'claude-code', name: null, projectId: 'p1', projectName: 'AdOps', projectNames: [],
+    sessionId: 's1', console: true, live: { folder: '/Users/x/DATA/adops-agent' }, task: null, doing: null, heardAt: null } as never
+  it('a session in a project is named by the project; its small line is the runner and the folder', () => {
+    expect(agentTitle(base, tr as never)).toBe('AdOps')
+    expect(agentSubline(base, tr as never)).toBe('Claude Code · adops-agent')
+  })
+  it('a runner nobody started keeps the runner\'s name and no folder', () => {
+    const free = { ...(base as object), key: 'runner:codex', sessionId: null, projectName: null, runner: 'codex', live: null } as never
+    expect(agentTitle(free, tr as never)).toBe('Codex')
+    expect(agentSubline(free, tr as never)).toBe('')
+  })
+})
 
 describe('the roster (agentRoster.composeRoster)', () => {
   it('groups by state: a console waiting on the person, a silent one, an installed one free, the ones that cannot start off', () => {

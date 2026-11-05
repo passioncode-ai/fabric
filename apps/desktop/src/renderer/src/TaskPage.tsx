@@ -36,6 +36,7 @@ import { DecisionsSection } from './DecisionsSection'
 import { ConsoleDetails, ContextTab, RunCallout, runStateWord, useRunStatus } from './launch/AgentWorkspace'
 import { ProjectStrip } from './launch/FabricStrip'
 import { runnerLabel } from './runnerLabel'
+import { projectDisplayName } from '../../shared/projectDisplayName.ts'
 import { useOpenConsole } from './consoles'
 import { CrossProjectConsole } from './launch/CrossProjectConsole'
 
@@ -203,6 +204,7 @@ export function TaskPage({
   ]
 
   const agentLabel = task.option_id ? runnerLabel(task.option_id, t) : t('launch.home.live.agent')
+  const agentName = projectDisplayName(project)
   const moves = taskMoves(detail.events)
   // A state in the Board's own column words («Очередь», «В работе», «На проверке», «Готово», «Отменено»), so a move reads
   // as the kanban shows it (0.3.12 review UX-12); an unknown one stays as written.
@@ -246,8 +248,10 @@ export function TaskPage({
       </header>
       <div className="lp-ide">
         <aside className="lp-run-rail">
-          <span className="lp-agent-icon large" aria-hidden="true">{(agentLabel.trim()[0] ?? 'A').toUpperCase()}</span>
-          <h3>{agentLabel}</h3>
+          {/* The operator, 2026-11-05: the agent is named by its project first, the runner small, as in the left column. */}
+          <span className="lp-agent-icon large" aria-hidden="true">{(agentName.trim()[0] ?? 'A').toUpperCase()}</span>
+          <h3>{agentName}</h3>
+          <p className="lp-meta">{agentLabel}</p>
           {task.assigned_to && <p>{t('task.handoff', { by: task.assigned_by ?? '—', to: task.assigned_to })}</p>}
           <span className={`lp-pill ${task.status === 'review' ? 'attention' : ''}`}>{t(task.status === 'cancelled' ? 'launch.project.cancelled' : (`board.${task.status}` as 'board.backlog'))}</span>
           <div className="lp-divider" />
@@ -256,7 +260,7 @@ export function TaskPage({
           <b>{run.view?.data?.ordinal ? t('launch.agent.rail.runOf', { n: run.view.data.ordinal, state: runStateWord(run.view.data, t) }) : task.session_id ? (run.failed ? t('launch.agent.rail.runUnreadable') : t('estate.reading')) : '—'}</b>
           <small>{t('launch.agent.rail.session')}</small><b className="mono">{task.session_id ? task.session_id.slice(0, 12) : '—'}</b>
           <small>{t('launch.agent.rail.held')}</small>
-          <b>{detail.lease ? t('task.held', { who: detail.lease.owner_session.slice(0, 8), until: since(detail.lease.expires_at, t) }) : t('task.free')}</b>
+          <b title={detail.lease?.owner_session}>{detail.lease ? t('task.held', { who: detail.lease.owner_session === task.session_id ? agentName : detail.lease.owner_session.slice(0, 8), until: since(detail.lease.expires_at, t) }) : t('task.free')}</b>
           <div className="lp-divider" />
           <button type="button" className="lp-button" onClick={() => setTab('history')}>{t('launch.agent.pastTasks')}</button>
           {/* 0.3.14, the simple Fabric §5: a change this work needs in another project, opened as a console there. */}

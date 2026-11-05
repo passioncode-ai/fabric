@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { ru } from '../i18n/ru'
-import { AgentsAtWork, HomeAgents, HomeStats, HomeWorkLanes, useHome, type HomeReading } from './HomeWork'
+import { AgentsAtWork, HomeAgents, HomeStats, HomeWorkLanes, READ_GAP_MS, useHome, type HomeReading } from './HomeWork'
 import type { HomeView } from '../../../shared/homeLive'
 
 const now = new Date().toISOString()
@@ -144,10 +144,28 @@ describe('home: who is doing what', () => {
     const first = { ...view, readAt: 'first' }
     pending[0](first)
     await waitFor(() => expect(seen.at(-1)?.view).toBe(first))
-    await waitFor(() => expect(calls).toBe(2))
+    await waitFor(() => expect(calls).toBe(2), { timeout: 3000 })
     pending[1]({ ...view, readAt: 'second' })
     await waitFor(() => expect(seen.at(-1)?.view?.readAt).toBe('second'))
     await new Promise((res) => setTimeout(res, 20))
+    expect(calls).toBe(2)
+  })
+
+  it('wave 3: a stream of marks, as forty agents make, reads at most once per READ_GAP_MS', async () => {
+    let calls = 0
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { work: { home: () => { calls++; return Promise.resolve(view) } } } }))
+    function Probe({ mark }: { mark: number }) { useHome(mark); return null }
+    const r = show(<Probe mark={0} />)
+    await waitFor(() => expect(calls).toBe(1))
+    const started = Date.now()
+    for (let m = 1; m <= 40; m++) {
+      r.rerender(<I18nProvider locale="en"><Probe mark={m} /></I18nProvider>)
+      await new Promise((res) => setTimeout(res, 5))
+    }
+    expect(calls).toBe(1)
+    await waitFor(() => expect(calls).toBe(2), { timeout: READ_GAP_MS + 1000 })
+    expect(Date.now() - started).toBeGreaterThanOrEqual(READ_GAP_MS - 300)
+    await new Promise((res) => setTimeout(res, 50))
     expect(calls).toBe(2)
   })
 

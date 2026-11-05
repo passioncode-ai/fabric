@@ -32,6 +32,9 @@ export function CappedNote({ reading }: { reading: HomeReading }): React.JSX.Ele
 }
 
 const REFRESH_MS = 15_000
+/** The least time from one reading's start to the next one a mark asks for (wave 3, forty agents): every agent's turn is
+ *  a mark, so without it forty agents keep the reading running back to back. */
+export const READ_GAP_MS = 1_500
 /** Rows a lane shows before «Ещё N» leads to the Board. */
 const LANE_ROWS = 6
 const hasMore = (n: number): boolean => n > LANE_ROWS
@@ -46,11 +49,14 @@ const hasMore = (n: number): boolean => n > LANE_ROWS
 export function useHome(mark: number, enabled = true): HomeReading {
   const [reading, setReading] = useState<HomeReading>({ view: null, problem: null })
   const [tick, setTick] = useState(0)
-  const flight = useRef({ busy: false, dirty: false, alive: true, enabled })
+  const flight = useRef({ busy: false, dirty: false, alive: true, enabled, startedAt: 0, timer: null as ReturnType<typeof setTimeout> | null })
   flight.current.enabled = enabled
   useEffect(() => {
     flight.current.alive = true
-    return () => { flight.current.alive = false }
+    return () => {
+      flight.current.alive = false
+      if (flight.current.timer) clearTimeout(flight.current.timer)
+    }
   }, [])
   useEffect(() => {
     if (!enabled) return
@@ -62,9 +68,15 @@ export function useHome(mark: number, enabled = true): HomeReading {
     if (!enabled) return
     const f = flight.current
     const read = (): void => {
-      if (f.busy) { f.dirty = true; return }
+      if (f.busy || f.timer) { f.dirty = true; return }
+      const wait = f.startedAt + READ_GAP_MS - Date.now()
+      if (f.startedAt && wait > 0) {
+        f.timer = setTimeout(() => { f.timer = null; if (f.alive && f.enabled) read() }, wait)
+        return
+      }
       f.busy = true
       f.dirty = false
+      f.startedAt = Date.now()
       // Through a promise, so a build without the reading (an older preload, a test double) is said as a problem
       // rather than thrown out of the effect.
       Promise.resolve().then(() => window.fabric.work.home()).then(
@@ -72,7 +84,9 @@ export function useHome(mark: number, enabled = true): HomeReading {
         (e: unknown) => { if (f.alive) setReading((r) => ({ view: r.view, readAt: r.readAt ?? null, problem: e instanceof Error ? e.message : String(e) })) }
       ).finally(() => {
         f.busy = false
-        if (f.dirty && f.alive && f.enabled) read()
+        if (!f.dirty || !f.alive || !f.enabled) return
+        // The marks that came meanwhile ask for ONE more reading, no sooner than READ_GAP_MS after this one started.
+        read()
       })
     }
     read()

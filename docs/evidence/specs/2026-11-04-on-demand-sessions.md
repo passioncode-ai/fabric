@@ -315,6 +315,7 @@ version, never the message text, a path, a project name or anything the person t
 |---|---|---|
 | 1 | grants without a stop (CO-494); the dispatcher behind the switch (off until wave 2's verification), the packet, journal events; tests with a fake Switchboard | `switchboard dispatch`; the contract's packet and lifecycle; the adapter's skill section; Observatory's `service:fabric` workflow owner |
 | 2 | the switch on by default; usage counts by default (CO-496); the permissions screen (§6.1); the chain run on macOS and on Windows | the same switch and counts in every product; releases on both platforms |
+| 2, landed | 2026-11-05: the dispatcher on the real doors (`main/boardDispatchWiring.ts#wireBoardDispatch`: the board through the operator's read door, the slots through `board_responders_operator`, the attempt from the request facts, Switchboard's CLI, Observatory's stdio server), beside the cycle, the switch on by default (`shared/appSettings.ts`, `dispatchBoardRequests`) | |
 | 3 | three-iteration verification of the chain and fixes; release | releases; fabric-workspace's version matrix shows every product current on both platforms |
 
 ## 10. Checks that prove it

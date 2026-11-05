@@ -36,7 +36,7 @@ export { APP_SETTINGS_DEFAULTS }
  *  be marked at once (0.3.12 review DA-12: at 4096 a fifth of a full listing read as unread again), and still bounded. */
 export const COMMS_READ_THROUGH_MAX = COMMS_THREAD_HEADS_LIMIT
 
-const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters', 'trustAgentFolders']
+const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters', 'trustAgentFolders', 'dispatchBoardRequests']
 
 /**
  * A window's settings write, checked before anything is merged (audit 2026-10-05 A7-008, A7-025). A key a
@@ -164,6 +164,7 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     machineTrust: raw.machineTrust === 'mine' || raw.machineTrust === 'organization' ? raw.machineTrust : null,
     boardFilters: boardFilters(raw.boardFilters),
     trustAgentFolders: raw.trustAgentFolders !== false,
+    dispatchBoardRequests: raw.dispatchBoardRequests !== false,
     firstRun: {
       completedAt:
         raw.firstRun !== null && typeof raw.firstRun === 'object' && !Array.isArray(raw.firstRun) &&

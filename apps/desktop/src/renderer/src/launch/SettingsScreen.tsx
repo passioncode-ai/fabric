@@ -151,10 +151,12 @@ export function Saved({ on }: { on: boolean }): React.JSX.Element | null {
 
 /** One permission choice for every agent Fabric starts (CO-305, ADR-0168), and beside it whether the folder a Claude Code
  *  session starts in is marked trusted (CO-348, the operator 2026-10-19: on by default). */
-export function AgentPermissionsSetting({ value, onChange, trustFolders = true, saved = null }: {
+export function AgentPermissionsSetting({ value, onChange, trustFolders = true, dispatch = true, saved = null }: {
   value: AppSettings['agentPermissions']
   onChange: (next: SettingsPatch) => Promise<void> | void
   trustFolders?: boolean
+  /** CO-409: whether a board request nobody answers starts a session. */
+  dispatch?: boolean
   /** Which of this panel's settings saved last, to say «Сохранено» beside it. */
   saved?: string | null
 }): React.JSX.Element {
@@ -188,6 +190,14 @@ export function AgentPermissionsSetting({ value, onChange, trustFolders = true, 
       <small id="settings-folder-trust-hint" className="lp-meta">{t('settings.folderTrustHelp')}</small>
       {locked && <small id="settings-folder-trust-locked" className="lp-meta">{t('settings.folderTrustLocked')}</small>}
       <Saved on={saved === 'trustAgentFolders'} />
+      {/* CO-409: a board request nobody answers starts a session of the default agent. */}
+      <label className="lp-check">
+        <input type="checkbox" checked={dispatch} aria-describedby="settings-dispatch-hint"
+          onChange={(e) => void onChange({ dispatchBoardRequests: e.target.checked })} />
+        {t('settings.dispatch')}
+      </label>
+      <small id="settings-dispatch-hint" className="lp-meta">{t('settings.dispatchHelp')}</small>
+      <Saved on={saved === 'dispatchBoardRequests'} />
     </section>
   )
 }
@@ -406,7 +416,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpen, agen
           <ReadinessPanel />
         </Section>
         <Section id="settings-launch-group" label={t('settings.launch.group')}>
-          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} trustFolders={settings.trustAgentFolders !== false} saved={saved} />
+          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} trustFolders={settings.trustAgentFolders !== false} dispatch={settings.dispatchBoardRequests !== false} saved={saved} />
           <AgentCatalogPanel permissions={settings.agentPermissions ?? 'fewer-prompts'} />
           {agentsRoster && (
             <section className="lp-panel" aria-labelledby="settings-agents-idle-title">

@@ -976,6 +976,8 @@ export const en = {
   'settings.access.lede': "Which agents may reach which of your products. Each one can be revoked there.",
   'settings.access.open': "Open the list",
   'settings.saved': "Saved",
+  'settings.dispatch': "Start an agent for a board request nobody can take",
+  'settings.dispatchHelp': "When a project gets a request and has no session, Fabric starts the default agent in the project's folder. It does the work, answers in the thread and ends. It stops before any step that touches production.",
   'settings.folderTrust': "Trust the folder a Claude Code session starts in",
   'settings.folderTrustHelp': "On: Claude Code does not ask whether you trust the folder, and that folder's own Claude Code settings and hooks run. Off: Claude Code asks in each folder it does not trust yet.",
   'settings.folderTrustLocked': "Off on this computer: the FABRIC_TRUST_AGENT_FOLDERS=0 variable keeps folder trust off whatever this switch says.",

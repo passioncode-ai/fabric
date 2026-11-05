@@ -333,6 +333,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
             {agent.projectId
               ? <span>{t('agentScreen.projectWord')} <button type="button" className="lp-link" onClick={() => onOpenProject(agent.projectId!)}>{agent.projectName ?? t('launch.home.agents.noProject')}</button></span>
               : <span>{t('launch.home.agents.noProject')}</span>}
+            {name !== runnerLabel(agent.agent, t) && <span>{runnerLabel(agent.agent, t)}</span>}
             {folderName(agent.folder) && <span className="rail-folder" title={agent.folder ?? undefined}>{folderName(agent.folder)}</span>}
             {agent.branch
               ? <span className="rail-branch">{agent.branch}</span>

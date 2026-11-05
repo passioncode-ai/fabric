@@ -72,6 +72,22 @@ const mount = (
   )
 }
 
+describe('the task page names its agent by the project (the operator, 2026-11-05)', () => {
+  it('heads the agent card with the project, the runner small, and names the agent holding it, never its session id', async () => {
+    vi.stubGlobal('window', window)
+    ;(window as unknown as { fabric: unknown }).fabric = {
+      tasks: { detail: vi.fn().mockResolvedValue({ ...detail({ option_id: 'claude-code', session_id: 's-1234567890' } as Partial<TaskRow>),
+        lease: { owner_session: 's-1234567890', expires_at: new Date(Date.now() + 600_000).toISOString() } }) },
+      runs: { status: vi.fn().mockResolvedValue({ ok: false }) }
+    }
+    render(<TaskPage project={{ ...project, name: 'adops-agent', displayName: 'AdOps' } as ProjectRow} taskId="t1" onBack={() => {}} onChanged={async () => {}} onError={() => {}} />)
+    await waitFor(() => expect(screen.getByRole('heading', { level: 3, name: 'AdOps' })).toBeTruthy())
+    const held = screen.getByTitle('s-1234567890')
+    expect(held.textContent).toContain('AdOps')
+    expect(held.textContent).not.toContain('s-123456')
+  })
+})
+
 describe('the task page says who assigned it', () => {
   it('names both sides when the task carries a handoff', async () => {
     mount({ assigned_by: 'ceo', assigned_to: 'developer' })
