@@ -450,3 +450,40 @@ test('final candidate, NB-1: a dropped connection is not a closed workflow, so n
   assert.equal(w.launches.length, 1)
   assert.equal(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length, 1)
 })
+
+test('CO-409 (FAA-215): the packet tells the run to close the workflow only once the request is settled', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.ok(open.body.constraints.includes('Write the final checkpoint and close the workflow only once the request is settled, then end.'))
+  assert.ok(!open.body.constraints.includes('Write the final checkpoint, then end.'))
+})
+
+test('CO-409 (FAA-213): a run whose request ends outcome_unknown is finished, never an empty run', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.runs.set('L1', 'ended'); w.states.set(request().id, 'outcome_unknown'); w.requests = [request({ state: 'outcome_unknown' })]
+  w.tick(MIN); await d.onPass()
+  const r = d.records()[0]
+  assert.equal(r.outcome, 'finished')
+  assert.equal(r.emptyRuns, 0)
+})
+
+test('CO-409 (FAA-213): closing a workflow a run already closed counts as closed, with no retry and no failure', async () => {
+  const w = world()
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => {
+    if (name === 'observatory_handoff_create' && String(args.idempotencyKey).endsWith('-close-back')) return { error: 'WorkflowClosed', detail: 'closed' }
+    return real(name, args)
+  }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  for (let i = 0; i < 2; i++) { w.runs.set(`L${i + 1}`, 'ended'); w.tick(REFUSAL_BACKOFF_MS + MIN); await d.onPass() }
+  w.tick(MIN); await d.onPass(); w.tick(MIN); await d.onPass()
+  const given = d.records().find((r) => r.outcome === 'to-operator')
+  assert.ok(given, 'two empty runs give the request to the operator')
+  assert.equal(given.closed, true)
+  assert.ok(!w.logs.some((l) => l.op === 'board.dispatch.closed' && l.outcome === 'failed'))
+})

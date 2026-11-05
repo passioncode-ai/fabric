@@ -7,6 +7,12 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **An agent started for a board request is told to close its workflow only once the request is settled** (CO-409,
+  agreed with fabric-agent-adapter and Vesta). A run whose request ends `outcome_unknown` counts as finished, not as an
+  empty run, and a workflow a run already closed is taken as closed instead of being retried.
+
 ## 0.3.16
 
 **Upgrading.** This version moves the local database to schema 100 with two migrations:

@@ -80,6 +80,12 @@ export interface DispatchDeps {
 }
 
 const SETTLED = new Set(['completed', 'failed_known', 'answered', 'cancelled', 'expired'])
+/** A run left its request settled when the request is SETTLED or `outcome_unknown` (the run claimed it and the board can
+ *  no longer say; it is the operator's now, not an empty run). Agreed with fabric-agent-adapter (FAA-213, FAA-215) and
+ *  Vesta on the board, thread `1add3c03`, 2026-11-05 (CO-409). */
+const RUN_SETTLED = new Set([...SETTLED, 'outcome_unknown'])
+/** Observatory's typed refusal for a closed workflow, matched by name (never the word «closed», NB-1). */
+const CLOSED = /\bWorkflowClosed\b/
 const DAY_MS = 24 * 3600_000
 /** After a refusal or a start that never answered, Switchboard is not asked again for that request sooner than this (the 0.3.16 review, ER-1, DA-2). */
 export const REFUSAL_BACKOFF_MS = 10 * 60_000
@@ -128,7 +134,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // Iteration 3, ER-2: a run nobody can account for counts as empty unless its request is settled, so the stop
         // after two empty runs holds even when Switchboard cannot say how a run ended.
         const settled = await deps.requestState(r.requestId)
-        if (!(settled !== null && SETTLED.has(settled))) r.emptyRuns++
+        if (!(settled !== null && RUN_SETTLED.has(settled))) r.emptyRuns++
         changed = true
         deps.log('board.dispatch.ended', 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: r.outcome, empty_runs: r.emptyRuns })
         continue
@@ -148,7 +154,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       }
       r.state = 'ended'
       r.endedAt = now
-      r.outcome = SETTLED.has(state) ? 'finished' : 'exited-without-answer'
+      r.outcome = RUN_SETTLED.has(state) ? 'finished' : 'exited-without-answer'
       if (r.outcome === 'exited-without-answer') r.emptyRuns++
       changed = true
       deps.log('board.dispatch.ended', r.outcome === 'finished' ? 'ok' : 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: r.outcome, empty_runs: r.emptyRuns })
@@ -162,9 +168,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       goal: `Answer the board request ${req.id} addressed to this project, then end.`,
       constraints: [
         'Read the request with com.get and its thread with com.list under your own credential.',
-        'Claim it (com.enroll, com.claim), renew about every 20 s during a long step, answer in its thread, complete it.',
+        'Claim it (com.enroll, com.claim), renew about every 20 s during a long step, answer in its thread, and complete it once the work is done.',
         'Stop before any step that touches production and hand it to a session the person is in or to the operator.',
-        'Write the final checkpoint, then end.'
+        'Write the final checkpoint and close the workflow only once the request is settled, then end.'
       ],
       artifacts: [
         { kind: 'other', ref: `board-request:${req.id}` },
@@ -216,11 +222,11 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // stayed open, so it cannot be taken back; the request gets a workflow of its own again.
         // Matched by Observatory's typed name, never the word «closed», which a dropped connection also says (final
         // candidate's verification, NB-1).
-        if (/\bWorkflowClosed\b/.test(e instanceof Error ? e.message : String(e))) return open(req, undefined, provider, endsAt, dispatchId)
+        if (CLOSED.test(e instanceof Error ? e.message : String(e))) return open(req, undefined, provider, endsAt, dispatchId)
         throw e
       }
       if (typeof back.handoffId !== 'string') {
-        if (/\bWorkflowClosed\b/.test(String(back.error ?? ''))) return open(req, undefined, provider, endsAt, dispatchId)
+        if (CLOSED.test(String(back.error ?? ''))) return open(req, undefined, provider, endsAt, dispatchId)
         throw new Error(`the workflow could not be taken back: ${String(back.error ?? 'no handoff')}`)
       }
       const took = await deps.observatory('observatory_handoff_accept', { owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-accept`, handoffId: back.handoffId })
@@ -247,9 +253,17 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   const closeWorkflow = async (r: DispatchRecord): Promise<void> => {
     let leaseId = leases.get(r.workflowId)
     if (!leaseId) {
-      const back = await deps.observatory('observatory_handoff_create', {
-        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close-back`, workflowId: r.workflowId, to: { provider: 'fabric' }, reason: 'restart'
-      })
+      // CO-409 (FAA-213, 2026-11-05): a workflow a run already closed is closed; nothing to retry.
+      let back: Record<string, unknown>
+      try {
+        back = await deps.observatory('observatory_handoff_create', {
+          owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close-back`, workflowId: r.workflowId, to: { provider: 'fabric' }, reason: 'restart'
+        })
+      } catch (e) {
+        if (CLOSED.test(e instanceof Error ? e.message : String(e))) return
+        throw e
+      }
+      if (CLOSED.test(String(back.error ?? ''))) return
       if (typeof back.handoffId !== 'string') throw new Error('the workflow could not be taken back to close it')
       const took = await deps.observatory('observatory_handoff_accept', { owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close-accept`, handoffId: back.handoffId })
       if (typeof took.leaseId !== 'string') throw new Error('the workflow could not be accepted back to close it')
@@ -259,6 +273,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close`, stepId: 'to-operator', status: 'blocked', workflowId: r.workflowId, leaseId, close: true,
       body: { goal: `Answer the board request ${r.requestId} addressed to this project, then end.`, notes: 'Two runs left the request unsettled; it waits for the operator in «На проверке».' }
     })
+    if (CLOSED.test(String(w.error ?? ''))) { leases.delete(r.workflowId); return }
     if (w.error) throw new Error('the workflow was not closed')
     leases.delete(r.workflowId)
   }
