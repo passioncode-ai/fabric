@@ -1151,7 +1151,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
           return b ? ((await accessStore.request(b.request_id).catch(() => null))?.registry?.name ?? AGENTS.find((a) => a.id === b.agent_id)?.label ?? b.agent_id) : null
         },
         revokeBinding: (bindingId, actor, relayed) => hubAccess.revokeBinding(bindingId, actor, relayed),
-        note: async (outcome, opts) => actsForSurface?.note(outcome, opts)
+        // Before registerIpc made History's acts the revocation still stands and its event keeps the actor and the words;
+        // the missing act is said in the operations log (the CO-506 review, N1).
+        note: async (outcome, opts) => (actsForSurface ? actsForSurface.note(outcome, opts) : ops.record({ op: 'acts.record', outcome: 'failed', level: 'warn', detail: { kind: outcome.kind, reason: 'history not ready' }, ctx: { correlationId: ops.correlate() } }))
       }),
       machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust },
       grantOwnRespond: (proof) => hubAccess.grantOwnProjectRespond(proof)

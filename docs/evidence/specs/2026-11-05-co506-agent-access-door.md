@@ -68,6 +68,11 @@ goal, then the safest reversible option, and each says why. A new ADR records th
 
 ## 3. The change
 
+*As built, 2026-11-05 ([ADR-0190](../../adr/0190-an-agent-decides-agent-access-on-the-operators-relayed-words-and-answering-is-granted-for-the-sessions-own-project.md)):* the relayed words are kept under the event's own
+`relayed` key (`payload.decision` stays the verdict), and an agent revoked by the tool is written in History by
+`relayedAccess.ts#createRevokeAgent`, the button keeping its own handler; the plan below is kept as written.
+
+
 - `apps/desktop/src/main/relayedAccess.ts` (new, pure): `checkRelayedAccess(decision, {action, targetId}, now)` and
   `admitAccessAct(...)`, beside `relayedClose.ts`.
 - `accessService.ts`: an optional relayed record on `decide`, `revokeGrant`, `revokeBinding` (payload `decision`,

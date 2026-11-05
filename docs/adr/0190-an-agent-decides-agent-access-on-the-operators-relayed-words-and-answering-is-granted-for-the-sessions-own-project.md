@@ -57,7 +57,7 @@ Only a session's bearer proves its project; the hub's ask cannot.
 - Fabric cannot prove that the operator spoke the relayed words (ADR-0184 §6); the limits of decision 4, the journal
   with the words and the session, and History are what bound a forgery.
 - A launched session's grant goes on its runner's newest collected credential, which another session of the same runner
-  may hold; that credential can then join this project's board (decision 7; the review, F5).
+  may hold; that credential can then join this project's board (the spec's decision 7; the review, F5).
 - Revoking a session's own-project grant does not stick: its next `com.enroll` grants it again. A standing denial or
   «Отключить» keeps it off (the review, F6).
 - The access tools read and act on every project's Agent access, across the board's business wall (CO-368): accepted
