@@ -1,10 +1,7 @@
 # ADR-0188: Fabric reads its own logs every hour and every day; Observatory keeps what every agent learned
 
 **Status:** accepted · 2026-11-04 · carry-over rows CO-500, CO-502, CO-503 · records the operator's words in Fabric's
-session `5d9bed98` (about 17:20 UTC): «вся эта система должна логироваться … анализ логов раз в час и раз в день, и цикл
-обратной связи после работы агента, цикл улучшения, для всех агентов с инсайтами … хранить централизованно на уровне
-Observatory и Fabric … чётко разделить, кто за что отвечает, где хранится, как анализируется, где используется, и
-записать это в Fabric» · extends [ADR-0105](0105-agent-memory-lives-in-project-observatory.md) (agent memory lives in
+session `5d9bed98` (about 17:20 UTC): (paraphrased, ADR-0096 §5: log the whole system, read the logs every hour and every day, close each agent's work with a feedback and improvement loop with insights for every agent, keep it centrally in Observatory and Fabric, and record in Fabric a clear split of who owns what, where it is kept, how it is read and where it is used) · extends [ADR-0105](0105-agent-memory-lives-in-project-observatory.md) (agent memory lives in
 Observatory) · spec: [agents you can place, a status that does not lie, logs that are read](../evidence/specs/2026-11-04-agents-logs-and-the-improvement-loop.md).
 
 ## Context

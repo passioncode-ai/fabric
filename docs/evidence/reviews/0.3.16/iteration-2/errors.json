@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "37ec0410583cb6e0141a0366d0b3ebd8d5892d37",
+  "report": "docs/evidence/reviews/0.3.16/iteration-2/2026-11-05-errors.md",
+  "reportSha256": "d48ed9094f3b8a8241f904b81b9e553e4a88e04d4915cf2b8a96c91a3f316f88",
+  "reviewerRun": "release-0316-i2-errors-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V2-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: past its end plus `UNKNOWN_AFTER_END_MS` it ends as unknown (`main/boardDispatchRun.ts#createBoardDispatch`); test `test/board-dispatch-run.test.mjs` «iteration 2, ER-1: …»"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V2-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: two empty runs give the request to the operator whatever path the decision takes; test `test/board-dispatch-run.test.mjs` «iteration 2, ER-2, ER-3: …»"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V2-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the request is marked first and the close is retried each pass (`DispatchRecord.closed`); same test"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V2-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a failing write under the held lease drops it and takes the workflow back"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V2-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an open that failed waits `REFUSAL_BACKOFF_MS` for that request; test `test/board-dispatch-run.test.mjs` «iteration 2, ER-5: …»"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V2-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: no Switchboard call while the switch is off; test `test/board-dispatch-run.test.mjs` «iteration 2, ER-6: …»"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V2-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the back-off counts from `endedAt`; only started runs count against the 24 hours; test `test/board-dispatch-run.test.mjs` «iteration 2, ER-7, DA-3: …»"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V2-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: records in flight or given to the operator are never trimmed; test `test/board-dispatch-run.test.mjs` «iteration 2, ER-8, DA-2: …»"
+      ]
+    }
+  ]
+}

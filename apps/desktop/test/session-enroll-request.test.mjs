@@ -359,7 +359,7 @@ test('CO-363 / DO-19: a resolve credential never collected past the request\'s 1
   assert.deepEqual(revokedIds(h), [stale], 'past them, the uncollected one goes; two live remain')
 })
 
-// CO-494 (the operator, 2026-11-04: «дай гранты всеем и передай фабрику чтобы давай и не лочил по дороге, всем апрув»):
+// CO-494 (the operator, 2026-11-04: (paraphrased: grant answering to every project, with no stop on the way)):
 // board.respond joins the immediate local lanes of ADR-0160 on the operator's own machine. The request, the agent's own
 // decision and the revocable grant are journalled; nothing reaches the person.
 test('CO-494: board.respond is allowed at once on the operator\'s own machine, recorded as the agent\'s own revocable act', async () => {

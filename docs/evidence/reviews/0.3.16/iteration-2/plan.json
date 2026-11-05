@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "37ec0410583cb6e0141a0366d0b3ebd8d5892d37",
+  "report": "docs/evidence/reviews/0.3.16/iteration-2/2026-11-05-plan.md",
+  "reportSha256": "d88a4373540efc72ff6c36601382b93af40ad29041cd5d5d033d2fb6c91a402f",
+  "reviewerRun": "release-0316-i2-plan-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V2-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-2"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V2-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-409 names what 0.3.16 builds and what stays open"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V2-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-409 carries both with 2026-11-12"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V2-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-509 carries both and decides by 2026-11-18"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V2-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-4; CO-494 says the grant is revoked in Agent access"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V2-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-365 waits on CO-508; CO-294's live start is in «Owed in 0.3.16's Release close»"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V2-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-29 says the tag aims at 2026-11-06 and CO-461, CO-464 are not shipped"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V2-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both are in «Owed in 0.3.16's Release close»"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V2-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-496 names both"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "source": "V2-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-502 says Fabric counts those asked, Observatory those written"
+      ]
+    }
+  ]
+}

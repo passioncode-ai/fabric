@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "37ec0410583cb6e0141a0366d0b3ebd8d5892d37",
+  "report": "docs/evidence/reviews/0.3.16/iteration-2/2026-11-05-ux.md",
+  "reportSha256": "7a7d113df47f20e5ac5ed4f6fe191786864bf3a08b8a198c36f4d3675954834d",
+  "reviewerRun": "release-0316-i2-ux-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V2-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the help says the agent runs with every permission and its instructions tell it to stop before production (`settings.dispatchHelp`, ru and en; text check `aecab303` ru-RU, `ac41ff7d` en-US); the CHANGELOG says the same"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V2-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the help and the CHANGELOG say nothing starts without Switchboard and a default agent of Claude Code or Codex, and the operations log says why (`deferred-no-agent`)"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V2-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `rail.agentTitle` reads «{project} · {runner}» in ru and en, used by the top bar (`App.tsx`), the rail tooltip and the console button; test `Rail.test.tsx` «opens an agent's session from the console icon …»"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V2-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG says the card leads with the project and the runner; a never-run task's heading is ruled CO-507"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V2-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Ширина колонки {px} px» / \"Column width {px} px\" (`rail.resizeValue`); test `Rail.test.tsx` «0.3.16 review, UX-9: …»"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V2-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-507"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V2-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-507"
+      ]
+    }
+  ]
+}

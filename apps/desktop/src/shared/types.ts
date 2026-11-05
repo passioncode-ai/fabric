@@ -477,8 +477,7 @@ export interface AppSettings {
    */
   trustAgentFolders: boolean
   /**
-   * CO-409 (the operator, 2026-11-04: «если такого агента нет и никто задачу не поднял, значит должна бы инициироваться
-   * новая сессия»): a board request to a project nobody answers starts a session of the default agent, which does it,
+   * CO-409 (the operator, 2026-11-04: (paraphrased: a request nobody takes starts a new session that does it and ends)): a board request to a project nobody answers starts a session of the default agent, which does it,
    * reports and ends. On by default; off, nothing starts and the dispatcher records `skipped-off`.
    */
   dispatchBoardRequests: boolean

@@ -19,6 +19,11 @@ candidate read-only; findings are disposed here and in the receipts under
 - A live run of the board dispatcher on this Mac: a request filed to a project with no live session is answered by a
   started run, which ends; with the switch off nothing starts (the on-demand spec §10).
 - Forty agent sessions at once on this Mac: the home, the left column and Агенты stay responsive.
+  The live dispatcher check needs fabric-agent-adapter 0.63.0 on this Mac, which arrives with PassionCode launcher
+  0.2.76; the launcher waits for an analytics secret from the operator (the board, thread `cb1df3d5`), a human gate.
+- A live start of the local stack with the Docker engine stopped (CO-294's owed check; the 0.3.16 review, iteration 2,
+  PL-6).
+- On the board, thread `1add3c03`: the main commit and the tag of 0.3.16, as promised to two projects on 2026-11-05.
 
 ## Iteration 1
 
@@ -84,7 +89,55 @@ Exit for iteration 1: every finding has a disposition. Blocking findings open: n
 
 ## Iteration 2
 
-_Not started._
+Candidate `37ec0410583cb6e0141a0366d0b3ebd8d5892d37`. Five reviewers, one per level, read the same checkout read-only; their reports are in
+[`docs/evidence/reviews/0.3.16/iteration-2/`](../reviews/0.3.16/iteration-2/). 41 findings, 7 blocking. Every
+iteration-1 fix the reviewers checked held.
+
+| Finding | Level | Severity | What | Disposition |
+|---|---|---|---|---|
+| V2-1 | UX-1 | blocking | the switch's help said the agent stops before production, which nothing enforces | fixed: the help says the agent runs with every permission and its instructions tell it to stop before production (`settings.dispatchHelp`, ru and en; text check `aecab303` ru-RU, `ac41ff7d` en-US); the CHANGELOG says the same |
+| V2-2 | UX-2 | non-blocking | the switch did nothing silently without Switchboard or a default agent | fixed: the help and the CHANGELOG say nothing starts without Switchboard and a default agent of Claude Code or Codex, and the operations log says why (`deferred-no-agent`) |
+| V2-3 | UX-3 | non-blocking | the top bar, tooltip and console button still led with the runner | fixed: `rail.agentTitle` reads «{project} · {runner}» in ru and en, used by the top bar (`App.tsx`), the rail tooltip and the console button; test `Rail.test.tsx` «opens an agent's session from the console icon …» |
+| V2-4 | UX-4 | non-blocking | the notes promised a folder on the task page's agent card | fixed: the CHANGELOG says the card leads with the project and the runner; a never-run task's heading is ruled CO-507 |
+| V2-5 | UX-5 | non-blocking | «Ширина {px} пикселей» was wrong Russian for some widths | fixed: «Ширина колонки {px} px» / "Column width {px} px" (`rail.resizeValue`); test `Rail.test.tsx` «0.3.16 review, UX-9: …» |
+| V2-6 | UX-6 | non-blocking | the drag handle is 3 px and has no single-pointer alternative | ruled: CO-507 |
+| V2-7 | UX-7 | non-blocking | page breakpoints assume a 216 px column | ruled: CO-507 |
+| V2-8 | ER-1 | non-blocking | a run whose request is no longer read never ended | fixed: past its end plus `UNKNOWN_AFTER_END_MS` it ends as unknown (`main/boardDispatchRun.ts#createBoardDispatch`); test `test/board-dispatch-run.test.mjs` «iteration 2, ER-1: …» |
+| V2-9 | ER-2 | non-blocking | two empty runs reached the operator only while the request was a candidate | fixed: two empty runs give the request to the operator whatever path the decision takes; test `test/board-dispatch-run.test.mjs` «iteration 2, ER-2, ER-3: …» |
+| V2-10 | ER-3 | non-blocking | a failed close left the request unmarked | fixed: the request is marked first and the close is retried each pass (`DispatchRecord.closed`); same test |
+| V2-11 | ER-4 | non-blocking | a superseded lease made every later pass fail | fixed: a failing write under the held lease drops it and takes the workflow back |
+| V2-12 | ER-5 | non-blocking | a failing offer opened a new workflow every pass | fixed: an open that failed waits `REFUSAL_BACKOFF_MS` for that request; test `test/board-dispatch-run.test.mjs` «iteration 2, ER-5: …» |
+| V2-13 | ER-6 | non-blocking | with the switch off a pending start was asked again | fixed: no Switchboard call while the switch is off; test `test/board-dispatch-run.test.mjs` «iteration 2, ER-6: …» |
+| V2-14 | ER-7 | non-blocking | the back-off counted from the record's creation and refusals used up the day | fixed: the back-off counts from `endedAt`; only started runs count against the 24 hours; test `test/board-dispatch-run.test.mjs` «iteration 2, ER-7, DA-3: …» |
+| V2-15 | ER-8 | non-blocking | trimming could drop a to-operator record | fixed: records in flight or given to the operator are never trimmed; test `test/board-dispatch-run.test.mjs` «iteration 2, ER-8, DA-2: …» |
+| V2-16 | DO-1 | blocking | verbatim operator quotes remained in lines added since v0.3.15 | fixed: 31 quotes paraphrased (ADR-0096 §5) in code comments, a test, ADR-0188, the ADR index, the on-demand and logs specs, the carry-over register, the backlog, the 1105 plan, two reports, the map and a review copy; a scan of every line added since v0.3.15 for «…» of six or more Russian words finds only interface strings and reviewers' quotations of them |
+| V2-17 | DO-2 | blocking | three texts said Fabric never changes the docker context | fixed: CHANGELOG, `AGENTS.md` (Local Supabase row) and the SCN-161 amendment say `colima start` makes Colima's context current (CO-508) |
+| V2-18 | DO-3 | blocking | four places still said «Settings → Agent access» | fixed: `AGENTS.md` (the fabric-mcp row and the hub paragraph), SCN-132 step 3; ADR-0186 amended (decision 3) |
+| V2-19 | DO-4 | non-blocking | rows still said the release takes no new scope; the digest's journal counts had no home | fixed: eight register rows reworded; the journal counts are in CO-509 |
+| V2-20 | DO-5 | non-blocking | the on-demand spec described unbuilt behaviour as current | fixed: §3.3's switch label and the 24-hour count; the wave row names the cycle-only dispatch, `crash`, the mandate, `com.get`, `timed-out` as not built |
+| V2-21 | DO-6 | non-blocking | `--permissions all` was not said | fixed: the CHANGELOG and the switch's help say it |
+| V2-22 | DO-7 | non-blocking | «Поручить агенту B» was said to answer when the task is done | fixed: the CHANGELOG says only a done release by the task's agent answers it |
+| V2-23 | DO-8 | non-blocking | `fabric_task_close` was said to need the source | fixed: the CHANGELOG says the words and their date are required, the source when the relay names one (`main/hubAuthority.ts#decisionSchema`) |
+| V2-24 | DO-9 | non-blocking | three lifecycle rows were incomplete | fixed: the Windows and Linux paragraph, the sweep row (CO-499, CO-409) and the workspace-sync row (two vault slots) in `AGENTS.md` |
+| V2-25 | DO-10 | non-blocking | no scenario for the switch; a /Users/p fixture; the map's throttle claim | fixed: SCN-147 amended 2026-11-05; `test/docker-launch.test.mjs` uses `/Users/example`; the map entry says the throttle covers the home and the left column |
+| V2-26 | DA-1 | blocking | verbatim operator statements in public lines | fixed: as DO-1 |
+| V2-27 | DA-2 | blocking | the 500-record bound evicted to-operator records | fixed: as ER-8 |
+| V2-28 | DA-3 | non-blocking | refusals counted against the daily cap | fixed: as ER-7 |
+| V2-29 | DA-4 | non-blocking | the records file was read without validation and written without sync | fixed: a list of records only, anything else logged and read as empty; written whole, synced, renamed (`main/boardDispatchWiring.ts#wireBoardDispatch`) |
+| V2-30 | DA-5 | non-blocking | a path with spaces survived `noteOf` | fixed: everything from the first absolute path is dropped; Switchboard's stderr reaches no note except its refusal code (`noteOf`, `boardDispatchWiring.ts` `run`) |
+| V2-31 | DA-6 | non-blocking | review copies named the gateway's route; the chat notice carried the log's path | fixed: the copies redacted and rehashed; the notice names the log file only (`scripts/workspace.mjs`); `AGENTS.md` names both slots |
+| V2-32 | PL-1 | blocking | the docker context claim | fixed: as DO-2 |
+| V2-33 | PL-2 | non-blocking | CO-409 did not carry what the spec's wave row says it does | fixed: CO-409 names what 0.3.16 builds and what stays open |
+| V2-34 | PL-3 | non-blocking | the two dispatcher gaps promised by 2026-11-12 were not in CO-409 | fixed: CO-409 carries both with 2026-11-12 |
+| V2-35 | PL-4 | non-blocking | CO-509 lacked the grammar and sleep items and the board's date | fixed: CO-509 carries both and decides by 2026-11-18 |
+| V2-36 | PL-5 | non-blocking | eight rows said no new scope; CO-494 named the permissions screen | fixed: as DO-4; CO-494 says the grant is revoked in Agent access |
+| V2-37 | PL-6 | non-blocking | CO-365 and CO-294 were neither closed nor re-dated | fixed: CO-365 waits on CO-508; CO-294's live start is in «Owed in 0.3.16's Release close» |
+| V2-38 | PL-7 | non-blocking | P-29 overstated the date and the shipped rows | fixed: P-29 says the tag aims at 2026-11-06 and CO-461, CO-464 are not shipped |
+| V2-39 | PL-8 | non-blocking | the Release close lacked the adapter prerequisite and the board follow-ups | fixed: both are in «Owed in 0.3.16's Release close» |
+| V2-40 | PL-9 | non-blocking | CO-496 recorded one of two board dates | fixed: CO-496 names both |
+| V2-41 | PL-10 | non-blocking | CO-502 said Fabric counts retros written | fixed: CO-502 says Fabric counts those asked, Observatory those written |
+
+Exit for iteration 2: every finding has a disposition. Blocking findings open: none.
 
 ## Iteration 3
 

@@ -57,7 +57,7 @@ What the other products already have, read the same day:
 Decisions taken here (the operator's latest word wins over earlier rows):
 
 - On by default, with an off switch in Settings.
-- **Responders without a consent stop** (CO-494, by «всем апрув»): every project of the operator gets `board.respond` on its
+- **Responders without a consent stop** (CO-494, by (every step approved, paraphrased)): every project of the operator gets `board.respond` on its
   declared capabilities, and a session of that project on the operator's own machine takes the slot when it enrolls; no
   agent waits for a click. The grant is recorded as the operator's act with his words as the reason, and it is revocable
   per project on the permissions screen (§6.1).
@@ -115,11 +115,11 @@ Before starting anything the dispatcher checks, in order, and records which chec
 
 | Check | Default | Answer when it stops |
 |---|---|---|
-| The switch «Запускать агентов по запросам доски» (Settings) | on | `skipped-off` |
+| The switch «Запускать агента на запрос доски, который некому взять» (Settings) | on | `skipped-off` |
 | P has a folder on this machine | required | `skipped-no-folder` (the request stays queued; another machine may take it) |
 | At most N on-demand sessions running on this machine | N = 2 | `deferred-cap` (tried again on the next cycle) |
 | At most 1 per project | 1 | `deferred-project-busy` |
-| At most D dispatches per project per day | D = 20 | `skipped-daily-cap` |
+| At most D started runs per project in the last 24 hours (a refused or unstarted start does not count) | D = 20 | `skipped-daily-cap` |
 | Switchboard answers and has a default agent with room | required | `deferred-no-agent` |
 
 Each dispatch has an id; dispatching the same request again with a run in flight is refused (idempotent by request id).
@@ -318,7 +318,7 @@ version, never the message text, a path, a project name or anything the person t
 |---|---|---|
 | 1 | grants without a stop (CO-494); the dispatcher behind the switch (off until wave 2's verification), the packet, journal events; tests with a fake Switchboard | `switchboard dispatch`; the contract's packet and lifecycle; the adapter's skill section; Observatory's `service:fabric` workflow owner |
 | 2 | the switch on by default; usage counts by default (CO-496); the permissions screen (§6.1); the chain run on macOS and on Windows | the same switch and counts in every product; releases on both platforms |
-| 2, landed | 2026-11-05: the dispatcher on the real doors (`main/boardDispatchWiring.ts#wireBoardDispatch`: the board through the operator's read door, the slots through `board_responders_operator`, the attempt from the request facts, Switchboard's CLI, Observatory's stdio server), beside the cycle, the switch on by default (`shared/appSettings.ts`, `dispatchBoardRequests`); after the 0.3.16 review: the record written before each start, a refusal waits 10 minutes, a project with a live session gets no second agent (the wake of §3.2 is not built, so the request stays that session's), and two empty runs close the workflow and show the request in «На проверке». Not in 0.3.16: the journal events of §7 (the dispatcher logs to the operations log only), the permissions screen of §6.1, the counts of §8 (CO-496), the wake of §3.2, Claude Code as a fallback when no default agent is set (§3.5: none set is `deferred-no-agent`), and the run on Windows; carried in CO-409 | |
+| 2, landed | 2026-11-05: the dispatcher on the real doors (`main/boardDispatchWiring.ts#wireBoardDispatch`: the board through the operator's read door, the slots through `board_responders_operator`, the attempt from the request facts, Switchboard's CLI, Observatory's stdio server), beside the cycle, the switch on by default (`shared/appSettings.ts`, `dispatchBoardRequests`); after the 0.3.16 review: the record written before each start, a refusal waits 10 minutes, a project with a live session gets no second agent (the wake of §3.2 is not built, so the request stays that session's), and two empty runs close the workflow and show the request in «На проверке». Not in 0.3.16: the dispatcher runs on the 60 s cycle only, not on board events (§3.1); the `crash` reason, the mandate, `com.get` reading and `timed-out` of §3.4 and §3.6 are not built; the journal events of §7 (the dispatcher logs to the operations log only), the permissions screen of §6.1, the counts of §8 (CO-496), the wake of §3.2, Claude Code as a fallback when no default agent is set (§3.5: none set is `deferred-no-agent`), and the run on Windows; carried in CO-409 | |
 | 3 | three-iteration verification of the chain and fixes; release | releases; fabric-workspace's version matrix shows every product current on both platforms |
 
 ## 10. Checks that prove it

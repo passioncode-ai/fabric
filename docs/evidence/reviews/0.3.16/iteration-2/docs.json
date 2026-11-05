@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "37ec0410583cb6e0141a0366d0b3ebd8d5892d37",
+  "report": "docs/evidence/reviews/0.3.16/iteration-2/2026-11-05-docs.md",
+  "reportSha256": "5b0b9d474a3afffd38e1b85450d9dfb70591b3c3d27821b06262edb543254522",
+  "reviewerRun": "release-0316-i2-docs-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V2-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 31 quotes paraphrased (ADR-0096 §5) in code comments, a test, ADR-0188, the ADR index, the on-demand and logs specs, the carry-over register, the backlog, the 1105 plan, two reports, the map and a review copy; a scan of every line added since v0.3.15 for «…» of six or more Russian words finds only interface strings and reviewers' quotations of them"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V2-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG, `AGENTS.md` (Local Supabase row) and the SCN-161 amendment say `colima start` makes Colima's context current (CO-508)"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V2-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `AGENTS.md` (the fabric-mcp row and the hub paragraph), SCN-132 step 3; ADR-0186 amended (decision 3)"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V2-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: eight register rows reworded; the journal counts are in CO-509"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V2-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: §3.3's switch label and the 24-hour count; the wave row names the cycle-only dispatch, `crash`, the mandate, `com.get`, `timed-out` as not built"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V2-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG and the switch's help say it"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V2-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG says only a done release by the task's agent answers it"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V2-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG says the words and their date are required, the source when the relay names one (`main/hubAuthority.ts#decisionSchema`)"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V2-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Windows and Linux paragraph, the sweep row (CO-499, CO-409) and the workspace-sync row (two vault slots) in `AGENTS.md`"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "source": "V2-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-147 amended 2026-11-05; `test/docker-launch.test.mjs` uses `/Users/example`; the map entry says the throttle covers the home and the left column"
+      ]
+    }
+  ]
+}

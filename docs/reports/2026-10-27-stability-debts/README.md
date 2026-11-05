@@ -7,8 +7,7 @@ status: in-progress
 
 # Fabric: stability and Windows debts, 2026-10-27
 
-**Operator, 2026-10-27:** «проверим все долги, которые нам есть сейчас виситки, типа по поводу стабильности и
-работоспособности этого проекта и также поддержки его на Windows. И давай все доделаем.»
+**Operator, 2026-10-27:** (пересказ: проверить все висящие долги по стабильности)
 
 The coordinator's frame (fabric-workspace, MD-18): this review runs beside the release plan, never instead of it. A debt
 that keeps the next release from being usable joins that release; every other debt becomes a row with evidence and a

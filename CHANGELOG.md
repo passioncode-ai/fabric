@@ -19,29 +19,37 @@ schema-100 database, so going back is the backup with the bundle you came from. 
   minute, beside the cycle, Fabric reads the board's requests of the last week, its responder slots and each request's
   attempt. A request nobody takes for two minutes, in a project with no live session and no live responder, gets a
   workflow in Project Observatory (owner `service:fabric`) with its `run-ends-at` checkpoint, offered to the default
-  agent and started with `switchboard dispatch` in the project's folder. A project with a live session gets no second
+  agent and started with `switchboard dispatch` in the project's folder, with every permission (`--permissions all`,
+  whatever Settings choose for consoles); its instructions tell it to stop before any step that touches production,
+  which nothing else enforces. It needs Switchboard and a default agent of Claude Code or Codex: without them nothing
+  starts and the operations log says why. A project with a live session gets no second
   agent in its folder: the request stays that session's. Fabric writes what it starts to `board-dispatches.json` in
   the app's data folder before it asks Switchboard, so a timeout, a crash or a quit during the start never starts a
   second run; a refusal waits 10 minutes before the request is tried again. Fabric watches each run to its end; after
   two runs that left the request unsettled it starts no more, closes the request's workflow and shows the request in
   «На проверке». Settings → «Запускать агента на запрос доски, который некому взять», on by default; at most two runs
-  on the machine, one per project at a time and 20 per project a day. With the switch off the board is not read.
+  on the machine, one per project at a time and 20 started runs per project in 24 hours. With the switch off nothing
+  starts and the board is not read. Not in this release: the journal events, the live session's wake and runs on
+  Windows (CO-409).
 - **Forty agents at once** (the operator, 2026-11-05). Every agent's turn asks the home and the left column for a new
   reading; with many agents those readings ran back to back. A reading asked for by a mark now starts no sooner than
   1.5 s after the previous one started, so the cost stays the same whether five agents or forty are working; the
   15-second refresh and the reading in flight are unchanged.
 - **The left column names each agent first** (the operator, 2026-11-05). An agent's row leads with its own name (its
   project's display name); its small line says what runs it and the folder it works in, and the branch moved to the
-  agent's page. The Агенты screen, the agent's own page and the task page's agent card name it the same way, and a task held by its own agent says that agent's name rather than a piece of its session id: the project first, then what runs it and its folder (a runner nobody started keeps the runner's name). «Переписка» (with its unread count) and «Доступ агентов» are places of the column now, beside История
+  agent's page. The Агенты screen and the agent's own page name it the same way, the project first, then what runs it and its folder
+  (a runner nobody started keeps the runner's name); the task page's agent card leads with the project and the runner,
+  and a task held by its own agent says that agent's name rather than a piece of its session id. «Переписка» (with its unread count) and «Доступ агентов» are places of the column now, beside История
   and Настройки, and Settings no longer carry them; Agent access opens as a full page. The column's width is the
   person's: drag its edge or step it with the arrow keys, 180 to 420 px, kept on this computer.
 - **Answering a project's requests is allowed at once on the operator's machine** (CO-494, ADR-0186). An agent that
   asks for `board.respond` gets it without a consent prompt, recorded in the journal and revocable in Agent access.
 - **«Поручить агенту B в Fabric»** (CO-458). Work another project should do becomes a task in that project and a board
-  request; the request is answered when that task is done.
+  request; the request is answered when that task's agent releases it done (moving it to review); a task the person
+  closes or moves answers nothing yet.
 - **Агенты lists Switchboard's sessions and limit stops** (CO-457, first part), as Fabric Dashboards does.
 - **An agent closes a task on the operator's relayed decision** (CO-478, ADR-0184): `fabric_task_close` takes the
-  operator's words with their source and date, and is refused without them.
+  operator's words with their date (and their source when the relay names one), and is refused without the words.
 - **Главная without the folded «Ещё»** (CO-460): the star, the read position and the summary moved to the pages that
   own them. The oldest reviews waiting more than three days reach the person, five at a time (CO-456).
 - **The agents' lines are truer**: a terminal agent's reported branch shows (CO-459); a Plan goal leading an agent's
@@ -82,8 +90,9 @@ schema-100 database, so going back is the backup with the bundle you came from. 
 - **Fabric starts Docker when it is not running** (CO-294, the start half). When Docker does not answer at start,
   Fabric starts it once and waits for it as before, saying so on the splash («Запускаю Colima»). With Colima
   installed it starts Colima and never OrbStack or Docker Desktop; it starts OrbStack or Docker Desktop only when
-  that app is the one runtime installed, because starting OrbStack switches the machine's docker context. It never
-  changes the docker context itself, and starts nothing on Linux, for a network engine, or once the stack has been
+  that app is the one runtime installed, because starting OrbStack switches the machine's docker context. Starting Colima makes Colima's own docker context
+  the current one, as `colima start` does by default (CO-508); Fabric changes no context otherwise, and starts nothing
+  on Linux, for a network engine, or once the stack has been
   up during this launch.
 - **The wiki sync's failures reach the operator's private chat** (CO-411). From the second failure in a row the
   scheduled sync says so in the chat once per failure streak, besides the notice on the Mac, and says once more when it

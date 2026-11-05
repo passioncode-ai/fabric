@@ -5,7 +5,7 @@
   "level": "data",
   "candidateCommit": "a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d",
   "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-data.md",
-  "reportSha256": "4b1b7c587dfdfd8db20776a89cbf45dec58562c4a8cc444cf60952824d45f001",
+  "reportSha256": "c26d49d9b7bb3cb99e7b36f88f1b3d3a66512705f637227b50d38e706a2195a6",
   "reviewerRun": "release-0316-i1-data-20261105",
   "status": "closed",
   "blockingFindingsOpen": [],

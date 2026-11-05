@@ -6,7 +6,7 @@ import path from 'node:path'
 
 const { dockerAppFor, launchDockerApp, colimaProfileOf } = await import(path.resolve(import.meta.dirname, '../src/main/dockerLaunch.ts'))
 
-const HOME = '/Users/p'
+const HOME = '/Users/example'
 const env = { HOME }
 const noColima = { bin: null, host: null }
 const has = (...paths) => (p) => paths.includes(p)

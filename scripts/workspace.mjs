@@ -180,7 +180,7 @@ if(cmd==='status'){
   // CO-390: from the second failure in a row the person is told on this Mac, not only in the log.
   // CO-411: and in the private chat, once per streak (the streak's start is the notice's id, so later failures of the
   // same streak send nothing new), then once more when the sync works again.
-  onFailure:(count,reason,streak)=>{if(count>=2){tellPerson(`The wiki sync failed ${count} times in a row: ${reason}`);tellChat({kind:'failure',eventId:'fabric-workspace-sync-failure-'+streak,text:`Синхронизация вики Fabric падает ${count} раза подряд: ${reason}. Журнал: ${process.env.FABRIC_WORKSPACE_SYNC_LOG||'нет'}`},{log:process.env.FABRIC_WORKSPACE_SYNC_LOG})}},
+  onFailure:(count,reason,streak)=>{if(count>=2){tellPerson(`The wiki sync failed ${count} times in a row: ${reason}`);tellChat({kind:'failure',eventId:'fabric-workspace-sync-failure-'+streak,text:`Синхронизация вики Fabric падает ${count} раза подряд: ${reason}. Журнал: ${process.env.FABRIC_WORKSPACE_SYNC_LOG?path.basename(process.env.FABRIC_WORKSPACE_SYNC_LOG):'нет'}`},{log:process.env.FABRIC_WORKSPACE_SYNC_LOG})}},
   onRecovery:(before,streak)=>{if(before>=2)tellChat({kind:'recovery',eventId:'fabric-workspace-sync-recovery-'+streak,text:`Синхронизация вики Fabric снова работает после ${before} неудачных запусков.`},{log:process.env.FABRIC_WORKSPACE_SYNC_LOG})}
  },async({remainingMs})=>{
  holdPublication()

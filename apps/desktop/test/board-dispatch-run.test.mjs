@@ -8,6 +8,7 @@ const { createBoardDispatch, REFUSAL_BACKOFF_MS, START_ATTEMPTS, UNKNOWN_AFTER_E
 
 const T0 = Date.parse('2026-11-05T10:00:00Z')
 const MIN = 60_000
+const DAY = 24 * 60 * MIN
 const request = (over = {}) => ({ id: '11111111-1111-4111-8111-111111111111', thread: '22222222-2222-4222-8222-222222222222', state: 'queued',
   target: 'p-target', capability: 'updates.auto-default', submittedAt: new Date(T0 - 5 * MIN).toISOString(), deadline: new Date(T0 + 7 * 24 * 60 * MIN).toISOString(), ...over })
 
@@ -247,4 +248,76 @@ test('PL-1: after two empty runs the request goes to the operator and its workfl
   const close = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true)
   assert.ok(close, 'the workflow is closed')
   assert.equal(close[1].status, 'blocked')
+})
+
+test('iteration 2, ER-1: a run whose request is no longer read ends as unknown after its end, freeing its place', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.runs.set('L1', 'ended')
+  w.requests = []
+  w.deps.requestState = async () => null
+  w.tick(30 * MIN); await d.onPass()
+  assert.equal(d.records()[0].state, 'running')
+  w.tick(30 * MIN + UNKNOWN_AFTER_END_MS + MIN); await d.onPass()
+  assert.deepEqual([d.records()[0].state, d.records()[0].outcome, d.records()[0].emptyRuns], ['ended', 'unknown', 0])
+})
+
+test('iteration 2, ER-2, ER-3: two empty runs give the request to the operator whatever path it takes now, even when closing fails', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  for (const id of ['L1', 'L2']) { w.runs.set(id, 'ended'); w.tick(3 * MIN); await d.onPass() }
+  // The project now has a live session: the decision would be live-session, yet the request is the operator's.
+  w.session = true
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => { if (args.close) throw new Error('down'); return real(name, args) }
+  w.tick(3 * MIN); await d.onPass()
+  assert.ok(d.toOperator().has(request().id))
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.closed' && l.outcome === 'failed'))
+  w.deps.observatory = real
+  w.tick(MIN); await d.onPass()
+  assert.equal(d.records().find((r) => r.outcome === 'to-operator').closed, true)
+})
+
+test('iteration 2, ER-5: a workflow that could not be opened is not opened again every pass', async () => {
+  const w = world()
+  let opens = 0
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => { if (name === 'observatory_handoff_create') { opens++; throw new Error('offer refused') } return real(name, args) }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass(); w.tick(MIN); await d.onPass(); w.tick(MIN); await d.onPass()
+  assert.equal(opens, 1)
+  w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(opens, 2)
+})
+
+test('iteration 2, ER-6: with the switch off a start left without an answer is not asked again', async () => {
+  const w = world()
+  w.deps.launch = async (args) => { w.launches.push(args); return { refused: 'failed' } }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.on = false
+  w.tick(MIN); await d.onPass()
+  assert.equal(w.launches.length, 1)
+})
+
+test('iteration 2, ER-7, DA-3: the back-off counts from the refusal, and refusals do not use up the day', async () => {
+  const w = world({ refuse: 'no_agent' })
+  const d = createBoardDispatch(w.deps)
+  for (let i = 0; i < 30; i++) { await d.onPass(); w.tick(REFUSAL_BACKOFF_MS + MIN) }
+  assert.ok(!w.logs.some((l) => l.op === 'board.dispatch.decided' && l.detail.check === 'skipped-daily-cap'))
+  const r = d.records()[0]
+  assert.equal(typeof r.endedAt, 'number')
+})
+
+test('iteration 2, ER-8, DA-2: trimming never drops a record that gave its request to the operator', async () => {
+  const w = world({ requests: [] })
+  const old = (i, over = {}) => ({ requestId: `r${i}`, projectId: 'p', dispatchId: `d${i}`, workflowId: 'wf_0123456789abcdef', handoffId: 'h', launchId: 'L', startedAt: T0 - DAY - i, endsAt: new Date(T0).toISOString(), state: 'ended', outcome: 'finished', emptyRuns: 0, ...over })
+  w.deps.load = () => [old(0, { outcome: 'to-operator', closed: true, emptyRuns: 2 }), ...Array.from({ length: 600 }, (_, i) => old(i + 1))]
+  w.requests = [request()]
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.ok(d.records().some((r) => r.outcome === 'to-operator'))
+  assert.ok(d.records().filter((r) => r.outcome !== 'to-operator' && r.state === 'ended').length <= 500)
 })

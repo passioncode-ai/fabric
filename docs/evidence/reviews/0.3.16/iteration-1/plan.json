@@ -5,7 +5,7 @@
   "level": "plan",
   "candidateCommit": "a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d",
   "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-plan.md",
-  "reportSha256": "a570c37ecae9e09135b3e49d1c8ede5f1aa721c20286ab68323c03fa0abde235",
+  "reportSha256": "564c42367d14da7a3c27559a036b1bb734be9e375d36432be52c120d7b53c63a",
   "reviewerRun": "release-0316-i1-plan-20261105",
   "status": "closed",
   "blockingFindingsOpen": [],

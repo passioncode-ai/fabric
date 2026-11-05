@@ -137,7 +137,7 @@ export interface LaunchShellProps {
  *  Агенты the toggle. */
 const FOOT: ReadonlyArray<'comms' | 'access' | 'history' | 'settings'> = ['comms', 'access', 'history', 'settings']
 
-/** The rail's width the person dragged it to (the operator, 2026-11-05: «хорошо бы уметь настраивать ширину»), kept on
+/** The rail's width the person dragged it to (the operator, 2026-11-05: (paraphrased: an adjustable width)), kept on
  *  this computer; within these bounds, 216 px when never set. */
 export const RAIL_MIN = 180
 export const RAIL_MAX = 420

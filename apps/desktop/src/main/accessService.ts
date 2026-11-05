@@ -462,7 +462,7 @@ export class AccessService {
       ops.record({ op: 'hub.access.requested', outcome: 'ok', detail: { request_id: id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources, incremental: bindingId !== null }, ctx: { correlationId: ops.correlate() } })
       if (ask.callee === FABRIC_SELF && IMMEDIATE_LOCAL_LANES.has(ask.capabilities[0])) {
         // ADR-0160: only the local lanes are immediate: enrollment, since 0.3.8 the read-only folder attribution, and since CO-494 (the operator's
-        // «всем апрув», 2026-11-04) answering a project's requests. The request, the agent's own decision and the revocable grant are all
+        // (every step approved, paraphrased), 2026-11-04) answering a project's requests. The request, the agent's own decision and the revocable grant are all
         // journalled; no product connection or cross-machine authority changes.
         const decided = await this.decide(id, 'allowed', { kind: 'agent', id: entry.key })
         if (!decided.ok) return { ok: false, refused: `the local allow could not be recorded: ${decided.reason}` }

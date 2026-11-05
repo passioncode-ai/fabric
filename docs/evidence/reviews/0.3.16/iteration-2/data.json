@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.16",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "37ec0410583cb6e0141a0366d0b3ebd8d5892d37",
+  "report": "docs/evidence/reviews/0.3.16/iteration-2/2026-11-05-data.md",
+  "reportSha256": "d89dd2d20bb69175f5578cdd5799a4b100394faf4d66a0f55d0f2408db256879",
+  "reviewerRun": "release-0316-i2-data-20261105",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V2-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-1"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V2-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-8"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V2-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-7"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V2-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a list of records only, anything else logged and read as empty; written whole, synced, renamed (`main/boardDispatchWiring.ts#wireBoardDispatch`)"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V2-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: everything from the first absolute path is dropped; Switchboard's stderr reaches no note except its refusal code (`noteOf`, `boardDispatchWiring.ts` `run`)"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V2-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the copies redacted and rehashed; the notice names the log file only (`scripts/workspace.mjs`); `AGENTS.md` names both slots"
+      ]
+    }
+  ]
+}

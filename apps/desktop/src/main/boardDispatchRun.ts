@@ -8,7 +8,7 @@
  * is kept in a small file so a restart never starts a second run for a request. Every external call is a dependency.
  */
 import { randomUUID } from 'node:crypto'
-import { decideDispatch, firstLine, limitsOf, runEndsAt, refusalCheck, type DispatchDecision, type RequestState } from '../shared/boardDispatch.ts'
+import { decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, limitsOf, runEndsAt, refusalCheck, type DispatchDecision, type RequestState } from '../shared/boardDispatch.ts'
 import { FABRIC_OWNER, type ToolCall } from './observatoryMemory.ts'
 
 export interface OpenRequest {
@@ -41,6 +41,10 @@ export interface DispatchRecord {
   refused?: string
   /** How many times Switchboard was asked for this record. */
   attempts?: number
+  /** When the record ended (ms); a refusal's back-off counts from here (0.3.16 review, iteration 2, ER-7). */
+  endedAt?: number
+  /** For `to-operator`: the workflow is closed. Absent or false: closing is tried again each pass (ER-3). */
+  closed?: boolean
   /** Runs for this request that ended without settling it. */
   emptyRuns: number
 }
@@ -81,7 +85,9 @@ export const UNKNOWN_AFTER_END_MS = 10 * 60_000
 
 /** A failure's note for the log: its message without absolute paths (DA-7), at most 200 characters. */
 export function noteOf(e: unknown): string {
-  return (e instanceof Error ? e.message : String(e)).replace(/(?:[A-Za-z]:)?[\\/](?:[^\s'"\\/]+[\\/])+[^\s'"]*/g, '<path>').slice(0, 200)
+  // A path may hold spaces (a folder named with words), so everything from the first absolute path on is dropped
+  // (the 0.3.16 review, iteration 2, DA-5).
+  return (e instanceof Error ? e.message : String(e)).replace(/(^|[\s'"(=])(?:[A-Za-z]:)?[\\/][^\s'"]*[\s\S]*$/, '$1<path>').slice(0, 200)
 }
 
 export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[]; toOperator(): Set<string> } {
@@ -107,14 +113,26 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         if (now <= Date.parse(r.endsAt) + UNKNOWN_AFTER_END_MS) continue
         r.state = 'ended'
         r.outcome = 'unknown'
+        r.endedAt = now
         changed = true
         deps.log('board.dispatch.ended', 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: r.outcome })
         continue
       }
       // ER-6: the request's state as read in THIS pass; when it cannot be read the run is judged on a later pass.
       const state = await deps.requestState(r.requestId)
-      if (state === null) continue
+      if (state === null) {
+        // Iteration 2, ER-1: a request outside this pass's read (older than the window, past the pages) is never judged;
+        // past the run's end plus the margin the run is ended as unknown, so it frees its place.
+        if (now <= Date.parse(r.endsAt) + UNKNOWN_AFTER_END_MS) continue
+        r.state = 'ended'
+        r.outcome = 'unknown'
+        r.endedAt = now
+        changed = true
+        deps.log('board.dispatch.ended', 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: r.outcome })
+        continue
+      }
       r.state = 'ended'
+      r.endedAt = now
       r.outcome = SETTLED.has(state) ? 'finished' : 'exited-without-answer'
       if (r.outcome === 'exited-without-answer') r.emptyRuns++
       changed = true
@@ -153,14 +171,23 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       if (typeof w.workflowId !== 'string' || typeof w.leaseId !== 'string') throw new Error(`the workflow was not opened: ${String(w.error ?? 'no id')}`)
       workflowId = w.workflowId
       leaseId = w.leaseId
-    } else if (leases.has(prior.workflowId)) {
-      // A start that was refused or failed: the offer was never accepted, so Fabric still holds the workflow.
+    } else if (leases.has(prior.workflowId) && await (async () => {
+      // A start that was refused or failed: the offer was never accepted, so Fabric still holds the workflow. When the
+      // lease was superseded after all (a start that did run, iteration 2, ER-4), it is dropped and taken back below.
+      try {
+        const w = await deps.observatory('observatory_checkpoint_write', {
+          owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-ends-held`, stepId: 'run-ends-at', status: 'in_progress', workflowId: prior.workflowId, leaseId: leases.get(prior.workflowId), body
+        })
+        if (w.error) throw new Error(String(w.error))
+        return true
+      } catch {
+        // The lease is no longer Fabric's: take the workflow back as after a run.
+        leases.delete(prior.workflowId)
+        return false
+      }
+    })()) {
       workflowId = prior.workflowId
       leaseId = leases.get(prior.workflowId)!
-      const w = await deps.observatory('observatory_checkpoint_write', {
-        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-ends`, stepId: 'run-ends-at', status: 'in_progress', workflowId, leaseId, body
-      })
-      if (w.error) throw new Error(`run-ends-at was not written: ${String(w.error)}`)
     } else {
       // §3.4: a run that left the request unsettled keeps the lease; Fabric takes the workflow back to itself.
       workflowId = prior.workflowId
@@ -187,6 +214,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   // The workflow's lease while Fabric still holds it (an offer not yet accepted): kept in memory only, never in the file.
   const leases = new Map<string, string>()
   const projectIds = new Map<string, string>()
+  const openFailedAt = new Map<string, number>()
   /** §3.6: a request that goes to the operator has its workflow closed, taken back first when a run holds it. */
   const closeWorkflow = async (r: DispatchRecord): Promise<void> => {
     let leaseId = leases.get(r.workflowId)
@@ -231,11 +259,13 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     } else if (started.refused !== 'failed') {
       // A refusal is Switchboard's answer: nothing started. The request waits REFUSAL_BACKOFF_MS before it is asked again.
       r.state = 'ended'
+      r.endedAt = now
       r.outcome = 'refused'
       r.refused = started.refused
       said(r.requestId, { path: 'wait', check: refusalCheck(started.refused) })
     } else if (r.attempts >= START_ATTEMPTS) {
       r.state = 'ended'
+      r.endedAt = now
       r.outcome = 'failed-to-start'
       deps.log('board.dispatch.started', 'failed', { request: r.requestId, dispatch: r.dispatchId, attempts: r.attempts })
     } else {
@@ -254,8 +284,20 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     if (!on && !live) return
     const requests = await deps.readRequests()
     await watch(now)
-    // Starts left without an answer are asked again first (ER-1, ER-2).
-    for (const r of records.filter((x) => x.state === 'starting')) {
+    // Iteration 2, ER-3, ER-2, DA-2: a request given to the operator has its workflow closed, retried until it is.
+    for (const r of records.filter((x) => x.outcome === 'to-operator' && !x.closed)) {
+      if (deps.quitting?.()) return
+      try {
+        await closeWorkflow(r)
+        r.closed = true
+        deps.save(records)
+      } catch (e) {
+        // Recorded through the caller's ops sink; the request is already the operator's, closing is tried again.
+        deps.log('board.dispatch.closed', 'failed', { request: r.requestId, note: noteOf(e) })
+      }
+    }
+    // Starts left without an answer are asked again first (ER-1, ER-2); with the switch off, not at all (iteration 2, ER-6).
+    for (const r of on ? records.filter((x) => x.state === 'starting') : []) {
       if (deps.quitting?.()) return
       const dir = await deps.folderOf(r.projectId)
       if (!dir) { r.state = 'ended'; r.outcome = 'failed-to-start'; deps.save(records); continue }
@@ -267,6 +309,15 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       if (deps.quitting?.()) return
       const mine = records.filter((r) => r.requestId === req.id)
       const last = mine[mine.length - 1]
+      if (mine.some((r) => r.outcome === 'to-operator')) continue
+      // Iteration 2, ER-2: two empty runs give the request to the operator whatever path the decision would take now.
+      if (last && last.state === 'ended' && last.emptyRuns >= EMPTY_RUNS_TO_OPERATOR && !SETTLED.has(req.state)) {
+        last.outcome = 'to-operator'
+        last.closed = false
+        deps.save(records)
+        said(req.id, { path: 'to-operator' })
+        continue
+      }
       const active = records.filter((r) => r.state !== 'ended')
       const slotLive = await deps.responderLive(req.target, req.capability)
       const holderLive = req.attemptLive ?? slotLive
@@ -279,28 +330,25 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         hasFolder: (await deps.folderOf(req.target)) !== null,
         runningOnMachine: active.length,
         runningInProject: active.filter((r) => r.projectId === req.target).length,
-        dispatchesToday: records.filter((r) => r.projectId === req.target && now - r.startedAt < DAY_MS).length,
+        // Only runs that started count against the day (iteration 2, ER-7, DA-3); the day is the last 24 hours.
+        dispatchesToday: records.filter((r) => r.projectId === req.target && r.launchId !== null && now - r.startedAt < DAY_MS).length,
         emptyRuns: last?.emptyRuns ?? 0,
         inFlight: last !== undefined && last.state !== 'ended',
         limits
       })
       said(req.id, decision)
       if (decision.path === 'to-operator') {
-        if (last && last.outcome !== 'to-operator' && !SETTLED.has(req.state)) {
-          try {
-            await closeWorkflow(last)
-          } catch (e) {
-            // Recorded through the caller's ops sink; the request still goes to the operator, closing is tried again.
-            deps.log('board.dispatch.closed', 'failed', { request: req.id, note: noteOf(e) })
-            continue
-          }
+        if (last && !SETTLED.has(req.state)) {
           last.outcome = 'to-operator'
+          last.closed = false
           deps.save(records)
         }
         continue
       }
       if (decision.path !== 'launch') continue
-      if ((last?.outcome === 'refused' || last?.outcome === 'failed-to-start') && now - last.startedAt < REFUSAL_BACKOFF_MS) continue
+      if ((last?.outcome === 'refused' || last?.outcome === 'failed-to-start') && now - (last.endedAt ?? last.startedAt) < REFUSAL_BACKOFF_MS) continue
+      // Iteration 2, ER-5: a workflow that could not be opened is not tried again for the request sooner than the back-off.
+      if (now - (openFailedAt.get(req.id) ?? -Infinity) < REFUSAL_BACKOFF_MS) continue
       const provider = await deps.defaultProvider()
       if (!provider) { said(req.id, { path: 'wait', check: 'deferred-no-agent' }); continue }
       const folder = await deps.folderOf(req.target)
@@ -314,6 +362,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       } catch (e) {
         // Recorded through the caller's ops sink (deps.log); the request is tried again on a later pass.
         deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(e) })
+        openFailedAt.set(req.id, now)
         continue
       }
       if (deps.quitting?.()) return
@@ -323,8 +372,15 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       deps.save(records)
       await start(r, folder, now)
     }
-    // Keep a bounded history: the newest 500 records.
-    if (records.length > 500) { records = records.slice(-500); deps.save(records) }
+    // A bounded history: never a record in flight or one that gave its request to the operator (iteration 2, ER-8,
+    // DA-2); of the rest, the newest, so the file holds at most 500 plus those.
+    const kept = (r: DispatchRecord): boolean => r.state !== 'ended' || r.outcome === 'to-operator'
+    const rest = records.filter((r) => !kept(r))
+    if (rest.length > 500) {
+      const drop = new Set(rest.slice(0, rest.length - 500))
+      records = records.filter((r) => !drop.has(r))
+      deps.save(records)
+    }
   }
 
   return {

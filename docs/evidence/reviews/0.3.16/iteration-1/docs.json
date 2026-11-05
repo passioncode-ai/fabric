@@ -5,7 +5,7 @@
   "level": "docs",
   "candidateCommit": "a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d",
   "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-docs.md",
-  "reportSha256": "514b63d11d33be20446e0d8c30c932060cd1d6c1e3abc76167fa4d3d2f5684c2",
+  "reportSha256": "d896f7680aecd0d2249309d01ba40b9a8208d5fc0ee3a5ffd848d2ccc1ac3da1",
   "reviewerRun": "release-0316-i1-docs-20261105",
   "status": "closed",
   "blockingFindingsOpen": [],

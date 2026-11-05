@@ -51,3 +51,6 @@ from the lanes) fails both.
   apart, and narrowing the immediate grant to the asking agent's own project and the capabilities that project
   declared, is carry-over row CO-506 (by 2026-11-12); until then the release notes say «on the operator's machine» of
   the only machines Fabric is installed on.
+- 2026-11-05, the 0.3.16 release review, iteration 2 (DO-3): decision 3's «Settings → Agent access» is Agent access in the
+  left column since 0.3.16 (the operator's word of 2026-11-05 moved it out of Settings); the permissions screen of the
+  on-demand spec §6.1 is not built in 0.3.16, so the grant is revoked in Agent access alone.

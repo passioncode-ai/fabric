@@ -1,11 +1,7 @@
 # Agents you can place, a status that does not lie, logs that are read, and the improvement loop
 
 **Date:** 2026-11-04. **Asked by:** the operator, in session 5d9bed98, with a screenshot of the Агенты page:
-«в левом списке не видно, кто к какому проекту, какой ветке и папке относится … статус не обновляется: задача давно
-закрыта, а показано, что в работе … изучи логи … вся система должна логироваться, анализ логов раз в час и раз в
-день, цикл обратной связи после работы агента … хранить централизованно на уровне Observatory и Fabric … чётко
-разделить, кто за что отвечает, и записать это в Fabric … все продукты по умолчанию автообновляют плагины, приложения
-и скилы, в настройках можно выключить, но уведомление всё равно приходит».
+(paraphrased: the left list does not show which project, branch and folder an agent belongs to, and the status does not update).
 
 **Rows:** CO-498 (folder and branch for every agent, done in this change), CO-499 (a status that does not outlive its
 work, done in this change), CO-500 (the hourly and daily reading of the log), CO-501 (Fabric updates itself by

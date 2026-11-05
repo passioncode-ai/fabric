@@ -5,7 +5,7 @@
  * CLI on the session PATH, Observatory through its stdio server, and a small file of what was started. Each call has a
  * deadline; a door that fails throws, and the dispatcher logs it and tries again on a later pass.
  */
-import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { closeSync, existsSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs'
 import path from 'node:path'
 import { execFile } from 'node:child_process'
 import type { CommsMessage, CommsRespondersReply } from '../shared/commsRead.ts'
@@ -56,10 +56,14 @@ export async function readOpenRequests(comms: SweepComms, estateId: string, now:
   return { requests, states }
 }
 
+/** Switchboard's refusal codes, the only words of its stderr that are kept (the 0.3.16 review, iteration 2, DA-5: a
+ *  failure's own text carries the command line and the project's folder, and never reaches the log). */
+const REFUSAL_CODES = /\b(no_agent|not_in_group|ceiling_reached|spend_unknown|agent_not_installed)\b/
 const run = (file: string, args: string[], env: NodeJS.ProcessEnv): Promise<string> => new Promise((resolve, reject) => {
   execFile(file, args, { env, timeout: CLI_DEADLINE_MS, maxBuffer: 4 * 1024 * 1024 }, (e, out, err) => {
-    if (e) reject(new Error(String(err || e.message).slice(0, 300)))
-    else resolve(String(out))
+    if (!e) return resolve(String(out))
+    const code = String(err).match(REFUSAL_CODES)?.[1]
+    reject(new Error(code ? `refused: ${code}` : e.killed ? 'no answer within the deadline' : `exited ${String((e as { code?: unknown }).code ?? 'with an error')}`))
   })
 })
 
@@ -125,7 +129,7 @@ export function wireBoardDispatch(o: {
         return { launchId: d.launch_id }
       } catch (e) {
         // A refusal is the dispatcher's to record (board.dispatch.decided names its check).
-        const code = e instanceof Error ? e.message.match(/no_agent|not_in_group|ceiling_reached|spend_unknown|agent_not_installed/)?.[0] : undefined
+        const code = e instanceof Error ? e.message.match(REFUSAL_CODES)?.[1] : undefined
         return { refused: code ?? 'failed' }
       }
     },
@@ -143,14 +147,25 @@ export function wireBoardDispatch(o: {
     },
     async requestState(requestId) { return lastStates.get(requestId) ?? null },
     load() {
-      try { return JSON.parse(readFileSync(o.file, 'utf8')) as DispatchRecord[] } catch {
-        // No file yet (first run) or a torn one: nothing was started that this process can watch.
+      let text: string
+      try { text = readFileSync(o.file, 'utf8') } catch {
+        // No file yet (first run): nothing was started that this process can watch.
         return []
       }
+      try {
+        const parsed: unknown = JSON.parse(text)
+        if (Array.isArray(parsed)) return parsed.filter((r): r is DispatchRecord => !!r && typeof r === 'object' && typeof (r as DispatchRecord).requestId === 'string' && typeof (r as DispatchRecord).state === 'string')
+      } catch {
+        // A torn file is said below and read as empty (the 0.3.16 review, iteration 2, DA-4).
+      }
+      o.log('board.dispatch.records-unread', 'failed', { note: 'board-dispatches.json is not a list of records; it is read as empty and rewritten at the next save' })
+      return []
     },
     save(records) {
+      // Written whole, synced, then renamed over the old file: a crash leaves the old or the new, never a torn one.
       const tmp = `${o.file}.tmp`
-      writeFileSync(tmp, JSON.stringify(records), { mode: 0o600 })
+      const fd = openSync(tmp, 'w', 0o600)
+      try { writeSync(fd, JSON.stringify(records)); fsyncSync(fd) } finally { closeSync(fd) }
       renameSync(tmp, o.file)
     },
     log: o.log,
