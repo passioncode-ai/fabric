@@ -20,8 +20,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   `com.enroll` gets its own project's grant with no question; a grant for another project asked through the hub now
   waits for you in Agent access.
 - **The board rule no longer sends a session for a grant it cannot ask.** 0.3.16 told a session to ask
-  `fabric.access.request` for answering another project, a tool a session does not have; it now says to answer with
-  `com.reply` and end, and that another project's grant is yours to give in Agent access.
+  `fabric.access.request` for answering another project, a tool a session does not have; it now says to answer the
+  request once with `com.reply` that it cannot be taken now, do no work on it without the slot, and end. Agent access
+  decides only a request a registered service asked; a session cannot raise one.
 - **An agent can decide Agent access on your word** (CO-506, ADR-0190). Tell an agent working in a Fabric session to allow, deny or revoke and it
   does it with `fabric_access_decide` or `fabric_access_revoke`, recording your words; it never allows a product (that
   consent and key stay yours) or a request its own credential asked.

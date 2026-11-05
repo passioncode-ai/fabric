@@ -202,9 +202,10 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'not_available is unreachable, not empty: say so. A reply from this project on a request addressed to it ' +
       '(com.reply) answers that request: its state becomes answered and the asker sees it (DEC-0098, DEC-0102). Carrying ' +
       'the request out as its responder is com.enroll, then com.claim, under a responder grant (board.respond): for ' +
-      'your own Project it is given at your com.enroll, with no question (ADR-0190); another Project\'s is the ' +
-      'operator\'s to give, and you have no tool to ask it; without it com.enroll is not_authorized, and then you ' +
-      'answer with com.reply and end: the reply is still your answer. Answer what waits on you in the same turn, ' +
+      'your own Project it is given at your com.enroll, with no question (ADR-0190); a session has no route to ' +
+      'another Project\'s (the operator decides only a request a registered service asked, in Agent access); without ' +
+      'it com.enroll is not_authorized: then answer the request once with com.reply that it cannot be taken now and ' +
+      'why, do no work on it without the slot, and end: the reply is still your answer. Answer what waits on you in the same turn, ' +
       'with the state now: what is done, where (branch or commit), when the rest will be ready and what blocks it; ' +
       'a state with its nearest date is an answer (the operator, 2026-11-04). Send it as com.reply, on a request too: ' +
       'the request becomes answered, which means you answered, never that the work is done; the result follows as a ' +
