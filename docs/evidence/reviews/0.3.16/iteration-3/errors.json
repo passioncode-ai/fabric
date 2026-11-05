@@ -3,7 +3,7 @@
   "version": "0.3.16",
   "iteration": 3,
   "level": "errors",
-  "candidateCommit": "822560c5baec3d9cf4181e7f65acc8b79dd4819e",
+  "candidateCommit": "deee017bc10419fad32b614873d295bbf821c7fd",
   "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-errors.md",
   "reportSha256": "29c81cf2399e0a945f55e004f9bbccf83da0702b9d7c99fa3993caafc2b41978",
   "reviewerRun": "release-0316-i3-errors-20261105",

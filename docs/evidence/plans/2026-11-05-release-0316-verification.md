@@ -30,8 +30,8 @@ candidate read-only; findings are disposed here and in the receipts under
   of CO-365 (item 2) is carried with CO-508 to the organization slice.
 - `node scripts/release-mac.mjs --check-only --tag v0.3.16` on the commit to be tagged reads green before the tag is
   pushed, its result written here (iteration 3, PL-1).
-- On `main` after the tag, one carry-over row for V3-56 to V3-59 (the verifier of `822560c5`, findings 2 to 5), since the
-  register cannot change after `verifiedCommit`.
+- On `main` after the tag, one carry-over row for V3-56 to V3-59 (the verifier of `822560c5`, findings 2 to 5) and V3-61,
+  since the register cannot change after `verifiedCommit`.
 - On the board, threads `1add3c03` and `f7758225`: the `main` commit and the tag of 0.3.16, as promised on 2026-11-05; on
   thread `44c43a06`: one line to fabric-workspace that CO-409's dispatcher ships in 0.3.16 after all, correcting what
   Fabric said there on 2026-11-03 (iteration 3, PL-6).
@@ -164,8 +164,12 @@ dispositions held except one blocking defect, B-1, verdict «not ready»
 candidate `822560c5baec3d9cf4181e7f65acc8b79dd4819e` (`fix(release 0.3.16): the final candidate's verification`), which a
 third fresh verifier read in full, with probes over the real dispatcher at both commits, verdict «ready»
 ([report](../../reports/2026-11-05-release-0316/2026-11-05-final-candidate-delta-verification.md)). The verifiers'
-findings are V3-41 to V3-59 below. The final candidate is the release gate's `verifiedCommit`; the receipts and the
-release gate name it, as 0.3.15 named its final candidate.
+findings are V3-41 to V3-59 below, and the fast tier's V3-60 and V3-61. The fast tier on the first release commit `8fa3c9976cd1f24a60012718db402fb206f88e44` then failed in the unified plan's
+canonical inventory: a note of iteration 3 on CO-411 sat after the row's closing pipe (V3-60). Its fix,
+`deee017bc10419fad32b614873d295bbf821c7fd` (`fix(release 0.3.16): CO-411's note inside its last cell`), changes that one
+cell and the design map's entry after `822560c5`'s verified tree and the release metadata; the release session read
+it, and the fast tier passes on the release commit built on it. It is the final candidate and the release gate's
+`verifiedCommit`; the receipts and the release gate name it, as 0.3.15 named its final candidate.
 
 | Finding | Level | Severity | What | Disposition |
 |---|---|---|---|---|
@@ -228,5 +232,7 @@ release gate name it, as 0.3.15 named its final candidate.
 | V3-57 | FV2-3 (verifier of 822560c5) | non-blocking | a run whose request was not read ends without counting as empty (earlier than this change) | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
 | V3-58 | FV2-4 (verifier of 822560c5) | non-blocking | a test stand-in throws a made-up closed-workflow message | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
 | V3-59 | FV2-5 (verifier of 822560c5) | non-blocking | two comments in `SessionWindow.tsx` keep the runner-first order | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
+| V3-60 | CI-1 (fast tier on `8fa3c997`) | blocking | iteration 3's note on CO-411 sat after the row's closing pipe, so the unified plan's inventory refused the register ("Malformed task table row") and `scripts/test/build-unified-plan.test.mjs` failed 19 tests | fixed in `deee017b`: the note is inside the status cell; `node scripts/unified-plan.mjs inventory` exit 0 |
+| V3-61 | CI-1 (fast tier on `8fa3c997`) | non-blocking | `node scripts/check-registers.mjs` passed the malformed row: it does not count a row's cells | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
 
 Exit for iteration 3: every finding has a disposition. Blocking findings open: none.
