@@ -59,7 +59,8 @@ Decisions taken here (the operator's latest word wins over earlier rows):
 - On by default, with an off switch in Settings.
 - **Responders without a consent stop** (CO-494, by (every step approved, paraphrased)): every project of the operator gets `board.respond` on its
   declared capabilities, and a session of that project on the operator's own machine takes the slot when it enrolls; no
-  agent waits for a click. As built in 0.3.16 (ADR-0186 decision 1, `accessService.ts`) the grant is recorded as the
+  agent waits for a click. Since CO-506 ([ADR-0190](../../adr/0190-an-agent-decides-agent-access-on-the-operators-relayed-words-and-answering-is-granted-for-the-sessions-own-project.md)) the grant is given at a session's `com.enroll` for its
+  own project only, and another project's waits for the operator. As built in 0.3.16 (ADR-0186 decision 1, `accessService.ts`) the grant was recorded as the
   asking agent's own revocable act, for one project and up to eight capabilities it names; narrowing it to the agent's
   own project is CO-506, and the permissions screen (§6.1) is not built yet.
 - The default agent is Switchboard's machine default, Claude Code when none is set.

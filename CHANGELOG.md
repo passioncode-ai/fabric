@@ -16,6 +16,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   agents left it open reads «Два запущенных агента не закрыли запрос: Fabric больше не запускает на него агентов, решите
   сами»; a request an agent took and went away from, its outcome unknown, now shows there at once. When another session
   settles a request a run left open, Fabric closes the workflow it opened for it.
+- **Answering a project's requests is granted for your own project only, at once** (CO-506, ADR-0190). A session's
+  `com.enroll` gets its own project's grant with no question; a grant for another project asked through the hub now
+  waits for you in Agent access.
+- **An agent can decide Agent access on your word** (CO-506, ADR-0190). Tell any agent to allow, deny or revoke and it
+  does it with `fabric_access_decide` or `fabric_access_revoke`, recording your words; it never allows a product (that
+  consent and key stay yours) or a request its own credential asked.
 
 ## 0.3.16
 
