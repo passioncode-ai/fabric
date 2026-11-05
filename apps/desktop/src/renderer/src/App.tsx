@@ -978,8 +978,8 @@ function Shell({
     : active.kind === 'project' ? { kind: 'project', projectId: active.projectId }
     : active.kind === 'console' && consoleSession ? { kind: 'project', projectId: consoleSession.projectId, session: consoleSession.sessionId }
     : { kind: 'elsewhere' }
-  // The mockup parity (rail gaps 20, 21): an agent's screen is titled «{runner} · {project}», a session «Сессия ·
-  // {runner} · {project}»; the project's name is `projectDisplayName`'s (through `railAgents` and `consoleTitleOf`).
+  // The mockup parity (rail gaps 20, 21), project first since 0.3.16: an agent's screen is titled «{project} · {runner}»,
+  // a session «Сессия · {project} · {runner}»; the project's name is `projectDisplayName`'s (through `railAgents` and `consoleTitleOf`).
   // From the whole reading, not the rail's rows: an agent merely connected is not on the rail but still has its screen.
   const titledLive = railAt.kind === 'agents' && railAt.session ? homeReading.view?.live.find((a) => a.sessionId === railAt.session) : undefined
   const titledAgent = titledLive ? {

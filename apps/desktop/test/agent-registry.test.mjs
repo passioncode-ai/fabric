@@ -313,10 +313,10 @@ test('CO-205: FAC-SEM-013 still holds across the cap — a kept service whose tw
 test('DEC-0145: Windows paths in an entry are read as the contract reads them, and a share never is', () => {
   const ok = (v) => assert.deepEqual(v, [])
   const bad = (v, re) => assert.match(v.join('; '), re)
-  for (const manifest of ['C:\\Users\\p\\agents\\x\\fabric-agent.json', 'C:/Users/example/agents/x/fabric-agent.json', '~\\agents\\x\\fabric-agent.json'])
+  for (const manifest of ['C:\\Users\\example\\agents\\x\\fabric-agent.json', 'C:/Users/example/agents/x/fabric-agent.json', '~\\agents\\x\\fabric-agent.json'])
     ok(validateProviderEntry(provider('winp', { manifest })))
   for (const manifest of ['\\\\server\\share\\fabric-agent.json', '\\\\?\\C:\\x\\fabric-agent.json', '//server/share/fabric-agent.json', 'C:\\x\\agent.json'])
     bad(validateProviderEntry(provider('winp', { manifest })), /manifest must be/)
-  ok(validateServiceDescriptor(service('wins', 'default', 47600, { auth: { tokenFile: 'C:\\Users\\p\\AppData\\Local\\wins\\token' }, paths: { data: 'C:\\Users\\p\\AppData\\Local\\wins', logs: ['~\\logs\\wins.log'] } })))
+  ok(validateServiceDescriptor(service('wins', 'default', 47600, { auth: { tokenFile: 'C:\\Users\\example\\AppData\\Local\\wins\\token' }, paths: { data: 'C:\\Users\\example\\AppData\\Local\\wins', logs: ['~\\logs\\wins.log'] } })))
   bad(validateServiceDescriptor(service('wins', 'default', 47600, { auth: { tokenFile: '\\\\server\\share\\token' } })), /tokenFile/)
 })

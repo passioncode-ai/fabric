@@ -32,6 +32,9 @@ export interface DispatchRecord {
   launchId: string | null
   startedAt: number
   endsAt: string
+  /** The request's deadline on the board (ms), when it named one: its newest record is kept at least until then, so a
+   *  request given to the operator never comes back as new (the 0.3.16 final candidate's verification, B-1). */
+  until?: number
   /** `starting`: written BEFORE Switchboard is asked (the 0.3.16 review, ER-1, ER-2), so a timeout, a crash or a quit
    *  during the start never leaves a request without its record; the next pass asks Switchboard again with the same
    *  workflow and hand-over, which answers the same launch when it did start. */
@@ -93,9 +96,9 @@ export const KEEP_REQUEST_MS = 8 * DAY_MS
 /** A failure's note for the log: its message without absolute paths (DA-7), at most 200 characters. */
 export function noteOf(e: unknown): string {
   // A path may hold spaces (a folder named with words), so everything from the first absolute path on is dropped
-  // (the 0.3.16 review, iterations 2 and 3, DA-5, ER-10): after a space, a quote, `(`, `=`, `:`, `[` or `,`, as
-  // `/…`, `~/…`, `C:\…` or a `file://` URL.
-  return (e instanceof Error ? e.message : String(e)).replace(/(^|[\s'"(=:[,])(?:file:\/\/|~|[A-Za-z]:)?[\\/][\s\S]*$/, '$1<path>').slice(0, 200)
+  // (the 0.3.16 review, iterations 2 and 3, DA-5, ER-10, and the final candidate's NB-3): after a space, a quote, a
+  // backtick, `(`, `=`, `:`, `[`, `{`, `<`, `,`, `;` or `|`, as `/…`, `~/…`, `C:\…` or a `file://` URL.
+  return (e instanceof Error ? e.message : String(e)).replace(/(^|[\s'"`(=:[{<,;|])(?:file:\/\/|~|[A-Za-z]:)?[\\/][\s\S]*$/, '$1<path>').slice(0, 200)
 }
 
 export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[]; toOperator(): Set<string> } {
@@ -211,11 +214,13 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       } catch (e) {
         // Iteration 3, ER-3 (agreed on the board, thread `1add3c03`): a run closed the workflow itself while the request
         // stayed open, so it cannot be taken back; the request gets a workflow of its own again.
-        if (/closed/i.test(e instanceof Error ? e.message : String(e))) return open(req, undefined, provider, endsAt, dispatchId)
+        // Matched by Observatory's typed name, never the word «closed», which a dropped connection also says (final
+        // candidate's verification, NB-1).
+        if (/\bWorkflowClosed\b/.test(e instanceof Error ? e.message : String(e))) return open(req, undefined, provider, endsAt, dispatchId)
         throw e
       }
       if (typeof back.handoffId !== 'string') {
-        if (/closed/i.test(String(back.error ?? ''))) return open(req, undefined, provider, endsAt, dispatchId)
+        if (/\bWorkflowClosed\b/.test(String(back.error ?? ''))) return open(req, undefined, provider, endsAt, dispatchId)
         throw new Error(`the workflow could not be taken back: ${String(back.error ?? 'no handoff')}`)
       }
       const took = await deps.observatory('observatory_handoff_accept', { owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-accept`, handoffId: back.handoffId })
@@ -402,17 +407,21 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       }
       if (deps.quitting?.()) return
       const r: DispatchRecord = { requestId: req.id, projectId: req.target, dispatchId, workflowId: opened.workflowId, handoffId: opened.handoffId, launchId: null,
-        startedAt: now, endsAt, state: 'starting', attempts: 0, emptyRuns: last?.emptyRuns ?? 0 }
+        startedAt: now, endsAt, state: 'starting', attempts: 0, emptyRuns: last?.emptyRuns ?? 0,
+        ...(Number.isFinite(Date.parse(req.deadline)) ? { until: Date.parse(req.deadline) } : {}) }
       records.push(r)
       deps.save(records)
       await start(r, folder, now)
     }
-    // A bounded history (iteration 3, DA-2): never a record in flight, and never a request's newest record while the
-    // board can still hold the request (`KEEP_REQUEST_MS`), so its count of empty runs and a given-up request stay; of
-    // the rest, the newest 500. The file holds at most 500 plus one record per request of the last eight days.
+    // A bounded history (iteration 3, DA-2; the final candidate's verification, B-1): never a record in flight, and never
+    // a request's newest record while the request can still come back: started in the last eight days
+    // (`KEEP_REQUEST_MS`), before its own deadline, or read on the board in this pass. So its count of empty runs and a
+    // request given to the operator stay. Of the rest, the newest 500.
     const newest = new Map<string, DispatchRecord>()
     for (const r of records) newest.set(r.requestId, r)
-    const kept = (r: DispatchRecord): boolean => r.state !== 'ended' || (newest.get(r.requestId) === r && now - r.startedAt < KEEP_REQUEST_MS)
+    const shown = new Set(requests.map((q) => q.id))
+    const kept = (r: DispatchRecord): boolean => r.state !== 'ended' || (newest.get(r.requestId) === r
+      && (now - r.startedAt < KEEP_REQUEST_MS || (r.until ?? 0) > now || shown.has(r.requestId)))
     const rest = records.filter((r) => !kept(r))
     if (rest.length > 500) {
       const drop = new Set(rest.slice(0, rest.length - 500))

@@ -121,7 +121,7 @@ describe('a window onto one session', () => {
     expect(note.querySelector('.error-detail')?.textContent).toBe('no display')
   })
 
-  // The mockup parity, wave 1: embedded under its tab, one quiet line leads with «← runner · project» back to the
+  // The mockup parity, wave 1: embedded under its tab, one quiet line leads with «← project · runner» back to the
   // agent, the folder, the state, Stop and the separate window as an icon button; the terminal sits in a box below.
   it('embedded: the back link goes to the agent, Stop and the separate window stay, the terminal is boxed', async () => {
     stub(async () => session())

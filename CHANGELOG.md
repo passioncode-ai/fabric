@@ -31,7 +31,7 @@ schema-100 database, so going back is the backup with the bundle you came from. 
   on the machine, one per project at a time and 20 started runs per project in 24 hours. With the switch off nothing new
   starts: a start still waiting for Switchboard's answer is ended, and Fabric keeps reading the board only to follow a
   run it already started, until that run ends. Not in this release: the journal events and the live session's wake
-  (CO-409). On Windows the dispatcher has not been tried yet.
+  (CO-409). On Windows and Linux the dispatcher has not been tried yet.
 - **Forty agents at once** (the operator, 2026-11-05). Every agent's turn asks the home and the left column for a new
   reading; with many agents those readings ran back to back. A reading asked for by a mark now starts no sooner than
   1.5 s after the previous one started, so the cost stays the same whether five agents or forty are working; the
@@ -85,9 +85,9 @@ schema-100 database, so going back is the backup with the bundle you came from. 
 - **One hub port per user on one machine** (CO-505). The platform's first user keeps 47070; each further user takes
   the next port by uid, so several people can run Fabric on one Mac. `FABRIC_HUB_PORT` still wins.
 - **The board rule every session gets says to answer at once** (CO-409). A request is answered in the same turn with
-  the state now and its nearest date, as `com.reply`; the result follows as a second reply. A session carrying out a
-  board request with no person in its chat stops before any step that touches production, unless the operator's word
-  allows it; answering a project's requests is allowed at once on the operator's own machine (ADR-0186).
+  the state now and its nearest date, as `com.reply`; the result follows as a second reply. The rule tells a session
+  carrying out a board request with no person in its chat to stop before any step that touches production, unless the
+  operator's word allows it (nothing else enforces it); answering a project's requests is allowed at once on the operator's own machine (ADR-0186).
 - **The home's reads of the journal have indexes of their own** (CO-469, CO-477 in part). The rhythm's marks, the
   agents' turns, their enrolments and the requests waiting between projects were each a scan of the whole journal; on
   200 000 events each now reads an index (10 to 22 ms in `journal-indexes-db.test.mjs`, which fails without the

@@ -117,7 +117,7 @@ Before starting anything the dispatcher checks, in order, and records which chec
 
 | Check | Default | Answer when it stops |
 |---|---|---|
-| The switch «Запускать агента на запрос доски, который некому взять» (Settings) | on | `skipped-off` |
+| The switch «Запускать агента на запрос доски, который некому взять» (Settings) | on | `skipped-off` (as built in 0.3.16 the dispatcher does not decide with the switch off, so nothing is recorded; §10) |
 | P has a folder on this machine | required | `skipped-no-folder` (the request stays queued; another machine may take it) |
 | At most N on-demand sessions running on this machine | N = 2 | `deferred-cap` (tried again on the next cycle) |
 | At most 1 per project | 1 | `deferred-project-busy` |

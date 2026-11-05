@@ -404,7 +404,12 @@ test('iteration 3, ER-10, DA-4: a note keeps no path, whatever comes before it',
     'see file:///Users/example/a/b.log',
     'read ~/Library/Application Support/x',
     'open C:\\Users\\example\\x',
-    'list a,/Users/example/b'
+    'list a,/Users/example/b',
+    'at `/Users/example/a`',
+    'see </Users/example/a>',
+    'a;/Users/example/b',
+    'piped |/Users/example/b',
+    'obj {/Users/example/b}'
   ]
   for (const c of cases) {
     const n = noteOf(new Error(c))
@@ -412,4 +417,36 @@ test('iteration 3, ER-10, DA-4: a note keeps no path, whatever comes before it',
     assert.match(n, /<path>/, c)
   }
   assert.equal(noteOf(new Error('refused: no_agent')), 'refused: no_agent')
+})
+
+test('final candidate, B-1: a request given to the operator nine days ago, still on the board, is never dispatched again', async () => {
+  const filler = Array.from({ length: 600 }, (_, i) => ({ requestId: `r${i}`, projectId: 'p', dispatchId: `d${i}`, workflowId: 'wf_0123456789abcdef', handoffId: 'h', launchId: null, startedAt: T0 - 10 * DAY + i, endsAt: new Date(T0).toISOString(), state: 'ended', outcome: 'refused', emptyRuns: 0 }))
+  const given = { requestId: request().id, projectId: 'p-target', dispatchId: 'dg', workflowId: 'wf_0123456789abcdef', handoffId: 'h', launchId: 'L0', startedAt: T0 - 9 * DAY, endsAt: new Date(T0 - 9 * DAY).toISOString(), state: 'ended', outcome: 'to-operator', closed: true, emptyRuns: 2 }
+  // The request is on the board this pass (its deadline 20 days out), and the record names no deadline of its own.
+  const w = world({ requests: [request({ deadline: new Date(T0 + 20 * DAY).toISOString() })] })
+  w.deps.load = () => [given, ...filler]
+  const d = createBoardDispatch(w.deps)
+  for (let i = 0; i < 3; i++) { await d.onPass(); w.tick(REFUSAL_BACKOFF_MS + MIN) }
+  assert.equal(w.launches.length, 0)
+  assert.ok(d.records().some((r) => r.dispatchId === 'dg' && r.outcome === 'to-operator'))
+  assert.ok(d.toOperator().has(request().id))
+})
+
+test('final candidate, B-1: a record keeps its request\'s deadline, so it outlives the board\'s read window', async () => {
+  const w = world({ requests: [request({ deadline: new Date(T0 + 20 * DAY).toISOString() })] })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(d.records()[0].until, T0 + 20 * DAY)
+})
+
+test('final candidate, NB-1: a dropped connection is not a closed workflow, so no second workflow is opened', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.runs.set('L1', 'ended'); w.tick(3 * MIN)
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => { if (name === 'observatory_handoff_create' && args.reason === 'restart') throw new Error('Connection closed'); return real(name, args) }
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  assert.equal(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length, 1)
 })
