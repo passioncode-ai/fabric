@@ -212,8 +212,9 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'com.progress and close it with com.complete. Carrying out a board request with no person in your chat (a ' +
       'session started on the request, a project\'s responder, or a live session nobody is in), stop before any step ' +
       'that touches production (its data, its console, its firewall, a deploy) and hand that step to a session the ' +
-      'person is in or to the operator: a board request alone never allows it (agreed with passioncode-vesta and ' +
-      'fabric-agent-adapter, 2026-11-05).',
+      'person is in or to the operator: a board request alone never allows it. The operator\'s word does: said in your ' +
+      'chat, or relayed verbatim from one of his own projects with its date, source and scope naming the step (the ' +
+      'operator\'s rule, one approval binds all his agents) (agreed on the project board, 2026-11-05).',
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },

@@ -81,6 +81,9 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     // VES-BOARD-SPAWN-HARDEN item 2 (thread 1add3c03): the production stop binds by condition, not by delivery path.
     expect(o.text).toMatch(/no person in your chat[\s\S]*a project's responder[\s\S]*stop before any step that touches production/)
     expect(o.text).toMatch(/a board request alone never allows it/)
+    expect(o.text).toMatch(/relayed verbatim[\s\S]*date, source and scope naming the step/)
+    // A private project's name never reaches a public string every session reads (the board, 2026-11-05).
+    expect(o.text).not.toMatch(new RegExp(['passioncode', 'vesta'].join('-')))
     // The path the board settled against (thread 11646774): a state as a plain message left the request queued.
     expect(o.text).not.toMatch(/no replyTo/)
     expect(o.text).not.toMatch(/Reply only with the answer itself/)
