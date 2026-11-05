@@ -70,11 +70,30 @@ same evening (`9d23b27c`): in 0.3.16 a session has no tool to ask `board.respond
 so the change both make is to answer with `com.reply` and end on `not_authorized`, not to ask; 0.3.16's own words that
 say otherwise are carried in CO-512.
 
-Waiting on the person: step 2, the quit of Fabric 0.3.15 (the hold on `fabric.desktop` goes on right before it). Then
-steps 3 to 8 as 0.3.13's: the new bundle's first start writes migrations 126 and 127 into the stack folder, the backup
+Steps 3 to 8 as 0.3.13's: the new bundle's first start writes migrations 126 and 127 into the stack folder, the backup
 `pre-0.3.16.dump`, `supabase migration up --local` to schema 100, the hold lifted, `ensure_running`, and the readings
 (version 0.3.16, schema 100, the journal count, `hub.json`'s live pid, `com.status`). The way back is the 0.3.15 bundle
 and `pre-0.3.16.dump`.
+
+Done after the quit, 2026-11-05 (the person quit Fabric 0.3.15 at about 22:42Z and said so in Fabric's session
+`5d9bed98`):
+
+- Step 2: 0.3.15 was found started again by the broker at 22:42:33Z (pid 75102, `startedBy: broker`); the hold on
+  `fabric.desktop` (policy revision 25, the broker service stopped for the edit and started again), then
+  `lifecycle.stop` stopped it (operation `8d3c97e9`, `stopped`).
+- Step 3: `dispatchBoardRequests: false` written into `settings.json` and `settings.json.last-good`; 0.3.15 moved aside to
+  `~/DATA/_worktrees/fabric-0316-rollout/Fabric-0.3.15.app` as the way back, 0.3.16 put in `/Applications`; the hold
+  lifted (revision 26), one start through the broker; its start refused schema 98 (`SchemaReadinessError`, 22:48:15Z);
+  migrations 126 and 127 in the stack folder match the tag by sha256 (`cf9c2f45…`, `4fa98458…`); stopped, held again
+  (revision 27).
+- Step 4: `pre-0.3.16.dump` (sha256 `9a749636…`, 18 MB) with no writer (only PostgREST's idle pool connected): schema 98,
+  journal 85 633 before and after, written beside it in `pre-0.3.16.dump.meta.json`.
+- Step 5: `rehearse-upgrade --from 98 --ref v0.3.16` on that dump: PASS, schema 98 → 100, journal 85 633 → 85 633.
+- Step 6: `supabase migration up --local` applied 126 and 127; schema 100, journal 85 633.
+- Step 7: hold lifted (revision 28); `ensure_running` ready at 22:54:51Z (pid 9781).
+- Step 8, first readings: `/Applications/Fabric.app` 0.3.16; schema 100; journal 85 674 a minute later; `hub.json`'s pid
+  9781 alive; `com.status` `ready`; `fabric_whoami` answers protocol 3; `dispatchBoardRequests` reads `false`. The
+  person's look and the rest of «Owed in 0.3.16's Release close» stay open.
 
 ## Iteration 1
 
