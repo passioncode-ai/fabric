@@ -487,3 +487,25 @@ test('CO-409 (FAA-213): closing a workflow a run already closed counts as closed
   assert.equal(given.closed, true)
   assert.ok(!w.logs.some((l) => l.op === 'board.dispatch.closed' && l.outcome === 'failed'))
 })
+
+test('CO-409: a workflow a run left open is closed by Fabric once another session settles the request', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  // The run ends while another session holds the request: unsettled, so its workflow stays open.
+  w.runs.set('L1', 'ended'); w.states.set(request().id, 'in_progress'); w.requests = [request({ state: 'in_progress', attemptLive: true })]
+  w.tick(MIN); await d.onPass()
+  assert.equal(d.records()[0].outcome, 'exited-without-answer')
+  assert.ok(!w.calls.some(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true), 'nothing is closed while the request is open')
+  // The other session completes it.
+  w.states.set(request().id, 'completed'); w.requests = [request({ state: 'completed' })]
+  w.tick(MIN); await d.onPass()
+  const close = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true)
+  assert.ok(close, 'the workflow is closed')
+  assert.equal(close[1].stepId, 'settled')
+  assert.equal(close[1].status, 'done')
+  assert.equal(d.records()[0].closed, true)
+  w.tick(MIN); await d.onPass()
+  assert.equal(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true).length, 1, 'closed once')
+  assert.equal(w.launches.length, 1)
+})

@@ -148,7 +148,7 @@ const KINDS_OF: Record<Source, AbandonedKind[]> = {
   // The 0.3.14 review, iteration 1, ER-3: the briefs are read from the claims, so a failed claims read blinds them too.
   claims: ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'work-unclaimed', 'brief-missing', 'claim-closed'],
   tasks: ['task-unclaimed', 'terminal-stalled'],
-  requests: ['request-unmoved', 'answer-unread'],
+  requests: ['request-unmoved', 'request-to-operator', 'request-outcome-unknown', 'answer-unread'],
   terminals: ['terminal-stalled', 'task-unclaimed', 'work-unclaimed'],
   turns: ['work-unclaimed'],
   briefs: ['brief-missing']

@@ -1000,6 +1000,8 @@ Proposed Russian rows (Status: proposed for each; English primaries unchanged):
 | `attention.swept.claim-lapsed` | The session that held it has ended | apps/desktop/src/renderer/src/i18n/en.ts:1127 | SCN-173 (SW-9) | proposed |
 | `attention.swept.task-unclaimed` | In work, and no agent holds it | apps/desktop/src/renderer/src/i18n/en.ts:1128 | SCN-173 (SW-9) | proposed |
 | `attention.swept.request-unmoved` | A board request nobody has picked up | apps/desktop/src/renderer/src/i18n/en.ts:1129 | SCN-173 (SW-9) | proposed |
+| `attention.swept.request-to-operator` | Two agents Fabric started left this request open: Fabric starts no more for it, it is yours | apps/desktop/src/renderer/src/i18n/en.ts:1167 | SCN-147 (CO-409) | proposed |
+| `attention.swept.request-outcome-unknown` | An agent took this request and went away, its outcome unknown: check whether the work was done | apps/desktop/src/renderer/src/i18n/en.ts:1168 | SCN-147 (CO-409) | proposed |
 | `attention.swept.answer-unread` | An answer on the board that nobody has read | apps/desktop/src/renderer/src/i18n/en.ts:1130 | SCN-173 (SW-9) | proposed |
 | `attention.swept.terminal-stalled` | Its terminal has gone quiet with the task in work | apps/desktop/src/renderer/src/i18n/en.ts:1131 | SCN-173 (SW-9) | proposed |
 | `acts.releasedByFabric` | released a task because its session ended | apps/desktop/src/renderer/src/i18n/en.ts:2884 | SCN-168 (CO-430) | proposed |

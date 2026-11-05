@@ -142,10 +142,19 @@ describe('review fixes', () => {
     const r = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(MIN), answerUnreadSince: null, toOperator: true }
     for (const state of ['queued', 'claimed', 'accepted', 'in_progress']) {
       const f = findAbandoned({ ...empty, requests: [{ ...r, state }] })
-      expect(f.map((x) => x.kind)).toEqual(['request-unmoved'])
+      // UX-3 (0.3.16 review, iteration 3): a kind of its own, never «nobody has picked it up».
+      expect(f.map((x) => x.kind)).toEqual(['request-to-operator'])
       expect(f[0].nextStep).toMatch(/waits for the operator/)
     }
     expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'completed' }] })).toEqual([])
+  })
+
+  it('CO-409: a request a run left outcome_unknown shows at once, in words of its own', () => {
+    const r = { requestId: 'r2', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(MIN), answerUnreadSince: null }
+    const f = findAbandoned({ ...empty, requests: [{ ...r, state: 'outcome_unknown' }] })
+    expect(f.map((x) => x.kind)).toEqual(['request-outcome-unknown'])
+    expect(f[0]).toMatchObject({ requestId: 'r2', projectId: 'p2' })
+    expect(f[0].nextStep).toMatch(/com\.reconcile/)
   })
 })
 

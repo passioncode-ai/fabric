@@ -20,7 +20,7 @@ export const TELL_QUIET_MS = 30 * 60_000
 
 /** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
-export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose'] as const
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
 /** The kinds that are a reminder to the agent at work, not abandoned work for the operator's queue (0.3.14 wave 2):
  *  a session changing files without a claim is told to claim, and the operator's «На проверке» is not filled with it. */
@@ -211,9 +211,15 @@ export function findAbandoned(input: SweepInput): Finding[] {
     const still = now - Date.parse(r.movedAt)
     // Only a queued request stands still: a claimed or accepted one is being worked, and its own deadlines are the
     // board's (SCN-147, `board_tick`).
+    // CO-409 (0.3.16 review, iteration 3, UX-3): a request given to the operator after two empty runs, and one a run's
+    // com.enroll left `outcome_unknown` (promised on the board, thread `1add3c03`), each say what happened in words of
+    // their own in «На проверке».
     if (r.toOperator && !SETTLED_REQUEST.has(r.state))
-      out.push({ ...base, kind: 'request-unmoved', key: `request-unmoved:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
+      out.push({ ...base, kind: 'request-to-operator', key: `request-to-operator:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: 'Two runs Fabric started for this board request ended without settling it: it waits for the operator, and Fabric starts no more for it.' })
+    else if (r.state === 'outcome_unknown')
+      out.push({ ...base, kind: 'request-outcome-unknown', key: `request-outcome-unknown:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
+        nextStep: 'An agent took this board request and went away before its outcome was known: check whether the work happened, then settle it (com.reconcile) or answer the requester.' })
     else if (r.state === 'queued' && still >= STILL_MS)
       out.push({ ...base, kind: 'request-unmoved', key: `request-unmoved:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: 'A board request addressed to your project has not moved: read it (com.get) and answer it (com.reply), or say why it waits.' })
@@ -295,6 +301,8 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'claim-lapsed': (f) => `task ${f.taskId ?? f.claimId} claimed by an ended session`,
   'task-unclaimed': (f) => `task ${f.taskId}`,
   'request-unmoved': (f) => `board request ${f.requestId}`,
+  'request-to-operator': (f) => `board request ${f.requestId}`,
+  'request-outcome-unknown': (f) => `board request ${f.requestId}`,
   'answer-unread': (f) => `the answer to board request ${f.requestId}`,
   'terminal-stalled': (f) => `task ${f.taskId} in this session`,
   'work-unclaimed': () => 'this session',

@@ -46,7 +46,8 @@ export interface DispatchRecord {
   attempts?: number
   /** When the record ended (ms); a refusal's back-off counts from here (0.3.16 review, iteration 2, ER-7). */
   endedAt?: number
-  /** For `to-operator`: the workflow is closed. Absent or false: closing is tried again each pass (ER-3). */
+  /** The workflow Fabric opened is closed: for `to-operator` (ER-3), or once another session settled the request (CO-409).
+   *  Absent or false: closing is tried again each pass, at most `CLOSE_ATTEMPTS` times. */
   closed?: boolean
   /** Times closing was tried; after `CLOSE_ATTEMPTS` it is given up and said once (iteration 3, ER-1). */
   closeAttempts?: number
@@ -250,7 +251,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   const projectIds = new Map<string, string>()
   const openFailedAt = new Map<string, number>()
   /** §3.6: a request that goes to the operator has its workflow closed, taken back first when a run holds it. */
-  const closeWorkflow = async (r: DispatchRecord): Promise<void> => {
+  const closeWorkflow = async (r: DispatchRecord, why: 'to-operator' | 'settled' = 'to-operator'): Promise<void> => {
     let leaseId = leases.get(r.workflowId)
     if (!leaseId) {
       // CO-409 (FAA-213, 2026-11-05): a workflow a run already closed is closed; nothing to retry.
@@ -270,8 +271,10 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       leaseId = took.leaseId
     }
     const w = await deps.observatory('observatory_checkpoint_write', {
-      owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close`, stepId: 'to-operator', status: 'blocked', workflowId: r.workflowId, leaseId, close: true,
-      body: { goal: `Answer the board request ${r.requestId} addressed to this project, then end.`, notes: 'Two runs left the request unsettled; it waits for the operator in «На проверке».' }
+      owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close`, stepId: why, status: why === 'settled' ? 'done' : 'blocked', workflowId: r.workflowId, leaseId, close: true,
+      body: { goal: `Answer the board request ${r.requestId} addressed to this project, then end.`, notes: why === 'settled'
+        ? 'The run ended before the request was settled; another session settled it, so Fabric closes the workflow it opened.'
+        : 'Two runs left the request unsettled; it waits for the operator in «На проверке».' }
     })
     if (CLOSED.test(String(w.error ?? ''))) { leases.delete(r.workflowId); return }
     if (w.error) throw new Error('the workflow was not closed')
@@ -348,6 +351,27 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // Recorded through the caller's ops sink; the request is already the operator's. Closing is tried again up to
         // CLOSE_ATTEMPTS times, then given up (iteration 3, ER-1): the open workflow is harmless, nobody holds it.
         deps.log('board.dispatch.closed', 'failed', { request: r.requestId, attempt: r.closeAttempts, gave_up: r.closeAttempts >= CLOSE_ATTEMPTS, note: noteOf(e) })
+      }
+      deps.save(records)
+    }
+    // CO-409 (promised on the board, thread `1add3c03`, by 2026-11-12): a run that ended with its request unsettled leaves
+    // its workflow open, since only a settled request closes it; once another session settles the request, Fabric closes
+    // the workflow it opened, as tried as many times as a given-up request's.
+    const newestOf = new Map<string, DispatchRecord>()
+    for (const r of records) newestOf.set(r.requestId, r)
+    for (const r of newestOf.values()) {
+      if (r.state !== 'ended' || r.closed || (r.outcome !== 'exited-without-answer' && r.outcome !== 'unknown') || (r.closeAttempts ?? 0) >= CLOSE_ATTEMPTS) continue
+      const state = await deps.requestState(r.requestId)
+      if (state === null || !RUN_SETTLED.has(state)) continue
+      if (deps.quitting?.()) return
+      r.closeAttempts = (r.closeAttempts ?? 0) + 1
+      try {
+        await closeWorkflow(r, 'settled')
+        r.closed = true
+        deps.log('board.dispatch.closed', 'ok', { request: r.requestId, why: 'settled' })
+      } catch (e) {
+        // Recorded through the caller's ops sink; an open workflow nobody holds is harmless, so after CLOSE_ATTEMPTS it is left.
+        deps.log('board.dispatch.closed', 'failed', { request: r.requestId, why: 'settled', attempt: r.closeAttempts, gave_up: r.closeAttempts >= CLOSE_ATTEMPTS, note: noteOf(e) })
       }
       deps.save(records)
     }
