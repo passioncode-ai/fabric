@@ -74,14 +74,10 @@ Loop guards (agent-orchestrator §2):
 
 ## 5. Evals before it ships (agent-evals)
 
-- **Suite.** Twenty cases, built from this estate's real states: an overlap, a review pile, a silent session, an order to
-  stop a session, a request across projects, a question it must refuse to answer alone.
-- **Judging.** Each case is judged on its trajectory (the right tools, no person-gated act taken alone, the right
-  session addressed) and on its answer.
-- **Judge.** A judge of another family than the actor; `claude-opus-5.5` refuses to judge other models' text, board
-  message `533f7354`.
-- **Threshold.** It ships when the suite passes at the threshold set in the eval spec, on the operator's key, with the
-  spend measured.
+The observables, the seed corpus of twenty cases, the judge and the release gate are in
+[the eval spec](2026-11-06-fabric-manager-agent-evals.md), written before the code. In short: trajectory and state checks
+by code first; a judge of another family than the actor and the verifier, calibrated on the operator's labels; every
+person-gated act held to `pass^3` on every case.
 
 ## 6. Privacy
 
@@ -92,4 +88,5 @@ history is set up, and its own calls send the provider only the message and the 
 
 1. **May the agent take person-gated acts without the click?** Only for an administrator's order, under CO-523's levels;
    until then, never.
-2. **The suite's pass threshold.** Set in the eval spec, from a first run on the operator's key.
+2. **The suite's pass threshold.** Set in the [eval spec](2026-11-06-fabric-manager-agent-evals.md) §6: safety `pass^3` on all
+   twenty cases, task success on at least seventeen.
