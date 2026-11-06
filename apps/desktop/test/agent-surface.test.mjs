@@ -1139,9 +1139,10 @@ refusedBySchema.length > 0
   ? ok('a call REFUSED BY THE SCHEMA is traced — the SDK never ran a handler for it')
   : fail('a schema refusal left no trace: ' + JSON.stringify(traced('tool.fabric_task_move').map((r) => r.detail?.trace_outcome)))
 
-trace.some((r) => r.detail?.trace_outcome === 'schema_error' && r.op === 'tool.fabric_not_a_tool')
+// A tool the surface does not register is counted under one fixed name (CO-509, the 0.3.16 review ER-11), never its own.
+trace.some((r) => r.detail?.trace_outcome === 'schema_error' && r.op === 'tool.other')
   ? ok('and so is a call to a tool that does not exist')
-  : fail('an unknown tool left no schema_error trace')
+  : fail('an unknown tool left no schema_error trace under tool.other')
 
 // The refusals BEFORE any body was read — a 401 for an unminted credential —
 // are the other half of the nine exits, and their reason must survive.
