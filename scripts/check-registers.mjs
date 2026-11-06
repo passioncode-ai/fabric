@@ -37,7 +37,7 @@
 // Two invented denominators, in the audit about invented denominators. So this
 // gate also RECOMPUTES the counts the documents assert and fails on a mismatch.
 
-import { cell, cells } from './lib/markdown-table.mjs'
+import { cell, cells, closesRow } from './lib/markdown-table.mjs'
 import { classify, tableRows, isDatedReportSnapshot } from './lib/registers.mjs'
 import { carriesWork, dispositionOf, vocabulary } from './lib/disposition.mjs'
 import { insideUnchecked, uncheckedSubmodules } from './lib/submodules.mjs'
@@ -113,6 +113,8 @@ for (const { file, prefix } of REGISTERS) {
     if (!rowAt(i)) continue
     if (cellCount(lines[i]) !== width)
       wrong.push(`${cell(lines[i], 1).trim()} (${cellCount(lines[i])} vs ${width}) at :${i + 1}`)
+    // CO-512: text after the closing pipe leaves the count unchanged and the row unreadable.
+    else if (!closesRow(lines[i])) wrong.push(`${cell(lines[i], 1).trim()} (text after the closing pipe) at :${i + 1}`)
   }
   if (wrong.length) fail(`${file}: ${wrong.length} row(s) with the wrong column count — ${wrong[0]}`)
   else ok(`${file}: every row has ${width - 2} columns`)

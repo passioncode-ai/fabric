@@ -93,6 +93,11 @@ describe('runEndsAt (§3.4)', () => {
     expect(runEndsAt(NOW, 60, new Date(NOW + 7 * 24 * 60 * MIN).toISOString())).toBe(new Date(NOW + 60 * MIN).toISOString())
     expect(runEndsAt(NOW, 60, new Date(NOW + 10 * MIN).toISOString())).toBe(new Date(NOW + 10 * MIN).toISOString())
   })
+
+  it('ends at the limit when the deadline cannot be read, rather than throwing and ending the whole pass (CO-512)', () => {
+    expect(runEndsAt(NOW, 60, 'not a date')).toBe(new Date(NOW + 60 * MIN).toISOString())
+    expect(runEndsAt(NOW, 60, '')).toBe(new Date(NOW + 60 * MIN).toISOString())
+  })
 })
 
 describe('the first line (§3.5)', () => {

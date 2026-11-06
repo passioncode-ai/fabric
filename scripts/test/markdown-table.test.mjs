@@ -3,7 +3,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { cell, cells, hasEscapedPipe } from '../lib/markdown-table.mjs'
+import { cell, cells, hasEscapedPipe, closesRow } from '../lib/markdown-table.mjs'
 
 const ROOT = path.resolve(import.meta.dirname, '..', '..')
 
@@ -51,4 +51,13 @@ test('the two ways of counting the register agree', () => {
   }).length
   assert.equal(byParser, byLastCell,
     `column 7 says ${byParser} open and the last cell says ${byLastCell} — the register has a shape the parser does not describe`)
+})
+
+test('a row closes on its last unescaped pipe, so a note left after it is caught (CO-512, V3-61)', () => {
+  // 0.3.16's fast tier: a note sat after CO-411's closing pipe. The column count stayed the same, so the register
+  // gate passed it and only the unified plan's inventory refused the row.
+  assert.equal(closesRow('| CO-1 | a | open |'), true)
+  assert.equal(closesRow('| CO-1 | a | open |  '), true)
+  assert.equal(closesRow('| CO-1 | a | open | a note after the closing pipe'), false)
+  assert.equal(closesRow('| CO-1 | a | open \\|'), false)
 })

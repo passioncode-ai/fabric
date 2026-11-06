@@ -47,3 +47,11 @@ export function cell(row, index) {
 export function hasEscapedPipe(row) {
   return /\\\|/.test(row)
 }
+
+/**
+ * Does this row end on an unescaped pipe? A note written after a row's closing pipe keeps the column count the same,
+ * so a width check passes it while a reader of the table loses it (CO-512, 0.3.16's V3-61).
+ */
+export function closesRow(row) {
+  return /(?<!\\)\|\s*$/.test(row)
+}

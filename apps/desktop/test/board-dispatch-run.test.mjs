@@ -349,17 +349,24 @@ test('iteration 3, ER-2: runs Switchboard cannot report on count as empty, so th
   assert.ok(d.toOperator().has(request().id))
 })
 
-test('iteration 3, ER-3: a workflow the run closed itself gives the request a new workflow, never a loop', async () => {
-  const w = world()
-  const d = createBoardDispatch(w.deps)
-  await d.onPass()
-  w.runs.set('L1', 'ended'); w.tick(3 * MIN)
-  const real = w.deps.observatory
-  w.deps.observatory = async (name, args) => { if (name === 'observatory_handoff_create' && args.reason === 'restart') throw new Error('WorkflowClosed: the workflow is closed'); return real(name, args) }
-  await d.onPass()
-  assert.equal(w.launches.length, 2)
-  assert.ok(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length >= 2, 'a new workflow was opened')
-})
+// CO-512: Observatory answers a closed workflow with its typed refusal `{error: "WorkflowClosed"}` (as the CO-409 test
+// below stands it in); a transport that throws the same name is the second shape. Both open a new workflow.
+for (const [shape, answer] of [
+  ['Observatory\'s typed refusal', async () => ({ error: 'WorkflowClosed', detail: 'the workflow is closed' })],
+  ['a thrown WorkflowClosed', async () => { throw new Error('WorkflowClosed') }]
+]) {
+  test(`iteration 3, ER-3: a workflow the run closed itself gives the request a new workflow, never a loop (${shape})`, async () => {
+    const w = world()
+    const d = createBoardDispatch(w.deps)
+    await d.onPass()
+    w.runs.set('L1', 'ended'); w.tick(3 * MIN)
+    const real = w.deps.observatory
+    w.deps.observatory = async (name, args) => { if (name === 'observatory_handoff_create' && args.reason === 'restart') return answer(); return real(name, args) }
+    await d.onPass()
+    assert.equal(w.launches.length, 2)
+    assert.ok(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length >= 2, 'a new workflow was opened')
+  })
+}
 
 test('iteration 3, ER-4, DO-2: with the switch off a pending start ends and the board is no longer read', async () => {
   const w = world()

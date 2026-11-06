@@ -61,12 +61,18 @@ Done since the pause, all on `main`, each with hosted `ci` green:
 - CO-525: a run on a board request is told what a refused `com.enroll` means (`6977ff2f`, raised by
   fabric-agent-adapter).
 
+- Wave D's code, steps 1 and 2: four hard violations over M176's evaluator (`797e8f0d`) and M166's deterministic
+  core, first slice (`apps/desktop/src/shared/ceoCore.ts#planCeoCore`, `3803c1b6`).
+- CO-512: four of its edges (the dispatcher's unreadable deadline, the closed-workflow stand-in, `SessionWindow.tsx`'s
+  comments, a note after a register row's closing pipe).
+
 First:
 1. Answer the reconciliation's follow-ups on thread `eefa7959`, if any reach Fabric.
-2. Wave D's code, in the order its spec §1a sets: the eval's new hard violations and corpus entries over M176, then
-   M166, then M194's `ceo` slot, then the runner (through `agent-stack`).
+2. Wave D, step 3: M194's `ceo` role slot and binding. It needs a migration (the full tier with the stack) and stands on
+   ADR-0046, which is proposed: take it as the baseline unless the operator answers otherwise, and say so in the change.
+   Then step 4, the runner (through `agent-stack`).
 3. Wave E (Switchboard's sessions with their task and stage, CO-457).
-4. CO-512's remaining edges.
+4. CO-512's last two edges: a third run at the page bounds, and `adapterSkills.ts` with `SWITCHBOARD_CLAUDE_SOURCE_DIR`.
 
 CO-524's decisions are due 2026-11-13 with Observatory (OBS-380).
 

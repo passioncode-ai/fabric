@@ -3,7 +3,7 @@
 // main process (ADR-0031 §2), so closing either never ends it.
 //
 // The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-agent.md, «Console view»): embedded, the console
-// leads. One quiet line above it: «← {runner} · {project}» back to the agent's page (when the shell passes `onBack`), the
+// leads. One quiet line above it: «← {project} · {runner}» back to the agent's page (when the shell passes `onBack`), the
 // folder, the state and the separate window as a small icon button; the terminal sits in a rounded, bordered box.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -33,7 +33,7 @@ export function SessionWindow({
   sessionId: string
   /** In the main window only: «Open in a separate window». Resolves when it opened; rejects with why it did not. */
   onDetach?: () => Promise<void>
-  /** In the main window only: back to the agent's page («← {runner} · {project}»). Absent: the runner's name, no link. */
+  /** In the main window only: back to the agent's page («← {project} · {runner}»). Absent: the runner's name, no link. */
   onBack?: () => void
   /** The session's project, for the back link's words; null: the runner alone. */
   projectName?: string | null

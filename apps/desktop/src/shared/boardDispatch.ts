@@ -121,10 +121,15 @@ export function decideDispatch(input: DispatchInput): DispatchDecision {
   return { path: 'launch' }
 }
 
-/** The run's own end (§3.4, `run-ends-at`): the earlier of its launch plus the limit and the board's deadline. */
+/** The run's own end (§3.4, `run-ends-at`): the earlier of its launch plus the limit and the board's deadline, the
+ *  limit alone when the deadline cannot be read. */
 export function runEndsAt(launchedAt: number, limitMinutes: number, deadline: string): string {
   const byLimit = launchedAt + atLeastOne(limitMinutes, DISPATCH_DEFAULTS.runMinutes) * 60_000
-  return new Date(Math.min(byLimit, Date.parse(deadline))).toISOString()
+  // An unreadable deadline leaves the run its own limit (CO-512): `new Date(NaN)` threw here and ended the whole pass,
+  // every other request with it. The board's `timestamptz` keeps such a value from the real door; this keeps a stand-in
+  // or a future reader from taking the dispatcher down.
+  const due = Date.parse(deadline)
+  return new Date(Number.isFinite(due) ? Math.min(byLimit, due) : byLimit).toISOString()
 }
 
 const WORKFLOW = /^wf_[0-9a-f]{16}$/
