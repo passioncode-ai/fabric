@@ -71,6 +71,10 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     // CO-517: the gate answer settles the request for the dispatcher, so the operator sees it only as a question.
     expect(o.text).toMatch(/kind access, about board\.gate\.<capability>, commandId the UUID v5 of the name board\.gate in the namespace of the request's id/)
     expect(o.text).toMatch(/end without waiting for the answer/)
+    // FAA-231, agreed with fabric-agent-adapter on the board: a gate answer only when no service of the project ever
+    // held the slot, else the request stays queued for that service.
+    expect(o.text).toMatch(/slot absent at generation 0/)
+    expect(o.text).toMatch(/send no com\.reply \(it would answer the request and take it from that service\)/)
     expect(o.text).not.toMatch(/Settings → Agent access/)
     expect(o.text).not.toMatch(/stays queued/)
   })

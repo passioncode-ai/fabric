@@ -204,11 +204,15 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'the request out as its responder is com.enroll, then com.claim, under a responder grant (board.respond): for ' +
       'your own Project it is given at your com.enroll, with no question (ADR-0190); a session has no route to ' +
       'another Project\'s (the operator decides only a request a registered service asked, in Agent access); without ' +
-      'it com.enroll is not_authorized: then answer the request once with com.reply that it cannot be taken now and ' +
+      'it com.enroll is not_authorized. When com.status shows that capability\'s slot absent at generation 0 (no ' +
+      'service of the project ever held it), answer the request once with com.reply that it cannot be taken now and ' +
       'why, do no work on it without the slot, then ask the operator with fabric_question_ask (kind access, about ' +
       'board.gate.<capability>, commandId the UUID v5 of the name board.gate in the namespace of the request\'s id: ' +
       'which request, which gate, what lifts it) so ' +
-      'the operator sees it, and end without waiting for the answer: the reply is still your answer. Answer what waits on you in the same turn, ' +
+      'the operator sees it, and end without waiting for the answer: the reply is still your answer. When the slot is ' +
+      'active, stale, or absent at a later generation, a service of the project answers it and will take it back: ' +
+      'send no com.reply (it would answer the request and take it from that service), tell the person the service ' +
+      'will take it, and end. Answer what waits on you in the same turn, ' +
       'with the state now: what is done, where (branch or commit), when the rest will be ready and what blocks it; ' +
       'a state with its nearest date is an answer (the operator, 2026-11-04). Send it as com.reply, on a request too: ' +
       'the request becomes answered, which means you answered, never that the work is done; the result follows as a ' +
