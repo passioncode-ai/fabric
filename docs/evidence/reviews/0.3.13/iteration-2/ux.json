@@ -23,7 +23,7 @@
       "source": "V2-2",
       "status": "fixed",
       "evidence": [
-        "fixed: `decideNotification` takes the burst sentence, `notify.burst` in both locales (`notify.test.ts` «says a burst in the interface language», «the Russian burst sentence is in the registry»); Copylot `f0c68482-17bb-4140-926b-9416e5d514ac`"
+        "fixed: `decideNotification` takes the burst sentence, `notify.burst` in both locales (`notify.test.ts` «says a burst in the interface language», «the Russian burst sentence is in the registry»); private29 `f0c68482-17bb-4140-926b-9416e5d514ac`"
       ]
     },
     {
@@ -47,7 +47,7 @@
       "source": "V2-5",
       "status": "fixed",
       "evidence": [
-        "fixed: `agentsPlace.installedUnread` says installed agents that are not working may be missing; Copylot ru `job_c5ed0198cbd2d75296f464ba`, en `6e62085e-660a-4552-9564-9dc6dec03a96`"
+        "fixed: `agentsPlace.installedUnread` says installed agents that are not working may be missing; private29 ru `job_c5ed0198cbd2d75296f464ba`, en `6e62085e-660a-4552-9564-9dc6dec03a96`"
       ]
     },
     {
@@ -55,7 +55,7 @@
       "source": "V2-6",
       "status": "fixed",
       "evidence": [
-        "fixed: ru «Отменено действием», «более поздним действием, которого нет в этом списке»; Copylot `cf5f4ce6-b7d6-4336-8ce1-eeb4b8f502eb` (one passive, advisory, kept: the label names who undid it)"
+        "fixed: ru «Отменено действием», «более поздним действием, которого нет в этом списке»; private29 `cf5f4ce6-b7d6-4336-8ce1-eeb4b8f502eb` (one passive, advisory, kept: the label names who undid it)"
       ]
     },
     {

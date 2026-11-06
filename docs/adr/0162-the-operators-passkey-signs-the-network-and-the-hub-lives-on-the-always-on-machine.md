@@ -51,7 +51,7 @@ This record makes them Fabric's.
 5. **Order (NET-4).**
    - Stage 1: the operator's own two machines — enroll, see, place, move, give a task.
    - Stage 2: networks as organizations, and sharing an agent into one with limits (D8 / `org-authority/1`).
-   - Stage 3: Vesta's view of an organization's network.
+   - Stage 3: private31's view of an organization's network.
 
 ## Consequences
 

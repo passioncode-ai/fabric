@@ -25,7 +25,7 @@ const agent = (sessionId: string, projectName: string | null, over: Partial<Rail
 function shell(over: Partial<LaunchShellProps> = {}, locale: 'en' | 'ru' = 'en', chatActive = false) {
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { ceo: { status: vi.fn(async () => ({ active: chatActive })) } } }))
   const props: LaunchShellProps = {
-    projects: [project('p1', 'Nicegram'), project('p2', 'atlas'), project('p3', 'Fabric')],
+    projects: [project('p1', 'Maple'), project('p2', 'atlas'), project('p3', 'Fabric')],
     projectsProblem: null,
     projectsReadAt: null,
     onRetryProjects: vi.fn(),
@@ -106,7 +106,7 @@ describe('the left column', () => {
     const props = shell()
     const list = screen.getByRole('list', { name: en['rail.projects'] })
     const rows = within(list).getAllByRole('link')
-    expect(rows.map((r) => r.querySelector('.rail-name')?.textContent)).toEqual(['atlas', 'Fabric', 'Nicegram'])
+    expect(rows.map((r) => r.querySelector('.rail-name')?.textContent)).toEqual(['atlas', 'Fabric', 'Maple'])
     expect(within(rows[2]).getByLabelText(en['rail.favourite'])).toBeTruthy()
     expect(within(rows[0]).getByLabelText(en['rail.live'])).toBeTruthy()
     expect(within(rows[1]).getByLabelText(en['rail.waitingProject'].replace('{count}', '2')).textContent).toBe('2')
@@ -119,16 +119,16 @@ describe('the left column', () => {
   // The mockup parity, 2026-10-27 (rail gap 1, spec §1 item 3 amended): the projects at work, and «Все проекты · N».
   it('lists the projects at work and unfolds every project in place from «Все проекты · N», and folds back', () => {
     const props = shell({
-      projects: [project('p1', 'Nicegram'), project('p2', 'atlas'), project('p3', 'Fabric'), project('p4', 'Quiet'), project('p5', 'Busy'), project('p6', 'Open')],
+      projects: [project('p1', 'Maple'), project('p2', 'atlas'), project('p3', 'Fabric'), project('p4', 'Quiet'), project('p5', 'Busy'), project('p6', 'Open')],
       pulses: [{ projectId: 'p5', live: 0, inWork: 1, review: 0 }, { projectId: 'p4', live: 0, inWork: 0, review: 0 }],
       at: { kind: 'project', projectId: 'p6' }
     })
     const names = () => within(screen.getByRole('list', { name: en['rail.projects'] })).getAllByRole('link').map((r) => r.querySelector('.rail-name')?.textContent)
-    expect(names()).toEqual(['atlas', 'Busy', 'Fabric', 'Nicegram', 'Open'])
+    expect(names()).toEqual(['atlas', 'Busy', 'Fabric', 'Maple', 'Open'])
     const more = screen.getByRole('button', { name: en['rail.projects.all'].replace('{count}', '6') })
     expect(more.getAttribute('aria-expanded')).toBe('false')
     fireEvent.click(more)
-    expect(names()).toEqual(['atlas', 'Busy', 'Fabric', 'Nicegram', 'Open', 'Quiet'])
+    expect(names()).toEqual(['atlas', 'Busy', 'Fabric', 'Maple', 'Open', 'Quiet'])
     expect(more.getAttribute('aria-expanded')).toBe('true')
     fireEvent.click(within(screen.getByRole('list', { name: en['rail.projects'] })).getByRole('link', { name: 'Quiet' }))
     expect(props.onProject).toHaveBeenCalledWith('p4')

@@ -105,7 +105,7 @@ test('events carry counts and the installation id, never a planted name, path, e
   rmSync(d, { recursive: true, force: true })
 })
 
-// Aptabase build modes (sshlg-analytics client contract, "Build modes", 2026-10-09): isDebug is true exactly when the event
+// Aptabase build modes (private13 client contract, "Build modes", 2026-10-09): isDebug is true exactly when the event
 // is not production, so the dashboard's Release view counts what growth counts.
 test('isDebug agrees with environment: a pre-release or a development run lands in the Debug view', async () => {
   for (const [appVersion, packaged, debug] of [['0.3.2', true, false], ['0.3.2-rc.1', true, true], ['0.3.2-beta.2', true, true], ['0.3.2', false, true]]) {
@@ -262,7 +262,7 @@ test('A7-012: a state file that cannot be read asks again rather than sending', 
 test('a coding agent enrolled in projects is not an agent with access to a product; each agent counts once', () => {
   const grants = [
     { agent_id: 'claude-code', callee: 'fabric' }, { agent_id: 'claude-code', callee: 'fabric' }, { agent_id: 'codex', callee: 'fabric' },
-    { agent_id: 'research-agent', callee: 'fabric-inbox' }, { agent_id: 'research-agent', callee: 'fabric-inbox' }, { agent_id: 'claude-code', callee: 'copylot' }
+    { agent_id: 'research-agent', callee: 'fabric-inbox' }, { agent_id: 'research-agent', callee: 'fabric-inbox' }, { agent_id: 'claude-code', callee: 'private29' }
   ]
   assert.deepEqual(agentCounts(grants), { agents_with_access: 2, coding_agents_enrolled: 2 })
   assert.deepEqual(agentCounts([]), { agents_with_access: 0, coding_agents_enrolled: 0 })

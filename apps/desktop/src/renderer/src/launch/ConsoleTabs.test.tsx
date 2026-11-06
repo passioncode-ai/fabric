@@ -10,7 +10,7 @@ afterEach(cleanup)
 
 const tabs: ConsoleTab[] = [
   { sessionId: 's1', title: 'fabric-dashboards', runner: 'Claude Code' },
-  { sessionId: 's2', title: 'Nicegram', runner: 'Codex' }
+  { sessionId: 's2', title: 'private26', runner: 'Codex' }
 ]
 
 function mount(over: Partial<React.ComponentProps<typeof ConsoleTabs>> = {}) {
@@ -28,14 +28,14 @@ describe('the console tabs', () => {
     // The mockup parity (rail gap 22): one line «› {project} · {runner}».
     expect(items[0].textContent).toContain(en['glyph.consoleTab'])
     expect(items[0].querySelector('.fab-console-name')?.textContent).toBe('fabric-dashboards · Claude Code')
-    expect(items[1].textContent).toContain('Nicegram')
+    expect(items[1].textContent).toContain('private26')
   })
 
   it('marks the console on screen, and only that one', () => {
     mount({ activeId: 's1' })
     const open = screen.getByRole('button', { name: /^fabric-dashboards/ })
     expect(open.getAttribute('aria-current')).toBe('page')
-    expect(screen.getByRole('button', { name: /^Nicegram/ }).getAttribute('aria-current')).toBeNull()
+    expect(screen.getByRole('button', { name: /^private26/ }).getAttribute('aria-current')).toBeNull()
   })
 
   it('switches to a console when its tab is pressed', () => {
@@ -47,7 +47,7 @@ describe('the console tabs', () => {
 
   it('× closes that tab only: it asks nothing and does not select it', () => {
     const { props } = mount()
-    fireEvent.click(screen.getByRole('button', { name: en['consoles.close'].replace('{name}', 'Nicegram') }))
+    fireEvent.click(screen.getByRole('button', { name: en['consoles.close'].replace('{name}', 'private26') }))
     expect(props.onClose).toHaveBeenCalledWith('s2')
     expect(props.onClose).toHaveBeenCalledTimes(1)
     expect(props.onSelect).not.toHaveBeenCalled()

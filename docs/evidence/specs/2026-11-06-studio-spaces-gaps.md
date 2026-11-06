@@ -10,7 +10,7 @@ waves). Read on 2026-11-06 against fabric-workspace `origin/main` (`docs/plans/2
 
 | Plan line | Asks | State in Fabric |
 |---|---|---|
-| studio-spaces README Q1 (a), runbook 2.7 | Fabric runs natively under each macOS user (`sshlg`, `appvillis`), one per user, side by side | the hub's port is per user (CO-505, `apps/desktop/src/main/hub.ts#userHubPort`, in 0.3.16); **the local stack's ports are not** (§2.1) |
+| studio-spaces README Q1 (a), runbook 2.7 | Fabric runs natively under each macOS user (`sshlg`, `private23`), one per user, side by side | the hub's port is per user (CO-505, `apps/desktop/src/main/hub.ts#userHubPort`, in 0.3.16); **the local stack's ports are not** (§2.1) |
 | runbook 2.10 | a Fabric development session on the Studio passes `fabric_whoami` and Fabric's tests | nothing Fabric-side beyond §2.1 |
 | placement.md, the contract's norm (thread `1fe66e6e`, `14b4dc86`, `d6035cae`) | a client checks that the loopback listener belongs to its own OS account before it sends a secret; `foreign-user` otherwise | fabric-mcp checks only that `hub.json`'s pid is alive (§2.2) |
 | Workspace's answer 5 (`d2de8a54`), the contract's G7 | an estate belongs to its installation; a restore does not carry an installation's identity to another computer | a restored dump keeps its estate id (§2.3) |

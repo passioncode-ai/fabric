@@ -147,7 +147,7 @@ interface QueuedEvent { timestamp: string; sessionId: string; eventName: string;
  * (fabric-switchboard#75, `has_prerelease`).
  * Aptabase's build mode follows it: `isDebug` is true exactly when the environment is not
  * `production`, so a pre-release or a development run lands in the dashboard's Debug view
- * (sshlg-analytics client contract, "Build modes", 2026-10-09).
+ * (private13 client contract, "Build modes", 2026-10-09).
  */
 export function environmentFor(version: string, packaged: boolean): 'production' | 'sandbox' {
   return packaged && !/^\d+\.\d+\.\d+-/.test(version) ? 'production' : 'sandbox'
@@ -224,7 +224,7 @@ export function createAnalytics(deps: AnalyticsDeps) {
     const at = now()
     queue.push({
       timestamp: at.toISOString(), sessionId, eventName, at: at.getTime(),
-      // Aptabase's build mode follows growth's environment (sshlg-analytics client contract, "Build modes"): a
+      // Aptabase's build mode follows growth's environment (private13 client contract, "Build modes"): a
       // pre-release or a development run lands in the dashboard's Debug view, never in Release.
       systemProps: { isDebug: environment !== 'production', osName: deps.osName, ...(deps.osVersion ? { osVersion: deps.osVersion } : {}), appVersion: deps.appVersion, sdkVersion: SDK_VERSION },
       props: { ...cleanProps(props), install_id: installation.id, iid: installation.id, environment }

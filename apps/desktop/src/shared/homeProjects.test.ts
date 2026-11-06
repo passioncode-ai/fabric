@@ -14,7 +14,7 @@ const work = (taskId: string, projectId: string, sessionId: string | null, since
 })
 const projects = [
   { id: 'fab', name: 'Fabric', status: 'active' as const, summary: 'Agents at work, on this computer.' },
-  { id: 'cop', name: 'Copylot', status: 'active' as const, summary: null },
+  { id: 'cop', name: 'Cedar', status: 'active' as const, summary: null },
   { id: 'obs', name: 'Observatory', status: 'active' as const, summary: null },
   { id: 'res', name: 'research agent', status: 'active' as const, summary: null },
   { id: 'old', name: 'Old', status: 'archived' as const, summary: null }
@@ -49,7 +49,7 @@ describe('groupInWork', () => {
 
   it('folds the active projects with nothing at work into one line, alphabetically, the archived never', () => {
     const g = groupInWork({ live: [live('a1', 'fab', '2026-10-26T11:00:00Z')], inWork: [], projects, locale: 'en' })
-    expect(g.quiet.map((p) => p.name)).toEqual(['Copylot', 'Observatory', 'research agent'])
+    expect(g.quiet.map((p) => p.name)).toEqual(['Cedar', 'Observatory', 'research agent'])
   })
 
   it('keeps an agent with no project, in a card of its own at the end', () => {
@@ -135,13 +135,13 @@ describe('groupInWork by work, not by keep-alive (the mockup parity, home gaps D
   it('prints and sorts every project by its display name, the slug kept as the identity', () => {
     const slugs = [
       { id: 'fab', name: 'fabric', status: 'active' as const },
-      { id: 'cop', name: 'copylot-agent', status: 'active' as const, displayName: 'Copylot' },
+      { id: 'cop', name: 'cedar-agent', status: 'active' as const, displayName: 'Cedar' },
       { id: 'obs', name: 'observatory', status: 'active' as const }
     ]
     const names = { fab: { name: 'Fabric', from: 'descriptor' as const, derived: false }, obs: { name: 'Observatory', from: 'slug' as const, derived: true } }
     const g = groupInWork({ live: [live('a1', 'fab', now, { atWork: true, workAt: now })], inWork: [], projects: slugs, locale: 'en', atWorkOnly: true, names })
     expect(g.cards[0].name).toBe('Fabric')
-    expect(g.quiet).toEqual([{ id: 'cop', name: 'Copylot' }, { id: 'obs', name: 'Observatory' }])
+    expect(g.quiet).toEqual([{ id: 'cop', name: 'Cedar' }, { id: 'obs', name: 'Observatory' }])
   })
   it('an older reading that did not judge work keeps every agent on its card, by its newest sign', () => {
     const g = groupInWork({ live: [live('a1', 'fab', '2026-10-27T09:00:00Z'), live('a2', 'cop', '2026-10-27T09:30:00Z')], inWork: [], projects, locale: 'en', atWorkOnly: true })

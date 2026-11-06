@@ -1,10 +1,10 @@
 # ADR-0144 — One delegation model: Fabric issues the chain, the callee checks it, Observatory meters it
 
 **Status:** accepted.
-**Date:** 2026-10-11. **Decided by:** Fabric, on the operator's instruction of 2026-10-11 relayed by copylot-agent-e6:
+**Date:** 2026-10-11. **Decided by:** Fabric, on the operator's instruction of 2026-10-11 relayed by private17-e6:
 the agents' delegation and access is Fabric's main task, Fabric decides and tells each agent what to change
 (CO-258, release 0.4.0 REQ-37). **Inputs:** the roll call of 25 sessions
-(kept in Copylot's private repository at `9f729f4`)
+(kept in private29's private repository at `9f729f4`)
 and its audit against every owner's default branch ([audit](../evidence/plans/2026-10-11-delegation-model/2026-10-11-roll-call-audit.md),
 `[audit §n]` below). **Amends** [ADR-0115](0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)
 (the hub's grant gains the contract's shape and becomes the estate's one grant store),
@@ -25,12 +25,12 @@ used for at least eight different things. What that costs, each a fact of the au
 
 - **A callee cannot tell callers apart.** Six services hand one descriptor token to every caller [§1]; three agents
   call another service with *that service's own* descriptor token, which in some also mints operator login codes
-  (fabric-dashboards → every service, a private product agent → Copylot and Foundry, mobile-publisher → Foundry) [§1, §5].
+  (fabric-dashboards → every service, a private product agent → private29 and Foundry, private12 → Foundry) [§1, §5].
 - **Nobody passes "on whose behalf".** No contract schema carries a caller, chain or grant toward a callee: the hub's
   `agent.call` forwards Fabric's one Inbox key, the account narrowing and `traceparent` — nothing of the original
-  caller ([`productForwarder.ts`](../../apps/desktop/src/main/productForwarder.ts), [audit §3.3]). Copylot's
+  caller ([`productForwarder.ts`](../../apps/desktop/src/main/productForwarder.ts), [audit §3.3]). private29's
   "author = caller" (AU-07) is unreachable.
-- **Money is bounded per service or project, never per calling agent** — except webpilot (on a branch) and
+- **Money is bounded per service or project, never per calling agent** — except private28 (on a branch) and
   research-agent [§4.3]. The estate total is enforced by nobody (OBS-56 open).
 - **Four candidate grant stores**: Fabric's one-shot `grants` (ADR-0028), the hub's `access_grants` (no amount, no
   window, no payer), the contract's standing grant with `spend` (DEC-0037/0038, adopted by nobody), Observatory's
@@ -40,7 +40,7 @@ used for at least eight different things. What that costs, each a fact of the au
 - **The hub is not the route it claims to be**: interop C3.5 says Fabric's MCP is the only route between agents, but
   the hub reaches only Fabric Inbox; every other agent-to-agent call goes direct with a borrowed or per-callee token
   ([`hubCall.ts`](../../apps/desktop/src/main/hubCall.ts) `unknown-callee`, [audit §5]).
-- **Shared secrets across agents**: brand and webpilot share one HMAC grant key; an unscoped revenue token beside the
+- **Shared secrets across agents**: brand and private28 share one HMAC grant key; an unscoped revenue token beside the
   per-producer ones; an organization-wide ads token [§5].
 
 All local schemes share one floor the roll call never stated: a token file readable by the operator's account is
@@ -72,7 +72,7 @@ attributable name, and lets a limit hold per caller.
 - **The descriptor token goes back to being the host's credential only** — the well-known document, the events feed,
   the usage report, the login code (contract `service.md` §Surfaces) — and is never presented to call a capability.
   Calling another service's capability with that service's own descriptor token is retired by this decision: no new
-  caller does it, and the existing ones (fabric-dashboards, a private product agent, mobile-publisher) switch to minted tokens once
+  caller does it, and the existing ones (fabric-dashboards, a private product agent, private12) switch to minted tokens once
   the issuer exists — until then their calls keep working.
 - **The proof-of-identity sources reconcile into one chain**: the hub binding is how an agent proves itself *to the
   hub*; the registry session token of DEC-0037 *is* this delegation token; the session bearer stays Fabric's own
@@ -100,7 +100,7 @@ callee keeps none.
 - **What a call may do** is the callee's **capability** (its tool name), its **effect** class from the contract's
   governance vocabulary — `none` (read), `draft`, `send`, `reply`, `publish`, `charge`, `delete`, `merge`, `deploy`,
   `change-policy` — and the **resource** patterns it touches. Each capability declares its effect in
-  `fabric-agent.json` (Copylot already does); a capability without one is treated as the highest effect it could
+  `fabric-agent.json` (private29 already does); a capability without one is treated as the highest effect it could
   have. A read-only door refuses a token whose capability is not read-only.
 - **A product's own presets** (Inbox's read / mail / admin, Growth's reader / agent / analyst, Publisher's auto /
   confirm / human) stay product words for a set of capabilities; on the wire they are the capabilities.
@@ -138,13 +138,13 @@ hub whether a `jti` is still good (`fabric.delegation.introspect`, RFC 7662's sh
 ### 6. An operator's approval is a document any service can check (P6)
 
 `approval/1` is a JWS by the same estate key over: the **action digest** (SHA-256 of the RFC 8785 canonical JSON of
-the action, the way nicegram-business and Publisher already bind approvals to a fingerprint), the audience, the
+the action, the way private08 and Publisher already bind approvals to a fingerprint), the audience, the
 approver (a person of the estate), the method (`prompt` in Fabric, the operator channel — Telegram through the
 operator's notification agent, DEC-0034 OC-6 — or a device check), `iat`, `exp` at most 24 hours, and a `jti` the callee consumes once.
 A callee that needs approval refuses `approval-required` with the action digest; the caller obtains the approval
 through the hub (`fabric.approval.request`), which asks the operator and returns the document. Products keep their own
 gates for people who use them directly; between agents this one document replaces the shared HMAC key of brand and
-webpilot, the plan-hash rows, the TTY ceremony and the confirm codes.
+private28, the plan-hash rows, the TTY ceremony and the confirm codes.
 
 ### 7. One set of refusal codes (P7)
 
@@ -274,18 +274,18 @@ What this changes in the decision above:
   `slotsRequireGrant: when-token`, the keyserver's mode `off`; `always` / `agents` are for a machine serving external
   callers.
 
-### Amendment 5 — 2026-10-12: webpilot under amendment 4 (BL-015)
+### Amendment 5 — 2026-10-12: private28 under amendment 4 (BL-015)
 
-webpilot's proposals (kept in its private repository at `cae3993`), agreed with
-webpilot-5c on 2026-10-12:
+private28's proposals (kept in its private repository at `cae3993`), agreed with
+private28-5c on 2026-10-12:
 
-- webpilot's flow code `approval-required` collides with DEC-0039's and is renamed `flow-approval-required`; its act
+- private28's flow code `approval-required` collides with DEC-0039's and is renamed `flow-approval-required`; its act
   refusals and tool errors map onto DEC-0039's codes in one refusal form (amendment 3).
-- The approval/1 action object for `webpilot.act` is webpilot's grant-digest field set, canonicalized by RFC 8785;
+- The approval/1 action object for `private28.act` is private28's grant-digest field set, canonicalized by RFC 8785;
   `actionDigest == payloadDigest`, held by the 12 published vectors (and a lone-surrogate vector refused as
   `invalid-input`).
-- For T2 callers the hub owns the confirmation screen; webpilot reports its project links (C17) as events, and removing
+- For T2 callers the hub owns the confirmation screen; private28 reports its project links (C17) as events, and removing
   a link revokes the hub's grant.
 - Calls from this machine carry no token; a token presented anyway is attribution only (amendment 4), and no approval/1
-  is needed from a local caller. webpilot's own human confirmation of an irreversible act (publishing as the owner and
+  is needed from a local caller. private28's own human confirmation of an irreversible act (publishing as the owner and
   the like) stays a human gate: a product's control, which this decision does not remove.

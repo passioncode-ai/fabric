@@ -16,8 +16,8 @@ and the meter), DEC-0037/0038 (spend levels and `modelClasses`).
 
 ## Context
 
-Nine agents keep local model tables and price lists (the proposal §2: the private product agent, Copylot, research-agent, Mobile
-Publisher, analytics, Asset Foundry, webpilot, nicegramappbot, Observatory's assistant); Switchboard holds its own
+Nine agents keep local model tables and price lists (the proposal §2: the private product agent, private29, research-agent, Mobile
+Publisher, analytics, private15, private28, private14, Observatory's assistant); Switchboard holds its own
 OpenRouter key and Hermes model. The contract has a runner catalogue (DEC-0016, `runners.md`, Fabric ships
 `registry/runners.json`), runner routes and fallback (DEC-0026/0029) and usage by model (DEC-0021/0027), but no model
 catalogue, no model profile, no estate default with overrides, no subscription-versus-key route and no vocabulary for

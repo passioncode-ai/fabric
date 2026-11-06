@@ -178,7 +178,7 @@ The main block. One card per project that has an agent at work or a task in work
    делает». The row opens the agent screen.
 3. **Tasks in work with no agent row** in the project (a claim whose session is quiet) show as one muted line under the
    agents, «Задача без агента: …»; abandoned work is not here, it is counted in the strip.
-4. **Projects with nothing at work** fold into one line under the cards: «Тихо: Copylot, Mobile Publisher и ещё 4»,
+4. **Projects with nothing at work** fold into one line under the cards: «Тихо: private29, private11 и ещё 4»,
    each name a link.
 
 Data: everything is in `work.home` (`HomeView.live`, `inWork`, `abandoned`), grouped by `projectId` in the renderer; the

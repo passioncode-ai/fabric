@@ -91,7 +91,7 @@ Candidate `d1b0379dcdf0cdf566b3e457a17431f80e7582c7`. Five reviewers, one per le
 |---|---|---|---|---|
 | V1-1 | UX-1 | blocking | the rail dropped the status word «Работает» | fixed: every agent row says its status in a word, «Работает» included (`apps/desktop/src/renderer/src/launch/LaunchShell.tsx#LaunchShell`); test `Rail.test.tsx` «shows the agents at work … opens one», watched failing with the word removed; SCN-162 amendment and CHANGELOG 0.3.15 say so |
 | V1-2 | UX-2 | non-blocking | the rail said no project is at work before the home reading answered | fixed: until `pulses` is read the whole list shows and nothing is said to rest (`LaunchShell.tsx#LaunchShell`); test `Rail.test.tsx` «has no «Все проекты» row …» |
-| V1-3 | UX-3 | non-blocking | the rhythm said «не прочитаны» while it was only loading | fixed: a first reading says «читаю решения и результаты…» (`apps/desktop/src/renderer/src/launch/HomeParts.tsx#rhythmOf`, `launch.home.rhythm.totalsReading`); Copylot reports `35fb6d47`, `06a92fde` |
+| V1-3 | UX-3 | non-blocking | the rhythm said «не прочитаны» while it was only loading | fixed: a first reading says «читаю решения и результаты…» (`apps/desktop/src/renderer/src/launch/HomeParts.tsx#rhythmOf`, `launch.home.rhythm.totalsReading`); private29 reports `35fb6d47`, `06a92fde` |
 | V1-4 | UX-4 | non-blocking | the project page heading printed the slug | fixed: the heading prints `projectDisplayName`, the slug on hover (`apps/desktop/src/renderer/src/ProjectHome.tsx#ProjectHome`) |
 | V1-5 | UX-5 | non-blocking | an unknown project printed as its id | fixed: `nameOfProject` answers null for an id no list knows; the cards fall back to the board's own name and the requests say «проект вне списка» (`EstateHome.tsx`, `HomeParts.tsx#NeedsYouCard`, `HomeBoardWaiting.tsx#HomeBoardWaiting`); test `HomeBoardWaiting.test.tsx` «UX-5: …» |
 | V1-6 | UX-6 | non-blocking | «молчат: 1», and the shots were not this build | fixed: plural keys `launch.home.inWork.agentsQuiet.{one,few,many}` (`HomeInWork.tsx`); the shots in `docs/reports/2026-10-27-mockup-parity/shots/after-*.png` retaken from the fixed renderer with a rhythm fixture |
@@ -155,7 +155,7 @@ Candidate `acdf7ac3ab1645057ced0cd2d0cd4715747a8a24`. Five reviewers, one per le
 | V2-19 | DA-14 | non-blocking | `operator` is not a journal actor kind | fixed: decisions are the person's alone (`shared/workRhythm.ts#isPersonDecision`, `main/workRhythm.ts`); test «results and decisions come from three reads» checks `eq actor->>kind person` |
 | V2-20 | PL-5 | non-blocking | the plan to release was not recorded | fixed: the «Release» section above; P-30 links this ledger and names the release commit's bump |
 | V2-21 | PL-6 | non-blocking | carry-over and wording gaps | fixed: Pulse's counts are CO-474; README lists D10 (kept, v2 R-1, R-2) and F3 (closed); P-29 names CO-469 to CO-479; V1-33 corrected by V2-13; v2 §6 carries the renumbering note |
-| V2-22 | PL-7 | non-blocking | three board asks unfiled | ruled: CO-478 (prowlagent's cancel door), CO-479 (DEC-0142 and DEC-0143), CO-480 (FAA-153 question 2), each answered on its thread |
+| V2-22 | PL-7 | non-blocking | three board asks unfiled | ruled: CO-478 (private21's cancel door), CO-479 (DEC-0142 and DEC-0143), CO-480 (FAA-153 question 2), each answered on its thread |
 
 Exit for iteration 2: every finding has a disposition. Blocking findings open: none.
 

@@ -36,7 +36,7 @@ the hub's rate limits (CO-334); the local stack's excluded containers (CO-333); 
    owners on thread `617c8cbe`; CO-329 (owner and work rules).
 5. CO-324, CO-325, CO-326 (harness host gaps); CO-327; CO-335 (refusals logged as failures).
 6. CO-336 (DEC-0087, the hub as a caller of jobs), CO-337 (SD-2 TA-04, run in the cloud and organizations), CO-338
-   (SD-1 PA-02 with Vesta), filed today.
+   (SD-1 PA-02 with private31), filed today.
 
 ## Blocked by
 

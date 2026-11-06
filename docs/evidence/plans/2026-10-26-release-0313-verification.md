@@ -116,7 +116,7 @@ publication do not wait for the rollout.
   `ef5a84c3`, `e75d502d` and `41a9b0cb`; a "shipped" line after the tag on `198866e6` and `6225e0c1` for CO-426, CO-435
   and the forwarding on `agent.call`; on `d34e8ce8` by 2026-11-01, whether 0.3.14 issues tokens for services (CO-258).
   The adapter's answer to TO-2's SW-6 half (request `e2a7bec4`, due 2026-11-14).
-- Three H3 threads with no Fabric reply, each covered by built work: `f3cfad27` (sasai's rate-limit finding, CO-334 in
+- Three H3 threads with no Fabric reply, each covered by built work: `f3cfad27` (private30's rate-limit finding, CO-334 in
   0.3.7, `42aad991`), `4f1769de` (the dashboard parity rule, DEC-0121 and CO-434), `15d9e4fa` (the contract's repin
   notes, the repin `dc2221ad`): a one-line reply each with 0.3.13's publication.
 - The board answers of iteration 3 (2026-10-26): `693a7937` on `6a334fcc` (DEC-0134, CO-453) and the correction
@@ -126,7 +126,7 @@ publication do not wait for the rollout.
   (the first final verifier's F-3); the second verifier's F-3 on CO-437, F-4 in `shared/scope.ts`'s comment, F-5 on
   CO-370; CO-222's note for the final verifier's F-2; dated notes on CO-421 and CO-130 for N-4.
 - Fabric's requirements for the form of N-4 (what a local plan hands over, how the chosen one is addressed; CO-421,
-  CO-130) on board thread `bd508780` by 2026-10-29, after Vesta's proposal of 2026-10-27 (fabric-workspace's ask,
+  CO-130) on board thread `bd508780` by 2026-10-29, after private31's proposal of 2026-10-27 (fabric-workspace's ask,
   2026-10-26).
 - The organization's knowledge base before the tag: `knowledge/plans.md` and `products.md` name 0.3.13 as built.
 - `node scripts/workspace.mjs publish` and `check --require-child` after the tag.
@@ -159,7 +159,7 @@ candidate, the tip of `release/0.3.13`.
 | V1-9 | UX-9 | The folder trust switch shows on while the env keeps trust off | fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): `settings.folderTrustLocked`, `shared/folderTrust.ts#folderTrustOverridden`, `SettingsScreen.tsx#AgentPermissionsSetting`; two tests |
 | V1-10 | UX-10 | Feed reasons only as a hover tooltip; English says lease | fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): `.feed-why` text on rows that open nothing (`Feed.tsx`); `Feed.test.tsx` (3) |
 | V1-11 | UX-11 | SCR-89, SCR-88, SCR-39 and AGENTS.md describe the pre-release state | fixed: fixed in `2e5a8035` (merged into `release/0.3.13`): `docs/ux/screens.md`, six scenario amendments; AGENTS.md's sweep and catalogue rows on `release/0.3.13` |
-| V1-12 | UX-12 | CHANGELOG omits Агенты, История and «На проверке» | fixed: CHANGELOG 0.3.13 bullets on `release/0.3.13`; Copylot check `9bcb6535-ba6a-45d7-b6e3-ff40be6244db` |
+| V1-12 | UX-12 | CHANGELOG omits Агенты, История and «На проверке» | fixed: CHANGELOG 0.3.13 bullets on `release/0.3.13`; private29 check `9bcb6535-ba6a-45d7-b6e3-ff40be6244db` |
 | V1-13 | ER-1 (blocking) | The watch never heals a half-up stack (CLI 2.114 exits 0) | fixed: `main/stackHalfUp.ts#recoverThenHeal` heals after any try; the launch heals after an «already running» refusal (`main/index.ts#resolveEnvStartingStackIfNeeded`); `stack-half-up.test.mjs` «ER-1», watched failing with the old condition |
 | V1-14 | ER-2 (blocking) | The sweep presses Enter in a terminal waiting for a person | fixed: nothing is typed into any terminal (`main/abandonedSweepRun.ts#createAbandonedSweep`; `deliver` removed from its deps); `abandoned-sweep-run.test.mjs` «ER-2» (the candidate's own test asserted the write); SCN-140, spec, AGENTS.md |
 | V1-15 | ER-3 | A failed heal reads as the operator's stop | fixed: `main/stackServices.ts#afterOwnStop`, `env.ts` `stoppedByHeal`; `stack-half-up.test.mjs` «ER-3» |
@@ -182,7 +182,7 @@ candidate, the tip of `release/0.3.13`.
 | V1-32 | DO-12 | Two sweep follow-ups left in prose | ruled: CO-439 (0.3.14) |
 | V1-33 | DO-13 | P-26 and the Now line lag | fixed: `docs/evidence/backlog.md` P-26 status and the Now line |
 | V1-34 | DO-14 | The newest handoff's next task is stale | fixed: `docs/handoffs/2026-10-26-release-0313.md` |
-| V1-35 | DO-15 | ADR-0178 cites Vesta ADRs that make Vesta the signer | fixed: ADR-0180 Amendment 1 names DEC-0129 OL-2 as what Fabric builds to |
+| V1-35 | DO-15 | ADR-0178 cites private31 ADRs that make private31 the signer | fixed: ADR-0180 Amendment 1 names DEC-0129 OL-2 as what Fabric builds to |
 | V1-36 | DO-16 | The ledger is not in the candidate; rehearsal lacks --dump | fixed: the ledger committed (`fb081f98`); step 5 carries `--dump` |
 | V1-37 | DA-1 (blocking) | work.swept@1 never reaches the journal in the app | fixed: field rules in `shared/commandIngress.ts`; `ingress-owners.test.mjs` and the sweep tests in the fast tier (`scripts/ci.sh`); `abandoned-sweep-run.test.mjs` checks a real receipt prepares |
 | V1-38 | DA-2 | A receipt every sweep for one stuck item; feed sentence false | fixed: receipt only when told, released, blind or capped; the feed sentence says what it does; «DA-2» test, watched failing |
@@ -227,11 +227,11 @@ make the next candidate, the tip of `release/0.3.13`.
 | Finding | Level id | What | Disposition |
 |---|---|---|---|
 | V2-1 | UX-1 | The heal's failure window speaks of a running stack after the heal stopped it | fixed: a failed stop throws `STACK_HEAL_FAILED` with its own remedy, a start that fails after the stop throws the start's own failure (`stack-half-up.test.mjs` «iteration 2 UX-1», `startupFailure.test.ts` «the heal's stop itself failed»), watched failing first |
-| V2-2 | UX-2 | A burst of notifications speaks English to a Russian interface | fixed: `decideNotification` takes the burst sentence, `notify.burst` in both locales (`notify.test.ts` «says a burst in the interface language», «the Russian burst sentence is in the registry»); Copylot `f0c68482-17bb-4140-926b-9416e5d514ac` |
+| V2-2 | UX-2 | A burst of notifications speaks English to a Russian interface | fixed: `decideNotification` takes the burst sentence, `notify.burst` in both locales (`notify.test.ts` «says a burst in the interface language», «the Russian burst sentence is in the registry»); private29 `f0c68482-17bb-4140-926b-9416e5d514ac` |
 | V2-3 | UX-3 | An agent's page states a task and an action that were not read | fixed: `agentPage.taskUnread`, `agentPage.doingUnread` when the work read failed (`AgentsScreen.test.tsx` «iteration 2 UX-3»), watched failing with the change reverted |
 | V2-4 | UX-4 | «Консоль» says a working agent is not working | fixed: `agentsPlace.console.elsewhere`, or `.unknown` when the hub read failed (`AgentsScreen.test.tsx` «iteration 2 UX-4»), watched failing with the change reverted |
-| V2-5 | UX-5 | The installed-agents note contradicts the list | fixed: `agentsPlace.installedUnread` says installed agents that are not working may be missing; Copylot ru `job_c5ed0198cbd2d75296f464ba`, en `6e62085e-660a-4552-9564-9dc6dec03a96` |
-| V2-6 | UX-6 | The undo lines read badly in Russian | fixed: ru «Отменено действием», «более поздним действием, которого нет в этом списке»; Copylot `cf5f4ce6-b7d6-4336-8ce1-eeb4b8f502eb` (one passive, advisory, kept: the label names who undid it) |
+| V2-5 | UX-5 | The installed-agents note contradicts the list | fixed: `agentsPlace.installedUnread` says installed agents that are not working may be missing; private29 ru `job_c5ed0198cbd2d75296f464ba`, en `6e62085e-660a-4552-9564-9dc6dec03a96` |
+| V2-6 | UX-6 | The undo lines read badly in Russian | fixed: ru «Отменено действием», «более поздним действием, которого нет в этом списке»; private29 `cf5f4ce6-b7d6-4336-8ce1-eeb4b8f502eb` (one passive, advisory, kept: the label names who undid it) |
 | V2-7 | UX-7 | CHANGELOG describes Агенты before iteration 1's fix | fixed: «Возможно, ждут вас» and the plain shell left out |
 | V2-8 | ER-1 | The watch's heal starts the stack after a quit began | fixed: `HalfUpDeps.stopped`, a quit after the heal's stop starts nothing, and a heal's own stop is not read as the person's (`env.ts` `stoppedByHeal`, `afterOwnStop`; `stack-half-up.test.mjs` «iteration 2 ER-1») |
 | V2-9 | ER-2 | One-word quoted values rewritten for good | fixed: `authorization-field` and `yaml-credential` take a token-shaped value only (`redact.test.ts` «keeps none, required and ask-the-operator; still redacts a token-shaped value») |
@@ -241,7 +241,7 @@ make the next candidate, the tip of `release/0.3.13`.
 | V2-13 | DO-3 | The move to Colima sent to a section with the opposite order | fixed: the Rollout's step 7; the plan's section cited as the first attempt's record |
 | V2-14 | DO-4 | The rehearsal refuses the folder merge it should prove | fixed in the runbook's 0.3.13 paragraph and the Rollout's steps 4 and 5 (d read before, the one allowed loss); teaching `judge` the allowance ruled: CO-449 |
 | V2-15 | DO-5 | CHANGELOG and CO-419 name a group the screen does not show | fixed: CHANGELOG; a dated note on CO-419 |
-| V2-16 | DO-6 | Two stack bullets narrow what the code does | fixed: "the database and kong"; "without rest or without kong"; Copylot `bc66edd1-3c68-4c27-964c-a8379e2f2054` |
+| V2-16 | DO-6 | Two stack bullets narrow what the code does | fixed: "the database and kong"; "without rest or without kong"; private29 `bc66edd1-3c68-4c27-964c-a8379e2f2054` |
 | V2-17 | DO-7 | The folder trust sentence is unconditional | fixed: the older build trusts folders whatever the switch said, and a setting change there forgets it |
 | V2-18 | DO-8 | The runbook still tells a hand copy | fixed: the 0.3.9 paragraph says the first start, with a dated note |
 | V2-19 | DO-9 | Three in-code descriptions of the sweep are stale | fixed: as V2-10  |
@@ -312,13 +312,13 @@ ran again on the hosted runner (run `40361601345`).
 | V3-2 | UX-2 | Агенты' row says «has not said yet» when the work read failed | fixed: the row says «Не удалось прочитать, что он делает.» (`AgentsScreen.tsx#lineOf`, `workUnread`; `AgentsScreen.test.tsx` «iteration 3 UX-2», watched failing) |
 | V3-3 | UX-3 | The UX documents not amended for iteration 2's visible changes | fixed: dated amendments to SCN-161, SCN-166, SCN-168, SCN-173, SCR-87, SCR-88; `startupFailure.ts`'s two comments |
 | V3-4 | UX-4 | A heal's stop refused because Docker does not answer is final, under a false title | fixed: such a stop is classified by Docker's words and waited out (`startupFailure.ts#classifyStartupFailure`; `startupFailure.test.ts` «iteration 3 UX-4», watched failing) |
-| V3-5 | UX-5 | The splash is silent while the heal stops and starts the stack | fixed: `HEAL_LINE` before the stop, said in the person's language (`splashProgress.ts`; `stack-half-up.test.mjs` «iteration 3 UX-5», watched failing); Copylot `32cc6df4-48cf-4245-ba58-685402552091` |
+| V3-5 | UX-5 | The splash is silent while the heal stops and starts the stack | fixed: `HEAL_LINE` before the stop, said in the person's language (`splashProgress.ts`; `stack-half-up.test.mjs` «iteration 3 UX-5», watched failing); private29 `32cc6df4-48cf-4245-ba58-685402552091` |
 | V3-6 | ER-1 | A quit during the heal's first read still spawns a stop | fixed: no stop once Fabric is quitting (`stackHalfUp.ts#resolveHealingHalfUp`; «iteration 3 ER-1», watched failing) |
 | V3-7 | ER-2 | Redaction inconsistent across the quoted rules; `Token` eats prose | fixed: one test, `redact.ts#quotedValueIsSecret`, for JSON, the authorization field and YAML; `Token` takes only a token-shaped value (`redact.test.ts` «iteration 3: one value test», watched failing on the candidate's `redact.ts`); the rest ruled: CO-222 |
 | V3-8 | ER-3 | A blind read's receipt is lost when its one append fails | fixed: the reads' state counts as recorded only once the journal took it (`abandonedSweepRun.ts`; `abandoned-sweep-run.test.mjs` «iteration 3 ER-3», watched failing) |
 | V3-9 | ER-4 | A stack with only PostgREST gone is never healed | fixed: the watch also heals by the containers, a status with keys while Docker shows the stack partial is stopped keeping its data and started once (`stackHalfUp.ts`, `partial`; `env.ts#recoverStack`; «iteration 3 ER-4», watched failing); CHANGELOG and AGENTS.md say so |
 | V3-10 | ER-5 | Four descriptions say every blind sweep writes a receipt | fixed: the module header, the obligation's evidence, AGENTS.md, the sweep spec, SCN-140's amendment, CHANGELOG |
-| V3-11 | DO-1 | CHANGELOG says two credential shapes; it is four | fixed: CHANGELOG; Copylot `866411ca-d544-4492-8748-c48d5ba55c3d` (advisory only) |
+| V3-11 | DO-1 | CHANGELOG says two credential shapes; it is four | fixed: CHANGELOG; private29 `866411ca-d544-4492-8748-c48d5ba55c3d` (advisory only) |
 | V3-12 | DO-2 | Five descriptions of the receipt are stale | fixed: as V3-10  |
 | V3-13 | DO-3 | The handoff cites the wrong precedent commit | fixed: `4cf87820` |
 | V3-14 | DO-4 | The handoff omits request `e2a7bec4` | fixed: the handoff's asks |

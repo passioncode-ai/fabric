@@ -21,7 +21,7 @@ const here = project('pa', 'Fabric')
 
 function stub(open = vi.fn(async () => ({ sessionId: 's9' }))) {
   const api = {
-    projects: { list: vi.fn(async () => [here, project('pd', 'Dashboards', { default_agent: 'codex', repo_path: '/work/dashboards' }), project('pb', 'Bot', { status: 'archived' }), project('pc', 'copylot')]) },
+    projects: { list: vi.fn(async () => [here, project('pd', 'Dashboards', { default_agent: 'codex', repo_path: '/work/dashboards' }), project('pb', 'Bot', { status: 'archived' }), project('pc', 'Cedar')]) },
     terminal: { open },
     tasks: { note: vi.fn(async () => ({ ok: true })), assignAcross: vi.fn(async (_i: unknown) => ({ ok: true, taskId: 'tb', requestId: 'r1', project: 'Dashboards' })) }
   }
@@ -69,7 +69,7 @@ describe('«Нужна правка в другом проекте»', () => {
     fireEvent.click(screen.getByText(en['xp.title']))
     const select = await screen.findByLabelText(en['xp.project'])
     const options = [...(select as HTMLSelectElement).options].map((o) => o.textContent)
-    expect(options).toEqual([en['xp.pick'], 'copylot', 'Dashboards'])
+    expect(options).toEqual([en['xp.pick'], 'Cedar', 'Dashboards'])
     fireEvent.change(select, { target: { value: 'pd' } })
     fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Show the agent\'s nudges in the session window' } })
     fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Dashboards') }))
@@ -112,8 +112,8 @@ describe('«Нужна правка в другом проекте»', () => {
     fireEvent.click(screen.getByText(en['xp.title']))
     fireEvent.change(await screen.findByLabelText(en['xp.project']), { target: { value: 'pc' } })
     fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Check the voice' } })
-    expect(screen.getByText(en['xp.home'].replace('{project}', 'copylot'))).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'copylot') }))
+    expect(screen.getByText(en['xp.home'].replace('{project}', 'Cedar'))).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Cedar') }))
     expect(api.terminal.open).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: en['xp.openHome'] }))
     await waitFor(() => expect(opened).toEqual(['s9']))
@@ -172,7 +172,7 @@ describe('«Нужна правка в другом проекте»', () => {
     fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Dashboards') }))
     await waitFor(() => expect(opened).toEqual(['s1']))
     fireEvent.change(select, { target: { value: 'pc' } })
-    fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'copylot') }))
+    fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Cedar') }))
     fireEvent.click(screen.getByRole('button', { name: en['xp.openHome'] }))
     await waitFor(() => expect(opened).toEqual(['s1', 's2']))
     fireEvent.change(select, { target: { value: 'pd' } })
@@ -211,7 +211,7 @@ describe('«Нужна правка в другом проекте»', () => {
     fireEvent.click(screen.getByText(en['xp.title']))
     fireEvent.change(await screen.findByLabelText(en['xp.project']), { target: { value: 'pc' } })
     fireEvent.change(screen.getByLabelText(en['xp.what']), { target: { value: 'Check the voice' } })
-    fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'copylot') }))
+    fireEvent.click(screen.getByRole('button', { name: en['xp.open'].replace('{project}', 'Cedar') }))
     fireEvent.click(screen.getByRole('button', { name: en['xp.openHome'] }))
     expect(await screen.findByText(en['xp.failed'])).toBeTruthy()
     expect(screen.getByText('no such agent')).toBeTruthy()

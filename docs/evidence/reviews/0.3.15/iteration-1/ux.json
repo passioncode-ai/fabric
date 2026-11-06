@@ -31,7 +31,7 @@
       "source": "V1-3",
       "status": "fixed",
       "evidence": [
-        "fixed: a first reading says «читаю решения и результаты…» (`apps/desktop/src/renderer/src/launch/HomeParts.tsx#rhythmOf`, `launch.home.rhythm.totalsReading`); Copylot reports `35fb6d47`, `06a92fde`"
+        "fixed: a first reading says «читаю решения и результаты…» (`apps/desktop/src/renderer/src/launch/HomeParts.tsx#rhythmOf`, `launch.home.rhythm.totalsReading`); private29 reports `35fb6d47`, `06a92fde`"
       ]
     },
     {

@@ -2,7 +2,7 @@
 
 Run: `2026-10-03-onboarding-and-plan` · branch `claude/onboarding-and-plan` from `origin/main` `0ca25630`.
 Route: task-pipeline (delivery), super-ux (scenarios, flows), sheleg-design (visual layer and icon),
-copywriting (strings against `docs/brand/`), Asset Foundry (icon raster), agent-sync (guarded files),
+copywriting (strings against `docs/brand/`), private15 (icon raster), agent-sync (guarded files),
 evidence-docs (receipts).
 
 ## Operator request (2026-10-02/03, verbatim intent)
@@ -27,7 +27,7 @@ style, data, memory, orchestration and the harness. Only then release.
 | D2 | Scanning a projects folder | A checklist of discovered repositories; every checked one becomes its own Project; parts of one product (worktrees, submodules, nested repos) are grouped and can be split; unchecked ones stay candidates and can be imported later; nothing is created without a check | SCN-095 step 4, ONB-01 (ceo-onboarding.md) — new ADR |
 | D3 | First run | Name and avatar first (Fabric persona), then executor detection, then "Where do we start" with five paths, then the project page with the first useful result | `single-entry.md:16`, `flows.md` "no personalisation form" — operator outranks, the documents are corrected in this run |
 | D4 | Converting an agent | Inside Fabric with a dry-run plan; the executor writes the adapter on a branch with the Fabric Agent Adapter skills; the conformance probe decides; only a green agent enters the registry | SCN-015 recipe model becomes a non-default fallback note |
-| D5 | App icon | The PassionCode mark, redrawn in Fabric's own visual language as a macOS app icon (raster through Asset Foundry, the mark as reference, variants for the operator to choose) | — |
+| D5 | App icon | The PassionCode mark, redrawn in Fabric's own visual language as a macOS app icon (raster through private15, the mark as reference, variants for the operator to choose) | — |
 | D6 | End of run | Notarized DMG 0.3.0 and publication on passioncode.ai — only after D7 | — |
 | D7 | Release gate | Three independent full verification iterations; every finding fixed or ruled with an id; the third iteration ends with zero open blocking findings | — |
 | D8 | Design surface | Code-first: `docs/ux/product-model.json` → `docs/reports/product.html` and the live app; no Figma file is recorded for Fabric (Observatory `figma_files.json` has none) | — |
