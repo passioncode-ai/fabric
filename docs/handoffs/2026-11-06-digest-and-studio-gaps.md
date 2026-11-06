@@ -47,8 +47,25 @@ of 2026-11-05 relayed on the board (thread `1fe66e6e`): Fabric's gaps for the or
 ## Next task
 
 The organization paused new work until the shared source of truth (board `1d417ba1`); what the operator asks
-directly stays allowed. First: answer the reconciliation's follow-ups on thread `eefa7959`; then CO-522's spec
-(what exists and what is missing per step of SCN-180); then CO-512's remaining edges. Earlier plan below.
+directly stays allowed.
+
+Done since the pause, all on `main`, each with hosted `ci` green:
+- CO-522 waves A to C (`a7ea01c5`, `f21e7c3f`, `eb6aecc1`, `de3d35cd`):
+  - a start says whose work it runs into;
+  - both sessions of an overlap are told, and one that stands is the person's item;
+  - «Написать агенту».
+- Wave D's [spec](../evidence/specs/2026-11-06-fabric-manager-agent.md).
+- CO-523 and CO-524, filed for the operator's access levels and the North Star's G11.
+
+First:
+1. Answer the reconciliation's follow-ups on thread `eefa7959`.
+2. Wave D's eval spec and its code for 0.4.0 (through `agent-stack`).
+3. Wave E (Switchboard's sessions with their task and stage, CO-457).
+4. CO-512's remaining edges.
+
+CO-524's decisions are due 2026-11-13 with Observatory (OBS-380).
+
+Earlier plan below.
 
 
 When DEC-0154 is tagged: CO-513 (a recorded port block per macOS user for the bundled stack,
