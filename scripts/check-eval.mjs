@@ -22,10 +22,12 @@ const root = new URL('..', import.meta.url).pathname
 const CORPUS = 'apps/desktop/src/shared/managerCorpus.ts'
 const EVAL = 'apps/desktop/src/shared/managerEval.ts'
 const REGISTER = 'docs/evidence/backlog.md'
+const CARRYOVER = 'docs/evidence/specs/2026-08-16-software-fabric-carryover.md'
 
 const corpus = readFileSync(CORPUS, 'utf8')
 const evaluator = readFileSync(EVAL, 'utf8')
 const register = readFileSync(REGISTER, 'utf8')
+const carryover = readFileSync(CARRYOVER, 'utf8')
 
 const problems = []
 
@@ -42,11 +44,17 @@ const anchors = new Set(
   [...register.matchAll(/<a id="work-([a-z0-9.-]+)"><\/a>/g)].map((m) => m[1].toLowerCase())
 )
 for (const m of register.matchAll(/^\|\s*(M\d+)\s*\|/gm)) anchors.add(m[1].toLowerCase())
+// AND THE CARRY-OVER LEDGER (CO-522 wave D). A defect found and fixed after the
+// milestone table closed is a `CO-NNN` row there, and a fixture may seed it as
+// `CO-NNN` or `CO-NNN.<part>`: the part names which piece of the row, the row
+// itself must exist.
+const carried = new Set([...carryover.matchAll(/^\|\s*(CO-\d+)\s*\|/gm)].map((m) => m[1]))
 for (const seed of new Set(seeds)) {
   const key = seed.toLowerCase().replace(/\./g, '-')
-  if (!anchors.has(key) && !anchors.has(seed.toLowerCase()))
+  const co = /^(CO-\d+)(\.[a-z-]+)?$/.exec(seed)
+  if (co ? !carried.has(co[1]) : !anchors.has(key) && !anchors.has(seed.toLowerCase()))
     problems.push(
-      `${CORPUS}  a fixture seeds "${seed}", which has no row in ${REGISTER} — ` +
+      `${CORPUS}  a fixture seeds "${seed}", which has no row in ${co ? CARRYOVER : REGISTER} — ` +
         `a corpus entry citing work this repository never did is one somebody invented`
     )
 }

@@ -37,7 +37,7 @@ The manager was designed before, and this spec is its first usable slice, not a 
   before the manager acts on anything.
 
 So the code goes in this order, each step with its own tests: (1) the eval's new hard violations and corpus entries
-over M176 (no model, no door); (2) M166's core; (3) M194's slot and binding with the `ceo` slot only; (4) the runner on
+over M176 (no model, no door; built 2026-11-06); (2) M166's core; (3) M194's slot and binding with the `ceo` slot only; (4) the runner on
 the model of §4, behind the eval gate. Steps 1 to 3 change nothing a person sees.
 
 ## 2. Shape: one tool loop, not a planned pipeline

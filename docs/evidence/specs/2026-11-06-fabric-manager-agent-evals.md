@@ -15,7 +15,9 @@ a hard violation is never offset; a trace that lost attempts is `inconclusive`, 
 match exactly; a verdict grants nothing. `managerCorpus.ts` holds fixtures that each seed a real defect, with a clean
 and a seeded trajectory, so every gate is seen firing.
 
-This spec adds to that module rather than beside it:
+This spec adds to that module rather than beside it. The four new kinds and their corpus entries are built (2026-11-06,
+`managerEval.ts#HARD_VIOLATIONS`, `managerCorpus.ts#CORPUS`; each seen firing on its seeded trajectory in
+`managerEval.test.ts`):
 
 | Observable | M176 today | Added |
 |---|---|---|
