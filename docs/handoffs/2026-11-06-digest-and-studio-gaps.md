@@ -54,12 +54,17 @@ Done since the pause, all on `main`, each with hosted `ci` green:
   - a start says whose work it runs into;
   - both sessions of an overlap are told, and one that stands is the person's item;
   - «Написать агенту».
-- Wave D's [spec](../evidence/specs/2026-11-06-fabric-manager-agent.md).
+- Wave D's [spec](../evidence/specs/2026-11-06-fabric-manager-agent.md) and its
+  [eval spec](../evidence/specs/2026-11-06-fabric-manager-agent-evals.md). Both build on the manager already designed:
+  M176's evaluator (shipped), M194's role slot and binding, ADR-0046 and M166's deterministic core (all proposed).
 - CO-523 and CO-524, filed for the operator's access levels and the North Star's G11.
+- CO-525: a run on a board request is told what a refused `com.enroll` means (`6977ff2f`, raised by
+  fabric-agent-adapter).
 
 First:
-1. Answer the reconciliation's follow-ups on thread `eefa7959`.
-2. Wave D's eval spec and its code for 0.4.0 (through `agent-stack`).
+1. Answer the reconciliation's follow-ups on thread `eefa7959`, if any reach Fabric.
+2. Wave D's code, in the order its spec §1a sets: the eval's new hard violations and corpus entries over M176, then
+   M166, then M194's `ceo` slot, then the runner (through `agent-stack`).
 3. Wave E (Switchboard's sessions with their task and stage, CO-457).
 4. CO-512's remaining edges.
 

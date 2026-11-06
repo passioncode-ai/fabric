@@ -19,6 +19,27 @@ Waves A to C gave the parts the agent needs:
 - overlaps told to both sessions, and decided by the person (`claim-overlap`, `overlap-unsettled`);
 - words to a running session (`work:say`).
 
+## 1a. The design this builds on (found 2026-11-06, after the first draft)
+
+The manager was designed before, and this spec is its first usable slice, not a second design:
+
+- **M176, shipped 2026-09-09.** The evaluator and its corpus: `apps/desktop/src/shared/managerEval.ts`
+  (`evaluateTrajectory`, eight `HARD_VIOLATIONS`, a hard violation never offset by an average, a partial trace
+  inconclusive, expected unknowns matched exactly, a verdict never a permission) and `managerCorpus.ts` (each fixture
+  seeds a defect this repository really had). The eval spec extends both instead of writing a third.
+- **M194, proposed.** The manager's binding and lifecycle (`docs/audit/2026-09-09-final/packets/M194.md`): a role slot
+  per `(estate, role, scope)`, an immutable binding revision naming provider, runner, tools, checker and budget, and a
+  runner over one `ManagerToolPort`. The person's agent here is the estate's `ceo` slot; the closed tool set of §3 is
+  that port.
+- **ADR-0046, proposed** (`docs/adr/0046-manager-role-slots-epochs-and-provider-compatibility.md`): `ceo` for the
+  estate, `product-manager` for a project, no third role. Taken as the baseline; it has no operator acceptance yet.
+- **M166, proposed.** The deterministic CEO core. M194's packet lists it, with M176 and nine shipped rows, as required
+  before the manager acts on anything.
+
+So the code goes in this order, each step with its own tests: (1) the eval's new hard violations and corpus entries
+over M176 (no model, no door); (2) M166's core; (3) M194's slot and binding with the `ceo` slot only; (4) the runner on
+the model of §4, behind the eval gate. Steps 1 to 3 change nothing a person sees.
+
 ## 2. Shape: one tool loop, not a planned pipeline
 
 The person's message is a question or an order about work in flight: who works on what, stop this, give that to the
