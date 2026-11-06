@@ -73,7 +73,9 @@ First:
    version whose binding and execution context can name the estate (asked on the board, thread `77d88a2e`; taken as the contract's CT-252, design by 2026-11-13,
    DEC by 2026-11-21). Fabric
    builds no slot and no field of its own before that answer. Then step 4, the runner (through `agent-stack`).
-3. Wave E (Switchboard's sessions with their task and stage, CO-457).
+3. Wave E (CO-457): the branch is already read in an enrolled session's folder (CO-498); left are the Dashboards consoles
+   mark (asked of fabric-dashboards, thread `b250bec9`) and the project's main session with its move (DEC-0140), scenario
+   first.
 4. CO-512's last two edges: a third run at the page bounds, and `adapterSkills.ts` with `SWITCHBOARD_CLAUDE_SOURCE_DIR`.
 
 CO-524's decisions are due 2026-11-13 with Observatory (OBS-380).
