@@ -72,7 +72,7 @@ waves). Read on 2026-11-06 against fabric-workspace `origin/main` (`docs/plans/2
 - **Now:** a request answered by its target is settled for the dispatcher (`boardDispatchRun.ts`, `SETTLED` holds
   `answered`), so a run that answered «cannot be taken now» leaves nothing in «На проверке».
 - **Needed:** the rule `board.read-at-start` tells a run that answered with a gate to ask the operator with
-  `fabric_question_ask` (kind `access`, `about` `board.gate.<capability>`, `commandId` a UUID v5 of the request's id),
+  `fabric_question_ask` (kind `access`, `about` `board.gate.<capability>`, `commandId` the UUID v5 of the name `board.gate` in the namespace of the request's id, as fabric-agent-adapter 0.69.0 derives it),
   as agreed with Vesta and the adapter (thread `1add3c03`, `a58b4280`, `ac9f8d34`).
 - **Acceptance:** the rule's test; a run's question appears on the home.
 

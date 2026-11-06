@@ -67,7 +67,10 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).toMatch(/board\.respond/)
     expect(o.text).toMatch(/own Project it is given at your com\.enroll[\s\S]*ADR-0190/)
     expect(o.text).toMatch(/a session has no route to another Project\'s/)
-    expect(o.text).toMatch(/do no work on it without the slot, and end/)
+    expect(o.text).toMatch(/do no work on it without the slot, then ask the operator with fabric_question_ask/)
+    // CO-517: the gate answer settles the request for the dispatcher, so the operator sees it only as a question.
+    expect(o.text).toMatch(/kind access, about board\.gate\.<capability>, commandId the UUID v5 of the name board\.gate in the namespace of the request's id/)
+    expect(o.text).toMatch(/end without waiting for the answer/)
     expect(o.text).not.toMatch(/Settings → Agent access/)
     expect(o.text).not.toMatch(/stays queued/)
   })
