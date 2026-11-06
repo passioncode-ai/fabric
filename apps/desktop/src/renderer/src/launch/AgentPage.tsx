@@ -29,6 +29,7 @@
  * «Вопросы этого агента».
  */
 import { useEffect, useState } from 'react'
+import { SayToAgent } from './SayToAgent'
 import type { LiveAgent } from '../../../shared/homeLive'
 import type { FeedEvent } from '../../../shared/types'
 import { laneOf, SESSION_LANES, type SessionLane, type SessionTask, type SessionTasksView } from '../../../shared/sessionTasks.ts'
@@ -309,6 +310,8 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
         ) : <p className="lp-meta">{t(placeOf === 'unknown' ? 'agentScreen.sessionUnknown' : 'agentScreen.sessionElsewhere')}</p>}
         {actions}
       </section>
+      {/* CO-522 wave C: the person's words to this session, read with its next call to Fabric. */}
+      <SayToAgent sessionId={agent.sessionId} mark={mark} />
       <section className="as-questions lh-qs" aria-labelledby="agent-questions-title">
         <h4 id="agent-questions-title">{t('agentScreen.questions')}</h4>
         {questionsRead === null

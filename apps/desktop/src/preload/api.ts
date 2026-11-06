@@ -285,6 +285,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       session: (sessionId, aliases) => (aliases && aliases.length ? ipc.invoke(IPC.workSession, sessionId, aliases) : ipc.invoke(IPC.workSession, sessionId)),
       launchCheck: (input) => ipc.invoke(IPC.workLaunchCheck, input),
       overlapDecide: (input) => ipc.invoke(IPC.workOverlapDecide, input),
+      say: (input) => ipc.invoke(IPC.workSay, input),
+      messages: (sessionId) => ipc.invoke(IPC.workMessages, sessionId),
       rhythm: () => ipc.invoke(IPC.workRhythm),
       release: (claimId) => ipc.invoke(IPC.workRelease, claimId)
     },

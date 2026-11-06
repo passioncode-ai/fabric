@@ -1695,6 +1695,11 @@ export interface FabricApi {
     /** CO-522 wave B part 2: the person's decision on two sessions that overlap (`key` is the queue item's `overlap-unsettled:<a>:<b>`).
      *  A refusal comes back as a value. */
     overlapDecide(input: { key: string; choice: 'wait' | 'handover' | 'split' }): Promise<MoveResult>
+    /** CO-522 wave C: the person's words to a running session, given with its next fabric_work_list, fabric_heartbeat or
+     *  turn answer. Kept in memory: a restart forgets the ones not yet read. A refusal comes back as a value. */
+    say(input: { sessionId: string; text: string }): Promise<{ ok: true; id: string } | { ok: false; reason: string }>
+    /** The person's messages to one session, oldest first, each with when it was read (null: not yet). */
+    messages(sessionId: string): Promise<Array<{ id: string; text: string; at: number; readAt: number | null }>>
     /** One agent session's tasks, newest first (0.3.14): what it claimed (live and released) and what Fabric launched in
      *  it. A read that fails REJECTS, so an empty list is always "no task", never a read that did not happen. */
     /** CO-475: `aliases` are the agent's earlier session ids (`LiveAgent.aliases`), read with the live one. */
@@ -1955,6 +1960,8 @@ export const IPC = {
   workBoard: 'work:board',
   workLaunchCheck: 'work:launchCheck',
   workOverlapDecide: 'work:overlapDecide',
+  workSay: 'work:say',
+  workMessages: 'work:messages',
   workSession: 'work:session',
   workRhythm: 'work:rhythm',
   workRelease: 'work:release',

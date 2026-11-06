@@ -48,6 +48,7 @@ import type { CommsMessage, CommsPageReply, CommsThreadPageReply, CommsFactsRepl
 import { ops as opsSink } from './opsSink.ts'
 import { readWork, type SessionSign } from './workRead.ts'
 import { sayWhy } from '../shared/workClaims.ts'
+import { randomUUID } from 'node:crypto'
 import type { createScopedStore } from './scopedStore.ts'
 
 type Store = ReturnType<typeof createScopedStore>
@@ -186,6 +187,11 @@ interface ProjectNudge { key: string; nudge: Nudge; at: number; takenBy: Set<str
 interface SessionNudge { nudge: Nudge; shown: boolean }
 
 const kindOf = (key: string): AbandonedKind => key.slice(0, key.indexOf(':')) as AbandonedKind
+/** CO-522 wave C: the queue key of the person's words to a session. */
+const OPERATOR_KEY = 'operator-message:'
+/** How many of the person's messages a session keeps, newest kept, and for how long their receipts are kept. */
+const MESSAGES_PER_SESSION = 20
+const MESSAGE_KEEP_MS = 24 * 3600_000
 
 export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   const ops = deps.ops ?? opsSink
@@ -213,7 +219,8 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   }
   /** Drops queued nudges whose finding this sweep no longer found, unless the read that finds that kind failed. */
   const dropStale = (current: ReadonlySet<string>, blind: ReadonlySet<AbandonedKind>): void => {
-    const stale = (key: string): boolean => !current.has(key) && !blind.has(kindOf(key))
+    // CO-522 wave C: the person's words are no finding; they stay until the session takes them.
+    const stale = (key: string): boolean => !key.startsWith(OPERATOR_KEY) && !current.has(key) && !blind.has(kindOf(key))
     for (const [session, lines] of bySession) {
       for (const key of [...lines.keys()]) if (stale(key)) lines.delete(key)
       if (!lines.size) bySession.delete(session)
@@ -463,8 +470,18 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     return { findings, told: decided.tell.length, queued, released, failedReads }
   }
 
+  /** CO-522 wave C: the person's words to each session, with when the session read them (took or was shown them). */
+  const messages = new Map<string, Array<{ id: string; text: string; at: number; readAt: number | null }>>()
+  const markRead = (sessionId: string, nudges: readonly Nudge[]): void => {
+    const now = deps.now()
+    for (const n of nudges) if (n.kind === 'operator-message') {
+      const m = messages.get(sessionId)?.find((x) => x.id === n.message_id)
+      if (m && m.readAt === null) m.readAt = now
+    }
+  }
   const takeNudgeItems = (sessionId: string, projectId: string | null): Nudge[] => {
     const own = [...(bySession.get(sessionId)?.values() ?? [])].map((e) => e.nudge)
+    markRead(sessionId, own)
     bySession.delete(sessionId)
     const shared = projectId ? prune(projectId, deps.now()).filter((n) => !n.takenBy.has(sessionId)) : []
     for (const n of shared) n.takenBy.add(sessionId)
@@ -495,6 +512,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       n.shownTo.add(sessionId)
       out.push(n.nudge)
     }
+    markRead(sessionId, out)
     turnAnswers.set(answerKey, { at: now, nudges: out })
     while (turnAnswers.size > TURN_ANSWERS_MAX) turnAnswers.delete(turnAnswers.keys().next().value as string)
     return out.map((n) => ({ ...n }))
@@ -523,6 +541,21 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
      *  fabric_work_list and fabric_heartbeat take; a turn's answer shows (`showTurnNudges`). */
     takeNudgeItems,
     showTurnNudges,
+    /** CO-522 wave C: the person's words to a session, given with its next fabric_work_list, fabric_heartbeat or turn. */
+    say(sessionId: string, text: string): { id: string } {
+      const now = deps.now(), id = randomUUID()
+      const kept = (messages.get(sessionId) ?? []).filter((m) => now - m.at < MESSAGE_KEEP_MS)
+      kept.push({ id, text, at: now, readAt: null })
+      messages.set(sessionId, kept.slice(-MESSAGES_PER_SESSION))
+      const lines = bySession.get(sessionId) ?? new Map<string, SessionNudge>()
+      lines.set(`${OPERATOR_KEY}${id}`, { nudge: { kind: 'operator-message', says: `The operator says: ${text}`, message_id: id }, shown: false })
+      bySession.set(sessionId, lines)
+      return { id }
+    },
+    /** The person's messages to a session, oldest first, with when each was read (null: not yet). */
+    messages(sessionId: string): Array<{ id: string; text: string; at: number; readAt: number | null }> {
+      return (messages.get(sessionId) ?? []).map((m) => ({ ...m }))
+    },
     /** CO-522 wave B part 2: the person decided an overlap; its item leaves the queue now, and the next sweep tells both
      *  sessions the decision. */
     decideOverlap(pairKey: string, choice: OverlapChoice): void {

@@ -5410,6 +5410,17 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return { ok: true }
   })
 
+  // CO-522 wave C: the person's words to a running session, through the queue its fabric-mcp reads (never typed into a
+  // terminal, where a line's Enter could answer a waiting permission prompt).
+  handle(IPC.workSay, async (_e, input: { sessionId: string; text: string }): Promise<Returns<FabricApi['work']['say']>> => {
+    const sessionId = String(input?.sessionId ?? '').trim(), text = String(input?.text ?? '').trim().slice(0, 4000)
+    if (!sessionId || !text) return { ok: false, reason: 'say what the agent should read' }
+    if (!abandonedSweep) return { ok: false, reason: 'Fabric is still starting; try again in a moment' }
+    return { ok: true, ...abandonedSweep.say(sessionId, text) }
+  })
+  handle(IPC.workMessages, async (_e, sessionId: string): Promise<Returns<FabricApi['work']['messages']>> =>
+    abandonedSweep?.messages(String(sessionId ?? '')) ?? [])
+
   handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> => {
     const held = heldSessions()
     // 0.3.14, the simple Fabric: each console's git branch for the left column and «В работе» (`agentBranches.ts`).

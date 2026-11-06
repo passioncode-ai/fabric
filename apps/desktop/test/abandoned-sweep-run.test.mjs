@@ -1384,3 +1384,22 @@ test('fabric_work_list lists a task the person returned from review first, with 
   assert.equal(answer.open_tasks.find((t) => t.id === 'a').operator_said, undefined)
   assert.equal(answer.open_tasks.find((t) => t.id === 't-moved'), undefined, 'a task the person moved without words is not put first')
 })
+
+// ── CO-522 wave C: the person's words reach a running session through its nudges ────────────────────────────────
+test('the person\'s words reach the session in its next fabric_work_list, are shown on a turn once, survive a sweep, and say when they were read', async () => {
+  const w = world()
+  const sweep = createAbandonedSweep(w.deps)
+  const { id } = sweep.say('s-1', 'Stop changing the hub; the release is frozen.')
+  assert.deepEqual(sweep.messages('s-1').map((m) => [m.id, m.text, m.readAt]), [[id, 'Stop changing the hub; the release is frozen.', null]])
+  // A sweep that finds nothing does not drop the words (they are no finding).
+  await sweep.onPass(); await sweep.onPass(); await sweep.onPass()
+  const turn = sweep.showTurnNudges('s-1', null, 'k1')
+  assert.equal(turn.length, 1)
+  assert.equal(turn[0].kind, 'operator-message')
+  assert.equal(turn[0].says, 'The operator says: Stop changing the hub; the release is frozen.')
+  assert.ok(sweep.messages('s-1')[0].readAt, 'shown on a turn counts as read')
+  assert.deepEqual(sweep.showTurnNudges('s-1', null, 'k2'), [], 'a later turn does not show it again')
+  assert.deepEqual(sweep.takeNudges('s-1', null), ['The operator says: Stop changing the hub; the release is frozen.'], 'fabric_work_list still takes it once')
+  assert.deepEqual(sweep.takeNudges('s-1', null), [])
+  assert.deepEqual(sweep.messages('s-2'), [])
+})

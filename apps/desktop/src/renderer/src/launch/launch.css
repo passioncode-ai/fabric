@@ -1094,3 +1094,8 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 /* CO-522 wave B part 2: the three answers to an overlap, under its lede. */
 .ov{display:grid;gap:var(--space-2)}
 .ov>.lp-meta{margin:0}
+/* CO-522 wave C: «Написать агенту» on an agent's page. */
+.as-say{display:grid;gap:var(--space-2)}
+.as-say h4,.as-say>.lp-meta{margin:0}
+.as-say textarea{width:100%;resize:vertical}
+.as-said{margin:0;font-size:12.5px}
