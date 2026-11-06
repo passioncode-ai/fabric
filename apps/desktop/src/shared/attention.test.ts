@@ -359,3 +359,15 @@ describe('a task in review is named in plain words (2026-10-14)', () => {
     expect(at({})).toBe('Implement X.')
   })
 })
+
+describe('SCN-179 (CO-521): a review carries what its agent handed in', () => {
+  it('passes the hand-in through to the item, and leaves it off a review without one', () => {
+    const handedIn = { said: 'Released in v0.6.28', by: 'agent' as const, at: '2026-10-13T08:00:00Z' }
+    const items = attentionOf({ ...empty, reviews: [
+      { id: 't1', project_id: 'p', title: 'with words', instruction: 'x', started_at: '2026-09-05T10:00:00Z', handed_in: handedIn },
+      { id: 't2', project_id: 'p', title: 'without', instruction: 'y', started_at: '2026-09-05T10:00:00Z' }
+    ] })
+    expect(items.find((i) => i.ref.id === 't1')?.handedIn).toEqual(handedIn)
+    expect(items.find((i) => i.ref.id === 't2')?.handedIn).toBeUndefined()
+  })
+})

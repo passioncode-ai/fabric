@@ -97,3 +97,21 @@ describe('a question on Главная is answered where it is read (SCN-163 ste
     expect(answer.mock.calls[0]?.[0]).toMatchObject({ questionId: 'q9', projectId: 'p1', expectedRevision: 2, chosenOption: 'b' })
   })
 })
+
+describe('SCN-179 (CO-521): work handed in for review is decided on its card', () => {
+  it('shows what the agent handed in and the three answers; accepting sends the decision for the task', async () => {
+    const review = { ...entry, subject: { kind: 'task', id: 't1' }, detail: null,
+      handedIn: { said: 'Released in v0.6.28; open: SB-116.', by: 'agent', at: '2026-10-13T08:00:00Z' } }
+    const decide = vi.fn(async () => ({ ok: true }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: {
+      board: { query: vi.fn(async () => ({ data: { items: [review], total: 1, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' })) },
+      tasks: { decide } } }))
+    const onBoard = vi.fn()
+    render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={onBoard} /></I18nProvider>)
+    const card = await screen.findByRole('article', { name: /SB-114/ })
+    expect(card.textContent).toContain('Released in v0.6.28; open: SB-116.')
+    fireEvent.click(within(card).getByRole('button', { name: en['review.accept'] }))
+    await waitFor(() => expect(decide).toHaveBeenCalledWith('t1', 'accept', ''))
+    expect(onBoard).not.toHaveBeenCalled()
+  })
+})

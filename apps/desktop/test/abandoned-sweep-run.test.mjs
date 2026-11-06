@@ -1340,3 +1340,47 @@ test('CO-462: a launched session holding its task with no claim is reminded of t
   assert.deepEqual(sweep.takeNudgeItems('s-lease', 'p1').map((n) => [n.kind, n.task_id]), [['brief-missing', 't-lease']])
   assert.deepEqual(sweep.takeNudgeItems('s-work', 'p1').map((n) => [n.kind, n.task_id]), [['brief-missing', 't1']])
 })
+
+// ── SCN-179 (CO-521): a task the person returned from review reaches the agents with their words ─────────────────
+function storeWith({ returned, notes, open }) {
+  const chain = (table) => {
+    const filters = {}
+    const q = new Proxy({}, {
+      get: (_, k) => {
+        if (k === 'then') {
+          const data = table === 'task_notes' ? notes
+            : table === 'project_tasks' && filters.moved_by_kind === 'person' ? returned
+              : table === 'project_tasks' ? open : []
+          return (resolve) => resolve({ data, error: null })
+        }
+        if (k === 'maybeSingle') return async () => ({ data: null, error: null })
+        if (k === 'eq') return (col, v) => { filters[col] = v; return q }
+        return () => q
+      }
+    })
+    return q
+  }
+  return { select: (table) => chain(table), selectIn: async (table, _c, key, values) => ({ rows: table === 'task_notes' ? notes.filter((n) => values.includes(n[key])) : [], failed: null }) }
+}
+
+test('fabric_work_list lists a task the person returned from review first, with what they said', async () => {
+  const tools = new Map()
+  registerWorkTools({ registerTool: (name, _def, handler) => tools.set(name, handler) }, {
+    scope: { estateId: 'e', projectId: 'p1', sessionId: 's1', agent: 'claude-code', cameIn: 'enrolled' },
+    store: storeWith({
+      returned: [{ id: 't-ret', title: 'Ship the retry', instruction: 'x', status: 'backlog' }, { id: 't-moved', title: 'Moved by hand', instruction: 'y', status: 'backlog' }],
+      notes: [{ task_id: 't-ret', body_md: 'an older note', created_at: '2026-11-01T12:00:00Z' },
+        { task_id: 't-ret', body_md: 'The test for the backoff is missing; add it.', created_at: '2026-11-06T12:00:00Z' }],
+      open: [{ id: 'a', title: 'Other work', instruction: 'z', status: 'running' }, { id: 't-ret', title: 'Ship the retry', instruction: 'x', status: 'backlog' }]
+    }),
+    append: async () => ({ seq: 1 }), appendObserved: async () => ({ seq: 1 }), checkReference: () => {},
+    sessions: () => [], session: () => null, resolveSource: async () => ({ ok: false }), leaseRefs: async () => null,
+    onClaimed: () => {}, endSession: () => {}, now: () => T0
+  })
+  const answer = JSON.parse((await tools.get('fabric_work_list')({})).content[0].text)
+  assert.equal(answer.open_tasks[0].id, 't-ret', 'the returned task comes first')
+  assert.deepEqual(answer.open_tasks[0].operator_said, { returned_from_review: true, said: 'The test for the backoff is missing; add it.', at: '2026-11-06T12:00:00Z' })
+  assert.equal(answer.open_tasks.filter((t) => t.id === 't-ret').length, 1, 'listed once')
+  assert.equal(answer.open_tasks.find((t) => t.id === 'a').operator_said, undefined)
+  assert.equal(answer.open_tasks.find((t) => t.id === 't-moved'), undefined, 'a task the person moved without words is not put first')
+})

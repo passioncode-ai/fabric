@@ -1079,6 +1079,10 @@ export interface FabricApi {
     /** Accept or cancel. Cancelling REQUIRES a reason — a task that vanished
      *  without one is a lost decision. */
     close(taskId: string, outcome: 'done' | 'cancelled', reason?: string): Promise<MoveResult>
+    /** SCN-179 (CO-521): the person's decision on a task in review, with words for its agent: accept (done; a comment is
+     *  kept on the task), return (back to the queue with what to change, which the project's agents read in
+     *  `fabric_work_list`), or cancel (with its reason). A refusal comes back as a value. */
+    decide(taskId: string, decision: 'accept' | 'return' | 'cancel', comment: string): Promise<MoveResult>
     /** Everything one task knows about itself, in one read: the brief, its
      *  working notes, what it links to, who holds it, and the journal rows that
      *  are its receipts. One call because five would be five moments in time. */
@@ -1856,6 +1860,7 @@ export const IPC = {
   agentsCreate: 'agents:create',
   tasksFileIdea: 'tasks:fileIdea',
   tasksAssignAcross: 'tasks:assignAcross',
+  tasksDecide: 'tasks:decide',
   /** M134 — research SPAWNS a task from the idea; the idea does not move. */
   tasksResearch: 'tasks:research',
   reposList: 'repos:list',

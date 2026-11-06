@@ -129,6 +129,8 @@ export interface BoardEntry {
   swept?: AttentionItem['swept']
   /** A review: when the task was put in review, when known (CO-456). */
   reviewSince?: string
+  /** A review: what its agent handed in, so the person decides in the row (SCN-179, CO-521). */
+  handedIn?: { said: string | null; by: 'person' | 'agent' | 'system'; at: string }
   /** One of the oldest reviews past three days, brought to the person (`overdueReviews`, CO-456). */
   overdue?: true
   /** Present only on an authored question: what the answer form needs, and the
@@ -199,7 +201,8 @@ export function boardEntries(input: {
       ...(a.proposal ? { proposal: a.proposal } : {}),
       ...(a.access ? { access: a.access } : {}),
       ...(a.swept ? { swept: a.swept } : {}),
-      ...(a.reviewSince ? { reviewSince: a.reviewSince } : {})
+      ...(a.reviewSince ? { reviewSince: a.reviewSince } : {}),
+      ...(a.handedIn ? { handedIn: a.handedIn } : {})
     }
   })
   const overdue = overdueReviews(fromAttention, input.now)

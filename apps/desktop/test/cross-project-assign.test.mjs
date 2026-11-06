@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
 
-const { assignAcross, answerAssigned } = await import(path.resolve(import.meta.dirname, '../src/main/crossProjectAssign.ts'))
+const { assignAcross, answerAssigned, assignedTaskId } = await import(path.resolve(import.meta.dirname, '../src/main/crossProjectAssign.ts'))
 
 const A = '11111111-1111-4111-8111-111111111111', B = '22222222-2222-4222-8222-222222222222'
 const TA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', REQ = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
@@ -16,8 +16,8 @@ function world(over = {}) {
     submit: async (p, input) => { w.submitted.push({ p, input }); return w.submitAnswer },
     reply: async (p, input) => { w.replied.push({ p, input }); return w.replyAnswer },
     epoch: async () => 1,
-    fileTask: async (p, title, instruction) => { const id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'; w.tasks.set(id, { id, project_id: p, title, instruction }); w.filed.push({ p, title, instruction }); return { id } },
-    note: async (taskId, p, body) => { w.notes.push({ taskId, p, body }) },
+    fileTask: async (p, id, title, instruction) => { if (w.failFile) { w.failFile--; throw new Error('the journal did not answer') } w.tasks.set(id, { id, project_id: p, title, instruction }); w.filed.push({ p, id, title, instruction }); return { id } },
+    note: async (taskId, p, body) => { if (w.failNote) { w.failNote--; throw new Error('the journal did not answer') } w.notes.push({ taskId, p, body }) },
     notes: async (taskId) => w.notes.filter((n) => n.taskId === taskId).map((n) => n.body).reverse()
   }
   return w
@@ -26,7 +26,8 @@ function world(over = {}) {
 test('CO-458: the ask becomes a board request from A to B and a task in B, tied by a note; A\'s task says it was assigned', async () => {
   const w = world()
   const r = await assignAcross(w.deps, { fromTaskId: TA, toProjectId: B, text: 'Add a retry to the mail sender', key: 'k1' })
-  assert.deepEqual(r, { ok: true, taskId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', requestId: REQ, project: 'Mail' })
+  assert.deepEqual(r, { ok: true, taskId: assignedTaskId(REQ), requestId: REQ, project: 'Mail' })
+  assert.match(r.taskId, /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/, 'B\'s task is named by the request (UUID v5)')
   assert.equal(w.submitted.length, 1)
   const { p, input } = w.submitted[0]
   assert.equal(p, A, 'sent as A')
@@ -63,6 +64,43 @@ test('CO-458: B\'s task released done answers the request as B, once, and tells 
   w.replyAnswer = { ok: true, repeated: true }
   await answerAssigned(w.deps, taskId)
   assert.equal(w.notes.filter((n) => n.taskId === TA && /сделал/.test(n.body)).length, 1)
+})
+
+test('CO-510: a retry with the same key after the task was filed but not marked files no second task and completes the marks', async () => {
+  const w = world({ failNote: 1 })
+  await assert.rejects(assignAcross(w.deps, { fromTaskId: TA, toProjectId: B, text: 'Add a retry', key: 'k1' }))
+  assert.equal(w.filed.length, 1)
+  assert.equal(w.notes.length, 0, 'the first attempt left B\'s task without its mark')
+  // The board answers the stored request again (the same key), so the retry reaches the same request id.
+  w.submitAnswer = { ok: true, repeated: true, message: REQ, request: { id: REQ } }
+  const r = await assignAcross(w.deps, { fromTaskId: TA, toProjectId: B, text: 'Add a retry', key: 'k1' })
+  assert.equal(r.ok, true)
+  assert.equal(w.filed.length, 1, 'one task in B for one request')
+  assert.equal(w.notes.filter((n) => n.p === B && /^Board request: /.test(n.body)).length, 1)
+  assert.equal(w.notes.filter((n) => n.taskId === TA && /^Поручено/.test(n.body)).length, 1)
+  // So releasing B's task answers the request.
+  assert.deepEqual(await answerAssigned(w.deps, r.taskId), { answered: true })
+})
+
+test('CO-510: a repeated assign after a full success writes nothing twice; a retry after the filing failed files it once', async () => {
+  const w = world()
+  await assignAcross(w.deps, { fromTaskId: TA, toProjectId: B, text: 'Add a retry', key: 'k1' })
+  w.submitAnswer = { ok: true, repeated: true, message: REQ, request: { id: REQ } }
+  await assignAcross(w.deps, { fromTaskId: TA, toProjectId: B, text: 'Add a retry', key: 'k1' })
+  assert.deepEqual([w.filed.length, w.notes.length], [1, 2])
+  const v = world({ failFile: 1 })
+  await assert.rejects(assignAcross(v.deps, { fromTaskId: TA, toProjectId: B, text: 'x', key: 'k2' }))
+  assert.equal(v.filed.length, 0)
+  assert.equal((await assignAcross(v.deps, { fromTaskId: TA, toProjectId: B, text: 'x', key: 'k2' })).ok, true)
+  assert.deepEqual([v.filed.length, v.notes.length], [1, 2])
+})
+
+test('CO-510: a filing that fails because a concurrent retry filed the task first continues with that task', async () => {
+  const w = world()
+  w.deps.fileTask = async (p, id, title, instruction) => { w.tasks.set(id, { id, project_id: p, title, instruction }); w.filed.push({ p, id }); throw new Error('duplicate key') }
+  const r = await assignAcross(w.deps, { fromTaskId: TA, toProjectId: B, text: 'x', key: 'k3' })
+  assert.equal(r.ok, true)
+  assert.equal(w.notes.filter((n) => n.p === B).length, 1)
 })
 
 test('CO-458: a task that was not assigned answers nothing', async () => {

@@ -21,6 +21,11 @@ of 2026-11-05 relayed on the board (thread `1fe66e6e`): Fabric's gaps for the or
 - `79d86736`, `f6818ca0` and the change after them: CO-520, private data out of the public tree (home path, denylisted
   terms, real addresses) and the gate `scripts/check-private.mjs` in `scripts/ci.sh fast` and the operator's pre-push
   hook. Rewriting the already published history is the operator's decision (ADR-0096, amendment of 2026-11-06).
+- The change after `b36199a0`: CO-510 (a retried «Поручить агенту B» files no second task), CO-521 / SCN-179 (a task in
+  review asks one decision: the agent's words, «Принять», «Вернуть в работу», «Отменить задачу», a comment the agents
+  read in `fabric_work_list`), CO-522 / SCN-180 filed (Fabric coordinating every coding session, draft), and
+  [Fabric's part of the estate reconciliation](../reports/2026-11-06-estate-flows-fabric/README.md) (board thread
+  `eefa7959`, due 2026-11-07 10:00 UTC).
 
 ## Open, with what each waits on
 
@@ -40,6 +45,11 @@ of 2026-11-05 relayed on the board (thread `1fe66e6e`): Fabric's gaps for the or
 `5db38233`, `603da12f`, `620dac15`.
 
 ## Next task
+
+The organization paused new work until the shared source of truth (board `1d417ba1`); what the operator asks
+directly stays allowed. First: answer the reconciliation's follow-ups on thread `eefa7959`; then CO-522's spec
+(what exists and what is missing per step of SCN-180); then CO-512's remaining edges. Earlier plan below.
+
 
 When DEC-0154 is tagged: CO-513 (a recorded port block per macOS user for the bundled stack,
 `apps/desktop/src/main/bundledStack.ts`), then CO-514 (fabric-mcp checks the hub listener's uid). Until then, take the

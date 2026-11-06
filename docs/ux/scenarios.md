@@ -182,6 +182,8 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-176 | A task starts only once its spec is whole, gathered by questions | Task | P-01 | ST-037, SCR-32 | implemented | unobserved |
 | SCN-177 | Work another project's agent should do crosses by the machine's trust | Board | P-01 | ST-037, SCR-41 | implemented | unobserved |
 | SCN-178 | See which projects have not answered an announcement | Project communications | P-01 | FLW-83, SCR-81 | implemented | unobserved |
+| SCN-179 | Decide on work handed in for review in one place | Task | P-01 | ST-037, SCR-32, SCR-41 | implemented | unobserved |
+| SCN-180 | Fabric keeps every coding session in view and coordinates conflicting work | Manager | P-01 | ST-037, SCR-41 | draft | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -4476,4 +4478,49 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** planned only.
 - **Status:** implemented (2026-10-23, for 0.3.12)
 - **Coverage:** `apps/desktop/src/shared/announcements.ts`, `apps/desktop/src/shared/announcements.test.ts`, `apps/desktop/src/renderer/src/launch/CommsAnnouncements.tsx`, `apps/desktop/src/renderer/src/launch/CommsAnnouncements.test.tsx`
+- **Product:** unobserved
+
+### SCN-179: Decide on work handed in for review in one place
+- **Persona:** P-01
+- **Feature:** Task
+- **Traces:** ST-037, SCR-32, SCR-41 (JTBD-02)
+- **Entry point:** a card in «Нужны вы» on Главная; a review on the Board; a task page in review
+- **Preconditions:** an agent moved a task to review (an agent never closes its own task, `ladder.ts#mayMove`)
+- **Steps:**
+  1. Person reads a review in «Нужны вы» -> the card says what the agent handed in, in its own words (the note of its newest move to review), who and when, and the three answers at once: «Принять», «Вернуть в работу», «Отменить задачу», with a field «Комментарий агенту».
+  2. Person presses «Принять» -> the task is done; a comment, when written, stays on the task as the person's note.
+  3. Person writes what to change and presses «Вернуть в работу» -> the task goes back through running to the project's queue with the comment as the moves' note and the person's note; the project's agents meet it first in `fabric_work_list`'s `open_tasks`, with `operator_said`.
+  4. Person writes why and presses «Отменить задачу» -> the task is cancelled with that reason.
+  5. Person opens the task instead -> the page starts with the same card; a task in review says nothing about a run that never was or a spec still to gather.
+- **Expected result:** the person sees what is asked and answers it in one place, and the agent reads the person's words with the task.
+- **Alt paths:** the agent wrote nothing -> «Агент не написал, что сделал…» and the same answers; returning or cancelling without a comment -> the field asks for it and nothing is sent; the task left review meanwhile -> «Не записано: the task is no longer in review (…)».
+- **UI elements:** the agent's words; «Принять», «Вернуть в работу», «Отменить задачу»; «Комментарий агенту»; the answer said once recorded.
+- **States covered:** waiting, sending, refused with its reason, recorded.
+- **Errors & recovery:** a refusal keeps the comment and the buttons; a hand-in note that cannot be read leaves the review in the list without its words.
+- **Design rationale:** the operator, 2026-11-06, on a review page that said «Запуска ещё не было» and «Спецификация не собрана»: what exactly is wanted, a text, quick choices on the right and a field whose comment the agent takes into account. 228 tasks were in review in 25 projects that day, 166 of them for over a week (CO-521).
+- **Telemetry:** planned only.
+- **Status:** implemented (2026-11-06)
+- **Coverage:** `apps/desktop/src/shared/reviewDecision.ts`, `apps/desktop/src/renderer/src/launch/ReviewDecision.tsx`, `apps/desktop/src/renderer/src/TaskPage.tsx#TaskPage`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx#NeedsYouCard`, `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/main/index.ts` (`tasks:decide`, the board's hand-in read), `apps/desktop/src/main/workTools.ts` (`operator_said`); tests `reviewDecision.test.ts`, `TaskPage.test.tsx` «SCN-179», `HomeParts.test.tsx` «SCN-179», `attention.test.ts` «SCN-179», `apps/desktop/test/abandoned-sweep-run.test.mjs` «returned from review»
+- **Product:** unobserved
+
+### SCN-180: Fabric keeps every coding session in view and coordinates conflicting work
+- **Persona:** P-01
+- **Feature:** Manager
+- **Traces:** ST-037, SCR-41 (JTBD-02)
+- **Entry point:** Агенты; «Нужны вы»; the Fabric agent's console
+- **Preconditions:** coding sessions run on this machine, enrolled or launched by Fabric, in one or more projects
+- **Steps:**
+  1. Person opens Агенты -> every running session: its agent, project, folder and branch, the task it holds and what it last said it is doing.
+  2. Person gives a session a task that touches what another session holds -> Fabric says so before the work starts and names the other session, its task and the overlap.
+  3. The sessions coordinate on the board -> the overlap becomes a thread between their projects, and the person sees it as one item with the choices (wait, hand over, split).
+  4. Person tells the Fabric agent what to do -> it acts across the sessions through the same claims, tasks and board (`fabric_work_*`, `com.*`).
+- **Expected result:** the person directs every session from Fabric and conflicting work is caught before it collides.
+- **Alt paths:** a session that does not report -> named as silent, never as idle; a session outside any project -> listed apart.
+- **UI elements:** the sessions list; the overlap warning; the coordination item with its choices.
+- **States covered:** reading, empty, partial, success.
+- **Errors & recovery:** a read that fails names the part not read.
+- **Design rationale:** the operator, 2026-11-06: Fabric should follow what every running session does and where, coordinate them, catch a task that contradicts another session's work and let them settle it on the board, and the person direct them all through the Fabric agent (CO-522). Parts exist: claims and their overlaps (`fabric_work_claim`'s warning), the sweep of abandoned work, the board.
+- **Telemetry:** planned only.
+- **Status:** draft (CO-522)
+- **Coverage:** none yet
 - **Product:** unobserved

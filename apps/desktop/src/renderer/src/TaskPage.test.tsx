@@ -498,3 +498,50 @@ describe('a task page and another project', () => {
     expect(screen.getByText('A change is needed in another project')).toBeTruthy()
   })
 })
+
+describe('SCN-179 (CO-521): a task in review asks one decision', () => {
+  const ev = (seq: number, type: string, payload: Record<string, unknown>) =>
+    ({ estate_id: 'e1', seq, type, actor: { kind: 'agent', id: 'a1' }, project_id: 'p1', occurred_at: new Date(Date.now() - 3_600_000).toISOString(), payload })
+  const reviewDetail = (): TaskDetail => ({
+    ...detail({ status: 'review' }),
+    events: [
+      ev(1, 'work.released@1', { work: 't1', how: 'done', note: 'Shipped in v0.6.28.' }),
+      ev(2, 'task.moved@1', { task_id: 't1', from: 'running', to: 'review', note: 'Released in v0.6.28; open: SB-116.' })
+    ]
+  })
+
+  it('says what the agent handed in, offers accept, return and cancel, and nothing about a run that never was or a spec to gather', async () => {
+    const decide = vi.fn().mockResolvedValue({ ok: true })
+    vi.stubGlobal('window', window)
+    ;(window as unknown as { fabric: unknown }).fabric = { tasks: { detail: vi.fn().mockResolvedValue(reviewDetail()), decide } }
+    render(<TaskPage project={project} taskId="t1" onBack={() => {}} onChanged={async () => {}} onError={() => {}} />)
+    expect(await screen.findByText(en['review.title'])).toBeTruthy()
+    expect(screen.getByText('Released in v0.6.28; open: SB-116.')).toBeTruthy()
+    expect(screen.queryByText(en['launch.agent.noRun'])).toBeNull()
+    expect(screen.queryByText(en['task.specEmpty'])).toBeNull()
+    // Returning without a word for the agent is not sent.
+    fireEvent.click(screen.getByRole('button', { name: en['review.return'] }))
+    expect(await screen.findByText(en['review.needsComment'])).toBeTruthy()
+    expect(decide).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText(en['review.commentLabel']), { target: { value: 'Add the backoff test' } })
+    fireEvent.click(screen.getByRole('button', { name: en['review.return'] }))
+    await waitFor(() => expect(decide).toHaveBeenCalledWith('t1', 'return', 'Add the backoff test'))
+    expect(await screen.findByText(en['review.done.return'])).toBeTruthy()
+  })
+
+  it('accepts without a comment, and a refusal is said with its reason', async () => {
+    const decide = vi.fn().mockResolvedValue({ ok: false, reason: 'the task is no longer in review (it is done)' })
+    vi.stubGlobal('window', window)
+    ;(window as unknown as { fabric: unknown }).fabric = { tasks: { detail: vi.fn().mockResolvedValue(reviewDetail()), decide } }
+    render(<TaskPage project={project} taskId="t1" onBack={() => {}} onChanged={async () => {}} onError={() => {}} />)
+    fireEvent.click(await screen.findByRole('button', { name: en['review.accept'] }))
+    await waitFor(() => expect(decide).toHaveBeenCalledWith('t1', 'accept', ''))
+    expect(await screen.findByText(/the task is no longer in review/)).toBeTruthy()
+  })
+
+  it('a task not in review shows no decision card', async () => {
+    mount({ status: 'running' })
+    await screen.findByText('Ship the thing')
+    expect(screen.queryByText(en['review.title'])).toBeNull()
+  })
+})

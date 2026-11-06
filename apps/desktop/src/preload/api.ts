@@ -66,6 +66,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       list: (projectId) => ipc.invoke(IPC.tasksList, projectId),
       move: (taskId, to) => ipc.invoke(IPC.tasksMove, taskId, to),
       close: (taskId, outcome, reason) => ipc.invoke(IPC.tasksClose, taskId, outcome, reason),
+      decide: (taskId, decision, comment) => ipc.invoke(IPC.tasksDecide, taskId, decision, comment),
       detail: (taskId) => ipc.invoke(IPC.tasksDetail, taskId),
       note: (taskId, body) => ipc.invoke(IPC.tasksNote, taskId, body),
       promote: (noteId) => ipc.invoke(IPC.tasksPromote, noteId),

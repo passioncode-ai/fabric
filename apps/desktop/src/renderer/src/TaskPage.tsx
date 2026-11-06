@@ -39,6 +39,8 @@ import { runnerLabel } from './runnerLabel'
 import { projectDisplayName } from '../../shared/projectDisplayName.ts'
 import { useOpenConsole } from './consoles'
 import { CrossProjectConsole } from './launch/CrossProjectConsole'
+import { ReviewDecision } from './launch/ReviewDecision'
+import { reviewAsk } from '../../shared/reviewDecision.ts'
 
 export function TaskPage({
   project,
@@ -211,6 +213,10 @@ export function TaskPage({
   const stateWord = (state: string): string =>
     ['backlog', 'running', 'review', 'done', 'cancelled'].includes(state) ? t(`launch.kanban.${state}` as 'launch.kanban.backlog') : state
   const briefEmpty = !task.brief_what?.trim() && !task.brief_why?.trim() && !task.brief_expected?.trim()
+  // SCN-179 (CO-521): a task in review asks the person one decision; what does not bear on it (no run yet, a spec still
+  // to gather) is not said on it.
+  const ask = reviewAsk(task.status, detail.events)
+  const toGather = specMissing(task) && task.status !== 'review'
   return (
     <div className="lp" data-launch-view="launch-agent">
       <ProjectStrip project={project} lastEventAt={lastEventAt} onPulse={onPulse} />
@@ -267,6 +273,7 @@ export function TaskPage({
           <CrossProjectConsole project={project} taskId={taskId} taskTitle={task.title ?? task.instruction} />
         </aside>
         <div className="lp-agent-content">
+          {ask && <ReviewDecision taskId={taskId} ask={ask} onDecided={() => { void load(); void onChanged() }} />}
           <div className="lp-tabs" role="group" aria-label={t('launch.agent.tabs')}>
             {(['now', 'context', 'decisions', 'history', 'next'] as const).map((k) => (
               <button key={k} type="button" className="lp-tab" aria-pressed={tab === k} onClick={() => setTab(k)}>{t(`launch.agent.tab.${k}` as 'launch.agent.tab.now')}</button>
@@ -275,7 +282,7 @@ export function TaskPage({
           <section className="lp-agent-body">
           {tab === 'now' && (
             <>
-              <RunCallout sessionId={task.session_id} status={run} />
+              {!(ask && !task.session_id) && <RunCallout sessionId={task.session_id} status={run} />}
               {/* OF-21: the task reads as a template first (what, why, what will be ready), the instruction after it. */}
               <h3>{t('task.brief')}</h3>
               {/* CO-394 (0.3.11 review, iteration 3, UX-7): how the brief is written is said above it, and an empty brief says
@@ -284,8 +291,8 @@ export function TaskPage({
               {/* ADR-0176 §1 (SCN-176): a task still to do or in work says when its spec is not gathered, and which
                   parts are missing; it clears the moment the brief's three parts are written. An empty brief is said once,
                   as ADR-0176 has it: the agent asks you before it starts, or you write it (0.3.12 review UX-13). */}
-              {briefEmpty && (specMissing(task) ? <Banner tone="warn">{t('task.specEmpty')}</Banner> : <p>{t('task.briefEmpty')}</p>)}
-              {!briefEmpty && specMissing(task) && (
+              {briefEmpty && (toGather ? <Banner tone="warn">{t('task.specEmpty')}</Banner> : <p>{t('task.briefEmpty')}</p>)}
+              {!briefEmpty && toGather && (
                 <Banner tone="warn">
                   {t('task.specMissing', {
                     parts: specGaps(task)

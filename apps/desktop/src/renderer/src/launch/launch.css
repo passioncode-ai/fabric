@@ -1068,3 +1068,21 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 .session-detach:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
 .session-box{flex:1 1 auto;min-height:360px;display:flex;flex-direction:column;border:1px solid var(--app-line);border-radius:12px;overflow:hidden;background:var(--terminal)}
 .session-box>.terminal-host{padding:var(--space-3) var(--space-3) var(--space-2)}
+/* SCN-179 (CO-521): a task in review asks one decision. The agent's words on the left, the three answers and the
+   comment on the right; one column when narrow. */
+.rd{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:var(--space-4);padding:var(--space-4);margin:0 0 var(--space-4);border:1px solid var(--app-line);border-radius:12px;text-align:left}
+.rd-title{margin:0 0 var(--space-1);font-size:14px}
+.rd-ask>.lp-meta{margin:0 0 var(--space-2);font-size:12px}
+.rd-said{margin:0 0 var(--space-2);white-space:pre-wrap;font-size:13px;line-height:1.45}
+blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-line)}
+.rd-none{color:var(--app-muted)}
+.rd-clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rd-answer{display:grid;gap:var(--space-2);align-content:start}
+.rd-buttons{display:grid;gap:6px}
+.rd-buttons .lp-button{width:100%;min-height:32px}
+.rd-comment{display:grid;gap:4px;font-size:12px}
+.rd-comment textarea{width:100%;resize:vertical}
+.rd-problem{margin:0;font-size:12px}
+.rd-done{display:block}
+.rd-compact{padding:var(--space-3);gap:var(--space-3)}
+@media(max-width:760px){.rd{grid-template-columns:1fr}}

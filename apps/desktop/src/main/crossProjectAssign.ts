@@ -7,7 +7,13 @@
  * answers the request on its thread as B, and A's task gets the note «B сделал: …». No schema step: the board, the
  * journal's task events and notes as they are. A refusal (another business, no board) is said, and nothing half-done
  * is left: the task is filed only after the request was stored.
+ *
+ * CO-510: B's task is named by the request (`assignedTaskId`), so a retry with the same key, which the board answers
+ * with the request it stored, finds the task an earlier attempt filed instead of filing a second, and writes the marks
+ * that attempt left unwritten. Without the mark on B's task, releasing it would never answer the request.
  */
+import { createHash } from 'node:crypto'
+
 export interface AssignDeps {
   readTask(taskId: string): Promise<{ id: string; project_id: string; title: string | null; instruction: string } | null>
   readProject(projectId: string): Promise<{ id: string; name: string } | null>
@@ -16,7 +22,8 @@ export interface AssignDeps {
   /** The operator's board reply as `projectId`. */
   reply(projectId: string, input: Record<string, unknown>): Promise<Record<string, unknown>>
   epoch(projectId: string): Promise<number | null>
-  fileTask(projectId: string, title: string, instruction: string): Promise<{ id: string }>
+  /** Files a task with the given id; a concurrent filing of the same id may refuse the second. */
+  fileTask(projectId: string, id: string, title: string, instruction: string): Promise<{ id: string }>
   note(taskId: string, projectId: string, body: string): Promise<void>
   /** The notes of one task, newest first (bounded). */
   notes(taskId: string): Promise<string[]>
@@ -27,6 +34,17 @@ export type AssignResult =
   | { ok: false; reason: string }
 
 const MARK = /^Board request: ([0-9a-f-]{36}) \(from task ([0-9a-f-]{36}) in project ([0-9a-f-]{36})\)/m
+/** The id of B's task for one board request: a UUID v5 of the name `assign.task` in the namespace of the request id
+ *  (RFC 9562 §5.5), so every attempt for that request names the same task. */
+export function assignedTaskId(requestId: string): string {
+  const ns = Buffer.from(requestId.replace(/-/g, ''), 'hex')
+  const h = createHash('sha1').update(ns).update('assign.task').digest()
+  h[6] = (h[6]! & 0x0f) | 0x50
+  h[8] = (h[8]! & 0x3f) | 0x80
+  const x = h.subarray(0, 16).toString('hex')
+  return `${x.slice(0, 8)}-${x.slice(8, 12)}-${x.slice(12, 16)}-${x.slice(16, 20)}-${x.slice(20)}`
+}
+
 const errorOf = (r: Record<string, unknown>): string | null => {
   const e = r.error as { code?: unknown; message?: unknown } | undefined
   return e ? `${String(e.code ?? 'refused')}: ${String(e.message ?? '')}` : null
@@ -56,10 +74,19 @@ export async function assignAcross(deps: AssignDeps, input: { fromTaskId: string
   if (refused) return { ok: false, reason: `the board refused the request (${refused})` }
   const requestId = String((sent.request as { id?: unknown } | undefined)?.id ?? sent.message ?? '')
   if (!/^[0-9a-f-]{36}$/.test(requestId)) return { ok: false, reason: 'the board stored the request but did not name it' }
-  const task = await deps.fileTask(b.id, title, `${text}\n\nThis is ${a.name}'s request on the board (${requestId}). When it is done, release this task done: Fabric answers the request for you.`)
-  await deps.note(task.id, b.id, `Board request: ${requestId} (from task ${from.id} in project ${a.id})`)
-  await deps.note(from.id, a.id, `Поручено ${b.name}: «${title}» (задача ${task.id}, запрос ${requestId}).`)
-  return { ok: true, taskId: task.id, requestId, project: b.name }
+  const taskId = assignedTaskId(requestId)
+  if (!(await deps.readTask(taskId))) {
+    try {
+      await deps.fileTask(b.id, taskId, title, `${text}\n\nThis is ${a.name}'s request on the board (${requestId}). When it is done, release this task done: Fabric answers the request for you.`)
+    } catch (e) {
+      if (!(await deps.readTask(taskId))) throw e // a concurrent attempt for the same request filed it first
+    }
+  }
+  const mark = `Board request: ${requestId} (from task ${from.id} in project ${a.id})`
+  if (!(await deps.notes(taskId)).some((n) => n.startsWith(mark))) await deps.note(taskId, b.id, mark)
+  if (!(await deps.notes(from.id)).some((n) => n.includes(`запрос ${requestId})`)))
+    await deps.note(from.id, a.id, `Поручено ${b.name}: «${title}» (задача ${taskId}, запрос ${requestId}).`)
+  return { ok: true, taskId, requestId, project: b.name }
 }
 
 /** When B's task is released done: answer its request as B and tell A's task. Nothing when the task was not assigned. */

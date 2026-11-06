@@ -399,6 +399,7 @@ import { detectExecutors } from './executorDetect.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
 import { readMachineSwitchboardSessions } from './switchboardSessions.ts'
 import { answerAssigned, assignAcross, type AssignDeps } from './crossProjectAssign.ts'
+import { reviewDecisionProblem, type ReviewDecision } from '../shared/reviewDecision.ts'
 import { readInbound, setInbound } from './claudeInbound.ts'
 import { readFabricReadiness } from './fabricReadinessRead.ts'
 import { FOLDER_HELD_SAYS, createFolderLocks } from './launchFolderLock.ts'
@@ -2453,6 +2454,45 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
   )
 
+  // SCN-179 (CO-521): the person's decision on work handed in for review, with words for its agent. Accept closes it done
+  // (the comment, when given, stays on the task as the person's note); return moves it back through running to the
+  // queue with the comment as the moves' note and the person's note, which the project's agents read on the task in
+  // `fabric_work_list` (`operator_said`); cancel closes it with the comment as its reason. A refusal is a value.
+  handle(IPC.tasksDecide, async (_e, taskId: string, decision: ReviewDecision, comment: string): Promise<Returns<FabricApi['tasks']['decide']>> => {
+    const said = String(comment ?? '').trim().slice(0, 4000)
+    const problem = reviewDecisionProblem(decision, said)
+    if (problem === 'unknown-decision') return { ok: false, reason: 'unknown decision' }
+    if (problem === 'return-needs-comment') return { ok: false, reason: 'returning needs a comment for the agent: say what to change' }
+    if (problem === 'cancel-needs-reason') return { ok: false, reason: 'cancelling needs a reason: say what changed' }
+    const { data: task, error: readError } = await store.select('project_tasks', 'id,project_id,status,title,instruction').eq('id', String(taskId)).maybeSingle()
+    if (readError) return { ok: false, reason: `the task could not be read: ${readError.message}` }
+    if (!task) return { ok: false, reason: 'that task no longer exists' }
+    if (task.status !== 'review') return { ok: false, reason: `the task is no longer in review (it is ${String(task.status)})` }
+    const projectId = task.project_id as string
+    const label = ((task.title as string | null) ?? (task.instruction as string | null) ?? '').trim().slice(0, 120) || null
+    const note = (body: string) => journal.append({ estateId: ACTIVE_ESTATE, type: 'task.note.added@1', actor: OPERATOR_ACTOR, projectId,
+      payload: { task_id: taskId, note_id: randomUUID(), body_md: body } })
+    if (decision === 'return') {
+      for (const [from, to] of [['review', 'running'], ['running', 'backlog']] as const) {
+        const verdict = mayMove('person', from, to)
+        if (!verdict.ok) return verdict
+        await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.moved@1', actor: OPERATOR_ACTOR, projectId, payload: { task_id: taskId, from, to, note: said } })
+      }
+      await note(said)
+      await acts.note({ kind: 'task.move', projectId, subject: { type: 'task', id: taskId, label },
+        said: { key: 'act.task.move', params: { task: label, from: 'review', to: 'backlog' } }, inverse: null, whyNot: 'answer_needs_person' })
+      return { ok: true }
+    }
+    const outcome = decision === 'accept' ? 'done' : 'cancelled'
+    const verdict = mayMove('person', 'review', outcome)
+    if (!verdict.ok) return verdict
+    if (said) await note(said)
+    await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.closed@1', actor: OPERATOR_ACTOR, projectId, payload: { task_id: taskId, outcome, reason: said || null } })
+    await acts.note({ kind: 'task.close', projectId, subject: { type: 'task', id: taskId, label },
+      said: { key: 'act.task.close', params: { task: label, outcome } }, inverse: null, whyNot: 'task_closed' })
+    return { ok: true }
+  })
+
   /**
    * One task, whole (M146 step 5).
    *
@@ -3390,6 +3430,20 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       ])
     )
     const isTask = new Set(taskRead.rows.map((row) => row.id as string))
+    // SCN-179 (CO-521): each review says what its agent handed in, the note of its newest move to review, so the person
+    // decides in the row. A read that fails leaves the rows without words, never without the review.
+    const reviewIds = ((reviews.data ?? []) as Array<{ id: string }>).map((r) => r.id)
+    const handIns = reviewIds.length
+      ? await store.selectIn('journal', 'seq,payload,occurred_at,actor', 'payload->>task_id', reviewIds, undefined, undefined, [['type', 'task.moved@1']])
+      : { rows: [], failed: null }
+    if (handIns.failed) ops.failed('board.review-notes-unreadable', new Error(handIns.failed))
+    const handedIn = new Map<string, { seq: number; said: string | null; by: string; at: string }>()
+    for (const row of handIns.rows) {
+      const p = row.payload as Record<string, unknown>, id = String(p.task_id ?? ''), seq = Number(row.seq)
+      if (p.to !== 'review' || (handedIn.get(id)?.seq ?? -1) > seq) continue
+      const kind = String((row.actor as { kind?: unknown } | null)?.kind ?? 'system')
+      handedIn.set(id, { seq, said: typeof p.note === 'string' && p.note.trim() ? p.note.trim() : null, by: kind, at: String(row.occurred_at) })
+    }
     // ADR-0115: an external agent waiting on consent is in the same queue, until answered or expired.
     let accessRows: NonNullable<AttentionSources['access']> = []
     let accessError: { message: string } | null = null
@@ -3428,7 +3482,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const items = attentionOf({
       access: accessRows,
       proposals: (proposals.data ?? []) as AttentionSources['proposals'],
-      reviews: (reviews.data ?? []) as AttentionSources['reviews'],
+      reviews: ((reviews.data ?? []) as AttentionSources['reviews']).map((r) => {
+        const h = handedIn.get(r.id)
+        return h ? { ...r, handed_in: { said: h.said, by: h.by === 'person' ? 'person' as const : h.by === 'agent' ? 'agent' as const : 'system' as const, at: h.at } } : r
+      }),
       expired: (expired.data ?? []).map((l) => ({
         work_id: l.work_id as string,
         project_id: l.project_id as string,
@@ -5784,8 +5841,7 @@ function assignDeps(): AssignDeps {
     submit: (projectId, input) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id).submit(input),
     reply: (projectId, input) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id).reply(input),
     epoch: (projectId) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id).epoch(),
-    fileTask: async (projectId, title, instruction) => {
-      const id = randomUUID()
+    fileTask: async (projectId, id, title, instruction) => {
       await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.created@1', actor: OPERATOR_ACTOR, projectId,
         payload: { id, title, instruction, origin: { kind: 'person', ref: OPERATOR_ACTOR.id } } })
       return { id }

@@ -3,6 +3,7 @@
 // already holds and says which of its three states it is in — unread, read and empty, read.
 
 import { runnerLabel } from '../runnerLabel'
+import { ReviewDecision } from './ReviewDecision'
 import { useEffect, useRef, useState } from 'react'
 import type { BoardCut, BoardEntry } from '../../../shared/board'
 import type { WorkRhythm } from '../../../shared/workRhythm'
@@ -253,6 +254,9 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
       ) : item.question ? (
         <AnswerForm look="launch" item={item} draft={draft} onDraft={setDraft}
           receipt={receipt} sending={sending} onSubmit={(option) => void answer(option)} />
+      ) : item.kind === 'review' && item.handedIn && item.subject.kind === 'task' ? (
+        // SCN-179 (CO-521): work handed in for review is decided where it is read; the journal's move re-reads the list.
+        <ReviewDecision compact taskId={item.subject.id} ask={item.handedIn} onDecided={() => {}} />
       ) : onOpen ? (
         <div className="lh-q-acts">
           <button type="button" className="lh-q-btn" onClick={() => onOpen(item.ref)}>{t('launch.home.board.openOne')}</button>
