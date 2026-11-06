@@ -84,6 +84,11 @@ Read on the operator's Mac on 2026-11-04 between 17:20 and 17:40 UTC.
 obligation is served (CO-502). Left: the retro counts and the session and request counts in the digest, and the daily
 digest sent to Observatory (CO-503).
 
+*Wired 2026-11-06 (CO-503):* once an hour Fabric's own closed days go to Observatory 0.34.0's `ops_digest_record` over
+its stdio server started with `--binding-token-file` (`apps/desktop/src/main/opsDigestSend.ts`); without the
+operator's binding nothing starts and the ops log says so once. Other services' digests wait for the hub's delegation
+token. Left: the binding, which the operator issues in a terminal, and the first record read back.
+
 ### 2.4 Fabric updates itself by default (CO-501)
 
 ADR-0121's updater is built: on by default for new and existing installs, checks every six hours, downloads in the

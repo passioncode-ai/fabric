@@ -42,7 +42,8 @@ export async function findObservatoryServer(launcher: string | null): Promise<Ob
 export type ToolCall = (name: string, args: Record<string, unknown>) => Promise<Record<string, unknown>>
 
 /** A stdio client to Observatory: `call` answers the tool's structured content, or throws with its error. */
-export function createObservatoryClient(locate: () => Promise<ObservatoryServer | null>, timeoutMs = 60_000): { call: ToolCall; close(): Promise<void> } {
+/** `args` follow the server script: `--binding-token-file PATH` starts it under an operator's access binding (CO-503). */
+export function createObservatoryClient(locate: () => Promise<ObservatoryServer | null>, timeoutMs = 60_000, args: readonly string[] = []): { call: ToolCall; close(): Promise<void> } {
   let client: Client | null = null
   let connecting: Promise<Client> | null = null
   const connect = async (): Promise<Client> => {
@@ -52,7 +53,7 @@ export function createObservatoryClient(locate: () => Promise<ObservatoryServer 
       const where = await locate()
       if (!where) throw new Error('Project Observatory is not installed on this computer')
       const c = new Client({ name: 'fabric-dispatcher', version: APP_VERSION })
-      await c.connect(new StdioClientTransport({ command: where.python, args: [where.server], stderr: 'ignore' }))
+      await c.connect(new StdioClientTransport({ command: where.python, args: [where.server, ...args], stderr: 'ignore' }))
       client = c
       return c
     })()

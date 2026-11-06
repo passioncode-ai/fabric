@@ -35,6 +35,9 @@ export function createOpsDigestCollector(deps: {
   ownDir: string
   servicesDir: string
   send: (r: DigestRecord) => Promise<void>
+  /** Whether this sender can carry a service's lines; a reason skips them, named in the pass, instead of failing
+   *  them every pass (CO-503: only Fabric's own go over stdio). */
+  accepts?: (s: ServiceRef) => string | null
   now?: () => number
   read?: (file: string) => string
   list?: (dir: string) => string[]
@@ -66,6 +69,8 @@ export function createOpsDigestCollector(deps: {
       const label = `${service.id}.${service.instance}`
       if (!service.id || !service.instance || service.id === FABRIC_SERVICE.id) { skipped.push({ service: label, reason: 'no id, or Fabric\'s own id' }); continue }
       if ('refused' in declared) { skipped.push({ service: label, reason: declared.refused }); continue }
+      const notCarried = deps.accepts?.(service) ?? null
+      if (notCarried) { skipped.push({ service: label, reason: notCarried }); continue }
       const data = String((d.paths as { data: string }).data).replace(/^~(?=\/)/, os.homedir())
       if (!path.isAbsolute(data)) { skipped.push({ service: label, reason: 'paths.data is not absolute' }); continue }
       for (const f of declared.folders) out.push({ service, source: f.source, dir: path.join(data, f.dir) })

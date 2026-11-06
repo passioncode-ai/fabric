@@ -200,6 +200,9 @@ import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { wireBoardDispatch } from './boardDispatchWiring.ts'
+import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
+import { createOpsDigestCollector } from './opsDigestCollector.ts'
+import { BINDING_TOKEN_FILE, createOpsDigestPass, createOpsDigestSender } from './opsDigestSend.ts'
 import { createIpcOutcomeLog } from './ipcOutcome.ts'
 import { agentCounts, createAnalytics, installationPath, type Analytics } from './analytics'
 import { homedir } from 'node:os'
@@ -397,7 +400,7 @@ import { markFor, setMark } from './digestMark.ts'
 import { favourites, moveProject, projectOrder, replaceFavourite, toggleFavourite } from './favourites.ts'
 import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
-import { detectExecutors } from './executorDetect.ts'
+import { detectExecutors, findOnPath, widenProbePath } from './executorDetect.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
 import { readMachineSwitchboardSessions } from './switchboardSessions.ts'
 import { answerAssigned, assignAcross, type AssignDeps } from './crossProjectAssign.ts'
@@ -2951,6 +2954,28 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   quit.onQuit(() => { void dispatcher.close() })
   // #endregion board-dispatch-cycle
 
+  // #region ops-digest-send-wiring — docs: docs/evidence/specs/2026-11-04-agents-logs-and-the-improvement-loop.md#23-logs-read-every-hour-and-every-day-and-the-improvement-loop-co-500-co-502-co-503
+  // CO-503: the closed days' digests go to Observatory once an hour, under the operator's ops.digest.record binding.
+  const digestToken = path.join(app.getPath('userData'), BINDING_TOKEN_FILE)
+  const digestObservatory = createObservatoryClient(
+    async () => findObservatoryServer(await findOnPath('project-observatory', await widenProbePath(process.env.PATH ?? '', process.env))),
+    60_000,
+    ['--binding-token-file', digestToken]
+  )
+  const digestSender = createOpsDigestSender({ tokenFile: digestToken, call: digestObservatory.call })
+  const digestSend = createOpsDigestPass({
+    ready: digestSender.ready,
+    pass: createOpsDigestCollector({
+      ownDir: path.join(app.getPath('userData'), 'digests'),
+      servicesDir: registryDirs().services,
+      send: digestSender.send,
+      accepts: digestSender.accepts
+    }).pass,
+    log: (outcome, detail) => ops.record({ op: 'ops.digest-send', outcome, level: outcome === 'failed' ? 'warn' : 'info', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  quit.onQuit(() => { void digestObservatory.close() })
+  // #endregion ops-digest-send-wiring
+
   // #region cycle-run — docs: docs/adr/0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md#decision
   /**
    * One pass, and it leaves a receipt whether or not it did anything.
@@ -2991,6 +3016,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // CO-409: the dispatcher runs beside the cycle, never inside its window: a start can wait on Switchboard for a
     // minute, and its own guard keeps one pass at a time.
     if (!quit.quitting) void dispatcher.onPass()
+    // CO-503: beside the cycle too; at most once an hour, its own guard keeps one collection at a time.
+    if (!quit.quitting) void digestSend.onPass()
     // CO-500: an hour the clock has passed closes even when nothing was recorded since.
     try {
       opsDigest?.tick()

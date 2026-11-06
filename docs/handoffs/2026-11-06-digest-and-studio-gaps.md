@@ -31,8 +31,9 @@ of 2026-11-05 relayed on the board (thread `1fe66e6e`): Fabric's gaps for the or
 
 - **CO-513, CO-514**: the contract's DEC-0154 (draft on branch `agent/studio-ports-owner-20261106`, accepted and tagged
   by 2026-11-07). Claim names agreed: `ai.passioncode.desktop.hub`, `ai.passioncode.desktop.stack`.
-- **CO-503, wiring the collector**: Observatory 0.34.0 with `ops_digest_record` (OBS-330), and an access binding the
-  operator issues in a terminal (`project-observatory full access-binding issue service:fabric --project
+- **CO-503, the collector wired** (2026-11-06, `apps/desktop/src/main/opsDigestSend.ts`): Observatory 0.34.0 shipped
+  `ops_digest_record`; what is left is the access binding the operator issues in a terminal, written to
+  `<userData>/observatory/ops-digest-binding.token` (`project-observatory full access-binding issue service:fabric --project
   project:<Fabric's slug> --scope ops.digest.record ...`, board thread `f7758225`, `917a0ec0`). Other services' lines
   wait for the hub's delegation token.
 - **CO-515** with the contract's G7; **CO-516** with the organization slice (PLAT-137).

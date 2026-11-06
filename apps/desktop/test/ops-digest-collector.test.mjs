@@ -9,10 +9,10 @@ const { declaredFolders, dirFits, dailyFits, OPS_DIGEST_EXTENSION } = await impo
 const daily = (day, failed = 0) => JSON.stringify({ schema: 'ops.digest.daily@1', day, hours: 2, ops: [{ op: 'x', ok: 1, failed, unknown: 0 }], total: { ok: 1, failed, unknown: 0 }, risen: [] })
 const desc = (over = {}) => ({ id: 'inbox', instance: 'default', placement: 'local', paths: { data: '/data/inbox', logs: [] }, extensions: { [OPS_DIGEST_EXTENSION]: [{ dir: 'digests', source: 'mac-app' }] }, ...over })
 
-function world(files, now = Date.parse('2026-11-06T08:00:00Z')) {
+function world(files, now = Date.parse('2026-11-06T08:00:00Z'), accepts) {
   const sent = []
   const c = createOpsDigestCollector({
-    ownDir: '/own', servicesDir: '/svc', now: () => now,
+    ownDir: '/own', servicesDir: '/svc', now: () => now, accepts,
     read: (f) => { if (!files.has(f)) throw new Error('ENOENT'); return files.get(f) },
     list: (d) => [...files.keys()].filter((f) => path.dirname(f) === d).map((f) => path.basename(f)),
     writeWhole: (f, t) => files.set(f, t),
@@ -73,4 +73,17 @@ test('a daily line a reader would skip is not sent: shape, names, sums', () => {
   assert.equal(bad((d) => { d.total.ok = 2 }), false)
   assert.equal(bad((d) => { d.ops[0].op = 'api.users/list' }), false)
   assert.equal(bad((d) => { d.extra = 1 }), false)
+})
+
+test('a service the sender cannot carry is skipped with its reason, never failed every pass (CO-503)', async () => {
+  const files = new Map([
+    ['/own/daily-2026-11.jsonl', daily('2026-11-05') + '\n'],
+    ['/svc/fabric-inbox.default.json', JSON.stringify(desc())],
+    ['/data/inbox/digests/daily-2026-11.jsonl', daily('2026-11-05') + '\n']
+  ])
+  const w = world(files, undefined, (s) => (s.id === 'fabric' ? null : 'waits for the hub token'))
+  const p = await w.c.pass()
+  assert.deepEqual(w.sent.map((r) => r.service.id), ['fabric'])
+  assert.equal(p.failed, 0)
+  assert.deepEqual(p.skipped, [{ service: 'inbox.default', reason: 'waits for the hub token' }])
 })
