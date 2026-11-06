@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/passioncode-ai/fabric-agent-contract",
+  "tag": "v0.1.0+2026-11-06.1",
+  "commit": "eac1a594aa131851f079da8bb7b2149e1951f35f",
+  "decision": "DEC-0153",
+  "files": [{ "path": "fixtures/vectors/ops-digest.json", "copy": "ops-digest.json", "sha256": "ed027cecf2629e26a78f4395e0508766ddfa603a0ecb0f838b3d1f47c089bb52" }]
+}

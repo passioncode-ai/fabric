@@ -19,6 +19,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - **Answering a project's requests is granted for your own project only, at once** (CO-506, ADR-0190). A session's
   `com.enroll` gets its own project's grant with no question; a grant for another project asked through the hub now
   waits for you in Agent access.
+- **The operations digest passes the contract's own vectors** (CO-503, DEC-0153 at the contract's tag
+  v0.1.0+2026-11-06.1): an hour written twice is folded once, and a day with no hour of its own writes no daily line.
 - **The operations digest keeps the hour Fabric quits in, and no longer writes the hours the Mac slept** (CO-509,
   DEC-0153). The quit hour is written at the next start with its counts; `previous` comes from the last hour written; a
   day holds at most 4095 named operations, the rest under `ops.overflow`; a clock set back no longer drops records; old

@@ -115,8 +115,8 @@ export interface CallSubject {
   rpcId: string | null
 }
 
-/** An operation's name, DEC-0153 OD-2: the contract's `OP_NAME` and `OP_NAME_MAX`, as its branch states them until its
- *  release tag carries them (CO-509). No empty segment, no space, at most 64 characters. */
+/** An operation's name, DEC-0153 OD-2: the contract's `OP_NAME` and `OP_NAME_MAX`, equal to `src/ops-digest.ts` at the
+ *  contract's tag v0.1.0+2026-11-06.1 (`eac1a594`). No empty segment, no space, at most 64 characters. */
 export const OP_NAME = /^[a-z][A-Za-z0-9_]*(?:[.:/-][A-Za-z0-9_]+)*$/
 export const OP_NAME_MAX = 64
 

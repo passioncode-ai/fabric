@@ -47,8 +47,8 @@ describe('foldDay', () => {
     const other = foldHour(counts([['x', 'failed', 99]]), Date.parse('2026-11-05T00:00:00Z'), null)
     const d = foldDay('2026-11-04', [h1, h2, other])
     expect(d).toMatchObject({ schema: 'ops.digest.daily@1', day: '2026-11-04', hours: 2 })
-    expect(d.ops).toEqual([{ op: 'x', ok: 0, failed: 42, unknown: 0 }, { op: 'y', ok: 1, failed: 0, unknown: 0 }])
-    expect(d.risen).toEqual([{ op: 'x', hours: 2, failed: 42 }])
+    expect(d?.ops).toEqual([{ op: 'x', ok: 0, failed: 42, unknown: 0 }, { op: 'y', ok: 1, failed: 0, unknown: 0 }])
+    expect(d?.risen).toEqual([{ op: 'x', hours: 2, failed: 42 }])
   })
 })
 

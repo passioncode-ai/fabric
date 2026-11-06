@@ -80,9 +80,18 @@ export function foldHour(counts: HourCounts, from: number, previous: HourlyDiges
   return { schema: 'ops.digest.hourly@1', from: new Date(from).toISOString(), to: new Date(from + HOUR_MS).toISOString(), ops, total, risen }
 }
 
-/** The day's hourly digests (those whose hour starts on that UTC day) folded into one. */
-export function foldDay(day: string, hourly: readonly HourlyDigest[]): DailyDigest {
-  const mine = hourly.filter((h) => h.from.slice(0, 10) === day)
+/** The day's hourly digests (those whose hour starts on that UTC day) folded into one, each hour once: the first line of
+ *  an hour is the hour's, `from` read with or without its fraction (DEC-0153 OD-5). A day with no hour of its own has no
+ *  digest: null. */
+export function foldDay(day: string, hourly: readonly HourlyDigest[]): DailyDigest | null {
+  const seen = new Set<number>()
+  const mine = hourly.filter((h) => {
+    const at = Date.parse(h.from)
+    if (h.from.slice(0, 10) !== day || seen.has(at)) return false
+    seen.add(at)
+    return true
+  })
+  if (!mine.length) return null
   const sum = new Map<string, OpCount>()
   const rose = new Map<string, { hours: number; failed: number }>()
   for (const h of mine) {

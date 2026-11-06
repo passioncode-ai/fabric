@@ -186,11 +186,8 @@ export function createOpsDigestRun(deps: {
       let daily: DailyDigest | null = null
       if (dayOf(bucket) !== dayBefore) {
         named = new Set()
-        const hours = hoursOf(dayBefore)
-        if (hours.length) {
-          daily = foldDay(dayBefore, hours)
-          write(`daily-${month(dayBefore)}.jsonl`, daily)
-        }
+        daily = foldDay(dayBefore, hoursOf(dayBefore))
+        if (daily) write(`daily-${month(dayBefore)}.jsonl`, daily)
       }
       return { hourly: h, daily }
     } finally {
@@ -209,7 +206,8 @@ export function createOpsDigestRun(deps: {
       const days = new Set([...hourlyOf(m).values()].map((h) => h.from.slice(0, 10)).filter((d) => d < today))
       for (const day of [...days].sort()) {
         if (done.has(day)) continue
-        write(`daily-${m}.jsonl`, foldDay(day, hoursOf(day)))
+        const d = foldDay(day, hoursOf(day))
+        if (d) write(`daily-${m}.jsonl`, d)
       }
     }
   }
