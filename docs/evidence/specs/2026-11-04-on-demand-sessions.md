@@ -133,7 +133,8 @@ The dispatcher writes an Observatory workflow for the request (`observatory_chec
 `goal` names the request; `constraints` carry the exit contract (claim, renew the lease with `com.renew` or
 `com.progress` about every 20 s during a long step, as the contract's 60 s lease expects, so a late renewal never
 meets `lease_expired` on the next call, `com.complete` included (a project on the board, thread `0ad0b68c`), answer in the thread, complete the request, write the final
-checkpoint, end), the floors of §2 and the operator's mandate as the request carries it (DEC-0125, appended to only, the
+checkpoint, end; when `com.enroll` answers `not_authorized`, the refusal branch of the board rule `board.read-at-start`: one
+`com.reply` only for a slot absent at generation 0, otherwise none, and the operator asked either way, CO-525), the floors of §2 and the operator's mandate as the request carries it (DEC-0125, appended to only, the
 started session joining the chain as a callee, MD-2); `artifacts` carry references only; `open` names the one step. No
 message body travels in the packet (the session reads the request with `com.get {message}` and the thread with
 `com.list {thread}` under its own credential, with the reader's redaction; fabric-agent-adapter, 2026-11-04), no absolute folder (the launch's working directory is the folder), no lease and no attempt or fence

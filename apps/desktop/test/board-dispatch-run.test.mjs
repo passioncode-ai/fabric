@@ -509,3 +509,18 @@ test('CO-409: a workflow a run left open is closed by Fabric once another sessio
   assert.equal(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true).length, 1, 'closed once')
   assert.equal(w.launches.length, 1)
 })
+
+test('a run told to claim is told what a refused com.enroll means, as the board rule says (fabric-agent-adapter FAA-247)', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  const refusal = open.body.constraints.find((c) => c.includes('not_authorized'))
+  assert.ok(refusal, 'no constraint says what to do when com.enroll is refused')
+  // A run that answers anyway takes the request from the project's service: the reply is only for a slot absent at
+  // generation 0, and the operator is asked either way.
+  assert.match(refusal, /absent at generation 0/)
+  assert.match(refusal, /no com\.reply/)
+  assert.match(refusal, /fabric_question_ask/)
+  assert.match(refusal, /board\.read-at-start/)
+})
