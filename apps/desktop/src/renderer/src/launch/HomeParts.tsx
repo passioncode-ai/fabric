@@ -4,6 +4,7 @@
 
 import { runnerLabel } from '../runnerLabel'
 import { ReviewDecision } from './ReviewDecision'
+import { OverlapDecision } from './OverlapDecision'
 import { useEffect, useRef, useState } from 'react'
 import type { BoardCut, BoardEntry } from '../../../shared/board'
 import type { WorkRhythm } from '../../../shared/workRhythm'
@@ -254,6 +255,9 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
       ) : item.question ? (
         <AnswerForm look="launch" item={item} draft={draft} onDraft={setDraft}
           receipt={receipt} sending={sending} onSubmit={(option) => void answer(option)} />
+      ) : item.swept?.kind === 'overlap-unsettled' ? (
+        // CO-522 wave B part 2: two sessions that overlap are decided where the item is read.
+        <OverlapDecision itemKey={item.swept.key} />
       ) : item.kind === 'review' && item.handedIn && item.subject.kind === 'task' ? (
         // SCN-179 (CO-521): work handed in for review is decided where it is read; the journal's move re-reads the list.
         <ReviewDecision compact taskId={item.subject.id} ask={item.handedIn} onDecided={() => {}} />

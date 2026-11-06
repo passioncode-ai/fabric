@@ -55,6 +55,7 @@ import { createOpsDigestRun, type OpsDigestRun } from './opsDigestRun.ts'
 import { risenRows } from '../shared/opsDigest.ts'
 import { readHome, readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, readWork, type HeldSession } from './workRead.ts'
 import { launchOverlap } from '../shared/launchOverlap.ts'
+import { OVERLAP_CHOICES, overlapPair, type OverlapChoice } from '../shared/abandonedSweep.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -5380,6 +5381,33 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const found = launchOverlap({ taskId, text: String(input?.text ?? '') }, snap.claims, sources, edges)
     const console = [...found.overlaps, ...found.alsoWorking].map((h) => h.heldBy).filter((s) => ptys.get(s) !== null)
     return { ...found, console: [...new Set(console)] }
+  })
+
+  // CO-522 wave B part 2: the person decides two sessions that overlap. Both tasks get the decision as the person's note;
+  // «The other waits» links the later task after the first (`link_tasks`, follows); the sweep tells both sessions.
+  handle(IPC.workOverlapDecide, async (_e, input: { key: string; choice: string }): Promise<Returns<FabricApi['work']['overlapDecide']>> => {
+    const m = /^overlap-unsettled:([0-9a-f-]{36}):([0-9a-f-]{36})$/.exec(String(input?.key ?? ''))
+    const choice = String(input?.choice ?? '') as OverlapChoice
+    if (!m || !OVERLAP_CHOICES.includes(choice)) return { ok: false, reason: 'unknown overlap or choice' }
+    const { data: rows, error } = await store.select('work_claims', 'id,work_id,project_id,owner_session,claimed_at,released_at').in('id', [m[1]!, m[2]!])
+    if (error) return { ok: false, reason: `the claims could not be read: ${error.message}` }
+    const claims = (rows ?? []) as Array<{ id: string; work_id: string; project_id: string; owner_session: string; claimed_at: string; released_at: string | null }>
+    if (claims.length !== 2 || claims.some((c) => c.released_at)) return { ok: false, reason: 'one of the two sessions no longer holds its task' }
+    const [first, second] = [...claims].sort((a, b) => Date.parse(a.claimed_at) - Date.parse(b.claimed_at) || (a.id < b.id ? -1 : 1)) as [typeof claims[0], typeof claims[0]]
+    if (choice === 'wait') {
+      const { data: link, error: linkError } = await db.rpc('link_tasks', { p_estate_id: ACTIVE_ESTATE, p_task_id: second.work_id, p_rel: 'follows',
+        p_target_id: first.work_id, p_actor: OPERATOR_ACTOR, p_project_id: second.project_id })
+      const verdict = linkOutcome(link, linkError)
+      if (!verdict.linked) return { ok: false, reason: linkRefusal(verdict) || 'the tasks could not be linked' }
+    }
+    const said = choice === 'wait' ? `Decided: this task waits for task ${first.work_id} (session ${first.owner_session}), which goes first.`
+      : choice === 'handover' ? `Decided: session ${second.owner_session} hands its task to session ${first.owner_session}.`
+        : 'Decided: both sessions go on, each keeping to its own paths.'
+    for (const c of [first, second])
+      await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.note.added@1', actor: OPERATOR_ACTOR, projectId: c.project_id,
+        payload: { task_id: c.work_id, note_id: randomUUID(), body_md: `${said} (overlap of sessions ${first.owner_session} and ${second.owner_session})` } })
+    abandonedSweep?.decideOverlap(overlapPair(first.id, second.id), choice)
+    return { ok: true }
   })
 
   handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> => {

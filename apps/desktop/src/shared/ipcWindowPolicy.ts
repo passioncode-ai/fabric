@@ -224,6 +224,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   workHome: MAIN_ONLY,
   workBoard: MAIN_ONLY,
   workLaunchCheck: MAIN_ONLY,
+  workOverlapDecide: MAIN_ONLY,
   workSession: MAIN_ONLY,
   workRhythm: MAIN_ONLY,
   workRelease: MAIN_ONLY,

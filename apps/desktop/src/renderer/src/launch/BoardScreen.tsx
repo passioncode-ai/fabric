@@ -12,6 +12,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ReviewDecision } from './ReviewDecision'
+import { OverlapDecision } from './OverlapDecision'
 import { forPerson, reviewCounts, type BoardCut, type BoardEntry } from '../../../shared/board'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from '../../../shared/boardResolved.ts'
 import type { BoardTab } from '../../../shared/appRoute'
@@ -397,7 +398,9 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                   {!settledHere && <div><dt>{t('launch.board.fact.waiting')}</dt><dd>{since(chosen.entry.waitingSince, t)}</dd></div>}
                 </dl>
                 <div className="lp-divider" />
-                {chosen.entry.kind === 'review' && chosen.entry.handedIn && chosen.entry.subject.kind === 'task' ? (
+                {chosen.entry.swept?.kind === 'overlap-unsettled' ? (
+                  <OverlapDecision itemKey={chosen.entry.swept.key} />
+                ) : chosen.entry.kind === 'review' && chosen.entry.handedIn && chosen.entry.subject.kind === 'task' ? (
                   // SCN-179 (CO-521): a review is decided here, with the agent's words and a comment for it.
                   <ReviewDecision taskId={chosen.entry.subject.id} ask={chosen.entry.handedIn} onDecided={() => { void reload.current() }} />
                 ) : chosen.entry.question ? (

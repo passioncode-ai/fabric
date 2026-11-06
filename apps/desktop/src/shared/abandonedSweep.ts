@@ -20,7 +20,7 @@ export const TELL_QUIET_MS = 30 * 60_000
 
 /** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
-export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose', 'claim-overlap'] as const
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose', 'claim-overlap', 'overlap-unsettled'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
 /** The kinds that are a reminder to the agent at work, not abandoned work for the operator's queue (0.3.14 wave 2):
  *  a session changing files without a claim is told to claim, and the operator's «На проверке» is not filled with it. */
@@ -53,7 +53,25 @@ export interface SweepClaim {
    *  the claim opened (the 0.3.16 review, ER-11: a claim may be taken on a task in review). */
   taskMovedAt?: string | null
   /** CO-522 wave B: the project's other live claims this one runs into (`workClaims.ts#relatedTo`), the reasons said. */
-  related?: ReadonlyArray<{ claimId: string; taskId: string; sessionId: string; why: string }>
+  related?: ReadonlyArray<{ claimId: string; taskId: string; sessionId: string; why: string; claimedAt?: string }>
+}
+
+/** CO-522 wave B part 2: an overlap that has stood this long, measured from the later of its two claims, is the person's. */
+export const OVERLAP_PERSON_MS = 15 * 60_000
+export type OverlapChoice = 'wait' | 'handover' | 'split'
+export const OVERLAP_CHOICES: readonly OverlapChoice[] = ['wait', 'handover', 'split']
+/** One key per pair of claims, whichever side reads it. */
+export const overlapPair = (a: string, b: string): string => (a < b ? `${a}:${b}` : `${b}:${a}`)
+
+/** What one side of a decided overlap is told: `second` is the claim that came later and ran into the other. */
+function decidedStep(choice: OverlapChoice, second: boolean, other: { taskId: string; sessionId: string }): string {
+  if (choice === 'wait') return second
+    ? `The operator decided you wait: task ${other.taskId} (session ${other.sessionId}) goes first, and your task now follows it. Do not change the files you share until it is done.`
+    : `The operator decided session ${other.sessionId} waits for you: finish your task; its task ${other.taskId} now follows yours.`
+  if (choice === 'handover') return second
+    ? `The operator decided you hand your task to session ${other.sessionId}: release it with fabric_work_release, how handed-over, to that session, with a note of where you stopped.`
+    : `The operator decided session ${other.sessionId} hands its task ${other.taskId} to you: take it when it arrives (fabric_work_list, waiting_for_you).`
+  return `The operator decided you both go on, split: keep to your own paths, name them in fabric_work_claim touches, and leave the shared ones to whoever held them first (task ${other.taskId}, session ${other.sessionId}).`
 }
 
 /** The task states a live claim is let go on (CO-499): the work is over or back in the queue, so a claim that a living
@@ -139,6 +157,8 @@ export interface SweepInput {
   heldSessions?: readonly string[]
   /** The missing parts of the brief of each claimed or launched task read (`taskSpec.ts#specGaps`); a task absent was not read. */
   briefGaps?: Readonly<Record<string, readonly SpecPart[]>>
+  /** CO-522 wave B part 2: the overlaps the person decided, by `overlapPair`. */
+  decidedOverlaps?: ReadonlyMap<string, OverlapChoice>
   /** CO-462: running tasks Fabric launched in a session that holds them with no claim (its terminal or its managed lease),
    *  with when the task went to running. */
   launches?: readonly SweepLaunch[]
@@ -262,10 +282,22 @@ export function findAbandoned(input: SweepInput): Finding[] {
   // each about the other, once per pair until it changes.
   for (const c of input.claims) {
     if (c.session === null || Date.parse(c.expiresAt) <= now) continue
-    for (const r of c.related ?? [])
-      out.push({ ...base, kind: 'claim-overlap', key: `claim-overlap:${c.claimId}:${r.claimId}`, projectId: c.projectId, taskId: c.taskId,
-        sessionId: c.sessionId, claimId: c.claimId, stillMs: now - Date.parse(c.claimedAt),
-        nextStep: `Your task runs into task ${r.taskId}, which session ${r.sessionId} holds (${r.why}). Agree with that session before you change the same files: ask it to hand over (fabric_work_claim with askHandover), put one task after the other (fabric_task_link, follows), or split what each touches and say so in a task note.` })
+    for (const r of c.related ?? []) {
+      const pairKey = overlapPair(c.claimId, r.claimId)
+      const choice = input.decidedOverlaps?.get(pairKey)
+      const theirs = r.claimedAt ? Date.parse(r.claimedAt) : Number.NaN
+      const mine = Date.parse(c.claimedAt)
+      const second = Number.isFinite(theirs) ? mine > theirs || (mine === theirs && c.claimId > r.claimId) : false
+      out.push({ ...base, kind: 'claim-overlap', key: `claim-overlap:${c.claimId}:${r.claimId}${choice ? `:${choice}` : ''}`, projectId: c.projectId, taskId: c.taskId,
+        sessionId: c.sessionId, claimId: c.claimId, stillMs: now - mine,
+        nextStep: choice ? decidedStep(choice, second, r)
+          : `Your task runs into task ${r.taskId}, which session ${r.sessionId} holds (${r.why}). Agree with that session before you change the same files: ask it to hand over (fabric_work_claim with askHandover), put one task after the other (fabric_task_link, follows), or split what each touches and say so in a task note.` })
+      // Part 2: one item for the person per pair, on the claim that came second, once the overlap has stood fifteen minutes.
+      if (!choice && second && Number.isFinite(theirs) && now - mine >= OVERLAP_PERSON_MS)
+        out.push({ ...base, kind: 'overlap-unsettled', key: `overlap-unsettled:${pairKey}`, projectId: c.projectId, taskId: c.taskId,
+          sessionId: c.sessionId, claimId: c.claimId, stillMs: now - mine,
+          nextStep: `Your task and task ${r.taskId} (session ${r.sessionId}) have overlapped for a while; the operator is asked to decide who goes on. Until then keep to paths the other does not touch.` })
+    }
   }
   // #endregion claim-overlap
   // #region work-unclaimed — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
@@ -324,7 +356,8 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'claim-closed': (f) => `task ${f.taskId} you claimed`,
   // CO-500: never told to an agent; Fabric's own hourly reading puts it in the operator's queue (`opsDigestRun.ts`).
   'failures-rose': () => 'Fabric\'s own log',
-  'claim-overlap': (f) => `task ${f.taskId} you claimed`
+  'claim-overlap': (f) => `task ${f.taskId} you claimed`,
+  'overlap-unsettled': (f) => `task ${f.taskId} you claimed`
 }
 
 /** A kind whose line is not "has been still": what it says, given the whole minutes. */
@@ -334,7 +367,8 @@ const SAYS: Partial<Record<AbandonedKind, (f: Finding, min: number) => string>> 
   // CO-499: the line says what Fabric did, not how long it stood still.
   'claim-closed': (f) => `${SUBJECT[f.kind](f)} is no longer in work, and your claim on it has been let go.`,
   // CO-522 wave B: the line says what it runs into; the next step names the other session and how to agree.
-  'claim-overlap': (f) => `${SUBJECT[f.kind](f)} runs into another session's work.`
+  'claim-overlap': (f) => `${SUBJECT[f.kind](f)} runs into another session's work.`,
+  'overlap-unsettled': (f, min) => `${SUBJECT[f.kind](f)} has overlapped another session's work for ${min} min; the operator is asked to decide.`
 }
 
 /** The one line an agent is told (SW-4): what, how long it stood still in whole minutes (SW-3), what to do next. */

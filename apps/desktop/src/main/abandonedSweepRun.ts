@@ -32,6 +32,7 @@ import {
   type AbandonedKind,
   type Finding,
   type Nudge,
+  type OverlapChoice,
   type SweepClaim,
   type SweepLastClaim,
   type SweepLaunch,
@@ -200,6 +201,8 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   let latest: { at: number; findings: SweptFinding[]; unclaimed: number | null; unclaimedSessions: string[] } | null = null
   /** Per session, at most one line per finding key: a newer telling replaces the older (finding 2). */
   const bySession = new Map<string, Map<string, SessionNudge>>()
+  /** CO-522 wave B part 2: the overlaps the person decided, by pair; in memory, so a restart asks again while they stand. */
+  const decidedOverlaps = new Map<string, OverlapChoice>()
   const byProject = new Map<string, ProjectNudge[]>()
   /** What each turn's answer showed, by session and the turn's idempotencyKey, so a repeat answers the same (ER-2). */
   const turnAnswers = new Map<string, { at: number; nudges: Nudge[] }>()
@@ -306,6 +309,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
         : [],
       requests: requestRead?.requests ?? [],
       terminals: terminals ?? [],
+      decidedOverlaps,
       ...(taskRead ? { runningTaskIds: taskRead.map((t) => t.taskId) } : {}),
       // 0.3.14 wave 2: a session is judged by what it holds, so its turns are judged only when everything it could hold
       // was read whole (the same condition as a running task's holders above), and only when the turns were (ER-12).
@@ -519,6 +523,12 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
      *  fabric_work_list and fabric_heartbeat take; a turn's answer shows (`showTurnNudges`). */
     takeNudgeItems,
     showTurnNudges,
+    /** CO-522 wave B part 2: the person decided an overlap; its item leaves the queue now, and the next sweep tells both
+     *  sessions the decision. */
+    decideOverlap(pairKey: string, choice: OverlapChoice): void {
+      decidedOverlaps.set(pairKey, choice)
+      if (latest) latest = { ...latest, findings: latest.findings.filter((f) => f.key !== `overlap-unsettled:${pairKey}`) }
+    },
     /** The same nudges as the lines fabric_work_list and fabric_heartbeat carry. */
     takeNudges(sessionId: string, projectId: string | null): string[] {
       return takeNudgeItems(sessionId, projectId).map((n) => n.says)
@@ -542,7 +552,7 @@ export async function readSweepClaims(store: Store, now: number, session: Sessio
       taskStatus: c.task.status,
       taskMovedAt: c.task.movedAt ?? null,
       // CO-522 wave B: the claims this one runs into, as fabric_work_claim's warning says them.
-      ...(c.related.length ? { related: c.related.map((r) => ({ claimId: r.claimId, taskId: r.taskId, sessionId: r.heldBy, why: r.why.map(sayWhy).join('; ') })) } : {})
+      ...(c.related.length ? { related: c.related.map((r) => ({ claimId: r.claimId, taskId: r.taskId, sessionId: r.heldBy, why: r.why.map(sayWhy).join('; '), claimedAt: r.since })) } : {})
     })),
     heldTaskIds: snap.held.map((h) => h.task.id),
     heldSessionIds: snap.held.map((h) => h.owner_session),

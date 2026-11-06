@@ -299,3 +299,28 @@ describe('claim-overlap (CO-522 wave B): two live claims that run into each othe
     expect(findAbandoned({ ...empty, claims: [{ ...live('a', 's-a', rel), expiresAt: ago(MIN) }] }).filter((f) => f.kind === 'claim-overlap')).toEqual([])
   })
 })
+
+describe('overlap-unsettled (CO-522 wave B part 2): an overlap that stands is the person\'s to decide', () => {
+  const at = (min: number) => ago(min * MIN)
+  const pair = (aMin: number, bMin: number) => [
+    { claimId: 'a', taskId: 't-a', projectId: 'p1', sessionId: 's-a', expiresAt: new Date(NOW + 30 * MIN).toISOString(), claimedAt: at(aMin), renewedAt: null,
+      session: { lastSignAt: NOW - MIN }, related: [{ claimId: 'b', taskId: 't-b', sessionId: 's-b', why: 'the same task', claimedAt: at(bMin) }] },
+    { claimId: 'b', taskId: 't-b', projectId: 'p1', sessionId: 's-b', expiresAt: new Date(NOW + 30 * MIN).toISOString(), claimedAt: at(bMin), renewedAt: null,
+      session: { lastSignAt: NOW - MIN }, related: [{ claimId: 'a', taskId: 't-a', sessionId: 's-a', why: 'the same task', claimedAt: at(aMin) }] }
+  ]
+  it('after fifteen minutes one item for the pair, on the session that came second; never before', () => {
+    const found = findAbandoned({ ...empty, claims: pair(40, 20) }).filter((f) => f.kind === 'overlap-unsettled')
+    expect(found).toHaveLength(1)
+    expect(found[0]).toMatchObject({ key: 'overlap-unsettled:a:b', sessionId: 's-b', taskId: 't-b', claimId: 'b' })
+    expect(AGENT_ONLY_KINDS.has('overlap-unsettled')).toBe(false)
+    expect(findAbandoned({ ...empty, claims: pair(40, 10) }).filter((f) => f.kind === 'overlap-unsettled')).toEqual([])
+  })
+  it('once decided, no item; each session is told the decision under a new key, the second one what it does', () => {
+    const found = findAbandoned({ ...empty, claims: pair(40, 20), decidedOverlaps: new Map([['a:b', 'wait']]) })
+    expect(found.filter((f) => f.kind === 'overlap-unsettled')).toEqual([])
+    const told = found.filter((f) => f.kind === 'claim-overlap')
+    expect(told.map((f) => f.key)).toEqual(['claim-overlap:a:b:wait', 'claim-overlap:b:a:wait'])
+    expect(told.find((f) => f.sessionId === 's-b')!.nextStep).toMatch(/decided you wait.*t-a/)
+    expect(told.find((f) => f.sessionId === 's-a')!.nextStep).toMatch(/s-b waits for you/)
+  })
+})

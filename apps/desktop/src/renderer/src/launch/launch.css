@@ -1091,3 +1091,6 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .lo h4{margin:0;font-size:13px}
 .lo .lp-list{margin:0;font-size:12.5px}
 .lo-acts{display:flex;gap:6px;flex-wrap:wrap}
+/* CO-522 wave B part 2: the three answers to an overlap, under its lede. */
+.ov{display:grid;gap:var(--space-2)}
+.ov>.lp-meta{margin:0}

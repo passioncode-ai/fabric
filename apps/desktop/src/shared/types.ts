@@ -1692,6 +1692,9 @@ export interface FabricApi {
     /** CO-522 wave A: before an agent starts on a task in a project, the live claims it would run into (`launchOverlap.ts`);
      *  `console` names the holders whose console Fabric can open. A read that fails REJECTS: no answer is never «nobody». */
     launchCheck(input: { projectId: string; taskId?: string | null; text: string }): Promise<import('./launchOverlap.ts').LaunchOverlap & { console: string[] }>
+    /** CO-522 wave B part 2: the person's decision on two sessions that overlap (`key` is the queue item's `overlap-unsettled:<a>:<b>`).
+     *  A refusal comes back as a value. */
+    overlapDecide(input: { key: string; choice: 'wait' | 'handover' | 'split' }): Promise<MoveResult>
     /** One agent session's tasks, newest first (0.3.14): what it claimed (live and released) and what Fabric launched in
      *  it. A read that fails REJECTS, so an empty list is always "no task", never a read that did not happen. */
     /** CO-475: `aliases` are the agent's earlier session ids (`LiveAgent.aliases`), read with the live one. */
@@ -1951,6 +1954,7 @@ export const IPC = {
   workHome: 'work:home',
   workBoard: 'work:board',
   workLaunchCheck: 'work:launchCheck',
+  workOverlapDecide: 'work:overlapDecide',
   workSession: 'work:session',
   workRhythm: 'work:rhythm',
   workRelease: 'work:release',
