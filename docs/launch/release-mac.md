@@ -314,7 +314,7 @@ large estate's threads read as unread again (0.3.12 keeps up to 5 000). The migr
 
 **0.3.14 (not yet released) admits schema 98**, the same as 0.3.13: it adds no migration (`supabase/migrations/` still ends at `20261026000125_board_reader_count_held.sql`, 98 files, and `git diff --stat c05c30ef..release/0.3.14 -- supabase` prints nothing) and no setting. A database at 98 needs nothing, so upgrading from 0.3.13 is the new bundle alone and going back is the 0.3.13 bundle alone; a database at 96 or 95 takes 0.3.13's upgrade below first, then opens 0.3.14. Before installing it on a machine, update its Fabric agent adapter to 0.51.2 or later (`@passioncode-ai/fabric-agent-adapter`, FAA-142), so the session hooks print the reminders a turn's answer shows; with an older adapter the reminders still come in `fabric_work_list` and `fabric_heartbeat` (the 0.3.14 release review, iteration 1, PL-1). A session Fabric launched reports no turns with any adapter (its session hooks stay silent there), so, like Codex and Kimi, it gets its reminders only in `fabric_work_list` and `fabric_heartbeat` (iteration 2, DO-6).
 
-**The release of 2026-11-05 (not yet released) admits schema 100** (migration `20261027000126_home_journal_indexes.sql`, two indexes on the journal for the home's reads, CO-469 and CO-477; and `20261030000127_archive_source_schemas_99_100.sql`, which admits schemas 99 and 100 as private-archive sources, the step 126 missed): a database at 98 (0.3.13, 0.3.14, 0.3.15) takes the upgrade below, `FROM` 98, migrations 126 and 127; they create two indexes and replace one function (`ceo_private_archive_canonical`, same signature, so its grants stand) and move no data or grant. Going back after it is the backup with the 0.3.15 bundle (0.3.15 admits only 98). Applied to the whole chain on an owned cluster by `apps/desktop/test/run-journal-indexes-db.mjs`.
+**0.3.16 (released 2026-11-05) admits schema 100** (migration `20261027000126_home_journal_indexes.sql`, two indexes on the journal for the home's reads, CO-469 and CO-477; and `20261030000127_archive_source_schemas_99_100.sql`, which admits schemas 99 and 100 as private-archive sources, the step 126 missed): a database at 98 (0.3.13, 0.3.14, 0.3.15) takes the upgrade below, `FROM` 98, migrations 126 and 127; they create two indexes and replace one function (`ceo_private_archive_canonical`, same signature, so its grants stand) and move no data or grant. Going back after it is the backup with the 0.3.15 bundle (0.3.15 admits only 98). Applied to the whole chain on an owned cluster by `apps/desktop/test/run-journal-indexes-db.mjs`.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
@@ -414,3 +414,39 @@ skip backup/rehearsal. The seeded rehearsals of each release belong to its verif
 75 → 78 and 77 → 78; 0.3.2: 75 → 79 and 78 → 79, in the
 [0.3.2 ledger](../evidence/plans/2026-10-06-release-032-verification.md)). The live private-dump rehearsal and the
 live upgrade remain operator-state checks.
+
+## Moving Fabric to another machine or another macOS user
+
+CO-518 ([the Studio's spaces](../evidence/specs/2026-11-06-studio-spaces-gaps.md#26-no-runbook-for-fabrics-own-move-co-518)).
+An estate belongs to its installation (fabric-workspace's Studio plan, answer 5 on board thread `1fe66e6e`): a move
+carries the estate's data, never the installation's identity. Paths are macOS's; `userData` is
+`~/Library/Application Support/@fabric/desktop` and the hub's folder `~/Library/Application Support/ai.passioncode.fabric`.
+
+**What moves, and how**
+
+| What | Where | How |
+|---|---|---|
+| The estate: projects, tasks, board, journal, connections' records | the stack's database (`userData/stack`) | `pg_dump` with no writer on the old machine, then restore into the new machine's own stack and `supabase migration up --local` to the installed build's schema: the steps of [Upgrading an existing database](#upgrading-an-existing-database) with the old machine's dump in place of the backup |
+| Settings | `userData/settings.json` | copied, then `machineTrust` decided again on the new machine (Settings, «Этот компьютер»): an organization's machine is not the operator's (ADR-0176) |
+| Look and pins | `userData/persona.json`, `userData/favourites.json` | copied (operator-local, not journalled) |
+| The private history archive | the panel «Личная история и восстановление» (`renderer/src/PrivateHistoryPanel.tsx`), export and restore (ADR-0079) | an export on the old machine, a restore on the new one; it is the supported route for that history, not a file copy |
+
+**What starts fresh on the new machine**
+
+| What | Why |
+|---|---|
+| `userData/stop-host/installation-id` and the shared PassionCode `installation.json` | the installation's identity: a copy would make two installations one (the contract's G7, CO-515) |
+| `hub.json`, `hub-door-token`, `enrollments/`, `tokens/` in the hub's folder | written by the hub at each start, and each agent's binding is to this hub; agents enroll again (`fabric-mcp` does it on its own) |
+| `services/` in the hub's folder | each service's installer writes its own descriptor for that machine (fabric-service/0.1) |
+| `userData/digests/`, `userData/logs/` | per machine and instance: copied digests would count one machine's hours twice (DEC-0153 OD-9) |
+| `userData/stack`'s files other than the database, `transcripts/`, `packets/` | the new build writes its own stack folder at its first start (`bundledStack.ts#materializeStack`); terminal transcripts and context packets are of sessions that ran on the old machine |
+| Sign-ins (Claude Code, Codex, GitHub) | Fabric creates no Keychain item; each tool signs in on the new machine, and secrets come from Project Observatory's vault there |
+
+**Order.** Stop Fabric on the old machine through its supervisor (on the operator's Mac, the lifecycle broker's hold on
+`fabric.desktop`), take the dump, install the same Fabric version on the new machine and start it once so its stack
+exists, restore and migrate, copy the settings, then start it and check: the version, `schema_version()`, the journal
+count against the dump's, `hub.json` naming a live pid, `com.status` ready, and a session's `fabric_whoami`. **Then the
+old installation is not started again with the same estate** until CO-515 makes a second live copy detectable: two
+installations of one estate would both write as it. On one Mac with several users, each user runs their own Fabric and
+stack; the stack's ports per user are CO-513.
+
