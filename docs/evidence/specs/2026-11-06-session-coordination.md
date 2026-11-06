@@ -1,6 +1,6 @@
 # Fabric keeps every coding session in view and coordinates conflicting work (CO-522, SCN-180)
 
-**Status:** draft, 2026-11-06.
+**Status:** draft, 2026-11-06. Wave A built the same day (the project page's task form and console start; the start paths, routines and the cross-project console are not yet checked).
 
 **Source:** the operator in Fabric's session `5d9bed98`, 2026-11-06. Fabric should follow what every running session
 does and where, coordinate the sessions, and catch a task that contradicts another session's work so the sessions

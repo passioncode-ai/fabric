@@ -1086,3 +1086,8 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .rd-done{display:block}
 .rd-compact{padding:var(--space-3);gap:var(--space-3)}
 @media(max-width:760px){.rd{grid-template-columns:1fr}}
+/* CO-522 wave A: what a start would run into, said before it starts. */
+.lo{display:grid;gap:var(--space-2);padding:var(--space-3);margin:var(--space-2) 0;border:1px solid var(--app-line);border-radius:10px;text-align:left}
+.lo h4{margin:0;font-size:13px}
+.lo .lp-list{margin:0;font-size:12.5px}
+.lo-acts{display:flex;gap:6px;flex-wrap:wrap}

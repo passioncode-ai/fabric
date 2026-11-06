@@ -15,6 +15,7 @@ import { explainError } from './start/startParts'
 import { useT } from './i18n'
 import { runnerLabel } from './runnerLabel'
 import { useOpenConsole } from './consoles'
+import { checkLaunch, LaunchOverlapNote, type LaunchCheck } from './launch/LaunchOverlapNote'
 
 /** Presets are content: a label and an instruction, both registry keys. The
  *  first one is what used to be the kickoff block.
@@ -108,6 +109,8 @@ export function Tasks({
     if (!fallback.configured && agent === FALLBACK_OPTION) setAgent(project.default_agent)
   }, [fallback.configured])
   const [busy, setBusy] = useState(false)
+  // CO-522 wave A: what the start would run into, said before it starts; null when there is nothing to say.
+  const [overlap, setOverlap] = useState<Exclude<LaunchCheck, { at: 'clear' }> | null>(null)
   /** What the data-backed presets read. Empty until the read returns, so a
    *  preset appears when its source is known to be non-empty and never on the
    *  strength of not having looked yet. */
@@ -216,10 +219,15 @@ export function Tasks({
   // preset's needs (CO-234).
   const noSurface = chosen !== undefined && !chosen.connectsToSurface
   const setupBlocked = preset === 'setup' && noSurface
-  const run = async (): Promise<void> => {
+  const run = async (checked = false): Promise<void> => {
     if (!instruction.trim() || busy || setupBlocked) return
     setBusy(true)
     try {
+      if (!checked) {
+        const c = await checkLaunch(project.id, instruction)
+        if (c.at !== 'clear') { setOverlap(c); return }
+      }
+      setOverlap(null)
       const { session } = await window.fabric.tasks.start({
         projectId: project.id,
         instruction,
@@ -326,6 +334,7 @@ export function Tasks({
         <Button onClick={() => void run()} disabled={!instruction.trim() || busy || setupBlocked}>
           {busy ? t('tasks.starting') : t('tasks.run')}
         </Button>
+        {overlap && <LaunchOverlapNote check={overlap} onStart={() => void run(true)} onWait={() => setOverlap(null)} />}
         {(sourcesFor.state === 'failed' || madeFor.state === 'failed') && (
           <p className="read-failed" data-testid="presets-failed">
             {t('reads.failed', {

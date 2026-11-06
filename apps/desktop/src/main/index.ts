@@ -53,7 +53,8 @@ import { moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseB
 import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
 import { createOpsDigestRun, type OpsDigestRun } from './opsDigestRun.ts'
 import { risenRows } from '../shared/opsDigest.ts'
-import { readHome, readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, type HeldSession } from './workRead.ts'
+import { readHome, readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, readWork, type HeldSession } from './workRead.ts'
+import { launchOverlap } from '../shared/launchOverlap.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -5359,6 +5360,28 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   handle(IPC.workEstate, async (): Promise<Returns<FabricApi['work']['estate']>> =>
     readWhereWork(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
+  // CO-522 wave A: the live claims a new start would run into, read as fabric_work_claim reads them (`readWork`).
+  handle(IPC.workLaunchCheck, async (_e, input: { projectId: string; taskId?: string | null; text: string }): Promise<Returns<FabricApi['work']['launchCheck']>> => {
+    const projectId = String(input?.projectId ?? ''), taskId = typeof input?.taskId === 'string' && input.taskId ? input.taskId : null
+    const snap = await readWork(store, { now: Date.now(), session: sessionSignOf, projectId })
+    const sources = new Map(snap.claims.filter((c) => c.source).map((c) => [c.work_id, c.source!]))
+    const ids = [...new Set([...(taskId ? [taskId] : []), ...snap.claims.map((c) => c.work_id)])]
+    const [from, to] = await Promise.all([
+      store.selectIn('task_links', 'task_id,rel,target_id,target_kind', 'task_id', ids),
+      store.selectIn('task_links', 'task_id,rel,target_id,target_kind', 'target_id', ids)
+    ])
+    if (from.failed || to.failed) throw new Error(`the task links could not be read: ${from.failed ?? to.failed}`)
+    const edges = [...from.rows, ...to.rows].filter((e) => e.target_kind === 'task')
+      .map((e) => ({ task_id: String(e.task_id), rel: String(e.rel), target_id: String(e.target_id) }))
+    if (taskId && !sources.has(taskId)) {
+      const own = await store.select('task_sources', 'task_id,repository,repo_path,path,row_id').eq('task_id', taskId).maybeSingle()
+      if (own.data) sources.set(taskId, own.data as never)
+    }
+    const found = launchOverlap({ taskId, text: String(input?.text ?? '') }, snap.claims, sources, edges)
+    const console = [...found.overlaps, ...found.alsoWorking].map((h) => h.heldBy).filter((s) => ptys.get(s) !== null)
+    return { ...found, console: [...new Set(console)] }
+  })
+
   handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> => {
     const held = heldSessions()
     // 0.3.14, the simple Fabric: each console's git branch for the left column and «В работе» (`agentBranches.ts`).

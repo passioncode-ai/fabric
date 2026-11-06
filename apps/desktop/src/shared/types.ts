@@ -1689,6 +1689,9 @@ export interface FabricApi {
     /** One project's board when `projectId` is given: filtered in the query, never after the estate's caps. */
     /** `doneLimit`: how many finished tasks «Готово» reads, 20 by default; the board pages by asking for more (0.3.14). */
     board(projectId?: string | null, doneLimit?: number): Promise<TaskBoardView>
+    /** CO-522 wave A: before an agent starts on a task in a project, the live claims it would run into (`launchOverlap.ts`);
+     *  `console` names the holders whose console Fabric can open. A read that fails REJECTS: no answer is never «nobody». */
+    launchCheck(input: { projectId: string; taskId?: string | null; text: string }): Promise<import('./launchOverlap.ts').LaunchOverlap & { console: string[] }>
     /** One agent session's tasks, newest first (0.3.14): what it claimed (live and released) and what Fabric launched in
      *  it. A read that fails REJECTS, so an empty list is always "no task", never a read that did not happen. */
     /** CO-475: `aliases` are the agent's earlier session ids (`LiveAgent.aliases`), read with the live one. */
@@ -1947,6 +1950,7 @@ export const IPC = {
   workEstate: 'work:estate',
   workHome: 'work:home',
   workBoard: 'work:board',
+  workLaunchCheck: 'work:launchCheck',
   workSession: 'work:session',
   workRhythm: 'work:rhythm',
   workRelease: 'work:release',

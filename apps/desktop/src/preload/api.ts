@@ -283,6 +283,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       home: () => ipc.invoke(IPC.workHome),
       board: (projectId?: string | null, doneLimit?: number) => ipc.invoke(IPC.workBoard, projectId ?? null, ...(doneLimit === undefined ? [] : [doneLimit])),
       session: (sessionId, aliases) => (aliases && aliases.length ? ipc.invoke(IPC.workSession, sessionId, aliases) : ipc.invoke(IPC.workSession, sessionId)),
+      launchCheck: (input) => ipc.invoke(IPC.workLaunchCheck, input),
       rhythm: () => ipc.invoke(IPC.workRhythm),
       release: (claimId) => ipc.invoke(IPC.workRelease, claimId)
     },

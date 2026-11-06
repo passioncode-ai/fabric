@@ -91,6 +91,7 @@ import { LADDER, mayMove, type TaskState } from '../../shared/ladder.ts'
 import { wasRewritten, type PastContext } from '../../shared/pastContext.ts'
 import { launchPlace } from '../../shared/launchPlace.ts'
 import { useOpenConsole } from './consoles'
+import { checkLaunch, LaunchOverlapNote, type LaunchCheck } from './launch/LaunchOverlapNote'
 
 export function ProjectHome({
   project,
@@ -1483,9 +1484,16 @@ export function AgentsSection({
       .catch((e) => onError(String(e)))
   }, [project.default_agent])
 
-  const launch = async (): Promise<void> => {
+  // CO-522 wave A: who already works in this project, said before a console starts in it.
+  const [overlap, setOverlap] = useState<Exclude<LaunchCheck, { at: 'clear' }> | null>(null)
+  const launch = async (checked = false): Promise<void> => {
     setBusy(true)
     try {
+      if (!checked) {
+        const c = await checkLaunch(project.id, '')
+        if (c.at !== 'clear') { setOverlap(c); return }
+      }
+      setOverlap(null)
       const s = await window.fabric.terminal.open(project.id, choice)
       await onSessionsChanged()
       await showConsole(s.sessionId)
@@ -1519,6 +1527,7 @@ export function AgentsSection({
         </Toolbar>
       }
     >
+      {overlap && <LaunchOverlapNote check={overlap} onStart={() => void launch(true)} onWait={() => setOverlap(null)} />}
       {/* M125 — agents created in this project. The form is HERE and not in a
           settings dialog because creating one is ordinary work, and because the
           servers it may ask for are the project's grant, which is a decision

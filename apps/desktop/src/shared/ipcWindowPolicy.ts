@@ -223,6 +223,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   workEstate: MAIN_ONLY,
   workHome: MAIN_ONLY,
   workBoard: MAIN_ONLY,
+  workLaunchCheck: MAIN_ONLY,
   workSession: MAIN_ONLY,
   workRhythm: MAIN_ONLY,
   workRelease: MAIN_ONLY,

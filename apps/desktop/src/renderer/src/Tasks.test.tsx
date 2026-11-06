@@ -8,6 +8,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Tasks } from './Tasks'
+import { en } from './i18n/en'
 import type { ProjectRow, TaskRow } from '../../shared/types'
 import type { TaskDraft } from '../../shared/taskDraft.ts'
 
@@ -173,5 +174,29 @@ describe('a shortcut over the person’s own words', () => {
     fireEvent.change(container.querySelector('textarea')!, { target: { value: 'the preset, now edited' } })
     expect(screen.queryByRole('button', { name: 'Put my words back' })).toBeNull()
     expect(screen.getByDisplayValue('the preset, now edited')).toBeTruthy()
+  })
+})
+
+describe('CO-522 wave A: a start is checked against the work already going on', () => {
+  it('withholds the start while another session works on what the task names, and starts on «Start anyway»', async () => {
+    const start = vi.fn().mockResolvedValue({ task: { id: 't1' }, session: { sessionId: 's-new' } })
+    const launchCheck = vi.fn().mockResolvedValue({ overlaps: [{ claimId: 'c1', taskId: 't-other', taskTitle: 'Fix the hub', heldBy: 's-1', agent: 'codex',
+      since: new Date().toISOString(), why: [{ kind: 'overlap', mine: 'src/main/hub.ts', theirs: 'src/main' }] }], alsoWorking: [], console: [] })
+    ;(window as unknown as { fabric: unknown }).fabric = {
+      tasks: { list: vi.fn().mockResolvedValue({ tasks: [], closed: { truncated: false, says: 'all 0' } }), start },
+      agents: { list: vi.fn().mockResolvedValue([]) },
+      terminal: { options: vi.fn().mockResolvedValue([{ id: 'claude-code', label: 'Claude Code', available: true, connectsToSurface: true, permissionModes: [] }]) },
+      work: { launchCheck },
+      windows: { openSession: vi.fn().mockResolvedValue(undefined) }
+    }
+    render(<Tasks project={project} onStarted={() => {}} onError={() => {}} feedMark={0} draft={{ instruction: 'Change src/main/hub.ts' } as TaskDraft} onDraftChange={() => {}} />)
+    await screen.findByText('Audit this project')
+    fireEvent.click(screen.getByRole('button', { name: en['tasks.run'] }))
+    await waitFor(() => expect(launchCheck).toHaveBeenCalled())
+    expect(await screen.findByText(/both touch src\/main\/hub\.ts/)).toBeTruthy()
+    expect(launchCheck).toHaveBeenCalledWith({ projectId: 'p1', taskId: null, text: 'Change src/main/hub.ts' })
+    expect(start).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: en['launchCheck.start'] }))
+    await waitFor(() => expect(start).toHaveBeenCalledOnce())
   })
 })

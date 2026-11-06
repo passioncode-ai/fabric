@@ -4521,6 +4521,6 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Errors & recovery:** a read that fails names the part not read.
 - **Design rationale:** the operator, 2026-11-06: Fabric should follow what every running session does and where, coordinate them, catch a task that contradicts another session's work and let them settle it on the board, and the person direct them all through the Fabric agent (CO-522). Parts exist: claims and their overlaps (`fabric_work_claim`'s warning), the sweep of abandoned work, the board.
 - **Telemetry:** planned only.
-- **Status:** draft (CO-522; [spec](../evidence/specs/2026-11-06-session-coordination.md), waves A to E)
-- **Coverage:** none yet
+- **Status:** implemented in part (CO-522 wave A, 2026-11-06: step 2 on the project page's task form and console start; [spec](../evidence/specs/2026-11-06-session-coordination.md), waves B to E open)
+- **Coverage:** `apps/desktop/src/shared/launchOverlap.ts`, `apps/desktop/src/renderer/src/launch/LaunchOverlapNote.tsx`, `apps/desktop/src/renderer/src/Tasks.tsx#Tasks`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/main/index.ts` (`work:launchCheck`); tests `launchOverlap.test.ts`, `LaunchOverlapNote.test.tsx`, `Tasks.test.tsx` «CO-522 wave A»
 - **Product:** unobserved
