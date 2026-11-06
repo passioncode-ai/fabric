@@ -35669,7 +35669,7 @@
         "SCR-41"
       ],
       "coverage": "`apps/desktop/src/shared/launchOverlap.ts`, `apps/desktop/src/renderer/src/launch/LaunchOverlapNote.tsx`, `apps/desktop/src/renderer/src/Tasks.tsx#Tasks`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/main/index.ts` (`work:launchCheck`); tests `launchOverlap.test.ts`, `LaunchOverlapNote.test.tsx`, `Tasks.test.tsx` «CO-522 wave A»",
-      "registry_status": "implemented in part (CO-522 wave A, 2026-11-06: step 2 on the project page's task form and console start; [spec](../evidence/specs/2026-11-06-session-coordination.md), waves B to E open)",
+      "registry_status": "implemented in part (CO-522 wave A, 2026-11-06: step 2 on the project page's task form and console start; wave B part 1: both sessions of an overlap are told, step 3 without the person's item yet; [spec](../evidence/specs/2026-11-06-session-coordination.md), waves B to E open)",
       "product_observation": "unobserved",
       "expected_result": "the person directs every session from Fabric and conflicting work is caught before it collides.",
       "errors_recovery": "a read that fails names the part not read.",

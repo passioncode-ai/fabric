@@ -20,11 +20,11 @@ export const TELL_QUIET_MS = 30 * 60_000
 
 /** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
-export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose'] as const
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose', 'claim-overlap'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
 /** The kinds that are a reminder to the agent at work, not abandoned work for the operator's queue (0.3.14 wave 2):
  *  a session changing files without a claim is told to claim, and the operator's «На проверке» is not filled with it. */
-export const AGENT_ONLY_KINDS: ReadonlySet<AbandonedKind> = new Set<AbandonedKind>(['work-unclaimed', 'brief-missing', 'claim-closed'])
+export const AGENT_ONLY_KINDS: ReadonlySet<AbandonedKind> = new Set<AbandonedKind>(['work-unclaimed', 'brief-missing', 'claim-closed', 'claim-overlap'])
 /** How long a claim lives before its task's missing brief is reminded (0.3.14 wave 2, brief-missing): the claim's own
  *  answer said it first. */
 export const BRIEF_AFTER_MS = 10 * 60_000
@@ -52,6 +52,8 @@ export interface SweepClaim {
   /** When its task last moved; a claim on a task in review or backlog is let go only when the task moved there after
    *  the claim opened (the 0.3.16 review, ER-11: a claim may be taken on a task in review). */
   taskMovedAt?: string | null
+  /** CO-522 wave B: the project's other live claims this one runs into (`workClaims.ts#relatedTo`), the reasons said. */
+  related?: ReadonlyArray<{ claimId: string; taskId: string; sessionId: string; why: string }>
 }
 
 /** The task states a live claim is let go on (CO-499): the work is over or back in the queue, so a claim that a living
@@ -254,6 +256,18 @@ export function findAbandoned(input: SweepInput): Finding[] {
       sessionId: l.sessionId, stillMs: still, nextStep: briefNext(gaps) })
   }
   // #endregion brief-missing
+  // #region claim-overlap — docs: docs/evidence/specs/2026-11-06-session-coordination.md#5-waves
+  // CO-522 wave B: a live claim (its session held, not expired) that runs into another session's claim. The claiming agent
+  // read the warning in its claim's answer; the session that held the work first was told nothing. Both are told here,
+  // each about the other, once per pair until it changes.
+  for (const c of input.claims) {
+    if (c.session === null || Date.parse(c.expiresAt) <= now) continue
+    for (const r of c.related ?? [])
+      out.push({ ...base, kind: 'claim-overlap', key: `claim-overlap:${c.claimId}:${r.claimId}`, projectId: c.projectId, taskId: c.taskId,
+        sessionId: c.sessionId, claimId: c.claimId, stillMs: now - Date.parse(c.claimedAt),
+        nextStep: `Your task runs into task ${r.taskId}, which session ${r.sessionId} holds (${r.why}). Agree with that session before you change the same files: ask it to hand over (fabric_work_claim with askHandover), put one task after the other (fabric_task_link, follows), or split what each touches and say so in a task note.` })
+  }
+  // #endregion claim-overlap
   // #region work-unclaimed — docs: docs/evidence/plans/2026-10-26-release-0314-plan.md#composition
   // 0.3.14 wave 2: a session whose working tree changed between its turns in the window and that holds nothing (no open
   // claim of any life, no managed lease, no Fabric terminal on a task) is working on something nobody can see on the
@@ -309,7 +323,8 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'brief-missing': (f) => (f.claimId ? `task ${f.taskId} you claimed` : `task ${f.taskId} Fabric started you on`),
   'claim-closed': (f) => `task ${f.taskId} you claimed`,
   // CO-500: never told to an agent; Fabric's own hourly reading puts it in the operator's queue (`opsDigestRun.ts`).
-  'failures-rose': () => 'Fabric\'s own log'
+  'failures-rose': () => 'Fabric\'s own log',
+  'claim-overlap': (f) => `task ${f.taskId} you claimed`
 }
 
 /** A kind whose line is not "has been still": what it says, given the whole minutes. */
@@ -317,7 +332,9 @@ const SAYS: Partial<Record<AbandonedKind, (f: Finding, min: number) => string>> 
   'work-unclaimed': (f, min) => `${SUBJECT[f.kind](f)} has been changing files between its turns for ${min} min and holds no claim.`,
   'brief-missing': (f, min) => `${SUBJECT[f.kind](f)} has been in work for ${min} min with its brief incomplete.`,
   // CO-499: the line says what Fabric did, not how long it stood still.
-  'claim-closed': (f) => `${SUBJECT[f.kind](f)} is no longer in work, and your claim on it has been let go.`
+  'claim-closed': (f) => `${SUBJECT[f.kind](f)} is no longer in work, and your claim on it has been let go.`,
+  // CO-522 wave B: the line says what it runs into; the next step names the other session and how to agree.
+  'claim-overlap': (f) => `${SUBJECT[f.kind](f)} runs into another session's work.`
 }
 
 /** The one line an agent is told (SW-4): what, how long it stood still in whole minutes (SW-3), what to do next. */

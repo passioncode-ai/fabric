@@ -26,6 +26,7 @@ const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.
   'work-unclaimed': 'attention.untitled.session',
   'brief-missing': 'attention.untitled.task',
   'claim-closed': 'attention.untitled.task',
+  'claim-overlap': 'attention.untitled.task',
   'failures-rose': 'attention.untitled.task'
 }
 

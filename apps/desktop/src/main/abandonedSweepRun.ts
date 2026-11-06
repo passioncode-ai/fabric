@@ -46,6 +46,7 @@ import { specGaps, specMissing, type BriefParts, type SpecPart } from '../shared
 import type { CommsMessage, CommsPageReply, CommsThreadPageReply, CommsFactsReply } from '../shared/commsRead.ts'
 import { ops as opsSink } from './opsSink.ts'
 import { readWork, type SessionSign } from './workRead.ts'
+import { sayWhy } from '../shared/workClaims.ts'
 import type { createScopedStore } from './scopedStore.ts'
 
 type Store = ReturnType<typeof createScopedStore>
@@ -539,7 +540,9 @@ export async function readSweepClaims(store: Store, now: number, session: Sessio
       claimId: c.id, taskId: c.work_id, projectId: c.project_id, sessionId: c.owner_session,
       expiresAt: c.expires_at, claimedAt: c.claimed_at, renewedAt: c.renewed_at, session: session(c.owner_session),
       taskStatus: c.task.status,
-      taskMovedAt: c.task.movedAt ?? null
+      taskMovedAt: c.task.movedAt ?? null,
+      // CO-522 wave B: the claims this one runs into, as fabric_work_claim's warning says them.
+      ...(c.related.length ? { related: c.related.map((r) => ({ claimId: r.claimId, taskId: r.taskId, sessionId: r.heldBy, why: r.why.map(sayWhy).join('; ') })) } : {})
     })),
     heldTaskIds: snap.held.map((h) => h.task.id),
     heldSessionIds: snap.held.map((h) => h.owner_session),

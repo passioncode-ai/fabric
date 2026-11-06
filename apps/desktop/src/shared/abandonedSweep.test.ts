@@ -278,3 +278,24 @@ describe('claim-closed (CO-499)', () => {
       expect(findAbandoned({ ...empty, claims: [{ ...claim, taskStatus, taskMovedAt: ago(6 * 24 * 60 * MIN) }] }).map((f) => f.kind)).toEqual(['claim-closed'])
   })
 })
+
+describe('claim-overlap (CO-522 wave B): two live claims that run into each other are told to both sessions', () => {
+  const live = (id: string, session: string, related: Array<{ claimId: string; taskId: string; sessionId: string; why: string }> = []) => ({ claimId: id, taskId: `t-${id}`, projectId: 'p1', sessionId: session,
+    expiresAt: new Date(NOW + 30 * MIN).toISOString(), claimedAt: ago(5 * MIN), renewedAt: null, session: { lastSignAt: NOW - MIN }, related })
+  it('each holder is told whose task overlaps its own and why, once per pair; agent-only, never the person\'s queue', () => {
+    const found = findAbandoned({ ...empty, claims: [
+      live('a', 's-a', [{ claimId: 'b', taskId: 't-b', sessionId: 's-b', why: 'you touch src/main and they touch src/main/hub.ts' }]),
+      live('b', 's-b', [{ claimId: 'a', taskId: 't-a', sessionId: 's-a', why: 'you touch src/main/hub.ts and they touch src/main' }])
+    ] }).filter((f) => f.kind === 'claim-overlap')
+    expect(found.map((f) => [f.sessionId, f.key])).toEqual([['s-a', 'claim-overlap:a:b'], ['s-b', 'claim-overlap:b:a']])
+    expect(found[0]!.nextStep).toMatch(/t-b.*s-b.*src\/main\/hub\.ts/)
+    expect(found[0]!.nextStep).toMatch(/askHandover|fabric_task_link/)
+    expect(AGENT_ONLY_KINDS.has('claim-overlap')).toBe(true)
+    expect(ABANDONED_KINDS).toContain('claim-overlap')
+  })
+  it('a claim whose session Fabric no longer holds, or that expired, is not told', () => {
+    const rel = [{ claimId: 'b', taskId: 't-b', sessionId: 's-b', why: 'the same backlog row, B-1 (BACKLOG.md)' }]
+    expect(findAbandoned({ ...empty, claims: [{ ...live('a', 's-a', rel), session: null }] }).filter((f) => f.kind === 'claim-overlap')).toEqual([])
+    expect(findAbandoned({ ...empty, claims: [{ ...live('a', 's-a', rel), expiresAt: ago(MIN) }] }).filter((f) => f.kind === 'claim-overlap')).toEqual([])
+  })
+})
