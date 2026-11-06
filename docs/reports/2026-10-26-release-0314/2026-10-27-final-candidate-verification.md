@@ -1,6 +1,6 @@
 # Fabric 0.3.14: verification of the final candidate
 
-- **Candidate:** `39c82b7b07ca5f32b4f414c60b00c3e5403baa59` on `release/0.3.14` (`/Users/sshlg/DATA/fabric`).
+- **Candidate:** `39c82b7b07ca5f32b4f414c60b00c3e5403baa59` on `release/0.3.14` (`$HOME/DATA/fabric`).
 - **Before:** HEAD `39c82b7b07ca5f32b4f414c60b00c3e5403baa59`, `git status --short | wc -l` = 0.
 - **After:** HEAD `39c82b7b07ca5f32b4f414c60b00c3e5403baa59`, `git status --short | wc -l` = 0. Nothing in the repository was written.
 - **Date:** 2026-10-27.

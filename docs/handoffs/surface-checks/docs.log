@@ -1477,7 +1477,7 @@ warn  B022 scripts/product/memory-workspace.mjs:0: " aria-label=" is in the code
 ok: brand contract gate passes
 note:  [U057] 23 of 76 flows carry an inherited verdict, all of them in the shrinking baseline
 note:  [U078] 1 superseded screen record(s) compared against the index
-OK — docs/ux is consistent (/Users/sshlg/DATA/_worktrees/hubfix2-surface-resume/docs/ux)
+OK — docs/ux is consistent ($HOME/DATA/_worktrees/hubfix2-surface-resume/docs/ux)
 ok: UX register gate passes (warnings are advisory — see docs/evidence/backlog.md for their causes)
 NOT CHECKED: 3 relative link(s) into the submodule 'workspace', which is not checked out here (private; a public clone cannot initialise it)
 relative Markdown links resolve (519 files inspected)

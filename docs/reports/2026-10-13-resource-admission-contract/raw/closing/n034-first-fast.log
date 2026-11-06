@@ -134,7 +134,7 @@ PASS: 17 planted contract/report defects refused
 PASS: {"tasks":58,"deep":50,"recipes":4,"preserve":4,"requirements":33,"modules":8,"entities":61,"relations":95,"cycles":12,"execution_nodes":75,"dependency_edges":141,"citation_occurrences":503,"receipts":280,"repinned_citations":395,"stale_citations":83,"verified_git_files":97,"html_anchors":338}
 Scope: design integrity and pinned sources; not runtime behavior, future acceptance cases or production security.
 PASS: system.html exactly matches model, catalog, contract and template
-{"source":"/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/scripts/check-design-map.mjs","sha256":"725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372","fixture_root":"/tmp/fabric-ci.1mEbQ5/fabric-map-gate-fixture-PeJv7s","requested_pass":true,"requested_pass_count":16,"requested_count":16,"total_count":23,"all_pass":true}
+{"source":"$HOME/DATA/_wt/fabric-harness-integrated-20261013/scripts/check-design-map.mjs","sha256":"725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372","fixture_root":"/tmp/fabric-ci.1mEbQ5/fabric-map-gate-fixture-PeJv7s","requested_pass":true,"requested_pass_count":16,"requested_count":16,"total_count":23,"all_pass":true}
 PASS requested: committed baseline checks successfully; exit=0
 PASS requested: ADR-only source mutation refuses unchanged map; exit=1
 PASS requested: execution-brief-only mutation refuses unchanged map; exit=1
@@ -1869,7 +1869,7 @@ warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "The database schema chec
 ok: brand contract gate passes
 note:  [U057] 23 of 85 flows carry an inherited verdict, all of them in the shrinking baseline
 note:  [U078] 1 superseded screen record(s) compared against the index
-OK — docs/ux is consistent (/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/docs/ux)
+OK — docs/ux is consistent ($HOME/DATA/_wt/fabric-harness-integrated-20261013/docs/ux)
 ok: UX register gate passes (warnings are advisory — see docs/evidence/backlog.md for their causes)
 relative Markdown links resolve (793 files inspected)
 ok: relative Markdown links resolve
@@ -1881,7 +1881,7 @@ PASS: PassionCode.ai public narrative
 OK: 3 schemas and 4 examples are valid; 4 invalid boundary probes were rejected
 note:  [U057] 23 of 85 flows carry an inherited verdict, all of them in the shrinking baseline
 note:  [U078] 1 superseded screen record(s) compared against the index
-OK — docs/ux is consistent (/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/docs/ux)
+OK — docs/ux is consistent ($HOME/DATA/_wt/fabric-harness-integrated-20261013/docs/ux)
 accepted B051 docs/public/organization-profile.md:0: project copy decision
 accepted B051 docs/guides/passioncode-overview.md:0: project copy decision
 accepted B051 docs/guides/passioncode-overview.ru.md:0: project copy decision

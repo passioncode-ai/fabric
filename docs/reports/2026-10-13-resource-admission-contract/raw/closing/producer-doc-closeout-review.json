@@ -41,7 +41,7 @@
     "Next input/scope packet is DESIGN ONLY and explicitly separates cooperative evidence from authority.",
     "New producer-delivery map anchor preserves all existing HTML ids and earlier dated entries.",
     "69 relative Markdown file targets in changed docs resolve.",
-    "No /Users/sshlg or private /var/folders prefix in staged new/changed files.",
+    "No <home> or private /var/folders prefix in staged new/changed files.",
     "Normalized fast log stored digest matches manifest;170 files and2053 tests present in stored command output."
   ],
   "material_findings": [],

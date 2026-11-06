@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
+ RUN  v4.1.11 $HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
 
 Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
  ❯ src/renderer/src/onboardingDraft.persist.test.tsx (11 tests | 2 failed) 863ms
@@ -103,5 +103,5 @@ Number of calls: 2
    Duration  6.70s (transform 3.90s, setup 123ms, import 4.98s, tests 863ms, environment 633ms)
 
 undefined
-/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop:
+$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop:
 [ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/renderer/src/onboardingDraft.persist.test.tsx

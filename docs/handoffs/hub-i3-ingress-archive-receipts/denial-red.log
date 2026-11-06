@@ -25,7 +25,7 @@ test at apps/desktop/test/hub-access-service.test.mjs:119:1
   + 'pending'
   - 'denied'
   
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-access-service.test.mjs:130:10)
+      at TestContext.<anonymous> (file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-access-service.test.mjs:130:10)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
     generatedMessage: true,

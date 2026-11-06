@@ -3,10 +3,10 @@
 - **Verifier run id:** `release-0313-i3-final-verifier-2-20261026`
 - **Date:** 2026-10-26
 - **Read:** `617e5c14ffafdd9854a4e8765a4a6b5f7c62ec04` (the first final candidate, verified and passed) to `90d5535029155d7d824731469d3201434b7822a2` (one commit, "fix(0.3.13): the board's count held for readers pinned before DEC-0135 (migration 125, schema 98)"). `git diff --stat 617e5c14 90d55350`: 95 files, 362 insertions, 112 deletions; of them 72 are re-rendered `docs/reports/previews/*.jpg`, the rest the migration, its tests, the archive admission and the documents.
-- **Checkout:** `/Users/sshlg/DATA/_worktrees/fabric-0313-rv1`, detached. Before: `git rev-parse HEAD` = `90d5535029155d7d824731469d3201434b7822a2`, `git status --short | wc -l` = 0. After every run below: the same commit, 0. Nothing in the checkout was edited, committed, stashed, reset, fetched or pushed. No live stack, Docker, installed Fabric, enrolled app or board was touched.
+- **Checkout:** `$HOME/DATA/_worktrees/fabric-0313-rv1`, detached. Before: `git rev-parse HEAD` = `90d5535029155d7d824731469d3201434b7822a2`, `git status --short | wc -l` = 0. After every run below: the same commit, 0. Nothing in the checkout was edited, committed, stashed, reset, fetched or pushed. No live stack, Docker, installed Fabric, enrolled app or board was touched.
 - **Method:** read migration 125 against the bodies it replaces (migration 120's and 124's `board_list_reader`, migrations 103 and 107's `board_status`, 103's and 124's delivery rule, 124's `ceo_private_archive_canonical`), extracted with `awk` and compared with `diff` and `cmp`; ran the owned-cluster suites (PostgreSQL 17, `FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin`, first on `PATH`) and watched the schema suite fail without 125; wrote three probes of my own (an equivalence probe against v0.3.12's answer on a seeded random board, an ACL probe on two clusters, a read-only release gate simulation); ran the codec test, both type checks and the doc gates; read the changed documents.
 
-All paths below are under `/Users/sshlg/DATA/_worktrees/fabric-0313-rv3-reports/final2/` unless they start with `apps/`, `scripts/`, `supabase/` or `docs/` (the checkout). Logs are in `logs/`.
+All paths below are under `$HOME/DATA/_worktrees/fabric-0313-rv3-reports/final2/` unless they start with `apps/`, `scripts/`, `supabase/` or `docs/` (the checkout). Logs are in `logs/`.
 
 ## What I ran
 

@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/hubfix2-surface-resume/apps/desktop
+ RUN  v4.1.11 $HOME/DATA/_worktrees/hubfix2-surface-resume/apps/desktop
 
 
  Test Files  4 passed (4)

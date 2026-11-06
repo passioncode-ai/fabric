@@ -50,7 +50,7 @@
 test at apps/desktop/test/hub-call.test.mjs:278:1
 ✖ DA-3: aggregate cached bytes stay bounded without erasing effect keys (118.344167ms)
   AssertionError [ERR_ASSERTION]: fixture never exercised the total cache limit
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-call.test.mjs:282:10)
+      at TestContext.<anonymous> (file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-call.test.mjs:282:10)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
     generatedMessage: false,

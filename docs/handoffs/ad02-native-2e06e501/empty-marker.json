@@ -2,7 +2,7 @@
   "kind": "fabric-ad02-native-only",
   "id": "f43b0ccc-6cae-49b8-acc4-ff44ec440804",
   "mode": "empty",
-  "desktop": "/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop",
+  "desktop": "<home>/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop",
   "createdAt": "2026-10-04T14:16:39.528Z",
   "sourcePins": {
     "main/onboardingDrafts.ts": "ab475a2c3f7c8a97882529c37f00e16883152376b64487e647ddd41d19ce6f59",

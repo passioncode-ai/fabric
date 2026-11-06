@@ -44,7 +44,7 @@ test at apps/desktop/test/resource-worker-launch.test.mjs:21:23
   
     assert.ok(f.calls.includes('validate_task_run_launch'))
   
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/test/resource-worker-launch.test.mjs:107:191)
+      at TestContext.<anonymous> (file://$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/test/resource-worker-launch.test.mjs:107:191)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
     generatedMessage: true,
@@ -61,7 +61,7 @@ test at apps/desktop/test/resource-worker-launch.test.mjs:21:23
   
   0 !== 1
   
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/test/resource-worker-launch.test.mjs:150:147)
+      at TestContext.<anonymous> (file://$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/test/resource-worker-launch.test.mjs:150:147)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
     generatedMessage: true,

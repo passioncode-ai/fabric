@@ -21,7 +21,7 @@ REQ-01…REQ-36; waves 0–8; questions Q-01…Q-05; Q-05 answered: the owner pa
 - Wave mode for task-pipeline: the doctrine draft exists; the implementing agent stopped on a session limit before
   writing anything. sshlg-skills-e6 (family round `feat/family-round-1010`, task-pipeline v1.91.0, PR
   ssheleg/task-pipeline#105) asked to build wave mode on top of v1.91.0 once its hub 1.55.0 lands; the routing block
-  has 44 characters of headroom. Clone ready at `/Users/sshlg/DATA/task-pipeline-waves`, branch `feat/wave-mode`
+  has 44 characters of headroom. Clone ready at `$HOME/DATA/task-pipeline-waves`, branch `feat/wave-mode`
   (rebase it onto the v1.91.0 tag first).
 
 **Open.** Everything in the waves table, starting with wave 0.

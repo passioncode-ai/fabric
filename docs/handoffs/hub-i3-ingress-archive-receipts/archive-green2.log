@@ -13,15 +13,15 @@ PASS a legacy boundary is never upgraded; the legacy entry point keeps its A0 gu
 PASS member, missing Person, forged actor, stale revision, existing target or shell, source=target, edited, malformed and colliding archives: refused, zero rows
 PASS a revision moved by a concurrent change_membership is refused under the row lock, and the retry at the new revision succeeds
 PASS restore_estate_verified: 6 groups on an owned cluster; active-Estate selection and restart NOT_RUN (A1-6, N1)
-file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/archiveJson.ts:20
+file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/archiveJson.ts:20
 export const archiveFail = (code                    = 'invalid_archive')        => { throw new ArchiveFormatError(code) }
                                                                                            ^
 
 ArchiveFormatError: unsupported_schema
-    at archiveFail (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/archiveJson.ts:20:92)
-    at inspect (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/ceoPrivateArchive.ts:116:122)
-    at decodePrivateArchive (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/ceoPrivateArchive.ts:183:18)
-    at file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/private-history-db.test.mjs:59:18
+    at archiveFail (file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/archiveJson.ts:20:92)
+    at inspect (file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/ceoPrivateArchive.ts:116:122)
+    at decodePrivateArchive (file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/ceoPrivateArchive.ts:183:18)
+    at file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/private-history-db.test.mjs:59:18
     at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
     at async node:internal/modules/esm/loader:650:26
     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
@@ -34,12 +34,12 @@ node:internal/errors:999
   const err = new Error(message);
               ^
 
-Error: Command failed: /opt/homebrew/Cellar/node/26.8.2/bin/node --experimental-strip-types /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/private-history-db.test.mjs
+Error: Command failed: /opt/homebrew/Cellar/node/26.8.2/bin/node --experimental-strip-types $HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/private-history-db.test.mjs
     at genericNodeError (node:internal/errors:999:15)
     at wrappedFn (node:internal/errors:544:14)
     at checkExecSyncError (node:child_process:942:11)
     at execFileSync (node:child_process:978:15)
-    at file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/run-ceo-private-archive-db.mjs:33:5
+    at file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/run-ceo-private-archive-db.mjs:33:5
     at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
     at async node:internal/modules/esm/loader:650:26
     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {

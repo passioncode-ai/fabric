@@ -2,7 +2,7 @@ Window: "Fabric · CO179 synthetic fixture", App: Electron.
 0 standard window Fabric · CO179 synthetic fixture, Secondary Actions: Raise
 	1 container Fabric · CO179 synthetic fixture
 		2 container
-			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+			3 HTML content Fabric, URL: file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
 				4 container
 					5 button Fabric
 					6 button Fixture one

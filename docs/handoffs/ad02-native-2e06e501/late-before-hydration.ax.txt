@@ -2,7 +2,7 @@ Window: "Fabric · AD02 isolated acceptance", App: Electron.
 0 standard window Fabric · AD02 isolated acceptance, Secondary Actions: Raise
 	1 container Fabric · AD02 isolated acceptance
 		2 container
-			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+			3 HTML content Fabric, URL: file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
 				4 container
 					5 button Fabric
 					6 button AD02 early final
@@ -11,13 +11,13 @@ Window: "Fabric · AD02 isolated acceptance", App: Electron.
 					9 text Fabric
 					10 text PassionCode.ai
 					11 container Fabric navigation
-						12 link Description: Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
-						13 link Description: Board, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
-						14 link Description: Planning, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
-						15 link Description: + Project, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						12 link Description: Fabric, Value: file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						13 link Description: Board, Value: file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						14 link Description: Planning, Value: file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						15 link Description: + Project, Value: file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
 						16 disclosure triangle Manage
 							17 text Manage
-						18 link Description: Fabric help, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						18 link Description: Fabric help, Value: file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
 					19 button Talk to Fabric · Status unknown
 						20 image Fabric · personal avatar
 						21 text Fabric

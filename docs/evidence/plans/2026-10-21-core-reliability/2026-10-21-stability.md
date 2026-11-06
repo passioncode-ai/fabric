@@ -1,7 +1,7 @@
 # Fabric stability on this Mac: 2026-10-14 to 2026-10-21
 
 Read-only investigation, 2026-10-21 14:20 CEST. Nothing was started, stopped, written to a database or edited.
-Repository read: `/Users/sshlg/DATA/fabric` at `0bcb14c9` (package.json says 0.3.7; `/Applications/Fabric.app`
+Repository read: `$HOME/DATA/fabric` at `0bcb14c9` (package.json says 0.3.7; `/Applications/Fabric.app`
 is already 0.3.8, the running main process pid 68675 started 2026-10-21 02:15:50 CEST from the earlier bundle).
 Times are CEST (UTC+2) unless marked `Z`.
 
@@ -55,7 +55,7 @@ with c as (select occurred_at t, lag(occurred_at) over (order by occurred_at) p
 | ST-13 | low | **`ipc.stack:exposure` takes 2.4 s at the median** (p99 3.9 s, 140 calls in 12 h): the slowest IPC by far. Runs off the main loop, so it does not freeze the window, but every slow line in the log is this call. | `operations.jsonl` latency: `ipc.stack:exposure 140 p50 2401 p99 3762 max 3919`; `index.ts:656-661` (`stackExposureCheck`). | Cache the answer for the session and recheck only on a network change (`stackExposure.ts`, `exposureNeedsCheck`). |
 
 Not Fabric, for completeness: `Electron-2026-10-19-062506.ips` is a development Electron in
-`/Users/sshlg/DATA/fabric-inbox/node_modules` (truncated framework, responsible process Orca);
+`$HOME/DATA/fabric-inbox/node_modules` (truncated framework, responsible process Orca);
 `postgres-2026-10-20-060819.ips` is Homebrew postgres (`durable_rename` abort, responsible `orca-terminal-host`),
 not the Fabric stack's container.
 

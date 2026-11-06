@@ -16,7 +16,7 @@ test at apps/desktop/test/hub-products.test.mjs:847:1
   
   true !== false
   
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/hub-v2-core-resume/apps/desktop/test/hub-products.test.mjs:852:12)
+      at TestContext.<anonymous> (file://$HOME/DATA/_worktrees/hub-v2-core-resume/apps/desktop/test/hub-products.test.mjs:852:12)
       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {

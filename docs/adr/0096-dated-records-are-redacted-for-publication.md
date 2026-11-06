@@ -60,3 +60,13 @@ never-rewrite rule for dated records would otherwise have kept it there for good
   argument needed; the change that did it names each file.
 - A future record that needs a private fact keeps it out of the repository and cites where it
   lives instead.
+
+## Amendments
+
+- 2026-11-06, CO-520: decision 5's gate had not been run on what was written after 2026-09-30. Measured on `main` at
+  `152c26a3` with `scripts/check_private.py` (only counts printed): 749 findings of 38 denylisted terms in 115 files,
+  923 absolute home paths and 30 e-mail addresses. The redaction of decision 1 applies to those records in the same
+  minimal way, in steps: the operator's home path became `$HOME/…` in text and `<home>/…` in JSON evidence (339 files,
+  this amendment's change); the denylisted terms and the addresses follow in CO-520, and the gate runs before every push
+  from then on. Synthetic fixture homes (`/Users/example`, `/Users/me` and the like) are not private and stay. The
+  history this repository has published since keeps the earlier bytes; rewriting it is the operator's decision.

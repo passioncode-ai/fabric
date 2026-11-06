@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
+ RUN  v4.1.11 $HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
 
 
  Test Files  4 passed (4)

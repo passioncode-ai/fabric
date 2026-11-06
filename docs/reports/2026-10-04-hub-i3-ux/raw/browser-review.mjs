@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import assert from 'node:assert/strict'
-const {chromium}=await import(process.env.FABRIC_PLAYWRIGHT_MODULE ?? '/Users/sshlg/.cache/fabric-playwright/node_modules/playwright-core/index.mjs')
+const {chromium}=await import(process.env.FABRIC_PLAYWRIGHT_MODULE ?? '$HOME/.cache/fabric-playwright/node_modules/playwright-core/index.mjs')
 const out=process.env.FABRIC_REVIEW_OUT ?? 'docs/reports/2026-10-04-hub-i3-ux/raw'
 const base=process.env.FABRIC_REVIEW_URL ?? 'http://127.0.0.1:5299'
 const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',args:['--use-mock-keychain']})

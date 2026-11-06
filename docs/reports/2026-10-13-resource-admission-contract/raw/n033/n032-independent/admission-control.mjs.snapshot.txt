@@ -7,15 +7,15 @@ import os from 'node:os'
 import {execFileSync} from 'node:child_process'
 import {createHash,randomUUID} from 'node:crypto'
 import {preparedFixture} from 'file://<OWNED_TEMP>/fabric-n032-units-gcs1v_z5/apps/desktop/test/prepared-launch-fixture.mjs'
-import {createResourceRunAssignmentManager,AGENT_SYNC_IDENTITY_SOURCE_SHA256} from 'file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/src/main/resourceRunAssignment.ts'
+import {createResourceRunAssignmentManager,AGENT_SYNC_IDENTITY_SOURCE_SHA256} from 'file://$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/src/main/resourceRunAssignment.ts'
 import {createResourceWorkerInventory} from 'file://<OWNED_TEMP>/fabric-n032-intent-events-fixdu5e3/apps/desktop/src/main/resourceWorkerInventory.ts'
 const {createResourceManagedUnit}=await import(process.env.N032_UNIT_SOURCE)
 import {createResourceLaunchAdapter} from 'file://<OWNED_TEMP>/fabric-n032-units-gcs1v_z5/apps/desktop/src/main/resourceLaunchAdapter.ts'
 import {createManagedLaunch} from 'file://<OWNED_TEMP>/fabric-n032-units-gcs1v_z5/apps/desktop/src/main/managedLaunch.ts'
-import {createAdmitExisting} from 'file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/src/main/admitExisting.ts'
+import {createAdmitExisting} from 'file://$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/src/main/admitExisting.ts'
 import {PtyManager} from 'file://<OWNED_TEMP>/fabric-n032-units-gcs1v_z5/apps/desktop/src/main/pty.ts'
-import {readResourceHostPolicy,resourceDigest} from 'file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/src/main/resourceHostPolicy.ts'
-import {createProcessBoundary} from 'file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/src/main/processBoundary.ts'
+import {readResourceHostPolicy,resourceDigest} from 'file://$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/src/main/resourceHostPolicy.ts'
+import {createProcessBoundary} from 'file://$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/src/main/processBoundary.ts'
 const script=process.env.N028_AGENT_SYNC_SCRIPT??path.join(os.homedir(),'.codex/plugins/cache/agent-sync/agent-sync/1.22.2/skills/agent-sync/scripts/agent_sync.py')
 const test=(name,fn)=>nodeTest(name,{skip:existsSync(script)?false:'NOT_RUN pinned installed agent-sync source unavailable'},fn)
 const hash=b=>createHash('sha256').update(b).digest('hex'),wait=ms=>new Promise(r=>setTimeout(r,ms))

@@ -20,14 +20,14 @@ test at apps/desktop/test/consent-presenter.test.mjs:140:1
   +   'r2'
     ]
   
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:149:10)
+      at TestContext.<anonymous> (file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:149:10)
       at Test.runInAsyncScope (node:async_hooks:226:14)
       at Test.run (node:internal/test_runner/test:1402:25)
       at Test.start (node:internal/test_runner/test:1262:17)
       at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
       at run (node:internal/test_runner/harness:398:12)
       at test (node:internal/test_runner/harness:407:12)
-      at file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:140:1 {
+      at file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:140:1 {
     generatedMessage: true,
     code: 'ERR_ASSERTION',
     actual: [Array],

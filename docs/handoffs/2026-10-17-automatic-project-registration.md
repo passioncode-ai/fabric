@@ -57,7 +57,7 @@ Added 2026-10-18 (Claude Code, continuing the run after Kimi's quota ran out):
 
 The scenario composes the main-process pieces, not the packaged app: the real `fabric-mcp` client against a running hub is exercised only by `fabric-mcp.test.mjs` against a fake hub. A run against an installed Fabric needs a release and install, which this run does not do.
 
-**Overlap found 2026-10-18:** Fabric's own session (run `r-44ae60a75316`, CO-328, ADR-0164 «a folder with no project is attributed by Fabric, never handed to the person») has an uncommitted second implementation of the same behaviour in `/Users/sshlg/DATA/_wt/fabric-co328` (`folderAttribution.ts`, `folderResolver.ts#decideAttribution`, the same ADR-0134/0136 and `sessionEnroll.ts`). It was notified. This branch is not landed on `main` until that session decides which implementation Fabric keeps or merges them; the branch is pushed for it to read.
+**Overlap found 2026-10-18:** Fabric's own session (run `r-44ae60a75316`, CO-328, ADR-0164 «a folder with no project is attributed by Fabric, never handed to the person») has an uncommitted second implementation of the same behaviour in `$HOME/DATA/_wt/fabric-co328` (`folderAttribution.ts`, `folderResolver.ts#decideAttribution`, the same ADR-0134/0136 and `sessionEnroll.ts`). It was notified. This branch is not landed on `main` until that session decides which implementation Fabric keeps or merges them; the branch is pushed for it to read.
 
 Not run: hosted nightly CI; a packaged-app run; any release/install.
 

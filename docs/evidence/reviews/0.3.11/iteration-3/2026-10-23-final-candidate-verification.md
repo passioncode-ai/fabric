@@ -8,7 +8,7 @@ Date: 2026-10-23. Verifier: a fresh, independent agent (Claude Code), read-only.
 - Final candidate: **`20ea082f51cc8afab42e897ffa7a577dec54b2a2`** (branch `agent/rel-0311-i3`), which is
   `c07b1e9c56221df1a1fd5ee50e826d59b8c73139` (the iteration 3 fixes) plus `20ea082f` (the pipeline ADR reservation
   moves from 0175 to 0177). `afff7495` (SCN-176 and SCN-177 join PJ-42) sits between `6481e524` and `c07b1e9c`.
-- Worktree: `/Users/sshlg/DATA/_worktrees/rv-0311-final`, detached at `20ea082f`, dependencies symlinked from the main
+- Worktree: `$HOME/DATA/_worktrees/rv-0311-final`, detached at `20ea082f`, dependencies symlinked from the main
   checkout. Removed at the end.
 
 ## What I read
@@ -24,7 +24,7 @@ Date: 2026-10-23. Verifier: a fresh, independent agent (Claude Code), read-only.
   carry-over register (CO-391, CO-392, CO-394, CO-400, CO-401, CO-403, CO-404, CO-405), the ledger
   (`docs/evidence/plans/2026-10-23-release-0311-verification.md`, Rollout, Owed, Iteration 3, Release close), the handoff.
 - The five iteration 3 review reports, read from the fixer's worktree
-  (`/Users/sshlg/DATA/_worktrees/rel-0311-fix/docs/evidence/reviews/0.3.11/iteration-3/`), because they are not in the
+  (`$HOME/DATA/_worktrees/rel-0311-fix/docs/evidence/reviews/0.3.11/iteration-3/`), because they are not in the
   candidate (VF-1). Count of findings there: UX 10, ER 9, DO 9, DA 4, PL 12 = 44, as the ledger says.
 
 ## What I ran

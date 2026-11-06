@@ -6,7 +6,7 @@ Date: 2026-10-23. Verifier: a fresh, independent agent (Claude Code), read-only.
 
 - Final candidate: **`e569bb5b53d297915866c15a7af0fc0119b1497b`** (branch `agent/release-0311`; `git ls-remote origin refs/heads/agent/release-0311` resolves to it), one commit on top of the failed candidate `20ea082f`: «fix(0.3.11): the final candidate after its first verification».
 - Scope: `git diff 20ea082f..e569bb5b` (16 files, 798 insertions, 25 deletions) against ledger rows V3-31 to V3-39 (`docs/evidence/plans/2026-10-23-release-0311-verification.md`, Iteration 3).
-- The gate checkout `/Users/sshlg/DATA/_worktrees/gate-0311` was only read (HEAD `e569bb5b`, `git status --short` empty before and after). Plants ran in my own worktree `/Users/sshlg/DATA/_worktrees/rv-0311-f2` (detached at `e569bb5b`, dependencies symlinked from the main checkout), each reverted with `git checkout -- <file>` right after its run; the worktree was clean and then removed with `git worktree remove --force`; the main checkout's four `node_modules` folders were checked present afterwards.
+- The gate checkout `$HOME/DATA/_worktrees/gate-0311` was only read (HEAD `e569bb5b`, `git status --short` empty before and after). Plants ran in my own worktree `$HOME/DATA/_worktrees/rv-0311-f2` (detached at `e569bb5b`, dependencies symlinked from the main checkout), each reverted with `git checkout -- <file>` right after its run; the worktree was clean and then removed with `git worktree remove --force`; the main checkout's four `node_modules` folders were checked present afterwards.
 
 ## What I read
 

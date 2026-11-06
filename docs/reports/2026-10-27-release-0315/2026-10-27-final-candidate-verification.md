@@ -1,6 +1,6 @@
 # Fabric 0.3.15: verification of the final candidate
 
-- **Candidate:** `112779af7fccd9444779b4e72983c535ac160ebc` (detached checkout `/Users/sshlg/DATA/_worktrees/fabric-0315-final`; tests and gates run from `/Users/sshlg/DATA/_worktrees/fabric-mockup-parity`, same HEAD).
+- **Candidate:** `112779af7fccd9444779b4e72983c535ac160ebc` (detached checkout `$HOME/DATA/_worktrees/fabric-0315-final`; tests and gates run from `$HOME/DATA/_worktrees/fabric-mockup-parity`, same HEAD).
 - **Before:** both checkouts at HEAD `112779af7fccd9444779b4e72983c535ac160ebc`, `git status --short | wc -l` = 0 in each.
 - **After:** both checkouts at HEAD `112779af7fccd9444779b4e72983c535ac160ebc`, `git status --short | wc -l` = 0 in each. Nothing in either repository was written.
 - **Date:** 2026-10-27.
@@ -50,7 +50,7 @@ Iteration 3: 18 of 18 dispositions true at the candidate; 9 cited CO rows (475, 
 
 No blocking finding. Code read in full: `onWorkRow`, `groupInWork` (only caller passes `atWorkOnly: true`, `HomeInWork.tsx:51`), `withWorkSignals`, `withWaitingList`, `PtyManager` (field set at creation, in the data handler and in the listing only), `TerminalSession` (optional field, older hosts give null), `heldSessions`. No migration, no secret, no change outside the reviewed surfaces.
 
-## Gates (run once each from `/Users/sshlg/DATA/_worktrees/fabric-mockup-parity`, exit codes read directly)
+## Gates (run once each from `$HOME/DATA/_worktrees/fabric-mockup-parity`, exit codes read directly)
 
 | Gate | Exit | Output tail |
 |---|---|---|

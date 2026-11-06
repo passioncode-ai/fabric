@@ -59,7 +59,7 @@
   ],
   "verdict": "approve",
   "commands": [
-    "git -C /Users/sshlg/DATA/_worktrees/fabric-p08-review-130b5510 rev-parse HEAD -> 19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1 exit 0",
+    "git -C <home>/DATA/_worktrees/fabric-p08-review-130b5510 rev-parse HEAD -> 19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1 exit 0",
     "git diff 130b5510 19e5427a -- apps/desktop/src/renderer apps/desktop/src/shared docs/ux docs/brand/strings.md exit 0",
     "npx vitest run AgentAccessPanel.test.tsx ObligationActs.test.tsx BoardScreen.test.tsx StartPaths.test.tsx accessWords.test.ts access.test.ts (apps/desktop) -> 6 files, 142 tests passed, exit 0",
     "node --experimental-strip-types test/consent-presenter.test.mjs (apps/desktop) -> 13 passed, exit 0",

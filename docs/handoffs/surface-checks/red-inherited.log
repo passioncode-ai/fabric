@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/hubfix2-surface-resume/apps/desktop
+ RUN  v4.1.11 $HOME/DATA/_worktrees/hubfix2-surface-resume/apps/desktop
 
  ❯ src/renderer/src/launch/ObligationActs.test.tsx (8 tests | 1 failed | 7 skipped) 89ms
      × UX-3 (iteration 2): a long mailbox wraps inside the queue's detail, so the whole resource can be read before Allow 88ms
@@ -1060,5 +1060,5 @@ Received: "normal"
    Duration  11.34s (transform 611ms, setup 415ms, import 711ms, tests 20.37s, environment 1.89s)
 
 undefined
-/Users/sshlg/DATA/_worktrees/hubfix2-surface-resume/apps/desktop:
+$HOME/DATA/_worktrees/hubfix2-surface-resume/apps/desktop:
 [ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/renderer/src/AgentAccessPanel.test.tsx src/renderer/src/launch/BoardScreen.test.tsx src/renderer/src/launch/ObligationActs.test.tsx -t 'allowing one request|while a Reconnect waits|a long mailbox|fact grid'

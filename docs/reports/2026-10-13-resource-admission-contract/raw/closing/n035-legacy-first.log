@@ -44,7 +44,7 @@ test at apps/desktop/test/resource-worker-launch.test.mjs:21:23
   
   true !== false
   
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/test/resource-worker-launch.test.mjs:223:28)
+      at TestContext.<anonymous> (file://$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/test/resource-worker-launch.test.mjs:223:28)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
     generatedMessage: true,

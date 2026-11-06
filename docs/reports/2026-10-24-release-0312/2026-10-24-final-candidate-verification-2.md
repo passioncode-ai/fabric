@@ -3,7 +3,7 @@
 - **Verifier run id:** `release-0312-i3-final-verifier-2-20261024`
 - **Date:** 2026-10-24
 - **Read:** `020e901927efce4e366d73b2a6e3ea8c72efbde4..e1419aeb0acae676a6a5048b4f1378010b327229` (`git log`: one commit, `e1419aeb` "test: timing margins and a dangling link said for what it is"; `git diff --stat`: 8 files, 33 insertions, 7 deletions), against the first pass `2026-10-24-final-candidate-verification.md` (FV-1 to FV-5).
-- **Checkout state before:** `/Users/sshlg/DATA/_worktrees/rv-0312`, `git status --short` printed nothing, `git rev-parse HEAD` = `e1419aeb0acae676a6a5048b4f1378010b327229`.
+- **Checkout state before:** `$HOME/DATA/_worktrees/rv-0312`, `git status --short` printed nothing, `git rev-parse HEAD` = `e1419aeb0acae676a6a5048b4f1378010b327229`.
 - **Checkout state after:** `git status --short` printed nothing, `git rev-parse HEAD` = `e1419aeb0acae676a6a5048b4f1378010b327229`.
 - **Method:** every changed line read with the code it exercises (`main/preparedLaunchInput.ts#execute`, `main/agentSurface.ts` start, `main/claudeInbound.ts`, `main/index.ts` `settingsSetClaudeInbound`). Plants were made in a scratch copy of `apps/desktop/{src,test}` under `rv-0312-out/scratch3/verifier2/plant/` (`node_modules` reached by symlink; the scratch baseline passes 22/22, 16/16 and 25/25 before any plant), one change at a time, restored and checked with `diff -q` after each. Load runs used `nice -n 19` so the full-tier run in progress on this machine kept priority. Nothing was fetched, committed, dispatched or re-run; the hosted CI was only read.
 

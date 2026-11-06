@@ -28,7 +28,7 @@ test at apps/desktop/test/consent-presenter.test.mjs:155:1
   
   1 !== 0
   
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:164:10)
+      at TestContext.<anonymous> (file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:164:10)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
     generatedMessage: true,

@@ -1,7 +1,7 @@
 {
   "format": "fabric-co179-test-fixture/1",
   "id": "ab17c469-b687-419e-9db4-f23237057494",
-  "desktop": "/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop",
+  "desktop": "<home>/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop",
   "sourceRevision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
   "createdAt": "2026-10-04T15:10:08.066Z",
   "hostPin": "07629730a0e4b24cde6fe425a67770708a436fa4507e98cfb81b0b6d530a75d7",

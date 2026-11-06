@@ -10,7 +10,7 @@
   ],
   "problems": [
     {
-      "file": "/Users/sshlg/DATA/appvillis-dataroom-agent-waves/docs/reports/2026-10-10-metric-quality/README.md",
+      "file": "<home>/DATA/appvillis-dataroom-agent-waves/docs/reports/2026-10-10-metric-quality/README.md",
       "id": "appvillis-dataroom-agent/2026-10-10-metric-quality",
       "errors": [
         "\u043f\u0440\u043e\u0435\u043a\u0442\u0430 `appvillis-dataroom-agent` \u043d\u0435\u0442 \u0432 \u0432\u0438\u043a\u0438 (projects/<\u043f\u0430\u043f\u043a\u0430>)"
@@ -20,7 +20,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/appvillis-dataroom-agent-waves/docs/reports/2026-10-10-monitoring-alert-lifecycle/README.md",
+      "file": "<home>/DATA/appvillis-dataroom-agent-waves/docs/reports/2026-10-10-monitoring-alert-lifecycle/README.md",
       "id": "appvillis-dataroom-agent/2026-10-10-monitoring-alert-lifecycle",
       "errors": [
         "\u043f\u0440\u043e\u0435\u043a\u0442\u0430 `appvillis-dataroom-agent` \u043d\u0435\u0442 \u0432 \u0432\u0438\u043a\u0438 (projects/<\u043f\u0430\u043f\u043a\u0430>)"
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/agent-reports-local/nicegram-ad-manager-bot/2026-10-10-3m-sales/README.md",
+      "file": "<home>/DATA/agent-reports-local/nicegram-ad-manager-bot/2026-10-10-3m-sales/README.md",
       "id": "nicegram-ad-manager-bot-2026-10-10-3m-sales",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`",
@@ -44,7 +44,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/agent-reports-local/nicegram-ad-manager-bot/2026-10-10-prod-12w/README.md",
+      "file": "<home>/DATA/agent-reports-local/nicegram-ad-manager-bot/2026-10-10-prod-12w/README.md",
       "id": "nicegram-ad-manager-bot-2026-10-10-prod-12w",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`",
@@ -58,7 +58,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/workspace/content/repos/fabric-agent-adapter/docs/reports/2026-10-13-faa-38-windows-exit75/README.md",
+      "file": "<home>/DATA/_wt/fabric-harness-integrated-20261013/workspace/content/repos/fabric-agent-adapter/docs/reports/2026-10-13-faa-38-windows-exit75/README.md",
       "id": "fabric-agent-adapter/2026-10-13-faa-38-windows-exit75",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `sources`",
@@ -70,7 +70,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/workspace/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "file": "<home>/DATA/_wt/fabric-harness-integrated-20261013/workspace/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
       "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
@@ -80,7 +80,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "file": "<home>/DATA/_wt/fabric-harness-integrated-20261013/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
       "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
@@ -90,7 +90,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/fabric-workspace-kb-host-floor/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "file": "<home>/DATA/fabric-workspace-kb-host-floor/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
       "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
@@ -100,7 +100,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/fabric-agent-adapter/docs/reports/2026-10-13-faa-38-windows-exit75/README.md",
+      "file": "<home>/DATA/fabric-agent-adapter/docs/reports/2026-10-13-faa-38-windows-exit75/README.md",
       "id": "fabric-agent-adapter/2026-10-13-faa-38-windows-exit75",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `sources`",
@@ -112,7 +112,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/appvillis-dataroom-agent/docs/reports/2026-10-10-metric-quality/README.md",
+      "file": "<home>/DATA/appvillis-dataroom-agent/docs/reports/2026-10-10-metric-quality/README.md",
       "id": "appvillis-dataroom-agent/2026-10-10-metric-quality",
       "errors": [
         "\u043f\u0440\u043e\u0435\u043a\u0442\u0430 `appvillis-dataroom-agent` \u043d\u0435\u0442 \u0432 \u0432\u0438\u043a\u0438 (projects/<\u043f\u0430\u043f\u043a\u0430>)"
@@ -122,7 +122,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/appvillis-dataroom-agent/docs/reports/2026-10-10-monitoring-alert-lifecycle/README.md",
+      "file": "<home>/DATA/appvillis-dataroom-agent/docs/reports/2026-10-10-monitoring-alert-lifecycle/README.md",
       "id": "appvillis-dataroom-agent/2026-10-10-monitoring-alert-lifecycle",
       "errors": [
         "\u043f\u0440\u043e\u0435\u043a\u0442\u0430 `appvillis-dataroom-agent` \u043d\u0435\u0442 \u0432 \u0432\u0438\u043a\u0438 (projects/<\u043f\u0430\u043f\u043a\u0430>)"
@@ -132,7 +132,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/fabric-workspace-readable-reports/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "file": "<home>/DATA/fabric-workspace-readable-reports/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
       "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
@@ -142,7 +142,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/fabric/workspace/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "file": "<home>/DATA/fabric/workspace/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
       "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
@@ -152,7 +152,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/fabric/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "file": "<home>/DATA/fabric/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
       "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
@@ -162,7 +162,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/.worktrees/ws-release-pipeline/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "file": "<home>/DATA/.worktrees/ws-release-pipeline/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
       "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"
@@ -172,7 +172,7 @@
       ]
     },
     {
-      "file": "/Users/sshlg/DATA/fabric-workspace/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
+      "file": "<home>/DATA/fabric-workspace/content/docs/handoffs/2026-10-04-hub-docs-plan-dispositions.md",
       "id": "fabric/2026-10-04-hub-docs-plan-dispositions",
       "errors": [
         "\u043d\u0435\u0442 \u043f\u043e\u043b\u044f `title`"

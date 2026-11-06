@@ -131,7 +131,7 @@ PASS: 17 planted contract/report defects refused
 PASS: {"tasks":58,"deep":50,"recipes":4,"preserve":4,"requirements":33,"modules":8,"entities":61,"relations":95,"cycles":12,"execution_nodes":75,"dependency_edges":141,"citation_occurrences":503,"receipts":280,"repinned_citations":395,"stale_citations":83,"verified_git_files":97,"html_anchors":338}
 Scope: design integrity and pinned sources; not runtime behavior, future acceptance cases or production security.
 PASS: system.html exactly matches model, catalog, contract and template
-{"source":"/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/scripts/check-design-map.mjs","sha256":"725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372","fixture_root":"/tmp/fabric-ci.6TlSy6/fabric-map-gate-fixture-I3W8VG","requested_pass":true,"requested_pass_count":16,"requested_count":16,"total_count":23,"all_pass":true}
+{"source":"$HOME/DATA/_wt/fabric-harness-integrated-20261013/scripts/check-design-map.mjs","sha256":"725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372","fixture_root":"/tmp/fabric-ci.6TlSy6/fabric-map-gate-fixture-I3W8VG","requested_pass":true,"requested_pass_count":16,"requested_count":16,"total_count":23,"all_pass":true}
 PASS requested: committed baseline checks successfully; exit=0
 PASS requested: ADR-only source mutation refuses unchanged map; exit=1
 PASS requested: execution-brief-only mutation refuses unchanged map; exit=1
@@ -4244,7 +4244,7 @@ release: the build identity is read from the artifact, states whether the source
 
 ── pure tests — no database
 
- RUN  v4.1.11 /Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop
+ RUN  v4.1.11 $HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop
 
 Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
 Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
@@ -6602,11 +6602,11 @@ PASS pending R2/R5 SQL plus recovery and legacy managed launch/stop on one dispo
 ✔ the commit: main's tip, or a tag on main checked out by CI, is released; a commit not on main refuses (321.392083ms)
 ✔ the commit: without an origin/main to compare with, the release refuses rather than guesses (248.497917ms)
 ✔ no team id or identity is written into the release config or the release script (it comes from CI) (1.628583ms)
-  • loaded configuration  file=/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/electron-builder.release.yml
-  • loaded parent configuration  file=/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/electron-builder.yml
+  • loaded configuration  file=$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/electron-builder.release.yml
+  • loaded parent configuration  file=$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/electron-builder.yml
   • loaded configuration  file=/tmp/fabric-ci.6TlSy6/release-config-JqBy6a/electron-builder.ci.json
-  • loaded parent configuration  file=/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/electron-builder.release.yml
-  • loaded parent configuration  file=/Users/sshlg/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/electron-builder.yml
+  • loaded parent configuration  file=$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/electron-builder.release.yml
+  • loaded parent configuration  file=$HOME/DATA/_wt/fabric-harness-integrated-20261013/apps/desktop/electron-builder.yml
 ✔ electron-builder resolves the release as a signed DMG with the identity CI gave, and unsigned without it (139.190417ms)
 ✔ electron-builder never publishes by itself; the workflow publish job does (0.171042ms)
 ✔ I3 P-2: a finalized changelog keeps no unreleased heading or not-released wording for its version (0.107833ms)

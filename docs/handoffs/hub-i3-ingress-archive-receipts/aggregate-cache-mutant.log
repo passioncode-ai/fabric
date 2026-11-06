@@ -13,7 +13,7 @@
 test at apps/desktop/test/hub-call.test.mjs:278:1
 ✖ DA-3: aggregate cached bytes stay bounded without erasing effect keys (87.228ms)
   AssertionError [ERR_ASSERTION]: cached output exceeds its aggregate bound
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-call.test.mjs:284:10)
+      at TestContext.<anonymous> (file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-call.test.mjs:284:10)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
     generatedMessage: false,

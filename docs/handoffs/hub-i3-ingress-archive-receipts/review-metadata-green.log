@@ -23,11 +23,11 @@
 ✔ the commit: main's tip, or a tag on main checked out by CI, is released; a commit not on main refuses (238.390833ms)
 ✔ the commit: without an origin/main to compare with, the release refuses rather than guesses (205.1005ms)
 ✔ no team id or identity is written into the release config or the release script (it comes from CI) (1.42225ms)
-  • loaded configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.release.yml
-  • loaded parent configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.yml
+  • loaded configuration  file=$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.release.yml
+  • loaded parent configuration  file=$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.yml
   • loaded configuration  file=/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/release-config-3u7kCa/electron-builder.ci.json
-  • loaded parent configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.release.yml
-  • loaded parent configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.yml
+  • loaded parent configuration  file=$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.release.yml
+  • loaded parent configuration  file=$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.yml
 ✔ electron-builder resolves the release as a signed DMG with the identity CI gave, and unsigned without it (129.933375ms)
 ✔ electron-builder never publishes by itself; the workflow publish job does (0.1135ms)
 ℹ tests 27

@@ -3,7 +3,7 @@
 - **Verifier run id:** `release-0312-i3-final-verifier-20261024`
 - **Date:** 2026-10-24
 - **Read:** `b314a37cc7d97539dd5cacda2eb7547bb57243c2..020e901927efce4e366d73b2a6e3ea8c72efbde4` (11 commits, 49 files, `git log` and `git diff`), against the five iteration-3 reports in `rv-0312-out/iteration-3/` (34 findings: UX-1 to UX-9, ER-1 to ER-8, DO-1 to DO-8, DA-1, DA-2, PL-1 to PL-5).
-- **Checkout state before:** `/Users/sshlg/DATA/_worktrees/rv-0312`, `git status --short` printed nothing, `git rev-parse HEAD` = `020e901927efce4e366d73b2a6e3ea8c72efbde4`.
+- **Checkout state before:** `$HOME/DATA/_worktrees/rv-0312`, `git status --short` printed nothing, `git rev-parse HEAD` = `020e901927efce4e366d73b2a6e3ea8c72efbde4`.
 - **Checkout state after:** `git status --short` printed nothing (0 lines), `git rev-parse HEAD` = `020e901927efce4e366d73b2a6e3ea8c72efbde4`.
 - **Method:** every changed function read with its callers; every fix that claims a test was reverted in a scratch copy under `rv-0312-out/scratch3/verifier/` (imports rewritten to the checkout's absolute paths; `node_modules` reached by a symlink in scratch) and its test run against the planted copy; the release gate's ancestry rule simulated read-only against the real history; hosted CI for the final candidate read with `gh run view` (read only, nothing dispatched or re-run).
 

@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/hub-v2-core-resume/apps/desktop
+ RUN  v4.1.11 $HOME/DATA/_worktrees/hub-v2-core-resume/apps/desktop
 
  ❯ src/shared/access.test.ts (28 tests | 3 failed) 689ms
      × refuses a string accounts, account, a differently spelt accountId, address, mailbox, email and forwardTo 90ms

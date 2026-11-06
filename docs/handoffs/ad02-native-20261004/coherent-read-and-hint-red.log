@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
+ RUN  v4.1.11 $HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
 
 Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
 Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
@@ -48,5 +48,5 @@ AssertionError: two reads disagree about initial storage authority: expected "vi
    Duration  6.75s (transform 7.59s, setup 216ms, import 9.97s, tests 1.23s, environment 1.01s)
 
 undefined
-/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop:
+$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop:
 [ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx

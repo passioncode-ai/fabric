@@ -18,7 +18,7 @@ test at apps/desktop/test/hub-access-refusals.test.mjs:8:1
   + undefined
   - 'per-agent-cap'
   
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/hub-v2-core-resume/apps/desktop/test/hub-access-refusals.test.mjs:16:11)
+      at TestContext.<anonymous> (file://$HOME/DATA/_worktrees/hub-v2-core-resume/apps/desktop/test/hub-access-refusals.test.mjs:16:11)
       at async Test.run (node:internal/test_runner/test:1409:7)
       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
     generatedMessage: true,

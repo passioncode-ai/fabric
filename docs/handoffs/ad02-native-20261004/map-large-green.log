@@ -1,4 +1,4 @@
-{"source":"/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/scripts/check-design-map.mjs","sha256":"725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372","fixture_root":"/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-COMAfp","requested_pass":true,"requested_pass_count":16,"requested_count":16,"total_count":23,"all_pass":true}
+{"source":"$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/scripts/check-design-map.mjs","sha256":"725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372","fixture_root":"/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-COMAfp","requested_pass":true,"requested_pass_count":16,"requested_count":16,"total_count":23,"all_pass":true}
 PASS requested: committed baseline checks successfully; exit=0
 PASS requested: ADR-only source mutation refuses unchanged map; exit=1
 PASS requested: execution-brief-only mutation refuses unchanged map; exit=1

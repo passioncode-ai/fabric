@@ -18,7 +18,7 @@ test at scripts/test/release-gate.test.mjs:52:1
   + 'unverified changes follow the verified commit: docs/reports/review-1-ux/README.md'
   - null
   
-      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/scripts/test/release-gate.test.mjs:56:10)
+      at TestContext.<anonymous> (file://$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/scripts/test/release-gate.test.mjs:56:10)
       at Test.runInAsyncScope (node:async_hooks:226:14)
       at Test.run (node:internal/test_runner/test:1402:25)
       at Test.start (node:internal/test_runner/test:1262:17)

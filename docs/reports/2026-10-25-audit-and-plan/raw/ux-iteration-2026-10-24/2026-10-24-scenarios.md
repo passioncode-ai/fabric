@@ -1,6 +1,6 @@
 # Fabric 0.3.12: product UX against the scenario base (read-only audit)
 
-Date: 2026-10-24. Checkout: `/Users/sshlg/DATA/_worktrees/rv-0312`, detached at `v0.3.12` (`42780b770dd4264183115d0ce9bec80ac84e4571`). Method: the super-ux `ux-audit` loop (scope, batches, cross-batch check, evidence per verdict), run read-only: no report was written into `docs/ux/audits/`, no `Last audit` cell was changed, nothing was committed. `git status --short` was empty before and after the run (saved in `scratch/scenarios/status-before.txt` and `status-after.txt`).
+Date: 2026-10-24. Checkout: `$HOME/DATA/_worktrees/rv-0312`, detached at `v0.3.12` (`42780b770dd4264183115d0ce9bec80ac84e4571`). Method: the super-ux `ux-audit` loop (scope, batches, cross-batch check, evidence per verdict), run read-only: no report was written into `docs/ux/audits/`, no `Last audit` cell was changed, nothing was committed. `git status --short` was empty before and after the run (saved in `scratch/scenarios/status-before.txt` and `status-after.txt`).
 
 ## Summary
 

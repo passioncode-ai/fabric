@@ -1,7 +1,7 @@
 {
   "format": "fabric-co179-test-fixture/1",
   "id": "39aaa629-30ea-4880-9bd5-97d17a34f563",
-  "desktop": "/Users/sshlg/DATA/_worktrees/fabric-co179-native-review-20261004/apps/desktop",
+  "desktop": "<home>/DATA/_worktrees/fabric-co179-native-review-20261004/apps/desktop",
   "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
   "createdAt": "2026-10-04T14:53:34.121Z",
   "hostPin": "07629730a0e4b24cde6fe425a67770708a436fa4507e98cfb81b0b6d530a75d7",

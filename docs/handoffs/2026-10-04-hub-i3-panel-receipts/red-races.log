@@ -1,5 +1,5 @@
 
- RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
+ RUN  v4.1.11 $HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
 
  ❯ src/renderer/src/AgentAccessPanel.test.tsx (33 tests | 7 failed | 26 skipped) 147ms
    × I3 independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading 76ms

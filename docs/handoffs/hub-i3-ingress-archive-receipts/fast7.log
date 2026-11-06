@@ -124,7 +124,7 @@ PASS: 17 planted contract/report defects refused
 PASS: {"tasks":58,"deep":50,"recipes":4,"preserve":4,"requirements":33,"modules":8,"entities":61,"relations":95,"cycles":12,"execution_nodes":75,"dependency_edges":141,"citation_occurrences":503,"receipts":280,"repinned_citations":395,"stale_citations":83,"verified_git_files":97,"html_anchors":338}
 Scope: design integrity and pinned sources; not runtime behavior, future acceptance cases or production security.
 PASS: system.html exactly matches model, catalog, contract and template
-{"source":"/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/scripts/check-design-map.mjs","sha256":"67880cb0de12ff88ae2d761ac27350aec47ff17ea26c69a810c91eeb7c6735bb","fixture_root":"/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-tpeCQ7","requested_pass":true,"requested_pass_count":16,"requested_count":16,"total_count":23,"all_pass":true}
+{"source":"$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/scripts/check-design-map.mjs","sha256":"67880cb0de12ff88ae2d761ac27350aec47ff17ea26c69a810c91eeb7c6735bb","fixture_root":"/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-tpeCQ7","requested_pass":true,"requested_pass_count":16,"requested_count":16,"total_count":23,"all_pass":true}
 PASS requested: committed baseline checks successfully; exit=0
 PASS requested: ADR-only source mutation refuses unchanged map; exit=1
 PASS requested: execution-brief-only mutation refuses unchanged map; exit=1
@@ -1640,7 +1640,7 @@ warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "The database schema coul
 ok: brand contract gate passes
 note:  [U057] 23 of 76 flows carry an inherited verdict, all of them in the shrinking baseline
 note:  [U078] 1 superseded screen record(s) compared against the index
-OK — docs/ux is consistent (/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/docs/ux)
+OK — docs/ux is consistent ($HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/docs/ux)
 ok: UX register gate passes (warnings are advisory — see docs/evidence/backlog.md for their causes)
 NOT CHECKED: 3 relative link(s) into the submodule 'workspace', which is not checked out here (private; a public clone cannot initialise it)
 relative Markdown links resolve (545 files inspected)
@@ -1653,7 +1653,7 @@ PASS: PassionCode.ai public narrative
 OK: 3 schemas and 4 examples are valid; 4 invalid boundary probes were rejected
 note:  [U057] 23 of 76 flows carry an inherited verdict, all of them in the shrinking baseline
 note:  [U078] 1 superseded screen record(s) compared against the index
-OK — docs/ux is consistent (/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/docs/ux)
+OK — docs/ux is consistent ($HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/docs/ux)
 accepted B051 docs/public/organization-profile.md:0: project copy decision
 accepted B051 docs/guides/passioncode-overview.md:0: project copy decision
 accepted B051 docs/guides/passioncode-overview.ru.md:0: project copy decision
@@ -3591,7 +3591,7 @@ release: the build identity is read from the artifact, states whether the source
 
 [1m── pure tests — no database[0m
 
- RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
+ RUN  v4.1.11 $HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
 
 Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
 Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
@@ -4821,11 +4821,11 @@ PASS full migration chain, the hub access projection refuses impossible transiti
 ✔ the commit: main's tip, or a tag on main checked out by CI, is released; a commit not on main refuses (202.86975ms)
 ✔ the commit: without an origin/main to compare with, the release refuses rather than guesses (177.056666ms)
 ✔ no team id or identity is written into the release config or the release script (it comes from CI) (0.662959ms)
-  • loaded configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.release.yml
-  • loaded parent configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.yml
+  • loaded configuration  file=$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.release.yml
+  • loaded parent configuration  file=$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.yml
   • loaded configuration  file=/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/release-config-yPHoLw/electron-builder.ci.json
-  • loaded parent configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.release.yml
-  • loaded parent configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.yml
+  • loaded parent configuration  file=$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.release.yml
+  • loaded parent configuration  file=$HOME/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.yml
 ✔ electron-builder resolves the release as a signed DMG with the identity CI gave, and unsigned without it (89.181708ms)
 ✔ electron-builder never publishes by itself; the workflow publish job does (0.140916ms)
 ℹ tests 13
