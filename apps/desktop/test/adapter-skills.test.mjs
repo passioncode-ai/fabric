@@ -126,4 +126,18 @@ assert.equal(skillVersion('# no front matter'), null)
   assert.deepEqual([v.ready, v.where, v.version], [true, 'plugin', '0.8.1'])
 }
 
-console.log('PASS adapter skills: launcher coverage per agent, Claude Code plugin (enabled, disabled, half), own folders, shared-only said as shared, none with the install command, unknown agent, malformed settings, FIFO and unreadable files, prototype ids, CLAUDE_CONFIG_DIR')
+{ // CO-512 (SB-259): inside a Switchboard home, the person's own Claude folder is SWITCHBOARD_CLAUDE_SOURCE_DIR.
+  const h = home(), source = path.join(h, 'mine'), sbHome = path.join(h, 'switchboard-home'), install = path.join(h, 'cache', 'adapter', '0.8.2')
+  skills(path.join(install, 'skills'), '0.8.2')
+  mkdirSync(path.join(source, 'plugins'), { recursive: true })
+  mkdirSync(sbHome, { recursive: true })
+  writeFileSync(path.join(source, 'settings.json'), JSON.stringify({ enabledPlugins: { [ADAPTER_PLUGIN]: true } }))
+  writeFileSync(path.join(source, 'plugins', 'installed_plugins.json'), JSON.stringify({ plugins: { [ADAPTER_PLUGIN]: [{ installPath: install, version: '0.8.2' }] } }))
+  assert.equal((await adapterSkills('claude-code', { home: h, env: { CLAUDE_CONFIG_DIR: sbHome } })).where, 'none', 'the group home alone holds no settings of its own')
+  const v = await adapterSkills('claude-code', { home: h, env: { CLAUDE_CONFIG_DIR: sbHome, SWITCHBOARD_CLAUDE_SOURCE_DIR: source } })
+  assert.deepEqual([v.ready, v.where, v.version], [true, 'plugin', '0.8.2'])
+  // A relative value names no folder: the configuration directory is read, as without it.
+  assert.equal((await adapterSkills('claude-code', { home: h, env: { CLAUDE_CONFIG_DIR: sbHome, SWITCHBOARD_CLAUDE_SOURCE_DIR: 'mine' } })).where, 'none')
+}
+
+console.log('PASS adapter skills: launcher coverage per agent, Claude Code plugin (enabled, disabled, half), own folders, shared-only said as shared, none with the install command, unknown agent, malformed settings, FIFO and unreadable files, prototype ids, CLAUDE_CONFIG_DIR, SWITCHBOARD_CLAUDE_SOURCE_DIR')

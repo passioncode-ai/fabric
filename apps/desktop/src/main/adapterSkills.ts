@@ -130,7 +130,11 @@ export async function adapterSkills(agentId: string, opts: { home?: string; fs?:
   const env = opts.env ?? process.env
   // Claude Code reads its configuration from CLAUDE_CONFIG_DIR when it is set, as Fabric's quota reader does
   // (`quota.ts`); the sessions Fabric starts inherit the same environment (0.3.3 verification DA-9).
-  const claudeHome = env.CLAUDE_CONFIG_DIR?.trim() || path.join(home, '.claude')
+  // CO-512 (Switchboard's SB-259): inside a group's home Switchboard set up, CLAUDE_CONFIG_DIR is that home and
+  // SWITCHBOARD_CLAUDE_SOURCE_DIR names the person's own Claude folder, where their plugins and settings stay. Only an
+  // absolute value names a folder.
+  const source = env.SWITCHBOARD_CLAUDE_SOURCE_DIR?.trim()
+  const claudeHome = (source && path.isAbsolute(source) ? source : '') || env.CLAUDE_CONFIG_DIR?.trim() || path.join(home, '.claude')
   const unreadable: string[] = []
   const view = (where: AdapterSkillsView['where'], found: Record<AdapterSkill, boolean>, version: string | null, ready: boolean): AdapterSkillsView =>
     ({ ready, where, version, found, command: INSTALL_COMMAND, launcherCovers: LAUNCHER_COVERS.has(agentId), unreadable })
