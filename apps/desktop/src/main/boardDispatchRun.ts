@@ -83,7 +83,7 @@ export interface DispatchDeps {
 const SETTLED = new Set(['completed', 'failed_known', 'answered', 'cancelled', 'expired'])
 /** A run left its request settled when the request is SETTLED or `outcome_unknown` (the run claimed it and the board can
  *  no longer say; it is the operator's now, not an empty run). Agreed with fabric-agent-adapter (FAA-213, FAA-215) and
- *  Vesta on the board, thread `1add3c03`, 2026-11-05 (CO-409). */
+ *  private31 on the board, thread `1add3c03`, 2026-11-05 (CO-409). */
 const RUN_SETTLED = new Set([...SETTLED, 'outcome_unknown'])
 /** Observatory's typed refusal for a closed workflow, matched by name (never the word «closed», NB-1). */
 const CLOSED = /\bWorkflowClosed\b/

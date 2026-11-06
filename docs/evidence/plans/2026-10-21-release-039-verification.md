@@ -125,7 +125,7 @@ outgrow its budget.
 | V2-28 | data:DO-1 | The plan still says the log keeps at least 7 days | fixed: the plan says sized for 7 days, a cut inside the week recorded |
 | V2-29 | PL-1 (blocking) | The rollout ends in the refusal it set out to remove; V1-46 does not hold | fixed: the plan names the rollout order: back up and rehearse, install the bundle, migrate the live database to 95 while 0.3.8 runs, then the next quit and open runs 0.3.9 on a ready database; 0.3.8 against schema 95 is checked in iteration 3 |
 | V2-30 | PL-2 | The notes say 4 of 6 with 2 expiring on 10-26 | fixed: with docs DO-10 |
-| V2-31 | PL-3 | Release-close obligations to other projects have no home; thread a5969ac5 has a false sentence; passioncode-vesta not told | fixed: corrected on a5969ac5 (2026-10-21 16:34 UTC), CO-371 names both threads and the 503 body, passioncode-vesta told on thread d1ffada2; the rest is in the Release close |
+| V2-31 | PL-3 | Release-close obligations to other projects have no home; thread a5969ac5 has a false sentence; private09 not told | fixed: corrected on a5969ac5 (2026-10-21 16:34 UTC), CO-371 names both threads and the 503 body, private09 told on thread d1ffada2; the rest is in the Release close |
 | V2-32 | PL-4 | Two requests to Fabric would be expired by its own tick | fixed: both answered on 2026-10-21 (threads 87af4473 and e75d502d), recorded as CO-372 and CO-336; the tick will settle them as answered |
 | V2-33 | PL-5 | TR-14 claimed fixed but only its stage half changed | fixed: the plan table says half fixed; the heartbeat half is CO-375 |
 | V2-34 | PL-6 | The watch never restarts a stack whose PostgREST or Kong is down | ruled: CO-374 (0.3.10) |

@@ -300,7 +300,7 @@ COM permission; activation and owner acceptance keep their actual prerequisites.
 Report index generator preserved all172 previous IDs and produced174. The default
 push refused existing52/72 divergence; task-owned generated output is available at
 branch `agent/fabric-harness-report-index-20261013`, commit
-`099c052b3cd90749176341f04ae83b554802b01b` in `ssheleg/obsidian-memory-vault`.
+`099c052b3cd90749176341f04ae83b554802b01b` in `ssheleg/private05`.
 No foreign history was rewritten and the default wiki index is not claimed updated.
 
 N027 source is integrated with focused independent acceptance and desktop typecheck;

@@ -3083,7 +3083,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'joined.letInFailed': "Не удалось пустить снова:",
   'joined.outUnreadable': "Список отключённых агентов не прочитан, поэтому сейчас никто не отключён.",
   'joined.someProject': "проект",
-  // 0.3.13 (CO-419, CO-414): Агенты as an agents screen, and История's filters and detail pane (Copylot: job_f60c1417d63963098404c074, job_c4d5cbe61d0c6f81c5be00cf).
+  // 0.3.13 (CO-419, CO-414): Агенты as an agents screen, and История's filters and detail pane (private29: job_f60c1417d63963098404c074, job_c4d5cbe61d0c6f81c5be00cf).
   'agentsPlace.lede': "Все агенты на этом компьютере, сгруппированные по тому, чем они заняты. Выберите агента, чтобы посмотреть его работу и консоль.",
   'agentsPlace.switchboard.title': "Сессии Switchboard",
   'agentsPlace.switchboard.lede': "Сессии, которые Switchboard запустил на этом компьютере за последние сутки, и те, что ждут сброса лимита. Продолжает их Fabric Dashboards.",

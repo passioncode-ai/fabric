@@ -40,7 +40,7 @@ Every event carries:
   installed release version, sandbox otherwise".
 - Aptabase's build mode follows `props.environment`: `isDebug` is `true` exactly when the environment is not
   `production`, so a pre-release or a development run lands in the dashboard's Debug view, never in Release
-  (sshlg-analytics client contract, "Build modes", 2026-10-09). Test "isDebug agrees with environment: a
+  (private13 client contract, "Build modes", 2026-10-09). Test "isDebug agrees with environment: a
   pre-release or a development run lands in the Debug view".
 
 Nothing else identifies the machine or the person.

@@ -21,7 +21,7 @@ whose task went back to the queue (UX-24, DO-14, `4e828fba`).
 What follows was the proposal for the operator to accept or correct, kept as written apart from §4.2, §8's
 announcement and the settled note in §4.6 (the main session, DEC-0140, iteration 3's PL-11). Like v1 it changed no scenario: the scenarios it touches
 (SCN-140, SCN-158, SCN-166, SCN-172, SCN-173, SCN-174) are amended in the same change that builds each part
-(super-ux: scenarios first). Every Russian string below is a proposal; each is checked with Copylot (`copylot_check`,
+(super-ux: scenarios first). Every Russian string below is a proposal; each is checked with private29 (`private29_check`,
 register `ui`, the project's voice) in the change that ships it.
 
 ## 0. The operator's words
@@ -130,7 +130,7 @@ numbers; «В работе» lists three project cards, each led by its current 
 coloured status (R-19). The right column «Нужны вы» holds two questions. The bell in the top bar shows «3». In ten
 seconds the person knows where work happens and what is asked (R-14).
 
-**UC-2. A hot question.** In «Нужны вы» a card reads «Copylot · Кодер спрашивает: выпускать 1.4 с неполным переводом
+**UC-2. A hot question.** In «Нужны вы» a card reads «private29 · Кодер спрашивает: выпускать 1.4 с неполным переводом
 на польский?» with its options as buttons. The person presses «Выпускать без польского» (R-15). The card leaves; the
 agent's yellow dot turns green within one reading, because its heartbeat phase leaves `waiting`. Nothing else opened.
 
@@ -142,11 +142,11 @@ progress bar (R-4). Below, «Задачи» in three lanes, «В работе»,
 
 **UC-4. Three sessions in tabs.** From UC-3 the person presses «Открыть сессию»: a tab «Fabric · Claude Code» opens
 along the top with a green dot (R-17). Back › home (R-7), then in the left list the console icon beside «Codex ·
-Copylot» (R-6): a second tab opens with a yellow dot. A third from the project page of Mobile Publisher. ⌘2, ⌘3, ⌘4
+private29» (R-6): a second tab opens with a yellow dot. A third from the project page of private11. ⌘2, ⌘3, ⌘4
 switch among them; ⌃Tab cycles (R-18). The pinned first tab «Обзор» returns to wherever the person last was among the
 pages. Closing a tab (×) leaves its session running (ADR-0031 §2, as `ConsoleTabs` says today).
 
-**UC-5. A session not held by Fabric.** The left list shows «Claude Code · webpilot · main» joined from a terminal,
+**UC-5. A session not held by Fabric.** The left list shows «Claude Code · private28 · main» joined from a terminal,
 role «Зашёл». Its console icon is drawn as a terminal outside Fabric. A press opens a tab whose body is that agent's
 screen with the card «Сессия идёт в терминале вне Fabric» and, once Switchboard and Dashboards serve it (CO-457), «Открыть
 в Fabric Dashboards». No terminal is drawn that Fabric does not hold (R-17's limit, open choice 4).
@@ -157,7 +157,7 @@ Dashboards» records a board request from Fabric to fabric-dashboards (v1 §5). 
 session (R-21) it appears in «Запросы от других проектов» (R-10) and in that agent's «Предлагают взять» (R-13); the
 Fabric task shows «Поручено fabric-dashboards · в очереди», later «взято», later «сделано: …».
 
-**UC-7. Taking a proposed task.** On Copylot's coder screen «Предлагают взять» holds «Проверить тексты 0.3.14 (от
+**UC-7. Taking a proposed task.** On private29's coder screen «Предлагают взять» holds «Проверить тексты 0.3.14 (от
 Fabric)». Two buttons: «Взять в этой сессии», which delivers it to the session as a nudge on its next turn (no typing
 into a terminal), and «Запустить новую сессию на ней», which starts a console on that task (`tasks.startExisting`). The
 row moves to «В работе» when the agent claims it.
@@ -170,7 +170,7 @@ person can press «Сделать основной» on B, which asks B to take 
 `com.responder_replace`, §4.6).
 
 **UC-9. The notifications screen.** The person was away overnight. The bell reads «7». «Уведомления» (§3.5) lists,
-newest first: «Fabric · задача сдана на проверку · 03:12», «Copylot спрашивает · 04:40», «Сессия Codex упёрлась в
+newest first: «Fabric · задача сдана на проверку · 03:12», «private29 спрашивает · 04:40», «Сессия Codex упёрлась в
 лимит · 05:33», each with «Открыть» and, for a question, its answer buttons (R-15). «Только непрочитанные» filters.
 A macOS notification's click lands here on its own row, not on a bare focused window as today.
 
@@ -194,7 +194,7 @@ every screen, a session tab included (R-7).
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────┐
-│ ‹  ›  ⌂ │ [Обзор] [● Fabric · Claude Code ×] [● Copylot · Codex ×] …     🔔 3          │ top bar
+│ ‹  ›  ⌂ │ [Обзор] [● Fabric · Claude Code ×] [● private29 · Codex ×] …     🔔 3          │ top bar
 ├───────────────┬──────────────────────────────────────────────┬───────────────────────┤
 │ Fabric        │                                              │                       │
 │ ＋ Создать    │            the page (§3.1 to §3.6)           │   the right panel     │
@@ -570,8 +570,8 @@ operator's quit.
 - `sysctl vm.swapusage`: total 33 792 MB, **used 32 879 MB**, free 913 MB.
 - 48 GB of RAM (`hw.memsize`).
 - `docker context show`: `orbstack`. `colima list`: no instance (`/opt/homebrew/bin/colima` installed).
-- Running in OrbStack: Fabric's stack (`supabase_db_fabric`, `_rest_`, `_auth_`, `_kong_`), `webpilot-db-1`,
-  `webpilot-redis-1`, `aion-test-pg`, and **OrbStack's own Kubernetes** (`coredns`, `local-path-provisioner`); 98
+- Running in OrbStack: Fabric's stack (`supabase_db_fabric`, `_rest_`, `_auth_`, `_kong_`), `private28-db-1`,
+  `private28-redis-1`, `private32-test-pg`, and **OrbStack's own Kubernetes** (`coredns`, `local-path-provisioner`); 98
   volumes.
 
 The condition is far from met: 12.6 GB more disk and about 17 GB less swap. The machine is at a level where board

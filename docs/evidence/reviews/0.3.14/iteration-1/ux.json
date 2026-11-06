@@ -87,7 +87,7 @@
       "source": "V1-10",
       "status": "fixed",
       "evidence": [
-        "fixed: Copylot's check, register `ui`, ran on 0.3.14's strings (ru `c75ef710-2609-4602-9373-3ec940208bd3`, en `e873528f-477f-460a-8aca-aad03b79fd9c`; wave build `a0601770-93c1-4816-9457-ff38aba4b9a9`, `6c7ec19e-6738-49a6-bdd6-7fdfd8fb9df4`) and on the strings the fix changes, voice «PassionCode.ai site voice v2» (ru `6fdd4a5b-a538-4aec-884b-ac4fcbb27442`, en `96a43f00-9be3-407d-a6b6-f4af387bbae0`), 0 findings each (`7df37865`)"
+        "fixed: private29's check, register `ui`, ran on 0.3.14's strings (ru `c75ef710-2609-4602-9373-3ec940208bd3`, en `e873528f-477f-460a-8aca-aad03b79fd9c`; wave build `a0601770-93c1-4816-9457-ff38aba4b9a9`, `6c7ec19e-6738-49a6-bdd6-7fdfd8fb9df4`) and on the strings the fix changes, voice «PassionCode.ai site voice v2» (ru `6fdd4a5b-a538-4aec-884b-ac4fcbb27442`, en `96a43f00-9be3-407d-a6b6-f4af387bbae0`), 0 findings each (`7df37865`)"
       ]
     }
   ]

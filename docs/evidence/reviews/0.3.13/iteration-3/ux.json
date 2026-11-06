@@ -47,7 +47,7 @@
       "source": "V3-5",
       "status": "fixed",
       "evidence": [
-        "fixed: `HEAL_LINE` before the stop, said in the person's language (`splashProgress.ts`; `stack-half-up.test.mjs` «iteration 3 UX-5», watched failing); Copylot `32cc6df4-48cf-4245-ba58-685402552091`"
+        "fixed: `HEAL_LINE` before the stop, said in the person's language (`splashProgress.ts`; `stack-half-up.test.mjs` «iteration 3 UX-5», watched failing); private29 `32cc6df4-48cf-4245-ba58-685402552091`"
       ]
     }
   ]

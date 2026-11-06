@@ -55,7 +55,7 @@
       "source": "V2-16",
       "status": "fixed",
       "evidence": [
-        "fixed: \"the database and kong\"; \"without rest or without kong\"; Copylot `bc66edd1-3c68-4c27-964c-a8379e2f2054`"
+        "fixed: \"the database and kong\"; \"without rest or without kong\"; private29 `bc66edd1-3c68-4c27-964c-a8379e2f2054`"
       ]
     },
     {

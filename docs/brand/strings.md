@@ -768,7 +768,7 @@ lands beside SCN-132.
 | `access.ask.respondThis` | answer {capabilities} requests for this project | apps/desktop/src/renderer/src/i18n/en.ts:1062 | SCN-145 (responder grant) | proposed |
 | `access.respond.title` | Let {name} answer {capabilities} requests for {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1063 | SCN-145 (responder grant) | proposed |
 | `access.respond.message` | {name} asks to answer the requests other projects send to {project} | apps/desktop/src/renderer/src/i18n/en.ts:1064 | SCN-145 (responder grant) | proposed |
-| `access.respond.what` | It may take and answer the requests other projects send to {project} for these capabilities. This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is not an approval unless it carries your own words, when and where you said them, and what you approved. | apps/desktop/src/renderer/src/i18n/en.ts:1065 | SCN-145 (responder grant); DEC-0126, CO-435 (Copylot d1af4aae) | proposed |
+| `access.respond.what` | It may take and answer the requests other projects send to {project} for these capabilities. This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is not an approval unless it carries your own words, when and where you said them, and what you approved. | apps/desktop/src/renderer/src/i18n/en.ts:1065 | SCN-145 (responder grant); DEC-0126, CO-435 (private29 d1af4aae) | proposed |
 | `access.respond.projectTo` | {name} | apps/desktop/src/renderer/src/i18n/en.ts:1066 | SCN-145 (responder grant) | proposed |
 | `access.respond.thisProjectTo` | this project | apps/desktop/src/renderer/src/i18n/en.ts:1067 | SCN-145 (responder grant) | proposed |
 | `access.respond.revoke` | For a year, unless you revoke it under Agent access in the left column. | apps/desktop/src/renderer/src/i18n/en.ts:1068 | SCN-145 (responder grant) | proposed |
@@ -992,7 +992,7 @@ Proposed Russian rows (Status: proposed for each; English primaries unchanged):
 - `agents.historyEarlier` — «Показаны последние события: {count}. Более ранние события этой сессии в список не вошли.» · apps/desktop/src/renderer/src/i18n/ru.ts:1570 · SCN-130 · proposed
 - `launch.comms.request.effect` — «Внешнее действие» · apps/desktop/src/renderer/src/i18n/ru.ts:1248 · SCN-143 · proposed
 
-**Abandoned work the sweep found, and a release Fabric made, added 2026-10-26 (0.3.13: SW-9, CO-430).** The «На проверке» rows the sweep of abandoned work adds say why each is abandoned in one line, one per finding kind; История's «Что делали агенты» says a release Fabric made without naming an agent. English checked by Copylot (reports dbc34a0f-2749-488d-89c0-33101677e0bf, f342ef66-5934-4254-aeee-42108a098f73); Russian is Copylot's adaptation (job job_c26560df3774e89ec7f8fe9b, check report 971db110-ec21-4ee0-8a12-beb3c156be73, judge score 83).
+**Abandoned work the sweep found, and a release Fabric made, added 2026-10-26 (0.3.13: SW-9, CO-430).** The «На проверке» rows the sweep of abandoned work adds say why each is abandoned in one line, one per finding kind; История's «Что делали агенты» says a release Fabric made without naming an agent. English checked by private29 (reports dbc34a0f-2749-488d-89c0-33101677e0bf, f342ef66-5934-4254-aeee-42108a098f73); Russian is private29's adaptation (job job_c26560df3774e89ec7f8fe9b, check report 971db110-ec21-4ee0-8a12-beb3c156be73, judge score 83).
 
 | Key | Text (primary) | Location | Scenario | Status |
 |---|---|---|---|---|

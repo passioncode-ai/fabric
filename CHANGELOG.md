@@ -10,7 +10,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 ## Unreleased
 
 - **An agent started for a board request is told to close its workflow only once the request is settled** (CO-409,
-  agreed with fabric-agent-adapter and Vesta). A run whose request ends `outcome_unknown` counts as finished, not as an
+  agreed with fabric-agent-adapter and private31). A run whose request ends `outcome_unknown` counts as finished, not as an
   empty run, and a workflow a run already closed is taken as closed instead of being retried.
 - **«На проверке» says what happened to a board request in its own words** (CO-409). A request Fabric gave you after two
   agents left it open reads «Два запущенных агента не закрыли запрос: Fabric больше не запускает на него агентов, решите

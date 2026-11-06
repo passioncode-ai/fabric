@@ -71,7 +71,7 @@
       "source": "V1-21",
       "status": "fixed",
       "evidence": [
-        "fixed: Vesta answered on `0d82422a` (`9d9e6a4f`: CO-319 to CO-321 in 0.4.0, the Studio needs no hub move), fabric-workspace on `6c7a5404` (`e36fe15e`); the Release close lists the moved rows' threads and CO-377's date"
+        "fixed: private31 answered on `0d82422a` (`9d9e6a4f`: CO-319 to CO-321 in 0.4.0, the Studio needs no hub move), fabric-workspace on `6c7a5404` (`e36fe15e`); the Release close lists the moved rows' threads and CO-377's date"
       ]
     },
     {

@@ -39,8 +39,8 @@ describe('railProjects', () => {
 // one press away behind «Все проекты · N».
 describe('railProjects names', () => {
   it('prints the display name main resolved and keeps the slug for the hover', () => {
-    const rows = railProjects([{ ...p('c', 'copylot-agent'), displayName: 'Copylot' }, p('b', 'beta')], [], 'en')
-    expect(rows.map((r) => [r.name, r.slug])).toEqual([['beta', 'beta'], ['Copylot', 'copylot-agent']])
+    const rows = railProjects([{ ...p('c', 'private17'), displayName: 'private29' }, p('b', 'beta')], [], 'en')
+    expect(rows.map((r) => [r.name, r.slug])).toEqual([['beta', 'beta'], ['private29', 'private17']])
   })
 })
 

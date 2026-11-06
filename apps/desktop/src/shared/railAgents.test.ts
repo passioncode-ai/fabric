@@ -13,7 +13,7 @@ describe('railAgents', () => {
   it('sorts by project name in the locale\'s collation, then by the newest sign of life', () => {
     const rows = railAgents([
       live('s1', 'Fabric', { lastSignAt: '2026-10-26T11:00:00Z' }),
-      live('s2', 'copylot'),
+      live('s2', 'Cedar'),
       live('s3', 'Fabric', { lastSignAt: '2026-10-26T12:30:00Z' }),
       live('s4', 'Арбуз')
     ], 'en')
@@ -51,9 +51,9 @@ describe('railAgents', () => {
   })
 
   it('prints the project by its display name, sorted by it', () => {
-    const names = { 'p-copylot-agent': { name: 'Copylot', from: 'descriptor' as const, derived: false } }
-    const rows = railAgents([live('s1', 'beta'), live('s2', 'copylot-agent')], 'en', null, names)
-    expect(rows.map((r) => r.projectName)).toEqual(['beta', 'Copylot'])
+    const names = { 'p-cedar-agent': { name: 'Cedar', from: 'descriptor' as const, derived: false } }
+    const rows = railAgents([live('s1', 'beta'), live('s2', 'cedar-agent')], 'en', null, names)
+    expect(rows.map((r) => r.projectName)).toEqual(['beta', 'Cedar'])
   })
 
   it('ER-18: takes the agent\'s fresh heartbeat, as «В работе» and the agent page do; an old one falls back to what is observed', () => {

@@ -31,7 +31,7 @@
       "source": "PL-3",
       "status": "fixed",
       "evidence": [
-        "fixed: corrected on a5969ac5 (2026-10-21 16:34 UTC), CO-371 names both threads and the 503 body, passioncode-vesta told on thread d1ffada2; the rest is in the Release close"
+        "fixed: corrected on a5969ac5 (2026-10-21 16:34 UTC), CO-371 names both threads and the 503 body, private09 told on thread d1ffada2; the rest is in the Release close"
       ]
     },
     {

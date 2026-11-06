@@ -67,7 +67,7 @@ describe('«Нужны вы» shows only what the person resolves, naming who as
 
 describe('a question\'s muted line says why it is asked, never the board\'s count of what it blocks (the home harness bug)', () => {
   it('shows the asker\'s own «why», and nothing when it wrote none, never «Blocks 1 task» as its reason', async () => {
-    const q = (id: string, why?: string) => ({ kind: 'question', ref: `question:${id}`, subject: { kind: 'question', id }, projectId: 'p1', projectName: 'Copylot', title: `Q ${id}`,
+    const q = (id: string, why?: string) => ({ kind: 'question', ref: `question:${id}`, subject: { kind: 'question', id }, projectId: 'p1', projectName: 'private29', title: `Q ${id}`,
       detail: 'blocking 1 task', waitingSince: '2026-10-22T00:00:00Z', origin: 'authored', question: { revision: 1, options: [{ id: 'a', label: 'Yes' }] }, ...(why ? { why } : {}) })
     vi.stubGlobal('window', Object.assign(window, { fabric: { board: { query: vi.fn(async () => ({ data: { items: [q('1', 'Rules change the check of texts in every project that picked this voice.'), q('2')], total: 2, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' })) } } }))
     render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={vi.fn()} /></I18nProvider>)

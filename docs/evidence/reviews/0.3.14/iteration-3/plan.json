@@ -39,7 +39,7 @@
       "source": "V3-27",
       "status": "ruled",
       "evidence": [
-        "ruled: (a) the contract's request `e2d4ecab` (CT-172) in CO-452, 0.4.0 (P-16); (b) webpilot's `44a26740`, answered `6dd910c2`, in CO-464 (`490015bd`)"
+        "ruled: (a) the contract's request `e2d4ecab` (CT-172) in CO-452, 0.4.0 (P-16); (b) private28's `44a26740`, answered `6dd910c2`, in CO-464 (`490015bd`)"
       ]
     },
     {

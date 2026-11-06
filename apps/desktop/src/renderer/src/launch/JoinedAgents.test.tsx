@@ -29,7 +29,7 @@ function mount(ov: HubOverview | Error, acts: { disconnectAgent?: (id: string) =
   const disconnectAgent = vi.fn(acts.disconnectAgent ?? (async (_id: string): Promise<ActAnswer> => ({ ok: true, seq: 5 })))
   const letAgentIn = vi.fn(acts.letAgentIn ?? (async (_id: string): Promise<ActAnswer> => ({ ok: true, seq: 6 })))
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { hub: { overview: read, disconnectAgent, letAgentIn } } }))
-  render(<I18nProvider locale={locale}><JoinedAgents projects={[{ id: 'p1', name: 'Fabric' }, { id: 'p2', name: 'Nicegram' }]} /></I18nProvider>)
+  render(<I18nProvider locale={locale}><JoinedAgents projects={[{ id: 'p1', name: 'Fabric' }, { id: 'p2', name: 'private26' }]} /></I18nProvider>)
   return { read, disconnectAgent, letAgentIn }
 }
 
@@ -39,7 +39,7 @@ describe('coding agents that joined on their own', () => {
     const row = await screen.findByRole('listitem', { name: 'Codex' })
     expect(row.textContent).toContain(en['joined.self'])
     expect(row.textContent).toContain('Fabric')
-    expect(row.textContent).toContain('Nicegram')
+    expect(row.textContent).toContain('private26')
     expect(row.textContent).toContain(en['joined.proof'].replace('{name}', 'Codex'))
     expect(within(row).getByRole('button', { name: en['joined.disconnect'] })).toBeTruthy()
     expect(screen.queryByRole('listitem', { name: 'Research' })).toBeNull()

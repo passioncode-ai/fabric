@@ -256,6 +256,6 @@ What 0.3.5's release has to do besides the gate. Each line is checked off with i
 5. After the tag, in one close commit (CO-274…CO-276, CO-275's fixes, ADR-0144 amendment 5 and the audit correction
    already landed in the final candidate): CO-238 resolved, P-17 done
    with the release, the plan's Now line and lane 2, the 0.4.0 plan's *Decision* (the Comms wording and both dumps),
-   ADR-0144 amendment 5 (webpilot's BL-015 answers), the roll-call audit's dated correction for Asset Foundry,
+   ADR-0144 amendment 5 (private28's BL-015 answers), the roll-call audit's dated correction for private15,
    `docs/brand/facts.md` and the overview guides, CO-275's fixes; the knowledge base (roadmap released column,
    RM-05, RM-13, RM-25, `plans.md`) by a fabric-workspace PR; `workspace.mjs publish`.

@@ -11,7 +11,7 @@ DEC-0129 (`v0.1.0+2026-10-26.4`, fabric-agent-contract `a2c5d018`) · amends the
 ADR-0178 settled who signs an organization's record: an administrator's passkey, in Fabric, never a server. DEC-0129
 built `org-authority/1` on it and placed the membership root with the organization owner's Fabric (OL-4a, after A-3).
 It departed from one of ADR-0178's defaults and left four questions to Fabric, asked in the contract's board thread
-`8d115bed` (message `237e41a3`) and relayed by fabric-workspace on 2026-10-26, due 2026-10-29 because Vesta's N-3
+`8d115bed` (message `237e41a3`) and relayed by fabric-workspace on 2026-10-26, due 2026-10-29 because private31's N-3
 (MD-14, 2026-11-04) waits on the exchange «the server drafts a key set, the owner's Fabric signs it»:
 
 - (0) the form of an administrator's signature over a project leaving an organization (MC-13, ADR-0178 point 5), when a
@@ -66,11 +66,11 @@ here.
 - The contract's next membership decision can fix the release statement (its type, challenge and verifier beside
   `verifyOrgAuthority`), the key set's successor and the pin's optional `recovery`, and close the role question with
   item 4's sentence. Fabric posted these answers on the board on 2026-10-26 (thread `115ef7fb`, message `664b69ad`) to
-  fabric-agent-contract, with fabric-workspace and passioncode-vesta as participants.
-- Vesta's N-3 can build the exchange now: Vesta drafts the key set and the list, the owner's Fabric confirms with an
-  estate passkey and the root signs; Vesta never holds the root or a signing credential.
+  fabric-agent-contract, with fabric-workspace and private09 as participants.
+- private31's N-3 can build the exchange now: private31 drafts the key set and the list, the owner's Fabric confirms with an
+  estate passkey and the root signs; private31 never holds the root or a signing credential.
 - Fabric's slice (P-27): CO-337 (Create organization) generates the root on the always-on machine, registers the
-  organization-only signing credential and offers the recovery key; CO-130 (the Vesta identity bridge) carries the
+  organization-only signing credential and offers the recovery key; CO-130 (the private31 identity bridge) carries the
   key-set exchange; CO-320 (the ceremonies) adds the release of a project and the root's planned move.
 - Nothing changes for the operator's personal network (ADR-0162) or for ADR-0178 points 1 to 7.
 - Rejected: an administrator's passkey admitted into a member's estate verifier (a second authority over the person's
@@ -90,9 +90,9 @@ once a revision is signed. ADR-0178's points 1 to 4 and 6 and the first half of 
 person's passkey alone) are unchanged. The contract files this shape as CT-159 (board thread `115ef7fb`, message
 `65923019`).
 
-ADR-0178's Context cites Vesta ADR-0004 and ADR-0005 for "Vesta drafts and signs `org-authority/1`" and its last
-paragraph rejects Vesta as signer (DO-15). Both stand as written: Vesta's ADRs say Vesta signs, and DEC-0129 (OL-2)
-decided that no server signs a member list, the drafting one included. Changing Vesta's ADRs is Vesta's; DEC-0129 and
+ADR-0178's Context cites private31 ADR-0004 and ADR-0005 for "private31 drafts and signs `org-authority/1`" and its last
+paragraph rejects private31 as signer (DO-15). Both stand as written: private31's ADRs say private31 signs, and DEC-0129 (OL-2)
+decided that no server signs a member list, the drafting one included. Changing private31's ADRs is private31's; DEC-0129 and
 this record are what Fabric builds to.
 
 ## Amendment 2 (2026-10-26): the Consequences line

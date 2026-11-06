@@ -56,16 +56,16 @@ Done before the quit, 2026-11-05:
   table lost a row (receipt `pre-0.3.16-rehearsal.dump.rehearsal.json` beside the dump). It does not replace step 4's
   backup, which is taken with no writer.
 
-Promised on the board (thread `1add3c03`, message `2674b679`, to passioncode-vesta, 2026-11-05): right after step 7
+Promised on the board (thread `1add3c03`, message `2674b679`, to private09, 2026-11-05): right after step 7
 the dispatcher switch («Запускать агента на запрос доски, который некому взять») is turned off on this Mac and stays off
 until fabric-agent-adapter 0.63 or later is installed here (0.62.0 now, without FAA-201's dispatch rules); the live
-dispatcher check then runs on a scratch project, never on passioncode-vesta.
+dispatcher check then runs on a scratch project, never on private09.
 Widened the same evening (`92ff7a61`): the switch is turned on only once the running Switchboard owner reads 0.7.15 or
 later as well, and once the scratch project's live check has shown a launched run take `board.respond` (CO-494 in
-0.3.16) and answer; passioncode-vesta is told on that thread.
+0.3.16) and answer; private09 is told on that thread.
 Widened again (`6b165b76`): `dispatchBoardRequests: false` is written into this Mac's Fabric settings in step 3, after
 the quit and before 0.3.16's first start (0.3.16 has the switch on by default, `appSettings.ts`); and the switch waits
-also for Vesta's change to a refused first `com.enroll` and for the adapter's FAA-219, or for CO-506 shipped. Corrected the
+also for private31's change to a refused first `com.enroll` and for the adapter's FAA-219, or for CO-506 shipped. Corrected the
 same evening (`9d23b27c`): in 0.3.16 a session has no tool to ask `board.respond` (fabric-mcp asks only `session.enroll`),
 so the change both make is to answer with `com.reply` and end on `not_authorized`, not to ask; 0.3.16's own words that
 say otherwise are carried in CO-512.
@@ -289,7 +289,7 @@ final candidate.
 | V3-51 | FV-N4 (verifier of 23e1e89c, docs) | non-blocking | the CHANGELOG's board-rule bullet stated the stop before production as enforced | fixed in `822560c5`: the rule tells the session, nothing else enforces it |
 | V3-52 | FV-N5 (verifier of 23e1e89c, docs) | non-blocking | V3-29 said the sweep row names `claim-closed` | fixed: V3-29's cell says the row describes it |
 | V3-53 | FV-N6 (verifier of 23e1e89c, docs) | non-blocking | Windows fixture homes `C:\Users\p` in a test | fixed in `822560c5`: `C:\Users\example` (`apps/desktop/test/agent-registry.test.mjs`) |
-| V3-54 | FV-N7 (verifier of 23e1e89c, docs) | non-blocking | the text-check ids could not be re-read | not a defect: Copylot keeps the reports by id (`copylot_check` answers `reportId`); no tool here reads one back |
+| V3-54 | FV-N7 (verifier of 23e1e89c, docs) | non-blocking | the text-check ids could not be re-read | not a defect: private29 keeps the reports by id (`private29_check` answers `reportId`); no tool here reads one back |
 | V3-55 | FV2-1 (verifier of 822560c5) | non-blocking | a far deadline keeps a request's record past the 8 days | not a defect: growth stays bounded by at most 20 dispatches per project a day and one kept record per request |
 | V3-56 | FV2-2 (verifier of 822560c5) | non-blocking | an unparsable deadline ends the whole pass (earlier than this change) | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |
 | V3-57 | FV2-3 (verifier of 822560c5) | non-blocking | a run whose request was not read ends without counting as empty (earlier than this change) | ruled: a carry-over row filed on `main` after the tag (the register cannot change after `verifiedCommit`) |

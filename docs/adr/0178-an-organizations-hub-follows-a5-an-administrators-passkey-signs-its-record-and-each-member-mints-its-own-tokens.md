@@ -14,21 +14,21 @@ It left organization networks to "D8 / `org-authority/1`". Organization R1 (fabr
 2026-11-21) and before the contract adopts TP-00 (CT-137, due 2026-11-06).
 
 The bounds, each with its source (read 2026-10-26 at fabric-workspace `255ce6d6`, fabric-agent-contract `a6668f7a`,
-passioncode-vesta `98b0276`):
+private09 `98b0276`):
 
 - **A-5** (fabric-workspace `knowledge/roadmap.md`, accepted with A-1 to A-11 on 2026-10-22): one primary machine per
   network holds the hub, the always-on Mac until a cloud exists, then the cloud; the passkey stays on the person's
   device. R1-D9 and SD-4 O-6: an organization's hub follows A-5.
-- **A-3, A-8**: an organization's cloud machine is claimed from Vesta with a device token, the platform never holds a
+- **A-3, A-8**: an organization's cloud machine is claimed from private31 with a device token, the platform never holds a
   passkey or an organization root; a person is in one personal network and in any number of organization networks.
 - **R1-D2**: R1 runs on members' Macs and the existing servers; no cloud machine on the critical path.
 - **R1-D12**: a project enters an organization by the person's own passkey only; no administrator accepts it (MC-13:
   an administrator signs only a project leaving).
 - **R1-D13 and CT-122**: mode C plus unlinkable memberships: a hub key and issuer per organization context.
-- **Vesta ADR-0004, ADR-0005, ADR-0013**: Vesta drafts and signs `org-authority/1` (members, roles, allowances),
+- **private31 ADR-0004, ADR-0005, ADR-0013**: private31 drafts and signs `org-authority/1` (members, roles, allowances),
   issues no delegation token, and is the source of truth only for an organization that connected it.
-- **v4 target architecture** (passioncode-vesta `docs/design/2026-10-12-target-architecture.md`): one issuer per person,
-  the hub in the person's Fabric; hosts never mint; signing happens in Fabric or a pinned page, never in Vesta; the
+- **v4 target architecture** (private09 `docs/design/2026-10-12-target-architecture.md`): one issuer per person,
+  the hub in the person's Fabric; hosts never mint; signing happens in Fabric or a pinned page, never in private31; the
   organization root certifies administrators' device-bound signing credentials.
 
 ## Decision
@@ -39,8 +39,8 @@ passioncode-vesta `98b0276`):
    It mints no member's token (point 4).
 2. **Only an administrator's passkey signs the organization's record.** Every revision that changes the organization's
    members, roles, machines or revocations is signed in Fabric (or a pinned page) by an administrator's device-bound
-   passkey credential, certified by the organization's root. No server, Vesta included, signs it.
-3. **Vesta drafts and publishes, it does not sign estates or mint tokens.** Vesta (or any organization server, MD-9)
+   passkey credential, certified by the organization's root. No server, private31 included, signs it.
+3. **private31 drafts and publishes, it does not sign estates or mint tokens.** private31 (or any organization server, MD-9)
    drafts `org-authority/1` and serves the TP-00 membership attestations (issuer, audience, subject, role, revision,
    expiry); an administrator signs what it drafted (point 2).
 4. **Each member mints its own organization tokens.** A member's own hub issues the tokens of its organization context
@@ -70,8 +70,8 @@ passioncode-vesta `98b0276`):
 Taken by the operator's recorded decisions, then R1's goal, then the safest reversible choice:
 
 - **D8-a, which machine:** the operator's always-on Mac Studio holds the hub of both R1 organizations (PassionCode.ai
-  and Appvillis, both owned by the operator in Vesta), each under its own organization hub key, unlinkable from the
-  operator's personal hub key (CT-122). Reversible by DEC-0107's hub move to an Appvillis machine or a cloud machine.
+  and private23, both owned by the operator in private31), each under its own organization hub key, unlinkable from the
+  operator's personal hub key (CT-122). Reversible by DEC-0107's hub move to an private23 machine or a cloud machine.
 - **D8-b, the organization's root:** in R1 the owner's two passkeys are the root (DEC-0107's two-passkey recovery);
   the offline hardware root pair (v4 OP-13) is R2. No purchase is on the R1 path.
 - **D8-c, signatures per revision:** one administrator's signature in R1; a quorum (or v4's delayed path) is R2.
@@ -84,10 +84,10 @@ Taken by the operator's recorded decisions, then R1's goal, then the safest reve
   what it left to D8 (the fingerprint at the pin, the project's entry receipt, the leaving signature).
 - The contract's TP-00 (CT-137) can fix `org-authority/1`'s signer (an administrator's certified passkey credential),
   the attestation's issuer (the organization server), and per-context member issuers (CT-122).
-- Fabric's slice (P-27): CO-422 (contexts), CO-130 (the Vesta identity bridge), CO-319 and CO-320 (the hub and the
+- Fabric's slice (P-27): CO-422 (contexts), CO-130 (the private31 identity bridge), CO-319 and CO-320 (the hub and the
   ceremonies, now also for an organization network), CO-337 (Create organization) build to this record.
 - Nothing changes for the operator's personal network (ADR-0162).
-- Rejected: Vesta as hub or signer (Vesta ADR-0004, ADR-0005, v4); each member's Fabric as the organization's hub with a
+- Rejected: private31 as hub or signer (private31 ADR-0004, ADR-0005, v4); each member's Fabric as the organization's hub with a
   co-signed organization record (A-5's one primary machine per network; no contract shape for a multi-passkey
   organization record); the offline root signing every revision (too heavy for R1, kept as the certifier in R2).
 

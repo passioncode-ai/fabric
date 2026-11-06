@@ -29,7 +29,7 @@ const view: HomeView = {
   ],
   review: [], done: [], projects: [], readAt: now
 }
-const projects = [project('fab', 'Fabric', 'A workplace for agents.'), project('cop', 'Copylot'), project('mob', 'Mobile Publisher')]
+const projects = [project('fab', 'Fabric', 'A workplace for agents.'), project('cop', 'private29'), project('mob', 'private11')]
 
 function show(over: Partial<React.ComponentProps<typeof HomeInWork>> = {}, locale: 'en' | 'ru' = 'en') {
   const props = { reading: { view, problem: null }, projects, waitingByProject: { fab: 1 }, onProject: vi.fn(), onAgent: vi.fn(), onTask: vi.fn(), ...over }
@@ -171,14 +171,14 @@ describe('«В работе» grouped by project', () => {
   })
 
   it('folds the quiet projects into one line, each a link; a card with no aim known shows its name alone', () => {
-    const p = show({ reading: { view: { ...view, live: [{ ...view.live[0], projectId: 'cop', projectName: 'Copylot' }], inWork: [] }, problem: null } })
+    const p = show({ reading: { view: { ...view, live: [{ ...view.live[0], projectId: 'cop', projectName: 'private29' }], inWork: [] }, problem: null } })
     const quiet = screen.getByText(en['launch.home.inWork.quiet']).closest('p') as HTMLElement
-    expect(within(quiet).getAllByRole('button').map((b) => b.textContent)).toEqual(['Fabric', 'Mobile Publisher'])
-    fireEvent.click(within(quiet).getByRole('button', { name: 'Mobile Publisher' }))
+    expect(within(quiet).getAllByRole('button').map((b) => b.textContent)).toEqual(['Fabric', 'private11'])
+    fireEvent.click(within(quiet).getByRole('button', { name: 'private11' }))
     expect(p.onProject).toHaveBeenCalledWith('mob')
-    const card = screen.getByRole('article', { name: 'Copylot' })
+    const card = screen.getByRole('article', { name: 'private29' })
     expect(card.querySelector('.lh-proj-aim')).toBeNull()
-    fireEvent.click(within(card).getByRole('button', { name: 'Copylot' }))
+    fireEvent.click(within(card).getByRole('button', { name: 'private29' }))
     expect(p.onProject).toHaveBeenCalledWith('cop')
   })
 
@@ -208,26 +208,26 @@ describe('«В работе» by work, not by connection (the mockup parity)', (
     live: [
       { sessionId: 'w1', projectId: 'fab', projectName: 'fabric', agent: 'claude-code', console: true, startedAt: now, lastSignAt: now, stale: false, atWork: true, workAt: minutesAgo(1),
         doing: null, task: { id: 't1', projectId: 'fab', summary: 'Close the five levels of review before the release', title: 'Fixes after the first review', what: 'Close the five levels of review before the release', heldSince: minutesAgo(104) } },
-      { sessionId: 'w2', projectId: 'cop', projectName: 'copylot-agent', agent: 'codex', console: false, startedAt: now, lastSignAt: now, stale: false, atWork: true, workAt: minutesAgo(3),
+      { sessionId: 'w2', projectId: 'cop', projectName: 'private17', agent: 'codex', console: false, startedAt: now, lastSignAt: now, stale: false, atWork: true, workAt: minutesAgo(3),
         doing: { text: 'Checking 12 languages', note: null, step: 3, ofSteps: 5, at: minutesAgo(3) }, task: null },
-      { sessionId: 'i1', projectId: 'mob', projectName: 'mobile-publisher', agent: 'claude-code', console: false, startedAt: now, lastSignAt: now, stale: false, atWork: false, workAt: null, doing: null, task: null },
-      { sessionId: 'i2', projectId: 'mob', projectName: 'mobile-publisher', agent: 'claude-code', console: false, startedAt: now, lastSignAt: now, stale: false, atWork: false, workAt: null, doing: null, task: null }
+      { sessionId: 'i1', projectId: 'mob', projectName: 'private12', agent: 'claude-code', console: false, startedAt: now, lastSignAt: now, stale: false, atWork: false, workAt: null, doing: null, task: null },
+      { sessionId: 'i2', projectId: 'mob', projectName: 'private12', agent: 'claude-code', console: false, startedAt: now, lastSignAt: now, stale: false, atWork: false, workAt: null, doing: null, task: null }
     ],
     inWork: [], review: [], done: [], projects: [], readAt: now,
     atWork: { agents: 2, connectedIdle: 2, noTask: 1, noTaskSessions: ['w2'] },
-    displayNames: { cop: { name: 'Copylot', from: 'descriptor', derived: false }, mob: { name: 'Mobile Publisher', from: 'slug', derived: true } }
+    displayNames: { cop: { name: 'private29', from: 'descriptor', derived: false }, mob: { name: 'private11', from: 'slug', derived: true } }
   }
-  const slugs = [project('fab', 'fabric'), project('cop', 'copylot-agent'), project('mob', 'mobile-publisher')]
+  const slugs = [project('fab', 'fabric'), project('cop', 'private17'), project('mob', 'private12')]
 
   it('cards only the agents at work, ordered by their newest work; the merely connected are one quiet line', () => {
     show({ reading: { view: atWork, problem: null }, projects: slugs, waitingByProject: {} })
     const cards = screen.getAllByRole('article')
-    expect(cards.map((c) => within(c).getByRole('heading').textContent)).toEqual(['fabric', 'Copylot'])
-    expect(screen.queryByRole('list', { name: /Mobile Publisher/ })).toBeNull()
+    expect(cards.map((c) => within(c).getByRole('heading').textContent)).toEqual(['fabric', 'private29'])
+    expect(screen.queryByRole('list', { name: /private11/ })).toBeNull()
     const idle = screen.getByText(en['launch.home.inWork.connectedIdle'].replace('{count}', '2'))
     expect(idle.getAttribute('title')).toBe(en['launch.home.inWork.connectedIdleWhy'])
     // The quiet line names the project with no agent at work by its display name.
-    expect(screen.getByRole('button', { name: 'Mobile Publisher' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'private11' })).toBeTruthy()
   })
 
   it('heads a row with the task\'s title, its «what» the hover and the quiet line, and says how long it has held the task', () => {

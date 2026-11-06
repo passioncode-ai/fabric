@@ -124,7 +124,7 @@ fixes are recorded in [ADR-0106 § third amendment](../adr/0106-fabric-adopts-th
 ## Notes
 - Guarded files are edited under the agent-sync lease (run `r-516254241` holds
   `docs/evidence/backlog.md`); take a fresh one if it has expired.
-- Asset Foundry project `fabric` is registered; icon job `job_01M3ZC9B3DYDH7ECV6ECECD45T` was cancelled
+- private15 project `fabric` is registered; icon job `job_01M3ZC9B3DYDH7ECV6ECECD45T` was cancelled
   ($0.012) — the operator chose the vector composition.
 - The operator's transcript export `2026-10-01-134213-…txt` was moved out of the repository root (it
   broke the map gate) into the session scratchpad, which was later cleared; it is not recoverable, and

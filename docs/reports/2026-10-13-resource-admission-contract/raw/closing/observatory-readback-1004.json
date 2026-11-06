@@ -18,7 +18,7 @@
       "code": "reason.degraded",
       "params": {
         "source": "collector:git-hygiene",
-        "reason": "2 source(s) not fully read — repository:PROWL-AI/prowlagent: no default branch could be resolved: origin/HEAD is unset, there is no main or master, and no branch of origin has been fetched (+1 more)"
+        "reason": "2 source(s) not fully read — repository:private27/private21: no default branch could be resolved: origin/HEAD is unset, there is no main or master, and no branch of origin has been fetched (+1 more)"
       }
     },
     {
