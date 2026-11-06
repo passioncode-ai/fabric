@@ -222,6 +222,9 @@ The dispatcher follows the request (`com.get`) and the run (`switchboard --json 
 The dispatch's outcome is the hub's journal entry, never a state of the request:
 
 - request `completed` or `failed_known`: the dispatch ends `finished`;
+- a run nobody can account for (Switchboard cannot say how it ended, or its request is outside the pass's read) ends
+  `unknown` once past its own end and a margin, and counts toward the two below unless its request is read settled
+  (CO-512): a request moving in and out of the read at its page bounds is not started a third time;
 - the run ended and the request is not settled: the dispatch ends `exited-without-answer`; the request keeps the state
   the contract gives it (`queued` stays queued, `claimed` is taken again by the next `com.claim` with a new attempt,
   `accepted` is held and continues only through `com.responder_replace` with the checkpoint, `in_progress` stays until

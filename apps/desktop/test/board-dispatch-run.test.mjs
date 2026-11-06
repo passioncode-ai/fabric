@@ -260,7 +260,27 @@ test('iteration 2, ER-1: a run whose request is no longer read ends as unknown a
   w.tick(30 * MIN); await d.onPass()
   assert.equal(d.records()[0].state, 'running')
   w.tick(30 * MIN + UNKNOWN_AFTER_END_MS + MIN); await d.onPass()
-  assert.deepEqual([d.records()[0].state, d.records()[0].outcome, d.records()[0].emptyRuns], ['ended', 'unknown', 0])
+  // CO-512: a run nobody can account for counts as empty (iteration 3, ER-2's rule), or a request moving in and out of
+  // the read at its page bounds would be started again and again.
+  assert.deepEqual([d.records()[0].state, d.records()[0].outcome, d.records()[0].emptyRuns], ['ended', 'unknown', 1])
+})
+
+test('CO-512: a request that drops out of the read while each run is on it gets no third run; it goes to the operator', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  const read = w.deps.requestState
+  for (const id of ['L1', 'L2']) {
+    await d.onPass()
+    assert.equal(w.launches.length, Number(id.slice(1)), `${id} started`)
+    // The run ends while its request sits past the read's pages, then the request is read again, still open.
+    w.runs.set(id, 'ended'); w.requests = []; w.deps.requestState = async () => null
+    w.tick(60 * MIN + UNKNOWN_AFTER_END_MS + MIN); await d.onPass()
+    w.requests = [request()]; w.deps.requestState = read
+    w.tick(3 * MIN)
+  }
+  await d.onPass()
+  assert.equal(w.launches.length, 2, 'no third run')
+  assert.ok(d.toOperator().has(request().id), 'the request is the operator\'s')
 })
 
 test('iteration 2, ER-2, ER-3: two empty runs give the request to the operator whatever path it takes now, even when closing fails', async () => {
