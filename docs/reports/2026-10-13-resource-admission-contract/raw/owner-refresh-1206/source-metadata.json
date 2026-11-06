@@ -24,7 +24,7 @@
   "comparison": {
     "commits": [
       {
-        "message": "fix: preserve failed release history and prepare v1.94.1 (#126)\n\n* docs: scope failed release repair and exact-tag admission\n\n* fix: record failed release gap without backfilling a run; v1.94.1\n\n* docs: align repair target and retain first local-tag findings\n\n* docs: describe metadata validation without an unrelated guard-count claim\n\n* docs: retain exact local-tag repair validation and publication limits\n\n---------\n\nCo-authored-by: \u0420\u043e\u0431\u043e\u0442 <r@e.com>",
+        "message": "fix: preserve failed release history and prepare v1.94.1 (#126)\n\n* docs: scope failed release repair and exact-tag admission\n\n* fix: record failed release gap without backfilling a run; v1.94.1\n\n* docs: align repair target and retain first local-tag findings\n\n* docs: describe metadata validation without an unrelated guard-count claim\n\n* docs: retain exact local-tag repair validation and publication limits\n\n---------\n\nCo-authored-by: \u0420\u043e\u0431\u043e\u0442 <person@example.com>",
         "sha": "540679ea7552f8a37e99560e287a69c23cbd3c4a"
       }
     ],

@@ -18,6 +18,9 @@ of 2026-11-05 relayed on the board (thread `1fe66e6e`): Fabric's gaps for the or
 - `620dac15`: CO-518, [moving Fabric to another machine](../launch/release-mac.md#moving-fabric-to-another-machine-or-another-macos-user).
 - `b8c0a38c`: the rule's words for a session without a slot (answer once, no work, end).
 - 0.3.16 rolled out on the operator's Mac (the 0.3.16 ledger, «Rollout on the operator's Mac»).
+- `79d86736`, `f6818ca0` and the change after them: CO-520, private data out of the public tree (home path, denylisted
+  terms, real addresses) and the gate `scripts/check-private.mjs` in `scripts/ci.sh fast` and the operator's pre-push
+  hook. Rewriting the already published history is the operator's decision (ADR-0096, amendment of 2026-11-06).
 
 ## Open, with what each waits on
 
@@ -28,7 +31,8 @@ of 2026-11-05 relayed on the board (thread `1fe66e6e`): Fabric's gaps for the or
   project:<Fabric's slug> --scope ops.digest.record ...`, board thread `f7758225`, `917a0ec0`). Other services' lines
   wait for the hub's delegation token.
 - **CO-515** with the contract's G7; **CO-516** with the organization slice (PLAT-137).
-- Human gates: the analytics secret (thread `cb1df3d5`), the person's look at 0.3.16.
+- Human gates: the analytics secret (thread `cb1df3d5`), the person's look at 0.3.16, and whether to rewrite the
+  published history that still holds the private bytes CO-520 removed from the tree.
 
 ## Checks run
 

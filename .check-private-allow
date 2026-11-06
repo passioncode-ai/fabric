@@ -1,0 +1,53 @@
+# Reviewed synthetic findings of org-index's scripts/check_private.py (CO-520), read by
+# scripts/check-private.mjs. One fingerprint per line: <rule>:<file>:<first 16 hex of sha256(match)>.
+# Reviewed 2026-11-06: every P3 is a test's made-up home (/Users/me, ana, x, someone, a, atlas and a
+# Linuxbrew prefix), every P2 a test or example address, an image name (@2x.png) or a selector
+# (@1.refused). A P1 denylist term is never allowed here; a new finding needs its own review.
+P2:apps/desktop/src/shared/access.test.ts:80305c9bb1bb2480
+P2:apps/desktop/src/shared/access.test.ts:cba427ee42c809d3
+P2:apps/desktop/src/shared/access.test.ts:f628d042156fc786
+P2:apps/desktop/src/shared/access.ts:cba427ee42c809d3
+P2:apps/desktop/test/folder-resolver.test.mjs:5ee7f232e24bafb4
+P2:apps/desktop/test/folder-resolver.test.mjs:896cddb03b3f74a9
+P2:apps/desktop/test/hub-products.test.mjs:cba427ee42c809d3
+P2:apps/desktop/test/project-discovery.test.mjs:2c8d0e395e0df7cc
+P2:apps/desktop/test/project-discovery.test.mjs:de861a055ed38e28
+P2:docs/evidence/plans/2026-10-11-release-040-co215-216.json:6d0a47a713508b6d
+P2:docs/reports/2026-10-04-hub-recovery/raw/iteration-2/2026-10-04-ux.md:ba56593a24e18bf4
+P2:docs/reports/2026-10-05-openrouter-agent-support/raw/apps.html:5db0b8d442fd3e2d
+P2:docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-091-112.md:6d0a47a713508b6d
+P2:docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-agent.md:7ce4cb345157adf8
+P2:scripts/walk/start-paths.mjs:88b3d0e1fefeded6
+P3:apps/desktop/src/main/platform.ts:dc2370f3919b6b5e
+P3:apps/desktop/src/renderer/src/AgentAccessPanel.test.tsx:58e9952854dee73d
+P3:apps/desktop/src/renderer/src/consoleTabsShell.test.tsx:73de225f29dce8dc
+P3:apps/desktop/src/renderer/src/consoles.test.tsx:73de225f29dce8dc
+P3:apps/desktop/src/renderer/src/launch/ObligationActs.test.tsx:58e9952854dee73d
+P3:apps/desktop/src/shared/accessWords.test.ts:58e9952854dee73d
+P3:apps/desktop/src/shared/accessWords.test.ts:69fa3345a8399f93
+P3:apps/desktop/src/shared/projectResolve.test.ts:d4fabc69849acae2
+P3:apps/desktop/src/shared/redact.test.ts:da4de8c7a5751230
+P3:apps/desktop/src/shared/stackStartRetry.test.ts:db09958f63deaa0c
+P3:apps/desktop/src/shared/stackWatch.test.ts:da4de8c7a5751230
+P3:apps/desktop/src/shared/startupFailure.test.ts:da4de8c7a5751230
+P3:apps/desktop/src/shared/startupFailure.test.ts:db09958f63deaa0c
+P3:apps/desktop/src/shared/workClaims.test.ts:73de225f29dce8dc
+P3:apps/desktop/test/analytics.test.mjs:da4de8c7a5751230
+P3:apps/desktop/test/board-surface.test.mjs:d4fabc69849acae2
+P3:apps/desktop/test/claude-inbound.test.mjs:bf272c476e9403bb
+P3:apps/desktop/test/docker-ping.test.mjs:da4de8c7a5751230
+P3:apps/desktop/test/fabric-mcp.test.mjs:73de225f29dce8dc
+P3:apps/desktop/test/fabric-mcp.test.mjs:9c1db200d6946643
+P3:apps/desktop/test/folder-resolver.test.mjs:73de225f29dce8dc
+P3:apps/desktop/test/hub-products.test.mjs:58e9952854dee73d
+P3:apps/desktop/test/hub-surface.test.mjs:73de225f29dce8dc
+P3:apps/desktop/test/navigation-guard.test.mjs:73de225f29dce8dc
+P3:apps/desktop/test/platform.test.mjs:c8ba34e38ab8ad8b
+P3:apps/desktop/test/platform.test.mjs:db09958f63deaa0c
+P3:apps/desktop/test/session-enroll-request.test.mjs:73de225f29dce8dc
+P3:apps/desktop/test/start-paths-main.test.mjs:58e9952854dee73d
+P3:docs/evidence/reviews/0.3.7/iteration-3/2026-10-20-errors.md:db09958f63deaa0c
+P3:docs/reports/2026-10-13-resource-admission-contract/raw/n021/before-test.mjs:73de225f29dce8dc
+P3:docs/reports/2026-10-13-resource-admission-contract/raw/n021/n021.patch:73de225f29dce8dc
+P3:docs/reports/product.html:967070e0538928f8
+P3:scripts/product/renderers.mjs:967070e0538928f8

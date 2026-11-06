@@ -26,7 +26,7 @@
   - D-R2: оба Mac оператора тоже вступают в private23 (личная машина плюс контекст `org:private23`).
   - D-R3: Mac Studio держит хаб, MacBook `full`, два passkey.
   - D-R4: «Our own organization first ... then private23: a pilot on 2 or 3 machines, then the rest in bulk.»
-- Владелец private23: сам оператор (`sergey@private23.com`, строка шага Wave 2 «operator as private23's owner»). То есть
+- Владелец private23: сам оператор (`person@example.com`, строка шага Wave 2 «operator as private23's owner»). То есть
   «первая организация за пределами оператора» по людям это сотрудники private23, а по владению это компания оператора.
 - Ранее (архитектура v2, 2026-10-08) был «PILOT-A»: 2-3 сотрудника PassionCode.ai, 2 недели, после DPIA
   (`workspace/docs/reports/2026-10-08-org-architecture-v2/plans/fabric-workspace.md:34`). На практике его место занял

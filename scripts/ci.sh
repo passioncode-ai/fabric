@@ -83,6 +83,10 @@ node --test scripts/test/nightly-gate.test.mjs
 # off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs
 node scripts/check-regions.mjs
+# CO-520: private data stays out of this public tree. The gate runs org-index's checker with the operator's local
+# denylist and prints where a finding is, never what matched; NOT_RUN (passing) where either is absent, as in hosted CI.
+node --test scripts/test/check-private.test.mjs
+node scripts/check-private.mjs
 # CO-199 (0.4.0 wave 1): migrations apply in the order they were merged. supabase/migration-ledger.json records each
 # applied file with its bytes; a file sorting below the newest recorded one is refused with the number to renumber
 # past, an applied file edited or removed is refused, and against origin/main (when this clone has it) the ledger

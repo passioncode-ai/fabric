@@ -70,3 +70,6 @@ never-rewrite rule for dated records would otherwise have kept it there for good
   this amendment's change); the denylisted terms and the addresses follow in CO-520, and the gate runs before every push
   from then on. Synthetic fixture homes (`/Users/example`, `/Users/me` and the like) are not private and stay. The
   history this repository has published since keeps the earlier bytes; rewriting it is the operator's decision.
+  The gate is `scripts/check-private.mjs`: it runs org-index's checker with the local denylist, prints rule, file and
+  line only, never the matched text, runs in `scripts/ci.sh fast` and, with `--require`, before every push from the
+  operator's clone; reviewed synthetic findings are listed by fingerprint in `.check-private-allow`.
