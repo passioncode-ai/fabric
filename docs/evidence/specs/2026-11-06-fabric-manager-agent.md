@@ -39,7 +39,10 @@ The manager was designed before, and this spec is its first usable slice, not a 
 So the code goes in this order, each step with its own tests: (1) the eval's new hard violations and corpus entries
 over M176 (no model, no door; built 2026-11-06); (2) M166's core (first slice built 2026-11-06: `apps/desktop/src/shared/ceoCore.ts#planCeoCore`, the
 Board ranked on one scale, the digest, the trust in effect and what it cannot do yet; hygiene waits for M153 and
-settlement for M158, both proposed); (3) M194's slot and binding with the `ceo` slot only; (4) the runner on
+settlement for M158, both proposed); (3) M194's slot and binding with the `ceo` slot only (blocked: M194's D-MGR-01/02 need a new
+contract version, since `binding.schema.json` and `execution-context.schema.json` require a `project`; asked of
+fabric-agent-contract on the board, thread `77d88a2e`, 2026-11-06; it took it as its CT-252, a DEC of its own,
+design by 2026-11-13 and merge by the organization slice of 2026-11-21); (4) the runner on
 the model of §4, behind the eval gate. Steps 1 to 3 change nothing a person sees.
 
 ## 2. Shape: one tool loop, not a planned pipeline

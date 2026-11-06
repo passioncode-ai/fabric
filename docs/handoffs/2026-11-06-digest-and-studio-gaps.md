@@ -68,9 +68,10 @@ Done since the pause, all on `main`, each with hosted `ci` green:
 
 First:
 1. Answer the reconciliation's follow-ups on thread `eefa7959`, if any reach Fabric.
-2. Wave D, step 3: M194's `ceo` role slot and binding. It needs a migration (the full tier with the stack) and stands on
-   ADR-0046, which is proposed: take it as the baseline unless the operator answers otherwise, and say so in the change.
-   Then step 4, the runner (through `agent-stack`).
+2. Wave D, step 3 (M194's `ceo` role slot and binding) waits on fabric-agent-contract: D-MGR-01/02 need a contract
+   version whose binding and execution context can name the estate (asked on the board, thread `77d88a2e`; taken as the contract's CT-252, design by 2026-11-13,
+   DEC by 2026-11-21). Fabric
+   builds no slot and no field of its own before that answer. Then step 4, the runner (through `agent-stack`).
 3. Wave E (Switchboard's sessions with their task and stage, CO-457).
 4. CO-512's last two edges: a third run at the page bounds, and `adapterSkills.ts` with `SWITCHBOARD_CLAUDE_SOURCE_DIR`.
 
