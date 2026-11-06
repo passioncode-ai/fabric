@@ -211,8 +211,9 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'which request, which gate, what lifts it) so ' +
       'the operator sees it, and end without waiting for the answer: the reply is still your answer. When the slot is ' +
       'active, stale, or absent at a later generation, a service of the project answers it and will take it back: ' +
-      'send no com.reply (it would answer the request and take it from that service), tell the person the service ' +
-      'will take it, and end. Answer what waits on you in the same turn, ' +
+      'send no com.reply (it would answer the request and take it from that service), still ask the operator with ' +
+      'fabric_question_ask with the same about and commandId (a question answers no request and takes nothing), and ' +
+      'end. Answer what waits on you in the same turn, ' +
       'with the state now: what is done, where (branch or commit), when the rest will be ready and what blocks it; ' +
       'a state with its nearest date is an answer (the operator, 2026-11-04). Send it as com.reply, on a request too: ' +
       'the request becomes answered, which means you answered, never that the work is done; the result follows as a ' +

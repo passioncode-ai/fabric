@@ -548,6 +548,7 @@ test('com.enroll\'s description names the route a session has: its own Project g
   // FAA-231: the same condition as board.read-at-start, so a session gets one instruction.
   assert.match(described.get('com.enroll'), /slot absent at generation 0/)
   assert.match(described.get('com.enroll'), /send no com\.reply \(it would answer the request and take it from that service\)/)
+  assert.match(described.get('com.enroll'), /still ask the operator with fabric_question_ask with the same about and commandId/)
   assert.doesNotMatch(described.get('com.enroll'), /never only to say it waits/)
   assert.doesNotMatch(described.get('com.enroll'), /operator\'s to give/)
   // CO-397 (DEC-0098, DEC-0102): a reply from the request's target answers it; it no longer "stays queued".

@@ -21,7 +21,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   waits for you in Agent access.
 - **A run leaves a request for the project's own service** (FAA-231, agreed with fabric-agent-adapter). It answers
   «cannot be taken now» only when no service of the project ever held that slot; when one did, the request stays
-  queued for that service. The `com.enroll` tool says the same.
+  queued for that service and the run still asks you, so you see it. The `com.enroll` tool says the same.
 - **A run that cannot take a board request tells the operator** (CO-517). After answering «cannot be taken now», the
   rule now has the run ask you with `fabric_question_ask`, so the request shows on the home instead of disappearing as
   answered.

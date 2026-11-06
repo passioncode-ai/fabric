@@ -75,6 +75,7 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     // held the slot, else the request stays queued for that service.
     expect(o.text).toMatch(/slot absent at generation 0/)
     expect(o.text).toMatch(/send no com\.reply \(it would answer the request and take it from that service\)/)
+    expect(o.text).toMatch(/still ask the operator with fabric_question_ask with the same about and commandId/)
     expect(o.text).not.toMatch(/Settings → Agent access/)
     expect(o.text).not.toMatch(/stays queued/)
   })
