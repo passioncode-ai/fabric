@@ -15,7 +15,7 @@ waves). Read on 2026-11-06 against fabric-workspace `origin/main` (`docs/plans/2
 | placement.md, the contract's norm (thread `1fe66e6e`, `14b4dc86`, `d6035cae`) | a client checks that the loopback listener belongs to its own OS account before it sends a secret; `foreign-user` otherwise | fabric-mcp checks only that `hub.json`'s pid is alive (§2.2) |
 | Workspace's answer 5 (`d2de8a54`), the contract's G7 | an estate belongs to its installation; a restore does not carry an installation's identity to another computer | a restored dump keeps its estate id (§2.3) |
 | Workspace's answer 7 (`d2de8a54`) | the organization's entitlement reaches sessions through the hub | the hub reads none (§2.4) |
-| access.md §3, Vesta on thread `1add3c03` (`a6c27ee1`) | a request a run could not take is seen by the operator | a gate answer settles the request for the dispatcher (§2.5) |
+| access.md §3, a project on thread `1add3c03` (`a6c27ee1`) | a request a run could not take is seen by the operator | a gate answer settles the request for the dispatcher (§2.5) |
 | runbook 2.3 to 2.10 | what moves with Fabric to the Studio and what starts fresh | no runbook for Fabric's own move (§2.6) |
 | access.md §2, integration.md I1-2 | organization-context tokens, the hub's delegation, joining an organization | already rows: CO-337, CO-422, CO-319, CO-320 (the organization slice, 2026-11-21); self-update CO-501 |
 
@@ -64,8 +64,8 @@ waves). Read on 2026-11-06 against fabric-workspace `origin/main` (`docs/plans/2
 ### 2.4 The hub reads no organization entitlement (CO-516, P3)
 
 - **Now:** no code in `apps/desktop/src` reads an entitlement (searched 2026-11-06).
-- **Needed:** decide with the platform (PLAT-137) and Vesta which rows the hub needs (paid agents, members) and how it
-  gets them; until then no Vesta row. Part of the organization slice.
+- **Needed:** decide with the platform (PLAT-137) and the organizations' service which rows the hub needs (paid agents, members) and how it
+  gets them; until then no row for that service. Part of the organization slice.
 
 ### 2.5 A run's gate answer is invisible to the operator (CO-517, P2)
 
@@ -73,7 +73,7 @@ waves). Read on 2026-11-06 against fabric-workspace `origin/main` (`docs/plans/2
   `answered`), so a run that answered «cannot be taken now» leaves nothing in «На проверке».
 - **Needed:** the rule `board.read-at-start` tells a run that answered with a gate to ask the operator with
   `fabric_question_ask` (kind `access`, `about` `board.gate.<capability>`, `commandId` the UUID v5 of the name `board.gate` in the namespace of the request's id, as fabric-agent-adapter 0.69.0 derives it),
-  as agreed with Vesta and the adapter (thread `1add3c03`, `a58b4280`, `ac9f8d34`).
+  as agreed with a project and the adapter (thread `1add3c03`, `a58b4280`, `ac9f8d34`).
 - **Acceptance:** the rule's test; a run's question appears on the home.
 
 ### 2.6 No runbook for Fabric's own move (CO-518, P2)
