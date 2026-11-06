@@ -35669,7 +35669,7 @@
         "SCR-41"
       ],
       "coverage": "none yet",
-      "registry_status": "draft (CO-522)",
+      "registry_status": "draft (CO-522; [spec](../evidence/specs/2026-11-06-session-coordination.md), waves A to E)",
       "product_observation": "unobserved",
       "expected_result": "the person directs every session from Fabric and conflicting work is caught before it collides.",
       "errors_recovery": "a read that fails names the part not read.",

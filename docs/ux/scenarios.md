@@ -4521,6 +4521,6 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail â€
 - **Errors & recovery:** a read that fails names the part not read.
 - **Design rationale:** the operator, 2026-11-06: Fabric should follow what every running session does and where, coordinate them, catch a task that contradicts another session's work and let them settle it on the board, and the person direct them all through the Fabric agent (CO-522). Parts exist: claims and their overlaps (`fabric_work_claim`'s warning), the sweep of abandoned work, the board.
 - **Telemetry:** planned only.
-- **Status:** draft (CO-522)
+- **Status:** draft (CO-522; [spec](../evidence/specs/2026-11-06-session-coordination.md), waves A to E)
 - **Coverage:** none yet
 - **Product:** unobserved
