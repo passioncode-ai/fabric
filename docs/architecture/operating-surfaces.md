@@ -182,6 +182,15 @@ summary, business, plan and relations, each optional, as `project.profiled@1`; `
 `projects` and `project_relations` (`supabase/migrations/20261023000123_project_profile.sql`). The scope wall holds: a
 session writes only its own project's profile.
 
+<a id="an-agent-attaches-its-projects-folders"></a>
+Since CO-489 (2026-11-07) a session attaches a repository to its own project, or detaches one of its project's folders,
+with `fabric_project_folder_attach` and `fabric_project_folder_detach`: the project page's «Выбрать папку…» and
+«Убрать» as its door (the operator's dashboard parity rule, 2026-10-24). Both go through the one admission service
+(`apps/desktop/src/main/projectAdmission.ts`: the real path, never a folder too broad, one project per folder), write
+the same `project.repo.attached@1` and `project.repo.detached@1` with the session as the actor, and each change is an
+act History undoes (`apps/desktop/src/main/agentFolders.ts#createAgentFolders`). Two refusals stay the person's to lift:
+a folder the person detached (ADR-0164 §5) and a folder that is not a repository.
+
 ### 5.1 An agent does not close its own task
 
 The ladder lives in `apps/desktop/src/shared/ladder.ts` and it knows who is

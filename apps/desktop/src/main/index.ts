@@ -31,6 +31,7 @@ import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
 import { machineAgentsOf } from '../shared/machineAgents.ts'
 import { createPeerCheck } from './peerAccount.ts'
+import { createAgentFolders } from './agentFolders.ts'
 import { linkWindowPlan, resolveLink, type LinkRoute } from '../shared/linkRoute.ts'
 import { createLinkHold, createLinkOutbox } from '../shared/linkOutbox.ts'
 import { createAccessStore, type AccessStore } from './accessStore.ts'
@@ -1157,6 +1158,24 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     machineAgents: () => machineAgentsOf(registry.snapshot()),
     // CO-514 (DEC-0154 HA-2 (b), HA-3): another account's process is refused before its request is read.
     peerAccount: createPeerCheck(),
+    // CO-489: the project page's «Выбрать папку…» and «Убрать» as a session's door, through the one admission service;
+    // each change is an act History undoes, written with the session as its author.
+    folders: createAgentFolders({
+      attach: (projectId, paths, actor) => admission.attach(projectId, paths, actor, { granted: (real) => real, candidates: scanCandidates, home: homedir() }),
+      detach: (projectId, repoId, actor) => admission.detach(projectId, repoId, actor),
+      listRepos,
+      listRemovals: readRepoRemovals,
+      isRepository: async (folder) => (await inspectFolder(folder)).git,
+      realpath: (folder) => {
+        try {
+          return realpathSync.native(folder)
+        } catch {
+          // No folder at that path: the door answers `missing` (attach) or matches the recorded path (detach).
+          return null
+        }
+      },
+      note: async (outcome, opts) => (actsForSurface ? actsForSurface.note(outcome, opts) : ops.record({ op: 'acts.record', outcome: 'failed', level: 'warn', detail: { kind: outcome.kind, reason: 'history not ready' }, ctx: { correlationId: ops.correlate() } }))
+    }),
     // CO-506: Agent access's buttons as an agent's door, on the operator's relayed words (`relayedAccess.ts`). Revoking a
     // whole agent writes the same act History shows for the button.
     access: {

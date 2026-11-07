@@ -88,6 +88,7 @@ const policy = new Policy({ db, journal })
 let surfaceLanguage = 'ru'
 // CO-514: the verdict on whose process called; own unless a check below says otherwise.
 let peerVerdict = 'own'
+const folderCalls = []
 // 0.3.13 wave 2 (SW-4): the sweep's nudges for a session, taken by the answer that carries them.
 const pendingNudges = []
 const surface = new AgentSurface({
@@ -98,7 +99,12 @@ const surface = new AgentSurface({
   machineTrust: () => 'mine',
   peerAccount: async () => peerVerdict,
   // The operator, 2026-11-07: the agents of this machine every session reads in fabric_whoami.
-  machineAgents: () => ({ agents: [{ key: 'apps-starter.default', name: 'Apps Starter', what: 'Starts and stops enrolled apps.', kind: 'service', placement: 'local', origin: null }], more: 0, refused: 0 })
+  machineAgents: () => ({ agents: [{ key: 'apps-starter.default', name: 'Apps Starter', what: 'Starts and stops enrolled apps.', kind: 'service', placement: 'local', origin: null }], more: 0, refused: 0 }),
+  // CO-489: the folder door; the probe checks the tools reach it with THIS session's project and id, nothing else.
+  folders: {
+    attach: async (p, folder, s) => { folderCalls.push(['attach', p, folder, s]); return { done: true, folder, folders: [folder] } },
+    detach: async (p, folder, s) => { folderCalls.push(['detach', p, folder, s]); return { done: false, reason: 'not-attached', folders: [] } }
+  }
 })
 await surface.start()
 
@@ -131,7 +137,7 @@ const tools = (await client.listTools()).tools.map((t) => t.name).sort()
 // below; this one is friction: adding a tool to a credentialed security surface
 // should require acknowledging it somewhere a reviewer looks, and two copies
 // that drift together would pass a check comparing only those two.
-const expected = ['com.accept','com.cancel','com.claim','com.complete','com.directory','com.effect_begin','com.enroll','com.get','com.list','com.progress','com.read_ack','com.reconcile','com.renew','com.reply','com.responder_replace','com.status','com.submit','fabric_access_decide','fabric_access_list','fabric_access_revoke','fabric_agents_list','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_project_profile','fabric_question_ask','fabric_question_check','fabric_session_observe','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_close','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami','fabric_work_claim','fabric_work_list','fabric_work_release']
+const expected = ['com.accept','com.cancel','com.claim','com.complete','com.directory','com.effect_begin','com.enroll','com.get','com.list','com.progress','com.read_ack','com.reconcile','com.renew','com.reply','com.responder_replace','com.status','com.submit','fabric_access_decide','fabric_access_list','fabric_access_revoke','fabric_agents_list','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_project_folder_attach','fabric_project_folder_detach','fabric_project_profile','fabric_question_ask','fabric_question_check','fabric_session_observe','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_close','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami','fabric_work_claim','fabric_work_list','fabric_work_release']
 // The count is COMPUTED from the list. Written beside it as a word, it is one
 // more number that can disagree with the thing it counts.
 if (JSON.stringify(tools) === JSON.stringify(expected))
@@ -168,6 +174,16 @@ for (const [verdict, code] of [['foreign', 'peer-foreign-account'], ['unverified
     : fail('a ' + verdict + ' caller got ' + r.status + ' ' + JSON.stringify(body))
 }
 peerVerdict = 'own'
+
+// CO-489: a session attaches and detaches a folder of its own project through the door, never another project's.
+{
+  const attached = await call('fabric_project_folder_attach', { path: '/w/app-2' })
+  const detached = await call('fabric_project_folder_detach', { path: '/w/elsewhere' })
+  const routed = JSON.stringify(folderCalls) === JSON.stringify([['attach', projectId, '/w/app-2', sessionId], ['detach', projectId, '/w/elsewhere', sessionId]])
+  attached?.done === true && detached?.reason === 'not-attached' && routed
+    ? ok('the folder tools reach the door with this session and its own project only')
+    : fail('folder tools: ' + JSON.stringify({ attached, detached, folderCalls }))
+}
 
 // The operator, 2026-11-07: every session learns which agents this machine has, and the rule to look there first.
 me.machine_agents?.agents?.[0]?.key === 'apps-starter.default' && me.machine_agents.agents[0].what && (me.rules ?? []).some((r) => r.includes('machine_agents'))

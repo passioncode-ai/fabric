@@ -672,6 +672,8 @@ export const en = {
   'harness.tool.fabric_task_handoff': "Hand a named result on to whatever task follows this one",
   'harness.tool.fabric_task_brief': "Draft what a task is for; the operator can replace any part",
   'harness.tool.fabric_project_profile': "Record what this project is: goal, summary, business, plan and relations",
+  'harness.tool.fabric_project_folder_attach': "Attach a repository to this project, as the project page does",
+  'harness.tool.fabric_project_folder_detach': "Detach a folder from this project, as the project page does",
   'harness.tool.fabric_question_ask': "Ask the owner a decision this session is not entitled to make",
   'harness.tool.fabric_question_check': "Read the current state of a question this session asked",
   'harness.tool.fabric_task_link': "Say one task blocks, follows or spawned another",

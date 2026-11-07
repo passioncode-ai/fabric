@@ -65,6 +65,8 @@ export const SURFACE_TOOLS: readonly SurfaceTool[] = [
   { name: 'fabric_task_handoff', purpose: 'Hand a NAMED result on to whatever task follows this one', records: true },
   { name: 'fabric_task_brief', purpose: 'Draft what a task is for; the operator can replace any part', records: true },
   { name: 'fabric_project_profile', purpose: 'Record what this project is: goal, summary, business, plan and relations', records: true },
+  { name: 'fabric_project_folder_attach', purpose: 'Attach a repository to this project, as the project page does', records: true },
+  { name: 'fabric_project_folder_detach', purpose: 'Detach a folder from this project, as the project page does', records: true },
   {
     name: 'fabric_question_ask',
     purpose: 'Ask the owner a decision this session is not entitled to make',

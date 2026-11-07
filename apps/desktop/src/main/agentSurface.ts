@@ -102,6 +102,7 @@ import { readRunHolds } from './workRead.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 import type { MachineAgents } from '../shared/machineAgents.ts'
 import type { PeerVerdict } from './peerAccount.ts'
+import type { FolderAnswer } from './agentFolders.ts'
 
 /** Check the complete original before lookup, normalization or legacy text
  * scrubbing. Reference identity is preserved; recognizable secrets refuse the
@@ -359,6 +360,11 @@ export interface AgentSurfaceDeps {
   machineAgents?: () => MachineAgents | null
   /** CO-514 (DEC-0154 HA-2 (b), HA-3): whose process is on the other end of a connection; absent, not checked. */
   peerAccount?: (socket: import('node:net').Socket) => Promise<PeerVerdict>
+  /** CO-489: the project page's folder buttons as the session's door (`agentFolders.ts`); absent, the tools refuse. */
+  folders?: {
+    attach(projectId: string, folder: unknown, sessionId: string): Promise<FolderAnswer>
+    detach(projectId: string, folder: unknown, sessionId: string): Promise<FolderAnswer>
+  }
 }
 
 /** What the surface needs to admit a registered agent from outside (ADR-0115 §1). */
@@ -2879,6 +2885,40 @@ export class AgentSurface {
       }
     )
     // #endregion project-profile-tool
+
+    // #region project-folder-tools — docs: docs/architecture/operating-surfaces.md#an-agent-attaches-its-projects-folders
+    // CO-489: a session attaches or detaches a folder of ITS project only (the scope wall), as the page's buttons do.
+    const folderTool = async (which: 'attach' | 'detach', folder: unknown) => {
+      const door = this.deps.folders
+      if (!door) return json({ done: false, reason: 'unavailable', says: 'this Fabric cannot change folders from a session' })
+      try {
+        return json(await door[which](scope.projectId, folder, scope.sessionId))
+      } catch (e) {
+        ops.failed(`agentSurface.folder-${which}`, e, { projectId: scope.projectId })
+        return json({ done: false, reason: 'failed', says: 'the folder could not be changed now; nothing was recorded as done' })
+      }
+    }
+    server.registerTool(
+      'fabric_project_folder_attach',
+      {
+        title: 'Attach a repository to this project',
+        description:
+          'Attach a repository folder to THIS session\'s project, as the project page\'s «Выбрать папку…» does: after a repository moved to a new path, or when the project works in a second checkout. The folder is taken by its real path; a home folder, a volume or a folder of projects is refused (too-broad), a folder another project holds is refused (held-by-other), a plain folder that is not a repository is refused (not-git), and a folder the person detached stays detached (detached: only the person attaches it again). The change is recorded with you as its author and the person can undo it from History. The answer lists the project\'s folders after the call.',
+        inputSchema: { path: z.string().min(1).max(1024).describe('The folder, as an absolute path') }
+      },
+      async ({ path: folder }) => folderTool('attach', folder)
+    )
+    server.registerTool(
+      'fabric_project_folder_detach',
+      {
+        title: 'Detach a folder from this project',
+        description:
+          'Detach one of THIS session\'s project\'s folders, as the project page\'s «Убрать» does, for a checkout that moved or was removed. Name it by the path fabric_whoami lists under repositories. Nothing on disk is touched. A detached folder is not enrolled again by itself, and the person can undo the change from History. The answer lists the project\'s folders after the call.',
+        inputSchema: { path: z.string().min(1).max(1024).describe('The folder, as an absolute path') }
+      },
+      async ({ path: folder }) => folderTool('detach', folder)
+    )
+    // #endregion project-folder-tools
 
     server.registerTool(
       'fabric_task_accept',

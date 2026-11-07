@@ -2373,6 +2373,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'harness.tool.fabric_task_handoff': "Передать названный результат задаче, которая идёт следом",
   'harness.tool.fabric_task_brief': "Набросать, для чего задача; оператор может заменить любую часть",
   'harness.tool.fabric_project_profile': "Записать, что это за проект: цель, описание, бизнес, план и связи",
+  'harness.tool.fabric_project_folder_attach': "Прикрепить репозиторий к этому проекту, как на странице проекта",
+  'harness.tool.fabric_project_folder_detach': "Убрать папку из этого проекта, как на странице проекта",
   'harness.tool.fabric_question_ask': "Попросить владельца принять решение, которое эта сессия принять не вправе",
   'harness.tool.fabric_question_check': "Прочитать текущее состояние вопроса, который задала эта сессия",
   'harness.tool.fabric_task_link': "Указать, что одна задача блокирует другую, следует за ней или породила её",
