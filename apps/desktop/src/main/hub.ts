@@ -25,6 +25,7 @@
 // every stored origin wrong without anyone being told. A port another registered agent claims is
 // refused before listening, and a port in use is an error with its reason — never a quiet move.
 
+import type { ListenerOwner } from './listenerOwner.ts'
 import type { HubDownCode } from '../shared/access.ts'
 import { closeSync, constants as fsc, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync, readSync, renameSync, rmSync, writeSync, chmodSync } from 'node:fs'
 import { randomBytes } from 'node:crypto'
@@ -234,7 +235,12 @@ export function pidAlive(pid: number): boolean {
  * no-follow reader the hub itself uses, refusing a foreign protocol, an origin that is not the loopback literal, a
  * token file outside the registry root and a `pid` that is not running. A refusal is an answer, never a throw.
  */
-export function locateHub(root: string, deps: { isAlive?: (pid: number) => boolean } = {}): HubLocation {
+export function locateHub(root: string, deps: {
+  isAlive?: (pid: number) => boolean
+  /** CO-514 (DEC-0154 HA-2): who listens on the hub's port; absent, not checked (fabric-mcp passes it). */
+  owner?: (port: number, pid: number) => ListenerOwner
+  uid?: () => number
+} = {}): HubLocation {
   const { hubFile } = hubPaths(root)
   const notHub = (reason: string): HubLocation => ({ ok: false, code: 'not-a-hub', reason })
   let text: string | null
@@ -262,6 +268,14 @@ export function locateHub(root: string, deps: { isAlive?: (pid: number) => boole
     return notHub('hub.json names a door token outside the registry root')
   const pid = doc.pid as number
   if (!(deps.isAlive ?? pidAlive)(pid)) return { ok: false, code: 'not-running', reason: `Fabric is not running: hub.json names process ${pid}, which is not running` }
+  // CO-514 (DEC-0154 HA-2): before any token, the listener must be this account's. Another account's, or one that cannot
+  // be told, is foreign-user and nothing is sent. Windows is not read yet and keeps the pid check alone.
+  if (deps.owner) {
+    const owner = deps.owner(Number(port[1]), pid)
+    const me = (deps.uid ?? (() => process.getuid?.() ?? -1))()
+    if ('unknown' in owner) return notHub(`foreign-user: the owner of port ${port[1]} could not be told (${owner.unknown})`)
+    if ('uid' in owner && owner.uid !== me) return notHub(`foreign-user: port ${port[1]} is held by another account of this computer`)
+  }
   let token: string | null
   try {
     token = readHubDocument(tokenFile)

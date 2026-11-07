@@ -50,6 +50,11 @@ waves). Read on 2026-11-06 against fabric-workspace `origin/main` (`docs/plans/2
 - **Acceptance:** a test with a listener of another uid (a fake socket table) refuses; the session's bearer path is
   under the same check.
 - **Depends on:** the contract's DEC on ports and listeners.
+- **Built 2026-11-07, the client half:** DEC-0154 is accepted (`v0.1.0+2026-11-07.1`). `apps/desktop/src/main/listenerOwner.ts`
+  reads the listener's owner (macOS `lsof -Fpu`, Linux `/proc/net/tcp`), and `apps/desktop/src/main/hub.ts#locateHub`
+  refuses another account's, or one that cannot be told, as `foreign-user` before any token; fabric-mcp passes the
+  check (`apps/desktop/src/main/fabricMcpMain.ts`). Tests: `apps/desktop/test/listener-owner.test.mjs`. Left: point 2
+  (b) on the hub, and Windows.
 
 ### 2.3 A restored dump gives a second installation the same estate (CO-515, P2)
 

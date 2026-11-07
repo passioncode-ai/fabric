@@ -4,6 +4,7 @@
 // Fabric's runner catalogue does (claude-code, codex, kilo, hermes, cline, kimi-code). The agent runs this in its own
 // folder: that folder (the process's cwd) is what Fabric resolves to a project. No secret arrives on argv or in the
 // environment.
+import { createOwnerCheck } from './listenerOwner.ts'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
@@ -49,6 +50,8 @@ const currentRuntimeSessionId = runner === 'claude-code' && !rejoinOnly && agent
 // #endregion fabric-mcp-agent-process
 
 const root = registryDirs().root
+// CO-514: one socket-table read per hub process, kept while hub.json names the same pid and port.
+const hubOwner = createOwnerCheck()
 const proxy = new FabricMcpProxy({
   runner,
   cwd: process.cwd(),
@@ -56,7 +59,8 @@ const proxy = new FabricMcpProxy({
   rejoinOnly,
   agentPid,
   ...(currentRuntimeSessionId ? { currentRuntimeSessionId } : {}),
-  locate: () => locateHub(root),
+  // CO-514 (DEC-0154 HA-2): the hub's listener must be this account's before any credential leaves.
+  locate: () => locateHub(root, { owner: hubOwner }),
   store: fileCredentialStore(root, runner),
   hubCall: makeHubCall(),
   openSession: (url, bearer) => openSessionLink(url, bearer),
