@@ -86,6 +86,8 @@ const ptys = () => ({
 const policy = new Policy({ db, journal })
 // P-24: the working language is read from Settings at each fabric_whoami; a read that throws costs nothing.
 let surfaceLanguage = 'ru'
+// CO-514: the verdict on whose process called; own unless a check below says otherwise.
+let peerVerdict = 'own'
 // 0.3.13 wave 2 (SW-4): the sweep's nudges for a session, taken by the answer that carries them.
 const pendingNudges = []
 const surface = new AgentSurface({
@@ -94,6 +96,7 @@ const surface = new AgentSurface({
   language: () => { if (surfaceLanguage === 'throw') throw new Error('settings unreadable'); return surfaceLanguage === 'off' ? null : surfaceLanguage },
   // ADR-0176 §3: this computer marked as the operator's in Settings.
   machineTrust: () => 'mine',
+  peerAccount: async () => peerVerdict,
   // The operator, 2026-11-07: the agents of this machine every session reads in fabric_whoami.
   machineAgents: () => ({ agents: [{ key: 'apps-starter.default', name: 'Apps Starter', what: 'Starts and stops enrolled apps.', kind: 'service', placement: 'local', origin: null }], more: 0, refused: 0 })
 })
@@ -153,6 +156,18 @@ const me = await call('fabric_whoami')
 if (me.project?.id === projectId && me.session_id === sessionId && me.rules?.length)
   ok('fabric_whoami answers with this session and the rules that apply')
 else fail('whoami returned ' + JSON.stringify(me))
+
+// CO-514 (DEC-0154 HA-2 (b), HA-3): another account's process is refused before its request is read, and one whose
+// account cannot be told is refused too; this account's is answered.
+for (const [verdict, code] of [['foreign', 'peer-foreign-account'], ['unverified', 'peer-unverified']]) {
+  peerVerdict = verdict
+  const r = await fetch(surface.endpoint, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + scope.token }, body: '{}' })
+  const body = await r.json().catch(() => ({}))
+  r.status === 403 && String(body.error ?? '').startsWith(code)
+    ? ok('a caller judged ' + verdict + ' is refused 403 ' + code + ' before its request is read')
+    : fail('a ' + verdict + ' caller got ' + r.status + ' ' + JSON.stringify(body))
+}
+peerVerdict = 'own'
 
 // The operator, 2026-11-07: every session learns which agents this machine has, and the rule to look there first.
 me.machine_agents?.agents?.[0]?.key === 'apps-starter.default' && me.machine_agents.agents[0].what && (me.rules ?? []).some((r) => r.includes('machine_agents'))

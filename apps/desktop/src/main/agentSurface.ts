@@ -101,6 +101,7 @@ import { QUESTIONS_READ, readWaiting } from './sessionWaiting.ts'
 import { readRunHolds } from './workRead.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 import type { MachineAgents } from '../shared/machineAgents.ts'
+import type { PeerVerdict } from './peerAccount.ts'
 
 /** Check the complete original before lookup, normalization or legacy text
  * scrubbing. Reference identity is preserved; recognizable secrets refuse the
@@ -356,6 +357,8 @@ export interface AgentSurfaceDeps {
   /** The operator, 2026-11-07: the agents and services of this machine (`shared/machineAgents.ts`), read at each
    *  fabric_whoami so a session calls the agent that owns a job; null when the registry could not be read. */
   machineAgents?: () => MachineAgents | null
+  /** CO-514 (DEC-0154 HA-2 (b), HA-3): whose process is on the other end of a connection; absent, not checked. */
+  peerAccount?: (socket: import('node:net').Socket) => Promise<PeerVerdict>
 }
 
 /** What the surface needs to admit a registered agent from outside (ADR-0115 §1). */
@@ -889,6 +892,17 @@ export class AgentSurface {
     if (req.headers.origin !== undefined) {
       AgentSurface.refuse(res, 403, 'browser origins cannot call the Fabric agent surface')
       return
+    }
+    // CO-514 (DEC-0154 HA-2 (b), HA-3): on a computer several people use, a process of another account is refused
+    // before anything of its request is read; one whose account cannot be told is refused too.
+    if (this.deps.peerAccount) {
+      const verdict = await this.deps.peerAccount(req.socket)
+      if (verdict === 'foreign' || verdict === 'unverified') {
+        const code = verdict === 'foreign' ? 'peer-foreign-account' : 'peer-unverified'
+        ops.record({ op: 'agentSurface.peer-refused', outcome: 'ok', level: 'warn', detail: { code }, ctx: { correlationId: ops.correlate() } })
+        AgentSurface.refuse(res, 403, code === 'peer-foreign-account' ? 'peer-foreign-account: another account of this computer called the hub' : 'peer-unverified: the account of the caller could not be told')
+        return
+      }
     }
     // ST-2: with the database gone every call would fail on its first read; it is told to wait instead, before any
     // credential lookup or body read. A DELETE (a client leaving) still goes through: it costs no answer the client waits on.

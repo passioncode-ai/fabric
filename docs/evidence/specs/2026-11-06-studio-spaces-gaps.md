@@ -53,8 +53,11 @@ waves). Read on 2026-11-06 against fabric-workspace `origin/main` (`docs/plans/2
 - **Built 2026-11-07, the client half:** DEC-0154 is accepted (`v0.1.0+2026-11-07.1`). `apps/desktop/src/main/listenerOwner.ts`
   reads the listener's owner (macOS `lsof -Fpu`, Linux `/proc/net/tcp`), and `apps/desktop/src/main/hub.ts#locateHub`
   refuses another account's, or one that cannot be told, as `foreign-user` before any token; fabric-mcp passes the
-  check (`apps/desktop/src/main/fabricMcpMain.ts`). Tests: `apps/desktop/test/listener-owner.test.mjs`. Left: point 2
-  (b) on the hub, and Windows.
+  check (`apps/desktop/src/main/fabricMcpMain.ts`). Tests: `apps/desktop/test/listener-owner.test.mjs`.
+- **Built 2026-11-07, the hub half (point 2 (b), HA-3):** on a computer several people use, the hub refuses a caller of
+  another account before reading its request (`403 peer-foreign-account`), and one it cannot tell (`peer-unverified`);
+  a computer one person uses reads nothing (`apps/desktop/src/main/peerAccount.ts`, `AgentSurface#handle`). Tests:
+  `apps/desktop/test/peer-account.test.mjs`, `apps/desktop/test/agent-surface.test.mjs`. Left: Windows.
 
 ### 2.3 A restored dump gives a second installation the same estate (CO-515, P2)
 
