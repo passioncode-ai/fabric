@@ -276,10 +276,12 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       goal: `Answer the board request ${req.id} addressed to this project, then end.`,
       constraints: [
         'Read the request with com.get and its thread with com.list under your own credential.',
-        'Claim it (com.enroll, com.claim), renew about every 20 s during a long step, answer in its thread, and complete it once the work is done.',
+        // fabric-agent-contract DEC-0152 (`v0.1.0+2026-11-07.4`, SA-6, CO-530): the slot first; a live holder is left alone.
+        'Read the slot with com.status first: when it is active, a live service of the project holds the request, so leave it, send nothing, ask no one and end.',
+        'Otherwise claim it (com.enroll, com.claim), renew about every 20 s during a long step, give the state with com.progress, accept it with com.accept before its effect begins, answer in its thread, and close it with com.complete once the work is done.',
         // fabric-agent-adapter FAA-247: the step above alone would let a refused run answer the request and take it from
         // the project's service. The refusal follows the board rule every session reads (protocolObligations.ts).
-        'If com.enroll answers not_authorized, follow the board rule board.read-at-start (fabric_whoami): send one com.reply only when com.status shows the slot absent at generation 0, otherwise no com.reply (a service of the project will take the request); ask the operator with fabric_question_ask either way, then end.',
+        'If com.enroll answers not_authorized, follow the board rule board.read-at-start (fabric_whoami): send one com.reply, with why and what lifts it, only when com.status shows the slot absent at generation 0, otherwise no com.reply (a service of the project will take the request); then ask the operator with fabric_question_ask, then end.',
         'Stop before any step that touches production and hand it to a session the person is in or to the operator.',
         'Write the final checkpoint and close the workflow only once the request is settled, then end.',
         // CO-409 (DEC-0125 MD-2, MD-3): the operator's mandate the request carries, unchanged; the run appends itself.

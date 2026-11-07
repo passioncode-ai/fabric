@@ -67,7 +67,7 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).toMatch(/board\.respond/)
     expect(o.text).toMatch(/own Project it is given at your com\.enroll[\s\S]*ADR-0190/)
     expect(o.text).toMatch(/a session has no route to another Project\'s/)
-    expect(o.text).toMatch(/do no work on it without the slot, then ask the operator with fabric_question_ask/)
+    expect(o.text).toMatch(/cannot be taken now, why and what lifts it, do no work on it without the slot, then ask the operator with fabric_question_ask/)
     // CO-517: the gate answer settles the request for the dispatcher, so the operator sees it only as a question.
     expect(o.text).toMatch(/kind access, about board\.gate\.<capability>, commandId the UUID v5 of the name board\.gate in the namespace of the request's id/)
     expect(o.text).toMatch(/end without waiting for the answer/)
@@ -80,14 +80,19 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).not.toMatch(/stays queued/)
   })
 
-  it('says to answer what waits in the same turn with the state now, as com.reply on a request too (the operator, 2026-11-04; DEC-0152 SA-2, SA-3)', () => {
+  it('says to answer what waits in the same turn with the state now: com.reply on an announcement or a question, never a state as the answer to a request (the operator, 2026-11-04; DEC-0152 SA-2, SA-3, SA-6, CO-530)', () => {
     const o = byId('board.read-at-start')
     expect(o.text).toMatch(/in the same turn/)
     expect(o.text).toMatch(/a state with its nearest date is an answer/)
-    expect(o.text).toMatch(/Send it as com\.reply, on a request too/)
-    expect(o.text).toMatch(/never that the work is done/)
-    expect(o.text).toMatch(/second com\.reply to the same request/)
-    expect(o.text).toMatch(/com\.progress[\s\S]*com\.complete/)
+    expect(o.text).toMatch(/On an announcement or a question send it as com\.reply; the result follows as a second com\.reply/)
+    expect(o.text).not.toMatch(/on a request too/)
+    expect(o.text).toMatch(/A request is not answered by a state/)
+    // SA-6: the holder reports with com.progress and closes with com.accept, then com.complete.
+    expect(o.text).toMatch(/com\.progress, accept it with com\.accept before its effect begins, and close it with com\.complete/)
+    // SA-6: the slot is read first; a live holder is left alone, and nobody is asked.
+    expect(o.text).toMatch(/Read the slot in com\.status before com\.enroll/)
+    expect(o.text).toMatch(/When the slot is active, a live service of the project holds the request: leave it, send nothing and ask no one/)
+    expect(o.text).toMatch(/v0\.1\.0\+2026-11-07\.4/)
     // The board, threads 1add3c03 and 24e0c88e: the production stop binds by condition, not by delivery path.
     expect(o.text).toMatch(/no person in your chat[\s\S]*a project's responder[\s\S]*stop before any step that touches production/)
     expect(o.text).toMatch(/a board request alone never allows it/)

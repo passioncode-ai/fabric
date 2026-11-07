@@ -205,21 +205,22 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
       'your own Project it is given at your com.enroll, with no question (ADR-0190); a session has no route to ' +
       'another Project\'s (the operator decides only a request a registered service asked, in Agent access); without ' +
       'it com.enroll is not_authorized. When com.status shows that capability\'s slot absent at generation 0 (no ' +
-      'service of the project ever held it), answer the request once with com.reply that it cannot be taken now and ' +
-      'why, do no work on it without the slot, then ask the operator with fabric_question_ask (kind access, about ' +
+      'service of the project ever held it), answer the request once with com.reply that it cannot be taken now, ' +
+      'why and what lifts it, do no work on it without the slot, then ask the operator with fabric_question_ask (kind access, about ' +
       'board.gate.<capability>, commandId the UUID v5 of the name board.gate in the namespace of the request\'s id: ' +
       'which request, which gate, what lifts it) so ' +
-      'the operator sees it, and end without waiting for the answer: the reply is still your answer. When the slot is ' +
-      'active, stale, or absent at a later generation, a service of the project answers it and will take it back: ' +
-      'send no com.reply (it would answer the request and take it from that service), still ask the operator with ' +
-      'fabric_question_ask with the same about and commandId (a question answers no request and takes nothing), and ' +
-      'end. Answer what waits on you in the same turn, ' +
+      'the operator sees it, and end without waiting for the answer: the reply is still your answer. Read the slot in com.status before com.enroll (fabric-agent-contract ' +
+      'DEC-0152, `v0.1.0+2026-11-07.4`, SA-6). When the slot is active, a live service of the project holds the ' +
+      'request: leave it, send nothing and ask no one. When it is stale, or absent at a later generation, a service of ' +
+      'the project will take it back: send no com.reply (it would answer the request and take it from that service), ' +
+      'still ask the operator with fabric_question_ask with the same about and commandId (a question answers no ' +
+      'request and takes nothing), and end. Answer what waits on you in the same turn, ' +
       'with the state now: what is done, where (branch or commit), when the rest will be ready and what blocks it; ' +
-      'a state with its nearest date is an answer (the operator, 2026-11-04). Send it as com.reply, on a request too: ' +
-      'the request becomes answered, which means you answered, never that the work is done; the result follows as a ' +
-      'second com.reply to the same request, and if your date passes first, a new state with a new date by then ' +
-      '(fabric-agent-contract DEC-0152, SA-2 and SA-3). Holding the request as its responder, give the state with ' +
-      'com.progress and close it with com.complete. Carrying out a board request with no person in your chat (a ' +
+      'a state with its nearest date is an answer (the operator, 2026-11-04). On an announcement or a question send ' +
+      'it as com.reply; the result follows as a second com.reply, and if your date passes first, a new state with a ' +
+      'new date by then (SA-2 and SA-3). A request is not answered by a state: holding it as its responder, give the ' +
+      'state with com.progress, accept it with com.accept before its effect begins, and close it with com.complete ' +
+      'once the work is done (SA-6). Carrying out a board request with no person in your chat (a ' +
       'session started on the request, a project\'s responder, or a live session nobody is in), stop before any step ' +
       'that touches production (its data, its console, its firewall, a deploy) and hand that step to a session the ' +
       'person is in or to the operator: a board request alone never allows it. The operator\'s word does: said in your ' +

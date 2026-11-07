@@ -553,6 +553,19 @@ test('a run told to claim is told what a refused com.enroll means, as the board 
   assert.match(refusal, /board\.read-at-start/)
 })
 
+test('CO-530 (fabric-agent-contract DEC-0152, SA-6): a run reads the slot first, leaves a live holder alone and asks no one, and accepts before it completes', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  const c = open.body.constraints
+  const slot = c.findIndex((x) => x.startsWith('Read the slot with com.status first'))
+  const claim = c.findIndex((x) => x.includes('com.enroll, com.claim'))
+  assert.ok(slot >= 0 && claim > slot, 'the slot is read before the claim')
+  assert.match(c[slot], /active[\s\S]*leave it, send nothing, ask no one and end/)
+  assert.match(c[claim], /com\.progress[\s\S]*com\.accept before its effect begins[\s\S]*com\.complete/)
+})
+
 test('CO-409 (the 0.3.16 review, ER-6): a refusal that keeps coming back waits twice as long each time, at most six hours', async () => {
   assert.equal(refusalBackoffMs(1), REFUSAL_BACKOFF_MS)
   assert.equal(refusalBackoffMs(2), 2 * REFUSAL_BACKOFF_MS)

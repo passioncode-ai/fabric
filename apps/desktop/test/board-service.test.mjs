@@ -559,6 +559,8 @@ test('com.enroll\'s description names the route a session has: its own Project g
   assert.match(described.get('com.enroll'), /do no work on it without the slot, ask the operator with fabric_question_ask, and end/)
   // FAA-231: the same condition as board.read-at-start, so a session gets one instruction.
   assert.match(described.get('com.enroll'), /slot absent at generation 0/)
+  // DEC-0152 SA-6 (CO-530): a live holder is left alone and nobody is asked.
+  assert.match(described.get('com.enroll'), /when the slot is active, a live service holds the request: leave it, send nothing and ask no one/)
   assert.match(described.get('com.enroll'), /send no com\.reply \(it would answer the request and take it from that service\)/)
   assert.match(described.get('com.enroll'), /still ask the operator with fabric_question_ask with the same about and commandId/)
   assert.doesNotMatch(described.get('com.enroll'), /never only to say it waits/)
