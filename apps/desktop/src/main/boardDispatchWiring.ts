@@ -8,7 +8,7 @@
 import { closeSync, existsSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs'
 import path from 'node:path'
 import { execFile } from 'node:child_process'
-import type { CommsMessage, CommsRespondersReply } from '../shared/commsRead.ts'
+import type { CommsMessage, CommsRespondersReply, CommsTimelineReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
 import { createBoardDispatch, isDispatchRecord, type DispatchDeps, type DispatchRecord, type OpenRequest, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
@@ -67,9 +67,36 @@ const run = (file: string, args: string[], env: NodeJS.ProcessEnv): Promise<stri
   })
 })
 
+/**
+ * §3.6: the dispatcher follows a request it watches even when the request is outside the pass's read, through the
+ * request's own journal transitions (the operator's door onto `com.get`'s facts), read once per pass. A page that holds
+ * only the oldest transitions, or one that cannot be read, says nothing, and the run is judged as before (CO-409, DO-5).
+ */
+export function createRequestFollower(timeline?: (requestId: string) => Promise<CommsTimelineReply>): { reset(): void; state(requestId: string): Promise<string | null> } {
+  let followed = new Map<string, Promise<string | null>>()
+  return {
+    reset: () => { followed = new Map() },
+    state(requestId) {
+      const known = followed.get(requestId)
+      if (known) return known
+      const read = (async (): Promise<string | null> => {
+        if (!timeline) return null
+        const t = await timeline(requestId)
+        if (!t.ok || t.more || t.steps.length === 0) return null
+        return t.steps[t.steps.length - 1].to
+      })().catch(() => {
+        // A read that throws says nothing about the request; the dispatcher's own margin decides (ER-3, CO-512).
+        return null
+      })
+      followed.set(requestId, read)
+      return read
+    }
+  }
+}
+
 export function wireBoardDispatch(o: {
   estateId: string
-  comms: SweepComms & { responders(estateId: string): Promise<CommsRespondersReply> }
+  comms: SweepComms & { responders(estateId: string): Promise<CommsRespondersReply>; timeline?(estateId: string, requestId: unknown): Promise<CommsTimelineReply> }
   repos: (projectId: string) => Promise<Array<{ path: string; is_primary: boolean | null }>>
   sessionLive: (projectId: string) => boolean
   switchOn: () => boolean
@@ -84,6 +111,7 @@ export function wireBoardDispatch(o: {
   const envWith = async (): Promise<NodeJS.ProcessEnv> => ({ ...o.env, PATH: await pathFor() })
   const observatory = createObservatoryClient(async () => findObservatoryServer(await bin('project-observatory')))
   let lastStates = new Map<string, string>()
+  const follower = createRequestFollower(o.comms.timeline ? (id) => o.comms.timeline!(o.estateId, id) : undefined)
   // The responder slots, read once per pass: an unread board is never "nobody answers".
   let slots: Promise<CommsRespondersReply> | null = null
 
@@ -93,6 +121,7 @@ export function wireBoardDispatch(o: {
     async readRequests() {
       const r = await readOpenRequests(o.comms, o.estateId, Date.now())
       lastStates = r.states
+      follower.reset()
       slots = null
       return r.requests
     },
@@ -156,7 +185,7 @@ export function wireBoardDispatch(o: {
         return 'unknown'
       }
     },
-    async requestState(requestId) { return lastStates.get(requestId) ?? null },
+    async requestState(requestId) { return lastStates.get(requestId) ?? follower.state(requestId) },
     load() {
       let text: string
       try { text = readFileSync(o.file, 'utf8') } catch {

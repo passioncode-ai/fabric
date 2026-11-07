@@ -760,3 +760,22 @@ test('CO-409 (DO-5, §3.6): a run still running past its end is stopped through 
   const r = d.records()[0]
   assert.deepEqual([r.state, r.outcome, r.emptyRuns], ['ended', 'timed-out', 1])
 })
+
+test('CO-409 (DO-5, §3.6): a request outside the read is followed through its own transitions, once a pass', async () => {
+  const { createRequestFollower } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  let reads = 0
+  let reply = { ok: true, more: false, steps: [{ op: 'submit', from: 'none', to: 'queued' }, { op: 'complete', from: 'in_progress', to: 'completed' }] }
+  const f = createRequestFollower(async () => { reads++; return reply })
+  assert.equal(await f.state('r'), 'completed', 'the newest transition says where it is')
+  assert.equal(await f.state('r'), 'completed')
+  assert.equal(reads, 1, 'read once a pass')
+  f.reset()
+  reply = { ok: true, more: true, steps: [{ op: 'submit', from: 'none', to: 'queued' }] }
+  assert.equal(await f.state('r'), null, 'a first page alone does not say where it is now')
+  f.reset()
+  reply = { ok: false, error: { code: 'unavailable', message: 'down' } }
+  assert.equal(await f.state('r'), null)
+  const broken = createRequestFollower(async () => { throw new Error('down') })
+  assert.equal(await broken.state('r'), null)
+  assert.equal(await createRequestFollower().state('r'), null)
+})
