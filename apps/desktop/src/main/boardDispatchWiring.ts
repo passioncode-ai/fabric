@@ -112,9 +112,8 @@ export function wireBoardDispatch(o: {
     async defaultProvider() {
       const sb = await bin('switchboard')
       if (!sb) return null
-      const out = JSON.parse(await run(sb, ['--json', 'agents', 'status'], await envWith())) as { data?: { default?: string | null } }
-      const agent = out.data?.default ?? null
-      return agent === 'claude-code' ? 'claude' : agent === 'codex' ? 'codex' : null
+      const out = JSON.parse(await run(sb, ['--json', 'agents', 'status'], await envWith())) as { data?: { default?: string | null; dispatch_agent?: string | null } }
+      return dispatchProvider(out.data)
     },
     observatory: (name, args) => observatory.call(name, args),
     async launch(a) {
@@ -177,5 +176,15 @@ export function wireBoardDispatch(o: {
     close: () => observatory.close(),
     toOperator: () => dispatch.toOperator()
   }
+}
+
+/**
+ * The provider a hand-over is offered to: the agent `switchboard dispatch` will start. Switchboard's SB-294 (board
+ * thread `327c7290`, 2026-11-07) names it as `data.dispatch_agent`, Claude Code when no default is set; a Switchboard
+ * without the field keeps the old rule, its default agent only (CO-409, the on-demand spec §3.5).
+ */
+export function dispatchProvider(data: { default?: string | null; dispatch_agent?: string | null } | undefined): 'claude' | 'codex' | null {
+  const agent = data && 'dispatch_agent' in data ? data.dispatch_agent ?? null : data?.default ?? null
+  return agent === 'claude-code' ? 'claude' : agent === 'codex' ? 'codex' : null
 }
 // #endregion board-dispatch-wiring

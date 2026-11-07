@@ -4,7 +4,7 @@
  * HA-2, `v0.1.0+2026-11-07.1`). fabric-mcp asks it before a credential leaves for the hub: on a computer with several
  * accounts a process of another account can hold the port while the pid this user's `hub.json` names is alive.
  *
- * macOS reads `lsof -nP -iTCP:<port> -sTCP:LISTEN -Fpu`; Linux reads `/proc/net/tcp` and `/proc/net/tcp6`, whose
+ * macOS reads `lsof -nP -iTCP:<port> -sTCP:LISTEN -Fpun`; Linux reads `/proc/net/tcp` and `/proc/net/tcp6`, whose
  * listening rows carry the uid. A listener of another account is usually not shown to this one at all: an empty answer
  * is `unknown`, and the caller refuses on it as on a foreign owner. Windows asks PowerShell for the listener's owning
  * process (`Get-NetTCPConnection`) and that process's owner SID against this user's, as the launcher's PC-152 does
@@ -20,27 +20,62 @@ export type ListenerOwner =
   | { unknown: string }
   | { unsupported: true }
 
-/** `lsof -Fpu` output: `p<pid>` then `u<uid>` for each process; every listener's uid, de-duplicated. */
-export function uidsFromLsof(text: string): number[] {
+/**
+ * `lsof -Fpun` output (`p<pid>`, `u<uid>`, then `n<address>` per socket): the uid of each listener on exactly
+ * `127.0.0.1:<port>`, the address fabric-mcp connects to (hub.json's origin), de-duplicated. A wildcard listener
+ * (`*:<port>`) is not counted: lsof shows no other account's sockets, so an own wildcard listener could stand beside
+ * another account's listener on 127.0.0.1, which is the one the connection reaches (fabric-dashboards' FD-168 and the
+ * contract's CT-254, board thread `1fe66e6e`, 2026-11-07).
+ */
+export function uidsFromLsof(text: string, port: number): number[] {
   const uids = new Set<number>()
-  for (const line of text.split('\n')) if (/^u\d+$/.test(line.trim())) uids.add(Number(line.trim().slice(1)))
+  let uid: number | null = null
+  for (const raw of text.split('\n')) {
+    const line = raw.trim()
+    if (line.startsWith('p')) uid = null
+    else if (/^u\d+$/.test(line)) uid = Number(line.slice(1))
+    else if (line === `n127.0.0.1:${port}` && uid !== null) uids.add(uid)
+  }
   return [...uids]
 }
 
-/** `/proc/net/tcp` or `tcp6` rows: the uid of each socket in LISTEN (`0A`) on `port`, de-duplicated. */
-export function uidsFromProcNet(text: string, port: number): number[] {
+/** One LISTEN row of `/proc/net/tcp` or `tcp6`: whether it is on 127.0.0.1, on every address, or elsewhere. */
+export interface ProcListener { on: 'loopback' | 'any' | 'other'; uid: number }
+
+/** `/proc/net/tcp` or `tcp6` rows: each socket in LISTEN (`0A`) on `port` with its uid and address. */
+export function listenersFromProcNet(text: string, port: number): ProcListener[] {
   const hex = port.toString(16).toUpperCase().padStart(4, '0')
-  const uids = new Set<number>()
+  const rows: ProcListener[] = []
   for (const line of text.split('\n').slice(1)) {
     const f = line.trim().split(/\s+/)
     // sl local_address rem_address st tx:rx tr:tm retrnsmt uid ...
     if (f.length < 8) continue
-    const local = f[1] ?? ''
-    if (local.slice(local.lastIndexOf(':') + 1).toUpperCase() !== hex || f[3] !== '0A') continue
+    const local = (f[1] ?? '').toUpperCase()
+    const cut = local.lastIndexOf(':')
+    if (local.slice(cut + 1) !== hex || f[3] !== '0A') continue
     const uid = Number(f[7])
-    if (Number.isInteger(uid) && uid >= 0) uids.add(uid)
+    if (!Number.isInteger(uid) || uid < 0) continue
+    const addr = local.slice(0, cut)
+    // 127.0.0.1 is 0100007F in tcp; a v4-mapped ::ffff:127.0.0.1 in tcp6; every address is all zeros in either.
+    const on = addr === '0100007F' || addr === '0000000000000000FFFF00000100007F' ? 'loopback' : /^0+$/.test(addr) ? 'any' : 'other'
+    rows.push({ on, uid })
   }
-  return [...uids]
+  return rows
+}
+
+/**
+ * The uids a connection to 127.0.0.1:<port> can reach: the listeners on exactly that address when there are any, else
+ * the ones on every address (the contract's HA-2 for Linux, CT-254: the listener's row on the connection's address,
+ * else the wildcard). Never the row of a connection, whose uid reads 0 before the server accepts it.
+ */
+export function uidsReaching(rows: readonly ProcListener[]): number[] {
+  const exact = rows.filter((r) => r.on === 'loopback')
+  return [...new Set((exact.length ? exact : rows.filter((r) => r.on === 'any')).map((r) => r.uid))]
+}
+
+/** One table read on its own (a test's convenience): the uids reaching 127.0.0.1:<port> by that table alone. */
+export function uidsFromProcNet(text: string, port: number): number[] {
+  return uidsReaching(listenersFromProcNet(text, port))
 }
 
 // Windows: one PowerShell call prints `me <sid>` and one `<address> <pid> <sid or ?>` line per listener on the port. A
@@ -78,7 +113,7 @@ export function ownerFromPowerShell(text: string): ListenerOwner {
 
 /** One owner, or why it cannot be told: none seen, or listeners of several accounts. */
 export function ownerOf(uids: number[]): ListenerOwner {
-  if (uids.length === 0) return { unknown: 'no listener of this account could be seen on the port' }
+  if (uids.length === 0) return { unknown: 'no listener on 127.0.0.1 could be seen on the port' }
   if (uids.length > 1) return { unknown: `listeners of ${uids.length} accounts hold the port` }
   return { uid: uids[0] }
 }
@@ -92,28 +127,28 @@ export function readListenerOwner(port: number, deps: {
   if (platform === 'darwin') {
     const run = deps.run ?? ((cmd: string, args: string[]) => execFileSync(cmd, args, { encoding: 'utf8', timeout: 3_000, stdio: ['ignore', 'pipe', 'ignore'] }))
     try {
-      return ownerOf(uidsFromLsof(run('/usr/sbin/lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN', '-Fpu'])))
+      return ownerOf(uidsFromLsof(run('/usr/sbin/lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN', '-Fpun']), port))
     } catch (e) {
       // lsof exits 1 when it lists nothing: no listener this account can see, which is unknown, never fine.
       const out = (e as { stdout?: unknown }).stdout
-      if (typeof out === 'string' && out.trim()) return ownerOf(uidsFromLsof(out))
+      if (typeof out === 'string' && out.trim()) return ownerOf(uidsFromLsof(out, port))
       return { unknown: 'the socket table could not be read' }
     }
   }
   if (platform === 'linux') {
     const read = deps.read ?? ((f: string) => readFileSync(f, 'utf8'))
-    const uids: number[] = []
+    const rows: ProcListener[] = []
     let readAny = false
     for (const file of ['/proc/net/tcp', '/proc/net/tcp6']) {
       try {
-        uids.push(...uidsFromProcNet(read(file), port))
+        rows.push(...listenersFromProcNet(read(file), port))
         readAny = true
       } catch {
         // A kernel without IPv6 has no tcp6; the other file still answers, and none answering is said below.
       }
     }
     if (!readAny) return { unknown: 'the socket table could not be read' }
-    return ownerOf([...new Set(uids)])
+    return ownerOf(uidsReaching(rows))
   }
   if (platform === 'win32') {
     const run = deps.run ?? ((cmd: string, args: string[]) => execFileSync(cmd, args, { encoding: 'utf8', timeout: 30_000, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }))

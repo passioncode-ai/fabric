@@ -76,7 +76,17 @@ First:
 3. Wave E (CO-457): the branch is already read in an enrolled session's folder (CO-498); left are the Dashboards consoles
    mark (asked of fabric-dashboards, thread `b250bec9`) and the project's main session with its move (DEC-0140), scenario
    first.
-4. CO-512's last two edges: a third run at the page bounds, and `adapterSkills.ts` with `SWITCHBOARD_CLAUDE_SOURCE_DIR`.
+4. Done 2026-11-07, all on `main` with hosted `ci` green: CO-512 resolved (its last edges included), CO-526 (every
+   session learns this machine's agents in `fabric_whoami`), CO-514 whole (the listener's and the caller's account,
+   macOS, Linux and Windows, `23c3a0af`) and CO-489 (a session attaches and detaches its own project's folders).
+5. Waiting, each with its owner: CO-527 (the operator's choice of a filter for the agent list), CO-513 (the contract's
+   CT-228 claim-file schema), Wave D step 3 (CT-252), wave E's console mark (fabric-dashboards' FD-166), CO-409's
+   Claude Code fallback (fabric-switchboard, thread `327c7290`, by 2026-11-19), and CO-503's Observatory binding (the
+   operator's terminal act, the command in CO-503's row), CO-528 (fabric-mcp's check on the open connection, once the
+   contract's CT-254 is on `main` and tagged; thread `1fe66e6e`).
+6. Next free work: CO-409's remaining items that need no schema step and no other product (its row lists them); the
+   journal events of the on-demand spec §7 need a schema step, which waits for the next release's one step
+   (migration 128 is reserved by the task-pipeline persistence contract).
 
 CO-524's decisions are due 2026-11-13 with Observatory (OBS-380).
 

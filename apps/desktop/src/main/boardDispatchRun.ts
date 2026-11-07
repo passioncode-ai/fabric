@@ -90,6 +90,17 @@ const CLOSED = /\bWorkflowClosed\b/
 const DAY_MS = 24 * 3600_000
 /** After a refusal or a start that never answered, Switchboard is not asked again for that request sooner than this (the 0.3.16 review, ER-1, DA-2). */
 export const REFUSAL_BACKOFF_MS = 10 * 60_000
+/** The longest a refusal that keeps coming back waits (CO-409, the 0.3.16 review's ER-6). */
+export const REFUSAL_BACKOFF_MAX_MS = 6 * 3600_000
+/**
+ * How long a request waits after `refusals` refusals or failed starts in a row: the first REFUSAL_BACKOFF_MS, each
+ * next one twice the last, at most REFUSAL_BACKOFF_MAX_MS (CO-409, ER-6: a refusal that keeps coming back, such as no
+ * default agent, is not asked again every ten minutes for the request's whole week).
+ */
+export function refusalBackoffMs(refusals: number): number {
+  if (refusals <= 1) return REFUSAL_BACKOFF_MS
+  return Math.min(REFUSAL_BACKOFF_MAX_MS, REFUSAL_BACKOFF_MS * 2 ** Math.min(refusals - 1, 16))
+}
 /** Times one start is asked of Switchboard before it is recorded as failed to start. */
 export const START_ATTEMPTS = 3
 /** A run Switchboard cannot report on is taken as ended this long after its own end (ER-3). */
@@ -309,7 +320,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       leases.delete(r.workflowId)
       deps.log('board.dispatch.started', 'ok', { request: r.requestId, dispatch: r.dispatchId, workflow: r.workflowId, launch: started.launchId, ends_at: r.endsAt })
     } else if (started.refused !== 'failed') {
-      // A refusal is Switchboard's answer: nothing started. The request waits REFUSAL_BACKOFF_MS before it is asked again.
+      // A refusal is Switchboard's answer: nothing started. The request waits `refusalBackoffMs` before it is asked again.
       r.state = 'ended'
       r.endedAt = now
       r.outcome = 'refused'
@@ -431,7 +442,11 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         continue
       }
       if (decision.path !== 'launch') continue
-      if ((last?.outcome === 'refused' || last?.outcome === 'failed-to-start') && now - (last.endedAt ?? last.startedAt) < REFUSAL_BACKOFF_MS) continue
+      if (last?.outcome === 'refused' || last?.outcome === 'failed-to-start') {
+        let inRow = 0
+        for (let i = mine.length - 1; i >= 0 && (mine[i].outcome === 'refused' || mine[i].outcome === 'failed-to-start'); i--) inRow++
+        if (now - (last.endedAt ?? last.startedAt) < refusalBackoffMs(inRow)) continue
+      }
       // Iteration 2, ER-5: a workflow that could not be opened is not tried again for the request sooner than the back-off.
       if (now - (openFailedAt.get(req.id) ?? -Infinity) < REFUSAL_BACKOFF_MS) continue
       const provider = await deps.defaultProvider()

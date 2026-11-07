@@ -17,6 +17,9 @@ test('the client socket is the row whose local side is the connection\'s remote 
   assert.deepEqual(peerUidsFromLsof(out, 52344), [502])
   const table = '  sl local rem st tx tr retr uid\n   0: 0100007F:CC78 0100007F:B7AE 01 0:0 0:0 0 1001 0 1\n   1: 0100007F:B7AE 0100007F:CC78 01 0:0 0:0 0 1000 0 2\n'
   assert.deepEqual(peerUidsFromProcNet(table, 52344), [1001])
+  // CT-254: a client row with inode 0 is a closed client; its account cannot be told, and nothing else stands in.
+  const closed = '  sl local rem st tx tr retr uid timeout inode\n   0: 0100007F:CC78 0100007F:B7AE 01 0:0 0:0 0 0 0 0\n'
+  assert.deepEqual(peerUidsFromProcNet(closed, 52344), [])
 })
 
 test('one account of mine is own, another is foreign, none or several cannot be told', () => {

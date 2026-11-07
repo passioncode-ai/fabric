@@ -56,10 +56,13 @@ test('the real socket table of this system names this account as the owner of a 
   }
 })
 
-test('lsof -Fpu: every listener\'s uid, once', () => {
-  assert.deepEqual(uidsFromLsof('p10608\nu501\nf32\nf33\n'), [501])
-  assert.deepEqual(uidsFromLsof('p1\nu501\nf3\np2\nu502\nf4\n').sort(), [501, 502])
-  assert.deepEqual(uidsFromLsof(''), [])
+test('lsof -Fpun: the uid of each listener on exactly 127.0.0.1:<port>, once; a wildcard or another port is not counted', () => {
+  assert.deepEqual(uidsFromLsof('p10608\nu501\nf32\nn127.0.0.1:47070\nf33\nn[::1]:47070\n', 47070), [501])
+  assert.deepEqual(uidsFromLsof('p1\nu501\nf3\nn127.0.0.1:47070\np2\nu502\nf4\nn127.0.0.1:47070\n', 47070).sort(), [501, 502])
+  // FD-168, CT-254: an own wildcard listener beside another account's 127.0.0.1 one (which lsof cannot show) is no proof.
+  assert.deepEqual(uidsFromLsof('p1\nu501\nf3\nn*:47070\n', 47070), [])
+  assert.deepEqual(uidsFromLsof('p1\nu501\nf3\nn127.0.0.1:47071\n', 47070), [])
+  assert.deepEqual(uidsFromLsof('', 47070), [])
 })
 
 test('/proc/net/tcp: only rows LISTENing on the port, with their uid', () => {
@@ -72,6 +75,21 @@ test('/proc/net/tcp: only rows LISTENing on the port, with their uid', () => {
   assert.deepEqual(uidsFromProcNet(table, 47022), [1000], 'the established row and the other port are not listeners on it')
 })
 
+test('/proc/net/tcp (CT-254): the listener on 127.0.0.1 decides, else the one on every address; a connection row never', () => {
+  const head = '  sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode'
+  const row = (n, addr, st, uid) => `   ${n}: ${addr}:B7AE 00000000:0000 ${st} 00000000:00000000 00:00000000 00000000  ${uid}        0 ${n} 1 0`
+  // Ours on 127.0.0.1, another account's on 0.0.0.0: a connection to 127.0.0.1 reaches ours.
+  assert.deepEqual(uidsFromProcNet([head, row(0, '0100007F', '0A', 1000), row(1, '00000000', '0A', 1001)].join('\n'), 47022), [1000])
+  // Ours on 0.0.0.0, another account's on 127.0.0.1: the connection reaches theirs.
+  assert.deepEqual(uidsFromProcNet([head, row(0, '00000000', '0A', 1000), row(1, '0100007F', '0A', 1001)].join('\n'), 47022), [1001])
+  // Only a wildcard: it decides. A row on 127.0.0.2 does not take a connection to 127.0.0.1.
+  assert.deepEqual(uidsFromProcNet([head, row(0, '00000000', '0A', 1000), row(1, '0200007F', '0A', 1001)].join('\n'), 47022), [1000])
+  // A connection not yet accepted reads uid 0 with inode 0: it is not a listener and is never read.
+  assert.deepEqual(uidsFromProcNet([head, row(0, '0100007F', '03', 0), row(1, '0100007F', '0A', 1000)].join('\n'), 47022), [1000])
+  const linux = (v4, v6) => readListenerOwner(47022, { platform: 'linux', read: (f) => (f.endsWith('6') ? v6 : v4) })
+  assert.deepEqual(linux([head, row(0, '00000000', '0A', 1000)].join('\n'), [head, row(0, '0000000000000000FFFF00000100007F', '0A', 1001)].join('\n')), { uid: 1001 }, 'a v4-mapped 127.0.0.1 in tcp6 is the exact address')
+})
+
 test('several accounts on one port, or none, cannot name an owner', () => {
   assert.deepEqual(ownerOf([501]), { uid: 501 })
   assert.ok('unknown' in ownerOf([]))
@@ -81,9 +99,11 @@ test('several accounts on one port, or none, cannot name an owner', () => {
 test('macOS: lsof finding nothing (exit 1) is unknown; Linux reads both tables; Windows asks PowerShell', () => {
   const nothing = () => { const e = new Error('exit 1'); e.stdout = ''; throw e }
   assert.ok('unknown' in readListenerOwner(47070, { platform: 'darwin', run: nothing }))
-  assert.deepEqual(readListenerOwner(47070, { platform: 'darwin', run: () => 'p1\nu501\n' }), { uid: 501 })
-  const v6 = '  sl  local_address remote st tx rx tr retr uid\n   0: 00000000000000000000000001000000:B7AE 0:0 0A 0:0 0:0 0 1000 0 1\n'
+  assert.deepEqual(readListenerOwner(47070, { platform: 'darwin', run: () => 'p1\nu501\nf3\nn127.0.0.1:47070\n' }), { uid: 501 })
+  const v6 = '  sl  local_address remote st tx rx tr retr uid\n   0: 00000000000000000000000000000000:B7AE 0:0 0A 0:0 0:0 0 1000 0 1\n'
   assert.deepEqual(readListenerOwner(47022, { platform: 'linux', read: (f) => (f.endsWith('6') ? v6 : '  header\n') }), { uid: 1000 })
+  // A listener on ::1 alone does not take a connection to 127.0.0.1: nothing reaches it, so the owner is unknown.
+  assert.ok('unknown' in readListenerOwner(47022, { platform: 'linux', read: (f) => (f.endsWith('6') ? v6.replace('00000000000000000000000000000000:', '00000000000000000000000001000000:') : '  header\n') }))
   assert.ok('unknown' in readListenerOwner(47022, { platform: 'linux', read: () => { throw new Error('ENOENT') } }))
   assert.deepEqual(readListenerOwner(47070, { platform: 'win32', run: () => 'me S-1-5-21-1\n127.0.0.1 9 S-1-5-21-1\n' }), { sid: 'S-1-5-21-1', mine: true })
   assert.ok('unknown' in readListenerOwner(47070, { platform: 'win32', run: () => { throw new Error('exit 3') } }))

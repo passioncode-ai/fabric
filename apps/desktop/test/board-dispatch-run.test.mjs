@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
 
-const { createBoardDispatch, REFUSAL_BACKOFF_MS, START_ATTEMPTS, UNKNOWN_AFTER_END_MS, CLOSE_ATTEMPTS, noteOf } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+const { createBoardDispatch, REFUSAL_BACKOFF_MS, REFUSAL_BACKOFF_MAX_MS, refusalBackoffMs, START_ATTEMPTS, UNKNOWN_AFTER_END_MS, CLOSE_ATTEMPTS, noteOf } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
 
 const T0 = Date.parse('2026-11-05T10:00:00Z')
 const MIN = 60_000
@@ -550,4 +550,37 @@ test('a run told to claim is told what a refused com.enroll means, as the board 
   assert.match(refusal, /no com\.reply/)
   assert.match(refusal, /fabric_question_ask/)
   assert.match(refusal, /board\.read-at-start/)
+})
+
+test('CO-409 (the 0.3.16 review, ER-6): a refusal that keeps coming back waits twice as long each time, at most six hours', async () => {
+  assert.equal(refusalBackoffMs(1), REFUSAL_BACKOFF_MS)
+  assert.equal(refusalBackoffMs(2), 2 * REFUSAL_BACKOFF_MS)
+  assert.equal(refusalBackoffMs(3), 4 * REFUSAL_BACKOFF_MS)
+  assert.equal(refusalBackoffMs(50), REFUSAL_BACKOFF_MAX_MS)
+  const w = world({ refuse: 'no_agent' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(w.launches.length, 2, 'the first refusal waits ten minutes')
+  w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(w.launches.length, 2, 'the second waits twenty')
+  w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(w.launches.length, 3)
+  // Once Switchboard starts the run, the count starts again: a later refusal waits ten minutes.
+  w.refuse = null
+  w.tick(4 * REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(w.launches.length, 4)
+  assert.equal(d.records().at(-1).state, 'running')
+})
+
+test('CO-409 (Switchboard SB-294): the hand-over goes to the agent dispatch will start; without the field, the default agent', async () => {
+  const { dispatchProvider } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  assert.equal(dispatchProvider({ default: null, dispatch_agent: 'claude-code' }), 'claude', 'no default set: Switchboard falls back to Claude Code')
+  assert.equal(dispatchProvider({ default: 'codex', dispatch_agent: 'codex' }), 'codex')
+  assert.equal(dispatchProvider({ default: 'claude-code', dispatch_agent: null }), null, 'Switchboard would start nothing: no hand-over')
+  assert.equal(dispatchProvider({ default: 'claude-code' }), 'claude', 'an older Switchboard keeps the old rule')
+  assert.equal(dispatchProvider({ default: null }), null)
+  assert.equal(dispatchProvider({ default: 'hermes' }), null)
+  assert.equal(dispatchProvider(undefined), null)
 })

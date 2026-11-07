@@ -64,6 +64,15 @@ waves). Read on 2026-11-06 against fabric-workspace `origin/main` (`docs/plans/2
   enabled (`apps/desktop/src/main/listenerOwner.ts#ownerFromPowerShell`, `apps/desktop/src/main/peerAccount.ts#peerFromPowerShell`).
   The tests read the real socket table of the machine they run on, and `.github/workflows/platforms.yml` runs them on
   its Windows runners.
+- **Narrowed 2026-11-07 (the contract's CT-254, fabric-dashboards' FD-168, board thread `1fe66e6e`):** only a listener the
+  connection reaches counts. macOS counts a listener on exactly `127.0.0.1:<port>` (hub.json's origin), never an own
+  wildcard one, because lsof shows no other account's socket that could stand beside it; Linux takes the listener rows
+  (`0A`) on 127.0.0.1, else on every address, never a connection's row, whose uid reads 0 before the server accepts it
+  (`apps/desktop/src/main/listenerOwner.ts#uidsReaching`).
+  The hub counts no client row with inode 0 (a client already closed): such a caller is `peer-unverified`, never the
+  listener's owner instead (`apps/desktop/src/main/peerAccount.ts#peerUidsFromProcNet`). Left open with the contract: the
+  window between fabric-mcp's check and its connection (Observatory's race on thread `ced00f6e`), to be closed by a
+  check on the open connection if CT-254 takes that rule, or recorded as an accepted remainder.
 
 ### 2.3 A restored dump gives a second installation the same estate (CO-515, P2)
 

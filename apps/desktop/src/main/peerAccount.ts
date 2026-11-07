@@ -52,15 +52,20 @@ export function peerUidsFromLsof(text: string, port: number): number[] {
   return [...uids]
 }
 
-/** `/proc/net/tcp` or `tcp6`: the uid of each ESTABLISHED socket whose local port is `port`. */
+/**
+ * `/proc/net/tcp` or `tcp6`: the uid of each ESTABLISHED socket whose local port is `port`. A row with inode 0 belongs
+ * to a client already closed, whose uid is no longer its owner's: it is not counted, so such a caller is unverified (the
+ * contract's CT-254, board thread `1fe66e6e`, 2026-11-07; never the listener's owner on that port instead).
+ */
 export function peerUidsFromProcNet(text: string, port: number): number[] {
   const hex = port.toString(16).toUpperCase().padStart(4, '0')
   const uids = new Set<number>()
   for (const line of text.split('\n').slice(1)) {
     const f = line.trim().split(/\s+/)
-    if (f.length < 8) continue
+    // sl local_address rem_address st tx:rx tr:tm retrnsmt uid timeout inode
+    if (f.length < 10) continue
     const local = f[1] ?? ''
-    if (local.slice(local.lastIndexOf(':') + 1).toUpperCase() !== hex || f[3] !== '01') continue
+    if (local.slice(local.lastIndexOf(':') + 1).toUpperCase() !== hex || f[3] !== '01' || f[9] === '0') continue
     const uid = Number(f[7])
     if (Number.isInteger(uid) && uid >= 0) uids.add(uid)
   }
