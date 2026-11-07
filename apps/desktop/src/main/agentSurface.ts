@@ -909,7 +909,11 @@ export class AgentSurface {
       if (verdict === 'foreign' || verdict === 'unverified') {
         const code = verdict === 'foreign' ? 'peer-foreign-account' : 'peer-unverified'
         ops.record({ op: 'agentSurface.peer-refused', outcome: 'ok', level: 'warn', detail: { code }, ctx: { correlationId: ops.correlate() } })
-        AgentSurface.refuse(res, 403, code === 'peer-foreign-account' ? 'peer-foreign-account: another account of this computer called the hub' : 'peer-unverified: the account of the caller could not be told')
+        // The 0.3.17 review, ER-1: an account that could not be told (a slow or failed table read) is a wait, 503 with
+        // Retry-After, never a 403 a client reads as a revoked credential; another account's process is 403.
+        const unverified = code === 'peer-unverified'
+        res.writeHead(unverified ? 503 : 403, { 'content-type': 'application/json', ...(unverified ? { 'retry-after': '5' } : {}) })
+        res.end(JSON.stringify({ error: unverified ? 'peer-unverified: the account of the caller could not be told' : 'peer-foreign-account: another account of this computer called the hub', code }))
         return
       }
     }

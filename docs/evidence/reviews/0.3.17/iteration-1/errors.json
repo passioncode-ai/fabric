@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "a0a89d1bca7044ea7622ba52bfa3c5800c640320",
+  "report": "docs/evidence/reviews/0.3.17/iteration-1/2026-11-07-errors.md",
+  "reportSha256": "2a5af72de0e039925c2d11c6a3c0dcc333dbb526b94aa8ae48df51e20348c921",
+  "reviewerRun": "release-0317-i1-errors-20261107",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V1-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the hub answers an untold account 503 with Retry-After and code `peer-unverified` (`main/agentSurface.ts`); fabric-mcp reads a 403 naming a peer code as `HubPeerRefusedError`, never a revoked credential (`main/fabricMcpClient.ts#httpTransportWith`); test `connection-owner.test.mjs` «ER-1», watched failing with the check removed"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V1-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `classifyFailure` answers not run (`main/fabricMcp.ts`); test «ER-2»"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V1-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V1-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 3 s (`main/listenerOwner.ts#verifyConnection`)"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V1-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: removed on the request's close (`main/fabricMcpClient.ts#checkedFetch`); test «ER-5», watched failing with the removal gone"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V1-16",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V1-17",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V1-18",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V1-19",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "source": "V1-20",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "source": "V1-21",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "ER-12",
+      "source": "V1-22",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-364 (its step 3 wires the step and owns the deadline)"
+      ]
+    }
+  ]
+}

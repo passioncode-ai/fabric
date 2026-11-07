@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "a0a89d1bca7044ea7622ba52bfa3c5800c640320",
+  "report": "docs/evidence/reviews/0.3.17/iteration-1/2026-11-07-ux.md",
+  "reportSha256": "e68405c261a81e2b1a45a0b061e432cdafe7b0bc94e1d8483d64de12819542ce",
+  "reviewerRun": "release-0317-i1-ux-20261107",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V1-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the shipped title in both languages, with both cases it covers (`CHANGELOG.md`, «На проверке» bullet)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: bullets for CO-521, CO-522 A to C, CO-526, CO-510, the digest sending (`CHANGELOG.md`)"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V1-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one bullet states the rule as shipped; the list is one; no placeholder (`CHANGELOG.md`)"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V1-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one key per author and a person's own line (`i18n/ru.ts`, `i18n/en.ts`, `launch/ReviewDecision.tsx`); test `ReviewDecision.test.tsx`"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V1-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V1-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533 (the notes now say the note names the sessions working there)"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V1-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533 (the notes now say unread words are lost on quit)"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V1-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V1-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «implemented in part» and «waves D and E open» (`docs/ux/scenarios.md`)"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "source": "V1-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    }
+  ]
+}

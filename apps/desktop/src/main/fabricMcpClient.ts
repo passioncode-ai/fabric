@@ -180,6 +180,13 @@ export async function refusalSaid(response: Response): Promise<HubRefusal | unde
 // #endregion fabric-mcp-refusal-body
 
 // #region checked-fetch — docs: docs/evidence/specs/2026-11-06-studio-spaces-gaps.md#22-fabric-mcp-does-not-check-who-listens-on-the-hubs-port-co-514-p1
+/** The hub refused this caller's account (`peer-foreign-account`, 403): not a revoked credential, which stays kept
+ *  (the 0.3.17 review, ER-1). */
+export class HubPeerRefusedError extends Error {
+  readonly code: string
+  constructor(code: string, reason: string) { super(reason); this.name = 'HubPeerRefusedError'; this.code = code }
+}
+
 /** A request refused before its headers left: the hub's end of the connection is not this account's (CO-528). */
 export class HubOwnerRefusedError extends Error {
   readonly reason: string
@@ -211,6 +218,9 @@ export function checkedFetch(verify: (hubPort: number, clientPort: number) => Pr
     req.on('error', reject)
     const abort = (): void => { req.destroy(signal?.reason instanceof Error ? signal.reason : new DOMException('aborted', 'AbortError')) }
     signal?.addEventListener('abort', abort, { once: true })
+    // The SDK passes one signal for the whole transport: each request takes its listener off when it ends (the 0.3.17
+    // review, ER-5), or a session of days would hold one closure per request.
+    req.once('close', () => signal?.removeEventListener('abort', abort))
     req.on('socket', (socket) => {
       socket.once('connect', () => {
         verify(port, socket.localPort ?? 0).then((refused) => {
@@ -261,6 +271,11 @@ export const httpTransportWith = (fetchImpl: typeof fetch): TransportFactory => 
         // UX-3: the body says why (stack-starting, stack-unavailable); read bounded, and only its code and reason kept.
         const said = await refusalSaid(response)
         throw new FabricRateLimitError(delay, response.status, said)
+      }
+      if (response.status === 403) {
+        // ER-1: a 403 that names a peer code refused this caller's account; it is not a credential revoked.
+        const said = await refusalSaid(response.clone())
+        if (said?.code?.startsWith('peer-')) throw new HubPeerRefusedError(said.code, said.reason ?? said.code)
       }
       return response
     }

@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "a0a89d1bca7044ea7622ba52bfa3c5800c640320",
+  "report": "docs/evidence/reviews/0.3.17/iteration-1/2026-11-07-plan.md",
+  "reportSha256": "e1fbd46f3e7a870430a962df7a5b9033d43f83cbddfbdfdca2ebea77c4300f71",
+  "reviewerRun": "release-0317-i1-plan-20261107",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V1-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V1-3"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V1-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *What 0.3.17 carries* names every row; the notes as V1-2"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V1-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Owed in 0.3.17's Release close*, with the Docker check's expectation restated"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V1-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Rollout on the operator's Mac*"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V1-34",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-534"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V1-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-29 released, P-31 added in lane 2, the Now line (`docs/evidence/backlog.md`)"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V1-36",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V1-37",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-535; steps 10 and 11 in the Release close"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V1-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Closing checklist*"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "source": "V1-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Not yet tried on a Windows machine» (`CHANGELOG.md`)"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "source": "V1-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *What 0.3.17 carries* names the branch; each iteration names its run"
+      ]
+    }
+  ]
+}

@@ -24,6 +24,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   ARCHIVE_SCHEMA,
   BOARD_ARCHIVE_FILE,
+  BOARD_DIGEST_FILE,
   archiveInventory,
   boardArchiveText,
   readBoardArchive,
@@ -37,6 +38,17 @@ import {
 const MANIFEST = 'manifest.json'
 const BODY = 'journal.ndjson'
 const sha256 = (text: string): string => createHash('sha256').update(text, 'utf8').digest('hex')
+
+/** CO-315: the board file's digest written beside it, or null for an archive from before it was recorded. */
+function readBoardDigest(dir: string): string | null {
+  try {
+    const text = readFileSync(path.join(dir, BOARD_DIGEST_FILE), 'utf8').trim()
+    return /^[0-9a-f]{64}$/.test(text) ? text : null
+  } catch {
+    // No file: an archive written before the digest was recorded beside the board file.
+    return null
+  }
+}
 
 export interface BackupResult {
   ok: boolean
@@ -152,8 +164,9 @@ export function createBackups(db: SupabaseClient) {
       mkdirSync(dir, { recursive: true })
       const boardText = boardArchiveText(board.data, digest, sha256)
       writeFileSync(path.join(dir, BOARD_ARCHIVE_FILE), boardText, { mode: 0o600 })
-      // CO-315: the manifest names the board file it travels with, so a restore can tell it lost from never written.
-      manifest.boardDigest = sha256(boardText)
+      // CO-315: the board file's digest is written beside it, so a restore can tell it lost from never written. Not in
+      // the manifest, whose six keys are a contract the private-history archive checks in SQL (the 0.3.17 review, DA-1).
+      writeFileSync(path.join(dir, BOARD_DIGEST_FILE), `${sha256(boardText)}\n`, { mode: 0o600 })
       // The BODY first. A manifest on disk beside a body that is still being
       // written is an archive that verifies against nothing; written this way, an
       // interrupted backup has no manifest and is refused as unreadable rather
@@ -191,9 +204,9 @@ export function createBackups(db: SupabaseClient) {
         .digest('hex')
       const read = readArchive(raw, { lines: lines.length, digest })
       if (!read.ok) return read
-      const named = typeof read.manifest.boardDigest === 'string' ? read.manifest.boardDigest : null
+      const named = readBoardDigest(dir)
       if (!existsSync(path.join(dir, BOARD_ARCHIVE_FILE))) {
-        // CO-315: a manifest that names its board file was written with one: that file is lost, not never written.
+        // CO-315: an archive that recorded its board file's digest was written with one: that file is lost, not never written.
         return named
           ? { ok: false, why: 'truncated', says: `the archive carried the project board's history (${BOARD_ARCHIVE_FILE}) and that file is missing; copy it from where the archive came from` }
           : read

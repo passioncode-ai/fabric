@@ -52,15 +52,14 @@ export function ReviewDecision({
 
   if (done) return <section className="rd rd-done" role="status"><p className="rd-said">{t(`review.done.${done}` as 'review.done.accept')}</p></section>
 
-  const who = t(`review.by.${ask.by}` as 'review.by.agent')
   return (
     <section className={compact ? 'rd rd-compact' : 'rd'} aria-label={t('review.title')}>
       <div className="rd-ask">
         <h3 className="rd-title">{t('review.title')}</h3>
-        <p className="lp-meta">{t('review.handedIn', { who, when: since(ask.at, t) })}</p>
+        <p className="lp-meta">{t(`review.handedIn.${ask.by}` as 'review.handedIn.agent', { when: since(ask.at, t) })}</p>
         {ask.said
           ? <blockquote className={compact ? 'rd-said rd-clamp' : 'rd-said'}>{ask.said}</blockquote>
-          : <p className="rd-said rd-none">{t('review.saidNothing')}</p>}
+          : <p className="rd-said rd-none">{t(ask.by === 'person' ? 'review.saidNothingPerson' : 'review.saidNothing')}</p>}
         <p className="lp-meta">{t('review.question')}</p>
       </div>
       <div className="rd-answer">

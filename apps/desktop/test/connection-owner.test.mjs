@@ -106,3 +106,45 @@ test('only http://127.0.0.1 is spoken, and an aborted request rejects', async ()
   ac.abort()
   await assert.rejects(f('http://127.0.0.1:1/mcp', { signal: ac.signal }))
 })
+
+test('the 0.3.17 review, ER-5: a finished request takes its abort listener off the transport\'s one signal', async () => {
+  const srv = await server((req, res) => res.end('ok'))
+  try {
+    let live = 0
+    const signal = { aborted: false, reason: undefined, addEventListener: () => { live++ }, removeEventListener: () => { live-- } }
+    const f = checkedFetch(async () => null)
+    for (let i = 0; i < 5; i++) await (await f(`http://127.0.0.1:${srv.port}/mcp`, { signal })).text()
+    await new Promise((r) => setTimeout(r, 20))
+    assert.equal(live, 0)
+  } finally { await srv.close() }
+})
+
+test('the 0.3.17 review, ER-1: a 403 naming a peer code is not a revoked credential; a plain 403 still is', async () => {
+  const { makeHubCall, httpTransportWith, HubPeerRefusedError: Peer } = await import(src('fabricMcpClient.ts'))
+  const answer = (body) => async () => new Response(JSON.stringify(body), { status: 403, headers: { 'content-type': 'application/json' } })
+  await assert.rejects(makeHubCall(httpTransportWith(answer({ error: 'peer-foreign-account: another account', code: 'peer-foreign-account' })))('http://127.0.0.1:1/mcp', 'c', 'fabric.session.enroll', {}), (e) => e instanceof Peer && e.code === 'peer-foreign-account')
+  assert.deepEqual(await makeHubCall(httpTransportWith(answer({ error: 'revoked' })))('http://127.0.0.1:1/mcp', 'c', 'fabric.session.enroll', {}), { unauthorized: true })
+})
+
+test('the 0.3.17 review, ER-2: a request refused before its head left is reported as not run', async () => {
+  const { classifyFailure } = await import(src('fabricMcp.ts'))
+  const f = classifyFailure(new HubOwnerRefusedError('foreign-user: table-restricted'))
+  assert.equal(f.mayHaveRun, false)
+  assert.match(f.refusal.reason, /table-restricted/)
+})
+
+test('CO-532 (DEC-0155 RT-1): with nothing among this account\'s descriptors the table is read: another process\'s row names its owner, a header-only or failing table is table-restricted', async () => {
+  const { serverEndPidsFromNetstat } = await import(src('listenerOwner.ts'))
+  const header = 'Active Internet connections (including servers)\nProto Recv-Q Send-Q  Local Address          Foreign Address        (state)      rhiwat shiwat process:pid state options\n'
+  const row = 'tcp4       0      0  127.0.0.1.47070        127.0.0.1.53211        ESTABLISHED  131072 131072 Fabric:777 00000 00000006\n'
+  const client = 'tcp4       0      0  127.0.0.1.53211        127.0.0.1.47070        ESTABLISHED  131072 131072 node:888 00000 00000006\n'
+  assert.deepEqual(serverEndPidsFromNetstat(header + row + client, 47070, 53211), [777])
+  assert.deepEqual(serverEndPidsFromNetstat(header + client, 47070, 53211), [])
+  const runs = (table, uid) => async (cmd) => cmd.endsWith('lsof') ? '' : cmd.endsWith('netstat') ? table : `  ${uid}\n`
+  assert.deepEqual(await readConnectionOwner(47070, 53211, { platform: 'darwin', run: runs(header + row, 502) }), { uid: 502 })
+  assert.match(ownerRefusal(await readConnectionOwner(47070, 53211, { platform: 'darwin', run: runs(header + row, 502) }), 501), /another account/)
+  assert.match((await readConnectionOwner(47070, 53211, { platform: 'darwin', run: runs(header, 502) })).unknown, /^table-restricted/)
+  assert.match((await readConnectionOwner(47070, 53211, { platform: 'darwin', run: runs('', 502) })).unknown, /^table-restricted/)
+  const failing = async (cmd) => { if (cmd.endsWith('lsof')) return ''; throw new Error('exit 1') }
+  assert.match((await readConnectionOwner(47070, 53211, { platform: 'darwin', run: failing })).unknown, /^table-restricted: the socket table could not be read/)
+})

@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "a0a89d1bca7044ea7622ba52bfa3c5800c640320",
+  "report": "docs/evidence/reviews/0.3.17/iteration-1/2026-11-07-docs.md",
+  "reportSha256": "6b9f2b5f022f595f0b622cd5be5c893f50d9deba665bca2888b08dcb42762f1e",
+  "reviewerRun": "release-0317-i1-docs-20261107",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V1-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V1-1"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V1-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V1-3"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V1-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V1-2 and V1-31"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V1-44",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533 (the notes now say «a board request a session files»)"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V1-45",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V1-46",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V1-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-536 with the reservations named (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`)"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V1-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed: labelled «предыдущая запись» (`docs/reports/map.html`)"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V1-49",
+      "status": "fixed",
+      "evidence": [
+        "fixed: neutral words (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`, CO-366)"
+      ]
+    }
+  ]
+}

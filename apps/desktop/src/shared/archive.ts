@@ -234,10 +234,6 @@ export interface ArchiveManifest {
   /** Over the journal bytes AND the identity above, so a body swapped between
    *  two archives of two estates is caught rather than replayed. */
   digest: string
-  /** CO-315: the sha256 of the board history file the archive carried (`board.json`). Absent in an archive written
-   *  before it was recorded; present, the file must be there and match, so a lost file is said as lost, never as an
-   *  archive from before board history travelled. */
-  boardDigest?: string
 }
 
 export type ArchiveProblem =
@@ -322,12 +318,17 @@ export function readArchive(
 /** The project board's history beside an archive (ADR-0149 §6, CO-212). */
 export const BOARD_ARCHIVE_SCHEMA = 'FabricBoardArchive@1'
 export const BOARD_ARCHIVE_FILE = 'board.json'
+/** CO-315: the sha256 of `board.json`, written beside it (never in the manifest). Absent in an archive written before it
+ *  was recorded; present, `board.json` must be there and match, so a lost file is said as lost, never as an archive from
+ *  before board history travelled. */
+export const BOARD_DIGEST_FILE = 'board.sha256'
 
 /**
  * `board.json` is `{schema, archiveDigest, digest, history}`: `archiveDigest` binds it to the one archive whose
  * manifest has that digest (a board file moved between archives is refused), and `digest` is the SHA-256 of the
  * history's JSON text, so a file altered after it was written is refused before a restore touches anything.
- * The manifest itself is unchanged: its six keys are a contract the private-history archive checks in SQL.
+ * The manifest itself is unchanged: its six keys are a contract the private-history archive checks in SQL, so the
+ * board file's digest travels beside it in `board.sha256` (CO-315; the 0.3.17 review, DA-1).
  */
 export type BoardArchiveRead =
   | { ok: true; history: Record<string, unknown> }

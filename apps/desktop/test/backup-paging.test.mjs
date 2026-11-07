@@ -62,9 +62,11 @@ test('board.json is written beside the journal, bound to its manifest, and refus
     assert.equal(r.ok, false, 'a restore began from an altered board file')
     writeFileSync(nodePath.join(dir, 'board.json'), original.replace(taken.manifest.digest, '0'.repeat(64)))
     assert.equal(b.verify(dir).why, 'corrupt', 'a board file from another archive')
-    // CO-315: the manifest names the board file it was written with; that file lost is said as lost, never as an
+    // CO-315: the board file's digest is written beside it (board.sha256), never in the manifest, whose six keys are a
+    // contract the private-history archive checks (the 0.3.17 review, DA-1); that file lost is said as lost, never as an
     // archive from before board history travelled, and nothing is restored from it.
-    assert.equal(taken.manifest.boardDigest, createHash('sha256').update(original, 'utf8').digest('hex'))
+    assert.equal(readFileSync(nodePath.join(dir, 'board.sha256'), 'utf8').trim(), createHash('sha256').update(original, 'utf8').digest('hex'))
+    assert.deepEqual(Object.keys(JSON.parse(readFileSync(nodePath.join(dir, 'manifest.json'), 'utf8'))).sort(), ['digest', 'eventCount', 'schema', 'sourceEstateId', 'takenAtUtc', 'watermarkSeq'])
     // A board file consistent in itself and bound to this archive, but not the one it was written with, is refused too.
     const other = boardArchiveText({ ...history, threads: [{ id: 'forged-thread' }] }, taken.manifest.digest, (t) => createHash('sha256').update(t, 'utf8').digest('hex'))
     if (other !== original) {
@@ -78,10 +80,8 @@ test('board.json is written beside the journal, bound to its manifest, and refus
     assert.equal(lost.why, 'truncated')
     assert.match(lost.says, /board\.json\) and that file is missing/)
     assert.equal((await createBackups(fakeDb({}).db).restore({ dir, intoEstateId: T })).ok, false, 'a restore began without the board file')
-    // An archive written before the manifest named it (no boardDigest) still restores, its texts said missing.
-    const manifestPath = nodePath.join(dir, 'manifest.json')
-    const { boardDigest: _, ...older } = JSON.parse(readFileSync(manifestPath, 'utf8'))
-    writeFileSync(manifestPath, JSON.stringify(older))
+    // An archive written before the digest was recorded beside the board file still restores, its texts said missing.
+    unlinkSync(nodePath.join(dir, 'board.sha256'))
     assert.equal(b.verify(dir).ok, true, 'an archive from before board history travelled is still an archive')
     const restored = await createBackups(fakeDb({ restore_estate: { data: { restored: true, events: 1 }, error: null } }).db).restore({ dir, intoEstateId: T })
     assert.deepEqual(restored.board, { history: 'missing' })
@@ -100,5 +100,19 @@ test('a backup that cannot read the board history fails rather than leave it out
     assert.deepEqual(r.board, { history: 'restored', messages: 0, missing: 2, redacted: 0 })
     assert.deepEqual(calls.map(c => c.fn), ['restore_estate', 'restore_board_history'])
     assert.deepEqual(calls[1].args, { p_target: T, p_history: history })
+  } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('the 0.3.17 review, DA-1: an archive take() writes passes the private-history preflight (its manifest keeps six keys)', async () => {
+  const { preflightOrdinaryArchive } = await import('../src/main/ceoPrivateArchive.ts')
+  const dir = mkdtempSync(nodePath.join(tmpdir(), 'fabric-board-archive-'))
+  try {
+    const row = { seq: 1, type: 'estate.created@1', schema_rev: '1', actor: { kind: 'system', id: 'desktop-bootstrap' }, project_id: null, run_id: null, node_id: null, payload: {}, occurred_at: '2026-11-07T00:00:00.000Z' }
+    const chain = { select: () => chain, eq: () => chain, gt: () => chain, order: () => chain, limit: async () => ({ data: [row], error: null }) }
+    const db = { from: () => chain, rpc: async (fn) => fn === 'board_history_export' ? { data: history, error: null } : { data: null, error: { message: 'no answer' } } }
+    const taken = await createBackups(db).take(E, dir)
+    assert.equal(taken.ok, true, taken.says)
+    const pre = preflightOrdinaryArchive(readFileSync(nodePath.join(dir, 'manifest.json')), readFileSync(nodePath.join(dir, 'journal.ndjson')))
+    assert.equal(pre.manifest.digest, taken.manifest.digest)
   } finally { rmSync(dir, { recursive: true, force: true }) }
 })

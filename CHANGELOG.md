@@ -9,57 +9,60 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-- **fabric-mcp sends a credential only to a hub this account runs** (CO-514, CO-528; fabric-agent-contract DEC-0154,
-  CT-254 at its tag v0.1.0+2026-11-07.3). Before a token leaves, fabric-mcp reads who holds the hub's end of the very
-  connection it opened, with no cache: on a computer with several accounts a hub port taken by another account, or one
-  whose owner cannot be seen, gets nothing. On macOS, Linux and Windows.
-- **The board rule follows the contract's DEC-0152 as released** (CO-530, v0.1.0+2026-11-07.4). A session reads the
-  responder slot before it enrolls, leaves a request a live service holds alone and asks nobody about it, and answers a
-  request it holds with `com.progress`, then `com.accept` and `com.complete`; a state is a reply to an announcement or
-  a question, never the answer to a request.
-- **A new board request wakes the dispatcher at once** (CO-409): it starts on the request when its two-minute grace
-  ends, not on the next minute's cycle. A run whose process exited with an error is taken back as a crash, a run still
-  going five minutes past its deadline is stopped, a request that left the board's read window is still followed, and
-  the operator's mandate a verified request carries reaches the run unchanged.
-- **Starting the stack no longer changes your Docker context** (CO-508): Fabric starts Colima with
-  `--activate=false`, so the context you chose stays current. Lines written before the operations log opened are kept
-  and written once it does.
+**Upgrading.** No schema step: the database stays at schema 100.
+
+- **A task in review asks you one decision** (CO-521, SCN-179). On the task page, the «Нужны вы» card and the Board, a
+  task in review shows what the agent said it did and three answers: «Принять», «Вернуть в работу» with a comment for
+  the agent, and «Отменить задачу» with a reason.
+- **Before a task or a console starts, Fabric says who already works in the project** (CO-522, SCN-180). The note names
+  the sessions holding work there and what the start runs into (the same task, the same backlog row, paths both name),
+  with «Всё равно запустить» and «Подождать».
+- **Two sessions on the same work become one decision for you** (CO-522). An overlap that stands fifteen minutes shows
+  on the home and the Board with three choices: the second waits, it hands over to the first, or both go on split; both
+  sessions are told.
+- **«Написать агенту» on an agent's page** (CO-522). Your words reach that session on its next turn, wherever it was
+  started, and each line says when it was read. They are kept while Fabric runs: words not yet read are lost if Fabric
+  quits.
+- **A credential goes only to a hub this account runs** (CO-514, CO-528, CO-532; fabric-agent-contract DEC-0154, CT-254
+  and DEC-0155, tags v0.1.0+2026-11-07.3 and .5). Before a token leaves, fabric-mcp reads who holds the hub's end of the
+  very connection it opened, with no cache; on a computer with several accounts a port held by another account, or one
+  whose owner cannot be seen, gets nothing. The hub answers a caller whose account it cannot tell with a wait, not a
+  refusal, so a slow read never costs an agent its credential. On macOS, Linux and Windows.
+- **The board rule, as the contract's DEC-0152 released it** (CO-530, CO-517, CO-525, FAA-231; tag
+  v0.1.0+2026-11-07.4). A session reads the request's responder slot first. A slot a live service holds is left alone,
+  and nobody is asked. A slot that is stale, or absent at a later generation, gets no reply, and the session asks you
+  with `fabric_question_ask`. A slot no service ever held gets one reply that the request cannot be taken now, why and
+  what lifts it, and the session asks you too. A request it holds is reported with `com.progress` and closed with
+  `com.accept`, then `com.complete`; a state is a reply to an announcement or a question, never the answer to a
+  request.
+- **Answering your own project's requests is granted at once** (CO-506, ADR-0190). A session's `com.enroll` gets its
+  own project's grant with no question; a grant for another project asked through the hub waits for you in Agent
+  access.
+- **An agent can decide Agent access on your word** (CO-506, ADR-0190). Tell an agent working in a Fabric session to
+  allow, deny or revoke and it does it with `fabric_access_decide` or `fabric_access_revoke`, recording your words; it
+  never allows a product (that consent and key stay yours) or a request its own credential asked.
 - **An agent can add or remove a folder of its project** (CO-489) with `fabric_project_folder_attach` and
   `fabric_project_folder_detach`, under the same checks as the project page.
-- **A backup whose board file is missing says so** (CO-315): restoring refuses a backup whose manifest names the board
-  history when the file is gone or differs, and names the file.
+- **`fabric_whoami` names this machine's agents** (CO-526), so a session knows who else works here.
+- **A board request a session files wakes the dispatcher at once** (CO-409): it starts on the request when its
+  two-minute grace ends, not on the next minute's cycle; requests filed elsewhere are found by the cycle as before. A run
+  whose process exited with an error is taken back as a crash, a run still going five minutes past its deadline is
+  stopped, a request that left the board's read window is still followed, the operator's mandate a verified request
+  carries reaches the run unchanged, and a run is told to close its workflow only once the request is settled.
+- **«На проверке» says what happened to a board request** (CO-409). A request Fabric stopped starting agents for reads
+  «Fabric больше не запускает агентов на этот запрос: он ждёт вашего решения» ("Fabric starts no more agents for this
+  request: it waits for your decision"): two runs left it open, or an accepted request passed its deadline with no run
+  holding it. A request an agent took and went away from shows there at once.
+- **A retried «Поручить агенту» files no second task** (CO-510).
+- **Fabric's own daily operations digests go to Observatory** (CO-503, DEC-0153 at the contract's tag
+  v0.1.0+2026-11-06.1) once its binding token exists, every hour; the digest passes the contract's vectors, keeps the
+  hour Fabric quits in and no longer writes the hours the Mac slept (CO-509).
+- **Starting the stack no longer changes your Docker context** (CO-508): Fabric starts Colima with
+  `--activate=false`. Lines written before the operations log opened are kept and written once it does.
+- **A backup whose board file is missing says so** (CO-315): the board file's digest is written beside it
+  (`board.sha256`), and a restore refuses an archive whose board file is gone or differs, naming the file.
 - **On Windows fabric-mcp names the agent's own process** (CO-378), not the `cmd.exe` that started it, so the session
-  hooks' turns after `/clear` reach the same session.
-
-- **An agent started for a board request is told to close its workflow only once the request is settled** (CO-409,
-  agreed with fabric-agent-adapter and private31). A run whose request ends `outcome_unknown` counts as finished, not as an
-  empty run, and a workflow a run already closed is taken as closed instead of being retried.
-- **«На проверке» says what happened to a board request in its own words** (CO-409). A request Fabric gave you after two
-  agents left it open reads «Два запущенных агента не закрыли запрос: Fabric больше не запускает на него агентов, решите
-  сами»; a request an agent took and went away from, its outcome unknown, now shows there at once. When another session
-  settles a request a run left open, Fabric closes the workflow it opened for it.
-- **Answering a project's requests is granted for your own project only, at once** (CO-506, ADR-0190). A session's
-  `com.enroll` gets its own project's grant with no question; a grant for another project asked through the hub now
-  waits for you in Agent access.
-- **A run leaves a request for the project's own service** (FAA-231, agreed with fabric-agent-adapter). It answers
-  «cannot be taken now» only when no service of the project ever held that slot; when one did, the request stays
-  queued for that service and the run still asks you, so you see it. The `com.enroll` tool says the same.
-- **A run that cannot take a board request tells the operator** (CO-517). After answering «cannot be taken now», the
-  rule now has the run ask you with `fabric_question_ask`, so the request shows on the home instead of disappearing as
-  answered.
-- **The operations digest passes the contract's own vectors** (CO-503, DEC-0153 at the contract's tag
-  v0.1.0+2026-11-06.1): an hour written twice is folded once, and a day with no hour of its own writes no daily line.
-- **The operations digest keeps the hour Fabric quits in, and no longer writes the hours the Mac slept** (CO-509,
-  DEC-0153). The quit hour is written at the next start with its counts; `previous` comes from the last hour written; a
-  day holds at most 4095 named operations, the rest under `ops.overflow`; a clock set back no longer drops records; old
-  digest files are removed (hourly after three months, daily after thirteen).
-- **The board rule no longer sends a session for a grant it cannot ask.** 0.3.16 told a session to ask
-  `fabric.access.request` for answering another project, a tool a session does not have; it now says to answer the
-  request once with `com.reply` that it cannot be taken now, do no work on it without the slot, and end. Agent access
-  decides only a request a registered service asked; a session cannot raise one.
-- **An agent can decide Agent access on your word** (CO-506, ADR-0190). Tell an agent working in a Fabric session to allow, deny or revoke and it
-  does it with `fabric_access_decide` or `fabric_access_revoke`, recording your words; it never allows a product (that
-  consent and key stay yours) or a request its own credential asked.
+  hooks' turns after `/clear` reach the same session. Not yet tried on a Windows machine.
 
 ## 0.3.16
 

@@ -208,6 +208,23 @@ export function serverEndUidsFromLsof(text: string, hubPort: number, clientPort:
   return [...uids]
 }
 
+/**
+ * `netstat -anv -p tcp` on macOS: the pids of the process column (`name:pid`) on the ESTABLISHED row whose local end is
+ * `127.0.0.1.<hub>` and remote `127.0.0.1.<client>` (DEC-0155 RT-1, CO-532). A header-only or empty table gives none.
+ */
+export function serverEndPidsFromNetstat(text: string, hubPort: number, clientPort: number): number[] {
+  const pids = new Set<number>()
+  for (const line of text.split('\n')) {
+    const f = line.trim().split(/\s+/)
+    if (!/^tcp[46]?$/.test(f[0] ?? '') || f[3] !== `127.0.0.1.${hubPort}` || f[4] !== `127.0.0.1.${clientPort}` || f[5] !== 'ESTABLISHED') continue
+    for (const field of f.slice(6)) {
+      const m = /:(\d+)$/.exec(field)
+      if (m) { pids.add(Number(m[1])); break }
+    }
+  }
+  return [...pids]
+}
+
 /** One ESTABLISHED (`01`) row of `/proc/net/tcp` or `tcp6` whose local end is 127.0.0.1:<hub> and remote 127.0.0.1:<client>. */
 export interface ProcConnection { uid: number; inode: string }
 
@@ -271,8 +288,30 @@ export async function readConnectionOwner(hubPort: number, clientPort: number, d
       out = typeof printed === 'string' ? printed : ''
     }
     const uids = serverEndUidsFromLsof(out, hubPort, clientPort)
-    if (uids.length === 0) return { unknown: 'table-restricted: the hub\'s end of this connection could not be seen' }
-    return ownerOf(uids)
+    if (uids.length) return ownerOf(uids)
+    // DEC-0155 RT-1 (CO-532): nothing among this account's descriptors; the table is read before the end is called
+    // unseen. A row held by another process names its owner; an unreadable, empty, header-only table, or one without
+    // this connection's row, is table-restricted. Either way no token leaves.
+    let table = ''
+    try {
+      table = await run('/usr/sbin/netstat', ['-anv', '-p', 'tcp'])
+    } catch {
+      // netstat failing is a restricted table (RT-1), never an answer.
+      return { unknown: 'table-restricted: the socket table could not be read' }
+    }
+    const pids = serverEndPidsFromNetstat(table, hubPort, clientPort)
+    if (pids.length === 0) return { unknown: 'table-restricted: the hub\'s end of this connection could not be seen' }
+    const owners: number[] = []
+    for (const pid of pids) {
+      try {
+        const uid = Number((await run('/bin/ps', ['-o', 'uid=', '-p', String(pid)])).trim())
+        if (Number.isInteger(uid) && uid >= 0) owners.push(uid)
+      } catch {
+        // A process gone or unreadable: its owner cannot be told.
+      }
+    }
+    if (owners.length === 0) return { unknown: 'table-restricted: the owner of the hub\'s end could not be read' }
+    return ownerOf([...new Set(owners)])
   }
   if (platform === 'linux') {
     const read = deps.read ?? ((f: string) => readFile(f, 'utf8'))
@@ -308,7 +347,7 @@ export function ownerRefusal(owner: ListenerOwner, me: number): string | null {
 }
 
 /**
- * The check before a token is written: the owner read on the open connection, again up to `settleMs` while it cannot be
+ * The check before a token is written: the owner read on the open connection, again up to `settleMs` (3 s) while it cannot be
  * told yet (a server that has not accepted the connection shows no end of it), then the verdict. No cache.
  */
 export async function verifyConnection(hubPort: number, clientPort: number, deps: {
@@ -319,7 +358,8 @@ export async function verifyConnection(hubPort: number, clientPort: number, deps
 } = {}): Promise<string | null> {
   const read = deps.read ?? ((h: number, c: number) => readConnectionOwner(h, c))
   const me = (deps.me ?? (() => process.getuid?.() ?? -1))()
-  const until = Date.now() + (deps.settleMs ?? 1_000)
+  // The 0.3.17 review, ER-4: 3 s, so a hub whose event loop stalls under load is not refused as unseen.
+  const until = Date.now() + (deps.settleMs ?? 3_000)
   let owner = await read(hubPort, clientPort)
   while ('unknown' in owner && Date.now() < until) {
     await new Promise((r) => setTimeout(r, deps.stepMs ?? 100))

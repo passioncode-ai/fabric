@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "a0a89d1bca7044ea7622ba52bfa3c5800c640320",
+  "report": "docs/evidence/reviews/0.3.17/iteration-1/2026-11-07-data.md",
+  "reportSha256": "4d775246051676667c0f747f76b90551b7fa4f584e2e61ac9e36a60197eb4ecc",
+  "reviewerRun": "release-0317-i1-data-20261107",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V1-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the board file's digest is written beside it in `board.sha256` and the manifest keeps its six keys (`main/backup.ts`, `shared/archive.ts#BOARD_DIGEST_FILE`); test `backup-paging.test.mjs` «DA-1: an archive take() writes passes the private-history preflight», watched failing with the seventh key back"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V1-24",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V1-25",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V1-26",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V1-27",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V1-28",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "source": "V1-29",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-364"
+      ]
+    }
+  ]
+}

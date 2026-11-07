@@ -256,6 +256,13 @@ export function classifyFailure(e: unknown): CallFailure {
     return { drop: false, mayHaveRun: false, refusal: { status: typeof (err as { status?: unknown }).status === 'number' ? (err as { status: number }).status : err.code,
       // UX-3: a cooldown carries what the hub said (its 503 body); otherwise the reason the SDK kept in its message.
       reason: sayHubRefusal(hubSaidOf(e)) ?? surfaceReason(e) ?? 'no reason given' } }
+  // The 0.3.17 review, ER-2 and ER-1: refused before the request's head left (the hub's end is not this account's), or
+  // the hub refused this account: nothing ran, and the credential is not touched.
+  if (err?.name === 'HubOwnerRefusedError' || err?.name === 'HubPeerRefusedError') {
+    // eslint-disable-next-line no-control-regex
+    const said = e instanceof Error ? e.message.replace(/[\x00-\x1f\x7f]+/g, ' ').trim().slice(0, 300) : ''
+    return { drop: true, mayHaveRun: false, refusal: { status: 403, reason: said || 'the hub is not this account\'s' } }
+  }
   // Refused before any tool ran, and the bearer or the session is gone.
   if (typeof err?.code === 'number' && [401, 403, 404].includes(err.code)) return { drop: true, mayHaveRun: false }
   // fetch's TypeError: a connection that was never made sent nothing.
