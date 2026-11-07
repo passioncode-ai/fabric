@@ -6,12 +6,19 @@
  *
  * macOS reads `lsof -nP -iTCP:<port> -sTCP:LISTEN -Fpu`; Linux reads `/proc/net/tcp` and `/proc/net/tcp6`, whose
  * listening rows carry the uid. A listener of another account is usually not shown to this one at all: an empty answer
- * is `unknown`, and the caller refuses on it as on a foreign owner. Windows is not read yet (`unsupported`).
+ * is `unknown`, and the caller refuses on it as on a foreign owner. Windows asks PowerShell for the listener's owning
+ * process (`Get-NetTCPConnection`) and that process's owner SID against this user's, as the launcher's PC-152 does
+ * (passioncode-ai/passioncode `lib/listener.js`); an owner it cannot read is `unknown`.
  */
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
-export type ListenerOwner = { uid: number } | { unknown: string } | { unsupported: true }
+export type ListenerOwner =
+  | { uid: number }
+  /** Windows: the listener's owner SID compared with this user's. */
+  | { sid: string; mine: boolean }
+  | { unknown: string }
+  | { unsupported: true }
 
 /** `lsof -Fpu` output: `p<pid>` then `u<uid>` for each process; every listener's uid, de-duplicated. */
 export function uidsFromLsof(text: string): number[] {
@@ -34,6 +41,39 @@ export function uidsFromProcNet(text: string, port: number): number[] {
     if (Number.isInteger(uid) && uid >= 0) uids.add(uid)
   }
   return [...uids]
+}
+
+// Windows: one PowerShell call prints `me <sid>` and one `<address> <pid> <sid or ?>` line per listener on the port. A
+// port nobody holds is an error Get-NetTCPConnection reports, silenced, so the script still exits 0 (the launcher's
+// first Windows run found powershell.exe exiting 1 there, PC-152's 33fdaca).
+export const PS_SCRIPT = (port: number): string => [
+  '"me " + [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value',
+  'if (-not (Get-Command Get-NetTCPConnection -ErrorAction SilentlyContinue)) { exit 3 }',
+  `foreach ($c in @(Get-NetTCPConnection -State Listen -LocalPort ${port} -ErrorAction SilentlyContinue)) {`,
+  '  $sid = "?"',
+  '  $p = Get-CimInstance Win32_Process -Filter ("ProcessId=" + $c.OwningProcess) -ErrorAction SilentlyContinue',
+  '  if ($p) { $o = Invoke-CimMethod -InputObject $p -MethodName GetOwnerSid -ErrorAction SilentlyContinue; if ($o -and $o.ReturnValue -eq 0 -and $o.Sid) { $sid = $o.Sid } }',
+  '  $c.LocalAddress + " " + $c.OwningProcess + " " + $sid',
+  '}',
+  'exit 0'
+].join('\n')
+
+const TAKES_LOOPBACK = /^(?:127(?:\.\d{1,3}){3}|0\.0\.0\.0|::1|::|::ffff:127(?:\.\d{1,3}){3})$/i
+
+/** The PowerShell answer: this user's SID and each listener taking loopback, or null when it is not one. */
+export function ownerFromPowerShell(text: string): ListenerOwner {
+  let me: string | null = null
+  const sids: string[] = []
+  for (const line of text.split(/\r?\n/)) {
+    const f = line.trim().split(/\s+/)
+    if (f[0] === 'me' && f[1]) me = f[1]
+    else if (f.length === 3 && /^\d+$/.test(f[1]) && TAKES_LOOPBACK.test(f[0])) sids.push(f[2])
+  }
+  if (!me) return { unknown: 'PowerShell did not name this user' }
+  if (sids.length === 0) return { unknown: 'no listener could be seen on the port' }
+  if (sids.includes('?')) return { unknown: 'the owner of a listening process could not be read' }
+  const other = sids.find((sid) => sid !== me)
+  return other ? { sid: other, mine: false } : { sid: me, mine: true }
 }
 
 /** One owner, or why it cannot be told: none seen, or listeners of several accounts. */
@@ -74,6 +114,15 @@ export function readListenerOwner(port: number, deps: {
     }
     if (!readAny) return { unknown: 'the socket table could not be read' }
     return ownerOf([...new Set(uids)])
+  }
+  if (platform === 'win32') {
+    const run = deps.run ?? ((cmd: string, args: string[]) => execFileSync(cmd, args, { encoding: 'utf8', timeout: 30_000, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }))
+    try {
+      return ownerFromPowerShell(run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', PS_SCRIPT(port)]))
+    } catch {
+      // No Get-NetTCPConnection (exit 3), a timeout, or PowerShell missing: the owner cannot be told.
+      return { unknown: 'PowerShell did not list the sockets' }
+    }
   }
   return { unsupported: true }
 }

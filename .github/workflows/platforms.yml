@@ -71,6 +71,8 @@ jobs:
         run: |
           node --experimental-strip-types apps/desktop/test/platform.test.mjs
           node --test scripts/test/package-platform.test.mjs scripts/test/smoke-platform.test.mjs
+      - name: Who owns a loopback listener and a caller, read from this runner's real socket table (CO-514, DEC-0154 HA-2, HA-3)
+        run: node --experimental-strip-types --test apps/desktop/test/listener-owner.test.mjs apps/desktop/test/peer-account.test.mjs
       - name: Build the installer
         run: node scripts/package-platform.mjs --platform win32 --arch ${{ matrix.arch }}
       - name: Install it for this user, silently

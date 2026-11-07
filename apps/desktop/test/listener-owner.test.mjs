@@ -6,7 +6,7 @@ import path from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-const { uidsFromLsof, uidsFromProcNet, ownerOf, readListenerOwner, createOwnerCheck } = await import(path.resolve(import.meta.dirname, '../src/main/listenerOwner.ts'))
+const { uidsFromLsof, uidsFromProcNet, ownerOf, readListenerOwner, createOwnerCheck, ownerFromPowerShell } = await import(path.resolve(import.meta.dirname, '../src/main/listenerOwner.ts'))
 const { publishHub, locateHub } = await import(path.resolve(import.meta.dirname, '../src/main/hub.ts'))
 
 const ME = 501
@@ -28,8 +28,32 @@ test('an owner that cannot be told is a refusal too, never a pass', () => {
   assert.match(r.reason, /^foreign-user: the owner of port 47070 could not be told/)
 })
 
-test('Windows is not read yet: the pid check stands alone, as before', () => {
-  assert.equal(locate(hub(), { unsupported: true }).ok, true)
+test('Windows: the listener\'s owner SID decides, this user\'s is located, another\'s is foreign-user', () => {
+  assert.equal(locate(hub(), { sid: 'S-1-5-21-1', mine: true }).ok, true)
+  const r = locate(hub(), { sid: 'S-1-5-21-2', mine: false })
+  assert.deepEqual([r.ok, r.code], [false, 'not-a-hub'])
+  assert.match(r.reason, /^foreign-user/)
+})
+
+test('PowerShell\'s answer: only listeners taking loopback count, an unreadable owner is unknown', () => {
+  assert.deepEqual(ownerFromPowerShell('me S-1-5-21-1\r\n127.0.0.1 4242 S-1-5-21-1\r\n'), { sid: 'S-1-5-21-1', mine: true })
+  assert.deepEqual(ownerFromPowerShell('me S-1-5-21-1\n0.0.0.0 77 S-1-5-21-2\n'), { sid: 'S-1-5-21-2', mine: false })
+  assert.ok('unknown' in ownerFromPowerShell('me S-1-5-21-1\n192.168.1.5 77 S-1-5-21-2\n'), 'a LAN-only listener does not take loopback')
+  assert.ok('unknown' in ownerFromPowerShell('me S-1-5-21-1\n::1 77 ?\n'))
+  assert.ok('unknown' in ownerFromPowerShell(''))
+})
+
+test('the real socket table of this system names this account as the owner of a listener it opens', async () => {
+  const net = await import('node:net')
+  const server = net.createServer()
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+  try {
+    const owner = readListenerOwner(server.address().port)
+    const mine = process.platform === 'win32' ? owner.mine === true : owner.uid === process.getuid()
+    assert.ok(mine || 'unsupported' in owner, `the owner read was ${JSON.stringify(owner)}`)
+  } finally {
+    await new Promise((resolve) => server.close(resolve))
+  }
 })
 
 test('lsof -Fpu: every listener\'s uid, once', () => {
@@ -54,14 +78,16 @@ test('several accounts on one port, or none, cannot name an owner', () => {
   assert.ok('unknown' in ownerOf([501, 502]))
 })
 
-test('macOS: lsof finding nothing (exit 1) is unknown; Linux reads both tables; Windows is unsupported', () => {
+test('macOS: lsof finding nothing (exit 1) is unknown; Linux reads both tables; Windows asks PowerShell', () => {
   const nothing = () => { const e = new Error('exit 1'); e.stdout = ''; throw e }
   assert.ok('unknown' in readListenerOwner(47070, { platform: 'darwin', run: nothing }))
   assert.deepEqual(readListenerOwner(47070, { platform: 'darwin', run: () => 'p1\nu501\n' }), { uid: 501 })
   const v6 = '  sl  local_address remote st tx rx tr retr uid\n   0: 00000000000000000000000001000000:B7AE 0:0 0A 0:0 0:0 0 1000 0 1\n'
   assert.deepEqual(readListenerOwner(47022, { platform: 'linux', read: (f) => (f.endsWith('6') ? v6 : '  header\n') }), { uid: 1000 })
   assert.ok('unknown' in readListenerOwner(47022, { platform: 'linux', read: () => { throw new Error('ENOENT') } }))
-  assert.deepEqual(readListenerOwner(47070, { platform: 'win32' }), { unsupported: true })
+  assert.deepEqual(readListenerOwner(47070, { platform: 'win32', run: () => 'me S-1-5-21-1\n127.0.0.1 9 S-1-5-21-1\n' }), { sid: 'S-1-5-21-1', mine: true })
+  assert.ok('unknown' in readListenerOwner(47070, { platform: 'win32', run: () => { throw new Error('exit 3') } }))
+  assert.deepEqual(readListenerOwner(47070, { platform: 'freebsd' }), { unsupported: true })
 })
 
 test('the check reads the table once per hub process, and again when the pid or the port changes', () => {

@@ -269,12 +269,13 @@ export function locateHub(root: string, deps: {
   const pid = doc.pid as number
   if (!(deps.isAlive ?? pidAlive)(pid)) return { ok: false, code: 'not-running', reason: `Fabric is not running: hub.json names process ${pid}, which is not running` }
   // CO-514 (DEC-0154 HA-2): before any token, the listener must be this account's. Another account's, or one that cannot
-  // be told, is foreign-user and nothing is sent. Windows is not read yet and keeps the pid check alone.
+  // be told, is foreign-user and nothing is sent; on Windows by the owner's SID.
   if (deps.owner) {
     const owner = deps.owner(Number(port[1]), pid)
     const me = (deps.uid ?? (() => process.getuid?.() ?? -1))()
     if ('unknown' in owner) return notHub(`foreign-user: the owner of port ${port[1]} could not be told (${owner.unknown})`)
     if ('uid' in owner && owner.uid !== me) return notHub(`foreign-user: port ${port[1]} is held by another account of this computer`)
+    if ('mine' in owner && !owner.mine) return notHub(`foreign-user: port ${port[1]} is held by another account of this computer`)
   }
   let token: string | null
   try {

@@ -6,8 +6,9 @@
  * reading the request. On a computer with one human account nothing is read and every peer is this account's.
  *
  * The client's socket is the row whose LOCAL port is the connection's remote port: macOS `lsof -Fpun`, Linux
- * `/proc/net/tcp` and `tcp6` (established, `01`). A verdict is taken once per connection and kept on its socket, so a
- * kept-alive client costs one read. Windows is not read yet (`not-checked`).
+ * `/proc/net/tcp` and `tcp6` (established, `01`); Windows asks PowerShell for that connection's owning process
+ * (`Get-NetTCPConnection`) and its owner SID against this user's, as `listenerOwner.ts` does for the listener. A verdict
+ * is taken once per connection and kept on its socket, so a kept-alive client costs one read.
  */
 import { execFile, execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
@@ -66,6 +67,37 @@ export function peerUidsFromProcNet(text: string, port: number): number[] {
   return [...uids]
 }
 
+// Windows: `me <sid>`, then one `<address> <pid> <sid or ?>` line per established connection whose local port is the
+// client's; the number of enabled local accounts is asked by its own call.
+export const PS_PEER_SCRIPT = (port: number): string => [
+  '"me " + [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value',
+  'if (-not (Get-Command Get-NetTCPConnection -ErrorAction SilentlyContinue)) { exit 3 }',
+  `foreach ($c in @(Get-NetTCPConnection -State Established -LocalPort ${port} -ErrorAction SilentlyContinue)) {`,
+  '  $sid = "?"',
+  '  $p = Get-CimInstance Win32_Process -Filter ("ProcessId=" + $c.OwningProcess) -ErrorAction SilentlyContinue',
+  '  if ($p) { $o = Invoke-CimMethod -InputObject $p -MethodName GetOwnerSid -ErrorAction SilentlyContinue; if ($o -and $o.ReturnValue -eq 0 -and $o.Sid) { $sid = $o.Sid } }',
+  '  $c.LocalAddress + " " + $c.OwningProcess + " " + $sid',
+  '}',
+  'exit 0'
+].join('\n')
+
+export const PS_ACCOUNTS_SCRIPT = '@(Get-CimInstance Win32_UserAccount -Filter "LocalAccount=True AND Disabled=False" -ErrorAction Stop).Count'
+
+const LOOPBACK = /^(?:127(?:\.\d{1,3}){3}|::1|::ffff:127(?:\.\d{1,3}){3})$/i
+
+/** The PowerShell answer for one client port: own when its one owner SID is this user's. */
+export function peerFromPowerShell(text: string): PeerVerdict {
+  let me: string | null = null
+  const sids = new Set<string>()
+  for (const line of text.split(/\r?\n/)) {
+    const f = line.trim().split(/\s+/)
+    if (f[0] === 'me' && f[1]) me = f[1]
+    else if (f.length === 3 && /^\d+$/.test(f[1]) && LOOPBACK.test(f[0])) sids.add(f[2])
+  }
+  if (!me || sids.size !== 1 || sids.has('?')) return 'unverified'
+  return sids.has(me) ? 'own' : 'foreign'
+}
+
 export function verdictOf(uids: number[], me: number): PeerVerdict {
   if (uids.length !== 1) return 'unverified'
   return uids[0] === me ? 'own' : 'foreign'
@@ -87,7 +119,13 @@ export function createPeerCheck(deps: {
   const accounts = deps.accounts ?? (() => {
     if (platform === 'darwin') return humanAccountsFromDscl(execFileSync('/usr/bin/dscl', ['.', '-list', '/Users', 'UniqueID'], { encoding: 'utf8', timeout: DEADLINE_MS, stdio: ['ignore', 'pipe', 'ignore'] }))
     if (platform === 'linux') return humanAccountsFromPasswd(readFileSync('/etc/passwd', 'utf8'))
+    if (platform === 'win32') return Number(execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', PS_ACCOUNTS_SCRIPT], { encoding: 'utf8', timeout: 30_000, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }).trim())
     return 1
+  })
+  const windowsPeer = (port: number): Promise<PeerVerdict> => new Promise((resolve) => {
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', PS_PEER_SCRIPT(port)], { encoding: 'utf8', timeout: 30_000, windowsHide: true }, (e, out) =>
+      // No Get-NetTCPConnection (exit 3), a timeout or no PowerShell: the caller's account cannot be told.
+      resolve(e ? 'unverified' : peerFromPowerShell(String(out ?? ''))))
   })
   const peers = deps.peers ?? ((port: number): Promise<number[]> => {
     if (platform === 'linux') {
@@ -114,6 +152,8 @@ export function createPeerCheck(deps: {
       let n = 1
       try {
         n = accounts()
+        // A count that is not a number (an empty PowerShell answer) cannot prove one person: check every peer.
+        if (!Number.isInteger(n)) n = 2
       } catch {
         // The account list could not be read: treat the computer as shared, so every peer is checked.
         n = 2
@@ -124,12 +164,16 @@ export function createPeerCheck(deps: {
   }
   const kept = new WeakMap<object, Promise<PeerVerdict>>()
   return (socket) => {
-    if (platform !== 'darwin' && platform !== 'linux') return Promise.resolve('not-checked')
+    if (platform !== 'darwin' && platform !== 'linux' && platform !== 'win32') return Promise.resolve('not-checked')
     if (!several()) return Promise.resolve('own')
     const known = kept.get(socket)
     if (known) return known
     const port = socket.remotePort
-    const verdict = typeof port === 'number' ? peers(port).then((uids) => verdictOf(uids, me), () => 'unverified' as const) : Promise.resolve('unverified' as const)
+    const verdict = typeof port !== 'number'
+      ? Promise.resolve('unverified' as const)
+      : platform === 'win32' && !deps.peers
+        ? windowsPeer(port)
+        : peers(port).then((uids) => verdictOf(uids, me), () => 'unverified' as const)
     kept.set(socket, verdict)
     return verdict
   }

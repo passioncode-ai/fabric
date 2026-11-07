@@ -57,7 +57,13 @@ waves). Read on 2026-11-06 against fabric-workspace `origin/main` (`docs/plans/2
 - **Built 2026-11-07, the hub half (point 2 (b), HA-3):** on a computer several people use, the hub refuses a caller of
   another account before reading its request (`403 peer-foreign-account`), and one it cannot tell (`peer-unverified`);
   a computer one person uses reads nothing (`apps/desktop/src/main/peerAccount.ts`, `AgentSurface#handle`). Tests:
-  `apps/desktop/test/peer-account.test.mjs`, `apps/desktop/test/agent-surface.test.mjs`. Left: Windows.
+  `apps/desktop/test/peer-account.test.mjs`, `apps/desktop/test/agent-surface.test.mjs`.
+- **Built 2026-11-07, Windows (CO-514 resolved):** both halves ask PowerShell: `Get-NetTCPConnection` names the listener's
+  or the caller's owning process, `GetOwnerSid` its owner, compared with this user's SID; an owner that cannot be read is
+  `unknown` (fabric-mcp) or `peer-unverified` (the hub), and the hub checks only when more than one local account is
+  enabled (`apps/desktop/src/main/listenerOwner.ts#ownerFromPowerShell`, `apps/desktop/src/main/peerAccount.ts#peerFromPowerShell`).
+  The tests read the real socket table of the machine they run on, and `.github/workflows/platforms.yml` runs them on
+  its Windows runners.
 
 ### 2.3 A restored dump gives a second installation the same estate (CO-515, P2)
 
