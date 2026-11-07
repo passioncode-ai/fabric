@@ -84,7 +84,9 @@ no journal event is added for the step itself, because a journal event needs the
 ## 7. Steps of the build
 
 1. **Admit and back up** (`apps/desktop/src/main/schemaStep.ts`): steps 0 to 2 behind a seam of `docker` and `supabase`
-   calls, unit-tested with fakes; a probe on a disposable stack (full tier) dumps, lists and receipts a real database.
+   calls, unit-tested with fakes and a fake `docker` on the PATH. **Built 2026-11-07**; measured on the live database
+   read-only (6.4 s, 23 MB, 79 tables), where `pg_restore --list` closing its input after the table of contents showed
+   that EPIPE on that pipe is the reader being done.
 2. **Rehearse:** move the disposable-stack part of `scripts/rehearse-upgrade.mjs` into a module both the script and
    the app call, reading migrations from the bundled stack folder instead of `git archive`.
 3. **Apply and verify**, the marker and the lock.
