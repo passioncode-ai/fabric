@@ -150,7 +150,10 @@ export function createBackups(db: SupabaseClient) {
       if (board.error || !board.data || typeof board.data !== 'object' || 'error' in (board.data as object))
         return { ok: false, says: `the project board's history could not be read: ${board.error?.message ?? JSON.stringify(board.data)}` }
       mkdirSync(dir, { recursive: true })
-      writeFileSync(path.join(dir, BOARD_ARCHIVE_FILE), boardArchiveText(board.data, digest, sha256), { mode: 0o600 })
+      const boardText = boardArchiveText(board.data, digest, sha256)
+      writeFileSync(path.join(dir, BOARD_ARCHIVE_FILE), boardText, { mode: 0o600 })
+      // CO-315: the manifest names the board file it travels with, so a restore can tell it lost from never written.
+      manifest.boardDigest = sha256(boardText)
       // The BODY first. A manifest on disk beside a body that is still being
       // written is an archive that verifies against nothing; written this way, an
       // interrupted backup has no manifest and is refused as unreadable rather
@@ -187,9 +190,19 @@ export function createBackups(db: SupabaseClient) {
         .update(lines.join('\n'))
         .digest('hex')
       const read = readArchive(raw, { lines: lines.length, digest })
-      if (!read.ok || !existsSync(path.join(dir, BOARD_ARCHIVE_FILE))) return read
+      if (!read.ok) return read
+      const named = typeof read.manifest.boardDigest === 'string' ? read.manifest.boardDigest : null
+      if (!existsSync(path.join(dir, BOARD_ARCHIVE_FILE))) {
+        // CO-315: a manifest that names its board file was written with one: that file is lost, not never written.
+        return named
+          ? { ok: false, why: 'truncated', says: `the archive carried the project board's history (${BOARD_ARCHIVE_FILE}) and that file is missing; copy it from where the archive came from` }
+          : read
+      }
       // An archive written before board history travelled has no board.json; one that has it must match.
-      const board = readBoardArchive(readFileSync(path.join(dir, BOARD_ARCHIVE_FILE), 'utf8'), read.manifest.digest, sha256)
+      const boardText = readFileSync(path.join(dir, BOARD_ARCHIVE_FILE), 'utf8')
+      if (named && sha256(boardText) !== named)
+        return { ok: false, why: 'corrupt', says: `the project board's history (${BOARD_ARCHIVE_FILE}) does not match the one the archive was written with` }
+      const board = readBoardArchive(boardText, read.manifest.digest, sha256)
       return board.ok ? read : { ok: false, why: board.why === 'corrupt' ? 'corrupt' : 'unreadable', says: board.says }
     },
 

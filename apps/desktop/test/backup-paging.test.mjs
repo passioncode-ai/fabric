@@ -30,6 +30,8 @@ test('a page that fails fails the read; nothing partial is returned as whole', a
 // manifest digest; a backup that cannot read it fails; verification refuses a moved or altered file; an archive
 // from before board history travelled restores and says the history is missing.
 import { createBackups } from '../src/main/backup.ts'
+import { createHash } from 'node:crypto'
+import { boardArchiveText } from '../src/shared/archive.ts'
 import { mkdtempSync, readFileSync, writeFileSync, rmSync, unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import nodePath from 'node:path'
@@ -60,7 +62,26 @@ test('board.json is written beside the journal, bound to its manifest, and refus
     assert.equal(r.ok, false, 'a restore began from an altered board file')
     writeFileSync(nodePath.join(dir, 'board.json'), original.replace(taken.manifest.digest, '0'.repeat(64)))
     assert.equal(b.verify(dir).why, 'corrupt', 'a board file from another archive')
+    // CO-315: the manifest names the board file it was written with; that file lost is said as lost, never as an
+    // archive from before board history travelled, and nothing is restored from it.
+    assert.equal(taken.manifest.boardDigest, createHash('sha256').update(original, 'utf8').digest('hex'))
+    // A board file consistent in itself and bound to this archive, but not the one it was written with, is refused too.
+    const other = boardArchiveText({ ...history, threads: [{ id: 'forged-thread' }] }, taken.manifest.digest, (t) => createHash('sha256').update(t, 'utf8').digest('hex'))
+    if (other !== original) {
+      writeFileSync(nodePath.join(dir, 'board.json'), other)
+      assert.equal(b.verify(dir).why, 'corrupt', 'another board file bound to the same archive')
+    }
+    writeFileSync(nodePath.join(dir, 'board.json'), original)
+    assert.equal(b.verify(dir).ok, true)
     unlinkSync(nodePath.join(dir, 'board.json'))
+    const lost = b.verify(dir)
+    assert.equal(lost.why, 'truncated')
+    assert.match(lost.says, /board\.json\) and that file is missing/)
+    assert.equal((await createBackups(fakeDb({}).db).restore({ dir, intoEstateId: T })).ok, false, 'a restore began without the board file')
+    // An archive written before the manifest named it (no boardDigest) still restores, its texts said missing.
+    const manifestPath = nodePath.join(dir, 'manifest.json')
+    const { boardDigest: _, ...older } = JSON.parse(readFileSync(manifestPath, 'utf8'))
+    writeFileSync(manifestPath, JSON.stringify(older))
     assert.equal(b.verify(dir).ok, true, 'an archive from before board history travelled is still an archive')
     const restored = await createBackups(fakeDb({ restore_estate: { data: { restored: true, events: 1 }, error: null } }).db).restore({ dir, intoEstateId: T })
     assert.deepEqual(restored.board, { history: 'missing' })

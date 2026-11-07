@@ -234,6 +234,10 @@ export interface ArchiveManifest {
   /** Over the journal bytes AND the identity above, so a body swapped between
    *  two archives of two estates is caught rather than replayed. */
   digest: string
+  /** CO-315: the sha256 of the board history file the archive carried (`board.json`). Absent in an archive written
+   *  before it was recorded; present, the file must be there and match, so a lost file is said as lost, never as an
+   *  archive from before board history travelled. */
+  boardDigest?: string
 }
 
 export type ArchiveProblem =
