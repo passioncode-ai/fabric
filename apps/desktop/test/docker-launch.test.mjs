@@ -74,12 +74,12 @@ const COLIMA = '/opt/homebrew/bin/colima'
 test('with Colima installed and its context known, Colima is started, never OrbStack, whatever socket was named', () => {
   const colima = { bin: COLIMA, host: `unix://${HOME}/.colima/default/docker.sock` }
   for (const socket of [null, '/var/run/docker.sock', `${HOME}/.orbstack/run/docker.sock`, `${HOME}/.colima/default/docker.sock`])
-    assert.deepEqual(dockerAppFor(socket, { env, platform: 'darwin', exists: has(ORB, DD), colima }), { name: 'Colima', command: COLIMA, args: ['start'] })
+    assert.deepEqual(dockerAppFor(socket, { env, platform: 'darwin', exists: has(ORB, DD), colima }), { name: 'Colima', command: COLIMA, args: ['start', '--activate=false'] })
 })
 
 test('a Colima profile other than default is started by its name', () => {
   const colima = { bin: COLIMA, host: null }
-  assert.deepEqual(dockerAppFor(`${HOME}/.colima/work/docker.sock`, { env, platform: 'darwin', exists: has(ORB), colima }), { name: 'Colima', command: COLIMA, args: ['start', '--profile', 'work'] })
+  assert.deepEqual(dockerAppFor(`${HOME}/.colima/work/docker.sock`, { env, platform: 'darwin', exists: has(ORB), colima }), { name: 'Colima', command: COLIMA, args: ['start', '--profile', 'work', '--activate=false'] })
   assert.equal(colimaProfileOf(`unix://${HOME}/.colima/default/docker.sock`), 'default')
   assert.equal(colimaProfileOf('/var/run/docker.sock'), null)
 })

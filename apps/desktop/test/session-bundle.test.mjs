@@ -670,9 +670,10 @@ else {
       return original(file, ...args)
     }, () => assert.rejects(compile(unlinkFailure, 'unimplemented'), /nobody has implemented/))
     assert.equal(active.has(unlinkFailure), false, 'unlink failure must not keep the token live')
-    assert.equal(records.length, 1, 'cleanup failure must be observable')
+    // CO-508: records held from before this log was installed are written into it too; the cleanup failure is ours.
+    const cleanup = records.filter((r) => r.error?.message === 'could not remove session directory')
+    assert.equal(cleanup.length, 1, 'cleanup failure must be observable')
     assert.equal(JSON.stringify(records).includes('secret-token-must-not-be-logged'), false)
-    assert.equal(records[0].error.message, 'could not remove session directory')
   } finally {
     useOps(null)
     compiler.discard(unlinkFailure)

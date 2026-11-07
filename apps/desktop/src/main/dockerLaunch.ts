@@ -2,8 +2,8 @@
 /**
  * CO-294 (the start half): Docker that does not answer at start is started by Fabric, and never by an app that switches
  * the machine's docker context to itself (fabric-workspace, 2026-10-27: OrbStack started again switched the whole
- * machine's context to itself and sent other projects' scripts to an empty engine). `colima start` does make Colima's
- * context current (CO-508), which is the engine the Colima socket already names.
+ * machine's context to itself and sent other projects' scripts to an empty engine). `colima start` would make Colima's
+ * context current by default; Fabric passes `--activate=false`, so the context stays the person's (CO-508).
  * - Colima installed: Fabric starts Colima (`colima start`, for the profile the socket or the Colima context names) and
  *   nothing else; with no Colima socket or context it starts nothing.
  * - Otherwise OrbStack or Docker Desktop is started only when it is the one runtime installed and the socket the CLI
@@ -69,7 +69,8 @@ export function dockerAppFor(socket: string | null, opts: Opts = {}): DockerApp 
   if (colima.bin) {
     const profile = colimaProfileOf(where) ?? colimaProfileOf(colima.host)
     if (!profile) return null
-    return { name: 'Colima', command: colima.bin, args: profile === 'default' ? ['start'] : ['start', '--profile', profile] }
+    // CO-508: `--activate=false`, so starting Colima never makes its docker context the machine's current one.
+    return { name: 'Colima', command: colima.bin, args: profile === 'default' ? ['start', '--activate=false'] : ['start', '--profile', profile, '--activate=false'] }
   }
   const bundle = (file: string): string | null => {
     for (const dir of ['/Applications', env.HOME ? path.join(env.HOME, 'Applications') : '']) {

@@ -43,7 +43,9 @@ settlement for M158, both proposed); (3) M194's slot and binding with the `ceo` 
 contract version, since `binding.schema.json` and `execution-context.schema.json` require a `project`; asked of
 fabric-agent-contract on the board, thread `77d88a2e`, 2026-11-06; it took it as its CT-252, a DEC of its own,
 design by 2026-11-13 and merge by the organization slice of 2026-11-21); (4) the runner on
-the model of §4, behind the eval gate. Steps 1 to 3 change nothing a person sees.
+the model of §4, behind the eval gate (its first half built 2026-11-07, without a model: the closed tool set of §3,
+`apps/desktop/src/main/managerTools.ts#createManagerTools`, a person-gated act only proposed, twelve calls a message; the
+host's port over the doors and the loop wait for step 3). Steps 1 to 3 change nothing a person sees.
 
 ## 2. Shape: one tool loop, not a planned pipeline
 

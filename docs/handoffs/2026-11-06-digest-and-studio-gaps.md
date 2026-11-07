@@ -84,9 +84,15 @@ First:
    Claude Code fallback (fabric-switchboard, thread `327c7290`, by 2026-11-19), and CO-503's Observatory binding (the
    operator's terminal act, the command in CO-503's row), CO-528 (fabric-mcp's check on the open connection, once the
    contract's CT-254 is on `main` and tagged; thread `1fe66e6e`).
-6. Next free work: CO-409's remaining items that need no schema step and no other product (its row lists them); the
-   journal events of the on-demand spec §7 need a schema step, which waits for the next release's one step
-   (migration 128 is reserved by the task-pipeline persistence contract).
+6. Done 2026-11-07 later the same day, each on `main` with hosted `ci` green: CO-409's ER-5, ER-6, ER-7, ER-8, ER-9,
+   NB-2, NB-5, `timed-out`, the request followed outside the read, the `crash` reason, the wake on a stored request
+   (§3.1) and the operator's mandate in the packet (DEC-0125); CO-514 narrowed by the contract's CT-254; CO-366 (not
+   reproduced), CO-315 (a lost board file in a backup) and CO-378 (the agent's pid on Windows).
+7. Next free work: CO-409's last items each wait on something: the journal events of §7 need a schema step (migration
+   128 is reserved by the task-pipeline persistence contract), the permissions screen §6.1 goes through the scenarios
+   first (super-ux), the live session's wake §3.2 and Windows runs need Switchboard; CO-336 needs the contract's
+   job-limits vectors vendored at a repin; CO-308 needs a migration. Without those, take the next open row by its
+   date from the [general development plan](../evidence/backlog.md#general-development-plan).
 
 CO-524's decisions are due 2026-11-13 with Observatory (OBS-380).
 

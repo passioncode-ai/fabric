@@ -7,18 +7,39 @@
 // it replaces — `console.error` — is a global too; this one just goes somewhere
 // a person can read.
 //
-// BEFORE BOOTSTRAP it is a no-op rather than a crash. Something failing before
-// `app.whenReady()` has nowhere to write anyway, and a logger that throws when
-// it is not ready would take out the startup it exists to explain.
+// BEFORE BOOTSTRAP it is never a crash: a logger that throws when it is not ready
+// would take out the startup it exists to explain. What is recorded before the
+// log is installed is held, at most PRE_BOOTSTRAP_MAX records, and written when it
+// is (CO-508: the start record of CO-365 is written at `whenReady`, before the
+// log, and was lost); past the bound the rest are counted and said once.
 
 import type { Ops, OpsContext } from './ops.ts'
 import type { OpsLevel, OpsOutcome } from '../shared/opsLog.ts'
 
 let sink: Ops | null = null
 
-/** Called once at bootstrap, when `userData` is known. */
-export function useOps(instance: Ops): void {
+type RecordInput = Parameters<Ops['record']>[0]
+/** The records held before the log is installed; the first ones are kept, a start's own records come first. */
+export const PRE_BOOTSTRAP_MAX = 50
+let held: RecordInput[] = []
+let heldOver = 0
+
+/** Called once at bootstrap, when `userData` is known; what was recorded before is written now, in order. */
+export function useOps(instance: Ops | null): void {
   sink = instance
+  // A test may take the log away again (`useOps(null)`): nothing is flushed, and later records are held again.
+  if (!instance) return
+  const early = held
+  const over = heldOver
+  held = []
+  heldOver = 0
+  for (const r of early) instance.record(r)
+  if (over > 0) instance.record({ op: 'ops.pre-bootstrap-dropped', outcome: 'failed', level: 'warn', detail: { dropped: over, kept: early.length }, ctx: { correlationId: instance.correlate() } })
+}
+
+const hold = (input: RecordInput): void => {
+  if (held.length < PRE_BOOTSTRAP_MAX) held.push(input)
+  else heldOver++
 }
 
 /** The log, or a silent stand-in before bootstrap. Never null, so a caller
@@ -34,7 +55,8 @@ export const ops = {
     error?: unknown
     ctx: OpsContext
   }): void {
-    sink?.record(input)
+    if (sink) sink.record(input)
+    else hold(input)
   },
   begin(op: string, ctx: OpsContext) {
     return sink?.begin(op, ctx) ?? ((): void => {})
@@ -42,7 +64,8 @@ export const ops = {
   /** Shorthand for the commonest call: something failed and there was nowhere
    *  to say so. Replaces a `console.error` or, worse, a bare `catch {}`. */
   failed(op: string, error: unknown, detail?: Record<string, unknown>): void {
-    sink?.record({ op, outcome: 'failed', error, detail, ctx: { correlationId: sink.correlate() } })
+    if (sink) sink.record({ op, outcome: 'failed', error, detail, ctx: { correlationId: sink.correlate() } })
+    else hold({ op, outcome: 'failed', error, detail, ctx: { correlationId: 'pre-bootstrap' } })
   },
   read(query?: { level?: OpsLevel; correlationId?: string; limit?: number }) {
     return sink?.read(query) ?? []
