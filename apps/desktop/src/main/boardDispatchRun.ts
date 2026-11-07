@@ -39,7 +39,7 @@ export interface DispatchRecord {
    *  during the start never leaves a request without its record; the next pass asks Switchboard again with the same
    *  workflow and hand-over, which answers the same launch when it did start. */
   state: 'starting' | 'running' | 'ended'
-  outcome?: 'finished' | 'exited-without-answer' | 'failed-to-start' | 'refused' | 'unknown' | 'to-operator'
+  outcome?: 'finished' | 'exited-without-answer' | 'timed-out' | 'failed-to-start' | 'refused' | 'unknown' | 'to-operator'
   /** Switchboard's refusal code, when it refused. */
   refused?: string
   /** How many times Switchboard was asked for this record. */
@@ -58,7 +58,7 @@ export interface DispatchRecord {
   askAgain?: boolean
 }
 
-const OUTCOMES = new Set(['finished', 'exited-without-answer', 'failed-to-start', 'refused', 'unknown', 'to-operator'])
+const OUTCOMES = new Set(['finished', 'exited-without-answer', 'timed-out', 'failed-to-start', 'refused', 'unknown', 'to-operator'])
 const isText = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 const isCount = (v: unknown): boolean => typeof v === 'number' && Number.isFinite(v) && v >= 0
 
@@ -97,6 +97,8 @@ export interface DispatchDeps {
   launch(args: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number }): Promise<{ launchId: string } | { refused: string }>
   /** Whether the run still runs; `unknown` when Switchboard cannot say. */
   runState(launchId: string): Promise<'running' | 'ended' | 'unknown'>
+  /** §3.6: stop a run past its time limit (`switchboard dispatch stop`); absent, no run is stopped. */
+  stop?(launchId: string): Promise<'stopped' | 'already-ended' | 'failed'>
   /** The request's state now, or null when it cannot be read. */
   requestState(requestId: string): Promise<string | null>
   load(): DispatchRecord[]
@@ -138,6 +140,8 @@ export function refusalBackoffMs(refusals: number): number {
 export const START_ATTEMPTS = 3
 /** A run Switchboard cannot report on is taken as ended this long after its own end (ER-3). */
 export const UNKNOWN_AFTER_END_MS = 10 * 60_000
+/** A run still running this long past its own end is stopped through Switchboard (§3.6, DO-5). */
+export const STOP_GRACE_MS = 5 * 60_000
 /** Times a to-operator workflow's close is tried before Fabric gives up on it (iteration 3, ER-1). */
 export const CLOSE_ATTEMPTS = 5
 /** How long a request's newest record is kept whatever the history bound (iteration 3, DA-2): past a week the board
@@ -173,7 +177,25 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     for (const r of records) {
       if (r.state !== 'running' || !r.launchId) continue
       const run = await deps.runState(r.launchId)
-      if (run === 'running') continue
+      if (run === 'running') {
+        // §3.6 (DO-5): a run still running past its own end plus a grace, which Switchboard's own timeout should have
+        // ended, is stopped through Switchboard and ends `timed-out`; it counts as empty unless its request is settled.
+        if (!deps.stop || now <= Date.parse(r.endsAt) + STOP_GRACE_MS) continue
+        const stopped = await deps.stop(r.launchId)
+        if (stopped === 'failed') {
+          deps.log('board.dispatch.ended', 'failed', { request: r.requestId, dispatch: r.dispatchId, outcome: 'timed-out', note: 'Switchboard did not stop the run; it is asked again on the next pass' })
+          continue
+        }
+        const state = await deps.requestState(r.requestId)
+        const settled = state !== null && RUN_SETTLED.has(state)
+        r.state = 'ended'
+        r.endedAt = now
+        r.outcome = settled ? 'finished' : 'timed-out'
+        if (!settled) r.emptyRuns++
+        changed = true
+        deps.log('board.dispatch.ended', settled ? 'ok' : 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: r.outcome, empty_runs: r.emptyRuns })
+        continue
+      }
       if (run === 'unknown') {
         // ER-3: Switchboard cannot say. Past the run's own end plus a margin it is taken as ended, outcome unknown, so it
         // no longer holds a place under the caps; it is not counted as an empty run.
@@ -427,7 +449,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     const newestOf = new Map<string, DispatchRecord>()
     for (const r of records) newestOf.set(r.requestId, r)
     for (const r of newestOf.values()) {
-      if (r.state !== 'ended' || r.closed || (r.outcome !== 'exited-without-answer' && r.outcome !== 'unknown') || (r.closeAttempts ?? 0) >= CLOSE_ATTEMPTS) continue
+      if (r.state !== 'ended' || r.closed || (r.outcome !== 'exited-without-answer' && r.outcome !== 'timed-out' && r.outcome !== 'unknown') || (r.closeAttempts ?? 0) >= CLOSE_ATTEMPTS) continue
       const state = await deps.requestState(r.requestId)
       if (state === null || !RUN_SETTLED.has(state)) continue
       if (deps.quitting?.()) return

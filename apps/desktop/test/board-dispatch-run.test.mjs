@@ -737,3 +737,26 @@ test('CO-409 (final candidate, NB-5): a trim never drops a run started in the la
   await d.onPass()
   assert.equal(d.records().length, 600)
 })
+
+test('CO-409 (DO-5, §3.6): a run still running past its end is stopped through Switchboard and ends timed-out', async () => {
+  const { STOP_GRACE_MS } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  const w = world()
+  const stops = []
+  let answer = 'failed'
+  w.deps.stop = async (id) => { stops.push(id); return answer }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  // Within its hour and the grace nothing is stopped.
+  w.tick(60 * MIN); await d.onPass()
+  assert.equal(stops.length, 0)
+  // Past them: Switchboard is asked to stop it. A stop that fails leaves it running and is said, then asked again.
+  w.tick(STOP_GRACE_MS + MIN); await d.onPass()
+  assert.deepEqual(stops, ['L1'])
+  assert.equal(d.records()[0].state, 'running')
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.ended' && l.outcome === 'failed' && l.detail.outcome === 'timed-out'))
+  answer = 'stopped'
+  w.tick(MIN); await d.onPass()
+  assert.equal(stops.length, 2)
+  const r = d.records()[0]
+  assert.deepEqual([r.state, r.outcome, r.emptyRuns], ['ended', 'timed-out', 1])
+})

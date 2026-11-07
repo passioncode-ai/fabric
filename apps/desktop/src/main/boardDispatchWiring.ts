@@ -132,6 +132,18 @@ export function wireBoardDispatch(o: {
         return { refused: code ?? 'failed' }
       }
     },
+    async stop(launchId) {
+      const sb = await bin('switchboard')
+      if (!sb) return 'failed'
+      try {
+        const out = JSON.parse(await run(sb, ['--json', 'dispatch', 'stop', '--launch-id', launchId], await envWith())) as { data?: { state?: string; result?: string } }
+        const said = out.data?.state ?? out.data?.result
+        return said === 'stopped' ? 'stopped' : said === 'already_ended' ? 'already-ended' : 'failed'
+      } catch {
+        // Switchboard did not answer: the dispatcher asks again on its next pass and says so in the operations log.
+        return 'failed'
+      }
+    },
     async runState(launchId) {
       const sb = await bin('switchboard')
       if (!sb) return 'unknown'
