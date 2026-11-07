@@ -10,7 +10,7 @@ import path from 'node:path'
 import { execFile } from 'node:child_process'
 import type { CommsMessage, CommsRespondersReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
-import { createBoardDispatch, type DispatchDeps, type DispatchRecord, type OpenRequest } from './boardDispatchRun.ts'
+import { createBoardDispatch, isDispatchRecord, type DispatchDeps, type DispatchRecord, type OpenRequest } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 
@@ -153,7 +153,12 @@ export function wireBoardDispatch(o: {
       }
       try {
         const parsed: unknown = JSON.parse(text)
-        if (Array.isArray(parsed)) return parsed.filter((r): r is DispatchRecord => !!r && typeof r === 'object' && typeof (r as DispatchRecord).requestId === 'string' && typeof (r as DispatchRecord).state === 'string')
+        if (Array.isArray(parsed)) {
+          // ER-8: record by record; each one in another shape is left out and counted, never half-read.
+          const kept = parsed.filter(isDispatchRecord)
+          if (kept.length < parsed.length) o.log('board.dispatch.records-unread', 'failed', { note: 'records in board-dispatches.json that are not records were left out', left_out: parsed.length - kept.length })
+          return kept
+        }
       } catch {
         // A torn file is said below and read as empty (the 0.3.16 review, iteration 2, DA-4).
       }

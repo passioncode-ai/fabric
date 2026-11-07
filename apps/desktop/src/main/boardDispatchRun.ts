@@ -55,6 +55,28 @@ export interface DispatchRecord {
   emptyRuns: number
 }
 
+const OUTCOMES = new Set(['finished', 'exited-without-answer', 'failed-to-start', 'refused', 'unknown', 'to-operator'])
+const isText = (v: unknown): v is string => typeof v === 'string' && v.length > 0
+const isCount = (v: unknown): boolean => typeof v === 'number' && Number.isFinite(v) && v >= 0
+
+/**
+ * One saved record, checked field by field (the 0.3.16 review, ER-8): a record the file holds in any other shape is
+ * left out, never half-read, so a damaged entry cannot start a run, count against the day or hide a request.
+ */
+export function isDispatchRecord(r: unknown): r is DispatchRecord {
+  if (!r || typeof r !== 'object' || Array.isArray(r)) return false
+  const x = r as Record<string, unknown>
+  return isText(x.requestId) && isText(x.projectId) && isText(x.dispatchId) && isText(x.workflowId) && isText(x.handoffId)
+    && (x.launchId === null || isText(x.launchId))
+    && isCount(x.startedAt) && typeof x.endsAt === 'string' && Number.isFinite(Date.parse(x.endsAt))
+    && (x.state === 'starting' || x.state === 'running' || x.state === 'ended')
+    && (x.outcome === undefined || OUTCOMES.has(x.outcome as string))
+    && isCount(x.emptyRuns)
+    && (x.attempts === undefined || isCount(x.attempts)) && (x.endedAt === undefined || isCount(x.endedAt))
+    && (x.until === undefined || isCount(x.until)) && (x.closeAttempts === undefined || isCount(x.closeAttempts))
+    && (x.closed === undefined || typeof x.closed === 'boolean') && (x.refused === undefined || typeof x.refused === 'string')
+}
+
 export interface DispatchDeps {
   now(): number
   switchOn(): boolean
@@ -277,7 +299,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   const projectIds = new Map<string, string>()
   const openFailedAt = new Map<string, number>()
   /** §3.6: a request that goes to the operator has its workflow closed, taken back first when a run holds it. */
-  const closeWorkflow = async (r: DispatchRecord, why: 'to-operator' | 'settled' = 'to-operator'): Promise<void> => {
+  const closeWorkflow = async (r: DispatchRecord, why: 'to-operator' | 'settled' | 'unsaved' = 'to-operator'): Promise<void> => {
     let leaseId = leases.get(r.workflowId)
     if (!leaseId) {
       // CO-409 (FAA-213, 2026-11-05): a workflow a run already closed is closed; nothing to retry.
@@ -300,7 +322,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close`, stepId: why, status: why === 'settled' ? 'done' : 'blocked', workflowId: r.workflowId, leaseId, close: true,
       body: { goal: `Answer the board request ${r.requestId} addressed to this project, then end.`, notes: why === 'settled'
         ? 'The run ended before the request was settled; another session settled it, so Fabric closes the workflow it opened.'
-        : 'Two runs left the request unsettled; it waits for the operator in «На проверке».' }
+        : why === 'unsaved'
+          ? 'Fabric could not record this dispatch, so it started nothing and closes the workflow; a later attempt opens a new one.'
+          : 'Two runs left the request unsettled; it waits for the operator in «На проверке».' }
     })
     if (CLOSED.test(String(w.error ?? ''))) { leases.delete(r.workflowId); return }
     if (w.error) throw new Error('the workflow was not closed')
@@ -481,7 +505,17 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         startedAt: now, endsAt, state: 'starting', attempts: 0, emptyRuns: last?.emptyRuns ?? 0,
         ...(Number.isFinite(Date.parse(req.deadline)) ? { until: Date.parse(req.deadline) } : {}) }
       records.push(r)
-      deps.save(records)
+      try {
+        deps.save(records)
+      } catch (e) {
+        // ER-8: a record that could not be saved is not started; it is dropped, so no later pass starts it either, and the
+        // workflow Fabric holds for it is closed; the next attempt after the back-off opens a new one.
+        records = records.filter((x) => x !== r)
+        openFailedAt.set(req.id, now)
+        deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: `the record could not be saved: ${noteOf(e)}` })
+        await closeWorkflow(r, 'unsaved').catch((c: unknown) => deps.log('board.dispatch.closed', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(c) }))
+        continue
+      }
       await start(r, folder, now)
     }
     // A bounded history (iteration 3, DA-2; the final candidate's verification, B-1): never a record in flight, and never

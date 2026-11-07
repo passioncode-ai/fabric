@@ -612,3 +612,28 @@ test('CO-409 (the 0.3.16 review, ER-5): a workflow is taken back only once it ha
   assert.equal(w.launches.length, 2)
   assert.ok(w.calls.some(([n, a]) => n === 'observatory_handoff_create' && a.reason === 'restart'))
 })
+
+test('CO-409 (the 0.3.16 review, ER-8): the records file is read record by record, and a record that could not be saved is never started', async () => {
+  const { isDispatchRecord } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  const good = { requestId: 'r', projectId: 'p', dispatchId: 'd', workflowId: 'wf_0123456789abcdef', handoffId: 'h', launchId: null, startedAt: T0, endsAt: new Date(T0).toISOString(), state: 'ended', outcome: 'refused', emptyRuns: 0 }
+  assert.equal(isDispatchRecord(good), true)
+  for (const bad of [null, [], { ...good, state: 'lost' }, { ...good, startedAt: 'yesterday' }, { ...good, workflowId: '' }, { ...good, projectId: undefined }, { ...good, dispatchId: 5 }, { ...good, emptyRuns: -1 }, { ...good, outcome: 'won' }, { ...good, endsAt: 'soon' }, { ...good, launchId: 7 }])
+    assert.equal(isDispatchRecord(bad), false, JSON.stringify(bad))
+  // The save that would record a new start fails once: nothing is started now, and no later pass starts that record.
+  const w = world()
+  let fail = true
+  const save = w.deps.save
+  w.deps.save = (records) => { if (fail) { fail = false; throw new Error('disk full') } save(records) }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 0)
+  assert.equal(d.records().length, 0)
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.started' && l.outcome === 'failed' && /could not be saved/.test(l.detail.note)))
+  const closed = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true)
+  assert.ok(closed, 'the workflow opened for it is closed')
+  assert.equal(closed[1].leaseId, 'lease-1')
+  w.tick(MIN); await d.onPass()
+  assert.equal(w.launches.length, 0, 'not on the next pass either')
+  w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(w.launches.length, 1, 'after the back-off it is opened and started anew')
+})
