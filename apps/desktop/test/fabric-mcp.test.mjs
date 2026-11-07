@@ -11,6 +11,8 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 const SRC = path.resolve(import.meta.dirname, '../src/main')
+// CO-528: the hub client's fetch is the checked one; these tests stand a stub in through the transport's fetch seam.
+const viaGlobalFetch = async () => (await import(path.join(SRC, 'fabricMcpClient.ts'))).httpTransportWith((input, init) => globalThis.fetch(input, init))
 const { FabricMcpProxy, WAITING_TOOL, BACKOFF_MS, classifyFailure, runtimeSessionIdOf } = await import(path.join(SRC, 'fabricMcp.ts'))
 const clientModule = async () => await import(path.join(SRC, 'fabricMcpClient.ts'))
 
@@ -557,7 +559,7 @@ test('HTTP 429 retains Retry-After through the actual hub client', async () => {
     })
   }
   try {
-    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.session.enroll', {}), e => {
+    await assert.rejects(makeHubCall(await viaGlobalFetch())('http://127.0.0.1:47070/mcp', CRED, 'fabric.session.enroll', {}), e => {
       assert.equal(e.code, 429)
       assert.equal(e.retryAfterMs, 60_000)
       assert.ok(!JSON.stringify(e).includes(CRED))
@@ -714,7 +716,7 @@ test('HTTP 429 from SDK background SSE prevents the following tool POST', async 
     })
   }
   try {
-    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.access.status', {}), e => {
+    await assert.rejects(makeHubCall(await viaGlobalFetch())('http://127.0.0.1:47070/mcp', CRED, 'fabric.access.status', {}), e => {
       assert.equal(e.code, 429)
       assert.ok(e.retryAfterMs > 59_000 && e.retryAfterMs <= 60_000)
       return true
@@ -819,13 +821,13 @@ test('HTTP 503 with Retry-After is waited out like a 429; a 503 without one is n
   let withHeader = true
   globalThis.fetch = async () => new Response(null, { status: 503, headers: withHeader ? { 'retry-after': '5' } : {} })
   try {
-    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.access.status', {}), (e) => {
+    await assert.rejects(makeHubCall(await viaGlobalFetch())('http://127.0.0.1:47070/mcp', CRED, 'fabric.access.status', {}), (e) => {
       assert.equal(e.code, 429); assert.equal(e.status, 503)
       assert.ok(e.retryAfterMs > 4_000 && e.retryAfterMs <= 5_000)
       return true
     })
     withHeader = false
-    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.access.status', {}), (e) => {
+    await assert.rejects(makeHubCall(await viaGlobalFetch())('http://127.0.0.1:47070/mcp', CRED, 'fabric.access.status', {}), (e) => {
       assert.notEqual(e.code, 429)
       return true
     })
@@ -1046,7 +1048,7 @@ test('UX-3: the hub client reads the code and the reason of a 503, bounded, and 
   let body = JSON.stringify(STANDBY_BODY)
   globalThis.fetch = async () => new Response(body, { status: 503, headers: { 'retry-after': '10', 'content-type': 'application/json' } })
   try {
-    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.session.enroll', {}), (e) => {
+    await assert.rejects(makeHubCall(await viaGlobalFetch())('http://127.0.0.1:47070/mcp', CRED, 'fabric.session.enroll', {}), (e) => {
       assert.equal(e.code, 429); assert.equal(e.status, 503)
       assert.ok(e.retryAfterMs > 9_000 && e.retryAfterMs <= 10_000)
       assert.equal(e.hubCode, 'stack-starting')
@@ -1057,7 +1059,7 @@ test('UX-3: the hub client reads the code and the reason of a 503, bounded, and 
     })
     // A body that is not the hub's JSON, or too large to be one, carries no reason and still waits.
     body = 'x'.repeat(100_000)
-    await assert.rejects(makeHubCall()('http://127.0.0.1:47070/mcp', CRED, 'fabric.session.enroll', {}), (e) => {
+    await assert.rejects(makeHubCall(await viaGlobalFetch())('http://127.0.0.1:47070/mcp', CRED, 'fabric.session.enroll', {}), (e) => {
       assert.equal(e.code, 429); assert.equal(e.hubCode, undefined); return true
     })
   } finally { globalThis.fetch = originalFetch }

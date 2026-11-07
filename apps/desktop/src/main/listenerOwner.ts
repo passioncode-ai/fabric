@@ -10,8 +10,10 @@
  * process (`Get-NetTCPConnection`) and that process's owner SID against this user's, as the launcher's PC-152 does
  * (passioncode-ai/passioncode `lib/listener.js`); an owner it cannot read is `unknown`.
  */
-import { execFileSync } from 'node:child_process'
+import { execFile, execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
+import { promisify } from 'node:util'
 
 export type ListenerOwner =
   | { uid: number }
@@ -180,3 +182,149 @@ export function createOwnerCheck(deps: { read?: (port: number) => ListenerOwner;
   }
 }
 // #endregion listener-owner
+
+// #region connection-owner — docs: docs/evidence/specs/2026-11-06-studio-spaces-gaps.md#22-fabric-mcp-does-not-check-who-listens-on-the-hubs-port-co-514-p1
+/*
+ * The owner of the hub's end of THIS client's connection (CO-528, the contract's CT-254, `v0.1.0+2026-11-07.3`): read on
+ * the open socket just before a request with a token is written, with no cache, so a hub that restarted under another
+ * account between the listener check and the request cannot take the token. macOS: the `127.0.0.1:<hub>->127.0.0.1:<client>`
+ * socket in `lsof`, with its uid; a table that shows no such socket (another account's, not yet accepted, or a table
+ * macOS 27.2 restricts) is unknown (`table-restricted`), never this account's. Linux: that row of `/proc/net/tcp` with
+ * its uid when its inode is not 0, else the listener rule on the connection's address before the wildcard. Windows: the
+ * connection in `Get-NetTCPConnection` by its two ports and its process's owner SID.
+ */
+
+/** `lsof -Fpun` for ESTABLISHED sockets on the hub's port: the uids holding exactly `127.0.0.1:<hub>->127.0.0.1:<client>`. */
+export function serverEndUidsFromLsof(text: string, hubPort: number, clientPort: number): number[] {
+  const uids = new Set<number>()
+  let uid: number | null = null
+  const want = `n127.0.0.1:${hubPort}->127.0.0.1:${clientPort}`
+  for (const raw of text.split('\n')) {
+    const line = raw.trim()
+    if (line.startsWith('p')) uid = null
+    else if (/^u\d+$/.test(line)) uid = Number(line.slice(1))
+    else if (line === want && uid !== null) uids.add(uid)
+  }
+  return [...uids]
+}
+
+/** One ESTABLISHED (`01`) row of `/proc/net/tcp` or `tcp6` whose local end is 127.0.0.1:<hub> and remote 127.0.0.1:<client>. */
+export interface ProcConnection { uid: number; inode: string }
+
+export function serverEndFromProcNet(text: string, hubPort: number, clientPort: number): ProcConnection[] {
+  const hex = (n: number): string => n.toString(16).toUpperCase().padStart(4, '0')
+  const loop = (a: string): boolean => a === '0100007F' || a === '0000000000000000FFFF00000100007F'
+  const rows: ProcConnection[] = []
+  for (const line of text.split('\n').slice(1)) {
+    const f = line.trim().split(/\s+/)
+    // sl local_address rem_address st tx:rx tr:tm retrnsmt uid timeout inode ...
+    if (f.length < 10 || f[3] !== '01') continue
+    const [la, lp] = splitAddr(f[1] ?? ''), [ra, rp] = splitAddr(f[2] ?? '')
+    if (!loop(la) || !loop(ra) || lp !== hex(hubPort) || rp !== hex(clientPort)) continue
+    const uid = Number(f[7])
+    if (!Number.isInteger(uid) || uid < 0) continue
+    rows.push({ uid, inode: f[9] ?? '0' })
+  }
+  return rows
+}
+const splitAddr = (a: string): [string, string] => { const u = a.toUpperCase(); const cut = u.lastIndexOf(':'); return [u.slice(0, cut), u.slice(cut + 1)] }
+
+/** Linux's verdict from both tables: the accepted socket's uid when its inode is not 0, else the listener rule (CT-254). */
+export function connectionOwnerFromProcNet(tables: readonly string[], hubPort: number, clientPort: number): ListenerOwner {
+  const accepted = tables.flatMap((t) => serverEndFromProcNet(t, hubPort, clientPort)).filter((r) => r.inode !== '0')
+  if (accepted.length) return ownerOf([...new Set(accepted.map((r) => r.uid))])
+  const listeners = tables.flatMap((t) => listenersFromProcNet(t, hubPort))
+  if (listeners.length === 0) return { unknown: 'neither the accepted connection nor a listener could be seen on the port' }
+  return ownerOf(uidsReaching(listeners))
+}
+
+// Windows: `me <sid>`, then `<local address> <pid> <sid or ?>` for the hub's end of this connection (by its two ports).
+export const PS_CONNECTION_SCRIPT = (hubPort: number, clientPort: number): string => [
+  '"me " + [System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value',
+  'if (-not (Get-Command Get-NetTCPConnection -ErrorAction SilentlyContinue)) { exit 3 }',
+  `foreach ($c in @(Get-NetTCPConnection -State Established -LocalPort ${hubPort} -RemotePort ${clientPort} -ErrorAction SilentlyContinue)) {`,
+  '  $sid = "?"',
+  '  $p = Get-CimInstance Win32_Process -Filter ("ProcessId=" + $c.OwningProcess) -ErrorAction SilentlyContinue',
+  '  if ($p) { $o = Invoke-CimMethod -InputObject $p -MethodName GetOwnerSid -ErrorAction SilentlyContinue; if ($o -and $o.ReturnValue -eq 0 -and $o.Sid) { $sid = $o.Sid } }',
+  '  $c.LocalAddress + " " + $c.OwningProcess + " " + $sid',
+  '}',
+  'exit 0'
+].join('\n')
+
+const execFileP = promisify(execFile)
+
+/** One read of the hub's end of this connection, on this platform. */
+export async function readConnectionOwner(hubPort: number, clientPort: number, deps: {
+  platform?: NodeJS.Platform
+  run?: (cmd: string, args: string[]) => Promise<string>
+  read?: (file: string) => Promise<string>
+} = {}): Promise<ListenerOwner> {
+  const platform = deps.platform ?? process.platform
+  const run = deps.run ?? (async (cmd: string, args: string[]) => (await execFileP(cmd, args, { encoding: 'utf8', timeout: platform === 'win32' ? 30_000 : 3_000, windowsHide: true })).stdout)
+  if (platform === 'darwin') {
+    let out = ''
+    try {
+      out = await run('/usr/sbin/lsof', ['-nP', `-iTCP:${hubPort}`, '-sTCP:ESTABLISHED', '-Fpun'])
+    } catch (e) {
+      // lsof exits 1 when it lists nothing; what it printed still counts, and nothing printed is said below.
+      const printed = (e as { stdout?: unknown }).stdout
+      out = typeof printed === 'string' ? printed : ''
+    }
+    const uids = serverEndUidsFromLsof(out, hubPort, clientPort)
+    if (uids.length === 0) return { unknown: 'table-restricted: the hub\'s end of this connection could not be seen' }
+    return ownerOf(uids)
+  }
+  if (platform === 'linux') {
+    const read = deps.read ?? ((f: string) => readFile(f, 'utf8'))
+    const tables: string[] = []
+    for (const file of ['/proc/net/tcp', '/proc/net/tcp6']) {
+      try {
+        tables.push(await read(file))
+      } catch {
+        // A kernel without IPv6 has no tcp6; none answering is said below.
+      }
+    }
+    if (tables.length === 0) return { unknown: 'the socket table could not be read' }
+    return connectionOwnerFromProcNet(tables, hubPort, clientPort)
+  }
+  if (platform === 'win32') {
+    try {
+      return ownerFromPowerShell(await run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', PS_CONNECTION_SCRIPT(hubPort, clientPort)]))
+    } catch {
+      // No Get-NetTCPConnection (exit 3), a timeout, or PowerShell missing: the owner cannot be told.
+      return { unknown: 'PowerShell did not list the connection' }
+    }
+  }
+  return { unsupported: true }
+}
+
+/** Why a credential may not go to this owner, or null when it is this account's (the same rule as `hub.ts#locateHub`). */
+export function ownerRefusal(owner: ListenerOwner, me: number): string | null {
+  if ('unsupported' in owner) return null
+  if ('unknown' in owner) return `foreign-user: the owner of the hub's end could not be told (${owner.unknown})`
+  if ('uid' in owner && owner.uid !== me) return 'foreign-user: the hub\'s end of this connection is held by another account of this computer'
+  if ('mine' in owner && !owner.mine) return 'foreign-user: the hub\'s end of this connection is held by another account of this computer'
+  return null
+}
+
+/**
+ * The check before a token is written: the owner read on the open connection, again up to `settleMs` while it cannot be
+ * told yet (a server that has not accepted the connection shows no end of it), then the verdict. No cache.
+ */
+export async function verifyConnection(hubPort: number, clientPort: number, deps: {
+  read?: (hubPort: number, clientPort: number) => Promise<ListenerOwner>
+  me?: () => number
+  settleMs?: number
+  stepMs?: number
+} = {}): Promise<string | null> {
+  const read = deps.read ?? ((h: number, c: number) => readConnectionOwner(h, c))
+  const me = (deps.me ?? (() => process.getuid?.() ?? -1))()
+  const until = Date.now() + (deps.settleMs ?? 1_000)
+  let owner = await read(hubPort, clientPort)
+  while ('unknown' in owner && Date.now() < until) {
+    await new Promise((r) => setTimeout(r, deps.stepMs ?? 100))
+    owner = await read(hubPort, clientPort)
+  }
+  return ownerRefusal(owner, me)
+}
+// #endregion connection-owner

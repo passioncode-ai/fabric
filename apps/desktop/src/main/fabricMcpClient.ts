@@ -14,13 +14,16 @@
 // The wave-1 single file `enrollments/<runner>.credential` is moved into the folder the first time it is read.
 import { createHash } from 'node:crypto'
 import { mkdirSync, readdirSync, rmSync } from 'node:fs'
+import http from 'node:http'
 import path from 'node:path'
+import { Readable } from 'node:stream'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import { readHubDocument, writeAtomic } from './hub.ts'
 import { FabricRateLimitError, boundedRetryMs, hubRefusalOf, type CredentialStore, type HubCall, type HubRefusal, type PendingRequest, type SessionLink } from './fabricMcp.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
+import { verifyConnection } from './listenerOwner.ts'
 
 const CREDENTIAL = /^[A-Za-z0-9_-]{43}$/
 const CREDENTIAL_FILE = /^([0-9a-f]{8})\.credential$/
@@ -176,7 +179,68 @@ export async function refusalSaid(response: Response): Promise<HubRefusal | unde
 }
 // #endregion fabric-mcp-refusal-body
 
-export const httpTransport: TransportFactory = (url, bearer) => {
+// #region checked-fetch — docs: docs/evidence/specs/2026-11-06-studio-spaces-gaps.md#22-fabric-mcp-does-not-check-who-listens-on-the-hubs-port-co-514-p1
+/** A request refused before its headers left: the hub's end of the connection is not this account's (CO-528). */
+export class HubOwnerRefusedError extends Error {
+  readonly reason: string
+  constructor(reason: string) { super(reason); this.name = 'HubOwnerRefusedError'; this.reason = reason }
+}
+
+/**
+ * fetch for the hub (CO-528, CT-254): each request opens its own connection to the loopback origin, and its headers (the
+ * bearer among them) are written only after `verify` read who holds the hub's end of that very connection. Node writes a
+ * request's head at `end()`, not at connect, so a refusal destroys a socket that carried nothing. Only `http://127.0.0.1`
+ * is spoken: hub.json's origin is that literal (`hub.ts#locateHub`).
+ */
+export function checkedFetch(verify: (hubPort: number, clientPort: number) => Promise<string | null>): typeof fetch {
+  return (input, init) => new Promise<Response>((resolve, reject) => {
+    const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url)
+    if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1') { reject(new TypeError(`the hub is only spoken to on http://127.0.0.1, not ${url.origin}`)); return }
+    const body = init?.body
+    if (body !== undefined && body !== null && typeof body !== 'string' && !(body instanceof Uint8Array) && !(body instanceof ArrayBuffer)) {
+      reject(new TypeError('a hub request body is a string or bytes')); return
+    }
+    const payload = body === undefined || body === null ? undefined : typeof body === 'string' ? Buffer.from(body, 'utf8') : Buffer.from(body as ArrayBuffer)
+    const headers: Record<string, string> = {}
+    new Headers(init?.headers).forEach((value, key) => { headers[key] = value })
+    if (payload) headers['content-length'] = String(payload.length)
+    const signal = init?.signal
+    if (signal?.aborted) { reject(signal.reason ?? new DOMException('aborted', 'AbortError')); return }
+    const port = Number(url.port || 80)
+    const req = http.request({ host: '127.0.0.1', port, path: `${url.pathname}${url.search}`, method: init?.method ?? 'GET', headers, agent: false })
+    req.on('error', reject)
+    const abort = (): void => { req.destroy(signal?.reason instanceof Error ? signal.reason : new DOMException('aborted', 'AbortError')) }
+    signal?.addEventListener('abort', abort, { once: true })
+    req.on('socket', (socket) => {
+      socket.once('connect', () => {
+        verify(port, socket.localPort ?? 0).then((refused) => {
+          if (refused) { req.destroy(new HubOwnerRefusedError(refused)); return }
+          req.end(payload)
+        }, (e: unknown) => req.destroy(e instanceof Error ? e : new Error('the owner check failed')))
+      })
+    })
+    req.on('response', (res) => {
+      const out = new Headers()
+      for (const [key, value] of Object.entries(res.headers)) {
+        if (Array.isArray(value)) for (const v of value) out.append(key, v)
+        else if (value !== undefined) out.set(key, value)
+      }
+      const status = res.statusCode ?? 0
+      const empty = status === 204 || status === 304 || (init?.method ?? 'GET').toUpperCase() === 'HEAD'
+      if (empty) res.resume()
+      resolve(new Response(empty ? null : (Readable.toWeb(res) as ReadableStream<Uint8Array>), { status, statusText: res.statusMessage ?? '', headers: out }))
+    })
+  })
+}
+
+/** The hub's own fetch: every request, token or not, checked on its open connection, with no cache (CO-528). */
+export const hubFetch = checkedFetch((hubPort, clientPort) => verifyConnection(hubPort, clientPort))
+// #endregion checked-fetch
+
+export const httpTransport: TransportFactory = (url, bearer) => httpTransportWith(hubFetch)(url, bearer)
+
+/** The transport over a given fetch, so tests can drive the checked fetch against their own server. */
+export const httpTransportWith = (fetchImpl: typeof fetch): TransportFactory => (url, bearer) => {
   // SDK background SSE failures do not reject callTool. The same transport must therefore
   // enforce a monotonic deadline before EVERY fetch, including its next foreground POST.
   let retryUntil = 0
@@ -190,7 +254,7 @@ export const httpTransport: TransportFactory = (url, bearer) => {
       // its stack is lost, so it is never held by the cooldown; `leave` bounds it in time.
       const leaving = (init?.method ?? '').toUpperCase() === 'DELETE'
       if (remaining > 0 && !leaving) throw new FabricRateLimitError(remaining)
-      const response = await fetch(input, init)
+      const response = await fetchImpl(input, init)
       if (response.status === 429 || (response.status === 503 && response.headers.get('retry-after') !== null)) {
         const delay = retryAfterMs(response.headers.get('retry-after'))
         retryUntil = Math.max(retryUntil, performance.now() + delay)
