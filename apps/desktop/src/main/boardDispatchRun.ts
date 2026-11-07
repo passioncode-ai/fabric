@@ -115,6 +115,8 @@ export const REFUSAL_BACKOFF_MS = 10 * 60_000
 /** A workflow is taken back only once its newest checkpoint is this old (the on-demand spec §3.4, CO-409's ER-5):
  *  Observatory refuses a take-back without the lease sooner, and a refused one used to cost the request the back-off. */
 export const TAKE_BACK_SILENCE_MS = 120_000
+/** An open asked again with its first end only while that end is this far off (ER-9); nearer, it is opened anew. */
+const LAUNCH_AGAIN_MARGIN_MS = 10 * 60_000
 /** The workflow's run wrote a checkpoint less than TAKE_BACK_SILENCE_MS ago: wait for a later pass, not a failure. */
 class NotSilentYet extends Error {}
 /** The longest a refusal that keeps coming back waits (CO-409, the 0.3.16 review's ER-6). */
@@ -298,6 +300,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   const leases = new Map<string, string>()
   const projectIds = new Map<string, string>()
   const openFailedAt = new Map<string, number>()
+  /** ER-9: the dispatch id and end of an open whose answer was lost, asked again with the same ones. */
+  const retryOpen = new Map<string, { dispatchId: string; endsAt: string }>()
   /** §3.6: a request that goes to the operator has its workflow closed, taken back first when a run holds it. */
   const closeWorkflow = async (r: DispatchRecord, why: 'to-operator' | 'settled' | 'unsaved' = 'to-operator'): Promise<void> => {
     let leaseId = leases.get(r.workflowId)
@@ -323,7 +327,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       body: { goal: `Answer the board request ${r.requestId} addressed to this project, then end.`, notes: why === 'settled'
         ? 'The run ended before the request was settled; another session settled it, so Fabric closes the workflow it opened.'
         : why === 'unsaved'
-          ? 'Fabric could not record this dispatch, so it started nothing and closes the workflow; a later attempt opens a new one.'
+          ? 'Fabric could not record this dispatch, or quit before it, so it started nothing and closes the workflow; a later attempt opens a new one.'
           : 'Two runs left the request unsettled; it waits for the operator in «На проверке».' }
     })
     if (CLOSED.test(String(w.error ?? ''))) { leases.delete(r.workflowId); return }
@@ -486,8 +490,13 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       if (!provider) { said(req.id, { path: 'wait', check: 'deferred-no-agent' }); continue }
       const folder = await deps.folderOf(req.target)
       if (!folder) continue
-      const dispatchId = randomUUID()
-      const endsAt = runEndsAt(now, limits.runMinutes, req.deadline)
+      // ER-9: an open whose answer was lost is asked again with the same dispatch id and end, so Observatory's
+      // idempotency answers the workflow it opened instead of a second one being left open beside it.
+      const again = retryOpen.get(req.id)
+      const reuse = again && Date.parse(again.endsAt) - now > LAUNCH_AGAIN_MARGIN_MS ? again : null
+      retryOpen.delete(req.id)
+      const dispatchId = reuse?.dispatchId ?? randomUUID()
+      const endsAt = reuse?.endsAt ?? runEndsAt(now, limits.runMinutes, req.deadline)
       let opened: { workflowId: string; handoffId: string }
       try {
         opened = await open(req, last, provider, endsAt, dispatchId)
@@ -498,12 +507,18 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // Recorded through the caller's ops sink (deps.log); the request is tried again on a later pass.
         deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(e) })
         openFailedAt.set(req.id, now)
+        if (!last) retryOpen.set(req.id, { dispatchId, endsAt })
         continue
       }
-      if (deps.quitting?.()) return
       const r: DispatchRecord = { requestId: req.id, projectId: req.target, dispatchId, workflowId: opened.workflowId, handoffId: opened.handoffId, launchId: null,
         startedAt: now, endsAt, state: 'starting', attempts: 0, emptyRuns: last?.emptyRuns ?? 0,
         ...(Number.isFinite(Date.parse(req.deadline)) ? { until: Date.parse(req.deadline) } : {}) }
+      if (deps.quitting?.()) {
+        // ER-9: the app quits between opening the workflow and recording the start: nothing starts, and the workflow
+        // Fabric holds is closed rather than left open with a lease nobody will hold after the restart.
+        await closeWorkflow(r, 'unsaved').catch((c: unknown) => deps.log('board.dispatch.closed', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(c) }))
+        return
+      }
       records.push(r)
       try {
         deps.save(records)

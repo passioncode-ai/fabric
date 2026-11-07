@@ -637,3 +637,39 @@ test('CO-409 (the 0.3.16 review, ER-8): the records file is read record by recor
   w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
   assert.equal(w.launches.length, 1, 'after the back-off it is opened and started anew')
 })
+
+test('CO-409 (the 0.3.16 review, ER-9): a quit after the workflow opened closes it; an open whose answer was lost is asked again with the same key', async () => {
+  // The app starts quitting while the hand-over is offered: nothing starts and the workflow Fabric holds is closed.
+  const w = world()
+  const base = w.deps.observatory
+  w.deps.observatory = async (name, args) => {
+    if (name === 'observatory_handoff_create' && args.reason === 'plan_route') w.quitting = true
+    return base(name, args)
+  }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 0)
+  assert.equal(d.records().length, 0)
+  const closed = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true)
+  assert.ok(closed, 'the workflow is closed, not left open')
+  assert.equal(closed[1].leaseId, 'lease-1')
+  // The first checkpoint's answer is lost once: the next attempt sends the same idempotency key, so Observatory
+  // answers the workflow it opened rather than a second one.
+  const v = world()
+  let lose = true
+  const vbase = v.deps.observatory
+  v.deps.observatory = async (name, args) => {
+    const answer = await vbase(name, args)
+    if (name === 'observatory_checkpoint_write' && !args.workflowId && lose) { lose = false; throw new Error('the connection dropped') }
+    return answer
+  }
+  const e = createBoardDispatch(v.deps)
+  await e.onPass()
+  assert.equal(v.launches.length, 0)
+  v.tick(REFUSAL_BACKOFF_MS); await e.onPass()
+  assert.equal(v.launches.length, 1)
+  const opens = v.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).map(([, a]) => a.idempotencyKey)
+  assert.equal(opens.length, 2)
+  assert.equal(opens[0], opens[1], 'the same key both times')
+  assert.equal(v.launches[0].dispatchId, opens[0].replace(/^dispatch-|-open$/g, ''))
+})
