@@ -89,11 +89,12 @@ test('a run that ends with the request settled is finished; one that ends withou
   assert.equal(first.emptyRuns, 1)
   // The second run: back to Fabric (restart, no lease), accepted, run-ends-at under the new lease, offered on.
   const names = w.calls.map(([n]) => n)
-  assert.deepEqual(names.slice(3), ['observatory_handoff_create', 'observatory_handoff_accept', 'observatory_checkpoint_write', 'observatory_handoff_create'])
-  assert.equal(w.calls[3][1].reason, 'restart')
-  assert.equal(w.calls[3][1].leaseId, undefined)
-  assert.equal(w.calls[5][1].leaseId, 'lease-2')
+  // ER-5: the workflow's newest checkpoint is read first; this stand-in names no time, so Observatory decides.
+  assert.deepEqual(names.slice(3), ['observatory_checkpoint_latest', 'observatory_handoff_create', 'observatory_handoff_accept', 'observatory_checkpoint_write', 'observatory_handoff_create'])
+  assert.equal(w.calls[4][1].reason, 'restart')
+  assert.equal(w.calls[4][1].leaseId, undefined)
   assert.equal(w.calls[6][1].leaseId, 'lease-2')
+  assert.equal(w.calls[7][1].leaseId, 'lease-2')
   assert.equal(w.launches.length, 2)
   // After the second empty run no third starts (§3.6, option (b)).
   w.runs.set('L2', 'ended')
@@ -583,4 +584,31 @@ test('CO-409 (Switchboard SB-294): the hand-over goes to the agent dispatch will
   assert.equal(dispatchProvider({ default: null }), null)
   assert.equal(dispatchProvider({ default: 'hermes' }), null)
   assert.equal(dispatchProvider(undefined), null)
+})
+
+test('CO-409 (the 0.3.16 review, ER-5): a workflow is taken back only once it has been silent 120 s, with no back-off meanwhile', async () => {
+  const { TAKE_BACK_SILENCE_MS } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  const w = world()
+  const base = w.deps.observatory
+  let lastWrite = null
+  w.deps.observatory = async (name, args) => {
+    if (name === 'observatory_checkpoint_latest') { w.calls.push([name, args]); return { checkpoint: { createdAt: new Date(lastWrite).toISOString() } } }
+    return base(name, args)
+  }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  // The run wrote its last checkpoint just before it ended without settling the request.
+  w.tick(30 * MIN)
+  lastWrite = w.deps.now() - 30_000
+  w.runs.set('L1', 'ended')
+  await d.onPass()
+  assert.equal(w.launches.length, 1, 'not silent yet: nothing is taken back')
+  assert.ok(!w.calls.some(([n, a]) => n === 'observatory_handoff_create' && a.reason === 'restart'))
+  assert.ok(!w.logs.some((l) => l.op === 'board.dispatch.started' && l.outcome === 'failed'), 'a wait, not a failure')
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.decided' && l.detail.check === 'workflow-not-silent'))
+  // One pass later the checkpoint is past the silence: the workflow is taken back and the next run starts, with no back-off.
+  w.tick(TAKE_BACK_SILENCE_MS)
+  await d.onPass()
+  assert.equal(w.launches.length, 2)
+  assert.ok(w.calls.some(([n, a]) => n === 'observatory_handoff_create' && a.reason === 'restart'))
 })

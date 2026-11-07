@@ -90,6 +90,11 @@ const CLOSED = /\bWorkflowClosed\b/
 const DAY_MS = 24 * 3600_000
 /** After a refusal or a start that never answered, Switchboard is not asked again for that request sooner than this (the 0.3.16 review, ER-1, DA-2). */
 export const REFUSAL_BACKOFF_MS = 10 * 60_000
+/** A workflow is taken back only once its newest checkpoint is this old (the on-demand spec §3.4, CO-409's ER-5):
+ *  Observatory refuses a take-back without the lease sooner, and a refused one used to cost the request the back-off. */
+export const TAKE_BACK_SILENCE_MS = 120_000
+/** The workflow's run wrote a checkpoint less than TAKE_BACK_SILENCE_MS ago: wait for a later pass, not a failure. */
+class NotSilentYet extends Error {}
 /** The longest a refusal that keeps coming back waits (CO-409, the 0.3.16 review's ER-6). */
 export const REFUSAL_BACKOFF_MAX_MS = 6 * 3600_000
 /**
@@ -228,8 +233,12 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       workflowId = prior.workflowId
       leaseId = leases.get(prior.workflowId)!
     } else {
-      // §3.4: a run that left the request unsettled keeps the lease; Fabric takes the workflow back to itself.
+      // §3.4: a run that left the request unsettled keeps the lease; Fabric takes the workflow back to itself, once the
+      // workflow has been silent 120 s (ER-5). An answer that cannot be read leaves it to Observatory's own check.
       workflowId = prior.workflowId
+      const latest = await deps.observatory('observatory_checkpoint_latest', { workflowId }).catch(() => null)
+      const written = Date.parse(String((latest?.checkpoint as { createdAt?: unknown } | undefined)?.createdAt ?? ''))
+      if (Number.isFinite(written) && deps.now() - written < TAKE_BACK_SILENCE_MS) throw new NotSilentYet()
       let back: Record<string, unknown>
       try {
         back = await deps.observatory('observatory_handoff_create', {
@@ -460,6 +469,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         opened = await open(req, last, provider, endsAt, dispatchId)
         firstLine({ workflow: opened.workflowId, handoff: opened.handoffId, request: req.id }) // the ids are well formed (§3.5)
       } catch (e) {
+        // ER-5: the run's workflow is not silent yet; a later pass takes it back, with no back-off and no failure.
+        if (e instanceof NotSilentYet) { deps.log('board.dispatch.decided', 'ok', { request: req.id, path: 'wait', check: 'workflow-not-silent' }); continue }
         // Recorded through the caller's ops sink (deps.log); the request is tried again on a later pass.
         deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(e) })
         openFailedAt.set(req.id, now)
