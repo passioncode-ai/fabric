@@ -56,6 +56,8 @@ export interface DispatchRecord {
   /** NB-2: the switch ended this start after Switchboard was asked without an answer, so its run may have begun; when
    *  the switch is back on, Switchboard is asked again with the same dispatch id while the request is still open. */
   askAgain?: boolean
+  /** §3.4: Switchboard reported the run's process exited with a failure code; the workflow is taken back as `crash`. */
+  crashed?: boolean
 }
 
 const OUTCOMES = new Set(['finished', 'exited-without-answer', 'timed-out', 'failed-to-start', 'refused', 'unknown', 'to-operator'])
@@ -78,7 +80,7 @@ export function isDispatchRecord(r: unknown): r is DispatchRecord {
     && (x.attempts === undefined || isCount(x.attempts)) && (x.endedAt === undefined || isCount(x.endedAt))
     && (x.until === undefined || isCount(x.until)) && (x.closeAttempts === undefined || isCount(x.closeAttempts))
     && (x.closed === undefined || typeof x.closed === 'boolean') && (x.refused === undefined || typeof x.refused === 'string')
-    && (x.askAgain === undefined || typeof x.askAgain === 'boolean')
+    && (x.askAgain === undefined || typeof x.askAgain === 'boolean') && (x.crashed === undefined || typeof x.crashed === 'boolean')
 }
 
 export interface DispatchDeps {
@@ -95,8 +97,8 @@ export interface DispatchDeps {
   defaultProvider(): Promise<'claude' | 'codex' | null>
   observatory: ToolCall
   launch(args: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number }): Promise<{ launchId: string } | { refused: string }>
-  /** Whether the run still runs; `unknown` when Switchboard cannot say. */
-  runState(launchId: string): Promise<'running' | 'ended' | 'unknown'>
+  /** Whether the run still runs; `crashed` when it ended with a failure exit code; `unknown` when Switchboard cannot say. */
+  runState(launchId: string): Promise<'running' | 'ended' | 'crashed' | 'unknown'>
   /** §3.6: stop a run past its time limit (`switchboard dispatch stop`); absent, no run is stopped. */
   stop?(launchId: string): Promise<'stopped' | 'already-ended' | 'failed'>
   /** The request's state now, or null when it cannot be read. */
@@ -229,6 +231,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       }
       r.state = 'ended'
       r.endedAt = now
+      if (run === 'crashed') r.crashed = true
       r.outcome = RUN_SETTLED.has(state) ? 'finished' : 'exited-without-answer'
       if (r.outcome === 'exited-without-answer') r.emptyRuns++
       changed = true
@@ -297,7 +300,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       let back: Record<string, unknown>
       try {
         back = await deps.observatory('observatory_handoff_create', {
-          owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-back`, workflowId, to: { provider: 'fabric' }, reason: 'restart'
+          owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-back`, workflowId, to: { provider: 'fabric' }, reason: prior.crashed ? 'crash' : 'restart'
         })
       } catch (e) {
         // Iteration 3, ER-3 (agreed on the board, thread `1add3c03`): a run closed the workflow itself while the request

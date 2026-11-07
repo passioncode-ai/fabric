@@ -94,6 +94,20 @@ export function createRequestFollower(timeline?: (requestId: string) => Promise<
   }
 }
 
+/**
+ * A dispatched run's state from Switchboard's launch record (its CONTRACTS, SB-247): `ended` is `{kind: exited | stopped
+ * | timed_out, exit_code?, at}`, and an `exited` run with a failure exit code is `crashed`, so the workflow is taken back
+ * as `crash` rather than `restart` (the on-demand spec §3.4).
+ */
+export function runStateOf(launch: { state?: string; ended?: unknown } | undefined): 'running' | 'ended' | 'crashed' | 'unknown' {
+  const state = launch?.state
+  if (state === 'starting' || state === 'running') return 'running'
+  if (state !== 'ended') return 'unknown'
+  const end = launch?.ended
+  const code = end && typeof end === 'object' ? (end as { kind?: unknown; exit_code?: unknown }) : null
+  return code?.kind === 'exited' && typeof code.exit_code === 'number' && code.exit_code !== 0 ? 'crashed' : 'ended'
+}
+
 export function wireBoardDispatch(o: {
   estateId: string
   comms: SweepComms & { responders(estateId: string): Promise<CommsRespondersReply>; timeline?(estateId: string, requestId: unknown): Promise<CommsTimelineReply> }
@@ -177,9 +191,8 @@ export function wireBoardDispatch(o: {
       const sb = await bin('switchboard')
       if (!sb) return 'unknown'
       try {
-        const out = JSON.parse(await run(sb, ['--json', 'sessions', 'show', launchId], await envWith())) as { data?: { launch?: { state?: string } } }
-        const state = out.data?.launch?.state
-        return state === 'ended' ? 'ended' : state === 'starting' || state === 'running' ? 'running' : 'unknown'
+        const out = JSON.parse(await run(sb, ['--json', 'sessions', 'show', launchId], await envWith())) as { data?: { launch?: { state?: string; ended?: unknown } } }
+        return runStateOf(out.data?.launch)
       } catch {
         // Switchboard could not say: the run stays running and is asked again on the next pass.
         return 'unknown'
