@@ -93,7 +93,9 @@ const surface = new AgentSurface({
   nudges: (s, p) => (s === sessionId && p === projectId ? pendingNudges.splice(0) : []),
   language: () => { if (surfaceLanguage === 'throw') throw new Error('settings unreadable'); return surfaceLanguage === 'off' ? null : surfaceLanguage },
   // ADR-0176 §3: this computer marked as the operator's in Settings.
-  machineTrust: () => 'mine'
+  machineTrust: () => 'mine',
+  // The operator, 2026-11-07: the agents of this machine every session reads in fabric_whoami.
+  machineAgents: () => ({ agents: [{ key: 'apps-starter.default', name: 'Apps Starter', what: 'Starts and stops enrolled apps.', kind: 'service', placement: 'local', origin: null }], more: 0, refused: 0 })
 })
 await surface.start()
 
@@ -151,6 +153,11 @@ const me = await call('fabric_whoami')
 if (me.project?.id === projectId && me.session_id === sessionId && me.rules?.length)
   ok('fabric_whoami answers with this session and the rules that apply')
 else fail('whoami returned ' + JSON.stringify(me))
+
+// The operator, 2026-11-07: every session learns which agents this machine has, and the rule to look there first.
+me.machine_agents?.agents?.[0]?.key === 'apps-starter.default' && me.machine_agents.agents[0].what && (me.rules ?? []).some((r) => r.includes('machine_agents'))
+  ? ok('fabric_whoami lists the agents of this machine with what each does, and a rule says to look there first')
+  : fail('no machine agents in whoami: ' + JSON.stringify({ agents: me.machine_agents, rules: (me.rules ?? []).filter((r) => r.includes('machine')) }))
 
 // P-24 — the session is told the working language, and the rule right after the date says what to write in it.
 // A string, not a regular expression: this body is a template literal (const script, line 24), where a backslash

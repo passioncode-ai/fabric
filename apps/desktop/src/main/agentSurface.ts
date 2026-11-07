@@ -100,6 +100,7 @@ import type { Nudge } from '../shared/abandonedSweep.ts'
 import { QUESTIONS_READ, readWaiting } from './sessionWaiting.ts'
 import { readRunHolds } from './workRead.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
+import type { MachineAgents } from '../shared/machineAgents.ts'
 
 /** Check the complete original before lookup, normalization or legacy text
  * scrubbing. Reference identity is preserved; recognizable secrets refuse the
@@ -352,6 +353,9 @@ export interface AgentSurfaceDeps {
   language?: () => string | null | undefined
   /** This computer's trust from Settings (ADR-0176 §3), read at each fabric_whoami; null or absent is not trusted. */
   machineTrust?: () => string | null | undefined
+  /** The operator, 2026-11-07: the agents and services of this machine (`shared/machineAgents.ts`), read at each
+   *  fabric_whoami so a session calls the agent that owns a job; null when the registry could not be read. */
+  machineAgents?: () => MachineAgents | null
 }
 
 /** What the surface needs to admit a registered agent from outside (ADR-0115 §1). */
@@ -1527,7 +1531,7 @@ export class AgentSurface {
       {
         title: 'Who am I',
         description:
-          'What this session is: the project, its repositories, the task that opened it if any, what waits for the project from the board\'s last 7 days (board requests addressed to it and open questions, each with its id; a count of unread answers to its requests; a part not read within its deadline says so), and the rules that apply here. Call this first, and take up what waits before new work.',
+          'What this session is: the project, its repositories, the task that opened it if any, what waits for the project from the board\'s last 7 days (board requests addressed to it and open questions, each with its id; a count of unread answers to its requests; a part not read within its deadline says so), the agents and services this machine has with what each does (machine_agents: call the one that owns a job rather than doing it yourself), and the rules that apply here. Call this first, and take up what waits before new work.',
         inputSchema: {}
       },
       async () => {
@@ -1605,9 +1609,17 @@ export class AgentSurface {
           }
         })
 
+        // The operator, 2026-11-07: every session learns which agents this machine has (`machine.agents-first`).
+        let machineAgents: MachineAgents | null = null
+        try {
+          machineAgents = this.deps.machineAgents?.() ?? null
+        } catch (e) {
+          ops.failed('agentSurface.machine-agents', e, { note: 'the registry of this machine could not be read for fabric_whoami' })
+        }
         return json({
           session_id: scope.sessionId,
           waiting,
+          machine_agents: machineAgents ?? { unread: 'the registry of this machine could not be read; Fabric Dashboards lists the same agents' },
           project: project
             ? { id: project.id, name: project.name, purpose: project.purpose }
             : null,

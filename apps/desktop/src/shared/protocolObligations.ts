@@ -289,6 +289,18 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
   },
   // #endregion board-obligations
   {
+    id: 'machine.agents-first',
+    text:
+      'This machine has agents and services of its own, listed in fabric_whoami as machine_agents with what each says ' +
+      'it does (the same registry Fabric Dashboards lists). Before you do a job yourself, look there for the one that ' +
+      'owns it: starting or stopping an installed app, media, texts, research, store work, keys, mail, Telegram and the ' +
+      'like each have their agent. Use it through its own MCP tools when your session has them, or ask its project on ' +
+      'the board. Call only the agents of your own side: a personal agent, the operator\'s organizations and other ' +
+      'businesses are kept apart, and an agent of another side is never called for this project\'s work.',
+    mode: 'ADVICE',
+    scope: 'fabric_mediated'
+  },
+  {
     id: 'notes.are-working-context',
     text:
       'Notes on a task (fabric_task_note) are working context, not documentation. What deserves to outlive the ' +

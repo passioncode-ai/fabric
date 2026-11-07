@@ -29,6 +29,7 @@ import { createTranscriptReceipt } from './transcriptReceipt.ts'
 import { createStopHostIdentity } from './stopHostIdentity.ts'
 import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
+import { machineAgentsOf } from '../shared/machineAgents.ts'
 import { linkWindowPlan, resolveLink, type LinkRoute } from '../shared/linkRoute.ts'
 import { createLinkHold, createLinkOutbox } from '../shared/linkOutbox.ts'
 import { createAccessStore, type AccessStore } from './accessStore.ts'
@@ -1151,6 +1152,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     language: () => workingLanguageOfRead(readSettingsState()),
     // ADR-0176 §3: an unreadable settings file reads as not trusted (null), never as the person's last answer.
     machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust },
+    // The operator, 2026-11-07: the agents of this machine for every session's fabric_whoami (`machine.agents-first`).
+    machineAgents: () => machineAgentsOf(registry.snapshot()),
     // CO-506: Agent access's buttons as an agent's door, on the operator's relayed words (`relayedAccess.ts`). Revoking a
     // whole agent writes the same act History shows for the button.
     access: {

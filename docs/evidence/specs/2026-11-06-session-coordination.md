@@ -90,7 +90,27 @@ through its scenario first.
 | D | **The Fabric agent directs sessions.** *Spec:* [2026-11-06-fabric-manager-agent.md](2026-11-06-fabric-manager-agent.md). A responder for the CEO conversation, with tools over the same claims, tasks, board and wave C's messages, acting only through doors a person has. It is an agent system, so it goes through `agent-stack`; runner, model, evals and spend limits are decided there. | Decided in its own spec. |
 | E | **Sessions outside Fabric.** Switchboard's sessions carry their task and stage once they enroll (CO-457). Codex and Kimi report their branch on their next tool call instead of a turn. *Read 2026-11-06:* the branch needs no report: an enrolled session's folder travels in `MintOrigin.folder` since CO-498, and `src/main/agentBranches.ts#withBranches` runs git there for every held session, launched or enrolled (`src/main/index.ts#heldSessions`). Left of CO-457: a session a Dashboards console holds, marked with its `open_link`, which needs a read of Dashboards' consoles (asked of fabric-dashboards on the board, thread `b250bec9`); and the project's main session with its move (DEC-0140), an interface change that goes through its scenario first. | CO-457's rows close. |
 
-## 6. Open questions
+## 6. The agents of this machine, told to every session
+
+**Source:** the operator, 2026-11-07, in this session: agents do not see each other; every agent should learn from
+Fabric which agents this Mac has (the same ones Fabric Dashboards lists), so that it knows, for example, that a
+separate agent starts and stops the Mac's apps.
+
+**Built 2026-11-07 (CO-526).**
+- `fabric_whoami`, the first call of every session, answers `machine_agents`: each agent and service of Fabric's
+  registry (`src/main/agentRegistry.ts`, the services folder Dashboards reads) with its key, name, its own one-line
+  summary, kind and placement, a remote one's origin; at most 100, the rest counted; refused descriptors counted
+  (`src/shared/machineAgents.ts#machineAgentsOf`).
+- The rule `machine.agents-first` (`src/shared/protocolObligations.ts`): before doing a job yourself, look there for
+  the agent that owns it, use it through its own MCP tools or ask its project on the board, and call only the agents
+  of your own side.
+- Tests: `src/shared/machineAgents.test.ts`, `test/agent-surface.test.mjs` (whoami lists them and serves the rule).
+
+**Open (CO-527).** The list is the whole machine's. Personal agents, the operator's organizations and other businesses
+sit side by side in it, and the rule asks a session to keep to its own side. Filtering the list by the organization of
+the session's project, as Dashboards names each service's organization from Observatory's registry, is CO-527.
+
+## 7. Open questions
 
 1. **Wave A: warn or block?** Warning is proposed. The person decides, and blocking would stop work on a guess about
    touches.
