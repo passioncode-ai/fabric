@@ -19,7 +19,7 @@ import { closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readF
 import path from 'node:path'
 import { ARCHIVE_REASON_CODES, ArchiveFormatError, type ArchiveReasonCode } from './archiveJson.ts'
 import { decodePrivateArchive, preflightOrdinaryArchive, type CeoPrivateArchive } from './ceoPrivateArchive.ts'
-import { BOARD_ARCHIVE_FILE, readBoardArchive } from '../shared/archive.ts'
+import { BOARD_ARCHIVE_FILE, BOARD_DIGEST_FILE, readBoardArchive, readBoardDigestFile } from '../shared/archive.ts'
 
 export interface PrivateHistoryIdentity { estateId: string; personId: string; revision: number; actor: { kind: 'person'; id: string } }
 export type PrivateHistoryRpc = (name: 'ceo_export_private_archive' | 'restore_estate_verified' | 'ceo_import_private_archive' | 'ceo_private_import_receipt' | 'restore_board_history',
@@ -43,6 +43,8 @@ export interface RestoreOperation { schema: 'PrivateRestoreOperation@1'; operati
   private_history_skipped?: string | null }
 /** Not one of the shared archive codes (`archiveJson.ts`): main decides it alone, before any database call. */
 export const NOT_YOUR_HISTORY = 'not_your_history'
+/** CO-315: the archive's `board.sha256` names a board history file that is not there (DA-1). */
+export const BOARD_MISSING = 'board_missing'
 
 const MANIFEST = 'manifest.json', JOURNAL = 'journal.ndjson', COMPANION = 'ceo-private.json'
 const sha256 = (text: string): string => createHash('sha256').update(text, 'utf8').digest('hex')
@@ -115,7 +117,7 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
     }
   }
 
-  type ArchiveRead = { ok: true; files: { manifest: Buffer; journal: Buffer; companion: Buffer | null; board: Buffer | null }
+  type ArchiveRead = { ok: true; files: { manifest: Buffer; journal: Buffer; companion: Buffer | null; board: Buffer | null; boardDigest: Buffer | null }
     m: ReturnType<typeof preflightOrdinaryArchive>['manifest']; companion: CeoPrivateArchive | null }
   /** The archive's bytes, read ONCE and checked as read: what is verified is what is kept and sent. */
   function readArchive(dir: string): ArchiveRead | PrivateHistoryRefusal {
@@ -128,14 +130,20 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
         companion = decodePrivateArchive(companionRaw).archive
         if (companion.estate_archive.digest !== m.digest) return refuse('invalid_archive')
       }
-      // The board's history, when the archive carries it, is checked here — before anything is written.
+      // The board's history, when the archive carries it, is checked here — before anything is written. Its digest
+      // beside it (CO-315) says the file was written: a lost or different one is refused, never restored as an archive
+      // from before board history travelled (the 0.3.17 release review, iteration 2, DA-1).
+      const digest = readBoardDigestFile(() => readFileSync(path.join(dir, BOARD_DIGEST_FILE), 'utf8'))
+      if (digest.state === 'corrupt') return refuse('integrity_mismatch')
       let board: Buffer | null = null
       if (existsSync(path.join(dir, BOARD_ARCHIVE_FILE))) {
         board = readFileSync(path.join(dir, BOARD_ARCHIVE_FILE))
+        if (digest.state === 'named' && sha256(board.toString('utf8')) !== digest.digest) return refuse('integrity_mismatch')
         const b = readBoardArchive(board.toString('utf8'), m.digest, sha256)
         if (!b.ok) return refuse(b.why === 'corrupt' ? 'integrity_mismatch' : 'invalid_archive')
-      }
-      return { ok: true, files: { manifest, journal, companion: companionRaw, board }, m, companion }
+      } else if (digest.state === 'named') return refuse(BOARD_MISSING)
+      const boardDigest = digest.state === 'named' ? Buffer.from(`${digest.digest}\n`, 'utf8') : null
+      return { ok: true, files: { manifest, journal, companion: companionRaw, board, boardDigest }, m, companion }
     } catch (e) {
       // Not silence: an unreadable or refused file is its reason code, never a quoted path or byte.
       return refuse(existsSync(dir) ? codeOf(e) : 'not_found')
@@ -180,6 +188,7 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
       writePrivate(path.join(copy, JOURNAL), read.files.journal)
       if (companion && read.files.companion) writePrivate(path.join(copy, COMPANION), read.files.companion)
       if (read.files.board) writePrivate(path.join(copy, BOARD_ARCHIVE_FILE), read.files.board)
+      if (read.files.boardDigest) writePrivate(path.join(copy, BOARD_DIGEST_FILE), read.files.boardDigest)
     } catch {
       // Not silence: nothing was sent and no operation was recorded, so there is nothing to check.
       try { if (lstatSync(copy).isDirectory()) rmSync(copy, { recursive: true, force: true }) } catch { /* no copy was made */ }
@@ -237,12 +246,20 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
     if (op.stage === 'board') {
       // The board's texts (ADR-0149 §6), after the private import, which requires the restored Estate untouched: a refusal leaves the restored Estate usable with its messages' events and
       // without their texts, and says so; a lost reply repeats, because the database refuses a second history.
-      if (!existsSync(path.join(op.dir, BOARD_ARCHIVE_FILE))) op.board_history = 'missing'
-      else {
+      // The operation's own copy carries the digest too (DA-1): a board file gone from it since the restore began is
+      // refused with the operation kept at this stage, so Check again repeats it once the file is back.
+      const digest = readBoardDigestFile(() => readFileSync(path.join(op.dir, BOARD_DIGEST_FILE), 'utf8'))
+      if (digest.state === 'corrupt') op.board_history = 'integrity_mismatch'
+      else if (!existsSync(path.join(op.dir, BOARD_ARCHIVE_FILE))) {
+        if (digest.state === 'named') return refuse(BOARD_MISSING, 'refused', op.operation_id)
+        op.board_history = 'missing'
+      } else {
         const text = readOpFile(op, BOARD_ARCHIVE_FILE); if (!text.ok) return text
         const manifestText = readOpFile(op, MANIFEST); if (!manifestText.ok) return manifestText
         const manifest = parsed(op, manifestText.text); if (!manifest.ok) return manifest
-        const b = readBoardArchive(text.text, String(manifest.value.digest), sha256)
+        const b = digest.state === 'named' && sha256(text.text) !== digest.digest
+          ? { ok: false as const, why: 'corrupt' as const }
+          : readBoardArchive(text.text, String(manifest.value.digest), sha256)
         if (!b.ok) op.board_history = b.why === 'corrupt' ? 'integrity_mismatch' : 'invalid_archive'
         else {
           // Its own codes (not the archive's): `already_restored` after a lost reply means the first call landed.

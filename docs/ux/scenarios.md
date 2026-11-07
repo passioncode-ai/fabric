@@ -4486,22 +4486,22 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Feature:** Task
 - **Traces:** ST-037, SCR-32, SCR-41 (JTBD-02)
 - **Entry point:** a card in «Нужны вы» on Главная; a review on the Board; a task page in review
-- **Preconditions:** an agent moved a task to review (an agent never closes its own task, `ladder.ts#mayMove`)
+- **Preconditions:** a task is in review, moved there by an agent (an agent never closes its own task, `ladder.ts#mayMove`), by the person, or by Fabric's sweep
 - **Steps:**
-  1. Person reads a review in «Нужны вы» -> the card says what the agent handed in, in its own words (the note of its newest move to review), who and when, and the three answers at once: «Принять», «Вернуть в работу», «Отменить задачу», with a field «Комментарий агенту».
+  1. Person reads a review in «Нужны вы» -> the card says what was handed in, in the words of whoever moved it to review (the note of its newest move: «Агент сдал работу…», «Вы сдали работу…» or «Fabric сдал работу…»), who and when, and the three answers at once: «Принять», «Вернуть в работу», «Отменить задачу», with a field «Комментарий агенту».
   2. Person presses «Принять» -> the task is done; a comment, when written, stays on the task as the person's note.
   3. Person writes what to change and presses «Вернуть в работу» -> the task goes back through running to the project's queue with the comment as the moves' note and the person's note; the project's agents meet it first in `fabric_work_list`'s `open_tasks`, with `operator_said`.
   4. Person writes why and presses «Отменить задачу» -> the task is cancelled with that reason.
-  5. Person opens the task instead -> the page starts with the same card; a task in review says nothing about a run that never was or a spec still to gather.
+  5. Person opens the task instead (the card's title on Главная, «Открыть» on the Board) -> the page starts with the same card; a task in review says nothing about a run that never was or a spec still to gather.
 - **Expected result:** the person sees what is asked and answers it in one place, and the agent reads the person's words with the task.
-- **Alt paths:** the agent wrote nothing -> «Агент не написал, что сделал…» and the same answers; returning or cancelling without a comment -> the field asks for it and nothing is sent; the task left review meanwhile -> «Не записано: the task is no longer in review (…)».
+- **Alt paths:** the agent wrote nothing -> «Агент не написал, что сделал…» and the same answers, pointing to the history below on the task page and to opening the task elsewhere; the person moved it without a note -> «Вы перевели задачу на проверку без записи…»; returning or cancelling without a comment -> the field asks for it and nothing is sent; the task left review meanwhile -> «Не записано: the task is no longer in review (…)».
 - **UI elements:** the agent's words; «Принять», «Вернуть в работу», «Отменить задачу»; «Комментарий агенту»; the answer said once recorded.
 - **States covered:** waiting, sending, refused with its reason, recorded.
 - **Errors & recovery:** a refusal keeps the comment and the buttons; a hand-in note that cannot be read leaves the review in the list without its words.
 - **Design rationale:** the operator, 2026-11-06, on a review page that said «Запуска ещё не было» and «Спецификация не собрана»: what exactly is wanted, a text, quick choices on the right and a field whose comment the agent takes into account. 228 tasks were in review in 25 projects that day, 166 of them for over a week (CO-521).
 - **Telemetry:** planned only.
 - **Status:** implemented (2026-11-06)
-- **Coverage:** `apps/desktop/src/shared/reviewDecision.ts`, `apps/desktop/src/renderer/src/launch/ReviewDecision.tsx`, `apps/desktop/src/renderer/src/TaskPage.tsx#TaskPage`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx#NeedsYouCard`, `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/main/index.ts` (`tasks:decide`, the board's hand-in read), `apps/desktop/src/main/workTools.ts` (`operator_said`); tests `reviewDecision.test.ts`, `TaskPage.test.tsx` «SCN-179», `HomeParts.test.tsx` «SCN-179», `attention.test.ts` «SCN-179», `apps/desktop/test/abandoned-sweep-run.test.mjs` «returned from review»
+- **Coverage:** `apps/desktop/src/shared/reviewDecision.ts`, `apps/desktop/src/renderer/src/launch/ReviewDecision.tsx`, `apps/desktop/src/renderer/src/TaskPage.tsx#TaskPage`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx#NeedsYouCard`, `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/main/index.ts` (`tasks:decide`, the board's hand-in read), `apps/desktop/src/main/workTools.ts` (`operator_said`); tests `reviewDecision.test.ts`, `ReviewDecision.test.tsx`, `BoardScreen.test.tsx` «a review on the Board is decided there and still opens its task», `TaskPage.test.tsx` «SCN-179», `HomeParts.test.tsx` «SCN-179», `attention.test.ts` «SCN-179», `apps/desktop/test/abandoned-sweep-run.test.mjs` «returned from review»
 - **Product:** unobserved
 
 ### SCN-180: Fabric keeps every coding session in view and coordinates conflicting work

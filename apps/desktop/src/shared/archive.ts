@@ -323,6 +323,21 @@ export const BOARD_ARCHIVE_FILE = 'board.json'
  *  before board history travelled. */
 export const BOARD_DIGEST_FILE = 'board.sha256'
 
+/** What `board.sha256` says: absent (an archive from before it was recorded), the digest it names, or corrupt: present
+ *  but unreadable or not 64 hex digits, which is never read as absent (the 0.3.17 release review, iteration 2, DA-2).
+ *  `read` returns the file's text and throws when it cannot; ENOENT is the only absent. */
+export type BoardDigest = { state: 'absent' } | { state: 'named'; digest: string } | { state: 'corrupt' }
+export function readBoardDigestFile(read: () => string): BoardDigest {
+  let text: string
+  try { text = read() }
+  catch (e) {
+    // Not silence: only a file that is not there is an archive from before the digest; any other failure is said.
+    return (e as { code?: string }).code === 'ENOENT' ? { state: 'absent' } : { state: 'corrupt' }
+  }
+  const digest = text.trim()
+  return /^[0-9a-f]{64}$/.test(digest) ? { state: 'named', digest } : { state: 'corrupt' }
+}
+
 /**
  * `board.json` is `{schema, archiveDigest, digest, history}`: `archiveDigest` binds it to the one archive whose
  * manifest has that digest (a board file moved between archives is refused), and `digest` is the SHA-256 of the

@@ -75,6 +75,11 @@ test('board.json is written beside the journal, bound to its manifest, and refus
     }
     writeFileSync(nodePath.join(dir, 'board.json'), original)
     assert.equal(b.verify(dir).ok, true)
+    // The 0.3.17 release review, iteration 2, DA-2: a board.sha256 that is there but says no digest is corrupt, never absent.
+    const sidecar = readFileSync(nodePath.join(dir, 'board.sha256'), 'utf8')
+    writeFileSync(nodePath.join(dir, 'board.sha256'), 'not a digest\n')
+    assert.equal(b.verify(dir).why, 'corrupt', 'a damaged board.sha256 read as an archive from before the digest')
+    writeFileSync(nodePath.join(dir, 'board.sha256'), sidecar)
     unlinkSync(nodePath.join(dir, 'board.json'))
     const lost = b.verify(dir)
     assert.equal(lost.why, 'truncated')

@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "bc21883d67b84144d854e3c2b1a8f9f189c90bc2",
+  "report": "docs/evidence/reviews/0.3.17/iteration-2/2026-11-07-data.md",
+  "reportSha256": "ec7bf7fe6f799c12e58844dcce41fc0c9eff6d0475b759353c9269f4bcbdfc08",
+  "reviewerRun": "release-0317-i2-data-20261107",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V2-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `privateHistory` reads `board.sha256` before any write, refuses a lost board file `board_missing` (named, with the file to copy back) and a different one `integrity_mismatch`, copies the digest into its operation and checks it again at the board stage (`main/privateHistory.ts#createPrivateHistory`, `PrivateHistoryPanel.tsx`, `history.reason.board_missing`); tests `private-history-service.test.mjs` (lost, different, damaged, and a file gone from the operation's copy) and `PrivateHistoryPanel.test.tsx`, watched failing on the candidate"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V2-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `shared/archive.ts#readBoardDigestFile` answers absent only on ENOENT, a malformed or unreadable file is corrupt; test `backup-paging.test.mjs`, watched failing on the candidate"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V2-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-315's resolution describes `board.sha256` (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`)"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V2-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V2-9"
+      ]
+    }
+  ]
+}

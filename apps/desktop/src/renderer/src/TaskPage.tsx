@@ -273,7 +273,7 @@ export function TaskPage({
           <CrossProjectConsole project={project} taskId={taskId} taskTitle={task.title ?? task.instruction} />
         </aside>
         <div className="lp-agent-content">
-          {ask && <ReviewDecision taskId={taskId} ask={ask} onDecided={() => { void load(); void onChanged() }} />}
+          {ask && <ReviewDecision historyBelow taskId={taskId} ask={ask} onDecided={() => { void load(); void onChanged() }} />}
           <div className="lp-tabs" role="group" aria-label={t('launch.agent.tabs')}>
             {(['now', 'context', 'decisions', 'history', 'next'] as const).map((k) => (
               <button key={k} type="button" className="lp-tab" aria-pressed={tab === k} onClick={() => setTab(k)}>{t(`launch.agent.tab.${k}` as 'launch.agent.tab.now')}</button>

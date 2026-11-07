@@ -57,6 +57,11 @@ describe('SCR-48 restore into a fresh Estate', () => {
     fireEvent.click(screen.getByRole('button', { name: en['history.choose'] }))
     await screen.findByText(fill(en['history.refused'], { reason: en['history.reason.integrity_mismatch'] }))
   })
+  it('an archive whose board file is lost names the file to copy back (CO-315, the 0.3.17 review, DA-1)', async () => {
+    stub({ choose: vi.fn(async () => ({ ok: false, state: 'refused', reason_code: 'board_missing' })) }); show()
+    fireEvent.click(screen.getByRole('button', { name: en['history.choose'] }))
+    await screen.findByText(fill(en['history.refused'], { reason: en['history.reason.board_missing'] }))
+  })
   it('someone else\'s private history is announced as not imported', async () => {
     stub({ choose: vi.fn(async () => archive(false)) }); show()
     fireEvent.click(screen.getByRole('button', { name: en['history.choose'] }))

@@ -17,7 +17,8 @@ export function ReviewDecision({
   taskId,
   ask,
   onDecided,
-  compact = false
+  compact = false,
+  historyBelow = false
 }: {
   taskId: string
   ask: ReviewAsk
@@ -25,6 +26,9 @@ export function ReviewDecision({
   onDecided: (decision: Decision) => void
   /** In a list row: the agent's words shortened to three lines. */
   compact?: boolean
+  /** On the task page, whose history follows the card; elsewhere a missing note sends the person to open the task
+   *  (the 0.3.17 release review, iteration 2, UX-2). */
+  historyBelow?: boolean
 }): React.JSX.Element {
   const t = useT()
   const [comment, setComment] = useState('')
@@ -59,7 +63,7 @@ export function ReviewDecision({
         <p className="lp-meta">{t(`review.handedIn.${ask.by}` as 'review.handedIn.agent', { when: since(ask.at, t) })}</p>
         {ask.said
           ? <blockquote className={compact ? 'rd-said rd-clamp' : 'rd-said'}>{ask.said}</blockquote>
-          : <p className="rd-said rd-none">{t(ask.by === 'person' ? 'review.saidNothingPerson' : 'review.saidNothing')}</p>}
+          : <p className="rd-said rd-none">{t(ask.by === 'person' ? (historyBelow ? 'review.saidNothingPerson' : 'review.saidNothingPersonOpen') : (historyBelow ? 'review.saidNothing' : 'review.saidNothingOpen'))}</p>}
         <p className="lp-meta">{t('review.question')}</p>
       </div>
       <div className="rd-answer">

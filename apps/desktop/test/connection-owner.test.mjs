@@ -135,11 +135,17 @@ test('the 0.3.17 review, ER-2: a request refused before its head left is reporte
 
 test('CO-532 (DEC-0155 RT-1): with nothing among this account\'s descriptors the table is read: another process\'s row names its owner, a header-only or failing table is table-restricted', async () => {
   const { serverEndPidsFromNetstat } = await import(src('listenerOwner.ts'))
-  const header = 'Active Internet connections (including servers)\nProto Recv-Q Send-Q  Local Address          Foreign Address        (state)      rhiwat shiwat process:pid state options\n'
-  const row = 'tcp4       0      0  127.0.0.1.47070        127.0.0.1.53211        ESTABLISHED  131072 131072 Fabric:777 00000 00000006\n'
-  const client = 'tcp4       0      0  127.0.0.1.53211        127.0.0.1.47070        ESTABLISHED  131072 131072 node:888 00000 00000006\n'
+  // Captured on macOS 26 (`netstat -anv -p tcp`), the ports and pids replaced.
+  const header = 'Active Internet connections (including servers)\nProto Recv-Q Send-Q  Local Address                                 Foreign Address                               (state)          rxbytes      txbytes  rhiwat  shiwat          process:pid    state  options           gencnt    flags   flags1 usecnt rtncnt fltrs\n'
+  const at = (local, remote, proc) => `tcp4       0      0  127.0.0.1.${local}        127.0.0.1.${remote}        ESTABLISHED            0            0  408300  146988           ${proc}  00002 00000000 000000001217af8f 00000080 01000800      2      0 000000\n`
+  const row = at(47070, 53211, 'Fabric:777'), client = at(53211, 47070, 'node:888')
   assert.deepEqual(serverEndPidsFromNetstat(header + row + client, 47070, 53211), [777])
   assert.deepEqual(serverEndPidsFromNetstat(header + client, 47070, 53211), [])
+  // The 0.3.17 release review, iteration 2, ER-1: the process name is chosen by whoever holds the port, so a name
+  // `x:1 y` must not be read as pid 1; its own pid is the column's last `:digits`.
+  assert.deepEqual(serverEndPidsFromNetstat(header + at(47070, 53211, 'x:1 y:99325'), 47070, 53211), [99325])
+  // A row of another shape (a field missing after the column) names no pid.
+  assert.deepEqual(serverEndPidsFromNetstat(header + row.replace(' 000000\n', '\n'), 47070, 53211), [])
   const runs = (table, uid) => async (cmd) => cmd.endsWith('lsof') ? '' : cmd.endsWith('netstat') ? table : `  ${uid}\n`
   assert.deepEqual(await readConnectionOwner(47070, 53211, { platform: 'darwin', run: runs(header + row, 502) }), { uid: 502 })
   assert.match(ownerRefusal(await readConnectionOwner(47070, 53211, { platform: 'darwin', run: runs(header + row, 502) }), 501), /another account/)

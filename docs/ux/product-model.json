@@ -35651,7 +35651,7 @@
         "SCR-32",
         "SCR-41"
       ],
-      "coverage": "`apps/desktop/src/shared/reviewDecision.ts`, `apps/desktop/src/renderer/src/launch/ReviewDecision.tsx`, `apps/desktop/src/renderer/src/TaskPage.tsx#TaskPage`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx#NeedsYouCard`, `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/main/index.ts` (`tasks:decide`, the board's hand-in read), `apps/desktop/src/main/workTools.ts` (`operator_said`); tests `reviewDecision.test.ts`, `TaskPage.test.tsx` «SCN-179», `HomeParts.test.tsx` «SCN-179», `attention.test.ts` «SCN-179», `apps/desktop/test/abandoned-sweep-run.test.mjs` «returned from review»",
+      "coverage": "`apps/desktop/src/shared/reviewDecision.ts`, `apps/desktop/src/renderer/src/launch/ReviewDecision.tsx`, `apps/desktop/src/renderer/src/TaskPage.tsx#TaskPage`, `apps/desktop/src/renderer/src/launch/HomeParts.tsx#NeedsYouCard`, `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/main/index.ts` (`tasks:decide`, the board's hand-in read), `apps/desktop/src/main/workTools.ts` (`operator_said`); tests `reviewDecision.test.ts`, `ReviewDecision.test.tsx`, `BoardScreen.test.tsx` «a review on the Board is decided there and still opens its task», `TaskPage.test.tsx` «SCN-179», `HomeParts.test.tsx` «SCN-179», `attention.test.ts` «SCN-179», `apps/desktop/test/abandoned-sweep-run.test.mjs` «returned from review»",
       "registry_status": "implemented (2026-11-06)",
       "product_observation": "unobserved",
       "expected_result": "the person sees what is asked and answers it in one place, and the agent reads the person's words with the task.",

@@ -15,7 +15,7 @@ type RestoreView =
 /** Opening is its own state beside the restore's (A3-005): a failed Open used to replace the restored result. */
 type OpenView = { kind: 'idle' } | { kind: 'opening'; estateId: string } | { kind: 'failed'; estateId: string; reason: string }
 
-const REASONS = ['invalid_json', 'too_large', 'invalid_archive', 'integrity_mismatch', 'unsupported_schema', 'archive_stale', 'idempotency_conflict', 'not_found', 'unavailable',
+const REASONS = ['invalid_json', 'too_large', 'invalid_archive', 'integrity_mismatch', 'unsupported_schema', 'archive_stale', 'idempotency_conflict', 'not_found', 'unavailable', 'board_missing',
   'not_your_history'] as const
 const OPEN_REASONS = ['not_restored_here', 'write_failed', 'unavailable'] as const
 

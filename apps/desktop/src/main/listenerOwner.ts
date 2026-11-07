@@ -211,16 +211,19 @@ export function serverEndUidsFromLsof(text: string, hubPort: number, clientPort:
 /**
  * `netstat -anv -p tcp` on macOS: the pids of the process column (`name:pid`) on the ESTABLISHED row whose local end is
  * `127.0.0.1.<hub>` and remote `127.0.0.1.<client>` (DEC-0155 RT-1, CO-532). A header-only or empty table gives none.
+ * The column's name is the executable's, chosen by whoever holds the port, and may hold spaces and colons (the 0.3.17
+ * release review, iteration 2, ER-1: a name `x:<pid> y` read as that pid). So the column is cut by position: ten fields
+ * before it, eight after it (state, options, gencnt, flags, flags1, usecnt, rtncnt, fltrs), and its pid is the LAST
+ * `:digits` of the whole column; a row of any other shape gives no pid, and so `table-restricted`.
  */
 export function serverEndPidsFromNetstat(text: string, hubPort: number, clientPort: number): number[] {
   const pids = new Set<number>()
   for (const line of text.split('\n')) {
     const f = line.trim().split(/\s+/)
     if (!/^tcp[46]?$/.test(f[0] ?? '') || f[3] !== `127.0.0.1.${hubPort}` || f[4] !== `127.0.0.1.${clientPort}` || f[5] !== 'ESTABLISHED') continue
-    for (const field of f.slice(6)) {
-      const m = /:(\d+)$/.exec(field)
-      if (m) { pids.add(Number(m[1])); break }
-    }
+    if (f.length < 19 || !f.slice(6, 10).every((x) => /^\d+$/.test(x)) || !f.slice(-8).every((x) => /^[0-9a-f]+$/.test(x))) continue
+    const m = /:(\d+)$/.exec(f.slice(10, -8).join(' '))
+    if (m) pids.add(Number(m[1]))
   }
   return [...pids]
 }

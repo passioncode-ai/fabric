@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "bc21883d67b84144d854e3c2b1a8f9f189c90bc2",
+  "report": "docs/evidence/reviews/0.3.17/iteration-2/2026-11-07-errors.md",
+  "reportSha256": "ce7c7ab4e9174ecd73f7ec263f9dc4cc57fc4a268e175ec1a60abbc32adb01cd",
+  "reviewerRun": "release-0317-i2-errors-20261107",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V2-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the process column is cut by position (ten fields before, eight after) and its pid is the column's last `:digits`; any other shape names no pid (`main/listenerOwner.ts#serverEndPidsFromNetstat`); test `connection-owner.test.mjs` «CO-532 (DEC-0155 RT-1)» with a captured row and a name `x:1 y`, watched failing on the candidate"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V2-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V2-14"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V2-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-364's step-3 note (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`)"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V2-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `classifyFailure` reads the socket code on the error itself too (`main/fabricMcp.ts#classifyFailure`); test `fabric-mcp.test.mjs` «classifyFailure», watched failing on the candidate"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V2-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-364 (step 3)"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V2-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V2-15"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V2-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533 (the manager is not wired yet, CO-522 wave D)"
+      ]
+    }
+  ]
+}

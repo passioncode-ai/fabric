@@ -26,7 +26,7 @@ import { detailOf, titleOf } from '../attentionTitle'
 import { FabricStrip } from './FabricStrip'
 import { FailureNote, MachineDetail } from '../OperatorError'
 import { KanbanBoard } from './KanbanBoard'
-import { ObligationActs, useProposalDecisions } from './ObligationActs'
+import { ObligationActs, opensAt, useProposalDecisions } from './ObligationActs'
 import { askerOf } from './HomeParts'
 
 /** «Актуальное» is the person's part, the same reading as the home's «Нужны вы»: what blocks an agent until the person
@@ -402,7 +402,13 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                   <OverlapDecision itemKey={chosen.entry.swept.key} />
                 ) : chosen.entry.kind === 'review' && chosen.entry.handedIn && chosen.entry.subject.kind === 'task' ? (
                   // SCN-179 (CO-521): a review is decided here, with the agent's words and a comment for it.
-                  <ReviewDecision taskId={chosen.entry.subject.id} ask={chosen.entry.handedIn} onDecided={() => { void reload.current() }} />
+                  // The 0.3.17 release review, iteration 2, UX-2: the task stays one click away, as it was in 0.3.16.
+                  <>
+                    <ReviewDecision taskId={chosen.entry.subject.id} ask={chosen.entry.handedIn} onDecided={() => { void reload.current() }} />
+                    {(() => { const at = opensAt(chosen.entry); return at && (
+                      <div className="lp-actions"><button type="button" className="lp-button" onClick={() => onOpen(at.projectId, at.focus)}>{t('ceo.openIt')}</button></div>
+                    ) })()}
+                  </>
                 ) : chosen.entry.question ? (
                   <AnswerForm
                     look="launch"

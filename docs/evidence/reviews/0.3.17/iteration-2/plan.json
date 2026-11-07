@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "bc21883d67b84144d854e3c2b1a8f9f189c90bc2",
+  "report": "docs/evidence/reviews/0.3.17/iteration-2/2026-11-07-plan.md",
+  "reportSha256": "db70a80e44d1cad3c5600a973e19644e08779aadcdc4474907a138f0d8533203",
+  "reviewerRun": "release-0317-i2-plan-20261107",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V2-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V2-19; *Protocol* owes a full-tier run on the iteration-3 candidate"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V2-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V2-9"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V2-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Owed in 0.3.17's Release close*"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V2-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Closing checklist* and *Release close*"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V2-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Release close* restates the chain and its owner"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V2-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-535 in lane 2 (`docs/evidence/backlog.md`); step 10's route in *Release close*"
+      ]
+    }
+  ]
+}

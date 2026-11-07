@@ -18,6 +18,8 @@ the operator's word) and install it on the operator's Mac. Promised there: 0.3.1
   or stopped.
 - Machine load on 2026-11-07 ran from 55 to 260 on 14 cores; a timing test that fails under that load and passes alone
   is recorded as such, never as a pass, and the hosted CI on the candidate is the tier's verdict.
+- The push run of `ci` runs the fast tier only. The iteration-3 candidate also gets the full tier (a `workflow_dispatch`
+  of `ci`, or `scripts/ci.sh full` on a disposable stack), its result recorded in *Iteration 3* (iteration 2, PL-1).
 
 ## What 0.3.17 carries
 
@@ -41,7 +43,9 @@ Carried from 0.3.16's ledger (its *Owed in 0.3.16's Release close*), still open:
 - The person's look at the opened release (carried since 0.3.15).
 - A live run of the board dispatcher on this Mac: a request filed to a scratch project with no live session is
   answered by a started run, which ends; with the switch off nothing new starts. It needs fabric-agent-adapter 0.63 or
-  later and Switchboard 0.7.15 or later on this Mac.
+  later and Switchboard 0.7.15 or later on this Mac. This Mac has the adapter at 0.62.0: 0.63 reaches it through the
+  launcher 0.2.76, which waits for an analytics secret from the operator (thread `cb1df3d5`), a person's step; until
+  then the rollout leaves `dispatchBoardRequests` false (iteration 2, PL-5).
 - Forty agent sessions at once on this Mac: the home, the left column and Агенты stay responsive.
 - A live start of the local stack with the Docker engine stopped. Expected since CO-508: Colima starts and the docker
   context the person chose stays current (0.3.16 expected Colima's context to become current).
@@ -50,8 +54,16 @@ New for 0.3.17:
 
 - `node scripts/release-mac.mjs --check-only --tag v0.3.17` on the commit to be tagged reads green before the tag is
   pushed, its result written here.
+- The runbook's step 7 (the published DMG smoked on this Mac: `chat-activation-native`, `smoke-platform --mcp-only`,
+  `packaged-helpers`) and step 9 (the site's download redirects for macOS, Windows and Linux); a step not run is said
+  here with its reason (iteration 2, PL-3).
 - The runbook's step 10 (publish and pin the workspace from the release commit), with CO-535 (the scheduled
-  publication has failed since 2026-11-03), and step 11 (Fabric's rows in the knowledge base).
+  publication has failed since 2026-11-03), and step 11 (Fabric's rows in the knowledge base). If the scheduled sync
+  still fails, step 10 runs by hand from a clean `main`: `node scripts/workspace.mjs publish`, then
+  `node scripts/workspace.mjs check --require-child`; if that fails too, its output is recorded here and CO-535 stays
+  open (iteration 2, PL-6).
+- After the tag: P-31 marked released with the tag and the rollout date, and the Now line moved, on `main`
+  (`docs/evidence/backlog.md` cannot change after `verifiedCommit`; iteration 2, PL-4).
 - On the board: the tag and the install to request `fe51a4a6` (thread `c7c8ae82`); the dispatcher switch's state to
   thread `1add3c03`; CO-503's first read-back and CO-509's remainder to thread `f7758225`; CO-532 to thread `eefa7959`.
 
@@ -71,7 +83,9 @@ project's live check; CO-506 is now met).
 
 In the release commit, after `verifiedCommit` (the iteration-3 candidate): `version` 0.3.17 in
 `apps/desktop/package.json`, `## Unreleased` renamed `## 0.3.17`, and `docs/launch/release-gate.json` naming 0.3.17,
-this ledger, `verifiedCommit` and three iterations of five receipts.
+this ledger, `verifiedCommit` and three iterations of five receipts; `releaseMetadata` holding only 0.3.17's
+final-verifier reports, or empty; this ledger with one `## Iteration N` section per iteration, each naming its candidate
+in full and ending with its `Exit for iteration N` line (iteration 2, PL-4).
 
 ## Iteration 1
 
@@ -133,3 +147,46 @@ UX-1 = DO-1, PL-1 = DO-2, PL-2 = DO-3). Text checks of the new strings: reports 
 | V1-49 | DO-9 | non-blocking | CO-366 named applications on the operator's Mac | fixed: neutral words (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`, CO-366) |
 
 Exit for iteration 1: every finding has a disposition. Blocking findings open: none.
+
+## Iteration 2
+
+Candidate `bc21883d67b84144d854e3c2b1a8f9f189c90bc2` (hosted `ci` 42418488305, green; landed on `main` by
+fast-forward). Five reviewers, one per level; their reports and receipts are in
+`docs/evidence/reviews/0.3.17/iteration-2/`. 29 findings, 7 blocking (6 distinct: ER-2 = DA-1). Text checks of the
+strings changed in iteration 1 (`review.handedIn.*`, `review.saidNothingPerson`): reports `2871d195` (ru-RU) and
+`38b3e2e7` (en-US), run by the docs reviewer (DO-5); of the strings added here: `b526a92a` and `b5ecda96` (ru-RU),
+`e71d4446` and `9854b4fa` (en-US); no findings.
+
+| Finding | Level | Severity | What | Disposition |
+|---|---|---|---|---|
+| V2-1 | UX-1 | blocking | the launch-check bullet promised a check before every start and two reasons no caller can produce | fixed: the bullet says what ships (a project page's task form and console, the files both name for a new task) and names the starts without it (`CHANGELOG.md`) |
+| V2-2 | UX-2 | blocking | a review on the Board lost «Открыть» and pointed to a history the pane does not show | fixed: «Открыть» beside the review card on the Board; outside the task page the card says to open the task (`launch/BoardScreen.tsx`, `launch/ReviewDecision.tsx#ReviewDecision` `historyBelow`, `review.saidNothingOpen`, `review.saidNothingPersonOpen`); test `BoardScreen.test.tsx` «a review on the Board is decided there and still opens its task», watched failing on the candidate |
+| V2-3 | UX-3 | non-blocking | SCN-179 did not describe who handed the work in or the person's no-note line | fixed: SCN-179's preconditions, steps, alt paths and coverage (`docs/ux/scenarios.md`) |
+| V2-4 | UX-4 | non-blocking | «kept while Fabric runs» is wider than the bounds | fixed in the notes: the last 20 per session, at most 50 waiting lines (`CHANGELOG.md`); the page's lede ruled: CO-533 |
+| V2-5 | UX-5 | non-blocking | the credential bullet stated Windows as tried | fixed: «not yet tried on a Windows machine» (`CHANGELOG.md`) |
+| V2-6 | UX-6 | non-blocking | `com.accept` said to close a request; the agents-first rule unnamed | fixed: accepted before its effect, reported, closed with `com.complete`; whoami's bullet names the rule (`CHANGELOG.md`) |
+| V2-7 | ER-1 | blocking | the netstat fallback read a pid chosen through the process name, so another account's process could read as this one's | fixed: the process column is cut by position (ten fields before, eight after) and its pid is the column's last `:digits`; any other shape names no pid (`main/listenerOwner.ts#serverEndPidsFromNetstat`); test `connection-owner.test.mjs` «CO-532 (DEC-0155 RT-1)» with a captured row and a name `x:1 y`, watched failing on the candidate |
+| V2-8 | ER-2 | blocking | the person's restore never read `board.sha256` | fixed: as V2-14 |
+| V2-9 | ER-3 | non-blocking | CO-364 did not carry iteration 1's ER-12 and DA-7 | fixed: CO-364's step-3 note (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`) |
+| V2-10 | ER-4 | non-blocking | a connection never made reported as possibly run | fixed: `classifyFailure` reads the socket code on the error itself too (`main/fabricMcp.ts#classifyFailure`); test `fabric-mcp.test.mjs` «classifyFailure», watched failing on the candidate |
+| V2-11 | ER-5 | non-blocking | the schema step's dump does not stop on a failed write | ruled: CO-364 (step 3) |
+| V2-12 | ER-6 | non-blocking | a damaged `board.sha256` read as absent | fixed: as V2-15 |
+| V2-13 | ER-7 | non-blocking | the manager's `assign_across` mints a key per call | ruled: CO-533 (the manager is not wired yet, CO-522 wave D) |
+| V2-14 | DA-1 | blocking | the CO-315 claim held only in `createBackups`, which nothing calls; the person's restore ignored the digest | fixed: `privateHistory` reads `board.sha256` before any write, refuses a lost board file `board_missing` (named, with the file to copy back) and a different one `integrity_mismatch`, copies the digest into its operation and checks it again at the board stage (`main/privateHistory.ts#createPrivateHistory`, `PrivateHistoryPanel.tsx`, `history.reason.board_missing`); tests `private-history-service.test.mjs` (lost, different, damaged, and a file gone from the operation's copy) and `PrivateHistoryPanel.test.tsx`, watched failing on the candidate |
+| V2-15 | DA-2 | non-blocking | `readBoardDigest` read a damaged file as absent | fixed: `shared/archive.ts#readBoardDigestFile` answers absent only on ENOENT, a malformed or unreadable file is corrupt; test `backup-paging.test.mjs`, watched failing on the candidate |
+| V2-16 | DA-3 | non-blocking | CO-315's row still described the manifest field | fixed: CO-315's resolution describes `board.sha256` (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`) |
+| V2-17 | DA-4 | non-blocking | iteration 1's DA-7 ruling reached no row | fixed: as V2-9 |
+| V2-18 | DO-1 | blocking | as DA-3 | fixed: as V2-16 |
+| V2-19 | DO-2 | blocking | CO-514, the spec and the full-tier probe still said an untold caller is refused 403 | fixed: CO-514 and `2026-11-06-studio-spaces-gaps.md` amended, the comment in `main/agentSurface.ts`, and `test/agent-surface.test.mjs` expects 503 with Retry-After for `unverified` and 403 for `foreign`; it runs in the full tier on the iteration-3 candidate |
+| V2-20 | DO-3 | non-blocking | CO-528's settle window and macOS order out of date | fixed: CO-528 amended |
+| V2-21 | DO-4 | non-blocking | as UX-4 | fixed: as V2-4 |
+| V2-22 | DO-5 | non-blocking | the text checks did not cover iteration 1's changed strings | fixed: the reports named above |
+| V2-23 | DO-6 | non-blocking | CO-534's pointer to ADR-0190; CO-533's DO-5 note | fixed: both rows amended |
+| V2-24 | PL-1 | non-blocking | the full-tier probe asserts the old 403 and no full run covers a candidate | fixed: as V2-19; *Protocol* owes a full-tier run on the iteration-3 candidate |
+| V2-25 | PL-2 | non-blocking | as ER-3 | fixed: as V2-9 |
+| V2-26 | PL-3 | non-blocking | the runbook's steps 7 and 9 not owed | fixed: *Owed in 0.3.17's Release close* |
+| V2-27 | PL-4 | non-blocking | the checklist missed `releaseMetadata`, the iteration sections and P-31's close | fixed: *Closing checklist* and *Release close* |
+| V2-28 | PL-5 | non-blocking | the dispatcher item lost its human gate | fixed: *Release close* restates the chain and its owner |
+| V2-29 | PL-6 | non-blocking | CO-535 sat outside the release lane; step 10 had no manual route | fixed: CO-535 in lane 2 (`docs/evidence/backlog.md`); step 10's route in *Release close* |
+
+Exit for iteration 2: every finding has a disposition. Blocking findings open: none.

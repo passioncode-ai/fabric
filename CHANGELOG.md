@@ -13,28 +13,30 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 - **A task in review asks you one decision** (CO-521, SCN-179). On the task page, the «Нужны вы» card and the Board, a
   task in review shows what the agent said it did and three answers: «Принять», «Вернуть в работу» with a comment for
-  the agent, and «Отменить задачу» with a reason.
-- **Before a task or a console starts, Fabric says who already works in the project** (CO-522, SCN-180). The note names
-  the sessions holding work there and what the start runs into (the same task, the same backlog row, paths both name),
-  with «Всё равно запустить» and «Подождать».
+  the agent, and «Отменить задачу» with a reason. On the Board the card keeps «Открыть» to the task.
+- **Before a task or a console starts on a project page, Fabric says who already works in the project** (CO-522,
+  SCN-180). The note names the sessions holding work there and, for a new task, the files both name, with «Всё равно
+  запустить» and «Подождать». A console opened from another project's task and the first-run agent paths start without
+  it for now.
 - **Two sessions on the same work become one decision for you** (CO-522). An overlap that stands fifteen minutes shows
   on the home and the Board with three choices: the second waits, it hands over to the first, or both go on split; both
   sessions are told.
 - **«Написать агенту» on an agent's page** (CO-522). Your words reach that session on its next turn, wherever it was
-  started, and each line says when it was read. They are kept while Fabric runs: words not yet read are lost if Fabric
-  quits.
+  started, and each line says when it was read. They are kept in memory while Fabric runs, up to the last 20 per
+  session, and a session's queue holds at most 50 waiting lines: words not yet read are lost if Fabric quits.
 - **A credential goes only to a hub this account runs** (CO-514, CO-528, CO-532; fabric-agent-contract DEC-0154, CT-254
   and DEC-0155, tags v0.1.0+2026-11-07.3 and .5). Before a token leaves, fabric-mcp reads who holds the hub's end of the
   very connection it opened, with no cache; on a computer with several accounts a port held by another account, or one
   whose owner cannot be seen, gets nothing. The hub answers a caller whose account it cannot tell with a wait, not a
-  refusal, so a slow read never costs an agent its credential. On macOS, Linux and Windows.
+  refusal, so a slow read never costs an agent its credential. On macOS and Linux; the Windows path is built and
+  tested on captured output, not yet tried on a Windows machine.
 - **The board rule, as the contract's DEC-0152 released it** (CO-530, CO-517, CO-525, FAA-231; tag
   v0.1.0+2026-11-07.4). A session reads the request's responder slot first. A slot a live service holds is left alone,
   and nobody is asked. A slot that is stale, or absent at a later generation, gets no reply, and the session asks you
   with `fabric_question_ask`. A slot no service ever held gets one reply that the request cannot be taken now, why and
-  what lifts it, and the session asks you too. A request it holds is reported with `com.progress` and closed with
-  `com.accept`, then `com.complete`; a state is a reply to an announcement or a question, never the answer to a
-  request.
+  what lifts it, and the session asks you too. A request it holds is accepted with `com.accept` before its effect
+  begins, reported with `com.progress` and closed with `com.complete`; a state is a reply to an announcement or a
+  question, never the answer to a request.
 - **Answering your own project's requests is granted at once** (CO-506, ADR-0190). A session's `com.enroll` gets its
   own project's grant with no question; a grant for another project asked through the hub waits for you in Agent
   access.
@@ -43,7 +45,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   never allows a product (that consent and key stay yours) or a request its own credential asked.
 - **An agent can add or remove a folder of its project** (CO-489) with `fabric_project_folder_attach` and
   `fabric_project_folder_detach`, under the same checks as the project page.
-- **`fabric_whoami` names this machine's agents** (CO-526), so a session knows who else works here.
+- **`fabric_whoami` names this machine's agents and services and what each does** (CO-526), and a session is told to
+  use the one that owns a job before doing it itself.
 - **A board request a session files wakes the dispatcher at once** (CO-409): it starts on the request when its
   two-minute grace ends, not on the next minute's cycle; requests filed elsewhere are found by the cycle as before. A run
   whose process exited with an error is taken back as a crash, a run still going five minutes past its deadline is
@@ -60,7 +63,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - **Starting the stack no longer changes your Docker context** (CO-508): Fabric starts Colima with
   `--activate=false`. Lines written before the operations log opened are kept and written once it does.
 - **A backup whose board file is missing says so** (CO-315): the board file's digest is written beside it
-  (`board.sha256`), and a restore refuses an archive whose board file is gone or differs, naming the file.
+  (`board.sha256`), and restoring private history refuses an archive whose board file is gone or differs, or whose
+  `board.sha256` is damaged, before anything is written; a missing file is named, so it can be copied back.
 - **On Windows fabric-mcp names the agent's own process** (CO-378), not the `cmd.exe` that started it, so the session
   hooks' turns after `/clear` reach the same session. Not yet tried on a Windows machine.
 

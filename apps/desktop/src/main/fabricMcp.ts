@@ -265,8 +265,10 @@ export function classifyFailure(e: unknown): CallFailure {
   }
   // Refused before any tool ran, and the bearer or the session is gone.
   if (typeof err?.code === 'number' && [401, 403, 404].includes(err.code)) return { drop: true, mayHaveRun: false }
-  // fetch's TypeError: a connection that was never made sent nothing.
-  if (typeof err?.cause?.code === 'string' && NOT_CONNECTED.has(err.cause.code)) return { drop: true, mayHaveRun: false }
+  // fetch's TypeError, or the raw socket error `checkedFetch` rejects with (the 0.3.17 review, iteration 2, ER-4): a
+  // connection that was never made sent nothing.
+  const socketCode = typeof err?.cause?.code === 'string' ? err.cause.code : typeof err?.code === 'string' ? err.code : null
+  if (socketCode !== null && NOT_CONNECTED.has(socketCode)) return { drop: true, mayHaveRun: false }
   return { drop: true, mayHaveRun: true }
 }
 // #endregion fabric-mcp-failures

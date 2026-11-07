@@ -375,6 +375,9 @@ test('classifyFailure: what drops the session and what may have run', () => {
   assert.deepEqual(classifyFailure(Object.assign(new Error('x'), { code: 404 })), { drop: true, mayHaveRun: false })
   assert.deepEqual(classifyFailure(Object.assign(new Error('x'), { code: 500 })), { drop: true, mayHaveRun: true })
   assert.deepEqual(classifyFailure(Object.assign(new TypeError('fetch failed'), { cause: { code: 'ECONNREFUSED' } })), { drop: true, mayHaveRun: false })
+  // The 0.3.17 review, iteration 2, ER-4: checkedFetch rejects with the raw socket error, whose code is on the error itself.
+  assert.deepEqual(classifyFailure(Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:47070'), { code: 'ECONNREFUSED' })), { drop: true, mayHaveRun: false })
+  assert.deepEqual(classifyFailure(Object.assign(new Error('read ECONNRESET'), { code: 'ECONNRESET' })), { drop: true, mayHaveRun: true })
 })
 
 test('a folder that is no project backs off — half a minute — until the agent calls fabric_whoami', async () => {

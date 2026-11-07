@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "bc21883d67b84144d854e3c2b1a8f9f189c90bc2",
+  "report": "docs/evidence/reviews/0.3.17/iteration-2/2026-11-07-ux.md",
+  "reportSha256": "d908628a388c7a02cf19d57191367005d01eb7259ddf89a105076bfb1a8fb33c",
+  "reviewerRun": "release-0317-i2-ux-20261107",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V2-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the bullet says what ships (a project page's task form and console, the files both name for a new task) and names the starts without it (`CHANGELOG.md`)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V2-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Открыть» beside the review card on the Board; outside the task page the card says to open the task (`launch/BoardScreen.tsx`, `launch/ReviewDecision.tsx#ReviewDecision` `historyBelow`, `review.saidNothingOpen`, `review.saidNothingPersonOpen`); test `BoardScreen.test.tsx` «a review on the Board is decided there and still opens its task», watched failing on the candidate"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V2-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-179's preconditions, steps, alt paths and coverage (`docs/ux/scenarios.md`)"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V2-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the notes: the last 20 per session, at most 50 waiting lines (`CHANGELOG.md`); the page's lede ruled: CO-533"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V2-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «not yet tried on a Windows machine» (`CHANGELOG.md`)"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V2-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: accepted before its effect, reported, closed with `com.complete`; whoami's bullet names the rule (`CHANGELOG.md`)"
+      ]
+    }
+  ]
+}

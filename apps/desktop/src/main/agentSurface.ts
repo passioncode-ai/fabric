@@ -903,7 +903,7 @@ export class AgentSurface {
       return
     }
     // CO-514 (DEC-0154 HA-2 (b), HA-3): on a computer several people use, a process of another account is refused
-    // before anything of its request is read; one whose account cannot be told is refused too.
+    // before anything of its request is read; one whose account cannot be told is answered with a wait.
     if (this.deps.peerAccount) {
       const verdict = await this.deps.peerAccount(req.socket)
       if (verdict === 'foreign' || verdict === 'unverified') {

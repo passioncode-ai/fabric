@@ -862,6 +862,18 @@ describe('«To review» (0.3.12 review, iteration 2)', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: en['launch.board.tab.reviewCount'].replace('{count}', '3') })).toBeTruthy())
   })
 
+  // The 0.3.17 release review, iteration 2, UX-2: a review decided on the Board keeps «Open» to its task, as in 0.3.16, and its
+  // card sends the person to open the task rather than to a history this pane does not show.
+  it('a review on the Board is decided there and still opens its task', async () => {
+    const review = item({ kind: 'review', ref: { kind: 'task', id: 't-r' }, title: 'Review t-r', proposal: undefined, handedIn: { said: null, by: 'agent', at: STAMP } } as Partial<AttentionItem>)
+    install(vi.fn(async () => boardWith([], [review])) as unknown as () => Promise<unknown>)
+    const { onOpen } = render_()
+    await openRow('Review t-r')
+    expect(await screen.findByText(en['review.saidNothingOpen'])).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['ceo.openIt'] }))
+    expect(onOpen).toHaveBeenCalledWith('p1', { kind: 'task', id: 't-r' })
+  })
+
   // 0.3.12 review, iteration 3, ER-2: on «All» a source the whole board's read failed was dropped because the person's read
   // answered a source of the same name, and the tab said «Nothing in this section» as a measurement.
   it('on «All», a source the whole board\'s read did not answer is said, even when the person\'s read answered it', async () => {

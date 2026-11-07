@@ -163,6 +163,30 @@ try {
       assert.deepEqual([refused.ok, refused.reason_code], [false, 'integrity_mismatch'])
       assert.deepEqual(t.calls, [], 'a tampered board file reached the database')
     }
+    // CO-315, the 0.3.17 release review, iteration 2, DA-1: board.sha256 beside the board file says it was written, so the
+    // person's restore refuses an archive whose board file is lost, different, or whose digest file is damaged, before any write.
+    const withDigest = (dir, text = null) => { const board = path.join(dir, 'board.json'); writeFileSync(path.join(dir, 'board.sha256'), text ?? `${sha(readFileSync(board, 'utf8'))}\n`); return dir }
+    const lostBoard = withDigest(withBoard()); unlinkSync(path.join(lostBoard, 'board.json'))
+    const forged = withDigest(withBoard()); writeFileSync(path.join(forged, 'board.json'), boardArchiveText({ schema: 'FabricBoardHistory@1', threads: [{ id: 'forged' }], messages: [], outcomes: [] }, JSON.parse(readFileSync(path.join(forged, 'manifest.json'), 'utf8')).digest, sha))
+    for (const [dir, code, why] of [[lostBoard, 'board_missing', 'a lost board file'], [forged, 'integrity_mismatch', 'another board file bound to the archive'], [withDigest(withBoard(), 'not a digest\n'), 'integrity_mismatch', 'a damaged board.sha256']]) {
+      const t = service()
+      const refused = await t.history.restore(dir, 'Board checked')
+      assert.deepEqual([refused.ok, refused.reason_code], [false, code], why)
+      assert.deepEqual(t.calls, [], `${why} reached the database`)
+    }
+    const kept = service()
+    const ok = await kept.history.restore(withDigest(withBoard()), 'With its digest')
+    assert.equal(ok.board_history, 'restored', 'an archive whose board file matches its digest restores its texts')
+    // The operation's own copy carries the digest: a board file gone from it after the restore began is refused with the
+    // operation kept, never finished as an archive without board history.
+    const later = service({ answers: { restore_estate_verified: ['lost'] } })
+    const pending = await later.history.restore(withDigest(withBoard()), 'Lost later')
+    assert.equal(pending.state, 'result_unknown')
+    const copy = path.join(later.root, 'private-history', 'operations', `${pending.operation_id}.archive`)
+    assert.equal(existsSync(path.join(copy, 'board.sha256')), true, 'the copy keeps board.sha256')
+    unlinkSync(path.join(copy, 'board.json'))
+    const again = await later.history.check(pending.operation_id)
+    assert.deepEqual([again.ok, again.reason_code, again.operation_id], [false, 'board_missing', pending.operation_id])
     const lost = service({ answers: { restore_board_history: ['lost', { ok: false, reason_code: 'already_restored' }] } })
     const unknown = await lost.history.restore(withBoard(), 'Lost reply')
     assert.equal(unknown.state, 'result_unknown')
@@ -170,7 +194,7 @@ try {
     assert.equal(checked.board_history, 'restored', 'a repeat after a lost reply is the same history')
     assert.deepEqual(lost.calls, ['restore_estate_verified', 'ceo_import_private_archive', 'restore_board_history', 'restore_board_history'])
   }
-  pass('the board history travels in board.json: restored, missing from an old archive, refused when tampered, repeated after a lost reply')
+  pass('the board history travels in board.json: restored, missing from an old archive, refused when tampered, lost or its digest damaged, repeated after a lost reply')
 
   console.log(`PASS private history service: ${groups} groups, no database`)
 } finally { for (const r of roots) rmSync(r, { recursive: true, force: true }) }

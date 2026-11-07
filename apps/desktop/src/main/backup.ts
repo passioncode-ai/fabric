@@ -28,6 +28,8 @@ import {
   archiveInventory,
   boardArchiveText,
   readBoardArchive,
+  readBoardDigestFile,
+  type BoardDigest,
   digestInput,
   notRestored,
   readArchive,
@@ -39,16 +41,8 @@ const MANIFEST = 'manifest.json'
 const BODY = 'journal.ndjson'
 const sha256 = (text: string): string => createHash('sha256').update(text, 'utf8').digest('hex')
 
-/** CO-315: the board file's digest written beside it, or null for an archive from before it was recorded. */
-function readBoardDigest(dir: string): string | null {
-  try {
-    const text = readFileSync(path.join(dir, BOARD_DIGEST_FILE), 'utf8').trim()
-    return /^[0-9a-f]{64}$/.test(text) ? text : null
-  } catch {
-    // No file: an archive written before the digest was recorded beside the board file.
-    return null
-  }
-}
+/** CO-315: the board file's digest written beside it (`shared/archive.ts#readBoardDigestFile`). */
+const readBoardDigest = (dir: string): BoardDigest => readBoardDigestFile(() => readFileSync(path.join(dir, BOARD_DIGEST_FILE), 'utf8'))
 
 export interface BackupResult {
   ok: boolean
@@ -204,7 +198,10 @@ export function createBackups(db: SupabaseClient) {
         .digest('hex')
       const read = readArchive(raw, { lines: lines.length, digest })
       if (!read.ok) return read
-      const named = readBoardDigest(dir)
+      const sidecar = readBoardDigest(dir)
+      if (sidecar.state === 'corrupt')
+        return { ok: false, why: 'corrupt', says: `the digest of the project board's history (${BOARD_DIGEST_FILE}) cannot be read` }
+      const named = sidecar.state === 'named' ? sidecar.digest : null
       if (!existsSync(path.join(dir, BOARD_ARCHIVE_FILE))) {
         // CO-315: an archive that recorded its board file's digest was written with one: that file is lost, not never written.
         return named

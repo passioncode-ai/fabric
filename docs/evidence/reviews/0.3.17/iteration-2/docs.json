@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "bc21883d67b84144d854e3c2b1a8f9f189c90bc2",
+  "report": "docs/evidence/reviews/0.3.17/iteration-2/2026-11-07-docs.md",
+  "reportSha256": "918571534a669d3df6f2a66fa6281d3701349fcba852a17a980fb26bc06d2255",
+  "reviewerRun": "release-0317-i2-docs-20261107",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V2-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V2-16"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V2-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-514 and `2026-11-06-studio-spaces-gaps.md` amended, the comment in `main/agentSurface.ts`, and `test/agent-surface.test.mjs` expects 503 with Retry-After for `unverified` and 403 for `foreign`; it runs in the full tier on the iteration-3 candidate"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V2-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-528 amended"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V2-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V2-4"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V2-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the reports named above"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V2-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both rows amended"
+      ]
+    }
+  ]
+}
