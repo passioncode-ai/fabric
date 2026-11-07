@@ -820,3 +820,16 @@ test('CO-409 (§3.1): a request stored wakes the dispatcher once its grace ends;
   assert.equal(timers.filter((t) => t.live).length, 0, 'stopped on quit')
   assert.ok(GRACE_AFTER_MS > 2 * 60_000, 'after the grace, so the pass can start it')
 })
+
+test('CO-409 (DEC-0125 MD-3): a request\'s mandate travels into the run\'s packet unchanged; without one the packet has none', async () => {
+  const mandate = { kind: 'mandate/1', by: 'operator', task: 'Rotate the key', instruction: 'rotate it', at: '2026-11-05T09:00:00Z', expiresAt: '2026-11-08T09:00:00Z', scope: { effects: ['none'] }, chain: [{ agent: 'sender-agent', at: '2026-11-05T09:00:00Z' }] }
+  const w = world({ requests: [request({ mandate })] })
+  await createBoardDispatch(w.deps).onPass()
+  const packet = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1].body
+  const line = packet.constraints.find((c) => c.includes('mandate/1'))
+  assert.ok(line, 'the mandate is in the constraints')
+  assert.ok(line.includes(JSON.stringify(mandate)), 'unchanged')
+  const v = world()
+  await createBoardDispatch(v.deps).onPass()
+  assert.equal(v.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1].body.constraints.some((c) => c.includes('mandate')), false)
+})

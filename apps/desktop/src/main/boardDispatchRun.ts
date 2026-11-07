@@ -8,6 +8,7 @@
  * is kept in a small file so a restart never starts a second run for a request. Every external call is a dependency.
  */
 import { randomUUID } from 'node:crypto'
+import type { OperatorMandate } from './hubAuthority.ts'
 import { decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, GRACE_MS, limitsOf, runEndsAt, refusalCheck, type DispatchDecision, type RequestState } from '../shared/boardDispatch.ts'
 import { FABRIC_OWNER, type ToolCall } from './observatoryMemory.ts'
 
@@ -21,6 +22,8 @@ export interface OpenRequest {
   deadline: string
   /** The board's fact: the request's current attempt holds its lease. Absent: judged by the slot alone. */
   attemptLive?: boolean
+  /** The operator's mandate the request carries (DEC-0125 MD-3, `boardMandate.ts`), carried into the run's packet. */
+  mandate?: OperatorMandate
 }
 
 export interface DispatchRecord {
@@ -278,7 +281,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // the project's service. The refusal follows the board rule every session reads (protocolObligations.ts).
         'If com.enroll answers not_authorized, follow the board rule board.read-at-start (fabric_whoami): send one com.reply only when com.status shows the slot absent at generation 0, otherwise no com.reply (a service of the project will take the request); ask the operator with fabric_question_ask either way, then end.',
         'Stop before any step that touches production and hand it to a session the person is in or to the operator.',
-        'Write the final checkpoint and close the workflow only once the request is settled, then end.'
+        'Write the final checkpoint and close the workflow only once the request is settled, then end.',
+        // CO-409 (DEC-0125 MD-2, MD-3): the operator's mandate the request carries, unchanged; the run appends itself.
+        ...(req.mandate ? [`The operator's mandate for this request (DEC-0125, carried by the requesting project's verified message): ${JSON.stringify(req.mandate)}. Act on what it covers as the operator's decision, append yourself to its chain on each call you make under it, and ask the operator for anything it does not cover (outside-mandate).`] : [])
       ],
       artifacts: [
         { kind: 'other', ref: `board-request:${req.id}` },

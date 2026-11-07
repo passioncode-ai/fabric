@@ -143,6 +143,11 @@ message body travels in the packet (the session reads the request with `com.get 
 (the session takes its own `com.claim`). The packet holds no secret: keys are reached by name through
 `use_secret.py run` inside the session. The workflow id is the dispatch's handle across products.
 
+The mandate's carrier, confirmed by fabric-agent-contract on 2026-11-07 (board thread `8948b481`): a `mandate/1` JSON code
+block in the request's body (`project-comms.md`, DEC-0125 MD-3), read only when the board verified the sender. Built the
+same day (`boardMandate.ts#mandateOfRequest`): Fabric carries it into the packet's `constraints` unchanged, and the run
+appends itself to its chain on each call it makes under it (MD-2).
+
 Agreed with Project Observatory on 2026-11-04 (OBS-323), so it reads the packet without guessing and without a change to
 memory/0.1: `artifacts` carry one each of `kind: "other"` with `ref` `board-request:<uuid>`, `board-thread:<uuid>`,
 `capability:<name>`, `fabric-project:<uuid>` and `deadline:<ISO 8601 UTC>` (the board's own deadline); a packet without

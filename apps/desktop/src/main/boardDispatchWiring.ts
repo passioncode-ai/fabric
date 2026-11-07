@@ -10,6 +10,7 @@ import path from 'node:path'
 import { execFile } from 'node:child_process'
 import type { CommsMessage, CommsRespondersReply, CommsTimelineReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
+import { mandateOfRequest } from './boardMandate.ts'
 import { createBoardDispatch, isDispatchRecord, type DispatchDeps, type DispatchRecord, type OpenRequest, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
@@ -51,7 +52,8 @@ export async function readOpenRequests(comms: SweepComms, estateId: string, now:
   const requests = asked.filter((m) => m.request && m.request.deadline).map((m): OpenRequest => ({
     id: m.id, thread: m.thread, state: m.request!.state as OpenRequest['state'], target: m.request!.target,
     capability: m.request!.capability, submittedAt: m.at, deadline: m.request!.deadline as string,
-    ...(attemptLive.has(m.id) ? { attemptLive: attemptLive.get(m.id) } : {})
+    ...(attemptLive.has(m.id) ? { attemptLive: attemptLive.get(m.id) } : {}),
+    ...((mandate) => (mandate ? { mandate } : {}))(mandateOfRequest(m, now))
   }))
   return { requests, states }
 }
