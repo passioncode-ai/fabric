@@ -673,3 +673,28 @@ test('CO-409 (the 0.3.16 review, ER-9): a quit after the workflow opened closes 
   assert.equal(opens[0], opens[1], 'the same key both times')
   assert.equal(v.launches[0].dispatchId, opens[0].replace(/^dispatch-|-open$/g, ''))
 })
+
+test('CO-409 (the 0.3.16 review, ER-7): an accepted request past its deadline that Fabric never started for is shown in «На проверке»', async () => {
+  const w = world({ requests: [request({ state: 'accepted', deadline: new Date(T0 - MIN).toISOString() })] })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 0)
+  assert.equal(d.records().length, 0, 'no record: nothing was started')
+  assert.ok(d.toOperator().has(request().id))
+  // Settled, or gone from the board: it leaves «На проверке».
+  w.requests = []
+  w.tick(MIN); await d.onPass()
+  assert.equal(d.toOperator().has(request().id), false)
+})
+
+test('CO-409 (ER-7): a request past due and one given up after two runs say which they are', async () => {
+  const w = world({ requests: [request({ state: 'accepted', deadline: new Date(T0 - MIN).toISOString() })] })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(d.toOperator().get(request().id), 'past-due')
+  const { findAbandoned } = await import(path.resolve(import.meta.dirname, '../src/shared/abandonedSweep.ts'))
+  const base = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', state: 'accepted', movedAt: new Date(T0 - DAY).toISOString(), answerUnreadSince: null, toOperator: true }
+  const steps = (r) => findAbandoned({ now: T0, claims: [], tasks: [], requests: [r], terminals: [] }).filter((f) => f.kind === 'request-to-operator').map((f) => f.nextStep)
+  assert.match(steps({ ...base, pastDue: true })[0], /passed its deadline/)
+  assert.match(steps(base)[0], /Two runs/)
+})

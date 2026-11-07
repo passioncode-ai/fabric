@@ -1169,7 +1169,7 @@ export const en = {
   'attention.swept.claim-lapsed': "The session that held it has ended",
   'attention.swept.task-unclaimed': "In work, and no agent holds it",
   'attention.swept.request-unmoved': "A board request nobody has picked up",
-  'attention.swept.request-to-operator': "Two agents Fabric started left this request open: Fabric starts no more for it, it is yours",
+  'attention.swept.request-to-operator': "Fabric starts no more agents for this request: it waits for your decision",
   'attention.swept.request-outcome-unknown': "An agent took this request and went away, its outcome unknown: check whether the work was done",
   'attention.swept.answer-unread': "An answer on the board that nobody has read",
   'attention.swept.terminal-stalled': "Its terminal has gone quiet with the task in work",

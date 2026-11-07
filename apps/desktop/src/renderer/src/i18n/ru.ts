@@ -482,7 +482,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'attention.swept.claim-lapsed': "Сессия, удерживавшая её, завершилась",
   'attention.swept.task-unclaimed': "В работе, но её не удерживает ни один агент",
   'attention.swept.request-unmoved': "Запрос на доске, который никто не взял в работу",
-  'attention.swept.request-to-operator': "Два запущенных агента не закрыли запрос: Fabric больше не запускает на него агентов, решите сами",
+  'attention.swept.request-to-operator': "Fabric больше не запускает агентов на этот запрос: он ждёт вашего решения",
   'attention.swept.request-outcome-unknown': "Агент взял запрос и пропал, исход неизвестен: проверьте, сделана ли работа",
   'attention.swept.answer-unread': "Ответ на доске, который никто не прочитал",
   'attention.swept.terminal-stalled': "В терминале нет активности, а задача в работе",

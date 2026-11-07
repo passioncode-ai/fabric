@@ -148,10 +148,15 @@ export function noteOf(e: unknown): string {
   return (e instanceof Error ? e.message : String(e)).replace(/(^|[\s'"`(=:[{<,;|])(?:file:\/\/|~|[A-Za-z]:)?[\\/][\s\S]*$/, '$1<path>').slice(0, 200)
 }
 
-export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[]; toOperator(): Set<string> } {
+/** Why a request is the operator's: two runs left it unsettled, or it passed its deadline accepted with no run (ER-7). */
+export type ToOperatorWhy = 'runs' | 'past-due'
+
+export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[]; toOperator(): Map<string, ToOperatorWhy> } {
   let records = deps.load()
   let busy = false
   const decided = new Map<string, string>()
+  /** ER-7: requests past their deadline, accepted and unsettled, that no record of Fabric's carries. */
+  const pastDue = new Set<string>()
   const said = (requestId: string, d: DispatchDecision): void => {
     const key = d.path + ('check' in d ? `:${d.check}` : '')
     if (decided.get(requestId) === key) return
@@ -393,6 +398,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     // ER-7: with the switch off and nothing of ours in flight the board is not read at all.
     if (!on && !live) return
     const requests = await deps.readRequests()
+    // A request no longer on the board leaves «На проверке» with it (ER-7).
+    for (const id of [...pastDue]) if (!requests.some((q) => q.id === id)) pastDue.delete(id)
     await watch(now)
     // Iteration 2, ER-3, ER-2, DA-2: a request given to the operator has its workflow closed, retried until it is.
     for (const r of records.filter((x) => x.outcome === 'to-operator' && !x.closed && (x.closeAttempts ?? 0) < CLOSE_ATTEMPTS)) {
@@ -470,6 +477,10 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         limits
       })
       said(req.id, decision)
+      // ER-7: an accepted request past its deadline that Fabric never started a run for has no record to carry the
+      // operator's mark, so it is held here and shown in «На проверке» like a request given up after two runs.
+      if (decision.path === 'to-operator' && !last && !SETTLED.has(req.state)) pastDue.add(req.id)
+      else pastDue.delete(req.id)
       if (decision.path === 'to-operator') {
         if (last && !SETTLED.has(req.state)) {
           last.outcome = 'to-operator'
@@ -560,7 +571,10 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       } finally { busy = false }
     },
     records: () => records,
-    toOperator: () => new Set(records.filter((r) => r.outcome === 'to-operator').map((r) => r.requestId))
+    toOperator: () => new Map<string, ToOperatorWhy>([
+      ...[...pastDue].map((id) => [id, 'past-due'] as [string, ToOperatorWhy]),
+      ...records.filter((r) => r.outcome === 'to-operator').map((r) => [r.requestId, 'runs'] as [string, ToOperatorWhy])
+    ])
   }
 }
 

@@ -2919,7 +2919,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // The sweep of abandoned work (CO-427): every third pass of the cycle below. Its reads are the screens' own (claims,
   // running tasks), the operator's read door onto the board, and the observer's last pass over Fabric's terminals.
   const sweepBoard = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
-  const dispatchHolder: { current: { toOperator(): Set<string> } | null } = { current: null }
+  const dispatchHolder: { current: { toOperator(): Map<string, 'runs' | 'past-due'> } | null } = { current: null }
   abandonedSweep = createAbandonedSweep({
     now: () => Date.now(),
     readClaims: (now) => readSweepClaims(store, now, sessionSignOf),
@@ -2928,8 +2928,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // whatever its state, and shows in «На проверке».
     readRequests: async (now) => {
       const r = await readBoardRequests(sweepBoard, ACTIVE_ESTATE, now)
-      const given = dispatchHolder.current?.toOperator() ?? new Set<string>()
-      return given.size ? { ...r, requests: r.requests.map((x) => (given.has(x.requestId) ? { ...x, toOperator: true } : x)) } : r
+      const given = dispatchHolder.current?.toOperator() ?? new Map<string, 'runs' | 'past-due'>()
+      return given.size ? { ...r, requests: r.requests.map((x) => (given.has(x.requestId) ? { ...x, toOperator: true, pastDue: given.get(x.requestId) === 'past-due' } : x)) } : r
     },
     // 0.3.14 wave 2: the session hooks' turns, to see a session changing files with no claim.
     readTurns: (now) => readRecentTurns(store, now),

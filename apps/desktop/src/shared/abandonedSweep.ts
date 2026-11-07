@@ -112,6 +112,8 @@ export interface SweepRequest {
   answerUnreadSince: string | null
   /** CO-409: two runs Fabric started left it unsettled; it is the operator's now, whatever its state (§3.6). */
   toOperator?: boolean
+  /** CO-409 (ER-7): it is the operator's because it passed its deadline accepted, with no run Fabric started for it. */
+  pastDue?: boolean
 }
 
 export interface SweepTerminal {
@@ -238,7 +240,9 @@ export function findAbandoned(input: SweepInput): Finding[] {
     // their own in «На проверке».
     if (r.toOperator && !SETTLED_REQUEST.has(r.state))
       out.push({ ...base, kind: 'request-to-operator', key: `request-to-operator:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
-        nextStep: 'Two runs Fabric started for this board request ended without settling it: it waits for the operator, and Fabric starts no more for it.' })
+        nextStep: r.pastDue
+          ? 'This board request passed its deadline accepted, with nobody holding it and no run Fabric started: it waits for the operator, and Fabric starts no run for it.'
+          : 'Two runs Fabric started for this board request ended without settling it: it waits for the operator, and Fabric starts no more for it.' })
     else if (r.state === 'outcome_unknown')
       out.push({ ...base, kind: 'request-outcome-unknown', key: `request-outcome-unknown:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: 'An agent took this board request and went away before its outcome was known: check whether the work happened, then settle it (com.reconcile) or answer the requester.' })

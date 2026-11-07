@@ -10,7 +10,7 @@ import path from 'node:path'
 import { execFile } from 'node:child_process'
 import type { CommsMessage, CommsRespondersReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
-import { createBoardDispatch, isDispatchRecord, type DispatchDeps, type DispatchRecord, type OpenRequest } from './boardDispatchRun.ts'
+import { createBoardDispatch, isDispatchRecord, type DispatchDeps, type DispatchRecord, type OpenRequest, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 
@@ -77,7 +77,7 @@ export function wireBoardDispatch(o: {
   file: string
   env: NodeJS.ProcessEnv
   log: DispatchDeps['log']
-}): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Set<string> } {
+}): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy> } {
   let probePath: Promise<string> | null = null
   const pathFor = (): Promise<string> => (probePath ??= widenProbePath(o.env.PATH ?? '', o.env))
   const bin = async (name: string): Promise<string | null> => findOnPath(name, await pathFor())
