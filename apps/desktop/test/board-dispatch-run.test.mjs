@@ -698,3 +698,42 @@ test('CO-409 (ER-7): a request past due and one given up after two runs say whic
   assert.match(steps({ ...base, pastDue: true })[0], /passed its deadline/)
   assert.match(steps(base)[0], /Two runs/)
 })
+
+test('CO-409 (final candidate, NB-2): a start the switch ended after Switchboard was asked is asked again with the same dispatch id once the switch is back on', async () => {
+  const w = world()
+  let answer = { refused: 'failed' }
+  w.deps.launch = async (args) => { w.launches.push(args); return answer }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(d.records()[0].state, 'starting', 'no answer: it may have started')
+  w.on = false
+  w.tick(MIN); await d.onPass()
+  assert.equal(d.records()[0].state, 'ended')
+  assert.equal(d.records()[0].askAgain, true)
+  // Back on: Switchboard is asked again with the same ids and answers the run it did start.
+  w.on = true
+  answer = { launchId: 'L1' }
+  w.tick(MIN); await d.onPass()
+  assert.equal(w.launches.length, 2)
+  assert.equal(w.launches[1].dispatchId, w.launches[0].dispatchId)
+  assert.equal(w.launches[1].workflow, w.launches[0].workflow)
+  assert.equal(d.records().length, 1)
+  assert.equal(d.records()[0].state, 'running')
+  // A request settled meanwhile is not asked about again.
+  const v = world()
+  v.deps.launch = async (args) => { v.launches.push(args); return { refused: 'failed' } }
+  const e = createBoardDispatch(v.deps)
+  await e.onPass()
+  v.on = false; v.tick(MIN); await e.onPass()
+  v.on = true; v.requests = [request({ state: 'completed' })]; v.tick(MIN); await e.onPass()
+  assert.equal(v.launches.length, 1)
+})
+
+test('CO-409 (final candidate, NB-5): a trim never drops a run started in the last day, so the day\'s count holds', async () => {
+  const w = world({ requests: [] })
+  const run = (i) => ({ requestId: 'r-busy', projectId: 'p-target', dispatchId: `d${i}`, workflowId: 'wf_0123456789abcdef', handoffId: 'h', launchId: `L${i}`, startedAt: T0 - 2 * 3600_000 + i, endsAt: new Date(T0).toISOString(), state: 'ended', outcome: 'exited-without-answer', closed: true, emptyRuns: 0 })
+  w.deps.load = () => Array.from({ length: 600 }, (_, i) => run(i))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(d.records().length, 600)
+})

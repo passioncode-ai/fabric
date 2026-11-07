@@ -53,6 +53,9 @@ export interface DispatchRecord {
   closeAttempts?: number
   /** Runs for this request that ended without settling it. */
   emptyRuns: number
+  /** NB-2: the switch ended this start after Switchboard was asked without an answer, so its run may have begun; when
+   *  the switch is back on, Switchboard is asked again with the same dispatch id while the request is still open. */
+  askAgain?: boolean
 }
 
 const OUTCOMES = new Set(['finished', 'exited-without-answer', 'failed-to-start', 'refused', 'unknown', 'to-operator'])
@@ -75,6 +78,7 @@ export function isDispatchRecord(r: unknown): r is DispatchRecord {
     && (x.attempts === undefined || isCount(x.attempts)) && (x.endedAt === undefined || isCount(x.endedAt))
     && (x.until === undefined || isCount(x.until)) && (x.closeAttempts === undefined || isCount(x.closeAttempts))
     && (x.closed === undefined || typeof x.closed === 'boolean') && (x.refused === undefined || typeof x.refused === 'string')
+    && (x.askAgain === undefined || typeof x.askAgain === 'boolean')
 }
 
 export interface DispatchDeps {
@@ -390,6 +394,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       let ended = false
       for (const r of records.filter((x) => x.state === 'starting')) {
         r.state = 'ended'; r.outcome = 'unknown'; r.endedAt = now; ended = true
+        // NB-2: a start Switchboard was asked for may have begun; it is asked about again once the switch is back on.
+        if ((r.attempts ?? 0) > 0) r.askAgain = true
         deps.log('board.dispatch.ended', 'unknown', { request: r.requestId, dispatch: r.dispatchId, outcome: 'switch-off' })
       }
       if (ended) deps.save(records)
@@ -435,6 +441,18 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         deps.log('board.dispatch.closed', 'failed', { request: r.requestId, why: 'settled', attempt: r.closeAttempts, gave_up: r.closeAttempts >= CLOSE_ATTEMPTS, note: noteOf(e) })
       }
       deps.save(records)
+    }
+    // NB-2 (the 0.3.16 final candidate's verification): with the switch back on, a start the switch ended after
+    // Switchboard was asked is asked again with the same dispatch id, workflow and hand-over while its request is open,
+    // so a run that did begin is found and watched rather than left unknown; a settled request is only closed (above).
+    if (on) {
+      for (const r of records.filter((x) => x.askAgain && x.state === 'ended')) {
+        const newest = records.filter((x) => x.requestId === r.requestId).at(-1)
+        const open = requests.some((q) => q.id === r.requestId && !SETTLED.has(q.state))
+        r.askAgain = false
+        if (newest === r && open) { r.state = 'starting'; delete r.outcome; delete r.endedAt }
+        deps.save(records)
+      }
     }
     // Starts left without an answer are asked again first (ER-1, ER-2); with the switch off, not at all (iteration 2, ER-6).
     for (const r of on ? records.filter((x) => x.state === 'starting') : []) {
@@ -551,8 +569,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     const newest = new Map<string, DispatchRecord>()
     for (const r of records) newest.set(r.requestId, r)
     const shown = new Set(requests.map((q) => q.id))
-    const kept = (r: DispatchRecord): boolean => r.state !== 'ended' || (newest.get(r.requestId) === r
-      && (now - r.startedAt < KEEP_REQUEST_MS || (r.until ?? 0) > now || shown.has(r.requestId)))
+    // NB-5: a run started in the last day is kept too, so the day's count of started runs never loses one to a trim.
+    const kept = (r: DispatchRecord): boolean => r.state !== 'ended' || (r.launchId !== null && now - r.startedAt < DAY_MS)
+      || (newest.get(r.requestId) === r && (now - r.startedAt < KEEP_REQUEST_MS || (r.until ?? 0) > now || shown.has(r.requestId)))
     const rest = records.filter((r) => !kept(r))
     if (rest.length > 500) {
       const drop = new Set(rest.slice(0, rest.length - 500))
