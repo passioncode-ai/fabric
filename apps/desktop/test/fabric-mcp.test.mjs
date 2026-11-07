@@ -1181,3 +1181,15 @@ test('ER-2 (i2): a signal or stdin\'s end leaves the session once, bounded, then
   assert.deepEqual(exits, [143])
 })
 // #endregion fabric-mcp-leave-always
+
+test('CO-378: on Windows the agent is cmd.exe\'s parent; any other parent, or an unread one, is kept', async () => {
+  const { agentPidOnWindows } = await import(path.join(SRC, 'fabricMcp.ts'))
+  const table = { 400: { name: 'cmd.exe', parent: 300 }, 500: { name: 'claude.exe', parent: 10 }, 600: { name: 'cmd.exe', parent: 1 }, 650: { name: 'CMD.EXE', parent: 250 } }
+  const read = (pid) => table[pid] ?? null
+  assert.equal(agentPidOnWindows(400, read), 300, 'the bin script runs under cmd.exe: its parent is the agent')
+  assert.equal(agentPidOnWindows(500, read), 500, 'started directly: the parent is the agent')
+  assert.equal(agentPidOnWindows(700, read), 700, 'the parent cannot be read: kept as before')
+  assert.equal(agentPidOnWindows(600, read), 600, 'cmd.exe with no usable parent: kept')
+  assert.equal(agentPidOnWindows(650, read), 250, 'the image name in any case')
+  assert.equal(agentPidOnWindows(1, read), null)
+})

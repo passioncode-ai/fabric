@@ -4,6 +4,7 @@
 // Fabric's runner catalogue does (claude-code, codex, kilo, hermes, cline, kimi-code). The agent runs this in its own
 // folder: that folder (the process's cwd) is what Fabric resolves to a project. No secret arrives on argv or in the
 // environment.
+import { execFileSync } from 'node:child_process'
 import { createOwnerCheck } from './listenerOwner.ts'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
@@ -12,7 +13,7 @@ import { AGENTS } from '../shared/agents.ts'
 import { registryDirs } from './agentRegistry.ts'
 import { locateHub } from './hub.ts'
 import { homedir } from 'node:os'
-import { FabricMcpProxy, RUNTIME_SESSION_ID, leaveOnExit, agentPidOf, claudePidOfSession, claudeSessionOfPid, claudeSessionsDir, runtimeSessionIdOf } from './fabricMcp.ts'
+import { FabricMcpProxy, RUNTIME_SESSION_ID, leaveOnExit, agentPidOf, agentPidOnWindows, claudePidOfSession, claudeSessionOfPid, claudeSessionsDir, runtimeSessionIdOf } from './fabricMcp.ts'
 import { fileCredentialStore, makeHubCall, openSessionLink } from './fabricMcpClient.ts'
 import { APP_VERSION } from '../shared/appVersion.ts'
 
@@ -41,9 +42,22 @@ if (rejoinOnly && (!runtimeSessionId || !RUNTIME_SESSION_ID.test(runtimeSessionI
 // Claude Code's session files by the runtime id it was given. The agent's own fabric-mcp also reads, at each
 // enrollment, the id its agent has now (its session file), so an enrollment after a /clear names the new id.
 const sessionsDir = claudeSessionsDir(process.env, homedir())
+// CO-378: on Windows the parent is `cmd.exe` (the bin script), and the agent is its parent.
+const parentPid = (): number | null => process.platform !== 'win32' ? agentPidOf(process.ppid) : agentPidOnWindows(process.ppid, (pid) => {
+  try {
+    const out = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+      `$p = Get-CimInstance Win32_Process -Filter "ProcessId=${pid}" -ErrorAction SilentlyContinue; if ($p) { $p.Name + " " + $p.ParentProcessId }`],
+    { encoding: 'utf8', timeout: 5_000, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }).trim()
+    const m = /^(\S+)\s+(\d+)$/.exec(out)
+    return m ? { name: m[1], parent: Number(m[2]) } : null
+  } catch {
+    // PowerShell did not answer in time or at all: the parent pid is kept, as before this fix.
+    return null
+  }
+})
 const agentPid = runner !== 'claude-code'
-  ? (rejoinOnly ? null : agentPidOf(process.ppid))
-  : rejoinOnly ? (runtimeSessionId ? claudePidOfSession(sessionsDir, runtimeSessionId) : null) : agentPidOf(process.ppid)
+  ? (rejoinOnly ? null : parentPid())
+  : rejoinOnly ? (runtimeSessionId ? claudePidOfSession(sessionsDir, runtimeSessionId) : null) : parentPid()
 const currentRuntimeSessionId = runner === 'claude-code' && !rejoinOnly && agentPid
   ? () => claudeSessionOfPid(sessionsDir, agentPid)
   : undefined

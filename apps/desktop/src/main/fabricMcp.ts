@@ -174,6 +174,20 @@ export function claudePidOfSession(dir: string, runtimeSessionId: string): numbe
 }
 /** A pid that can name an agent process (never 0, 1 or a negative). */
 export const agentPidOf = (pid: unknown): number | null => (typeof pid === 'number' && Number.isInteger(pid) && pid > 1 && pid < 2 ** 31 ? pid : null)
+
+/**
+ * CO-378 (the 0.3.9 review, iteration 3, ER-2): on Windows the bin script `fabric-mcp.cmd` runs under `cmd.exe`, so the
+ * parent fabric-mcp sees is `cmd.exe`, while a hook's rejoin names the agent's own pid. When the parent is `cmd.exe`,
+ * the agent is ITS parent. `read` answers a process's image name and parent pid, or null when it cannot be read; then
+ * the parent pid is kept, as before.
+ */
+export function agentPidOnWindows(ppid: number, read: (pid: number) => { name: string; parent: number } | null): number | null {
+  const own = agentPidOf(ppid)
+  if (own === null) return null
+  const p = read(own)
+  if (!p || p.name.toLowerCase() !== 'cmd.exe') return own
+  return agentPidOf(p.parent) ?? own
+}
 // #endregion claude-session-files
 
 // #region fabric-mcp-failures — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
