@@ -233,10 +233,29 @@ import { causeOf, type OpsLevel } from '../shared/opsLog'
  * a witness rather than a replacement for the failure.
  */
 const ipcOutcomes = createIpcOutcomeLog()
+/** Every handler by its channel, so main-process callers acting with the person's authority (the manager, CO-522 wave D)
+ *  call the same implementation the window does (`managerPort.ts`), never a copy. */
+const doors = new Map<string, (event: Electron.IpcMainInvokeEvent, ...args: never[]) => unknown>()
+/** One in-process door call: timed and recorded like an IPC call, under `door.<channel>`. No window sent it, so the
+ *  sender guards do not apply; only main-process code holds this function. */
+export async function callDoor(channel: string, ...args: unknown[]): Promise<unknown> {
+  const fn = doors.get(channel)
+  if (!fn) throw new Error(`no door is registered for ${channel}`)
+  const done = ops.begin(`door.${channel}`, { correlationId: ops.correlate() })
+  try {
+    const result = await fn(null as never, ...(args as never[]))
+    done('ok')
+    return result
+  } catch (e) {
+    done('failed', { error: e })
+    throw e
+  }
+}
 function handle(
   channel: string,
   fn: (event: Electron.IpcMainInvokeEvent, ...args: never[]) => unknown
 ): void {
+  doors.set(channel, fn)
   ipcMain.handle(channel, async (event, ...args) => {
     // CO-091: the window's kind decides, here and not in the preload. A refusal is a typed rejection.
     const refused = refusedFor(event, channel, args)

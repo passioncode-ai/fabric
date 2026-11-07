@@ -45,7 +45,9 @@ fabric-agent-contract on the board, thread `77d88a2e`, 2026-11-06; it took it as
 design by 2026-11-13 and merge by the organization slice of 2026-11-21); (4) the runner on
 the model of §4, behind the eval gate (its first half built 2026-11-07, without a model: the closed tool set of §3,
 `apps/desktop/src/main/managerTools.ts#createManagerTools`, a person-gated act only proposed, twelve calls a message; the
-host's port over the doors and the loop wait for step 3). Steps 1 to 3 change nothing a person sees.
+host's port the same day, each tool calling the window's own handler by its channel through `index.ts#callDoor`,
+`apps/desktop/src/main/managerPort.ts#createManagerPort`; asking the person waits for the conversation and the loop
+waits for step 3). Steps 1 to 3 change nothing a person sees.
 
 ## 2. Shape: one tool loop, not a planned pipeline
 
