@@ -6,6 +6,11 @@
   packaging design; `docs/evidence/backlog.md`
 - **Source:** operator, 2026-08-29 — resolves CO-075
 
+**Successor note, 2026-11-07:** the platform-agent-capacity part (pool 2, the agent credits, and with it any fee
+charged per agent) is superseded by passioncode-platform ADR-0005 D-2, then ADR-0008 and ADR-0009 (the North Star's
+G18, PLAT-143; fabric-workspace #736). The Estate subscription and managed continuity below stand; the agent-credit
+text is the record of its moment, not the current pricing.
+
 The primary commercial unit is a **subscription attached to an Estate**. It is neither a
 seat nor a single agent/run transaction.
 
