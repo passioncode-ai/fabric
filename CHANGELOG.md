@@ -9,6 +9,28 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **fabric-mcp sends a credential only to a hub this account runs** (CO-514, CO-528; fabric-agent-contract DEC-0154,
+  CT-254 at its tag v0.1.0+2026-11-07.3). Before a token leaves, fabric-mcp reads who holds the hub's end of the very
+  connection it opened, with no cache: on a computer with several accounts a hub port taken by another account, or one
+  whose owner cannot be seen, gets nothing. On macOS, Linux and Windows.
+- **The board rule follows the contract's DEC-0152 as released** (CO-530, v0.1.0+2026-11-07.4). A session reads the
+  responder slot before it enrolls, leaves a request a live service holds alone and asks nobody about it, and answers a
+  request it holds with `com.progress`, then `com.accept` and `com.complete`; a state is a reply to an announcement or
+  a question, never the answer to a request.
+- **A new board request wakes the dispatcher at once** (CO-409): it starts on the request when its two-minute grace
+  ends, not on the next minute's cycle. A run whose process exited with an error is taken back as a crash, a run still
+  going five minutes past its deadline is stopped, a request that left the board's read window is still followed, and
+  the operator's mandate a verified request carries reaches the run unchanged.
+- **Starting the stack no longer changes your Docker context** (CO-508): Fabric starts Colima with
+  `--activate=false`, so the context you chose stays current. Lines written before the operations log opened are kept
+  and written once it does.
+- **An agent can add or remove a folder of its project** (CO-489) with `fabric_project_folder_attach` and
+  `fabric_project_folder_detach`, under the same checks as the project page.
+- **A backup whose board file is missing says so** (CO-315): restoring refuses a backup whose manifest names the board
+  history when the file is gone or differs, and names the file.
+- **On Windows fabric-mcp names the agent's own process** (CO-378), not the `cmd.exe` that started it, so the session
+  hooks' turns after `/clear` reach the same session.
+
 - **An agent started for a board request is told to close its workflow only once the request is settled** (CO-409,
   agreed with fabric-agent-adapter and private31). A run whose request ends `outcome_unknown` counts as finished, not as an
   empty run, and a workflow a run already closed is taken as closed instead of being retried.
