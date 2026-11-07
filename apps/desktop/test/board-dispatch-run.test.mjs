@@ -798,3 +798,25 @@ test('CO-409 (§3.4): a run that exited with a failure code is taken back as cra
   const back = w.calls.find(([n, a]) => n === 'observatory_handoff_create' && a.to?.provider === 'fabric')
   assert.equal(back[1].reason, 'crash')
 })
+
+test('CO-409 (§3.1): a request stored wakes the dispatcher once its grace ends; several together wake it once', async () => {
+  const { createDispatchWake, GRACE_AFTER_MS } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  let now = 0
+  const timers = []
+  let passes = 0
+  const wake = createDispatchWake(() => { passes++ }, {
+    graceMs: GRACE_AFTER_MS, now: () => now,
+    setTimer: (fn, ms) => { const t = { fn, at: now + ms, live: true }; timers.push(t); return t },
+    clearTimer: (t) => { t.live = false }
+  })
+  wake.wake()
+  now += 10_000; wake.wake()
+  assert.equal(timers.filter((t) => t.live).length, 1, 'one wake covers both requests')
+  assert.equal(timers[0].at, GRACE_AFTER_MS)
+  now = timers[0].at; timers[0].live = false; timers[0].fn()
+  assert.equal(passes, 1)
+  wake.wake()
+  wake.stop()
+  assert.equal(timers.filter((t) => t.live).length, 0, 'stopped on quit')
+  assert.ok(GRACE_AFTER_MS > 2 * 60_000, 'after the grace, so the pass can start it')
+})

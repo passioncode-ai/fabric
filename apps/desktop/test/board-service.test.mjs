@@ -115,6 +115,18 @@ test('the caller\'s identity comes from the scope and the digest from the board,
   assert.deepEqual(a.p_submit, submitRequest)
 })
 
+test('CO-409 (§3.1): a request stored wakes the dispatcher once; a repeat of the same key and a refusal do not', async () => {
+  const stored = (repeated) => ({ board_submit: { data: { ok: true, repeated, message: '79000000-0000-4000-8000-0000000000a1', thread: '79000000-0000-4000-8000-0000000000d1', at: '2026-10-12T07:00:00.000Z' }, error: null } })
+  const woken = []
+  const board = createBoard({ rpc: fake(stored(false)).rpc, onRequestStored: (r) => woken.push(r) })
+  await board.submit(caller, submitRequest)
+  assert.equal(woken.length, 1)
+  assert.equal(woken[0].capability, submitRequest.request.capability)
+  await createBoard({ rpc: fake(stored(true)).rpc, onRequestStored: (r) => woken.push(r) }).submit(caller, submitRequest)
+  await createBoard({ rpc: fake({ board_submit: { data: null, error: { message: 'down' } } }).rpc, onRequestStored: (r) => woken.push(r) }).submit(caller, submitRequest)
+  assert.equal(woken.length, 1)
+})
+
 test('a board that cannot be read answers not_available — never an empty page, never a ready status', async () => {
   for (const answer of [new Error('socket hang up'), { data: null, error: { message: 'timeout' } }, { data: 'garbage', error: null }]) {
     const board = createBoard({ rpc: fake({ board_list: answer, board_submit: answer, board_get: answer, board_status: answer }).rpc })

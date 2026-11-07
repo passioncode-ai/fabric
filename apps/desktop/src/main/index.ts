@@ -203,6 +203,7 @@ import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { wireBoardDispatch } from './boardDispatchWiring.ts'
+import { createDispatchWake } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { createOpsDigestCollector } from './opsDigestCollector.ts'
 import { BINDING_TOKEN_FILE, createOpsDigestPass, createOpsDigestSender } from './opsDigestSend.ts'
@@ -889,6 +890,8 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
 /** Reached only after this startup attempt has verified the database schema. */
 /** CO-506: History's acts, set once `registerIpc` made them, for the surface's Agent access door. */
 let actsForSurface: ReturnType<typeof createActs> | null = null
+/** CO-409 (§3.1): wakes the board dispatcher for a request just stored; set once the dispatcher is wired. */
+let dispatchWake: { wake(): void; stop(): void } | null = null
 
 async function bootstrapReady(): Promise<{ estateId: string; estateName: string }> {
   journal = createDesktopJournal(createJournal(db))
@@ -1158,6 +1161,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     machineAgents: () => machineAgentsOf(registry.snapshot()),
     // CO-514 (DEC-0154 HA-2 (b), HA-3): another account's process is refused before its request is read.
     peerAccount: createPeerCheck(),
+    // CO-409 (§3.1): a board request a session stored wakes the dispatcher when its grace ends, not a cycle later.
+    onRequestStored: () => dispatchWake?.wake(),
     // CO-489: the project page's «Выбрать папку…» and «Убрать» as a session's door, through the one admission service;
     // each change is an act History undoes, written with the session as its author.
     folders: createAgentFolders({
@@ -2977,6 +2982,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   dispatchHolder.current = dispatcher
   quit.onQuit(() => { void dispatcher.close() })
+  dispatchWake = createDispatchWake(() => { if (!quit.quitting) void dispatcher.onPass() })
+  quit.onQuit(() => dispatchWake?.stop())
   // #endregion board-dispatch-cycle
 
   // #region ops-digest-send-wiring — docs: docs/evidence/specs/2026-11-04-agents-logs-and-the-improvement-loop.md#23-logs-read-every-hour-and-every-day-and-the-improvement-loop-co-500-co-502-co-503

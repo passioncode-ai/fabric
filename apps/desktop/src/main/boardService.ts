@@ -274,6 +274,8 @@ export interface BoardDeps {
   threadParticipants?: (estateId: string, reader: string, threadId: string, signal?: AbortSignal) => Promise<string[] | null>
   /** The whole wall check's deadline for one post, both reads included (i2 ER-4); 5 s unless a test says otherwise. */
   wallDeadlineMs?: number
+  /** CO-409 (the on-demand spec §3.1): a request was stored for the first time; the dispatcher is woken for it. */
+  onRequestStored?: (request: { target: string; capability: string }) => void
 }
 
 /** One Project as the board's wall and directory need it. */
@@ -617,6 +619,8 @@ export function createBoard(deps: BoardDeps) {
         }
       }
       // #endregion board-core-holds-no-responder
+      // §3.1: a request stored now wakes the dispatcher, never a repeat of the same key (CO-409).
+      if (!isRefusal(stored) && parsed.data.request && stored.repeated !== true) deps.onRequestStored?.(parsed.data.request)
       return stored
     },
 

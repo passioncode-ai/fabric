@@ -360,6 +360,8 @@ export interface AgentSurfaceDeps {
   machineAgents?: () => MachineAgents | null
   /** CO-514 (DEC-0154 HA-2 (b), HA-3): whose process is on the other end of a connection; absent, not checked. */
   peerAccount?: (socket: import('node:net').Socket) => Promise<PeerVerdict>
+  /** CO-409 (§3.1): a board request a session stored; the host wakes the dispatcher for it. */
+  onRequestStored?: (request: { target: string; capability: string }) => void
   /** CO-489: the project page's folder buttons as the session's door (`agentFolders.ts`); absent, the tools refuse. */
   folders?: {
     attach(projectId: string, folder: unknown, sessionId: string): Promise<FolderAnswer>
@@ -515,7 +517,8 @@ export class AgentSurface {
       // into it. Both throw with their reason, which the board logs before it lets the post through (0.3.12 review i2
       // ER-3, ER-4, DA-3, DA-4; `boardWallReads.ts`).
       projectFacts: (estateId, signal) => readProjectFacts(deps.db, estateId, signal),
-      threadParticipants: (estateId, reader, threadId, signal) => readThreadParticipants(deps.db, estateId, reader, threadId, signal)
+      threadParticipants: (estateId, reader, threadId, signal) => readThreadParticipants(deps.db, estateId, reader, threadId, signal),
+      onRequestStored: deps.onRequestStored
     })
   }
 

@@ -8,7 +8,7 @@
  * is kept in a small file so a restart never starts a second run for a request. Every external call is a dependency.
  */
 import { randomUUID } from 'node:crypto'
-import { decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, limitsOf, runEndsAt, refusalCheck, type DispatchDecision, type RequestState } from '../shared/boardDispatch.ts'
+import { decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, GRACE_MS, limitsOf, runEndsAt, refusalCheck, type DispatchDecision, type RequestState } from '../shared/boardDispatch.ts'
 import { FABRIC_OWNER, type ToolCall } from './observatoryMemory.ts'
 
 export interface OpenRequest {
@@ -160,6 +160,33 @@ export function noteOf(e: unknown): string {
 
 /** Why a request is the operator's: two runs left it unsettled, or it passed its deadline accepted with no run (ER-7). */
 export type ToOperatorWhy = 'runs' | 'past-due'
+
+/**
+ * §3.1: a request filed on the board wakes the dispatcher when its grace ends, instead of on the next 60 s cycle after
+ * it; several requests filed together wake it once. The cycle still runs every pass, so a missed wake costs at most a
+ * cycle (CO-409).
+ */
+/** The grace of §3.1 plus a few seconds, so the wake lands after the request's grace has passed. */
+export const GRACE_AFTER_MS = GRACE_MS + 5_000
+
+export function createDispatchWake(onPass: () => void, deps: { graceMs: number; setTimer?: (fn: () => void, ms: number) => unknown; clearTimer?: (t: unknown) => void; now?: () => number } = { graceMs: GRACE_AFTER_MS }): { wake(): void; stop(): void } {
+  const setTimer = deps.setTimer ?? ((fn: () => void, ms: number) => { const t = setTimeout(fn, ms); t.unref?.(); return t })
+  const clearTimer = deps.clearTimer ?? ((t: unknown) => clearTimeout(t as ReturnType<typeof setTimeout>))
+  const now = deps.now ?? Date.now
+  let due: number | null = null
+  let timer: unknown = null
+  return {
+    wake() {
+      const at = now() + deps.graceMs
+      // An earlier wake already pending covers this one too: the pass reads every open request.
+      if (due !== null && due <= at) return
+      if (timer !== null) clearTimer(timer)
+      due = at
+      timer = setTimer(() => { due = null; timer = null; onPass() }, deps.graceMs)
+    },
+    stop() { if (timer !== null) clearTimer(timer); timer = null; due = null }
+  }
+}
 
 export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[]; toOperator(): Map<string, ToOperatorWhy> } {
   let records = deps.load()

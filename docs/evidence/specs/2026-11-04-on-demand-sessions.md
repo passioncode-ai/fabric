@@ -94,7 +94,9 @@ The decision of §3.1 to §3.3 and the two-empty-runs rule of §3.6 are one pure
 `refusalCheck` beside it (wave 1; tests `boardDispatch.test.ts`).
 
 The hub's dispatcher runs on every `comms` journal event of kind `request` and on the cycle (60 s, `TICK_MS`), so a
-request filed while Fabric was closed is found at the next start. A request is a candidate when it has no live
+request filed while Fabric was closed is found at the next start. Built 2026-11-07 (CO-409): a request a session stores
+through the hub wakes the dispatcher when its grace ends (`boardDispatchRun.ts#createDispatchWake`, from
+`boardService.ts#createBoard`'s `onRequestStored`); a request filed through another door is found by the cycle. A request is a candidate when it has no live
 responder, is at least 5 minutes before the board's own deadline (`request.deadline`, explicit or seven days;
 `boardDispatch.ts#LAUNCH_MARGIN_MS`: 120 s of silence, a cycle and the launch) and has no dispatch in
 flight, and it is `queued`, or `claimed` with an attempt whose lease lapsed, or `accepted` with no live holder (the
