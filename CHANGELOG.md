@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Old reviews no longer pile up in «Нужны вы»** (CO-537). Work that waits in review for more than three days is
+  accepted by default, on the operator's rule, and says so in its history; «Нужны вы» keeps what needs a decision now.
+  The review card no longer squeezes the agent's words into one letter a line in that narrow column.
 - **Fabric no longer freezes while Docker is replaced** (CO-536). Fabric asks Docker whether it answers from a short
   child process it ends after five seconds, never from its own main thread; on 2026-11-08 that question hung the app
   for hours while Colima took over from a stopped engine.

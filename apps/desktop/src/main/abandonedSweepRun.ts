@@ -48,6 +48,7 @@ import type { CommsMessage, CommsPageReply, CommsThreadPageReply, CommsFactsRepl
 import { ops as opsSink } from './opsSink.ts'
 import { readWork, type SessionSign } from './workRead.ts'
 import { sayWhy } from '../shared/workClaims.ts'
+import { REVIEW_ACCEPT_BY_DEFAULT_MS, reviewsDueForDefaultAccept } from '../shared/board.ts'
 import { randomUUID } from 'node:crypto'
 import type { createScopedStore } from './scopedStore.ts'
 
@@ -134,6 +135,11 @@ export interface AbandonedSweepDeps {
   /** Moves a running task whose last claim ended other than done, with no move since, back to backlog (the 0.3.14
    *  review, iteration 1, ER-6; `workRelease.ts#moveReleasedLeftRunningToBacklog`); absent: no retry. */
   moveReleasedToBacklog?(taskId: string, projectId: string | null): Promise<{ task_moved_to: 'backlog' | null; failed?: string }>
+  /** CO-537: the tasks in review with when each was put there (`abandonedSweepRun.ts#readReviewAges`); absent: nothing is
+   *  accepted by default. */
+  readReviews?(): Promise<Array<{ taskId: string; projectId: string | null; movedAt: string | null }>>
+  /** CO-537: accepts one task left in review past three days, read back (`workRelease.ts#acceptReviewByDefault`). */
+  acceptReview?(taskId: string, projectId: string | null, movedAt: string): Promise<{ accepted: boolean; failed?: string }>
   /** The task ids among these whose run Fabric has not proved stopped (`workRead.ts#readRunHolds`). */
   unresolvedRuns(taskIds: string[]): Promise<string[]>
   /** Appends the sweep's receipt, `work.swept@1` (SW-7): counts only, never a title or a body. */
@@ -275,6 +281,34 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
   }
   // #endregion sweep-left-running-repairs
 
+  // #region sweep-review-accepted-by-default — docs: docs/ux/scenarios.md#scn-179-decide-on-work-handed-in-for-review-in-one-place
+  /** CO-537: work left in review past three days is accepted by default, the oldest first, each read back; returns how
+   *  many were. A failed read or close is said in the ops log and judged again next sweep; it never stops the sweep. */
+  async function acceptOldReviews(now: number): Promise<number> {
+    if (!deps.readReviews || !deps.acceptReview) return 0
+    let reviews: Array<{ taskId: string; projectId: string | null; movedAt: string | null }>
+    try {
+      reviews = await deps.readReviews()
+    } catch (e) {
+      ops.failed('work.sweep-review-default', e, { note: 'the reviews could not be read; none is accepted by default this sweep' })
+      return 0
+    }
+    let accepted = 0
+    for (const taskId of reviewsDueForDefaultAccept(reviews, now)) {
+      if (deps.quitting()) break
+      const r = reviews.find((x) => x.taskId === taskId)!
+      try {
+        const done = await deps.acceptReview(taskId, r.projectId, r.movedAt!)
+        if (done.accepted) accepted++
+        if (done.failed) ops.failed('work.sweep-review-default', new Error(done.failed), { task_id: taskId, note: 'the task stays in review; the next sweep tries again' })
+      } catch (e) {
+        ops.failed('work.sweep-review-default', e, { task_id: taskId, note: 'the task stays in review; the next sweep tries again' })
+      }
+    }
+    return accepted
+  }
+  // #endregion sweep-review-accepted-by-default
+
   async function sweep(): Promise<SweepResult> {
     const now = deps.now()
     const failedReads: Source[] = []
@@ -308,6 +342,8 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     // so a task leaves the findings only once its repair read back (ER-5): a repair that keeps failing stays a
     // `task-unclaimed` finding the operator sees in «На проверке», and the next sweep tries again.
     const repaired = await repairLeftRunning(holders, taskRead)
+    // CO-537: what waited in review past three days is accepted by default before anything is told.
+    await acceptOldReviews(now)
     const findings = findAbandoned({
       now,
       claims: claimRead?.claims ?? [],
@@ -625,6 +661,16 @@ export async function readRecentTurns(store: Pick<Store, 'select'>, now: number)
   }
 }
 // #endregion sweep-recent-turns
+
+/** CO-537: the tasks in review whose move there is past the default-accept age, with when they moved, the oldest first,
+ *  at most `SWEEP_READ_LIMIT` a sweep (the rest are read on the next ones). */
+export async function readReviewAges(store: Pick<Store, 'select'>, now: number): Promise<Array<{ taskId: string; projectId: string | null; movedAt: string | null }>> {
+  const r = await store.select('project_tasks', 'id,project_id,moved_at').eq('status', 'review')
+    .lt('moved_at', new Date(now - REVIEW_ACCEPT_BY_DEFAULT_MS).toISOString())
+    .order('moved_at', { ascending: true }).order('id', { ascending: true }).limit(SWEEP_READ_LIMIT)
+  if (r.error) throw new Error(`the tasks in review could not be read: ${r.error.message}`)
+  return ((r.data ?? []) as Array<{ id: string; project_id: string | null; moved_at: string | null }>).map((t) => ({ taskId: t.id, projectId: t.project_id, movedAt: t.moved_at }))
+}
 
 /** The tasks in running (SW-2). When a task last moved is read the way the home's «В работе» reads it
  *  (`workRead.ts#readHome`): `moved_at`, the time it last changed column, else `started_at`. Who moved it is the

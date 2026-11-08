@@ -11,9 +11,10 @@ import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
 import type { ActorKind } from '@fabric/journal'
 import { ops } from './opsSink.ts'
 import { readRunHolds } from './workRead.ts'
+import { REVIEW_ACCEPTED_BY_DEFAULT_REASON } from '../shared/board.ts'
 
 type Store = ReturnType<typeof createScopedStore>
-type Append = (e: { type: 'work.released@1' | 'task.moved@1'; actor: { kind: ActorKind; id: string }; projectId: string; payload: Record<string, unknown> }) => Promise<unknown>
+type Append = (e: { type: 'work.released@1' | 'task.moved@1' | 'task.closed@1'; actor: { kind: ActorKind; id: string }; projectId: string; payload: Record<string, unknown> }) => Promise<unknown>
 
 // #region work-release-returns-task — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
 /**
@@ -168,6 +169,29 @@ export async function moveReleasedLeftRunningToBacklog(store: Store, append: App
     append({ type: 'task.moved@1', actor, projectId, payload: { task_id: task.id, from: task.status, to, note: RELEASED_LEFT_RUNNING_NOTE } }))
 }
 // #endregion sweep-released-left-running
+
+// #region review-accepted-by-default-close — docs: docs/ux/scenarios.md#scn-179-decide-on-work-handed-in-for-review-in-one-place
+/** CO-537: a task left in review past three days is accepted by default (`board.ts#reviewsDueForDefaultAccept`), as
+ *  the system on the operator's standing rule, read back. Asked again at the moment of the close: a task that left
+ *  review, or that moved since the sweep read it, stays as it is. */
+export async function acceptReviewByDefault(store: Store, append: Append, taskId: string, projectId: string, movedAt: string): Promise<{ accepted: boolean; task_status: TaskState | null; failed?: string }> {
+  try {
+    const r = await store.select('project_tasks', 'id,status,moved_at').eq('id', taskId).maybeSingle()
+    if (r.error) return { accepted: false, task_status: null, failed: `the task could not be read: ${r.error.message}` }
+    const task = r.data as { id: string; status: TaskState; moved_at: string | null } | null
+    if (!task) return { accepted: false, task_status: null }
+    if (task.status !== 'review' || task.moved_at !== movedAt) return { accepted: false, task_status: task.status }
+    const verdict = mayMove('person', 'review', 'done')
+    if (!verdict.ok) return { accepted: false, task_status: task.status, failed: verdict.reason }
+    await append({ type: 'task.closed@1', actor: { kind: 'system', id: 'review-default' }, projectId,
+      payload: { task_id: taskId, outcome: 'done', reason: REVIEW_ACCEPTED_BY_DEFAULT_REASON } })
+    const status = await taskOf(store, taskId)
+    return status?.status === 'done' ? { accepted: true, task_status: 'done' } : { accepted: false, task_status: status?.status ?? null, failed: 'the close did not read back as done' }
+  } catch (e) {
+    return { accepted: false, task_status: null, failed: e instanceof Error ? e.message : String(e) }
+  }
+}
+// #endregion review-accepted-by-default-close
 
 /** A task of the store's estate by id: its status, or null. */
 async function taskOf(store: Store, taskId: string): Promise<{ id: string; status: TaskState } | null> {

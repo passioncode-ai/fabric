@@ -52,8 +52,8 @@ import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLease
 import { resolveProject } from '../shared/projectResolve.ts'
 import { loginItemFor, loginItemState, startRecord, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
 import { existingTempRoots } from './tempRoots.ts'
-import { moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
-import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
+import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
+import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readReviewAges, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
 import { createOpsDigestRun, type OpsDigestRun } from './opsDigestRun.ts'
 import { risenRows } from '../shared/opsDigest.ts'
 import { readHome, readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, readWork, type HeldSession } from './workRead.ts'
@@ -2977,6 +2977,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     moveReleasedToBacklog: async (taskId, projectId) => projectId
       ? moveReleasedLeftRunningToBacklog(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), taskId, projectId)
       : { task_moved_to: null, failed: 'the task names no project' },
+    // CO-537: work left in review past three days is accepted by default, read back.
+    readReviews: () => readReviewAges(store, Date.now()),
+    acceptReview: async (taskId, projectId, movedAt) => projectId
+      ? acceptReviewByDefault(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), taskId, projectId, movedAt)
+      : { accepted: false, failed: 'the task names no project' },
     unresolvedRuns: async (taskIds) => (await readRunHolds(store, taskIds)).map((h) => h.taskId),
     // SW-7: the sweep's receipt, estate-level (no project), as the system that swept.
     recordSwept: async (receipt) => { await journal.append({ estateId: ACTIVE_ESTATE, type: 'work.swept@1', actor: { kind: 'system', id: 'abandoned-sweep' }, payload: { ...receipt } }) },

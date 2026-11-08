@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { boardEntries, cutBoard, scopeBoard, type BoardQuestion } from './board.ts'
+import { OVERDUE_REVIEW_MS, REVIEW_ACCEPTED_BY_DEFAULT_REASON, REVIEW_ACCEPT_BY_DEFAULT_MS, boardEntries, cutBoard, reviewsDueForDefaultAccept, scopeBoard, type BoardQuestion } from './board.ts'
 import { attentionOf, type AttentionItem } from './attention.ts'
 
 const now = new Date('2026-09-08T12:00:00Z')
@@ -243,5 +243,24 @@ describe('the oldest reviews past three days reach the person, a few at a time (
   it('carries the move time from the review source', () => {
     const [item] = attentionOf({ reviews: [{ id: 't', project_id: 'p1', title: 'x', instruction: 'x', started_at: daysAgo(9), moved_at: daysAgo(4) }], expired: [], refusals: [], proposals: [], names: {} })
     expect(item.reviewSince).toBe(daysAgo(4))
+  })
+})
+
+describe('work left in review past three days is accepted by default (CO-537)', () => {
+  const now = Date.parse('2026-11-08T12:00:00Z')
+  const at = (days: number) => new Date(now - days * 24 * 3600_000).toISOString()
+  it('takes only reviews older than three days, the oldest first, and never one whose move time is unknown', () => {
+    expect(reviewsDueForDefaultAccept([
+      { taskId: 'fresh', movedAt: at(1) },
+      { taskId: 'edge', movedAt: at(3) },
+      { taskId: 'older', movedAt: at(4) },
+      { taskId: 'oldest', movedAt: at(9) },
+      { taskId: 'unknown', movedAt: null },
+      { taskId: 'garbled', movedAt: 'not a date' }
+    ], now)).toEqual(['oldest', 'older'])
+  })
+  it('accepts at the same age a review became overdue, so an overdue review never waits in «Нужны вы»', () => {
+    expect(REVIEW_ACCEPT_BY_DEFAULT_MS).toBe(OVERDUE_REVIEW_MS)
+    expect(REVIEW_ACCEPTED_BY_DEFAULT_REASON).toMatch(/accepted by default/)
   })
 })

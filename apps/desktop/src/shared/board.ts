@@ -84,6 +84,23 @@ export function overdueReviews(entries: readonly Pick<BoardEntry, 'kind' | 'ref'
 }
 // #endregion overdue-review
 
+// #region review-accepted-by-default — docs: docs/ux/scenarios.md#scn-179-decide-on-work-handed-in-for-review-in-one-place
+/** CO-537 (the operator, 2026-11-08): work left in review past this is accepted by default, so «Нужны вы» keeps only
+ *  what needs the person now. The same three days that made a review overdue (CO-456). */
+export const REVIEW_ACCEPT_BY_DEFAULT_MS = OVERDUE_REVIEW_MS
+/** The reason a review accepted by default carries in its `task.closed@1`, for the agent and the task's history. */
+export const REVIEW_ACCEPTED_BY_DEFAULT_REASON = 'accepted by default: it waited in review for more than three days without a decision (the operator\'s rule, 2026-11-08)'
+/** The tasks among these put in review more than `REVIEW_ACCEPT_BY_DEFAULT_MS` before `now`, the oldest first; a task
+ *  whose move time is unknown or unreadable is never accepted (its age is not measured). */
+export function reviewsDueForDefaultAccept(reviews: readonly { taskId: string; movedAt: string | null }[], now: number): string[] {
+  const before = now - REVIEW_ACCEPT_BY_DEFAULT_MS
+  return reviews
+    .filter((r) => r.movedAt !== null && Number.isFinite(Date.parse(r.movedAt)) && Date.parse(r.movedAt) < before)
+    .sort((a, b) => Date.parse(a.movedAt!) - Date.parse(b.movedAt!) || (a.taskId < b.taskId ? -1 : a.taskId > b.taskId ? 1 : 0))
+    .map((r) => r.taskId)
+}
+// #endregion review-accepted-by-default
+
 export interface BoardEntry {
   /**
    * One string that addresses exactly one thing, so a deep link survives a

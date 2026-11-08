@@ -1403,3 +1403,65 @@ test('the person\'s words reach the session in its next fabric_work_list, are sh
   assert.deepEqual(sweep.takeNudges('s-1', null), [])
   assert.deepEqual(sweep.messages('s-2'), [])
 })
+
+// ── CO-537 (the operator, 2026-11-08): work left in review past three days is accepted by default ───────────────
+const DAY = 24 * 60 * MIN
+test('CO-537: the sweep accepts reviews older than three days, the oldest first, and leaves fresh ones to the person', async () => {
+  const accepted = []
+  const w = world()
+  w.deps.readReviews = async () => [
+    { taskId: 'r-fresh', projectId: 'p1', movedAt: iso(T0 - DAY) },
+    { taskId: 'r-old', projectId: 'p1', movedAt: iso(T0 - 4 * DAY) },
+    { taskId: 'r-oldest', projectId: 'p2', movedAt: iso(T0 - 9 * DAY) }
+  ]
+  w.deps.acceptReview = async (taskId, projectId, movedAt) => { accepted.push([taskId, projectId, movedAt]); return { accepted: true } }
+  await sweepOnce(createAbandonedSweep(w.deps))
+  assert.deepEqual(accepted, [['r-oldest', 'p2', iso(T0 - 9 * DAY)], ['r-old', 'p1', iso(T0 - 4 * DAY)]])
+})
+
+test('CO-537: a failed read or close is said in the ops log, tried again next sweep, and never stops the sweep', async () => {
+  const w = world({ tasks: [doneTask()] })
+  const moved = []
+  w.deps.moveDoneToReview = async (taskId) => { moved.push(taskId); return { task_moved_to: 'review' } }
+  w.deps.readReviews = async () => { throw new Error('reviews refused') }
+  w.deps.acceptReview = async () => ({ accepted: true })
+  assert.ok(await sweepOnce(createAbandonedSweep(w.deps)))
+  assert.ok(w.failed.some((f) => f.op === 'work.sweep-review-default' && /reviews refused/.test(f.message)))
+  assert.deepEqual(moved, ['t-done'], 'the other repairs still ran')
+  const v = world()
+  v.deps.readReviews = async () => [{ taskId: 'r-old', projectId: 'p1', movedAt: iso(T0 - 4 * DAY) }]
+  v.deps.acceptReview = async () => ({ accepted: false, failed: 'append refused' })
+  await sweepOnce(createAbandonedSweep(v.deps))
+  assert.ok(v.failed.some((f) => f.op === 'work.sweep-review-default' && f.detail?.task_id === 'r-old'))
+})
+
+test('CO-537: acceptReviewByDefault closes only a task still in review since the read, as the system, and reads it back', async () => {
+  const { acceptReviewByDefault } = await import(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'))
+  const movedAt = iso(T0 - 4 * DAY)
+  const storeOf = (rows) => ({
+    select: () => {
+      const q = { id: null, eq(_c, v) { q.id = v; return q }, maybeSingle: async () => ({ data: rows.get(q.id) ?? null, error: null }) }
+      return q
+    }
+  })
+  const rows = new Map([['t1', { id: 't1', status: 'review', moved_at: movedAt }]])
+  const appended = []
+  const ok = await acceptReviewByDefault(storeOf(rows), async (e) => { appended.push(e); rows.set('t1', { ...rows.get('t1'), status: 'done' }) }, 't1', 'p1', movedAt)
+  assert.deepEqual(ok, { accepted: true, task_status: 'done' })
+  assert.equal(appended.length, 1)
+  assert.equal(appended[0].type, 'task.closed@1')
+  assert.deepEqual(appended[0].actor, { kind: 'system', id: 'review-default' })
+  assert.equal(appended[0].payload.outcome, 'done')
+  assert.match(appended[0].payload.reason, /accepted by default/)
+  // Moved since the read (taken back, returned, re-handed in), or no longer in review: nothing is written.
+  for (const row of [{ id: 't1', status: 'review', moved_at: iso(T0 - DAY) }, { id: 't1', status: 'running', moved_at: movedAt }]) {
+    const none = []
+    const r = await acceptReviewByDefault(storeOf(new Map([['t1', row]])), async (e) => { none.push(e) }, 't1', 'p1', movedAt)
+    assert.equal(r.accepted, false)
+    assert.equal(none.length, 0)
+  }
+  // A close that does not read back as done is said, not claimed.
+  const stuck = await acceptReviewByDefault(storeOf(new Map([['t1', { id: 't1', status: 'review', moved_at: movedAt }]])), async () => {}, 't1', 'p1', movedAt)
+  assert.equal(stuck.accepted, false)
+  assert.match(stuck.failed, /did not read back/)
+})
