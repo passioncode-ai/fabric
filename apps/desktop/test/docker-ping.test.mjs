@@ -8,7 +8,7 @@ import net from 'node:net'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 
-const { pingDocker, dockerTarget } = await import(path.resolve(import.meta.dirname, '../src/main/dockerPing.ts'))
+const { pingDocker, dockerTarget, PING_START_MS } = await import(path.resolve(import.meta.dirname, '../src/main/dockerPing.ts'))
 
 const dir = mkdtempSync(path.join(tmpdir(), 'fdp-'))
 const listen = (server, sock) => new Promise((r) => server.listen(sock, r))
@@ -103,3 +103,19 @@ test('a context whose engine answers is up through pingDocker', async () => {
   await listen(server, sock)
   try { assert.equal(await pingDocker(null, { env: { HOME: contextHome('colima', `unix://${sock}`) }, platform: 'darwin' }), true) } finally { server.close() }
 })
+
+// CO-536: on 2026-11-08 the main thread sat in a kernel connect() on a Docker socket for hours. The probe runs in a child
+// process: one that never answers is "no" by the hard deadline, it is killed, and the main thread's timers keep running.
+test('a probe stuck in its child is "no" by the hard deadline, and the main thread is never blocked', { timeout: 20_000 }, async () => {
+  let ticks = 0
+  const iv = setInterval(() => ticks++, 50)
+  const t0 = Date.now()
+  try {
+    const ok = await pingDocker('/nonexistent.sock', { deadlineMs: 200, probe: { command: process.execPath, args: ['-e', 'setTimeout(() => {}, 60000)'] } })
+    const ms = Date.now() - t0
+    assert.equal(ok, false)
+    assert.ok(ms >= 200 + PING_START_MS - 100 && ms < 200 + PING_START_MS + 2000, `answered after ${ms} ms`)
+    assert.ok(ticks >= Math.floor(ms / 50) / 2, `the main thread ticked ${ticks} times in ${ms} ms`)
+  } finally { clearInterval(iv) }
+})
+

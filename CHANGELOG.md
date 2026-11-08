@@ -7,6 +7,12 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **Fabric no longer freezes while Docker is replaced** (CO-536). Fabric asks Docker whether it answers from a short
+  child process it ends after five seconds, never from its own main thread; on 2026-11-08 that question hung the app
+  for hours while Colima took over from a stopped engine.
+
 ## 0.3.17
 
 **Upgrading.** No schema step: the database stays at schema 100.

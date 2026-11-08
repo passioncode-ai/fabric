@@ -5,7 +5,7 @@
  * platform's default. Docker's own engine API, so no `docker` CLI on PATH is needed (an OrbStack-only Mac has its CLI
  * in ~/.orbstack/bin). Bounded: a socket that accepts and never answers is "no".
  */
-import http from 'node:http'
+import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
@@ -54,18 +54,46 @@ export function dockerTarget(socket: string | null, env: NodeJS.ProcessEnv = pro
   return { socketPath: platform === 'win32' ? '\\\\.\\pipe\\docker_engine' : '/var/run/docker.sock' }
 }
 
-export function pingDocker(socket: string | null, opts: { deadlineMs?: number; env?: NodeJS.ProcessEnv; platform?: NodeJS.Platform } = {}): Promise<boolean> {
+/**
+ * The probe itself runs in a child process, never on the main thread (CO-536): on 2026-11-08 Fabric's main thread sat in
+ * a kernel `connect()` on a Docker socket for hours while Colima replaced a stopped engine, and no timer can end a call
+ * that has not returned. The child does the `GET /_ping` and says `up` or `down`; it is killed at the hard deadline, and
+ * whatever it was stuck in, the main thread only waits for a child's exit.
+ */
+const PROBE = `const http=require('node:http');const t=JSON.parse(process.argv[1]);const ms=Number(process.argv[2]);
+const done=(ok)=>{process.stdout.write(ok?'up':'down');process.exit(0)};
+const req=http.request({...t,path:'/_ping',method:'GET',timeout:ms},(res)=>{res.resume();done(res.statusCode===200)});
+req.on('timeout',()=>{req.destroy();done(false)});req.on('error',()=>done(false));req.end()`
+
+/** How long past its own deadline the child may take to start and answer before it is killed. */
+export const PING_START_MS = 3000
+
+export function pingDocker(socket: string | null, opts: {
+  deadlineMs?: number; env?: NodeJS.ProcessEnv; platform?: NodeJS.Platform
+  /** Tests: the program the probe runs as, in place of this process's own binary run as Node. */
+  probe?: { command: string; args: string[] }
+} = {}): Promise<boolean> {
   const target = dockerTarget(socket, opts.env, opts.platform)
+  const deadline = opts.deadlineMs ?? DOCKER_PING_MS
   return new Promise((resolve) => {
-    let done = false
-    const finish = (ok: boolean): void => { if (!done) { done = true; resolve(ok) } }
-    const req = http.request({ ...target, path: '/_ping', method: 'GET', timeout: opts.deadlineMs ?? DOCKER_PING_MS }, (res) => {
-      res.resume()
-      finish(res.statusCode === 200)
-    })
-    req.on('timeout', () => { req.destroy(); finish(false) })
-    req.on('error', () => finish(false))
-    req.end()
+    let done = false, said = ''
+    const finish = (ok: boolean): void => { if (!done) { done = true; clearTimeout(hard); resolve(ok) } }
+    let child: ReturnType<typeof spawn>
+    try {
+      child = spawn(opts.probe?.command ?? process.execPath, opts.probe?.args ?? ['-e', PROBE, JSON.stringify(target), String(deadline)], {
+        stdio: ['ignore', 'pipe', 'ignore'],
+        env: { ...(process.versions.electron ? { ELECTRON_RUN_AS_NODE: '1' } : {}), PATH: process.env.PATH ?? '' },
+        windowsHide: true
+      })
+    } catch {
+      // Not silence: a probe that cannot start is "no answer", and the stack watch tries again on its next read.
+      resolve(false); return
+    }
+    const hard = setTimeout(() => { try { child.kill('SIGKILL') } catch { /* already gone */ } finish(false) }, deadline + PING_START_MS)
+    child.stdout?.setEncoding('utf8')
+    child.stdout?.on('data', (d: string) => { said += d })
+    child.on('error', () => finish(false))
+    child.on('close', () => finish(said.trim() === 'up'))
   })
 }
 // #endregion docker-ping
