@@ -61,3 +61,13 @@ the record above keeps the count it was written with.
 §4's "sends nothing, ever" is narrower than the switch: the switch is the one every PassionCode app on the Mac reads,
 so turning it back on — in Fabric or in another PassionCode app — sends again from then on (0.3.3 verification,
 iteration 2 DO-2, iteration 3 DO-2). Off at the notice sends nothing while the shared switch stays off.
+
+### Amendment 3, 2026-11-08: what Fabric Switchboard did with fabric-switchboard#128
+
+The Consequences line above was true when written. Switchboard then adopted this record's rule in 0.6.82
+(fabric-switchboard#128: nothing, not even `app_installed`, before the person answered once in the window or in
+About; its `CHANGELOG.md`, section 0.6.82). The operator's decision of 2026-11-04 (fabric-switchboard SB-246)
+replaced it for Switchboard in 0.7.7: counts are on and sent from the first start, a notice says so once, About
+turns them off for Switchboard only, and an install that answered "off" under the 0.6.82 rule while the shared
+switch read off stays off (`docs/ANALYTICS.md` in fabric-switchboard, its first paragraph and "Never twice"). This
+record's decision for Fabric itself is unchanged by that. Recorded from fabric-switchboard backlog SB-194.
