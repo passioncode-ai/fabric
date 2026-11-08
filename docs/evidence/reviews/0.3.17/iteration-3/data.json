@@ -1,0 +1,30 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "e917e8aa43b8d2fc4b605e458a584dc572c481ae",
+  "report": "docs/evidence/reviews/0.3.17/iteration-3/2026-11-08-data.md",
+  "reportSha256": "51c816a9fb598cebe318884b93d903edcf680621180d20d51b1274ae977731bc",
+  "reviewerRun": "release-0317-i3-data-20261108",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V3-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V3-7"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V3-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533 (the binding is not issued yet, nothing is sent)"
+      ]
+    }
+  ]
+}

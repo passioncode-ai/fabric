@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "e917e8aa43b8d2fc4b605e458a584dc572c481ae",
+  "report": "docs/evidence/reviews/0.3.17/iteration-3/2026-11-08-plan.md",
+  "reportSha256": "f7b4d6e6fd0db162e34e7202a6d4a33de500ba7a289c9dacf7af7d7ee2b530ec",
+  "reviewerRun": "release-0317-i3-plan-20261108",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V3-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V3-6; the reviewers close against the next candidate"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V3-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V3-12; the gate's skip ruled: CO-533"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V3-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Now line names P-27 next (`docs/evidence/backlog.md`)"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V3-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Owed in 0.3.17's Release close*"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V3-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: this section names the candidate, runs 42426416148, 42433463558, 42435076677 and 42435115398, and V3-18"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V3-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Owed in 0.3.17's Release close* ties the check to CO-536"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "e917e8aa43b8d2fc4b605e458a584dc572c481ae",
+  "report": "docs/evidence/reviews/0.3.17/iteration-3/2026-11-08-errors.md",
+  "reportSha256": "5702e34583f9c65032a92c4a58e28bf62c0debd508aa95feb9662ff6eedb61fe",
+  "reviewerRun": "release-0317-i3-errors-20261108",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V3-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the outer block removed; the probe's loop expects 403 `peer-foreign-account` and 503 `peer-unverified` with `retry-after` 5 and the body's code (`apps/desktop/test/agent-surface.test.mjs`); `node --check` and `check-probes.mjs` pass; the full tier on the next candidate is recorded below"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V3-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the board stage finishes with `board_history: board_missing` and the Estate opens (`main/privateHistory.ts#createPrivateHistory`); test `private-history-service.test.mjs`, watched failing on `4344c25c`"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V3-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V3-19",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: SCN-146 declares the panel does not show `board_history` yet (COM-07's later slices), as in 0.3.16; «said as lost» in the board stage's comment means recorded in the result"
+      ]
+    }
+  ]
+}

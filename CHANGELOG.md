@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.17
 
 **Upgrading.** No schema step: the database stays at schema 100.
 
@@ -22,8 +22,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   on the home and the Board with three choices: the second waits, it hands over to the first, or both go on split; both
   sessions are told.
 - **«Написать агенту» on an agent's page** (CO-522). Your words reach that session on its next turn, wherever it was
-  started, and each line says when it was read. They are kept in memory while Fabric runs, for a day and up to the
-  last 20 per session, and a session's queue holds at most 50 waiting lines: words not yet read are lost if Fabric quits.
+  started, and each line says when it was read. The page keeps the last 20 lines per session, and a line older than a
+  day leaves it when the next one is written; words not yet read wait in the session's queue, at most 50 lines, and
+  are lost if Fabric quits.
 - **A credential goes only to a hub this account runs** (CO-514, CO-528, CO-532; fabric-agent-contract DEC-0154, CT-254
   and DEC-0155, tags v0.1.0+2026-11-07.3 and .5). Before a token leaves, fabric-mcp reads who holds the hub's end of the
   very connection it opened, with no cache; on a computer with several accounts a port held by another account, or one

@@ -48,7 +48,10 @@ Carried from 0.3.16's ledger (its *Owed in 0.3.16's Release close*), still open:
   then the rollout leaves `dispatchBoardRequests` false (iteration 2, PL-5).
 - Forty agent sessions at once on this Mac: the home, the left column and Агенты stay responsive.
 - A live start of the local stack with the Docker engine stopped. Expected since CO-508: Colima starts and the docker
-  context the person chose stays current (0.3.16 expected Colima's context to become current).
+  context the person chose stays current (0.3.16 expected Colima's context to become current). It runs only after the
+  rollout's readings, so a hang costs no install. This is CO-536's trigger: on 2026-11-08 a Docker ping froze 0.3.16's
+  main process while Colima started. A hang is that known defect of 0.3.16 and 0.3.17, recorded here with its `sample`
+  and the operations log's tail and told on thread `c7c8ae82`, never counted as a pass (iteration 3, PL-6).
 
 New for 0.3.17:
 
@@ -201,8 +204,18 @@ the full tier, `workflow_dispatch` run 42426416148, owed by *Protocol*). Their f
 blocking (2 distinct: the full-tier probe, ER-1 = PL-1 = DO-1, and SCN-179's step 5, UX-1). The probe's 503 loop had
 been put above the template literal the probe runs, so `node test/agent-surface.test.mjs` threw at its first line and
 the probe's own loop still asserted 403: the full-tier run on `4344c25c` could not pass, and V2-19 and V2-24 were not
-fixed as recorded. The fixes below made the next candidate; the same five reviewers then read its delta and closed
-against it, as 0.3.7's third iteration did. Text checks of the reworded `history.reason.board_missing`: reports
+fixed as recorded. The fixes below made the next candidate,
+`e917e8aa43b8d2fc4b605e458a584dc572c481ae`; the same five reviewers then read the delta `4344c25c..e917e8aa` and closed
+against it, as 0.3.7's third iteration did. Their reports, written as of `e917e8aa`, are in
+`docs/evidence/reviews/0.3.17/iteration-3/`.
+
+The full tier on `4344c25c` (`workflow_dispatch` run 42426416148) failed before it reached the probe: the owned-cluster
+runner `run-ceo-private-archive-db` stopped at `test/private-history-native-db.test.mjs:70`, whose list of an export's
+files did not have `board.sha256`, written since iteration 1's DA-1 fix. The nightly full tier on `main` at `bc21883d`
+(run 42433463558) failed on the same assertion. Fixed in `e917e8aa` (V3-18); the suite then ran green on this Mac on
+an owned cluster ("private history in main: 6 groups"). On `e917e8aa`: push run 42435076677, green, and `workflow_dispatch`
+run 42435115398, green in all its jobs: `fast`, and `full: with a disposable stack`, which ran the agent-surface probe's
+403 and 503 answers on a stack (V3-6, V3-11, V3-14). Text checks of the reworded `history.reason.board_missing`: reports
 `53c4ca47` (ru-RU) and `1b911eb7` (en-US), no findings.
 
 | Finding | Level | Severity | What | Disposition |
@@ -224,3 +237,11 @@ against it, as 0.3.7's third iteration did. Text checks of the reworded `history
 | V3-15 | PL-2 | non-blocking | as DO-2; the register gate skips the carry-over register's citations | fixed: as V3-12; the gate's skip ruled: CO-533 |
 | V3-16 | PL-3 | non-blocking | the Now line still said «Next P-29» | fixed: the Now line names P-27 next (`docs/evidence/backlog.md`) |
 | V3-17 | PL-4 | non-blocking | no release handoff owed | fixed: *Owed in 0.3.17's Release close* |
+| V3-18 | CI | blocking | the full tier's private-history test listed an export's files without `board.sha256` (runs 42426416148 and 42433463558) | fixed: the list has five files, each 0600 (`apps/desktop/test/private-history-native-db.test.mjs`); green on an owned cluster on this Mac |
+| V3-19 | ER-4 | non-blocking | a restore whose board texts did not come back finishes looking whole: the History panel never shows `board_history` | not a defect: SCN-146 declares the panel does not show `board_history` yet (COM-07's later slices), as in 0.3.16; «said as lost» in the board stage's comment means recorded in the result |
+| V3-20 | DO-4 | non-blocking | «kept for a day» stated a bound the page applies only when the next line is written | fixed: the bullet says the page keeps the last 20 lines, a line older than a day leaves when the next is written, and unread words wait in the queue, at most 50 (`CHANGELOG.md`, release metadata) |
+| V3-21 | DO-5 | non-blocking | the map quoted words no screen shows | fixed: the entry says the result records `board_history: board_missing` and the panel does not show it yet (`docs/reports/map.html`, release metadata) |
+| V3-22 | PL-5 | non-blocking | *Iteration 3* did not name `e917e8aa` in full, the failed full-tier runs, their cause, or the native test's row | fixed: this section names the candidate, runs 42426416148, 42433463558, 42435076677 and 42435115398, and V3-18 |
+| V3-23 | PL-6 | non-blocking | the Docker-stopped check of *Release close* can trigger CO-536 and be read as a pass | fixed: *Owed in 0.3.17's Release close* ties the check to CO-536 |
+
+Exit for iteration 3: every finding has a disposition. Blocking findings open: none.

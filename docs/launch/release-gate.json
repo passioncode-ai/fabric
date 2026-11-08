@@ -1,105 +1,101 @@
 {
-  "version": "0.3.16",
-  "ledger": "docs/evidence/plans/2026-11-05-release-0316-verification.md",
-  "verifiedCommit": "484be20fd4757c71b94e173952f78a34fdd5ca63",
-  "releaseMetadata": [
-    "docs/reports/2026-11-05-release-0316/2026-11-05-final-candidate-docs-verification.md",
-    "docs/reports/2026-11-05-release-0316/2026-11-05-final-candidate-code-verification.md",
-    "docs/reports/2026-11-05-release-0316/2026-11-05-final-candidate-delta-verification.md"
-  ],
+  "version": "0.3.17",
+  "ledger": "docs/evidence/plans/2026-11-07-release-0317-verification.md",
+  "verifiedCommit": "e917e8aa43b8d2fc4b605e458a584dc572c481ae",
+  "releaseMetadata": [],
   "reviewReceipts": {
     "schema": "fabric-release-reviews/1",
     "iterations": [
       {
         "iteration": 1,
-        "candidateCommit": "a6f0ffdabb84796b6480d3fdfb197f55a75eaf5d",
+        "candidateCommit": "a0a89d1bca7044ea7622ba52bfa3c5800c640320",
         "reviews": [
           {
             "level": "ux",
-            "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-ux.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-1/ux.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-1/2026-11-07-ux.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-1/ux.json"
           },
           {
             "level": "errors",
-            "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-errors.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-1/errors.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-1/2026-11-07-errors.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-1/errors.json"
           },
           {
             "level": "docs",
-            "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-docs.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-1/docs.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-1/2026-11-07-docs.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-1/docs.json"
           },
           {
             "level": "data",
-            "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-data.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-1/data.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-1/2026-11-07-data.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-1/data.json"
           },
           {
             "level": "plan",
-            "report": "docs/evidence/reviews/0.3.16/iteration-1/2026-11-05-plan.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-1/plan.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-1/2026-11-07-plan.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-1/plan.json"
           }
         ]
       },
       {
         "iteration": 2,
-        "candidateCommit": "37ec0410583cb6e0141a0366d0b3ebd8d5892d37",
+        "candidateCommit": "bc21883d67b84144d854e3c2b1a8f9f189c90bc2",
         "reviews": [
           {
             "level": "ux",
-            "report": "docs/evidence/reviews/0.3.16/iteration-2/2026-11-05-ux.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-2/ux.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-2/2026-11-07-ux.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-2/ux.json"
           },
           {
             "level": "errors",
-            "report": "docs/evidence/reviews/0.3.16/iteration-2/2026-11-05-errors.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-2/errors.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-2/2026-11-07-errors.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-2/errors.json"
           },
           {
             "level": "docs",
-            "report": "docs/evidence/reviews/0.3.16/iteration-2/2026-11-05-docs.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-2/docs.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-2/2026-11-07-docs.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-2/docs.json"
           },
           {
             "level": "data",
-            "report": "docs/evidence/reviews/0.3.16/iteration-2/2026-11-05-data.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-2/data.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-2/2026-11-07-data.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-2/data.json"
           },
           {
             "level": "plan",
-            "report": "docs/evidence/reviews/0.3.16/iteration-2/2026-11-05-plan.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-2/plan.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-2/2026-11-07-plan.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-2/plan.json"
           }
         ]
       },
       {
         "iteration": 3,
-        "candidateCommit": "484be20fd4757c71b94e173952f78a34fdd5ca63",
+        "candidateCommit": "e917e8aa43b8d2fc4b605e458a584dc572c481ae",
         "reviews": [
           {
             "level": "ux",
-            "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-ux.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-3/ux.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-3/2026-11-08-ux.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-3/ux.json"
           },
           {
             "level": "errors",
-            "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-errors.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-3/errors.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-3/2026-11-08-errors.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-3/errors.json"
           },
           {
             "level": "docs",
-            "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-docs.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-3/docs.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-3/2026-11-08-docs.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-3/docs.json"
           },
           {
             "level": "data",
-            "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-data.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-3/data.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-3/2026-11-08-data.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-3/data.json"
           },
           {
             "level": "plan",
-            "report": "docs/evidence/reviews/0.3.16/iteration-3/2026-11-05-plan.md",
-            "receipt": "docs/evidence/reviews/0.3.16/iteration-3/plan.json"
+            "report": "docs/evidence/reviews/0.3.17/iteration-3/2026-11-08-plan.md",
+            "receipt": "docs/evidence/reviews/0.3.17/iteration-3/plan.json"
           }
         ]
       }

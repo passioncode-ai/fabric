@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "e917e8aa43b8d2fc4b605e458a584dc572c481ae",
+  "report": "docs/evidence/reviews/0.3.17/iteration-3/2026-11-08-ux.md",
+  "reportSha256": "8bfeef79f3c82284d79eaed8076ed32c06c9fa78d57ee58e9ed22cb93a2385e1",
+  "reviewerRun": "release-0317-i3-ux-20261108",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V3-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: step 5 says the title opens it on the Board, where «Открыть» opens the task page (`docs/ux/scenarios.md`)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V3-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-533 (the board stage no longer refuses, V3-7)"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V3-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one meaning in both, the archive's original copy (`i18n/ru.ts`, `i18n/en.ts`)"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V3-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-146's alt paths, UI elements, states and coverage (`docs/ux/scenarios.md`)"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V3-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «for a day» in the bullet (`CHANGELOG.md`)"
+      ]
+    }
+  ]
+}

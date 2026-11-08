@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.17",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "e917e8aa43b8d2fc4b605e458a584dc572c481ae",
+  "report": "docs/evidence/reviews/0.3.17/iteration-3/2026-11-08-docs.md",
+  "reportSha256": "5aa9d1d1de09b6495fe64d11323ee7c8d6f27dcb92782626dbc9f9741cb7b341",
+  "reviewerRun": "release-0317-i3-docs-20261108",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V3-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V3-6"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V3-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `agentSurface.ts#AgentSurface` (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`)"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V3-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 403 for another account, 503 with Retry-After for one it cannot tell (`main/peerAccount.ts`)"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V3-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the bullet says the page keeps the last 20 lines, a line older than a day leaves when the next is written, and unread words wait in the queue, at most 50 (`CHANGELOG.md`, release metadata)"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V3-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the entry says the result records `board_history: board_missing` and the panel does not show it yet (`docs/reports/map.html`, release metadata)"
+      ]
+    }
+  ]
+}

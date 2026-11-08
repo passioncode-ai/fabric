@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-08 · `—` · fix/co510-assign-retry → main · fast-forward
+- files: Fabric 0.3.17: CO-506, CO-514, CO-528, CO-532, CO-530, CO-521, CO-522 waves A to C, CO-489, CO-526, CO-409's dispatcher, CO-510, CO-503, CO-509, CO-508, CO-315, CO-378; three review iterations' fixes; CO-536 filed
+- conflicts: none
+- summary: Fabric 0.3.17 lands on `main` by a fast-forward from the verified candidate `e917e8aa` and its release commit; the candidates `a0a89d1b`, `bc21883d` and `e917e8aa` each landed the same way once their hosted `ci` was green
+
 ### 2026-11-05T17:14:15Z · `—` · feat/nav-wave1 → main · fast-forward
 - run: r-5d9bed5352f5
 - files: the left column's rework, the board dispatcher (CO-409), forty agents at once, ADR-0186 (CO-494), CO-498 to CO-500, CO-505, the three review iterations' fixes and the final candidate's verification, then the release commit (version, CHANGELOG, release gate, ledger, receipts, reports, the map), the fix of CO-411's row and the release gate's final candidate
