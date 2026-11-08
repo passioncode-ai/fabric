@@ -196,6 +196,8 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
   const mine = read.of === agent.sessionId ? read : ({ at: 'reading', of: agent.sessionId } as const)
   const events = mine.at === 'ready' ? mine.events : mine.at === 'failed' ? mine.kept : null
   const newest = [...shownHistory(events ?? [])].reverse()
+  /** CO-542: the session's newest act, for «Сейчас». */
+  const lastAct = newest[0] ?? null
   const days: Array<{ day: string; rows: FeedEvent[] }> = []
   for (const e of newest) {
     const day = dayLabel(e.occurred_at, t, locale)
@@ -365,15 +367,19 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
                 <p className="as-now-task">{nowTitle || t('launch.home.work.untitled')}</p>
                 {nowWhat && nowWhat !== nowTitle && <p className="as-now-what">{nowWhat}</p>}
               </>
-            ) : <p className="as-now-task-none">{workUnread ? t('agentPage.taskUnread') : t('agentPage.noTask')}</p>}
+            ) : (
+              // CO-542: a live agent with no task is at work without one, never said as idle; a quiet one holds none.
+              <p className="as-now-task-none">{workUnread ? t('agentPage.taskUnread') : !agent.stale ? t('agentPage.workingNoTask') : t('agentPage.noTask')}</p>
+            )}
             <p className="as-now-doing">
               {workUnread && !agent.doing ? <span>{t('agentPage.doingUnread')}</span> : agent.doing ? (
                 <>
                   {agent.doing.step && agent.doing.ofSteps ? <Progress step={agent.doing.step} of={agent.doing.ofSteps} /> : null}
                   <span className="as-now-stage">
                     {agent.doing.step && agent.doing.ofSteps ? <><b>{t('launch.home.agents.step', { step: agent.doing.step, of: agent.doing.ofSteps })}</b> · </> : null}
+                    {/* CO-542: a report the agent has worked past is said as outdated before its words, not after them. */}
+                    {agent.doing.old && <span className="lp-meta as-now-old">{t('agentPage.stageOld', { time: since(agent.doing.at, t) })} · </span>}
                     {agent.doing.text}
-                    {agent.doing.old && <span className="lp-meta"> · {t('launch.home.agents.doingOld', { time: since(agent.doing.at, t) })}</span>}
                   </span>
                 </>
               ) : <span className="lp-meta">{t('launch.home.agents.silent')}</span>}
@@ -381,6 +387,10 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
                 <span className="as-now-tail">{[agent.doing ? ago('launch.home.inWork.heard', agent.doing.at) : null, held].filter(Boolean).join(' · ')}</span>
               )}
             </p>
+            {/* CO-542: the session's newest act from its history, so «Сейчас» shows work the agent did without a report. */}
+            {lastAct && knownTime(lastAct.occurred_at) && (
+              <p className="lp-meta as-now-last">{t('agentPage.lastAction', { what: describeEvent(t, lastAct.type), time: since(lastAct.occurred_at, t) })}</p>
+            )}
             {agent.task && events && (
               <>
                 <h5 className="as-kicker as-now-miles">{t('agentScreen.nowMilestones')}</h5>

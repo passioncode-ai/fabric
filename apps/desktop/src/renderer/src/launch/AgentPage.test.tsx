@@ -364,6 +364,36 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
 })
 
 // The 0.3.14 review, iteration 2.
+// CO-542 (the operator, 2026-11-08): an agent at work with no task is said as working, never as idle; a stage report
+// that has gone stale says so in words; the session's newest act shows beside it.
+describe('«Сейчас» says what the agent is doing now (CO-542)', () => {
+  it('a live agent with no task is working without one, and its newest act shows with its moment', async () => {
+    const history = vi.fn(async () => [
+      { ...ev(1, 'agent.stage.reported@1', { stage: 'Old work' }), occurred_at: new Date(Date.now() - 33 * 3600_000).toISOString() },
+      { ...ev(2, 'comms.message_submitted@1', {}), occurred_at: new Date(Date.now() - 60_000).toISOString() }
+    ])
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history } } }))
+    const agent: LiveAgent = { ...agentA, task: null, doing: { text: 'Old work', note: null, step: null, ofSteps: null, at: new Date(Date.now() - 33 * 3600_000).toISOString(), old: true } }
+    show(<AgentPage agent={agent} mark={0} onOpenProject={vi.fn()} />)
+    const box = screen.getByRole('region', { name: en['agentScreen.now'] })
+    expect(box.textContent).toContain(en['agentPage.workingNoTask'])
+    expect(box.textContent).not.toContain(en['agentPage.noTask'])
+    expect(box.textContent).toContain(en['agentPage.stageOld'].replace('{time}', '33h'))
+    await waitFor(() => expect(box.textContent).toContain(en['agentPage.lastAction'].replace('{what}', en['event.comms.message_submitted@1' as keyof typeof en] as string).replace('{time}', '1m')))
+  })
+
+  it('a quiet agent with no task still says it holds none, and a fresh stage is not called outdated', async () => {
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: noTasks }, terminal: { history: vi.fn(async () => []) } } }))
+    show(<AgentPage agent={agentB} mark={0} onOpenProject={vi.fn()} />)
+    const box = screen.getByRole('region', { name: en['agentScreen.now'] })
+    expect(box.textContent).toContain(en['agentPage.noTask'])
+    expect(box.textContent).not.toContain(en['agentPage.workingNoTask'])
+    cleanup()
+    show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} />)
+    expect(screen.getByRole('region', { name: en['agentScreen.now'] }).textContent).not.toContain(en['agentPage.stageOld'].split('{time}')[0])
+  })
+})
+
 describe('the agent page, review iteration 2 (UX-11, UX-13, ER-20, DA-4)', () => {
   it('UX-11: the history rows take the two-column grid; the rule names a class the page renders', async () => {
     const { readFileSync } = await import('node:fs')

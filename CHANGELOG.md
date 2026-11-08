@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **An agent's page says what the agent does now** (CO-542). An agent at work with no task is said as working
+  without one, not as idle; a stage report it has worked past is marked as outdated; and its newest act (a board
+  message, a claim, a stage) shows with how long ago.
 - **The board stays up when Fabric's window is gone** (ADR-0192, task 296b88c5). On macOS Fabric now runs as a service
   the system keeps: it starts without a window when you log in and starts again after a crash, and Quit only closes the
   windows, so agents keep reaching the board. Settings calls the switch «Служба доски»; turn it off and the next Quit
