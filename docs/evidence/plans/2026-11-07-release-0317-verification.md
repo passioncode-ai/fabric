@@ -62,6 +62,9 @@ New for 0.3.17:
   still fails, step 10 runs by hand from a clean `main`: `node scripts/workspace.mjs publish`, then
   `node scripts/workspace.mjs check --require-child`; if that fails too, its output is recorded here and CO-535 stays
   open (iteration 2, PL-6).
+- The release handoff `docs/handoffs/<date>-release-0317.md` with the rollout as done (version, schema 100, the journal
+  count, `hub.json`'s pid, `com.status`, `dispatchBoardRequests`), committed on `main` after the install (iteration 3,
+  PL-4).
 - After the tag: P-31 marked released with the tag and the rollout date, and the Now line moved, on `main`
   (`docs/evidence/backlog.md` cannot change after `verifiedCommit`; iteration 2, PL-4).
 - On the board: the tag and the install to request `fe51a4a6` (thread `c7c8ae82`); the dispatcher switch's state to
@@ -190,3 +193,34 @@ strings changed in iteration 1 (`review.handedIn.*`, `review.saidNothingPerson`)
 | V2-29 | PL-6 | non-blocking | CO-535 sat outside the release lane; step 10 had no manual route | fixed: CO-535 in lane 2 (`docs/evidence/backlog.md`); step 10's route in *Release close* |
 
 Exit for iteration 2: every finding has a disposition. Blocking findings open: none.
+
+## Iteration 3
+
+Five fresh reviewers started on `4344c25c50104e129d975a36093da429e6861b21` (hosted `ci` push run 42426288202, green;
+the full tier, `workflow_dispatch` run 42426416148, owed by *Protocol*). Their first reading found 17 findings, 4
+blocking (2 distinct: the full-tier probe, ER-1 = PL-1 = DO-1, and SCN-179's step 5, UX-1). The probe's 503 loop had
+been put above the template literal the probe runs, so `node test/agent-surface.test.mjs` threw at its first line and
+the probe's own loop still asserted 403: the full-tier run on `4344c25c` could not pass, and V2-19 and V2-24 were not
+fixed as recorded. The fixes below made the next candidate; the same five reviewers then read its delta and closed
+against it, as 0.3.7's third iteration did. Text checks of the reworded `history.reason.board_missing`: reports
+`53c4ca47` (ru-RU) and `1b911eb7` (en-US), no findings.
+
+| Finding | Level | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-1 | UX-1 | blocking | SCN-179's step 5 said the home card's title opens the task; it opens the item on the Board | fixed: step 5 says the title opens it on the Board, where «Открыть» opens the task page (`docs/ux/scenarios.md`) |
+| V3-2 | UX-2 | non-blocking | a refusal after the restore wrote reads «Ничего не записано» | ruled: CO-533 (the board stage no longer refuses, V3-7) |
+| V3-3 | UX-3 | non-blocking | the two languages of `history.reason.board_missing` said different things | fixed: one meaning in both, the archive's original copy (`i18n/ru.ts`, `i18n/en.ts`) |
+| V3-4 | UX-4 | non-blocking | SCN-146 did not describe the lost-board-file refusal | fixed: SCN-146's alt paths, UI elements, states and coverage (`docs/ux/scenarios.md`) |
+| V3-5 | UX-5 | non-blocking | the say-to-agent lines are also dropped after a day | fixed: «for a day» in the bullet (`CHANGELOG.md`) |
+| V3-6 | ER-1 | blocking | the full-tier probe's 503 loop sat outside the template and the probe still asserted 403 | fixed: the outer block removed; the probe's loop expects 403 `peer-foreign-account` and 503 `peer-unverified` with `retry-after` 5 and the body's code (`apps/desktop/test/agent-surface.test.mjs`); `node --check` and `check-probes.mjs` pass; the full tier on the next candidate is recorded below |
+| V3-7 | ER-2 | non-blocking | a board file gone from the operation's own copy kept the restore pending for good | fixed: the board stage finishes with `board_history: board_missing` and the Estate opens (`main/privateHistory.ts#createPrivateHistory`); test `private-history-service.test.mjs`, watched failing on `4344c25c` |
+| V3-8 | ER-3 | non-blocking | `--activate=false` on a Colima too old to know it fails unseen | ruled: CO-533 |
+| V3-9 | DA-1 | non-blocking | as ER-2 | fixed: as V3-7 |
+| V3-10 | DA-2 | non-blocking | the digest collector offers only two months of closed days | ruled: CO-533 (the binding is not issued yet, nothing is sent) |
+| V3-11 | DO-1 | blocking | as ER-1 | fixed: as V3-6 |
+| V3-12 | DO-2 | non-blocking | CO-514 cited `agentSurface.ts#createAgentSurface` | fixed: `agentSurface.ts#AgentSurface` (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`) |
+| V3-13 | DO-3 | non-blocking | the `peer-account` module header still said refused | fixed: 403 for another account, 503 with Retry-After for one it cannot tell (`main/peerAccount.ts`) |
+| V3-14 | PL-1 | blocking | as ER-1, and the gate needs iteration 3's candidate to be `verifiedCommit` | fixed: as V3-6; the reviewers close against the next candidate |
+| V3-15 | PL-2 | non-blocking | as DO-2; the register gate skips the carry-over register's citations | fixed: as V3-12; the gate's skip ruled: CO-533 |
+| V3-16 | PL-3 | non-blocking | the Now line still said «Next P-29» | fixed: the Now line names P-27 next (`docs/evidence/backlog.md`) |
+| V3-17 | PL-4 | non-blocking | no release handoff owed | fixed: *Owed in 0.3.17's Release close* |

@@ -1616,7 +1616,7 @@ export const en = {
   'history.reason.idempotency_conflict': "this history has already been imported",
   'history.reason.not_found': "the archive could not be found",
   'history.reason.unavailable': "this is not available for your profile here",
-  'history.reason.board_missing': "the archive carried the project board's history and its file (board.json) is missing; copy it from where the archive came from",
+  'history.reason.board_missing': "the archive carried the project board's history, but its file (board.json) is not in it; copy it from the archive's original copy",
   'history.reason.not_your_history': "it belongs to someone else, who can import it themselves",
   'history.fact.privateSkipped': "Private history not imported: {reason}",
   'history.openFailed': "The Estate was not opened: {reason}. It stays restored; you can try again.",

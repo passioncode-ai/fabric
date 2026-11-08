@@ -63,18 +63,18 @@ try {
   assert.equal(src.rpc(`ceo_send_message(${uuid(S)},${uuid(U)},1,${jsonb(actor(U))},${jsonb(env)})`).ok, true)
   const onSource = service(src, { estateId: S, personId: U, revision: 1, actor: actor(U) })
 
-  // ── 1. Export: four private files, complete or not at all ──────────────────────
+  // ── 1. Export: five private files (board.sha256 since CO-315), complete or not at all ──
   const exported = await onSource.history.exportHistory()
   assert.equal(exported.ok, true, JSON.stringify(exported))
   assert.deepEqual([exported.conversations, exported.messages], [1, 1])
-  assert.deepEqual(readdirSync(exported.dir).sort(), ['board.json', 'ceo-private.json', 'journal.ndjson', 'manifest.json'])
+  assert.deepEqual(readdirSync(exported.dir).sort(), ['board.json', 'board.sha256', 'ceo-private.json', 'journal.ndjson', 'manifest.json'])
   assert.equal(statSync(exported.dir).mode & 0o777, 0o700)
   for (const f of readdirSync(exported.dir)) assert.equal(statSync(path.join(exported.dir, f)).mode & 0o777, 0o600, f)
   assert.deepEqual(onSource.history.exports().map(e => e.dir), [exported.dir])
   assert.deepEqual(onSource.calls, ['ceo_export_private_archive'], 'export writes nothing to the database')
   const inspected = onSource.history.inspect(exported.dir)
   assert.equal(inspected.ok, true); assert.deepEqual(inspected.companion, { owner: U, conversations: 1, messages: 1 })
-  pass('export takes the real ordinary archive with its board history, the SQL companion and the codec\'s decode into four private files')
+  pass('export takes the real ordinary archive with its board history, the SQL companion and the codec\'s decode into five private files')
 
   // A failed export leaves nothing that could be offered.
   {

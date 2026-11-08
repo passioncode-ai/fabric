@@ -246,14 +246,14 @@ export function createPrivateHistory(ports: PrivateHistoryPorts) {
     if (op.stage === 'board') {
       // The board's texts (ADR-0149 §6), after the private import, which requires the restored Estate untouched: a refusal leaves the restored Estate usable with its messages' events and
       // without their texts, and says so; a lost reply repeats, because the database refuses a second history.
-      // The operation's own copy carries the digest too (DA-1): a board file gone from it since the restore began is
-      // refused with the operation kept at this stage, so Check again repeats it once the file is back.
+      // The operation's own copy carries the digest too (DA-1): a board file gone from it since the restore began is said
+      // as lost, never as an archive from before board history travelled. The Estate is restored by now, so the operation
+      // finishes and the Estate opens (the 0.3.17 release review, iteration 3, ER-2 and DA-1: a refusal here kept it
+      // pending for good, since the copy is Fabric's own and the person cannot put the file back).
       const digest = readBoardDigestFile(() => readFileSync(path.join(op.dir, BOARD_DIGEST_FILE), 'utf8'))
       if (digest.state === 'corrupt') op.board_history = 'integrity_mismatch'
-      else if (!existsSync(path.join(op.dir, BOARD_ARCHIVE_FILE))) {
-        if (digest.state === 'named') return refuse(BOARD_MISSING, 'refused', op.operation_id)
-        op.board_history = 'missing'
-      } else {
+      else if (!existsSync(path.join(op.dir, BOARD_ARCHIVE_FILE))) op.board_history = digest.state === 'named' ? BOARD_MISSING : 'missing'
+      else {
         const text = readOpFile(op, BOARD_ARCHIVE_FILE); if (!text.ok) return text
         const manifestText = readOpFile(op, MANIFEST); if (!manifestText.ok) return manifestText
         const manifest = parsed(op, manifestText.text); if (!manifest.ok) return manifest

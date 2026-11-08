@@ -1,14 +1,3 @@
-// CO-514 (DEC-0154 HA-2 (b), HA-3): another account's process is refused 403 before its request is read; one whose
-// account cannot be told is told to wait, 503 with Retry-After (the 0.3.17 release review, iteration 1, ER-1); this
-// account's is answered.
-for (const [verdict, status, code, retry] of [['foreign', 403, 'peer-foreign-account', null], ['unverified', 503, 'peer-unverified', '5']]) {
-  peerVerdict = verdict
-  const r = await fetch(surface.endpoint, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + scope.token }, body: '{}' })
-  const body = await r.json().catch(() => ({}))
-  r.status === status && String(body.error ?? '').startsWith(code) && body.code === code && r.headers.get('retry-after') === retry
-    ? ok('a caller judged ' + verdict + ' is answered ' + status + ' ' + code + (retry ? ' with Retry-After ' + retry : '') + ' before its request is read')
-    : fail('a ' + verdict + ' caller got ' + r.status + ' ' + JSON.stringify(body) + ' retry-after ' + r.headers.get('retry-after'))
-}
 // The agent surface, probed the way an agent actually reaches it: a real MCP
 // client over Streamable HTTP, a real handshake, real tool calls.
 //
@@ -174,15 +163,16 @@ if (me.project?.id === projectId && me.session_id === sessionId && me.rules?.len
   ok('fabric_whoami answers with this session and the rules that apply')
 else fail('whoami returned ' + JSON.stringify(me))
 
-// CO-514 (DEC-0154 HA-2 (b), HA-3): another account's process is refused before its request is read, and one whose
-// account cannot be told is refused too; this account's is answered.
-for (const [verdict, code] of [['foreign', 'peer-foreign-account'], ['unverified', 'peer-unverified']]) {
+// CO-514 (DEC-0154 HA-2 (b), HA-3): another account's process is refused 403 before its request is read; one whose
+// account cannot be told is told to wait, 503 with Retry-After (the 0.3.17 release review, iteration 1, ER-1); this
+// account's is answered.
+for (const [verdict, status, code, retry] of [['foreign', 403, 'peer-foreign-account', null], ['unverified', 503, 'peer-unverified', '5']]) {
   peerVerdict = verdict
   const r = await fetch(surface.endpoint, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + scope.token }, body: '{}' })
   const body = await r.json().catch(() => ({}))
-  r.status === 403 && String(body.error ?? '').startsWith(code)
-    ? ok('a caller judged ' + verdict + ' is refused 403 ' + code + ' before its request is read')
-    : fail('a ' + verdict + ' caller got ' + r.status + ' ' + JSON.stringify(body))
+  r.status === status && String(body.error ?? '').startsWith(code) && body.code === code && r.headers.get('retry-after') === retry
+    ? ok('a caller judged ' + verdict + ' is answered ' + status + ' ' + code + (retry ? ' with Retry-After ' + retry : '') + ' before its request is read')
+    : fail('a ' + verdict + ' caller got ' + r.status + ' ' + JSON.stringify(body) + ' retry-after ' + r.headers.get('retry-after'))
 }
 peerVerdict = 'own'
 

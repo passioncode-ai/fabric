@@ -932,7 +932,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'history.reason.idempotency_conflict': "эта история уже импортирована",
   'history.reason.not_found': "архив не найден",
   'history.reason.unavailable': "для вашего профиля здесь это недоступно",
-  'history.reason.board_missing': "архив нёс историю доски проекта, а её файла (board.json) нет; скопируйте его оттуда, где лежал архив",
+  'history.reason.board_missing': "архив содержал историю доски проекта, но её файла (board.json) в нём нет; скопируйте его из исходной копии архива",
   'history.reason.not_your_history': "она принадлежит другому человеку, и он может импортировать её сам",
   'history.fact.privateSkipped': "Личная история не импортирована: {reason}",
   'history.openFailed': "Пространство не открыто: {reason}. Оно остаётся восстановленным; можно попробовать ещё раз.",

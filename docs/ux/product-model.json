@@ -35097,7 +35097,7 @@
         "SCR-81",
         "SCR-48"
       ],
-      "coverage": "`supabase/migrations/20261012000103_project_board_lifecycle.sql` (`board_history_export`, `restore_board_history`); `apps/desktop/src/main/backup.ts`, `apps/desktop/src/main/privateHistory.ts` and `apps/desktop/src/shared/archive.ts` (`board.json`); tests `apps/desktop/test/project-board-lifecycle-cases.mjs` (the round trip), `apps/desktop/test/backup-paging.test.mjs` and `apps/desktop/test/private-history-service.test.mjs`",
+      "coverage": "`supabase/migrations/20261012000103_project_board_lifecycle.sql` (`board_history_export`, `restore_board_history`); `apps/desktop/src/main/backup.ts`, `apps/desktop/src/main/privateHistory.ts` and `apps/desktop/src/shared/archive.ts` (`board.json`); tests `apps/desktop/test/project-board-lifecycle-cases.mjs` (the round trip), `apps/desktop/test/backup-paging.test.mjs` and `apps/desktop/test/private-history-service.test.mjs`; `apps/desktop/test/private-history-service.test.mjs` (lost, different, damaged, and gone from the operation's copy) and `apps/desktop/src/renderer/src/PrivateHistoryPanel.test.tsx` «an archive whose board file is lost names the file to copy back» (CO-315, 0.3.17)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the restored estate shows what its projects told each other, and none of its old authority is live.",

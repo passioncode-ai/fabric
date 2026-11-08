@@ -177,8 +177,8 @@ try {
     const kept = service()
     const ok = await kept.history.restore(withDigest(withBoard()), 'With its digest')
     assert.equal(ok.board_history, 'restored', 'an archive whose board file matches its digest restores its texts')
-    // The operation's own copy carries the digest: a board file gone from it after the restore began is refused with the
-    // operation kept, never finished as an archive without board history.
+    // The operation's own copy carries the digest: a board file gone from it after the restore began is said as lost, never
+    // as an archive without board history, and the restored Estate still opens (iteration 3, ER-2).
     const later = service({ answers: { restore_estate_verified: ['lost'] } })
     const pending = await later.history.restore(withDigest(withBoard()), 'Lost later')
     assert.equal(pending.state, 'result_unknown')
@@ -186,7 +186,8 @@ try {
     assert.equal(existsSync(path.join(copy, 'board.sha256')), true, 'the copy keeps board.sha256')
     unlinkSync(path.join(copy, 'board.json'))
     const again = await later.history.check(pending.operation_id)
-    assert.deepEqual([again.ok, again.reason_code, again.operation_id], [false, 'board_missing', pending.operation_id])
+    assert.equal(again.ok, true, JSON.stringify(again)); assert.equal(again.board_history, 'board_missing')
+    assert.equal(later.history.restoredEstates().length, 1, 'the restored Estate opens')
     const lost = service({ answers: { restore_board_history: ['lost', { ok: false, reason_code: 'already_restored' }] } })
     const unknown = await lost.history.restore(withBoard(), 'Lost reply')
     assert.equal(unknown.state, 'result_unknown')

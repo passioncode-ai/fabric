@@ -2,8 +2,8 @@
 /**
  * Whose process is on the other end of a loopback connection to the hub (CO-514, the contract's DEC-0154 HA-2 point 2
  * (b) and HA-3, `v0.1.0+2026-11-07.1`): on a computer with several human accounts the hub answers only its own
- * account's processes, refusing another's (`peer-foreign-account`) or one it cannot tell (`peer-unverified`) before
- * reading the request. On a computer with one human account nothing is read and every peer is this account's.
+ * account's processes, answering another account's process 403 (`peer-foreign-account`) and one it cannot tell 503
+ * with Retry-After, a wait (`peer-unverified`), before reading the request. On a computer with one human account nothing is read and every peer is this account's.
  *
  * The client's socket is the row whose LOCAL port is the connection's remote port: macOS `lsof -Fpun`, Linux
  * `/proc/net/tcp` and `tcp6` (established, `01`); Windows asks PowerShell for that connection's owning process
