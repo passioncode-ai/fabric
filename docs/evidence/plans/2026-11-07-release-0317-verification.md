@@ -245,3 +245,29 @@ run 42435115398, green in all its jobs: `fast`, and `full: with a disposable sta
 | V3-23 | PL-6 | non-blocking | the Docker-stopped check of *Release close* can trigger CO-536 and be read as a pass | fixed: *Owed in 0.3.17's Release close* ties the check to CO-536 |
 
 Exit for iteration 3: every finding has a disposition. Blocking findings open: none.
+
+## Release close, as done
+
+Recorded on `main` after the tag (2026-11-08).
+
+- `node scripts/release-mac.mjs --check-only --tag v0.3.17` on `1ac42780` (`main` after the release commit's hosted `ci`
+  run 42437826293, green): "release: Fabric 0.3.17 at 1ac427803622 (v0.3.17) is on origin/main and its release gate is
+  clear". The tag `v0.3.17` was pushed on `1ac42780`.
+- The release run 42438810794: success in every job (guard, preflight, macos, windows x64 and arm64, linux x64 and
+  arm64, publish); the release was published 2026-11-08 02:54:51 UTC with the DMG, the Windows installers, the Linux
+  AppImages and packages, their manifests and `SHA256SUMS` with its signature.
+- The published `Fabric-0.3.17-universal.dmg` read back on this Mac: SHA-256
+  `73733bd0661f997265054eef7d8b69dce5072c4d067aeb58ec1eda741c3659f9`, equal to `SHA256SUMS`;
+  `codesign --verify --deep --strict` passes; `spctl` accepts it as "Notarized Developer ID"; version 0.3.17; the main
+  binary carries x86_64 and arm64.
+- Step 10, the workspace publication: run by hand from `main` (`1ac42780`) and refused at the workspace's own content
+  check (`npm run verify:content`): another repository's backlog (`passioncode-ai/passioncode`, `docs/backlog.md`,
+  rows PC-97 and PC-138) has a `|` inside a code span that is not escaped, so its table rows have five cells where the
+  header has four ("Malformed task table row"). This is CO-535's cause as of today; the ask goes to that project on
+  the board once the hub answers. CO-535 stays open; the workspace stays pinned at its earlier snapshot.
+- The rollout: waits. The installed 0.3.16 froze at 00:37 UTC (CO-536) and was opened by the person, so the lifecycle
+  broker refuses to stop it (`in_use_by_person`, `not_started_by_broker`); the person was told once, with the one step
+  (quit it). A watcher keeps the 0.3.16 bundle as the way back and puts 0.3.17 in place once 0.3.16 has exited; 0.3.17
+  is then opened through the broker and the rollout's readings are recorded here.
+- Not yet run: steps 7 and 9 and the Docker-stopped check (after the rollout), step 11, the board's replies (the board
+  answers again once the hub does).
