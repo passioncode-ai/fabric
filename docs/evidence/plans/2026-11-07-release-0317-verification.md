@@ -264,7 +264,9 @@ Recorded on `main` after the tag (2026-11-08).
   check (`npm run verify:content`): another repository's backlog (`passioncode-ai/passioncode`, `docs/backlog.md`,
   rows PC-97 and PC-138) has a `|` inside a code span that is not escaped, so its table rows have five cells where the
   header has four ("Malformed task table row"). This is CO-535's cause as of today; the ask goes to that project on
-  the board once the hub answers. CO-535 stays open; the workspace stays pinned at its earlier snapshot.
+  the board once the hub answers. Done the same morning: asked on the board (thread `a4abfc7f`), passioncode fixed
+  both rows (PR #318), the scheduled sync published and pinned the workspace (`a4c4b608`, snapshot `7e1a23a1`), and
+  `node scripts/workspace.mjs check --require-child` passes on source `eafcf2e4`; CO-535 resolved.
 - The rollout: waits. The installed 0.3.16 froze at 00:37 UTC (CO-536) and was opened by the person, so the lifecycle
   broker refuses to stop it (`in_use_by_person`, `not_started_by_broker`); the person was told once, with the one step
   (quit it). A watcher keeps the 0.3.16 bundle as the way back and puts 0.3.17 in place once 0.3.16 has exited; 0.3.17
