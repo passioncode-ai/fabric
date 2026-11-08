@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The board stays up when Fabric's window is gone** (ADR-0192, task 296b88c5). On macOS Fabric now runs as a service
+  the system keeps: it starts without a window when you log in and starts again after a crash, and Quit only closes the
+  windows, so agents keep reaching the board. Settings calls the switch «Служба доски»; turn it off and the next Quit
+  ends Fabric as before. Windows and Linux are unchanged.
 - **Old reviews no longer pile up in «Нужны вы»** (CO-537). Work that waits in review for more than three days is
   accepted by default, on the operator's rule, and says so in its history; «Нужны вы» keeps what needs a decision now.
   The review card no longer squeezes the agent's words into one letter a line in that narrow column.

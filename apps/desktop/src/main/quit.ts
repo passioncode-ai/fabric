@@ -44,6 +44,14 @@ export interface QuitOptions {
    * closes such a window is answered by that window's own `close` handler (index.ts).
    */
   starting?: () => boolean
+  /**
+   * ADR-0192: true while a quit the person asks for should only hide Fabric (the board's service is on, see
+   * `loginItem.ts#quitHolds`). Read only once the runtime is up and no quit has begun; then the quit is cancelled,
+   * nothing is drained and `onHold` runs instead.
+   */
+  holds?: () => boolean
+  /** Hides Fabric when a quit is held: closes its windows and its Dock icon (index.ts). */
+  onHold?: () => void
   /** Upper bound from the first quit request to process exit. */
   hardDeadlineMs?: number
   schedule?: (fn: () => void) => void
@@ -132,6 +140,14 @@ export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
       if (!o.ready()) { begin(); return }
       e.preventDefault()
       if (quitting) return
+      if (o.holds?.()) {
+        try { o.onHold?.() } catch (err) {
+          // Recorded by the caller's `onSchedulerError` (index.ts → ops.failed); a window that would not close must not
+          // turn a held quit into an ended one, so the quit stays cancelled.
+          o.onSchedulerError?.(err)
+        }
+        return
+      }
       begin()
       void Promise.resolve()
         .then(() => o.shutdown())

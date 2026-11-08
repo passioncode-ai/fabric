@@ -35511,7 +35511,7 @@
       "errors_recovery": "a path that fails keeps everything chosen and typed, says what failed in our words, and offers «Повторить»; an add that half-succeeded lists which projects were added and which were not.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4291
+        "line": 4292
       }
     },
     {
@@ -35532,7 +35532,7 @@
       "errors_recovery": "a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said under the header and the console in Fabric stays.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4314
+        "line": 4315
       }
     },
     {
@@ -35551,7 +35551,7 @@
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4336
+        "line": 4337
       }
     },
     {
@@ -35570,7 +35570,7 @@
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4368
+        "line": 4369
       }
     },
     {
@@ -35587,7 +35587,7 @@
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4393
+        "line": 4394
       }
     },
     {
@@ -35604,7 +35604,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4416
+        "line": 4417
       }
     },
     {
@@ -35621,7 +35621,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4439
+        "line": 4440
       }
     },
     {
@@ -35640,7 +35640,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4462
+        "line": 4463
       }
     },
     {
@@ -35658,7 +35658,7 @@
       "errors_recovery": "a refusal keeps the comment and the buttons; a hand-in note that cannot be read leaves the review in the list without its words.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4484
+        "line": 4485
       }
     },
     {
@@ -35675,7 +35675,7 @@
       "errors_recovery": "a read that fails names the part not read.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4508
+        "line": 4509
       }
     }
   ],

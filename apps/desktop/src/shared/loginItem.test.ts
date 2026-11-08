@@ -1,11 +1,11 @@
 // CO-322 (the operator, 2026-10-16): Fabric starts at login by default, quietly, and the person can turn it off.
 import { describe, expect, it } from 'vitest'
-import { loginItemFor, loginItemState, startRecord, startsInBackground, type LoginItemState } from './loginItem'
+import { BOARD_SERVICE, legacyLoginItem, loginItemFor, loginItemQuery, loginItemState, quitHolds, startRecord, startsInBackground, type LoginItemState } from './loginItem'
 
 describe('launch at login', () => {
   it('registers the packaged app with the system, on by default and off when the person says so', () => {
-    expect(loginItemFor(true, 'darwin', true)).toEqual({ openAtLogin: true, type: 'mainAppService' })
-    expect(loginItemFor(false, 'darwin', true)).toEqual({ openAtLogin: false, type: 'mainAppService' })
+    expect(loginItemFor(true, 'darwin', true)).toEqual({ openAtLogin: true, type: 'agentService', serviceName: BOARD_SERVICE })
+    expect(loginItemFor(false, 'darwin', true)).toEqual({ openAtLogin: false, type: 'agentService', serviceName: BOARD_SERVICE })
     expect(loginItemFor(true, 'win32', true)).toEqual({ openAtLogin: true, args: ['--background'] })
   })
   it('never registers a development build, and has no login item on Linux', () => {
@@ -51,5 +51,29 @@ describe('CO-365: every start says how it was started, so a reboot can be checke
   })
   it('a platform that cannot tell says unknown, never false', () => {
     expect(startRecord(['Fabric'], null, '0.3.16')).toEqual({ version: '0.3.16', atLogin: 'unknown', background: false })
+  })
+})
+
+describe('ADR-0192: the board is a service launchd keeps', () => {
+  it('names the property list the bundle ships, and reads the system about that same service', () => {
+    expect(BOARD_SERVICE).toBe('ai.passioncode.desktop.board.plist')
+    expect(loginItemQuery('darwin')).toEqual({ type: 'agentService', serviceName: BOARD_SERVICE })
+    expect(loginItemQuery('win32')).toEqual({ args: ['--background'] })
+    expect(loginItemQuery('linux')).toBeUndefined()
+  })
+  it('removes the old login item once on macOS, so login does not start Fabric twice', () => {
+    expect(legacyLoginItem('darwin', true)).toEqual({ openAtLogin: false, type: 'mainAppService' })
+    expect(legacyLoginItem('darwin', false)).toBeNull()
+    expect(legacyLoginItem('win32', true)).toBeNull()
+    expect(legacyLoginItem('linux', true)).toBeNull()
+  })
+  it('a quit the person asks for only hides while the service is on, on an installed macOS build', () => {
+    const on = { serviceOn: true, platform: 'darwin', packaged: true, systemEnding: false }
+    expect(quitHolds(on)).toBe(true)
+    expect(quitHolds({ ...on, serviceOn: false })).toBe(false)
+    expect(quitHolds({ ...on, systemEnding: true })).toBe(false)
+    expect(quitHolds({ ...on, packaged: false })).toBe(false)
+    expect(quitHolds({ ...on, platform: 'win32' })).toBe(false)
+    expect(quitHolds({ ...on, platform: 'linux' })).toBe(false)
   })
 })

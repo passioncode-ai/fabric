@@ -308,3 +308,36 @@ test('a real Electron main process exits gracefully on SIGTERM', { timeout: 300_
     rmSync(dir, { recursive: true, force: true })
   }
 })
+
+// ADR-0192 (0.3.18): while the board's service is on, the person's quit only hides Fabric; the board keeps running.
+test('ADR-0192: a quit the service holds hides instead of ending, runs no shutdown and stops no scheduler', async () => {
+  const { app, state } = modelElectron()
+  const held = []
+  let shutdowns = 0
+  let stopped = 0
+  const q = createQuitCoordinator({ app, ready: () => true, holds: () => true, onHold: () => held.push('hide'), shutdown: async () => { shutdowns++ }, setTimer: () => ({}) })
+  q.onQuit(() => { stopped++ })
+  app.on('before-quit', (e) => q.beforeQuit(e))
+  app.quit()
+  await settle()
+  assert.deepEqual(held, ['hide'])
+  assert.equal(shutdowns, 0)
+  assert.equal(stopped, 0)
+  assert.equal(q.quitting, false)
+  assert.equal(state.willQuit, false)
+  assert.equal(state.exited, null)
+})
+
+test('ADR-0192: with the service off, or before the runtime is up, a quit ends Fabric as before', async () => {
+  for (const [ready, holds] of [[true, false], [false, true]]) {
+    const { app, state } = modelElectron()
+    const held = []
+    const q = createQuitCoordinator({ app, ready: () => ready, holds: () => holds, onHold: () => held.push('hide'), shutdown: async () => {}, setTimer: () => ({}) })
+    app.on('before-quit', (e) => q.beforeQuit(e))
+    app.on('window-all-closed', () => q.windowAllClosed('darwin'))
+    app.quit()
+    await settle()
+    assert.deepEqual(held, [], `ready=${ready} holds=${holds}`)
+    assert.equal(state.exited, 0, `ready=${ready} holds=${holds}`)
+  }
+})

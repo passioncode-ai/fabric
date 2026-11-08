@@ -130,13 +130,15 @@ export function LaunchAtLoginSetting({ value, onChange }: {
         : value && state.system === 'off' ? t(darwin ? 'settings.launchAtLogin.offDarwin' : 'settings.launchAtLogin.offWindows')
           : !value && state.system === 'on' ? t('settings.launchAtLogin.stillOn')
             : null
+  // ADR-0192: on macOS the switch is the board's service, which launchd keeps; Windows keeps launch at login.
   return (
     <>
       <label className="lp-check">
         <input type="checkbox" checked={value} onChange={(e) => void onChange({ launchAtLogin: e.target.checked })} />
-        {t('settings.launchAtLogin')}
+        {t(darwin ? 'settings.boardService' : 'settings.launchAtLogin')}
       </label>
-      <p className="settings-note">{t(darwin ? 'settings.launchAtLoginNote' : 'settings.launchAtLoginNoteWindows')}</p>
+      <p className="settings-note">{t(darwin ? 'settings.boardServiceNote' : 'settings.launchAtLoginNoteWindows')}</p>
+      {darwin && !value && <p className="settings-note" role="status">{t('settings.boardServiceOff')}</p>}
       {system && <p className="settings-note" role="status">{system}</p>}
     </>
   )

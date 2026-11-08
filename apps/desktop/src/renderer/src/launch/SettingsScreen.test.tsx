@@ -229,15 +229,23 @@ describe('launch at login, only where it does something (CO-322; 0.3.7 review UX
     return onChange
   }
 
-  it('on macOS: on by default, the Dock note, and the person can turn it off', async () => {
+  it('on macOS: the board service (ADR-0192), on by default, says what it keeps running, and the person can turn it off', async () => {
     withLoginItem({ supported: true, platform: 'darwin', system: 'on' })
     const onChange = open(true)
-    const box = await screen.findByRole('checkbox', { name: en['settings.launchAtLogin'] }) as HTMLInputElement
+    const box = await screen.findByRole('checkbox', { name: en['settings.boardService'] }) as HTMLInputElement
     expect(box.checked).toBe(true)
-    expect(screen.getByText(en['settings.launchAtLoginNote'])).toBeTruthy()
+    expect(screen.getByText(en['settings.boardServiceNote'])).toBeTruthy()
+    expect(screen.queryByText(en['settings.boardServiceOff'])).toBeNull()
     expect(screen.queryByText(en['settings.launchAtLogin.offDarwin'])).toBeNull()
     fireEvent.click(box)
     expect(onChange).toHaveBeenCalledWith({ launchAtLogin: false })
+  })
+
+  it('on macOS with the service off: says the board is gone once Fabric is quit', async () => {
+    withLoginItem({ supported: true, platform: 'darwin', system: 'off' })
+    open(false)
+    expect(await screen.findByText(en['settings.boardServiceOff'])).toBeTruthy()
+    expect(screen.queryByRole('checkbox', { name: en['settings.launchAtLogin'] })).toBeNull()
   })
 
   it('on macOS: says when the system refused or the person must allow Fabric in Login Items', async () => {
@@ -254,7 +262,8 @@ describe('launch at login, only where it does something (CO-322; 0.3.7 review UX
     withLoginItem({ supported: true, platform: 'win32', system: 'off' })
     open(true)
     expect(await screen.findByText(en['settings.launchAtLoginNoteWindows'])).toBeTruthy()
-    expect(screen.queryByText(en['settings.launchAtLoginNote'])).toBeNull()
+    expect(screen.getByRole('checkbox', { name: en['settings.launchAtLogin'] })).toBeTruthy()
+    expect(screen.queryByText(en['settings.boardServiceNote'])).toBeNull()
     expect(screen.getByText(en['settings.launchAtLogin.offWindows'])).toBeTruthy()
   })
 
@@ -264,7 +273,7 @@ describe('launch at login, only where it does something (CO-322; 0.3.7 review UX
     await screen.findByText(en['power.note'])
     await new Promise((r) => setTimeout(r, 20))
     expect(screen.queryByRole('checkbox', { name: en['settings.launchAtLogin'] })).toBeNull()
-    expect(screen.queryByText(en['settings.launchAtLoginNote'])).toBeNull()
+    expect(screen.queryByRole('checkbox', { name: en['settings.boardService'] })).toBeNull()
   })
 })
 

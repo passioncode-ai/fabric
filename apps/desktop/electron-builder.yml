@@ -74,6 +74,10 @@ mac:
   identity: null
   icon: build/icon.png
   category: public.app-category.developer-tools
+  # ADR-0192: the board's launch agent, at Contents/Library/LaunchAgents (loginItem.ts#BOARD_SERVICE).
+  extraFiles:
+    - from: build/launchd/ai.passioncode.desktop.board.plist
+      to: Library/LaunchAgents/ai.passioncode.desktop.board.plist
   files:
     # Only macOS's node-pty prebuilds ship in the Mac app (after-pack-universal.mjs checks it).
     - "!**/node_modules/node-pty/prebuilds/win32-*/**"

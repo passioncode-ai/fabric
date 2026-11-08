@@ -50,7 +50,7 @@ import { promises as fsPromises } from 'node:fs'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { resolveProject } from '../shared/projectResolve.ts'
-import { loginItemFor, loginItemState, startRecord, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
+import { legacyLoginItem, loginItemFor, loginItemQuery, loginItemState, quitHolds, startRecord, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
 import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readReviewAges, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
@@ -600,11 +600,33 @@ const quit = createQuitCoordinator({
   // Quit requests scoped termination. A deadline leaves unresolved ownership
   // durable; closing the host does not manufacture a successful Stop receipt.
   shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
+  // ADR-0192: while the board's service is on, the person's quit hides Fabric and the board keeps running; logout,
+  // restart and shutdown (powerMonitor's 'shutdown', posted for each on macOS) still end it.
+  holds: () => {
+    const read = readSettingsState()
+    return quitHolds({ serviceOn: read.status === 'unreadable' ? true : read.value.launchAtLogin, platform: process.platform, packaged: app.isPackaged, systemEnding })
+  },
+  onHold: hideForService,
   onDeadline: () => ops.failed('app.quit-deadline', new Error('quit_deadline'), { note: 'the drain or teardown stalled; the process was ended at the deadline' }),
   onSchedulerError: (e) => ops.failed('app.quit-scheduler-stop', e, { note: 'a scheduler failed to stop; the others were stopped and the quit continues' }),
   // Outside the process: ends it 15 s after quitting began even when Electron's teardown stalls.
   armReaper: (ms) => { try { spawnQuitReaper(ms) } catch (e) { ops.failed('app.quit-reaper', e, { note: 'the outside quit guard did not start; the in-process deadline stands' }) } }
 })
+// #region board-service-quit — docs: docs/adr/0192-the-board-is-a-service-launchd-keeps.md#decision
+/** Set when macOS says the session is ending (logout, restart, shutdown): a quit then ends Fabric (ADR-0192). */
+let systemEnding = false
+/** A quit the board's service holds: every window closes and the Dock icon goes; the hub, the board and the terminals
+ *  keep running until the next activation shows a window again (ADR-0192). */
+function hideForService(): void {
+  for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.close()
+  app.dock?.hide()
+  ops.record({ op: 'app.quit-held', outcome: 'ok', level: 'info', detail: { note: 'the board service is on: the windows closed and the board keeps running' }, ctx: { correlationId: ops.correlate() } })
+}
+/** An activation after a held quit brings the Dock icon back before it opens a window. */
+function showForService(): void {
+  if (process.platform === 'darwin') void app.dock?.show()
+}
+// #endregion board-service-quit
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
 const taskBySession = new Map<string, string>()
 /** The sweep of abandoned work (0.3.13 wave 2, CO-427), built with the cycle; the surface reads its nudges (SW-4). */
@@ -690,6 +712,9 @@ function applyLoginItem(enabled: boolean, atStart: boolean): void {
     const item = loginItemFor(enabled, process.platform, app.isPackaged)
     if (!item) return
     app.setLoginItemSettings(item)
+    // ADR-0192: the board's service replaces 0.3.17's login item; the old one goes, so login does not start Fabric twice.
+    const legacy = legacyLoginItem(process.platform, app.isPackaged)
+    if (legacy && app.getLoginItemSettings({ type: 'mainAppService' }).status === 'enabled') app.setLoginItemSettings(legacy)
     // setLoginItemSettings returns nothing on a refusal; the system's own status is the only receipt (ER-3).
     const state = readLoginItem()
     if (state.supported && enabled && state.system !== 'on')
@@ -701,7 +726,7 @@ function applyLoginItem(enabled: boolean, atStart: boolean): void {
 /** What the system says about Fabric's login item; never throws (a refused read is `unknown`). */
 function readLoginItem(): LoginItemState {
   return loginItemState(process.platform, app.isPackaged, () =>
-    app.getLoginItemSettings(process.platform === 'win32' ? { args: ['--background'] } : undefined))
+    app.getLoginItemSettings(loginItemQuery(process.platform)))
 }
 // #endregion background-launch
 
@@ -1693,6 +1718,7 @@ try { editorRecovery.sweep() } catch (e) { ops.failed('editor.recovery-sweep', e
 // The person unlocking the screen is the action a held credential read waits for: a locked
 // keychain is the usual reason a read was refused (lifecycle LC-04).
 void app.whenReady().then(() => powerMonitor.on('unlock-screen', () => { resetKeychainRefusal(); quota.retryCredential() }))
+void app.whenReady().then(() => powerMonitor.on('shutdown', () => { systemEnding = true }))
 // The person returning to Fabric re-checks a long-held token, so an account switch shows when they look.
 app.on('browser-window-focus', () => personReturned())
 
@@ -5745,6 +5771,7 @@ if (!isPrimary) {
     if (!windowReady) { activatedDuringStartup = true; if (startupWait) showStartupWait(); return }
     // Someone tried to open Fabric again. Show them the one they have rather
     // than doing nothing, which reads as the application being broken.
+    showForService()
     const [existing] = BrowserWindow.getAllWindows()
     if (existing) {
       if (existing.isMinimized()) existing.restore()
@@ -6250,5 +6277,6 @@ app.on('activate', () => {
   // Before startup has finished there is nothing a window could show yet: remember the activation. While the start
   // waits for Docker or the database (ST-3), the person who asks for Fabric is shown what it waits for.
   if (!windowReady) { activatedDuringStartup = true; if (startupWait) showStartupWait(); return }
+  showForService()
   if (mainWindow === null) createWindow()
 })

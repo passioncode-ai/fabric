@@ -3236,8 +3236,10 @@ export const en = {
   'settings.more.comms': "What projects tell each other",
   'settings.more.persona': "Fabric\u2019s name and look",
   'settings.more.help': "Help and the first run",
+  'settings.boardService': "Board service: Fabric always runs in the background",
+  'settings.boardServiceNote': "Agents and the board keep working while Fabric's window is closed. Fabric starts without a window when you log in, and the system starts it again after a crash. Quit only closes the windows; open Fabric from the Dock when you need it.",
+  'settings.boardServiceOff': "The service is off: once you quit Fabric, agents cannot reach the board until you open it again.",
   'settings.launchAtLogin': "Start Fabric when you log in",
-  'settings.launchAtLoginNote': "It starts without a window, so your agents and the board keep running; open it from the Dock when you need it.",
   // 0.3.7 review UX-3, ER-3: Windows has no Dock, and the row says what the system itself reports.
   'settings.launchAtLoginNoteWindows': "It starts without a window, so your agents and the board keep running; open it from the Start menu when you need it.",
   'settings.launchAtLogin.offDarwin': "macOS does not start Fabric at login now: it is turned off in System Settings, under Login Items.",

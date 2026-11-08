@@ -24,7 +24,8 @@ test('a background launch opens no main window until activated, and an early act
   // A fabric:// link that arrived during the background startup is a person's act too (0.3.5 review ER-2).
   assert.match(src, /windowReady = true\s*\n\s*linksStartupDone\(\)\s*\n\s*\/\/[^\n]*\n\s*if \(!BACKGROUND_LAUNCH \|\| activatedDuringStartup \|\| pendingLinks\.size > 0\) createWindow\(\)/)
   // 0.3.9 ST-3: an activation while the start waits for Docker or the database shows what it waits for.
-  assert.match(src, /if \(!windowReady\) \{ activatedDuringStartup = true; if \(startupWait\) showStartupWait\(\); return \}\s*\n\s*if \(mainWindow === null\) createWindow\(\)/)
+  // ADR-0192: after a quit the board's service held, an activation brings the Dock icon back before the window.
+  assert.match(src, /if \(!windowReady\) \{ activatedDuringStartup = true; if \(startupWait\) showStartupWait\(\); return \}\s*\n\s*showForService\(\)\s*\n\s*if \(mainWindow === null\) createWindow\(\)/)
 })
 test('a second launch during a background start is remembered as an activation (0.3.7 i2 UX-2)', () => {
   assert.match(src, /app\.on\('second-instance'[\s\S]{0,400}if \(!windowReady\) \{ activatedDuringStartup = true; if \(startupWait\) showStartupWait\(\); return \}/)
