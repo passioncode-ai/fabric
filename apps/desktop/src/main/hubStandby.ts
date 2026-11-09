@@ -78,7 +78,7 @@ export class HubStandby {
     if (this.server) return
     const taken = (host: string, e: NodeJS.ErrnoException): Error =>
       e.code === 'EADDRINUSE' || e.code === 'EACCES'
-        ? new HubPortUnavailable(port, `port ${port} on ${host} is ${e.code === 'EADDRINUSE' ? 'already in use by another program' : 'not available to this user'}, so agents outside Fabric cannot reach it. Close that program (or choose a free port with FABRIC_HUB_PORT), then choose Restart Fabric in the Fabric menu`)
+        ? new HubPortUnavailable(port, `port ${port} on ${host} is ${e.code === 'EADDRINUSE' ? 'already in use by another program' : 'not available to this user'}, so agents outside Fabric cannot reach it. Close that program (or choose a free port with FABRIC_HUB_PORT), then restart Fabric from its menu`)
         : e
     const server = createServer(this.handler)
     await new Promise<void>((resolve, reject) => {

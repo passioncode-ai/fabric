@@ -606,7 +606,7 @@ export class AgentSurface {
         ? new HubPortUnavailable(
             wanted,
             `port ${wanted} on ${host} is ${e.code === 'EADDRINUSE' ? 'already in use by another program' : 'not available to this user'}, so agents outside Fabric cannot reach it. ` +
-              `Close that program (or choose a free port with FABRIC_HUB_PORT), then choose Restart Fabric in the Fabric menu`
+              `Close that program (or choose a free port with FABRIC_HUB_PORT), then restart Fabric from its menu`
           )
         : e
     await new Promise<void>((resolve, reject) => {
