@@ -14,6 +14,9 @@ export interface MenuActions {
    *  process does not know what a tab is and should not. */
   closeActiveTab: () => void
   openExternal: (url: string) => void
+  /** «Перезапустить Fabric» (the 0.3.18 review UX-3): with the board's service on, Quit only hides Fabric, so this is
+   *  the one item that starts it again (index.ts#restartFabric). */
+  restart: () => void
   /** Every label, in the operator's language (0.3.3): `menu.ts` passes the
    *  registry's translator, so this file still imports nothing executable. */
   label: (key: MenuLabel) => string
@@ -21,7 +24,7 @@ export interface MenuActions {
 
 export type MenuLabel =
   | 'menu.file' | 'menu.edit' | 'menu.view' | 'menu.window' | 'menu.help'
-  | 'menu.about' | 'menu.services' | 'menu.hide' | 'menu.hideOthers' | 'menu.unhide' | 'menu.quit'
+  | 'menu.about' | 'menu.services' | 'menu.hide' | 'menu.hideOthers' | 'menu.unhide' | 'menu.restart' | 'menu.quit'
   | 'menu.closeTab' | 'menu.closeWindow'
   | 'menu.undo' | 'menu.redo' | 'menu.cut' | 'menu.copy' | 'menu.paste' | 'menu.pasteAndMatchStyle' | 'menu.delete' | 'menu.selectAll'
   | 'menu.reload' | 'menu.forceReload' | 'menu.toggleDevTools' | 'menu.resetZoom' | 'menu.zoomIn' | 'menu.zoomOut' | 'menu.togglefullscreen'
@@ -51,6 +54,7 @@ export function menuTemplate(actions: MenuActions): Electron.MenuItemConstructor
             item('hideOthers', 'menu.hideOthers'),
             item('unhide', 'menu.unhide'),
             sep,
+            { label: l('menu.restart'), click: actions.restart },
             item('quit', 'menu.quit')
           ]
         }] as Electron.MenuItemConstructorOptions[])
@@ -70,7 +74,7 @@ export function menuTemplate(actions: MenuActions): Electron.MenuItemConstructor
           accelerator: 'CmdOrCtrl+Shift+W',
           role: 'close'
         },
-        ...(isMac ? [] : [sep, item('quit', 'menu.quit')])
+        ...(isMac ? [] : [sep, { label: l('menu.restart'), click: actions.restart }, item('quit', 'menu.quit')])
       ]
     },
     {

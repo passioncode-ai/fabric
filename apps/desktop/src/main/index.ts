@@ -50,7 +50,8 @@ import { promises as fsPromises } from 'node:fs'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { resolveProject } from '../shared/projectResolve.ts'
-import { legacyLoginItem, loginItemFor, loginItemQuery, loginItemState, quitHolds, startRecord, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
+import { legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startFailureExitCode, startRecord, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
+import { askRestartWindow, spawnRestartHelper, takeRestartWindow } from './restartFabric.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
 import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readReviewAges, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
@@ -602,10 +603,22 @@ const quit = createQuitCoordinator({
   // durable; closing the host does not manufacture a successful Stop receipt.
   shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
   // ADR-0192: while the board's service is on, the person's quit hides Fabric and the board keeps running; logout,
-  // restart and shutdown (powerMonitor's 'shutdown', posted for each on macOS) still end it.
+  // restart and shutdown (powerMonitor's 'shutdown', posted for each on macOS), a signal, «Перезапустить Fabric» and the
+  // Quit of a failed start still end it (the 0.3.18 review, iteration 1: PL-3, PL-4, PL-5, ER-2, ER-4, UX-3).
   holds: () => {
     const read = readSettingsState()
-    return quitHolds({ serviceOn: read.status === 'unreadable' ? true : read.value.launchAtLogin, platform: process.platform, packaged: app.isPackaged, systemEnding })
+    return quitHolds({
+      serviceOn: read.status === 'unreadable' ? true : read.value.launchAtLogin,
+      systemOn: serviceRunsUnderLaunchd(),
+      ownsService: OWNS_BOARD_SERVICE,
+      platform: process.platform,
+      packaged: app.isPackaged,
+      systemEnding,
+      signalled,
+      restarting,
+      started: windowReady,
+      startFailed: startupBroken !== null
+    })
   },
   onHold: hideForService,
   onDeadline: () => ops.failed('app.quit-deadline', new Error('quit_deadline'), { note: 'the drain or teardown stalled; the process was ended at the deadline' }),
@@ -614,8 +627,26 @@ const quit = createQuitCoordinator({
   armReaper: (ms) => { try { spawnQuitReaper(ms) } catch (e) { ops.failed('app.quit-reaper', e, { note: 'the outside quit guard did not start; the in-process deadline stands' }) } }
 })
 // #region board-service-quit — docs: docs/adr/0192-the-board-is-a-service-launchd-keeps.md#decision
-/** Set when macOS says the session is ending (logout, restart, shutdown): a quit then ends Fabric (ADR-0192). */
+/** Set when macOS says the session is ending (logout, restart, shutdown): a quit then ends Fabric (ADR-0192). Cleared
+ *  again when the process is still alive a minute later, so a logout another app cancelled does not make every later
+ *  Quit end Fabric (the 0.3.18 review ER-8). */
 let systemEnding = false
+const SYSTEM_ENDING_MS = 60_000
+/** The 0.3.18 review PL-4: only the Fabric on the operator's own data folder registers, removes or holds for the service. */
+const OWNS_BOARD_SERVICE = ownsBoardService(process.argv, process.env)
+/**
+ * The 0.3.18 review PL-3: a signal is never the person's Quit. Electron turns SIGTERM into `app.quit()`, which the service
+ * would hold; the listener marks the quit as a signal's and quits again, so the lifecycle broker, `launchctl` and `kill`
+ * end Fabric within LC-01's deadline whatever the switch says.
+ */
+let signalled = false
+/** «Перезапустить Fabric» ends this process whatever the service says (the 0.3.18 review UX-3). */
+let restarting = false
+function endOnSignal(): void {
+  signalled = true
+  app.quit()
+}
+for (const signal of ['SIGTERM', 'SIGHUP', 'SIGINT'] as const) process.on(signal, endOnSignal)
 /** A quit the board's service holds: every window closes and the Dock icon goes; the hub, the board and the terminals
  *  keep running until the next activation shows a window again (ADR-0192). */
 function hideForService(): void {
@@ -626,6 +657,32 @@ function hideForService(): void {
 /** An activation after a held quit brings the Dock icon back before it opens a window. */
 function showForService(): void {
   if (process.platform === 'darwin') void app.dock?.show()
+}
+/**
+ * «Перезапустить Fabric» (the 0.3.18 review UX-3): ends this process past the service's hold and starts Fabric again,
+ * through launchd while it keeps the service (so the new process is the service's) and through Electron's relaunch
+ * otherwise. The next start shows its window, as the person asked.
+ */
+function restartFabric(): void {
+  const read = readSettingsState()
+  const plan = restartPlan({
+    platform: process.platform,
+    packaged: app.isPackaged,
+    ownsService: OWNS_BOARD_SERVICE,
+    serviceOn: read.status === 'unreadable' ? true : read.value.launchAtLogin,
+    systemOn: serviceRunsUnderLaunchd(),
+    pid: process.pid
+  })
+  restarting = true
+  let via: 'launchd' | 'relaunch' = plan.kind
+  if (plan.kind === 'launchd') {
+    askRestartWindow(app.getPath('userData'), Date.now())
+    const started = spawnRestartHelper(plan.command, plan.args, (e) => ops.failed('app.restart-helper', e, { note: 'launchd was not asked to start the board again; the next login or open starts it' }))
+    if (!started) via = 'relaunch'
+  }
+  if (via === 'relaunch') app.relaunch({ args: relaunchArgs(process.argv) })
+  ops.record({ op: 'app.restart', outcome: 'ok', level: 'info', detail: { via }, ctx: { correlationId: ops.correlate() } })
+  app.quit()
 }
 // #endregion board-service-quit
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
@@ -707,22 +764,38 @@ function applyLoginItem(enabled: boolean, atStart: boolean): void {
     if (atStart) {
       const openedAtLogin = process.platform === 'darwin' && app.isPackaged ? app.getLoginItemSettings().wasOpenedAtLogin : null
       if (openedAtLogin !== null) BACKGROUND_LAUNCH = startsInBackground(process.argv, openedAtLogin)
+      // UX-3: the start «Перезапустить Fabric» asked launchd for shows its window, though launchd starts it in the background.
+      if (restartShowsWindow(takeRestartWindow(app.getPath('userData')), Date.now())) BACKGROUND_LAUNCH = false
       // CO-365: how this start began, so a reboot is checked in the operations log, not inferred from timings.
       ops.record({ op: 'app.started', outcome: 'ok', level: 'info', detail: startRecord(process.argv, openedAtLogin, app.getVersion()), ctx: { correlationId: ops.correlate() } })
     }
+    // PL-4: a Fabric on another data folder (a probe, a test) or a smoke run never touches the machine-wide service.
+    if (!OWNS_BOARD_SERVICE) return
     const item = loginItemFor(enabled, process.platform, app.isPackaged)
     if (!item) return
     app.setLoginItemSettings(item)
-    // ADR-0192: the board's service replaces 0.3.17's login item; the old one goes, so login does not start Fabric twice.
-    const legacy = legacyLoginItem(process.platform, app.isPackaged)
-    if (legacy && app.getLoginItemSettings({ type: 'mainAppService' }).status === 'enabled') app.setLoginItemSettings(legacy)
     // setLoginItemSettings returns nothing on a refusal; the system's own status is the only receipt (ER-3).
     const state = readLoginItem()
-    if (state.supported && enabled && state.system !== 'on')
-      ops.record({ op: 'app.login-item', outcome: 'unknown', level: 'warn', detail: { enabled, system: state.system }, ctx: { correlationId: ops.correlate() } })
+    const system = state.supported ? state.system : 'unknown'
+    // ADR-0192: the board's service replaces 0.3.17's login item, so login does not start Fabric twice; the old one goes
+    // only once macOS reads the service back as enabled (the 0.3.18 review PL-5, ER-3), so a Mac where the service waits
+    // for approval or was not found still starts Fabric at login.
+    const legacy = legacyLoginItem(process.platform, app.isPackaged)
+    let legacyKept = false
+    if (legacy && app.getLoginItemSettings({ type: 'mainAppService' }).status === 'enabled') {
+      if (legacyLoginItemAction(enabled, system) === 'remove') app.setLoginItemSettings(legacy)
+      else legacyKept = true
+    }
+    if (state.supported && enabled && system !== 'on')
+      ops.record({ op: 'app.login-item', outcome: 'unknown', level: 'warn', detail: { enabled, system, legacyKept }, ctx: { correlationId: ops.correlate() } })
   } catch (e) {
     ops.failed('app.login-item', e, { enabled })
   }
+}
+/** Whether macOS reads the board's service back as enabled, so launchd keeps it (the 0.3.18 review PL-5, ER-2). */
+function serviceRunsUnderLaunchd(): boolean {
+  const state = readLoginItem()
+  return state.supported && state.system === 'on'
 }
 /** What the system says about Fabric's login item; never throws (a refused read is `unknown`). */
 function readLoginItem(): LoginItemState {
@@ -1719,7 +1792,10 @@ try { editorRecovery.sweep() } catch (e) { ops.failed('editor.recovery-sweep', e
 // The person unlocking the screen is the action a held credential read waits for: a locked
 // keychain is the usual reason a read was refused (lifecycle LC-04).
 void app.whenReady().then(() => powerMonitor.on('unlock-screen', () => { resetKeychainRefusal(); quota.retryCredential() }))
-void app.whenReady().then(() => powerMonitor.on('shutdown', () => { systemEnding = true }))
+void app.whenReady().then(() => powerMonitor.on('shutdown', () => {
+  systemEnding = true
+  setTimeout(() => { systemEnding = false }, SYSTEM_ENDING_MS).unref()
+}))
 // The person returning to Fabric re-checks a long-held token, so an account switch shows when they look.
 app.on('browser-window-focus', () => personReturned())
 
@@ -5233,7 +5309,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // The menu speaks the language the windows speak, from the moment it is chosen.
     // A menu that fails to rebuild must not fail a write that is already on disk (iteration 2, ER-8).
     if (next.locale !== undefined) {
-      try { installMenu(written.settings.locale, windowKinds) } catch (e) { ops.failed('settings.menu', e) }
+      try { installMenu(written.settings.locale, windowKinds, restartFabric) } catch (e) { ops.failed('settings.menu', e) }
     }
     return written
   })
@@ -5761,17 +5837,24 @@ function createWindow(): void {
  */
 const isPrimary = app.requestSingleInstanceLock()
 if (!isPrimary) {
+  // The 0.3.18 review PL-6: launchd's own copy ends non-zero, so `KeepAlive {SuccessfulExit: false}` tries again once a
+  // minute (the plist's ThrottleInterval) and takes the board over when the copy the person opened ends. A loser writes
+  // no log (the log is installed at bootstrap, which a loser never reaches), so a retry adds nothing to it.
+  const exitCode = secondInstanceExitCode(process.env)
   ops.record({
     op: 'startup.secondInstance',
     outcome: 'ok',
-    level: 'warn',
-    detail: { note: 'another Fabric holds the single-instance lock; this process is exiting' },
+    level: exitCode === 0 ? 'warn' : 'info',
+    detail: { note: 'another Fabric holds the single-instance lock; this process is exiting', exitCode },
     ctx: { correlationId: ops.correlate() }
   })
-  app.quit()
+  if (exitCode === 0) app.quit()
+  else app.exit(exitCode)
 } else {
   app.on('second-instance', (_event, argv) => {
     for (const arg of argv) if (isFabricLink(arg)) acceptLink(arg)
+    // ER-6: a background start (launchd's copy trying again every minute, the lifecycle broker) asks for no window.
+    if (!secondInstanceShows(argv)) return
     // A second launch during a background start (Windows: «Пуск» while the login start still waits for Docker) is the
     // person asking for the window; remember it as an activation, as macOS's `activate` does (0.3.7 review i2 UX-2).
     if (!windowReady) { activatedDuringStartup = true; if (startupWait) showStartupWait(); return }
@@ -5799,7 +5882,7 @@ app.whenReady().then(async () => {
   // frame. Built from Electron's roles so copy, paste, quit and the window
   // controls survive: replacing the default with a hand-written minimum takes
   // Cmd+C away from every field in the product.
-  installMenu(readSettings().locale, windowKinds)
+  installMenu(readSettings().locale, windowKinds, restartFabric)
   // The fabric:// scheme (DEC-0040): a development run registers the electron binary with this app's entry.
   try {
     if (process.defaultApp && process.argv[1]) app.setAsDefaultProtocolClient('fabric', process.execPath, [path.resolve(process.argv[1])])
@@ -6223,8 +6306,10 @@ async function explainAndQuit(e: unknown): Promise<void> {
       continue
     }
     if (quit.quitting) return
+    // ER-4: `startupBroken` is set, so the service does not hold this quit; under launchd it ends 0, so KeepAlive does
+    // not bring this dialog back every minute (startFailureExitCode).
     app.quit()
-    process.exitCode = 1
+    process.exitCode = startFailureExitCode(process.env)
     return
   }
 }

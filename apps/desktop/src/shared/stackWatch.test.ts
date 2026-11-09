@@ -361,7 +361,7 @@ describe('the startup wait window (review iteration 2, UX-3, UX-8)', () => {
 describe('the wait window says a hub it could not open once, in the reader\'s language (review iteration 3, UX-2)', () => {
   const translator = (locale: 'en' | 'ru') => typedTranslator(locale) as unknown as (key: string, vars?: Record<string, string | number>) => string
   const failure = classifyStartupFailure('Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?')
-  const reason = 'port 47070 on 127.0.0.1 is already in use by another program, so agents outside Fabric cannot reach it. Close that program (or choose a free port with FABRIC_HUB_PORT), then quit and reopen Fabric'
+  const reason = 'port 47070 on 127.0.0.1 is already in use by another program, so agents outside Fabric cannot reach it. Close that program (or choose a free port with FABRIC_HUB_PORT), then choose Restart Fabric in the Fabric menu'
   for (const locale of ['en', 'ru'] as const) {
     it(`${locale}: the agents line carries no machine reason; the reason is its own line, right after it`, () => {
       const say = translator(locale)

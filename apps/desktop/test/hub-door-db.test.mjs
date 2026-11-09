@@ -383,7 +383,7 @@ await test('a hub port another program holds: the hub is down with its reason, s
   const published = []
   const started = await startHub({ surface: fallback, env: { FABRIC_HUB_PORT: String(port) }, claimedPorts: new Map(), root: mkdtempSync(path.join(tmpdir(), 'fabric-hub-root-')), publish: (o) => { published.push(o); throw new Error('nothing may be published for a hub that is down') } })
   assert.equal(started.open, false)
-  assert.match(started.down, new RegExp(`port ${port} on 127\\.0\\.0\\.1 is already in use.*quit and reopen Fabric`))
+  assert.match(started.down, new RegExp(`port ${port} on 127\\.0\\.0\\.1 is already in use.*choose Restart Fabric in the Fabric menu`))
   assert.equal(published.length, 0, 'hub.json was published for a hub that did not open')
   assert.ok(fallback.origin && !fallback.origin.endsWith(`:${port}`), 'the sessions surface did not move to an ephemeral port')
   const scope = fallback.mint(randomUUID(), randomUUID(), null)

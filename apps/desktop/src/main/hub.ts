@@ -83,7 +83,7 @@ export function hubPort(env: NodeJS.ProcessEnv = process.env, who?: { platform: 
   const raw = env.FABRIC_HUB_PORT
   if (raw === undefined || raw === '') return { ok: true, port: userHubPort(who) }
   if (!/^\d{4,5}$/.test(raw) || Number(raw) < 1024 || Number(raw) > 65535)
-    return { ok: false, code: 'port-setting', fact: `FABRIC_HUB_PORT=${JSON.stringify(raw)}`, reason: `the hub port setting (FABRIC_HUB_PORT=${JSON.stringify(raw)}) is not a port between 1024 and 65535. Correct or remove it, then quit and reopen Fabric` }
+    return { ok: false, code: 'port-setting', fact: `FABRIC_HUB_PORT=${JSON.stringify(raw)}`, reason: `the hub port setting (FABRIC_HUB_PORT=${JSON.stringify(raw)}) is not a port between 1024 and 65535. Correct or remove it, then choose Restart Fabric in the Fabric menu` }
   return { ok: true, port: Number(raw) }
 }
 
@@ -91,7 +91,7 @@ export function hubPort(env: NodeJS.ProcessEnv = process.env, who?: { platform: 
 export function checkPortUnclaimed(port: number, claimed: Map<number, string>): PortChoice {
   const by = claimed.get(port)
   return by
-    ? { ok: false, code: 'port-claimed', fact: `port ${port}: ${by}`, reason: `port ${port} is claimed by the registered agent ${by}, so agents outside Fabric cannot reach it. Move that agent to another port (or choose a free one for Fabric with FABRIC_HUB_PORT), then quit and reopen Fabric` }
+    ? { ok: false, code: 'port-claimed', fact: `port ${port}: ${by}`, reason: `port ${port} is claimed by the registered agent ${by}, so agents outside Fabric cannot reach it. Move that agent to another port (or choose a free one for Fabric with FABRIC_HUB_PORT), then choose Restart Fabric in the Fabric menu` }
     : { ok: true, port }
 }
 

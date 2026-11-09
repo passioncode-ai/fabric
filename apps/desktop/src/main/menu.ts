@@ -9,7 +9,7 @@ import { menuTemplate } from './menuTemplate.ts'
 import { IPC } from '../shared/types.ts'
 import { sendIfReceives, type WindowRegistry } from './windowRegistry.ts'
 
-export function installMenu(locale: Locale, windows: Pick<WindowRegistry, 'receives'>): void {
+export function installMenu(locale: Locale, windows: Pick<WindowRegistry, 'receives'>, restart: () => void): void {
   const say = translator(locale)
   Menu.setApplicationMenu(
     Menu.buildFromTemplate(
@@ -18,6 +18,7 @@ export function installMenu(locale: Locale, windows: Pick<WindowRegistry, 'recei
         // tabs); a session or editor window is not sent a message it has no listener for.
         closeActiveTab: () => void sendIfReceives(windows, BrowserWindow.getFocusedWindow(), IPC.tabsCloseActive),
         openExternal: (url) => void shell.openExternal(url),
+        restart,
         label: (key) => say(key)
       })
     )

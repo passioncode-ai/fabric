@@ -341,3 +341,29 @@ test('ADR-0192: with the service off, or before the runtime is up, a quit ends F
     assert.equal(state.exited, 0, `ready=${ready} holds=${holds}`)
   }
 })
+
+// The 0.3.18 review, iteration 1, PL-3: a signal is never the person's Quit. Electron turns SIGTERM into `app.quit()`,
+// which the service holds; index.ts marks the signal and quits again, and `quitHolds` then lets the quit end Fabric.
+test('PL-3: a signal after a held quit ends Fabric within the drain, though the service is on', async () => {
+  const { quitHolds } = await import('../src/shared/loginItem.ts')
+  const { app, state } = modelElectron()
+  const held = []
+  let shutdowns = 0
+  let signalled = false
+  const service = { serviceOn: true, systemOn: true, ownsService: true, platform: 'darwin', packaged: true, systemEnding: false, restarting: false, started: true, startFailed: false }
+  const q = createQuitCoordinator({ app, ready: () => true, holds: () => quitHolds({ ...service, signalled }), onHold: () => held.push('hide'), shutdown: async () => { shutdowns++ }, setTimer: () => ({}) })
+  app.on('before-quit', (e) => q.beforeQuit(e))
+  // Electron's own SIGTERM handling: a quit, which the service holds.
+  app.quit()
+  await settle()
+  assert.deepEqual(held, ['hide'])
+  assert.equal(state.exited, null)
+  // index.ts's `process.on('SIGTERM')`: the quit is a signal's, so it ends.
+  signalled = true
+  app.quit()
+  await settle()
+  await settle()
+  assert.equal(shutdowns, 1)
+  assert.equal(q.quitting, true)
+  assert.equal(state.exited, 0)
+})

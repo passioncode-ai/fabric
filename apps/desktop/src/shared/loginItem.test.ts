@@ -1,6 +1,6 @@
 // CO-322 (the operator, 2026-10-16): Fabric starts at login by default, quietly, and the person can turn it off.
 import { describe, expect, it } from 'vitest'
-import { BOARD_SERVICE, legacyLoginItem, loginItemFor, loginItemQuery, loginItemState, quitHolds, startRecord, startsInBackground, type LoginItemState } from './loginItem'
+import { BOARD_LABEL, BOARD_SERVICE, LAUNCHD_RETRY_EXIT, RESTART_WINDOW_MS, launchdStarted, legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startFailureExitCode, startRecord, startsInBackground, type LoginItemState } from './loginItem'
 
 describe('launch at login', () => {
   it('registers the packaged app with the system, on by default and off when the person says so', () => {
@@ -68,7 +68,7 @@ describe('ADR-0192: the board is a service launchd keeps', () => {
     expect(legacyLoginItem('linux', true)).toBeNull()
   })
   it('a quit the person asks for only hides while the service is on, on an installed macOS build', () => {
-    const on = { serviceOn: true, platform: 'darwin', packaged: true, systemEnding: false }
+    const on = { serviceOn: true, systemOn: true, ownsService: true, platform: 'darwin', packaged: true, systemEnding: false, signalled: false, restarting: false, started: true, startFailed: false }
     expect(quitHolds(on)).toBe(true)
     expect(quitHolds({ ...on, serviceOn: false })).toBe(false)
     expect(quitHolds({ ...on, systemEnding: true })).toBe(false)
@@ -76,4 +76,99 @@ describe('ADR-0192: the board is a service launchd keeps', () => {
     expect(quitHolds({ ...on, platform: 'win32' })).toBe(false)
     expect(quitHolds({ ...on, platform: 'linux' })).toBe(false)
   })
+})
+
+const held = { serviceOn: true, systemOn: true, ownsService: true, platform: 'darwin', packaged: true, systemEnding: false, signalled: false, restarting: false, started: true, startFailed: false }
+
+describe('the 0.3.18 review, iteration 1: what a quit does', () => {
+  it('PL-3: a signal (SIGTERM, SIGHUP) always ends Fabric, even while the service holds the person\'s Quit', () => {
+    expect(quitHolds(held)).toBe(true)
+    expect(quitHolds({ ...held, signalled: true })).toBe(false)
+  })
+  it('PL-5, ER-2: a quit hides only while macOS reads the service back as enabled, not on the stored wish alone', () => {
+    expect(quitHolds({ ...held, systemOn: false })).toBe(false)
+  })
+  it('PL-4: a Fabric on another data folder, or a smoke run, never holds for the operator\'s service', () => {
+    expect(quitHolds({ ...held, ownsService: false })).toBe(false)
+  })
+  it('ER-4: the Quit of a start that failed, or of a start not finished, ends the process', () => {
+    expect(quitHolds({ ...held, startFailed: true })).toBe(false)
+    expect(quitHolds({ ...held, started: false })).toBe(false)
+  })
+  it('UX-3: «Перезапустить Fabric» ends this process whatever the service says', () => {
+    expect(quitHolds({ ...held, restarting: true })).toBe(false)
+  })
+})
+
+describe('the 0.3.18 review, iteration 1: who owns the service', () => {
+  it('PL-4: the operator\'s own Fabric owns it; a start with its own data folder or a smoke run does not', () => {
+    expect(ownsBoardService(['Fabric'], {})).toBe(true)
+    expect(ownsBoardService(['Fabric', '--background'], {})).toBe(true)
+    expect(ownsBoardService(['Fabric', '--user-data-dir=/tmp/x'], {})).toBe(false)
+    expect(ownsBoardService(['Fabric', '--user-data-dir', '/tmp/x'], {})).toBe(false)
+    expect(ownsBoardService(['Fabric', '-user-data-dir=/tmp/x'], {})).toBe(false)
+    expect(ownsBoardService(['Fabric.exe', '/user-data-dir=C:\\x'], {})).toBe(false)
+    expect(ownsBoardService(['Fabric'], { SMOKE: '1' })).toBe(false)
+    expect(ownsBoardService(['Fabric', '--user-data-direction'], {})).toBe(true)
+  })
+  it('PL-5, ER-3: 0.3.17\'s login item goes only once the service reads back enabled, or when the person turned it off', () => {
+    expect(legacyLoginItemAction(true, 'on')).toBe('remove')
+    expect(legacyLoginItemAction(false, 'off')).toBe('remove')
+    expect(legacyLoginItemAction(true, 'needs-approval')).toBe('keep')
+    expect(legacyLoginItemAction(true, 'off')).toBe('keep')
+    expect(legacyLoginItemAction(true, 'unknown')).toBe('keep')
+  })
+})
+
+describe('the 0.3.18 review, iteration 1: launchd\'s copy', () => {
+  it('B4: is told by the job label launchd puts in XPC_SERVICE_NAME', () => {
+    expect(BOARD_LABEL).toBe('ai.passioncode.desktop.board')
+    expect(launchdStarted({ XPC_SERVICE_NAME: 'ai.passioncode.desktop.board' })).toBe(true)
+    expect(launchdStarted({ XPC_SERVICE_NAME: 'application.ai.passioncode.desktop.1.2' })).toBe(false)
+    expect(launchdStarted({ XPC_SERVICE_NAME: '0' })).toBe(false)
+    expect(launchdStarted({})).toBe(false)
+  })
+  it('PL-6: launchd\'s copy that loses the lock ends non-zero, so KeepAlive tries again; any other loser ends cleanly', () => {
+    expect(LAUNCHD_RETRY_EXIT).toBe(75)
+    expect(secondInstanceExitCode({ XPC_SERVICE_NAME: BOARD_LABEL })).toBe(75)
+    expect(secondInstanceExitCode({})).toBe(0)
+  })
+  it('ER-4: a failed start under launchd ends 0, so the failure dialog does not come back every minute', () => {
+    expect(startFailureExitCode({ XPC_SERVICE_NAME: BOARD_LABEL })).toBe(0)
+    expect(startFailureExitCode({})).toBe(1)
+  })
+  it('ER-6: a background start of another copy never raises the running window; a person\'s open does', () => {
+    expect(secondInstanceShows(['Fabric', '--background'])).toBe(false)
+    expect(secondInstanceShows(['Fabric'])).toBe(true)
+  })
+})
+
+describe('the 0.3.18 review, iteration 1, UX-3: «Перезапустить Fabric»', () => {
+  const service = { platform: 'darwin', packaged: true, ownsService: true, serviceOn: true, systemOn: true, pid: 4242 }
+  it('with the service on, asks launchd to start the job once this process has ended', () => {
+    const plan = restartPlan(service)
+    expect(plan.kind).toBe('launchd')
+    if (plan.kind !== 'launchd') return
+    expect(plan.command).toBe('/bin/sh')
+    expect(plan.args[0]).toBe('-c')
+    expect(plan.args[1]).toContain('kill -0 4242')
+    expect(plan.args[1]).toMatch(/launchctl kickstart gui\/\$\(id -u\)\/ai\.passioncode\.desktop\.board$/)
+  })
+  it('anywhere else relaunches the app itself', () => {
+    expect(restartPlan({ ...service, serviceOn: false }).kind).toBe('relaunch')
+    expect(restartPlan({ ...service, systemOn: false }).kind).toBe('relaunch')
+    expect(restartPlan({ ...service, ownsService: false }).kind).toBe('relaunch')
+    expect(restartPlan({ ...service, packaged: false }).kind).toBe('relaunch')
+    expect(restartPlan({ ...service, platform: 'win32' }).kind).toBe('relaunch')
+  })
+  it('a relaunch drops --background, so the person who asked sees the window', () => {
+    expect(relaunchArgs(['/Applications/Fabric.app/Contents/MacOS/Fabric', '--background', '--x'])).toEqual(['--x'])
+  })
+  it('the start a restart asked for shows its window; an old request does not', () => {
+    expect(restartShowsWindow(1000, 1000 + RESTART_WINDOW_MS)).toBe(true)
+    expect(restartShowsWindow(1000, 1001 + RESTART_WINDOW_MS)).toBe(false)
+    expect(restartShowsWindow(null, 1000)).toBe(false)
+    expect(restartShowsWindow(2000, 1000)).toBe(false)
+  })
+
 })

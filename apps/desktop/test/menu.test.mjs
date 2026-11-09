@@ -21,7 +21,8 @@ let failures = 0
 const ok = (m) => console.log('  ok   ' + m)
 const fail = (m) => { failures++; console.log('  FAIL ' + m) }
 
-const t = menuTemplate({ closeActiveTab: () => {}, openExternal: () => {}, label: (k) => 'L:' + k })
+let restarts = 0
+const t = menuTemplate({ closeActiveTab: () => {}, openExternal: () => {}, restart: () => { restarts++ }, label: (k) => 'L:' + k })
 const roles = new Set()
 const walk = (items) => {
   for (const i of items ?? []) {
@@ -70,6 +71,19 @@ const claimants = flat.filter((i) => i.accelerator === 'CmdOrCtrl+W')
 claimants.length === 1
   ? ok('and exactly one item claims Cmd+W')
   : fail(claimants.length + ' items claim Cmd+W')
+
+// The 0.3.18 review UX-3: with the board's service on, Quit only hides Fabric, so the advice to restart it names an item
+// that truly restarts: one click that reaches index.ts#restartFabric, beside Quit.
+const restartItem = flat.find((i) => i.label === 'L:menu.restart')
+if (restartItem && typeof restartItem.click === 'function') restartItem.click()
+restarts === 1
+  ? ok('the Restart Fabric item restarts Fabric through the action it was given')
+  : fail('no Restart Fabric item that calls the restart action: ' + JSON.stringify(restartItem))
+const quitMenu = t.find((m) => Array.isArray(m.submenu) && m.submenu.some((i) => i.role === 'quit'))
+const at = quitMenu ? quitMenu.submenu.findIndex((i) => i.role === 'quit') : -1
+at > 0 && quitMenu.submenu[at - 1] === restartItem
+  ? ok('and it sits right above Quit, in the menu that holds Quit')
+  : fail('Restart Fabric is not right above Quit')
 
 if (failures > 0) { console.log('\\n' + failures + ' menu failure(s)'); process.exit(1) }
 `
