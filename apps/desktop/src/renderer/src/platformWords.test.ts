@@ -8,6 +8,9 @@ import { ru } from './i18n/ru'
 const MAC_ONLY: Record<string, string> = {
   'settings.launchAtLogin.offDarwin': 'the login-item status line SettingsScreen picks only when the platform is darwin (CO-322)',
   'settings.launchAtLogin.approval': 'needs-approval is a state only macOS reports (SMAppService); SettingsScreen shows it on darwin only',
+  'settings.launchAtLogin.approvalLegacy': 'the approval line of a Mac updated from 0.3.17; SettingsScreen picks it only on darwin (the 0.3.18 review, iteration 2, UX-14)',
+  'settings.launchAtLogin.offDarwinLegacy': 'the off line of a Mac updated from 0.3.17; SettingsScreen picks it only on darwin (UX-14)',
+  'settings.boardServiceQuitEnds': 'the board service note, which SettingsScreen shows only on darwin (ADR-0192; the 0.3.18 review, iteration 2, UX-13)',
 }
 
 describe('platform words', () => {
