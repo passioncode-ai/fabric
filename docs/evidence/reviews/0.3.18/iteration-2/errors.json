@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "e47666650d7f09bb6f4da241cba9fbdd2d2e51fc",
+  "report": "docs/evidence/reviews/0.3.18/iteration-2/2026-11-09-errors.md",
+  "reportSha256": "6e0a9ab0201a01c01506b6128e0254f2dc4a3380b16c245db03bce049bc1d17c",
+  "reviewerRun": "release-0318-i2-errors-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-13",
+      "source": "V2-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 62f24bf4: the listeners are added once Electron is ready (`main/quit.ts#listenForQuitSignals`, `#QUIT_SIGNALS`, `main/index.ts`); tests `quit.test.mjs` «ER-13: a real Electron main process whose quit the service holds still ends on SIGTERM» (a real-Electron fixture, `test/fixtures/quit-app/main.mjs`, that holds every quit unless its listener ran; listening at load, mode held-at-load, it is still alive at the bound, watched), «ER-13: the signals that end Fabric are listened for, each once» and «ER-13: index.ts listens for the signals only once Electron is ready, never at load»; N6 (c) of the Release close proves it on the release candidate's build"
+      ]
+    },
+    {
+      "id": "ER-14",
+      "source": "V2-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in part in 62f24bf4: the editor recovery sweep runs only in the process that won the single-instance lock (`main/index.ts`); test `background-launch.test.mjs` «the editor recovery sweep runs only in the process that won the single-instance lock»; the retry cadence, its cost and whether the losing copy flashes in the Dock ruled: CO-549, measured on the release candidate's build (*Owed in 0.3.18's Release close*, item 5)"
+      ]
+    },
+    {
+      "id": "ER-15",
+      "source": "V2-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 1c3b1e6f: the helper opens `ai.passioncode.desktop` by its id when launchd refuses the job and writes each refusal to the `restart-outcome` note in the data folder, which the next start records as `app.restart-kickstart` (`main/restartFabric.ts#RESTART_OUTCOME_FILE`, `#takeRestartOutcome`); its values travel as arguments; a restart note that cannot be written is recorded too; tests `restart-fabric.test.mjs` «ER-15: a kickstart that works starts the board's job and leaves no note», «ER-15: a refused kickstart opens the app by its id, and the next start reads why», «ER-15: when the open fails too, both refusals are in the note», «ER-15: the id the restart opens is the app's own», run for real with stand-ins for `launchctl` and `open`"
+      ]
+    },
+    {
+      "id": "ER-16",
+      "source": "V2-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 62f24bf4 (as PL-21): `XPC_SERVICE_NAME` is read once at start and the board's label removed from the environment (`shared/loginItem.ts#takeLaunchdStart`); tests `loginItem.test.ts` «the 0.3.18 review, iteration 2, PL-21, ER-16: the job label stays with the process launchd started» and `background-launch.test.mjs` «launchd's job label is taken from the environment before the quit wiring and any child»"
+      ]
+    },
+    {
+      "id": "ER-17",
+      "source": "V2-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 62f24bf4: `startFailureExitCode` is gone and the comment says every failed-start Quit exits 0 (`shared/loginItem.ts`, `main/index.ts`); ADR-0192 amendment 1, rule 1, and the Fabric.app row of `AGENTS.md` say the same (c4dbc7b4)"
+      ]
+    }
+  ]
+}

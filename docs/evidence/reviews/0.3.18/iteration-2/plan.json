@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "e47666650d7f09bb6f4da241cba9fbdd2d2e51fc",
+  "report": "docs/evidence/reviews/0.3.18/iteration-2/2026-11-09-plan.md",
+  "reportSha256": "0527e0a631b648237bf6a0a74200287638f259f31678e87853f5796f9aded922",
+  "reviewerRun": "release-0318-i2-plan-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-16",
+      "source": "V2-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: *Owed in 0.3.18's Release close* item 2 runs a release candidate first (`v0.3.18-rc.1`, `gh workflow run release.yml --ref v0.3.18-rc.1 -f publish=false`, `.github/workflows/release.yml` lines 12 to 13, 19 and 22 to 25; the preflight accepts the tag, `scripts/lib/release-mac.mjs#tagProblem`), items 4 to 6 prove it on that build, and item 7 tags and publishes `v0.3.18` only after N6 passes"
+      ]
+    },
+    {
+      "id": "PL-17",
+      "source": "V2-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: item 5 holds the broker as owner, waits until launchd's copy is the running one (`launchctl print` pid equal to `hub.json`'s), times the return of a SIGKILL against REQ-1's 10 s and reconciles the bound or the wording, reads SIGTERM's exit 0 and no new start, spaces the kills more than 60 s apart and cites the authority for each direct signal in its receipt"
+      ]
+    },
+    {
+      "id": "PL-18",
+      "source": "V2-18",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-549 (item 5 measures the losing copy's cadence, its cost and the Dock on the release candidate's build; ADR-0192 amendment 1, rule 5, leaves the hand-over decision to that measurement)"
+      ]
+    },
+    {
+      "id": "PL-19",
+      "source": "V2-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: items 3 and 4 hold `fabric.desktop` as owner before the install, stop 0.3.17 under the hold, keep its bundle as the way back and swap; item 8 swaps back under the same hold"
+      ]
+    },
+    {
+      "id": "PL-20",
+      "source": "V2-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in c4dbc7b4 with this ledger: the runbook's 0.3.18 paragraph gives the way back to 0.3.17 in order (switch off and read back, broker hold, quit, swap, start 0.3.17, launch at login on there; with Settings unreachable, `launchAtLogin` false in the settings file and one start of 0.3.18), and bootout only as an emergency stop (`docs/launch/release-mac.md`); item 8 here"
+      ]
+    },
+    {
+      "id": "PL-21",
+      "source": "V2-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 62f24bf4: as V2-11"
+      ]
+    },
+    {
+      "id": "PL-22",
+      "source": "V2-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in c4dbc7b4: ADR-0192 amendment 1 (dated, append-only) records the rules of both fix waves with their review ids and corrects the consequences; the design marks what was built differently; the regions `board-service-quit` and `restart-fabric` point at the amendment; all in iteration 3's candidate"
+      ]
+    },
+    {
+      "id": "PL-23",
+      "source": "V2-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550 (REQ-4's notice on the board when the service is off); the node records are N6's receipts in the run's folder (item 5, CO-549)"
+      ]
+    },
+    {
+      "id": "PL-24",
+      "source": "V2-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: item 1 names the Upgrading line, the 0.3.18 handoff for `releaseMetadata`, the three distinct candidates in order with iteration 3's equal to `verifiedCommit`, and a green `ci.sh full` or full nightly on `verifiedCommit` recorded here before the rc tag"
+      ]
+    },
+    {
+      "id": "PL-25",
+      "source": "V2-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: item 3 counts and announces, and drives the close from outside Fabric's terminals with a watcher that survives Fabric's restarts; item 4 names macOS's `requires-approval` as the human gate; item 5 spaces the kills more than 60 s apart"
+      ]
+    }
+  ]
+}

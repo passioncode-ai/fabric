@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "e47666650d7f09bb6f4da241cba9fbdd2d2e51fc",
+  "report": "docs/evidence/reviews/0.3.18/iteration-2/2026-11-09-ux.md",
+  "reportSha256": "2c4aa4ffeefc55fc74756c080f28457023dd9d6181a205c6d0cfe8cb66b73b32",
+  "reviewerRun": "release-0318-i2-ux-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-12",
+      "source": "V2-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in f954f141: the hub's not-started reason, the standby's and the surface's name the item through `shared/loginItem.ts#RESTART_ITEM_ADVICE` (`main/hub.ts`, `main/hubStandby.ts`, `main/agentSurface.ts`); test `restart-fabric.test.mjs` «UX-12: the reasons agents relay name the restart item, never quit and reopen»"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "source": "V2-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 5fe73120: the Quit sentence is its own line (`settings.boardServiceQuitHides`), said only while the switch is on and macOS reads the service as enabled; otherwise «Завершить Fabric» is said to end Fabric until macOS confirms the service (`settings.boardServiceQuitEnds`), and with the switch off only the off line shows (`launch/SettingsScreen.tsx#LaunchAtLoginSetting`, `i18n/ru.ts`, `i18n/en.ts`); test `SettingsScreen.test.tsx` «UX-13: says Quit only hides Fabric only while the service runs; otherwise that Quit ends it»; the Mac-only lines declared in e16ad277 (`platformWords.test.ts`)"
+      ]
+    },
+    {
+      "id": "UX-14",
+      "source": "V2-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 5fe73120: the login-item read carries `legacy` (0.3.17's item still registered, `shared/loginItem.ts#LoginItemState`), and on such a Mac the approval and off lines say Fabric still starts at login as before but is not started again after a crash; a fresh install keeps the old lines; the notes say the update and the fresh install apart (`CHANGELOG.md`, c4dbc7b4); test `SettingsScreen.test.tsx` «UX-14: an updated Mac that keeps the old login item is told it still starts at login, but not after a crash»"
+      ]
+    },
+    {
+      "id": "UX-15",
+      "source": "V2-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 1c3b1e6f: with live terminal sessions the restart asks once in a native dialog naming how many agent consoles close, Cancel the default; without them it restarts at once (`main/restartFabric.ts#restartConfirmation`, `main/index.ts`); test `restart-fabric.test.mjs` «UX-15: with live consoles the restart asks first, Cancel the default; with none it does not ask»"
+      ]
+    },
+    {
+      "id": "UX-16",
+      "source": "V2-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in c4dbc7b4: SCN-170 amended (when Quit hides, the new system lines, the restart item), SCN-161 and SCN-133 name the restart in their recovery (`docs/ux/scenarios.md`); `docs/ux/product-model.json`, `docs/reports/product.html` and `completeness.html` regenerated; the previews repinned in 9ea777b3"
+      ]
+    },
+    {
+      "id": "UX-17",
+      "source": "V2-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in f954f141 and 5fe73120: English names “Quit Fabric” and “Restart Fabric” in quotes (choose “Restart Fabric” in the menu), the Russian says «выберите в меню «Перезапустить Fabric»» (`i18n/en.ts`, `i18n/ru.ts`, `docs/brand/strings.md`); the brand lint reads a closing typographic quote as punctuation (`docs/brand/lint.py`, B024)"
+      ]
+    },
+    {
+      "id": "UX-18",
+      "source": "V2-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 62f24bf4: a signalled quit of launchd's copy that reaches the deadline ends 0, any other ends 3 (`main/quit.ts#quitDeadlineExitCode`); tests `quit.test.mjs` «UX-18: a signalled quit of launchd's copy that reaches the deadline ends 0; any other ends 3» and «UX-18: the coordinator ends at the deadline with the code it is given at that moment»"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "e47666650d7f09bb6f4da241cba9fbdd2d2e51fc",
+  "report": "docs/evidence/reviews/0.3.18/iteration-2/2026-11-09-docs.md",
+  "reportSha256": "0e911770860943afc28bcb18436697faa09467387b6c692945f74ebb7cfa2b4f",
+  "reviewerRun": "release-0318-i2-docs-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-11",
+      "source": "V2-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in c4dbc7b4: the runbook's 0.3.18 paragraph, step 1 and the move order say bootout stops only a copy launchd started and name the switch off, then Quit (`docs/launch/release-mac.md`); the Fabric.app row of `AGENTS.md` and ADR-0192 amendment 1's consequences say the same"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "source": "V2-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 5fe73120: as V2-2; the notes state the condition of the hold (`CHANGELOG.md`, c4dbc7b4)"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "source": "V2-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in c4dbc7b4: as V2-22"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "source": "V2-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in f954f141: as V2-1"
+      ]
+    },
+    {
+      "id": "DO-15",
+      "source": "V2-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in c4dbc7b4: step 1 and the move order turn the service on again once the new build runs, and the rollback turns launch at login on in 0.3.17 (`docs/launch/release-mac.md`)"
+      ]
+    },
+    {
+      "id": "DO-16",
+      "source": "V2-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in c4dbc7b4: as V2-5"
+      ]
+    },
+    {
+      "id": "DO-17",
+      "source": "V2-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: (a) the Fabric.app row of `AGENTS.md` and CO-322 say the old item goes when the switch is off or once macOS reads the service enabled (c4dbc7b4); (b) `quitHolds`' comment names SIGINT (62f24bf4, `shared/loginItem.ts`); (c) the doc comments are back above `readSessionTasks` and `SESSION_ALIASES` (0aaa0f95, `main/workRead.ts`)"
+      ]
+    }
+  ]
+}

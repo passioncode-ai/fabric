@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "e47666650d7f09bb6f4da241cba9fbdd2d2e51fc",
+  "report": "docs/evidence/reviews/0.3.18/iteration-2/2026-11-09-data.md",
+  "reportSha256": "cbc55438efd03fbb0908df46fca89d7c290446ecd9fe0d3efaf1e1ab04a9c919",
+  "reviewerRun": "release-0318-i2-data-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-9",
+      "source": "V2-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 0aaa0f95: `work.swept@1`'s ingress rules carry `acceptedByDefault: optional(integer(1))` (`shared/commandIngress.ts#EVENT_FIELDS`, `shared/protocolObligations.ts`); the DA-2 test runs the receipt through `prepareEventPayload`: prepared with the count, prepared when it also told and released, rejected with a count of 0 (`abandoned-sweep-run.test.mjs` «DA-2 (0.3.18 review)»), and `commandIngress.test.ts`'s fixture carries the count"
+      ]
+    },
+    {
+      "id": "DA-10",
+      "source": "V2-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 0aaa0f95: the line is said only after a read that ran (`main/workRead.ts#readSessionTasks`); test `work-read-views.test.mjs` «DA-8 (0.3.18 review)» extended: an agent with no tasks says neither a failure nor a recovery; the two doc comments DO-17 found misplaced are back on their symbols"
+      ]
+    },
+    {
+      "id": "DA-11",
+      "source": "V2-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 62f24bf4: as V2-9 (the sweep runs only in the process that won the lock)"
+      ]
+    }
+  ]
+}
