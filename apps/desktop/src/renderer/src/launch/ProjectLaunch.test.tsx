@@ -31,8 +31,8 @@ const homeView = {
 
 function mount({ board = boardWith([question]), tasks = [task('t-1', 'Keep the invite after sign-in')] as TaskRow[] | null,
   goals = [{ id: 'g1', project_id: 'p1', title: 'Launch team access', autonomy: 'safe', created_at: STAMP }], agents = [] as unknown[],
-  agentsList, boardQuery, requests, sources }: { board?: ReturnType<typeof boardWith>; tasks?: TaskRow[] | null; goals?: unknown[]; agents?: unknown[];
-  agentsList?: () => Promise<unknown>; boardQuery?: () => Promise<unknown>; requests?: () => Promise<unknown>; sources?: () => Promise<unknown> } = {}) {
+  agentsList, boardQuery, requests, sources, tasksProblem = null }: { board?: ReturnType<typeof boardWith>; tasks?: TaskRow[] | null; goals?: unknown[]; agents?: unknown[];
+  agentsList?: () => Promise<unknown>; boardQuery?: () => Promise<unknown>; requests?: () => Promise<unknown>; sources?: () => Promise<unknown>; tasksProblem?: string | null } = {}) {
   const query = vi.fn(boardQuery ?? (async () => board))
   const openSession = vi.fn(async () => {})
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
@@ -43,7 +43,7 @@ function mount({ board = boardWith([question]), tasks = [task('t-1', 'Keep the i
   const on = { onBoard: vi.fn(), onPlan: vi.fn(), onOpenTask: vi.fn(), onOpenRequest: vi.fn(), onNewTask: vi.fn(), onSection: vi.fn() }
   render(
     <I18nProvider locale="en">
-      <ProjectLaunch project={project} tasks={tasks} sessions={[]} feedMark={0} lastEventAt={null} {...on} />
+      <ProjectLaunch project={project} tasks={tasks} tasksProblem={tasksProblem} sessions={[]} feedMark={0} lastEventAt={null} {...on} />
     </I18nProvider>
   )
   return { query, openSession, ...on }
@@ -201,7 +201,9 @@ describe('«Directions of work» (SCN-181, CO-543)', () => {
     expect(rowOf('toProjects').getByText('pricing')).toBeTruthy()
     expect(rowOf('fromBacklog').getByText('CO-41 in docs/backlog.md')).toBeTruthy()
     // The agent on a task in work is said on its card.
-    expect(rowOf('fromYou').getByText(/in work · claude-code/)).toBeTruthy()
+    // By the runner's display name, as every other card names it (the 0.3.18 review UX-6), never the machine id.
+    expect(rowOf('fromYou').getByText(/in work · Claude Code/)).toBeTruthy()
+    expect(rowOf('fromYou').queryByText(/claude-code/)).toBeNull()
     fireEvent.click(rowOf('toReview').getByText('Import the old board'))
     expect(onOpenTask).toHaveBeenCalledWith('t-r')
     fireEvent.click(rowOf('fromProjects').getByText('Review the API page'))
@@ -225,6 +227,13 @@ describe('«Directions of work» (SCN-181, CO-543)', () => {
   it('unread tasks are «Reading…», never quiet; tasks that cannot be read are said', async () => {
     mount({ tasks: null })
     await waitFor(() => expect(screen.getByText(en['launch.project.directions.reading'])).toBeTruthy())
+    expect(screen.queryByText(en['launch.project.directions.quiet'])).toBeNull()
+  })
+
+  it('UX-5: tasks that cannot be read are said, and the panel never adds that the week was quiet', async () => {
+    mount({ tasks: null, tasksProblem: 'project_tasks: permission denied' })
+    await screen.findByText(en['launch.project.directions.unreadable'])
+    await waitFor(() => expect(screen.queryByText(en['launch.project.directions.reading'])).toBeNull())
     expect(screen.queryByText(en['launch.project.directions.quiet'])).toBeNull()
   })
 

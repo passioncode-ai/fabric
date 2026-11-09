@@ -11,6 +11,7 @@ import { since } from '../duration'
 import { useT } from '../i18n'
 import { FailureNote } from '../OperatorError'
 import { usePaneRead } from './paneRead'
+import { runnerLabel } from '../runnerLabel'
 
 type T = ReturnType<typeof useT>
 
@@ -28,7 +29,7 @@ function Card({ item, t, showAgent, onOpenTask, onOpenRequest }: {
   onOpenRequest?: (threadId: string) => void
 }): React.JSX.Element {
   if (item.kind === 'task') {
-    const meta = [t(`launch.project.directions.task.${item.word}` as 'launch.project.directions.task.queued'), showAgent ? item.agent : null, ago(item.at, t)]
+    const meta = [t(`launch.project.directions.task.${item.word}` as 'launch.project.directions.task.queued'), showAgent && item.agent ? runnerLabel(item.agent, t) : null, ago(item.at, t)]
     return (
       <button type="button" className="lp-dir-card" onClick={() => onOpenTask(item.id)}>
         <span className="lp-dir-title">{item.summary || t('launch.home.work.untitled')}</span>
@@ -142,7 +143,8 @@ export function ProjectDirections({ projectId, tasks, tasksProblem = null, agent
       {tasks === null && !tasksProblem ? (
         <p className="lp-meta" role="status">{t('launch.project.directions.reading')}</p>
       ) : rows.length === 0 && !requestsNote ? (
-        requests.at === 'reading' ? <p className="lp-meta" role="status">{t('launch.project.directions.reading')}</p> : <p className="lp-meta">{t('launch.project.directions.quiet')}</p>
+        // UX-5: tasks that cannot be read are said above; the week is not called quiet on rows nobody read.
+        tasks === null ? null : requests.at === 'reading' ? <p className="lp-meta" role="status">{t('launch.project.directions.reading')}</p> : <p className="lp-meta">{t('launch.project.directions.quiet')}</p>
       ) : (
         <DirectionRows rows={rows} requestsNote={requestsNote} onOpenTask={onOpenTask} onOpenRequest={onOpenRequest} />
       )}
