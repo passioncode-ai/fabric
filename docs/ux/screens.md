@@ -729,7 +729,7 @@ different destination under the same name.
   | done is a floor (SCN-159) | the page read only the newest 20 finished tasks | none | «Готово 20+» in the glance; «Вся доска» shows them all; a task with no brief and no title is «Задача без описания», never its instruction |
   | agents on the project (SCN-159) | `work.home` has answered | none | «Агенты на проекте»: this project's working agents in their own words; a click opens the console Fabric holds; a console that will not open says why |
 - **Coverage:** partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`; the way, the board glance and the agents on the project (SCN-159, 2026-10-14) are `apps/desktop/src/renderer/src/launch/ProjectWay.tsx` (`ProjectWay`, `ProjectBoardGlance`) over `apps/desktop/src/shared/projectPath.ts`, in `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`; since 2026-11-09 (CO-543, SCN-181) the board glance's place holds «Направления работы», `apps/desktop/src/renderer/src/launch/WorkDirections.tsx#ProjectDirections` over `apps/desktop/src/shared/workDirections.ts#composeDirections`
-- **Scenarios:** SCN-040, SCN-041, SCN-060, SCN-140, SCN-159
+- **Scenarios:** SCN-040, SCN-041, SCN-060, SCN-140, SCN-159, SCN-181
 - **Resources:** `project_tasks`, journal, `agent_stages`, leases
 - **Status:** built
 - **Planned extension (not current coverage):** Board top10; separately addressed Project history, Target plan and Decisions previews; per-agent/task TaskRun widget. FLW-25/27/28/31; SCN-050/052/053/054/057/058. See [engineering contract](../architecture/system-contract.md).
@@ -2291,7 +2291,7 @@ place (ADR-0160). The screens they replace carry a dated note.
   | disconnected | «Отключить» pressed | none | «Отключён» with «Пустить снова»; act line «Codex отключён · Отменить» |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
 - **Coverage:** `apps/desktop/src/renderer/src/launch/AgentsScreen.tsx#AgentsScreen`, `apps/desktop/src/renderer/src/launch/agentRoster.ts#composeRoster`, `apps/desktop/src/renderer/src/launch/AgentPage.tsx` (0.3.13, see the amendments above); before 0.3.13 `HomeWork.tsx#AgentsAtWork`, `JoinedAgents.tsx` and `EstateAgents.tsx`
-- **Scenarios:** SCN-166, SCN-167
+- **Scenarios:** SCN-166, SCN-167, SCN-181
 - **Resources:** ADR-0160 §3; SCR-39, SCR-76 (built today)
 - **Status:** built
 - **Implementation tasks:** 0.3.7 waves 3 and 4

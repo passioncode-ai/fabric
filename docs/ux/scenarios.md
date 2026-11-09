@@ -184,7 +184,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-178 | See which projects have not answered an announcement | Project communications | P-01 | FLW-83, SCR-81 | implemented | unobserved |
 | SCN-179 | Decide on work handed in for review in one place | Task | P-01 | ST-037, SCR-32, SCR-41 | implemented | unobserved |
 | SCN-180 | Fabric keeps every coding session in view and coordinates conflicting work | Manager | P-01 | ST-037, SCR-41 | implemented in part | unobserved |
-| SCN-181 | See a project's work by where it came from and where it goes | Projects | P-01 | ST-037, SCR-31, SCR-39 | implemented in part | unobserved |
+| SCN-181 | See a project's work by where it came from and where it goes | Projects | P-01 | ST-037, SCR-31, SCR-87 | implemented in part | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -4535,7 +4535,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 ### SCN-181: See a project's work by where it came from and where it goes
 - **Persona:** P-01
 - **Feature:** Projects
-- **Traces:** ST-037, SCR-31, SCR-39 (JTBD-02)
+- **Traces:** ST-037, SCR-31, SCR-87 (JTBD-02)
 - **Entry point:** a project's page; an agent's page on Агенты
 - **Preconditions:** the project exists; its tasks and its board requests are readable
 - **Steps:**
@@ -4546,7 +4546,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   5. Operator opens an agent's page -> its tasks are shown in the same rows by direction, with the existing chips by stage still filtering them.
 - **Expected result:** the operator sees at a glance where this project's work comes from and where it goes, without reading a mixed list; the duplicate «Доска» glance at the top is replaced by these rows, and the full board stays below.
 - **Alt paths:** a task belongs to one row only, by the first that applies in the order of step 1 (another project, then the operator, then the backlog, then the plan, then the agents); a direction with no work has no row; a project with no work at all shows SCN-159's first step; finished tasks older than seven days leave the rows (they stay in «Сделано недавно» and on the board).
-- **UI elements:** «Направления работы» section; one row per direction (heading, count, horizontal strip); task card; request card; on SCR-39 the same rows above the stage chips.
+- **UI elements:** «Направления работы» section; one row per direction (heading, count, horizontal strip); task card; request card; on SCR-87 the same rows above the stage chips (the 0.3.18 release review, iteration 1, DO-7: SCR-39 is no longer drawn since 0.3.13).
 - **States covered:** loading («Читаю…», never "no work"), empty (no row; no work at all), partial (requests unreadable: the request rows say so, the task rows stay), error (tasks unreadable: said in place, an earlier read kept and marked as earlier), success
 - **Errors & recovery:** tasks and requests are read separately; a failure of one is said on its rows and the other rows stay; a later read replaces an earlier one only when it lands (CO-544's reading).
 - **Design rationale:** the operator, 2026-11-08 (CO-543, paraphrased, ADR-0096 §5): the project page mixes backlog, board and plans in one pile; split the directions of work, where work came from and where it goes, one row per direction with cards that scroll, and the same for the agent page.

@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "8503abbb19b5d99050cbbb9ca92824703ca68a38",
+  "report": "docs/evidence/reviews/0.3.18/iteration-1/2026-11-09-errors.md",
+  "reportSha256": "767a45c10165d7825a423646200b7443abc78000d437285555d5f08773956e6c",
+  "reviewerRun": "release-0318-i1-errors-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "source": "V1-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 8c7e5469 (the plist is source) with cb31e0d6's packaging check: afterPack refuses every packed macOS app, each architecture's and the joined one, without the plist or whose plist names another job or a program the app lacks (`scripts/lib/board-service.mjs`, `scripts/after-pack-universal.mjs`); tests `scripts/test/board-service.test.mjs`, `test/board-launch-agent.test.mjs`, both run in `scripts/ci.sh`"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "source": "V1-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in b39f11de: a quit hides only while macOS reads the agent service back as enabled (`shared/loginItem.ts#quitHolds`); test `loginItem.test.ts` «PL-5, ER-2: a quit hides only while macOS reads the service back as enabled, not on the stored wish alone»"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "source": "V1-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in b39f11de: `shared/loginItem.ts#legacyLoginItemAction` removes it only once the service reads back enabled, or when the person turned it off; test `loginItem.test.ts` «PL-5, ER-3»"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "source": "V1-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in b39f11de: the Quit of a failed or unfinished start is never held, and under launchd a failed start ends 0 so KeepAlive does not bring the dialog back (`shared/loginItem.ts#quitHolds`, `#startFailureExitCode`); tests `loginItem.test.ts` «ER-4: the Quit of a start that failed, or of a start not finished, ends the process» and «ER-4: a failed start under launchd ends 0»"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "source": "V1-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in b39f11de (as PL-3): SIGTERM, SIGHUP and SIGINT mark the quit as a signal's and quit again, within LC-01's deadline; tests `test/quit.test.mjs` «PL-3: a signal after a held quit ends Fabric within the drain, though the service is on», `loginItem.test.ts` «PL-3»"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "source": "V1-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in part in b39f11de: a `--background` second instance never raises the running window (`shared/loginItem.ts#secondInstanceShows`; test `loginItem.test.ts` «ER-6: a background start of another copy never raises the running window; a person's open does»), and with cb31e0d6 launchd's losing copy ends 75 and is tried again once a minute; the rest (the proof on the packaged build) ruled: CO-549"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "source": "V1-18",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-549"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "source": "V1-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in b39f11de: cleared when the process still lives a minute later (`main/index.ts`, `SYSTEM_ENDING_MS`); the wiring has no unit test, and the system-end case is N6 (e) of the Release close"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "source": "V1-20",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "source": "V1-21",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "source": "V1-22",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "ER-12",
+      "source": "V1-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    }
+  ]
+}

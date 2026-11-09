@@ -1,0 +1,102 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "8503abbb19b5d99050cbbb9ca92824703ca68a38",
+  "report": "docs/evidence/reviews/0.3.18/iteration-1/2026-11-09-ux.md",
+  "reportSha256": "3ce04f439575574179c9eea70334ae16600bd1611710298dea58c44c8bd696b8",
+  "reviewerRun": "release-0318-i1-ux-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "source": "V1-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the plist is source (`apps/desktop/build/launchd/ai.passioncode.desktop.board.plist`, a `.gitignore` exception) in 8c7e5469; 0.3.17's `mainAppService` item goes only once the agent service reads back enabled (`shared/loginItem.ts#legacyLoginItemAction`) in b39f11de, test `loginItem.test.ts` «PL-5, ER-3: 0.3.17's login item goes only once the service reads back enabled, or when the person turned it off»; the packaging check as V1-33; the packaged proof is N6 of the Release close"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "source": "V1-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 565a554c: a `task.closed@1` by `system/review-default` reads its own sentence in the task page's history, История and Пульс (`i18n#describeFeedEvent`, `shared/board.ts#REVIEW_DEFAULT_ACTOR`); test `Feed.test.tsx` «a review accepted by default says so in the history», watched failing on the old Feed"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "source": "V1-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in b39f11de with f4a92667: «Перезапустить Fabric» / \"Restart Fabric\" above Quit ends the process past the hold and starts Fabric again, through `launchctl kickstart` while launchd keeps the service, else `app.relaunch` (`shared/loginItem.ts#restartPlan`, `main/restartFabric.ts`); the advice names it (`stack.health.stopped`, `access.hub.off.*`, `diagnostics.exposure.orbstackAfter`); tests `test/restart-fabric.test.mjs`, `test/menu.test.mjs`, `loginItem.test.ts` «UX-3»"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "source": "V1-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 579fa74e: `settings.boardServiceNote` names «Завершить Fabric» / Quit Fabric, says the Dock icon goes with the windows, where to open Fabric again (Launchpad, Spotlight, Applications) and how to stop it completely (the switch off, then Quit) (`i18n/ru.ts`, `i18n/en.ts`); the notes in e4766665"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "source": "V1-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 579fa74e: unread tasks are said and the panel no longer adds «quiet» (`launch/WorkDirections.tsx#ProjectDirections`); test `ProjectLaunch.test.tsx` «UX-5: tasks that cannot be read are said, and the panel never adds that the week was quiet», watched failing"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "source": "V1-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 579fa74e: the card names the runner by `runnerLabel`, as every other card (`launch/WorkDirections.tsx#Card`); `ProjectLaunch.test.tsx` expects the display name, watched failing on «claude-code»"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "source": "V1-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "source": "V1-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "source": "V1-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "source": "V1-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in part in e4766665: the notes name macOS's background item notice and its approval on the first start, and say the ambiguous folder is said in the dispatcher's log (`CHANGELOG.md`); the rest (`docs/ux/screens.md`, `docs/launch/testers-brief.md`) ruled: CO-550"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "source": "V1-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 579fa74e: «Fabric всегда работает в фоне»; the darwin off and approval lines say the service also does not start Fabric again after a crash; `say.unreadable` no longer speaks of lines never shown; \"Working without a claimed task.\" (`i18n/ru.ts`, `i18n/en.ts`)"
+      ]
+    }
+  ]
+}

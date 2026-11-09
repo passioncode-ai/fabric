@@ -1,0 +1,134 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "8503abbb19b5d99050cbbb9ca92824703ca68a38",
+  "report": "docs/evidence/reviews/0.3.18/iteration-1/2026-11-09-plan.md",
+  "reportSha256": "b9f0069dd52f5b940639362a6021626cc777d96d54ecda66eca4de9468922256",
+  "reviewerRun": "release-0318-i1-plan-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "source": "V1-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the plist is source in 8c7e5469; `board-launch-agent.test.mjs` and the new `board-service.test.mjs` run in `scripts/ci.sh` in cb31e0d6"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "source": "V1-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed in cb31e0d6: afterPack checks each architecture's app and the joined one (`scripts/after-pack-universal.mjs`, `scripts/lib/board-service.mjs`); the release config read through electron-builder's own loader keeps the base `mac.extraFiles`; test `board-launch-agent.test.mjs` «PL-2: the release config keeps the base config's extraFiles»"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "source": "V1-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V1-16"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "source": "V1-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed in b39f11de: only the Fabric on the operator's own data folder (no `--user-data-dir` in any spelling, no SMOKE) registers, removes or holds for the service (`shared/loginItem.ts#ownsBoardService`); tests `loginItem.test.ts` «PL-4: the operator's own Fabric owns it» and «PL-4: a Fabric on another data folder, or a smoke run, never holds»"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "source": "V1-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V1-13 and V1-14"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "source": "V1-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed in b39f11de with cb31e0d6: launchd's copy that loses the single-instance lock ends 75 (`shared/loginItem.ts#LAUNCHD_RETRY_EXIT`, `#secondInstanceExitCode`) and the plist's `ThrottleInterval` 60 has launchd try again once a minute, taking the board over when the person's copy ends; tests `loginItem.test.ts` «PL-6: launchd's copy that loses the lock ends non-zero», `board-launch-agent.test.mjs` «PL-6: launchd tries a copy that lost the single-instance lock again once a minute»; N6 (b) proves it on the packaged build"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "source": "V1-38",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-549 (N6 (e))"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "source": "V1-39",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-549 (N6 (d))"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "source": "V1-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: *Owed in 0.3.18's Release close* writes the order (the release commit, the tag and its run, what is recorded before install, the install through the broker, N6 case by case, the carried checks) and the rollback"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "source": "V1-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 7b58a79c: `docs/launch/release-mac.md` gains 0.3.18's paragraph (schema 100, how to stop the service for an install, macOS's background item notice, going back to 0.3.17), and step 1 and the move order turn the service off first"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "source": "V1-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: *Owed in 0.3.18's Release close*, item 1; the notes say macOS may ask once to allow Fabric in Login Items (e4766665)"
+      ]
+    },
+    {
+      "id": "PL-12",
+      "source": "V1-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: CO-538, CO-539 and CO-548 retargeted after 0.3.18; the remainders of CO-543 and CO-544 carried by CO-550 (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`)"
+      ]
+    },
+    {
+      "id": "PL-13",
+      "source": "V1-44",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-549"
+      ]
+    },
+    {
+      "id": "PL-14",
+      "source": "V1-45",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-549 (the release run's SMOKE receipts read, the two nightly tests ruled or fixed)"
+      ]
+    },
+    {
+      "id": "PL-15",
+      "source": "V1-46",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-549 (the review counts recorded and the outage announced before install)"
+      ]
+    }
+  ]
+}

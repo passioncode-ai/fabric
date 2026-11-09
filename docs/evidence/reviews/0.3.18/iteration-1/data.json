@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "8503abbb19b5d99050cbbb9ca92824703ca68a38",
+  "report": "docs/evidence/reviews/0.3.18/iteration-1/2026-11-09-data.md",
+  "reportSha256": "856499f434bf066f82a9bf486a6d6ee9108e9abf793b4652b9cc28c7cbc8273e",
+  "reviewerRun": "release-0318-i1-data-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "source": "V1-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V1-12"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "source": "V1-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 71c844cf: `work.swept@1` carries `acceptedByDefault` when a sweep accepted any, and a sweep that did nothing else still writes its receipt (`main/abandonedSweepRun.ts`); test `abandoned-sweep-run.test.mjs` «DA-2 (0.3.18 review)», watched failing"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "source": "V1-26",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "source": "V1-27",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "source": "V1-28",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "source": "V1-29",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "source": "V1-30",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "DA-8",
+      "source": "V1-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 71c844cf: one line when the failure starts or changes and one when it recovers (`main/workRead.ts#readSessionTasks`); test `work-read-views.test.mjs` «DA-8 (0.3.18 review)», watched failing"
+      ]
+    }
+  ]
+}

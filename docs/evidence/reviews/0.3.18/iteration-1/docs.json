@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "8503abbb19b5d99050cbbb9ca92824703ca68a38",
+  "report": "docs/evidence/reviews/0.3.18/iteration-1/2026-11-09-docs.md",
+  "reportSha256": "33995c70006dd16cc0cdd66b8666a38b6d86896c30b174ee49fa6fa9409b76b0",
+  "reviewerRun": "release-0318-i1-docs-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "source": "V1-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V1-12"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "source": "V1-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 7b58a79c: the row says which quits hide and which end Fabric (signals, logout, «Перезапустить Fabric», a failed start), launchd's retry and how to stop Fabric completely (`AGENTS.md`)"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "source": "V1-49",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 7b58a79c: the sweep row names the review read, the default accept (CO-537) and the receipt's `acceptedByDefault` (`AGENTS.md`)"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "source": "V1-50",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 7b58a79c: the row names the 15 s tick, the question mark, the backlog rows and the «Написать агенту» lines (`AGENTS.md`)"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "source": "V1-51",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 7b58a79c: a row for it (requests both ways, 30 days, 200 each; backlog rows, 1 000) (`AGENTS.md`)"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "source": "V1-52",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: P-31's status and the Now line say it was rolled out on 2026-11-08, read 21:45 UTC (`docs/evidence/backlog.md`)"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "source": "V1-53",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: SCN-181 traces SCR-87 in its index row, its Traces and its UI elements; SCR-31 and SCR-87 list SCN-181 (`docs/ux/scenarios.md`, `docs/ux/screens.md`); `docs/ux/lint.py` through `scripts/check-docs.sh`"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "source": "V1-54",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 7b58a79c: CO-322 gains a dated note pointing at ADR-0192 and the agent service (`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`)"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "source": "V1-55",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-550"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "source": "V1-56",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as V1-4"
+      ]
+    }
+  ]
+}
