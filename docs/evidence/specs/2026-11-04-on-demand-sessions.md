@@ -150,7 +150,7 @@ appends itself to its chain on each call it makes under it (MD-2).
 
 Agreed with Project Observatory on 2026-11-04 (OBS-323), so it reads the packet without guessing and without a change to
 memory/0.1: `artifacts` carry one each of `kind: "other"` with `ref` `board-request:<uuid>`, `board-thread:<uuid>`,
-`capability:<name>`, `fabric-project:<uuid>` and `deadline:<ISO 8601 UTC>` (the board's own deadline); a packet without
+`capability:<name>`, `fabric-project:<uuid>` and `deadline:<ISO 8601 UTC>` (the board's own deadline, cut to the request's submission plus seven days less a minute, because Observatory refuses a packet deadline more than seven days after its write and freezes the packet at its first write: `boardDispatch.ts#packetDeadline`, CO-554); a packet without
 the request, the project or the deadline gets no keys.
 Each dispatch also writes its own checkpoint with `ref` `run-ends-at:<ISO 8601 UTC>`: the earlier of its launch plus
 the time limit and the deadline, the same moment passed to Switchboard as `--timeout-minutes`; a second dispatch writes

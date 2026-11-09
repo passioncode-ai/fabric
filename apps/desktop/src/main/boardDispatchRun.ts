@@ -9,7 +9,7 @@
  */
 import { randomUUID } from 'node:crypto'
 import type { OperatorMandate } from './hubAuthority.ts'
-import { decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, GRACE_MS, limitsOf, runEndsAt, refusalCheck, type DispatchDecision, type RequestState } from '../shared/boardDispatch.ts'
+import { decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, GRACE_MS, limitsOf, packetDeadline, runEndsAt, refusalCheck, type DispatchDecision, type RequestState } from '../shared/boardDispatch.ts'
 import { FABRIC_OWNER, type ToolCall } from './observatoryMemory.ts'
 
 export interface OpenRequest {
@@ -292,7 +292,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         { kind: 'other', ref: `board-thread:${req.thread}` },
         { kind: 'other', ref: `capability:${req.capability}` },
         { kind: 'other', ref: `fabric-project:${req.target}` },
-        { kind: 'other', ref: `deadline:${req.deadline}` },
+        // Observatory takes a packet deadline at most seven days after its write; the board's own is followed here.
+        { kind: 'other', ref: `deadline:${packetDeadline(req.deadline, req.submittedAt)}` },
         { kind: 'other', ref: `run-ends-at:${endsAt}` }
       ],
       open: [{ step_id: 'answer', next_action: 'Take the request and answer it.' }]

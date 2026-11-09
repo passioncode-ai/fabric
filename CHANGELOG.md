@@ -7,6 +7,12 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **A board request with a far deadline starts its run again** (CO-554). When nobody answered a request whose deadline
+  was more than a week away, Fabric could not open its run and tried again every ten minutes without starting it.
+  The run now opens; Fabric still follows the request's own deadline.
+
 ## 0.3.18
 
 **Upgrading.** No schema step: the database stays at schema 100. On the first start macOS may show its notice that a

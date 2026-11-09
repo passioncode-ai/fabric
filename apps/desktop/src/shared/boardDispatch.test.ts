@@ -1,7 +1,7 @@
 // CO-409, wave 1: the dispatcher's decision. Spec: docs/evidence/specs/2026-11-04-on-demand-sessions.md (§3.1, §3.3,
 // §3.4, §3.5, §3.6).
 import { describe, expect, it } from 'vitest'
-import { decideDispatch, firstLine, parseFirstLine, refusalCheck, runEndsAt, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
+import { decideDispatch, firstLine, packetDeadline, parseFirstLine, refusalCheck, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
 
 const NOW = Date.parse('2026-11-04T15:00:00Z')
 const MIN = 60_000
@@ -85,6 +85,26 @@ describe('decideDispatch (§3.1–§3.3)', () => {
   it('the limits can be set, never below one', () => {
     expect(decideDispatch(with_({ runningOnMachine: 2, limits: { maxOnMachine: 3 } })).path).toBe('launch')
     expect(decideDispatch(with_({ runningOnMachine: 0, limits: { maxOnMachine: 0 } })).path).toBe('launch')
+  })
+})
+
+describe('packetDeadline (Observatory refuses a packet deadline more than seven days after its write)', () => {
+  const at = (ms: number) => new Date(ms).toISOString()
+  it('keeps a deadline within seven days of the request', () => {
+    expect(packetDeadline(at(NOW + 3 * 24 * 60 * MIN), at(NOW - 5 * MIN))).toBe(at(NOW + 3 * 24 * 60 * MIN))
+  })
+  it('cuts a far deadline to the request plus the horizon, so the workflow opens (80 refusals DeadlineTooFar on 2026-11-09)', () => {
+    const submitted = NOW - 2 * 24 * 60 * MIN
+    expect(packetDeadline(at(NOW + 12 * 24 * 60 * MIN), at(submitted))).toBe(at(submitted + PACKET_HORIZON_MS))
+    expect(Date.parse(packetDeadline(at(NOW + 12 * 24 * 60 * MIN), at(submitted))) - NOW).toBeLessThanOrEqual(7 * 24 * 60 * MIN)
+  })
+  it('gives the same value on every write of one request, since the packet is frozen at its first write', () => {
+    const d = at(NOW + 20 * 24 * 60 * MIN), s = at(NOW - MIN)
+    expect(packetDeadline(d, s)).toBe(packetDeadline(d, s))
+  })
+  it('keeps an unreadable value as it is (the board never sends one; the open then fails and backs off)', () => {
+    expect(packetDeadline('not a date', at(NOW))).toBe('not a date')
+    expect(packetDeadline(at(NOW + 9 * 24 * 60 * MIN), 'not a date')).toBe(at(NOW + 9 * 24 * 60 * MIN))
   })
 })
 

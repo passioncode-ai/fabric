@@ -878,3 +878,25 @@ test('CO-409 (DEC-0125 MD-3): a request\'s mandate travels into the run\'s packe
   await createBoardDispatch(v.deps).onPass()
   assert.equal(v.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1].body.constraints.some((c) => c.includes('mandate')), false)
 })
+
+test('a request whose deadline is more than seven days out opens a workflow whose packet deadline Observatory takes (DeadlineTooFar, 2026-11-09)', async () => {
+  // Observatory refuses a packet deadline more than seven days after the write (dispatch_packet.py#check_write).
+  const submitted = T0 - 2 * DAY
+  const w = world({ requests: [request({ submittedAt: new Date(submitted).toISOString(), deadline: new Date(T0 + 12 * DAY).toISOString() })] })
+  w.deps.observatory = async (name, args) => {
+    w.calls.push([name, args])
+    if (name === 'observatory_resolve') return { canonical: 'project:target' }
+    if (name === 'observatory_checkpoint_write') {
+      const ref = args.body.artifacts.find((a) => a.ref.startsWith('deadline:')).ref.slice('deadline:'.length)
+      if (Date.parse(ref) > w.deps.now() + 7 * DAY) return { error: 'DeadlineTooFar' }
+      return args.workflowId ? { workflowId: args.workflowId, revision: 2 } : { workflowId: 'wf_0123456789abcdef', leaseId: 'lease-1' }
+    }
+    if (name === 'observatory_handoff_create') return { handoffId: 'handoff:0000000000000001' }
+    return {}
+  }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1, JSON.stringify(w.logs))
+  const open = w.calls.find(([n]) => n === 'observatory_checkpoint_write')[1]
+  assert.ok(open.body.artifacts.some((a) => a.ref === `deadline:${new Date(submitted + 7 * DAY - MIN).toISOString()}`))
+})
