@@ -368,22 +368,17 @@ export async function readTaskBoard(store: Store, opts: { now: number; session: 
 const SESSION_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const SESSION_TASK_COLUMNS = 'id,project_id,title,brief_what,brief_why,brief_expected,status,started_at,origin_kind,assigned_by,goal_id,moved_at,finished_at'
 
-/**
- * One agent session's tasks, newest first (0.3.14, `shared/sessionTasks.ts`): its claims, live and released (indexed by
- * `owner_session`, migration 95), and the tasks Fabric launched in it (`project_tasks.session_id`), joined to each
- * task's brief and project. Every read's error THROWS, so the agent page never says "no task" from a read that did
- * not happen. Claims are read twice the page's limit, so a task claimed again and again does not push the rest out.
- */
-/** How many earlier session ids of one agent its page reads (CO-475): the bound keeps the list filters short. */
 /** The backlog-row read's failure last said, so a page re-read every 15 s and on every journal mark writes one line when
  *  the read starts failing or its failure changes, and one when it recovers (the 0.3.18 review, iteration 1, DA-8: the
- *  rule `ipcOutcome.ts#QUIET_WHEN_OK` keeps for the channel's own answers). */
+ *  rule `ipcOutcome.ts#QUIET_WHEN_OK` keeps for the channel's own answers). Called only after a read that ran: an agent
+ *  with no tasks reads no rows, which is neither a failure nor a recovery (iteration 2, DA-10). */
 let sourcesFailing: string | null = null
 function sayIfChanged(failed: string | null): void {
   if (failed && failed !== sourcesFailing) ops.failed('work.session-sources-unread', new Error(failed), { note: "an agent's tasks are shown without their backlog rows" })
   else if (!failed && sourcesFailing !== null) ops.record({ op: 'work.session-sources-unread', outcome: 'ok', level: 'info', detail: { recovered: true }, ctx: { correlationId: ops.correlate() } })
   sourcesFailing = failed
 }
+/** How many earlier session ids of one agent its page reads (CO-475): the bound keeps the list filters short. */
 export const SESSION_ALIASES = 20
 
 /** The earlier session ids of an agent, as the renderer sends them: uuids only, never the live id, at most `SESSION_ALIASES`. */
@@ -392,6 +387,12 @@ export function sessionAliases(aliases: unknown, sessionId: string): string[] {
   return [...new Set(aliases.filter((a): a is string => typeof a === 'string' && SESSION_UUID.test(a) && a !== sessionId))].slice(0, SESSION_ALIASES)
 }
 
+/**
+ * One agent session's tasks, newest first (0.3.14, `shared/sessionTasks.ts`): its claims, live and released (indexed by
+ * `owner_session`, migration 95), and the tasks Fabric launched in it (`project_tasks.session_id`), joined to each
+ * task's brief and project. Every read's error THROWS, so the agent page never says "no task" from a read that did
+ * not happen. Claims are read twice the page's limit, so a task claimed again and again does not push the rest out.
+ */
 export async function readSessionTasks(
   store: Store,
   sessionId: unknown,
@@ -435,8 +436,9 @@ export async function readSessionTasks(
   if (projects.failed) throw new Error(`the session's projects could not be read: ${projects.failed}`)
   // SCN-181 (CO-543): the backlog rows that link these tasks, for their rows by direction. A failed read is recorded and
   // said on the page («Из бэклога» may be missing tasks); the tasks themselves stay.
-  const sourcesRead = await store.selectIn('task_sources', 'task_id,path,row_id', 'task_id', [...new Set([...ids, ...launchedIds])])
-  sayIfChanged(sourcesRead.failed)
+  const sourceIds = [...new Set([...ids, ...launchedIds])]
+  const sourcesRead = await store.selectIn('task_sources', 'task_id,path,row_id', 'task_id', sourceIds)
+  if (sourceIds.length) sayIfChanged(sourcesRead.failed)
   const view = composeSessionTasks({
     claims: claimRows,
     launched: launchedRows,

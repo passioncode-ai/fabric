@@ -205,6 +205,8 @@ const EVENT_FIELDS: Record<string, Fields> = {
   'work.swept@1': {
     found: required(object(Object.fromEntries(ABANDONED_KINDS.map((k) => [k, optional(integer(0))])))),
     told: required(integer(0)), queued: required(integer(0)), released: required(integer(0)),
+    // CO-537: the reviews the sweep accepted by default, absent when none (the 0.3.18 review, iteration 2, DA-9).
+    acceptedByDefault: optional(integer(1)),
     unread: optional(list(enumeration([...SWEEP_READS]))),
     // The names of the reads that stopped at their bounds, never free text (iteration 2, DA-2).
     capped: optional(list(enumeration([...SWEEP_CAPS]))), ...metadata

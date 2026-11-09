@@ -258,13 +258,15 @@ test('DA-8 (0.3.18 review): an agent page re-read every 15 s says a failed backl
   const lines = []
   useOps({ record: (r) => lines.push(r), correlate: () => 'c', begin: () => () => {}, read: () => [], file: () => null, lost: () => 0 })
   try {
-    const store = (fail) => ({
-      select: () => {
+    // As `scopedStore.ts#selectIn`: an empty id list asks nothing and answers no failure.
+    const task = { id: 't1', project_id: 'p1', title: 'x', status: 'running', started_at: '2026-11-09T10:00:00.000Z', moved_at: null, finished_at: null }
+    const store = (fail, withTasks = true) => ({
+      select: (table) => {
         const chain = { is: () => chain, not: () => chain, limit: () => chain, in: () => chain, eq: () => chain, order: () => chain,
-          then: (ok) => ok({ data: [], error: null }) }
+          then: (ok) => ok({ data: table === 'project_tasks' && withTasks ? [task] : [], error: null }) }
         return chain
       },
-      selectIn: async (table) => (fail && table === 'task_sources' ? { rows: [], failed: fail } : { rows: [], failed: null })
+      selectIn: async (table, _cols, _col, values) => (!values.length ? { rows: [], failed: null } : fail && table === 'task_sources' ? { rows: [], failed: fail } : { rows: [], failed: null })
     })
     const said = () => lines.filter((l) => l.op === 'work.session-sources-unread')
     for (let i = 0; i < 3; i++) await readSessionTasks(store('task_sources: away'), S)
@@ -278,6 +280,11 @@ test('DA-8 (0.3.18 review): an agent page re-read every 15 s says a failed backl
     assert.equal(said()[2].outcome, 'ok')
     await readSessionTasks(store('task_sources: away'), S)
     assert.equal(said().length, 4, 'failing again after a recovery is said again')
+    // The 0.3.18 review, iteration 2, DA-10: an agent with no tasks reads no backlog rows, so it says no recovery.
+    await readSessionTasks(store('task_sources: away', false), S)
+    assert.equal(said().length, 4, 'a read that did not happen is neither a failure nor a recovery')
+    await readSessionTasks(store('task_sources: away'), S)
+    assert.equal(said().length, 4, 'the failure, still the same, is not said again')
   } finally {
     useOps(null)
   }

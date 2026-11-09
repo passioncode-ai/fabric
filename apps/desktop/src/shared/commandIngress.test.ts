@@ -40,7 +40,7 @@ const fixtures: Record<string, Record<string, unknown>> = {
   'work.renewed@1': { work: id, owner: other, expires_at: '2026-10-11T10:30:00.000Z', claim_id: other },
   'work.handover.requested@1': { claim_id: other, work: id, requested_by: other, note: secret },
   // The sweep's receipt (0.3.13 review DA-1): counts and read names only, no free text to scrub.
-  'work.swept@1': { found: { 'claim-silent': 1 }, told: 1, queued: 1, released: 0, capped: ['claims'] },
+  'work.swept@1': { found: { 'claim-silent': 1 }, told: 1, queued: 1, released: 0, acceptedByDefault: 2, capped: ['claims'] },
   'session.turn.observed@1': { session_id: other, runtime: 'claude-code', runtime_session_id: 'rt-1', observed_at: '2026-10-11T10:00:00.000Z',
     head: 'a'.repeat(40), files_changed: 3, lines_added: 10, lines_removed: 2, idempotency_key: 'turn-0001' }
 }

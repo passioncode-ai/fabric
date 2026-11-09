@@ -1430,6 +1430,10 @@ test('DA-2 (0.3.18 review): the sweep\'s receipt counts the reviews it accepted 
   await sweepOnce(createAbandonedSweep(w.deps))
   assert.equal(w.receipts.length, 1, 'a sweep that only accepted reviews still writes its receipt')
   assert.equal(w.receipts[0].acceptedByDefault, 2)
+  // The 0.3.18 review, iteration 2, DA-9: the receipt the journal is handed passes its door, count included.
+  assert.equal(prepareEventPayload('work.swept@1', w.receipts[0]).state, 'prepared', 'the journal takes the receipt with its count')
+  assert.equal(prepareEventPayload('work.swept@1', { ...w.receipts[0], told: 1, released: 1 }).state, 'prepared', 'and a receipt that also told and released')
+  assert.equal(prepareEventPayload('work.swept@1', { ...w.receipts[0], acceptedByDefault: 0 }).state, 'rejected', 'a count is never written as zero')
   const quiet = world()
   quiet.deps.readReviews = async () => [{ taskId: 'r-fresh', projectId: 'p1', movedAt: iso(T0 - DAY) }]
   quiet.deps.acceptReview = async () => ({ accepted: true })
