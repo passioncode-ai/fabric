@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "d5861ddb62117e2b34a5540b5ef6844c9df99c45",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3-d5861ddb/2026-11-09-ux.md",
+  "reportSha256": "8b506f1426ae72c9872622666c935533547d8b5738fc9880382d98beb57eddb4",
+  "reviewerRun": "release-0318-i3c-ux-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-21",
+      "source": "V3-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: the bullet is the last of `## 0.3.18` and `## Unreleased` is gone (`CHANGELOG.md`; `scripts/lib/release-mac.mjs#changelogProblem` answers null); CO-554's row targets 0.3.18; the gate, *What 0.3.18 carries* and the handoff follow in this release commit (V3-40)"
+      ]
+    },
+    {
+      "id": "UX-22",
+      "source": "V3-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: the bullet says Fabric \"kept trying again later without starting it\", no cadence"
+      ]
+    },
+    {
+      "id": "UX-23",
+      "source": "V3-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb for the cases named: the cut is from the opening write (`shared/boardDispatch.ts#packetDeadline(deadline, writtenAt)`) and a lost open reuses its write time; a workflow taken back more than a week after it opened is UX-26"
+      ]
+    },
+    {
+      "id": "UX-24",
+      "source": "V3-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb for the **Upgrading.** line (\"within about a minute\"); the ADR-0192 bullet's rest is UX-25, fixed by this release commit (V3-45)"
+      ]
+    },
+    {
+      "id": "UX-25",
+      "source": "V3-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this release commit: \"(within about a minute)\" in the ADR-0192 bullet of `## 0.3.18` (`CHANGELOG.md`)"
+      ]
+    },
+    {
+      "id": "UX-26",
+      "source": "V3-46",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-555 (filed after the release commit): open a new workflow when the frozen packet deadline has passed and the board's has not"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "d5861ddb62117e2b34a5540b5ef6844c9df99c45",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3-d5861ddb/2026-11-09-docs.md",
+  "reportSha256": "cac014ed8517597c6a9a9a876b8def001a73fa30ee6d0ae044ca9ff911693789",
+  "reviewerRun": "release-0318-i3c-docs-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-23",
+      "source": "V3-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this release commit: the gate, this ledger and the handoff name `d5861ddb`; CO-554 is in *What 0.3.18 carries* and in `## 0.3.18` (d5861ddb); the rc is `v0.3.18-rc.2`; iteration 3's run-one reports stay as written and run two's take their own folder after the release commit (PL-42)"
+      ]
+    },
+    {
+      "id": "DO-24",
+      "source": "V3-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this release commit: as V3-34, and rc.1 (`a86481ca`, run 42689818347) is recorded as a rehearsal of a superseded release commit, not as item 2"
+      ]
+    },
+    {
+      "id": "DO-25",
+      "source": "V3-42",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-549 (row updated after the release commit): the update names ER-22, a signalled copy launchd did not start being replaced by launchd's within about a minute"
+      ]
+    },
+    {
+      "id": "DO-26",
+      "source": "V3-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: the row, `packetDeadline`'s comment, the test name, the map entry and the commit message say 986 failures for 28 requests (10:19 to 21:34 UTC), recounted by run three over every log segment"
+      ]
+    },
+    {
+      "id": "DO-27",
+      "source": "V3-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb for (c) and for (a) on Fabric's side (the spec says the ref changed on 2026-11-09); (a) on Observatory's side is upstream, its header wording, which the coordinator tells Observatory on the board; (b) moot while the dispatcher names no credentials"
+      ]
+    },
+    {
+      "id": "DO-28",
+      "source": "V3-54",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-555 (filed after the release commit): the comment and the row name the dependency on `urgent: false`, and wiring urgency keeps the default deadline whole, with an `urgent: true` test"
+      ]
+    },
+    {
+      "id": "DO-29",
+      "source": "V3-55",
+      "status": "fixed",
+      "evidence": [
+        "fixed by the post-release commit: run two's reports land on `main` after the release commit citing `0e501425`, which stays reachable under `refs/archive/2026-11-09/fix-dispatch-packet-deadline`; this ledger says run three's candidate replaces run two's (an amend on the same parent `78772e6d`)"
+      ]
+    }
+  ]
+}

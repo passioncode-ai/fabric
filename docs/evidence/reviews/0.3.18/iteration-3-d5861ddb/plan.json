@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "d5861ddb62117e2b34a5540b5ef6844c9df99c45",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3-d5861ddb/2026-11-09-plan.md",
+  "reportSha256": "da0f4e668b65b7017d0969bb8fc7ab15778ce01dcadb92bebc50688324456288",
+  "reviewerRun": "release-0318-i3c-plan-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-35",
+      "source": "V3-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this release commit: the gate names `d5861ddb` as `verifiedCommit` and iteration 3's candidate, iteration 3's five reviews are at `docs/evidence/reviews/0.3.18/iteration-3-d5861ddb/` (run one's `iteration-3/` byte-identical), and this section names the candidate in full and ends with its one exit line"
+      ]
+    },
+    {
+      "id": "PL-36",
+      "source": "V3-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this release commit: this section records the decision that CO-554 joins 0.3.18 and why iteration 3 alone was run again; item 8 keeps its rule for a failure in items 2 to 6 and names this narrower re-entry"
+      ]
+    },
+    {
+      "id": "PL-37",
+      "source": "V3-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: as V3-24"
+      ]
+    },
+    {
+      "id": "PL-38",
+      "source": "V3-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this release commit: `a86481ca` and rc.1 are recorded superseded and not to be used (above item 0), items 0 to 2 name `v0.3.18-rc.2` and `signed-release-v0.3.18-rc.2`, and item 7 checks `git rev-parse v0.3.18^{commit}` against the release commit's full hash, which the handoff names once it lands"
+      ]
+    },
+    {
+      "id": "PL-39",
+      "source": "V3-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this release commit: item 0 names the full run on `d5861ddb` (pending, run id recorded by the coordinator before the rc) and records that rc.1 was built before any full run"
+      ]
+    },
+    {
+      "id": "PL-40",
+      "source": "V3-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-554's target reads 0.3.18 in d5861ddb, inside the verified tree; the rest is fixed by the post-release commit (register rulings land on `main` after the release commit: CO-555 filed, the CO-549 update), the `78772e6d` pattern"
+      ]
+    },
+    {
+      "id": "PL-41",
+      "source": "V3-39",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-555 (filed after the release commit) for (1) and the first-start burst, which item 3.1's announcement now names; (2) fixed in d5861ddb (V3-29), its residue ER-27"
+      ]
+    },
+    {
+      "id": "PL-42",
+      "source": "V3-51",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this release commit (the ledger route): run two's findings are rows V3-24 to V3-44 and sit in run three's receipts with those sources; run two's reports and receipts land on `main` after the release commit at `docs/evidence/reviews/0.3.18/iteration-3-0e501425/`"
+      ]
+    },
+    {
+      "id": "PL-43",
+      "source": "V3-52",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this release commit and the coordinator's landing: `d5861ddb` goes to `main` by fast-forward from `78772e6d`, never over `fix/dispatch-packet-deadline`; `0e501425` is kept under `refs/archive/2026-11-09/fix-dispatch-packet-deadline` (on `origin`); this ledger names it superseded"
+      ]
+    },
+    {
+      "id": "PL-44",
+      "source": "V3-53",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this release commit: *What 0.3.18 carries* names `## 0.3.18` and CO-554; item 8 names `v0.3.18-rc.3`; the handoff's *Open* names the post-release register rulings instead"
+      ]
+    }
+  ]
+}

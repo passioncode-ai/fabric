@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "d5861ddb62117e2b34a5540b5ef6844c9df99c45",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3-d5861ddb/2026-11-09-data.md",
+  "reportSha256": "6899ed0fdd4d1ef7ae9bc3969208367f62fbfac44f887918ec90a553b2462501",
+  "reviewerRun": "release-0318-i3c-data-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-13",
+      "source": "V3-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: later writes leave `deadline:` out, and a deadline within `openAt + 7 d - 60 s` (the board's default included) is written as the board's string; the rollback residue for cut deadlines is DA-15"
+      ]
+    },
+    {
+      "id": "DA-14",
+      "source": "V3-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb for the case named: the first write's deadline is `openAt + 7 d - 60 s`, always ahead; a later run after that week is DA-16"
+      ]
+    },
+    {
+      "id": "DA-15",
+      "source": "V3-49",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-555 (filed after the release commit): a sentence in the 0.3.18 rollback steps (let open board-dispatch workflows end first), the band decided there"
+      ]
+    },
+    {
+      "id": "DA-16",
+      "source": "V3-50",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-555 (filed after the release commit): one change with UX-26 and ER-27"
+      ]
+    }
+  ]
+}

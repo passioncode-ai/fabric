@@ -37,8 +37,8 @@ of Fabric the system did not start is replaced by the system's own within about 
   without one, not as idle; a stage report it has worked past is marked as outdated; and its newest act (a board
   message, a claim, a stage) shows with how long ago.
 - **The board stays up when Fabric's window is gone** (ADR-0192, task 296b88c5). On macOS Fabric now runs as a service
-  the system keeps: it starts without a window when you log in and starts again after a crash (within a minute), and,
-  once macOS has allowed the service, «Завершить Fabric» (Quit Fabric) only closes the windows and removes the Dock
+  the system keeps: it starts without a window when you log in and starts again after a crash (within about a
+  minute), and, once macOS has allowed the service, «Завершить Fabric» (Quit Fabric) only closes the windows and removes the Dock
   icon, so agents keep reaching the board; open Fabric again from Launchpad, Spotlight or Applications. Settings calls
   the switch «Служба доски» and says under it which of the two Quit does now. To stop Fabric completely, turn it off,
   then quit. A signal still ends Fabric (the lifecycle broker, `launchctl`, `kill`), and so do logout, restart and

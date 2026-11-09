@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "d5861ddb62117e2b34a5540b5ef6844c9df99c45",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3-d5861ddb/2026-11-09-errors.md",
+  "reportSha256": "1252cc264ef64f66b6d7877415fbdafa8a7a6efcb8b3551ee60f8a9c4ca2c3ac",
+  "reviewerRun": "release-0318-i3c-errors-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-24",
+      "source": "V3-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: only the opening write names `deadline:` (`main/boardDispatchRun.ts`, `body(opening)`); test «CO-554 (0.3.18 review, DA-13, ER-24): the board's default deadline is written as it is, and a later write leaves the frozen deadline out» with a stand-in that freezes the first write; the case named is closed"
+      ]
+    },
+    {
+      "id": "ER-25",
+      "source": "V3-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: the cut is from the write, always ahead of it; test «CO-554 (0.3.18 review, DA-14, ER-25): a request sent more than a week ago gets a packet deadline still ahead»; the case named is closed, a workflow that lives longer than seven days is ER-27"
+      ]
+    },
+    {
+      "id": "ER-26",
+      "source": "V3-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: the tautology is gone; the run tests use `freezingObservatory`, take a workflow back on a later pass and compare a lost open's retried body (`assert.deepEqual`); the case named is closed, the unguarded `-ends-held` write is ER-28"
+      ]
+    },
+    {
+      "id": "ER-27",
+      "source": "V3-47",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-555 (filed after the release commit): compare the frozen deadline before a take-back and open a new workflow when it has passed or is within `LAUNCH_MARGIN_MS`; a test with a refusal streak over seven days"
+      ]
+    },
+    {
+      "id": "ER-28",
+      "source": "V3-48",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-555 (filed after the release commit): a pass after a Switchboard refusal in the run test with `freezingObservatory`, asserting the `-ends-held` write names no `deadline:`"
+      ]
+    }
+  ]
+}

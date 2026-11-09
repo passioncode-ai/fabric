@@ -23,21 +23,28 @@ candidate read-only; findings are disposed here and in the receipts under
 ## What 0.3.18 carries
 
 No schema step: the database stays at schema 100 (the newest migration is still `20261030000127`, 0.3.17's;
-`git diff --stat v0.3.17..HEAD -- supabase/` is empty). The `## Unreleased` section of
+`git diff --stat v0.3.17..HEAD -- supabase/` is empty). The `## 0.3.18` section of
 [`CHANGELOG.md`](../../../CHANGELOG.md) names every person-visible change since 0.3.17: the board as a service launchd
 keeps on macOS, with «Служба доски» in Settings and a Quit that only hides (ADR-0192); «Перезапустить Fabric»
 (ADR-0192); reviews older than three days accepted by default, said in the task's history (CO-537); «Направления
 работы» on the project and agent pages (CO-543, SCN-181); the agent's page saying what the agent does now (CO-542);
 the session card and «Написать агенту» keeping up (CO-544); the dispatcher's backoff (CO-544); a refused reply no
-longer logged as a wall error (CO-541); the Docker ping out of the main thread (CO-536). Windows and Linux are
+longer logged as a wall error (CO-541); the Docker ping out of the main thread (CO-536); a board request with a far
+deadline starting its run again (CO-554, which joined 0.3.18 on 2026-11-09: *Iteration 3*). Windows and Linux are
 unchanged apart from the restart item.
 
-The candidates sit on the working branch `release/0318`, each landed on `main` by fast-forward.
+The candidates `8503abbb`, `e4766665` and `bba86bce` (iteration 3's first run) were made on the working branch
+`release/0318` and each landed on `main` by fast-forward; the superseded release commit `a86481ca` and the rows commit
+`78772e6d` followed them on `main`. Iteration 3's final candidate `d5861ddb` is a child of `78772e6d` and goes to `main`
+by fast-forward from it (PL-43); the release commit is made on `release/0318-rc2` from `d5861ddb`. Run two's candidate
+`0e501425`, which `d5861ddb` replaced (an amend on the same parent, not a child), is kept under
+`refs/archive/2026-11-09/fix-dispatch-packet-deadline`.
 
 ## Owed in 0.3.18's Release close
 
 Executable in this order, each act with its actor and route. It answers iteration 1 (PL-9, PL-11), iteration 2 (PL-16,
-PL-17, PL-19, PL-20, PL-24, PL-25) and iteration 3 (PL-26 to PL-34, DO-19, and ER-22's measurement); CO-549 holds
+PL-17, PL-19, PL-20, PL-24, PL-25) and iteration 3 (PL-26 to PL-34, DO-19, ER-22's measurement, and PL-35 to PL-44,
+DO-23 and DO-24 of its later runs); CO-549 holds
 what is decided here. The actor is the coordinator: an agent session that does not run inside a Fabric terminal (every
 terminal session Fabric hosts ends at the install and at each kill), with a watcher that survives Fabric's restarts
 (PL-25). The operator presses nothing; a step that needs the person's own body (macOS's Login Items approval, logging
@@ -45,44 +52,60 @@ back in) is named as a human gate once, and the steps that do not need it go on.
 are the close's own acts on the operator's delegation (2026-11-05), under an owner hold of the lifecycle broker, the
 route its runbook gives for a swap; each N6 receipt cites that authority. Nothing is published before item 7.
 
-After `verifiedCommit` (`bba86bce`) only the release files change (PL-26): `CHANGELOG.md`, the gate, this ledger,
-`docs/MERGES.md`, `docs/reports/map.html`, the review reports and receipts, the 0.3.18 handoff and the package
-`version`. The carry-over rows (the CO-549 and CO-550 updates, CO-553) and the N6 receipts are written on `main` after
-the release commit; the tags sit on the release commit, so later commits do not touch what they name.
+After `verifiedCommit` (`d5861ddb`) only the release files change (PL-26): `CHANGELOG.md`, the gate, this ledger,
+`docs/MERGES.md`, `docs/reports/map.html`, the review reports and receipts the gate names, the 0.3.18 handoff and the
+package `version`. Iteration 3's register rulings (CO-555, filed after the release commit; the CO-549 update naming
+ER-22), run two's reports and receipts (at `docs/evidence/reviews/0.3.18/iteration-3-0e501425/`, PL-42) and the N6
+receipts are written on `main` after the release commit; the tags sit on the release commit, so later commits do not
+touch what they name.
+
+**Superseded, not to be used** (PL-38). The first release commit `a86481ca` (on `main`; its gate names `bba86bce`)
+and `v0.3.18-rc.1` on it (run 42689818347, `workflow_dispatch` with `publish=false`, every job green, nothing
+published) came before CO-554 and before item 0's full run (PL-39): rc.1 was a rehearsal of a superseded release
+commit, harmless only because it was never installed or published, and it is not to be installed or published now.
+`a86481ca`'s own gate is self-consistent, so `--check-only --tag v0.3.18` passes there too: `v0.3.18` and the next rc
+go only on the release commit made from `d5861ddb` (item 7 checks the hash).
 
 0. **Preflight** (coordinator, before the landing). The release commit carries `version` 0.3.18, `## 0.3.18` finalized
-   with its **Upgrading.** line, the gate naming 0.3.18, this ledger, `verifiedCommit` `bba86bce` and the 15 review
-   receipts (candidates `8503abbb`, `e4766665`, `bba86bce`, distinct and in order), and `releaseMetadata` naming the
-   0.3.18 handoff, written in the same commit. `node scripts/release-mac.mjs --check-only --tag v0.3.18-rc.1` passes on
+   with its **Upgrading.** line, the gate naming 0.3.18, this ledger, `verifiedCommit` `d5861ddb` and the 15 review
+   receipts (candidates `8503abbb`, `e4766665`, `d5861ddb`, distinct and in order), and `releaseMetadata` naming the
+   0.3.18 handoff, written in the same commit. `node scripts/release-mac.mjs --check-only --tag v0.3.18-rc.2` passes on
    it: the script fetches `origin/main` and refuses a HEAD not on it (`scripts/lib/release-mac.mjs#releaseCommitProblem`),
    so before the landing it runs in a disposable clone whose `origin` `main` is the release commit, which proves every
    other check, and the real run follows the landing (item 1). `node --test scripts/test/release-gate.test.mjs` passes.
-   A green `bash scripts/ci.sh full` (a disposable stack) on `bba86bce`, or a green full nightly `ci.yml`, is recorded
-   here with its run id and the commit it ran: the nightly runs `main`'s tip, so it counts only when
-   `git diff --name-only bba86bce <its commit>` lists release files alone (PL-31). The two recent nightly failures are
+   A green `bash scripts/ci.sh full` (a disposable stack) on `d5861ddb`, a green full nightly `ci.yml`, or a dispatched
+   `gh workflow run ci.yml --ref <a branch at d5861ddb>`, is recorded here with its run id and the commit it ran: the
+   nightly runs `main`'s tip, so it counts only when `git diff --name-only d5861ddb <its commit>` lists release files
+   alone (PL-31). On `d5861ddb`: the push run 42706313170 (on `fix/dispatch-packet-deadline-3`) was queued and no full
+   run had finished when the release commit was written; both results, and the full run's id, are recorded here by the
+   coordinator before the rc (PL-39). rc.1 was built before any full run, which
+   is one more reason it is superseded. The two recent nightly failures are
    named: 42546389981 on `22a4f54a` failed `test/board-launch-agent.test.mjs` (the plist missing from the repository,
    V1-1, fixed in `8c7e5469`); 42433463558 on `bc21883d` failed `test/private-history-native-db.test.mjs`, which the
-   same night's other run on that commit (42428390833) passed, so a full run on `bba86bce` passes it or names it here
+   same night's other run on that commit (42428390833) passed, so a full run on `d5861ddb` passes it or names it here
    with its ruling. The nightly Windows failures in `listener-owner` and `peer-account` are ruled or fixed.
 1. **Landing** (coordinator). The release commits land on `main` by fast-forward; landings on `main` are announced as
    paused on the project board from this step to the `v0.3.18` tag (PL-31). If `main` moved only by the workspace
    publication's pin (`workspace` and `docs/workspace-receipt.json`, the shape
    `scripts/lib/release-mac.mjs#verifiedCandidateProblem` admits), the release commits are rebased onto it; anything
-   else on `main` after `bba86bce` is a stop, and the close is planned again. Then
-   `node scripts/release-mac.mjs --check-only --tag v0.3.18-rc.1` runs on the landed release commit: exit 0, its last
+   else on `main` after `d5861ddb` is a stop, and the close is planned again (`d5861ddb` itself reaches `main` first,
+   by fast-forward from `78772e6d`, PL-43). Then
+   `node scripts/release-mac.mjs --check-only --tag v0.3.18-rc.2` runs on the landed release commit: exit 0, its last
    line recorded here.
-2. **The release candidate** (coordinator). `git tag -a v0.3.18-rc.1 <release commit> -m "Fabric 0.3.18 rc.1"` and
-   `git push origin v0.3.18-rc.1`: the push trigger takes only `v[0-9]+.[0-9]+.[0-9]+` (`.github/workflows/release.yml`,
-   line 19), so the rc tag starts nothing by itself; then `gh workflow run release.yml --ref v0.3.18-rc.1 -f
+2. **The release candidate** (coordinator). `git tag -a v0.3.18-rc.2 <release commit> -m "Fabric 0.3.18 rc.2"` and
+   `git push origin v0.3.18-rc.2`: the push trigger takes only `v[0-9]+.[0-9]+.[0-9]+` (`.github/workflows/release.yml`,
+   line 19), so the rc tag starts nothing by itself; then `gh workflow run release.yml --ref v0.3.18-rc.2 -f
    publish=false` (the runbook's [*Rehearsal*](../../launch/release-mac.md#rehearsal); the `publish` input, lines 22 to
    25, defaults to false, and the shared publish workflow refuses an `-rc` tag). Read the result of each job (guard,
    preflight, macos, windows, linux, publish) and the Windows and Linux SMOKE receipts
    (`fabric-0.3.18-windows-<arch>.json`, the Linux one; PL-14); then `gh run download <run> -n
-   signed-release-v0.3.18-rc.1` (kept 14 days; the per-job `release-macos` artifact 90). The rc DMG's SHA-256 and
+   signed-release-v0.3.18-rc.2` (kept 14 days; the per-job `release-macos` artifact 90). The rc DMG's SHA-256 and
    signer (`codesign -dvv`, `spctl -a -t open --context context:primary-signature`) are written beside every N6 receipt.
 3. **Before the install** (coordinator).
    1. Announce the board's outage window on the project board (`com.submit`, an announcement), with each step's
-      expected outage and the count of live Fabric-hosted sessions (`work.home`).
+      expected outage and the count of live Fabric-hosted sessions (`work.home`), and that board-dispatched runs may
+      start during N6: at the rc's first start the dispatcher takes the far-deadline requests CO-554 lets open (two
+      runs on the machine, one per project; PL-41, its rest ruled CO-555).
    2. Record here the ids and the count of the tasks in review that the first sweep will accept, irreversibly, by the
       sweep's own predicate (`shared/board.ts#reviewsDueForDefaultAccept` over the tasks in review and their
       `moved_at`; PL-34).
@@ -131,8 +154,11 @@ the release commit; the tags sit on the release commit, so later commits do not 
       then (PL-33); the notes already say a logout and a restart end Fabric.
 6. **Then the carried checks** (coordinator; both carried from 0.3.17): the Docker-stopped start check, and
    `chat-activation-native` with its own `--user-data-dir`, now that such a start leaves the service alone (PL-4).
-7. **Publish, only after item 5 passes** (coordinator). `node scripts/release-mac.mjs --check-only --tag v0.3.18` on
-   the release commit (exit 0, recorded); `git tag -a v0.3.18 <release commit> -m "Fabric 0.3.18"` and push it: the push
+7. **Publish, only after item 5 passes** (coordinator). The release commit is the one made from `d5861ddb`, named by
+   its full hash in the 0.3.18 handoff once it lands (a commit cannot name itself), never `a86481ca`.
+   `node scripts/release-mac.mjs --check-only --tag v0.3.18` on it (exit 0, recorded);
+   `git tag -a v0.3.18 <release commit> -m "Fabric 0.3.18"`, then `git rev-parse v0.3.18^{commit}` equals the hash the
+   handoff names (else the tag is deleted locally and nothing is pushed), then push it: the push
    trigger builds, signs and publishes, so the published bytes are not the rc's. Read the published DMG's SHA-256 and
    signer back. Install it under the same hold: SIGTERM launchd's copy (exit 0, not started again), swap
    `/Applications/Fabric.app` for the published one, `launchctl kickstart` the job, then read the service line, the
@@ -149,7 +175,12 @@ the release commit; the tags sit on the release commit, so later commits do not 
    untagged, and 0.3.17 stays installed or is restored by item 9. The fix becomes a new candidate, and the release
    takes a new three-iteration review under a new `verifiedCommit` (the gate admits exactly three iterations, the
    third equal to `verifiedCommit`: `scripts/lib/release-gate.mjs#ITERATIONS`); its rc is the next number,
-   `v0.3.18-rc.2`.
+   `v0.3.18-rc.3`. This rule governs a failure in items 2 to 6. Iteration 3's re-entry on 2026-11-09 was narrower and
+   is not that path (PL-36): CO-554 joined 0.3.18 before any of items 2 to 6 ran on a build carrying it (rc.1 was a
+   rehearsal of the superseded release commit, never installed), its code delta from iteration 3's first candidate is
+   the dispatcher's two files and their tests (`git diff --name-only bba86bce d5861ddb -- apps scripts .github` lists
+   those four and `apps/desktop/package.json`, whose only change is `version`), nothing iterations 1 and 2 fixed, so
+   iteration 3 alone was run again on it, twice (*Iteration 3*).
 9. **Rollback** (PL-20, DO-19), in the runbook's order (`release-mac.md`, the 0.3.18 paragraph): in 0.3.18 turn «Служба
    доски» off (it unregisters the agent service and writes `launchAtLogin: false`, the key 0.3.17 reads) and read the
    off line in Settings and no job in `launchctl print`; hold the broker (service stop, hold, service start); quit;
@@ -314,7 +345,65 @@ Exit for iteration 2: every finding has a disposition. Blocking findings open: n
 
 ## Iteration 3
 
-Candidate `bba86bce9964fa7b27e72baf591ca226516c9130`, equal to `verifiedCommit` (hosted `ci` 42678863108 on
+Candidate `d5861ddb62117e2b34a5540b5ef6844c9df99c45`, equal to `verifiedCommit` (hosted `ci`: push run 42706313170 on
+`fix/dispatch-packet-deadline-3`, queued when this was written; item 0's full run pending; their results and the full
+run's id recorded by the coordinator before the rc). Five reviewers, one
+per level, each a fresh context on a clean detached checkout of the candidate (HEAD and `git status --short | wc -l`
+read before and after, unchanged); their reports and receipts are in
+`docs/evidence/reviews/0.3.18/iteration-3-d5861ddb/`, and the receipts carry run two's findings too, each with its V3
+row (PL-42).
+
+**Why iteration 3 ran three times.** After the first release commit, CO-554 joined 0.3.18 on the operator's word
+(2026-11-09, session `5d9bed98`, as CO-554's row cites): the dispatcher refused every board request with a deadline more
+than a week away (986 `DeadlineTooFar` failures for 28 requests that day), and the fix reaches the operator's Mac at
+once with the rc's install, which a 0.3.19 route could not match. Its code delta from iteration 3's first candidate is
+the dispatcher's two files and their tests, nothing iterations 1 and 2 fixed (item 8 has the list), so iteration 3
+alone was run again, once on each fix, and every code change after iteration 2's candidate is read by an iteration 3
+run: fix wave 2 by run one, `bba86bce..0e501425` by run two, `0e501425..d5861ddb` (eight files) by run three. Item 8's
+rule still governs a failure in items 2 to 6 (PL-36).
+
+- **Run one**, `bba86bce9964fa7b27e72baf591ca226516c9130`: the candidate then, superseded. Reports and receipts in
+  `docs/evidence/reviews/0.3.18/iteration-3/`, kept byte-identical as the record of that run, which the gate no longer
+  names. 23 findings, 2 blocking; rows V3-1 to V3-23 below.
+- **Run two**, `0e501425c7c4df672307734e595cae5982deaced` (hosted `ci` 42700340664 on `fix/dispatch-packet-deadline`,
+  green): the first CO-554 fix, superseded. `d5861ddb` replaced it by an amend on the same parent `78772e6d`, so it is
+  outside the shipped history and kept under `refs/archive/2026-11-09/fix-dispatch-packet-deadline` (PL-43, DO-29).
+  Its reports and receipts cannot be in the release commit (the gate names one candidate per iteration, PL-42); they
+  land on `main` after it at `docs/evidence/reviews/0.3.18/iteration-3-0e501425/`. 21 findings (UX-21 to UX-24, ER-24
+  to ER-26, DA-13, DA-14, PL-35 to PL-41, DO-23 to DO-27), 2 blocking: UX-21 and DO-23; rows V3-24 to V3-44.
+- **Run three**, `d5861ddb`: the candidate. 11 findings (UX-25, UX-26, ER-27, ER-28, DA-15, DA-16, PL-42 to PL-44,
+  DO-28, DO-29), none blocking; rows V3-45 to V3-55.
+
+Run two's and run three's findings are fixed in `d5861ddb`, fixed by this release commit (the gate, this ledger, the
+handoff, `CHANGELOG.md`'s UX-25 line, the map and the merge log), fixed by the post-release commit, or ruled into CO-549
+(the row update naming ER-22, written after the release commit) or CO-555, the dispatcher's packet deadline residues,
+non-blocking, a row filed on `main` after the release commit. One defect is reported more than once: UX-21, PL-37 and
+part of DO-23 (the bullet under `## Unreleased`); ER-24 and DA-13 (the frozen deadline across versions); UX-23, ER-25,
+DA-14 and PL-41 (2) (a request older than a week); PL-36 and DO-24 (the route against item 8); UX-22 and DO-27 (c); UX-26,
+ER-27 and DA-16 (a workflow older than a week); PL-43 and DO-29 (the amend). The text check of the three `## 0.3.18`
+paragraphs `d5861ddb` and this commit change (the **Upgrading.** line, the ADR-0192 bullet, the CO-554 bullet) found
+nothing. The committed run-three reports are as written; none needed a redaction.
+
+What runs two and three recorded of the earlier findings, at their candidates:
+
+- ux: UX-1 to UX-18 as run one left them; UX-4's rest named in CO-550 by `78772e6d`; UX-19 and UX-20 carried by
+  CO-553. Run three: UX-21 and UX-22 fixed; UX-23 fixed for the cases named, its rest UX-26; UX-24 fixed in part, its
+  rest UX-25.
+- errors: ER-1 to ER-23 unchanged since run one (the quit, restart, launchd and sweep code byte-identical). Run three:
+  ER-24 fixed (two plants watched); ER-25 fixed, its rest ER-27; ER-26 fixed, its rest ER-28.
+- data: DA-1 to DA-12 unchanged; the schema unchanged since 0.3.17, `board-dispatches.json` keeps its shape both ways,
+  the dispatcher writes no journal event. Run three: DA-13 fixed for the upgrade and for the board's default deadline on
+  a rollback, its rest DA-15; DA-14 fixed as named, its rest DA-16.
+- plan: PL-1 to PL-34 as run one recorded them, PL-30's rule not the route taken (PL-36). Run three: PL-37 fixed;
+  PL-35, PL-36, PL-38 and PL-39 hold until this release commit (PL-38 widened by PL-43); PL-40 fixed for CO-554, the
+  rest after the release commit; PL-41 (2) fixed with a residue, (1) and the first-start burst hold.
+- docs: DO-1 to DO-22 as run one recorded them, DO-20's CO-549 half now DO-25. Run three: DO-23 and DO-24 deferred to
+  this release commit, DO-25 to the post-release commit, DO-26 fixed (986 failures for 28 requests, recounted), DO-27
+  (a) fixed on Fabric's side and upstream on Observatory's, (b) moot, (c) fixed.
+
+### Run one, bba86bce (superseded)
+
+Candidate `bba86bce9964fa7b27e72baf591ca226516c9130`, then `verifiedCommit` (hosted `ci` 42678863108 on
 `release/0318`, green; 42680621451 on `main`, green; the fast tier, as the protocol says). Five reviewers, one per
 level, each a fresh context on a clean detached checkout of the candidate (HEAD and `git status --short | wc -l` read
 before and after, unchanged); their reports and receipts are in `docs/evidence/reviews/0.3.18/iteration-3/`. 23
@@ -322,13 +411,14 @@ findings (UX-19 and UX-20, ER-18 to ER-23, DA-12, PL-26 to PL-34, DO-18 to DO-22
 ER-19 and DA-12 are one defect (the restart note's sentence); ER-22 and DO-19 one hand-over (a signalled copy launchd
 did not start is replaced by launchd's); UX-19 and DO-22 (a) one clause; PL-33 is PL-7's owner.
 
-No fix wave follows this iteration: no code, string, scenario, decision record or register changes after
-`verifiedCommit` (PL-26). PL-26 is fixed by splitting the iteration-2 ledger commit (`0c0f19cc` carries only the
+No fix wave followed run one: no code, string, scenario, decision record or register changed after its candidate
+before the first release commit `a86481ca` (PL-26); CO-554 came after that, and runs two and three read it. PL-26 is fixed by splitting the iteration-2 ledger commit (`0c0f19cc` carries only the
 ledger, the iteration-2 reports and receipts and the map), PL-27 and the other plan findings by the Release close above.
 Every other finding is ruled into CO-549 (ER-22) or CO-553, the 0.3.18 review's iteration-3 leftovers (the restart
-helper and the service's leftovers, non-blocking), a row filed on `main` after the release commit with the CO-549 and
+helper and the service's leftovers, non-blocking), a row filed on `main` after the release commit (in `78772e6d`, now
+inside the verified tree; its CO-549 update missed ER-22, DO-25) with the CO-549 and
 CO-550 updates, which name what iterations 2 and 3 sent those rows (ER-14's rest, PL-18 and ER-22 to CO-549; UX-4's
-rest and PL-23 to CO-550). No strings changed, so this iteration has no text check reports. The committed reports are as
+rest and PL-23 to CO-550). No strings changed in run one, so it has no text check reports. The committed reports are as
 written; none needed a redaction.
 
 Superseded rows of iteration 1 (DO-20), which stay as written, a record of that iteration: V1-15's evidence
@@ -385,5 +475,51 @@ What the reviewers recorded of iterations 1 and 2, at this candidate:
 | V3-21 | DO-20 | non-blocking | CO-549 does not list the measurement ADR-0192 and the design hand it (PL-18); iteration-1 rows V1-15, V1-16 and V1-34 cite evidence the fix waves removed or proved ineffective | fixed by this ledger: the iteration-3 section records the supersession of V1-15 (by V2-12, `62f24bf4`) and of V1-16 and V1-34 (by V2-8, `62f24bf4`); the CO-549 row part is ruled CO-553 (filed after the release commit): the row update naming PL-18, ER-14's rest and ER-22 is written on `main` after the release commit |
 | V3-22 | DO-21 | non-blocking | three passages of the board-always-on design still describe what was not built, though the header says the differences are marked *As built* | ruled CO-553 (filed after the release commit): mark the quit row, step 3's `keepRunning()` and step 4's second start *As built* with ADR-0192 amendment 1's rule numbers |
 | V3-23 | DO-22 | non-blocking | small inaccuracies: SCN-170's off-state clause, the ADR index row without amendment 1, a test name without SIGINT, ADR-0192's Evidence citing Electron 44.9.3's docs, no screen record for «Перезапустить Fabric» | ruled CO-553 (filed after the release commit): (a) with UX-19, (b) to (e) as the report proposes |
+
+Run one closed with every finding disposed and none of its blocking findings left open.
+
+### Run two, 0e501425 (superseded)
+
+The first CO-554 fix. Its findings, disposed against the candidate that replaced it:
+
+| Finding | Level | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-24 | UX-21 | blocking | the CO-554 fix shipped in 0.3.18 with its note under `## Unreleased`, which the release does not publish; every record still placed CO-554 after 0.3.18 | fixed in d5861ddb: the bullet is the last of `## 0.3.18` and `## Unreleased` is gone (`CHANGELOG.md`; `scripts/lib/release-mac.mjs#changelogProblem` answers null); CO-554's row targets 0.3.18; the gate, *What 0.3.18 carries* and the handoff follow in this release commit (V3-40) |
+| V3-25 | UX-22 | non-blocking | the CO-554 bullet said Fabric retried every ten minutes, 0.3.17's cadence, against CO-544's doubling back-off in the same notes | fixed in d5861ddb: the bullet says Fabric "kept trying again later without starting it", no cadence |
+| V3-26 | UX-23 | non-blocking | the packet deadline cut from the submission is already past for a run opened more than a week after it, so the run cannot use the project's keys while the board's deadline is ahead | fixed in d5861ddb for the cases named: the cut is from the opening write (`shared/boardDispatch.ts#packetDeadline(deadline, writtenAt)`) and a lost open reuses its write time; a workflow taken back more than a week after it opened is UX-26 |
+| V3-27 | UX-24 | non-blocking | the notes promised a restart "within a minute" twice, against the release's own bar of 70 s | fixed in d5861ddb for the **Upgrading.** line ("within about a minute"); the ADR-0192 bullet's rest is UX-25, fixed by this release commit (V3-45) |
+| V3-28 | ER-24 | non-blocking | later writes repeated the cut deadline, so a workflow opened before the fix was refused `packet-frozen` after the update and the request never had its next run | fixed in d5861ddb: only the opening write names `deadline:` (`main/boardDispatchRun.ts`, `body(opening)`); test «CO-554 (0.3.18 review, DA-13, ER-24): the board's default deadline is written as it is, and a later write leaves the frozen deadline out» with a stand-in that freezes the first write; the case named is closed |
+| V3-29 | ER-25 | non-blocking | the cut anchored on the submission gave a request read more than seven days after it a packet deadline already past at the write | fixed in d5861ddb: the cut is from the write, always ahead of it; test «CO-554 (0.3.18 review, DA-14, ER-25): a request sent more than a week ago gets a packet deadline still ahead»; the case named is closed, a workflow that lives longer than seven days is ER-27 |
+| V3-30 | ER-26 | non-blocking | the new tests did not guard the same value on every write: one compared two identical calls, the other checked only the opening write | fixed in d5861ddb: the tautology is gone; the run tests use `freezingObservatory`, take a workflow back on a later pass and compare a lost open's retried body (`assert.deepEqual`); the case named is closed, the unguarded `-ends-held` write is ER-28 |
+| V3-31 | DA-13 | non-blocking | the cut also changed every default deadline, so a workflow 0.3.17 opened could not be continued by 0.3.18, and the reverse after a rollback | fixed in d5861ddb: later writes leave `deadline:` out, and a deadline within `openAt + 7 d - 60 s` (the board's default included) is written as the board's string; the rollback residue for cut deadlines is DA-15 |
+| V3-32 | DA-14 | non-blocking | a request older than about seven days got a packet deadline already past at its first write, so its run opened with keys shut | fixed in d5861ddb for the case named: the first write's deadline is `openAt + 7 d - 60 s`, always ahead; a later run after that week is DA-16 |
+| V3-33 | PL-35 | non-blocking | the new release commit had more to move than two hashes: new receipt paths, the ledger naming the new candidate in full, one exit line in iteration 3 | fixed by this release commit: the gate names `d5861ddb` as `verifiedCommit` and iteration 3's candidate, iteration 3's five reviews are at `docs/evidence/reviews/0.3.18/iteration-3-d5861ddb/` (run one's `iteration-3/` byte-identical), and this section names the candidate in full and ends with its one exit line |
+| V3-34 | PL-36 | non-blocking | the route (iteration 3 run again) contradicted item 8's rule, and nothing recorded the decision | fixed by this release commit: this section records the decision that CO-554 joins 0.3.18 and why iteration 3 alone was run again; item 8 keeps its rule for a failure in items 2 to 6 and names this narrower re-entry |
+| V3-35 | PL-37 | non-blocking | CO-554's note sat under `## Unreleased`, outside the published notes | fixed in d5861ddb: as V3-24 |
+| V3-36 | PL-38 | non-blocking | the superseded release commit `a86481ca` is still a valid one and `v0.3.18-rc.1` points at it, while the close named rc.1 throughout and the release commit by no hash | fixed by this release commit: `a86481ca` and rc.1 are recorded superseded and not to be used (above item 0), items 0 to 2 name `v0.3.18-rc.2` and `signed-release-v0.3.18-rc.2`, and item 7 checks `git rev-parse v0.3.18^{commit}` against the release commit's full hash, which the handoff names once it lands |
+| V3-37 | PL-39 | non-blocking | item 0's full run was never made, and rc.1 was built without it | fixed by this release commit: item 0 names the full run on `d5861ddb` (pending, run id recorded by the coordinator before the rc) and records that rc.1 was built before any full run |
+| V3-38 | PL-40 | non-blocking | the register cannot change in the release commit: CO-554's target and this iteration's rulings | fixed: CO-554's target reads 0.3.18 in d5861ddb, inside the verified tree; the rest is fixed by the post-release commit (register rulings land on `main` after the release commit: CO-555 filed, the CO-549 update), the `78772e6d` pattern |
+| V3-39 | PL-41 | non-blocking | (1) a rollback takes CO-554 away again, and at the rc's first start the dispatcher takes the waiting far-deadline requests inside N6's window; (2) a request older than seven days opened with a past packet deadline | ruled CO-555 (filed after the release commit) for (1) and the first-start burst, which item 3.1's announcement now names; (2) fixed in d5861ddb (V3-29), its residue ER-27 |
+| V3-40 | DO-23 | blocking | every release document named `bba86bce` as `verifiedCommit` and excluded CO-554, so the preflight refused any tag above the fix | fixed by this release commit: the gate, this ledger and the handoff name `d5861ddb`; CO-554 is in *What 0.3.18 carries* and in `## 0.3.18` (d5861ddb); the rc is `v0.3.18-rc.2`; iteration 3's run-one reports stay as written and run two's take their own folder after the release commit (PL-42) |
+| V3-41 | DO-24 | non-blocking | the route contradicted item 8, and the ledger recorded none of the close's acts already done (`a86481ca` on `main`, rc.1 and its run) | fixed by this release commit: as V3-34, and rc.1 (`a86481ca`, run 42689818347) is recorded as a rehearsal of a superseded release commit, not as item 2 |
+| V3-42 | DO-25 | non-blocking | ER-22 has no home: the CO-549 row updated in `78772e6d` does not name it, nor does CO-553 | ruled CO-549 (row updated after the release commit): the update names ER-22, a signalled copy launchd did not start being replaced by launchd's within about a minute |
+| V3-43 | DO-26 | non-blocking | CO-554's count of 80 failures was false: the log held far more that day | fixed in d5861ddb: the row, `packetDeadline`'s comment, the test name, the map entry and the commit message say 986 failures for 28 requests (10:19 to 21:34 UTC), recounted by run three over every log segment |
+| V3-44 | DO-27 | non-blocking | (a) the spec's agreed `deadline:` ref changed without a date or a note to Observatory; (b) keys "only until the deadline" now means the cut deadline; (c) the CO-554 bullet's ten minutes beside CO-544's | fixed in d5861ddb for (c) and for (a) on Fabric's side (the spec says the ref changed on 2026-11-09); (a) on Observatory's side is upstream, its header wording, which the coordinator tells Observatory on the board; (b) moot while the dispatcher names no credentials |
+
+### Run three, d5861ddb
+
+| Finding | Level | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-45 | UX-25 | non-blocking | the ADR-0192 bullet still promised a restart "within a minute", while the **Upgrading.** line says about a minute and the bar is 70 s | fixed by this release commit: "(within about a minute)" in the ADR-0192 bullet of `## 0.3.18` (`CHANGELOG.md`) |
+| V3-46 | UX-26 | non-blocking | a workflow taken back more than a week after it opened starts an agent whose keys are shut (`deadline-passed`) while the board's deadline is ahead | ruled CO-555 (filed after the release commit): open a new workflow when the frozen packet deadline has passed and the board's has not |
+| V3-47 | ER-27 | non-blocking | ER-25's residue moved to the workflow's age: a far-deadline request keeps one workflow across its runs, so a run dispatched more than seven days after the opening reads its deadline as passed | ruled CO-555 (filed after the release commit): compare the frozen deadline before a take-back and open a new workflow when it has passed or is within `LAUNCH_MARGIN_MS`; a test with a refusal streak over seven days |
+| V3-48 | ER-28 | non-blocking | ER-26's residue: the `-ends-held` write is not guarded by a freezing stand-in (a plant writing the deadline there passes all 57 run tests) | ruled CO-555 (filed after the release commit): a pass after a Switchboard refusal in the run test with `freezingObservatory`, asserting the `-ends-held` write names no `deadline:` |
+| V3-49 | DA-15 | non-blocking | after a rollback to 0.3.17 a workflow 0.3.18 opened with a cut deadline cannot be taken back, a 60 s band of explicit deadlines regresses, and the rollback paragraph says nothing of open dispatcher workflows | ruled CO-555 (filed after the release commit): a sentence in the 0.3.18 rollback steps (let open board-dispatch workflows end first), the band decided there |
+| V3-50 | DA-16 | non-blocking | a later run of a far-deadline request after its workflow's first week opens with keys shut while the dispatcher treats the request as live | ruled CO-555 (filed after the release commit): one change with UX-26 and ER-27 |
+| V3-51 | PL-42 | non-blocking | run two's receipts cannot be in the release commit: the gate names one candidate per iteration and admits only the review files its receipts name | fixed by this release commit (the ledger route): run two's findings are rows V3-24 to V3-44 and sit in run three's receipts with those sources; run two's reports and receipts land on `main` after the release commit at `docs/evidence/reviews/0.3.18/iteration-3-0e501425/` |
+| V3-52 | PL-43 | non-blocking | the candidate was on no remote and replaced run two's by an amend; updating that branch would need a force-push, landing `0e501425` would ship the old cut | fixed by this release commit and the coordinator's landing: `d5861ddb` goes to `main` by fast-forward from `78772e6d`, never over `fix/dispatch-packet-deadline`; `0e501425` is kept under `refs/archive/2026-11-09/fix-dispatch-packet-deadline` (on `origin`); this ledger names it superseded |
+| V3-53 | PL-44 | non-blocking | release text at the candidate was stale beyond the hashes: `## Unreleased` in *What 0.3.18 carries*, CO-554 missing there, rc.2 named as the failure path's rc, the handoff's *Open* listing what `78772e6d` landed | fixed by this release commit: *What 0.3.18 carries* names `## 0.3.18` and CO-554; item 8 names `v0.3.18-rc.3`; the handoff's *Open* names the post-release register rulings instead |
+| V3-54 | DO-28 | non-blocking | the board's default deadline is "never cut" only because the dispatcher marks no request urgent; the comment and the row do not say so and no test pins it | ruled CO-555 (filed after the release commit): the comment and the row name the dependency on `urgent: false`, and wiring urgency keeps the default deadline whole, with an `urgent: true` test |
+| V3-55 | DO-29 | non-blocking | `d5861ddb` replaces `0e501425` rather than following it; moving the branch would be a force-push and leave the commit run two's reports cite on no ref | fixed by the post-release commit: run two's reports land on `main` after the release commit citing `0e501425`, which stays reachable under `refs/archive/2026-11-09/fix-dispatch-packet-deadline`; this ledger says run three's candidate replaces run two's (an amend on the same parent `78772e6d`) |
 
 Exit for iteration 3: every finding has a disposition. Blocking findings open: none.
