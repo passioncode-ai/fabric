@@ -433,10 +433,11 @@ export function createBoard(deps: BoardDeps) {
         ops.failed('board.thread-participants-read', new Error(typeof reason === 'string' && reason ? reason : 'the board refused the read'), { note })
         return null
       }
-      const m = (data as { ok?: unknown; message?: { thread?: unknown } } | null)
+      const m = (data as { ok?: unknown; error?: unknown; message?: { thread?: unknown } } | null)
       if (m?.ok === true && typeof m.message?.thread === 'string') return m.message.thread
-      // Silence is right: a message this caller cannot read (ok: false) is refused by board_reply itself, which says so.
-      if (m !== null && typeof m === 'object' && m.ok === false) return null
+      // Silence is right: a message this caller cannot read is refused by board_reply itself, which says so. board_get
+      // refuses in the board's refusal shape, {error: {code}} (CO-541); an older {ok: false} is read the same way.
+      if (m !== null && typeof m === 'object' && (m.ok === false || (typeof m.error === 'object' && m.error !== null))) return null
       ops.failed('board.thread-participants-read', new Error('no thread in the answer'), { note })
       return null
     } catch (e) {

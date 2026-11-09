@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A refused reply no longer reads as a broken check in the log** (CO-541). When an agent replies to a message it
+  cannot read, the board's refusal is now recognised as the reply's own refusal instead of being logged as a failed
+  check of the wall between businesses.
 - **An agent's page says what the agent does now** (CO-542). An agent at work with no task is said as working
   without one, not as idle; a stage report it has worked past is marked as outdated; and its newest act (a board
   message, a claim, a stage) shows with how long ago.

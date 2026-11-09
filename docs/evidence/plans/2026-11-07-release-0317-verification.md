@@ -273,3 +273,13 @@ Recorded on `main` after the tag (2026-11-08).
   is then opened through the broker and the rollout's readings are recorded here.
 - Not yet run: steps 7 and 9 and the Docker-stopped check (after the rollout), step 11, the board's replies (the board
   answers again once the hub does).
+- The rollout, read 2026-11-08 21:45 UTC: 0.3.17 installed, schema 100, the journal at 117 161 events, `hub.json`'s pid
+  41235 alive, `com.status` ready, `dispatchBoardRequests` true ([the release handoff](../../handoffs/2026-11-08-release-0317.md)).
+- Step 7 on the installed 0.3.17: `node scripts/smoke-platform.mjs --exe /Applications/Fabric.app/Contents/MacOS/Fabric
+  --mcp-only` passed; `packaged-helpers.test.mjs` passed 4 of 4. `chat-activation-native` not run: it starts a second
+  packaged Fabric with its own stack beside the live one that carries the board; it moves to 0.3.18's close.
+- Step 9: all six site downloads (`macos`, `windows-x64`, `windows-arm64`, `linux-x64-deb`, `linux-x64-appimage`,
+  `linux-arm64-appimage`) redirect (302) to their v0.3.17 assets.
+- Step 11: `knowledge/products.md` and `knowledge/roadmap.md` on fabric-workspace `main` name v0.3.17.
+- The Docker-stopped check is not run on 0.3.17: it is CO-536's trigger, fixed on `main` (`faa56783`), and stopping the
+  engine stops the board; it moves to 0.3.18's close.

@@ -157,6 +157,24 @@ test('a thread\'s participants that fail to read are logged with their reason, a
   assert.equal((await b.submit(caller, post('wall-miss-01'))).ok, true)
   assert.deepEqual(logged('board.thread-participants-read'), ['the thread is not among the reader\'s newest 5000 threads | the wall between businesses is not checked for this post'])
 })
+// CO-541: board_get refuses a message the caller cannot read with the board's refusal shape ({error: {code}}), not
+// {ok: false}; that refusal is the reply's own (board_reply says not_authorized) and is not a broken wall read.
+test('CO-541: a reply to a message the caller cannot read is refused without logging a wall read failure', async () => {
+  lines.length = 0
+  const refused = { data: { error: { code: 'not_authorized', message: 'This Project cannot read that message.', retryable: false } }, error: null }
+  const rpc = async () => refused
+  const b = createBoard({ rpc, projectFacts: async () => facts, threadParticipants: async () => [caller.projectId] })
+  const r = await b.reply(caller, { idempotency: { epoch: 1, key: 'wall-unread-01' }, replyTo: id(93), body: { text: 'hello' } })
+  assert.equal(r.error?.code, 'not_authorized')
+  assert.deepEqual(logged('board.thread-participants-read'), [])
+})
+test('CO-541: an answer of board_get in no known shape is still logged as a wall read failure', async () => {
+  lines.length = 0
+  const rpc = async (fn) => (fn === 'board_get' ? { data: { something: 'else' }, error: null } : stored)
+  const b = createBoard({ rpc, projectFacts: async () => facts, threadParticipants: async () => [caller.projectId] })
+  await b.reply(caller, { idempotency: { epoch: 1, key: 'wall-unread-02' }, replyTo: id(93), body: { text: 'hello' } })
+  assert.deepEqual(logged('board.thread-participants-read'), ['no thread in the answer | the thread of the message replied to could not be read; the wall is not checked for this reply'])
+})
 test('DA-4: an archived namesake does not rename a Project in the directory', () => {
   const named = [{ id: id(31), name: 'site', business: null, repo: '/w/site' }, { id: id(32), name: 'site', business: null, repo: '/w/old-site', archived: true }]
   assert.equal(directoryName(id(31), 'site', named), 'site')
