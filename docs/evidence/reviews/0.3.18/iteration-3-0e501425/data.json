@@ -1,0 +1,30 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "0e501425c7c4df672307734e595cae5982deaced",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3-0e501425/2026-11-09-data.md",
+  "reportSha256": "b919237a97ea81f129f077d08735eaaa5327982e46de45ffaf07bea7fdf74be1",
+  "reviewerRun": "release-0318-i3b-data-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-13",
+      "source": "V3-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: later writes leave `deadline:` out, and a deadline within `openAt + 7 d - 60 s` (the board's default included) is written as the board's string; the rollback residue for cut deadlines is DA-15"
+      ]
+    },
+    {
+      "id": "DA-14",
+      "source": "V3-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb for the case named: the first write's deadline is `openAt + 7 d - 60 s`, always ahead; a later run after that week is DA-16"
+      ]
+    }
+  ]
+}

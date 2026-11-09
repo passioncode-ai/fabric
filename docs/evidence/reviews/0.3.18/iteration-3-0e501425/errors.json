@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "0e501425c7c4df672307734e595cae5982deaced",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3-0e501425/2026-11-09-errors.md",
+  "reportSha256": "6f8d9345b6ff48021ab611651fc6dc7569fe12acba60a4c123f0472e31dce51e",
+  "reviewerRun": "release-0318-i3b-errors-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-24",
+      "source": "V3-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: only the opening write names `deadline:` (`main/boardDispatchRun.ts`, `body(opening)`); test «CO-554 (0.3.18 review, DA-13, ER-24): the board's default deadline is written as it is, and a later write leaves the frozen deadline out» with a stand-in that freezes the first write; the case named is closed"
+      ]
+    },
+    {
+      "id": "ER-25",
+      "source": "V3-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: the cut is from the write, always ahead of it; test «CO-554 (0.3.18 review, DA-14, ER-25): a request sent more than a week ago gets a packet deadline still ahead»; the case named is closed, a workflow that lives longer than seven days is ER-27"
+      ]
+    },
+    {
+      "id": "ER-26",
+      "source": "V3-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: the tautology is gone; the run tests use `freezingObservatory`, take a workflow back on a later pass and compare a lost open's retried body (`assert.deepEqual`); the case named is closed, the unguarded `-ends-held` write is ER-28"
+      ]
+    }
+  ]
+}

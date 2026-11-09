@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "0e501425c7c4df672307734e595cae5982deaced",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3-0e501425/2026-11-09-docs.md",
+  "reportSha256": "e50523edcd773273acacc1bfa728d4da3bf14e926ed2b7e2f145fcf131caa319",
+  "reviewerRun": "release-0318-i3b-docs-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-23",
+      "source": "V3-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed by the release commit `bbc90b7a`: the gate, the ledger and the handoff name `d5861ddb`; CO-554 is in *What 0.3.18 carries* and in `## 0.3.18` (d5861ddb); the rc is `v0.3.18-rc.2`; iteration 3's run-one reports stay as written and run two's take their own folder after the release commit (PL-42)"
+      ]
+    },
+    {
+      "id": "DO-24",
+      "source": "V3-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed by the release commit `bbc90b7a`: as V3-34, and rc.1 (`a86481ca`, run 42689818347) is recorded as a rehearsal of a superseded release commit, not as item 2"
+      ]
+    },
+    {
+      "id": "DO-25",
+      "source": "V3-42",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-549 (row updated after the release commit): the update names ER-22, a signalled copy launchd did not start being replaced by launchd's within about a minute"
+      ]
+    },
+    {
+      "id": "DO-26",
+      "source": "V3-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb: the row, `packetDeadline`'s comment, the test name, the map entry and the commit message say 986 failures for 28 requests (10:19 to 21:34 UTC), recounted by run three over every log segment"
+      ]
+    },
+    {
+      "id": "DO-27",
+      "source": "V3-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d5861ddb for (c) and for (a) on Fabric's side (the spec says the ref changed on 2026-11-09); (a) on Observatory's side is upstream, its header wording, which the coordinator tells Observatory on the board; (b) moot while the dispatcher names no credentials"
+      ]
+    }
+  ]
+}
