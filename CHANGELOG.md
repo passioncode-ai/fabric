@@ -13,7 +13,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 background item was added, or ask you to allow Fabric in System Settings, General, Login Items and Extensions. The
 first sweeps after the update accept every review that has waited more than three days, and each one's history says
 so. To stop Fabric completely on macOS, turn «Служба доски» off in Settings, then quit: while the service is on, a copy
-of Fabric the system did not start is replaced by the system's own within a minute when a signal ends it. Going back to
+of Fabric the system did not start is replaced by the system's own within about a minute when a signal ends it. Going back to
 0.3.17: turn «Служба доски» off in 0.3.18 first, then turn launch at login on again in 0.3.17.
 
 - **A project's work by direction** (CO-543, SCN-181). The project page shows «Направления работы» where the board
@@ -59,6 +59,9 @@ of Fabric the system did not start is replaced by the system's own within a minu
 - **Fabric no longer freezes while Docker is replaced** (CO-536). Fabric asks Docker whether it answers from a short
   child process it ends after five seconds, never from its own main thread; on 2026-11-08 that question hung the app
   for hours while Colima took over from a stopped engine.
+- **A board request with a far deadline starts its run again** (CO-554). When nobody answered a request whose deadline
+  was more than a week away, Fabric could not open its run and kept trying again later without starting it. The run
+  now opens, and Fabric still follows the request's own deadline.
 
 ## 0.3.17
 

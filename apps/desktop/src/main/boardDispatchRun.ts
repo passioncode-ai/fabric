@@ -9,7 +9,7 @@
  */
 import { randomUUID } from 'node:crypto'
 import type { OperatorMandate } from './hubAuthority.ts'
-import { decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, GRACE_MS, limitsOf, runEndsAt, refusalCheck, type DispatchDecision, type RequestState } from '../shared/boardDispatch.ts'
+import { decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, GRACE_MS, limitsOf, packetDeadline, runEndsAt, refusalCheck, type DispatchDecision, type RequestState } from '../shared/boardDispatch.ts'
 import { FABRIC_OWNER, type ToolCall } from './observatoryMemory.ts'
 
 export interface OpenRequest {
@@ -271,8 +271,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   }
 
   /** Opens the workflow (first run) or takes it back (a later run), writes run-ends-at and offers it on. */
-  const open = async (req: OpenRequest, prior: DispatchRecord | undefined, provider: 'claude' | 'codex', endsAt: string, dispatchId: string): Promise<{ workflowId: string; handoffId: string }> => {
-    const body = {
+  const open = async (req: OpenRequest, prior: DispatchRecord | undefined, provider: 'claude' | 'codex', endsAt: string, dispatchId: string, openAt: number): Promise<{ workflowId: string; handoffId: string }> => {
+    const body = (opening: boolean) => ({
       goal: `Answer the board request ${req.id} addressed to this project, then end.`,
       constraints: [
         'Read the request with com.get and its thread with com.list under your own credential.',
@@ -292,17 +292,19 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         { kind: 'other', ref: `board-thread:${req.thread}` },
         { kind: 'other', ref: `capability:${req.capability}` },
         { kind: 'other', ref: `fabric-project:${req.target}` },
-        { kind: 'other', ref: `deadline:${req.deadline}` },
+        // Observatory takes a packet deadline at most seven days after its write and freezes the packet at the opening
+        // write, so only that write names it (a later one leaving it out keeps it); the board's own is followed here.
+        ...(opening ? [{ kind: 'other', ref: `deadline:${packetDeadline(req.deadline, openAt)}` }] : []),
         { kind: 'other', ref: `run-ends-at:${endsAt}` }
       ],
       open: [{ step_id: 'answer', next_action: 'Take the request and answer it.' }]
-    }
+    })
     let workflowId: string
     let leaseId: string
     if (!prior) {
       const projectId = await resolveProject(req.target)
       const w = await deps.observatory('observatory_checkpoint_write', {
-        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-open`, stepId: 'run-ends-at', status: 'in_progress', projectId, body
+        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-open`, stepId: 'run-ends-at', status: 'in_progress', projectId, body: body(true)
       })
       if (typeof w.workflowId !== 'string' || typeof w.leaseId !== 'string') throw new Error(`the workflow was not opened: ${String(w.error ?? 'no id')}`)
       workflowId = w.workflowId
@@ -312,7 +314,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       // lease was superseded after all (a start that did run, iteration 2, ER-4), it is dropped and taken back below.
       try {
         const w = await deps.observatory('observatory_checkpoint_write', {
-          owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-ends-held`, stepId: 'run-ends-at', status: 'in_progress', workflowId: prior.workflowId, leaseId: leases.get(prior.workflowId), body
+          owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-ends-held`, stepId: 'run-ends-at', status: 'in_progress', workflowId: prior.workflowId, leaseId: leases.get(prior.workflowId), body: body(false)
         })
         if (w.error) throw new Error(String(w.error))
         return true
@@ -341,18 +343,18 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // stayed open, so it cannot be taken back; the request gets a workflow of its own again.
         // Matched by Observatory's typed name, never the word «closed», which a dropped connection also says (final
         // candidate's verification, NB-1).
-        if (CLOSED.test(e instanceof Error ? e.message : String(e))) return open(req, undefined, provider, endsAt, dispatchId)
+        if (CLOSED.test(e instanceof Error ? e.message : String(e))) return open(req, undefined, provider, endsAt, dispatchId, openAt)
         throw e
       }
       if (typeof back.handoffId !== 'string') {
-        if (CLOSED.test(String(back.error ?? ''))) return open(req, undefined, provider, endsAt, dispatchId)
+        if (CLOSED.test(String(back.error ?? ''))) return open(req, undefined, provider, endsAt, dispatchId, openAt)
         throw new Error(`the workflow could not be taken back: ${String(back.error ?? 'no handoff')}`)
       }
       const took = await deps.observatory('observatory_handoff_accept', { owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-accept`, handoffId: back.handoffId })
       if (typeof took.leaseId !== 'string') throw new Error(`the workflow could not be accepted back: ${String(took.error ?? 'no lease')}`)
       leaseId = took.leaseId
       const w = await deps.observatory('observatory_checkpoint_write', {
-        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-ends`, stepId: 'run-ends-at', status: 'in_progress', workflowId, leaseId, body
+        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-ends`, stepId: 'run-ends-at', status: 'in_progress', workflowId, leaseId, body: body(false)
       })
       if (w.error) throw new Error(`run-ends-at was not written: ${String(w.error)}`)
     }
@@ -373,7 +375,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     openFailedAt.set(id, { at: now, inRow: (openFailedAt.get(id)?.inRow ?? 0) + 1 })
   }
   /** ER-9: the dispatch id and end of an open whose answer was lost, asked again with the same ones. */
-  const retryOpen = new Map<string, { dispatchId: string; endsAt: string }>()
+  const retryOpen = new Map<string, { dispatchId: string; endsAt: string; openAt: number }>()
   /** §3.6: a request that goes to the operator has its workflow closed, taken back first when a run holds it. */
   const closeWorkflow = async (r: DispatchRecord, why: 'to-operator' | 'settled' | 'unsaved' = 'to-operator'): Promise<void> => {
     let leaseId = leases.get(r.workflowId)
@@ -596,9 +598,10 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       retryOpen.delete(req.id)
       const dispatchId = reuse?.dispatchId ?? randomUUID()
       const endsAt = reuse?.endsAt ?? runEndsAt(now, limits.runMinutes, req.deadline)
+      const openAt = reuse?.openAt ?? now
       let opened: { workflowId: string; handoffId: string }
       try {
-        opened = await open(req, last, provider, endsAt, dispatchId)
+        opened = await open(req, last, provider, endsAt, dispatchId, openAt)
         firstLine({ workflow: opened.workflowId, handoff: opened.handoffId, request: req.id }) // the ids are well formed (§3.5)
         openFailedAt.delete(req.id) // CO-544: an open that worked ends the run of failures
       } catch (e) {
@@ -607,7 +610,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // Recorded through the caller's ops sink (deps.log); the request is tried again on a later pass.
         deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(e) })
         openFailed(req.id, now)
-        if (!last) retryOpen.set(req.id, { dispatchId, endsAt })
+        if (!last) retryOpen.set(req.id, { dispatchId, endsAt, openAt })
         continue
       }
       const r: DispatchRecord = { requestId: req.id, projectId: req.target, dispatchId, workflowId: opened.workflowId, handoffId: opened.handoffId, launchId: null,

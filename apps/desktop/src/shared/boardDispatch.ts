@@ -132,6 +132,26 @@ export function runEndsAt(launchedAt: number, limitMinutes: number, deadline: st
   return new Date(Number.isFinite(due) ? Math.min(byLimit, due) : byLimit).toISOString()
 }
 
+/** Observatory's limit on a dispatch packet's deadline: at most seven days after the write that sets it
+ *  (`dispatch_packet.py#check_write`, `deadline-too-far`), less a minute for the time between reading and writing. */
+export const PACKET_HORIZON_MS = 7 * 24 * 60 * 60_000 - 60_000
+
+/**
+ * The deadline written into the workflow's packet: the board's own, cut to the time of the write that opens the
+ * workflow plus `PACKET_HORIZON_MS`. A request may name a deadline further out (the board accepts any), and Observatory
+ * refuses such a packet, so the workflow never opened (2026-11-09: 986 refusals `DeadlineTooFar` for 28 requests). Counted from the
+ * write, not from the request: the board's default deadline (168 hours after the request) is then never cut, since a
+ * run opens no sooner than `GRACE_MS` after the request, and a request older than a week is never given a deadline
+ * already past (0.3.18 review, iteration 3, DA-13, DA-14, ER-24, ER-25). Only the opening write carries it: the packet
+ * is frozen there, and a later write leaves the ref out (`boardDispatchRun.ts`). The dispatcher itself still follows
+ * the board's deadline. A value that cannot be read is left as it is.
+ */
+export function packetDeadline(deadline: string, writtenAt: number): string {
+  const due = Date.parse(deadline)
+  if (!Number.isFinite(due) || !Number.isFinite(writtenAt)) return deadline
+  return due <= writtenAt + PACKET_HORIZON_MS ? deadline : new Date(writtenAt + PACKET_HORIZON_MS).toISOString()
+}
+
 const WORKFLOW = /^wf_[0-9a-f]{16}$/
 const TOKEN = /^[^\s=]+$/
 const LINE = /^fabric-dispatch\/1 workflow=(wf_[0-9a-f]{16}) handoff=([^\s=]+) request=([^\s=]+)$/

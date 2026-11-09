@@ -716,6 +716,10 @@ test('CO-409 (the 0.3.16 review, ER-9): a quit after the workflow opened closes 
   const opens = v.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).map(([, a]) => a.idempotencyKey)
   assert.equal(opens.length, 2)
   assert.equal(opens[0], opens[1], 'the same key both times')
+  // CO-554: the same body too, the packet deadline included, though the retry is written later (Observatory's
+  // idempotency compares the request).
+  const bodies = v.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).map(([, a]) => a.body)
+  assert.deepEqual(bodies[0], bodies[1])
   assert.equal(v.launches[0].dispatchId, opens[0].replace(/^dispatch-|-open$/g, ''))
 })
 
@@ -877,4 +881,79 @@ test('CO-409 (DEC-0125 MD-3): a request\'s mandate travels into the run\'s packe
   const v = world()
   await createBoardDispatch(v.deps).onPass()
   assert.equal(v.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1].body.constraints.some((c) => c.includes('mandate')), false)
+})
+
+/** An Observatory stand-in that keeps the rules of `dispatch_packet.py#check_write`: a packet deadline more than seven
+ *  days after the write is refused, the packet is frozen at the opening write, and a later write that changes a frozen
+ *  ref is refused (`packet-frozen`); a later write that leaves it out keeps it. */
+function freezingObservatory(w, frozen = new Map()) {
+  let n = 0
+  return async (name, args) => {
+    w.calls.push([name, args])
+    if (name === 'observatory_resolve') return { canonical: 'project:target' }
+    if (name === 'observatory_checkpoint_write') {
+      const ref = args.body.artifacts?.find((a) => a.ref.startsWith('deadline:'))?.ref.slice('deadline:'.length)
+      if (!args.workflowId) {
+        if (ref && Date.parse(ref) > w.deps.now() + 7 * DAY) return { error: 'DeadlineTooFar' }
+        frozen.set('wf_0123456789abcdef', ref)
+        return { workflowId: 'wf_0123456789abcdef', leaseId: 'lease-1' }
+      }
+      if (ref !== undefined && ref !== frozen.get(args.workflowId)) return { error: 'PacketFrozen' }
+      return { workflowId: args.workflowId, revision: 2 }
+    }
+    if (name === 'observatory_handoff_create') return { handoffId: `handoff:${String(++n).padStart(16, '0')}` }
+    if (name === 'observatory_handoff_accept') return { leaseId: 'lease-2' }
+    return {}
+  }
+}
+
+test('CO-554: a request whose deadline is more than seven days out opens a workflow whose packet deadline Observatory takes (DeadlineTooFar, 2026-11-09)', async () => {
+  // Observatory refuses a packet deadline more than seven days after the write (dispatch_packet.py#check_write).
+  const w = world({ requests: [request({ submittedAt: new Date(T0 - 2 * DAY).toISOString(), deadline: new Date(T0 + 12 * DAY).toISOString() })] })
+  w.deps.observatory = freezingObservatory(w)
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1, JSON.stringify(w.logs))
+  const open = w.calls.find(([n]) => n === 'observatory_checkpoint_write')[1]
+  assert.ok(open.body.artifacts.some((a) => a.ref === `deadline:${new Date(T0 + 7 * DAY - MIN).toISOString()}`))
+})
+
+test('CO-554 (0.3.18 review, DA-13, ER-24): the board\'s default deadline is written as it is, and a later write leaves the frozen deadline out', async () => {
+  // A request with the board's default deadline (168 hours after it was sent): the packet carries the board's own
+  // value, as 0.3.17 wrote it, so a workflow either version opened is taken back without a packet-frozen refusal.
+  const submitted = T0 - 5 * MIN
+  const raw = new Date(submitted + 7 * DAY).toISOString()
+  const frozen = new Map()
+  const w = world({ requests: [request({ submittedAt: new Date(submitted).toISOString(), deadline: raw })] })
+  w.deps.observatory = freezingObservatory(w, frozen)
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(frozen.get('wf_0123456789abcdef'), raw)
+  w.runs.set('L1', 'ended')
+  w.tick(3 * MIN)
+  await d.onPass()
+  assert.equal(w.launches.length, 2, JSON.stringify(w.logs))
+  const later = w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && a.workflowId)
+  assert.ok(later.length > 0)
+  for (const [, a] of later) assert.equal(a.body.artifacts.some((x) => x.ref.startsWith('deadline:')), false)
+  // The same workflow opened by 0.3.17 with a value this version would cut (a far deadline) is taken back too.
+  const old = new Map()
+  const v = world({ requests: [request({ submittedAt: new Date(T0 - 2 * DAY).toISOString(), deadline: new Date(T0 + 12 * DAY).toISOString() })] })
+  v.deps.observatory = freezingObservatory(v, old)
+  const e = createBoardDispatch(v.deps)
+  await e.onPass()
+  old.set('wf_0123456789abcdef', new Date(T0 + 5 * DAY).toISOString())
+  v.runs.set('L1', 'ended')
+  v.tick(3 * MIN)
+  await e.onPass()
+  assert.equal(v.launches.length, 2, JSON.stringify(v.logs))
+})
+
+test('CO-554 (0.3.18 review, DA-14, ER-25): a request sent more than a week ago gets a packet deadline still ahead', async () => {
+  const w = world({ requests: [request({ submittedAt: new Date(T0 - 9 * DAY).toISOString(), deadline: new Date(T0 + 20 * DAY).toISOString() })] })
+  w.deps.observatory = freezingObservatory(w)
+  await createBoardDispatch(w.deps).onPass()
+  assert.equal(w.launches.length, 1, JSON.stringify(w.logs))
+  const ref = w.calls.find(([n]) => n === 'observatory_checkpoint_write')[1].body.artifacts.find((a) => a.ref.startsWith('deadline:')).ref
+  assert.ok(Date.parse(ref.slice('deadline:'.length)) > T0 + 6 * DAY)
 })
