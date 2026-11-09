@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  ADR-0192 (0.3.18): the board's service. The app registers it with
+  app.setLoginItemSettings({ type: 'agentService', serviceName }) (shared/loginItem.ts#BOARD_SERVICE); launchd starts
+  Fabric without a window at login and again after an abnormal end, never after a clean exit.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>ai.passioncode.desktop.board</string>
+  <key>BundleProgram</key>
+  <string>Contents/MacOS/Fabric</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>Fabric</string>
+    <string>--background</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>AssociatedBundleIdentifiers</key>
+  <array>
+    <string>ai.passioncode.desktop</string>
+  </array>
+  <key>ProcessType</key>
+  <string>Interactive</string>
+</dict>
+</plist>

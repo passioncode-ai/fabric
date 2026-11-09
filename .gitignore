@@ -1,6 +1,10 @@
 node_modules
 dist/
 build/
+# ADR-0192: the board's launch agent is source; the rest of the desktop app's build folder stays staged.
+!/apps/desktop/build/
+/apps/desktop/build/*
+!/apps/desktop/build/launchd/
 .next/
 *.tsbuildinfo
 
