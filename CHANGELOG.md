@@ -17,6 +17,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - **An agent's session card keeps up** (CO-544). The card beside a chosen agent no longer stops updating while the
   agent works: it reads again every 15 seconds and after every change, and a second failed read in a row keeps what was
   shown instead of emptying the card. Questions to the agent appear as they are asked.
+- **«Написать агенту» keeps the right lines** (CO-544). The lines you sent to an agent no longer switch to another
+  agent's when you move between agents quickly, and when they cannot be read the pane says so and keeps what it
+  showed; sending still works. The lines are still kept only while Fabric runs.
 - **The board dispatcher no longer retries a stuck request every ten minutes** (CO-544). When it cannot open the
   work for a request, it now waits twice as long after each failure in a row, up to six hours, and says when a
   folder belongs to more than one project instead of calling it unknown.
