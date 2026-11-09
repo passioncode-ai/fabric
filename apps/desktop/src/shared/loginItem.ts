@@ -103,7 +103,7 @@ export function ownsBoardService(argv: readonly string[], env: Readonly<Record<s
  * Fabric that owns the service (`ownsBoardService`), on an installed macOS build, while the person's switch is on AND
  * macOS reads the agent service back as enabled (the 0.3.18 review PL-5, ER-2: the system's state, not the wish), once
  * the start has finished. Never for a quit the system or Fabric itself asks for: logout, restart and shutdown, a signal
- * (SIGTERM, SIGHUP: the lifecycle broker, `launchctl`, `kill`; the review's PL-3), «Перезапустить Fabric», or the Quit
+ * (SIGTERM, SIGHUP, SIGINT: the lifecycle broker, `launchctl`, `kill`; the review's PL-3, ER-13), «Перезапустить Fabric», or the Quit
  * of a start that failed (the review's ER-4). Each of those still ends the process within LC-01's deadline.
  */
 export function quitHolds(o: {

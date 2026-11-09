@@ -2,6 +2,10 @@
 
 Follows [the brief](brief.md) (stages 0 and 1). Decision record: [ADR-0192](../../../adr/0192-the-board-is-a-service-launchd-keeps.md).
 
+**Corrected 2026-11-09** (the 0.3.18 release review, iteration 2, PL-22): what was built differs from this design in
+the places marked *As built*; [ADR-0192's amendment 1](../../../adr/0192-the-board-is-a-service-launchd-keeps.md#amendment-1-2026-11-09-what-ends-fabric-and-who-owns-the-service)
+holds the rules. The rest of this record is the design as it was written.
+
 ## What changes for the person
 
 One switch in Settings, the one that exists today as «Запускать Fabric при входе в систему» (CO-322). It becomes
@@ -10,7 +14,7 @@ One switch in Settings, the one that exists today as «Запускать Fabric
 | | Switch on (default) | Switch off |
 |---|---|---|
 | At login | Fabric starts without a window | Fabric does not start |
-| The process ends abnormally (a crash, a kill, memory pressure) | macOS starts it again in the background within seconds | it stays ended |
+| The process ends abnormally (a crash, a kill, memory pressure) | macOS starts it again in the background (*As built:* within the throttle, up to 60 s) | it stays ended |
 | The person quits from the menu or with Cmd+Q | the windows close and the Dock icon goes; the hub, the board and the terminals keep running | Fabric quits as today (LC-01's 10 s deadline) |
 | Logout, restart, shutdown | Fabric quits as today | Fabric quits as today |
 | Opening Fabric again (Dock, Finder, a `fabric://` link) | the running service shows its window | Fabric starts as today |
@@ -24,10 +28,13 @@ process running until the person quits it; the next quit then ends it.
    (electron-builder `mac.extraFiles`): `Label` the same name, `BundleProgram` `Contents/MacOS/Fabric`,
    `ProgramArguments` `[Fabric, --background]`, `RunAtLoad` true, `KeepAlive` `{SuccessfulExit: false}` (started again
    after an abnormal end, not after a clean exit), `ProcessType` `Interactive`, `LimitLoadToSessionType` `Aqua`,
-   `ThrottleInterval` 10, `AssociatedBundleIdentifiers` `ai.passioncode.desktop`.
+   `ThrottleInterval` 10, `AssociatedBundleIdentifiers` `ai.passioncode.desktop`. *As built:* `ThrottleInterval` 60
+   and no `LimitLoadToSessionType`; a copy that loses the single-instance lock exits 75 so launchd tries again once a
+   minute (`apps/desktop/build/launchd/ai.passioncode.desktop.board.plist`, `shared/loginItem.ts#LAUNCHD_RETRY_EXIT`).
 2. **Registration** (`loginItem.ts#loginItemFor`): on macOS the switch registers
    `{ type: 'agentService', serviceName: 'ai.passioncode.desktop.board.plist' }` instead of `mainAppService`, and
-   once removes the old `mainAppService` registration so login does not start Fabric twice. The system's status is
+   once removes the old `mainAppService` registration so login does not start Fabric twice (*As built:* only when the
+   switch is off or once macOS reads the service as enabled, `shared/loginItem.ts#legacyLoginItemAction`). The system's status is
    read back with the same `serviceName` (`loginItemState`), so Settings keeps saying what macOS reports
    (`requires-approval` asks the person to allow «Fabric» in Login Items, as today).
 3. **The quit path** (`quit.ts#createQuitCoordinator`): a new input `keepRunning()` says whether a quit the person asked
@@ -46,7 +53,9 @@ registers nothing, as today, and draws no switch. A development build registers 
 ## What stays the same
 
 The machine's lifecycle broker, where present, still supervises Fabric (`always_on` on the operator's Mac since
-2026-11-08); two supervisors agree because the broker starts Fabric only when no instance runs. The hub's port, `hub.json`
+2026-11-08); two supervisors agree because the broker starts Fabric only when no instance runs. *As built:* the
+reverse is not true of launchd, which starts its own copy at login and once a minute while another copy holds the lock;
+that copy exits 75 (ADR-0192 amendment 1, rule 5; measured in CO-549). The hub's port, `hub.json`
 and its standby on start are unchanged. The stack (Docker or Colima) remains a separate dependency.
 
 ## Work graph (stage 4 details each node)

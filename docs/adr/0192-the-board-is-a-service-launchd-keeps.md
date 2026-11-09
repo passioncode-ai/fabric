@@ -41,3 +41,44 @@ after it ends, and Cmd+Q ends it on purpose (LC-01).
 The operator's report and the outages of 2026-11-08 (CO-322's row in the carry-over ledger); Electron 44.9.3's
 `app.setLoginItemSettings` and `app.getLoginItemSettings` (`docs/api/app.md` at tag `v44.9.3`), read for the design's
 stage 1.
+
+## Amendments
+
+### Amendment 1, 2026-11-09: what ends Fabric and who owns the service
+
+The 0.3.18 release review (iterations 1 and 2, `docs/evidence/plans/2026-11-09-release-0318-verification.md`) found the
+decision above too coarse for a service two supervisors and several copies of Fabric can reach. These rules refine
+decisions 1 to 3 and replace the first two consequences; the review id that asked for each is in brackets.
+
+1. **A quit the system or Fabric asks for ends Fabric.** A signal (SIGTERM, SIGHUP, SIGINT: the lifecycle broker,
+   `launchctl`, `kill`), logout, restart and shutdown, «Перезапустить Fabric» and the Quit of a start that failed or has
+   not finished are never held (PL-3, ER-2, ER-4, UX-3). The signal listeners are added once Electron is ready, because
+   Electron 44 replaces a listener added while the main module loads (ER-13). A signal that ends launchd's own copy ends
+   it with 0 even when its drain runs into the deadline, so launchd's `KeepAlive` does not start again what the signal
+   stopped; any other quit that needs the deadline still exits 3 (UX-18). A failed start's Quit exits 0 everywhere,
+   since Electron ends a quit with 0 whatever `process.exitCode` says (ER-17).
+2. **Only the Fabric on the operator's own data folder owns the service.** A start with `--user-data-dir` (any
+   spelling Chromium reads) or a smoke run never registers, removes or holds for it (PL-4).
+3. **The Quit holds only while macOS reads the service as enabled**, the switch is on and the start has finished: the
+   system's state, not the wish (PL-5, ER-2). Settings says which of the two Quit does now (UX-13).
+4. **0.3.17's login item goes only after the service runs.** It is removed when the switch is off, or once macOS reads
+   the agent service back as enabled; while the service waits for approval, is not found or cannot be read, the old
+   item stays, so the Mac still starts Fabric at login (PL-5, ER-3).
+5. **launchd's losing copy retries once a minute.** A copy launchd starts while another Fabric holds the single-instance
+   lock exits 75 (EX_TEMPFAIL), so `KeepAlive {SuccessfulExit: false}` tries again, and the property list's
+   `ThrottleInterval` is 60; it sets no `LimitLoadToSessionType` (PL-6). A losing copy sweeps nothing the running one
+   may be writing (DA-11). Whether the running copy should hand over to launchd instead is CO-549's measurement (PL-18).
+6. **launchd's label stays with its process.** `XPC_SERVICE_NAME` is read once at start and the board's label removed
+   from the environment, so no terminal, agent, helper or relaunch Fabric starts takes itself for launchd's copy
+   (PL-21, ER-16).
+7. **«Перезапустить Fabric» is the restart** (UX-3). It sits above Quit in the app menu (in the File menu on Windows and
+   Linux). Where launchd keeps the service, a detached helper waits for the process to end and asks launchd for the
+   job (`launchctl kickstart`); when launchd refuses, it opens the app by its id and leaves a note the next start
+   records (ER-15). Elsewhere Electron relaunches the app. With live terminal sessions it asks once, Cancel the default
+   (UX-15). Every advice that used to say quit and reopen names this item, the reasons agents relay included (UX-12).
+
+Consequences, corrected: a machine broker and launchd do not simply agree. The broker starts Fabric only when no
+instance runs, but launchd starts its own copy at login and once a minute while another copy holds the lock; that copy
+exits 75 at once (PL-18, ER-14). After an abnormal end launchd starts Fabric again within its throttle, up to 60
+seconds, not "within seconds". `launchctl bootout` stops only a copy launchd started; a copy the person opened stays
+until it is quit with the switch off (DO-11).

@@ -30,16 +30,21 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   without one, not as idle; a stage report it has worked past is marked as outdated; and its newest act (a board
   message, a claim, a stage) shows with how long ago.
 - **The board stays up when Fabric's window is gone** (ADR-0192, task 296b88c5). On macOS Fabric now runs as a service
-  the system keeps: it starts without a window when you log in and starts again after a crash, and «Завершить Fabric»
-  (Quit Fabric) only closes the windows and removes the Dock icon, so agents keep reaching the board; open Fabric again
-  from Launchpad, Spotlight or Applications. Settings calls the switch «Служба доски». To stop Fabric completely, turn
-  it off, then quit. A signal still ends Fabric (the lifecycle broker, `launchctl`, `kill`), and so do logout, restart
-  and shutdown. On the first start macOS may show its own notice that a background item was added, and may ask you to
-  allow Fabric in Login Items; until you do, Fabric still starts at login as before. Windows and Linux are unchanged.
+  the system keeps: it starts without a window when you log in and starts again after a crash (within a minute), and,
+  once macOS has allowed the service, «Завершить Fabric» (Quit Fabric) only closes the windows and removes the Dock
+  icon, so agents keep reaching the board; open Fabric again from Launchpad, Spotlight or Applications. Settings calls
+  the switch «Служба доски» and says under it which of the two Quit does now. To stop Fabric completely, turn it off,
+  then quit. A signal still ends Fabric (the lifecycle broker, `launchctl`, `kill`), and so do logout, restart and
+  shutdown. On the first start macOS may show its own notice that a background item was added, and may ask you to
+  allow Fabric in Login Items; until you do, «Завершить Fabric» still ends Fabric, and on a Mac updated from 0.3.17
+  Fabric still starts at login as before (but is not started again after a crash), while a fresh install does not start
+  at login until you allow it. Windows and Linux are unchanged.
 - **«Перезапустить Fabric» restarts Fabric** (ADR-0192). A new item above «Завершить Fabric» in the app menu (in the
   File menu on Windows and Linux) ends Fabric and starts it again with its window, through the system's service when
-  it keeps Fabric. The advice that used to say «закройте и снова откройте Fabric» (a stopped database, a hub port
-  taken) now names this item, since Quit no longer ends Fabric while the service is on.
+  it keeps Fabric, or by opening Fabric when the system refuses. When agent consoles are open, it first asks, naming how
+  many will close; «Отмена» is the default. The advice that used to say «закройте и снова откройте Fabric» (a stopped
+  database, a hub port taken) now points to this item, for you and in the reasons agents are given, since Quit no
+  longer ends Fabric while the service is on.
 - **Old reviews no longer pile up in «Нужны вы»** (CO-537). Work that waits in review for more than three days is
   accepted by default, on the operator's rule, and its history says «задача принята по умолчанию», never the words of
   your own close; «Нужны вы» keeps what needs a decision now.

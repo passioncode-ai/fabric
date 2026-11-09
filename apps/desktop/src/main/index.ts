@@ -636,7 +636,7 @@ const quit = createQuitCoordinator({
   // Outside the process: ends it 15 s after quitting began even when Electron's teardown stalls.
   armReaper: (ms) => { try { spawnQuitReaper(ms) } catch (e) { ops.failed('app.quit-reaper', e, { note: 'the outside quit guard did not start; the in-process deadline stands' }) } }
 })
-// #region board-service-quit — docs: docs/adr/0192-the-board-is-a-service-launchd-keeps.md#decision
+// #region board-service-quit — docs: docs/adr/0192-the-board-is-a-service-launchd-keeps.md#amendment-1-2026-11-09-what-ends-fabric-and-who-owns-the-service
 /** Set when macOS says the session is ending (logout, restart, shutdown): a quit then ends Fabric (ADR-0192). Cleared
  *  again when the process is still alive a minute later, so a logout another app cancelled does not make every later
  *  Quit end Fabric (the 0.3.18 review ER-8). */

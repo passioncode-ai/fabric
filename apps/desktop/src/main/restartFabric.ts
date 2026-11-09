@@ -1,4 +1,4 @@
-// #region restart-fabric — docs: docs/adr/0192-the-board-is-a-service-launchd-keeps.md#decision
+// #region restart-fabric — docs: docs/adr/0192-the-board-is-a-service-launchd-keeps.md#amendment-1-2026-11-09-what-ends-fabric-and-who-owns-the-service
 /**
  * «Перезапустить Fabric» (the 0.3.18 review, iteration 1, UX-3). With the board's service on, a person's Quit only hides
  * Fabric, so the advice «quit and reopen» no longer restarts the hub or the stack; this is the restart that does. The
