@@ -21,7 +21,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   agent's when you move between agents quickly, and when they cannot be read the pane says so and keeps what it
   showed; sending still works. The lines are still kept only while Fabric runs.
 - **The board dispatcher no longer retries a stuck request every ten minutes** (CO-544). When it cannot open the
-  work for a request, it now waits twice as long after each failure in a row, up to six hours, and says when a
+  work for a request, it now waits twice as long after each failure in a row, up to six hours, and its log says when a
   folder belongs to more than one project instead of calling it unknown.
 - **A refused reply no longer reads as a broken check in the log** (CO-541). When an agent replies to a message it
   cannot read, the board's refusal is now recognised as the reply's own refusal instead of being logged as a failed
@@ -30,11 +30,19 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   without one, not as idle; a stage report it has worked past is marked as outdated; and its newest act (a board
   message, a claim, a stage) shows with how long ago.
 - **The board stays up when Fabric's window is gone** (ADR-0192, task 296b88c5). On macOS Fabric now runs as a service
-  the system keeps: it starts without a window when you log in and starts again after a crash, and Quit only closes the
-  windows, so agents keep reaching the board. Settings calls the switch «Служба доски»; turn it off and the next Quit
-  ends Fabric as before. Windows and Linux are unchanged.
+  the system keeps: it starts without a window when you log in and starts again after a crash, and «Завершить Fabric»
+  (Quit Fabric) only closes the windows and removes the Dock icon, so agents keep reaching the board; open Fabric again
+  from Launchpad, Spotlight or Applications. Settings calls the switch «Служба доски». To stop Fabric completely, turn
+  it off, then quit. A signal still ends Fabric (the lifecycle broker, `launchctl`, `kill`), and so do logout, restart
+  and shutdown. On the first start macOS may show its own notice that a background item was added, and may ask you to
+  allow Fabric in Login Items; until you do, Fabric still starts at login as before. Windows and Linux are unchanged.
+- **«Перезапустить Fabric» restarts Fabric** (ADR-0192). A new item above «Завершить Fabric» in the app menu (in the
+  File menu on Windows and Linux) ends Fabric and starts it again with its window, through the system's service when
+  it keeps Fabric. The advice that used to say «закройте и снова откройте Fabric» (a stopped database, a hub port
+  taken) now names this item, since Quit no longer ends Fabric while the service is on.
 - **Old reviews no longer pile up in «Нужны вы»** (CO-537). Work that waits in review for more than three days is
-  accepted by default, on the operator's rule, and says so in its history; «Нужны вы» keeps what needs a decision now.
+  accepted by default, on the operator's rule, and its history says «задача принята по умолчанию», never the words of
+  your own close; «Нужны вы» keeps what needs a decision now.
   The review card no longer squeezes the agent's words into one letter a line in that narrow column.
 - **Fabric no longer freezes while Docker is replaced** (CO-536). Fabric asks Docker whether it answers from a short
   child process it ends after five seconds, never from its own main thread; on 2026-11-08 that question hung the app

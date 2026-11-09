@@ -19,6 +19,7 @@ export function askRestartWindow(userData: string, now: number): boolean {
     writeFileSync(path.join(userData, RESTART_WINDOW_FILE), String(now), { mode: 0o600 })
     return true
   } catch {
+    // Said by the doc comment above: the restart still happens, only its window may not open; false lets the caller know.
     return false
   }
 }
@@ -31,6 +32,7 @@ export function takeRestartWindow(userData: string): number | null {
     const n = Number(readFileSync(file, 'utf8').trim())
     at = Number.isFinite(n) ? n : null
   } catch {
+    // No note, or one that cannot be read: this start was not asked to show its window, which is the default.
     return null
   }
   try { rmSync(file, { force: true }) } catch { /* a note that stays is read as too old by the next start */ }
@@ -45,6 +47,7 @@ export function spawnRestartHelper(command: string, args: string[], onError: (e:
     child.unref()
     return true
   } catch (e) {
+    // The caller's onError records it (index.ts: ops.failed 'app.restart-helper'); the false tells it to relaunch instead.
     onError(e)
     return false
   }

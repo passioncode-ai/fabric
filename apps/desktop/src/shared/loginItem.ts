@@ -49,8 +49,8 @@ export const BOARD_LABEL = BOARD_SERVICE.replace(/\.plist$/, '')
 
 /**
  * Whether launchd started this process as the board's job. launchd sets `XPC_SERVICE_NAME` to the job's `Label` in the
- * environment of every job it starts (measured on this Mac 2026-11-09: `ps eww -p 818` for the launch agent
- * `dev.agentgateway.dataroom` printed `XPC_SERVICE_NAME=dev.agentgateway.dataroom`); an app opened from the Finder or
+ * environment of every job it starts (measured 2026-11-09: `ps eww` of a running launch agent printed
+ * `XPC_SERVICE_NAME=<its Label>`); an app opened from the Finder or
  * the Dock carries LaunchServices' own name, and a terminal start none or `0`.
  */
 export function launchdStarted(env: Readonly<Record<string, string | undefined>>): boolean {

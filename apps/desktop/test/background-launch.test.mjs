@@ -28,5 +28,7 @@ test('a background launch opens no main window until activated, and an early act
   assert.match(src, /if \(!windowReady\) \{ activatedDuringStartup = true; if \(startupWait\) showStartupWait\(\); return \}\s*\n\s*showForService\(\)\s*\n\s*if \(mainWindow === null\) createWindow\(\)/)
 })
 test('a second launch during a background start is remembered as an activation (0.3.7 i2 UX-2)', () => {
-  assert.match(src, /app\.on\('second-instance'[\s\S]{0,400}if \(!windowReady\) \{ activatedDuringStartup = true; if \(startupWait\) showStartupWait\(\); return \}/)
+  assert.match(src, /app\.on\('second-instance'[\s\S]{0,800}if \(!windowReady\) \{ activatedDuringStartup = true; if \(startupWait\) showStartupWait\(\); return \}/)
+  // ER-6 (0.3.18): a background second start (launchd's retry, the broker) is no activation; it returns before the flag.
+  assert.match(src, /app\.on\('second-instance'[\s\S]{0,400}if \(!secondInstanceShows\(argv\)\) return[\s\S]{0,400}activatedDuringStartup = true/)
 })
