@@ -50,7 +50,7 @@ import { promises as fsPromises } from 'node:fs'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { resolveProject } from '../shared/projectResolve.ts'
-import { legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startFailureExitCode, startRecord, startsInBackground, type LoginItemState } from '../shared/loginItem.ts'
+import { legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startRecord, startsInBackground, takeLaunchdStart, type LoginItemState } from '../shared/loginItem.ts'
 import { askRestartWindow, spawnRestartHelper, takeRestartWindow } from './restartFabric.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
@@ -95,7 +95,7 @@ import { withWork } from './agentWork.ts'
 import { createDisplayNameReader, withDisplayNames } from './projectNames.ts'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
-import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
+import { createQuitCoordinator, listenForQuitSignals, quitDeadlineExitCode, spawnQuitReaper, type QuitSignal } from './quit.ts'
 import { createEditorRecovery } from './editorRecovery.ts'
 import { readGateway } from './gateway'
 import { classifyStartupFailure, freeDiskGb, startupDialog, type StartupFailure } from '../shared/startupFailure'
@@ -465,6 +465,13 @@ import { createPastContext } from './pastContext.ts'
 import { launchPlace } from '../shared/launchPlace.ts'
 
 /**
+ * Whether launchd started this process as the board's job, read before anything else runs; the job's label is then
+ * removed from the environment, so no terminal, agent, helper or relaunch this process starts inherits it (the 0.3.18
+ * review, iteration 2, PL-21, ER-16: `shared/loginItem.ts#takeLaunchdStart`).
+ */
+const LAUNCHD_STARTED = takeLaunchdStart(process.env)
+
+/**
  * The Estate this process works in: the operator's recorded choice (A1-6b), read once at the
  * start of bootstrap and fixed for the life of the process. A restored Estate is opened by
  * recording it and restarting, never by rebinding a running process.
@@ -621,6 +628,9 @@ const quit = createQuitCoordinator({
     })
   },
   onHold: hideForService,
+  // UX-18 (the 0.3.18 review, iteration 2): a signal that ends launchd's copy ends 0 even at the deadline, so launchd's
+  // KeepAlive does not start again what the signal stopped.
+  deadlineExitCode: () => quitDeadlineExitCode({ signalled, underLaunchd: LAUNCHD_STARTED }),
   onDeadline: () => ops.failed('app.quit-deadline', new Error('quit_deadline'), { note: 'the drain or teardown stalled; the process was ended at the deadline' }),
   onSchedulerError: (e) => ops.failed('app.quit-scheduler-stop', e, { note: 'a scheduler failed to stop; the others were stopped and the quit continues' }),
   // Outside the process: ends it 15 s after quitting began even when Electron's teardown stalls.
@@ -635,18 +645,21 @@ const SYSTEM_ENDING_MS = 60_000
 /** The 0.3.18 review PL-4: only the Fabric on the operator's own data folder registers, removes or holds for the service. */
 const OWNS_BOARD_SERVICE = ownsBoardService(process.argv, process.env)
 /**
- * The 0.3.18 review PL-3: a signal is never the person's Quit. Electron turns SIGTERM into `app.quit()`, which the service
- * would hold; the listener marks the quit as a signal's and quits again, so the lifecycle broker, `launchctl` and `kill`
- * end Fabric within LC-01's deadline whatever the switch says.
+ * The 0.3.18 review PL-3: a signal is never the person's Quit. The listener marks the quit as a signal's, so the
+ * lifecycle broker, `launchctl` and `kill` end Fabric within LC-01's deadline whatever the switch says. It is added once
+ * Electron is ready: Electron 44 replaces a listener added at load with its own plain quit, which the service held
+ * (iteration 2, ER-13; `quit.ts#listenForQuitSignals`). A signal before ready reaches Electron's own quit, which a start
+ * not yet ready never holds.
  */
 let signalled = false
 /** «Перезапустить Fabric» ends this process whatever the service says (the 0.3.18 review UX-3). */
 let restarting = false
-function endOnSignal(): void {
+function endOnSignal(signal: QuitSignal): void {
   signalled = true
+  ops.record({ op: 'app.quit-signal', outcome: 'ok', level: 'info', detail: { signal }, ctx: { correlationId: ops.correlate() } })
   app.quit()
 }
-for (const signal of ['SIGTERM', 'SIGHUP', 'SIGINT'] as const) process.on(signal, endOnSignal)
+void app.whenReady().then(() => listenForQuitSignals(process, endOnSignal))
 /** A quit the board's service holds: every window closes and the Dock icon goes; the hub, the board and the terminals
  *  keep running until the next activation shows a window again (ADR-0192). */
 function hideForService(): void {
@@ -1788,7 +1801,6 @@ const STATS_WINDOW_DAYS = 7
 const quota = createQuotaReader()
 // Unsaved editor buffers, kept as the person types so no quit waits for an editor (ADR-0106 amendment).
 const editorRecovery = createEditorRecovery({ dir: path.join(app.getPath('userData'), 'editor-recovery') })
-try { editorRecovery.sweep() } catch (e) { ops.failed('editor.recovery-sweep', e, { note: 'old recovery records were not swept this start' }) }
 // The person unlocking the screen is the action a held credential read waits for: a locked
 // keychain is the usual reason a read was refused (lifecycle LC-04).
 void app.whenReady().then(() => powerMonitor.on('unlock-screen', () => { resetKeychainRefusal(); quota.retryCredential() }))
@@ -5840,7 +5852,7 @@ if (!isPrimary) {
   // The 0.3.18 review PL-6: launchd's own copy ends non-zero, so `KeepAlive {SuccessfulExit: false}` tries again once a
   // minute (the plist's ThrottleInterval) and takes the board over when the copy the person opened ends. A loser writes
   // no log (the log is installed at bootstrap, which a loser never reaches), so a retry adds nothing to it.
-  const exitCode = secondInstanceExitCode(process.env)
+  const exitCode = secondInstanceExitCode(LAUNCHD_STARTED)
   ops.record({
     op: 'startup.secondInstance',
     outcome: 'ok',
@@ -5851,6 +5863,9 @@ if (!isPrimary) {
   if (exitCode === 0) app.quit()
   else app.exit(exitCode)
 } else {
+  // Swept only by the process that won the lock (the 0.3.18 review, iteration 2, DA-11, ER-14): a losing copy, such as
+  // launchd's retry once a minute, must not remove a temporary file the running Fabric is about to rename.
+  try { editorRecovery.sweep() } catch (e) { ops.failed('editor.recovery-sweep', e, { note: 'old recovery records were not swept this start' }) }
   app.on('second-instance', (_event, argv) => {
     for (const arg of argv) if (isFabricLink(arg)) acceptLink(arg)
     // ER-6: a background start (launchd's copy trying again every minute, the lifecycle broker) asks for no window.
@@ -6306,10 +6321,10 @@ async function explainAndQuit(e: unknown): Promise<void> {
       continue
     }
     if (quit.quitting) return
-    // ER-4: `startupBroken` is set, so the service does not hold this quit; under launchd it ends 0, so KeepAlive does
-    // not bring this dialog back every minute (startFailureExitCode).
+    // ER-4: `startupBroken` is set, so the service does not hold this quit. Electron ends a quit with 0 whatever
+    // `process.exitCode` says (the 0.3.18 review, iteration 2, ER-17: measured with Electron 44.0.0), so this Quit exits
+    // 0 everywhere, and under launchd KeepAlive does not bring this dialog back every minute.
     app.quit()
-    process.exitCode = startFailureExitCode(process.env)
     return
   }
 }

@@ -32,3 +32,26 @@ test('a second launch during a background start is remembered as an activation (
   // ER-6 (0.3.18): a background second start (launchd's retry, the broker) is no activation; it returns before the flag.
   assert.match(src, /app\.on\('second-instance'[\s\S]{0,400}if \(!secondInstanceShows\(argv\)\) return[\s\S]{0,400}activatedDuringStartup = true/)
 })
+
+// The 0.3.18 review, iteration 2, PL-21 and ER-16: launchd's job label is read once, before anything starts a child, and
+// removed, so no terminal, agent or relaunch inherits it (`shared/loginItem.ts#takeLaunchdStart`, tested there).
+test('launchd\'s job label is taken from the environment before the quit wiring and any child', () => {
+  const taken = src.indexOf('const LAUNCHD_STARTED = takeLaunchdStart(process.env)')
+  assert.ok(taken > 0, 'index.ts reads the label once, at start')
+  assert.ok(taken < src.indexOf('const quit = createQuitCoordinator('), 'before the quit wiring')
+  assert.ok(taken < src.indexOf('let ACTIVE_ESTATE'), 'before the first statement of the main module, so before any child it starts')
+  assert.doesNotMatch(src, /launchdStarted\(process\.env\)/, 'never read again from the environment')
+  assert.match(src, /secondInstanceExitCode\(LAUNCHD_STARTED\)/)
+})
+
+// The 0.3.18 review, iteration 2, DA-11 and ER-14: a copy that loses the single-instance lock (launchd's retry, once a
+// minute while another Fabric runs) sweeps nothing the primary may be writing: the editor recovery sweep runs only once
+// the lock is won.
+test('the editor recovery sweep runs only in the process that won the single-instance lock', () => {
+  const sweeps = [...src.matchAll(/editorRecovery\.sweep\(\)/g)].map((m) => m.index)
+  assert.equal(sweeps.length, 1)
+  const lock = src.indexOf('const isPrimary = app.requestSingleInstanceLock()')
+  const primary = src.indexOf('} else {', src.indexOf('if (!isPrimary) {', lock))
+  assert.ok(lock > 0 && primary > lock)
+  assert.ok(sweeps[0] > primary && sweeps[0] < src.indexOf("app.on('second-instance'", primary), 'in the winner\'s branch, before anything else')
+})

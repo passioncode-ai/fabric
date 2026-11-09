@@ -1,6 +1,6 @@
 // CO-322 (the operator, 2026-10-16): Fabric starts at login by default, quietly, and the person can turn it off.
 import { describe, expect, it } from 'vitest'
-import { BOARD_LABEL, BOARD_SERVICE, LAUNCHD_RETRY_EXIT, RESTART_WINDOW_MS, launchdStarted, legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startFailureExitCode, startRecord, startsInBackground, type LoginItemState } from './loginItem'
+import { BOARD_LABEL, BOARD_SERVICE, LAUNCHD_RETRY_EXIT, RESTART_WINDOW_MS, launchdStarted, legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startRecord, startsInBackground, takeLaunchdStart, type LoginItemState } from './loginItem'
 
 describe('launch at login', () => {
   it('registers the packaged app with the system, on by default and off when the person says so', () => {
@@ -130,16 +130,28 @@ describe('the 0.3.18 review, iteration 1: launchd\'s copy', () => {
   })
   it('PL-6: launchd\'s copy that loses the lock ends non-zero, so KeepAlive tries again; any other loser ends cleanly', () => {
     expect(LAUNCHD_RETRY_EXIT).toBe(75)
-    expect(secondInstanceExitCode({ XPC_SERVICE_NAME: BOARD_LABEL })).toBe(75)
-    expect(secondInstanceExitCode({})).toBe(0)
-  })
-  it('ER-4: a failed start under launchd ends 0, so the failure dialog does not come back every minute', () => {
-    expect(startFailureExitCode({ XPC_SERVICE_NAME: BOARD_LABEL })).toBe(0)
-    expect(startFailureExitCode({})).toBe(1)
+    expect(secondInstanceExitCode(true)).toBe(75)
+    expect(secondInstanceExitCode(false)).toBe(0)
   })
   it('ER-6: a background start of another copy never raises the running window; a person\'s open does', () => {
     expect(secondInstanceShows(['Fabric', '--background'])).toBe(false)
     expect(secondInstanceShows(['Fabric'])).toBe(true)
+  })
+})
+
+describe('the 0.3.18 review, iteration 2, PL-21, ER-16: the job label stays with the process launchd started', () => {
+  it('is read once at start and removed, so no terminal, agent or relaunch inherits it', () => {
+    const env: Record<string, string | undefined> = { XPC_SERVICE_NAME: BOARD_LABEL, HOME: '/h' }
+    expect(takeLaunchdStart(env)).toBe(true)
+    expect(env).toEqual({ HOME: '/h' })
+    expect(launchdStarted(env)).toBe(false)
+    expect(takeLaunchdStart(env)).toBe(false)
+  })
+  it('leaves another job\'s name as it is, and a start without one is not launchd\'s', () => {
+    const env: Record<string, string | undefined> = { XPC_SERVICE_NAME: 'application.ai.passioncode.desktop.1.2' }
+    expect(takeLaunchdStart(env)).toBe(false)
+    expect(env.XPC_SERVICE_NAME).toBe('application.ai.passioncode.desktop.1.2')
+    expect(takeLaunchdStart({})).toBe(false)
   })
 })
 

@@ -19,7 +19,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { createRequire } from 'node:module'
-import { createQuitCoordinator } from '../src/main/quit.ts'
+import { QUIT_DEADLINE_EXIT_CODE, QUIT_SIGNALS, createQuitCoordinator, listenForQuitSignals, quitDeadlineExitCode } from '../src/main/quit.ts'
 
 // Electron's quit rule, modelled: a quit() requested while a native quit is still on the
 // stack (the same macrotask) is swallowed and leaves the app NOT quitting.
@@ -342,8 +342,66 @@ test('ADR-0192: with the service off, or before the runtime is up, a quit ends F
   }
 })
 
-// The 0.3.18 review, iteration 1, PL-3: a signal is never the person's Quit. Electron turns SIGTERM into `app.quit()`,
-// which the service holds; index.ts marks the signal and quits again, and `quitHolds` then lets the quit end Fabric.
+// The 0.3.18 review, iteration 2, ER-13: Electron 44 installs its own shutdown handler once the main module has run, and
+// that replaces a `process.on` listener added at load; one added after `ready` runs. The fixture holds every quit unless
+// its listener saw the signal, so only a listener that truly runs lets SIGTERM end it. Run in mode `held-at-load` (the
+// listener at module load, as 0.3.18's first candidate had it) the process is still alive at the bound (watched
+// 2026-11-09).
+test('ER-13: a real Electron main process whose quit the service holds still ends on SIGTERM', { timeout: 300_000, skip: noDisplay ? 'NOT_RUN: a real Electron window needs macOS or a DISPLAY' : false }, async () => {
+  const { result, out } = await runFixture('held')
+  assert.equal(result.alive, undefined, `still alive ${result.boundMs / 1000} s after SIGTERM: the signal reached no listener and the quit was held:\n` + out)
+  assert.equal(result.signal, null, out)
+  assert.equal(result.code, 0, out)
+  assert.match(out, /quit-app: signalled SIGTERM/)
+  assert.match(out, /quit-app: will-quit/)
+})
+
+test('ER-13: the signals that end Fabric are listened for, each once', () => {
+  const heard = []
+  listenForQuitSignals({ on: (signal, fn) => { heard.push(signal); fn(signal) } }, (s) => heard.push(`ended by ${s}`))
+  assert.deepEqual(QUIT_SIGNALS, ['SIGTERM', 'SIGHUP', 'SIGINT'])
+  assert.deepEqual(heard, ['SIGTERM', 'ended by SIGTERM', 'SIGHUP', 'ended by SIGHUP', 'SIGINT', 'ended by SIGINT'])
+})
+
+test('ER-13: index.ts listens for the signals only once Electron is ready, never at load', async () => {
+  const { readFileSync } = await import('node:fs')
+  const src = readFileSync(path.join(import.meta.dirname, '../src/main/index.ts'), 'utf8')
+  assert.doesNotMatch(src, /process\.on\(\s*['"]SIG/, 'a signal listener added at load is replaced by Electron\'s own')
+  assert.doesNotMatch(src, /for \(const signal of \[/)
+  assert.match(src, /void app\.whenReady\(\)\.then\(\(\) => listenForQuitSignals\(process, endOnSignal\)\)/)
+})
+
+// The 0.3.18 review, iteration 2, UX-18: launchd restarts its job after any end that is not a clean exit
+// (`KeepAlive {SuccessfulExit: false}`), so a signal that ends launchd's copy must not come back as a restart because
+// its drain ran into the deadline. Everywhere else the deadline still says it was needed (exit 3).
+test('UX-18: a signalled quit of launchd\'s copy that reaches the deadline ends 0; any other ends 3', () => {
+  assert.equal(quitDeadlineExitCode({ signalled: true, underLaunchd: true }), 0)
+  assert.equal(quitDeadlineExitCode({ signalled: false, underLaunchd: true }), QUIT_DEADLINE_EXIT_CODE)
+  assert.equal(quitDeadlineExitCode({ signalled: true, underLaunchd: false }), QUIT_DEADLINE_EXIT_CODE)
+  assert.equal(quitDeadlineExitCode({ signalled: false, underLaunchd: false }), QUIT_DEADLINE_EXIT_CODE)
+})
+
+test('UX-18: the coordinator ends at the deadline with the code it is given at that moment', () => {
+  const exits = []
+  let fire = null
+  let code = QUIT_DEADLINE_EXIT_CODE
+  const q = createQuitCoordinator({ app: { quit() {}, exit: (c) => exits.push(c) }, ready: () => true, shutdown: () => new Promise(() => {}),
+    setTimer: (fn) => { fire = fn; return {} }, deadlineExitCode: () => code })
+  q.beforeQuit({ preventDefault() {} })
+  code = 0
+  fire()
+  assert.deepEqual(exits, [0], 'read when the deadline fires, so a signal that came after the quit began counts')
+  const plain = []
+  let fire2 = null
+  const q2 = createQuitCoordinator({ app: { quit() {}, exit: (c) => plain.push(c) }, ready: () => true, shutdown: () => new Promise(() => {}), setTimer: (fn) => { fire2 = fn; return {} } })
+  q2.beforeQuit({ preventDefault() {} })
+  fire2()
+  assert.deepEqual(plain, [QUIT_DEADLINE_EXIT_CODE])
+})
+
+// The 0.3.18 review, iteration 1, PL-3: a signal is never the person's Quit. Should Electron's own plain quit reach the
+// service first, it is held; index.ts's listener marks the signal and quits again, and `quitHolds` then lets it end.
+// That the listener truly runs in Electron 44 is the real-process ER-13 test above.
 test('PL-3: a signal after a held quit ends Fabric within the drain, though the service is on', async () => {
   const { quitHolds } = await import('../src/shared/loginItem.ts')
   const { app, state } = modelElectron()
@@ -358,7 +416,7 @@ test('PL-3: a signal after a held quit ends Fabric within the drain, though the 
   await settle()
   assert.deepEqual(held, ['hide'])
   assert.equal(state.exited, null)
-  // index.ts's `process.on('SIGTERM')`: the quit is a signal's, so it ends.
+  // index.ts's signal listener (`listenForQuitSignals`, added once Electron is ready; ER-13): the quit is a signal's.
   signalled = true
   app.quit()
   await settle()

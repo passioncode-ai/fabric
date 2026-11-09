@@ -54,6 +54,8 @@ export interface QuitOptions {
   onHold?: () => void
   /** Upper bound from the first quit request to process exit. */
   hardDeadlineMs?: number
+  /** The code the deadline ends the process with, read when it fires (`quitDeadlineExitCode`); 3 when not given. */
+  deadlineExitCode?: () => number
   schedule?: (fn: () => void) => void
   setTimer?: (fn: () => void, ms: number) => { unref?: () => void }
   onDeadline?: () => void
@@ -75,6 +77,31 @@ export const QUIT_DEADLINE_MS = 10_000
 export const QUIT_DEADLINE_EXIT_CODE = 3
 /** The outside guard fires this long after quitting begins: past the in-process deadline, with a margin. */
 export const QUIT_REAPER_MS = 15_000
+
+/**
+ * The 0.3.18 review, iteration 2, UX-18: the deadline's exit code. launchd restarts its job after any end that is not a
+ * clean exit (the board's plist, `KeepAlive {SuccessfulExit: false}`), so a signal that ends launchd's copy (the
+ * lifecycle broker's stop, `kill`) ends 0 even when its drain ran into the deadline; the stall is still recorded
+ * (`onDeadline`). Every other quit that needed the deadline ends `QUIT_DEADLINE_EXIT_CODE`. The outside reaper's kill is
+ * not an exit at all, so launchd starts a copy it ended again: the system cannot tell it from a crash.
+ */
+export function quitDeadlineExitCode(o: { signalled: boolean; underLaunchd: boolean }): number {
+  return o.signalled && o.underLaunchd ? 0 : QUIT_DEADLINE_EXIT_CODE
+}
+
+/** The signals that end Fabric whatever the board's service says (ADR-0192; the 0.3.18 review PL-3, ER-13). */
+export const QUIT_SIGNALS = ['SIGTERM', 'SIGHUP', 'SIGINT'] as const
+export type QuitSignal = (typeof QUIT_SIGNALS)[number]
+
+/**
+ * Listens for `QUIT_SIGNALS`. Call it only once `app.whenReady()` has resolved: Electron 44 installs its own shutdown
+ * handler after the main module has been evaluated, which replaces a listener added at load, so a signal then reached
+ * Fabric only as a plain `app.quit()` the service held (the 0.3.18 review, iteration 2, ER-13: measured with the
+ * repository's Electron 44.0.0, CJS and ESM alike; a listener added after `ready` runs and the process exits 0).
+ */
+export function listenForQuitSignals(proc: { on(signal: QuitSignal, fn: () => void): unknown }, onSignal: (signal: QuitSignal) => void): void {
+  for (const signal of QUIT_SIGNALS) proc.on(signal, () => onSignal(signal))
+}
 
 /** The default outside guard: a detached shell that kills this pid unless it has already exited, and only while that pid
  *  is still this executable's process (platform.ts#quitReaperInvocation, 0.3.5 review ER-3). */
@@ -120,7 +147,7 @@ export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
     // cancels unload, Electron's teardown — the process ends. Unref'd so it never keeps an
     // otherwise finished process alive. Both guards are armed BEFORE the stops run: a stop that
     // blocks the main thread can only be ended by the outside guard (I3 E-1).
-    const timer = setTimer(() => { o.onDeadline?.(); o.app.exit(QUIT_DEADLINE_EXIT_CODE) }, hardDeadlineMs)
+    const timer = setTimer(() => { o.onDeadline?.(); o.app.exit(o.deadlineExitCode?.() ?? QUIT_DEADLINE_EXIT_CODE) }, hardDeadlineMs)
     timer.unref?.()
     try { o.armReaper?.(QUIT_REAPER_MS) } catch (e) {
       // The outside guard is a second line; the in-process deadline above still stands.

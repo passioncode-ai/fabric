@@ -57,24 +57,27 @@ export function launchdStarted(env: Readonly<Record<string, string | undefined>>
   return env.XPC_SERVICE_NAME === BOARD_LABEL
 }
 
+/**
+ * The 0.3.18 review, iteration 2, PL-21, ER-16: reads once, at start, whether launchd started this process as the
+ * board's job, and removes the job's label from the environment, so no terminal, coding agent, helper or relaunch this
+ * process starts inherits it and takes itself for launchd's copy. Another job's name is left as it is.
+ */
+export function takeLaunchdStart(env: Record<string, string | undefined>): boolean {
+  const started = launchdStarted(env)
+  if (started) delete env.XPC_SERVICE_NAME
+  return started
+}
+
 /** EX_TEMPFAIL (sysexits.h): the board's job lost the single-instance lock and should be tried again later. */
 export const LAUNCHD_RETRY_EXIT = 75
 
 /**
- * The 0.3.18 review PL-6: how a process that lost the single-instance lock ends. launchd's own copy ends with
- * `LAUNCHD_RETRY_EXIT`, so `KeepAlive {SuccessfulExit: false}` tries again (once a minute, the plist's
+ * The 0.3.18 review PL-6: how a process that lost the single-instance lock ends. launchd's own copy (`takeLaunchdStart`)
+ * ends with `LAUNCHD_RETRY_EXIT`, so `KeepAlive {SuccessfulExit: false}` tries again (once a minute, the plist's
  * `ThrottleInterval`) and takes over the board when the copy the person opened ends; any other loser ends cleanly.
  */
-export function secondInstanceExitCode(env: Readonly<Record<string, string | undefined>>): number {
-  return launchdStarted(env) ? LAUNCHD_RETRY_EXIT : 0
-}
-
-/**
- * The 0.3.18 review ER-4: the exit code of a start that failed and was quit from its dialog. Under launchd it is 0, so
- * `KeepAlive {SuccessfulExit: false}` does not bring the same failure dialog back every minute; elsewhere 1, as before.
- */
-export function startFailureExitCode(env: Readonly<Record<string, string | undefined>>): number {
-  return launchdStarted(env) ? 0 : 1
+export function secondInstanceExitCode(launchd: boolean): number {
+  return launchd ? LAUNCHD_RETRY_EXIT : 0
 }
 
 /**

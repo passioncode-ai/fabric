@@ -2,9 +2,9 @@
 // It wires the production quit coordinator to a window, a ticking scheduler and a shutdown
 // that settles at once — the case that left Fabric alive and windowless — and reports each
 // lifecycle hook on stdout so the test can tell a graceful exit from a kill.
-//   electron main.mjs <user-data-dir> [old]
+//   electron main.mjs <user-data-dir> [old | dialog | dialog-orphan | held | held-at-load]
 import { app, BrowserWindow } from 'electron'
-import { createQuitCoordinator } from '../../../src/main/quit.ts'
+import { createQuitCoordinator, listenForQuitSignals } from '../../../src/main/quit.ts'
 
 const [userData, mode] = process.argv.slice(process.argv.findIndex((a) => a.endsWith('main.mjs')) + 1)
 app.setPath('userData', userData)
@@ -27,6 +27,18 @@ if (mode === 'old') {
     void Promise.resolve().finally(() => app.quit())
   })
   app.on('window-all-closed', () => { say('window-all-closed'); if (process.platform !== 'darwin') app.quit() })
+} else if (mode === 'held' || mode === 'held-at-load') {
+  // ADR-0192's hold (the 0.3.18 review, iteration 2, ER-13): every quit is held unless a signal listener ran, as Fabric's
+  // `quitHolds` does with the board's service on. `held` listens once Electron is ready, as index.ts does; `held-at-load`
+  // listens at module load, the shape Electron 44 overrides, kept so the planted defect can be watched.
+  let signalled = false
+  const onSignal = (s) => { signalled = true; say(`signalled ${s}`); app.quit() }
+  const quit = createQuitCoordinator({ app, ready: () => true, holds: () => !signalled, onHold: () => say('held'), shutdown: async () => { say('shutdown') } })
+  quit.onQuit(() => { clearInterval(ticker); say(`schedulers-stopped ticks=${ticks}`) })
+  app.on('before-quit', (e) => { say('before-quit'); quit.beforeQuit(e) })
+  app.on('window-all-closed', () => { say('window-all-closed'); quit.windowAllClosed(process.platform) })
+  if (mode === 'held-at-load') listenForQuitSignals(process, onSignal)
+  else void app.whenReady().then(() => listenForQuitSignals(process, onSignal))
 } else {
   const quit = createQuitCoordinator({ app, ready: () => true, shutdown: async () => { say('shutdown') } })
   quit.onQuit(() => { clearInterval(ticker); say(`schedulers-stopped ticks=${ticks}`) })
