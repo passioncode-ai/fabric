@@ -367,7 +367,11 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   // The workflow's lease while Fabric still holds it (an offer not yet accepted): kept in memory only, never in the file.
   const leases = new Map<string, string>()
   const projectIds = new Map<string, string>()
-  const openFailedAt = new Map<string, number>()
+  /** ER-5, CO-544: when a request's workflow last failed to open, and how many times in a row; the wait doubles. */
+  const openFailedAt = new Map<string, { at: number; inRow: number }>()
+  const openFailed = (id: string, now: number): void => {
+    openFailedAt.set(id, { at: now, inRow: (openFailedAt.get(id)?.inRow ?? 0) + 1 })
+  }
   /** ER-9: the dispatch id and end of an open whose answer was lost, asked again with the same ones. */
   const retryOpen = new Map<string, { dispatchId: string; endsAt: string }>()
   /** §3.6: a request that goes to the operator has its workflow closed, taken back first when a run holds it. */
@@ -408,7 +412,12 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     const folder = await deps.folderOf(fabricProject)
     if (!folder) throw new Error('the project has no folder on this computer')
     const r = await deps.observatory('observatory_resolve', { id: folder })
-    if (typeof r.canonical !== 'string') throw new Error('Observatory does not know this project')
+    if (typeof r.canonical !== 'string') {
+      // CO-544: an ambiguous folder (two Observatory projects measure it) is said as such, with the candidates.
+      const candidates = Array.isArray(r.candidates) ? r.candidates.filter((c): c is string => typeof c === 'string') : []
+      if (r.error === 'ambiguous') throw new Error(`Observatory names several projects for this folder (${candidates.join(', ') || 'none named'})`)
+      throw new Error('Observatory does not know this project')
+    }
     projectIds.set(fabricProject, r.canonical)
     return r.canonical
   }
@@ -573,7 +582,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         if (now - (last.endedAt ?? last.startedAt) < refusalBackoffMs(inRow)) continue
       }
       // Iteration 2, ER-5: a workflow that could not be opened is not tried again for the request sooner than the back-off.
-      if (now - (openFailedAt.get(req.id) ?? -Infinity) < REFUSAL_BACKOFF_MS) continue
+      // CO-544: and each failure in a row doubles that wait, so one that keeps failing is not asked every ten minutes.
+      const failedOpen = openFailedAt.get(req.id)
+      if (failedOpen && now - failedOpen.at < refusalBackoffMs(failedOpen.inRow)) continue
       const provider = await deps.defaultProvider()
       if (!provider) { said(req.id, { path: 'wait', check: 'deferred-no-agent' }); continue }
       const folder = await deps.folderOf(req.target)
@@ -589,12 +600,13 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       try {
         opened = await open(req, last, provider, endsAt, dispatchId)
         firstLine({ workflow: opened.workflowId, handoff: opened.handoffId, request: req.id }) // the ids are well formed (§3.5)
+        openFailedAt.delete(req.id) // CO-544: an open that worked ends the run of failures
       } catch (e) {
         // ER-5: the run's workflow is not silent yet; a later pass takes it back, with no back-off and no failure.
         if (e instanceof NotSilentYet) { deps.log('board.dispatch.decided', 'ok', { request: req.id, path: 'wait', check: 'workflow-not-silent' }); continue }
         // Recorded through the caller's ops sink (deps.log); the request is tried again on a later pass.
         deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(e) })
-        openFailedAt.set(req.id, now)
+        openFailed(req.id, now)
         if (!last) retryOpen.set(req.id, { dispatchId, endsAt })
         continue
       }
@@ -614,7 +626,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // ER-8: a record that could not be saved is not started; it is dropped, so no later pass starts it either, and the
         // workflow Fabric holds for it is closed; the next attempt after the back-off opens a new one.
         records = records.filter((x) => x !== r)
-        openFailedAt.set(req.id, now)
+        openFailed(req.id, now)
         deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: `the record could not be saved: ${noteOf(e)}` })
         await closeWorkflow(r, 'unsaved').catch((c: unknown) => deps.log('board.dispatch.closed', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(c) }))
         continue

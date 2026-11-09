@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The board dispatcher no longer retries a stuck request every ten minutes** (CO-544). When it cannot open the
+  work for a request, it now waits twice as long after each failure in a row, up to six hours, and says when a
+  folder belongs to more than one project instead of calling it unknown.
 - **A refused reply no longer reads as a broken check in the log** (CO-541). When an agent replies to a message it
   cannot read, the board's refusal is now recognised as the reply's own refusal instead of being logged as a failed
   check of the wall between businesses.

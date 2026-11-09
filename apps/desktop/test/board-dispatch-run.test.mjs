@@ -313,6 +313,38 @@ test('iteration 2, ER-5: a workflow that could not be opened is not opened again
   assert.equal(opens, 2)
 })
 
+// CO-544: an open that keeps failing (Observatory does not know the project) waited a flat REFUSAL_BACKOFF_MS for the
+// request's whole week, 87 tries in 15 hours on the operator's Mac; each failure in a row now doubles the wait.
+test('CO-544: a workflow open that keeps failing waits longer each time, up to the refusal ceiling', async () => {
+  const w = world()
+  let opens = 0
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => { if (name === 'observatory_handoff_create') { opens++; throw new Error('Observatory does not know this project') } return real(name, args) }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(opens, 1)
+  w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(opens, 2, 'the first wait is the refusal back-off')
+  w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(opens, 2, 'the second failure in a row waits twice as long')
+  w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(opens, 3)
+  w.tick(3 * REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(opens, 3, 'the third waits four times as long')
+  w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(opens, 4)
+})
+
+test('CO-544: a folder two Observatory projects measure is said as ambiguous, with the candidates', async () => {
+  const w = world()
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => (name === 'observatory_resolve' ? { error: 'ambiguous', candidates: ['project:a', 'project:b'] } : real(name, args))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  const failed = w.logs.find((l) => l.op === 'board.dispatch.started' && l.outcome === 'failed')
+  assert.match(failed?.detail.note ?? '', /several projects for this folder \(project:a, project:b\)/)
+})
+
 test('iteration 2, ER-6: with the switch off a start left without an answer is not asked again', async () => {
   const w = world()
   w.deps.launch = async (args) => { w.launches.push(args); return { refused: 'failed' } }
