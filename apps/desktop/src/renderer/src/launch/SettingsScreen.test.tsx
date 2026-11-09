@@ -258,6 +258,41 @@ describe('launch at login, only where it does something (CO-322; 0.3.7 review UX
     expect(await screen.findByText(en['settings.launchAtLogin.offDarwin'])).toBeTruthy()
   })
 
+  // The 0.3.18 review, iteration 2, UX-13, DO-12: Quit only hides Fabric while the switch is on AND macOS reads the
+  // service as enabled (`shared/loginItem.ts#quitHolds`); the note says exactly that, and never contradicts the off line.
+  it('UX-13: says Quit only hides Fabric only while the service runs; otherwise that Quit ends it', async () => {
+    withLoginItem({ supported: true, platform: 'darwin', system: 'on' })
+    open(true)
+    expect(await screen.findByText(en['settings.boardServiceQuitHides'])).toBeTruthy()
+    expect(screen.queryByText(en['settings.boardServiceQuitEnds'])).toBeNull()
+    for (const system of ['needs-approval', 'off', 'unknown']) {
+      cleanup()
+      withLoginItem({ supported: true, platform: 'darwin', system })
+      open(true)
+      expect(await screen.findByText(en['settings.boardServiceQuitEnds'])).toBeTruthy()
+      expect(screen.queryByText(en['settings.boardServiceQuitHides']), system).toBeNull()
+    }
+    cleanup()
+    withLoginItem({ supported: true, platform: 'darwin', system: 'off' })
+    open(false)
+    expect(await screen.findByText(en['settings.boardServiceOff'])).toBeTruthy()
+    expect(screen.queryByText(en['settings.boardServiceQuitHides'])).toBeNull()
+    expect(screen.queryByText(en['settings.boardServiceQuitEnds'])).toBeNull()
+  })
+
+  // UX-14, DO-12: a Mac updated from 0.3.17 keeps its old login item until the service runs, so it still starts at login.
+  it('UX-14: an updated Mac that keeps the old login item is told it still starts at login, but not after a crash', async () => {
+    withLoginItem({ supported: true, platform: 'darwin', system: 'needs-approval', legacy: true })
+    open(true)
+    expect(await screen.findByText(en['settings.launchAtLogin.approvalLegacy'])).toBeTruthy()
+    expect(screen.queryByText(en['settings.launchAtLogin.approval'])).toBeNull()
+    cleanup()
+    withLoginItem({ supported: true, platform: 'darwin', system: 'off', legacy: true })
+    open(true)
+    expect(await screen.findByText(en['settings.launchAtLogin.offDarwinLegacy'])).toBeTruthy()
+    expect(screen.queryByText(en['settings.launchAtLogin.offDarwin'])).toBeNull()
+  })
+
   it('on Windows: the Start menu, never the Dock', async () => {
     withLoginItem({ supported: true, platform: 'win32', system: 'off' })
     open(true)

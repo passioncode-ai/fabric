@@ -3282,13 +3282,19 @@ export const en = {
   'settings.more.persona': "Fabric\u2019s name and look",
   'settings.more.help': "Help and the first run",
   'settings.boardService': "Board service: Fabric always runs in the background",
-  'settings.boardServiceNote': "Agents and the board keep working while Fabric's window is closed. Fabric starts without a window when you log in, and the system starts it again after a crash. Quit Fabric only closes the windows and removes the Dock icon; open Fabric again from Launchpad, Spotlight or the Applications folder. To stop Fabric completely, turn the service off, then choose Quit Fabric.",
+  'settings.boardServiceNote': "Agents and the board keep working while Fabric's window is closed. Fabric starts without a window when you log in, and the system starts it again after a crash.",
+  // The 0.3.18 review, iteration 2, UX-13, UX-14: the Quit sentence is said only when it is true (quitHolds), and a Mac
+  // updated from 0.3.17 that keeps its old login item is told it still starts at login.
+  'settings.boardServiceQuitHides': "“Quit Fabric” only closes the windows and removes the Dock icon; open Fabric again from Launchpad, Spotlight or the Applications folder. To stop Fabric completely, turn the service off, then choose “Quit Fabric”.",
+  'settings.boardServiceQuitEnds': "Until macOS confirms the service is on, “Quit Fabric” ends Fabric completely.",
   'settings.boardServiceOff': "The service is off: once you quit Fabric, agents cannot reach the board until you open it again.",
   'settings.launchAtLogin': "Start Fabric when you log in",
   // 0.3.7 review UX-3, ER-3: Windows has no Dock, and the row says what the system itself reports.
   'settings.launchAtLoginNoteWindows': "It starts without a window, so your agents and the board keep running; open it from the Start menu when you need it.",
   'settings.launchAtLogin.offDarwin': "macOS does not start Fabric at login or again after a crash now: it is turned off in System Settings, under Login Items.",
   'settings.launchAtLogin.offWindows': "Windows does not start Fabric at login now: it is turned off in Settings, under Startup apps.",
+  'settings.launchAtLogin.approvalLegacy': "macOS is waiting for you to allow Fabric in System Settings, under Login Items; until then Fabric starts at login as before, but the system does not start it again after a crash.",
+  'settings.launchAtLogin.offDarwinLegacy': "macOS does not run Fabric's service now: it is turned off in System Settings, under Login Items. Fabric still starts at login as before, but the system does not start it again after a crash.",
   'settings.launchAtLogin.approval': "macOS is waiting for you to allow Fabric in System Settings, under Login Items; until then Fabric does not start at login or again after a crash.",
   'settings.launchAtLogin.stillOn': "The system still starts Fabric at login.",
   'settings.launchAtLogin.unknown': "Could not read whether the system starts Fabric at login.",

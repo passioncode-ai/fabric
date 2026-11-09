@@ -177,7 +177,16 @@ export function restartShowsWindow(askedAt: number | null, now: number): boolean
  * Run entry will start at login (a person can disable it in Startup apps). A read that throws is `unknown`.
  */
 export type LoginItemSystem = 'on' | 'off' | 'needs-approval' | 'unknown'
-export type LoginItemState = { supported: false } | { supported: true; platform: 'darwin' | 'win32'; system: LoginItemSystem }
+export type LoginItemState =
+  | { supported: false }
+  | {
+      supported: true
+      platform: 'darwin' | 'win32'
+      system: LoginItemSystem
+      /** macOS only, for Settings (the 0.3.18 review, iteration 2, UX-14): 0.3.17's login item is still registered, so
+       *  Fabric starts at login as before while the service does not run. Absent where it was not read. */
+      legacy?: boolean
+    }
 export type LoginItemReading = { status?: string; executableWillLaunchAtLogin?: boolean }
 
 export function loginItemState(platform: string, packaged: boolean, read: () => LoginItemReading): LoginItemState {

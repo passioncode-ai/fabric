@@ -5329,7 +5329,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   handle(IPC.settingsReadiness, (): Promise<Returns<FabricApi['settings']['readiness']>> => readFabricReadiness(sessionEnvironment(process.env)))
   // Read-only: whether launch at login is offered here, and what the system reports (0.3.7 review UX-3, ER-3).
-  handle(IPC.settingsLoginItem, (): Returns<FabricApi['settings']['loginItem']> => readLoginItem())
+  handle(IPC.settingsLoginItem, (): Returns<FabricApi['settings']['loginItem']> => {
+    const state = readLoginItem()
+    // UX-14 (the 0.3.18 review, iteration 2): whether 0.3.17's login item still starts Fabric, for the Settings line.
+    const legacy = legacyLoginItem(process.platform, app.isPackaged)
+    if (!state.supported || !legacy) return state
+    try {
+      return { ...state, legacy: app.getLoginItemSettings({ type: 'mainAppService' }).status === 'enabled' }
+    } catch (e) {
+      ops.failed('app.login-item-legacy', e, { note: 'Settings does not say whether the old login item still starts Fabric' })
+      return state
+    }
+  })
   // Read-only: whether the environment keeps folder trust off whatever the switch says (0.3.13 review, iteration 1, UX-9).
   handle(IPC.settingsFolderTrustLocked, (): Returns<FabricApi['settings']['folderTrustLocked']> => folderTrustOverridden(process.env))
   handle(IPC.settingsWrite, (_e, raw: unknown): Returns<FabricApi['settings']['write']> => {

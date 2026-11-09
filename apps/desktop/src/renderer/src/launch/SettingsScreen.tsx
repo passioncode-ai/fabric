@@ -124,12 +124,16 @@ export function LaunchAtLoginSetting({ value, onChange }: {
   const state = read && 'value' in read ? read.value : null
   if (!state?.supported) return null
   const darwin = state.platform === 'darwin'
+  // UX-14 (the 0.3.18 review, iteration 2): a Mac updated from 0.3.17 keeps its old login item until the service runs.
+  const legacy = darwin && state.legacy === true
   const system =
     state.system === 'unknown' ? t('settings.launchAtLogin.unknown')
-      : value && state.system === 'needs-approval' ? t('settings.launchAtLogin.approval')
-        : value && state.system === 'off' ? t(darwin ? 'settings.launchAtLogin.offDarwin' : 'settings.launchAtLogin.offWindows')
+      : value && state.system === 'needs-approval' ? t(legacy ? 'settings.launchAtLogin.approvalLegacy' : 'settings.launchAtLogin.approval')
+        : value && state.system === 'off' ? t(!darwin ? 'settings.launchAtLogin.offWindows' : legacy ? 'settings.launchAtLogin.offDarwinLegacy' : 'settings.launchAtLogin.offDarwin')
           : !value && state.system === 'on' ? t('settings.launchAtLogin.stillOn')
             : null
+  // UX-13: Quit only hides Fabric while the switch is on AND macOS reads the service as enabled (`loginItem.ts#quitHolds`).
+  const quit = !darwin || !value ? null : t(state.system === 'on' ? 'settings.boardServiceQuitHides' : 'settings.boardServiceQuitEnds')
   // ADR-0192: on macOS the switch is the board's service, which launchd keeps; Windows keeps launch at login.
   return (
     <>
@@ -138,6 +142,7 @@ export function LaunchAtLoginSetting({ value, onChange }: {
         {t(darwin ? 'settings.boardService' : 'settings.launchAtLogin')}
       </label>
       <p className="settings-note">{t(darwin ? 'settings.boardServiceNote' : 'settings.launchAtLoginNoteWindows')}</p>
+      {quit && <p className="settings-note">{quit}</p>}
       {darwin && !value && <p className="settings-note" role="status">{t('settings.boardServiceOff')}</p>}
       {system && <p className="settings-note" role="status">{system}</p>}
     </>
