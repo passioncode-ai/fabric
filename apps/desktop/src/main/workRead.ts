@@ -375,6 +375,15 @@ const SESSION_TASK_COLUMNS = 'id,project_id,title,brief_what,brief_why,brief_exp
  * not happen. Claims are read twice the page's limit, so a task claimed again and again does not push the rest out.
  */
 /** How many earlier session ids of one agent its page reads (CO-475): the bound keeps the list filters short. */
+/** The backlog-row read's failure last said, so a page re-read every 15 s and on every journal mark writes one line when
+ *  the read starts failing or its failure changes, and one when it recovers (the 0.3.18 review, iteration 1, DA-8: the
+ *  rule `ipcOutcome.ts#QUIET_WHEN_OK` keeps for the channel's own answers). */
+let sourcesFailing: string | null = null
+function sayIfChanged(failed: string | null): void {
+  if (failed && failed !== sourcesFailing) ops.failed('work.session-sources-unread', new Error(failed), { note: "an agent's tasks are shown without their backlog rows" })
+  else if (!failed && sourcesFailing !== null) ops.record({ op: 'work.session-sources-unread', outcome: 'ok', level: 'info', detail: { recovered: true }, ctx: { correlationId: ops.correlate() } })
+  sourcesFailing = failed
+}
 export const SESSION_ALIASES = 20
 
 /** The earlier session ids of an agent, as the renderer sends them: uuids only, never the live id, at most `SESSION_ALIASES`. */
@@ -427,7 +436,7 @@ export async function readSessionTasks(
   // SCN-181 (CO-543): the backlog rows that link these tasks, for their rows by direction. A failed read is recorded and
   // said on the page («Из бэклога» may be missing tasks); the tasks themselves stay.
   const sourcesRead = await store.selectIn('task_sources', 'task_id,path,row_id', 'task_id', [...new Set([...ids, ...launchedIds])])
-  if (sourcesRead.failed) ops.failed('work.session-sources-unread', new Error(sourcesRead.failed), { note: "an agent's tasks are shown without their backlog rows" })
+  sayIfChanged(sourcesRead.failed)
   const view = composeSessionTasks({
     claims: claimRows,
     launched: launchedRows,

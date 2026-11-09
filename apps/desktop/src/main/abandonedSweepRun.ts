@@ -169,6 +169,8 @@ export interface SweptReceipt {
   told: number
   queued: number
   released: number
+  /** CO-537: the reviews this sweep accepted by default (the 0.3.18 review, iteration 1, DA-2); absent when none. */
+  acceptedByDefault?: number
   /** The reads that failed, so what they find was judged blind this sweep. */
   unread?: SweepRead[]
   /** The reads that stopped at their bounds. */
@@ -343,7 +345,7 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     // `task-unclaimed` finding the operator sees in «На проверке», and the next sweep tries again.
     const repaired = await repairLeftRunning(holders, taskRead)
     // CO-537: what waited in review past three days is accepted by default before anything is told.
-    await acceptOldReviews(now)
+    const acceptedByDefault = await acceptOldReviews(now)
     const findings = findAbandoned({
       now,
       claims: claimRead?.claims ?? [],
@@ -475,10 +477,12 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
     const readState = JSON.stringify({ unread: [...failedReads].sort(), capped: [...capped].sort() })
     const readsChanged = readState !== lastReadState
     if (!failedReads.length && !capped.length) lastReadState = readState
-    if ((decided.tell.length || released || ((failedReads.length || capped.length) && readsChanged)) && !deps.quitting()) {
+    // DA-2 (the 0.3.18 review): a sweep that accepted reviews by default writes its receipt for that alone, since each
+    // acceptance is a terminal close the operator should find counted.
+    if ((decided.tell.length || released || acceptedByDefault || ((failedReads.length || capped.length) && readsChanged)) && !deps.quitting()) {
       const found: Partial<Record<AbandonedKind, number>> = {}
       for (const f of findings) found[f.kind] = (found[f.kind] ?? 0) + 1
-      const receipt: SweptReceipt = { found, told: decided.tell.length, queued, released, ...(failedReads.length ? { unread: failedReads } : {}), ...(capped.length ? { capped } : {}) }
+      const receipt: SweptReceipt = { found, told: decided.tell.length, queued, released, ...(acceptedByDefault ? { acceptedByDefault } : {}), ...(failedReads.length ? { unread: failedReads } : {}), ...(capped.length ? { capped } : {}) }
       try {
         await deps.recordSwept(receipt)
         lastReadState = readState

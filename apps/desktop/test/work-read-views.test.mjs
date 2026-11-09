@@ -250,3 +250,35 @@ test('the home counts every task in review moved there more than three days ago 
   assert.equal(asked, 1000)
   assert.equal(capped.reviewOldCapped, true)
 })
+
+test('DA-8 (0.3.18 review): an agent page re-read every 15 s says a failed backlog-row read once per change, not per read', async () => {
+  const { readSessionTasks } = await import(path.resolve(import.meta.dirname, '../src/main/workRead.ts'))
+  const { useOps } = await import(path.resolve(import.meta.dirname, '../src/main/opsSink.ts'))
+  const S = '11111111-2222-4333-8444-555555555556'
+  const lines = []
+  useOps({ record: (r) => lines.push(r), correlate: () => 'c', begin: () => () => {}, read: () => [], file: () => null, lost: () => 0 })
+  try {
+    const store = (fail) => ({
+      select: () => {
+        const chain = { is: () => chain, not: () => chain, limit: () => chain, in: () => chain, eq: () => chain, order: () => chain,
+          then: (ok) => ok({ data: [], error: null }) }
+        return chain
+      },
+      selectIn: async (table) => (fail && table === 'task_sources' ? { rows: [], failed: fail } : { rows: [], failed: null })
+    })
+    const said = () => lines.filter((l) => l.op === 'work.session-sources-unread')
+    for (let i = 0; i < 3; i++) await readSessionTasks(store('task_sources: away'), S)
+    assert.equal(said().length, 1, 'the same failure, read three times, is one line')
+    assert.equal(said()[0].outcome, 'failed')
+    await readSessionTasks(store('task_sources: other'), S)
+    assert.equal(said().length, 2, 'a changed failure is a new line')
+    await readSessionTasks(store(null), S)
+    await readSessionTasks(store(null), S)
+    assert.equal(said().length, 3, 'the recovery is one line')
+    assert.equal(said()[2].outcome, 'ok')
+    await readSessionTasks(store('task_sources: away'), S)
+    assert.equal(said().length, 4, 'failing again after a recovery is said again')
+  } finally {
+    useOps(null)
+  }
+})

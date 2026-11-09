@@ -1419,6 +1419,24 @@ test('CO-537: the sweep accepts reviews older than three days, the oldest first,
   assert.deepEqual(accepted, [['r-oldest', 'p2', iso(T0 - 9 * DAY)], ['r-old', 'p1', iso(T0 - 4 * DAY)]])
 })
 
+test('DA-2 (0.3.18 review): the sweep\'s receipt counts the reviews it accepted by default, and is written for them alone', async () => {
+  const w = world()
+  w.deps.readReviews = async () => [
+    { taskId: 'r-old', projectId: 'p1', movedAt: iso(T0 - 4 * DAY) },
+    { taskId: 'r-oldest', projectId: 'p2', movedAt: iso(T0 - 9 * DAY) },
+    { taskId: 'r-stuck', projectId: 'p2', movedAt: iso(T0 - 5 * DAY) }
+  ]
+  w.deps.acceptReview = async (taskId) => (taskId === 'r-stuck' ? { accepted: false, failed: 'moved since' } : { accepted: true })
+  await sweepOnce(createAbandonedSweep(w.deps))
+  assert.equal(w.receipts.length, 1, 'a sweep that only accepted reviews still writes its receipt')
+  assert.equal(w.receipts[0].acceptedByDefault, 2)
+  const quiet = world()
+  quiet.deps.readReviews = async () => [{ taskId: 'r-fresh', projectId: 'p1', movedAt: iso(T0 - DAY) }]
+  quiet.deps.acceptReview = async () => ({ accepted: true })
+  await sweepOnce(createAbandonedSweep(quiet.deps))
+  assert.equal(quiet.receipts.length, 0, 'nothing accepted, nothing else done: no receipt')
+})
+
 test('CO-537: a failed read or close is said in the ops log, tried again next sweep, and never stops the sweep', async () => {
   const w = world({ tasks: [doneTask()] })
   const moved = []
