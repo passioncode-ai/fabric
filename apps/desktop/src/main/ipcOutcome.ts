@@ -13,7 +13,9 @@
  */
 
 /** Channels the renderer polls on a clock. */
-export const QUIET_WHEN_OK: ReadonlySet<string> = new Set(['comms:heads'])
+/** CO-544: the agent's session card re-reads its history, tasks and messages on every journal mark and every 15 s; three
+ *  `ok` lines per agent per mark filled the capped log and pushed real failures out. */
+export const QUIET_WHEN_OK: ReadonlySet<string> = new Set(['comms:heads', 'terminal:history', 'work:session', 'work:messages'])
 
 export interface IpcOutcomeLine {
   outcome: 'ok' | 'failed' | 'unknown'

@@ -1308,7 +1308,7 @@ function Shell({
           // CO-419 (the operator, 2026-10-24): one agents screen, the list by state on the right and the chosen agent's
           // «Работа» and «Консоль» in the centre; it replaces the three stacked lists (SX-3). `sessions` stays null
           // until read (M108): the screen says it is reading, never that nobody works.
-          <AgentsScreen mark={markOf(marks, ['work', 'task', 'agent', 'session'])} hubMark={markOf(marks, ['act', 'access'])}
+          <AgentsScreen mark={markOf(marks, ['work', 'task', 'agent', 'session', 'question'])} hubMark={markOf(marks, ['act', 'access'])}
             initialSession={active.session ?? null}
             initialAgent={active.agent ?? null}
             onPick={(agent) => {

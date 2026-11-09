@@ -28,7 +28,7 @@
  * «Чем закончил», «Вехи» and «Нужна правка в другом проекте» inline; the session card adds «Агент», and under it
  * «Вопросы этого агента».
  */
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { SayToAgent } from './SayToAgent'
 import type { LiveAgent } from '../../../shared/homeLive'
 import type { FeedEvent } from '../../../shared/types'
@@ -50,6 +50,7 @@ import { useMediaQuery } from '../useMediaQuery'
 import { boardEntries, type BoardEntry, type BoardQuestion } from '../../../shared/board.ts'
 import type { AgentQuestion } from '../../../shared/sessionTasks.ts'
 import { folderName } from '../../../shared/railAgents'
+import { usePaneRead } from './paneRead'
 
 type Read = { at: 'reading' } | { at: 'ready'; events: FeedEvent[] } | { at: 'failed'; says: string; kept: FeedEvent[] | null }
 type TasksRead = { at: 'reading' } | { at: 'ready'; view: SessionTasksView } | { at: 'failed'; says: string; kept: SessionTasksView | null }
@@ -130,38 +131,20 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
   const locale = useLocale()
   // CO-476: below 1000 px the session card follows «Сейчас» in the DOM, where the narrow layout shows it.
   const narrow = useMediaQuery('(max-width: 1000px)')
-  const [read, setRead] = useState<Read & { of: string }>({ at: 'reading', of: agent.sessionId })
   const [attempt, setAttempt] = useState(0)
-  useEffect(() => {
-    let alive = true
-    const of = agent.sessionId
-    Promise.resolve().then(() => window.fabric.terminal.history(of)).then(
-      (events) => { if (alive) setRead({ at: 'ready', events, of }) },
-      (e: unknown) => {
-        if (alive) setRead((r) => ({ at: 'failed', says: e instanceof Error ? e.message : String(e), kept: r.of === of && r.at === 'ready' ? r.events : null, of }))
-      }
-    )
-    return () => { alive = false }
-  }, [agent.sessionId, mark, attempt])
-  const [tasksRead, setTasksRead] = useState<TasksRead & { of: string }>({ at: 'reading', of: agent.sessionId })
+  // CO-544: coalesced, on a 15 s tick, and a second failure keeps what was shown (`paneRead.ts#usePaneRead`).
+  const history = usePaneRead(agent.sessionId, '', () => window.fabric.terminal.history(agent.sessionId), mark, attempt)
+  const read: Read & { of: string } = history.at === 'ready' ? { at: 'ready', events: history.value, of: history.of } : history
   const [tasksAttempt, setTasksAttempt] = useState(0)
   const aliasKey = (agent.aliases ?? []).join(',')
   const [lane, setLane] = useState<SessionLane | 'all'>('all')
   /** The task row whose «Нужна правка в другом проекте» is open; one at a time. */
   const [xpOpen, setXpOpen] = useState<string | null>(null)
-  useEffect(() => {
-    let alive = true
-    const of = agent.sessionId
-    // A bridge without the read (an older preload) is a failed read, said as such, never «no task». CO-475: the agent's
-    // earlier session ids are read with the live one, so a question asked before a re-enrolment is still its question.
-    Promise.resolve().then(() => (aliasKey ? window.fabric.work.session(of, aliasKey.split(',')) : window.fabric.work.session(of))).then(
-      (view) => { if (alive) setTasksRead({ at: 'ready', view, of }) },
-      (e: unknown) => {
-        if (alive) setTasksRead((r) => ({ at: 'failed', says: e instanceof Error ? e.message : String(e), kept: r.of === of && r.at === 'ready' ? r.view : null, of }))
-      }
-    )
-    return () => { alive = false }
-  }, [agent.sessionId, aliasKey, mark, tasksAttempt])
+  // A bridge without the read (an older preload) is a failed read, said as such, never «no task». CO-475: the agent's
+  // earlier session ids are read with the live one, so a question asked before a re-enrolment is still its question.
+  const tasksPane = usePaneRead(agent.sessionId, aliasKey,
+    () => (aliasKey ? window.fabric.work.session(agent.sessionId, aliasKey.split(',')) : window.fabric.work.session(agent.sessionId)), mark, tasksAttempt)
+  const tasksRead: TasksRead & { of: string } = tasksPane.at === 'ready' ? { at: 'ready', view: tasksPane.value, of: tasksPane.of } : tasksPane
   const tasksMine = tasksRead.of === agent.sessionId ? tasksRead : ({ at: 'reading', of: agent.sessionId } as const)
   const tasksView = tasksMine.at === 'ready' ? tasksMine.view : tasksMine.at === 'failed' ? tasksMine.kept : null
   const nameOf = new Map((tasksView?.tasks ?? []).map((x) => [x.taskId, x.summary]))
