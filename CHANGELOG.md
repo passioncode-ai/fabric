@@ -7,7 +7,14 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.18
+
+**Upgrading.** No schema step: the database stays at schema 100. On the first start macOS may show its notice that a
+background item was added, or ask you to allow Fabric in System Settings, General, Login Items and Extensions. The
+first sweeps after the update accept every review that has waited more than three days, and each one's history says
+so. To stop Fabric completely on macOS, turn «Служба доски» off in Settings, then quit: while the service is on, a copy
+of Fabric the system did not start is replaced by the system's own within a minute when a signal ends it. Going back to
+0.3.17: turn «Служба доски» off in 0.3.18 first, then turn launch at login on again in 0.3.17.
 
 - **A project's work by direction** (CO-543, SCN-181). The project page shows «Направления работы» where the board
   glance stood: one row per direction, each a strip of cards that scrolls sideways, newest first. Work comes in from
