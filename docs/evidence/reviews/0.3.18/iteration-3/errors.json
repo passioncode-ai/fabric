@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "bba86bce9964fa7b27e72baf591ca226516c9130",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3/2026-11-09-errors.md",
+  "reportSha256": "9620a28c8fd6cb932966dd89b81f4dfbc191e1a0837ec075593d0a3cdcf529da",
+  "reviewerRun": "release-0318-i3-errors-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-18",
+      "source": "V3-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit): the question is always a sheet on the main window (shown or created first), with the fixture case \"restart question with no window, SIGTERM ends 0\""
+      ]
+    },
+    {
+      "id": "ER-19",
+      "source": "V3-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit) (with DA-12): the sentence is chosen from the note's lines, each case tested"
+      ]
+    },
+    {
+      "id": "ER-20",
+      "source": "V3-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit): quit only after the child's `spawn` event, or arm `app.relaunch` in its `error` handler; tested with a command that does not exist"
+      ]
+    },
+    {
+      "id": "ER-21",
+      "source": "V3-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit): open the running bundle by its path, `open -b` only as the last resort"
+      ]
+    },
+    {
+      "id": "ER-22",
+      "source": "V3-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-549: measured in the Release close (item 5's hand-over and case (f)); the Lifecycle row and the runbook state the hand-over, or a signalled copy stops launchd's job too, as CO-549 decides from the measurement; the close already relies on it (item 5 hands the board to launchd by a SIGTERM)"
+      ]
+    },
+    {
+      "id": "ER-23",
+      "source": "V3-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit): pass `startFailed` and `restarting` into `quit.ts#quitDeadlineExitCode` and end 0 under launchd for them, one test row each"
+      ]
+    }
+  ]
+}

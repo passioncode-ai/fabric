@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "bba86bce9964fa7b27e72baf591ca226516c9130",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3/2026-11-09-plan.md",
+  "reportSha256": "2343d25175d3b4f5330d79e1a9bd6c46657d89ebf80e9a56de974471aec9409e",
+  "reviewerRun": "release-0318-i3-plan-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-26",
+      "source": "V3-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the iteration-2 ledger commit was split, so nothing outside the allowed set changes after `verifiedCommit`: `0c0f19cc` carries only the ledger, the iteration-2 reports and receipts and the map (`git diff --name-only bba86bce 0c0f19cc`); the carry-over and backlog edits (CO-549 and CO-550 updates, CO-553) land on `main` after the release commit; the Release close runs `node scripts/release-mac.mjs --check-only --tag <tag>` before each tag (items 0, 1 and 7)"
+      ]
+    },
+    {
+      "id": "PL-27",
+      "source": "V3-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: the Release close names each act with its actor and route: items 3 and 4 (owner hold with the broker service stopped, quit 0.3.17 by its menu or SIGTERM, swap, `open -a`), item 5 runs (f) first while that copy holds, hands the board to launchd by SIGTERM and reads the pid against `hub.json`, starts the job again after (c) with `launchctl kickstart`, names the UI route for (d), and item 7 stops launchd's copy by SIGTERM before the swap and kickstarts after"
+      ]
+    },
+    {
+      "id": "PL-28",
+      "source": "V3-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: item 5 (b) writes its bar before the run (a new pid answers within 70 s of the kill; a copy that ran 60 s since its spawn is expected back within 10 s) and REQ-1's 10 s is amended here to that bound for 0.3.18, the brief amended on `main` after the tag; kills are spaced more than 60 s from the last spawn"
+      ]
+    },
+    {
+      "id": "PL-29",
+      "source": "V3-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: items 3, 7 and 9 stop the broker service for each edit (`service stop`, `hold`, `service start`, as `release-mac.md` step 1), record the policy revision, and on release restore the exact previous policy, `always_on` included, then read `lifecycle.status` and the broker log for 10 minutes for a start attempt or `gave_up` against launchd's copy"
+      ]
+    },
+    {
+      "id": "PL-30",
+      "source": "V3-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: item 8 says a failure in items 2 to 6 stops the close; the fix becomes a new candidate and the release takes a new three-iteration review under a new `verifiedCommit`, with the next rc number; `v0.3.18` stays untagged and 0.3.17 stays installed or is restored by the rollback"
+      ]
+    },
+    {
+      "id": "PL-31",
+      "source": "V3-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: item 1 lands by fast-forward, rebases only over the workspace publication's pin (the gate admits that shape) and stops on anything else; item 0 counts a nightly only when `git diff --name-only bba86bce <its commit>` lists allowed paths alone, and names the two recent nightly failures (`board-launch-agent.test.mjs` on `22a4f54a`, the missing plist fixed in `8c7e5469`; `private-history-native-db.test.mjs` on `bc21883d`)"
+      ]
+    },
+    {
+      "id": "PL-32",
+      "source": "V3-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: item 7 runs the runbook's step 7 on the installed published build, writes the rollout readings into the 0.3.18 handoff, announces the end of the outage, and carries the person's look at the opened release and a live board-dispatcher run; forty sessions at once stays in the handoff's Open"
+      ]
+    },
+    {
+      "id": "PL-33",
+      "source": "V3-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: item 5 (e) names the person as its owner (a human gate) and the reading after their next logout or restart (the ops log's quit line, `launchctl print` `runs` after login); until then it is recorded unproven in the handoff, and the release notes say a logout and a restart end Fabric"
+      ]
+    },
+    {
+      "id": "PL-34",
+      "source": "V3-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: item 3 records the task ids and their count with the sweep's own predicate (`shared/board.ts#reviewsDueForDefaultAccept` over tasks in review and their `moved_at`), and item 4 compares them with the `acceptedByDefault` of the first `work.swept@1` receipts after the install"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "bba86bce9964fa7b27e72baf591ca226516c9130",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3/2026-11-09-docs.md",
+  "reportSha256": "e9002fa5bf003c5a31047802148457e8f61e76d7b4e29aee11d0ff3eb2dc7fea",
+  "reviewerRun": "release-0318-i3-docs-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-18",
+      "source": "V3-19",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit): end the SMOKE failure with `app.exit(1)` after its record, or narrow the sentence to the failure dialog's Quit and correct `scripts/smoke-platform.mjs`; the smoke verdict reads the line, so the release runs are unaffected"
+      ]
+    },
+    {
+      "id": "DO-19",
+      "source": "V3-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: item 9 follows the runbook's rollback order (`release-mac.md`, the 0.3.18 paragraph); item 5 says a signalled launchd copy is not started again while a signalled person or broker copy is replaced by launchd's within 60 s, and proves both (the hand-over and case (c)); the release commit's **Upgrading.** line says it in the notes"
+      ]
+    },
+    {
+      "id": "DO-20",
+      "source": "V3-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed by this ledger: the iteration-3 section records the supersession of V1-15 (by V2-12, `62f24bf4`) and of V1-16 and V1-34 (by V2-8, `62f24bf4`); the CO-549 row part is ruled CO-553 (filed after the release commit): the row update naming PL-18, ER-14's rest and ER-22 is written on `main` after the release commit"
+      ]
+    },
+    {
+      "id": "DO-21",
+      "source": "V3-22",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit): mark the quit row, step 3's `keepRunning()` and step 4's second start *As built* with ADR-0192 amendment 1's rule numbers"
+      ]
+    },
+    {
+      "id": "DO-22",
+      "source": "V3-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit): (a) with UX-19, (b) to (e) as the report proposes"
+      ]
+    }
+  ]
+}

@@ -36,78 +36,129 @@ The candidates sit on the working branch `release/0318`, each landed on `main` b
 
 ## Owed in 0.3.18's Release close
 
-In this order (it answers iteration 1, PL-9 and PL-11, and iteration 2, PL-16, PL-17, PL-19, PL-20, PL-24 and PL-25;
-CO-549 holds what is decided here). Nothing is published before item 7.
+Executable in this order, each act with its actor and route. It answers iteration 1 (PL-9, PL-11), iteration 2 (PL-16,
+PL-17, PL-19, PL-20, PL-24, PL-25) and iteration 3 (PL-26 to PL-34, DO-19, and ER-22's measurement); CO-549 holds
+what is decided here. The actor is the coordinator: an agent session that does not run inside a Fabric terminal (every
+terminal session Fabric hosts ends at the install and at each kill), with a watcher that survives Fabric's restarts
+(PL-25). The operator presses nothing; a step that needs the person's own body (macOS's Login Items approval, logging
+back in) is named as a human gate once, and the steps that do not need it go on. The direct launches and signals below
+are the close's own acts on the operator's delegation (2026-11-05), under an owner hold of the lifecycle broker, the
+route its runbook gives for a swap; each N6 receipt cites that authority. Nothing is published before item 7.
 
-1. **The release commit**, after `verifiedCommit` (the iteration-3 candidate), landed on `main` by fast-forward:
-   `version` 0.3.18 in `apps/desktop/package.json`; `## 0.3.18` finalized from `## Unreleased` in `CHANGELOG.md`,
-   with an **Upgrading.** line as 0.3.17's carries (no schema step, schema 100; going back is «Служба доски» off in
-   0.3.18 first, then launch at login on again in 0.3.17); `docs/launch/release-gate.json` naming 0.3.18, this ledger,
-   `verifiedCommit` and the 15 review receipts, three iterations of five whose candidates are distinct and in order
-   (`8503abbb`, `e4766665`, then iteration 3's, equal to `verifiedCommit`; `scripts/lib/release-gate.mjs` refuses a
-   candidate named twice); `releaseMetadata` naming the 0.3.18 handoff under `docs/handoffs/`, written in the same
-   commit. Before the rc tag, a green `ci.sh full` or a green full nightly `ci.yml` on `verifiedCommit` is recorded
-   here, saying which one and its run (the push run is the fast tier only; the last full nightly, 42546389981 on
-   `22a4f54a`, failed), or each red test is named with its ruling; the nightly Windows failures in `listener-owner` and
-   `peer-account` are ruled or fixed.
-2. **A release candidate first.** An annotated `v0.3.18-rc.1` on the release commit. The push trigger takes only
-   `v[0-9]+.[0-9]+.[0-9]+` (`.github/workflows/release.yml`, line 19), so the rc tag starts nothing by itself; then
-   `gh workflow run release.yml --ref v0.3.18-rc.1 -f publish=false` (the rehearsal of lines 12 to 13; the `publish`
-   input, lines 22 to 25, defaults to false and reaches the guard at line 49 and the publish job at line 274). The
-   preflight accepts the tag (`scripts/lib/release-mac.mjs#tagProblem`: `v0.3.18` or `v0.3.18-rc.N`) and still checks
-   the release gate. The signed, notarized, attested set is kept as the workflow artifact `signed-release-v0.3.18-rc.1`
-   for 14 days and no release is created ([the runbook's *Rehearsal*](../../launch/release-mac.md#rehearsal)). Its
-   Windows and Linux SMOKE receipts (`fabric-0.3.18-windows-<arch>.json` from the installed start at line 189, the
-   Linux one at line 250) are read here (PL-14). The rc DMG's SHA-256 and signer are written beside every N6 receipt.
-   If any item below fails, nothing was published: the fix is a new candidate, the gate's next iteration and
+After `verifiedCommit` (`bba86bce`) only the release files change (PL-26): `CHANGELOG.md`, the gate, this ledger,
+`docs/MERGES.md`, `docs/reports/map.html`, the review reports and receipts, the 0.3.18 handoff and the package
+`version`. The carry-over rows (the CO-549 and CO-550 updates, CO-553) and the N6 receipts are written on `main` after
+the release commit; the tags sit on the release commit, so later commits do not touch what they name.
+
+0. **Preflight** (coordinator, before the landing). The release commit carries `version` 0.3.18, `## 0.3.18` finalized
+   with its **Upgrading.** line, the gate naming 0.3.18, this ledger, `verifiedCommit` `bba86bce` and the 15 review
+   receipts (candidates `8503abbb`, `e4766665`, `bba86bce`, distinct and in order), and `releaseMetadata` naming the
+   0.3.18 handoff, written in the same commit. `node scripts/release-mac.mjs --check-only --tag v0.3.18-rc.1` passes on
+   it: the script fetches `origin/main` and refuses a HEAD not on it (`scripts/lib/release-mac.mjs#releaseCommitProblem`),
+   so before the landing it runs in a disposable clone whose `origin` `main` is the release commit, which proves every
+   other check, and the real run follows the landing (item 1). `node --test scripts/test/release-gate.test.mjs` passes.
+   A green `bash scripts/ci.sh full` (a disposable stack) on `bba86bce`, or a green full nightly `ci.yml`, is recorded
+   here with its run id and the commit it ran: the nightly runs `main`'s tip, so it counts only when
+   `git diff --name-only bba86bce <its commit>` lists release files alone (PL-31). The two recent nightly failures are
+   named: 42546389981 on `22a4f54a` failed `test/board-launch-agent.test.mjs` (the plist missing from the repository,
+   V1-1, fixed in `8c7e5469`); 42433463558 on `bc21883d` failed `test/private-history-native-db.test.mjs`, which the
+   same night's other run on that commit (42428390833) passed, so a full run on `bba86bce` passes it or names it here
+   with its ruling. The nightly Windows failures in `listener-owner` and `peer-account` are ruled or fixed.
+1. **Landing** (coordinator). The release commits land on `main` by fast-forward; landings on `main` are announced as
+   paused on the project board from this step to the `v0.3.18` tag (PL-31). If `main` moved only by the workspace
+   publication's pin (`workspace` and `docs/workspace-receipt.json`, the shape
+   `scripts/lib/release-mac.mjs#verifiedCandidateProblem` admits), the release commits are rebased onto it; anything
+   else on `main` after `bba86bce` is a stop, and the close is planned again. Then
+   `node scripts/release-mac.mjs --check-only --tag v0.3.18-rc.1` runs on the landed release commit: exit 0, its last
+   line recorded here.
+2. **The release candidate** (coordinator). `git tag -a v0.3.18-rc.1 <release commit> -m "Fabric 0.3.18 rc.1"` and
+   `git push origin v0.3.18-rc.1`: the push trigger takes only `v[0-9]+.[0-9]+.[0-9]+` (`.github/workflows/release.yml`,
+   line 19), so the rc tag starts nothing by itself; then `gh workflow run release.yml --ref v0.3.18-rc.1 -f
+   publish=false` (the runbook's [*Rehearsal*](../../launch/release-mac.md#rehearsal); the `publish` input, lines 22 to
+   25, defaults to false, and the shared publish workflow refuses an `-rc` tag). Read the result of each job (guard,
+   preflight, macos, windows, linux, publish) and the Windows and Linux SMOKE receipts
+   (`fabric-0.3.18-windows-<arch>.json`, the Linux one; PL-14); then `gh run download <run> -n
+   signed-release-v0.3.18-rc.1` (kept 14 days; the per-job `release-macos` artifact 90). The rc DMG's SHA-256 and
+   signer (`codesign -dvv`, `spctl -a -t open --context context:primary-signature`) are written beside every N6 receipt.
+3. **Before the install** (coordinator).
+   1. Announce the board's outage window on the project board (`com.submit`, an announcement), with each step's
+      expected outage and the count of live Fabric-hosted sessions (`work.home`).
+   2. Record here the ids and the count of the tasks in review that the first sweep will accept, irreversibly, by the
+      sweep's own predicate (`shared/board.ts#reviewsDueForDefaultAccept` over the tasks in review and their
+      `moved_at`; PL-34).
+   3. Hold the broker's `fabric.desktop` as owner: stop the broker service, `lifecycle.py hold --target-id
+      fabric.desktop`, start the broker service again (as `release-mac.md` step 1). Record the policy before the hold
+      (on 2026-11-09 `always_on`, revision 29), which item 7 restores exactly (PL-29). A hold stops nothing: it keeps
+      `always_on` from starting the old bundle during the swap.
+4. **Install the rc** (coordinator). Quit 0.3.17 through its menu (`osascript -e 'tell application "Fabric" to quit'`),
+   or SIGTERM its pid when it has not ended within 15 s (0.3.17 has no service, so its Quit ends it); move
+   `/Applications/Fabric.app` aside as the way back (`/Applications/Fabric-0.3.17.app`); copy the rc's `Fabric.app` into
+   `/Applications`; `open -a /Applications/Fabric.app`. Read the «Служба доски» line in Settings and
+   `launchctl print gui/$(id -u)/ai.passioncode.desktop.board`, and read that 0.3.17's login item went only after the
+   service read enabled (`shared/loginItem.ts#legacyLoginItemAction`; the ops log's `app.login-item`). If Settings shows
+   the approval line (macOS answers `requires-approval`), that is a human gate: the person allows Fabric in System
+   Settings, General, Login Items and Extensions; it is said once, with that path, and item 5 waits for it while the
+   reads go on. After the first sweeps (every three minutes), their `work.swept@1` `acceptedByDefault` is compared with
+   item 3.2's ids (PL-34).
+5. **N6 on the rc build**, each case a receipt in `docs/evidence/plans/2026-11-08-0318-board-always-on/`. Every kill is
+   spaced more than 60 s from the job's last spawn, since launchd's throttle counts from the spawn (launchd.plist(5);
+   PL-28), so neither the throttle nor the broker's pause decides a case. "The board answers" means `hub.json`'s pid is
+   alive and `GET <hub origin>/.well-known/fabric-service` answers 200. The window acts (Settings, a new terminal
+   session) are the coordinator's, through UI automation of Fabric's window (System Events, or the computer-use tool).
+   1. **(f), first: the state right after the install**, while the copy started in item 4 holds the lock (ER-14,
+      PL-18): for five minutes, `launchctl print` every minute (`state`, `pid`, `runs`, `last exit code = 75`), one
+      losing copy's CPU time, whether it shows in the Dock (a screen recording), `lifecycle.status` every 10 s and the
+      broker's log for `circuit_open`.
+   2. **Hand the board to launchd.** SIGTERM the copy started in item 4: it exits 0 (PL-3), and within 60 s launchd's
+      next start takes the lock (`launchctl print`'s `pid` equals `hub.json`'s). This is also ER-22's measurement: while
+      the service is on, a signalled copy that launchd did not start is replaced by launchd's within a minute (DO-19).
+   3. **(a)** Quit from the menu hides Fabric (no window, no Dock icon) and the board answers.
+   4. **(b)** SIGKILL launchd's copy; the time until a new pid answers. The bar, written before the run (PL-28): a new
+      pid answers within 70 s of the kill (launchd spawns a `KeepAlive` job at most once every `ThrottleInterval`, 60 s
+      in the plist; launchd.plist(5)); a copy that ran 60 s since its spawn is expected back within 10 s. This ledger
+      amends REQ-1's 10 s ([the brief](2026-11-08-0318-board-always-on/brief.md#req-spine-ask-1)) to "within 70 s of an
+      abnormal end" for 0.3.18; the brief itself is amended on `main` after the tag, with the measurement.
+   5. **(c)** SIGTERM launchd's copy: `last exit code = 0`, and launchd does not start it again (no new pid for two
+      minutes; `SuccessfulExit false`). Then `launchctl kickstart gui/$(id -u)/ai.passioncode.desktop.board` starts
+      it, and its pid equals `hub.json`'s.
+   6. **(d)** With a live terminal session open (opened from Fabric's window), turn «Служба доски» off in Settings,
+      then Quit: Fabric ends (PL-8), and the session with it. Then `open -a /Applications/Fabric.app`, turn «Служба
+      доски» on again (it writes `launchAtLogin` back), SIGTERM that copy, and read launchd's copy taking the board
+      within 60 s (or `launchctl kickstart` the job).
+   7. **(e)** A logout or a restart is not cancelled (PL-7). Its owner is the person: a logout ends the coordinator's
+      own processes, and logging back in is a human gate. It is read after the person's next logout or restart (the ops
+      log's quit line before it, `launchctl print`'s `runs` after login) and recorded unproven, with that owner, until
+      then (PL-33); the notes already say a logout and a restart end Fabric.
+6. **Then the carried checks** (coordinator; both carried from 0.3.17): the Docker-stopped start check, and
+   `chat-activation-native` with its own `--user-data-dir`, now that such a start leaves the service alone (PL-4).
+7. **Publish, only after item 5 passes** (coordinator). `node scripts/release-mac.mjs --check-only --tag v0.3.18` on
+   the release commit (exit 0, recorded); `git tag -a v0.3.18 <release commit> -m "Fabric 0.3.18"` and push it: the push
+   trigger builds, signs and publishes, so the published bytes are not the rc's. Read the published DMG's SHA-256 and
+   signer back. Install it under the same hold: SIGTERM launchd's copy (exit 0, not started again), swap
+   `/Applications/Fabric.app` for the published one, `launchctl kickstart` the job, then read the service line, the
+   job's pid against `hub.json`'s and `com.status`. Run the runbook's step 7 on the installed published build
+   (`node scripts/smoke-platform.mjs --exe /Applications/Fabric.app/Contents/MacOS/Fabric --mcp-only`,
+   `FABRIC_APP_EXECUTABLE=… node --test apps/desktop/test/packaged-helpers.test.mjs`). Release the broker's hold,
+   restoring the exact previous policy (`always_on`, item 3.3) with the broker service stopped for the edit; then read
+   `lifecycle.status` and the broker's log for 10 minutes: no start attempt against launchd's copy and no `gave_up`,
+   else the policy goes to `on_demand` with the reason in CO-549 (PL-29). Announce the end of the outage on the board.
+   Then the runbook's steps 9 to 11 (the site's downloads, the workspace, the knowledge base); the rollout readings
+   (version, schema, journal count, `hub.json`'s pid, `com.status`, `dispatchBoardRequests`) written into the 0.3.18
+   handoff on `main`; the person's look at the opened release; a live board-dispatcher run (PL-32).
+8. **The failure path** (PL-30). A failure in items 2 to 6 stops the close: nothing is published, `v0.3.18` stays
+   untagged, and 0.3.17 stays installed or is restored by item 9. The fix becomes a new candidate, and the release
+   takes a new three-iteration review under a new `verifiedCommit` (the gate admits exactly three iterations, the
+   third equal to `verifiedCommit`: `scripts/lib/release-gate.mjs#ITERATIONS`); its rc is the next number,
    `v0.3.18-rc.2`.
-3. **Before the install on the operator's Mac.** The board's outage window is announced on the project board, with
-   each step's expected outage and the count of live Fabric-hosted sessions (`work.home`). The counts of reviews waiting
-   are recorded here (the first sweep accepts every review older than three days, irreversibly; PL-15). The lifecycle
-   broker's `fabric.desktop` is held as owner (`lifecycle.py hold --target-id fabric.desktop`), so `always_on` does not
-   start the old bundle again during the swap; the running 0.3.17 was started by the person, so a non-owner stop is
-   refused (`not_started_by_broker`) and the owner's stop is the route (PL-19). Every terminal session Fabric hosts ends
-   at the install and at each kill below: the agent driving the close runs outside Fabric's terminals, with a watcher
-   that survives Fabric's restarts (PL-25).
-4. **Install the rc build** under the hold: stop 0.3.17 as owner, keep its bundle aside as the way back, swap in the
-   rc's `Fabric.app`, start it. Read the Settings line and `launchctl print gui/<uid>/ai.passioncode.desktop.board`,
-   and read 0.3.17's login item as gone only after the service read enabled (`shared/loginItem.ts#legacyLoginItemAction`).
-   If macOS answers `requires-approval` (Settings shows the approval line), that is a human gate: the person allows
-   Fabric in System Settings, General, Login Items and Extensions. It is recorded once with that path, N6 waits for it,
-   and the steps that do not need it go on.
-5. **N6 on the rc build**, each case a receipt in `docs/evidence/plans/2026-11-08-0318-board-always-on/` that cites the
-   authority for its direct signal (the machine's rule otherwise leaves an enrolled app to the broker). With the broker
-   held, first wait until launchd's copy is the running one: `launchctl print gui/<uid>/ai.passioncode.desktop.board`
-   reads `state = running` and its `pid` equals `hub.json`'s. Kills are spaced more than 60 s apart, so neither the
-   broker's pause after two deaths within a minute of a start nor launchd's throttle decides a case.
-   1. Quit hides and the board answers (`hub.json`'s pid alive, `GET /.well-known/fabric-service` 200).
-   2. SIGKILL: the time until a new pid, from `launchctl print` (`pid`, `runs`, `last exit reason`) and the ops log's
-      `app.started`, against REQ-1's 10 s ([the brief](2026-11-08-0318-board-always-on/brief.md#req-spine-ask-1), REQ-1).
-      launchd starts a `KeepAlive` job again at once when it ran longer than its `ThrottleInterval` (launchd.plist(5));
-      the property list's 60 s spaces launchd's starts, which bounds the losing copy's retry, not this return. The
-      measured time is recorded, and REQ-1's bound or this item's wording is reconciled in the receipt with the reason.
-   3. SIGTERM ends it with exit 0 (`last exit code = 0`) and launchd does not start it again: no new pid for two
-      minutes, with and without a live terminal session.
-   4. With the switch off, Quit ends it, observed with a live terminal session open (PL-8).
-   5. A logout or a restart is not cancelled (PL-7), or recorded unproven with its owner.
-   6. While a copy not started by launchd holds the lock, for five minutes: `launchctl print` every minute (`runs`,
-      `last exit code = 75`), one losing copy's CPU time, whether it shows in the Dock (a screen recording), the
-      broker's `lifecycle.status` every 10 s and its log for `circuit_open` (ER-14, PL-18). The hand-over question of
-      ADR-0192 amendment 1, rule 5, is decided in CO-549 from this measurement.
-6. **Then the Docker-stopped start check and `chat-activation-native`** (both carried from 0.3.17), the latter with its
-   own `--user-data-dir`, now that such a start leaves the service alone (PL-4).
-7. **Only after N6 passes**: push `v0.3.18` on the same commit; the release run builds, signs and publishes; read the
-   published DMG's SHA-256 and signer back (that run builds again, so its bytes are not the rc's); install it in place
-   of the rc build under the same hold; release the broker's hold; then the website, the workspace and the knowledge
-   base as the runbook's steps 9 to 11 say.
-8. **Rollback** (PL-20), in this order: in 0.3.18 turn «Служба доски» off (it unregisters the agent service and
-   writes `launchAtLogin: false`, the key 0.3.17 reads) and read Settings' off line and no job in `launchctl print`;
-   hold the broker; quit; swap in the 0.3.17 bundle; start it; turn «Запускать Fabric при входе в систему» on in
-   0.3.17's Settings; release the hold (the runbook's 0.3.18 paragraph releases it before the start; once the bundle is
-   swapped either order is safe, since `always_on` can only start 0.3.17). When 0.3.18 cannot open Settings: with
-   Fabric stopped, set `launchAtLogin` to `false` in `userData/settings.json`, start 0.3.18 once so it unregisters the
-   service, quit it, then continue as above. `launchctl bootout` alone is an emergency stop only: it leaves the
-   registration in Login Items and stops only a copy launchd started.
+9. **Rollback** (PL-20, DO-19), in the runbook's order (`release-mac.md`, the 0.3.18 paragraph): in 0.3.18 turn «Служба
+   доски» off (it unregisters the agent service and writes `launchAtLogin: false`, the key 0.3.17 reads) and read the
+   off line in Settings and no job in `launchctl print`; hold the broker (service stop, hold, service start); quit;
+   swap in the kept 0.3.17 bundle; start it; turn «Запускать Fabric при входе в систему» on in 0.3.17's Settings;
+   release the hold, restoring the exact previous policy, `always_on` included (PL-29); read `hub.json`'s pid and
+   `com.status`. When 0.3.18 cannot open Settings: with Fabric stopped, set `launchAtLogin` to `false` in
+   `userData/settings.json`, start 0.3.18 once so it unregisters the service, quit it, then continue at the hold.
+   `launchctl bootout` alone is an emergency stop only: it leaves the registration in Login Items and stops only a copy
+   launchd started.
 
 ## Iteration 1
 
@@ -260,3 +311,79 @@ What the reviewers recorded of iteration 1, at this candidate:
 | V2-32 | DO-17 | non-blocking | small inaccuracies: when 0.3.17's item goes, SIGINT missing from a comment, two misplaced doc comments | fixed: (a) the Fabric.app row of `AGENTS.md` and CO-322 say the old item goes when the switch is off or once macOS reads the service enabled (c4dbc7b4); (b) `quitHolds`' comment names SIGINT (62f24bf4, `shared/loginItem.ts`); (c) the doc comments are back above `readSessionTasks` and `SESSION_ALIASES` (0aaa0f95, `main/workRead.ts`) |
 
 Exit for iteration 2: every finding has a disposition. Blocking findings open: none.
+
+## Iteration 3
+
+Candidate `bba86bce9964fa7b27e72baf591ca226516c9130`, equal to `verifiedCommit` (hosted `ci` 42678863108 on
+`release/0318`, green; 42680621451 on `main`, green; the fast tier, as the protocol says). Five reviewers, one per
+level, each a fresh context on a clean detached checkout of the candidate (HEAD and `git status --short | wc -l` read
+before and after, unchanged); their reports and receipts are in `docs/evidence/reviews/0.3.18/iteration-3/`. 23
+findings (UX-19 and UX-20, ER-18 to ER-23, DA-12, PL-26 to PL-34, DO-18 to DO-22), 2 blocking: PL-26 and PL-27.
+ER-19 and DA-12 are one defect (the restart note's sentence); ER-22 and DO-19 one hand-over (a signalled copy launchd
+did not start is replaced by launchd's); UX-19 and DO-22 (a) one clause; PL-33 is PL-7's owner.
+
+No fix wave follows this iteration: no code, string, scenario, decision record or register changes after
+`verifiedCommit` (PL-26). PL-26 is fixed by splitting the iteration-2 ledger commit (`0c0f19cc` carries only the
+ledger, the iteration-2 reports and receipts and the map), PL-27 and the other plan findings by the Release close above.
+Every other finding is ruled into CO-549 (ER-22) or CO-553, the 0.3.18 review's iteration-3 leftovers (the restart
+helper and the service's leftovers, non-blocking), a row filed on `main` after the release commit with the CO-549 and
+CO-550 updates, which name what iterations 2 and 3 sent those rows (ER-14's rest, PL-18 and ER-22 to CO-549; UX-4's
+rest and PL-23 to CO-550). No strings changed, so this iteration has no text check reports. The committed reports are as
+written; none needed a redaction.
+
+Superseded rows of iteration 1 (DO-20), which stay as written, a record of that iteration: V1-15's evidence
+(`shared/loginItem.ts#startFailureExitCode` and the test «ER-4: a failed start under launchd ends 0») was removed in
+`62f24bf4`, and V2-12 (ER-17) states the rule that holds: every failed-start Quit exits 0. V1-16 and V1-34 recorded the
+signal fix as done in `b39f11de`, but its listeners never ran on Electron 44 until `62f24bf4` added them once Electron
+is ready (V2-8, ER-13); this iteration's errors reviewer watched the planted shape (`held-at-load`) stay alive after
+SIGTERM and the fixed one end.
+
+What the reviewers recorded of iterations 1 and 2, at this candidate:
+
+- ux: UX-1, UX-2, UX-3, UX-5, UX-6 and UX-11 fixed and not made worse, UX-1's packaged proof CO-549's (N6); UX-12 to
+  UX-17 fixed; UX-18 fixed in code, its live proof CO-549's; UX-4's rest (nothing at a held quit says Fabric still
+  runs) unnamed in the CO-550 row at the candidate, named there in the row update after the release commit; UX-7 to
+  UX-10 (rest) carried by CO-550.
+- errors: ER-1, ER-2, ER-3, ER-8, ER-16 and ER-17 fixed and holding; ER-4 fixed, its residue at the deadline ER-23;
+  ER-5 and ER-13 fixed (the plant watched); ER-6 in part, the rest CO-549's; ER-7 CO-549's; ER-9 to ER-12 CO-550's and
+  untouched; ER-14 fixed for the sweep, the retry cost CO-549's; ER-15 fixed for a refused kickstart, with residues
+  ER-19, ER-20 and ER-21.
+- data: DA-1, DA-8, DA-10 and DA-11 fixed; DA-2 fixed through DA-9, which is fixed end to end (the receipt stored with
+  its count through the real journal adapter, a count of 0 refused; `work.swept@1` projects nothing; a 0.3.17 rollback
+  stores and ignores the key); DA-3 to DA-7 CO-550's and not made worse; the schema unchanged since 0.3.17.
+- plan: PL-1 to PL-5, PL-10, PL-12, PL-16, PL-20, PL-21, PL-22 and PL-25 fixed; PL-6 fixed in code, its proof N6 (b);
+  PL-7, PL-8, PL-13, PL-14 and PL-15 ruled and carried into the close; PL-9, PL-11 and PL-24 fixed by the ledger with
+  the gaps PL-31 and PL-32; PL-17 and PL-19 in part (PL-27, PL-28); PL-18 ruled CO-549, its reverse direction PL-29;
+  PL-23 ruled CO-550, its row edit then staged after `verifiedCommit` (PL-26). The release workflow supports an rc with
+  `publish=false` (precedent: run 38242615349, `v0.3.5-rc.2`, every job green).
+- docs: DO-2 to DO-8 and DO-10 to DO-15 fixed; DO-1 fixed in the tree, its live proof CO-549's; DO-9 CO-550's and not
+  made worse; DO-16 fixed in the scenarios, its screens half DO-22 (e); DO-17 fixed with one leftover, DO-22 (c). All
+  41 `File#symbol` citations in the 0.3.18 documents resolve, and the read-only gates passed at the candidate.
+
+| Finding | Level | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-1 | UX-19 | non-blocking | the «Служба доски» note always says Fabric starts at login and is started again after a crash, beside lines that say otherwise in the approval and off states; the Quit line comes before the system line it depends on; SCN-170 says only the off line shows with the switch off | ruled CO-553 (filed after the release commit): the note's second sentence said only with the service on, the system line before the Quit line, an off-state Quit sentence, and SCN-170's clause corrected; strings and the scenario change after `verifiedCommit`, so they wait for the next candidate |
+| V3-2 | UX-20 | non-blocking | the restart question calls every running terminal an agent console, though it counts plain shells and routine runs too; the notes and `AGENTS.md` repeat it | ruled CO-553 (filed after the release commit): the question says «консоль» without the agent, or counts agent sessions and shells apart, with the notes and `AGENTS.md` in step |
+| V3-3 | ER-18 | non-blocking | with every window closed the restart question is a free-standing box; while it is open `app.exit` cannot end the process, so a signal or a logout during it is ended only by the 15 s outside kill, which launchd restarts | ruled CO-553 (filed after the release commit): the question is always a sheet on the main window (shown or created first), with the fixture case "restart question with no window, SIGTERM ends 0" |
+| V3-4 | ER-19 | non-blocking | the next start records "launchd did not start the board; Fabric was opened by its id instead" for any restart note, also when the note says only `waited` or that the open failed too | ruled CO-553 (filed after the release commit) (with DA-12): the sentence is chosen from the note's lines, each case tested |
+| V3-5 | ER-20 | non-blocking | a restart helper that fails to spawn reports it asynchronously, after the restart chose the launchd route, so Fabric quits with nothing to start it again | ruled CO-553 (filed after the release commit): quit only after the child's `spawn` event, or arm `app.relaunch` in its `error` handler; tested with a command that does not exist |
+| V3-6 | ER-21 | non-blocking | the fallback `open -b ai.passioncode.desktop` lets LaunchServices pick among every registered copy with that id (16 on the operator's Mac) | ruled CO-553 (filed after the release commit): open the running bundle by its path, `open -b` only as the last resort |
+| V3-7 | ER-22 | non-blocking | UX-18's exit 0 covers only launchd's own copy: a signalled copy the person or the broker opened is followed within 60 s by launchd's copy taking the board, so the board does not stay stopped and a broker `held_off` is undone | ruled CO-549: measured in the Release close (item 5's hand-over and case (f)); the Lifecycle row and the runbook state the hand-over, or a signalled copy stops launchd's job too, as CO-549 decides from the measurement; the close already relies on it (item 5 hands the board to launchd by a SIGTERM) |
+| V3-8 | ER-23 | non-blocking | the deadline maps only a signalled quit of launchd's copy to 0; a failed start's Quit under launchd that runs into the deadline exits 3, so launchd brings the failure dialog back | ruled CO-553 (filed after the release commit): pass `startFailed` and `restarting` into `quit.ts#quitDeadlineExitCode` and end 0 under launchd for them, one test row each |
+| V3-9 | DA-12 | non-blocking | the restart outcome is logged with one fixed sentence whatever the note holds, and the note carries no time, so a later unrelated start logs it as the restart's | ruled CO-553 (filed after the release commit) (with ER-19): each line carries its time and the sentence is chosen from the lines, with the line's age in the detail |
+| V3-10 | PL-26 | blocking | the iteration-2 ledger work edited the carry-over register on top of `verifiedCommit`; after `verifiedCommit` only the release files may change, so preflight would refuse the rc and the tag | fixed: the iteration-2 ledger commit was split, so nothing outside the allowed set changes after `verifiedCommit`: `0c0f19cc` carries only the ledger, the iteration-2 reports and receipts and the map (`git diff --name-only bba86bce 0c0f19cc`); the carry-over and backlog edits (CO-549 and CO-550 updates, CO-553) land on `main` after the release commit; the Release close runs `node scripts/release-mac.mjs --check-only --tag <tag>` before each tag (items 0, 1 and 7) |
+| V3-11 | PL-27 | blocking | N6 could not start as written: the first start under the hold, the hand-over to launchd's copy, the start after (c), the routes for (d), the swap under a live `KeepAlive` job and the order of (f) were missing | fixed by this ledger: the Release close names each act with its actor and route: items 3 and 4 (owner hold with the broker service stopped, quit 0.3.17 by its menu or SIGTERM, swap, `open -a`), item 5 runs (f) first while that copy holds, hands the board to launchd by SIGTERM and reads the pid against `hub.json`, starts the job again after (c) with `launchctl kickstart`, names the UI route for (d), and item 7 stops launchd's copy by SIGTERM before the swap and kickstarts after |
+| V3-12 | PL-28 | non-blocking | item 5 (b) rested on a false premise (ThrottleInterval spaces every start of the job, launchd.plist(5)) and set its pass bar after the result; kills were spaced from the last kill, not the last spawn | fixed by this ledger: item 5 (b) writes its bar before the run (a new pid answers within 70 s of the kill; a copy that ran 60 s since its spawn is expected back within 10 s) and REQ-1's 10 s is amended here to that bound for 0.3.18, the brief amended on `main` after the tag; kills are spaced more than 60 s from the last spawn |
+| V3-13 | PL-29 | non-blocking | the broker's end state was undecided: `hold --release` returns `fabric.desktop` to `on_demand`, dropping `always_on`; the hold edits omitted the broker service stop | fixed by this ledger: items 3, 7 and 9 stop the broker service for each edit (`service stop`, `hold`, `service start`, as `release-mac.md` step 1), record the policy revision, and on release restore the exact previous policy, `always_on` included, then read `lifecycle.status` and the broker log for 10 minutes for a start attempt or `gave_up` against launchd's copy |
+| V3-14 | PL-30 | non-blocking | the failure path ("a new candidate, the gate's next iteration, rc.2") could not be followed: the gate admits exactly three iterations per `verifiedCommit` | fixed by this ledger: item 8 says a failure in items 2 to 6 stops the close; the fix becomes a new candidate and the release takes a new three-iteration review under a new `verifiedCommit`, with the next rc number; `v0.3.18` stays untagged and 0.3.17 stays installed or is restored by the rollback |
+| V3-15 | PL-31 | non-blocking | the landing route and the full run could fail without a fault in 0.3.18: another landing on `main` breaks the fast-forward, and the nightly runs `main`'s tip, not `verifiedCommit` | fixed by this ledger: item 1 lands by fast-forward, rebases only over the workspace publication's pin (the gate admits that shape) and stops on anything else; item 0 counts a nightly only when `git diff --name-only bba86bce <its commit>` lists allowed paths alone, and names the two recent nightly failures (`board-launch-agent.test.mjs` on `22a4f54a`, the missing plist fixed in `8c7e5469`; `private-history-native-db.test.mjs` on `bc21883d`) |
+| V3-16 | PL-32 | non-blocking | the close dropped what 0.3.17 carried and the runbook owes: step 7 on the installed published app, the rollout readings, the end of the outage, the person's look, a live dispatcher run, forty sessions | fixed by this ledger: item 7 runs the runbook's step 7 on the installed published build, writes the rollout readings into the 0.3.18 handoff, announces the end of the outage, and carries the person's look at the opened release and a live board-dispatcher run; forty sessions at once stays in the handoff's Open |
+| V3-17 | PL-33 | non-blocking | (e) could close as unproven, and the agent driving the close cannot run it: a logout ends its own processes and logging back in needs the person | fixed by this ledger: item 5 (e) names the person as its owner (a human gate) and the reading after their next logout or restart (the ops log's quit line, `launchctl print` `runs` after login); until then it is recorded unproven in the handoff, and the release notes say a logout and a restart end Fabric |
+| V3-18 | PL-34 | non-blocking | item 3 recorded only counts of the reviews the first sweep accepts irreversibly, so nothing could check what the sweep did | fixed by this ledger: item 3 records the task ids and their count with the sweep's own predicate (`shared/board.ts#reviewsDueForDefaultAccept` over tasks in review and their `moved_at`), and item 4 compares them with the `acceptedByDefault` of the first `work.swept@1` receipts after the install |
+| V3-19 | DO-18 | non-blocking | ADR-0192 amendment 1 and the Lifecycle row say Electron ends a quit with 0 whatever `process.exitCode` says, yet the SMOKE failure branch sets `process.exitCode = 1` after `app.quit()` and the smoke runner says it exits 1 | ruled CO-553 (filed after the release commit): end the SMOKE failure with `app.exit(1)` after its record, or narrow the sentence to the failure dialog's Quit and correct `scripts/smoke-platform.mjs`; the smoke verdict reads the line, so the release runs are unaffected |
+| V3-20 | DO-19 | non-blocking | the ledger's close kept bootout as an equal rollback route without a broker hold, and expected a SIGTERM to leave Fabric stopped, true only for launchd's own copy; the notes' "a signal still ends Fabric" has the same gap | fixed by this ledger: item 9 follows the runbook's rollback order (`release-mac.md`, the 0.3.18 paragraph); item 5 says a signalled launchd copy is not started again while a signalled person or broker copy is replaced by launchd's within 60 s, and proves both (the hand-over and case (c)); the release commit's **Upgrading.** line says it in the notes |
+| V3-21 | DO-20 | non-blocking | CO-549 does not list the measurement ADR-0192 and the design hand it (PL-18); iteration-1 rows V1-15, V1-16 and V1-34 cite evidence the fix waves removed or proved ineffective | fixed by this ledger: the iteration-3 section records the supersession of V1-15 (by V2-12, `62f24bf4`) and of V1-16 and V1-34 (by V2-8, `62f24bf4`); the CO-549 row part is ruled CO-553 (filed after the release commit): the row update naming PL-18, ER-14's rest and ER-22 is written on `main` after the release commit |
+| V3-22 | DO-21 | non-blocking | three passages of the board-always-on design still describe what was not built, though the header says the differences are marked *As built* | ruled CO-553 (filed after the release commit): mark the quit row, step 3's `keepRunning()` and step 4's second start *As built* with ADR-0192 amendment 1's rule numbers |
+| V3-23 | DO-22 | non-blocking | small inaccuracies: SCN-170's off-state clause, the ADR index row without amendment 1, a test name without SIGINT, ADR-0192's Evidence citing Electron 44.9.3's docs, no screen record for «Перезапустить Fabric» | ruled CO-553 (filed after the release commit): (a) with UX-19, (b) to (e) as the report proposes |
+
+Exit for iteration 3: every finding has a disposition. Blocking findings open: none.

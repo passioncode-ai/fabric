@@ -1,0 +1,22 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "bba86bce9964fa7b27e72baf591ca226516c9130",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3/2026-11-09-data.md",
+  "reportSha256": "3e051a81bf5a50e52108b70e58057fb8a4da5e784bd2eacf96e66e9ce4d9e244",
+  "reviewerRun": "release-0318-i3-data-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-12",
+      "source": "V3-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit) (with ER-19): each line carries its time and the sentence is chosen from the lines, with the line's age in the detail"
+      ]
+    }
+  ]
+}

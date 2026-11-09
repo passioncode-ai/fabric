@@ -1,0 +1,30 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.18",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "bba86bce9964fa7b27e72baf591ca226516c9130",
+  "report": "docs/evidence/reviews/0.3.18/iteration-3/2026-11-09-ux.md",
+  "reportSha256": "b78e4c27ddc10731bb7c524fc9719f91299b74932799cdfc9cd5a8d261515cfa",
+  "reviewerRun": "release-0318-i3-ux-20261109",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-19",
+      "source": "V3-1",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit): the note's second sentence said only with the service on, the system line before the Quit line, an off-state Quit sentence, and SCN-170's clause corrected; strings and the scenario change after `verifiedCommit`, so they wait for the next candidate"
+      ]
+    },
+    {
+      "id": "UX-20",
+      "source": "V3-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-553 (filed after the release commit): the question says «консоль» without the agent, or counts agent sessions and shells apart, with the notes and `AGENTS.md` in step"
+      ]
+    }
+  ]
+}
