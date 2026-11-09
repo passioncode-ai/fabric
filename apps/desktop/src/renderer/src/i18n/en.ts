@@ -1134,6 +1134,12 @@ export const en = {
   'menu.unhide': "Show All",
   'menu.restart': "Restart Fabric",
   'menu.quit': "Quit Fabric",
+  // The 0.3.18 review, iteration 2, UX-15: «Перезапустить Fabric» with live consoles asks once (main/restartFabric.ts).
+  'restart.confirm.title': "Restart Fabric?",
+  'restart.confirm.detail.one': "{count} agent console will close, and what runs in it will stop.",
+  'restart.confirm.detail.few': "{count} agent consoles will close, and what runs in them will stop.",
+  'restart.confirm.detail.many': "{count} agent consoles will close, and what runs in them will stop.",
+  'restart.confirm.restart': "Restart",
   'menu.closeTab': "Close Tab",
   'menu.closeWindow': "Close Window",
   'menu.undo': "Undo",

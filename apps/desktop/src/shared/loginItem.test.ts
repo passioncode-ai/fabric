@@ -1,6 +1,6 @@
 // CO-322 (the operator, 2026-10-16): Fabric starts at login by default, quietly, and the person can turn it off.
 import { describe, expect, it } from 'vitest'
-import { BOARD_LABEL, BOARD_SERVICE, LAUNCHD_RETRY_EXIT, RESTART_WINDOW_MS, launchdStarted, legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startRecord, startsInBackground, takeLaunchdStart, type LoginItemState } from './loginItem'
+import { APP_BUNDLE_ID, BOARD_LABEL, BOARD_SERVICE, LAUNCHD_RETRY_EXIT, RESTART_WINDOW_MS, launchdStarted, legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startRecord, startsInBackground, takeLaunchdStart, type LoginItemState } from './loginItem'
 
 describe('launch at login', () => {
   it('registers the packaged app with the system, on by default and off when the person says so', () => {
@@ -156,15 +156,18 @@ describe('the 0.3.18 review, iteration 2, PL-21, ER-16: the job label stays with
 })
 
 describe('the 0.3.18 review, iteration 1, UX-3: «Перезапустить Fabric»', () => {
-  const service = { platform: 'darwin', packaged: true, ownsService: true, serviceOn: true, systemOn: true, pid: 4242 }
+  const service = { platform: 'darwin', packaged: true, ownsService: true, serviceOn: true, systemOn: true, pid: 4242, outcomeFile: '/data/restart-outcome' }
   it('with the service on, asks launchd to start the job once this process has ended', () => {
     const plan = restartPlan(service)
     expect(plan.kind).toBe('launchd')
     if (plan.kind !== 'launchd') return
     expect(plan.command).toBe('/bin/sh')
     expect(plan.args[0]).toBe('-c')
-    expect(plan.args[1]).toContain('kill -0 4242')
-    expect(plan.args[1]).toMatch(/launchctl kickstart gui\/\$\(id -u\)\/ai\.passioncode\.desktop\.board$/)
+    expect(plan.args[1]).toContain('kill -0 "$1"')
+    expect(plan.args[1]).toContain('launchctl kickstart "gui/$(id -u)/$3"')
+    // Iteration 2, ER-15: the values travel as arguments, never inside the script, and the app's own id is the fallback.
+    expect(plan.args.slice(2)).toEqual(['fabric-restart', '4242', '/data/restart-outcome', 'ai.passioncode.desktop.board', APP_BUNDLE_ID])
+    expect(APP_BUNDLE_ID).toBe('ai.passioncode.desktop')
   })
   it('anywhere else relaunches the app itself', () => {
     expect(restartPlan({ ...service, serviceOn: false }).kind).toBe('relaunch')

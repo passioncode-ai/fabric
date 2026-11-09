@@ -8,6 +8,7 @@
 import { spawn } from 'node:child_process'
 import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
+import { pluralForm, type Locale, type Translate } from '../renderer/src/i18n/translate.ts'
 
 /** The note's file in the data folder: the time the restart was asked, in ms. */
 export const RESTART_WINDOW_FILE = 'restart-window'
@@ -39,6 +40,24 @@ export function takeRestartWindow(userData: string): number | null {
   return at
 }
 
+/** The helper's note in the data folder: one line per refusal (`shared/loginItem.ts#restartPlan`), absent when none. */
+export const RESTART_OUTCOME_FILE = 'restart-outcome'
+
+/** Reads and removes the helper's note: its lines, or null when there is none (the restart went as asked) or it cannot be
+ *  read (the 0.3.18 review, iteration 2, ER-15). */
+export function takeRestartOutcome(userData: string): string[] | null {
+  const file = path.join(userData, RESTART_OUTCOME_FILE)
+  let lines: string[]
+  try {
+    lines = readFileSync(file, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean)
+  } catch {
+    // No note: the helper wrote nothing, so launchd took the job as asked; this is the ordinary start.
+    return null
+  }
+  try { rmSync(file, { force: true }) } catch { /* a note that stays is said again by the next start, never lost */ }
+  return lines.length ? lines : null
+}
+
 /** Starts the helper that waits for this process to end and asks launchd for the job; detached, so it outlives Fabric. */
 export function spawnRestartHelper(command: string, args: string[], onError: (e: unknown) => void): boolean {
   try {
@@ -50,6 +69,37 @@ export function spawnRestartHelper(command: string, args: string[], onError: (e:
     // The caller's onError records it (index.ts: ops.failed 'app.restart-helper'); the false tells it to relaunch instead.
     onError(e)
     return false
+  }
+}
+/** The question «Перезапустить Fabric» asks before it ends live consoles: a native message box's options and which of
+ *  its buttons restarts. */
+export interface RestartConfirmation {
+  type: 'warning'
+  message: string
+  detail: string
+  buttons: string[]
+  defaultId: number
+  cancelId: number
+  restartId: number
+  noLink: true
+}
+
+/**
+ * The 0.3.18 review, iteration 2, UX-15: a restart ends every terminal Fabric hosts, as a quit does, while a held Quit
+ * keeps them. With live consoles the restart asks once, naming how many end, and Cancel is the default answer; with none
+ * it asks nothing (null) and restarts at once.
+ */
+export function restartConfirmation(live: number, say: Translate, locale: Locale): RestartConfirmation | null {
+  if (!Number.isSafeInteger(live) || live <= 0) return null
+  return {
+    type: 'warning',
+    message: say('restart.confirm.title'),
+    detail: say(`restart.confirm.detail.${pluralForm(locale, live)}`, { count: live }),
+    buttons: [say('restart.confirm.restart'), say('common.cancel')],
+    restartId: 0,
+    defaultId: 1,
+    cancelId: 1,
+    noLink: true
   }
 }
 // #endregion restart-fabric

@@ -122,19 +122,30 @@ export function quitHolds(o: {
   return !o.systemEnding && !o.signalled && !o.restarting && o.started && !o.startFailed
 }
 
+/** The app's own bundle id (`electron-builder.yml` `appId`): what the restart opens when launchd refuses its job. */
+export const APP_BUNDLE_ID = 'ai.passioncode.desktop'
+
 /**
  * The 0.3.18 review UX-3: how «Перезапустить Fabric» starts Fabric again. Where launchd keeps the board's service (the
  * owner, an installed macOS build, the service on and enabled), a detached shell waits for this process to end and asks
  * launchd to start the job (`launchctl kickstart`), so the new process is the service's; anywhere else Electron's own
- * relaunch, without `--background`, so the window comes back.
+ * relaunch, without `--background`, so the window comes back. Iteration 2, ER-15: when launchd refuses the job (it is
+ * disabled, or not loaded in this session) the shell opens the app by its id instead, so Fabric comes back either way,
+ * and writes each refusal as one line (`kickstart <code>`, `open <code>`, `waited` when this process had not ended in
+ * time) to `outcomeFile`, which the next start records. The values travel as the script's arguments, never inside it.
  */
-export function restartPlan(o: { platform: string; packaged: boolean; ownsService: boolean; serviceOn: boolean; systemOn: boolean; pid: number }):
+export function restartPlan(o: { platform: string; packaged: boolean; ownsService: boolean; serviceOn: boolean; systemOn: boolean; pid: number; outcomeFile: string }):
   | { kind: 'launchd'; command: string; args: string[] }
   | { kind: 'relaunch' } {
   if (o.platform === 'darwin' && o.packaged && o.ownsService && o.serviceOn && o.systemOn) {
     // At most 30 s of waiting: past the quit's own 15 s outside guard, so the job is never asked while this one runs.
-    const script = `i=0; while kill -0 ${o.pid} 2>/dev/null && [ $i -lt 150 ]; do sleep 0.2; i=$((i+1)); done; launchctl kickstart gui/$(id -u)/${BOARD_LABEL}`
-    return { kind: 'launchd', command: '/bin/sh', args: ['-c', script] }
+    const script = [
+      'i=0; while kill -0 "$1" 2>/dev/null && [ $i -lt 150 ]; do sleep 0.2; i=$((i+1)); done',
+      'if kill -0 "$1" 2>/dev/null; then echo waited >> "$2"; fi',
+      'launchctl kickstart "gui/$(id -u)/$3"; rc=$?',
+      'if [ $rc -ne 0 ]; then echo "kickstart $rc" >> "$2"; open -b "$4"; rc=$?; if [ $rc -ne 0 ]; then echo "open $rc" >> "$2"; fi; fi'
+    ].join('\n')
+    return { kind: 'launchd', command: '/bin/sh', args: ['-c', script, 'fabric-restart', String(o.pid), o.outcomeFile, BOARD_LABEL, APP_BUNDLE_ID] }
   }
   return { kind: 'relaunch' }
 }

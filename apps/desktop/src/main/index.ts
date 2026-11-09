@@ -51,7 +51,7 @@ import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { resolveProject } from '../shared/projectResolve.ts'
 import { legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startRecord, startsInBackground, takeLaunchdStart, type LoginItemState } from '../shared/loginItem.ts'
-import { askRestartWindow, spawnRestartHelper, takeRestartWindow } from './restartFabric.ts'
+import { RESTART_OUTCOME_FILE, askRestartWindow, restartConfirmation, spawnRestartHelper, takeRestartOutcome, takeRestartWindow } from './restartFabric.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
 import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readReviewAges, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
@@ -674,28 +674,50 @@ function showForService(): void {
 /**
  * «Перезапустить Fabric» (the 0.3.18 review UX-3): ends this process past the service's hold and starts Fabric again,
  * through launchd while it keeps the service (so the new process is the service's) and through Electron's relaunch
- * otherwise. The next start shows its window, as the person asked.
+ * otherwise. The next start shows its window, as the person asked. With live terminals it asks first, once, naming how
+ * many end, Cancel the default (iteration 2, UX-15: `restartFabric.ts#restartConfirmation`).
  */
-function restartFabric(): void {
+async function restartFabric(): Promise<void> {
+  if (restarting || quit.quitting) return
+  const settings = readSettings()
+  const live = ptys ? ptys.list().filter((s) => s.running).length : 0
+  const ask = restartConfirmation(live, translator(settings.locale), settings.locale)
+  if (ask) {
+    const parent = BrowserWindow.getFocusedWindow() ?? (mainWindow && !mainWindow.isDestroyed() ? mainWindow : null)
+    const { response } = parent ? await dialog.showMessageBox(parent, ask) : await dialog.showMessageBox(ask)
+    if (response !== ask.restartId) {
+      ops.record({ op: 'app.restart', outcome: 'ok', level: 'info', detail: { cancelled: true, live }, ctx: { correlationId: ops.correlate() } })
+      return
+    }
+    // The person may have quit, or restarted from another window, while the question was open.
+    if (restarting || quit.quitting) return
+  }
   const read = readSettingsState()
+  const userData = app.getPath('userData')
   const plan = restartPlan({
     platform: process.platform,
     packaged: app.isPackaged,
     ownsService: OWNS_BOARD_SERVICE,
     serviceOn: read.status === 'unreadable' ? true : read.value.launchAtLogin,
     systemOn: serviceRunsUnderLaunchd(),
-    pid: process.pid
+    pid: process.pid,
+    outcomeFile: path.join(userData, RESTART_OUTCOME_FILE)
   })
   restarting = true
   let via: 'launchd' | 'relaunch' = plan.kind
   if (plan.kind === 'launchd') {
-    askRestartWindow(app.getPath('userData'), Date.now())
+    // ER-15 (iteration 2): a note that cannot be written brings Fabric back without its window; say so.
+    if (!askRestartWindow(userData, Date.now())) ops.failed('app.restart-window', new Error('restart_note_unwritten'), { note: 'the restarted Fabric may start without a window; activating it shows one' })
     const started = spawnRestartHelper(plan.command, plan.args, (e) => ops.failed('app.restart-helper', e, { note: 'launchd was not asked to start the board again; the next login or open starts it' }))
     if (!started) via = 'relaunch'
   }
   if (via === 'relaunch') app.relaunch({ args: relaunchArgs(process.argv) })
-  ops.record({ op: 'app.restart', outcome: 'ok', level: 'info', detail: { via }, ctx: { correlationId: ops.correlate() } })
+  ops.record({ op: 'app.restart', outcome: 'ok', level: 'info', detail: { via, live }, ctx: { correlationId: ops.correlate() } })
   app.quit()
+}
+/** The menu's click: a restart that throws (the question could not be shown) is recorded and Fabric keeps running. */
+function restartFromMenu(): void {
+  restartFabric().catch((e: unknown) => ops.failed('app.restart', e, { note: 'Fabric was not restarted and keeps running' }))
 }
 // #endregion board-service-quit
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
@@ -779,6 +801,9 @@ function applyLoginItem(enabled: boolean, atStart: boolean): void {
       if (openedAtLogin !== null) BACKGROUND_LAUNCH = startsInBackground(process.argv, openedAtLogin)
       // UX-3: the start «Перезапустить Fabric» asked launchd for shows its window, though launchd starts it in the background.
       if (restartShowsWindow(takeRestartWindow(app.getPath('userData')), Date.now())) BACKGROUND_LAUNCH = false
+      // ER-15 (iteration 2): the restart's helper writes what launchd or the open refused; the start it brought says it.
+      const refused = takeRestartOutcome(app.getPath('userData'))
+      if (refused) ops.failed('app.restart-kickstart', new Error(refused.join('; ')), { note: 'launchd did not start the board for «Перезапустить Fabric»; Fabric was opened by its id instead' })
       // CO-365: how this start began, so a reboot is checked in the operations log, not inferred from timings.
       ops.record({ op: 'app.started', outcome: 'ok', level: 'info', detail: startRecord(process.argv, openedAtLogin, app.getVersion()), ctx: { correlationId: ops.correlate() } })
     }
@@ -5321,7 +5346,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // The menu speaks the language the windows speak, from the moment it is chosen.
     // A menu that fails to rebuild must not fail a write that is already on disk (iteration 2, ER-8).
     if (next.locale !== undefined) {
-      try { installMenu(written.settings.locale, windowKinds, restartFabric) } catch (e) { ops.failed('settings.menu', e) }
+      try { installMenu(written.settings.locale, windowKinds, restartFromMenu) } catch (e) { ops.failed('settings.menu', e) }
     }
     return written
   })
@@ -5897,7 +5922,7 @@ app.whenReady().then(async () => {
   // frame. Built from Electron's roles so copy, paste, quit and the window
   // controls survive: replacing the default with a hand-written minimum takes
   // Cmd+C away from every field in the product.
-  installMenu(readSettings().locale, windowKinds, restartFabric)
+  installMenu(readSettings().locale, windowKinds, restartFromMenu)
   // The fabric:// scheme (DEC-0040): a development run registers the electron binary with this app's entry.
   try {
     if (process.defaultApp && process.argv[1]) app.setAsDefaultProtocolClient('fabric', process.execPath, [path.resolve(process.argv[1])])
