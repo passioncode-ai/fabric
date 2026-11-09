@@ -71,6 +71,7 @@ import { beginAttempt, type AttemptContext } from './toolTrace.ts'
 import { SURFACE_TOOLS } from '../shared/surfaceTools.ts'
 import { HUB_TOOLS } from './hubTools.ts'
 import { DEFAULT_BOUND, mayChain } from '../shared/loopBound.ts'
+import { RESTART_ITEM_ADVICE } from '../shared/loginItem.ts'
 import { spawnedChainFrom, spawnParentOf, stageTaskOf, type LiveClaim } from '../shared/spawnParent.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
 import { fileProposal } from './commands/proposalCommands.ts'
@@ -606,7 +607,7 @@ export class AgentSurface {
         ? new HubPortUnavailable(
             wanted,
             `port ${wanted} on ${host} is ${e.code === 'EADDRINUSE' ? 'already in use by another program' : 'not available to this user'}, so agents outside Fabric cannot reach it. ` +
-              `Close that program (or choose a free port with FABRIC_HUB_PORT), then restart Fabric from its menu`
+              `Close that program (or choose a free port with FABRIC_HUB_PORT), then ${RESTART_ITEM_ADVICE}`
           )
         : e
     await new Promise<void>((resolve, reject) => {

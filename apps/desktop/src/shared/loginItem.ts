@@ -150,6 +150,12 @@ export function restartPlan(o: { platform: string; packaged: boolean; ownsServic
   return { kind: 'relaunch' }
 }
 
+/**
+ * The 0.3.18 review, iteration 2, UX-12, DO-14: how a reason an agent relays tells the person to restart Fabric. With the
+ * board's service on, Quit only hides Fabric, so «quit and reopen» restarts nothing; the advice names the menu item.
+ */
+export const RESTART_ITEM_ADVICE = 'choose “Restart Fabric” in Fabric’s menu'
+
 /** The arguments a relaunch passes: this start's, without `--background`, so the person who asked sees the window. */
 export function relaunchArgs(argv: readonly string[]): string[] {
   return argv.slice(1).filter((a) => a !== '--background')

@@ -687,7 +687,9 @@ def check_consistency(brand_dir: Path, sources: dict) -> list[Finding]:
             (i for i, w in enumerate(words) if re.search(r"[A-Za-z]", w)), 0
         )
         for index, word in enumerate(words[first + 1:], start=first + 1):
-            stripped = word.strip(".,:;!?()[]\"'")
+            # A closing typographic quote is punctuation too: “Restart Fabric” names a menu item, and its last word is
+            # the entity Fabric (Fabric 0.3.18 review, iteration 2, UX-17).
+            stripped = word.strip(".,:;!?()[]\"'").rstrip("”’").rstrip(".,:;!?")
             if stripped in proper or (stripped.isupper() and len(stripped) > 1):
                 continue        # a declared entity, or an acronym like AI / CLI
             # A capital after a full stop is a sentence, not Title Case. The

@@ -18,6 +18,7 @@ import { HubPortUnavailable } from './agentSurface.ts'
 import { checkPortUnclaimed, hubPort, publishHub, withdrawHub } from './hub.ts'
 import { ops } from './opsSink.ts'
 import type { StackRefusal } from '../shared/stackWatch.ts'
+import { RESTART_ITEM_ADVICE } from '../shared/loginItem.ts'
 
 /** The listening sockets a standby hands to the surface. */
 export interface AdoptedListeners {
@@ -78,7 +79,7 @@ export class HubStandby {
     if (this.server) return
     const taken = (host: string, e: NodeJS.ErrnoException): Error =>
       e.code === 'EADDRINUSE' || e.code === 'EACCES'
-        ? new HubPortUnavailable(port, `port ${port} on ${host} is ${e.code === 'EADDRINUSE' ? 'already in use by another program' : 'not available to this user'}, so agents outside Fabric cannot reach it. Close that program (or choose a free port with FABRIC_HUB_PORT), then restart Fabric from its menu`)
+        ? new HubPortUnavailable(port, `port ${port} on ${host} is ${e.code === 'EADDRINUSE' ? 'already in use by another program' : 'not available to this user'}, so agents outside Fabric cannot reach it. Close that program (or choose a free port with FABRIC_HUB_PORT), then ${RESTART_ITEM_ADVICE}`)
         : e
     const server = createServer(this.handler)
     await new Promise<void>((resolve, reject) => {

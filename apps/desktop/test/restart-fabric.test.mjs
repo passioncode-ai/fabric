@@ -103,3 +103,17 @@ test('UX-15: with live consoles the restart asks first, Cancel the default; with
   assert.match(restartConfirmation(2, translator('en'), 'en').detail, /2 agent consoles /)
   assert.ok(!/\{count\}|restart\.confirm/.test(JSON.stringify([ru, en])), 'every text is filled in')
 })
+
+// The 0.3.18 review, iteration 2, UX-12, DO-14, UX-17: with the board's service on, Quit only hides Fabric, so a reason
+// an agent relays never says to quit and reopen it; every one names the menu item that restarts it.
+test('UX-12: the reasons agents relay name the restart item, never quit and reopen', async () => {
+  const { RESTART_ITEM_ADVICE } = await import('../src/shared/loginItem.ts')
+  assert.match(RESTART_ITEM_ADVICE, /“Restart Fabric”/)
+  for (const file of ['hub.ts', 'hubStandby.ts', 'agentSurface.ts']) {
+    const src = readFileSync(path.join(import.meta.dirname, '../src/main', file), 'utf8')
+    assert.doesNotMatch(src, /quit and reopen/i, file)
+    assert.doesNotMatch(src, /restart Fabric from its menu/, file)
+  }
+  const hub = readFileSync(path.join(import.meta.dirname, '../src/main/hub.ts'), 'utf8')
+  assert.equal([...hub.matchAll(/\$\{RESTART_ITEM_ADVICE\}/g)].length, 3, 'the port setting, the claimed port and the hub that did not start')
+})

@@ -577,10 +577,10 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.prompt.quoted` | “{reason}” | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.connect.withdraw-failed` | Fabric recorded the key after {name} had stopped waiting and could not withdraw the record. {name} revokes that key, so this connection will not work: disconnect it, then connect again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.connect.vault-unavailable` | {name} cannot be connected on Windows yet: the vault of Project Observatory, which keeps its key, does not run here. Nothing was opened in {name}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | proposed |
-| `access.hub.off.port-setting` | Correct or remove the hub port setting FABRIC_HUB_PORT (a port from 1024 to 65535), then restart Fabric from the menu. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
-| `access.hub.off.port-claimed` | A registered agent claims the hub’s port. Move that agent to another port, or choose a free one for Fabric with FABRIC_HUB_PORT, then restart Fabric from the menu. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
-| `access.hub.off.port-taken` | Another program holds the hub’s port. Close it, or choose a free port with FABRIC_HUB_PORT, then restart Fabric from the menu. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
-| `access.hub.off.not-started` | The hub could not start. Restart Fabric from the menu to try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.hub.off.port-setting` | Correct or remove the hub port setting FABRIC_HUB_PORT (a port from 1024 to 65535), then choose “Restart Fabric” in the menu. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.hub.off.port-claimed` | A registered agent claims the hub’s port. Move that agent to another port, or choose a free one for Fabric with FABRIC_HUB_PORT, then choose “Restart Fabric” in the menu. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.hub.off.port-taken` | Another program holds the hub’s port. Close it, or choose a free port with FABRIC_HUB_PORT, then choose “Restart Fabric” in the menu. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.hub.off.not-started` | The hub could not start. To try again, choose “Restart Fabric” in the menu. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.notDoneGeneric` | Not done. Try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 
 | `startup.schema-behind-recovery` | Stop all writers and make a verified backup first. Follow https://github.com/passioncode-ai/Fabric/blob/main/docs/launch/release-mac.md#upgrading-an-existing-database before running supabase migration up --local in {stackPath}, then retry. Fabric has not started its workspace services. | apps/desktop/src/main/schemaReadiness.ts | SCN-095 | proposed |
@@ -631,7 +631,7 @@ their capitals as title case. Adding those names is `brand-voice`’s decision (
 |---|---|---|---|---|
 | `diagnostics.exposure.title` | The local database can be reached from your network | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
 | `diagnostics.exposure.body` | Ports {ports} answer on {ifaces} with the stack’s default password, so anyone on this network can read and change your projects. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
-| `diagnostics.exposure.orbstackAfter` | Then restart the engine, and restart Fabric from the menu. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `diagnostics.exposure.orbstackAfter` | Then restart the engine, and choose “Restart Fabric” in the menu. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
 | `diagnostics.exposure.dockerAfter` | Then restart the engine. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
 | `diagnostics.exposure.why` | Why Fabric does not close this itself | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
 | `diagnostics.exposure.whyBody` | Which addresses a container port listens on is set by the container engine, for every container on it at once. Fabric cannot change that for its own containers alone. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
