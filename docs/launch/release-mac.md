@@ -41,7 +41,10 @@ x64 and an arm64 app and joins them; node-pty keeps each architecture in its own
 universal file (`scripts/lib/universal-mac.mjs`), the `files` filter in `electron-builder.yml`
 keeps Windows and Linux prebuilds out, and the joined app — and the release receipt's
 `checks.universal` — is refused while any Mach-O lacks a slice. Tested by
-`scripts/test/universal-mac.test.mjs`. Runtime admission (`apps/desktop/src/main/runtimeAdmission.ts`)
+`scripts/test/universal-mac.test.mjs`. Since 0.3.18 every packed Mac app is also refused without the
+board's launch agent at `Contents/Library/LaunchAgents/ai.passioncode.desktop.board.plist` naming its own job and
+program (`scripts/lib/board-service.mjs`, ADR-0192): electron-builder only warns when an `extraFiles` source is
+missing. Tested by `scripts/test/board-service.test.mjs`. Runtime admission (`apps/desktop/src/main/runtimeAdmission.ts`)
 and executor sign-in readers (`executorAuth.ts`) are measured per architecture; an x86_64 tuple is
 added only after their suites pass on it.
 

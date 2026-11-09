@@ -3,7 +3,9 @@
 <!--
   ADR-0192 (0.3.18): the board's service. The app registers it with
   app.setLoginItemSettings({ type: 'agentService', serviceName }) (shared/loginItem.ts#BOARD_SERVICE); launchd starts
-  Fabric without a window at login and again after an abnormal end, never after a clean exit.
+  Fabric without a window at login and again after an abnormal end, never after a clean exit. A copy launchd starts
+  while another Fabric holds the single-instance lock ends with 75 (shared/loginItem.ts#LAUNCHD_RETRY_EXIT), so
+  launchd tries again; ThrottleInterval keeps that to once a minute (the 0.3.18 review, iteration 1, PL-6).
 -->
 <plist version="1.0">
 <dict>
@@ -23,6 +25,8 @@
     <key>SuccessfulExit</key>
     <false/>
   </dict>
+  <key>ThrottleInterval</key>
+  <integer>60</integer>
   <key>AssociatedBundleIdentifiers</key>
   <array>
     <string>ai.passioncode.desktop</string>

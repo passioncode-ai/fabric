@@ -1,10 +1,12 @@
 // #region after-pack-universal — docs: docs/launch/release-mac.md#universal-macos
 // electron-builder `afterPack` (apps/desktop/electron-builder.yml): makes node-pty's prebuilds
 // universal in every packed macOS app — each architecture's and the joined universal one — and,
-// on the joined app, refuses any Mach-O without both slices (scripts/lib/universal-mac.mjs).
+// on the joined app, refuses any Mach-O without both slices (scripts/lib/universal-mac.mjs). Every packed
+// macOS app without the board's launch agent is refused too (scripts/lib/board-service.mjs, ADR-0192).
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { foreignPrebuilds, thinMachO, universalizeNodePty } from './lib/universal-mac.mjs'
+import { boardServiceProblems } from './lib/board-service.mjs'
 
 export default async function afterPack(context) {
   if (context.electronPlatformName !== 'darwin') return
@@ -14,6 +16,8 @@ export default async function afterPack(context) {
   const foreign = foreignPrebuilds(module)
   if (foreign.length) throw new Error(`Other platforms' node-pty prebuilds reached the Mac app: ${foreign.join(', ')} (electron-builder.yml files filter)`)
   universalizeNodePty(module, source)
+  const service = boardServiceProblems(app)
+  if (service.length) throw new Error(`The Fabric.app carries no usable board service (ADR-0192, electron-builder.yml mac.extraFiles): ${service.join('; ')}`)
   // Arch.universal is 4 in builder-util; the per-architecture apps are thin by design.
   if (context.arch === 4) {
     const thin = thinMachO(app)

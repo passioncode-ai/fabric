@@ -82,6 +82,10 @@ node --test scripts/test/nightly-gate.test.mjs
 # The universal macOS pack (0.3.4): node-pty joined with lipo, and no thin or unreadable Mach-O passes; it skips
 # off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs
+# ADR-0192 (0.3.18 review, iteration 1, PL-1, PL-2): the board's launch agent is in the tree, ships at
+# Contents/Library/LaunchAgents under the name the app registers, and afterPack refuses an app without it.
+node --experimental-strip-types --test scripts/test/board-service.test.mjs
+node --experimental-strip-types --test apps/desktop/test/board-launch-agent.test.mjs
 node scripts/check-regions.mjs
 # CO-520: private data stays out of this public tree. The gate runs org-index's checker with the operator's local
 # denylist and prints where a finding is, never what matched; NOT_RUN (passing) where either is absent, as in hosted CI.

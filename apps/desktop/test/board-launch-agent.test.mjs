@@ -26,3 +26,18 @@ test('launchd starts the app itself, without a window, at login and again after 
   assert.match(plist, /<key>AssociatedBundleIdentifiers<\/key>\s*<array>\s*<string>ai\.passioncode\.desktop<\/string>/)
   assert.match(builder, /^appId: ai\.passioncode\.desktop$/m)
 })
+
+test('PL-6: launchd tries a copy that lost the single-instance lock again once a minute, not every ten seconds', () => {
+  assert.match(plist, /<key>ThrottleInterval<\/key>\s*<integer>60<\/integer>/)
+})
+
+test('PL-2: the release config keeps the base config\'s extraFiles, so the signed universal app ships the plist too', async () => {
+  const { createRequire } = await import('node:module')
+  const builderRequire = createRequire(createRequire(import.meta.url).resolve('electron-builder'))
+  const { getConfig } = builderRequire('app-builder-lib/out/util/config/config.js')
+  const release = await getConfig(path.resolve(here, '..'), 'electron-builder.release.yml', null)
+  // electron-builder joins a child's file sets to its parent's (mergeFilesSets), so the release's own `mac:` block adds to
+  // the base's extraFiles and cannot drop the plist; read through electron-builder's own loader, measured 2026-11-09.
+  assert.ok(release.mac.extraFiles.some((f) => f.from === `build/launchd/${BOARD_SERVICE}` && f.to === `Library/LaunchAgents/${BOARD_SERVICE}`), JSON.stringify(release.mac.extraFiles))
+  assert.equal(release.afterPack, 'build-hooks/after-pack.mjs')
+})
