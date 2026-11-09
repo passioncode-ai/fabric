@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "source_commit": "d7e357d411c87c94839c621f18be8f3f0232bed3",
-  "workspace_commit": "de59ea36d36c91b0fb677b4355becac79f21a608",
-  "content_digest": "2d9a3e128770a86a12736b30bd2f3639601a018c8d7bcce31ac9a129303774f8",
+  "workspace_commit": "eb4f833ec06f09cae6abb6f6ce751511f3169c99",
+  "content_digest": "35014df8e8ba87f11df726239b1365dcfc7b710ee3900e57ff04146a7bb43fbb",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "8f2d05ae-19c8-497a-9636-43fd51a7fa27",
+  "deployment": "7b53f30d-2b6e-4f6f-a691-2eaf69d6144d",
   "fabric_digest": "e57e1e63bb3fa40c03249c8422ac800612ffe0264a5e8810d86e3393836cdb78",
   "sources": [
     {
@@ -47,8 +47,8 @@
     {
       "id": "fabric-dashboards",
       "repository": "https://github.com/passioncode-ai/fabric-dashboards",
-      "commit": "96f2b200de6bb8e302ca9e8f57536cff5274a666",
-      "files_digest": "4563679450a261b991b5e63bee486b414ec1f9bf73965f2144e1b95a52fa76dc"
+      "commit": "a308a89739069aedc84ebacd81a8b7fcd3c55da8",
+      "files_digest": "0059317af40b55aff3aa39680116676ca87d4fb046cdb13bc4a9217023e686e3"
     },
     {
       "id": "project-observatory-dashboard",
