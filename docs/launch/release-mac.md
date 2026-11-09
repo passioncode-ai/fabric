@@ -319,7 +319,11 @@ large estate's threads read as unread again (0.3.12 keeps up to 5 000). The migr
 
 **0.3.16 (released 2026-11-05) admits schema 100** (migration `20261027000126_home_journal_indexes.sql`, two indexes on the journal for the home's reads, CO-469 and CO-477; and `20261030000127_archive_source_schemas_99_100.sql`, which admits schemas 99 and 100 as private-archive sources, the step 126 missed): a database at 98 (0.3.13, 0.3.14, 0.3.15) takes the upgrade below, `FROM` 98, migrations 126 and 127; they create two indexes and replace one function (`ceo_private_archive_canonical`, same signature, so its grants stand) and move no data or grant. Going back after it is the backup with the 0.3.15 bundle (0.3.15 admits only 98). Applied to the whole chain on an owned cluster by `apps/desktop/test/run-journal-indexes-db.mjs`.
 
-1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
+**0.3.18 admits schema 100**, the same as 0.3.16 and 0.3.17: it adds no migration (`supabase/migrations/` still ends at `20261030000127_archive_source_schemas_99_100.sql`), so upgrading from 0.3.16 or 0.3.17 is the new bundle alone and going back is the older bundle alone. What changes is how Fabric is stopped on macOS ([ADR-0192](../adr/0192-the-board-is-a-service-launchd-keeps.md)): with «Служба доски» on (the default), launchd keeps Fabric running as the job `ai.passioncode.desktop.board`, «Завершить Fabric» only hides it, and launchd starts it again after an abnormal end. To stop it for an install, a move or step 1 below, turn «Служба доски» off in Settings and then quit, or run `launchctl bootout gui/$(id -u)/ai.passioncode.desktop.board`; a signal (the broker's stop, `kill`) ends the running process cleanly (exit 0), which launchd does not restart, while a crash, a SIGKILL or a quit the 10 s deadline had to end (exit 3) is started again. On the first 0.3.18 start macOS may show its own notice that a background item was added, and may ask the person to allow Fabric in Login Items; until it is allowed, 0.3.17's login item stays and Fabric still starts at login. Going back to 0.3.17 is: turn the service off and quit (or `launchctl bootout`), check Login Items shows no Fabric board agent, then install the 0.3.17 bundle, which registers its own login item again.
+
+1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
+   on: turn it off and then quit, or boot the job out (`launchctl bootout gui/$(id -u)/ai.passioncode.desktop.board`),
+   before the bundle is replaced (the 0.3.18 paragraph above). A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
    another running session. Keep the installed database at its schema until a verified signed X.Y.Z
    build is available. First install that build, attempt startup once so its bundled stack is copied,
@@ -446,7 +450,8 @@ carries the estate's data, never the installation's identity. Paths are macOS's;
 | Sign-ins (Claude Code, Codex, GitHub) | Fabric creates no Keychain item; each tool signs in on the new machine, and secrets come from Project Observatory's vault there |
 
 **Order.** Stop Fabric on the old machine through its supervisor (on the operator's Mac, the lifecycle broker's hold on
-`fabric.desktop`), take the dump, install the same Fabric version on the new machine and start it once so its stack
+`fabric.desktop`; from 0.3.18 also turn «Служба доски» off and quit, or `launchctl bootout gui/$(id -u)/ai.passioncode.desktop.board`, since
+launchd otherwise starts it again), take the dump, install the same Fabric version on the new machine and start it once so its stack
 exists, restore and migrate, copy the settings, then start it and check: the version, `schema_version()`, the journal
 count against the dump's, `hub.json` naming a live pid, `com.status` ready, and a session's `fabric_whoami`. **Then the
 old installation is not started again with the same estate** until CO-515 makes a second live copy detectable: two
