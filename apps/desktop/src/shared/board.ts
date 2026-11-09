@@ -88,6 +88,9 @@ export function overdueReviews(entries: readonly Pick<BoardEntry, 'kind' | 'ref'
 /** CO-537 (the operator, 2026-11-08): work left in review past this is accepted by default, so «Нужны вы» keeps only
  *  what needs the person now. The same three days that made a review overdue (CO-456). */
 export const REVIEW_ACCEPT_BY_DEFAULT_MS = OVERDUE_REVIEW_MS
+/** The actor id of a review accepted by default (`system/review-default`): the history tells that close from the
+ *  person's own by it (the 0.3.18 review, iteration 1, UX-2). */
+export const REVIEW_DEFAULT_ACTOR = 'review-default'
 /** The reason a review accepted by default carries in its `task.closed@1`, for the agent and the task's history. */
 export const REVIEW_ACCEPTED_BY_DEFAULT_REASON = 'accepted by default: it waited in review for more than three days without a decision (the operator\'s rule, 2026-11-08)'
 /** The tasks among these put in review more than `REVIEW_ACCEPT_BY_DEFAULT_MS` before `now`, the oldest first; a task

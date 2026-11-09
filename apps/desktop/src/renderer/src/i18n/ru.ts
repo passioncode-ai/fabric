@@ -2548,6 +2548,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'workspace.tier': "уровень {n}",
   'journal.title': "Журнал проекта",
   'journal.reading': "читаем журнал…",
+  'journal.reviewAcceptedByDefault': "задача принята по умолчанию: она ждала решения на проверке больше трёх дней",
   'journal.empty': "Журнал пуст. Он заполняется по мере событий.",
   'session.state.running': "работает",
   'session.state.idle': "простаивает",

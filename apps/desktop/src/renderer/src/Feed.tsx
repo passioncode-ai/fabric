@@ -3,7 +3,7 @@ import type { DestinationReason, EntityRef } from '../../shared/entityRef'
 import { destinationOf } from '../../shared/entityRef.ts'
 import { subjectOfEvent } from '../../shared/eventSubject.ts'
 import { Button, EmptyState, Row } from './components'
-import { describeEvent, useLocale, useT, type Translate } from './i18n'
+import { describeFeedEvent, useLocale, useT, type Translate } from './i18n'
 
 export function Feed({
   events,
@@ -68,7 +68,7 @@ export function Feed({
                 a link as text, so a keyboard or a screen reader reaches it too, not
                 only a pointer hovering a tooltip (0.3.13 review, iteration 1, UX-10). */}
             <span data-event-type={e.type} title={'why' in act ? act.why : undefined}>
-              {describeEvent(t, e.type)}
+              {describeFeedEvent(t, e)}
             </span>
             {'why' in act && onOpen !== undefined && (
               <small className={compact ? 'feed-why visually-hidden' : 'feed-why muted'}> {act.why}</small>

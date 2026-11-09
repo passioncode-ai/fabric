@@ -11,7 +11,7 @@ import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
 import type { ActorKind } from '@fabric/journal'
 import { ops } from './opsSink.ts'
 import { readRunHolds } from './workRead.ts'
-import { REVIEW_ACCEPTED_BY_DEFAULT_REASON } from '../shared/board.ts'
+import { REVIEW_ACCEPTED_BY_DEFAULT_REASON, REVIEW_DEFAULT_ACTOR } from '../shared/board.ts'
 
 type Store = ReturnType<typeof createScopedStore>
 type Append = (e: { type: 'work.released@1' | 'task.moved@1' | 'task.closed@1'; actor: { kind: ActorKind; id: string }; projectId: string; payload: Record<string, unknown> }) => Promise<unknown>
@@ -183,7 +183,7 @@ export async function acceptReviewByDefault(store: Store, append: Append, taskId
     if (task.status !== 'review' || task.moved_at !== movedAt) return { accepted: false, task_status: task.status }
     const verdict = mayMove('person', 'review', 'done')
     if (!verdict.ok) return { accepted: false, task_status: task.status, failed: verdict.reason }
-    await append({ type: 'task.closed@1', actor: { kind: 'system', id: 'review-default' }, projectId,
+    await append({ type: 'task.closed@1', actor: { kind: 'system', id: REVIEW_DEFAULT_ACTOR }, projectId,
       payload: { task_id: taskId, outcome: 'done', reason: REVIEW_ACCEPTED_BY_DEFAULT_REASON } })
     const status = await taskOf(store, taskId)
     return status?.status === 'done' ? { accepted: true, task_status: 'done' } : { accepted: false, task_status: status?.status ?? null, failed: 'the close did not read back as done' }

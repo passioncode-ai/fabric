@@ -11,7 +11,7 @@
 import { projectDisplayName } from '../../../shared/projectDisplayName.ts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ACT_CATEGORIES, type ActActor, type ActCategory, type ActHistoryPage, type ActHistoryQuery, type ActView } from '../../../shared/acts.ts'
-import { describeEvent, useLocale, useT, type Translate } from '../i18n'
+import { describeFeedEvent, useLocale, useT, type Translate } from '../i18n'
 import { actSentence, whyWords } from './actWords'
 import { feedAct } from '../Feed'
 import { runnerLabel } from '../runnerLabel'
@@ -311,7 +311,7 @@ function AgentWork({ events, narrowed = false, onReset, projects, sessions, onOp
 function saidOf(t: Translate, e: FeedEvent): string {
   if (e.type === 'work.released@1' && e.actor.kind === 'system') return t('acts.releasedByFabric')
   if (e.type === 'work.released@1' && e.actor.kind === 'person') return t('acts.releasedByYou')
-  return describeEvent(t, e.type)
+  return describeFeedEvent(t, e)
 }
 
 /**

@@ -12,7 +12,7 @@ import { latestVerified, type ReleaseEntry } from '../../../shared/releases.ts'
 import type { WorkRhythm } from '../../../shared/workRhythm.ts'
 import type { RunStatusView } from '../../../shared/runStatus.ts'
 import type { FeedEvent, ProjectRow, RoutineRow, TerminalSession } from '../../../shared/types'
-import { describeEvent, useLocale, useT } from '../i18n'
+import { describeFeedEvent, useLocale, useT } from '../i18n'
 import { FeedStrip } from './FabricStrip'
 import { useOpenConsole } from '../consoles'
 
@@ -109,7 +109,7 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
                 : shown.map((e) => (
                   <article key={`${e.estate_id}:${e.seq}`} className="fp-event">
                     <small>{time(e.occurred_at)} · {nameOf(e.project_id)}</small>
-                    <b>{describeEvent(t, e.type)}</b>
+                    <b>{describeFeedEvent(t, e)}</b>
                     <details>
                       <summary>{t('launch.pulse.basis')}</summary>
                       <p>{t('launch.pulse.basisBody', { seq: e.seq, actor: t(`launch.pulse.actor.${e.actor.kind === 'agent' || e.actor.kind === 'person' ? e.actor.kind : 'system'}` as 'launch.pulse.actor.agent') })}</p>

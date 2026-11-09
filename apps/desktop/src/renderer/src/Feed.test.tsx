@@ -161,3 +161,24 @@ describe('the reason a row cannot be opened (CO-225 (5))', () => {
     expect(container.querySelector('.feed-why')).toBeNull()
   })
 })
+
+// The 0.3.18 review, iteration 1, UX-2 (B6): a review the system accepted by default after three days (CO-537) says
+// so in the task's history, in the person's language, and never reads as the person's own close.
+describe('a review accepted by default says so in the history', () => {
+  const closed = (actor: FeedEvent['actor']): FeedEvent => ({ ...event('task.closed@1', { task_id: 't-1', outcome: 'done' }), actor })
+  const showIn = (locale: 'en' | 'ru', events: FeedEvent[]) =>
+    render(
+      <I18nProvider locale={locale}>
+        <Feed events={events} projects={[project()]} />
+      </I18nProvider>
+    )
+  it('names the default acceptance, distinct from a close the person made', () => {
+    showIn('ru', [closed({ kind: 'system', id: 'review-default' })])
+    expect(screen.getByText(ru['journal.reviewAcceptedByDefault']!)).toBeTruthy()
+    expect(screen.queryByText(ru['event.task.closed@1']!)).toBeNull()
+    cleanup()
+    showIn('ru', [closed({ kind: 'person', id: 'operator' })])
+    expect(screen.getByText(ru['event.task.closed@1']!)).toBeTruthy()
+    expect(screen.queryByText(ru['journal.reviewAcceptedByDefault']!)).toBeNull()
+  })
+})

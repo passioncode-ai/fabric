@@ -5,6 +5,7 @@
 import { createContext, useContext, useMemo } from 'react'
 import { en, type StringKey } from './en'
 import { translator, type Locale, type Translate } from './translate.ts'
+import { REVIEW_DEFAULT_ACTOR } from '../../../shared/board.ts'
 
 export type { Locale, Translate, PluralForm } from './translate.ts'
 export { pluralForm } from './translate.ts'
@@ -50,6 +51,16 @@ export function useT(): Translate {
 export function describeEvent(t: Translate, type: string): string {
   const key = `event.${type}`
   return key in en ? t(key as StringKey) : type
+}
+
+/**
+ * The sentence for one journal row, where who acted changes what happened: a task the system closed because its review
+ * waited more than three days (CO-537) was accepted by default, not closed by the person, and the history says so
+ * (the 0.3.18 review, iteration 1, UX-2). Every other row is `describeEvent`'s.
+ */
+export function describeFeedEvent(t: Translate, e: { type: string; actor: { kind: string; id: string } }): string {
+  if (e.type === 'task.closed@1' && e.actor.kind === 'system' && e.actor.id === REVIEW_DEFAULT_ACTOR) return t('journal.reviewAcceptedByDefault')
+  return describeEvent(t, e.type)
 }
 
 export function useLocale(): Locale {
