@@ -96,9 +96,12 @@ const sameFilters = (a: ThreadFilters, b: ThreadFilters): boolean =>
 /** A thread the operator opened: from the list, or from a search hit or a related thread the list may not hold. */
 type Opened = { thread: CommsThread; from: 'list' | 'search' | 'related'; focusSeq?: number }
 
-export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, heads, mode: initialMode = 'feed' }: {
+export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, heads, mode: initialMode = 'feed', thread: initialThread = null }: {
   /** OF-29 (the operator's walk, 2026-10-22): the feed opens first; the threads are the second tab. */
   mode?: 'feed' | 'threads' | 'announcements'
+  /** SCN-181: arrive with this thread open under «Ветки» (a request card on a project page). The thread's own record
+   *  replaces the placeholder once the list holds it. */
+  thread?: string | null
   /** Participant names resolve through this list; null while unread, and an id the
    *  estate no longer holds renders as its short form rather than as nothing. */
   projects: ProjectRow[] | null
@@ -116,7 +119,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
 }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
-  const [mode, setMode] = useState<'feed' | 'threads' | 'announcements'>(initialMode)
+  const [mode, setMode] = useState<'feed' | 'threads' | 'announcements'>(initialThread ? 'threads' : initialMode)
   const nameOf = (id: string): string => (() => { const p = (projects ?? []).find((x) => x.id === id); return p ? projectDisplayName(p) : shortId(id) })()
 
   const [held, setHeld] = useState<Held | null>(null)
@@ -129,7 +132,9 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
   const [olderBusy, setOlderBusy] = useState(false)
   /** The machine's words when the last older page did not come; "Show older threads" stays to ask it again (UX-7). */
   const [olderFailed, setOlderFailed] = useState<string | null>(null)
-  const [opened, setOpened] = useState<Opened | null>(null)
+  const [opened, setOpened] = useState<Opened | null>(() => initialThread
+    ? { thread: { id: initialThread, subject: null, participants: [], createdBy: '', createdSeq: 1, messageCount: 0, lastSeq: 0, lastAt: '', kinds: [], openRequests: 0 }, from: 'related' }
+    : null)
   const [filters, setFilters] = useState<ThreadFilters>(ALL_THREADS)
   /** The filters the held list answers: a poll for other filters never merges into it. */
   const answered = useRef<ThreadFilters>(ALL_THREADS)

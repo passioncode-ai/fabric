@@ -9,6 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A project's work by direction** (CO-543, SCN-181). The project page shows «Направления работы» where the board
+  glance stood: one row per direction, each a strip of cards that scrolls sideways, newest first. Work comes in from
+  other projects (their requests), from you, from the backlog, from the plan and from the agents, and goes out to your
+  review and to other projects. A task card opens the task, a request card opens its thread in Comms. An agent's page
+  shows its tasks in the same rows above the stage chips, which still filter them. The full board stays below.
 - **An agent's session card keeps up** (CO-544). The card beside a chosen agent no longer stops updating while the
   agent works: it reads again every 15 seconds and after every change, and a second failed read in a row keeps what was
   shown instead of emptying the card. Questions to the agent appear as they are asked.

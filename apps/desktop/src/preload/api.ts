@@ -193,6 +193,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       search: (query, before) => ipc.invoke(IPC.commsSearch, query, before),
       pending: () => ipc.invoke(IPC.commsPending),
       waiting: () => ipc.invoke(IPC.commsWaiting),
+      projectRequests: (projectId) => ipc.invoke(IPC.commsProjectRequests, projectId),
       openArtifact: (url) => ipc.invoke(IPC.commsOpenArtifact, url)
     },
     transcripts: {
@@ -283,6 +284,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       home: () => ipc.invoke(IPC.workHome),
       board: (projectId?: string | null, doneLimit?: number) => ipc.invoke(IPC.workBoard, projectId ?? null, ...(doneLimit === undefined ? [] : [doneLimit])),
       session: (sessionId, aliases) => (aliases && aliases.length ? ipc.invoke(IPC.workSession, sessionId, aliases) : ipc.invoke(IPC.workSession, sessionId)),
+      sources: (projectId) => ipc.invoke(IPC.workSources, projectId),
       launchCheck: (input) => ipc.invoke(IPC.workLaunchCheck, input),
       overlapDecide: (input) => ipc.invoke(IPC.workOverlapDecide, input),
       say: (input) => ipc.invoke(IPC.workSay, input),

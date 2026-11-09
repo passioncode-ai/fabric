@@ -29,20 +29,21 @@ const homeView = {
   readAt: NOW
 }
 
-function mount({ closedCapped = false as boolean | 'unknown', board = boardWith([question]), tasks = [task('t-1', 'Keep the invite after sign-in')] as TaskRow[] | null,
+function mount({ board = boardWith([question]), tasks = [task('t-1', 'Keep the invite after sign-in')] as TaskRow[] | null,
   goals = [{ id: 'g1', project_id: 'p1', title: 'Launch team access', autonomy: 'safe', created_at: STAMP }], agents = [] as unknown[],
-  agentsList, boardQuery }: { closedCapped?: boolean | 'unknown'; board?: ReturnType<typeof boardWith>; tasks?: TaskRow[] | null; goals?: unknown[]; agents?: unknown[];
-  agentsList?: () => Promise<unknown>; boardQuery?: () => Promise<unknown> } = {}) {
+  agentsList, boardQuery, requests, sources }: { board?: ReturnType<typeof boardWith>; tasks?: TaskRow[] | null; goals?: unknown[]; agents?: unknown[];
+  agentsList?: () => Promise<unknown>; boardQuery?: () => Promise<unknown>; requests?: () => Promise<unknown>; sources?: () => Promise<unknown> } = {}) {
   const query = vi.fn(boardQuery ?? (async () => board))
   const openSession = vi.fn(async () => {})
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
-    fabric: { board: { query }, goals: { list: vi.fn(async () => goals) }, projects: { analytics: vi.fn(async () => ({ donePerWeek: [0,0,0,0,0,0,0,0], leadHours: null, reviewHours: null, reopenedShare: null, questionsWaiting: 0, oldestQuestionAt: null, weeks: 8 })), relations: vi.fn(async () => []), people: vi.fn(async () => ({ people: [], unread: [] })), setBusiness: vi.fn(), onboard: vi.fn() }, agents: { list: vi.fn(agentsList ?? (async () => agents)) }, work: { home: vi.fn(async () => homeView) },
+    fabric: { board: { query }, goals: { list: vi.fn(async () => goals) }, projects: { analytics: vi.fn(async () => ({ donePerWeek: [0,0,0,0,0,0,0,0], leadHours: null, reviewHours: null, reopenedShare: null, questionsWaiting: 0, oldestQuestionAt: null, weeks: 8 })), relations: vi.fn(async () => []), people: vi.fn(async () => ({ people: [], unread: [] })), setBusiness: vi.fn(), onboard: vi.fn() }, agents: { list: vi.fn(agentsList ?? (async () => agents)) }, work: { home: vi.fn(async () => homeView), sources: vi.fn(sources ?? (async () => ({ sources: [], capped: false }))) },
+      comms: { projectRequests: vi.fn(requests ?? (async () => ({ requests: [], names: {}, capped: false, windowDays: 30 }))) },
       windows: { openSession } }
   }))
-  const on = { onBoard: vi.fn(), onPlan: vi.fn(), onOpenTask: vi.fn(), onNewTask: vi.fn(), onSection: vi.fn() }
+  const on = { onBoard: vi.fn(), onPlan: vi.fn(), onOpenTask: vi.fn(), onOpenRequest: vi.fn(), onNewTask: vi.fn(), onSection: vi.fn() }
   render(
     <I18nProvider locale="en">
-      <ProjectLaunch project={project} tasks={tasks} closedCapped={closedCapped} sessions={[]} feedMark={0} lastEventAt={null} {...on} />
+      <ProjectLaunch project={project} tasks={tasks} sessions={[]} feedMark={0} lastEventAt={null} {...on} />
     </I18nProvider>
   )
   return { query, openSession, ...on }
@@ -133,8 +134,10 @@ describe('the top of a project (SCR-31/SCR-03)', () => {
     expect(step('launch.project.way.now').getByText('Shipping the invite fix')).toBeTruthy()
     expect(step('launch.project.way.next').getByText(en['launch.project.way.goal'].replace('{goal}', 'Launch team access'))).toBeTruthy()
     expect(step('launch.project.way.next').getByText('Team roles')).toBeTruthy()
-    // The board at a glance counts each column.
-    expect(screen.getByText(en['board.done']).querySelector('.lp-count')?.textContent).toBe('1')
+    // SCN-181: the board glance is replaced by the directions of work; every task here predates origins, so «From you»,
+    // and the task finished on 2026-09-10 is older than a week, so it has left the rows (it stays in «From»).
+    await waitFor(() => expect(screen.getByText(en['launch.project.directions.row.fromYou']).querySelector('.lp-count')?.textContent).toBe('2'))
+    expect(screen.queryByText(en['launch.project.glance.title'])).toBeNull()
     fireEvent.click(screen.getAllByText('Team roles')[0])
     expect(onOpenTask).toHaveBeenCalledWith('t-2')
     // This project's agent, opened in the console Fabric holds.
@@ -143,10 +146,6 @@ describe('the top of a project (SCR-31/SCR-03)', () => {
     expect(openSession).toHaveBeenCalledWith('s1')
   })
 
-  it('a done column read from a capped list is a floor, never a total (0.3.6 review DA-3)', async () => {
-    mount({ closedCapped: true, tasks: [task('t-0', 'Email sign-in', 'done', { finished_at: '2026-09-10T00:00:00Z' })] })
-    await waitFor(() => expect(screen.getByText(en['board.done']).querySelector('.lp-count')?.textContent).toBe('1+'))
-  })
 })
 
 describe('a failure on the project page is our sentence, the machine\'s words apart (UX-5)', () => {
@@ -167,5 +166,71 @@ describe('a failure on the project page is our sentence, the machine\'s words ap
     const said = await screen.findByText(en['needsYou.unreadable'])
     expect(said.textContent).not.toContain('function does not exist')
     expect(screen.getByText('board_query: function does not exist')).toBeTruthy()
+  })
+})
+
+describe('«Directions of work» (SCN-181, CO-543)', () => {
+  const NOW_ISO = new Date().toISOString()
+  const dirTasks = [
+    task('t-1', 'Keep the invite after sign-in', 'running', { origin_kind: null, moved_at: NOW_ISO }),
+    task('t-obs', 'Sign-in fails on long addresses', 'backlog', { origin_kind: 'observation' }),
+    task('t-b', 'Access audit', 'backlog', { origin_kind: 'document' }),
+    task('t-g', 'Team roles', 'backlog', { origin_kind: 'observation', goal_id: 'g1' }),
+    task('t-r', 'Import the old board', 'review', { origin_kind: 'observation', moved_at: NOW_ISO })
+  ]
+  const requests = async () => ({
+    requests: [
+      { requestId: 'r-in', threadId: 'th-in', from: 'p2', to: 'p1', capability: 'code.review', subject: 'Review the API page', state: 'queued', at: NOW_ISO, changedAt: null },
+      { requestId: 'r-out', threadId: 'th-out', from: 'p1', to: 'p3', capability: 'pricing', subject: null, state: 'answered', at: NOW_ISO, changedAt: NOW_ISO }
+    ],
+    names: { p2: 'Docs', p3: 'Billing' }, capped: false, windowDays: 30
+  })
+  const sources = async () => ({ sources: [{ task_id: 't-b', path: 'docs/backlog.md', row_id: 'CO-41' }], capped: false })
+  const rowOf = (key: 'fromProjects' | 'fromYou' | 'fromBacklog' | 'fromPlan' | 'fromAgents' | 'toReview' | 'toProjects') =>
+    within(screen.getByText(en[`launch.project.directions.row.${key}`]).closest('.lp-dir-row') as HTMLElement)
+
+  it('one row per direction in the scenario\'s order, each card opens its task or its thread', async () => {
+    const { onOpenTask, onOpenRequest } = mount({ tasks: dirTasks, requests, sources })
+    await waitFor(() => expect(screen.getByText(en['launch.project.directions.row.fromBacklog'])).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(en['launch.project.directions.row.fromProjects'])).toBeTruthy())
+    const order = [...document.querySelectorAll('.lp-dir-row')].map((r) => r.getAttribute('data-direction'))
+    expect(order).toEqual(['fromProjects', 'fromYou', 'fromBacklog', 'fromPlan', 'fromAgents', 'toReview', 'toProjects'])
+    expect(rowOf('fromProjects').getByText('Docs')).toBeTruthy()
+    expect(rowOf('fromProjects').getByText(/waiting/)).toBeTruthy()
+    expect(rowOf('toProjects').getByText('Billing')).toBeTruthy()
+    expect(rowOf('toProjects').getByText('pricing')).toBeTruthy()
+    expect(rowOf('fromBacklog').getByText('CO-41 in docs/backlog.md')).toBeTruthy()
+    // The agent on a task in work is said on its card.
+    expect(rowOf('fromYou').getByText(/in work · claude-code/)).toBeTruthy()
+    fireEvent.click(rowOf('toReview').getByText('Import the old board'))
+    expect(onOpenTask).toHaveBeenCalledWith('t-r')
+    fireEvent.click(rowOf('fromProjects').getByText('Review the API page'))
+    expect(onOpenRequest).toHaveBeenCalledWith('th-in')
+  })
+
+  it('requests that cannot be read are said on their own row; the task rows stay', async () => {
+    mount({ tasks: dirTasks, sources, requests: async () => { throw new Error('board_requests: permission denied') } })
+    const said = await screen.findByText(en['launch.project.directions.requestsUnreadable'])
+    expect(said.closest('.lp-dir-row')?.getAttribute('data-direction')).toBe('requests')
+    expect(screen.getByText('board_requests: permission denied')).toBeTruthy()
+    expect(screen.getByText(en['launch.project.directions.row.toReview'])).toBeTruthy()
+  })
+
+  it('backlog rows that cannot be read are said, and a task then stands in another row', async () => {
+    mount({ tasks: dirTasks, requests, sources: async () => { throw new Error('task_sources: away') } })
+    await screen.findByText(en['launch.project.directions.sourcesUnreadable'])
+    expect(screen.queryByText(en['launch.project.directions.row.fromBacklog'])).toBeNull()
+  })
+
+  it('unread tasks are «Reading…», never quiet; tasks that cannot be read are said', async () => {
+    mount({ tasks: null })
+    await waitFor(() => expect(screen.getByText(en['launch.project.directions.reading'])).toBeTruthy())
+    expect(screen.queryByText(en['launch.project.directions.quiet'])).toBeNull()
+  })
+
+  it('only finished work older than a week: said as quiet, never an empty strip', async () => {
+    mount({ tasks: [task('t-old', 'Old', 'done', { finished_at: '2026-01-01T00:00:00Z' })] })
+    await screen.findByText(en['launch.project.directions.quiet'])
+    expect(document.querySelector('.lp-dir-row')).toBeNull()
   })
 })

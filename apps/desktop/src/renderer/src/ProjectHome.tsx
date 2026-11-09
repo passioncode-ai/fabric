@@ -112,7 +112,8 @@ export function ProjectHome({
   onReview,
   onPlan,
   onPulse,
-  onGraph
+  onGraph,
+  onComms
 }: {
   project: ProjectRow
   /** Null until read (M108). Filtering a list you have NOT read leaves it
@@ -152,6 +153,8 @@ export function ProjectHome({
   onPulse?: (projectId: string) => void
   /** The graph around this project (SCN-175). */
   onGraph?: (projectId: string) => void
+  /** A board request's thread in Comms, from «Направления работы» (SCN-181). */
+  onComms?: (threadId: string) => void
 }): React.JSX.Element {
   const t = useT()
   /**
@@ -363,7 +366,6 @@ export function ProjectHome({
           project={project}
           tasks={tasks}
           tasksProblem={tasksProblem}
-          closedCapped={closedCoverage === null ? null : closedCoverage.truncated}
           sessions={sessions}
           feedMark={taskMark}
           lastEventAt={lastEventAt}
@@ -373,6 +375,7 @@ export function ProjectHome({
           onPulse={onPulse ? () => onPulse(project.id) : undefined}
           onGraph={onGraph ? () => onGraph(project.id) : undefined}
           onOpenTask={setOpenTask}
+          onOpenRequest={onComms}
           onNewTask={() => toSection('sec-tasks')}
           onSection={toSection}
         />

@@ -91,6 +91,17 @@
 .lp-glance-column h4{margin:0 0 var(--space-1);font-size:12px;font-weight:600}
 .lp-project-now{margin:var(--space-2) 0 0;font-size:13px;color:var(--app-ink)}
 @media(max-width:850px){.lp-way-steps,.lp-glance-columns{grid-template-columns:minmax(0,1fr)}}
+.lp-dir-rows{display:flex;flex-direction:column;gap:var(--space-3)}
+.lp-dir-row h4{margin:0 0 var(--space-1);font-size:12px;font-weight:600}
+.lp-dir-strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,240px);gap:var(--space-2);overflow-x:auto;scroll-snap-type:x proximity;list-style:none;margin:0;padding:0 0 var(--space-1)}
+.lp-dir-strip>li{display:flex;scroll-snap-align:start}
+.lp-dir-card{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;padding:var(--space-2) var(--space-3);border:1px solid var(--app-line);border-radius:var(--app-radius-control);background:var(--app-panel);color:inherit;text-decoration:none;font:inherit;cursor:pointer}
+.lp-dir-card:hover{border-color:var(--app-line-strong)}
+.lp-dir-card:focus-visible{outline:2px solid var(--app-focus);outline-offset:3px}
+.lp-dir-card.is-request{border-style:dashed}
+.lp-dir-title{font-size:13px;color:var(--app-ink)}
+.lp-dir-project{font-size:11px;font-weight:600;color:var(--app-muted)}
+.lp-dir-source{font-size:11px;color:var(--app-muted)}
 .lp-settings-list{list-style:none;margin:var(--space-3) 0;padding:0;display:flex;flex-direction:column;gap:var(--space-2)}
 .lp-settings-list li{display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-2) var(--space-3);border:1px solid var(--app-line);border-radius:var(--app-radius-control);background:var(--app-panel)}
 .lp-settings-list li.is-missing{background:var(--app-panel-quiet)}

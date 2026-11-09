@@ -4414,6 +4414,7 @@
       "scenario_ids": [
         "SCN-140",
         "SCN-159",
+        "SCN-181",
         "SCN-040",
         "SCN-041",
         "SCN-060",
@@ -4427,8 +4428,7 @@
         "SCN-058",
         "SCN-067",
         "SCN-090",
-        "SCN-141",
-        "SCN-181"
+        "SCN-141"
       ],
       "states": {
         "loading": "Показывать читаемый scope и загрузку нужного источника; ещё не выводить нули или пустой успех.",
@@ -4442,7 +4442,7 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 690,
-        "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`; the way, the board glance and the agents on the project (SCN-159, 2026-10-14) are `apps/desktop/src/renderer/src/launch/ProjectWay.tsx` (`ProjectWay`, `ProjectBoardGlance`) over `apps/desktop/src/shared/projectPath.ts`, in `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`",
+        "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`; the way, the board glance and the agents on the project (SCN-159, 2026-10-14) are `apps/desktop/src/renderer/src/launch/ProjectWay.tsx` (`ProjectWay`, `ProjectBoardGlance`) over `apps/desktop/src/shared/projectPath.ts`, in `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`; since 2026-11-09 (CO-543, SCN-181) the board glance's place holds «Направления работы», `apps/desktop/src/renderer/src/launch/WorkDirections.tsx#ProjectDirections` over `apps/desktop/src/shared/workDirections.ts#composeDirections`",
         "status_claim": "built"
       },
       "registry_additional_states": [
@@ -35689,8 +35689,8 @@
         "SCR-31",
         "SCR-39"
       ],
-      "coverage": "none yet",
-      "registry_status": "draft",
+      "coverage": "`apps/desktop/src/shared/workDirections.ts#composeDirections` (the order, `directionOfTask`; the words, `taskWord`, `requestWord`; an agent's task, `directionTaskOfSession`), `apps/desktop/src/main/projectRequests.ts#readProjectRequests` and `#readProjectSources` (IPC `comms:project-requests`, `work:sources`), `apps/desktop/src/renderer/src/launch/WorkDirections.tsx#ProjectDirections` and `#DirectionRows`, mounted in `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx` and `apps/desktop/src/renderer/src/launch/AgentPage.tsx`; the agent's tasks carry their origin and backlog row from `apps/desktop/src/main/workRead.ts#readSessionTasks`; a request opens its thread through the route `{kind: 'comms', thread}` (`apps/desktop/src/renderer/src/launch/CommsScreen.tsx#CommsScreen`, `thread`). Tests: `apps/desktop/src/shared/workDirections.test.ts`, `apps/desktop/test/project-requests.test.mjs`, `apps/desktop/src/shared/sessionTasks.test.ts` («SCN-181: carries where each task came from…»), `apps/desktop/src/renderer/src/launch/ProjectLaunch.test.tsx` («Directions of work»), `apps/desktop/src/renderer/src/launch/AgentPage.test.tsx` («the agent's tasks in rows by direction»).",
+      "registry_status": "implemented in part (2026-11-09, CO-543): the project page shows «Направления работы» in place of the board glance, one row per direction with its count and a strip of cards that scrolls sideways, newest first; a task card says its summary, its state, the agent on it and how long ago it moved, a backlog card also its row and file; a request card says the other project, what it asks (the thread's subject, else the capability) and its state; a task opens its page, a request opens its thread in Comms; an agent's page shows its tasks in the same rows above the stage chips, which filter them. «От других проектов» carries the board requests addressed to the project and never a task: no task records today that it came from another project (`origin_kind` is one of observation, person, task, document, memory; `assigned_by` is written only as `agent:<session>`; a task link points only at a task or a goal), so a task is filed by the rest of the order, with a task in review in «Ждут вашей проверки» only. Not built: an outgoing request's answer on its card (the state word is said; the answer is in its thread), and requests older than 30 days (the read covers the last 30 days and says when it was cut at 200 each way). The board's request states the scenario does not name are said too: «выполнен», «отменён», «не выполнен», «исход неизвестен».",
       "product_observation": "unobserved",
       "expected_result": "the operator sees at a glance where this project's work comes from and where it goes, without reading a mixed list; the duplicate «Доска» glance at the top is replaced by these rows, and the full board stays below.",
       "errors_recovery": "tasks and requests are read separately; a failure of one is said on its rows and the other rows stay; a later read replaces an earlier one only when it lands (CO-544's reading).",

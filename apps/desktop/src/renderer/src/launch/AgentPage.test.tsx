@@ -594,3 +594,31 @@ describe('CO-476: the narrow layout keeps the reading order in the DOM', () => {
     expect(card.parentElement?.classList.contains('as-main')).toBe(narrow)
   })
 })
+
+describe('the agent\'s tasks in rows by direction (SCN-181 step 5, CO-543)', () => {
+  const at = new Date().toISOString()
+  const st = (id: string, kind: string | null, extra: Partial<SessionTask> = {}): SessionTask => ({
+    taskId: id, projectId: 'p1', projectName: 'Fabric', summary: 'Task ' + id, brief: { what: null, why: null, expected: null }, status: 'running',
+    claimedAt: at, releasedAt: null, releasedHow: null, claims: 1, via: 'claim',
+    origin: { kind, assignedBy: null, goalId: null, movedAt: at, finishedAt: null, startedAt: at }, source: null, ...extra
+  })
+  it('shows its tasks in the project page\'s rows above the chips, and the chips filter them', async () => {
+    const session = vi.fn(async (): Promise<SessionTasksView> => ({ tasks: [
+      st('tY', 'person'), st('tB', 'document', { source: { path: 'docs/backlog.md', rowId: 'CO-7' } }), st('tR', 'observation', { status: 'review' })
+    ], capped: false }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session }, terminal: { history: vi.fn(async () => []) } } }))
+    const onOpenTask = vi.fn()
+    const { container } = show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} onOpenTask={onOpenTask} />)
+    await screen.findByText(en['launch.project.directions.row.fromBacklog'])
+    const order = [...container.querySelectorAll('.lp-dir-row')].map((r) => r.getAttribute('data-direction'))
+    expect(order).toEqual(['fromYou', 'fromBacklog', 'toReview'])
+    const dir = container.querySelector('.ap-dir') as HTMLElement
+    const lanes = screen.getByRole('group', { name: en['agentScreen.lanes'] })
+    expect(dir.compareDocumentPosition(lanes) & Node.DOCUMENT_POSITION_FOLLOWING, 'the rows stand above the chips').toBeTruthy()
+    expect(within(dir).getByText('CO-7 in docs/backlog.md')).toBeTruthy()
+    fireEvent.click(within(dir).getByText('Task tB'))
+    expect(onOpenTask).toHaveBeenCalledWith('p1', 'tB')
+    fireEvent.click(within(lanes).getByRole('button', { name: new RegExp(`^${en['agentScreen.lane.review']}`) }))
+    await waitFor(() => expect([...container.querySelectorAll('.lp-dir-row')].map((r) => r.getAttribute('data-direction'))).toEqual(['toReview']))
+  })
+})

@@ -82,7 +82,8 @@ export type AppRoute =
    *  UX-4). The renderer's alone: main never builds or reads a board route. */
   | { kind: 'board'; projectId?: string | null; item?: string | null; topic?: boolean; needs?: boolean; tab?: BoardTab }
   /** SCR-81. What projects tell each other, read by the operator. A single place, like the agents view. */
-  | { kind: 'comms' }
+  /** `thread`: arrive with one thread open (SCN-181, a request card on a project page). */
+  | { kind: 'comms'; thread?: string | null }
   /** Agent access as a place of the rail (the operator, 2026-11-05: (paraphrased: Agent access out of Settings into the left column, as a main screen)): which agents work with which products, each revocable. It was a panel opened from Settings. */
   | { kind: 'access' }
   /** SCN-175 (W2 S5): how the projects relate; `projectId` centres the graph on one project and its neighbours. */

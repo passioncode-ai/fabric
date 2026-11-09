@@ -72,7 +72,9 @@ export function ProjectWay({ path, inWork, goal, problem = null, goalProblem = n
   )
 }
 
-/** The project's board at a glance: the four columns with their counts and their first cards. */
+/** The project's board at a glance: the four columns with their counts and their first cards. Not mounted on the project
+ *  page since CO-543: «Направления работы» (`WorkDirections.tsx#ProjectDirections`, SCN-181) took its place there, and the
+ *  full board below keeps the columns. */
 export function ProjectBoardGlance({ path, doneFloor = false, problem = null, abandoned = null, onOpenTask, onBoard, onNewTask }: {
   /** This project's abandoned work (`work.home`'s «Брошено»), counted apart from «В работе» as the home and the Board
    *  count it (the 0.3.14 review, iteration 1, UX-9); null when not read. */

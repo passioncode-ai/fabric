@@ -8,6 +8,7 @@
  */
 import type { createScopedStore } from './scopedStore.ts'
 import { currentLeases, type LeaseRefsRead } from './agentSyncLeases.ts'
+import { ops } from './opsSink.ts'
 import {
   claimLife,
   relatedPairs,
@@ -365,7 +366,7 @@ export async function readTaskBoard(store: Store, opts: { now: number; session: 
   })
 }
 const SESSION_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const SESSION_TASK_COLUMNS = 'id,project_id,title,brief_what,brief_why,brief_expected,status,started_at'
+const SESSION_TASK_COLUMNS = 'id,project_id,title,brief_what,brief_why,brief_expected,status,started_at,origin_kind,assigned_by,goal_id,moved_at,finished_at'
 
 /**
  * One agent session's tasks, newest first (0.3.14, `shared/sessionTasks.ts`): its claims, live and released (indexed by
@@ -423,19 +424,25 @@ export async function readSessionTasks(
   const projectIds = [...new Set([...claimRows.map((c) => c.project_id), ...launchedRows.map((t) => t.project_id)])]
   const projects = await store.selectIn('projects', 'id,name', 'id', projectIds)
   if (projects.failed) throw new Error(`the session's projects could not be read: ${projects.failed}`)
+  // SCN-181 (CO-543): the backlog rows that link these tasks, for their rows by direction. A failed read is recorded and
+  // said on the page («Из бэклога» may be missing tasks); the tasks themselves stay.
+  const sourcesRead = await store.selectIn('task_sources', 'task_id,path,row_id', 'task_id', [...new Set([...ids, ...launchedIds])])
+  if (sourcesRead.failed) ops.failed('work.session-sources-unread', new Error(sourcesRead.failed), { note: "an agent's tasks are shown without their backlog rows" })
   const view = composeSessionTasks({
     claims: claimRows,
     launched: launchedRows,
     tasks: tasks.rows as unknown as SessionTaskRow[],
     projects: projects.rows as unknown as Array<{ id: string; name: string }>,
     attachedAt,
+    ...(sourcesRead.failed ? {} : { sources: sourcesRead.rows as unknown as Array<{ task_id: string; path: string; row_id: string }> }),
     readCapped: claimRows.length >= CLAIMS || launchedRows.length >= SESSION_TASKS_LIMIT
   })
   const [questions, runner] = await Promise.all([questionsRead, runnerRead])
   return {
     ...view,
     ...('rows' in questions ? { questions: agentQuestions(sessionIds, questions.rows) } : { questionsUnread: `the agent's questions could not be read: ${questions.unread}` }),
-    ...(runner ? { runner } : {})
+    ...(runner ? { runner } : {}),
+    ...(sourcesRead.failed ? { sourcesUnread: `the backlog rows could not be read: ${sourcesRead.failed}` } : {})
   }
 }
 // #endregion work-read

@@ -3,7 +3,7 @@
 // the team and the rhythm. Every number is read here from a reader the app already has; the
 // detailed sections the navigation's project groups point at stay below, unchanged.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { reviewCounts, type BoardCut } from '../../../shared/board'
 import type { GoalRow } from '../../../shared/plan'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
@@ -13,7 +13,8 @@ import { useLocale, useT } from '../i18n'
 import { detailOf, titleOf } from '../attentionTitle'
 import { ProjectStrip } from './FabricStrip'
 import { HomeAgents, useHome } from './HomeWork'
-import { ProjectBoardGlance, ProjectWay } from './ProjectWay'
+import { ProjectWay } from './ProjectWay'
+import { ProjectDirections } from './WorkDirections'
 import { projectPath } from '../../../shared/projectPath'
 import { FailureNote } from '../OperatorError'
 import { useOpenConsole } from '../consoles'
@@ -21,7 +22,7 @@ import { ProjectProfile } from './ProjectProfile'
 import { ProjectAnalytics } from './ProjectAnalytics'
 import { ProjectStar } from './ProjectStar'
 
-export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCapped = false, sessions, feedMark, lastEventAt, onBoard, onReview, onPlan, onPulse, onGraph, onOpenTask, onNewTask, onSection }: {
+export function ProjectLaunch({ project, tasks, tasksProblem = null, sessions, feedMark, lastEventAt, onBoard, onReview, onPlan, onPulse, onGraph, onOpenTask, onOpenRequest, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
   onPulse?: () => void
   project: ProjectRow
@@ -29,8 +30,6 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
   tasks: TaskRow[] | null
   /** The tasks read failed; the way says so instead of reading forever. */
   tasksProblem?: string | null
-  /** Whether the closed half of `tasks` was cut (the list reads the newest closed only): then «Готово» is a floor (DA-3). */
-  closedCapped?: boolean | 'unknown' | null
   sessions: TerminalSession[] | null
   feedMark: number
   /** When the journal last said anything about this project; null when it has said nothing. */
@@ -43,6 +42,8 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
   /** The graph around this project (SCN-175): the keyboard's way to it, as the rail's mark is the pointer's (0.3.12 review UX-11). */
   onGraph?: () => void
   onOpenTask: (taskId: string) => void
+  /** A board request's thread in Comms (SCN-181); absent: the request cards open nothing. */
+  onOpenRequest?: (threadId: string) => void
   onNewTask: () => void
   /** Scroll to one of the detailed sections below (`sec-…`). */
   onSection: (anchor: string) => void
@@ -91,6 +92,8 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
   const home = useHome(feedMark)
   const pulse = home.view?.projects.find((p) => p.projectId === project.id) ?? null
   const path = tasks === null ? null : projectPath(tasks)
+  /** The agent on each of this project's tasks in work, for «Направления работы» (SCN-181). */
+  const agentsOnTasks = useMemo(() => (home.view ? new Map(home.view.inWork.filter((w) => w.projectId === project.id).map((w) => [w.taskId, w.agent])) : null), [home.view, project.id])
   const [consoleProblem, setConsoleProblem] = useState<string | null>(null)
   /** A console that will not open is said, never swallowed (the home does the same). */
   const openConsole = (sessionId: string): void => {
@@ -163,7 +166,9 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, closedCappe
             )}
           </section>
 
-          <ProjectBoardGlance path={path} problem={tasksProblem} abandoned={home.view ? (home.view.abandoned ?? []).filter((w) => w.projectId === project.id) : null} doneFloor={closedCapped !== false && closedCapped !== null} onOpenTask={onOpenTask} onBoard={() => onSection('sec-board')} onNewTask={onNewTask} />
+          {/* SCN-181 (CO-543): the directions of work replace the board glance here; the full board stays below. */}
+          <ProjectDirections projectId={project.id} tasks={tasks} tasksProblem={tasksProblem} agents={agentsOnTasks} mark={feedMark}
+            onOpenTask={onOpenTask} onOpenRequest={onOpenRequest} onBoard={() => onSection('sec-board')} onNewTask={onNewTask} />
         </div>
 
         <aside className="lp-side">

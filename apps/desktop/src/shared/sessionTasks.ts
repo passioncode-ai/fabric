@@ -33,6 +33,12 @@ export interface SessionTaskRow {
   brief_expected: string | null
   status: string
   started_at: string | null
+  /** Where the task came from and when it last moved, for its row by direction (SCN-181); absent from an older read. */
+  origin_kind?: string | null
+  assigned_by?: string | null
+  goal_id?: string | null
+  moved_at?: string | null
+  finished_at?: string | null
 }
 
 export interface SessionTask {
@@ -57,6 +63,11 @@ export interface SessionTask {
   /** How many times this session claimed it; 0 for a task Fabric launched that was never claimed. */
   claims: number
   via: 'claim' | 'launch'
+  /** Where the task came from (SCN-181, its row by direction): its origin, who assigned it, its goal, when it last moved
+   *  and finished. Absent when its row was not read. */
+  origin?: { kind: string | null; assignedBy: string | null; goalId: string | null; movedAt: string | null; finishedAt: string | null; startedAt: string | null }
+  /** The backlog row that links it (`task_sources`); null: none; absent: not read. */
+  source?: { path: string; rowId: string } | null
 }
 
 export interface SessionTasksView {
@@ -70,6 +81,8 @@ export interface SessionTasksView {
   /** The coding agent the session runs and its version as this machine reports it (`start.executors`; the mockup's
    *  «Агент» fact). Absent: not known. */
   runner?: { id: string; label: string | null; version: string | null }
+  /** The backlog rows could not be read: «Из бэклога» may be missing tasks, and the page says so (SCN-181). */
+  sourcesUnread?: string
 }
 
 export interface AgentQuestion {
@@ -102,6 +115,8 @@ export function composeSessionTasks(input: {
   readCapped?: boolean
   /** When each launched task was attached to this session (its newest `task.session.attached@1`), by task id. */
   attachedAt?: Readonly<Record<string, string>>
+  /** The backlog rows linked to these tasks (`task_sources`); absent: not read, and no task carries `source`. */
+  sources?: ReadonlyArray<{ task_id: string; path: string; row_id: string }>
   limit?: number
 }): SessionTasksView {
   const limit = input.limit ?? SESSION_TASKS_LIMIT
@@ -109,6 +124,7 @@ export function composeSessionTasks(input: {
   const rowOf = new Map<string, SessionTaskRow>()
   for (const t of input.launched) rowOf.set(t.id, t)
   for (const t of input.tasks) rowOf.set(t.id, t)
+  const sourceOf = input.sources ? new Map(input.sources.map((x) => [x.task_id, { path: x.path, rowId: x.row_id }])) : null
   const newest = new Map<string, SessionClaimRow>()
   const count = new Map<string, number>()
   for (const c of input.claims) {
@@ -131,7 +147,9 @@ export function composeSessionTasks(input: {
       releasedAt: released.at,
       releasedHow: released.how,
       claims: count.get(id) ?? 0,
-      via
+      via,
+      ...(row ? { origin: { kind: row.origin_kind ?? null, assignedBy: row.assigned_by ?? null, goalId: row.goal_id ?? null, movedAt: row.moved_at ?? null, finishedAt: row.finished_at ?? null, startedAt: row.started_at } } : {}),
+      ...(sourceOf ? { source: sourceOf.get(id) ?? null } : {})
     }
   }
   const out: SessionTask[] = [...newest.values()].map((c) => view(c.work_id, c.project_id, c.claimed_at, { at: c.released_at, how: c.released_how, note: c.release_note ?? null }, 'claim'))

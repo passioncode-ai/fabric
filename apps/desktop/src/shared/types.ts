@@ -1427,6 +1427,9 @@ export interface FabricApi {
     pending(): Promise<import('./commsRead.ts').CommsPendingReply>
     /** What waits on the board for the operator, outside Comms (0.3.9 BD-2): requests nobody can answer, unread messages. */
     waiting(): Promise<import('./commsRead.ts').CommsWaitingReply>
+    /** SCN-181 (CO-543): one project's board requests, the ones addressed to it and the ones it sent, each with its newest
+     *  state (`main/projectRequests.ts`). A read that fails REJECTS: never «no requests» for a read that did not happen. */
+    projectRequests(projectId: string): Promise<import('./workDirections.ts').ProjectRequestsView>
     /** Opens an artifact's link in the browser — only an `https:` one; any other scheme is refused in main. */
     openArtifact(url: string): Promise<import('./commsRead.ts').CommsOpenArtifactReply>
   }
@@ -1704,6 +1707,9 @@ export interface FabricApi {
      *  it. A read that fails REJECTS, so an empty list is always "no task", never a read that did not happen. */
     /** CO-475: `aliases` are the agent's earlier session ids (`LiveAgent.aliases`), read with the live one. */
     session(sessionId: string, aliases?: readonly string[]): Promise<import('./sessionTasks.ts').SessionTasksView>
+    /** SCN-181 (CO-543): one project's backlog rows linked to its tasks (`task_sources`), for «Из бэклога». A read that
+     *  fails REJECTS. */
+    sources(projectId: string): Promise<{ sources: Array<{ task_id: string; path: string; row_id: string }>; capped: boolean }>
     /** «Ритм работы» over 28 local days (the mockup parity, home gaps D1, D2): work events per day without the machine's
      *  ticks, results (tasks handed in) and the person's decisions, by one definition (`workRhythm.ts`). A day not read
      *  is null, never zero. */
@@ -1909,6 +1915,7 @@ export const IPC = {
   commsSearch: 'comms:search',
   commsPending: 'comms:pending',
   commsWaiting: 'comms:waiting',
+  commsProjectRequests: 'comms:project-requests',
   commsOpenArtifact: 'comms:open-artifact',
   attentionGrant: 'attention:grant',
   analyticsStatus: 'analytics:status',
@@ -1963,6 +1970,7 @@ export const IPC = {
   workSay: 'work:say',
   workMessages: 'work:messages',
   workSession: 'work:session',
+  workSources: 'work:sources',
   workRhythm: 'work:rhythm',
   workRelease: 'work:release',
   terminalGet: 'terminal:get',

@@ -1175,6 +1175,9 @@ function Shell({
         )}
         {active.kind === 'comms' && (
           <CommsScreen
+            // SCN-181: arriving for one thread (a request card on a project page) opens it; a new thread remounts.
+            key={active.thread ?? ''}
+            thread={active.thread ?? null}
             projects={projects}
             onPulse={() => setActive({ kind: 'pulse' })}
             seen={settings.commsReadThrough}
@@ -1398,6 +1401,7 @@ function Shell({
             onBoard={(projectId, item) => setActive({ kind: 'board', projectId, item: item ?? null })}
             onReview={(projectId) => setActive({ kind: 'board', projectId, needs: true, tab: 'review' })}
             onGraph={(projectId) => setActive({ kind: 'graph', projectId })}
+            onComms={(thread) => setActive({ kind: 'comms', thread })}
             onError={setError}
           />
         )}

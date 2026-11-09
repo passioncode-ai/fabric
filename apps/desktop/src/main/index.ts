@@ -88,6 +88,7 @@ import { withHeartbeats } from './agentHeartbeats.ts'
 import { withGoals } from './agentGoals.ts'
 import { createRhythmReader } from './workRhythm.ts'
 import { createWaitingReader } from './commsWaitingList.ts'
+import { readProjectRequests, readProjectSources } from './projectRequests.ts'
 import { withIdentity } from './agentIdentity.ts'
 import { withWork } from './agentWork.ts'
 import { createDisplayNameReader, withDisplayNames } from './projectNames.ts'
@@ -4044,6 +4045,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     threads: () => commsRead.threadPage(ACTIVE_ESTATE, { kind: 'request', openOnly: true }, null, 50)
   })
   handle(IPC.commsWaiting, (): Promise<Returns<FabricApi['comms']['waiting']>> => waitingReader.read())
+  // SCN-181 (CO-543): one project's requests both ways, through the waiting list's door (`projectRequests.ts`).
+  handle(IPC.commsProjectRequests, (_e, projectId: unknown): Promise<Returns<FabricApi['comms']['projectRequests']>> =>
+    readProjectRequests(store as never, projectId, Date.now()))
   handle(IPC.commsOpenArtifact, (_e, url: unknown): Promise<Returns<FabricApi['comms']['openArtifact']>> => commsRead.openArtifact(url))
   // #endregion comms-screen
 
@@ -5567,6 +5571,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   }
   handle(IPC.workSession, async (_e, sessionId: unknown, aliases?: unknown): Promise<Returns<FabricApi['work']['session']>> =>
     readSessionTasks(store, sessionId, { runner: typeof sessionId === 'string' ? heldSessions().find((s) => s.sessionId === sessionId)?.agent ?? null : null, executors: executorsCached, aliases }))
+  // SCN-181 (CO-543): one project's backlog rows for «Из бэклога»; a failed read rejects (`projectRequests.ts`).
+  handle(IPC.workSources, (_e, projectId: unknown): Promise<Returns<FabricApi['work']['sources']>> => readProjectSources(store as never, projectId))
   // «Ритм работы» (the mockup parity, home gaps D1, D2): one bounded count per local day, finished days kept
   // (`workRhythm.ts`); a day not read is unknown, never zero.
   const rhythmReader = createRhythmReader(store as never)

@@ -51,6 +51,8 @@ import { boardEntries, type BoardEntry, type BoardQuestion } from '../../../shar
 import type { AgentQuestion } from '../../../shared/sessionTasks.ts'
 import { folderName } from '../../../shared/railAgents'
 import { usePaneRead } from './paneRead'
+import { DirectionRows } from './WorkDirections'
+import { composeDirections, directionTaskOfSession } from '../../../shared/workDirections.ts'
 
 type Read = { at: 'reading' } | { at: 'ready'; events: FeedEvent[] } | { at: 'failed'; says: string; kept: FeedEvent[] | null }
 type TasksRead = { at: 'reading' } | { at: 'ready'; view: SessionTasksView } | { at: 'failed'; says: string; kept: SessionTasksView | null }
@@ -382,6 +384,27 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
             )}
           </section>
           {narrow && side}
+          {/* SCN-181 step 5 (CO-543): the agent's tasks in rows by direction, as on the project page; the chips below
+              filter them too, and the list below the chips keeps the brief and the history of each. */}
+          {tasksView && laneTasks.length > 0 && (() => {
+            const rows = composeDirections({
+              projectId: agent.projectId ?? '',
+              tasks: laneTasks.map(directionTaskOfSession),
+              sources: laneTasks.flatMap((x) => (x.source ? [{ task_id: x.taskId, path: x.source.path, row_id: x.source.rowId }] : [])),
+              now: Date.now()
+            })
+            const projectOfTask = new Map(laneTasks.map((x) => [x.taskId, x.projectId]))
+            return (rows.length > 0 || tasksView.sourcesUnread) && (
+              <section className="lp-dir ap-dir" aria-labelledby="agent-dir-title">
+                <h4 id="agent-dir-title">{t('launch.project.directions.title')}</h4>
+                {tasksView.sourcesUnread && <FailureNote said={t('launch.project.directions.sourcesUnreadable')} detail={tasksView.sourcesUnread} />}
+                {rows.length > 0 && (
+                  <DirectionRows rows={rows} showAgent={false}
+                    onOpenTask={(taskId) => { const projectId = projectOfTask.get(taskId); if (projectId && onOpenTask) onOpenTask(projectId, taskId) }} />
+                )}
+              </section>
+            )
+          })()}
           <div className="as-tasks-head">
             <h4>{t('agentPage.tasks')}</h4>
             {tasksView && tasksView.tasks.length > 0 && <span className="lp-meta">{t('agentPage.tasksSub', { count: tasksView.tasks.length })}</span>}

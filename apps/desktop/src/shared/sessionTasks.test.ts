@@ -10,6 +10,20 @@ const task = (id: string, extra: Partial<SessionTaskRow> = {}): SessionTaskRow =
 const projects = [{ id: 'p1', name: 'Fabric' }, { id: 'p2', name: 'Site' }]
 
 describe('composeSessionTasks', () => {
+  it('SCN-181: carries where each task came from and the backlog row that links it, when those were read', () => {
+    const v = composeSessionTasks({
+      claims: [claim('t1', '2026-10-26T08:00:00Z'), claim('t2', '2026-10-26T09:00:00Z')],
+      launched: [],
+      tasks: [task('t1', { origin_kind: 'person', goal_id: 'g1', moved_at: '2026-10-26T08:30:00Z' }), task('t2', { origin_kind: 'document' })],
+      projects,
+      sources: [{ task_id: 't2', path: 'docs/backlog.md', row_id: 'CO-9' }]
+    })
+    const [t2, t1] = v.tasks
+    expect(t1.origin).toEqual({ kind: 'person', assignedBy: null, goalId: 'g1', movedAt: '2026-10-26T08:30:00Z', finishedAt: null, startedAt: '2026-10-20T00:00:00Z' })
+    expect(t1.source).toBeNull()
+    expect(t2.source).toEqual({ path: 'docs/backlog.md', rowId: 'CO-9' })
+    expect('source' in composeSessionTasks({ claims: [claim('t1', '2026-10-26T08:00:00Z')], launched: [], tasks: [task('t1')], projects }).tasks[0]).toBe(false)
+  })
   it('lists the tasks newest first, one row per task: the newest claim wins and the claims are counted', () => {
     const v = composeSessionTasks({
       claims: [
