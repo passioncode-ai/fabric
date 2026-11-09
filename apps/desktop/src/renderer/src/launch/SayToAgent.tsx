@@ -4,7 +4,7 @@
  * next fabric_work_list, fabric_heartbeat or turn answer, wherever it was started, and each sent line says whether it was
  * read yet. Nothing is typed into a terminal: a line's Enter could answer a permission prompt the agent is waiting on.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useT } from '../i18n'
 import { since } from '../duration'
 
@@ -16,10 +16,21 @@ export function SayToAgent({ sessionId, mark = 0 }: { sessionId: string; mark?: 
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
   const [sent, setSent] = useState<Sent[]>([])
-  // A list that cannot be read stays as it was: sending does not depend on it.
+  const [unreadable, setUnreadable] = useState(false)
+  // CO-544: an answer for a session no longer shown is dropped, so a slow read for the previous agent never replaces
+  // this agent's lines. A list that cannot be read keeps the lines it had and says so; sending does not depend on it.
+  const current = useRef(sessionId)
+  current.current = sessionId
   const reload = (): void => {
-    try { void Promise.resolve(window.fabric.work.messages(sessionId)).then((m) => setSent(Array.isArray(m) ? m : []), () => {}) } catch { /* unreadable */ }
+    const asked = sessionId
+    const settle = (m: unknown): void => {
+      if (current.current !== asked) return
+      if (Array.isArray(m)) { setSent(m as Sent[]); setUnreadable(false) } else setUnreadable(true)
+    }
+    const fail = (): void => { if (current.current === asked) setUnreadable(true) }
+    try { void Promise.resolve(window.fabric.work.messages(asked)).then(settle, fail) } catch { fail() }
   }
+  useEffect(() => { setSent([]); setUnreadable(false) }, [sessionId])
   useEffect(reload, [sessionId, mark])
   const send = async (): Promise<void> => {
     if (!text.trim()) return
@@ -45,6 +56,7 @@ export function SayToAgent({ sessionId, mark = 0 }: { sessionId: string; mark?: 
       </label>
       <button type="button" className="lp-button" disabled={busy || !text.trim()} onClick={() => void send()}>{t('say.send')}</button>
       {problem && <p className="lp-meta" role="alert">{problem}</p>}
+      {unreadable && <p className="lp-meta" role="status">{t('say.unreadable')}</p>}
       {sent.length > 0 && (
         <ul className="lp-list as-said">
           {[...sent].reverse().map((m) => (

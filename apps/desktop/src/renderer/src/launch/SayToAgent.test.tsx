@@ -32,4 +32,28 @@ describe('SayToAgent', () => {
     expect(await screen.findByText(/Not sent: Fabric is still starting/)).toBeTruthy()
     expect((container.querySelector('textarea') as HTMLTextAreaElement).value).toBe('x')
   })
+  it('CO-544: a list that cannot be read is said, and sending still works', async () => {
+    const messages = vi.fn(async () => { throw new Error('ipc closed') })
+    const say = vi.fn(async () => ({ ok: true, id: 'm1' }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { say, messages } } }))
+    const { container } = render(<I18nProvider locale="en"><SayToAgent sessionId="s-1" /></I18nProvider>)
+    expect(await screen.findByText(en['say.unreadable'])).toBeTruthy()
+    fireEvent.change(container.querySelector('textarea')!, { target: { value: 'x' } })
+    fireEvent.click(screen.getByRole('button', { name: en['say.send'] }))
+    await waitFor(() => expect(say).toHaveBeenCalled())
+  })
+  it('CO-544: a late answer for the previous session does not replace this session\'s lines', async () => {
+    let releaseOld: (v: unknown) => void = () => {}
+    const messages = vi.fn((id: string) => id === 's-old'
+      ? new Promise((r) => { releaseOld = r })
+      : Promise.resolve([{ id: 'n1', text: 'for the new one', at: Date.now(), readAt: null }]))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { say: vi.fn(), messages } } }))
+    const { rerender } = render(<I18nProvider locale="en"><SayToAgent sessionId="s-old" /></I18nProvider>)
+    rerender(<I18nProvider locale="en"><SayToAgent sessionId="s-new" /></I18nProvider>)
+    expect(await screen.findByText('for the new one')).toBeTruthy()
+    releaseOld([{ id: 'o1', text: 'for the old one', at: Date.now(), readAt: null }])
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.queryByText('for the old one')).toBeNull()
+    expect(screen.getByText('for the new one')).toBeTruthy()
+  })
 })

@@ -1861,6 +1861,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'say.waiting': "ещё не прочитано",
   'say.read': "прочитано {when}",
   'say.refused': "Не отправлено: {reason}",
+  'say.unreadable': "Отправленные строки сейчас не читаются. Отправить новую можно.",
   'review.title': "Ждёт вашего решения",
   'review.handedIn.agent': "Агент сдал работу {when}:",
   'review.handedIn.person': "Вы сдали работу {when}:",

@@ -2545,6 +2545,7 @@ export const en = {
   'say.waiting': "not read yet",
   'say.read': "read {when}",
   'say.refused': "Not sent: {reason}",
+  'say.unreadable': "Your earlier lines cannot be read right now. Sending still works.",
   'review.title': "Waiting for your decision",
   'review.handedIn.agent': "The agent handed this in {when}:",
   'review.handedIn.person': "You handed this in {when}:",
