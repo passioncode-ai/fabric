@@ -207,6 +207,17 @@ evidence; times are UTC. The N6 receipts are in
    `apps\desktop\test\listener-owner.test.mjs` and `apps\desktop\test\peer-account.test.mjs`) are neither ruled nor
    fixed by this record; `platforms.yml` has not run on `d5861ddb` or `bbc90b7a`, and the release run's Windows jobs do
    not run those two tests.
+   **Ruled on 2026-11-10, after this record:** the import defect was a test defect, fixed by CO-557 (`a804154c`). The
+   next nightly, run 42754555960 on `a804154c` (2026-11-10 04:14Z), passed on `windows-latest` x64 (all 19 tests of
+   the two files) and failed on `windows-11-arm` arm64 in two tests only, `listener-owner.test.mjs:48` (the owner read
+   `{"unknown":"PowerShell did not list the sockets"}`) and `peer-account.test.mjs:70` (`unverified`, not `own`), each
+   after about 30 s, the PowerShell deadline (`main/listenerOwner.ts#readListenerOwner`, `main/peerAccount.ts`); the
+   failed job run again (attempt 2, 08:44Z) failed the same way. Ruling: **not a defect of 0.3.18 and not blocking
+   item 7.** The code under test shipped in 0.3.17 (`90765297`, `23c3a0af` and `d4542d5f` are ancestors of `v0.3.17`;
+   `git diff v0.3.17 bbc90b7a -- apps/desktop/src/main/listenerOwner.ts apps/desktop/src/main/peerAccount.ts` is
+   empty), so 0.3.18 changes nothing there; the failure is the documented refusal (an owner that cannot be told is
+   refused, never passed), not a wrong pass. What remains, why PowerShell on the arm64 runner does not answer in 30 s
+   and what that does to a coding agent's enrollment on a Windows arm64 machine, is CO-558.
 1. **Landing: done, by a merge, not a rebase.** Before the landing `main` had moved only by the workspace publication's
    pin `40fe3818` (child of `78772e6d`; `git diff --stat 78772e6d 40fe3818`: `docs/workspace-receipt.json` and
    `workspace` alone). The chain `d5861ddb`, `bbc90b7a`, `1e338346` was joined to it by the merge commit `df2c2cf2`
