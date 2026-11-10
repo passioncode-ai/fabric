@@ -6,8 +6,10 @@ import path from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-const { uidsFromLsof, uidsFromProcNet, ownerOf, readListenerOwner, createOwnerCheck, ownerFromPowerShell } = await import(path.resolve(import.meta.dirname, '../src/main/listenerOwner.ts'))
-const { publishHub, locateHub } = await import(path.resolve(import.meta.dirname, '../src/main/hub.ts'))
+// A relative static import, never a dynamic import of a resolved path: on Windows that path is `C:\...`, a URL
+// scheme to the ESM loader (CO-557, scripts/test/windows-test-imports.test.mjs).
+import { uidsFromLsof, uidsFromProcNet, ownerOf, readListenerOwner, createOwnerCheck, ownerFromPowerShell } from '../src/main/listenerOwner.ts'
+import { publishHub, locateHub } from '../src/main/hub.ts'
 
 const ME = 501
 const hub = () => { const root = mkdtempSync(path.join(tmpdir(), 'fabric-owner-')); publishHub({ root, port: 47070, pid: 4242 }); return root }

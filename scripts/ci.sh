@@ -79,6 +79,9 @@ python3 scripts/check-workflows.py
 # 2026-10-22: a scheduled run cancelled a push run in the same concurrency group; the gate refuses that shape.
 node --test scripts/test/check-workflows.test.mjs
 node --test scripts/test/nightly-gate.test.mjs
+# CO-557: the Windows job of platforms.yml failed two nights on a test file that imported a path dynamically
+# (`C:\\...` is a URL scheme to the ESM loader); macOS never sees it, so this gate reads the job's files here.
+node --test scripts/test/windows-test-imports.test.mjs
 # The universal macOS pack (0.3.4): node-pty joined with lipo, and no thin or unreadable Mach-O passes; it skips
 # off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs

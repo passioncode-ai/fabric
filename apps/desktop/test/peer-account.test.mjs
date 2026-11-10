@@ -2,10 +2,9 @@
 // computer several people use. The tables are stand-ins; no port is opened.
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import path from 'node:path'
 
-const { humanAccountsFromDscl, humanAccountsFromPasswd, peerUidsFromLsof, peerUidsFromProcNet, verdictOf, createPeerCheck, peerFromPowerShell, PS_PEER_SCRIPT } =
-  await import(path.resolve(import.meta.dirname, '../src/main/peerAccount.ts'))
+// A relative static import: a dynamic import of a resolved path is `C:\...` on Windows, which the ESM loader refuses (CO-557).
+import { humanAccountsFromDscl, humanAccountsFromPasswd, peerUidsFromLsof, peerUidsFromProcNet, verdictOf, createPeerCheck, peerFromPowerShell, PS_PEER_SCRIPT } from '../src/main/peerAccount.ts'
 
 test('people are counted, service accounts are not', () => {
   assert.equal(humanAccountsFromDscl('_www 70\nroot 0\nnobody -2\nsshlg 501\nspace 502\n'), 2)
