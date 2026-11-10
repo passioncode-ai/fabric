@@ -481,6 +481,12 @@ export interface AppSettings {
    * reports and ends. On by default; off, nothing starts and the dispatcher records `skipped-off`.
    */
   dispatchBoardRequests: boolean
+  /**
+   * CO-551, stage A: the machine, as ssh knows it, that a board run is started on (`switchboard dispatch --target`);
+   * null, the default, starts every run on this one. A refusal there (`not_on_target`, `target_busy`,
+   * `target_unreachable`) starts it here. Stage B (CO-552) chooses the machine by itself.
+   */
+  dispatchTarget: string | null
 }
 
 export interface BoardFilters { project: string | null; agent: string | null; cancelled: boolean }
@@ -496,7 +502,7 @@ export type MachineTrust = 'mine' | 'organization' | null
  * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
  * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
  */
-export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders' | 'dispatchBoardRequests'>>
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders' | 'dispatchBoardRequests' | 'dispatchTarget'>>
 // #endregion settings-patch
 
 /**
@@ -528,7 +534,9 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   // CO-348: the operator's choice (2026-10-19), as Orca does; the person turns it off in Settings.
   trustAgentFolders: true,
   // CO-409: the operator's word (2026-11-04); the person turns it off in Settings.
-  dispatchBoardRequests: true
+  dispatchBoardRequests: true,
+  // CO-551: no other machine until one is named; stage B (CO-552) chooses by itself.
+  dispatchTarget: null
 }
 
 export interface FeedEvent {

@@ -23,7 +23,8 @@ describe('validateSettings', () => {
       machineTrust: 'mine',
       boardFilters: { project: '79000000-0000-4000-8000-0000000000a1', agent: 'claude-code', cancelled: true },
       trustAgentFolders: false,
-      dispatchBoardRequests: false
+      dispatchBoardRequests: false,
+      dispatchTarget: 'studio'
     }
     expect(validateSettings(file)).toEqual(file)
   })
@@ -261,5 +262,21 @@ describe('the Board\'s remembered filters (CO-401)', () => {
     expect(validateSettings({ boardFilters: { project: 'not an id', agent: 'two words', cancelled: 'yes' } })!.boardFilters).toEqual({ project: null, agent: null, cancelled: false })
     expect(settingsPatch({ boardFilters: { project: null, agent: 'codex', cancelled: true } })).toEqual({ ok: true, patch: { boardFilters: { project: null, agent: 'codex', cancelled: true } } })
     expect(settingsPatch({ boardFilters: { project: 'x', agent: null, cancelled: false } }).ok).toBe(false)
+  })
+})
+
+describe('dispatchTarget (CO-551, stage A)', () => {
+  it('names no machine by default, so every run starts on this one', () => {
+    expect(APP_SETTINGS_DEFAULTS.dispatchTarget).toBeNull()
+    expect(validateSettings({ ...APP_SETTINGS_DEFAULTS, dispatchTarget: undefined })?.dispatchTarget).toBeNull()
+  })
+  it('keeps an ssh host name and reads anything else as no machine', () => {
+    expect(validateSettings({ ...APP_SETTINGS_DEFAULTS, dispatchTarget: 'studio' })?.dispatchTarget).toBe('studio')
+    for (const v of ['auto', '-oProxyCommand=x', 'two words', 7]) expect(validateSettings({ ...APP_SETTINGS_DEFAULTS, dispatchTarget: v })?.dispatchTarget).toBeNull()
+  })
+  it('a window may set it, or clear it with null; a value the file cannot hold is refused', () => {
+    expect(settingsPatch({ dispatchTarget: 'studio' })).toEqual({ ok: true, patch: { dispatchTarget: 'studio' } })
+    expect(settingsPatch({ dispatchTarget: null })).toEqual({ ok: true, patch: { dispatchTarget: null } })
+    expect(settingsPatch({ dispatchTarget: 'auto' }).ok).toBe(false)
   })
 })

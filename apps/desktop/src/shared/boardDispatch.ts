@@ -170,6 +170,72 @@ export function parseFirstLine(line: string): DispatchIds | null {
   return m ? { workflow: m[1], handoff: m[2], request: m[3] } : null
 }
 
+// #region board-dispatch-remote — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a
+/**
+ * CO-551, stage A: a run started on another machine (the Mac Studio) has no `fabric-mcp` there, so it writes a result
+ * file that Switchboard fetches over the same ssh and hands back in `dispatch status --json` (fabric-switchboard SB-317,
+ * 0.7.40). The dispatcher posts its answer in the request's thread only when the file is the run's own: its first line
+ * names the workflow, hand-over and request Fabric passed (`FABRIC_DISPATCH_*`) and the launch Switchboard answered.
+ * Agreed on the board, thread `14d6cb73` (`32e834d4`, `f75293e0`, `13f00feb`, `e6f33c33`).
+ */
+
+/** Switchboard's refusals that send a run meant for another machine back to this one (D-2, `13f00feb`, `e6f33c33`). */
+export const REMOTE_REFUSALS: ReadonlySet<string> = new Set(['not_on_target', 'target_busy', 'target_unreachable'])
+/** The most of a result file Switchboard hands back (`result`, up to 64 KiB, `f75293e0`). */
+export const RESULT_MAX_BYTES = 64 * 1024
+
+export type RunOutcome = 'answered' | 'failed' | 'blocked'
+export interface RunIds extends DispatchIds { launch: string }
+export interface RunResult extends RunIds { outcome: RunOutcome; branch: string | null; commit: string | null; body: string }
+/** Why a result file was not posted: another run's ids, a shape this build cannot read, no known outcome, an answer
+ *  with no text, or more than Switchboard hands back. Codes only: the file's text never reaches a log. */
+export type ResultRefusal = 'other-run' | 'unreadable' | 'no-outcome' | 'empty-answer' | 'too-large'
+
+const RESULT_LINE = /^fabric-dispatch\/1 result workflow=(wf_[0-9a-f]{16}) handoff=([^\s=]+) request=([^\s=]+) launch=([^\s=]+)$/
+const HEADER = /^(outcome|branch|commit)=(\S*)$/
+const OUTCOMES: ReadonlySet<string> = new Set(['answered', 'failed', 'blocked'])
+
+/**
+ * A result file read and checked against the run Fabric started. The shape is the one Switchboard agreed (`f75293e0`):
+ * the first line, then `outcome=`, `branch=` and `commit=` (each at most once, the last two when there are any), an
+ * empty line and the answer for the board in Markdown. Anything else is refused, never guessed.
+ */
+export function checkRunResult(text: string, expected: RunIds): { ok: true; result: RunResult } | { ok: false; reason: ResultRefusal } {
+  if (new TextEncoder().encode(text).length > RESULT_MAX_BYTES) return { ok: false, reason: 'too-large' }
+  const lines = text.replace(/\r\n/g, '\n').split('\n')
+  const m = RESULT_LINE.exec(lines[0] ?? '')
+  if (!m) return { ok: false, reason: 'unreadable' }
+  const ids = { workflow: m[1], handoff: m[2], request: m[3], launch: m[4] }
+  if (ids.workflow !== expected.workflow || ids.handoff !== expected.handoff || ids.request !== expected.request || ids.launch !== expected.launch)
+    return { ok: false, reason: 'other-run' }
+  const header = new Map<string, string>()
+  let i = 1
+  for (; i < lines.length && lines[i] !== ''; i++) {
+    const h = HEADER.exec(lines[i])
+    if (!h || header.has(h[1])) return { ok: false, reason: 'unreadable' }
+    header.set(h[1], h[2])
+  }
+  const outcome = header.get('outcome')
+  if (!outcome || !OUTCOMES.has(outcome)) return { ok: false, reason: 'no-outcome' }
+  const body = lines.slice(i + 1).join('\n').trim()
+  if (outcome === 'answered' && body === '') return { ok: false, reason: 'empty-answer' }
+  return { ok: true, result: { ...ids, outcome: outcome as RunOutcome, branch: header.get('branch') || null, commit: header.get('commit') || null, body } }
+}
+
+/** The reply Fabric posts for the run: one line naming the launch and the machine it ran on (agreed in `32e834d4`),
+ *  the outcome, branch and commit, an empty line, then the run's answer as written. */
+export function relayText(r: RunResult, machine: string): string {
+  const where = [r.branch ? `ветка \`${r.branch}\`` : null, r.commit ? `коммит \`${r.commit}\`` : null].filter(Boolean).join(', ')
+  return `_Ретрансляция запуска \`${r.launch}\` с машины \`${machine}\`: исход ${r.outcome}${where ? `, ${where}` : ''}._\n\n${r.body}`
+}
+
+/** The machine a run is started on, as Settings names it (`dispatchTarget`): an ssh host name, optionally with a user,
+ *  never an option (a leading `-`), a space or `auto` (choosing by headroom is stage B, CO-552); anything else is none. */
+export function dispatchTargetOf(v: unknown): string | null {
+  return typeof v === 'string' && /^[A-Za-z0-9_][A-Za-z0-9._@-]{0,252}$/.test(v) && v !== 'auto' ? v : null
+}
+// #endregion board-dispatch-remote
+
 /** Switchboard's refusal codes (SB-247) as the checks of §3.3; an unknown code is a failure to start. */
 export function refusalCheck(code: string): DispatchCheck {
   switch (code) {

@@ -147,7 +147,7 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     fabric()
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true, dispatchBoardRequests: true } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true, dispatchBoardRequests: true, dispatchTarget: null } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} />)
     const fewer = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.fewer']) }) as HTMLInputElement
     const manual = screen.getByRole('radio', { name: new RegExp(en['settings.permissions.manual']) }) as HTMLInputElement
@@ -170,7 +170,7 @@ describe('the agents\' working language can be switched off (the operator\'s wal
     }))
     const onChange = vi.fn()
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true, dispatchBoardRequests: true } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true, dispatchBoardRequests: true, dispatchTarget: null } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} />)
     const box = screen.getByRole('checkbox', { name: en['settings.agentLanguage'] }) as HTMLInputElement
     expect(box.checked).toBe(true)
@@ -189,7 +189,7 @@ describe('this computer\'s trust, said by the person (ADR-0176 §3)', () => {
       }
     }))
     const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
-      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true, dispatchBoardRequests: true } as AppSettings
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true, dispatchBoardRequests: true, dispatchTarget: null } as AppSettings
     show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} />)
     return { onChange, select: screen.getByRole('combobox', { name: en['settings.machineTrust'] }) as HTMLSelectElement }
   }
@@ -433,7 +433,7 @@ describe('the five sections, «Сохранено» after a change, and folder t
   const full = (over: Partial<AppSettings> = {}): AppSettings => ({ theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' },
     tabs: { tabs: [], active: null }, readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] },
     agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false },
-    trustAgentFolders: true, dispatchBoardRequests: true, ...over })
+    trustAgentFolders: true, dispatchBoardRequests: true, dispatchTarget: null, ...over })
   const open = (onChange: (next: unknown) => unknown, over: Partial<AppSettings> = {}, folderTrustLocked: () => Promise<boolean> = async () => false) => {
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
       fabric: {

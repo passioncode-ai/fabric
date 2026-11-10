@@ -9,7 +9,7 @@
  */
 import { randomUUID } from 'node:crypto'
 import type { OperatorMandate } from './hubAuthority.ts'
-import { decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, GRACE_MS, limitsOf, packetDeadline, runEndsAt, refusalCheck, type DispatchDecision, type RequestState } from '../shared/boardDispatch.ts'
+import { checkRunResult, decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, GRACE_MS, limitsOf, packetDeadline, relayText, REMOTE_REFUSALS, runEndsAt, refusalCheck, type DispatchDecision, type RequestState, type RunOutcome } from '../shared/boardDispatch.ts'
 import { FABRIC_OWNER, type ToolCall } from './observatoryMemory.ts'
 
 export interface OpenRequest {
@@ -61,6 +61,20 @@ export interface DispatchRecord {
   askAgain?: boolean
   /** §3.4: Switchboard reported the run's process exited with a failure code; the workflow is taken back as `crash`. */
   crashed?: boolean
+  /** CO-551: the machine the run was started on (`dispatch --target`); absent, this one. Nobody accepts the offer of
+   *  such a run, so Fabric keeps the workflow and closes it itself once the run's end is known (D-2). */
+  target?: string
+  /** CO-551: the run's answer was posted in the request's thread (once; a later pass only waits for the request). */
+  relayed?: boolean
+  /** CO-551: times the board refused the posting; after `CLOSE_ATTEMPTS` the request goes to the operator. */
+  relayAttempts?: number
+  /** CO-551: why the run's result was not posted (`ResultRefusal`, or `board-refused`); the request is the operator's. */
+  unposted?: string
+  /** CO-551: Switchboard could not reach the machine (`lost`, `unknown`) past the run's end and a margin; shown in
+   *  «На проверке» while the dispatcher keeps asking. */
+  lost?: boolean
+  /** CO-551: what the run's result file said, for the workflow's closing checkpoint (never the answer's text). */
+  result?: { outcome: RunOutcome; branch: string | null; commit: string | null }
 }
 
 const OUTCOMES = new Set(['finished', 'exited-without-answer', 'timed-out', 'failed-to-start', 'refused', 'unknown', 'to-operator'])
@@ -84,6 +98,16 @@ export function isDispatchRecord(r: unknown): r is DispatchRecord {
     && (x.until === undefined || isCount(x.until)) && (x.closeAttempts === undefined || isCount(x.closeAttempts))
     && (x.closed === undefined || typeof x.closed === 'boolean') && (x.refused === undefined || typeof x.refused === 'string')
     && (x.askAgain === undefined || typeof x.askAgain === 'boolean') && (x.crashed === undefined || typeof x.crashed === 'boolean')
+    && (x.target === undefined || isText(x.target)) && (x.relayed === undefined || typeof x.relayed === 'boolean')
+    && (x.relayAttempts === undefined || isCount(x.relayAttempts)) && (x.unposted === undefined || isText(x.unposted))
+    && (x.lost === undefined || typeof x.lost === 'boolean') && (x.result === undefined || isResult(x.result))
+}
+
+const isResult = (v: unknown): boolean => {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return false
+  const r = v as Record<string, unknown>
+  const textOrNull = (t: unknown) => t === null || isText(t)
+  return (r.outcome === 'answered' || r.outcome === 'failed' || r.outcome === 'blocked') && textOrNull(r.branch) && textOrNull(r.commit)
 }
 
 export interface DispatchDeps {
@@ -99,7 +123,14 @@ export interface DispatchDeps {
   /** The default agent's provider, or null when none is set. */
   defaultProvider(): Promise<'claude' | 'codex' | null>
   observatory: ToolCall
-  launch(args: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number }): Promise<{ launchId: string } | { refused: string }>
+  launch(args: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string }): Promise<{ launchId: string } | { refused: string }>
+  /** CO-551: the machine Settings names for runs (`dispatchTarget`), or null for this one; absent, this one. */
+  remoteTarget?(): string | null
+  /** CO-551: a run on another machine as `switchboard dispatch status --json` says it; a failure reads `unknown`. */
+  remoteState?(launchId: string): Promise<RemoteState>
+  /** CO-551: the run's answer posted in the request's thread as the target project, through the operator's board door,
+   *  with an idempotency key (the same key answers the same message). */
+  relay?(projectId: string, requestId: string, text: string, key: string): Promise<{ posted: true } | { refused: string }>
   /** Whether the run still runs; `crashed` when it ended with a failure exit code; `unknown` when Switchboard cannot say. */
   runState(launchId: string): Promise<'running' | 'ended' | 'crashed' | 'unknown'>
   /** §3.6: stop a run past its time limit (`switchboard dispatch stop`); absent, no run is stopped. */
@@ -112,6 +143,10 @@ export interface DispatchDeps {
   quitting?(): boolean
   log(op: string, outcome: 'ok' | 'failed' | 'unknown', detail: Record<string, unknown>): void
 }
+
+/** CO-551: a run on another machine, as Switchboard's `dispatch status` answers it (0.7.40). `lost` and `unknown` are
+ *  not ends: Switchboard records only `exited`, `stopped` and `timed_out` (`d8b9c03b`). */
+export interface RemoteState { state: 'running' | 'exited' | 'stopped' | 'timed_out' | 'lost' | 'unknown'; exitCode: number | null; result: string | null }
 
 const SETTLED = new Set(['completed', 'failed_known', 'answered', 'cancelled', 'expired'])
 /** A run left its request settled when the request is SETTLED or `outcome_unknown` (the run claimed it and the board can
@@ -161,8 +196,15 @@ export function noteOf(e: unknown): string {
   return (e instanceof Error ? e.message : String(e)).replace(/(^|[\s'"`(=:[{<,;|])(?:file:\/\/|~|[A-Za-z]:)?[\\/][\s\S]*$/, '$1<path>').slice(0, 200)
 }
 
-/** Why a request is the operator's: two runs left it unsettled, or it passed its deadline accepted with no run (ER-7). */
-export type ToOperatorWhy = 'runs' | 'past-due'
+/** Why a request is the operator's: two runs left it unsettled, or it passed its deadline accepted with no run (ER-7);
+ *  CO-551: a run on another machine left a result Fabric did not post (`relay`), or its machine has not answered past
+ *  the run's end (`remote-lost`, still asked every pass). */
+export type ToOperatorWhy = 'runs' | 'past-due' | 'relay' | 'remote-lost'
+
+/** The marks the sweep of abandoned work reads for each reason (`shared/abandonedSweep.ts#SweepRequest`). */
+export function toOperatorMarks(why: ToOperatorWhy): { pastDue: boolean; remote?: 'unposted' | 'lost' } {
+  return why === 'relay' ? { pastDue: false, remote: 'unposted' } : why === 'remote-lost' ? { pastDue: false, remote: 'lost' } : { pastDue: why === 'past-due' }
+}
 
 /**
  * §3.1: a request filed on the board wakes the dispatcher when its grace ends, instead of on the next 60 s cycle after
@@ -204,10 +246,130 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     deps.log('board.dispatch.decided', 'ok', { request: requestId, path: d.path, ...('check' in d ? { check: d.check } : {}) })
   }
 
+  // #region board-dispatch-remote-run — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a
+  /** CO-551: a run on another machine ended with no answer to post: an empty run unless its request is settled, and the
+   *  workflow Fabric kept is closed on this pass (`closed: false`), since nobody else holds it (D-2). */
+  const endRemote = async (r: DispatchRecord, now: number, outcome: 'exited-without-answer' | 'timed-out', exitCode: number | null): Promise<void> => {
+    const state = await deps.requestState(r.requestId)
+    const settled = state !== null && RUN_SETTLED.has(state)
+    r.state = 'ended'
+    r.endedAt = now
+    r.outcome = settled ? 'finished' : outcome
+    if (!settled) r.emptyRuns++
+    if (exitCode !== null && exitCode !== 0) r.crashed = true
+    r.closed = false
+    deps.log('board.dispatch.ended', settled ? 'ok' : 'unknown', { request: r.requestId, dispatch: r.dispatchId, target: r.target, outcome: r.outcome, empty_runs: r.emptyRuns, ...(r.result ? { said: r.result.outcome } : {}) })
+  }
+
+  /** CO-551: a result Fabric does not post (another run's, unreadable, or refused by the board every time): the request
+   *  is the operator's in «На проверке», no run starts for it, and the workflow is closed. */
+  const unposted = (r: DispatchRecord, now: number, reason: string): void => {
+    r.state = 'ended'
+    r.endedAt = now
+    r.outcome = 'to-operator'
+    r.unposted = reason
+    r.closed = false
+    deps.log('board.dispatch.relay', 'failed', { request: r.requestId, dispatch: r.dispatchId, launch: r.launchId, target: r.target, reason, posted: false })
+  }
+
+  /** CO-551: posts the run's answer once, then ends the run when the request reads settled (this pass's read or a later
+   *  one); only then is the workflow closed (agreed in `32e834d4`). */
+  const relayRemote = async (r: DispatchRecord, now: number, result: Parameters<typeof relayText>[0]): Promise<boolean> => {
+    if (!r.relayed) {
+      let said: { posted: true } | { refused: string }
+      try {
+        said = deps.relay ? await deps.relay(r.projectId, r.requestId, relayText(result, r.target!), `dispatch-relay:${r.dispatchId}`) : { refused: 'no-door' }
+      } catch {
+        // The door threw: counted as a refusal below and asked again with the same key on the next pass.
+        said = { refused: 'failed' }
+      }
+      if ('refused' in said) {
+        const state = await deps.requestState(r.requestId)
+        if (state !== null && RUN_SETTLED.has(state)) {
+          // Settled elsewhere meanwhile: nothing more is owed on it; the run ends finished and its workflow closes.
+          r.state = 'ended'; r.endedAt = now; r.outcome = 'finished'; r.closed = false
+          deps.log('board.dispatch.relay', 'unknown', { request: r.requestId, dispatch: r.dispatchId, reason: said.refused, note: 'the request was settled before the answer was posted' })
+          return true
+        }
+        r.relayAttempts = (r.relayAttempts ?? 0) + 1
+        if (r.relayAttempts >= CLOSE_ATTEMPTS) unposted(r, now, 'board-refused')
+        else deps.log('board.dispatch.relay', 'failed', { request: r.requestId, dispatch: r.dispatchId, reason: said.refused, attempt: r.relayAttempts })
+        return true
+      }
+      r.relayed = true
+      deps.log('board.dispatch.relay', 'ok', { request: r.requestId, dispatch: r.dispatchId, launch: r.launchId, target: r.target })
+    }
+    const state = await deps.requestState(r.requestId)
+    if (state !== null && RUN_SETTLED.has(state)) {
+      r.state = 'ended'; r.endedAt = now; r.outcome = 'finished'; r.closed = false
+      deps.log('board.dispatch.ended', 'ok', { request: r.requestId, dispatch: r.dispatchId, target: r.target, outcome: r.outcome, empty_runs: r.emptyRuns })
+      return true
+    }
+    // Posted, and the request still reads open (someone else holds it, or the read is older than the posting). Past the
+    // run's end and the margin the run ends unknown, not empty; the workflow closes once the request is read settled.
+    if (now > Date.parse(r.endsAt) + UNKNOWN_AFTER_END_MS) {
+      r.state = 'ended'; r.endedAt = now; r.outcome = 'unknown'
+      deps.log('board.dispatch.ended', 'unknown', { request: r.requestId, dispatch: r.dispatchId, target: r.target, outcome: r.outcome, note: 'posted; the request did not read settled' })
+    }
+    return true
+  }
+
+  /** CO-551: one pass over a run on another machine. Only an observed end (`exited`, `stopped`, `timed_out`) ends it;
+   *  `lost` and `unknown` close nothing (`e6f33c33`): past the run's end they show it in «На проверке», and it is asked
+   *  again every pass. Returns whether the record changed. */
+  const watchRemote = async (r: DispatchRecord, now: number): Promise<boolean> => {
+    const launchId = r.launchId!
+    let s: RemoteState
+    try {
+      s = deps.remoteState ? await deps.remoteState(launchId) : { state: 'unknown', exitCode: null, result: null }
+    } catch {
+      // Switchboard did not answer: the same as its own `unknown`, asked again on the next pass.
+      s = { state: 'unknown', exitCode: null, result: null }
+    }
+    if (s.state === 'running' || s.state === 'lost' || s.state === 'unknown') {
+      let changed = false
+      const heard = s.state === 'running'
+      if (heard && r.lost) { r.lost = false; changed = true }
+      if (!heard && !r.lost && now > Date.parse(r.endsAt) + UNKNOWN_AFTER_END_MS) {
+        r.lost = true
+        changed = true
+        deps.log('board.dispatch.remote-lost', 'unknown', { request: r.requestId, dispatch: r.dispatchId, launch: launchId, target: r.target, state: s.state })
+      }
+      // Switchboard stops a run at its own limit there (`timed_out`); one still running past it is stopped from here.
+      if (heard && deps.stop && now > Date.parse(r.endsAt) + STOP_GRACE_MS) {
+        const stopped = await deps.stop(launchId)
+        deps.log('board.dispatch.stopped', stopped === 'failed' ? 'failed' : 'ok', { request: r.requestId, dispatch: r.dispatchId, target: r.target, said: stopped })
+      }
+      // A run not heard from for as long as a request can live ends unknown and frees its place; the workflow closes once
+      // the request (expired by then) is read settled.
+      if (!heard && now - r.startedAt > KEEP_REQUEST_MS) {
+        r.state = 'ended'; r.endedAt = now; r.outcome = 'unknown'; r.lost = false
+        deps.log('board.dispatch.ended', 'unknown', { request: r.requestId, dispatch: r.dispatchId, target: r.target, outcome: r.outcome })
+        changed = true
+      }
+      return changed
+    }
+    r.lost = false
+    if (s.result === null) {
+      await endRemote(r, now, s.state === 'timed_out' ? 'timed-out' : 'exited-without-answer', s.exitCode)
+      return true
+    }
+    const check = checkRunResult(s.result, { workflow: r.workflowId, handoff: r.handoffId, request: r.requestId, launch: launchId })
+    if (!check.ok) { unposted(r, now, check.reason); return true }
+    r.result = { outcome: check.result.outcome, branch: check.result.branch, commit: check.result.commit }
+    if (check.result.outcome === 'answered') return relayRemote(r, now, check.result)
+    // `failed` or `blocked`: the run says it did not answer; nothing is posted (§3.7).
+    await endRemote(r, now, 'exited-without-answer', s.exitCode)
+    return true
+  }
+  // #endregion board-dispatch-remote-run
+
   const watch = async (now: number): Promise<void> => {
     let changed = false
     for (const r of records) {
       if (r.state !== 'running' || !r.launchId) continue
+      // CO-551: a run on another machine is followed through `dispatch status` and its result file (§3.7).
+      if (r.target) { if (await watchRemote(r, now)) changed = true; continue }
       const run = await deps.runState(r.launchId)
       if (run === 'running') {
         // §3.6 (DO-5): a run still running past its own end plus a grace, which Switchboard's own timeout should have
@@ -377,7 +539,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   /** ER-9: the dispatch id and end of an open whose answer was lost, asked again with the same ones. */
   const retryOpen = new Map<string, { dispatchId: string; endsAt: string; openAt: number }>()
   /** §3.6: a request that goes to the operator has its workflow closed, taken back first when a run holds it. */
-  const closeWorkflow = async (r: DispatchRecord, why: 'to-operator' | 'settled' | 'unsaved' = 'to-operator'): Promise<void> => {
+  const closeWorkflow = async (r: DispatchRecord, why: 'to-operator' | 'settled' | 'unsaved' | 'relayed' | 'remote-ended' | 'relay-refused' = 'to-operator'): Promise<void> => {
     let leaseId = leases.get(r.workflowId)
     if (!leaseId) {
       // CO-409 (FAA-213, 2026-11-05): a workflow a run already closed is closed; nothing to retry.
@@ -396,13 +558,25 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       if (typeof took.leaseId !== 'string') throw new Error('the workflow could not be accepted back to close it')
       leaseId = took.leaseId
     }
+    // CO-551 (D-2): a run on another machine never held the workflow; its closing checkpoint says how it ended.
+    const remote = r.target
+      ? ` Run ${r.launchId ?? 'not started'} on ${r.target}; outcome ${r.result?.outcome ?? r.outcome ?? 'unknown'}${r.result?.branch ? `, branch ${r.result.branch}` : ''}${r.result?.commit ? `, commit ${r.result.commit}` : ''}.`
+      : ''
+    const notes = why === 'settled'
+      ? 'The run ended before the request was settled; another session settled it, so Fabric closes the workflow it opened.'
+      : why === 'unsaved'
+        ? 'Fabric could not record this dispatch, or quit before it, so it started nothing and closes the workflow; a later attempt opens a new one.'
+        : why === 'relayed'
+          ? 'The run on another machine answered; Fabric posted its answer in the request\'s thread and the request is settled.'
+          : why === 'remote-ended'
+            ? 'The run on another machine ended without an answer to post; a later run opens a workflow of its own.'
+            : why === 'relay-refused'
+              ? `Fabric did not post the run's result (${r.unposted ?? 'refused'}); the request waits for the operator in «На проверке».`
+              : 'Two runs left the request unsettled; it waits for the operator in «На проверке».'
     const w = await deps.observatory('observatory_checkpoint_write', {
-      owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close`, stepId: why, status: why === 'settled' ? 'done' : 'blocked', workflowId: r.workflowId, leaseId, close: true,
-      body: { goal: `Answer the board request ${r.requestId} addressed to this project, then end.`, notes: why === 'settled'
-        ? 'The run ended before the request was settled; another session settled it, so Fabric closes the workflow it opened.'
-        : why === 'unsaved'
-          ? 'Fabric could not record this dispatch, or quit before it, so it started nothing and closes the workflow; a later attempt opens a new one.'
-          : 'Two runs left the request unsettled; it waits for the operator in «На проверке».' }
+      owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close`, stepId: why,
+      status: why === 'settled' || why === 'relayed' ? 'done' : why === 'remote-ended' ? 'failed' : 'blocked', workflowId: r.workflowId, leaseId, close: true,
+      body: { goal: `Answer the board request ${r.requestId} addressed to this project, then end.`, notes: `${notes}${remote}` }
     })
     if (CLOSED.test(String(w.error ?? ''))) { leases.delete(r.workflowId); return }
     if (w.error) throw new Error('the workflow was not closed')
@@ -428,13 +602,21 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   const start = async (r: DispatchRecord, dir: string, now: number): Promise<void> => {
     r.attempts = (r.attempts ?? 0) + 1
     const timeoutMinutes = Math.max(1, Math.floor((Date.parse(r.endsAt) - now) / 60_000))
-    const started = await deps.launch({ dir, workflow: r.workflowId, handoff: r.handoffId, request: r.requestId, dispatchId: r.dispatchId, timeoutMinutes })
+    const args = { dir, workflow: r.workflowId, handoff: r.handoffId, request: r.requestId, dispatchId: r.dispatchId, timeoutMinutes }
+    let started = await deps.launch(r.target ? { ...args, target: r.target } : args)
+    if (r.target && 'refused' in started && REMOTE_REFUSALS.has(started.refused)) {
+      // CO-551 (D-2): the other machine cannot take it (no checkout there, busy, or out of reach): it runs here instead.
+      deps.log('board.dispatch.remote-refused', 'ok', { request: r.requestId, dispatch: r.dispatchId, target: r.target, reason: started.refused })
+      delete r.target
+      started = await deps.launch(args)
+    }
     if ('launchId' in started) {
       r.launchId = started.launchId
       r.state = 'running'
-      // The run accepts the hand-over: the lease is its now, and a later run takes the workflow back (§3.4).
-      leases.delete(r.workflowId)
-      deps.log('board.dispatch.started', 'ok', { request: r.requestId, dispatch: r.dispatchId, workflow: r.workflowId, launch: started.launchId, ends_at: r.endsAt })
+      // The run accepts the hand-over: the lease is its now, and a later run takes the workflow back (§3.4). A run on
+      // another machine accepts nothing (D-2), so Fabric keeps the lease and closes the workflow itself (§3.7).
+      if (!r.target) leases.delete(r.workflowId)
+      deps.log('board.dispatch.started', 'ok', { request: r.requestId, dispatch: r.dispatchId, workflow: r.workflowId, launch: started.launchId, ends_at: r.endsAt, ...(r.target ? { target: r.target } : {}) })
     } else if (started.refused !== 'failed') {
       // A refusal is Switchboard's answer: nothing started. The request waits `refusalBackoffMs` before it is asked again.
       r.state = 'ended'
@@ -482,12 +664,28 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       if (deps.quitting?.()) return
       r.closeAttempts = (r.closeAttempts ?? 0) + 1
       try {
-        await closeWorkflow(r)
+        await closeWorkflow(r, r.unposted ? 'relay-refused' : 'to-operator')
         r.closed = true
       } catch (e) {
         // Recorded through the caller's ops sink; the request is already the operator's. Closing is tried again up to
         // CLOSE_ATTEMPTS times, then given up (iteration 3, ER-1): the open workflow is harmless, nobody holds it.
         deps.log('board.dispatch.closed', 'failed', { request: r.requestId, attempt: r.closeAttempts, gave_up: r.closeAttempts >= CLOSE_ATTEMPTS, note: noteOf(e) })
+      }
+      deps.save(records)
+    }
+    // CO-551 (D-2): a run on another machine that ended (answered and settled, or with nothing to post) has its workflow
+    // closed by Fabric, which kept it; tried as many times as a given-up request's.
+    for (const r of records.filter((x) => x.target && x.state === 'ended' && x.closed === false && x.outcome !== 'to-operator' && (x.closeAttempts ?? 0) < CLOSE_ATTEMPTS)) {
+      if (deps.quitting?.()) return
+      r.closeAttempts = (r.closeAttempts ?? 0) + 1
+      const why = r.outcome === 'finished' ? 'relayed' : 'remote-ended'
+      try {
+        await closeWorkflow(r, why)
+        r.closed = true
+        deps.log('board.dispatch.closed', 'ok', { request: r.requestId, why })
+      } catch (e) {
+        // Recorded through the caller's ops sink; after CLOSE_ATTEMPTS the open workflow, which nobody holds, is left.
+        deps.log('board.dispatch.closed', 'failed', { request: r.requestId, why, attempt: r.closeAttempts, gave_up: r.closeAttempts >= CLOSE_ATTEMPTS, note: noteOf(e) })
       }
       deps.save(records)
     }
@@ -497,7 +695,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     const newestOf = new Map<string, DispatchRecord>()
     for (const r of records) newestOf.set(r.requestId, r)
     for (const r of newestOf.values()) {
-      if (r.state !== 'ended' || r.closed || (r.outcome !== 'exited-without-answer' && r.outcome !== 'timed-out' && r.outcome !== 'unknown') || (r.closeAttempts ?? 0) >= CLOSE_ATTEMPTS) continue
+      if (r.state !== 'ended' || r.closed || (r.target && r.closed === false) || (r.outcome !== 'exited-without-answer' && r.outcome !== 'timed-out' && r.outcome !== 'unknown') || (r.closeAttempts ?? 0) >= CLOSE_ATTEMPTS) continue
       const state = await deps.requestState(r.requestId)
       if (state === null || !RUN_SETTLED.has(state)) continue
       if (deps.quitting?.()) return
@@ -601,7 +799,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       const openAt = reuse?.openAt ?? now
       let opened: { workflowId: string; handoffId: string }
       try {
-        opened = await open(req, last, provider, endsAt, dispatchId, openAt)
+        // CO-551: a workflow Fabric already closed (a run on another machine) is not taken back: the request gets a new one.
+        opened = await open(req, last?.closed ? undefined : last, provider, endsAt, dispatchId, openAt)
         firstLine({ workflow: opened.workflowId, handoff: opened.handoffId, request: req.id }) // the ids are well formed (§3.5)
         openFailedAt.delete(req.id) // CO-544: an open that worked ends the run of failures
       } catch (e) {
@@ -615,6 +814,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       }
       const r: DispatchRecord = { requestId: req.id, projectId: req.target, dispatchId, workflowId: opened.workflowId, handoffId: opened.handoffId, launchId: null,
         startedAt: now, endsAt, state: 'starting', attempts: 0, emptyRuns: last?.emptyRuns ?? 0,
+        ...((target) => (target ? { target } : {}))(deps.remoteTarget?.() ?? null),
         ...(Number.isFinite(Date.parse(req.deadline)) ? { until: Date.parse(req.deadline) } : {}) }
       if (deps.quitting?.()) {
         // ER-9: the app quits between opening the workflow and recording the start: nothing starts, and the workflow
@@ -666,7 +866,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     records: () => records,
     toOperator: () => new Map<string, ToOperatorWhy>([
       ...[...pastDue].map((id) => [id, 'past-due'] as [string, ToOperatorWhy]),
-      ...records.filter((r) => r.outcome === 'to-operator').map((r) => [r.requestId, 'runs'] as [string, ToOperatorWhy])
+      ...records.filter((r) => r.lost && r.state !== 'ended').map((r) => [r.requestId, 'remote-lost'] as [string, ToOperatorWhy]),
+      ...records.filter((r) => r.outcome === 'to-operator').map((r) => [r.requestId, r.unposted ? 'relay' : 'runs'] as [string, ToOperatorWhy])
     ])
   }
 }

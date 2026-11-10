@@ -15,7 +15,7 @@ const request = (over = {}) => ({ id: '11111111-1111-4111-8111-111111111111', th
 function world(over = {}) {
   let now = T0
   const w = { requests: [request()], responder: false, session: false, on: true, folder: '/work/target', provider: 'claude',
-    calls: [], launches: [], runs: new Map(), states: new Map(), saved: [], logs: [], refuse: null, ...over }
+    calls: [], launches: [], runs: new Map(), states: new Map(), saved: [], logs: [], refuse: null, remote: new Map(), relays: [], ...over }
   let n = 0
   w.deps = {
     now: () => now,
@@ -33,7 +33,18 @@ function world(over = {}) {
       if (name === 'observatory_handoff_accept') return { leaseId: 'lease-2' }
       return {}
     },
-    launch: async (args) => { w.launches.push(args); return w.refuse ? { refused: w.refuse } : { launchId: `L${w.launches.length}` } },
+    launch: async (args) => {
+      w.launches.push(args)
+      if (args.target && w.remoteRefuse) return { refused: w.remoteRefuse }
+      return w.refuse ? { refused: w.refuse } : { launchId: `L${w.launches.length}` }
+    },
+    // CO-551: the machine named in Settings, `dispatch status` of a run there, and the operator's board reply.
+    remoteTarget: () => w.target ?? null,
+    remoteState: async (id) => w.remote.get(id) ?? { state: 'running', exitCode: null, result: null },
+    relay: async (projectId, requestId, text, key) => {
+      w.relays.push({ projectId, requestId, text, key })
+      return w.relayRefuse ? { refused: w.relayRefuse } : { posted: true }
+    },
     quitting: () => w.quitting === true,
     runState: async (id) => w.runs.get(id) ?? 'running',
     requestState: async (id) => w.states.get(id) ?? 'queued',
@@ -956,4 +967,224 @@ test('CO-554 (0.3.18 review, DA-14, ER-25): a request sent more than a week ago 
   assert.equal(w.launches.length, 1, JSON.stringify(w.logs))
   const ref = w.calls.find(([n]) => n === 'observatory_checkpoint_write')[1].body.artifacts.find((a) => a.ref.startsWith('deadline:')).ref
   assert.ok(Date.parse(ref.slice('deadline:'.length)) > T0 + 6 * DAY)
+})
+
+// CO-551, stage A: a run on another machine (the Mac Studio) answers through the dispatcher. Contract with
+// fabric-switchboard 0.7.40 on the board, thread `14d6cb73` (`ac25c446`, `e6f33c33`, `13f00feb`): `dispatch --target`,
+// `dispatch status --json` {state, exit_code, result}, refusals not_on_target, target_busy, target_unreachable.
+const WF = 'wf_0123456789abcdef'
+const HANDOFF = 'handoff:0000000000000001'
+const resultFile = (over = {}) => {
+  const o = { workflow: WF, handoff: HANDOFF, request: request().id, launch: 'L1', outcome: 'answered', branch: 'feat/x', commit: 'abc1234', body: 'Готово: ветка feat/x.', ...over }
+  return [`fabric-dispatch/1 result workflow=${o.workflow} handoff=${o.handoff} request=${o.request} launch=${o.launch}`, `outcome=${o.outcome}`,
+    ...(o.branch ? [`branch=${o.branch}`] : []), ...(o.commit ? [`commit=${o.commit}`] : []), '', o.body].join('\n')
+}
+const closes = (w) => w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true).map(([, a]) => a)
+
+test('CO-551: with a machine named in Settings the run starts there, and Fabric keeps the workflow (nobody accepts the offer)', async () => {
+  const w = world({ target: 'studio' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  assert.equal(w.launches[0].target, 'studio')
+  assert.equal(d.records()[0].target, 'studio')
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.started' && l.detail.target === 'studio'))
+  // Without a machine named, nothing changes: no target is passed.
+  const v = world()
+  await createBoardDispatch(v.deps).onPass()
+  assert.equal('target' in v.launches[0], false)
+})
+
+test('CO-551 (D-2): not_on_target, target_busy and target_unreachable start the run on this machine in the same pass', async () => {
+  for (const code of ['not_on_target', 'target_busy', 'target_unreachable']) {
+    const w = world({ target: 'studio', remoteRefuse: code })
+    const d = createBoardDispatch(w.deps)
+    await d.onPass()
+    assert.equal(w.launches.length, 2, code)
+    assert.equal(w.launches[1].target, undefined)
+    assert.equal(w.launches[1].workflow, w.launches[0].workflow)
+    const r = d.records()[0]
+    assert.equal(r.state, 'running')
+    assert.equal(r.target, undefined)
+    assert.ok(w.logs.some((l) => l.op === 'board.dispatch.remote-refused' && l.detail.reason === code), code)
+  }
+  // Any other refusal is the run's refusal, as on this machine.
+  const v = world({ target: 'studio', remoteRefuse: 'no_agent' })
+  const e = createBoardDispatch(v.deps)
+  await e.onPass()
+  assert.equal(v.launches.length, 1)
+  assert.equal(e.records()[0].outcome, 'refused')
+})
+
+test('CO-551: a result whose ids match is posted in the request\'s thread as the target project, marked with the launch; the workflow closes once the request is answered', async () => {
+  const w = world({ target: 'studio' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  // Running there: nothing posted, nothing closed.
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(w.relays.length, 0)
+  w.remote.set('L1', { state: 'exited', exitCode: 0, result: resultFile() })
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(w.relays.length, 1)
+  const posted = w.relays[0]
+  assert.equal(posted.projectId, 'p-target')
+  assert.equal(posted.requestId, request().id)
+  assert.match(posted.text, /^_Ретрансляция запуска `L1` с машины `studio`/)
+  assert.ok(posted.text.endsWith('Готово: ветка feat/x.'))
+  assert.equal(closes(w).length, 0, 'not closed before the request reads answered')
+  assert.equal(d.records()[0].state, 'running')
+  // The next pass reads the request answered: the record ends finished and the workflow closes under Fabric's own lease.
+  w.states.set(request().id, 'answered')
+  w.requests = [request({ state: 'answered' })]
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(w.relays.length, 1, 'posted once')
+  const r = d.records()[0]
+  assert.equal(r.outcome, 'finished')
+  assert.equal(r.closed, true)
+  const [close] = closes(w)
+  assert.equal(close.leaseId, 'lease-1')
+  assert.equal(close.status, 'done')
+  assert.match(close.body.notes, /L1/)
+  assert.match(close.body.notes, /abc1234/)
+  // Nothing more starts for it.
+  w.tick(10 * MIN)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+})
+
+test('CO-551: a result from another run, or in another shape, is never posted; it is logged and the request shows in «На проверке»', async () => {
+  for (const [text, reason] of [[resultFile({ launch: 'L9' }), 'other-run'], [resultFile({ request: '33333333-3333-4333-8333-333333333333' }), 'other-run'], ['hello', 'unreadable']]) {
+    const w = world({ target: 'studio' })
+    const d = createBoardDispatch(w.deps)
+    await d.onPass()
+    w.remote.set('L1', { state: 'exited', exitCode: 0, result: text })
+    w.tick(MIN)
+    await d.onPass()
+    assert.equal(w.relays.length, 0, reason)
+    assert.ok(w.logs.some((l) => l.op === 'board.dispatch.relay' && l.outcome === 'failed' && l.detail.reason === reason), reason)
+    assert.equal(JSON.stringify(w.logs).includes('hello'), false, 'the file\'s text never reaches the log')
+    assert.equal(d.toOperator().get(request().id), 'relay')
+    // No further run, and the workflow Fabric opened is closed.
+    w.tick(10 * MIN)
+    await d.onPass()
+    assert.equal(w.launches.length, 1)
+    assert.equal(closes(w).length, 1)
+  }
+})
+
+test('CO-551 (D-2): lost and unknown close nothing; past the run\'s end the run shows in «На проверке», and a result read later is still posted', async () => {
+  const w = world({ target: 'studio' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  for (const state of ['lost', 'unknown']) {
+    w.remote.set('L1', { state, exitCode: null, result: null })
+    w.tick(30 * MIN)
+    await d.onPass()
+    assert.equal(d.records()[0].state, 'running', state)
+    assert.equal(closes(w).length, 0, state)
+    assert.equal(d.toOperator().has(request().id), false, state)
+  }
+  // Past its end plus the margin: shown, still not closed, still asked.
+  w.tick(UNKNOWN_AFTER_END_MS + MIN)
+  await d.onPass()
+  assert.equal(d.toOperator().get(request().id), 'remote-lost')
+  assert.equal(d.records()[0].state, 'running')
+  assert.equal(closes(w).length, 0)
+  assert.equal(w.launches.length, 1, 'no second run while the first is lost')
+  // The machine answers again: the result is posted and the mark leaves «На проверке».
+  w.remote.set('L1', { state: 'timed_out', exitCode: null, result: resultFile() })
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(w.relays.length, 1)
+  assert.equal(d.toOperator().has(request().id), false)
+})
+
+test('CO-551 (D-2): outcome failed or blocked, or a run timed out or stopped without a result, counts an empty run, posts nothing and closes the workflow', async () => {
+  const cases = [
+    [{ state: 'exited', exitCode: 0, result: resultFile({ outcome: 'failed', body: '' }) }, 'exited-without-answer'],
+    [{ state: 'exited', exitCode: 1, result: resultFile({ outcome: 'blocked', body: 'нужен оператор' }) }, 'exited-without-answer'],
+    [{ state: 'timed_out', exitCode: null, result: null }, 'timed-out'],
+    [{ state: 'stopped', exitCode: null, result: null }, 'exited-without-answer'],
+    [{ state: 'exited', exitCode: 0, result: null }, 'exited-without-answer']
+  ]
+  for (const [status, outcome] of cases) {
+    const w = world({ target: 'studio' })
+    const d = createBoardDispatch(w.deps)
+    await d.onPass()
+    w.remote.set('L1', status)
+    w.tick(3 * MIN)
+    await d.onPass()
+    const r = d.records()[0]
+    assert.equal(r.outcome, outcome, JSON.stringify(status))
+    assert.equal(r.emptyRuns, 1)
+    assert.equal(w.relays.length, 0)
+    assert.equal(r.closed, true)
+    const [close] = closes(w)
+    assert.equal(close.leaseId, 'lease-1')
+    assert.equal(close.status, 'failed')
+    // The next run opens a workflow of its own rather than taking a closed one back.
+    assert.equal(w.launches.length, 2, JSON.stringify(w.logs.filter((l) => l.outcome !== 'ok')))
+    assert.equal(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length, 2)
+  }
+})
+
+test('CO-551: a reply the board refuses is asked again with the same key; one refused every time goes to the operator, unposted', async () => {
+  const w = world({ target: 'studio', relayRefuse: 'unavailable' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.remote.set('L1', { state: 'exited', exitCode: 0, result: resultFile() })
+  for (let i = 0; i < CLOSE_ATTEMPTS; i++) { w.tick(MIN); await d.onPass() }
+  assert.equal(w.relays.length, CLOSE_ATTEMPTS)
+  assert.equal(new Set(w.relays.map((x) => x.key)).size, 1)
+  assert.match(w.relays[0].key, /^dispatch-relay:/)
+  assert.equal(d.records()[0].outcome, 'to-operator')
+  assert.equal(d.toOperator().get(request().id), 'relay')
+  // A refusal for a request already settled elsewhere ends the run finished, with nothing more owed.
+  const v = world({ target: 'studio', relayRefuse: 'invalid_arguments' })
+  const e = createBoardDispatch(v.deps)
+  await e.onPass()
+  v.remote.set('L1', { state: 'exited', exitCode: 0, result: resultFile() })
+  v.states.set(request().id, 'completed')
+  v.tick(MIN)
+  await e.onPass()
+  assert.equal(e.records()[0].outcome, 'finished')
+})
+
+test('CO-551: a record of a run on another machine survives the file, field by field', async () => {
+  const { isDispatchRecord } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  const base = { requestId: 'r', projectId: 'p', dispatchId: 'd', workflowId: WF, handoffId: HANDOFF, launchId: 'L1', startedAt: T0, endsAt: new Date(T0).toISOString(), state: 'running', emptyRuns: 0 }
+  assert.equal(isDispatchRecord({ ...base, target: 'studio', relayed: true, relayAttempts: 2, lost: false, unposted: 'other-run', result: { outcome: 'answered', branch: 'b', commit: null } }), true)
+  assert.equal(isDispatchRecord({ ...base, target: '' }), false)
+  assert.equal(isDispatchRecord({ ...base, result: { outcome: 'done', branch: null, commit: null } }), false)
+  assert.equal(isDispatchRecord({ ...base, relayed: 'yes' }), false)
+})
+
+test('CO-551: the wiring passes --target, reads dispatch status and answers through the operator\'s board door', async () => {
+  const { dispatchArgs, remoteStateOf, relayReply } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  const a = { dir: '/w/p', workflow: WF, handoff: HANDOFF, request: request().id, dispatchId: 'd-1', timeoutMinutes: 60 }
+  assert.deepEqual(dispatchArgs(a).slice(-2), ['--timeout-minutes', '60'])
+  assert.deepEqual(dispatchArgs({ ...a, target: 'studio' }).slice(-2), ['--target', 'studio'])
+  assert.deepEqual(remoteStateOf({ data: { launch_id: 'L1', target: 'studio', state: 'exited', exit_code: 0, result: 'x', worktree: 'removed' } }), { state: 'exited', exitCode: 0, result: 'x' })
+  assert.deepEqual(remoteStateOf({ data: { state: 'timed_out', exit_code: null, result: null } }), { state: 'timed_out', exitCode: null, result: null })
+  // A state it does not know, or no data, is unknown: nothing is closed on it.
+  assert.deepEqual(remoteStateOf({ data: { state: 'gone' } }), { state: 'unknown', exitCode: null, result: null })
+  assert.deepEqual(remoteStateOf(null), { state: 'unknown', exitCode: null, result: null })
+  const sent = []
+  const board = { epoch: async () => 3, reply: async (input) => { sent.push(input); return { messageId: 'm1' } } }
+  assert.deepEqual(await relayReply(board, request().id, 'text', 'dispatch-relay:d-1'), { posted: true })
+  assert.deepEqual(sent[0], { idempotency: { epoch: 3, key: 'dispatch-relay:d-1' }, replyTo: request().id, body: { format: 'text/markdown', text: 'text' } })
+  assert.deepEqual(await relayReply({ ...board, epoch: async () => null }, request().id, 'text', 'dispatch-relay:d-1'), { refused: 'no-epoch' })
+  assert.deepEqual(await relayReply({ ...board, reply: async () => ({ error: { code: 'not_authorized', message: 'm' } }) }, request().id, 'text', 'dispatch-relay:d-1'), { refused: 'not_authorized' })
+  assert.deepEqual(await relayReply({ ...board, reply: async () => { throw new Error('down') } }, request().id, 'text', 'dispatch-relay:d-1'), { refused: 'failed' })
+})
+
+test('CO-551: each reason a request is the operator\'s becomes the sweep\'s marks', async () => {
+  const { toOperatorMarks } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  assert.deepEqual(toOperatorMarks('runs'), { pastDue: false })
+  assert.deepEqual(toOperatorMarks('past-due'), { pastDue: true })
+  assert.deepEqual(toOperatorMarks('relay'), { pastDue: false, remote: 'unposted' })
+  assert.deepEqual(toOperatorMarks('remote-lost'), { pastDue: false, remote: 'lost' })
 })

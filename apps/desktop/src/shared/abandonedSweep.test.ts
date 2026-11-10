@@ -149,6 +149,17 @@ describe('review fixes', () => {
     expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'completed' }] })).toEqual([])
   })
 
+  it('CO-551: a run on another machine whose result was not posted, or whose machine went quiet, says so in words of its own', () => {
+    const r = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(MIN), answerUnreadSince: null, toOperator: true, state: 'queued' }
+    const unposted = findAbandoned({ ...empty, requests: [{ ...r, remote: 'unposted' as const }] })
+    expect(unposted.map((x) => x.kind)).toEqual(['request-to-operator'])
+    expect(unposted[0].nextStep).toMatch(/another machine/)
+    expect(unposted[0].nextStep).toMatch(/not posted/)
+    const lost = findAbandoned({ ...empty, requests: [{ ...r, remote: 'lost' as const }] })
+    expect(lost[0].nextStep).toMatch(/has not answered/)
+    expect(lost[0].nextStep).toMatch(/closes nothing/)
+  })
+
   it('CO-409: a request a run left outcome_unknown shows at once, in words of its own', () => {
     const r = { requestId: 'r2', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(MIN), answerUnreadSince: null }
     const f = findAbandoned({ ...empty, requests: [{ ...r, state: 'outcome_unknown' }] })

@@ -205,7 +205,7 @@ import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { wireBoardDispatch } from './boardDispatchWiring.ts'
-import { createDispatchWake } from './boardDispatchRun.ts'
+import { createDispatchWake, toOperatorMarks, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { createOpsDigestCollector } from './opsDigestCollector.ts'
 import { BINDING_TOKEN_FILE, createOpsDigestPass, createOpsDigestSender } from './opsDigestSend.ts'
@@ -3083,7 +3083,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // The sweep of abandoned work (CO-427): every third pass of the cycle below. Its reads are the screens' own (claims,
   // running tasks), the operator's read door onto the board, and the observer's last pass over Fabric's terminals.
   const sweepBoard = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
-  const dispatchHolder: { current: { toOperator(): Map<string, 'runs' | 'past-due'> } | null } = { current: null }
+  const dispatchHolder: { current: { toOperator(): Map<string, ToOperatorWhy> } | null } = { current: null }
   abandonedSweep = createAbandonedSweep({
     now: () => Date.now(),
     readClaims: (now) => readSweepClaims(store, now, sessionSignOf),
@@ -3092,8 +3092,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // whatever its state, and shows in «На проверке».
     readRequests: async (now) => {
       const r = await readBoardRequests(sweepBoard, ACTIVE_ESTATE, now)
-      const given = dispatchHolder.current?.toOperator() ?? new Map<string, 'runs' | 'past-due'>()
-      return given.size ? { ...r, requests: r.requests.map((x) => (given.has(x.requestId) ? { ...x, toOperator: true, pastDue: given.get(x.requestId) === 'past-due' } : x)) } : r
+      const given = dispatchHolder.current?.toOperator() ?? new Map<string, ToOperatorWhy>()
+      return given.size ? { ...r, requests: r.requests.map((x) => (given.has(x.requestId) ? { ...x, toOperator: true, ...toOperatorMarks(given.get(x.requestId)!) } : x)) } : r
     },
     // 0.3.14 wave 2: the session hooks' turns, to see a session changing files with no claim.
     readTurns: (now) => readRecentTurns(store, now),
@@ -3139,6 +3139,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     repos: projectRepos,
     sessionLive: (projectId) => heldSessions(projectId).length > 0,
     switchOn: () => readSettings().dispatchBoardRequests,
+    // CO-551, stage A: the machine Settings names for runs (none by default), and the operator's board door to post a
+    // run's answer from there as the request's target Project.
+    remoteTarget: () => readSettings().dispatchTarget,
+    board: (projectId) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id),
     quitting: () => quit.quitting,
     file: path.join(app.getPath('userData'), 'board-dispatches.json'),
     env: process.env,

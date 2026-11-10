@@ -11,7 +11,7 @@ import { execFile } from 'node:child_process'
 import type { CommsMessage, CommsRespondersReply, CommsTimelineReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
 import { mandateOfRequest } from './boardMandate.ts'
-import { createBoardDispatch, isDispatchRecord, type DispatchDeps, type DispatchRecord, type OpenRequest, type ToOperatorWhy } from './boardDispatchRun.ts'
+import { createBoardDispatch, isDispatchRecord, type DispatchDeps, type DispatchRecord, type OpenRequest, type RemoteState, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 
@@ -60,7 +60,7 @@ export async function readOpenRequests(comms: SweepComms, estateId: string, now:
 
 /** Switchboard's refusal codes, the only words of its stderr that are kept (the 0.3.16 review, iteration 2, DA-5: a
  *  failure's own text carries the command line and the project's folder, and never reaches the log). */
-const REFUSAL_CODES = /\b(no_agent|not_in_group|ceiling_reached|spend_unknown|agent_not_installed)\b/
+const REFUSAL_CODES = /\b(no_agent|not_in_group|ceiling_reached|spend_unknown|agent_not_installed|not_on_target|target_busy|target_unreachable)\b/
 const run = (file: string, args: string[], env: NodeJS.ProcessEnv): Promise<string> => new Promise((resolve, reject) => {
   execFile(file, args, { env, timeout: CLI_DEADLINE_MS, maxBuffer: 4 * 1024 * 1024 }, (e, out, err) => {
     if (!e) return resolve(String(out))
@@ -110,12 +110,52 @@ export function runStateOf(launch: { state?: string; ended?: unknown } | undefin
   return code?.kind === 'exited' && typeof code.exit_code === 'number' && code.exit_code !== 0 ? 'crashed' : 'ended'
 }
 
+// #region board-dispatch-remote-wiring — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a
+/** `switchboard --json dispatch …` for one start; `--target <machine>` when the run goes to another machine (CO-551). */
+export function dispatchArgs(a: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string }): string[] {
+  return ['--json', 'dispatch', '--dir', a.dir, '--workflow', a.workflow, '--handoff', a.handoff, '--request', a.request, '--dispatch-id', a.dispatchId,
+    '--reason', 'request', '--permissions', 'all', '--timeout-minutes', String(a.timeoutMinutes), ...(a.target ? ['--target', a.target] : [])]
+}
+
+const REMOTE_STATES: ReadonlySet<string> = new Set(['running', 'exited', 'stopped', 'timed_out', 'lost', 'unknown'])
+/** `switchboard --json dispatch status --launch-id <id>` read field by field (0.7.40: `{launch_id, target, state,
+ *  exit_code, result, worktree}`). A state this build does not know, or no data, is `unknown`, which ends nothing. */
+export function remoteStateOf(out: unknown): RemoteState {
+  const d = out && typeof out === 'object' ? (out as { data?: unknown }).data : undefined
+  const x = d && typeof d === 'object' ? d as { state?: unknown; exit_code?: unknown; result?: unknown } : {}
+  if (typeof x.state !== 'string' || !REMOTE_STATES.has(x.state)) return { state: 'unknown', exitCode: null, result: null }
+  return { state: x.state as RemoteState['state'], exitCode: typeof x.exit_code === 'number' ? x.exit_code : null, result: typeof x.result === 'string' ? x.result : null }
+}
+
+/** The operator's board door for one Project (`AgentSurface#operatorBoard`), the two calls a relay needs. */
+export interface RelayBoard { epoch(): Promise<number | null>; reply(input: unknown): Promise<Record<string, unknown>> }
+
+/** CO-551: the run's answer as the target project's reply to the request (DEC-0098: a reply from the request's target
+ *  answers it), under an idempotency key, so a retry answers the message already stored. Refusals as codes only. */
+export async function relayReply(board: RelayBoard, requestId: string, text: string, key: string): Promise<{ posted: true } | { refused: string }> {
+  try {
+    const epoch = await board.epoch()
+    if (epoch === null) return { refused: 'no-epoch' }
+    const said = await board.reply({ idempotency: { epoch, key }, replyTo: requestId, body: { format: 'text/markdown', text } })
+    const e = said.error as { code?: unknown } | undefined
+    return e ? { refused: typeof e.code === 'string' ? e.code : 'refused' } : { posted: true }
+  } catch {
+    // The board door threw: the dispatcher counts it as a refusal and asks again with the same key on the next pass.
+    return { refused: 'failed' }
+  }
+}
+// #endregion board-dispatch-remote-wiring
+
 export function wireBoardDispatch(o: {
   estateId: string
   comms: SweepComms & { responders(estateId: string): Promise<CommsRespondersReply>; timeline?(estateId: string, requestId: unknown): Promise<CommsTimelineReply> }
   repos: (projectId: string) => Promise<Array<{ path: string; is_primary: boolean | null }>>
   sessionLive: (projectId: string) => boolean
   switchOn: () => boolean
+  /** CO-551: the machine Settings names for runs (`dispatchTarget`), or null. */
+  remoteTarget?: () => string | null
+  /** CO-551: the operator's board door for a Project, to post a run's answer as that Project. */
+  board?: (projectId: string) => RelayBoard
   quitting: () => boolean
   file: string
   env: NodeJS.ProcessEnv
@@ -165,9 +205,7 @@ export function wireBoardDispatch(o: {
       const sb = await bin('switchboard')
       if (!sb) return { refused: 'switchboard_absent' }
       try {
-        const out = JSON.parse(await run(sb, ['--json', 'dispatch', '--dir', a.dir, '--workflow', a.workflow, '--handoff', a.handoff,
-          '--request', a.request, '--dispatch-id', a.dispatchId, '--reason', 'request', '--permissions', 'all',
-          '--timeout-minutes', String(a.timeoutMinutes)], await envWith())) as { data?: { launch_id?: string; state?: string; reason?: string } }
+        const out = JSON.parse(await run(sb, dispatchArgs(a), await envWith())) as { data?: { launch_id?: string; state?: string; reason?: string } }
         const d = out.data ?? {}
         if (d.state === 'refused' || !d.launch_id) return { refused: d.reason ?? 'refused' }
         return { launchId: d.launch_id }
@@ -200,6 +238,18 @@ export function wireBoardDispatch(o: {
         return 'unknown'
       }
     },
+    remoteTarget: () => o.remoteTarget?.() ?? null,
+    async remoteState(launchId) {
+      const sb = await bin('switchboard')
+      if (!sb) return { state: 'unknown', exitCode: null, result: null }
+      try {
+        return remoteStateOf(JSON.parse(await run(sb, ['--json', 'dispatch', 'status', '--launch-id', launchId], await envWith())))
+      } catch {
+        // Switchboard could not say: `unknown`, which ends nothing; asked again on the next pass (CO-551, `e6f33c33`).
+        return { state: 'unknown', exitCode: null, result: null }
+      }
+    },
+    relay: async (projectId, requestId, text, key) => (o.board ? relayReply(o.board(projectId), requestId, text, key) : { refused: 'no-door' }),
     async requestState(requestId) { return lastStates.get(requestId) ?? follower.state(requestId) },
     load() {
       let text: string

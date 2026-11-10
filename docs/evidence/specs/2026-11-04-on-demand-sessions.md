@@ -246,6 +246,61 @@ The dispatch's outcome is the hub's journal entry, never a state of the request:
 - a run past the time limit (60 min by default, earlier when the board's deadline is earlier) is stopped through
   Switchboard and ends `timed-out`; past the deadline the contract expires `queued` and `claimed` requests itself.
 
+### 3.7 A run on another machine (CO-551, stage A)
+
+The operator asked on 2026-11-09 to run the development agents on the Mac Studio (fabric-workspace's request `d0cc0ec6`,
+board thread `14d6cb73`). In stage A the board and the dispatcher stay on this machine; Switchboard starts the run on the
+other machine over ssh, and that run has no `fabric-mcp` there. Agreed on the thread with fabric-switchboard (SB-317,
+Switchboard 0.7.40, published 2026-11-09): Fabric's design `32e834d4`, the fields `f75293e0` and `ac25c446`, D-2 in
+`700ef088` and `13f00feb`, the refusals and `lost` in `e6f33c33` and `d8b9c03b`.
+
+- **Which machine.** Settings' `dispatchTarget` names it as ssh knows it (`shared/types.ts#AppSettings`, read field by
+  field by `shared/boardDispatch.ts#dispatchTargetOf`: an ssh host name, optionally with a user; never an option, a
+  space or `auto`). It is null by default, so every run starts on this machine, as before. It has no row in the
+  Settings window: a window or an agent writes it through the settings write (`settingsPatch`), and stage B
+  (CO-552) chooses the machine by itself from the board's live responder slot and Switchboard's account headroom
+  (`--target auto --candidates`), which makes the setting unnecessary.
+- **The start.** With a machine named, a new run's record carries it (`target`) and Switchboard is asked with
+  `--target <machine>` (`main/boardDispatchWiring.ts#dispatchArgs`). A refusal `not_on_target` (no checkout of the
+  repository there), `target_busy` or `target_unreachable` starts the same run on this machine in the same pass, with
+  the same workflow and hand-over (`shared/boardDispatch.ts#REMOTE_REFUSALS`); any other refusal is the run's, as here.
+  Nobody accepts the hand-over of a run there: Switchboard only reads it, so Fabric keeps the workflow's lease.
+- **Following it.** Each pass asks `switchboard --json dispatch status --launch-id <id>`
+  (`main/boardDispatchWiring.ts#remoteStateOf`: `state` running, exited, stopped, timed_out, lost or unknown,
+  `exit_code`, `result`). `lost` and `unknown` end nothing and close nothing: past the run's end and 10 minutes the
+  request shows in «На проверке» («has not answered past its time limit»), no other run starts for it, and the
+  dispatcher keeps asking; a run not heard from for 8 days (`KEEP_REQUEST_MS`) ends `unknown`. Only an observed end
+  (`exited`, `stopped`, `timed_out`) ends the run. A run still running past its end and 5 minutes is stopped through
+  `dispatch stop`, as on this machine.
+- **The result file.** Switchboard fetches it over the same ssh and hands its text back in `result` (at most 64 KiB). Its
+  first line is exactly `fabric-dispatch/1 result workflow=<wf> handoff=<id> request=<uuid> launch=<launch_id>`, then
+  `outcome=answered|failed|blocked`, `branch=` and `commit=` when there are any, an empty line and the answer for the
+  board in Markdown. `shared/boardDispatch.ts#checkRunResult` reads it field by field and checks the four ids against
+  the ones Fabric passed (`FABRIC_DISPATCH_WORKFLOW`, `_HANDOFF`, `_REQUEST`) and the launch id Switchboard answered.
+  A file of another run, in another shape, with an outcome it does not know, an `answered` with no text, or larger than
+  64 KiB is never posted: the operations log records `board.dispatch.relay` failed with the reason code (never the
+  file's text), the request goes to the operator in «На проверке» («left a result that was not posted»), no run starts
+  for it again, and the workflow is closed.
+- **The answer.** For `outcome=answered` the dispatcher posts the answer once as the request's target Project through
+  the operator's board door (`AgentSurface#operatorBoard`, `main/boardDispatchWiring.ts#relayReply`; a reply from the
+  request's target answers it, DEC-0098), under the idempotency key `dispatch-relay:<dispatch id>`, with a first line
+  naming the launch and the machine (`shared/boardDispatch.ts#relayText`: «Ретрансляция запуска `<launch>` с машины
+  `<machine>`», the outcome, branch and commit), then the answer as written. A refusal is asked again on the next pass
+  with the same key; after five the request goes to the operator as above; a refusal for a request already settled
+  ends the run `finished`. The workflow is closed only once the request reads settled: on that pass the run ends
+  `finished` and Fabric writes the closing checkpoint under its own lease (`status: done`, the launch, the machine,
+  the outcome, branch and commit), which also ends the offer nobody accepted. A posted answer whose request still reads
+  open past the run's end and 10 minutes ends the run `unknown`, and the workflow closes when the request is read
+  settled.
+- **No answer.** `outcome=failed` or `blocked`, or an end with no result file (`exited`, `stopped`, `timed_out`), posts
+  nothing, counts as an empty run unless the request is settled (`exited-without-answer`, `timed-out` for `timed_out`)
+  and closes the workflow at once (`status: failed`); the next run opens a workflow of its own. Two empty runs give the
+  request to the operator, as on this machine.
+
+A run on another machine still holds its place under this dispatcher's caps (§3.3). Code:
+`main/boardDispatchRun.ts#createBoardDispatch` (`watchRemote`, `relayRemote`), tests in
+`apps/desktop/test/board-dispatch-run.test.mjs` (the `CO-551` tests) and `shared/boardDispatch.test.ts`.
+
 A standing dispatcher on by default changes fabric-agent-contract's choice C5 of DEC-0022 («no background helper by
 default»); the contract records it as a DEC citing the operator's words of 2026-11-04 (CT-215).
 
@@ -306,7 +361,9 @@ Fabric journal events (each with `event_types` rows and a feed sentence `event.<
 | `board.dispatch.started@1` | dispatch id, request id, workflow id, agent kind, Switchboard launch id |
 | `board.dispatch.ended@1` | dispatch id, outcome (`finished`, `exited-without-answer`, `timed-out`, `failed-to-start`), duration |
 
-The operations log records the same steps (`board.dispatch.*`), with the platform. Switchboard records the launch in its
+The operations log records the same steps (`board.dispatch.*`), with the platform; a run on another machine adds
+`board.dispatch.remote-refused`, `board.dispatch.remote-lost`, `board.dispatch.relay` and `board.dispatch.stopped`
+(§3.7), codes and ids only. Switchboard records the launch in its
 history; Observatory keeps the workflow's checkpoints.
 
 ## 8. Analytics

@@ -114,6 +114,9 @@ export interface SweepRequest {
   toOperator?: boolean
   /** CO-409 (ER-7): it is the operator's because it passed its deadline accepted, with no run Fabric started for it. */
   pastDue?: boolean
+  /** CO-551: a run Fabric started on another machine left a result Fabric did not post (`unposted`), or that machine
+   *  has not answered past the run's end (`lost`). */
+  remote?: 'unposted' | 'lost'
 }
 
 export interface SweepTerminal {
@@ -240,9 +243,13 @@ export function findAbandoned(input: SweepInput): Finding[] {
     // their own in «На проверке».
     if (r.toOperator && !SETTLED_REQUEST.has(r.state))
       out.push({ ...base, kind: 'request-to-operator', key: `request-to-operator:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
-        nextStep: r.pastDue
-          ? 'This board request passed its deadline accepted, with nobody holding it and no run Fabric started: it waits for the operator, and Fabric starts no run for it.'
-          : 'Two runs Fabric started for this board request ended without settling it: it waits for the operator, and Fabric starts no more for it.' })
+        nextStep: r.remote === 'unposted'
+          ? 'A run Fabric started on another machine for this board request left a result that was not posted (it named another run, could not be read, or the board refused it): it waits for the operator, and Fabric starts no more for it.'
+          : r.remote === 'lost'
+            ? 'A run Fabric started on another machine for this board request has not answered past its time limit: Fabric keeps asking, closes nothing and starts no other run until that run\'s end is known.'
+            : r.pastDue
+              ? 'This board request passed its deadline accepted, with nobody holding it and no run Fabric started: it waits for the operator, and Fabric starts no run for it.'
+              : 'Two runs Fabric started for this board request ended without settling it: it waits for the operator, and Fabric starts no more for it.' })
     else if (r.state === 'outcome_unknown')
       out.push({ ...base, kind: 'request-outcome-unknown', key: `request-outcome-unknown:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: 'An agent took this board request and went away before its outcome was known: check whether the work happened, then settle it (com.reconcile) or answer the requester.' })

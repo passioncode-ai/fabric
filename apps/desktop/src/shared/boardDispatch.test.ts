@@ -1,7 +1,7 @@
 // CO-409, wave 1: the dispatcher's decision. Spec: docs/evidence/specs/2026-11-04-on-demand-sessions.md (§3.1, §3.3,
 // §3.4, §3.5, §3.6).
 import { describe, expect, it } from 'vitest'
-import { decideDispatch, firstLine, packetDeadline, parseFirstLine, refusalCheck, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
+import { checkRunResult, decideDispatch, dispatchTargetOf, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
 
 const NOW = Date.parse('2026-11-04T15:00:00Z')
 const MIN = 60_000
@@ -144,5 +144,57 @@ describe('refusalCheck (§3.5)', () => {
     expect(refusalCheck('spend_unknown')).toBe('deferred-cap')
     expect(refusalCheck('agent_not_installed')).toBe('failed-to-start')
     expect(refusalCheck('something_new')).toBe('failed-to-start')
+  })
+})
+
+// CO-551, stage A: a run on another machine answers through the dispatcher. Its result file, as fabric-switchboard's
+// SB-317 writes it (board thread `14d6cb73`, `f75293e0`), is checked against the ids Fabric passed before anything is posted.
+describe('the result of a run on another machine (CO-551)', () => {
+  const ids = { workflow: 'wf_0123456789abcdef', handoff: 'handoff:0123456789abcdef', request: '11111111-1111-4111-8111-111111111111', launch: 'L-7' }
+  const file = (over: Record<string, string | null> = {}): string => {
+    const o = { ...ids, outcome: 'answered', branch: 'feat/x', commit: 'abc1234', body: 'Готово.\n\nВторая строка.', ...over }
+    return [`fabric-dispatch/1 result workflow=${o.workflow} handoff=${o.handoff} request=${o.request} launch=${o.launch}`,
+      `outcome=${o.outcome}`, ...(o.branch ? [`branch=${o.branch}`] : []), ...(o.commit ? [`commit=${o.commit}`] : []), '', o.body ?? ''].join('\n')
+  }
+  it('a file whose four ids are the ones Fabric passed is read: outcome, branch, commit and the answer', () => {
+    expect(checkRunResult(file(), ids)).toEqual({ ok: true, result: { ...ids, outcome: 'answered', branch: 'feat/x', commit: 'abc1234', body: 'Готово.\n\nВторая строка.' } })
+    expect(checkRunResult(file({ branch: null, commit: null }), ids)).toMatchObject({ ok: true, result: { branch: null, commit: null } })
+    expect(checkRunResult(file().replace(/\n/g, '\r\n'), ids)).toMatchObject({ ok: true, result: { outcome: 'answered' } })
+  })
+  it('another workflow, hand-over, request or launch is another run, never posted', () => {
+    for (const k of ['workflow', 'handoff', 'request', 'launch'] as const) {
+      const other = { workflow: 'wf_fedcba9876543210', handoff: 'handoff:fedcba9876543210', request: '33333333-3333-4333-8333-333333333333', launch: 'L-8' }[k]
+      expect(checkRunResult(file({ [k]: other }), ids)).toEqual({ ok: false, reason: 'other-run' })
+    }
+  })
+  it('a file in another shape is unreadable; an answer with no text and an outcome it does not know are refused', () => {
+    expect(checkRunResult('', ids)).toEqual({ ok: false, reason: 'unreadable' })
+    expect(checkRunResult(file().replace('fabric-dispatch/1 result', 'fabric-dispatch/1'), ids)).toEqual({ ok: false, reason: 'unreadable' })
+    expect(checkRunResult(` ${file()}`, ids)).toEqual({ ok: false, reason: 'unreadable' })
+    expect(checkRunResult(file().replace('outcome=answered\n', ''), ids)).toEqual({ ok: false, reason: 'no-outcome' })
+    expect(checkRunResult(file({ outcome: 'done' }), ids)).toEqual({ ok: false, reason: 'no-outcome' })
+    expect(checkRunResult(file().replace('branch=feat/x', 'branch=feat/x\nbranch=feat/y'), ids)).toEqual({ ok: false, reason: 'unreadable' })
+    expect(checkRunResult(file().replace('branch=feat/x', 'secret=1'), ids)).toEqual({ ok: false, reason: 'unreadable' })
+    expect(checkRunResult(file({ body: '  ' }), ids)).toEqual({ ok: false, reason: 'empty-answer' })
+    // failed and blocked need no answer text: nothing is posted for them.
+    expect(checkRunResult(file({ outcome: 'blocked', body: '' }), ids)).toMatchObject({ ok: true, result: { outcome: 'blocked' } })
+    expect(checkRunResult(`${file()}${'x'.repeat(RESULT_MAX_BYTES)}`, ids)).toEqual({ ok: false, reason: 'too-large' })
+  })
+  it('the relayed reply names the launch and the machine, then carries the answer as written', () => {
+    const r = checkRunResult(file(), ids)
+    if (!r.ok) throw new Error('unreadable')
+    const text = relayText(r.result, 'studio')
+    expect(text.startsWith('_Ретрансляция запуска `L-7` с машины `studio`')).toBe(true)
+    expect(text).toContain('ветка `feat/x`, коммит `abc1234`')
+    expect(text.endsWith('\n\nГотово.\n\nВторая строка.')).toBe(true)
+    expect(text.includes('\u2014')).toBe(false)
+  })
+  it('the refusals that send a run back to this machine are the three agreed on the board', () => {
+    expect([...REMOTE_REFUSALS].sort()).toEqual(['not_on_target', 'target_busy', 'target_unreachable'])
+  })
+  it('the machine named in Settings is an ssh host name, never an option, a space or auto', () => {
+    expect(dispatchTargetOf('studio')).toBe('studio')
+    expect(dispatchTargetOf('ops@build-host')).toBe('ops@build-host')
+    for (const v of ['', 'auto', '-oProxyCommand=x', 'two words', 'a;b', 42, null, undefined, 'x'.repeat(300)]) expect(dispatchTargetOf(v)).toBeNull()
   })
 })

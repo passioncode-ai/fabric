@@ -7,6 +7,19 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## 0.3.19 (unreleased)
+
+- **A board run on another machine answers through Fabric** (CO-551, stage A; [the on-demand spec
+  §3.7](docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a)). With a
+  machine named in Settings' `dispatchTarget` (none by default, so nothing changes until one is named), the dispatcher
+  starts a board run there through Switchboard 0.7.40 (`dispatch --target`); a machine without the repository, busy or
+  out of reach runs it here instead. Fabric follows the run with `dispatch status`, checks its result file against the
+  workflow, hand-over, request and launch it started, posts the answer in the request's thread as the target project,
+  marked as relayed from that launch, and closes the workflow once the request reads answered. A result of another
+  run, or one Fabric cannot read, is never posted: it is logged and the request shows in «На проверке». A machine that
+  stops answering closes nothing; past the run's time limit the request shows in «На проверке» while Fabric keeps
+  asking.
+
 ## 0.3.18
 
 **Upgrading.** No schema step: the database stays at schema 100. On the first start macOS may show its notice that a

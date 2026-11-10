@@ -16,6 +16,7 @@ import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake, type SettingsP
 import type { TabRef } from './tabs.ts'
 import { cleanOrder, type FallbackEntry } from './runnerRoute.ts'
 import { COMMS_THREAD_HEADS_LIMIT } from './commsRead.ts'
+import { dispatchTargetOf } from './boardDispatch.ts'
 
 /** The working language from a settings read: an unreadable file names none, since unknown is not on (ER-3). */
 export function workingLanguageOfRead(read: { status: string; value: { locale: string; agentLanguage?: boolean } }): string | null {
@@ -36,7 +37,7 @@ export { APP_SETTINGS_DEFAULTS }
  *  be marked at once (0.3.12 review DA-12: at 4096 a fifth of a full listing read as unread again), and still bounded. */
 export const COMMS_READ_THROUGH_MAX = COMMS_THREAD_HEADS_LIMIT
 
-const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters', 'trustAgentFolders', 'dispatchBoardRequests']
+const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters', 'trustAgentFolders', 'dispatchBoardRequests', 'dispatchTarget']
 
 /**
  * A window's settings write, checked before anything is merged (audit 2026-10-05 A7-008, A7-025). A key a
@@ -165,6 +166,8 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     boardFilters: boardFilters(raw.boardFilters),
     trustAgentFolders: raw.trustAgentFolders !== false,
     dispatchBoardRequests: raw.dispatchBoardRequests !== false,
+    // CO-551: an ssh host name or none; anything else (an option, `auto`, a number) is none, never a guess.
+    dispatchTarget: dispatchTargetOf(raw.dispatchTarget),
     firstRun: {
       completedAt:
         raw.firstRun !== null && typeof raw.firstRun === 'object' && !Array.isArray(raw.firstRun) &&
