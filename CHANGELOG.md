@@ -19,6 +19,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   run, or one Fabric cannot read, is never posted: it is logged and the request shows in «На проверке». A machine that
   stops answering closes nothing; past the run's time limit the request shows in «На проверке» while Fabric keeps
   asking.
+- **A board run accepts its hand-over** (CO-556; [the on-demand spec
+  §3.5](docs/evidence/specs/2026-11-04-on-demand-sessions.md#35-the-start)). The dispatcher offered each run's hand-over
+  to `claude` while the session Switchboard starts accepts it as `claude-code`, so Observatory refused it, the run
+  ended without an answer and after two such runs the request went to the operator. The offer now names the agent
+  Switchboard reports (`claude-code` or `codex`), the one the session accepts as.
 
 ## 0.3.18
 

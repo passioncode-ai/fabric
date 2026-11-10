@@ -14,7 +14,7 @@ const request = (over = {}) => ({ id: '11111111-1111-4111-8111-111111111111', th
 
 function world(over = {}) {
   let now = T0
-  const w = { requests: [request()], responder: false, session: false, on: true, folder: '/work/target', provider: 'claude',
+  const w = { requests: [request()], responder: false, session: false, on: true, folder: '/work/target', provider: 'claude-code',
     calls: [], launches: [], runs: new Map(), states: new Map(), saved: [], logs: [], refuse: null, remote: new Map(), relays: [], ...over }
   let n = 0
   w.deps = {
@@ -66,7 +66,7 @@ test('a queued request with nobody on it opens a workflow, offers it to the defa
   assert.equal(open.projectId, 'project:target')
   assert.ok(open.body.artifacts.some((a) => a.ref === `board-request:${request().id}`))
   assert.ok(open.body.artifacts.some((a) => a.ref.startsWith('run-ends-at:')))
-  assert.deepEqual(w.calls[2][1].to, { provider: 'claude' })
+  assert.deepEqual(w.calls[2][1].to, { provider: 'claude-code' })
   assert.equal(w.calls[2][1].reason, 'plan_route')
   assert.equal(w.calls[2][1].leaseId, 'lease-1')
   assert.equal(w.launches.length, 1)
@@ -633,13 +633,48 @@ test('CO-409 (the 0.3.16 review, ER-6): a refusal that keeps coming back waits t
 
 test('CO-409 (Switchboard SB-294): the hand-over goes to the agent dispatch will start; without the field, the default agent', async () => {
   const { dispatchProvider } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
-  assert.equal(dispatchProvider({ default: null, dispatch_agent: 'claude-code' }), 'claude', 'no default set: Switchboard falls back to Claude Code')
+  // CO-556: the agent id itself, the one Switchboard's dispatch prompt tells the session to accept as (never 'claude').
+  assert.equal(dispatchProvider({ default: null, dispatch_agent: 'claude-code' }), 'claude-code', 'no default set: Switchboard falls back to Claude Code')
   assert.equal(dispatchProvider({ default: 'codex', dispatch_agent: 'codex' }), 'codex')
   assert.equal(dispatchProvider({ default: 'claude-code', dispatch_agent: null }), null, 'Switchboard would start nothing: no hand-over')
-  assert.equal(dispatchProvider({ default: 'claude-code' }), 'claude', 'an older Switchboard keeps the old rule')
+  assert.equal(dispatchProvider({ default: 'claude-code' }), 'claude-code', 'an older Switchboard keeps the old rule')
   assert.equal(dispatchProvider({ default: null }), null)
   assert.equal(dispatchProvider({ default: 'hermes' }), null)
   assert.equal(dispatchProvider(undefined), null)
+})
+
+test('CO-556: the session Switchboard starts accepts the hand-over, because it is offered to the agent Switchboard reports', async () => {
+  // Observed on 0.3.18 rc.2, 2026-11-10: the offer went to 'claude', Switchboard's dispatch prompt (0.7.40) accepts as
+  // executor {provider: 'claude-code'}, and Observatory refused: "the handoff goes to claude, not claude-code".
+  const { dispatchProvider } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  for (const agent of ['claude-code', 'codex']) {
+    const status = { data: { default: null, dispatch_agent: agent } } // `switchboard --json agents status`
+    const w = world()
+    w.deps.defaultProvider = async () => dispatchProvider(status.data)
+    const base = w.deps.observatory
+    const offers = new Map()
+    const accepted = []
+    w.deps.observatory = async (name, args) => {
+      const out = await base(name, args)
+      if (name === 'observatory_handoff_create') offers.set(out.handoffId, args.to.provider)
+      // Observatory's rule: an executor accepts only an offer made to its own provider.
+      if (name === 'observatory_handoff_accept' && args.executor && offers.get(args.handoffId) !== args.executor.provider) {
+        return { error: `InvalidInput: the handoff goes to ${offers.get(args.handoffId)}, not ${args.executor.provider}` }
+      }
+      return out
+    }
+    // The run Switchboard starts: its prompt accepts as the agent Switchboard named, then works.
+    w.deps.launch = async (args) => {
+      w.launches.push(args)
+      const took = await w.deps.observatory('observatory_handoff_accept', { owner: `agent:${agent}`, idempotencyKey: 'run-accept', handoffId: args.handoff, executor: { provider: agent, accountRef: 'acct' } })
+      accepted.push(took)
+      return { launchId: `L${w.launches.length}` }
+    }
+    await createBoardDispatch(w.deps).onPass()
+    assert.equal(w.launches.length, 1, agent)
+    assert.equal(accepted[0].error, undefined, `${agent}: ${accepted[0].error}`)
+    assert.equal(accepted[0].leaseId, 'lease-2', agent)
+  }
 })
 
 test('CO-409 (the 0.3.16 review, ER-5): a workflow is taken back only once it has been silent 120 s, with no back-off meanwhile', async () => {

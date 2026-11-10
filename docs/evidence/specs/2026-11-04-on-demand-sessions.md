@@ -180,8 +180,13 @@ without `credentials` it gives none. The run's last checkpoint closes the workfl
 ### 3.5 The start
 
 Fabric creates the hand-over itself (`observatory_handoff_create` as `service:fabric`, reason `plan_route`, `to.provider`
-from the agent `switchboard agents status` says `dispatch` will start, `data.dispatch_agent` (Switchboard's SB-294: Claude
-Code when no default is set), else its default agent, no account) and asks Switchboard to start the session (SB-247, agreed
+the agent id `switchboard agents status` says `dispatch` will start, `data.dispatch_agent` (Switchboard's SB-294: Claude
+Code when no default is set), else its default agent, no account). The provider is that id as Switchboard writes it
+(`claude-code`, `codex`), never a provider name derived from it: Switchboard's dispatch prompt has the session accept as
+`executor.provider` = the id, and Observatory refuses an accept whose provider is not the offer's (CO-556, observed on
+0.3.18 rc.2, 2026-11-10: an offer to `claude` refused as "the handoff goes to claude, not claude-code";
+`main/boardDispatchWiring.ts#dispatchProvider`, test `CO-556: the session Switchboard starts accepts the hand-over` in
+`apps/desktop/test/board-dispatch-run.test.mjs`). Fabric then asks Switchboard to start the session (SB-247, agreed
 2026-11-04, design in fabric-switchboard `docs/research/dispatch-2026-11-04.md`):
 `switchboard dispatch --dir <P's folder> --workflow <wf> --handoff <id> --request <uuid> --dispatch-id <id> --reason
 request --permissions ask|all --timeout-minutes <n> [--json]` (`--request` and `--dispatch-id` agreed with Switchboard

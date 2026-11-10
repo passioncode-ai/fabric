@@ -31,6 +31,10 @@ export interface DispatchLimits {
 export const DISPATCH_DEFAULTS: Readonly<DispatchLimits> = { maxOnMachine: 2, maxPerProject: 1, maxPerProjectPerDay: 20, runMinutes: 60 }
 
 /** A request's state as the board names it (fabric-project-comms/0.1). */
+/** The agent a run starts as Switchboard names it (`dispatch_agent`), which is also the hand-over's provider: the
+ *  session accepts the offer as this id, so the offer must name it (CO-556, the on-demand spec §3.5). */
+export type DispatchAgent = 'claude-code' | 'codex'
+
 export type RequestState = 'queued' | 'claimed' | 'accepted' | 'in_progress' | 'completed' | 'failed_known' | 'outcome_unknown' | 'expired' | 'cancelled' | 'answered'
 
 export interface DispatchInput {

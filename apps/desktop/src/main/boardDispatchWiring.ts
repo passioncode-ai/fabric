@@ -11,6 +11,7 @@ import { execFile } from 'node:child_process'
 import type { CommsMessage, CommsRespondersReply, CommsTimelineReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
 import { mandateOfRequest } from './boardMandate.ts'
+import type { DispatchAgent } from '../shared/boardDispatch.ts'
 import { createBoardDispatch, isDispatchRecord, type DispatchDeps, type DispatchRecord, type OpenRequest, type RemoteState, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
@@ -292,10 +293,12 @@ export function wireBoardDispatch(o: {
 /**
  * The provider a hand-over is offered to: the agent `switchboard dispatch` will start. Switchboard's SB-294 (board
  * thread `327c7290`, 2026-11-07) names it as `data.dispatch_agent`, Claude Code when no default is set; a Switchboard
- * without the field keeps the old rule, its default agent only (CO-409, the on-demand spec §3.5).
+ * without the field keeps the old rule, its default agent only (CO-409, the on-demand spec §3.5). CO-556: the agent
+ * id itself, because Switchboard's dispatch prompt has the session accept as `executor.provider` = that id, and
+ * Observatory refuses an accept whose provider is not the offer's (observed on 0.3.18 rc.2, 2026-11-10).
  */
-export function dispatchProvider(data: { default?: string | null; dispatch_agent?: string | null } | undefined): 'claude' | 'codex' | null {
+export function dispatchProvider(data: { default?: string | null; dispatch_agent?: string | null } | undefined): DispatchAgent | null {
   const agent = data && 'dispatch_agent' in data ? data.dispatch_agent ?? null : data?.default ?? null
-  return agent === 'claude-code' ? 'claude' : agent === 'codex' ? 'codex' : null
+  return agent === 'claude-code' || agent === 'codex' ? agent : null
 }
 // #endregion board-dispatch-wiring

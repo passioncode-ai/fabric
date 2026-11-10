@@ -9,7 +9,7 @@
  */
 import { randomUUID } from 'node:crypto'
 import type { OperatorMandate } from './hubAuthority.ts'
-import { checkRunResult, decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, GRACE_MS, limitsOf, packetDeadline, relayText, REMOTE_REFUSALS, runEndsAt, refusalCheck, type DispatchDecision, type RequestState, type RunOutcome } from '../shared/boardDispatch.ts'
+import { checkRunResult, decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, GRACE_MS, limitsOf, packetDeadline, relayText, REMOTE_REFUSALS, runEndsAt, refusalCheck, type DispatchAgent, type DispatchDecision, type RequestState, type RunOutcome } from '../shared/boardDispatch.ts'
 import { FABRIC_OWNER, type ToolCall } from './observatoryMemory.ts'
 
 export interface OpenRequest {
@@ -120,8 +120,8 @@ export interface DispatchDeps {
   sessionLive(projectId: string): boolean
   /** The project's folder on this machine, or null. */
   folderOf(projectId: string): Promise<string | null>
-  /** The default agent's provider, or null when none is set. */
-  defaultProvider(): Promise<'claude' | 'codex' | null>
+  /** The agent `switchboard dispatch` will start (its id, the hand-over's provider), or null when it starts none. */
+  defaultProvider(): Promise<DispatchAgent | null>
   observatory: ToolCall
   launch(args: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string }): Promise<{ launchId: string } | { refused: string }>
   /** CO-551: the machine Settings names for runs (`dispatchTarget`), or null for this one; absent, this one. */
@@ -433,7 +433,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   }
 
   /** Opens the workflow (first run) or takes it back (a later run), writes run-ends-at and offers it on. */
-  const open = async (req: OpenRequest, prior: DispatchRecord | undefined, provider: 'claude' | 'codex', endsAt: string, dispatchId: string, openAt: number): Promise<{ workflowId: string; handoffId: string }> => {
+  const open = async (req: OpenRequest, prior: DispatchRecord | undefined, provider: DispatchAgent, endsAt: string, dispatchId: string, openAt: number): Promise<{ workflowId: string; handoffId: string }> => {
     const body = (opening: boolean) => ({
       goal: `Answer the board request ${req.id} addressed to this project, then end.`,
       constraints: [
