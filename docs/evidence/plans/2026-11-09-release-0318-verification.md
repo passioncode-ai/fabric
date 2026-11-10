@@ -191,6 +191,95 @@ go only on the release commit made from `d5861ddb` (item 7 checks the hash).
    `launchctl bootout` alone is an emergency stop only: it leaves the registration in Login Items and stops only a copy
    launchd started.
 
+### Executed on rc.2, 2026-11-10
+
+What the coordinator (session `5d9bed98`, outside any Fabric terminal) did of the items above, item by item, with its
+evidence; times are UTC. The N6 receipts are in
+[`2026-11-08-0318-board-always-on/`](2026-11-08-0318-board-always-on/), each naming the build
+([`n6-rc2-build.md`](2026-11-08-0318-board-always-on/n6-rc2-build.md)). Nothing is published: `v0.3.18` is not tagged.
+
+0. **Preflight: done.** The full run on `d5861ddb62117e2b34a5540b5ef6844c9df99c45`: `ci.yml` run 42707815486
+   (`workflow_dispatch` on `fix/dispatch-packet-deadline-3`, 2026-11-09 22:00:29Z to 23:25:25Z), jobs "fast, no
+   database" and "full, with a disposable stack" `success` (the `gate` job skipped, as on a dispatch). The push run
+   42706313170 on the same commit: `success`. The release commit is `bbc90b7ae4bccd65e9b8a8d8e95cb9582a14f359`. The
+   full tier passed on `d5861ddb`, so neither nightly `ci` failure named above reproduces on it. **Still owed before
+   item 7:** the nightly Windows failures of `platforms.yml` (run 42547666053 on `22a4f54a`, both Windows jobs:
+   `apps\desktop\test\listener-owner.test.mjs` and `apps\desktop\test\peer-account.test.mjs`) are neither ruled nor
+   fixed by this record; `platforms.yml` has not run on `d5861ddb` or `bbc90b7a`, and the release run's Windows jobs do
+   not run those two tests.
+1. **Landing: done, by a merge, not a rebase.** Before the landing `main` had moved only by the workspace publication's
+   pin `40fe3818` (child of `78772e6d`; `git diff --stat 78772e6d 40fe3818`: `docs/workspace-receipt.json` and
+   `workspace` alone). The chain `d5861ddb`, `bbc90b7a`, `1e338346` was joined to it by the merge commit `df2c2cf2`
+   ("Merge origin/main (workspace pin) into docs/0318-post-rc2"; parents `1e338346` and `40fe3818`), the precedent of
+   `7e43dc03` for 0.3.14, so `d5861ddb` and `bbc90b7a` keep their hashes and the tags name the commit the gate was
+   written for; `main` then moved to `df2c2cf2` by fast-forward (this machine's reflog of `origin/main`: pushed
+   2026-11-09 22:59:55Z). This deviates from item 1's "rebased onto it" and is recorded as such. Run on the landed
+   release commit (the clean detached checkout at `bbc90b7a`): `node scripts/release-mac.mjs --check-only --tag
+   v0.3.18-rc.2`, last line "release: Fabric 0.3.18 at bbc90b7ae4bc (v0.3.18-rc.2) is on origin/main and its release
+   gate is clear", exit 0. Since then `main` moved by the pin `e48571b6` (pushed 00:25:21Z) and by `b9277354` (CO-551
+   stage A, a code change, pushed 00:56:38Z, inside the window item 1 announces as paused); neither touches what the
+   tags name (`bbc90b7a` is their ancestor), and at 01:13:42Z on `bbc90b7a` `--check-only --tag v0.3.18` and `--tag
+   v0.3.18-rc.2` both answered "is on origin/main and its release gate is clear", exit 0.
+2. **The release candidate: done.** `v0.3.18-rc.2` on `bbc90b7a` (a lightweight tag: `git ls-remote` shows no peeled
+   line; item 2 wrote `git tag -a`, so `v0.3.18` is to be annotated). `release.yml` run 42720627493
+   (`publish=false`): guard, preflight, macos, windows x64, windows arm64, linux x64, linux arm64 and publish all
+   `success`. Artifact `signed-release-v0.3.18-rc.2`: `shasum -a 256 -c SHA256SUMS` answers `OK` for all 12 files.
+   `Fabric-0.3.18-universal.dmg` sha256 `8c3db3519b4026bedf1d686eddc5f66608fe5b9ff6e1cb207bde6bcb0f2e8ede`, Developer ID
+   Application (team `KJ35UYYL22`), `spctl`: `Notarized Developer ID`. SMOKE receipts (PL-14): Windows x64 and arm64
+   `SIGNED (Azure Artifact Signing)`, and on Windows and Linux both arches `installed-start` and `fabric-mcp` pass, each
+   naming commit `bbc90b7a` ([the build receipt](2026-11-08-0318-board-always-on/n6-rc2-build.md)). rc.1 stays
+   superseded and was never installed.
+3. **Before the install: done.**
+   1. Announced on the project board at 00:38Z (message `eafab06d`): the outage window, with zero live Fabric-hosted
+      terminal sessions (Fabric's only child was the dispatcher's Observatory server).
+   2. Read at 00:37Z: 29 tasks in review, 1 due for the default accept by the sweep's predicate, id
+      `b1718a7d-7726-4128-8fcb-f5c14bb1fbfc`. Compared after the install: the rc's first sweep with an accept,
+      `work.swept@1` at 00:42:13Z (journal seq 126743), says `acceptedByDefault: 1`, and the one `task.closed@1` by
+      `review-default` since 00:30Z (seq 126742) names that id. The two earlier sweeps (00:31Z, 00:37Z, still 0.3.17)
+      accepted none.
+   3. The broker's owner hold: policy before `always_on`, revision 29; after `held_off`, revision 30 (broker service
+      stopped, hold, started); its `events.jsonl` holds no `circuit_open`. Item 7 restores `always_on` exactly.
+4. **Install the rc: done, in part.** 0.3.17 quit by its menu's Quit (an Apple event) and ended in 1 s; kept as
+   `/Applications/Fabric-0.3.17.app`. The rc's `Fabric.app` copied with `ditto`; `codesign --deep --strict` OK; `spctl`
+   accepted. Opened at 00:39:06Z; the ops log `app.started` 0.3.18 at 00:39:10Z; the board answered (`com.status`:
+   board ready). Not read: the «Служба доски» line in Settings (the screen was locked); the legacy login item's
+   removal was not read either, beyond the ops log holding no `app.login-item` line for the rc's starts (that op is
+   written only when the state is unknown or the apply fails, `apps/desktop/src/main/index.ts#applyLoginItem`).
+   Both are read with the window checks. The ledger's probe "`GET <hub origin>/.well-known/fabric-service`" does not
+   exist on the hub (404 on rc.2; no such route in `apps/desktop/src/main`); "the board answers" was read through
+   `com.status` over the hub instead, a defect of this ledger carried in CO-549.
+5. **N6: done in part.** (f) [after the install](2026-11-08-0318-board-always-on/n6-f-after-install.md): five
+   samples 00:52 to 00:56Z, the job `spawn scheduled`, runs 14 to 18, last exit 75, `hub.json`'s pid the opened copy,
+   the broker `held_off`, no `circuit_open`. [The hand-over](2026-11-08-0318-board-always-on/n6-handover.md): SIGTERM
+   at 00:57:58Z, the opened copy ended in 1 s (`app.quit-signal` SIGTERM), launchd's copy published the hub 17 s later
+   (ER-22's measurement: replaced within a minute). (a) [Quit hides](2026-11-08-0318-board-always-on/n6-a-quit-hides.md),
+   00:58:29Z: process alive, background only, zero windows, board ready: pass. (b)
+   [SIGKILL](2026-11-08-0318-board-always-on/n6-b-sigkill.md), 00:58:54Z: new pid published in 21 s, bar 70 s: pass;
+   deviation: the kill came about 40 s after that copy's spawn, not 60 s. (c)
+   [SIGTERM](2026-11-08-0318-board-always-on/n6-c-sigterm.md), 00:59:27Z (about 12 s after the spawn, the same
+   deviation): exit 0, not running for 2 minutes, `kickstart` at 01:01:30Z answered in 1 s: pass. (d)
+   [The switch off](2026-11-08-0318-board-always-on/n6-d-switch-off.md), by the documented file route because the
+   screen was locked: `launchAtLogin` false, one start unregistered the job, Quit at 01:03:23Z ended Fabric (no ops
+   record after 01:03:23.509Z, `hub.json` removed); `launchAtLogin` true, one start registered the job, SIGTERM at
+   01:05:18Z, launchd's copy took the board in 55 s: pass for the switch; the live terminal session part is unproven
+   until the screen is unlocked. (e) [Logout](2026-11-08-0318-board-always-on/n6-e-logout.md): unproven, owner the
+   person.
+6. **The carried checks: not passed.** `chat-activation-native` ran on the installed rc with its own `--user-data-dir`:
+   the board service was left alone (launchd's pid 80545 before and after: PL-4 holds), and the probe ended `FAIL` at
+   stage `status` (`locator.waitFor: Timeout 120000ms exceeded`) with the screen locked; the renderer ran (its `ipc`
+   reads logged once) and then stopped updating, consistent with a locked screen. Inconclusive; it runs again with the
+   screen unlocked. The Docker-stopped start check was not run: it stops every container on the machine, so it waits
+   for the operator's presence.
+7. **Publish: not done.** `v0.3.18` is not tagged; it waits for the window checks above (4's Settings line, 5 (d)'s
+   live session, 6) with the screen unlocked, and for item 0's Windows ruling. The broker's hold stays until item 7.
+
+Found during the close: **CO-556** (reserved; its row and fix land on their own branch). The board dispatcher offered
+its hand-overs to provider `claude` while Switchboard's dispatch prompt asks the session to accept as `claude-code`, and
+Observatory refused every accept (`InvalidInput: the handoff goes to claude, not claude-code`), observed on rc.2 at
+00:40Z. The dispatcher was switched off on this Mac (`settings.json` `dispatchBoardRequests` `false`, 00:48Z) before any
+request reached its second empty run. Not a regression of 0.3.18 (0.3.17 maps the provider the same way); the fix
+ships in 0.3.19.
+
 ## Iteration 1
 
 Candidate `8503abbb19b5d99050cbbb9ca92824703ca68a38` (hosted `ci` 42656913216 on `main`, green; 42655109395 on
