@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "12d0aceb86f3486bcd2ce336b24d9ff57131924d",
+  "report": "docs/evidence/reviews/0.3.19/iteration-3/2026-11-11-docs.md",
+  "reportSha256": "c772cc3f91a1eb247a2d9c5e0c3a3c1bea0220ec09f3ffdeb830b03575c79f0a",
+  "reviewerRun": "release-0319-i3c-docs-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-21",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562, item 30 added on main after the tag (Release close item 14); the 60 s bound still covers the 30 s pass"
+      ]
+    },
+    {
+      "id": "DO-22",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562, item 30 (Release close item 14)"
+      ]
+    },
+    {
+      "id": "DO-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit for the notes (the Upgrading paragraph carries both); the runbook ruled: CO-562, item 30 (Release close item 14)"
+      ]
+    },
+    {
+      "id": "DO-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the notes say 12 or more and the measurement's date"
+      ]
+    }
+  ]
+}

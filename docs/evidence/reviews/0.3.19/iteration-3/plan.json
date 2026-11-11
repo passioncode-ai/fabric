@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "12d0aceb86f3486bcd2ce336b24d9ff57131924d",
+  "report": "docs/evidence/reviews/0.3.19/iteration-3/2026-11-11-plan.md",
+  "reportSha256": "febbdb9eb40600fcc6c68e00e1cd1c05a2240f2e505bef009dcc0a283add0aa0",
+  "reviewerRun": "release-0319-i3c-plan-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: Release close items 7 and 9 reordered, the install held, the rc bundle kept"
+      ]
+    },
+    {
+      "id": "PL-33",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562, item 31 added on main after the tag (Release close item 14)"
+      ]
+    },
+    {
+      "id": "PL-34",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562, item 31 (Release close item 14); CO-559's §3.2 wake"
+      ]
+    },
+    {
+      "id": "PL-35",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562, item 31 (Release close item 14)"
+      ]
+    }
+  ]
+}

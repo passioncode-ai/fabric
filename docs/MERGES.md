@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-11 · `release-0319` · board-clockwork → main · fast-forward
+- files: Fabric 0.3.19: CO-559 (every board addressee woken and watched every 30 s, migration 128, schema 101), CO-561, CO-556, CO-551 stage A, the scenario walk of 2026-11-11 (CO-562 carries what it left), three review iterations' fixes with iteration 3 run three times; the release commit (the gate, the ledger, the handoff, the receipts)
+- conflicts: none
+- summary: Fabric 0.3.19 lands on `main` by a fast-forward from `3dc86247`: the verified candidate `12d0aceb`, then its release commit; 0.3.18 is published inside it
+
 ### 2026-11-09 · `release-0318-i3c` · release/0318-rc2 → main · fast-forward
 - files: Fabric 0.3.18: ADR-0192 and its amendment 1 (the board as a service launchd keeps), CO-536, CO-537, CO-541 to CO-544, CO-554; three review iterations' fixes, iteration 3 run three times; the release commit (the gate, the ledger, the handoff, iteration 3's run-three reports and receipts, the CHANGELOG line of UX-25, the map)
 - conflicts: none

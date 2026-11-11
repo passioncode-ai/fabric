@@ -171,9 +171,30 @@ next candidate.
 | R2-14 | PL-30 | non-blocking | run one's reports had no home | fixed: committed under `docs/evidence/reviews/0.3.19/iteration-3-ad73a986/` in the candidate itself |
 | R2-15 | PL-31 | non-blocking | the Studio's switch was decided after its update | fixed: Release close item 10 sets it first |
 
-### Run three
+### Run three, 12d0aceb (this iteration's candidate)
 
-_In progress._
+Candidate `12d0aceb86f3486bcd2ce336b24d9ff57131924d`, the `verifiedCommit` (the local fast gate exit 0; it reached
+`main` by fast-forward from `3dc86247`). Five reviewers, one per level; reports and receipts in
+`docs/evidence/reviews/0.3.19/iteration-3/`. 13 findings, none blocking. Every earlier blocking finding was checked
+again and holds.
+
+| Finding | Level | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-1 | UX-22 | non-blocking | the operator's inbox row follows only the newest unread message | ruled: CO-562, item 27 added on main after the tag (Release close item 14) |
+| V3-2 | UX-23 | non-blocking | Settings reads as failed while the switch-off waits for the Quit; SCN-170 not amended | ruled: CO-562, item 28 added on main after the tag (Release close item 14) |
+| V3-3 | ER-19 | non-blocking | a lost open of a brand-new workflow after a closed one is retried under a new id | ruled: CO-562, item 29 added on main after the tag (Release close item 14) |
+| V3-4 | DO-21 | non-blocking | four spec places and two comments still say the cycle | ruled: CO-562, item 30 added on main after the tag (Release close item 14); the 60 s bound still covers the 30 s pass |
+| V3-5 | DO-22 | non-blocking | §6 does not say a dead run is stopped with the switch off | ruled: CO-562, item 30 (Release close item 14) |
+| V3-6 | DO-23 | non-blocking | the runbook's 0.3.19 paragraph omits two cautions | fixed in the release commit for the notes (the Upgrading paragraph carries both); the runbook ruled: CO-562, item 30 (Release close item 14) |
+| V3-7 | DO-24 | non-blocking | «a dozen» against «12 or more»; the 65-project date | fixed in the release commit: the notes say 12 or more and the measurement's date |
+| V3-8 | DA-13 | non-blocking | a failed first inbox open is keyed by the newest message id | ruled: CO-562, item 29 (Release close item 14) |
+| V3-9 | DA-14 | non-blocking | 136 186 events read, 136 188 in the backup, unexplained | fixed in the release commit: item 2's record says the backup was taken after the read |
+| V3-10 | PL-32 | non-blocking | the broker is restored before the published build is installed | fixed in the release commit: Release close items 7 and 9 reordered, the install held, the rc bundle kept |
+| V3-11 | PL-33 | non-blocking | inbox runs share the machine's two slots with requests | ruled: CO-562, item 31 added on main after the tag (Release close item 14) |
+| V3-12 | PL-34 | non-blocking | an idle open session counts as live for ever | ruled: CO-562, item 31 (Release close item 14); CO-559's §3.2 wake |
+| V3-13 | PL-35 | non-blocking | two silent exclusions; a row ages out after a week | ruled: CO-562, item 31 (Release close item 14) |
+
+Exit for iteration 3: every finding has a disposition. Blocking findings open: none.
 
 ## Release close
 
@@ -197,14 +218,17 @@ Executable in this order, each act with its actor; a failure stops the close and
 6. 0.3.18's open checks on the rc: the Settings line «Служба доски» and the legacy login item; N6 (d) with a live
    terminal session opened from Fabric's window; `chat-activation-native`; the Docker-stopped start (it stops every
    container, so with the operator present); the Windows nightly failures of `platforms.yml` ruled or fixed (CO-560).
-7. The lifecycle broker's `fabric.desktop` policy restored to revision 29's `always_on` (held off at revision 30 since
-   0.3.18's close).
+7. Kept until item 9 is done: the lifecycle broker's `fabric.desktop` held off (revision 30 since 0.3.18's close), so
+   `always_on` cannot bring a bundle back while one is replaced (iteration 3 run three, PL-32).
 8. The board dispatcher: the switch on, and the first live request run and inbox run (two at a time) watched end to
    end (accepted, read marks, workflow closed, `finished`); if a failure hits every run (as CO-556 did), the switch
    goes off at once, since the run limits are fixed in code (CO-562 item 22); then the first hour of
    `board.dispatch.*` lines and Switchboard's usage read (iteration 1, PL-1 and PL-6; iteration 3, PL-20 and PL-21).
    No route marks another project's messages read for the operator, so there is no triage before it.
-9. `v0.3.19` on the same commit, published; this Mac updated to the published build.
+9. `v0.3.19` on the same commit, published; this Mac updated to the published build with the board switch off and
+   «Служба доски» off then Quit as in item 5, the rc bundle kept beside it as `Fabric-0.3.19-rc.app` until the published
+   build reads back; then the broker's policy restored to revision 29's `always_on` and the board switch on again
+   (PL-32).
 10. The Mac Studio: the dispatcher switch decided there first, set before the update as the notes tell every user
     (iteration 3 run two, PL-31); then 0.3.19 installed for both accounts with studio-agent; Switchboard's version read;
     `dispatchTarget` stays unset on both machines.
@@ -213,13 +237,16 @@ Executable in this order, each act with its actor; a failure stops the close and
 13. 0.3.18's two items for after its tag, which lost their home with `v0.3.18` (iteration 3, PL-23): REQ-1 of the
     board-always-on brief amended with the N6 (b) measurement (within 70 s, not 10 s), and Observatory told on the
     board about its `dispatch_packet.py` header (DO-27 (a)).
+14. On `main` after the tag: CO-562 gains items 27 to 31 for iteration 3 run three's findings ruled there (UX-22,
+    UX-23, ER-19 with DA-13, DO-21 to DO-23, PL-33 to PL-35), which the release commit may not add.
 
 ### Executed
 
 - Item 0, 2026-11-11 05:44Z: `df -h /System/Volumes/Data` read 7.7 GiB free.
 - Item 2, 2026-11-11: the board database suite on a disposable cluster with the whole migration chain, 13 passed, 0
   failed, the inbox case included («PASS full migration chain, the operator's reads of the project board on isolated
-  PostgreSQL», exit 0). The live database read schema 100 and 136 186 journal events; a private backup
+  PostgreSQL», exit 0). The live database read schema 100 and 136 186 journal events at 05:43Z; a private backup,
+  taken a minute later while Fabric ran (two events were written between, hence 136 188 below; DA-14),
   `pre-0.3.19.dump` (29 099 229 bytes, mode 600, 1 757 entries by `pg_restore --list`) was taken with PostgreSQL 17's
   `pg_dump` inside the stack's container; `rehearse-upgrade.mjs --from 100 --ref 04b5eafc` on it: «PASS: schema 100 →
   101 (admits 101), journal 136188 → 136188», 79 tables, the receipt beside the dump, the disposable stack removed,

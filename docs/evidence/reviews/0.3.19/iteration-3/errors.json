@@ -1,0 +1,21 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "12d0aceb86f3486bcd2ce336b24d9ff57131924d",
+  "report": "docs/evidence/reviews/0.3.19/iteration-3/2026-11-11-errors.md",
+  "reportSha256": "c52b5af6a74c7b1e5b88aefa36d6811136eccc908e6e76dea58d8567eaef2c8d",
+  "reviewerRun": "release-0319-i3c-errors-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-19",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562, item 29 added on main after the tag (Release close item 14)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "12d0aceb86f3486bcd2ce336b24d9ff57131924d",
+  "report": "docs/evidence/reviews/0.3.19/iteration-3/2026-11-11-data.md",
+  "reportSha256": "872eb2f96be85fbe14a86d60c0ce515e853691d61f712b632ab965ba90a0ae9e",
+  "reviewerRun": "release-0319-i3c-data-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562, item 29 (Release close item 14)"
+      ]
+    },
+    {
+      "id": "DA-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: item 2's record says the backup was taken after the read"
+      ]
+    }
+  ]
+}

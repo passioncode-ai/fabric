@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## 0.3.19 (unreleased)
+## 0.3.19
 
 0.3.18 was not published on its own: its candidate passed review, and the checks its release close left open moved to
 this release's close (the decision is in [the 0.3.18 handoff](docs/handoffs/2026-11-09-release-0318.md); one, the logout
@@ -39,11 +39,11 @@ the project it is addressed to marks it read or answers it in its thread, and re
   project reads everything that waits for it, answers what is owed and marks it read. The dispatcher checks every 30
   seconds: a run whose session never took its hand-over within five minutes, or whose work stopped for twenty, is
   stopped and started again; after three runs in all that left the item open, the operator is shown it. A workflow no
-  run holds is closed after two hours. Messages a sender sent in an hour in which it opened a dozen threads are treated
+  run holds is closed after two hours. Messages a sender sent in a clock hour in which it opened 12 threads or more are treated
   as an announcement and wake nobody. The Settings switch that allows it is renamed «Запускать агента, когда проекту
   пишут на доске, а открытой сессии проекта нет», since it now covers messages as well as requests. An inbox run always starts on this
   machine. Turning it on, or updating with it on, starts runs for every project with unread messages of the last week,
-  two at a time (65 projects on the operator's board on 2026-11-11): see Upgrading above.
+  two at a time (65 projects on the operator's board, measured 2026-11-10 at 23:39 UTC): see Upgrading above.
 - **A walk of the board, session and service scenarios, and what it fixed** (2026-11-11, four independent readers over
   SCN-137 to SCN-181 and the on-demand spec). A coding agent whose check of Fabric's port failed once under load no
   longer loses the board and its tools: the session to the same Fabric is kept, each request's own check waits and
