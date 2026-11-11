@@ -768,12 +768,29 @@ test('CO-561: a fabric-mcp that lost its connection enrolls again into the sessi
   assert.notEqual(other.session.sessionId, first.session.sessionId)
 })
 
+test('0.3.19 review iteration 2, ER-10: another process naming the same runtime id does not take the held session', async () => {
+  const h = deps()
+  const cwd = '/Users/example/DATA/site'
+  const first = await enrollSession(binding, { cwd, runtimeSessionId: 'rt-held', agentPid: 4100 }, h.d)
+  h.surface.claimAll()
+  const same = await enrollSession(binding, { cwd, runtimeSessionId: 'rt-held', agentPid: 4100 }, h.d)
+  assert.equal(same.session.sessionId, first.session.sessionId)
+  h.surface.claimAll()
+  const other = await enrollSession(binding, { cwd, runtimeSessionId: 'rt-held', agentPid: 4200 }, h.d)
+  assert.notEqual(other.session.sessionId, first.session.sessionId)
+})
+
 test('0.3.19 review ER-1: the hooks\' rejoin never revokes the bearer a reconnected fabric-mcp holds', async () => {
   const h = deps()
   const cwd = '/Users/example/DATA/site'
+  const origins = []
+  const mint = h.d.mint
+  h.d.mint = (projectId, sessionId, taskId, origin) => { origins.push(origin); return mint(projectId, sessionId, taskId, origin) }
   await enrollSession(binding, { cwd, runtimeSessionId: 'rt-held' }, h.d)
   h.surface.claimAll()
   const again = await enrollSession(binding, { cwd, runtimeSessionId: 'rt-held' }, h.d)
+  // Iteration 2, ER-9: the session's own kind of bearer, so the agent's exit through it ends the session.
+  assert.equal(origins.at(-1).rejoin, undefined, 'a reconnect is not a hook\'s bearer')
   h.surface.claimAll()
   for (let turn = 0; turn < 3; turn++) {
     const hook = await enrollSession(binding, { cwd, runtimeSessionId: 'rt-held', rejoinOnly: true }, h.d)

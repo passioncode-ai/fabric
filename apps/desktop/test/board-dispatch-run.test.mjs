@@ -1528,7 +1528,7 @@ test('CO-559 review: a start the switch ended is not asked again once its workfl
 test('CO-559 review: an inbox message is answered once its project has nothing left unread, else by its read marks; an inbox not read says nothing', async () => {
   const { createInboxState } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
   let reads = 0
-  const s = createInboxState(async (ids) => { reads++; return { ok: true, requests: {}, messages: { [ids[0]]: { readBy: ids[0] === 'm-read' ? ['p1'] : [] } } } })
+  const s = createInboxState(async (ids) => { reads++; return { ok: true, requests: {}, messages: { [ids[0]]: { readBy: ids[0] === 'm-read' ? ['p1', 'p2'] : [] } } } })
   assert.equal(await s.state('m1', 'p1'), null, 'before any read')
   s.reset(null)
   assert.equal(await s.state('m1', 'p1'), null, 'the inbox read failed this pass')
@@ -1539,5 +1539,6 @@ test('CO-559 review: an inbox message is answered once its project has nothing l
   await s.state('m1', 'p1')
   assert.equal(reads, 2, 'each message\'s marks are read once a pass')
   s.reset([inboxItem({ target: 'p1' })], true)
-  assert.equal(await s.state('m1', 'p2'), null, '0.3.19 review PL-10: a read cut at its bound says nothing of a project it left out')
+  assert.equal(await s.state('m1', 'p2'), 'queued', '0.3.19 review PL-10: a read cut at its bound never answers a project it left out')
+  assert.equal(await s.state('m-read', 'p2'), 'answered', 'iteration 2, DA-7: its message is judged by its read marks')
 })

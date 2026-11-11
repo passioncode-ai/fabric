@@ -93,8 +93,9 @@ export function createInboxState(facts: (messageIds: string[]) => Promise<CommsF
     },
     async state(messageId, projectId) {
       if (!read) return null
-      // 0.3.19 review PL-10: a read cut at its bound leaves projects out; one left out is unknown, never answered.
-      if (!projects.has(projectId)) return cut ? null : 'answered'
+      // 0.3.19 review PL-10: a read cut at its bound leaves projects out; one left out is never taken as answered, and
+      // its message is judged by its own read marks (iteration 2, DA-7).
+      if (!projects.has(projectId) && !cut) return 'answered'
       let by = marks.get(messageId)
       if (!by) {
         by = facts([messageId]).then((f) => (f.ok ? f.messages[messageId]?.readBy ?? [] : null), () => null)

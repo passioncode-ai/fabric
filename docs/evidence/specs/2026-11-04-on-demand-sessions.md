@@ -90,7 +90,7 @@ asker ── com.submit(request, target P, capability C) ──▶ Fabric hub
 
 ### 3.1 Detection
 
-The decision of §3.1 to §3.3 and the two-empty-runs rule of §3.6 are one pure function,
+The decision of §3.1 to §3.3 and the empty-runs rule of §3.6 (two runs, three from 0.3.19) are one pure function,
 `apps/desktop/src/shared/boardDispatch.ts#decideDispatch`, with `runEndsAt`, `firstLine`, `parseFirstLine` and
 `refusalCheck` beside it (wave 1; tests `boardDispatch.test.ts`).
 
@@ -301,8 +301,8 @@ Switchboard 0.7.40, published 2026-11-09): Fabric's design `32e834d4`, the field
   settled.
 - **No answer.** `outcome=failed` or `blocked`, or an end with no result file (`exited`, `stopped`, `timed_out`), posts
   nothing, counts as an empty run unless the request is settled (`exited-without-answer`, `timed-out` for `timed_out`)
-  and closes the workflow at once (`status: failed`); the next run opens a workflow of its own. Two empty runs give the
-  request to the operator, as on this machine.
+  and closes the workflow at once (`status: failed`); the next run opens a workflow of its own. Three empty runs (two
+  before 0.3.19's §3.8) give the request to the operator, as on this machine.
 
 A run on another machine still holds its place under this dispatcher's caps (§3.3). Code:
 `main/boardDispatchRun.ts#createBoardDispatch` (`watchRemote`, `relayRemote`), tests in
@@ -457,7 +457,7 @@ version, never the message text, a path, a project name or anything the person t
 |---|---|---|
 | 1 | grants without a stop (CO-494); the dispatcher behind the switch (off until wave 2's verification), the packet, journal events; tests with a fake Switchboard | `switchboard dispatch`; the contract's packet and lifecycle; the adapter's skill section; Observatory's `service:fabric` workflow owner |
 | 2 | the switch on by default; usage counts by default (CO-496); the permissions screen (§6.1); the chain run on macOS and on Windows | the same switch and counts in every product; releases on both platforms |
-| 2, landed | 2026-11-05: the dispatcher on the real doors (`main/boardDispatchWiring.ts#wireBoardDispatch`: the board through the operator's read door, the slots through `board_responders_operator`, the attempt from the request facts, Switchboard's CLI, Observatory's stdio server), beside the cycle, the switch on by default (`shared/appSettings.ts`, `dispatchBoardRequests`); after the 0.3.16 review: the record written before each start, a refusal waits 10 minutes (since 2026-11-07 twice as long after each refusal in a row, at most six hours, CO-409's ER-6), a project with a live session gets no second agent (the wake of §3.2 is not built, so the request stays that session's), and two empty runs close the workflow and show the request in «На проверке». Not in 0.3.16: the dispatcher runs on the 60 s cycle only, not on board events (§3.1); the `crash` reason, the mandate, `com.get` reading and `timed-out` of §3.4 and §3.6 are not built; the journal events of §7 (the dispatcher logs to the operations log only), the permissions screen of §6.1, the counts of §8 (CO-496), the wake of §3.2, Claude Code as a fallback when no default agent is set (§3.5: none set is `deferred-no-agent`), and the run on Windows; carried in CO-409, whose row lists each of them since the 0.3.16 review, iteration 3 (DO-5) | |
+| 2, landed | 2026-11-05: the dispatcher on the real doors (`main/boardDispatchWiring.ts#wireBoardDispatch`: the board through the operator's read door, the slots through `board_responders_operator`, the attempt from the request facts, Switchboard's CLI, Observatory's stdio server), beside the cycle, the switch on by default (`shared/appSettings.ts`, `dispatchBoardRequests`); after the 0.3.16 review: the record written before each start, a refusal waits 10 minutes (since 2026-11-07 twice as long after each refusal in a row, at most six hours, CO-409's ER-6), a project with a live session gets no second agent (the wake of §3.2 is not built, so the request stays that session's), and two empty runs (three from 0.3.19) close the workflow and show the request in «На проверке». Not in 0.3.16: the dispatcher runs on the 60 s cycle only, not on board events (§3.1); the `crash` reason, the mandate, `com.get` reading and `timed-out` of §3.4 and §3.6 are not built; the journal events of §7 (the dispatcher logs to the operations log only), the permissions screen of §6.1, the counts of §8 (CO-496), the wake of §3.2, Claude Code as a fallback when no default agent is set (§3.5: none set is `deferred-no-agent`), and the run on Windows; carried in CO-409, whose row lists each of them since the 0.3.16 review, iteration 3 (DO-5) | |
 | 3 | three-iteration verification of the chain and fixes; release | releases; fabric-workspace's version matrix shows every product current on both platforms |
 
 ## 10. Checks that prove it

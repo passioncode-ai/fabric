@@ -377,10 +377,14 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   // bearer, so its claims and nudges stay its own; a new session beside it left the old one an orphan holding them.
   if (runtimeSessionId !== null) {
     const held = deps.sessions.ofRuntime(binding.id, folder.projectId, runtimeSessionId)
-    if (held && held.grantId === grant.id && held.surface !== 'board') {
-      // Its own slot, never the hooks' (ER-1): a hook's rejoin replaces the hooks' bearer each turn it was spent.
+    // Iteration 2, ER-10: another process naming the same runtime id is not this session's fabric-mcp.
+    const sameProcess = agentPid === null || typeof held?.agentPid !== 'number' || held.agentPid === agentPid
+    if (held && sameProcess && held.grantId === grant.id && held.surface !== 'board') {
+      // Its own slot, never the hooks' (ER-1): a hook's rejoin replaces the hooks' bearer each turn it was spent. And
+      // the session's own kind of bearer, not a hook's (iteration 2, ER-9): the agent's exit through it ends the session
+      // and its full set of tools is served, as for the bearer it replaces.
       const token = deps.sessions.rejoinBearer(held.sessionId, () =>
-        deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, rejoin: true, bindingId: binding.id, folder: folder.real, ...(agentPid !== null ? { agentPid } : {}) }).token, 'reconnectBearer')
+        deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, bindingId: binding.id, folder: folder.real, ...(agentPid !== null ? { agentPid } : {}) }).token, 'reconnectBearer')
       if (token) {
         ops.record({ op: 'hub.session.reconnected', outcome: 'ok', level: 'info', detail: { binding_id: binding.id, session_id: held.sessionId }, ctx: { correlationId: ops.correlate() } })
         return session(token, held.sessionId)

@@ -9,9 +9,27 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## 0.3.19 (unreleased)
 
-0.3.18 was not published on its own: its candidate passed review and its release close, and its open checks closed on
-this release's candidate (the decision is in [the 0.3.18 handoff](docs/handoffs/2026-11-09-release-0318.md)), so this
-release carries both.
+0.3.18 was not published on its own: its candidate passed review, and the checks its release close left open moved to
+this release's close (the decision is in [the 0.3.18 handoff](docs/handoffs/2026-11-09-release-0318.md); one, the logout
+check, waits for the next logout and is carried in CO-562). This release carries both, so 0.3.18's changes are listed
+here too.
+
+**Upgrading from 0.3.17.** The database moves from schema 100 to 101 (0.3.18 had no schema step); take a backup first
+and follow [the runbook](docs/launch/release-mac.md). On the first start macOS may show its notice that a background
+item was added, or ask you to allow Fabric in System Settings, General, Login Items and Extensions. The first sweeps
+accept every review that has waited more than three days, and each one's history says so. To stop Fabric completely on
+macOS, turn «Служба доски» off in Settings, then quit. The board switch keeps its value through its new name: when it
+is on, as it is by default, the first passes start runs for every project with unread board messages of the last week,
+two at a time; mark what needs nothing read first, or turn it off before updating.
+
+- **0.3.18's changes, first published here.** On macOS Fabric runs as a service the system keeps («Служба доски»,
+  ADR-0192): it starts without a window at login and again after a crash, and Quit only closes the windows while the
+  service is on. «Перезапустить Fabric» restarts it. «Направления работы» on the project and agent pages (CO-543). An
+  agent's session card and «Написать агенту» keep up (CO-544), and its page says what the agent does now (CO-542).
+  Reviews waiting more than three days are accepted by default (CO-537). The dispatcher backs off after failures in a
+  row (CO-544); a refused reply is no longer logged as a broken check (CO-541); Fabric no longer freezes while Docker is
+  replaced (CO-536); a board request with a far deadline starts its run again (CO-554). The `## 0.3.18` section below
+  has each in full.
 
 - **Every addressee on the board is woken and watched** (CO-559; [the on-demand spec
   §3.8](docs/evidence/specs/2026-11-04-on-demand-sessions.md#38-every-addressee-woken-and-watched-co-559)). A board
@@ -22,9 +40,8 @@ release carries both.
   run holds is closed after two hours. Messages a sender sent in an hour in which it opened a dozen threads are treated
   as an announcement and wake nobody. The Settings switch that allows it is renamed «Запускать агента, когда проекту на
   доске пишут, а взять некому», since it now covers messages as well as requests. An inbox run always starts on this
-  machine. **Turning it on** after an update where it was off starts runs for every project with unread messages of
-  the last week, two at a time: on the operator's board that was 65 projects on 2026-11-11, so mark what needs nothing
-  read before turning it on.
+  machine. Turning it on, or updating with it on, starts runs for every project with unread messages of the last week,
+  two at a time (65 projects on the operator's board on 2026-11-11): see Upgrading above.
 - **A walk of the board, session and service scenarios, and what it fixed** (2026-11-11, four independent readers over
   SCN-137 to SCN-181 and the on-demand spec). A coding agent whose check of Fabric's port failed once under load no
   longer loses the board and its tools: the session to the same Fabric is kept, each request's own check waits and
@@ -39,9 +56,8 @@ release carries both.
   that arrived while it was not polling, a search shows only its own answers, the open thread's read marks are read
   again every 15 s instead of every 2.5 s, one read at a time, a long announcement thread says how much of it was read
   instead of «не ответил», the rail counts «Ветки с новыми сообщениями», the home says when the oldest waiting
-  requests did not fit in its list, and the review counts say when they stop at a thousand.
-  **Upgrading:** the database moves to schema 101 with one migration, `20261111000128_board_inbox_operator.sql` (the
-  inbox read); take a backup first, the order is the runbook's ([docs/launch/release-mac.md](docs/launch/release-mac.md)).
+  requests did not fit in its list, and the review counts say when they stop at a thousand. The schema step is one
+  migration, `20261111000128_board_inbox_operator.sql` (the inbox read).
 - **A board run on another machine answers through Fabric** (CO-551, stage A; [the on-demand spec
   §3.7](docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a)). With a
   machine named in the `dispatchTarget` key of Fabric's `settings.json` (none by default, so nothing changes until one
