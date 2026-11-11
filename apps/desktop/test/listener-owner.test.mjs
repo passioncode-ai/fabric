@@ -26,7 +26,10 @@ test('a hub this account listens on is located; another account\'s is foreign-us
 
 test('an owner that cannot be told is a refusal too, never a pass', () => {
   const r = locate(hub(), { unknown: 'no listener of this account could be seen on the port' })
-  assert.deepEqual([r.ok, r.code], [false, 'not-a-hub'])
+  // CO-561: a code of its own, naming the hub, so a session already held on that hub is kept; still never ok.
+  assert.deepEqual([r.ok, r.code], [false, 'owner-unknown'])
+  assert.equal(typeof r.pid, 'number'); assert.match(r.origin, /^http:\/\/127\.0\.0\.1:47070$/)
+  assert.ok(!('doorToken' in r), 'no token is handed out')
   assert.match(r.reason, /^foreign-user: the owner of port 47070 could not be told/)
 })
 
@@ -110,6 +113,23 @@ test('macOS: lsof finding nothing (exit 1) is unknown; Linux reads both tables; 
   assert.deepEqual(readListenerOwner(47070, { platform: 'win32', run: () => 'me S-1-5-21-1\n127.0.0.1 9 S-1-5-21-1\n' }), { sid: 'S-1-5-21-1', mine: true })
   assert.ok('unknown' in readListenerOwner(47070, { platform: 'win32', run: () => { throw new Error('exit 3') } }))
   assert.deepEqual(readListenerOwner(47070, { platform: 'freebsd' }), { unsupported: true })
+})
+
+test('CO-561: macOS asks lsof a second time when it could not be read, never after its own exit 1, and an unknown owner is not kept', () => {
+  let calls = 0
+  const flaky = () => { calls++; if (calls === 1) { const e = new Error('spawn EAGAIN'); throw e } return 'p1\nu501\nf3\nn127.0.0.1:47070\n' }
+  assert.deepEqual(readListenerOwner(47070, { platform: 'darwin', run: flaky }), { uid: 501 })
+  assert.equal(calls, 2, 'a failed spawn is asked once more')
+  let none = 0
+  const exit1 = () => { none++; const e = new Error('exit 1'); e.status = 1; e.stdout = ''; throw e }
+  assert.ok('unknown' in readListenerOwner(47070, { platform: 'darwin', run: exit1 }))
+  assert.equal(none, 1, 'lsof listing nothing is its answer, not asked again')
+  let reads = 0, t = 0, answer = { unknown: 'the socket table could not be read' }
+  const check = createOwnerCheck({ read: () => { reads++; return answer }, now: () => t, ttlMs: 60_000 })
+  check(47070, 1); t += 2_000
+  answer = { uid: ME }
+  assert.deepEqual(check(47070, 1), { uid: ME }, 'the next locate reads again')
+  assert.equal(reads, 2)
 })
 
 test('the check reads the table once per hub process, and again when the pid or the port changes', () => {

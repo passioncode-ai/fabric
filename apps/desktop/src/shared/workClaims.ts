@@ -524,7 +524,7 @@ export interface WhereWorkView {
   reviewUnread: string | null
   readAt: string
   /** The reads that stopped at their limit (CO-310); absent when none did. */
-  capped?: Array<'claims' | 'leases' | 'projects'>
+  capped?: Array<'claims' | 'leases' | 'projects' | 'review'>
 }
 
 /** SCR-78's rows: a project is in flight when it has a live session, a live claim, or tasks in review. */

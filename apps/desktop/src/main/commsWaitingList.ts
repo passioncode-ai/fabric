@@ -52,11 +52,11 @@ export async function withWaitingList(reply: CommsWaitingReply, deps: WaitingLis
     if (transitions.failed) throw new Error(`the requests' transitions could not be read: ${transitions.failed}`)
     // Subjects are a nicety: a thread page that does not answer leaves the subjects the requests themselves carry.
     const subjects = new Map<string, string | null>(threads.ok ? threads.threads.map((t) => [t.id, t.subject]) : [])
-    const { list, listComplete } = composeWaitingList({
+    const { list, listComplete, listCut } = composeWaitingList({
       count: reply.requests, submitted, submittedCapped: submitted.length >= GATEWAY_ROWS,
       transitions: transitions.rows as unknown as TransitionRow[], responders: responders.responders, subjects
     })
-    return { ...reply, list, listComplete }
+    return { ...reply, list, listComplete, listCut }
   } catch (e) {
     ops.failed('comms.waiting-list-unread', e, { note: 'the home shows the count of waiting requests without the list' })
     return reply
@@ -75,7 +75,7 @@ export const LIST_MIN_INTERVAL_MS = 15_000
  */
 export function createWaitingReader(count: () => Promise<CommsWaitingReply>, deps: WaitingListDeps, opts: { minIntervalMs?: number } = {}) {
   const minInterval = opts.minIntervalMs ?? LIST_MIN_INTERVAL_MS
-  let last: { at: number; requests: number; oldest: string | null; list: CommsWaitingItem[]; listComplete: boolean } | null = null
+  let last: { at: number; requests: number; oldest: string | null; list: CommsWaitingItem[]; listComplete: boolean; listCut: boolean } | null = null
   let flight: Promise<CommsWaitingReply> | null = null
   const readNow = async (): Promise<CommsWaitingReply> => {
     const reply = await count()
@@ -83,10 +83,10 @@ export function createWaitingReader(count: () => Promise<CommsWaitingReply>, dep
     const now = deps.now()
     const oldest = reply.oldestRequestAt ?? null
     if (last && last.requests === reply.requests && last.oldest === oldest && now - last.at >= 0 && now - last.at < minInterval) {
-      return { ...reply, list: last.list, listComplete: last.listComplete }
+      return { ...reply, list: last.list, listComplete: last.listComplete, listCut: last.listCut }
     }
     const full = await withWaitingList(reply, deps)
-    if (full.ok && full.list) last = { at: now, requests: reply.requests, oldest, list: full.list, listComplete: full.listComplete ?? false }
+    if (full.ok && full.list) last = { at: now, requests: reply.requests, oldest, list: full.list, listComplete: full.listComplete ?? false, listCut: full.listCut ?? false }
     return full
   }
   return {

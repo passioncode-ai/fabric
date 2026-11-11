@@ -261,6 +261,9 @@ export function classifyFailure(e: unknown): CallFailure {
   if (err?.name === 'HubOwnerRefusedError' || err?.name === 'HubPeerRefusedError') {
     // eslint-disable-next-line no-control-regex
     const said = e instanceof Error ? e.message.replace(/[\x00-\x1f\x7f]+/g, ' ').trim().slice(0, 300) : ''
+    // CO-561: an owner that could not be told this time is a wait, not a foreign hub: nothing was sent, and the session
+    // is kept for the next call. Another account's end is still a drop.
+    if (err.name === 'HubOwnerRefusedError' && / could not be (?:told|seen|read)/.test(said)) return { drop: false, mayHaveRun: false, refusal: { status: 503, reason: said } }
     return { drop: true, mayHaveRun: false, refusal: { status: 403, reason: said || 'the hub is not this account\'s' } }
   }
   // Refused before any tool ran, and the bearer or the session is gone.
@@ -396,6 +399,8 @@ export function backoffFor(kind: ProxyState['kind'], repeats: number, message?: 
 export class FabricMcpProxy {
   state: ProxyState = { kind: 'starting' }
   private session: SessionLink | null = null
+  /** CO-561: the unknown listener owner was said once for the streak, so a slow socket table is not logged every 2 s. */
+  private ownerUnknownSaid = false
   private hubIdentity: { origin: string; pid: number } | null = null
   private cooldown: { origin: string; pid: number; until: number; said?: HubRefusal } | null = null
   /** A hub that refused `agentPid` (PL-2): a 0.3.7/0.3.8 hub's enroll schema is strict. Enrollments to it go without
@@ -591,10 +596,16 @@ export class FabricMcpProxy {
   private async keepAlive(link: SessionLink): Promise<boolean> {
     const hub = this.deps.locate()
     const held = this.hubIdentity
-    if (!hub.ok || !held || hub.origin !== held.origin || hub.pid !== held.pid) {
+    // CO-561: the owner of the hub's port could not be read this time (a slow or failed lsof), but hub.json still names
+    // the hub this session holds, alive: the session is kept, and each request's own connection check still guards it.
+    if (!hub.ok && hub.code === 'owner-unknown' && held && hub.origin === held.origin && hub.pid === held.pid) {
+      if (!this.ownerUnknownSaid) this.deps.log(`fabric-mcp: ${hub.reason}; the session to the same Fabric is kept`)
+      this.ownerUnknownSaid = true
+    } else if (!hub.ok || !held || hub.origin !== held.origin || hub.pid !== held.pid) {
       this.dropSession(link, hub.ok ? 'Fabric restarted (hub.json names another process)' : `Fabric's hub is gone (${hub.reason})`)
       return false
     }
+    else this.ownerUnknownSaid = false
     if (!link.ping || this.now() - this.signedAt < (this.deps.signEveryMs ?? SIGN_EVERY_MS)) return true
     try {
       await link.ping()
@@ -618,7 +629,7 @@ export class FabricMcpProxy {
   private async attempt(): Promise<ProxyState> {
     if (this.session && (await this.keepAlive(this.session))) return this.state
     const hub = this.deps.locate()
-    if (!hub.ok) return this.set({ kind: hub.code, reason: hub.reason })
+    if (!hub.ok) return this.set({ kind: hub.code === 'owner-unknown' ? 'not-a-hub' : hub.code, reason: hub.reason })
     this.hubIdentity = { origin: hub.origin, pid: hub.pid }
     const cwd = this.deps.cwd
     const store = this.deps.store
@@ -717,7 +728,7 @@ export class FabricMcpProxy {
    */
   private moved(hub: { origin: string; pid: number }): ProxyState | null {
     const now = this.deps.locate()
-    if (!now.ok) return this.set({ kind: now.code, reason: now.reason })
+    if (!now.ok) return this.set({ kind: now.code === 'owner-unknown' ? 'not-a-hub' : now.code, reason: now.reason })
     if (now.origin !== hub.origin || now.pid !== hub.pid)
       return this.set({ kind: 'not-running', reason: 'the Fabric hub changed since this pass found it (Fabric quit or restarted); it is looked for again' })
     return null

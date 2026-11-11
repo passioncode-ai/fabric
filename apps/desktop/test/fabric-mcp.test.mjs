@@ -927,6 +927,22 @@ test('TR-5: a hub that restarted (another pid) drops the dead session and enroll
   assert.ok(h.logs.some((l) => /restarted|changed/.test(l)))
 })
 
+test('CO-561: a listener owner that could not be told for the same hub keeps the session and its tools; another hub drops it', async () => {
+  let hub = LIVE
+  const h = harness({ store: memCreds([CRED]), extra: { locate: () => hub } })
+  assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+  const unknown = { ok: false, code: 'owner-unknown', reason: 'foreign-user: the owner of port 47070 could not be told (the socket table could not be read)', origin: LIVE.origin, pid: LIVE.pid }
+  hub = unknown
+  for (let i = 0; i < 3; i++) assert.equal((await h.proxy.connectOnce()).kind, 'connected')
+  assert.equal(h.opened.length, 1, 'the same session')
+  assert.notDeepEqual((await h.proxy.tools()).map((t) => t.name), [WAITING_TOOL], 'its tools stay')
+  assert.equal(h.logs.filter((l) => /could not be told/.test(l)).length, 1, 'said once for the streak')
+  // The owner unknown for another hub (another pid) is no session's: it drops and waits, sending nothing.
+  hub = { ...unknown, pid: 9 }
+  assert.equal((await h.proxy.connectOnce()).kind, 'not-a-hub')
+  assert.deepEqual((await h.proxy.tools()).map((t) => t.name), [WAITING_TOOL])
+})
+
 test('TR-5: a hub that is gone drops the session; it enrolls again once the hub is back', async () => {
   let hub = LIVE
   const h = harness({ store: memCreds([CRED]), extra: { locate: () => hub } })

@@ -7,8 +7,31 @@
 
 /** How long a request may wait for a live session before a session is started for it (§3.1). */
 export const GRACE_MS = 2 * 60_000
-/** After this many runs that ended without settling the request, no more are started for it (§3.6, option (b)). */
-export const EMPTY_RUNS_TO_OPERATOR = 2
+/** After this many runs that ended without settling the request, no more are started for it (§3.6, option (b)). Three
+ *  since CO-559 (the operator, 2026-11-11: «если он не поднялся, поднимать насильно еще раз»): a run that did not take
+ *  the hand-over or went silent is started again by force, and only a third such run hands the item to the operator. */
+export const EMPTY_RUNS_TO_OPERATOR = 3
+/** CO-559: the watch's cadence. The dispatcher passes every 30 s whatever else runs (the operator, 2026-11-10: «И
+ *  валидация каждые 30 секунд»), and a board message stored wakes it after its grace (§3.8). */
+export const WATCH_MS = 30_000
+/** CO-559 (§3.8): a run whose session has not accepted the hand-over this long after its start never came up; it is
+ *  stopped and started again. Five minutes holds a cold `claude -p` start on a loaded machine (measured below one). */
+export const ACCEPT_MS = 5 * 60_000
+/** CO-559 (§3.8): a run whose workflow has written no checkpoint this long, while its item is still open, is taken as
+ *  dead (a hung or crashed session the process table still shows); it is stopped and started again. */
+export const SILENT_MS = 20 * 60_000
+/** CO-559 (§3.8): the workflow of a run that ended with its item open is kept for the next run this long, then closed,
+ *  so a workflow nobody holds never stays open for a day (five did on 2026-11-10); a later run opens a new one. */
+export const KEEP_OPEN_MS = 2 * 3600_000
+/** CO-559 (the scenario walk of 2026-11-11): a project has a live session for the dispatcher only while one of its
+ *  sessions is a running terminal or signed within `staleMs` (the claims' own window). A session whose agent died, or
+ *  that an orphaned reconnect left behind, stayed held for ever and kept the project from ever being woken. */
+export function sessionLiveForDispatch(sessions: ReadonlyArray<{ console?: boolean; lastSignAt: number | null; startedAt: number }>, now: number, staleMs: number): boolean {
+  return sessions.some((s) => s.console === true || now - (s.lastSignAt ?? s.startedAt) <= staleMs)
+}
+
+/** CO-559 (§3.8): the capability an inbox item names, so a project's own responder slots never stand for it. */
+export const INBOX_CAPABILITY = 'board.inbox'
 /** No run is started this close to the board's deadline: 120 s of the executor's silence before the workflow is taken
  *  back (§3.4), a 60 s cycle and the launch (§3.1; fabric-agent-adapter's question, thread `b3e60686`). */
 export const LAUNCH_MARGIN_MS = 5 * 60_000

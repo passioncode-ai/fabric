@@ -8,11 +8,11 @@
 import { closeSync, existsSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs'
 import path from 'node:path'
 import { execFile } from 'node:child_process'
-import type { CommsMessage, CommsRespondersReply, CommsTimelineReply } from '../shared/commsRead.ts'
+import type { CommsFactsReply, CommsInboxReply, CommsMessage, CommsRespondersReply, CommsTimelineReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
 import { mandateOfRequest } from './boardMandate.ts'
-import type { DispatchAgent } from '../shared/boardDispatch.ts'
-import { createBoardDispatch, isDispatchRecord, type DispatchDeps, type DispatchRecord, type OpenRequest, type RemoteState, type ToOperatorWhy } from './boardDispatchRun.ts'
+import { INBOX_CAPABILITY, type DispatchAgent } from '../shared/boardDispatch.ts'
+import { createBoardDispatch, isDispatchRecord, noteOf, type DispatchDeps, type InboxGiven, type DispatchRecord, type OpenRequest, type RemoteState, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 
@@ -58,6 +58,51 @@ export async function readOpenRequests(comms: SweepComms, estateId: string, now:
   }))
   return { requests, states }
 }
+
+// #region board-dispatch-inbox — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#38-every-addressee-woken-and-watched-co-559
+/**
+ * CO-559 (§3.8): each Project's unread board messages of the last week as one inbox item, the newest message standing
+ * for them all, its deadline that message's time plus the board's week. A read that fails throws, so an unread board is
+ * never "nothing waits".
+ */
+export async function readInboxItems(comms: { inbox(estateId: string, since: string): Promise<CommsInboxReply> }, estateId: string, now: number): Promise<OpenRequest[]> {
+  const r = await comms.inbox(estateId, new Date(now - WINDOW_MS).toISOString())
+  if (!r.ok) throw new Error(`the board's inboxes could not be read: ${r.error.message}`)
+  return r.projects.map((p): OpenRequest => ({
+    id: p.newest.id, thread: p.newest.thread, state: 'queued', target: p.project, capability: INBOX_CAPABILITY,
+    submittedAt: p.newest.at, deadline: new Date(Date.parse(p.newest.at) + WINDOW_MS).toISOString(),
+    inbox: { unread: p.unread, oldestAt: p.oldestAt }
+  }))
+}
+/**
+ * CO-559 (§3.8): an inbox run's message as its project reads it now. `answered` once the project has nothing left
+ * unread in a read that worked (a read mark or an answer in the thread, the inbox read's own rule), else from the
+ * message's read marks, read once per pass; null while the inbox could not be read this pass.
+ */
+export function createInboxState(facts: (messageIds: string[]) => Promise<CommsFactsReply>): { reset(items: OpenRequest[] | null): void; state(messageId: string, projectId: string): Promise<string | null> } {
+  let read = false
+  let projects = new Set<string>()
+  let marks = new Map<string, Promise<string[] | null>>()
+  return {
+    reset(items) {
+      read = items !== null
+      projects = new Set((items ?? []).map((i) => i.target))
+      marks = new Map()
+    },
+    async state(messageId, projectId) {
+      if (!read) return null
+      if (!projects.has(projectId)) return 'answered'
+      let by = marks.get(messageId)
+      if (!by) {
+        by = facts([messageId]).then((f) => (f.ok ? f.messages[messageId]?.readBy ?? [] : null), () => null)
+        marks.set(messageId, by)
+      }
+      const who = await by
+      return who === null ? null : who.includes(projectId) ? 'answered' : 'queued'
+    }
+  }
+}
+// #endregion board-dispatch-inbox
 
 /** Switchboard's refusal codes, the only words of its stderr that are kept (the 0.3.16 review, iteration 2, DA-5: a
  *  failure's own text carries the command line and the project's folder, and never reaches the log). */
@@ -149,7 +194,7 @@ export async function relayReply(board: RelayBoard, requestId: string, text: str
 
 export function wireBoardDispatch(o: {
   estateId: string
-  comms: SweepComms & { responders(estateId: string): Promise<CommsRespondersReply>; timeline?(estateId: string, requestId: unknown): Promise<CommsTimelineReply> }
+  comms: SweepComms & { responders(estateId: string): Promise<CommsRespondersReply>; timeline?(estateId: string, requestId: unknown): Promise<CommsTimelineReply>; inbox?(estateId: string, since: string): Promise<CommsInboxReply> }
   repos: (projectId: string) => Promise<Array<{ path: string; is_primary: boolean | null }>>
   sessionLive: (projectId: string) => boolean
   switchOn: () => boolean
@@ -161,13 +206,15 @@ export function wireBoardDispatch(o: {
   file: string
   env: NodeJS.ProcessEnv
   log: DispatchDeps['log']
-}): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy> } {
+}): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[] } {
   let probePath: Promise<string> | null = null
   const pathFor = (): Promise<string> => (probePath ??= widenProbePath(o.env.PATH ?? '', o.env))
   const bin = async (name: string): Promise<string | null> => findOnPath(name, await pathFor())
   const envWith = async (): Promise<NodeJS.ProcessEnv> => ({ ...o.env, PATH: await pathFor() })
   const observatory = createObservatoryClient(async () => findObservatoryServer(await bin('project-observatory')))
   let lastStates = new Map<string, string>()
+  /** CO-559: the inbox runs' messages, judged against this pass's inbox read. */
+  const inboxState = createInboxState((ids) => o.comms.facts(o.estateId, ids))
   const follower = createRequestFollower(o.comms.timeline ? (id) => o.comms.timeline!(o.estateId, id) : undefined)
   // The responder slots, read once per pass: an unread board is never "nobody answers".
   let slots: Promise<CommsRespondersReply> | null = null
@@ -176,11 +223,25 @@ export function wireBoardDispatch(o: {
     now: () => Date.now(),
     switchOn: o.switchOn,
     async readRequests() {
-      const r = await readOpenRequests(o.comms, o.estateId, Date.now())
+      const now = Date.now()
+      const r = await readOpenRequests(o.comms, o.estateId, now)
+      // CO-559 (§3.8): the inboxes after the requests. A failed inbox read is logged and leaves the requests and the
+      // watch of running runs to go on (review: it ended the whole pass); its inbox runs are judged on a later pass.
+      let inbox: OpenRequest[] | null = null
+      if (o.comms.inbox) {
+        try {
+          inbox = await readInboxItems({ inbox: o.comms.inbox.bind(o.comms) }, o.estateId, now)
+        } catch (e) {
+          // Recorded through the dispatcher's own log, which writes to the ops log (`o.log`).
+          o.log('board.dispatch.inbox', 'failed', { note: noteOf(e) })
+        }
+      }
+      inboxState.reset(inbox)
       lastStates = r.states
+      for (const i of inbox ?? []) lastStates.set(i.id, 'queued')
       follower.reset()
       slots = null
-      return r.requests
+      return [...r.requests, ...(inbox ?? [])]
     },
     async responderLive(projectId, capability) {
       const r = await (slots ??= o.comms.responders(o.estateId))
@@ -252,6 +313,8 @@ export function wireBoardDispatch(o: {
     },
     relay: async (projectId, requestId, text, key) => (o.board ? relayReply(o.board(projectId), requestId, text, key) : { refused: 'no-door' }),
     async requestState(requestId) { return lastStates.get(requestId) ?? follower.state(requestId) },
+    // CO-559 (§3.8): an inbox run's message as its project reads it now (`createInboxState`).
+    inboxState: (messageId, projectId) => inboxState.state(messageId, projectId),
     load() {
       let text: string
       try { text = readFileSync(o.file, 'utf8') } catch {
@@ -286,7 +349,8 @@ export function wireBoardDispatch(o: {
   return {
     onPass: () => dispatch.onPass(),
     close: () => observatory.close(),
-    toOperator: () => dispatch.toOperator()
+    toOperator: () => dispatch.toOperator(),
+    inboxGiven: () => dispatch.inboxGiven()
   }
 }
 

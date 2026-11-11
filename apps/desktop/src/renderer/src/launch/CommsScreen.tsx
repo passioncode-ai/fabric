@@ -65,6 +65,8 @@ import {
 // The board is the record; polling is the v1 wake-up, on the feed's own clock (ADR-0027,
 // FEED_POLL_MS in App.tsx).
 const COMMS_POLL_MS = 2500
+/** How often the open thread's facts (read marks, outcomes) are read again while its messages stay the same. */
+const FACTS_REFRESH_MS = 15_000
 /** One page of a thread's history, bounded like the board's own pages (migration 80 caps the RPC at 100). */
 const PAGE = 50
 /** How many empty windows one Earlier may step over before it hands the next step back to the operator. */
@@ -181,12 +183,19 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
   useEffect(() => {
     let alive = true
     const asked = filters
+    // 0.3.19 scenario walk: one read at a time; on a slow board a tick that finds the last read still out skips, so an
+    // older answer never lands after a newer one.
+    let busy = false
     const load = async (): Promise<void> => {
+      if (busy) return
+      busy = true
       let reply: Awaited<ReturnType<typeof window.fabric.comms.threadPage>>
       try {
         reply = await window.fabric.comms.threadPage(boardFilterOf(asked, now()), null, LIST_PAGE)
       } catch (e) {
         reply = { ok: false, error: { code: 'unavailable', message: e instanceof Error ? e.message : String(e) } }
+      } finally {
+        busy = false
       }
       if (!alive) return
       if (reply.ok) {
@@ -511,14 +520,18 @@ function ThreadView({ thread, focusSeq, title, nameOf, responders, onClose, onRe
 
   useEffect(() => {
     let alive = true
+    let busy = false
     const tick = async (): Promise<void> => {
-      if (gone.current) return
+      if (gone.current || busy) return
+      busy = true
       const initial = !confirmed.current
       let reply: Awaited<ReturnType<typeof window.fabric.comms.list>>
       try {
         reply = await window.fabric.comms.list(thread.id, initial ? initialAfter : cursor.current, 100)
       } catch (e) {
         reply = { ok: false, error: { code: 'unavailable', message: e instanceof Error ? e.message : String(e) } }
+      } finally {
+        busy = false
       }
       if (!alive) return
       if (reply.ok) {
@@ -550,12 +563,15 @@ function ThreadView({ thread, focusSeq, title, nameOf, responders, onClose, onRe
     return () => { alive = false; clearInterval(timer) }
   }, [thread.id, attempt, initialAfter, floor])
 
-  // The facts of the messages on screen — who read each, how each request ended — read again on every confirmed
-  // page, in reads of at most 100. A failed read says so where the answers would be; it never reads as "none".
+  // The facts of the messages on screen — who read each, how each request ended — read when the messages change and
+  // again every FACTS_REFRESH_MS of confirmed pages (0.3.19 scenario walk: every 2.5 s re-read them all, 100 a call),
+  // in reads of at most 100. A failed read says so where the answers would be; it never reads as "none".
+  const idsKey = (messages ?? []).map((m) => m.id).join(',')
+  const factsTick = confirmedAt ? Math.floor(Date.parse(confirmedAt) / FACTS_REFRESH_MS) : 0
   useEffect(() => {
-    if (!messages || messages.length === 0) return
+    if (!idsKey) return
     let alive = true
-    const ids = messages.map((m) => m.id)
+    const ids = idsKey.split(',')
     const read = async (): Promise<void> => {
       const merged = { messages: {} as Record<string, { readBy: string[] }>, requests: {} as Record<string, CommsRequestFacts> }
       for (let i = 0; i < ids.length; i += FACTS_CHUNK) {
@@ -574,7 +590,7 @@ function ThreadView({ thread, focusSeq, title, nameOf, responders, onClose, onRe
     }
     void read()
     return () => { alive = false }
-  }, [messages, confirmedAt])
+  }, [idsKey, factsTick])
 
   /** One page further back by the same cursor contract, bounded like the board's own pages. Seqs are the estate's,
    *  so a window of PAGE seqs can hold none of this thread's messages: Earlier keeps stepping back (a bounded number

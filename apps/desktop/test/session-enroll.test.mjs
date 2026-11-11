@@ -752,3 +752,18 @@ test('TR-1: another agent\'s pid, a pid in another project, or a board session i
   const r = await enrollSession(other, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-new', rejoinOnly: true, agentPid: 4242 }, h.d)
   assert.equal(r.code, 'no-session', 'another binding never borrows this one\'s session')
 })
+
+test('CO-561: a fabric-mcp that lost its connection enrolls again into the session it held, with a fresh bearer, never a second session', async () => {
+  const h = deps()
+  const first = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-held' }, h.d)
+  h.surface.claimAll()
+  const again = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-held' }, h.d)
+  assert.equal(again.ok, true)
+  assert.equal(again.session.sessionId, first.session.sessionId, 'the same session: its claims stay its own')
+  assert.notEqual(again.session.bearer, first.session.bearer, 'a fresh bearer')
+  assert.equal(h.sessions.size(), 1)
+  assert.equal(h.journaled.filter((e) => e.type === 'session.enrolled@1').length, 1, 'no second enrollment journalled')
+  // Another runtime session in the same project is a session of its own.
+  const other = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-other' }, h.d)
+  assert.notEqual(other.session.sessionId, first.session.sessionId)
+})

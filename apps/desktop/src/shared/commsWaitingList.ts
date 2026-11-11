@@ -31,7 +31,7 @@ export function composeWaitingList(input: {
   /** Thread subjects by thread id, where the board gave one. */
   subjects: ReadonlyMap<string, string | null>
   limit?: number
-}): { list: CommsWaitingItem[]; listComplete: boolean } {
+}): { list: CommsWaitingItem[]; listComplete: boolean; listCut: boolean } {
   const latest = new Map<string, { key: number; to: string }>()
   input.transitions.forEach((t, i) => {
     const p = t.payload ?? {}
@@ -61,7 +61,8 @@ export function composeWaitingList(input: {
   candidates.sort((a, b) => a.at.localeCompare(b.at) || a.requestId.localeCompare(b.requestId))
   return {
     list: candidates.slice(0, input.limit ?? COMMS_WAITING_LIST_LIMIT),
-    listComplete: !input.submittedCapped && candidates.length === input.count
+    listComplete: !input.submittedCapped && candidates.length === input.count,
+    listCut: input.submittedCapped
   }
 }
 // #endregion comms-waiting-list

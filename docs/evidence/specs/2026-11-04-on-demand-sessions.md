@@ -309,6 +309,58 @@ A run on another machine still holds its place under this dispatcher's caps (§3
 A standing dispatcher on by default changes fabric-agent-contract's choice C5 of DEC-0022 («no background helper by
 default»); the contract records it as a DEC citing the operator's words of 2026-11-04 (CT-215).
 
+### 3.8 Every addressee woken and watched (CO-559)
+
+The operator, relayed on board thread `90b6921f` (message `bf3737db`, his words from company-assessment-agent's session
+`98b10994`, 2026-11-10): «Если нет кодинга агента в проекте, которому идет задача, значит агент поднимается. И это
+работает всегда. И нужно валидировать, если он не поднялся, поднимать насильно еще раз. И валидация каждые 30 секунд.»
+Widened in this repository's session the next day: watchers that confirm a run took the work, is alive and finished,
+and a board that is cleaned rather than left to pile up ([CO-559](2026-08-16-software-fabric-carryover.md)). Measured
+before the change, 2026-11-10 23:39 UTC: 0 of 25 responder slots live, the dispatcher off on the operator's Mac since
+CO-556, 49 requests `queued`, 65 projects with unread board messages, and five dispatch workflows open for a day.
+
+1. **The inbox item.** Besides requests, the dispatcher reads `board_inbox_operator` (migration
+   `20261111000128_board_inbox_operator.sql`): per Project, the board messages of kind `message`, `finding` and `reply`
+   of the last week delivered to it that it neither marked read nor answered later in their thread. The newest stands
+   for them all as one item (`OpenRequest.inbox`, capability `board.inbox`, its deadline that message's time plus the
+   week), so a Project gets one run for everything that waits, never one per message. A message sent in a clock hour in
+   which its sender started 12 threads or more is a fan-out, an announcement in all but its kind, and wakes nobody, also
+   after the round has stopped
+   (`board-inbox-operator`). The item takes the request's path: the grace of §3.1, no second agent beside a live
+   session (§3.2), the caps of §3.3, one run per Project at a time with its requests.
+2. **The inbox run's packet** (`boardDispatchRun.ts#inboxBody`): read what waits with `com.list {unread: true}`, do
+   what is the Project's own, answer where an answer is owed, and mark every message read with `com.read_ack`; the run
+   is settled once its message is read by the Project (`inboxState`, from the message's read marks). An empty run, the
+   back-off after a refusal and the operator's mark belong to the message it was started for; a newer message starts
+   from none.
+3. **The watch, every 30 s** (`WATCH_MS`): the dispatcher passes on its own interval, beside the cycle. Each running
+   run here is alive only on evidence (`board-dispatch-liveness`): an offer still `offered` or `expired` `ACCEPT_MS`
+   (5 min) after the start is a session that never came up (`not-taken`); an accepted run whose workflow wrote no
+   checkpoint for `SILENT_MS` (20 min) while its item is open is a hung session (`silent`). Either is stopped through
+   Switchboard and started again on the next pass, the workflow taken back as after a crash. A read that fails proves
+   nothing and stops nothing; a settled item is never stopped as dead. A run stopped on an account limit is
+   Switchboard's to continue on the next account (its recovery, 218 resumed by 2026-11-11), never a wait here.
+4. **Forced again, then the operator.** `EMPTY_RUNS_TO_OPERATOR` is three: a run that ended, was not taken or went
+   silent with its item open counts as empty and the next starts at once; the third hands the item to the operator in
+   «На проверке», its workflow closed.
+5. **Nothing left open** (`board-dispatch-expiry`): the workflow of a run that ended with its item open is kept for the
+   next run `KEEP_OPEN_MS` (two hours), then closed, with the switch on or off; a later run opens a new one.
+
+Corrected by the scenario walk of 2026-11-11 ([CO-562](2026-08-16-software-fabric-carryover.md) keeps what it left):
+the liveness checks count from the run's launch (`DispatchRecord.launchedAt`), not the record's creation; a request
+whose attempt holds its lease in this pass's read is alive whatever the checkpoints say; both packets ask for a
+checkpoint at least every 10 minutes; a workflow a newer run of the same project took over is never closed under it
+(the older record is marked closed); a project's inbox counts its empty runs across messages until a run reads them,
+so a trickle of messages ends with the operator, and a newer message gets one more run; «На проверке» shows one row
+per project, only while its message is still unread; an inbox message is answered once its project has nothing left
+unread (`boardDispatchWiring.ts#createInboxState`); a failed inbox read leaves the requests and the watch to go on; a
+start whose workflow was closed is never asked again; and a fan-out is judged by the clock hour of each message, so
+an old round never wakes anyone once it stops. A project's session counts as live for the dispatcher only while it is
+a running terminal or signed in the last 10 minutes (`shared/boardDispatch.ts#sessionLiveForDispatch`).
+
+Not in this step, each carried in CO-559: a live session told of its unread messages (§3.2's wake), the sender shown
+the state on its thread, and the fan-out source asked to stop (its owner's change, asked on the board).
+
 ## 4. Who does what
 
 | Product | Its part |

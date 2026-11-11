@@ -369,6 +369,20 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   const spare = live.find((s) => s.state === 'unclaimed' && s.projectId === folder.projectId &&
     s.grantId === grant.id && s.runtimeSessionId === runtimeSessionId)
   if (spare) return session(spare.bearer, spare.sessionId)
+  // CO-561 (the scenario walk of 2026-11-11): a fabric-mcp that lost its connection (a dropped session, Fabric's hub
+  // read once as unverifiable) enrolls again under the same runtime session. It gets the session it held, with a fresh
+  // bearer, so its claims and nudges stay its own; a new session beside it left the old one an orphan holding them.
+  if (runtimeSessionId !== null) {
+    const held = deps.sessions.ofRuntime(binding.id, folder.projectId, runtimeSessionId)
+    if (held && held.grantId === grant.id && held.surface !== 'board') {
+      const token = deps.sessions.rejoinBearer(held.sessionId, () =>
+        deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, rejoin: true, bindingId: binding.id, folder: folder.real, ...(agentPid !== null ? { agentPid } : {}) }).token)
+      if (token) {
+        ops.record({ op: 'hub.session.reconnected', outcome: 'ok', level: 'info', detail: { binding_id: binding.id, session_id: held.sessionId }, ctx: { correlationId: ops.correlate() } })
+        return session(token, held.sessionId)
+      }
+    }
+  }
   const cap = Math.max(1, deps.maxSessionsPerBinding ?? MAX_ENROLLED_PER_BINDING)
   const ceiling = Math.max(1, deps.maxSessionsPerBindingTotal ?? MAX_ENROLLED_PER_BINDING_TOTAL)
   const byActivity = live.map((s) => ({ s, at: deps.sessions.activityOf(s) })).sort((a, b) => a.at - b.at)

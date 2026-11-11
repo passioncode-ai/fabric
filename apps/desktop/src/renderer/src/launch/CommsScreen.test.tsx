@@ -797,6 +797,26 @@ describe('history search (SCN-156)', () => {
     expect(screen.getByText(en['launch.comms.search.unavailable']).textContent).toBe(en['launch.comms.search.unavailable'])
     expect(screen.getByText('down')).toBeTruthy()
   })
+  it('0.3.19 scenario walk: a page of the old query that lands after a new search started is dropped', async () => {
+    let releaseOld: (() => void) | null = null
+    const searchFn = vi.fn(async (q: string, before: number | null) => {
+      if (q === 'retention' && before === null) return { ok: true, hits: [HIT], more: true, stoppedEarly: false, before: 7 }
+      if (q === 'retention') { await new Promise<void>((r) => { releaseOld = r }); return { ok: true, hits: [{ ...HIT, message: 'm-old', seq: 3, snippet: 'an old query hit' }], more: false, stoppedEarly: false, before: null } }
+      return { ok: true, hits: [{ ...HIT, message: 'm-new', seq: 5, snippet: 'a new query hit' }], more: false, stoppedEarly: false, before: null }
+    })
+    board({ threads: [THREAD], over: { search: searchFn } })
+    show()
+    await screen.findByText('Cutover plan')
+    search('retention')
+    fireEvent.click(await screen.findByRole('button', { name: en['launch.comms.search.more'] }))
+    await waitFor(() => expect(releaseOld).not.toBeNull())
+    search('cutover')
+    await screen.findByRole('button', { name: 'a new query hit' })
+    releaseOld!()
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.queryByRole('button', { name: 'an old query hit' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'a new query hit' })).toBeTruthy()
+  })
   it('a search that stopped early says so, with what it found; more results read on from the cursor', async () => {
     const searchFn = vi.fn(async (_q: string, before: number | null) => (before === null
       ? { ok: true, hits: [HIT], more: true, stoppedEarly: false, before: 7 }

@@ -264,7 +264,9 @@ export async function readWhereWork(store: Store, opts: { now: number; session: 
     readWork(store, opts),
     store.select('projects', 'id,name').eq('status', 'active').order('name', { ascending: true }).limit(500),
     // A project's reading counts its own review only (CO-405), like its claims above.
-    (opts.projectId ? store.select('project_tasks', 'project_id').eq('status', 'review').eq('project_id', opts.projectId) : store.select('project_tasks', 'project_id').eq('status', 'review')).limit(5000)
+    // 0.3.19 scenario walk: the gateway answers at most 1 000 rows (`supabase/config.toml` `max_rows`), so asking for
+    // 5 000 got 1 000 with nothing said; a full answer is now said capped (`review`).
+    (opts.projectId ? store.select('project_tasks', 'project_id').eq('status', 'review').eq('project_id', opts.projectId) : store.select('project_tasks', 'project_id').eq('status', 'review')).limit(REVIEW_ALL)
   ])
   if (projects.error) throw new Error(`the projects could not be read: ${projects.error.message}`)
   const counts = review.error ? null : new Map<string, number>()
@@ -277,7 +279,8 @@ export async function readWhereWork(store: Store, opts: { now: number; session: 
     claims: snap.claims.map((c) => claimView(c, titles, consoles)),
     review: counts
   })
-  const capped = [...(snap.capped ?? []), ...(((projects.data ?? []) as unknown[]).length >= 500 ? ['projects' as const] : [])]
+  const capped = [...(snap.capped ?? []), ...(((projects.data ?? []) as unknown[]).length >= 500 ? ['projects' as const] : []),
+    ...(((review.data ?? []) as unknown[]).length >= REVIEW_ALL ? ['review' as const] : [])]
   return { ...built, reviewUnread: review.error ? `the review queue could not be read: ${review.error.message}` : null, readAt: snap.readAt, ...(capped.length ? { capped } : {}) }
 }
 

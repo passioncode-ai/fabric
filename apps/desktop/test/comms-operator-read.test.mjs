@@ -232,6 +232,18 @@ test('W4-2: every new read maps the door\'s answer as the board shaped it', asyn
   assert.deepEqual(await r.pending(), { ok: true, projects: answers.board_pending_operator.data.projects, more: false })
 })
 
+test('CO-559: the inbox read maps each project\'s unread messages, and refuses a shape it cannot read', async () => {
+  const row = { project: PROJECT_B, unread: 2, oldestAt: '2026-11-10T21:42:44.000Z', newest: { id: REQUEST, thread: THREAD, at: '2026-11-10T22:00:00.000Z', kind: 'message' } }
+  const calls = []
+  const ok = createCommsOperatorRead({ rpc: async (fn, args) => { calls.push([fn, args]); return { data: { ok: true, projects: [row], more: false }, error: null } } })
+  assert.deepEqual(await ok.inbox(ESTATE, '2026-11-04T00:00:00.000Z'), { ok: true, projects: [row], more: false })
+  assert.deepEqual(calls[0], ['board_inbox_operator', { p_estate: ESTATE, p_since: '2026-11-04T00:00:00.000Z', p_limit: 200 }])
+  for (const bad of [{ ...row, unread: 0 }, { ...row, newest: { ...row.newest, kind: 'announcement' } }, { ...row, newest: { ...row.newest, id: 'x' } }, { ...row, project: 'p' }]) {
+    const r = await createCommsOperatorRead({ rpc: async () => ({ data: { ok: true, projects: [bad], more: false }, error: null }) }).inbox(ESTATE, '2026-11-04T00:00:00.000Z')
+    assert.equal(r.ok, false, JSON.stringify(bad))
+  }
+})
+
 test('W4-2: a door that does not answer, or answers a shape this build cannot read, is unavailable — never an empty answer', async () => {
   const malformed = {
     board_thread_page_operator: { ok: true, threads: [{ ...pageRow, providers: 'claude-code' }], more: false, before: null },

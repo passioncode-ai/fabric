@@ -215,6 +215,17 @@ export interface CommsPending {
 }
 export type CommsPendingReply = { ok: true; projects: CommsPending[]; more: boolean } | { ok: false; error: CommsReadError }
 
+/** CO-559 (§3.8 of the on-demand sessions spec): one Project's unread board messages as `board_inbox_operator` answers
+ *  them: kind `message`, `finding` or `reply`, neither read nor answered by it, a fan-out's left out; the newest one
+ *  stands for them all. */
+export interface CommsInbox {
+  project: string
+  unread: number
+  oldestAt: string
+  newest: { id: string; thread: string; at: string; kind: 'message' | 'finding' | 'reply' }
+}
+export type CommsInboxReply = { ok: true; projects: CommsInbox[]; more: boolean } | { ok: false; error: CommsReadError }
+
 // #region board-core-holds-waiting — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#board
 /** What waits on the board for the operator, outside Comms (0.3.9 BD-2): requests nobody can answer now (queued or
  *  otherwise open, no responder holds their slot, read by their target or not), with the oldest. Counts only: no body,
@@ -229,6 +240,9 @@ export interface CommsWaiting {
   list?: CommsWaitingItem[]
   /** The list holds every request the count counts (none cut by a bound, none it could not tell apart). */
   listComplete?: boolean
+  /** 0.3.19 scenario walk (SCN-157): the list was cut at its read's bound, so the OLDEST waiting requests are missing
+   *  from it (not that it may hold requests the count leaves out). */
+  listCut?: boolean
 }
 
 /** One request nobody can answer now. `from`/`to` are project ids; the screens print their display names. */

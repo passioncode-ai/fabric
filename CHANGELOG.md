@@ -9,6 +9,34 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## 0.3.19 (unreleased)
 
+0.3.18 was not published on its own: its candidate passed review and its release close, and its open checks closed on
+this release's candidate (the decision is in [the 0.3.18 handoff](docs/handoffs/2026-11-09-release-0318.md)), so this
+release carries both.
+
+- **Every addressee on the board is woken and watched** (CO-559; [the on-demand spec
+  §3.8](docs/evidence/specs/2026-11-04-on-demand-sessions.md#38-every-addressee-woken-and-watched-co-559)). A board
+  message, finding or reply to a project with no live agent session now starts one, as a request did: one run per
+  project reads everything that waits for it, answers what is owed and marks it read. The dispatcher checks every 30
+  seconds: a run whose session never took its hand-over within five minutes, or whose work stopped for twenty, is
+  stopped and started again, up to three times before the operator is shown it. A workflow no run holds is closed
+  after two hours. Messages a sender sent in an hour in which it opened a dozen threads are treated as an announcement and wake nobody.
+- **A walk of the board, session and service scenarios, and what it fixed** (2026-11-11, four independent readers over
+  SCN-137 to SCN-181 and the on-demand spec). A coding agent whose check of Fabric's port failed once under load no
+  longer loses the board and its tools: the session to the same Fabric is kept, each request's own check waits and
+  reads again (10 s, a second try), and a reconnect gets the session it held, so its claims are never left on an
+  orphan (CO-561). A session that stopped signing no longer counts as live, so its project is woken. The watch counts
+  from the run's launch, takes a request whose attempt holds its lease as alive however long its step, never closes
+  a workflow another run took over, gives a project's messages to the operator after three empty runs even while new
+  ones keep arriving, shows one row per project in «На проверке», which leaves once the messages are read, and asks
+  each run to write a checkpoint every 10 minutes. On macOS, turning «Служба доски» off in launchd's own copy no
+  longer ends Fabric at once (the job is removed at the Quit), a window opened while Fabric is hidden brings the Dock
+  icon back, and `hub.json` is removed before the sockets close. In Comms, the thread list no longer skips threads
+  that arrived while it was not polling, a search shows only its own answers, the open thread's read marks are read
+  again every 15 s instead of every 2.5 s, one read at a time, a long announcement thread says how much of it was read
+  instead of «не ответил», the rail counts «Ветки с новыми сообщениями», the home says when the oldest waiting
+  requests did not fit in its list, and the review counts say when they stop at a thousand.
+  **Upgrading:** the database moves to schema 101 with one migration, `20261111000128_board_inbox_operator.sql` (the
+  inbox read); take a backup first, the order is the runbook's ([docs/launch/release-mac.md](docs/launch/release-mac.md)).
 - **A board run on another machine answers through Fabric** (CO-551, stage A; [the on-demand spec
   §3.7](docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a)). With a
   machine named in Settings' `dispatchTarget` (none by default, so nothing changes until one is named), the dispatcher

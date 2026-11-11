@@ -53,6 +53,10 @@ export function mergeFirstPage(held: Held | null, first: { threads: CommsPageThr
   const top = [...first.threads].sort(order)
   if (!first.more || top.length === 0 || !held) return bound(top, first.more)
   const boundary = top[top.length - 1]
+  // 0.3.19 scenario walk (SCN-143): a page that does not reach down to what was held (polling paused while threads
+  // arrived: «Лента» open, sleep, a failing board) leaves a hole between them; the held rows go, and «Показать старые»
+  // continues from the page's own end, so no thread is skipped.
+  if (held.rows.length > 0 && olderThan(held.rows[0], boundary)) return bound(top, first.more)
   const ids = new Set(top.map((t) => t.id))
   const kept = held.rows.filter((r) => !ids.has(r.id) && olderThan(r, boundary))
   return bound([...top, ...kept].sort(order), kept.length > 0 ? held.more : first.more)

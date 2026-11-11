@@ -127,15 +127,21 @@ export function readListenerOwner(port: number, deps: {
 } = {}): ListenerOwner {
   const platform = deps.platform ?? process.platform
   if (platform === 'darwin') {
-    const run = deps.run ?? ((cmd: string, args: string[]) => execFileSync(cmd, args, { encoding: 'utf8', timeout: 3_000, stdio: ['ignore', 'pipe', 'ignore'] }))
-    try {
-      return ownerOf(uidsFromLsof(run('/usr/sbin/lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN', '-Fpun']), port))
-    } catch (e) {
-      // lsof exits 1 when it lists nothing: no listener this account can see, which is unknown, never fine.
-      const out = (e as { stdout?: unknown }).stdout
-      if (typeof out === 'string' && out.trim()) return ownerOf(uidsFromLsof(out, port))
-      return { unknown: 'the socket table could not be read' }
+    // CO-561: 10 s, not 3, and a second try: on a machine at load 34 one lsof that could not be spawned or answered late
+    // left a session without the board while the same lsof answered in 0.06 s from its shell (2026-11-11).
+    const run = deps.run ?? ((cmd: string, args: string[]) => execFileSync(cmd, args, { encoding: 'utf8', timeout: 10_000, stdio: ['ignore', 'pipe', 'ignore'] }))
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        return ownerOf(uidsFromLsof(run('/usr/sbin/lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN', '-Fpun']), port))
+      } catch (e) {
+        // lsof exits 1 when it lists nothing: no listener this account can see, which is unknown, never fine.
+        const out = (e as { stdout?: unknown }).stdout
+        if (typeof out === 'string' && out.trim()) return ownerOf(uidsFromLsof(out, port))
+        // Exit 1 with nothing printed is lsof's answer, not a failure to read: not asked again.
+        if ((e as { status?: unknown }).status === 1) break
+      }
     }
+    return { unknown: 'the socket table could not be read' }
   }
   if (platform === 'linux') {
     const read = deps.read ?? ((f: string) => readFileSync(f, 'utf8'))
@@ -177,7 +183,9 @@ export function createOwnerCheck(deps: { read?: (port: number) => ListenerOwner;
   return (port, pid) => {
     if (kept && kept.port === port && kept.pid === pid && now() - kept.at < ttl) return kept.owner
     const owner = read(port)
-    kept = { port, pid, at: now(), owner }
+    // CO-561: an owner that could not be told is asked again on the next locate, never kept for the minute: kept, one
+    // failed read held a session off the board for as long.
+    kept = 'unknown' in owner ? null : { port, pid, at: now(), owner }
     return owner
   }
 }
@@ -280,7 +288,8 @@ export async function readConnectionOwner(hubPort: number, clientPort: number, d
   read?: (file: string) => Promise<string>
 } = {}): Promise<ListenerOwner> {
   const platform = deps.platform ?? process.platform
-  const run = deps.run ?? (async (cmd: string, args: string[]) => (await execFileP(cmd, args, { encoding: 'utf8', timeout: platform === 'win32' ? 30_000 : 3_000, windowsHide: true })).stdout)
+  // CO-561: 10 s on macOS and Linux, as the listener read: 3 s left a loaded Mac with no answer and the session dropped.
+  const run = deps.run ?? (async (cmd: string, args: string[]) => (await execFileP(cmd, args, { encoding: 'utf8', timeout: platform === 'win32' ? 30_000 : 10_000, windowsHide: true })).stdout)
   if (platform === 'darwin') {
     let out = ''
     try {
@@ -362,8 +371,9 @@ export async function verifyConnection(hubPort: number, clientPort: number, deps
   const read = deps.read ?? ((h: number, c: number) => readConnectionOwner(h, c))
   const me = (deps.me ?? (() => process.getuid?.() ?? -1))()
   // The 0.3.17 review, ER-4: 3 s, so a hub whose event loop stalls under load is not refused as unseen.
-  const until = Date.now() + (deps.settleMs ?? 3_000)
   let owner = await read(hubPort, clientPort)
+  // CO-561: the settle window counts from the end of the first read, so a slow read still leaves a second one.
+  const until = Date.now() + (deps.settleMs ?? 3_000)
   while ('unknown' in owner && Date.now() < until) {
     await new Promise((r) => setTimeout(r, deps.stepMs ?? 100))
     owner = await read(hubPort, clientPort)

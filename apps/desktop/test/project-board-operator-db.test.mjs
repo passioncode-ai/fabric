@@ -359,11 +359,40 @@ await test('pending: per project, what was delivered, held and not marked read �
   assert.equal(call('board_pending_operator', 'null', '100').error?.code, 'invalid_arguments')
 })
 
+// ── a project's inbox for the dispatcher (CO-559, the on-demand sessions spec §3.8) ──────────────────────────────
+await test('inbox: per project, the messages, findings and replies delivered to it that it neither read nor answered, the newest standing for them; a fan-out wakes nobody', () => {
+  const since = `'${new Date(Date.now() - 3600_000).toISOString()}'::timestamptz`
+  const inbox = (estate) => JSON.parse(sql(`set role service_role; select board_inbox_operator('${estate}', ${since}, 100)`))
+  const before = new Map(inbox(PE).projects.map(x => [x.project, x.unread]))
+  const t = submit(PE, PA, { idempotency: idem(), thread: { new: { participants: [PB, PC], subject: 'inbox' } }, kind: 'message', body: { text: 'for the inbox' } })
+  const f = submit(PE, PA, { idempotency: idem(), thread: { id: t.thread }, kind: 'finding', body: { text: 'a finding for the inbox' } })
+  // PC answers in the thread: what came before its answer is handled, read mark or not.
+  submit(PE, PC, { idempotency: idem(), thread: { id: t.thread }, kind: 'message', body: { text: 'seen' } })
+  const now = inbox(PE)
+  assert.equal(now.ok, true, JSON.stringify(now))
+  const pb = now.projects.find(x => x.project === PB)
+  assert.ok(pb, 'PB has unread messages')
+  assert.equal(pb.unread - (before.get(PB) ?? 0), 3, 'the message, the finding and PC\'s answer')
+  assert.equal(pb.newest.thread, t.thread); assert.match(pb.newest.at, /Z$/); assert.match(pb.oldestAt, /Z$/)
+  assert.ok(['message', 'finding', 'reply'].includes(pb.newest.kind))
+  assert.ok(!now.projects.some(x => x.project === PA && (x.unread - (before.get(PA) ?? 0)) > 1), 'its own messages are never in a sender\'s inbox')
+  assert.equal(now.projects.find(x => x.project === PC)?.unread ?? 0, before.get(PC) ?? 0, 'PC answered after them')
+  // Read marks leave the inbox.
+  for (const m of sql(`select message_id from board_deliveries where estate_id='${PE}' and recipient_project='${PB}'`).split('\n')) ack(PE, PB, m)
+  assert.ok(!inbox(PE).projects.some(x => x.project === PB), 'PB read everything')
+  void f
+  // A sender that starts 12 threads within the hour is a fan-out: its messages wake nobody.
+  for (let i = 0; i < 12; i++) submit(PE, PC, { idempotency: idem(), thread: { new: { participants: [PB], subject: `round ${i}` } }, kind: 'message', body: { text: `round ${i}` } })
+  assert.ok(!inbox(PE).projects.some(x => x.project === PB), 'a fan-out is an announcement in all but kind')
+  assert.ok(!inbox(E).projects.some(x => [PA, PB, PC].includes(x.project)), 'the estate is the boundary')
+  assert.equal(JSON.parse(sql(`set role service_role; select board_inbox_operator(null, ${since}, 100)`)).error?.code, 'invalid_arguments')
+})
+
 // ── the doors (R-003) ──────────────────────────────────────────────────────────────────────────────────────
 await test('every new read is the service role\'s door alone; the budget helper is nobody\'s', () => {
   const doors = ['board_thread_page_operator(uuid,jsonb,jsonb,integer)', 'board_thread_heads_operator(uuid,integer)', 'board_message_facts_operator(uuid,uuid[])',
     'board_request_timeline_operator(uuid,uuid)', 'board_related_threads_operator(uuid,uuid)', 'board_search_operator(uuid,text,bigint,integer)',
-    'board_pending_operator(uuid,integer)', 'board_responders_operator(uuid)']
+    'board_pending_operator(uuid,integer)', 'board_responders_operator(uuid)', 'board_inbox_operator(uuid,timestamptz,integer)']
   for (const f of doors) {
     assert.equal(sql(`select has_function_privilege('service_role', '${f}', 'execute')`), 't', `${f}: the service role`)
     for (const role of ['anon', 'authenticated']) assert.equal(sql(`select has_function_privilege('${role}', '${f}', 'execute')`), 'f', `${f}: ${role}`)

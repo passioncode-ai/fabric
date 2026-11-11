@@ -1,7 +1,7 @@
 // CO-409, wave 1: the dispatcher's decision. Spec: docs/evidence/specs/2026-11-04-on-demand-sessions.md (§3.1, §3.3,
 // §3.4, §3.5, §3.6).
 import { describe, expect, it } from 'vitest'
-import { checkRunResult, decideDispatch, dispatchTargetOf, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
+import { sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
 
 const NOW = Date.parse('2026-11-04T15:00:00Z')
 const MIN = 60_000
@@ -45,7 +45,7 @@ describe('decideDispatch (§3.1–§3.3)', () => {
     expect(decideDispatch(with_({}, { state: 'accepted', holderLive: true })).path).toBe('none')
     expect(decideDispatch(with_({}, { state: 'accepted' })).path).toBe('launch')
     // An accepted request left by two empty runs goes to the operator like any other (§3.6, option (b)).
-    expect(decideDispatch(with_({ emptyRuns: 2 }, { state: 'accepted' }))).toEqual({ path: 'to-operator' })
+    expect(decideDispatch(with_({ emptyRuns: 3 }, { state: 'accepted' }))).toEqual({ path: 'to-operator' })
   })
   it('never starts for a settled or expired request, or past the board deadline', () => {
     for (const state of ['completed', 'failed_known', 'expired', 'cancelled', 'answered'] as const)
@@ -71,9 +71,9 @@ describe('decideDispatch (§3.1–§3.3)', () => {
   it('a dispatch in flight is never doubled (idempotent by request)', () => {
     expect(decideDispatch(with_({ inFlight: true }))).toEqual({ path: 'none' })
   })
-  it('stops after two empty runs and shows it to the operator, the request unchanged (§3.6, option (b))', () => {
-    expect(decideDispatch(with_({ emptyRuns: 1 })).path).toBe('launch')
-    expect(decideDispatch(with_({ emptyRuns: 2 }))).toEqual({ path: 'to-operator' })
+  it('stops after three empty runs (CO-559) and shows it to the operator, the request unchanged (§3.6, option (b))', () => {
+    expect(decideDispatch(with_({ emptyRuns: 2 })).path).toBe('launch')
+    expect(decideDispatch(with_({ emptyRuns: 3 }))).toEqual({ path: 'to-operator' })
   })
   it('checks in the order of §3.3 and names the check that stopped it', () => {
     expect(decideDispatch(with_({ switchOn: false, hasFolder: false }))).toEqual({ path: 'skip', check: 'skipped-off' })
@@ -196,5 +196,16 @@ describe('the result of a run on another machine (CO-551)', () => {
     expect(dispatchTargetOf('studio')).toBe('studio')
     expect(dispatchTargetOf('ops@build-host')).toBe('ops@build-host')
     for (const v of ['', 'auto', '-oProxyCommand=x', 'two words', 'a;b', 42, null, undefined, 'x'.repeat(300)]) expect(dispatchTargetOf(v)).toBeNull()
+  })
+})
+
+describe('sessionLiveForDispatch (CO-559, the scenario walk)', () => {
+  it('a running terminal or a session that signed within the window is live; a silent one is not', () => {
+    const now = NOW
+    expect(sessionLiveForDispatch([], now, 10 * MIN)).toBe(false)
+    expect(sessionLiveForDispatch([{ console: true, lastSignAt: now - 60 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(true)
+    expect(sessionLiveForDispatch([{ lastSignAt: now - 5 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(true)
+    expect(sessionLiveForDispatch([{ lastSignAt: now - 11 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(false)
+    expect(sessionLiveForDispatch([{ lastSignAt: null, startedAt: now - 2 * MIN }], now, 10 * MIN)).toBe(true)
   })
 })

@@ -20,7 +20,7 @@ export const TELL_QUIET_MS = 30 * 60_000
 
 /** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
-export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose', 'claim-overlap', 'overlap-unsettled'] as const
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'inbox-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose', 'claim-overlap', 'overlap-unsettled'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
 /** The kinds that are a reminder to the agent at work, not abandoned work for the operator's queue (0.3.14 wave 2):
  *  a session changing files without a claim is told to claim, and the operator's «На проверке» is not filled with it. */
@@ -110,8 +110,11 @@ export interface SweepRequest {
   movedAt: string
   /** When the answer reached the requester and stayed unread; null when there is no answer or it was read. */
   answerUnreadSince: string | null
-  /** CO-409: two runs Fabric started left it unsettled; it is the operator's now, whatever its state (§3.6). */
+  /** CO-409: three runs Fabric started left it unsettled (two before CO-559); it is the operator's now, whatever its
+   *  state (§3.6). */
   toOperator?: boolean
+  /** CO-559 (§3.8): the item is a project's unread board messages, `requestId` the newest of them, not a request. */
+  inbox?: boolean
   /** CO-409 (ER-7): it is the operator's because it passed its deadline accepted, with no run Fabric started for it. */
   pastDue?: boolean
   /** CO-551: a run Fabric started on another machine left a result Fabric did not post (`unposted`), or that machine
@@ -241,7 +244,10 @@ export function findAbandoned(input: SweepInput): Finding[] {
     // CO-409 (0.3.16 review, iteration 3, UX-3): a request given to the operator after two empty runs, and one a run's
     // com.enroll left `outcome_unknown` (promised on the board, thread `1add3c03`), each say what happened in words of
     // their own in «На проверке».
-    if (r.toOperator && !SETTLED_REQUEST.has(r.state))
+    if (r.toOperator && r.inbox)
+      out.push({ ...base, kind: 'inbox-to-operator', key: `inbox-to-operator:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
+        nextStep: 'Three runs Fabric started for this project\'s unread board messages ended with them still unread: they wait for the operator; a newer message gets one more run, then waits here too.' })
+    else if (r.toOperator && !SETTLED_REQUEST.has(r.state))
       out.push({ ...base, kind: 'request-to-operator', key: `request-to-operator:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: r.remote === 'unposted'
           ? 'A run Fabric started on another machine for this board request left a result that was not posted (it named another run, could not be read, or the board refused it): it waits for the operator, and Fabric starts no more for it.'
@@ -249,7 +255,7 @@ export function findAbandoned(input: SweepInput): Finding[] {
             ? 'A run Fabric started on another machine for this board request has not answered past its time limit: Fabric keeps asking, closes nothing and starts no other run until that run\'s end is known.'
             : r.pastDue
               ? 'This board request passed its deadline accepted, with nobody holding it and no run Fabric started: it waits for the operator, and Fabric starts no run for it.'
-              : 'Two runs Fabric started for this board request ended without settling it: it waits for the operator, and Fabric starts no more for it.' })
+              : 'Three runs Fabric started for this board request ended without settling it: it waits for the operator, and Fabric starts no more for it.' })
     else if (r.state === 'outcome_unknown')
       out.push({ ...base, kind: 'request-outcome-unknown', key: `request-outcome-unknown:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: 'An agent took this board request and went away before its outcome was known: check whether the work happened, then settle it (com.reconcile) or answer the requester.' })
@@ -359,6 +365,7 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'task-unclaimed': (f) => `task ${f.taskId}`,
   'request-unmoved': (f) => `board request ${f.requestId}`,
   'request-to-operator': (f) => `board request ${f.requestId}`,
+  'inbox-to-operator': (f) => `board message ${f.requestId}`,
   'request-outcome-unknown': (f) => `board request ${f.requestId}`,
   'answer-unread': (f) => `the answer to board request ${f.requestId}`,
   'terminal-stalled': (f) => `task ${f.taskId} in this session`,

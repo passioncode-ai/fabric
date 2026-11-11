@@ -401,6 +401,10 @@
     {
       "file": "20261030000127_archive_source_schemas_99_100.sql",
       "sha256": "4fa984580c7760b0f6c0191551c40ca1c64dce443b4aee769cf159e234f5445a"
+    },
+    {
+      "file": "20261111000128_board_inbox_operator.sql",
+      "sha256": "9e91a3e845066e80fe77414e2f7354b12c277e8992c650440ef0c9e3328ab6d4"
     }
   ]
 }

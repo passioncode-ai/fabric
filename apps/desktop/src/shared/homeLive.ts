@@ -160,7 +160,7 @@ export interface HomeView {
   inWorkCapped?: boolean
   /** The reads behind «who is doing what» that stopped at their limit (CO-310): claims, leases, projects, the agents'
    *  stage reports. Past them an agent can read as silent or a project as missing; the screens say so. */
-  capped?: Array<'claims' | 'leases' | 'projects' | 'stages'>
+  capped?: Array<'claims' | 'leases' | 'projects' | 'stages' | 'review'>
   projects: ProjectPulse[]
   readAt: string
   /** 0.3.14, the simple Fabric: the tasks in review moved there more than three days ago (all of them, not only the newest

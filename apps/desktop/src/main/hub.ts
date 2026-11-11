@@ -212,6 +212,9 @@ export function withdrawHub(root: string, pid: number = process.pid): { removed:
 export type HubLocation =
   | { ok: true; origin: string; mcpUrl: string; doorToken: string; pid: number }
   | { ok: false; code: 'not-running' | 'not-a-hub'; reason: string }
+  /** CO-561: the listener's owner could not be told this time; hub.json names this origin and live pid. A session
+   *  already held with the same hub keeps going on it; a new one sends nothing until the owner is told. */
+  | { ok: false; code: 'owner-unknown'; reason: string; origin: string; pid: number }
 
 /** The published origin, exactly: the IPv4 loopback literal and a port — never a name, never another address. */
 const LOOPBACK_ORIGIN = /^http:\/\/127\.0\.0\.1:(\d{4,5})$/
@@ -274,7 +277,7 @@ export function locateHub(root: string, deps: {
   if (deps.owner) {
     const owner = deps.owner(Number(port[1]), pid)
     const me = (deps.uid ?? (() => process.getuid?.() ?? -1))()
-    if ('unknown' in owner) return notHub(`foreign-user: the owner of port ${port[1]} could not be told (${owner.unknown})`)
+    if ('unknown' in owner) return { ok: false, code: 'owner-unknown', reason: `foreign-user: the owner of port ${port[1]} could not be told (${owner.unknown})`, origin: doc.origin as string, pid }
     if ('uid' in owner && owner.uid !== me) return notHub(`foreign-user: port ${port[1]} is held by another account of this computer`)
     if ('mine' in owner && !owner.mine) return notHub(`foreign-user: port ${port[1]} is held by another account of this computer`)
   }

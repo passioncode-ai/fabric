@@ -133,6 +133,19 @@ test('the 0.3.17 review, ER-2: a request refused before its head left is reporte
   assert.match(f.refusal.reason, /table-restricted/)
 })
 
+test('CO-561: an owner that could not be told keeps the session (a wait); another account\'s end drops it; a slow first read still gets a second', async () => {
+  const { classifyFailure } = await import(src('fabricMcp.ts'))
+  const { verifyConnection } = await import(src('listenerOwner.ts'))
+  const wait = classifyFailure(new HubOwnerRefusedError('foreign-user: the owner of the hub\'s end could not be told (table-restricted: the hub\'s end of this connection could not be seen)'))
+  assert.deepEqual([wait.drop, wait.mayHaveRun, wait.refusal.status], [false, false, 503])
+  const foreign = classifyFailure(new HubOwnerRefusedError('foreign-user: the hub\'s end of this connection is held by another account of this computer'))
+  assert.equal(foreign.drop, true)
+  let reads = 0
+  const slowThenSeen = async () => { reads++; if (reads === 1) { await new Promise((r) => setTimeout(r, 40)); return { unknown: 'table-restricted' } } return { uid: 501 } }
+  assert.equal(await verifyConnection(1, 2, { read: slowThenSeen, me: () => 501, settleMs: 20, stepMs: 1 }), null, 'the window counts from the end of the first read')
+  assert.equal(reads, 2)
+})
+
 test('CO-532 (DEC-0155 RT-1): with nothing among this account\'s descriptors the table is read: another process\'s row names its owner, a header-only or failing table is table-restricted', async () => {
   const { serverEndPidsFromNetstat } = await import(src('listenerOwner.ts'))
   // Captured on macOS 26 (`netstat -anv -p tcp`), the ports and pids replaced.

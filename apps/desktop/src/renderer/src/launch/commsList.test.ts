@@ -49,9 +49,17 @@ describe('what the screen holds', () => {
     expect(next.rows).toHaveLength(MAX_HELD)
     expect(next.rows.at(-1)?.lastSeq).toBe(491)
     expect(next.more).toBe(true)
+    // A polled page that reaches down into what is held keeps the older pages below it.
+    const overlap = mergeFirstPage(next, { threads: Array.from({ length: 50 }, (_, i) => row(1020 - i)), more: true })
+    expect(overlap.rows).toHaveLength(MAX_HELD)
+    expect(overlap.rows[0].lastSeq).toBe(1020)
+    expect(overlap.more).toBe(true)
+    // 0.3.19 scenario walk (SCN-143): one that does not (threads arrived while polling paused) leaves no hole: the
+    // held rows go and the next older page continues from the page's own end.
     const polled = mergeFirstPage(next, { threads: Array.from({ length: 50 }, (_, i) => row(5000 - i)), more: true })
-    expect(polled.rows).toHaveLength(MAX_HELD)
+    expect(polled.rows).toHaveLength(50)
     expect(polled.rows[0].lastSeq).toBe(5000)
+    expect(polled.rows.at(-1)?.lastSeq).toBe(4951)
     expect(polled.more).toBe(true)
   })
   it('names the next page by the oldest thread it holds', () => {

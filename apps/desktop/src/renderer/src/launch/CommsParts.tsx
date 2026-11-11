@@ -8,7 +8,7 @@
 // an empty answer — "Who answers is not known right now", never "absent"; "The outcome could not be read", never "No
 // summary was given"; "Comms did not answer the search", never "No message contains these words".
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type {
   CommsArtifact,
   CommsFacts,
@@ -274,13 +274,17 @@ export function SearchPanel({ nameOf, onOpen }: { nameOf: (id: string) => string
   const [query, setQuery] = useState('')
   const [tooShort, setTooShort] = useState(false)
   const [state, setState] = useState<SearchState>({ kind: 'idle' })
-  const run = async (q: string, before: number | null, prior: CommsSearchHit[]): Promise<void> => {
+  // 0.3.19 scenario walk (SCN-156): each search is numbered, and an answer that lands after a newer search started (a
+  // «more results» page of the old query) is dropped, never shown as the new query's hits.
+  const latest = useRef(0)
+  const run = async (q: string, before: number | null, prior: CommsSearchHit[], ticket = latest.current): Promise<void> => {
     let reply: Awaited<ReturnType<typeof window.fabric.comms.search>>
     try {
       reply = await window.fabric.comms.search(q, before)
     } catch (e) {
       reply = { ok: false, error: { code: 'unavailable', message: e instanceof Error ? e.message : String(e) } }
     }
+    if (ticket !== latest.current) return
     if (!reply.ok) {
       // A failed page of more results keeps what was found AND the way to the rest: it is never read as the end of the
       // results. A failed first search says Comms did not answer — never "no message contains these words".
@@ -296,7 +300,8 @@ export function SearchPanel({ nameOf, onOpen }: { nameOf: (id: string) => string
     if ([...q].length < 2) { setTooShort(true); return }
     setTooShort(false)
     setState({ kind: 'searching', query: q })
-    void run(q, null, [])
+    latest.current += 1
+    void run(q, null, [], latest.current)
   }
   return (
     <section className="lp-comms-search" aria-label={t('launch.comms.search.label')}>

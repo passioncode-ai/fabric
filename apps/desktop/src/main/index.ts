@@ -205,7 +205,9 @@ import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { wireBoardDispatch } from './boardDispatchWiring.ts'
-import { createDispatchWake, toOperatorMarks, type ToOperatorWhy } from './boardDispatchRun.ts'
+import { createDispatchWake, toOperatorMarks, type InboxGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
+import { sessionLiveForDispatch, WATCH_MS } from '../shared/boardDispatch.ts'
+import { SESSION_STALE_MS } from '../shared/workClaims.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { createOpsDigestCollector } from './opsDigestCollector.ts'
 import { BINDING_TOKEN_FILE, createOpsDigestPass, createOpsDigestSender } from './opsDigestSend.ts'
@@ -470,6 +472,8 @@ import { launchPlace } from '../shared/launchPlace.ts'
  * review, iteration 2, PL-21, ER-16: `shared/loginItem.ts#takeLaunchdStart`).
  */
 const LAUNCHD_STARTED = takeLaunchdStart(process.env)
+/** The board's job is unregistered at the Quit, not when the switch went off in launchd's own copy (SCN-170). */
+let loginItemOffAtQuit = false
 
 /**
  * The Estate this process works in: the operator's recorded choice (A1-6b), read once at the
@@ -664,7 +668,10 @@ void app.whenReady().then(() => listenForQuitSignals(process, endOnSignal))
  *  keep running until the next activation shows a window again (ADR-0192). */
 function hideForService(): void {
   for (const w of BrowserWindow.getAllWindows()) if (!w.isDestroyed()) w.close()
-  app.dock?.hide()
+  // 0.3.19 scenario walk: a window that refused to close (an editor with unsaved work) keeps the Dock icon and the
+  // menu, so its Quit and its shortcuts stay reachable; the icon goes once the last window has closed.
+  if (BrowserWindow.getAllWindows().some((w) => !w.isDestroyed() && w.isVisible())) app.once('window-all-closed', () => { if (!quit.quitting) app.dock?.hide() })
+  else app.dock?.hide()
   ops.record({ op: 'app.quit-held', outcome: 'ok', level: 'info', detail: { note: 'the board service is on: the windows closed and the board keeps running' }, ctx: { correlationId: ops.correlate() } })
 }
 /** An activation after a held quit brings the Dock icon back before it opens a window. */
@@ -3083,7 +3090,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // The sweep of abandoned work (CO-427): every third pass of the cycle below. Its reads are the screens' own (claims,
   // running tasks), the operator's read door onto the board, and the observer's last pass over Fabric's terminals.
   const sweepBoard = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
-  const dispatchHolder: { current: { toOperator(): Map<string, ToOperatorWhy> } | null } = { current: null }
+  const dispatchHolder: { current: { toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[] } | null } = { current: null }
   abandonedSweep = createAbandonedSweep({
     now: () => Date.now(),
     readClaims: (now) => readSweepClaims(store, now, sessionSignOf),
@@ -3093,7 +3100,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     readRequests: async (now) => {
       const r = await readBoardRequests(sweepBoard, ACTIVE_ESTATE, now)
       const given = dispatchHolder.current?.toOperator() ?? new Map<string, ToOperatorWhy>()
-      return given.size ? { ...r, requests: r.requests.map((x) => (given.has(x.requestId) ? { ...x, toOperator: true, ...toOperatorMarks(given.get(x.requestId)!) } : x)) } : r
+      const marked = given.size ? r.requests.map((x) => (given.has(x.requestId) ? { ...x, toOperator: true, ...toOperatorMarks(given.get(x.requestId)!) } : x)) : r.requests
+      // CO-559 (§3.8): an inbox item given to the operator is a message, not a request: it joins the sweep as its own row.
+      const inbox = (dispatchHolder.current?.inboxGiven() ?? []).map((g) => ({ requestId: g.messageId, targetProjectId: g.projectId, requesterProjectId: '',
+        state: 'queued', movedAt: g.at, answerUnreadSince: null, toOperator: true, inbox: true }))
+      return { ...r, requests: [...marked, ...inbox] }
     },
     // 0.3.14 wave 2: the session hooks' turns, to see a session changing files with no claim.
     readTurns: (now) => readRecentTurns(store, now),
@@ -3137,7 +3148,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     estateId: ACTIVE_ESTATE,
     comms: sweepBoard,
     repos: projectRepos,
-    sessionLive: (projectId) => heldSessions(projectId).length > 0,
+    sessionLive: (projectId) => sessionLiveForDispatch(heldSessions(projectId), Date.now(), SESSION_STALE_MS),
     switchOn: () => readSettings().dispatchBoardRequests,
     // CO-551, stage A: the machine Settings names for runs (none by default), and the operator's board door to post a
     // run's answer from there as the request's target Project.
@@ -3152,6 +3163,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   quit.onQuit(() => { void dispatcher.close() })
   dispatchWake = createDispatchWake(() => { if (!quit.quitting) void dispatcher.onPass() })
   quit.onQuit(() => dispatchWake?.stop())
+  // CO-559 (§3.8): the dispatcher watches on its own 30 s cadence, beside the cycle and never inside its window (a start
+  // can wait on Switchboard for a minute; its own guard keeps one pass at a time).
+  const dispatchWatch = setInterval(() => { if (!quit.quitting) void dispatcher.onPass() }, WATCH_MS)
+  dispatchWatch.unref?.()
+  quit.onQuit(() => clearInterval(dispatchWatch))
   // #endregion board-dispatch-cycle
 
   // #region ops-digest-send-wiring — docs: docs/evidence/specs/2026-11-04-agents-logs-and-the-improvement-loop.md#23-logs-read-every-hour-and-every-day-and-the-improvement-loop-co-500-co-502-co-503
@@ -3213,9 +3229,6 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     } catch (e) {
       ops.failed('cycle.sweep', e, { note: 'the sweep of abandoned work failed this pass; the cycle receipt is still written' })
     }
-    // CO-409: the dispatcher runs beside the cycle, never inside its window: a start can wait on Switchboard for a
-    // minute, and its own guard keeps one pass at a time.
-    if (!quit.quitting) void dispatcher.onPass()
     // CO-503: beside the cycle too; at most once an hour, its own guard keeps one collection at a time.
     if (!quit.quitting) void digestSend.onPass()
     // CO-500: an hour the clock has passed closes even when nothing was recorded since.
@@ -5357,7 +5370,22 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // tomorrow is a power setting that did not work today. Applied from what was
     // COMMITTED, so a refused write does not change the policy either.
     power?.setPolicy(written.settings.keepAwake)
-    if (next.launchAtLogin !== undefined) applyLoginItem(written.settings.launchAtLogin, false)
+    if (next.launchAtLogin !== undefined) {
+      // 0.3.19 scenario walk (SCN-170): turning «Служба доски» off in launchd's own copy would unregister the job that
+      // runs this very process, and launchd ends a job it no longer has, terminals and all. The switch is stored now and
+      // the job is unregistered at the Quit, which the stored «off» no longer holds (ADR-0192: «Off: the next Quit ends
+      // Fabric»); turning it on again before that Quit cancels the pending removal.
+      if (process.platform === 'darwin' && LAUNCHD_STARTED && !written.settings.launchAtLogin) {
+        if (!loginItemOffAtQuit) {
+          loginItemOffAtQuit = true
+          quit.onQuit(() => { if (loginItemOffAtQuit && !readSettings().launchAtLogin) applyLoginItem(false, false) })
+        }
+        ops.record({ op: 'app.login-item', outcome: 'ok', level: 'info', detail: { enabled: false, deferred: 'quit' }, ctx: { correlationId: ops.correlate() } })
+      } else {
+        loginItemOffAtQuit = false
+        applyLoginItem(written.settings.launchAtLogin, false)
+      }
+    }
     // The menu speaks the language the windows speak, from the moment it is chosen.
     // A menu that fails to rebuild must not fail a write that is already on disk (iteration 2, ER-8).
     if (next.locale !== undefined) {
@@ -5775,6 +5803,9 @@ function rendererTarget(query: string): { url?: string; file?: string; search: s
 }
 
 function openSessionWindow(sessionId: string): void {
+  // 0.3.19 scenario walk: a window opened while Fabric is hidden after a held Quit (a link, a consent, a session) brings
+  // the Dock icon and the menu back with it.
+  showForService()
   const existing = sessionWindows.get(sessionId)
   if (existing && !existing.isDestroyed()) {
     existing.focus()
@@ -5804,6 +5835,9 @@ function openSessionWindow(sessionId: string): void {
 
 
 function openFileWindow(requested: string): void {
+  // 0.3.19 scenario walk: a window opened while Fabric is hidden after a held Quit (a link, a consent, a session) brings
+  // the Dock icon and the menu back with it.
+  showForService()
   // One window per FILE, not per spelling: two spellings of one path opened two editors over one kept
   // buffer, and the last writer won (third lifecycle review). The real path is the key.
   let filePath = requested
@@ -5837,6 +5871,9 @@ function openFileWindow(requested: string): void {
 }
 
 function createWindow(): void {
+  // 0.3.19 scenario walk: a window opened while Fabric is hidden after a held Quit (a link, a consent, a session) brings
+  // the Dock icon and the menu back with it.
+  showForService()
   mainWindow = new BrowserWindow({
     ...WINDOW_CHROME,
     ...windowIcon(),

@@ -17,6 +17,7 @@ export function titleOf(item: { title: string; access?: PendingRequestFacts; swe
 const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.untitled.answer' | 'attention.untitled.task' | 'attention.untitled.session'> = {
   'request-unmoved': 'attention.untitled.request',
   'request-to-operator': 'attention.untitled.request',
+  'inbox-to-operator': 'attention.untitled.answer',
   'request-outcome-unknown': 'attention.untitled.request',
   'answer-unread': 'attention.untitled.answer',
   'claim-silent': 'attention.untitled.task',

@@ -88,7 +88,7 @@ export function HomeBoardWaiting({ mark, onComms, nameOf }: {
       {!whole && <p className="lh-req-line">{said}</p>}
       {/* CO-482: an incomplete list cannot tell which capabilities a project answers, so it may show requests the
           board's count leaves out; said beside the count, never silent. */}
-      {!whole && shown.length > 0 && <p className="lh-req-who" data-waiting-partial>{t('launch.home.boardWaiting.partial')}</p>}
+      {!whole && shown.length > 0 && <p className="lh-req-who" data-waiting-partial>{t(reply.listCut ? 'launch.home.boardWaiting.partialCut' : 'launch.home.boardWaiting.partial')}</p>}
       {onComms && !shown.length && <button type="button" className="lp-link lh-req-open" onClick={onComms}>{t('launch.home.boardWaiting.open')}</button>}
     </section>
   )

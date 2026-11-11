@@ -149,6 +149,15 @@ describe('review fixes', () => {
     expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'completed' }] })).toEqual([])
   })
 
+  it('CO-559: an inbox item the dispatcher gave to the operator shows as the project\'s unread messages, never as a request', () => {
+    const r = { requestId: 'm1', targetProjectId: 'p2', requesterProjectId: '', movedAt: ago(MIN), answerUnreadSince: null, toOperator: true, inbox: true, state: 'queued' }
+    const f = findAbandoned({ ...empty, requests: [r] })
+    expect(f.map((x) => x.kind)).toEqual(['inbox-to-operator'])
+    expect(f[0].projectId).toBe('p2')
+    expect(f[0].nextStep).toMatch(/unread board messages/)
+    expect(f[0].nextStep).toMatch(/Three runs/)
+  })
+
   it('CO-551: a run on another machine whose result was not posted, or whose machine went quiet, says so in words of its own', () => {
     const r = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(MIN), answerUnreadSince: null, toOperator: true, state: 'queued' }
     const unposted = findAbandoned({ ...empty, requests: [{ ...r, remote: 'unposted' as const }] })

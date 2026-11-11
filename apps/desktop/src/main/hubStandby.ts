@@ -161,8 +161,10 @@ export async function openHubStandby(opts: {
 /** A quit while the standby still holds the port: stop it and remove hub.json (only if it still names this process). */
 export async function closeHubStandby(opened: StandbyOpen, root: string): Promise<void> {
   if (!opened.open) return
-  await opened.standby.stop()
+  // 0.3.19 scenario walk: hub.json goes first, synchronously, so a quit that ends the process before the sockets have
+  // closed never leaves it naming a listener that is gone (withdrawHub checks the pid, so another Fabric's file stays).
   const w = withdrawHub(root)
   if (!w.removed) ops.record({ op: 'hub.standby.withdraw', outcome: 'ok', level: 'warn', detail: { reason: w.reason }, ctx: { correlationId: ops.correlate() } })
+  await opened.standby.stop()
 }
 // #endregion hub-standby

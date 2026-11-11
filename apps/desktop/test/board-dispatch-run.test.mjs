@@ -107,12 +107,16 @@ test('a run that ends with the request settled is finished; one that ends withou
   assert.equal(w.calls[6][1].leaseId, 'lease-2')
   assert.equal(w.calls[7][1].leaseId, 'lease-2')
   assert.equal(w.launches.length, 2)
-  // After the second empty run no third starts (§3.6, option (b)).
+  // The second empty run starts a third (CO-559: started again by force); after the third no fourth (§3.6, option (b)).
   w.runs.set('L2', 'ended')
   w.tick(3 * MIN)
   await d.onPass()
-  assert.equal(d.records()[1].emptyRuns, 2)
-  assert.equal(w.launches.length, 2)
+  assert.equal(w.launches.length, 3)
+  w.runs.set('L3', 'ended')
+  w.tick(3 * MIN)
+  await d.onPass()
+  assert.equal(d.records()[2].emptyRuns, 3)
+  assert.equal(w.launches.length, 3)
   // A settled request: finished.
   const w2 = world()
   const d2 = createBoardDispatch(w2.deps)
@@ -249,13 +253,13 @@ test('ER-7: with the switch off and nothing in flight the board is not read', as
   assert.equal(reads, 0)
 })
 
-test('PL-1: after two empty runs the request goes to the operator and its workflow is closed', async () => {
+test('PL-1: after three empty runs (CO-559) the request goes to the operator and its workflow is closed', async () => {
   const w = world()
   const d = createBoardDispatch(w.deps)
   await d.onPass()
-  for (const id of ['L1', 'L2']) { w.runs.set(id, 'ended'); w.tick(3 * MIN); await d.onPass() }
+  for (const id of ['L1', 'L2', 'L3']) { w.runs.set(id, 'ended'); w.tick(3 * MIN); await d.onPass() }
   w.tick(3 * MIN); await d.onPass()
-  assert.equal(w.launches.length, 2)
+  assert.equal(w.launches.length, 3)
   assert.ok(d.toOperator().has(request().id))
   const close = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true)
   assert.ok(close, 'the workflow is closed')
@@ -277,11 +281,11 @@ test('iteration 2, ER-1: a run whose request is no longer read ends as unknown a
   assert.deepEqual([d.records()[0].state, d.records()[0].outcome, d.records()[0].emptyRuns], ['ended', 'unknown', 1])
 })
 
-test('CO-512: a request that drops out of the read while each run is on it gets no third run; it goes to the operator', async () => {
+test('CO-512: a request that drops out of the read while each run is on it gets no fourth run; it goes to the operator', async () => {
   const w = world()
   const d = createBoardDispatch(w.deps)
   const read = w.deps.requestState
-  for (const id of ['L1', 'L2']) {
+  for (const id of ['L1', 'L2', 'L3']) {
     await d.onPass()
     assert.equal(w.launches.length, Number(id.slice(1)), `${id} started`)
     // The run ends while its request sits past the read's pages, then the request is read again, still open.
@@ -291,15 +295,15 @@ test('CO-512: a request that drops out of the read while each run is on it gets 
     w.tick(3 * MIN)
   }
   await d.onPass()
-  assert.equal(w.launches.length, 2, 'no third run')
+  assert.equal(w.launches.length, 3, 'no fourth run')
   assert.ok(d.toOperator().has(request().id), 'the request is the operator\'s')
 })
 
-test('iteration 2, ER-2, ER-3: two empty runs give the request to the operator whatever path it takes now, even when closing fails', async () => {
+test('iteration 2, ER-2, ER-3: the empty runs give the request to the operator whatever path it takes now, even when closing fails', async () => {
   const w = world()
   const d = createBoardDispatch(w.deps)
   await d.onPass()
-  for (const id of ['L1', 'L2']) { w.runs.set(id, 'ended'); w.tick(3 * MIN); await d.onPass() }
+  for (const id of ['L1', 'L2', 'L3']) { w.runs.set(id, 'ended'); w.tick(3 * MIN); await d.onPass() }
   // The project now has a live session: the decision would be live-session, yet the request is the operator's.
   w.session = true
   const real = w.deps.observatory
@@ -391,7 +395,7 @@ test('iteration 3, ER-1: closing a given-up request is tried CLOSE_ATTEMPTS time
   const w = world()
   const d = createBoardDispatch(w.deps)
   await d.onPass()
-  for (const id of ['L1', 'L2']) { w.runs.set(id, 'ended'); w.tick(3 * MIN); await d.onPass() }
+  for (const id of ['L1', 'L2', 'L3']) { w.runs.set(id, 'ended'); w.tick(3 * MIN); await d.onPass() }
   const real = w.deps.observatory
   w.deps.observatory = async (name, args) => { if (args.close) throw new Error('down'); return real(name, args) }
   for (let i = 0; i < CLOSE_ATTEMPTS + 5; i++) { w.tick(MIN); await d.onPass() }
@@ -399,17 +403,17 @@ test('iteration 3, ER-1: closing a given-up request is tried CLOSE_ATTEMPTS time
   assert.ok(d.toOperator().has(request().id))
 })
 
-test('iteration 3, ER-2: runs Switchboard cannot report on count as empty, so the stop after two holds', async () => {
+test('iteration 3, ER-2: runs Switchboard cannot report on count as empty, so the stop after three holds', async () => {
   const w = world()
   const d = createBoardDispatch(w.deps)
   await d.onPass()
-  for (const id of ['L1', 'L2']) {
+  for (const id of ['L1', 'L2', 'L3']) {
     w.runs.set(id, 'unknown')
     w.tick(60 * MIN + UNKNOWN_AFTER_END_MS + MIN); await d.onPass()
     w.tick(3 * MIN); await d.onPass()
   }
   for (let i = 0; i < 5; i++) { w.tick(30 * MIN); await d.onPass() }
-  assert.equal(w.launches.length, 2)
+  assert.equal(w.launches.length, 3)
   assert.ok(d.toOperator().has(request().id))
 })
 
@@ -551,10 +555,10 @@ test('CO-409 (FAA-213): closing a workflow a run already closed counts as closed
   }
   const d = createBoardDispatch(w.deps)
   await d.onPass()
-  for (let i = 0; i < 2; i++) { w.runs.set(`L${i + 1}`, 'ended'); w.tick(REFUSAL_BACKOFF_MS + MIN); await d.onPass() }
+  for (let i = 0; i < 3; i++) { w.runs.set(`L${i + 1}`, 'ended'); w.tick(REFUSAL_BACKOFF_MS + MIN); await d.onPass() }
   w.tick(MIN); await d.onPass(); w.tick(MIN); await d.onPass()
   const given = d.records().find((r) => r.outcome === 'to-operator')
-  assert.ok(given, 'two empty runs give the request to the operator')
+  assert.ok(given, 'three empty runs give the request to the operator')
   assert.equal(given.closed, true)
   assert.ok(!w.logs.some((l) => l.op === 'board.dispatch.closed' && l.outcome === 'failed'))
 })
@@ -782,7 +786,7 @@ test('CO-409 (the 0.3.16 review, ER-7): an accepted request past its deadline th
   assert.equal(d.toOperator().has(request().id), false)
 })
 
-test('CO-409 (ER-7): a request past due and one given up after two runs say which they are', async () => {
+test('CO-409 (ER-7): a request past due and one given up after three runs (CO-559) say which they are', async () => {
   const w = world({ requests: [request({ state: 'accepted', deadline: new Date(T0 - MIN).toISOString() })] })
   const d = createBoardDispatch(w.deps)
   await d.onPass()
@@ -791,7 +795,7 @@ test('CO-409 (ER-7): a request past due and one given up after two runs say whic
   const base = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', state: 'accepted', movedAt: new Date(T0 - DAY).toISOString(), answerUnreadSince: null, toOperator: true }
   const steps = (r) => findAbandoned({ now: T0, claims: [], tasks: [], requests: [r], terminals: [] }).filter((f) => f.kind === 'request-to-operator').map((f) => f.nextStep)
   assert.match(steps({ ...base, pastDue: true })[0], /passed its deadline/)
-  assert.match(steps(base)[0], /Two runs/)
+  assert.match(steps(base)[0], /Three runs/)
 })
 
 test('CO-409 (final candidate, NB-2): a start the switch ended after Switchboard was asked is asked again with the same dispatch id once the switch is back on', async () => {
@@ -1222,4 +1226,285 @@ test('CO-551: each reason a request is the operator\'s becomes the sweep\'s mark
   assert.deepEqual(toOperatorMarks('past-due'), { pastDue: true })
   assert.deepEqual(toOperatorMarks('relay'), { pastDue: false, remote: 'unposted' })
   assert.deepEqual(toOperatorMarks('remote-lost'), { pastDue: false, remote: 'lost' })
+})
+
+// CO-559 (§3.8 of the on-demand sessions spec): every addressee woken and watched. The operator, 2026-11-10: «Если нет
+// кодинга агента в проекте, которому идет задача, значит агент поднимается… если он не поднялся, поднимать насильно еще
+// раз. И валидация каждые 30 секунд.»
+const shared559 = await import(path.resolve(import.meta.dirname, '../src/shared/boardDispatch.ts'))
+const { ACCEPT_MS, SILENT_MS, KEEP_OPEN_MS, INBOX_CAPABILITY } = shared559
+const inboxItem = (over = {}) => ({ id: '33333333-3333-4333-8333-333333333333', thread: '44444444-4444-4444-8444-444444444444', state: 'queued',
+  target: 'p-target', capability: INBOX_CAPABILITY, submittedAt: new Date(T0 - 5 * MIN).toISOString(), deadline: new Date(T0 + 7 * DAY).toISOString(),
+  inbox: { unread: 3, oldestAt: new Date(T0 - 60 * MIN).toISOString() }, ...over })
+
+test('CO-559: an unread message to a project with no live session starts an inbox run with its own packet', async () => {
+  const w = world({ requests: [inboxItem()] })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  assert.equal(w.launches[0].request, inboxItem().id)
+  const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.match(open.body.goal, /Read every unread board message/)
+  assert.ok(open.body.constraints.some((c) => /com\.read_ack/.test(c)))
+  assert.ok(open.body.artifacts.some((a) => a.ref === `board-message:${inboxItem().id}`))
+  assert.ok(open.body.artifacts.some((a) => a.ref === `capability:${INBOX_CAPABILITY}`))
+  assert.ok(!open.body.artifacts.some((a) => a.ref.startsWith('board-request:')))
+  assert.equal(d.records()[0].inbox, true)
+  // A live session in the project, or the grace not yet passed, starts nothing.
+  for (const over of [{ session: true }, { requests: [inboxItem({ submittedAt: new Date(T0 - MIN).toISOString() })] }]) {
+    const v = world({ requests: [inboxItem()], ...over })
+    await createBoardDispatch(v.deps).onPass()
+    assert.equal(v.launches.length, 0, JSON.stringify(over))
+  }
+})
+
+test('CO-559: an inbox run ends finished once its message is read; a newer message starts a fresh run with no empty runs carried', async () => {
+  const w = world({ requests: [inboxItem()] })
+  const read = new Map()
+  w.deps.inboxState = async (id) => read.get(id) ?? 'queued'
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.runs.set('L1', 'ended'); read.set(inboxItem().id, 'answered')
+  w.tick(3 * MIN); w.requests = []; await d.onPass()
+  assert.equal(d.records()[0].outcome, 'finished')
+  // A run that ends with its message still unread counts empty; one for another message of the project starts at 0.
+  const next = inboxItem({ id: '55555555-5555-4555-8555-555555555555', submittedAt: new Date(T0).toISOString() })
+  w.requests = [next]; w.tick(3 * MIN); await d.onPass()
+  assert.equal(w.launches.length, 2)
+  assert.equal(d.records()[1].emptyRuns, 0)
+  w.runs.set('L2', 'ended'); w.tick(3 * MIN); await d.onPass()
+  assert.equal(d.records()[1].outcome, 'exited-without-answer')
+  assert.equal(d.records()[1].emptyRuns, 1)
+  assert.equal(w.launches.length, 3, 'started again for the same message')
+})
+
+test('CO-559: a project runs one session at a time, a request and its inbox included', async () => {
+  const w = world({ requests: [request(), inboxItem()] })
+  await createBoardDispatch(w.deps).onPass()
+  assert.equal(w.launches.length, 1)
+})
+
+test('CO-559: a run whose session never took the hand-over is stopped and started again by force', async () => {
+  const w = world()
+  const stops = []
+  w.deps.stop = async (id) => { stops.push(id); return 'stopped' }
+  const real = w.deps.observatory
+  let status = 'offered'
+  w.deps.observatory = async (name, args) => (name === 'observatory_handoff_get' ? { status } : real(name, args))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.tick(ACCEPT_MS - MIN); await d.onPass()
+  assert.equal(stops.length, 0, 'not before ACCEPT_MS')
+  w.tick(2 * MIN); await d.onPass()
+  assert.deepEqual(stops, ['L1'])
+  const r = d.records()[0]
+  assert.deepEqual([r.state, r.outcome, r.emptyRuns], ['ended', 'not-taken', 1])
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.restarted' && l.detail.why === 'not-taken'))
+  w.tick(3 * MIN); await d.onPass()
+  assert.equal(w.launches.length, 2, 'started again')
+  // An accepted offer is alive: nothing is stopped.
+  status = 'accepted'
+  w.tick(ACCEPT_MS + MIN); await d.onPass()
+  assert.equal(stops.length, 1)
+})
+
+test('CO-559: a run whose workflow stopped writing is stopped as silent; a fresh checkpoint or no evidence stops nothing', async () => {
+  for (const [written, expect] of [[T0 - 2 * SILENT_MS, 'silent'], [null, null], ['fresh', null]]) {
+    const w = world()
+    const stops = []
+    w.deps.stop = async (id) => { stops.push(id); return 'stopped' }
+    const real = w.deps.observatory
+    w.deps.observatory = async (name, args) => {
+      if (name === 'observatory_handoff_get') return { status: 'accepted' }
+      if (name === 'observatory_checkpoint_latest') return written === null ? {} : { checkpoint: { createdAt: new Date(written === 'fresh' ? w.deps.now() - MIN : written).toISOString() } }
+      return real(name, args)
+    }
+    const d = createBoardDispatch(w.deps)
+    await d.onPass()
+    w.tick(SILENT_MS + MIN); await d.onPass()
+    assert.equal(stops.length, expect ? 1 : 0, String(written))
+    if (expect) assert.equal(d.records()[0].outcome, 'silent')
+  }
+  // Without any read of the offer (a stand-in that names nothing), nothing is stopped either.
+  const v = world(); const stops = []
+  v.deps.stop = async (id) => { stops.push(id); return 'stopped' }
+  const dv = createBoardDispatch(v.deps)
+  await dv.onPass(); v.tick(2 * SILENT_MS); await dv.onPass()
+  assert.equal(stops.length, 0)
+})
+
+test('CO-559: a settled item is never stopped as dead, and a stop Switchboard refuses is asked again', async () => {
+  const w = world()
+  let answer = 'failed'
+  const stops = []
+  w.deps.stop = async (id) => { stops.push(id); return answer }
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => (name === 'observatory_handoff_get' ? { status: 'offered' } : real(name, args))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.tick(ACCEPT_MS + MIN); await d.onPass()
+  assert.equal(d.records()[0].state, 'running', 'a refused stop leaves it running')
+  answer = 'stopped'
+  w.tick(MIN); await d.onPass()
+  assert.equal(d.records()[0].outcome, 'not-taken')
+  const v = world()
+  v.deps.stop = async () => { throw new Error('must not stop') }
+  v.deps.observatory = async (name, args) => (name === 'observatory_handoff_get' ? { status: 'offered' } : w.deps.observatory(name, args))
+  const dv = createBoardDispatch(v.deps)
+  await dv.onPass()
+  v.states.set(request().id, 'completed')
+  v.tick(ACCEPT_MS + MIN); await dv.onPass()
+  assert.equal(dv.records()[0].state, 'running', 'its own end, not the liveness check, ends it')
+})
+
+test('CO-559: the workflow of a run that ended with its item open is closed after KEEP_OPEN_MS, switch on or off, and the next run opens a new one', async () => {
+  for (const on of [true, false]) {
+    const w = world({ refuse: 'no_agent' })
+    const d = createBoardDispatch(w.deps)
+    await d.onPass()
+    assert.equal(d.records()[0].outcome, 'refused')
+    // The item leaves the read (no further run takes the workflow), unsettled.
+    w.on = on; w.requests = []
+    w.tick(KEEP_OPEN_MS - MIN); await d.onPass()
+    assert.ok(!w.calls.some(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true), 'kept for the next run first')
+    w.tick(2 * MIN); await d.onPass()
+    const close = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true)
+    assert.ok(close, `closed (switch ${on ? 'on' : 'off'})`)
+    assert.equal(close[1].stepId, 'expired')
+    assert.equal(d.records()[0].closed, true)
+    if (!on) continue
+    w.refuse = null; w.requests = [request()]
+    const opensBefore = w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length
+    w.tick(REFUSAL_BACKOFF_MAX_MS); await d.onPass()
+    assert.equal(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length, opensBefore + 1, 'a new workflow')
+  }
+})
+
+test('CO-559: a refusal\'s back-off is the project\'s inbox, so a newer message does not start a run sooner', async () => {
+  const w = world({ requests: [inboxItem()], refuse: 'no_agent' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  w.requests = [inboxItem({ id: '55555555-5555-4555-8555-555555555555', submittedAt: new Date(T0 - 3 * MIN).toISOString() })]
+  w.tick(MIN); await d.onPass()
+  assert.equal(w.launches.length, 1, 'the back-off holds across the project\'s messages')
+  w.tick(REFUSAL_BACKOFF_MS); await d.onPass()
+  assert.equal(w.launches.length, 2)
+})
+
+test('CO-559: the inbox read becomes one item per project, its deadline the newest message plus the board\'s week; a failed read throws', async () => {
+  const { readInboxItems } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  const newest = { id: '33333333-3333-4333-8333-333333333333', thread: '44444444-4444-4444-8444-444444444444', at: '2026-11-10T21:42:44.000Z', kind: 'message' }
+  let since = null
+  const items = await readInboxItems({ inbox: async (_e, s) => { since = s; return { ok: true, more: false, projects: [{ project: 'p-x', unread: 2, oldestAt: '2026-11-10T20:00:00.000Z', newest }] } } }, 'e1', T0)
+  assert.equal(since, new Date(T0 - 7 * DAY).toISOString())
+  assert.deepEqual(items, [{ id: newest.id, thread: newest.thread, state: 'queued', target: 'p-x', capability: INBOX_CAPABILITY, submittedAt: newest.at,
+    deadline: new Date(Date.parse(newest.at) + 7 * DAY).toISOString(), inbox: { unread: 2, oldestAt: '2026-11-10T20:00:00.000Z' } }])
+  await assert.rejects(readInboxItems({ inbox: async () => ({ ok: false, error: { code: 'unavailable', message: 'down' } }) }, 'e1', T0), /inboxes could not be read/)
+})
+
+test('CO-559: an inbox item given to the operator is handed to the sweep with its project, and marked as an inbox', async () => {
+  const w = world({ requests: [inboxItem()] })
+  const d = createBoardDispatch(w.deps)
+  for (const id of ['L1', 'L2', 'L3']) { await d.onPass(); w.runs.set(id, 'ended'); w.tick(3 * MIN) }
+  await d.onPass()
+  assert.equal(w.launches.length, 3)
+  assert.equal(d.toOperator().get(inboxItem().id), 'inbox')
+  assert.deepEqual(d.inboxGiven().map((g) => [g.messageId, g.projectId]), [[inboxItem().id, 'p-target']])
+  assert.match(d.inboxGiven()[0].at, /Z$/)
+})
+
+test('CO-559 review: the liveness checks count from the launch, not the record, and a live attempt is alive', async () => {
+  const w = world()
+  const stops = []
+  w.deps.stop = async (id) => { stops.push(id); return 'stopped' }
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => (name === 'observatory_handoff_get' ? { status: 'offered' } : real(name, args))
+  let launches = 0
+  w.deps.launch = async (args) => { w.launches.push(args); launches++; return launches < 3 ? { refused: 'failed' } : { launchId: 'L1' } }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass(); w.tick(3 * MIN); await d.onPass(); w.tick(3 * MIN); await d.onPass()
+  assert.equal(d.records()[0].state, 'running')
+  w.tick(MIN); await d.onPass()
+  assert.equal(stops.length, 0, 'six minutes after the record, one after the launch')
+  w.tick(ACCEPT_MS); await d.onPass()
+  assert.equal(stops.length, 1)
+  // A request whose attempt holds its lease is never taken as dead.
+  const v = world({ requests: [request({ state: 'accepted', attemptLive: true })] })
+  const vstops = []
+  v.deps.stop = async (id) => { vstops.push(id); return 'stopped' }
+  v.deps.observatory = async (name, args) => (name === 'observatory_handoff_get' ? { status: 'offered' } : real(name, args))
+  v.deps.load = () => [{ requestId: request().id, projectId: 'p-target', dispatchId: 'd', workflowId: 'wf_0123456789abcdef', handoffId: 'handoff:1', launchId: 'L9', startedAt: T0 - 30 * MIN, launchedAt: T0 - 30 * MIN, endsAt: new Date(T0 + 30 * MIN).toISOString(), state: 'running', emptyRuns: 0 }]
+  const dv = createBoardDispatch(v.deps)
+  await dv.onPass()
+  assert.deepEqual(vstops, [])
+  assert.equal(dv.records()[0].state, 'running')
+})
+
+test('CO-559 review: an inbox run that takes over the project\'s workflow is the only one that closes it', async () => {
+  const w = world({ requests: [inboxItem()] })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.runs.set('L1', 'ended'); w.tick(3 * MIN)
+  w.requests = [inboxItem({ id: '55555555-5555-4555-8555-555555555555', submittedAt: new Date(T0 - 3 * MIN).toISOString() })]
+  await d.onPass()
+  assert.equal(w.launches.length, 2)
+  assert.equal(d.records()[0].closed, true, 'the older record no longer closes the shared workflow')
+  w.tick(KEEP_OPEN_MS + MIN); await d.onPass()
+  assert.ok(!w.calls.some(([n, a]) => n === 'observatory_checkpoint_write' && a.close === true), 'nothing closed under the running run')
+})
+
+test('CO-559 review: a trickle of messages cannot start runs for ever, and the operator sees one row per project', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  const ids = ['55555555-5555-4555-8555-55555555555', '66666666-6666-4666-8666-66666666666', '77777777-7777-4777-8777-77777777777', '88888888-8888-4888-8888-88888888888']
+  for (const [i, prefix] of ids.entries()) {
+    w.requests = [inboxItem({ id: `${prefix}${i}`, submittedAt: new Date(w.deps.now() - 3 * MIN).toISOString() })]
+    await d.onPass()
+    w.runs.set(`L${i + 1}`, 'ended'); w.tick(3 * MIN)
+  }
+  await d.onPass()
+  assert.equal(w.launches.length, 3, 'three empty runs across messages, then the operator')
+  assert.equal(d.inboxGiven().length, 1, 'one row for the project')
+  assert.equal(d.inboxGiven()[0].messageId, w.requests[0].id)
+  // A newer message gets one more run, then is given too: still one row.
+  w.requests = [inboxItem({ id: '99999999-9999-4999-8999-999999999999', submittedAt: new Date(w.deps.now() - 3 * MIN).toISOString() })]
+  await d.onPass()
+  assert.equal(w.launches.length, 4)
+  w.runs.set('L4', 'ended'); w.tick(3 * MIN); await d.onPass(); w.tick(MIN); await d.onPass()
+  assert.equal(w.launches.length, 4)
+  assert.deepEqual(d.inboxGiven().map((g) => g.messageId), [w.requests[0].id])
+  // A message read since leaves «На проверке».
+  w.requests = []; await d.onPass()
+  assert.equal(d.inboxGiven().length, 0)
+})
+
+test('CO-559 review: a start the switch ended is not asked again once its workflow was closed', async () => {
+  const w = world()
+  w.deps.launch = async (args) => { w.launches.push(args); return { refused: 'failed' } }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.on = false; w.tick(MIN); await d.onPass()
+  w.tick(KEEP_OPEN_MS + MIN); await d.onPass()
+  assert.equal(d.records()[0].closed, true)
+  w.on = true; w.deps.launch = async (args) => { w.launches.push(args); return { launchId: 'L2' } }
+  w.tick(MIN); await d.onPass()
+  const started = d.records().filter((r) => r.launchId)
+  assert.ok(started.every((r) => r.workflowId && !(r.closed && r.state !== 'ended')), 'no run on a closed workflow')
+  assert.notEqual(d.records()[0].state, 'starting')
+})
+
+test('CO-559 review: an inbox message is answered once its project has nothing left unread, else by its read marks; an inbox not read says nothing', async () => {
+  const { createInboxState } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  let reads = 0
+  const s = createInboxState(async (ids) => { reads++; return { ok: true, requests: {}, messages: { [ids[0]]: { readBy: ids[0] === 'm-read' ? ['p1'] : [] } } } })
+  assert.equal(await s.state('m1', 'p1'), null, 'before any read')
+  s.reset(null)
+  assert.equal(await s.state('m1', 'p1'), null, 'the inbox read failed this pass')
+  s.reset([inboxItem({ target: 'p1' })])
+  assert.equal(await s.state('m1', 'p2'), 'answered', 'p2 has nothing unread')
+  assert.equal(await s.state('m1', 'p1'), 'queued')
+  assert.equal(await s.state('m-read', 'p1'), 'answered')
+  await s.state('m1', 'p1')
+  assert.equal(reads, 2, 'each message\'s marks are read once a pass')
 })

@@ -33,6 +33,8 @@ import {
   type CommsPageThread,
   type CommsPending,
   type CommsPendingReply,
+  type CommsInbox,
+  type CommsInboxReply,
   type CommsPrincipal,
   type CommsReadError,
   type CommsRelatedReply,
@@ -264,6 +266,13 @@ function hitOf(v: unknown): CommsSearchHit | null {
   return out
 }
 
+function inboxOf(v: unknown): CommsInbox | null {
+  if (!isObj(v) || !isUuid(v.project) || typeof v.oldestAt !== 'string' || !isInt(v.unread) || v.unread < 1) return null
+  const n = v.newest
+  if (!isObj(n) || !isUuid(n.id) || !isUuid(n.thread) || typeof n.at !== 'string' || (n.kind !== 'message' && n.kind !== 'finding' && n.kind !== 'reply')) return null
+  return { project: v.project, unread: v.unread, oldestAt: v.oldestAt, newest: { id: n.id, thread: n.thread, at: n.at, kind: n.kind } }
+}
+
 function pendingOf(v: unknown): CommsPending | null {
   if (!isObj(v) || !isUuid(v.project) || typeof v.oldestAt !== 'string') return null
   for (const k of ['unread', 'findings', 'requests', 'requestsWithAbsentResponder'] as const) if (!isInt(v[k]) || (v[k] as number) < 0) return null
@@ -483,6 +492,14 @@ export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
     async pending(estateId: string): Promise<CommsPendingReply> {
       return answer('board_pending_operator', { p_estate: estateId, p_limit: 100 }, 'what waits', (d) => {
         const projects = every(d.projects, pendingOf)
+        return projects && typeof d.more === 'boolean' ? { ok: true as const, projects, more: d.more } : null
+      })
+    },
+
+    /** CO-559 (§3.8): each Project's unread board messages since `since`, for the dispatcher's inbox items. */
+    async inbox(estateId: string, since: string): Promise<CommsInboxReply> {
+      return answer('board_inbox_operator', { p_estate: estateId, p_since: since, p_limit: 200 }, 'the inboxes', (d) => {
+        const projects = every(d.projects, inboxOf)
         return projects && typeof d.more === 'boolean' ? { ok: true as const, projects, more: d.more } : null
       })
     },

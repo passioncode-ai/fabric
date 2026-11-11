@@ -13,24 +13,28 @@ const THREADS = 50
 const PAGES = 3
 const PREVIEW = 220
 
-type Read = { at: 'reading' } | { at: 'ready'; items: AnnouncementStatus[]; capped: boolean } | { at: 'failed' }
+/** 0.3.19 scenario walk (SCN-178): `cut` when the thread holds more messages than were read, so a project not seen to
+ *  answer may have answered past them. */
+type Read = { at: 'reading' } | { at: 'ready'; items: Array<AnnouncementStatus & { cut: boolean }>; capped: boolean } | { at: 'failed' }
 
 const ANSWER: Record<AnswerType, 'launch.comms.ann.adapted' | 'launch.comms.ann.row' | 'launch.comms.ann.notAffected' | 'launch.comms.ann.replied'> = {
   adapted: 'launch.comms.ann.adapted', row: 'launch.comms.ann.row', 'not-affected': 'launch.comms.ann.notAffected', replied: 'launch.comms.ann.replied'
 }
 
 /** One thread's messages, at most PAGES pages; null when the board did not answer. */
-async function messagesOf(thread: string): Promise<CommsMessage[] | null> {
+async function messagesOf(thread: string): Promise<{ msgs: CommsMessage[]; cut: boolean } | null> {
   const all: CommsMessage[] = []
   let after = 0
+  let cut = false
   for (let page = 0; page < PAGES; page++) {
     const reply = await window.fabric.comms.list(thread, after, 100)
     if (!reply.ok) return null
     all.push(...reply.messages)
     if (!reply.more || reply.lastSeq <= after) break
     after = reply.lastSeq
+    cut = page === PAGES - 1
   }
-  return all
+  return { msgs: all, cut }
 }
 
 export function CommsAnnouncements({ mark, nameOf, onOpen }: {
@@ -52,11 +56,11 @@ export function CommsAnnouncements({ mark, nameOf, onOpen }: {
         const page = await window.fabric.comms.threadPage({ kind: 'announcement' }, null, THREADS)
         if (!page.ok) { if (alive) setRead({ at: 'failed' }); return }
         threads.current = page.threads
-        const items: AnnouncementStatus[] = []
+        const items: Array<AnnouncementStatus & { cut: boolean }> = []
         for (const th of page.threads) {
-          const msgs = await messagesOf(th.id)
-          if (!msgs) { if (alive) setRead({ at: 'failed' }); return }
-          items.push(...announcementsOf(th, msgs))
+          const read = await messagesOf(th.id)
+          if (!read) { if (alive) setRead({ at: 'failed' }); return }
+          items.push(...announcementsOf(th, read.msgs).map((a) => ({ ...a, cut: read.cut })))
         }
         items.sort((a, b) => b.at.localeCompare(a.at))
         if (alive) setRead({ at: 'ready', items, capped: page.more })
@@ -100,7 +104,7 @@ export function CommsAnnouncements({ mark, nameOf, onOpen }: {
                 <span className="lc-text">{text.length > PREVIEW ? text.slice(0, PREVIEW).trimEnd() + '…' : text}</span>
               </button>
               <ul className="lc-answers">
-                {waiting.map((p) => <li key={p.project} className="lc-waiting">{nameOf(p.project)}: {t('launch.comms.ann.waiting')}</li>)}
+                {waiting.map((p) => <li key={p.project} className="lc-waiting">{nameOf(p.project)}: {a.cut ? t('launch.comms.ann.unseen', { count: PAGES * 100 }) : t('launch.comms.ann.waiting')}</li>)}
                 {a.participants.filter((p) => p.answer).map((p) => <li key={p.project}>{nameOf(p.project)}: {t(ANSWER[p.answer!.type])}</li>)}
               </ul>
             </li>
