@@ -161,10 +161,24 @@ export function runStateOf(launch: { state?: string; ended?: unknown } | undefin
 }
 
 // #region board-dispatch-remote-wiring — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a
-/** `switchboard --json dispatch …` for one start; `--target <machine>` when the run goes to another machine (CO-551). */
-export function dispatchArgs(a: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string }): string[] {
+/** `switchboard --json dispatch …` for one start; `--target <machine>` when the run goes to another machine (CO-551);
+ *  `--reason inbox` for an inbox run when the installed Switchboard takes it (`takesInbox`, CO-559), else `request`. */
+export function dispatchArgs(a: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string; reason?: 'request' | 'inbox' }, takesInbox = false): string[] {
+  const reason = a.reason === 'inbox' && takesInbox && !a.target ? 'inbox' : 'request'
   return ['--json', 'dispatch', '--dir', a.dir, '--workflow', a.workflow, '--handoff', a.handoff, '--request', a.request, '--dispatch-id', a.dispatchId,
-    '--reason', 'request', '--permissions', 'all', '--timeout-minutes', String(a.timeoutMinutes), ...(a.target ? ['--target', a.target] : [])]
+    '--reason', reason, '--permissions', 'all', '--timeout-minutes', String(a.timeoutMinutes), ...(a.target ? ['--target', a.target] : [])]
+}
+
+/** The first Switchboard whose `dispatch` takes `--reason inbox` and its inbox exit contract (SB-338). */
+export const INBOX_REASON_SINCE = [0, 7, 56] as const
+/** Whether `switchboard --version`'s answer ("switchboard 0.7.56") names a version that takes `--reason inbox`. An
+ *  answer that names no version is no: an older Switchboard would refuse the argument and start nothing. */
+export function takesInboxReason(versionText: string): boolean {
+  const m = /(\d+)\.(\d+)\.(\d+)/.exec(versionText)
+  if (!m) return false
+  const v = [Number(m[1]), Number(m[2]), Number(m[3])]
+  for (let i = 0; i < 3; i++) if (v[i] !== INBOX_REASON_SINCE[i]) return v[i] > INBOX_REASON_SINCE[i]
+  return true
 }
 
 const REMOTE_STATES: ReadonlySet<string> = new Set(['running', 'exited', 'stopped', 'timed_out', 'lost', 'unknown'])
@@ -272,7 +286,9 @@ export function wireBoardDispatch(o: {
       const sb = await bin('switchboard')
       if (!sb) return { refused: 'switchboard_absent' }
       try {
-        const out = JSON.parse(await run(sb, dispatchArgs(a), await envWith())) as { data?: { launch_id?: string; state?: string; reason?: string } }
+        // CO-559: the version is read for an inbox run only; a version that cannot be read keeps `request`.
+        const takesInbox = a.reason === 'inbox' ? takesInboxReason(await run(sb, ['--version'], await envWith()).catch(() => '')) : false
+        const out = JSON.parse(await run(sb, dispatchArgs(a, takesInbox), await envWith())) as { data?: { launch_id?: string; state?: string; reason?: string } }
         const d = out.data ?? {}
         if (d.state === 'refused' || !d.launch_id) return { refused: d.reason ?? 'refused' }
         return { launchId: d.launch_id }

@@ -125,7 +125,7 @@ Before starting anything the dispatcher checks, in order, and records which chec
 |---|---|---|
 | The switch «Запускать агента, когда проекту пишут на доске, а открытой сессии проекта нет» (Settings; named for requests alone until 0.3.19) | on | `skipped-off` (as built in 0.3.16 the dispatcher does not decide with the switch off, so nothing is recorded; §10) |
 | P has a folder on this machine | required | `skipped-no-folder` (the request stays queued; another machine may take it) |
-| At most N on-demand sessions running on this machine | N = 2 | `deferred-cap` (tried again on the next cycle) |
+| At most N on-demand sessions running on this machine | N = 3 (2 until 2026-11-11: sixteen projects then waited on two slots under §3.8; `shared/boardDispatch.ts#DISPATCH_DEFAULTS`) | `deferred-cap` (tried again on the next cycle) |
 | At most 1 per project | 1 | `deferred-project-busy` |
 | At most D started runs per project in the last 24 hours (a refused or unstarted start does not count) | D = 20 | `skipped-daily-cap` |
 | Switchboard answers and has a default agent with room | required | `deferred-no-agent` |
@@ -338,10 +338,15 @@ CO-556, 49 requests `queued`, 65 projects with unread board messages, and five d
    is settled once its message is read by the Project (`inboxState`, from the message's read marks). A Project's empty
    runs and the back-off after a refused start are counted across its messages until a run reads them; only the
    operator's mark belongs to one message, and a newer message gets one more run (0.3.19 review, iteration 1, ER-2).
-   Switchboard starts every run under its own instructions for one board request (fabric-switchboard
-   `dispatch.rs#EXIT_CONTRACT`, `--reason request`, the only reason it takes); the packet tells an inbox run to read
-   that request as its unread messages, settled by `com.read_ack`, and never to claim, accept or complete them
-   (iteration 1, PL-1; a `--reason inbox` of Switchboard's own is asked of fabric-switchboard on the board). An inbox
+   Switchboard starts a request run under its own instructions for one board request (fabric-switchboard
+   `dispatch.rs#EXIT_CONTRACT`, `--reason request`); the packet tells an inbox run to read that request as its unread
+   messages, settled by `com.read_ack`, and never to claim, accept or complete them (iteration 1, PL-1). Since
+   Switchboard 0.7.56 (SB-338, board thread `c650e0aa`) an inbox run is started with `--reason inbox` and Switchboard's
+   `dispatch::INBOX_CONTRACT`, which says the same; Fabric passes it only when `switchboard --version` names 0.7.56 or
+   later and never with `--target`, and keeps `request` otherwise (`main/boardDispatchWiring.ts#dispatchArgs`,
+   `#takesInboxReason`; test `CO-551: the wiring passes --target …`). The packet names its message and thread as
+   `board-message:<uuid>` and `board-thread:<uuid>`, the references Observatory's redaction keeps (thread
+   `7ae9ac3a`). An inbox
    run always starts on this machine, also with a `dispatchTarget` named: a run on another machine has no
    `fabric-mcp` and could not read the board (§3.7; iteration 1, PL-2). A read of the inboxes cut at its 200 projects
    (`more`) never takes a Project it left out as answered: that Project's inbox run is judged by its message's own

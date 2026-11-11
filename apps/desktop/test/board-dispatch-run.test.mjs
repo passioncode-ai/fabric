@@ -1206,6 +1206,15 @@ test('CO-551: the wiring passes --target, reads dispatch status and answers thro
   const a = { dir: '/w/p', workflow: WF, handoff: HANDOFF, request: request().id, dispatchId: 'd-1', timeoutMinutes: 60 }
   assert.deepEqual(dispatchArgs(a).slice(-2), ['--timeout-minutes', '60'])
   assert.deepEqual(dispatchArgs({ ...a, target: 'studio' }).slice(-2), ['--target', 'studio'])
+  // CO-559: `--reason inbox` only for an inbox run, only on a Switchboard that takes it, never with a target.
+  const reasonOf = (args) => args[args.indexOf('--reason') + 1]
+  assert.equal(reasonOf(dispatchArgs(a, true)), 'request')
+  assert.equal(reasonOf(dispatchArgs({ ...a, reason: 'inbox' }, false)), 'request')
+  assert.equal(reasonOf(dispatchArgs({ ...a, reason: 'inbox' }, true)), 'inbox')
+  assert.equal(reasonOf(dispatchArgs({ ...a, reason: 'inbox', target: 'studio' }, true)), 'request')
+  const { takesInboxReason } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  assert.deepEqual(['switchboard 0.7.54', 'switchboard 0.7.55', 'switchboard 0.7.56', 'switchboard 0.8.0', 'switchboard 1.0.0', 'switchboard 0.6.99', '', 'no version'].map(takesInboxReason),
+    [false, false, true, true, true, false, false, false])
   assert.deepEqual(remoteStateOf({ data: { launch_id: 'L1', target: 'studio', state: 'exited', exit_code: 0, result: 'x', worktree: 'removed' } }), { state: 'exited', exitCode: 0, result: 'x' })
   assert.deepEqual(remoteStateOf({ data: { state: 'timed_out', exit_code: null, result: null } }), { state: 'timed_out', exitCode: null, result: null })
   // A state it does not know, or no data, is unknown: nothing is closed on it.
@@ -1243,8 +1252,11 @@ test('CO-559: an unread message to a project with no live session starts an inbo
   await d.onPass()
   assert.equal(w.launches.length, 1)
   assert.equal(w.launches[0].request, inboxItem().id)
+  assert.equal(w.launches[0].reason, 'inbox', 'an inbox run asks for the inbox exit contract (SB-338)')
   const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
   assert.match(open.body.goal, /Read every unread board message/)
+  // Observatory keeps `board-message:` and `board-thread:` references and redacts a bare UUID (thread 7ae9ac3a).
+  assert.ok(open.body.constraints.some((c) => c.includes(`message board-message:${inboxItem().id} in thread board-thread:`)))
   assert.ok(open.body.constraints.some((c) => /com\.read_ack/.test(c)))
   assert.ok(open.body.artifacts.some((a) => a.ref === `board-message:${inboxItem().id}`))
   assert.ok(open.body.artifacts.some((a) => a.ref === `capability:${INBOX_CAPABILITY}`))
@@ -1349,6 +1361,14 @@ test('CO-559: a run whose session never took the hand-over is stopped and starte
   assert.ok(w.logs.some((l) => l.op === 'board.dispatch.restarted' && l.detail.why === 'not-taken'))
   w.tick(3 * MIN); await d.onPass()
   assert.equal(w.launches.length, 2, 'started again')
+  // Observatory freezes the packet's board references at the opening write (OBS-323): every later write leaves them
+  // out, or a later run's newer references are refused with PacketFrozen.
+  const writes = w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && a.stepId === 'run-ends-at')
+  assert.ok(writes.length >= 2)
+  assert.ok(writes[0][1].body.artifacts.some((a) => a.ref.startsWith('board-request:')))
+  for (const [, a] of writes.slice(1)) {
+    assert.deepEqual(a.body.artifacts.map((x) => x.ref.split(':')[0]), ['run-ends-at'], 'only run-ends-at after the opening write')
+  }
   // An accepted offer is alive: nothing is stopped.
   status = 'accepted'
   w.tick(ACCEPT_MS + MIN); await d.onPass()

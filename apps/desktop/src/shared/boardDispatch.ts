@@ -52,7 +52,9 @@ export interface DispatchLimits {
   /** A run's time limit in minutes, cut to the board's deadline when it is earlier (§3.6). */
   runMinutes: number
 }
-export const DISPATCH_DEFAULTS: Readonly<DispatchLimits> = { maxOnMachine: 2, maxPerProject: 1, maxPerProjectPerDay: 20, runMinutes: 60 }
+// maxOnMachine 3 since 2026-11-11 (was 2): sixteen projects waited on two slots under CO-559's always-wake rule while the
+// machine's load stayed near its core count; 3, not more, because tests inside runs made the earlier load peak.
+export const DISPATCH_DEFAULTS: Readonly<DispatchLimits> = { maxOnMachine: 3, maxPerProject: 1, maxPerProjectPerDay: 20, runMinutes: 60 }
 
 /** The agent a run starts as Switchboard names it (`dispatch_agent`), which is also the hand-over's provider: the
  *  session accepts the offer as this id, so the offer must name it (CO-556, the on-demand spec §3.5). */

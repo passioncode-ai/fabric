@@ -13,7 +13,7 @@ import test from 'node:test'
 const SRC = path.resolve(import.meta.dirname, '../src/main')
 // CO-528: the hub client's fetch is the checked one; these tests stand a stub in through the transport's fetch seam.
 const viaGlobalFetch = async () => (await import(path.join(SRC, 'fabricMcpClient.ts'))).httpTransportWith((input, init) => globalThis.fetch(input, init))
-const { FabricMcpProxy, WAITING_TOOL, BACKOFF_MS, classifyFailure, runtimeSessionIdOf } = await import(path.join(SRC, 'fabricMcp.ts'))
+const { FabricMcpProxy, WAITING_TOOL, ENROLL_WAIT_MS, BACKOFF_MS, classifyFailure, runtimeSessionIdOf } = await import(path.join(SRC, 'fabricMcp.ts'))
 const clientModule = async () => await import(path.join(SRC, 'fabricMcpClient.ts'))
 
 const LIVE = { ok: true, origin: 'http://127.0.0.1:47070', mcpUrl: 'http://127.0.0.1:47070/mcp', doorToken: 'D'.repeat(43), pid: 1 }
@@ -66,7 +66,7 @@ function harness({ hub = LIVE, store = memCreds(), statuses = ['pending', 'allow
     runner: 'claude-code', cwd: '/Users/me/DATA/site',
     locate: () => hub, store,
     hubCall, openSession: async (url, bearer) => { opened.push(bearer); return link },
-    sleep: async (ms) => { slept.push(ms) }, log: (l) => logs.push(l), pollMs: 0, random: () => 0, ...extra
+    sleep: async (ms) => { slept.push(ms) }, log: (l) => logs.push(l), pollMs: 0, random: () => 0, enrollWaitMs: 0, ...extra
   })
   proxy.onToolsChanged = () => { changed++ }
   return { proxy, calls, opened, link, store, logs, slept, get changed() { return changed } }
@@ -126,6 +126,40 @@ test('first start: the door names the project, the operator is asked once with t
   assert.equal(h.store.kept.size, 0, 'a decided request is not kept')
   assert.deepEqual((await h.proxy.tools()).map((t) => t.name), ['fabric_whoami', 'fabric_tasks_list'])
   assert.equal((await h.proxy.call('fabric_tasks_list', {})).content[0].text, 'real fabric_tasks_list')
+})
+
+test('CO-563: the first tools/list waits for an enrollment under way, so a `-p` session that reads it once gets the board', async () => {
+  let open
+  const gate = new Promise((r) => { open = r })
+  const h = harness({ store: memCreds([CRED]), extra: { enrollWaitMs: 5_000 } })
+  const opening = h.proxy.deps.openSession
+  h.proxy.deps.openSession = async (url, bearer) => { await gate; return opening(url, bearer) }
+  const connecting = h.proxy.connectOnce()
+  const listing = h.proxy.tools()
+  setTimeout(open, 20)
+  assert.deepEqual((await listing).map((t) => t.name), ['fabric_whoami', 'fabric_tasks_list'], 'the list is the session\'s, not the waiting tool')
+  assert.equal((await connecting).kind, 'connected')
+  assert.equal(ENROLL_WAIT_MS, 10_000)
+})
+
+test('CO-563: the wait is bounded, and a state that is not an enrollment under way is answered at once', async () => {
+  const stuck = harness({ store: memCreds([CRED]), extra: { enrollWaitMs: 30 } })
+  stuck.proxy.deps.openSession = () => new Promise(() => {})
+  void stuck.proxy.connectOnce()
+  const t0 = Date.now()
+  assert.deepEqual((await stuck.proxy.tools()).map((t) => t.name), [WAITING_TOOL])
+  assert.ok(Date.now() - t0 < 1_000, 'bounded by enrollWaitMs')
+  const down = harness({ hub: { ok: false, code: 'not-running', reason: 'no hub.json' }, extra: { enrollWaitMs: 60_000 } })
+  assert.equal((await down.proxy.connectOnce()).kind, 'not-running')
+  const t1 = Date.now()
+  assert.deepEqual((await down.proxy.tools()).map((t) => t.name), [WAITING_TOOL])
+  assert.ok(Date.now() - t1 < 1_000, 'no wait once the state is known')
+  const closing = harness({ store: memCreds([CRED]), extra: { enrollWaitMs: 60_000 } })
+  closing.proxy.deps.openSession = () => new Promise(() => {})
+  void closing.proxy.connectOnce()
+  const pending = closing.proxy.tools()
+  await closing.proxy.close()
+  assert.deepEqual((await pending).map((t) => t.name), [WAITING_TOOL], 'closing releases a waiting list')
 })
 
 test('an immediate local allow is collected without a wait or an operator prompt', async () => {

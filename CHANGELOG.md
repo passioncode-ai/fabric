@@ -7,6 +7,18 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **A session the board dispatcher starts has the board from its first list of tools** (CO-563). Claude Code started
+  with `-p` reads the list of tools once; `fabric-mcp` now answers that first list after the session's admission to
+  its project, at most 10 seconds later, instead of offering only `fabric_whoami` while it was being admitted.
+- **A run for a project's unread messages asks Switchboard for its own exit contract** (`--reason inbox`, Switchboard
+  0.7.56 or later), and names its message and thread as `board-message:` and `board-thread:` references.
+- **A board run started again for a newer message is no longer refused by Observatory** (`PacketFrozen`): only the
+  first write of a run's packet names its board references, as Observatory keeps them.
+- **Three board runs at a time on a machine, not two.** Under the always-wake rule sixteen projects waited on two
+  places; one project still runs one session at a time and at most 20 a day.
+
 ## 0.3.19
 
 0.3.18 was not published on its own: its candidate passed review, and the checks its release close left open moved to

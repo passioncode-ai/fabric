@@ -83,6 +83,8 @@ export interface ProxyDeps {
   log(line: string): void
   /** How often a waiting request is polled. */
   pollMs?: number
+  /** CO-563: how long a tools/list or a call waits for an enrollment already under way; `ENROLL_WAIT_MS` by default. */
+  enrollWaitMs?: number
   /** Monotonic clock for server-directed rate-limit deadlines; defaults to performance.now(). */
   now?: () => number
   /** A draw in [0, 1) for the jitter added to a server's Retry-After; Math.random by default. */
@@ -396,6 +398,15 @@ export function backoffFor(kind: ProxyState['kind'], repeats: number, message?: 
 }
 // #endregion audit-038-backoff
 
+/**
+ * CO-563: how long the agent's tools/list (or a call) waits for an enrollment that is still under way before it is
+ * answered with the waiting tool alone. Claude Code run with `-p` (a session Fabric's board dispatcher starts) reads
+ * the list once and does not read it again on `notifications/tools/list_changed`, so a first list sent while the
+ * session was being admitted left that run with `fabric_whoami` and no board. An admission to the session's own
+ * project takes about a second; a hub that is down or a request the operator must decide leaves `starting` at once.
+ */
+export const ENROLL_WAIT_MS = 10_000
+
 export class FabricMcpProxy {
   state: ProxyState = { kind: 'starting' }
   private session: SessionLink | null = null
@@ -408,6 +419,8 @@ export class FabricMcpProxy {
   private pidRefusedBy: { origin: string; pid: number } | null = null
   private closed = false
   private closeWaiters = new Set<() => void>()
+  /** CO-563: lists and calls waiting for `starting` to end (`settled`). */
+  private settleWaiters = new Set<() => void>()
   /** Said before the state while there is no session: a credential handed over and lost, which needs a new Allow. */
   private notice: string | null = null
   /** Wakes the run loop out of its backoff (the agent called fabric_whoami). */
@@ -470,6 +483,7 @@ export class FabricMcpProxy {
   private set(state: ProxyState): ProxyState {
     const was = this.state.kind
     this.state = state
+    if (state.kind !== 'starting') for (const done of [...this.settleWaiters]) done()
     if (was !== state.kind) this.deps.log(`fabric-mcp: ${state.kind}${'reason' in state ? ` — ${state.reason}` : ''}`)
     if (state.kind === 'connected') this.notice = null
     return state
@@ -503,8 +517,20 @@ export class FabricMcpProxy {
     this.wake()
   }
 
+  /** CO-563: while an enrollment is under way and there is no session yet, wait for it to settle, at most `ms`. */
+  private async settled(ms: number): Promise<void> {
+    if (this.session || this.closed || this.state.kind !== 'starting' || ms <= 0) return
+    await new Promise<void>((resolve) => {
+      const done = (): void => { clearTimeout(timer); this.settleWaiters.delete(done); resolve() }
+      const timer = setTimeout(done, ms)
+      timer.unref?.()
+      this.settleWaiters.add(done)
+    })
+  }
+
   /** The tools the agent may call now. An McpError of a live session is thrown: the list is unknown, not empty. */
   async tools(): Promise<unknown[]> {
+    await this.settled(this.deps.enrollWaitMs ?? ENROLL_WAIT_MS)
     const remaining = this.cooldownRemaining()
     if (this.session && remaining) throw new FabricRateLimitError(remaining)
     const link = this.session
@@ -528,6 +554,7 @@ export class FabricMcpProxy {
   }
 
   async call(name: string, args: Record<string, unknown>): Promise<Record<string, unknown>> {
+    await this.settled(this.deps.enrollWaitMs ?? ENROLL_WAIT_MS)
     const remaining = this.cooldownRemaining()
     if (remaining) {
       // UX-3: what the hub said with its wait (a 503 `stack-starting` while Fabric starts its database), when it said it.
@@ -899,6 +926,7 @@ export class FabricMcpProxy {
   async close(): Promise<void> {
     this.closed = true
     for (const finish of this.closeWaiters) finish()
+    for (const done of [...this.settleWaiters]) done()
     this.wake()
     const s = this.session
     this.session = null
