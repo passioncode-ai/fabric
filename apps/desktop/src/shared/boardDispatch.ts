@@ -266,6 +266,31 @@ export function relayText(r: RunResult, machine: string): string {
 export function dispatchTargetOf(v: unknown): string | null {
   return typeof v === 'string' && /^[A-Za-z0-9_][A-Za-z0-9._@-]{0,252}$/.test(v) && v !== 'auto' ? v : null
 }
+/**
+ * The machines runs go to by the owner of the project's repository (`dispatchTargets`, set 2026-11-11 for a machine
+ * with one space per group of owners: a space holds those owners' checkouts). Keys are owner names, values ssh host names as `dispatchTargetOf` takes them; anything
+ * else is dropped, never guessed.
+ */
+export function dispatchTargetsOf(v: unknown): Record<string, string> {
+  const out: Record<string, string> = {}
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return out
+  for (const [owner, host] of Object.entries(v as Record<string, unknown>)) {
+    const target = dispatchTargetOf(host)
+    if (/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(owner) && target) out[owner.toLowerCase()] = target
+  }
+  return out
+}
+
+/** The owner of a git remote URL (`git@github.com:owner/name.git`, `https://host/owner/name`), lower case, or null. */
+export function remoteOwnerOf(url: string): string | null {
+  const m = /[:/]([A-Za-z0-9][A-Za-z0-9._-]*)\/[^/]+?(?:\.git)?\/?\s*$/.exec(url.trim())
+  return m ? m[1].toLowerCase() : null
+}
+
+/** The machine for one run: its owner's in `dispatchTargets`, else `dispatchTarget`, else this one (null). */
+export function targetForOwner(owner: string | null, targets: Record<string, string>, fallback: string | null): string | null {
+  return (owner && targets[owner]) || fallback
+}
 // #endregion board-dispatch-remote
 
 /** Switchboard's refusal codes (SB-247) as the checks of §3.3; an unknown code is a failure to start. */

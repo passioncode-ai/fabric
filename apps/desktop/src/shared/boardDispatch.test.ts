@@ -1,7 +1,7 @@
 // CO-409, wave 1: the dispatcher's decision. Spec: docs/evidence/specs/2026-11-04-on-demand-sessions.md (§3.1, §3.3,
 // §3.4, §3.5, §3.6).
 import { describe, expect, it } from 'vitest'
-import { sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
+import { sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, dispatchTargetsOf, remoteOwnerOf, targetForOwner, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
 
 const NOW = Date.parse('2026-11-04T15:00:00Z')
 const MIN = 60_000
@@ -208,5 +208,26 @@ describe('sessionLiveForDispatch (CO-559, the scenario walk)', () => {
     expect(sessionLiveForDispatch([{ lastSignAt: now - 5 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(true)
     expect(sessionLiveForDispatch([{ lastSignAt: now - 11 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(false)
     expect(sessionLiveForDispatch([{ lastSignAt: null, startedAt: now - 2 * MIN }], now, 10 * MIN)).toBe(true)
+  })
+})
+
+describe('dispatchTargets: the machine by the owner of the project\'s repository (2026-11-11)', () => {
+  it('keeps owner names and ssh hosts, drops anything else, and matches owners without case', () => {
+    expect(dispatchTargetsOf({ 'owner-a': 'node-a', 'Owner-C': 'node-b', bad: '-oProxyCommand=x', '': 'h', x: 'auto' }))
+      .toEqual({ 'owner-a': 'node-a', 'owner-c': 'node-b' })
+    expect(dispatchTargetsOf(['a'])).toEqual({})
+    expect(dispatchTargetsOf(null)).toEqual({})
+  })
+  it('reads the owner of ssh and https remotes', () => {
+    expect(remoteOwnerOf('git@github.com:owner-b/fabric.git')).toBe('owner-b')
+    expect(remoteOwnerOf('https://github.com/Owner-C/owner-d-data-agent')).toBe('owner-c')
+    expect(remoteOwnerOf('https://bitbucket.org/owner-e/esim.git\n')).toBe('owner-e')
+    expect(remoteOwnerOf('')).toBeNull()
+  })
+  it('takes the owner\'s machine, else the one fallback, else this machine', () => {
+    const t = { 'owner-a': 'node-a' }
+    expect(targetForOwner('owner-a', t, 'node-b')).toBe('node-a')
+    expect(targetForOwner('other', t, 'node-b')).toBe('node-b')
+    expect(targetForOwner(null, t, null)).toBeNull()
   })
 })

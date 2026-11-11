@@ -141,7 +141,7 @@ export interface DispatchDeps {
   observatory: ToolCall
   launch(args: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string; reason?: 'request' | 'inbox' }): Promise<{ launchId: string } | { refused: string }>
   /** CO-551: the machine Settings names for runs (`dispatchTarget`), or null for this one; absent, this one. */
-  remoteTarget?(): string | null
+  remoteTarget?(projectId: string): string | null | Promise<string | null>
   /** CO-551: a run on another machine as `switchboard dispatch status --json` says it; a failure reads `unknown`. */
   remoteState?(launchId: string): Promise<RemoteState>
   /** CO-551: the run's answer posted in the request's thread as the target project, through the operator's board door,
@@ -976,7 +976,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         startedAt: now, endsAt, state: 'starting', attempts: 0, emptyRuns: req.inbox ? inboxEmpty : last?.emptyRuns ?? 0,
         ...(req.inbox ? { inbox: true } : {}),
         // 0.3.19 review PL-2: an inbox run never goes to another machine; with no fabric-mcp there it cannot read the board.
-        ...((target) => (target && !req.inbox ? { target } : {}))(deps.remoteTarget?.() ?? null),
+        ...((target) => (target && !req.inbox ? { target } : {}))(req.inbox ? null : await Promise.resolve(deps.remoteTarget?.(req.target) ?? null).catch(() => null)),
         ...(Number.isFinite(Date.parse(req.deadline)) ? { until: Date.parse(req.deadline) } : {}) }
       if (deps.quitting?.()) {
         // ER-9: the app quits between opening the workflow and recording the start: nothing starts, and the workflow

@@ -16,7 +16,7 @@ import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake, type SettingsP
 import type { TabRef } from './tabs.ts'
 import { cleanOrder, type FallbackEntry } from './runnerRoute.ts'
 import { COMMS_THREAD_HEADS_LIMIT } from './commsRead.ts'
-import { dispatchTargetOf } from './boardDispatch.ts'
+import { dispatchTargetOf, dispatchTargetsOf } from './boardDispatch.ts'
 
 /** The working language from a settings read: an unreadable file names none, since unknown is not on (ER-3). */
 export function workingLanguageOfRead(read: { status: string; value: { locale: string; agentLanguage?: boolean } }): string | null {
@@ -168,6 +168,8 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     dispatchBoardRequests: raw.dispatchBoardRequests !== false,
     // CO-551: an ssh host name or none; anything else (an option, `auto`, a number) is none, never a guess.
     dispatchTarget: dispatchTargetOf(raw.dispatchTarget),
+    // By the owner of the project's repository, before `dispatchTarget` (2026-11-11, the Mac Studio's spaces).
+    dispatchTargets: dispatchTargetsOf(raw.dispatchTargets),
     firstRun: {
       completedAt:
         raw.firstRun !== null && typeof raw.firstRun === 'object' && !Array.isArray(raw.firstRun) &&

@@ -11,7 +11,7 @@ import { execFile } from 'node:child_process'
 import type { CommsFactsReply, CommsInboxReply, CommsMessage, CommsRespondersReply, CommsTimelineReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
 import { mandateOfRequest } from './boardMandate.ts'
-import { INBOX_CAPABILITY, type DispatchAgent } from '../shared/boardDispatch.ts'
+import { INBOX_CAPABILITY, remoteOwnerOf, targetForOwner, type DispatchAgent } from '../shared/boardDispatch.ts'
 import { createBoardDispatch, isDispatchRecord, noteOf, type DispatchDeps, type InboxGiven, type DispatchRecord, type OpenRequest, type RemoteState, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
@@ -160,6 +160,25 @@ export function runStateOf(launch: { state?: string; ended?: unknown } | undefin
   return code?.kind === 'exited' && typeof code.exit_code === 'number' && code.exit_code !== 0 ? 'crashed' : 'ended'
 }
 
+/**
+ * The machine a project's request run goes to (2026-11-11, the Mac Studio's spaces): the owner of its primary folder's
+ * `origin` in `targets`, else `fallback`. With no owner map the folder is not read at all; a folder whose remote cannot
+ * be read (no git, no origin, past its 5 s) takes the fallback.
+ */
+/** A project's folder on this computer: its primary repository first, the first that exists. */
+export async function primaryFolder(repos: (projectId: string) => Promise<Array<{ path: string; is_primary: boolean | null }>>, projectId: string): Promise<string | null> {
+  const rows = await repos(projectId)
+  const ordered = [...rows].sort((a, b) => Number(b.is_primary === true) - Number(a.is_primary === true))
+  return ordered.map((x) => x.path).find((p) => typeof p === 'string' && path.isAbsolute(p) && existsSync(p)) ?? null
+}
+
+export async function remoteTargetFor(folder: string | null, targets: Record<string, string>, fallback: string | null,
+  git: (dir: string) => Promise<string> = (dir) => run('git', ['-C', dir, 'remote', 'get-url', 'origin'], process.env)): Promise<string | null> {
+  if (!folder || Object.keys(targets).length === 0) return fallback
+  const url = await git(folder).catch(() => '')
+  return targetForOwner(remoteOwnerOf(url), targets, fallback)
+}
+
 // #region board-dispatch-remote-wiring — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a
 /** `switchboard --json dispatch …` for one start; `--target <machine>` when the run goes to another machine (CO-551);
  *  `--reason inbox` for an inbox run when the installed Switchboard takes it (`takesInbox`, CO-559), else `request`. */
@@ -217,7 +236,7 @@ export function wireBoardDispatch(o: {
   sessionLive: (projectId: string) => boolean
   switchOn: () => boolean
   /** CO-551: the machine Settings names for runs (`dispatchTarget`), or null. */
-  remoteTarget?: () => string | null
+  remoteTarget?: (projectId: string) => string | null | Promise<string | null>
   /** CO-551: the operator's board door for a Project, to post a run's answer as that Project. */
   board?: (projectId: string) => RelayBoard
   quitting: () => boolean
@@ -270,11 +289,7 @@ export function wireBoardDispatch(o: {
         && (!x.leaseExpiresAt || Date.parse(x.leaseExpiresAt) > now))
     },
     sessionLive: o.sessionLive,
-    async folderOf(projectId) {
-      const rows = await o.repos(projectId)
-      const ordered = [...rows].sort((a, b) => Number(b.is_primary === true) - Number(a.is_primary === true))
-      return ordered.map((x) => x.path).find((p) => typeof p === 'string' && path.isAbsolute(p) && existsSync(p)) ?? null
-    },
+    folderOf: (projectId) => primaryFolder(o.repos, projectId),
     async defaultProvider() {
       const sb = await bin('switchboard')
       if (!sb) return null
@@ -321,7 +336,7 @@ export function wireBoardDispatch(o: {
         return 'unknown'
       }
     },
-    remoteTarget: () => o.remoteTarget?.() ?? null,
+    remoteTarget: (projectId) => o.remoteTarget?.(projectId) ?? null,
     async remoteState(launchId) {
       const sb = await bin('switchboard')
       if (!sb) return { state: 'unknown', exitCode: null, result: null }

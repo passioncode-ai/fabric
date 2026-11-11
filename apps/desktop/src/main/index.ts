@@ -204,7 +204,7 @@ import { answerSaid, type AnswerOption } from '../shared/answerCommit'
 import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
-import { wireBoardDispatch } from './boardDispatchWiring.ts'
+import { primaryFolder, remoteTargetFor, wireBoardDispatch } from './boardDispatchWiring.ts'
 import { createDispatchWake, toOperatorMarks, type InboxGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { sessionLiveForDispatch, WATCH_MS } from '../shared/boardDispatch.ts'
 import { SESSION_STALE_MS } from '../shared/workClaims.ts'
@@ -3154,7 +3154,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     switchOn: () => readSettings().dispatchBoardRequests,
     // CO-551, stage A: the machine Settings names for runs (none by default), and the operator's board door to post a
     // run's answer from there as the request's target Project.
-    remoteTarget: () => readSettings().dispatchTarget,
+    // 2026-11-11: by the owner of the project's repository (`dispatchTargets`), else `dispatchTarget`.
+    remoteTarget: async (projectId) => {
+      const s = readSettings()
+      return remoteTargetFor(Object.keys(s.dispatchTargets).length ? await primaryFolder(projectRepos, projectId) : null, s.dispatchTargets, s.dispatchTarget)
+    },
     board: (projectId) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id),
     quitting: () => quit.quitting,
     file: path.join(app.getPath('userData'), 'board-dispatches.json'),

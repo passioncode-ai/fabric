@@ -264,6 +264,14 @@ other machine over ssh, and that run has no `fabric-mcp` there. Agreed on the th
 Switchboard 0.7.40, published 2026-11-09): Fabric's design `32e834d4`, the fields `f75293e0` and `ac25c446`, D-2 in
 `700ef088` and `13f00feb`, the refusals and `lost` in `e6f33c33` and `d8b9c03b`.
 
+Since 2026-11-11 the machine can depend on the project: Settings' `dispatchTargets` maps the owner of the project's
+repository (its primary folder's `origin`, `git remote get-url`, 5 s) to an ssh host, before the one `dispatchTarget`.
+The Mac Studio keeps one space per owner group (studio-agent, board thread `6d874a34`: `node-a` holds `owner-a/*`
+and `owner-b/*`, `node-b` holds `owner-c/*`, `owner-d/*` and `owner-e/*`), so a request run goes
+to the space that has the checkout. An owner not in the map, or a remote that cannot be read, takes `dispatchTarget`;
+an inbox run asks nothing (`main/boardDispatchWiring.ts#remoteTargetFor`, `shared/boardDispatch.ts#dispatchTargetsOf`,
+`#remoteOwnerOf`; tests in `board-dispatch-run.test.mjs` and `boardDispatch.test.ts`).
+
 - **Which machine.** Settings' `dispatchTarget` names it as ssh knows it (`shared/types.ts#AppSettings`, read field by
   field by `shared/boardDispatch.ts#dispatchTargetOf`: an ssh host name, optionally with a user; never an option, a
   space or `auto`). It is null by default, so every run starts on this machine, as before. It has no row in the

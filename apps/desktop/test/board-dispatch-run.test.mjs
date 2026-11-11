@@ -1595,3 +1595,22 @@ test('CO-559 review: an inbox message is answered once its project has nothing l
   assert.equal(await s.state('m1', 'p2'), 'queued', '0.3.19 review PL-10: a read cut at its bound never answers a project it left out')
   assert.equal(await s.state('m-read', 'p2'), 'answered', 'iteration 2, DA-7: its message is judged by its read marks')
 })
+
+test('2026-11-11: a request run goes to the machine of its repository\'s owner, else the one target; an inbox run asks nothing', async () => {
+  const { remoteTargetFor } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  const targets = { 'owner-a': 'node-a', 'owner-c': 'node-b' }
+  const read = []
+  const git = (url) => async (dir) => { read.push(dir); if (url instanceof Error) throw url; return url }
+  assert.equal(await remoteTargetFor('/w/a', targets, null, git('git@github.com:owner-c/x.git\n')), 'node-b')
+  assert.equal(await remoteTargetFor('/w/a', targets, 'node-a', git('https://github.com/other/x')), 'node-a')
+  assert.equal(await remoteTargetFor('/w/a', targets, 'fallback', git(new Error('no origin'))), 'fallback')
+  read.length = 0
+  assert.equal(await remoteTargetFor('/w/a', {}, 'one', git('git@github.com:owner-a/x.git')), 'one')
+  assert.equal(read.length, 0, 'no owner map: the folder is not read')
+  const asked = []
+  const w = world({ requests: [request(), inboxItem({ target: 'other-project' })] })
+  w.deps.remoteTarget = async (projectId) => { asked.push(projectId); return 'node-a' }
+  await createBoardDispatch(w.deps).onPass()
+  assert.deepEqual(asked, [request().target], 'asked for the request run only')
+  assert.ok(w.launches.some((a) => a.target === 'node-a'))
+})

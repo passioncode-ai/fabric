@@ -24,7 +24,8 @@ describe('validateSettings', () => {
       boardFilters: { project: '79000000-0000-4000-8000-0000000000a1', agent: 'claude-code', cancelled: true },
       trustAgentFolders: false,
       dispatchBoardRequests: false,
-      dispatchTarget: 'studio'
+      dispatchTarget: 'studio',
+      dispatchTargets: { ssheleg: 'studio-sshlg' }
     }
     expect(validateSettings(file)).toEqual(file)
   })

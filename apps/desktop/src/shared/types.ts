@@ -487,6 +487,8 @@ export interface AppSettings {
    * `target_unreachable`) starts it here. Stage B (CO-552) chooses the machine by itself.
    */
   dispatchTarget: string | null
+  /** The machine by the owner of the project's repository (`git remote get-url origin`), before `dispatchTarget`. */
+  dispatchTargets: Record<string, string>
 }
 
 export interface BoardFilters { project: string | null; agent: string | null; cancelled: boolean }
@@ -536,7 +538,8 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   // CO-409: the operator's word (2026-11-04); the person turns it off in Settings.
   dispatchBoardRequests: true,
   // CO-551: no other machine until one is named; stage B (CO-552) chooses by itself.
-  dispatchTarget: null
+  dispatchTarget: null,
+  dispatchTargets: {}
 }
 
 export interface FeedEvent {

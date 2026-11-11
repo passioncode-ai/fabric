@@ -21,6 +21,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   starting fifty times today.
 - **Windows reads who holds the hub's port without PowerShell** (CO-560): `netstat`, `tasklist` and `whoami` answer in
   well under a second where PowerShell took more than 30 seconds on Windows on ARM; PowerShell remains the fallback.
+- **A board run goes to the Mac Studio space that has the project's repository.** Settings' `dispatchTargets` names
+  the machine by the repository's owner (one group of owners to one space of the machine, another group to another), before the one `dispatchTarget`.
 - **Three board runs at a time on a machine, not two.** Under the always-wake rule sixteen projects waited on two
   places; one project still runs one session at a time and at most 20 a day.
 
