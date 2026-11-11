@@ -1,18 +1,18 @@
 {
   "schema": 1,
-  "source_commit": "1462afe12ed67a1951be1e56e0f989ec6a9978bc",
-  "workspace_commit": "a812a4f578e7b70cc9d28c71252966525f1c8532",
-  "content_digest": "aa16281431178e01cd539398b8601c00db9a89f2a71d18b42ce137768983eee1",
+  "source_commit": "5676cd886329f45b5895de9bc565fbc214d8758f",
+  "workspace_commit": "f605bb001a28a05a346febf00f33485a38705d07",
+  "content_digest": "e71a980114a91085823fbe9660e85a09e3ebf738a63934ca50b14dcd94b814df",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "4e05b2b6-329e-4c58-9f06-39b712b29acf",
-  "fabric_digest": "57a6e54cdc53587e7be0a59d4f6a54d0e449f819437fb4916a2d83ff88be172d",
+  "deployment": "953be54a-7a6c-4cfc-aeb3-f4b488ac441b",
+  "fabric_digest": "03f4b236e01bbd38edb4015dd7bd2ffb91cc6c27df71d0d622d435a1ac6c1037",
   "sources": [
     {
       "id": "org-index",
       "repository": "https://github.com/passioncode-ai/org-index",
-      "commit": "e1346efd2fa36eeeeb44d48635a7ec7adbdaf3b2",
-      "files_digest": "c09a4cdfca922531718bdfdd6d9925855124229c8039da33bc7017022ace39b4"
+      "commit": "4cb69d7b1eaae287f7e75f937a53b0c755f77748",
+      "files_digest": "f17f4a5446427d6b252bc926a388d3c08052475a307d66bd2ab252b88c85eec9"
     },
     {
       "id": "fabric-agent-contract",
@@ -29,8 +29,8 @@
     {
       "id": "fabric-inbox",
       "repository": "https://github.com/passioncode-ai/fabric-inbox",
-      "commit": "c818d6aba899d0d825a75ab86642ace52a621369",
-      "files_digest": "c6fa623173838dd1324bc078c888faf93886c5c879e42ac5e22acdadb3eab168"
+      "commit": "0b9fb73bf7afe7a89b6b3ec020d14e8d5620fda5",
+      "files_digest": "97d13004032c97688884f1f0158b5a42c9565a1f93036f3aadad8980fe14766b"
     },
     {
       "id": "fabric-switchboard",
@@ -53,8 +53,8 @@
     {
       "id": "project-observatory-dashboard",
       "repository": "https://github.com/passioncode-ai/project-observatory-dashboard",
-      "commit": "97b84f68deb18d381cc8efe429c5a282f11199a2",
-      "files_digest": "d01debecb081713098ea8e43c775284b9c9d480a68880136c9392ab99aa357af"
+      "commit": "d55ae29c23e4c63ff99cc635e27ea32600602af3",
+      "files_digest": "778d61c10c1f8741c73bb598e62b1a42e14727b81c9d0db745a0f508d631250c"
     },
     {
       "id": "project-observatory-contract",
