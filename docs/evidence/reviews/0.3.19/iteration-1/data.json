@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "3138e829902836d54f1a796b590fa4f04e94c869",
+  "report": "docs/evidence/reviews/0.3.19/iteration-1/2026-11-11-data.md",
+  "reportSha256": "bbaee6468546aee2c71244ed1496e3018571005c3d1df6a973e9bf3f288ccb1e",
+  "reviewerRun": "release-0319-i1-data-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the board DB suite ran on a disposable cluster in the plan review of this iteration, inbox case included; the upgrade is item 3 of this ledger's Release close"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 13"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 13"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: as PL-10"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 14"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 14"
+      ]
+    }
+  ]
+}

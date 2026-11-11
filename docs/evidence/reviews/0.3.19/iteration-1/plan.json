@@ -1,0 +1,91 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "3138e829902836d54f1a796b590fa4f04e94c869",
+  "report": "docs/evidence/reviews/0.3.19/iteration-1/2026-11-11-plan.md",
+  "reportSha256": "ae313b48463078176e7b1e367b1f1c704e360563347126861dcaa890a1f79305",
+  "reviewerRun": "release-0319-i1-plan-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: the packet reads the request as the unread messages, never claimed or completed (test «0.3.19 review ER-6 and PL-1»); Switchboard asked for `--reason inbox` on the board (thread c650e0aa); the switch goes on only after one observed live inbox run (Release close)"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: an inbox run always starts here; test «0.3.19 review PL-2», watched failing"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: as DO-1, and the doc comment moved above `RequestState`"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the 0.3.19 section carries 0.3.18's changes and its Upgrading paragraph"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: this ledger, the gate, the version and the handoff's Next task"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in part in d08877d6 (an Upgrading sentence); the switch-on order is item 6 of the Release close"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 15"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 17 and CO-559's Left; said in the release message"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 16"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: `createInboxState` answers unknown for a project a cut read left out; test «CO-559 review: an inbox message is answered …»"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 11"
+      ]
+    }
+  ]
+}

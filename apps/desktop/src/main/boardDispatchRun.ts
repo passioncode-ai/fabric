@@ -1,6 +1,6 @@
 // #region board-dispatch-run — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#3-the-flow
 /**
- * The dispatcher wired (CO-409 wave 1, spec §3): on the cycle it reads the open board requests, asks `decideDispatch`
+ * The dispatcher wired (CO-409 wave 1, spec §3): on its own 30 s pass (`WATCH_MS`, the cycle's 60 s before 0.3.19) it reads the open board requests, asks `decideDispatch`
  * what to do with each, and for a launch opens the request's workflow in Observatory, writes its `run-ends-at`
  * checkpoint, offers it to the default agent's provider and starts the run through `switchboard dispatch`. It watches
  * each run to its end, counts a run that ended with the request unsettled, and stops after three (§3.6, three since §3.8): the sweep of
@@ -227,9 +227,9 @@ export function toOperatorMarks(why: ToOperatorWhy): { pastDue: boolean; remote?
 }
 
 /**
- * §3.1: a request filed on the board wakes the dispatcher when its grace ends, instead of on the next 60 s cycle after
- * it; several requests filed together wake it once. The cycle still runs every pass, so a missed wake costs at most a
- * cycle (CO-409).
+ * §3.1: a request filed on the board wakes the dispatcher when its grace ends, instead of on the next pass after it;
+ * several requests filed together wake it once. The 30 s pass (`WATCH_MS`, the 60 s cycle before 0.3.19) still runs,
+ * so a missed wake costs at most one pass (CO-409; the 0.3.19 review, iteration 3 run two, DO-19).
  */
 /** The grace of §3.1 plus a few seconds, so the wake lands after the request's grace has passed. */
 export const GRACE_AFTER_MS = GRACE_MS + 5_000
@@ -707,7 +707,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     if ('launchId' in started) {
       r.launchId = started.launchId
       r.state = 'running'
-      r.launchedAt = now
+      // 0.3.19 review, iteration 3 run two, ER-15: the liveness checks count from Switchboard's answer, never from the
+      // pass that asked (its board reads and the start itself can take minutes under load).
+      r.launchedAt = deps.now()
       // The run accepts the hand-over: the lease is its now, and a later run takes the workflow back (§3.4). A run on
       // another machine accepts nothing (D-2), so Fabric keeps the lease and closes the workflow itself (§3.7).
       if (!r.target) leases.delete(r.workflowId)
@@ -946,7 +948,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // Recorded through the caller's ops sink (deps.log); the request is tried again on a later pass.
         deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(e) })
         openFailed(req.id, now)
-        if (!last) retryOpen.set(req.id, { dispatchId, endsAt, openAt, ...(req.inbox ? { inbox: req.inbox } : {}) })
+        // Iteration 3 run two, ER-16: the packet first sent under this dispatch id is kept through every retry.
+        if (!last) retryOpen.set(req.id, { dispatchId, endsAt, openAt, ...(req.inbox ? { inbox: reuse?.inbox ?? req.inbox } : {}) })
         continue
       }
       const r: DispatchRecord = { requestId: req.id, projectId: req.target, dispatchId, workflowId: opened.workflowId, handoffId: opened.handoffId, launchId: null,

@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "d08877d6d243f4ded4524d2e4a263e8573b570d0",
+  "report": "docs/evidence/reviews/0.3.19/iteration-2/2026-11-11-plan.md",
+  "reportSha256": "fe92abf2bfc1dd4d97d3866e7c57905a7f8c90035f9e86eab45027cc18cd35f6",
+  "reviewerRun": "release-0319-i2-plan-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: as DO-7"
+      ]
+    },
+    {
+      "id": "PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: the notes say they moved to this release's close and the logout check to CO-562"
+      ]
+    },
+    {
+      "id": "PL-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: PL-4 and PL-5 as PL-13 and DO-8; DA-1 is Release close item 4"
+      ]
+    },
+    {
+      "id": "PL-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: this ledger's Release close, items 1 to 12"
+      ]
+    },
+    {
+      "id": "PL-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: as UX-13; Release close item 8 triages the backlog first"
+      ]
+    },
+    {
+      "id": "PL-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: `boardDispatchRun.ts`"
+      ]
+    },
+    {
+      "id": "PL-18",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 20"
+      ]
+    },
+    {
+      "id": "PL-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: the packet forbids com.enroll for board.inbox"
+      ]
+    }
+  ]
+}

@@ -12,7 +12,8 @@ export const GRACE_MS = 2 * 60_000
  *  the hand-over or went silent is started again by force, and only a third such run hands the item to the operator. */
 export const EMPTY_RUNS_TO_OPERATOR = 3
 /** CO-559: the watch's cadence. The dispatcher passes every 30 s whatever else runs (the operator, 2026-11-10: «И
- *  валидация каждые 30 секунд»), and a board message stored wakes it after its grace (§3.8). */
+ *  валидация каждые 30 секунд»); a request stored through the hub also wakes it after its grace (§3.1), and a board
+ *  message is found by the next pass (iteration 3 run two, DO-20). */
 export const WATCH_MS = 30_000
 /** CO-559 (§3.8): a run whose session has not accepted the hand-over this long after its start never came up; it is
  *  stopped and started again. Five minutes holds a cold `claude -p` start on a loaded machine (measured below one). */
@@ -78,7 +79,7 @@ export interface DispatchInput {
   liveResponder: boolean
   /** A live session is enrolled in the target project. */
   liveSession: boolean
-  /** The switch «Запускать агента, когда проекту пишут на доске, а его сессия не открыта» (named for requests alone until 0.3.19). */
+  /** The switch «Запускать агента, когда проекту пишут на доске, а открытой сессии проекта нет» (named for requests alone until 0.3.19). */
   switchOn: boolean
   /** The target project has a folder on this machine. */
   hasFolder: boolean

@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "d08877d6d243f4ded4524d2e4a263e8573b570d0",
+  "report": "docs/evidence/reviews/0.3.19/iteration-2/2026-11-11-errors.md",
+  "reportSha256": "181abe0c9b21aad7ecaecf849ebd10399e40f598571ca1b8d346723db644cbca",
+  "reviewerRun": "release-0319-i2-errors-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: `sessionEnroll.ts` mints the session's own kind of bearer; test `session-enroll.test.mjs` «0.3.19 review ER-1» asserts it, watched failing on d08877d6"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: the reconnect checks the agent's process; test «0.3.19 review iteration 2, ER-10»"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 21"
+      ]
+    }
+  ]
+}

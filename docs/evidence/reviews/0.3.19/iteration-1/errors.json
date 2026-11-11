@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "3138e829902836d54f1a796b590fa4f04e94c869",
+  "report": "docs/evidence/reviews/0.3.19/iteration-1/2026-11-11-errors.md",
+  "reportSha256": "26825c12fb90dcde3b2f881253dfe5b8a02d8edc00759e26614c86eb898cb56f",
+  "reviewerRun": "release-0319-i1-errors-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: `sessionEnroll.ts` `reconnectBearer`, a slot of its own; test `session-enroll.test.mjs` «0.3.19 review ER-1», watched failing on 3138e829"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: §3.8 item 2 says the project counts both across its messages until a run reads them"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: as PL-2"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 10"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 11"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: `boardDispatchRun.ts` keeps the first inbox snapshot in `retryOpen`; test `board-dispatch-run.test.mjs` «0.3.19 review ER-6 and PL-1», watched failing"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in part in d08877d6 (`more`, as PL-10); the scan ruled: CO-562 item 13"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 12"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "d08877d6d243f4ded4524d2e4a263e8573b570d0",
+  "report": "docs/evidence/reviews/0.3.19/iteration-2/2026-11-11-data.md",
+  "reportSha256": "72ac4cc072b349f65702a4fa0b9db1c53e0de81b45d6b0a9c2ce48b5b86fcf51",
+  "reviewerRun": "release-0319-i2-data-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: `createInboxState` falls through to the message's read marks when the read was cut; test «CO-559 review: an inbox message is answered …»"
+      ]
+    },
+    {
+      "id": "DA-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: item 4 of this ledger's Release close"
+      ]
+    }
+  ]
+}

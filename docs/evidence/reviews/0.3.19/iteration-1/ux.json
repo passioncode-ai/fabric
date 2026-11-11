@@ -1,0 +1,91 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "3138e829902836d54f1a796b590fa4f04e94c869",
+  "report": "docs/evidence/reviews/0.3.19/iteration-1/2026-11-11-ux.md",
+  "reportSha256": "9b63f8cbe23f476833d11847d5b3492cc4a58cb7edccb7f1dad6210f427df479",
+  "reviewerRun": "release-0319-i1-ux-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: «Запускать агента, когда проекту на доске пишут, а взять некому» and its help in both locales (`i18n/ru.ts`, `i18n/en.ts` `settings.dispatch`, `settings.dispatchHelp`), copy checks a4f221c6, 895901cb, 0efdb079, b0373758; SCN-147 amended"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: `attention.untitled.inbox` («Непрочитанные сообщения проекту на доске»), `attentionTitle.ts`; copy checks 78477572, fcbcdf8d"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: `attention.swept.inbox-to-operator` says three runs and that a newer message gets one more; copy checks caa8964b, e4f59e13"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 8"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: its own line `launch.home.work.reviewCapped` (`HomeWork.tsx#CappedNote`), test `HomeWork.test.tsx` «0.3.19 review UX-5»; copy checks 72fc5d6b, abc6876a"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: `launch.home.boardWaiting.partialCut` says both; test `HomeBoardWaiting.test.tsx` «0.3.19 review UX-6 and UX-8»; copy checks 4c72ffba, cc249f6d"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: CHANGELOG and AGENTS.md name the `dispatchTarget` key of settings.json and say Settings has no row"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: `CommsAnnouncements.test.tsx` and `HomeBoardWaiting.test.tsx` «0.3.19 review UX-8»"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: «ответа не видно (прочитаны первые {count} сообщений ветки)»; copy checks 5569679b, 625ed270"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: `shared/boardDispatch.ts#relayText` says the outcome in Russian with the value in code; `boardDispatch.test.ts`"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 7"
+      ]
+    }
+  ]
+}

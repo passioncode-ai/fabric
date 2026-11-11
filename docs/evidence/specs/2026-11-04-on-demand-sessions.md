@@ -94,10 +94,12 @@ The decision of §3.1 to §3.3 and the empty-runs rule of §3.6 (two runs, three
 `apps/desktop/src/shared/boardDispatch.ts#decideDispatch`, with `runEndsAt`, `firstLine`, `parseFirstLine` and
 `refusalCheck` beside it (wave 1; tests `boardDispatch.test.ts`).
 
-The hub's dispatcher runs on every `comms` journal event of kind `request` and on the cycle (60 s, `TICK_MS`), so a
-request filed while Fabric was closed is found at the next start. Built 2026-11-07 (CO-409): a request a session stores
-through the hub wakes the dispatcher when its grace ends (`boardDispatchRun.ts#createDispatchWake`, from
-`boardService.ts#createBoard`'s `onRequestStored`); a request filed through another door is found by the cycle. A request is a candidate when it has no live
+The hub's dispatcher runs on every `comms` journal event of kind `request` and on its own pass, every 30 s from 0.3.19
+(`WATCH_MS`, §3.8; the cycle's 60 s, `TICK_MS`, before it), so a request filed while Fabric was closed is found at the
+next start. Built 2026-11-07 (CO-409): a request a session stores through the hub wakes the dispatcher when its grace
+ends (`boardDispatchRun.ts#createDispatchWake`, from `boardService.ts#createBoard`'s `onRequestStored`); a request filed
+through another door, and every board message, is found by the next pass (the 0.3.19 review, iteration 3 run two,
+DO-19). A request is a candidate when it has no live
 responder, is at least 5 minutes before the board's own deadline (`request.deadline`, explicit or seven days;
 `boardDispatch.ts#LAUNCH_MARGIN_MS`: 120 s of silence, a cycle and the launch) and has no dispatch in
 flight, and it is `queued`, or `claimed` with an attempt whose lease lapsed, or `accepted` with no live holder (the
@@ -121,7 +123,7 @@ Before starting anything the dispatcher checks, in order, and records which chec
 
 | Check | Default | Answer when it stops |
 |---|---|---|
-| The switch «Запускать агента, когда проекту пишут на доске, а его сессия не открыта» (Settings; named for requests alone until 0.3.19) | on | `skipped-off` (as built in 0.3.16 the dispatcher does not decide with the switch off, so nothing is recorded; §10) |
+| The switch «Запускать агента, когда проекту пишут на доске, а открытой сессии проекта нет» (Settings; named for requests alone until 0.3.19) | on | `skipped-off` (as built in 0.3.16 the dispatcher does not decide with the switch off, so nothing is recorded; §10) |
 | P has a folder on this machine | required | `skipped-no-folder` (the request stays queued; another machine may take it) |
 | At most N on-demand sessions running on this machine | N = 2 | `deferred-cap` (tried again on the next cycle) |
 | At most 1 per project | 1 | `deferred-project-busy` |

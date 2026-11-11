@@ -474,6 +474,8 @@ import { launchPlace } from '../shared/launchPlace.ts'
 const LAUNCHD_STARTED = takeLaunchdStart(process.env)
 /** The board's job is unregistered at the Quit, not when the switch went off in launchd's own copy (SCN-170). */
 let loginItemOffAtQuit = false
+/** The quit hook that reads `loginItemOffAtQuit` is added once (0.3.19 review, iteration 3 run two, ER-18). */
+let loginItemQuitHook = false
 
 /**
  * The Estate this process works in: the operator's recorded choice (A1-6b), read once at the
@@ -5376,8 +5378,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       // the job is unregistered at the Quit, which the stored «off» no longer holds (ADR-0192: «Off: the next Quit ends
       // Fabric»); turning it on again before that Quit cancels the pending removal.
       if (process.platform === 'darwin' && LAUNCHD_STARTED && !written.settings.launchAtLogin) {
-        if (!loginItemOffAtQuit) {
-          loginItemOffAtQuit = true
+        loginItemOffAtQuit = true
+        if (!loginItemQuitHook) {
+          loginItemQuitHook = true
           quit.onQuit(() => { if (loginItemOffAtQuit && !readSettings().launchAtLogin) applyLoginItem(false, false) })
         }
         ops.record({ op: 'app.login-item', outcome: 'ok', level: 'info', detail: { enabled: false, deferred: 'quit' }, ctx: { correlationId: ops.correlate() } })

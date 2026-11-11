@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "d08877d6d243f4ded4524d2e4a263e8573b570d0",
+  "report": "docs/evidence/reviews/0.3.19/iteration-2/2026-11-11-ux.md",
+  "reportSha256": "53999943b44187b9452cd84b154f5def312959da36f1e6c23220f63e0548b428",
+  "reviewerRun": "release-0319-i2-ux-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-562 item 19"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: the Upgrading paragraph of the 0.3.19 notes says both"
+      ]
+    },
+    {
+      "id": "UX-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: item 9 withdrawn, the stop added"
+      ]
+    },
+    {
+      "id": "UX-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in ad73a986: the strings reworded, copy checks b783061b, 25a73e2b, 84f83801, eaf71180"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.19",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "3138e829902836d54f1a796b590fa4f04e94c869",
+  "report": "docs/evidence/reviews/0.3.19/iteration-1/2026-11-11-docs.md",
+  "reportSha256": "fc6ffa4061b480f5788e7619bafb841ac9fe51b1c87fb7480eec59b64587680b",
+  "reviewerRun": "release-0319-i1-docs-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: the spec says three from 0.3.19 in §2 rule 4, §3.6 and §10, and the dispatcher's comments"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: the row names the diagnosis, the four files and the tests"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: «after three runs in all»"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: AGENTS.md dispatcher and Comms rows"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in d08877d6: the row says it re-reads on a journal mark; the behaviour is CO-562 item 5"
+      ]
+    }
+  ]
+}

@@ -1315,6 +1315,22 @@ test('CO-559: a project runs one session at a time, a request and its inbox incl
   assert.equal(w.launches.length, 1)
 })
 
+test('0.3.19 review, iteration 3 run two, ER-15: the hand-over is judged from Switchboard\'s answer, not from the pass that asked', async () => {
+  const w = world()
+  const stops = []
+  w.deps.stop = async (id) => { stops.push(id); return 'stopped' }
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => (name === 'observatory_handoff_get' ? { status: 'offered' } : real(name, args))
+  const launch = w.deps.launch
+  w.deps.launch = async (args) => { w.tick(4 * MIN); return launch(args) } // the start answers four minutes after the pass began
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.tick(ACCEPT_MS - 2 * MIN); await d.onPass()
+  assert.equal(stops.length, 0, 'three minutes after the answer is not ACCEPT_MS, whatever the pass began at')
+  w.tick(3 * MIN); await d.onPass()
+  assert.deepEqual(stops, ['L1'])
+})
+
 test('CO-559: a run whose session never took the hand-over is stopped and started again by force', async () => {
   const w = world()
   const stops = []
