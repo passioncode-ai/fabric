@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-11 · `—` · feat/board-decision-card → main · fast-forward
+- files: a run the board dispatcher started is at work on the home while Switchboard reports it running (`boardRunsOf`, `withWork`, `workOf`); the Board's decision card (`decisionHeadOf`, `BoardScreen`), its strings, styles, tests, SCN-007 and SCN-158 amended, the map
+- conflicts: none
+- summary: the operator's two asks of 2026-11-11 land on `main` by a fast-forward; not released yet
+
 ### 2026-11-11 · `release-0319` · board-clockwork → main · fast-forward
 - files: Fabric 0.3.19: CO-559 (every board addressee woken and watched every 30 s, migration 128, schema 101), CO-561, CO-556, CO-551 stage A, the scenario walk of 2026-11-11 (CO-562 carries what it left), three review iterations' fixes with iteration 3 run three times; the release commit (the gate, the ledger, the handoff, the receipts)
 - conflicts: none

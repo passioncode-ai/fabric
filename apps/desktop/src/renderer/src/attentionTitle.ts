@@ -14,6 +14,22 @@ export function titleOf(item: { title: string; access?: PendingRequestFacts; swe
   return item.title
 }
 
+/** The floor classes a refused act can cross (`main/policy.ts`), each with its own question on the board. */
+const FLOORS = new Set(['money', 'deletion', 'publication'])
+
+/**
+ * What the board's decision card asks, in the operator's words (the operator, 2026-11-11: the card headed a refused
+ * publication with its bare target, `github.com/…`, and the word «Отказано»). A refused act is asked as the question the
+ * person answers («Разрешить публикацию наружу?»), its target kept apart as `subject`; every other row keeps its title.
+ */
+export function decisionHeadOf(item: { kind: string; title: string; access?: PendingRequestFacts; swept?: { kind: AbandonedKind; untitled?: true }; grantable?: { floorClass: string; target: string } }, t: Say): { headline: string; subject: string | null } {
+  if (item.kind === 'refused' && item.grantable) {
+    const floor = FLOORS.has(item.grantable.floorClass) ? item.grantable.floorClass : 'other'
+    return { headline: t(`launch.board.decide.refused.${floor}` as 'launch.board.decide.refused.other'), subject: item.grantable.target || item.title || null }
+  }
+  return { headline: titleOf(item, t), subject: null }
+}
+
 const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.untitled.answer' | 'attention.untitled.inbox' | 'attention.untitled.task' | 'attention.untitled.session'> = {
   'request-unmoved': 'attention.untitled.request',
   'request-to-operator': 'attention.untitled.request',

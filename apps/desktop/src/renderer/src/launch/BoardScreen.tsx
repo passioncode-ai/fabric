@@ -22,7 +22,7 @@ import type { AnswerReceipt, BoardFilters, ProjectRow } from '../../../shared/ty
 import { AnswerForm, submitAnswer } from '../BoardPanel'
 import { since } from '../duration'
 import { pluralForm, useLocale, useT } from '../i18n'
-import { detailOf, titleOf } from '../attentionTitle'
+import { decisionHeadOf, detailOf, titleOf } from '../attentionTitle'
 import { FabricStrip } from './FabricStrip'
 import { FailureNote, MachineDetail } from '../OperatorError'
 import { KanbanBoard } from './KanbanBoard'
@@ -38,6 +38,11 @@ type Row = { at: 'open'; entry: BoardEntry } | { at: 'later'; entry: DeferredEnt
 type Said = { of: string; result: BoardCommandResult }
 /** How many open rows one read of the board carries. */
 const BOARD_LIMIT = 100
+/** Past this many characters a row's reason is folded in its card, «Показать полностью» opening it (2026-11-11). */
+const WHY_FOLD = 280
+/** Keys typed into a field belong to the field, never to the board's navigation. */
+const typing = (el: EventTarget | null): boolean =>
+  el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))
 
 export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, mode: initialMode, onMode, tab: routeTab, onTab, onOpen, onAgent, onError, onPulse, boardFilters, onRememberBoard }: {
   /** Opens the agent of a session a card in work names (0.3.14). */
@@ -119,6 +124,10 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
     if (routeTab) setFilterHere(routeTab)
   }, [routeTab])
   const [selected, setSelected] = useState<string | null>(initialItem)
+  /** The place of the row last shown, so «к следующей» goes on after a settled row leaves the list. */
+  const lastAt = useRef(0)
+  /** Reasons opened past their fold, by row. */
+  const [whyOpen, setWhyOpen] = useState<Record<string, boolean>>({})
   const [review, setReview] = useState(false)
   /** Kept across a refusal, keyed by the question: an answer belongs to its row. */
   const [draft, setDraft] = useState<Record<string, string>>({})
@@ -259,6 +268,31 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   const scopeName = projectId ? ((projects ?? []).find((p) => p.id === projectId)?.name ?? null) : null
   const kindOf = (kind: string) => t(`needsYou.kind.${kind}` as 'needsYou.kind.question')
   const kindOfRow = (r: Row) => kindOf(r.at === 'open' ? r.entry.kind : 'question')
+  /** What a row asks, in words: a refused act as its question, its target apart (2026-11-11). */
+  const headOf = (r: Row) => (r.at === 'open' ? decisionHeadOf(r.entry, t) : { headline: titleOf(r.entry, t), subject: null })
+  const chosenHead = chosen ? headOf(chosen) : { headline: '', subject: null }
+  // The rows around the one shown; a row settled and gone leaves its place to the one after it.
+  const at = rows && selected ? rows.findIndex((r) => r.entry.ref === selected) : -1
+  if (at >= 0) lastAt.current = at
+  const from = at >= 0 ? at : Math.min(lastAt.current, (rows?.length ?? 0))
+  const nav = {
+    at, total: rows?.length ?? 0,
+    prev: rows && (at >= 0 ? rows[at - 1] : rows[from - 1])?.entry.ref || null,
+    next: rows && (at >= 0 ? rows[at + 1] : rows[from])?.entry.ref || null
+  }
+  const go = (ref: string): void => { picked.current = true; setSelected(ref) }
+  const keys = useRef({ nav, go, close: () => setSelected(null), on: false })
+  keys.current = { nav, go, close: () => setSelected(null), on: mode === 'needs' && chosen !== null }
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      const k = keys.current
+      if (!k.on || typing(e.target) || e.altKey || e.ctrlKey || e.metaKey) return
+      const to = e.key === 'ArrowDown' || e.key === 'j' ? k.nav.next : e.key === 'ArrowUp' || e.key === 'k' ? k.nav.prev : null
+      if (to) { e.preventDefault(); k.go(to) } else if (e.key === 'Escape') k.close()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   return (
     <div className="lp" data-launch-view="launch-board">
@@ -362,14 +396,16 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
             <p className="lp-meta" role="status">{t(`launch.board.cut.${pluralForm(locale, mineCut.items.length)}`, { shown: mineCut.items.length, total: mineCut.total })}</p>
           )}
           {shows('review') && reviewCut && <p className="lp-meta" role="status">{t('launch.board.reviewCut', { limit: BOARD_LIMIT })}</p>}
-          {rows?.map((r, i) => (
-            <button key={r.entry.ref} type="button" className="lp-topic" aria-expanded={selected === r.entry.ref}
+          {rows?.map((r, i) => { const head = headOf(r); return (
+            <button key={r.entry.ref} type="button" className={`lp-topic${selected === r.entry.ref ? ' is-selected' : ''}`} aria-expanded={selected === r.entry.ref}
               onClick={() => { picked.current = selected !== r.entry.ref; setSelected(selected === r.entry.ref ? null : r.entry.ref) }}>
               <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
               <span>
-                <span className="lp-topic-title">{titleOf(r.entry, t)}</span>
-                <span className="lp-meta">
-                  {[r.entry.projectName, r.at === 'open' ? askerOf(r.entry, t) : null, kindOfRow(r), r.at === 'open' ? detailOf(r.entry, t, locale) : r.at === 'later' ? r.entry.reason : null].filter(Boolean).join(' · ')}
+                <span className="lp-topic-title">{head.headline}</span>
+                {head.subject && <span className="lp-topic-subject" title={head.subject}>{head.subject}</span>}
+                <span className="lp-meta lp-topic-meta">
+                  {/* An open row's kind is its pill; the line does not say it twice (2026-11-11). */}
+                  {[r.entry.projectName, r.at === 'open' ? askerOf(r.entry, t) : null, r.at === 'open' ? null : kindOfRow(r), r.at === 'open' ? detailOf(r.entry, t, locale) : r.at === 'later' ? r.entry.reason : null].filter(Boolean).join(' · ')}
                 </span>
               </span>
               <span className="lp-topic-end">
@@ -379,23 +415,49 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                 <small>{since(r.at === 'open' ? r.entry.waitingSince : r.at === 'later' ? r.entry.deferredAt : r.entry.answeredAt, t)}</small>
               </span>
             </button>
-          ))}
+          ) })}
           <div className="lp-panel-foot"><span>{t(scopeName ? 'launch.board.footProject' : 'launch.board.foot', { project: scopeName ?? '' })}</span></div>
         </section>
         {chosen ? (
-          <section className="lp-detail" aria-labelledby="topic-title">
-            <div className="lp-panel-head">
-              <p className="lp-kicker">{[kindOfRow(chosen), chosen.entry.projectName].filter(Boolean).join(' · ')}</p>
-              <button type="button" className="lp-button" aria-label={t('launch.board.close')} onClick={() => setSelected(null)}>{t('glyph.close')}</button>
+          <section className="lp-detail lp-decide" aria-labelledby="topic-title">
+            <div className="lp-panel-head lp-decide-head">
+              <p className="lp-kicker">
+                <span className={`lp-pill ${chosen.at === 'open' && chosen.entry.origin === 'authored' ? 'attention' : ''}`}>{kindOfRow(chosen)}</span>
+                {chosen.entry.projectName && <span>{chosen.entry.projectName}</span>}
+              </p>
+              {/* 2026-11-11: the rows in order, without going back to the list; the arrows do the same. */}
+              <nav className="lp-decide-nav" aria-label={t('launch.board.nav.label')}>
+                <button type="button" className="lp-button" aria-label={t('launch.board.nav.prev')} disabled={!nav.prev} onClick={() => nav.prev && go(nav.prev)}>{'‹'}</button>
+                <span className="lp-meta" aria-live="polite">{nav.at >= 0 ? t('launch.board.nav.position', { index: nav.at + 1, total: nav.total }) : t('launch.board.nav.left', { count: nav.total })}</span>
+                <button type="button" className="lp-button" aria-label={t('launch.board.nav.next')} disabled={!nav.next} onClick={() => nav.next && go(nav.next)}>{'›'}</button>
+                <button type="button" className="lp-button" aria-label={t('launch.board.close')} onClick={() => setSelected(null)}>{t('glyph.close')}</button>
+              </nav>
             </div>
-            <h3 id="topic-title" tabIndex={-1}>{titleOf(chosen.entry, t)}</h3>
+            <h3 id="topic-title" tabIndex={-1}>{chosenHead.headline}</h3>
+            {chosenHead.subject && (
+              <p className="lp-decide-subject"><span className="lp-decide-label">{t('launch.board.decide.subject')}</span><code>{chosenHead.subject}</code></p>
+            )}
             {chosen.at === 'open' ? (
               <>
-                {chosen.entry.detail && <p>{detailOf(chosen.entry, t, locale)}</p>}
+                {chosen.entry.detail && (() => {
+                  const why = detailOf(chosen.entry, t, locale) ?? ''
+                  const folds = why.length > WHY_FOLD
+                  const ref = chosen.entry.ref
+                  return (
+                    <div className="lp-decide-why">
+                      <p className="lp-decide-label">{t('launch.board.decide.why')}</p>
+                      <p className={folds && !whyOpen[ref] ? 'is-folded' : undefined}>{why}</p>
+                      {folds && <button type="button" className="lp-link" aria-expanded={!!whyOpen[ref]} onClick={() => setWhyOpen((m) => ({ ...m, [ref]: !m[ref] }))}>{t(whyOpen[ref] ? 'launch.board.decide.less' : 'launch.board.decide.more')}</button>}
+                    </div>
+                  )
+                })()}
                 <dl className="lp-facts">
-                  <div><dt>{t('launch.board.fact.state')}</dt><dd>{t(answeredHere ? 'launch.board.state.answered' : grantedHere ? 'launch.board.state.allowed' : 'launch.board.state.open')}</dd></div>
-                  {/* A settled row waits for nothing (UX-4). */}
-                  {!settledHere && <div><dt>{t('launch.board.fact.waiting')}</dt><dd>{since(chosen.entry.waitingSince, t)}</dd></div>}
+                  {(() => { const who = chosen.entry.kind === 'refused' ? chosen.entry.projectName : askerOf(chosen.entry, t); return who ? <div><dt>{t('launch.board.fact.asks')}</dt><dd>{who}</dd></div> : null })()}
+                  {chosen.entry.projectName && chosen.entry.kind !== 'refused' && <div><dt>{t('launch.board.fact.project')}</dt><dd>{chosen.entry.projectName}</dd></div>}
+                  {/* A settled row waits for nothing (UX-4); an open one says how long it has waited, its state is the list it is in. */}
+                  {settledHere
+                    ? <div><dt>{t('launch.board.fact.state')}</dt><dd>{t(answeredHere ? 'launch.board.state.answered' : 'launch.board.state.allowed')}</dd></div>
+                    : <div><dt>{t('launch.board.fact.waiting')}</dt><dd>{since(chosen.entry.waitingSince, t)}</dd></div>}
                 </dl>
                 <div className="lp-divider" />
                 {chosen.entry.swept?.kind === 'overlap-unsettled' ? (
@@ -433,8 +495,14 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                   />
                 ) : (
                   // Keyed by the row: the acts keep their own answer, and another row's must never show it (UX-1, iteration 2).
-                  <ObligationActs key={chosen.entry.ref} item={chosen.entry} decisions={decisions} onOpen={onOpen} onError={onError} onAccessDecided={(text, detail) => setAccessSaid({ text, detail })}
-                    grantedUntil={granted[chosen.entry.ref] ?? null} onGranted={(until) => setGranted((m) => ({ ...m, [chosen.entry.ref]: until }))} />
+                  <>
+                    <ObligationActs key={chosen.entry.ref} item={chosen.entry} decisions={decisions} onOpen={onOpen} onError={onError} onAccessDecided={(text, detail) => setAccessSaid({ text, detail })}
+                      grantedUntil={granted[chosen.entry.ref] ?? null} onGranted={(until) => setGranted((m) => ({ ...m, [chosen.entry.ref]: until }))} />
+                    {chosen.entry.grantable && !settledHere && <p className="lp-meta">{t('launch.board.decide.grantNote')}</p>}
+                  </>
+                )}
+                {settledHere && nav.next && (
+                  <div className="lp-actions"><button type="button" className="lp-button primary" onClick={() => go(nav.next!)}>{t('launch.board.nav.toNext')}</button></div>
                 )}
                 {/* Setting aside a settled question can only be refused (UX-4). */}
                 {chosen.entry.question && chosen.entry.projectId && !settledHere && (() => {
@@ -496,7 +564,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                 {chosen.entry.answer && <div><dt>{t('launch.board.fact.answer')}</dt><dd>{chosen.entry.answer}</dd></div>}
               </dl>
             )}
-            <p className="lp-meta">{t('launch.board.detailNote')}</p>
+            <p className="lp-meta lp-decide-foot">{t('launch.board.detailNote')} {t('launch.board.nav.keys')}</p>
           </section>
         ) : (
           <aside className="lp-panel lp-brief">

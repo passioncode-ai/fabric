@@ -1698,3 +1698,26 @@ test('0.3.20 review ER-10, DA-11: an open on another machine whose answer was lo
   assert.equal(v.launches.length, 1)
   assert.equal(v.launches[0].target, 'node-a')
 })
+
+// 2026-11-11: the session a running dispatched run works in, from `sessions show`, and the runs the home reads.
+test('launchSessionOf reads the coding agent\'s own session id of a running launch, nothing else', async () => {
+  const { launchSessionOf, boardRunsOf } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  assert.equal(launchSessionOf({ state: 'running', provider_session_id: 'rt-1' }), 'rt-1')
+  assert.equal(launchSessionOf({ state: 'starting', provider_session_id: 'rt-1' }), 'rt-1')
+  assert.equal(launchSessionOf({ state: 'ended', provider_session_id: 'rt-1' }), null)
+  assert.equal(launchSessionOf({ state: 'running', provider_session_id: '' }), null)
+  assert.equal(launchSessionOf({ state: 'running' }), null)
+  assert.equal(launchSessionOf(undefined), null)
+  const records = [
+    { requestId: 'r1', projectId: 'p', launchId: 'L1', state: 'running', startedAt: 1000, launchedAt: 2000 },
+    { requestId: 'r2', projectId: 'p', launchId: 'L2', state: 'running', startedAt: 3000, inbox: true },
+    { requestId: 'r3', projectId: 'p', launchId: 'L3', state: 'ended', startedAt: 3000 },
+    { requestId: 'r4', projectId: 'p', launchId: 'L4', state: 'running', startedAt: 3000 },
+    { requestId: 'r5', projectId: 'p', launchId: 'L5', state: 'running', startedAt: 3000, target: 'studio' }
+  ]
+  const seen = new Map([['L1', { runtimeSessionId: 'rt-1', at: 9000 }], ['L2', { runtimeSessionId: 'rt-2', at: 9000 }], ['L3', { runtimeSessionId: 'rt-3', at: 9000 }], ['L5', { runtimeSessionId: 'rt-5', at: 9000 }]])
+  assert.deepEqual(boardRunsOf(records, seen), [
+    { runtimeSessionId: 'rt-1', requestId: 'r1', inbox: false, since: new Date(2000).toISOString(), seenAt: new Date(9000).toISOString() },
+    { runtimeSessionId: 'rt-2', requestId: 'r2', inbox: true, since: new Date(3000).toISOString(), seenAt: new Date(9000).toISOString() }
+  ])
+})

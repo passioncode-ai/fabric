@@ -5,9 +5,14 @@
  * terminal manager already holds (`HeldSession.outputAt`). A turns read that fails leaves the turns out, is logged and is
  * said on the view (`turnsUnread`): agents are then judged by their tasks, stage reports, heartbeats and consoles alone,
  * never all at work. A turn under an agent's earlier session id (`LiveAgent.aliases`) counts as its own.
+ *
+ * The board dispatcher's runs that Switchboard reports running (`boardDispatchWiring.ts#boardRunsOf`) are matched to the
+ * live session that runs them by the coding agent's own session id (Switchboard's `provider_session_id`, the
+ * enrolment's `runtime_session_id`, `HeldSession.runtimeSessionId`): a dispatched run works in one long turn, so it ends
+ * no turn while it works (the operator, 2026-11-11).
  */
 import type { HomeView } from '../shared/homeLive.ts'
-import { TASK_WORK_MS, withWorkSignals } from '../shared/agentWork.ts'
+import { TASK_WORK_MS, withWorkSignals, type BoardRunSignal } from '../shared/agentWork.ts'
 import type { HeldSession } from './workRead.ts'
 import { ops } from './opsSink.ts'
 
@@ -21,7 +26,10 @@ interface TurnQuery {
   limit(n: number): PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>
 }
 
-export async function withWork(view: HomeView, store: { select(table: string, columns: string): unknown }, held: readonly HeldSession[], now: number): Promise<HomeView> {
+/** A run the board dispatcher started that Switchboard last reported running, with the coding agent's own session id. */
+export interface BoardRun extends BoardRunSignal { runtimeSessionId: string }
+
+export async function withWork(view: HomeView, store: { select(table: string, columns: string): unknown }, held: readonly HeldSession[], now: number, boardRuns: readonly BoardRun[] = []): Promise<HomeView> {
   const turnAt = new Map<string, string>()
   // A turn under an agent's earlier session id is its own (ER-5): every id maps to the live session.
   const owner = new Map<string, string>()
@@ -46,6 +54,15 @@ export async function withWork(view: HomeView, store: { select(table: string, co
   }
   const outputAt = new Map<string, string>()
   for (const s of held) if (s.console && typeof s.outputAt === 'number' && Number.isFinite(s.outputAt)) outputAt.set(s.sessionId, new Date(s.outputAt).toISOString())
-  return withWorkSignals(view, { turnAt, outputAt, turnsUnread }, now)
+  const boardRun = new Map<string, BoardRunSignal>()
+  if (boardRuns.length) {
+    const live = new Set(view.live.map((a) => a.sessionId))
+    const byRuntime = new Map(boardRuns.map((r) => [r.runtimeSessionId, r]))
+    for (const s of held) {
+      const r = s.runtimeSessionId ? byRuntime.get(s.runtimeSessionId) : undefined
+      if (r && live.has(s.sessionId) && !boardRun.has(s.sessionId)) boardRun.set(s.sessionId, { requestId: r.requestId, inbox: r.inbox, since: r.since, seenAt: r.seenAt })
+    }
+  }
+  return withWorkSignals(view, { turnAt, outputAt, turnsUnread, boardRun }, now)
 }
 // #endregion agent-work-read

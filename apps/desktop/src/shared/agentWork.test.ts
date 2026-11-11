@@ -57,3 +57,23 @@ describe('withWorkSignals', () => {
     expect(workOf({ ...carried, doing: { text: 'x', note: null, step: null, ofSteps: null, at: '2026-10-27T09:55:00Z' } }, {}, now).atWork).toBe(true)
   })
 })
+
+// 2026-11-11 (the operator: Fabric Dashboards showed two sessions started from the board, the home one): a run the board
+// dispatcher started works in ONE long turn, so it ends no turn while it works; Switchboard reporting it running is
+// its work signal, and it is not «без задачи».
+describe('a run the board dispatcher started', () => {
+  const run = { requestId: 'r1', inbox: false, since: ago(20), seenAt: ago(0) }
+  it('is at work while Switchboard reports it running, with no turn, task or stage report', () => {
+    expect(workOf(agent('a'), { boardRun: new Map([['a', run]]) }, now)).toEqual({ atWork: true, workAt: ago(0) })
+    // Not seen running for longer than the window: not at work on that alone.
+    expect(workOf(agent('a'), { boardRun: new Map([['a', { ...run, seenAt: new Date(now - AT_WORK_MS - 60_000).toISOString() }]]) }, now).atWork).toBe(false)
+    // A quiet agent stays quiet (DA-10).
+    expect(workOf(agent('a', { stale: true }), { boardRun: new Map([['a', run]]) }, now).atWork).toBe(false)
+  })
+  it('carries the run on the agent and is not counted as working without a task', () => {
+    const v = withWorkSignals(view([agent('a'), agent('b')]), { boardRun: new Map([['a', run]]) }, now)
+    expect(v.live[0]).toMatchObject({ sessionId: 'a', atWork: true, boardRun: { requestId: 'r1', inbox: false, since: ago(20) } })
+    expect(v.live[1].boardRun).toBeUndefined()
+    expect(v.atWork).toEqual({ agents: 1, connectedIdle: 1, noTask: 0, noTaskSessions: [] })
+  })
+})

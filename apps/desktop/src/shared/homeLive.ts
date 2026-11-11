@@ -100,6 +100,10 @@ export interface LiveAgent {
   /** Its newest heartbeat (`main/agentHeartbeats.ts`): the agent's own word, judged fresh or not by `sessionStatus`.
    *  Absent: none sent, or not read. */
   heartbeat?: { phase: string; at: string; waitingOn: string | null }
+  /** A run the board dispatcher started for a request (or a project's inbox) that Switchboard still reports running
+   *  (`shared/agentWork.ts#BoardRunSignal`): such a run works in one long turn, so no turn ends while it works. Absent:
+   *  not a dispatched run, or not read. */
+  boardRun?: { requestId: string; inbox: boolean; since: string }
 }
 
 export interface WorkItem {

@@ -16,6 +16,7 @@ import { createBoardDispatch, isDispatchRecord, noteOf, type DispatchDeps, type 
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 import { originOf } from './agentSyncLeases.ts'
+import type { BoardRun } from './agentWork.ts'
 
 const WINDOW_MS = 7 * 24 * 3600_000
 const CLI_DEADLINE_MS = 60_000
@@ -161,6 +162,26 @@ export function runStateOf(launch: { state?: string; ended?: unknown } | undefin
   return code?.kind === 'exited' && typeof code.exit_code === 'number' && code.exit_code !== 0 ? 'crashed' : 'ended'
 }
 
+/** The coding agent's own session id of a launch `sessions show` reports starting or running (2026-11-11): the home
+ *  matches it to the Fabric session the run enrolled as (`main/agentWork.ts`). Anything else is null. */
+export function launchSessionOf(launch: { state?: unknown; provider_session_id?: unknown } | undefined): string | null {
+  if (launch?.state !== 'starting' && launch?.state !== 'running') return null
+  return typeof launch.provider_session_id === 'string' && launch.provider_session_id ? launch.provider_session_id : null
+}
+
+/** The dispatcher's runs on this machine that Switchboard last reported running, each with the session it runs in
+ *  (`seen`, by launch id) and when it was seen: the home's work signal for a run that ends no turn while it works. */
+export function boardRunsOf(records: ReadonlyArray<Pick<DispatchRecord, 'requestId' | 'launchId' | 'state' | 'startedAt' | 'launchedAt' | 'inbox' | 'target'>>,
+  seen: ReadonlyMap<string, { runtimeSessionId: string; at: number }>): BoardRun[] {
+  const out: BoardRun[] = []
+  for (const r of records) {
+    const s = r.state === 'running' && r.launchId && !r.target ? seen.get(r.launchId) : undefined
+    if (!s) continue
+    out.push({ runtimeSessionId: s.runtimeSessionId, requestId: r.requestId, inbox: !!r.inbox, since: new Date(r.launchedAt ?? r.startedAt).toISOString(), seenAt: new Date(s.at).toISOString() })
+  }
+  return out
+}
+
 /** A project's folder on this computer: its primary repository first, the first that exists. */
 export async function primaryFolder(repos: (projectId: string) => Promise<Array<{ path: string; is_primary: boolean | null }>>, projectId: string): Promise<string | null> {
   const rows = await repos(projectId)
@@ -291,7 +312,7 @@ export function wireBoardDispatch(o: {
   file: string
   env: NodeJS.ProcessEnv
   log: DispatchDeps['log']
-}): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[] } {
+}): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; boardRuns(): BoardRun[] } {
   let probePath: Promise<string> | null = null
   const pathFor = (): Promise<string> => (probePath ??= widenProbePath(o.env.PATH ?? '', o.env))
   const bin = async (name: string): Promise<string | null> => findOnPath(name, await pathFor())
@@ -301,6 +322,8 @@ export function wireBoardDispatch(o: {
   /** CO-559: the inbox runs' messages, judged against this pass's inbox read. */
   const inboxState = createInboxState((ids) => o.comms.facts(o.estateId, ids))
   const follower = createRequestFollower(o.comms.timeline ? (id) => o.comms.timeline!(o.estateId, id) : undefined)
+  /** Each running launch's coding-agent session id, as `sessions show` last said it (2026-11-11, `boardRunsOf`). */
+  const seen = new Map<string, { runtimeSessionId: string; at: number }>()
   // The responder slots, read once per pass: an unread board is never "nobody answers".
   let slots: Promise<CommsRespondersReply> | null = null
 
@@ -377,7 +400,11 @@ export function wireBoardDispatch(o: {
       const sb = await bin('switchboard')
       if (!sb) return 'unknown'
       try {
-        const out = JSON.parse(await run(sb, ['--json', 'sessions', 'show', launchId], await envWith())) as { data?: { launch?: { state?: string; ended?: unknown } } }
+        const out = JSON.parse(await run(sb, ['--json', 'sessions', 'show', launchId], await envWith())) as { data?: { launch?: { state?: string; ended?: unknown; provider_session_id?: unknown } } }
+        // 2026-11-11: the session the run works in, for the home's «В работе» (`boardRunsOf`).
+        const session = launchSessionOf(out.data?.launch)
+        if (session) seen.set(launchId, { runtimeSessionId: session, at: Date.now() })
+        else seen.delete(launchId)
         return runStateOf(out.data?.launch)
       } catch {
         // Switchboard could not say: the run stays running and is asked again on the next pass.
@@ -435,7 +462,13 @@ export function wireBoardDispatch(o: {
     onPass: () => dispatch.onPass(),
     close: () => observatory.close(),
     toOperator: () => dispatch.toOperator(),
-    inboxGiven: () => dispatch.inboxGiven()
+    inboxGiven: () => dispatch.inboxGiven(),
+    boardRuns: () => {
+      const records = dispatch.records()
+      // A launch no longer running forgets its session.
+      for (const id of [...seen.keys()]) if (!records.some((r) => r.launchId === id && r.state === 'running')) seen.delete(id)
+      return boardRunsOf(records, seen)
+    }
   }
 }
 

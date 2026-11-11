@@ -91,7 +91,7 @@ import { createRhythmReader } from './workRhythm.ts'
 import { createWaitingReader } from './commsWaitingList.ts'
 import { readProjectRequests, readProjectSources } from './projectRequests.ts'
 import { withIdentity } from './agentIdentity.ts'
-import { withWork } from './agentWork.ts'
+import { withWork, type BoardRun } from './agentWork.ts'
 import { createDisplayNameReader, withDisplayNames } from './projectNames.ts'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
@@ -3092,7 +3092,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // The sweep of abandoned work (CO-427): every third pass of the cycle below. Its reads are the screens' own (claims,
   // running tasks), the operator's read door onto the board, and the observer's last pass over Fabric's terminals.
   const sweepBoard = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
-  const dispatchHolder: { current: { toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[] } | null } = { current: null }
+  const dispatchHolder: { current: { toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; boardRuns(): BoardRun[] } | null } = { current: null }
   abandonedSweep = createAbandonedSweep({
     now: () => Date.now(),
     readClaims: (now) => readSweepClaims(store, now, sessionSignOf),
@@ -5709,7 +5709,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // task across its session ids (`agentIdentity.ts`), before its goal is walked from that task.
     const identified = await withIdentity(await withHeartbeats(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader, reportedBranches.get), store as never), store as never, held, now)
     // Home gaps D3, D4, D7: at work apart from connected, ordered by work, not by keep-alive pings (`agentWork.ts`).
-    const view = await withWork(await withGoals(identified, store as never), store as never, held, now)
+    // 2026-11-11: a run the board dispatcher started is at work while Switchboard reports it running (`boardRunsOf`).
+    const view = await withWork(await withGoals(identified, store as never), store as never, held, now, dispatchHolder.current?.boardRuns() ?? [])
     // The strip's own reads (`homeStrip.ts`): «Сдано сегодня» and the sweep's «Работают без задачи», each said unread alone.
     const stripped = await withStrip(view, { handedIn: () => readHandedInToday(store as never, { now }), sweep: () => abandonedSweep?.current() ?? null })
     // Every project's display name (rail gap §2, `projectNames.ts`).

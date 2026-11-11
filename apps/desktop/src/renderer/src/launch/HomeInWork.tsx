@@ -179,7 +179,8 @@ function AgentRow({ agent: a, onAgent, onTask, status }: { agent: LiveAgent; onA
         ) : (
           // The mockup-parity pass (gap map E6): «no task» is a fact about the row, said in the quiet report type,
           // never in the bold type a task title has.
-          <p className="lh-arow-report lh-arow-none">{t('launch.home.inWork.noTask')}</p>
+          // 2026-11-11: a run the board dispatcher started works on the request it was started for, not «no task».
+          <p className="lh-arow-report lh-arow-none">{t(a.boardRun ? (a.boardRun.inbox ? 'launch.home.inWork.boardInbox' : 'launch.home.inWork.boardRun') : 'launch.home.inWork.noTask')}</p>
         )}
         <p className="lh-arow-report">
           {a.goal && !a.goal.isTask && a.task && (

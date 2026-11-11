@@ -240,3 +240,19 @@ describe('«В работе» by work, not by connection (the mockup parity)', (
     expect(document.body.textContent).not.toMatch(/—/)
   })
 })
+
+// 2026-11-11 (the operator: Fabric Dashboards showed two runs from the board, the home one): a run the board dispatcher
+// started says it works on a request from the board, never «Задачи не взял».
+describe('a run the board dispatcher started', () => {
+  it('says it works on a board request, or reads its messages for an inbox run', () => {
+    const runView: HomeView = { ...view, live: [
+      { ...view.live[1], sessionId: 'r1', stale: false, lastSignAt: now, atWork: true, workAt: now, boardRun: { requestId: 'q', inbox: false, since: now } },
+      { ...view.live[1], sessionId: 'r2', stale: false, lastSignAt: now, atWork: true, workAt: now, boardRun: { requestId: 'm', inbox: true, since: now } }
+    ], inWork: [] }
+    show({ reading: { view: runView, problem: null } }, 'ru')
+    const rows = within(screen.getByRole('article', { name: 'Fabric' })).getAllByRole('listitem')
+    expect(rows[0].textContent).toContain(ru['launch.home.inWork.boardRun'])
+    expect(rows[1].textContent).toContain(ru['launch.home.inWork.boardInbox'])
+    for (const r of rows) expect(r.textContent).not.toContain(ru['launch.home.inWork.noTask'])
+  })
+})

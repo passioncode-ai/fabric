@@ -951,3 +951,85 @@ describe('a question\'s detail is said in the interface\'s language (UX-10)', ()
     expect(document.body.textContent).not.toMatch(/blocking/)
   })
 })
+
+// 2026-11-11, the operator: «обновить дизайн доски, там где мы принимаем решение, сделать её более удобной». The card
+// headed a refused publication with its bare target and the word «Отказано», offered one button and no way on.
+describe('the decision card (2026-11-11)', () => {
+  const longWhy = 'Board request e17813a4: farm agents copies to the orgs. ' + 'Create the private repo, push main, disable the check workflow. '.repeat(6)
+  const refusal = (id: string, target: string, why: string, floorClass = 'publication') =>
+    item({ kind: 'refused', ref: { kind: 'refusal', id }, projectName: 'research-agent', title: target, detail: why, proposal: undefined,
+      since: `2026-09-1${id}T00:00:00Z`, grantable: { floorClass, target, askedBecause: why } } as Partial<AttentionItem>)
+  const twoRefusals = [refusal('1', 'github.com/acme/research-agent (private)', longWhy), refusal('2', '/repo/old.md', 'cleanup', 'deletion')]
+
+  it('asks a refused act as the question the person answers, its target apart, the reason folded with a way to open it', async () => {
+    install(vi.fn(async () => whole(twoRefusals)))
+    render_()
+    await waitFor(() => expect(screen.queryByText(en['estate.reading'])).toBeNull())
+    // The kind says what waits on the person, never «Refused».
+    expect(screen.getAllByText(en['needsYou.kind.refused']).length).toBeGreaterThan(0)
+    fireEvent.click(screen.getByText('github.com/acme/research-agent (private)'))
+    const heading = await waitFor(() => screen.getByRole('heading', { name: en['launch.board.decide.refused.publication'] }))
+    expect(heading.id).toBe('topic-title')
+    const card = heading.closest('section')!
+    expect(card.querySelector('.lp-decide-subject code')?.textContent).toBe('github.com/acme/research-agent (private)')
+    expect(card.textContent).toContain(en['launch.board.decide.why'])
+    expect(card.querySelector('.lp-decide-why p.is-folded')).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en['launch.board.decide.more'] }))
+    expect(card.querySelector('.lp-decide-why p.is-folded')).toBeNull()
+    expect(card.textContent).toContain(en['launch.board.fact.asks'])
+    expect(card.textContent).toContain('research-agent')
+    expect(card.textContent).toContain(en['launch.board.decide.grantNote'])
+    expect(screen.getByRole('button', { name: en['ceo.grant'] })).toBeTruthy()
+    // An open row's state is the list it is in: «Требует внимания» is no longer said.
+    expect(card.textContent).not.toContain(en['launch.board.state.open'])
+  })
+
+  it('goes through the rows in order with its own buttons and the arrows, and Esc closes it', async () => {
+    install(vi.fn(async () => whole(twoRefusals)))
+    render_()
+    await waitFor(() => expect(screen.queryByText(en['estate.reading'])).toBeNull())
+    fireEvent.click(screen.getByText('github.com/acme/research-agent (private)'))
+    await waitFor(() => screen.getByRole('heading', { name: en['launch.board.decide.refused.publication'] }))
+    const nav = screen.getByRole('navigation', { name: en['launch.board.nav.label'] })
+    expect(nav.textContent).toContain('1 of 2')
+    expect((screen.getByRole('button', { name: en['launch.board.nav.prev'] }) as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: en['launch.board.nav.next'] }))
+    await waitFor(() => screen.getByRole('heading', { name: en['launch.board.decide.refused.deletion'] }))
+    expect(nav.textContent).toContain('2 of 2')
+    fireEvent.keyDown(window, { key: 'ArrowUp' })
+    await waitFor(() => screen.getByRole('heading', { name: en['launch.board.decide.refused.publication'] }))
+    fireEvent.keyDown(window, { key: 'ArrowDown' })
+    await waitFor(() => screen.getByRole('heading', { name: en['launch.board.decide.refused.deletion'] }))
+    fireEvent.keyDown(window, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('navigation', { name: en['launch.board.nav.label'] })).toBeNull())
+  })
+
+  it('a granted row offers «To the next», which opens the row that took its place', async () => {
+    let granted = false
+    const query = vi.fn(async () => whole(granted ? [twoRefusals[1]] : twoRefusals))
+    install(query)
+    const grant = vi.fn(async () => { granted = true; return { grantId: 'g1', expiresAt: '2026-09-11T10:30:00Z' } })
+    ;(window.fabric as unknown as { attention: { grant: typeof grant } }).attention.grant = grant
+    render_()
+    await waitFor(() => expect(screen.queryByText(en['estate.reading'])).toBeNull())
+    fireEvent.click(screen.getByText('github.com/acme/research-agent (private)'))
+    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: en['ceo.grant'] })))
+    await waitFor(() => expect(query.mock.calls.length).toBeGreaterThan(1))
+    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: en['launch.board.nav.toNext'] })))
+    await waitFor(() => screen.getByRole('heading', { name: en['launch.board.decide.refused.deletion'] }))
+  })
+
+  it('keys typed into a field stay in the field', async () => {
+    install(vi.fn(async () => whole(twoRefusals)))
+    render_()
+    await waitFor(() => expect(screen.queryByText(en['estate.reading'])).toBeNull())
+    fireEvent.click(screen.getByText('github.com/acme/research-agent (private)'))
+    await waitFor(() => screen.getByRole('heading', { name: en['launch.board.decide.refused.publication'] }))
+    const field = document.createElement('textarea')
+    document.body.appendChild(field)
+    fireEvent.keyDown(field, { key: 'ArrowDown' })
+    fireEvent.keyDown(field, { key: 'Escape' })
+    expect(screen.getByRole('heading', { name: en['launch.board.decide.refused.publication'] })).toBeTruthy()
+    field.remove()
+  })
+})

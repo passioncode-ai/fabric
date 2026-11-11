@@ -7,7 +7,9 @@
  * An agent is AT WORK when it still signs and either holds a task with a work signal within `TASK_WORK_MS` (a task carried
  * from an earlier session id does not count alone), or within `AT_WORK_MS` it reported a stage, sent a
  * working heartbeat (`working`, `reading`, `verifying`), finished a turn (`session.turn.observed@1`, its own hook), or
- * its Fabric console printed. A keep-alive ping keeps it CONNECTED, never at work. Its WORK TIME is the newest of those
+ * its Fabric console printed, or it is a run the board dispatcher started that Switchboard still reports running (a
+ * dispatched run works in one long turn, so it ends no turn while it works: the operator, 2026-11-11, Fabric Dashboards
+ * showing two runs from the board and the home one). A keep-alive ping keeps it CONNECTED, never at work. Its WORK TIME is the newest of those
  * signals (the claim's time among them), never a ping; the home orders agents and projects by it.
  *
  * Pure: main reads the turns and the consoles' output times (`main/agentWork.ts`).
@@ -31,7 +33,13 @@ export interface WorkSignals {
   outputAt?: ReadonlyMap<string, string>
   /** The turns could not be read: the idle count is a floor and is said so (ER-5). */
   turnsUnread?: boolean
+  /** The board dispatcher's runs Switchboard reports running, by the live session they run in (`main/agentWork.ts`). */
+  boardRun?: ReadonlyMap<string, BoardRunSignal>
 }
+
+/** One dispatched run as the dispatcher last saw it: what it was started for, since when, and when Switchboard last said
+ *  it runs (`seenAt`, its work signal, refreshed on each dispatcher pass). */
+export interface BoardRunSignal { requestId: string; inbox: boolean; since: string; seenAt: string }
 
 const ms = (iso: string | null | undefined): number => {
   const t = iso ? Date.parse(iso) : NaN
@@ -44,7 +52,8 @@ export function workOf(a: LiveAgent, signals: WorkSignals, now: number): { atWor
     a.doing?.at,
     a.heartbeat && WORKING_PHASES.includes(a.heartbeat.phase) ? a.heartbeat.at : null,
     signals.turnAt?.get(a.sessionId),
-    a.console ? signals.outputAt?.get(a.sessionId) : null
+    a.console ? signals.outputAt?.get(a.sessionId) : null,
+    signals.boardRun?.get(a.sessionId)?.seenAt
   ]
   let workAt: string | null = null
   for (const s of [...recent, a.task?.heldSince]) if (s && Number.isFinite(ms(s)) && (!workAt || ms(s) > ms(workAt))) workAt = s
@@ -67,9 +76,13 @@ export function byWork(a: LiveAgent, b: LiveAgent): number {
 
 /** The home's reading with each agent judged at work or not, the agents ordered by work, and the counts. */
 export function withWorkSignals(view: HomeView, signals: WorkSignals, now: number): HomeView {
-  const live = view.live.map((a) => ({ ...a, ...workOf(a, signals, now) })).sort(byWork)
+  const live = view.live.map((a) => {
+    const run = signals.boardRun?.get(a.sessionId)
+    return { ...a, ...workOf(a, signals, now), ...(run ? { boardRun: { requestId: run.requestId, inbox: run.inbox, since: run.since } } : {}) }
+  }).sort(byWork)
   const atWork = live.filter((a) => a.atWork)
-  const noTask = atWork.filter((a) => !a.task)
+  // A dispatched run works on the board request it was started for: not «без задачи».
+  const noTask = atWork.filter((a) => !a.task && !a.boardRun)
   const projects = view.projects.map((p) => {
     const mine = live.filter((a) => a.projectId === p.projectId && a.atWork)
     const workAt = mine.map((a) => a.workAt).filter((x): x is string => !!x).sort().at(-1) ?? null

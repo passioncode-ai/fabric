@@ -138,3 +138,20 @@ test('CO-477 (0.3.15 review, ER-12, ER-13): earlier stage reports are read newes
   const w = await withIdentity(view([agent('new')]), fakeStore({ ...tables, work_claims: claims }), held, Date.parse('2026-10-27T10:00:00Z'))
   assert.equal(w.identityUnread, true)
 })
+
+// 2026-11-11: a run the board dispatcher started is matched to its Fabric session by the coding agent's own session id
+// (Switchboard's provider_session_id, the enrolment's runtime_session_id) and is at work while Switchboard says it runs.
+test('withWork: a dispatched run Switchboard reports running is at work in the session that runs it', async () => {
+  const now = Date.parse('2026-10-27T10:00:00Z')
+  const store = { select: () => { const chain = { eq: () => chain, gte: () => chain, order: () => chain, limit: () => Promise.resolve({ data: [], error: null }) }; return chain } }
+  const held = [{ sessionId: 'dispatched', console: false, runtimeSessionId: 'rt-run' }, { sessionId: 'other', console: false, runtimeSessionId: 'rt-other' }]
+  const runs = [{ runtimeSessionId: 'rt-run', requestId: 'req-1', inbox: false, since: '2026-10-27T09:40:00Z', seenAt: '2026-10-27T09:59:30Z' },
+    { runtimeSessionId: 'rt-nobody', requestId: 'req-2', inbox: true, since: '2026-10-27T09:50:00Z', seenAt: '2026-10-27T09:59:30Z' }]
+  const v = await withWork(view([agent('dispatched'), agent('other')]), store, held, now, runs)
+  const byId = Object.fromEntries(v.live.map((a) => [a.sessionId, a]))
+  assert.equal(byId.dispatched.atWork, true)
+  assert.deepEqual(byId.dispatched.boardRun, { requestId: 'req-1', inbox: false, since: '2026-10-27T09:40:00Z' })
+  assert.equal(byId.other.atWork, false)
+  assert.equal(byId.other.boardRun, undefined)
+  assert.deepEqual(v.atWork, { agents: 1, connectedIdle: 1, noTask: 0, noTaskSessions: [] })
+})
