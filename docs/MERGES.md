@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · feat/board-decision-mockup → main · fast-forward
+- files: the prototype's `topicDetail` and board rows draw the decision card the app shipped on 2026-11-11 (board row fac3cade), a permission row in its example board; the card's styles move from launch.css's adaptations into `scripts/product/launch.css` and reach the app through `port-launch-css.mjs`; the map
+- conflicts: none
+- summary: the prototype catches up with the app; no behaviour of the app changes
+
 ### 2026-11-11 · `—` · feat/board-decision-card → main · fast-forward
 - files: a run the board dispatcher started is at work on the home while Switchboard reports it running (`boardRunsOf`, `withWork`, `workOf`); the Board's decision card (`decisionHeadOf`, `BoardScreen`), its strings, styles, tests, SCN-007 and SCN-158 amended, the map
 - conflicts: none

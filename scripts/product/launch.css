@@ -111,3 +111,27 @@
 .lp-settings .lp-panel>h3{margin-bottom:var(--space-2)}
 .lh-top .lh-overview{flex-wrap:wrap;row-gap:var(--space-3)}
 .lh-top .lh-overview>.lh-stats{flex:1 1 100%}
+/* 2026-11-11 (board row fac3cade): the board's decision card. The question is the heading, what it acts on and why sit apart,
+   the rows are walked in order from the card. The heading takes focus when a row opens; a ring around it read as a field. */
+.lp-detail h3[tabindex="-1"]:focus{outline:none}
+.lp-board-layout .lp-topic{padding-inline:var(--space-3);border-radius:var(--app-radius-control)}
+.lp-topic.is-selected{background:var(--app-panel-quiet);box-shadow:inset 3px 0 0 var(--app-accent)}
+.lp-topic-subject{display:block;font-family:var(--font-mono);font-size:11.5px;color:var(--app-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:var(--space-1)}
+.lp-topic-meta{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lp-board-layout>.lp-decide{position:sticky;top:var(--space-4);max-height:calc(100vh - var(--space-4) * 2);overflow:auto}
+.lp-decide-head{gap:var(--space-2);align-items:center}
+.lp-decide-head .lp-kicker{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);margin:0}
+.lp-decide-nav{display:flex;align-items:center;gap:var(--space-1);margin-left:auto}
+.lp-decide-nav .lp-meta{min-width:4.5em;text-align:center;white-space:nowrap}
+.lp-decide-nav .lp-button:disabled{opacity:.4;cursor:default}
+.lp-decide h3{font-size:22px;line-height:1.3;margin:var(--space-3) 0 var(--space-2);overflow-wrap:anywhere}
+.lp-decide-label{font-size:11px;color:var(--app-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 var(--space-1)}
+.lp-decide-subject{margin:0 0 var(--space-3)}
+.lp-decide-subject code{display:block;font-family:var(--font-mono);font-size:12.5px;line-height:1.5;padding:var(--space-2) var(--space-3);border:1px solid var(--app-line);border-radius:var(--app-radius-control);background:var(--app-panel-quiet);overflow-wrap:anywhere}
+.lp-decide-why{margin:0 0 var(--space-2)}
+.lp-decide-why>p:not(.lp-decide-label){font-size:14px;line-height:1.55;margin:0 0 var(--space-1);overflow-wrap:anywhere}
+.lp-decide-why>p.is-folded{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.lp-decide .lp-facts{margin:var(--space-3) 0}
+.lp-decide-foot{margin-top:var(--space-3)}
+@media(max-width:1150px){.lp-board-layout>.lp-decide{position:static;max-height:none}}
+.lp-decide-why .lp-link{border:0;background:none;padding:0;font:inherit;font-size:12px;color:var(--app-muted);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
