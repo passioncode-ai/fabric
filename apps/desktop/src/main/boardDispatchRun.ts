@@ -689,6 +689,14 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   const resolveProject = async (fabricProject: string): Promise<string> => {
     const known = projectIds.get(fabricProject)
     if (known) return known
+    // Fabric's own name for the project first (`fabric:<id>`, an alias Observatory's table may hold), so a folder that
+    // two Observatory projects measure does not keep the project's agent from starting (2026-11-11: one project's
+    // starts refused fifty times as ambiguous, board thread `cd6ccd1c`). Not found, or not answered, asks by folder.
+    const byName = await deps.observatory('observatory_resolve', { id: `fabric:${fabricProject}` }).catch(() => null)
+    if (byName && typeof byName.canonical === 'string') {
+      projectIds.set(fabricProject, byName.canonical)
+      return byName.canonical
+    }
     const folder = await deps.folderOf(fabricProject)
     if (!folder) throw new Error('the project has no folder on this computer')
     const r = await deps.observatory('observatory_resolve', { id: folder })

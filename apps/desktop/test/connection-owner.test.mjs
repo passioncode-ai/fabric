@@ -167,3 +167,22 @@ test('CO-532 (DEC-0155 RT-1): with nothing among this account\'s descriptors the
   const failing = async (cmd) => { if (cmd.endsWith('lsof')) return ''; throw new Error('exit 1') }
   assert.match((await readConnectionOwner(47070, 53211, { platform: 'darwin', run: failing })).unknown, /^table-restricted: the socket table could not be read/)
 })
+
+test('CO-560: Windows reads the hub\'s end of the connection through netstat, tasklist and whoami, PowerShell only when they cannot run', async () => {
+  const netstat = [
+    '  TCP    127.0.0.1:47070        127.0.0.1:53211        HERGESTELLT     4242',
+    '  TCP    127.0.0.1:53211        127.0.0.1:47070        HERGESTELLT     7777'
+  ].join('\r\n')
+  const asked = []
+  const run = async (cmd, args) => {
+    asked.push(cmd)
+    if (cmd === 'whoami') return 'desktop-1\\me\r\n'
+    if (cmd === 'netstat') return netstat
+    if (cmd === 'tasklist' && args.includes('PID eq 4242')) return '"Fabric.exe","4242","Console","1","1 K","Running","DESKTOP-1\\other","0:00:01","Fabric"'
+    throw new Error('unexpected ' + cmd)
+  }
+  assert.deepEqual(await readConnectionOwner(47070, 53211, { platform: 'win32', run }), { sid: 'DESKTOP-1\\other', mine: false }, 'the client\'s own end (pid 7777) is never read')
+  assert.ok(!asked.includes('powershell.exe'))
+  const psOnly = async (cmd) => { if (cmd !== 'powershell.exe') throw new Error('not found'); return 'me S-1-5-21-1\n127.0.0.1 9 S-1-5-21-1\n' }
+  assert.deepEqual(await readConnectionOwner(47070, 53211, { platform: 'win32', run: psOnly }), { sid: 'S-1-5-21-1', mine: true })
+})

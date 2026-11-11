@@ -113,6 +113,62 @@ export function ownerFromPowerShell(text: string): ListenerOwner {
   return other ? { sid: other, mine: false } : { sid: me, mine: true }
 }
 
+// CO-560: Windows without PowerShell first. On the windows-11-arm runner `Get-NetTCPConnection` and its CIM owner query
+// ran past their 30 s; `netstat -ano` lists every socket with its process id at once, `tasklist /v` names a process's
+// account and `whoami` this one. netstat's state column is translated on a non-English Windows, so a listener is told by
+// its foreign address (`0.0.0.0:0`, `[::]:0`) and a connection by its two ports, never by the state's word.
+const WIN_ROW = /^\s*TCP\s+(\S+):(\d+)\s+(\S+):(\d+)\s+(?:\S+\s+)?(\d+)\s*$/i
+const unbracket = (a: string): string => a.replace(/^\[|\]$/g, '')
+
+/** The process ids `netstat -ano` shows listening on `port` where loopback reaches them. */
+export function listenerPidsFromWinNetstat(text: string, port: number): number[] {
+  const pids = new Set<number>()
+  for (const line of text.split(/\r?\n/)) {
+    const m = WIN_ROW.exec(line)
+    if (!m || Number(m[2]) !== port || Number(m[4]) !== 0) continue
+    if (TAKES_LOOPBACK.test(unbracket(m[1]))) pids.add(Number(m[5]))
+  }
+  return [...pids]
+}
+
+/** The process ids holding the hub's end of one connection: local port `hubPort`, foreign port `clientPort`. */
+export function serverEndPidsFromWinNetstat(text: string, hubPort: number, clientPort: number): number[] {
+  const pids = new Set<number>()
+  for (const line of text.split(/\r?\n/)) {
+    const m = WIN_ROW.exec(line)
+    if (m && Number(m[2]) === hubPort && Number(m[4]) === clientPort && TAKES_LOOPBACK.test(unbracket(m[1]))) pids.add(Number(m[5]))
+  }
+  return [...pids]
+}
+
+/** The account `tasklist /v /fo csv /nh` names for a process (its seventh column), or null when it cannot say. */
+export function accountFromTasklist(text: string): string | null {
+  const line = text.split(/\r?\n/).find((l) => l.trim().startsWith('"'))
+  if (!line) return null
+  const cols = [...line.matchAll(/"((?:[^"]|"")*)"/g)].map((c) => c[1].replace(/""/g, '"'))
+  const account = cols[6]?.trim()
+  return account && account.toUpperCase() !== 'N/A' ? account : null
+}
+
+/** One owner from this account's name and each listening process's account (null: unreadable). */
+export function ownerFromWinAccounts(me: string, accounts: (string | null)[]): ListenerOwner {
+  if (!me) return { unknown: 'whoami did not name this user' }
+  if (accounts.length === 0) return { unknown: 'no listener could be seen on the port' }
+  if (accounts.some((a) => a === null)) return { unknown: 'the owner of a listening process could not be read' }
+  const other = accounts.find((a) => a!.toLowerCase() !== me.toLowerCase())
+  return other ? { sid: other, mine: false } : { sid: me, mine: true }
+}
+
+/** The Windows read through netstat, tasklist and whoami; throws when one of them cannot be run. */
+function winOwner(pidsOf: (netstat: string) => number[], run: (cmd: string, args: string[]) => string): ListenerOwner {
+  const me = run('whoami', []).trim()
+  const pids = pidsOf(run('netstat', ['-ano']))
+  // Nothing netstat shows on the port: a table of a shape this read does not know is asked of PowerShell, never
+  // taken as no listener.
+  if (pids.length === 0) throw new Error('netstat showed no listener on the port')
+  return ownerFromWinAccounts(me, pids.map((pid) => accountFromTasklist(run('tasklist', ['/v', '/fo', 'csv', '/nh', '/fi', `PID eq ${pid}`]))))
+}
+
 /** One owner, or why it cannot be told: none seen, or listeners of several accounts. */
 export function ownerOf(uids: number[]): ListenerOwner {
   if (uids.length === 0) return { unknown: 'no listener on 127.0.0.1 could be seen on the port' }
@@ -160,6 +216,11 @@ export function readListenerOwner(port: number, deps: {
   }
   if (platform === 'win32') {
     const run = deps.run ?? ((cmd: string, args: string[]) => execFileSync(cmd, args, { encoding: 'utf8', timeout: 30_000, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }))
+    try {
+      return winOwner((t) => listenerPidsFromWinNetstat(t, port), run)
+    } catch {
+      // netstat, tasklist or whoami could not be run: PowerShell below, as before CO-560.
+    }
     try {
       return ownerFromPowerShell(run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', PS_SCRIPT(port)]))
     } catch {
@@ -339,6 +400,17 @@ export async function readConnectionOwner(hubPort: number, clientPort: number, d
     return connectionOwnerFromProcNet(tables, hubPort, clientPort)
   }
   if (platform === 'win32') {
+    try {
+      // CO-560: netstat, tasklist and whoami first (see `winOwner`); PowerShell when one of them cannot be run.
+      const me = (await run('whoami', [])).trim()
+      const pids = serverEndPidsFromWinNetstat(await run('netstat', ['-ano']), hubPort, clientPort)
+      if (pids.length === 0) throw new Error('netstat showed no such connection')
+      const accounts: (string | null)[] = []
+      for (const pid of pids) accounts.push(accountFromTasklist(await run('tasklist', ['/v', '/fo', 'csv', '/nh', '/fi', `PID eq ${pid}`])))
+      return ownerFromWinAccounts(me, accounts)
+    } catch {
+      // Asked of PowerShell below.
+    }
     try {
       return ownerFromPowerShell(await run('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', PS_CONNECTION_SCRIPT(hubPort, clientPort)]))
     } catch {

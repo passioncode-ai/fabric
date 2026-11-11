@@ -360,6 +360,23 @@ test('CO-544: a folder two Observatory projects measure is said as ambiguous, wi
   assert.match(failed?.detail.note ?? '', /several projects for this folder \(project:a, project:b\)/)
 })
 
+test('a project Observatory knows by its Fabric name is resolved by it, before and instead of its folder', async () => {
+  const w = world()
+  const real = w.deps.observatory
+  const asked = []
+  w.deps.observatory = async (name, args) => {
+    if (name !== 'observatory_resolve') return real(name, args)
+    asked.push(args.id)
+    return args.id.startsWith('fabric:') ? { canonical: 'project:by-name' } : { error: 'ambiguous', candidates: ['project:a', 'project:b'] }
+  }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1, 'started although the folder is ambiguous')
+  assert.deepEqual(asked, [`fabric:${request().target}`])
+  const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.equal(open.projectId, 'project:by-name')
+})
+
 test('iteration 2, ER-6: with the switch off a start left without an answer is not asked again', async () => {
   const w = world()
   w.deps.launch = async (args) => { w.launches.push(args); return { refused: 'failed' } }

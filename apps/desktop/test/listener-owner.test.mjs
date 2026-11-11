@@ -8,7 +8,7 @@ import test from 'node:test'
 
 // A relative static import, never a dynamic import of a resolved path: on Windows that path is `C:\...`, a URL
 // scheme to the ESM loader (CO-557, scripts/test/windows-test-imports.test.mjs).
-import { uidsFromLsof, uidsFromProcNet, ownerOf, readListenerOwner, createOwnerCheck, ownerFromPowerShell } from '../src/main/listenerOwner.ts'
+import { uidsFromLsof, uidsFromProcNet, ownerOf, readListenerOwner, createOwnerCheck, ownerFromPowerShell, listenerPidsFromWinNetstat, serverEndPidsFromWinNetstat, accountFromTasklist, ownerFromWinAccounts } from '../src/main/listenerOwner.ts'
 import { publishHub, locateHub } from '../src/main/hub.ts'
 
 const ME = 501
@@ -110,7 +110,9 @@ test('macOS: lsof finding nothing (exit 1) is unknown; Linux reads both tables; 
   // A listener on ::1 alone does not take a connection to 127.0.0.1: nothing reaches it, so the owner is unknown.
   assert.ok('unknown' in readListenerOwner(47022, { platform: 'linux', read: (f) => (f.endsWith('6') ? v6.replace('00000000000000000000000000000000:', '00000000000000000000000001000000:') : '  header\n') }))
   assert.ok('unknown' in readListenerOwner(47022, { platform: 'linux', read: () => { throw new Error('ENOENT') } }))
-  assert.deepEqual(readListenerOwner(47070, { platform: 'win32', run: () => 'me S-1-5-21-1\n127.0.0.1 9 S-1-5-21-1\n' }), { sid: 'S-1-5-21-1', mine: true })
+  // CO-560: netstat that cannot be run (or shows nothing) is asked of PowerShell, as before.
+  const psOnly = (cmd) => { if (cmd !== 'powershell.exe') throw new Error('not found'); return 'me S-1-5-21-1\n127.0.0.1 9 S-1-5-21-1\n' }
+  assert.deepEqual(readListenerOwner(47070, { platform: 'win32', run: psOnly }), { sid: 'S-1-5-21-1', mine: true })
   assert.ok('unknown' in readListenerOwner(47070, { platform: 'win32', run: () => { throw new Error('exit 3') } }))
   assert.deepEqual(readListenerOwner(47070, { platform: 'freebsd' }), { unsupported: true })
 })
@@ -141,4 +143,32 @@ test('the check reads the table once per hub process, and again when the pid or 
   assert.equal(reads, 2, 'a restarted hub is read again')
   t += 61_000; check(47070, 2)
   assert.equal(reads, 3, 'and once its time is up')
+})
+
+const NETSTAT = [
+  '',
+  'Active Connections',
+  '',
+  '  Proto  Local Address          Foreign Address        State           PID',
+  '  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING       1000',
+  '  TCP    127.0.0.1:47070        0.0.0.0:0              ABH\u00d6REN         4242',
+  '  TCP    127.0.0.1:47070        127.0.0.1:53211        HERGESTELLT     4242',
+  '  TCP    192.168.1.5:47070      0.0.0.0:0              LISTENING       77',
+  '  TCP    [::1]:47070            [::]:0                 LISTENING       4242',
+  '  UDP    0.0.0.0:47070          *:*                                    9'
+].join('\r\n')
+
+test('CO-560: Windows reads netstat by addresses and ports, never by the translated state, and the owner by tasklist', () => {
+  assert.deepEqual(listenerPidsFromWinNetstat(NETSTAT, 47070), [4242], 'loopback listeners only, a LAN-only one and UDP left out')
+  assert.deepEqual(serverEndPidsFromWinNetstat(NETSTAT, 47070, 53211), [4242])
+  assert.deepEqual(serverEndPidsFromWinNetstat(NETSTAT, 47070, 1), [])
+  assert.equal(accountFromTasklist('"Fabric.exe","4242","Console","1","120,000 K","Running","DESKTOP-1\\me","0:00:09","Fabric"\r\n'), 'DESKTOP-1\\me')
+  assert.equal(accountFromTasklist('"svchost.exe","4242","Services","0","9,000 K","Unknown","N/A","0:00:00","N/A"'), null)
+  assert.equal(accountFromTasklist('INFO: No tasks are running which match the specified criteria.'), null)
+  assert.deepEqual(ownerFromWinAccounts('desktop-1\\me', ['DESKTOP-1\\me']), { sid: 'desktop-1\\me', mine: true }, 'compared without case')
+  assert.deepEqual(ownerFromWinAccounts('desktop-1\\me', ['DESKTOP-1\\other']), { sid: 'DESKTOP-1\\other', mine: false })
+  assert.ok('unknown' in ownerFromWinAccounts('desktop-1\\me', [null]), 'an account tasklist cannot name is unknown, never mine')
+  const run = (cmd, args) => cmd === 'whoami' ? 'desktop-1\\me\r\n' : cmd === 'netstat' ? NETSTAT
+    : cmd === 'tasklist' && args.includes('PID eq 4242') ? '"Fabric.exe","4242","Console","1","1 K","Running","DESKTOP-1\\me","0:00:01","Fabric"' : (() => { throw new Error('unexpected ' + cmd) })()
+  assert.deepEqual(readListenerOwner(47070, { platform: 'win32', run }), { sid: 'desktop-1\\me', mine: true }, 'no PowerShell asked')
 })

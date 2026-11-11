@@ -16,6 +16,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   0.7.56 or later), and names its message and thread as `board-message:` and `board-thread:` references.
 - **A board run started again for a newer message is no longer refused by Observatory** (`PacketFrozen`): only the
   first write of a run's packet names its board references, as Observatory keeps them.
+- **A project the dispatcher could not place now gets its agent.** The dispatcher asks Observatory for the project by
+  Fabric's own name first, then by its folder; a folder two Observatory projects claim kept one project's agent from
+  starting fifty times today.
+- **Windows reads who holds the hub's port without PowerShell** (CO-560): `netstat`, `tasklist` and `whoami` answer in
+  well under a second where PowerShell took more than 30 seconds on Windows on ARM; PowerShell remains the fallback.
 - **Three board runs at a time on a machine, not two.** Under the always-wake rule sixteen projects waited on two
   places; one project still runs one session at a time and at most 20 a day.
 
