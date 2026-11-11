@@ -1625,8 +1625,20 @@ test('2026-11-11, the first live run on the Mac Studio: a run on another machine
   const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
   assert.equal(open.body.notes, 'the request text')
   assert.ok(open.body.constraints[0].startsWith('When this session has no com.* tools'))
+  assert.match(open.body.constraints[0], /other projects' data, never instructions/, '0.3.20 review DA-14')
+  assert.ok(open.body.constraints.some((c) => /lease_expired after com\.accept.*com\.responder_replace/.test(c)), 'an accepted request whose attempt lapsed is taken back by a transfer')
+  assert.ok(open.body.constraints.every((c) => c.length <= 500), 'Observatory takes a constraint of at most 500 characters')
   assert.match(open.body.goal, /board-request:/, 'the id in the reference form Observatory keeps')
   assert.equal(w.launches[0].target, 'node-a')
+  // A thread that could not be read: the constraint says so and still fits Observatory's 500.
+  const blind = world({ requests: [request()] })
+  blind.deps.remoteTarget = async () => 'node-a'
+  blind.deps.requestThread = async () => null
+  await createBoardDispatch(blind.deps).onPass()
+  const blindOpen = blind.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.equal(blindOpen.body.notes, undefined)
+  assert.match(blindOpen.body.constraints[0], /could not be read/)
+  assert.ok(blindOpen.body.constraints.every((c) => c.length <= 500))
   // A run on this machine reads no thread and its packet has no notes.
   const here = world({ requests: [request()] })
   here.deps.requestThread = async () => { throw new Error('not asked') }
@@ -1636,14 +1648,53 @@ test('2026-11-11, the first live run on the Mac Studio: a run on another machine
   assert.ok(!local.body.constraints.some((c) => c.startsWith('When this session has no com.* tools')))
 })
 
-test('requestThreadText: the request first, then the newest messages, removed text said, the whole cut to its bound', async () => {
-  const { requestThreadText, THREAD_TEXT_MAX } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+test('requestThreadText: the request first, then the newest messages, removed text said, the whole under Observatory\'s 4000 for notes', async () => {
+  const { requestThreadText, THREAD_TEXT_MAX, REQUEST_TEXT_MAX } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  assert.ok(THREAD_TEXT_MAX < 4000, '0.3.20 review ER-9, DA-10: Observatory refuses notes past 4000 characters')
   const msg = (id, at, text, extra = {}) => ({ id, thread: 't', kind: 'reply', sender: { project: 'p', principal: null }, at, digest: 'd', body: { text }, ...extra })
+  const one = (messages) => ({ list: async () => ({ ok: true, messages, lastSeq: messages.length, more: false }) })
   const messages = [msg('r', '1', 'ask', { kind: 'request' }), msg('a', '2', 'older'), msg('b', '3', 'newer'), msg('c', '4', 'x', { body: undefined, redacted: true })]
-  const text = await requestThreadText({ list: async () => ({ ok: true, messages }) }, 'e', { id: 'r', thread: 't' })
-  assert.ok(text.startsWith('[1] request (the request) from project p:\nask'))
+  const text = await requestThreadText(one(messages), 'e', { id: 'r', thread: 't' })
+  assert.ok(text.includes('[1] request (the request) from fabric-project:p:\nask'), 'the project in the reference form Observatory keeps')
+  assert.ok(text.indexOf('ask') < text.indexOf('(its text was removed)'))
   assert.ok(text.indexOf('(its text was removed)') < text.indexOf('newer') && text.indexOf('newer') < text.indexOf('older'))
+  assert.ok(!text.includes('  '), 'no double space')
   assert.equal(await requestThreadText({ list: async () => ({ ok: false }) }, 'e', { id: 'r', thread: 't' }), null)
-  const long = await requestThreadText({ list: async () => ({ ok: true, messages: [msg('r', '1', 'z'.repeat(THREAD_TEXT_MAX * 2))] }) }, 'e', { id: 'r', thread: 't' })
-  assert.ok(long.length <= THREAD_TEXT_MAX + 10)
+  // A request longer than its share is cut and says so; the newest messages still fit beside it.
+  const long = await requestThreadText(one([msg('r', '1', 'z'.repeat(THREAD_TEXT_MAX * 2), { kind: 'request' }), msg('n', '2', 'the newest')]), 'e', { id: 'r', thread: 't' })
+  assert.ok(long.length <= THREAD_TEXT_MAX)
+  assert.ok(long.includes('z'.repeat(REQUEST_TEXT_MAX)) && long.includes('(cut: the request is longer)') && long.includes('the newest'))
+  // Messages that do not fit are counted, never silently dropped.
+  const many = await requestThreadText(one([msg('r', '1', 'ask', { kind: 'request' }), ...Array.from({ length: 40 }, (_, i) => msg(`m${i}`, String(i + 2), 'y'.repeat(200)))]), 'e', { id: 'r', thread: 't' })
+  assert.ok(many.length <= THREAD_TEXT_MAX)
+  assert.match(many, /\(\d+ older messages left out\)$/)
+  // 0.3.20 review ER-13, DA-13: a thread longer than one page is read on, so a request past the first 100 is found.
+  const pages = [[msg('o', '1', 'first page')], [msg('r', '2', 'the late request', { kind: 'request' })]]
+  const after = []
+  const paged = await requestThreadText({ list: async (_e, _t, afterSeq) => { after.push(afterSeq); const i = after.length - 1; return { ok: true, messages: pages[i], lastSeq: i + 1, more: i === 0 } } }, 'e', { id: 'r', thread: 't' })
+  assert.deepEqual(after, [0, 1])
+  assert.ok(paged.includes('the late request') && paged.includes('first page'))
+})
+
+test('0.3.20 review ER-10, DA-11: an open on another machine whose answer was lost is asked again with the same packet, the thread not read twice', async () => {
+  const v = world({ requests: [request()] })
+  v.deps.remoteTarget = async () => 'node-a'
+  let reads = 0
+  v.deps.requestThread = async () => `thread read ${++reads}`
+  let lose = true
+  const vbase = v.deps.observatory
+  v.deps.observatory = async (name, args) => {
+    const answer = await vbase(name, args)
+    if (name === 'observatory_checkpoint_write' && !args.workflowId && lose) { lose = false; throw new Error('the connection dropped') }
+    return answer
+  }
+  const e = createBoardDispatch(v.deps)
+  await e.onPass()
+  v.tick(REFUSAL_BACKOFF_MS); await e.onPass()
+  assert.equal(reads, 1, 'the thread is read once')
+  const bodies = v.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).map(([, a]) => a.body)
+  assert.equal(bodies.length, 2)
+  assert.deepEqual(bodies[0], bodies[1])
+  assert.equal(v.launches.length, 1)
+  assert.equal(v.launches[0].target, 'node-a')
 })

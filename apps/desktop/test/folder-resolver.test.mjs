@@ -114,3 +114,16 @@ test('two projects claiming one longest folder or one remote are ambiguity, neve
   const remoteMatch = await resolveProjectForFolder('/tmp/clone', duplicateRemotes, noGit, async () => 'git@github.com:acme/shared.git')
   assert.deepEqual([remoteMatch.projectId, remoteMatch.how, remoteMatch.candidates], [null, 'ambiguous', ['p-one', 'p-two']])
 })
+
+test('CO-566: an admitted folder deleted from disk (its origin read fails with ENOENT) does not fail the resolution', async () => {
+  const admitted = [
+    { projectId: 'p-gone', path: '/Users/me/DATA/deleted-worktree' },
+    { projectId: 'p-fabric', path: '/Users/me/DATA/fabric', remoteKey: 'github.com/passioncode-ai/fabric' }
+  ]
+  const remoteOf = async (folder) => {
+    if (folder === '/Users/me/DATA/deleted-worktree') throw Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' })
+    return folder === '/tmp/clone' ? 'git@github.com:passioncode-ai/fabric.git' : null
+  }
+  const match = await resolveProjectForFolder('/tmp/clone', admitted, noGit, remoteOf)
+  assert.deepEqual([match.projectId, match.how], ['p-fabric', 'remote'])
+})

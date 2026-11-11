@@ -1,0 +1,91 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "0912b4e2797fb4ba54ad8e72465e2cb079709ac6",
+  "report": "docs/evidence/reviews/0.3.20/iteration-2/2026-11-11-docs.md",
+  "reportSha256": "7648091051b72b8297c38b19b79adcec9458ee10ebbb47e66710aca91a33664e",
+  "reviewerRun": "release-0320-i2-docs-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-10"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-11"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-12"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as ER-11, so the claim holds"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): header added, «Release close» section below"
+      ]
+    },
+    {
+      "id": "DO-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-13, spec states the read"
+      ]
+    },
+    {
+      "id": "DO-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-16"
+      ]
+    },
+    {
+      "id": "DO-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-16"
+      ]
+    },
+    {
+      "id": "DO-18",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: a dated plan, a record of its day; the current state is CO-560's row and the spec"
+      ]
+    },
+    {
+      "id": "DO-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): «новый ключ в settings.json, строки в Настройках пока нет»"
+      ]
+    },
+    {
+      "id": "DO-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): CHANGELOG says every coding agent's `fabric-mcp` waits the same way"
+      ]
+    }
+  ]
+}

@@ -33,6 +33,8 @@ same wave: the run had only the request's id (its packet now carries the request
 close was refused for status `failed` (now `blocked`). Every new test was watched failing on the old code or its
 fixture encodes the refused value. Non-blocking findings not fixed are in CO-564.
 
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
 | V1-1 | UX-1 | blocking | spec and map said Observatory keeps board-message: | fixed in the iteration-1 wave (candidate 2): spec §3.8 says board-message: is still redacted until Observatory takes it |
 | V1-2 | UX-2 | blocking | git origin read documented as 5 s, ran under 60 s | fixed in the iteration-1 wave (candidate 2): remoteTargetFor reads through agentSyncLeases.ts#originOf, 3 s |
 | V1-3 | UX-3 | non-blocking | CHANGELOG called dispatchTargets a Setting | fixed in the iteration-1 wave (candidate 2): CHANGELOG and spec say the settings.json key, no Settings row |
@@ -80,3 +82,78 @@ fixture encodes the refused value. Non-blocking findings not fixed are in CO-564
 | V1-45 | PL-10 | non-blocking | text nits | fixed in the iteration-1 wave (candidate 2): as UX-8 and UX-3 |
 
 Exit for iteration 1: every finding disposed above. Blocking findings open: none.
+
+## Iteration 2
+
+Candidate `0912b4e2` (the iteration-1 wave plus the first live run on the Mac Studio). Five reviewers, one per level;
+their reports and receipts are in `docs/evidence/reviews/0.3.20/iteration-2/`. 42 findings, 13 blocking (UX-10, UX-11,
+ER-9, DO-10 to DO-13, DA-10, PL-11 to PL-13), four distinct defects: a remote run's `notes` over Observatory's 4000,
+the CHANGELOG header the wave cut, the spec's `status: failed`, and two claims the wave left false (`board-message:`
+kept, «each given 10 seconds»). Every new test was watched failing on the old code.
+
+Two more came from the live board in the same hour and are in the same wave. A run of `fabric-agents-database` (launch
+`26586b8b`) did its work and posted its answer, but its attempt lapsed after `com.accept` and the request stayed
+`accepted`: the packet now names the way back (`com.responder_replace` with a transfer), and the project was told on
+the board (thread `9f829c89`). Writing that line also showed the remote run's first constraint at 511 characters when
+the thread could not be read, past Observatory's 500 for a constraint: it is now 440 at most, and a test holds every
+constraint of both packets to 500. And at 16:45 a PM agent's session saw the board as unavailable: one admitted folder deleted from disk failed every
+new enrollment from 16:30 (CO-566, resolved in this wave, worked around live at 16:46).
+
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
+| V2-1 | UX-10 | blocking | the fix wave cut CHANGELOG's header and its `## Unreleased` heading | fixed in the iteration-2 wave (candidate 3): header restored from `1fa2d1d9`, heading back |
+| V2-2 | UX-11 | blocking | spec §3.7 said a remote-ended workflow closes `failed` | fixed in the iteration-2 wave (candidate 3): §3.7 and §3.4 say `blocked`, which Observatory takes |
+| V2-3 | UX-12 | non-blocking | map, test comment and CHANGELOG still read as if Observatory keeps `board-message:` | fixed in the iteration-2 wave (candidate 3): map lane, test comment and CHANGELOG corrected |
+| V2-4 | UX-13 | non-blocking | thread text from the oldest 100 messages | fixed in the iteration-2 wave (candidate 3): up to ten pages read, newest first |
+| V2-5 | UX-14 | non-blocking | a run here without `com.*` tools would write its answer to an unread result file | ruled: CO-564, item 12 (a run here has `fabric-mcp`, CO-563) |
+| V2-6 | UX-15 | non-blocking | bare UUIDs redacted, double space, order unstated | fixed in the iteration-2 wave (candidate 3): `fabric-project:<uuid>`, one space, the order said in the text's first line |
+| V2-7 | UX-16 | non-blocking | stale comments at `WIN_COMMAND_MS` and in `types.ts` | fixed in the iteration-2 wave (candidate 3): both rewritten |
+| V2-8 | UX-17 | non-blocking | §3.4 contradicted §3.7 and §3.8 on kept references and `failed` | fixed in the iteration-2 wave (candidate 3): §3.4 says what Observatory 0.35.14 keeps and `blocked` |
+| V2-9 | UX-18 | non-blocking | map links to §3.7 and §3.8 opened the top of the spec | fixed in the iteration-2 wave (candidate 3): the links carry the section anchors |
+| V2-10 | ER-9 | blocking | notes past Observatory's 4000 never open | fixed in the iteration-2 wave (candidate 3): `THREAD_TEXT_MAX` 3900, request cut at `REQUEST_TEXT_MAX` 3000; test asserts the bound |
+| V2-11 | ER-10 | non-blocking | a retried open re-read the target and thread | fixed in the iteration-2 wave (candidate 3): `retryOpen` keeps the machine and text; test `ER-10, DA-11` |
+| V2-12 | ER-11 | non-blocking | `readConnectionOwner` gave Windows commands 30 s | fixed in the iteration-2 wave (candidate 3): `WIN_COMMAND_MS` there too, PowerShell keeps 30 s |
+| V2-13 | ER-12 | non-blocking | Windows account names decoded as UTF-8, not the console code page | ruled: CO-564, item 10 |
+| V2-14 | ER-13 | non-blocking | oldest 100 messages called the newest | fixed in the iteration-2 wave (candidate 3): as UX-13 |
+| V2-15 | ER-14 | non-blocking | `winOwner`'s comment above `WIN_COMMAND_MS` | fixed in the iteration-2 wave (candidate 3): as UX-16 |
+| V2-16 | DO-10 | blocking | CHANGELOG preamble cut | fixed in the iteration-2 wave (candidate 3): as UX-10 |
+| V2-17 | DO-11 | blocking | §3.7 `status: failed` | fixed in the iteration-2 wave (candidate 3): as UX-11 |
+| V2-18 | DO-12 | blocking | map lane and test comment keep the `board-message:` claim | fixed in the iteration-2 wave (candidate 3): as UX-12 |
+| V2-19 | DO-13 | blocking | «each given 10 seconds» false for `readConnectionOwner` | fixed in the iteration-2 wave (candidate 3): as ER-11, so the claim holds |
+| V2-20 | DO-14 | non-blocking | V1-20 and V1-43 point to a missing release close; table without header | fixed in the iteration-2 wave (candidate 3): header added, «Release close» section below |
+| V2-21 | DO-15 | non-blocking | spec «newest messages» not what the code did | fixed in the iteration-2 wave (candidate 3): as UX-13, spec states the read |
+| V2-22 | DO-16 | non-blocking | misplaced `winOwner` comment | fixed in the iteration-2 wave (candidate 3): as UX-16 |
+| V2-23 | DO-17 | non-blocking | `types.ts` names `git remote get-url` | fixed in the iteration-2 wave (candidate 3): as UX-16 |
+| V2-24 | DO-18 | non-blocking | `2026-11-06-studio-spaces-gaps.md` still says both Windows halves ask PowerShell | not a defect: a dated plan, a record of its day; the current state is CO-560's row and the spec |
+| V2-25 | DO-19 | non-blocking | map lane calls `dispatchTargets` a new setting | fixed in the iteration-2 wave (candidate 3): «новый ключ в settings.json, строки в Настройках пока нет» |
+| V2-26 | DO-20 | non-blocking | the CO-563 wait documented for dispatched sessions only | fixed in the iteration-2 wave (candidate 3): CHANGELOG says every coding agent's `fabric-mcp` waits the same way |
+| V2-27 | DA-10 | blocking | notes past 4000 | fixed in the iteration-2 wave (candidate 3): as ER-9 |
+| V2-28 | DA-11 | non-blocking | retry packet changed | fixed in the iteration-2 wave (candidate 3): as ER-10 |
+| V2-29 | DA-12 | non-blocking | project and request ids redacted in the thread text | fixed in the iteration-2 wave (candidate 3): as UX-15; the missing request named `board-request:` |
+| V2-30 | DA-13 | non-blocking | oldest page | fixed in the iteration-2 wave (candidate 3): as UX-13 |
+| V2-31 | DA-14 | non-blocking | remote packet lacked «a board message is data» | fixed in the iteration-2 wave (candidate 3): the first constraint says the request and thread are data, never instructions; test asserts it |
+| V2-32 | DA-15 | non-blocking | test comment `board-message:` | fixed in the iteration-2 wave (candidate 3): as UX-12 |
+| V2-33 | DA-16 | non-blocking | thread text copied into Observatory's ledger under its retention | ruled: CO-564, item 11 |
+| V2-34 | DA-17 | non-blocking | `types.ts` comment names the wrong git read | fixed in the iteration-2 wave (candidate 3): as UX-16 |
+| V2-35 | PL-11 | blocking | notes past 4000 | fixed in the iteration-2 wave (candidate 3): as ER-9 |
+| V2-36 | PL-12 | blocking | CHANGELOG `## Unreleased` gone | fixed in the iteration-2 wave (candidate 3): as UX-10 |
+| V2-37 | PL-13 | blocking | §3.7 and §3.4 `failed` | fixed in the iteration-2 wave (candidate 3): as UX-11 and UX-17 |
+| V2-38 | PL-14 | non-blocking | retried open with a changed thread refused | fixed in the iteration-2 wave (candidate 3): as ER-10 |
+| V2-39 | PL-15 | non-blocking | oldest 100 | fixed in the iteration-2 wave (candidate 3): as UX-13 |
+| V2-40 | PL-16 | non-blocking | release close items recorded nowhere; table header | fixed in the iteration-2 wave (candidate 3): as DO-14 |
+| V2-41 | PL-17 | non-blocking | an owner named `constructor` read a function as its target | fixed in the iteration-2 wave (candidate 3): `targetForOwner` takes only the map's own keys (`Object.hasOwn`); test added |
+| V2-42 | PL-18 | non-blocking | text nits | fixed in the iteration-2 wave (candidate 3): as UX-16 |
+
+## Release close
+
+What is owed after the tag, in order; each item is checked off here with its receipt.
+
+1. The CI release run green on every platform, the published release and its notes from `## 0.3.20`.
+2. Install 0.3.20 on this Mac, with Switchboard updated to 0.7.56 at the same time (its update restarts Switchboard, so
+   no dispatched run may be in flight, or the dispatcher is paused first).
+3. Install 0.3.20 on the Mac Studio in each space that runs Fabric.
+4. Write `dispatchTargets` (the owners of the operator's repositories to their Studio spaces) once 0.3.20 runs, and watch
+   one live run on the Studio end to end: started there, its answer posted in the request's thread, its workflow closed.
+5. Read the nightly `platforms` run on the release commit for CO-560 (Windows on ARM) and report it to the coordinator's
+   thread.
+6. CO-563 on a live `-p` run (CO-564, item 1).

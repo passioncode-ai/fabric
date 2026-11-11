@@ -289,7 +289,8 @@ export function remoteOwnerOf(url: string): string | null {
 
 /** The machine for one run: its owner's in `dispatchTargets`, else `dispatchTarget`, else this one (null). */
 export function targetForOwner(owner: string | null, targets: Record<string, string>, fallback: string | null): string | null {
-  return (owner && targets[owner]) || fallback
+  // 0.3.20 review, iteration 2, PL-17: only the map's own keys; an owner named like `constructor` is not a target.
+  return (owner && Object.hasOwn(targets, owner) ? targets[owner] : null) || fallback
 }
 // #endregion board-dispatch-remote
 

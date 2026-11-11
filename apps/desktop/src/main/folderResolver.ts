@@ -141,7 +141,9 @@ async function withRemoteKeys(rows: readonly AdmittedFolder[], remoteOf: (folder
     while (next < rows.length) {
       const index = next++
       const row = rows[index]
-      out[index] = { ...row, remoteKey: row.remoteKey ?? normalizeRemoteKey(await remoteOf(row.path)) }
+      // 2026-11-11 (CO-566): an admitted folder deleted from disk made git fail with ENOENT, and that one row failed the
+      // enrollment of every folder that is not admitted by its path. A row whose origin cannot be read has no key.
+      out[index] = { ...row, remoteKey: row.remoteKey ?? normalizeRemoteKey(await remoteOf(row.path).catch(() => null)) }
     }
   })
   await Promise.all(workers)

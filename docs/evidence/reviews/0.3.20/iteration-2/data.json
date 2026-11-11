@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "0912b4e2797fb4ba54ad8e72465e2cb079709ac6",
+  "report": "docs/evidence/reviews/0.3.20/iteration-2/2026-11-11-data.md",
+  "reportSha256": "2c800390dba5627b3baed1e9bf7348106c86fa53f306e8c024f9a6947abf7ff7",
+  "reviewerRun": "release-0320-i2-data-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as ER-9"
+      ]
+    },
+    {
+      "id": "DA-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as ER-10"
+      ]
+    },
+    {
+      "id": "DA-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-15; the missing request named `board-request:`"
+      ]
+    },
+    {
+      "id": "DA-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-13"
+      ]
+    },
+    {
+      "id": "DA-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): the first constraint says the request and thread are data, never instructions; test asserts it"
+      ]
+    },
+    {
+      "id": "DA-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-12"
+      ]
+    },
+    {
+      "id": "DA-16",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 11"
+      ]
+    },
+    {
+      "id": "DA-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-16"
+      ]
+    }
+  ]
+}

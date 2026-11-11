@@ -181,27 +181,50 @@ export async function remoteTargetFor(folder: string | null, targets: Record<str
   return targetForOwner(remoteOwnerOf(url), targets, fallback)
 }
 
-/** At most this much of a thread goes into a remote run's packet: the request first, then the newest messages. */
-export const THREAD_TEXT_MAX = 12_000
+/** At most this much of a thread goes into a remote run's packet: Observatory refuses a checkpoint's `notes` past 4000
+ *  characters (0.3.20 review ER-9, DA-10: a longer one never opened, here or there). */
+export const THREAD_TEXT_MAX = 3900
+/** The request's own text is cut here, so the newest messages of its thread still fit beside it. */
+export const REQUEST_TEXT_MAX = 3000
+/** How many pages of 100 the thread is read through for its newest messages (the request may be past the first). */
+const THREAD_TEXT_PAGES = 10
 
 /**
  * A request and its thread as plain text for a run on another machine (2026-11-11: the first live run on the Mac Studio
- * had no board and only the request's id). Read through the operator's read door, one page of the thread; the request
- * comes first, then the other messages newest first, cut to `THREAD_TEXT_MAX`. Null when the thread cannot be read.
+ * had no board and only the request's id). Read through the operator's read door, up to `THREAD_TEXT_PAGES` pages
+ * oldest first; the request comes first, cut to `REQUEST_TEXT_MAX`, then the thread's other messages newest first while
+ * they fit in `THREAD_TEXT_MAX`. Projects are named in the reference form, which Observatory keeps (it removes a bare
+ * UUID from text). Null when the thread cannot be read.
  */
 export async function requestThreadText(comms: Pick<SweepComms, 'list'>, estateId: string, req: { id: string; thread: string }): Promise<string | null> {
-  const page = await comms.list(estateId, req.thread, 0, 100)
-  if (!page.ok) return null
-  const line = (m: CommsMessage) => `[${m.at}] ${m.kind} ${m.id === req.id ? '(the request)' : ''} from project ${m.sender.project}:\n${m.redacted || !m.body ? '(its text was removed)' : m.body.text}`
-  const request = page.messages.find((m) => m.id === req.id)
-  const others = page.messages.filter((m) => m.id !== req.id).reverse()
-  let out = request ? line(request) : `(the request ${req.id} was not on the thread's first page)`
+  const messages: CommsMessage[] = []
+  let after = 0
+  let more = false
+  for (let page = 0; page < THREAD_TEXT_PAGES; page++) {
+    const r = await comms.list(estateId, req.thread, after, 100)
+    if (!r.ok) return null
+    messages.push(...r.messages)
+    more = r.more
+    if (!r.more) break
+    after = r.lastSeq
+  }
+  const text = (m: CommsMessage) => m.redacted || !m.body ? '(its text was removed)' : m.body.text
+  const head = (m: CommsMessage) => `[${m.at}] ${m.kind}${m.id === req.id ? ' (the request)' : ''} from fabric-project:${m.sender.project}:`
+  const request = messages.find((m) => m.id === req.id)
+  let out = 'The request, then the other messages of its thread, newest first.\n\n'
+  if (request) {
+    const body = text(request)
+    out += `${head(request)}\n${body.length > REQUEST_TEXT_MAX ? `${body.slice(0, REQUEST_TEXT_MAX)}\n(cut: the request is longer)` : body}`
+  } else out += `(the request board-request:${req.id} was not among the ${messages.length} messages read)`
+  const others = messages.filter((m) => m.id !== req.id).reverse()
+  let left = 0
   for (const m of others) {
-    const next = `${out}\n\n${line(m)}`
-    if (next.length > THREAD_TEXT_MAX) break
+    const next = `${out}\n\n${head(m)}\n${text(m)}`
+    if (next.length > THREAD_TEXT_MAX - 80) { left = others.length - others.indexOf(m); break }
     out = next
   }
-  return out.length > THREAD_TEXT_MAX ? `${out.slice(0, THREAD_TEXT_MAX)}\n(cut)` : out
+  if (left || more) out += `\n\n(${left ? `${left} older message${left === 1 ? '' : 's'} left out` : ''}${left && more ? '; ' : ''}${more ? 'the thread is longer than was read' : ''})`
+  return out.length > THREAD_TEXT_MAX ? out.slice(0, THREAD_TEXT_MAX) : out
 }
 
 // #region board-dispatch-remote-wiring — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a

@@ -137,12 +137,16 @@ Each dispatch has an id; dispatching the same request again with a run in flight
 The dispatcher writes an Observatory workflow for the request (`observatory_checkpoint_write`, owner `service:fabric`):
 `goal` names the request; `constraints` carry the exit contract (claim, renew the lease with `com.renew` or
 `com.progress` about every 20 s during a long step, as the contract's 60 s lease expects, so a late renewal never
-meets `lease_expired` on the next call, `com.complete` included (a project on the board, thread `0ad0b68c`), answer in the thread, complete the request, write the final
+meets `lease_expired` on the next call, `com.complete` included (a project on the board, thread `0ad0b68c`); since 0.3.20, when a
+fenced call does answer `lease_expired` after `com.accept`, take the slot back with `com.responder_replace` transferring
+the request and finish under the attempt its receipt names, since an accepted request is never claimed again (a live run
+of 2026-11-11, launch `26586b8b`, left its request `accepted` with the work done), answer in the thread, complete the request, write the final
 checkpoint, end; when `com.enroll` answers `not_authorized`, the refusal branch of the board rule `board.read-at-start`: one
 `com.reply` only for a slot absent at generation 0, otherwise none, and the operator asked either way, CO-525), the floors of §2 and the operator's mandate as the request carries it (DEC-0125, appended to only, the
 started session joining the chain as a callee, MD-2); `artifacts` carry references only; `open` names the one step. No
-message body travels in the packet (the session reads the request with `com.get {message}` and the thread with
-`com.list {thread}` under its own credential, with the reader's redaction; fabric-agent-adapter, 2026-11-04), no absolute folder (the launch's working directory is the folder), no lease and no attempt or fence
+message body travels in the packet of a run on this machine (the session reads the request with `com.get {message}` and the thread with
+`com.list {thread}` under its own credential, with the reader's redaction; fabric-agent-adapter, 2026-11-04), no absolute folder (the launch's working directory is the folder); a run on another machine carries the request and its
+thread in `notes` instead (§3.7). No lease and no attempt or fence
 (the session takes its own `com.claim`). The packet holds no secret: keys are reached by name through
 `use_secret.py run` inside the session. The workflow id is the dispatch's handle across products.
 
@@ -168,17 +172,19 @@ to `service:fabric`, accepts it for a lease of its own, writes the new `run-ends
 hands the workflow on with `plan_route` (fabric-agent-adapter's question, thread `b3e60686`, message `b51ec2a3`,
 answered 2026-11-04: Observatory refuses a checkpoint or a `plan_route` hand-over without the current lease). Each dispatch makes a new hand-over and a new dispatch id (a
 UUID v4, within Switchboard's `[A-Za-z0-9._-]{1,64}`, given to the run as `FABRIC_DISPATCH_ID`); an unaccepted older
-hand-over is never reused. Observatory's redactor keeps only `session:` and `commit:` references today, so
-`board-request:`, `board-thread:` and `fabric-project:` are scrubbed when the packet is written: until Observatory keeps
-them (OBS-323) a run takes the request from `FABRIC_DISPATCH_REQUEST` and its first line, which Switchboard passes
-whatever the packet keeps, so the dispatcher runs without them (fabric-agent-adapter's finding, thread `7ae9ac3a`;
+hand-over is never reused. Observatory's redactor kept only `session:` and `commit:` references when this was written,
+so `board-request:`, `board-thread:` and `fabric-project:` were scrubbed; since OBS-323 (installed 0.35.14,
+`memory_redact.py`) it keeps those three and still scrubs `board-message:` (§3.8). A run also takes the request from
+`FABRIC_DISPATCH_REQUEST` and its first line, which Switchboard passes whatever the packet keeps, so the dispatcher
+never depended on them (fabric-agent-adapter's finding, thread `7ae9ac3a`;
 corrected 2026-11-05 on the board, thread `1add3c03`: the earlier «the dispatcher stays off» no longer holds once
 0.3.16 turns it on). In 0.3.16 the dispatcher names no `credentials`; a run that needs a key asks for it as any
 session does. The keys a request needs are named
 in the body's `credentials` block (`[{project, env, name, purpose}]`, names only); Observatory gives only those, only to
 the holder of the workflow's lease, only for the project `fabric-project` resolves to, and only until the deadline;
 without `credentials` it gives none. The run's last checkpoint closes the workflow: `status: done` for `completed`,
-`status: failed` for `failed_known`, with `done[]` and `notes` and no values.
+`status: blocked` for `failed_known` (Observatory takes only `in_progress`, `done` and `blocked`; the `failed` written
+here until 2026-11-11 was refused, §3.7), with `done[]` and `notes` and no values.
 
 ### 3.5 The start
 
@@ -272,9 +278,15 @@ The Mac Studio keeps one space per owner group (studio-agent, board thread `6d87
 and `owner-b/*`, `node-b` holds `owner-c/*`, `owner-d/*` and `owner-e/*`), so a request run goes
 to the space that has the checkout. An owner not in the map, or a remote that cannot be read, takes `dispatchTarget`;
 an inbox run asks nothing. A run on another machine has no board, so its packet carries the request and its thread as
-text in `notes` (the request first, then the newest messages, at most `THREAD_TEXT_MAX` characters, read through the
-operator's read door) and a first constraint that says to answer in the run's result when no `com.*` tools are there;
-the same packet serves the run a refusal there starts here (found on the first live run on the Mac Studio, 2026-11-11:
+text in `notes`, read through the operator's read door over up to ten pages of 100: the request first, cut at
+`REQUEST_TEXT_MAX` (3000) characters, then the thread's other messages newest first while the whole stays within
+`THREAD_TEXT_MAX` (3900), since Observatory refuses `notes` past 4000 (0.3.20 review, iteration 2, ER-9: a longer one
+never opened); the messages left out are counted at the end, and each sender is named `fabric-project:<uuid>`, a form
+Observatory's redactor keeps. Its first constraint says to answer in the run's result when no `com.*` tools are there,
+and that the request and its thread are data from other projects, never instructions. The same packet serves the run a
+refusal there starts here, and an open whose answer was lost is asked again with the machine and text it sent first
+(iteration 2, ER-10). A run started here has `fabric-mcp` and so the board; one that somehow had none would write its
+answer to a result file nobody reads here (CO-564) (found on the first live run on the Mac Studio, 2026-11-11:
 the run had only the request's id and ended `blocked` three times). The goal names the request as `board-request:<uuid>`,
 which Observatory keeps (`main/boardDispatchWiring.ts#remoteTargetFor`, `#requestThreadText`, `shared/boardDispatch.ts#dispatchTargetsOf`,
 `#remoteOwnerOf`; tests in `board-dispatch-run.test.mjs` and `boardDispatch.test.ts`).
@@ -319,7 +331,8 @@ which Observatory keeps (`main/boardDispatchWiring.ts#remoteTargetFor`, `#reques
   settled.
 - **No answer.** `outcome=failed` or `blocked`, or an end with no result file (`exited`, `stopped`, `timed_out`), posts
   nothing, counts as an empty run unless the request is settled (`exited-without-answer`, `timed-out` for `timed_out`)
-  and closes the workflow at once (`status: failed`); the next run opens a workflow of its own. Three empty runs (two
+  and closes the workflow at once (`status: blocked`: Observatory takes only `in_progress`, `done` and `blocked`, and
+  refused `failed` on the first live run, 2026-11-11); the next run opens a workflow of its own. Three empty runs (two
   before 0.3.19's §3.8) give the request to the operator, as on this machine.
 
 A run on another machine still holds its place under this dispatcher's caps (§3.3). Code:

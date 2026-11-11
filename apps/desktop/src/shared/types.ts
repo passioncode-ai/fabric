@@ -487,7 +487,7 @@ export interface AppSettings {
    * `target_unreachable`) starts it here. Stage B (CO-552) chooses the machine by itself.
    */
   dispatchTarget: string | null
-  /** The machine by the owner of the project's repository (`git remote get-url origin`), before `dispatchTarget`. */
+  /** The machine by the owner of the project's repository (its `origin`, read with `git config --get remote.origin.url`), before `dispatchTarget`. */
   dispatchTargets: Record<string, string>
 }
 

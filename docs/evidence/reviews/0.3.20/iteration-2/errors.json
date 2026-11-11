@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "0912b4e2797fb4ba54ad8e72465e2cb079709ac6",
+  "report": "docs/evidence/reviews/0.3.20/iteration-2/2026-11-11-errors.md",
+  "reportSha256": "b59bf51346d335ce85520c43cc95a91517e73d1501ece89784663a82fa89929d",
+  "reviewerRun": "release-0320-i2-errors-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): `THREAD_TEXT_MAX` 3900, request cut at `REQUEST_TEXT_MAX` 3000; test asserts the bound"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): `retryOpen` keeps the machine and text; test `ER-10, DA-11`"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): `WIN_COMMAND_MS` there too, PowerShell keeps 30 s"
+      ]
+    },
+    {
+      "id": "ER-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 10"
+      ]
+    },
+    {
+      "id": "ER-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-13"
+      ]
+    },
+    {
+      "id": "ER-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as UX-16"
+      ]
+    }
+  ]
+}

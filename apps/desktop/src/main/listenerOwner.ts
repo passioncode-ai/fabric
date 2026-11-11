@@ -160,10 +160,11 @@ export function ownerFromWinAccounts(me: string, accounts: (string | null)[]): L
   return other ? { sid: other, mine: false } : { sid: me, mine: true }
 }
 
-/** The Windows read through netstat, tasklist and whoami; throws when one of them cannot be run. */
-/** Each of the three Windows commands is given this long (they answer in well under it); PowerShell keeps its 30 s. */
+/** Each of netstat, tasklist and whoami is given this long, in the listener read and the connection read alike;
+ *  PowerShell, the fallback, keeps its 30 s. */
 export const WIN_COMMAND_MS = 10_000
 
+/** The Windows read through netstat, tasklist and whoami; throws when one of them cannot be run. */
 function winOwner(pidsOf: (netstat: string) => number[], run: (cmd: string, args: string[]) => string): ListenerOwner {
   const me = run('whoami', []).trim()
   const pids = pidsOf(run('netstat', ['-ano']))
@@ -354,7 +355,8 @@ export async function readConnectionOwner(hubPort: number, clientPort: number, d
 } = {}): Promise<ListenerOwner> {
   const platform = deps.platform ?? process.platform
   // CO-561: 10 s on macOS and Linux, as the listener read: 3 s left a loaded Mac with no answer and the session dropped.
-  const run = deps.run ?? (async (cmd: string, args: string[]) => (await execFileP(cmd, args, { encoding: 'utf8', timeout: platform === 'win32' ? 30_000 : 10_000, windowsHide: true })).stdout)
+  // 0.3.20 review, iteration 2, DO-13: Windows' three commands get `WIN_COMMAND_MS` here too; PowerShell keeps 30 s.
+  const run = deps.run ?? (async (cmd: string, args: string[]) => (await execFileP(cmd, args, { encoding: 'utf8', timeout: cmd === 'powershell.exe' ? 30_000 : platform === 'win32' ? WIN_COMMAND_MS : 10_000, windowsHide: true })).stdout)
   if (platform === 'darwin') {
     let out = ''
     try {

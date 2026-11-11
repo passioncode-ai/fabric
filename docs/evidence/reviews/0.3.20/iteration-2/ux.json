@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "0912b4e2797fb4ba54ad8e72465e2cb079709ac6",
+  "report": "docs/evidence/reviews/0.3.20/iteration-2/2026-11-11-ux.md",
+  "reportSha256": "d7a5567b9717cac5f0b488102fa034f22d886c6bddb22aa6a71fda815ad91b29",
+  "reviewerRun": "release-0320-i2-ux-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): header restored from `1fa2d1d9`, heading back"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): §3.7 and §3.4 say `blocked`, which Observatory takes"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): map lane, test comment and CHANGELOG corrected"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): up to ten pages read, newest first"
+      ]
+    },
+    {
+      "id": "UX-14",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 12 (a run here has `fabric-mcp`, CO-563)"
+      ]
+    },
+    {
+      "id": "UX-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): `fabric-project:<uuid>`, one space, the order said in the text's first line"
+      ]
+    },
+    {
+      "id": "UX-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): both rewritten"
+      ]
+    },
+    {
+      "id": "UX-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): §3.4 says what Observatory 0.35.14 keeps and `blocked`"
+      ]
+    },
+    {
+      "id": "UX-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): the links carry the section anchors"
+      ]
+    }
+  ]
+}

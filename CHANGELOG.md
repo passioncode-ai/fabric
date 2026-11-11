@@ -1,22 +1,35 @@
 # Changelog
 
-Release notes for Fabric. The next version's section is written as `## X.Y.Z (unreleased)` (or `## Unreleased
+Release notes for Fabric. The next version's section is written as `## X.Y.Z (unreleased)` (or `## Unreleased`
+before its number is known); the release pull request renames it `## X.Y.Z`, and the release workflow publishes
+that section as the notes of the `vX.Y.Z` release
+([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
+Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
+
+
+## Unreleased
 
 - **A session the board dispatcher starts has the board from its first list of tools** (CO-563). Claude Code started
-  with `-p` reads the list of tools once; `fabric-mcp` now answers that first list once the session is admitted to its
-  project, at most 10 seconds later, instead of offering only `fabric_whoami` while it was being admitted.
+  with `-p` reads the list of tools once; `fabric-mcp` now answers the first list of tools, and any call, once the
+  session is admitted to its project, at most 10 seconds later, instead of offering only `fabric_whoami` while it was
+  being admitted. Every coding agent's `fabric-mcp` waits the same way, not only a dispatched one.
 - **A board run on another machine can do its work.** Such a run has no board, so its instructions now carry the
-  request and its thread as text, and its answer comes back through the run's result, which Fabric posts in the
-  request's thread. Before, it had only the request's id and could do nothing.
+  request and its thread as text (the request first, then the newest messages, within the 4000 characters Observatory
+  takes), and its answer comes back through the run's result, which Fabric posts in the request's thread. Before, it had only the request's id and could do nothing.
 - **A run for a project's unread messages asks Switchboard for its own exit contract** (`--reason inbox`, Switchboard
   0.7.56 or later).
 - **A board run started again for a newer message is no longer refused** (`PacketFrozen`): only the first write of a
-  run's instructions names its board references, as Observatory keeps them.
+  run's instructions names its board references, since Observatory freezes them at that write.
 - **The dispatcher asks Observatory for a project by Fabric's own id first, then by its folder.** It helps once
   Observatory records those ids; until then the folder decides, as before.
 - **A board run can go to the machine that holds the project's repository.** The `dispatchTargets` key of Fabric's
   `settings.json` (no Settings row yet) names a machine for each repository owner, before the one `dispatchTarget`.
   Write it once 0.3.20 runs: an older Fabric drops the key the next time it saves its settings.
+- **A board run whose claim lapsed after it accepted the request can still finish it.** Its instructions now say to take
+  the request back with `com.responder_replace` instead of leaving it `accepted` with the work done.
+- **A folder deleted from disk no longer stops coding agents from joining their projects** (CO-566). When a folder
+  attached to a project was removed, every agent opened in a folder Fabric did not know yet was refused with
+  `spawn git ENOENT` and saw the board as unavailable.
 - **Up to three board runs at a time on a machine, not two.** A project still runs one session at a time and at most
   20 a day.
 - **Windows reads who holds the hub's port without PowerShell** (CO-560): `netstat`, `tasklist` and `whoami` first, each

@@ -228,6 +228,7 @@ describe('dispatchTargets: the machine by the owner of the project\'s repository
     const t = { 'owner-a': 'node-a' }
     expect(targetForOwner('owner-a', t, 'node-b')).toBe('node-a')
     expect(targetForOwner('other', t, 'node-b')).toBe('node-b')
+    expect(targetForOwner('constructor', t, 'node-b')).toBe('node-b') // PL-17: never an object built-in
     expect(targetForOwner(null, t, null)).toBeNull()
   })
 })
