@@ -1278,6 +1278,37 @@ test('CO-559: an inbox run ends finished once its message is read; a newer messa
   assert.equal(w.launches.length, 3, 'started again for the same message')
 })
 
+test('0.3.19 review PL-2: an inbox run starts on this machine even with a dispatch target named; a request still goes there', async () => {
+  const w = world({ requests: [inboxItem()], target: 'studio' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  assert.equal(w.launches[0].target, undefined, 'no fabric-mcp there: the inbox could not be read')
+  assert.equal(d.records()[0].target, undefined)
+  const r = world({ target: 'studio' })
+  await createBoardDispatch(r.deps).onPass()
+  assert.equal(r.launches[0].target, 'studio')
+})
+
+test('0.3.19 review ER-6 and PL-1: a retried inbox open sends the packet it sent first; the packet reads Switchboard\'s request as these messages', async () => {
+  const w = world({ requests: [inboxItem()] })
+  let fail = true
+  const base = w.deps.observatory
+  w.deps.observatory = async (name, args) => {
+    if (name === 'observatory_checkpoint_write' && !args.workflowId && fail) { fail = false; w.calls.push([name, args]); throw new Error('lost answer') }
+    return base(name, args)
+  }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.requests = [inboxItem({ inbox: { unread: 9, oldestAt: '2026-11-09T00:00:00.000Z' } })]
+  w.tick(10 * MIN); await d.onPass()
+  const opens = w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)
+  assert.equal(opens.length, 2)
+  assert.equal(opens[1][1].idempotencyKey, opens[0][1].idempotencyKey)
+  assert.deepEqual(opens[1][1].body, opens[0][1].body, 'the same body under the same key')
+  assert.match(JSON.stringify(opens[0][1].body.constraints), /never call com\.claim, com\.accept or com\.complete/)
+})
+
 test('CO-559: a project runs one session at a time, a request and its inbox included', async () => {
   const w = world({ requests: [request(), inboxItem()] })
   await createBoardDispatch(w.deps).onPass()
@@ -1396,7 +1427,7 @@ test('CO-559: the inbox read becomes one item per project, its deadline the newe
   const { readInboxItems } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
   const newest = { id: '33333333-3333-4333-8333-333333333333', thread: '44444444-4444-4444-8444-444444444444', at: '2026-11-10T21:42:44.000Z', kind: 'message' }
   let since = null
-  const items = await readInboxItems({ inbox: async (_e, s) => { since = s; return { ok: true, more: false, projects: [{ project: 'p-x', unread: 2, oldestAt: '2026-11-10T20:00:00.000Z', newest }] } } }, 'e1', T0)
+  const { items } = await readInboxItems({ inbox: async (_e, s) => { since = s; return { ok: true, more: false, projects: [{ project: 'p-x', unread: 2, oldestAt: '2026-11-10T20:00:00.000Z', newest }] } } }, 'e1', T0)
   assert.equal(since, new Date(T0 - 7 * DAY).toISOString())
   assert.deepEqual(items, [{ id: newest.id, thread: newest.thread, state: 'queued', target: 'p-x', capability: INBOX_CAPABILITY, submittedAt: newest.at,
     deadline: new Date(Date.parse(newest.at) + 7 * DAY).toISOString(), inbox: { unread: 2, oldestAt: '2026-11-10T20:00:00.000Z' } }])
@@ -1507,4 +1538,6 @@ test('CO-559 review: an inbox message is answered once its project has nothing l
   assert.equal(await s.state('m-read', 'p1'), 'answered')
   await s.state('m1', 'p1')
   assert.equal(reads, 2, 'each message\'s marks are read once a pass')
+  s.reset([inboxItem({ target: 'p1' })], true)
+  assert.equal(await s.state('m1', 'p2'), null, '0.3.19 review PL-10: a read cut at its bound says nothing of a project it left out')
 })

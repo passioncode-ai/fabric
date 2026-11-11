@@ -53,11 +53,11 @@ export interface DispatchLimits {
 }
 export const DISPATCH_DEFAULTS: Readonly<DispatchLimits> = { maxOnMachine: 2, maxPerProject: 1, maxPerProjectPerDay: 20, runMinutes: 60 }
 
-/** A request's state as the board names it (fabric-project-comms/0.1). */
 /** The agent a run starts as Switchboard names it (`dispatch_agent`), which is also the hand-over's provider: the
  *  session accepts the offer as this id, so the offer must name it (CO-556, the on-demand spec §3.5). */
 export type DispatchAgent = 'claude-code' | 'codex'
 
+/** A request's state as the board names it (fabric-project-comms/0.1). */
 export type RequestState = 'queued' | 'claimed' | 'accepted' | 'in_progress' | 'completed' | 'failed_known' | 'outcome_unknown' | 'expired' | 'cancelled' | 'answered'
 
 export interface DispatchInput {
@@ -78,7 +78,7 @@ export interface DispatchInput {
   liveResponder: boolean
   /** A live session is enrolled in the target project. */
   liveSession: boolean
-  /** The switch «Запускать агента на запрос доски, который некому взять». */
+  /** The switch «Запускать агента, когда проекту на доске пишут, а взять некому» (named for requests alone until 0.3.19). */
   switchOn: boolean
   /** The target project has a folder on this machine. */
   hasFolder: boolean
@@ -253,7 +253,9 @@ export function checkRunResult(text: string, expected: RunIds): { ok: true; resu
  *  the outcome, branch and commit, an empty line, then the run's answer as written. */
 export function relayText(r: RunResult, machine: string): string {
   const where = [r.branch ? `ветка \`${r.branch}\`` : null, r.commit ? `коммит \`${r.commit}\`` : null].filter(Boolean).join(', ')
-  return `_Ретрансляция запуска \`${r.launch}\` с машины \`${machine}\`: исход ${r.outcome}${where ? `, ${where}` : ''}._\n\n${r.body}`
+  // 0.3.19 review UX-10: the outcome in the sentence's own language, the machine value kept beside it.
+  const said = ({ answered: 'агент ответил', failed: 'агент не справился', blocked: 'агент остановился' } as Record<string, string>)[r.outcome] ?? 'исход'
+  return `_Ретрансляция запуска \`${r.launch}\` с машины \`${machine}\`: ${said} (\`${r.outcome}\`)${where ? `, ${where}` : ''}._\n\n${r.body}`
 }
 
 /** The machine a run is started on, as Settings names it (`dispatchTarget`): an ssh host name, optionally with a user,

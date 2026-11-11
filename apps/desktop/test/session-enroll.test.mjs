@@ -767,3 +767,19 @@ test('CO-561: a fabric-mcp that lost its connection enrolls again into the sessi
   const other = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-other' }, h.d)
   assert.notEqual(other.session.sessionId, first.session.sessionId)
 })
+
+test('0.3.19 review ER-1: the hooks\' rejoin never revokes the bearer a reconnected fabric-mcp holds', async () => {
+  const h = deps()
+  const cwd = '/Users/example/DATA/site'
+  await enrollSession(binding, { cwd, runtimeSessionId: 'rt-held' }, h.d)
+  h.surface.claimAll()
+  const again = await enrollSession(binding, { cwd, runtimeSessionId: 'rt-held' }, h.d)
+  h.surface.claimAll()
+  for (let turn = 0; turn < 3; turn++) {
+    const hook = await enrollSession(binding, { cwd, runtimeSessionId: 'rt-held', rejoinOnly: true }, h.d)
+    assert.equal(hook.session.sessionId, again.session.sessionId)
+    assert.notEqual(hook.session.bearer, again.session.bearer, 'the hooks hold a bearer of their own')
+    h.surface.claimAll()
+    assert.equal(h.surface.state(again.session.bearer), 'claimed', `turn ${turn}: the reconnected fabric-mcp still holds its bearer`)
+  }
+})

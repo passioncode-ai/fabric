@@ -169,6 +169,9 @@ export interface EnrolledSession {
   agentPid?: number | null
   /** The one bearer the session hooks' rejoins (D2) hold for this session, or none (0.3.5 review iteration 2, ER-5). */
   rejoinBearer?: string | null
+  /** The one bearer a reconnecting fabric-mcp holds for this session (CO-561), apart from the hooks' slot: sharing it,
+   *  each turn's hook rejoin revoked the reconnected fabric-mcp's bearer (0.3.19 review iteration 1, ER-1). */
+  reconnectBearer?: string | null
   /** A board session (`fabric.board.join`, ADR-0149 §4) holds several board.respond grants: any one revoked ends it. */
   grantIds?: string[]
   /** 'board': a board session — capped apart from a coding agent's enrollments, never evicted by one (wave-2 fix 11). */
@@ -242,14 +245,14 @@ export class EnrolledSessions {
    * has spent it, else a new one that replaces the spent one, so the hooks of a long session hold one bearer, not one
    * per turn. `mint` makes the new one; null when the session is not this process's.
    */
-  rejoinBearer(sessionId: string, mint: () => string): string | null {
+  rejoinBearer(sessionId: string, mint: () => string, slot: 'rejoinBearer' | 'reconnectBearer' = 'rejoinBearer'): string | null {
     const row = this.rows.get(sessionId)
     if (!row) return null
-    const prev = row.rejoinBearer ?? null
+    const prev = row[slot] ?? null
     if (prev && this.state(prev) === 'unclaimed') return prev
     if (prev) this.drop(prev)
     const bearer = mint()
-    row.rejoinBearer = bearer
+    row[slot] = bearer
     return bearer
   }
   // #endregion session-rejoin-bearer
@@ -375,8 +378,9 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
   if (runtimeSessionId !== null) {
     const held = deps.sessions.ofRuntime(binding.id, folder.projectId, runtimeSessionId)
     if (held && held.grantId === grant.id && held.surface !== 'board') {
+      // Its own slot, never the hooks' (ER-1): a hook's rejoin replaces the hooks' bearer each turn it was spent.
       const token = deps.sessions.rejoinBearer(held.sessionId, () =>
-        deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, rejoin: true, bindingId: binding.id, folder: folder.real, ...(agentPid !== null ? { agentPid } : {}) }).token)
+        deps.mint(folder.projectId, held.sessionId, null, { cameIn: 'enrolled', agent: binding.agent_id, runtimeSessionId, rejoin: true, bindingId: binding.id, folder: folder.real, ...(agentPid !== null ? { agentPid } : {}) }).token, 'reconnectBearer')
       if (token) {
         ops.record({ op: 'hub.session.reconnected', outcome: 'ok', level: 'info', detail: { binding_id: binding.id, session_id: held.sessionId }, ctx: { correlationId: ops.correlate() } })
         return session(token, held.sessionId)

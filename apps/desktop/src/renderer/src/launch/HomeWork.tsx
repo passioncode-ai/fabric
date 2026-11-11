@@ -26,9 +26,14 @@ export function KeptNote({ reading }: { reading: HomeReading }): React.JSX.Eleme
 /** A read behind this place that stopped at its limit (CO-310): said, so a missing agent is never read as «nobody». */
 export function CappedNote({ reading }: { reading: HomeReading }): React.JSX.Element | null {
   const t = useT()
-  const capped = reading.view?.capped ?? []
-  if (!capped.length) return null
-  return <p className="lp-meta" role="status">{t('launch.home.work.capped', { what: capped.map((c) => t(`launch.home.work.cappedWhat.${c}` as 'launch.home.work.cappedWhat.claims')).join(', ') })}</p>
+  // 0.3.19 review UX-5: a cut review read lowers the review count, it hides no one at work: said on its own.
+  const all = reading.view?.capped ?? []
+  const capped = all.filter((c) => c !== 'review')
+  if (!all.length) return null
+  return <>
+    {capped.length > 0 && <p className="lp-meta" role="status">{t('launch.home.work.capped', { what: capped.map((c) => t(`launch.home.work.cappedWhat.${c}` as 'launch.home.work.cappedWhat.claims')).join(', ') })}</p>}
+    {all.includes('review') && <p className="lp-meta" role="status" data-review-capped>{t('launch.home.work.reviewCapped')}</p>}
+  </>
 }
 
 const REFRESH_MS = 15_000

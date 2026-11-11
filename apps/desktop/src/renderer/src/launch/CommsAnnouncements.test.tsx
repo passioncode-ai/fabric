@@ -32,6 +32,16 @@ describe('announcements and who has answered (CO-377)', () => {
     fireEvent.click(screen.getByText('Announce and answer.'))
     expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 't1' }))
   })
+  it('0.3.19 review UX-8: a thread longer than what was read says so for each project not seen to answer', async () => {
+    const { list } = install()
+    let seq = 0
+    list.mockImplementation(async () => ({ ok: true, lastSeq: (seq += 100), more: true, messages: seq === 100 ? [msg('a1', 'ws', 'announcement', 'Announce and answer.', '2026-10-19T15:43:00Z')] : [] }))
+    show()
+    await waitFor(() => expect(screen.getByText('Announce and answer.')).toBeTruthy())
+    expect(screen.getByText(`Fabric: ${en['launch.comms.ann.unseen'].replace('{count}', '300')}`)).toBeTruthy()
+    expect(screen.queryByText(`Fabric: ${en['launch.comms.ann.waiting']}`)).toBeNull()
+  })
+
   it('says the board did not answer, with Try again, never «nobody owes an answer»', async () => {
     install(false)
     show()

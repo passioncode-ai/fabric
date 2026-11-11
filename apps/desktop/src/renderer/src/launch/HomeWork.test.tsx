@@ -262,6 +262,11 @@ describe('a read that stopped at its limit is said (CO-310)', () => {
     rerender(<I18nProvider locale="en"><HomeAgents reading={read} onOpen={() => {}} onSession={() => {}} /></I18nProvider>)
     expect(container.textContent).not.toContain(en['launch.home.work.capped'].slice(0, 20))
   })
+  it('0.3.19 review UX-5: a cut review read says the review count is incomplete, never that someone at work is hidden', () => {
+    const { container } = show(<HomeWorkLanes reading={{ view: { ...view, capped: ['review'] }, problem: null }} onOpen={() => {}} onSession={() => {}} />)
+    expect(container.textContent).toContain(en['launch.home.work.reviewCapped'])
+    expect(container.textContent).not.toContain(en['launch.home.work.capped'].slice(0, 20))
+  })
 })
 
 // 0.3.14: dead work leaves «In work» on the home as on the board; the lane says how much and opens the board.

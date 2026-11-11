@@ -14,10 +14,10 @@ export function titleOf(item: { title: string; access?: PendingRequestFacts; swe
   return item.title
 }
 
-const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.untitled.answer' | 'attention.untitled.task' | 'attention.untitled.session'> = {
+const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.untitled.answer' | 'attention.untitled.inbox' | 'attention.untitled.task' | 'attention.untitled.session'> = {
   'request-unmoved': 'attention.untitled.request',
   'request-to-operator': 'attention.untitled.request',
-  'inbox-to-operator': 'attention.untitled.answer',
+  'inbox-to-operator': 'attention.untitled.inbox',
   'request-outcome-unknown': 'attention.untitled.request',
   'answer-unread': 'attention.untitled.answer',
   'claim-silent': 'attention.untitled.task',

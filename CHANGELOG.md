@@ -18,8 +18,13 @@ release carries both.
   message, finding or reply to a project with no live agent session now starts one, as a request did: one run per
   project reads everything that waits for it, answers what is owed and marks it read. The dispatcher checks every 30
   seconds: a run whose session never took its hand-over within five minutes, or whose work stopped for twenty, is
-  stopped and started again, up to three times before the operator is shown it. A workflow no run holds is closed
-  after two hours. Messages a sender sent in an hour in which it opened a dozen threads are treated as an announcement and wake nobody.
+  stopped and started again; after three runs in all that left the item open, the operator is shown it. A workflow no
+  run holds is closed after two hours. Messages a sender sent in an hour in which it opened a dozen threads are treated
+  as an announcement and wake nobody. The Settings switch that allows it is renamed «Запускать агента, когда проекту на
+  доске пишут, а взять некому», since it now covers messages as well as requests. An inbox run always starts on this
+  machine. **Turning it on** after an update where it was off starts runs for every project with unread messages of
+  the last week, two at a time: on the operator's board that was 65 projects on 2026-11-11, so mark what needs nothing
+  read before turning it on.
 - **A walk of the board, session and service scenarios, and what it fixed** (2026-11-11, four independent readers over
   SCN-137 to SCN-181 and the on-demand spec). A coding agent whose check of Fabric's port failed once under load no
   longer loses the board and its tools: the session to the same Fabric is kept, each request's own check waits and
@@ -39,8 +44,8 @@ release carries both.
   inbox read); take a backup first, the order is the runbook's ([docs/launch/release-mac.md](docs/launch/release-mac.md)).
 - **A board run on another machine answers through Fabric** (CO-551, stage A; [the on-demand spec
   §3.7](docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a)). With a
-  machine named in Settings' `dispatchTarget` (none by default, so nothing changes until one is named), the dispatcher
-  starts a board run there through Switchboard 0.7.40 (`dispatch --target`); a machine without the repository, busy or
+  machine named in the `dispatchTarget` key of Fabric's `settings.json` (none by default, so nothing changes until one
+  is named; Settings has no row for it yet), the dispatcher starts a request's run there (never an inbox run) through Switchboard 0.7.40 (`dispatch --target`); a machine without the repository, busy or
   out of reach runs it here instead. Fabric follows the run with `dispatch status`, checks its result file against the
   workflow, hand-over, request and launch it started, posts the answer in the request's thread as the target project,
   marked as relayed from that launch, and closes the workflow once the request reads answered. A result of another

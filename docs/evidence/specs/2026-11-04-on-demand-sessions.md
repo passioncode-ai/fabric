@@ -51,8 +51,9 @@ What the other products already have, read the same day:
    project's folder, with every permission (`--permissions all`), the whole request and its context as its first input. It does
    the work, reports in the request's thread, completes the request and ends.
 4. One request starts at most one session at a time. A run that ends without completing leaves the request in the state
-   the contract gives it; after two such runs Fabric stops starting sessions for it and shows it to the operator in
-   «На проверке», without changing its state (fabric-agent-contract's option (b), CT-215, 2026-11-04).
+   the contract gives it; after two such runs (three from 0.3.19, §3.8) Fabric stops starting sessions for it and shows
+   it to the operator in «На проверке», without changing its state (fabric-agent-contract's option (b), CT-215,
+   2026-11-04).
 
 Decisions taken here (the operator's latest word wins over earlier rows):
 
@@ -120,7 +121,7 @@ Before starting anything the dispatcher checks, in order, and records which chec
 
 | Check | Default | Answer when it stops |
 |---|---|---|
-| The switch «Запускать агента на запрос доски, который некому взять» (Settings) | on | `skipped-off` (as built in 0.3.16 the dispatcher does not decide with the switch off, so nothing is recorded; §10) |
+| The switch «Запускать агента, когда проекту на доске пишут, а взять некому» (Settings; named for requests alone until 0.3.19) | on | `skipped-off` (as built in 0.3.16 the dispatcher does not decide with the switch off, so nothing is recorded; §10) |
 | P has a folder on this machine | required | `skipped-no-folder` (the request stays queued; another machine may take it) |
 | At most N on-demand sessions running on this machine | N = 2 | `deferred-cap` (tried again on the next cycle) |
 | At most 1 per project | 1 | `deferred-project-busy` |
@@ -241,7 +242,8 @@ The dispatch's outcome is the hub's journal entry, never a state of the request:
 - the run ended and the request is not settled: the dispatch ends `exited-without-answer`; the request keeps the state
   the contract gives it (`queued` stays queued, `claimed` is taken again by the next `com.claim` with a new attempt,
   `accepted` is held and continues only through `com.responder_replace` with the checkpoint, `in_progress` stays until
-  the next holder registers); the next cycle may dispatch once more; after two such runs Fabric stops and shows the
+  the next holder registers); the next cycle may dispatch once more; after two such runs (three from 0.3.19,
+  `EMPTY_RUNS_TO_OPERATOR`, §3.8) Fabric stops and shows the
   request to the operator in «На проверке», unchanged, and takes the workflow back the same way to close it (`close: true`,
   `status: blocked`); an `accepted` or `in_progress` request past its deadline, which the contract never expires, is
   shown to the operator and closed the same way (a run whose deadline falls no more than 10 minutes after its own end,
@@ -330,9 +332,16 @@ CO-556, 49 requests `queued`, 65 projects with unread board messages, and five d
    session (§3.2), the caps of §3.3, one run per Project at a time with its requests.
 2. **The inbox run's packet** (`boardDispatchRun.ts#inboxBody`): read what waits with `com.list {unread: true}`, do
    what is the Project's own, answer where an answer is owed, and mark every message read with `com.read_ack`; the run
-   is settled once its message is read by the Project (`inboxState`, from the message's read marks). An empty run, the
-   back-off after a refusal and the operator's mark belong to the message it was started for; a newer message starts
-   from none.
+   is settled once its message is read by the Project (`inboxState`, from the message's read marks). A Project's empty
+   runs and the back-off after a refused start are counted across its messages until a run reads them; only the
+   operator's mark belongs to one message, and a newer message gets one more run (0.3.19 review, iteration 1, ER-2).
+   Switchboard starts every run under its own instructions for one board request (fabric-switchboard
+   `dispatch.rs#EXIT_CONTRACT`, `--reason request`, the only reason it takes); the packet tells an inbox run to read
+   that request as its unread messages, settled by `com.read_ack`, and never to claim, accept or complete them
+   (iteration 1, PL-1; a `--reason inbox` of Switchboard's own is asked of fabric-switchboard on the board). An inbox
+   run always starts on this machine, also with a `dispatchTarget` named: a run on another machine has no
+   `fabric-mcp` and could not read the board (§3.7; iteration 1, PL-2). A read of the inboxes cut at its 200 projects
+   (`more`) says nothing of a Project it left out; before, such a Project's item read answered (PL-10).
 3. **The watch, every 30 s** (`WATCH_MS`): the dispatcher passes on its own interval, beside the cycle. Each running
    run here is alive only on evidence (`board-dispatch-liveness`): an offer still `offered` or `expired` `ACCEPT_MS`
    (5 min) after the start is a session that never came up (`not-taken`); an accepted run whose workflow wrote no
@@ -458,6 +467,7 @@ version, never the message text, a path, a project name or anything the person t
 - With the switch off, nothing starts and no decision is recorded (the pass returns before deciding; `skipped-off` is
   `decideDispatch`'s answer for a caller that asks with the switch off).
 - Caps hold under ten simultaneous requests.
-- A run killed mid-way leaves the request in the state the contract gives it; after a second such run Fabric starts no
+- A run killed mid-way leaves the request in the state the contract gives it; after a third such run (a second before
+  0.3.19, §3.8) Fabric starts no
   more for it and shows it to the operator in «На проверке», its state unchanged (§3.6, option (b)).
 - No packet, event, count or log line contains a secret or the request's text where §7 says it must not.

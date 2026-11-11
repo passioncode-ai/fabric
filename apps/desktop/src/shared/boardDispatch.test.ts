@@ -186,6 +186,7 @@ describe('the result of a run on another machine (CO-551)', () => {
     const text = relayText(r.result, 'studio')
     expect(text.startsWith('_Ретрансляция запуска `L-7` с машины `studio`')).toBe(true)
     expect(text).toContain('ветка `feat/x`, коммит `abc1234`')
+    expect(text).toContain('агент ответил (`answered`)') // 0.3.19 review UX-10
     expect(text.endsWith('\n\nГотово.\n\nВторая строка.')).toBe(true)
     expect(text.includes('\u2014')).toBe(false)
   })

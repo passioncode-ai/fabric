@@ -65,33 +65,36 @@ export async function readOpenRequests(comms: SweepComms, estateId: string, now:
  * for them all, its deadline that message's time plus the board's week. A read that fails throws, so an unread board is
  * never "nothing waits".
  */
-export async function readInboxItems(comms: { inbox(estateId: string, since: string): Promise<CommsInboxReply> }, estateId: string, now: number): Promise<OpenRequest[]> {
+export async function readInboxItems(comms: { inbox(estateId: string, since: string): Promise<CommsInboxReply> }, estateId: string, now: number): Promise<{ items: OpenRequest[]; more: boolean }> {
   const r = await comms.inbox(estateId, new Date(now - WINDOW_MS).toISOString())
   if (!r.ok) throw new Error(`the board's inboxes could not be read: ${r.error.message}`)
-  return r.projects.map((p): OpenRequest => ({
+  return { more: r.more, items: r.projects.map((p): OpenRequest => ({
     id: p.newest.id, thread: p.newest.thread, state: 'queued', target: p.project, capability: INBOX_CAPABILITY,
     submittedAt: p.newest.at, deadline: new Date(Date.parse(p.newest.at) + WINDOW_MS).toISOString(),
     inbox: { unread: p.unread, oldestAt: p.oldestAt }
-  }))
+  })) }
 }
 /**
  * CO-559 (§3.8): an inbox run's message as its project reads it now. `answered` once the project has nothing left
  * unread in a read that worked (a read mark or an answer in the thread, the inbox read's own rule), else from the
  * message's read marks, read once per pass; null while the inbox could not be read this pass.
  */
-export function createInboxState(facts: (messageIds: string[]) => Promise<CommsFactsReply>): { reset(items: OpenRequest[] | null): void; state(messageId: string, projectId: string): Promise<string | null> } {
+export function createInboxState(facts: (messageIds: string[]) => Promise<CommsFactsReply>): { reset(items: OpenRequest[] | null, more?: boolean): void; state(messageId: string, projectId: string): Promise<string | null> } {
   let read = false
+  let cut = false
   let projects = new Set<string>()
   let marks = new Map<string, Promise<string[] | null>>()
   return {
-    reset(items) {
+    reset(items, more = false) {
       read = items !== null
+      cut = more
       projects = new Set((items ?? []).map((i) => i.target))
       marks = new Map()
     },
     async state(messageId, projectId) {
       if (!read) return null
-      if (!projects.has(projectId)) return 'answered'
+      // 0.3.19 review PL-10: a read cut at its bound leaves projects out; one left out is unknown, never answered.
+      if (!projects.has(projectId)) return cut ? null : 'answered'
       let by = marks.get(messageId)
       if (!by) {
         by = facts([messageId]).then((f) => (f.ok ? f.messages[messageId]?.readBy ?? [] : null), () => null)
@@ -228,15 +231,16 @@ export function wireBoardDispatch(o: {
       // CO-559 (§3.8): the inboxes after the requests. A failed inbox read is logged and leaves the requests and the
       // watch of running runs to go on (review: it ended the whole pass); its inbox runs are judged on a later pass.
       let inbox: OpenRequest[] | null = null
+      let more = false
       if (o.comms.inbox) {
         try {
-          inbox = await readInboxItems({ inbox: o.comms.inbox.bind(o.comms) }, o.estateId, now)
+          ;({ items: inbox, more } = await readInboxItems({ inbox: o.comms.inbox.bind(o.comms) }, o.estateId, now))
         } catch (e) {
           // Recorded through the dispatcher's own log, which writes to the ops log (`o.log`).
           o.log('board.dispatch.inbox', 'failed', { note: noteOf(e) })
         }
       }
-      inboxState.reset(inbox)
+      inboxState.reset(inbox, more)
       lastStates = r.states
       for (const i of inbox ?? []) lastStates.set(i.id, 'queued')
       follower.reset()

@@ -85,6 +85,14 @@ describe('home: what waits on the board', () => {
     expect(screen.getByText(en['launch.home.boardWaiting.partial'])).toBeTruthy()
   })
 
+  it('0.3.19 review UX-6 and UX-8: a list cut at its bound says both that the oldest did not fit and that it may hold more than the count', async () => {
+    stubWaiting(async () => ({ ok: true, requests: 30, oldestRequestAt: days(2), list: [{ requestId: 'r1', threadId: 't1', from: null, to: 'dash', capability: 'x', subject: 'One', at: days(2) }], listComplete: false, listCut: true }))
+    show('en')
+    await waitFor(() => expect(screen.getByText('No project → dash: “One”')).toBeTruthy())
+    expect(screen.getByText(en['launch.home.boardWaiting.partialCut'])).toBeTruthy()
+    expect(en['launch.home.boardWaiting.partialCut']).toContain(en['launch.home.boardWaiting.partial'].split(': ')[1])
+  })
+
   it('UX-16 (0.3.15 review, iteration 2): a request whose time does not parse says who has not taken it, without a dash', async () => {
     stubWaiting(async () => ({ ok: true, requests: 1, oldestRequestAt: null, list: [{ requestId: 'r1', threadId: 't1', from: null, to: 'dash', capability: 'x', subject: 'One', at: 'not a time' }], listComplete: true }))
     show('en')
