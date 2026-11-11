@@ -475,7 +475,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // Iteration 2, ER-1: a request outside this pass's read (older than the window, past the pages) is never judged;
         // past the run's end plus the margin the run is ended as unknown, so it frees its place. CO-512: and it counts as
         // empty, as iteration 3's ER-2 counts a run Switchboard cannot account for, or a request moving in and out of the
-        // read at its page bounds would be started a third time and more. A request read settled later starts nothing.
+        // read at its page bounds would be started past the limit again and again. A request read settled later starts nothing.
         if (now <= Date.parse(r.endsAt) + UNKNOWN_AFTER_END_MS) continue
         r.state = 'ended'
         r.outcome = 'unknown'

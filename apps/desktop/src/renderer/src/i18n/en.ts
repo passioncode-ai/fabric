@@ -2613,7 +2613,7 @@ export const en = {
   'launch.home.work.untitled': "A task without a description",
   'launch.home.work.capped': "Not everything was read ({what}): someone at work may not be shown here.",
   'launch.home.work.cappedWhat.claims': "which tasks agents took",
-  'launch.home.work.reviewCapped': "A thousand or more tasks are in review: their count is incomplete",
+  'launch.home.work.reviewCapped': "A thousand or more tasks are in review: their count may be incomplete",
   'launch.home.work.cappedWhat.leases': "which tasks the sessions Fabric started are on",
   'launch.home.work.cappedWhat.projects': "projects",
   'launch.home.work.cappedWhat.stages': "the agents' reports",

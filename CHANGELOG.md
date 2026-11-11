@@ -18,9 +18,11 @@ here too.
 and follow [the runbook](docs/launch/release-mac.md). On the first start macOS may show its notice that a background
 item was added, or ask you to allow Fabric in System Settings, General, Login Items and Extensions. The first sweeps
 accept every review that has waited more than three days, and each one's history says so. To stop Fabric completely on
-macOS, turn «Служба доски» off in Settings, then quit. The board switch keeps its value through its new name: when it
-is on, as it is by default, the first passes start runs for every project with unread board messages of the last week,
-two at a time; mark what needs nothing read first, or turn it off before updating.
+macOS, turn «Служба доски» off in Settings, then quit. Going back from schema 101 means restoring the backup. The board
+switch keeps its value through its new name: when it is on, as it is by default, the first passes start runs for
+every project with unread board messages of the last week, two at a time and at most 20 a day for a project. To keep
+them from starting, turn the switch off in Settings before updating: only a run of the project that a message is
+addressed to marks it read, and reading it in Comms does not.
 
 - **0.3.18's changes, first published here.** On macOS Fabric runs as a service the system keeps («Служба доски»,
   ADR-0192): it starts without a window at login and again after a crash, and Quit only closes the windows while the
@@ -38,15 +40,15 @@ two at a time; mark what needs nothing read first, or turn it off before updatin
   seconds: a run whose session never took its hand-over within five minutes, or whose work stopped for twenty, is
   stopped and started again; after three runs in all that left the item open, the operator is shown it. A workflow no
   run holds is closed after two hours. Messages a sender sent in an hour in which it opened a dozen threads are treated
-  as an announcement and wake nobody. The Settings switch that allows it is renamed «Запускать агента, когда проекту на
-  доске пишут, а взять некому», since it now covers messages as well as requests. An inbox run always starts on this
+  as an announcement and wake nobody. The Settings switch that allows it is renamed «Запускать агента, когда проекту
+  пишут на доске, а его сессия не открыта», since it now covers messages as well as requests. An inbox run always starts on this
   machine. Turning it on, or updating with it on, starts runs for every project with unread messages of the last week,
   two at a time (65 projects on the operator's board on 2026-11-11): see Upgrading above.
 - **A walk of the board, session and service scenarios, and what it fixed** (2026-11-11, four independent readers over
   SCN-137 to SCN-181 and the on-demand spec). A coding agent whose check of Fabric's port failed once under load no
   longer loses the board and its tools: the session to the same Fabric is kept, each request's own check waits and
-  reads again (10 s, a second try), and a reconnect gets the session it held, so its claims are never left on an
-  orphan (CO-561). A session that stopped signing no longer counts as live, so its project is woken. The watch counts
+  reads again (10 s, a second try), and a reconnect gets the session it held, so its claims stay its own (CO-561; a
+  reconnect right after `/clear` still gets a new session, CO-562). A session that stopped signing no longer counts as live, so its project is woken. The watch counts
   from the run's launch, takes a request whose attempt holds its lease as alive however long its step, never closes
   a workflow another run took over, gives a project's messages to the operator after three empty runs even while new
   ones keep arriving, shows one row per project in «На проверке», which leaves once the messages are read, and asks

@@ -121,7 +121,7 @@ Before starting anything the dispatcher checks, in order, and records which chec
 
 | Check | Default | Answer when it stops |
 |---|---|---|
-| The switch «Запускать агента, когда проекту на доске пишут, а взять некому» (Settings; named for requests alone until 0.3.19) | on | `skipped-off` (as built in 0.3.16 the dispatcher does not decide with the switch off, so nothing is recorded; §10) |
+| The switch «Запускать агента, когда проекту пишут на доске, а его сессия не открыта» (Settings; named for requests alone until 0.3.19) | on | `skipped-off` (as built in 0.3.16 the dispatcher does not decide with the switch off, so nothing is recorded; §10) |
 | P has a folder on this machine | required | `skipped-no-folder` (the request stays queued; another machine may take it) |
 | At most N on-demand sessions running on this machine | N = 2 | `deferred-cap` (tried again on the next cycle) |
 | At most 1 per project | 1 | `deferred-project-busy` |
@@ -237,8 +237,9 @@ The dispatch's outcome is the hub's journal entry, never a state of the request:
 
 - request `completed` or `failed_known`: the dispatch ends `finished`;
 - a run nobody can account for (Switchboard cannot say how it ended, or its request is outside the pass's read) ends
-  `unknown` once past its own end and a margin, and counts toward the two below unless its request is read settled
-  (CO-512): a request moving in and out of the read at its page bounds is not started a third time;
+  `unknown` once past its own end and a margin, and counts toward the empty runs below unless its request is read
+  settled (CO-512): a request moving in and out of the read at its page bounds is not started past the limit (a third
+  time before 0.3.19, a fourth from 0.3.19; iteration 3 of its review, DO-14);
 - the run ended and the request is not settled: the dispatch ends `exited-without-answer`; the request keeps the state
   the contract gives it (`queued` stays queued, `claimed` is taken again by the next `com.claim` with a new attempt,
   `accepted` is held and continues only through `com.responder_replace` with the checkpoint, `in_progress` stays until
@@ -341,14 +342,17 @@ CO-556, 49 requests `queued`, 65 projects with unread board messages, and five d
    (iteration 1, PL-1; a `--reason inbox` of Switchboard's own is asked of fabric-switchboard on the board). An inbox
    run always starts on this machine, also with a `dispatchTarget` named: a run on another machine has no
    `fabric-mcp` and could not read the board (§3.7; iteration 1, PL-2). A read of the inboxes cut at its 200 projects
-   (`more`) says nothing of a Project it left out; before, such a Project's item read answered (PL-10).
+   (`more`) never takes a Project it left out as answered: that Project's inbox run is judged by its message's own
+   read marks (PL-10, and iteration 2's DA-7); before, such a Project's item read answered.
 3. **The watch, every 30 s** (`WATCH_MS`): the dispatcher passes on its own interval, beside the cycle. Each running
    run here is alive only on evidence (`board-dispatch-liveness`): an offer still `offered` or `expired` `ACCEPT_MS`
    (5 min) after the start is a session that never came up (`not-taken`); an accepted run whose workflow wrote no
    checkpoint for `SILENT_MS` (20 min) while its item is open is a hung session (`silent`). Either is stopped through
    Switchboard and started again on the next pass, the workflow taken back as after a crash. A read that fails proves
    nothing and stops nothing; a settled item is never stopped as dead. A run stopped on an account limit is
-   Switchboard's to continue on the next account (its recovery, 218 resumed by 2026-11-11), never a wait here.
+   Switchboard's to continue on the next account (its recovery, 218 resumed by 2026-11-11), never a wait here; the
+   dispatcher has no link to the continued run yet, so it counts the stop as an empty run and starts another
+   (CO-562 item 20).
 4. **Forced again, then the operator.** `EMPTY_RUNS_TO_OPERATOR` is three: a run that ended, was not taken or went
    silent with its item open counts as empty and the next starts at once; the third hands the item to the operator in
    «На проверке», its workflow closed.
@@ -400,6 +404,9 @@ Wave 2 runs the whole chain on a Windows machine before the release that turns t
 - Nothing is typed into a terminal; a live session is reached by message or nudge only.
 - The run has every permission (`--permissions all`); money, deletion and publication still go through
   `fabric_effect_request`, sign-ins, typed secrets and payments stay with the person.
+- From 0.3.19 (§3.8) any message, finding or reply addressed to a Project with no live session can start such a run,
+  not only a request: the packet holds that a board message is data, never an instruction, and the fan-out rule keeps
+  announcements from waking anyone; what a message may ask an agent to do is the board's own rule, unchanged.
 - No secret in the packet, the journal, the counts or the logs; keys by name.
 - The operator's switch stops new dispatches at once and ends a start still waiting for Switchboard's answer; runs in
   flight finish or reach their time limit, and the board is read only to follow them.

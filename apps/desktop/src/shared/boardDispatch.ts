@@ -78,7 +78,7 @@ export interface DispatchInput {
   liveResponder: boolean
   /** A live session is enrolled in the target project. */
   liveSession: boolean
-  /** The switch «Запускать агента, когда проекту на доске пишут, а взять некому» (named for requests alone until 0.3.19). */
+  /** The switch «Запускать агента, когда проекту пишут на доске, а его сессия не открыта» (named for requests alone until 0.3.19). */
   switchOn: boolean
   /** The target project has a folder on this machine. */
   hasFolder: boolean
