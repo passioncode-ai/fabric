@@ -251,3 +251,59 @@ Executable in this order, each act with its actor; a failure stops the close and
   `pg_dump` inside the stack's container; `rehearse-upgrade.mjs --from 100 --ref 04b5eafc` on it: «PASS: schema 100 →
   101 (admits 101), journal 136188 → 136188», 79 tables, the receipt beside the dump, the disposable stack removed,
   exit 0. Migration 128 is byte-identical in every later candidate (iteration 3 run two, data review).
+- Item 1, 2026-11-11: the push run of `ci` on `12d0aceb` (42964526736) and the full run dispatched on `main` at
+  `12d0aceb` (42966823616: "fast, no database" and "full, with a disposable stack" `success`); the push run on the
+  release commit `3533e16b` (42967016771) `success`.
+- Item 3: the release commit `3533e16b77cd4ea94b8405f181977cfd9fa3acdc` on `main` by fast-forward from `12d0aceb`;
+  `node scripts/release-mac.mjs --check-only --tag v0.3.19-rc.1` on it: "is on origin/main and its release gate is
+  clear".
+- Item 4, started while item 1's full run was in progress (a deviation from the order, so the rc was built in
+  parallel; nothing was installed before the full run read green): `v0.3.19-rc.1` (annotated) on `3533e16b`;
+  `release.yml` run 42968331348 (`publish=false`): guard, preflight, macos, windows x64 and arm64, linux x64 and
+  arm64, publish all `success`. `Fabric-0.3.19-universal.dmg` sha256
+  `08795fe2a75ccbe202e4bab1ecc6ec747a529a638c31266d195860d1b2c8591e`, team `KJ35UYYL22`, DMG notarization accepted;
+  `spctl`: "accepted, source=Notarized Developer ID"; `stapler validate` worked.
+- Item 5, 06:09 to 06:13Z: launchd's copy stopped with `launchctl bootout` (06:09:33Z; `hub.json` removed); a second
+  private backup with writers stopped, `pre-0.3.19-install.dump` (schema 100, journal 136 536); 0.3.18-rc.2 kept as
+  `/Applications/Fabric-0.3.18-rc2.app`; the rc copied with `ditto`, `codesign --verify --deep --strict` OK, `spctl`
+  Notarized Developer ID; `launchAtLogin` false for the first start (06:11:25Z), which copied migration 128 into the
+  stack folder and stopped at "schema-not-ready … requires 101" (`startup-failure.log` 06:11:35Z); its Quit by an Apple
+  event was refused by the failure window, so SIGTERM ended it; `supabase migration up --local` applied
+  `20261111000128_board_inbox_operator.sql`: schema 101, journal 136 536 (unchanged); `launchAtLogin` true again; the
+  rc opened at 06:13:01Z, `app.started` 0.3.19, `com.status` over the hub: board ready (this session's `fabric-mcp`
+  joined again by itself).
+- Item 6: not run; the screen read locked (`ioreg` `CGSSessionScreenIsLocked` true), so the window checks wait for the
+  person to unlock it, the gate no route avoids; the Docker-stopped start waits for the operator's presence as before.
+- Decision, 06:20Z: item 6's window checks do not hold `v0.3.19` back. They read how 0.3.18's service shows in
+  Settings and with a live terminal (N6 (a), (b), (c) and (f) passed on rc.2), the screen is locked, and the
+  operator's order of 2026-11-11 is to roll out everywhere; the safest reversible path is to publish (a prerelease, a
+  fix is a new tag) and run them when the screen is unlocked, each written into its receipt. The Docker-stopped start
+  keeps waiting for the operator's presence.
+- Item 8, from 06:14:02Z: `dispatchBoardRequests` true (the file the dispatcher reads each pass). The first pass
+  started two runs within the machine's cap, for request `070d4462` (project-observatory-open-source) and request
+  `53c2312e` (a private project), the rest `deferred-cap`, and the projects with a live session `live-session`. Both
+  sessions called `observatory_handoff_accept` within a minute (Switchboard 0.7.54, the transcripts), the CO-556 fix
+  live.
+- Item 10, read 06:18Z: the Studio's `/Applications/Fabric.app` is 0.3.15, owned by its administrator account; the
+  `sshlg` account there has no write access to `/Applications`, no `sudo`, and no Fabric data folder (Fabric was
+  never started under it); Switchboard there is 0.7.56. The install goes through studio-agent, the Studio's
+  administrator, by a board request once `v0.3.19` is published.
+- Item 9, 06:22 to 06:43Z: `v0.3.19` (annotated) on `3533e16b`, pushed after the pre-push privacy check passed;
+  `release.yml` run 42971792760: guard, preflight, macos, windows x64 and arm64, linux x64 and arm64, publish all
+  `success`; https://github.com/passioncode-ai/fabric/releases/tag/v0.3.19, a prerelease with 14 assets.
+  `Fabric-0.3.19-universal.dmg` downloaded: `shasum -a 256 -c SHA256SUMS` OK, `gpg --verify` a good signature from
+  "PassionCode.ai releases", `spctl` Notarized Developer ID. Installed at 06:40:53Z: launchd's job booted out, the rc
+  ended by SIGTERM, the rc kept as `/Applications/Fabric-0.3.19-rc.app`, the published bundle copied with `ditto`,
+  `codesign --deep --strict` OK, opened: `app.started` 0.3.19 at 06:41Z, `com.status` board ready. The broker:
+  service stopped, `hold --release` (revision 31), `policy --desired always_on --background-launch on` (revision
+  32, readiness `fabric-hub`, the same policy as revision 29), service started; `lifecycle.status`: ready, pid of the
+  published build, `always_on`.
+- Item 8, continued: run `5e9d5126` for request `53c2312e` ended `finished` with no empty run (the request settled end
+  to end); the freed place took the next request at once. The next run's session listed only `fabric_whoami` at its
+  start and reached the board through a hand-built rejoin client, then did the work: CO-563. An inbox run had not yet
+  started when this was written (requests held the two places).
+- Item 10: studio-agent asked on the board (request `a7c9e4c0`, thread `9a5ca164`) with the order, the build, its
+  checks and the upgrade from schema 98; it has no live session, so this Mac's dispatcher wakes it.
+- Item 12: replies on thread `90b6921f` (message `950f03dd`) and `f408566b` (message `48221181`); the memory vault's
+  half-hourly round stops itself on 0.3.19 by its own check of the installed version.
+- Item 14: CO-562 items 27 to 31 and CO-563 on `main`.
