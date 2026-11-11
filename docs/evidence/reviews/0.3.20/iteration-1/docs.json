@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "1fa2d1d912d08a20aec0f447b94cb2e999603dd1",
+  "report": "docs/evidence/reviews/0.3.20/iteration-1/2026-11-11-docs.md",
+  "reportSha256": "ec321ffd46df7e899a2f09fb3331650c2401234bb390886a4593721cc2867bcb",
+  "reviewerRun": "release-0320-i1-docs-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-2"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-3"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): row names winOwner and readListenerOwner; the nightly result is a release close item"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): git config and switchboard --version named"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): AGENTS.md, CO-560 and CO-563 say 0.3.20"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-4"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-8"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-8"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-6"
+      ]
+    }
+  ]
+}

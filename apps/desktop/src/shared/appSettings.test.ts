@@ -25,7 +25,7 @@ describe('validateSettings', () => {
       trustAgentFolders: false,
       dispatchBoardRequests: false,
       dispatchTarget: 'studio',
-      dispatchTargets: { ssheleg: 'studio-sshlg' }
+      dispatchTargets: { 'owner-a': 'node-a' }
     }
     expect(validateSettings(file)).toEqual(file)
   })

@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "1fa2d1d912d08a20aec0f447b94cb2e999603dd1",
+  "report": "docs/evidence/reviews/0.3.20/iteration-1/2026-11-11-data.md",
+  "reportSha256": "91325f8b6cb9031d835c68cb746c2e8deaeeed4dcf460d6b750740e4e6950674",
+  "reviewerRun": "release-0320-i1-data-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-2"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-1"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): originOf ignores it"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as ER-3"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 5"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 4"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 6"
+      ]
+    },
+    {
+      "id": "DA-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-3"
+      ]
+    },
+    {
+      "id": "DA-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): owner-a and node-a"
+      ]
+    }
+  ]
+}

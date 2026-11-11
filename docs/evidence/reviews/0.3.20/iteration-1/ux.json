@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "1fa2d1d912d08a20aec0f447b94cb2e999603dd1",
+  "report": "docs/evidence/reviews/0.3.20/iteration-1/2026-11-11-ux.md",
+  "reportSha256": "52365e2fd183bb6754bef62d951137c7cd4761d4f7ad86fbd43ad2d4d1a4ba21",
+  "reviewerRun": "release-0320-i1-ux-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): spec §3.8 says board-message: is still redacted until Observatory takes it"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): remoteTargetFor reads through agentSyncLeases.ts#originOf, 3 s"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): CHANGELOG and spec say the settings.json key, no Settings row"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): CHANGELOG rewritten for readers"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): claim removed"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): an account without a backslash is unread"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 1"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): comments moved, typo fixed; the range wording in a dated map entry kept"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 2"
+      ]
+    }
+  ]
+}

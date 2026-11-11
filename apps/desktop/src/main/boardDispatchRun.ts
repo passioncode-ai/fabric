@@ -88,9 +88,9 @@ export interface DispatchRecord {
   result?: { outcome: RunOutcome; branch: string | null; commit: string | null }
 }
 
-/** CO-559 (§3.8): an inbox run's goal, the same in its opening and its closing checkpoint. */
 /** The packet references Observatory freezes at a dispatched workflow's opening write (OBS-323). */
 const FROZEN_REF = /^(board-(request|message|thread)|capability|fabric-project|deadline):/
+/** CO-559 (§3.8): an inbox run's goal, the same in its opening and its closing checkpoint. */
 const INBOX_GOAL = 'Read every unread board message addressed to this project, act on what is this project\'s, then end.'
 const OUTCOMES = new Set(['finished', 'exited-without-answer', 'timed-out', 'failed-to-start', 'refused', 'unknown', 'to-operator', 'not-taken', 'silent'])
 const isText = (v: unknown): v is string => typeof v === 'string' && v.length > 0
@@ -142,6 +142,9 @@ export interface DispatchDeps {
   launch(args: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string; reason?: 'request' | 'inbox' }): Promise<{ launchId: string } | { refused: string }>
   /** CO-551: the machine Settings names for runs (`dispatchTarget`), or null for this one; absent, this one. */
   remoteTarget?(projectId: string): string | null | Promise<string | null>
+  /** 2026-11-11 (the first live run on the Mac Studio): a request's text and its thread as plain text, for a run on
+   *  another machine, which has no board to read them from; null when they cannot be read. */
+  requestThread?(req: OpenRequest): Promise<string | null>
   /** CO-551: a run on another machine as `switchboard dispatch status --json` says it; a failure reads `unknown`. */
   remoteState?(launchId: string): Promise<RemoteState>
   /** CO-551: the run's answer posted in the request's thread as the target project, through the operator's board door,
@@ -523,7 +526,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   })
 
   /** Opens the workflow (first run) or takes it back (a later run), writes run-ends-at and offers it on. */
-  const open = async (req: OpenRequest, prior: DispatchRecord | undefined, provider: DispatchAgent, endsAt: string, dispatchId: string, openAt: number): Promise<{ workflowId: string; handoffId: string }> => {
+  const open = async (req: OpenRequest, prior: DispatchRecord | undefined, provider: DispatchAgent, endsAt: string, dispatchId: string, openAt: number, remote: { text: string | null } | null = null): Promise<{ workflowId: string; handoffId: string }> => {
     // Observatory freezes a dispatched workflow's board references at its opening write and refuses a later write that
     // changes them (`PacketFrozen`); leaving them out keeps them. A later inbox run stands for a newer message, so its
     // references differ: every write after the opening one carries only `run-ends-at` (seen live 2026-11-11, 7 refused
@@ -533,8 +536,12 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       return opening ? b : { ...b, artifacts: b.artifacts.filter((a) => !FROZEN_REF.test(a.ref)) }
     }
     const packetBody = (opening: boolean) => req.inbox ? inboxBody(req, opening, endsAt, openAt) : ({
-      goal: `Answer the board request ${req.id} addressed to this project, then end.`,
+      // Observatory redacts a bare UUID in text; the reference form keeps it (thread 7ae9ac3a).
+      goal: `Answer the board request board-request:${req.id} addressed to this project, then end.`,
       constraints: [
+        // 2026-11-11, the first live run on the Mac Studio: a run on another machine has no board, so its packet carries
+        // the request and its thread in `notes`; the same packet serves a run that a refusal there starts here.
+        ...(remote ? [`When this session has no com.* tools (a run on another machine has no Fabric board), the request and its thread are in this packet's notes${remote.text ? '' : ' (they could not be read when the run started; say so in the result)'}: do the work, write the answer as this run's result (the fabric-dispatch/1 result file), and Fabric posts it in the request's thread. With com.* tools, follow the steps below.`] : []),
         'Read the request with com.get and its thread with com.list under your own credential.',
         // fabric-agent-contract DEC-0152 (`v0.1.0+2026-11-07.4`, SA-6, CO-530): the slot first; a live holder is left alone.
         'Read the slot with com.status first: when it is active, a live service of the project holds the request, so leave it, send nothing, ask no one and end.',
@@ -558,7 +565,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         ...(opening ? [{ kind: 'other', ref: `deadline:${packetDeadline(req.deadline, openAt)}` }] : []),
         { kind: 'other', ref: `run-ends-at:${endsAt}` }
       ],
-      open: [{ step_id: 'answer', next_action: 'Take the request and answer it.' }]
+      open: [{ step_id: 'answer', next_action: 'Take the request and answer it.' }],
+      ...(remote?.text ? { notes: remote.text } : {})
     })
     let workflowId: string
     let leaseId: string
@@ -604,11 +612,11 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         // stayed open, so it cannot be taken back; the request gets a workflow of its own again.
         // Matched by Observatory's typed name, never the word «closed», which a dropped connection also says (final
         // candidate's verification, NB-1).
-        if (CLOSED.test(e instanceof Error ? e.message : String(e))) return open(req, undefined, provider, endsAt, dispatchId, openAt)
+        if (CLOSED.test(e instanceof Error ? e.message : String(e))) return open(req, undefined, provider, endsAt, dispatchId, openAt, remote)
         throw e
       }
       if (typeof back.handoffId !== 'string') {
-        if (CLOSED.test(String(back.error ?? ''))) return open(req, undefined, provider, endsAt, dispatchId, openAt)
+        if (CLOSED.test(String(back.error ?? ''))) return open(req, undefined, provider, endsAt, dispatchId, openAt, remote)
         throw new Error(`the workflow could not be taken back: ${String(back.error ?? 'no handoff')}`)
       }
       const took = await deps.observatory('observatory_handoff_accept', { owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-accept`, handoffId: back.handoffId })
@@ -679,8 +687,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
               : 'Three runs left the item unsettled; it waits for the operator in «На проверке».'
     const w = await deps.observatory('observatory_checkpoint_write', {
       owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close`, stepId: why,
-      status: why === 'settled' || why === 'relayed' ? 'done' : why === 'remote-ended' ? 'failed' : 'blocked', workflowId: r.workflowId, leaseId, close: true,
-      body: { goal: r.inbox ? INBOX_GOAL : `Answer the board request ${r.requestId} addressed to this project, then end.`, notes: `${notes}${remote}` }
+      // Observatory's checkpoint takes in_progress, done or blocked (`failed` refused live, 2026-11-11).
+      status: why === 'settled' || why === 'relayed' ? 'done' : 'blocked', workflowId: r.workflowId, leaseId, close: true,
+      body: { goal: r.inbox ? INBOX_GOAL : `Answer the board request board-request:${r.requestId} addressed to this project, then end.`, notes: `${notes}${remote}` }
     })
     if (CLOSED.test(String(w.error ?? ''))) { leases.delete(r.workflowId); return }
     if (w.error) throw new Error('the workflow was not closed')
@@ -693,7 +702,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     // two Observatory projects measure does not keep the project's agent from starting (2026-11-11: one project's
     // starts refused fifty times as ambiguous, board thread `cd6ccd1c`). Not found, or not answered, asks by folder.
     const byName = await deps.observatory('observatory_resolve', { id: `fabric:${fabricProject}` }).catch(() => null)
-    if (byName && typeof byName.canonical === 'string') {
+    if (byName && typeof byName.canonical === 'string' && byName.canonical.startsWith('project:')) {
       projectIds.set(fabricProject, byName.canonical)
       return byName.canonical
     }
@@ -951,12 +960,16 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       const dispatchId = reuse?.dispatchId ?? randomUUID()
       const endsAt = reuse?.endsAt ?? runEndsAt(now, limits.runMinutes, req.deadline)
       const openAt = reuse?.openAt ?? now
+      // 0.3.19 review PL-2: an inbox run never goes to another machine; with no fabric-mcp there it cannot read the board.
+      // The machine is known before the workflow opens, so a run there gets the request's text in its packet.
+      const target = req.inbox ? null : await Promise.resolve(deps.remoteTarget?.(req.target) ?? null).catch(() => null)
+      const remote = target ? { text: await (deps.requestThread?.(req) ?? Promise.resolve(null)).catch(() => null) } : null
       let opened: { workflowId: string; handoffId: string }
       try {
         // CO-551: a workflow Fabric already closed (a run on another machine) is not taken back: the request gets a new one.
         // 0.3.19 review ER-6: a retried open sends the packet it sent first (an inbox's count and oldest time moved
         // since), so Observatory's idempotency answers the same workflow instead of refusing a changed body.
-        opened = await open(reuse?.inbox && req.inbox ? { ...req, inbox: reuse.inbox } : req, last?.closed ? undefined : last, provider, endsAt, dispatchId, openAt)
+        opened = await open(reuse?.inbox && req.inbox ? { ...req, inbox: reuse.inbox } : req, last?.closed ? undefined : last, provider, endsAt, dispatchId, openAt, remote)
         firstLine({ workflow: opened.workflowId, handoff: opened.handoffId, request: req.id }) // the ids are well formed (§3.5)
         openFailedAt.delete(req.id) // CO-544: an open that worked ends the run of failures
         // CO-559: a workflow taken over by this run is no longer the older records' to close (a project's inbox runs
@@ -975,8 +988,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       const r: DispatchRecord = { requestId: req.id, projectId: req.target, dispatchId, workflowId: opened.workflowId, handoffId: opened.handoffId, launchId: null,
         startedAt: now, endsAt, state: 'starting', attempts: 0, emptyRuns: req.inbox ? inboxEmpty : last?.emptyRuns ?? 0,
         ...(req.inbox ? { inbox: true } : {}),
-        // 0.3.19 review PL-2: an inbox run never goes to another machine; with no fabric-mcp there it cannot read the board.
-        ...((target) => (target && !req.inbox ? { target } : {}))(req.inbox ? null : await Promise.resolve(deps.remoteTarget?.(req.target) ?? null).catch(() => null)),
+        ...(target ? { target } : {}),
         ...(Number.isFinite(Date.parse(req.deadline)) ? { until: Date.parse(req.deadline) } : {}) }
       if (deps.quitting?.()) {
         // ER-9: the app quits between opening the workflow and recording the start: nothing starts, and the workflow

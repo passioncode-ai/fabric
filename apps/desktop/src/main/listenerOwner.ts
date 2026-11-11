@@ -141,13 +141,14 @@ export function serverEndPidsFromWinNetstat(text: string, hubPort: number, clien
   return [...pids]
 }
 
-/** The account `tasklist /v /fo csv /nh` names for a process (its seventh column), or null when it cannot say. */
+/** The account `tasklist /v /fo csv /nh` names for a process (its seventh column, `DOMAIN\\user`), or null when it
+ *  cannot say: `N/A` and a translated placeholder carry no `\\`, so any value without one is unread, never an account. */
 export function accountFromTasklist(text: string): string | null {
   const line = text.split(/\r?\n/).find((l) => l.trim().startsWith('"'))
   if (!line) return null
   const cols = [...line.matchAll(/"((?:[^"]|"")*)"/g)].map((c) => c[1].replace(/""/g, '"'))
   const account = cols[6]?.trim()
-  return account && account.toUpperCase() !== 'N/A' ? account : null
+  return account && account.includes('\\') ? account : null
 }
 
 /** One owner from this account's name and each listening process's account (null: unreadable). */
@@ -160,6 +161,9 @@ export function ownerFromWinAccounts(me: string, accounts: (string | null)[]): L
 }
 
 /** The Windows read through netstat, tasklist and whoami; throws when one of them cannot be run. */
+/** Each of the three Windows commands is given this long (they answer in well under it); PowerShell keeps its 30 s. */
+export const WIN_COMMAND_MS = 10_000
+
 function winOwner(pidsOf: (netstat: string) => number[], run: (cmd: string, args: string[]) => string): ListenerOwner {
   const me = run('whoami', []).trim()
   const pids = pidsOf(run('netstat', ['-ano']))
@@ -215,7 +219,7 @@ export function readListenerOwner(port: number, deps: {
     return ownerOf(uidsReaching(rows))
   }
   if (platform === 'win32') {
-    const run = deps.run ?? ((cmd: string, args: string[]) => execFileSync(cmd, args, { encoding: 'utf8', timeout: 30_000, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }))
+    const run = deps.run ?? ((cmd: string, args: string[]) => execFileSync(cmd, args, { encoding: 'utf8', timeout: cmd === 'powershell.exe' ? 30_000 : WIN_COMMAND_MS, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true }))
     try {
       return winOwner((t) => listenerPidsFromWinNetstat(t, port), run)
     } catch {

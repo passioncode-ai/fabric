@@ -264,12 +264,19 @@ other machine over ssh, and that run has no `fabric-mcp` there. Agreed on the th
 Switchboard 0.7.40, published 2026-11-09): Fabric's design `32e834d4`, the fields `f75293e0` and `ac25c446`, D-2 in
 `700ef088` and `13f00feb`, the refusals and `lost` in `e6f33c33` and `d8b9c03b`.
 
-Since 2026-11-11 the machine can depend on the project: Settings' `dispatchTargets` maps the owner of the project's
-repository (its primary folder's `origin`, `git remote get-url`, 5 s) to an ssh host, before the one `dispatchTarget`.
+Since 0.3.20 the machine can depend on the project: the `dispatchTargets` key of Fabric's `settings.json` (no Settings row;
+written by hand, once 0.3.20 runs, since an older Fabric drops the key on its next settings write) maps the owner of the
+project's repository (its primary folder's `origin`, read by `agentSyncLeases.ts#originOf`: at most 3 s, an inherited
+`GIT_DIR` ignored) to an ssh host, before the one `dispatchTarget`.
 The Mac Studio keeps one space per owner group (studio-agent, board thread `6d874a34`: `node-a` holds `owner-a/*`
 and `owner-b/*`, `node-b` holds `owner-c/*`, `owner-d/*` and `owner-e/*`), so a request run goes
 to the space that has the checkout. An owner not in the map, or a remote that cannot be read, takes `dispatchTarget`;
-an inbox run asks nothing (`main/boardDispatchWiring.ts#remoteTargetFor`, `shared/boardDispatch.ts#dispatchTargetsOf`,
+an inbox run asks nothing. A run on another machine has no board, so its packet carries the request and its thread as
+text in `notes` (the request first, then the newest messages, at most `THREAD_TEXT_MAX` characters, read through the
+operator's read door) and a first constraint that says to answer in the run's result when no `com.*` tools are there;
+the same packet serves the run a refusal there starts here (found on the first live run on the Mac Studio, 2026-11-11:
+the run had only the request's id and ended `blocked` three times). The goal names the request as `board-request:<uuid>`,
+which Observatory keeps (`main/boardDispatchWiring.ts#remoteTargetFor`, `#requestThreadText`, `shared/boardDispatch.ts#dispatchTargetsOf`,
 `#remoteOwnerOf`; tests in `board-dispatch-run.test.mjs` and `boardDispatch.test.ts`).
 
 - **Which machine.** Settings' `dispatchTarget` names it as ssh knows it (`shared/types.ts#AppSettings`, read field by
@@ -353,8 +360,9 @@ CO-556, 49 requests `queued`, 65 projects with unread board messages, and five d
    `dispatch::INBOX_CONTRACT`, which says the same; Fabric passes it only when `switchboard --version` names 0.7.56 or
    later and never with `--target`, and keeps `request` otherwise (`main/boardDispatchWiring.ts#dispatchArgs`,
    `#takesInboxReason`; test `CO-551: the wiring passes --target …`). The packet names its message and thread as
-   `board-message:<uuid>` and `board-thread:<uuid>`, the references Observatory's redaction keeps (thread
-   `7ae9ac3a`). An inbox
+   `board-message:<uuid>` and `board-thread:<uuid>`: Observatory's redaction keeps `board-thread:` and `board-request:`;
+   `board-message:` it still redacts (installed 0.35.14), until its `KEEP` takes it (asked in thread `7ae9ac3a`); the
+   inbox run reads its messages itself, so nothing it needs is lost. An inbox
    run always starts on this machine, also with a `dispatchTarget` named: a run on another machine has no
    `fabric-mcp` and could not read the board (§3.7; iteration 1, PL-2). A read of the inboxes cut at its 200 projects
    (`more`) never takes a Project it left out as answered: that Project's inbox run is judged by its message's own

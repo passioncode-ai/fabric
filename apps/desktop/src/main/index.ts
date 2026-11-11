@@ -3157,7 +3157,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // 2026-11-11: by the owner of the project's repository (`dispatchTargets`), else `dispatchTarget`.
     remoteTarget: async (projectId) => {
       const s = readSettings()
-      return remoteTargetFor(Object.keys(s.dispatchTargets).length ? await primaryFolder(projectRepos, projectId) : null, s.dispatchTargets, s.dispatchTarget)
+      // A folder that cannot be read takes the one `dispatchTarget`, as an owner the map does not name does.
+      const folder = Object.keys(s.dispatchTargets).length ? await primaryFolder(projectRepos, projectId).catch(() => null) : null
+      return remoteTargetFor(folder, s.dispatchTargets, s.dispatchTarget)
     },
     board: (projectId) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id),
     quitting: () => quit.quitting,

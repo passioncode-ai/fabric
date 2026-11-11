@@ -165,6 +165,7 @@ test('CO-560: Windows reads netstat by addresses and ports, never by the transla
   assert.equal(accountFromTasklist('"Fabric.exe","4242","Console","1","120,000 K","Running","DESKTOP-1\\me","0:00:09","Fabric"\r\n'), 'DESKTOP-1\\me')
   assert.equal(accountFromTasklist('"svchost.exe","4242","Services","0","9,000 K","Unknown","N/A","0:00:00","N/A"'), null)
   assert.equal(accountFromTasklist('INFO: No tasks are running which match the specified criteria.'), null)
+  assert.equal(accountFromTasklist('"svchost.exe","4242","Services","0","9 K","Unknown","\u041d/\u0414","0:00:00","\u041d/\u0414"'), null, 'a translated placeholder carries no backslash: unread, never another account')
   assert.deepEqual(ownerFromWinAccounts('desktop-1\\me', ['DESKTOP-1\\me']), { sid: 'desktop-1\\me', mine: true }, 'compared without case')
   assert.deepEqual(ownerFromWinAccounts('desktop-1\\me', ['DESKTOP-1\\other']), { sid: 'DESKTOP-1\\other', mine: false })
   assert.ok('unknown' in ownerFromWinAccounts('desktop-1\\me', [null]), 'an account tasklist cannot name is unknown, never mine')

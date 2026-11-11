@@ -15,6 +15,7 @@ import { INBOX_CAPABILITY, remoteOwnerOf, targetForOwner, type DispatchAgent } f
 import { createBoardDispatch, isDispatchRecord, noteOf, type DispatchDeps, type InboxGiven, type DispatchRecord, type OpenRequest, type RemoteState, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
+import { originOf } from './agentSyncLeases.ts'
 
 const WINDOW_MS = 7 * 24 * 3600_000
 const CLI_DEADLINE_MS = 60_000
@@ -160,11 +161,6 @@ export function runStateOf(launch: { state?: string; ended?: unknown } | undefin
   return code?.kind === 'exited' && typeof code.exit_code === 'number' && code.exit_code !== 0 ? 'crashed' : 'ended'
 }
 
-/**
- * The machine a project's request run goes to (2026-11-11, the Mac Studio's spaces): the owner of its primary folder's
- * `origin` in `targets`, else `fallback`. With no owner map the folder is not read at all; a folder whose remote cannot
- * be read (no git, no origin, past its 5 s) takes the fallback.
- */
 /** A project's folder on this computer: its primary repository first, the first that exists. */
 export async function primaryFolder(repos: (projectId: string) => Promise<Array<{ path: string; is_primary: boolean | null }>>, projectId: string): Promise<string | null> {
   const rows = await repos(projectId)
@@ -172,11 +168,40 @@ export async function primaryFolder(repos: (projectId: string) => Promise<Array<
   return ordered.map((x) => x.path).find((p) => typeof p === 'string' && path.isAbsolute(p) && existsSync(p)) ?? null
 }
 
+/**
+ * The machine a project's request run goes to (2026-11-11, the Mac Studio's spaces): the owner of its primary folder's
+ * `origin` in `targets`, else `fallback`. With no owner map the folder is not read at all; a folder whose remote cannot
+ * be read (no git, no origin, past the 3 s of `agentSyncLeases.ts#originOf`, which ignores an inherited `GIT_DIR`)
+ * takes the fallback.
+ */
 export async function remoteTargetFor(folder: string | null, targets: Record<string, string>, fallback: string | null,
-  git: (dir: string) => Promise<string> = (dir) => run('git', ['-C', dir, 'remote', 'get-url', 'origin'], process.env)): Promise<string | null> {
+  git: (dir: string) => Promise<string | null> = originOf): Promise<string | null> {
   if (!folder || Object.keys(targets).length === 0) return fallback
-  const url = await git(folder).catch(() => '')
+  const url = (await git(folder).catch(() => null)) ?? ''
   return targetForOwner(remoteOwnerOf(url), targets, fallback)
+}
+
+/** At most this much of a thread goes into a remote run's packet: the request first, then the newest messages. */
+export const THREAD_TEXT_MAX = 12_000
+
+/**
+ * A request and its thread as plain text for a run on another machine (2026-11-11: the first live run on the Mac Studio
+ * had no board and only the request's id). Read through the operator's read door, one page of the thread; the request
+ * comes first, then the other messages newest first, cut to `THREAD_TEXT_MAX`. Null when the thread cannot be read.
+ */
+export async function requestThreadText(comms: Pick<SweepComms, 'list'>, estateId: string, req: { id: string; thread: string }): Promise<string | null> {
+  const page = await comms.list(estateId, req.thread, 0, 100)
+  if (!page.ok) return null
+  const line = (m: CommsMessage) => `[${m.at}] ${m.kind} ${m.id === req.id ? '(the request)' : ''} from project ${m.sender.project}:\n${m.redacted || !m.body ? '(its text was removed)' : m.body.text}`
+  const request = page.messages.find((m) => m.id === req.id)
+  const others = page.messages.filter((m) => m.id !== req.id).reverse()
+  let out = request ? line(request) : `(the request ${req.id} was not on the thread's first page)`
+  for (const m of others) {
+    const next = `${out}\n\n${line(m)}`
+    if (next.length > THREAD_TEXT_MAX) break
+    out = next
+  }
+  return out.length > THREAD_TEXT_MAX ? `${out.slice(0, THREAD_TEXT_MAX)}\n(cut)` : out
 }
 
 // #region board-dispatch-remote-wiring — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a
@@ -337,6 +362,7 @@ export function wireBoardDispatch(o: {
       }
     },
     remoteTarget: (projectId) => o.remoteTarget?.(projectId) ?? null,
+    requestThread: (req) => requestThreadText(o.comms, o.estateId, req),
     async remoteState(launchId) {
       const sb = await bin('switchboard')
       if (!sb) return { state: 'unknown', exitCode: null, result: null }

@@ -1180,7 +1180,7 @@ test('CO-551 (D-2): outcome failed or blocked, or a run timed out or stopped wit
     assert.equal(r.closed, true)
     const [close] = closes(w)
     assert.equal(close.leaseId, 'lease-1')
-    assert.equal(close.status, 'failed')
+    assert.equal(close.status, 'blocked', 'Observatory takes in_progress, done or blocked; failed was refused live')
     // The next run opens a workflow of its own rather than taking a closed one back.
     assert.equal(w.launches.length, 2, JSON.stringify(w.logs.filter((l) => l.outcome !== 'ok')))
     assert.equal(w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length, 2)
@@ -1613,4 +1613,37 @@ test('2026-11-11: a request run goes to the machine of its repository\'s owner, 
   await createBoardDispatch(w.deps).onPass()
   assert.deepEqual(asked, [request().target], 'asked for the request run only')
   assert.ok(w.launches.some((a) => a.target === 'node-a'))
+})
+
+test('2026-11-11, the first live run on the Mac Studio: a run on another machine carries the request and its thread in its packet', async () => {
+  const w = world({ requests: [request()] })
+  w.deps.remoteTarget = async () => 'node-a'
+  const asked = []
+  w.deps.requestThread = async (req) => { asked.push(req.id); return 'the request text' }
+  await createBoardDispatch(w.deps).onPass()
+  assert.deepEqual(asked, [request().id])
+  const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.equal(open.body.notes, 'the request text')
+  assert.ok(open.body.constraints[0].startsWith('When this session has no com.* tools'))
+  assert.match(open.body.goal, /board-request:/, 'the id in the reference form Observatory keeps')
+  assert.equal(w.launches[0].target, 'node-a')
+  // A run on this machine reads no thread and its packet has no notes.
+  const here = world({ requests: [request()] })
+  here.deps.requestThread = async () => { throw new Error('not asked') }
+  await createBoardDispatch(here.deps).onPass()
+  const local = here.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.equal(local.body.notes, undefined)
+  assert.ok(!local.body.constraints.some((c) => c.startsWith('When this session has no com.* tools')))
+})
+
+test('requestThreadText: the request first, then the newest messages, removed text said, the whole cut to its bound', async () => {
+  const { requestThreadText, THREAD_TEXT_MAX } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  const msg = (id, at, text, extra = {}) => ({ id, thread: 't', kind: 'reply', sender: { project: 'p', principal: null }, at, digest: 'd', body: { text }, ...extra })
+  const messages = [msg('r', '1', 'ask', { kind: 'request' }), msg('a', '2', 'older'), msg('b', '3', 'newer'), msg('c', '4', 'x', { body: undefined, redacted: true })]
+  const text = await requestThreadText({ list: async () => ({ ok: true, messages }) }, 'e', { id: 'r', thread: 't' })
+  assert.ok(text.startsWith('[1] request (the request) from project p:\nask'))
+  assert.ok(text.indexOf('(its text was removed)') < text.indexOf('newer') && text.indexOf('newer') < text.indexOf('older'))
+  assert.equal(await requestThreadText({ list: async () => ({ ok: false }) }, 'e', { id: 'r', thread: 't' }), null)
+  const long = await requestThreadText({ list: async () => ({ ok: true, messages: [msg('r', '1', 'z'.repeat(THREAD_TEXT_MAX * 2))] }) }, 'e', { id: 'r', thread: 't' })
+  assert.ok(long.length <= THREAD_TEXT_MAX + 10)
 })

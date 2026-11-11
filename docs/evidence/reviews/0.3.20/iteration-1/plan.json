@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "1fa2d1d912d08a20aec0f447b94cb2e999603dd1",
+  "report": "docs/evidence/reviews/0.3.20/iteration-1/2026-11-11-plan.md",
+  "reportSha256": "0ddaa229f26b0030499955f07abfa0ff6c232633fdc7c711ce79fd5ce376dd63",
+  "reviewerRun": "release-0320-i1-plan-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): CHANGELOG says it helps once Observatory records the ids"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-2"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as ER-3"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): documented in CHANGELOG and spec; a Settings row ruled: CO-564, item 7"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 6"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 8"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): unread now covers any placeholder; PowerShell stays the fallback when the commands cannot run"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): listed in the ledger's release close"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 9"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-8 and UX-3"
+      ]
+    }
+  ]
+}

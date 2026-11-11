@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "1fa2d1d912d08a20aec0f447b94cb2e999603dd1",
+  "report": "docs/evidence/reviews/0.3.20/iteration-1/2026-11-11-errors.md",
+  "reportSha256": "0d9d5d855228ac3e4041e0381f34e59abc300483509804c83e53d5438634720a",
+  "reviewerRun": "release-0320-i1-errors-20261111",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-1"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-2"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): index.ts falls back to dispatchTarget"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-6; hub comment carried"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 3"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-564, item 4"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): only a project: canonical is kept"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): WIN_COMMAND_MS 10 s each"
+      ]
+    }
+  ]
+}
