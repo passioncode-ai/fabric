@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "7795005a296c1a3e962940e3f49d253ff89dee3e",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-7795005a/2026-11-12-data.md",
+  "reportSha256": "db4857d95caeac8722a4fdb1b96723d617c620957eaa47d405a2503ec24c53e4",
+  "reviewerRun": "release-0320-i3r2-data-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: `d83858c5`'s sources reverted to the 14 before it; adding them again waits for the host's limits and their `backlog-sources.json` (CO-569)"
+      ]
+    },
+    {
+      "id": "DA-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: its record keeps the request's own deadline; test watched failing"
+      ]
+    },
+    {
+      "id": "DA-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: as ER-43"
+      ]
+    },
+    {
+      "id": "DA-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: both lists run to 0.3.20"
+      ]
+    }
+  ]
+}

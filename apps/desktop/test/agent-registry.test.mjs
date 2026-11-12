@@ -326,7 +326,8 @@ test('DEC-0145: Windows paths in an entry are read as the contract reads them, a
 test('a descriptor whose installedBy is the DEC-0061 object is registered, its installer shown', () => {
   const by = { by: 'person', role: 'operator', tool: 'example.register 1.2' }
   assert.deepEqual(validateServiceDescriptor(service('example-agent', 'default', 47502, { installedBy: by })), [])
-  assert.deepEqual(validateProviderEntry(provider('example-tool', { installedBy: by })), [])
+  // The contract's provider entry takes the string only (0.3.20 iteration 3 run two, ER-43).
+  assert.ok(validateProviderEntry(provider('example-tool', { installedBy: by })).length > 0)
   for (const bad of [{ by: 'robot', tool: 'x' }, { by: 'person' }, { by: 'person', tool: '' }, { by: 'person', tool: 'x' }, { by: 'node', role: 'operator', tool: 'x' }, { by: 'person', tool: 'x', name: 'Ann' }]) {
     assert.ok(validateServiceDescriptor(service('example-agent', 'default', 47502, { installedBy: bad })).length > 0, JSON.stringify(bad))
   }

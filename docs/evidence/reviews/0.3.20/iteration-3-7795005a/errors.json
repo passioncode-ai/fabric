@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "7795005a296c1a3e962940e3f49d253ff89dee3e",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-7795005a/2026-11-12-errors.md",
+  "reportSha256": "8f8bd2d0966bd116ebe1a1c257c6b9ad2221cd0d7c4fdfe0431cde6a46af6005",
+  "reviewerRun": "release-0320-i3r2-errors-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: no later record: three unanswered tries give the request to the operator (`remote-lost`); test watched failing"
+      ]
+    },
+    {
+      "id": "ER-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: cleared when a try is answered; to the operator after three; two tests watched failing"
+      ]
+    },
+    {
+      "id": "ER-42",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-567 (needs Switchboard to record a launch before ssh returns); §3.9 says so"
+      ]
+    },
+    {
+      "id": "ER-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: services only; test"
+      ]
+    },
+    {
+      "id": "ER-44",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "ER-45",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    }
+  ]
+}

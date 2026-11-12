@@ -293,6 +293,7 @@ export const en = {
   'task.reading': "Reading the task…",
   'task.who.agent': "the agent",
   'task.who.you': "you",
+  'task.who.fabric': "Fabric",
   'task.who.otherSession': "another session",
   'task.fact.run': "run {n}, {state}",
   'task.fact.runUnreadable': "run unreadable",

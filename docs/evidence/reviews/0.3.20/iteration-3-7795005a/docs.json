@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "7795005a296c1a3e962940e3f49d253ff89dee3e",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-7795005a/2026-11-12-docs.md",
+  "reportSha256": "44b2443c07800138111e8c3fbe1446b4cd0cc765eb086cab876dc187413c0755",
+  "reviewerRun": "release-0320-i3r2-docs-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: as UX-41"
+      ]
+    },
+    {
+      "id": "DO-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: as UX-43"
+      ]
+    },
+    {
+      "id": "DO-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: §3.10 says a result is posted only when answered"
+      ]
+    },
+    {
+      "id": "DO-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: both named"
+      ]
+    },
+    {
+      "id": "DO-44",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569 (a dated lane, not rewritten)"
+      ]
+    },
+    {
+      "id": "DO-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: §3.9 says 4 Mi characters (`OUT_MAX`)"
+      ]
+    },
+    {
+      "id": "DO-46",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: «none»"
+      ]
+    },
+    {
+      "id": "DO-47",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "DO-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: `{by, role?, tool}`"
+      ]
+    }
+  ]
+}

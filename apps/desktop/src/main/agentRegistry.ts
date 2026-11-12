@@ -155,9 +155,9 @@ function unknownFields(d: Record<string, unknown>, allowed: Set<string>): string
 
 /** The contract's installedBy: the installer as a string, or DEC-0061's {by, role?, tool}, where a person names a role
  *  and a node or an organization names none (2026-11-12: a descriptor in the object form was refused outright). */
-function installedByOk(v: unknown): boolean {
+function installedByOk(v: unknown, kind: 'service' | 'provider'): boolean {
   if (isStr(v)) return v.length >= 1 && v.length <= 200
-  if (!isObj(v) || Object.keys(v).some((k) => !['by', 'role', 'tool'].includes(k))) return false
+  if (kind !== 'service' || !isObj(v) || Object.keys(v).some((k) => !['by', 'role', 'tool'].includes(k))) return false
   if (!isStr(v.tool) || v.tool.length < 1 || v.tool.length > 200) return false
   if (v.by === 'person') return v.role === 'operator' || v.role === 'administrator'
   return (v.by === 'node' || v.by === 'organization') && v.role === undefined
@@ -166,12 +166,13 @@ function installedByOk(v: unknown): boolean {
 /** The installer to show: the string itself, or the object's tool. */
 const installerOf = (v: unknown): string => (isStr(v) ? v : isObj(v) && isStr(v.tool) ? v.tool : '')
 
-function commonProblems(d: Record<string, unknown>): string[] {
+function commonProblems(d: Record<string, unknown>, kind: 'service' | 'provider'): string[] {
   const problems: string[] = []
   if (!isStr(d.name) || !d.name || d.name.length > 80) problems.push('name must be 1 to 80 characters')
   if (d.summary !== undefined && (!isStr(d.summary) || d.summary.length > 200)) problems.push('summary must be at most 200 characters')
   if (!isTimestamp(d.installedAt)) problems.push('installedAt must be an RFC 3339 timestamp')
-  if (!installedByOk(d.installedBy)) problems.push('installedBy must be 1 to 200 characters, or {by, role?, tool} (DEC-0061)')
+  // DEC-0061's object is a service descriptor's form only: the contract's provider entry takes the string (run two, ER-43).
+  if (!installedByOk(d.installedBy, kind)) problems.push(kind === 'service' ? 'installedBy must be 1 to 200 characters, or {by, role?, tool} (DEC-0061)' : 'installedBy must be 1 to 200 characters')
   if (d.source !== undefined) {
     if (!isObj(d.source) || Object.keys(d.source).some((k) => k !== 'repository')) problems.push('source may carry only repository')
     else if (d.source.repository !== undefined && !isUri(d.source.repository)) problems.push('source.repository must be a URI')
@@ -227,7 +228,7 @@ export function validateServiceDescriptor(raw: unknown): string[] {
       }
   }
   if (d.fabricManifest !== undefined && (!isStr(d.fabricManifest) || !LOCAL_PATH.test(d.fabricManifest))) problems.push('fabricManifest must be an absolute or ~/ path')
-  problems.push(...commonProblems(d))
+  problems.push(...commonProblems(d, 'service'))
   return problems
 }
 
@@ -262,7 +263,7 @@ export function validateProviderEntry(raw: unknown): string[] {
         }
     }
   } else problems.push('run.mcp must be {stdio: {command}} or {url}')
-  problems.push(...commonProblems(d))
+  problems.push(...commonProblems(d, 'provider'))
   return problems
 }
 

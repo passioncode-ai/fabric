@@ -1,0 +1,91 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "7795005a296c1a3e962940e3f49d253ff89dee3e",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-7795005a/2026-11-12-plan.md",
+  "reportSha256": "61aca3e10db6120c8e8c1f5945d92d3721c86e242cbd0bb317e1d5ff1a47612a",
+  "reviewerRun": "release-0320-i3r2-plan-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: run two numbers V3-46 on"
+      ]
+    },
+    {
+      "id": "PL-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: an idle slot"
+      ]
+    },
+    {
+      "id": "PL-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: item 0"
+      ]
+    },
+    {
+      "id": "PL-33",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569; recorded here"
+      ]
+    },
+    {
+      "id": "PL-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: item 2 says 0.7.56 or later"
+      ]
+    },
+    {
+      "id": "PL-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: item 3 reads the schema there first, names this session over `studio-sshlg` and the switch"
+      ]
+    },
+    {
+      "id": "PL-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: item 9"
+      ]
+    },
+    {
+      "id": "PL-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: as DA-33"
+      ]
+    },
+    {
+      "id": "PL-38",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569 (the next release's number is set at its plan)"
+      ]
+    },
+    {
+      "id": "PL-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave: «What 0.3.20 carries» records the decision; candidate 3 is `1462afe1`"
+      ]
+    },
+    {
+      "id": "PL-40",
+      "status": "not a defect",
+      "evidence": [
+        "not a defect: the edit renumbered ids only and is said in its header; run two's reports are kept as written"
+      ]
+    }
+  ]
+}

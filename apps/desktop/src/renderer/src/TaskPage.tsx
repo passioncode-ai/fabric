@@ -206,7 +206,9 @@ export function TaskPage({
   // `person:<id>`, `person:operator` by default; 0.3.20 review iteration 3, UX-22); any other name stays as written.
   const who = (id: string | null): string | null =>
     !id ? null : id.startsWith('agent:') || id === 'agent' ? t('task.who.agent')
-      : ['operator', 'person', 'human'].includes(id) || id.startsWith('person:') ? t('task.who.you') : id
+      : ['operator', 'person', 'human'].includes(id) || id.startsWith('person:') ? t('task.who.you')
+        // 0.3.20 review, iteration 3 run two, UX-40: a brief Fabric wrote itself (the onboarding task's `system:<name>`).
+        : id === 'system' || id.startsWith('system:') ? t('task.who.fabric') : id
   const briefEmpty = !task.brief_what?.trim() && !task.brief_why?.trim() && !task.brief_expected?.trim()
   // SCN-179 (CO-521): a task in review asks the person one decision; what does not bear on it (no run yet, a spec still
   // to gather) is not said on it.

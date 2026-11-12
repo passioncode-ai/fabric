@@ -1900,19 +1900,33 @@ test('§3.10: every packet carries the route of questions: decide first, then th
   }
 })
 
-// 0.3.20 review, iteration 3, ER-20: the unanswered start there belongs to the request, not to one record: after three
-// unanswered starts and the back-off, a new record that meets a refusal there still does not start the run here.
-test('ER-20: a request whose start elsewhere went unanswered is never started here, across records', async () => {
+// 0.3.20 review, iteration 3 (ER-20; run two, ER-40, ER-41): a start on another machine that never answered is given to
+// the operator as a machine that does not answer; it is not started here, not asked there again, and not left for ever.
+test('ER-20, ER-40, ER-41: an unanswered start elsewhere goes to the operator, never here and never asked again', async () => {
   const w = world({ target: 'node-a' })
   let answer = { refused: 'failed' }
   w.deps.launch = async (args) => { w.launches.push(args); return args.target ? answer : { launchId: 'HERE' } }
   const d = createBoardDispatch(w.deps)
   for (let i = 0; i < 3; i++) { await d.onPass(); w.tick(MIN) }
-  assert.equal(d.records()[0].outcome, 'failed-to-start')
+  assert.equal(d.records()[0].outcome, 'to-operator')
+  assert.equal(d.toOperator().get(d.records()[0].requestId), 'remote-lost')
+  const asked = w.launches.length
   answer = { refused: 'target_busy' }
-  for (let i = 0; i < 6 && d.records().length < 2; i++) { w.tick(15 * MIN); await d.onPass() }
-  assert.ok(d.records().length >= 2, 'a later record asked again')
+  for (let i = 0; i < 6; i++) { w.tick(15 * MIN); await d.onPass() }
+  assert.equal(w.launches.length, asked, 'not asked again anywhere')
   assert.equal(w.launches.filter((a) => !a.target).length, 0, 'never started here')
+})
+
+test('ER-41: a start elsewhere answered on a later try leaves nothing unanswered, so a later refusal there runs here as before', async () => {
+  const w = world({ target: 'node-a' })
+  let answer = { refused: 'failed' }
+  w.deps.launch = async (args) => { w.launches.push(args); return args.target ? answer : { launchId: 'HERE' } }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  answer = { launchId: 'THERE' }
+  w.tick(MIN); await d.onPass()
+  assert.equal(d.records()[0].launchId, 'THERE')
+  assert.equal(d.records()[0].remoteUnanswered, undefined, 'cleared once answered')
 })
 
 // ER-21: a board that cannot be read does not use up a remote run's answer; it is posted once the board is back.
@@ -1960,4 +1974,19 @@ test('DA-21: a request given to the operator keeps its record through a trim mad
   w.deps.readRequests = read
   w.tick(MIN); await d.onPass()
   assert.equal(w.launches.length, 0, 'not dispatched again')
+})
+
+// 0.3.20 review, iteration 3 run two, DA-31: a request given to the operator keeps its record until its own deadline,
+// past the 30-day cap on other records, as 0.3.19 did.
+test('DA-31: the operator\'s request keeps its record until its own deadline', async () => {
+  const far = new Date(T0 + 60 * DAY).toISOString()
+  const prior = { requestId: request().id, projectId: 'p-target', dispatchId: 'd-0', workflowId: 'wf_0123456789abcdef', handoffId: 'h', launchId: 'L0',
+    startedAt: T0 - DAY, endsAt: new Date(T0 - DAY).toISOString(), state: 'ended', outcome: 'exited-without-answer', emptyRuns: 3, closed: true, until: T0 + DAY }
+  const w = world({ requests: [request({ deadline: far })] })
+  w.deps.load = () => [{ ...prior }]
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  const r = d.records().find((x) => x.requestId === request().id)
+  assert.equal(r.outcome, 'to-operator')
+  assert.ok(r.until >= Date.parse(far), String(r.until))
 })

@@ -16,18 +16,21 @@ and quit before the bundle is replaced, and turn it on again once 0.3.20 runs. N
 database, so going back means restoring the backup with the 0.3.19 bundle.
 
 - **An agent whose descriptor names its installer by role is registered** (2026-11-12). A `services/` descriptor whose
-  `installedBy` is the contract's object form (`{by, role, tool}`, DEC-0061) was refused as a whole, so the agent could
+  `installedBy` is the contract's object form (`{by, role?, tool}`, DEC-0061) was refused as a whole, so the agent could
   not ask for access («neither a coding agent Fabric knows on this computer nor a registered agent»).
 - **The task page is one column, in words** (the operator, 2026-11-12). The title in two lines and one line of facts
   replace the left rail and the five tabs; the brief reads as text with «Изменить» on each part and says who wrote it;
-  notes sit under the brief; the history and what the agent receives are folds; no session, task or agent id is shown.
+  notes sit under the brief; the history and what the agent receives are folds; the page itself shows no session, task
+  or agent id (the folds still name a source's id).
 - **One title per screen** (the operator, 2026-11-12). The top bar's title is the only one: Доска, Переписка, План,
-  Пульс, Выпуски, Граф, Настройки, the project page and the creation forms lose their kicker, slogan heading, lede and
-  the Fabric strip. Agents are named by their project and runner, never by an id.
-- **Главная is calmer** (the operator, 2026-11-12). The hero is the avatar and the greeting («Мой облик» is in
-  Настройки); an agent's row says its task and how long it has worked, without the branch.
-- **The Board asks in plain words** (the operator, 2026-11-12). With nothing chosen it says «Выберите запись слева»;
-  a refused act on its decision card reads «Ждёт разрешения» with the reason; a task made from a proposal says «задача
+  Пульс, Выпуски, Настройки, the project page and the creation forms lose their kicker, slogan heading, lede and
+  the Fabric strip (Граф and «Имя и вид Fabric» still show a second one). Agents are named by their project and runner, never by an id.
+- **Главная is calmer** (the operator, 2026-11-12). The hero is the avatar and the greeting (the look is «Имя и вид
+  Fabric», under «Ещё» in Настройки); an agent's row says its task and how long it has worked, without the branch.
+- **The Board asks in plain words** (the operator, 2026-11-12). With nothing chosen it says «Выберите запись слева».
+  The decision card asks its question as the heading, with «Над чем» and «Почему просят» under it; the arrow keys page
+  between cards, Esc closes one, «К следующей» moves on after a decision, and a grant says it covers one act for one hour. A
+  refused act reads «Ждёт разрешения» with the reason, and the top bar of Доска and План names the project; a task made from a proposal says «задача
   создана» with «Открыть задачу»; an argument agents could not settle says «Агенты не договорились, решите вы»; the
   notes that repeated themselves are gone.
 - **A run the board started shows as at work on Главная**, by its project and task, like a session you opened.
@@ -42,7 +45,7 @@ database, so going back means restoring the backup with the 0.3.19 bundle.
 - **The board dispatcher survives sleep, a failing project and a hung link** (the operator, 2026-11-12). After the Mac
   sleeps, a board run on it is judged on time awake, so it is no longer stopped and restarted as silent on waking. One
   project whose step fails no longer stops every other request in the pass; a board that cannot be read still watches the
-  runs in flight. A run on another machine whose start was not answered is never started here as well, and an answer is
+  runs in flight. A run on another machine whose start was never answered is not started here as well: after three unanswered tries the request goes to you as a machine that does not answer, and an answer is
   not posted to a request settled meanwhile. A Switchboard call past its deadline ends with every process it started (on macOS and Linux; on Windows, the call itself).
   The dispatcher's memory and its records file stay bounded after every pass. On a board another Fabric may also read,
   only the machine set with `"dispatchOnSharedBoard": true` in `settings.json` dispatches. Going back to 0.3.19 (by restoring the backup) forgets that key and lets a start elsewhere that went unanswered run here too.

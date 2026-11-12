@@ -773,9 +773,6 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     // CO-559: an inbox run asks Switchboard for its inbox exit contract (SB-338, 0.7.56); the wiring keeps `request`
     // for an older Switchboard, and the packet's constraints say the same either way.
     const args = { dir, workflow: r.workflowId, handoff: r.handoffId, request: r.requestId, dispatchId: r.dispatchId, timeoutMinutes, reason: r.inbox ? 'inbox' as const : 'request' as const }
-    // 0.3.20 review, iteration 3, ER-20: an unanswered start there belongs to the request, so a later record carries it
-    // (the newest record of a request is the one the trim keeps).
-    if (r.target && records.some((x) => x !== r && x.requestId === r.requestId && x.remoteUnanswered)) r.remoteUnanswered = true
     let started = await deps.launch(r.target ? { ...args, target: r.target } : args)
     // 2026-11-12 (C3): a start there that was not answered may be running there; a later refusal does not start it here.
     if (r.target && 'refused' in started && started.refused !== 'failed' && REMOTE_REFUSALS.has(started.refused) && r.remoteUnanswered) {
@@ -790,6 +787,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       started = await deps.launch(args)
     }
     if ('launchId' in started) {
+      // The start there was answered after all: nothing is left unanswered (0.3.20 iteration 3 run two, ER-41).
+      delete r.remoteUnanswered
       r.launchId = started.launchId
       r.state = 'running'
       // 0.3.19 review, iteration 3 run two, ER-15: the liveness checks count from Switchboard's answer, never from the
@@ -806,6 +805,16 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       r.outcome = 'refused'
       r.refused = started.refused
       said(r.requestId, { path: 'wait', check: refusalCheck(started.refused) })
+    } else if (r.attempts >= START_ATTEMPTS && r.target && r.remoteUnanswered) {
+      // 0.3.20 iteration 3 run two (ER-20, ER-40, ER-41): a start on another machine that never answered may be running
+      // there, so it is never started here and never asked again; the operator gets the request at once, as a machine
+      // that does not answer (`remote-lost`), instead of a later record that could start it twice or never end.
+      r.state = 'ended'
+      r.endedAt = now
+      r.outcome = 'to-operator'
+      r.closed = false
+      deps.log('board.dispatch.started', 'failed', { request: r.requestId, dispatch: r.dispatchId, attempts: r.attempts, target: r.target, note: 'the other machine never answered; given to the operator' })
+      said(r.requestId, { path: 'to-operator' })
     } else if (r.attempts >= START_ATTEMPTS) {
       r.state = 'ended'
       r.endedAt = now
@@ -982,6 +991,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       if (last && (sameItem || req.inbox) && last.state === 'ended' && (req.inbox ? inboxEmpty : last.emptyRuns) >= EMPTY_RUNS_TO_OPERATOR && !SETTLED.has(req.state)) {
         // CO-559: the project's inbox is given as it stands now, by its newest message.
         if (req.inbox) last.requestId = req.id
+        // 0.3.20 iteration 3 run two, DA-31: the operator's request keeps its record until its own deadline, as in 0.3.19.
+        if (Number.isFinite(Date.parse(req.deadline))) last.until = Math.max(last.until ?? 0, Date.parse(req.deadline))
         last.outcome = 'to-operator'
         last.closed = false
         deps.save(records)
@@ -1154,7 +1165,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     toOperator: () => new Map<string, ToOperatorWhy>([
       ...[...pastDue].map((id) => [id, 'past-due'] as [string, ToOperatorWhy]),
       ...records.filter((r) => r.lost && r.state !== 'ended').map((r) => [r.requestId, 'remote-lost'] as [string, ToOperatorWhy]),
-      ...records.filter((r) => r.outcome === 'to-operator').map((r) => [r.requestId, r.inbox ? 'inbox' : r.unposted ? 'relay' : 'runs'] as [string, ToOperatorWhy])
+      ...records.filter((r) => r.outcome === 'to-operator').map((r) => [r.requestId, r.inbox ? 'inbox' : r.unposted ? 'relay' : r.remoteUnanswered ? 'remote-lost' : 'runs'] as [string, ToOperatorWhy])
     ]),
     // CO-559 (§3.8): the sweep knows requests only, so an inbox item given to the operator is handed over with its project.
     // One row per project: its newest inbox record, while its message is still what waits there.

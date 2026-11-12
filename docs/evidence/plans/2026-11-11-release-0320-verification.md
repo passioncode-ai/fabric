@@ -26,7 +26,10 @@ after iteration 2; until then this line said «Schema 101, no migration», which
 UX-31). The upgrade from 0.3.19 is [the runbook's 0.3.20 paragraph](../../launch/release-mac.md#upgrading-an-existing-database).
 The `## Unreleased` section of [`CHANGELOG.md`](../../../CHANGELOG.md) names every person-visible change. The screen
 work of 2026-11-12 (the simple screens' waves 1 to 4, the Board's decision card, board runs shown as at work) landed
-after iteration 2, so iteration 3 is the only release review that reads it (PL-21).
+after iteration 2, so iteration 3 is the only release review that reads it (PL-21). Shipping it on one review iteration is
+this session's decision under the operator's «да вперед» of 2026-11-12 (the decision card to ride with 0.3.20): it
+changes screens only, no data or contract, and iteration 3 runs until a run finds nothing blocking (run two, PL-39).
+Iteration 2's «candidate 3», its fix wave, is `1462afe1`.
 
 ## Iteration 1
 
@@ -252,23 +255,82 @@ refused by the registry, so a PM agent could not ask for `board.respond` (`agent
 
 The fix wave is the next candidate: run two reads it with five fresh reviewers.
 
+### Run two, 7795005a (superseded)
+
+Candidate `7795005a296c1a3e962940e3f49d253ff89dee3e` (run one's wave). Five reviewers, one per level; reports and receipts
+in `docs/evidence/reviews/0.3.20/iteration-3-7795005a/` (kept as the record). 36 findings, 6 blocking
+(UX-40, ER-40, ER-41, DO-40, DO-41, DA-30), four distinct defects: run one's ER-20 fix (a later record without
+its machine started the run here, and the flag never cleared, so a request was never run or shown), the onboarding
+task's `system:` author, two CHANGELOG sentences, and the wiki sources this release added, which broke every
+publication. Every new test was watched failing on `7795005a`.
+
+| V | Finding | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-46 | UX-40 | blocking | «Написал: system:fabric-onboarding» | fixed in the run-two wave: `system:` reads «Fabric»; test watched failing |
+| V3-47 | UX-41 | non-blocking | the CHANGELOG promises no id on the task page | fixed in the run-two wave: the bullet says the folds still name a source's id |
+| V3-48 | UX-42 | non-blocking | the decision card barely named | fixed in the run-two wave: the Board bullet names the heading, «Над чем», «Почему просят», keys, «К следующей», the grant's hour and the top bar |
+| V3-49 | UX-43 | non-blocking | Граф's two titles; «Мой облик» not in Настройки | fixed in the run-two wave: the bullets say so |
+| V3-50 | UX-44 | non-blocking | «Написал: вы» ungrammatical | fixed in the run-two wave: «Автор: {who}» (copy checker 100, reports 0f8cfffb, 95bf9dbb, ec1fa659) |
+| V3-51 | UX-45 | non-blocking | the claim's time left not refreshed while open | ruled: CO-569 |
+| V3-52 | ER-40 | blocking | an empty target lookup on a later record starts the run here | fixed in the run-two wave: no later record: three unanswered tries give the request to the operator (`remote-lost`); test watched failing |
+| V3-53 | ER-41 | blocking | the unanswered flag never cleared, the request never run or shown | fixed in the run-two wave: cleared when a try is answered; to the operator after three; two tests watched failing |
+| V3-54 | ER-42 | non-blocking | a lost answer can still start a second run there | ruled: CO-567 (needs Switchboard to record a launch before ssh returns); §3.9 says so |
+| V3-55 | ER-43 | non-blocking | provider entries accept the object form | fixed in the run-two wave: services only; test |
+| V3-56 | ER-44 | non-blocking | lengths in UTF-16 units, the contract counts characters | ruled: CO-569 |
+| V3-57 | ER-45 | non-blocking | past the output bound a child ignoring SIGTERM holds the call | ruled: CO-569 |
+| V3-58 | DO-40 | blocking | «no session, task or agent id is shown» false | fixed in the run-two wave: as UX-41 |
+| V3-59 | DO-41 | blocking | Граф and «Мой облик» claims false | fixed in the run-two wave: as UX-43 |
+| V3-60 | DO-42 | non-blocking | §3.10 says a remote run's questions get posted | fixed in the run-two wave: §3.10 says a result is posted only when answered |
+| V3-61 | DO-43 | non-blocking | AGENTS row: the version read's 10 s and the DA-21 keep | fixed in the run-two wave: both named |
+| V3-62 | DO-44 | non-blocking | a map lane says every defect had a test | ruled: CO-569 (a dated lane, not rewritten) |
+| V3-63 | DO-45 | non-blocking | «4 MiB» counted in characters | fixed in the run-two wave: §3.9 says 4 Mi characters (`OUT_MAX`) |
+| V3-64 | DO-46 | non-blocking | CO-569's decided-by cell an em dash | fixed in the run-two wave: «none» |
+| V3-65 | DO-47 | non-blocking | a broken fragment in the runbook from 0.3.17 | ruled: CO-569 |
+| V3-66 | DO-48 | non-blocking | `role` is optional | fixed in the run-two wave: `{by, role?, tool}` |
+| V3-67 | DA-30 | blocking | the six new sources break every publication (10 270 files, 359.2 MiB past 10 000 and 256 MiB) | fixed in the run-two wave: `d83858c5`'s sources reverted to the 14 before it; adding them again waits for the host's limits and their `backlog-sources.json` (CO-569) |
+| V3-68 | DA-31 | non-blocking | a far deadline lets the operator's request be dispatched again | fixed in the run-two wave: its record keeps the request's own deadline; test watched failing |
+| V3-69 | DA-32 | non-blocking | provider entries accept the object form | fixed in the run-two wave: as ER-43 |
+| V3-70 | DA-33 | non-blocking | the runbook's schema lists stop at 0.3.13 | fixed in the run-two wave: both lists run to 0.3.20 |
+| V3-71 | PL-30 | non-blocking | run two's row numbering | fixed in the run-two wave: run two numbers V3-46 on |
+| V3-72 | PL-31 | non-blocking | close item 7 names no slot | fixed in the run-two wave: an idle slot |
+| V3-73 | PL-32 | non-blocking | no place for disk, a full hosted run and the 101 to 102 rehearsal before the tag | fixed in the run-two wave: item 0 |
+| V3-74 | PL-33 | non-blocking | the scheduled publication failing since 01:13Z (`run-estate-identity-db` timeout) | ruled: CO-569; recorded here |
+| V3-75 | PL-34 | non-blocking | Switchboard already 0.7.58 here | fixed in the run-two wave: item 2 says 0.7.56 or later |
+| V3-76 | PL-35 | non-blocking | the Studio's schema assumed; no actor, route or switch decision | fixed in the run-two wave: item 3 reads the schema there first, names this session over `studio-sshlg` and the switch |
+| V3-77 | PL-36 | non-blocking | no item for the findings ruled after the release commit | fixed in the run-two wave: item 9 |
+| V3-78 | PL-37 | non-blocking | runbook schema lists stale | fixed in the run-two wave: as DA-33 |
+| V3-79 | PL-38 | non-blocking | 0.3.21 against 0.4.0 | ruled: CO-569 (the next release's number is set at its plan) |
+| V3-80 | PL-39 | non-blocking | the one-iteration decision unowned; «candidate 3» untied | fixed in the run-two wave: «What 0.3.20 carries» records the decision; candidate 3 is `1462afe1` |
+| V3-81 | PL-40 | non-blocking | run one's docs report edited after its reviewer | not a defect: the edit renumbered ids only and is said in its header; run two's reports are kept as written |
+
+The fix wave is the next candidate: run three reads it with five fresh reviewers.
+
 ## Release close
 
 What is owed after the tag, in order; each item is checked off here with its receipt.
 
+0. Before the tag (run two, PL-32): at least 5 GB free (`df -h`); one full hosted `ci` run green on the final
+   candidate; the 101 to 102 upgrade rehearsed on a copy of this Mac's backup (`FROM` 101, one migration, then
+   `schema_version()` 102), so the first upgrade is not the live one.
 1. The CI release run green on every platform, the published release and its notes from `## 0.3.20`.
-2. Install 0.3.20 on this Mac, with Switchboard updated to 0.7.56 at the same time (its update restarts Switchboard, so
+2. Install 0.3.20 on this Mac, with Switchboard at 0.7.56 or later (0.7.58 here on 2026-11-12; an update restarts Switchboard, so
    no dispatched run may be in flight, or the dispatcher is paused first). The database moves from schema 101 to 102:
    take the backup and follow [the runbook](../../launch/release-mac.md#upgrading-an-existing-database), `FROM` 101, one
    migration, before Fabric is opened again (PL-20).
-3. Install 0.3.20 on the Mac Studio in each space that runs Fabric, with the same backup and upgrade, and read that
-   space's Switchboard version (0.7.56 or later for `--reason inbox` and `dispatch status`; PL-26).
+3. Install 0.3.20 on the Mac Studio in each space that runs Fabric (actor: this session over `ssh studio-sshlg`, and
+   the space's own account for the others): read that space's `schema_version()` first and upgrade `FROM` it, which
+   may be below 101 (0.3.19's close read 98 there), with the same backup; read its Switchboard version (0.7.56 or later
+   for `--reason inbox` and `dispatch status`; PL-26); keep its dispatcher switch on, since each Fabric dispatches only
+   its own board (run two, PL-35).
 4. Write `dispatchTargets` (the owners of the operator's repositories to their Studio spaces) once 0.3.20 runs, and watch
    one live run on the Studio end to end: started there, its answer posted in the request's thread, its workflow closed.
 5. Read the nightly `platforms` run on the release commit for CO-560 (Windows on ARM) and report it to the coordinator's
    thread.
 6. CO-563 on a live `-p` run (CO-564, item 1).
-7. Migration 129 on the installed board: one `com.responder_replace` without a transfer answers a slot at its generation,
+7. Migration 129 on the installed board: one `com.responder_replace` without a transfer on an idle slot (no claimed or
+   accepted request, so nothing is queued again or marked unknown; run two, PL-31) answers at its generation,
    and the hyperframes thread `e43efbf6` is told (PL-26).
 8. One dispatched run that asks a question: its `people.ask` request reaches the PM agent's project (or the operator
    through `fabric_question_ask`), and the answer in its thread starts its next run (§3.10; PL-26).
+9. On `main` after the release commit: the findings of iteration 3's last run that are ruled join CO-569 (the release
+   commit may change only its own metadata; run two, PL-36).

@@ -430,6 +430,12 @@ describe('the brief says how it is written, an empty one what fills it, and the 
     expect(document.body.textContent).not.toContain('person:operator')
   })
 
+  it('says «Fabric» for a brief Fabric wrote itself (system:<name>), never the stored id (0.3.20 run two, UX-40)', async () => {
+    mount({ brief_what: 'Get to know the project', brief_author: 'system:fabric-onboarding' })
+    expect(await screen.findByText(en['task.briefBy'].replace('{who}', 'Fabric'))).toBeTruthy()
+    expect(document.body.textContent).not.toContain('system:')
+  })
+
   it('says «you» for a person with a configured identity too (person:<uuid>)', async () => {
     mount({ brief_what: 'Make it', brief_author: 'person:7d0c1f9e-2b1a-4c3d-8e9f-0a1b2c3d4e5f' })
     expect(await screen.findByText(en['task.briefBy'].replace('{who}', en['task.who.you']))).toBeTruthy()

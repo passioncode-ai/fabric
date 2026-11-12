@@ -60,30 +60,6 @@
     {
       "id": "relay",
       "repository": "https://github.com/passioncode-ai/relay"
-    },
-    {
-      "id": "passioncode-platform",
-      "repository": "https://github.com/passioncode-ai/passioncode-platform"
-    },
-    {
-      "id": "studio-agent",
-      "repository": "https://github.com/passioncode-ai/studio-agent"
-    },
-    {
-      "id": "onboarding-personal",
-      "repository": "https://github.com/passioncode-ai/onboarding-personal"
-    },
-    {
-      "id": "onboarding-for-organization",
-      "repository": "https://github.com/passioncode-ai/onboarding-for-organization"
-    },
-    {
-      "id": "passioncode-pm-agent",
-      "repository": "https://github.com/passioncode-ai/passioncode-pm-agent"
-    },
-    {
-      "id": "passioncode-hyperframes-agent",
-      "repository": "https://github.com/passioncode-ai/passioncode-hyperframes-agent"
     }
   ]
 }
