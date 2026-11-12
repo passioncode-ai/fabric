@@ -17,10 +17,8 @@ import { TaskPage } from './TaskPage'
 import { en } from './i18n/en'
 import type { ProjectRow, TaskDetail, TaskRow } from '../../shared/types'
 
-/** SCR-39: the workspace keeps its parts in tabs; a part is read after its tab is opened. */
-const openTab = async (name: RegExp): Promise<void> => {
-  fireEvent.click(await waitFor(() => screen.getByRole('button', { name })))
-}
+/** 2026-11-12: the page is one column; what is read rarely is folded, and a fold's children are in the DOM. */
+const loaded = async (): Promise<void> => { await screen.findByText('Ship the thing') }
 
 afterEach(cleanup)
 
@@ -81,17 +79,17 @@ describe('the task page names its agent by the project (the operator, 2026-11-05
       runs: { status: vi.fn().mockResolvedValue({ ok: false }) }
     }
     render(<TaskPage project={{ ...project, name: 'adops-agent', displayName: 'AdOps' } as ProjectRow} taskId="t1" onBack={() => {}} onChanged={async () => {}} onError={() => {}} />)
-    await waitFor(() => expect(screen.getByRole('heading', { level: 3, name: 'AdOps' })).toBeTruthy())
-    const held = screen.getByTitle('s-1234567890')
-    expect(held.textContent).toContain('AdOps')
-    expect(held.textContent).not.toContain('s-123456')
+    // 2026-11-12: one line of facts under the title, the agent by its project, the runner small; no session id anywhere.
+    await waitFor(() => expect(screen.getByText('AdOps · Claude Code')).toBeTruthy())
+    expect(screen.getByText(/^held: AdOps, /)).toBeTruthy()
+    expect(document.body.textContent).not.toContain('s-123456')
   })
 })
 
 describe('the task page says who assigned it', () => {
   it('names both sides when the task carries a handoff', async () => {
     mount({ assigned_by: 'ceo', assigned_to: 'developer' })
-    await waitFor(() => expect(screen.getByText('assigned by ceo to developer')).toBeTruthy())
+    await waitFor(() => expect(screen.getByText('ceo → developer')).toBeTruthy())
   })
 
   it('says NOTHING when only one side is known, rather than naming an absence', async () => {
@@ -99,28 +97,29 @@ describe('the task page says who assigned it', () => {
     // Wait for the page to have loaded something before asserting an absence —
     // otherwise this passes against an empty DOM and proves nothing.
     await waitFor(() => expect(screen.getByText('Ship the thing')).toBeTruthy())
-    expect(screen.queryByText(/assigned by/)).toBeNull()
+    expect(screen.queryByText(/→/)).toBeNull()
   })
 })
 
 describe('a task says when its spec is not gathered (ADR-0176 §1, SCN-176)', () => {
   it('names the missing parts of the brief on a task in work', async () => {
     mount({ brief_what: 'Make it', brief_why: null, brief_expected: '' })
-    await waitFor(() => expect(screen.getByText(/Spec not gathered/)).toBeTruthy())
-    const said = screen.getByText(/Spec not gathered/).textContent ?? ''
+    await waitFor(() => expect(screen.getByText(/^Not written: /)).toBeTruthy())
+    const said = screen.getByText(/^Not written: /).textContent ?? ''
     expect(said).toContain('“Why”')
-    expect(said).toContain('“True when it is done”')
-    expect(said).not.toContain('“What should happen”')
+    expect(said).toContain('“Done when”')
+    expect(said).not.toContain('“What to do”')
   })
 
   it('says nothing once the three parts are written, or on a finished task', async () => {
     mount({ brief_what: 'a', brief_why: 'b', brief_expected: 'c' })
     await waitFor(() => expect(screen.getByText('Ship the thing')).toBeTruthy())
-    expect(screen.queryByText(/Spec not gathered/)).toBeNull()
+    expect(screen.queryByText(/^Not written: /)).toBeNull()
     cleanup()
     mount({ status: 'done' })
     await waitFor(() => expect(screen.getByText('Ship the thing')).toBeTruthy())
-    expect(screen.queryByText(/Spec not gathered/)).toBeNull()
+    expect(screen.queryByText(/^Not written: /)).toBeNull()
+    expect(screen.queryByText(en['task.specEmpty'])).toBeNull()
   })
 })
 
@@ -130,7 +129,7 @@ describe('the tasks a document produced (M124)', () => {
       { origin_kind: 'document', origin_ref: 'docs/adr/0014.md:22' },
       { total: 1, shown: [{ id: 'x', title: 'Split the projector', status: 'backlog' }] }
     )
-    await openTab(/^Tasks and sessions$/)
+    await loaded()
     await waitFor(() => expect(screen.getByText('Also from docs/adr/0014.md')).toBeTruthy())
     expect(screen.getByText('Split the projector')).toBeTruthy()
   })
@@ -143,14 +142,13 @@ describe('the tasks a document produced (M124)', () => {
       { origin_kind: 'document', origin_ref: 'docs/adr/0014.md' },
       { total: 40, shown: [{ id: 'a', title: 'one', status: 'backlog' }] }
     )
-    await openTab(/^Tasks and sessions$/)
+    await loaded()
     await waitFor(() => expect(screen.getByText('and 39 more, not listed here')).toBeTruthy())
   })
 
   it('shows no panel at all when the document produced only this task', async () => {
     mount({ origin_kind: 'document', origin_ref: 'docs/adr/0014.md' })
     await waitFor(() => expect(screen.getByText('Ship the thing')).toBeTruthy())
-    await openTab(/^Tasks and sessions$/)
     expect(screen.queryByText(/Also from/)).toBeNull()
   })
 })
@@ -222,8 +220,14 @@ const mountPair = (
   return { brief, note, show }
 }
 
-const whatBox = (): HTMLTextAreaElement =>
-  screen.getAllByRole('textbox')[0] as HTMLTextAreaElement
+/** 2026-11-12: a brief part is text until the person asks to change it; then it is one box, labelled by its part. */
+const whatBox = (): HTMLTextAreaElement => {
+  const open = screen.queryByLabelText(en['task.what'])
+  if (open) return open as HTMLTextAreaElement
+  fireEvent.click(screen.getByRole('button', { name: en['task.part.changeOf'].replace('{part}', en['task.what']) }))
+  return screen.getByLabelText(en['task.what']) as HTMLTextAreaElement
+}
+const saveWhat = (): void => { fireEvent.click(screen.getByRole('button', { name: en['task.part.save'] })) }
 
 describe('UX28-01 — a brief is written into the task it was written for', () => {
   it('never saves A\'s words under B after a switch', async () => {
@@ -234,7 +238,8 @@ describe('UX28-01 — a brief is written into the task it was written for', () =
     fireEvent.change(whatBox(), { target: { value: 'this belongs to A' } })
     show('B')
     await waitFor(() => expect(screen.getByText('Task B')).toBeTruthy())
-    fireEvent.blur(whatBox())
+    // B's part is text again: A's open box did not follow the switch.
+    expect(screen.queryByLabelText(en['task.what'])).toBeNull()
 
     for (const call of brief.mock.calls)
       expect(`${call[0]}|${call[2]}`).not.toBe(`B|this belongs to A`)
@@ -248,7 +253,9 @@ describe('UX28-01 — a brief is written into the task it was written for', () =
     const { show } = mountPair('A', details)
     await waitFor(() => expect(whatBox().value).toBe('A wrote this'))
     show('B')
-    await waitFor(() => expect(whatBox().value).toBe('B wrote this'))
+    await waitFor(() => expect(screen.getByText('B wrote this')).toBeTruthy())
+    expect(screen.queryByText('A wrote this')).toBeNull()
+    expect(whatBox().value).toBe('B wrote this')
   })
 
   it('keeps what was typed for A and gives it back on return', async () => {
@@ -282,8 +289,8 @@ describe('UX28-01 — a brief is written into the task it was written for', () =
     const { brief } = mountPair('A', details)
     await waitFor(() => expect(screen.getByText('Task A')).toBeTruthy())
     fireEvent.change(whatBox(), { target: { value: 'once' } })
-    fireEvent.blur(whatBox())
-    fireEvent.blur(whatBox())
+    saveWhat()
+    saveWhat()
     await waitFor(() => expect(brief).toHaveBeenCalled())
     expect(brief.mock.calls.filter((c) => c[2] === 'once')).toHaveLength(1)
   })
@@ -295,7 +302,7 @@ describe('UX28-01 — a brief is written into the task it was written for', () =
     const { brief } = mountPair('A', details)
     await waitFor(() => expect(whatBox().value).toBe('written in haste'))
     fireEvent.change(whatBox(), { target: { value: '' } })
-    fireEvent.blur(whatBox())
+    saveWhat()
     await waitFor(() => expect(brief).toHaveBeenCalled())
     expect(brief.mock.calls[0]).toEqual(['A', 'what', ''])
   })
@@ -307,7 +314,9 @@ describe('UX28-01 — a brief is written into the task it was written for', () =
     const details = { A: briefDetail('A', { brief_what: 'the agent wrote this' }) }
     const { brief } = mountPair('A', details)
     await waitFor(() => expect(whatBox().value).toBe('the agent wrote this'))
-    fireEvent.blur(whatBox())
+    saveWhat()
+    // Saving what was not changed closes the box and appends nothing.
+    await waitFor(() => expect(screen.queryByLabelText(en['task.what'])).toBeNull())
     await new Promise((r) => setTimeout(r, 0))
     expect(brief).not.toHaveBeenCalled()
   })
@@ -323,7 +332,7 @@ describe('UX28-01 — a brief is written into the task it was written for', () =
     )
     await waitFor(() => expect(screen.getByText('Task A')).toBeTruthy())
     fireEvent.change(whatBox(), { target: { value: 'do not lose me' } })
-    fireEvent.blur(whatBox())
+    saveWhat()
     await waitFor(() => expect(brief).toHaveBeenCalled())
     expect(whatBox().value).toBe('do not lose me')
   })
@@ -345,16 +354,10 @@ describe('a note says who wrote it and when (UX28-06)', () => {
           created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
         }
     ])
-    await openTab(/^Next$/)
-    await waitFor(() => expect(screen.getByTitle('deadbeefcafe0001')).toBeTruthy())
-    const lead = screen.getByTitle('deadbeefcafe0001')
-    expect(lead.textContent).toMatch(/agent/)
-    // The shortened id is on the line; the full one is in the title, because a
-    // truncated id is a label and a label is not a key.
-    expect(lead.textContent).toMatch(/deadbeef/)
-    expect(lead.textContent).not.toMatch(/deadbeefcafe0001/)
-    // And WHEN — three hours is a different note from three weeks.
+    // 2026-11-12: who in words («агент», «вы»), never an id; and WHEN, since three hours is not three weeks.
+    const lead = await screen.findByText(/^the agent · /)
     expect(lead.textContent).toMatch(/3h|3 h|hour/i)
+    expect(document.body.textContent).not.toMatch(/deadbeef/)
   })
 })
 
@@ -377,18 +380,18 @@ describe('the run rail says how the run stands, in words (A5-018)', () => {
 
   it('an ended run names its outcome, not the machine word', async () => {
     mountRun(view('ended', 'failed_known'))
-    await waitFor(() => expect(screen.getByText('2 · failed')).toBeTruthy())
-    expect(screen.queryByText(/2 · ended$/)).toBeNull()
+    await waitFor(() => expect(screen.getByText('run 2, failed')).toBeTruthy())
+    expect(screen.queryByText('run 2, ended')).toBeNull()
   })
 
   it('a running run says running', async () => {
     mountRun(view('active', null))
-    await waitFor(() => expect(screen.getByText('2 · running')).toBeTruthy())
+    await waitFor(() => expect(screen.getByText('run 2, running')).toBeTruthy())
   })
 
   it('a status that could not be read says so instead of "reading"', async () => {
     mountRun(async () => { throw new Error('timeout') })
-    await waitFor(() => expect(screen.getByText('unreadable')).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(en['task.fact.runUnreadable'])).toBeTruthy())
   })
 })
 
@@ -406,23 +409,20 @@ describe('a task reads as a template, with the way back at the top left (the ope
     const back = screen.getAllByRole('button', { name: en['launch.agent.back'] })[0]
     expect(back.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING, 'back comes before the title').toBeTruthy()
     expect(back.closest('.lp-actions'), 'back is not among the actions on the right').toBeNull()
-    const what = screen.getByLabelText(en['task.what'])
+    const what = screen.getByText(en['task.what'])
     const original = screen.getByText(en['launch.agent.original'])
     expect(what.compareDocumentPosition(original) & Node.DOCUMENT_POSITION_FOLLOWING, 'the brief comes before the instruction').toBeTruthy()
   })
 })
 
 describe('the brief says how it is written, an empty one what fills it, and the way back names where (CO-394)', () => {
-  it('shows the lede above the brief and the empty sentence only while all three parts are empty', async () => {
-    mount({ status: 'done', brief_what: null, brief_why: null, brief_expected: '' })
-    await waitFor(() => expect(screen.getByText(en['task.briefEmpty'])).toBeTruthy())
-    const lede = screen.getByText(en['task.briefLede'])
-    const original = screen.getByText(en['launch.agent.original'])
-    expect(lede.compareDocumentPosition(original) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    cleanup()
-    mount({ brief_what: 'Make it', brief_why: null, brief_expected: '' })
-    await waitFor(() => expect(screen.getByText(en['task.briefLede'])).toBeTruthy())
-    expect(screen.queryByText(en['task.briefEmpty'])).toBeNull()
+  // 2026-11-12: no lede; an empty part says «Not written» on itself and offers «Write», one part at a time.
+  it('says an empty part on the part itself and offers to write it', async () => {
+    mount({ status: 'done', brief_what: null, brief_why: 'Because', brief_expected: '' })
+    await waitFor(() => expect(screen.getAllByText(en['task.part.empty'])).toHaveLength(2))
+    expect(screen.getByText('Because')).toBeTruthy()
+    expect(screen.queryByRole('textbox', { name: en['task.what'] })).toBeNull()
+    expect(screen.getAllByRole('button', { name: new RegExp('^' + en['task.part.changeOf'].replace('{part}', '')) })).toHaveLength(3)
   })
 
   // 0.3.12 review UX-13: an empty brief on a task to do carried three statements that disagreed on who writes it. One
@@ -430,8 +430,7 @@ describe('the brief says how it is written, an empty one what fills it, and the 
   it("says an empty brief once on a task still to do, in ADR-0176's words", async () => {
     mount({ status: 'running', brief_what: null, brief_why: null, brief_expected: '' })
     await waitFor(() => expect(screen.getByText(en['task.specEmpty'])).toBeTruthy())
-    expect(screen.queryByText(en['task.briefEmpty'])).toBeNull()
-    expect(screen.queryAllByText(/Spec not gathered/), 'the spec was said twice').toHaveLength(1)
+    expect(screen.queryAllByText(/brief is not written|^Not written: /), 'the spec was said twice').toHaveLength(1)
   })
 
   it('the way back carries the place it was opened from, else the project', async () => {
@@ -464,10 +463,10 @@ describe('what holds a task and how it moved (SCN-174 step 2, CO-401)', () => {
     expect(moves.querySelectorAll('li')[0].textContent).toContain(en['task.moveFromTo'].replace('{from}', en['launch.kanban.running']).replace('{to}', en['launch.kanban.cancelled']))
     expect(moves.querySelectorAll('li')[1].textContent).toContain(en['task.movedBy.agent'])
   })
-  it('says nothing holds it when the read found none, and nothing at all when blockers were not read', async () => {
+  it('says nothing about blockers when none hold it, or when they were not read (2026-11-12)', async () => {
     page({ blockedBy: [] })
-    expect(await screen.findByText(en['task.blockedByNone'])).toBeTruthy()
-    expect(screen.getByText(en['task.movesNone'])).toBeTruthy()
+    expect(await screen.findByText(en['task.movesNone'])).toBeTruthy()
+    expect(screen.queryByText(en['task.blockedBy'])).toBeNull()
     cleanup()
     page({})
     await screen.findByText(en['task.movesNone'])

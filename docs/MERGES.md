@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · feat/simple-screens → main · fast-forward
+- files: the task page in one column without machine ids, the brief as text with «Изменить» per part (`TaskPage.tsx`, its tests and strings, the `.lp-task*` styles in `scripts/product/launch.css` ported into the app); the simple-screens plan with the audit of every other screen; SCN-174 and SCR-32 amended; the map
+- conflicts: none
+- summary: wave 1 of the operator's simplicity principle of 2026-11-12; waves 2 to 7 are planned
+
 ### 2026-11-12 · `—` · feat/board-decision-mockup → main · fast-forward
 - files: the prototype's `topicDetail` and board rows draw the decision card the app shipped on 2026-11-11 (board row fac3cade), a permission row in its example board; the card's styles move from launch.css's adaptations into `scripts/product/launch.css` and reach the app through `port-launch-css.mjs`; the map
 - conflicts: none
