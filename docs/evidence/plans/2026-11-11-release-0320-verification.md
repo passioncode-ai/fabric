@@ -381,6 +381,8 @@ run can be fixed only in the files the gate allows after `verifiedCommit` (relea
    candidate; the 101 to 102 upgrade rehearsed on a copy of this Mac's backup (`FROM` 101, one migration, then
    `schema_version()` 102), so the first upgrade is not the live one. A step of the hosted run that hangs (as the
    `hub-door-db` psql of the local gate did, PL-74) is a failure, not a pass, and is read before the release commit.
+   Done 2026-11-12 for the disk (5.8 GiB free after removing two of this session's worktrees and the npm and CocoaPods
+   caches) and the rehearsal (PASS, `pre-0.3.20.dump.rehearsal.json`); the full hosted run is run 43186565735.
 0b. The release commit: `version` 0.3.20, `## 0.3.20` in the CHANGELOG, `docs/launch/release-gate.json` naming this
    ledger, `verifiedCommit`, the fifteen receipts and the release handoff in `releaseMetadata`
    (`docs/handoffs/2026-11-12-release-0320.md`); `node scripts/release-mac.mjs --check-only --tag v0.3.20` clear on it;
@@ -414,6 +416,8 @@ run can be fixed only in the files the gate allows after `verifiedCommit` (relea
    through `fabric_question_ask`), and the answer in its thread starts its next run (§3.10; PL-26).
 9. On `main` after the release commit: the findings of iteration 3's last run that are ruled join CO-569 (the release
    commit may change only its own metadata; run two, PL-36).
+   Done 2026-11-12: run four's ruled findings are in CO-569, and ER-80 in CO-567, on the branch
+   `docs/0320-close-rulings` after the release commit.
 10. The runbook's steps 9 (the site's download links), 10 (publish and pin the
    workspace from the release commit, once the scheduled publication works again, CO-569) and 11 (the knowledge base's
    Fabric row) (run three, PL-51).
