@@ -27,15 +27,19 @@ describe('the home says what is needed from the person (OF-14, the approved mock
     expect(screen.queryByRole('button', { name: en['launch.board.addTopic'] })).toBeNull()
     const card = screen.getByRole('article', { name: /SB-114/ })
     expect(card.textContent).toContain('Switchboard')
-    // The why is read without opening anything.
-    expect(card.textContent).toContain('asks you to check the recovery path')
+    // The operator, 2026-11-12: the card says what is wanted, not why; the why is on the Board.
+    expect(card.querySelector('.lh-q-why')).toBeNull()
+    // «Открыть доску» in the column's head opens the Board.
+    fireEvent.click(screen.getByRole('button', { name: en['launch.home.board.open'] }))
+    expect(onBoard).toHaveBeenCalledWith()
+    onBoard.mockClear()
     expect(screen.getByRole('heading', { name: new RegExp(en['launch.home.board.title']) }).textContent).toContain('1')
     // The question itself opens the item on the board, with the item's own ref (0.3.11 review UX-4).
     fireEvent.click(within(card).getByRole('button', { name: /SB-114/ }))
     expect(onBoard).toHaveBeenCalledWith(entry.ref)
     // A click on the card's body opens it too.
     onBoard.mockClear()
-    fireEvent.click(card.querySelector('.lh-q-why')!)
+    fireEvent.click(card.querySelector('.lh-q-from')!)
     expect(onBoard).toHaveBeenCalledWith(entry.ref)
   })
 
@@ -72,8 +76,9 @@ describe('a question\'s muted line says why it is asked, never the board\'s coun
     vi.stubGlobal('window', Object.assign(window, { fabric: { board: { query: vi.fn(async () => ({ data: { items: [q('1', 'Rules change the check of texts in every project that picked this voice.'), q('2')], total: 2, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' })) } } }))
     render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={vi.fn()} /></I18nProvider>)
     await waitFor(() => expect(screen.getByText('Q 1')).toBeTruthy())
+    // The operator, 2026-11-12: no why line on Главная at all (the Board shows it under «Подробнее»).
     const [one, two] = screen.getAllByRole('article')
-    expect(one.querySelector('.lh-q-why')?.textContent).toBe('Rules change the check of texts in every project that picked this voice.')
+    expect(one.querySelector('.lh-q-why')).toBeNull()
     expect(two.querySelector('.lh-q-why')).toBeNull()
     expect(document.body.textContent).not.toContain(en['board.blocks.one'].replace('{count}', '1'))
   })
@@ -81,7 +86,7 @@ describe('a question\'s muted line says why it is asked, never the board\'s coun
 
 describe('a question on Главная is answered where it is read (SCN-163 step 2, CO-391)', () => {
   it('shows the options as buttons and records the chosen one; the count reaches the greeting', async () => {
-    const item = { kind: 'question', ref: 'question:q9', subject: { kind: 'question', id: 'q9' }, projectId: 'p1', projectName: 'Fabric', title: 'Which?', detail: null, waitingSince: '2026-10-22T00:00:00Z', origin: 'authored', askedBy: { kind: 'person', agent: null }, question: { revision: 2, options: [{ id: 'a', label: 'Keep it' }, { id: 'b', label: 'Drop it' }] } }
+    const item = { kind: 'question', ref: 'question:q9', subject: { kind: 'question', id: 'q9' }, projectId: 'p1', projectName: 'Fabric', title: 'Which?', detail: null, waitingSince: '2026-10-22T00:00:00Z', origin: 'authored', askedBy: { kind: 'person', agent: null }, question: { revision: 2, options: [{ id: 'a', label: 'Keep it' }, { id: 'b', label: 'Drop it', recommended: true }] } }
     const query = vi.fn(async () => ({ data: { items: [item], total: 1, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' }))
     const answer = vi.fn(async (_input: unknown) => ({ committed: true, repeated: false, unblocked: [], stillBlocked: [], continuations: [] }))
     vi.stubGlobal('window', Object.assign(window, { fabric: { board: { query }, questions: { answer } } }))
@@ -89,10 +94,12 @@ describe('a question on Главная is answered where it is read (SCN-163 ste
     render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={vi.fn()} onTotal={onTotal} /></I18nProvider>)
     await waitFor(() => expect(screen.getByText('Which?')).toBeTruthy())
     expect(onTotal).toHaveBeenCalledWith(1)
-    // The answers are visible on the card (gap map F3): the first as the gold primary, the rest plain.
-    expect(screen.getByRole('button', { name: 'Keep it' }).className).toContain('gold')
-    expect(screen.getByRole('button', { name: 'Drop it' }).className).not.toContain('gold')
-    fireEvent.click(screen.getByRole('button', { name: 'Drop it' }))
+    // The operator, 2026-11-12: the recommended answer first and gold, the rest plain, and «Отдать агенту» always.
+    const acts = within(screen.getByRole('group', { name: en['launch.board.options'] })).getAllByRole('button')
+    expect(acts.map((b) => b.textContent)).toEqual([en['launch.board.recommended'] + ': Drop it', 'Keep it', en['launch.board.delegate']])
+    expect(acts[0].className).toContain('gold')
+    expect(acts[1].className).not.toContain('gold')
+    fireEvent.click(acts[0])
     await waitFor(() => expect(answer).toHaveBeenCalled())
     expect(answer.mock.calls[0]?.[0]).toMatchObject({ questionId: 'q9', projectId: 'p1', expectedRevision: 2, chosenOption: 'b' })
   })

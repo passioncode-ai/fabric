@@ -47,7 +47,7 @@ try{
  })
  await test('complete option text is cleaned before normalizer caps',async()=>{
   const label='x'.repeat(181)+' '+secret, consequence='y'.repeat(3981)+' '+secret
-  const result=await call('fabric_question_ask',{commandId:randomUUID(),text:'Choose safely',options:[{id:'keep-this-id',label,consequence}]})
+  const result=await call('fabric_question_ask',{commandId:randomUUID(),text:'Choose safely',options:[{id:'keep-this-id',label,consequence}],recommended:'keep-this-id'})
   assert.ok(!result.isError,JSON.stringify(result))
   const e=events.at(-1);assert.equal(e.type,'question.asked@1');assert.equal(e.payload.options[0].id,'keep-this-id')
   assert.ok(!JSON.stringify(e).includes(fragment),'clipped credential prefix reached storage')
@@ -56,7 +56,7 @@ try{
  })
  await test('secret-bearing authority input is refused before storage/query and never rewritten',async()=>{
   for(const [name,args] of [
-   ['fabric_question_ask',{commandId:randomUUID(),text:'Question',options:[{id:secret,label:'Ordinary'}]}],
+   ['fabric_question_ask',{commandId:randomUUID(),text:'Question',options:[{id:secret,label:'Ordinary',recommended:true}]}],
    ['fabric_question_ask',{commandId:randomUUID(),text:'Question',about:secret}],
    ['fabric_memory_remember',{claim:'Ordinary claim',about:{namespace:'project',key:'SERVICE_TOKEN=synthetic-private-value'}}],
    ['fabric_memory_remember',{claim:'Ordinary claim',sourceRef:secret}],
@@ -80,7 +80,7 @@ try{
   assert.equal(p.source_ref,sourceRef);assert.deepEqual(p.occurrence,{system:occurrence.system,source_id:occurrence.sourceId,episode_key:occurrence.episodeKey})
  })
  await test('question optional blanks and ordinary identifiers preserve existing domain semantics',async()=>{
-  const result=await call('fabric_question_ask',{commandId:randomUUID(),text:'Question',topic:' ',whyBlocked:'',about:'db.version',options:[{id:'café-option',label:'Ordinary label',consequence:''}]})
+  const result=await call('fabric_question_ask',{commandId:randomUUID(),text:'Question',topic:' ',whyBlocked:'',about:'db.version',options:[{id:'café-option',label:'Ordinary label',consequence:'',recommended:true}]})
   assert.ok(!result.isError);const e=events.at(-1);assert.equal(e.payload.options[0].id,'café-option')
   assert.equal(e.payload.topic,null);assert.equal(e.payload.why_blocked,null);assert.ok(!Object.hasOwn(e.payload.options[0],'consequence'))
   const before=events.length,out=await call('fabric_question_ask',{commandId:randomUUID(),text:' ',options:[]})
@@ -88,11 +88,11 @@ try{
  })
  await test('multiline PEM and full sensitive text never reach question storage',async()=>{
   const pem='-----BEGIN PRIVATE KEY-----\nSYNTHETIC_PRIVATE_BODY_CANARY\n-----END PRIVATE KEY-----'
-  await call('fabric_question_ask',{commandId:randomUUID(),text:'Question '+pem,whyBlocked:'SERVICE_TOKEN=synthetic-opaque-canary',options:[{id:'keep',label:'Ordinary',consequence:'Detail '+pem}]})
+  await call('fabric_question_ask',{commandId:randomUUID(),text:'Question '+pem,whyBlocked:'SERVICE_TOKEN=synthetic-opaque-canary',options:[{id:'keep',label:'Ordinary',consequence:'Detail '+pem,recommended:true}]})
   const stored=JSON.stringify(events.at(-1));assert.ok(!stored.includes('SYNTHETIC_PRIVATE_BODY_CANARY'));assert.ok(!stored.includes('synthetic-opaque-canary'))
  })
  await test('ordinary question receipt identity and repeated command stay exact',async()=>{
-  const commandId=randomUUID(),args={commandId,text:'Ordinary question',about:'db.version',options:[{id:'opt-1',label:'Retain Unicode café',consequence:'Keep existing work'}]}
+  const commandId=randomUUID(),args={commandId,text:'Ordinary question',about:'db.version',options:[{id:'opt-1',label:'Retain Unicode café',consequence:'Keep existing work',recommended:true}]}
   const first=JSON.parse((await call('fabric_question_ask',args)).content[0].text),before=events.length
   const again=JSON.parse((await call('fabric_question_ask',args)).content[0].text)
   assert.equal(first.question_id,again.question_id);assert.equal(again.repeated,true);assert.equal(events.length,before)

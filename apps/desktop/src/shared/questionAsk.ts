@@ -29,6 +29,8 @@ export interface AskOption {
   id: string
   label: string
   consequence?: string
+  /** The option the asking agent recommends; exactly one when there are options (the operator, 2026-11-12). */
+  recommended?: true
 }
 
 export interface NormalisedAsk {
@@ -56,7 +58,9 @@ export function normaliseAsk(input: {
   topic?: string
   whyBlocked?: string
   taskId?: string
-  options?: { id?: string; label?: string; consequence?: string }[]
+  options?: { id?: string; label?: string; consequence?: string; recommended?: boolean }[]
+  /** The id of the option the agent recommends; the same as `recommended: true` on that option. */
+  recommended?: string
   blocks?: string[]
 }): AskResult {
   const text = clean(input.text)
@@ -92,6 +96,23 @@ export function normaliseAsk(input: {
       ...(clean(raw?.consequence) ? { consequence: clean(raw.consequence).slice(0, TEXT_CAP) } : {})
     })
   }
+  // #region question-recommended — docs: docs/ux/plans/2026-11-12-simple-screens.md#wave-4-доска
+  // The operator, 2026-11-12: «Рекомендованный вариант всегда должен быть, и он должен быть написан». A question with
+  // options names one of them as the agent's recommendation, by `recommended` or by `recommended: true` on the option;
+  // the person sees it first, the other options after it, and «Отдать агенту» always.
+  if (options.length) {
+    const named = clean(input.recommended)
+    const flagged = (input.options ?? []).flatMap((raw, i) => (raw?.recommended === true ? [options[i].id] : []))
+    const picks = [...new Set([...(named ? [named] : []), ...flagged])]
+    if (picks.length === 0)
+      return { ok: false, reason: 'name the option you recommend: `recommended` with its id, or `recommended: true` on that option. The person sees it first; give your reason in its consequence' }
+    if (picks.length > 1)
+      return { ok: false, reason: `recommend one option, not ${picks.length} (${picks.join(', ')})` }
+    const pick = options.find((o) => o.id === picks[0])
+    if (!pick) return { ok: false, reason: `recommended names "${picks[0]}", which is not one of the options' ids (${options.map((o) => o.id).join(', ')})` }
+    pick.recommended = true
+  }
+  // #endregion question-recommended
 
   return {
     ok: true,

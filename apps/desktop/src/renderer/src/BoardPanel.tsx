@@ -182,6 +182,7 @@ export function AnswerForm({
   receipt,
   sending,
   onSubmit,
+  onDelegate,
   look = 'panel'
 }: {
   item: BoardEntry
@@ -190,11 +191,14 @@ export function AnswerForm({
   receipt?: AnswerReceipt
   sending: boolean
   onSubmit: (chosenOption?: string) => void
+  /** «Отдать агенту»: the asking agent decides by the project's context (the launch look only). */
+  onDelegate?: () => void
   /** 'launch' renders the launch design's field and buttons (SCR-41 details); the logic is one. */
   look?: 'panel' | 'launch'
 }): React.JSX.Element {
   const t = useT()
   const options = item.question?.options ?? []
+  const [ownOpen, setOwnOpen] = useState(false)
 
   // M152 — TWO FACTS, NOT ONE BANNER. This used to say "answered · N eligible"
   // and show nothing about the delivery, so an answer whose session had already
@@ -238,30 +242,51 @@ export function AnswerForm({
     )
   }
 
-  if (look === 'launch')
+  if (look === 'launch') {
+    // #region board-decide-quick — docs: docs/ux/plans/2026-11-12-simple-screens.md#wave-4-доска
+    // The operator, 2026-11-12: the request, then the recommended option written out, then the others, and always
+    // «Отдать агенту» (the agent decides by the project's context). An own answer is one press away, not a box.
+    const recommended = options.find((o) => o.recommended)
+    const others = options.filter((o) => o !== recommended)
     return (
-      <div>
+      <div className="lp-quick">
         {receipt && !receipt.committed && <div className="lp-callout" role="alert"><p>{receipt.reason}</p></div>}
-        {options.length > 0 && (
-          <div className="lp-actions" role="group" aria-label={t('launch.board.options')}>
-            {options.map((o) => (
-              <button key={o.id} type="button" className="lp-button" disabled={sending} title={o.consequence} onClick={() => onSubmit(o.id)}>
-                {o.label}
-              </button>
-            ))}
-          </div>
-        )}
-        <label className="lp-field">
-          {t('launch.board.outcome')}
-          <textarea rows={3} value={draft} placeholder={t('launch.board.outcomeHint')} onChange={(e) => onDraft(e.target.value)} />
-        </label>
-        <div className="lp-actions">
-          <button type="button" className="lp-button primary" disabled={sending || !draft.trim()} onClick={() => onSubmit()}>
-            {sending ? t('needsYou.sending') : t('launch.board.record')}
+        <div className="lp-quick-choices" role="group" aria-label={t('launch.board.options')}>
+          {recommended && (
+            <button type="button" className="lp-button primary lp-quick-recommended" disabled={sending} onClick={() => onSubmit(recommended.id)}>
+              <span className="lp-quick-tag">{t('launch.board.recommended')}</span>
+              <span>{recommended.label}</span>
+              {recommended.consequence && <small>{recommended.consequence}</small>}
+            </button>
+          )}
+          {others.map((o) => (
+            <button key={o.id} type="button" className="lp-button" disabled={sending} title={o.consequence} onClick={() => onSubmit(o.id)}>
+              {o.label}
+            </button>
+          ))}
+          <button type="button" className="lp-button" disabled={sending} title={t('launch.board.delegate.hint')} onClick={() => onDelegate?.()}>
+            {t('launch.board.delegate')}
           </button>
         </div>
+        {ownOpen || options.length === 0 ? (
+          <>
+            <label className="lp-field">
+              {t('launch.board.own')}
+              <textarea rows={3} value={draft} placeholder={t('launch.board.outcomeHint')} onChange={(e) => onDraft(e.target.value)} />
+            </label>
+            <div className="lp-actions">
+              <button type="button" className="lp-button primary" disabled={sending || !draft.trim()} onClick={() => onSubmit()}>
+                {sending ? t('needsYou.sending') : t('launch.board.record')}
+              </button>
+            </div>
+          </>
+        ) : (
+          <button type="button" className="lp-link" onClick={() => setOwnOpen(true)}>{t('launch.board.own')}</button>
+        )}
       </div>
     )
+    // #endregion board-decide-quick
+  }
   return (
     <div>
       {receipt && !receipt.committed && <Banner tone="warn">{receipt.reason}</Banner>}

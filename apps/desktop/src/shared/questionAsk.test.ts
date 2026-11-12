@@ -24,7 +24,7 @@ describe('what an agent may ask, and what the server decides for it', () => {
   })
 
   it('gives every option a stable id when the caller did not', () => {
-    const got = normaliseAsk({ ...base, options: [{ label: 'postgres' }, { label: 'sqlite' }] })
+    const got = normaliseAsk({ ...base, options: [{ label: 'postgres', recommended: true }, { label: 'sqlite' }] })
     expect(got.ok).toBe(true)
     if (got.ok) {
       const ids = got.value.options.map((o) => o.id)
@@ -95,5 +95,27 @@ describe('what an agent may ask, and what the server decides for it', () => {
     const got = normaliseAsk({ text: 'x'.repeat(9_000) })
     expect(got.ok).toBe(false)
     if (!got.ok) expect(got.reason).toMatch(/too long|shorter/i)
+  })
+
+  // The operator, 2026-11-12: a question with options always names the option the agent recommends.
+  it('marks the option the agent recommends, by id or by flag', () => {
+    const byId = normaliseAsk({ ...base, options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }], recommended: 'b' })
+    expect(byId.ok && byId.value.options.map((o) => o.recommended ?? false)).toEqual([false, true])
+    const byFlag = normaliseAsk({ ...base, options: [{ id: 'a', label: 'A', recommended: true }, { id: 'b', label: 'B' }] })
+    expect(byFlag.ok && byFlag.value.options.map((o) => o.recommended ?? false)).toEqual([true, false])
+  })
+
+  it('refuses options without a recommendation, two recommendations, or one that names no option', () => {
+    const none = normaliseAsk({ ...base, options: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }] })
+    expect(none.ok).toBe(false)
+    if (!none.ok) expect(none.reason).toMatch(/recommend/)
+    const two = normaliseAsk({ ...base, options: [{ id: 'a', label: 'A', recommended: true }, { id: 'b', label: 'B' }], recommended: 'b' })
+    expect(two.ok).toBe(false)
+    const stray = normaliseAsk({ ...base, options: [{ id: 'a', label: 'A' }], recommended: 'z' })
+    expect(stray.ok).toBe(false)
+  })
+
+  it('asks no recommendation of a question without options', () => {
+    expect(normaliseAsk({ ...base }).ok).toBe(true)
   })
 })

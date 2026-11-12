@@ -677,7 +677,7 @@ else fail('memory search returned ' + facts.facts.length)
       commandId: cmd,
       text: 'Which database version do we target?',
       about: 'db.version',
-      options: [{ label: 'postgres 17' }, { label: 'postgres 15' }],
+      options: [{ label: 'postgres 17', recommended: true }, { label: 'postgres 15' }],
       blocks: [taskId]
     })
     asked.asked === true && asked.question_id

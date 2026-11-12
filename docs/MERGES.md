@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · feat/board-in-menu → main · fast-forward
+- files: «Доска» in the rail (`LaunchShell.tsx`, `rail.css`, `App.tsx`), «Открыть доску» and the short «Нужны вы» card (`HomeParts.tsx`, `launch.css`), the question card with the recommended option and «Отдать агенту» (`BoardPanel.tsx`, `BoardScreen.tsx`), `recommended` in `fabric_question_ask` (`questionAsk.ts`, `agentSurface.ts`, `board.ts`), strings, tests, SCN-041, SCN-162, SCN-163, the plan, the CHANGELOG, the design map
+- conflicts: none
+- summary: the Board from the rail and a question in one press, as the operator asked
+
 ### 2026-11-12 · `—` · docs/0320-close-install → main · fast-forward
 - files: the 0.3.20 ledger's executed release close (items 1, 2, 2b, 3 asked, 4) and the board's outage before the install, the design map
 - conflicts: none

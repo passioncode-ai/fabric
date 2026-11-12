@@ -426,10 +426,37 @@ describe('the board screen itself (SCR-41)', () => {
     expect(screen.queryByText(en['launch.board.fact.waiting'])).toBeNull()
   })
 
+  // The operator, 2026-11-12: the request, then the recommended option written out, then the others, and always
+  // «Отдать агенту»; the why and the facts are folded under «Подробнее».
+  it('puts the recommended option first, the others after it, and «Отдать агенту» last, which answers «decide it yourself»', async () => {
+    const recommended = { ...question, options: [{ id: 'full', label: 'The full pack' }, { id: 'lean', label: 'Decisions only', consequence: 'Less to read', recommended: true }] }
+    const query = vi.fn(async () => envelope({
+      data: cutBoard(boardEntries({ questions: [recommended], attention: [], projectWeightOf: () => 1, now: new Date(STAMP) }), 100),
+      sources: [{ name: 'questions', status: 'ok', asOf: STAMP }], asOf: STAMP, freshness: 'fresh'
+    }))
+    const { answer } = mount(undefined, { query })
+    await openRow('Which context goes to the next agent?')
+    const choices = await waitFor(() => screen.getByRole('group', { name: en['launch.board.options'] }))
+    const buttons = within(choices).getAllByRole('button')
+    expect(buttons.map((b) => b.textContent)).toEqual([en['launch.board.recommended'] + 'Decisions onlyLess to read', 'The full pack', en['launch.board.delegate']])
+    expect(buttons[0].className).toContain('primary')
+    // The own answer is one press away, not an open box.
+    expect(screen.queryByPlaceholderText(en['launch.board.outcomeHint'])).toBeNull()
+    expect(screen.getByRole('button', { name: en['launch.board.own'] })).toBeTruthy()
+    fireEvent.click(buttons[2])
+    await waitFor(() => expect(answer).toHaveBeenCalled())
+    const sent = (answer.mock.calls as unknown as Array<[{ questionId: string; answer: string; chosenOption?: string }]>)[0][0]
+    expect(sent).toMatchObject({ questionId: 'q-1', answer: en['launch.board.delegate.answer'] })
+    expect(sent.chosenOption).toBeUndefined()
+  })
+
   it('a refused answer says why and keeps what was typed', async () => {
     const answer = vi.fn(async () => ({ committed: false, reason: 'the question changed while you were reading it', unblocked: [], stillBlocked: [], continuations: [] }))
     mount(answer)
     await openRow('Which context goes to the next agent?')
+    // The operator, 2026-11-12: an own answer is one press away when there are options.
+    const own = screen.queryByRole('button', { name: en['launch.board.own'] })
+    if (own) fireEvent.click(own)
     const box = await waitFor(() => screen.getByPlaceholderText(en['launch.board.outcomeHint']))
     fireEvent.change(box, { target: { value: 'Send decisions only.' } })
     fireEvent.click(screen.getByRole('button', { name: en['launch.board.record'] }))

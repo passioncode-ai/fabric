@@ -562,12 +562,14 @@ describe('the agent page, the mockup parity (wave 1)', () => {
     await waitFor(() => expect(q().textContent).toContain(en['agentScreen.questionsNone']))
     cleanup()
     vi.stubGlobal('window', Object.assign(window, { fabric: { work: { session: view({ questions: [{ id: 'q1', projectId: agentA.projectId, taskId: null, text: 'Delete three containers?',
-      why: 'Only a new start of the stack brings them back.', kind: 'decision', options: [{ id: 'del', label: 'Delete' }, { id: 'keep', label: 'Keep' }], askedAt: new Date().toISOString(), revision: 4 }] }) },
+      why: 'Only a new start of the stack brings them back.', kind: 'decision', options: [{ id: 'del', label: 'Delete', recommended: true }, { id: 'keep', label: 'Keep' }], askedAt: new Date().toISOString(), revision: 4 }] }) },
       terminal: { history: vi.fn(async () => []) }, questions: { answer } } }))
     show(<AgentPage agent={agentA} mark={0} onOpenProject={vi.fn()} />)
     const card = await within(q()).findByRole('article', { name: 'Delete three containers?' })
-    expect(card.textContent).toContain('Only a new start of the stack brings them back.')
-    expect(within(card).getByRole('button', { name: 'Delete' }).className).toContain('gold')
+    // The operator, 2026-11-12: the card says what is wanted; the why is on the Board. The recommended answer is gold.
+    expect(card.textContent).not.toContain('Only a new start of the stack brings them back.')
+    expect(within(card).getByRole('button', { name: new RegExp('Delete$') }).className).toContain('gold')
+    expect(within(card).getByRole('button', { name: en['launch.board.delegate'] })).toBeTruthy()
     fireEvent.click(within(card).getByRole('button', { name: 'Keep' }))
     await waitFor(() => expect(answer).toHaveBeenCalled())
     expect(answer.mock.calls[0]?.[0]).toMatchObject({ questionId: 'q1', expectedRevision: 4, chosenOption: 'keep' })

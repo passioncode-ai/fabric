@@ -7,6 +7,17 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **The Board opens from the rail, and a question is one press** (the operator, 2026-11-12). «Доска» sits first at the
+  rail's foot with the count of what waits for you, and Главная's «Нужны вы» opens it with «Открыть доску». A «Нужны вы»
+  card says who asks, how long ago and what, in two lines. On the Board a question's card is the request, then
+  «Рекомендуем» with the option the agent recommends and why, then the other options, then «Отдать агенту», which lets
+  the agent decide by the project's decisions and goal; your own answer opens from «Ответить своими словами», and the
+  why and the facts fold under «Подробнее».
+- **An agent that asks with options names the one it recommends.** `fabric_question_ask` takes `recommended` (an
+  option's id, or `recommended: true` on the option) and refuses options without exactly one, saying how to add it.
+
 ## 0.3.20
 
 **Upgrading from 0.3.19.** The database moves from schema 101 to 102 (migration 129, which replaces one board function

@@ -78,7 +78,7 @@ export function revealSection(anchor: string, deadlineMs = 2000, settleMs = 1500
   requestAnimationFrame(step)
 }
 
-export type RailPlace = 'home' | 'agents' | 'comms' | 'access' | 'history' | 'settings' | 'create'
+export type RailPlace = 'home' | 'agents' | 'board' | 'comms' | 'access' | 'history' | 'settings' | 'create'
 
 export interface LaunchShellProps {
   /** Null until the list has been read: an unknown list is not an empty one (M108). */
@@ -135,7 +135,8 @@ export interface LaunchShellProps {
 
 /** The foot's places: the Comms and Agent access came out of Settings (the operator, 2026-11-05); Главная is the brand,
  *  Агенты the toggle. */
-const FOOT: ReadonlyArray<'comms' | 'access' | 'history' | 'settings'> = ['comms', 'access', 'history', 'settings']
+// The operator, 2026-11-12: «Доска» opens from the rail, first, with what waits for the person.
+const FOOT: ReadonlyArray<'board' | 'comms' | 'access' | 'history' | 'settings'> = ['board', 'comms', 'access', 'history', 'settings']
 
 /** The rail's width the person dragged it to (the operator, 2026-11-05: (paraphrased: an adjustable width)), kept on
  *  this computer; within these bounds, 216 px when never set. */
@@ -401,10 +402,14 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
           {/* «Переписка» carries the unread count; it is part of the link's name, so a screen reader says it (0.3.16 review, UX-3). */}
           {FOOT.map((place) => (
             <a key={place} href="#" title={t(`rail.${place}`)}
-              aria-labelledby={place === 'comms' && props.commsUnread && props.commsUnread.count > 0 ? 'rail-name-comms rail-count-comms' : `rail-name-${place}`}
+              aria-labelledby={place === 'comms' && props.commsUnread && props.commsUnread.count > 0 ? 'rail-name-comms rail-count-comms'
+                : place === 'board' && (props.waiting?.total ?? 0) > 0 ? 'rail-name-board rail-count-board' : `rail-name-${place}`}
               {...current(at.kind === place)} onClick={(e) => go(e, () => props.onPlace(place))}>
               <span className={`rail-i rail-i-${place}`} aria-hidden="true" />
               <span className="rail-name" id={`rail-name-${place}`}>{t(`rail.${place}`)}</span>
+              {place === 'board' && props.waiting && props.waiting.total > 0 && (
+                <span className="rail-c" id="rail-count-board" aria-label={t('rail.boardWaiting', { count: props.waiting.total })}>{props.waiting.total}</span>
+              )}
               {place === 'comms' && props.commsUnread && props.commsUnread.count > 0 && (
                 <span className="rail-c" id="rail-count-comms" aria-label={t(props.commsUnread.atLeast ? 'rail.commsUnreadMax' : 'rail.commsUnread', { count: props.commsUnread.count })}>
                   {props.commsUnread.count}{props.commsUnread.atLeast ? '+' : ''}

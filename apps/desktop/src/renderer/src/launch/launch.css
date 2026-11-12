@@ -927,6 +927,15 @@ button.lg-node{ cursor: pointer; }
 .lh-qs .lh-q p.lh-q-from{display:flex;flex-wrap:wrap;gap:6px;font-size:11.5px;color:var(--app-muted)}
 .lh-qs .lh-q-from b{font-weight:600}
 .lh-qs .lh-q p.lh-q-text{margin:6px 0;font-size:13.5px;line-height:1.5;color:var(--app-ink)}
+/* The operator, 2026-11-12: a «Нужны вы» row is two lines at most; the whole question reads on the Board. */
+.lh-qs .lh-q p.lh-q-text{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.estate-home .lh-side-title .lh-side-open{margin-left:auto;font-size:13px;font-weight:500}
+.lp-quick-choices{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:var(--space-3) 0}
+.lp-quick-recommended{display:flex;flex-direction:column;align-items:flex-start;gap:2px;flex-basis:100%;text-align:left}
+.lp-quick-recommended small{font-weight:400;opacity:.85}
+.lp-quick-tag{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;opacity:.85}
+.lp-decide-more{margin-top:var(--space-3)}
+.lp-decide-more>summary{cursor:pointer;color:var(--app-muted);font-size:13px}
 .lh-qs .lh-q-open{display:inline;padding:0;border:0;border-radius:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
 .lh-qs .lh-q-open:hover{text-decoration:underline;opacity:1}
 .lh-qs .lh-q p.lh-q-why{margin:0 0 10px;font-size:12px;color:var(--app-muted)}

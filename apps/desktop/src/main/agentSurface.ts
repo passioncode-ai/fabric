@@ -2643,7 +2643,7 @@ export class AgentSurface {
       {
         title: 'Ask the owner a question',
         description:
-          'When you reach a decision you are not entitled to make, ASK — do not guess and do not work around it. The question reaches the owner ranked against everything else waiting, and whatever it blocks stays blocked until it is answered. Give options where there are options: an owner choosing between two named consequences answers in seconds, and an open question waits for them to have time to think. A question that blocks nothing is fine; you may want a decision without being stuck on it.',
+          'When you reach a decision you are not entitled to make, ASK — do not guess and do not work around it. The question reaches the owner ranked against everything else waiting, and whatever it blocks stays blocked until it is answered. Give options where there are options: an owner choosing between two named consequences answers in seconds, and an open question waits for them to have time to think. With options, name the one you recommend (`recommended`, its id) and say why in its consequence: the owner sees it first, then the others, then «Отдать агенту», which hands the choice back to you to decide by the project\'s decisions and goal. A question that blocks nothing is fine; you may want a decision without being stuck on it.',
         inputSchema: {
           commandId: z
             .string()
@@ -2656,9 +2656,10 @@ export class AgentSurface {
           whyBlocked: z.string().max(2000).optional().describe('what cannot proceed, in your words'),
           taskId: z.string().uuid().optional().describe('the task this came out of'),
           options: z
-            .array(z.object({ id: z.string().optional(), label: z.string(), consequence: z.string().optional() }))
+            .array(z.object({ id: z.string().optional(), label: z.string(), consequence: z.string().optional(), recommended: z.boolean().optional() }))
             .max(8)
             .optional(),
+          recommended: z.string().max(200).optional().describe('the id of the option you recommend; required when you give options (or recommended: true on that option)'),
           blocks: z.array(z.string().uuid()).max(20).optional().describe('tasks that cannot proceed until this is answered')
         }
       },

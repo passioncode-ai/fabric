@@ -76,6 +76,8 @@ The audit read every other screen's code (file:line evidence in each row). Order
 
 **Built 2026-11-12, in part:** with nothing chosen the card says «Выберите запись слева», not the ritual panel; the list's foot note («просмотр не закрывает обязательство») and the card's «Ответ и квитанция сохраняются…» are gone, the keys hint stays; a proposal says «Агенты не договорились, решите вы», not «круг N из M»; an accepted proposal says «задача создана» with «Открыть задачу», never the task's id. **Next:** the tabs, «Добавить тему» as one input, «Отложить» in one press, the row's and the review card's repeats.
 
+<a id="wave-4-the-operators-board-2026-11-12"></a>**Built 2026-11-12, the operator's board:** «Доска» in the rail's foot, first, with the waiting count, marked while open; «Открыть доску» in the head of Главная's «Нужны вы»; a «Нужны вы» card is who asks, how long ago and what, two lines at most, no why; a question's card on the Board is the request, then «Рекомендуем» with the recommended option and its reason, the other options, and «Отдать агенту» (it answers «decide it yourself»), an own answer behind «Ответить своими словами», the why and the facts under «Подробнее». `fabric_question_ask` takes `recommended` and refuses options without one. **Next:** «Отдать агенту» and a recommended act for the other kinds on the Board (access requests, proposals, reviews), each with its own meaning.
+
 - A toggle «Нужны вы | По этапам», then three tabs «Сейчас», «Отложено», «Решено»; no strip, no heading block, no «Начать разбор» (`BoardScreen.tsx`).
 - «+ Добавить тему» is one input «О чём спросить?», the project from the scope (`BoardScreen.tsx`).
 - «Отложить» is one press; a reason is optional (`BoardScreen.tsx`).

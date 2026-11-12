@@ -49,7 +49,7 @@ export interface BoardQuestion {
    *  question revised while somebody was reading it is refused rather than
    *  answered from a stale screen. */
   revision: number
-  options: { id: string; label: string; consequence?: string }[]
+  options: { id: string; label: string; consequence?: string; recommended?: boolean }[]
   /** CO-391 (OF-14): who asked. An agent is named by its runner (`work_claims.agent`) when Fabric knows it, else null. */
   askedBy?: { kind: 'agent' | 'person'; agent: string | null }
   /** Why it is asked, in the asker's own words (`questions.why_blocked`, «what cannot proceed»); null or absent when it
@@ -155,7 +155,7 @@ export interface BoardEntry {
   overdue?: true
   /** Present only on an authored question: what the answer form needs, and the
    *  revision it must be submitted against. */
-  question?: { revision: number; options: { id: string; label: string; consequence?: string }[] }
+  question?: { revision: number; options: { id: string; label: string; consequence?: string; recommended?: boolean }[] }
   /** Present on a question when Fabric knows who asked (CO-391). */
   askedBy?: { kind: 'agent' | 'person'; agent: string | null }
   /** A question's own explanation, the asker's words (`BoardQuestion.why`); `detail` stays the board's count of the

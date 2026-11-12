@@ -433,27 +433,6 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
             )}
             {chosen.at === 'open' ? (
               <>
-                {chosen.entry.detail && (() => {
-                  const why = detailOf(chosen.entry, t, locale) ?? ''
-                  const folds = why.length > WHY_FOLD
-                  const ref = chosen.entry.ref
-                  return (
-                    <div className="lp-decide-why">
-                      <p className="lp-decide-label">{t('launch.board.decide.why')}</p>
-                      <p className={folds && !whyOpen[ref] ? 'is-folded' : undefined}>{why}</p>
-                      {folds && <button type="button" className="lp-link" aria-expanded={!!whyOpen[ref]} onClick={() => setWhyOpen((m) => ({ ...m, [ref]: !m[ref] }))}>{t(whyOpen[ref] ? 'launch.board.decide.less' : 'launch.board.decide.more')}</button>}
-                    </div>
-                  )
-                })()}
-                <dl className="lp-facts">
-                  {(() => { const who = chosen.entry.kind === 'refused' ? chosen.entry.projectName : askerOf(chosen.entry, t); return who ? <div><dt>{t('launch.board.fact.asks')}</dt><dd>{who}</dd></div> : null })()}
-                  {chosen.entry.projectName && chosen.entry.kind !== 'refused' && <div><dt>{t('launch.board.fact.project')}</dt><dd>{chosen.entry.projectName}</dd></div>}
-                  {/* A settled row waits for nothing (UX-4); an open one says how long it has waited, its state is the list it is in. */}
-                  {settledHere
-                    ? <div><dt>{t('launch.board.fact.state')}</dt><dd>{t(answeredHere ? 'launch.board.state.answered' : 'launch.board.state.allowed')}</dd></div>
-                    : <div><dt>{t('launch.board.fact.waiting')}</dt><dd>{since(chosen.entry.waitingSince, t)}</dd></div>}
-                </dl>
-                <div className="lp-divider" />
                 {chosen.entry.swept?.kind === 'overlap-unsettled' ? (
                   <OverlapDecision itemKey={chosen.entry.swept.key} />
                 ) : chosen.entry.kind === 'review' && chosen.entry.handedIn && chosen.entry.subject.kind === 'task' ? (
@@ -473,6 +452,19 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                     onDraft={(v) => setDraft((d) => ({ ...d, [chosen.entry.ref]: v }))}
                     receipt={receipt[chosen.entry.ref]}
                     sending={sending === chosen.entry.ref}
+                    onDelegate={async () => {
+                      const entry = chosen.entry as BoardEntry
+                      setSending(entry.ref)
+                      try {
+                        const r = await submitAnswer(entry, t('launch.board.delegate.answer'))
+                        setReceipt((m) => ({ ...m, [entry.ref]: r }))
+                        if (r.committed) void reload.current()
+                      } catch (e) {
+                        onError(String(e))
+                      } finally {
+                        setSending(null)
+                      }
+                    }}
                     onSubmit={async (option) => {
                       const entry = chosen.entry as BoardEntry
                       setSending(entry.ref)
@@ -498,6 +490,30 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                 {settledHere && nav.next && (
                   <div className="lp-actions"><button type="button" className="lp-button primary" onClick={() => go(nav.next!)}>{t('launch.board.nav.toNext')}</button></div>
                 )}
+                {/* The operator, 2026-11-12: the card is the request and its choices; the why and the facts are read rarely (SP-6). */}
+                <details className="lp-decide-more">
+                  <summary>{t('launch.board.decide.details')}</summary>
+                {chosen.entry.detail && (() => {
+                  const why = detailOf(chosen.entry, t, locale) ?? ''
+                  const folds = why.length > WHY_FOLD
+                  const ref = chosen.entry.ref
+                  return (
+                    <div className="lp-decide-why">
+                      <p className="lp-decide-label">{t('launch.board.decide.why')}</p>
+                      <p className={folds && !whyOpen[ref] ? 'is-folded' : undefined}>{why}</p>
+                      {folds && <button type="button" className="lp-link" aria-expanded={!!whyOpen[ref]} onClick={() => setWhyOpen((m) => ({ ...m, [ref]: !m[ref] }))}>{t(whyOpen[ref] ? 'launch.board.decide.less' : 'launch.board.decide.more')}</button>}
+                    </div>
+                  )
+                })()}
+                <dl className="lp-facts">
+                  {(() => { const who = chosen.entry.kind === 'refused' ? chosen.entry.projectName : askerOf(chosen.entry, t); return who ? <div><dt>{t('launch.board.fact.asks')}</dt><dd>{who}</dd></div> : null })()}
+                  {chosen.entry.projectName && chosen.entry.kind !== 'refused' && <div><dt>{t('launch.board.fact.project')}</dt><dd>{chosen.entry.projectName}</dd></div>}
+                  {/* A settled row waits for nothing (UX-4); an open one says how long it has waited, its state is the list it is in. */}
+                  {settledHere
+                    ? <div><dt>{t('launch.board.fact.state')}</dt><dd>{t(answeredHere ? 'launch.board.state.answered' : 'launch.board.state.allowed')}</dd></div>
+                    : <div><dt>{t('launch.board.fact.waiting')}</dt><dd>{since(chosen.entry.waitingSince, t)}</dd></div>}
+                </dl>
+                </details>
                 {/* Setting aside a settled question can only be refused (UX-4). */}
                 {chosen.entry.question && chosen.entry.projectId && !settledHere && (() => {
                   const entry = chosen.entry as BoardEntry

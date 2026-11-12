@@ -22,6 +22,7 @@
 .rail-i-agents{border-radius:50%}
 .rail-i-history{border-style:dashed}
 .rail-i-settings{border-radius:3px 8px}
+.rail-i-board{border-radius:2px;box-shadow:inset 4px 0 0 -2.5px currentColor}
 .rail-i-comms{border-radius:6px 6px 6px 1px}
 .rail-i-access{border-radius:50% 50% 3px 3px}
 /* The operator, 2026-11-05: the rail's width is the person's, dragged at its edge. */

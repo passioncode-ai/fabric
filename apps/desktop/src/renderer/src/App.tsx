@@ -973,7 +973,7 @@ function Shell({
   // «Создать»'s; a place reached from another one (the board, the plan, Help…) marks nothing on the rail.
   const railAt: React.ComponentProps<typeof LaunchShell>['at'] = showSettings
     ? { kind: 'settings' }
-    : active.kind === 'home' || active.kind === 'history' || active.kind === 'comms' || active.kind === 'access' ? { kind: active.kind }
+    : active.kind === 'home' || active.kind === 'history' || active.kind === 'comms' || active.kind === 'access' || active.kind === 'board' ? { kind: active.kind }
     : active.kind === 'agents' ? { kind: 'agents', session: active.session ?? (active.agent?.startsWith('session:') ? active.agent.slice('session:'.length) : null) }
     : active.kind === 'start' || active.kind === 'draft' ? { kind: 'create' }
     : active.kind === 'project' ? { kind: 'project', projectId: active.projectId }

@@ -196,16 +196,16 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
   /** The card's first line when the caller words it otherwise (the agent page names no asker: it is the page's agent). */
   meta?: React.ReactNode
 }): React.JSX.Element {
-  const t = useT(), locale = useLocale()
+  const t = useT()
   const [draft, setDraft] = useState('')
   const [receipt, setReceipt] = useState<AnswerReceipt | undefined>(undefined)
   const [sending, setSending] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
-  const answer = async (option?: string): Promise<void> => {
+  const answer = async (option?: string, text?: string): Promise<void> => {
     setSending(true)
     setProblem(null)
     try {
-      const r = await submitAnswer(item, draft, option)
+      const r = await submitAnswer(item, text ?? draft, option)
       setReceipt(r)
       if (r.committed) setDraft('')
     } catch (e) {
@@ -214,8 +214,10 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
       setSending(false)
     }
   }
-  const options = item.question?.options ?? []
-  const why = whyOf(item, t, locale)
+  // The operator, 2026-11-12: the recommended option first and gold, then the others, and «Отдать агенту» always;
+  // the card says who asks, how long ago and what, in two lines at most, without the why (the Board shows it).
+  const all = item.question?.options ?? []
+  const options = [...all.filter((o) => o.recommended), ...all.filter((o) => !o.recommended)]
   return (
     // OF-14 (the operator's walk, 2026-10-22): each card says who asks and why; the question opens it on the board.
     <article className={onOpen ? 'lh-q' : 'lh-q lh-q-still'} aria-label={titleOf(item, t)}
@@ -235,7 +237,6 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
           ? <button type="button" className="lh-q-open" title={t('launch.home.board.openOne')} onClick={() => onOpen(item.ref)}>{titleOf(item, t)}</button>
           : titleOf(item, t)}
       </p>
-      {why && <p className="lh-q-why">{why}</p>}
       {problem && <FailureNote said={t('needsYou.unreadable')} detail={problem} />}
       {/* SCN-163 step 2 (CO-391): a question is answered where it is read, the options as buttons. */}
       {receipt?.committed ? (
@@ -244,12 +245,17 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
         <>
           {receipt && <p className="lh-q-why" role="alert">{receipt.reason}</p>}
           <div className="lh-q-acts" role="group" aria-label={t('launch.board.options')}>
-            {options.map((o, i) => (
-              <button key={o.id} type="button" className={`lh-q-btn ${i === 0 ? 'gold' : ''}`} disabled={sending}
+            {options.map((o) => (
+              <button key={o.id} type="button" className={`lh-q-btn ${o.recommended ? 'gold' : ''}`} disabled={sending}
                 title={o.consequence} onClick={() => void answer(o.id)}>
+                {o.recommended && <span className="visually-hidden">{t('launch.board.recommended')}: </span>}
                 {o.label}
               </button>
             ))}
+            <button type="button" className="lh-q-btn" disabled={sending} title={t('launch.board.delegate.hint')}
+              onClick={() => void answer(undefined, t('launch.board.delegate.answer'))}>
+              {t('launch.board.delegate')}
+            </button>
           </div>
         </>
       ) : item.question ? (
@@ -297,6 +303,8 @@ export function HomeBoard({ feedMark, onBoard, onTotal, nameOf }: { feedMark: nu
       <h3 id="home-board-title" className="lh-side-title">
         {t('launch.home.board.title')}
         {cut && cut.total > 0 && <span className="lh-pill attention">{cut.total}</span>}
+        {/* The operator, 2026-11-12: «Нужны вы» is the board's first list; the board opens from here. */}
+        <button type="button" className="lp-link lh-side-open" onClick={() => onBoard()}>{t('launch.home.board.open')}</button>
       </h3>
       {problem && <FailureNote said={t('needsYou.unreadable')} detail={problem} />}
       {unread.length > 0 && <p className="lp-meta" role="status">{t('needsYou.partial', { sources: unread.map((s) => s.name).join(', ') })}</p>}
