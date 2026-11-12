@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "ebbdf32d1e4b4a9e2bd45a4db83039a1abc806d5",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3/2026-11-12-ux.md",
+  "reportSha256": "5fbd0a39326471360925c7ddd3576b3be5da3b3ef20720cddd1a5a531c0f9f5c",
+  "reviewerRun": "release-0320-i3r4-ux-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-80",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "UX-81",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569 (UX-27's class)"
+      ]
+    },
+    {
+      "id": "UX-82",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG names «Планирование» and «Релизы»; the plan line and the fallback name join CO-569"
+      ]
+    }
+  ]
+}

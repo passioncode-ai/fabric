@@ -4,8 +4,13 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · release/0.3.20 → main · fast-forward
+- files: the 0.3.20 release commit on `ebbdf32d`: `apps/desktop` 0.3.20, `## 0.3.20` with run four's fixes (the screens' own names, a never-answered start not asked there again, the operator's records named as kept), `docs/launch/release-gate.json`, the ledger's run four and its Release close, iteration 3's reports and receipts, the release handoff, the design map
+- conflicts: none
+- summary: Fabric 0.3.20, ready to tag
+
 ### 2026-11-12 · `—` · fix/0320-i3r3 → main · fast-forward
-- files: the 0.3.20 review's iteration 3 run three (reports and receipts under `docs/evidence/reviews/0.3.20/iteration-3-92da0efc/`, the ledger) and its wave: an unanswered start elsewhere checked at every decision (`remote-unanswered`, its own words in «На проверке»), the operator's newest record always kept, the top bar naming Пульс and Выпуски, the CHANGELOG, §3.9, §3.10, AGENTS, the runbook and the release close
+- files: the 0.3.20 review's iteration 3 run three (reports and receipts under `docs/evidence/reviews/0.3.20/iteration-3-92da0efc/`, the ledger) and its wave: an unanswered start elsewhere checked at every decision (`remote-unanswered`, the agent's own words; the person sees the general line), the operator's newest record always kept, the top bar naming Пульс and Релизы, the CHANGELOG, §3.9, §3.10, AGENTS, the runbook and the release close
 - conflicts: none
 - summary: the 0.3.20 release candidate after run three of its third review
 

@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "ebbdf32d1e4b4a9e2bd45a4db83039a1abc806d5",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3/2026-11-12-errors.md",
+  "reportSha256": "3255c10b1a8979174a69aa3c43626a66aa6a3f030886f68487cc145ac975c216",
+  "reviewerRun": "release-0320-i3r4-errors-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-80",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-567 (as 0.3.19)"
+      ]
+    },
+    {
+      "id": "ER-81",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "ER-82",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG names the exception, one record per request given to the operator; the code comment and a bound join CO-569"
+      ]
+    }
+  ]
+}

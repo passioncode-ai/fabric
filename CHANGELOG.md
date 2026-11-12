@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.20
 
 **Upgrading from 0.3.19.** The database moves from schema 101 to 102 (migration 129, which replaces one board function
 and admits schema 102 as a private-archive source; no data moves). Take a backup first and follow
@@ -22,16 +22,16 @@ database, so going back means restoring the backup with the 0.3.19 bundle.
   replace the left rail and the five tabs; the brief reads as text with «Изменить» on each part and says who wrote it;
   notes sit under the brief; the history and what the agent receives are folds; the page itself shows no session, task
   or agent id (the folds still name a source's id, or a linked task's id when it has no title).
-- **One title per screen** (the operator, 2026-11-12). The top bar's title is the only one: Доска, Переписка, План,
-  Пульс, Выпуски, Настройки, the project page and the creation forms lose their kicker, slogan heading, lede and
-  the Fabric strip, and the bar names Доска, План, Пульс and Выпуски with the project they were opened for (Граф and
+- **One title per screen** (the operator, 2026-11-12). The top bar's title is the only one: Доска, Переписка, Планирование,
+  Пульс, Релизы, Настройки, the project page and the creation forms lose their kicker, slogan heading, lede and
+  the Fabric strip, and the bar names Доска, Планирование, Пульс and Релизы with the project they were opened for (Граф and
   «Имя и вид Fabric» still show a second title). Agents are named by their project and runner, never by an id.
 - **Главная is calmer** (the operator, 2026-11-12). The hero is the avatar and the greeting (the look is «Имя и вид
   Fabric», under «Ещё» in Настройки); an agent's row says its task and how long it has worked, without the branch.
 - **The Board asks in plain words** (the operator, 2026-11-12). With nothing chosen it says «Выберите запись слева».
   The decision card asks its question as the heading, with «Над чем» and «Почему просят» under it; the arrow keys page
   between cards, Esc closes one, «К следующей» moves on after a decision, and a grant says it covers one act for one hour. A
-  refused act reads «Ждёт разрешения» with the reason, and the top bar of Доска and План names the project; a task made from a proposal says «задача
+  refused act reads «Ждёт разрешения» with the reason, and the top bar of Доска and Планирование names the project; a task made from a proposal says «задача
   создана» with «Открыть задачу»; an argument agents could not settle says «Агенты не договорились, решите вы»; the
   notes that repeated themselves are gone.
 - **A run the board started shows as at work on Главная**, by its project and task, like a session you opened.
@@ -46,9 +46,9 @@ database, so going back means restoring the backup with the 0.3.19 bundle.
 - **The board dispatcher survives sleep, a failing project and a hung link** (the operator, 2026-11-12). After the Mac
   sleeps, a board run on it is judged on time awake, so it is no longer stopped and restarted as silent on waking. One
   project whose step fails no longer stops every other request in the pass; a board that cannot be read still watches the
-  runs in flight. A run on another machine whose start was never answered is not started again, here or there, however that try ended: the request goes to you as a machine that never answered, and an answer is
+  runs in flight. A run on another machine whose start was never answered is not started here as well: however that record ends, the request goes to you, and it is not asked there again (a retry whose answer was lost can still start a second run there, CO-567); an answer is
   not posted to a request settled meanwhile. A Switchboard call past its deadline ends with every process it started (on macOS and Linux; on Windows, the call itself).
-  The dispatcher's memory and its records file stay bounded after every pass. On a board another Fabric may also read,
+  The dispatcher's memory and its records file stay bounded after every pass, except the newest record of each request given to you, which is kept (one record per such request; CO-569). On a board another Fabric may also read,
   only the machine set with `"dispatchOnSharedBoard": true` in `settings.json` dispatches. Going back to 0.3.19 (by restoring the backup) forgets that key and lets a start elsewhere that went unanswered run here too.
 - **A session the board dispatcher starts has the board from its first list of tools** (CO-563). Claude Code started
   with `-p` reads the list of tools once; `fabric-mcp` now answers the first list of tools, and any call, once the
