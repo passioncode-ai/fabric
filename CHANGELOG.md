@@ -9,6 +9,13 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The board dispatcher survives sleep, a failing project and a hung link** (the operator, 2026-11-12). After the Mac
+  sleeps, a board run on it is judged on time awake, so it is no longer stopped and restarted as silent on waking. One
+  project whose step fails no longer stops every other request in the pass; a board that cannot be read still watches the
+  runs in flight. A run on another machine whose start was not answered is never started here as well, and an answer is
+  not posted to a request settled meanwhile. A Switchboard call past its deadline ends with every process it started.
+  The dispatcher's memory and its records file stay bounded after every pass. On a board another Fabric may also read,
+  only the machine set with `"dispatchOnSharedBoard": true` in `settings.json` dispatches.
 - **A session the board dispatcher starts has the board from its first list of tools** (CO-563). Claude Code started
   with `-p` reads the list of tools once; `fabric-mcp` now answers the first list of tools, and any call, once the
   session is admitted to its project, at most 10 seconds later, instead of offering only `fabric_whoami` while it was

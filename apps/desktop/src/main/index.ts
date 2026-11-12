@@ -206,7 +206,7 @@ import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { primaryFolder, remoteTargetFor, wireBoardDispatch } from './boardDispatchWiring.ts'
 import { createDispatchWake, toOperatorMarks, type InboxGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
-import { sessionLiveForDispatch, WATCH_MS } from '../shared/boardDispatch.ts'
+import { dispatcherRuns, sessionLiveForDispatch, suspendedSince, WATCH_MS } from '../shared/boardDispatch.ts'
 import { SESSION_STALE_MS } from '../shared/workClaims.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { createOpsDigestCollector } from './opsDigestCollector.ts'
@@ -3151,7 +3151,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     comms: sweepBoard,
     repos: projectRepos,
     sessionLive: (projectId) => sessionLiveForDispatch(heldSessions(projectId), Date.now(), SESSION_STALE_MS),
-    switchOn: () => readSettings().dispatchBoardRequests,
+    // 2026-11-12 (C1): on a board another machine's Fabric may also read, only the machine named for it dispatches.
+    switchOn: () => dispatcherRuns(readSettings(), ownsStack()),
+    // 2026-11-12 (C2): a run here is judged on time awake; the power monitor's record of sleep, above.
+    suspendedSince: (from) => suspendedSince(suspendedIntervals, suspendedAt, from, Date.now()),
     // CO-551, stage A: the machine Settings names for runs (none by default), and the operator's board door to post a
     // run's answer from there as the request's target Project.
     // 2026-11-11: by the owner of the project's repository (`dispatchTargets`), else `dispatchTarget`.

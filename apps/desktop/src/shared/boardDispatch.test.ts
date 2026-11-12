@@ -1,7 +1,7 @@
 // CO-409, wave 1: the dispatcher's decision. Spec: docs/evidence/specs/2026-11-04-on-demand-sessions.md (§3.1, §3.3,
 // §3.4, §3.5, §3.6).
 import { describe, expect, it } from 'vitest'
-import { sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, dispatchTargetsOf, remoteOwnerOf, targetForOwner, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
+import { dispatcherRuns, isSelfTarget, suspendedSince, sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, dispatchTargetsOf, remoteOwnerOf, targetForOwner, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
 
 const NOW = Date.parse('2026-11-04T15:00:00Z')
 const MIN = 60_000
@@ -230,5 +230,31 @@ describe('dispatchTargets: the machine by the owner of the project\'s repository
     expect(targetForOwner('other', t, 'node-b')).toBe('node-b')
     expect(targetForOwner('constructor', t, 'node-b')).toBe('node-b') // PL-17: never an object built-in
     expect(targetForOwner(null, t, null)).toBeNull()
+  })
+})
+
+// 2026-11-12, the dispatcher audit: two machines, sleep, and a target that is this machine.
+describe('the dispatcher on two machines (2026-11-12)', () => {
+  it('runs on its own board, and on a shared one only on the machine named for it (C1)', () => {
+    expect(dispatcherRuns({ dispatchBoardRequests: true, dispatchOnSharedBoard: false }, true)).toBe(true)
+    expect(dispatcherRuns({ dispatchBoardRequests: true, dispatchOnSharedBoard: false }, false)).toBe(false)
+    expect(dispatcherRuns({ dispatchBoardRequests: true, dispatchOnSharedBoard: true }, false)).toBe(true)
+    expect(dispatcherRuns({ dispatchBoardRequests: false, dispatchOnSharedBoard: true }, true)).toBe(false)
+  })
+  it('counts the sleep inside a window, a sleep still under way included (C2)', () => {
+    const intervals = [{ from: 100, to: 200 }, { from: 500, to: 600 }]
+    expect(suspendedSince(intervals, null, 0, 1000)).toBe(200)
+    expect(suspendedSince(intervals, null, 150, 1000)).toBe(150)
+    expect(suspendedSince(intervals, 900, 150, 1000)).toBe(250)
+    expect(suspendedSince([], null, 0, 1000)).toBe(0)
+  })
+  it('knows a target that is this machine by name, user@name, .local, case, loopback or the address ssh resolves', () => {
+    const names = ['MacBook-Pro.local', '100.64.0.7']
+    expect(isSelfTarget('macbook-pro', null, names)).toBe(true)
+    expect(isSelfTarget('me@MacBook-Pro', null, names)).toBe(true)
+    expect(isSelfTarget('localhost', null, names)).toBe(true)
+    expect(isSelfTarget('studio-sshlg', '100.64.0.7', names)).toBe(true)
+    expect(isSelfTarget('studio-sshlg', '100.64.0.9', names)).toBe(false)
+    expect(isSelfTarget('studio-sshlg', null, names)).toBe(false)
   })
 })

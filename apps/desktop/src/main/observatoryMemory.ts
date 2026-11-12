@@ -53,7 +53,14 @@ export function createObservatoryClient(locate: () => Promise<ObservatoryServer 
       const where = await locate()
       if (!where) throw new Error('Project Observatory is not installed on this computer')
       const c = new Client({ name: 'fabric-dispatcher', version: APP_VERSION })
-      await c.connect(new StdioClientTransport({ command: where.python, args: [where.server, ...args], stderr: 'ignore' }))
+      try {
+        await c.connect(new StdioClientTransport({ command: where.python, args: [where.server, ...args], stderr: 'ignore' }))
+      } catch (e) {
+        // 2026-11-12 (the dispatcher audit): a child that started and failed its handshake is ended, not left behind
+        // once for every pass that tries again.
+        await c.close().catch(() => undefined)
+        throw e
+      }
       client = c
       return c
     })()

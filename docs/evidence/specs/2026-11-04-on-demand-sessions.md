@@ -410,6 +410,48 @@ a running terminal or signed in the last 10 minutes (`shared/boardDispatch.ts#se
 Not in this step, each carried in CO-559: a live session told of its unread messages (§3.2's wake), the sender shown
 the state on its thread, and the fan-out source asked to stop (its owner's change, asked on the board).
 
+### 3.9 Two machines, sleep, retries and memory (2026-11-12)
+
+The operator, 2026-11-12: «диспетчер чтобы работал корректно и на макбуке и на студии и повторы и обработка ошибок и
+менеджмент памяти». An audit of the dispatcher's code found where it did not; each fix below has its test in
+`apps/desktop/test/board-dispatch-run.test.mjs` (watched failing on the code before it) or `shared/boardDispatch.test.ts`.
+
+- **One board, one dispatcher.** Each Fabric keeps its board in its own stack, so two machines each running Fabric have
+  two boards and never start a run for the same request. On a board this Fabric does not own (an external stack named by
+  `SUPABASE_URL`) the dispatcher runs only where `settings.json` says `"dispatchOnSharedBoard": true`, by hand on the one
+  machine that dispatches (`shared/boardDispatch.ts#dispatcherRuns`, `main/index.ts` `switchOn`). Two dispatchers on one
+  board would both start a run for one request: nothing on the board coordinates them yet (a board-side lease per request
+  is the next step, CO-567).
+- **Sleep.** A run on this machine is frozen while it sleeps, so its liveness (§3.8: `ACCEPT_MS`, `SILENT_MS`) and its end
+  (`STOP_GRACE_MS`, `UNKNOWN_AFTER_END_MS`) are judged on time awake, from the power monitor's record of sleep
+  (`shared/boardDispatch.ts#suspendedSince`, `main/boardDispatchRun.ts` `awake`, `pastEnd`). A run on another machine,
+  which did not sleep with this one, is judged on the clock. Before, the first pass after a sleep of over 20 minutes
+  stopped every accepted run here as silent and counted it empty.
+- **A run elsewhere is never also started here.** A start on another machine that was not answered may be running there;
+  from then on a refusal that would start the run here (`not_on_target`, `target_busy`, `target_unreachable`) is not
+  taken, and the record keeps its machine (`remoteUnanswered`). A first answer that refuses outright still starts it here,
+  as before. Before an answer from elsewhere is posted, the request is read: one settled meanwhile gets no second answer.
+- **A board run elsewhere and a board there.** The packet tells a run on another machine to use `com.*` only when
+  `fabric_whoami` names the request's project (`fabric-project:<id>`); a Fabric on that machine keeps a board of its own,
+  where the request does not exist. A target that is this machine (by name, `user@name`, `.local`, loopback, or the
+  address `ssh -G` resolves it to, compared with this machine's names and addresses) starts the run here
+  (`shared/boardDispatch.ts#isSelfTarget`).
+- **One failure is one request's.** A request whose step throws (a folder read, the responders, a save) waits as a
+  refusal does (`refusalBackoffMs`), and every other request is decided in the same pass; a start left `starting` the
+  same. The agent Switchboard starts is asked once a pass, Switchboard's version once an hour.
+- **An unreadable board.** The runs in flight are still followed (their ends, a run elsewhere and its result, a run past
+  its time); none is judged dead without the board, and nothing new starts until it reads again.
+- **A call past its deadline.** Each Switchboard call runs in a process group of its own, and its deadline ends the whole
+  group, so an ssh Switchboard started does not outlive it; output past 4 MiB ends the call as a failure
+  (`main/boardDispatchWiring.ts#run`). An Observatory child that failed its handshake is closed.
+- **Memory.** After every pass, the switch on or off and the board read or not: the history is trimmed (the newest 500 of
+  the records not kept), the in-memory maps keep only what the board still shows or a record still names (decisions,
+  back-offs, retried opens, workflow leases), the sessions of launches no longer running are forgotten, and a record is
+  kept for its request's deadline at most 30 days (`UNTIL_MAX_MS`).
+- **Not done here** (CO-567): a board-side lease per request so two dispatchers can share a board, a start elsewhere that
+  timed out three times run here once Switchboard can say nothing started there, watching runs in parallel within a pass
+  budget, and a responder's lease judged by the database's clock.
+
 ## 4. Who does what
 
 | Product | Its part |

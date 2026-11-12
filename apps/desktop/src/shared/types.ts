@@ -481,6 +481,10 @@ export interface AppSettings {
    * reports and ends. On by default; off, nothing starts and the dispatcher records `skipped-off`.
    */
   dispatchBoardRequests: boolean
+  /** 2026-11-12 (the dispatcher audit's C1): on a board this Fabric does not own (an external stack, `SUPABASE_URL`), the
+   *  dispatcher runs only when this is true, so two machines on one board never both start a run for one request. False
+   *  by default; set by hand in settings.json on the one machine that dispatches. */
+  dispatchOnSharedBoard: boolean
   /**
    * CO-551, stage A: the machine, as ssh knows it, that a board run is started on (`switchboard dispatch --target`);
    * null, the default, starts every run on this one. A refusal there (`not_on_target`, `target_busy`,
@@ -537,6 +541,7 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   trustAgentFolders: true,
   // CO-409: the operator's word (2026-11-04); the person turns it off in Settings.
   dispatchBoardRequests: true,
+  dispatchOnSharedBoard: false,
   // CO-551: no other machine until one is named; stage B (CO-552) chooses by itself.
   dispatchTarget: null,
   dispatchTargets: {}

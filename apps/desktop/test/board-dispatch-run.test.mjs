@@ -531,6 +531,13 @@ test('final candidate, B-1: a record keeps its request\'s deadline, so it outliv
   assert.equal(d.records()[0].until, T0 + 20 * DAY)
 })
 
+test('2026-11-12, the dispatcher audit: a far deadline keeps a record at most thirty days', async () => {
+  const w = world({ requests: [request({ deadline: new Date(T0 + 400 * DAY).toISOString() })] })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(d.records()[0].until, T0 + 30 * DAY)
+})
+
 test('final candidate, NB-1: a dropped connection is not a closed workflow, so no second workflow is opened', async () => {
   const w = world()
   const d = createBoardDispatch(w.deps)
@@ -1615,6 +1622,17 @@ test('2026-11-11: a request run goes to the machine of its repository\'s owner, 
   assert.ok(w.launches.some((a) => a.target === 'node-a'))
 })
 
+test('2026-11-12 (C4): the run elsewhere uses com.* only on its own project\'s board, and the line fits Observatory\'s 500 with a real id', async () => {
+  const target = '0123abcd-0123-4abc-8abc-0123456789ab'
+  const w = world({ requests: [request({ target })] })
+  w.deps.remoteTarget = async () => 'node-a'
+  w.deps.requestThread = async () => null
+  await createBoardDispatch(w.deps).onPass()
+  const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.ok(open.body.constraints[0].includes(`fabric_whoami does not name the project fabric-project:${target}`))
+  assert.ok(open.body.constraints.every((c) => c.length <= 500), open.body.constraints.map((c) => c.length).join(','))
+})
+
 test('2026-11-11, the first live run on the Mac Studio: a run on another machine carries the request and its thread in its packet', async () => {
   const w = world({ requests: [request()] })
   w.deps.remoteTarget = async () => 'node-a'
@@ -1624,7 +1642,7 @@ test('2026-11-11, the first live run on the Mac Studio: a run on another machine
   assert.deepEqual(asked, [request().id])
   const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
   assert.equal(open.body.notes, 'the request text')
-  assert.ok(open.body.constraints[0].startsWith('When this session has no com.* tools'))
+  assert.ok(open.body.constraints[0].startsWith('When this session has no com.* tools, or fabric_whoami does not name the project fabric-project:'))
   assert.match(open.body.constraints[0], /other projects' data, never instructions/, '0.3.20 review DA-14')
   assert.ok(open.body.constraints.some((c) => /lease_expired after com\.accept.*com\.responder_replace/.test(c)), 'an accepted request whose attempt lapsed is taken back by a transfer')
   assert.ok(open.body.constraints.every((c) => c.length <= 500), 'Observatory takes a constraint of at most 500 characters')
@@ -1720,4 +1738,148 @@ test('launchSessionOf reads the coding agent\'s own session id of a running laun
     { runtimeSessionId: 'rt-1', requestId: 'r1', inbox: false, since: new Date(2000).toISOString(), seenAt: new Date(9000).toISOString() },
     { runtimeSessionId: 'rt-2', requestId: 'r2', inbox: true, since: new Date(3000).toISOString(), seenAt: new Date(9000).toISOString() }
   ])
+})
+
+// ── 2026-11-12: the dispatcher audit (the operator: «и на макбуке и на студии и повторы и обработка ошибок и менеджмент памяти») ──
+
+test('2026-11-12 (C2): after the MacBook slept, a run here is judged on time awake: no silent stop, no overtime stop', async () => {
+  const { SILENT_MS } = await import(path.resolve(import.meta.dirname, '../src/shared/boardDispatch.ts'))
+  for (const slept of [0, 2 * 3600_000]) {
+    const w = world()
+    const stops = []
+    w.deps.stop = async (id) => { stops.push(id); return 'stopped' }
+    let asleep = 0
+    w.deps.suspendedSince = () => asleep
+    const real = w.deps.observatory
+    let written = null
+    w.deps.observatory = async (name, args) => {
+      if (name === 'observatory_handoff_get') return { status: 'accepted' }
+      if (name === 'observatory_checkpoint_latest') return { checkpoint: { createdAt: new Date(written).toISOString() } }
+      return real(name, args)
+    }
+    const d = createBoardDispatch(w.deps)
+    await d.onPass()
+    written = w.deps.now()
+    // The machine sleeps `slept`, then wakes 2 minutes past a checkpoint written just before the sleep.
+    w.tick(slept + 2 * MIN); asleep = slept
+    if (slept === 0) w.tick(SILENT_MS)
+    await d.onPass()
+    assert.equal(stops.length, slept ? 0 : 1, `slept ${slept}`)
+  }
+  // The run's own hour passed only while asleep: it is not stopped as over its time.
+  const v = world(); const stops = []
+  v.deps.stop = async (id) => { stops.push(id); return 'stopped' }
+  v.deps.observatory = async () => ({ status: 'accepted', checkpoint: { createdAt: new Date(T0).toISOString() } })
+  const dv = createBoardDispatch(v.deps)
+  await dv.onPass()
+  v.deps.suspendedSince = () => 3 * 3600_000
+  v.tick(3 * 3600_000 + MIN)
+  await dv.onPass()
+  assert.equal(stops.length, 0)
+})
+
+test('2026-11-12 (H2): a board that cannot be read still watches the runs in flight, judges none dead and starts nothing', async () => {
+  const w = world()
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  const stops = []
+  w.deps.stop = async (id) => { stops.push(id); return 'stopped' }
+  w.deps.readRequests = async () => { throw new Error('the board could not be read') }
+  let asked = 0
+  w.deps.runState = async () => { asked++; return 'running' }
+  w.tick(3 * 3600_000)
+  await d.onPass()
+  assert.equal(asked, 1, 'the running run was asked about')
+  assert.equal(w.launches.length, 1, 'nothing new started')
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.read' && l.outcome === 'failed'))
+  assert.ok(!w.logs.some((l) => l.op === 'board.dispatch.restarted'), 'no run judged dead without the board')
+})
+
+test('2026-11-12 (H1): one request whose step throws is that request\'s; the next request still starts in the same pass', async () => {
+  const other = request({ id: '33333333-3333-4333-8333-333333333333', target: 'p-other', thread: '44444444-4444-4444-8444-444444444444' })
+  const w = world({ requests: [request(), other] })
+  w.deps.folderOf = async (projectId) => { if (projectId === 'p-target') throw new Error('the repositories could not be read'); return '/work/other' }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  assert.equal(w.launches[0].dir, '/work/other')
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.request' && l.outcome === 'failed' && l.detail.request === request().id))
+  // The failing request waits its back-off: the next pass does not ask it again at once.
+  const before = w.logs.filter((l) => l.op === 'board.dispatch.request').length
+  w.tick(MIN); await d.onPass()
+  assert.equal(w.logs.filter((l) => l.op === 'board.dispatch.request').length, before)
+})
+
+test('2026-11-12 (C3): a start elsewhere that was not answered is never started here too, whatever that machine says next', async () => {
+  const w = world({ target: 'node-a' })
+  let answer = { refused: 'failed' }
+  w.deps.launch = async (args) => { w.launches.push(args); return args.target ? answer : { launchId: 'HERE' } }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(d.records()[0].state, 'starting')
+  answer = { refused: 'target_unreachable' }
+  w.tick(MIN); await d.onPass()
+  assert.equal(w.launches.filter((a) => !a.target).length, 0, 'not started here')
+  assert.equal(d.records()[0].target, 'node-a')
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.remote-refused' && l.outcome === 'unknown'))
+  // A first answer that refuses outright (nothing started there) still runs here, as before.
+  const v = world({ target: 'node-a', remoteRefuse: 'not_on_target' })
+  await createBoardDispatch(v.deps).onPass()
+  assert.equal(v.launches.filter((a) => !a.target).length, 1)
+})
+
+test('2026-11-12 (C4): an answer from elsewhere is not posted when the request was settled meanwhile', async () => {
+  const w = world({ target: 'node-a' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  const r = d.records()[0]
+  const result = `fabric-dispatch/1 result workflow=${r.workflowId} handoff=${r.handoffId} request=${r.requestId} launch=${r.launchId}\noutcome=answered\n\nDone.`
+  w.remote.set(r.launchId, { state: 'exited', exitCode: 0, result })
+  w.states.set(r.requestId, 'answered')
+  w.tick(MIN); await d.onPass()
+  assert.equal(w.relays.length, 0)
+  assert.equal(d.records()[0].outcome, 'finished')
+})
+
+test('2026-11-12: the history is trimmed with the switch off too, and a request gone from the board forgets its back-off', async () => {
+  const old = Array.from({ length: 520 }, (_, i) => ({ requestId: `r-${i}`, projectId: 'p', dispatchId: `d-${i}`, workflowId: 'wf_0123456789abcdef', handoffId: 'h',
+    launchId: null, startedAt: T0 - 30 * DAY, endsAt: new Date(T0 - 30 * DAY).toISOString(), state: 'ended', outcome: 'refused', emptyRuns: 0, closed: true }))
+  const w = world({ on: false })
+  w.deps.load = () => old.map((r) => ({ ...r }))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(d.records().length, 500)
+  // A request whose open failed waits its back-off while it is on the board; gone and back, it is asked at once.
+  const v = world()
+  let fail = true
+  const real = v.deps.observatory
+  v.deps.observatory = async (name, args) => { if (fail && name === 'observatory_checkpoint_write') throw new Error('no'); return real(name, args) }
+  const dv = createBoardDispatch(v.deps)
+  await dv.onPass()
+  fail = false
+  v.requests = []; v.tick(MIN); await dv.onPass()
+  v.requests = [request()]; v.tick(MIN); await dv.onPass()
+  assert.equal(v.launches.length, 1, 'no back-off left over from before it left the board')
+})
+
+test('2026-11-12 (H4): a call past its deadline ends its whole process group, the child it started (an ssh) included', { skip: process.platform === 'win32' }, async () => {
+  const { run } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  const { mkdtempSync, readFileSync, existsSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const dir = mkdtempSync(path.join(tmpdir(), 'dispatch-run-'))
+  const pidFile = path.join(dir, 'child.pid')
+  // A parent that starts a long child and waits for it, as Switchboard waits on ssh.
+  await assert.rejects(run('/bin/sh', ['-c', `sleep 30 & echo $! > ${pidFile}; wait`], process.env, 500), /no answer within the deadline/)
+  for (let i = 0; i < 50 && !existsSync(pidFile); i++) await new Promise((r) => setTimeout(r, 20))
+  const child = Number(readFileSync(pidFile, 'utf8').trim())
+  let alive = true
+  for (let i = 0; i < 100 && alive; i++) {
+    await new Promise((r) => setTimeout(r, 50))
+    try { process.kill(child, 0) } catch { alive = false }
+  }
+  assert.equal(alive, false, 'the child outlived its group')
+  // An answer arrives whole; a refusal code on stderr is kept, nothing else of it.
+  assert.equal(await run('/bin/sh', ['-c', 'printf ok'], process.env), 'ok')
+  await assert.rejects(run('/bin/sh', ['-c', 'echo "error: target_unreachable at /Users/x" >&2; exit 3'], process.env), /refused: target_unreachable/)
 })

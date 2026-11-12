@@ -144,6 +144,30 @@ new enrollment from 16:30 (CO-566, resolved in this wave, worked around live at 
 | V2-41 | PL-17 | non-blocking | an owner named `constructor` read a function as its target | fixed in the iteration-2 wave (candidate 3): `targetForOwner` takes only the map's own keys (`Object.hasOwn`); test added |
 | V2-42 | PL-18 | non-blocking | text nits | fixed in the iteration-2 wave (candidate 3): as UX-16 |
 
+## Before iteration 3: the dispatcher audit (2026-11-12)
+
+The operator, 2026-11-12, on the board dispatcher: «чтобы работал корректно и на макбуке и на студии и повторы и
+обработка ошибок и менеджмент памяти». A read-only audit of `boardDispatchRun.ts`, `boardDispatchWiring.ts` and
+`shared/boardDispatch.ts` found four critical, five high and several medium defects; what this wave fixes is
+[§3.9 of the on-demand spec](../specs/2026-11-04-on-demand-sessions.md#39-two-machines-sleep-retries-and-memory-2026-11-12),
+and what it leaves is CO-567. Each fix has a test watched failing on `1a07dabe` (eight in `board-dispatch-run.test.mjs`,
+one process-group test checked against the old `execFile`, three in `boardDispatch.test.ts`). Iteration 3 reads the
+candidate that carries it.
+
+| Audit | Severity | Fix |
+|---|---|---|
+| C1 two dispatchers on one board | critical | guard: on a board Fabric does not own, only `dispatchOnSharedBoard: true` dispatches; the board-side lease is CO-567 |
+| C2 mass restarts after sleep | critical | liveness and run ends judged on time awake (`suspendedSince`) |
+| C3 a timed-out start elsewhere also started here | critical | `remoteUnanswered`: no fallback here after an unanswered start there |
+| C4 two answers; a Studio board's com.* tools | critical | settled read before posting; the packet names the project `fabric_whoami` must show |
+| H1 one throw aborts the pass | high | per-request and per-start isolation with its own back-off |
+| H2 an unread board stops all watching | high | runs in flight watched, none judged dead, nothing started |
+| H3 long serial passes | high | the agent once a pass, the version once an hour; parallel watches are CO-567 |
+| H4 an ssh child outlives a timeout | high | process group ended whole; output bounded |
+| H5 a hung Studio never falls back | high | CO-567 (needs Switchboard to say nothing started there) |
+| maps, records, Observatory child | medium | pruned after every pass; `until` at most 30 days; trimmed with the switch off; a failed handshake's child closed |
+| self-target | medium | a target that is this machine runs here |
+
 ## Release close
 
 What is owed after the tag, in order; each item is checked off here with its receipt.

@@ -287,6 +287,31 @@ export function remoteOwnerOf(url: string): string | null {
   return m ? m[1].toLowerCase() : null
 }
 
+/**
+ * 2026-11-12: whether an ssh host is this machine: the name itself, or the host name ssh resolves it to (`ssh -G`), is a
+ * loopback name or one of this machine's names (with or without `.local`, any case). Settings copied from another
+ * machine would otherwise send this machine's runs through ssh to itself.
+ */
+export function isSelfTarget(target: string, resolved: string | null, names: string[]): boolean {
+  const bare = (n: string): string => n.trim().toLowerCase().replace(/^[^@]*@/, '').replace(/\.local\.?$/, '')
+  const mine = new Set(['localhost', '127.0.0.1', '::1', ...names.map(bare)].filter(Boolean))
+  return mine.has(bare(target)) || (resolved !== null && mine.has(bare(resolved)))
+}
+
+/** 2026-11-12 (C2): how long the machine slept between `from` and `now`, from the power monitor's intervals and a sleep
+ *  still under way (its start, not yet resumed). */
+export function suspendedSince(intervals: ReadonlyArray<{ from: number; to: number }>, asleepSince: number | null, from: number, now: number): number {
+  let ms = 0
+  for (const i of intervals) ms += Math.max(0, Math.min(i.to, now) - Math.max(i.from, from))
+  if (asleepSince !== null) ms += Math.max(0, now - Math.max(asleepSince, from))
+  return ms
+}
+
+/** 2026-11-12 (C1): whether this Fabric's dispatcher runs: the switch on, and the board its own or this machine named. */
+export function dispatcherRuns(s: { dispatchBoardRequests: boolean; dispatchOnSharedBoard: boolean }, ownsBoard: boolean): boolean {
+  return s.dispatchBoardRequests && (ownsBoard || s.dispatchOnSharedBoard)
+}
+
 /** The machine for one run: its owner's in `dispatchTargets`, else `dispatchTarget`, else this one (null). */
 export function targetForOwner(owner: string | null, targets: Record<string, string>, fallback: string | null): string | null {
   // 0.3.20 review, iteration 2, PL-17: only the map's own keys; an owner named like `constructor` is not a target.

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · fix/dispatcher-robust → main · fast-forward
+- files: the board dispatcher's audit fixes (sleep, a run never doubled across machines, a settled request not answered twice, per-request isolation, an unread board, process groups, bounded memory and records, self-target, the shared-board guard) in `boardDispatchRun.ts`, `boardDispatchWiring.ts`, `shared/boardDispatch.ts`, `observatoryMemory.ts`, `main/index.ts`, settings; their tests; spec §3.9, AGENTS.md's lifecycle row, CHANGELOG, the 0.3.20 plan, CO-567; the map
+- conflicts: none
+- summary: part of the 0.3.20 candidate for its review's iteration 3
+
 ### 2026-11-12 · `—` · feat/simple-screens-3 → main · fast-forward
 - files: wave 3 (Главная: the hero, «Мой облик», the branch, the empty column's note) and part of wave 4 (the Board's ritual panel, foot notes, proposal words, the created task as a link); SCR-41, SCR-85, SCN-163 and the plan amended; the map
 - conflicts: none

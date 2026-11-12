@@ -166,6 +166,7 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     boardFilters: boardFilters(raw.boardFilters),
     trustAgentFolders: raw.trustAgentFolders !== false,
     dispatchBoardRequests: raw.dispatchBoardRequests !== false,
+    dispatchOnSharedBoard: raw.dispatchOnSharedBoard === true,
     // CO-551: an ssh host name or none; anything else (an option, `auto`, a number) is none, never a guess.
     dispatchTarget: dispatchTargetOf(raw.dispatchTarget),
     // By the owner of the project's repository, before `dispatchTarget` (2026-11-11, the Mac Studio's spaces).

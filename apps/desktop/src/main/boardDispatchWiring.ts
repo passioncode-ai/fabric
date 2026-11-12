@@ -7,11 +7,12 @@
  */
 import { closeSync, existsSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs'
 import path from 'node:path'
-import { execFile } from 'node:child_process'
+import { spawn } from 'node:child_process'
+import { hostname, networkInterfaces } from 'node:os'
 import type { CommsFactsReply, CommsInboxReply, CommsMessage, CommsRespondersReply, CommsTimelineReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
 import { mandateOfRequest } from './boardMandate.ts'
-import { INBOX_CAPABILITY, remoteOwnerOf, targetForOwner, type DispatchAgent } from '../shared/boardDispatch.ts'
+import { INBOX_CAPABILITY, isSelfTarget, remoteOwnerOf, targetForOwner, type DispatchAgent } from '../shared/boardDispatch.ts'
 import { createBoardDispatch, isDispatchRecord, noteOf, type DispatchDeps, type InboxGiven, type DispatchRecord, type OpenRequest, type RemoteState, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
@@ -113,12 +114,37 @@ export function createInboxState(facts: (messageIds: string[]) => Promise<CommsF
 /** Switchboard's refusal codes, the only words of its stderr that are kept (the 0.3.16 review, iteration 2, DA-5: a
  *  failure's own text carries the command line and the project's folder, and never reaches the log). */
 const REFUSAL_CODES = /\b(no_agent|not_in_group|ceiling_reached|spend_unknown|agent_not_installed|not_on_target|target_busy|target_unreachable)\b/
-const run = (file: string, args: string[], env: NodeJS.ProcessEnv): Promise<string> => new Promise((resolve, reject) => {
-  execFile(file, args, { env, timeout: CLI_DEADLINE_MS, maxBuffer: 4 * 1024 * 1024 }, (e, out, err) => {
-    if (!e) return resolve(String(out))
-    const code = String(err).match(REFUSAL_CODES)?.[1]
-    reject(new Error(code ? `refused: ${code}` : e.killed ? 'no answer within the deadline' : `exited ${String((e as { code?: unknown }).code ?? 'with an error')}`))
-  })
+/** Most of a CLI's output kept (the deadline's 4 MiB, as execFile's `maxBuffer` was). */
+const OUT_MAX = 4 * 1024 * 1024
+/**
+ * One Switchboard call. 2026-11-12 (H4): it runs in a process group of its own, and the deadline ends the whole group,
+ * so an ssh Switchboard started for a run on another machine does not outlive it (a link that hangs used to leave one
+ * ssh per attempt, every pass). Output past OUT_MAX ends the call as a failure, never a buffer that grows.
+ */
+export const run = (file: string, args: string[], env: NodeJS.ProcessEnv, deadlineMs = CLI_DEADLINE_MS): Promise<string> => new Promise((resolve, reject) => {
+  const child = spawn(file, args, { env, detached: process.platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
+  let out = '', err = '', over = false, killed = false, done = false
+  const end = (sig: NodeJS.Signals): void => {
+    try { if (process.platform !== 'win32' && child.pid) process.kill(-child.pid, sig); else child.kill(sig) } catch { /* already gone */ }
+  }
+  const timer = setTimeout(() => { killed = true; end('SIGTERM'); setTimeout(() => end('SIGKILL'), 2_000).unref() }, deadlineMs)
+  timer.unref()
+  const take = (into: 'out' | 'err') => (b: Buffer): void => {
+    if (into === 'out') out += b; else err += b.toString().slice(0, 64 * 1024 - err.length)
+    if (out.length > OUT_MAX && !over) { over = true; end('SIGTERM') }
+  }
+  child.stdout.on('data', take('out'))
+  child.stderr.on('data', take('err'))
+  const finish = (e: Error | null, code: number | null): void => {
+    if (done) return
+    done = true
+    clearTimeout(timer)
+    if (!e && code === 0 && !over) return resolve(out)
+    const refusal = err.match(REFUSAL_CODES)?.[1]
+    reject(new Error(refusal ? `refused: ${refusal}` : killed ? 'no answer within the deadline' : over ? 'the answer was larger than the call takes' : `exited ${code ?? 'with an error'}`))
+  }
+  child.on('error', (e) => finish(e, null))
+  child.on('close', (code) => finish(null, code))
 })
 
 /**
@@ -312,6 +338,8 @@ export function wireBoardDispatch(o: {
   file: string
   env: NodeJS.ProcessEnv
   log: DispatchDeps['log']
+  /** 2026-11-12 (C2): how long this machine slept since a time (ms); absent, none. */
+  suspendedSince?: (from: number) => number
 }): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; boardRuns(): BoardRun[] } {
   let probePath: Promise<string> | null = null
   const pathFor = (): Promise<string> => (probePath ??= widenProbePath(o.env.PATH ?? '', o.env))
@@ -322,6 +350,27 @@ export function wireBoardDispatch(o: {
   /** CO-559: the inbox runs' messages, judged against this pass's inbox read. */
   const inboxState = createInboxState((ids) => o.comms.facts(o.estateId, ids))
   const follower = createRequestFollower(o.comms.timeline ? (id) => o.comms.timeline!(o.estateId, id) : undefined)
+  /** Switchboard's `--version`, kept an hour; one that cannot be read is asked again on the next start. */
+  let version: { text: string; at: number } | null = null
+  const versionOf = async (sb: string): Promise<string> => {
+    if (version && Date.now() - version.at < 3600_000) return version.text
+    const text = await run(sb, ['--version'], await envWith(), 10_000).catch(() => '')
+    if (text) version = { text, at: Date.now() }
+    return text
+  }
+  /** This machine's names and addresses (its Tailscale address too), against which a target is compared. */
+  const ownNames = (): string[] => [hostname(), ...Object.values(networkInterfaces()).flat().map((a) => a?.address ?? '').filter(Boolean)]
+  /** Whether an ssh host names this machine, by `ssh -G` (read locally, no connection), kept per host for the process. */
+  const selfKnown = new Map<string, Promise<boolean>>()
+  const selfTarget = (t: string): Promise<boolean> => {
+    let known = selfKnown.get(t)
+    if (!known) {
+      known = run('ssh', ['-G', t], o.env, 5_000)
+        .then((out) => isSelfTarget(t, out.match(/^hostname\s+(\S+)$/m)?.[1] ?? null, ownNames()), () => isSelfTarget(t, null, ownNames()))
+      if (selfKnown.size < 64) selfKnown.set(t, known)
+    }
+    return known
+  }
   /** Each running launch's coding-agent session id, as `sessions show` last said it (2026-11-11, `boardRunsOf`). */
   const seen = new Map<string, { runtimeSessionId: string; at: number }>()
   // The responder slots, read once per pass: an unread board is never "nobody answers".
@@ -372,8 +421,9 @@ export function wireBoardDispatch(o: {
       const sb = await bin('switchboard')
       if (!sb) return { refused: 'switchboard_absent' }
       try {
-        // CO-559: the version is read for an inbox run only; a version that cannot be read keeps `request`.
-        const takesInbox = a.reason === 'inbox' ? takesInboxReason(await run(sb, ['--version'], await envWith()).catch(() => '')) : false
+        // CO-559: the version is read for an inbox run only; a version that cannot be read keeps `request`. 2026-11-12 (H3):
+        // read once an hour, not before every inbox start.
+        const takesInbox = a.reason === 'inbox' ? takesInboxReason(await versionOf(sb)) : false
         const out = JSON.parse(await run(sb, dispatchArgs(a, takesInbox), await envWith())) as { data?: { launch_id?: string; state?: string; reason?: string } }
         const d = out.data ?? {}
         if (d.state === 'refused' || !d.launch_id) return { refused: d.reason ?? 'refused' }
@@ -411,7 +461,13 @@ export function wireBoardDispatch(o: {
         return 'unknown'
       }
     },
-    remoteTarget: (projectId) => o.remoteTarget?.(projectId) ?? null,
+    // 2026-11-12: a target that is this machine runs here, as a run here (settings copied from another machine).
+    remoteTarget: async (projectId) => {
+      const t = await (o.remoteTarget?.(projectId) ?? null)
+      if (!t) return null
+      if (await selfTarget(t)) { o.log('board.dispatch.self-target', 'ok', { note: 'the named machine is this one; the run starts here' }); return null }
+      return t
+    },
     requestThread: (req) => requestThreadText(o.comms, o.estateId, req),
     async remoteState(launchId) {
       const sb = await bin('switchboard')
@@ -455,19 +511,23 @@ export function wireBoardDispatch(o: {
       renameSync(tmp, o.file)
     },
     log: o.log,
-    quitting: o.quitting
+    quitting: o.quitting,
+    ...(o.suspendedSince ? { suspendedSince: o.suspendedSince } : {})
   }
   const dispatch = createBoardDispatch(deps)
+  /** A launch no longer running forgets its session (2026-11-12: after every pass, not only when the home asks). */
+  const forget = (): void => {
+    const running = new Set(dispatch.records().filter((r) => r.state === 'running' && r.launchId).map((r) => r.launchId as string))
+    for (const id of [...seen.keys()]) if (!running.has(id)) seen.delete(id)
+  }
   return {
-    onPass: () => dispatch.onPass(),
+    onPass: async () => { try { await dispatch.onPass() } finally { forget() } },
     close: () => observatory.close(),
     toOperator: () => dispatch.toOperator(),
     inboxGiven: () => dispatch.inboxGiven(),
     boardRuns: () => {
-      const records = dispatch.records()
-      // A launch no longer running forgets its session.
-      for (const id of [...seen.keys()]) if (!records.some((r) => r.launchId === id && r.state === 'running')) seen.delete(id)
-      return boardRunsOf(records, seen)
+      forget()
+      return boardRunsOf(dispatch.records(), seen)
     }
   }
 }
