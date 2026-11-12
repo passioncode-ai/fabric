@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A run the board starts knows where its questions go** (the operator, 2026-11-12). It decides what it can by the
+  project's decisions and goal, asks another agent through the board, and sends what needs a person to the
+  organization's PM agent (the project offering `people.ask`), or to the operator while none does. It keeps working on
+  the rest while it waits, and the answer starts its next run.
 - **An agent can take over a project's answering slot without handing work over** (the hyperframes thread on the
   board, 2026-11-12). `com.responder_replace` with no `transfer` was refused as «The board could not take a value in
   these arguments» since migration 107: the database walked a NULL list. Migration 129 (schema 102) walks an empty one;

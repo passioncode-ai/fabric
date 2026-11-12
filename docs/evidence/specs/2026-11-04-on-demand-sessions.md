@@ -452,6 +452,50 @@ The operator, 2026-11-12: «диспетчер чтобы работал кор�
   timed out three times run here once Switchboard can say nothing started there, watching runs in parallel within a pass
   budget, and a responder's lease judged by the database's clock.
 
+### 3.10 A task on the Studio taken to its result, and its questions (2026-11-12)
+
+The operator, 2026-11-12, this repository's session `a6d4264e`: «смотри а фабрик же может получить на доску задание на
+студиб в организацию и поднять сессиб и выполнить что надо», then «для те у кого есть уровень доспа к редактировыавнию
+модет запускать клауд код сесииб для выбранного репозитория агента или проекта или добавить на доску задачу и клод на
+студии ее решит по заказу фабкрики … скорее надо уметь решать вопрос ыи доводить задач удо резултьтата или вопросы
+собирать и закидывать нудным людям через агента ПМ (Аня/Кира) или другим агентам», and «изучи north star чтобы не
+наделаить лищнего». Read against the North Star (fabric-workspace `knowledge/north-star.md` at `73171ed0`): what it
+already decides is followed here, and nothing below adds a mechanism it does not ask for.
+
+- **Who starts.** The North Star's principle 2: an owner, an organization administrator and a project's architect
+  command, and their requests approve by themselves and are recorded with their name; a user's request goes through
+  the product's approval. Fabric has no levels yet (CO-523, after the contract's CT-250); until it does, a board
+  request and a session start are the operator's and his agents'. No separate permission scheme is built.
+- **Two doors, one path.** A person picks a project or an agent and writes what to do (one input and one choice), or
+  anyone, an agent included, files a request on the board. Both reach the dispatcher, which starts the project's agent
+  where its folder and an account with quota are (§3.7, and in 0.3.20 by the repository's owner, `dispatchTargets`).
+- **Where.** The North Star's principles 1 and 8 put an organization's work in its own space on its always-on machine,
+  under its own accounts and keys. Today the board lives in the operator's Fabric on the laptop and a run goes to the
+  Studio over ssh (§3.7, §3.9): an interim. The target is the organization's own hub and board in its space, whose
+  dispatcher starts its runs there (G5, CO-552, the 2026-11-21 slice); no scheduler between machines is built on top of
+  the interim.
+- **To its result.** A run is done when its answer carries its receipts (a commit, a deploy, a test): the North Star's
+  «verified work». On a headless place the run finishes by itself (the North Star's G19, decided 2026-11-09).
+- **Questions** (built here, both packets, `main/boardDispatchRun.ts#QUESTIONS_RULE`): a run first decides a question
+  itself, by the project's recorded decisions, its goal, then the safest reversible option, and records why; a question
+  for another agent goes to that agent's project with `com.submit`; one that needs a person goes, one request per task
+  with options and consequences, to the project that offers `people.ask` in `com.directory`, the organization's PM agent
+  (both organizations' PM agents, asked on the board 2026-11-12, requests `019b18dd` and `b3de5244`), or to
+  the operator with `fabric_question_ask` while no project offers it. Meanwhile the run checkpoints and does the
+  independent parts; the answer lands in the asking project's thread as an unread message, which starts its next run
+  (§3.8). Test: `board-dispatch-run.test.mjs` «§3.10», watched failing on `3ba1201a` before it passed.
+- **A session handed over to the Studio.** The operator, the same session: «получается я огу работать на компе а потом
+  сказать закомть все и запу и дай продолжить агену на студии». On that word the session commits its work and pushes its
+  branch (the repository handoff rule), writes its checkpoint with the exact next task (`observatory_checkpoint_write`),
+  files a board request to its own project that names the branch and the workflow, and ends. The project then has no
+  live session, so the dispatcher starts its agent where `dispatchTargets` points, the Studio for the operator's
+  repositories, and that run continues from the checkpoint and answers with its receipts. Every step uses a door that
+  exists; what is missing is the packet naming the workflow to continue (today it travels in the request's text) and a
+  «Продолжить на Studio» act in Fabric that does the four steps for the person.
+- **Not done here.** The levels (CO-523); the organization's own board on the Studio (G5, CO-552); a large goal split
+  into tasks for several projects, which is the manager session's (CO-522 wave D, the North Star's G10); the PM agents'
+  `people.ask` responders, which are theirs.
+
 ## 4. Who does what
 
 | Product | Its part |

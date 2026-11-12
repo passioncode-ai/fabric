@@ -1883,3 +1883,19 @@ test('2026-11-12 (H4): a call past its deadline ends its whole process group, th
   assert.equal(await run('/bin/sh', ['-c', 'printf ok'], process.env), 'ok')
   await assert.rejects(run('/bin/sh', ['-c', 'echo "error: target_unreachable at /Users/x" >&2; exit 3'], process.env), /refused: target_unreachable/)
 })
+
+// The operator, 2026-11-12 (on-demand spec §3.10): a run decides what it can, asks another agent through the board,
+// and takes a question for a person to the organization's PM agent (people.ask), never stopping the work on it.
+test('§3.10: every packet carries the route of questions: decide first, then the owning agent, then people.ask', async () => {
+  for (const requests of [undefined, [inboxItem()]]) {
+    const w = world(requests ? { requests } : {})
+    await createBoardDispatch(w.deps).onPass()
+    const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+    const rule = open.body.constraints.find((c) => c.includes('people.ask'))
+    assert.ok(rule, requests ? 'the inbox packet' : 'the request packet')
+    assert.match(rule, /recorded decisions/); assert.match(rule, /com\.submit/); assert.match(rule, /com\.directory/)
+    assert.match(rule, /fabric_question_ask/, 'no project offers people.ask: the operator')
+    assert.match(rule, /independent parts/, 'a question never stops the run')
+    assert.ok(rule.length <= 500, String(rule.length))
+  }
+})

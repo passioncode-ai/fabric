@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · feat/dispatch-questions → main · fast-forward
+- files: the route of a run's questions in both dispatch packets (`QUESTIONS_RULE` in `boardDispatchRun.ts`), its test, the on-demand spec §3.10 read against the North Star, the changelog and the map
+- conflicts: none
+- summary: part of the 0.3.20 candidate
+
 ### 2026-11-12 · `—` · fix/responder-replace-no-transfer → main · fast-forward
 - files: migration 129 `20261112000129_responder_replace_no_transfer.sql` (schema 102), its ledger row, the schema contract, the private-archive source list, the responders DB test, the pipeline reservations moved to 130/131
 - conflicts: none
