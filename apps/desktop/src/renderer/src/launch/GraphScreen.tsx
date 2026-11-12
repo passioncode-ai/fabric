@@ -63,7 +63,6 @@ export function GraphScreen({ projectId, feedMark, onProject, onWhole }: {
       <header className="lp-heading">
         <div>
           <h2 id="graph-title" tabIndex={-1}>{centre ? t('graph.centred', { name: centre.name }) : t('graph.title')}</h2>
-          <p>{t('graph.lede')}</p>
         </div>
         {projectId && (
           <div className="lp-actions">

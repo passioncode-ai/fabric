@@ -326,7 +326,7 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
       ) : initialSession && !chosen ? (
         // UX-16: arriving for a session that is no longer at work says so, not «choose an agent».
         <div className="ag-pick">
-          <p className="lp-meta" role="status">{t('agentScreen.sessionGone', { id: initialSession.slice(0, 8) })}</p>
+          <p className="lp-meta" role="status">{t('agentScreen.sessionGone')}</p>
         </div>
       ) : (
         <div className="ag-pick">

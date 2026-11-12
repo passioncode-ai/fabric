@@ -12,7 +12,7 @@ import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { FeedEvent, ProjectRow, TaskList, TaskRow } from '../../../shared/types'
 import { Feed } from '../Feed'
 import { useT } from '../i18n'
-import { FeedStrip } from './FabricStrip'
+import { runnerLabel } from '../runnerLabel'
 
 export type PlanLevel = { at: 'portfolio' } | { at: 'project'; projectId: string } | { at: 'goal'; projectId: string; goalId: string | null }
 
@@ -59,6 +59,8 @@ export function PlanScreen({ projects, feed, feedMark, level: initial, onProject
   const tasks: TaskRow[] | null = list?.tasks ?? null
   const plan = goals && tasks ? planOf(goals, tasks.filter((x) => x.status !== 'done' && x.status !== 'cancelled')) : null
   const closedUnder = (goalId: string) => (tasks ?? []).filter((x) => x.goal_id === goalId && (x.status === 'done' || x.status === 'cancelled')).length
+  // SP-2 (2026-11-12): a work node is subtitled by who works it, never by its id.
+  const runnerLabelOr = (x: TaskRow): string => (x.option_id ? runnerLabel(x.option_id, t) : t('task.who.agent'))
   const stateOf = (x: TaskRow) => t(x.status === 'cancelled' ? 'launch.project.cancelled' : (`board.${x.status}` as 'board.done'))
 
   // The nodes of the level on show; each names what it is and where it opens.
@@ -88,7 +90,7 @@ export function PlanScreen({ projects, feed, feedMark, level: initial, onProject
               open: () => setLevel({ at: 'goal', projectId: level.projectId, goalId: null }), openLabel: t('launch.plan.expand') }] : [])
           ]
         : plan === null ? null : (level.goalId === null ? plan.unattached : plan.goals.find((g) => g.goal.id === level.goalId)?.tasks ?? []).map((x, i) => ({
-            key: x.id, kicker: t('launch.plan.node.work', { n: i + 1 }), title: x.title || x.instruction, sub: x.id.slice(0, 8), pill: stateOf(x),
+            key: x.id, kicker: t('launch.plan.node.work', { n: i + 1 }), title: x.title || x.instruction, sub: runnerLabelOr(x), pill: stateOf(x),
             attention: x.status === 'review', open: () => onTask(level.projectId, x.id), openLabel: t('launch.plan.openTask')
           }))
 
@@ -103,12 +105,10 @@ export function PlanScreen({ projects, feed, feedMark, level: initial, onProject
   const stripProject = level.at === 'portfolio' ? null : (projects ?? []).find((p) => p.id === level.projectId) ?? null
   return (
     <div className="lp" data-launch-view="launch-plan">
-      <FeedStrip feed={feed} projectId={stripProject?.id ?? null} projectName={stripProject?.name ?? null} onPulse={onPulse ? () => onPulse(stripProject?.id ?? null) : undefined} />
       <header className="lp-heading">
         <div>
-          <p className="lp-kicker">{t('launch.plan.kicker')}</p>
-          <h2 tabIndex={-1}>{t('launch.plan.title')}</h2>
-          <p>{t('launch.plan.lede')}</p>
+          {/* SP-1 (2026-11-12): the top bar names the screen; this heading stays for focus and for a screen reader only. */}
+          <h2 className="visually-hidden" tabIndex={-1}>{t('launch.plan.title')}</h2>
         </div>
         <div className="lp-actions">
           {project && <button type="button" className="lp-button" onClick={() => onProject(project.id)}>{t('launch.plan.toProject')}</button>}

@@ -1,6 +1,6 @@
 # Simple screens: one input or one choice, a terse interface
 
-**Status:** wave 1 built 2026-11-12 (the task page); waves 2 to 7 planned below · source: the operator, 2026-11-12, with a
+**Status:** waves 1 and 2 built 2026-11-12 (the task page; the cross-cutting rules, X-1 to X-5 and X-7 in part); waves 3 to 7 planned below · source: the operator, 2026-11-12, with a
 screenshot of the task page:
 
 > проработать UI этой и все другие страниц, наш принцип это простота, от пользователя только простой инпут или выбор, и
@@ -47,6 +47,8 @@ rules), ported into the app by `scripts/launch/port-launch-css.mjs`. Tests: `app
 The audit read every other screen's code (file:line evidence in each row). Order: what a person sees most first.
 
 ### Wave 2: cross-cutting (every screen)
+
+**Built 2026-11-12:** X-4 and X-5 on Доска, Переписка, План, Пульс, Выпуски, Граф, Настройки, the project page, «Где работа», «Облик» and «Создать» (the kicker, the slogan `h2` and the lede gone; the `h2` kept visually hidden for focus; the strips gone; the top bar says «Доска · {проект}» and «Планирование · {проект}» on a project's). X-1 and X-2 where a renderer cut an id: the kanban card, the agent page's session line, «Сессия закончилась», «Без темы», the plan's work node (subtitled by its runner), Выпуски, Пульс, the feed, the estate's agents, the context's size line (no hash). X-3 is two ratchets in `scripts/check-design.mjs`: SP-2 (`scripts/sp2-baseline.txt`, 13 places still to go) and the em dash in a Russian string (`scripts/emdash-baseline.txt`, 133 strings still to go, eight fixed). The unused `HomeLive` is deleted. Left: X-6 (hints), X-8 (the prototype's task view), and what the baselines list, each in its screen's wave.
 
 | # | Change | Where | Rule |
 |---|---|---|---|

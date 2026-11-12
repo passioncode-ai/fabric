@@ -137,8 +137,8 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
                 {c.unread && <FailureNote said={t('launch.kanban.unreadable')} detail={c.unread} />}
                 {!c.unread && cards.length === 0 && <p className="lp-meta">{t(c.capped ? 'launch.kanban.beyondCap' : 'launch.kanban.empty')}</p>}
                 {cards.map((x) => {
-                  // A session is named by the first eight characters of its id, the way the console list names it.
-                  const short = x.sessionId ? x.sessionId.slice(0, 8) : null
+                  // SP-2 (2026-11-12): the session is the card's agent, named in words; its id never reaches the card.
+                  const short = x.sessionId ? (x.agent ? runnerLabel(x.agent, t) : t('task.who.agent')) : null
                   return (
                     <div key={x.taskId} className="lk-card-wrap">
                       <button type="button" className="lk-card" onClick={() => onOpen(x.projectId, x.taskId)}>
@@ -148,10 +148,10 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
                         {x.specMissing && <span className="lp-pill attention">{t('launch.kanban.specMissing')}</span>}
                       </button>
                       {short && x.sessionId && (c.key === 'abandoned'
-                        ? <small className="lp-meta lk-session">{t('launch.kanban.sessionGone', { id: short })}</small>
+                        ? <small className="lp-meta lk-session">{t('launch.kanban.sessionGone')}</small>
                         : onAgent
-                        ? <button type="button" className="lp-button lh-text-link lk-session" aria-label={t('launch.kanban.openAgent', { id: short })} onClick={() => onAgent(x.sessionId!)}>{t('launch.kanban.session', { id: short })}</button>
-                        : <small className="lp-meta lk-session">{t('launch.kanban.session', { id: short })}</small>)}
+                        ? <button type="button" className="lp-button lh-text-link lk-session" aria-label={t('launch.kanban.openAgent', { agent: short })} onClick={() => onAgent(x.sessionId!)}>{t('launch.kanban.session')}</button>
+                        : <small className="lp-meta lk-session">{t('launch.kanban.sessionLive')}</small>)}
                     </div>
                   )
                 })}

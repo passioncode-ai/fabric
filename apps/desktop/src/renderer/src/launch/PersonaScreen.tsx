@@ -40,7 +40,6 @@ export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Ele
     <div className="lp" data-launch-view="launch-persona">
       <header className="lp-heading">
         <div>
-          <p className="lp-kicker">{t('launch.persona.kicker')}</p>
           <h2 tabIndex={-1}>{t('launch.persona.title')}</h2>
           <p>{chosen ? t('launch.persona.lede') : t('launch.persona.ledeFirst')}</p>
         </div>

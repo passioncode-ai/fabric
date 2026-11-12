@@ -71,9 +71,8 @@ export function WhereWorkScreen({
     <div className="lp" data-launch-view="where-work">
       <header className="lp-heading">
         <div>
-          <p className="lp-kicker">{t('launch.nav.manage')}</p>
-          <h2 tabIndex={-1}>{t('work.where.title')}</h2>
-          <p>{t('work.where.lede')}</p>
+          {/* SP-1 (2026-11-12): the top bar names the screen; this heading stays for focus and for a screen reader only. */}
+          <h2 className="visually-hidden" tabIndex={-1}>{t('work.where.title')}</h2>
         </div>
       </header>
       {read.state === 'reading' && <Panel><p className="muted">{t('work.where.reading')}</p></Panel>}

@@ -102,9 +102,9 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     show(<AgentPage agent={agentA} mark={0} onConsole={onConsole} onOpenProject={onOpenProject} onOpenTask={onOpenTask} />)
     await screen.findByRole('list', { name: en['agentPage.did'] })
     expect(screen.queryByRole('list', { name: en['agentPage.results'] })).toBeNull()
-    // The mockup parity: the heading is the runner alone; the session id is in the line under it.
+    // The mockup parity: the heading is the runner alone; SP-2 (2026-11-12): the session id is nowhere on the page.
     expect(screen.getByRole('heading', { name: 'Claude Code' })).toBeTruthy()
-    expect(document.querySelector('.as-meta')?.textContent).toContain(`${en['agentScreen.sessionWord']} s1`)
+    expect(document.querySelector('.as-meta')?.textContent).not.toContain(`${en['agentScreen.sessionWord']} s1`)
     const card = screen.getByRole('complementary', { name: en['agentScreen.session'] })
     expect(onConsole).not.toHaveBeenCalled()
     fireEvent.click(within(card).getByRole('button', { name: en['agentScreen.openSession'] }))

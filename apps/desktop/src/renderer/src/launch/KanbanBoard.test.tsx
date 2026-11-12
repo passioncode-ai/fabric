@@ -166,12 +166,14 @@ describe('the board\'s agents, abandoned work and finished pages (0.3.14)', () =
     columns: board.columns.map((c) => c.stage === 'running' ? { ...c, cards: c.cards.map((x) => ({ ...x, sessionId: '0a1b2c3d-1111-4222-8333-444444444444' })) } : c.stage === 'done' ? { ...c, capped: true, cards: [{ taskId: 'd1', projectId: 'p1', projectName: 'Fabric', summary: 'Shipped', agent: null, since: null }] } : c),
     abandoned: [{ taskId: 'a1', projectId: 'p1', projectName: 'Fabric', summary: 'Left behind', agent: 'codex', sessionId: null, since: null }]
   }
-  it('a running card names its session and opens its agent, apart from opening the task', async () => {
+  // SP-2 (2026-11-12): the card's agent is named in words; the session id never reaches the card.
+  it('a running card opens its agent by name, apart from opening the task, and shows no session id', async () => {
     install(async () => withWork)
     const onOpen = vi.fn(), onAgent = vi.fn()
     show({ onOpen, onAgent })
-    const agent = await screen.findByRole('button', { name: en['launch.kanban.openAgent'].replace('{id}', '0a1b2c3d') })
-    expect(agent.textContent).toContain(en['launch.kanban.session'].replace('{id}', '0a1b2c3d'))
+    const agent = await screen.findByRole('button', { name: en['launch.kanban.openAgent'].replace('{agent}', 'Claude Code') })
+    expect(agent.textContent).toBe(en['launch.kanban.session'])
+    expect(document.body.textContent).not.toContain('0a1b2c3d')
     fireEvent.click(agent)
     expect(onAgent).toHaveBeenCalledWith('0a1b2c3d-1111-4222-8333-444444444444')
     expect(onOpen).not.toHaveBeenCalled()
@@ -210,7 +212,7 @@ describe('the board\'s agents, abandoned work and finished pages (0.3.14)', () =
   it('UX-6: the session link\'s accessible name starts with what it shows, in Russian too', async () => {
     install(async () => withWork)
     render(<I18nProvider locale="ru"><KanbanBoard feedMark={0} onOpen={vi.fn()} onAgent={vi.fn()} /></I18nProvider>)
-    const visible = ru['launch.kanban.session']!.replace('{id}', '0a1b2c3d')
+    const visible = ru['launch.kanban.session']!
     const link = await screen.findByText(visible)
     expect(link.getAttribute('aria-label')?.startsWith(visible)).toBe(true)
   })

@@ -23,7 +23,6 @@ import { AnswerForm, submitAnswer } from '../BoardPanel'
 import { since } from '../duration'
 import { pluralForm, useLocale, useT } from '../i18n'
 import { decisionHeadOf, detailOf, titleOf } from '../attentionTitle'
-import { FabricStrip } from './FabricStrip'
 import { FailureNote, MachineDetail } from '../OperatorError'
 import { KanbanBoard } from './KanbanBoard'
 import { ObligationActs, opensAt, useProposalDecisions } from './ObligationActs'
@@ -296,16 +295,11 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
 
   return (
     <div className="lp" data-launch-view="launch-board">
-      <FabricStrip
-        text={observed ? t(scopeName ? 'launch.board.observedProject' : 'launch.board.observed', { time: observed, project: scopeName ?? '' }) : t('launch.board.reading')}
-        onPulse={onPulse}
-      />
       <header className="lp-heading">
         <div>
           {/* The kanban has its own heading; the queue's is «Нужны вы»'s (0.3.11 review, iteration 2, UX-2). */}
-          <p className="lp-kicker">{t(mode === 'kanban' ? 'launch.kanban.kicker' : 'launch.board.kicker')}</p>
-          <h2 tabIndex={-1}>{t(mode === 'kanban' ? 'launch.kanban.title' : 'launch.board.title')}</h2>
-          <p>{t(mode === 'kanban' ? (projectId ? 'launch.kanban.ledeProject' : 'launch.kanban.lede') : 'launch.board.lede')}</p>
+          {/* SP-1 (2026-11-12): the top bar names the screen; this heading stays for focus and for a screen reader only. */}
+          <h2 className="visually-hidden" tabIndex={-1}>{t(mode === 'kanban' ? 'launch.kanban.title' : 'launch.board.title')}</h2>
         </div>
         <div className="lp-actions">
           <button type="button" className="lp-button primary" aria-pressed={mode === 'needs' && review} onClick={() => { if (mode !== 'needs') { setMode('needs'); setReview(true) } else setReview(!review) }}>

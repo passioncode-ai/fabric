@@ -249,7 +249,7 @@ export function RelatedThreads({ threadId, onOpen }: { threadId: string; onOpen:
         <ul className="lp-comms-related">
           {state.value.map((r) => (
             <li key={r.id}>
-              <button type="button" className="lp-link" onClick={() => onOpen(r)}>{r.subject ?? t('launch.comms.untitled', { id: r.id.slice(0, 8) + '…' })}</button>
+              <button type="button" className="lp-link" onClick={() => onOpen(r)}>{r.subject ?? t('launch.comms.untitled')}</button>
               <span className="lp-meta"> · {t(r.why === 'shared-artifact' ? 'launch.comms.related.shared-artifact' : 'launch.comms.related.same-projects')}</span>
             </li>
           ))}

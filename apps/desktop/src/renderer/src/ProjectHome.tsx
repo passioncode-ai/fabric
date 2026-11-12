@@ -1660,10 +1660,7 @@ function TranscriptsSection({
                           {context.held ? (
                             <>
                               <p className="muted">
-                                {t('context.identity', {
-                                  chars: String(context.chars),
-                                  sha: context.sha256.slice(0, 12)
-                                })}{' '}
+                                {t('context.identity', { chars: String(context.chars) })}{' '}
                                 {t('context.exact')}
                               </p>
                               <pre className="mono">{context.bytes}</pre>

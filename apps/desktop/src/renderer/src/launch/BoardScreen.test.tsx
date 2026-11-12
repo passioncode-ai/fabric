@@ -747,10 +747,13 @@ describe('the board header after iteration 2 (V2-13)', () => {
     fireEvent.click(screen.getByRole('button', { name: en['launch.board.addTopic'] }))
     expect(screen.getByRole('button', { name: en['launch.board.addTopic'] }).getAttribute('aria-expanded')).toBe('true')
   })
-  it("a project's own board says it is that project's tasks (V3-13)", () => {
+  // SP-1 (2026-11-12): the project is named by the top bar («Доска · Atlas», App.tsx `placeTitle`); the board itself
+  // carries no slogan heading or lede.
+  it("a project's own board carries no slogan heading or lede of its own (V3-13, SP-1)", () => {
     stub()
     render(<I18nProvider locale="en"><BoardScreen projects={PROJECTS} projectId="p1" feedMark={0} onOpen={vi.fn()} onError={vi.fn()} /></I18nProvider>)
-    expect(screen.getByText(en['launch.kanban.ledeProject'])).toBeTruthy()
+    expect(screen.queryByText(en['launch.kanban.ledeProject'])).toBeNull()
+    expect(screen.getByRole('heading', { level: 2 }).className).toContain('visually-hidden')
   })
 })
 

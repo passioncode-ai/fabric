@@ -9,7 +9,6 @@ import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { ReleaseCommandResult, ReleaseEntry, ReleaseRef, ReleaseStatus } from '../../../shared/releases.ts'
 import type { FeedEvent, ProjectRow } from '../../../shared/types'
 import { useLocale, useT } from '../i18n'
-import { FeedStrip } from './FabricStrip'
 
 type Said = { ok: true } | { ok: false; text: string } | null
 
@@ -45,7 +44,7 @@ export function ReleasesScreen({ projects, feed, projectId = null, releaseId = n
   const rows = tab === 'all' ? all : all.filter((r) => r.projectId === tab)
   const shown = rows.find((r) => r.id === picked) ?? rows[0] ?? null
   const unread = (read?.sources ?? []).filter((s) => s.status !== 'ok').map((s) => s.name)
-  const nameOf = (id: string | null) => (id ? all.find((r) => r.id === id)?.name ?? id.slice(0, 8) : '')
+  const nameOf = (id: string | null) => (id ? all.find((r) => r.id === id)?.name ?? t('launch.releases.unknownRelease') : '')
   /** CO-471: a release's project as the other screens name it, its stored name when the project is not in the list. */
   const shownProject = (id: string | null | undefined, stored: string): string => { const p = (projects ?? []).find((x) => x.id === id); return p ? projectDisplayName(p) : stored }
   const when = (iso: string) => new Date(iso).toLocaleString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
@@ -55,12 +54,10 @@ export function ReleasesScreen({ projects, feed, projectId = null, releaseId = n
 
   return (
     <div className="lp" data-launch-view="launch-releases">
-      <FeedStrip feed={feed} projectId={tab !== 'all' ? tab : null} projectName={tab !== 'all' ? (() => { const p = live.find((x) => x.id === tab); return p ? projectDisplayName(p) : null })() : null} onPulse={onPulse} />
       <header className="lp-heading">
         <div>
-          <p className="lp-kicker">{t('launch.releases.kicker')}</p>
-          <h2 tabIndex={-1}>{t('launch.releases.title')}</h2>
-          <p>{t('launch.releases.lede')}</p>
+          {/* SP-1 (2026-11-12): the top bar names the screen; this heading stays for focus and for a screen reader only. */}
+          <h2 className="visually-hidden" tabIndex={-1}>{t('launch.releases.title')}</h2>
         </div>
         <div className="lp-actions">
           {live.length > 0 && <button type="button" className="lp-button" onClick={() => setForm(form ? null : { rollsBack: null })}>{t('launch.releases.record')}</button>}
@@ -115,7 +112,7 @@ function Detail({ r, status, when, nameOf, onBoard, onRollback, onVerified }: {
 }): React.JSX.Element {
   const t = useT()
   const [verifying, setVerifying] = useState(false)
-  const ref = (x: ReleaseRef) => <li key={x.id}>{x.text ?? t('launch.releases.unreadRef', { id: x.id.slice(0, 8) })}</li>
+  const ref = (x: ReleaseRef) => <li key={x.id}>{x.text ?? t('launch.releases.unreadRef')}</li>
   const verification = r.outcome === null ? t('launch.releases.verify.candidate')
     : t(r.outcome === 'accepted' ? 'launch.releases.verify.accepted' : 'launch.releases.verify.failed', { receipt: r.receipt ?? '' })
   return (
@@ -134,7 +131,7 @@ function Detail({ r, status, when, nameOf, onBoard, onRollback, onVerified }: {
       <details>
         <summary>{t('launch.releases.chain')}</summary>
         <dl className="lp-facts">
-          <div><dt>{t('launch.releases.chain.record')}</dt><dd>{when(r.recordedAt)} · {r.id.slice(0, 8)}</dd></div>
+          <div><dt>{t('launch.releases.chain.record')}</dt><dd>{when(r.recordedAt)}</dd></div>
           <div><dt>{t('launch.releases.chain.env')}</dt><dd>{r.environment}</dd></div>
           <div><dt>{t('launch.releases.chain.receipt')}</dt><dd>{r.receipt ? `${r.receipt}${r.verifiedAt ? ` · ${when(r.verifiedAt)}` : ''}` : t('launch.releases.chain.none')}</dd></div>
         </dl>

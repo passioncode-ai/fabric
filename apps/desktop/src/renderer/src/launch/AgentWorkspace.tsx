@@ -118,7 +118,7 @@ export function ContextTab({ projectId, sessionId }: { projectId: string; sessio
           : past.held ? (
             <>
               <h3>{t('launch.agent.context.pastTitle')}</h3>
-              <p className="lp-meta">{t('launch.agent.context.pastMeta', { chars: past.chars, sha: past.sha256.slice(0, 12) })}</p>
+              <p className="lp-meta">{t('launch.agent.context.pastMeta', { chars: past.chars })}</p>
               <details><summary>{t('launch.agent.context.show')}</summary><pre className="lp-pack">{past.bytes}</pre></details>
             </>
           ) : <div className="lp-callout"><b>{t('launch.agent.context.notHeld')}</b><p>{past.says}</p></div>

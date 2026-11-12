@@ -348,9 +348,8 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpen, agen
     <main className="lp lp-settings" data-launch-view="settings">
       <header className="lp-heading">
         <div>
-          <p className="lp-kicker">{t('settings.screen.kicker')}</p>
-          <h2 tabIndex={-1} ref={heading}>{t('settings.screen.title')}</h2>
-          <p>{t('settings.screen.body')}</p>
+          {/* SP-1 (2026-11-12): the top bar names the screen; this heading stays for focus and for a screen reader only. */}
+          <h2 className="visually-hidden" tabIndex={-1} ref={heading}>{t('settings.screen.title')}</h2>
         </div>
       </header>
       {/* SCN-170 step 1, in its order; «Ещё» last (0.3.13, CO-392's rest). */}

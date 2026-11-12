@@ -39,7 +39,6 @@ import { COMMS_KINDS } from '../../../shared/commsRead.ts'
 import type { ProjectRow } from '../../../shared/types'
 import { since } from '../duration'
 import { useLocale, useT, type Translate } from '../i18n'
-import { FabricStrip } from './FabricStrip'
 import { CommsFeed } from './CommsFeed'
 import { CommsAnnouncements } from './CommsAnnouncements'
 import { FailureNote, MachineDetail } from '../OperatorError'
@@ -329,12 +328,10 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
   return (
     <div className="lp" data-launch-view="comms">
       {/* Under «Лента» the strip says how the feed reads; the thread list's own time is «Ветки»' (iteration 3, ER-6, DA-3). */}
-      <FabricStrip text={mode === 'feed' ? t('launch.comms.feed.strip') : mode === 'announcements' ? t('launch.comms.ann.strip') : observed ? t('launch.comms.observed', { time: observed }) : t('launch.comms.reading')} onPulse={onPulse} />
       <header className="lp-heading">
         <div>
-          <p className="lp-kicker">{t('launch.comms.kicker')}</p>
-          <h2 tabIndex={-1}>{t('launch.comms.title')}</h2>
-          <p>{t('launch.comms.lede')}</p>
+          {/* SP-1 (2026-11-12): the top bar names the screen; this heading stays for focus and for a screen reader only. */}
+          <h2 className="visually-hidden" tabIndex={-1}>{t('launch.comms.title')}</h2>
         </div>
       </header>
       <div className="lp-modes" role="group" aria-label={t('launch.comms.title')}>

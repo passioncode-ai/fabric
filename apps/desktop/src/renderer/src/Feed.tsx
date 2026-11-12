@@ -32,7 +32,7 @@ export function Feed({
   const locale = useLocale()
   const nameOf = (id: string | null): string =>
     // No dash on screen for an event with no project (0.3.11 review, iteration 2, UX-7): the place says so in words.
-    id ? (projects.find((p) => p.id === id)?.name ?? id.slice(0, 8)) : t('launch.home.agents.noProject')
+    id ? (projects.find((p) => p.id === id)?.name ?? t('launch.home.boardWaiting.unknownProject')) : t('launch.home.agents.noProject')
 
   const actFor = (e: FeedEvent) => feedAct(e, t)
 

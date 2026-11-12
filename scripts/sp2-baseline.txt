@@ -1,0 +1,15 @@
+# SP-2 debt (2026-11-12): places that still show a machine id to a person. Only shrinks; see
+# docs/ux/plans/2026-11-12-simple-screens.md. A row is "<file>: <trimmed line>" or "ru.ts: <key>".
+apps/desktop/src/renderer/src/DiagnosticsSection.tsx: <span className="muted mono"> · {r.correlationId.slice(0, 8)}</span>
+apps/desktop/src/renderer/src/launch/CommsScreen.tsx: const shortId = (id: string): string => (id.length > 12 ? `${id.slice(0, 8)}…` : id)
+ru.ts: access.origin.plain
+ru.ts: access.origin.by
+ru.ts: access.origin.repo
+ru.ts: access.origin.both
+ru.ts: access.res.gmail
+ru.ts: launch.pulse.basisBody
+ru.ts: launch.comms.responder.absent
+ru.ts: launch.comms.unknown.settledBy
+ru.ts: launch.comms.unknown.nobody
+ru.ts: launch.comms.artifact.hash
+ru.ts: work.who.source

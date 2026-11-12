@@ -13,7 +13,6 @@ import type { WorkRhythm } from '../../../shared/workRhythm.ts'
 import type { RunStatusView } from '../../../shared/runStatus.ts'
 import type { FeedEvent, ProjectRow, RoutineRow, TerminalSession } from '../../../shared/types'
 import { describeFeedEvent, useLocale, useT } from '../i18n'
-import { FeedStrip } from './FabricStrip'
 import { useOpenConsole } from '../consoles'
 
 export function PulseScreen({ projects, feed, sessions, projectId = null, onBoard, onProject, onReleases }: {
@@ -51,19 +50,17 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
   const max = Math.max(1, ...days.map((d) => d.count))
   const selected = days.find((d) => d.date === day) ?? days[days.length - 1]
   const shown = eventsOfDay(scoped, selected.date, kind)
-  const nameOf = (id: string | null) => (id ? (() => { const p = (projects ?? []).find((x) => x.id === id); return p ? projectDisplayName(p) : id.slice(0, 8) })() : t('launch.pulse.estate'))
+  const nameOf = (id: string | null) => (id ? (() => { const p = (projects ?? []).find((x) => x.id === id); return p ? projectDisplayName(p) : t('launch.home.boardWaiting.unknownProject') })() : t('launch.pulse.estate'))
   const scopeName = projectId ? nameOf(projectId) : t('launch.pulse.allProjects')
   const time = (iso: string) => new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
   const label = (d: { date: string; count: number; known: boolean }) => (d.known ? t('launch.pulse.dayCount', { date: d.date, count: d.count }) : t('launch.pulse.dayUnknown', { date: d.date }))
 
   return (
     <div className="lp" data-launch-view="launch-pulse">
-      <FeedStrip feed={feed} projectId={projectId} projectName={projectId ? scopeName : null} />
       <header className="lp-heading">
         <div>
-          <p className="lp-kicker">{t('launch.pulse.kicker', { scope: scopeName })}</p>
-          <h2 tabIndex={-1}>{t('launch.pulse.title')}</h2>
-          <p>{t('launch.pulse.lede')}</p>
+          {/* SP-1 (2026-11-12): the top bar names the screen; this heading stays for focus and for a screen reader only. */}
+          <h2 className="visually-hidden" tabIndex={-1}>{t('launch.pulse.title')}</h2>
         </div>
         <div className="lp-actions"><button type="button" className="lp-button" onClick={() => onReleases()}>{t('launch.pulse.releases')}</button></div>
       </header>

@@ -235,7 +235,7 @@ export function EstateAgents({
               trail={<span className="muted">{since(s.lastActivityAt, t)}</span>}
               onClick={() => setSelected(s.sessionId)}
             >
-              {inEstate.find((p) => p.id === s.projectId)?.name ?? s.projectId.slice(0, 8)}
+              {inEstate.find((p) => p.id === s.projectId)?.name ?? t('launch.home.boardWaiting.unknownProject')}
               <span className="muted mono"> {s.optionId}</span>
             </Row>
           ))}

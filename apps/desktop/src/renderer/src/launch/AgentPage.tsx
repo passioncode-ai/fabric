@@ -328,7 +328,6 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
             {agent.branch
               ? <span className="rail-branch">{agent.branch}</span>
               : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
-            <span>{t('agentScreen.sessionWord')} <span className="as-mono">{agent.sessionId.slice(0, 8)}</span></span>
           </p>
         </div>
         <span className="lh-agents-actions">

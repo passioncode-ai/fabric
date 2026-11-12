@@ -60,8 +60,8 @@ export function Heading({ kicker, title, lede, back }: { kicker: string; title: 
   return (
     <header className="lp-heading">
       <div>
-        <p className="lp-kicker">{kicker}</p>
-        <h2 tabIndex={-1} ref={ref}>{title}</h2>
+        {/* SP-1 (2026-11-12): the top bar names the place; the heading stays for focus and a screen reader. */}
+        <h2 className="visually-hidden" tabIndex={-1} ref={ref}>{title}</h2>
         <p>{lede}</p>
       </div>
       {back && <div className="lp-actions"><button type="button" className="lp-button" disabled={back.disabled} onClick={back.onClick}>{back.label}</button></div>}

@@ -475,6 +475,57 @@ if (literals === 0) ok('strings: no literal interface text in components')
     )
 }
 
+// ── SP-2: no machine identifier reaches a person (2026-11-12) ─────────────
+//
+// The operator's principle of 2026-11-12, «простота … ёмкий лаконичный интерфейс», made a rule in
+// docs/ux/plans/2026-11-12-simple-screens.md: a UUID, `agent:<uuid>`, a session, claim or task id, a hash, a journal
+// seq or a capability name is never what a person reads. Two shapes carry one to the screen: a renderer that cuts an
+// id, a hash or a session (`id.slice(0, 8)`) and a Russian string with an `{id}`, `{sha}`, `{hash}`, `{seq}` or
+// `{capability}` placeholder. What still does is the
+// debt in `sp2-baseline.txt`, and it may only SHRINK, as the bilingual ratchet does.
+{
+  const RENDERER = path.join(SRC, 'renderer/src')
+  const found = new Set()
+  for (const f of walk(RENDERER).filter((x) => /\.tsx?$/.test(x) && !/\.test\.tsx?$/.test(x) && !x.includes('/i18n/')))
+    readFileSync(f, 'utf8').split('\n').forEach((line) => {
+      if (/(id|Id|sha\d*|hash|[sS]ession\w*)\??\.slice\(0,\s*(8|12)\)/.test(line) && !/^\s*(\/\/|\*)/.test(line)) found.add(`${rel(f)}: ${line.trim().slice(0, 140)}`)
+    })
+  for (const m of readFileSync(path.join(RENDERER, 'i18n/ru.ts'), 'utf8').matchAll(/^\s+'([^']+)':\s*(['"])(.*)\2,?\s*$/gm))
+    if (/\{(id|sha|hash|seq|capability)\}/.test(m[3])) found.add(`ru.ts: ${m[1]}`)
+  const baseFile = path.join(ROOT, 'scripts/sp2-baseline.txt')
+  const base = new Set(readFileSync(baseFile, 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#')))
+  const added = [...found].filter((x) => !base.has(x))
+  const gone = [...base].filter((x) => !found.has(x))
+  if (added.length)
+    fail(`SP-2: ${added.length} new place(s) show a machine id to a person — say it in words (docs/ux/plans/2026-11-12-simple-screens.md): ${added.join(' | ')}`)
+  if (gone.length)
+    fail(`SP-2: ${gone.length} baseline row(s) are gone from the code — the ratchet only shrinks, strike them from scripts/sp2-baseline.txt: ${gone.join(' | ')}`)
+  if (!added.length && !gone.length) ok(`SP-2: no new machine id on screen; ${base.size} known in the shrinking baseline`)
+}
+
+// ── no em dash in a Russian interface string (2026-11-12) ─────────────────
+//
+// The operator's rule for every text a person reads: no em dash (U+2014) and no substitute; a full stop, a comma, a
+// colon or parentheses instead. The strings that still carry one are `emdash-baseline.txt`, which may only SHRINK: a
+// dash is replaced by the sign its sentence needs, by hand, screen by screen.
+{
+  const DASH = '\u2014'
+  const found = new Set()
+  let key = null
+  for (const line of readFileSync(path.join(SRC, 'renderer/src/i18n/ru.ts'), 'utf8').split('\n')) {
+    const k = line.match(/^\s+'([^']+)':/)
+    if (k) key = k[1]
+    if (key && line.includes(DASH) && !/^\s*\/\//.test(line)) found.add(key)
+  }
+  const baseFile = path.join(ROOT, 'scripts/emdash-baseline.txt')
+  const base = new Set(readFileSync(baseFile, 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#')))
+  const added = [...found].filter((x) => !base.has(x))
+  const gone = [...base].filter((x) => !found.has(x))
+  if (added.length) fail(`em dash: ${added.length} Russian string(s) gained an em dash, use a full stop, a comma, a colon or parentheses: ${added.join(', ')}`)
+  if (gone.length) fail(`em dash: ${gone.length} baseline row(s) no longer carry one, strike them from scripts/emdash-baseline.txt: ${gone.join(', ')}`)
+  if (!added.length && !gone.length) ok(`em dash: no new one in a Russian string; ${base.size} known in the shrinking baseline`)
+}
+
 // ── a figure opens the register it was counted from ───────────────────────
 //
 // M142's rule, and the way it decays. `evidence.ts` lists every section a figure

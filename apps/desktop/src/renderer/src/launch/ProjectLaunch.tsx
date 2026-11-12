@@ -11,7 +11,6 @@ import type { CreatedAgent, ProjectRow, TaskRow, TerminalSession } from '../../.
 import { since } from '../duration'
 import { useLocale, useT } from '../i18n'
 import { detailOf, titleOf } from '../attentionTitle'
-import { ProjectStrip } from './FabricStrip'
 import { HomeAgents, useHome } from './HomeWork'
 import { ProjectWay } from './ProjectWay'
 import { ProjectDirections } from './WorkDirections'
@@ -103,11 +102,10 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, sessions, f
 
   return (
     <div className="lp" data-launch-view="launch-project">
-      <ProjectStrip project={project} lastEventAt={lastEventAt} onPulse={onPulse} />
       <header className="lp-heading">
         <div>
-          <p className="lp-kicker">{t('launch.project.kicker')}</p>
-          <h2 tabIndex={-1}>{project.name}</h2>
+          {/* SP-1 (2026-11-12): the top bar names the screen; this heading stays for focus and for a screen reader only. */}
+          <h2 className="visually-hidden" tabIndex={-1}>{project.name}</h2>
           <p>{project.purpose || t('project.noPurpose')}</p>
           {pulse?.now && (
             <p className="lp-project-now"><span className="lh-live-indicator" aria-hidden="true" />{t('launch.project.nowLine', { text: pulse.now.text })}</p>
