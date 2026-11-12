@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · docs/0320-close-install → main · fast-forward
+- files: the 0.3.20 ledger's executed release close (items 1, 2, 2b, 3 asked, 4) and the board's outage before the install, the design map
+- conflicts: none
+- summary: 0.3.20 published and installed on this Mac
+
 ### 2026-11-12 · `—` · docs/0320-close-rulings-r5 → main · fast-forward
 - files: run five's ruled findings ER-90 and DO-91 into CO-569 (the carry-over ledger), release close items 0b and 9 checked off, the design map
 - conflicts: none

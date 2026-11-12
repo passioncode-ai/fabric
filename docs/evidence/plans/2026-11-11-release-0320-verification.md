@@ -473,3 +473,36 @@ run can be fixed only in the files the gate allows after `verifiedCommit` (relea
 10. The runbook's steps 9 (the site's download links), 10 (publish and pin the
    workspace from the release commit, once the scheduled publication works again, CO-569) and 11 (the knowledge base's
    Fabric row) (run three, PL-51).
+
+### Executed (release close)
+
+- Item 1, 14:15Z: `release.yml` run 43220559990: preflight, guard, macos, windows x64 and arm64, linux x64 and arm64,
+  publish all `success`; https://github.com/passioncode-ai/fabric/releases/tag/v0.3.20 with 14 assets. The run waited
+  in the organization's shared Actions queue from 12:43Z (about 20 `observatory-release-check` runs of
+  project-observatory-dashboard ahead of it; told on the board, thread `4f16fb74`).
+- Between items 1 and 2, 15:23 to 20:56Z: this Mac's disk filled twice, the Colima VM's disk went into input/output
+  errors and the stack's database exited (code 134) while `docker ps` still showed it up, so Fabric 0.3.19's stack
+  watch did not heal it (board task `369c744c`). `colima restart` at 20:55Z brought the stack back (`stack.back`,
+  `down_s` 19923); schema 101, journal 149 895. The projects with open board work were told (threads `2c6ab265`,
+  `1a7c0cdd`).
+- Item 2, 21:00 to 21:05Z: the broker's `fabric.desktop` held (revision 33); `dispatchBoardRequests` and
+  `launchAtLogin` false; launchd's copy stopped with `launchctl bootout`; a private backup with writers stopped,
+  `pre-0.3.20-install.dump` (schema 101, journal 149 895, `pg_restore --list` 1 759 entries), taken with `pg_dump`
+  inside the database container; the DMG checked (`shasum -a 256 -c`, `gpg --verify` «PassionCode.ai releases»);
+  0.3.19 kept as `/Applications/Fabric-0.3.19.app`; 0.3.20 copied with `ditto`, `codesign --verify --deep --strict`
+  OK, `spctl` Notarized Developer ID; the first start copied migration 129 and stopped at «schema is 101; this build
+  requires 102»; `supabase migration up --local` applied `20261112000129_responder_replace_no_transfer.sql`: schema
+  102, journal 149 895 (unchanged); `launchAtLogin` true; opened at 21:04:48Z, `app.started` 0.3.20, `hub.published`,
+  `fabric_whoami` answered; the broker: `hold --release` (revision 34), `policy --desired always_on
+  --background-launch on --readiness fabric-hub` (revision 35), `lifecycle.status` ready; the board switch on again.
+  One mistake: a `pgrep` pattern meant for the first start matched a coding agent's `fabric-mcp` (pid 871), which got
+  SIGTERM; that session reconnects its MCP server to get its board tools back.
+- Item 2b: `smoke-platform.mjs --mcp-only` PASS (the bundle's `fabric-mcp` answered `initialize` and listed
+  `fabric_whoami`); `packaged-helpers.test.mjs` 4 of 4 on the installed bundle. `chat-activation-native` (the window
+  check) not run: it starts a second stack, and the disk had filled to zero twice that day; it waits for a run with
+  room on the disk, recorded here. Item 3 goes on (PL-85).
+- Item 3: asked studio-agent on the board (thread `4e7c737a`), with the order of the close.
+- Item 4: `dispatchTargets` written at 21:10Z (two owners, the operator's own and one organization's, each to its own
+  Studio space);
+  Switchboard 0.7.66 there, both answer `ssh -o BatchMode=yes`. The live run on the Studio is watched next.
+
