@@ -405,6 +405,10 @@
     {
       "file": "20261111000128_board_inbox_operator.sql",
       "sha256": "9e91a3e845066e80fe77414e2f7354b12c277e8992c650440ef0c9e3328ab6d4"
+    },
+    {
+      "file": "20261112000129_responder_replace_no_transfer.sql",
+      "sha256": "ebc01afd6dbe223b78fc07f4d55f3e064d91a5134b1473859caf9c4da5e1dc7e"
     }
   ]
 }

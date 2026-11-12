@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · fix/responder-replace-no-transfer → main · fast-forward
+- files: migration 129 `20261112000129_responder_replace_no_transfer.sql` (schema 102), its ledger row, the schema contract, the private-archive source list, the responders DB test, the pipeline reservations moved to 130/131
+- conflicts: none
+- summary: a responder takeover without a transfer no longer fails with SQLSTATE 22004; part of the 0.3.20 candidate
+
 ### 2026-11-12 · `—` · fix/dispatcher-robust → main · fast-forward
 - files: the board dispatcher's audit fixes (sleep, a run never doubled across machines, a settled request not answered twice, per-request isolation, an unread board, process groups, bounded memory and records, self-target, the shared-board guard) in `boardDispatchRun.ts`, `boardDispatchWiring.ts`, `shared/boardDispatch.ts`, `observatoryMemory.ts`, `main/index.ts`, settings; their tests; spec §3.9, AGENTS.md's lifecycle row, CHANGELOG, the 0.3.20 plan, CO-567; the map
 - conflicts: none

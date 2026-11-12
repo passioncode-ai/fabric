@@ -350,6 +350,19 @@ await test('com.responder_replace: a live holder is replaced at the generation r
   HB.session_id = HG.session_id; Object.assign(HB, { came_in: 'launched', agent: 'claude-code', binding_id: null })
 })
 
+await test('com.responder_replace without a transfer takes the slot at the generation read (the hyperframes thread, 2026-11-12: SQLSTATE 22004)', () => {
+  const holder = HB
+  const r = submitRequest()
+  cmd('board_claim', holder, { idempotency: idem(), capability: CAP, request: r.id })
+  const gen = Number(slot().split('|')[0])
+  const HN = { session_id: id(341), came_in: 'launched', agent: 'claude-code', binding_id: null, label: 'Claude Code' }
+  const rep = cmd('board_responder_replace', HN, { idempotency: idem(), capability: CAP, expectedGeneration: gen })
+  assert.equal(rep.slot?.generation, gen + 1, JSON.stringify(rep))
+  assert.equal(rep.transferred, undefined, 'a takeover without a transfer names no transferred request')
+  assert.match(state(r.id), /^queued\|/, 'the replaced holder\'s claim is queued again')
+  HB.session_id = HN.session_id; Object.assign(HB, { came_in: 'launched', agent: 'claude-code', binding_id: null })
+})
+
 await test('a request that is not the caller\'s Project is not_authorized; the requester cannot complete its own request (C1)', () => {
   const r = submitRequest()
   const c = cmd('board_claim', HB, { idempotency: idem(), capability: CAP, request: r.id })

@@ -168,6 +168,18 @@ candidate that carries it.
 | maps, records, Observatory child | medium | pruned after every pass; `until` at most 30 days; trimmed with the switch off; a failed handshake's child closed |
 | self-target | medium | a target that is this machine runs here |
 
+## Before iteration 3: a responder takeover without a transfer (2026-11-12)
+
+The hyperframes project reported on the board (thread `e43efbf6`) that `com.responder_replace` answered
+`invalid_arguments` «The board could not take a value in these arguments». The board service maps every SQLSTATE of
+class 22 to that text (`apps/desktop/src/main/boardService.ts`, the refusal mapping). `board_responder_replace` walked
+the transferred requests with `foreach … in array (select array_agg(…))`: with no `transfer` the aggregate is NULL and
+PL/pgSQL refuses FOREACH over NULL with 22004. Since migration 107 every takeover without a transfer failed; the
+responders suite replaced only with one. Migration 129 (schema 102) is migration 124's function with that loop reading
+an empty array. The new test in `project-board-responders-db.test.mjs` failed with «FOREACH expression must not be
+null» on the old chain and passes on the new one (24 of 24); the operator and core board suites pass (13, 33).
+Iteration 3 reads the candidate that carries it.
+
 ## Release close
 
 What is owed after the tag, in order; each item is checked off here with its receipt.

@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **An agent can take over a project's answering slot without handing work over** (the hyperframes thread on the
+  board, 2026-11-12). `com.responder_replace` with no `transfer` was refused as «The board could not take a value in
+  these arguments» since migration 107: the database walked a NULL list. Migration 129 (schema 102) walks an empty one;
+  a takeover with a transfer is unchanged.
 - **The board dispatcher survives sleep, a failing project and a hung link** (the operator, 2026-11-12). After the Mac
   sleeps, a board run on it is judged on time awake, so it is no longer stopped and restarted as silent on waking. One
   project whose step fails no longer stops every other request in the pass; a board that cannot be read still watches the
