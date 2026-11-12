@@ -4,8 +4,13 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · fix/0320-er22-linux → main · fast-forward
+- files: the 0.3.20 review's iteration 3 run four (reports and receipts under `docs/evidence/reviews/0.3.20/iteration-3-ebbdf32d/`, the ledger) and its wave: the ER-22 test builds its answer in the child (Linux refused the 244 000-byte argument with E2BIG in the full hosted run), the CHANGELOG's run-four fixes, release close items 0b, 2, 2b and 3, run four's rulings in CO-569 and CO-567, the design map
+- conflicts: none
+- summary: the 0.3.20 release candidate after run four of its third review
+
 ### 2026-11-12 · `—` · fix/0320-i3r3 → main · fast-forward
-- files: the 0.3.20 review's iteration 3 run three (reports and receipts under `docs/evidence/reviews/0.3.20/iteration-3-92da0efc/`, the ledger) and its wave: an unanswered start elsewhere checked at every decision (`remote-unanswered`, its own words in «На проверке»), the operator's newest record always kept, the top bar naming Пульс and Выпуски, the CHANGELOG, §3.9, §3.10, AGENTS, the runbook and the release close
+- files: the 0.3.20 review's iteration 3 run three (reports and receipts under `docs/evidence/reviews/0.3.20/iteration-3-92da0efc/`, the ledger) and its wave: an unanswered start elsewhere checked at every decision (`remote-unanswered`, the agent's own words; the person sees the general line), the operator's newest record always kept, the top bar naming Пульс and Релизы, the CHANGELOG, §3.9, §3.10, AGENTS, the runbook and the release close
 - conflicts: none
 - summary: the 0.3.20 release candidate after run three of its third review
 

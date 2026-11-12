@@ -1950,10 +1950,13 @@ test('ER-21: an answer from elsewhere waits out a board outage and is posted onc
 })
 
 // ER-22: Switchboard prints raw UTF-8; an answer over one pipe chunk must not have a character split into U+FFFD.
+// The child builds the text itself: Linux refuses one argument over 128 KiB (E2BIG), so the answer is never in argv.
 test('ER-22: a long non-Latin answer comes back whole through a Switchboard call', async () => {
   const { run } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
-  const text = 'Ответ готов: проверено, выкачено. '.repeat(4000)
-  const script = 'const b=Buffer.from(' + JSON.stringify(text) + ');let i=0;const step=()=>{if(i>=b.length)return;process.stdout.write(b.subarray(i,i+=4097),step)};step()'
+  const unit = 'Ответ готов: проверено, выкачено. ', times = 4000
+  const text = unit.repeat(times)
+  const script = 'const b=Buffer.from(' + JSON.stringify(unit) + '.repeat(' + times + '));let i=0;const step=()=>{if(i>=b.length)return;process.stdout.write(b.subarray(i,i+=4097),step)};step()'
+  assert.ok(Buffer.byteLength(script) < 4096, 'the script stays far below a Linux argument limit')
   const out = await run(process.execPath, ['-e', script], process.env, 20_000)
   assert.equal(out.includes('�'), false, 'no replacement character')
   assert.equal(out, text)
