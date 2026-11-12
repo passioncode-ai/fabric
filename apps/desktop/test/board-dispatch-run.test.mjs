@@ -1259,6 +1259,7 @@ test('CO-551: each reason a request is the operator\'s becomes the sweep\'s mark
   assert.deepEqual(toOperatorMarks('past-due'), { pastDue: true })
   assert.deepEqual(toOperatorMarks('relay'), { pastDue: false, remote: 'unposted' })
   assert.deepEqual(toOperatorMarks('remote-lost'), { pastDue: false, remote: 'lost' })
+  assert.deepEqual(toOperatorMarks('remote-unanswered'), { pastDue: false, remote: 'unanswered' })
 })
 
 // CO-559 (§3.8 of the on-demand sessions spec): every addressee woken and watched. The operator, 2026-11-10: «Если нет
@@ -1909,7 +1910,7 @@ test('ER-20, ER-40, ER-41: an unanswered start elsewhere goes to the operator, n
   const d = createBoardDispatch(w.deps)
   for (let i = 0; i < 3; i++) { await d.onPass(); w.tick(MIN) }
   assert.equal(d.records()[0].outcome, 'to-operator')
-  assert.equal(d.toOperator().get(d.records()[0].requestId), 'remote-lost')
+  assert.equal(d.toOperator().get(d.records()[0].requestId), 'remote-unanswered')
   const asked = w.launches.length
   answer = { refused: 'target_busy' }
   for (let i = 0; i < 6; i++) { w.tick(15 * MIN); await d.onPass() }
@@ -1989,4 +1990,22 @@ test('DA-31: the operator\'s request keeps its record until its own deadline', a
   const r = d.records().find((x) => x.requestId === request().id)
   assert.equal(r.outcome, 'to-operator')
   assert.ok(r.until >= Date.parse(far), String(r.until))
+})
+
+// 0.3.20 review, iteration 3 run three (ER-60, DO-60): a start elsewhere that never answered keeps the request from
+// starting again however its record ended (here a local refusal on the next try), and the operator gets it in words of
+// its own (ER-61).
+test('ER-60: an unanswered start elsewhere, then a refusal, never leads to a run here or there', async () => {
+  const w = world({ target: 'node-a' })
+  let answer = { refused: 'failed' }
+  w.deps.launch = async (args) => { w.launches.push(args); return args.target ? answer : { launchId: 'HERE' } }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  answer = { refused: 'ceiling_reached' }
+  w.tick(MIN); await d.onPass()
+  answer = { refused: 'target_busy' }
+  for (let i = 0; i < 8; i++) { w.tick(15 * MIN); await d.onPass() }
+  assert.equal(w.launches.filter((a) => !a.target).length, 0, 'never started here')
+  assert.equal(w.launches.length, 2, 'never asked there again')
+  assert.equal(d.toOperator().get(request().id), 'remote-unanswered')
 })

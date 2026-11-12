@@ -82,7 +82,7 @@
     },
     {
       "id": "PL-40",
-      "status": "not a defect",
+      "status": "not-a-defect",
       "evidence": [
         "not a defect: the edit renumbered ids only and is said in its header; run two's reports are kept as written"
       ]

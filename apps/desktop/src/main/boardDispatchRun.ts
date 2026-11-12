@@ -234,14 +234,15 @@ export function noteOf(e: unknown): string {
 /** Why a request is the operator's: three runs left it unsettled (`inbox` for an inbox item, CO-559), or it passed its deadline accepted with no run (ER-7);
  *  CO-551: a run on another machine left a result Fabric did not post (`relay`), or its machine has not answered past
  *  the run's end (`remote-lost`, still asked every pass). */
-export type ToOperatorWhy = 'runs' | 'past-due' | 'relay' | 'remote-lost' | 'inbox'
+export type ToOperatorWhy = 'runs' | 'past-due' | 'relay' | 'remote-lost' | 'remote-unanswered' | 'inbox'
 
 /** CO-559 (§3.8): an inbox item given to the operator, by the message it was started for, with its project and when. */
 export interface InboxGiven { messageId: string; projectId: string; at: string }
 
 /** The marks the sweep of abandoned work reads for each reason (`shared/abandonedSweep.ts#SweepRequest`). */
-export function toOperatorMarks(why: ToOperatorWhy): { pastDue: boolean; remote?: 'unposted' | 'lost' } {
-  return why === 'relay' ? { pastDue: false, remote: 'unposted' } : why === 'remote-lost' ? { pastDue: false, remote: 'lost' } : { pastDue: why === 'past-due' }
+export function toOperatorMarks(why: ToOperatorWhy): { pastDue: boolean; remote?: 'unposted' | 'lost' | 'unanswered' } {
+  return why === 'relay' ? { pastDue: false, remote: 'unposted' } : why === 'remote-lost' ? { pastDue: false, remote: 'lost' }
+    : why === 'remote-unanswered' ? { pastDue: false, remote: 'unanswered' } : { pastDue: why === 'past-due' }
 }
 
 /**
@@ -808,7 +809,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     } else if (r.attempts >= START_ATTEMPTS && r.target && r.remoteUnanswered) {
       // 0.3.20 iteration 3 run two (ER-20, ER-40, ER-41): a start on another machine that never answered may be running
       // there, so it is never started here and never asked again; the operator gets the request at once, as a machine
-      // that does not answer (`remote-lost`), instead of a later record that could start it twice or never end.
+      // that never answered (`remote-unanswered`), instead of a later record that could start it twice or never end.
       r.state = 'ended'
       r.endedAt = now
       r.outcome = 'to-operator'
@@ -981,6 +982,19 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       const mine = req.inbox ? records.filter((r) => r.inbox && r.projectId === req.target) : records.filter((r) => r.requestId === req.id)
       const last = mine[mine.length - 1]
       if (mine.some((r) => r.outcome === 'to-operator' && r.requestId === req.id)) continue
+      // 0.3.20 iteration 3 run three, ER-60: a start on another machine that never answered may be running there, however
+      // its record ended (a refusal, no folder, the switch off): no record of this request starts again, here or there;
+      // the operator gets it as a machine that never answered.
+      const unanswered = !req.inbox && mine.some((r) => r.requestId === req.id && r.remoteUnanswered) && mine.every((r) => r.state === 'ended')
+      if (unanswered && last && !SETTLED.has(req.state)) {
+        last.outcome = 'to-operator'
+        last.remoteUnanswered = true
+        last.closed = false
+        deps.save(records)
+        deps.log('board.dispatch.remote-refused', 'unknown', { request: req.id, dispatch: last.dispatchId, target: last.target, note: 'a start elsewhere never answered; given to the operator, never started again' })
+        said(req.id, { path: 'to-operator' })
+        continue
+      }
       const sameItem = last !== undefined && last.requestId === req.id
       // CO-559: a project's inbox counts its empty runs across messages until one run reads them (`finished`), so a
       // steady trickle of messages cannot start runs for ever; after the operator was given one, a newer message gets
@@ -1130,7 +1144,10 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       || (newest.get(r.requestId) === r && (now - r.startedAt < KEEP_REQUEST_MS || (r.until ?? 0) > now || shown.has(r.requestId)
         // 0.3.20 review, iteration 3, DA-21: a request given to the operator keeps its record until a read of the board
         // shows it gone; a pass that did not read the board (a restart, an outage) cannot tell, so it keeps it.
-        || (r.outcome === 'to-operator' && !readThisPass)))
+        || (r.outcome === 'to-operator' && !readThisPass)
+        // Run three, DA-40: whatever end gave it (empty runs, a start elsewhere that never answered, an answer not posted),
+        // the operator's request keeps its newest record; only the operator's decision on the board settles it.
+        || r.outcome === 'to-operator'))
     const rest = records.filter((r) => !kept(r))
     if (rest.length > 500) {
       const drop = new Set(rest.slice(0, rest.length - 500))
@@ -1165,7 +1182,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     toOperator: () => new Map<string, ToOperatorWhy>([
       ...[...pastDue].map((id) => [id, 'past-due'] as [string, ToOperatorWhy]),
       ...records.filter((r) => r.lost && r.state !== 'ended').map((r) => [r.requestId, 'remote-lost'] as [string, ToOperatorWhy]),
-      ...records.filter((r) => r.outcome === 'to-operator').map((r) => [r.requestId, r.inbox ? 'inbox' : r.unposted ? 'relay' : r.remoteUnanswered ? 'remote-lost' : 'runs'] as [string, ToOperatorWhy])
+      ...records.filter((r) => r.outcome === 'to-operator').map((r) => [r.requestId, r.inbox ? 'inbox' : r.unposted ? 'relay' : r.remoteUnanswered ? 'remote-unanswered' : 'runs'] as [string, ToOperatorWhy])
     ]),
     // CO-559 (§3.8): the sweep knows requests only, so an inbox item given to the operator is handed over with its project.
     // One row per project: its newest inbox record, while its message is still what waits there.

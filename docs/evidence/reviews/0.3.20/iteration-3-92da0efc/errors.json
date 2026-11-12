@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "92da0efc91f43c859c97b451708e562f7c8c3f90",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-92da0efc/2026-11-12-errors.md",
+  "reportSha256": "aaebedf67c9399a09f3a7e027c2608beb8b6b6dc7a0b2fc6784dbad96b16e3f6",
+  "reviewerRun": "release-0320-i3r3-errors-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-60",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave: every decision checks the request's records; any unanswered start elsewhere gives it to the operator; test watched failing on 92da0efc"
+      ]
+    },
+    {
+      "id": "ER-61",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave: `remote-unanswered` with its own words; tests"
+      ]
+    }
+  ]
+}

@@ -429,9 +429,10 @@ The operator, 2026-11-12: «диспетчер чтобы работал кор�
   stopped every accepted run here as silent and counted it empty.
 - **A run elsewhere is never also started here.** A start on another machine that was not answered may be running there;
   from then on a refusal that would start the run here (`not_on_target`, `target_busy`, `target_unreachable`) is not
-  taken, and the record keeps its machine (`remoteUnanswered`). An answer on a later try clears it; three tries with no
-  answer give the request to the operator as a machine that does not answer (`remote-lost`), so it is neither started
-  here nor asked there again (0.3.20 iteration 3, ER-20; run two, ER-40, ER-41). A first answer that refuses outright
+  taken, and the record keeps its machine (`remoteUnanswered`). An answer on a later try clears it. A request with an unanswered
+  start that is not running any more, however that record ended (three tries with no answer, a refusal on a later try,
+  no folder, the switch off), is given to the operator as a machine that never answered (`remote-unanswered`), so it is
+  neither started here nor asked there again (0.3.20 iteration 3, ER-20; run two, ER-40, ER-41; run three, ER-60). A first answer that refuses outright
   still starts it here, as before. Switchboard records a launch there only once ssh returns, so a try whose answer was
   lost can still start a second run there; that half is CO-567's. Before an answer from elsewhere is posted, the request is read: one settled meanwhile gets no second answer.
 - **A board run elsewhere and a board there.** The packet tells a run on another machine to use `com.*` only when
@@ -488,7 +489,7 @@ already decides is followed here, and nothing below adds a mechanism it does not
   with options and consequences, to the project that offers `people.ask` in `com.directory`, the organization's PM agent
   (both organizations' PM agents, asked on the board 2026-11-12, requests `019b18dd` and `b3de5244`), or to
   the operator with `fabric_question_ask` while no project offers it. A run on another machine without the board's tools
-  cannot ask through the board: its packet tells it to write everything into its result, and Fabric posts a result only
+  cannot ask through the board: its packet tells it to write its answer into its result, and Fabric posts a result only
   when the run says it answered, so open questions reach the request's thread only inside an answer; a run that cannot
   answer says `blocked` and the request goes to the operator after its empty runs (iteration 3, PL-25; run two, DO-42). Meanwhile the run checkpoints and does the
   independent parts; the answer lands in the asking project's thread as an unread message, which starts its next run

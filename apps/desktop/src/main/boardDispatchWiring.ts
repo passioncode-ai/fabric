@@ -114,7 +114,7 @@ export function createInboxState(facts: (messageIds: string[]) => Promise<CommsF
 /** Switchboard's refusal codes, the only words of its stderr that are kept (the 0.3.16 review, iteration 2, DA-5: a
  *  failure's own text carries the command line and the project's folder, and never reaches the log). */
 const REFUSAL_CODES = /\b(no_agent|not_in_group|ceiling_reached|spend_unknown|agent_not_installed|not_on_target|target_busy|target_unreachable)\b/
-/** Most of a CLI's output kept (the deadline's 4 MiB, as execFile's `maxBuffer` was). */
+/** Most of a CLI's output kept (4 Mi characters, as execFile's `maxBuffer` was). */
 const OUT_MAX = 4 * 1024 * 1024
 /**
  * One Switchboard call. 2026-11-12 (H4): it runs in a process group of its own, and the deadline ends the whole group,

@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "92da0efc91f43c859c97b451708e562f7c8c3f90",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-92da0efc/2026-11-12-ux.md",
+  "reportSha256": "281a51732544f1741cd40270726b27c39a3222d13786a3dcf07a9d5fff0ef1ad",
+  "reviewerRun": "release-0320-i3r3-ux-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-60",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave: the top bar names Доска, План, Пульс and Выпуски with their project (`placeTitle.ts#projectPlaceTitle`, its test)"
+      ]
+    },
+    {
+      "id": "UX-61",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave: the CHANGELOG says so"
+      ]
+    },
+    {
+      "id": "UX-62",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "UX-63",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave: its own words (`remote-unanswered`); test"
+      ]
+    }
+  ]
+}

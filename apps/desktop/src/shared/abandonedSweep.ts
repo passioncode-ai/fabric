@@ -119,7 +119,7 @@ export interface SweepRequest {
   pastDue?: boolean
   /** CO-551: a run Fabric started on another machine left a result Fabric did not post (`unposted`), or that machine
    *  has not answered past the run's end (`lost`). */
-  remote?: 'unposted' | 'lost'
+  remote?: 'unposted' | 'lost' | 'unanswered'
 }
 
 export interface SweepTerminal {
@@ -251,6 +251,8 @@ export function findAbandoned(input: SweepInput): Finding[] {
       out.push({ ...base, kind: 'request-to-operator', key: `request-to-operator:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: r.remote === 'unposted'
           ? 'A run Fabric started on another machine for this board request left a result that was not posted (it named another run, could not be read, or the board refused it): it waits for the operator, and Fabric starts no more for it.'
+          : r.remote === 'unanswered'
+            ? 'Fabric asked another machine three times to start a run for this board request and never had an answer: that run may be going there, so Fabric starts it nowhere else; it waits for the operator.'
           : r.remote === 'lost'
             ? 'A run Fabric started on another machine for this board request has not answered past its time limit: Fabric keeps asking, closes nothing and starts no other run until that run\'s end is known.'
             : r.pastDue

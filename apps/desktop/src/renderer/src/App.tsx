@@ -79,6 +79,7 @@ import { draftNotKept } from './draftNotKept'
 import { ProjectHome } from './ProjectHome'
 import { SessionWindow } from './SessionWindow'
 import { ConsoleTabs } from './launch/ConsoleTabs'
+import { projectPlaceTitle } from './placeTitle'
 import { runnerLabel } from './runnerLabel'
 import {
   OpenConsoleContext,
@@ -1000,11 +1001,12 @@ function Shell({
     : active.kind === 'start' || active.kind === 'draft' ? t('create.title')
     : active.kind === 'project' || active.kind === 'guide' ? (projectNameOf(active.projectId) ?? t('app.loading'))
     // SP-1 (2026-11-12): the top bar is the screen's one title, so a project's board and plan name their project here.
-    : active.kind === 'board' ? (projectNameOf(active.projectId) ? t('rail.placeOf', { place: t('launch.nav.board'), project: projectNameOf(active.projectId)! }) : t('launch.nav.board'))
+    : active.kind === 'board' || active.kind === 'pulse' || active.kind === 'releases'
+      ? projectPlaceTitle(active.kind, projectNameOf(active.projectId), t)
     : active.kind === 'comms' ? t('launch.nav.comms')
     : active.kind === 'access' ? t('access.title')
     : active.kind === 'graph' ? t('graph.title')
-    : active.kind === 'plan' ? (projectNameOf(active.projectId) ? t('rail.placeOf', { place: t('launch.nav.plan'), project: projectNameOf(active.projectId)! }) : t('launch.nav.plan'))
+    : active.kind === 'plan' ? projectPlaceTitle('plan', projectNameOf(active.projectId), t)
     : active.kind === 'help' ? t('launch.nav.help')
     : active.kind === 'where' ? t('launch.nav.where')
     : active.kind === 'persona' ? t('settings.more.persona')

@@ -167,6 +167,10 @@ describe('review fixes', () => {
     const lost = findAbandoned({ ...empty, requests: [{ ...r, remote: 'lost' as const }] })
     expect(lost[0].nextStep).toMatch(/has not answered/)
     expect(lost[0].nextStep).toMatch(/closes nothing/)
+    // 0.3.20 iteration 3 run three, ER-61: a machine that never answered three asks has words of its own.
+    const unanswered = findAbandoned({ ...empty, requests: [{ ...r, remote: 'unanswered' as const }] })
+    expect(unanswered[0].nextStep).toMatch(/never had an answer/)
+    expect(unanswered[0].nextStep).not.toMatch(/keeps asking/)
   })
 
   it('CO-409: a request a run left outcome_unknown shows at once, in words of its own', () => {

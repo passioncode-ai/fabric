@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "92da0efc91f43c859c97b451708e562f7c8c3f90",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-92da0efc/2026-11-12-plan.md",
+  "reportSha256": "f88a985f97561aeab9d7f028a0da1da615edc923f48ba5aa98eaad7e20ac3190",
+  "reviewerRun": "release-0320-i3r3-plan-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-50",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave: the Studio's host agent replaces the shared bundle after every space quits"
+      ]
+    },
+    {
+      "id": "PL-51",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave: item 10"
+      ]
+    },
+    {
+      "id": "PL-52",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave: «around the tag», item 0b, 0.7.60"
+      ]
+    },
+    {
+      "id": "PL-53",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave: the close says so"
+      ]
+    }
+  ]
+}

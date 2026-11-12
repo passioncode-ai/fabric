@@ -305,21 +305,59 @@ publication. Every new test was watched failing on `7795005a`.
 
 The fix wave is the next candidate: run three reads it with five fresh reviewers.
 
+### Run three, 92da0efc (superseded)
+
+Candidate `92da0efc91f43c859c97b451708e562f7c8c3f90` (run two's wave). Five reviewers, one per level; reports and
+receipts in `docs/evidence/reviews/0.3.20/iteration-3-92da0efc/` (kept as the record). 18 findings, 3 blocking
+(UX-60, ER-60, DO-60), two defects: run two's rule held only when all three tries went
+unanswered (V3-52's «no later record» was false: a refusal on a later try, no folder or the switch off still led to a
+later record that started the run here), and Пульс and Выпуски lost their names when their headings were hidden. The new
+dispatcher test was watched failing on `92da0efc`; the title helper is new and tested. The data reviewer's export of this
+candidate held 8 606 of the host's 10 000 files and 231.8 of its 256 MiB.
+
+| V | Finding | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-82 | UX-60 | blocking | Пульс and Выпуски named nowhere; a project's Пульс not naming it | fixed in the run-three wave: the top bar names Доска, План, Пульс and Выпуски with their project (`placeTitle.ts#projectPlaceTitle`, its test) |
+| V3-83 | UX-61 | non-blocking | «История» also shows a linked task's id | fixed in the run-three wave: the CHANGELOG says so |
+| V3-84 | UX-62 | non-blocking | the plan says «Облик» lost its heading and lede | ruled: CO-569 |
+| V3-85 | UX-63 | non-blocking | agents told Fabric «keeps asking» on the never-answered path | fixed in the run-three wave: its own words (`remote-unanswered`); test |
+| V3-86 | ER-60 | blocking | an unanswered start, then another end, still starts the run here | fixed in the run-three wave: every decision checks the request's records; any unanswered start elsewhere gives it to the operator; test watched failing on 92da0efc |
+| V3-87 | ER-61 | non-blocking | the never-answered path reuses `remote-lost` words and labels | fixed in the run-three wave: `remote-unanswered` with its own words; tests |
+| V3-88 | DO-60 | blocking | one request run twice reopened (as ER-60) | fixed in the run-three wave: as ER-60; CHANGELOG and §3.9 say what holds |
+| V3-89 | DO-61 | non-blocking | the give-up path reuses `remote-lost` | fixed in the run-three wave: as ER-61 |
+| V3-90 | DO-62 | non-blocking | the folds note too narrow | fixed in the run-three wave: as UX-61 |
+| V3-91 | DO-63 | non-blocking | run two's receipt spells `not a defect` | fixed in the run-three wave: `not-a-defect`, the gate's spelling |
+| V3-92 | DO-64 | non-blocking | Switchboard 0.7.58, `OUT_MAX` comment, §3.10 «everything» | fixed in the run-three wave: 0.7.60, «4 Mi characters», «its answer» |
+| V3-93 | DA-40 | non-blocking | two other operator ends keep the 30-day cap | fixed in the run-three wave: the operator's newest record is always kept |
+| V3-94 | DA-41 | non-blocking | an export guard against the host's limits not done or recorded | ruled: CO-569 |
+| V3-95 | DA-42 | non-blocking | the runbook paragraph assumes 101 and the 0.3.19 bundle | fixed in the run-three wave: from 98, four migrations; going back is the bundle you came from |
+| V3-96 | PL-50 | non-blocking | item 3 names an account that cannot replace the Studio's bundle | fixed in the run-three wave: the Studio's host agent replaces the shared bundle after every space quits |
+| V3-97 | PL-51 | non-blocking | the runbook's steps 7, 9, 10 and 11 missing | fixed in the run-three wave: item 10 |
+| V3-98 | PL-52 | non-blocking | the heading, the release commit and Switchboard's version | fixed in the run-three wave: «around the tag», item 0b, 0.7.60 |
+| V3-99 | PL-53 | non-blocking | what can be fixed after `verifiedCommit` not said | fixed in the run-three wave: the close says so |
+
+The fix wave is the next candidate: run four reads it with five fresh reviewers.
+
 ## Release close
 
-What is owed after the tag, in order; each item is checked off here with its receipt.
+What is owed around the tag, in order; each item is checked off here with its receipt. A finding of iteration 3's last
+run can be fixed only in the files the gate allows after `verifiedCommit` (release metadata, this ledger, the reviews,
+`CHANGELOG.md`, `docs/MERGES.md`, the map), or ruled; any other fix needs a new candidate and a new run (run three, PL-53).
 
-0. Before the tag (run two, PL-32): at least 5 GB free (`df -h`); one full hosted `ci` run green on the final
+0. Before the release commit (run two, PL-32): at least 5 GB free (`df -h`); one full hosted `ci` run green on the final
    candidate; the 101 to 102 upgrade rehearsed on a copy of this Mac's backup (`FROM` 101, one migration, then
    `schema_version()` 102), so the first upgrade is not the live one.
+0b. The release commit: `version` 0.3.20, `## 0.3.20` in the CHANGELOG, `docs/launch/release-gate.json` naming this
+   ledger, `verifiedCommit` and the fifteen receipts; landed on `main`, then the tag (run three, PL-52).
 1. The CI release run green on every platform, the published release and its notes from `## 0.3.20`.
-2. Install 0.3.20 on this Mac, with Switchboard at 0.7.56 or later (0.7.58 here on 2026-11-12; an update restarts Switchboard, so
+2. Install 0.3.20 on this Mac, with Switchboard at 0.7.56 or later (0.7.60 on both machines on 2026-11-12, run three, PL-52; an update restarts Switchboard, so
    no dispatched run may be in flight, or the dispatcher is paused first). The database moves from schema 101 to 102:
    take the backup and follow [the runbook](../../launch/release-mac.md#upgrading-an-existing-database), `FROM` 101, one
    migration, before Fabric is opened again (PL-20).
-3. Install 0.3.20 on the Mac Studio in each space that runs Fabric (actor: this session over `ssh studio-sshlg`, and
-   the space's own account for the others): read that space's `schema_version()` first and upgrade `FROM` it, which
-   may be below 101 (0.3.19's close read 98 there), with the same backup; read its Switchboard version (0.7.56 or later
+3. Install 0.3.20 on the Mac Studio (run three, PL-50): its one bundle in `/Applications` belongs to the Studio's
+   administrator, so the Studio's host agent (`studio-agent`, asked on the board) replaces it, after every space that
+   runs Fabric has quit it; then, in each space (this session over `ssh studio-sshlg` for the operator's), read
+   `schema_version()` first and upgrade `FROM` it, which may be below 101, with the same backup; read its Switchboard version (0.7.56 or later
    for `--reason inbox` and `dispatch status`; PL-26); keep its dispatcher switch on, since each Fabric dispatches only
    its own board (run two, PL-35).
 4. Write `dispatchTargets` (the owners of the operator's repositories to their Studio spaces) once 0.3.20 runs, and watch
@@ -334,3 +372,6 @@ What is owed after the tag, in order; each item is checked off here with its rec
    through `fabric_question_ask`), and the answer in its thread starts its next run (§3.10; PL-26).
 9. On `main` after the release commit: the findings of iteration 3's last run that are ruled join CO-569 (the release
    commit may change only its own metadata; run two, PL-36).
+10. The runbook's steps 7 (smoke of the published DMG), 9 (the site's download links), 10 (publish and pin the
+   workspace from the release commit, once the scheduled publication works again, CO-569) and 11 (the knowledge base's
+   Fabric row) (run three, PL-51).
