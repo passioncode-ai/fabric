@@ -330,6 +330,8 @@ export function TaskPage({
             </div>
           )
         })}
+        {/* Who wrote the brief, in words (SCR-32 «every section names who wrote it»; 2026-11-12, no id). */}
+        {task.brief_author && !briefEmpty && <p className="lp-meta">{t('task.briefBy', { who: who(task.brief_author)! })}</p>}
       </section>
       {/* SCN-174 step 2 (CO-401): what holds the task, said only when something does. */}
       {detail.blockedBy && detail.blockedBy.length > 0 && (

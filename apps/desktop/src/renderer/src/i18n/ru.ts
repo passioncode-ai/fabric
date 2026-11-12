@@ -2190,6 +2190,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'task.part.write': "Написать",
   'task.part.changeOf': "Изменить: {part}",
   'task.part.save': "Сохранить",
+  'task.briefBy': "Написал: {who}",
   'task.history': "История",
   'task.receiptsNone': "Событий пока нет",
   'task.contextMore': "Что получает агент",

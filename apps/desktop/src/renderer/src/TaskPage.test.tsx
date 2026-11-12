@@ -417,6 +417,12 @@ describe('a task reads as a template, with the way back at the top left (the ope
 
 describe('the brief says how it is written, an empty one what fills it, and the way back names where (CO-394)', () => {
   // 2026-11-12: no lede; an empty part says «Not written» on itself and offers «Write», one part at a time.
+  it('says who wrote the brief in words, never the agent\'s id', async () => {
+    mount({ brief_what: 'Make it', brief_author: 'agent:a44fb484-bb3e-4e48-85fd-0bb94b243fbf' })
+    expect(await screen.findByText(en['task.briefBy'].replace('{who}', en['task.who.agent']))).toBeTruthy()
+    expect(document.body.textContent).not.toContain('a44fb484')
+  })
+
   it('says an empty part on the part itself and offers to write it', async () => {
     mount({ status: 'done', brief_what: null, brief_why: 'Because', brief_expected: '' })
     await waitFor(() => expect(screen.getAllByText(en['task.part.empty'])).toHaveLength(2))

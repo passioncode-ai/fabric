@@ -303,6 +303,7 @@ export const en = {
   'task.part.write': "Write",
   'task.part.changeOf': "Change: {part}",
   'task.part.save': "Save",
+  'task.briefBy': "Written by {who}",
   'task.history': "History",
   'task.receiptsNone': "No events yet",
   'task.contextMore': "What the agent gets",
