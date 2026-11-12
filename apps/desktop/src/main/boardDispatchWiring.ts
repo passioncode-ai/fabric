@@ -129,10 +129,15 @@ export const run = (file: string, args: string[], env: NodeJS.ProcessEnv, deadli
   }
   const timer = setTimeout(() => { killed = true; end('SIGTERM'); setTimeout(() => end('SIGKILL'), 2_000).unref() }, deadlineMs)
   timer.unref()
-  const take = (into: 'out' | 'err') => (b: Buffer): void => {
-    if (into === 'out') out += b; else err += b.toString().slice(0, 64 * 1024 - err.length)
-    if (out.length > OUT_MAX && !over) { over = true; end('SIGTERM') }
+  // 0.3.20 review, iteration 3, ER-22 and ER-25: decoded as one UTF-8 stream (a character split between two chunks stays
+  // whole), and nothing more is kept once the output is past OUT_MAX.
+  const take = (into: 'out' | 'err') => (b: string): void => {
+    if (over) return
+    if (into === 'out') out += b; else err += b.slice(0, 64 * 1024 - err.length)
+    if (out.length > OUT_MAX) { over = true; out = ''; end('SIGTERM') }
   }
+  child.stdout.setEncoding('utf8')
+  child.stderr.setEncoding('utf8')
   child.stdout.on('data', take('out'))
   child.stderr.on('data', take('err'))
   const finish = (e: Error | null, code: number | null): void => {

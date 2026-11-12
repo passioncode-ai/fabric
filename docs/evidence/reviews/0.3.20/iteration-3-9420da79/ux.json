@@ -1,0 +1,105 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "9420da796407b0d7ec0ff480da134cf426169309",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-9420da79/2026-11-12-ux.md",
+  "reportSha256": "e398c2921259a0a210fd96543b35a7811a92be1d4d46aa0a07b767d9cad548b3",
+  "reviewerRun": "release-0320-i3-ux-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: the CHANGELOG names the task page, one title per screen, Главная, the Board's words and board runs at work"
+      ]
+    },
+    {
+      "id": "UX-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: `until()` counts to the expiry; `TaskPage.test.tsx` holds the time left, watched failing"
+      ]
+    },
+    {
+      "id": "UX-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: any `person:<id>` reads «вы»; two tests, the first watched failing"
+      ]
+    },
+    {
+      "id": "UX-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "UX-24",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "UX-25",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "UX-26",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "UX-27",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "UX-28",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "UX-29",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "UX-30",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "UX-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: as PL-20"
+      ]
+    },
+    {
+      "id": "UX-32",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    }
+  ]
+}

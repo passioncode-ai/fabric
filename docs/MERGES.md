@@ -4,6 +4,16 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · chore/workspace-sources → main · fast-forward
+- files: six organization repositories added to `workspace.config.json` sources; `docs/launch/overview.json` focus, current, next and status brought to 0.3.20
+- conflicts: none
+- summary: fabric-workspace's request on the board (thread 2832b311)
+
+### 2026-11-12 · `—` · fix/0320-i3 → main · fast-forward
+- files: the 0.3.20 review's iteration 3 (reports and receipts under `docs/evidence/reviews/0.3.20/iteration-3-9420da79/`, the ledger's iteration-3 section) and its wave: the schema 102 upgrade in the runbook, the CHANGELOG and the release close; the screen changes in the CHANGELOG; the task page's claim time and brief author; the dispatcher's request run twice across records, answer lost to an outage, split UTF-8, kept operator record; CO-569
+- conflicts: none
+- summary: the 0.3.20 release candidate after its third review
+
 ### 2026-11-12 · `—` · feat/dispatch-questions → main · fast-forward
 - files: the route of a run's questions in both dispatch packets (`QUESTIONS_RULE` in `boardDispatchRun.ts`), its test, the on-demand spec §3.10 read against the North Star, the changelog and the map
 - conflicts: none

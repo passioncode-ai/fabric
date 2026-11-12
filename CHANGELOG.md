@@ -9,21 +9,43 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-- **A run the board starts knows where its questions go** (the operator, 2026-11-12). It decides what it can by the
+**Upgrading from 0.3.19.** The database moves from schema 101 to 102 (migration 129, which replaces one board function
+and admits schema 102 as a private-archive source; no data moves). Take a backup first and follow
+[the runbook](docs/launch/release-mac.md#upgrading-an-existing-database). On macOS, turn «Служба доски» off in Settings
+and quit before the bundle is replaced, and turn it on again once 0.3.20 runs. No older build opens a schema-102
+database, so going back means restoring the backup with the 0.3.19 bundle.
+
+- **An agent whose descriptor names its installer by role is registered** (2026-11-12). A `services/` descriptor whose
+  `installedBy` is the contract's object form (`{by, role, tool}`, DEC-0061) was refused as a whole, so the agent could
+  not ask for access («neither a coding agent Fabric knows on this computer nor a registered agent»).
+- **The task page is one column, in words** (the operator, 2026-11-12). The title in two lines and one line of facts
+  replace the left rail and the five tabs; the brief reads as text with «Изменить» on each part and says who wrote it;
+  notes sit under the brief; the history and what the agent receives are folds; no session, task or agent id is shown.
+- **One title per screen** (the operator, 2026-11-12). The top bar's title is the only one: Доска, Переписка, План,
+  Пульс, Выпуски, Граф, Настройки, the project page and the creation forms lose their kicker, slogan heading, lede and
+  the Fabric strip. Agents are named by their project and runner, never by an id.
+- **Главная is calmer** (the operator, 2026-11-12). The hero is the avatar and the greeting («Мой облик» is in
+  Настройки); an agent's row says its task and how long it has worked, without the branch.
+- **The Board asks in plain words** (the operator, 2026-11-12). With nothing chosen it says «Выберите запись слева»;
+  a refused act on its decision card reads «Ждёт разрешения» with the reason; a task made from a proposal says «задача
+  создана» with «Открыть задачу»; an argument agents could not settle says «Агенты не договорились, решите вы»; the
+  notes that repeated themselves are gone.
+- **A run the board started shows as at work on Главная**, by its project and task, like a session you opened.
+- **A run the board starts knows where its questions go** (the operator, 2026-11-12). A run with the board's tools decides what it can by the
   project's decisions and goal, asks another agent through the board, and sends what needs a person to the
   organization's PM agent (the project offering `people.ask`), or to the operator while none does. It keeps working on
   the rest while it waits, and the answer starts its next run.
 - **An agent can take over a project's answering slot without handing work over** (the hyperframes thread on the
   board, 2026-11-12). `com.responder_replace` with no `transfer` was refused as «The board could not take a value in
-  these arguments» since migration 107: the database walked a NULL list. Migration 129 (schema 102) walks an empty one;
+  these arguments» since 0.3.6 (migration 104): the database walked a NULL list. Migration 129 (schema 102) walks an empty one;
   a takeover with a transfer is unchanged.
 - **The board dispatcher survives sleep, a failing project and a hung link** (the operator, 2026-11-12). After the Mac
   sleeps, a board run on it is judged on time awake, so it is no longer stopped and restarted as silent on waking. One
   project whose step fails no longer stops every other request in the pass; a board that cannot be read still watches the
   runs in flight. A run on another machine whose start was not answered is never started here as well, and an answer is
-  not posted to a request settled meanwhile. A Switchboard call past its deadline ends with every process it started.
+  not posted to a request settled meanwhile. A Switchboard call past its deadline ends with every process it started (on macOS and Linux; on Windows, the call itself).
   The dispatcher's memory and its records file stay bounded after every pass. On a board another Fabric may also read,
-  only the machine set with `"dispatchOnSharedBoard": true` in `settings.json` dispatches.
+  only the machine set with `"dispatchOnSharedBoard": true` in `settings.json` dispatches. Going back to 0.3.19 (by restoring the backup) forgets that key and lets a start elsewhere that went unanswered run here too.
 - **A session the board dispatcher starts has the board from its first list of tools** (CO-563). Claude Code started
   with `-p` reads the list of tools once; `fabric-mcp` now answers the first list of tools, and any call, once the
   session is admitted to its project, at most 10 seconds later, instead of offering only `fabric_whoami` while it was

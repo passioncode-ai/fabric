@@ -81,7 +81,8 @@ describe('the task page names its agent by the project (the operator, 2026-11-05
     render(<TaskPage project={{ ...project, name: 'adops-agent', displayName: 'AdOps' } as ProjectRow} taskId="t1" onBack={() => {}} onChanged={async () => {}} onError={() => {}} />)
     // 2026-11-12: one line of facts under the title, the agent by its project, the runner small; no session id anywhere.
     await waitFor(() => expect(screen.getByText('AdOps · Claude Code')).toBeTruthy())
-    expect(screen.getByText(/^held: AdOps, /)).toBeTruthy()
+    // 0.3.20 review, iteration 3, UX-21: the time left is counted to the expiry, never «0 s».
+    expect(screen.getByText(/^held: AdOps, (9|10)m left$/)).toBeTruthy()
     expect(document.body.textContent).not.toContain('s-123456')
   })
 })
@@ -421,6 +422,18 @@ describe('the brief says how it is written, an empty one what fills it, and the 
     mount({ brief_what: 'Make it', brief_author: 'agent:a44fb484-bb3e-4e48-85fd-0bb94b243fbf' })
     expect(await screen.findByText(en['task.briefBy'].replace('{who}', en['task.who.agent']))).toBeTruthy()
     expect(document.body.textContent).not.toContain('a44fb484')
+  })
+
+  it('says «you» for a brief the person edited (stored as person:operator), never the stored id (UX-22)', async () => {
+    mount({ brief_what: 'Make it', brief_author: 'person:operator' })
+    expect(await screen.findByText(en['task.briefBy'].replace('{who}', en['task.who.you']))).toBeTruthy()
+    expect(document.body.textContent).not.toContain('person:operator')
+  })
+
+  it('says «you» for a person with a configured identity too (person:<uuid>)', async () => {
+    mount({ brief_what: 'Make it', brief_author: 'person:7d0c1f9e-2b1a-4c3d-8e9f-0a1b2c3d4e5f' })
+    expect(await screen.findByText(en['task.briefBy'].replace('{who}', en['task.who.you']))).toBeTruthy()
+    expect(document.body.textContent).not.toContain('7d0c1f9e')
   })
 
   it('says an empty part on the part itself and offers to write it', async () => {

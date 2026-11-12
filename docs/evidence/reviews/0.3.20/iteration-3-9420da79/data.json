@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "9420da796407b0d7ec0ff480da134cf426169309",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-9420da79/2026-11-12-data.md",
+  "reportSha256": "6fa4ce5adce6327c9869207988f674cb7ae31e2d23fca7243d22028583a1e3ed",
+  "reviewerRun": "release-0320-i3-data-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: as PL-20"
+      ]
+    },
+    {
+      "id": "DA-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: kept until a read shows it gone; test «DA-21», watched failing"
+      ]
+    },
+    {
+      "id": "DA-22",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569; the file is fixed by its ledger hash"
+      ]
+    },
+    {
+      "id": "DA-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: the CHANGELOG says so"
+      ]
+    }
+  ]
+}

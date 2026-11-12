@@ -40,7 +40,7 @@ once for the product.
 
 Code: `apps/desktop/src/renderer/src/TaskPage.tsx#TaskPage`; styles in `scripts/product/launch.css` (the `.lp-task*`
 rules), ported into the app by `scripts/launch/port-launch-css.mjs`. Tests: `apps/desktop/src/renderer/src/TaskPage.test.tsx`
-(34, the UX28-01 guards against a brief written into the wrong task kept, now through «Изменить» and «Сохранить»).
+(37 at the 0.3.20 review's iteration 3, the UX28-01 guards against a brief written into the wrong task kept, now through «Изменить» and «Сохранить»).
 
 ## Waves 2 to 7: the rest, from the audit of 2026-11-12
 

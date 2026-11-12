@@ -21,8 +21,12 @@ and its thread in its packet.
 
 ## What 0.3.20 carries
 
-Schema 101, no migration. The `## Unreleased` section of [`CHANGELOG.md`](../../../CHANGELOG.md) names every
-person-visible change.
+Schema 102: one migration past 0.3.19, `20261112000129_responder_replace_no_transfer.sql` (migration 129, landed
+after iteration 2; until then this line said «Schema 101, no migration», which iteration 3 found false: PL-20, DO-30,
+UX-31). The upgrade from 0.3.19 is [the runbook's 0.3.20 paragraph](../../launch/release-mac.md#upgrading-an-existing-database).
+The `## Unreleased` section of [`CHANGELOG.md`](../../../CHANGELOG.md) names every person-visible change. The screen
+work of 2026-11-12 (the simple screens' waves 1 to 4, the Board's decision card, board runs shown as at work) landed
+after iteration 2, so iteration 3 is the only release review that reads it (PL-21).
 
 ## Iteration 1
 
@@ -85,7 +89,7 @@ Exit for iteration 1: every finding disposed above. Blocking findings open: none
 
 ## Iteration 2
 
-Candidate `0912b4e2` (the iteration-1 wave plus the first live run on the Mac Studio). Five reviewers, one per level;
+Candidate `0912b4e2797fb4ba54ad8e72465e2cb079709ac6` (the iteration-1 wave plus the first live run on the Mac Studio). Five reviewers, one per level;
 their reports and receipts are in `docs/evidence/reviews/0.3.20/iteration-2/`. 42 findings, 13 blocking (UX-10, UX-11,
 ER-9, DO-10 to DO-13, DA-10, PL-11 to PL-13), four distinct defects: a remote run's `notes` over Observatory's 4000,
 the CHANGELOG header the wave cut, the spec's `status: failed`, and two claims the wave left false (`board-message:`
@@ -144,6 +148,8 @@ new enrollment from 16:30 (CO-566, resolved in this wave, worked around live at 
 | V2-41 | PL-17 | non-blocking | an owner named `constructor` read a function as its target | fixed in the iteration-2 wave (candidate 3): `targetForOwner` takes only the map's own keys (`Object.hasOwn`); test added |
 | V2-42 | PL-18 | non-blocking | text nits | fixed in the iteration-2 wave (candidate 3): as UX-16 |
 
+Exit for iteration 2: every finding disposed above. Blocking findings open: none.
+
 ## Before iteration 3: the dispatcher audit (2026-11-12)
 
 The operator, 2026-11-12, on the board dispatcher: «чтобы работал корректно и на макбуке и на студии и повторы и
@@ -174,11 +180,77 @@ The hyperframes project reported on the board (thread `e43efbf6`) that `com.resp
 `invalid_arguments` «The board could not take a value in these arguments». The board service maps every SQLSTATE of
 class 22 to that text (`apps/desktop/src/main/boardService.ts`, the refusal mapping). `board_responder_replace` walked
 the transferred requests with `foreach … in array (select array_agg(…))`: with no `transfer` the aggregate is NULL and
-PL/pgSQL refuses FOREACH over NULL with 22004. Since migration 107 every takeover without a transfer failed; the
+PL/pgSQL refuses FOREACH over NULL with 22004. Since 0.3.6 (migration 104) every takeover without a transfer failed; the
 responders suite replaced only with one. Migration 129 (schema 102) is migration 124's function with that loop reading
 an empty array. The new test in `project-board-responders-db.test.mjs` failed with «FOREACH expression must not be
 null» on the old chain and passes on the new one (24 of 24); the operator and core board suites pass (13, 33).
 Iteration 3 reads the candidate that carries it.
+
+## Iteration 3
+
+### Run one, 9420da79 (superseded)
+
+Candidate `9420da796407b0d7ec0ff480da134cf426169309` (iteration 2's wave, the dispatcher audit, migration 129, the
+questions rule and the screen work of 2026-11-12). Five reviewers, one per level; their reports and receipts are in
+`docs/evidence/reviews/0.3.20/iteration-3-9420da79/` (kept as the record; not this iteration's receipts). 45 findings, 11 blocking (UX-20, UX-21, UX-22, ER-20, ER-21, ER-22, DO-30, DO-31, DA-20, PL-20, PL-21), seven
+distinct defects: the schema step documented nowhere, the screen changes missing from the notes, two task-page lines
+(a claim's time left, the brief's author) and three dispatcher paths (a request run twice across records, an answer
+lost to a board outage, non-Latin output split at chunk edges). DA-21, a trim that could drop a request given to the
+operator, worked at `0912b4e2`, so it is fixed in this wave too. Every new test was watched failing on the old code.
+The docs reviewer numbered from DO-20, which iteration 2 used; its ids are DO-30 to DO-37 here. The wave also carries
+one fix from the live board the same morning: a `services/` descriptor whose `installedBy` is DEC-0061's object was
+refused by the registry, so a PM agent could not ask for `board.respond` (`agentRegistry.ts#installedByOk`, test in
+`agent-registry.test.mjs`, watched failing).
+
+| V | Finding | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-1 | UX-20 | blocking | `## Unreleased` names none of the screen changes | fixed in the iteration-3 wave: the CHANGELOG names the task page, one title per screen, Главная, the Board's words and board runs at work |
+| V3-2 | UX-21 | blocking | a live claim says «ещё 0 с» | fixed in the iteration-3 wave: `until()` counts to the expiry; `TaskPage.test.tsx` holds the time left, watched failing |
+| V3-3 | UX-22 | blocking | «Написал: person:operator» | fixed in the iteration-3 wave: any `person:<id>` reads «вы»; two tests, the first watched failing |
+| V3-4 | UX-23 | non-blocking | folds still show machine ids | ruled: CO-569 |
+| V3-5 | UX-24 | non-blocking | «Почему просят» over the policy's own reason | ruled: CO-569 |
+| V3-6 | UX-25 | non-blocking | a refused act worded three ways | ruled: CO-569 |
+| V3-7 | UX-26 | non-blocking | a run's state said twice | ruled: CO-569 |
+| V3-8 | UX-27 | non-blocking | the Plan's title after a level change | ruled: CO-569 |
+| V3-9 | UX-28 | non-blocking | two titles on Граф and Облик | ruled: CO-569 |
+| V3-10 | UX-29 | non-blocking | Settings' dispatch switch reads on while a shared board keeps it off | ruled: CO-569 |
+| V3-11 | UX-30 | non-blocking | `screens.md` keeps the removed Fabric strip | ruled: CO-569 |
+| V3-12 | UX-31 | non-blocking | «Schema 101, no migration» | fixed in the iteration-3 wave: as PL-20 |
+| V3-13 | UX-32 | non-blocking | the notes box announced as «Добавить» | ruled: CO-569 |
+| V3-14 | ER-20 | blocking | a request can run twice across records | fixed in the iteration-3 wave: an unanswered start there belongs to the request and a later record carries it; test «ER-20», watched failing |
+| V3-15 | ER-21 | blocking | a remote answer lost during a board outage | fixed in the iteration-3 wave: no relay attempt while the board is unread; test «ER-21», watched failing |
+| V3-16 | ER-22 | blocking | non-Latin output corrupted at chunk edges | fixed in the iteration-3 wave: stdout and stderr decoded as one UTF-8 stream; test «ER-22», watched failing |
+| V3-17 | ER-23 | non-blocking | runs judged on stale states during an outage | ruled: CO-569 |
+| V3-18 | ER-24 | non-blocking | one failed responders read backs every request off | ruled: CO-569 |
+| V3-19 | ER-25 | non-blocking | output kept after the bound trips | fixed in the iteration-3 wave: as ER-22, nothing is kept past `OUT_MAX` |
+| V3-20 | ER-26 | non-blocking | a remote `failed-to-start` leaves its workflow open | ruled: CO-569 |
+| V3-21 | ER-27 | non-blocking | two catches without an ops line | ruled: CO-569 |
+| V3-22 | ER-28 | non-blocking | back-offs forgotten when a request drops out of one read | ruled: CO-569 |
+| V3-23 | ER-29 | non-blocking | on Windows the deadline ends Switchboard only | ruled: CO-569; the CHANGELOG and §3.9 now say so |
+| V3-24 | ER-30 | non-blocking | a 0.3.19 record keeps an unclamped `until` | ruled: CO-569 |
+| V3-25 | ER-31 | non-blocking | the shared-board guard is silent | ruled: CO-569 |
+| V3-26 | DO-30 | blocking | the schema step documented nowhere | fixed in the iteration-3 wave: as PL-20 |
+| V3-27 | DO-31 | blocking | the release notes miss the screen changes | fixed in the iteration-3 wave: as UX-20 |
+| V3-28 | DO-32 | non-blocking | «since migration 107» is 104 | fixed in the iteration-3 wave: CHANGELOG, this ledger and the map say 0.3.6 (migration 104); the migration file is fixed by its ledger hash |
+| V3-29 | DO-33 | non-blocking | AGENTS.md dispatcher row misses three facts | fixed in the iteration-3 wave: the row names `UNTIL_MAX_MS`, the hourly version read and `ssh -G` |
+| V3-30 | DO-34 | non-blocking | «ends every process» holds on macOS and Linux only | fixed in the iteration-3 wave: the CHANGELOG and §3.9 say so |
+| V3-31 | DO-35 | non-blocking | «Next free ID» stale; CO-567 reservation unrecorded | fixed in the iteration-3 wave: `CO-570`, CO-567 and CO-569 recorded |
+| V3-32 | DO-36 | non-blocking | the plan counts 34 task page tests | fixed in the iteration-3 wave: 37 |
+| V3-33 | DO-37 | non-blocking | «the address `ssh -G` resolves» | fixed in the iteration-3 wave: the `hostname` `ssh -G` prints, no DNS lookup |
+| V3-34 | DA-20 | blocking | the schema step not documented | fixed in the iteration-3 wave: as PL-20 |
+| V3-35 | DA-21 | non-blocking | a trim drops a request given to the operator | fixed in the iteration-3 wave: kept until a read shows it gone; test «DA-21», watched failing |
+| V3-36 | DA-22 | non-blocking | migration 129's header understates the dropped dead line | ruled: CO-569; the file is fixed by its ledger hash |
+| V3-37 | DA-23 | non-blocking | going back to 0.3.19 drops two 0.3.20 settings | fixed in the iteration-3 wave: the CHANGELOG says so |
+| V3-38 | PL-20 | blocking | the schema step missing from the release plan | fixed in the iteration-3 wave: «What 0.3.20 carries», the runbook's 0.3.20 paragraph, the CHANGELOG's upgrade note and close items 2 and 3 |
+| V3-39 | PL-21 | blocking | the declared scope false | fixed in the iteration-3 wave: as UX-20, and «What 0.3.20 carries» says iteration 3 alone reads the screen work |
+| V3-40 | PL-22 | non-blocking | iteration 2 without a full candidate and an exit line | fixed in the iteration-3 wave: both added |
+| V3-41 | PL-23 | non-blocking | simple-screens leftovers without a register row | ruled: CO-569 |
+| V3-42 | PL-24 | non-blocking | §3.10 leftovers only on the board | ruled: CO-569 |
+| V3-43 | PL-25 | non-blocking | the questions route does not reach a run without the board; G19 cited as built | fixed in the iteration-3 wave: §3.10 and the CHANGELOG say both |
+| V3-44 | PL-26 | non-blocking | three checks missing from the close | fixed in the iteration-3 wave: items 3, 7 and 8 |
+| V3-45 | PL-27 | non-blocking | text nits | fixed in the iteration-3 wave: `INBOX_GOAL`'s comment back above it; the indentation is each list's own, not a defect |
+
+The fix wave is the next candidate: run two reads it with five fresh reviewers.
 
 ## Release close
 
@@ -186,10 +258,17 @@ What is owed after the tag, in order; each item is checked off here with its rec
 
 1. The CI release run green on every platform, the published release and its notes from `## 0.3.20`.
 2. Install 0.3.20 on this Mac, with Switchboard updated to 0.7.56 at the same time (its update restarts Switchboard, so
-   no dispatched run may be in flight, or the dispatcher is paused first).
-3. Install 0.3.20 on the Mac Studio in each space that runs Fabric.
+   no dispatched run may be in flight, or the dispatcher is paused first). The database moves from schema 101 to 102:
+   take the backup and follow [the runbook](../../launch/release-mac.md#upgrading-an-existing-database), `FROM` 101, one
+   migration, before Fabric is opened again (PL-20).
+3. Install 0.3.20 on the Mac Studio in each space that runs Fabric, with the same backup and upgrade, and read that
+   space's Switchboard version (0.7.56 or later for `--reason inbox` and `dispatch status`; PL-26).
 4. Write `dispatchTargets` (the owners of the operator's repositories to their Studio spaces) once 0.3.20 runs, and watch
    one live run on the Studio end to end: started there, its answer posted in the request's thread, its workflow closed.
 5. Read the nightly `platforms` run on the release commit for CO-560 (Windows on ARM) and report it to the coordinator's
    thread.
 6. CO-563 on a live `-p` run (CO-564, item 1).
+7. Migration 129 on the installed board: one `com.responder_replace` without a transfer answers a slot at its generation,
+   and the hyperframes thread `e43efbf6` is told (PL-26).
+8. One dispatched run that asks a question: its `people.ask` request reaches the PM agent's project (or the operator
+   through `fabric_question_ask`), and the answer in its thread starts its next run (§3.10; PL-26).

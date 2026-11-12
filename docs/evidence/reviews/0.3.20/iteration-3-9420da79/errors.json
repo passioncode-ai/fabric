@@ -1,0 +1,98 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "9420da796407b0d7ec0ff480da134cf426169309",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-9420da79/2026-11-12-errors.md",
+  "reportSha256": "4cc6248dde44af06a745f183c1bf99626baddca76a0517c5dcee166c844c8ac8",
+  "reviewerRun": "release-0320-i3-errors-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: an unanswered start there belongs to the request and a later record carries it; test «ER-20», watched failing"
+      ]
+    },
+    {
+      "id": "ER-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: no relay attempt while the board is unread; test «ER-21», watched failing"
+      ]
+    },
+    {
+      "id": "ER-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: stdout and stderr decoded as one UTF-8 stream; test «ER-22», watched failing"
+      ]
+    },
+    {
+      "id": "ER-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "ER-24",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "ER-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: as ER-22, nothing is kept past `OUT_MAX`"
+      ]
+    },
+    {
+      "id": "ER-26",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "ER-27",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "ER-28",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "ER-29",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569; the CHANGELOG and §3.9 now say so"
+      ]
+    },
+    {
+      "id": "ER-30",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "ER-31",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    }
+  ]
+}

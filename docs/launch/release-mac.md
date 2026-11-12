@@ -323,6 +323,13 @@ large estate's threads read as unread again (0.3.12 keeps up to 5 000). The migr
 
 **0.3.19 admits schema 101** (migration `20261111000128_board_inbox_operator.sql`, the board inbox read of CO-559, and migration 127's private-archive admission with 101 added): a database at 100 (0.3.16 to 0.3.18) takes the upgrade below, `FROM` 100, one migration. No older build opens a schema-101 database, so going back is the backup with the bundle you came from.
 
+**0.3.20 admits schema 102** (migration `20261112000129_responder_replace_no_transfer.sql`: migration 124's
+`board_responder_replace` with its transfer loop reading an empty array instead of NULL, and migration 128's
+private-archive admission with 102 added; both replace a function with the same signature, so their grants stand, and
+neither moves data): a database at 101 (0.3.19) takes the upgrade below, `FROM` 101, one migration. Applied to the whole
+chain on an owned cluster by `apps/desktop/test/run-project-board-responders-db.mjs`. No older build opens a schema-102
+database, so going back is the backup with the 0.3.19 bundle.
+
 1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
    on: turn it off and then quit before the bundle is replaced (`launchctl bootout` stops only a copy launchd started;
    the 0.3.18 paragraph above), and turn it on again once the new build runs. A quiet window does not prove the database has

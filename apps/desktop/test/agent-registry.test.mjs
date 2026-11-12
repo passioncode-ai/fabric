@@ -320,3 +320,19 @@ test('DEC-0145: Windows paths in an entry are read as the contract reads them, a
   ok(validateServiceDescriptor(service('wins', 'default', 47600, { auth: { tokenFile: 'C:\\Users\\example\\AppData\\Local\\wins\\token' }, paths: { data: 'C:\\Users\\example\\AppData\\Local\\wins', logs: ['~\\logs\\wins.log'] } })))
   bad(validateServiceDescriptor(service('wins', 'default', 47600, { auth: { tokenFile: '\\\\server\\share\\token' } })), /tokenFile/)
 })
+
+// The contract's DEC-0061 form of installedBy, an object by role (2026-11-12: a PM agent's descriptor with it was
+// refused as «neither a coding agent nor a registered agent», so it could not ask for board.respond).
+test('a descriptor whose installedBy is the DEC-0061 object is registered, its installer shown', () => {
+  const by = { by: 'person', role: 'operator', tool: 'example.register 1.2' }
+  assert.deepEqual(validateServiceDescriptor(service('example-agent', 'default', 47502, { installedBy: by })), [])
+  assert.deepEqual(validateProviderEntry(provider('example-tool', { installedBy: by })), [])
+  for (const bad of [{ by: 'robot', tool: 'x' }, { by: 'person' }, { by: 'person', tool: '' }, { by: 'person', tool: 'x' }, { by: 'node', role: 'operator', tool: 'x' }, { by: 'person', tool: 'x', name: 'Ann' }]) {
+    assert.ok(validateServiceDescriptor(service('example-agent', 'default', 47502, { installedBy: bad })).length > 0, JSON.stringify(bad))
+  }
+  const h = home()
+  put(h.services, 'example-agent.default.json', service('example-agent', 'default', 47502, { installedBy: by }))
+  const snap = readRegistry({ servicesDir: h.services, providersDir: h.providers })
+  assert.deepEqual(snap.problems, [])
+  assert.equal(snap.entries.find((e) => e.key === 'example-agent.default').installedBy, 'example.register 1.2')
+})

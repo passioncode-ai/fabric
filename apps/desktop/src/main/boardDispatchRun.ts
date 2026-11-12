@@ -93,11 +93,11 @@ export interface DispatchRecord {
 
 /** The packet references Observatory freezes at a dispatched workflow's opening write (OBS-323). */
 const FROZEN_REF = /^(board-(request|message|thread)|capability|fabric-project|deadline):/
-/** CO-559 (§3.8): an inbox run's goal, the same in its opening and its closing checkpoint. */
 /** The operator, 2026-11-12 (on-demand spec §3.10): the route of a run's questions, in both packets. A run settles what
  *  it can, asks another agent through the board, and takes what needs a person to the organization's PM agent; the
  *  answer lands in this project's thread, an unread message, which starts the next run (§3.8). */
 const QUESTIONS_RULE = 'A question: first decide it yourself by the project\'s recorded decisions, its goal, then the safest reversible option, and record why. One for another agent goes to its project with com.submit; one that needs a person goes as one request per task, with options and consequences, to the project offering people.ask in com.directory (the organization\'s PM agent), or with fabric_question_ask when none does. Meanwhile checkpoint and do the independent parts.'
+/** CO-559 (§3.8): an inbox run's goal, the same in its opening and its closing checkpoint. */
 const INBOX_GOAL = 'Read every unread board message addressed to this project, act on what is this project\'s, then end.'
 const OUTCOMES = new Set(['finished', 'exited-without-answer', 'timed-out', 'failed-to-start', 'refused', 'unknown', 'to-operator', 'not-taken', 'silent'])
 const isText = (v: unknown): v is string => typeof v === 'string' && v.length > 0
@@ -315,6 +315,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   /** CO-551: posts the run's answer once, then ends the run when the request reads settled (this pass's read or a later
    *  one); only then is the workflow closed (agreed in `32e834d4`). */
   const relayRemote = async (r: DispatchRecord, now: number, result: Parameters<typeof relayText>[0]): Promise<boolean> => {
+    // 0.3.20 review, iteration 3, ER-21: a board that cannot be read takes no answer and uses up no attempt; the answer is
+    // posted on the first pass that reads the board again.
+    if (!r.relayed && !boardRead) return false
     if (!r.relayed) {
       // 2026-11-12 (C4): a request settled meanwhile (another run or session answered it) gets no second answer.
       const before = await stateOf(r)
@@ -669,6 +672,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   /** CO-559: the requests whose attempt held its lease in this pass's read, and the items this pass read at all. */
   let attemptsLive = new Set<string>()
   let readIds = new Set<string>()
+  /** Whether this pass read the board: the trim judges «gone from the board» only on such a pass (DA-21). */
+  let readThisPass = false
   /** Whether this pass read the board; a pass that could not read it watches runs but judges none dead (H2). */
   let boardRead = true
   /** 2026-11-12 (C2): time this machine was awake between `from` and `now`. */
@@ -768,6 +773,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     // CO-559: an inbox run asks Switchboard for its inbox exit contract (SB-338, 0.7.56); the wiring keeps `request`
     // for an older Switchboard, and the packet's constraints say the same either way.
     const args = { dir, workflow: r.workflowId, handoff: r.handoffId, request: r.requestId, dispatchId: r.dispatchId, timeoutMinutes, reason: r.inbox ? 'inbox' as const : 'request' as const }
+    // 0.3.20 review, iteration 3, ER-20: an unanswered start there belongs to the request, so a later record carries it
+    // (the newest record of a request is the one the trim keeps).
+    if (r.target && records.some((x) => x !== r && x.requestId === r.requestId && x.remoteUnanswered)) r.remoteUnanswered = true
     let started = await deps.launch(r.target ? { ...args, target: r.target } : args)
     // 2026-11-12 (C3): a start there that was not answered may be running there; a later refusal does not start it here.
     if (r.target && 'refused' in started && started.refused !== 'failed' && REMOTE_REFUSALS.has(started.refused) && r.remoteUnanswered) {
@@ -812,6 +820,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   }
 
   const pass = async (): Promise<void> => {
+    readThisPass = false
     const now = deps.now()
     const on = deps.switchOn()
     if (!on) {
@@ -856,6 +865,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     try {
       requests = await deps.readRequests()
       boardRead = true
+      readThisPass = true
     } catch (e) {
       // 2026-11-12 (H2): the runs in flight are still followed (their ends, a run elsewhere and its result, a run past
       // its time); none is judged dead without the board, and nothing new starts until it reads again.
@@ -1106,7 +1116,10 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     const shown = readIds
     // NB-5: a run started in the last day is kept too, so the day's count of started runs never loses one to a trim.
     const kept = (r: DispatchRecord): boolean => r.state !== 'ended' || (r.launchId !== null && now - r.startedAt < DAY_MS)
-      || (newest.get(r.requestId) === r && (now - r.startedAt < KEEP_REQUEST_MS || (r.until ?? 0) > now || shown.has(r.requestId)))
+      || (newest.get(r.requestId) === r && (now - r.startedAt < KEEP_REQUEST_MS || (r.until ?? 0) > now || shown.has(r.requestId)
+        // 0.3.20 review, iteration 3, DA-21: a request given to the operator keeps its record until a read of the board
+        // shows it gone; a pass that did not read the board (a restart, an outage) cannot tell, so it keeps it.
+        || (r.outcome === 'to-operator' && !readThisPass)))
     const rest = records.filter((r) => !kept(r))
     if (rest.length > 500) {
       const drop = new Set(rest.slice(0, rest.length - 500))

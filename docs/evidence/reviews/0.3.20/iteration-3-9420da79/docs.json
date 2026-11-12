@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "9420da796407b0d7ec0ff480da134cf426169309",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-9420da79/2026-11-12-docs.md",
+  "reportSha256": "f8ebe0928027a83ba3c47103391e43d821ae3d417043725ce16e8ac6cb22e196",
+  "reviewerRun": "release-0320-i3-docs-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: as PL-20"
+      ]
+    },
+    {
+      "id": "DO-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: as UX-20"
+      ]
+    },
+    {
+      "id": "DO-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: CHANGELOG, this ledger and the map say 0.3.6 (migration 104); the migration file is fixed by its ledger hash"
+      ]
+    },
+    {
+      "id": "DO-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: the row names `UNTIL_MAX_MS`, the hourly version read and `ssh -G`"
+      ]
+    },
+    {
+      "id": "DO-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: the CHANGELOG and §3.9 say so"
+      ]
+    },
+    {
+      "id": "DO-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: `CO-570`, CO-567 and CO-569 recorded"
+      ]
+    },
+    {
+      "id": "DO-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: 37"
+      ]
+    },
+    {
+      "id": "DO-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: the `hostname` `ssh -G` prints, no DNS lookup"
+      ]
+    }
+  ]
+}

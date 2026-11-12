@@ -153,12 +153,25 @@ function unknownFields(d: Record<string, unknown>, allowed: Set<string>): string
   return Object.keys(d).filter((k) => !allowed.has(k)).map((k) => `unknown field ${k}`)
 }
 
+/** The contract's installedBy: the installer as a string, or DEC-0061's {by, role?, tool}, where a person names a role
+ *  and a node or an organization names none (2026-11-12: a descriptor in the object form was refused outright). */
+function installedByOk(v: unknown): boolean {
+  if (isStr(v)) return v.length >= 1 && v.length <= 200
+  if (!isObj(v) || Object.keys(v).some((k) => !['by', 'role', 'tool'].includes(k))) return false
+  if (!isStr(v.tool) || v.tool.length < 1 || v.tool.length > 200) return false
+  if (v.by === 'person') return v.role === 'operator' || v.role === 'administrator'
+  return (v.by === 'node' || v.by === 'organization') && v.role === undefined
+}
+
+/** The installer to show: the string itself, or the object's tool. */
+const installerOf = (v: unknown): string => (isStr(v) ? v : isObj(v) && isStr(v.tool) ? v.tool : '')
+
 function commonProblems(d: Record<string, unknown>): string[] {
   const problems: string[] = []
   if (!isStr(d.name) || !d.name || d.name.length > 80) problems.push('name must be 1 to 80 characters')
   if (d.summary !== undefined && (!isStr(d.summary) || d.summary.length > 200)) problems.push('summary must be at most 200 characters')
   if (!isTimestamp(d.installedAt)) problems.push('installedAt must be an RFC 3339 timestamp')
-  if (!isStr(d.installedBy) || !d.installedBy || d.installedBy.length > 200) problems.push('installedBy must be 1 to 200 characters')
+  if (!installedByOk(d.installedBy)) problems.push('installedBy must be 1 to 200 characters, or {by, role?, tool} (DEC-0061)')
   if (d.source !== undefined) {
     if (!isObj(d.source) || Object.keys(d.source).some((k) => k !== 'repository')) problems.push('source may carry only repository')
     else if (d.source.repository !== undefined && !isUri(d.source.repository)) problems.push('source.repository must be a URI')
@@ -405,7 +418,7 @@ function readEntryFile(file: string, name: string, kind: 'service' | 'provider',
       entry: {
         key, kind, id: d.id as string, instance: d.instance as string, name: shown(d.name as string, 80) || (d.id as string),
         summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement, origin: d.origin as string, mcp: null,
-        installedBy: shown(d.installedBy as string, 200), installedAt: d.installedAt as string, repository: source, file
+        installedBy: shown(installerOf(d.installedBy), 200), installedAt: d.installedAt as string, repository: source, file
       },
       port: placement === 'local' && m ? Number(m[1]) : null
     } }
@@ -417,7 +430,7 @@ function readEntryFile(file: string, name: string, kind: 'service' | 'provider',
         key, kind, id: d.id as string, instance: null, name: shown(d.name as string, 80) || (d.id as string),
         summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement: 'local', origin: null,
         mcp: url ? { transport: 'streamable-http', url, path: '/mcp' } : { transport: 'stdio' },
-        installedBy: shown(d.installedBy as string, 200), installedAt: d.installedAt as string, repository: source, file
+        installedBy: shown(installerOf(d.installedBy), 200), installedAt: d.installedAt as string, repository: source, file
       },
       port: url ? Number(PROVIDER_URL.exec(url)?.[1]) : null
     } }

@@ -1899,3 +1899,65 @@ test('§3.10: every packet carries the route of questions: decide first, then th
     assert.ok(rule.length <= 500, String(rule.length))
   }
 })
+
+// 0.3.20 review, iteration 3, ER-20: the unanswered start there belongs to the request, not to one record: after three
+// unanswered starts and the back-off, a new record that meets a refusal there still does not start the run here.
+test('ER-20: a request whose start elsewhere went unanswered is never started here, across records', async () => {
+  const w = world({ target: 'node-a' })
+  let answer = { refused: 'failed' }
+  w.deps.launch = async (args) => { w.launches.push(args); return args.target ? answer : { launchId: 'HERE' } }
+  const d = createBoardDispatch(w.deps)
+  for (let i = 0; i < 3; i++) { await d.onPass(); w.tick(MIN) }
+  assert.equal(d.records()[0].outcome, 'failed-to-start')
+  answer = { refused: 'target_busy' }
+  for (let i = 0; i < 6 && d.records().length < 2; i++) { w.tick(15 * MIN); await d.onPass() }
+  assert.ok(d.records().length >= 2, 'a later record asked again')
+  assert.equal(w.launches.filter((a) => !a.target).length, 0, 'never started here')
+})
+
+// ER-21: a board that cannot be read does not use up a remote run's answer; it is posted once the board is back.
+test('ER-21: an answer from elsewhere waits out a board outage and is posted once the board reads again', async () => {
+  const w = world({ target: 'node-a' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  const r = d.records()[0]
+  const result = `fabric-dispatch/1 result workflow=${r.workflowId} handoff=${r.handoffId} request=${r.requestId} launch=${r.launchId}\noutcome=answered\n\nDone.`
+  w.remote.set(r.launchId, { state: 'exited', exitCode: 0, result })
+  const read = w.deps.readRequests
+  w.deps.readRequests = async () => { throw new Error('board down') }
+  const relay = w.deps.relay
+  w.deps.relay = async () => { throw new Error('board down') }
+  for (let i = 0; i < 8; i++) { w.tick(MIN / 2); await d.onPass() }
+  assert.notEqual(d.records()[0].outcome, 'to-operator', 'the outage did not give the request up')
+  w.deps.readRequests = read; w.deps.relay = relay
+  w.tick(MIN / 2); await d.onPass()
+  assert.equal(w.relays.length, 1, 'posted once the board is back')
+})
+
+// ER-22: Switchboard prints raw UTF-8; an answer over one pipe chunk must not have a character split into U+FFFD.
+test('ER-22: a long non-Latin answer comes back whole through a Switchboard call', async () => {
+  const { run } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  const text = 'Ответ готов: проверено, выкачено. '.repeat(4000)
+  const script = 'const b=Buffer.from(' + JSON.stringify(text) + ');let i=0;const step=()=>{if(i>=b.length)return;process.stdout.write(b.subarray(i,i+=4097),step)};step()'
+  const out = await run(process.execPath, ['-e', script], process.env, 20_000)
+  assert.equal(out.includes('�'), false, 'no replacement character')
+  assert.equal(out, text)
+})
+
+// 0.3.20 review, iteration 3, DA-21: a pass that did not read the board (after a restart, or an outage) never trims the
+// newest record of a request given to the operator, so the request is not dispatched again on the next read.
+test('DA-21: a request given to the operator keeps its record through a trim made without a board read', async () => {
+  const old = Array.from({ length: 520 }, (_, i) => ({ requestId: `r-${i}`, projectId: 'p', dispatchId: `d-${i}`, workflowId: 'wf_0123456789abcdef', handoffId: 'h',
+    launchId: null, startedAt: T0 - 40 * DAY, endsAt: new Date(T0 - 40 * DAY).toISOString(), state: 'ended', outcome: 'refused', emptyRuns: 0, closed: true }))
+  const given = { ...old[0], requestId: request().id, dispatchId: 'd-op', outcome: 'to-operator', emptyRuns: 3, until: T0 - DAY }
+  const w = world()
+  w.deps.load = () => [given, ...old.slice(1)].map((r) => ({ ...r }))
+  const read = w.deps.readRequests
+  w.deps.readRequests = async () => { throw new Error('board down') }
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.ok(d.records().some((r) => r.requestId === request().id && r.outcome === 'to-operator'), 'the operator\'s record kept')
+  w.deps.readRequests = read
+  w.tick(MIN); await d.onPass()
+  assert.equal(w.launches.length, 0, 'not dispatched again')
+})

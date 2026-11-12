@@ -36,7 +36,7 @@ import { useLocale, useT } from './i18n'
 import { originDocument } from '../../shared/origin.ts'
 import { specGaps, specMissing } from '../../shared/taskSpec.ts'
 import { taskMoves } from '../../shared/taskMoves.ts'
-import { since } from './duration'
+import { since, until } from './duration'
 import { ConsoleDetails, ContextTab, RunCallout, runStateWord, useRunStatus } from './launch/AgentWorkspace'
 import { runnerLabel } from './runnerLabel'
 import { projectDisplayName } from '../../shared/projectDisplayName.ts'
@@ -202,9 +202,11 @@ export function TaskPage({
   // as the kanban shows it (0.3.12 review UX-12); an unknown one stays as written.
   const stateWord = (state: string): string =>
     ['backlog', 'running', 'review', 'done', 'cancelled'].includes(state) ? t(`launch.kanban.${state}` as 'launch.kanban.backlog') : state
-  // Who, in words (2026-11-12): `agent:<uuid>` is the agent, the operator is «вы»; any other name stays as written.
+  // Who, in words (2026-11-12): `agent:<uuid>` is the agent, the person is «вы» (a brief edit stores it as
+  // `person:<id>`, `person:operator` by default; 0.3.20 review iteration 3, UX-22); any other name stays as written.
   const who = (id: string | null): string | null =>
-    !id ? null : id.startsWith('agent:') || id === 'agent' ? t('task.who.agent') : ['operator', 'person', 'human'].includes(id) ? t('task.who.you') : id
+    !id ? null : id.startsWith('agent:') || id === 'agent' ? t('task.who.agent')
+      : ['operator', 'person', 'human'].includes(id) || id.startsWith('person:') ? t('task.who.you') : id
   const briefEmpty = !task.brief_what?.trim() && !task.brief_why?.trim() && !task.brief_expected?.trim()
   // SCN-179 (CO-521): a task in review asks the person one decision; what does not bear on it (no run yet, a spec still
   // to gather) is not said on it.
@@ -218,7 +220,7 @@ export function TaskPage({
   // A claim is said only while it holds, by the agent's name; a lapsed one («до 0 с») says nothing (2026-11-12).
   const leaseLive = detail.lease && Date.parse(detail.lease.expires_at) > Date.now()
   const heldFact = leaseLive
-    ? t('task.fact.held', { who: detail.lease!.owner_session === task.session_id ? agentName : t('task.who.otherSession'), until: since(detail.lease!.expires_at, t) })
+    ? t('task.fact.held', { who: detail.lease!.owner_session === task.session_id ? agentName : t('task.who.otherSession'), until: until(detail.lease!.expires_at, t) })
     : null
   const handoff = task.assigned_by && task.assigned_to ? t('task.handoff', { by: who(task.assigned_by)!, to: who(task.assigned_to)! }) : null
   const facts = [

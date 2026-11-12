@@ -434,16 +434,17 @@ The operator, 2026-11-12: «диспетчер чтобы работал кор�
 - **A board run elsewhere and a board there.** The packet tells a run on another machine to use `com.*` only when
   `fabric_whoami` names the request's project (`fabric-project:<id>`); a Fabric on that machine keeps a board of its own,
   where the request does not exist. A target that is this machine (by name, `user@name`, `.local`, loopback, or the
-  address `ssh -G` resolves it to, compared with this machine's names and addresses) starts the run here
+  `hostname` that `ssh -G` prints for it from the ssh configuration, with no DNS lookup, compared with this machine's
+  names and addresses) starts the run here
   (`shared/boardDispatch.ts#isSelfTarget`).
 - **One failure is one request's.** A request whose step throws (a folder read, the responders, a save) waits as a
   refusal does (`refusalBackoffMs`), and every other request is decided in the same pass; a start left `starting` the
   same. The agent Switchboard starts is asked once a pass, Switchboard's version once an hour.
 - **An unreadable board.** The runs in flight are still followed (their ends, a run elsewhere and its result, a run past
   its time); none is judged dead without the board, and nothing new starts until it reads again.
-- **A call past its deadline.** Each Switchboard call runs in a process group of its own, and its deadline ends the whole
+- **A call past its deadline.** On macOS and Linux each Switchboard call runs in a process group of its own, and its deadline ends the whole
   group, so an ssh Switchboard started does not outlive it; output past 4 MiB ends the call as a failure
-  (`main/boardDispatchWiring.ts#run`). An Observatory child that failed its handshake is closed.
+  (`main/boardDispatchWiring.ts#run`); on Windows the deadline ends Switchboard's own process only (CO-569, ER-29). An Observatory child that failed its handshake is closed.
 - **Memory.** After every pass, the switch on or off and the board read or not: the history is trimmed (the newest 500 of
   the records not kept), the in-memory maps keep only what the board still shows or a record still names (decisions,
   back-offs, retried opens, workflow leases), the sessions of launches no longer running are forgotten, and a record is
@@ -475,13 +476,17 @@ already decides is followed here, and nothing below adds a mechanism it does not
   dispatcher starts its runs there (G5, CO-552, the 2026-11-21 slice); no scheduler between machines is built on top of
   the interim.
 - **To its result.** A run is done when its answer carries its receipts (a commit, a deploy, a test): the North Star's
-  «verified work». On a headless place the run finishes by itself (the North Star's G19, decided 2026-11-09).
+  «verified work». The North Star's G19 decided on 2026-11-09 that a run on a headless place finishes by itself, but it
+  is not built: both packets still say to stop before any step that touches production (0.3.20 review, iteration 3,
+  PL-25).
 - **Questions** (built here, both packets, `main/boardDispatchRun.ts#QUESTIONS_RULE`): a run first decides a question
   itself, by the project's recorded decisions, its goal, then the safest reversible option, and records why; a question
   for another agent goes to that agent's project with `com.submit`; one that needs a person goes, one request per task
   with options and consequences, to the project that offers `people.ask` in `com.directory`, the organization's PM agent
   (both organizations' PM agents, asked on the board 2026-11-12, requests `019b18dd` and `b3de5244`), or to
-  the operator with `fabric_question_ask` while no project offers it. Meanwhile the run checkpoints and does the
+  the operator with `fabric_question_ask` while no project offers it. A run on another machine without the board's tools
+  cannot ask through the board: its packet tells it to write everything into its result, so it records its open
+  questions there and Fabric posts them in the request's thread (iteration 3, PL-25). Meanwhile the run checkpoints and does the
   independent parts; the answer lands in the asking project's thread as an unread message, which starts its next run
   (§3.8). Test: `board-dispatch-run.test.mjs` «§3.10», watched failing on `3ba1201a` before it passed.
 - **A session handed over to the Studio.** The operator, the same session: «получается я огу работать на компе а потом

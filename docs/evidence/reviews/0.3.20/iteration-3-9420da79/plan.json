@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "9420da796407b0d7ec0ff480da134cf426169309",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3-9420da79/2026-11-12-plan.md",
+  "reportSha256": "a67a58330548c4ad44482816eca0cb7eda2a4b22b4f1ca682eb73f083ad76cc8",
+  "reviewerRun": "release-0320-i3-plan-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: «What 0.3.20 carries», the runbook's 0.3.20 paragraph, the CHANGELOG's upgrade note and close items 2 and 3"
+      ]
+    },
+    {
+      "id": "PL-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: as UX-20, and «What 0.3.20 carries» says iteration 3 alone reads the screen work"
+      ]
+    },
+    {
+      "id": "PL-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: both added"
+      ]
+    },
+    {
+      "id": "PL-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "PL-24",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569"
+      ]
+    },
+    {
+      "id": "PL-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: §3.10 and the CHANGELOG say both"
+      ]
+    },
+    {
+      "id": "PL-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: items 3, 7 and 8"
+      ]
+    },
+    {
+      "id": "PL-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave: `INBOX_GOAL`'s comment back above it; the indentation is each list's own, not a defect"
+      ]
+    }
+  ]
+}
