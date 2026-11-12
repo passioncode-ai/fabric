@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · feat/simple-screens-3 → main · fast-forward
+- files: wave 3 (Главная: the hero, «Мой облик», the branch, the empty column's note) and part of wave 4 (the Board's ritual panel, foot notes, proposal words, the created task as a link); SCR-41, SCR-85, SCN-163 and the plan amended; the map
+- conflicts: none
+- summary: two more waves of the simplicity principle land by a fast-forward
+
 ### 2026-11-12 · `—` · feat/simple-screens-2 → main · fast-forward
 - files: wave 2 of the simple screens: the screens' kickers, slogan headings, ledes and strips (Board, Comms, Plan, Pulse, Releases, Graph, Settings, the project page, Where work is, Persona, Create); machine ids on the kanban, the agent page, Comms, Plan, Releases, Pulse, the feed and the context line; the top bar's «Доска · {проект}»; the SP-2 and em dash ratchets in `scripts/check-design.mjs` with their baselines; `HomeLive` deleted; screens.md and the plan
 - conflicts: none

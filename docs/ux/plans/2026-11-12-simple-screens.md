@@ -1,6 +1,6 @@
 # Simple screens: one input or one choice, a terse interface
 
-**Status:** waves 1 and 2 built 2026-11-12 (the task page; the cross-cutting rules, X-1 to X-5 and X-7 in part); waves 3 to 7 planned below · source: the operator, 2026-11-12, with a
+**Status:** waves 1 to 3 built 2026-11-12, wave 4 in part (the task page; the cross-cutting rules; Главная; the Board's notes and words); the rest planned below · source: the operator, 2026-11-12, with a
 screenshot of the task page:
 
 > проработать UI этой и все другие страниц, наш принцип это простота, от пользователя только простой инпут или выбор, и
@@ -63,6 +63,8 @@ The audit read every other screen's code (file:line evidence in each row). Order
 
 ### Wave 3: Главная
 
+**Built 2026-11-12:** the hero's kicker and «Fabric» heading (kept visually hidden), «Мой облик» on the home, the branch in an agent's row, «Новая тема появится здесь…». **Kept, with the reason:** the strip's «ждут вас» cell is where an unreadable count is said (`attentionHonesty.test.tsx`, `waitingForYou.test.tsx`); it goes once the greeting can say «не прочитано» itself. «Список неполный…» is not a note about the interface but a statement that the list is incomplete (0.3.19 review UX-6, UX-8), so it stays. The six cells become three in a later step of this wave, after the same honesty move.
+
 - The waiting count said once (the «Нужны вы» column with its pill): the greeting is «Добрый день.» alone, the stat strip loses «ждут вас» (`EstateHome.tsx`, `HomeWork.tsx`, `HomeParts.tsx`).
 - The hero: avatar and greeting; «Мой облик» moves to Настройки (`EstateHome.tsx`).
 - Three stats, «Работают», «На проверке», «Брошено», not six (`HomeWork.tsx`).
@@ -71,6 +73,8 @@ The audit read every other screen's code (file:line evidence in each row). Order
 - Delete the unused `HomeLive` (`HomeParts.tsx`).
 
 ### Wave 4: Доска
+
+**Built 2026-11-12, in part:** with nothing chosen the card says «Выберите запись слева», not the ritual panel; the list's foot note («просмотр не закрывает обязательство») and the card's «Ответ и квитанция сохраняются…» are gone, the keys hint stays; a proposal says «Агенты не договорились, решите вы», not «круг N из M»; an accepted proposal says «задача создана» with «Открыть задачу», never the task's id. **Next:** the tabs, «Добавить тему» as one input, «Отложить» in one press, the row's and the review card's repeats.
 
 - A toggle «Нужны вы | По этапам», then three tabs «Сейчас», «Отложено», «Решено»; no strip, no heading block, no «Начать разбор» (`BoardScreen.tsx`).
 - «+ Добавить тему» is one input «О чём спросить?», the project from the scope (`BoardScreen.tsx`).

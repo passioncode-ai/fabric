@@ -302,7 +302,7 @@ export function HomeBoard({ feedMark, onBoard, onTotal, nameOf }: { feedMark: nu
       {unread.length > 0 && <p className="lp-meta" role="status">{t('needsYou.partial', { sources: unread.map((s) => s.name).join(', ') })}</p>}
       {!cut && !problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {cut && cut.total === 0 && unread.length === 0 && (
-        <div className="lh-q lh-q-clear"><p className="lh-q-text">{t('launch.home.board.clear')}</p><p className="lh-q-why">{t('launch.home.board.clearBody')}</p></div>
+        <div className="lh-q lh-q-clear"><p className="lh-q-text">{t('launch.home.board.clear')}</p></div>
       )}
       {cut?.items.map((item: BoardEntry) => <NeedsYouCard key={item.ref} item={item} nameOf={nameOf} onOpen={(ref) => onBoard(ref)} />)}
       {cut && cut.hidden > 0 && (

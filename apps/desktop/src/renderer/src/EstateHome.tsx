@@ -379,14 +379,13 @@ export function EstateHome({
           <header className="lh-hero">
             <FabricAvatar size="small" label={t('launch.avatar.label')} />
             <div className="lh-hero-words">
-              <p className="lh-hero-kicker">{t('launch.home.kicker')}</p>
-              <h2 tabIndex={-1}>{t('launch.brand.product')}</h2>
+              {/* SP-1 (2026-11-12): the top bar names the place; the heading stays for focus and a screen reader. */}
+              <h2 className="visually-hidden" tabIndex={-1}>{t('launch.brand.product')}</h2>
               {/* SCN-163 step 1 (CO-391): the state in one sentence, counted from what only the person resolves. */}
               <p className="lh-greeting" data-testid="home-greeting">
                 {[t(`launch.home.greet.${dayPart(now)}` as 'launch.home.greet.day'),
                   personWaiting === null ? null : personWaiting > 0 ? t(`launch.home.greet.waiting.${pluralForm(locale, personWaiting)}`, { count: personWaiting }) : t('launch.home.greet.clear')].filter(Boolean).join(' ')}
               </p>
-              {onPersona && <button type="button" className="lp-link lh-persona" onClick={onPersona}>{t('launch.home.persona')}</button>}
             </div>
             <HomeRhythm feed={feed} now={now} onPulse={onPulse} rhythm={rhythm} />
           </header>

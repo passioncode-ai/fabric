@@ -719,7 +719,8 @@ export const ru: Partial<Record<StringKey, string>> = {
 
   // Решение по предложению теперь ОТВЕЧАЕТ (UX28-12): расписка о создании и
   // отказ проверяющего доходят до оператора, а не исчезают в `void`.
-  'attention.becameTask': 'создана задача {task}',
+  'attention.becameTask': "задача создана",
+  'attention.openTask': "Открыть задачу",
   'attention.chainEnded': "цепочка завершена",
   'agents.pickOption': 'Вариант запуска',
   'agents.readingAge': "прочитано {age} назад",
@@ -1477,6 +1478,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.board.nav.left': "Осталось: {count}",
   'launch.board.nav.toNext': "К следующей",
   'launch.board.nav.keys': "Стрелки вверх и вниз листают записи, Esc закрывает",
+  'launch.board.pick': "Выберите запись слева",
   'launch.board.ritual.kicker': "Рабочий ритуал",
   'launch.board.ritual.title': "Оставить ясный следующий шаг",
   'launch.board.ritual.closed': "Что уже закрыто?",
@@ -2229,7 +2231,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'task.promoted': "в памяти проекта",
   'task.noNotes': "У этой задачи пока нет заметок.",
   'ceo.kind.proposal': "предложение",
-  'attention.proposal': "передача остановилась на круге {depth} из {bound} и ждёт вас",
+  'attention.proposal': "Агенты не договорились, решите вы",
   'attention.accept': "Сделать задачей",
   'attention.decline': "Завершить цепочку",
   'automations.title': "Автоматизации",

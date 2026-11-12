@@ -361,10 +361,11 @@ export const en = {
   // M68 — a chain that stopped and is waiting on a person. The wording says the
   // DEPTH, because "this is round five" is what makes the decision easy.
   'ceo.kind.proposal': 'proposal',
-  'attention.proposal': 'a hand-off stopped at round {depth} of {bound} and needs you',
+  'attention.proposal': "The agents did not agree; you decide",
   'attention.accept': 'Make it a task',
   'attention.decline': 'Let it end',
-  'attention.becameTask': 'made task {task}',
+  'attention.becameTask': "task created",
+  'attention.openTask': "Open the task",
   'attention.chainEnded': 'the chain was allowed to end',
   'attention.decisionRefused': '{says} — {remedy}',
   // M65 — one surface for what runs without being asked. The panel it replaces
@@ -2180,6 +2181,7 @@ export const en = {
   'launch.board.nav.left': "Left: {count}",
   'launch.board.nav.toNext': "To the next",
   'launch.board.nav.keys': "Up and down arrows move through the rows, Esc closes",
+  'launch.board.pick': "Choose an entry on the left",
   'launch.board.ritual.kicker': "Working ritual",
   'launch.board.ritual.title': "Leave a clear next step",
   'launch.board.ritual.closed': "What is already closed?",

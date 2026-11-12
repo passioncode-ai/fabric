@@ -82,10 +82,11 @@ export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecid
     <div className="lp-actions">
       {p && (
         <>
-          <span className="lp-meta">{t('attention.proposal', { depth: p.depth, bound: p.bound })}</span>
+          <span className="lp-meta">{t('attention.proposal')}</span>
           {outcome[p.id]?.ok && (
             <span role="status" className="lp-meta">
-              {outcome[p.id]?.taskId ? t('attention.becameTask', { task: outcome[p.id]!.taskId! }) : t('attention.chainEnded')}
+              {/* What now exists, named by a way to it rather than its id (SP-2, 2026-11-12). */}
+              {outcome[p.id]?.taskId ? <>{t('attention.becameTask')}{item.projectId && <>{' '}<button type="button" className="lp-link" onClick={() => onOpen(item.projectId!, { kind: 'task', id: outcome[p.id]!.taskId! })}>{t('attention.openTask')}</button></>}</> : t('attention.chainEnded')}
             </span>
           )}
           {outcome[p.id]?.rejection && (

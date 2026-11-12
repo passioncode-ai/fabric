@@ -44,7 +44,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { obligationRef } from '../../../shared/entityRef'
 import { BoardScreen } from './BoardScreen'
 import { I18nProvider } from '../i18n'
@@ -168,8 +168,11 @@ describe('a decision says what it did', () => {
     await show()
     await accept()
     await waitFor(() => expect(decide).toHaveBeenCalledWith('pr-1', 'accepted'))
-    const said = await waitFor(() => screen.getByRole('status').textContent ?? '')
-    expect(said, 'the created task is not named, so the receipt reached nobody').toMatch(/task-77/)
+    // SP-2 (2026-11-12): what now exists is said and reachable, by a way to it rather than its id.
+    const said = await waitFor(() => screen.getByRole('status'))
+    expect(said.textContent).toContain(en['attention.becameTask'])
+    expect(said.textContent).not.toMatch(/task-77/)
+    expect(within(said).getByRole('button', { name: en['attention.openTask'] })).toBeTruthy()
   })
 
   it('and shows the checker’s refusal, its remedy and whether retrying can work', async () => {
@@ -571,7 +574,8 @@ describe('one project\'s board, opened at one row (SCR-31 → SCR-41)', () => {
     for (const read of [board.resolved, board.deferred]) expect(read.mock.calls[0]).toEqual([{ projectId: 'p1', limit: expect.any(Number) }])
     expect(board.query.mock.calls[0]).toEqual([{ projectId: 'p1', limit: expect.any(Number), personOnly: true }])
     expect(board.query.mock.calls[1]).toEqual([{ projectId: 'p1', limit: expect.any(Number) }])
-    expect(screen.getByText(en['launch.board.footProject'].replace('{project}', 'Atlas'))).toBeTruthy()
+    // SP-5 (2026-11-12): the board's foot note is gone; the top bar names the project («Доска · Atlas»).
+    expect(screen.queryByText(en['launch.board.footProject'].replace('{project}', 'Atlas'))).toBeNull()
   })
 })
 

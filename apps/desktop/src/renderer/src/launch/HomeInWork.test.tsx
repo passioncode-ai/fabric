@@ -53,15 +53,16 @@ describe('«В работе» grouped by project', () => {
     expect(card.textContent).toContain('1 waits for you')
   })
 
-  it('gives each agent its runner, branch, current task and last report, the row opening its screen', () => {
+  // SP-5 (2026-11-12): the branch is the agent page's, not the home row's.
+  it('gives each agent its runner, current task and last report, no branch, the row opening its screen', () => {
     const p = show()
     const card = screen.getByRole('article', { name: 'Fabric' })
     const rows = within(card).getAllByRole('listitem')
     expect(rows[0].textContent).toContain('Claude Code')
-    expect(rows[0].textContent).toContain('release/0.3.14')
+    expect(rows[0].textContent).not.toContain('release/0.3.14')
     expect(rows[0].textContent).toContain('step 4 of 6')
     expect(rows[0].textContent).toContain('Checking the agent page')
-    expect(rows[1].textContent).toContain(en['rail.agents.branchUnknown'])
+    expect(rows[1].textContent).not.toContain(en['rail.agents.branchUnknown'])
     expect(rows[1].textContent).toContain(en['launch.home.agents.silent'])
     expect(rows[1].textContent).toContain(en['launch.home.inWork.noTask'])
     // The mockup-parity pass (gap map E6): «no task» is said in the quiet report type, never as a task line.

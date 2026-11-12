@@ -410,7 +410,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
               </span>
             </button>
           ) })}
-          <div className="lp-panel-foot"><span>{t(scopeName ? 'launch.board.footProject' : 'launch.board.foot', { project: scopeName ?? '' })}</span></div>
+          {/* SP-5 (2026-11-12): no foot note about how the board works; the top bar says whose board it is. */}
         </section>
         {chosen ? (
           <section className="lp-detail lp-decide" aria-labelledby="topic-title">
@@ -558,17 +558,11 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                 {chosen.entry.answer && <div><dt>{t('launch.board.fact.answer')}</dt><dd>{chosen.entry.answer}</dd></div>}
               </dl>
             )}
-            <p className="lp-meta lp-decide-foot">{t('launch.board.detailNote')} {t('launch.board.nav.keys')}</p>
+            <p className="lp-meta lp-decide-foot">{t('launch.board.nav.keys')}</p>
           </section>
         ) : (
-          <aside className="lp-panel lp-brief">
-            <p className="lp-kicker">{t('launch.board.ritual.kicker')}</p>
-            <h3>{t('launch.board.ritual.title')}</h3>
-            <ol className="lp-checklist">
-              {(['closed', 'needs', 'agents', 'next'] as const).map((k) => <li key={k}>{t(`launch.board.ritual.${k}` as 'launch.board.ritual.closed')}</li>)}
-            </ol>
-            <p>{t('launch.board.ritual.body')}</p>
-          </aside>
+          // SP-5 (2026-11-12): with nothing chosen the card says what to do, not a ritual.
+          <aside className="lp-panel lp-brief"><p className="lp-meta">{t('launch.board.pick')}</p></aside>
         )}
       </div>
         </>

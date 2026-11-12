@@ -155,9 +155,7 @@ function AgentRow({ agent: a, onAgent, onTask, status }: { agent: LiveAgent; onA
       <button type="button" className="lh-arow-who" onClick={() => onAgent(a.sessionId)} title={t('launch.home.inWork.openAgent')}>
         <b><span className={`rail-dot s-${status}`} aria-hidden="true" />{runnerLabel(a.agent, t)}</b>
         {folderName(a.folder) && <span className="rail-folder" title={a.folder ?? undefined}>{folderName(a.folder)}</span>}
-        {a.branch
-          ? <span className="rail-branch">{a.branch}</span>
-          : <span className="rail-branch unknown" title={t('rail.agents.branchUnknownWhy')}>{t('rail.agents.branchUnknown')}</span>}
+        {/* SP-5 (2026-11-12): the branch is the agent page's; the home row names the agent, its folder and its work. */}
       </button>
       <div className="lh-arow-body">
         {/* The operator's second review (R-3, R-4): the goal leads in the row's main type; what changes, the step, is the
