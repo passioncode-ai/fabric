@@ -18,6 +18,14 @@ and its thread in its packet.
 - The review copies are redacted for publication (ADR-0096): home paths are `/Users/example`.
 - A finding is fixed (with its test or check), ruled (with its register id), not a defect (with why), not recoverable,
   or stopped.
+- Iteration 3 closes on the first run whose blocking findings are all confined to the files the release gate allows
+  after `verifiedCommit` (`scripts/lib/release-mac.mjs#verifiedCandidateProblem`: the CHANGELOG, this ledger, the
+  reviews, the merge log, the map, the release handoff, the package version); those are fixed in the release commit.
+  A blocking finding anywhere else takes a new candidate and a new run. Recorded on 2026-11-12 (run five, PL-84): the
+  gate allows those files after verification for this purpose, and runs one to four showed that another run for a
+  sentence finds the next sentence. A superseded run keeps its section, «(superseded)», with its reports under
+  `iteration-3-<sha>/`; the final run's section names `verifiedCommit` in full and ends with the one exit line before
+  `## Release close`.
 
 ## What 0.3.20 carries
 
@@ -349,7 +357,10 @@ on Linux. The test put the 244 000-byte answer into one `node -e` argument, over
 one argument; macOS takes it, so the local gate passed. The code under test is unchanged: the run-four wave makes the
 child build the text itself (the test's script is under 4 KiB, asserted), and the test still catches the defect it
 was written for (the old per-chunk decoding planted back: «no replacement character» fails). A test is not a file the
-gate allows after `verifiedCommit`, so the wave is a new candidate and run five reads it. Two corrections of records, kept here since run three's paragraph and V3-82 are records: on
+gate allows after `verifiedCommit`, so the wave is a new candidate and run five reads it. Before item 0's run had
+finished, a release commit was already made on this candidate (`337a3039`, branch `release/0.3.20`) and items 0 and 9
+checked off after it (`2d008e24`, branch `docs/0320-close-rulings`), against the close's order: neither reached `main`
+or a tag; both are kept under `refs/archive/2026-11-12/` and the branches are deleted (run five, PL-81). Two corrections of records, kept here since run three's paragraph and V3-82 are records: on
 `92da0efc` only a refusal on a later try started the run here (no folder asked there again, and the switch off never
 ran here; DO-82), and the screens V3-82 names read «Доска, Планирование, Пульс and Релизы» (DO-84, UX-82).
 
@@ -377,6 +388,33 @@ ran here; DO-82), and the screens V3-82 names read «Доска, Планиро�
 
 The fix wave is the next candidate: run five reads it with five fresh reviewers.
 
+### Run five, a95dafbb
+
+Candidate `a95dafbb7fb83b915c57c0379811641d991c2c2a` (run four's wave), `verifiedCommit`. Five fresh reviewers, one per
+level; reports and receipts in `docs/evidence/reviews/0.3.20/iteration-3/`. The errors reviewer's session stopped on
+the account's limit after its report was written whole (findings and checks), so the report is taken as written. 11
+findings, 1 blocking (DO-90, the same sentence as ER-91), confined to the CHANGELOG: fixed in the release commit under
+the Protocol's rule. Item 0's full hosted run on this candidate is green
+([run 43192913388](https://github.com/passioncode-ai/fabric/actions/runs/43192913388): fast and full).
+
+| V | Finding | Severity | What | Disposition |
+|---|---|---|---|---|
+| V3-119 | ER-90 | non-blocking | a created agent's brief over 128 KiB fails a Linux session's start with E2BIG | ruled: CO-569 (on `main` after the release commit, item 9) |
+| V3-120 | ER-91 | non-blocking | the note's never-answered sentence still unqualified (as DO-90) | fixed in the release commit: as DO-90 |
+| V3-121 | DO-90 | blocking | a start cut by a quit or crash, or a 0.3.19 record, still runs here, against the note | fixed in the release commit: the CHANGELOG names it, as in 0.3.19 (CO-567) |
+| V3-122 | DO-91 | non-blocking | the `place-title` comment names «План» and «Выпуски» | ruled: CO-569 (item 9) |
+| V3-123 | DO-92 | non-blocking | the map lane links the ledger, not run four's section | fixed in the release commit: the lane links `#run-four-ebbdf32d-superseded` and `#release-close` |
+| V3-124 | PL-80 | non-blocking | item 0's receipts lost with `2d008e24`; the failed attempt not under item 0 | fixed in the release commit: item 0 checked off with its receipts |
+| V3-125 | PL-81 | non-blocking | the early release commit and its branches not recorded | fixed in the release commit: run four's paragraph; both archived, the branches deleted |
+| V3-126 | PL-82 | non-blocking | 0b runs `--check-only` before landing, which the tool refuses | fixed in the release commit: landed, then `--check-only`, then the tag |
+| V3-127 | PL-83 | non-blocking | «Служба доски» never on again; `--background-launch on` left out | fixed in the release commit: items 2 and 3 |
+| V3-128 | PL-84 | non-blocking | when iteration 3 closes and how a superseded run is recorded | fixed in the release commit: the Protocol says so |
+| V3-129 | PL-85 | non-blocking | item 2b's prerequisites | fixed in the release commit: item 2b names them |
+
+The ux and data reviewers found nothing.
+
+Exit for iteration 3: every finding disposed above. Blocking findings open: none.
+
 ## Release close
 
 What is owed around the tag, in order; each item is checked off here with its receipt. A finding of iteration 3's last
@@ -387,27 +425,36 @@ run can be fixed only in the files the gate allows after `verifiedCommit` (relea
    candidate; the 101 to 102 upgrade rehearsed on a copy of this Mac's backup (`FROM` 101, one migration, then
    `schema_version()` 102), so the first upgrade is not the live one. A step of the hosted run that hangs (as the
    `hub-door-db` psql of the local gate did, PL-74) is a failure, not a pass, and is read before the release commit.
+   Done 2026-11-12 (run five, PL-80): 8.6 GiB free on the release commit's day; the full hosted run on `ebbdf32d`
+   ([43186565735](https://github.com/passioncode-ai/fabric/actions/runs/43186565735)) failed (ER-22, E2BIG; run four),
+   and the one that counts is on `a95dafbb` ([43192913388](https://github.com/passioncode-ai/fabric/actions/runs/43192913388),
+   green); the 101 to 102 rehearsal on a copy of this Mac's backup PASS (`pre-0.3.20.dump.rehearsal.json`), which
+   holds for `a95dafbb` since no migration changed after it (`git diff --stat ebbdf32d a95dafbb -- supabase`: empty).
 0b. The release commit: `version` 0.3.20, `## 0.3.20` in the CHANGELOG, `docs/launch/release-gate.json` naming this
    ledger, `verifiedCommit`, the fifteen receipts and the release handoff in `releaseMetadata`
-   (`docs/handoffs/2026-11-12-release-0320.md`); `node scripts/release-mac.mjs --check-only --tag v0.3.20` clear on it;
-   landed on `main`, then the tag (run three, PL-52; run four, PL-73).
+   (`docs/handoffs/2026-11-12-release-0320.md`); landed on `main` by fast-forward; `node scripts/release-mac.mjs
+   --check-only --tag v0.3.20` clear on it (it refuses a commit not on `main`); then the tag (run three, PL-52; run
+   four, PL-73; run five, PL-82).
 1. The CI release run green on every platform, the published release and its notes from `## 0.3.20`.
 2. Install 0.3.20 on this Mac, with Switchboard at 0.7.56 or later (0.7.60 on both machines on 2026-11-12, run three, PL-52; an update restarts Switchboard, so
    no dispatched run may be in flight, or the dispatcher is paused first). The database moves from schema 101 to 102:
    take the backup and follow [the runbook](../../launch/release-mac.md#upgrading-an-existing-database), `FROM` 101, one
    migration, before Fabric is opened again (PL-20). Around it, as 0.3.19's items 7 and 9 (run four, PL-71): the board
    switch off and «Служба доски» off before the quit; the lifecycle broker's `fabric.desktop` held before the quit, and
-   after the upgrade both `hold --release` and `policy --desired always_on`; the board switch on again once 0.3.20 reads
-   back.
+   after the upgrade both `hold --release` and `policy --desired always_on --background-launch on`; «Служба доски» on
+   again and the board switch on once 0.3.20 reads back (run five, PL-83).
 2b. The runbook's step 7, the smoke of the published DMG (`chat-activation-native`, the packaged `fabric-mcp` and
-   helpers), on this Mac right after item 2 and before the Studio (run four, PL-72).
+   helpers), on this Mac right after item 2 and before the Studio (run four, PL-72). It needs the screen unlocked (the
+   person's) and a Playwright module (`FABRIC_PLAYWRIGHT_MODULE`); the `--mcp-only` and `packaged-helpers` checks need no
+   window and run at once. With the screen locked the window check waits on the person, recorded here, and item 3
+   goes on (run five, PL-85).
 3. Install 0.3.20 on the Mac Studio (run three, PL-50): its one bundle in `/Applications` belongs to the Studio's
    administrator, so the Studio's host agent (`studio-agent`, asked on the board) replaces it, after every space that
    runs Fabric has turned «Служба доски» off and quit it; then each space, by its own account (the operator's by this
    session over `ssh studio-sshlg`, the others by the host agent), reads `schema_version()`, takes its own backup and
    upgrades `FROM` it, which may be below 101 (run four, PL-70); read its Switchboard version (0.7.56 or later
    for `--reason inbox` and `dispatch status`; PL-26); keep its dispatcher switch on, since each Fabric dispatches only
-   its own board (run two, PL-35).
+   its own board (run two, PL-35); in each space «Служба доски» on again once 0.3.20 reads back (run five, PL-83).
 4. Write `dispatchTargets` (the owners of the operator's repositories to their Studio spaces) once 0.3.20 runs, and watch
    one live run on the Studio end to end: started there, its answer posted in the request's thread, its workflow closed.
 5. Read the nightly `platforms` run on the release commit for CO-560 (Windows on ARM) and report it to the coordinator's

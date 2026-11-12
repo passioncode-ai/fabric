@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.20",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "a95dafbb7fb83b915c57c0379811641d991c2c2a",
+  "report": "docs/evidence/reviews/0.3.20/iteration-3/2026-11-12-docs.md",
+  "reportSha256": "a0b0cc2af96866dbc1ddac7c711f8322c37a4f109509686544b54add3661d68a",
+  "reviewerRun": "release-0320-i3r5-docs-20261112",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-90",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG names a start cut by a quit or crash, or left by an older Fabric, as still able to run here, as in 0.3.19 (CO-567)"
+      ]
+    },
+    {
+      "id": "DO-91",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-569 (release close item 9)"
+      ]
+    },
+    {
+      "id": "DO-92",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the map lane links #run-four-ebbdf32d-superseded and #release-close"
+      ]
+    }
+  ]
+}

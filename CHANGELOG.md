@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.20
 
 **Upgrading from 0.3.19.** The database moves from schema 101 to 102 (migration 129, which replaces one board function
 and admits schema 102 as a private-archive source; no data moves). Take a backup first and follow
@@ -46,7 +46,7 @@ database, so going back means restoring the backup with the 0.3.19 bundle.
 - **The board dispatcher survives sleep, a failing project and a hung link** (the operator, 2026-11-12). After the Mac
   sleeps, a board run on it is judged on time awake, so it is no longer stopped and restarted as silent on waking. One
   project whose step fails no longer stops every other request in the pass; a board that cannot be read still watches the
-  runs in flight. A run on another machine whose start was never answered is not started here as well: however that record ends, the request goes to you, and it is not asked there again (a retry whose answer was lost can still start a second run there, CO-567); an answer is
+  runs in flight. A run on another machine whose start was never answered is not started here as well: however that record ends, the request goes to you, and it is not asked there again (a retry whose answer was lost can still start a second run there, CO-567); a start cut short by a quit or a crash while it was being asked, or one an older Fabric left unanswered before the upgrade, can still run here, as in 0.3.19 (CO-567); an answer is
   not posted to a request settled meanwhile. A Switchboard call past its deadline ends with every process it started (on macOS and Linux; on Windows, the call itself).
   The dispatcher's memory and its records file stay bounded after every pass, except the newest record of each request given to you, which is kept (one record per such request; CO-569). On a board another Fabric may also read,
   only the machine set with `"dispatchOnSharedBoard": true` in `settings.json` dispatches. Going back to 0.3.19 (by restoring the backup) forgets that key and lets a start elsewhere that went unanswered run here too.

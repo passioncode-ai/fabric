@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · release/0.3.20 → main · fast-forward
+- files: the 0.3.20 release commit on `a95dafbb`: `apps/desktop` 0.3.20, `## 0.3.20` with run five's fix (a start cut by a quit or crash still able to run here, CO-567), `docs/launch/release-gate.json`, the ledger's Protocol rule, run five and its Release close, iteration 3's reports and receipts, the release handoff, the design map
+- conflicts: none
+- summary: Fabric 0.3.20, ready to tag
+
 ### 2026-11-12 · `—` · fix/0320-er22-linux → main · fast-forward
 - files: the 0.3.20 review's iteration 3 run four (reports and receipts under `docs/evidence/reviews/0.3.20/iteration-3-ebbdf32d/`, the ledger) and its wave: the ER-22 test builds its answer in the child (Linux refused the 244 000-byte argument with E2BIG in the full hosted run), the CHANGELOG's run-four fixes, release close items 0b, 2, 2b and 3, run four's rulings in CO-569 and CO-567, the design map
 - conflicts: none
