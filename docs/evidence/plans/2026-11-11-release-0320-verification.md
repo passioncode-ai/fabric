@@ -430,7 +430,9 @@ run can be fixed only in the files the gate allows after `verifiedCommit` (relea
    and the one that counts is on `a95dafbb` ([43192913388](https://github.com/passioncode-ai/fabric/actions/runs/43192913388),
    green); the 101 to 102 rehearsal on a copy of this Mac's backup PASS (`pre-0.3.20.dump.rehearsal.json`), which
    holds for `a95dafbb` since no migration changed after it (`git diff --stat ebbdf32d a95dafbb -- supabase`: empty).
-0b. The release commit: `version` 0.3.20, `## 0.3.20` in the CHANGELOG, `docs/launch/release-gate.json` naming this
+0b. Done 2026-11-12: release commit `0d729bbe` on `main` by fast-forward; `--check-only --tag v0.3.20`: «is on
+   origin/main and its release gate is clear»; tag `v0.3.20` pushed, release run 43220559990.
+   The release commit: `version` 0.3.20, `## 0.3.20` in the CHANGELOG, `docs/launch/release-gate.json` naming this
    ledger, `verifiedCommit`, the fifteen receipts and the release handoff in `releaseMetadata`
    (`docs/handoffs/2026-11-12-release-0320.md`); landed on `main` by fast-forward; `node scripts/release-mac.mjs
    --check-only --tag v0.3.20` clear on it (it refuses a commit not on `main`); then the tag (run three, PL-52; run
@@ -467,6 +469,7 @@ run can be fixed only in the files the gate allows after `verifiedCommit` (relea
    through `fabric_question_ask`), and the answer in its thread starts its next run (§3.10; PL-26).
 9. On `main` after the release commit: the findings of iteration 3's last run that are ruled join CO-569 (the release
    commit may change only its own metadata; run two, PL-36).
+   Done 2026-11-12: ER-90 and DO-91 are in CO-569 (run four's rulings joined CO-569 and CO-567 with `a95dafbb`).
 10. The runbook's steps 9 (the site's download links), 10 (publish and pin the
    workspace from the release commit, once the scheduled publication works again, CO-569) and 11 (the knowledge base's
    Fabric row) (run three, PL-51).

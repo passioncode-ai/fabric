@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-12 · `—` · docs/0320-close-rulings-r5 → main · fast-forward
+- files: run five's ruled findings ER-90 and DO-91 into CO-569 (the carry-over ledger), release close items 0b and 9 checked off, the design map
+- conflicts: none
+- summary: 0.3.20's release close, items 0b and 9
+
 ### 2026-11-12 · `—` · release/0.3.20 → main · fast-forward
 - files: the 0.3.20 release commit on `a95dafbb`: `apps/desktop` 0.3.20, `## 0.3.20` with run five's fix (a start cut by a quit or crash still able to run here, CO-567), `docs/launch/release-gate.json`, the ledger's Protocol rule, run five and its Release close, iteration 3's reports and receipts, the release handoff, the design map
 - conflicts: none
