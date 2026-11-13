@@ -5,8 +5,12 @@
 # macOS: <Fabric.app>/Contents/Resources/bin/fabric-mcp · Linux (.deb): <install>/resources/bin/fabric-mcp
 here="$(cd "$(dirname "$0")" && pwd -P)"
 resources="$(dirname "$here")"
+# On macOS it runs as the bundle's "Fabric Helper", so a stop of Fabric by its name (killall Fabric) does not
+# end every agent's link to the board with it (CO-575); a bundle without the Helper keeps the main binary.
 case "$(uname -s)" in
-  Darwin) exe="$(dirname "$resources")/MacOS/Fabric" ;;
+  Darwin)
+    exe="$(dirname "$resources")/Frameworks/Fabric Helper.app/Contents/MacOS/Fabric Helper"
+    [ -x "$exe" ] || exe="$(dirname "$resources")/MacOS/Fabric" ;;
   *) exe="$(dirname "$resources")/passioncode-fabric" ;;
 esac
 ELECTRON_RUN_AS_NODE=1 exec "$exe" "$resources/app.asar/out/main/fabric-mcp.js" "$@"

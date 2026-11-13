@@ -10,6 +10,16 @@ test('in the built app a helper is a bundle entry run by Electron as Node', () =
   assert.deepEqual(c, { program: '/App/MacOS/Fabric', args: ['/App/Resources/app.asar/out/main/acp-shell.js'], env: { ELECTRON_RUN_AS_NODE: '1' } })
 })
 
+test('in a macOS bundle it runs under the bundle\'s Helper, so stopping Fabric by its name does not end it (CO-575)', () => {
+  const exe = '/Applications/Fabric.app/Contents/MacOS/Fabric'
+  const helper = '/Applications/Fabric.app/Contents/Frameworks/Fabric Helper.app/Contents/MacOS/Fabric Helper'
+  const here = '/Applications/Fabric.app/Contents/Resources/app.asar/out/main'
+  const c = helperCommand('mcp-bridge', here, exe, true, (f) => f.endsWith('mcp-bridge.js') || f === helper)
+  assert.deepEqual(c, { program: helper, args: [`${here}/mcp-bridge.js`], env: { ELECTRON_RUN_AS_NODE: '1' } })
+  const without = helperCommand('mcp-bridge', here, exe, true, (f) => f.endsWith('mcp-bridge.js'))
+  assert.equal(without.program, exe, 'a bundle without the Helper keeps the main binary')
+})
+
 test('from the sources it is the TypeScript entry under type stripping, with no Electron switch', () => {
   const here = path.resolve(import.meta.dirname, '../src/main')
   const c = helperCommand('mcp-bridge', here, process.execPath, false)

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-13 · `—` · fix/board-link-survives-kill-by-name → main · fast-forward
+- files: on macOS the fabric-mcp launcher and Fabric's helpers run as the bundle's `Fabric Helper` (`resources/bin/fabric-mcp`, `helperProcess.ts#nodeHost`), its test (`helper-process.test.mjs`), CO-575, CHANGELOG, the map lane `iteration-2026-11-13-board-link-name`, AGENTS.md's fabric-mcp row
+- conflicts: none
+- summary: a stop of Fabric by its name no longer ends every agent's link to the board
+
 ### 2026-11-13 · `—` · fix/dispatch-unknown-start → main · fast-forward
 - files: `run` names a program that could not be started by its system code, the dispatcher logs a failed start's cause once per change (`boardDispatchWiring.ts`), its test (`board-dispatch-run.test.mjs`), CO-573 (13) built, CHANGELOG, the map lane `iteration-2026-11-13-launch-cause`
 - conflicts: none
