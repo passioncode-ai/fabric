@@ -658,6 +658,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'access.connect.vault': 'Хранилище Project Observatory не сохранило ключ, поэтому {name} его отзывает.',
   'access.connect.deadline': 'Fabric не успел сохранить ключ за 10 секунд, которые ждёт {name}, поэтому {name} его отзывает.',
   'access.connect.withdrawn': "Fabric записал ключ, когда {name} уже перестал ждать, поэтому запись отменена, а {name} отзывает ключ.",
+  'access.connect.wrong-handler': 'Ссылки {name} сейчас открывает другое приложение, а не {name}, поэтому Fabric ничего не открывал. Откройте {name} один раз, чтобы он снова принимал свои ссылки, и подключите его заново.',
   'access.connect.not-connected': '{name} не подключён.',
   'access.connect.vault-unavailable': "{name} пока нельзя подключить в Windows: здесь не работает хранилище Project Observatory, в котором хранится его ключ. В {name} ничего не открывалось.",
   'access.connect.previousLost': 'Прежнее подключение уже было заменено, поэтому сейчас {name} не подключён; подключите его снова.',

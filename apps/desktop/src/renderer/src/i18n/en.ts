@@ -1366,6 +1366,7 @@ export const en = {
   'access.connect.vault': 'The vault of Project Observatory did not keep the key, so {name} revokes it.',
   'access.connect.deadline': 'Fabric could not keep the key within the 10 seconds {name} waits, so {name} revokes it.',
   'access.connect.withdrawn': 'Fabric recorded the key after {name} had stopped waiting, so it was withdrawn and {name} revokes it.',
+  'access.connect.wrong-handler': "{name}'s links now open in another app, not in {name}, so Fabric opened nothing. Open {name} once so it takes its links back, then connect it again.",
   'access.connect.not-connected': '{name} is not connected.',
   'access.connect.vault-unavailable': '{name} cannot be connected on Windows yet: the vault of Project Observatory, which keeps its key, does not run here. Nothing was opened in {name}.',
   'access.connect.previousLost': 'The previous connection was already replaced, so {name} is not connected now; connect it again.',

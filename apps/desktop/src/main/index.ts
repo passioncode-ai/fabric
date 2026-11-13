@@ -1150,6 +1150,10 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     estateId: ACTIVE_ESTATE,
     origin: () => (hubState.doorToken ? surface.origin : ''),
     openExternal: (url) => shell.openExternal(url),
+    handlerFor: async (url) => {
+      const info = await app.getApplicationInfoForProtocol(url)
+      return info.path ? { name: info.name, path: info.path } : null
+    },
     actor: () => OPERATOR_ACTOR
   })
   let access: AccessService | null = null

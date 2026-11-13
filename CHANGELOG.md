@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Connecting a product never opens another app** (the operator's screenshot, 2026-11-13). When macOS would hand
+  `fabric-inbox://connect` to an app other than Fabric Inbox (a development Electron that once ran the product), Agent
+  access now says which app holds the link and opens nothing, instead of a blank Electron window (CO-570).
+
 - **The Board opens from the rail, and a question is one press** (the operator, 2026-11-12). «Доска» sits first at the
   rail's foot with the count of what waits for you, and Главная's «Нужны вы» opens it with «Открыть доску». A «Нужны вы»
   card says who asks, how long ago and what, in two lines. On the Board a question's card is the request, then

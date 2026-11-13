@@ -645,7 +645,7 @@ export function agentName(agentId: string, registry: RegistrySnapshot | null | u
 export const CONNECT_PROBLEM_CODES = [
   'hub-off', 'already-connected', 'connection-changed', 'busy', 'live-unreadable', 'not-installed', 'no-flow', 'late', 'no-answer',
   'no_server', 'sign_in_required', 'mint_failed', 'unknown', 'invalid-delivery', 'record-failed', 'vault',
-  'deadline', 'withdrawn', 'withdraw-failed', 'not-connected', 'vault-unavailable'
+  'deadline', 'withdrawn', 'withdraw-failed', 'not-connected', 'vault-unavailable', 'wrong-handler'
 ] as const
 export type ConnectProblemCode = (typeof CONNECT_PROBLEM_CODES)[number]
 export interface ConnectProblem { code: ConnectProblemCode; detail?: string; previousLost?: boolean }

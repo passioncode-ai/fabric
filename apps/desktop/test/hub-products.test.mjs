@@ -1079,3 +1079,31 @@ test('ER-6: a narrowed call to a Fabric Inbox server older than 0.9.0 is refused
   assert.equal(r.isError, undefined, 'a 0.9.0 server was refused')
   h.inbox.close()
 })
+
+test('a link another app would open is not opened: the connect names that app (CO-570)', async () => {
+  // A development Electron that once ran the product registered its scheme: macOS opened a blank Electron window.
+  const opened = []
+  const connector = new ProductConnector({
+    estateId: ESTATE_A, store: recordingStore(), vault: { put: async () => ({ ok: true }), read: async () => ({ ok: false, reason: 'n/a' }) },
+    origin: () => 'http://127.0.0.1:47070', openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }),
+    handlerFor: async (url) => (assert.equal(url, 'fabric-inbox://'), { name: 'Electron', path: '/opt/src/fabric-dashboards/node_modules/electron/dist/Electron.app' })
+  })
+  const r = await connector.begin(FABRIC_INBOX)
+  assert.equal(r.ok, false)
+  assert.equal(r.problem.code, 'wrong-handler')
+  assert.equal(r.problem.detail, '/opt/src/fabric-dashboards/node_modules/electron/dist/Electron.app')
+  assert.match(r.reason, /Electron/)
+  assert.deepEqual(opened, [], 'the link was never opened')
+})
+
+test('the product\'s own app, or an unreadable handler, still opens the link (CO-570)', async () => {
+  for (const handlerFor of [async () => ({ name: 'Fabric Inbox', path: '/Applications/Fabric Inbox.app' }), async () => { throw new Error('no LaunchServices') }, async () => null]) {
+    const opened = []
+    const connector = new ProductConnector({
+      estateId: ESTATE_A, store: recordingStore(), vault: { put: async () => ({ ok: true }), read: async () => ({ ok: false, reason: 'n/a' }) },
+      origin: () => 'http://127.0.0.1:47070', openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }), handlerFor
+    })
+    assert.equal((await connector.begin(FABRIC_INBOX)).ok, true)
+    assert.equal(opened.length, 1)
+  }
+})

@@ -38,6 +38,7 @@
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { randomBytes, randomUUID } from 'node:crypto'
+import { basename } from 'node:path'
 import type { AccessActor, AccessStore } from './accessStore.ts'
 import { productName, type ConnectProblem, type ConnectProblemCode } from '../shared/access.ts'
 import type { SecretSlot, VaultPort } from './observatoryVault.ts'
@@ -58,6 +59,8 @@ export interface ProductSpec {
   client: string
   clientId: string
   level: 'read' | 'mail' | 'admin'
+  /** The product's app as macOS names its bundle (`<app>.app`): the one that must open the link (CO-570). */
+  app: string
   /** The vault slot's project, env and name prefix; the estate and the connection complete the name. */
   secret: SecretSlot
 }
@@ -76,6 +79,7 @@ export const FABRIC_INBOX: ProductSpec = {
   scheme: 'fabric-inbox',
   client: 'Fabric',
   clientId: 'fabric',
+  app: 'Fabric Inbox',
   // Admin, because a workspace setup the operator grants explicitly (create_address) needs it; every
   // other call is narrowed per call by X-Fabric-Accounts, which can narrow and never widen.
   level: 'admin',
@@ -100,6 +104,12 @@ export interface ProductConnectorDeps {
   /** The hub's origin, `http://127.0.0.1:<port>`; empty while the hub is not listening. */
   origin: () => string
   openExternal: (url: string) => Promise<void>
+  /**
+   * Which app the system would open the link in (`app.getApplicationInfoForProtocol`), or null when none or
+   * unreadable. A development Electron that once registered the scheme opens a blank Electron window instead of the
+   * product (CO-570): Fabric names it rather than opening it.
+   */
+  handlerFor?: (url: string) => Promise<{ name: string; path: string } | null>
   /** Read when it is needed: the operator is established after the hub is built. */
   actor: () => AccessActor
   now?: () => number
@@ -236,6 +246,13 @@ export class ProductConnector {
     // consent would only mint a key Fabric must refuse on delivery and leave it behind in the product.
     const down = this.deps.vault.unavailable?.() ?? null
     if (down) return refuse('vault-unavailable', `${name} cannot be connected here: ${down}`)
+    // #region connect-handler — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#4-a-product-is-connected-once-by-the-products-own-consent
+    // Before the product is opened (CO-570): a link the system would hand to another app (a development Electron
+    // once registered for the scheme) opens a blank window and no consent; say which app holds it instead.
+    const handler = await this.handlerOf(spec)
+    if (handler && basename(handler.path) !== `${spec.app}.app`)
+      return refuse('wrong-handler', `${name}'s links open in ${handler.name} (${handler.path}), not in ${spec.app}.app`, handler.path)
+    // #endregion connect-handler
     this.prune(this.now())
     if (this.starting.has(spec.product) || this.processing.has(spec.product) || [...this.pending.values()].some(p => p.spec.product === spec.product))
       return refuse('busy', `a connection to ${name} is already waiting for its answer`)
@@ -270,6 +287,17 @@ export class ProductConnector {
     }
     ops.record({ op: 'connect.begin', outcome: 'ok', detail: { product: spec.product, reconnect }, ctx: { correlationId: ops.correlate() } })
     return { ok: true, expiresAt: new Date(now + CONNECT_STATE_TTL_MS).toISOString() }
+  }
+
+  private async handlerOf(spec: ProductSpec): Promise<{ name: string; path: string } | null> {
+    if (!this.deps.handlerFor) return null
+    try {
+      return await this.deps.handlerFor(`${spec.scheme}://`)
+    } catch (e) {
+      // Unreadable is not wrong: the link is still opened, and an absent app fails as not-installed.
+      ops.failed('connect.handler-read', e, { product: spec.product })
+      return null
+    }
   }
 
   /** The product's own Deny or failure, in the journal (DA-7). Its absence would only cost history. */

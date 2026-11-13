@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-13 · `—` · fix/connect-wrong-handler → main · fast-forward
+- files: the connect's handler check (`productConnect.ts` region `connect-handler`, `index.ts`, `access.ts`, i18n `access.connect.wrong-handler`), its tests (`hub-products.test.mjs`), CO-570 and CO-571 in the carry-over, the map lane `iteration-2026-11-13-connect-handler`
+- conflicts: none
+- summary: a product's connect link that another app would open is refused with that app's name; the operator's 10-minute push recorded as CO-571
+
 ### 2026-11-12 · `—` · feat/board-in-menu → main · fast-forward
 - files: «Доска» in the rail (`LaunchShell.tsx`, `rail.css`, `App.tsx`), «Открыть доску» and the short «Нужны вы» card (`HomeParts.tsx`, `launch.css`), the question card with the recommended option and «Отдать агенту» (`BoardPanel.tsx`, `BoardScreen.tsx`), `recommended` in `fabric_question_ask` (`questionAsk.ts`, `agentSurface.ts`, `board.ts`), strings, tests, SCN-041, SCN-162, SCN-163, the plan, the CHANGELOG, the design map
 - conflicts: none
