@@ -12,6 +12,7 @@ import { hostname, networkInterfaces } from 'node:os'
 import type { CommsFactsReply, CommsInboxReply, CommsMessage, CommsRespondersReply, CommsTimelineReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
 import { mandateOfRequest } from './boardMandate.ts'
+import { readRequestThreadIds } from './boardThreadIds.ts'
 import { INBOX_CAPABILITY, isSelfTarget, remoteOwnerOf, targetForOwner, type DispatchAgent } from '../shared/boardDispatch.ts'
 import { createBoardDispatch, isDispatchRecord, noteOf, type DispatchDeps, type InboxGiven, type DispatchRecord, type OpenRequest, type RemoteState, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
@@ -24,16 +25,9 @@ const CLI_DEADLINE_MS = 60_000
 
 
 /** Every request of the board's last week, with its thread, submission time and whether its attempt is alive. */
-export async function readOpenRequests(comms: SweepComms, estateId: string, now: number): Promise<{ requests: OpenRequest[]; states: Map<string, string> }> {
-  const threads: string[] = []
-  let before: unknown = null
-  for (let page = 0; page < 3; page++) {
-    const r = await comms.threadPage(estateId, { kind: 'request', activeSince: new Date(now - WINDOW_MS).toISOString() }, before, 100)
-    if (!r.ok) throw new Error('the board\'s threads could not be read')
-    threads.push(...r.threads.map((t) => t.id))
-    if (!r.more || !r.before) break
-    before = r.before
-  }
+export async function readOpenRequests(comms: SweepComms, estateId: string, now: number): Promise<{ requests: OpenRequest[]; states: Map<string, string>; capped: boolean }> {
+  // CO-572: the threads with an open request first, so the board's growth past one read never hides a waiting request.
+  const { ids: threads, capped } = await readRequestThreadIds(comms, estateId, new Date(now - WINDOW_MS).toISOString())
   const messages: CommsMessage[] = []
   for (const thread of threads) {
     let after = 0
@@ -59,7 +53,7 @@ export async function readOpenRequests(comms: SweepComms, estateId: string, now:
     ...(attemptLive.has(m.id) ? { attemptLive: attemptLive.get(m.id) } : {}),
     ...((mandate) => (mandate ? { mandate } : {}))(mandateOfRequest(m, now))
   }))
-  return { requests, states }
+  return { requests, states, capped }
 }
 
 // #region board-dispatch-inbox — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#38-every-addressee-woken-and-watched-co-559
@@ -380,6 +374,8 @@ export function wireBoardDispatch(o: {
   const seen = new Map<string, { runtimeSessionId: string; at: number }>()
   // The responder slots, read once per pass: an unread board is never "nobody answers".
   let slots: Promise<CommsRespondersReply> | null = null
+  /** Whether the last pass's thread read stopped at its bound (CO-572). */
+  let threadsCapped = false
 
   const deps: DispatchDeps = {
     now: () => Date.now(),
@@ -387,6 +383,8 @@ export function wireBoardDispatch(o: {
     async readRequests() {
       const now = Date.now()
       const r = await readOpenRequests(o.comms, o.estateId, now)
+      // Said once per change, never every 30 s: a capped read leaves the oldest threads unread (CO-572).
+      if (r.capped !== threadsCapped) { threadsCapped = r.capped; o.log('board.dispatch.threads', r.capped ? 'failed' : 'ok', { capped: r.capped, note: r.capped ? 'more request threads than one pass reads; the oldest quiet ones are left out' : 'every request thread read' }) }
       // CO-559 (§3.8): the inboxes after the requests. A failed inbox read is logged and leaves the requests and the
       // watch of running runs to go on (review: it ended the whole pass); its inbox runs are judged on a later pass.
       let inbox: OpenRequest[] | null = null

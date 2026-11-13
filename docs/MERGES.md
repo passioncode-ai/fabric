@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-13 · `—` · fix/board-open-threads-first → main · fast-forward
+- files: `main/boardThreadIds.ts` (region `board-open-threads-first`), `boardDispatchWiring.ts`, `abandonedSweepRun.ts`, their tests, AGENTS' lifecycle rows, on-demand spec §3.9, CO-572 and CO-573 in the carry-over, the map lane `iteration-2026-11-13-board-open-threads`
+- conflicts: none
+- summary: the board's request threads with an open request are read first, so a waiting request is never left out; the live audit's other findings recorded as CO-573
+
 ### 2026-11-13 · `—` · fix/connect-wrong-handler → main · fast-forward
 - files: the connect's handler check (`productConnect.ts` region `connect-handler`, `index.ts`, `access.ts`, i18n `access.connect.wrong-handler`), its tests (`hub-products.test.mjs`), CO-570 and CO-571 in the carry-over, the map lane `iteration-2026-11-13-connect-handler`
 - conflicts: none

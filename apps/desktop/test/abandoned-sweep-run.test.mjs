@@ -293,6 +293,7 @@ test('readBoardRequests: open requests by their last move, answered ones by whet
   assert.deepEqual(read.capped, [], 'every read ended before its cap')
   const rows = read.requests
   assert.equal(asked[0].kind, 'request')
+  assert.equal(asked[0].openOnly, true, 'the threads with an open request first (CO-572)')
   assert.ok(asked[0].activeSince, 'a bounded window of threads')
   const by = Object.fromEntries(rows.map((r) => [r.requestId, r]))
   assert.equal(by['req-open'].movedAt, iso(now - 4 * MIN), 'an open request moved when it last changed state')

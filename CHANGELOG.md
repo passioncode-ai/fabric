@@ -9,6 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A waiting request is never left out of the board's read** (CO-572). The board grew past what one pass read (326
+  request threads in a week against 300), and the quietest open requests were the ones dropped, silently. The
+  dispatcher and the sweep now read the threads with an open request first, then the newest, and say in the log when a
+  read stopped at its bound.
+
 - **Connecting a product never opens another app** (the operator's screenshot, 2026-11-13). When macOS would hand
   `fabric-inbox://connect` to an app other than Fabric Inbox (a development Electron that once ran the product), Agent
   access now says which app holds the link and opens nothing, instead of a blank Electron window (CO-570).

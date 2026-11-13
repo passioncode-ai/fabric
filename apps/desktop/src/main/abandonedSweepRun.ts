@@ -47,6 +47,7 @@ import { specGaps, specMissing, type BriefParts, type SpecPart } from '../shared
 import type { CommsMessage, CommsPageReply, CommsThreadPageReply, CommsFactsReply } from '../shared/commsRead.ts'
 import { ops as opsSink } from './opsSink.ts'
 import { readWork, type SessionSign } from './workRead.ts'
+import { readRequestThreadIds } from './boardThreadIds.ts'
 import { sayWhy } from '../shared/workClaims.ts'
 import { REVIEW_ACCEPT_BY_DEFAULT_MS, reviewsDueForDefaultAccept } from '../shared/board.ts'
 import { randomUUID } from 'node:crypto'
@@ -766,7 +767,6 @@ export interface SweepComms {
 /** How far back the sweep reads the board: a request with no deadline of its own expires after seven days (migration
  *  120, `board_request_default_ttl`), so a thread quiet for longer holds nothing open. */
 export const BOARD_WINDOW_MS = 7 * 24 * 3600_000
-const THREAD_PAGES = 3
 const MESSAGE_PAGES = 5
 
 /**
@@ -783,15 +783,10 @@ export async function readBoardRequests(comms: SweepComms, estateId: string, now
     return r as Extract<T, { ok: true }>
   }
   const capped = new Set<BoardCap>()
-  const threads: string[] = []
-  let before: unknown = null
-  for (let page = 0; page < THREAD_PAGES; page++) {
-    const r = must(await comms.threadPage(estateId, { kind: 'request', activeSince: new Date(now - BOARD_WINDOW_MS).toISOString() }, before, 100), 'threads')
-    threads.push(...r.threads.map((t) => t.id))
-    if (!r.more || !r.before) break
-    if (page === THREAD_PAGES - 1) capped.add('threads')
-    before = r.before
-  }
+  // CO-572: the threads with an open request first, then the newest, each read with its own bound.
+  const read = await readRequestThreadIds(comms, estateId, new Date(now - BOARD_WINDOW_MS).toISOString())
+  const threads = read.ids
+  if (read.capped) capped.add('threads')
   const messages: CommsMessage[] = []
   for (const thread of threads) {
     let after = 0

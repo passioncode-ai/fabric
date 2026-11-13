@@ -2012,3 +2012,37 @@ test('ER-60: an unanswered start elsewhere, then a refusal, never leads to a run
   assert.equal(w.launches.length, 2, 'never asked there again')
   assert.equal(d.toOperator().get(request().id), 'remote-unanswered')
 })
+
+test('the board read takes the threads with an open request first, then the newest, each once (CO-572)', async () => {
+  // 2026-11-13: 326 request threads in the week against a read of the newest 300 left the quietest open requests out.
+  const filters = [], listed = []
+  const comms = {
+    threadPage: async (_e, filter) => {
+      filters.push(filter)
+      return filter.openOnly ? { ok: true, threads: [{ id: 't-quiet-open' }], more: false, before: null } : { ok: true, threads: [{ id: 't-new' }, { id: 't-quiet-open' }], more: false, before: null }
+    },
+    list: async (_e, thread) => { listed.push(thread); return { ok: true, messages: [], lastSeq: 0, more: false } },
+    facts: async () => ({ ok: true, messages: {}, requests: {} })
+  }
+  const r = await readOpenRequests(comms, 'e1', T0)
+  assert.equal(filters[0].openOnly, true, 'open threads first')
+  assert.equal(filters[0].kind, 'request')
+  assert.equal(filters.at(-1).openOnly, undefined, 'then the newest, open or not')
+  assert.deepEqual(listed, ['t-quiet-open', 't-new'], 'each thread read once')
+  assert.equal(r.capped, false)
+})
+
+test('a board read that stops at its bound says so, and still reads the newest threads (CO-572)', async () => {
+  let pages = 0
+  const comms = {
+    threadPage: async (_e, filter, before) => {
+      if (filter.openOnly) { pages++; return { ok: true, threads: [{ id: `o${pages}` }], more: true, before: { lastSeq: pages, id: `o${pages}` } } }
+      return { ok: true, threads: [{ id: 'n1' }], more: false, before: null }
+    },
+    list: async () => ({ ok: true, messages: [], lastSeq: 0, more: false }),
+    facts: async () => ({ ok: true, messages: {}, requests: {} })
+  }
+  const r = await readOpenRequests(comms, 'e1', T0)
+  assert.equal(pages, 10, 'ten pages of open threads')
+  assert.equal(r.capped, true)
+})

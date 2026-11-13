@@ -453,6 +453,13 @@ The operator, 2026-11-12: «диспетчер чтобы работал кор�
   the records not kept), the in-memory maps keep only what the board still shows or a record still names (decisions,
   back-offs, retried opens, workflow leases), the sessions of launches no longer running are forgotten, and a record is
   kept for its request's deadline at most 30 days (`UNTIL_MAX_MS`).
+- **Open threads first** (CO-572, 2026-11-13). A week of the board held 326 request threads while a pass read the newest
+  300 by last activity, so the quietest threads, whose open request most needs a wake, were left out and nothing said
+  so. The dispatcher and the sweep now read the threads with an open request first (the board's `openOnly`, at most 10
+  pages of 100), then the newest (3 pages), each thread once; a read stopped at its bound is said once per change as
+  `board.dispatch.threads` and in the sweep's receipt as `capped: threads` (`main/boardThreadIds.ts`, region
+  `board-open-threads-first`; tests «the board read takes the threads with an open request first» and «a board read
+  that stops at its bound says so»).
 - **Not done here** (CO-567): a board-side lease per request so two dispatchers can share a board, a start elsewhere that
   timed out three times run here once Switchboard can say nothing started there, watching runs in parallel within a pass
   budget, and a responder's lease judged by the database's clock.
