@@ -1885,6 +1885,13 @@ test('2026-11-12 (H4): a call past its deadline ends its whole process group, th
   await assert.rejects(run('/bin/sh', ['-c', 'echo "error: target_unreachable at /Users/x" >&2; exit 3'], process.env), /refused: target_unreachable/)
 })
 
+test('CO-573: a program that cannot be started says why by its system code, so a failed start leaves a cause', { skip: process.platform === 'win32' }, async () => {
+  // 2026-11-13: after a restart no dispatched run started for 2.5 hours and the log said only `unknown`.
+  const { run } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  await assert.rejects(run('/nonexistent/switchboard', ['--json'], process.env), /could not be started: ENOENT/)
+  await assert.rejects(run('/bin/sh', ['-c', 'exit 4'], process.env), /exited 4/)
+})
+
 // The operator, 2026-11-12 (on-demand spec §3.10): a run decides what it can, asks another agent through the board,
 // and takes a question for a person to the organization's PM agent (people.ask), never stopping the work on it.
 test('§3.10: every packet carries the route of questions: decide first, then the owning agent, then people.ask', async () => {

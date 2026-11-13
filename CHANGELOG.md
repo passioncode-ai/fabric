@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A start the dispatcher could not make now says why** (CO-573). After Fabric restarted on 2026-11-13 no board run
+  started for two and a half hours and the log said only that each start's outcome was unknown. A Switchboard that
+  cannot be started now gives its system reason, and the dispatcher logs the cause once each time it changes.
+
 - **A waiting request is never left out of the board's read** (CO-572). The board grew past what one pass read (326
   request threads in a week against 300), and the quietest open requests were the ones dropped, silently. The
   dispatcher and the sweep now read the threads with an open request first, then the newest, and say in the log when a

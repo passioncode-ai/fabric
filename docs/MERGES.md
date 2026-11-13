@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-13 · `—` · fix/dispatch-unknown-start → main · fast-forward
+- files: `run` names a program that could not be started by its system code, the dispatcher logs a failed start's cause once per change (`boardDispatchWiring.ts`), its test (`board-dispatch-run.test.mjs`), CO-573 (13) built, CHANGELOG, the map lane `iteration-2026-11-13-launch-cause`
+- conflicts: none
+- summary: a start the dispatcher could not make now says why
+
 ### 2026-11-13 · `—` · docs/co573-morning-findings → main · fast-forward
 - files: CO-573 in the carry-over gains the morning's three findings (a restart's storm of unknown starts, the folder Observatory names for several projects, fabric-mcp not coming back after a restart)
 - conflicts: none

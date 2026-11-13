@@ -139,6 +139,9 @@ export const run = (file: string, args: string[], env: NodeJS.ProcessEnv, deadli
     done = true
     clearTimeout(timer)
     if (!e && code === 0 && !over) return resolve(out)
+    // CO-573 (2026-11-13): a program that could not be started at all (not on the PATH, not executable) says so by its
+    // system code, never by its text; that is the one cause a dispatcher saw for 2.5 hours without being told it.
+    if (e) return reject(new Error(`could not be started: ${(e as NodeJS.ErrnoException).code ?? 'error'}`))
     const refusal = err.match(REFUSAL_CODES)?.[1]
     reject(new Error(refusal ? `refused: ${refusal}` : killed ? 'no answer within the deadline' : over ? 'the answer was larger than the call takes' : `exited ${code ?? 'with an error'}`))
   }
@@ -374,6 +377,8 @@ export function wireBoardDispatch(o: {
   const seen = new Map<string, { runtimeSessionId: string; at: number }>()
   // The responder slots, read once per pass: an unread board is never "nobody answers".
   let slots: Promise<CommsRespondersReply> | null = null
+  /** The last cause a start failed with, logged once per change (CO-573). */
+  let lastLaunchFailure: string | null = null
   /** Whether the last pass's thread read stopped at its bound (CO-572). */
   let threadsCapped = false
 
@@ -430,10 +435,17 @@ export function wireBoardDispatch(o: {
         const out = JSON.parse(await run(sb, dispatchArgs(a, takesInbox), await envWith())) as { data?: { launch_id?: string; state?: string; reason?: string } }
         const d = out.data ?? {}
         if (d.state === 'refused' || !d.launch_id) return { refused: d.reason ?? 'refused' }
+        lastLaunchFailure = null
         return { launchId: d.launch_id }
       } catch (e) {
         // A refusal is the dispatcher's to record (board.dispatch.decided names its check).
         const code = e instanceof Error ? e.message.match(REFUSAL_CODES)?.[1] : undefined
+        // CO-573 (2026-11-13): a start Switchboard did not answer was logged only as `unknown`, so 2.5 hours of failed
+        // starts after a restart left no cause. The cause is logged once each time it changes, never every pass.
+        if (!code) {
+          const note = noteOf(e)
+          if (note !== lastLaunchFailure) { lastLaunchFailure = note; o.log('board.dispatch.launch', 'failed', { note }) }
+        }
         return { refused: code ?? 'failed' }
       }
     },
