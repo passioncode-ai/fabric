@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-13 · `—` · docs/co574-delete-empty-project → main · fast-forward
+- files: CO-574 in the carry-over, its count and lane 12 in the backlog, the map lane `iteration-2026-11-13-empty-project-door`
+- conflicts: none
+- summary: fabric-workspace's ask recorded: a hub door for an agent to archive an empty project
+
 ### 2026-11-13 · `—` · fix/board-open-threads-first → main · fast-forward
 - files: `main/boardThreadIds.ts` (region `board-open-threads-first`), `boardDispatchWiring.ts`, `abandonedSweepRun.ts`, their tests, AGENTS' lifecycle rows, on-demand spec §3.9, CO-572 and CO-573 in the carry-over, the map lane `iteration-2026-11-13-board-open-threads`
 - conflicts: none
