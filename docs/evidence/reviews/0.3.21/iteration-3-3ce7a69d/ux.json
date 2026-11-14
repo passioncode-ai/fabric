@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "3ce7a69ddbd367f20b0ef50c1f58ecc72c02c3b0",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-3ce7a69d/2026-11-14-ux.md",
+  "reportSha256": "91a3e7bbb28053dd911d93c85c1e137e668f6084a9b6fd66ad6b39e1c850e45d",
+  "reviewerRun": "release-0321-i3r2-ux-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): as ER-19"
+      ]
+    },
+    {
+      "id": "UX-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): `board_narrowed` says «of that window only its oldest messages: the newest were not read» when the board is capped; test «ER-19, UX-14 (run two)»"
+      ]
+    },
+    {
+      "id": "UX-16",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (its row names the case and two ways to fix it)"
+      ]
+    },
+    {
+      "id": "UX-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): the note with hits names them too, and the tool's description names `not_searched`"
+      ]
+    }
+  ]
+}

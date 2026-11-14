@@ -331,6 +331,8 @@ chain on an owned cluster by `apps/desktop/test/run-project-board-responders-db.
 missing migration in the same step (from 98, four: 126 to 129). No older build opens a schema-102 database, so going back
 is the backup with the bundle you came from.
 
+**0.3.21 admits schema 102**, the same as 0.3.20: it adds no migration (`git diff --stat 0d729bbe..HEAD -- supabase` prints nothing), so upgrading from 0.3.20 is the new bundle alone and going back is the 0.3.20 bundle alone; a database at 101 (0.3.19) takes 0.3.20's upgrade above first (migration 129, `FROM` 101), then opens 0.3.21. On macOS turn «Служба доски» off before the quit and on again once 0.3.21 reads back, as for 0.3.18 (the 0.3.21 review, iteration 3, PL-21).
+
 1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
    on: turn it off and then quit before the bundle is replaced (`launchctl bootout` stops only a copy launchd started;
    the 0.3.18 paragraph above), and turn it on again once the new build runs. A quiet window does not prove the database has
@@ -413,7 +415,7 @@ is the backup with the bundle you came from.
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12, 98 for 0.3.13 to 0.3.15, 100 for 0.3.16 to 0.3.18, 101 for 0.3.19, 102 for 0.3.20).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12, 98 for 0.3.13 to 0.3.15, 100 for 0.3.16 to 0.3.18, 101 for 0.3.19, 102 for 0.3.20 and 0.3.21).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

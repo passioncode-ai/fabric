@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "3ce7a69ddbd367f20b0ef50c1f58ecc72c02c3b0",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-3ce7a69d/2026-11-14-docs.md",
+  "reportSha256": "9a5a73263ebef97969585924cba32cef95fe43ba74c4e36f6a642a4b29280505",
+  "reviewerRun": "release-0321-i3r2-docs-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): as ER-19"
+      ]
+    },
+    {
+      "id": "DO-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): as ER-16"
+      ]
+    },
+    {
+      "id": "DO-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): §3.9, CO-572 and the CHANGELOG say which read each reports"
+      ]
+    },
+    {
+      "id": "DO-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): CO-565, §3.2 and the handoff say «worked or started»"
+      ]
+    },
+    {
+      "id": "DO-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): CO-583 says the new kind inherits the older kinds' shape"
+      ]
+    },
+    {
+      "id": "DO-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): the header names moved, started and open tasks; the handoff watches one wait"
+      ]
+    }
+  ]
+}

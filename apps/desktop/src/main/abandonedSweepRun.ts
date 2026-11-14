@@ -786,7 +786,9 @@ export async function readBoardRequests(comms: SweepComms, estateId: string, now
   // CO-572: the threads with an open request first, then the newest, each read with its own bound.
   const read = await readRequestThreadIds(comms, estateId, new Date(now - BOARD_WINDOW_MS).toISOString())
   const threads = read.ids
-  if (read.capped) capped.add('threads')
+  // ER-18 (0.3.21 review, iteration 3, run two): answered requests reach the sweep only through the newest read, so its
+  // cap is the sweep's too (an unread answer can be missed), unlike the dispatcher's.
+  if (read.capped || read.recentCapped) capped.add('threads')
   const messages: CommsMessage[] = []
   for (const thread of threads) {
     let after = 0

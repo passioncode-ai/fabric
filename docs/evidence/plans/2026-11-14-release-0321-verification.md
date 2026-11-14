@@ -22,6 +22,8 @@ operator asked for on 2026-11-14 (`fabric_board_search`, `similar_work`, the adv
 - Iteration 3 closes on the first run whose blocking findings are all confined to the files the release gate allows
   after `verifiedCommit` (`scripts/lib/release-mac.mjs#verifiedCandidateProblem`); those are fixed in the release commit,
   as for 0.3.20 (its ledger's Protocol, run five, PL-84).
+- A run's candidate passes `bash scripts/ci.sh fast` before its reviewers start (the 0.3.21 review, iteration 3, run two,
+  PL-20: a red candidate cannot be `verifiedCommit`, and its fixes are refused after it).
 
 ## What 0.3.21 carries
 
@@ -153,9 +155,46 @@ the file alone passed three times (CO-581). fabric-agent-adapter 0.86.0 resolved
 | V3-21 | PL-18 | non-blocking | shipped no-folder wording had no text check | fixed in the iteration-3 wave (run two's candidate): as DO-20; the Russian reworded and checked again |
 | V3-22 | PL-19 | non-blocking | item 6 leaves out the board search | fixed in the iteration-3 wave (run two's candidate): item 6 tells §6 about the board search and what CO-576 and CO-579 leave |
 
-### Run two
+### Run two, 3ce7a69d (superseded)
 
-On the candidate the iteration-3 wave lands; five fresh reviewers.
+Candidate `3ce7a69ddbd367f20b0ef50c1f58ecc72c02c3b0`. Five fresh reviewers; their reports and receipts are in
+`docs/evidence/reviews/0.3.21/iteration-3-3ce7a69d/` (kept as the record). 22 findings, 3 blocking: PL-20, the candidate
+failed `bash scripts/ci.sh fast` (the `launch.css` rule run one added sat in the block ported from the prototype, and the
+mockup coverage was built before its receipts' repin; both fixed in `21317159` and `31ec15f6`, which follow it); ER-15,
+run one's ER-12 fix made a file name miss every document that cites it with its folder; DA-10, run one's ER-14 split
+left the sweep silent about the newest thread read's cap, from which it judges answered requests. Every new test was
+watched failing on the old code. The reviewer text naming a longer CO number in the errors report is written in words there, since the
+register gate reads it as a row reference (ADR-0096 redaction).
+
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
+| V3-23 | UX-14 | non-blocking | a failed 6-hour read dropped the day already read | fixed in the run-two wave (run three's candidate): as ER-19 |
+| V3-24 | UX-15 | non-blocking | board_narrowed claimed a capped window read whole | fixed in the run-two wave (run three's candidate): `board_narrowed` says «of that window only its oldest messages: the newest were not read» when the board is capped; test «ER-19, UX-14 (run two)» |
+| V3-25 | UX-16 | non-blocking | hyphenated query words searched only as ids | ruled: CO-578 (its row names the case and two ways to fix it) |
+| V3-26 | UX-17 | non-blocking | words past the cap named only in a field when there are hits | fixed in the run-two wave (run three's candidate): the note with hits names them too, and the tool's description names `not_searched` |
+| V3-27 | ER-15 | blocking | the ER-12 fix made a file name miss the documents citing it with its folder | fixed in the run-two wave (run three's candidate): a path also reads as its tails after each `/`, an id matches a longer term only where it goes on with a separator; test «ER-15 (run two)», watched failing; spec §2 says so |
+| V3-28 | ER-16 | non-blocking | per-folder and repository-standard names still linked claims | fixed in the run-two wave (run three's candidate): `GENERIC_NAMES` gains them; test «ER-16, ER-17, DO-25 (run two)», watched failing |
+| V3-29 | ER-17 | non-blocking | a versioned name cut to its major | fixed in the run-two wave (run three's candidate): a name is cut at its first dot followed by a letter; same test |
+| V3-30 | ER-18 | non-blocking | the sweep no longer named the newest read's cap | fixed in the run-two wave (run three's candidate): the sweep's receipt names `threads` when either read stopped; test «ER-18, DA-10 (run two)», watched failing |
+| V3-31 | ER-19 | non-blocking | a failed 6-hour read dropped the day's messages | fixed in the run-two wave (run three's candidate): what one day read before it did not fit is kept, capped; test «ER-19, UX-14 (run two)», watched failing |
+| V3-32 | DO-24 | non-blocking | ER-13's disposition true only for the 1-hour read | fixed in the run-two wave (run three's candidate): as ER-19 |
+| V3-33 | DO-25 | non-blocking | four lock files still linked | fixed in the run-two wave (run three's candidate): as ER-16 |
+| V3-34 | DO-26 | non-blocking | §3.9 and CO-572 said every capped read is logged | fixed in the run-two wave (run three's candidate): §3.9, CO-572 and the CHANGELOG say which read each reports |
+| V3-35 | DO-27 | non-blocking | the start grace missing in three places | fixed in the run-two wave (run three's candidate): CO-565, §3.2 and the handoff say «worked or started» |
+| V3-36 | DO-28 | non-blocking | CO-583's reason wrong for request-no-folder | fixed in the run-two wave (run three's candidate): CO-583 says the new kind inherits the older kinds' shape |
+| V3-37 | DO-29 | non-blocking | a header and the handoff's watcher line stale | fixed in the run-two wave (run three's candidate): the header names moved, started and open tasks; the handoff watches one wait |
+| V3-38 | DA-10 | blocking | the sweep silent about the newest read's cap | fixed in the run-two wave (run three's candidate): as ER-18, with spec §3.9 and the CHANGELOG |
+| V3-39 | DA-11 | non-blocking | a failed 6-hour read; a capped window said read whole | fixed in the run-two wave (run three's candidate): as ER-19 and UX-15 |
+| V3-40 | DA-12 | non-blocking | a live-claims read cut at its bound read as nobody holds it | fixed in the run-two wave (run three's candidate): `liveClaims` says `capped`, hits without a holder are `holder_unknown`, `capped` names «live claims»; test «DA-12 (run two)», watched failing |
+| V3-41 | PL-20 | blocking | the candidate failed ci.sh fast and its fixes follow it | fixed in the run-two wave (run three's candidate): run two is superseded and iteration 3 runs again on the commit carrying `21317159`, `31ec15f6` and this wave, with `bash scripts/ci.sh fast` read green first; the Protocol says so |
+| V3-42 | PL-21 | non-blocking | no upgrade paragraph for 0.3.21 | fixed in the run-two wave (run three's candidate): `## Unreleased` opens with «Upgrading», `release-mac.md` gains the 0.3.21 paragraph and its schema |
+| V3-43 | PL-22 | non-blocking | AGENTS.md does not name the North Star sections | fixed in the run-two wave (run three's candidate): AGENTS.md «The North Star sections Fabric serves»: §4, §6, §10, G5, G10, G25, G29 and the duty to tell fabric-workspace |
+| V3-44 | PL-23 | non-blocking | the handoff's waits and next task stale | fixed in the run-two wave (run three's candidate): one wait named with its watcher; the next task names run three's candidate |
+
+### Run three
+
+On the candidate the run-two wave lands, with `bash scripts/ci.sh fast` read green before the reviewers start; five
+fresh reviewers.
 
 ## Release close
 

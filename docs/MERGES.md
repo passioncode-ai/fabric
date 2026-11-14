@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 3, run two) → main · fast-forward
+- files: the run-two wave: `boardSearch.ts` (a path read as its tails, an id matched only where a longer term goes on with a separator, names cut at a dot before a letter, more generic names), `boardSearchRead.ts` (a day that did not fit kept when a narrower read fails, a capped window said, the cut words named with hits, a capped live-claims read), `workTools.ts`, `abandonedSweepRun.ts` (the newest read's cap is the sweep's); `release-mac.md` and `## Unreleased` («Upgrading»), AGENTS.md (the North Star sections), spec, on-demand §3.2 and §3.9, CO-565, CO-572, CO-578, CO-583, the ledger's run two and Protocol, the handoff; before it `launch.css` (a rule moved out of the ported block) and `completeness.html` (rebuilt)
+- conflicts: none
+- summary: the 0.3.21 review's iteration-3 run two findings fixed (ER-15, DA-10, PL-20 blocking) or ruled (UX-16: CO-578)
+
 ### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 3, run one) → main · fast-forward
 - files: the iteration-3 wave: `BoardScreen.tsx` (a question's own why under «Подробнее»), `boardSearch.ts` (names read to their first dot, more generic names, ids not matched by shorter words, the query cut in its own order, `queryCut`), `boardSearchRead.ts` (`not_searched`, a failed read said as failed, a failed narrow read keeps what was read), `boardThreadIds.ts` (`capped` for the open read only); spec, SCN-140 and SCN-147, AGENTS.md, CHANGELOG, CO-569 to CO-583, the ledger's iteration 3 run one, the handoff, the text-check receipt
 - conflicts: none

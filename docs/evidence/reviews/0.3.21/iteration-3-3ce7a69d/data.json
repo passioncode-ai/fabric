@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "3ce7a69ddbd367f20b0ef50c1f58ecc72c02c3b0",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-3ce7a69d/2026-11-14-data.md",
+  "reportSha256": "fbf3e995461c4c1527564f90982dd7c5d4eab84f5858be6c983d4c2fd4a0feb5",
+  "reviewerRun": "release-0321-i3r2-data-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): as ER-18, with spec §3.9 and the CHANGELOG"
+      ]
+    },
+    {
+      "id": "DA-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): as ER-19 and UX-15"
+      ]
+    },
+    {
+      "id": "DA-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): `liveClaims` says `capped`, hits without a holder are `holder_unknown`, `capped` names «live claims»; test «DA-12 (run two)», watched failing"
+      ]
+    }
+  ]
+}

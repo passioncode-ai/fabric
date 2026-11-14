@@ -39,6 +39,15 @@ and it holds everywhere else too. The glossary those claims are held to is
 [`CONTEXT.md`](CONTEXT.md): a term means what it means there, in code, docs and agent
 instructions alike.
 
+## The North Star sections Fabric serves
+
+The organization's [North Star](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/north-star.md)
+(`workspace/knowledge/north-star.md` in this checkout) names Fabric for §4, §6 (the board and the hub, the dispatcher,
+the sweep, the 10-minute push), §10, and the gaps G5, G10, G25 and G29. When a change here moves Fabric's state against
+one of them (a gap closed or narrowed, a promise kept or broken), tell fabric-workspace on the board in the same run:
+the section, what changed and its evidence (a commit, a release, a test). A release's close names its own items (the
+0.3.21 review, iteration 3, PL-22).
+
 ## Code region markers
 
 A feature, a module or a special condition in code is fenced so that an agent searching the

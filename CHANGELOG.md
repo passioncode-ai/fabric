@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+**Upgrading.** No schema step from 0.3.20 (schema 102, no migration). From 0.3.19, take 0.3.20's step first
+(migration 129, by [the runbook](docs/launch/release-mac.md#upgrading-an-existing-database), with a backup). On macOS turn
+«Служба доски» off before the quit and on again once 0.3.21 runs.
+
 - **Agents can search the board by subject** (the operator, 2026-11-14: «хочу чтобы агенты делали раг поиск по доске
   когда ищут связи кто чем занят»). `fabric_board_search` finds a project's tasks, notes, board requests and messages
   and the other projects' capabilities by words in Russian and English, best first, each with who holds it now or held
@@ -34,8 +38,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 - **A waiting request is never left out of the board's read** (CO-572). The board grew past what one pass read (326
   request threads in a week against 300), and the quietest open requests were the ones dropped, silently. The
-  dispatcher and the sweep now read the threads with an open request first, then the newest, and say in the log when a
-  read stopped at its bound.
+  dispatcher and the sweep now read the threads with an open request first, then the newest; the dispatcher logs when
+  the open read stopped at its bound, and the sweep's record says when either read did.
 
 - **Connecting a product never opens another app** (the operator's screenshot, 2026-11-13). When macOS would hand
   `fabric-inbox://connect` to an app other than Fabric Inbox (a development Electron that once ran the product), Agent

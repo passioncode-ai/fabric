@@ -125,6 +125,26 @@ describe('similarClaims', () => {
     expect(rankDocs('fabric_work_list', docs, { now: NOW, limit: 5 })).toEqual([])
   })
 
+  it('ER-15 (run two): a file name finds the document that cites it with its folder; CO-571 is not CO-5710', () => {
+    const docs = [doc('p', 'Retries', 'touches apps/desktop/src/main/boardDispatchRun.ts#resolveProject'), doc('a', 'Done', 'ADR-0190/CO-571 done'),
+      doc('x', 'Later', 'CO-5710 later'), doc('f', 'Tools', 'fabric_work_list answers')]
+    expect(rankDocs('boardDispatchRun.ts', docs, { now: NOW, limit: 5 }).map((h) => h.doc.id)).toEqual(['p'])
+    expect(rankDocs('CO-571', docs, { now: NOW, limit: 5 }).map((h) => h.doc.id)).toEqual(['a'])
+    expect(rankDocs('fabric_work', docs, { now: NOW, limit: 5 }).map((h) => h.doc.id)).toEqual(['f'])
+  })
+
+  it('ER-16, ER-17, DO-25 (run two): per-folder framework names, lock files and versioned names', () => {
+    const pairs: Array<[string, string]> = [['lib/__init__.py', 'pkg/__init__.py'], ['app/y/page.tsx', 'app/x/page.tsx'],
+      ['eslint.config.js', 'web/eslint.config.js'], ['poetry.lock', 'web/poetry.lock'],
+      ['docs/releases/fabric-0.3.21-mac.json', 'docs/releases/fabric-0.2.0-mac.json'], ['notes/release-0.3.21.md', 'notes/release-0.2.0.md']]
+    for (const [mine, theirs] of pairs) {
+      const other = [{ claimId: 'g3', taskId: 'tg', owner: 's-other', agent: null, title: 'Icon of the store page', touches: [theirs] }]
+      expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Translate the help', touches: [mine] }, other), mine).toEqual([])
+    }
+    const same = [{ claimId: 'g4', taskId: 'tg', owner: 's-other', agent: null, title: 'Icon of the store page', touches: ['docs/releases/fabric-0.3.21-mac.json'] }]
+    expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Translate the help', touches: ['out/fabric-0.3.21-mac.json'] }, same).length).toBe(1)
+  })
+
   it('names nothing when only one weak word is shared', () => {
     expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Иконка для доски на сайте и в сторе и в письме', touches: [] }, claims)).toEqual([])
   })

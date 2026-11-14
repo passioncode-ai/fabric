@@ -127,6 +127,26 @@ test('ER-13 (0.3.21 review, iteration 3): a narrower read that fails keeps what 
   assert.doesNotMatch(a.note, /Nothing could be read/)
 })
 
+test('DA-12 (0.3.21 review, iteration 3, run two): a live-claims read cut at its bound marks unheld hits unknown and is named capped', async () => {
+  const a = await searchBoard({ query: 'board dispatcher', kinds: ['tasks'] }, deps({ liveClaims: async () => ({ claims: [], capped: true }) }))
+  assert.ok(a.capped.includes('live claims'))
+  assert.ok(a.hits.length > 0 && a.hits.every((h) => h.held_by || h.holder_unknown))
+  assert.match(a.holders, /could not be read whole/)
+})
+
+test('ER-19, UX-14 (run two): one day that did not fit is kept when the 6-hour read then fails', async () => {
+  const hours = (since) => (NOW - Date.parse(since)) / 3_600_000
+  const dayOverThenDown = async ({ since }) => {
+    if (hours(since) < 12) throw new Error('board down')
+    return { messages: [{ id: `m${hours(since)}`, thread: 'th', kind: 'message', sender: { project: PROJECT }, at: since, body: { text: 'zebra' } }], cursor: 'more' }
+  }
+  const a = await searchBoard({ query: 'zebra', kinds: ['board'] }, deps({ boardList: dayOverThenDown }))
+  assert.ok(a.read.messages > 0)
+  assert.deepEqual(a.capped, ['board'])
+  assert.match(a.board_narrowed, /only its oldest messages/)
+  assert.doesNotMatch(a.note, /Nothing could be read/)
+})
+
 test('UX-11, DA-9 (0.3.21 review, iteration 3): words past the cap are named, in the query\'s order, never said as not found', async () => {
   const words = 'alpha bravo charlie delta echoes foxtrot golfing hotel india juliet kilos limas mikes novembers'
   const a = await searchBoard({ query: `${words} CO-571` }, deps())

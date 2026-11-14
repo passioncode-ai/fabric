@@ -303,6 +303,18 @@ test('readBoardRequests: open requests by their last move, answered ones by whet
   assert.equal(by['req-read'].answerUnreadSince, null, 'an answer the requester read')
 })
 
+test('ER-18, DA-10 (0.3.21 review, iteration 3, run two): the newest thread read stopping at its bound is the sweep\'s cap too', async () => {
+  const comms = {
+    threadPage: async (_e, filter, before) => filter.openOnly
+      ? { ok: true, threads: [], more: false, before: null }
+      : { ok: true, threads: [{ id: `n${before?.lastSeq ?? 0}` }], more: true, before: { lastSeq: (before?.lastSeq ?? 0) + 1, id: 'x' } },
+    list: async () => ({ ok: true, messages: [], lastSeq: 0, more: false }),
+    facts: async () => ({ ok: true, messages: {}, requests: {} })
+  }
+  const read = await readBoardRequests(comms, 'estate', T0)
+  assert.deepEqual(read.capped, ['threads'])
+})
+
 test('readBoardRequests: a door that answers unavailable throws, never an empty reading', async () => {
   const comms = { threadPage: async () => ({ ok: false, error: { code: 'unavailable', message: 'down' } }) }
   await assert.rejects(readBoardRequests(comms, 'estate', T0), /down/)

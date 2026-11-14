@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "3ce7a69ddbd367f20b0ef50c1f58ecc72c02c3b0",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-3ce7a69d/2026-11-14-errors.md",
+  "reportSha256": "11687b62a65e10f65d4794d09029ac6cd3dadac73fea11fdf9b012ce7d8ffe11",
+  "reviewerRun": "release-0321-i3r2-errors-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): a path also reads as its tails after each `/`, an id matches a longer term only where it goes on with a separator; test «ER-15 (run two)», watched failing; spec §2 says so"
+      ]
+    },
+    {
+      "id": "ER-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): `GENERIC_NAMES` gains them; test «ER-16, ER-17, DO-25 (run two)», watched failing"
+      ]
+    },
+    {
+      "id": "ER-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): a name is cut at its first dot followed by a letter; same test"
+      ]
+    },
+    {
+      "id": "ER-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): the sweep's receipt names `threads` when either read stopped; test «ER-18, DA-10 (run two)», watched failing"
+      ]
+    },
+    {
+      "id": "ER-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): what one day read before it did not fit is kept, capped; test «ER-19, UX-14 (run two)», watched failing"
+      ]
+    }
+  ]
+}

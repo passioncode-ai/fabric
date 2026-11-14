@@ -38,8 +38,10 @@ a hit without `held_by` is never read as «nobody holds it». A query of stop wo
 like the task being claimed, by its title and what it touches: two shared words, or half of the words of its title and
 touched names, or a file or folder name both claims touch (a name every repository has, such as `src`, `index` or
 `README`, `CHANGELOG`, `tsconfig` or a lock file, links nothing, neither as a name nor as a word; a name is read up to its
-first dot, so `index.test.ts` reads as `index`, and one under four letters links nothing; the 0.3.21 review, iteration 2,
-ER-8, and iteration 3, ER-11)
+first dot followed by a letter, so `index.test.ts` reads as `index` and `fabric-0.3.21-mac.json` keeps its version, and
+one under four letters links nothing; the list is `boardSearch.ts#GENERIC_NAMES`: the repository standard's files,
+per-folder framework names (`__init__`, `page`, `layout`, `route`, `eslint`) and the common lock files; the 0.3.21
+review, iteration 2, ER-8, iteration 3, ER-11, and run two, ER-16, ER-17, DO-25)
 (`apps/desktop/src/shared/boardSearch.ts#similarClaims`). A hint, never a refusal, beside the structural `related`.
 
 `fabric_whoami`'s rules carry the advice `work.search-the-board` (`apps/desktop/src/shared/protocolObligations.ts`):
@@ -57,8 +59,11 @@ that reads the hits, so retrieval here only has to find them (`apps/desktop/src/
   endings longest first, English `-ing`, `-ed`, `-es`, `-s`, `-ies`, `-er`, ...), leaving at least three letters; `ё`
   read as `е`; stop words of both languages dropped.
 - BM25 (k1 1.2, b 0.75) over the title, weighted three, and the text; a term of five letters or more also matches a
-  longer or shorter term it is a prefix of, at half weight; an id only as the start of a longer document term, never
-  by a shorter word it begins with (`boardDispatchRun.ts` does not match `board`; the 0.3.21 review, iteration 3, ER-12).
+  longer or shorter term it is a prefix of, at half weight; an id only whole or where a longer document term goes on
+  with a separator (`fabric_work` finds `fabric_work_list`, `CO-571` does not find `CO-571` followed by another digit), never by a shorter word it
+  begins with (`boardDispatchRun.ts` does not match `board`; the 0.3.21 review, iteration 3, ER-12, and run two, ER-15).
+  A path in a document is also read as its tails after each `/`, so `boardDispatchRun.ts` finds
+  `apps/desktop/src/main/boardDispatchRun.ts` and `CO-571` finds `ADR-0190/CO-571` (ER-15).
 - The score is BM25 times the share of the query's words that matched (one half to one), times recency
   (1 + 0.5 e^(-age/14 days)), times 1.3 for live work (a task a live claim holds, a request still open).
 - A document matching none of the query's words is not answered.

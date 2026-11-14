@@ -97,7 +97,16 @@ function compoundsOf(text: string, words: Array<{ word: string; at: number }>): 
   const out: string[] = []
   let run: string[] = []
   let end = -1
-  const flush = () => { if (run.length > 1) out.push(run.join('').toLowerCase()); run = [] }
+  const flush = () => {
+    if (run.length > 1) {
+      const id = run.join('').toLowerCase()
+      out.push(id)
+      // ER-15 (0.3.21 review, iteration 3, run two): a path also reads as its tails after each `/`, so
+      // `apps/desktop/src/main/boardDispatchRun.ts` is found by `boardDispatchRun.ts` and `ADR-0190/CO-571` by `CO-571`.
+      for (let i = id.indexOf('/'); i >= 0; i = id.indexOf('/', i + 1)) if (i + 1 < id.length) out.push(id.slice(i + 1))
+    }
+    run = []
+  }
   for (const w of words) {
     const sep = end >= 0 && w.at === end + 1 ? text[end] : null
     if (sep !== null && '-_./'.includes(sep) && run.length) run.push(sep, w.word)
@@ -199,7 +208,9 @@ function frequency(ix: Indexed<SearchDoc>, term: string): number {
   // ER-12 (0.3.21 review, iteration 3): an id (`boardDispatchRun.ts`, `fabric_work_list`) is matched whole or as the start
   // of a longer document term, never by a shorter document word it begins with (`board`, `fabric`).
   const id = /[-_./]/.test(term)
-  for (const [t, n] of ix.tf) if (t.length >= PREFIX_MIN && (t.startsWith(term) || (!id && term.startsWith(t)))) f += n * PREFIX_WEIGHT
+  // An id matches a longer term only where it goes on with a separator (`fabric_work` to `fabric_work_list`, never
+  // `co-571` to `co-5710`; run two, ER-15).
+  for (const [t, n] of ix.tf) if (t.length >= PREFIX_MIN && (id ? t.startsWith(term) && '-_./'.includes(t[term.length] ?? '') : t.startsWith(term) || term.startsWith(t))) f += n * PREFIX_WEIGHT
   ix.seen.set(term, f)
   return f
 }
@@ -265,15 +276,20 @@ export interface ClaimLike {
 const GENERIC_NAMES = new Set(['src', 'lib', 'app', 'apps', 'main', 'index', 'readme', 'test', 'tests', 'docs', 'shared', 'scripts',
   'package', 'utils', 'types', 'components', 'changelog', 'license', 'agents', 'claude', 'contributing', 'makefile', 'dockerfile',
   'tsconfig', 'eslintrc', 'prettierrc', 'gitignore', 'vite', 'vitest', 'jest', 'babel', 'webpack', 'rollup', 'pnpm-lock',
-  'package-lock', 'yarn', 'cargo', 'pyproject', 'requirements', 'setup', 'config', 'settings', 'global', 'globals', 'styles'])
+  'package-lock', 'yarn', 'cargo', 'pyproject', 'requirements', 'setup', 'config', 'settings', 'global', 'globals', 'styles',
+  // Run two, ER-16 and DO-25: the repository standard's required files, per-folder framework names, more lock files.
+  'commercial-license', 'agent_sync', 'agent-sync', 'backlog-sources', 'security', '__init__', 'page', 'layout', 'route',
+  'loading', 'error', 'eslint', 'prettier', 'next', 'tailwind', 'postcss', 'docker-compose', 'pnpm-workspace', 'editorconfig',
+  'gitattributes', 'gitleaks', 'poetry', 'gemfile', 'composer', 'podfile'])
 
 /** A claim's touches read as words: each path's file or folder name, never the shared prefix every path carries. */
 function touchWords(touches: readonly string[]): string {
   // ER-8 (0.3.21 review, iteration 2): a name every repository has (src, index, README, test) or one under four letters
   // never enters the comparison, as a word or as a shared name, so it links nothing.
-  // ER-11 (iteration 3): a name is read up to its first dot after any leading ones, so `index.test.ts`, `index.d.ts` and
-  // `.eslintrc.cjs` read as `index` and `eslintrc`.
-  return touches.map((p) => (p.replace(/\/+$/, '').split('/').pop() ?? '').replace(/^\.+/, '').split('.')[0])
+  // ER-11 (iteration 3): a name is read up to its first dot that is followed by a letter, after any leading dots, so
+  // `index.test.ts`, `index.d.ts` and `.eslintrc.cjs` read as `index` and `eslintrc` while `fabric-0.3.21-mac.json`
+  // keeps its version (run two, ER-17).
+  return touches.map((p) => (p.replace(/\/+$/, '').split('/').pop() ?? '').replace(/^\.+/, '').replace(/\.[a-z].*$/i, ''))
     .filter((n) => n.length >= 4 && !GENERIC_NAMES.has(n.toLowerCase())).join(' ')
 }
 

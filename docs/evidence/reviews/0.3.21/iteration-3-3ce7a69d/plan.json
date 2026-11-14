@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "3ce7a69ddbd367f20b0ef50c1f58ecc72c02c3b0",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-3ce7a69d/2026-11-14-plan.md",
+  "reportSha256": "437adcb70e7e988ed518c503492dd5fbce982e72a247145d79960860b847a805",
+  "reviewerRun": "release-0321-i3r2-plan-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): run two is superseded and iteration 3 runs again on the commit carrying `21317159`, `31ec15f6` and this wave, with `bash scripts/ci.sh fast` read green first; the Protocol says so"
+      ]
+    },
+    {
+      "id": "PL-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): `## Unreleased` opens with «Upgrading», `release-mac.md` gains the 0.3.21 paragraph and its schema"
+      ]
+    },
+    {
+      "id": "PL-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): AGENTS.md «The North Star sections Fabric serves»: §4, §6, §10, G5, G10, G25, G29 and the duty to tell fabric-workspace"
+      ]
+    },
+    {
+      "id": "PL-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two wave (run three's candidate): one wait named with its watcher; the next task names run three's candidate"
+      ]
+    }
+  ]
+}

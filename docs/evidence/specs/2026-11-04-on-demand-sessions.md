@@ -112,7 +112,7 @@ session usually answers inside it); a request marked urgent by the asker skips t
 ### 3.2 A live session
 
 A session is live when its `fabric-mcp` signed within the last 2 minutes and it is enrolled in P. (Superseded for the
-dispatcher by §3.8's 0.3.21 rule: a session counts live only while it worked in the last 10 minutes, CO-565.) Fabric posts the
+dispatcher by §3.8's 0.3.21 rule: a session counts live only while it worked or started in the last 10 minutes, CO-565.) Fabric posts the
 request to that session as an incoming message through Claude Code's cross-session inbox when the person turned
 «Сообщения между сессиями агентов» on (CO-407), and always as a nudge on its next Fabric call (today's path). A live
 session that does not take the slot within G is treated as absent and the request is dispatched; the live session sees
@@ -461,8 +461,10 @@ The operator, 2026-11-12: «диспетчер чтобы работал кор�
 - **Open threads first** (CO-572, 2026-11-13). A week of the board held 326 request threads while a pass read the newest
   300 by last activity, so the quietest threads, whose open request most needs a wake, were left out and nothing said
   so. The dispatcher and the sweep now read the threads with an open request first (the board's `openOnly`, at most 10
-  pages of 100), then the newest (3 pages), each thread once; a read stopped at its bound is said once per change as
-  `board.dispatch.threads` and in the sweep's receipt as `capped: threads` (`main/boardThreadIds.ts`, region
+  pages of 100), then the newest (3 pages), each thread once; the dispatcher says once per change, as
+  `board.dispatch.threads`, when the open read stopped at its bound (the newest read stopping there is ordinary on a
+  busy board), and the sweep's receipt says `capped: threads` when either did, since the sweep judges answered requests
+  from the newest read (the 0.3.21 review, iteration 3, ER-14, ER-18, DA-10) (`main/boardThreadIds.ts`, region
   `board-open-threads-first`; tests «the board read takes the threads with an open request first» and «a board read
   that stops at its bound says so»).
 - **Not done here** (CO-567): a board-side lease per request so two dispatchers can share a board, a start elsewhere that
