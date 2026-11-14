@@ -1,18 +1,18 @@
 {
   "schema": 1,
   "source_commit": "a8ed003e0b1382e83f3fb282611c93dd46f7c1f4",
-  "workspace_commit": "689979453769819bcbb9fbd5c9ad3c6ca68debc2",
-  "content_digest": "38e91aadd841b111b0b4a460928023454e9018959394fbe3951d4679e317c232",
+  "workspace_commit": "51381bb051e890166759d7fa20514cb3cb80e7a7",
+  "content_digest": "479f3265e0abbf0ecb6b560e469c8614b0b3a709ee52c91a00f0751198e56364",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "0bb22d2d-1d49-4733-8531-10627e728620",
+  "deployment": "466a6ee2-b248-4d5b-b7b4-548e3de3ea62",
   "fabric_digest": "d05141be686e717b15b3e5f83d8cbf31506f79d8824195af6e6af95af6949cde",
   "sources": [
     {
       "id": "org-index",
       "repository": "https://github.com/passioncode-ai/org-index",
-      "commit": "59aed8b1a99c19cb5e9094597dcedb1430f8c579",
-      "files_digest": "a362c6f20024e47971c90eaaafedf88e3d88ba86a19822e5ef0f2f7c15aec132"
+      "commit": "57c166d6c8438fcf972022b353d0de617ad79159",
+      "files_digest": "1c30da9b0632586dcce2074b0202f473b458b1336084032c484588ff95261b27"
     },
     {
       "id": "fabric-agent-contract",
