@@ -520,6 +520,31 @@ already decides is followed here, and nothing below adds a mechanism it does not
   into tasks for several projects, which is the manager session's (CO-522 wave D, the North Star's G10); the PM agents'
   `people.ask` responders, which are theirs.
 
+### 3.11 One pool of sessions per machine, and the board's queue (CO-588, 2026-11-14)
+
+The operator, 2026-11-14: «у нас есть capacity, допустим, мы выставляем в 20 сессий, то новая сессия не запускается,
+пока предыдущая какая-нибудь не освободится ... пул работающих сессий, очередь, с доски ... мы проверяем очередь раз в
+минуту». Switchboard owns the pool (SB-378, 0.7.85, board thread `ebc84cbb`): `switchboard capacity set <n>` sets the
+machine's cap, `switchboard --json capacity` answers `cap`, `used`, `free` and `at_capacity` over every live Claude Code
+and Codex process of the user, managed or not, without the quiet ones (a folder unwritten for 30 minutes), and
+`switchboard dispatch` refuses a start at the cap with `reason: at_capacity` as data.
+
+Fabric keeps the board's queue in front of it (`apps/desktop/src/main/boardDispatchRun.ts`, `capacity`, `readPool`):
+
+- A pass serves the board's requests oldest first, so a freed slot goes to the request that waited longest.
+- The pool is read once a pass, only when a request is about to start (`boardDispatchWiring.ts#poolOf`). With a cap set
+  and no slot left (counting the runs this pass already started), the request waits as `deferred-cap`: no workflow is
+  opened, no run is started and no back-off is taken, so the next pass (every 30 s, under the operator's minute) asks
+  again.
+- A start Switchboard refused `at_capacity` is the same wait: it never takes the refusal back-off and never counts as an
+  empty run.
+- A Switchboard with no pool (before 0.7.85), or one that does not answer, gates nothing: the dispatcher's own limits
+  (§3.3) still hold. The pool's reading is logged as `board.dispatch.pool` once each time it changes.
+
+Tests: `apps/desktop/test/board-dispatch-run.test.mjs` «CO-588: a full pool keeps a request waiting…», «CO-588: a
+dispatch refused at capacity waits…», «CO-588: the pool is read field by field…». Not built yet: the queue shown to the
+person («В очереди: N, пул X из Y») and to Fabric Dashboards (FD-261 reads it once Fabric publishes it).
+
 ## 4. Who does what
 
 | Product | Its part |

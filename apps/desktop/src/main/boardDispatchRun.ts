@@ -169,6 +169,9 @@ export interface DispatchDeps {
   inboxState?(messageId: string, projectId: string): Promise<string | null>
   load(): DispatchRecord[]
   save(records: DispatchRecord[]): void
+  /** CO-588: the machine's pool of coding sessions as Switchboard counts it (`switchboard --json capacity`, SB-378):
+   *  `cap` null when no limit is set; null when Switchboard has no pool or did not answer, and then nothing waits on it. */
+  capacity?(): Promise<{ cap: number | null; used: number; free: number | null; atCapacity: boolean } | null>
   /** The app is quitting: no new start, no new Switchboard call. */
   quitting?(): boolean
   /** 2026-11-12 (C2): how long this machine slept since `from` (ms), from the power monitor. A run here was frozen with
@@ -853,6 +856,20 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     deps.save(records)
   }
 
+  /** CO-588: the pool, read through `deps.capacity`; a reading that throws is no pool this pass, said once per change. */
+  let poolSaid = ''
+  const readPool = async (): Promise<{ cap: number | null; used: number; free: number | null; atCapacity: boolean } | null> => {
+    let p: Awaited<ReturnType<typeof readPool>> = null
+    let note: string | null = null
+    try { p = deps.capacity ? await deps.capacity() : null } catch (e) { note = noteOf(e) }
+    const key = p ? `${p.cap}/${p.used}/${p.atCapacity}` : `none:${note ?? ''}`
+    if (key !== poolSaid) {
+      poolSaid = key
+      deps.log('board.dispatch.pool', note ? 'failed' : 'ok', p ? { cap: p.cap, used: p.used, free: p.free, at_capacity: p.atCapacity } : { note: note ?? 'no pool: Switchboard has none or did not answer; starts are not gated by it' })
+    }
+    return p
+  }
+
   const pass = async (): Promise<void> => {
     readThisPass = false
     const now = deps.now()
@@ -994,7 +1011,13 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     const limits = limitsOf()
     // 2026-11-12 (H3): the agent Switchboard starts is asked once a pass, not once a request; a failure is no agent.
     let providerOnce: Promise<DispatchAgent | null> | null = null
-    for (const req of requests) {
+    // CO-588: the pool is read once a pass, only when a request is about to start, and every run this pass started takes
+    // a slot of it; a Switchboard without a pool, or one that does not answer, gates nothing (as before).
+    let poolOnce: Promise<{ cap: number | null; used: number; free: number | null; atCapacity: boolean } | null> | null = null
+    let startedThisPass = 0
+    // CO-588: the board's queue is served oldest first, so a freed slot goes to the request that has waited longest.
+    const queue = [...requests].sort((a, b) => (Date.parse(a.submittedAt) || 0) - (Date.parse(b.submittedAt) || 0))
+    for (const req of queue) {
       if (deps.quitting?.()) return
       // 2026-11-12 (H1): a request whose step throws (a folder read, the responders, a save) is that request's: it waits
       // its back-off and every other request is still decided in this pass.
@@ -1077,15 +1100,22 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         continue
       }
       if (decision.path !== 'launch') continue
-      if (last?.outcome === 'refused' || last?.outcome === 'failed-to-start') {
+      // CO-588: a start Switchboard refused because the pool was full is a wait for a slot, never the refusal back-off.
+      const backsOff = (x: DispatchRecord): boolean => (x.outcome === 'refused' && x.refused !== 'at_capacity') || x.outcome === 'failed-to-start'
+      if (last && backsOff(last)) {
         let inRow = 0
-        for (let i = mine.length - 1; i >= 0 && (mine[i].outcome === 'refused' || mine[i].outcome === 'failed-to-start'); i--) inRow++
+        for (let i = mine.length - 1; i >= 0 && backsOff(mine[i]); i--) inRow++
         if (now - (last.endedAt ?? last.startedAt) < refusalBackoffMs(inRow)) continue
       }
       // Iteration 2, ER-5: a workflow that could not be opened is not tried again for the request sooner than the back-off.
       // CO-544: and each failure in a row doubles that wait, so one that keeps failing is not asked every ten minutes.
       const failedOpen = openFailedAt.get(req.id)
       if (failedOpen && now - failedOpen.at < refusalBackoffMs(failedOpen.inRow)) continue
+      const pool = await (poolOnce ??= readPool())
+      if (pool && pool.cap !== null && (pool.atCapacity || (pool.free ?? 0) - startedThisPass <= 0)) {
+        said(req.id, { path: 'wait', check: 'deferred-cap' })
+        continue
+      }
       const provider = await (providerOnce ??= deps.defaultProvider().catch((e: unknown) => {
         deps.log('board.dispatch.agent', 'failed', { note: noteOf(e) })
         return null
@@ -1153,6 +1183,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         continue
       }
       await start(r, folder, now)
+      if (r.state === 'running') startedThisPass++
         threwAt.delete(req.id)
       } catch (e) {
         // Recorded through the caller's ops sink (deps.log); the request waits out its back-off, the others go on.

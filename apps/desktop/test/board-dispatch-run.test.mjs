@@ -2119,3 +2119,49 @@ test('DA-6 (0.3.21 review, iteration 2): an inbox item to a project with no fold
   assert.equal(d.toOperator().size, 0, 'no row in «На проверке» for an inbox item')
   assert.equal(w.launches.length, 0)
 })
+
+// CO-588 (the operator, 2026-11-14: one pool of sessions per machine, the board's queue in front of it; Switchboard
+// SB-378, 0.7.85: `switchboard --json capacity` and `dispatch` refusing `at_capacity`).
+test('CO-588: a full pool keeps a request waiting with no run, no workflow and no back-off; a freed slot starts the oldest first', async () => {
+  const older = request({ id: 'aaaaaaaa-1111-4111-8111-111111111111', target: 'p-old', submittedAt: new Date(T0 - 30 * MIN).toISOString() })
+  const newer = request({ id: 'bbbbbbbb-1111-4111-8111-111111111111', target: 'p-new', submittedAt: new Date(T0 - 10 * MIN).toISOString() })
+  const w = world({ requests: [newer, older] })
+  let pool = { cap: 20, used: 20, free: 0, atCapacity: true }
+  w.deps.capacity = async () => pool
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 0)
+  assert.equal(w.calls.filter(([n]) => n === 'observatory_checkpoint_write').length, 0, 'no workflow is opened for a run that cannot start')
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.decided' && l.detail.check === 'deferred-cap'))
+  pool = { cap: 20, used: 19, free: 1, atCapacity: false }
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(w.launches.length, 1, 'one free slot starts one run')
+  assert.equal(d.records()[0].projectId, 'p-old', 'the oldest request goes first')
+})
+
+test('CO-588: a dispatch refused at capacity waits for the next pass, never the refusal back-off; no pool reading changes nothing', async () => {
+  const w = world({ refuse: 'at_capacity' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.decided' && l.detail.check === 'deferred-cap'))
+  w.refuse = null
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(w.launches.length, 2, 'asked again a minute later, not after the ten-minute back-off')
+  const old = world()
+  old.deps.capacity = async () => null
+  await createBoardDispatch(old.deps).onPass()
+  assert.equal(old.launches.length, 1, 'a Switchboard without the pool starts as before')
+})
+
+test('CO-588: the pool is read field by field; a malformed answer is no pool', async () => {
+  const { poolOf } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  assert.deepEqual(poolOf({ cap: 20, used: 20, free: 0, at_capacity: true }), { cap: 20, used: 20, free: 0, atCapacity: true })
+  assert.deepEqual(poolOf({ cap: null, used: 42, free: null, at_capacity: false }), { cap: null, used: 42, free: null, atCapacity: false })
+  assert.deepEqual(poolOf({ cap: 20, used: 7 }), { cap: 20, used: 7, free: 13, atCapacity: false })
+  assert.equal(poolOf({ cap: 'twenty', used: 3 }), null)
+  assert.equal(poolOf({ cap: 20 }), null)
+  assert.equal(poolOf(undefined), null)
+})

@@ -335,7 +335,9 @@ export function refusalCheck(code: string): DispatchCheck {
     case 'no_agent': return 'deferred-no-agent'
     case 'not_in_group': return 'skipped-no-folder'
     case 'ceiling_reached':
-    case 'spend_unknown': return 'deferred-cap'
+    case 'spend_unknown':
+    // CO-588: the machine's pool of sessions is full (Switchboard SB-378, 0.7.85).
+    case 'at_capacity': return 'deferred-cap'
     default: return 'failed-to-start'
   }
 }

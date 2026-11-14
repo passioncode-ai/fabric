@@ -287,6 +287,18 @@ export function dispatchArgs(a: { dir: string; workflow: string; handoff: string
     '--reason', reason, '--permissions', 'all', '--timeout-minutes', String(a.timeoutMinutes), ...(a.target ? ['--target', a.target] : [])]
 }
 
+/** CO-588: `switchboard --json capacity`'s answer read field by field (SB-378: `cap` null for no limit, `used`, `free`,
+ *  `at_capacity`); anything else is no pool. */
+export function poolOf(d: Record<string, unknown> | undefined): { cap: number | null; used: number; free: number | null; atCapacity: boolean } | null {
+  if (!d || typeof d !== 'object') return null
+  const count = (v: unknown): number | null => (typeof v === 'number' && Number.isInteger(v) && v >= 0 ? v : null)
+  const used = count(d.used)
+  const cap = d.cap === null ? null : count(d.cap)
+  if (used === null || (d.cap !== null && cap === null)) return null
+  const free = d.free === null || d.free === undefined ? (cap === null ? null : Math.max(0, cap - used)) : count(d.free)
+  return { cap, used, free, atCapacity: d.at_capacity === true || (cap !== null && used >= cap) }
+}
+
 /** The first Switchboard whose `dispatch` takes `--reason inbox` and its inbox exit contract (SB-338). */
 export const INBOX_REASON_SINCE = [0, 7, 56] as const
 /** Whether `switchboard --version`'s answer ("switchboard 0.7.56") names a version that takes `--reason inbox`. An
@@ -450,6 +462,15 @@ export function wireBoardDispatch(o: {
         }
         return { refused: code ?? 'failed' }
       }
+    },
+    // CO-588: the machine's pool (Switchboard SB-378, 0.7.85). An older Switchboard has no `capacity` command and answers
+    // an error, which is no pool: the dispatcher then gates on its own limits alone, as before. A quiet session is not
+    // counted in `used` (Switchboard's rule: its folder unwritten for 30 minutes).
+    async capacity() {
+      const sb = await bin('switchboard')
+      if (!sb) return null
+      const out = JSON.parse(await run(sb, ['--json', 'capacity'], await envWith())) as { data?: Record<string, unknown> }
+      return poolOf(out.data)
     },
     async stop(launchId) {
       const sb = await bin('switchboard')
