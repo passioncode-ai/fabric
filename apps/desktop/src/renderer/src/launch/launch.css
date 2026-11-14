@@ -416,7 +416,6 @@
 .lp-decide-why{margin:0 0 var(--space-2)}
 .lp-decide-why>p:not(.lp-decide-label){font-size:14px;line-height:1.55;margin:0 0 var(--space-1);overflow-wrap:anywhere}
 .lp-decide-why>p.is-folded{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
-.lp-decide-holds{font-size:13px;color:var(--app-muted);margin:0 0 var(--space-2)}
 .lp-decide .lp-facts{margin:var(--space-3) 0}
 .lp-decide-foot{margin-top:var(--space-3)}
 @media(max-width:1150px){.lp-board-layout>.lp-decide{position:static;max-height:none}}
@@ -534,6 +533,8 @@
 .app-sidebar{padding-bottom:6rem}
 @media(max-width:768px){.app-nav>.mobile-app-nav select{width:100%}.app-nav>a,.app-nav>p,.app-nav>details{display:none}.app-sidebar{padding:1rem}.app-nav{width:100%}.scope-bar{margin-bottom:.75rem}}
 /* ── adaptations to the app window ── */
+/* UX-10 (0.3.21 review, iteration 3): a question's count of tasks it holds, beside its own why. */
+.lp-decide-holds{font-size:13px;color:var(--app-muted);margin:0 0 var(--space-2)}
 /* SCN-170 step 1 (0.3.13, CO-392): Settings is one column of sections, each a small uppercase label over its panels.
    The prototype draws Settings' panels but not this grouping, so it lives here, after the ported rules it refines. */
 .settings-sections{display:flex;flex-direction:column;gap:var(--space-5);max-width:820px}
