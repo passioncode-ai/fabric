@@ -234,13 +234,14 @@ export function noteOf(e: unknown): string {
 /** Why a request is the operator's: three runs left it unsettled (`inbox` for an inbox item, CO-559), or it passed its deadline accepted with no run (ER-7);
  *  CO-551: a run on another machine left a result Fabric did not post (`relay`), or its machine has not answered past
  *  the run's end (`remote-lost`, still asked every pass). */
-export type ToOperatorWhy = 'runs' | 'past-due' | 'relay' | 'remote-lost' | 'remote-unanswered' | 'inbox'
+export type ToOperatorWhy = 'runs' | 'past-due' | 'relay' | 'remote-lost' | 'remote-unanswered' | 'inbox' | 'no-folder'
 
 /** CO-559 (§3.8): an inbox item given to the operator, by the message it was started for, with its project and when. */
 export interface InboxGiven { messageId: string; projectId: string; at: string }
 
 /** The marks the sweep of abandoned work reads for each reason (`shared/abandonedSweep.ts#SweepRequest`). */
-export function toOperatorMarks(why: ToOperatorWhy): { pastDue: boolean; remote?: 'unposted' | 'lost' | 'unanswered' } {
+export function toOperatorMarks(why: ToOperatorWhy): { pastDue: boolean; remote?: 'unposted' | 'lost' | 'unanswered'; noFolder?: boolean } {
+  if (why === 'no-folder') return { pastDue: false, noFolder: true }
   return why === 'relay' ? { pastDue: false, remote: 'unposted' } : why === 'remote-lost' ? { pastDue: false, remote: 'lost' }
     : why === 'remote-unanswered' ? { pastDue: false, remote: 'unanswered' } : { pastDue: why === 'past-due' }
 }
@@ -280,6 +281,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   const decided = new Map<string, string>()
   /** ER-7: requests past their deadline, accepted and unsettled, that no record of Fabric's carries. */
   const pastDue = new Set<string>()
+  // CO-573 (9): requests to a project with no folder here, given to the operator after NO_FOLDER_TO_OPERATOR_MS.
+  const noFolder = new Set<string>()
   const said = (requestId: string, d: DispatchDecision): void => {
     const key = d.path + ('check' in d ? `:${d.check}` : '')
     if (decided.get(requestId) === key) return
@@ -760,6 +763,22 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     if (typeof r.canonical !== 'string') {
       // CO-544: an ambiguous folder (two Observatory projects measure it) is said as such, with the candidates.
       const candidates = Array.isArray(r.candidates) ? r.candidates.filter((c): c is string => typeof c === 'string') : []
+      // CO-573 (14): the candidate named like the folder is the project (`~/DATA/fabric` is project:fabric beside
+      // project:fabric-agent-contract and others measured in it). Taken, and Fabric's own name proposed to Observatory as
+      // its alias, so the next resolve by name answers at once; a proposal that fails is logged, the start goes on.
+      const base = folder.replace(/\/+$/, '').split('/').pop()?.toLowerCase() ?? ''
+      const named = r.error === 'ambiguous' && base ? candidates.filter((c) => c.toLowerCase() === `project:${base}`) : []
+      if (named.length === 1) {
+        const canonical = named[0]!
+        projectIds.set(fabricProject, canonical)
+        await deps.observatory('observatory_propose', {
+          owner: FABRIC_OWNER, targetId: canonical,
+          patch: { aliases: [{ id: `fabric:${fabricProject}`, owner: 'fabric', source: 'the Fabric project whose folder this is' }] },
+          evidence: [{ uri: `file://${folder}`, note: `Observatory names ${candidates.length} projects for this folder; ${canonical} is the one named like it` }]
+        }).then((a) => { if (a.error) deps.log('board.dispatch.alias', 'failed', { project: fabricProject, note: String(a.error) }) },
+          (e) => deps.log('board.dispatch.alias', 'failed', { project: fabricProject, note: e instanceof Error ? e.message : String(e) }))
+        return canonical
+      }
       if (r.error === 'ambiguous') throw new Error(`Observatory names several projects for this folder (${candidates.join(', ') || 'none named'})`)
       throw new Error('Observatory does not know this project')
     }
@@ -888,6 +907,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     readIds = new Set(requests.map((q) => q.id))
     // A request no longer on the board leaves «На проверке» with it (ER-7).
     for (const id of [...pastDue]) if (!requests.some((q) => q.id === id)) pastDue.delete(id)
+    for (const id of [...noFolder]) if (!requests.some((q) => q.id === id)) noFolder.delete(id)
     await watch(now)
     // Iteration 2, ER-3, ER-2, DA-2: a request given to the operator has its workflow closed, retried until it is.
     for (const r of records.filter((x) => x.outcome === 'to-operator' && !x.closed && (x.closeAttempts ?? 0) < CLOSE_ATTEMPTS)) {
@@ -1034,10 +1054,13 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       said(req.id, decision)
       // ER-7: an accepted request past its deadline that Fabric never started a run for has no record to carry the
       // operator's mark, so it is held here and shown in «На проверке» like a request given up after three runs.
-      if (decision.path === 'to-operator' && !last && !SETTLED.has(req.state)) pastDue.add(req.id)
-      else pastDue.delete(req.id)
+      if (decision.path === 'to-operator' && decision.why === 'no-folder' && !SETTLED.has(req.state)) { noFolder.add(req.id); pastDue.delete(req.id) }
+      else if (decision.path === 'to-operator' && !last && !SETTLED.has(req.state)) { pastDue.add(req.id); noFolder.delete(req.id) }
+      else { pastDue.delete(req.id); noFolder.delete(req.id) }
       if (decision.path === 'to-operator') {
-        if (last && !SETTLED.has(req.state)) {
+        // A request with no folder here keeps its earlier record as it was: it is the operator's by `noFolder`, never
+        // by «three runs» (CO-573 (9)).
+        if (last && decision.why !== 'no-folder' && !SETTLED.has(req.state)) {
           last.outcome = 'to-operator'
           last.closed = false
           deps.save(records)
@@ -1181,6 +1204,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     records: () => records,
     toOperator: () => new Map<string, ToOperatorWhy>([
       ...[...pastDue].map((id) => [id, 'past-due'] as [string, ToOperatorWhy]),
+      ...[...noFolder].map((id) => [id, 'no-folder'] as [string, ToOperatorWhy]),
       ...records.filter((r) => r.lost && r.state !== 'ended').map((r) => [r.requestId, 'remote-lost'] as [string, ToOperatorWhy]),
       ...records.filter((r) => r.outcome === 'to-operator').map((r) => [r.requestId, r.inbox ? 'inbox' : r.unposted ? 'relay' : r.remoteUnanswered ? 'remote-unanswered' : 'runs'] as [string, ToOperatorWhy])
     ]),

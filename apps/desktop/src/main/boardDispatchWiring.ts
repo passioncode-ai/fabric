@@ -187,7 +187,9 @@ export function runStateOf(launch: { state?: string; ended?: unknown } | undefin
   if (state !== 'ended') return 'unknown'
   const end = launch?.ended
   const code = end && typeof end === 'object' ? (end as { kind?: unknown; exit_code?: unknown }) : null
-  return code?.kind === 'exited' && typeof code.exit_code === 'number' && code.exit_code !== 0 ? 'crashed' : 'ended'
+  // CO-573 (5): an exit with no code is one nobody reaped (a Switchboard restart lost the child, five in a day on
+  // 2026-11-12): it is not known to be clean, so the next run takes the workflow back as `crash`, as for a failure code.
+  return code?.kind === 'exited' && (typeof code.exit_code !== 'number' || code.exit_code !== 0) ? 'crashed' : 'ended'
 }
 
 /** The coding agent's own session id of a launch `sessions show` reports starting or running (2026-11-11): the home

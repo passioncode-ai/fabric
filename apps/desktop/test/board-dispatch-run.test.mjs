@@ -360,6 +360,34 @@ test('CO-544: a folder two Observatory projects measure is said as ambiguous, wi
   assert.match(failed?.detail.note ?? '', /several projects for this folder \(project:a, project:b\)/)
 })
 
+test('CO-573 (14): of the projects Observatory names for a folder, the one named like the folder starts, and its alias is proposed', async () => {
+  const w = world()
+  w.folder = '/work/fabric'
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => (name === 'observatory_resolve'
+    ? { error: 'ambiguous', candidates: ['project:fabric-agent-contract', 'project:fabric', 'project:local-fabric-switchboard'] }
+    : real(name, args))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1, 'started although the folder is ambiguous')
+  const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.equal(open.projectId, 'project:fabric')
+  const proposed = w.calls.find(([n]) => n === 'observatory_propose')
+  assert.equal(proposed?.[1].targetId, 'project:fabric')
+  assert.equal(proposed?.[1].patch.aliases[0].id, `fabric:${request().target}`)
+})
+
+test('CO-573 (14): a folder whose name matches none of the candidates is still said as ambiguous', async () => {
+  const w = world()
+  w.folder = '/work/elsewhere'
+  const real = w.deps.observatory
+  w.deps.observatory = async (name, args) => (name === 'observatory_resolve' ? { error: 'ambiguous', candidates: ['project:a', 'project:b'] } : real(name, args))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 0)
+  assert.ok(!w.calls.some(([n]) => n === 'observatory_propose'))
+})
+
 test('a project Observatory knows by its Fabric name is resolved by it, before and instead of its folder', async () => {
   const w = world()
   const real = w.deps.observatory
@@ -908,7 +936,8 @@ test('CO-409 (§3.4): a run that exited with a failure code is taken back as cra
   assert.equal(runStateOf({ state: 'running' }), 'running')
   assert.equal(runStateOf({ state: 'ended', ended: { kind: 'exited', exit_code: 3, at: 1 } }), 'crashed')
   assert.equal(runStateOf({ state: 'ended', ended: { kind: 'exited', exit_code: 0, at: 1 } }), 'ended')
-  assert.equal(runStateOf({ state: 'ended', ended: { kind: 'exited', at: 1 } }), 'ended', 'no code reaped: not a crash')
+  // CO-573 (5): no code reaped is not known to be clean (a Switchboard restart lost the child): taken back as a crash.
+  assert.equal(runStateOf({ state: 'ended', ended: { kind: 'exited', at: 1 } }), 'crashed', 'no code reaped: not known clean')
   assert.equal(runStateOf({ state: 'ended', ended: { kind: 'stopped', at: 1 } }), 'ended')
   assert.equal(runStateOf({ state: 'ended', ended: 'limit' }), 'ended')
   assert.equal(runStateOf(undefined), 'unknown')
@@ -2052,4 +2081,18 @@ test('a board read that stops at its bound says so, and still reads the newest t
   const r = await readOpenRequests(comms, 'e1', T0)
   assert.equal(pages, 10, 'ten pages of open threads')
   assert.equal(r.capped, true)
+})
+
+test('CO-573 (9): a request to a project with no folder here is skipped, then given to the operator, and no run starts', async () => {
+  const { toOperatorMarks } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  const { NO_FOLDER_TO_OPERATOR_MS } = await import(path.resolve(import.meta.dirname, '../src/shared/boardDispatch.ts'))
+  const w = world({ folder: null })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(d.toOperator().size, 0, 'young: skipped, not yet the operator\'s')
+  w.tick(NO_FOLDER_TO_OPERATOR_MS)
+  await d.onPass()
+  assert.equal(d.toOperator().get(request().id), 'no-folder')
+  assert.deepEqual(toOperatorMarks('no-folder'), { pastDue: false, noFolder: true })
+  assert.equal(w.launches.length, 0)
 })

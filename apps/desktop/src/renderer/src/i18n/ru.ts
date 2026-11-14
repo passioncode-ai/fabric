@@ -2971,6 +2971,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'links.offer.open': "Открыть",
   'glyph.more': "…",
   'harness.tool.fabric_work_list': "Кто над чем работает в этом проекте: заявки, сессии, свободные задачи, аренды agent-sync",
+  'harness.tool.fabric_board_search': "Поиск по доске словами: кто держит какую задачу, заметки, запросы доски и возможности других проектов",
   'harness.tool.fabric_work_claim': "Подать заявку на задачу до начала работы и узнать о связанной работе других",
   'harness.tool.fabric_work_release': "Снять заявку (сделано, передано или отпущено) или все заявки этой сессии",
   'harness.tool.fabric_session_observe': "Коммит хода и счётчики изменений или конец сессии — от хуков сессии, без содержимого",

@@ -85,6 +85,7 @@ export const SURFACE_TOOLS: readonly SurfaceTool[] = [
   { name: 'fabric_effect_report', purpose: 'Say what happened to a permitted act — a claim, never a receipt (ADR-0050)', records: true },
   // Claims (REQ-38): who works on what here, before the work starts; a warning for related work, a lock for none.
   { name: 'fabric_work_list', purpose: 'Who is working on what in this project: claims, sessions, open tasks, agent-sync leases', records: false },
+  { name: 'fabric_board_search', purpose: 'Search the board by words: who holds which task, notes, board requests and other projects\u2019 capabilities', records: false },
   { name: 'fabric_work_claim', purpose: 'Claim your task before you start, and hear about related work others hold', records: true },
   { name: 'fabric_work_release', purpose: 'End a claim — done, handed over or let go — or every claim of this session', records: true },
   { name: 'fabric_session_observe', purpose: 'A turn’s commit and change counts, or the session’s end — from the session hooks, never content', records: true }

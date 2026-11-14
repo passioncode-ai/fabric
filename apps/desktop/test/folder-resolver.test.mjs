@@ -127,3 +127,8 @@ test('CO-566: an admitted folder deleted from disk (its origin read fails with E
   const match = await resolveProjectForFolder('/tmp/clone', admitted, noGit, remoteOf)
   assert.deepEqual([match.projectId, match.how], ['p-fabric', 'remote'])
 })
+
+test('CO-573 (10): a remote read that fails (git cannot be started) is no remote, never a failed resolution', async () => {
+  const enoent = async () => { const e = new Error('spawn git ENOENT'); e.code = 'ENOENT'; throw e }
+  assert.deepEqual(await resolveProjectForFolder('/Users/me/elsewhere/new-repo', rows, noGit, enoent), { projectId: null, how: 'none', root: null })
+})

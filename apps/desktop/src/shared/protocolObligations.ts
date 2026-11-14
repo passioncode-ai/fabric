@@ -128,6 +128,19 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     mode: 'ADVICE',
     scope: 'fabric_mediated'
   },
+  // The operator, 2026-11-14 («хочу чтобы агенты делали раг поиск по доске когда ищут связи кто чем занят»): spec
+  // docs/evidence/specs/2026-11-14-board-search.md. ADVICE: nothing checks that an agent searched before it claimed.
+  {
+    id: 'work.search-the-board',
+    text:
+      'Before you start or claim a piece of work, and whenever you look for who works on what or what your work ' +
+      'connects to, search the board with fabric_board_search: put the words of your subject in Russian and English in ' +
+      'one query. It answers this project\'s tasks with who holds each, the notes, the board requests your project takes ' +
+      'part in and the projects that take each capability. fabric_work_claim also names similar work another agent ' +
+      'holds (similar_work). Nothing stops you skipping this; the cost is doing again what another agent is doing.',
+    mode: 'ADVICE',
+    scope: 'fabric_mediated'
+  },
   // The operator's second review, 2026-10-26 (docs/ux/2026-10-26-simple-fabric-v2.md §4.2, R-3): the home shows an
   // agent's goal, the root of its task's spawned links; agents rarely decompose through Fabric, so the goal is unknown.
   {

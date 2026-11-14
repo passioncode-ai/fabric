@@ -9,6 +9,20 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Agents can search the board by subject** (the operator, 2026-11-14: «хочу чтобы агенты делали раг поиск по доске
+  когда ищут связи кто чем занят»). `fabric_board_search` finds a project's tasks, notes, board requests and messages
+  and the other projects' capabilities by words in Russian and English, best first, each with who holds it now or held
+  it last, and groups the hits by who is on them. Taking a task (`fabric_work_claim`) also names another agent's task
+  that reads like it (`similar_work`), and every session's rules say to search before starting. Nothing leaves the
+  machine: the search matches words, no model reads the query.
+- **An idle session no longer holds its project's board requests** (CO-565, CO-571). A session counts as present for
+  the dispatcher only while it worked in the last ten minutes (a tool call, or a console that printed); the keep-alive
+  signal its connection sends every two minutes no longer counts. A request beside an idle session now gets a run.
+- **Requests that could never start reach you** (CO-573). A request to a project with no folder on this Mac is shown in
+  «На проверке» half an hour after it was filed, instead of being skipped on every pass; a folder that Observatory
+  counts for several projects starts the one named like the folder; and a coding agent whose `git` cannot be started
+  still joins its project.
+
 - **Stopping Fabric by its name no longer cuts every agent off the board** (CO-575). On macOS each agent's link to
   the board, the MCP bridge and the ACP shell now run as `Fabric Helper`, so `killall Fabric` ends the app and leaves
   them running; they find Fabric again when it starts. On 2026-11-13 one such stop left every open session without

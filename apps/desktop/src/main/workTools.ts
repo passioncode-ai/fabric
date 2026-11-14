@@ -4,6 +4,8 @@
  * working-with-fabric hook pack, fabric-agent-adapter#53, D4/D5):
  *
  *   fabric_work_list       who works on what in this project: claims, sessions, open tasks, agent-sync leases
+ *   fabric_board_search    search the project's board by words: tasks with who holds them, notes, board messages and
+ *                          requests, and the other projects' capabilities (boardSearchRead.ts)
  *   fabric_work_claim      claim a task (a board id, a backlog row, or a new row) — refused only when another agent
  *                          holds the same task; related work held by others comes back as a warning
  *   fabric_work_release    end one claim (done → review, handed over, let go), or every claim of this session
@@ -45,6 +47,8 @@ import type { Nudge } from '../shared/abandonedSweep.ts'
 import { briefNext, specGaps, type BriefParts } from '../shared/taskSpec.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import { currentLeases, type LeaseRefsRead } from './agentSyncLeases.ts'
+import { DEFAULT_DAYS, MAX_DAYS, SEARCH_KINDS, searchBoard } from './boardSearchRead.ts'
+import { similarClaims } from '../shared/boardSearch.ts'
 
 type Store = ReturnType<typeof createScopedStore>
 
@@ -113,6 +117,10 @@ export interface WorkToolDeps {
   reportBranch?(branch: string | null): void
   /** CO-458: a task released done is in review; the host answers the board request it was assigned by, if any. */
   onDoneInReview?(taskId: string): void
+  /** `com.list` through this session's own reader door, for `fabric_board_search`; absent, the board part says so. */
+  boardList?(args: { since: string; limit: number; cursor?: string }): Promise<Record<string, unknown>>
+  /** `com.directory` through this session's door, for `fabric_board_search`'s projects. */
+  boardDirectory?(args: { limit: number; cursor?: string }): Promise<Record<string, unknown>>
 }
 
 // #region work-session-end-guards — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#tracking
@@ -224,6 +232,15 @@ const RUNTIME_SESSION = /^[A-Za-z0-9._:-]{1,128}$/
 /** A git branch name as a turn may report it (CO-459): the characters git allows in practice, bounded. */
 const BRANCH = /^[A-Za-z0-9._@+\/-]{1,200}$/
 const minutesAgo = (now: number, at: number): number => Math.max(0, Math.round((now - at) / 60_000))
+
+/** The claim's `similar_work`, present only when there is some. */
+function similarWorkOf(similar: ReturnType<typeof similarClaims>): Record<string, unknown> {
+  if (!similar.length) return {}
+  return {
+    similar_work: similar.map((s) => ({ claim_id: s.claimId, task_id: s.taskId, title: s.title, held_by: s.owner, agent: s.agent, matched: s.matched })),
+    similar_note: 'other agents hold tasks that read like yours: read them, coordinate on the board or link the tasks before you duplicate work'
+  }
+}
 
 function warningOf(related: Related[]): string | null {
   if (!related.length) return null
@@ -375,6 +392,52 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     }
   )
 
+  // #region board-search-tool — docs: docs/evidence/specs/2026-11-14-board-search.md#1-the-tool
+  // ── fabric_board_search ────────────────────────────────────────────────────────────────────────────────────
+  server.registerTool(
+    'fabric_board_search',
+    {
+      title: 'Search the board: who works on what, and what it connects to',
+      description:
+        'Search this project\'s board by words before you start or claim work, and whenever you look for who works on what, who did it before, or what your work connects to. Reads the project\'s tasks (with who holds each now, or held it last), the task notes, the board messages and requests your project takes part in (with the target project and the request\'s state), and the other projects\' names and capabilities; ranks them by your words and answers the best hits, each with why it matched, and `who`: the holders and projects those hits belong to. Lexical, never a model: words are matched by their Russian and English forms and ids (CO-571, fabric_work_list, boardDispatchRun.ts) whole, so put the words of your subject in both languages in one query ("диспетчер доски board dispatcher"). Other projects\' tasks are not visible here; their work shows only as board messages your project takes part in. A part that could not be read is named in degraded, a read stopped at its bound in capped; "nothing matches" is never said of a read that did not happen.',
+      inputSchema: {
+        query: z.string().min(2).max(300).describe('The words of your subject, in Russian and English, ids as written'),
+        kinds: z.array(z.enum(SEARCH_KINDS)).min(1).max(SEARCH_KINDS.length).optional().describe('Which parts to search: tasks, notes, board, projects. Default all'),
+        limit: z.number().int().min(1).max(30).optional().describe('How many hits. Default 10'),
+        days: z.number().int().min(1).max(MAX_DAYS).optional().describe(`How far back, by the last move or message. Default ${DEFAULT_DAYS}`),
+        includeClosed: z.boolean().optional().describe('Also done and cancelled tasks, to find who did it before. Default true')
+      }
+    },
+    async ({ query, kinds, limit, days, includeClosed }) => {
+      deps.checkReference(query)
+      const answer = await searchBoard({ query, kinds, limit, days, includeClosed }, {
+        projectId: scope.projectId,
+        sessionId: scope.sessionId,
+        now: deps.now,
+        tasks: async (since, closed, max) => {
+          let q = store.select('project_tasks', 'id,title,instruction,status,brief_what,brief_why,brief_expected,started_at,moved_at')
+          if (!closed) q = q.in('status', ['backlog', 'running', 'review'])
+          const r = await q.or(`moved_at.gte.${since},started_at.gte.${since},status.in.(backlog,running,review)`).order('started_at', { ascending: false }).limit(max)
+          return { rows: (r.data ?? []) as Array<Record<string, unknown>>, failed: r.error ? `the tasks could not be read: ${r.error.message}` : null }
+        },
+        liveClaims: async () => (await readWork(store, { now: deps.now(), session: deps.session })).claims,
+        releasedClaims: async (since, max) => {
+          const r = await store.select('work_claims', 'id,work_id,owner_session,agent,released_at,released_how')
+            .not('released_at', 'is', null).gte('released_at', since).order('released_at', { ascending: false }).limit(max)
+          return { rows: (r.data ?? []) as Array<Record<string, unknown>>, failed: r.error ? `the released claims could not be read: ${r.error.message}` : null }
+        },
+        notes: async (since, max) => {
+          const r = await store.select('task_notes', 'id,task_id,author_kind,body_md,created_at').gte('created_at', since).order('created_at', { ascending: false }).limit(max)
+          return { rows: (r.data ?? []) as Array<Record<string, unknown>>, failed: r.error ? `the notes could not be read: ${r.error.message}` : null }
+        },
+        ...(deps.boardList ? { boardList: deps.boardList } : {}),
+        ...(deps.boardDirectory ? { boardDirectory: deps.boardDirectory } : {})
+      })
+      return reply(answer)
+    }
+  )
+  // #endregion board-search-tool
+
   // ── fabric_work_claim ──────────────────────────────────────────────────────────────────────────────────────
   server.registerTool(
     'fabric_work_claim',
@@ -519,7 +582,14 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         same_claim: same,
         ...(resolved ? { source: { repository: resolved.repository, path: resolved.path, id: resolved.rowId, id_checked: resolved.idChecked } } : {}),
         related: related.map((r) => ({ claim_id: r.claimId, task_id: r.taskId, held_by: r.heldBy, agent: r.agent, since: r.since, why: r.why.map(sayWhy) })),
-        warning: warningOf(related)
+        warning: warningOf(related),
+        // 2026-11-14 (board search): another holder's live claim whose task reads like this one, by its words and the
+        // names it touches; a hint, never a refusal. Search wider with fabric_board_search.
+        ...similarWorkOf(similarClaims(
+          { taskId: id, owner: scope.sessionId, title: `${task.title ?? ''} ${task.instruction ?? ''} ${task.brief_what ?? ''}`, touches: (settled.touches as string[]) ?? [] },
+          snap.claims.filter((c) => !related.some((r) => r.claimId === c.id))
+            .map((c) => ({ claimId: c.id, taskId: c.work_id, owner: c.owner_session, agent: c.agent, title: c.task.title, touches: c.touches }))
+        ))
       }))
     }
   )

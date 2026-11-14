@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-14 · `—` · feat/board-search → main · fast-forward
+- files: `fabric_board_search` (`workTools.ts`, `boardSearchRead.ts`, `shared/boardSearch.ts`) and `similar_work` on a claim, the advice `work.search-the-board`, the dispatcher's work signal (`agentSurface.ts#isWorkCall`, `shared/boardDispatch.ts#sessionLiveForDispatch`), the no-folder hand-over, the folder named like the project, the remote read that fails, their tests, the spec `2026-11-14-board-search.md`, CO-565, CO-571, CO-573, CO-576, SCN-140, CHANGELOG, the map lane `iteration-2026-11-14-board-search`
+- conflicts: none
+- summary: agents search the board for who works on what; an idle session no longer holds its project's requests
+
 ### 2026-11-13 · `—` · fix/board-link-survives-kill-by-name → main · fast-forward
 - files: on macOS the fabric-mcp launcher and Fabric's helpers run as the bundle's `Fabric Helper` (`resources/bin/fabric-mcp`, `helperProcess.ts#nodeHost`), its test (`helper-process.test.mjs`), CO-575, CHANGELOG, the map lane `iteration-2026-11-13-board-link-name`, AGENTS.md's fabric-mcp row
 - conflicts: none

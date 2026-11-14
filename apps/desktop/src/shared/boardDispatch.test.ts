@@ -1,7 +1,7 @@
 // CO-409, wave 1: the dispatcher's decision. Spec: docs/evidence/specs/2026-11-04-on-demand-sessions.md (§3.1, §3.3,
 // §3.4, §3.5, §3.6).
 import { describe, expect, it } from 'vitest'
-import { dispatcherRuns, isSelfTarget, suspendedSince, sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, dispatchTargetsOf, remoteOwnerOf, targetForOwner, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
+import { dispatcherRuns, isSelfTarget, suspendedSince, sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, dispatchTargetsOf, remoteOwnerOf, targetForOwner, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, NO_FOLDER_TO_OPERATOR_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
 
 const NOW = Date.parse('2026-11-04T15:00:00Z')
 const MIN = 60_000
@@ -78,6 +78,9 @@ describe('decideDispatch (§3.1–§3.3)', () => {
   it('checks in the order of §3.3 and names the check that stopped it', () => {
     expect(decideDispatch(with_({ switchOn: false, hasFolder: false }))).toEqual({ path: 'skip', check: 'skipped-off' })
     expect(decideDispatch(with_({ hasFolder: false, runningOnMachine: 9 }))).toEqual({ path: 'skip', check: 'skipped-no-folder' })
+    // CO-573 (9): skipped while young; half an hour after it was filed it is the operator's, never skipped for ever.
+    expect(decideDispatch(with_({ hasFolder: false }, { submittedAt: new Date(NOW - NO_FOLDER_TO_OPERATOR_MS).toISOString() }))).toEqual({ path: 'to-operator', why: 'no-folder' })
+    expect(decideDispatch(with_({ hasFolder: false }, { submittedAt: new Date(NOW - NO_FOLDER_TO_OPERATOR_MS + MIN).toISOString() }))).toEqual({ path: 'skip', check: 'skipped-no-folder' })
     expect(decideDispatch(with_({ runningOnMachine: DISPATCH_DEFAULTS.maxOnMachine, runningInProject: 5 }))).toEqual({ path: 'wait', check: 'deferred-cap' })
     expect(decideDispatch(with_({ runningInProject: DISPATCH_DEFAULTS.maxPerProject, dispatchesToday: 99 }))).toEqual({ path: 'wait', check: 'deferred-project-busy' })
     expect(decideDispatch(with_({ dispatchesToday: DISPATCH_DEFAULTS.maxPerProjectPerDay }))).toEqual({ path: 'skip', check: 'skipped-daily-cap' })
@@ -204,7 +207,15 @@ describe('sessionLiveForDispatch (CO-559, the scenario walk)', () => {
   it('a running terminal or a session that signed within the window is live; a silent one is not', () => {
     const now = NOW
     expect(sessionLiveForDispatch([], now, 10 * MIN)).toBe(false)
-    expect(sessionLiveForDispatch([{ console: true, lastSignAt: now - 60 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(true)
+    // CO-573 (6): a console open with no work signal ten minutes old no longer holds the project.
+    expect(sessionLiveForDispatch([{ console: true, lastSignAt: now - 60 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(false)
+    expect(sessionLiveForDispatch([{ console: true, lastSignAt: now - MIN, outputAt: now - 60 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(false)
+    expect(sessionLiveForDispatch([{ console: true, lastSignAt: now - 60 * MIN, outputAt: now - 3 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(true)
+    // CO-565, CO-571: an enrolled session signing by keep-alive alone, idle for ten minutes, is not live for its requests.
+    expect(sessionLiveForDispatch([{ lastSignAt: now - MIN, workAt: now - 11 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(false)
+    expect(sessionLiveForDispatch([{ lastSignAt: now - MIN, workAt: null, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(false)
+    expect(sessionLiveForDispatch([{ lastSignAt: now - MIN, workAt: now - 4 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(true)
+    expect(sessionLiveForDispatch([{ lastSignAt: now - MIN, workAt: null, startedAt: now - 2 * MIN }], now, 10 * MIN)).toBe(true)
     expect(sessionLiveForDispatch([{ lastSignAt: now - 5 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(true)
     expect(sessionLiveForDispatch([{ lastSignAt: now - 11 * MIN, startedAt: now - 90 * MIN }], now, 10 * MIN)).toBe(false)
     expect(sessionLiveForDispatch([{ lastSignAt: null, startedAt: now - 2 * MIN }], now, 10 * MIN)).toBe(true)

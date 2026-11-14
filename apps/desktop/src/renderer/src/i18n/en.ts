@@ -3102,6 +3102,7 @@ export const en = {
   'links.offer.open': "Open it",
   'glyph.more': "…",
   'harness.tool.fabric_work_list': "Who is working on what in this project: claims, sessions, open tasks, agent-sync leases",
+  'harness.tool.fabric_board_search': "Search the board by words: who holds which task, notes, board requests and other projects\u2019 capabilities",
   'harness.tool.fabric_work_claim': "Claim your task before you start, and hear about related work others hold",
   'harness.tool.fabric_work_release': "End a claim (done, handed over or let go), or every claim of this session",
   'harness.tool.fabric_session_observe': "A turn’s commit and change counts, or the session’s end, from the session hooks; never content",

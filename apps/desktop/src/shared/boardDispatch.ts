@@ -7,6 +7,9 @@
 
 /** How long a request may wait for a live session before a session is started for it (§3.1). */
 export const GRACE_MS = 2 * 60_000
+/** CO-573 (9): a request to a project with no folder on this machine is skipped each pass; this long after it was
+ *  filed it is the operator's (in «На проверке»), since no run can ever start for it here (one waited two days). */
+export const NO_FOLDER_TO_OPERATOR_MS = 30 * 60_000
 /** After this many runs that ended without settling the request, no more are started for it (§3.6, option (b)). Three
  *  since CO-559 (the operator, 2026-11-11: «если он не поднялся, поднимать насильно еще раз»): a run that did not take
  *  the hand-over or went silent is started again by force, and only a third such run hands the item to the operator. */
@@ -25,10 +28,17 @@ export const SILENT_MS = 20 * 60_000
  *  so a workflow nobody holds never stays open for a day (five did on 2026-11-10); a later run opens a new one. */
 export const KEEP_OPEN_MS = 2 * 3600_000
 /** CO-559 (the scenario walk of 2026-11-11): a project has a live session for the dispatcher only while one of its
- *  sessions is a running terminal or signed within `staleMs` (the claims' own window). A session whose agent died, or
- *  that an orphaned reconnect left behind, stayed held for ever and kept the project from ever being woken. */
-export function sessionLiveForDispatch(sessions: ReadonlyArray<{ console?: boolean; lastSignAt: number | null; startedAt: number }>, now: number, staleMs: number): boolean {
-  return sessions.some((s) => s.console === true || now - (s.lastSignAt ?? s.startedAt) <= staleMs)
+ *  sessions worked within `staleMs` (the claims' own window, the operator's ten minutes). A session whose agent died,
+ *  that an orphaned reconnect left behind, or that sits open doing nothing kept the project from ever being woken. */
+export function sessionLiveForDispatch(sessions: ReadonlyArray<{ console?: boolean; lastSignAt: number | null; startedAt: number; workAt?: number | null; outputAt?: number | null }>, now: number, staleMs: number): boolean {
+  // CO-565, CO-571, CO-573 (6): live means it WORKED within the window: a console printed, an enrolled session made a
+  // tool call. A keep-alive sign (fabric-mcp pings every 2 minutes) or a console open with nothing printed holds a
+  // project's requests no longer: on 2026-11-13 fabric (160 unread) and fabric-workspace (51) got no run beside open
+  // consoles. A caller that knows no work signal falls back to the sign. Just started counts as working.
+  return sessions.some((s) => {
+    const worked = s.console === true ? (s.outputAt !== undefined ? s.outputAt : s.lastSignAt) : (s.workAt !== undefined ? s.workAt : s.lastSignAt)
+    return now - Math.max(worked ?? 0, s.startedAt) <= staleMs
+  })
 }
 
 /** CO-559 (§3.8): the capability an inbox item names, so a project's own responder slots never stand for it. */
@@ -103,7 +113,7 @@ export type DispatchDecision =
   | { path: 'responder' }
   | { path: 'live-session' }
   | { path: 'launch' }
-  | { path: 'to-operator' }
+  | { path: 'to-operator'; why?: 'no-folder' }
   | { path: 'wait' | 'skip'; check: DispatchCheck }
 
 const atLeastOne = (n: number | undefined, fallback: number) => (Number.isFinite(n) && (n as number) >= 1 ? Math.floor(n as number) : fallback)
@@ -144,7 +154,7 @@ export function decideDispatch(input: DispatchInput): DispatchDecision {
   if (input.emptyRuns >= EMPTY_RUNS_TO_OPERATOR) return { path: 'to-operator' }
   const limits = limitsOf(input.limits)
   if (!input.switchOn) return { path: 'skip', check: 'skipped-off' }
-  if (!input.hasFolder) return { path: 'skip', check: 'skipped-no-folder' }
+  if (!input.hasFolder) return waited >= NO_FOLDER_TO_OPERATOR_MS ? { path: 'to-operator', why: 'no-folder' } : { path: 'skip', check: 'skipped-no-folder' }
   if (input.runningOnMachine >= limits.maxOnMachine) return { path: 'wait', check: 'deferred-cap' }
   if (input.runningInProject >= limits.maxPerProject) return { path: 'wait', check: 'deferred-project-busy' }
   if (input.dispatchesToday >= limits.maxPerProjectPerDay) return { path: 'skip', check: 'skipped-daily-cap' }

@@ -167,7 +167,9 @@ export async function resolveProjectForFolder(
     if (repo.candidates.length > 1) return ambiguous(repo.candidates)
     if (repo.row) return { projectId: repo.row.projectId, how: 'worktree', root: repo.row.path }
   }
-  const remoteKey = normalizeRemoteKey(await remoteOf(folder))
+  // CO-573 (10): the remote is the last identity tried, never a reason to fail. A git that cannot be started (`spawn git
+  // ENOENT`, 418 enrollments refused on 2026-11-12) or a probe that fails reads as no remote, as `withRemoteKeys` does.
+  const remoteKey = normalizeRemoteKey(await remoteOf(folder).catch(() => null))
   if (!remoteKey) return { projectId: null, how: 'none', root: null }
   const candidates = new Set<string>()
   const matched: AdmittedFolder[] = []

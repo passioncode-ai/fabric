@@ -416,6 +416,13 @@ const bearerDigest = (token: string): string => createHash('sha256').update(toke
  * Which door bucket a JSON-RPC body spends (ER-7): a status poll its request, an ask its agent, anything
  * else (initialize, tools/list) one shared bucket. The values are only a budget key, never trusted.
  */
+/** A JSON-RPC body that carries a tool call: an agent at work, as a keep-alive ping or a notification is not (CO-565,
+ *  CO-571). A batch counts when any of its messages is one. */
+export function isWorkCall(body: unknown): boolean {
+  const messages = Array.isArray(body) ? body : [body]
+  return messages.some((m) => typeof m === 'object' && m !== null && (m as { method?: unknown }).method === 'tools/call')
+}
+
 function doorBucket(body: unknown): string {
   const first = Array.isArray(body) ? body[0] : body
   const params = (first as { method?: unknown; params?: { name?: unknown; arguments?: Record<string, unknown> } } | null)?.params
@@ -492,7 +499,7 @@ export class AgentSurface {
    * liveness signal other sessions' `fabric_work_list` and the operator's screens read. In memory: it is what this
    * process can vouch for, and a restart is exactly the moment those sessions' bearers stop working.
    */
-  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null; /** The last call of the session's own client, not a rejoin's (TR-2). */ lastOwnCallAt?: number | null; /** The agent's process (ER-2, i2). */ agentPid?: number | null; /** Its folder, in memory only (CO-498). */ folder?: string | null }>()
+  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null; /** The last call of the session's own client, not a rejoin's (TR-2). */ lastOwnCallAt?: number | null; /** Its last tool call, never a keep-alive ping or a notification: work, as the dispatcher reads it (CO-565, CO-571). */ lastWorkAt?: number | null; /** The agent's process (ER-2, i2). */ agentPid?: number | null; /** Its folder, in memory only (CO-498). */ folder?: string | null }>()
   /** Sessions holding a claim, and when their calls next renew it (REQ-38: "its calls renew the claim"). */
   private claimHolders = new Map<string, number>()
   /** Session-end releases in flight; `stop()` waits for them, bounded. */
@@ -758,10 +765,10 @@ export class AgentSurface {
 
   // #region surface-session-registry-read — docs: docs/ux/scenarios.md#scn-141-see-where-work-is-across-every-project--sessions-claims-review-and-sessions-with-no-project
   /** The sessions this surface holds, one per session (CO-256): launched and enrolled, with their last call. */
-  heldSessions(projectId?: string): Array<{ sessionId: string; projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; startedAt: number; lastCallAt: number | null; surface: 'session' | 'board'; folder: string | null }> {
+  heldSessions(projectId?: string): Array<{ sessionId: string; projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; startedAt: number; lastCallAt: number | null; lastWorkAt: number | null; surface: 'session' | 'board'; folder: string | null }> {
     return [...this.live.entries()]
       .filter(([, s]) => !projectId || s.projectId === projectId)
-      .map(([sessionId, s]) => ({ sessionId, projectId: s.projectId, cameIn: s.cameIn, agent: s.agent, runtimeSessionId: s.runtimeSessionId, startedAt: s.mintedAt, lastCallAt: s.lastCallAt, surface: s.surface ?? 'session', folder: s.folder ?? null }))
+      .map(([sessionId, s]) => ({ sessionId, projectId: s.projectId, cameIn: s.cameIn, agent: s.agent, runtimeSessionId: s.runtimeSessionId, startedAt: s.mintedAt, lastCallAt: s.lastCallAt, lastWorkAt: s.lastWorkAt ?? null, surface: s.surface ?? 'session', folder: s.folder ?? null }))
   }
 
   /** What this surface holds of one session; null when nothing (ended, or minted by an earlier run of Fabric). */
@@ -1132,7 +1139,7 @@ export class AgentSurface {
       AgentSurface.refuse(res, 401, 'mcp-session-id does not match this credential', {}, attempt)
       return
     }
-    this.touched(st.scope, !st.rejoin)
+    this.touched(st.scope, !st.rejoin, isWorkCall(body))
     await untilAnsweredOrGone(st.transport.handleRequest(req, res, body), res)
   }
 
@@ -1202,12 +1209,13 @@ export class AgentSurface {
   /** A call arrived on this session: its last sign of life (CO-256), and — at most every five minutes — its claims
    *  renewed. Any request counts: a tool call, a hook's turn through a rejoin, and fabric-mcp's own ping while the
    *  agent works (TR-4). `own`: from the session's own client, not a rejoin (TR-2). */
-  private touched(scope: AgentScope, own = true): void {
+  private touched(scope: AgentScope, own = true, work = false): void {
     const now = this.now()
     const s = this.live.get(scope.sessionId)
     if (s) {
       s.lastCallAt = now
       if (own) s.lastOwnCallAt = now
+      if (work) s.lastWorkAt = now
     }
     const due = this.claimHolders.get(scope.sessionId)
     if (due === undefined || now < due) return
@@ -3226,6 +3234,9 @@ export class AgentSurface {
       turnNudges: (turnKey) => this.deps.turnNudges?.(scope.sessionId, scope.projectId, turnKey) ?? [],
       reportBranch: (branch) => this.deps.reportBranch?.(scope.sessionId, branch),
       onDoneInReview: (taskId) => this.deps.onDoneInReview?.(taskId),
+      // fabric_board_search reads the board through this session's own reader door, as com.list and com.directory do.
+      boardList: (args) => this.board.list(this.boardCaller(scope), args) as Promise<Record<string, unknown>>,
+      boardDirectory: (args) => this.board.directory(this.boardCaller(scope), args) as Promise<Record<string, unknown>>,
       resolveSource: (source) =>
         this.deps.work
           ? this.deps.work.resolveSource(scope.projectId, source)

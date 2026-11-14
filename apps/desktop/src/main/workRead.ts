@@ -190,6 +190,8 @@ export interface HeldSession {
   runtimeSessionId?: string | null
   /** A console Fabric holds: when it last printed (ms), the work signal a keep-alive is not (home gap D3). */
   outputAt?: number | null
+  /** An enrolled or hub session: its last tool call (ms), never a keep-alive ping (CO-565, CO-571). */
+  workAt?: number | null
 }
 
 export function sessionView(s: HeldSession, now: number): WorkSessionView {
