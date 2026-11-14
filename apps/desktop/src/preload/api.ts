@@ -88,7 +88,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
     agents: {
       list: (projectId) => ipc.invoke(IPC.agentsList, projectId),
       create: (input) => ipc.invoke(IPC.agentsCreate, input),
-      switchboardSessions: () => ipc.invoke(IPC.agentsSwitchboardSessions)
+      switchboardSessions: () => ipc.invoke(IPC.agentsSwitchboardSessions),
+      switchboardAttach: (launchId) => ipc.invoke(IPC.agentsSwitchboardAttach, launchId)
     },
     tabs: {
       read: () => ipc.invoke(IPC.tabsRead),

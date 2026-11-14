@@ -11,8 +11,9 @@ import { execFile } from 'node:child_process'
 import path from 'node:path'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 import { mergeSessions, type LaunchFacts, type SbSessionRecord } from '../shared/vendor/dashboardsSessions.ts'
-import type { SwitchboardSessions } from '../shared/switchboardSessions.ts'
-export type { SwitchboardSessions }
+import { resolveProjectForFolder, type AdmittedFolder } from './folderResolver.ts'
+import type { SwitchboardAttachPlan, SwitchboardSessions } from '../shared/switchboardSessions.ts'
+export type { SwitchboardAttachPlan, SwitchboardSessions }
 
 export const SWITCHBOARD_SESSIONS_DEADLINE_MS = 10_000
 
@@ -150,10 +151,34 @@ export async function readSwitchboardSessions(deps: { find(): Promise<string | n
   return { installed: true, rows, unread }
 }
 
+/** CO-585: the plan for opening a hosted Switchboard session in a Fabric console. The launch id is checked against the
+ *  sessions Switchboard lists now (a running session marked `attachable`), so nothing but an id Switchboard itself named
+ *  is ever typed into a shell; its folder is resolved to a project as an enrolling agent's is (ADR-0136). */
+export async function planSwitchboardAttach(deps: Parameters<typeof readSwitchboardSessions>[0] & {
+  platform: NodeJS.Platform
+  admittedFolders(): Promise<AdmittedFolder[]>
+  gitCommonDir(folder: string): Promise<string | null>
+}, launchId: string): Promise<SwitchboardAttachPlan> {
+  if (deps.platform === 'win32') return { ok: false, reason: 'unsupported' }
+  const id = typeof launchId === 'string' && UUID.test(launchId) ? launchId.toLowerCase() : null
+  if (!id) return { ok: false, reason: 'not-attachable' }
+  const read = await readSwitchboardSessions(deps)
+  if (!read.installed || read.unread.some((u) => u.source === 'sessions')) return { ok: false, reason: 'unread' }
+  const row = read.rows.find((r) => r.launch?.launchId === id && r.actions?.includes('attach'))
+  if (!row) return { ok: false, reason: 'not-attachable' }
+  const match = await resolveProjectForFolder(row.folder, await deps.admittedFolders(), deps.gitCommonDir)
+  if (!match.projectId) return { ok: false, reason: 'no-project' }
+  // The program Fabric found, not the console's PATH, which may differ; quoted for the shell, and a path a single quote
+  // would break out of is refused rather than escaped.
+  const sb = await deps.find()
+  if (!sb || sb.includes("'")) return { ok: false, reason: 'unread' }
+  return { ok: true, projectId: match.projectId, command: `exec '${sb}' attach ${id}` }
+}
+
 /** In the app: Switchboard found on the session PATH (widened as agent detection widens it), asked with a deadline. */
-export async function readMachineSwitchboardSessions(env: Record<string, string>, now: number): Promise<SwitchboardSessions> {
+async function machineReads(env: Record<string, string>, now: number): Promise<Parameters<typeof readSwitchboardSessions>[0]> {
   const PATH = await widenProbePath(env.PATH ?? '', env)
-  return readSwitchboardSessions({
+  return {
     find: () => findOnPath('switchboard', PATH),
     now,
     run: (file, args) => new Promise((resolve, reject) => {
@@ -163,6 +188,16 @@ export async function readMachineSwitchboardSessions(env: Record<string, string>
         resolve({ code: err ? (exit as number) : 0, stdout: String(stdout), stderr: String(stderr) })
       })
     })
-  })
+  }
+}
+
+export async function readMachineSwitchboardSessions(env: Record<string, string>, now: number): Promise<SwitchboardSessions> {
+  return readSwitchboardSessions(await machineReads(env, now))
+}
+
+/** CO-585, in the app: the plan for a hosted session, its folder resolved against the admitted folders. */
+export async function planMachineSwitchboardAttach(env: Record<string, string>, now: number, launchId: string,
+  folders: { admittedFolders(): Promise<AdmittedFolder[]>; gitCommonDir(folder: string): Promise<string | null> }): Promise<SwitchboardAttachPlan> {
+  return planSwitchboardAttach({ ...(await machineReads(env, now)), platform: process.platform, ...folders }, launchId)
 }
 // #endregion switchboard-sessions

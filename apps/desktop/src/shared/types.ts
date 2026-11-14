@@ -1165,6 +1165,9 @@ export interface FabricApi {
     /** CO-457: the sessions Switchboard launched and the ones it holds on a usage limit, merged as Fabric Dashboards
      *  merges them (read-only; `main/switchboardSessions.ts`). */
     switchboardSessions(): Promise<import('./switchboardSessions.ts').SwitchboardSessions>
+    /** CO-585: the project and command that open a session a Switchboard session host holds (`switchboard attach`),
+     *  checked against the sessions Switchboard lists now (`main/switchboardSessions.ts#planSwitchboardAttach`). */
+    switchboardAttach(launchId: string): Promise<import('./switchboardSessions.ts').SwitchboardAttachPlan>
     /**
      * Create one. The servers it asks for are checked against what the project
      * grants: a request outside that ceiling is REFUSED here rather than trimmed,
@@ -1913,6 +1916,7 @@ export const IPC = {
   settingsWrite: 'settings:write',
   settingsAgentCatalog: 'settings:agentCatalog',
   agentsSwitchboardSessions: 'agents:switchboardSessions',
+  agentsSwitchboardAttach: 'agents:switchboardAttach',
   settingsLoginItem: 'settings:loginItem',
   settingsFolderTrustLocked: 'settings:folderTrustLocked',
   settingsClaudeInbound: 'settings:claudeInbound',

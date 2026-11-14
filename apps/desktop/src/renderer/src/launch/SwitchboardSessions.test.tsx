@@ -1,6 +1,6 @@
 // CO-457: the Switchboard sessions on «Агенты», as Fabric Dashboards lists them, read-only.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SwitchboardSessionsPanel } from './SwitchboardSessions'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
@@ -37,5 +37,34 @@ describe('Switchboard\'s sessions on «Агенты» (CO-457)', () => {
     cleanup()
     mount(async () => { throw new Error('bridge down') })
     await waitFor(() => expect(screen.getByText(en['agentsPlace.switchboard.failed'])).toBeTruthy())
+  })
+
+  it('CO-585: opens a hosted session in a shell console of its project, and only a hosted one', async () => {
+    const id = '0f8e2c1a-5b6d-4e7f-8a9b-0c1d2e3f4a5b'
+    const plan = vi.fn(async () => ({ ok: true, projectId: 'p-1', command: `exec '/usr/local/bin/switchboard' attach ${id}` }))
+    const open = vi.fn(async () => ({ sessionId: 's-1' }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: {
+      agents: { switchboardSessions: vi.fn(async () => ({ installed: true, unread: [], rows: [
+        row({ actions: ['attach', 'reveal'], launch: { launchId: id } }), row({ id: 'sb:2', project: 'plain' })] })), switchboardAttach: plan },
+      terminal: { open } } }))
+    render(<I18nProvider locale="en"><SwitchboardSessionsPanel /></I18nProvider>)
+    const buttons = await screen.findAllByRole('button', { name: en['agentsPlace.switchboard.attach'] })
+    expect(buttons).toHaveLength(1)
+    expect(screen.getByText(en['agentsPlace.switchboard.runningHosted']!)).toBeTruthy()
+    fireEvent.click(buttons[0]!)
+    await waitFor(() => expect(open).toHaveBeenCalledWith('p-1', 'shell', `exec '/usr/local/bin/switchboard' attach ${id}`))
+    expect(plan).toHaveBeenCalledWith(id)
+  })
+
+  it('CO-585: a refused plan says why and opens nothing', async () => {
+    const open = vi.fn()
+    vi.stubGlobal('window', Object.assign(window, { fabric: {
+      agents: { switchboardSessions: vi.fn(async () => ({ installed: true, unread: [], rows: [row({ actions: ['attach'], launch: { launchId: '0f8e2c1a-5b6d-4e7f-8a9b-0c1d2e3f4a5b' } })] })),
+        switchboardAttach: vi.fn(async () => ({ ok: false, reason: 'no-project' })) },
+      terminal: { open } } }))
+    render(<I18nProvider locale="ru"><SwitchboardSessionsPanel /></I18nProvider>)
+    fireEvent.click(await screen.findByRole('button', { name: ru['agentsPlace.switchboard.attach'] }))
+    expect(await screen.findByText(ru['agentsPlace.switchboard.attach.no-project']!)).toBeTruthy()
+    expect(open).not.toHaveBeenCalled()
   })
 })

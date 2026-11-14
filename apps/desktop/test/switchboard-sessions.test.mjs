@@ -77,3 +77,23 @@ test('CO-585: a running session a session host holds carries its launch id and t
   const p = r.rows.find((x) => x.project === 'plain')
   assert.equal(p.actions.includes('attach'), false, 'a session no host holds cannot be attached to')
 })
+
+const { planSwitchboardAttach } = await import(path.resolve(import.meta.dirname, '../src/main/switchboardSessions.ts'))
+
+test('CO-585: attaching is planned only for a hosted running session, in the project its folder belongs to', async () => {
+  const id = '0f8e2c1a-5b6d-4e7f-8a9b-0c1d2e3f4a5b'
+  const hosted = { account_id: 'acc-1', agent: 'claude-code', label: 'work@example.com', provider: 'claude', pool: 'agents', mode: 'managed', state: 'running', in_place: true,
+    launch_id: id, attachable: true, launched_by: { surface: 'cli' }, launched_at: s(NOW - 300_000), started_at: s(NOW - 290_000),
+    working_directory: '/Users/example/DATA/hosted/sub', home: 'runtimes' }
+  const run = runner({ '--json sessions --all': ok({ data: { sessions: [hosted] } }), '--json recovery': ok({ data: { sessions: [] } }) })
+  const base = { find: async () => '/usr/local/bin/switchboard', run, now: NOW, platform: 'darwin',
+    admittedFolders: async () => [{ projectId: 'p-hosted', path: '/Users/example/DATA/hosted' }], gitCommonDir: async () => null }
+  assert.deepEqual(await planSwitchboardAttach(base, id), { ok: true, projectId: 'p-hosted', command: `exec '/usr/local/bin/switchboard' attach ${id}` })
+  assert.deepEqual(await planSwitchboardAttach(base, id.toUpperCase()), { ok: true, projectId: 'p-hosted', command: `exec '/usr/local/bin/switchboard' attach ${id}` }, 'the id is compared as Switchboard lowers it')
+  assert.deepEqual(await planSwitchboardAttach(base, '1f8e2c1a-5b6d-4e7f-8a9b-0c1d2e3f4a5b'), { ok: false, reason: 'not-attachable' })
+  assert.deepEqual(await planSwitchboardAttach(base, 'x; rm -rf ~'), { ok: false, reason: 'not-attachable' }, 'nothing but a launch id reaches the shell')
+  assert.deepEqual(await planSwitchboardAttach({ ...base, admittedFolders: async () => [] }, id), { ok: false, reason: 'no-project' })
+  assert.deepEqual(await planSwitchboardAttach({ ...base, platform: 'win32' }, id), { ok: false, reason: 'unsupported' })
+  assert.deepEqual(await planSwitchboardAttach({ ...base, run: runner({}) }, id), { ok: false, reason: 'unread' })
+  assert.deepEqual(await planSwitchboardAttach({ ...base, find: async () => "/Users/o'x/bin/switchboard" }, id), { ok: false, reason: 'unread' }, 'a path that would break the quoting is refused')
+})

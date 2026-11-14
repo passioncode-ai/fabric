@@ -44,7 +44,7 @@ import { createOnboardingFiler, writePersonBusiness } from './projectOnboarding.
 import { readGitPeople } from './gitPeople.ts'
 import { projectAnalytics, readNewestPaged } from '../shared/projectAnalytics.ts'
 import { composeGraph } from '../shared/projectGraph.ts'
-import { folderProjectId, gitTopLevel } from './folderResolver.ts'
+import { folderProjectId, gitCommonDir, gitTopLevel, type AdmittedFolder } from './folderResolver.ts'
 import { readGitFacts } from './gitFacts.ts'
 import { promises as fsPromises } from 'node:fs'
 import { resolveBacklogSource } from './backlogSource.ts'
@@ -429,7 +429,7 @@ import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors, findOnPath, widenProbePath } from './executorDetect.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
-import { readMachineSwitchboardSessions } from './switchboardSessions.ts'
+import { planMachineSwitchboardAttach, readMachineSwitchboardSessions } from './switchboardSessions.ts'
 import { answerAssigned, assignAcross, type AssignDeps } from './crossProjectAssign.ts'
 import { reviewDecisionProblem, type ReviewDecision } from '../shared/reviewDecision.ts'
 import { readInbound, setInbound } from './claudeInbound.ts'
@@ -503,6 +503,19 @@ let db: SupabaseClient
  *  downstream is handed this instead, so a query cannot be written without a
  *  predicate by writing it the short way. */
 let store: ScopedStore
+
+/** The admitted folders of every project (`project_repos`), as the folder resolver takes them (ADR-0136): an enrolling
+ *  agent's folder and, since CO-585, a hosted Switchboard session's folder are resolved against them. */
+async function readAdmittedFolders(): Promise<AdmittedFolder[]> {
+  const repos = await store.selectAll('project_repos', 'path,project_id,remote_key,kind', { orderBy: ['project_id', 'path'] })
+  if (repos.failed) throw new Error(`repositories read failed: ${repos.failed}`)
+  return (repos.rows as Array<{ path: string; project_id: string; remote_key: string | null; kind: 'primary' | 'checkout' | 'worktree' | null }>).map((r) => ({
+    projectId: r.project_id,
+    path: r.path,
+    remoteKey: r.remote_key,
+    ...(r.kind ? { kind: r.kind } : {})
+  }))
+}
 let journal: Journal
 /** AX-01 — the run lifecycle, reachable from the module-level exit handler.
  *  A session exit is where a run ends, and that handler lives outside the
@@ -1217,16 +1230,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     onboard: async (projectId, name) => { await fileOnboarding(projectId, name) }
   })
   const enrollFolders: FolderDeps = {
-    admittedFolders: async () => {
-      const repos = await store.selectAll('project_repos', 'path,project_id,remote_key,kind', { orderBy: ['project_id', 'path'] })
-      if (repos.failed) throw new Error(`repositories read failed: ${repos.failed}`)
-      return (repos.rows as Array<{ path: string; project_id: string; remote_key: string | null; kind: 'primary' | 'checkout' | 'worktree' | null }>).map((r) => ({
-        projectId: r.project_id,
-        path: r.path,
-        remoteKey: r.remote_key,
-        ...(r.kind ? { kind: r.kind } : {})
-      }))
-    },
+    admittedFolders: readAdmittedFolders,
     detachedFolders: readRepoRemovals,
     realpath: (folder) => {
       try {
@@ -5349,6 +5353,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // CO-457: read-only, Switchboard's sessions and limit stops merged as Fabric Dashboards merges them.
   handle(IPC.agentsSwitchboardSessions, (): Promise<Returns<FabricApi['agents']['switchboardSessions']>> =>
     readMachineSwitchboardSessions(sessionEnvironment(process.env), Date.now()))
+  // CO-585: where a hosted Switchboard session opens; the renderer then opens a shell console there with the command.
+  handle(IPC.agentsSwitchboardAttach, (_e, launchId: string): Promise<Returns<FabricApi['agents']['switchboardAttach']>> =>
+    planMachineSwitchboardAttach(sessionEnvironment(process.env), Date.now(), launchId,
+      { admittedFolders: readAdmittedFolders, gitCommonDir }))
   // CO-407: Claude Code's cross-session messages, only by the person's switch; and the launcher doctor, only on asking.
   const inboundAnswer = (r: ReturnType<typeof readInbound>) =>
     'unreadable' in r ? { unreadable: true as const } : { accepting: r.accepting, value: r.value, ...(r.notSaved ? { notSaved: r.notSaved } : {}) }
