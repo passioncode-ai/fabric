@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "source_commit": "a8ed003e0b1382e83f3fb282611c93dd46f7c1f4",
-  "workspace_commit": "51381bb051e890166759d7fa20514cb3cb80e7a7",
-  "content_digest": "479f3265e0abbf0ecb6b560e469c8614b0b3a709ee52c91a00f0751198e56364",
+  "workspace_commit": "0431e64422b7c18e59005155a8b034e0e458c5f5",
+  "content_digest": "38558a8d3085081a910e28440c8496cb285f8a66b3f4984f28818654b6811330",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "466a6ee2-b248-4d5b-b7b4-548e3de3ea62",
+  "deployment": "2eaa4a1a-8a2d-46a0-9308-49cc1cd0752c",
   "fabric_digest": "d05141be686e717b15b3e5f83d8cbf31506f79d8824195af6e6af95af6949cde",
   "sources": [
     {
@@ -29,8 +29,8 @@
     {
       "id": "fabric-inbox",
       "repository": "https://github.com/passioncode-ai/fabric-inbox",
-      "commit": "1f988fc84ffcd70b07dbcf6db33938655e88f917",
-      "files_digest": "e9b21a87ed6cdeb5d1b97288ee4cf4eee52250d8f436f50226fe14c9ac4eadb9"
+      "commit": "dec524ef350208d9e3386c45aba85817ff56e0ae",
+      "files_digest": "3701e1a5e3bab16ad40867c25d6f1a50496cc6ee97fd01605ff5198c4dcbb9a9"
     },
     {
       "id": "fabric-switchboard",
@@ -53,8 +53,8 @@
     {
       "id": "project-observatory-dashboard",
       "repository": "https://github.com/passioncode-ai/project-observatory-dashboard",
-      "commit": "f99b8c70ae1fe7a709ab1576a068bd318f1e584d",
-      "files_digest": "2ebf67094b2f0bb3cab345ef08887eaba266eb8d79d13c60a050aa26f6097b78"
+      "commit": "78cdabe2d3450b6cc37b7678fd79f40c69c18b0a",
+      "files_digest": "d2c398f472514edd0f33b6359dcb2b6da236e818f8ec27446960dcec0ffe8f13"
     },
     {
       "id": "project-observatory-contract",
