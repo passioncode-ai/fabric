@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "7b5a720517340b56c88a926678c88fbf2cafab38",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-7b5a7205/2026-11-14-plan.md",
+  "reportSha256": "541944fe244ac475dc192a5711a48ac0ff5053b9c59f8bd71ae18712e1f24e95",
+  "reviewerRun": "release-0321-i3-plan-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): as DO-21"
+      ]
+    },
+    {
+      "id": "PL-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): CO-569 says PL-38 and PL-33 are settled with the pin commits; the carried list says item 10's condition is met"
+      ]
+    },
+    {
+      "id": "PL-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): 0.3.20's item 3 carried; item 3 reads each space's `schema_version()` first and upgrades a space on 101 by the runbook"
+      ]
+    },
+    {
+      "id": "PL-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): item 0c added; 0b names the handoff in `releaseMetadata`"
+      ]
+    },
+    {
+      "id": "PL-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): as DO-20; the Russian reworded and checked again"
+      ]
+    },
+    {
+      "id": "PL-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): item 6 tells §6 about the board search and what CO-576 and CO-579 leave"
+      ]
+    }
+  ]
+}

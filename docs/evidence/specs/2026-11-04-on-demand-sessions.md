@@ -407,7 +407,8 @@ unread (`boardDispatchWiring.ts#createInboxState`); a failed inbox read leaves t
 start whose workflow was closed is never asked again; and a fan-out is judged by the clock hour of each message, so
 an old round never wakes anyone once it stops. A project's session counts as live for the dispatcher only while it
 worked in the last 10 minutes (since 0.3.21, CO-565, CO-571, CO-573 (6)): a console that printed, or a tool call through
-its `fabric-mcp`; the keep-alive ping every 2 minutes and a console open with nothing printed do not count, so an idle
+its `fabric-mcp`, or a start within those 10 minutes (the 0.3.21 review, iteration 3, DO-22); the keep-alive ping every
+2 minutes and a console open with nothing printed past its first 10 minutes do not count, so an idle
 session no longer holds its project's requests (`shared/boardDispatch.ts#sessionLiveForDispatch`,
 `main/agentSurface.ts#isWorkCall`). Until 0.3.20 it was a running terminal, or a session signed in the last 10 minutes.
 

@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "7b5a720517340b56c88a926678c88fbf2cafab38",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-7b5a7205/2026-11-14-docs.md",
+  "reportSha256": "ec00d3b52415d407802723d93b6be32f4dd8394bb70bf5579c76eab3f4d30c2f",
+  "reviewerRun": "release-0321-i3-docs-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): «measured on 2 000 documents» in spec §3a and CO-578"
+      ]
+    },
+    {
+      "id": "DO-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): the cut follows the query's own order, an id counting as one; the tool's description, spec §3a and the map lane say so"
+      ]
+    },
+    {
+      "id": "DO-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): both later wordings checked, report ids added to the text-check receipt"
+      ]
+    },
+    {
+      "id": "DO-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): the release after 0.3.21, with its owner"
+      ]
+    },
+    {
+      "id": "DO-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): «worked or started in the last 10 minutes» in spec §3.8, the CHANGELOG and AGENTS.md"
+      ]
+    },
+    {
+      "id": "DO-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): «closed ones unless asked not to»; the 64 KB test titled «within 2.5 s (the old pattern took 7.4 s)»"
+      ]
+    }
+  ]
+}

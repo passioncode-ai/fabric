@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "7b5a720517340b56c88a926678c88fbf2cafab38",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-7b5a7205/2026-11-14-ux.md",
+  "reportSha256": "058b4bea6804efe92065631848215423ccdf14341832104338f1b50d1fd46b06",
+  "reviewerRun": "release-0321-i3-ux-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): the Board shows `entry.why` under «Почему просят» in «Подробнее» and the count of tasks it holds as its own line; test «shows a question's own why under «Подробнее», not the count of tasks it holds (UX-10)», watched failing"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): the answer names `searched` and `not_searched`, the note says the searched words were not found and how many were not searched; test «UX-11, DA-9», watched failing"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): «another window could not be read (see degraded)» when a read failed; test «DA-8, UX-12», watched failing"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-583 (every request row of «На проверке» carries only its target since 0.3.16)"
+      ]
+    }
+  ]
+}

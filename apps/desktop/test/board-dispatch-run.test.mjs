@@ -2083,6 +2083,18 @@ test('a board read that stops at its bound says so, and still reads the newest t
   assert.equal(r.capped, true)
 })
 
+test('ER-14 (0.3.21 review, iteration 3): a busy board whose newest read stops at its bound is not capped when every open thread was read', async () => {
+  const comms = {
+    threadPage: async (_e, filter, before) => filter.openOnly
+      ? { ok: true, threads: [{ id: 'o1' }], more: false, before: null }
+      : { ok: true, threads: [{ id: `n${before?.lastSeq ?? 0}` }], more: true, before: { lastSeq: (before?.lastSeq ?? 0) + 1, id: 'x' } },
+    list: async () => ({ ok: true, messages: [], lastSeq: 0, more: false }),
+    facts: async () => ({ ok: true, messages: {}, requests: {} })
+  }
+  const r = await readOpenRequests(comms, 'e1', T0)
+  assert.equal(r.capped, false)
+})
+
 test('CO-573 (9): a request to a project with no folder here is skipped, then given to the operator, and no run starts', async () => {
   const { toOperatorMarks } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
   const { NO_FOLDER_TO_OPERATOR_MS } = await import(path.resolve(import.meta.dirname, '../src/shared/boardDispatch.ts'))

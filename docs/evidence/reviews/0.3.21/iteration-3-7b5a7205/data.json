@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "7b5a720517340b56c88a926678c88fbf2cafab38",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-7b5a7205/2026-11-14-data.md",
+  "reportSha256": "b98c3a6bbbc7933fc7a377e4b292229ce0b69a310bd4f6c8dae72a176f83e71d",
+  "reviewerRun": "release-0321-i3-data-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): as UX-12, and a board window read whole is not a failed part for «nothing could be read»"
+      ]
+    },
+    {
+      "id": "DA-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): as DO-19"
+      ]
+    }
+  ]
+}

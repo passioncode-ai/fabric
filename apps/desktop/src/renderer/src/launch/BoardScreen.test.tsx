@@ -466,6 +466,23 @@ describe('the board screen itself (SCR-41)', () => {
     }
   })
 
+  // UX-10 (0.3.21 review, iteration 3): a question's own why (the asker's words) is read under «Подробнее», and the
+  // count of tasks it holds is a line of its own, never the why.
+  it('shows a question\'s own why under «Подробнее», not the count of tasks it holds (UX-10)', async () => {
+    const withWhy = { ...question, why: 'The release cannot proceed without the context pack' }
+    const query = vi.fn(async () => envelope({
+      data: cutBoard(boardEntries({ questions: [withWhy], attention: [], projectWeightOf: () => 1, now: new Date(STAMP) }), 100),
+      sources: [{ name: 'questions', status: 'ok', asOf: STAMP }], asOf: STAMP, freshness: 'fresh'
+    }))
+    mount(undefined, { query })
+    await openRow('Which context goes to the next agent?')
+    const more = await waitFor(() => screen.getByText(en['launch.board.decide.details']).closest('details') as HTMLDetailsElement)
+    const why = within(more).getByText(en['launch.board.decide.why']).parentElement as HTMLElement
+    expect(why.textContent).toContain('The release cannot proceed without the context pack')
+    expect(why.textContent).not.toMatch(/Blocks 1 task/)
+    expect(more.textContent).toMatch(/Blocks 1 task/)
+  })
+
   // UX-9 (0.3.21 review, iteration 2): a question folds its why under «Подробнее»; any other row keeps it open.
   it('folds the why on a question and keeps it open on any other row (UX-9)', async () => {
     mount()

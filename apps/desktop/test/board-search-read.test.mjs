@@ -106,6 +106,37 @@ test('DA-7 (0.3.21 review, iteration 2): a board read for fewer days than asked 
   assert.match(b.note, /wider days/)
 })
 
+test('DA-8, UX-12 (0.3.21 review, iteration 3): a wider board read that fails says so, and the day read is not «nothing read»', async () => {
+  const days = (since) => (NOW - Date.parse(since)) / 86_400_000
+  const failsPastADay = async ({ since }) => { if (days(since) > 1) throw new Error('board down'); return { messages: [], cursor: null } }
+  const a = await searchBoard({ query: 'zebra', kinds: ['board'], days: 30 }, deps({ boardList: failsPastADay }))
+  assert.match(a.board_narrowed, /last 1 day\(s\) only: another window could not be read/)
+  assert.doesNotMatch(a.note, /Nothing could be read/)
+  assert.equal(a.degraded[0].part, 'board')
+})
+
+test('ER-13 (0.3.21 review, iteration 3): a narrower read that fails keeps what the wider one read, capped', async () => {
+  const hours = (since) => (NOW - Date.parse(since)) / 3_600_000
+  const busyThenDown = async ({ since }) => {
+    if (hours(since) < 2) throw new Error('board down')
+    return { messages: [{ id: `m${hours(since)}`, thread: 'th', kind: 'message', sender: { project: PROJECT }, at: since, body: { text: 'zebra' } }], cursor: 'more' }
+  }
+  const a = await searchBoard({ query: 'zebra', kinds: ['board'] }, deps({ boardList: busyThenDown }))
+  assert.ok(a.read.messages > 0)
+  assert.deepEqual(a.capped, ['board'])
+  assert.doesNotMatch(a.note, /Nothing could be read/)
+})
+
+test('UX-11, DA-9 (0.3.21 review, iteration 3): words past the cap are named, in the query\'s order, never said as not found', async () => {
+  const words = 'alpha bravo charlie delta echoes foxtrot golfing hotel india juliet kilos limas mikes novembers'
+  const a = await searchBoard({ query: `${words} CO-571` }, deps())
+  assert.deepEqual(a.not_searched, ['mikes', 'novembers', 'co-571'])
+  assert.equal(a.searched.length, 12)
+  assert.match(a.note, /3 word\(s\) past the first 12 were not searched/)
+  const b = await searchBoard({ query: 'board dispatcher' }, deps())
+  assert.equal(b.not_searched, undefined)
+})
+
 test('DA-5: the released claims at their bound are named capped; tasks read only for notes\' titles are not', async () => {
   const many = Array.from({ length: 1000 }, (_, i) => ({ id: `c${i}`, work_id: 'none', owner_session: OTHER, released_how: 'done', released_at: '2026-11-10T09:00:00Z' }))
   const full = Array.from({ length: 500 }, (_, i) => ({ id: `t${i}`, title: 'x', status: 'done', moved_at: '2026-11-10T09:00:00Z' }))

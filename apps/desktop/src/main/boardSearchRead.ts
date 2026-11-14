@@ -3,7 +3,7 @@
  * `fabric_board_search`'s reads and answer (the operator, 2026-11-14: «хочу чтобы агенты делали раг поиск по доске когда
  * ищут связи кто чем занят»). One project's board, as its session may see it:
  *
- *   tasks      every task of the project moved in the window (closed ones on asking), with who holds it now (a live
+ *   tasks      every task of the project moved in the window (closed ones unless asked not to), with who holds it now (a live
  *              claim) or held it last (a released claim), at most TASK_ROWS
  *   notes      the task notes written in the window, at most NOTE_ROWS
  *   board      the board messages the project takes part in, through its own reader door (`com.list` with `since`):
@@ -17,7 +17,7 @@
  * fails is named in `degraded` and the others still answer; a read stopped at its bound is named in `capped`. When
  * every read failed the answer says so and finds nothing, never "nothing matches".
  */
-import { rankDocs, searchableWords, type SearchDoc, type SearchKind } from '../shared/boardSearch.ts'
+import { queryCut, rankDocs, searchableWords, type SearchDoc, type SearchKind } from '../shared/boardSearch.ts'
 import type { ClaimView } from './workRead.ts'
 
 export const TASK_ROWS = 500
@@ -82,7 +82,7 @@ async function stand(part: string, read: () => Promise<Read>, degraded: Array<{ 
  *  pages, not fifteen thrown away. When one day does not fit, 6 hours and then 1 hour are tried; when even the last
  *  hour does not fit, its oldest pages are kept and the read is named capped. */
 async function readBoard(deps: BoardSearchDeps, days: number, degraded: Array<{ part: string; reason: string }>, capped: string[]):
-  Promise<{ rows: Row[]; windowDays: number | null }> {
+  Promise<{ rows: Row[]; windowDays: number | null; failedPast?: boolean }> {
   if (!deps.boardList) { degraded.push({ part: 'board', reason: 'this session has no board' }); return { rows: [], windowDays: null } }
   type Window = { rows: Row[]; whole: boolean } | 'failed'
   const read = async (windowDays: number): Promise<Window> => {
@@ -109,7 +109,8 @@ async function readBoard(deps: BoardSearchDeps, days: number, degraded: Array<{ 
   let kept: { rows: Row[]; windowDays: number } | null = null
   for (const w of widening) {
     const r = await read(w)
-    if (r === 'failed') return kept ? { rows: kept.rows, windowDays: kept.windowDays } : { rows: [], windowDays: null }
+    // DA-8, UX-12 (0.3.21 review, iteration 3): a wider read that fails keeps the window read whole, and says so.
+    if (r === 'failed') return kept ? { rows: kept.rows, windowDays: kept.windowDays, failedPast: true } : { rows: [], windowDays: null }
     if (!r.whole) break
     kept = { rows: r.rows, windowDays: w }
   }
@@ -118,7 +119,8 @@ async function readBoard(deps: BoardSearchDeps, days: number, degraded: Array<{ 
   let last: Row[] = []
   for (const w of [6 / 24, 1 / 24]) {
     const r = await read(w)
-    if (r === 'failed') return { rows: [], windowDays: null }
+    // ER-13 (0.3.21 review, iteration 3): a narrower read that fails keeps what the wider one read, named capped.
+    if (r === 'failed') { if (!last.length) return { rows: [], windowDays: null }; capped.push('board'); return { rows: last, windowDays: w === 6 / 24 ? 1 : 6 / 24, failedPast: true } }
     if (r.whole) return { rows: r.rows, windowDays: w }
     last = r.rows
   }
@@ -245,7 +247,9 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
   }
 
   // ER-4 (0.3.21 review, iteration 1): nothing was searched only when no document was read at all.
-  const allFailed = docs.length === 0 && [...want].every((p) => degraded.some((d) => d.part === p))
+  // DA-8 (iteration 3): a board window read whole is a part read, even when a wider one then failed.
+  const allFailed = docs.length === 0 && [...want].every((p) => degraded.some((d) => d.part === p) && !(p === 'board' && board.windowDays !== null))
+  const cut = queryCut(input.query)
   const hits = rankDocs(input.query, docs, { now, limit: Math.min(30, Math.max(1, input.limit ?? 10)) })
   const who = new Map<string, { holder: string; live: boolean; hits: string[] }>()
   for (const h of hits) {
@@ -261,11 +265,13 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
     hits: hits.map((h) => ({ kind: h.doc.kind, id: h.doc.id, score: h.score, matched: h.matched, snippet: h.snippet, ...h.doc.ref })),
     who: [...who.values()],
     read: { tasks: taskRows.length, notes: noteRows.length, messages: board.rows.length, projects: directory.length, window_days: days,
-      ...(board.windowDays !== null && board.windowDays !== days ? { board_window_days: board.windowDays } : {}) },
+      ...(board.windowDays !== null && board.windowDays !== days ? { board_window_days: Math.round(board.windowDays * 1000) / 1000 } : {}) },
     ...(capped.length ? { capped } : {}),
     // DA-7 (0.3.21 review, iteration 2): a busy board is read for fewer days than asked; said, so «not found» is not
     // read as «not on the board for the whole window».
-    ...(board.windowDays !== null && board.windowDays < days ? { board_narrowed: `the board was read for the last ${board.windowDays >= 1 ? `${board.windowDays} day(s)` : `${Math.round(board.windowDays * 24)} hour(s)`} only: it did not fit in ${BOARD_PAGES} pages for ${days} days` } : {}),
+    ...(board.windowDays !== null && board.windowDays < days ? { board_narrowed: `the board was read for the last ${board.windowDays >= 1 ? `${board.windowDays} day(s)` : `${Math.round(board.windowDays * 24)} hour(s)`} only: ${board.failedPast ? 'another window could not be read (see degraded)' : `it did not fit in ${BOARD_PAGES} pages for ${days} days`}` } : {}),
+    // UX-11 (iteration 3): the words past the cap are named, never read as «not found».
+    ...(cut.notSearched.length ? { searched: cut.searched, not_searched: cut.notSearched } : {}),
     ...(degraded.length ? { degraded } : {}),
     ...(claimsRead ? {} : { holders: 'unknown: the live claims could not be read, so a task hit without held_by may still be held' }),
     note: searchableWords(input.query) === 0
@@ -273,7 +279,7 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
       : allFailed
       ? 'Nothing could be read, so nothing was searched: this is not "nothing matches". Read fabric_work_list, or try again.'
       : hits.length === 0
-        ? `Nothing read matches. That means these words were not found, not that nobody works on it: try other words, in both Russian and English${board.windowDays !== null && board.windowDays < days ? '' : ', or a wider days'}.`
+        ? `Nothing read matches. That means the searched words were not found${cut.notSearched.length ? ` (${cut.notSearched.length} word(s) past the first ${cut.searched.length} were not searched: ask again with them)` : ''}, not that nobody works on it: try other words, in both Russian and English${board.windowDays !== null && board.windowDays < days ? '' : ', or a wider days'}.`
         : 'Only this project\'s tasks are read; other projects show as board messages your project takes part in and as their capabilities. Ask one with com.submit.'
   }
 }

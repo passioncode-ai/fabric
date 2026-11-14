@@ -112,13 +112,26 @@ describe('similarClaims', () => {
     expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Ship it', touches: ['README.md'] }, generic)).toEqual([])
   })
 
+  it('ER-11 (0.3.21 review, iteration 3): CHANGELOG, tsconfig, lock files and index.test.ts in different folders link nothing', () => {
+    const other = [{ claimId: 'g2', taskId: 'tg', owner: 's-other', agent: null, title: 'Icon of the store page',
+      touches: ['docs/CHANGELOG.md', 'apps/x/tsconfig.json', 'web/package-lock.json', 'web/.eslintrc.cjs', 'lib/index.test.ts', 'types/index.d.ts'] }]
+    for (const t of ['CHANGELOG.md', 'tsconfig.json', 'package-lock.json', '.eslintrc.cjs', 'src/index.test.ts', 'src/index.d.ts'])
+      expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Release', touches: [t] }, other), t).toEqual([])
+  })
+
+  it('ER-12 (0.3.21 review, iteration 3): an id is not matched by a shorter word it begins with', () => {
+    const docs = [doc('a', 'Board screen colours', ''), doc('b', 'Fabric release notes', ''), doc('c', 'boardDispatchRun.ts retries', '')]
+    expect(rankDocs('boardDispatchRun.ts', docs, { now: NOW, limit: 5 }).map((h) => h.doc.id)).toEqual(['c'])
+    expect(rankDocs('fabric_work_list', docs, { now: NOW, limit: 5 })).toEqual([])
+  })
+
   it('names nothing when only one weak word is shared', () => {
     expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Иконка для доски на сайте и в сторе и в письме', touches: [] }, claims)).toEqual([])
   })
 })
 
 describe('ER-1, ER-3 (0.3.21 review, iteration 1): hostile and large documents stay cheap', () => {
-  it('a 64 KB message of one unbroken word ranks in well under a second', () => {
+  it('a 64 KB message of one unbroken word ranks within 2.5 s (the old pattern took 7.4 s)', () => {
     const t0 = performance.now()
     rankDocs('dispatcher', [doc('a', 'Board', 'ж'.repeat(32_000)), doc('b', 'Board', 'A'.repeat(64_000))], { now: NOW, limit: 5 })
     // Old pattern: 7.4 s alone; the bound leaves room for a loaded machine.

@@ -117,15 +117,56 @@ Exit for iteration 2: every finding disposed above. Blocking findings open: none
 
 ## Iteration 3
 
-_Not started._
+### Run one, 7b5a7205 (superseded)
+
+Candidate `7b5a720517340b56c88a926678c88fbf2cafab38`. Five reviewers, one per level; their reports and receipts are in
+`docs/evidence/reviews/0.3.21/iteration-3-7b5a7205/` (kept as the record; not this iteration's receipts). 22 findings, 2
+blocking, both in code the gate refuses after `verifiedCommit`, so the iteration runs again: UX-10, a question's own
+explanation shown on no screen since `6166a904` moved it off «Нужны вы» to a Board that never showed it, and ER-11,
+`similar_work` still linking claims through names every repository carries (`CHANGELOG.md`, `tsconfig.json`, lock files,
+`index.test.ts`). Every new test was watched failing on the old code. `bash scripts/ci.sh fast` on this candidate failed
+once in `owned-backend-process-registry.test.mjs` at a load average of about 90, a test this release does not touch;
+the file alone passed three times (CO-581). fabric-agent-adapter 0.86.0 resolved CO-580 the same hour.
+
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
+| V3-1 | UX-10 | blocking | a question's own why shown on no screen | fixed in the iteration-3 wave (run two's candidate): the Board shows `entry.why` under «Почему просят» in «Подробнее» and the count of tasks it holds as its own line; test «shows a question's own why under «Подробнее», not the count of tasks it holds (UX-10)», watched failing |
+| V3-2 | UX-11 | non-blocking | words past the query cap dropped silently and said not found | fixed in the iteration-3 wave (run two's candidate): the answer names `searched` and `not_searched`, the note says the searched words were not found and how many were not searched; test «UX-11, DA-9», watched failing |
+| V3-3 | UX-12 | non-blocking | board_narrowed says «did not fit» when a wider read failed | fixed in the iteration-3 wave (run two's candidate): «another window could not be read (see degraded)» when a read failed; test «DA-8, UX-12», watched failing |
+| V3-4 | UX-13 | non-blocking | the no-folder row names neither the asking project nor the request | ruled: CO-583 (every request row of «На проверке» carries only its target since 0.3.16) |
+| V3-5 | ER-11 | blocking | similar_work still linked claims through CHANGELOG, tsconfig, lock files and index.test.ts | fixed in the iteration-3 wave (run two's candidate): a name is read up to its first dot after leading dots, `GENERIC_NAMES` gains the names every repository of the estate carries; test «ER-11», watched failing; spec and SCN-140 say so |
+| V3-6 | ER-12 | non-blocking | an id matched by a shorter word it begins with | fixed in the iteration-3 wave (run two's candidate): an id matches only whole or as the start of a longer document term; test «ER-12», watched failing; spec §2 says so |
+| V3-7 | ER-13 | non-blocking | a failed narrow read dropped the 500 messages already read; window days unrounded | fixed in the iteration-3 wave (run two's candidate): a failed narrower read keeps the wider read's messages, named capped; `board_window_days` rounded; test «ER-13», watched failing |
+| V3-8 | ER-14 | non-blocking | one capped flag for the open and the newest thread reads | fixed in the iteration-3 wave (run two's candidate): `capped` is the open read's, `recentCapped` the newest read's; the dispatcher logs only the first; test «ER-14», watched failing; AGENTS.md says so |
+| V3-9 | DO-18 | non-blocking | spec §3a and CO-578 said the times were measured at 2 500 documents | fixed in the iteration-3 wave (run two's candidate): «measured on 2 000 documents» in spec §3a and CO-578 |
+| V3-10 | DO-19 | non-blocking | «the first 12 searchable words» inexact (ids first) | fixed in the iteration-3 wave (run two's candidate): the cut follows the query's own order, an id counting as one; the tool's description, spec §3a and the map lane say so |
+| V3-11 | DO-20 | non-blocking | the text check predates the rewritten no-folder strings | fixed in the iteration-3 wave (run two's candidate): both later wordings checked, report ids added to the text-check receipt |
+| V3-12 | DO-21 | non-blocking | CO-573's latest date not moved | fixed in the iteration-3 wave (run two's candidate): the release after 0.3.21, with its owner |
+| V3-13 | DO-22 | non-blocking | liveness docs leave out the start grace | fixed in the iteration-3 wave (run two's candidate): «worked or started in the last 10 minutes» in spec §3.8, the CHANGELOG and AGENTS.md |
+| V3-14 | DO-23 | non-blocking | a header and a test title contradict the code | fixed in the iteration-3 wave (run two's candidate): «closed ones unless asked not to»; the 64 KB test titled «within 2.5 s (the old pattern took 7.4 s)» |
+| V3-15 | DA-8 | non-blocking | a failed wider read worded «did not fit» and «nothing could be read» | fixed in the iteration-3 wave (run two's candidate): as UX-12, and a board window read whole is not a failed part for «nothing could be read» |
+| V3-16 | DA-9 | non-blocking | the 12th plain word dropped when an id follows | fixed in the iteration-3 wave (run two's candidate): as DO-19 |
+| V3-17 | PL-14 | non-blocking | CO-573's latest date | fixed in the iteration-3 wave (run two's candidate): as DO-21 |
+| V3-18 | PL-15 | non-blocking | CO-569's settled items and 0.3.20's carried item 10 | fixed in the iteration-3 wave (run two's candidate): CO-569 says PL-38 and PL-33 are settled with the pin commits; the carried list says item 10's condition is met |
+| V3-19 | PL-16 | non-blocking | 0.3.20's Studio install not carried; no schema step for a Studio space | fixed in the iteration-3 wave (run two's candidate): 0.3.20's item 3 carried; item 3 reads each space's `schema_version()` first and upgrades a space on 101 by the runbook |
+| V3-20 | PL-17 | non-blocking | no close item for iteration 3 rulings; handoff not in releaseMetadata | fixed in the iteration-3 wave (run two's candidate): item 0c added; 0b names the handoff in `releaseMetadata` |
+| V3-21 | PL-18 | non-blocking | shipped no-folder wording had no text check | fixed in the iteration-3 wave (run two's candidate): as DO-20; the Russian reworded and checked again |
+| V3-22 | PL-19 | non-blocking | item 6 leaves out the board search | fixed in the iteration-3 wave (run two's candidate): item 6 tells §6 about the board search and what CO-576 and CO-579 leave |
+
+### Run two
+
+On the candidate the iteration-3 wave lands; five fresh reviewers.
 
 ## Release close
 
 What is owed around the tag, in order; each item is checked off here with its receipt.
 
 0. Before the release commit: at least 5 GB free (`df -h`); one full hosted `ci` run green on the final candidate.
-0b. The release commit (the version, `## 0.3.21`, `docs/launch/release-gate.json`) and its landing on `main` by
-   fast-forward (runbook step 1; the 0.3.21 review, iteration 2, PL-9).
+0b. The release commit (the version, `## 0.3.21`, `docs/launch/release-gate.json` with the handoff
+   `docs/handoffs/2026-11-14-release-0321.md` in `releaseMetadata`) and its landing on `main` by fast-forward (runbook
+   step 1; the 0.3.21 review, iteration 2, PL-9; iteration 3, PL-17).
+0c. On `main` after the release commit: iteration 3's ruled findings join their carry-over rows and the general plan's
+   lanes, which the gate refuses after `verifiedCommit` (as 0.3.20's item 9; iteration 3, PL-17).
 1. The CI release run green on every platform, the published release and its notes from `## 0.3.21`.
 2. Install 0.3.21 on this Mac by [the runbook](../../launch/release-mac.md#upgrading-an-existing-database) (no schema
    step): the board switch and «Служба доски» off before the quit, the lifecycle broker's `fabric.desktop` held, the
@@ -133,21 +174,26 @@ What is owed around the tag, in order; each item is checked off here with its re
 2b. The published DMG smoked (runbook step 7: `--mcp-only` and `packaged-helpers.test.mjs`), CO-575's helpers read as
    `Fabric Helper` on the installed bundle (`ps -o comm=`), and with room on the disk the window check carried from
    0.3.20 (2b below).
-3. The Mac Studio by its host agent, asked on the board, with 0.3.20's carried Studio item 4.
+3. The Mac Studio by its host agent, asked on the board, with 0.3.20's carried Studio items 3 and 4: each space's
+   `schema_version()` read first, a space still on 101 upgraded by the runbook (migration 129) before 0.3.21, the
+   Switchboard version and «Служба доски» as 0.3.20's item 3 names them (iteration 3, PL-16).
 4. One live `fabric_board_search` call from a coding session against the installed board, its answer read.
 4b. The dispatcher watched live for an hour on the installed board: an idle project's request starts a run (CO-565),
    a request to a project with no folder reaches «На проверке» after 30 minutes (CO-573 item 9), and the ops log
    names a failed start's cause (CO-573 item 13); with it 0.3.20's carried items 6 and 8 where a run offers them.
 5. The runbook's steps 9 to 11 (with 0.3.20's carried item 10).
-6. North Star G29 and §6 in fabric-workspace: what of the 10-minute push 0.3.21 carries and what CO-571 leaves, told on
-   the board (PL-2).
+6. North Star G29 and §6 in fabric-workspace, told on the board: what of the 10-minute push 0.3.21 carries and what
+   CO-571 leaves (PL-2), and that agents now search the board (`fabric_board_search`, `similar_work`, the advice
+   `work.search-the-board`) with what that leaves, CO-576 (meaning, not only words) and CO-579 (across projects)
+   (iteration 3, PL-19).
 
 ### Carried from 0.3.20's close
 
 Open when 0.3.21 was cut (the 0.3.21 review, iteration 1, PL-5); each is done when its receipt is written here or in
-0.3.20's ledger: 2b, the window check of the published DMG (`chat-activation-native`), with room on the disk; 4, one
+0.3.20's ledger: 3, the Studio's install from each space's own schema (iteration 3, PL-16); 2b, the window check of the published DMG (`chat-activation-native`), with room on the disk; 4, one
 live run on the Studio seen end to end; 5, the nightly `platforms` run confirming CO-560; 6, CO-563 on a live `-p` run;
 7, migration 129 on the installed board and the hyperframes thread told; 8, a dispatched run that asks a question; 10,
 the runbook's steps 9 to 11. Owner: this repository's release session; the Studio's items by its host agent. Their place
-in the order above (PL-9): 2b with item 2b, 4 with item 3, 6 and 8 with item 4b, 10 with item 5; 5 (the nightly
+in the order above (PL-9): 2b with item 2b, 4 with item 3, 6 and 8 with item 4b, 10 with item 5 (its condition, the scheduled workspace publication working again, is met since `2edab709`; iteration
+3, PL-15); 3 with item 3; 5 (the nightly
 `platforms` run) is read the morning after the tag; 7 (migration 129) is read on the installed board at item 2.

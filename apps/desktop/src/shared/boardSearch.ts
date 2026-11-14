@@ -130,8 +130,9 @@ export function searchableWords(query: string): number {
   return queryWords(query).length
 }
 
-/** The query's own words, each with its terms; stop words dropped, duplicates once. */
-function queryWords(query: string): Array<{ word: string; terms: string[] }> {
+/** The query's own words in their order, each with its terms; stop words dropped, duplicates once. An id (`CO-571`,
+ *  `boardDispatchRun.ts`) counts as one word where it stands (DA-9, DO-19, 0.3.21 review, iteration 3). */
+function allQueryWords(query: string): Array<{ word: string; terms: string[] }> {
   const seen = new Set<string>()
   const words: Array<{ word: string; terms: string[] }> = []
   const t = query.slice(0, TEXT_MAX).normalize('NFKC')
@@ -139,12 +140,34 @@ function queryWords(query: string): Array<{ word: string; terms: string[] }> {
     const word = raw.toLowerCase()
     if (ts.length && !seen.has(word)) { seen.add(word); words.push({ word, terms: ts }) }
   }
-  const all = wordsOf(t)
-  const compounds = compoundsOf(t, all)
-  for (const c of compounds) add(c, [c.replace(/ё/g, 'е')])
-  const inCompound = new Set(compounds.flatMap((c) => c.match(WORD) ?? []))
-  for (const w of all) if (!inCompound.has(w.word.toLowerCase())) add(w.word, wordTerms(w.word))
-  return words.slice(0, QUERY_WORDS)
+  let run: Array<{ word: string; at: number }> = []
+  const flush = () => {
+    if (run.length > 1) {
+      const id = run.map((w, i) => (i ? t[run[i - 1].at + run[i - 1].word.length] : '') + w.word).join('').toLowerCase()
+      add(id, [id.replace(/ё/g, 'е')])
+    } else if (run.length === 1) add(run[0].word, wordTerms(run[0].word))
+    run = []
+  }
+  for (const w of wordsOf(t)) {
+    const prev = run[run.length - 1]
+    const end = prev ? prev.at + prev.word.length : -1
+    if (prev && w.at === end + 1 && '-_./'.includes(t[end])) run.push(w)
+    else { flush(); run = [w] }
+  }
+  flush()
+  return words
+}
+
+/** The words searched: the first QUERY_WORDS of the query's own words. */
+function queryWords(query: string): Array<{ word: string; terms: string[] }> {
+  return allQueryWords(query).slice(0, QUERY_WORDS)
+}
+
+/** The query's words split into those searched and those past QUERY_WORDS, so an answer can name what was left out
+ *  (UX-11, 0.3.21 review, iteration 3). */
+export function queryCut(query: string): { searched: string[]; notSearched: string[] } {
+  const all = allQueryWords(query).map((w) => w.word)
+  return { searched: all.slice(0, QUERY_WORDS), notSearched: all.slice(QUERY_WORDS) }
 }
 
 const K1 = 1.2
@@ -173,7 +196,10 @@ function frequency(ix: Indexed<SearchDoc>, term: string): number {
   const known = ix.seen.get(term)
   if (known !== undefined) return known
   let f = 0
-  for (const [t, n] of ix.tf) if (t.length >= PREFIX_MIN && (t.startsWith(term) || term.startsWith(t))) f += n * PREFIX_WEIGHT
+  // ER-12 (0.3.21 review, iteration 3): an id (`boardDispatchRun.ts`, `fabric_work_list`) is matched whole or as the start
+  // of a longer document term, never by a shorter document word it begins with (`board`, `fabric`).
+  const id = /[-_./]/.test(term)
+  for (const [t, n] of ix.tf) if (t.length >= PREFIX_MIN && (t.startsWith(term) || (!id && term.startsWith(t)))) f += n * PREFIX_WEIGHT
   ix.seen.set(term, f)
   return f
 }
@@ -235,13 +261,19 @@ export interface ClaimLike {
   touches: readonly string[]
 }
 
-const GENERIC_NAMES = new Set(['src', 'lib', 'app', 'apps', 'main', 'index', 'readme', 'test', 'tests', 'docs', 'shared', 'scripts', 'package', 'utils', 'types', 'components'])
+// ER-11 (0.3.21 review, iteration 3): every repository of this estate carries these, often once per package.
+const GENERIC_NAMES = new Set(['src', 'lib', 'app', 'apps', 'main', 'index', 'readme', 'test', 'tests', 'docs', 'shared', 'scripts',
+  'package', 'utils', 'types', 'components', 'changelog', 'license', 'agents', 'claude', 'contributing', 'makefile', 'dockerfile',
+  'tsconfig', 'eslintrc', 'prettierrc', 'gitignore', 'vite', 'vitest', 'jest', 'babel', 'webpack', 'rollup', 'pnpm-lock',
+  'package-lock', 'yarn', 'cargo', 'pyproject', 'requirements', 'setup', 'config', 'settings', 'global', 'globals', 'styles'])
 
 /** A claim's touches read as words: each path's file or folder name, never the shared prefix every path carries. */
 function touchWords(touches: readonly string[]): string {
   // ER-8 (0.3.21 review, iteration 2): a name every repository has (src, index, README, test) or one under four letters
   // never enters the comparison, as a word or as a shared name, so it links nothing.
-  return touches.map((p) => (p.replace(/\/+$/, '').split('/').pop() ?? '').replace(/\.[a-z0-9]+$/i, ''))
+  // ER-11 (iteration 3): a name is read up to its first dot after any leading ones, so `index.test.ts`, `index.d.ts` and
+  // `.eslintrc.cjs` read as `index` and `eslintrc`.
+  return touches.map((p) => (p.replace(/\/+$/, '').split('/').pop() ?? '').replace(/^\.+/, '').split('.')[0])
     .filter((n) => n.length >= 4 && !GENERIC_NAMES.has(n.toLowerCase())).join(' ')
 }
 

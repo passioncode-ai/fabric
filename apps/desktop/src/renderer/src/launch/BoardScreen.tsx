@@ -496,8 +496,11 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                     review, iteration 1). */}
                 <details key={chosen.entry.ref} className="lp-decide-more" open={!chosen.entry.question}>
                   <summary>{t('launch.board.decide.details')}</summary>
-                {chosen.entry.detail && (() => {
-                  const why = detailOf(chosen.entry, t, locale) ?? ''
+                {/* UX-10 (0.3.21 review, iteration 3): a question's why is its asker's own words (`why`, «what cannot
+                    proceed»), never the board's count of the tasks it holds, which follows as a plain line. «Нужны вы»
+                    cards leave the why to this card since 2026-11-12. */}
+                {(chosen.entry.question ? !!chosen.entry.why?.trim() : !!chosen.entry.detail) && (() => {
+                  const why = (chosen.entry.question ? chosen.entry.why?.trim() : detailOf(chosen.entry, t, locale)) ?? ''
                   const folds = why.length > WHY_FOLD
                   const ref = chosen.entry.ref
                   return (
@@ -508,6 +511,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                     </div>
                   )
                 })()}
+                {chosen.entry.question && chosen.entry.detail && <p className="lp-decide-holds">{detailOf(chosen.entry, t, locale)}</p>}
                 <dl className="lp-facts">
                   {(() => { const who = chosen.entry.kind === 'refused' ? chosen.entry.projectName : askerOf(chosen.entry, t); return who ? <div><dt>{t('launch.board.fact.asks')}</dt><dd>{who}</dd></div> : null })()}
                   {chosen.entry.projectName && chosen.entry.kind !== 'refused' && <div><dt>{t('launch.board.fact.project')}</dt><dd>{chosen.entry.projectName}</dd></div>}

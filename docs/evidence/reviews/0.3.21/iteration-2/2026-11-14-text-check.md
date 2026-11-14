@@ -30,3 +30,16 @@ iteration-2 candidate. No finding blocks. The one suggestion, `ru-ui-trailing-pe
 | `launch.board.own` | en-US | `90340321-ff0d-4ba7-9566-a4d2edef4abb` | none |
 | `launch.board.decide.details` | en-US | `a5a485e0-6fd3-4b9d-8238-01e87b60be8f` | none |
 | `harness.tool.fabric_board_search` | en-US | `b5df88b9-11e2-4423-b42f-bdb091146dc7` | none |
+
+## Re-checked after the iteration-2 and iteration-3 rewrites
+
+The 0.3.21 review, iteration 3 (PL-18, DO-20): `attention.swept.request-no-folder` changed after the candidate above,
+first in the iteration-2 wave (UX-7) and again in the iteration-3 wave (clearer Russian: «попросите агента проекта,
+который отправил запрос, снять его»). Both wordings were checked the same way, register `ui`, none with a finding.
+
+| Key | Locale | Wording | Report | Findings |
+|---|---|---|---|---|
+| `attention.swept.request-no-folder` | ru-RU | the iteration-2 wave (`7b5a7205`) | `8eb58aa0-eb7d-4cdf-b869-1013f5b2d64b` | none |
+| `attention.swept.request-no-folder` | en-US | the iteration-2 wave (`7b5a7205`) | `a55c2ab4-af38-4731-8f5b-d7bc2e5d2414` | none |
+| `attention.swept.request-no-folder` | ru-RU | the iteration-3 wave (shipped) | `d180f99f-a2a8-4041-807b-f1bdc147fc2e` | none |
+| `attention.swept.request-no-folder` | en-US | the iteration-3 wave (shipped) | `be856855-7b93-4e76-832f-57d560bf2f06` | none |

@@ -253,7 +253,7 @@ export function findAbandoned(input: SweepInput): Finding[] {
     // that, and what lifts it, in words of its own (CO-573 (9)).
     else if (r.toOperator && r.noFolder && !SETTLED_REQUEST.has(r.state))
       out.push({ ...base, kind: 'request-no-folder', key: `request-no-folder:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
-        nextStep: 'This board request is addressed to a project with no folder on this computer, so Fabric can start no run for it: attach the project\'s folder on its page, or ask the agent of the project that asked to withdraw the request.' })
+        nextStep: 'This board request is addressed to a project with no folder on this computer, so Fabric can start no run for it: attach the project\'s folder on its page, or ask the agent of the project that sent the request to withdraw it.' })
     else if (r.toOperator && !SETTLED_REQUEST.has(r.state))
       out.push({ ...base, kind: 'request-to-operator', key: `request-to-operator:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: r.remote === 'unposted'

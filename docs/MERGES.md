@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 3, run one) → main · fast-forward
+- files: the iteration-3 wave: `BoardScreen.tsx` (a question's own why under «Подробнее»), `boardSearch.ts` (names read to their first dot, more generic names, ids not matched by shorter words, the query cut in its own order, `queryCut`), `boardSearchRead.ts` (`not_searched`, a failed read said as failed, a failed narrow read keeps what was read), `boardThreadIds.ts` (`capped` for the open read only); spec, SCN-140 and SCN-147, AGENTS.md, CHANGELOG, CO-569 to CO-583, the ledger's iteration 3 run one, the handoff, the text-check receipt
+- conflicts: none
+- summary: the 0.3.21 review's iteration-3 run one findings fixed (UX-10, ER-11 blocking) or ruled (UX-13: CO-583); CO-580 resolved by fabric-agent-adapter 0.86.0
+
 ### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 2) → main · fast-forward
 - files: the iteration-2 wave: `boardSearch.ts` (generic names out of the words, `QUERY_WORDS`), `boardSearchRead.ts` (`board_narrowed`), `boardDispatchRun.ts` (an inbox item with no folder stays skipped), `productConnect.ts#handlerIsProduct` (a versioned AppImage), `BoardScreen.tsx` (delegate only on an agent's question with options), the no-folder row's words; CHANGELOG, spec, SCN-140 and SCN-147, carry-over CO-567 to CO-581, the ledger's iteration 2, the handoff, the text-check receipt
 - conflicts: none

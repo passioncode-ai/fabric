@@ -391,7 +391,7 @@ export function wireBoardDispatch(o: {
       const now = Date.now()
       const r = await readOpenRequests(o.comms, o.estateId, now)
       // Said once per change, never every 30 s: a capped read leaves the oldest threads unread (CO-572).
-      if (r.capped !== threadsCapped) { threadsCapped = r.capped; o.log('board.dispatch.threads', r.capped ? 'failed' : 'ok', { capped: r.capped, note: r.capped ? 'more request threads than one pass reads; the oldest quiet ones are left out' : 'every request thread read' }) }
+      if (r.capped !== threadsCapped) { threadsCapped = r.capped; o.log('board.dispatch.threads', r.capped ? 'failed' : 'ok', { capped: r.capped, note: r.capped ? 'more threads with an open request than one pass reads; a waiting request may be left out' : 'every thread with an open request read' }) }
       // CO-559 (§3.8): the inboxes after the requests. A failed inbox read is logged and leaves the requests and the
       // watch of running runs to go on (review: it ended the whole pass); its inbox runs are judged on a later pass.
       let inbox: OpenRequest[] | null = null

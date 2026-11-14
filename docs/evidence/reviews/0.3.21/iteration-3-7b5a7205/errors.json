@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "7b5a720517340b56c88a926678c88fbf2cafab38",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-7b5a7205/2026-11-14-errors.md",
+  "reportSha256": "5a6a71757f78f935fb2d2912d178735b095cc2329904c4b2dfa72d18b568d891",
+  "reviewerRun": "release-0321-i3-errors-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): a name is read up to its first dot after leading dots, `GENERIC_NAMES` gains the names every repository of the estate carries; test «ER-11», watched failing; spec and SCN-140 say so"
+      ]
+    },
+    {
+      "id": "ER-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): an id matches only whole or as the start of a longer document term; test «ER-12», watched failing; spec §2 says so"
+      ]
+    },
+    {
+      "id": "ER-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): a failed narrower read keeps the wider read's messages, named capped; `board_window_days` rounded; test «ER-13», watched failing"
+      ]
+    },
+    {
+      "id": "ER-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 wave (run two's candidate): `capped` is the open read's, `recentCapped` the newest read's; the dispatcher logs only the first; test «ER-14», watched failing; AGENTS.md says so"
+      ]
+    }
+  ]
+}

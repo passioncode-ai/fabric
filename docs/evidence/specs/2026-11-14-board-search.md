@@ -37,7 +37,9 @@ a hit without `held_by` is never read as «nobody holds it». A query of stop wo
 `fabric_work_claim` also answers `similar_work` (at most three) when another session's claim that has not lapsed reads
 like the task being claimed, by its title and what it touches: two shared words, or half of the words of its title and
 touched names, or a file or folder name both claims touch (a name every repository has, such as `src`, `index` or
-`README`, links nothing, neither as a name nor as a word; the 0.3.21 review, iteration 2, ER-8)
+`README`, `CHANGELOG`, `tsconfig` or a lock file, links nothing, neither as a name nor as a word; a name is read up to its
+first dot, so `index.test.ts` reads as `index`, and one under four letters links nothing; the 0.3.21 review, iteration 2,
+ER-8, and iteration 3, ER-11)
 (`apps/desktop/src/shared/boardSearch.ts#similarClaims`). A hint, never a refusal, beside the structural `related`.
 
 `fabric_whoami`'s rules carry the advice `work.search-the-board` (`apps/desktop/src/shared/protocolObligations.ts`):
@@ -55,7 +57,8 @@ that reads the hits, so retrieval here only has to find them (`apps/desktop/src/
   endings longest first, English `-ing`, `-ed`, `-es`, `-s`, `-ies`, `-er`, ...), leaving at least three letters; `ё`
   read as `е`; stop words of both languages dropped.
 - BM25 (k1 1.2, b 0.75) over the title, weighted three, and the text; a term of five letters or more also matches a
-  longer or shorter term it is a prefix of, at half weight.
+  longer or shorter term it is a prefix of, at half weight; an id only as the start of a longer document term, never
+  by a shorter word it begins with (`boardDispatchRun.ts` does not match `board`; the 0.3.21 review, iteration 3, ER-12).
 - The score is BM25 times the share of the query's words that matched (one half to one), times recency
   (1 + 0.5 e^(-age/14 days)), times 1.3 for live work (a task a live claim holds, a request still open).
 - A document matching none of the query's words is not answered.
@@ -88,9 +91,10 @@ not found, not that nobody works on it. The tool writes nothing.
 The ranking runs in Fabric's main process on every call. Its cost is linear in what it reads: ids are found by
 joining neighbouring words, never by a backtracking pattern (the 0.3.21 review, iteration 1, ER-1: one 64 KB message of
 one unbroken word took 5 s), each document is read to its first 6 000 characters and each word to 64, and a term's
-prefix walk over a document is done once (ER-3), and a query is searched for its first 12 words
-(`boardSearch.ts#QUERY_WORDS`; ER-9). The read bounds allow 2 500 documents (500 tasks, 1 000 notes, 500 messages, 500
-projects). Measured on this Mac at those bounds (the 0.3.21 review, iteration 2, ER-9): 0.8 s with a 14-word vocabulary,
+prefix walk over a document is done once (ER-3), and a query is searched for its first 12 words in its own order, an id
+counting as one (`boardSearch.ts#QUERY_WORDS`; ER-9; the 0.3.21 review, iteration 3, DA-9 and DO-19); the words past
+them are named in the answer's `not_searched`, never said as not found (UX-11). The read bounds allow 2 500 documents (500 tasks, 1 000 notes, 500 messages, 500
+projects). Measured on this Mac on 2 000 documents (the 0.3.21 review, iteration 2, ER-9; iteration 3, DO-18): 0.8 s with a 14-word vocabulary,
 1.3 to 2.5 s warm with a realistic one, 4.4 s on a first call, and 8.5 s cold for a 300-character query of absent words
 before the 12-word cap. The main process waits that long; a worker is CO-578. No test bounds this by wall-clock time
 (PL-13: such a bound failed on a loaded machine); the tests check the bounds themselves.

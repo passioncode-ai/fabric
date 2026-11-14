@@ -4,7 +4,8 @@
 // newest 300 by last activity, so the threads quiet longest, the ones whose open request most needs a wake, were the
 // ones left out, and the dispatcher said nothing about it. The threads with an open request come first now (the
 // board's own `openOnly` filter, `board_request_open`), then the newest of all for the answered requests a pass
-// still judges; each read has its own bound, and `capped` says when either stopped there.
+// still judges; each read has its own bound. `capped` says the open read stopped there, which can hide a waiting
+// request; `recentCapped` that the newest read did, which on a busy board is ordinary (ER-14, 0.3.21 review, iteration 3).
 
 import type { CommsThreadPageReply } from '../shared/commsRead.ts'
 
@@ -20,23 +21,25 @@ export interface ThreadPager {
 
 /**
  * The ids of the request threads active since `since`, those with an open request first, each once. A page that does
- * not answer throws (an unread board is never "nothing waits"); `capped` is true when a read stopped at its bound.
+ * not answer throws (an unread board is never "nothing waits"); `capped` is true when the open read stopped at its
+ * bound, `recentCapped` when the newest read did.
  */
-export async function readRequestThreadIds(comms: ThreadPager, estateId: string, since: string): Promise<{ ids: string[]; capped: boolean }> {
+export async function readRequestThreadIds(comms: ThreadPager, estateId: string, since: string): Promise<{ ids: string[]; capped: boolean; recentCapped: boolean }> {
   const ids: string[] = []
   const seen = new Set<string>()
   let capped = false
-  for (const [filter, pages] of [[{ kind: 'request', activeSince: since, openOnly: true }, OPEN_THREAD_PAGES], [{ kind: 'request', activeSince: since }, RECENT_THREAD_PAGES]] as const) {
+  let recentCapped = false
+  for (const [filter, pages, open] of [[{ kind: 'request', activeSince: since, openOnly: true }, OPEN_THREAD_PAGES, true], [{ kind: 'request', activeSince: since }, RECENT_THREAD_PAGES, false]] as const) {
     let before: unknown = null
     for (let page = 0; page < pages; page++) {
       const r = await comms.threadPage(estateId, filter, before, 100)
       if (!r.ok) throw new Error(`the board's threads could not be read: ${r.error?.message ?? 'no reason given'}`)
       for (const t of r.threads) if (!seen.has(t.id)) { seen.add(t.id); ids.push(t.id) }
       if (!r.more || !r.before) break
-      if (page === pages - 1) capped = true
+      if (page === pages - 1) { if (open) capped = true; else recentCapped = true }
       before = r.before
     }
   }
-  return { ids, capped }
+  return { ids, capped, recentCapped }
 }
 // #endregion board-open-threads-first

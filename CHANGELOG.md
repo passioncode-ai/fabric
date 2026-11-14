@@ -16,7 +16,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   that reads like it (`similar_work`), and every session's rules say to search before starting. Nothing leaves the
   machine: the search matches words, no model reads the query.
 - **An idle session no longer holds its project's board requests** (CO-565; CO-571 in part). A session counts as present for
-  the dispatcher only while it worked in the last ten minutes (a tool call, or a console that printed); the keep-alive
+  the dispatcher only while it worked or started in the last ten minutes (a tool call, or a console that printed); the keep-alive
   signal its connection sends every two minutes no longer counts. A request beside an idle session now gets a run.
 - **Requests that could never start reach you** (CO-573). A request to a project with no folder on this Mac is shown in
   «На проверке» half an hour after it was filed, with what to do, instead of being skipped on every pass; a folder that
