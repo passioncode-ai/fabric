@@ -184,13 +184,16 @@ const isHttps = (v: unknown): v is string => {
  * (ER-2, 0.3.21 review, iteration 1: only `<app>.app` was accepted, so Windows' `Fabric Inbox.exe` and Linux's
  * `fabric-inbox.desktop` were refused). macOS: the bundle `<app>.app`. Windows and Linux: the file's name without its
  * extension, read with spaces, dashes and underscores dropped and in lower case (`Fabric Inbox.exe`,
- * `fabric-inbox.desktop`, `/opt/fabric-inbox/fabric-inbox`), so a development Electron is still told apart.
+ * `fabric-inbox.desktop`, `/opt/fabric-inbox/fabric-inbox`, a versioned AppImage) contains the product's name, so a
+ * development Electron is still told apart.
  */
 export function handlerIsProduct(app: string, handlerPath: string, platform: NodeJS.Platform): boolean {
   if (platform === 'darwin') return path.posix.basename(handlerPath.replace(/\/+$/, '')) === `${app}.app`
   const file = (platform === 'win32' ? path.win32 : path.posix).basename(handlerPath)
   const squash = (s: string) => s.toLowerCase().replace(/[\s_-]+/g, '')
-  return squash(file.replace(/\.(exe|desktop|appimage)$/i, '')) === squash(app)
+  // ER-10 (0.3.21 review, iteration 2): a versioned AppImage (`Fabric Inbox-1.2.0.AppImage`) or its desktop integration
+  // (`appimagekit_<hash>-Fabric_Inbox.desktop`) still carries the product's name; Electron's does not.
+  return squash(file.replace(/\.(exe|desktop|appimage)$/i, '')).includes(squash(app))
 }
 
 export class ProductConnector {

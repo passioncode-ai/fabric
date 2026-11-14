@@ -450,6 +450,36 @@ describe('the board screen itself (SCR-41)', () => {
     expect(sent.chosenOption).toBeUndefined()
   })
 
+  // UX-6 (0.3.21 review, iteration 2): «Отдать агенту» answers «decide it yourself», which means something only when an
+  // agent asked and there are options to choose from; a question with none, or one a person asked, offers no such button.
+  it('offers «Отдать агенту» only on an agent\'s question with options (UX-6)', async () => {
+    for (const q of [{ ...question, options: [] }, { ...question, askedBy: { kind: 'person' as const, agent: null } }]) {
+      const query = vi.fn(async () => envelope({
+        data: cutBoard(boardEntries({ questions: [q], attention: [], projectWeightOf: () => 1, now: new Date(STAMP) }), 100),
+        sources: [{ name: 'questions', status: 'ok', asOf: STAMP }], asOf: STAMP, freshness: 'fresh'
+      }))
+      mount(undefined, { query })
+      await openRow('Which context goes to the next agent?')
+      await waitFor(() => screen.getByText(en['launch.board.decide.details']))
+      expect(screen.queryByRole('button', { name: en['launch.board.delegate'] }), JSON.stringify(q.options)).toBeNull()
+      cleanup()
+    }
+  })
+
+  // UX-9 (0.3.21 review, iteration 2): a question folds its why under «Подробнее»; any other row keeps it open.
+  it('folds the why on a question and keeps it open on any other row (UX-9)', async () => {
+    mount()
+    await openRow('Which context goes to the next agent?')
+    const folded = await waitFor(() => screen.getByText(en['launch.board.decide.details']).closest('details') as HTMLDetailsElement)
+    expect(folded.open).toBe(false)
+    cleanup()
+    stub(undefined, [item()])
+    render_()
+    await openRow()
+    const open = await waitFor(() => screen.getByText(en['launch.board.decide.details']).closest('details') as HTMLDetailsElement)
+    expect(open.open).toBe(true)
+  })
+
   it('a refused answer says why and keeps what was typed', async () => {
     const answer = vi.fn(async () => ({ committed: false, reason: 'the question changed while you were reading it', unblocked: [], stillBlocked: [], continuations: [] }))
     mount(answer)

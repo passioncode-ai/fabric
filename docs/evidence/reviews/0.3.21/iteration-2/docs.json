@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "4f465b6dd8c00b9d2142d90951eddf8feed9ef9f",
+  "report": "docs/evidence/reviews/0.3.21/iteration-2/2026-11-14-docs.md",
+  "reportSha256": "66d46cff6ec0aaca3e5288669b17aa1abee07b82ce7d5c7b38f70fafcd7c70bc",
+  "reviewerRun": "release-0321-i2-docs-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): the bullet dropped; CO-570's bullet names each platform's app and that Windows still waits for the vault (CO-245); the map's iteration-1 lane corrected"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): 5 in this ledger and the map's lane"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): the bullet dropped, its facts folded into the Board bullet"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): «half of the words of its title and touched names» in the spec and SCN-140"
+      ]
+    },
+    {
+      "id": "DO-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): spec §3a and §5 say 2 500, directory included, measured at 2 000"
+      ]
+    },
+    {
+      "id": "DO-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): CO-570's status names `handlerIsProduct` per platform and its test"
+      ]
+    },
+    {
+      "id": "DO-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): `boardSearchRead.ts` header and `readBoard` comment say when the last hour does not fit"
+      ]
+    }
+  ]
+}

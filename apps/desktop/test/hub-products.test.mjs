@@ -1117,6 +1117,10 @@ test('ER-2 (0.3.21 review, iteration 1): the product\'s own app is recognised on
   assert.equal(handlerIsProduct('Fabric Inbox', '/usr/share/applications/fabric-inbox.desktop', 'linux'), true)
   assert.equal(handlerIsProduct('Fabric Inbox', '/opt/fabric-inbox/fabric-inbox', 'linux'), true)
   assert.equal(handlerIsProduct('Fabric Inbox', '/home/example/src/node_modules/electron/dist/electron', 'linux'), false)
+  // ER-10 (0.3.21 review, iteration 2): a versioned AppImage and its desktop integration still carry the name.
+  assert.equal(handlerIsProduct('Fabric Inbox', '/home/example/Applications/Fabric Inbox-1.2.0.AppImage', 'linux'), true)
+  assert.equal(handlerIsProduct('Fabric Inbox', '/home/example/.local/share/applications/appimagekit_0f3a-Fabric_Inbox.desktop', 'linux'), true)
+  assert.equal(handlerIsProduct('Fabric Inbox', '/home/example/Applications/Other-1.0.AppImage', 'linux'), false)
   const opened = []
   const connector = new ProductConnector({
     estateId: ESTATE_A, store: recordingStore(), vault: { put: async () => ({ ok: true }), read: async () => ({ ok: false, reason: 'n/a' }) },

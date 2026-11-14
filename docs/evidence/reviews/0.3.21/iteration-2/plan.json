@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "4f465b6dd8c00b9d2142d90951eddf8feed9ef9f",
+  "report": "docs/evidence/reviews/0.3.21/iteration-2/2026-11-14-plan.md",
+  "reportSha256": "72a12240e77ff47ae2370612f3782ac4c2f406788112bc9cee524fea867501e4",
+  "reviewerRun": "release-0321-i2-plan-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): CO-567, CO-568 (its ADR date moved to 2026-11-21), CO-569, CO-571, CO-573, CO-574 retargeted to the release after 0.3.21"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): CO-571's latest date 2026-11-20 with its owner, this repository's release session; the handoff names it"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): items 0b, 2b and 4b added, 0.3.20's carried items placed in the order"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): the handoff's Open names CO-578 to CO-581, question `6c3764b6` and request `981a7b99` with their watcher; CO-579 and CO-580 name them; Next task names iteration 3"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): as DO-11"
+      ]
+    },
+    {
+      "id": "PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): 22 texts checked, none blocking; report ids in `docs/evidence/reviews/0.3.21/iteration-2/2026-11-14-text-check.md`"
+      ]
+    },
+    {
+      "id": "PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): the read-bounds time test replaced by checks of the bounds; the 64 KB test's bound 2 500 ms (the old pattern took 7.4 s alone)"
+      ]
+    }
+  ]
+}

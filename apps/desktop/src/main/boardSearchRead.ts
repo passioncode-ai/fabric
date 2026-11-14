@@ -8,7 +8,8 @@
  *   notes      the task notes written in the window, at most NOTE_ROWS
  *   board      the board messages the project takes part in, through its own reader door (`com.list` with `since`):
  *              the widest of one day, 7 days and the asked window that fits whole in BOARD_PAGES pages of 100, narrower
- *              (6 hours, 1 hour) when one day does not fit, so the newest are never left out
+ *              (6 hours, 1 hour) when one day does not fit, so the newest are not left out unless even the last
+ *              hour does not fit; then its oldest 500 are kept and the read is named capped
  *   projects   the board's directory: every other project's name and the capabilities it takes requests for
  *
  * Other projects' tasks are not read: the session sees its own project only (scope.one-project), and their work shows
@@ -75,7 +76,7 @@ async function stand(part: string, read: () => Promise<Read>, degraded: Array<{ 
   }
 }
 
-/** The board's messages in a window, read so the newest are never the ones left out (DA-1, 0.3.21 review, iteration 1).
+/** The board's messages in a window, read so the newest are not the ones left out (DA-1, 0.3.21 review, iteration 1).
  *  `com.list` pages oldest first, so a window is useful only when it fits whole. The windows are tried narrowest first
  *  (one day, then 7 days, then the asked days) and the widest that fits whole is kept, so a busy board costs a few
  *  pages, not fifteen thrown away. When one day does not fit, 6 hours and then 1 hour are tried; when even the last
@@ -262,6 +263,9 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
     read: { tasks: taskRows.length, notes: noteRows.length, messages: board.rows.length, projects: directory.length, window_days: days,
       ...(board.windowDays !== null && board.windowDays !== days ? { board_window_days: board.windowDays } : {}) },
     ...(capped.length ? { capped } : {}),
+    // DA-7 (0.3.21 review, iteration 2): a busy board is read for fewer days than asked; said, so «not found» is not
+    // read as «not on the board for the whole window».
+    ...(board.windowDays !== null && board.windowDays < days ? { board_narrowed: `the board was read for the last ${board.windowDays >= 1 ? `${board.windowDays} day(s)` : `${Math.round(board.windowDays * 24)} hour(s)`} only: it did not fit in ${BOARD_PAGES} pages for ${days} days` } : {}),
     ...(degraded.length ? { degraded } : {}),
     ...(claimsRead ? {} : { holders: 'unknown: the live claims could not be read, so a task hit without held_by may still be held' }),
     note: searchableWords(input.query) === 0
@@ -269,7 +273,7 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
       : allFailed
       ? 'Nothing could be read, so nothing was searched: this is not "nothing matches". Read fabric_work_list, or try again.'
       : hits.length === 0
-        ? 'Nothing read matches. That means these words were not found, not that nobody works on it: try other words, in both Russian and English, or a wider days.'
+        ? `Nothing read matches. That means these words were not found, not that nobody works on it: try other words, in both Russian and English${board.windowDays !== null && board.windowDays < days ? '' : ', or a wider days'}.`
         : 'Only this project\'s tasks are read; other projects show as board messages your project takes part in and as their capabilities. Ask one with com.submit.'
   }
 }

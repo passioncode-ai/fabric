@@ -1,7 +1,7 @@
 // The board search's ranking (the operator, 2026-11-14: «хочу чтобы агенты делали раг поиск по доске когда ищут связи
 // кто чем занят»): words in Russian and English, their forms, ids kept whole, ranked by BM25 with recency and live work.
 import { describe, expect, it } from 'vitest'
-import { rankDocs, similarClaims, stem, terms, type SearchDoc } from './boardSearch.ts'
+import { QUERY_WORDS, rankDocs, searchableWords, similarClaims, stem, terms, TEXT_MAX, WORD_MAX, type SearchDoc } from './boardSearch.ts'
 
 const NOW = Date.parse('2026-11-14T12:00:00Z')
 const doc = (id: string, title: string, text = '', extra: Partial<SearchDoc> = {}): SearchDoc =>
@@ -105,6 +105,13 @@ describe('similarClaims', () => {
     expect(similar.map((s) => s.claimId)).toEqual(['c1'])
   })
 
+  it('ER-8 (0.3.21 review, iteration 2): names every repository has (index, main, README) link nothing, as words or names', () => {
+    const generic = [{ claimId: 'g1', taskId: 'tg', owner: 's-other', agent: null, title: 'Icon of the store page', touches: ['apps/desktop/src/index.ts', 'apps/desktop/src/main.ts', 'README.md'] }]
+    expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Release', touches: ['apps/desktop/src/index.ts'] }, generic)).toEqual([])
+    expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Translate the help', touches: ['src/index.ts', 'src/main.ts'] }, generic)).toEqual([])
+    expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Ship it', touches: ['README.md'] }, generic)).toEqual([])
+  })
+
   it('names nothing when only one weak word is shared', () => {
     expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Иконка для доски на сайте и в сторе и в письме', touches: [] }, claims)).toEqual([])
   })
@@ -114,17 +121,20 @@ describe('ER-1, ER-3 (0.3.21 review, iteration 1): hostile and large documents s
   it('a 64 KB message of one unbroken word ranks in well under a second', () => {
     const t0 = performance.now()
     rankDocs('dispatcher', [doc('a', 'Board', 'ж'.repeat(32_000)), doc('b', 'Board', 'A'.repeat(64_000))], { now: NOW, limit: 5 })
-    expect(performance.now() - t0).toBeLessThan(500)
+    // Old pattern: 7.4 s alone; the bound leaves room for a loaded machine.
+    expect(performance.now() - t0).toBeLessThan(2500)
   })
 
-  it('a board at the read bounds (2 000 documents of 1 000 words) ranks in seconds, not the nine measured before', () => {
-    const words = 'the board dispatcher wakes a project when a request waits and nobody is live in its folder'.split(' ')
-    const text = Array.from({ length: 1000 }, (_, i) => words[i % words.length] + (i % 7)).join(' ')
-    const docs = Array.from({ length: 2000 }, (_, i) => doc(`d${i}`, `task ${i} dispatcher`, text))
-    const t0 = performance.now()
-    rankDocs('dispatcher project request', docs, { now: NOW, limit: 10 })
-    // About 0.8 s alone on this Mac; the bound leaves room for a loaded machine and still fails the old 9 s.
-    expect(performance.now() - t0).toBeLessThan(5000)
+  // PL-13, ER-9 (0.3.21 review, iteration 2): no wall-clock bound at the read bounds; it failed on a loaded machine and
+  // its 14-word vocabulary understated the cost. What bounds the work is checked instead: the text read, the word
+  // kept and the query words searched. The measured times are in the spec's §3a.
+  it('reads a document to TEXT_MAX, a word to WORD_MAX and a query to QUERY_WORDS words', () => {
+    expect(terms(`${'board '.repeat(TEXT_MAX / 6)}dispatcher`)).not.toContain('dispatcher')
+    expect(Math.max(...terms('q'.repeat(10_000)).map((t) => t.length))).toBeLessThanOrEqual(WORD_MAX)
+    const many = Array.from({ length: 20 }, (_, i) => `wordnumber${String.fromCharCode(97 + i)}`).join(' ')
+    expect(searchableWords(many)).toBe(QUERY_WORDS)
+    const last = doc('x', 'wordnumbert', '')
+    expect(rankDocs(many, [last], { now: NOW, limit: 5 })).toEqual([])
   })
 
   it('ids are still kept whole when read from the words', () => {

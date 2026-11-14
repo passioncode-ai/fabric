@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "4f465b6dd8c00b9d2142d90951eddf8feed9ef9f",
+  "report": "docs/evidence/reviews/0.3.21/iteration-2/2026-11-14-errors.md",
+  "reportSha256": "fc4784cbd9adc38946b216bb98e4da58da5c123c4ca07a6f85c23b56d705569a",
+  "reviewerRun": "release-0321-i2-errors-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): `boardSearch.ts#touchWords` drops generic names before they become words; test «ER-8 ... names every repository has (index, main, README) link nothing», watched failing; spec and SCN-140 say so"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): the query cut to 12 words (`QUERY_WORDS`), the measured times (1.3 to 2.5 s warm, 4.4 s first call, 8.5 s cold before the cap) in spec §3a and CO-578; a worker ruled: CO-578"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): `handlerIsProduct` asks whether the file's name holds the product's; test «ER-2» gains the AppImage cases, watched failing"
+      ]
+    }
+  ]
+}

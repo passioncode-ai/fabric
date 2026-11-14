@@ -1041,7 +1041,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       const active = records.filter((r) => r.state !== 'ended')
       const slotLive = await deps.responderLive(req.target, req.capability)
       const holderLive = req.attemptLive ?? slotLive
-      const decision = decideDispatch({
+      const decided = decideDispatch({
         now,
         request: { id: req.id, state: req.state, submittedAt: req.submittedAt, deadline: req.deadline, urgent: false, holderLive, attemptLapsed: !holderLive },
         liveResponder: slotLive,
@@ -1056,6 +1056,10 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         inFlight: last !== undefined && last.state !== 'ended',
         limits
       })
+      // DA-6 (0.3.21 review, iteration 2): an inbox item has no row of its own in «На проверке» (the sweep reads requests,
+      // and an inbox item only through a record), so one to a project with no folder here stays skipped, as before 0.3.21.
+      const decision: typeof decided = req.inbox && decided.path === 'to-operator' && decided.why === 'no-folder'
+        ? { path: 'skip', check: 'skipped-no-folder' } : decided
       said(req.id, decision)
       // ER-7: an accepted request past its deadline that Fabric never started a run for has no record to carry the
       // operator's mark, so it is held here and shown in «На проверке» like a request given up after three runs.

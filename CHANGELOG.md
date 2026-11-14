@@ -23,11 +23,6 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   Observatory counts for several projects starts the one named like the folder; a coding agent whose `git` cannot be
   started is no longer refused (a folder Fabric knows by its path still joins its project); and a board run that ended
   with no exit code is taken back as a crash, not a clean end.
-- **Connecting Fabric Inbox works on Windows and Linux again.** The check that refuses a link another app would open
-  (CO-570) now knows each platform's own app (`Fabric Inbox.exe`, `fabric-inbox.desktop`); only a different app, such as
-  a development Electron, is refused.
-- **A question with no options on Главная no longer shows «Отдать агенту»**, which did nothing there; on the Board the
-  why and the facts of a row that is not a question are shown open again.
 
 - **Stopping Fabric by its name no longer cuts every agent off the board** (CO-575). On macOS each agent's link to
   the board, the MCP bridge and the ACP shell now run as `Fabric Helper`, so `killall Fabric` ends the app and leaves
@@ -45,15 +40,19 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - **Connecting a product never opens another app** (the operator's screenshot, 2026-11-13). When macOS would hand
   `fabric-inbox://connect` to an app other than Fabric Inbox (a development Electron that once ran the product), Agent
   access now says which app holds the link and opens nothing, instead of a blank Electron window (CO-570).
+  The check knows each platform's own app (`Fabric Inbox.app`, `Fabric Inbox.exe`, a `fabric-inbox` file or
+  AppImage); on Windows connecting a product still waits for the vault there (CO-245).
 
 - **The Board opens from the rail, and a question is one press** (the operator, 2026-11-12). «Доска» sits first at the
   rail's foot with the count of what waits for you, and Главная's «Нужны вы» opens it with «Открыть доску». A «Нужны вы»
   card says who asks, how long ago and what, in two lines. On the Board a question's card is the request, then
   «Рекомендуем» with the option the agent recommends and why, then the other options, then «Отдать агенту», which lets
-  the agent decide by the project's decisions and goal; your own answer opens from «Ответить своими словами», and the
-  why and the facts fold under «Подробнее».
+  the agent decide by the project's decisions and goal, offered only on an agent's question with options (here and on
+  Главная); your own answer opens from «Ответить своими словами». A question's why and facts fold under «Подробнее»;
+  any other row shows them open.
 - **An agent that asks with options names the one it recommends.** `fabric_question_ask` takes `recommended` (an
   option's id, or `recommended: true` on the option) and refuses options without exactly one, saying how to add it.
+  An agent that asked with options and no recommendation must now name one (CO-580).
 
 ## 0.3.20
 

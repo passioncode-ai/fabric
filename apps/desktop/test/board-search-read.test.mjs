@@ -96,6 +96,16 @@ test('DA-1: the board is read narrowest first and the widest window that fits wh
   assert.equal(Math.round(c.read.board_window_days * 24), 1)
 })
 
+test('DA-7 (0.3.21 review, iteration 2): a board read for fewer days than asked says so, and «nothing matches» does not ask for wider days', async () => {
+  const fitsInSeven = async ({ since }) => ({ messages: [], cursor: (NOW - Date.parse(since)) / 86_400_000 > 7 ? 'more' : null })
+  const a = await searchBoard({ query: 'zebra', kinds: ['board'], days: 30 }, deps({ boardList: fitsInSeven }))
+  assert.match(a.board_narrowed, /last 7 day\(s\) only/)
+  assert.doesNotMatch(a.note, /wider days/)
+  const b = await searchBoard({ query: 'zebra', kinds: ['board'], days: 30 }, deps())
+  assert.equal(b.board_narrowed, undefined)
+  assert.match(b.note, /wider days/)
+})
+
 test('DA-5: the released claims at their bound are named capped; tasks read only for notes\' titles are not', async () => {
   const many = Array.from({ length: 1000 }, (_, i) => ({ id: `c${i}`, work_id: 'none', owner_session: OTHER, released_how: 'done', released_at: '2026-11-10T09:00:00Z' }))
   const full = Array.from({ length: 500 }, (_, i) => ({ id: `t${i}`, title: 'x', status: 'done', moved_at: '2026-11-10T09:00:00Z' }))

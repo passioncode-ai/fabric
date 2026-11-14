@@ -452,7 +452,8 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                     onDraft={(v) => setDraft((d) => ({ ...d, [chosen.entry.ref]: v }))}
                     receipt={receipt[chosen.entry.ref]}
                     sending={sending === chosen.entry.ref}
-                    onDelegate={async () => {
+                    // UX-6 (0.3.21 review, iteration 2): handed to the agent only where an agent asked with options to pick from.
+                    onDelegate={(chosen.entry as BoardEntry).question?.options.length && (chosen.entry as BoardEntry).askedBy?.kind !== 'person' ? async () => {
                       const entry = chosen.entry as BoardEntry
                       setSending(entry.ref)
                       try {
@@ -464,7 +465,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                       } finally {
                         setSending(null)
                       }
-                    }}
+                    } : undefined}
                     onSubmit={async (option) => {
                       const entry = chosen.entry as BoardEntry
                       setSending(entry.ref)

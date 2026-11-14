@@ -2096,3 +2096,14 @@ test('CO-573 (9): a request to a project with no folder here is skipped, then gi
   assert.deepEqual(toOperatorMarks('no-folder'), { pastDue: false, noFolder: true })
   assert.equal(w.launches.length, 0)
 })
+
+test('DA-6 (0.3.21 review, iteration 2): an inbox item to a project with no folder here stays skipped, never the operator\'s', async () => {
+  const { NO_FOLDER_TO_OPERATOR_MS } = await import(path.resolve(import.meta.dirname, '../src/shared/boardDispatch.ts'))
+  const w = world({ folder: null, requests: [inboxItem()] })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.tick(NO_FOLDER_TO_OPERATOR_MS)
+  await d.onPass()
+  assert.equal(d.toOperator().size, 0, 'no row in «На проверке» for an inbox item')
+  assert.equal(w.launches.length, 0)
+})

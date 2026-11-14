@@ -80,6 +80,9 @@ const WORD = /[\p{L}\p{N}]+/gu
 export const TEXT_MAX = 6000
 /** The longest word kept whole; a longer run is cut, never matched in full. */
 export const WORD_MAX = 64
+/** The most query words searched (ER-9, 0.3.21 review, iteration 2): each word walks the board's vocabulary for its
+ *  prefixes, and a 300-character query of absent words measured 8.5 s cold at the read bounds. */
+export const QUERY_WORDS = 12
 
 /** The words of a text, linear in its length, each cut at WORD_MAX. */
 function wordsOf(text: string): Array<{ word: string; at: number }> {
@@ -141,7 +144,7 @@ function queryWords(query: string): Array<{ word: string; terms: string[] }> {
   for (const c of compounds) add(c, [c.replace(/ё/g, 'е')])
   const inCompound = new Set(compounds.flatMap((c) => c.match(WORD) ?? []))
   for (const w of all) if (!inCompound.has(w.word.toLowerCase())) add(w.word, wordTerms(w.word))
-  return words
+  return words.slice(0, QUERY_WORDS)
 }
 
 const K1 = 1.2
@@ -236,7 +239,10 @@ const GENERIC_NAMES = new Set(['src', 'lib', 'app', 'apps', 'main', 'index', 're
 
 /** A claim's touches read as words: each path's file or folder name, never the shared prefix every path carries. */
 function touchWords(touches: readonly string[]): string {
-  return touches.map((p) => (p.replace(/\/+$/, '').split('/').pop() ?? '').replace(/\.[a-z0-9]+$/i, '')).join(' ')
+  // ER-8 (0.3.21 review, iteration 2): a name every repository has (src, index, README, test) or one under four letters
+  // never enters the comparison, as a word or as a shared name, so it links nothing.
+  return touches.map((p) => (p.replace(/\/+$/, '').split('/').pop() ?? '').replace(/\.[a-z0-9]+$/i, ''))
+    .filter((n) => n.length >= 4 && !GENERIC_NAMES.has(n.toLowerCase())).join(' ')
 }
 
 /**
@@ -252,7 +258,7 @@ export function similarClaims(mine: { taskId: string; owner: string; title: stri
   const docs = others.map((c) => ({ id: c.claimId, kind: 'task' as const, title: c.title, text: touchWords(c.touches), at: null, claim: c }))
   // A file or folder name both claims touch is a link on its own, whatever the titles say.
   // ER-5: a name every repository has (src, index, README, test) links nothing.
-  const names = (ts: readonly string[]) => new Set(touchWords(ts).toLowerCase().split(' ').filter((n) => n.length >= 4 && !GENERIC_NAMES.has(n)))
+  const names = (ts: readonly string[]) => new Set(touchWords(ts).toLowerCase().split(' ').filter(Boolean))
   const mineNames = names(mine.touches)
   const sharesName = (c: ClaimLike) => [...names(c.touches)].some((n) => mineNames.has(n))
   return rankDocs(query, docs, { now: 0, limit: docs.length })

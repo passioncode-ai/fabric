@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "4f465b6dd8c00b9d2142d90951eddf8feed9ef9f",
+  "report": "docs/evidence/reviews/0.3.21/iteration-2/2026-11-14-ux.md",
+  "reportSha256": "0f55b49857346ca1f26d2c29854219bf7df8509896dbaffae7b449c2ffa1fbb8",
+  "reviewerRun": "release-0321-i2-ux-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): the Board offers it only on an agent's question with options; test «offers «Отдать агенту» only on an agent's question with options (UX-6)», watched failing"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): the row's words name what a person can do: attach the folder, or ask the asking project's agent to withdraw it (en, ru, `abandonedSweep.ts` next step)"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): SCN-147 amended 2026-11-14 with the en/ru words, the inbox exemption and the tests"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): test «folds the why on a question and keeps it open on any other row (UX-9)», watched failing"
+      ]
+    }
+  ]
+}

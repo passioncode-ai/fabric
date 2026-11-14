@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "4f465b6dd8c00b9d2142d90951eddf8feed9ef9f",
+  "report": "docs/evidence/reviews/0.3.21/iteration-2/2026-11-14-data.md",
+  "reportSha256": "300d6dcadb43f317528e91c55b614bc5892efafd06c4a56639139831f14ed59a",
+  "reviewerRun": "release-0321-i2-data-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): an inbox item stays skipped; test «DA-6 ... stays skipped, never the operator's», watched failing"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3): `board_narrowed` in the answer and the tool's description, no «wider days» when narrowed; test «DA-7», watched failing"
+      ]
+    }
+  ]
+}

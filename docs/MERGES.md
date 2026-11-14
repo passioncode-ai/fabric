@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 2) → main · fast-forward
+- files: the iteration-2 wave: `boardSearch.ts` (generic names out of the words, `QUERY_WORDS`), `boardSearchRead.ts` (`board_narrowed`), `boardDispatchRun.ts` (an inbox item with no folder stays skipped), `productConnect.ts#handlerIsProduct` (a versioned AppImage), `BoardScreen.tsx` (delegate only on an agent's question with options), the no-folder row's words; CHANGELOG, spec, SCN-140 and SCN-147, carry-over CO-567 to CO-581, the ledger's iteration 2, the handoff, the text-check receipt
+- conflicts: none
+- summary: the 0.3.21 review's iteration-2 findings fixed (ER-8, DO-11 blocking); CO-581 filed
+
 ### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 1) → main · fast-forward
 - files: the iteration-1 wave: the search's capabilities, linear ids and text caps, the board read narrowest first, `holder_unknown`, `similar_work` on titles and touches; `productConnect.ts#handlerIsProduct` per platform; the sweep kind `request-no-folder`; the Board's fold and delegate button; `runStateOf` (CO-573 (5)); the on-demand spec's liveness rule; CO-571, CO-573, CO-578 to CO-580; the 0.3.21 ledger's iteration 1 and its reports and receipts; CHANGELOG; the map lane `iteration-2026-11-14-review-i1`
 - conflicts: none

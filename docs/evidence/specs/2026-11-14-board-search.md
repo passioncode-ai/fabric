@@ -35,8 +35,9 @@ When the live claims could not be read, each task hit carries `holder_unknown` a
 a hit without `held_by` is never read as «nobody holds it». A query of stop words alone searches nothing and says so.
 
 `fabric_work_claim` also answers `similar_work` (at most three) when another session's claim that has not lapsed reads
-like the task being claimed, by its title and what it touches: two shared words, or half of the title's words, or a
-file or folder name both claims touch (a name every repository has, such as `src` or `index`, links nothing)
+like the task being claimed, by its title and what it touches: two shared words, or half of the words of its title and
+touched names, or a file or folder name both claims touch (a name every repository has, such as `src`, `index` or
+`README`, links nothing, neither as a name nor as a word; the 0.3.21 review, iteration 2, ER-8)
 (`apps/desktop/src/shared/boardSearch.ts#similarClaims`). A hint, never a refusal, beside the structural `related`.
 
 `fabric_whoami`'s rules carry the advice `work.search-the-board` (`apps/desktop/src/shared/protocolObligations.ts`):
@@ -87,22 +88,27 @@ not found, not that nobody works on it. The tool writes nothing.
 The ranking runs in Fabric's main process on every call. Its cost is linear in what it reads: ids are found by
 joining neighbouring words, never by a backtracking pattern (the 0.3.21 review, iteration 1, ER-1: one 64 KB message of
 one unbroken word took 5 s), each document is read to its first 6 000 characters and each word to 64, and a term's
-prefix walk over a document is done once (ER-3). At the read bounds (2 000 documents of 1 000 words) a call measured
-about 0.8 s on this Mac (`boardSearch.test.ts` «a board at the read bounds»).
+prefix walk over a document is done once (ER-3), and a query is searched for its first 12 words
+(`boardSearch.ts#QUERY_WORDS`; ER-9). The read bounds allow 2 500 documents (500 tasks, 1 000 notes, 500 messages, 500
+projects). Measured on this Mac at those bounds (the 0.3.21 review, iteration 2, ER-9): 0.8 s with a 14-word vocabulary,
+1.3 to 2.5 s warm with a realistic one, 4.4 s on a first call, and 8.5 s cold for a 300-character query of absent words
+before the 12-word cap. The main process waits that long; a worker is CO-578. No test bounds this by wall-clock time
+(PL-13: such a bound failed on a loaded machine); the tests check the bounds themselves.
 
 ## 4. Tests
 
 `apps/desktop/src/shared/boardSearch.test.ts` (terms, stems, ids, ranking, recency and live work, snippet, similar
-claims, a 64 KB unbroken word and a board at the read bounds under a time bound); `apps/desktop/test/board-search-read.test.mjs`
+claims, generic names linking nothing, a 64 KB unbroken word, the text, word and query bounds); `apps/desktop/test/board-search-read.test.mjs`
 (holders now and last, a request's target by name, a project's capabilities in the directory's own shape, a capability
 alone finding its project, a failed part named while the others answer, every part failing, unread claims marking hits,
-a query of stop words, the board read narrowest first, the released claims capped, nothing matching). Planted defects
-watched failing: the Russian stems removed, the live-work raise removed, the window narrowing removed, a failed read not
-named, the backtracking id pattern restored.
+a query of stop words, the board read narrowest first and said when narrowed, the released claims capped, nothing
+matching). Planted defects watched failing: the Russian stems removed, the live-work raise removed, the window narrowing
+removed, a failed read not named, the backtracking id pattern restored, the generic-name filter removed, the query cap
+removed.
 
 ## 5. Out of scope
 
 Other projects' tasks and claims (the project boundary stays; who works on what across projects is CO-579); a
-person-facing search screen; an index kept between calls (each call reads within its bounds and ranks at most about
-2 000 documents, each read to its first 6 000 characters, `boardSearch.ts#TEXT_MAX`; how far one busy project's
-window narrows was not measured).
+person-facing search screen; an index kept between calls (each call reads within its bounds and ranks at most 2 500
+documents, directory included, each read to its first 6 000 characters, `boardSearch.ts#TEXT_MAX`; how far one busy
+project's window narrows was not measured; a narrowed board read is said in `board_narrowed`).
