@@ -20,7 +20,7 @@ export const TELL_QUIET_MS = 30 * 60_000
 
 /** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
-export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'inbox-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose', 'claim-overlap', 'overlap-unsettled'] as const
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'request-no-folder', 'inbox-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose', 'claim-overlap', 'overlap-unsettled'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
 /** The kinds that are a reminder to the agent at work, not abandoned work for the operator's queue (0.3.14 wave 2):
  *  a session changing files without a claim is told to claim, and the operator's «На проверке» is not filled with it. */
@@ -249,6 +249,11 @@ export function findAbandoned(input: SweepInput): Finding[] {
     if (r.toOperator && r.inbox)
       out.push({ ...base, kind: 'inbox-to-operator', key: `inbox-to-operator:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: 'Three runs Fabric started for this project\'s unread board messages ended with them still unread: they wait for the operator; a newer message gets one more run, then waits here too.' })
+    // UX-2 (0.3.21 review, iteration 1): a request to a project with no folder here never had a run; the operator is told
+    // that, and what lifts it, in words of its own (CO-573 (9)).
+    else if (r.toOperator && r.noFolder && !SETTLED_REQUEST.has(r.state))
+      out.push({ ...base, kind: 'request-no-folder', key: `request-no-folder:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
+        nextStep: 'This board request is addressed to a project with no folder on this computer, so Fabric can start no run for it: attach the project\'s folder, or answer the request yourself.' })
     else if (r.toOperator && !SETTLED_REQUEST.has(r.state))
       out.push({ ...base, kind: 'request-to-operator', key: `request-to-operator:${r.requestId}`, projectId: r.targetProjectId, requestId: r.requestId, stillMs: still,
         nextStep: r.remote === 'unposted'
@@ -257,8 +262,6 @@ export function findAbandoned(input: SweepInput): Finding[] {
             ? 'Fabric asked another machine three times to start a run for this board request and never had an answer: that run may be going there, so Fabric starts it nowhere else; it waits for the operator.'
           : r.remote === 'lost'
             ? 'A run Fabric started on another machine for this board request has not answered past its time limit: Fabric keeps asking, closes nothing and starts no other run until that run\'s end is known.'
-            : r.noFolder
-              ? 'This board request is addressed to a project with no folder on this computer, so Fabric can start no run for it: attach the project\'s folder, or answer the request yourself.'
             : r.pastDue
               ? 'This board request passed its deadline accepted, with nobody holding it and no run Fabric started: it waits for the operator, and Fabric starts no run for it.'
               : 'Three runs Fabric started for this board request ended without settling it: it waits for the operator, and Fabric starts no more for it.' })
@@ -371,6 +374,7 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'task-unclaimed': (f) => `task ${f.taskId}`,
   'request-unmoved': (f) => `board request ${f.requestId}`,
   'request-to-operator': (f) => `board request ${f.requestId}`,
+  'request-no-folder': (f) => `board request ${f.requestId}`,
   'inbox-to-operator': (f) => `board message ${f.requestId}`,
   'request-outcome-unknown': (f) => `board request ${f.requestId}`,
   'answer-unread': (f) => `the answer to board request ${f.requestId}`,

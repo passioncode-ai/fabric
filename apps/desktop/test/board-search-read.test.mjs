@@ -30,7 +30,8 @@ function deps(over = {}) {
       { id: 'm1', thread: 'th1', kind: 'request', sender: { project: PROJECT }, at: '2026-11-13T10:00:00Z', body: { text: 'нужна иконка для доски' },
         request: { id: 'r1', target: MEDIA, capability: 'media.order', state: 'queued' } }
     ], cursor: null }),
-    boardDirectory: async () => ({ projects: [{ id: MEDIA, name: 'media-house', capabilities: ['media.order', 'icon'] }], cursor: null }),
+    // The contract's shape (boardService.ts#commsDirectorySchema): each capability is {capability, responder}.
+    boardDirectory: async () => ({ projects: [{ id: MEDIA, name: 'media-house', capabilities: [{ capability: 'media.order', responder: 'active' }, { capability: 'icon', responder: 'absent' }] }], cursor: null }),
     ...over
   }
 }
@@ -72,24 +73,57 @@ test('a part that fails is named in degraded and the others still answer; every 
   assert.match(none.note, /not "nothing matches"/)
 })
 
-test('a board window that does not fit narrows to seven days, then one; even one that does not fit is named capped', async () => {
+test('DA-1: the board is read narrowest first and the widest window that fits whole is kept, so the newest are never left out', async () => {
+  const daysOf = (since) => Math.round(((NOW - Date.parse(since)) / 86_400_000) * 24) / 24
+  // Fits in one day and in seven, not in thirty: seven days are kept, and no thirty-day page beyond the bound is read.
   const sinces = []
-  const endless = async ({ since }) => { sinces.push(since); return { messages: [{ id: `m${sinces.length}`, thread: 'th', kind: 'message', sender: { project: PROJECT }, at: since, body: { text: 'board' } }], cursor: 'more' } }
-  const a = await searchBoard({ query: 'board', kinds: ['board'], days: 30 }, deps({ boardList: endless }))
-  assert.equal(sinces.length, BOARD_PAGES * 3)
-  assert.deepEqual([...new Set(sinces)].map((s) => Math.round((NOW - Date.parse(s)) / 86_400_000)), [30, 7, 1])
-  assert.deepEqual(a.capped, ['board'])
-  assert.equal(a.read.board_window_days, 1)
-  let calls = 0
-  const fitsInSeven = async ({ since }) => { calls++; const days = Math.round((NOW - Date.parse(since)) / 86_400_000); return { messages: [], cursor: days > 7 ? 'more' : null } }
-  const b = await searchBoard({ query: 'board', kinds: ['board'] }, deps({ boardList: fitsInSeven }))
-  assert.equal(b.read.board_window_days, 7)
+  const fitsInSeven = async ({ since }) => { sinces.push(daysOf(since)); return { messages: [{ id: `m${sinces.length}`, thread: 'th', kind: 'message', sender: { project: PROJECT }, at: since, body: { text: 'board' } }], cursor: daysOf(since) > 7 ? 'more' : null } }
+  const a = await searchBoard({ query: 'board', kinds: ['board'], days: 30 }, deps({ boardList: fitsInSeven }))
+  assert.deepEqual(sinces, [1, 7, ...Array(BOARD_PAGES).fill(30)])
+  assert.equal(a.read.board_window_days, 7)
+  assert.equal(a.capped, undefined)
+  // Not even one day fits: six hours, then one hour, are read whole when they fit.
+  const sixHours = []
+  const busy = async ({ since }) => { sixHours.push(daysOf(since)); return { messages: [], cursor: daysOf(since) > 0.25 ? 'more' : null } }
+  const b = await searchBoard({ query: 'board', kinds: ['board'] }, deps({ boardList: busy }))
+  assert.equal(b.read.board_window_days, 0.25)
   assert.equal(b.capped, undefined)
-  assert.equal(calls, BOARD_PAGES + 1)
+  assert.deepEqual([...new Set(sixHours)], [1, 0.25])
+  // Not even the last hour fits: it is kept and named capped.
+  const endless = async () => ({ messages: [], cursor: 'more' })
+  const c = await searchBoard({ query: 'board', kinds: ['board'] }, deps({ boardList: endless }))
+  assert.deepEqual(c.capped, ['board'])
+  assert.equal(Math.round(c.read.board_window_days * 24), 1)
+})
+
+test('DA-5: the released claims at their bound are named capped; tasks read only for notes\' titles are not', async () => {
+  const many = Array.from({ length: 1000 }, (_, i) => ({ id: `c${i}`, work_id: 'none', owner_session: OTHER, released_how: 'done', released_at: '2026-11-10T09:00:00Z' }))
+  const full = Array.from({ length: 500 }, (_, i) => ({ id: `t${i}`, title: 'x', status: 'done', moved_at: '2026-11-10T09:00:00Z' }))
+  const a = await searchBoard({ query: 'board', kinds: ['tasks'] }, deps({ releasedClaims: async () => ({ rows: many, failed: null }) }))
+  assert.deepEqual(a.capped, ['released claims'])
+  const b = await searchBoard({ query: 'board', kinds: ['notes'] }, deps({ tasks: async () => ({ rows: full, failed: null }) }))
+  assert.equal(b.capped, undefined)
 })
 
 test('nothing matching says the words were not found, not that nobody works on it', async () => {
   const a = await searchBoard({ query: 'zebra' }, deps())
   assert.equal(a.hits.length, 0)
   assert.match(a.note, /not that nobody works on it/)
+})
+
+test('UX-1 (0.3.21 review, iteration 1): a capability alone finds the project that takes it, as com.directory answers it', async () => {
+  const a = await searchBoard({ query: 'media.order', kinds: ['projects'] }, deps())
+  assert.equal(a.hits.length, 1)
+  assert.equal(a.hits[0].project.name, 'media-house')
+  assert.deepEqual(a.hits[0].project.capabilities, ['media.order', 'icon'])
+})
+
+test('UX-5 (0.3.21 review, iteration 1): unread claims mark every task hit unknown; a query of stop words searches nothing and says so', async () => {
+  const a = await searchBoard({ query: 'диспетчер dispatcher' }, deps({ liveClaims: async () => { throw new Error('database away') } }))
+  const hit = a.hits.find((h) => h.kind === 'task')
+  assert.equal(hit.holder_unknown, true)
+  assert.match(a.holders, /could not be read/)
+  const none = await searchBoard({ query: 'who is what' }, deps())
+  assert.equal(none.hits.length, 0)
+  assert.match(none.note, /no words that can be searched/)
 })

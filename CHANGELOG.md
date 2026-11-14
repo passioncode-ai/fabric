@@ -15,13 +15,19 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   it last, and groups the hits by who is on them. Taking a task (`fabric_work_claim`) also names another agent's task
   that reads like it (`similar_work`), and every session's rules say to search before starting. Nothing leaves the
   machine: the search matches words, no model reads the query.
-- **An idle session no longer holds its project's board requests** (CO-565, CO-571). A session counts as present for
+- **An idle session no longer holds its project's board requests** (CO-565; CO-571 in part). A session counts as present for
   the dispatcher only while it worked in the last ten minutes (a tool call, or a console that printed); the keep-alive
   signal its connection sends every two minutes no longer counts. A request beside an idle session now gets a run.
 - **Requests that could never start reach you** (CO-573). A request to a project with no folder on this Mac is shown in
-  «На проверке» half an hour after it was filed, instead of being skipped on every pass; a folder that Observatory
-  counts for several projects starts the one named like the folder; and a coding agent whose `git` cannot be started
-  still joins its project.
+  «На проверке» half an hour after it was filed, with what to do, instead of being skipped on every pass; a folder that
+  Observatory counts for several projects starts the one named like the folder; a coding agent whose `git` cannot be
+  started is no longer refused (a folder Fabric knows by its path still joins its project); and a board run that ended
+  with no exit code is taken back as a crash, not a clean end.
+- **Connecting Fabric Inbox works on Windows and Linux again.** The check that refuses a link another app would open
+  (CO-570) now knows each platform's own app (`Fabric Inbox.exe`, `fabric-inbox.desktop`); only a different app, such as
+  a development Electron, is refused.
+- **A question with no options on Главная no longer shows «Отдать агенту»**, which did nothing there; on the Board the
+  why and the facts of a row that is not a question are shown open again.
 
 - **Stopping Fabric by its name no longer cuts every agent off the board** (CO-575). On macOS each agent's link to
   the board, the MCP bridge and the ACP shell now run as `Fabric Helper`, so `killall Fabric` ends the app and leaves

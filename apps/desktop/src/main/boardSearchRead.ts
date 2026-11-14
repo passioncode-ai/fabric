@@ -7,7 +7,8 @@
  *              claim) or held it last (a released claim), at most TASK_ROWS
  *   notes      the task notes written in the window, at most NOTE_ROWS
  *   board      the board messages the project takes part in, through its own reader door (`com.list` with `since`):
- *              the window, else the last 7 days, else the last day, at most BOARD_PAGES pages of 100 each, newest kept
+ *              the widest of one day, 7 days and the asked window that fits whole in BOARD_PAGES pages of 100, narrower
+ *              (6 hours, 1 hour) when one day does not fit, so the newest are never left out
  *   projects   the board's directory: every other project's name and the capabilities it takes requests for
  *
  * Other projects' tasks are not read: the session sees its own project only (scope.one-project), and their work shows
@@ -15,7 +16,7 @@
  * fails is named in `degraded` and the others still answer; a read stopped at its bound is named in `capped`. When
  * every read failed the answer says so and finds nothing, never "nothing matches".
  */
-import { rankDocs, type SearchDoc, type SearchKind } from '../shared/boardSearch.ts'
+import { rankDocs, searchableWords, type SearchDoc, type SearchKind } from '../shared/boardSearch.ts'
 import type { ClaimView } from './workRead.ts'
 
 export const TASK_ROWS = 500
@@ -74,37 +75,54 @@ async function stand(part: string, read: () => Promise<Read>, degraded: Array<{ 
   }
 }
 
-/** The board's messages in a window, newest kept: the asked window, else 7 days, else 1, each read whole or not used. */
+/** The board's messages in a window, read so the newest are never the ones left out (DA-1, 0.3.21 review, iteration 1).
+ *  `com.list` pages oldest first, so a window is useful only when it fits whole. The windows are tried narrowest first
+ *  (one day, then 7 days, then the asked days) and the widest that fits whole is kept, so a busy board costs a few
+ *  pages, not fifteen thrown away. When one day does not fit, 6 hours and then 1 hour are tried; when even the last
+ *  hour does not fit, its oldest pages are kept and the read is named capped. */
 async function readBoard(deps: BoardSearchDeps, days: number, degraded: Array<{ part: string; reason: string }>, capped: string[]):
   Promise<{ rows: Row[]; windowDays: number | null }> {
   if (!deps.boardList) { degraded.push({ part: 'board', reason: 'this session has no board' }); return { rows: [], windowDays: null } }
-  const windows = [...new Set([days, Math.min(days, 7), 1])]
-  let last: Row[] = []
-  for (const w of windows) {
-    const since = new Date(deps.now() - w * 86_400_000).toISOString()
+  type Window = { rows: Row[]; whole: boolean } | 'failed'
+  const read = async (windowDays: number): Promise<Window> => {
+    const since = new Date(deps.now() - windowDays * 86_400_000).toISOString()
     const rows: Row[] = []
     let cursor: string | undefined
-    let whole = false
     try {
       for (let page = 0; page < BOARD_PAGES; page++) {
-        const r = await deps.boardList({ since, limit: BOARD_PAGE, ...(cursor ? { cursor } : {}) })
+        const r = await deps.boardList!({ since, limit: BOARD_PAGE, ...(cursor ? { cursor } : {}) })
         const err = r.error as { code?: string; message?: string } | undefined
-        if (err) { degraded.push({ part: 'board', reason: `${err.code ?? 'refused'}: ${err.message ?? ''}`.trim() }); return { rows: [], windowDays: null } }
+        if (err) { degraded.push({ part: 'board', reason: `${err.code ?? 'refused'}: ${err.message ?? ''}`.trim() }); return 'failed' }
         rows.push(...((r.messages as Row[] | undefined) ?? []))
         cursor = typeof r.cursor === 'string' ? r.cursor : undefined
-        if (!cursor) { whole = true; break }
+        if (!cursor) return { rows, whole: true }
       }
     } catch (e) {
       // Not silent: the failed part is named in the answer's degraded, which the agent reads; the others still answer.
       degraded.push({ part: 'board', reason: failedOf(e) })
-      return { rows: [], windowDays: null }
+      return 'failed'
     }
-    if (whole) return { rows, windowDays: w }
-    last = rows
+    return { rows, whole: false }
   }
-  // Even the last day did not fit: its oldest pages are kept, and the read says it stopped.
+  const widening = [...new Set([Math.min(days, 1), Math.min(days, 7), days])]
+  let kept: { rows: Row[]; windowDays: number } | null = null
+  for (const w of widening) {
+    const r = await read(w)
+    if (r === 'failed') return kept ? { rows: kept.rows, windowDays: kept.windowDays } : { rows: [], windowDays: null }
+    if (!r.whole) break
+    kept = { rows: r.rows, windowDays: w }
+  }
+  if (kept) return kept
+  // Even one day did not fit: narrower, so the newest messages are read whole.
+  let last: Row[] = []
+  for (const w of [6 / 24, 1 / 24]) {
+    const r = await read(w)
+    if (r === 'failed') return { rows: [], windowDays: null }
+    if (r.whole) return { rows: r.rows, windowDays: w }
+    last = r.rows
+  }
   capped.push('board')
-  return { rows: last, windowDays: 1 }
+  return { rows: last, windowDays: 1 / 24 }
 }
 
 async function readDirectory(deps: BoardSearchDeps, degraded: Array<{ part: string; reason: string }>, capped: string[]): Promise<Row[]> {
@@ -140,10 +158,14 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
   const [taskRows, released, noteRows, board, directory] = await Promise.all([
     want.has('tasks') || want.has('notes') ? stand('tasks', async () => {
       const r = await deps.tasks(sinceIso, input.includeClosed ?? true, TASK_ROWS)
-      if (!r.failed && r.rows.length >= TASK_ROWS) capped.push('tasks')
+      if (!r.failed && r.rows.length >= TASK_ROWS && want.has('tasks')) capped.push('tasks')
       return r
     }, degraded) : stand('tasks', none, degraded),
-    want.has('tasks') ? stand('released claims', () => deps.releasedClaims(sinceIso, CLAIM_ROWS), degraded) : [],
+    want.has('tasks') ? stand('released claims', async () => {
+      const r = await deps.releasedClaims(sinceIso, CLAIM_ROWS)
+      if (!r.failed && r.rows.length >= CLAIM_ROWS) capped.push('released claims')
+      return r
+    }, degraded) : [],
     want.has('notes') ? stand('notes', async () => {
       const r = await deps.notes(sinceIso, NOTE_ROWS)
       if (!r.failed && r.rows.length >= NOTE_ROWS) capped.push('notes')
@@ -153,10 +175,12 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
     want.has('projects') ? readDirectory(deps, degraded, capped) : Promise.resolve([] as Row[])
   ])
   let live: ClaimView[] = []
+  let claimsRead = true
   if (want.has('tasks')) {
     try { live = await deps.liveClaims() } catch (e) {
       // Not silent: the failed part is named in the answer's degraded, which the agent reads; the others still answer.
       degraded.push({ part: 'claims', reason: failedOf(e) })
+      claimsRead = false
     }
   }
 
@@ -179,6 +203,8 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
       holder: held ? agentOf(held.owner_session, held.agent) : null,
       ref: {
         task: { id, title: titleOf.get(id), status: str(t.status) },
+        // UX-5 (0.3.21 review, iteration 1): with the claims unread, «nobody holds it» is not known; say so on the hit.
+        ...(claimsRead ? {} : { holder_unknown: true }),
         held_by: held ? { session_id: held.owner_session, is_you: held.owner_session === deps.sessionId, agent: held.agent, came_in: held.came_in,
           since: held.claimed_at, life: held.life, touches: held.touches } : null,
         last_held_by: !held && last ? { session_id: str(last.owner_session), agent: last.agent ?? null, released: str(last.released_how), at: str(last.released_at) } : null
@@ -209,14 +235,16 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
     })
   }
   for (const p of directory) {
-    const caps = ((p.capabilities as Row[] | undefined) ?? []).map((c) => (typeof c === 'string' ? c : str(c.name)))
+    // `com.directory` answers each capability as {capability, responder} (boardService.ts#commsDirectorySchema).
+    const caps = ((p.capabilities as Row[] | undefined) ?? []).map((c) => (typeof c === 'string' ? c : str(c.capability))).filter(Boolean)
     docs.push({
       id: `project:${str(p.id)}`, kind: 'project', title: str(p.name), text: caps.join(' '), at: null, holder: str(p.name),
       ref: { project: { id: str(p.id), name: str(p.name), capabilities: caps } }
     })
   }
 
-  const allFailed = [...want].every((p) => degraded.some((d) => d.part === p))
+  // ER-4 (0.3.21 review, iteration 1): nothing was searched only when no document was read at all.
+  const allFailed = docs.length === 0 && [...want].every((p) => degraded.some((d) => d.part === p))
   const hits = rankDocs(input.query, docs, { now, limit: Math.min(30, Math.max(1, input.limit ?? 10)) })
   const who = new Map<string, { holder: string; live: boolean; hits: string[] }>()
   for (const h of hits) {
@@ -235,7 +263,10 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
       ...(board.windowDays !== null && board.windowDays !== days ? { board_window_days: board.windowDays } : {}) },
     ...(capped.length ? { capped } : {}),
     ...(degraded.length ? { degraded } : {}),
-    note: allFailed
+    ...(claimsRead ? {} : { holders: 'unknown: the live claims could not be read, so a task hit without held_by may still be held' }),
+    note: searchableWords(input.query) === 0
+      ? 'The query has no words that can be searched (only stop words or punctuation): nothing was searched. Give the words of your subject.'
+      : allFailed
       ? 'Nothing could be read, so nothing was searched: this is not "nothing matches". Read fabric_work_list, or try again.'
       : hits.length === 0
         ? 'Nothing read matches. That means these words were not found, not that nobody works on it: try other words, in both Russian and English, or a wider days.'

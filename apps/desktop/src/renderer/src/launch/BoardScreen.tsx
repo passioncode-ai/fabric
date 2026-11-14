@@ -490,8 +490,10 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                 {settledHere && nav.next && (
                   <div className="lp-actions"><button type="button" className="lp-button primary" onClick={() => go(nav.next!)}>{t('launch.board.nav.toNext')}</button></div>
                 )}
-                {/* The operator, 2026-11-12: the card is the request and its choices; the why and the facts are read rarely (SP-6). */}
-                <details className="lp-decide-more">
+                {/* The operator, 2026-11-12: the card is the request and its choices; the why and the facts are read rarely (SP-6).
+                    A question's card folds them; any other row keeps them open, its why being the reason it is here (UX-4, 0.3.21
+                    review, iteration 1). */}
+                <details key={chosen.entry.ref} className="lp-decide-more" open={!chosen.entry.question}>
                   <summary>{t('launch.board.decide.details')}</summary>
                 {chosen.entry.detail && (() => {
                   const why = detailOf(chosen.entry, t, locale) ?? ''

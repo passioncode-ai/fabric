@@ -111,7 +111,8 @@ session usually answers inside it); a request marked urgent by the asker skips t
 
 ### 3.2 A live session
 
-A session is live when its `fabric-mcp` signed within the last 2 minutes and it is enrolled in P. Fabric posts the
+A session is live when its `fabric-mcp` signed within the last 2 minutes and it is enrolled in P. (Superseded for the
+dispatcher by §3.8's 0.3.21 rule: a session counts live only while it worked in the last 10 minutes, CO-565.) Fabric posts the
 request to that session as an incoming message through Claude Code's cross-session inbox when the person turned
 «Сообщения между сессиями агентов» on (CO-407), and always as a nudge on its next Fabric call (today's path). A live
 session that does not take the slot within G is treated as absent and the request is dispatched; the live session sees
@@ -404,8 +405,11 @@ so a trickle of messages ends with the operator, and a newer message gets one mo
 per project, only while its message is still unread; an inbox message is answered once its project has nothing left
 unread (`boardDispatchWiring.ts#createInboxState`); a failed inbox read leaves the requests and the watch to go on; a
 start whose workflow was closed is never asked again; and a fan-out is judged by the clock hour of each message, so
-an old round never wakes anyone once it stops. A project's session counts as live for the dispatcher only while it is
-a running terminal or signed in the last 10 minutes (`shared/boardDispatch.ts#sessionLiveForDispatch`).
+an old round never wakes anyone once it stops. A project's session counts as live for the dispatcher only while it
+worked in the last 10 minutes (since 0.3.21, CO-565, CO-571, CO-573 (6)): a console that printed, or a tool call through
+its `fabric-mcp`; the keep-alive ping every 2 minutes and a console open with nothing printed do not count, so an idle
+session no longer holds its project's requests (`shared/boardDispatch.ts#sessionLiveForDispatch`,
+`main/agentSurface.ts#isWorkCall`). Until 0.3.20 it was a running terminal, or a session signed in the last 10 minutes.
 
 Not in this step, each carried in CO-559: a live session told of its unread messages (§3.2's wake), the sender shown
 the state on its thread, and the fan-out source asked to stop (its owner's change, asked on the board).

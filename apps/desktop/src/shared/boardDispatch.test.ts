@@ -204,7 +204,7 @@ describe('the result of a run on another machine (CO-551)', () => {
 })
 
 describe('sessionLiveForDispatch (CO-559, the scenario walk)', () => {
-  it('a running terminal or a session that signed within the window is live; a silent one is not', () => {
+  it('a session that worked within the window is live (a console that printed, a tool call); a sign alone or a silent one is not', () => {
     const now = NOW
     expect(sessionLiveForDispatch([], now, 10 * MIN)).toBe(false)
     // CO-573 (6): a console open with no work signal ten minutes old no longer holds the project.

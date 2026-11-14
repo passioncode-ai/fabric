@@ -5,7 +5,7 @@ Date: 2026-11-14. Owner: this repository. Scenario: [SCN-140](../../ux/scenarios
 
 **The request.** The operator, this repository's session `0eb9017f`, 2026-11-14: «хочу чтобы агенты делали раг поиск по
 доске когда ищут связи кто чем занят». Before this, an agent learned who works on what only by listing:
-`fabric_work_list` gives this project's live claims and at most 20 open tasks, `com.list` pages the board oldest first,
+`fabric_work_list` gives this project's live claims and at most 40 open tasks (with up to 20 returned from review), `com.list` pages the board oldest first,
 and neither finds a task, a note or a request by its subject. Related work was flagged only by structure (the same
 backlog row, a task link, an overlapping folder), never by what the work is about.
 
@@ -31,9 +31,12 @@ The answer: `hits`, best first, each with its `kind`, `score`, `matched` (the qu
 project by name, capability and state; a message with its sender; a project with its capabilities. `who` groups the
 hits by holder (a session and its agent, or a project) and says whether any of its hits is live work. `read` counts
 what was read; `capped` names a read stopped at its bound; `degraded` names a part that could not be read, with why.
+When the live claims could not be read, each task hit carries `holder_unknown` and the answer's `holders` says so, so
+a hit without `held_by` is never read as «nobody holds it». A query of stop words alone searches nothing and says so.
 
-`fabric_work_claim` also answers `similar_work` (at most three) when another session's live claim reads like the task
-being claimed: two shared words, or half of the task's words, or a file or folder name both claims touch
+`fabric_work_claim` also answers `similar_work` (at most three) when another session's claim that has not lapsed reads
+like the task being claimed, by its title and what it touches: two shared words, or half of the title's words, or a
+file or folder name both claims touch (a name every repository has, such as `src` or `index`, links nothing)
 (`apps/desktop/src/shared/boardSearch.ts#similarClaims`). A hint, never a refusal, beside the structural `related`.
 
 `fabric_whoami`'s rules carry the advice `work.search-the-board` (`apps/desktop/src/shared/protocolObligations.ts`):
@@ -69,8 +72,8 @@ One project's board, as its session may see it (`apps/desktop/src/main/boardSear
 | tasks | the project's tasks moved or started in the window, and every open one; with closed ones unless asked not to | 500 (`TASK_ROWS`), named `capped` when full |
 | claims | the live claims, as `fabric_work_list` reads them; the claims released in the window, newest first | 1 000 released (`CLAIM_ROWS`) |
 | notes | the task notes written in the window, newest first | 1 000 (`NOTE_ROWS`) |
-| board | `com.list` with `since`, through the session's own reader door: the window; when it does not fit in 5 pages of 100, the last 7 days; then the last day | 5 pages (`BOARD_PAGES`); a last day that does not fit keeps its oldest 500 and is named `capped` |
-| projects | `com.directory`: every other project's name and capabilities | 5 pages of 100 |
+| board | `com.list` with `since`, through the session's own reader door. It pages oldest first, so a window is used only when it fits whole: one day, then 7 days, then the asked window are tried narrowest first and the widest that fits is kept; when one day does not fit, 6 hours, then 1 hour | 5 pages (`BOARD_PAGES`) a window; a last hour that does not fit keeps its oldest 500 and is named `capped` |
+| projects | `com.directory`: every other project's name and capabilities (each answered as `{capability, responder}`, `boardService.ts#commsDirectorySchema`) | 5 pages of 100 |
 
 Other projects' tasks are not read: a session sees its own project only (the rule `scope.one-project`), and other
 projects' work shows here only as the board messages its project takes part in and as their capabilities.
@@ -79,16 +82,27 @@ Every part stands alone: one that fails is named in `degraded` and the others st
 failed, the answer says nothing was searched, never that nothing matches; when nothing matches, it says the words were
 not found, not that nobody works on it. The tool writes nothing.
 
+## 3a. Cost
+
+The ranking runs in Fabric's main process on every call. Its cost is linear in what it reads: ids are found by
+joining neighbouring words, never by a backtracking pattern (the 0.3.21 review, iteration 1, ER-1: one 64 KB message of
+one unbroken word took 5 s), each document is read to its first 6 000 characters and each word to 64, and a term's
+prefix walk over a document is done once (ER-3). At the read bounds (2 000 documents of 1 000 words) a call measured
+about 0.8 s on this Mac (`boardSearch.test.ts` «a board at the read bounds»).
+
 ## 4. Tests
 
 `apps/desktop/src/shared/boardSearch.test.ts` (terms, stems, ids, ranking, recency and live work, snippet, similar
-claims); `apps/desktop/test/board-search-read.test.mjs` (holders now and last, a request's target by name, a project's
-capabilities, a failed part named while the others answer, every part failing, the board window narrowing to 7 days
-and 1, nothing matching). Planted defects watched failing: the Russian stems removed, the live-work raise removed, the
-window narrowing removed, a failed read not named.
+claims, a 64 KB unbroken word and a board at the read bounds under a time bound); `apps/desktop/test/board-search-read.test.mjs`
+(holders now and last, a request's target by name, a project's capabilities in the directory's own shape, a capability
+alone finding its project, a failed part named while the others answer, every part failing, unread claims marking hits,
+a query of stop words, the board read narrowest first, the released claims capped, nothing matching). Planted defects
+watched failing: the Russian stems removed, the live-work raise removed, the window narrowing removed, a failed read not
+named, the backtracking id pattern restored.
 
 ## 5. Out of scope
 
-Other projects' tasks and claims (the project boundary stays); a person-facing search screen; an index kept between
-calls (each call reads within its bounds; at the measured board of 2026-11-13, 326 request threads a week, a 30-day
-window narrows to 7 days or one).
+Other projects' tasks and claims (the project boundary stays; who works on what across projects is CO-579); a
+person-facing search screen; an index kept between calls (each call reads within its bounds and ranks at most about
+2 000 documents, each read to its first 6 000 characters, `boardSearch.ts#TEXT_MAX`; how far one busy project's
+window narrows was not measured).

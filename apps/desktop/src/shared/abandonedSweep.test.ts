@@ -158,6 +158,14 @@ describe('review fixes', () => {
     expect(f[0].nextStep).toMatch(/Three runs/)
   })
 
+  it('UX-2 (0.3.21 review, iteration 1): a request given to the operator for a project with no folder here is a kind of its own', () => {
+    const r = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(MIN), answerUnreadSince: null, toOperator: true, noFolder: true, state: 'queued' }
+    const f = findAbandoned({ ...empty, requests: [r] })
+    expect(f.map((x) => x.kind)).toEqual(['request-no-folder'])
+    expect(f[0].nextStep).toMatch(/no folder on this computer/)
+    expect(findAbandoned({ ...empty, requests: [{ ...r, state: 'answered' }] })).toEqual([])
+  })
+
   it('CO-551: a run on another machine whose result was not posted, or whose machine went quiet, says so in words of its own', () => {
     const r = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(MIN), answerUnreadSince: null, toOperator: true, state: 'queued' }
     const unposted = findAbandoned({ ...empty, requests: [{ ...r, remote: 'unposted' as const }] })

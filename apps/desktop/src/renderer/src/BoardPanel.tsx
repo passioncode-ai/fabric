@@ -264,9 +264,12 @@ export function AnswerForm({
               {o.label}
             </button>
           ))}
-          <button type="button" className="lp-button" disabled={sending} title={t('launch.board.delegate.hint')} onClick={() => onDelegate?.()}>
-            {t('launch.board.delegate')}
-          </button>
+          {/* UX-3 (0.3.21 review, iteration 1): offered only where a caller hands the decision to the agent. */}
+          {onDelegate && (
+            <button type="button" className="lp-button" disabled={sending} title={t('launch.board.delegate.hint')} onClick={() => onDelegate()}>
+              {t('launch.board.delegate')}
+            </button>
+          )}
         </div>
         {ownOpen || options.length === 0 ? (
           <>

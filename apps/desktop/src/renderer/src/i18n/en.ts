@@ -1196,6 +1196,7 @@ export const en = {
   'attention.swept.claim-lapsed': "The session that held it has ended",
   'attention.swept.task-unclaimed': "In work, and no agent holds it",
   'attention.swept.request-unmoved': "A board request nobody has picked up",
+  'attention.swept.request-no-folder': "This request's project has no folder on this computer, so no agent can start for it: attach the project's folder, or answer the request yourself",
   'attention.swept.request-to-operator': "Fabric starts no more agents for this request: it waits for your decision",
   'attention.swept.inbox-to-operator': "Three runs did not read this project's messages, so they wait for your decision. A newer message starts one more run",
   'attention.swept.request-outcome-unknown': "An agent took this request and went away, its outcome unknown: check whether the work was done",

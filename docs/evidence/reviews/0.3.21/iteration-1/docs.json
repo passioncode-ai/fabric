@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "b30304aebcbd4e0dfa208cfb8f540dfa04f2ed42",
+  "report": "docs/evidence/reviews/0.3.21/iteration-1/2026-11-14-docs.md",
+  "reportSha256": "eba5e5402d10cdb885ebd006f119146dd2d9663d2f13e1ef4451c325dcce275d",
+  "reviewerRun": "release-0321-i1-docs-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as UX-1"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): 40, with up to 20 returned from review"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): as PL-1"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): CHANGELOG, this ledger's scope, the map lane and MERGES"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): «no longer refused; a folder Fabric knows by its path still joins»"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): test retitled, `isWorkCall` above `doorBucket`'s comment, `touched` documents `work`"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): lapsed claims left out; the stack test ruled: CO-578"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): the read rewritten (DA-1) and its comments with it"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): says the narrowing was not measured"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): moved to the status cell, `partially resolved`"
+      ]
+    }
+  ]
+}

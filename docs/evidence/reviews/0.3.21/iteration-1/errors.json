@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "b30304aebcbd4e0dfa208cfb8f540dfa04f2ed42",
+  "report": "docs/evidence/reviews/0.3.21/iteration-1/2026-11-14-errors.md",
+  "reportSha256": "100d62e2619f00995014c426938ee8f7c8560810df4765b518c752f5a26050cb",
+  "reviewerRun": "release-0321-i1-errors-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): ids joined from words (`compoundsOf`), text read to 6 000 characters and words to 64; test «a 64 KB message of one unbroken word», watched failing at 7.4 s with the pattern restored"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): `productConnect.ts#handlerIsProduct` per platform; test «ER-2» with Windows and Linux paths"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): text caps and the prefix walk kept per term, a board at the read bounds under a time bound; a worker ruled: CO-578"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): nothing searched only when no document was read"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): title and touches only, generic names (`src`, `index`, ...) link nothing, lapsed claims left out"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-571 (its Left names it); the `fabricMcp.ts` comment corrected"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): proposed once per process, never awaited; remembered across restarts ruled: CO-578"
+      ]
+    }
+  ]
+}

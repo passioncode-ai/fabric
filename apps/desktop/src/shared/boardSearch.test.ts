@@ -109,3 +109,26 @@ describe('similarClaims', () => {
     expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Иконка для доски на сайте и в сторе и в письме', touches: [] }, claims)).toEqual([])
   })
 })
+
+describe('ER-1, ER-3 (0.3.21 review, iteration 1): hostile and large documents stay cheap', () => {
+  it('a 64 KB message of one unbroken word ranks in well under a second', () => {
+    const t0 = performance.now()
+    rankDocs('dispatcher', [doc('a', 'Board', 'ж'.repeat(32_000)), doc('b', 'Board', 'A'.repeat(64_000))], { now: NOW, limit: 5 })
+    expect(performance.now() - t0).toBeLessThan(500)
+  })
+
+  it('a board at the read bounds (2 000 documents of 1 000 words) ranks in seconds, not the nine measured before', () => {
+    const words = 'the board dispatcher wakes a project when a request waits and nobody is live in its folder'.split(' ')
+    const text = Array.from({ length: 1000 }, (_, i) => words[i % words.length] + (i % 7)).join(' ')
+    const docs = Array.from({ length: 2000 }, (_, i) => doc(`d${i}`, `task ${i} dispatcher`, text))
+    const t0 = performance.now()
+    rankDocs('dispatcher project request', docs, { now: NOW, limit: 10 })
+    // About 0.8 s alone on this Mac; the bound leaves room for a loaded machine and still fails the old 9 s.
+    expect(performance.now() - t0).toBeLessThan(5000)
+  })
+
+  it('ids are still kept whole when read from the words', () => {
+    expect(terms('see boardDispatchRun.ts and co-571, then a.b')).toEqual(expect.arrayContaining(['boarddispatchrun.ts', 'co-571', 'a.b']))
+    expect(terms('a - b')).not.toContain('a-b')
+  })
+})

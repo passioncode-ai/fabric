@@ -33,6 +33,7 @@ export function decisionHeadOf(item: { kind: string; title: string; access?: Pen
 const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.untitled.answer' | 'attention.untitled.inbox' | 'attention.untitled.task' | 'attention.untitled.session'> = {
   'request-unmoved': 'attention.untitled.request',
   'request-to-operator': 'attention.untitled.request',
+  'request-no-folder': 'attention.untitled.request',
   'inbox-to-operator': 'attention.untitled.inbox',
   'request-outcome-unknown': 'attention.untitled.request',
   'answer-unread': 'attention.untitled.answer',

@@ -586,8 +586,11 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         // 2026-11-14 (board search): another holder's live claim whose task reads like this one, by its words and the
         // names it touches; a hint, never a refusal. Search wider with fabric_board_search.
         ...similarWorkOf(similarClaims(
-          { taskId: id, owner: scope.sessionId, title: `${task.title ?? ''} ${task.instruction ?? ''} ${task.brief_what ?? ''}`, touches: (settled.touches as string[]) ?? [] },
-          snap.claims.filter((c) => !related.some((r) => r.claimId === c.id))
+          // ER-5 (0.3.21 review, iteration 1): the title and the touches, never the whole instruction, whose common words
+          // («tests», «update») made unrelated claims look alike.
+          { taskId: id, owner: scope.sessionId, title: task.title ?? task.instruction.slice(0, 200), touches: (settled.touches as string[]) ?? [] },
+          // A lapsed claim's session has ended: only claims whose holder still signs are named (DO-7, 0.3.21 review).
+          snap.claims.filter((c) => c.life !== 'lapsed' && !related.some((r) => r.claimId === c.id))
             .map((c) => ({ claimId: c.id, taskId: c.work_id, owner: c.owner_session, agent: c.agent, title: c.task.title, touches: c.touches }))
         ))
       }))

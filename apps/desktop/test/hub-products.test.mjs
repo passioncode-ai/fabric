@@ -1107,3 +1107,22 @@ test('the product\'s own app, or an unreadable handler, still opens the link (CO
     assert.equal(opened.length, 1)
   }
 })
+
+test('ER-2 (0.3.21 review, iteration 1): the product\'s own app is recognised on Windows and Linux too; Electron is not', async () => {
+  const { handlerIsProduct } = await import(path.resolve(import.meta.dirname, '../src/main/productConnect.ts'))
+  assert.equal(handlerIsProduct('Fabric Inbox', '/Applications/Fabric Inbox.app', 'darwin'), true)
+  assert.equal(handlerIsProduct('Fabric Inbox', '/opt/src/x/node_modules/electron/dist/Electron.app', 'darwin'), false)
+  assert.equal(handlerIsProduct('Fabric Inbox', 'C:\\Users\\example\\AppData\\Local\\Programs\\fabric-inbox\\Fabric Inbox.exe', 'win32'), true)
+  assert.equal(handlerIsProduct('Fabric Inbox', 'C:\\src\\node_modules\\electron\\dist\\electron.exe', 'win32'), false)
+  assert.equal(handlerIsProduct('Fabric Inbox', '/usr/share/applications/fabric-inbox.desktop', 'linux'), true)
+  assert.equal(handlerIsProduct('Fabric Inbox', '/opt/fabric-inbox/fabric-inbox', 'linux'), true)
+  assert.equal(handlerIsProduct('Fabric Inbox', '/home/example/src/node_modules/electron/dist/electron', 'linux'), false)
+  const opened = []
+  const connector = new ProductConnector({
+    estateId: ESTATE_A, store: recordingStore(), vault: { put: async () => ({ ok: true }), read: async () => ({ ok: false, reason: 'n/a' }) },
+    origin: () => 'http://127.0.0.1:47070', openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }),
+    platform: 'win32', handlerFor: async () => ({ name: 'Fabric Inbox', path: 'C:\\Users\\example\\AppData\\Local\\Programs\\fabric-inbox\\Fabric Inbox.exe' })
+  })
+  assert.equal((await connector.begin(FABRIC_INBOX)).ok, true)
+  assert.equal(opened.length, 1)
+})

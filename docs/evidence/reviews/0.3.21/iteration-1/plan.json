@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "b30304aebcbd4e0dfa208cfb8f540dfa04f2ed42",
+  "report": "docs/evidence/reviews/0.3.21/iteration-1/2026-11-14-plan.md",
+  "reportSha256": "d12dede8a8144018c0f43efc0309b5172b341f076af0cae1e5d52bf9ee78b822",
+  "reviewerRun": "release-0321-i1-plan-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): §3.8 states the 0.3.21 rule and the old one, §3.2 marked superseded"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): «CO-571 in part» in this ledger and the CHANGELOG, CO-571's Left names the person-wait exemption and the session check, Release close item 6 updates G29"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-579 (the operator's decision on the project boundary, asked)"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-580 (asked of fabric-agent-adapter on the board)"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): «Carried from 0.3.20's close» below"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2): «items 5, 6, 9, 10 and 14, and 13 in part»"
+      ]
+    }
+  ]
+}

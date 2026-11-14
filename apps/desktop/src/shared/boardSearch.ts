@@ -74,8 +74,36 @@ export function stem(word: string): string {
   return w
 }
 
-const COMPOUND = /[\p{L}\p{N}]+(?:[-_./][\p{L}\p{N}]+)+/gu
 const WORD = /[\p{L}\p{N}]+/gu
+/** How much of one document is read (ER-1, ER-3, 0.3.21 review, iteration 1): a board message may be 64 KB written by
+ *  another project, and the main process ranks every document on each call. */
+export const TEXT_MAX = 6000
+/** The longest word kept whole; a longer run is cut, never matched in full. */
+export const WORD_MAX = 64
+
+/** The words of a text, linear in its length, each cut at WORD_MAX. */
+function wordsOf(text: string): Array<{ word: string; at: number }> {
+  const out: Array<{ word: string; at: number }> = []
+  for (const m of text.slice(0, TEXT_MAX).matchAll(WORD)) out.push({ word: m[0].slice(0, WORD_MAX), at: m.index! })
+  return out
+}
+
+/** Ids: neighbouring words joined by one of `-_./` with nothing else between (`CO-571`, `fabric_work_list`,
+ *  `boardDispatchRun.ts`). Built from the words, never by a backtracking pattern (ER-1: one 64 KB run took 5 s). */
+function compoundsOf(text: string, words: Array<{ word: string; at: number }>): string[] {
+  const out: string[] = []
+  let run: string[] = []
+  let end = -1
+  const flush = () => { if (run.length > 1) out.push(run.join('').toLowerCase()); run = [] }
+  for (const w of words) {
+    const sep = end >= 0 && w.at === end + 1 ? text[end] : null
+    if (sep !== null && '-_./'.includes(sep) && run.length) run.push(sep, w.word)
+    else { flush(); run = [w.word] }
+    end = w.at + w.word.length
+  }
+  flush()
+  return out
+}
 
 /** One word's terms: its stem, and for a camelCase word the whole word beside its parts' stems. */
 function wordTerms(raw: string): string[] {
@@ -87,26 +115,32 @@ function wordTerms(raw: string): string[] {
 
 /** A text's terms: ids whole (lower case), then every word's stem; stop words and single letters are dropped. */
 export function terms(text: string): string[] {
-  const t = text.normalize('NFKC').replace(/[Ёё]/g, (c) => (c === 'Ё' ? 'Е' : 'е'))
-  const out: string[] = []
-  for (const m of t.matchAll(COMPOUND)) out.push(m[0].toLowerCase())
-  for (const m of t.matchAll(WORD)) out.push(...wordTerms(m[0]))
+  const t = text.slice(0, TEXT_MAX).normalize('NFKC').replace(/[Ёё]/g, (c) => (c === 'Ё' ? 'Е' : 'е'))
+  const words = wordsOf(t)
+  const out: string[] = compoundsOf(t, words)
+  for (const w of words) out.push(...wordTerms(w.word))
   return out
+}
+
+/** How many words of the query can be searched: none for an empty query or one of stop words alone. */
+export function searchableWords(query: string): number {
+  return queryWords(query).length
 }
 
 /** The query's own words, each with its terms; stop words dropped, duplicates once. */
 function queryWords(query: string): Array<{ word: string; terms: string[] }> {
   const seen = new Set<string>()
   const words: Array<{ word: string; terms: string[] }> = []
-  const t = query.normalize('NFKC')
+  const t = query.slice(0, TEXT_MAX).normalize('NFKC')
   const add = (raw: string, ts: string[]) => {
     const word = raw.toLowerCase()
     if (ts.length && !seen.has(word)) { seen.add(word); words.push({ word, terms: ts }) }
   }
-  const compounds = [...t.matchAll(COMPOUND)].map((m) => m[0])
-  for (const c of compounds) add(c, [c.toLowerCase().replace(/ё/g, 'е')])
+  const all = wordsOf(t)
+  const compounds = compoundsOf(t, all)
+  for (const c of compounds) add(c, [c.replace(/ё/g, 'е')])
   const inCompound = new Set(compounds.flatMap((c) => c.match(WORD) ?? []))
-  for (const m of t.matchAll(WORD)) if (!inCompound.has(m[0])) add(m[0], wordTerms(m[0]))
+  for (const w of all) if (!inCompound.has(w.word.toLowerCase())) add(w.word, wordTerms(w.word))
   return words
 }
 
@@ -117,14 +151,14 @@ const PREFIX_WEIGHT = 0.5
 const PREFIX_MIN = 5
 const DAY_MS = 86_400_000
 
-interface Indexed<D> { doc: D; tf: Map<string, number>; len: number }
+interface Indexed<D> { doc: D; tf: Map<string, number>; len: number; seen: Map<string, number> }
 
 function index<D extends SearchDoc>(doc: D): Indexed<D> {
   const tf = new Map<string, number>()
   const title = terms(doc.title), text = terms(doc.text)
   for (const t of title) tf.set(t, (tf.get(t) ?? 0) + TITLE_WEIGHT)
   for (const t of text) tf.set(t, (tf.get(t) ?? 0) + 1)
-  return { doc, tf, len: title.length * TITLE_WEIGHT + text.length }
+  return { doc, tf, len: title.length * TITLE_WEIGHT + text.length, seen: new Map() }
 }
 
 /** How often a term occurs in a document: exactly, or, for a long term, as a prefix either way at half weight. */
@@ -132,13 +166,17 @@ function frequency(ix: Indexed<SearchDoc>, term: string): number {
   const exact = ix.tf.get(term)
   if (exact) return exact
   if (term.length < PREFIX_MIN) return 0
+  // ER-3: the prefix walk over a document's terms is done once per term and kept for the score.
+  const known = ix.seen.get(term)
+  if (known !== undefined) return known
   let f = 0
   for (const [t, n] of ix.tf) if (t.length >= PREFIX_MIN && (t.startsWith(term) || term.startsWith(t))) f += n * PREFIX_WEIGHT
+  ix.seen.set(term, f)
   return f
 }
 
 function snippetOf(doc: SearchDoc, words: string[]): string {
-  const whole = doc.text ? `${doc.title} · ${doc.text}` : doc.title
+  const whole = doc.text ? `${doc.title} · ${doc.text.slice(0, TEXT_MAX)}` : doc.title
   const flat = whole.replace(/\s+/g, ' ').trim()
   if (flat.length <= 240) return flat
   const lower = flat.toLowerCase()
@@ -194,6 +232,8 @@ export interface ClaimLike {
   touches: readonly string[]
 }
 
+const GENERIC_NAMES = new Set(['src', 'lib', 'app', 'apps', 'main', 'index', 'readme', 'test', 'tests', 'docs', 'shared', 'scripts', 'package', 'utils', 'types', 'components'])
+
 /** A claim's touches read as words: each path's file or folder name, never the shared prefix every path carries. */
 function touchWords(touches: readonly string[]): string {
   return touches.map((p) => (p.replace(/\/+$/, '').split('/').pop() ?? '').replace(/\.[a-z0-9]+$/i, '')).join(' ')
@@ -211,7 +251,8 @@ export function similarClaims(mine: { taskId: string; owner: string; title: stri
   const others = claims.filter((c) => c.owner !== mine.owner && c.taskId !== mine.taskId)
   const docs = others.map((c) => ({ id: c.claimId, kind: 'task' as const, title: c.title, text: touchWords(c.touches), at: null, claim: c }))
   // A file or folder name both claims touch is a link on its own, whatever the titles say.
-  const names = (ts: readonly string[]) => new Set(touchWords(ts).toLowerCase().split(' ').filter(Boolean))
+  // ER-5: a name every repository has (src, index, README, test) links nothing.
+  const names = (ts: readonly string[]) => new Set(touchWords(ts).toLowerCase().split(' ').filter((n) => n.length >= 4 && !GENERIC_NAMES.has(n)))
   const mineNames = names(mine.touches)
   const sharesName = (c: ClaimLike) => [...names(c.touches)].some((n) => mineNames.has(n))
   return rankDocs(query, docs, { now: 0, limit: docs.length })

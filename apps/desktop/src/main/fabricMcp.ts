@@ -616,7 +616,8 @@ export class FabricMcpProxy {
    * A held session, looked after on every pass of the run loop (every 2 s): a hub that is gone or restarted (another
    * pid or origin in hub.json: a cheap file read, no network) drops the session at once, so it is enrolled again
    * without waiting for the agent's next call (TR-5); and every SIGN_EVERY_MS one ping signs it (TR-4), so an agent
-   * that works without calling Fabric reads as live and its claims renew. A ping refused because the session is gone
+   * that works without calling Fabric keeps its session and its claims renew. The dispatcher counts work, not the
+   * sign: past 10 minutes without a tool call the project is not live for its requests (0.3.21, CO-565; ER-6). A ping refused because the session is gone
    * drops it like a call would; a ping that failed in the client keeps it. Nothing is logged for a sign that went
    * through.
    */

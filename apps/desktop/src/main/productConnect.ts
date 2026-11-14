@@ -38,7 +38,7 @@
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { randomBytes, randomUUID } from 'node:crypto'
-import { basename } from 'node:path'
+import path from 'node:path'
 import type { AccessActor, AccessStore } from './accessStore.ts'
 import { productName, type ConnectProblem, type ConnectProblemCode } from '../shared/access.ts'
 import type { SecretSlot, VaultPort } from './observatoryVault.ts'
@@ -110,6 +110,8 @@ export interface ProductConnectorDeps {
    * product (CO-570): Fabric names it rather than opening it.
    */
   handlerFor?: (url: string) => Promise<{ name: string; path: string } | null>
+  /** The platform the handler's path is read for; default this process's (ER-2, 0.3.21 review, iteration 1). */
+  platform?: NodeJS.Platform
   /** Read when it is needed: the operator is established after the hub is built. */
   actor: () => AccessActor
   now?: () => number
@@ -175,6 +177,20 @@ const isHttps = (v: unknown): v is string => {
   } catch {
     return false // not a URL: the delivery is refused with its reason below
   }
+}
+
+/**
+ * Whether the app the system would open a product's link in is the product itself (CO-570), on each platform's terms
+ * (ER-2, 0.3.21 review, iteration 1: only `<app>.app` was accepted, so Windows' `Fabric Inbox.exe` and Linux's
+ * `fabric-inbox.desktop` were refused). macOS: the bundle `<app>.app`. Windows and Linux: the file's name without its
+ * extension, read with spaces, dashes and underscores dropped and in lower case (`Fabric Inbox.exe`,
+ * `fabric-inbox.desktop`, `/opt/fabric-inbox/fabric-inbox`), so a development Electron is still told apart.
+ */
+export function handlerIsProduct(app: string, handlerPath: string, platform: NodeJS.Platform): boolean {
+  if (platform === 'darwin') return path.posix.basename(handlerPath.replace(/\/+$/, '')) === `${app}.app`
+  const file = (platform === 'win32' ? path.win32 : path.posix).basename(handlerPath)
+  const squash = (s: string) => s.toLowerCase().replace(/[\s_-]+/g, '')
+  return squash(file.replace(/\.(exe|desktop|appimage)$/i, '')) === squash(app)
 }
 
 export class ProductConnector {
@@ -250,8 +266,8 @@ export class ProductConnector {
     // Before the product is opened (CO-570): a link the system would hand to another app (a development Electron
     // once registered for the scheme) opens a blank window and no consent; say which app holds it instead.
     const handler = await this.handlerOf(spec)
-    if (handler && basename(handler.path) !== `${spec.app}.app`)
-      return refuse('wrong-handler', `${name}'s links open in ${handler.name} (${handler.path}), not in ${spec.app}.app`, handler.path)
+    if (handler && !handlerIsProduct(spec.app, handler.path, this.deps.platform ?? process.platform))
+      return refuse('wrong-handler', `${name}'s links open in ${handler.name} (${handler.path}), not in ${spec.app}`, handler.path)
     // #endregion connect-handler
     this.prune(this.now())
     if (this.starting.has(spec.product) || this.processing.has(spec.product) || [...this.pending.values()].some(p => p.spec.product === spec.product))

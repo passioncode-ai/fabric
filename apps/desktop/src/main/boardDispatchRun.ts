@@ -746,6 +746,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     if (w.error) throw new Error('the workflow was not closed')
     leases.delete(r.workflowId)
   }
+  const aliasProposed = new Set<string>()
   const resolveProject = async (fabricProject: string): Promise<string> => {
     const known = projectIds.get(fabricProject)
     if (known) return known
@@ -771,7 +772,11 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       if (named.length === 1) {
         const canonical = named[0]!
         projectIds.set(fabricProject, canonical)
-        await deps.observatory('observatory_propose', {
+        // ER-7 (0.3.21 review, iteration 1): proposed once per process and never awaited, so a slow Observatory holds no
+        // start; after a restart it may be proposed again until Observatory takes it (CO-578).
+        if (aliasProposed.has(fabricProject)) return canonical
+        aliasProposed.add(fabricProject)
+        void deps.observatory('observatory_propose', {
           owner: FABRIC_OWNER, targetId: canonical,
           patch: { aliases: [{ id: `fabric:${fabricProject}`, owner: 'fabric', source: 'the Fabric project whose folder this is' }] },
           evidence: [{ uri: `file://${folder}`, note: `Observatory names ${candidates.length} projects for this folder; ${canonical} is the one named like it` }]

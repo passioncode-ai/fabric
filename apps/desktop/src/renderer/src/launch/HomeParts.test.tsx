@@ -122,3 +122,14 @@ describe('SCN-179 (CO-521): work handed in for review is decided on its card', (
     expect(onBoard).not.toHaveBeenCalled()
   })
 })
+
+describe('UX-3 (0.3.21 review, iteration 1): a question with no options offers no button that does nothing', () => {
+  it('shows the answer box and no «Leave it to the agent»', async () => {
+    const open = { kind: 'question', ref: 'question:q1', projectId: 'p1', projectName: 'Switchboard', title: 'Which account goes first?',
+      detail: null, waitingSince: '2026-10-12T00:00:00Z', origin: 'derived', question: { id: 'q1', options: [] } }
+    vi.stubGlobal('window', Object.assign(window, { fabric: { board: { query: vi.fn(async () => ({ data: { items: [open], total: 1, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' })) } } }))
+    render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={() => {}} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText(/Which account goes first/)).toBeTruthy())
+    expect(screen.queryByRole('button', { name: en['launch.board.delegate'] })).toBeNull()
+  })
+})

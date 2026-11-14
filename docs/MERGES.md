@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 1) → main · fast-forward
+- files: the iteration-1 wave: the search's capabilities, linear ids and text caps, the board read narrowest first, `holder_unknown`, `similar_work` on titles and touches; `productConnect.ts#handlerIsProduct` per platform; the sweep kind `request-no-folder`; the Board's fold and delegate button; `runStateOf` (CO-573 (5)); the on-demand spec's liveness rule; CO-571, CO-573, CO-578 to CO-580; the 0.3.21 ledger's iteration 1 and its reports and receipts; CHANGELOG; the map lane `iteration-2026-11-14-review-i1`
+- conflicts: none
+- summary: the 0.3.21 review's iteration-1 findings fixed or ruled
+
 ### 2026-11-14 · `—` · feat/board-search → main · fast-forward
 - files: `fabric_board_search` (`workTools.ts`, `boardSearchRead.ts`, `shared/boardSearch.ts`) and `similar_work` on a claim, the advice `work.search-the-board`, the dispatcher's work signal (`agentSurface.ts#isWorkCall`, `shared/boardDispatch.ts#sessionLiveForDispatch`), the no-folder hand-over, the folder named like the project, the remote read that fails, their tests, the spec `2026-11-14-board-search.md`, CO-565, CO-571, CO-573, CO-576, SCN-140, CHANGELOG, the map lane `iteration-2026-11-14-board-search`
 - conflicts: none

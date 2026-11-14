@@ -412,10 +412,6 @@ const ENDED_REMEMBERED = 256
 const END_RECORDS_REMEMBERED = 4096
 const bearerDigest = (token: string): string => createHash('sha256').update(token, 'utf8').digest('hex')
 
-/**
- * Which door bucket a JSON-RPC body spends (ER-7): a status poll its request, an ask its agent, anything
- * else (initialize, tools/list) one shared bucket. The values are only a budget key, never trusted.
- */
 /** A JSON-RPC body that carries a tool call: an agent at work, as a keep-alive ping or a notification is not (CO-565,
  *  CO-571). A batch counts when any of its messages is one. */
 export function isWorkCall(body: unknown): boolean {
@@ -423,6 +419,10 @@ export function isWorkCall(body: unknown): boolean {
   return messages.some((m) => typeof m === 'object' && m !== null && (m as { method?: unknown }).method === 'tools/call')
 }
 
+/**
+ * Which door bucket a JSON-RPC body spends (ER-7): a status poll its request, an ask its agent, anything
+ * else (initialize, tools/list) one shared bucket. The values are only a budget key, never trusted.
+ */
 function doorBucket(body: unknown): string {
   const first = Array.isArray(body) ? body[0] : body
   const params = (first as { method?: unknown; params?: { name?: unknown; arguments?: Record<string, unknown> } } | null)?.params
@@ -1208,7 +1208,8 @@ export class AgentSurface {
 
   /** A call arrived on this session: its last sign of life (CO-256), and — at most every five minutes — its claims
    *  renewed. Any request counts: a tool call, a hook's turn through a rejoin, and fabric-mcp's own ping while the
-   *  agent works (TR-4). `own`: from the session's own client, not a rejoin (TR-2). */
+   *  agent works (TR-4). `own`: from the session's own client, not a rejoin (TR-2). `work`: a tool call, the work signal
+   *  the dispatcher reads (`lastWorkAt`, CO-565), which a keep-alive ping is not. */
   private touched(scope: AgentScope, own = true, work = false): void {
     const now = this.now()
     const s = this.live.get(scope.sessionId)
