@@ -9,7 +9,7 @@
  *   board      the board messages the project takes part in, through its own reader door (`com.list` with `since`):
  *              the widest of one day, 7 days and the asked window that fits whole in BOARD_PAGES pages of 100, narrower
  *              (6 hours, 1 hour) when one day does not fit, so the newest are not left out unless even the last
- *              hour does not fit; then its oldest 500 are kept and the read is named capped
+ *              hour does not fit, or a narrower read fails, the wider window's oldest 500 are kept and the read is named capped
  *   projects   the board's directory: every other project's name and the capabilities it takes requests for
  *
  * Other projects' tasks are not read: the session sees its own project only (scope.one-project), and their work shows
@@ -81,7 +81,8 @@ async function stand(part: string, read: () => Promise<Read>, degraded: Array<{ 
  *  `com.list` pages oldest first, so a window is useful only when it fits whole. The windows are tried narrowest first
  *  (one day, then 7 days, then the asked days) and the widest that fits whole is kept, so a busy board costs a few
  *  pages, not fifteen thrown away. When one day does not fit, 6 hours and then 1 hour are tried; when even the last
- *  hour does not fit, its oldest pages are kept and the read is named capped. */
+ *  hour does not fit, or a narrower read fails (ER-13, ER-19), the wider window's oldest pages are kept and the read is named
+ *  capped; `board_narrowed` then says so even for the asked window (UX-18). */
 async function readBoard(deps: BoardSearchDeps, days: number, degraded: Array<{ part: string; reason: string }>, capped: string[]):
   Promise<{ rows: Row[]; windowDays: number | null; failedPast?: boolean }> {
   if (!deps.boardList) { degraded.push({ part: 'board', reason: 'this session has no board' }); return { rows: [], windowDays: null } }

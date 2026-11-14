@@ -245,8 +245,8 @@ export function AnswerForm({
 
   if (look === 'launch') {
     // #region board-decide-quick — docs: docs/ux/plans/2026-11-12-simple-screens.md#wave-4-доска
-    // The operator, 2026-11-12: the request, then the recommended option written out, then the others, and always
-    // «Отдать агенту» (the agent decides by the project's context). An own answer is one press away, not a box.
+    // The operator, 2026-11-12: the request, then the recommended option written out, then the others, and
+    // «Отдать агенту» (only on an agent's question with options since the 0.3.21 review, UX-3, UX-6, UX-19) (the agent decides by the project's context). An own answer is one press away, not a box.
     const recommended = options.find((o) => o.recommended)
     const others = options.filter((o) => o !== recommended)
     return (

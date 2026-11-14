@@ -27,7 +27,8 @@ export interface SearchDoc {
 export interface SearchHit<D extends SearchDoc = SearchDoc> {
   doc: D
   score: number
-  /** The query's own words (lower case) that matched, in the query's order. */
+  /** The query's own words (lower case) that matched, in the query's order; a path that matched only through one of its
+   *  tails is named by that tail (CO-578). */
   matched: string[]
   /** About 240 characters of the title and text around the first matched word. */
   snippet: string
@@ -167,7 +168,9 @@ function allQueryWords(query: string): Array<{ word: string; terms: string[] }> 
       const whole = id.replace(/ё/g, 'е')
       // ER-20 (run three): a query path also searches its tails that are still ids, so `apps/desktop/src/main/x.ts` finds a
       // note citing `x.ts`; a bare word left after a folder (`docs/board` to `board`) is not searched on its own.
-      add(id, [whole, ...pathTails(whole).filter((tail) => /[-_./]/.test(tail))])
+      // CO-578 (run four, DA-14, ER-23): never a tail made only of names every repository has (`package.json`, `src/index.ts`),
+      // which would answer every copy of that file in any folder; a tail that still names a folder of its own is kept.
+      add(id, [whole, ...pathTails(whole).filter((tail) => /[-_./]/.test(tail) && !genericPath(tail))])
     } else if (run.length === 1) add(run[0].word, wordTerms(run[0].word))
     run = []
   }
@@ -259,14 +262,18 @@ export function rankDocs<D extends SearchDoc>(query: string, docs: readonly D[],
     const matched: string[] = []
     for (const w of words) {
       let wordScore = 0
+      // CO-578 (run four, UX-21): a path that matched only through one of its tails is said as that tail, never as the
+      // whole path the document does not cite.
+      let via: string | null = null
       for (const t of w.terms) {
         const f = frequency(ix, t)
         if (!f) continue
+        if (via === null) via = t
         const d = df.get(t) ?? 0
         const idf = Math.log(1 + (n - d + 0.5) / (d + 0.5))
         wordScore += idf * (f * (K1 + 1)) / (f + K1 * (1 - B + B * (ix.len / avg)))
       }
-      if (wordScore > 0) { bm25 += wordScore; matched.push(w.word) }
+      if (wordScore > 0) { bm25 += wordScore; matched.push(via !== null && via !== w.terms[0] && w.terms[0] === w.word.replace(/ё/g, 'е') ? via : w.word) }
     }
     if (!matched.length) continue
     const at = ix.doc.at ? Date.parse(ix.doc.at) : NaN
@@ -299,6 +306,17 @@ const GENERIC_NAMES = new Set(['src', 'lib', 'app', 'apps', 'main', 'index', 're
   'skill', 'localizable', 'strings', 'models', 'info', 'build', 'translation', 'middleware', 'not-found', 'deno', 'flake',
   'pipfile'])
 
+/** A path's file or folder name read as `touchWords` reads it: leading dots and plus signs dropped, cut at the first dot
+ *  followed by a letter. */
+function nameOf(segment: string): string {
+  return segment.replace(/^[.+]+/, '').replace(/\.[a-z].*$/i, '')
+}
+
+/** CO-578: a path every segment of which is a name every repository has, or one under four letters (`src/index.ts`). */
+function genericPath(path: string): boolean {
+  return path.split('/').every((seg) => { const n = nameOf(seg); return n.length < 4 || GENERIC_NAMES.has(n.toLowerCase()) })
+}
+
 /** A claim's touches read as words: each path's file or folder name, never the shared prefix every path carries. */
 function touchWords(touches: readonly string[]): string {
   // ER-8 (0.3.21 review, iteration 2): a name every repository has (src, index, README, test) or one under four letters
@@ -306,7 +324,7 @@ function touchWords(touches: readonly string[]): string {
   // ER-11 (iteration 3): a name is read up to its first dot that is followed by a letter, after any leading dots, so
   // `index.test.ts`, `index.d.ts` and `.eslintrc.cjs` read as `index` and `eslintrc` while `fabric-0.3.21-mac.json`
   // keeps its version (run two, ER-17). A leading `+` goes too (SvelteKit's `+page.svelte`, run three, ER-21).
-  return touches.map((p) => (p.replace(/\/+$/, '').split('/').pop() ?? '').replace(/^[.+]+/, '').replace(/\.[a-z].*$/i, ''))
+  return touches.map((p) => nameOf(p.replace(/\/+$/, '').split('/').pop() ?? ''))
     .filter((n) => n.length >= 4 && !GENERIC_NAMES.has(n.toLowerCase())).join(' ')
 }
 

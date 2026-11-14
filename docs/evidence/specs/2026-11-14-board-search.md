@@ -86,7 +86,7 @@ One project's board, as its session may see it (`apps/desktop/src/main/boardSear
 | tasks | the project's tasks moved or started in the window, and every open one; with closed ones unless asked not to | 500 (`TASK_ROWS`), named `capped` when full |
 | claims | the live claims, as `fabric_work_list` reads them; the claims released in the window, newest first | 1 000 released (`CLAIM_ROWS`) |
 | notes | the task notes written in the window, newest first | 1 000 (`NOTE_ROWS`) |
-| board | `com.list` with `since`, through the session's own reader door. It pages oldest first, so a window is used only when it fits whole: one day, then 7 days, then the asked window are tried narrowest first and the widest that fits is kept; when one day does not fit, 6 hours, then 1 hour | 5 pages (`BOARD_PAGES`) a window; a last hour that does not fit keeps its oldest 500 and is named `capped` |
+| board | `com.list` with `since`, through the session's own reader door. It pages oldest first, so a window is used only when it fits whole: one day, then 7 days, then the asked window are tried narrowest first and the widest that fits is kept; when one day does not fit, 6 hours, then 1 hour | 5 pages (`BOARD_PAGES`) a window; a last hour that does not fit, or a narrower read that fails, keeps the wider window's oldest 500, named `capped`, and `board_narrowed` says so even for the asked window (the 0.3.21 review, ER-13, ER-19, UX-18; CO-578) |
 | projects | `com.directory`: every other project's name and capabilities (each answered as `{capability, responder}`, `boardService.ts#commsDirectorySchema`) | 5 pages of 100 |
 
 Other projects' tasks are not read: a session sees its own project only (the rule `scope.one-project`), and other

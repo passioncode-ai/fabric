@@ -156,6 +156,22 @@ describe('similarClaims', () => {
     }
   })
 
+  it('CO-578 (0.3.21 review, run four: DA-14, ER-23, UX-21): a query path never matches on a generic name alone, and matched names the tail that matched', () => {
+    const docs = [doc('pkg', 'pin web/package.json to 2.0'), doc('idx', 'export from packages/ui/src/index.ts'), doc('readme', 'README.md typo'),
+      doc('own', 'see apps/desktop/src/index.ts'), doc('bare', 'see boardDispatchRun.ts for the pass')]
+    const ids = (q: string) => rankDocs(q, docs, { now: NOW, limit: 10 }).map((h) => h.doc.id).sort()
+    expect(ids('apps/desktop/package.json')).toEqual([])
+    expect(ids('docs/README.md')).toEqual([])
+    expect(ids('apps/desktop/src/index.ts')).toEqual(['own'])
+    const tail = rankDocs('lib/other/boardDispatchRun.ts', docs, { now: NOW, limit: 10 })
+    expect(tail.map((h) => h.doc.id)).toEqual(['bare'])
+    expect(tail[0]!.matched).toEqual(['boarddispatchrun.ts'])
+    const titles = [{ claimId: 'g', taskId: 'tg', owner: 's-other', agent: null, title: 'Export from packages/ui/src/index.ts', touches: [] }]
+    expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Fix apps/desktop/src/index.ts', touches: [] }, titles)).toEqual([])
+    const pkg = [{ claimId: 'g', taskId: 'tg', owner: 's-other', agent: null, title: 'Pin web/package.json', touches: [] }]
+    expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Bump apps/desktop/package.json', touches: [] }, pkg)).toEqual([])
+  })
+
   it('DA-13 (run three): a long a/b/c run yields at most PATH_TAILS tails, so its terms grow with what is read', () => {
     const run = Array.from({ length: 3000 }, () => 'a').join('/')
     const ts = terms(run)

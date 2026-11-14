@@ -214,7 +214,7 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
       setSending(false)
     }
   }
-  // The operator, 2026-11-12: the recommended option first and gold, then the others, and «Отдать агенту» always;
+  // The operator, 2026-11-12: the recommended option first and gold, then the others, and «Отдать агенту» (narrowed by the 0.3.21 review, UX-3, UX-6, UX-19: only on an agent's question with options);
   // the card says who asks, how long ago and what, in two lines at most, without the why (the Board shows it).
   const all = item.question?.options ?? []
   const options = [...all.filter((o) => o.recommended), ...all.filter((o) => !o.recommended)]

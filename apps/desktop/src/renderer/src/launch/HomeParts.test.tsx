@@ -94,7 +94,7 @@ describe('a question on Главная is answered where it is read (SCN-163 ste
     render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={vi.fn()} onTotal={onTotal} /></I18nProvider>)
     await waitFor(() => expect(screen.getByText('Which?')).toBeTruthy())
     expect(onTotal).toHaveBeenCalledWith(1)
-    // The operator, 2026-11-12: the recommended answer first and gold, the rest plain, and «Отдать агенту» always.
+    // The operator, 2026-11-12: the recommended answer first and gold, the rest plain, and «Отдать агенту» (only on an agent's question with options since the 0.3.21 review, UX-19).
     const acts = within(screen.getByRole('group', { name: en['launch.board.options'] })).getAllByRole('button')
     expect(acts.map((b) => b.textContent)).toEqual([en['launch.board.recommended'] + ': Drop it', 'Keep it', en['launch.board.delegate']])
     expect(acts[0].className).toContain('gold')
