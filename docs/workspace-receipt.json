@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "source_commit": "a8ed003e0b1382e83f3fb282611c93dd46f7c1f4",
-  "workspace_commit": "416464d176d58d332c5b68c643cc56369aadcd55",
-  "content_digest": "931a1315567ff0af85640bf9be0c8c5880352da48b05e51cb6304525609952e5",
+  "workspace_commit": "e9de73b61db8a02d56662154e76ba0a41c6e46a6",
+  "content_digest": "ac9c9c6afc725f24c1b46fd97ebad3e2d2406071b6bc0ef56c841a3c73131580",
   "platform": "digitalocean",
   "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
-  "deployment": "77e03e64-7461-4ac6-8b0f-47aab1f72f2e",
+  "deployment": "22166a91-4579-4930-a839-4c5b18fc4f73",
   "fabric_digest": "d05141be686e717b15b3e5f83d8cbf31506f79d8824195af6e6af95af6949cde",
   "sources": [
     {
@@ -89,8 +89,8 @@
     {
       "id": "relay",
       "repository": "https://github.com/passioncode-ai/relay",
-      "commit": "5e4e1bce73e1803379c6947868f5b2480d053cf9",
-      "files_digest": "21d90a722696a42476cd8ff0ab22376225f843ab1dea599fbb59ab2a5c2ab7f5"
+      "commit": "b6ca3c8c2604523aed5bb08e7ca1b5acd786a953",
+      "files_digest": "8658d6622c431314c26aad2c7e64a52640059281a28e2d9c1fcfe627d9ec378e"
     }
   ]
 }
