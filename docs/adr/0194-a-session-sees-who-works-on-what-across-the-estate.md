@@ -37,9 +37,12 @@ since when, and nothing else.
 5. **Within the wall between businesses.** The board never joins projects of two different businesses
    (`apps/desktop/src/main/boardService.ts#businessWall`, `#businessesJoined`), and a claim's title is work content, more
    than the directory's names. So the summary reads a project only when its business and the reader's are the same
-   (trimmed, case folded) or either has none, by the rule `businessesJoined` applies to a thread. The database function
-   computes it from `projects.business` itself; the caller never passes it. A test with two businesses shows the other
-   business's titles absent before this record is accepted. The operator's option is read within that wall; reading
+   (trimmed, case folded), and a reader whose project has no business reads only the projects that have none. One
+   answer never holds two recorded businesses, as `businessesJoined` refuses a thread that would (the 0.3.21 review,
+   iteration 3, run four, PL-30: a pairwise «either has none» would let a reader with none read every business). The database function
+   computes it from `projects.business` itself; the caller never passes it. Tests before this record is accepted: a
+   reader of one business sees the other business's titles absent, and a reader with no business beside two businesses
+   sees neither. The operator's option is read within that wall; reading
    across businesses would be asked of him once, as its own decision (the 0.3.21 review, iteration 3, run three, PL-25).
 
 ## Consequences
