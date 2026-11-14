@@ -63,3 +63,17 @@ test('CO-457: Fabric only reads: it never asks Switchboard to run a hand-over or
   await readSwitchboardSessions({ find: async () => '/sb', now: NOW, run: async (_f, args) => { asked.push(args.join(' ')); return ok({ sessions: [] }) } })
   assert.deepEqual(asked.sort(), ['--json recovery', '--json sessions --all'])
 })
+
+test('CO-585: a running session a session host holds carries its launch id and the attach action; one no host holds does not', async () => {
+  const hosted = { account_id: 'acc-1', agent: 'claude-code', label: 'work@example.com', provider: 'claude', pool: 'agents', mode: 'managed', state: 'running', in_place: true,
+    launch_id: '0f8e2c1a-5b6d-4e7f-8a9b-0c1d2e3f4a5b', attachable: true, viewers: 0, launched_by: { surface: 'cli' },
+    launched_at: s(NOW - 300_000), started_at: s(NOW - 290_000), working_directory: '/Users/example/DATA/hosted', home: 'runtimes' }
+  const plain = { ...hosted, launch_id: '1f8e2c1a-5b6d-4e7f-8a9b-0c1d2e3f4a5b', attachable: undefined, working_directory: '/Users/example/DATA/plain', in_place: false }
+  const r = await readSwitchboardSessions({ find: async () => '/usr/local/bin/switchboard', now: NOW,
+    run: runner({ '--json sessions --all': ok({ data: { sessions: [hosted, plain] } }), '--json recovery': ok({ data: { sessions: [] } }) }) })
+  const h = r.rows.find((x) => x.project === 'hosted')
+  assert.equal(h.launch?.launchId, '0f8e2c1a-5b6d-4e7f-8a9b-0c1d2e3f4a5b')
+  assert.ok(h.actions.includes('attach'), 'a hosted running session can be opened here')
+  const p = r.rows.find((x) => x.project === 'plain')
+  assert.equal(p.actions.includes('attach'), false, 'a session no host holds cannot be attached to')
+})

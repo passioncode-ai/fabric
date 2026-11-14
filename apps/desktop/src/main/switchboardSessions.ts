@@ -10,7 +10,7 @@
 import { execFile } from 'node:child_process'
 import path from 'node:path'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
-import { mergeSessions, type SbSessionRecord } from '../shared/vendor/dashboardsSessions.ts'
+import { mergeSessions, type LaunchFacts, type SbSessionRecord } from '../shared/vendor/dashboardsSessions.ts'
 import type { SwitchboardSessions } from '../shared/switchboardSessions.ts'
 export type { SwitchboardSessions }
 
@@ -26,8 +26,47 @@ const dataOf = (stdout: string): Record<string, unknown> | null => {
   } catch { /* not JSON: the caller names the source as unread, never an empty list */ return null }
 }
 
-/** Switchboard's session list, as Dashboards' `allSessionsOf` reads it (its `src/core/switchboard.ts` at c43b38a): a
- *  malformed record is skipped, never guessed at. The launch facts are left out: no screen here shows them. */
+const LAUNCH_KEYS = ['launch_id', 'launched_by', 'provider_session_id', 'transcript', 'turns', 'last_turn_at', 'ended', 'ended_at', 'continued_as']
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/
+const SURFACES = ['window', 'cli', 'mcp', 'fallback', 'recovery', 'dashboards', 'fabric'] as const
+const ENDS = ['finished', 'limit', 'killed', 'not_started', 'unknown'] as const
+const END_KINDS = ['exited', 'stopped', 'timed_out'] as const
+const CONTINUED = ['handover', 'workflow', 'launch'] as const
+
+/** CO-585: the launch facts a Switchboard session row copies from its launch record, as Dashboards' `launchFactsOf`
+ *  reads them (its `src/core/switchboard.ts` at b613613): the merge needs the launch id to offer `attach`. A field not of
+ *  the expected form is dropped, never guessed at; a row with none of them is a launch Switchboard kept no record for. */
+export function launchFactsOf(x: Record<string, unknown>): LaunchFacts | null {
+  if (!LAUNCH_KEYS.some((k) => k in x)) return null
+  const id = (v: unknown): string | null => (typeof v === 'string' && UUID.test(v) ? v.toLowerCase() : null)
+  const name = (v: unknown): string | null => (typeof v === 'string' && NAME.test(v) ? v : null)
+  const one = <T extends string>(v: unknown, of: readonly T[]): T | null => ((of as readonly unknown[]).includes(v) ? v as T : null)
+  const b = x.launched_by && typeof x.launched_by === 'object' ? x.launched_by as Record<string, unknown> : {}
+  const d = b.dispatch && typeof b.dispatch === 'object' ? b.dispatch as Record<string, unknown> : null
+  const e = x.ended && typeof x.ended === 'object' ? x.ended as Record<string, unknown> : null
+  const c = x.continued_as && typeof x.continued_as === 'object' ? x.continued_as as Record<string, unknown> : null
+  const kind = c ? one(c.kind, CONTINUED) : null
+  const target = c && typeof c.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(c.id) ? c.id : null
+  const turns = typeof x.turns === 'number' && Number.isInteger(x.turns) && x.turns >= 0 ? x.turns : null
+  return {
+    launchId: id(x.launch_id),
+    by: {
+      surface: one(b.surface, SURFACES), by: name(b.by), program: name(b.caller_program), project: name(b.caller_project), parent: id(b.parent), caller: id(b.caller_launch_id),
+      dispatch: d ? { id: typeof d.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(d.id) ? d.id : null, request: id(d.request), thread: id(d.thread), project: id(d.project), workflow: typeof d.workflow === 'string' && /^wf_[0-9a-f]{16}$/.test(d.workflow) ? d.workflow : null } : null
+    },
+    // A path only: Fabric never reads a transcript (the module's header).
+    transcript: typeof x.transcript === 'string' && path.isAbsolute(x.transcript) && x.transcript.length <= 1024 ? x.transcript : null,
+    providerSessionId: id(x.provider_session_id),
+    turns, lastTurnAt: ms(x.last_turn_at),
+    ended: e ? one(e.kind, END_KINDS) : one(x.ended, ENDS), endedAt: e ? ms(e.at) : ms(x.ended_at),
+    ...(e && e.kind === 'exited' && Number.isInteger(e.exit_code) ? { exitCode: e.exit_code as number } : {}),
+    continuedAs: kind && target ? { kind, id: target } : null
+  }
+}
+
+/** Switchboard's session list, as Dashboards' `allSessionsOf` reads it (its `src/core/switchboard.ts` at b613613): a
+ *  malformed record is skipped, never guessed at. */
 export function parseSessions(stdout: string): SbSessionRecord[] | null {
   const data = dataOf(stdout)
   if (!data) return null
@@ -44,7 +83,9 @@ export function parseSessions(stdout: string): SbSessionRecord[] | null {
       account: str(x.label) || str(x.account_id, 64), accountId: str(x.account_id, 64),
       context: typeof x.context === 'string' ? x.context.slice(0, 120) : null, contextName: typeof x.context_name === 'string' ? x.context_name.slice(0, 120) : null,
       continues: typeof x.continues === 'string' && x.continues ? x.continues.slice(0, 64) : null, inPlace: x.in_place === true,
-      launchedAt: ms(x.launched_at), startedAt: ms(x.started_at), state, launch: null
+      launchedAt: ms(x.launched_at), startedAt: ms(x.started_at), state, launch: launchFactsOf(x),
+      // CO-585 (Switchboard 0.7.63, SB-342): a session host holds it, so `switchboard attach <launch_id>` opens it here.
+      ...(x.attachable === true ? { attachable: true } : {})
     })
   }
   return out

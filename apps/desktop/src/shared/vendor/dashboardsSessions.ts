@@ -1,4 +1,4 @@
-// Vendored from passioncode-ai/fabric-dashboards `src/core/sessions.ts` at c43b38a (2026-10-28), unchanged but for this
+// Vendored from passioncode-ai/fabric-dashboards `src/core/sessions.ts` at b613613 (2026-11-14), unchanged but for this
 // header, the `StopView` type inlined below from its `src/core/types.ts` and the region's docs reference pointed at Fabric's
 // own scenario, and upstream's `SourceReader` poller left out at the end (CO-457). Dashboards built this pure module
 // «so Fabric can import it the day it takes the sessions over» (decision V-01, question Q-1, its
@@ -34,10 +34,12 @@ export const handoverOwnKey = (id: string) => `handover.${id}`;
 /** How a session came to be listed: handed over by Switchboard after a limit, continued here after a limit reset,
  *  stopped by a limit and not continued yet (`limit`: a waiting stop, one this app does not continue, or one the person
  *  declined; V-1 of FIX-2), launched by Switchboard elsewhere, or opened in this app. */
-export type SessionOrigin = 'handover' | 'resume' | 'limit' | 'switchboard' | 'here';
+export type SessionOrigin = 'handover' | 'resume' | 'limit' | 'switchboard' | 'here' | 'machine';
 export type SessionState =
   | 'running-ours' // runs in a console of this app
   | 'running-terminal' // runs elsewhere (Switchboard launched it in Terminal or another app's console)
+  | 'running-background' // FD-207: runs with no window, a board run Fabric started (`switchboard dispatch`, SB-247)
+  | 'running-unmanaged' // FD-231 (SL-8): a Claude Code or Codex process no owner started (Switchboard's `sessions --machine`)
   | 'needs-you-resume-failed' // continued after a limit, did not take up its conversation, still runs
   | 'needs-you-not-opened' // could not open here; `reason` says why
   | 'waiting-reset' // stopped on a limit; `expectedAt` says when it is likely to continue
@@ -50,7 +52,7 @@ export type SessionGroup = 'needs-you' | 'running' | 'waiting' | 'ended';
 export const GROUP_ORDER: readonly SessionGroup[] = ['needs-you', 'running', 'waiting', 'ended'];
 /** What a person may do with a row: `end` asks first; `continueNow` claims a limit stop on another account now;
  *  `dontContinue` keeps a waiting stop from being continued; `dismiss` removes the row. */
-export type SessionAction = 'end' | 'reveal' | 'openConsole' | 'dismiss' | 'continueNow' | 'dontContinue' | 'continue';
+export type SessionAction = 'end' | 'reveal' | 'openConsole' | 'dismiss' | 'continueNow' | 'dontContinue' | 'continue' | 'attach';
 /** Why a row is not running: a hand-over that did not open (`expired`, `no-folder`, `busy-disk`, `busy-cap`, `busy-swap`
  *  for the LC-17 refusal the check found (R1-B; `busy` in records of 0.8.0 builds before it), `switchboard-old`,
  *  `not-started`; `pending`, still on offer, is never listed); a stop this app does not continue (`billing`, which needs the
@@ -105,8 +107,14 @@ export interface SessionRow {
   /** FD-124: what Switchboard's launch record says about this session (who started it, how it ended, where its work went,
    *  its transcript), from the row's own Switchboard session or its twin; null when there is none. */
   launch: LaunchFacts | null;
+  /** FD-137 (SCN-092): a session Fabric started for a board request, the service key of the agent in whose folder it ran;
+   *  set by the console host, absent for every other row. */
+  agentKey?: string;
   /** FD-124: a hand-over that runs on money, not a subscription; null for every other row. */
   paid: Paid;
+  /** FD-231: a session no owner started whose folder's transcripts Switchboard found unwritten for its quiet time (30
+   *  minutes): how many minutes. Absent for every other row. */
+  quietMinutes?: number;
   /** The row's latest known time, the list's order (newest first). */
   at: number;
 }
@@ -135,12 +143,14 @@ export interface SbSessionRecord {
   /** FD-124 (SB-212, Switchboard 0.7.0): what the launch record says about where the session came from and where its
    *  work went; null when Switchboard keeps no such record (an earlier version, or a launch before 0.7.0). */
   launch: LaunchFacts | null;
+  /** FD-211 (SB-342 H-1, Switchboard 0.7.63): a session host holds it, so any app may open it (`switchboard attach`). */
+  attachable?: boolean;
 }
 
 /** Who started a launch, as Switchboard recorded it. Each field is null when absent or not of the expected form. */
 export interface LaunchedBy {
   /** Where the launch was asked for: Switchboard's window, its CLI or MCP, a fallback after a limit, a recovery, or us. */
-  surface: 'window' | 'cli' | 'mcp' | 'fallback' | 'recovery' | 'dashboards' | null;
+  surface: 'window' | 'cli' | 'mcp' | 'fallback' | 'recovery' | 'dashboards' | 'fabric' | null;
   /** The agent or person name the caller gave (`--by`). */
   by: string | null;
   /** The program that asked (a bare name, never a command line). */
@@ -151,6 +161,8 @@ export interface LaunchedBy {
   parent: string | null;
   /** The launch of the calling session, when the caller ran inside one. */
   caller: string | null;
+  /** FD-137 (SB-247): a session Fabric started for a board request no live session took; ids only, never its text. */
+  dispatch?: { id: string | null; request: string | null; thread: string | null; project: string | null; workflow: string | null } | null;
 }
 
 export interface LaunchFacts {
@@ -158,10 +170,15 @@ export interface LaunchFacts {
   by: LaunchedBy;
   /** Absolute path of the runtime's own transcript; shown in Finder only, never read or sent. */
   transcript: string | null;
+  /** FD-166: the coding agent's own session id (Claude Code's `session_id`), from Switchboard's launch record; null when
+   *  absent. Optional: records built before it carry none. */
+  providerSessionId?: string | null;
   turns: number | null;
   lastTurnAt: number | null;
-  ended: 'finished' | 'limit' | 'killed' | 'not_started' | 'unknown' | null;
+  ended: 'finished' | 'limit' | 'killed' | 'not_started' | 'unknown' | 'exited' | 'stopped' | 'timed_out' | null;
   endedAt: number | null;
+  /** FD-137 (SB-247): the exit code of a run that `exited`. */
+  exitCode?: number | null;
   /** Where its work went on: a hand-over, a workflow, or another launch. */
   continuedAs: { kind: 'handover' | 'workflow' | 'launch'; id: string } | null;
 }
@@ -178,13 +195,28 @@ export interface ConsoleInput {
   folder: string;
   agent: string;
   startedAt: number;
-  origin: 'handover' | 'resume' | 'here';
+  origin: SessionOrigin; // Scenario walk 2026-11-11 (SCN-084): a continued row keeps where it came from
   account: string | null;
   /** A session continued after a limit that did not take up its conversation (FD-84) and still runs. */
   failedResume?: boolean;
   handoverId?: string | null;
   /** FD-124: a hand-over that runs on money (an OpenRouter key or an API key account). */
   paid?: Paid;
+  /** FD-211: this console only shows a session Switchboard's session host holds (`switchboard attach`): the launch id. */
+  attachedTo?: string | null;
+}
+
+/** FD-231 (SL-8, SB-353): one Claude Code or Codex process of this user, as `switchboard --json sessions --machine` reads
+ *  the process table: its launch when an owner started it, else none. Times in ms. */
+export interface SbMachineProcess {
+  pid: number;
+  agent: 'claude-code' | 'codex';
+  folder: string | null;
+  startedAt: number | null;
+  lastWriteAt: number | null;
+  quietMinutes: number | null;
+  quiet: boolean;
+  launchId: string | null;
 }
 
 /** What is kept in the settings for 24 hours: a console session that ended, and a hand-over that did not open here. */
@@ -221,9 +253,11 @@ export interface MergeInput {
   consoles: ConsoleInput[];
   records: SessionRecord[];
   dismissed: Dismissal[];
+  /** FD-231: every agent process on the Mac; null or absent where Switchboard cannot list them. */
+  machine?: SbMachineProcess[] | null;
 }
 
-export type SessionSource = 'sessions' | 'handovers' | 'recovery';
+export type SessionSource = 'sessions' | 'handovers' | 'recovery' | 'machine';
 /** A source that did not answer: its last good answer is still used, and the list says it may be out of date. */
 export interface SourceDegraded { source: SessionSource; reason: 'old' | 'error'; detail: string; since: number }
 
@@ -231,8 +265,11 @@ export interface SourceDegraded { source: SessionSource; reason: 'old' | 'error'
 export interface SessionsStatus {
   rows: SessionRow[];
   degraded: SourceDegraded[];
+  /** FD-231: whether every agent process of the Mac is listed (Switchboard answered `sessions --machine`); absent or false,
+   *  the page keeps its footnote that sessions started without Switchboard are not listed. */
+  machine?: boolean;
   /** Whether Switchboard is installed; without it only this app's own consoles are listed. */
-  switchboard: boolean;
+  switchboard: boolean | null; // null: not looked for yet (SCN-078)
   /** Switchboard's switch for handing sessions over to a console (`handovers set on|off`); null until read. */
   handovers: { enabled: boolean | null };
   /** Settings → Sessions → "Continue sessions after a limit reset" (SCN-083: a waiting row says when it is off). */
@@ -248,11 +285,14 @@ export interface SessionNotice { kind: 'handover' | 'resume'; id: string; key: s
  *  the console's own start refusals (ConsoleStartResult). */
 export type SessionActionResult =
   | { ok: true; key: string | null }
-  | { ok: false; reason: 'unknown' | 'not-allowed' | 'account' | 'claim' | 'no-switchboard' | 'no-folder' | 'no-runtime' | 'no-continue' | 'running' | 'switchboard' | 'terminal-only' | 'spawn' | 'admission' | 'no-transcript'; detail?: string };
+  | { ok: false; reason: 'unknown' | 'not-allowed' | 'account' | 'claim' | 'no-switchboard' | 'no-folder' | 'no-runtime' | 'no-continue' | 'running' | 'switchboard' | 'terminal-only' | 'spawn' | 'admission' | 'no-transcript' | 'isolated' | 'remote' | 'no-account'; detail?: string };
 
 export const consoleRowId = (key: string, startedAt: number) => `c:${key}:${startedAt}`;
 export const handoverRowId = (id: string) => `ho:${id}`;
 export const stopRowId = (event: string) => `st:${event}`;
+export const processRowId = (pid: number, startedAt: number | null) => `pr:${pid}:${startedAt ?? 0}`;
+/** FD-211: the console of its own that shows one hosted session; one per launch, so a second Open here finds it. */
+export const attachOwnKey = (launchId: string) => `handover.at-${fnv64(launchId).slice(0, 12)}`;
 /** FNV-1a, 64 bits as hex: a stable short name for a long folder. Pure, so the renderer can import this module. */
 function fnv64(text: string): string {
   let h = 0xcbf29ce484222325n;
@@ -273,12 +313,20 @@ export function groupOf(state: SessionState): SessionGroup {
   return 'ended';
 }
 
+/** FD-207: a launch with no window, as Switchboard records it: a dispatch's ids, or Fabric's surface not in place. */
+export function isBackground(s: Pick<SbSessionRecord, 'inPlace' | 'launch'>): boolean {
+  const by = s.launch?.by;
+  return Boolean(by?.dispatch) || (by?.surface === 'fabric' && !s.inPlace);
+}
+
 /** The dossier's table, *Every state has an action*. Show in Terminal is not offered: Switchboard does not say which
  *  window runs a session. */
 export function actionsFor(state: SessionState, o: { continueNow?: boolean } = {}): SessionAction[] {
   switch (state) {
     case 'running-ours': return ['end', 'reveal'];
     case 'running-terminal': return ['reveal']; // V-6 of FIX-2: its folder, the one thing this app can show
+    case 'running-background': return ['reveal'];
+    case 'running-unmanaged': return ['reveal']; // not ours to end or type to: its folder is what this app can show
     case 'needs-you-resume-failed': return ['openConsole', 'end'];
     case 'needs-you-not-opened': return ['dismiss'];
     case 'ended-cannot-continue': return ['dismiss'];
@@ -360,6 +408,18 @@ export function mergeSessions(i: MergeInput): SessionRow[] {
   const consoleKeys = new Set<string>();
   for (const c of i.consoles) {
     consoleKeys.add(c.key);
+    if (c.attachedTo) {
+      // FD-211: a console that shows a hosted session is that session's row, not a session of its own. Its End would
+      // only close the view, so the row offers none: the session ends where it runs, or by itself.
+      const s = sb.find((x) => !used.has(x) && x.launch?.launchId === c.attachedTo);
+      if (s) used.add(s);
+      add(row({
+        id: s ? sbRowId(s) : consoleRowId(c.key, c.startedAt), key: c.key, folder: s?.folder ?? c.folder, agent: s?.agent ?? c.agent,
+        account: s?.account || null, context: s?.context ?? null, contextName: s?.contextName ?? null, origin: 'switchboard', reason: null,
+        state: 'running-ours', startedAt: s?.launchedAt ?? s?.startedAt ?? c.startedAt, endedAt: null, launch: s?.launch ?? null, actions: ['reveal'],
+      }));
+      continue;
+    }
     const s = sbOf(c.folder, c.startedAt);
     add(row({
       id: consoleRowId(c.key, c.startedAt), key: c.key, folder: c.folder, agent: c.agent, account: c.account ?? s?.account ?? null,
@@ -412,6 +472,7 @@ export function mergeSessions(i: MergeInput): SessionRow[] {
   // here, or that this app failed to continue, is Ended "Cannot be continued here", with Remove, and is not counted. One
   // another host claimed is not listed. A resumed one, or a failed one whose console still runs, is that console's row; a
   // declined one is its ended record (above).
+  const recordKeys = new Set(pruneRecords(i.records, i.now).map((r) => r.key).filter((k): k is string => Boolean(k)));
   const latest = new Map<string, StopInput>();
   for (const s of i.stops) {
     const was = latest.get(s.session);
@@ -420,7 +481,9 @@ export function mergeSessions(i: MergeInput): SessionRow[] {
   for (const s of latest.values()) {
     if (s.verdict === 'resumed' || s.verdict === 'claimed' || s.verdict === 'open' || s.verdict === 'old' || s.verdict === 'continued') continue;
     if (!(i.now - s.stoppedAt <= SESSION_KEEP_MS)) continue; // older than a day, or a time Switchboard did not give
-    if (s.verdict === 'failed' && s.key && consoleKeys.has(s.key)) continue;
+    // Scenario walk 2026-11-11 (SCN-082): a failed continue whose console already ended is that console's ended record,
+    // with Continue; listing the stop too showed one session twice, as ended and as "cannot be continued here".
+    if (s.verdict === 'failed' && s.key && (consoleKeys.has(s.key) || recordKeys.has(s.key))) continue;
     // V-1 of FIX-2: a stop is "stopped by a limit on" the account it stopped on, never "continued after a limit reset".
     const common = { id: stopRowId(s.event), key: s.key ?? null, folder: s.dir, agent: s.provider === 'codex' ? 'codex' : 'claude-code', account: s.account ?? null, context: null, origin: 'limit' as const, startedAt: s.stoppedAt || null, endedAt: null };
     if (s.verdict === 'waiting' || s.verdict === 'resume') {
@@ -442,13 +505,33 @@ export function mergeSessions(i: MergeInput): SessionRow[] {
     const running = s.state === 'running' || s.state === 'starting' || s.state === 'unknown';
     const started = s.launchedAt ?? s.startedAt;
     if (!running && !fresh(started, i.now)) continue; // ended more than a day ago, as far as can be told
+    // FD-211: a session a host holds opens here, beside what its state offers.
+    const state: SessionState = running ? (isBackground(s) ? 'running-background' : 'running-terminal') : 'ended';
     add(row({
       id: sbRowId(s), key: null, folder: s.folder, agent: s.agent,
+      actions: running && s.attachable && s.launch?.launchId ? ['attach', ...actionsFor(state)] : undefined,
       account: s.account || null, context: s.context, contextName: s.contextName, origin: s.continues ? 'handover' : 'switchboard', reason: null,
       // SB-201: only a Claude Code session has a Claude Code conversation to resume; a proxy launch rides `claude` too.
-      state: running ? 'running-terminal' : 'ended', startedAt: started, endedAt: running ? null : s.launch?.endedAt ?? null, resumable: s.agent === 'claude-code',
+      // FD-207: a board run (`switchboard dispatch`) has no window; one launched in place runs in someone's terminal.
+      state, startedAt: started, endedAt: running ? null : s.launch?.endedAt ?? null, resumable: s.agent === 'claude-code',
       launch: s.launch,
     }));
+  }
+
+  // 6. FD-231 (SL-8): agent processes no owner started. One with a launch is Switchboard's and listed above; one in the
+  // folder of a console of this app that started within SAME_START_MS is that console (a runtime this app ran itself,
+  // with no Switchboard account): neither is listed twice.
+  for (const p of i.machine ?? []) {
+    if (p.launchId) continue;
+    if (p.folder && i.consoles.some((c) => norm(c.folder) === norm(p.folder!) && p.startedAt !== null && Math.abs(c.startedAt - p.startedAt) <= SAME_START_MS)) continue;
+    const r = row({
+      id: processRowId(p.pid, p.startedAt), key: null, folder: p.folder ?? '', agent: p.agent, account: null, context: null,
+      origin: 'machine', state: 'running-unmanaged', reason: null, startedAt: p.startedAt, endedAt: null,
+      actions: p.folder ? actionsFor('running-unmanaged') : [],
+    });
+    r.at = Math.max(r.at, p.lastWriteAt ?? 0);
+    if (p.quiet && p.quietMinutes !== null) r.quietMinutes = p.quietMinutes;
+    add(r);
   }
 
   return rows.sort((a, b) => b.at - a.at || a.id.localeCompare(b.id));
