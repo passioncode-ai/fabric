@@ -22,7 +22,7 @@ since when, and nothing else.
 ## Decision
 
 1. **One read crosses projects, and only these fields.** A session may read, for every active project of its own
-   estate, the live claims (not released, not lapsed) as: the project's id and display name, the claimed task's title,
+   estate on its own side of the wall between businesses (item 5), the live claims (not released, not lapsed) as: the project's id and display name, the claimed task's title,
    the claiming agent's label (`work_claims.agent`, or the runtime when none), and `claimed_at`. Never a task's
    instruction, brief, notes, status history, the claim's `touches`, a session id, a folder or a file name.
 2. **The database draws the line, not the caller.** The read is one function, `estate_live_claims_reader(p_estate,
@@ -34,6 +34,13 @@ since when, and nothing else.
    since when, and a note that only titles are visible and the project is asked with `com.submit`. `similar_work` on a
    claim stays within the project.
 4. **Bounded and said.** At most 500 live claims a read, the newest first; a read at its bound is named in `capped`.
+5. **Within the wall between businesses.** The board never joins projects of two different businesses
+   (`apps/desktop/src/main/boardService.ts#businessWall`, `#businessesJoined`), and a claim's title is work content, more
+   than the directory's names. So the summary reads a project only when its business and the reader's are the same
+   (trimmed, case folded) or either has none, by the rule `businessesJoined` applies to a thread. The database function
+   computes it from `projects.business` itself; the caller never passes it. A test with two businesses shows the other
+   business's titles absent before this record is accepted. The operator's option is read within that wall; reading
+   across businesses would be asked of him once, as its own decision (the 0.3.21 review, iteration 3, run three, PL-25).
 
 ## Consequences
 
