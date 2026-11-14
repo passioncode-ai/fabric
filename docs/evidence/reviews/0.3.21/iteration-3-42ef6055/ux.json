@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "42ef6055b086afa4599a84e40c1832c581548d55",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-42ef6055/2026-11-14-ux.md",
+  "reportSha256": "ad0484c792f8f0dcf689420d4bdbcb6ed3cf4cc9287d65445536ef2792355199",
+  "reviewerRun": "release-0321-i3r3-ux-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): `board_narrowed` says «of the last N day(s) only the oldest messages were read: the newest were not» whenever the board is capped at the asked window, and the note drops «or a wider days»; test «UX-18 (run three)», watched failing"
+      ]
+    },
+    {
+      "id": "UX-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): SCN-041 and SCN-163 say «Отдать агенту» only on an agent's question with options and a question with none opens the answer field; `NeedsYouCard` checks who asked as the Board does; test «UX-19 (run three)», watched failing"
+      ]
+    },
+    {
+      "id": "UX-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): SCN-140 says «up to its first dot followed by a letter», as spec §1"
+      ]
+    }
+  ]
+}

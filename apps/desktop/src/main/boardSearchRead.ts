@@ -277,6 +277,8 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
     ...(capped.length ? { capped } : {}),
     // DA-7 (0.3.21 review, iteration 2): a busy board is read for fewer days than asked; said, so «not found» is not
     // read as «not on the board for the whole window».
+    // UX-18 (run three): a window cut at its bound but not narrowed is said too.
+    ...(board.windowDays !== null && board.windowDays >= days && capped.includes('board') ? { board_narrowed: `of the last ${days} day(s) only the oldest messages were read: the newest were not${board.failedPast ? '; another window could not be read (see degraded)' : ''}` } : {}),
     ...(board.windowDays !== null && board.windowDays < days ? { board_narrowed: `the board was read for the last ${board.windowDays >= 1 ? `${board.windowDays} day(s)` : `${Math.round(board.windowDays * 24)} hour(s)`} only${capped.includes('board') ? ', and of that window only its oldest messages: the newest were not read' : ''}: ${board.failedPast ? 'another window could not be read (see degraded)' : `it did not fit in ${BOARD_PAGES} pages for ${days} days`}` } : {}),
     // UX-11 (iteration 3): the words past the cap are named, never read as «not found».
     ...(cut.notSearched.length ? { searched: cut.searched, not_searched: cut.notSearched } : {}),
@@ -287,7 +289,7 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
       : allFailed
       ? 'Nothing could be read, so nothing was searched: this is not "nothing matches". Read fabric_work_list, or try again.'
       : hits.length === 0
-        ? `Nothing read matches. That means the searched words were not found${cut.notSearched.length ? ` (${cut.notSearched.length} word(s) past the first ${cut.searched.length} were not searched: ask again with them)` : ''}, not that nobody works on it: try other words, in both Russian and English${board.windowDays !== null && board.windowDays < days ? '' : ', or a wider days'}.`
+        ? `Nothing read matches. That means the searched words were not found${cut.notSearched.length ? ` (${cut.notSearched.length} word(s) past the first ${cut.searched.length} were not searched: ask again with them)` : ''}, not that nobody works on it: try other words, in both Russian and English${board.windowDays !== null && (board.windowDays < days || capped.includes('board')) ? '' : ', or a wider days'}.`
         : `Only this project's tasks are read; other projects show as board messages your project takes part in and as their capabilities. Ask one with com.submit.${cut.notSearched.length ? ` ${cut.notSearched.length} word(s) past the first ${cut.searched.length} were not searched (not_searched): ask again with them.` : ''}`
   }
 }

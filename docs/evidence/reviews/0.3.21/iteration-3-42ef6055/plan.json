@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "42ef6055b086afa4599a84e40c1832c581548d55",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-42ef6055/2026-11-14-plan.md",
+  "reportSha256": "436fd0dddb1444a0b8973539a81367d532679745e282290e692cb4c3f73a0ccf",
+  "reviewerRun": "release-0321-i3r3-plan-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): item 0c records the decision with the question and option ids, the time and the words; the handoff says CO-579 is decided and names ADR-0194 after the close; item 6 says it; CO-579 takes the ADR id and its target at item 0c"
+      ]
+    },
+    {
+      "id": "PL-25",
+      "status": "ruled",
+      "evidence": [
+        "ruled, outside this candidate: ADR-0194 (proposed, on `feat/estate-work-summary`) is amended to read within the wall between businesses (`boardService.ts#businessWall`), computed by the database function, with a two-business test owed before it is accepted"
+      ]
+    },
+    {
+      "id": "PL-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): one 0.3.21 landing entry that lands at item 0b; CO-565, CO-571 and CO-573 read true once it lands, and item 0c corrects their date if it does not land on 2026-11-14"
+      ]
+    },
+    {
+      "id": "PL-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): item 6 names the section and its commit on `main` after item 0b"
+      ]
+    }
+  ]
+}

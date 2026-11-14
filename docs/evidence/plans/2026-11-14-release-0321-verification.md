@@ -191,9 +191,34 @@ register gate reads it as a row reference (ADR-0096 redaction).
 | V3-43 | PL-22 | non-blocking | AGENTS.md does not name the North Star sections | fixed in the run-two wave (run three's candidate): AGENTS.md «The North Star sections Fabric serves»: §4, §6, §10, G5, G10, G25, G29 and the duty to tell fabric-workspace |
 | V3-44 | PL-23 | non-blocking | the handoff's waits and next task stale | fixed in the run-two wave (run three's candidate): one wait named with its watcher; the next task names run three's candidate |
 
-### Run three
+### Run three, 42ef6055 (superseded)
 
-On the candidate the run-two wave lands, with `bash scripts/ci.sh fast` read green before the reviewers start; five
+Candidate `42ef6055`, the commit the run-two wave lands, with `bash scripts/ci.sh fast` read green before the reviewers
+started. Five fresh reviewers; their reports and receipts are in `docs/evidence/reviews/0.3.21/iteration-3-42ef6055/`
+(kept as the record). 14 findings, 1 blocking: DA-13, run two's ER-15 fix read a path as every tail after each `/`, so
+a document's index grew with the square of its slashes and the spec's cost sentence was false. Every new test was
+watched failing on the old code. The errors report's text naming a longer CO number is written in words there, since the
+register gate reads it as a row reference (ADR-0096 redaction).
+
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
+| V3-45 | DA-13 | blocking | run two's ER-15 fix read a path as every tail after each `/`, so a document's index grew with the square of its slashes and the spec's «linear in what it reads» was false | fixed in the run-three wave (run four's candidate): a path reads as its tails after its last `PATH_TAILS` (8) slashes only, which covers any repository path; test «DA-13 (run three)» (a 6 000-character `a/b/c/…` run yields at most `PATH_TAILS` + 1 slashed terms and under ten times `TEXT_MAX` term characters), watched failing; spec §2 says so |
+| V3-46 | UX-18 | non-blocking | a one-day window that did not fit, with its 6-hour read failed, said nothing about the newest messages and advised a wider window | fixed in the run-three wave (run four's candidate): `board_narrowed` says «of the last N day(s) only the oldest messages were read: the newest were not» whenever the board is capped at the asked window, and the note drops «or a wider days»; test «UX-18 (run three)», watched failing |
+| V3-47 | UX-19 | non-blocking | SCN-041's amendment offered «Отдать агенту» with no condition, and Главная checked options only | fixed in the run-three wave (run four's candidate): SCN-041 and SCN-163 say «Отдать агенту» only on an agent's question with options and a question with none opens the answer field; `NeedsYouCard` checks who asked as the Board does; test «UX-19 (run three)», watched failing |
+| V3-48 | UX-20 | non-blocking | SCN-140 still said a touched name is read up to its first dot | fixed in the run-three wave (run four's candidate): SCN-140 says «up to its first dot followed by a letter», as spec §1 |
+| V3-49 | ER-20 | non-blocking | a query path missed notes citing the file with less of its path | fixed in the run-three wave (run four's candidate): a query path also searches its tails that are still ids (`boardSearch.ts#pathTails`, bounded as DA-13), never a bare word left after a folder; test «ER-20 (run three)», watched failing; spec §2 says so |
+| V3-50 | ER-21 | non-blocking | names each skill, locale, module and app folder carries still linked claims | fixed in the run-three wave (run four's candidate): `GENERIC_NAMES` gains them, a leading `+` is dropped, and spec §1 says the list is a heuristic; test «ER-21 (run three)», watched failing |
+| V3-51 | ER-22 | non-blocking | a one-day window that did not fit said nothing of the newest messages | fixed in the run-three wave (run four's candidate): as UX-18 |
+| V3-52 | DO-30 | non-blocking | the CHANGELOG's «here and on Главная» false for Главная | fixed in the run-three wave (run four's candidate): as UX-19, `NeedsYouCard` checks who asked |
+| V3-53 | DO-31 | non-blocking | SCN-140 said a name is read up to its first dot | fixed in the run-three wave (run four's candidate): as UX-20 |
+| V3-54 | DO-32 | non-blocking | CO-581's row ran two sentences together | fixed in the run-three wave (run four's candidate): the full stop is added |
+| V3-55 | PL-24 | non-blocking | the handoff, item 6 and CO-579 still waited on an answered question | fixed in the run-three wave (run four's candidate): item 0c records the decision with the question and option ids, the time and the words; the handoff says CO-579 is decided and names ADR-0194 after the close; item 6 says it; CO-579 takes the ADR id and its target at item 0c |
+| V3-56 | PL-25 | non-blocking | ADR-0194 as proposed opened titles across businesses | ruled, outside this candidate: ADR-0194 (proposed, on `feat/estate-work-summary`) is amended to read within the wall between businesses (`boardService.ts#businessWall`), computed by the database function, with a two-business test owed before it is accepted |
+| V3-57 | PL-26 | non-blocking | MERGES recorded five landings that have not happened | fixed in the run-three wave (run four's candidate): one 0.3.21 landing entry that lands at item 0b; CO-565, CO-571 and CO-573 read true once it lands, and item 0c corrects their date if it does not land on 2026-11-14 |
+| V3-58 | PL-27 | non-blocking | item 6 did not tell fabric-workspace that AGENTS.md names the North Star sections | fixed in the run-three wave (run four's candidate): item 6 names the section and its commit on `main` after item 0b |
+### Run four
+
+On the candidate the run-three wave lands, with `bash scripts/ci.sh fast` read green before the reviewers start; five
 fresh reviewers.
 
 ## Release close
@@ -206,6 +231,11 @@ What is owed around the tag, in order; each item is checked off here with its re
    step 1; the 0.3.21 review, iteration 2, PL-9; iteration 3, PL-17).
 0c. On `main` after the release commit: iteration 3's ruled findings join their carry-over rows and the general plan's
    lanes, which the gate refuses after `verifiedCommit` (as 0.3.20's item 9; iteration 3, PL-17).
+   With them CO-579's decision: the operator answered question `6c3764b6` on 2026-11-14 at 02:52 UTC, «Открыть сводку:
+   название задачи, агент, с какого времени» (option `open-summary`). Its build, with the ADR the widened `scope.one-project`
+   needs (ADR-0194, proposed on `feat/estate-work-summary`, read within the wall between businesses: run three, PL-25), is
+   the next task after this release; it does not change 0.3.21. CO-579 takes that ADR id and the release after 0.3.21 as
+   its target here (run three, PL-24).
 1. The CI release run green on every platform, the published release and its notes from `## 0.3.21`.
 2. Install 0.3.21 on this Mac by [the runbook](../../launch/release-mac.md#upgrading-an-existing-database) (no schema
    step): the board switch and «Служба доски» off before the quit, the lifecycle broker's `fabric.desktop` held, the
@@ -223,8 +253,10 @@ What is owed around the tag, in order; each item is checked off here with its re
 5. The runbook's steps 9 to 11 (with 0.3.20's carried item 10).
 6. North Star G29 and §6 in fabric-workspace, told on the board: what of the 10-minute push 0.3.21 carries and what
    CO-571 leaves (PL-2), and that agents now search the board (`fabric_board_search`, `similar_work`, the advice
-   `work.search-the-board`) with what that leaves, CO-576 (meaning, not only words) and CO-579 (across projects)
-   (iteration 3, PL-19).
+   `work.search-the-board`) with what that leaves, CO-576 (meaning, not only words) and CO-579 (across projects, decided
+   by the operator on 2026-11-14 and built after 0.3.21 by ADR-0194) (iteration 3, PL-19; run three, PL-24). With it,
+   that `AGENTS.md` now names the North Star sections Fabric serves («The North Star sections Fabric serves»), with its
+   commit on `main` after item 0b, so the register's fabric row can fill «Named in `AGENTS.md`» (run three, PL-27).
 
 ### Carried from 0.3.20's close
 

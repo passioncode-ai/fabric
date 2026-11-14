@@ -40,8 +40,10 @@ touched names, or a file or folder name both claims touch (a name every reposito
 `README`, `CHANGELOG`, `tsconfig` or a lock file, links nothing, neither as a name nor as a word; a name is read up to its
 first dot followed by a letter, so `index.test.ts` reads as `index` and `fabric-0.3.21-mac.json` keeps its version, and
 one under four letters links nothing; the list is `boardSearch.ts#GENERIC_NAMES`: the repository standard's files,
-per-folder framework names (`__init__`, `page`, `layout`, `route`, `eslint`) and the common lock files; the 0.3.21
-review, iteration 2, ER-8, iteration 3, ER-11, and run two, ER-16, ER-17, DO-25)
+per-folder framework names (`__init__`, `page`, `layout`, `route`, `eslint`), what each skill, locale, module or app
+folder carries (`SKILL`, `Localizable`, `strings`, `models`, `Info`, `build`, `middleware`) and the common lock files, a
+leading `+` dropped (`+page.svelte`); the list is a heuristic, so a name it misses still links two claims on itself
+alone (the 0.3.21 review, iteration 2, ER-8, iteration 3, ER-11, run two, ER-16, ER-17, DO-25, and run three, ER-21)
 (`apps/desktop/src/shared/boardSearch.ts#similarClaims`). A hint, never a refusal, beside the structural `related`.
 
 `fabric_whoami`'s rules carry the advice `work.search-the-board` (`apps/desktop/src/shared/protocolObligations.ts`):
@@ -62,8 +64,11 @@ that reads the hits, so retrieval here only has to find them (`apps/desktop/src/
   longer or shorter term it is a prefix of, at half weight; an id only whole or where a longer document term goes on
   with a separator (`fabric_work` finds `fabric_work_list`, `CO-571` does not find `CO-571` followed by another digit), never by a shorter word it
   begins with (`boardDispatchRun.ts` does not match `board`; the 0.3.21 review, iteration 3, ER-12, and run two, ER-15).
-  A path in a document is also read as its tails after each `/`, so `boardDispatchRun.ts` finds
-  `apps/desktop/src/main/boardDispatchRun.ts` and `CO-571` finds `ADR-0190/CO-571` (ER-15).
+  A path in a document is also read as its tails after its last 8 `/` (`boardSearch.ts#PATH_TAILS`, so a long `a/b/c`
+  run costs what it reads; run three, DA-13), so `boardDispatchRun.ts` finds `apps/desktop/src/main/boardDispatchRun.ts`
+  and `CO-571` finds `ADR-0190/CO-571` (ER-15). A path in the query is searched with its tails too, those that are still
+  ids, so `apps/desktop/src/main/boardDispatchRun.ts` finds a note citing `boardDispatchRun.ts`, while `docs/board` does
+  not search the bare word `board` (run three, ER-20).
 - The score is BM25 times the share of the query's words that matched (one half to one), times recency
   (1 + 0.5 e^(-age/14 days)), times 1.3 for live work (a task a live claim holds, a request still open).
 - A document matching none of the query's words is not answered.
@@ -95,7 +100,8 @@ not found, not that nobody works on it. The tool writes nothing.
 
 The ranking runs in Fabric's main process on every call. Its cost is linear in what it reads: ids are found by
 joining neighbouring words, never by a backtracking pattern (the 0.3.21 review, iteration 1, ER-1: one 64 KB message of
-one unbroken word took 5 s), each document is read to its first 6 000 characters and each word to 64, and a term's
+one unbroken word took 5 s), each document is read to its first 6 000 characters and each word to 64, a path gives at
+most 8 tails (DA-13), and a term's
 prefix walk over a document is done once (ER-3), and a query is searched for its first 12 words in its own order, an id
 counting as one (`boardSearch.ts#QUERY_WORDS`; ER-9; the 0.3.21 review, iteration 3, DA-9 and DO-19); the words past
 them are named in the answer's `not_searched`, never said as not found (UX-11). The read bounds allow 2 500 documents (500 tasks, 1 000 notes, 500 messages, 500

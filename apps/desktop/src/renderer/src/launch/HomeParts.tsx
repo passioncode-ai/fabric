@@ -252,10 +252,13 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
                 {o.label}
               </button>
             ))}
-            <button type="button" className="lh-q-btn" disabled={sending} title={t('launch.board.delegate.hint')}
-              onClick={() => void answer(undefined, t('launch.board.delegate.answer'))}>
-              {t('launch.board.delegate')}
-            </button>
+            {/* UX-19 (0.3.21 review, iteration 3, run three): «Отдать агенту» only when an agent asked, as on the Board. */}
+            {item.askedBy?.kind !== 'person' && (
+              <button type="button" className="lh-q-btn" disabled={sending} title={t('launch.board.delegate.hint')}
+                onClick={() => void answer(undefined, t('launch.board.delegate.answer'))}>
+                {t('launch.board.delegate')}
+              </button>
+            )}
           </div>
         </>
       ) : item.question ? (

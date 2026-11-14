@@ -83,12 +83,23 @@ export const WORD_MAX = 64
 /** The most query words searched (ER-9, 0.3.21 review, iteration 2): each word walks the board's vocabulary for its
  *  prefixes, and a 300-character query of absent words measured 8.5 s cold at the read bounds. */
 export const QUERY_WORDS = 12
+/** The tails of a path read as ids of their own: the last PATH_TAILS segments' (DA-13, 0.3.21 review, iteration 3, run
+ *  three); any repository path's file and its folders, never a quadratic index of a long `a/b/c` run. */
+export const PATH_TAILS = 8
 
 /** The words of a text, linear in its length, each cut at WORD_MAX. */
 function wordsOf(text: string): Array<{ word: string; at: number }> {
   const out: Array<{ word: string; at: number }> = []
   for (const m of text.slice(0, TEXT_MAX).matchAll(WORD)) out.push({ word: m[0].slice(0, WORD_MAX), at: m.index! })
   return out
+}
+
+/** A path's tails after its last PATH_TAILS slashes, longest first (`a/b/c.ts` gives `b/c.ts`, `c.ts`): DA-13 (run
+ *  three) bounds them, so a run of many segments costs what it reads. */
+function pathTails(id: string): string[] {
+  const out: string[] = []
+  for (let i = id.lastIndexOf('/'); i >= 0 && out.length < PATH_TAILS; i = i > 0 ? id.lastIndexOf('/', i - 1) : -1) if (i + 1 < id.length) out.push(id.slice(i + 1))
+  return out.reverse()
 }
 
 /** Ids: neighbouring words joined by one of `-_./` with nothing else between (`CO-571`, `fabric_work_list`,
@@ -101,9 +112,9 @@ function compoundsOf(text: string, words: Array<{ word: string; at: number }>): 
     if (run.length > 1) {
       const id = run.join('').toLowerCase()
       out.push(id)
-      // ER-15 (0.3.21 review, iteration 3, run two): a path also reads as its tails after each `/`, so
+      // ER-15 (0.3.21 review, iteration 3, run two): a path also reads as its tails, so
       // `apps/desktop/src/main/boardDispatchRun.ts` is found by `boardDispatchRun.ts` and `ADR-0190/CO-571` by `CO-571`.
-      for (let i = id.indexOf('/'); i >= 0; i = id.indexOf('/', i + 1)) if (i + 1 < id.length) out.push(id.slice(i + 1))
+      out.push(...pathTails(id))
     }
     run = []
   }
@@ -153,7 +164,10 @@ function allQueryWords(query: string): Array<{ word: string; terms: string[] }> 
   const flush = () => {
     if (run.length > 1) {
       const id = run.map((w, i) => (i ? t[run[i - 1].at + run[i - 1].word.length] : '') + w.word).join('').toLowerCase()
-      add(id, [id.replace(/ё/g, 'е')])
+      const whole = id.replace(/ё/g, 'е')
+      // ER-20 (run three): a query path also searches its tails that are still ids, so `apps/desktop/src/main/x.ts` finds a
+      // note citing `x.ts`; a bare word left after a folder (`docs/board` to `board`) is not searched on its own.
+      add(id, [whole, ...pathTails(whole).filter((tail) => /[-_./]/.test(tail))])
     } else if (run.length === 1) add(run[0].word, wordTerms(run[0].word))
     run = []
   }
@@ -280,7 +294,10 @@ const GENERIC_NAMES = new Set(['src', 'lib', 'app', 'apps', 'main', 'index', 're
   // Run two, ER-16 and DO-25: the repository standard's required files, per-folder framework names, more lock files.
   'commercial-license', 'agent_sync', 'agent-sync', 'backlog-sources', 'security', '__init__', 'page', 'layout', 'route',
   'loading', 'error', 'eslint', 'prettier', 'next', 'tailwind', 'postcss', 'docker-compose', 'pnpm-workspace', 'editorconfig',
-  'gitattributes', 'gitleaks', 'poetry', 'gemfile', 'composer', 'podfile'])
+  'gitattributes', 'gitleaks', 'poetry', 'gemfile', 'composer', 'podfile',
+  // Run three, ER-21: what each skill, locale, module or app folder carries. The list stays a heuristic (spec §2).
+  'skill', 'localizable', 'strings', 'models', 'info', 'build', 'translation', 'middleware', 'not-found', 'deno', 'flake',
+  'pipfile'])
 
 /** A claim's touches read as words: each path's file or folder name, never the shared prefix every path carries. */
 function touchWords(touches: readonly string[]): string {
@@ -288,8 +305,8 @@ function touchWords(touches: readonly string[]): string {
   // never enters the comparison, as a word or as a shared name, so it links nothing.
   // ER-11 (iteration 3): a name is read up to its first dot that is followed by a letter, after any leading dots, so
   // `index.test.ts`, `index.d.ts` and `.eslintrc.cjs` read as `index` and `eslintrc` while `fabric-0.3.21-mac.json`
-  // keeps its version (run two, ER-17).
-  return touches.map((p) => (p.replace(/\/+$/, '').split('/').pop() ?? '').replace(/^\.+/, '').replace(/\.[a-z].*$/i, ''))
+  // keeps its version (run two, ER-17). A leading `+` goes too (SvelteKit's `+page.svelte`, run three, ER-21).
+  return touches.map((p) => (p.replace(/\/+$/, '').split('/').pop() ?? '').replace(/^[.+]+/, '').replace(/\.[a-z].*$/i, ''))
     .filter((n) => n.length >= 4 && !GENERIC_NAMES.has(n.toLowerCase())).join(' ')
 }
 

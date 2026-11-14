@@ -86,7 +86,7 @@ describe('a question\'s muted line says why it is asked, never the board\'s coun
 
 describe('a question on Главная is answered where it is read (SCN-163 step 2, CO-391)', () => {
   it('shows the options as buttons and records the chosen one; the count reaches the greeting', async () => {
-    const item = { kind: 'question', ref: 'question:q9', subject: { kind: 'question', id: 'q9' }, projectId: 'p1', projectName: 'Fabric', title: 'Which?', detail: null, waitingSince: '2026-10-22T00:00:00Z', origin: 'authored', askedBy: { kind: 'person', agent: null }, question: { revision: 2, options: [{ id: 'a', label: 'Keep it' }, { id: 'b', label: 'Drop it', recommended: true }] } }
+    const item = { kind: 'question', ref: 'question:q9', subject: { kind: 'question', id: 'q9' }, projectId: 'p1', projectName: 'Fabric', title: 'Which?', detail: null, waitingSince: '2026-10-22T00:00:00Z', origin: 'authored', askedBy: { kind: 'agent', agent: 'codex' }, question: { revision: 2, options: [{ id: 'a', label: 'Keep it' }, { id: 'b', label: 'Drop it', recommended: true }] } }
     const query = vi.fn(async () => ({ data: { items: [item], total: 1, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' }))
     const answer = vi.fn(async (_input: unknown) => ({ committed: true, repeated: false, unblocked: [], stillBlocked: [], continuations: [] }))
     vi.stubGlobal('window', Object.assign(window, { fabric: { board: { query }, questions: { answer } } }))
@@ -130,6 +130,19 @@ describe('UX-3 (0.3.21 review, iteration 1): a question with no options offers n
     vi.stubGlobal('window', Object.assign(window, { fabric: { board: { query: vi.fn(async () => ({ data: { items: [open], total: 1, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' })) } } }))
     render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={() => {}} /></I18nProvider>)
     await waitFor(() => expect(screen.getByText(/Which account goes first/)).toBeTruthy())
+    expect(screen.queryByRole('button', { name: en['launch.board.delegate'] })).toBeNull()
+  })
+})
+
+describe('UX-19 (0.3.21 review, iteration 3, run three): a person\'s question with options offers no «Leave it to the agent»', () => {
+  it('shows the options and no delegate button, as the Board does', async () => {
+    const mine = { kind: 'question', ref: 'question:q2', projectId: 'p1', projectName: 'Switchboard', title: 'Which name do we keep?',
+      detail: null, waitingSince: '2026-10-12T00:00:00Z', origin: 'authored', askedBy: { kind: 'person', agent: null },
+      question: { id: 'q2', revision: 1, options: [{ id: 'a', label: 'Keep it', recommended: true }, { id: 'b', label: 'Drop it' }] } }
+    vi.stubGlobal('window', Object.assign(window, { fabric: { board: { query: vi.fn(async () => ({ data: { items: [mine], total: 1, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' })) } } }))
+    render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={() => {}} /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText(/Which name do we keep/)).toBeTruthy())
+    expect(screen.getByRole('button', { name: /Keep it/ })).toBeTruthy()
     expect(screen.queryByRole('button', { name: en['launch.board.delegate'] })).toBeNull()
   })
 })

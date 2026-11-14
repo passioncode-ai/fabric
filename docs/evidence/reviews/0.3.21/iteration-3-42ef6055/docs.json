@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "42ef6055b086afa4599a84e40c1832c581548d55",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-42ef6055/2026-11-14-docs.md",
+  "reportSha256": "789de3e3cbc83dc5fd7fef826a7a1674684425e377e25d3d98fa303e3ab148bf",
+  "reviewerRun": "release-0321-i3r3-docs-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): as UX-19, `NeedsYouCard` checks who asked"
+      ]
+    },
+    {
+      "id": "DO-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): as UX-20"
+      ]
+    },
+    {
+      "id": "DO-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): the full stop is added"
+      ]
+    }
+  ]
+}

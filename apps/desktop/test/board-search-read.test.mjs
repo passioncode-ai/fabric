@@ -147,6 +147,17 @@ test('ER-19, UX-14 (run two): one day that did not fit is kept when the 6-hour r
   assert.doesNotMatch(a.note, /Nothing could be read/)
 })
 
+test('UX-18 (run three): days 1 with the day over its bound and the 6-hour read failing says the day was cut', async () => {
+  const hours = (since) => (NOW - Date.parse(since)) / 3_600_000
+  const dayOverThenDown = async ({ since }) => {
+    if (hours(since) < 12) throw new Error('board down')
+    return { messages: [{ id: `m${hours(since)}`, thread: 'th', kind: 'message', sender: { project: PROJECT }, at: since, body: { text: 'zebra' } }], cursor: 'more' }
+  }
+  const a = await searchBoard({ query: 'yak', kinds: ['board'], days: 1 }, deps({ boardList: dayOverThenDown }))
+  assert.match(a.board_narrowed, /of the last 1 day\(s\) only the oldest messages were read/)
+  assert.doesNotMatch(a.note, /wider days/)
+})
+
 test('UX-11, DA-9 (0.3.21 review, iteration 3): words past the cap are named, in the query\'s order, never said as not found', async () => {
   const words = 'alpha bravo charlie delta echoes foxtrot golfing hotel india juliet kilos limas mikes novembers'
   const a = await searchBoard({ query: `${words} CO-571` }, deps())

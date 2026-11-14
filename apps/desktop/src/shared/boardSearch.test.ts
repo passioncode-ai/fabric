@@ -1,7 +1,7 @@
 // The board search's ranking (the operator, 2026-11-14: «хочу чтобы агенты делали раг поиск по доске когда ищут связи
 // кто чем занят»): words in Russian and English, their forms, ids kept whole, ranked by BM25 with recency and live work.
 import { describe, expect, it } from 'vitest'
-import { QUERY_WORDS, rankDocs, searchableWords, similarClaims, stem, terms, TEXT_MAX, WORD_MAX, type SearchDoc } from './boardSearch.ts'
+import { PATH_TAILS, QUERY_WORDS, rankDocs, searchableWords, similarClaims, stem, terms, TEXT_MAX, WORD_MAX, type SearchDoc } from './boardSearch.ts'
 
 const NOW = Date.parse('2026-11-14T12:00:00Z')
 const doc = (id: string, title: string, text = '', extra: Partial<SearchDoc> = {}): SearchDoc =>
@@ -131,6 +131,37 @@ describe('similarClaims', () => {
     expect(rankDocs('boardDispatchRun.ts', docs, { now: NOW, limit: 5 }).map((h) => h.doc.id)).toEqual(['p'])
     expect(rankDocs('CO-571', docs, { now: NOW, limit: 5 }).map((h) => h.doc.id)).toEqual(['a'])
     expect(rankDocs('fabric_work', docs, { now: NOW, limit: 5 }).map((h) => h.doc.id)).toEqual(['f'])
+  })
+
+  it('ER-20 (run three): a query path finds the documents citing the file with less of its path, never by a bare folder word', () => {
+    const docs = [doc('bare', 'see boardDispatchRun.ts for the pass'), doc('rel', 'see src/main/boardDispatchRun.ts'),
+      doc('full', 'see apps/desktop/src/main/boardDispatchRun.ts'), doc('other', 'the board of docs')]
+    const ids = (q: string) => rankDocs(q, docs, { now: NOW, limit: 10 }).map((h) => h.doc.id).sort()
+    expect(ids('apps/desktop/src/main/boardDispatchRun.ts')).toEqual(['bare', 'full', 'rel'])
+    expect(ids('src/main/boardDispatchRun.ts')).toEqual(['bare', 'full', 'rel'])
+    expect(ids('docs/board')).toEqual([])
+    const full = rankDocs('apps/desktop/src/main/boardDispatchRun.ts', docs, { now: NOW, limit: 10 })
+    expect(full[0]!.doc.id).toBe('full')
+  })
+
+  it('ER-21 (run three): names each skill, locale, module and app folder carries link nothing on their own', () => {
+    const pairs: Array<[string, string]> = [['skills/a/SKILL.md', 'skills/b/SKILL.md'], ['en.lproj/Localizable.strings', 'ru.lproj/Localizable.strings'],
+      ['app/res/values/strings.xml', 'lib/res/values-ru/strings.xml'], ['src/routes/a/+page.svelte', 'src/routes/b/+page.svelte'],
+      ['shop/models.py', 'blog/models.py'], ['App/Info.plist', 'Widget/Info.plist'], ['app/build.gradle.kts', 'core/build.gradle.kts'],
+      ['locales/en/translation.json', 'locales/ru/translation.json'], ['web/middleware.ts', 'admin/middleware.ts'],
+      ['app/not-found.tsx', 'app/x/not-found.tsx'], ['deno.lock', 'web/deno.lock'], ['flake.lock', 'nix/flake.lock'], ['Pipfile.lock', 'api/Pipfile.lock']]
+    for (const [mine, theirs] of pairs) {
+      const other = [{ claimId: 'g3', taskId: 'tg', owner: 's-other', agent: null, title: 'Icon of the store page', touches: [theirs] }]
+      expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Translate the help', touches: [mine] }, other), mine).toEqual([])
+    }
+  })
+
+  it('DA-13 (run three): a long a/b/c run yields at most PATH_TAILS tails, so its terms grow with what is read', () => {
+    const run = Array.from({ length: 3000 }, () => 'a').join('/')
+    const ts = terms(run)
+    expect(ts.filter((t) => t.includes('/')).length).toBeLessThanOrEqual(PATH_TAILS + 1)
+    expect(ts.reduce((n, t) => n + t.length, 0)).toBeLessThan(10 * TEXT_MAX)
+    expect(terms('apps/desktop/src/main/boardDispatchRun.ts')).toContain('boarddispatchrun.ts')
   })
 
   it('ER-16, ER-17, DO-25 (run two): per-folder framework names, lock files and versioned names', () => {

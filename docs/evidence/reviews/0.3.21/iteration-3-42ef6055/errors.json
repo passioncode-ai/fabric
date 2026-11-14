@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "42ef6055b086afa4599a84e40c1832c581548d55",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-42ef6055/2026-11-14-errors.md",
+  "reportSha256": "57d735dc209feedf8ab5a48d4cc069d08c9ddc527278db52d27287671489585d",
+  "reviewerRun": "release-0321-i3r3-errors-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): a query path also searches its tails that are still ids (`boardSearch.ts#pathTails`, bounded as DA-13), never a bare word left after a folder; test «ER-20 (run three)», watched failing; spec §2 says so"
+      ]
+    },
+    {
+      "id": "ER-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): `GENERIC_NAMES` gains them, a leading `+` is dropped, and spec §1 says the list is a heuristic; test «ER-21 (run three)», watched failing"
+      ]
+    },
+    {
+      "id": "ER-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): as UX-18"
+      ]
+    }
+  ]
+}

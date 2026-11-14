@@ -4,30 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 3, run two) → main · fast-forward
-- files: the run-two wave: `boardSearch.ts` (a path read as its tails, an id matched only where a longer term goes on with a separator, names cut at a dot before a letter, more generic names), `boardSearchRead.ts` (a day that did not fit kept when a narrower read fails, a capped window said, the cut words named with hits, a capped live-claims read), `workTools.ts`, `abandonedSweepRun.ts` (the newest read's cap is the sweep's); `release-mac.md` and `## Unreleased` («Upgrading»), AGENTS.md (the North Star sections), spec, on-demand §3.2 and §3.9, CO-565, CO-572, CO-578, CO-583, the ledger's run two and Protocol, the handoff; before it `launch.css` (a rule moved out of the ported block) and `completeness.html` (rebuilt)
+### 2026-11-14 · `—` · feat/board-search (0.3.21: the feature and the review's iterations 1 to 3) → main · fast-forward
+- files: `fabric_board_search` (`workTools.ts`, `boardSearchRead.ts`, `shared/boardSearch.ts`) and `similar_work` on a claim, the advice `work.search-the-board`, the dispatcher's work signal (`agentSurface.ts#isWorkCall`, `shared/boardDispatch.ts#sessionLiveForDispatch`), the open request threads read first (`boardThreadIds.ts`), the no-folder request to the operator, the Board in the rail and a question's recommended option; then each review wave of [the ledger](evidence/plans/2026-11-14-release-0321-verification.md): iteration 1, iteration 2, and iteration 3's runs one to three (ids and paths as one word with bounded tails on both sides, the board read narrowest first and said when cut, generic names, the sweep's two thread caps, `holder_unknown`, «Отдать агенту» only on an agent's question)
 - conflicts: none
-- summary: the 0.3.21 review's iteration-3 run two findings fixed (ER-15, DA-10, PL-20 blocking) or ruled (UX-16: CO-578)
-
-### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 3, run one) → main · fast-forward
-- files: the iteration-3 wave: `BoardScreen.tsx` (a question's own why under «Подробнее»), `boardSearch.ts` (names read to their first dot, more generic names, ids not matched by shorter words, the query cut in its own order, `queryCut`), `boardSearchRead.ts` (`not_searched`, a failed read said as failed, a failed narrow read keeps what was read), `boardThreadIds.ts` (`capped` for the open read only); spec, SCN-140 and SCN-147, AGENTS.md, CHANGELOG, CO-569 to CO-583, the ledger's iteration 3 run one, the handoff, the text-check receipt
-- conflicts: none
-- summary: the 0.3.21 review's iteration-3 run one findings fixed (UX-10, ER-11 blocking) or ruled (UX-13: CO-583); CO-580 resolved by fabric-agent-adapter 0.86.0
-
-### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 2) → main · fast-forward
-- files: the iteration-2 wave: `boardSearch.ts` (generic names out of the words, `QUERY_WORDS`), `boardSearchRead.ts` (`board_narrowed`), `boardDispatchRun.ts` (an inbox item with no folder stays skipped), `productConnect.ts#handlerIsProduct` (a versioned AppImage), `BoardScreen.tsx` (delegate only on an agent's question with options), the no-folder row's words; CHANGELOG, spec, SCN-140 and SCN-147, carry-over CO-567 to CO-581, the ledger's iteration 2, the handoff, the text-check receipt
-- conflicts: none
-- summary: the 0.3.21 review's iteration-2 findings fixed (ER-8, DO-11 blocking); CO-581 filed
-
-### 2026-11-14 · `—` · feat/board-search (0.3.21 review, iteration 1) → main · fast-forward
-- files: the iteration-1 wave: the search's capabilities, linear ids and text caps, the board read narrowest first, `holder_unknown`, `similar_work` on titles and touches; `productConnect.ts#handlerIsProduct` per platform; the sweep kind `request-no-folder`; the Board's fold and delegate button; `runStateOf` (CO-573 (5)); the on-demand spec's liveness rule; CO-571, CO-573, CO-578 to CO-580; the 0.3.21 ledger's iteration 1 and its reports and receipts; CHANGELOG; the map lane `iteration-2026-11-14-review-i1`
-- conflicts: none
-- summary: the 0.3.21 review's iteration-1 findings fixed or ruled
-
-### 2026-11-14 · `—` · feat/board-search → main · fast-forward
-- files: `fabric_board_search` (`workTools.ts`, `boardSearchRead.ts`, `shared/boardSearch.ts`) and `similar_work` on a claim, the advice `work.search-the-board`, the dispatcher's work signal (`agentSurface.ts#isWorkCall`, `shared/boardDispatch.ts#sessionLiveForDispatch`), the no-folder hand-over, the folder named like the project, the remote read that fails, their tests, the spec `2026-11-14-board-search.md`, CO-565, CO-571, CO-573, CO-576, SCN-140, CHANGELOG, the map lane `iteration-2026-11-14-board-search`
-- conflicts: none
-- summary: agents search the board for who works on what; an idle session no longer holds its project's requests
+- summary: agents search the board for who works on what; an idle session no longer holds its project's requests; the 0.3.21 review's findings of three iterations fixed or ruled in the ledger. Lands on `main` at the ledger's Release close, item 0b (run three, PL-26: one entry for the landing, not one per wave)
 
 ### 2026-11-13 · `—` · fix/board-link-survives-kill-by-name → main · fast-forward
 - files: on macOS the fabric-mcp launcher and Fabric's helpers run as the bundle's `Fabric Helper` (`resources/bin/fabric-mcp`, `helperProcess.ts#nodeHost`), its test (`helper-process.test.mjs`), CO-575, CHANGELOG, the map lane `iteration-2026-11-13-board-link-name`, AGENTS.md's fabric-mcp row

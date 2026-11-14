@@ -1,0 +1,21 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "42ef6055b086afa4599a84e40c1832c581548d55",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-42ef6055/2026-11-14-data.md",
+  "reportSha256": "4eded9c7861ec05502559e8556fd671da75206344ed193286061ba455c2d4b60",
+  "reviewerRun": "release-0321-i3r3-data-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three wave (run four's candidate): a path reads as its tails after its last `PATH_TAILS` (8) slashes only, which covers any repository path; test «DA-13 (run three)» (a 6 000-character `a/b/c/…` run yields at most `PATH_TAILS` + 1 slashed terms and under ten times `TEXT_MAX` term characters), watched failing; spec §2 says so"
+      ]
+    }
+  ]
+}
