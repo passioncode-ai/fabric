@@ -76,6 +76,10 @@ Finish line: the home under 1 s at p95 on this machine with 40 sessions, measure
 - 5: «Сообщить о проблеме» and the daily GitHub triage job.
 - 6 (Sentry for native dumps) waits for the operator's decision: it sends data outside the estate.
 
+State, 2026-11-15: wave 1's first part is built on `main`: the fingerprint (`shared/bugFingerprint.ts`), the local store
+(`main/bugStore.ts`, `userData/bugs.json`), every failed ops record folded in, helper-process crashes recorded and
+native dumps kept locally. Next in wave 1: the hang watch of the main loop and the slow-call counts in the digest.
+
 The Observatory binding token that the daily digests need (`ops-digest-binding.token`) is issued in wave 1.
 
 Finish line: an error planted in a build reaches growth once, under consent, as one board task and one issue.

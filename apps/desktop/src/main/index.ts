@@ -2,7 +2,7 @@
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
 import { createRevokeAgent } from './relayedAccess.ts'
-import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powerMonitor, shell } from 'electron'
+import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, shell } from 'electron'
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
@@ -17,6 +17,7 @@ import { fixPath, halfUpDeps, recoverStack, resolveSupabaseEnv, stackDatabaseCon
 import { resolveHealingHalfUp } from './stackHalfUp.ts'
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { createSharedReading } from '../shared/sharedReading'
+import { createBugStore, type BugStore } from './bugStore'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
 import { launchOption, launchOptions, PtyManager, setFolderTrust, setPermissionPreference } from './pty'
@@ -992,6 +993,8 @@ const historyTokens = new Map<string, string>()
 
 /** Whether the process-level failure handlers are installed; bootstrap may run again after a Retry. */
 let processFailuresRecorded = false
+/** W4 (the bug tracker): the local bug store, made once per process (bootstrap may run again on Retry). */
+let bugs: BugStore | null = null
 
 async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   // FIRST, before anything that can fail. A monitor initialised after the thing
@@ -1007,7 +1010,27 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
     quit.onQuit(() => kept.stop())
   }
   const digest = opsDigest
-  useOps(createOps({ dir: path.join(app.getPath('userData'), 'logs'), observe: (op, outcome, at) => digest.observe(op, outcome, at) }))
+  // #region bug-tracker — docs: docs/reports/2026-11-15-quality-audit/2026-11-15-bug-tracker-design.md#35-fingerprint-and-dedup
+  // W4 of the quality waves (wave 1): every failure the log records with an error is folded into its fingerprint in
+  // `userData/bugs.json`; written once a minute when it changed and at quit. Nothing leaves the machine.
+  if (!bugs) {
+    bugs = createBugStore(path.join(app.getPath('userData'), 'bugs.json'))
+    const bugFlush = setInterval(() => bugs?.flush(), 60_000)
+    bugFlush.unref()
+    quit.onQuit(() => { clearInterval(bugFlush); bugs?.flush() })
+    // A helper process (GPU, network, utility) that crashes is recorded as `crash.<type>`, never during a quit, where
+    // ending them is the quit's own work; native dumps stay on this machine (`uploadToServer: false`, §3.9).
+    crashReporter.start({ uploadToServer: false, compress: true })
+    app.on('child-process-gone', (_e, details) => {
+      if (quit.quitting || details.reason === 'clean-exit' || details.reason === 'killed') return
+      ops.failed(`crash.${details.type.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, new Error(details.reason), { exitCode: details.exitCode, name: details.name ?? null })
+    })
+  }
+  useOps(createOps({ dir: path.join(app.getPath('userData'), 'logs'), observe: (op, outcome, at, failure) => {
+    digest.observe(op, outcome, at)
+    if (failure && outcome === 'failed') bugs?.record({ cls: op.startsWith('crash.') ? 'crash' : 'error', code: op, error: failure.error, version: app.getVersion(), correlationId: failure.correlationId })
+  } }))
+  // #endregion bug-tracker
   // After the ops log exists, so a digest write that fails at start is said (the 0.3.16 review, DA-3). Once.
   digest.start()
   // Audit A7-009: a stray rejection or exception reached a console a packaged app does not have, or

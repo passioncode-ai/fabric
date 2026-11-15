@@ -113,7 +113,8 @@ export function createOps(opts: {
   sampled?: (input: { op: string; outcome: OpsOutcome; level?: OpsLevel; ms?: number }) => boolean
   /** Every record, before it is written or counted (CO-500, ADR-0188 §1: the hourly reading counts sampled successes
    *  too). Must not throw; a throw is swallowed with the record's. */
-  observe?: (op: string, outcome: OpsOutcome, at: number) => void
+  /** W4 (the bug tracker, wave 1): the record's error and correlation ride along, so a failure can be fingerprinted. */
+  observe?: (op: string, outcome: OpsOutcome, at: number, failure?: { error: unknown; correlationId: string }) => void
 }): Ops {
   const now = opts.now ?? (() => new Date())
   const file = path.join(opts.dir, 'operations.jsonl')
@@ -380,7 +381,7 @@ export function createOps(opts: {
       try {
         const at = now()
         const t = at.getTime()
-        opts.observe?.(input.op, input.outcome, t)
+        opts.observe?.(input.op, input.outcome, t, input.error !== undefined ? { error: input.error, correlationId: input.ctx.correlationId } : undefined)
         closeWindow(t)
         if (sampled(input)) {
           if (windowStart === null) windowStart = t

@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Fabric keeps one record per bug on this Mac** (the quality waves, W4, the bug tracker's first wave). Every failure
+  the operations log records with an error is folded into a fingerprint, so a thousand repeats are one row with a count,
+  the versions it was seen in and its newest log line; a crashed helper process is recorded too, and native crash dumps
+  are kept locally. Nothing new leaves the machine: sending counts to our analytics waits for the consent wave.
 - **The operations log keeps its week again** (the quality waves, W3). A session's protocol follow-ups after it joins
   and the read-only board status were a third of the log's bytes, and the log held 3 days of its 7; they are now
   counted and written once per 10 minutes, like the keep-alive pings. A session joining and every tool that acts are
