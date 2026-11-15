@@ -339,6 +339,8 @@ export function wireBoardDispatch(o: {
   /** CO-551: the operator's board door for a Project, to post a run's answer as that Project. */
   board?: (projectId: string) => RelayBoard
   quitting: () => boolean
+  /** W2 (perf PF-1): free bytes on the data folder's disk, or null when unread. */
+  freeDisk?: () => number | null
   file: string
   env: NodeJS.ProcessEnv
   log: DispatchDeps['log']
@@ -529,6 +531,7 @@ export function wireBoardDispatch(o: {
     },
     log: o.log,
     quitting: o.quitting,
+    ...(o.freeDisk ? { freeDisk: o.freeDisk } : {}),
     ...(o.suspendedSince ? { suspendedSince: o.suspendedSince } : {})
   }
   const dispatch = createBoardDispatch(deps)

@@ -79,6 +79,23 @@ test('a queued request with nobody on it opens a workflow, offers it to the defa
   assert.equal(w.launches.length, 1)
 })
 
+test('W2 (the quality waves, perf PF-1): under the disk floor no run starts, said once, and starts resume above it', async () => {
+  const { DISK_FLOOR_BYTES } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  const w = world()
+  let free = DISK_FLOOR_BYTES - 1
+  const logged = []
+  const log = w.deps.log
+  const d = createBoardDispatch({ ...w.deps, freeDisk: () => free, log: (op, outcome, detail) => { logged.push([op, outcome, detail]); log?.(op, outcome, detail) } })
+  await d.onPass()
+  await d.onPass()
+  assert.equal(w.launches.length, 0)
+  assert.deepEqual(logged.filter(([op]) => op === 'board.dispatch.disk').map(([, o, x]) => [o, x.starts]), [['failed', 'held']])
+  free = DISK_FLOOR_BYTES * 2
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  assert.deepEqual(logged.filter(([op]) => op === 'board.dispatch.disk').map(([, o, x]) => [o, x.starts]), [['failed', 'held'], ['ok', 'resumed']])
+})
+
 test('nothing starts with the switch off, with a live responder, or with a live session inside the grace', async () => {
   for (const over of [{ on: false }, { responder: true }, { session: true, requests: [request({ submittedAt: new Date(T0 - MIN).toISOString() })] }]) {
     const w = world(over)

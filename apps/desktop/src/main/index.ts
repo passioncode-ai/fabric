@@ -3170,6 +3170,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     },
     board: (projectId) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id),
     quitting: () => quit.quitting,
+    freeDisk: () => freeDiskNow(),
     file: path.join(app.getPath('userData'), 'board-dispatches.json'),
     env: process.env,
     log: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })

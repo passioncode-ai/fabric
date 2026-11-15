@@ -171,6 +171,9 @@ export interface DispatchDeps {
   save(records: DispatchRecord[]): void
   /** The app is quitting: no new start, no new Switchboard call. */
   quitting?(): boolean
+  /** W2 of the quality waves (2026-11-15, perf PF-1): free bytes on the data folder's disk, or null when unread. Below
+   *  `DISK_FLOOR_BYTES` no run starts: a run writes, and the stack's database went down on a disk this full. */
+  freeDisk?(): number | null
   /** 2026-11-12 (C2): how long this machine slept since `from` (ms), from the power monitor. A run here was frozen with
    *  it, so its liveness and its end are judged on time awake; absent, no sleep is counted. */
   suspendedSince?(from: number): number
@@ -272,6 +275,10 @@ export function createDispatchWake(onPass: () => void, deps: { graceMs: number; 
     stop() { if (timer !== null) clearTimer(timer); timer = null; due = null }
   }
 }
+
+/** W2 of the quality waves (2026-11-15, perf PF-1): the free space below which the dispatcher starts no run. The stack's
+ *  database went down four times in a week with 0.1 to 2.8 GB free; 3 GB is the stack watch's own low mark. */
+export const DISK_FLOOR_BYTES = 3e9
 
 export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[]; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[] } {
   let records = deps.load()
@@ -853,10 +860,19 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     deps.save(records)
   }
 
+  let diskWasLow = false
   const pass = async (): Promise<void> => {
     readThisPass = false
     const now = deps.now()
     const on = deps.switchOn()
+    // W2 (perf PF-1): a disk under the floor starts nothing, said once per crossing; the runs already going are still
+    // watched and ended as before.
+    const free = deps.freeDisk?.() ?? null
+    const diskLow = free !== null && free < DISK_FLOOR_BYTES
+    if (diskLow !== diskWasLow) {
+      diskWasLow = diskLow
+      deps.log('board.dispatch.disk', diskLow ? 'failed' : 'ok', { free_gb: free === null ? null : Math.round(free / 1e8) / 10, floor_gb: DISK_FLOOR_BYTES / 1e9, starts: diskLow ? 'held' : 'resumed' })
+    }
     if (!on) {
       // Iteration 3, ER-4, DO-2: a start still waiting for Switchboard's answer is not asked again with the switch off;
       // it ends as unknown, so the board is not read for it and no run starts without a fresh decision.
@@ -979,7 +995,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       }
     }
     // Starts left without an answer are asked again first (ER-1, ER-2); with the switch off, not at all (iteration 2, ER-6).
-    for (const r of on ? records.filter((x) => x.state === 'starting') : []) {
+    for (const r of on && !diskLow ? records.filter((x) => x.state === 'starting') : []) {
       if (deps.quitting?.()) return
       try {
         const dir = await deps.folderOf(r.projectId)
@@ -990,7 +1006,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         deps.log('board.dispatch.started', 'failed', { request: r.requestId, dispatch: r.dispatchId, note: noteOf(e) })
       }
     }
-    if (!on) return
+    if (!on || diskLow) return
     const limits = limitsOf()
     // 2026-11-12 (H3): the agent Switchboard starts is asked once a pass, not once a request; a failure is no agent.
     let providerOnce: Promise<DispatchAgent | null> | null = null

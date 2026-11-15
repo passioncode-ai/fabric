@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The board starts no run on a nearly full disk** (the quality waves, W2). Below 3 GB free the dispatcher holds new
+  starts, says so once in the log, and resumes when space returns; the runs already going are still watched. In the
+  week before, the local database went down four times with 0.1 to 2.8 GB free.
 - **Переписка reads again** (the quality waves, W1). An opened thread showed each message squeezed into a 24 px column,
   and the list of threads put titles in the number's place: both borrowed the Board's numbered row. A message is now a
   block of its own whose text keeps its line breaks, wraps a long link and reads in the ink colour; a thread row has two

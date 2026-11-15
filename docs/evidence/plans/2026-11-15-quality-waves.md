@@ -38,6 +38,12 @@ first rows and W3's quick fixes.
 | The local database answers on the network with the default password | inventory S1; CO-219 | bind and password per the row, with a stack test |
 | A crashed database left unhealed 5.5 hours | board task `369c744c`; CO-573 item 1 | the watch's heal path tested on that case |
 
+State, 2026-11-15: the dispatcher's floor is built (`DISK_FLOOR_BYTES`, 3 GB; the warning on every screen already
+stands at the stack watch's 3 GB). The floor is 3 GB, not the audit's 10: this Mac usually runs with 4 to 7 GB free, and a
+10 GB floor would hold the board most of the day, while every loss measured was under 3 GB. The block the I/O error named
+reads now: `base/5/16866` is `public.journal`, a full scan read 165 920 rows and block 13145 its 11 tuples, no error
+(2026-11-15, read-only). `amcheck` is available but not installed; installing it is a schema change left to that row.
+
 Finish line: a full disk planted in a stack test stops new starts and says so; an upgrade with a migration opens without a
 hand step; CO-219 resolved.
 
