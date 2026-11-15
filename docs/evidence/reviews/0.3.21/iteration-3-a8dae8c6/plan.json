@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "a8dae8c66daa8459d2596229d61db743ab05ff28",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-a8dae8c6/2026-11-15-plan.md",
+  "reportSha256": "241e0e44a796abae5cf7684f1d7bcaf9f0f13c06d7d57113f36d87984b42b645",
+  "reviewerRun": "release-0321-i3r4-plan-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run five's candidate: as DO-33"
+      ]
+    },
+    {
+      "id": "PL-29",
+      "status": "ruled",
+      "evidence": [
+        "ruled: item 0c gives CO-569, CO-577, CO-578, CO-581, CO-583 and CO-579 a latest date (2026-11-21) and the owner «this repository's release session»"
+      ]
+    },
+    {
+      "id": "PL-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed outside this candidate: ADR-0194 (proposed, `feat/estate-work-summary`, `962251fc`) reads only projects with no business for such a reader, with that test owed"
+      ]
+    },
+    {
+      "id": "PL-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run five's candidate: this section names the candidate, its two commits and the first `ci.sh fast` read; MERGES lists the re-pin; the handoff's Open and its after-close line are current"
+      ]
+    }
+  ]
+}

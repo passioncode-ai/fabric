@@ -216,10 +216,45 @@ register gate reads it as a row reference (ADR-0096 redaction).
 | V3-56 | PL-25 | non-blocking | ADR-0194 as proposed opened titles across businesses | ruled, outside this candidate: ADR-0194 (proposed, on `feat/estate-work-summary`) is amended to read within the wall between businesses (`boardService.ts#businessWall`), computed by the database function, with a two-business test owed before it is accepted |
 | V3-57 | PL-26 | non-blocking | MERGES recorded five landings that have not happened | fixed in the run-three wave (run four's candidate): one 0.3.21 landing entry that lands at item 0b; CO-565, CO-571 and CO-573 read true once it lands, and item 0c corrects their date if it does not land on 2026-11-14 |
 | V3-58 | PL-27 | non-blocking | item 6 did not tell fabric-workspace that AGENTS.md names the North Star sections | fixed in the run-three wave (run four's candidate): item 6 names the section and its commit on `main` after item 0b |
-### Run four
 
-On the candidate the run-three wave lands, with `bash scripts/ci.sh fast` read green before the reviewers start; five
-fresh reviewers.
+### Run four, a8dae8c6 (superseded)
+
+Candidate `a8dae8c66daa8459d2596229d61db743ab05ff28`: run three's wave (`0680488f`) and the re-pin of
+codex-cli 0.169.0 in the provider capability matrix (`a8dae8c6`), which `bash scripts/ci.sh fast` asked for on
+`0680488f` once the machine's Codex CLI had updated (the first read of that candidate failed on that check alone; an
+earlier read failed on a full disk and an uninitialised `workspace` submodule, both of the checkout, not the code).
+`bash scripts/ci.sh fast` read green on `a8dae8c6` before the reviewers started («fast tier green»). Five fresh
+reviewers; reports and receipts in `docs/evidence/reviews/0.3.21/iteration-3-a8dae8c6/` (kept as the record). 14 findings,
+none blocking. Item 0's full hosted `ci` run on it then failed one suite of 169
+([run 43655180269](https://github.com/passioncode-ai/fabric/actions/runs/43655180269), V3-73), so run four is superseded
+and iteration 3 runs a fifth time. The code
+findings are ruled to CO-578, since the gate refuses source after `verifiedCommit`; their fix (the query's tails drop a
+generic name, `matched` names the tail that matched, the comments and the description) is the first change on `main`
+after the release.
+
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
+| V3-59 | UX-21 | non-blocking | a query path matched only through its file name reports the whole path in `matched` | ruled: CO-578 (on `main` after the release commit, item 0c): `matched` names the tail that matched |
+| V3-60 | UX-22 | non-blocking | the description and spec §3 do not cover a whole window read only in part | ruled: CO-578 (item 0c): the tool description and spec §3 say «or cut at its bound» |
+| V3-61 | UX-23 | non-blocking | a comment says «Отдать агенту» is offered always | ruled: CO-578 (item 0c): the comment says «only on an agent's question (UX-19)» |
+| V3-62 | DA-14 | non-blocking | ER-20's query tails reach generic names (`index.ts`, `package.json`) | ruled: CO-578 (item 0c): a query tail whose name is in `GENERIC_NAMES` is dropped, a tail that still carries a folder kept, with a test of the three pairs |
+| V3-63 | ER-23 | non-blocking | the same tails link `similar_work` claims on generic names | ruled: CO-578 (item 0c): as DA-14, `similar_work` tested too |
+| V3-64 | ER-24 | non-blocking | the `NeedsYouCard` comment says always | ruled: CO-578 (item 0c): as UX-23 |
+| V3-65 | DO-33 | non-blocking | item 0c did not correct the landing dates V3-57 promised | fixed in run five's candidate: item 0c sets the landing day in CO-565, CO-571 and CO-573, and the MERGES entry carries the landing day |
+| V3-66 | DO-34 | non-blocking | the next-free-id line says CO-584 while the counter is at 589 | ruled: item 0c sets the line from the counter (CO-584 to CO-588 reserved on `feat/estate-work-summary`) when that branch lands |
+| V3-67 | DO-35 | non-blocking | three comments say «Отдать агенту» is offered always | ruled: CO-578 (item 0c): as UX-23, in `HomeParts.tsx`, `HomeParts.test.tsx` and `BoardPanel.tsx` |
+| V3-68 | DO-36 | non-blocking | spec §3, the read's comments and the description cover only the last-hour cap | ruled: CO-578 (item 0c): as UX-22, with the read's two comments |
+| V3-69 | PL-28 | non-blocking | item 0c had no date correction | fixed in run five's candidate: as DO-33 |
+| V3-70 | PL-29 | non-blocking | five open rows and CO-579 have no latest date or owner | ruled: item 0c gives CO-569, CO-577, CO-578, CO-581, CO-583 and CO-579 a latest date (2026-11-21) and the owner «this repository's release session» |
+| V3-71 | PL-30 | non-blocking | ADR-0194's item 5 let a reader with no business read every business | fixed outside this candidate: ADR-0194 (proposed, `feat/estate-work-summary`, `962251fc`) reads only projects with no business for such a reader, with that test owed |
+| V3-72 | PL-31 | non-blocking | the records did not describe run four's candidate | fixed in run five's candidate: this section names the candidate, its two commits and the first `ci.sh fast` read; MERGES lists the re-pin; the handoff's Open and its after-close line are current |
+| V3-73 | CI | blocking | the hosted full run's `agent-surface.test.mjs` failed: the surface test keeps its own written list of the tools a session gets, and `fabric_board_search` was not in it (the fast tier does not run that suite) | fixed in run five's candidate (`0b85159f`): the list names `fabric_board_search` |
+
+### Run five
+
+On the candidate that carries `0b85159f` and run four's records, with `bash scripts/ci.sh fast` read green and the full
+hosted run of `0b85159f` ([run 43658016572](https://github.com/passioncode-ai/fabric/actions/runs/43658016572)) read
+before the release commit; five fresh reviewers.
 
 ## Release close
 
@@ -236,6 +271,10 @@ What is owed around the tag, in order; each item is checked off here with its re
    needs (ADR-0194, proposed on `feat/estate-work-summary`, read within the wall between businesses: run three, PL-25), is
    the next task after this release; it does not change 0.3.21. CO-579 takes that ADR id and the release after 0.3.21 as
    its target here (run three, PL-24).
+   With them (run four): the landing day replaces 2026-11-14 in CO-565, CO-571 and CO-573 (DO-33, PL-28); CO-569,
+   CO-577, CO-578, CO-581, CO-583 and CO-579 take the latest date 2026-11-21 and the owner «this repository's release
+   session» (PL-29); CO-578 takes run four's ruled code findings (UX-21 to UX-23, DA-14, ER-23, ER-24, DO-35, DO-36),
+   built first on `main`; and the next-free-id line follows the counter when `feat/estate-work-summary` lands (DO-34).
 1. The CI release run green on every platform, the published release and its notes from `## 0.3.21`.
 2. Install 0.3.21 on this Mac by [the runbook](../../launch/release-mac.md#upgrading-an-existing-database) (no schema
    step): the board switch and «Служба доски» off before the quit, the lifecycle broker's `fabric.desktop` held, the

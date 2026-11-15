@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "a8dae8c66daa8459d2596229d61db743ab05ff28",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-a8dae8c6/2026-11-15-ux.md",
+  "reportSha256": "b0d483ff1dd89ec9e235fe6d8dca1409ce7d23249bc2d4f4fafb109a34337bca",
+  "reviewerRun": "release-0321-i3r4-ux-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-21",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (on `main` after the release commit, item 0c): `matched` names the tail that matched"
+      ]
+    },
+    {
+      "id": "UX-22",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (item 0c): the tool description and spec §3 say «or cut at its bound»"
+      ]
+    },
+    {
+      "id": "UX-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (item 0c): the comment says «only on an agent's question (UX-19)»"
+      ]
+    }
+  ]
+}

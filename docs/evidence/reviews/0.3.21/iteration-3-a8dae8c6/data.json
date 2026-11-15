@@ -1,0 +1,21 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "a8dae8c66daa8459d2596229d61db743ab05ff28",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-a8dae8c6/2026-11-15-data.md",
+  "reportSha256": "aba7a231a1ddeaf93dcc1b22035e5c3ba1f7cae95c9ce33301105d56b286b2d6",
+  "reviewerRun": "release-0321-i3r4-data-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-14",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (item 0c): a query tail whose name is in `GENERIC_NAMES` is dropped, a tail that still carries a folder kept, with a test of the three pairs"
+      ]
+    }
+  ]
+}

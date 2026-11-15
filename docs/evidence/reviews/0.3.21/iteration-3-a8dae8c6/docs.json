@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "a8dae8c66daa8459d2596229d61db743ab05ff28",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-a8dae8c6/2026-11-15-docs.md",
+  "reportSha256": "f6262f16d40dd30af71891312264fa862ef5c5665f67a9d1134509b88138215a",
+  "reviewerRun": "release-0321-i3r4-docs-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run five's candidate: item 0c sets the landing day in CO-565, CO-571 and CO-573, and the MERGES entry carries the landing day"
+      ]
+    },
+    {
+      "id": "DO-34",
+      "status": "ruled",
+      "evidence": [
+        "ruled: item 0c sets the line from the counter (CO-584 to CO-588 reserved on `feat/estate-work-summary`) when that branch lands"
+      ]
+    },
+    {
+      "id": "DO-35",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (item 0c): as UX-23, in `HomeParts.tsx`, `HomeParts.test.tsx` and `BoardPanel.tsx`"
+      ]
+    },
+    {
+      "id": "DO-36",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (item 0c): as UX-22, with the read's two comments"
+      ]
+    }
+  ]
+}
