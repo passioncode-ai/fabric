@@ -40,7 +40,7 @@
   --app-fs-caption: var(--fs-mono-sm); /* 0.75rem — muted lines, meta */
   --app-fs-label: var(--fs-mono-sm); /* uppercase section headings */
   --app-track-label: var(--track-label);
-  --app-fs-badge: var(--fs-mono-xs); /* 0.65rem — state badges */
+  --app-fs-badge: max(11px, var(--fs-mono-xs)); /* 0.65rem — state badges */
   --app-track-badge: var(--track-badge);
   --app-fs-mono: var(--fs-mono-sm);
   --app-fs-title: var(--fs-h4); /* project name, window titles */

@@ -117,7 +117,11 @@ the exact time in the tooltip; on a Переписка message and the feed, and
 instead of ISO keys and a time-zone id (UI-20). A redacted message's id and digest moved to its tooltip. Fourteen em dashes
 the components wrote themselves (between two values, in template strings) replaced, and the design gate now fails on one;
 the lone "no value" dash stays (AT-06-E4). Still open: the request's raw capability on screen (UI-20), the other 23
-places that format a date their own way, type sizes (UI-10, UI-11).
+places that format a date their own way.
+Nothing below 11 px (UI-10): the 10 own rules raised, the 27 rules ported from the prototype lifted in the adaptations,
+the badge token floored at 11 px, and `scripts/check-design.mjs` fails on any size under 11 px or a ported one left
+unlifted; under 550 px the Pulse's bars drop their count (it stays in the title) and name every other day
+(`scripts/test/type-floor.browser.mjs`). Prose hyphenates in the reader's language (UI-11).
 
 Finish line: the contrast check in both themes passes AA; the em-dash gate green; the walk's findings fixed or filed.
 

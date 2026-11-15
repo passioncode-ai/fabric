@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Nothing smaller than 11 px** (the quality waves, W6, ui UI-10, UI-11). 37 type sizes were 7 to 10.5 px (pills,
+  counters, chart labels, section headings); all are 11 px now, and the design check fails on a smaller one. In a narrow
+  window the Pulse's bars keep their count in the tooltip and name every other day. Paragraphs hyphenate.
 - **Dates said one way** (the quality waves, W6, ui UI-20, UI-21). A message in Переписка and the feed say how long ago
   within a day, then a short local date, with the exact time on hover; the Pulse names its days as dates, not ISO keys,
   and keeps the time zone in a tooltip. A redacted message no longer shows its id and digest inline.

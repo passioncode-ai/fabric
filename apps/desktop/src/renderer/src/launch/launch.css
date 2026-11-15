@@ -817,11 +817,11 @@ button.lg-node{ cursor: pointer; }
 .rail-dot.quiet{background:var(--state-idle)}
 .rail-agent-words{display:grid;min-width:0;gap:6px}
 .rail-agent-line{display:flex;gap:4px;min-width:0;font-size:11px;color:var(--app-muted);white-space:nowrap;overflow:hidden}
-.rail-branch{font-family:var(--font-mono);font-size:10.5px;color:var(--state-running);overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rail-branch{font-family:var(--font-mono);font-size:11px;color:var(--state-running);overflow:hidden;text-overflow:ellipsis;min-width:0}
 .rail-word{flex:none}
 .rail-branch.unknown{font-family:inherit;color:var(--app-muted)}
 /* CO-498: the folder an agent works in, before its branch. */
-.rail-folder{font-family:var(--font-mono);font-size:10.5px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin-right:4px}
+.rail-folder{font-family:var(--font-mono);font-size:11px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin-right:4px}
 /* История and Настройки at the column's foot. */
 .rail-foot{margin-top:auto;padding-top:6px;border-top:1px solid var(--app-line)}
 @media(max-width:900px){
@@ -838,7 +838,7 @@ button.lg-node{ cursor: pointer; }
 .lh-overview.lh-overview-two .lh-rhythm{border-right:0;padding-right:0}
 .lh-strip{margin-bottom:var(--space-4)}
 .lh-stats.lh-stats-six{grid-template-columns:repeat(6,minmax(0,1fr))}
-.lh-stat .lh-stat-sub{font-size:10.5px;color:var(--state-idle)}
+.lh-stat .lh-stat-sub{font-size:11px;color:var(--state-idle)}
 .lh-stat.warn b{color:var(--state-idle)}
 @media(max-width:1150px){.lh-stats.lh-stats-six{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:550px){.lh-overview.lh-overview-two{grid-template-columns:minmax(0,1fr)}.lh-stats.lh-stats-six{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -915,7 +915,7 @@ button.lg-node{ cursor: pointer; }
 .estate-home .lh-stat:focus-visible{outline-offset:-2px}
 .estate-home .lh-stat b{font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
 .estate-home .lh-stat span{font-size:11.5px;line-height:1.4}
-.estate-home .lh-stat .lh-stat-sub{margin-top:2px;font-size:10.5px}
+.estate-home .lh-stat .lh-stat-sub{margin-top:2px;font-size:11px}
 .estate-home .lh-stat.attention b{color:var(--app-link)}
 @media(max-width:1250px){.estate-home .lh-stats.lh-stats-six{grid-template-columns:repeat(3,minmax(0,1fr))}.estate-home .lh-stat:nth-child(3n){border-right:0}.estate-home .lh-stat:nth-child(-n+3){border-bottom:1px solid var(--app-line)}}
 /* «В работе»: the cards straight on the page, no outer panel (E1, E4 to E6). */
@@ -1024,7 +1024,7 @@ button.lg-node{ cursor: pointer; }
 /* The console icon beside an agent (R-6): filled where Fabric holds the console, outlined where it runs elsewhere. */
 .rail-agents li{display:flex;align-items:flex-start;gap:2px}
 .rail-agents li>a{flex:1 1 auto;min-width:0}
-.rail-console{flex:none;margin-top:3px;width:24px;height:22px;display:grid;place-items:center;border:1px solid var(--app-line-strong);border-radius:6px;background:var(--app-panel-quiet);color:var(--app-ink);font-family:var(--font-mono);font-size:10px;line-height:1;padding:0;box-sizing:border-box;cursor:pointer}
+.rail-console{flex:none;margin-top:3px;width:24px;height:22px;display:grid;place-items:center;border:1px solid var(--app-line-strong);border-radius:6px;background:var(--app-panel-quiet);color:var(--app-ink);font-family:var(--font-mono);font-size:11px;line-height:1;padding:0;box-sizing:border-box;cursor:pointer}
 .rail-console.elsewhere{background:transparent;border-style:dashed;color:var(--app-muted);cursor:default}
 .rail-console:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
 @media(max-width:900px){.rail-console{display:none}}
@@ -1207,3 +1207,13 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .as-say h4,.as-say>.lp-meta{margin:0}
 .as-say textarea{width:100%;resize:vertical}
 .as-said{margin:0;font-size:12.5px}
+
+/* W6 of the quality waves (2026-11-15, ui UI-10): nothing below 11 px. The ported block above keeps the prototype's
+   sizes byte for byte (port-launch-css.mjs); these lines lift each of its rules under 11 px, in the same media query.
+   check-design.mjs fails when a ported rule under 11 px has no lift here. */
+.app-nav .nav-badge,.lp-pill,.lp-step-line,.lp-run-rail code,.lp-plan-legend,.lp-node-index,.lp-edge small,.lh-identity .lp-kicker,.lh-rhythm-title small,.lh-totals,.lh-totals>span,.lh-pulse small,.lh-live-label,.lh-live>.lp-meta,.lh-event-meta,.lh-events summary,.fp-bar>span,.fp-bar small,.fp-chart-legend,.fp-style small,.fp-variants button>span:last-child,.fp-observation small,.fp-cycle-panel dt{font-size:11px}
+@media(max-width:550px){.lp-progress small,.fp-bar small,.fp-strip .lp-button{font-size:11px}
+  /* A bar narrower than its count: the count stays in the bar's title and the day picker, and every other day is named. */
+  .fp-bar>span{font-size:0}.fp-chart .fp-bar:nth-child(even) small{visibility:hidden}}
+/* W6 (ui UI-11): prose breaks long words at syllables in the reader's language (`<html lang>` follows the locale). */
+.lp p,.lp-message-body,.lc-text{-webkit-hyphens:auto;hyphens:auto}

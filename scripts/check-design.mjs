@@ -270,6 +270,53 @@ let setHits = 0
 if (setHits === 0) ok('component set: every class in the stylesheets is declared by an owner')
 
 
+// ── nothing below 11 px (W6 of the quality waves, 2026-11-15, ui UI-10) ──
+//
+// A literal `font-size` under 11 px in the renderer's stylesheets fails, outside the block ported byte for byte from the
+// approved prototype (port-launch-css.mjs). A ported rule under 11 px passes only when the adaptations below the block
+// lift the same selector, in the same media query, to 11 px or more.
+{
+  const SMALL = 11
+  const PORT_BEGIN = '/* ── ported from docs/reports/product.html ── */', PORT_END = '/* ── adaptations to the app window ── */'
+  const rules = (css) => {
+    const out = []
+    const walk = (t, media) => {
+      let i = 0
+      for (;;) {
+        const open = t.indexOf('{', i)
+        if (open < 0) return
+        const sel = t.slice(i, open).replace(/[;}]/g, ' ').trim()
+        let depth = 1, j = open + 1
+        while (depth && j < t.length) { if (t[j] === '{') depth++; else if (t[j] === '}') depth--; j++ }
+        const body = t.slice(open + 1, j - 1)
+        if (sel.startsWith('@media')) walk(body, sel.replace(/\s+/g, ''))
+        else if (!sel.startsWith('@')) {
+          // `font-size:0` hides a text the layout has no room for (its words stay in a title); it is not a small size.
+          const m = body.match(/font-size:\s*([0-9.]+)px/), hidden = /font-size:\s*0\s*(;|$)/.test(body)
+          for (const one of sel.split(',')) out.push({ sel: one.replace(/\s+/g, ' ').trim(), media, px: hidden ? Infinity : m ? Number(m[1]) : null })
+        }
+        i = j
+      }
+    }
+    walk(css.replace(/\/\*[\s\S]*?\*\//g, ''), '')
+    return out
+  }
+  let small = 0
+  for (const sheet of readdirSync(path.join(SRC, 'renderer/src'), { recursive: true }).filter((f) => String(f).endsWith('.css')).map((f) => path.join(SRC, 'renderer/src', String(f)))) {
+    const css = readFileSync(sheet, 'utf8')
+    const a = css.indexOf(PORT_BEGIN), b = css.indexOf(PORT_END)
+    const ported = a >= 0 && b > a ? rules(css.slice(a, b)) : []
+    const own = rules(a >= 0 && b > a ? css.slice(0, a) + css.slice(b) : css)
+    for (const r of own) if (r.px !== null && r.px < SMALL) { fail(`${rel(sheet)}: ${r.sel} is ${r.px}px; nothing below ${SMALL}px (ui UI-10)`); small++ }
+    for (const r of ported) {
+      if (r.px === null || r.px >= SMALL) continue
+      if (own.some((o) => o.sel === r.sel && o.media === r.media && o.px !== null && o.px >= SMALL)) continue
+      fail(`${rel(sheet)}: the ported ${r.media ? r.media + ' ' : ''}${r.sel} is ${r.px}px and the adaptations do not lift it to ${SMALL}px`); small++
+    }
+  }
+  if (small === 0) ok(`type: nothing below ${SMALL}px in the renderer's stylesheets; the prototype's smaller rules are lifted`)
+}
+
 // Literal user-visible text in JSX: >Some words< or a quoted placeholder/title.
 let literals = 0
 const ALLOWED_LITERAL = /^[\s{}()[\]<>/\\|·×–:,.;#%+\-*=&?!0-9]*$/

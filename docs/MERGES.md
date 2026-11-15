@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-15 · `—` · feat/w6-type → main · fast-forward
+- files: `launch/launch.css` (the adaptations' lift of the prototype's sizes under 11 px, the narrow chart, hyphens), `launch/rail.css`, `start/start.css`, `tokens.app.css` (`--app-fs-badge` floored), `scripts/check-design.mjs` (the type floor), `scripts/test/type-floor.browser.mjs`, the quality waves' W6 state, the map lane `iteration-2026-11-15-w6-type`
+- conflicts: none
+- summary: W6, ui UI-10 and UI-11: nothing below 11 px, gated; prose hyphenates
+
 ### 2026-11-15 · `—` · feat/w6-dates → main · fast-forward
 - files: `duration.ts#whenSaid` and its test, `launch/CommsScreen.tsx`, `launch/CommsFeed.tsx`, `launch/PulseScreen.tsx` and its test, the components' own em dashes (`ProjectHome.tsx`, `Tasks.tsx`, `Onboarding.tsx`, `DiagnosticsSection.tsx`, `ProviderAccounts.tsx`, `RetroSection.tsx`, `TerminalView.tsx`), `scripts/check-design.mjs`, `i18n` keys `time.ago` and `launch.pulse.range`, CO-581, the quality waves' W6 state, the map lane `iteration-2026-11-15-w6-dates`
 - conflicts: none
