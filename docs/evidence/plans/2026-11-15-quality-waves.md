@@ -58,6 +58,10 @@ hand step; CO-219 resolved.
 | 49 `fabric-mcp` processes hold 2.7 GB | perf PF-10 | a capped heap or bundled Node, measured at 40 sessions |
 | Blind spots: quiet channels untimed, `[object Object]` errors | perf PF-8 | timed, and errors formatted |
 
+State, 2026-11-15: built on `main`: the shared home reading (`shared/sharedReading.ts`, PF-2's first half), the
+exposure check answered from its last value (PF-9), errors as objects said by message or code (PF-8's half). Next: the
+home's stages in parallel, the polls paused while hidden (PF-3), the log's sampling (PF-6).
+
 Finish line: the home under 1 s at p95 on this machine with 40 sessions, measured from the ops log; the log back to 7 days.
 
 ## W4 · The bug tracker, on our own analytics

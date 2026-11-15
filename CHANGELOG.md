@@ -9,6 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The home and the rail answer faster under many agents** (the quality waves, W3). Every window and screen now shares
+  one reading of the home, joined while it runs and answered again for two seconds, where each asked for its own (up to
+  809 readings an hour, some 18 s long). The network check behind the database notice answers at once from its last
+  result instead of waiting up to 5 s every 5 minutes. The board dispatcher's log names an error that arrives as a plain
+  object by its message or code, never «[object Object]».
 - **The board starts no run on a nearly full disk** (the quality waves, W2). Below 3 GB free the dispatcher holds new
   starts, says so once in the log, and resumes when space returns; the runs already going are still watched. In the
   week before, the local database went down four times with 0.1 to 2.8 GB free.

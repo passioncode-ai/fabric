@@ -231,7 +231,11 @@ export function noteOf(e: unknown): string {
   // A path may hold spaces (a folder named with words), so everything from the first absolute path on is dropped
   // (the 0.3.16 review, iterations 2 and 3, DA-5, ER-10, and the final candidate's NB-3): after a space, a quote, a
   // backtick, `(`, `=`, `:`, `[`, `{`, `<`, `,`, `;` or `|`, as `/…`, `~/…`, `C:\…` or a `file://` URL.
-  return (e instanceof Error ? e.message : String(e)).replace(/(^|[\s'"`(=:[{<,;|])(?:file:\/\/|~|[A-Za-z]:)?[\\/][\s\S]*$/, '$1<path>').slice(0, 200)
+  // W3 (perf PF-8): a plain object (a PostgREST error, a refusal) said by its message or code, never «[object Object]».
+  const said = e instanceof Error ? e.message
+    : e && typeof e === 'object' ? String((e as { message?: unknown }).message ?? (e as { code?: unknown }).code ?? (() => { try { return JSON.stringify(e) } catch { /* a circular or throwing object: the note says so; noteOf's caller records it */ return 'an unreadable error' } })())
+    : String(e)
+  return said.replace(/(^|[\s'"`(=:[{<,;|])(?:file:\/\/|~|[A-Za-z]:)?[\\/][\s\S]*$/, '$1<path>').slice(0, 200)
 }
 
 /** Why a request is the operator's: three runs left it unsettled (`inbox` for an inbox item, CO-559), or it passed its deadline accepted with no run (ER-7);

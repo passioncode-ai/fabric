@@ -79,6 +79,15 @@ test('a queued request with nobody on it opens a workflow, offers it to the defa
   assert.equal(w.launches.length, 1)
 })
 
+test('W3 (the quality waves, perf PF-8): an error that is a plain object is said by its message or code', async () => {
+  const { noteOf } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  assert.equal(noteOf({ message: 'relation is busy', code: '55P03' }), 'relation is busy')
+  assert.equal(noteOf({ code: 'PGRST301' }), 'PGRST301')
+  assert.equal(noteOf({ status: 503 }), '{"status":503}')
+  assert.equal(noteOf(new Error('plain')), 'plain')
+  assert.ok(!noteOf({}).includes('[object Object]'))
+})
+
 test('W2 (the quality waves, perf PF-1): under the disk floor no run starts, said once, and starts resume above it', async () => {
   const { DISK_FLOOR_BYTES } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
   const w = world()

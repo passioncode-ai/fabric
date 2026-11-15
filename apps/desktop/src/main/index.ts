@@ -16,6 +16,7 @@ import { dockerRuntimeFor } from './dockerLaunch'
 import { fixPath, halfUpDeps, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStartingStack } from './env'
 import { resolveHealingHalfUp } from './stackHalfUp.ts'
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
+import { createSharedReading } from '../shared/sharedReading'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
 import { launchOption, launchOptions, PtyManager, setFolderTrust, setPermissionPreference } from './pty'
@@ -4873,7 +4874,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.stackExposure, async (): Promise<Returns<FabricApi['stack']['exposure']>> => {
     // Stale, or never finished (the first check failed): check again (0.3.2 verification ER-10, UX-6).
     if (stackApiUrl && exposureNeedsCheck(lastStackExposure, stackExposureCheck !== null, Date.now())) stackExposureCheck = checkStackExposure(stackApiUrl)
-    if (stackExposureCheck) await Promise.race([stackExposureCheck, new Promise((r) => setTimeout(r, 5_000))])
+    // W3 of the quality waves (perf PF-9): with an answer in hand the window gets it at once and the check refreshes it
+    // in the background for the next read (it waited up to 5 s every 5 minutes, 218 of 409 reads over 1 s); only the
+    // first read, with nothing to answer yet, waits for it.
+    if (stackExposureCheck && lastStackExposure === null) await Promise.race([stackExposureCheck, new Promise((r) => setTimeout(r, 5_000))])
     return lastStackExposure
   })
 
@@ -5707,7 +5711,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.workMessages, async (_e, sessionId: string): Promise<Returns<FabricApi['work']['messages']>> =>
     abandonedSweep?.messages(String(sessionId ?? '')) ?? [])
 
-  handle(IPC.workHome, async (): Promise<Returns<FabricApi['work']['home']>> => {
+  // W3 of the quality waves (perf PF-2): one reading for every reader, joined in flight and answered again for 2 s
+  // (`sharedReading.ts`); the window, the rail and each screen asked for their own, up to 809 times an hour.
+  const homeReading = createSharedReading((): Promise<Returns<FabricApi['work']['home']>> => readHomeView(), 2_000)
+  handle(IPC.workHome, (): Promise<Returns<FabricApi['work']['home']>> => homeReading.read())
+  async function readHomeView(): Promise<Returns<FabricApi['work']['home']>> {
     const held = heldSessions()
     // 0.3.14, the simple Fabric: each console's git branch for the left column and «В работе» (`agentBranches.ts`).
     const now = Date.now()
@@ -5723,7 +5731,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const stripped = await withStrip(view, { handedIn: () => readHandedInToday(store as never, { now }), sweep: () => abandonedSweep?.current() ?? null })
     // Every project's display name (rail gap §2, `projectNames.ts`).
     return withDisplayNames(stripped, () => projectNames.read(namesStale), (e) => ops.failed('work.display-names-unread', e, { note: 'the screens print the stored names' }))
-  })
+  }
   handle(IPC.workBoard, async (_e, projectId?: unknown, doneLimit?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
     readTaskBoard(store, {
       now: Date.now(), session: sessionSignOf, sessions: heldSessions(), projectId: typeof projectId === 'string' && /^[0-9a-f-]{36}$/.test(projectId) ? projectId : null,
