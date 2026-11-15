@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A row of cards that scrolls says so** (the quality waves, W1, ui UI-7). The directions strip and the kanban board
+  fade their right edge while more cards wait past it; macOS hides the scrollbar, so the cut card used to read as a
+  stray border.
 - **No column grows past the window** (the quality waves, W1, ui UI-8). 57 more layouts let one long path or link widen
   their column and the page; each now keeps its width, and a browser check renders every grid with a long word.
 - **Nothing smaller than 11 px** (the quality waves, W6, ui UI-10, UI-11). 37 type sizes were 7 to 10.5 px (pills,

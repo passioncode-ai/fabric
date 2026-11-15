@@ -1223,3 +1223,9 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
    (`justify-items:start`) also caps them at its width. */
 :is(.rail-places,.act-line-refused,.hx,.hx-refused,.hx-problem,.ja,.ja-refused,.calm-help-nav,.calm-filter,.lp-progress,.lp-mini,.lp-task-brief,.fp-chart,.lp-message,.lh-need-body,.lc-posts,.ag,.ag-centre,.ag-chosen,.ag-list,.ag-note,.ag-rows,.ag-row,.ag-joined,.ag-console,.hx-grid,.hx-main,.hx-detail,.lk-card-wrap,.rail-view,.rail-agent-words,.lh-inwork,.as,.as-now,.ap-tasks,.ap-task-words,.ap-task-body,.ap-brief,.as-side,.as-session,.as-facts,.as-questions-list,.xp,.xp-form,.rd-answer,.rd-buttons,.rd-comment,.lo,.ov,.as-say,.st-builder-reasons,.cr,.cr-choice,.transcript-list,.transcript-body,.banner-remedy)>*{min-width:0}
 :is(.lh-need-body,.ag-note,.lk-card-wrap,.hx-problem)>*{max-width:100%}
+/* W1 (ui UI-7): a row of cards that scrolls says so. macOS hides the scrollbar, so a card cut at the edge read as a stray
+   border; the right edge fades while more cards wait past it. The fade is driven by the row's own scroll: a row that
+   does not overflow has no scroll timeline and no fade, and at the end of the row the fade is gone. */
+@property --lp-edge-fade{syntax:'<length>';inherits:false;initial-value:0px}
+@keyframes lp-edge-fade{from{--lp-edge-fade:40px}90%{--lp-edge-fade:40px}to{--lp-edge-fade:0px}}
+.lp-dir-strip,.lk-board{-webkit-mask-image:linear-gradient(to right,var(--app-ink) calc(100% - var(--lp-edge-fade)),transparent);mask-image:linear-gradient(to right,var(--app-ink) calc(100% - var(--lp-edge-fade)),transparent);animation:lp-edge-fade linear both;animation-timeline:scroll(self inline)}

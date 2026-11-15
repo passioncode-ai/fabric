@@ -27,7 +27,8 @@ the next defect visible (W4), the board's correctness (W5), the visual layer and
 State, 2026-11-16: UI-1 to UI-6, UI-9, UI-22, UI-23 built (`comms-thread`, `layout-wide-content` suites). UI-8: every class
 the stylesheets make a grid is rendered in a 600 px column with a 400-character word (`layout-stress.browser.mjs`); the 57
 that grew let their items shrink, the four that size items to content cap them, seven icon or label grids are named with
-their reason. UI-7 (no sign a row of cards scrolls) is open.
+their reason. UI-7: a row of cards that scrolls (directions, kanban) fades its right edge while more cards wait past it,
+driven by the row's own scroll, so a row that fits never fades (`scroll-edge.browser.mjs`).
 
 Finish line: the layout suite green at 1800, 1280, 1024, 800 and 700 px with the panel open and closed; the Board,
 Переписка (list, thread, feed), a project page and an agent page read on the installed bundle. Release 0.3.22 with W2's
