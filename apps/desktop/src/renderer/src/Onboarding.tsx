@@ -272,7 +272,7 @@ export function Onboarding({
                 <option key={o.id} value={o.id} disabled={!o.available}>
                   {/* Each option by its own name (iteration 1: Codex was shown as "Terminal"); the shell has no program. */}
                   {runnerLabel(o.id, t)}
-                  {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
+                  {o.available ? '' : ` (${t('onboarding.unavailable')})`}
                 </option>
               ))}
             </select>

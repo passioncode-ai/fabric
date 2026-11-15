@@ -112,7 +112,12 @@ interface string rewritten without U+2014 (133 ru, 70 en) and gated in both lang
 code (about 15 places) stays: the copy catalogue's AT-06-E4 exempts a dash standing for an empty cell. One word per act (UI-16): «Повторить» on every retry after a failure; «Проверить ещё раз» stays for re-reading a state, a
 different act, and the Edit menu's «Повторить» stays as macOS names Redo. «Вы» for the person in the feed and decisions
 (UI-17). The fixed plurals of UI-19 are filled only with constants (300, 50, the list's cap), all in the «many» form, so
-no reader meets the wrong form; ruled, not changed. Next: ids and dates on screen (UI-20, UI-21), type sizes (UI-10, UI-11).
+no reader meets the wrong form; ruled, not changed. One rule for when something was said (UI-21, `duration.ts#whenSaid`): within a day how long ago, then a short local date,
+the exact time in the tooltip; on a Переписка message and the feed, and the Pulse's days and range as short local dates
+instead of ISO keys and a time-zone id (UI-20). A redacted message's id and digest moved to its tooltip. Fourteen em dashes
+the components wrote themselves (between two values, in template strings) replaced, and the design gate now fails on one;
+the lone "no value" dash stays (AT-06-E4). Still open: the request's raw capability on screen (UI-20), the other 23
+places that format a date their own way, type sizes (UI-10, UI-11).
 
 Finish line: the contrast check in both themes passes AA; the em-dash gate green; the walk's findings fixed or filed.
 

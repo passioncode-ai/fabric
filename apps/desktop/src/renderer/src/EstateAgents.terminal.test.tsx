@@ -349,7 +349,7 @@ describe('history follows what happens', () => {
     fireEvent.click(screen.getByText(/Atlas/))
     await waitFor(() => expect(api.terminal.history).toHaveBeenCalledTimes(1))
     // TWO listeners, and both belong here: `TerminalView` registers one to
-    // print its own "[session ended — exit N]" line, and the panel registers
+    // print its own "[session ended, exit N]" line, and the panel registers
     // one to re-read the history. This assertion said `toBe(1)` first, against
     // correct code — two consumers of one channel is not a leak, because each
     // hands back its own unsubscribe (the case above counts those).

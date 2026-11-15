@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Dates said one way** (the quality waves, W6, ui UI-20, UI-21). A message in Переписка and the feed say how long ago
+  within a day, then a short local date, with the exact time on hover; the Pulse names its days as dates, not ISO keys,
+  and keeps the time zone in a tooltip. A redacted message no longer shows its id and digest inline.
 - **One word for retry, and «вы» for you** (the quality waves, W6, ui UI-16, UI-17). Every retry after a failure is
   «Повторить» in Russian; the feed and the decisions say «вы приняли…», «you accepted…», not «оператор»/“the operator”.
 - **Interface strings without the long dash** (the quality waves, W6, ui UI-15). 133 Russian and 70 English strings

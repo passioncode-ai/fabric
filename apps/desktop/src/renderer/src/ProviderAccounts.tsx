@@ -31,7 +31,7 @@ function Headroom({ headroom }: { headroom: ShownHeadroom }): React.JSX.Element 
   if (!headroom.known)
     return (
       <span className="headroom headroom-unknown" data-known="false" title={headroom.why}>
-        {t('accounts.headroom.unknown')} — {headroom.why}
+        {t('accounts.headroom.unknown')}: {headroom.why}
       </span>
     )
   return (
@@ -158,7 +158,7 @@ export function ProviderAccounts({
           <ul className="excluded" data-testid="excluded">
             {auto.excluded.map((e) => (
               <li key={e.accountId}>
-                {e.accountId} — {e.why}
+                {e.accountId}: {e.why}
               </li>
             ))}
           </ul>

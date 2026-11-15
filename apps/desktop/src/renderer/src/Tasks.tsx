@@ -288,7 +288,7 @@ export function Tasks({
           {options.filter(listedRunner).map((o) => (
             <option key={o.id} value={o.id} disabled={!o.available}>
               {runnerLabel(o.id, t)}
-              {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
+              {o.available ? '' : ` (${t('onboarding.unavailable')})`}
             </option>
           ))}
           {/* M125 — created agents, grouped apart from the runners. They are a
@@ -318,8 +318,8 @@ export function Tasks({
             {modes.map((m) => (
               <option key={m.id} value={m.id} disabled={m.blockedKey !== null}>
                 {t(m.labelKey as 'agent.mode.ask')}
-                {m.blockedKey ? ` — ${t('agent.mode.blocked')}` : ''}
-                {m.warnKey ? ` — ${t('agent.mode.warned')}` : ''}
+                {m.blockedKey ? ` (${t('agent.mode.blocked')})` : ''}
+                {m.warnKey ? ` (${t('agent.mode.warned')})` : ''}
               </option>
             ))}
           </select>

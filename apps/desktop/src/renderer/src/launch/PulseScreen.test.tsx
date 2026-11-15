@@ -8,6 +8,8 @@ import type { FeedEvent, ProjectRow, TerminalSession } from '../../../shared/typ
 
 beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-09-29T12:00:00')) })
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals() })
+// W6 (ui UI-20, UI-21): a day reads as a short local date, never its ISO key.
+const shortDay = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('en', { day: 'numeric', month: 'short' })
 const projects = [{ id: 'p1', name: 'atlas-repo', displayName: 'Atlas', status: 'active' }, { id: 'p2', name: 'Studio', status: 'active' }] as unknown as ProjectRow[]
 const ev = (seq: number, at: string, type: string, project: string | null = 'p1', actor = 'agent'): FeedEvent =>
   ({ estate_id: 'e', seq, type, actor: { kind: actor, id: 'x' }, project_id: project, occurred_at: at, payload: {} })
@@ -31,7 +33,7 @@ function mount({ feed = [ev(1, '2026-09-29T09:00:00', 'question.answered@1', 'p1
 describe('the pulse (SCR-42)', () => {
   it('opens on today, lists its events newest first, and filters decisions apart', async () => {
     mount()
-    expect(screen.getByRole('heading', { name: '2026-09-29' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: shortDay('2026-09-29') })).toBeTruthy()
     const titles = () => [...document.querySelectorAll('.fp-event b')].map((b) => b.textContent)
     expect(titles()).toEqual([en['event.task.created@1'], en['event.question.answered@1']])
     fireEvent.click(screen.getByRole('button', { name: en['launch.pulse.kind.decision'] }))
@@ -59,15 +61,15 @@ describe('the pulse (SCR-42)', () => {
     const rhythm = { days, totals: { results: 4, decisions: 2, events: 58 }, today: { results: 3, decisions: 2, events: 41 }, marksCapped: false, timeZone: 'Europe/Warsaw', readAt: '2026-09-29T12:00:00Z' }
     const full = Array.from({ length: FEED_WINDOW }, (_, i) => ev(i + 1, i === 0 ? '2026-09-28T10:00:00' : '2026-09-29T10:00:00', 'task.created@1'))
     const { api } = mount({ feed: full, rhythm })
-    await waitFor(() => expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', '2026-09-29').replace('{count}', '41') })).toBeTruthy())
-    expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', '2026-09-20').replace('{count}', '17') })).toBeTruthy()
-    expect(screen.getByRole('button', { name: en['launch.pulse.dayUnknown'].replace('{date}', '2026-09-21') }), 'a day the journal could not read is unknown').toBeTruthy()
+    await waitFor(() => expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', shortDay('2026-09-29')).replace('{count}', '41') })).toBeTruthy())
+    expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', shortDay('2026-09-20')).replace('{count}', '17') })).toBeTruthy()
+    expect(screen.getByRole('button', { name: en['launch.pulse.dayUnknown'].replace('{date}', shortDay('2026-09-21')) }), 'a day the journal could not read is unknown').toBeTruthy()
     fireEvent.change(screen.getByLabelText(en['launch.pulse.dayLabel']), { target: { value: '2026-09-20' } })
     expect(screen.getByText(en['launch.pulse.countOnly'])).toBeTruthy()
     expect(document.querySelector('.fp-formula p')?.textContent).toContain('2 decisions and 4 results')
     cleanup()
     const one = mount({ feed: full, rhythm, projectId: 'p1' })
-    expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', '2026-09-29').replace('{count}', String(FEED_WINDOW - 1)) })).toBeTruthy()
+    expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', shortDay('2026-09-29')).replace('{count}', String(FEED_WINDOW - 1)) })).toBeTruthy()
     expect(one.api.work?.rhythm, 'one project does not read the estate\'s counts').not.toHaveBeenCalled()
     expect(api.work?.rhythm).toHaveBeenCalled()
   })

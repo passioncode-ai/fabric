@@ -171,7 +171,7 @@ describe('what this build cannot do, where somebody reaches for it', () => {
 
   it('names every account that cannot take over, with the reason', () => {
     view()
-    expect(screen.getByTestId('excluded').textContent).toMatch(/acct-B — resume-unverified/)
+    expect(screen.getByTestId('excluded').textContent).toMatch(/acct-B: resume-unverified/)
   })
 
   it('shows which conversations enabling this would affect', () => {

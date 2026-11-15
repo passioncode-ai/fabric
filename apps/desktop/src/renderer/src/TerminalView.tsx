@@ -97,7 +97,7 @@ export function TerminalView({
     const offExit = window.fabric.terminal.onExit((sessionId, exitCode) => {
       if (sessionId === session.sessionId) {
         running.current = false
-        term.write(`\r\n\x1b[2m[session ended — exit ${exitCode}]\x1b[0m\r\n`)
+        term.write(`\r\n\x1b[2m[session ended, exit ${exitCode}]\x1b[0m\r\n`)
       }
     })
     const onInput = term.onData((data) => gate.input(data))

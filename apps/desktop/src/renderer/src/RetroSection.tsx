@@ -261,7 +261,7 @@ function RetroRow({
         ) : (
           <>
             <span className="mono">{item.evidence.raw}</span>
-            {item.evidence.says && <> — {item.evidence.says}</>}
+            {item.evidence.says && <>: {item.evidence.says}</>}
             {/* THE ACT THE EVIDENCE NAMES, not a boolean over its status
                 (AX-11). `evidenceOf` computes four different answers — open,
                 locate, retry, and none — and `action` was read by nothing: the
@@ -282,11 +282,11 @@ function RetroRow({
                     : t('retro.retrySource')}
               </Button>
             )}
-            {where?.at === 'project' && <> — {where.why}</>}
+            {where?.at === 'project' && <>: {where.why}</>}
             {/* IN PLACE, with the raw ref above it and the reason beside it:
                 not dropped, not a jump to something else. A row that cannot be
                 opened is still the only provenance the reader has. */}
-            {where?.at === 'unaddressable' && <> — {where.why}</>}
+            {where?.at === 'unaddressable' && <>: {where.why}</>}
           </>
         )}
       </p>

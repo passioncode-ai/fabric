@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-15 · `—` · feat/w6-dates → main · fast-forward
+- files: `duration.ts#whenSaid` and its test, `launch/CommsScreen.tsx`, `launch/CommsFeed.tsx`, `launch/PulseScreen.tsx` and its test, the components' own em dashes (`ProjectHome.tsx`, `Tasks.tsx`, `Onboarding.tsx`, `DiagnosticsSection.tsx`, `ProviderAccounts.tsx`, `RetroSection.tsx`, `TerminalView.tsx`), `scripts/check-design.mjs`, `i18n` keys `time.ago` and `launch.pulse.range`, CO-581, the quality waves' W6 state, the map lane `iteration-2026-11-15-w6-dates`
+- conflicts: none
+- summary: W6, ui UI-20 and UI-21: dates said by one rule, no ISO keys or ids inline, no em dash written by a component
+
 ### 2026-11-15 · `—` · feat/w4-bug-capture → main · fast-forward
 - files: the bug store and fingerprint (`main/bugStore.ts`, `shared/bugFingerprint.ts`, `index.ts` crash capture), the theme's gold ink (`launch.css`, `rail.css`, `styles.css`, `scripts/test/gold-ink-contrast.browser.mjs`), the home's assembly moved to `main/homeView.ts`, the general plan's Now line, CO-581, the quality waves' W3 and W7 state, the interface strings without U+2014 (`i18n/ru.ts`, `i18n/en.ts`, `scripts/check-design.mjs` on both languages, `scripts/emdash-baseline.txt` emptied, the copy-check receipts), the map lanes `iteration-2026-11-15-w4-bugs`, `iteration-2026-11-15-w6-gold`, `iteration-2026-11-15-w7-home-module`, `iteration-2026-11-15-w6-no-dash`, `iteration-2026-11-15-w6-words`; one word for retry and «вы» for the person (`i18n/ru.ts`, `i18n/en.ts`)
 - conflicts: none

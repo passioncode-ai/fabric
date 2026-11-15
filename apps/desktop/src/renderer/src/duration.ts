@@ -57,3 +57,18 @@ export function heldFor(iso: string, t?: Translate, now = Date.now()): string | 
   const h = Math.floor(minutes / 60), m = minutes % 60
   return h === 0 ? say(m, 'm') : m === 0 ? say(h, 'h') : `${say(h, 'h')} ${say(m, 'm')}`
 }
+
+/**
+ * When something was said, by one rule for every screen (W6 of the quality waves, ui UI-21): within a day, how long ago
+ * («2 ч назад»); after that, a short local date («15 нояб.», the year added when it is not this year). `exact` is the full
+ * local date and time for the element's tooltip. A time that does not parse answers null and the caller leaves it out.
+ */
+export function whenSaid(iso: string, locale: string, t: Translate, now = Date.now()): { said: string; exact: string } | null {
+  const at = new Date(iso).getTime()
+  if (!Number.isFinite(at)) return null
+  const d = new Date(at)
+  const exact = d.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })
+  if (now - at < 86_400_000 && now - at >= -60_000) return { said: t('time.ago', { time: since(iso, t) }), exact }
+  const sameYear = d.getFullYear() === new Date(now).getFullYear()
+  return { said: d.toLocaleDateString(locale, { day: 'numeric', month: 'short', ...(sameYear ? {} : { year: 'numeric' }) }), exact }
+}

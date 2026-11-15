@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { heldFor, knownTime, since, untimed, until } from './duration'
+import { heldFor, knownTime, since, untimed, until, whenSaid } from './duration'
 
 afterEach(() => { vi.useRealTimers() })
 const at = (secondsAgo: number) => new Date(Date.parse('2026-09-29T12:00:00Z') - secondsAgo * 1000).toISOString()
@@ -46,5 +46,20 @@ describe('knownTime and untimed (the 0.3.15 review, iteration 2, UX-16)', () => 
     expect(knownTime(null)).toBe(false)
     expect(untimed('сдал ')).toBe('сдал')
     expect(untimed('закончилась , как именно, не записано')).toBe('закончилась, как именно, не записано')
+  })
+})
+
+describe('when something was said, one rule for every screen (W6, ui UI-21)', () => {
+  const NOW = Date.parse('2026-11-15T12:00:00Z')
+  const t = ((key: string, vars: { time?: string; n?: number }) => (key === 'time.ago' ? `${vars.time} ago` : `${vars.n}${key.slice(-1)}`)) as never
+  it('says how long ago within a day, a short date after it, the year only when it is not this year', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date(NOW))
+    expect(whenSaid(new Date(NOW - 2 * 3600_000).toISOString(), 'en-GB', t, NOW)?.said).toBe('2h ago')
+    expect(whenSaid('2026-11-01T09:00:00Z', 'en-GB', t, NOW)?.said).toBe('1 Nov')
+    expect(whenSaid('2025-11-01T09:00:00Z', 'en-GB', t, NOW)?.said).toBe('1 Nov 2025')
+    expect(whenSaid('2026-11-01T09:00:00Z', 'en-GB', t, NOW)?.exact).toMatch(/2026/)
+  })
+  it('a time that does not parse says nothing, never a dash', () => {
+    expect(whenSaid('not a time', 'en-GB', t, NOW)).toBeNull()
   })
 })

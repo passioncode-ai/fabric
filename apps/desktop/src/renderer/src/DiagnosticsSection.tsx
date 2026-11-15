@@ -63,7 +63,7 @@ export function DiagnosticsSection(): React.JSX.Element {
           second is the one that explains a refusal the operator is looking at. */}
       {meta && (
         <p className="muted">
-          <span className="mono">{meta.buildLine.short}</span> — {meta.buildLine.says}
+          <span className="mono">{meta.buildLine.short}</span>: {meta.buildLine.says}
           {meta.compatibility.compatibility !== 'compatible' && (
             <>
               {' · '}

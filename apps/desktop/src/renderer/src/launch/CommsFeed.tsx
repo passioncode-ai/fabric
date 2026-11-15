@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CommsMessage } from '../../../shared/commsRead.ts'
 import { pluralForm, useLocale, useT } from '../i18n'
+import { whenSaid } from '../duration'
 import { newestPostsRead } from './commsNewest'
 
 /** How many of the newest posts the feed reads. */
@@ -137,7 +138,7 @@ export function CommsFeed({ mark, nameOf, threadOf, onOpen }: {
                 <span className="lc-head">
                   <b>{nameOf(p.sender.project)}</b>
                   <span className="lp-pill">{kindOf(p.kind)}</span>
-                  <time dateTime={p.at}>{new Date(p.at).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}</time>
+                  {(() => { const when = whenSaid(p.at, locale, t); return when && <time dateTime={p.at} title={when.exact}>{when.said}</time> })()}
                 </span>
                 <span className="lc-text">{text.length > PREVIEW ? text.slice(0, PREVIEW).trimEnd() + '…' : text}</span>
                 {/* OF-29 (CO-401): the thread the post belongs to, named under it. */}

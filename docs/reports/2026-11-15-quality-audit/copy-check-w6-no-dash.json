@@ -1,7 +1,7 @@
 {
  "schema": "copy-check-receipts/1",
  "date": "2026-11-15",
- "what": "W6 of the quality waves: the interface strings rewritten without U+2014 (ru.ts, en.ts), each checked with the copy-rules check (batch, register ui, the organization's brand voice v3). Findings: suggestions only (ui trailing period, rule of three, one all-caps README); none blocking. Four ru strings and one en string were then corrected by hand (digest.stale, harness.estateWide, history.archive.mine, launch.help.ceo). Then ui UI-16 and UI-17 (one word for retry, «вы» for the person): 12 strings, no finding.",
+ "what": "W6 of the quality waves: the interface strings rewritten without U+2014 (ru.ts, en.ts), each checked with the copy-rules check (batch, register ui, the organization's brand voice v3). Findings: suggestions only (ui trailing period, rule of three, one all-caps README); none blocking. Four ru strings and one en string were then corrected by hand (digest.stale, harness.estateWide, history.archive.mine, launch.help.ceo). Then ui UI-16 and UI-17 (one word for retry, «вы» for the person): 12 strings, no finding. Then ui UI-20 and UI-21 (time.ago, launch.pulse.range, ru and en): 4 strings, no finding.",
  "reports": {
   "ru-0": [
    "0539c70d-c223-42df-9ddb-a0aed3975203",
@@ -229,6 +229,12 @@
    "de8bed97-73f5-4d74-9577-43ca802ba2b3",
    "7aed0b93-e28e-40e3-bc70-c4a860f8822d",
    "4333491a-c121-468a-89e3-4998c5668fee"
+  ],
+  "ui20-ui21": [
+   "65ad7350-2ded-4607-99f5-21cc8fee499b",
+   "af7416d2-0efa-498c-9e31-19270ab9ac94",
+   "0d8301bf-3246-4fb0-ae60-52e7d09d2eb0",
+   "8aa2fb75-e47e-4299-86eb-1cad34524292"
   ]
  }
 }

@@ -272,7 +272,7 @@ if (setHits === 0) ok('component set: every class in the stylesheets is declared
 
 // Literal user-visible text in JSX: >Some words< or a quoted placeholder/title.
 let literals = 0
-const ALLOWED_LITERAL = /^[\s{}()[\]<>/\\|·×—–:,.;#%+\-*=&?!0-9]*$/
+const ALLOWED_LITERAL = /^[\s{}()[\]<>/\\|·×–:,.;#%+\-*=&?!0-9]*$/
 for (const f of shipped.filter((f) => f.endsWith('.tsx'))) {
   const lines = readFileSync(f, 'utf8').split('\n')
   lines.forEach((line, i) => {
@@ -287,6 +287,13 @@ for (const f of shipped.filter((f) => f.endsWith('.tsx'))) {
     }
     for (const m of line.matchAll(/\b(placeholder|title|aria-label)=["']([^"'{}]+)["']/g)) {
       fail(`${rel(f)}:${i + 1} literal ${m[1]}: "${m[2].slice(0, 40)}" — use t('…')`)
+      literals++
+    }
+    // W6 of the quality waves (2026-11-15): an em dash a component writes itself, between two values or in a template
+    // string, never reaches the strings registry's own check. A lone dash standing for "no value" (`?? '\u2014'`) is the
+    // copy catalogue's AT-06-E4 exception and stays.
+    for (const m of line.matchAll(/(?:>|\})([^<>{}\n]*\u2014[^<>{}\n]*)(?:<|\{)|`([^`\n]*\u2014[^`\n]*)`/g)) {
+      fail(`${rel(f)}:${i + 1} an em dash written by the component: "${(m[1] ?? m[2]).trim().slice(0, 40)}"; a colon, comma or parentheses instead`)
       literals++
     }
   })

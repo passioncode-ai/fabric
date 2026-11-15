@@ -1385,7 +1385,7 @@ export function ProjectHeader({
               <option key={o.id} value={o.id} disabled={!o.available}>
                 {/* REQ-40: a greyed-out choice says why, as the launch picker and the new-project form do. */}
                 {runnerLabel(o.id, t)}
-                {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
+                {o.available ? '' : ` (${t('onboarding.unavailable')})`}
               </option>
             ))}
           </select>
@@ -1520,7 +1520,7 @@ export function AgentsSection({
           {options.filter(listedRunner).map((o) => (
               <option key={o.id} value={o.id} disabled={!o.available}>
                 {runnerLabel(o.id, t)}
-                {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
+                {o.available ? '' : ` (${t('onboarding.unavailable')})`}
               </option>
             ))}
           </select>

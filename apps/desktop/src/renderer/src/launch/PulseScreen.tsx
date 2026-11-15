@@ -53,7 +53,9 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
   const nameOf = (id: string | null) => (id ? (() => { const p = (projects ?? []).find((x) => x.id === id); return p ? projectDisplayName(p) : t('launch.home.boardWaiting.unknownProject') })() : t('launch.pulse.estate'))
   const scopeName = projectId ? nameOf(projectId) : t('launch.pulse.allProjects')
   const time = (iso: string) => new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
-  const label = (d: { date: string; count: number; known: boolean }) => (d.known ? t('launch.pulse.dayCount', { date: d.date, count: d.count }) : t('launch.pulse.dayUnknown', { date: d.date }))
+  // W6 (ui UI-20, UI-21): a day is said as a short local date («15 нояб.»), never as its ISO key.
+  const dayOf = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+  const label = (d: { date: string; count: number; known: boolean }) => (d.known ? t('launch.pulse.dayCount', { date: dayOf(d.date), count: d.count }) : t('launch.pulse.dayUnknown', { date: dayOf(d.date) }))
 
   return (
     <div className="lp" data-launch-view="launch-pulse">
@@ -76,7 +78,7 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
                 ))}
               </div>
             </div>
-            <p className="lp-meta">{days[0].date} — {days[days.length - 1].date} · {Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
+            <p className="lp-meta" title={Intl.DateTimeFormat().resolvedOptions().timeZone}>{t('launch.pulse.range', { from: dayOf(days[0].date), to: dayOf(days[days.length - 1].date) })}</p>
             <label className="fp-day-picker">
               {t('launch.pulse.day')}
               <select value={selected.date} onChange={(e) => setDay(e.target.value)} aria-label={t('launch.pulse.dayLabel')}>
@@ -99,7 +101,7 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
               ))}
             </div>
             <div className="fp-day">
-              <h4>{selected.date}</h4>
+              <h4>{dayOf(selected.date)}</h4>
               {!selected.known ? <p>{t('launch.pulse.notRead')}</p>
                 : !held.has(selected.date) ? <p>{t('launch.pulse.countOnly')}</p>
                 : shown.length === 0 ? <p>{t('launch.pulse.none')}</p>

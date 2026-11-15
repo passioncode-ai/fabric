@@ -37,7 +37,7 @@ import type {
 } from '../../../shared/commsRead.ts'
 import { COMMS_KINDS } from '../../../shared/commsRead.ts'
 import type { ProjectRow } from '../../../shared/types'
-import { since } from '../duration'
+import { since, whenSaid } from '../duration'
 import { useLocale, useT, type Translate } from '../i18n'
 import { CommsFeed } from './CommsFeed'
 import { CommsAnnouncements } from './CommsAnnouncements'
@@ -701,6 +701,8 @@ function MessageRow({ message: m, answered, nameOf, t, locale, responders, facts
 }): React.JSX.Element {
   const principal = m.sender.principal
   const principalText = principal ? (principal.label ?? principal.id ?? principal.kind ?? null) : null
+  // W6 (ui UI-21): one rule for when it was said, the exact time in the tooltip.
+  const when = whenSaid(m.at, locale, t)
   const artifacts = (m.artifacts ?? []).map(artifactOf).filter((a): a is NonNullable<ReturnType<typeof artifactOf>> => a !== null)
   return (
     // W1 (the quality waves, ui UI-1, UI-9, UI-22): a message is a block of its own, never the Board's numbered row,
@@ -710,7 +712,7 @@ function MessageRow({ message: m, answered, nameOf, t, locale, responders, facts
         <span>
           <span className="lp-topic-title">{nameOf(m.sender.project)}</span>
           <span className="lp-meta">
-            {[principalText, new Date(m.at).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })].filter(Boolean).join(' · ')}
+            {principalText}{principalText && when ? ' · ' : ''}{when && <time dateTime={m.at} title={when.exact}>{when.said}</time>}
           </span>
         </span>
         <span className="lp-message-pills">
@@ -734,7 +736,7 @@ function MessageRow({ message: m, answered, nameOf, t, locale, responders, facts
         </>
       )}
       {m.redacted ? (
-        <p className="lp-meta">{t('launch.comms.redacted')} · {shortId(m.id)} · {m.digest}</p>
+        <p className="lp-meta" title={`${shortId(m.id)} · ${m.digest}`}>{t('launch.comms.redacted')}</p>
       ) : (
         m.body && <p className="lp-message-body">{m.body.text}</p>
       )}
