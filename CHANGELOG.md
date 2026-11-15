@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Gold reads in the light theme** (the quality waves, W6). The rail's counters, the favourite star and the undo links
+  were the fill's yellow on white, 1.34:1; a selected row, agent, tab or the graph's centre was marked by that yellow
+  alone. Text and thin markers now take the theme's ink of gold (the same yellow on dark, a darker gold on white, 4.5:1
+  or more); the yellow stays for fills.
 - **Fabric keeps one record per bug on this Mac** (the quality waves, W4, the bug tracker's first wave). Every failure
   the operations log records with an error is folded into a fingerprint, so a thousand repeats are one row with a count,
   the versions it was seen in and its newest log line; a crashed helper process is recorded too, and native crash dumps

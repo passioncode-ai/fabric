@@ -533,6 +533,13 @@
 .app-sidebar{padding-bottom:6rem}
 @media(max-width:768px){.app-nav>.mobile-app-nav select{width:100%}.app-nav>a,.app-nav>p,.app-nav>details{display:none}.app-sidebar{padding:1rem}.app-nav{width:100%}.scope-bar{margin-bottom:.75rem}}
 /* ── adaptations to the app window ── */
+/* W6 of the quality waves (ui UI-12, UI-13): a selection or attention marker the prototype draws in the fill's yellow
+   takes the theme's marker ink (`--app-focus`: the same yellow on dark, a darker gold on white, where the yellow read
+   at 1.3:1). The ported rules above keep their colour; these follow them and win. */
+.app-nav a.current{box-shadow:inset 2px 0 var(--app-focus)}
+.app-main .notice[role=alert]{border-color:var(--app-focus)}
+.lp-inline-question{border-color:var(--app-focus)}
+.lp-topic.is-selected{box-shadow:inset 3px 0 0 var(--app-focus)}
 /* W1 of the quality waves (2026-11-15, ui UI-1, UI-2, UI-9, UI-22): Переписка's rows are not the Board's numbered row.
    A thread row has two columns; a message is a block whose text keeps its line breaks, wraps a long link and reads in
    the ink colour, as the feed's does. The prototype draws no thread view, so these are the app's own. */
@@ -580,7 +587,7 @@ main.content{container-type:inline-size}
 .lk-col.lk-cancelled{opacity:.8}
 /* Агенты: the list and the chosen agent's page beside it (CO-393); one column in a narrow window. */
 .lh-agents-place{display:grid;grid-template-columns:minmax(260px,2fr) minmax(0,3fr);gap:var(--space-4);align-items:start}
-.lh-agents-place .lh-agent.is-selected{border-color:var(--app-accent);background:var(--app-panel)}
+.lh-agents-place .lh-agent.is-selected{border-color:var(--app-focus);background:var(--app-panel)}
 .lh-agent-page h4{margin:var(--space-4) 0 var(--space-2)}
 .lh-agent-pick{padding:var(--space-4)}
 @media(max-width:850px){.lh-agents-place{grid-template-columns:minmax(0,1fr)}}
@@ -732,7 +739,7 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 /* 0.3.12 review UX-1: a node is a <button>, which takes the gold button's dark ink; on the quiet panel it needs the page's. */
 .lg-node{ position: absolute; display: flex; flex-direction: column; justify-content: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); text-align: left; border: var(--report-line) solid var(--app-line); background: var(--app-panel-quiet); overflow: hidden; color: var(--app-ink); font: inherit; font-weight: normal; }
 .lg-node b, .lg-node small{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lg-node.centre{ border-color: var(--app-accent); }
+.lg-node.centre{ border-color: var(--app-focus); }
 .lg-node.outside{ border-style: dashed; }
 button.lg-node{ cursor: pointer; }
 /* CO-419: Агенты as an agents screen. The chosen agent in the centre, the list by state on the right; under 850 px
@@ -750,7 +757,7 @@ button.lg-node{ cursor: pointer; }
 .ag-group > .lp-meta{ margin: 0; }
 .ag-rows{ list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
 .ag-row{ display: grid; gap: var(--space-1); width: 100%; text-align: left; padding: var(--space-2) var(--space-3); border: var(--report-line) solid var(--app-line); border-radius: var(--app-radius-control); background: var(--app-panel); color: var(--app-ink); font: inherit; font-weight: normal; cursor: pointer; }
-.ag-row.is-selected{ border-color: var(--app-accent); background: var(--app-panel-quiet); }
+.ag-row.is-selected{ border-color: var(--app-focus); background: var(--app-panel-quiet); }
 .ag-row-head{ display: flex; align-items: baseline; gap: var(--space-2); flex-wrap: wrap; min-width: 0; }
 .ag-heard{ margin-left: auto; color: var(--app-muted); font-size: var(--app-fs-caption); }
 .ag-row-project{ font-size: var(--app-fs-caption); }
@@ -947,8 +954,8 @@ button.lg-node{ cursor: pointer; }
 /* «Нужны вы»: a title with a gold count, then OPEN cards with their answers (F2 to F4). */
 .estate-home .lh-board{display:block;margin:0;padding:0;border:0;background:none}
 .estate-home .lh-side-title{display:flex;align-items:center;gap:var(--space-2);margin:0 0 var(--space-3);font-size:15px;line-height:1.4;letter-spacing:-.01em}
-.lh-qs .lh-q{margin:0 0 var(--space-3);padding:12px 14px;border:1px solid var(--app-line);border-left:3px solid var(--app-accent);border-radius:12px;background:var(--app-panel);cursor:pointer}
-.lh-qs .lh-q:hover{border-color:var(--app-line-strong);border-left-color:var(--app-accent)}
+.lh-qs .lh-q{margin:0 0 var(--space-3);padding:12px 14px;border:1px solid var(--app-line);border-left:3px solid var(--app-focus);border-radius:12px;background:var(--app-panel);cursor:pointer}
+.lh-qs .lh-q:hover{border-color:var(--app-line-strong);border-left-color:var(--app-focus)}
 .lh-qs .lh-q.lh-q-clear{border-left-color:var(--app-line);cursor:default}
 .lh-qs .lh-q p{margin:0}
 .lh-qs .lh-q p.lh-q-from{display:flex;flex-wrap:wrap;gap:6px;font-size:11.5px;color:var(--app-muted)}
@@ -1135,7 +1142,7 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 .as-claim-at{display:inline;font-size:11px}
 .as-session>.lp-button.primary{width:100%;min-height:36px;font-size:13px}
 .as-session>.lp-meta{font-size:11.5px;margin:8px 0 0}
-.as-questions{border:1px solid var(--app-line);border-left:3px solid var(--app-accent);border-radius:12px;background:var(--app-panel);padding:12px 14px}
+.as-questions{border:1px solid var(--app-line);border-left:3px solid var(--app-focus);border-radius:12px;background:var(--app-panel);padding:12px 14px}
 .as-questions h4{margin:0;font-size:11.5px;font-weight:600;color:var(--app-muted)}
 .as-questions>.lp-meta{margin:6px 0 0;font-size:12.5px}
 .as-questions-list{margin:6px 0 0;padding-left:1.1em;font-size:13px;display:grid;gap:4px}

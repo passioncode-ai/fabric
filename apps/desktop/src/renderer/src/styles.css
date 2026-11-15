@@ -82,9 +82,9 @@ button:disabled { opacity: .4; cursor: default; }
   border-radius: var(--app-radius-control);
   color: var(--app-ink); font-weight: 500; padding: 0; overflow: hidden;
 }
-.tab-btn.active { border-color: var(--app-accent); }
+.tab-btn.active { border-color: var(--app-focus); }
 .tab-btn.active .tab-label, .tab-btn.active > span[aria-hidden] { font-weight: 700; }
-.tab-btn.active { box-shadow: inset 0 -2px 0 0 var(--app-accent); }
+.tab-btn.active { box-shadow: inset 0 -2px 0 0 var(--app-focus); }
 .tab-btn.home, .tab-btn.plus, .tab-btn.settings-btn {
   padding: var(--space-1) var(--space-3);
   background: var(--app-panel-quiet); color: var(--app-ink); font-weight: 500;

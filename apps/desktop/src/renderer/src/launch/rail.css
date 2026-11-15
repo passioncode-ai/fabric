@@ -1,5 +1,7 @@
 /* The shell of Fabric 0.3.7 (SCN-162, SCR-84): the rail and the top bar, after the prototype's `.sx-rail` and
-   `.sx-top` (scripts/product/simple.css). Colours are the app's roles only; gold is for what needs the person. */
+   `.sx-top` (scripts/product/simple.css). Colours are the app's roles only; gold is for what needs the person. Gold as TEXT or as a thin MARKER takes the
+   theme's ink of it (`--app-link`, `--app-focus`: the fill's yellow on dark, a darker gold on white, which the fill's
+   1.3:1 on white could not be read at; the quality waves, W6, ui UI-12, UI-13). */
 /* The window never scrolls; the page does. The shell is exactly the window's height, and the height is passed down
    to the page's own scroller, `main.content` in App's `.shell` (styles.css), so the rail, the top bar, a notice above
    the page, a side panel and the act line stay put while the page scrolls (2026-10-22, the operator: «главный экран
@@ -12,7 +14,7 @@
 .rail-brand b{font-size:15px;font-weight:600;letter-spacing:-.01em}
 .rail-brand small{display:block;font-size:10.5px;color:var(--app-muted);margin-top:1px}
 .rail-create{display:flex;align-items:center;justify-content:center;gap:5px;padding:0;margin:0 4px 12px;height:30px;border-radius:8px;background:var(--app-ink);color:var(--app-bg);font:inherit;font-size:13px;font-weight:550;border:0;cursor:pointer}
-.rail-create.on{box-shadow:0 0 0 2px var(--app-accent)}
+.rail-create.on{box-shadow:0 0 0 2px var(--app-focus)}
 .rail-create:focus-visible,.rail a:focus-visible,.rail-small:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
 .rail-places{display:grid;gap:0}
 .rail-places a,.rail-projects a{display:flex;align-items:center;gap:9px;min-height:30px;padding:0 8px;border-radius:6px;color:var(--app-muted);font-size:13px;text-decoration:none}
@@ -40,8 +42,8 @@
 .rail-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rail-dot{width:6px;height:6px;border-radius:50%;background:var(--app-line-strong);flex:none}
 .rail-dot.live{background:var(--state-good);box-shadow:0 0 0 3px color-mix(in srgb,var(--state-good) 15%,transparent)}
-.rail-star{color:var(--app-accent);font-size:11px;margin-left:-4px}
-.rail-c{margin-left:auto;font-size:11px;color:var(--app-accent);font-weight:600}
+.rail-star{color:var(--app-link);font-size:11px;margin-left:-4px}
+.rail-c{margin-left:auto;font-size:11px;color:var(--app-link);font-weight:600}
 .rail-muted{color:var(--app-muted);font-size:12.5px;padding:0 10px;margin:4px 0}
 /* «Все проекты · N»: the quiet last row of the projects at work, which unfolds the whole list in place and folds it back. */
 .rail-more{display:flex;align-items:center;gap:8px;width:100%;min-height:28px;padding:3px 8px;margin:2px 0 0;border:0;border-radius:6px;background:none;color:var(--app-muted);font:inherit;font-size:12px;text-align:left;cursor:pointer}
@@ -132,7 +134,7 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 @media print{html:has(.app.launch-root),html:has(.app.launch-root)>body,#root,.app.launch-root{height:auto;overflow:visible}.rail,.fab-top,.fab-place>.act-line{display:none}.fab-shell,.fab-main,.fab-place,.fab-place>.shell{display:block;height:auto;min-height:0;overflow:visible}.fab-place>.shell>main{overflow:visible;height:auto;min-height:0}}
 /* The act line (ADR-0160 §1): one quiet line at the foot of the place, never a toast or a banner. */
 .act-line{flex:none;max-height:40%;overflow-y:auto;margin-top:auto;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;padding:10px 32px;border-top:1px solid var(--app-line);background:var(--app-panel);font-size:13px;color:var(--app-ink)}
-.act-line-undo{border:0;background:transparent;color:var(--app-accent);font:inherit;font-weight:600;cursor:pointer;padding:0}
+.act-line-undo{border:0;background:transparent;color:var(--app-link);font:inherit;font-weight:600;cursor:pointer;padding:0}
 .act-line-undo:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
 .act-line-undo[disabled]{color:var(--app-muted);cursor:default}
 .act-line-done,.act-line-cannot{color:var(--app-muted)}
@@ -149,7 +151,7 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 .hx-said{min-width:0;overflow-wrap:anywhere}
 .hx-project{margin-left:8px;color:var(--app-muted);font-size:12px}
 .hx-end{justify-self:end;text-align:right}
-.hx-undo{border:0;background:transparent;color:var(--app-accent);font:inherit;font-weight:600;cursor:pointer;padding:0}
+.hx-undo{border:0;background:transparent;color:var(--app-link);font:inherit;font-weight:600;cursor:pointer;padding:0}
 .hx-undo[disabled]{color:var(--app-muted)}
 .hx-undo:focus-visible,.hx-button:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
 .hx-refused{grid-column:3/-1;display:grid;gap:2px;color:var(--state-danger);font-size:12.5px}
@@ -160,7 +162,7 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 .hx-button{min-height:30px;padding:0 13px;border-radius:8px;border:1px solid var(--app-line-strong);background:transparent;color:var(--app-ink);font:inherit;font-size:12.5px;cursor:pointer;justify-self:start}
 @media(max-width:700px){.hx-act{grid-template-columns:52px minmax(0,1fr)}.hx-who{display:none}.hx-end,.hx-refused{grid-column:2}}
 /* A question on Главная (ADR-0160 §5): asked in the place, never a banner over every screen. */
-.home-question{border:1px solid var(--app-accent);border-radius:14px;padding:16px 18px;margin-bottom:var(--space-4);background:var(--app-panel)}
+.home-question{border:1px solid var(--app-focus);border-radius:14px;padding:16px 18px;margin-bottom:var(--space-4);background:var(--app-panel)}
 .home-question h3{margin:0 0 6px;font-size:14.5px}
 /* Coding agents that joined on their own (SCN-167, 0.3.7 wave 3). */
 .ja{display:grid;gap:10px;padding:24px 32px 0}
@@ -183,4 +185,4 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 .rail-projects li > a{ flex: 1 1 auto; min-width: 0; }
 /* At least 24 px to aim at (0.3.12 review UX-11). */
 .rail-graph{ flex: 0 0 auto; border: 0; background: none; color: var(--app-muted); cursor: pointer; padding: 0; min-width: 24px; min-height: 24px; display: inline-flex; align-items: center; justify-content: center; }
-@media(hover:hover) {.rail-graph:hover{ color: var(--app-accent); }}
+@media(hover:hover) {.rail-graph:hover{ color: var(--app-link); }}
