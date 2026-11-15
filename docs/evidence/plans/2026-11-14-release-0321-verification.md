@@ -373,6 +373,33 @@ What is owed around the tag, in order; each item is checked off here with its re
    that §14 names Fabric for G2, G11 and G32 where the register's fabric row does not, so the coordinator settles one
    list, which `AGENTS.md` then follows (run five, PL-35).
 
+### Executed (release close)
+
+- Item 0: 5.2 GB free before the release commit; [run 43662877409](https://github.com/passioncode-ai/fabric/actions/runs/43662877409)
+  green on `819b4bc7`, the `verifiedCommit` itself.
+- Item 0b: release commit `bfb4d31f`; `release-mac.mjs --check-only --tag v0.3.21` «is on origin/main and its release
+  gate is clear»; landed on `main` by fast-forward at `9f3170e7` (a merge of `main`'s nine workspace pins), 2026-11-15;
+  tag `v0.3.21` on `bfb4d31f`.
+- Item 0c: on `main` at `57283804` (the branch `fix/post-0321`): run six's CO-578 findings built (tests watched failing),
+  CO-589 filed resolved, the runbook's rollback sentence, CO-565, CO-571 and CO-573 dated with the landing day, the
+  next-free-id line from the counter (CO-590).
+- Item 1: [release run 43697323878](https://github.com/passioncode-ai/fabric/actions/runs/43697323878): preflight, guard,
+  macos, windows x64 and arm64, linux x64 and arm64, publish all `success`; the release `v0.3.21` with 14 assets.
+- Item 2, 11:02 to 11:05Z: no dispatched run in flight (`board-dispatches.json`, Switchboard 0 sessions); the board
+  switch and `launchAtLogin` off; the DMG checked (`shasum -a 256 -c` OK, `gpg --verify` «PassionCode.ai releases»);
+  0.3.20 kept as `/Applications/Fabric-0.3.20.app`; 0.3.21 copied with `ditto`, `codesign --verify --deep --strict` OK,
+  `spctl` Notarized Developer ID; the broker's `lifecycle.restart` (operation `90379504`, `ready`, pid 69658,
+  `fabric-hub` ready); `fabric_whoami` answered with the new advice `work.search-the-board` in the session's rules; both
+  switches on again; schema 102 (no step). The broker's CLI `hold` refused while its service ran («another copy holds
+  service.lock»), so the swap ran with `always_on` in place and the restart took the new bundle; the policy is unchanged
+  (revision 35). Older bundles 0.3.17, 0.3.18-rc2, 0.3.19-rc and 0.3.19, none of which opens schema 102, removed from
+  `/Applications` for disk (2.7 GB).
+- Item 2b: `smoke-platform.mjs --mcp-only` PASS on the installed bundle; `packaged-helpers.test.mjs` 4 of 4; a new
+  `fabric-mcp` from the bundle runs as `Fabric Helper` (`ps -co comm`, CO-575); the agent page with a directions row
+  and the window check wait for a run with the screen unlocked and room on the disk (3.8 to 6.7 GB free today).
+- Item 4: the installed hub serves `fabric_board_search` to a new session (this session's tools predate the install, so
+  the call itself is made from the next session, recorded here when it is).
+
 ### Carried from 0.3.20's close
 
 Open when 0.3.21 was cut (the 0.3.21 review, iteration 1, PL-5); each is done when its receipt is written here or in
