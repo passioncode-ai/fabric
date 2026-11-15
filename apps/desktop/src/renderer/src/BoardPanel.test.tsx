@@ -67,6 +67,18 @@ describe('answering', () => {
     expect(answer.mock.calls[0][0]).toMatchObject({ expectedRevision: 3, chosenOption: 'a' })
   })
 
+  it('DA-15: sends the options in the shape every Fabric accepts, without the recommended flag', async () => {
+    const answer = vi.fn((_input: AnswerInput) => Promise.resolve({ committed: true, repeated: false, decisionId: 'd', commitSeq: '9', unblocked: [], stillBlocked: [] }))
+    const envelope = cut()
+    envelope.data.items[0].question!.options = [{ id: 'a', label: 'postgres 17', consequence: 'stays on 17', recommended: true }]
+    stub(answer, envelope)
+    render(<BoardPanel feedMark={1} />)
+    fireEvent.click(await screen.findByText('which database version?'))
+    fireEvent.click(await screen.findByText('postgres 17'))
+    await waitFor(() => expect(answer).toHaveBeenCalled())
+    expect(answer.mock.calls[0][0].options).toEqual([{ id: 'a', label: 'postgres 17', consequence: 'stays on 17' }])
+  })
+
   it('uses ONE command id for a double click, so the second press is not a second decision', async () => {
     const answer = vi.fn((_input: AnswerInput) => Promise.resolve({ committed: true, repeated: true, decisionId: 'd', commitSeq: '9', unblocked: [], stillBlocked: [] }))
     stub(answer)

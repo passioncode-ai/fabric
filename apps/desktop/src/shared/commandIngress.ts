@@ -247,7 +247,9 @@ export function prepareOriginalInstruction(input: unknown): PreparedInput<string
 export function prepareAnswerComposition(input: unknown): PreparedInput<ValidatedAnswer> {
   return prepare(input, (v, c) => {
     const rawText: Rule = x => string(x)
-    const option = object({ id: required(reference), label: required(rawText), consequence: optional(rawText) })
+    // `recommended` is what 0.3.21 stores on the asker's pick (questionAsk.ts); the Board sends
+    // the stored options back, so refusing it refused every answer (DA-15, 0.3.21 review, run five).
+    const option = object({ id: required(reference), label: required(rawText), consequence: optional(rawText), recommended: optional(boolean) })
     const shaped = object({ answer: optional(rawText), chosenOption: optional(x => x === '' ? '' : reference(x, c)), options: required(list(option)) })(v, c) as JsonObject
     // validateAnswer trims chosenOption. Reject a noncanonical identity rather
     // than silently retargeting it; labels and free text retain its composition.

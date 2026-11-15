@@ -171,7 +171,8 @@ export function submitAnswer(item: BoardEntry, answer: string, chosenOption?: st
     expectedRevision: item.question!.revision,
     answer,
     chosenOption,
-    options: item.question!.options
+    // Only the shape 0.3.20 accepts: a question stored with `recommended` stays answerable after a downgrade (DA-15).
+    options: item.question!.options.map(({ id, label, consequence }) => (consequence === undefined ? { id, label } : { id, label, consequence }))
   })
 }
 

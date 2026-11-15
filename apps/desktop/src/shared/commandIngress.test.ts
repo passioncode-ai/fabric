@@ -197,6 +197,14 @@ describe('prepare before deriving titles, answers or digests', () => {
     expect(prepareAnswerComposition({chosenOption:' a ',options:[{id:'a',label:'A'}]})).toEqual({state:'rejected',code:'invalid_identifier'})
     expect(prepareAnswerComposition({answer:'x'.repeat(4001),options:[]})).toEqual({state:'rejected',code:'invalid_answer'})
   })
+  it('DA-15 (0.3.21 review, run five): a stored option keeps its recommended flag and is still answered, by option and by own words', () => {
+    // 0.3.21 stores recommended:true on the asker's pick; the Board sends the stored options back.
+    const options = [{id:'keep', label:'Keep', recommended:true}, {id:'drop', label:'Drop'}]
+    expect(prepareAnswerComposition({chosenOption:'keep', options})).toMatchObject({state:'prepared',value:{answer:'Keep',chosenOption:'keep'}})
+    expect(prepareAnswerComposition({chosenOption:'drop', options})).toMatchObject({state:'prepared',value:{answer:'Drop',chosenOption:'drop'}})
+    expect(prepareAnswerComposition({answer:'own words', options})).toMatchObject({state:'prepared',value:{answer:'own words',chosenOption:null}})
+    expect(prepareAnswerComposition({chosenOption:'keep', options:[{id:'keep',label:'Keep',recommended:'yes'}]})).toEqual({state:'rejected',code:'invalid_shape'})
+  })
   it('preserves original source digest and command ID with all-or-nothing import preparation', () => {
     const sourceDigest = 'ABCDEF12'.repeat(8)
     const input = {commandId:other,inputDigest:sourceDigest,events:[
