@@ -59,7 +59,7 @@ import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRun
 import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readReviewAges, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
 import { createOpsDigestRun, type OpsDigestRun } from './opsDigestRun.ts'
 import { risenRows } from '../shared/opsDigest.ts'
-import { readHome, readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, readWork, type HeldSession } from './workRead.ts'
+import { readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, readWork, type HeldSession } from './workRead.ts'
 import { launchOverlap } from '../shared/launchOverlap.ts'
 import { OVERLAP_CHOICES, overlapPair, type OverlapChoice } from '../shared/abandonedSweep.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
@@ -85,16 +85,13 @@ import { refreshFileRootsFrom } from './fileRootsRefresh.ts'
 import { readSettings, readSettingsState, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
-import { createBranchReader, createReportedBranches, withBranches } from './agentBranches.ts'
-import { readHandedInToday, withStrip } from './homeStrip.ts'
-import { withHeartbeats } from './agentHeartbeats.ts'
-import { withGoals } from './agentGoals.ts'
+import { createBranchReader, createReportedBranches } from './agentBranches.ts'
+import { readHomeView as readHomeStages } from './homeView.ts'
 import { createRhythmReader } from './workRhythm.ts'
 import { createWaitingReader } from './commsWaitingList.ts'
 import { readProjectRequests, readProjectSources } from './projectRequests.ts'
-import { withIdentity } from './agentIdentity.ts'
-import { withWork, type BoardRun } from './agentWork.ts'
-import { createDisplayNameReader, withDisplayNames } from './projectNames.ts'
+import type { BoardRun } from './agentWork.ts'
+import { createDisplayNameReader } from './projectNames.ts'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
 import { createQuitCoordinator, listenForQuitSignals, quitDeadlineExitCode, spawnQuitReaper, type QuitSignal } from './quit.ts'
@@ -5738,30 +5735,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // (`sharedReading.ts`); the window, the rail and each screen asked for their own, up to 809 times an hour.
   const homeReading = createSharedReading((): Promise<Returns<FabricApi['work']['home']>> => readHomeView(), 2_000)
   handle(IPC.workHome, (): Promise<Returns<FabricApi['work']['home']>> => homeReading.read())
-  async function readHomeView(): Promise<Returns<FabricApi['work']['home']>> {
-    const held = heldSessions()
-    // 0.3.14, the simple Fabric: each console's git branch for the left column and «В работе» (`agentBranches.ts`).
-    const now = Date.now()
-    // W3 of the quality waves (perf PF-2): the two reads that need nothing from the chain below (today's handed-in
-    // events and the projects' names) start now and run beside it; each is still said unread on its own when it fails.
-    // The no-op catch only keeps an early failure from reading as unhandled: the awaits below still see it.
-    const handedInRead = readHandedInToday(store as never, { now })
-    handedInRead.catch(() => undefined)
-    const namesRead = projectNames.read(namesStale)
-    namesRead.catch(() => undefined)
-    // Each agent's goal (the operator's second review, R-3): the root of its task's spawned links (`agentGoals.ts`).
-    // ER-18: each agent's newest heartbeat, so every screen judges its status from the same inputs (`agentHeartbeats.ts`).
-    // The mockup parity (home gaps D5, D6): an agent that re-enrolled keeps its stage reports, heartbeats and running
-    // task across its session ids (`agentIdentity.ts`), before its goal is walked from that task.
-    const identified = await withIdentity(await withHeartbeats(await withBranches(await readHome(store, { now, session: sessionSignOf, sessions: held }), held, agentBranchReader, reportedBranches.get), store as never), store as never, held, now)
-    // Home gaps D3, D4, D7: at work apart from connected, ordered by work, not by keep-alive pings (`agentWork.ts`).
-    // 2026-11-11: a run the board dispatcher started is at work while Switchboard reports it running (`boardRunsOf`).
-    const view = await withWork(await withGoals(identified, store as never), store as never, held, now, dispatchHolder.current?.boardRuns() ?? [])
-    // The strip's own reads (`homeStrip.ts`): «Сдано сегодня» and the sweep's «Работают без задачи», each said unread alone.
-    const stripped = await withStrip(view, { handedIn: () => handedInRead, sweep: () => abandonedSweep?.current() ?? null })
-    // Every project's display name (rail gap §2, `projectNames.ts`).
-    return withDisplayNames(stripped, () => namesRead, (e) => ops.failed('work.display-names-unread', e, { note: 'the screens print the stored names' }))
-  }
+  // The home's stages in order (`homeView.ts`), over this process's sessions, sweep, dispatcher and names.
+  const readHomeView = (): Promise<Returns<FabricApi['work']['home']>> => readHomeStages({
+    store, heldSessions, sessionSign: sessionSignOf, branchReader: agentBranchReader, reportedBranch: reportedBranches.get,
+    boardRuns: () => dispatchHolder.current?.boardRuns() ?? [],
+    sweep: () => abandonedSweep?.current() ?? null,
+    readNames: () => projectNames.read(namesStale),
+    onNamesUnread: (e) => ops.failed('work.display-names-unread', e, { note: 'the screens print the stored names' })
+  })
   handle(IPC.workBoard, async (_e, projectId?: unknown, doneLimit?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
     readTaskBoard(store, {
       now: Date.now(), session: sessionSignOf, sessions: heldSessions(), projectId: typeof projectId === 'string' && /^[0-9a-f-]{36}$/.test(projectId) ? projectId : null,

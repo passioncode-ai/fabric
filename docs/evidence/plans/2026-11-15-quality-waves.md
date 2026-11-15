@@ -59,8 +59,10 @@ hand step; CO-219 resolved.
 | Blind spots: quiet channels untimed, `[object Object]` errors | perf PF-8 | timed, and errors formatted |
 
 State, 2026-11-15: built on `main`: the shared home reading (`shared/sharedReading.ts`, PF-2's first half), the
-exposure check answered from its last value (PF-9), errors as objects said by message or code (PF-8's half). Next: the
-home's stages in parallel, the polls paused while hidden (PF-3), the log's sampling (PF-6).
+exposure check answered from its last value (PF-9), errors as objects said by message or code (PF-8's half), the two
+home reads that need nothing from the chain run beside it, the polls paused while the window is hidden (PF-3's first
+half), routine successes sampled (PF-6's first half), and the home's assembly moved out of `index.ts` into
+`main/homeView.ts`. Next: the feed pushed from main, the 1 s p95 measured at 40 sessions.
 
 Finish line: the home under 1 s at p95 on this machine with 40 sessions, measured from the ops log; the log back to 7 days.
 
@@ -109,7 +111,7 @@ Finish line: the contrast check in both themes passes AA; the em-dash gate green
 
 ## W7 · The register's hygiene
 
-- The general plan's «Now» line describes 0.3.17 to 0.3.19: rewrite it to this plan.
+- The general plan's «Now» line described 0.3.17 to 0.3.19: rewritten to this plan on 2026-11-15.
 - Board tasks that are done or stale go to review with their evidence (`ae47857f`, `0680fd29`, `9c4eba4a`, `6ab1efa7`, `9a44f7b4`).
 - Duplicates folded to one owner: the service's request door (`318bc4c3`, CO-568, `bf80f5c6`); temporary-folder projects (`ffc7bf62`, CO-497, CO-574); the psql hang (`b85dcd38`, CO-211).
 - Board findings without a row get one.
