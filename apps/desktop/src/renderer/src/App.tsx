@@ -92,6 +92,7 @@ import {
   writeOpenConsoles
 } from './consoles'
 import { Workspace } from './Workspace'
+import { visibleInterval } from './visibleClock'
 
 const FEED_POLL_MS = 2000 // ADR-0027: the table is the record; polling replay is the v1 wake-up
 const SESSION_POLL_MS = 3000
@@ -471,10 +472,11 @@ function Shell({
       }
     }
     void tick()
-    const h = setInterval(tick, FEED_POLL_MS)
+    // W3 (perf PF-3): only while the window is seen; once at the moment it is shown again (`visibleClock.ts`).
+    const off = visibleInterval(() => void tick(), FEED_POLL_MS)
     return () => {
       stop = true
-      clearInterval(h)
+      off()
     }
   }, [sessionWindowId, refreshProjects, refreshSessions])
 
@@ -493,8 +495,8 @@ function Shell({
       }
     }
     void tick()
-    const h = setInterval(() => void tick(), COMMS_BADGE_POLL_MS)
-    return () => { alive = false; clearInterval(h) }
+    const off = visibleInterval(() => void tick(), COMMS_BADGE_POLL_MS)
+    return () => { alive = false; off() }
   }, [])
 
   /** Threads with a message newer than this operator's read mark (SCN-143, the unread
@@ -525,8 +527,8 @@ function Shell({
     void refreshSessions()
     // CO-392 (D-3): the window reads no account quota; quotas are Switchboard's, and the main process reads its own only
     // before an unattended start (main/routineTick.ts, main/chainAdvance.ts).
-    const h = setInterval(() => void refreshSessions(), SESSION_POLL_MS)
-    return () => { clearInterval(h) }
+    const off = visibleInterval(() => void refreshSessions(), SESSION_POLL_MS)
+    return () => { off() }
   }, [sessionWindowId, refreshProjects, refreshSessions])
 
   useEffect(() => {

@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A hidden window reads nothing** (the quality waves, W3). The window's feed, sessions and Comms count were read every
+  2, 3 and 5 seconds whether or not anybody looked; they now pause while the window is hidden or minimised and read once
+  the moment it is shown again.
 - **The home and the rail answer faster under many agents** (the quality waves, W3). Every window and screen now shares
   one reading of the home, joined while it runs and answered again for two seconds, where each asked for its own (up to
   809 readings an hour, some 18 s long). The network check behind the database notice answers at once from its last
