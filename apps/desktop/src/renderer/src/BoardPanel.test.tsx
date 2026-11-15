@@ -70,7 +70,7 @@ describe('answering', () => {
   it('DA-15: sends the options in the shape every Fabric accepts, without the recommended flag', async () => {
     const answer = vi.fn((_input: AnswerInput) => Promise.resolve({ committed: true, repeated: false, decisionId: 'd', commitSeq: '9', unblocked: [], stillBlocked: [] }))
     const envelope = cut()
-    envelope.data.items[0].question!.options = [{ id: 'a', label: 'postgres 17', consequence: 'stays on 17', recommended: true }]
+    envelope.data!.items[0].question!.options = [{ id: 'a', label: 'postgres 17', consequence: 'stays on 17', recommended: true }]
     stub(answer, envelope)
     render(<BoardPanel feedMark={1} />)
     fireEvent.click(await screen.findByText('which database version?'))
