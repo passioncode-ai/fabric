@@ -71,6 +71,28 @@ for (const name of registered)
         `harness panel does not list, which is the one thing that panel exists to prevent.`
     )
 
+// ── the surface test's own list, the third copy ────────────────────────────
+//
+// `agent-surface.test.mjs` writes the list down a third time ON PURPOSE (its comment says why: adding a tool should
+// be acknowledged where a reviewer looks). That suite needs a stack and runs only in the full tier, so a tool added to
+// the surface and the manifest passed the fast tier and failed the hosted full run (0.3.21 review, V3-73, PL-34).
+// Compared here, without a stack: the friction stays (the list is still written by hand), the surprise goes.
+const SURFACE_TEST = 'apps/desktop/test/agent-surface.test.mjs'
+const testList = read(SURFACE_TEST).match(/const expected = \[([^\]]*)\]/)
+if (!testList) problems.push(`${SURFACE_TEST} has no \`const expected = [...]\` list in a shape this gate can read`)
+else {
+  const written = [...testList[1].matchAll(/'([^']+)'/g)].map((m) => m[1])
+  const writtenSet = new Set(written)
+  for (const name of declared)
+    if (!writtenSet.has(name))
+      problems.push(`${name} is declared and registered but missing from ${SURFACE_TEST}'s written list; the full tier's surface probe will fail. Add it there, in sorted place.`)
+  for (const name of written)
+    if (!declaredSet.has(name))
+      problems.push(`${SURFACE_TEST}'s written list names ${name}, which the surface does not declare.`)
+  if (JSON.stringify(written) !== JSON.stringify([...written].sort()))
+    problems.push(`${SURFACE_TEST}'s written list is not sorted; the probe compares it with the sorted tool names.`)
+}
+
 // ── duplicates, in either file ─────────────────────────────────────────────
 for (const [where, list] of [
   ['surfaceTools.ts', declared],
