@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The operations log keeps its week again** (the quality waves, W3). A session's protocol follow-ups after it joins
+  and the read-only board status were a third of the log's bytes, and the log held 3 days of its 7; they are now
+  counted and written once per 10 minutes, like the keep-alive pings. A session joining and every tool that acts are
+  still written each time.
 - **An agent left in a removed folder is told so** (the quality waves, W5). Git asked to run in a folder that no longer
   exists answered «spawn git ENOENT», which read as git missing; one agent was refused that way 2 400 times in a day.
   The answer now says the folder was moved or removed, and to open the agent where the repository is now.

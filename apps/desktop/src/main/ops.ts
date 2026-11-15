@@ -55,8 +55,12 @@ const MAINTENANCE_RETRY_MAX_MS = 10 * 60_000
  * `mcp.ping`, one per connected agent every 2 minutes (0.3.9 review DA-2: at 40 agents about 70 % of the bytes, which
  * cut the week to about 6 days). A failure, a warning, a slow call and every state change are never sampled.
  */
+/** W3 of the quality waves (2026-11-15, perf PF-6, PF-7): a session's protocol follow-ups after `mcp.initialize` (the tool
+ *  list, the initialized notice) and the read-only `com.status` carry no fact the initialize line does not; they were a
+ *  third of the log's bytes and cut the week to 3 days. `mcp.initialize` itself, and every tool that acts, stay written. */
+const SAMPLED_OPS: ReadonlySet<string> = new Set(['mcp.ping', 'mcp.tools/list', 'mcp.notifications/initialized', 'tool.com.status'])
 export function sampledByDefault(input: { op: string; outcome: OpsOutcome; level?: OpsLevel; ms?: number }): boolean {
-  return (input.op.startsWith('ipc.') || input.op === 'mcp.ping') && input.outcome === 'ok' && (input.level === undefined || input.level === 'info') && (input.ms ?? 0) < SLOW_MS
+  return (input.op.startsWith('ipc.') || SAMPLED_OPS.has(input.op)) && input.outcome === 'ok' && (input.level === undefined || input.level === 'info') && (input.ms ?? 0) < SLOW_MS
 }
 // #endregion ops-retention
 

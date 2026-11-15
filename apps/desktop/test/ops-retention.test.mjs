@@ -107,6 +107,15 @@ test('ST-4: startup-failure.log appends, bounded, and keeps the newest', () => {
 // 0.3.9 review DA-2: every connected fabric-mcp pings the hub every 2 minutes and each ping was a ~375-byte line, so at
 // the 40-odd agents this machine runs the pings were about 70 % of the log's bytes and the 96 MB budget cut the week at
 // about 6 days. A successful fast `mcp.ping` is counted like an `ipc.*` read; a failed or slow ping is still written.
+test('W3 (the quality waves, PF-6): a session\'s protocol follow-ups and the read-only status are counted, what acts is written', () => {
+  for (const op of ['mcp.tools/list', 'mcp.notifications/initialized', 'tool.com.status'])
+    assert.equal(sampledByDefault({ op, outcome: 'ok', level: 'info', ms: 4 }), true, op)
+  for (const op of ['mcp.initialize', 'tool.com.claim', 'tool.com.enroll', 'tool.fabric.session.enroll'])
+    assert.equal(sampledByDefault({ op, outcome: 'ok', level: 'info', ms: 4 }), false, op)
+  assert.equal(sampledByDefault({ op: 'tool.com.status', outcome: 'failed', level: 'warn', ms: 4 }), false, 'a failed status is written')
+  assert.equal(sampledByDefault({ op: 'mcp.tools/list', outcome: 'ok', level: 'info', ms: 2_000 }), false, 'a slow one is written')
+})
+
 test('DA-2: forty agents pinging every 2 minutes for a week fit the default budget, and the week is kept', () => {
   assert.equal(sampledByDefault({ op: 'mcp.ping', outcome: 'ok', level: 'info', ms: 3 }), true)
   assert.equal(sampledByDefault({ op: 'mcp.ping', outcome: 'unknown', level: 'warn', ms: 3 }), false)
