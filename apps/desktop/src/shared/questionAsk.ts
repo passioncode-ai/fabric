@@ -99,7 +99,8 @@ export function normaliseAsk(input: {
   // #region question-recommended — docs: docs/ux/plans/2026-11-12-simple-screens.md#wave-4-доска
   // The operator, 2026-11-12: «Рекомендованный вариант всегда должен быть, и он должен быть написан». A question with
   // options names one of them as the agent's recommendation, by `recommended` or by `recommended: true` on the option;
-  // the person sees it first, the other options after it, and «Отдать агенту» always.
+  // the person sees it first, the other options after it, and «Отдать агенту» only on an agent's question with options
+  // (UX-3, UX-6, UX-19).
   if (options.length) {
     const named = clean(input.recommended)
     const flagged = (input.options ?? []).flatMap((raw, i) => (raw?.recommended === true ? [options[i].id] : []))

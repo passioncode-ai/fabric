@@ -20,7 +20,7 @@ export interface SearchDoc {
   text: string
   /** When it last moved (a task) or was written (a note, a message); null when unknown. */
   at: string | null
-  /** A task a live claim holds now, or a request still open: work someone is on. */
+  /** A task a claim whose life is `live` holds now, or a request still open: work someone is on. */
   live?: boolean
 }
 

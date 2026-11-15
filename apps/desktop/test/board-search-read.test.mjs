@@ -51,6 +51,19 @@ test('a hit names who holds the task now, or held it last, and who groups the ho
   assert.equal(t3.last_held_by.released, 'done')
 })
 
+test('ER-25 (0.3.21 review, run five): only a live claim is live work; a silent or lapsed one is still named with its life', async () => {
+  const scores = {}
+  for (const life of ['live', 'silent', 'lapsed']) {
+    const claim = { id: 'c1', work_id: 't1', owner_session: OTHER, agent: 'codex', came_in: 'enrolled', claimed_at: '2026-11-14T08:00:00Z', life, touches: [] }
+    const a = await searchBoard({ query: 'диспетчер dispatcher' }, deps({ liveClaims: async () => [claim] }))
+    const hit = a.hits.find((h) => h.task?.id === 't1')
+    assert.equal(hit.held_by.life, life)
+    assert.equal(a.who.find((w) => w.holder.includes('codex')).live, life === 'live', life)
+    scores[life] = hit.score
+  }
+  assert.ok(scores.live > scores.silent && scores.silent === scores.lapsed, JSON.stringify(scores))
+})
+
 test('a board request names its target project by name and its state; a project hit names its capabilities', async () => {
   const a = await searchBoard({ query: 'иконка icon' }, deps())
   const req = a.hits.find((h) => h.kind === 'request')

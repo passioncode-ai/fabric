@@ -29,7 +29,9 @@ The answer: `hits`, best first, each with its `kind`, `score`, `matched` (the qu
 `snippet`, and what it is: a task with `held_by` (session, agent, how it came in, since, life, what it touches) or
 `last_held_by` (who released it last and how); a note with its task and author; a board request with its target
 project by name, capability and state; a message with its sender; a project with its capabilities. `who` groups the
-hits by holder (a session and its agent, or a project) and says whether any of its hits is live work. `read` counts
+hits by holder (a session and its agent, or a project) and says whether any of its hits is live work: a task held by a
+claim whose life is `live`, or a request still open; a silent or lapsed claim is named in `held_by` with its life and is
+not live work (ER-25). `read` counts
 what was read; `capped` names a read stopped at its bound; `degraded` names a part that could not be read, with why.
 When the live claims could not be read, each task hit carries `holder_unknown` and the answer's `holders` says so, so
 a hit without `held_by` is never read as «nobody holds it». A query of stop words alone searches nothing and says so.
@@ -70,7 +72,7 @@ that reads the hits, so retrieval here only has to find them (`apps/desktop/src/
   ids, so `apps/desktop/src/main/boardDispatchRun.ts` finds a note citing `boardDispatchRun.ts`, while `docs/board` does
   not search the bare word `board` (run three, ER-20).
 - The score is BM25 times the share of the query's words that matched (one half to one), times recency
-  (1 + 0.5 e^(-age/14 days)), times 1.3 for live work (a task a live claim holds, a request still open).
+  (1 + 0.5 e^(-age/14 days)), times 1.3 for live work (a task a claim whose life is `live` holds, a request still open).
 - A document matching none of the query's words is not answered.
 
 Across languages it matches only the words given in each: the description tells the agent to put both. A semantic

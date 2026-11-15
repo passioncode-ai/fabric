@@ -426,8 +426,8 @@ describe('the board screen itself (SCR-41)', () => {
     expect(screen.queryByText(en['launch.board.fact.waiting'])).toBeNull()
   })
 
-  // The operator, 2026-11-12: the request, then the recommended option written out, then the others, and always
-  // «Отдать агенту»; the why and the facts are folded under «Подробнее».
+  // The operator, 2026-11-12: the request, then the recommended option written out, then the others, and «Отдать
+  // агенту» only on an agent's question with options (UX-3, UX-6, UX-19); the why and the facts are folded under «Подробнее».
   it('puts the recommended option first, the others after it, and «Отдать агенту» last, which answers «decide it yourself»', async () => {
     const recommended = { ...question, options: [{ id: 'full', label: 'The full pack' }, { id: 'lean', label: 'Decisions only', consequence: 'Less to read', recommended: true }] }
     const query = vi.fn(async () => envelope({

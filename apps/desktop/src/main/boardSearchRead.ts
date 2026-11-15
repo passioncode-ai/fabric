@@ -211,7 +211,8 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
       id: `task:${id}`, kind: 'task', title: titleOf.get(id) ?? '',
       text: [t.instruction, t.brief_what, t.brief_why, t.brief_expected, ...(held?.touches ?? [])].map(str).filter(Boolean).join(' · '),
       at: str(t.moved_at) || str(t.started_at) || null,
-      live: Boolean(held),
+      // A silent or lapsed claim is never "working" (workClaims.ts#claimLife): held_by still names it with its life (ER-25).
+      live: held?.life === 'live',
       holder: held ? agentOf(held.owner_session, held.agent) : null,
       ref: {
         task: { id, title: titleOf.get(id), status: str(t.status) },
