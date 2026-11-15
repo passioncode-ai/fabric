@@ -331,7 +331,9 @@ chain on an owned cluster by `apps/desktop/test/run-project-board-responders-db.
 missing migration in the same step (from 98, four: 126 to 129). No older build opens a schema-102 database, so going back
 is the backup with the bundle you came from.
 
-**0.3.21 admits schema 102**, the same as 0.3.20: it adds no migration (`git diff --stat 0d729bbe..HEAD -- supabase` prints nothing), so upgrading from 0.3.20 is the new bundle alone and going back is the 0.3.20 bundle alone; a database at 101 (0.3.19) takes 0.3.20's upgrade above first (migration 129, `FROM` 101), then opens 0.3.21. On macOS turn «Служба доски» off before the quit and on again once 0.3.21 reads back, as for 0.3.18 (the 0.3.21 review, iteration 3, PL-21).
+**0.3.21 admits schema 102**, the same as 0.3.20: it adds no migration (`git diff --stat 0d729bbe..HEAD -- supabase` prints nothing), so upgrading from 0.3.20 is the new bundle alone and going back is the 0.3.20 bundle alone; a database at 101 (0.3.19) takes 0.3.20's upgrade above first (migration 129, `FROM` 101), then opens 0.3.21. On macOS turn «Служба доски» off before the quit and on again once 0.3.21 reads back, as for 0.3.18 (the 0.3.21 review, iteration 3, PL-21). Before going back to 0.3.20, answer the questions
+agents asked with options under 0.3.21: 0.3.20 refuses every answer to them, since 0.3.21 stores the asker's
+recommendation on the option (the 0.3.21 review, iteration 3, run six, PL-36); upgrading again answers them.
 
 1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
    on: turn it off and then quit before the bundle is replaced (`launchctl bootout` stops only a copy launchd started;

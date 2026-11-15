@@ -64,6 +64,15 @@ test('ER-25 (0.3.21 review, run five): only a live claim is live work; a silent 
   assert.ok(scores.live > scores.silent && scores.silent === scores.lapsed, JSON.stringify(scores))
 })
 
+test('UX-27 (0.3.21 review, run six): a capped tasks read with no hit does not advise a wider days', async () => {
+  const rows = Array.from({ length: 500 }, (_, i) => ({ id: `x${i}`, title: `row ${i}`, instruction: '', status: 'running', moved_at: '2026-11-14T09:00:00Z' }))
+  const a = await searchBoard({ query: 'zebra', kinds: ['tasks'], days: 7 }, deps({ tasks: async () => ({ rows, failed: null }) }))
+  assert.ok(a.capped.includes('tasks'), JSON.stringify(a.capped))
+  assert.equal(a.hits.length, 0)
+  assert.ok(!/or a wider days/.test(a.note), a.note)
+  assert.ok(/newest rows only/.test(a.note), a.note)
+})
+
 test('a board request names its target project by name and its state; a project hit names its capabilities', async () => {
   const a = await searchBoard({ query: 'иконка icon' }, deps())
   const req = a.hits.find((h) => h.kind === 'request')

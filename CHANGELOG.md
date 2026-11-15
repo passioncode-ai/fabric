@@ -7,6 +7,14 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **The board search finds a short file name again, and says what matched in your words** (CO-578, the 0.3.21 review,
+  run six). A full path to a short-named file (`apps/desktop/src/main/hub.ts`) finds a note that names `hub.ts`;
+  `matched` keeps a camelCase word as you wrote it and names a path's tail once; a search whose tasks or notes read was
+  cut at its bound no longer suggests a wider `days`, which would read the same rows.
+- **The agent page's column check proves its fix** (CO-589). It now fails when the main column's own rule is removed.
+
 ## 0.3.21
 
 **Upgrading.** No schema step from 0.3.20 (schema 102, no migration). From 0.3.19, take 0.3.20's step first

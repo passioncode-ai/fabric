@@ -171,7 +171,9 @@ export function submitAnswer(item: BoardEntry, answer: string, chosenOption?: st
     expectedRevision: item.question!.revision,
     answer,
     chosenOption,
-    // Only the shape 0.3.20 accepts: a question stored with `recommended` stays answerable after a downgrade (DA-15).
+    // The option's own shape, without the flag 0.3.21 stores on the asker's pick (DA-15). It keeps this renderer's request
+    // in the shape every answer check reads; it cannot help a downgrade: 0.3.20 runs its own Board, which sends the stored
+    // flag and refuses it, so such a question is answered before going back (0.3.21 review, run six, PL-36).
     options: item.question!.options.map(({ id, label, consequence }) => (consequence === undefined ? { id, label } : { id, label, consequence }))
   })
 }

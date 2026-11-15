@@ -170,6 +170,7 @@ function allQueryWords(query: string): Array<{ word: string; terms: string[] }> 
       // note citing `x.ts`; a bare word left after a folder (`docs/board` to `board`) is not searched on its own.
       // CO-578 (run four, DA-14, ER-23): never a tail made only of names every repository has (`package.json`, `src/index.ts`),
       // which would answer every copy of that file in any folder; a tail that still names a folder of its own is kept.
+      // Run six (DA-18, ER-28, DO-43): judged by `GENERIC_NAMES` alone, so a short name (`hub.ts`, `web/package.json`) stays.
       add(id, [whole, ...pathTails(whole).filter((tail) => /[-_./]/.test(tail) && !genericPath(tail))])
     } else if (run.length === 1) add(run[0].word, wordTerms(run[0].word))
     run = []
@@ -273,7 +274,13 @@ export function rankDocs<D extends SearchDoc>(query: string, docs: readonly D[],
         const idf = Math.log(1 + (n - d + 0.5) / (d + 0.5))
         wordScore += idf * (f * (K1 + 1)) / (f + K1 * (1 - B + B * (ix.len / avg)))
       }
-      if (wordScore > 0) { bm25 += wordScore; matched.push(via !== null && via !== w.terms[0] && w.terms[0] === w.word.replace(/ё/g, 'е') ? via : w.word) }
+      // Run six (UX-28, ER-29, DO-41): only a path is named by the tail that matched; a camelCase word keeps its own spelling,
+      // and one tail reached by two query paths is named once.
+      if (wordScore > 0) {
+        bm25 += wordScore
+        const said = via !== null && w.word.includes('/') && w.terms.indexOf(via) > 0 ? via : w.word
+        if (!matched.includes(said)) matched.push(said)
+      }
     }
     if (!matched.length) continue
     const at = ix.doc.at ? Date.parse(ix.doc.at) : NaN
@@ -312,9 +319,10 @@ function nameOf(segment: string): string {
   return segment.replace(/^[.+]+/, '').replace(/\.[a-z].*$/i, '')
 }
 
-/** CO-578: a path every segment of which is a name every repository has, or one under four letters (`src/index.ts`). */
+/** CO-578: a path every segment of which is a name every repository has (`src/index.ts`, `package.json`). No length test:
+ *  a short file or folder name (`hub.ts`, `web/package.json`) is as specific as a long one (run six, DA-18). */
 function genericPath(path: string): boolean {
-  return path.split('/').every((seg) => { const n = nameOf(seg); return n.length < 4 || GENERIC_NAMES.has(n.toLowerCase()) })
+  return path.split('/').every((seg) => GENERIC_NAMES.has(nameOf(seg).toLowerCase()))
 }
 
 /** A claim's touches read as words: each path's file or folder name, never the shared prefix every path carries. */

@@ -291,7 +291,7 @@ export async function searchBoard(input: BoardSearchInput, deps: BoardSearchDeps
       : allFailed
       ? 'Nothing could be read, so nothing was searched: this is not "nothing matches". Read fabric_work_list, or try again.'
       : hits.length === 0
-        ? `Nothing read matches. That means the searched words were not found${cut.notSearched.length ? ` (${cut.notSearched.length} word(s) past the first ${cut.searched.length} were not searched: ask again with them)` : ''}, not that nobody works on it: try other words, in both Russian and English${board.windowDays !== null && (board.windowDays < days || capped.includes('board')) ? '' : ', or a wider days'}.`
+        ? `Nothing read matches. That means the searched words were not found${cut.notSearched.length ? ` (${cut.notSearched.length} word(s) past the first ${cut.searched.length} were not searched: ask again with them)` : ''}, not that nobody works on it: try other words, in both Russian and English${capped.includes('tasks') || capped.includes('notes') ? '; the tasks or notes read kept its newest rows only, so fewer days narrow it, a wider days reads the same rows' : board.windowDays !== null && (board.windowDays < days || capped.includes('board')) ? '' : ', or a wider days'}.`
         : `Only this project's tasks are read; other projects show as board messages your project takes part in and as their capabilities. Ask one with com.submit.${cut.notSearched.length ? ` ${cut.notSearched.length} word(s) past the first ${cut.searched.length} were not searched (not_searched): ask again with them.` : ''}`
   }
 }

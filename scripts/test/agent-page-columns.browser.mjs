@@ -16,7 +16,7 @@ const page=`<!doctype html><html><head><style>${css}</style></head><body><div cl
 <div class="as-main"><section class="as-now"><h4 class="as-kicker">Сейчас</h4><p class="as-now-task">Task</p></section>
 <section class="lp-dir ap-dir"><h4>Направления</h4><div class="lp-dir-rows"><div class="lp-dir-row"><h4>Проект</h4><ul class="lp-dir-strip">${cards}</ul></div></div></section>
 <div class="as-tasks-head"><h4>Задачи</h4><span class="lp-meta">сначала новые · 7 за сессию</span><span class="as-lanes"><button class="as-chip">Все <span class="as-chip-n">7</span></button><button class="as-chip">В работе <span class="as-chip-n">1</span></button><button class="as-chip">На проверке <span class="as-chip-n">6</span></button></span></div>
-<ul class="ap-tasks">${tasks}</ul></div>
+<ul class="ap-tasks">${tasks}</ul><pre class="probe-wide">${'x'.repeat(400)}</pre></div>
 <aside class="as-side"><section class="as-session"><h4>Сессия</h4></section><section class="as-questions"><h4>Вопросы этого агента</h4></section></aside>
 </div></div></body></html>`
 const browser=await chromium.launch({headless:true,...(process.env.FABRIC_CHROME?{executablePath:process.env.FABRIC_CHROME}:{})});let checks=0
@@ -27,11 +27,16 @@ try{
       const side=document.querySelector('.as-side').getBoundingClientRect().left
       const blocks=[...document.querySelectorAll('.as-main > *, .ap-task, .as-lanes, .as-chip')].map(e=>({cls:e.className,right:Math.round(e.getBoundingClientRect().right)}))
       const strip=document.querySelector('.lp-dir-strip')
-      return{side:Math.round(side),over:blocks.filter(b=>b.right>side),scrolls:strip.scrollWidth>strip.clientWidth}
+      const main=document.querySelector('.as-main'),track=getComputedStyle(main).gridTemplateColumns.split(' ')
+      return{side:Math.round(side),over:blocks.filter(b=>b.right>side),scrolls:strip.scrollWidth>strip.clientWidth,track,mainWidth:Math.round(main.getBoundingClientRect().width)}
     })
     assert.deepEqual(r.over,[],`width ${width}: blocks of the main column end past the side column at ${r.side}: ${JSON.stringify(r.over.slice(0,3))}`)
     assert.ok(r.scrolls,`width ${width}: the strip of directions should scroll inside its column`)
-    checks+=2;await p.close()
+    // CO-589 (0.3.21 review, run six, DA-19): the fix itself, `.as-main`'s one track holding the column's width. The
+    // `min-width:0` on the strip's wrappers alone also keeps the strip apart, so a wide child with no such rule (a line of
+    // 400 characters that cannot wrap) is the probe: only `minmax(0,1fr)` keeps the track from growing to it.
+    assert.ok(r.track.length===1&&Math.abs(parseFloat(r.track[0])-r.mainWidth)<=1,`width ${width}: .as-main should have one track of its own width, got ${r.track.join(' ')} in ${r.mainWidth}px`)
+    checks+=3;await p.close()
   }
 }finally{await browser.close()}
 console.log(`agent page columns: ${checks} checks pass`)

@@ -25,7 +25,8 @@ region `board-search-tool`):
 | `days` | how far back by the last move or message, 1 to 90; default 30 |
 | `includeClosed` | also done and cancelled tasks, to find who did it before; default true |
 
-The answer: `hits`, best first, each with its `kind`, `score`, `matched` (the query's own words that matched),
+The answer: `hits`, best first, each with its `kind`, `score`, `matched` (the query's own words that matched; a path in the query matched only through one of its tails is named by
+that tail, once per hit),
 `snippet`, and what it is: a task with `held_by` (session, agent, how it came in, since, life, what it touches) or
 `last_held_by` (who released it last and how); a note with its task and author; a board request with its target
 project by name, capability and state; a message with its sender; a project with its capabilities. `who` groups the
@@ -70,7 +71,9 @@ that reads the hits, so retrieval here only has to find them (`apps/desktop/src/
   run costs what it reads; run three, DA-13), so `boardDispatchRun.ts` finds `apps/desktop/src/main/boardDispatchRun.ts`
   and `CO-571` finds `ADR-0190/CO-571` (ER-15). A path in the query is searched with its tails too, those that are still
   ids, so `apps/desktop/src/main/boardDispatchRun.ts` finds a note citing `boardDispatchRun.ts`, while `docs/board` does
-  not search the bare word `board` (run three, ER-20).
+  not search the bare word `board` (run three, ER-20). A tail made only of names every repository has (`package.json`,
+  `src/index.ts`, `README.md`, the `GENERIC_NAMES` list) is not searched; a short name is (`hub.ts`, `web/package.json`)
+  (CO-578: run four, DA-14 and ER-23; run six, DA-18 and DO-43).
 - The score is BM25 times the share of the query's words that matched (one half to one), times recency
   (1 + 0.5 e^(-age/14 days)), times 1.3 for live work (a task a claim whose life is `live` holds, a request still open).
 - A document matching none of the query's words is not answered.

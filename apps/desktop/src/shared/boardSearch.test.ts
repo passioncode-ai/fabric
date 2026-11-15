@@ -172,6 +172,18 @@ describe('similarClaims', () => {
     expect(similarClaims({ taskId: 't9', owner: 's-me', title: 'Bump apps/desktop/package.json', touches: [] }, pkg)).toEqual([])
   })
 
+  it('CO-578 (0.3.21 review, run six: DA-18, ER-28, DO-43, UX-28, ER-29, DO-41): a short name stays searched, a camelCase word keeps its spelling, one tail is named once', () => {
+    const docs = [doc('hub', 'see hub.ts for the door'), doc('web', 'pin web/package.json to 2.0'), doc('disp', 'the dispatcher runs every pass'),
+      doc('bare', 'see boardDispatchRun.ts for the pass')]
+    const ids = (q: string) => rankDocs(q, docs, { now: NOW, limit: 10 }).map((h) => h.doc.id).sort()
+    expect(ids('apps/desktop/src/main/hub.ts')).toEqual(['hub'])
+    expect(ids('apps/web/package.json')).toEqual(['web'])
+    expect(ids('apps/desktop/package.json')).toEqual([])
+    expect(rankDocs('boardDispatcher', docs, { now: NOW, limit: 10 }).find((h) => h.doc.id === 'disp')?.matched).toEqual(['boarddispatcher'])
+    const twice = rankDocs('lib/a/boardDispatchRun.ts lib/b/boardDispatchRun.ts', docs, { now: NOW, limit: 10 })
+    expect(twice.find((h) => h.doc.id === 'bare')?.matched).toEqual(['boarddispatchrun.ts'])
+  })
+
   it('DA-13 (run three): a long a/b/c run yields at most PATH_TAILS tails, so its terms grow with what is read', () => {
     const run = Array.from({ length: 3000 }, () => 'a').join('/')
     const ts = terms(run)
