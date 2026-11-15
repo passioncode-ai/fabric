@@ -20,7 +20,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   2, 3 and 5 seconds whether or not anybody looked; they now pause while the window is hidden or minimised and read once
   the moment it is shown again.
 - **The home and the rail answer faster under many agents** (the quality waves, W3). Every window and screen now shares
-  one reading of the home, joined while it runs and answered again for two seconds, where each asked for its own (up to
+  one reading of the home, joined while it runs and answered again for two seconds, its two independent reads (today's
+  handed-in work and the projects' names) running beside the rest, where each asked for its own (up to
   809 readings an hour, some 18 s long). The network check behind the database notice answers at once from its last
   result instead of waiting up to 5 s every 5 minutes. The board dispatcher's log names an error that arrives as a plain
   object by its message or code, never «[object Object]».

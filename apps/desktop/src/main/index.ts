@@ -5719,6 +5719,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const held = heldSessions()
     // 0.3.14, the simple Fabric: each console's git branch for the left column and «В работе» (`agentBranches.ts`).
     const now = Date.now()
+    // W3 of the quality waves (perf PF-2): the two reads that need nothing from the chain below (today's handed-in
+    // events and the projects' names) start now and run beside it; each is still said unread on its own when it fails.
+    // The no-op catch only keeps an early failure from reading as unhandled: the awaits below still see it.
+    const handedInRead = readHandedInToday(store as never, { now })
+    handedInRead.catch(() => undefined)
+    const namesRead = projectNames.read(namesStale)
+    namesRead.catch(() => undefined)
     // Each agent's goal (the operator's second review, R-3): the root of its task's spawned links (`agentGoals.ts`).
     // ER-18: each agent's newest heartbeat, so every screen judges its status from the same inputs (`agentHeartbeats.ts`).
     // The mockup parity (home gaps D5, D6): an agent that re-enrolled keeps its stage reports, heartbeats and running
@@ -5728,9 +5735,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // 2026-11-11: a run the board dispatcher started is at work while Switchboard reports it running (`boardRunsOf`).
     const view = await withWork(await withGoals(identified, store as never), store as never, held, now, dispatchHolder.current?.boardRuns() ?? [])
     // The strip's own reads (`homeStrip.ts`): «Сдано сегодня» and the sweep's «Работают без задачи», each said unread alone.
-    const stripped = await withStrip(view, { handedIn: () => readHandedInToday(store as never, { now }), sweep: () => abandonedSweep?.current() ?? null })
+    const stripped = await withStrip(view, { handedIn: () => handedInRead, sweep: () => abandonedSweep?.current() ?? null })
     // Every project's display name (rail gap §2, `projectNames.ts`).
-    return withDisplayNames(stripped, () => projectNames.read(namesStale), (e) => ops.failed('work.display-names-unread', e, { note: 'the screens print the stored names' }))
+    return withDisplayNames(stripped, () => namesRead, (e) => ops.failed('work.display-names-unread', e, { note: 'the screens print the stored names' }))
   }
   handle(IPC.workBoard, async (_e, projectId?: unknown, doneLimit?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
     readTaskBoard(store, {
