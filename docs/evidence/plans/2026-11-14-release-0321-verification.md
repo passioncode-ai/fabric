@@ -24,6 +24,10 @@ operator asked for on 2026-11-14 (`fabric_board_search`, `similar_work`, the adv
   as for 0.3.20 (its ledger's Protocol, run five, PL-84).
 - A run's candidate passes `bash scripts/ci.sh fast` before its reviewers start (the 0.3.21 review, iteration 3, run two,
   PL-20: a red candidate cannot be `verifiedCommit`, and its fixes are refused after it).
+- A candidate becomes `verifiedCommit` only after a full hosted `ci` run reads green on it, or on a commit whose
+  difference to it is documents only; item 0 names that run and, for the second, the files (run five, PL-33, PL-34,
+  DO-37: run four's candidate passed the fast tier and failed the full one). Since run six's candidate the fast tier
+  also compares the surface test's written tool list (`scripts/check-surface-tools.mjs`), the suite that failed.
 
 ## What 0.3.21 carries
 
@@ -231,6 +235,10 @@ and iteration 3 runs a fifth time. The code
 findings are ruled to CO-578, since the gate refuses source after `verifiedCommit`; their fix (the query's tails drop a
 generic name, `matched` names the tail that matched, the comments and the description) is the first change on `main`
 after the release.
+That reason was wrong: no candidate was `verifiedCommit` yet, so the gate refused nothing; holding the fixes out of run
+five's candidate, to keep it to the one fix the hosted run asked for, was a choice (run five, PL-32, DO-39, UX-25). Run
+five's blocking DA-15 needed a new candidate anyway, so the fixes are in run six's candidate, and the rows below keep
+their text as their receipts read.
 
 | Row | Finding | Severity | Defect | Disposition |
 |---|---|---|---|---|
@@ -250,20 +258,47 @@ after the release.
 | V3-72 | PL-31 | non-blocking | the records did not describe run four's candidate | fixed in run five's candidate: this section names the candidate, its two commits and the first `ci.sh fast` read; MERGES lists the re-pin; the handoff's Open and its after-close line are current |
 | V3-73 | CI | blocking | the hosted full run's `agent-surface.test.mjs` failed: the surface test keeps its own written list of the tools a session gets, and `fabric_board_search` was not in it (the fast tier does not run that suite) | fixed in run five's candidate (`0b85159f`): the list names `fabric_board_search` |
 
-### Run five
+### Run five, 8e1709e4 (superseded)
 
-On the candidate that carries `0b85159f` and run four's records, with `bash scripts/ci.sh fast` read green and the full
-hosted run of `0b85159f` ([run 43658016572](https://github.com/passioncode-ai/fabric/actions/runs/43658016572)) read
-before the release commit; five fresh reviewers.
+Candidate `8e1709e40b668680a36780216a5d69c88d126cae`: run four's candidate with V3-73's fix (`0b85159f`) and run four's
+records (`8e1709e4`). `bash scripts/ci.sh fast` read green on it before the reviewers started («fast tier green»), and the
+full hosted run of `0b85159f` ([run 43658016572](https://github.com/passioncode-ai/fabric/actions/runs/43658016572)) read
+green (both tiers). Five fresh reviewers; reports and receipts in `docs/evidence/reviews/0.3.21/iteration-3-8e1709e4/`
+(kept as the record). 13 findings, one blocking: DA-15, a source defect, so run five is superseded and iteration 3 runs a
+sixth time on a candidate that fixes it, with run four's code findings (CO-578's fix, PL-32) and run five's own.
+
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
+| V3-74 | UX-24 | non-blocking | two more comments say «Отдать агенту» is offered always (`questionAsk.ts`, `BoardScreen.test.tsx`) | fixed in run six's candidate: both say «only on an agent's question with options (UX-3, UX-6, UX-19)» |
+| V3-75 | UX-25 | non-blocking | run four's ruled code findings were named only in the ledger, and its section called a choice a constraint | fixed in run six's candidate: run four's code findings are fixed there, CO-578's row says so, and run four's section states the deferral as a choice |
+| V3-76 | DA-15 | blocking | a question asked with options under 0.3.21 stores `recommended: true` on an option, the Board sends the stored options back, and the answer command's strict option shape refuses the key, so no such question can be answered from the app | fixed in run six's candidate: the answer's option shape accepts `recommended`, and `submitAnswer` sends only `{id, label, consequence}`, which 0.3.20 accepts too; tests «DA-15 (0.3.21 review, run five)» in `commandIngress.test.ts` and «DA-15: sends the options» in `BoardPanel.test.tsx`, both watched failing first |
+| V3-77 | DA-16 | non-blocking | the search's tasks read is cut at 500 by creation time, not by the last move | ruled: CO-578 (the release after 0.3.21): order by `moved_at desc nulls last`, then `started_at`, with a stack test; `capped` names `tasks` meanwhile |
+| V3-78 | ER-25 | non-blocking | the search counts a silent or lapsed claim as live work; V1-19's «lapsed claims left out» held for `similar_work` alone | fixed in run six's candidate: only a claim whose life is `live` makes live work, and `held_by` keeps its life; test «ER-25 (0.3.21 review, run five)» watched failing first; spec §1 and §3 say so |
+| V3-79 | ER-26 | non-blocking | CO-578's row did not name run four's ruled findings | fixed in run six's candidate: as UX-25 |
+| V3-80 | DO-37 | non-blocking | item 0's hosted run «on the final candidate» was named as the run of `0b85159f` | fixed in run six's candidate: the Protocol and item 0 name the hosted full run that stands for `verifiedCommit`, its own or one whose difference is documents only, with the files listed |
+| V3-81 | DO-38 | non-blocking | the MERGES entry's date was a forecast that no close item corrects | fixed in run six's candidate: item 0b sets the MERGES entry's date to the landing day |
+| V3-82 | DO-39 | non-blocking | run four's deferral cited a gate that did not apply | fixed in run six's candidate: as UX-25 |
+| V3-83 | PL-32 | non-blocking | as DO-39, and PL-29's dates could have gone into the candidate | fixed in run six's candidate: as UX-25; with it PL-29's latest dates and owners are in the carry-over rows, not at item 0c |
+| V3-84 | PL-33 | non-blocking | as DO-37 | fixed in run six's candidate: as DO-37 |
+| V3-85 | PL-34 | non-blocking | the Protocol did not learn from V3-73: a tool added passes the fast tier and fails the full one | fixed in run six's candidate: `scripts/check-surface-tools.mjs` compares the surface test's written list in the fast tier (a removed name watched failing), and the Protocol asks for the hosted full run before `verifiedCommit` |
+| V3-86 | PL-35 | non-blocking | AGENTS.md's North Star section omits G2, G11 and G32, which §14 gives Fabric | ruled: item 6 tells fabric-workspace that §14 names Fabric for G2, G11 and G32 where the register's fabric row does not, so its coordinator settles one list, which AGENTS.md follows on `main` |
+
+### Run six
+
+On the candidate that carries DA-15's fix, run four's code findings (CO-578's fix), ER-25, UX-24, the surface-list gate
+and run five's records, with `bash scripts/ci.sh fast` read green before the reviewers start and a full hosted run as the
+Protocol asks; five fresh reviewers.
 
 ## Release close
 
 What is owed around the tag, in order; each item is checked off here with its receipt.
 
-0. Before the release commit: at least 5 GB free (`df -h`); one full hosted `ci` run green on the final candidate.
+0. Before the release commit: at least 5 GB free (`df -h`); one full hosted `ci` run green on the final candidate, or on
+   a commit whose difference to it is documents only, named here with those files (run five, DO-37, PL-33).
 0b. The release commit (the version, `## 0.3.21`, `docs/launch/release-gate.json` with the handoff
    `docs/handoffs/2026-11-14-release-0321.md` in `releaseMetadata`) and its landing on `main` by fast-forward (runbook
-   step 1; the 0.3.21 review, iteration 2, PL-9; iteration 3, PL-17).
+   step 1; the 0.3.21 review, iteration 2, PL-9; iteration 3, PL-17); the MERGES entry dated with the landing day (run
+   five, DO-38).
 0c. On `main` after the release commit: iteration 3's ruled findings join their carry-over rows and the general plan's
    lanes, which the gate refuses after `verifiedCommit` (as 0.3.20's item 9; iteration 3, PL-17).
    With them CO-579's decision: the operator answered question `6c3764b6` on 2026-11-14 at 02:52 UTC, «Открыть сводку:
@@ -271,10 +306,9 @@ What is owed around the tag, in order; each item is checked off here with its re
    needs (ADR-0194, proposed on `feat/estate-work-summary`, read within the wall between businesses: run three, PL-25), is
    the next task after this release; it does not change 0.3.21. CO-579 takes that ADR id and the release after 0.3.21 as
    its target here (run three, PL-24).
-   With them (run four): the landing day replaces 2026-11-14 in CO-565, CO-571 and CO-573 (DO-33, PL-28); CO-569,
-   CO-577, CO-578, CO-581, CO-583 and CO-579 take the latest date 2026-11-21 and the owner «this repository's release
-   session» (PL-29); CO-578 takes run four's ruled code findings (UX-21 to UX-23, DA-14, ER-23, ER-24, DO-35, DO-36),
-   built first on `main`; and the next-free-id line follows the counter when `feat/estate-work-summary` lands (DO-34).
+   With them (run four): the landing day replaces 2026-11-14 in CO-565, CO-571 and CO-573 (DO-33, PL-28); and the
+   next-free-id line follows the counter when `feat/estate-work-summary` lands (DO-34). PL-29's latest dates and run
+   four's code findings went into run six's candidate instead (run five, PL-32).
 1. The CI release run green on every platform, the published release and its notes from `## 0.3.21`.
 2. Install 0.3.21 on this Mac by [the runbook](../../launch/release-mac.md#upgrading-an-existing-database) (no schema
    step): the board switch and «Служба доски» off before the quit, the lifecycle broker's `fabric.desktop` held, the
@@ -295,7 +329,9 @@ What is owed around the tag, in order; each item is checked off here with its re
    `work.search-the-board`) with what that leaves, CO-576 (meaning, not only words) and CO-579 (across projects, decided
    by the operator on 2026-11-14 and built after 0.3.21 by ADR-0194) (iteration 3, PL-19; run three, PL-24). With it,
    that `AGENTS.md` now names the North Star sections Fabric serves («The North Star sections Fabric serves»), with its
-   commit on `main` after item 0b, so the register's fabric row can fill «Named in `AGENTS.md`» (run three, PL-27).
+   commit on `main` after item 0b, so the register's fabric row can fill «Named in `AGENTS.md`» (run three, PL-27). And
+   that §14 names Fabric for G2, G11 and G32 where the register's fabric row does not, so the coordinator settles one
+   list, which `AGENTS.md` then follows (run five, PL-35).
 
 ### Carried from 0.3.20's close
 

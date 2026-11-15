@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "8e1709e40b668680a36780216a5d69c88d126cae",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-8e1709e4/2026-11-15-data.md",
+  "reportSha256": "a15b130dd3a77182dcf13176ff4f8de027f178bf7f07b9ec09f6b6772203435a",
+  "reviewerRun": "release-0321-i3r5-data-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: the answer's option shape accepts `recommended`, and `submitAnswer` sends only `{id, label, consequence}`, which 0.3.20 accepts too; tests «DA-15 (0.3.21 review, run five)» in `commandIngress.test.ts` and «DA-15: sends the options» in `BoardPanel.test.tsx`, both watched failing first"
+      ]
+    },
+    {
+      "id": "DA-16",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (the release after 0.3.21): order by `moved_at desc nulls last`, then `started_at`, with a stack test; `capped` names `tasks` meanwhile"
+      ]
+    }
+  ]
+}

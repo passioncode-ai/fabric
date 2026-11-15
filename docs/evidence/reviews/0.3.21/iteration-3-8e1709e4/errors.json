@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "8e1709e40b668680a36780216a5d69c88d126cae",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-8e1709e4/2026-11-15-errors.md",
+  "reportSha256": "ce1dda00c50da6f4e9fd96ac36c923632b1cc95a9968d207925ff53d3fdf9c8c",
+  "reviewerRun": "release-0321-i3r5-errors-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: only a claim whose life is `live` makes live work, and `held_by` keeps its life; test «ER-25 (0.3.21 review, run five)» watched failing first; spec §1 and §3 say so"
+      ]
+    },
+    {
+      "id": "ER-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: as UX-25"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "8e1709e40b668680a36780216a5d69c88d126cae",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-8e1709e4/2026-11-15-ux.md",
+  "reportSha256": "13be49fa12b898f56f29fcd8187b24c9e886d1ac0b4978d9c9b7c6edbe01637d",
+  "reviewerRun": "release-0321-i3r5-ux-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: both say «only on an agent's question with options (UX-3, UX-6, UX-19)»"
+      ]
+    },
+    {
+      "id": "UX-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: run four's code findings are fixed there, CO-578's row says so, and run four's section states the deferral as a choice"
+      ]
+    }
+  ]
+}

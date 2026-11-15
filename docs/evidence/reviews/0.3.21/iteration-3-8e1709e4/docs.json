@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "8e1709e40b668680a36780216a5d69c88d126cae",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-8e1709e4/2026-11-15-docs.md",
+  "reportSha256": "c22b9ca84e55ace7ad9d537c42a07d7d294a33eb872899a56f6b647cb8a49c73",
+  "reviewerRun": "release-0321-i3r5-docs-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: the Protocol and item 0 name the hosted full run that stands for `verifiedCommit`, its own or one whose difference is documents only, with the files listed"
+      ]
+    },
+    {
+      "id": "DO-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: item 0b sets the MERGES entry's date to the landing day"
+      ]
+    },
+    {
+      "id": "DO-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: as UX-25"
+      ]
+    }
+  ]
+}

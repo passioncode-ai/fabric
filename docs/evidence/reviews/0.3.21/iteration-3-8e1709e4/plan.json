@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "8e1709e40b668680a36780216a5d69c88d126cae",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3-8e1709e4/2026-11-15-plan.md",
+  "reportSha256": "aec6343bdb7708da08ec702b897960b046edd15d452d38f39af7eb2930cef887",
+  "reviewerRun": "release-0321-i3r5-plan-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: as UX-25; with it PL-29's latest dates and owners are in the carry-over rows, not at item 0c"
+      ]
+    },
+    {
+      "id": "PL-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: as DO-37"
+      ]
+    },
+    {
+      "id": "PL-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed in run six's candidate: `scripts/check-surface-tools.mjs` compares the surface test's written list in the fast tier (a removed name watched failing), and the Protocol asks for the hosted full run before `verifiedCommit`"
+      ]
+    },
+    {
+      "id": "PL-35",
+      "status": "ruled",
+      "evidence": [
+        "ruled: item 6 tells fabric-workspace that §14 names Fabric for G2, G11 and G32 where the register's fabric row does not, so its coordinator settles one list, which AGENTS.md follows on `main`"
+      ]
+    }
+  ]
+}
