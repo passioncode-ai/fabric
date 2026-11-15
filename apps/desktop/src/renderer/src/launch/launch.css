@@ -533,6 +533,11 @@
 .app-sidebar{padding-bottom:6rem}
 @media(max-width:768px){.app-nav>.mobile-app-nav select{width:100%}.app-nav>a,.app-nav>p,.app-nav>details{display:none}.app-sidebar{padding:1rem}.app-nav{width:100%}.scope-bar{margin-bottom:.75rem}}
 /* ── adaptations to the app window ── */
+/* The agent page's main column holds its width (the operator's screenshot, 2026-11-15): `.as-main` is a grid whose
+   implicit column was `auto`, so the directions' strip of cards widened it past its track and the tasks ran under the
+   session card. One column that may shrink, and the strip scrolls inside it. */
+.as-main{grid-template-columns:minmax(0,1fr)}
+.ap-dir,.ap-dir .lp-dir-rows,.ap-dir .lp-dir-row{min-width:0}
 /* UX-10 (0.3.21 review, iteration 3): a question's count of tasks it holds, beside its own why. */
 .lp-decide-holds{font-size:13px;color:var(--app-muted);margin:0 0 var(--space-2)}
 /* SCN-170 step 1 (0.3.13, CO-392): Settings is one column of sections, each a small uppercase label over its panels.

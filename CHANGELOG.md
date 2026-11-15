@@ -19,6 +19,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   it last, and groups the hits by who is on them. Taking a task (`fabric_work_claim`) also names another agent's task
   that reads like it (`similar_work`), and every session's rules say to search before starting. Nothing leaves the
   machine: the search matches words, no model reads the query.
+- **An agent's page keeps its tasks beside the session card, not under it** (the operator's screenshot, 2026-11-15).
+  The row of directions widened the main column, so the tasks, their filters and their status ran under «Сессия» and
+  «Написать агенту»; the column now holds its width and the row scrolls inside it.
 - **An idle session no longer holds its project's board requests** (CO-565; CO-571 in part). A session counts as present for
   the dispatcher only while it worked or started in the last ten minutes (a tool call, or a console that printed); the keep-alive
   signal its connection sends every two minutes no longer counts. A request beside an idle session now gets a run.
