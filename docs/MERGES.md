@@ -5,9 +5,9 @@
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
 ### 2026-11-15 · `—` · feat/w4-bug-capture → main · fast-forward
-- files: the bug store and fingerprint (`main/bugStore.ts`, `shared/bugFingerprint.ts`, `index.ts` crash capture), the theme's gold ink (`launch.css`, `rail.css`, `styles.css`, `scripts/test/gold-ink-contrast.browser.mjs`), the home's assembly moved to `main/homeView.ts`, the general plan's Now line, CO-581, the quality waves' W3 and W7 state, the map lanes `iteration-2026-11-15-w4-bugs`, `iteration-2026-11-15-w6-gold`, `iteration-2026-11-15-w7-home-module`
+- files: the bug store and fingerprint (`main/bugStore.ts`, `shared/bugFingerprint.ts`, `index.ts` crash capture), the theme's gold ink (`launch.css`, `rail.css`, `styles.css`, `scripts/test/gold-ink-contrast.browser.mjs`), the home's assembly moved to `main/homeView.ts`, the general plan's Now line, CO-581, the quality waves' W3 and W7 state, the interface strings without U+2014 (`i18n/ru.ts`, `i18n/en.ts`, `scripts/check-design.mjs` on both languages, `scripts/emdash-baseline.txt` emptied, the copy-check receipts), the map lanes `iteration-2026-11-15-w4-bugs`, `iteration-2026-11-15-w6-gold`, `iteration-2026-11-15-w7-home-module`, `iteration-2026-11-15-w6-no-dash`
 - conflicts: none
-- summary: W4 wave 1's first part (one local record per bug), W6's gold readable on white, and the home's reading as its own module
+- summary: W4 wave 1's first part (one local record per bug), W6's gold readable on white and strings without the em dash, and the home's reading as its own module
 
 ### 2026-11-15 · `—` · fix/w1-comms-layout → main · fast-forward
 - files: `launch/CommsScreen.tsx` (a thread row `lp-topic-plain`, a message `lp-message`), `launch/launch.css` and `styles.css` (the app's own collapses `minmax(0,1fr)`, children of the ported grids may shrink, a container query on `main.content`, panel heads wrap), browser suites `scripts/test/comms-thread.browser.mjs` and `scripts/test/layout-wide-content.browser.mjs`, CHANGELOG, the map lane `iteration-2026-11-15-w1-layout`

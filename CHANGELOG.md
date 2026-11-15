@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Interface strings without the long dash** (the quality waves, W6, ui UI-15). 133 Russian and 70 English strings
+  used the em dash; each now says the same with a full stop, comma, colon or brackets, checked against the copy rules
+  and by the copy check. The design gate (`scripts/check-design.mjs`), Russian-only until now, fails on a dash in either language.
 - **Gold reads in the light theme** (the quality waves, W6). The rail's counters, the favourite star and the undo links
   were the fill's yellow on white, 1.34:1; a selected row, agent, tab or the graph's centre was marked by that yellow
   alone. Text and thin markers now take the theme's ink of gold (the same yellow on dark, a darker gold on white, 4.5:1

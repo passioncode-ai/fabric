@@ -664,7 +664,7 @@ describe('how a request ended (SCN-147 steps 2–3)', () => {
   it('outcome_unknown never reads as success, and names who can settle it (P15)', async () => {
     await openRequest('outcome_unknown', { responders: async () => ({ ok: true, responders: [slot()] }) })
     await screen.findByText(en['launch.comms.request.state.outcome_unknown'])
-    expect(en['launch.comms.request.state.outcome_unknown']).toBe('may have happened — awaiting reconciliation')
+    expect(en['launch.comms.request.state.outcome_unknown']).toBe('may have happened, awaiting reconciliation')
     expect(en['launch.comms.request.state.outcome_unknown']).not.toMatch(/\b(done|completed|succeeded|success)\b/i)
     expect(ru['launch.comms.request.state.outcome_unknown']).not.toMatch(/успешно|завершено/i)
     await screen.findByText(en['launch.comms.unknown.settledBy'].replace('{capability}', 'analytics.retention'))

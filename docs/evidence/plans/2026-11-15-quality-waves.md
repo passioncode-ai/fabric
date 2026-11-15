@@ -107,6 +107,10 @@ Finish line: a dispatcher hour watched on the installed board with no unexplaine
 | Literal type sizes, 37 below 11 px; no hyphenation | ui UI-10, UI-11 | the size tokens, nothing below 11 px, `hyphens:auto` on prose |
 | The audit's coverage gap | ui (coverage) | `ru.ts` read line by line; every screen walked against `docs/ux/scenarios.md` and `docs/ux/screens.md` |
 
+State, 2026-11-15: gold text and markers take the theme's ink (`gold-ink-contrast.browser.mjs`, both themes); every
+interface string rewritten without U+2014 (133 ru, 70 en) and gated in both languages by `scripts/check-design.mjs` (its baseline `emdash-baseline.txt` now empty). The dash alone as a "no value" mark in the screens'
+code (about 15 places) stays: the copy catalogue's AT-06-E4 exempts a dash standing for an empty cell. Next: one word per act, «вы», plurals, ids, dates, type sizes.
+
 Finish line: the contrast check in both themes passes AA; the em-dash gate green; the walk's findings fixed or filed.
 
 ## W7 · The register's hygiene

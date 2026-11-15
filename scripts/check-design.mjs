@@ -493,7 +493,7 @@ if (literals === 0) ok('strings: no literal interface text in components')
   for (const m of readFileSync(path.join(RENDERER, 'i18n/ru.ts'), 'utf8').matchAll(/^\s+'([^']+)':\s*(['"])(.*)\2,?\s*$/gm))
     if (/\{(id|sha|hash|seq|capability)\}/.test(m[3])) found.add(`ru.ts: ${m[1]}`)
   const baseFile = path.join(ROOT, 'scripts/sp2-baseline.txt')
-  const base = new Set(readFileSync(baseFile, 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#')))
+  const base = new Set(readFileSync(baseFile, 'utf8').split('\n').map((l) => l.trim().replace(/^ru:/, '')).filter((l) => l && !l.startsWith('#')))
   const added = [...found].filter((x) => !base.has(x))
   const gone = [...base].filter((x) => !found.has(x))
   if (added.length)
@@ -503,27 +503,30 @@ if (literals === 0) ok('strings: no literal interface text in components')
   if (!added.length && !gone.length) ok(`SP-2: no new machine id on screen; ${base.size} known in the shrinking baseline`)
 }
 
-// ── no em dash in a Russian interface string (2026-11-12) ─────────────────
+// ── no em dash in an interface string (2026-11-12; English too since 2026-11-15) ──
 //
 // The operator's rule for every text a person reads: no em dash (U+2014) and no substitute; a full stop, a comma, a
-// colon or parentheses instead. The strings that still carry one are `emdash-baseline.txt`, which may only SHRINK: a
-// dash is replaced by the sign its sentence needs, by hand, screen by screen.
+// colon or parentheses instead. The strings that still carry one are `emdash-baseline.txt` (as `ru:key` or `en:key`,
+// a bare key is Russian), which may only SHRINK. Empty since W6 of the quality waves (2026-11-15): 133 ru and 70 en
+// strings rewritten, checked against the copy rules (docs/reports/2026-11-15-quality-audit/copy-check-w6-no-dash.json).
 {
   const DASH = '\u2014'
   const found = new Set()
-  let key = null
-  for (const line of readFileSync(path.join(SRC, 'renderer/src/i18n/ru.ts'), 'utf8').split('\n')) {
-    const k = line.match(/^\s+'([^']+)':/)
-    if (k) key = k[1]
-    if (key && line.includes(DASH) && !/^\s*\/\//.test(line)) found.add(key)
+  for (const locale of ['ru', 'en']) {
+    let key = null
+    for (const line of readFileSync(path.join(SRC, `renderer/src/i18n/${locale}.ts`), 'utf8').split('\n')) {
+      const k = line.match(/^\s+'([^']+)':/)
+      if (k) key = k[1]
+      if (key && line.includes(DASH) && !/^\s*(\/\/|\*|\/\*)/.test(line)) found.add(locale === 'ru' ? key : `en:${key}`)
+    }
   }
   const baseFile = path.join(ROOT, 'scripts/emdash-baseline.txt')
   const base = new Set(readFileSync(baseFile, 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#')))
   const added = [...found].filter((x) => !base.has(x))
   const gone = [...base].filter((x) => !found.has(x))
-  if (added.length) fail(`em dash: ${added.length} Russian string(s) gained an em dash, use a full stop, a comma, a colon or parentheses: ${added.join(', ')}`)
+  if (added.length) fail(`em dash: ${added.length} interface string(s) gained an em dash, use a full stop, a comma, a colon or parentheses: ${added.join(', ')}`)
   if (gone.length) fail(`em dash: ${gone.length} baseline row(s) no longer carry one, strike them from scripts/emdash-baseline.txt: ${gone.join(', ')}`)
-  if (!added.length && !gone.length) ok(`em dash: no new one in a Russian string; ${base.size} known in the shrinking baseline`)
+  if (!added.length && !gone.length) ok(`em dash: no new one in an interface string (ru, en); ${base.size} known in the shrinking baseline`)
 }
 
 // ── a figure opens the register it was counted from ───────────────────────
