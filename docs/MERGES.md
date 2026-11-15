@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/w6-card-borders → main · fast-forward
+- files: `tokens.app.css` (`--app-line-control`), `launch/launch.css` and `start/start.css` (the edges of clickable cards), `scripts/test/card-edge-contrast.browser.mjs`, the quality waves' W6 state, the map lane `iteration-2026-11-16-w6-card-edge`
+- conflicts: none
+- summary: W6, ui UI-14: the edge of a clickable card reads at 3:1 or more in both themes
+
 ### 2026-11-16 · `—` · feat/w1-grid-stress → main · fast-forward
 - files: `launch/launch.css` (items of 57 grids shrink, four start-aligned grids cap theirs), `scripts/test/layout-stress.browser.mjs`, the generated reports (`product.html`, `completeness.html`, `adoption.html`, previews), the quality waves' W1 state, the map lane `iteration-2026-11-16-w1-grid-stress`
 - conflicts: none

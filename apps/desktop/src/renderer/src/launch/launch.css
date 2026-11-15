@@ -1229,3 +1229,5 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 @property --lp-edge-fade{syntax:'<length>';inherits:false;initial-value:0px}
 @keyframes lp-edge-fade{from{--lp-edge-fade:40px}90%{--lp-edge-fade:40px}to{--lp-edge-fade:0px}}
 .lp-dir-strip,.lk-board{-webkit-mask-image:linear-gradient(to right,var(--app-ink) calc(100% - var(--lp-edge-fade)),transparent);mask-image:linear-gradient(to right,var(--app-ink) calc(100% - var(--lp-edge-fade)),transparent);animation:lp-edge-fade linear both;animation-timeline:scroll(self inline)}
+/* W6 (ui UI-14): the edge of a card a person clicks reads at 3:1 or more against its panel, in both themes. */
+.ag-row,.lc-post,.lk-card,.lp-dir-card,.lp-glance-card{border-color:var(--app-line-control)}

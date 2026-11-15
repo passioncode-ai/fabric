@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Cards you can click look clickable** (the quality waves, W6, ui UI-14). Their edge was the divider colour, about
+  1.4:1; it now reads at 3:1 or more in both themes.
 - **A row of cards that scrolls says so** (the quality waves, W1, ui UI-7). The directions strip and the kanban board
   fade their right edge while more cards wait past it; macOS hides the scrollbar, so the cut card used to read as a
   stray border.

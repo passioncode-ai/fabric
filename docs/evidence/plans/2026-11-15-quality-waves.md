@@ -127,7 +127,9 @@ places that format a date their own way.
 Nothing below 11 px (UI-10): the 10 own rules raised, the 27 rules ported from the prototype lifted in the adaptations,
 the badge token floored at 11 px, and `scripts/check-design.mjs` fails on any size under 11 px or a ported one left
 unlifted; under 550 px the Pulse's bars drop their count (it stays in the title) and name every other day
-(`scripts/test/type-floor.browser.mjs`). Prose hyphenates in the reader's language (UI-11).
+(`scripts/test/type-floor.browser.mjs`). Prose hyphenates in the reader's language (UI-11). The edge of a card a person clicks (a direction, a kanban card, a
+post, an agent row, a glance card, a start choice) takes `--app-line-control`, 3.33:1 dark and 4.14:1 light against its
+panel (UI-14, `card-edge-contrast.browser.mjs`); dividers keep `--app-line`.
 
 Finish line: the contrast check in both themes passes AA; the em-dash gate green; the walk's findings fixed or filed.
 

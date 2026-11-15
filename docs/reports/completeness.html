@@ -440,6 +440,9 @@
   --app-muted: var(--pc-text-muted);
   --app-line: var(--pc-border);
   --app-line-strong: var(--pc-border-strong);
+  /* W6 (ui UI-14): the edge of something a person clicks (a card, a row, a post), 3:1 or more against its panel in both
+     themes; --app-line stays for dividers, which identify nothing. */
+  --app-line-control: color-mix(in oklab, var(--app-line-strong) 88%, var(--app-ink));
   /* Gold is action, selection and focus — never a state (ui.md). Dark text on
      gold for the one primary action of a task region. */
   --app-accent: var(--pc-accent);
@@ -3933,4 +3936,4 @@ progress::-webkit-progress-value { background: var(--app-ink); }
 - `maintaining-fabric-workspace` — обновление и публикация пространства — not a skill this family ships
 
 &lt;sub&gt;A star on [the bundle](https://github.com/ssheleg/sshlg-skills) helps.&lt;/sub&gt;
-</pre></details><p>Source fingerprint: <code>1390f6d1ed4a55e822329cdecdda3dc27a621d7941618575d46f54f324c37cc8</code>.</p></footer></main><script>const rows=[...document.querySelectorAll('[data-row]')],search=document.getElementById('search'),filter=document.getElementById('filter');function apply(){const q=search.value.toLocaleLowerCase();for(const row of rows)row.hidden=(filter.value!=='all'&&row.dataset.status!==filter.value)||!row.textContent.toLocaleLowerCase().includes(q);document.getElementById('shown').textContent=rows.filter(r=>!r.hidden).length+' строк'}search.addEventListener('input',apply);filter.addEventListener('change',apply);document.getElementById('theme').onclick=()=>document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';function anchor(){const target=document.getElementById(location.hash.slice(1));if(target?.tagName==='DETAILS'){target.open=true;target.hidden=false;target.scrollIntoView()}}addEventListener('hashchange',anchor);anchor();</script></body></html>
+</pre></details><p>Source fingerprint: <code>a2ec85691321ea96db15d44c4a61d70b1930a3dcc84b97ba66b71ec441662915</code>.</p></footer></main><script>const rows=[...document.querySelectorAll('[data-row]')],search=document.getElementById('search'),filter=document.getElementById('filter');function apply(){const q=search.value.toLocaleLowerCase();for(const row of rows)row.hidden=(filter.value!=='all'&&row.dataset.status!==filter.value)||!row.textContent.toLocaleLowerCase().includes(q);document.getElementById('shown').textContent=rows.filter(r=>!r.hidden).length+' строк'}search.addEventListener('input',apply);filter.addEventListener('change',apply);document.getElementById('theme').onclick=()=>document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';function anchor(){const target=document.getElementById(location.hash.slice(1));if(target?.tagName==='DETAILS'){target.open=true;target.hidden=false;target.scrollIntoView()}}addEventListener('hashchange',anchor);anchor();</script></body></html>

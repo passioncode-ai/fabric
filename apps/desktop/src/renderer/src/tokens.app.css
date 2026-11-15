@@ -63,6 +63,9 @@
   --app-muted: var(--pc-text-muted);
   --app-line: var(--pc-border);
   --app-line-strong: var(--pc-border-strong);
+  /* W6 (ui UI-14): the edge of something a person clicks (a card, a row, a post), 3:1 or more against its panel in both
+     themes; --app-line stays for dividers, which identify nothing. */
+  --app-line-control: color-mix(in oklab, var(--app-line-strong) 88%, var(--app-ink));
   /* Gold is action, selection and focus — never a state (ui.md). Dark text on
      gold for the one primary action of a task region. */
   --app-accent: var(--pc-accent);
