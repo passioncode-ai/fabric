@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/w1-grid-stress → main · fast-forward
+- files: `launch/launch.css` (items of 57 grids shrink, four start-aligned grids cap theirs), `scripts/test/layout-stress.browser.mjs`, the generated reports (`product.html`, `completeness.html`, `adoption.html`, previews), the quality waves' W1 state, the map lane `iteration-2026-11-16-w1-grid-stress`
+- conflicts: none
+- summary: W1, ui UI-8: no grid grows past its column, gated by a browser stress over every grid class
+
 ### 2026-11-15 · `—` · feat/w6-type → main · fast-forward
 - files: `launch/launch.css` (the adaptations' lift of the prototype's sizes under 11 px, the narrow chart, hyphens), `launch/rail.css`, `start/start.css`, `tokens.app.css` (`--app-fs-badge` floored), `scripts/check-design.mjs` (the type floor), `scripts/test/type-floor.browser.mjs`, the quality waves' W6 state, the map lane `iteration-2026-11-15-w6-type`
 - conflicts: none

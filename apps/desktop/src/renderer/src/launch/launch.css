@@ -1217,3 +1217,9 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
   .fp-bar>span{font-size:0}.fp-chart .fp-bar:nth-child(even) small{visibility:hidden}}
 /* W6 (ui UI-11): prose breaks long words at syllables in the reader's language (`<html lang>` follows the locale). */
 .lp p,.lp-message-body,.lc-text{-webkit-hyphens:auto;hyphens:auto}
+/* W1 of the quality waves (2026-11-15, ui UI-8): a grid's implicit or `1fr` column grows to its widest child, so one long
+   path or link pushed a column, then the page, sideways. Each grid a 600 px stress finds growing
+   (scripts/test/layout-stress.browser.mjs) lets its items shrink; a grid that sizes its items to their content
+   (`justify-items:start`) also caps them at its width. */
+:is(.rail-places,.act-line-refused,.hx,.hx-refused,.hx-problem,.ja,.ja-refused,.calm-help-nav,.calm-filter,.lp-progress,.lp-mini,.lp-task-brief,.fp-chart,.lp-message,.lh-need-body,.lc-posts,.ag,.ag-centre,.ag-chosen,.ag-list,.ag-note,.ag-rows,.ag-row,.ag-joined,.ag-console,.hx-grid,.hx-main,.hx-detail,.lk-card-wrap,.rail-view,.rail-agent-words,.lh-inwork,.as,.as-now,.ap-tasks,.ap-task-words,.ap-task-body,.ap-brief,.as-side,.as-session,.as-facts,.as-questions-list,.xp,.xp-form,.rd-answer,.rd-buttons,.rd-comment,.lo,.ov,.as-say,.st-builder-reasons,.cr,.cr-choice,.transcript-list,.transcript-body,.banner-remedy)>*{min-width:0}
+:is(.lh-need-body,.ag-note,.lk-card-wrap,.hx-problem)>*{max-width:100%}

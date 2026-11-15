@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **No column grows past the window** (the quality waves, W1, ui UI-8). 57 more layouts let one long path or link widen
+  their column and the page; each now keeps its width, and a browser check renders every grid with a long word.
 - **Nothing smaller than 11 px** (the quality waves, W6, ui UI-10, UI-11). 37 type sizes were 7 to 10.5 px (pills,
   counters, chart labels, section headings); all are 11 px now, and the design check fails on a smaller one. In a narrow
   window the Pulse's bars keep their count in the tooltip and name every other day. Paragraphs hyphenate.
