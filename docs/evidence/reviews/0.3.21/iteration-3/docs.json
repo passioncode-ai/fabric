@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "819b4bc7718fa5019665223a16b09f86f57dde99",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3/2026-11-15-docs.md",
+  "reportSha256": "8b8a0fae1a72897f833fafb35f7197a06d450859017419702edf67cf8294720b",
+  "reviewerRun": "release-0321-i3r6-docs-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG's «Upgrading» says that 0.3.20 cannot answer a question an agent asked with options under 0.3.21, so answer those before going back (or they wait for 0.3.21); the map's run-five lane no longer says a rollback keeps answers working, and a new lane says why; V3-76's forward fix stands and this row is its rollback half; the runbook's 0.3.21 paragraph and the `BoardPanel.tsx` comment say the same on `main` at item 0c (run six, PL-36: the gate admits neither after `verifiedCommit`)"
+      ]
+    },
+    {
+      "id": "DO-41",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): as UX-28"
+      ]
+    },
+    {
+      "id": "DO-42",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): as UX-29"
+      ]
+    },
+    {
+      "id": "DO-43",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): as DA-18, the folder judged by `GENERIC_NAMES` alone"
+      ]
+    },
+    {
+      "id": "DO-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: this row records that ER-25's rule is in spec §1 and §2; V3-78 keeps its text, which its receipt repeats"
+      ]
+    },
+    {
+      "id": "DO-45",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): as UX-29"
+      ]
+    },
+    {
+      "id": "DO-46",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-589 (filed on `main` at item 0c): as DA-19"
+      ]
+    },
+    {
+      "id": "DO-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the handoff's Open and item 0c drop that clause"
+      ]
+    }
+  ]
+}

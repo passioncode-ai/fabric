@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "819b4bc7718fa5019665223a16b09f86f57dde99",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3/2026-11-15-data.md",
+  "reportSha256": "f0fb361330bc62395f7ac15652ca89e2ba372f281ca53096ba3fb44372481f7f",
+  "reviewerRun": "release-0321-i3r6-data-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG's «Upgrading» says that 0.3.20 cannot answer a question an agent asked with options under 0.3.21, so answer those before going back (or they wait for 0.3.21); the map's run-five lane no longer says a rollback keeps answers working, and a new lane says why; V3-76's forward fix stands and this row is its rollback half; the runbook's 0.3.21 paragraph and the `BoardPanel.tsx` comment say the same on `main` at item 0c (run six, PL-36: the gate admits neither after `verifiedCommit`)"
+      ]
+    },
+    {
+      "id": "DA-18",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): the length test applies to folder segments only; a test that `apps/desktop/src/main/hub.ts` finds a note citing `hub.ts`"
+      ]
+    },
+    {
+      "id": "DA-19",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-589 (filed on `main` at item 0c): the check asserts the `.as-main` track itself and runs in a tier with Playwright; meanwhile item 2b reads an agent page with a directions row on the installed 0.3.21"
+      ]
+    }
+  ]
+}

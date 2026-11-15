@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "819b4bc7718fa5019665223a16b09f86f57dde99",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3/2026-11-15-ux.md",
+  "reportSha256": "58006f19e1816d0eda3895a5325c095c90eb53c0645104a2b8f6dd27f380a811",
+  "reviewerRun": "release-0321-i3r6-ux-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG's «Upgrading» says that 0.3.20 cannot answer a question an agent asked with options under 0.3.21, so answer those before going back (or they wait for 0.3.21); the map's run-five lane no longer says a rollback keeps answers working, and a new lane says why; V3-76's forward fix stands and this row is its rollback half; the runbook's 0.3.21 paragraph and the `BoardPanel.tsx` comment say the same on `main` at item 0c (run six, PL-36: the gate admits neither after `verifiedCommit`)"
+      ]
+    },
+    {
+      "id": "UX-27",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): the note drops «a wider days» when `capped` names `tasks` or `notes`"
+      ]
+    },
+    {
+      "id": "UX-28",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): the tail naming applies to path words only, one tail per hit, with a camelCase test"
+      ]
+    },
+    {
+      "id": "UX-29",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): spec §1 and §2 state the generic-tail rule and the tail in `matched`; SCN-140 and the two `workTools.ts` comments say «a claim that has not lapsed (live or silent)»"
+      ]
+    }
+  ]
+}

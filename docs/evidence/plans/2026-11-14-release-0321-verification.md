@@ -283,11 +283,44 @@ sixth time on a candidate that fixes it, with run four's code findings (CO-578's
 | V3-85 | PL-34 | non-blocking | the Protocol did not learn from V3-73: a tool added passes the fast tier and fails the full one | fixed in run six's candidate: `scripts/check-surface-tools.mjs` compares the surface test's written list in the fast tier (a removed name watched failing), and the Protocol asks for the hosted full run before `verifiedCommit` |
 | V3-86 | PL-35 | non-blocking | AGENTS.md's North Star section omits G2, G11 and G32, which §14 gives Fabric | ruled: item 6 tells fabric-workspace that §14 names Fabric for G2, G11 and G32 where the register's fabric row does not, so its coordinator settles one list, which AGENTS.md follows on `main` |
 
-### Run six
+### Run six, 819b4bc7
 
-On the candidate that carries DA-15's fix, run four's code findings (CO-578's fix), ER-25, UX-24, the surface-list gate
-and run five's records, with `bash scripts/ci.sh fast` read green before the reviewers start and a full hosted run as the
-Protocol asks; five fresh reviewers.
+Candidate `819b4bc7718fa5019665223a16b09f86f57dde99`, `verifiedCommit`: run five's candidate with DA-15's fix
+(`c564db78`), run four's CO-578 fixes (`d4264a73`), ER-25 and UX-24 (`0b652d53`), the surface-list gate (`fcb3d3ba`),
+run five's records (`7d4a628e`, `897e4eee`), the DA-15 board test's null check that `ci.sh fast`'s typecheck asked for
+(`0f1a6349`), and the agent page's column fix from the operator's screenshot of 2026-11-15 (`819b4bc7`: `.as-main` holds
+its width; `scripts/test/agent-page-columns.browser.mjs`, run by hand). `bash scripts/ci.sh fast` read green on it before
+the reviewers started («fast tier green»), and the full hosted run of `819b4bc7` itself
+([run 43662877409](https://github.com/passioncode-ai/fabric/actions/runs/43662877409)) read green, both tiers. Five fresh
+reviewers; reports and receipts in `docs/evidence/reviews/0.3.21/iteration-3/`. 21 findings, five blocking, all one
+defect: DA-15's rollback half (UX-26, ER-27, DO-40, PL-36, and DA-17 as non-blocking). Its fix is in records the gate
+admits after `verifiedCommit` (PL-36), so iteration 3 closes on this run.
+
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
+| V3-87 | UX-26 | blocking | a downgrade to 0.3.20 cannot answer a question asked with options under 0.3.21, and three records say it can | fixed in the release commit: the CHANGELOG's «Upgrading» says that 0.3.20 cannot answer a question an agent asked with options under 0.3.21, so answer those before going back (or they wait for 0.3.21); the map's run-five lane no longer says a rollback keeps answers working, and a new lane says why; V3-76's forward fix stands and this row is its rollback half; the runbook's 0.3.21 paragraph and the `BoardPanel.tsx` comment say the same on `main` at item 0c (run six, PL-36: the gate admits neither after `verifiedCommit`) |
+| V3-88 | UX-27 | non-blocking | with the tasks or notes read capped and no hit, the note still advises a wider `days` | ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): the note drops «a wider days» when `capped` names `tasks` or `notes` |
+| V3-89 | UX-28 | non-blocking | `matched` names a part's stem for a camelCase query word | ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): the tail naming applies to path words only, one tail per hit, with a camelCase test |
+| V3-90 | UX-29 | non-blocking | spec §1 and §2 omit CO-578's tail rules; SCN-140 calls `similar_work`'s claims live | ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): spec §1 and §2 state the generic-tail rule and the tail in `matched`; SCN-140 and the two `workTools.ts` comments say «a claim that has not lapsed (live or silent)» |
+| V3-91 | DA-17 | non-blocking | as UX-26, reported as non-blocking | fixed in the release commit: the CHANGELOG's «Upgrading» says that 0.3.20 cannot answer a question an agent asked with options under 0.3.21, so answer those before going back (or they wait for 0.3.21); the map's run-five lane no longer says a rollback keeps answers working, and a new lane says why; V3-76's forward fix stands and this row is its rollback half; the runbook's 0.3.21 paragraph and the `BoardPanel.tsx` comment say the same on `main` at item 0c (run six, PL-36: the gate admits neither after `verifiedCommit`) |
+| V3-92 | DA-18 | non-blocking | the generic-tail rule drops a short file name (`hub.ts`, `ops.ts`), which run five's candidate found | ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): the length test applies to folder segments only; a test that `apps/desktop/src/main/hub.ts` finds a note citing `hub.ts` |
+| V3-93 | DA-19 | non-blocking | the agent-page browser check passes with either of its two CSS rules alone | ruled: CO-589 (filed on `main` at item 0c): the check asserts the `.as-main` track itself and runs in a tier with Playwright; meanwhile item 2b reads an agent page with a directions row on the installed 0.3.21 |
+| V3-94 | ER-27 | blocking | as UX-26 | fixed in the release commit: the CHANGELOG's «Upgrading» says that 0.3.20 cannot answer a question an agent asked with options under 0.3.21, so answer those before going back (or they wait for 0.3.21); the map's run-five lane no longer says a rollback keeps answers working, and a new lane says why; V3-76's forward fix stands and this row is its rollback half; the runbook's 0.3.21 paragraph and the `BoardPanel.tsx` comment say the same on `main` at item 0c (run six, PL-36: the gate admits neither after `verifiedCommit`) |
+| V3-95 | ER-28 | non-blocking | as DA-18 | ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): as DA-18 |
+| V3-96 | ER-29 | non-blocking | as UX-28, and one tail repeated for two query paths | ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): as UX-28 |
+| V3-97 | DO-40 | blocking | as UX-26 | fixed in the release commit: the CHANGELOG's «Upgrading» says that 0.3.20 cannot answer a question an agent asked with options under 0.3.21, so answer those before going back (or they wait for 0.3.21); the map's run-five lane no longer says a rollback keeps answers working, and a new lane says why; V3-76's forward fix stands and this row is its rollback half; the runbook's 0.3.21 paragraph and the `BoardPanel.tsx` comment say the same on `main` at item 0c (run six, PL-36: the gate admits neither after `verifiedCommit`) |
+| V3-98 | DO-41 | non-blocking | as UX-28 | ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): as UX-28 |
+| V3-99 | DO-42 | non-blocking | as UX-29 for the spec | ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): as UX-29 |
+| V3-100 | DO-43 | non-blocking | the generic-tail rule drops a tail whose folder is under four letters (`web/package.json`) | ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): as DA-18, the folder judged by `GENERIC_NAMES` alone |
+| V3-101 | DO-44 | non-blocking | V3-78 says ER-25's rule is in spec §1 and §3; the diff changed §1 and §2 | fixed in the release commit: this row records that ER-25's rule is in spec §1 and §2; V3-78 keeps its text, which its receipt repeats |
+| V3-102 | DO-45 | non-blocking | as UX-29 for SCN-140 and the comments | ruled: CO-578 (the release after 0.3.21, built first on `main` after item 0b): as UX-29 |
+| V3-103 | DO-46 | non-blocking | as DA-19, and the check runs in no gate | ruled: CO-589 (filed on `main` at item 0c): as DA-19 |
+| V3-104 | DO-47 | non-blocking | the handoff and item 0c still give CO-579 its ADR id and target at item 0c, which the row already carries | fixed in the release commit: the handoff's Open and item 0c drop that clause |
+| V3-105 | PL-36 | blocking | as UX-26 | fixed in the release commit: the CHANGELOG's «Upgrading» says that 0.3.20 cannot answer a question an agent asked with options under 0.3.21, so answer those before going back (or they wait for 0.3.21); the map's run-five lane no longer says a rollback keeps answers working, and a new lane says why; V3-76's forward fix stands and this row is its rollback half; the runbook's 0.3.21 paragraph and the `BoardPanel.tsx` comment say the same on `main` at item 0c (run six, PL-36: the gate admits neither after `verifiedCommit`) |
+| V3-106 | PL-37 | non-blocking | the records did not name `819b4bc7`, the agent page's column fix | fixed in the release commit: this section, the handoff and the MERGES entry name it with its check |
+| V3-107 | PL-38 | non-blocking | the column fix's check runs in no tier and no close item reads an agent page on the installed bundle | ruled: CO-589 (filed on `main` at item 0c): as DA-19; item 2b reads the agent page on the installed 0.3.21 |
+
+Exit for iteration 3: every finding disposed above. Blocking findings open: none.
 
 ## Release close
 
@@ -295,6 +328,9 @@ What is owed around the tag, in order; each item is checked off here with its re
 
 0. Before the release commit: at least 5 GB free (`df -h`); one full hosted `ci` run green on the final candidate, or on
    a commit whose difference to it is documents only, named here with those files (run five, DO-37, PL-33).
+   Receipt: 5.2 GB free before the release commit (`df -h /`, 2026-11-15, after removing this session's own review
+   copies); [run 43662877409](https://github.com/passioncode-ai/fabric/actions/runs/43662877409) green on `819b4bc7`, the
+   `verifiedCommit` itself.
 0b. The release commit (the version, `## 0.3.21`, `docs/launch/release-gate.json` with the handoff
    `docs/handoffs/2026-11-14-release-0321.md` in `releaseMetadata`) and its landing on `main` by fast-forward (runbook
    step 1; the 0.3.21 review, iteration 2, PL-9; iteration 3, PL-17); the MERGES entry dated with the landing day (run
@@ -304,18 +340,22 @@ What is owed around the tag, in order; each item is checked off here with its re
    With them CO-579's decision: the operator answered question `6c3764b6` on 2026-11-14 at 02:52 UTC, «Открыть сводку:
    название задачи, агент, с какого времени» (option `open-summary`). Its build, with the ADR the widened `scope.one-project`
    needs (ADR-0194, proposed on `feat/estate-work-summary`, read within the wall between businesses: run three, PL-25), is
-   the next task after this release; it does not change 0.3.21. CO-579 takes that ADR id and the release after 0.3.21 as
-   its target here (run three, PL-24).
+   the next task after this release; it does not change 0.3.21 (CO-579's row carries the ADR and the target since run
+   six's candidate; run six, DO-47).
    With them (run four): the landing day replaces 2026-11-14 in CO-565, CO-571 and CO-573 (DO-33, PL-28); and the
    next-free-id line follows the counter when `feat/estate-work-summary` lands (DO-34). PL-29's latest dates and run
    four's code findings went into run six's candidate instead (run five, PL-32).
+   With them (run six): CO-578 takes UX-27 to UX-29, DA-18, ER-28, ER-29 and DO-41 to DO-45; CO-589 is filed for the
+   agent page's browser check (DA-19, DO-46, PL-38); the runbook's 0.3.21 paragraph and the `BoardPanel.tsx` comment
+   say that 0.3.20 cannot answer a question asked with options under 0.3.21 (PL-36).
 1. The CI release run green on every platform, the published release and its notes from `## 0.3.21`.
 2. Install 0.3.21 on this Mac by [the runbook](../../launch/release-mac.md#upgrading-an-existing-database) (no schema
    step): the board switch and «Служба доски» off before the quit, the lifecycle broker's `fabric.desktop` held, the
    bundle checked and replaced, then the broker released and `always_on` again, both switches on once 0.3.21 reads back.
 2b. The published DMG smoked (runbook step 7: `--mcp-only` and `packaged-helpers.test.mjs`), CO-575's helpers read as
-   `Fabric Helper` on the installed bundle (`ps -o comm=`), and with room on the disk the window check carried from
-   0.3.20 (2b below).
+   `Fabric Helper` on the installed bundle (`ps -o comm=`), an agent page with a directions row read on the installed
+   bundle with its tasks beside the session card (run six, PL-38), and with room on the disk the window check carried
+   from 0.3.20 (2b below).
 3. The Mac Studio by its host agent, asked on the board, with 0.3.20's carried Studio items 3 and 4: each space's
    `schema_version()` read first, a space still on 101 upgraded by the runbook (migration 129) before 0.3.21, the
    Switchboard version and «Служба доски» as 0.3.20's item 3 names them (iteration 3, PL-16).

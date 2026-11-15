@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.21",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "819b4bc7718fa5019665223a16b09f86f57dde99",
+  "report": "docs/evidence/reviews/0.3.21/iteration-3/2026-11-15-plan.md",
+  "reportSha256": "6fef47ff50d59b557475ed8e8b72180c71a610dbff0b091307e768a292b584e3",
+  "reviewerRun": "release-0321-i3r6-plan-20261114",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG's «Upgrading» says that 0.3.20 cannot answer a question an agent asked with options under 0.3.21, so answer those before going back (or they wait for 0.3.21); the map's run-five lane no longer says a rollback keeps answers working, and a new lane says why; V3-76's forward fix stands and this row is its rollback half; the runbook's 0.3.21 paragraph and the `BoardPanel.tsx` comment say the same on `main` at item 0c (run six, PL-36: the gate admits neither after `verifiedCommit`)"
+      ]
+    },
+    {
+      "id": "PL-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: this section, the handoff and the MERGES entry name it with its check"
+      ]
+    },
+    {
+      "id": "PL-38",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-589 (filed on `main` at item 0c): as DA-19; item 2b reads the agent page on the installed 0.3.21"
+      ]
+    }
+  ]
+}

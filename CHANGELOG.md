@@ -7,11 +7,12 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.21
 
 **Upgrading.** No schema step from 0.3.20 (schema 102, no migration). From 0.3.19, take 0.3.20's step first
 (migration 129, by [the runbook](docs/launch/release-mac.md#upgrading-an-existing-database), with a backup). On macOS turn
-«Служба доски» off before the quit and on again once 0.3.21 runs.
+«Служба доски» off before the quit and on again once 0.3.21 runs. Going back to 0.3.20: first answer the questions
+agents asked with options under 0.3.21, since 0.3.20 refuses every answer to them (they wait for 0.3.21 otherwise).
 
 - **Agents can search the board by subject** (the operator, 2026-11-14: «хочу чтобы агенты делали раг поиск по доске
   когда ищут связи кто чем занят»). `fabric_board_search` finds a project's tasks, notes, board requests and messages
