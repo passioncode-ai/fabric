@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import assert from 'node:assert/strict'
 
-const { gitRun } = await import(path.resolve(import.meta.dirname, '../src/main/gitRun.ts'))
+const { gitRun, FolderGoneError } = await import(path.resolve(import.meta.dirname, '../src/main/gitRun.ts'))
 
 const base = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-gitrun-')))
 const mark = path.join(base, 'EXECUTED')
@@ -180,4 +180,8 @@ function plantPartialClone(dir, uploadpack) {
   assert.ok(ms < 2000, `a 300 ms read of a repository whose config includes a FIFO took ${ms} ms`)
 }
 
-console.log('PASS gitRun: partial-clone lazy fetch, repository filter drivers (global kept), core.fsmonitor, inherited GIT_DIR, submodule config, one timeout for the whole read — no program from a repository config runs')
+// W5 (the quality waves, perf PF-5): a folder that no longer exists is said as gone, not as git missing.
+await assert.rejects(gitRun(path.join(tmpdir(), `fabric-gone-${process.pid}-${Date.now()}`), ['status']),
+  (e) => e instanceof FolderGoneError && e.code === 'FOLDER_GONE' && !/ENOENT|spawn/.test(e.message))
+
+console.log('PASS gitRun: partial-clone lazy fetch, repository filter drivers (global kept), core.fsmonitor, inherited GIT_DIR, submodule config, one timeout for the whole read, a gone folder said as gone — no program from a repository config runs')

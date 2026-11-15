@@ -13,6 +13,7 @@
 // fetch.
 
 import { execFile } from 'node:child_process'
+import { statSync } from 'node:fs'
 import { promisify } from 'node:util'
 
 const exec = promisify(execFile)
@@ -184,7 +185,19 @@ export interface GitRunOptions {
   killSignal?: NodeJS.Signals
 }
 
+/** W5 of the quality waves (2026-11-15, perf PF-5): git asked to run in a folder that no longer exists. Node says
+ *  «spawn git ENOENT» for a missing working folder, which reads as git missing; an agent left in a removed checkout was
+ *  refused that way 2 400 times in a day. Said by what it is, without the path. */
+export class FolderGoneError extends Error {
+  readonly code = 'FOLDER_GONE'
+  constructor() { super('the folder no longer exists (it was moved or removed); open the agent in the folder that holds the repository now') }
+}
+
 export async function gitRun(repoPath: string, args: string[], opts: GitRunOptions = {}): Promise<string> {
+  try { if (!statSync(repoPath).isDirectory()) throw new FolderGoneError() } catch (e) {
+    if (e instanceof FolderGoneError || (e as { code?: unknown }).code === 'ENOENT' || (e as { code?: unknown }).code === 'ENOTDIR') throw new FolderGoneError()
+    throw e
+  }
   const timeout = opts.timeoutMs ?? 5_000
   const deadline = Date.now() + timeout
   const lead = (await supportsNoLazyFetch()) ? ['--no-lazy-fetch', ...HARDENED_GIT_ARGS] : [...HARDENED_GIT_ARGS]

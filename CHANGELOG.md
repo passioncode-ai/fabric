@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **An agent left in a removed folder is told so** (the quality waves, W5). Git asked to run in a folder that no longer
+  exists answered «spawn git ENOENT», which read as git missing; one agent was refused that way 2 400 times in a day.
+  The answer now says the folder was moved or removed, and to open the agent where the repository is now.
 - **A hidden window reads nothing** (the quality waves, W3). The window's feed, sessions and Comms count were read every
   2, 3 and 5 seconds whether or not anybody looked; they now pause while the window is hidden or minimised and read once
   the moment it is shown again.
