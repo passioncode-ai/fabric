@@ -1,7 +1,7 @@
 {
  "schema": "copy-check-receipts/1",
  "date": "2026-11-15",
- "what": "W6 of the quality waves: the interface strings rewritten without U+2014 (ru.ts, en.ts), each checked with the copy-rules check (batch, register ui, the organization's brand voice v3). Findings: suggestions only (ui trailing period, rule of three, one all-caps README); none blocking. Four ru strings and one en string were then corrected by hand (digest.stale, harness.estateWide, history.archive.mine, launch.help.ceo).",
+ "what": "W6 of the quality waves: the interface strings rewritten without U+2014 (ru.ts, en.ts), each checked with the copy-rules check (batch, register ui, the organization's brand voice v3). Findings: suggestions only (ui trailing period, rule of three, one all-caps README); none blocking. Four ru strings and one en string were then corrected by hand (digest.stale, harness.estateWide, history.archive.mine, launch.help.ceo). Then ui UI-16 and UI-17 (one word for retry, «вы» for the person): 12 strings, no finding.",
  "reports": {
   "ru-0": [
    "0539c70d-c223-42df-9ddb-a0aed3975203",
@@ -215,6 +215,20 @@
    "87df17cf-ca14-4324-98e0-75861298b49a",
    "130771df-020e-40e0-9f67-6612c34daa5e",
    "4ff28f5d-6f88-4633-9323-b20594afe119"
+  ],
+  "ui16-ui17": [
+   "d071dde7-9736-457c-9571-6620678bae61",
+   "863910fe-84f1-49dd-aaf6-9fbd62bcf4d5",
+   "0bd13457-c4c4-4912-a139-d2e4ace9487a",
+   "0154ed81-3b41-41cd-9a16-c71ab55efcc4",
+   "43015be8-6e50-42d3-b688-5ead680042bd",
+   "e81584fe-b05e-484e-86f3-6b8a231f9aec",
+   "98545a23-f1f4-483f-9a05-fba2bdb385f5",
+   "61abc092-9b1b-4218-88ef-923ccee7d552",
+   "fa0b36fe-d1d1-4b68-8108-4d5d0bf09800",
+   "de8bed97-73f5-4d74-9577-43ca802ba2b3",
+   "7aed0b93-e28e-40e3-bc70-c4a860f8822d",
+   "4333491a-c121-468a-89e3-4998c5668fee"
   ]
  }
 }

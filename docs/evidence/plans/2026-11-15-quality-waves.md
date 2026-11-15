@@ -109,7 +109,10 @@ Finish line: a dispatcher hour watched on the installed board with no unexplaine
 
 State, 2026-11-15: gold text and markers take the theme's ink (`gold-ink-contrast.browser.mjs`, both themes); every
 interface string rewritten without U+2014 (133 ru, 70 en) and gated in both languages by `scripts/check-design.mjs` (its baseline `emdash-baseline.txt` now empty). The dash alone as a "no value" mark in the screens'
-code (about 15 places) stays: the copy catalogue's AT-06-E4 exempts a dash standing for an empty cell. Next: one word per act, «вы», plurals, ids, dates, type sizes.
+code (about 15 places) stays: the copy catalogue's AT-06-E4 exempts a dash standing for an empty cell. One word per act (UI-16): «Повторить» on every retry after a failure; «Проверить ещё раз» stays for re-reading a state, a
+different act, and the Edit menu's «Повторить» stays as macOS names Redo. «Вы» for the person in the feed and decisions
+(UI-17). The fixed plurals of UI-19 are filled only with constants (300, 50, the list's cap), all in the «many» form, so
+no reader meets the wrong form; ruled, not changed. Next: ids and dates on screen (UI-20, UI-21), type sizes (UI-10, UI-11).
 
 Finish line: the contrast check in both themes passes AA; the em-dash gate green; the walk's findings fixed or filed.
 

@@ -51,7 +51,7 @@ decisions: each states something the product means rather than naming a row.
 | `event.agent.stage.reported@1` | an agent reported its stage: its own claim | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | shipped |
 | `event.memory.retrieved@1` | memory was searched, including when it found nothing | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
 | `event.session.oriented@1` | a session read the rules it works under | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | shipped |
-| `event.grant.issued@1` | the operator granted an authority | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
+| `event.grant.issued@1` | you granted an authority | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
 
 Why these four and not the other thirty-four. A stage report is a **claim** and the
 word says so, because the whole product rests on a claim not being an observation. A

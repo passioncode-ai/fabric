@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **One word for retry, and «вы» for you** (the quality waves, W6, ui UI-16, UI-17). Every retry after a failure is
+  «Повторить» in Russian; the feed and the decisions say «вы приняли…», «you accepted…», not «оператор»/“the operator”.
 - **Interface strings without the long dash** (the quality waves, W6, ui UI-15). 133 Russian and 70 English strings
   used the em dash; each now says the same with a full stop, comma, colon or brackets, checked against the copy rules
   and by the copy check. The design gate (`scripts/check-design.mjs`), Russian-only until now, fails on a dash in either language.
