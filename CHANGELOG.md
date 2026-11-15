@@ -9,6 +9,13 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Переписка reads again** (the quality waves, W1). An opened thread showed each message squeezed into a 24 px column,
+  and the list of threads put titles in the number's place: both borrowed the Board's numbered row. A message is now a
+  block of its own whose text keeps its line breaks, wraps a long link and reads in the ink colour; a thread row has two
+  columns.
+- **Nothing widens a page past the window.** A row of cards, a long link in the feed or a path in a kanban card no
+  longer pushes the page sideways, and a project page with the side panel open turns to one column by the room it has,
+  not by the window's width, so its buttons no longer cover «Цель».
 - **The board search finds a short file name again, and says what matched in your words** (CO-578, the 0.3.21 review,
   run six). A full path to a short-named file (`apps/desktop/src/main/hub.ts`) finds a note that names `hub.ts`;
   `matched` keeps a camelCase word as you wrote it and names a path's tail once; a search whose tasks or notes read was

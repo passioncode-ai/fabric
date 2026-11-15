@@ -438,7 +438,8 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
             {threads?.map((thread) => {
               const unread = thread.lastSeq > seenOf(thread.id)
               return (
-              <button key={thread.id} type="button" className="lp-topic" aria-expanded={chosen?.thread.id === thread.id}
+              // W1 (the quality waves, ui UI-2): a thread row has no number, so it takes the plain row's two columns.
+              <button key={thread.id} type="button" className="lp-topic lp-topic-plain" aria-expanded={chosen?.thread.id === thread.id}
                 onClick={() => (chosen?.thread.id === thread.id ? setOpened(null) : openThread(thread, 'list'))}>
                 <span>
                   <span className="lp-topic-title">{titleOf(thread)}</span>
@@ -702,17 +703,21 @@ function MessageRow({ message: m, answered, nameOf, t, locale, responders, facts
   const principalText = principal ? (principal.label ?? principal.id ?? principal.kind ?? null) : null
   const artifacts = (m.artifacts ?? []).map(artifactOf).filter((a): a is NonNullable<ReturnType<typeof artifactOf>> => a !== null)
   return (
-    <article className="lp-topic" data-comms-kind={m.kind}>
-      <span>
-        <span className="lp-topic-title">{nameOf(m.sender.project)}</span>
-        <span className="lp-meta">
-          {[principalText, new Date(m.at).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })].filter(Boolean).join(' · ')}
+    // W1 (the quality waves, ui UI-1, UI-9, UI-22): a message is a block of its own, never the Board's numbered row,
+    // whose four columns put every part of a message in a 24 px column and made it look clickable.
+    <article className="lp-message" data-comms-kind={m.kind}>
+      <div className="lp-message-head">
+        <span>
+          <span className="lp-topic-title">{nameOf(m.sender.project)}</span>
+          <span className="lp-meta">
+            {[principalText, new Date(m.at).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })].filter(Boolean).join(' · ')}
+          </span>
         </span>
-      </span>
-      <span className="lp-topic-end">
-        {principal?.provenance && <span className="lp-pill">{contractWord(t, 'provenance', principal.provenance)}</span>}
-        {m.kind !== 'message' && <span className="lp-pill">{contractWord(t, 'kind', m.kind)}</span>}
-      </span>
+        <span className="lp-message-pills">
+          {principal?.provenance && <span className="lp-pill">{contractWord(t, 'provenance', principal.provenance)}</span>}
+          {m.kind !== 'message' && <span className="lp-pill">{contractWord(t, 'kind', m.kind)}</span>}
+        </span>
+      </div>
       {m.replyTo && <p className="lp-meta">{answers(t, nameOf, answered)}</p>}
       {m.request && (
         <>
@@ -731,7 +736,7 @@ function MessageRow({ message: m, answered, nameOf, t, locale, responders, facts
       {m.redacted ? (
         <p className="lp-meta">{t('launch.comms.redacted')} · {shortId(m.id)} · {m.digest}</p>
       ) : (
-        m.body && <p>{m.body.text}</p>
+        m.body && <p className="lp-message-body">{m.body.text}</p>
       )}
       {artifacts.length > 0 && <ArtifactList artifacts={artifacts} />}
       <ReadBy messageId={m.id} facts={facts} nameOf={nameOf} />

@@ -4,6 +4,16 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-15 · `—` · fix/w1-comms-layout → main · fast-forward
+- files: `launch/CommsScreen.tsx` (a thread row `lp-topic-plain`, a message `lp-message`), `launch/launch.css` and `styles.css` (the app's own collapses `minmax(0,1fr)`, children of the ported grids may shrink, a container query on `main.content`, panel heads wrap), browser suites `scripts/test/comms-thread.browser.mjs` and `scripts/test/layout-wide-content.browser.mjs`, CHANGELOG, the map lane `iteration-2026-11-15-w1-layout`
+- conflicts: none
+- summary: W1 of the quality waves: Переписка reads at every width and wide content stays inside the window
+
+### 2026-11-15 · `—` · fix/post-0321 → main · fast-forward
+- files: `shared/boardSearch.ts` (the generic-tail rule by `GENERIC_NAMES` alone, `matched` naming a tail only for a path and once), `main/boardSearchRead.ts` (the capped-read note), their tests, `scripts/test/agent-page-columns.browser.mjs` (CO-589), the runbook's rollback sentence, spec §1 and §2, SCN-140, CO-565/571/573 landing dates, CO-578 and CO-589 rows, the quality audit `docs/reports/2026-11-15-quality-audit/` and the plan `docs/evidence/plans/2026-11-15-quality-waves.md`
+- conflicts: none
+- summary: what 0.3.21's run six left, built on `main`, and the quality plan in waves; its entry is written here, with the next landing, because the map stamps MERGES
+
 ### 2026-11-15 · `—` · feat/board-search (0.3.21: the feature and the review's iterations 1 to 3) → main · fast-forward
 - files: `fabric_board_search` (`workTools.ts`, `boardSearchRead.ts`, `shared/boardSearch.ts`) and `similar_work` on a claim, the advice `work.search-the-board`, the dispatcher's work signal (`agentSurface.ts#isWorkCall`, `shared/boardDispatch.ts#sessionLiveForDispatch`), the open request threads read first (`boardThreadIds.ts`), the no-folder request to the operator, the Board in the rail and a question's recommended option; then each review wave of [the ledger](evidence/plans/2026-11-14-release-0321-verification.md): iteration 1, iteration 2, and iteration 3's runs one to three (ids and paths as one word with bounded tails on both sides, the board read narrowest first and said when cut, generic names, the sweep's two thread caps, `holder_unknown`, «Отдать агенту» only on an agent's question), the re-pin of codex-cli 0.169.0 in `providerCapabilityMatrix.ts`, the surface test's own tool list naming `fabric_board_search` (V3-73), run five's wave (an option stored with `recommended` answered again, DA-15; run four's CO-578 fixes; only a live claim as live work, ER-25; `check-surface-tools.mjs` comparing the surface test's list), the agent page's column fix (`819b4bc7`, the operator's screenshot; `scripts/test/agent-page-columns.browser.mjs`), run six's records, and the release commit (`0.3.21`, `release-gate.json`)
 - conflicts: none
