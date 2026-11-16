@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/launch-stand → main · fast-forward (settings band)
+- files: `launch.css`, the screens waves' S4 table, the handoff, the map lane `iteration-2026-11-16-s4-settings-band`
+- conflicts: none
+- summary: S4: a settings card's first field starts at its padding
+
 ### 2026-11-16 · `—` · feat/launch-stand → main · fast-forward (task tools)
 - files: `main/taskTools.ts`, `test/task-tools.test.mjs` (new), `main/agentSurface.ts`, `scripts/check-surface-tools.mjs`, `scripts/ci.sh`, the screens waves' S2 state, the handoff, the map lane `iteration-2026-11-16-s2-task-tools`
 - conflicts: none

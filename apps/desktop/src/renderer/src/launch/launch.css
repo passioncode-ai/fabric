@@ -1304,3 +1304,5 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 /* The task form's presets (the screens waves, S3): each reads as a choice to press, a quiet chip, not a line of text. */
 .btn-quiet.tasks-preset{border-color:var(--app-line);border-radius:999px;color:var(--app-ink)}
 .btn-quiet.tasks-preset:hover:not(:disabled){background:var(--app-panel-quiet)}
+/* A settings card's first field starts at the card's own padding, not 12 px below it. */
+.settings-sections .lp-panel>:first-child{margin-top:0}
