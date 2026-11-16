@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Pulse, История and План polished** (the screens waves, S4). A pressed button shows it is on; an event's basis no
+  longer outshouts the event; История has no shouting title and no repeated «no object» line; План names a project by
+  its name, not its folder, and says «nothing planned» once. The home's questions break a long path instead of
+  cutting it; the graph has an ordinary heading and a framed canvas.
 - **The agent, task, project, board and Переписка pages, polished** (the screens waves, S1). Notes and messages written in
   Markdown read as text, not as raw marks; no title or long path runs out of its card; nothing is said twice in a row
   (the project beside its own title, a task's brief in its stage report); figures read as label over value; the agent's

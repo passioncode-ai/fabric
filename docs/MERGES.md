@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/screens-wave4 → main · fast-forward
+- files: the stand's home, graph, Pulse, История and План (`apps/desktop/stand`, `scripts/test/screens-stand.browser.mjs`), `PlanScreen.tsx`, `HistoryScreen.tsx`, `launch.css`, the screens waves' S4 state, the map lane `iteration-2026-11-16-s4-screens`
+- conflicts: none
+- summary: S4: five more screens in the stand, eleven defects fixed
+
 ### 2026-11-16 · `—` · refactor/board-ipc → main · fast-forward
 - files: `main/boardReads.ts` (the Board's three reads out of `index.ts`), `test/board-reads.test.mjs`, `scripts/ci.sh`, the screens waves' S2 state, the map lane `iteration-2026-11-16-s2-board-reads`
 - conflicts: none

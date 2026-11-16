@@ -58,6 +58,13 @@ const boardRead = (q?: { limit?: number; personOnly?: boolean }) => envelope({ d
 const homeView = { live: [agent], inWork: [{ taskId: 't1', projectId: 'p1', projectName: 'Atlas', summary: tasks[0].title, agent: 'claude-code', sessionId: 's1', console: true, since: at(5), doing: agent.doing }],
   review: [], done: [], projects: [{ projectId: 'p1', now: { text: LONG, agent: 'claude-code', at: at(0.2) }, live: 1, inWork: 1, review: 1, lastActivityAt: at(0.1) }], readAt: at(0) }
 
+const day = (n: number) => { const d = new Date(NOW - n * 24 * H); return d.toISOString().slice(0, 10) }
+export const feed = [...history, ev(6, 'task.created@1', 26, { taskId: 't3' }), ev(3, 'task.closed@1', 69, { taskId: 't4', outcome: 'done' }), ev(16, 'question.asked@1', 0.1, { questionId: 'q1' })]
+const act = (seq: number, hours: number, kind: string, params: Record<string, string>, undo: unknown = { state: 'available' }) => ({ seq, occurredAt: at(hours), actor: { kind: 'person', id: 'operator' }, projectId: 'p1',
+  record: { v: 1, kind, category: 'tasks', subject: { type: 'task', id: 't2', label: tasks[1].title }, said: { key: `act.${kind}`, params }, inverse: { kind, args: {} }, why_not: null, undoes: null, ref_seq: seq - 1 }, undo })
+
+export const homeReading = { view: homeView, problem: null, readAt: at(0) }
+
 export const fixtures: Fixtures = {
   'work.session': { tasks: [sessionTask(tasks[0], 5), sessionTask(tasks[1], 30), sessionTask(tasks[3], 70)], capped: false,
     questions: [{ id: 'q1', projectId: 'p1', taskId: 't1', text: 'Куда положить чтение доски: в main/boardRead.ts или в общий модуль чтений?', why: 'От этого зависит, где будет тест.', kind: 'decision',
@@ -83,6 +90,21 @@ export const fixtures: Fixtures = {
   'projects.relations': [],
   'projects.people': { people: [{ name: 'Разработчик проекта', email: null, commits: 214, lastAt: at(3) }, { name: 'Автор сборок', email: null, commits: 18, lastAt: at(120) }], unread: [], capped: false },
   'favourites.list': [],
+  'attention.list': envelope({ data: [], sources: [{ name: 'attention', status: 'ok' as const, asOf: at(0) }], asOf: at(0), freshness: 'fresh' as const }),
+  'comms.waiting': { ok: true, requests: 0, list: [], listComplete: true },
+  'analytics.status': { availability: 'off' },
+  'stack.exposure': null,
+  'projects.graph': { nodes: [{ id: 'p1', name: 'Atlas', summary: 'Командный доступ без потери контекста', business: 'Example Co' }, { id: 'p2', name: 'Media house', summary: null, business: 'Example Co' },
+    { id: 'p3', name: 'Store listings', summary: null, business: null }, { id: 'outside:x', name: 'Внешний сервис аналитики с длинным названием', summary: null, business: null, outside: true }],
+    edges: [{ from: 'p1', to: 'p2', kind: 'depends-on' }, { from: 'p1', to: 'outside:x', kind: 'used-by' }, { from: 'p2', to: 'p3', kind: 'board', weight: 4 }], businesses: ['Example Co'] },
+  'workspace.state': { path: '/Users/example/Fabric', git: 'yes' },
+  'work.rhythm': { days: Array.from({ length: 28 }, (_, i) => ({ date: day(27 - i), events: i === 9 ? null : (i * 7) % 23 + 2, results: i === 9 ? null : i % 4, decisions: i === 9 ? null : i % 3, today: i === 27 })),
+    totals: { results: 41, decisions: 26, events: 612 }, today: { results: 3, decisions: 2, events: 41 }, marksCapped: false, timeZone: 'Europe/Warsaw', readAt: at(0) },
+  'releases.list': envelope({ data: [], sources: [{ name: 'releases', status: 'ok' as const, asOf: at(0) }], asOf: at(0), freshness: 'fresh' as const }),
+  'routines.list': [],
+  'acts.history': { rows: [act(30, 1, 'task.move', { task: tasks[1].title, from: 'running', to: 'review' }), act(28, 20, 'task.move', { task: tasks[2].title, from: 'backlog', to: 'running' }, { state: 'undone', by: 29 }),
+    act(25, 50, 'task.move', { task: tasks[3].title, from: 'review', to: 'done' }, { state: 'cannot', why: 'задача уже закрыта' })], next: null },
+  'tasks.list': { tasks, closed: { truncated: false, says: '' } },
   'work.board': composeTaskBoard({ home: { ...homeView, review: [{ taskId: 't2', projectId: 'p1', projectName: 'Atlas', summary: tasks[1].title, since: at(30) }], done: [{ taskId: 't4', projectId: 'p1', projectName: 'Atlas', summary: tasks[3].title, at: at(69) }] } as never,
     queued: tasks.filter((t) => t.status === 'backlog') as never, projects: [{ id: 'p1', name: 'Atlas' }], queuedLimit: 20 }),
   'comms.threadPage': { ok: true, more: false, threads: [

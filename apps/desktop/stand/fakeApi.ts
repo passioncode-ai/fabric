@@ -18,6 +18,7 @@ export function fakeApi(fx: Fixtures): unknown {
       const v = fx[key]
       if (typeof v === 'function') return Promise.resolve().then(() => (v as (...a: unknown[]) => unknown)(...args))
       if (v === undefined) { unknown.add(key); return Promise.resolve(null) }
+      if (v === null) return Promise.resolve(null)
       return Promise.resolve(JSON.parse(JSON.stringify(v)))
     }
   })

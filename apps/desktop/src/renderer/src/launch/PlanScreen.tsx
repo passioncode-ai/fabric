@@ -4,6 +4,7 @@
 // the ORDER of work under a goal is the operator's priority, not a dependency, so no edge is drawn
 // that the data does not hold, and the screen says so.
 
+import { projectDisplayName } from '../../../shared/projectDisplayName.ts'
 import { useEffect, useState } from 'react'
 import type { BoardCut } from '../../../shared/board'
 import { planOf, type GoalRow } from '../../../shared/plan.ts'
@@ -16,7 +17,7 @@ import { runnerLabel } from '../runnerLabel'
 
 export type PlanLevel = { at: 'portfolio' } | { at: 'project'; projectId: string } | { at: 'goal'; projectId: string; goalId: string | null }
 
-interface Node { key: string; kicker: string; title: string; sub: string; pill: string; attention: boolean; open?: () => void; openLabel?: string }
+interface Node { key: string; kicker: string; title: string; sub: string; pill: string | null; attention: boolean; open?: () => void; openLabel?: string }
 
 export function PlanScreen({ projects, feed, feedMark, level: initial, onProject, onTask, onPulse }: {
   projects: ProjectRow[] | null
@@ -82,7 +83,8 @@ export function PlanScreen({ projects, feed, feedMark, level: initial, onProject
                 : progress.kind === 'at_least' ? t('launch.plan.atLeast', { done: progress.done, total: progress.total })
                 : t('launch.plan.measured', { done: progress.done, total: progress.total })
               return { key: goal.id, kicker: t('launch.plan.node.goal', { n: i + 1 }), title: goal.title, sub,
-                pill: progress.kind === 'nothing_planned' ? t('launch.plan.nothingPlanned') : t('launch.plan.open', { count: under.length }), attention: false,
+                // The screens wave (2026-11-16): «nothing planned» is the line above; the pill does not say it again.
+                pill: progress.kind === 'nothing_planned' ? null : t('launch.plan.open', { count: under.length }), attention: false,
                 open: () => setLevel({ at: 'goal', projectId: level.projectId, goalId: goal.id }), openLabel: t('launch.plan.expand') }
             }),
             ...(plan.unattached.length > 0 ? [{ key: 'unattached', kicker: t('launch.plan.node.unattached'), title: t('launch.plan.unattached'),
@@ -97,7 +99,7 @@ export function PlanScreen({ projects, feed, feedMark, level: initial, onProject
   const goalName = level.at === 'goal' ? (level.goalId === null ? t('launch.plan.unattached') : goals?.find((g) => g.id === level.goalId)?.title ?? '…') : null
   const crumbs: { label: string; to: PlanLevel }[] = [
     { label: t('launch.plan.all'), to: { at: 'portfolio' } },
-    ...(project ? [{ label: project.name, to: { at: 'project', projectId: project.id } as PlanLevel }] : []),
+    ...(project ? [{ label: projectDisplayName(project), to: { at: 'project', projectId: project.id } as PlanLevel }] : []),
     ...(goalName && level.at === 'goal' ? [{ label: goalName, to: level }] : [])
   ]
   const caption = level.at === 'portfolio' ? t('launch.plan.captionPortfolio') : level.at === 'project' ? t('launch.plan.captionProject') : t('launch.plan.captionGoal')
@@ -138,7 +140,7 @@ export function PlanScreen({ projects, feed, feedMark, level: initial, onProject
           <section className="lp-panel">
             <h3>{t('launch.plan.historyAll')}</h3>
             <p>{t('launch.plan.historyAllBody')}</p>
-            <div className="lp-actions">{live.map((p) => <button key={p.id} type="button" className="lp-button" onClick={() => setLevel({ at: 'project', projectId: p.id })}>{p.name}</button>)}</div>
+            <div className="lp-actions">{live.map((p) => <button key={p.id} type="button" className="lp-button" onClick={() => setLevel({ at: 'project', projectId: p.id })}>{projectDisplayName(p)}</button>)}</div>
           </section>
         ) : (
           <section className="lp-panel">
@@ -160,7 +162,7 @@ export function PlanScreen({ projects, feed, feedMark, level: initial, onProject
                       <span className="lp-node-index">{n.kicker}</span>
                       <h3>{n.title}</h3>
                       <p>{n.sub}</p>
-                      <span className={`lp-pill ${n.attention ? 'attention' : ''}`}>{n.pill}</span>
+                      {n.pill && <span className={`lp-pill ${n.attention ? 'attention' : ''}`}>{n.pill}</span>}
                       {n.open && <div className="lp-node-actions"><button type="button" className="lp-button lh-text-link" onClick={n.open}>{n.openLabel}</button></div>}
                     </article>
                   ))}
@@ -172,7 +174,7 @@ export function PlanScreen({ projects, feed, feedMark, level: initial, onProject
             <details className="lp-panel lp-plan-list">
               <summary>{t('launch.plan.asList')}</summary>
               {nodes.map((n) => (
-                <p key={n.key}><b>{n.title}</b> · {n.sub} · {n.pill} {n.open && <button type="button" className="lp-button lh-text-link" onClick={n.open}>{n.openLabel}</button>}</p>
+                <p key={n.key}><b>{n.title}</b> · {n.sub}{n.pill && <> · {n.pill}</>} {n.open && <button type="button" className="lp-button lh-text-link" onClick={n.open}>{n.openLabel}</button>}</p>
               ))}
             </details>
           )}

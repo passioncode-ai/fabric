@@ -18,7 +18,7 @@ import '../src/renderer/src/launch/launch.css'
 import '../src/renderer/src/launch/rail.css'
 import '../src/renderer/src/start/start.css'
 import { fakeApi } from './fakeApi'
-import { NOW, agent, fixtures, project, projects, tasks } from './fixtures'
+import { NOW, agent, feed, fixtures, homeReading, project, projects, tasks } from './fixtures'
 
 const params = new URLSearchParams(location.hash.slice(1))
 const screen = params.get('screen') ?? 'agent'
@@ -58,6 +58,22 @@ async function main(): Promise<void> {
   } else if (screen === 'comms') {
     const { CommsScreen } = await import('../src/renderer/src/launch/CommsScreen')
     node = <CommsScreen projects={projects as never} mode="threads" seen={{ th2: 12 }} onRead={noop} thread={params.get("thread")} />
+  } else if (screen === 'pulse') {
+    const { PulseScreen } = await import('../src/renderer/src/launch/PulseScreen')
+    node = <PulseScreen projects={projects as never} feed={feed as never} sessions={[]} onBoard={noop} onProject={noop} onReleases={noop} />
+  } else if (screen === 'history') {
+    const { HistoryScreen } = await import('../src/renderer/src/launch/HistoryScreen')
+    node = <HistoryScreen projects={projects as never} mark={0} feed={feed as never} feedProjects={projects as never} onOpen={noop} readThroughSeq={0} onRead={noop} />
+  } else if (screen === 'plan') {
+    const { PlanScreen } = await import('../src/renderer/src/launch/PlanScreen')
+    node = <PlanScreen projects={projects as never} feed={feed as never} feedMark={0} level={{ at: 'project', projectId: 'p1' }} onProject={noop} onTask={noop} onPulse={noop} />
+  } else if (screen === 'home') {
+    const { EstateHome } = await import('../src/renderer/src/EstateHome')
+    node = <EstateHome reading={homeReading as never} projects={projects as never} sessions={[]} feed={feed as never} marks={{ all: 0, byFamily: {} }}
+      waitingForYou={{ total: 3, byProject: { p1: 3 } }} toReview={2 as never} onOpen={noop} onNew={noop} onBoard={noop} onNeeds={noop} onAgent={noop} onReview={noop} />
+  } else if (screen === 'graph') {
+    const { GraphScreen } = await import('../src/renderer/src/launch/GraphScreen')
+    node = <GraphScreen projectId="p1" feedMark={0} onProject={noop} onWhole={noop} />
   } else {
     node = <p>unknown screen {screen}</p>
   }

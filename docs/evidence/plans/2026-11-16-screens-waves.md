@@ -61,3 +61,26 @@ line; the launch dialog's states checked in the stand.
 ## S4 · The rest of the screens in the stand
 
 The home, Pulse, Plan, the graph, Settings and Agent access join the stand, and their defects are fixed the same way.
+
+State, 2026-11-16: Pulse, История and Plan joined the stand (720 checks). Fixed from their shots:
+
+| Screen | Defect | Fix |
+|---|---|---|
+| Pulse | an event's «Основание события» louder than the event | a quiet fold |
+| Pulse | «7 дн.» and «28 дн.» did not show which was on | a pressed button says so, here and on every screen |
+| История | a giant uppercase muted title where every other screen names itself in the top bar | the heading kept for focus and a screen reader |
+| История | «В этой строке нет объекта, к которому она относится.» printed on every agent row | said to a screen reader and on hover |
+| История | the search's hint cut | the search takes the rest of the line |
+| План | the project named by its folder (`atlas-desktop`) in the trail and the project buttons | its display name |
+| План | «Пока ничего не запланировано» twice in one card | once |
+
+Then the home and the graph joined it (880 checks):
+
+| Screen | Defect | Fix |
+|---|---|---|
+| Home | a question naming a long path cut at the card's edge | the words break the path |
+| Graph | a heading twice every page's size | the size of an agent's page heading |
+| Graph | the columns pressed against a square frame | the panels' radius and room inside |
+| Graph | «Связи списком» stuck to the canvas | a gap between them |
+
+Next: Settings and Agent access.

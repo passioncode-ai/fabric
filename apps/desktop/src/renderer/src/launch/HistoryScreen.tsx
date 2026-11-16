@@ -183,7 +183,8 @@ export function HistoryScreen({ projects, mark, feed, feedProjects, feedFailed =
   return (
     <div className="hx" data-launch-view="history">
       <header className="cr-head">
-        <h2 tabIndex={-1}>{t('acts.title')}</h2>
+        {/* SP-1: the top bar names the screen; the heading stays for focus and a screen reader, as on every screen. */}
+        <h2 className="visually-hidden" tabIndex={-1}>{t('acts.title')}</h2>
         <p>{t('acts.lede')}</p>
       </header>
       {current.at === 'reading' && <p className="hx-muted" role="status">{t('acts.reading')}</p>}
@@ -287,12 +288,13 @@ function AgentWork({ events, narrowed = false, onReset, projects, sessions, onOp
             <div className="hx-act">
               <time className="hx-time" dateTime={e.occurred_at}>{new Date(e.occurred_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</time>
               <span className="hx-who">{who(e)}</span>
-              <span className="hx-said">{saidOf(t, e)}{project && <small className="hx-project">{project}</small>}</span>
+              <span className="hx-said" title={'why' in act && onOpen ? act.why : undefined}>{saidOf(t, e)}{project && <small className="hx-project">{project}</small>}</span>
               {/* Why a row opens nothing, said where a keyboard and a screen reader reach it (UX-10), as an act that
                   cannot be undone says why beside it. */}
               <span className="hx-end">
                 {'ref' in act && onOpen && <button type="button" className="hx-undo" onClick={() => onOpen(act.projectId, act.ref)}>{t('journal.open')}</button>}
-                {'why' in act && onOpen && <span className="hx-muted">{act.why}</span>}
+                {/* The screens wave (2026-11-16): said to a screen reader and on hover, not printed on every row. */}
+                {'why' in act && onOpen && <span className="visually-hidden">{act.why}</span>}
               </span>
             </div>
           </li>
