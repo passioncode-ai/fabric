@@ -2322,7 +2322,8 @@ export class AgentSurface {
     )
     // #endregion relayed-close-tool
 
-    // CO-506: Agent access's three buttons as this session's door (`relayedAccessTools.ts`).
+    // CO-506: Agent access's three buttons as this session's door (`relayedAccessTools.ts`): fabric_access_list,
+    // fabric_access_decide and fabric_access_revoke.
     registerAccessTools(server, () => this.deps.access, scope)
 
     server.registerTool(
@@ -2351,7 +2352,7 @@ export class AgentSurface {
       }
     )
 
-    // The owner's questions: asking one and reading its state (`questionTools.ts`).
+    // The owner's questions (`questionTools.ts`): fabric_question_ask and fabric_question_check.
     registerQuestionTools(server, { store, append: (input) => this.appendRedacted(input), ownTask }, scope)
 
     server.registerTool(
@@ -2424,7 +2425,8 @@ export class AgentSurface {
       }
     )
 
-    // W2-3 and CO-489: the project's own tools, its profile and its folders (`projectTools.ts`).
+    // W2-3 and CO-489: the project's own tools (`projectTools.ts`): fabric_project_profile, fabric_project_folder_attach
+    // and fabric_project_folder_detach.
     registerProjectTools(server, {
       db: this.deps.db,
       append: (input) => this.appendRedacted(input),
@@ -2526,7 +2528,8 @@ export class AgentSurface {
       }
     )
 
-    // The two effect tools: asking before an act above the floor, and saying what happened after (`effectTools.ts`).
+    // The two effect tools (`effectTools.ts`): fabric_effect_request asks before an act above the floor (ADR-0050),
+    // fabric_effect_report says what happened after.
     registerEffectTools(server, { policy: () => this.deps.policy, store, ptys }, scope)
 
     server.registerTool(
