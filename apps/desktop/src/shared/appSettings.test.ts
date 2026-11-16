@@ -27,7 +27,8 @@ describe('validateSettings', () => {
       resumeLeftWork: false,
       dispatchOnSharedBoard: true,
       dispatchTarget: 'studio',
-      dispatchTargets: { 'owner-a': 'node-a' }
+      dispatchTargets: { 'owner-a': 'node-a' },
+      peopleAsk: false
     }
     expect(validateSettings(file)).toEqual(file)
   })
@@ -281,5 +282,18 @@ describe('dispatchTarget (CO-551, stage A)', () => {
     expect(settingsPatch({ dispatchTarget: 'studio' })).toEqual({ ok: true, patch: { dispatchTarget: 'studio' } })
     expect(settingsPatch({ dispatchTarget: null })).toEqual({ ok: true, patch: { dispatchTarget: null } })
     expect(settingsPatch({ dispatchTarget: 'auto' }).ok).toBe(false)
+  })
+})
+
+describe('peopleAsk (task 11ebbf83, the people-ask bridge)', () => {
+  it('is on by default and off only when the file says false; a window may switch it', () => {
+    expect(validateSettings({})?.peopleAsk).toBe(true)
+    expect(validateSettings({ peopleAsk: 'no' })?.peopleAsk).toBe(true)
+    expect(validateSettings({ peopleAsk: false })?.peopleAsk).toBe(false)
+    expect(settingsPatch({ peopleAsk: false })).toEqual({ ok: true, patch: { peopleAsk: false } })
+    expect(settingsPatch({ peopleAsk: 'off' })).toMatchObject({ ok: false })
+  })
+  it('a window never writes routes: they are a file of their own', () => {
+    expect(settingsPatch({ peopleAskRoutes: [] })).toMatchObject({ ok: false })
   })
 })

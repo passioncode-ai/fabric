@@ -4,6 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/people-ask-bridge → main · fast-forward
+- files: `shared/peopleAsk.ts` (new: the `fabric-people-ask/1` contract, routing, authority), `main/peopleAskRun.ts` (new: the pass and the window's doors), `main/index.ts` (region `people-ask-wiring`), `main/agentSurface.ts` (`operatorBoard().cancel`), `shared/types.ts`, `shared/appSettings.ts` (`peopleAsk`), `launch/SettingsScreen.tsx`, `i18n/{ru,en}.ts`, the tests (`peopleAsk.test.ts`, `test/people-ask-run.test.mjs`, `appSettings.test.ts`, `SettingsScreen.test.tsx`), the spec `docs/evidence/specs/2026-11-16-people-ask-bridge.md`, AGENTS.md's lifecycle row, the map lane `iteration-2026-11-16-people-ask-bridge`
+- conflicts: `AGENTS.md` (the dispatcher row kept as main has it, the bridge's row added), `package.json`, `main/index.ts`, the settings (`resumeLeftWork` from the board supervisor and `peopleAsk`, both kept), `CHANGELOG.md`, `docs/MERGES.md`, the map's changelog (both entries, this one on top)
+- summary: «Нужны вы» decided from Telegram through the organization's PM agent (task 11ebbf83)
 ### 2026-11-16 · `—` · feat/board-supervisor → main · fast-forward
 - files: `shared/boardResume.ts` (which tasks are left work, their state after a run), `main/boardResumeRead.ts` (the reads), `main/boardDispatchRun.ts` (the resume item, its packet, empty runs per release, `resumeGiven`), `main/boardDispatchWiring.ts`, `main/index.ts`, the setting `resumeLeftWork` (types, appSettings, Settings, i18n), the tests, ADR-0195, the on-demand spec §3.11, the map lane `iteration-2026-11-16-board-supervisor`
 - conflicts: `CHANGELOG.md`, `docs/MERGES.md`, the map's changelog (main's screens wave 2 and this one, both kept, this one on top)

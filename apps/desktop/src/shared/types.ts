@@ -499,6 +499,13 @@ export interface AppSettings {
   dispatchTarget: string | null
   /** The machine by the owner of the project's repository (its `origin`, read with `git config --get remote.origin.url`), before `dispatchTarget`. */
   dispatchTargets: Record<string, string>
+  /**
+   * The people-ask bridge (task 11ebbf83; the operator, 2026-11-16: the questions of «Нужны вы» decided from Telegram
+   * through the organization's PM agent): each item becomes a `people.ask` board request to that agent. On by default;
+   * off, nothing new is sent and what is open is taken back (`main/peopleAskRun.ts`). Its routes are a file of their own,
+   * `userData/people-ask-routes.json` (`shared/peopleAsk.ts#routesOf`), since they name private organizations.
+   */
+  peopleAsk: boolean
 }
 
 export interface BoardFilters { project: string | null; agent: string | null; cancelled: boolean }
@@ -514,7 +521,7 @@ export type MachineTrust = 'mine' | 'organization' | null
  * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
  * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
  */
-export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders' | 'dispatchBoardRequests' | 'resumeLeftWork' | 'dispatchTarget'>>
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders' | 'dispatchBoardRequests' | 'resumeLeftWork' | 'dispatchTarget' | 'peopleAsk'>>
 // #endregion settings-patch
 
 /**
@@ -552,7 +559,9 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   dispatchOnSharedBoard: false,
   // CO-551: no other machine until one is named; stage B (CO-552) chooses by itself.
   dispatchTarget: null,
-  dispatchTargets: {}
+  dispatchTargets: {},
+  // Task 11ebbf83: the operator's word (2026-11-16); the person turns it off in Settings.
+  peopleAsk: true
 }
 
 export interface FeedEvent {

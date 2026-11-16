@@ -158,7 +158,7 @@ export function Saved({ on }: { on: boolean }): React.JSX.Element | null {
 
 /** One permission choice for every agent Fabric starts (CO-305, ADR-0168), and beside it whether the folder a Claude Code
  *  session starts in is marked trusted (CO-348, the operator 2026-10-19: on by default). */
-export function AgentPermissionsSetting({ value, onChange, trustFolders = true, dispatch = true, resume = true, saved = null }: {
+export function AgentPermissionsSetting({ value, onChange, trustFolders = true, dispatch = true, resume = true, peopleAsk = true, saved = null }: {
   value: AppSettings['agentPermissions']
   onChange: (next: SettingsPatch) => Promise<void> | void
   trustFolders?: boolean
@@ -166,6 +166,8 @@ export function AgentPermissionsSetting({ value, onChange, trustFolders = true, 
   resume?: boolean
   /** CO-409: whether a board request nobody answers starts a session. */
   dispatch?: boolean
+  /** Task 11ebbf83: whether «Нужны вы» goes to Telegram through the organization's PM agent. */
+  peopleAsk?: boolean
   /** Which of this panel's settings saved last, to say «Сохранено» beside it. */
   saved?: string | null
 }): React.JSX.Element {
@@ -215,6 +217,14 @@ export function AgentPermissionsSetting({ value, onChange, trustFolders = true, 
       </label>
       <small id="settings-resume-hint" className="lp-meta">{t('settings.resumeHelp')}</small>
       <Saved on={saved === 'resumeLeftWork'} />
+      {/* Task 11ebbf83: «Нужны вы» decided from Telegram, through the organization's PM agent. */}
+      <label className="lp-check">
+        <input type="checkbox" checked={peopleAsk} aria-describedby="settings-people-ask-hint"
+          onChange={(e) => void onChange({ peopleAsk: e.target.checked })} />
+        {t('settings.peopleAsk')}
+      </label>
+      <small id="settings-people-ask-hint" className="lp-meta">{t('settings.peopleAskHelp')}</small>
+      <Saved on={saved === 'peopleAsk'} />
     </section>
   )
 }
@@ -432,7 +442,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpen, agen
           <ReadinessPanel />
         </Section>
         <Section id="settings-launch-group" label={t('settings.launch.group')}>
-          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} trustFolders={settings.trustAgentFolders !== false} dispatch={settings.dispatchBoardRequests !== false} resume={settings.resumeLeftWork !== false} saved={saved} />
+          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} trustFolders={settings.trustAgentFolders !== false} dispatch={settings.dispatchBoardRequests !== false} resume={settings.resumeLeftWork !== false} peopleAsk={settings.peopleAsk !== false} saved={saved} />
           <AgentCatalogPanel permissions={settings.agentPermissions ?? 'fewer-prompts'} />
           {agentsRoster && (
             <section className="lp-panel" aria-labelledby="settings-agents-idle-title">

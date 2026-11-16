@@ -671,12 +671,15 @@ export class AgentSurface {
   operatorBoard(projectId: string, operatorId: string): {
     submit(input: unknown): Promise<Record<string, unknown>>
     reply(input: unknown): Promise<Record<string, unknown>>
+    /** `com.cancel` as this Project (the people-ask bridge takes back a request it sent, task 11ebbf83). */
+    cancel(input: unknown): Promise<Record<string, unknown>>
     epoch(): Promise<number | null>
   } {
     const caller: BoardCaller = { estateId: this.deps.estateId, projectId, principal: { kind: 'operator', id: operatorId.slice(0, 200), provenance: 'trusted' }, surface: 'session' }
     return {
       submit: (input) => this.board.submit(caller, input) as Promise<Record<string, unknown>>,
       reply: (input) => this.board.reply(caller, input) as Promise<Record<string, unknown>>,
+      cancel: (input) => this.board.cancel(caller, input) as Promise<Record<string, unknown>>,
       epoch: async () => {
         const s = await this.board.status(caller) as { idempotency?: { epoch?: unknown } }
         return typeof s?.idempotency?.epoch === 'number' ? s.idempotency.epoch : null

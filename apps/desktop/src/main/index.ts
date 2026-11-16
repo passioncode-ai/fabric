@@ -1,12 +1,14 @@
 // The v1 control plane (ADR-0031 §2): the only Supabase client, the journal
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
-import { createRevokeAgent } from './relayedAccess.ts'
+import { admitAccessAct, createRevokeAgent } from './relayedAccess.ts'
+import { createPeopleApply, createPeopleAskBridge, isAskRecord, PEOPLE_ASK_WATCH_MS, type AskRecord, type ProjectFacts } from './peopleAskRun.ts'
+import { routesOf } from '../shared/peopleAsk.ts'
 import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, shell } from 'electron'
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, readFileSync, realpathSync, statfsSync } from 'node:fs'
+import { closeSync, existsSync, fsyncSync, openSync, readFileSync, realpathSync, renameSync, statfsSync, writeSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -207,7 +209,7 @@ import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { primaryFolder, remoteTargetFor, wireBoardDispatch } from './boardDispatchWiring.ts'
 import { createDispatchWake, toOperatorMarks, type InboxGiven, type ResumeGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { readResumeCandidates, readResumeState } from './boardResumeRead.ts'
-import { dispatcherRuns, sessionLiveForDispatch, suspendedSince, WATCH_MS } from '../shared/boardDispatch.ts'
+import { dispatcherRuns, remoteOwnerOf, sessionLiveForDispatch, suspendedSince, WATCH_MS } from '../shared/boardDispatch.ts'
 import { SESSION_STALE_MS } from '../shared/workClaims.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { createOpsDigestCollector } from './opsDigestCollector.ts'
@@ -3183,6 +3185,127 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   dispatchWatch.unref?.()
   quit.onQuit(() => clearInterval(dispatchWatch))
   // #endregion board-dispatch-cycle
+
+  // #region people-ask-wiring — docs: docs/evidence/specs/2026-11-16-people-ask-bridge.md#4-the-pass
+  // Task 11ebbf83 (the operator, 2026-11-16): «Нужны вы» decided from Telegram through the organization's PM agent. Its own
+  // pass beside the dispatcher, one at a time; every decision goes through the door the window's button calls.
+  const peopleFile = path.join(app.getPath('userData'), 'people-asks.json')
+  let peopleProjects: { at: number; rows: Array<{ id: string; name: string; business: string | null; status: string | null }> } | null = null
+  const peopleProjectRows = async (): Promise<Array<{ id: string; name: string; business: string | null; status: string | null }>> => {
+    if (peopleProjects && Date.now() - peopleProjects.at < 60_000) return peopleProjects.rows
+    const { data, error } = await store.select('projects', 'id,name,business,status').eq('estate_id', ACTIVE_ESTATE)
+    if (error) throw new Error(`the projects could not be read: ${error.message}`)
+    peopleProjects = { at: Date.now(), rows: (data ?? []) as Array<{ id: string; name: string; business: string | null; status: string | null }> }
+    return peopleProjects.rows
+  }
+  const peopleRoutesFile = path.join(app.getPath('userData'), 'people-ask-routes.json')
+  let peopleRoutesUnread = false
+  const peopleFactsOf = async (row: { id: string; name: string; business: string | null }): Promise<ProjectFacts> => {
+    const folder = await primaryFolder(projectRepos, row.id).catch(() => null)
+    const origin = folder ? await cachedOrigin(folder) : null
+    return { id: row.id, name: row.name, business: row.business ?? null, owner: origin ? remoteOwnerOf(origin) : null }
+  }
+  const peopleDoors = createPeopleApply({
+    answerQuestion: async (input) => (await callDoor(IPC.questionAnswer, input)) as { committed: boolean; reason?: string },
+    decideReview: async (taskId, decision, comment) => (await callDoor(IPC.tasksDecide, taskId, decision, comment)) as { ok: boolean; reason?: string },
+    decideProposal: async (id, decision) => (await callDoor(IPC.proposalDecide, id, decision)) as { ok: boolean; rejection?: { says?: string } | null },
+    grant: (projectId, floorClass, target) => callDoor(IPC.attentionGrant, { projectId, floorClass, target }),
+    admitAccess: async (verb, requestId) => {
+      const h = hubReady()
+      const row = await h.accessStore.request(requestId)
+      if (!row) return { ok: false, message: 'that request no longer exists' }
+      const read = readSettingsState()
+      const admitted = admitAccessAct({ verb, request: { callee: row.callee, capabilities: row.capabilities, asked_by_binding: row.asked_by_binding },
+        callerBindingId: null, machineTrust: read.status === 'unreadable' ? null : read.value.machineTrust })
+      return admitted.ok ? { ok: true } : { ok: false, message: admitted.message }
+    },
+    // The button's own service (`hubDecide` calls the same `decide`), with the person's words kept in the event (CO-506).
+    decideAccess: (requestId, verdict, relayed) => hubReady().access.decide(requestId, verdict, OPERATOR_ACTOR, relayed)
+  })
+  const peopleAsk = createPeopleAskBridge({
+    now: () => Date.now(),
+    // As the dispatcher (C1): on a board another machine's Fabric may also read, only the machine named for it runs.
+    switchOn: () => { const s = readSettings(); return s.peopleAsk !== false && (ownsStack() || s.dispatchOnSharedBoard) },
+    quitting: () => quit.quitting,
+    async readItems() {
+      const v = (await callDoor(IPC.boardQuery, { projectId: null, limit: 500, personOnly: true })) as Returns<FabricApi['board']['query']>
+      if (!v.data) throw new Error('«Нужны вы» could not be read')
+      return { items: v.data.items, complete: v.data.hidden === 0 && v.sources.every((x) => x.status === 'ok') }
+    },
+    async projectOf(entry): Promise<ProjectFacts | null> {
+      const rows = await peopleProjectRows()
+      const named = entry.access ? (entry.access.enroll?.projectName ?? entry.access.respond?.projectName ?? null) : null
+      const row = entry.projectId ? rows.find((r) => r.id === entry.projectId)
+        : named ? rows.find((r) => r.name === named && r.status !== 'archived') : undefined
+      return row ? peopleFactsOf(row) : null
+    },
+    async projectFacts(projectId) {
+      const row = (await peopleProjectRows()).find((r) => r.id === projectId)
+      return row ? peopleFactsOf(row) : null
+    },
+    // The routes this machine holds (they name private organizations, so they never live in this repository).
+    routes: () => {
+      let text: string
+      try { text = readFileSync(peopleRoutesFile, 'utf8') } catch {
+        // No file: the routes this repository may name, and the PM projects found by their own responder.
+        return routesOf(undefined)
+      }
+      try { return routesOf(JSON.parse(text)) } catch {
+        if (!peopleRoutesUnread) { peopleRoutesUnread = true; ops.record({ op: 'people.ask.routes-unread', outcome: 'failed', level: 'warn', detail: { note: 'people-ask-routes.json is not JSON; the defaults are used' }, ctx: { correlationId: ops.correlate() } }) }
+        return routesOf(undefined)
+      }
+    },
+    async allowAccess(requestId) {
+      const row = await hubReady().accessStore.request(requestId)
+      if (!row) return false
+      const read = readSettingsState()
+      return admitAccessAct({ verb: 'allow', request: { callee: row.callee, capabilities: row.capabilities, asked_by_binding: row.asked_by_binding },
+        callerBindingId: null, machineTrust: read.status === 'unreadable' ? null : read.value.machineTrust }).ok
+    },
+    async responders() {
+      const r = await sweepBoard.responders(ACTIVE_ESTATE)
+      if (!r.ok) throw new Error(`the board's responders could not be read: ${r.error.message}`)
+      return r.responders
+    },
+    epoch: (project) => surface.operatorBoard(project, OPERATOR_ACTOR.id).epoch(),
+    submit: (project, input) => surface.operatorBoard(project, OPERATOR_ACTOR.id).submit(input),
+    reply: (project, input) => surface.operatorBoard(project, OPERATOR_ACTOR.id).reply(input),
+    cancel: (project, input) => surface.operatorBoard(project, OPERATOR_ACTOR.id).cancel(input),
+    async thread(threadId) {
+      // Through the operator's read door, at most five pages of 100: a people-ask thread holds a request and its answers.
+      const out = []
+      let after = 0
+      for (let page = 0; page < 5; page++) {
+        const r = await sweepBoard.list(ACTIVE_ESTATE, threadId, after, 100)
+        if (!r.ok) throw new Error(`the thread could not be read: ${r.error.message}`)
+        out.push(...r.messages)
+        if (!r.more) break
+        after = r.lastSeq
+      }
+      return out
+    },
+    apply: peopleDoors,
+    load() {
+      let text: string
+      try { text = readFileSync(peopleFile, 'utf8') } catch {
+        // No file yet (first run): nothing was asked that this process must remember.
+        return []
+      }
+      return JSON.parse(text) as unknown
+    },
+    save(records: AskRecord[]) {
+      // Written whole, synced, then renamed over the old file, as board-dispatches.json: never a torn file.
+      const tmp = `${peopleFile}.tmp`
+      const fd = openSync(tmp, 'w', 0o600)
+      try { writeSync(fd, JSON.stringify(records.filter(isAskRecord))); fsyncSync(fd) } finally { closeSync(fd) }
+      renameSync(tmp, peopleFile)
+    },
+    log: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  const peopleWatch = setInterval(() => { if (!quit.quitting) void peopleAsk.onPass() }, PEOPLE_ASK_WATCH_MS)
+  peopleWatch.unref?.()
+  quit.onQuit(() => clearInterval(peopleWatch))
+  // #endregion people-ask-wiring
 
   // #region ops-digest-send-wiring — docs: docs/evidence/specs/2026-11-04-agents-logs-and-the-improvement-loop.md#23-logs-read-every-hour-and-every-day-and-the-improvement-loop-co-500-co-502-co-503
   // CO-503: the closed days' digests go to Observatory once an hour, under the operator's ops.digest.record binding.

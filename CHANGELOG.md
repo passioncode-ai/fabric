@@ -9,6 +9,14 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **«Нужны вы» decided from Telegram** (the operator, 2026-11-16). Every item of «Нужны вы» (a question, an agent's access
+  request, a one-time permission, an overdue review, a proposal) goes as one board request to the project's organization
+  agent (Kira for PassionCode.ai; each other organization's own PM agent, named on this machine only, once it takes such
+  requests). The agent sends it to Telegram, to the people allowed to decide it; their answer by button, text
+  or voice comes back, and Fabric applies it through the same door as the button on Главная, with the person's words kept.
+  Fabric tells the agent «решено» or why not; an item decided on the computer is withdrawn from Telegram. A switch in
+  Settings, «Присылать вопросы в Telegram через агента организации», on by default
+  ([the people-ask spec](docs/evidence/specs/2026-11-16-people-ask-bridge.md)).
 - **Left work goes on by itself** (the operator, 2026-11-16). When a session ends with a task it took unfinished, nobody
   holds it and no person moved it, Fabric's board dispatcher starts an agent 10 minutes later that claims the task and
   continues from the step the last session left, under the dispatcher's limits; three starts that never take the task
