@@ -257,3 +257,30 @@ test('CO-459: a branch on an end, or a name with characters git does not use, is
   const odd = await h.client.callTool({ name: 'fabric_session_observe', arguments: { ...hookTurn({}), branch: 'main; rm -rf /' } })
   assert.equal(odd.isError, true)
 })
+
+// The turn-end spec §4.2 (T2): a recorded turn carries the verdict the host computes; none, no field; a failing read
+// costs the turn nothing; an end and a turn that failed to record never ask.
+test('T2: a recorded turn carries verdict when the host gives one, and nothing else changes', async () => {
+  const v = { next: 'continue', reason: 'You still hold «x» and declared no wait, so go on.', task_id: 't1' }
+  let asked = 0
+  const h = await connect('rt-hook-1', { turnVerdict: async () => { asked++; return v } })
+  const r = said(await h.client.callTool({ name: 'fabric_session_observe', arguments: hookTurn({ filesChanged: 1 }) }))
+  assert.equal(r.recorded, true)
+  assert.deepEqual(r.verdict, v)
+  const quiet = await connect('rt-hook-1', { turnVerdict: async () => null })
+  assert.equal('verdict' in said(await quiet.client.callTool({ name: 'fabric_session_observe', arguments: hookTurn({}) })), false)
+  const broken = await connect('rt-hook-1', { turnVerdict: async () => { throw new Error('read refused') } })
+  const b = said(await broken.client.callTool({ name: 'fabric_session_observe', arguments: hookTurn({}) }))
+  assert.deepEqual([b.recorded, 'verdict' in b], [true, false], 'a failed read is no verdict, never a failed turn')
+  const end = await connect('rt-hook-1', { turnVerdict: async () => { asked++; return v } })
+  said(await end.client.callTool({ name: 'fabric_session_observe', arguments: { ...hookTurn({}), event: 'end', reason: 'other' } }))
+  assert.equal(asked, 1, 'only the recorded turn asked')
+})
+
+test('T2: the tool\'s description tells the agent what a verdict means', async () => {
+  const h = await connect()
+  const { tools } = await h.client.listTools()
+  const d = tools.find((t) => t.name === 'fabric_session_observe').description
+  assert.match(d, /verdict \{next: continue, reason, task_id\}/)
+  assert.match(d, /goes on with that task now/)
+})

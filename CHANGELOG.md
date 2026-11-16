@@ -9,6 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A live session goes on while it holds open work** (the turn-end spec, wave T2). A turn's answer from
+  `fabric_session_observe` carries `verdict {next: continue, reason, task_id}` when the session holds an open task,
+  declared no wait and changed something in its last two turns; two quiet turns give none, so a loop stops. The
+  adapter's Stop hook turns it into another turn. The wiki snapshot takes the new `passionview` repository, whose
+  absence failed every publication.
 - **A question to a person is one he understands** (the operator, 2026-11-16). `fabric_question_ask` refuses a question
   longer than 240 characters, with ids, hashes, ticket numbers or tool names in it, or without a question mark, and
   says how to ask instead; one asked before leads with its readable sentence, or says it is unclear, its whole text

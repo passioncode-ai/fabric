@@ -105,7 +105,7 @@ Each wave lands on `main` on its own, gates green; nothing that works is broken 
 |---|---|---|---|
 | T0 | The wiki and data-room sync publishes again: the git step that times out every 2 hours named and bounded, its lock not left behind, the operator's notice under one event id per state | Fabric | finding `6f7d788c` |
 | T1 | `wait` on release; the supervisor continues a left task only once its wait clears, at once when it names nothing checkable | Fabric | `e46b39dc` |
-| T2 | The turn verdict in `fabric_session_observe` | Fabric | filed with this spec |
+| T2 | The turn verdict in `fabric_session_observe` (`shared/turnVerdict.ts`, landed 2026-11-16) | Fabric | `8c5f66b5` |
 | T3 | The Stop hook acts on the verdict; the skill's turn-end rule | fabric-agent-adapter | request filed with this spec |
 | T4 | Holds for claim-holding sessions; `--reason resume` live | Fabric, Switchboard | `f53de384`, SB-398, SB-399 |
 | T5 | A remote run's question reaches «Нужны вы» and its answer resumes the run there | Fabric, Switchboard | filed with this spec |

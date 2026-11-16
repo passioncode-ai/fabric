@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/turn-verdict → main · fast-forward
+- files: `shared/turnVerdict.ts` (new), `main/turnVerdictRead.ts` (new), `main/workTools.ts` (`verdict` on a turn), `main/agentSurface.ts` (wiring), tests, `workspace.config.json` (`passionview` source), the ingress test's questions
+- conflicts: none
+- summary: the turn verdict (T2) and the wiki snapshot's missing source; rides on docs/turn-end-waits, landed together
+
 ### 2026-11-16 · `—` · docs/turn-end-waits → main · fast-forward
 - files: the turn-end spec, `shared/boardResume.ts` (`parseWait`, `waitCleared`, `waitLine`), `main/boardResumeRead.ts` (waits read from `work.released@1`, settled questions, access and board requests), `main/workTools.ts` (`wait` on `fabric_work_release`), the dispatcher's packet and wiring, `shared/protocolObligations.ts` (`turn-end-states`), the tests, AGENTS.md, the map lane `iteration-2026-11-16-turn-end-waits`
 - conflicts: none

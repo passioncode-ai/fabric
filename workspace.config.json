@@ -60,6 +60,10 @@
     {
       "id": "relay",
       "repository": "https://github.com/passioncode-ai/relay"
+    },
+    {
+      "id": "passionview",
+      "repository": "https://github.com/passioncode-ai/passionview"
     }
   ]
 }

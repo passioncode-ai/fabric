@@ -90,6 +90,7 @@ import type { AccessService } from './accessService.ts'
 import { ExternalIngress, type HubIngress } from './externalIngress.ts'
 import { BodyReadTimeout, BodyTooLarge, readJson, refuse } from './requestBody.ts'
 import { registerWorkTools, type LiveSession } from './workTools.ts'
+import { readTurnVerdict, type VerdictStore } from './turnVerdictRead.ts'
 import { currentLeases } from './agentSyncLeases.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import type { LeaseRefsRead } from './agentSyncLeases.ts'
@@ -1890,6 +1891,7 @@ export class AgentSurface {
       session: (id) => this.sessionSign(id),
       nudges: () => this.deps.nudges?.(scope.sessionId, scope.projectId) ?? [],
       turnNudges: (turnKey) => this.deps.turnNudges?.(scope.sessionId, scope.projectId, turnKey) ?? [],
+      turnVerdict: () => readTurnVerdict(store as unknown as VerdictStore, scope.sessionId, this.now()),
       reportBranch: (branch) => this.deps.reportBranch?.(scope.sessionId, branch),
       onDoneInReview: (taskId) => this.deps.onDoneInReview?.(taskId),
       // fabric_board_search reads the board through this session's own reader door, as com.list and com.directory do.
