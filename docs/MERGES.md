@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · fix/comms-pills → main · fast-forward
+- files: `launch.css`, `HistoryScreen.tsx`, `i18n/{ru,en}.ts` (`act.cannotPlain`), the screens waves' table, the handoff, the map lane `iteration-2026-11-16-dark-pass`
+- conflicts: none
+- summary: the dark pass: a pill on one line, the comms empty line's room, История's undo cell said once
+
 ### 2026-11-16 · `—` · docs/waves-handoff → main · fast-forward
 - files: `docs/handoffs/2026-11-16-screens-waves.md`, the map lane `iteration-2026-11-16-waves-handoff`
 - conflicts: none

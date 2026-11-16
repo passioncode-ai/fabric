@@ -9,6 +9,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Comms and История read cleaner in the dark pass** (the screens waves). A thread's message count stays on one line;
+  an act whose undo has no known cause reads «Отменить нельзя» instead of saying it twice, and leaves the act its width.
 - **The task form's presets look like choices** (the screens waves, S3). «Собрать контекст», «Проверить проект» and the
   other presets were lines of plain text; they are quiet chips now. A long path or address in a note or a message no
   longer breaks at a syllable with a hyphen that reads as part of it.

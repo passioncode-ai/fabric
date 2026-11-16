@@ -1306,3 +1306,10 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .btn-quiet.tasks-preset:hover:not(:disabled){background:var(--app-panel-quiet)}
 /* A settings card's first field starts at the card's own padding, not 12 px below it. */
 .settings-sections .lp-panel>:first-child{margin-top:0}
+/* A pill is one line (the screens waves, dark pass): «сообщений: 12» broke into two lines in a thread's narrow column.
+   The thread list's «nothing waits» line keeps its room above the filters. */
+.lp .lp-pill{white-space:nowrap}
+.lp p.lp-meta.lp-comms-pending{margin:0 0 var(--space-3)}
+/* История's undo cell is a short status: at most a fifth of the row, wrapped, right-aligned, so a «cannot be undone»
+   never squeezes the act's own sentence to three words a line (the screens waves, dark pass). */
+.hx-act>.hx-end{max-width:min(220px,22vw);text-align:right}

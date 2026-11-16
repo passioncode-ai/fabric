@@ -138,3 +138,11 @@ Then Agent access and Settings joined it (1 040 checks):
 | Settings | each card's first field 12 px below the card's own padding, an empty band at its top | it starts at the padding |
 
 S4 is done: every screen of the left column renders in the stand under the gate.
+
+A dark-theme pass over the stand found three more:
+
+| Screen | Defect | Fix |
+|---|---|---|
+| Comms | a thread's «сообщений: 12» broke into two lines | a pill is one line |
+| Comms | «Ничего не ждёт.» stuck to the filters' labels | its room kept above them |
+| История | «Нельзя отменить: Fabric не может это отменить» said the same thing twice and took a third of the row, squeezing the act's sentence to three words a line | an unknown cause reads «Отменить нельзя» («Cannot be undone»), in the row and the act's panel, and the cell takes at most 220 px |

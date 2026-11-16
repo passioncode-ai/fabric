@@ -437,7 +437,7 @@ function ActDetail({ row, rows, project, onOpen, onClose }: {
         <dd>
           {row.undo.state === 'available' ? t('acts.detail.canUndo')
             : row.undo.state === 'undone' ? t('acts.undoneAt')
-              : t('act.cannot', { why: whyWords(t, row.undo.why) })}
+              : whyWords(t, row.undo.why) === t('act.why.other') ? t('act.cannotPlain') : t('act.cannot', { why: whyWords(t, row.undo.why) })}
         </dd>
         {row.undo.state === 'undone' && (
           <><dt>{t('acts.detail.undoneBy')}</dt><dd>{undoer ? actSentence(t, undoer.record) : t('acts.detail.undoneLater')}</dd></>
@@ -487,7 +487,8 @@ function HistoryRow({ row, project, open, onOpen, onChanged }: { row: ActView; p
           </button>
         )}
         {row.undo.state === 'undone' && <span className="hx-muted">{t('acts.undoneAt')}</span>}
-        {row.undo.state === 'cannot' && <span className="hx-muted">{t('act.cannot', { why: whyWords(t, row.undo.why) })}</span>}
+        {/* An unknown cause would read «cannot be undone: Fabric cannot undo it»: said once (the screens waves, dark pass). */}
+        {row.undo.state === 'cannot' && <span className="hx-muted">{whyWords(t, row.undo.why) === t('act.why.other') ? t('act.cannotPlain') : t('act.cannot', { why: whyWords(t, row.undo.why) })}</span>}
       </span>
       {state.at === 'refused' && (
         <span className="hx-refused">

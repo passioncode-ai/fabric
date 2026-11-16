@@ -16,7 +16,7 @@ tool surface and the launch paths split out of `index.ts` and `agentSurface.ts` 
   fixtures, fixed clock; `scripts/test/screens-stand.browser.mjs` gates 14 screens (home, agent, task, project, board,
   review, comms, Pulse, История, План, graph, Agent access, Settings, the task form) in two locales and two themes,
   1 120 checks: page errors, unfed calls, text past the window or under 11 px, leaked `undefined`, raw Markdown, i18n keys.
-- **Screen defects fixed from its shots**: S1 nineteen, S4 sixteen, S3 two (the plan's tables list each with its fix).
+- **Screen defects fixed from its shots**: S1 nineteen, S4 nineteen, S3 two (the plan's tables list each with its fix).
 - **S2, the board and the agents' doors**: `main/boardReads.ts`; `main/externalIngress.ts` and `main/requestBody.ts`
   (ADR-0115's ingress); `main/relayedAccessTools.ts`, `main/projectTools.ts`, `main/effectTools.ts`,
   `main/questionTools.ts`, `main/taskTools.ts`, `main/agentReference.ts`. `agentSurface.ts` 3 397 lines to 2 000. Each with a test that needs

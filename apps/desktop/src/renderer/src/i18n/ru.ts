@@ -3104,6 +3104,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'act.undoneNow': "Отменено",
   'act.undonePrefix': "Отменено:",
   'act.cannot': "Нельзя отменить: {why}",
+  'act.cannotPlain': "Отменить нельзя",
   'act.undoFailed': "Не удалось отменить: {why}",
   'act.untitled': "без названия",
   'act.state.backlog': "Очередь",

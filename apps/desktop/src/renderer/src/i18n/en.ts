@@ -3237,6 +3237,7 @@ export const en = {
   'act.undoneNow': "Undone",
   'act.undonePrefix': "Undone:",
   'act.cannot': "Cannot be undone: {why}",
+  'act.cannotPlain': "Cannot be undone",
   'act.undoFailed': "Could not undo: {why}",
   'act.untitled': "untitled",
   'act.state.backlog': "Queue",
