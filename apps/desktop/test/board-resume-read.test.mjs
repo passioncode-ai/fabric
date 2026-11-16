@@ -97,3 +97,29 @@ test('§3.12: the newest claim names the runtime session that left it (its end w
   assert.equal(b.workflowId, null)
   await assert.rejects(readResumeCandidates(store({ work_claims: [{ id: 'c-a', owner_session: 's-a', ...claim('a', ago(90 * MIN), ago(30 * MIN), 'lapsed') }], project_tasks: [task('a')], questions: [] }, 'journal'), NOW), /journal|session/)
 })
+
+test('turn-end §3: the newest release\'s wait is read from its event, with whether its question or grant has settled', async () => {
+  const Q = '0a0a0a0a-0b0b-4c0c-8d0d-0e0e0e0e0e0e'
+  const G = '1a1a1a1a-1b1b-4c1c-8d1d-1e1e1e1e1e1e'
+  const R = '2a2a2a2a-2b2b-4c2c-8d2d-2e2e2e2e2e2e'
+  const claims = [
+    { id: 'c-a', ...claim('a', ago(90 * MIN), ago(30 * MIN), 'let-go') },
+    { id: 'c-b', ...claim('b', ago(90 * MIN), ago(30 * MIN), 'let-go') },
+    { id: 'c-c', ...claim('c', ago(90 * MIN), ago(30 * MIN), 'let-go') },
+    { id: 'c-d', ...claim('d', ago(90 * MIN), ago(30 * MIN), 'handed-over') }
+  ]
+  const journal = [
+    { type: 'work.released@1', 'payload->>claim_id': 'c-a', payload: { claim_id: 'c-a', wait: { kind: 'question', ref: Q } } },
+    { type: 'work.released@1', 'payload->>claim_id': 'c-b', payload: { claim_id: 'c-b', wait: { kind: 'grant', ref: G } } },
+    { type: 'work.released@1', 'payload->>claim_id': 'c-c', payload: { claim_id: 'c-c', wait: { kind: 'request', ref: R } } },
+    { type: 'work.released@1', 'payload->>claim_id': 'c-d', payload: { claim_id: 'c-d', wait: { kind: 'time' } } }
+  ]
+  const s = store({ work_claims: claims, project_tasks: [task('a'), task('b'), task('c'), task('d')], questions: [{ id: Q, status: 'answered', task_id: null }],
+    access_requests: [{ id: G, status: 'pending' }], journal })
+  const r = await readResumeCandidates(s, NOW, async (id) => (id === R ? 'completed' : null))
+  const by = Object.fromEntries(r.candidates.map((c) => [c.taskId, c]))
+  assert.deepEqual([by.a.wait.kind, by.a.waitSettled], ['question', true])
+  assert.deepEqual([by.b.wait.kind, by.b.waitSettled], ['grant', false])
+  assert.deepEqual([by.c.wait.kind, by.c.waitSettled], ['request', true])
+  assert.equal(by.d.wait, undefined, 'a time without until names nothing checkable: no wait')
+})

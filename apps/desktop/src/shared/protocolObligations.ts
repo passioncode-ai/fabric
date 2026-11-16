@@ -199,6 +199,17 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     scope: 'fabric_mediated'
   },
   // #endregion retro-after-work
+  // #region turn-end-states — docs: docs/evidence/specs/2026-11-16-turn-end-waits.md#2-the-rule
+  // The operator, 2026-11-16 (the turn-end spec): an agent that ends its turn «waiting» with nothing checkable stands
+  // still until a person comes back. ADVICE: Fabric checks the wait a release names (the board supervisor) and nothing
+  // else; a turn that simply stops is caught only by the supervisor after the session ends.
+  {
+    id: 'turn-end-states',
+    text: 'End every turn in one of three states. Done: the whole order is finished; release your claim as done. Going on: more to do and nothing blocks; do not end the turn, take the next step now. Waiting: exactly one checkable thing blocks the next step; release with let-go or handed-over, the exact next step in the note and wait {kind, until or ref}: time (until: when to look again, for a CI run, a release or a schedule), question (ref: the question you asked with fabric_question_ask; it reaches the person in Fabric and through the organization\'s PM agent), grant (ref: an access request), request (ref: a board request you sent), limit (until: the reset). Fabric continues the task when the wait clears (a new run claims it and starts from your note), and 10 minutes after a release that names no wait. «Waiting» with nothing checkable is not a wait: go on.',
+    mode: 'ADVICE',
+    scope: 'fabric_mediated'
+  },
+  // #endregion turn-end-states
   // #region board-obligations — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
   // The project board rule (COM-12; answering at once, the operator 2026-11-04, relayed by another of the operator's projects on thread
   // `11646774`). Its one home is fabric-workspace knowledge/agents-first.md "The project board";

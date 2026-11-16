@@ -15,7 +15,7 @@ import { mandateOfRequest } from './boardMandate.ts'
 import { readRequestThreadIds } from './boardThreadIds.ts'
 import { INBOX_CAPABILITY, isSelfTarget, remoteOwnerOf, targetForOwner, type DispatchAgent } from '../shared/boardDispatch.ts'
 import { createBoardDispatch, isDispatchRecord, noteOf, type DispatchDeps, type InboxGiven, type DispatchRecord, type OpenRequest, type RemoteState, type ResumeGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
-import { RESUME_CAPABILITY, resumeItems, type ResumeCandidate, type ResumeItem } from '../shared/boardResume.ts'
+import { RESUME_CAPABILITY, resumeItems, waitLine, type ResumeCandidate, type ResumeItem } from '../shared/boardResume.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 import { originOf } from './agentSyncLeases.ts'
@@ -110,7 +110,7 @@ export function createInboxState(facts: (messageIds: string[]) => Promise<CommsF
 /** §3.11: a left task as the dispatcher's item: its id is the task, its project the target, `queued` until taken. */
 export function resumeRequestOf(i: ResumeItem): OpenRequest {
   return { id: i.taskId, thread: i.taskId, state: 'queued', target: i.projectId, capability: RESUME_CAPABILITY, submittedAt: i.releasedAt, deadline: i.deadline,
-    resume: { title: i.title, how: i.how, releasedAt: i.releasedAt, ...(i.workflowId ? { workflowId: i.workflowId } : {}) } }
+    resume: { title: i.title, how: i.how, releasedAt: i.releasedAt, ...(i.wait ? { wait: waitLine(i.wait) } : {}), ...(i.workflowId ? { workflowId: i.workflowId } : {}) } }
 }
 
 /** §3.11: the left tasks of this pass, read through `read` and chosen by `shared/boardResume.ts#resumeItems`. §3.12:
@@ -379,7 +379,7 @@ export function wireBoardDispatch(o: {
   /** 2026-11-12 (C2): how long this machine slept since a time (ms); absent, none. */
   suspendedSince?: (from: number) => number
   /** §3.11, the board supervisor: the left tasks, read while `on()` holds, and a resume run's task state. */
-  resume?: { on(): boolean; read(now: number): Promise<{ candidates: ResumeCandidate[]; capped: boolean }>; state(taskId: string, releasedAt: string): Promise<string | null>
+  resume?: { on(): boolean; read(now: number, requestState: (requestId: string) => Promise<string | null>): Promise<{ candidates: ResumeCandidate[]; capped: boolean }>; state(taskId: string, releasedAt: string): Promise<string | null>
     /** §3.12: the runtime session ids Switchboard holds on a usage limit and will continue itself; null when unread. */
     limitStops?(): Promise<ReadonlySet<string> | null> }
 }): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; resumeGiven(): ResumeGiven[]; boardRuns(): BoardRun[] } {
@@ -466,7 +466,8 @@ export function wireBoardDispatch(o: {
       let resume: OpenRequest[] = []
       if (o.resume?.on()) {
         try {
-          const got = await readResumeRequests(o.resume.read, now, o.resume.limitStops)
+          // The turn-end spec §3: a `request` wait reads its board request as the dispatcher reads its own.
+          const got = await readResumeRequests((n) => o.resume!.read(n, (id) => Promise.resolve(lastStates.get(id) ?? null).then((s) => s ?? follower.state(id))), now, o.resume.limitStops)
           resume = got.items
           if (got.stopsUnread !== undefined && got.stopsUnread !== stopsUnread) { stopsUnread = got.stopsUnread; o.log('board.dispatch.resume-stops', got.stopsUnread ? 'failed' : 'ok', { note: got.stopsUnread ? 'Switchboard\'s limit stops could not be read; left work is continued as if none' : 'Switchboard\'s limit stops read again' }) }
           if (got.capped !== resumeCapped) { resumeCapped = got.capped; o.log('board.dispatch.resume-read', got.capped ? 'failed' : 'ok', { capped: got.capped, note: got.capped ? 'more released claims in the week than one pass reads; the oldest wait for a later pass' : 'every release of the week read' }) }

@@ -243,3 +243,14 @@ test('DA-6: the claim records its move, and a non-done release and a session end
   const operator = sessionEnd.slice(sessionEnd.indexOf('export async function releaseByOperator'), sessionEnd.indexOf('export async function releaseLapsedClaim'))
   assert.match(operator, /returnClaimedTaskToBacklog\(/)
 })
+
+test('turn-end §3: a release carries one checkable wait, refused on done and when it names nothing checkable (source)', async () => {
+  const { readFileSync } = await import('node:fs')
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/main/workTools.ts'), 'utf8')
+  const tool = src.slice(src.indexOf("'fabric_work_release',"), src.indexOf("'fabric_session_observe',"))
+  assert.match(tool, /wait: z\.object\(\{\s*kind: z\.enum\(\['time', 'question', 'grant', 'request', 'limit'\]\)/)
+  assert.match(tool, /const waits = wait \? parseWait\(wait\) : null/)
+  assert.match(tool, /if \(wait && ending === 'done'\) return reply\(\{ released: false, code: 'bad-input'/)
+  assert.match(tool, /if \(wait && !waits\) return reply\(\{ released: false, code: 'bad-input'/)
+  assert.match(tool, /claim_id: c\.id, note: said, \.\.\.\(waits \? \{ wait: waits \} : \{\}\)/, 'the parsed wait, never the raw input, is journalled')
+})

@@ -21,6 +21,49 @@ export const RESUME_HOWS: ReadonlySet<string> = new Set(['session-ended', 'lapse
 /** The task's columns that still have work in them. */
 const OPEN_STATUSES: ReadonlySet<string> = new Set(['backlog', 'running'])
 
+// #region board-resume-wait — docs: docs/evidence/specs/2026-11-16-turn-end-waits.md#3-the-wait
+/** What a released task waits for (the turn-end spec §3): one checkable thing. */
+export type WaitKind = 'time' | 'question' | 'grant' | 'request' | 'limit'
+export interface Wait { kind: WaitKind; until: string | null; ref: string | null; why: string | null }
+const WAIT_KINDS: ReadonlySet<string> = new Set(['time', 'question', 'grant', 'request', 'limit'])
+const REF = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * A wait as an agent or the journal states it, or null when it names nothing checkable: a time without a readable
+ * `until`, a question, grant or request without an id. Null is no wait (§2): the work goes on at once.
+ */
+export function parseWait(raw: unknown): Wait | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const w = raw as Record<string, unknown>
+  if (typeof w.kind !== 'string' || !WAIT_KINDS.has(w.kind)) return null
+  const kind = w.kind as WaitKind
+  const until = typeof w.until === 'string' && Number.isFinite(Date.parse(w.until)) ? new Date(Date.parse(w.until)).toISOString() : null
+  const ref = typeof w.ref === 'string' && REF.test(w.ref) ? w.ref.toLowerCase() : null
+  const why = typeof w.why === 'string' && w.why.trim() ? w.why.trim().slice(0, 300) : null
+  if ((kind === 'time' || kind === 'limit') && !until) return null
+  if ((kind === 'question' || kind === 'grant' || kind === 'request') && !ref) return null
+  return { kind, until, ref, why }
+}
+
+/**
+ * Whether a wait has cleared (§3): a time or a limit once `until` has passed; a question, grant or request once its
+ * referenced item reads settled (`refSettled` true). A reference that could not be read (null) has not cleared: it is
+ * checked again on the next pass, never guessed.
+ */
+export function waitCleared(wait: Wait, refSettled: boolean | null, now: number): boolean {
+  if (wait.kind === 'time' || wait.kind === 'limit') return Date.parse(wait.until!) <= now
+  return refSettled === true
+}
+
+/** One line for the run's packet: what the task waited for, and that it cleared. */
+export function waitLine(wait: Wait): string {
+  const what = wait.kind === 'time' ? `until ${wait.until}` : wait.kind === 'limit' ? `for the usage limit to reset at ${wait.until}`
+    : wait.kind === 'question' ? `for the answer to question fabric-question:${wait.ref}` : wait.kind === 'grant' ? `for the access request ${wait.ref} to be decided`
+      : `for the board request board-request:${wait.ref} to be settled`
+  return `The last session waited ${what}${wait.why ? ` (${wait.why})` : ''}; that has cleared, so read its result before you continue.`
+}
+// #endregion board-resume-wait
+
 export interface ResumeCandidate {
   taskId: string
   projectId: string | null
@@ -37,9 +80,12 @@ export interface ResumeCandidate {
     workflowId?: string | null } | null
   /** An open question to a person names the task: the run would only ask again, so the person decides first. */
   openQuestion: boolean
+  /** The turn-end spec §3: what the release said it waits for, and whether its referenced item reads settled. */
+  wait?: Wait | null
+  waitSettled?: boolean | null
 }
 
-export interface ResumeItem { taskId: string; projectId: string; title: string; how: string; releasedAt: string; deadline: string
+export interface ResumeItem { taskId: string; projectId: string; title: string; how: string; releasedAt: string; deadline: string; wait?: Wait
   /** §3.12: the session that left it, and the Observatory workflow its claim named; absent when unknown. */
   runtimeSessionId?: string; workflowId?: string }
 
@@ -64,7 +110,10 @@ export function resumeItems(candidates: readonly ResumeCandidate[], now: number,
     // §3.12: Switchboard holds the session that left it on a usage limit and continues that very session (`claude
     // --resume`), which takes its claims back at its enrollment; a run started meanwhile is a second agent on the task.
     if (claim.runtimeSessionId && opts.limitStopped?.has(claim.runtimeSessionId)) continue
+    // The turn-end spec §4.1: a declared wait holds the task until it clears; one naming nothing checkable is none.
+    if (c.wait && !waitCleared(c.wait, c.waitSettled ?? null, now)) continue
     out.push({ taskId: c.taskId, projectId: c.projectId, title: c.title, how: claim.how, releasedAt: claim.releasedAt, deadline: new Date(released + RESUME_WINDOW_MS).toISOString(),
+      ...(c.wait ? { wait: c.wait } : {}),
       ...(claim.runtimeSessionId ? { runtimeSessionId: claim.runtimeSessionId } : {}), ...(claim.workflowId ? { workflowId: claim.workflowId } : {}) })
   }
   return out.sort((a, b) => Date.parse(a.releasedAt) - Date.parse(b.releasedAt) || a.taskId.localeCompare(b.taskId))

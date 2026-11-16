@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **An agent says what it waits for, and Fabric goes on when it clears** (the operator, 2026-11-16). `fabric_work_release`
+  takes `wait` (time, question, grant, request, limit); the board supervisor continues the task once the wait clears, and
+  10 minutes after a release that names none. Every session reads the turn-end rule (done, going on, waiting) in
+  Fabric's rules. Spec and replanned waves: [docs/evidence/specs/2026-11-16-turn-end-waits.md](docs/evidence/specs/2026-11-16-turn-end-waits.md).
 - **A session resumed after a usage limit holds its tasks again** (board finding from dissy, 2026-11-16). When
   Switchboard continues a session stopped on a limit (`claude --resume`, the same runtime session id), its new Fabric
   session gets back, at enrollment, the claims its earlier session left when it ended, while nobody took the task since

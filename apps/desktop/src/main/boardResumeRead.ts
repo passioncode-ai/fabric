@@ -5,7 +5,7 @@
  * names them, and (§3.12) the runtime session that left each one and the Observatory workflow its claim named. Bounded: at most `RELEASES_READ` releases a pass, the newest; a read at that bound is said as capped. A
  * read that fails throws: an unread board is never «nothing to continue».
  */
-import { RESUME_GRACE_MS, RESUME_HOWS, RESUME_WINDOW_MS, resumeStateOf, type ResumeCandidate } from '../shared/boardResume.ts'
+import { parseWait, RESUME_GRACE_MS, RESUME_HOWS, RESUME_WINDOW_MS, resumeStateOf, type ResumeCandidate, type Wait } from '../shared/boardResume.ts'
 import type { createScopedStore } from './scopedStore.ts'
 
 type Store = Pick<ReturnType<typeof createScopedStore>, 'select' | 'selectIn'>
@@ -21,7 +21,47 @@ type ClaimRow = { id?: string; owner_session?: string; work_id: string; claimed_
 const WORKFLOW = /^wf_[0-9a-f]{16}$/
 type TaskRow = { id: string; project_id: string | null; title: string | null; instruction: string | null; status: string; moved_at: string | null; started_at: string | null; moved_by_kind: string | null }
 
-export async function readResumeCandidates(store: Store, now: number): Promise<{ candidates: ResumeCandidate[]; capped: boolean }> {
+/** The turn-end spec §3: a board request's state through the operator's door, or null when it cannot be read. */
+export type RequestStateRead = (requestId: string) => Promise<string | null>
+const REQUEST_SETTLED: ReadonlySet<string> = new Set(['completed', 'failed_known', 'answered', 'cancelled', 'expired', 'outcome_unknown'])
+
+/** The waits the newest releases named (`work.released@1`'s `wait`), by claim id; a read that fails throws. */
+async function readWaits(store: Store, claimIds: string[]): Promise<Map<string, Wait>> {
+  const out = new Map<string, Wait>()
+  if (!claimIds.length) return out
+  const r = await store.selectIn('journal', 'payload', 'payload->>claim_id', claimIds, CHUNK, undefined, [['type', 'work.released@1']])
+  if (r.failed) throw new Error(`the releases' waits could not be read: ${r.failed}`)
+  for (const row of r.rows as Array<{ payload?: Record<string, unknown> }>) {
+    const id = row.payload?.claim_id
+    const wait = parseWait(row.payload?.wait)
+    if (typeof id === 'string' && wait) out.set(id, wait)
+  }
+  return out
+}
+
+/** Whether each wait's referenced item reads settled now: a question answered or withdrawn, an access request decided, a
+ *  board request settled. A reference that cannot be read is null, never «settled». */
+async function readSettled(store: Store, waits: Wait[], requestState?: RequestStateRead): Promise<Map<string, boolean | null>> {
+  const out = new Map<string, boolean | null>()
+  const refs = (kind: Wait['kind']) => [...new Set(waits.filter((w) => w.kind === kind).map((w) => w.ref!))]
+  const questions = refs('question')
+  if (questions.length) {
+    const q = await store.selectIn('questions', 'id,status', 'id', questions, CHUNK)
+    if (!q.failed) for (const row of q.rows as Array<{ id: string; status: string }>) out.set(row.id, row.status !== 'open')
+  }
+  const grants = refs('grant')
+  if (grants.length) {
+    const g = await store.selectIn('access_requests', 'id,status', 'id', grants, CHUNK)
+    if (!g.failed) for (const row of g.rows as Array<{ id: string; status: string }>) out.set(row.id, row.status !== 'pending')
+  }
+  for (const id of refs('request')) {
+    const state = requestState ? await requestState(id).catch(() => null) : null
+    out.set(id, state === null ? null : REQUEST_SETTLED.has(state))
+  }
+  return out
+}
+
+export async function readResumeCandidates(store: Store, now: number, requestState?: RequestStateRead): Promise<{ candidates: ResumeCandidate[]; capped: boolean }> {
   const r = await store.select('work_claims', 'work_id,claimed_at,released_at,released_how')
     .in('released_how', [...RESUME_HOWS])
     .gte('released_at', new Date(now - RESUME_WINDOW_MS).toISOString())
@@ -62,6 +102,10 @@ export async function readResumeCandidates(store: Store, now: number): Promise<{
   const questions = await store.selectIn('questions', 'task_id', 'task_id', ids, CHUNK, undefined, [['status', 'open']])
   if (questions.failed) throw new Error(`the open questions could not be read: ${questions.failed}`)
   const asked = new Set((questions.rows as Array<{ task_id: string | null }>).map((q) => q.task_id).filter((id): id is string => !!id))
+  // The turn-end spec §3: what each newest release waits for, and whether its referenced item has settled.
+  const releasedIds = [...newest.values()].filter((c) => c.released_at && c.id).map((c) => c.id as string)
+  const waits = await readWaits(store, releasedIds)
+  const settled = await readSettled(store, [...waits.values()], requestState)
   const candidates = (tasks.rows as TaskRow[]).map((t): ResumeCandidate => {
     const c = newest.get(t.id)
     return {
@@ -69,7 +113,11 @@ export async function readResumeCandidates(store: Store, now: number): Promise<{
       movedAt: t.moved_at ?? t.started_at ?? null, movedByKind: t.moved_by_kind ?? null,
       lastClaim: c ? { claimedAt: c.claimed_at, releasedAt: c.released_at, how: c.released_how,
         ...(c.released_at ? { runtimeSessionId: (c.owner_session && runtimeOf.get(c.owner_session)) || null, workflowId: (c.id && workflowOf.get(c.id)) || null } : {}) } : null,
-      openQuestion: asked.has(t.id)
+      openQuestion: asked.has(t.id),
+      ...(() => {
+        const wait = c?.id ? waits.get(c.id) : undefined
+        return wait ? { wait, waitSettled: wait.ref ? settled.get(wait.ref) ?? null : null } : {}
+      })()
     }
   })
   return { candidates, capped: released.length >= RELEASES_READ }

@@ -33,7 +33,7 @@ export interface OpenRequest {
   inbox?: { unread: number; oldestAt: string }
   /** 2026-11-16 (§3.11, the board supervisor): a task left open, not a request. `id` is the task, `target` its project;
    *  it reads `queued` while nobody took the task since `releasedAt` and `answered` once someone did. */
-  resume?: { title: string; how: string; releasedAt: string
+  resume?: { title: string; how: string; releasedAt: string; wait?: string
     /** §3.12: the Observatory workflow the left claim was linked to (`fabric_work_claim` `workflowId`). */
     workflowId?: string }
 }
@@ -588,6 +588,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     constraints: [
       `This run was started by Fabric's board supervisor because the task fabric-task:${req.id} «${req.resume!.title}» was left open: its last session ended its claim (${req.resume!.how}) at ${req.resume!.releasedAt} without finishing it, and no session of this project has worked since.`,
       // Switchboard's own instructions speak of one board request; here the id on the first line is the task.
+      ...(req.resume!.wait ? [req.resume!.wait] : []),
       'Where the session\'s instructions speak of a board request, read it as this task: the request id on the first line names the task, not a board request, so there is nothing to com.claim, com.accept or com.complete for it.',
       'Claim the task first with fabric_work_claim {taskId}; when another agent holds it, leave it and end. Read its brief, its notes and the last session\'s handoff (the task\'s notes, the repository\'s handoff and its board thread, if any) before you act, and continue from the exact next step they name, never from the start.',
       // §3.12: the left claim's Observatory workflow holds the last session's own state, step by step.

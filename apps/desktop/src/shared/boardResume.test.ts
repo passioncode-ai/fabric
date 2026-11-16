@@ -75,3 +75,44 @@ describe('resumeStateOf', () => {
     expect(resumeStateOf(null, released)).toBeNull()
   })
 })
+
+// The turn-end spec §3 and §4.1: a declared wait holds the task until it clears.
+import { parseWait, waitCleared, waitLine } from './boardResume'
+const Q = '0a0a0a0a-0b0b-4c0c-8d0d-0e0e0e0e0e0e'
+
+describe('parseWait', () => {
+  it('keeps a wait that names one checkable thing', () => {
+    expect(parseWait({ kind: 'time', until: '2026-11-16T19:00:00Z', why: 'CI run' })).toEqual({ kind: 'time', until: '2026-11-16T19:00:00.000Z', ref: null, why: 'CI run' })
+    expect(parseWait({ kind: 'question', ref: Q.toUpperCase() })).toEqual({ kind: 'question', until: null, ref: Q, why: null })
+  })
+  it('reads a wait that names nothing checkable as no wait', () => {
+    for (const raw of [null, 'later', { kind: 'time' }, { kind: 'time', until: 'soon' }, { kind: 'question' }, { kind: 'request', ref: 'abc' }, { kind: 'forever' }])
+      expect(parseWait(raw)).toBeNull()
+  })
+})
+
+describe('waitCleared and resumeItems with a wait', () => {
+  const released = ago(30 * MIN)
+  it('a time or a limit clears once its time has passed', () => {
+    expect(waitCleared({ kind: 'time', until: ago(MIN), ref: null, why: null }, null, NOW)).toBe(true)
+    expect(waitCleared({ kind: 'limit', until: new Date(NOW + MIN).toISOString(), ref: null, why: null }, null, NOW)).toBe(false)
+  })
+  it('a question, grant or request clears only once it reads settled; unread is not cleared', () => {
+    const w = { kind: 'question' as const, until: null, ref: Q, why: null }
+    expect(waitCleared(w, true, NOW)).toBe(true)
+    expect(waitCleared(w, false, NOW)).toBe(false)
+    expect(waitCleared(w, null, NOW)).toBe(false)
+  })
+  it('holds the task while the wait is open, continues it once cleared, and names the wait in the item', () => {
+    const lastClaim = { claimedAt: ago(90 * MIN), releasedAt: released, how: 'let-go' }
+    const wait = { kind: 'question' as const, until: null, ref: Q, why: 'which plan' }
+    expect(resumeItems([cand({ lastClaim, wait, waitSettled: false })], NOW)).toEqual([])
+    expect(resumeItems([cand({ lastClaim, wait, waitSettled: null })], NOW)).toEqual([])
+    const [i] = resumeItems([cand({ lastClaim, wait, waitSettled: true })], NOW)
+    expect(i?.wait).toEqual(wait)
+    expect(waitLine(wait)).toMatch(/fabric-question:0a0a0a0a.*which plan.*cleared/)
+    const later = { kind: 'time' as const, until: new Date(NOW + 60 * MIN).toISOString(), ref: null, why: null }
+    expect(resumeItems([cand({ lastClaim, wait: later })], NOW)).toEqual([])
+    expect(resumeItems([cand({ lastClaim, wait: later })], NOW + 61 * MIN)).toHaveLength(1)
+  })
+})

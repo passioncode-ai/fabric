@@ -3182,7 +3182,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // «Продолжать начатую работу без меня» is on (by default).
     resume: {
       on: () => readSettings().resumeLeftWork,
-      read: (now) => readResumeCandidates(store, now),
+      read: (now, requestState) => readResumeCandidates(store, now, requestState),
       state: (taskId, releasedAt) => readResumeState(store, taskId, releasedAt),
       // §3.12: a task whose session Switchboard will resume after a usage limit waits for that session.
       limitStops: () => readMachineLimitStops(sessionEnvironment(process.env))

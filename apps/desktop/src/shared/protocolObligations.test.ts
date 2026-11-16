@@ -183,3 +183,11 @@ describe('retro-after-work', () => {
     expect(o?.text).toMatch(/release a claim as done|session is about to end/)
   })
 })
+
+describe('turn-end-states (the turn-end spec §2)', () => {
+  it('names the three states and every kind of wait a release takes', () => {
+    const o = OBLIGATIONS.find((x) => x.id === 'turn-end-states')!
+    for (const word of ['Done', 'Going on', 'Waiting', 'time', 'question', 'grant', 'request', 'limit', 'fabric_question_ask', 'is not a wait']) expect(o.text).toContain(word)
+    expect(o.mode).toBe('ADVICE')
+  })
+})

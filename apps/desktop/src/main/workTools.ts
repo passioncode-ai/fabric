@@ -20,6 +20,7 @@ import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { createScopedStore } from './scopedStore.ts'
 import { ORIGIN_KINDS } from '../shared/origin.ts'
+import { parseWait } from '../shared/boardResume.ts'
 import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
 import { backToBacklogNote, moveDoneTaskToReview, returnClaimedTaskToBacklog, taskHeldElsewhere } from './workRelease.ts'
 import {
@@ -617,14 +618,26 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         note: z.string().max(2000).optional().describe('What the next agent reads, or why you let it go'),
         reason: z.string().max(2000).optional().describe('The same as note'),
         observedAt: z.string().datetime({ offset: true }).optional().describe('For the session hooks: when the end that prompts this release was observed; an end from before this session enrolled releases nothing'),
+        // #region work-release-wait — docs: docs/evidence/specs/2026-11-16-turn-end-waits.md#3-the-wait
+        wait: z.object({
+          kind: z.enum(['time', 'question', 'grant', 'request', 'limit']),
+          until: z.string().datetime({ offset: true }).optional().describe('For time and limit: when to look again'),
+          ref: z.string().uuid().optional().describe('For question, grant and request: the id of what you wait for (a question you asked, an access request, a board request you sent)'),
+          why: z.string().max(300).optional()
+        }).optional().describe('With let-go or handed-over: the ONE checkable thing the next step waits for. Fabric continues the task (a new run claims it and starts from your note) once it clears: the time passed, the question answered, the request decided or settled. Leave it out when nothing blocks: the task is then continued 10 minutes after the release. A wait that names nothing checkable is refused.'),
+        // #endregion work-release-wait
         idempotencyKey: KEY.optional()
       }
     },
-    async ({ claimId, taskId, claims, how, outcome, to, note, reason, observedAt, idempotencyKey }) => {
+    async ({ claimId, taskId, claims, how, outcome, to, note, reason, observedAt, wait, idempotencyKey }) => {
       const ending: AgentRelease | undefined = how ?? outcome
       const said = (note ?? reason)?.trim() || null
       if (!ending) return reply({ released: false, code: 'bad-input', reason: 'say how it ended: done, handed-over or let-go' })
       if (ending !== 'done' && !said) return reply({ released: false, code: 'bad-input', reason: `${ending} needs a note: what the next agent reads, or why` })
+      // The turn-end spec §3: a wait goes with a release that leaves work, and names one checkable thing.
+      const waits = wait ? parseWait(wait) : null
+      if (wait && ending === 'done') return reply({ released: false, code: 'bad-input', reason: 'a done release waits for nothing; release let-go or handed-over with the wait' })
+      if (wait && !waits) return reply({ released: false, code: 'bad-input', reason: 'the wait names nothing checkable: time and limit need until; question, grant and request need ref' })
       // DA-6, 0.3.14 wave 2: the running task goes back to backlog when nothing else holds it, whoever moved it there.
       const backToBacklog = (c: { id: string; work_id: string }) =>
         returnClaimedTaskToBacklog(c.id, () => ownTask(c.work_id), (id) => taskHeldElsewhere(store, id, { id: c.id, owner_session: scope.sessionId }, deps.now()),
@@ -632,7 +645,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       const release = async (c: { id: string; work_id: string }, extra: Record<string, unknown> = {}): Promise<number> =>
         (await deps.append({
           type: 'work.released@1',
-          payload: { work: c.work_id, owner: scope.sessionId, outcome: RELEASE_OUTCOME[ending], how: ending, claim_id: c.id, note: said,
+          payload: { work: c.work_id, owner: scope.sessionId, outcome: RELEASE_OUTCOME[ending], how: ending, claim_id: c.id, note: said, ...(waits ? { wait: waits } : {}),
                      ...(idempotencyKey ? { idempotency_key: `release:${scope.sessionId}:${idempotencyKey}:${c.id}` } : {}), ...extra }
         })).seq
 
