@@ -215,7 +215,7 @@ test('I3 E-2: a caller that hangs up mid-call gives its admission slot back', as
   })
   for (let i = 0; i < 33; i++) await hangUp()
   await new Promise((r) => setTimeout(r, 700))
-  assert.equal(surface.externalPendingTotal, 0, 'every hung-up request released its admission slot')
+  assert.equal(surface.ingress.externalPendingTotal, 0, 'every hung-up request released its admission slot')
   const r = await fetch(surface.origin + '/mcp', { method: 'POST', headers, body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }) })
   assert.equal(r.status, 200, 'the same valid credential is admitted after the hang-ups')
   await r.text()

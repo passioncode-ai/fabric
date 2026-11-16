@@ -53,6 +53,26 @@ State, 2026-11-16: the Board's three reads (what waits, answered, set aside) mov
 receipt forced to ok). Next: `agentSurface.ts`, one factory of 2 900 lines, split along its code regions (the hub's
 external door, the session registry, the work tools), one region per change.
 
+Then the hub's external door (ADR-0115 §1) left `agentSurface.ts` with the only state it keeps (its budgets, in-flight
+admissions and recently known bearers): `main/externalIngress.ts` (`ExternalIngress#handle`), and the body reading and
+the JSON refusal every door shares in `main/requestBody.ts`. The surface hands it every bearer that is not a session's
+and re-exports what tests and callers imported from it. `agentSurface.ts`: 3 397 lines to 3 127. Checked by
+`test/hub-surface.test.mjs` (16 tests; watched failing with the admission slot never given back: 6 fail).
+
+Then Agent access's three tools (`fabric_access_list`, `_decide`, `_revoke`, CO-506) left `serverFor` for
+`main/relayedAccessTools.ts`, with `test/relayed-access-tools.test.mjs` that needs no database (3 tests through the
+surface; watched failing when «asked by you» compared the session id instead of the binding: 1 fail).
+Then the project's own tools (`fabric_project_profile`, `fabric_project_folder_attach`, `_detach`) left for
+`main/projectTools.ts`, with `test/project-tools.test.mjs`, no database (2 tests; watched failing with the folder sent
+for the estate instead of the project, and with the profile written as the person's: 1 fail each).
+Then the floor's two tools (`fabric_effect_request`, `fabric_effect_report`, ADR-0050) left for `main/effectTools.ts`,
+and the reference check every tool shares for `main/agentReference.ts`, with `test/effect-tools.test.mjs`, no database
+(3 tests; watched failing with the grant looked up without the project: 1 fail; `test/agent-http-ingress.test.mjs`
+watched failing with the target's secret check dropped). Then the owner's questions (`fabric_question_ask`,
+`fabric_question_check`) left for `main/questionTools.ts`, with `test/question-tools.test.mjs`, no database (3 tests;
+watched failing with a foreign task let through as blocked: 1 fail). `agentSurface.ts` now 2 699 lines. `serverFor`
+still registers 19 tools inline; the next group is the task tools.
+
 ## S3 · Launching sessions (next)
 
 The session launch path (consoles, the dispatcher's runs, Switchboard calls) read end to end and split along the same
