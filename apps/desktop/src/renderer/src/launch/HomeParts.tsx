@@ -244,6 +244,7 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
           : head.headline}
       </p>
       {head.subject && <p className="lh-q-subject"><code title={head.subject}>{head.subject}</code></p>}
+      {head.more && <details className="lp-access-more"><summary>{t('launch.board.decide.details')}</summary><p className="lh-q-said">{head.more}</p></details>}
       {problem && <FailureNote said={t('needsYou.unreadable')} detail={problem} />}
       {/* SCN-163 step 2 (CO-391): a question is answered where it is read, the options as buttons. */}
       {receipt?.committed ? (

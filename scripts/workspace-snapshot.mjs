@@ -13,7 +13,12 @@ export const selected=p=>!publicationOnly(p)&&!gitBookkeeping(p)&&(p.startsWith(
 export const sha=b=>createHash('sha256').update(b).digest('hex')
 // Bounded and non-interactive (lifecycle LC-02/LC-03, review m9): a local git call that waits on a person or a
 // lock never holds a publication forever.
-export const git=(root,...args)=>execFileSync('git',args,{cwd:root,maxBuffer:80*1024*1024,timeout:120000,killSignal:'SIGKILL',env:{...process.env,GIT_TERMINAL_PROMPT:'0'}})
+// 2026-11-16 (board finding 6f7d788c, 17 failed syncs reading only «spawnSync git ETIMEDOUT»): ssh is non-interactive as
+// in fetchTip, and a call cut at its deadline names its command and repository, never a bare spawnSync code.
+export const git=(root,...args)=>{
+ try{return execFileSync('git',args,{cwd:root,maxBuffer:80*1024*1024,timeout:120000,killSignal:'SIGKILL',env:{...process.env,GIT_TERMINAL_PROMPT:'0',GIT_SSH_COMMAND:process.env.GIT_SSH_COMMAND??'ssh -o BatchMode=yes -o ConnectTimeout=15'}})}
+ catch(e){if(e&&e.code==='ETIMEDOUT')throw Object.assign(Error('git '+args.filter(a=>!a.startsWith('-')).slice(0,2).join(' ')+' in '+path.basename(root)+' did not finish in 120 s'),{code:'ETIMEDOUT',cause:e});throw e}
+}
 export const digest=files=>sha(JSON.stringify(files))
 
 // Other PassionCode.ai repositories join the snapshot under repos/<id>/, each at its own pinned

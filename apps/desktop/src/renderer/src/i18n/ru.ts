@@ -1430,6 +1430,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.board.delegate': "Отдать агенту",
   'launch.board.delegate.hint': "Агент решит сам по решениям и цели проекта и запишет почему",
   'launch.board.delegate.answer': "Решите сами: выберите вариант по решениям и цели проекта и запишите причину.",
+  'attention.question.unclear': "Агент спросил непонятно. Прочтите подробности или отдайте решение агенту",
   'launch.board.own': "Ответить своими словами",
   'launch.board.decide.details': "Подробнее",
   'launch.board.record': "Записать решение",

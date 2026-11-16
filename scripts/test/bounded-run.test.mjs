@@ -357,6 +357,16 @@ test('CO-411: tellChat runs the notice under use_secret with the vault slot, nev
 
 test('CO-411: the sync tells the chat from the second failure in a row, once per streak, and its recovery', () => {
   const src = readFileSync(path.join(import.meta.dirname, '..', 'workspace.mjs'), 'utf8')
-  assert.match(src, /onFailure:\(count,reason,streak\)=>\{if\(count>=2\)\{tellPerson\([\s\S]*tellChat\(\{kind:'failure',eventId:'fabric-workspace-sync-failure-'\+streak/)
+  assert.match(src, /onFailure:\(count,reason,streak\)=>\{if\(count>=2\)\{tellPerson\([\s\S]*tellChat\(\{kind:'failure',eventId:'fabric-workspace-sync-failure-'\+streak\+'-'\+createHash\('sha256'\)\.update\(String\(reason\)\)/)
+  // 2026-11-16 (board finding 6f7d788c): one event id carries one text. The count changed every run under one id, and the
+  // communicator refused every repeat (event_conflict); the text now names the streak's start, and a new reason a new id.
+  assert.doesNotMatch(src, /eventId:'fabric-workspace-sync-failure-'\+streak,text:`[^`]*\$\{count\}/)
   assert.match(src, /onRecovery:\(before,streak\)=>\{if\(before>=2\)tellChat\(\{kind:'recovery',eventId:'fabric-workspace-sync-recovery-'\+streak/)
+})
+
+test('2026-11-16 (finding 6f7d788c): a git call cut at its deadline names its command and repository', async () => {
+  const { readFileSync: read } = await import('node:fs')
+  const src = read(path.join(import.meta.dirname, '..', 'workspace-snapshot.mjs'), 'utf8')
+  assert.match(src, /GIT_SSH_COMMAND:process\.env\.GIT_SSH_COMMAND\?\?'ssh -o BatchMode=yes -o ConnectTimeout=15'/)
+  assert.match(src, /if\(e&&e\.code==='ETIMEDOUT'\)throw Object\.assign\(Error\('git '\+/)
 })

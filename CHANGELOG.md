@@ -9,6 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A question to a person is one he understands** (the operator, 2026-11-16). `fabric_question_ask` refuses a question
+  longer than 240 characters, with ids, hashes, ticket numbers or tool names in it, or without a question mark, and
+  says how to ask instead; one asked before leads with its readable sentence, or says it is unclear, its whole text
+  behind «Подробнее», on Главная, on the Board and in Telegram. The wiki sync names a git call that ran out of time, and
+  its failure notice is no longer refused on a repeat.
 - **An agent says what it waits for, and Fabric goes on when it clears** (the operator, 2026-11-16). `fabric_work_release`
   takes `wait` (time, question, grant, request, limit); the board supervisor continues the task once the wait clears, and
   10 minutes after a release that names none. Every session reads the turn-end rule (done, going on, waiting) in

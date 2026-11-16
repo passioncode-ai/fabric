@@ -7,7 +7,8 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 ### 2026-11-16 · `—` · docs/turn-end-waits → main · fast-forward
 - files: the turn-end spec, `shared/boardResume.ts` (`parseWait`, `waitCleared`, `waitLine`), `main/boardResumeRead.ts` (waits read from `work.released@1`, settled questions, access and board requests), `main/workTools.ts` (`wait` on `fabric_work_release`), the dispatcher's packet and wiring, `shared/protocolObligations.ts` (`turn-end-states`), the tests, AGENTS.md, the map lane `iteration-2026-11-16-turn-end-waits`
 - conflicts: none
-- summary: a release names what it waits for; the supervisor continues the task when the wait clears
+- summary: a release names what it waits for; the supervisor continues the task when the wait clears; a question to a person is one he understands (`shared/questionClarity.ts`, `fabric_question_ask` refuses `question-unclear`, the cards lead with a readable sentence); the wiki sync names a timed-out git call and its notice keeps one text per event id
+
 ### 2026-11-17 · `—` · fix/resumed-session-claims → main · fast-forward
 - files: `shared/resumedClaims.ts`, `main/resumedClaims.ts` (claims given back at enrollment), `main/sessionEnroll.ts` (`resumeClaims`), `main/agentSurface.ts` (`noteClaims`), `shared/boardResume.ts` and `main/boardResumeRead.ts` (the left session and its workflow, `limitStopped`), `main/switchboardSessions.ts` (`readLimitStops`), `main/boardDispatchWiring.ts`, `main/boardDispatchRun.ts` (the workflow in the packet), `main/workTools.ts` (`workflowId` on a claim), tests, the on-demand spec §3.12, the map lane `iteration-2026-11-17-resumed-claims`
 - conflicts: none

@@ -268,8 +268,8 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   const kindOf = (kind: string) => t(`needsYou.kind.${kind}` as 'needsYou.kind.question')
   const kindOfRow = (r: Row) => kindOf(r.at === 'open' ? r.entry.kind : 'question')
   /** What a row asks, in words: a refused act as its question, its target apart (2026-11-11). */
-  const headOf = (r: Row) => (r.at === 'open' ? decisionHeadOf(r.entry, t) : { headline: titleOf(r.entry, t), subject: null })
-  const chosenHead = chosen ? headOf(chosen) : { headline: '', subject: null }
+  const headOf = (r: Row) => (r.at === 'open' ? decisionHeadOf(r.entry, t) : { headline: titleOf(r.entry, t), subject: null, more: null })
+  const chosenHead = chosen ? headOf(chosen) : { headline: '', subject: null, more: null }
   // The rows around the one shown; a row settled and gone leaves its place to the one after it.
   const at = rows && selected ? rows.findIndex((r) => r.entry.ref === selected) : -1
   if (at >= 0) lastAt.current = at
@@ -428,6 +428,9 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
               </nav>
             </div>
             <h3 id="topic-title" tabIndex={-1}>{chosenHead.headline}</h3>
+            {chosenHead.more && (
+              <details className="lp-access-more"><summary>{t('launch.board.decide.details')}</summary><p className="lh-q-said">{chosenHead.more}</p></details>
+            )}
             {chosenHead.subject && (
               <p className="lp-decide-subject"><span className="lp-decide-label">{t('launch.board.decide.subject')}</span><code>{chosenHead.subject}</code></p>
             )}

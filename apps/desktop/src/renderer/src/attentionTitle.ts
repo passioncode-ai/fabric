@@ -2,6 +2,7 @@
 // sentence (verification iteration 1 for 0.3.1, UX-2), so every list that shows the queue asks here,
 // and the request is said in the operator's language: "<name> asks to use <product>".
 
+import { questionHead } from '../../shared/questionClarity'
 import { sayQueueTitle, type Say } from '../../shared/accessWords.ts'
 import type { PendingRequestFacts } from '../../shared/access.ts'
 import type { AbandonedKind } from '../../shared/abandonedSweep.ts'
@@ -22,12 +23,18 @@ const FLOORS = new Set(['money', 'deletion', 'publication'])
  * publication with its bare target, `github.com/…`, and the word «Отказано»). A refused act is asked as the question the
  * person answers («Разрешить публикацию наружу?»), its target kept apart as `subject`; every other row keeps its title.
  */
-export function decisionHeadOf(item: { kind: string; title: string; access?: PendingRequestFacts; swept?: { kind: AbandonedKind; untitled?: true }; grantable?: { floorClass: string; target: string } }, t: Say): { headline: string; subject: string | null } {
+export function decisionHeadOf(item: { kind: string; title: string; access?: PendingRequestFacts; swept?: { kind: AbandonedKind; untitled?: true }; grantable?: { floorClass: string; target: string } }, t: Say): { headline: string; subject: string | null; more: string | null } {
   if (item.kind === 'refused' && item.grantable) {
     const floor = FLOORS.has(item.grantable.floorClass) ? item.grantable.floorClass : 'other'
-    return { headline: t(`launch.board.decide.refused.${floor}` as 'launch.board.decide.refused.other'), subject: item.grantable.target || item.title || null }
+    return { headline: t(`launch.board.decide.refused.${floor}` as 'launch.board.decide.refused.other'), subject: item.grantable.target || item.title || null, more: null }
   }
-  return { headline: titleOf(item, t), subject: null }
+  // The turn-end spec §8 (the operator, 2026-11-16): a question asked before the clarity rule, written for agents, leads
+  // with its one clear question sentence, or says it is unclear; its whole text stays behind «Подробнее».
+  if (item.kind === 'question' && item.title) {
+    const q = questionHead(item.title)
+    if (q.more) return { headline: q.headline ?? t('attention.question.unclear'), subject: null, more: q.more }
+  }
+  return { headline: titleOf(item, t), subject: null, more: null }
 }
 
 const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.untitled.answer' | 'attention.untitled.inbox' | 'attention.untitled.task' | 'attention.untitled.session'> = {

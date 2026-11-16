@@ -112,9 +112,10 @@ Each wave lands on `main` on its own, gates green; nothing that works is broken 
 | T6 | «На проверке» shows a task the supervisor gave the operator, and a wait past its time | Fabric | `a8993a15` |
 | B1 to B4 | The board out of the window's process (ADR-0195 W1 to W4) | Fabric, Switchboard | `0647986c`, `8b86adf3`, `dbeb4fcd`, `4e0976c6` |
 | P | The PM agents' and the communicator's `people.ask` | their projects | `bf635f68`, `e6154a6e` |
+| Q | A question a person understands (§8), with this spec's first wave | Fabric | `e46b39dc` |
 | U | The interface findings of wave 2 | Fabric | `6f61f88f`, `cc6ce338`, `b54734c6`, `96d4431c` |
 
-Order: T1 with this spec, then T0 (the data room is the operator's window on every project), T2, T6, T5, B1 to B4, U;
+Order: T1, Q and T0 with this spec, then T2, T6, T5, B1 to B4, U;
 T3, T4 and P run in their projects in parallel. The main agent checks its status and the board every five minutes while
 it works and takes the next wave when one lands.
 
@@ -124,3 +125,22 @@ T1: `src/shared/boardResume.test.ts` (each kind clears only on its condition; a 
 none), `test/board-resume-read.test.mjs` (the wait read back from the release's event), `test/board-dispatch-run.test.mjs`
 (a run's packet names the wait). T2: the verdict's unit tests (claim, wait, two empty turns). Every wave:
 `bash scripts/ci.sh fast` exit 0 on the commit that lands.
+
+## 8. A question a person understands
+
+The operator, 2026-11-16, over a question in «Нужны вы» that named a slot generation, a capability, three commit hashes
+and a ticket and ended «the answer is not required»: «вопросы должны быть понятны. Сейчас мне вообще не понятно, что вот
+у меня тут спрашивают, что я должен отвечать». A question is for a person; what an agent needs to say besides goes to
+`whyBlocked` and the options' consequences (`shared/questionClarity.ts`).
+
+- **Asked.** `fabric_question_ask` refuses (`question-unclear`, with the issues and how to ask instead) a question whose
+  text is longer than 240 characters, holds machine words (hashes and ids, ticket numbers, dotted or slashed names such
+  as capabilities, tools and paths, code in backticks) or does not end with a question mark. The check runs after the
+  idempotency read and the task checks, so a retry of a question already asked answers as before. The rule's last line:
+  a question nothing needs a person for is not asked; the agent decides it by the project's decisions and goal.
+- **Shown.** A question asked before the rule leads with its one readable question sentence; with none, the card says
+  the agent's question is unclear and offers its whole text behind «Подробнее» (Главная and the Board's panel). The
+  people-ask bridge sends the same line to Telegram, the agent's text in the detail.
+- **Tests.** `src/shared/questionClarity.test.ts` (the operator's question word for word is refused for all three
+  reasons and has no headline), `test/question-tools.test.mjs` (refused through the tool, nothing written; a plain
+  question with the context in `whyBlocked` is asked).

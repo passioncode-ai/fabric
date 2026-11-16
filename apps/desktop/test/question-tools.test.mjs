@@ -93,3 +93,21 @@ test('a question\'s state is read with what it blocks; another project\'s reads 
     assert.equal(foreign.found, false)
   })
 })
+
+test('the turn-end spec §8: a question a person cannot read is refused with how to ask, and nothing is written', async () => {
+  const { surface: s, appended } = surface()
+  await linked(s.serverFor(scope), async (client) => {
+    const out = parsed(await client.callTool({ name: 'fabric_question_ask', arguments: {
+      commandId: '87000000-0000-4000-8000-0000000000c9',
+      text: 'Слот ответчика contract.change у fabric-agent-contract сейчас absent на поколении 9 (CT-336, main 09a1aa92). Ответ не обязателен.' } }))
+    assert.equal(out.asked, false)
+    assert.equal(out.code, 'question-unclear')
+    assert.deepEqual(out.issues, ['machine-words', 'not-a-question'])
+    assert.match(out.reason, /whyBlocked/)
+    const plain = parsed(await client.callTool({ name: 'fabric_question_ask', arguments: {
+      commandId: '87000000-0000-4000-8000-0000000000ca', text: 'Запустить агента контракта сейчас, чтобы он выпустил схему?',
+      whyBlocked: 'Слот contract.change пуст (CT-336)' } }))
+    assert.equal(plain.asked, true, JSON.stringify(plain))
+  })
+  assert.equal(appended.length, 1, 'only the plain question is written')
+})

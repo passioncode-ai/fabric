@@ -2134,6 +2134,7 @@ export const en = {
   'launch.board.delegate': "Leave it to the agent",
   'launch.board.delegate.hint': "The agent decides by the project's decisions and goal and records why",
   'launch.board.delegate.answer': "Decide it yourself: pick an option by the project's decisions and goal, and record why.",
+  'attention.question.unclear': "The agent's question is unclear. Read the details or hand the decision back to the agent",
   'launch.board.own': "Answer in your own words",
   'launch.board.decide.details': "Details",
   'launch.board.record': "Record the decision",

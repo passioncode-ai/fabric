@@ -7,6 +7,7 @@
  * before `main/peopleAskRun.ts` applies it through the window's own doors. Every text a person reads is Russian.
  * The contract was posted on the board, thread bf635f68, message ef9a5032.
  */
+import { questionHead } from './questionClarity.ts'
 import type { BoardEntry } from './board.ts'
 
 export const PEOPLE_ASK_CAPABILITY = 'people.ask'
@@ -114,7 +115,10 @@ export function prepareAsk(e: BoardEntry, ctx: { projectId: string; projectName:
     const options = ordered.map((o) => opt(o.id, line(o.label, 200), cut(o.consequence, 500)))
     if (e.askedBy?.kind !== 'person' && all.length > 0) options.push(opt(DELEGATE_OPTION, 'Отдать агенту', 'Агент решит сам по решениям и цели проекта и запишет почему'))
     return {
-      ask: { ...base, text: line(e.title, 500), detail: cut(e.why, 2000), options, recommended: all.find((o) => o.recommended)?.id ?? null,
+      // The turn-end spec §8: a question asked before the clarity rule goes to Telegram as its clear sentence, or as a
+      // plain line saying it is unclear, with the agent's whole text in the detail.
+      ask: { ...base, text: line(questionHead(e.title).headline ?? 'Агент спросил непонятно; его текст ниже. Решите или отдайте решение агенту.', 500),
+        detail: cut([questionHead(e.title).more, e.why].filter(Boolean).join('\n\n') || null, 2000), options, recommended: all.find((o) => o.recommended)?.id ?? null,
         freeText: true, mayDecide: architect, deadline: week },
       act: { kind: 'question', questionId: e.subject.id, projectId: ctx.projectId, revision: e.question.revision,
         // The option's own shape, as the window sends it (`BoardPanel.tsx#submitAnswer`, DA-15).

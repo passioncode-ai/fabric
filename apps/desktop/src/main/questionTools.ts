@@ -3,6 +3,7 @@
  * owner, ranked with everything else waiting, and `fabric_question_check` reads its state. Moved out of
  * `agentSurface.ts#serverFor` as one group (the screens waves S2, 2026-11-16).
  */
+import { clarityAdvice, clarityIssues } from '../shared/questionClarity.ts'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -38,7 +39,7 @@ export function registerQuestionTools(server: McpServer, deps: QuestionToolsDeps
           .string()
           .uuid()
           .describe('Your own id for this ask. Retry with the SAME one and you get the same question back, not a second one in front of a person.'),
-        text: z.string().min(1).max(4000),
+        text: z.string().min(1).max(4000).describe('The question the person answers: ONE short sentence (at most 240 characters) in their working language, ending with ?, with no ids, hashes, ticket numbers, tool or capability names, paths or code. Context goes to whyBlocked; an unclear question is refused (question-unclear) with how to ask instead.'),
         kind: z.enum(QUESTION_KINDS).optional().describe('decision by default'),
         topic: z.string().max(80).optional().describe('what it is about, beside the kind — e.g. process'),
         about: z.string().max(200).optional().describe('a stable subject key such as db.version, so a recorded decision on the same subject can settle it without asking'),
@@ -83,6 +84,7 @@ export function registerQuestionTools(server: McpServer, deps: QuestionToolsDeps
       if (already)
         return json({ asked: true, repeated: true, question_id: already.id, status: already.status, seq: already.seq })
 
+
       // Every blocked task is checked HERE, before the append. The projector
       // would silently drop a foreign one (ADR-0049) and the agent would be
       // left with a question that blocks nothing and no idea why.
@@ -91,6 +93,10 @@ export function registerQuestionTools(server: McpServer, deps: QuestionToolsDeps
           return json({ asked: false, reason: `task ${taskId} is not in this project, so this question cannot block it` })
       if (asked.value.taskId && !(await deps.ownTask(asked.value.taskId)))
         return json({ asked: false, reason: 'that task is not in this project' })
+      // The operator, 2026-11-16 (the turn-end spec §8): the question a person reads is one short sentence in their
+      // words. An unclear one is refused with the fix before it reaches anyone; the context belongs in whyBlocked.
+      const unclear = clarityIssues(asked.value.text)
+      if (unclear.length) return json({ asked: false, code: 'question-unclear', issues: unclear, reason: clarityAdvice(unclear) })
 
       const questionId = randomUUID()
       const event = await deps.append({
