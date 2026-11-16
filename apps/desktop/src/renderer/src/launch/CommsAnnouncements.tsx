@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { CommsMessage, CommsThread } from '../../../shared/commsRead.ts'
 import { announcementsOf, type AnnouncementStatus, type AnswerType } from '../../../shared/announcements.ts'
 import { useLocale, useT } from '../i18n'
+import { whenSaid } from '../duration'
 
 /** How many threads with an announcement one reading takes, newest first. */
 const THREADS = 50
@@ -78,7 +79,8 @@ export function CommsAnnouncements({ mark, nameOf, onOpen }: {
     </div>
   )
   const shown = read.items.filter((a) => !openOnly || a.answered < a.participants.length)
-  const when = (at: string): string => new Date(at).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })
+  // W6 (ui UI-21): one rule for when it was said, the exact time in the tooltip.
+  const when = (at: string) => { const w = whenSaid(at, locale, t); return w && <time dateTime={at} title={w.exact}>{w.said}</time> }
   return (
     <section className="lc" aria-labelledby="comms-ann-title">
       <h3 id="comms-ann-title" className="visually-hidden">{t('launch.comms.ann.title')}</h3>
@@ -99,7 +101,7 @@ export function CommsAnnouncements({ mark, nameOf, onOpen }: {
                 <span className="lc-head">
                   <b>{nameOf(a.from)}</b>
                   <span className="lp-pill">{t('launch.comms.ann.count', { answered: a.answered, of: a.participants.length })}</span>
-                  <time dateTime={a.at}>{when(a.at)}</time>
+                  {when(a.at)}
                 </span>
                 <span className="lc-text">{text.length > PREVIEW ? text.slice(0, PREVIEW).trimEnd() + '…' : text}</span>
               </button>

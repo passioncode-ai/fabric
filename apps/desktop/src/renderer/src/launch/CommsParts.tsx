@@ -20,7 +20,7 @@ import type {
   CommsSearchHit,
   CommsTimelineStep
 } from '../../../shared/commsRead.ts'
-import { since } from '../duration'
+import { since, whenSaid } from '../duration'
 import { useLocale, useT, type Translate } from '../i18n'
 import { en, type StringKey } from '../i18n/en'
 import { FailureNote } from '../OperatorError'
@@ -325,7 +325,7 @@ export function SearchPanel({ nameOf, onOpen }: { nameOf: (id: string) => string
           {state.hits.map((h) => (
             <li key={h.message}>
               <button type="button" className="lp-link" onClick={() => onOpen(h)}>{h.snippet}</button>
-              <span className="lp-meta"> · {nameOf(h.sender)} · {when(locale, h.at)}</span>
+              <span className="lp-meta"> · {nameOf(h.sender)}{(() => { const w = whenSaid(h.at, locale, t); return w && <> · <time dateTime={h.at} title={w.exact}>{w.said}</time></> })()}</span>
             </li>
           ))}
         </ul>

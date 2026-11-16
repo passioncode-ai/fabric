@@ -16,6 +16,7 @@ import tsWorker from 'monaco-editor/language/typescript/ts.worker?worker'
 import { ABSENT_HASH, type FilePayload } from '../../shared/types'
 import { Banner, Button, EmptyState, StateChip, Toolbar } from './components'
 import { useT } from './i18n'
+import { appLocale } from './duration'
 
 // Vite bundles these; Monaco asks for them by label.
 self.MonacoEnvironment = {
@@ -328,7 +329,7 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
             </>
           }
         >
-          {t(recovered.baseHash === base.current.hash ? 'editor.keptBuffer' : 'editor.keptBufferChanged', { time: new Date(recovered.at).toLocaleString() })}
+          {t(recovered.baseHash === base.current.hash ? 'editor.keptBuffer' : 'editor.keptBufferChanged', { time: new Date(recovered.at).toLocaleString(appLocale(), { dateStyle: 'medium', timeStyle: 'short' }) })}
         </Banner>
       )}
       {closing && (

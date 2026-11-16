@@ -122,8 +122,10 @@ no reader meets the wrong form; ruled, not changed. One rule for when something 
 the exact time in the tooltip; on a Переписка message and the feed, and the Pulse's days and range as short local dates
 instead of ISO keys and a time-zone id (UI-20). A redacted message's id and digest moved to its tooltip. Fourteen em dashes
 the components wrote themselves (between two values, in template strings) replaced, and the design gate now fails on one;
-the lone "no value" dash stays (AT-06-E4). Still open: the request's raw capability on screen (UI-20), the other 23
-places that format a date their own way.
+the lone "no value" dash stays (AT-06-E4). Still open: the request's raw capability on screen (UI-20). Of the other places that format a time: four printed it in the
+system's language under the interface's (the editor's kept buffer, a project's memory, «Кто работает», «Где работа»), now
+`duration.ts#appLocale`; Переписка's search hits and announcements take `whenSaid`. The rest show a clock time for a read
+(«прочитано в 14:05») or an exact time in a timeline or a fact list, which is their job.
 Nothing below 11 px (UI-10): the 10 own rules raised, the 27 rules ported from the prototype lifted in the adaptations,
 the badge token floored at 11 px, and `scripts/check-design.mjs` fails on any size under 11 px or a ported one left
 unlifted; under 550 px the Pulse's bars drop their count (it stays in the title) and name every other day

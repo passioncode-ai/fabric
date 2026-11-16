@@ -78,7 +78,7 @@ import { BoardPanel } from './BoardPanel'
 import { RetroSection } from './RetroSection'
 import { MemoryOverviewSection } from './MemoryOverviewSection'
 import { DigestSection } from './DigestSection'
-import { since, since as ago, until as ahead } from './duration'
+import { appLocale, since, since as ago, until as ahead } from './duration'
 import { runnerLabel } from './runnerLabel'
 import { explainError } from './start/StartPaths'
 import { ProjectLaunch } from './launch/ProjectLaunch'
@@ -2288,7 +2288,7 @@ function MemorySection({
                     {t(`memory.category.${f.category}` as 'memory.category.project')}
                   </StateChip>
                 )}
-                <span className="muted mono">{new Date(f.recorded_at).toLocaleDateString()}</span>
+                <span className="muted mono">{new Date(f.recorded_at).toLocaleDateString(appLocale())}</span>
                 {f.valid_to === null && (
                   <Button tone="ghost" onClick={() => setCorrecting(f)}>
                     {t('memory.correct')}

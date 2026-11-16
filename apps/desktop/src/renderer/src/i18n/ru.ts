@@ -1672,7 +1672,6 @@ export const ru: Partial<Record<StringKey, string>> = {
   'glyph.star': "★",
   'glyph.starEmpty': "☆",
   'duration.s': "{n} с",
-  'time.ago': "{time} назад",
   'duration.unknown': "время не записано",
   'duration.m': "{n} мин",
   'duration.d': "{n} дн.",

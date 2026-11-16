@@ -2376,7 +2376,6 @@ export const en = {
   'glyph.star': "★",
   'glyph.starEmpty': "☆",
   'duration.s': "{n}s",
-  'time.ago': "{time} ago",
   'duration.unknown': "time not recorded",
   'duration.m': "{n}m",
   'duration.d': "{n}d",

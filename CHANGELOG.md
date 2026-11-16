@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Dates in the interface's language everywhere** (the quality waves, W6, ui UI-21). Four places printed a date or
+  time in the system's language, not the one chosen in Settings; Переписка's search and announcements say when as the
+  thread does.
 - **Cards you can click look clickable** (the quality waves, W6, ui UI-14). Their edge was the divider colour, about
   1.4:1; it now reads at 3:1 or more in both themes.
 - **A row of cards that scrolls says so** (the quality waves, W1, ui UI-7). The directions strip and the kanban board

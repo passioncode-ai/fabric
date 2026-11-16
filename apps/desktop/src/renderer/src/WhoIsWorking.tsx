@@ -14,7 +14,7 @@ import type { LeaseReadCode, ProjectWorkView, RelatedWhy, WorkClaimView, CameIn 
 import type { Translate } from './i18n'
 import { Button, Panel, Row, StateChip, Toolbar } from './components'
 import { useT } from './i18n'
-import { since } from './duration'
+import { appLocale, since } from './duration'
 import { runnerLabel } from './runnerLabel'
 import { explainError } from './start/startParts'
 import { MachineDetail } from './OperatorError'
@@ -54,7 +54,7 @@ export function whyLabel(w: RelatedWhy, t: Translate): string {
 /** How a claim's life reads; never "working" past its expiry or after its session ended. */
 export function lifeLabel(c: Pick<WorkClaimView, 'life' | 'lastSignAt'>, t: Translate): string {
   if (c.life === 'lapsed') return t('work.who.lapsed')
-  if (c.life === 'silent') return t('work.who.silent', { at: new Date(c.lastSignAt).toLocaleTimeString() })
+  if (c.life === 'silent') return t('work.who.silent', { at: new Date(c.lastSignAt).toLocaleTimeString(appLocale(), { hour: '2-digit', minute: '2-digit' }) })
   return t('work.who.lastSign', { ago: since(c.lastSignAt, t) })
 }
 

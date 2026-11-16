@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 import type { WhereWorkView, WorkSessionView } from '../../../shared/workClaims.ts'
 import { Button, Panel, Row, StateChip, Toolbar } from '../components'
 import { useT, type Translate } from '../i18n'
-import { since } from '../duration'
+import { appLocale, since } from '../duration'
 import { runnerLabel } from '../runnerLabel'
 import { cameInLabel, lifeLabel, outsideLabel, taskLabel, whyLabel } from '../WhoIsWorking'
 import { MachineDetail } from '../OperatorError'
@@ -140,7 +140,7 @@ export function WhereWorkScreen({
               ))
             )}
           </Panel>
-          <p className="muted">{t('work.where.readAt', { at: new Date(read.view.readAt).toLocaleTimeString() })}</p>
+          <p className="muted">{t('work.where.readAt', { at: new Date(read.view.readAt).toLocaleTimeString(appLocale(), { hour: '2-digit', minute: '2-digit' }) })}</p>
         </>
       )}
     </div>
