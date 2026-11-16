@@ -9,6 +9,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Главная leads with «Нужны вы»** (the operator, 2026-11-16). While something waits for the person, «Нужны вы» is the
+  main column and «В работе» sits beside it; when nothing waits, «В работе» takes the whole width. Every card is decided
+  where it is read: an agent's access request (allow or deny), a refused act (allow once), a proposal and an overdue
+  review no longer send the person to the board first. A refused act is asked as its question with its target apart, and
+  an access request on Главная shows its reason, folder and warning, the rest behind «Подробнее». The hero and an agent's
+  row lay out by their own column's width, so the greeting no longer breaks a word to a line.
 - **Comms and История read cleaner in the dark pass** (the screens waves). A thread's message count stays on one line;
   an act whose undo has no known cause reads «Отменить нельзя» instead of saying it twice, and leaves the act its width.
 - **The task form's presets look like choices** (the screens waves, S3). «Собрать контекст», «Проверить проект» and the

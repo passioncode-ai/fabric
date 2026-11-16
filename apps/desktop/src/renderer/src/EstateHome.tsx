@@ -276,16 +276,24 @@ export function EstateHome({
     else onAgents()
   }
 
-  // 0.3.14, the simple Fabric §4: the right column holds only what needs the person: «Нужны вы» and the board's
-  // requests no agent has answered. The live feed moved to История («Что делали агенты» shows it). CO-476: below
-  // 1100 px it is rendered between the strip and «В работе», where the narrow layout shows it.
-  const side = (
-    <aside className="lh-side-column" aria-label={t('launch.home.side')}>
-      <HomeBoard onTotal={setOwnWaiting} nameOf={nameOfProject} feedMark={markOf(marks, NEEDS_YOU_FAMILIES)} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
-      {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
-      <HomeBoardWaiting mark={markOf(marks, ['comms'])} onComms={onComms} nameOf={nameOfProject} />
-    </aside>
+  // The operator, 2026-11-16: «нужны вы по центру, а в работе уже сбоку. А если нужны вы, ничего нету, тогда там только
+  // в работе». «Нужны вы» and the board's unanswered requests are the main column; «В работе» goes to the side while
+  // something waits for the person, and takes the whole width when nothing does (unread counts as waiting, so the board's
+  // reading shows where it will land). Below 1100 px everything is one column, «Нужны вы» first.
+  const needsYou = personWaiting !== 0
+  const inWork = (
+    <HomeInWork reading={home} projects={projects} terminals={sessions}
+      waitingByProject={waitingForYou === undefined ? (counts ? Object.fromEntries(Object.entries(counts).map(([id, c]) => [id, c.total])) : null) : (waitingForYou?.byProject ?? null)}
+      onProject={onOpen}
+      onAgent={(sessionId) => {
+        if (onAgent) return onAgent(sessionId)
+        const a = home.view?.live.find((l) => l.sessionId === sessionId)
+        if (a?.console) openConsole(sessionId)
+        else if (a?.projectId) onOpen(a.projectId)
+      }}
+      onTask={(projectId, taskId) => (onOpenEntity ? onOpenEntity(projectId, { kind: 'task', id: taskId }) : onOpen(projectId))} />
   )
+  const inWorkAside = needsYou && !narrow
   return (
     <div className="estate-home lp" data-launch-view="launch-home">
       {/* A question on Главная (ADR-0160 §5): the local database reachable from the network, with its fix. */}
@@ -372,7 +380,7 @@ export function EstateHome({
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
       {/* The approved mockup (2026-10-26, `.cols`): ONE grid for the whole home. The left column holds the hero, the strip
           and «В работе»; the right column holds «Нужны вы» and the unanswered requests from the very top (gap map A3). */}
-      <div className="lh-layout lh-home">
+      <div className={`lh-layout lh-home ${inWorkAside ? 'is-needs' : 'is-clear'}`} data-home-layout={inWorkAside ? 'needs' : 'clear'}>
         <div className="lh-main-column">
           {/* The operator's review, 2026-10-26: the CEO's face and greeting, then the activity chart, as one framed card
               laid out face | words | chart (gap map B1, B2). */}
@@ -394,22 +402,14 @@ export function EstateHome({
             toReview={toReview === undefined ? undefined : (toReview?.total ?? null)}
             onAgents={() => openFirst(working)} onBoard={onBoard} onWaiting={() => (onNeeds ?? onBoard)()} onReview={onReview}
             onAbandoned={onBoard} onUnclaimed={() => openFirst(noTaskSessions)} />
-          {narrow && side}
-          {/* 0.3.14, the simple Fabric §2b: «В работе» by project, its agents with branch, task and last report. It replaces
-              «Где остановились», the two lanes and «Агенты в работе»; finished work lives on the agent's and project's pages. */}
-          <HomeInWork reading={home} projects={projects} terminals={sessions}
-            waitingByProject={waitingForYou === undefined ? (counts ? Object.fromEntries(Object.entries(counts).map(([id, c]) => [id, c.total])) : null) : (waitingForYou?.byProject ?? null)}
-            onProject={onOpen}
-            onAgent={(sessionId) => {
-              if (onAgent) return onAgent(sessionId)
-              const a = home.view?.live.find((l) => l.sessionId === sessionId)
-              if (a?.console) openConsole(sessionId)
-              else if (a?.projectId) onOpen(a.projectId)
-            }}
-            onTask={(projectId, taskId) => (onOpenEntity ? onOpenEntity(projectId, { kind: 'task', id: taskId }) : onOpen(projectId))} />
-
+          <section className="lh-needs-column" aria-label={t('launch.home.side')}>
+            <HomeBoard hideWhenClear onTotal={setOwnWaiting} nameOf={nameOfProject} feedMark={markOf(marks, NEEDS_YOU_FAMILIES)} onBoard={(item) => (onNeeds ? onNeeds(item) : onBoard())} onAddTopic={onAddTopic} />
+            {/* 0.3.9 BD-2: requests between projects no agent is answering now, outside Comms (no unread figure: review i1 UX-1). */}
+            <HomeBoardWaiting mark={markOf(marks, ['comms'])} onComms={onComms} nameOf={nameOfProject} />
+          </section>
+          {!inWorkAside && inWork}
         </div>
-        {!narrow && side}
+        {inWorkAside && <aside className="lh-side-column" aria-label={t('launch.home.inWork.title')}>{inWork}</aside>}
       </div>
     </div>
   )

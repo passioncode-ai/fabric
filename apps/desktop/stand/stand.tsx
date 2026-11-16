@@ -71,7 +71,7 @@ async function main(): Promise<void> {
   } else if (screen === 'home') {
     const { EstateHome } = await import('../src/renderer/src/EstateHome')
     node = <EstateHome reading={homeReading as never} projects={projects as never} sessions={[]} feed={feed as never} marks={{ all: 0, byFamily: {} }}
-      waitingForYou={{ total: 3, byProject: { p1: 3 } }} toReview={2 as never} onOpen={noop} onNew={noop} onBoard={noop} onNeeds={noop} onAgent={noop} onReview={noop} />
+      waitingForYou={{ total: 5, byProject: { p1: 5 } }} toReview={2 as never} onOpen={noop} onNew={noop} onBoard={noop} onNeeds={noop} onAgent={noop} onReview={noop} />
   } else if (screen === 'graph') {
     const { GraphScreen } = await import('../src/renderer/src/launch/GraphScreen')
     node = <GraphScreen projectId="p1" feedMark={0} onProject={noop} onWhole={noop} />

@@ -146,3 +146,64 @@ describe('UX-19 (0.3.21 review, iteration 3, run three): a person\'s question wi
     expect(screen.queryByRole('button', { name: en['launch.board.delegate'] })).toBeNull()
   })
 })
+
+// The operator, 2026-11-16: «Два перехода внутрь тоже сделаем, чтобы было без перехода»: every «Нужны вы» card is
+// decided where it is read; none of them sends the person to the board to act.
+describe('every «Нужны вы» card is decided on Главная, without opening the board (2026-11-16)', () => {
+  const board = (items: unknown[], extra: Record<string, unknown> = {}) =>
+    Object.assign(window, { fabric: { board: { query: vi.fn(async () => ({ data: { items, total: items.length, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' })) }, ...extra } })
+
+  it('an access request offers Deny and Allow in the card, and Deny answers the request', async () => {
+    const decide = vi.fn(async () => ({ ok: true }))
+    const access = {
+      requestId: 'r1', agent: { agentId: 'a1', name: 'Kira', installedBy: null, repository: null }, callee: 'fabric', product: 'Fabric',
+      connected: true, ask: [{ kind: 'enroll', project: { id: 'p1', name: 'Fabric' } }], reason: 'to work here', incremental: false,
+      requestedAt: '2026-11-16T10:00:00Z', expiresAt: '2026-11-17T10:00:00Z'
+    }
+    vi.stubGlobal('window', board([{ kind: 'access', ref: 'access/request:r1', subject: { kind: 'access-request', id: 'r1' }, projectId: 'p1', projectName: 'Fabric',
+      title: 'Kira asks for access', detail: null, waitingSince: '2026-11-16T10:00:00Z', origin: 'derived', access }], { hub: { decide } }))
+    render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={vi.fn()} /></I18nProvider>)
+    const card = await screen.findByRole('article', { name: /Kira asks/ })
+    // Compact on Главная: the rest of the prompt's facts wait behind «More».
+    expect(within(card).getByText(en['launch.board.decide.details']).closest('details')).not.toBeNull()
+    expect(within(card).queryByRole('button', { name: en['launch.home.board.openOne'] })).toBeNull()
+    fireEvent.click(within(card).getByRole('button', { name: new RegExp(en['access.deny']) }))
+    await waitFor(() => expect(decide).toHaveBeenCalledWith('r1', 'denied'))
+  })
+
+  it('a refused act is asked as its question, its target apart, and «Allow once» issues the grant', async () => {
+    const grant = vi.fn(async () => ({ expiresAt: '2026-11-16T13:00:00Z' }))
+    vi.stubGlobal('window', board([{ kind: 'refused', ref: 'refused/refusal:7', subject: { kind: 'refusal', id: '7' }, projectId: 'p1', projectName: 'Fabric',
+      title: 'Publishing was refused', detail: 'The release agent tried to publish 0.3.22.', waitingSince: '2026-11-16T10:00:00Z', origin: 'derived', grantable: { floorClass: 'publication', target: 'npm', askedBecause: null } }],
+    { attention: { grant } }))
+    render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={vi.fn()} /></I18nProvider>)
+    const card = await screen.findByRole('article', { name: en['launch.board.decide.refused.publication'] })
+    expect(within(card).getByText('npm').tagName).toBe('CODE')
+    expect(within(card).getByText('The release agent tried to publish 0.3.22.')).toBeTruthy()
+    expect(within(card).queryByRole('button', { name: en['launch.home.board.openOne'] })).toBeNull()
+    fireEvent.click(within(card).getByRole('button', { name: en['ceo.grant'] }))
+    await waitFor(() => expect(grant).toHaveBeenCalledWith({ projectId: 'p1', floorClass: 'publication', target: 'npm' }))
+  })
+
+  it('an overdue review the agent wrote nothing for is still accepted in the card', async () => {
+    const decideTask = vi.fn(async () => ({ ok: true }))
+    vi.stubGlobal('window', board([{ kind: 'review', ref: 'review/task:t9', subject: { kind: 'task', id: 't9' }, projectId: 'p1', projectName: 'Fabric',
+      title: 'Ship the login fix', detail: null, waitingSince: '2026-11-10T10:00:00Z', reviewSince: '2026-11-10T10:00:00Z', overdue: true, origin: 'derived' }],
+    { tasks: { decide: decideTask } }))
+    render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={vi.fn()} /></I18nProvider>)
+    const card = await screen.findByRole('article', { name: /Ship the login fix/ })
+    expect(within(card).queryByRole('button', { name: en['launch.home.board.openOne'] })).toBeNull()
+    fireEvent.click(within(card).getByRole('button', { name: en['review.accept'] }))
+    await waitFor(() => expect(decideTask).toHaveBeenCalledWith('t9', 'accept', ''))
+  })
+})
+
+describe('«Нужны вы» with nothing to decide takes no room when the home asks so (2026-11-16)', () => {
+  it('renders nothing when clear and `hideWhenClear`, yet still reports its count', async () => {
+    vi.stubGlobal('window', Object.assign(window, { fabric: { board: { query: vi.fn(async () => ({ data: { items: [], total: 0, hidden: 0, countsByProject: {} }, sources: [], asOf: null, freshness: 'fresh' })) } } }))
+    const onTotal = vi.fn()
+    const { container } = render(<I18nProvider locale="en"><HomeBoard feedMark={0} onBoard={vi.fn()} onTotal={onTotal} hideWhenClear /></I18nProvider>)
+    await waitFor(() => expect(onTotal).toHaveBeenCalledWith(0))
+    expect(container.querySelector('#sec-board')).toBeNull()
+  })
+})

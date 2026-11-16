@@ -5,6 +5,7 @@
 import { runnerLabel } from '../runnerLabel'
 import { ReviewDecision } from './ReviewDecision'
 import { OverlapDecision } from './OverlapDecision'
+import { ObligationActs, useProposalDecisions } from './ObligationActs'
 import { useEffect, useRef, useState } from 'react'
 import type { BoardCut, BoardEntry } from '../../../shared/board'
 import type { WorkRhythm } from '../../../shared/workRhythm'
@@ -13,7 +14,7 @@ import type { AnswerReceipt, FeedEvent, ProjectRow, TerminalSession } from '../.
 import { AnswerForm, submitAnswer } from '../BoardPanel'
 import { liveIsFresh, liveRows, rhythmDays, rhythmTotals, RHYTHM_DAYS, type LiveRow } from '../../../shared/homeView.ts'
 import { describeEvent, useLocale, useT } from '../i18n'
-import { detailOf, titleOf } from '../attentionTitle'
+import { decisionHeadOf, detailOf, titleOf } from '../attentionTitle'
 import { since } from '../duration'
 import { FailureNote } from '../OperatorError'
 
@@ -201,6 +202,9 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
   const [receipt, setReceipt] = useState<AnswerReceipt | undefined>(undefined)
   const [sending, setSending] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
+  // An obligation's own acts (access, a refused act, a proposal): the journal's move re-reads the list, so the reload
+  // here has nothing of its own to read; a refusal is said on the card.
+  const decisions = useProposalDecisions(async () => {}, (m) => setProblem(m))
   const answer = async (option?: string, text?: string): Promise<void> => {
     setSending(true)
     setProblem(null)
@@ -218,9 +222,11 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
   // the card says who asks, how long ago and what, in two lines at most, without the why (the Board shows it).
   const all = item.question?.options ?? []
   const options = [...all.filter((o) => o.recommended), ...all.filter((o) => !o.recommended)]
+  // A refused act is asked as the question the person answers, its target on a line of its own (as on the Board).
+  const head = decisionHeadOf(item, t)
   return (
     // OF-14 (the operator's walk, 2026-10-22): each card says who asks and why; the question opens it on the board.
-    <article className={onOpen ? 'lh-q' : 'lh-q lh-q-still'} aria-label={titleOf(item, t)}
+    <article className={onOpen ? 'lh-q' : 'lh-q lh-q-still'} aria-label={head.headline}
       onClick={(e) => { if (onOpen && !(e.target as HTMLElement).closest('button,a,input,textarea,label,select')) onOpen(item.ref) }}>
       <p className="lh-q-from">
         {meta ?? (
@@ -234,9 +240,10 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
       </p>
       <p className="lh-q-text">
         {onOpen
-          ? <button type="button" className="lh-q-open" title={t('launch.home.board.openOne')} onClick={() => onOpen(item.ref)}>{titleOf(item, t)}</button>
-          : titleOf(item, t)}
+          ? <button type="button" className="lh-q-open" title={t('launch.home.board.openOne')} onClick={() => onOpen(item.ref)}>{head.headline}</button>
+          : head.headline}
       </p>
+      {head.subject && <p className="lh-q-subject"><code title={head.subject}>{head.subject}</code></p>}
       {problem && <FailureNote said={t('needsYou.unreadable')} detail={problem} />}
       {/* SCN-163 step 2 (CO-391): a question is answered where it is read, the options as buttons. */}
       {receipt?.committed ? (
@@ -267,9 +274,20 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
       ) : item.swept?.kind === 'overlap-unsettled' ? (
         // CO-522 wave B part 2: two sessions that overlap are decided where the item is read.
         <OverlapDecision itemKey={item.swept.key} />
-      ) : item.kind === 'review' && item.handedIn && item.subject.kind === 'task' ? (
+      ) : item.kind === 'review' && item.subject?.kind === 'task' ? (
         // SCN-179 (CO-521): work handed in for review is decided where it is read; the journal's move re-reads the list.
-        <ReviewDecision compact taskId={item.subject.id} ask={item.handedIn} onDecided={() => {}} />
+        // A review whose hand-in the board did not read is decided the same way, its note said as missing (2026-11-16).
+        <ReviewDecision compact taskId={item.subject.id} onDecided={() => {}}
+          ask={item.handedIn ?? { said: null, by: 'agent', at: item.reviewSince ?? item.waitingSince }} />
+      ) : item.access || item.grantable || item.proposal ? (
+        // The operator, 2026-11-16: an access request, a refused act and a proposal are decided in the card too, with
+        // the board's own acts (`ObligationActs`), never by opening the board first.
+        <div className="lh-q-obligation">
+          {/* A refused act says what the agent tried, so it is decided without opening it. */}
+          {item.grantable && item.detail && <p className="lh-q-said">{item.detail}</p>}
+          <ObligationActs compact item={item} decisions={decisions} onError={(m) => setProblem(m)}
+            onOpen={() => onOpen?.(item.ref)} />
+        </div>
       ) : onOpen ? (
         <div className="lh-q-acts">
           <button type="button" className="lh-q-btn" onClick={() => onOpen(item.ref)}>{t('launch.home.board.openOne')}</button>
@@ -281,7 +299,7 @@ export function NeedsYouCard({ item, onOpen, meta, nameOf }: {
 
 /** What the person resolves, from the SAME query the board runs, so the count here and the board never disagree (M151).
  *  The approved mockup (2026-10-26, `.side`): «Нужны вы» with a gold count, then one OPEN card per item (`NeedsYouCard`). */
-export function HomeBoard({ feedMark, onBoard, onTotal, nameOf }: { feedMark: number; onBoard(item?: string): void; /** A project's printed name by id (`projectDisplayName`); null when unknown. */ nameOf?(projectId: string): string | null; /** Kept for callers; the home no longer shows «Добавить тему» (gap map F4). */ onAddTopic?(): void; /** The person's count, for Главная's greeting (SCN-163). */ onTotal?(total: number | null): void }): React.JSX.Element {
+export function HomeBoard({ feedMark, onBoard, onTotal, nameOf, hideWhenClear = false }: { feedMark: number; /** Nothing to decide renders nothing: Главная then gives «В работе» the whole width (2026-11-16). */ hideWhenClear?: boolean; onBoard(item?: string): void; /** A project's printed name by id (`projectDisplayName`); null when unknown. */ nameOf?(projectId: string): string | null; /** Kept for callers; the home no longer shows «Добавить тему» (gap map F4). */ onAddTopic?(): void; /** The person's count, for Главная's greeting (SCN-163). */ onTotal?(total: number | null): void }): React.JSX.Element | null {
   const t = useT()
   const [view, setView] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
@@ -301,6 +319,7 @@ export function HomeBoard({ feedMark, onBoard, onTotal, nameOf }: { feedMark: nu
   }, [feedMark])
   const cut = view?.data ?? null
   const unread = (view?.sources ?? []).filter((s) => s.status !== 'ok')
+  if (hideWhenClear && cut && cut.total === 0 && unread.length === 0 && !problem) return null
   return (
     <section className="lh-board lh-qs" id="sec-board" aria-labelledby="home-board-title">
       <h3 id="home-board-title" className="lh-side-title">

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/home-needs-you → main · fast-forward
+- files: `EstateHome.tsx` (needs column in the main one, «В работе» aside only while something waits), `launch/HomeParts.tsx` (`hideWhenClear`, access, refused and proposal cards through `ObligationActs`, an overdue review through `ReviewDecision`), `launch.css`, the tests (`HomeParts.test.tsx`, `halfShipped.test.tsx`, `inboxCursor.test.tsx`), the stand's access and refused cards, SCN-163 coverage, the map lane `iteration-2026-11-16-home-needs-you`
+- conflicts: `HomeParts.test.tsx` (main's UX-19 test and the new blocks, both kept)
+- summary: Главная leads with «Нужны вы»; every card decided in place
+
 ### 2026-11-16 · `—` · fix/comms-pills → main · fast-forward
 - files: `launch.css`, `HistoryScreen.tsx`, `i18n/{ru,en}.ts` (`act.cannotPlain`), the screens waves' table, the handoff, the map lane `iteration-2026-11-16-dark-pass`
 - conflicts: none

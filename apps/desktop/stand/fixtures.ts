@@ -53,8 +53,15 @@ const questions = [
 ]
 const review = (id: string, title: string, hours: number) => ({ kind: 'review', ref: { kind: 'task', id }, projectId: 'p1', projectName: 'Atlas', title, detail: 'Тесты зелёные; агент просит проверить на установленной сборке.', since: at(hours),
   handedIn: { taskId: id, by: 'claude-code', at: at(hours), note: 'Готово к проверке', checks: ['ci.sh fast'] } })
-const entries = boardEntries({ questions: questions as never, attention: [review('t2', tasks[1].title, 30), review('t6', 'Ссылки в ленте не раздвигают страницу', 80)] as never, projectWeightOf: () => 1, now: new Date(NOW) })
-const boardRead = (q?: { limit?: number; personOnly?: boolean }) => envelope({ data: cutBoard(q?.personOnly ? entries.filter((e) => (e as { kind: string }).kind === 'question') : entries, q?.limit ?? 20), sources: [{ name: 'questions', status: 'ok' as const, asOf: at(0) }], asOf: at(0), freshness: 'fresh' as const })
+// «Нужны вы» decides every card in place (2026-11-16): an agent asking for access and a refused act it may be granted once.
+const accessAsk = { requestId: 'r1', agent: { agentId: 'release-helper', name: 'Release helper', installedBy: 'Fabric', repository: 'example-org/release-helper' }, callee: 'fabric', product: 'Fabric', connected: true,
+  ask: [{ kind: 'enroll', project: { id: 'p1', name: 'Atlas' } }], reason: 'Нужно собрать заметки к выпуску 0.3.22', incremental: false,
+  enroll: { projectName: 'Atlas', folder: { root: '/Users/example/DATA/atlas-desktop', how: 'exact' } }, requestedAt: at(0.1), expiresAt: new Date(NOW + 8 * 60_000).toISOString() }
+const access = { kind: 'access', ref: { kind: 'access-request', id: 'r1' }, projectId: 'p1', projectName: 'Atlas', title: 'Release helper просит работать в проекте Atlas', detail: null, since: at(0.1), access: accessAsk }
+const refused = { kind: 'refused', ref: { kind: 'refusal', id: '41' }, projectId: 'p1', projectName: 'Atlas', title: 'Публикация пакета в npm остановлена', detail: 'Агент выпуска хотел опубликовать @example/atlas 0.3.22.', since: at(1),
+  grantable: { floorClass: 'publication', target: 'npm:@example/atlas', askedBecause: 'Выпуск 0.3.22 готов, тесты зелёные.' } }
+const entries = boardEntries({ questions: questions as never, attention: [access, refused, review('t2', tasks[1].title, 30), review('t6', 'Ссылки в ленте не раздвигают страницу', 80)] as never, projectWeightOf: () => 1, now: new Date(NOW) })
+const boardRead = (q?: { limit?: number; personOnly?: boolean }) => envelope({ data: cutBoard(q?.personOnly ? entries.filter((e) => ['question', 'access', 'refused'].includes((e as { kind: string }).kind)) : entries, q?.limit ?? 20), sources: [{ name: 'questions', status: 'ok' as const, asOf: at(0) }], asOf: at(0), freshness: 'fresh' as const })
 
 const homeView = { live: [agent], inWork: [{ taskId: 't1', projectId: 'p1', projectName: 'Atlas', summary: tasks[0].title, agent: 'claude-code', sessionId: 's1', console: true, since: at(5), doing: agent.doing }],
   review: [], done: [], projects: [{ projectId: 'p1', now: { text: LONG, agent: 'claude-code', at: at(0.2) }, live: 1, inWork: 1, review: 1, lastActivityAt: at(0.1) }], readAt: at(0) }

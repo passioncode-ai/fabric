@@ -152,12 +152,14 @@ describe('the simple home', () => {
     expect(screen.queryByText(/Mark .* as read/)).toBeNull()
   })
 
-  // §4: the right column holds only what needs the person: «Нужны вы» and the requests no agent answered.
-  it('keeps only «Нужны вы» and the unanswered requests in the right column, no live feed', async () => {
+  // §4, reshaped 2026-11-16 by the operator: «Нужны вы» leads the main column and «В работе» moves to the side; no live feed.
+  it('keeps «Нужны вы» in the main column and «В работе» beside it, no live feed', async () => {
     stub()
     showHome()
-    const side = await screen.findByRole('complementary', { name: en['launch.home.side'] })
-    expect(within(side).getByRole('heading', { name: new RegExp(`^${en['launch.home.board.title']}`) })).toBeTruthy()
+    const side = await screen.findByRole('complementary', { name: en['launch.home.inWork.title'] })
+    expect(within(side).getByRole('region', { name: en['launch.home.inWork.title'] })).toBeTruthy()
+    expect(within(side).queryByRole('heading', { name: new RegExp(`^${en['launch.home.board.title']}`) })).toBeNull()
+    expect(screen.getByRole('heading', { name: new RegExp(`^${en['launch.home.board.title']}`) })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: new RegExp(`^${en['launch.home.live.title']}`) })).toBeNull()
   })
 })

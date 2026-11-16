@@ -59,7 +59,7 @@ export function useProposalDecisions(reload: () => Promise<void>, onError: (m: s
   return { outcome, deciding, decide, stillDecidable, reload }
 }
 
-export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecided, grantedUntil, onGranted }: {
+export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecided, grantedUntil, onGranted, compact = false }: {
   item: ObligationLike
   decisions: ReturnType<typeof useProposalDecisions>
   onOpen: (projectId: string, focus: EntityRef) => void
@@ -71,13 +71,16 @@ export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecid
    *  removes the refusal (0.3.2 verification UX-3). */
   grantedUntil?: string | null
   onGranted?: (expiresAt: string) => void
+  /** A «Нужны вы» card on Главная: an access request shows who, where, why and the identity warning, and keeps the
+   *  rest of the prompt's facts behind «Подробнее» (2026-11-16). */
+  compact?: boolean
 }): React.JSX.Element | null {
   const t = useT()
   const at = opensAt(item)
   const { outcome, deciding, decide, stillDecidable } = decisions
   const p = item.proposal
   // An access request is its own block: the prompt's facts above, its two buttons below (UX-8).
-  if (item.access) return <AccessActs access={item.access} onError={onError} reload={decisions.reload} onDecided={onAccessDecided} />
+  if (item.access) return <AccessActs access={item.access} onError={onError} reload={decisions.reload} onDecided={onAccessDecided} compact={compact} />
   return (
     <div className="lp-actions">
       {p && (
@@ -161,8 +164,9 @@ function GrantAct({ projectId, grantable, onError, reload, grantedUntil, onGrant
  *  THE ANSWER IS THIS REQUEST'S (iteration 2, UX-1): the board keys these acts by the row, so opening
  *  another request never shows this one's "Allowed"; and a decision re-reads the queue and hands the board
  *  a named sentence to keep, because the row itself leaves the list once the decision is projected. */
-function AccessActs({ access, onError, reload, onDecided }: {
+function AccessActs({ access, onError, reload, onDecided, compact = false }: {
   access: PendingRequestFacts
+  compact?: boolean
   onError: (m: string) => void
   reload: () => Promise<void>
   onDecided?: (said: string, detail: string | null) => void
@@ -211,15 +215,30 @@ function AccessActs({ access, onError, reload, onDecided }: {
   const said = sayRequest(t, access)
   return (
     <>
-      <div className="lp-access-facts">
-        <p className="lp-meta">{said.origin}</p>
-        {said.folder && <p className="lp-meta">{said.folder}</p>}
-        <ul className="lp-facts-asks">{said.asks.map((line, i) => <li key={i}>{line}</li>)}</ul>
-        {said.what && <p className="lp-meta">{said.what}</p>}
-        <p className="lp-meta">{said.reason}</p>
-        <p className="lp-meta">{said.floor}</p>
-        {said.notes.map((note, i) => <p key={i} className="lp-meta">{note}</p>)}
-      </div>
+      {compact ? (
+        <div className="lp-access-facts">
+          <p className="lp-meta">{said.reason}</p>
+          {said.folder && <p className="lp-meta">{said.folder}</p>}
+          <p className="lp-meta">{said.floor}</p>
+          <details className="lp-access-more">
+            <summary>{t('launch.board.decide.details')}</summary>
+            <p className="lp-meta">{said.origin}</p>
+            <ul className="lp-facts-asks">{said.asks.map((line, i) => <li key={i}>{line}</li>)}</ul>
+            {said.what && <p className="lp-meta">{said.what}</p>}
+            {said.notes.map((note, i) => <p key={i} className="lp-meta">{note}</p>)}
+          </details>
+        </div>
+      ) : (
+        <div className="lp-access-facts">
+          <p className="lp-meta">{said.origin}</p>
+          {said.folder && <p className="lp-meta">{said.folder}</p>}
+          <ul className="lp-facts-asks">{said.asks.map((line, i) => <li key={i}>{line}</li>)}</ul>
+          {said.what && <p className="lp-meta">{said.what}</p>}
+          <p className="lp-meta">{said.reason}</p>
+          <p className="lp-meta">{said.floor}</p>
+          {said.notes.map((note, i) => <p key={i} className="lp-meta">{note}</p>)}
+        </div>
+      )}
       <div className="lp-actions">
         <button type="button" className="lp-button" aria-label={t('access.denyFor', { name })} aria-disabled={state === 'deciding' ? true : undefined} onClick={() => void decide('denied')}>{t('access.deny')}</button>
         <button type="button" className="lp-button primary" aria-label={sayAllowFor(t, access, name)} aria-disabled={state === 'deciding' ? true : undefined} onClick={() => void decide('allowed')}>{sayAllow(t, access)}</button>

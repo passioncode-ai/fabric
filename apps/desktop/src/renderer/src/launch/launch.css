@@ -871,6 +871,17 @@ button.lg-node{ cursor: pointer; }
 .lp.estate-home{max-width:none;margin:0;padding:var(--space-5) var(--space-5) var(--space-6)}
 .estate-home .lh-home{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:var(--space-5);align-items:start}
 .estate-home .lh-home>.lh-main-column,.estate-home .lh-home>.lh-side-column{display:block;min-width:0}
+.estate-home .lh-home.is-needs{grid-template-columns:minmax(0,3fr) minmax(340px,2fr)}
+.estate-home .lh-home.is-clear{grid-template-columns:minmax(0,1fr)}
+.estate-home .lh-needs-column{display:flex;flex-direction:column;gap:var(--space-3);margin:0 0 var(--space-5)}
+.estate-home .lh-needs-column:empty{display:none}
+.estate-home .lh-needs-column .lh-q-obligation .lp-actions{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.estate-home .lh-needs-column .lh-q-obligation .lp-access-facts{margin:0 0 var(--space-2)}
+.estate-home .lh-q-said{margin:0 0 var(--space-2);font-size:12.5px;line-height:1.45;color:var(--app-muted)}
+.estate-home .lp-access-more summary{cursor:pointer;font-size:12px;color:var(--app-muted);margin:2px 0}
+.estate-home .lp-access-more[open] summary{margin-bottom:var(--space-1)}
+.lh-q-subject{margin:2px 0 0;min-width:0}
+.lh-q-subject code{font-family:var(--font-mono);font-size:12px;color:var(--app-muted);overflow-wrap:anywhere}
 /* One column below 1100 px: «Нужны вы» right under the numbers, never under every project card (the 0.3.15 review,
    iteration 1, UX-8). */
 /* CO-476: below 1100 px the right column is rendered inside the main one (EstateHome.tsx), in DOM order, never moved by `order`. */
@@ -888,6 +899,10 @@ button.lg-node{ cursor: pointer; }
 /* The chart goes under the words before the words column can starve: at 1101 px it had none, at 1200 px 82 px (the
    0.3.15 review, iteration 2, UX-11). Below 1260 px the hero is two columns whatever the page's grid. */
 @media(max-width:1260px){.estate-home .lh-hero{grid-template-columns:auto minmax(0,1fr)}.estate-home .lh-hero .lh-rhythm{grid-column:1/-1;border-left:0;padding-left:0}}
+/* The columns size by their own width once «Нужны вы» shares the screen (2026-11-16): the hero stacks its rhythm
+   under the greeting and an agent's row stacks its parts when its column, not the window, is narrow. */
+.estate-home .lh-home>.lh-main-column,.estate-home .lh-home>.lh-side-column{container-type:inline-size}
+@container (max-width:760px){.estate-home .lh-hero{grid-template-columns:auto minmax(0,1fr)}.estate-home .lh-hero .lh-rhythm{grid-column:1/-1;border-left:0;padding-left:0}}
 .estate-home .lh-rhythm-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-3);font-size:12px;font-weight:600}
 .estate-home .lh-rhythm-title{display:inline;font-size:inherit;font-weight:inherit}
 .estate-home .lh-rhythm-days{font-weight:400;color:var(--app-muted)}
@@ -948,6 +963,8 @@ button.lg-node{ cursor: pointer; }
 .estate-home .lh-arow-when .lh-arow-held{color:var(--app-muted)}
 .estate-home .lh-arow-report .lh-arow-what{color:var(--app-muted)}
 @media(max-width:850px){.estate-home .lh-arow{grid-template-columns:minmax(0,1fr)}}
+/* An agent's row in the narrow «В работе» beside «Нужны вы» stacks its parts by its column's width (2026-11-16). */
+@container (max-width:520px){.estate-home .lh-arow{grid-template-columns:minmax(0,1fr);gap:var(--space-1)}.estate-home .lh-arow-when{text-align:left}}
 /* «Нужны вы»: a title with a gold count, then OPEN cards with their answers (F2 to F4). */
 .estate-home .lh-board{display:block;margin:0;padding:0;border:0;background:none}
 .estate-home .lh-side-title{display:flex;align-items:center;gap:var(--space-2);margin:0 0 var(--space-3);font-size:15px;line-height:1.4;letter-spacing:-.01em}
