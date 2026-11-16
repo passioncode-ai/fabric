@@ -9,6 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The agent, task, project, board and Переписка pages, polished** (the screens waves, S1). Notes and messages written in
+  Markdown read as text, not as raw marks; no title or long path runs out of its card; nothing is said twice in a row
+  (the project beside its own title, a task's brief in its stage report); figures read as label over value; the agent's
+  own question is read whole; one style for every fold on a task page. A browser check now renders each of these
+  screens in both themes, both languages and three widths.
 - **Dates in the interface's language everywhere** (the quality waves, W6, ui UI-21). Four places printed a date or
   time in the system's language, not the one chosen in Settings; Переписка's search and announcements say when as the
   thread does.

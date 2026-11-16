@@ -38,6 +38,7 @@ import type {
 import { COMMS_KINDS } from '../../../shared/commsRead.ts'
 import type { ProjectRow } from '../../../shared/types'
 import { since, whenSaid } from '../duration'
+import { MarkdownText, plainWords } from '../MarkdownText'
 import { useLocale, useT, type Translate } from '../i18n'
 import { CommsFeed } from './CommsFeed'
 import { CommsAnnouncements } from './CommsAnnouncements'
@@ -83,9 +84,11 @@ const earlierFrom = (earliestAfter: number, floor: number): number => Math.max(f
 /** The cursor below which the thread holds nothing: its first message is at or after its createdSeq. */
 const floorOf = (thread: Pick<CommsThread, 'createdSeq'>): number => Math.max(0, thread.createdSeq - 1)
 
-const firstWordsOf = (text: string): string => {
-  const words = text.trim().split(/\s+/).slice(0, FIRST_WORDS).join(' ')
-  return text.trim().split(/\s+/).length > FIRST_WORDS ? `${words}…` : words
+// The screens wave (2026-11-16): a thread named by its first words names them without their Markdown marks.
+const firstWordsOf = (body: string): string => {
+  const text = plainWords(body)
+  const words = text.split(/\s+/).slice(0, FIRST_WORDS).join(' ')
+  return text.split(/\s+/).length > FIRST_WORDS ? `${words}…` : words
 }
 
 /** A select's value, narrowed: anything that is not a known window is the widest one. */
@@ -738,7 +741,8 @@ function MessageRow({ message: m, answered, nameOf, t, locale, responders, facts
       {m.redacted ? (
         <p className="lp-meta" title={`${shortId(m.id)} · ${m.digest}`}>{t('launch.comms.redacted')}</p>
       ) : (
-        m.body && <p className="lp-message-body">{m.body.text}</p>
+        // The screens wave (2026-11-16, ui UI-9): a body its sender marked as Markdown is read without its marks.
+        m.body && (m.body.format === 'text/markdown' ? <MarkdownText className="lp-message-body" text={m.body.text} /> : <p className="lp-message-body">{m.body.text}</p>)
       )}
       {artifacts.length > 0 && <ArtifactList artifacts={artifacts} />}
       <ReadBy messageId={m.id} facts={facts} nameOf={nameOf} />

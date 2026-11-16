@@ -60,9 +60,10 @@ export function SayToAgent({ sessionId, mark = 0 }: { sessionId: string; mark?: 
       {sent.length > 0 && (
         <ul className="lp-list as-said">
           {[...sent].reverse().map((m) => (
+            // W1 of the screens (2026-11-16): the words, then when they were sent and whether the agent has read them.
             <li key={m.id}>
-              <span>{m.text}</span>
-              <small className="lp-meta"> · {m.readAt === null ? t('say.waiting') : t('say.read', { when: since(new Date(m.readAt).toISOString(), t) })}</small>
+              <p className="as-said-text">{m.text}</p>
+              <small className="lp-meta">{t('board.ago', { time: since(new Date(m.at).toISOString(), t) })} · {m.readAt === null ? t('say.waiting') : t('say.read', { when: since(new Date(m.readAt).toISOString(), t) })}</small>
             </li>
           ))}
         </ul>

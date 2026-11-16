@@ -31,22 +31,24 @@ export function ProjectAnalytics({ projectId, feedMark }: { projectId: string; f
       {problem && <FailureNote said={t('launch.analytics.unreadable')} detail={problem} />}
       {reading === null && !problem && <p className="lp-meta">{t('estate.reading')}</p>}
       {reading && (
+        // The screens wave (2026-11-16): each figure is its label over its value, so a narrow side column never breaks
+        // a label into three lines beside a long value.
         <dl className="lp-analytics">
-          <dt>{t('launch.analytics.done', { weeks: reading.weeks })}</dt>
-          <dd>
-            {done}
-            <span className="lp-analytics-bars" aria-hidden="true">
-              {reading.donePerWeek.map((n, i) => <span key={i} style={{ height: `${Math.round((n / most) * 100)}%` }} />)}
-            </span>
-          </dd>
-          <dt>{t('launch.analytics.lead')}</dt>
-          <dd>{hours(reading.leadHours)}</dd>
-          <dt>{t('launch.analytics.review')}</dt>
-          <dd>{hours(reading.reviewHours)}</dd>
-          <dt>{t('launch.analytics.reopened')}</dt>
-          <dd>{reading.reopenedShare === null ? t('launch.analytics.unknown') : t('launch.analytics.percent', { n: Math.round(reading.reopenedShare * 100) })}</dd>
-          <dt>{t('launch.analytics.questions')}</dt>
-          <dd>{reading.oldestQuestionAt ? t('launch.analytics.questionsOldest', { n: reading.questionsWaiting, since: since(reading.oldestQuestionAt, t) }) : reading.questionsWaiting}</dd>
+          <div className="lp-analytics-stat is-wide">
+            <dt>{t('launch.analytics.done', { weeks: reading.weeks })}</dt>
+            <dd>
+              {done}
+              <span className="lp-analytics-bars" aria-hidden="true">
+                {reading.donePerWeek.map((n, i) => <span key={i} style={{ height: `${Math.round((n / most) * 100)}%` }} />)}
+              </span>
+            </dd>
+          </div>
+          <div className="lp-analytics-stat"><dt>{t('launch.analytics.lead')}</dt><dd>{hours(reading.leadHours)}</dd></div>
+          <div className="lp-analytics-stat"><dt>{t('launch.analytics.review')}</dt><dd>{hours(reading.reviewHours)}</dd></div>
+          <div className="lp-analytics-stat"><dt>{t('launch.analytics.reopened')}</dt>
+            <dd>{reading.reopenedShare === null ? t('launch.analytics.unknown') : t('launch.analytics.percent', { n: Math.round(reading.reopenedShare * 100) })}</dd></div>
+          <div className="lp-analytics-stat"><dt>{t('launch.analytics.questions')}</dt>
+            <dd>{reading.oldestQuestionAt ? t('launch.analytics.questionsOldest', { n: reading.questionsWaiting, since: since(reading.oldestQuestionAt, t) }) : reading.questionsWaiting}</dd></div>
         </dl>
       )}
       {reading?.capped && <p className="lp-meta">{t('launch.analytics.capped')}</p>}

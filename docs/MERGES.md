@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/screens-wave1 → main · fast-forward
+- files: the screens stand (`apps/desktop/stand`, `scripts/stand/build-stand.mjs`, `scripts/test/screens-stand.browser.mjs`), `MarkdownText.tsx` and its test, the agent page (`AgentPage.tsx`, `SayToAgent.tsx`), the task page (`TaskPage.tsx`), the project page (`ProjectWay.tsx`, `ProjectAnalytics.tsx`, `ProjectProfile.tsx`), Переписка (`CommsScreen.tsx`, `CommsFeed.tsx`, `CommsParts.tsx`), `launch.css`, `i18n`, `docs/evidence/plans/2026-11-16-screens-waves.md`, the map lane `iteration-2026-11-16-s1-screens`
+- conflicts: none
+- summary: S1: a stand renders the real screens in a browser and nineteen defects it showed are fixed
+
 ### 2026-11-16 · `—` · refactor/bug-capture-module → main · fast-forward
 - files: `main/bugCapture.ts` (the bug store's wiring out of `index.ts`) and `test/bug-capture.test.mjs`, `scripts/ci.sh` (ten test files no tier ran, and the new one), `scripts/check-test-chains.mjs`, the quality waves' W4 and W7 state, the map lane `iteration-2026-11-16-refactor-bug-capture`
 - conflicts: none

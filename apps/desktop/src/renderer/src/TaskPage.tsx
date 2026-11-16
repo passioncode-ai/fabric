@@ -30,7 +30,7 @@ import {
   type Drafts
 } from '../../shared/drafts.ts'
 import type { ProjectRow, TaskDetail, TaskNote } from '../../shared/types'
-import { Banner, Button, EmptyState, Row, StateChip, Toolbar } from './components'
+import { Banner, Button, EmptyState, Row, StateChip } from './components'
 import { Feed } from './Feed'
 import { useLocale, useT } from './i18n'
 import { originDocument } from '../../shared/origin.ts'
@@ -44,6 +44,7 @@ import { useOpenConsole } from './consoles'
 import { CrossProjectConsole } from './launch/CrossProjectConsole'
 import { ReviewDecision } from './launch/ReviewDecision'
 import { reviewAsk } from '../../shared/reviewDecision.ts'
+import { MarkdownText } from './MarkdownText'
 
 export function TaskPage({
   project,
@@ -246,6 +247,7 @@ export function TaskPage({
     if (!send || send.text === saved) { stopEdit(key); return }
     await saveBrief(section, saved)
   }
+  const holding = (detail.blockedBy ?? []).filter((b) => b.status !== 'done' && b.status !== 'cancelled')
   return (
     <div className="lp lp-task" data-launch-view="launch-agent">
       {/* OF-22 (the operator's walk, 2026-10-22): the way back sits at the top left, above the title. The open task is the
@@ -337,12 +339,13 @@ export function TaskPage({
         {/* Who wrote the brief, in words (SCR-32 «every section names who wrote it»; 2026-11-12, no id). */}
         {task.brief_author && !briefEmpty && <p className="lp-meta">{t('task.briefBy', { who: who(task.brief_author)! })}</p>}
       </section>
-      {/* SCN-174 step 2 (CO-401): what holds the task, said only when something does. */}
-      {detail.blockedBy && detail.blockedBy.length > 0 && (
+      {/* SCN-174 step 2 (CO-401): what holds the task, said only when something does; a blocker that is done or
+          cancelled holds nothing (the screens wave, 2026-11-16). */}
+      {holding.length > 0 && (
         <section className="lp-task-section">
           <h3>{t('task.blockedBy')}</h3>
           <ul className="lp-list">
-            {detail.blockedBy.map((b) => (
+            {holding.map((b) => (
               <li key={b.id}>
                 <button type="button" className="lp-button lh-text-link" onClick={() => onOpenTask?.(b.id)}>{b.title}</button>
                 <span className="lp-pill">{stateWord(b.status)}</span>
@@ -357,7 +360,7 @@ export function TaskPage({
           <ul className="lp-task-notes">
             {detail.notes.map((row) => (
               <li key={row.id}>
-                <p>{row.body_md}</p>
+                <MarkdownText text={row.body_md} />
                 {/* WHO and WHEN, not only what KIND (UX28-06), in words: «агент», «вы» (2026-11-12, no ids). */}
                 <span className="lp-meta">
                   {t('task.noteBy', { who: who(row.author_kind === 'agent' ? 'agent' : row.author_kind === 'person' ? 'person' : row.author_id) ?? row.author_kind, when: since(row.created_at, t) })}
@@ -430,9 +433,7 @@ export function TaskPage({
       <FoldedContext projectId={project.id} sessionId={task.session_id} />
       <ConsoleDetails sessionId={task.session_id} />
       {/* 0.3.14, the simple Fabric §5: a change this work needs in another project, opened as a console there. */}
-      <Toolbar align="start">
-        <CrossProjectConsole project={project} taskId={taskId} taskTitle={task.title ?? task.instruction} />
-      </Toolbar>
+      <CrossProjectConsole project={project} taskId={taskId} taskTitle={task.title ?? task.instruction} />
     </div>
   )
 }

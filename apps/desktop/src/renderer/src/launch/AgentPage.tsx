@@ -197,6 +197,8 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
   const current = agent.task ? (tasksView?.tasks.find((x) => x.taskId === agent.task!.id) ?? null) : null
   const nowTitle = agent.task ? ((agent.task.title ?? current?.title ?? '').trim() || agent.task.summary) : ''
   const nowWhat = agent.task ? (agent.task.what ?? current?.brief.what ?? null) : null
+  const sameWords = (a: string | null | undefined, b: string | null | undefined): boolean => !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase()
+  const doingRepeats = !!agent.doing && (sameWords(agent.doing.text, nowTitle) || sameWords(agent.doing.text, nowWhat))
   // «Вопросы этого агента»: its open questions as «Нужны вы» cards (the same card and answers as Главная), from the
   // session read; a read that did not happen is said as such, never «none».
   const questionsRead: AgentQuestion[] | null = tasksView?.questions ?? null
@@ -307,7 +309,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
           : questionCards.length === 0 ? <p className="lp-meta">{t('agentScreen.questionsNone')}</p>
           : questionCards.map((item) => (
             <NeedsYouCard key={item.ref} item={item} onOpen={onQuestion}
-              meta={<>{item.projectName && <b>{item.projectName}</b>}{' '}<span>· {since(item.waitingSince, t)}</span></>} />
+              meta={item.projectName && item.projectName !== agent.projectName ? <><b>{item.projectName}</b>{' '}<span>· {since(item.waitingSince, t)}</span></> : <span>{t('board.ago', { time: since(item.waitingSince, t) })}</span>} />
           ))}
       </section>
     </aside>
@@ -320,7 +322,7 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
           <h3 id="agent-page-title" tabIndex={-1}>{name}</h3>
           <p className="as-meta">
             <StatusPill status={status} words={stateChip} />
-            {agent.projectId
+            {agent.projectId && name === agent.projectName ? null : agent.projectId
               ? <span>{t('agentScreen.projectWord')} <button type="button" className="lp-link" onClick={() => onOpenProject(agent.projectId!)}>{agent.projectName ?? t('launch.home.agents.noProject')}</button></span>
               : <span>{t('launch.home.agents.noProject')}</span>}
             {name !== runnerLabel(agent.agent, t) && <span>{runnerLabel(agent.agent, t)}</span>}
@@ -363,7 +365,8 @@ export function AgentPage({ agent, mark, onConsole, onOpenProject, onOpenTask, o
                     {agent.doing.step && agent.doing.ofSteps ? <><b>{t('launch.home.agents.step', { step: agent.doing.step, of: agent.doing.ofSteps })}</b> · </> : null}
                     {/* CO-542: a report the agent has worked past is said as outdated before its words, not after them. */}
                     {agent.doing.old && <span className="lp-meta as-now-old">{t('agentPage.stageOld', { time: since(agent.doing.at, t) })} · </span>}
-                    {agent.doing.text}
+                    {/* W1 of the screens (2026-11-16): a report that repeats the task's title or brief is said as its step alone. */}
+                    {doingRepeats ? agent.doing.note : agent.doing.text}
                   </span>
                 </>
               ) : <span className="lp-meta">{t('launch.home.agents.silent')}</span>}

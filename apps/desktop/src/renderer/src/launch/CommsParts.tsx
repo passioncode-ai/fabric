@@ -350,8 +350,8 @@ export function PendingPanel({ state, nameOf, onProject, confirmedAt }: { state:
   const t = useT()
   const [open, setOpen] = useState(true)
   if (state.kind === 'reading') return null
-  if (state.kind === 'unavailable') return <p className="lp-meta" role="status">{t('launch.comms.pending.unavailable')}</p>
-  if (state.projects.length === 0) return <p className="lp-meta">{t('launch.comms.pending.none')}</p>
+  if (state.kind === 'unavailable') return <p className="lp-meta lp-comms-pending" role="status">{t('launch.comms.pending.unavailable')}</p>
+  if (state.projects.length === 0) return <p className="lp-meta lp-comms-pending">{t('launch.comms.pending.none')}</p>
   return (
     <section className="lp-comms-pending" aria-label={t('launch.comms.pending.title')}>
       <button type="button" className="lp-button" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{t('launch.comms.pending.title')}</button>

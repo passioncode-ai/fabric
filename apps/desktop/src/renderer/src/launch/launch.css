@@ -724,9 +724,6 @@ button.lp-agent-row:hover h4 { text-decoration: underline; }
 .lh-agent-list.lh-compact .lh-doing{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;order:1}
 .lh-agent-list.lh-compact small{order:2;flex:none}
 /* W2 S4b (OF-39): how the work goes, a term and its value per row; the weeks as small bars. */
-.lp-analytics{ display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--space-1) var(--space-3); margin: 0; }
-.lp-analytics dt{ font-size: var(--app-fs-caption); }
-.lp-analytics dd{ margin: 0; display: flex; align-items: flex-end; gap: var(--space-2); justify-self: end; }
 .lp-analytics-bars{ display: inline-flex; align-items: flex-end; gap: var(--space-1); height: var(--space-4); }
 .lp-analytics-bars span{ display: block; width: var(--space-1); min-height: var(--report-line); background: var(--app-accent); }
 /* SCN-175 (W2 S5): the project graph. Columns are businesses; nodes sit over a layer of lines. */
@@ -1135,8 +1132,9 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 .as-side{position:sticky;top:0;display:grid;gap:var(--space-4);align-content:start}
 .as-session{border:1px solid var(--app-line);border-radius:var(--app-radius-panel);background:var(--app-panel);padding:var(--space-4);display:grid;gap:0}
 .as-session h4{margin:0 0 var(--space-3);font-size:15px}
-.as-facts{margin:0 0 var(--space-4);display:grid;gap:6px}
-.as-facts>div{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;font-size:12.5px;align-items:baseline}
+.as-facts{margin:0 0 var(--space-4);display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 12px}
+/* W1 of the screens: one label column as wide as its longest label, so «Последний знак» stays on one line. */
+.as-facts>div{display:grid;grid-column:1/-1;grid-template-columns:subgrid;font-size:12.5px;align-items:baseline}
 .as-facts dt{color:var(--app-muted)}
 .as-facts dd{margin:0;overflow-wrap:anywhere}
 .as-claim-at{display:inline;font-size:11px}
@@ -1206,7 +1204,6 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .as-say{display:grid;gap:var(--space-2)}
 .as-say h4,.as-say>.lp-meta{margin:0}
 .as-say textarea{width:100%;resize:vertical}
-.as-said{margin:0;font-size:12.5px}
 
 /* W6 of the quality waves (2026-11-15, ui UI-10): nothing below 11 px. The ported block above keeps the prototype's
    sizes byte for byte (port-launch-css.mjs); these lines lift each of its rules under 11 px, in the same media query.
@@ -1215,8 +1212,9 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 @media(max-width:550px){.lp-progress small,.fp-bar small,.fp-strip .lp-button{font-size:11px}
   /* A bar narrower than its count: the count stays in the bar's title and the day picker, and every other day is named. */
   .fp-bar>span{font-size:0}.fp-chart .fp-bar:nth-child(even) small{visibility:hidden}}
-/* W6 (ui UI-11): prose breaks long words at syllables in the reader's language (`<html lang>` follows the locale). */
-.lp p,.lp-message-body,.lc-text{-webkit-hyphens:auto;hyphens:auto}
+/* W6 (ui UI-11): long text people and agents wrote breaks at syllables in the reader's language (`<html lang>` follows
+   the locale); the interface's own short lines do not, where a narrow column made every second line end in a hyphen. */
+.lp-message-body,.lc-text,.md,.lp-task-notes p{-webkit-hyphens:auto;hyphens:auto}
 /* W1 of the quality waves (2026-11-15, ui UI-8): a grid's implicit or `1fr` column grows to its widest child, so one long
    path or link pushed a column, then the page, sideways. Each grid a 600 px stress finds growing
    (scripts/test/layout-stress.browser.mjs) lets its items shrink; a grid that sizes its items to their content
@@ -1231,3 +1229,44 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .lp-dir-strip,.lk-board{-webkit-mask-image:linear-gradient(to right,var(--app-ink) calc(100% - var(--lp-edge-fade)),transparent);mask-image:linear-gradient(to right,var(--app-ink) calc(100% - var(--lp-edge-fade)),transparent);animation:lp-edge-fade linear both;animation-timeline:scroll(self inline)}
 /* W6 (ui UI-14): the edge of a card a person clicks reads at 3:1 or more against its panel, in both themes. */
 .ag-row,.lc-post,.lk-card,.lp-dir-card,.lp-glance-card{border-color:var(--app-line-control)}
+/* W1 of the screens (2026-11-16): a heading a screen focuses on arrival (for a screen reader) draws no ring; the ring is
+   for keyboard travel between controls. */
+:is(h1,h2,h3,h4)[tabindex="-1"]:focus{outline:none}
+/* The agent's own questions on its page are read whole, never cut to two lines. */
+.as-questions.lh-qs .lh-q p.lh-q-text{display:block;-webkit-line-clamp:unset;overflow:visible}
+.as-said{display:grid;gap:var(--space-2);margin:0;padding:0;list-style:none;font-size:12.5px}
+.as-said li{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--app-line);border-radius:10px}
+.as-said-text{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+/* A page's own actions keep their words on one line; in a narrow page they go under the title instead. */
+.as-head{flex-wrap:wrap}
+.as-head .as-head-words{flex:1 1 320px;min-width:0}
+.as-head .lh-agents-actions{flex-wrap:wrap;justify-content:flex-end}
+.as-head .lh-agents-actions .lp-button{white-space:nowrap}
+/* The screens wave (2026-11-16, ui UI-9): Markdown said as text (MarkdownText.tsx). */
+.md{display:grid;gap:var(--space-2);overflow-wrap:anywhere}
+.md>p,.md>ul,.md>ol,.md>pre{margin:0}
+.md>ul,.md>ol{padding-left:1.25em;display:grid;gap:2px}
+.md-h{font-size:1.02em}
+.md-code{font-family:var(--font-mono);font-size:.92em;padding:1px 4px;border-radius:4px;background:var(--app-panel-quiet)}
+.md-pre{font-family:var(--font-mono);font-size:12px;padding:var(--space-2) var(--space-3);border-radius:8px;background:var(--app-panel-quiet);overflow-x:auto;white-space:pre}
+.md-link{text-decoration:underline;text-decoration-color:var(--app-line-strong);text-underline-offset:2px}
+.lp-message-body.md{white-space:normal}
+/* The task page's folds read as one list: the same rule above each, the same summary, no indent of their own. */
+.lp-task>.lp-console,.lp-task>.xp{margin:0;padding:var(--space-3) 0;border-top:1px solid var(--app-line);font-size:13px}
+.lp-task>.lp-console>summary,.lp-task>.xp>summary{cursor:pointer;font-size:13px;font-weight:400;color:var(--app-muted)}
+.lp-task>.lp-console[open]>summary,.lp-task>.xp[open]>summary{color:var(--app-ink);margin-bottom:var(--space-2)}
+/* The screens wave (2026-11-16): a card's title breaks a long path or link rather than running out of its column. */
+.lp-way-item,.lp-glance-card{min-width:0;max-width:100%}
+.lp-way-title,.lp-glance-card,.lh-doing,.lp-dir-title{overflow-wrap:anywhere}
+/* «Как идёт работа»: each figure is its label over its value. */
+.lp-analytics{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:var(--space-3);margin:0}
+.lp-analytics-stat{display:grid;gap:2px;align-content:start;min-width:0}
+.lp-analytics-stat.is-wide{grid-column:1/-1}
+.lp-analytics-stat dt{font-size:var(--app-fs-caption);color:var(--app-muted)}
+.lp-analytics-stat dd{margin:0;display:flex;align-items:flex-end;gap:var(--space-2);font-size:15px;font-weight:600;color:var(--app-ink);overflow-wrap:anywhere}
+/* «Что это за проект»: each part under its own heading, with room above it. */
+.lp-profile-card .lp-kicker:not(:first-child){margin-top:var(--space-4)!important}
+.lp-profile-card .lp-field+small{display:block;margin-top:var(--space-1)}
+/* Переписка's filters: a check box beside its words, on the selects' line; the pending note above them stands apart. */
+.lp-filters label.lp-filters-check{flex-direction:row;align-items:center;gap:var(--space-2);align-self:center;min-height:36px;color:var(--app-ink)}
+.lp-comms-pending{margin:0 0 var(--space-3)}

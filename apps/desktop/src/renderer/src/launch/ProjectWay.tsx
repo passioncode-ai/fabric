@@ -28,7 +28,8 @@ export function ProjectWay({ path, inWork, goal, problem = null, goalProblem = n
     <li key={id}>
       <button type="button" className="lp-button lp-way-item" onClick={() => onOpenTask(id)}>
         <span className="lp-way-title">{summary || t('launch.home.work.untitled')}</span>
-        {extra && <span className="lh-doing">{extra}</span>}
+        {/* An agent's words that repeat the row's own title are said once (the screens wave, 2026-11-16). */}
+        {extra && extra.trim().toLowerCase() !== summary.trim().toLowerCase() && <span className="lh-doing">{extra}</span>}
         {at && <small className="lp-meta">{since(at, t)}</small>}
       </button>
     </li>

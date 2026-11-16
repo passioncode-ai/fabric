@@ -71,7 +71,7 @@ export function ProjectProfile({ project, feedMark, onOpenTask }: {
   const undecided = !recorded && relations === null
 
   return (
-    <section className="lp-panel" aria-labelledby="project-profile-title">
+    <section className="lp-panel lp-profile-card" aria-labelledby="project-profile-title">
       <h3 id="project-profile-title">{t('launch.profile.title')}</h3>
       {undecided && <p className="lp-meta" role="status">{relationsProblem ? t('launch.profile.undecided') : t('estate.reading')}</p>}
       {!profiled && !undecided && (

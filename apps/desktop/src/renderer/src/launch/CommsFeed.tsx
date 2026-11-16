@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CommsMessage } from '../../../shared/commsRead.ts'
 import { pluralForm, useLocale, useT } from '../i18n'
+import { plainWords } from '../MarkdownText'
 import { whenSaid } from '../duration'
 import { newestPostsRead } from './commsNewest'
 
@@ -131,7 +132,7 @@ export function CommsFeed({ mark, nameOf, threadOf, onOpen }: {
       )}
       <ol className="lc-posts">
         {shown.map((p) => {
-          const text = p.body?.text ?? t('launch.comms.feed.redacted')
+          const text = p.body ? plainWords(p.body.text) : t('launch.comms.feed.redacted')
           return (
             <li key={p.id}>
               <button type="button" className="lc-post" onClick={() => onOpen(p)}>

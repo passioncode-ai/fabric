@@ -303,7 +303,7 @@ describe('the agent page beside the list on Агенты (CO-393)', () => {
     const list = screen.getByRole('list', { name: ru['agentPage.tasks'] })
     const text = list.textContent ?? ''
     expect(text).toContain(ru['agentPage.ended.operator']!.replace(' {time}', ''))
-    expect(text).toContain('как именно, не записано')
+    expect(text).toContain('причина не записана')
     expect(text).not.toContain('weird-how')
     expect(text).not.toContain('Закончил ')
     // UX-14: a lapsed claim is not «Передано»: it is in «Брошено», as the Board names it.
