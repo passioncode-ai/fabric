@@ -86,7 +86,9 @@ Finish line: the home under 1 s at p95 on this machine with 40 sessions, measure
 
 State, 2026-11-15: wave 1's first part is built on `main`: the fingerprint (`shared/bugFingerprint.ts`), the local store
 (`main/bugStore.ts`, `userData/bugs.json`), every failed ops record folded in, helper-process crashes recorded and
-native dumps kept locally. Next in wave 1: the hang watch of the main loop and the slow-call counts in the digest.
+native dumps kept locally. On 2026-11-16 the wiring moved out of `index.ts` into `main/bugCapture.ts` with a test of the
+crash handler (a quit, a clean end and a kill are not crashes), and `test/bug-store.test.mjs`, which no tier ran, runs in
+the fast tier. Next in wave 1: the hang watch of the main loop and the slow-call counts in the digest.
 
 The Observatory binding token that the daily digests need (`ops-digest-binding.token`) is issued in wave 1.
 
@@ -142,6 +144,9 @@ Finish line: the contrast check in both themes passes AA; the em-dash gate green
 - Duplicates folded to one owner: the service's request door (`318bc4c3`, CO-568, `bf80f5c6`); temporary-folder projects (`ffc7bf62`, CO-497, CO-574); the psql hang (`b85dcd38`, CO-211).
 - Board findings without a row get one.
 - Items filed on Fabric's board that belong elsewhere are sent to their owner on the board.
+- Done 2026-11-16: ten desktop test files no tier ran (written, passing, never run: `bug-store`, `relayed-close`,
+  `switchboard-sessions`, `cross-project-assign` and six more) run in the fast tier, and `scripts/check-test-chains.mjs`
+  fails on a test file no tier names unless it says it is a manual probe.
 
 ## W8 · The rest of the register, by its lanes
 

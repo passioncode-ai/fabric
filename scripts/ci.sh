@@ -423,6 +423,12 @@ node --experimental-strip-types apps/desktop/test/hub-access-service.test.mjs
 node --experimental-strip-types apps/desktop/test/hub-call.test.mjs
 node --experimental-strip-types apps/desktop/test/hub-call-i3.test.mjs
 node --experimental-strip-types --test-force-exit apps/desktop/test/hub-surface.test.mjs
+# 2026-11-16 (the quality waves): these were written and never run by any tier. A test file no tier names is now a
+# failure (scripts/check-test-chains.mjs, below); one that is a manual probe says so in its first lines.
+for t in act-session-words board-wall-reads bug-capture bug-store ceo-conversation-host-tls cross-project-assign docker-runtime-words process-boundary-native provider-capability-upgrade relayed-close switchboard-sessions; do
+  node --experimental-strip-types --test "apps/desktop/test/$t.test.mjs"
+done
+node scripts/check-test-chains.mjs
 
 step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"
 # A disposable PostgreSQL (`initdb` into a temp dir, Unix socket only) with the

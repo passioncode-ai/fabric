@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · refactor/bug-capture-module → main · fast-forward
+- files: `main/bugCapture.ts` (the bug store's wiring out of `index.ts`) and `test/bug-capture.test.mjs`, `scripts/ci.sh` (ten test files no tier ran, and the new one), `scripts/check-test-chains.mjs`, the quality waves' W4 and W7 state, the map lane `iteration-2026-11-16-refactor-bug-capture`
+- conflicts: none
+- summary: the bug tracker's wiring as its own tested module; every desktop test file runs in a tier or says it is manual
+
 ### 2026-11-16 · `—` · feat/w6-card-borders → main · fast-forward
 - files: `tokens.app.css` (`--app-line-control`), `launch/launch.css` and `start/start.css` (the edges of clickable cards), `scripts/test/card-edge-contrast.browser.mjs`, the quality waves' W6 state, the map lane `iteration-2026-11-16-w6-card-edge`
 - conflicts: none
