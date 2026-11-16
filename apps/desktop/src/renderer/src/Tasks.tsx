@@ -347,6 +347,7 @@ export function Tasks({
             <Button
               key={p.id}
               tone="quiet"
+              className="tasks-preset"
               disabled={p.id === 'setup' && noSurface}
               title={p.id === 'setup' && noSurface ? t('tasks.presetNeedsSurface', { agent: chosen?.label ?? '' }) : undefined}
               aria-describedby={p.id === 'setup' && noSurface ? 'tasks-setup-why' : undefined}

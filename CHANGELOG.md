@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The task form's presets look like choices** (the screens waves, S3). «Собрать контекст», «Проверить проект» and the
+  other presets were lines of plain text; they are quiet chips now. A long path or address in a note or a message no
+  longer breaks at a syllable with a hyphen that reads as part of it.
 - **Agent access and Settings read top to bottom** (the screens waves, S4). An access request leads with who asks and until
   when, then what is asked; the agent's reason is a quote and what changes after an answer is one fold away. Settings'
   group names no longer fade behind their cards, and every note runs the card's width.

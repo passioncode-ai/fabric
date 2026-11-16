@@ -4,6 +4,7 @@ import { boardEntries, cutBoard } from '../src/shared/board'
 import { envelope } from '../src/shared/readEnvelope'
 import { composeTaskBoard } from '../src/shared/taskBoard'
 import type { Fixtures } from './fakeApi'
+import { APP_SETTINGS_DEFAULTS } from '../src/shared/types'
 
 const H = 3600_000
 export const NOW = Date.parse('2026-11-16T12:00:00Z')
@@ -143,6 +144,8 @@ export const fixtures: Fixtures = {
   'settings.loginItem': LOGIN_ITEM,
   'settings.folderTrustLocked': false,
   'settings.claudeInbound': { accepting: false, value: null },
+  'settings.read': { ...APP_SETTINGS_DEFAULTS, locale: 'ru', runnerFallback: { order: [{ runner: 'claude-code', session: 'spawn' }, { runner: 'codex', session: 'spawn' }] } },
+  'terminal.fallback': { configured: true, walk: { state: 'selected', index: 0, runner: 'claude-code', session: 'spawned', sessionId: null, permissionMode: null, passedOver: [] } },
   'terminal.options': [{ id: 'claude-code', label: 'Claude Code', program: 'claude', defaultMode: 'fewer-prompts', permissionModes: [{ id: 'fewer-prompts', args: ['--dangerously-skip-permissions'], env: {} }] },
     { id: 'codex', label: 'Codex', program: 'codex', defaultMode: 'fewer-prompts', permissionModes: [{ id: 'fewer-prompts', args: ['--full-auto'], env: {} }] }]
 }

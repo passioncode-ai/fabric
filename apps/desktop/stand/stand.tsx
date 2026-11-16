@@ -18,6 +18,7 @@ import '../src/renderer/src/launch/launch.css'
 import '../src/renderer/src/launch/rail.css'
 import '../src/renderer/src/start/start.css'
 import { fakeApi } from './fakeApi'
+import { APP_SETTINGS_DEFAULTS } from '../src/shared/types'
 import { NOW, agent, feed, fixtures, homeReading, project, projects, tasks } from './fixtures'
 
 const params = new URLSearchParams(location.hash.slice(1))
@@ -74,12 +75,14 @@ async function main(): Promise<void> {
   } else if (screen === 'graph') {
     const { GraphScreen } = await import('../src/renderer/src/launch/GraphScreen')
     node = <GraphScreen projectId="p1" feedMark={0} onProject={noop} onWhole={noop} />
+  } else if (screen === 'launch') {
+    const { Tasks } = await import('../src/renderer/src/Tasks')
+    node = <Tasks project={project as never} feedMark={0} onStarted={noop} onError={noop} />
   } else if (screen === 'access') {
     const { AgentAccessPanel } = await import('../src/renderer/src/AgentAccessPanel')
     node = <AgentAccessPanel page onClose={noop} />
   } else if (screen === 'settings') {
     const { SettingsScreen } = await import('../src/renderer/src/launch/SettingsScreen')
-    const { APP_SETTINGS_DEFAULTS } = await import('../src/shared/types')
     node = <SettingsScreen settings={{ ...APP_SETTINGS_DEFAULTS, locale, machineTrust: 'mine' } as never} onChange={async () => null} onOpenHistory={noop} onOpen={noop} />
   } else {
     node = <p>unknown screen {screen}</p>

@@ -1212,9 +1212,10 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 @media(max-width:550px){.lp-progress small,.fp-bar small,.fp-strip .lp-button{font-size:11px}
   /* A bar narrower than its count: the count stays in the bar's title and the day picker, and every other day is named. */
   .fp-bar>span{font-size:0}.fp-chart .fp-bar:nth-child(even) small{visibility:hidden}}
-/* W6 (ui UI-11): long text people and agents wrote breaks at syllables in the reader's language (`<html lang>` follows
-   the locale); the interface's own short lines do not, where a narrow column made every second line end in a hyphen. */
-.lp-message-body,.lc-text,.md,.lp-task-notes p{-webkit-hyphens:auto;hyphens:auto}
+/* Long text people and agents wrote (W6, ui UI-11, broke it at syllables) breaks where it must with nothing added: the
+   screens waves' English pass (S3) found a hyphen written inside a broken path or address (`seg-ment`), which reads as
+   part of it. */
+.lp-message-body,.lc-text,.md,.lp-task-notes p{-webkit-hyphens:manual;hyphens:manual;overflow-wrap:anywhere}
 /* W1 of the quality waves (2026-11-15, ui UI-8): a grid's implicit or `1fr` column grows to its widest child, so one long
    path or link pushed a column, then the page, sideways. Each grid a 600 px stress finds growing
    (scripts/test/layout-stress.browser.mjs) lets its items shrink; a grid that sizes its items to their content
@@ -1300,3 +1301,6 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
    holds; a setting's note runs the card's width, as its neighbours' hints do, not a 42ch column of its own. */
 .settings-sections .settings-group>.settings-group-label{font-size:12px!important;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--app-muted)!important;margin:0 0 var(--space-2)!important}
 .settings-sections .settings-note{max-width:none;font-size:12px}
+/* The task form's presets (the screens waves, S3): each reads as a choice to press, a quiet chip, not a line of text. */
+.btn-quiet.tasks-preset{border-color:var(--app-line);border-radius:999px;color:var(--app-ink)}
+.btn-quiet.tasks-preset:hover:not(:disabled){background:var(--app-panel-quiet)}

@@ -87,7 +87,13 @@ instruction was delivered, and with the folder lock skipped: 1 fail each); `runn
 `main/taskStart.ts` (`createTaskStart`): the fallback choice resolved to a runner before the task exists (ADR-0125), the
 setup preset's surface (0.3.3 verification), a known id brought forward or admitted again. `test/task-start.test.mjs`
 (5 tests, no database; watched failing with the fallback choice recorded instead of the runner: 1 fail);
-`task-retry` still green. `index.ts` 6 345 lines to 6 298. Next: the launch dialog's states in the stand.
+`task-retry` still green. `index.ts` 6 345 lines to 6 298. Then the task form (`Tasks.tsx`) joined the stand with the
+fallback order configured (1 120 checks): its presets read as plain lines of text and are now quiet chips. The stand
+showed that `useFallbackChoice` reads `settings.read` and `terminal.fallback` without a null check; main always
+answers both, so that stays as it is. An English pass over the stand found the task notes breaking a long address at a
+syllable with a written hyphen (`seg-ment`), from W6's hyphenation of people's text: that text now breaks where it must
+with nothing added. The dispatcher (`boardDispatchRun.ts`) is already one factory with explicit deps, regions and its
+own test, and the board's IPC is one line per call over `commsRead`; neither is split further in this wave.
 
 ## S4 · The rest of the screens in the stand
 
