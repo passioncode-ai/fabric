@@ -109,7 +109,7 @@ Each wave lands on `main` on its own, gates green; nothing that works is broken 
 | T3 | The Stop hook acts on the verdict; the skill's turn-end rule | fabric-agent-adapter | request filed with this spec |
 | T4 | Holds for claim-holding sessions; `--reason resume` live | Fabric, Switchboard | `f53de384`, SB-398, SB-399 |
 | T5 | A remote run's question reaches «Нужны вы» and its answer resumes the run there | Fabric, Switchboard | filed with this spec |
-| T6 | «На проверке» shows a task the supervisor gave the operator, and a wait past its time | Fabric | `a8993a15` |
+| T6 | «На проверке» shows a task the supervisor gave the operator (`task-to-operator`, landed 2026-11-16); a wait past its time is still open | Fabric | `a8993a15` |
 | B1 to B4 | The board out of the window's process (ADR-0195 W1 to W4) | Fabric, Switchboard | `0647986c`, `8b86adf3`, `dbeb4fcd`, `4e0976c6` |
 | P | The PM agents' and the communicator's `people.ask` | their projects | `bf635f68`, `e6154a6e` |
 | Q | A question a person understands (§8), with this spec's first wave | Fabric | `e46b39dc` |

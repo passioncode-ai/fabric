@@ -1500,3 +1500,14 @@ test('CO-537: acceptReviewByDefault closes only a task still in review since the
   assert.equal(stuck.accepted, false)
   assert.match(stuck.failed, /did not read back/)
 })
+
+// The turn-end spec, wave T6: a left task the board supervisor gave to the operator rides on the requests read and
+// reaches the operator's queue (`current`) as a row of its own; a failed requests read keeps it, never forgets it.
+test('T6: a left task given to the operator reaches «На проверке» through the requests read', async () => {
+  const w = world()
+  w.deps.readRequests = async () => ({ requests: [], capped: [], leftToOperator: [{ taskId: 't-left', projectId: 'p1', at: iso(T0 - 5 * MIN) }] })
+  const sweep = createAbandonedSweep(w.deps)
+  const out = await sweepOnce(sweep)
+  assert.deepEqual(out.findings.map((f) => [f.kind, f.taskId]), [['task-to-operator', 't-left']])
+  assert.deepEqual(sweep.current().findings.map((f) => f.kind), ['task-to-operator'])
+})

@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A left task Fabric gave up continuing shows in «На проверке»** (the turn-end spec, wave T6). When three runs the
+  board supervisor started never took a task a session left unfinished, the sweep puts it in the operator's queue as
+  its own row (`task-to-operator`), instead of the task waiting unseen.
 - **A live session goes on while it holds open work** (the turn-end spec, wave T2). A turn's answer from
   `fabric_session_observe` carries `verdict {next: continue, reason, task_id}` when the session holds an open task,
   declared no wait and changed something in its last two turns; two quiet turns give none, so a loop stops. The

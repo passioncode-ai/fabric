@@ -20,7 +20,7 @@ export const TELL_QUIET_MS = 30 * 60_000
 
 /** Every kind the sweep finds, one list for the judgement and the receipt's ingress rules (0.3.13 review, iteration 2,
  *  DA-2: a second hand-written copy would refuse a receipt the day a kind is added). */
-export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'request-no-folder', 'inbox-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose', 'claim-overlap', 'overlap-unsettled'] as const
+export const ABANDONED_KINDS = ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'request-unmoved', 'request-to-operator', 'request-no-folder', 'inbox-to-operator', 'task-to-operator', 'request-outcome-unknown', 'answer-unread', 'terminal-stalled', 'work-unclaimed', 'brief-missing', 'claim-closed', 'failures-rose', 'claim-overlap', 'overlap-unsettled'] as const
 export type AbandonedKind = (typeof ABANDONED_KINDS)[number]
 /** The kinds that are a reminder to the agent at work, not abandoned work for the operator's queue (0.3.14 wave 2):
  *  a session changing files without a claim is told to claim, and the operator's «На проверке» is not filled with it. */
@@ -172,6 +172,16 @@ export interface SweepInput {
   /** CO-462: running tasks Fabric launched in a session that holds them with no claim (its terminal or its managed lease),
    *  with when the task went to running. */
   launches?: readonly SweepLaunch[]
+  /** T6: left tasks given to the operator; absent when the dispatcher is not running in this process. */
+  leftToOperator?: readonly SweepLeftTask[]
+}
+
+/** The turn-end spec's wave T6: a task a session left unfinished that the board supervisor gave to the operator after
+ *  three runs never took it (`boardDispatchRun.ts#resumeGiven`), with when the last of them ended. */
+export interface SweepLeftTask {
+  taskId: string
+  projectId: string
+  at: string
 }
 
 /** A session Fabric launched for a task, holding it without a claim (CO-462). */
@@ -276,6 +286,12 @@ export function findAbandoned(input: SweepInput): Finding[] {
         stillMs: now - Date.parse(r.answerUnreadSince),
         nextStep: 'A board request your project sent has been answered and the answer is unread: read it (com.list {unread: true}), mark it read (com.read_ack) and carry on.' })
   }
+  // #region task-to-operator — docs: docs/evidence/specs/2026-11-16-turn-end-waits.md#6-the-plan-in-waves-replanned-2026-11-16
+  // T6: a left task the supervisor stopped continuing is the operator's, said in words of its own in «На проверке».
+  for (const l of input.leftToOperator ?? [])
+    out.push({ ...base, kind: 'task-to-operator', key: `task-to-operator:${l.taskId}`, projectId: l.projectId, taskId: l.taskId, stillMs: now - Date.parse(l.at),
+      nextStep: 'A session left this task unfinished and three runs Fabric started to continue it never took it: it waits for the operator, and Fabric starts no more for it until someone claims or moves it.' })
+  // #endregion task-to-operator
   const running = input.runningTaskIds ? new Set(input.runningTaskIds) : null
   for (const s of input.terminals) {
     if (s.liveness === 'stalled' && s.taskId && running?.has(s.taskId) && now - s.lastActivityAt >= TERMINAL_QUIET_MS)
@@ -376,6 +392,7 @@ const SUBJECT: Record<AbandonedKind, (f: Finding) => string> = {
   'request-to-operator': (f) => `board request ${f.requestId}`,
   'request-no-folder': (f) => `board request ${f.requestId}`,
   'inbox-to-operator': (f) => `board message ${f.requestId}`,
+  'task-to-operator': (f) => `task ${f.taskId} left unfinished`,
   'request-outcome-unknown': (f) => `board request ${f.requestId}`,
   'answer-unread': (f) => `the answer to board request ${f.requestId}`,
   'terminal-stalled': (f) => `task ${f.taskId} in this session`,

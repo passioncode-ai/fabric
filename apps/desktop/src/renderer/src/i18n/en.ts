@@ -1203,6 +1203,7 @@ export const en = {
   'attention.swept.request-no-folder': "This request's project has no folder on this computer, so no agent can start for it: attach the project's folder on its page, or ask the agent of the project that sent the request to withdraw it",
   'attention.swept.request-to-operator': "Fabric starts no more agents for this request: it waits for your decision",
   'attention.swept.inbox-to-operator': "Three runs did not read this project's messages, so they wait for your decision. A newer message starts one more run",
+  'attention.swept.task-to-operator': "A session left this task unfinished and three runs did not continue it, so it waits for your decision",
   'attention.swept.request-outcome-unknown': "An agent took this request and went away, its outcome unknown: check whether the work was done",
   'attention.swept.answer-unread': "An answer on the board that nobody has read",
   'attention.swept.terminal-stalled': "Its terminal has gone quiet with the task in work",

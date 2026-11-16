@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/resume-to-operator → main · fast-forward
+- files: `shared/abandonedSweep.ts` (`task-to-operator`, `SweepLeftTask`), `main/abandonedSweepRun.ts`, `main/index.ts` (the dispatcher's `resumeGiven` handed to the sweep), the attention title and its strings, tests, the sweep row in AGENTS.md
+- conflicts: none
+- summary: wave T6, a left task given to the operator is a row in «На проверке»
+
 ### 2026-11-16 · `—` · feat/turn-verdict → main · fast-forward
 - files: `shared/turnVerdict.ts` (new), `main/turnVerdictRead.ts` (new), `main/workTools.ts` (`verdict` on a turn), `main/agentSurface.ts` (wiring), tests, `workspace.config.json` (`passionview` source), the ingress test's questions
 - conflicts: none

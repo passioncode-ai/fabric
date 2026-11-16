@@ -42,6 +42,7 @@ const UNTITLED: Record<AbandonedKind, 'attention.untitled.request' | 'attention.
   'request-to-operator': 'attention.untitled.request',
   'request-no-folder': 'attention.untitled.request',
   'inbox-to-operator': 'attention.untitled.inbox',
+  'task-to-operator': 'attention.untitled.task',
   'request-outcome-unknown': 'attention.untitled.request',
   'answer-unread': 'attention.untitled.answer',
   'claim-silent': 'attention.untitled.task',

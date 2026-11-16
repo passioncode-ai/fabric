@@ -3114,7 +3114,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       // CO-559 (§3.8): an inbox item given to the operator is a message, not a request: it joins the sweep as its own row.
       const inbox = (dispatchHolder.current?.inboxGiven() ?? []).map((g) => ({ requestId: g.messageId, targetProjectId: g.projectId, requesterProjectId: '',
         state: 'queued', movedAt: g.at, answerUnreadSince: null, toOperator: true, inbox: true }))
-      return { ...r, requests: [...marked, ...inbox] }
+      // T6 (the turn-end spec): a left task three runs never took is the operator's, a row of its own.
+      const leftToOperator = (dispatchHolder.current?.resumeGiven() ?? []).map((g) => ({ taskId: g.taskId, projectId: g.projectId, at: g.at }))
+      return { ...r, requests: [...marked, ...inbox], ...(leftToOperator.length ? { leftToOperator } : {}) }
     },
     // 0.3.14 wave 2: the session hooks' turns, to see a session changing files with no claim.
     readTurns: (now) => readRecentTurns(store, now),

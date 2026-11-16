@@ -37,6 +37,7 @@ import {
   type SweepLastClaim,
   type SweepLaunch,
   type SweepRequest,
+  type SweepLeftTask,
   type SweepTerminal,
   type SweepTurn,
   TURN_WINDOW_MS,
@@ -125,7 +126,8 @@ export interface AbandonedSweepDeps {
   /** The tasks in running, with when each last moved; `capped` when a claims chunk came back full and some were left
    *  unjudged (`readRunningTasks`; the 0.3.14 review, iteration 3, ER-23, DA-9). A bare list is a whole read. */
   readRunningTasks(): Promise<SweepRunningTask[] | SweepTasksRead>
-  readRequests(now: number): Promise<{ requests: SweepRequest[]; capped: BoardCap[] }>
+  /** T6: `leftToOperator` rides on this read: the dispatcher hands it over with the requests it gave the operator. */
+  readRequests(now: number): Promise<{ requests: SweepRequest[]; capped: BoardCap[]; leftToOperator?: SweepLeftTask[] }>
   /** Fabric's own terminals, with the runtime observer's liveness, the task each holds and its own last activity. */
   terminals(): SweepTerminal[]
   /** Releases a claim as lapsed and returns its task to the backlog when the claim moved it there (`workRelease.ts`). */
@@ -158,7 +160,7 @@ const KINDS_OF: Record<Source, AbandonedKind[]> = {
   // The 0.3.14 review, iteration 1, ER-3: the briefs are read from the claims, so a failed claims read blinds them too.
   claims: ['claim-silent', 'claim-lapsed', 'task-unclaimed', 'work-unclaimed', 'brief-missing', 'claim-closed'],
   tasks: ['task-unclaimed', 'terminal-stalled'],
-  requests: ['request-unmoved', 'request-to-operator', 'request-no-folder', 'inbox-to-operator', 'request-outcome-unknown', 'answer-unread'],
+  requests: ['request-unmoved', 'request-to-operator', 'request-no-folder', 'inbox-to-operator', 'task-to-operator', 'request-outcome-unknown', 'answer-unread'],
   terminals: ['terminal-stalled', 'task-unclaimed', 'work-unclaimed'],
   turns: ['work-unclaimed'],
   briefs: ['brief-missing']
@@ -360,7 +362,8 @@ export function createAbandonedSweep(deps: AbandonedSweepDeps) {
       // 0.3.14 wave 2: a session is judged by what it holds, so its turns are judged only when everything it could hold
       // was read whole (the same condition as a running task's holders above), and only when the turns were (ER-12).
       ...(holders && turns && !turns.capped ? { turns: turns.turns, heldSessions: claimRead?.heldSessionIds ?? [] } : {}),
-      ...(briefGaps ? { briefGaps, launches } : {})
+      ...(briefGaps ? { briefGaps, launches } : {}),
+      ...(requestRead?.leftToOperator ? { leftToOperator: requestRead.leftToOperator } : {})
     })
 
     // SW-5. What a failed read could not see is not forgotten: its kinds keep their last telling. The review, iteration

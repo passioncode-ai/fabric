@@ -158,6 +158,16 @@ describe('review fixes', () => {
     expect(f[0].nextStep).toMatch(/Three runs/)
   })
 
+  it('T6 (the turn-end spec): a left task the supervisor gave to the operator is a row of its own, keyed by the task', () => {
+    const f = findAbandoned({ ...empty, leftToOperator: [{ taskId: 't9', projectId: 'p2', at: ago(5 * MIN) }] })
+    expect(f.map((x) => x.kind)).toEqual(['task-to-operator'])
+    expect(f[0]).toMatchObject({ key: 'task-to-operator:t9', taskId: 't9', projectId: 'p2', requestId: null, stillMs: 5 * MIN })
+    expect(f[0].nextStep).toMatch(/three runs/)
+    expect(f[0].nextStep).toMatch(/waits for the operator/)
+    expect(AGENT_ONLY_KINDS.has('task-to-operator')).toBe(false)
+    expect(findAbandoned({ ...empty })).toEqual([])
+  })
+
   it('UX-2 (0.3.21 review, iteration 1): a request given to the operator for a project with no folder here is a kind of its own', () => {
     const r = { requestId: 'r1', targetProjectId: 'p2', requesterProjectId: 'p1', movedAt: ago(MIN), answerUnreadSince: null, toOperator: true, noFolder: true, state: 'queued' }
     const f = findAbandoned({ ...empty, requests: [r] })
