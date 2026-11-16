@@ -25,6 +25,8 @@ sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 SURF = os.path.join(ROOT, "apps", "desktop", "src", "main", "agentSurface.ts")
+# The task tools left serverFor for their own module (the screens waves S2, 2026-11-16); their source is read there.
+TOOLS = os.path.join(ROOT, "apps", "desktop", "src", "main", "taskTools.ts")
 
 failures = []
 
@@ -91,11 +93,11 @@ def t_own_task_taken_over_refused():
 
 
 def t_tool_wires_gate_and_rereads():
-    with open(SURF, encoding="utf-8") as fh:
+    with open(TOOLS, encoding="utf-8") as fh:
         s = fh.read()
     body = s[s.index("'fabric_task_handoff'"):s.index("'fabric_task_claim'")]
     assert "mayPublishHandoff(" in body, "the tool does not call the gate"
-    assert body.index("mayPublishHandoff(") < body.index("appendRedacted"), \
+    assert body.index("mayPublishHandoff(") < body.index("deps.append("), \
         "the gate runs after the append"
     assert "ownership moved mid-publication" in body, \
         "the post-append arbitration read is missing"

@@ -29,7 +29,10 @@ tool surface and the launch paths split out of `index.ts` and `agentSurface.ts` 
 
 - `serverFor` still registers 9 tools inline: the session's own reads (whoami, stage, agents, tasks list, memory,
   transcripts, heartbeat, leases); they stay with the surface that holds the session.
-- The full tier (`scripts/ci.sh full`) was not run for these changes; the fast tier was, before each landing.
+- The full tier (`scripts/ci.sh full`) was not run for these changes; the fast tier was, before each landing. Blocked on
+  this machine on 2026-11-16: Docker's daemon is not running (`docker info`: no `/var/run/docker.sock`) and the data
+  volume has 8.2 GB free of 460 GB (`df -h`), too little for a disposable stack; freeing space is Observatory's machine
+  cleanup, not this task's.
 - Older open items: the rest of W4 and W5 (the dispatcher), the 0.3.21 release close, 0.3.22.
 
 ## Decisions
@@ -39,6 +42,19 @@ tool surface and the launch paths split out of `index.ts` and `agentSurface.ts` 
 - People's long text breaks with nothing added, reversing W6's hyphenation (a hyphen inside a broken address reads as
   part of it).
 - The dispatcher and the comms IPC are not split further: both already are one factory or one line per call with tests.
+
+## Traps met
+
+- A landing guarded only by `merge-base --is-ancestor` pushed a head whose fast tier had failed (`c8217529`, the citation
+  and surface-tool gates). Land only after reading the tier's exit code (`rc=$?` before any pipe).
+- A gate that names the files it reads (`check-surface-tools.mjs`) does not follow code moved into a new file: after a
+  move, run every `check-*.mjs` before committing, not only typecheck and tests.
+- `test/audit_regressions/fix-pf-09.0{1,2}.py` read a tool's source as text: they now read `taskTools.ts`. A move of a
+  tool's code is followed by `git grep` for its file name in `scripts/` and `test/`.
+- `check-regions.mjs` reads tracked files only: a new file's regions count after `git add`.
+- A private agent's name in a plan or a commit message is a P1 finding of `check-private`; describe the tool, not its
+  name, and rewrite an unlanded commit message that carries one.
+- `node … --refresh | tail -1` hides a refused refresh's exit code: use `set -o pipefail`.
 
 ## Checks actually run
 

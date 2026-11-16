@@ -23,6 +23,8 @@ sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 SURF = os.path.join(ROOT, "apps", "desktop", "src", "main", "agentSurface.ts")
+# The task tools left serverFor for their own module (the screens waves S2, 2026-11-16); their source is read there.
+TOOLS = os.path.join(ROOT, "apps", "desktop", "src", "main", "taskTools.ts")
 
 failures = []
 
@@ -76,7 +78,7 @@ def t_scope_overlap_both_directions():
 
 
 def t_tools_wired():
-    with open(SURF, encoding="utf-8") as fh:
+    with open(TOOLS, encoding="utf-8") as fh:
         s = fh.read()
     hand = s[s.index("'fabric_task_handoff'"):s.index("'fabric_task_claim'")]
     assert "handoffDisposition(" in hand and "stale_downstream" in hand, \

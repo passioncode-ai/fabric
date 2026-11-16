@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · docs/waves-handoff → main · fast-forward
+- files: `docs/handoffs/2026-11-16-screens-waves.md`, the map lane `iteration-2026-11-16-waves-handoff`
+- conflicts: none
+- summary: the screens waves' handoff names the full tier's blocker and the traps met
+
 ### 2026-11-16 · `—` · feat/launch-stand → main · fast-forward (settings band)
 - files: `launch.css`, the screens waves' S4 table, the handoff, the map lane `iteration-2026-11-16-s4-settings-band`
 - conflicts: none
