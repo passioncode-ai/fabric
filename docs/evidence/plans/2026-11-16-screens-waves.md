@@ -73,6 +73,13 @@ watched failing with the target's secret check dropped). Then the owner's questi
 watched failing with a foreign task let through as blocked: 1 fail). `agentSurface.ts` now 2 699 lines. `serverFor`
 still registers 19 tools inline; the next group is the task tools.
 
+Then the ten task tools (`fabric_task_create`, `_handoff`, `_claim`, `_release`, `_move`, `_close`, `_note`, `_link`,
+`_brief`, `_accept`) left for `main/taskTools.ts` (`registerTaskTools`), with the hand-off and write-scope rules they use
+(`handoffDisposition`, `writeScopeConflicts`, `mayPublishHandoff`, re-exported from the surface) and the backlog-row
+schema. `test/task-tools.test.mjs`, no database (2 tests; watched failing with the ladder's check skipped: 1 fail);
+every other no-database surface test still green. `agentSurface.ts` now 2 000 lines; `serverFor` registers 9 tools
+inline (whoami, stage, agents, tasks list, memory, transcripts, heartbeat, leases), the session's own reads.
+
 ## S3 · Launching sessions (next)
 
 The session launch path (consoles, the dispatcher's runs, Switchboard calls) read end to end and split along the same

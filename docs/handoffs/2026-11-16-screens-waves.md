@@ -19,7 +19,7 @@ tool surface and the launch paths split out of `index.ts` and `agentSurface.ts` 
 - **Screen defects fixed from its shots**: S1 nineteen, S4 fifteen, S3 two (the plan's tables list each with its fix).
 - **S2, the board and the agents' doors**: `main/boardReads.ts`; `main/externalIngress.ts` and `main/requestBody.ts`
   (ADR-0115's ingress); `main/relayedAccessTools.ts`, `main/projectTools.ts`, `main/effectTools.ts`,
-  `main/questionTools.ts`, `main/agentReference.ts`. `agentSurface.ts` 3 397 lines to 2 699. Each with a test that needs
+  `main/questionTools.ts`, `main/taskTools.ts`, `main/agentReference.ts`. `agentSurface.ts` 3 397 lines to 2 000. Each with a test that needs
   no database, each watched failing on a planted defect.
 - **S3, launching**: `main/consoleOpen.ts` (`terminal.open`) and `main/taskStart.ts` (`tasks.start`), each with its test.
 - **Gates taught the moves**: `check-surface-tools.mjs` reads the tool groups; ADR-0050's citation resolves at the call
@@ -27,7 +27,8 @@ tool surface and the launch paths split out of `index.ts` and `agentSurface.ts` 
 
 ## Open
 
-- `serverFor` in `agentSurface.ts` still registers 19 tools inline (the task tools are the largest group).
+- `serverFor` still registers 9 tools inline: the session's own reads (whoami, stage, agents, tasks list, memory,
+  transcripts, heartbeat, leases); they stay with the surface that holds the session.
 - The full tier (`scripts/ci.sh full`) was not run for these changes; the fast tier was, before each landing.
 - Settings' cards open with an empty band above their first field (seen in the stand, not yet traced).
 - Older open items: the rest of W4 and W5 (the dispatcher), the 0.3.21 release close, 0.3.22.
@@ -48,6 +49,5 @@ changed screen; `check-design`, `check-private`, `check-regions`, `check-test-ch
 
 ## Next task
 
-Move the task tools (`fabric_task_create`, `_claim`, `_move`, `_release`, `_note`, `_link`, `_brief`, `_handoff`,
-`_accept`) out of `serverFor` into their own module with a no-database test, then run `scripts/ci.sh full` once over
-the waves' changes.
+Run `scripts/ci.sh full` once over the waves' changes (the stack-backed probes, `agent-surface.test.mjs` and
+`work-claims-db.test.mjs` among them, exercise the moved tools against a database), then trace Settings' empty band.

@@ -33,8 +33,8 @@ const REGISTERED_BOARD = 'apps/desktop/src/main/boardTools.ts'
 // The claim tools and the session's own observations (REQ-38; the session hooks' D4/D5) register in theirs.
 const REGISTERED_WORK = 'apps/desktop/src/main/workTools.ts'
 // The groups that left `serverFor` for their own modules (the screens waves S2, 2026-11-16): Agent access, the project's
-// tools, the effects and the owner's questions.
-const REGISTERED_GROUPS = ['relayedAccessTools.ts', 'projectTools.ts', 'effectTools.ts', 'questionTools.ts'].map((f) => `apps/desktop/src/main/${f}`)
+// tools, the effects, the owner's questions and the task tools.
+const REGISTERED_GROUPS = ['relayedAccessTools.ts', 'projectTools.ts', 'effectTools.ts', 'questionTools.ts', 'taskTools.ts'].map((f) => `apps/desktop/src/main/${f}`)
 
 const problems = []
 const notes = []

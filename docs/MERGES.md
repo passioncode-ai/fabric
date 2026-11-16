@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/launch-stand → main · fast-forward (task tools)
+- files: `main/taskTools.ts`, `test/task-tools.test.mjs` (new), `main/agentSurface.ts`, `scripts/check-surface-tools.mjs`, `scripts/ci.sh`, the screens waves' S2 state, the handoff, the map lane `iteration-2026-11-16-s2-task-tools`
+- conflicts: none
+- summary: S2: the task tools are their own module
+
 ### 2026-11-16 · `—` · feat/launch-stand → main · fast-forward
 - files: the stand's task form (`apps/desktop/stand`, `scripts/test/screens-stand.browser.mjs`), `Tasks.tsx`, `launch.css`, the screens waves' S3 state, the map lane `iteration-2026-11-16-s3-task-form`
 - conflicts: none
