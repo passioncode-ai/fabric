@@ -1330,3 +1330,38 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 /* История's undo cell is a short status: at most a fifth of the row, wrapped, right-aligned, so a «cannot be undone»
    never squeezes the act's own sentence to three words a line (the screens waves, dark pass). */
 .hx-act>.hx-end{max-width:min(220px,22vw);text-align:right}
+/* The screens wave 2 (2026-11-16). A row's end takes the width its pill needs: the 1150 px rule's 90 px cap cut
+   «Ждёт разрешения» and «Запрос доступа» at their right edge once a pill kept to one line. */
+.lp .lp-topic-end{max-width:none}
+/* The kanban's four stages fit a laptop's window before the board scrolls sideways (240 px each showed three and a
+   sliver at 1100 px). */
+.lk-board{grid-auto-columns:minmax(200px,1fr)}
+/* A milestone's note is a quiet line of its own under the step, without a dot leading it. */
+.as-miles-note{display:block}
+/* «Разобрать вопрос» and «На проверке: N» stand apart, below the questions. */
+.lp-questions-actions{margin-top:var(--space-3)}
+/* One size for a page's controls: the order of agents in Settings, Agent access and Comms' search spoke 14.4 px
+   beside every other control's 12. */
+.settings-sections .settings-fallback{font-size:13px}
+.settings-sections .settings-fallback select,.settings-sections .settings-fallback .btn,.ceo-panel.ceo-page .btn{font-size:12px}
+.ceo-panel.ceo-page{font-size:13px}
+.lp-filters input{font:inherit;color:var(--app-ink);background:var(--app-bg);border:1px solid var(--app-line-strong);border-radius:var(--app-radius-control);padding:var(--space-2)}
+/* The project's card in the side column speaks the column's size: its first sentence and the people from Git were the
+   body's 15 px with a bullet's indent, five lines for two people at 1100 px. */
+.lp-profile-card p.lp-profile-none{font-size:13px;color:var(--app-muted);margin:0 0 var(--space-2)}
+.lp-profile-card ul.lp-profile-people{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-1);font-size:12.5px}
+/* A card's own pill may take two lines: the kanban's narrower columns cut «Спецификация не собрана» at the card's edge.
+   It stays as wide as its words, never the card's width. */
+.lp .lk-card .lp-pill{white-space:normal;justify-self:start}
+/* Agent access: a grant's or a denial's row speaks the page's size, not the body's 14.4 px. */
+.ceo-panel.ceo-page .row{font-size:13px}
+/* A setting's choice is as wide as its longest option needs, not the whole card: «Тёмная» sat in an 800 px field. */
+.settings-sections .lp-field select{max-width:420px}
+/* A task's facts wrap without a dot leading the next line: the dot sits in the gap before its fact, and a fact that
+   starts a line carries its dot past the line's left edge, where the line clips it. */
+.lp-task-facts{overflow:hidden}
+.lp-task-facts>span+span{position:relative}
+.lp-task-facts>span+span::before{position:absolute;left:calc(var(--space-3) / -2);transform:translateX(-50%);margin:0}
+/* The page's own ways stay on one line each beside a long title («Открыть сессию» broke into two at 820 px). */
+.lp-task-head>.lp-actions{flex:none}
+.lp-task-head>.lp-actions>:is(.lp-button,.btn){white-space:nowrap}

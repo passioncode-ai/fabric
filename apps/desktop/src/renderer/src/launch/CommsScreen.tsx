@@ -39,7 +39,7 @@ import { COMMS_KINDS } from '../../../shared/commsRead.ts'
 import type { ProjectRow } from '../../../shared/types'
 import { since, whenSaid } from '../duration'
 import { MarkdownText, plainWords } from '../MarkdownText'
-import { useLocale, useT, type Translate } from '../i18n'
+import { pluralForm, useLocale, useT, type Translate } from '../i18n'
 import { CommsFeed } from './CommsFeed'
 import { CommsAnnouncements } from './CommsAnnouncements'
 import { FailureNote, MachineDetail } from '../OperatorError'
@@ -85,8 +85,10 @@ const earlierFrom = (earliestAfter: number, floor: number): number => Math.max(f
 const floorOf = (thread: Pick<CommsThread, 'createdSeq'>): number => Math.max(0, thread.createdSeq - 1)
 
 // The screens wave (2026-11-16): a thread named by its first words names them without their Markdown marks.
+// The screens wave 2: from its first line only, so a list under it never runs into the subject («…пятницу. проверить
+// сборку обновить план»).
 const firstWordsOf = (body: string): string => {
-  const text = plainWords(body)
+  const text = body.split('\n').map(plainWords).find(Boolean) ?? ''
   const words = text.split(/\s+/).slice(0, FIRST_WORDS).join(' ')
   return text.split(/\s+/).length > FIRST_WORDS ? `${words}…` : words
 }
@@ -450,7 +452,7 @@ export function CommsScreen({ projects, onPulse, seen, onRead, now = Date.now, h
                 </span>
                 <span className="lp-topic-end">
                   {unread && <span className="lp-pill attention">{t('launch.comms.new')}</span>}
-                  <span className="lp-pill">{t('launch.comms.messageCount', { count: thread.messageCount })}</span>
+                  <span className="lp-pill">{t(`launch.comms.messageCount.${pluralForm(locale, thread.messageCount)}`, { count: thread.messageCount })}</span>
                   <small>{thread.lastAt ? since(thread.lastAt, t) : t('launch.comms.noMessages')}</small>
                 </span>
               </button>

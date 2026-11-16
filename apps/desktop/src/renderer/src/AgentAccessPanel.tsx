@@ -14,6 +14,8 @@ import { humaniseError } from '../../shared/errorText'
 import { Banner, Button, EmptyState, Panel, Row, Toolbar } from './components'
 import { useLocale, useT } from './i18n'
 
+const DATE_IN_WORDS: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }
+
 type Act = () => Promise<HubActResult>
 /** The project names an enrolled agent's grants need (ADR-0134): `null` when no grant needs one, `'unread'` when the
  *  project list could not be read — said as such, never as the project's id. */
@@ -90,7 +92,8 @@ export function AgentAccessPanel({ onClose, page = false }: { onClose: () => voi
   const mounted = useRef(false)
   const acting = useRef(false)
   const heads = useRef<Partial<Record<Section, HTMLHeadingElement | null>>>({})
-  const date = (iso: string): string => new Date(iso).toLocaleDateString(locale)
+  // The screens wave 2: a date in words («16 дек. 2026 г.»), as the rest of Fabric says one, not «16.12.2026».
+  const date = (iso: string): string => new Date(iso).toLocaleDateString(locale, DATE_IN_WORDS)
   useEffect(() => {
     if (!focusTo) return
     heads.current[focusTo]?.focus()

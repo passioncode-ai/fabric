@@ -48,7 +48,7 @@ decisions: each states something the product means rather than naming a row.
 
 | Key | Text (primary) | Location | Scenario | Status |
 |---|---|---|---|---|
-| `event.agent.stage.reported@1` | an agent reported its stage: its own claim | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | shipped |
+| `event.agent.stage.reported@1` | an agent reported its stage (in its own words) | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | shipped |
 | `event.memory.retrieved@1` | memory was searched, including when it found nothing | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
 | `event.session.oriented@1` | a session read the rules it works under | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | shipped |
 | `event.grant.issued@1` | you granted an authority | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
@@ -906,7 +906,8 @@ cell, on hover), never inside the sentence (UX-10). A count is "label: {count}",
 | `launch.comms.pollFailed` | Comms stopped answering. Showing what was confirmed at {time}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.textsMissing` | The texts did not come back | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 / SCN-146 | proposed |
 | `launch.comms.textsMissingBody` | The journal records messages between projects: {count}. Their texts were not in the archive this estate was restored from, so there is nothing to show here. Nothing was lost from the journal itself. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 / SCN-146 | proposed |
-| `launch.comms.messageCount` | messages: {count} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.messageCount.one` | {count} message | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.messageCount.many` | {count} messages | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.replyTo` | answers {sender}: “{words}” | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.replyToFrom` | answers a message from {sender} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.replyToEarlier` | answers an earlier message | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |

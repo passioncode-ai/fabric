@@ -150,7 +150,9 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, sessions, f
                 <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
                 <span>
                   <span className="lp-topic-title">{titleOf(item, t)}</span>
-                  <span className="lp-meta">{[item.projectName, kindOf(item.kind), detailOf(item, t, locale)].filter(Boolean).join(' · ')}</span>
+                  {/* The screens wave 2 (2026-11-16): on the project's own page its name is the page's, and the kind is the
+                      pill's; the line says only what the row adds, as «Нужны вы» does since 2026-11-11. */}
+                  {detailOf(item, t, locale) && <span className="lp-meta">{detailOf(item, t, locale)}</span>}
                 </span>
                 <span className="lp-topic-end">
                   <span className={`lp-pill ${item.origin === 'authored' ? 'attention' : ''}`}>{kindOf(item.kind)}</span>
@@ -158,9 +160,14 @@ export function ProjectLaunch({ project, tasks, tasksProblem = null, sessions, f
                 </span>
               </button>
             ))}
-            {first && <button type="button" className="lp-button" onClick={() => onBoard(first.ref)}>{t('launch.project.review')}</button>}
-            {onReview && toReview !== null && toReview > 0 && (
-              <button type="button" className="lp-button lh-text-link" onClick={onReview}>{t('launch.project.toReview', { count: toReview })}</button>
+            {/* The two ways on stand apart in one row (the screens wave 2: they touched at every width). */}
+            {(first || (onReview && toReview !== null && toReview > 0)) && (
+              <div className="lp-actions lp-questions-actions">
+                {first && <button type="button" className="lp-button" onClick={() => onBoard(first.ref)}>{t('launch.project.review')}</button>}
+                {onReview && toReview !== null && toReview > 0 && (
+                  <button type="button" className="lp-button lh-text-link" onClick={onReview}>{t('launch.project.toReview', { count: toReview })}</button>
+                )}
+              </div>
             )}
           </section>
 

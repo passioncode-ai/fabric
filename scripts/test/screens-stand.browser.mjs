@@ -5,7 +5,8 @@
 // both languages and three widths: no page error, no call the stand does not feed, nothing past the window, no visible
 // text under 11 px, and none of the leaks a screen shows when it renders a value it did not mean to: `undefined`,
 // `[object Object]`, `NaN`, raw Markdown marks or a registry key. Watched failing on 2026-11-16 before the wave's fixes
-// (a note's `**`, a long path past the project page's column).
+// (a note's `**`, a long path past the project page's column). The second wave adds a pill cut at its edge (watched
+// failing on «Нужны вы» at 1024 px before its fix).
 import http from 'node:http'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -51,6 +52,9 @@ try {
         unknown: [...(window.__standUnknown ?? [])],
         past: texts.filter((e) => !scroller(e) && e.getBoundingClientRect().right > edge + 1).slice(0, 3).map((e) => `${e.tagName}.${e.className}: ${e.textContent.trim().slice(0, 40)}`),
         small: texts.filter((e) => parseFloat(getComputedStyle(e).fontSize) < 11).slice(0, 3).map((e) => `${e.className} ${getComputedStyle(e).fontSize}`),
+        // The screens wave 2: a pill's words fit its box («Ждёт разрешения» ran past a 90 px row end, «Спецификация не
+        // собрана» past a kanban card's edge).
+        cut: shown.filter((e) => e.classList.contains('lp-pill') && e.scrollWidth > e.clientWidth + 1).slice(0, 3).map((e) => e.textContent.trim().slice(0, 40)),
         text: page.innerText,
         wide: document.documentElement.scrollWidth > innerWidth
       }
@@ -59,10 +63,11 @@ try {
     assert.deepEqual(r.unknown, [], `${where}: calls the stand does not feed`)
     assert.deepEqual(r.past, [], `${where}: text past the page's edge`)
     assert.deepEqual(r.small, [], `${where}: text under 11px`)
+    assert.deepEqual(r.cut, [], `${where}: a pill's words cut at its edge`)
     assert.equal(r.wide, false, `${where}: the document is wider than the window`)
     for (const leak of [/\bundefined\b/, /\[object Object\]/, /\bNaN\b/, /\*\*\S/, /(^|\s)(launch|agentPage|agentScreen|board|task|comms)\.[a-z][a-zA-Z.]+(\s|$)/m])
       assert.ok(!leak.test(r.text), `${where}: the screen shows ${leak}: ${(r.text.match(leak) ?? [''])[0]}`)
-    checks += 10
+    checks += 11
     await p.close()
   }
 } finally { await browser.close(); server.close() }

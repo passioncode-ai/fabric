@@ -2137,7 +2137,7 @@ frames; the visual layer is the recorded style pack's tokens.
   | timeline empty / bounded | "Nothing has happened to it yet." / «С запросом пока ничего не происходило.»; "Only the first 200 steps are shown." / «Показаны только первые 200 шагов.»; each step's cause in words: "by the responder" / «отвечающим», "by the requester" / «отправителем запроса», "the deadline passed" / «истёк срок», "the responder was replaced" / «отвечающего заменили», "handed to the new responder" / «передан новому отвечающему»; a step with no generation drops "responder #n" |
   | related empty | "No related threads." / «Связанных тредов нет.» |
   | search controls | "Search" / «Найти»; "More results" / «Ещё результаты»; "Clear the search" / «Сбросить поиск»; "Searching…" / «Ищем…»; "Type at least two characters." / «Введите хотя бы два символа.» |
-  | pending none / unavailable | "Nothing waits for a project." / «Ничего не ждёт.»; "What waits could not be read." / «Что ждёт, прочитать не удалось.» |
+  | pending none / unavailable | "Every message to a project has been read." / «Все сообщения проектам прочитаны.» (the screens wave 2, 2026-11-16); "What waits could not be read." / «Что ждёт, прочитать не удалось.» |
 
   "since {since}" on the active responder line is the time the holder took the slot, in the operator's locale; the stale lease, the last holder's leaving and the pending panel's oldest message are "… ago" / «… назад». Coverage: `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, `CommsParts.tsx`, `commsList.ts`; the nine wave-4 channels (`comms:thread-page`, `comms:heads`, `comms:responders`, `comms:facts`, `comms:timeline`, `comms:related`, `comms:search`, `comms:pending`, `comms:open-artifact`, main window only) in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, with `apps/desktop/src/preload/api.ts` and `apps/desktop/src/shared/ipcWindowPolicy.ts`; migration `supabase/migrations/20261013000108_project_board_operator_reads.sql` (schema 89); tests `CommsScreen.test.tsx`, `commsList.test.ts`, `FabricStrip.test.tsx` (the "5000+" badge), `apps/desktop/test/comms-operator-read.test.mjs`, `apps/desktop/test/ipc-window-policy.test.mjs`, `apps/desktop/test/project-board-operator-db.test.mjs`.
 
@@ -2266,7 +2266,7 @@ place (ADR-0160). The screens they replace carry a dated note.
   | missing | the project was removed | none | «Такого проекта больше нет» with «Открыть История» |
   | success | read | none | the blocks above |
   | task-added | «Поставить» recorded | none | the task in «Очередь»; «Задача поставлена · Отменить» |
-  | moved | a card moved | none | «Задача перенесена в «Проверить» · Отменить» |
+  | moved | a card moved | none | «Задача перенесена в «На проверке» · Отменить» (the board's column name, the screens wave 2) |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
 - **Coverage:** `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx`, `apps/desktop/src/renderer/src/launch/ProjectWay.tsx`, `apps/desktop/src/renderer/src/launch/ProjectProfile.tsx`, `apps/desktop/src/renderer/src/launch/ProjectAnalytics.tsx` (0.3.12 W2 S4, see the amendment above)
 - **Scenarios:** SCN-165, SCN-164

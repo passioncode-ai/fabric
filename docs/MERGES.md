@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · fix/screens-wave-2 → main · fast-forward
+- files: `launch.css` (adaptations: row end, kanban columns, milestone note, task facts, settings and access sizes, profile card), `ProjectLaunch.tsx`, `ProjectProfile.tsx`, `AgentPage.tsx`, `CommsScreen.tsx`, `AgentAccessPanel.tsx`, `i18n/{ru,en}.ts`, `scripts/test/screens-stand.browser.mjs` (a pill's words fit it), five scenario amendments, the map lane `iteration-2026-11-16-screens-wave-2`
+- conflicts: none
+- summary: the screens' second wave: pills whole, stage names as the board's, counts before nouns, one control size
+
 ### 2026-11-16 · `—` · feat/home-needs-you → main · fast-forward
 - files: `EstateHome.tsx` (needs column in the main one, «В работе» aside only while something waits), `launch/HomeParts.tsx` (`hideWhenClear`, access, refused and proposal cards through `ObligationActs`, an overdue review through `ReviewDecision`), `launch.css`, the tests (`HomeParts.test.tsx`, `halfShipped.test.tsx`, `inboxCursor.test.tsx`), the stand's access and refused cards, SCN-163 coverage, the map lane `iteration-2026-11-16-home-needs-you`
 - conflicts: `HomeParts.test.tsx` (main's UX-19 test and the new blocks, both kept)

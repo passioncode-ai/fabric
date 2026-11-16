@@ -9,6 +9,13 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The other screens, second wave** (the operator, 2026-11-16). «Нужны вы» and the project's «Вопросы ко мне» keep a
+  pill's words whole («Ждёт разрешения», «Запрос доступа» were cut at the right edge), and a project's question row no
+  longer repeats the project and the kind. The board's four columns fit a 1100 px window. История names a stage as the
+  board does («На проверке», not «Проверить»). Переписка says «12 сообщений», names an untitled thread by its first line
+  and says «Все сообщения проектам прочитаны.» when nothing waits. A milestone's note, a task's facts and «Открыть
+  сессию» no longer start or break a line badly; Settings' and Agent access's controls speak one size, dates read in
+  words, and «Этот компьютер» became «Чей это компьютер». The screens stand now fails a pill whose words overflow it.
 - **Главная leads with «Нужны вы»** (the operator, 2026-11-16). While something waits for the person, «Нужны вы» is the
   main column and «В работе» sits beside it; when nothing waits, «В работе» takes the whole width. Every card is decided
   where it is read: an agent's access request (allow or deny), a refused act (allow once), a proposal and an overdue

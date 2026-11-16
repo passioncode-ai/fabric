@@ -526,7 +526,7 @@ function Milestones({ list, empty, current = false }: { list: TaskTrail['milesto
       {list.map((m, i) => (
         <li key={`${m.at}-${m.text}`} className={current && i === 0 ? 'cur' : undefined}>
           <time className="as-miles-time" dateTime={m.at}>{new Date(m.at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</time>
-          <span>{m.step ? `${t('agentScreen.stepShort', { step: m.step })} ` : ''}{m.text}{m.note ? <small className="lp-meta"> · {m.note}</small> : null}</span>
+          <span>{m.step ? `${t('agentScreen.stepShort', { step: m.step })} ` : ''}{m.text}{m.note ? <small className="lp-meta as-miles-note">{m.note}</small> : null}</span>
         </li>
       ))}
     </ol>

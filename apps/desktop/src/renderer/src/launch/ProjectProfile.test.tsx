@@ -53,6 +53,9 @@ describe('the project page says what the project is (W2 S4)', () => {
     expect(screen.queryByRole('button', { name: en['launch.profile.onboard'] })).toBeNull()
     await waitFor(() => expect(screen.getByText(/Depends on fabric-agent-contract/)).toBeTruthy())
     await waitFor(() => expect(screen.getByText(/Ada, 12 commits/)).toBeTruthy())
+    // The screens wave 2: the last commit's date in words, never «10/20/2026».
+    expect(screen.getByText(/Ada, 12 commits/).textContent).toContain(new Date('2026-10-20T10:00:00Z').toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' }))
+    expect(screen.getByText(/Ada, 12 commits/).textContent).not.toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/)
   })
 
   // 0.3.12 review, iteration 2, ER-9: an agent told to leave out what it cannot find recorded a plan and no goal, and the

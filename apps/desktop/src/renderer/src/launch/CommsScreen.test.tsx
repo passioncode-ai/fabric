@@ -13,7 +13,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { CommsScreen } from './CommsScreen'
-import { I18nProvider } from '../i18n'
+import { I18nProvider, pluralForm } from '../i18n'
 import { en } from '../i18n/en'
 import { ru } from '../i18n/ru'
 import type { CommsReadError, CommsThreadFilter, CommsThreadsReply } from '../../../shared/commsRead'
@@ -131,7 +131,7 @@ describe('the thread list', () => {
     show()
     await screen.findByText('Cutover plan')
     expect(screen.getByText('Atlas, Beacon')).toBeTruthy()
-    expect(screen.getByText(en['launch.comms.messageCount'].replace('{count}', '12'))).toBeTruthy()
+    expect(screen.getByText('12 messages')).toBeTruthy()
   })
 
   it('a count of one is never "1 messages" (UX-13)', async () => {
@@ -139,7 +139,14 @@ describe('the thread list', () => {
     show()
     await screen.findByText('Cutover plan')
     expect(screen.queryByText(/\b1 messages\b/)).toBeNull()
-    expect(screen.getByText(en['launch.comms.messageCount'].replace('{count}', '1'))).toBeTruthy()
+    expect(screen.getByText('1 message')).toBeTruthy()
+  })
+
+  it('says the count as a number before its noun, in the noun\'s plural form (the screens wave 2)', async () => {
+    const { translator } = await import('../i18n/translate')
+    const ru = translator('ru')
+    const said = [1, 3, 5, 21].map((n) => ru(`launch.comms.messageCount.${pluralForm('ru', n)}`, { count: n }))
+    expect(said).toEqual(['1 сообщение', '3 сообщения', '5 сообщений', '21 сообщение'])
   })
 
   it('says an empty estate in words — an empty list is a true answer', async () => {
@@ -363,6 +370,14 @@ describe('the thread view', () => {
     await screen.findByText('message number 120')
     expect(screen.getByText(en['launch.comms.historyStart'])).toBeTruthy()
     expect(screen.queryByRole('button', { name: en['launch.comms.earlier'] })).toBeNull()
+  })
+
+  it('an untitled thread is headed by its first line, never its list items run together (the screens wave 2)', async () => {
+    const first = msg(5, { body: { text: 'Move the release window to **Friday**.\n\n- check the build\n- update the plan' } })
+    boardOf([{ ...THREAD, subject: null, createdSeq: 5, lastSeq: 5, messageCount: 1 }], [first])
+    show()
+    expect(await screen.findByText('Move the release window to Friday.', { selector: '.lp-topic-title' })).toBeTruthy()
+    expect(screen.queryByText(/Friday\. check the build/)).toBeNull()
   })
 
   it('an untitled thread is headed by its first words, and a reply names what it answers in words (UX-11)', async () => {

@@ -120,7 +120,7 @@ describe('SCR-76 agent access', () => {
     const { container } = show()
     await screen.findByRole('heading', { name: 'other-agent.work' })
     expect((container.textContent ?? '').split('other-agent.work').length - 1).toBe(1)
-    expect(screen.getByText(fill(en['access.agents.until'], { date: new Date('2027-10-03T10:00:00Z').toLocaleDateString('en') }))).toBeTruthy()
+    expect(screen.getByText(fill(en['access.agents.until'], { date: new Date('2027-10-03T10:00:00Z').toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' }) }))).toBeTruthy()
   })
 
   it('a connected product offers Reconnect as its own choice; after Disconnect it says the key stays valid in the product', async () => {
@@ -370,7 +370,7 @@ describe('SCR-76 — a coding agent\'s enrollment', () => {
     vi.stubGlobal('window', Object.assign(window, { fabric: { hub: stubbed, projects: projects([{ id: PROJECT, name: 'Atlas' }]) } }))
     show()
     await screen.findByText('works in Atlas')
-    expect(screen.getByText(fill(en['access.agents.until'], { date: new Date('2027-10-11T10:00:00Z').toLocaleDateString('en') }))).toBeTruthy()
+    expect(screen.getByText(fill(en['access.agents.until'], { date: new Date('2027-10-11T10:00:00Z').toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' }) }))).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Revoke for Claude Code: works in Atlas' })).toBeTruthy()
     expect(screen.getByText('asked to work in Atlas')).toBeTruthy()
   })

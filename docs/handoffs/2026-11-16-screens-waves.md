@@ -25,6 +25,10 @@ tool surface and the launch paths split out of `index.ts` and `agentSurface.ts` 
 - **Gates taught the moves**: `check-surface-tools.mjs` reads the tool groups; ADR-0050's citation resolves at the call
   site (the record itself is not rewritten).
 
+- **Wave 2 of the other screens** (the operator, 2026-11-16; Fabric task `a78ff261`): twenty defects from the stand's
+  shots at 1100, 900 and 820 px in both themes, fixed with tests (the map lane `iteration-2026-11-16-screens-wave-2`);
+  the stand's gate now fails a pill whose words overflow it (watched failing on «Нужны вы» at 1024 px).
+
 ## Open
 
 - `serverFor` still registers 9 tools inline: the session's own reads (whoami, stage, agents, tasks list, memory,
@@ -33,6 +37,9 @@ tool surface and the launch paths split out of `index.ts` and `agentSurface.ts` 
   this machine on 2026-11-16: Docker's daemon is not running (`docker info`: no `/var/run/docker.sock`) and the data
   volume has 8.2 GB free of 460 GB (`df -h`), too little for a disposable stack; freeing space is Observatory's machine
   cleanup, not this task's.
+- Found in wave 2 and left on the board: История's «Агент | агент …» (`96d4431c`), raw capability ids in an open
+  thread (`b54734c6`), agent ids as Agent access headings (`cc6ce338`), the project's side column and the board's
+  filters at narrow widths, and the stand's stub rail (`6f61f88f`).
 - Older open items: the rest of W4 and W5 (the dispatcher), the 0.3.21 release close, 0.3.22.
 
 ## Decisions

@@ -76,7 +76,7 @@ export function ProjectProfile({ project, feedMark, onOpenTask }: {
       {undecided && <p className="lp-meta" role="status">{relationsProblem ? t('launch.profile.undecided') : t('estate.reading')}</p>}
       {!profiled && !undecided && (
         <>
-          <p>{t('launch.profile.none')}</p>
+          <p className="lp-profile-none">{t('launch.profile.none')}</p>
           <button type="button" className="lp-button primary" disabled={onboarding} onClick={onboard}>{t('launch.profile.onboard')}</button>
           {onboardProblem && <FailureNote said={t('launch.profile.onboardFailed')} detail={onboardProblem} />}
         </>
@@ -132,10 +132,11 @@ export function ProjectProfile({ project, feedMark, onOpenTask }: {
       {people === null && !peopleProblem && <p className="lp-meta">{t('estate.reading')}</p>}
       {people && people.people.length === 0 && people.unread.length === 0 && <p className="lp-meta">{t('launch.profile.noPeople')}</p>}
       {people && people.people.length > 0 && (
-        <ul>
+        <ul className="lp-profile-people">
           {people.people.slice(0, 12).map((p) => (
             <li key={p.email} title={p.email}>
-              {t(`launch.profile.person.${pluralForm(locale, p.commits)}`, { name: p.name, commits: p.commits, date: new Date(p.lastAt).toLocaleDateString(locale) })}
+              {/* The screens wave 2: the date in words, as every other date on the page («16 нояб. 2026 г.»), not «16.11.2026». */}
+              {t(`launch.profile.person.${pluralForm(locale, p.commits)}`, { name: p.name, commits: p.commits, date: new Date(p.lastAt).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' }) })}
             </li>
           ))}
         </ul>

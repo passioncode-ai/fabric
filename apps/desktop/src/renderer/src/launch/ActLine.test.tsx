@@ -84,13 +84,21 @@ describe('the act line', () => {
     line({ seq: 11, record: record() }, undefined, 'ru')
     const text = screen.getByRole('status').textContent ?? ''
     expect(text).toContain(ru['act.undo'])
-    expect(text).toContain('Проверить')
+    // The screens wave 2: the stage by the board's own name, «На проверке», never the button word «Проверить».
+    expect(text).toContain(ru['launch.kanban.review'])
+    expect(text).not.toContain('«Проверить»')
     expect(text).not.toMatch(/\breview\b|task\.move|t1/)
   })
 })
 
 describe('the words of an act', () => {
   const t = translator('ru')
+  it('names a stage as the board\'s column does, in both languages (the screens wave 2)', () => {
+    for (const locale of ['ru', 'en'] as const) {
+      const say = translator(locale)
+      for (const stage of ['backlog', 'running', 'review', 'done'] as const) expect(say(`act.state.${stage}`), `${locale} ${stage}`).toBe(say(`launch.kanban.${stage}`))
+    }
+  })
   it('names every recorded act kind in both languages', () => {
     const keys = ['act.task.move', 'act.task.close', 'act.claim.release', 'act.claim.take', 'act.repo.detach', 'act.repo.attach',
       'act.project.rename', 'act.project.edit', 'act.question.answer', 'act.question.reopen', 'act.session.stop', 'act.session.start',
