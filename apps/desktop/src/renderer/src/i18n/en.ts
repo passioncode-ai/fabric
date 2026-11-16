@@ -1284,6 +1284,7 @@ export const en = {
   'access.denials.none': 'No request is denied.',
   'access.pending.expires': 'expires in {minutes} min',
   'access.pending.expiresSoon': 'expires in under a minute',
+  'access.pending.more': 'What changes after you answer',
   'access.allowConnect': 'Allow and connect {product}',
   'access.allowFor': 'Allow {name}',
   'access.denyFor': 'Deny {name}',

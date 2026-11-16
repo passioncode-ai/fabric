@@ -1285,3 +1285,18 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 /* A question's words break a long path rather than being cut at the card's edge. */
 .lh-qs .lh-q p.lh-q-text{overflow-wrap:anywhere}
 .lp[data-launch-view="graph"] .lg-scroll + details{margin-top:var(--space-3)}
+/* Agent access as a page (the screens waves, S4): its title the size of every page's own; a request leads with who and
+   until when, then what is asked; the agent's reason is a quote; what changes after an answer is one quiet fold away. */
+.ceo-panel.ceo-page .panel-title{font-size:22px;letter-spacing:-.02em;line-height:1.2;text-transform:none;color:var(--app-ink)}
+.access-request{gap:var(--space-1)}
+.access-request-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap}
+.access-expires{font-size:12px;color:var(--app-muted);white-space:nowrap}
+.access-request .access-asks{font-weight:600}
+.access-reason{border-left:2px solid var(--app-line-control);padding-left:var(--space-2);color:var(--app-ink);overflow-wrap:anywhere}
+.access-more>summary{cursor:pointer;color:var(--app-muted);font-size:12px;list-style-position:inside}
+.access-more[open]>summary{margin-bottom:var(--space-1)}
+.access-more p{margin:0 0 var(--space-1)}
+/* Settings (the screens waves, S4): each group named as an eyebrow every screen uses, never fainter than the cards it
+   holds; a setting's note runs the card's width, as its neighbours' hints do, not a 42ch column of its own. */
+.settings-sections .settings-group>.settings-group-label{font-size:12px!important;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--app-muted)!important;margin:0 0 var(--space-2)!important}
+.settings-sections .settings-note{max-width:none;font-size:12px}

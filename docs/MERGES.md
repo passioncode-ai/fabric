@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/screens-wave4b → main · fast-forward
+- files: the stand's Agent access and Settings (`apps/desktop/stand`, `scripts/test/screens-stand.browser.mjs`), `AgentAccessPanel.tsx`, `i18n/{ru,en}.ts`, `launch.css`, the screens waves' S4 state, the map lane `iteration-2026-11-16-s4-access-settings`
+- conflicts: none
+- summary: S4 done: Agent access and Settings in the stand, four defects fixed
+
 ### 2026-11-16 · `—` · refactor/surface-split → main · fast-forward
 - files: `main/externalIngress.ts`, `main/requestBody.ts`, `main/relayedAccessTools.ts`, `main/projectTools.ts`, `main/effectTools.ts`, `main/questionTools.ts`, `main/agentReference.ts`, `test/relayed-access-tools.test.mjs`, `test/project-tools.test.mjs`, `test/effect-tools.test.mjs`, `test/question-tools.test.mjs` (new), `main/agentSurface.ts`, `test/hub-surface.test.mjs`, `scripts/ci.sh`, the screens waves' S2 state, the map lane `iteration-2026-11-16-s2-hub-ingress`
 - conflicts: none

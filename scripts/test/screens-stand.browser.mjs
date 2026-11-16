@@ -1,6 +1,6 @@
 // The screens as a person meets them (the screens wave, 2026-11-16). scripts/stand/build-stand.mjs builds the renderer's
 // real screens (the home, Агенты with an agent's page, a task, a project, the Board by stage and «Нужны вы», Переписка, Пульс,
-// История, План, the graph) in the
+// История, План, the graph, Agent access, Settings) in the
 // launch shell's real stylesheets, fed one busy estate (apps/desktop/stand/fixtures.ts). Each screen, in both themes,
 // both languages and three widths: no page error, no call the stand does not feed, nothing past the window, no visible
 // text under 11 px, and none of the leaks a screen shows when it renders a value it did not mean to: `undefined`,
@@ -24,7 +24,7 @@ const server = http.createServer((q, r) => {
 })
 await new Promise((ok) => server.listen(0, '127.0.0.1', ok))
 const port = server.address().port
-const SCREENS = ['home', 'agent', 'task', 'project', 'board', 'review', 'comms', 'pulse', 'history', 'plan', 'graph']
+const SCREENS = ['home', 'agent', 'task', 'project', 'board', 'review', 'comms', 'pulse', 'history', 'plan', 'graph', 'access', 'settings']
 const browser = await chromium.launch({ headless: true, ...(process.env.FABRIC_CHROME ? { executablePath: process.env.FABRIC_CHROME } : {}) })
 let checks = 0
 try {

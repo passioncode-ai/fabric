@@ -65,6 +65,8 @@ const act = (seq: number, hours: number, kind: string, params: Record<string, st
 
 export const homeReading = { view: homeView, problem: null, readAt: at(0) }
 
+const LOGIN_ITEM = { supported: true, platform: 'darwin', system: 'on' }
+
 export const fixtures: Fixtures = {
   'work.session': { tasks: [sessionTask(tasks[0], 5), sessionTask(tasks[1], 30), sessionTask(tasks[3], 70)], capped: false,
     questions: [{ id: 'q1', projectId: 'p1', taskId: 't1', text: 'Куда положить чтение доски: в main/boardRead.ts или в общий модуль чтений?', why: 'От этого зависит, где будет тест.', kind: 'decision',
@@ -120,8 +122,27 @@ export const fixtures: Fixtures = {
   'runs.status': envelope({ data: { taskId: 't1', taskTitle: tasks[0].title, runRef: 'r1', ordinal: 2, runState: 'active', runOutcome: null,
     claim: { phase: 'working', note: null, reportedAt: at(0.2), waitingOn: null }, observation: { liveness: 'working', reason: 'console printed 3 min ago', coverage: 'available', processRunning: true, lastOutputAt: at(0.05) },
     blockers: 0, steps: { done: 1, declared: 4, skipped: 0, failed: 0 } }, sources: [{ name: 'runs', status: 'ok' as const, asOf: at(0) }], asOf: at(0), freshness: 'fresh' as const }),
-  'hub.overview': { hub: { listening: true, origin: 'http://127.0.0.1:47070' }, products: [], pending: [], agents: [], denials: [], keptOut: { readable: true, agents: [] } },
+  'hub.overview': { hub: { listening: true, origin: 'http://127.0.0.1:47070' },
+    products: [{ product: 'mail-reader', name: 'Mail reader', connection: { server: 'https://mail.example.invalid', level: 'read', connectedAt: at(50), keyExpiresAt: null }, lastAttempt: null }],
+    pending: [
+      { requestId: 'r1', agent: { agentId: 'release-helper', name: 'Release helper', installedBy: 'Fabric', repository: 'example-org/release-helper' }, callee: 'fabric', product: 'Fabric', connected: true,
+        ask: [{ kind: 'enroll', project: { id: 'p1', name: 'Atlas' } }], reason: 'Нужно собрать заметки к выпуску 0.3.22 по задачам из apps/desktop/src/renderer/src/launch/VeryLongComponentNameThatDoesNotBreak.tsx',
+        incremental: false, enroll: { projectName: 'Atlas', folder: { root: '/Users/example/DATA/atlas-desktop', how: 'exact' } }, requestedAt: at(0.1), expiresAt: new Date(NOW + 8 * 60_000).toISOString() },
+      { requestId: 'r2', agent: { agentId: 'board-answerer', name: null, installedBy: null, repository: null }, callee: 'fabric', product: 'Fabric', connected: true,
+        ask: [{ kind: 'respond', project: { id: 'p1', name: 'Atlas' }, capabilities: ['release.notes', 'review.summary'] }], reason: 'Отвечать на запросы проекта',
+        incremental: true, respond: { projectName: 'Atlas', capabilities: ['release.notes', 'review.summary'] }, requestedAt: at(0.3), expiresAt: new Date(NOW + 2 * 60_000).toISOString() }
+    ],
+    agents: [{ bindingId: 'b1', agent: { agentId: 'claude-code', name: 'Claude Code', installedBy: 'Fabric', repository: null, codingAgent: true }, since: at(200),
+      grants: [{ grantId: 'g1', callee: 'fabric', capability: 'session.enroll', resource: 'project:p1', line: { kind: 'enroll', project: { id: 'p1', name: 'Atlas' } }, expiresAt: new Date(NOW + 30 * 24 * 3_600_000).toISOString() },
+        { grantId: 'g2', callee: 'fabric', capability: 'board.respond', resource: 'board:p1/release.notes', line: { kind: 'respond', project: { id: 'p1', name: 'Atlas' }, capabilities: ['release.notes'] }, expiresAt: new Date(NOW + 7 * 24 * 3_600_000).toISOString() }] }],
+    denials: [{ requestId: 'r0', agent: { agentId: 'unknown-scraper', name: null, installedBy: null, repository: null }, callee: 'fabric', ask: [{ kind: 'resolve' }], deniedAt: at(30) }],
+    keptOut: { readable: true, agents: [{ agentId: 'old-runner', name: 'Old runner', at: at(90) }] } },
   'start.executors': [{ id: 'claude-code', label: 'Claude Code', connected: true, state: 'found', version: '2.4.1', path: '/usr/local/bin/claude', install: null },
     { id: 'codex', label: 'Codex', connected: true, state: 'found', version: '0.160.0', path: '/usr/local/bin/codex', install: null }],
-  'settings.agentCatalog': { source: 'absent', reason: 'not-installed', detail: null }
+  'settings.agentCatalog': { source: 'absent', reason: 'not-installed', detail: null },
+  'settings.loginItem': LOGIN_ITEM,
+  'settings.folderTrustLocked': false,
+  'settings.claudeInbound': { accepting: false, value: null },
+  'terminal.options': [{ id: 'claude-code', label: 'Claude Code', program: 'claude', defaultMode: 'fewer-prompts', permissionModes: [{ id: 'fewer-prompts', args: ['--dangerously-skip-permissions'], env: {} }] },
+    { id: 'codex', label: 'Codex', program: 'codex', defaultMode: 'fewer-prompts', permissionModes: [{ id: 'fewer-prompts', args: ['--full-auto'], env: {} }] }]
 }

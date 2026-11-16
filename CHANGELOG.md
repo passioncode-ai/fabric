@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Agent access and Settings read top to bottom** (the screens waves, S4). An access request leads with who asks and until
+  when, then what is asked; the agent's reason is a quote and what changes after an answer is one fold away. Settings'
+  group names no longer fade behind their cards, and every note runs the card's width.
 - **Pulse, История and План polished** (the screens waves, S4). A pressed button shows it is on; an event's basis no
   longer outshouts the event; История has no shouting title and no repeated «no object» line; План names a project by
   its name, not its folder, and says «nothing planned» once. The home's questions break a long path instead of

@@ -576,6 +576,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'access.denials.none': 'Отклонённых запросов нет.',
   'access.pending.expires': 'истекает через {minutes} мин',
   'access.pending.expiresSoon': 'истекает меньше чем через минуту',
+  'access.pending.more': 'Что изменится после ответа',
   'access.allowConnect': 'Разрешить и подключить {product}',
   'access.allowFor': 'Разрешить: {name}',
   'access.denyFor': 'Отказать: {name}',

@@ -103,4 +103,13 @@ Then the home and the graph joined it (880 checks):
 | Graph | the columns pressed against a square frame | the panels' radius and room inside |
 | Graph | «Связи списком» stuck to the canvas | a gap between them |
 
-Next: Settings and Agent access.
+Then Agent access and Settings joined it (1 040 checks):
+
+| Screen | Defect | Fix |
+|---|---|---|
+| Agent access | the page titled by an 11 px uppercase kicker | the size of every page's heading |
+| Agent access | a request was seven lines of grey of one weight: who asked, what and until when lost among them | who and until when on one line, what is asked in bold, the agent's reason as a quote, the floor in sight, what changes after an answer one fold away («Что изменится после ответа», checked by the copy engine in both locales) |
+| Settings | the groups' names fainter than the cards they hold | the eyebrow every screen uses |
+| Settings | the power and board-service notes a 42ch column beside full-width hints | the card's width |
+
+S4 is done: every screen of the left column renders in the stand under the gate.

@@ -301,16 +301,25 @@ function PendingCard({ r, t, waiting, act }: {
   // line, the floor is said of the name it asked under, and how long it lasts is said.
   const said = sayRequest(t, r)
   return (
-    <div className="access-card">
-      <h4 className="access-name">{name}</h4>
+    <div className="access-card access-request">
+      {/* The screens waves S4: who and until when on one line, what is asked as the card's main words, the agent's own
+          reason as a quote, and the floor kept in sight; what changes after an answer is one fold away. */}
+      <div className="access-request-head">
+        <h4 className="access-name">{name}</h4>
+        <span className="access-expires">{expiresIn(t, r.expiresAt, Date.now())}</span>
+      </div>
       <p className="muted">{said.origin}</p>
-      {said.folder && <p className="muted">{said.folder}</p>}
       <ul className="access-asks">{said.asks.map((line, i) => <li key={i}>{line}</li>)}</ul>
-      {said.what && <p className="muted">{said.what}</p>}
-      <p className="muted">{said.reason}</p>
+      {said.folder && <p className="muted">{said.folder}</p>}
+      <p className="access-reason">{said.reason}</p>
       <p className="muted">{said.floor}</p>
-      {said.notes.map((note, i) => <p key={i} className="muted">{note}</p>)}
-      <p className="muted">{expiresIn(t, r.expiresAt, Date.now())}</p>
+      {(said.what || said.notes.length > 0) && (
+        <details className="access-more">
+          <summary>{t('access.pending.more')}</summary>
+          {said.what && <p className="muted">{said.what}</p>}
+          {said.notes.map((note, i) => <p key={i} className="muted">{note}</p>)}
+        </details>
+      )}
       <div className="access-acts"><Toolbar>
         <Button tone="ghost" aria-label={t('access.denyFor', { name })} {...waiting} onClick={() => void act(`deny:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'denied'), { product: r.product, after: afterDeny, section: 'pending' })}>{t('access.deny')}</Button>
         <Button aria-label={sayAllowFor(t, r, name)} {...waiting} onClick={() => void act(`allow:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'allowed'), { product: r.product, after: afterAllow, section: 'pending' })}>{sayAllow(t, r)}</Button>

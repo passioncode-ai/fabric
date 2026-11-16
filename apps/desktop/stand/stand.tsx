@@ -74,6 +74,13 @@ async function main(): Promise<void> {
   } else if (screen === 'graph') {
     const { GraphScreen } = await import('../src/renderer/src/launch/GraphScreen')
     node = <GraphScreen projectId="p1" feedMark={0} onProject={noop} onWhole={noop} />
+  } else if (screen === 'access') {
+    const { AgentAccessPanel } = await import('../src/renderer/src/AgentAccessPanel')
+    node = <AgentAccessPanel page onClose={noop} />
+  } else if (screen === 'settings') {
+    const { SettingsScreen } = await import('../src/renderer/src/launch/SettingsScreen')
+    const { APP_SETTINGS_DEFAULTS } = await import('../src/shared/types')
+    node = <SettingsScreen settings={{ ...APP_SETTINGS_DEFAULTS, locale, machineTrust: 'mine' } as never} onChange={async () => null} onOpenHistory={noop} onOpen={noop} />
   } else {
     node = <p>unknown screen {screen}</p>
   }
