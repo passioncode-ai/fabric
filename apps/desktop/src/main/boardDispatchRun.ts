@@ -13,6 +13,7 @@ import { randomUUID } from 'node:crypto'
 import type { OperatorMandate } from './hubAuthority.ts'
 import { ACCEPT_MS, checkRunResult, decideDispatch, EMPTY_RUNS_TO_OPERATOR, firstLine, INBOX_CAPABILITY, KEEP_OPEN_MS, SILENT_MS, GRACE_MS, limitsOf, packetDeadline, relayText, REMOTE_REFUSALS, runEndsAt, refusalCheck, type DispatchAgent, type DispatchDecision, type RequestState, type RunOutcome } from '../shared/boardDispatch.ts'
 import { FABRIC_OWNER, type ToolCall } from './observatoryMemory.ts'
+import { RESUME_CAPABILITY } from '../shared/boardResume.ts'
 
 export interface OpenRequest {
   id: string
@@ -30,6 +31,9 @@ export interface OpenRequest {
    *  `thread`), standing for every unread one: how many, and since when. Its state reads `queued` while that message is
    *  unread by the target and `answered` once it is read. */
   inbox?: { unread: number; oldestAt: string }
+  /** 2026-11-16 (§3.11, the board supervisor): a task left open, not a request. `id` is the task, `target` its project;
+   *  it reads `queued` while nobody took the task since `releasedAt` and `answered` once someone did. */
+  resume?: { title: string; how: string; releasedAt: string }
 }
 
 export interface DispatchRecord {
@@ -51,6 +55,8 @@ export interface DispatchRecord {
   outcome?: 'finished' | 'exited-without-answer' | 'timed-out' | 'failed-to-start' | 'refused' | 'unknown' | 'to-operator' | 'not-taken' | 'silent'
   /** CO-559 (§3.8): the run read a project's inbox; `requestId` is the newest unread message it was started for. */
   inbox?: boolean
+  /** §3.11: the run continued a left task (`requestId` is the task); the release it was started for. */
+  resume?: string
   /** CO-559 (§3.8): when Switchboard answered the start (ms). The liveness checks count from here, never from the
    *  record's creation, which a slow or repeated start leaves minutes behind. */
   launchedAt?: number
@@ -99,6 +105,8 @@ const FROZEN_REF = /^(board-(request|message|thread)|capability|fabric-project|d
 const QUESTIONS_RULE = 'A question: first decide it yourself by the project\'s recorded decisions, its goal, then the safest reversible option, and record why. One for another agent goes to its project with com.submit; one that needs a person goes as one request per task, with options and consequences, to the project offering people.ask in com.directory (the organization\'s PM agent), or with fabric_question_ask when none does. Meanwhile checkpoint and do the independent parts.'
 /** CO-559 (§3.8): an inbox run's goal, the same in its opening and its closing checkpoint. */
 const INBOX_GOAL = 'Read every unread board message addressed to this project, act on what is this project\'s, then end.'
+/** §3.11: a resume run's goal, the same in its opening and its closing checkpoint. */
+const resumeGoal = (taskId: string): string => `Continue the task fabric-task:${taskId} of this project from where its last session left it, then end.`
 const OUTCOMES = new Set(['finished', 'exited-without-answer', 'timed-out', 'failed-to-start', 'refused', 'unknown', 'to-operator', 'not-taken', 'silent'])
 const isText = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 const isCount = (v: unknown): boolean => typeof v === 'number' && Number.isFinite(v) && v >= 0
@@ -125,6 +133,7 @@ export function isDispatchRecord(r: unknown): r is DispatchRecord {
     && (x.lost === undefined || typeof x.lost === 'boolean') && (x.result === undefined || isResult(x.result))
     && (x.inbox === undefined || typeof x.inbox === 'boolean') && (x.launchedAt === undefined || isCount(x.launchedAt))
     && (x.remoteUnanswered === undefined || typeof x.remoteUnanswered === 'boolean')
+    && (x.resume === undefined || (typeof x.resume === 'string' && Number.isFinite(Date.parse(x.resume))))
 }
 
 const isResult = (v: unknown): boolean => {
@@ -167,6 +176,8 @@ export interface DispatchDeps {
   /** CO-559 (§3.8): an inbox item's message as its target reads it: `answered` once the target marked it read, `queued`
    *  while not, null when it cannot be read. Absent, an inbox run is judged by `requestState`. */
   inboxState?(messageId: string, projectId: string): Promise<string | null>
+  /** §3.11: a resume run's task as it stands now (`shared/boardResume.ts#resumeStateOf`), or null when unread. */
+  resumeState?(taskId: string, releasedAt: string): Promise<string | null>
   load(): DispatchRecord[]
   save(records: DispatchRecord[]): void
   /** The app is quitting: no new start, no new Switchboard call. */
@@ -241,10 +252,12 @@ export function noteOf(e: unknown): string {
 /** Why a request is the operator's: three runs left it unsettled (`inbox` for an inbox item, CO-559), or it passed its deadline accepted with no run (ER-7);
  *  CO-551: a run on another machine left a result Fabric did not post (`relay`), or its machine has not answered past
  *  the run's end (`remote-lost`, still asked every pass). */
-export type ToOperatorWhy = 'runs' | 'past-due' | 'relay' | 'remote-lost' | 'remote-unanswered' | 'inbox' | 'no-folder'
+export type ToOperatorWhy = 'runs' | 'past-due' | 'relay' | 'remote-lost' | 'remote-unanswered' | 'inbox' | 'no-folder' | 'resume'
 
 /** CO-559 (§3.8): an inbox item given to the operator, by the message it was started for, with its project and when. */
 export interface InboxGiven { messageId: string; projectId: string; at: string }
+/** §3.11: a left task three runs did not take, given to the operator, with its project and when. */
+export interface ResumeGiven { taskId: string; projectId: string; at: string }
 
 /** The marks the sweep of abandoned work reads for each reason (`shared/abandonedSweep.ts#SweepRequest`). */
 export function toOperatorMarks(why: ToOperatorWhy): { pastDue: boolean; remote?: 'unposted' | 'lost' | 'unanswered'; noFolder?: boolean } {
@@ -284,11 +297,12 @@ export function createDispatchWake(onPass: () => void, deps: { graceMs: number; 
  *  database went down four times in a week with 0.1 to 2.8 GB free; 3 GB is the stack watch's own low mark. */
 export const DISK_FLOOR_BYTES = 3e9
 
-export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[]; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[] } {
+export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<void>; records(): DispatchRecord[]; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; resumeGiven(): ResumeGiven[] } {
   let records = deps.load()
   let busy = false
   /** A record's item as read now: a request's state, or for an inbox run whether its message was read (CO-559). */
-  const stateOf = (r: DispatchRecord): Promise<string | null> => r.inbox && deps.inboxState ? deps.inboxState(r.requestId, r.projectId) : deps.requestState(r.requestId)
+  const stateOf = (r: DispatchRecord): Promise<string | null> => r.resume ? (deps.resumeState ? deps.resumeState(r.requestId, r.resume) : Promise.resolve(null))
+    : r.inbox && deps.inboxState ? deps.inboxState(r.requestId, r.projectId) : deps.requestState(r.requestId)
   const decided = new Map<string, string>()
   /** ER-7: requests past their deadline, accepted and unsettled, that no record of Fabric's carries. */
   const pastDue = new Set<string>()
@@ -566,6 +580,30 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     open: [{ step_id: 'read', next_action: 'Read the unread messages and handle each.' }]
   })
 
+  /** §3.11: the packet of a resume run, which continues a task its last session left open. */
+  const resumeBody = (req: OpenRequest, opening: boolean, endsAt: string, openAt: number) => ({
+    goal: resumeGoal(req.id),
+    constraints: [
+      `This run was started by Fabric's board supervisor because the task fabric-task:${req.id} «${req.resume!.title}» was left open: its last session ended its claim (${req.resume!.how}) at ${req.resume!.releasedAt} without finishing it, and no session of this project has worked since.`,
+      // Switchboard's own instructions speak of one board request; here the id on the first line is the task.
+      'Where the session\'s instructions speak of a board request, read it as this task: the request id on the first line names the task, not a board request, so there is nothing to com.claim, com.accept or com.complete for it.',
+      'Claim the task first with fabric_work_claim {taskId}; when another agent holds it, leave it and end. Read its brief, its notes and the last session\'s handoff (the task\'s notes, the repository\'s handoff and its board thread, if any) before you act, and continue from the exact next step they name, never from the start.',
+      'Do the next unit of the task to its finish line under the repository\'s own rules (its checks green on the artefact the operator uses). When the whole task is done, release the claim with done and move the task to review. When more remains, release with handed-over or let-go and put the exact next step in the note: the next run continues from that note.',
+      QUESTIONS_RULE,
+      'Stop before any step that touches production and hand it to a session the person is in or to the operator.',
+      'Write a checkpoint at least every 10 minutes, even in a long step: a workflow silent for 20 minutes is taken as a dead run and restarted.',
+      'Write the final checkpoint and close the workflow once the claim is released, then end.'
+    ],
+    artifacts: [
+      { kind: 'other', ref: `fabric-task:${req.id}` },
+      { kind: 'other', ref: `capability:${RESUME_CAPABILITY}` },
+      { kind: 'other', ref: `fabric-project:${req.target}` },
+      ...(opening ? [{ kind: 'other', ref: `deadline:${packetDeadline(req.deadline, openAt)}` }] : []),
+      { kind: 'other', ref: `run-ends-at:${endsAt}` }
+    ],
+    open: [{ step_id: 'continue', next_action: 'Claim the task and continue it from its last next step.' }]
+  })
+
   /** Opens the workflow (first run) or takes it back (a later run), writes run-ends-at and offers it on. */
   const open = async (req: OpenRequest, prior: DispatchRecord | undefined, provider: DispatchAgent, endsAt: string, dispatchId: string, openAt: number, remote: { text: string | null } | null = null): Promise<{ workflowId: string; handoffId: string }> => {
     // Observatory freezes a dispatched workflow's board references at its opening write and refuses a later write that
@@ -576,7 +614,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       const b = packetBody(opening)
       return opening ? b : { ...b, artifacts: b.artifacts.filter((a) => !FROZEN_REF.test(a.ref)) }
     }
-    const packetBody = (opening: boolean) => req.inbox ? inboxBody(req, opening, endsAt, openAt) : ({
+    const packetBody = (opening: boolean) => req.resume ? resumeBody(req, opening, endsAt, openAt) : req.inbox ? inboxBody(req, opening, endsAt, openAt) : ({
       // Observatory redacts a bare UUID in text; the reference form keeps it (thread 7ae9ac3a).
       goal: `Answer the board request board-request:${req.id} addressed to this project, then end.`,
       constraints: [
@@ -709,7 +747,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   /** 2026-11-12 (H1): when a request's step last threw, and how many times in a row; it waits as a refusal does. */
   const threwAt = new Map<string, { at: number; inRow: number }>()
   /** ER-9: the dispatch id and end of an open whose answer was lost, asked again with the same ones. */
-  const retryOpen = new Map<string, { dispatchId: string; endsAt: string; openAt: number; inbox?: OpenRequest['inbox']; remote?: { target: string; text: string | null } }>()
+  const retryOpen = new Map<string, { dispatchId: string; endsAt: string; openAt: number; inbox?: OpenRequest['inbox']; resume?: OpenRequest['resume']; remote?: { target: string; text: string | null } }>()
   /** §3.6: a request that goes to the operator has its workflow closed, taken back first when a run holds it. */
   const closeWorkflow = async (r: DispatchRecord, why: 'to-operator' | 'settled' | 'unsaved' | 'relayed' | 'remote-ended' | 'relay-refused' | 'expired' = 'to-operator'): Promise<void> => {
     let leaseId = leases.get(r.workflowId)
@@ -751,7 +789,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       owner: FABRIC_OWNER, idempotencyKey: `dispatch-${r.dispatchId}-close`, stepId: why,
       // Observatory's checkpoint takes in_progress, done or blocked (`failed` refused live, 2026-11-11).
       status: why === 'settled' || why === 'relayed' ? 'done' : 'blocked', workflowId: r.workflowId, leaseId, close: true,
-      body: { goal: r.inbox ? INBOX_GOAL : `Answer the board request board-request:${r.requestId} addressed to this project, then end.`, notes: `${notes}${remote}` }
+      body: { goal: r.resume ? resumeGoal(r.requestId) : r.inbox ? INBOX_GOAL : `Answer the board request board-request:${r.requestId} addressed to this project, then end.`, notes: `${notes}${remote}` }
     })
     if (CLOSED.test(String(w.error ?? ''))) { leases.delete(r.workflowId); return }
     if (w.error) throw new Error('the workflow was not closed')
@@ -1026,7 +1064,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       // belongs to one message (0.3.19 review, iteration 2, PL-17).
       const mine = req.inbox ? records.filter((r) => r.inbox && r.projectId === req.target) : records.filter((r) => r.requestId === req.id)
       const last = mine[mine.length - 1]
-      if (mine.some((r) => r.outcome === 'to-operator' && r.requestId === req.id)) continue
+      // §3.11: a left task given to the operator stays theirs for that release only; a later release (someone worked on
+      // it since) is a new item.
+      if (mine.some((r) => r.outcome === 'to-operator' && r.requestId === req.id && (!req.resume || r.resume === req.resume.releasedAt))) continue
       // 0.3.20 iteration 3 run three, ER-60: a start on another machine that never answered may be running there, however
       // its record ended (a refusal, no folder, the switch off): no record of this request starts again, here or there;
       // the operator gets it as a machine that never answered.
@@ -1046,8 +1086,13 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       // one more run before it is given too.
       const inboxEmpty = !req.inbox || !last ? 0 : last.outcome === 'finished' ? 0
         : last.outcome === 'to-operator' && !sameItem ? EMPTY_RUNS_TO_OPERATOR - 1 : last.emptyRuns
+      // §3.11: a resume run that took the task (finished) made progress; the task's next release starts its count anew,
+      // so only runs in a row that never took it give the task to the operator.
+      const emptyBefore = req.inbox ? inboxEmpty
+        : req.resume && (last?.outcome === 'finished' || (last?.outcome === 'to-operator' && last.resume !== req.resume.releasedAt)) ? 0
+          : last?.emptyRuns ?? 0
       // Iteration 2, ER-2: the empty runs give the request to the operator whatever path the decision would take now.
-      if (last && (sameItem || req.inbox) && last.state === 'ended' && (req.inbox ? inboxEmpty : last.emptyRuns) >= EMPTY_RUNS_TO_OPERATOR && !SETTLED.has(req.state)) {
+      if (last && (sameItem || req.inbox) && last.state === 'ended' && emptyBefore >= EMPTY_RUNS_TO_OPERATOR && !SETTLED.has(req.state)) {
         // CO-559: the project's inbox is given as it stands now, by its newest message.
         if (req.inbox) last.requestId = req.id
         // 0.3.20 iteration 3 run two, DA-31: the operator's request keeps its record until its own deadline, as in 0.3.19.
@@ -1072,13 +1117,13 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         runningInProject: active.filter((r) => r.projectId === req.target).length,
         // Only runs that started count against the day (iteration 2, ER-7, DA-3); the day is the last 24 hours.
         dispatchesToday: records.filter((r) => r.projectId === req.target && r.launchId !== null && now - r.startedAt < DAY_MS).length,
-        emptyRuns: req.inbox ? inboxEmpty : last?.emptyRuns ?? 0,
+        emptyRuns: emptyBefore,
         inFlight: last !== undefined && last.state !== 'ended',
         limits
       })
       // DA-6 (0.3.21 review, iteration 2): an inbox item has no row of its own in «На проверке» (the sweep reads requests,
       // and an inbox item only through a record), so one to a project with no folder here stays skipped, as before 0.3.21.
-      const decision: typeof decided = req.inbox && decided.path === 'to-operator' && decided.why === 'no-folder'
+      const decision: typeof decided = (req.inbox || req.resume) && decided.path === 'to-operator' && decided.why === 'no-folder'
         ? { path: 'skip', check: 'skipped-no-folder' } : decided
       said(req.id, decision)
       // ER-7: an accepted request past its deadline that Fabric never started a run for has no record to carry the
@@ -1125,14 +1170,15 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       // The machine is known before the workflow opens, so a run there gets the request's text in its packet.
       // 0.3.20 review ER-10, DA-11: a retried open keeps the machine and the thread's text it sent first, so the packet
       // is the same and Observatory answers the workflow it opened instead of refusing a changed body.
-      const target = reuse ? reuse.remote?.target ?? null : req.inbox ? null : await Promise.resolve(deps.remoteTarget?.(req.target) ?? null).catch(() => null)
+      // §3.11: a resume run stays here too: the task's claim and its notes are this board's.
+      const target = reuse ? reuse.remote?.target ?? null : req.inbox || req.resume ? null : await Promise.resolve(deps.remoteTarget?.(req.target) ?? null).catch(() => null)
       const remote = reuse ? (reuse.remote ? { text: reuse.remote.text } : null) : target ? { text: await (deps.requestThread?.(req) ?? Promise.resolve(null)).catch(() => null) } : null
       let opened: { workflowId: string; handoffId: string }
       try {
         // CO-551: a workflow Fabric already closed (a run on another machine) is not taken back: the request gets a new one.
         // 0.3.19 review ER-6: a retried open sends the packet it sent first (an inbox's count and oldest time moved
         // since), so Observatory's idempotency answers the same workflow instead of refusing a changed body.
-        opened = await open(reuse?.inbox && req.inbox ? { ...req, inbox: reuse.inbox } : req, last?.closed ? undefined : last, provider, endsAt, dispatchId, openAt, remote)
+        opened = await open(reuse?.inbox && req.inbox ? { ...req, inbox: reuse.inbox } : reuse?.resume && req.resume ? { ...req, resume: reuse.resume } : req, last?.closed ? undefined : last, provider, endsAt, dispatchId, openAt, remote)
         firstLine({ workflow: opened.workflowId, handoff: opened.handoffId, request: req.id }) // the ids are well formed (§3.5)
         openFailedAt.delete(req.id) // CO-544: an open that worked ends the run of failures
         // CO-559: a workflow taken over by this run is no longer the older records' to close (a project's inbox runs
@@ -1145,12 +1191,13 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         deps.log('board.dispatch.started', 'failed', { request: req.id, dispatch: dispatchId, note: noteOf(e) })
         openFailed(req.id, now)
         // Iteration 3 run two, ER-16: the packet first sent under this dispatch id is kept through every retry.
-        if (!last) retryOpen.set(req.id, { dispatchId, endsAt, openAt, ...(req.inbox ? { inbox: reuse?.inbox ?? req.inbox } : {}), ...(target && remote ? { remote: { target, text: remote.text } } : {}) })
+        if (!last) retryOpen.set(req.id, { dispatchId, endsAt, openAt, ...(req.inbox ? { inbox: reuse?.inbox ?? req.inbox } : {}), ...(req.resume ? { resume: reuse?.resume ?? req.resume } : {}), ...(target && remote ? { remote: { target, text: remote.text } } : {}) })
         continue
       }
       const r: DispatchRecord = { requestId: req.id, projectId: req.target, dispatchId, workflowId: opened.workflowId, handoffId: opened.handoffId, launchId: null,
-        startedAt: now, endsAt, state: 'starting', attempts: 0, emptyRuns: req.inbox ? inboxEmpty : last?.emptyRuns ?? 0,
+        startedAt: now, endsAt, state: 'starting', attempts: 0, emptyRuns: emptyBefore,
         ...(req.inbox ? { inbox: true } : {}),
+        ...(req.resume ? { resume: req.resume.releasedAt } : {}),
         ...(target ? { target } : {}),
         // 2026-11-12: kept at most UNTIL_MAX_MS, whatever deadline the board took (a far one kept the record for ever).
         ...(Number.isFinite(Date.parse(req.deadline)) ? { until: Math.min(Date.parse(req.deadline), now + UNTIL_MAX_MS) } : {}) }
@@ -1235,13 +1282,17 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       ...[...pastDue].map((id) => [id, 'past-due'] as [string, ToOperatorWhy]),
       ...[...noFolder].map((id) => [id, 'no-folder'] as [string, ToOperatorWhy]),
       ...records.filter((r) => r.lost && r.state !== 'ended').map((r) => [r.requestId, 'remote-lost'] as [string, ToOperatorWhy]),
-      ...records.filter((r) => r.outcome === 'to-operator').map((r) => [r.requestId, r.inbox ? 'inbox' : r.unposted ? 'relay' : r.remoteUnanswered ? 'remote-unanswered' : 'runs'] as [string, ToOperatorWhy])
+      ...records.filter((r) => r.outcome === 'to-operator').map((r) => [r.requestId, r.resume ? 'resume' : r.inbox ? 'inbox' : r.unposted ? 'relay' : r.remoteUnanswered ? 'remote-unanswered' : 'runs'] as [string, ToOperatorWhy])
     ]),
     // CO-559 (§3.8): the sweep knows requests only, so an inbox item given to the operator is handed over with its project.
     // One row per project: its newest inbox record, while its message is still what waits there.
     inboxGiven: () => [...new Map(records.filter((r) => r.inbox).map((r) => [r.projectId, r] as const)).values()]
       .filter((r) => r.outcome === 'to-operator' && readIds.has(r.requestId))
-      .map((r) => ({ messageId: r.requestId, projectId: r.projectId, at: new Date(r.endedAt ?? r.startedAt).toISOString() }))
+      .map((r) => ({ messageId: r.requestId, projectId: r.projectId, at: new Date(r.endedAt ?? r.startedAt).toISOString() })),
+    // §3.11: a left task three runs never took, while the board still shows it left: its newest record per task.
+    resumeGiven: () => [...new Map(records.filter((r) => r.resume).map((r) => [r.requestId, r] as const)).values()]
+      .filter((r) => r.outcome === 'to-operator' && readIds.has(r.requestId))
+      .map((r) => ({ taskId: r.requestId, projectId: r.projectId, at: new Date(r.endedAt ?? r.startedAt).toISOString() }))
   }
 }
 

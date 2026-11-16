@@ -9,6 +9,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Left work goes on by itself** (the operator, 2026-11-16). When a session ends with a task it took unfinished, nobody
+  holds it and no person moved it, Fabric's board dispatcher starts an agent 10 minutes later that claims the task and
+  continues from the step the last session left, under the dispatcher's limits; three starts that never take the task
+  give it to the person. Settings → «Запуск агентов» → «Продолжать начатую работу без меня», on by default.
+  [ADR-0195](docs/adr/0195-the-board-runs-apart-from-the-app-and-its-supervisor-continues-left-work.md) records where the
+  board goes next: out of the window's process, sessions held by Switchboard, processes kept by the lifecycle broker.
 - **The other screens, second wave** (the operator, 2026-11-16). «Нужны вы» and the project's «Вопросы ко мне» keep a
   pill's words whole («Ждёт разрешения», «Запрос доступа» were cut at the right edge), and a project's question row no
   longer repeats the project and the kind. The board's four columns fit a 1100 px window. История names a stage as the

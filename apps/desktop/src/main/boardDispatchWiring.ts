@@ -14,7 +14,8 @@ import type { SweepComms } from './abandonedSweepRun.ts'
 import { mandateOfRequest } from './boardMandate.ts'
 import { readRequestThreadIds } from './boardThreadIds.ts'
 import { INBOX_CAPABILITY, isSelfTarget, remoteOwnerOf, targetForOwner, type DispatchAgent } from '../shared/boardDispatch.ts'
-import { createBoardDispatch, isDispatchRecord, noteOf, type DispatchDeps, type InboxGiven, type DispatchRecord, type OpenRequest, type RemoteState, type ToOperatorWhy } from './boardDispatchRun.ts'
+import { createBoardDispatch, isDispatchRecord, noteOf, type DispatchDeps, type InboxGiven, type DispatchRecord, type OpenRequest, type RemoteState, type ResumeGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
+import { RESUME_CAPABILITY, resumeItems, type ResumeCandidate, type ResumeItem } from '../shared/boardResume.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 import { originOf } from './agentSyncLeases.ts'
@@ -104,6 +105,20 @@ export function createInboxState(facts: (messageIds: string[]) => Promise<CommsF
   }
 }
 // #endregion board-dispatch-inbox
+
+// #region board-dispatch-resume — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#311-left-work-is-continued-the-board-supervisor
+/** §3.11: a left task as the dispatcher's item: its id is the task, its project the target, `queued` until taken. */
+export function resumeRequestOf(i: ResumeItem): OpenRequest {
+  return { id: i.taskId, thread: i.taskId, state: 'queued', target: i.projectId, capability: RESUME_CAPABILITY, submittedAt: i.releasedAt, deadline: i.deadline,
+    resume: { title: i.title, how: i.how, releasedAt: i.releasedAt } }
+}
+
+/** §3.11: the left tasks of this pass, read through `read` and chosen by `shared/boardResume.ts#resumeItems`. */
+export async function readResumeRequests(read: (now: number) => Promise<{ candidates: ResumeCandidate[]; capped: boolean }>, now: number): Promise<{ items: OpenRequest[]; capped: boolean }> {
+  const r = await read(now)
+  return { items: resumeItems(r.candidates, now).map(resumeRequestOf), capped: r.capped }
+}
+// #endregion board-dispatch-resume
 
 /** Switchboard's refusal codes, the only words of its stderr that are kept (the 0.3.16 review, iteration 2, DA-5: a
  *  failure's own text carries the command line and the project's folder, and never reaches the log). */
@@ -346,7 +361,9 @@ export function wireBoardDispatch(o: {
   log: DispatchDeps['log']
   /** 2026-11-12 (C2): how long this machine slept since a time (ms); absent, none. */
   suspendedSince?: (from: number) => number
-}): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; boardRuns(): BoardRun[] } {
+  /** §3.11, the board supervisor: the left tasks, read while `on()` holds, and a resume run's task state. */
+  resume?: { on(): boolean; read(now: number): Promise<{ candidates: ResumeCandidate[]; capped: boolean }>; state(taskId: string, releasedAt: string): Promise<string | null> }
+}): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; resumeGiven(): ResumeGiven[]; boardRuns(): BoardRun[] } {
   let probePath: Promise<string> | null = null
   const pathFor = (): Promise<string> => (probePath ??= widenProbePath(o.env.PATH ?? '', o.env))
   const bin = async (name: string): Promise<string | null> => findOnPath(name, await pathFor())
@@ -385,6 +402,8 @@ export function wireBoardDispatch(o: {
   let lastLaunchFailure: string | null = null
   /** Whether the last pass's thread read stopped at its bound (CO-572). */
   let threadsCapped = false
+  /** §3.11: whether the last read of left tasks stopped at its bound, said once per change. */
+  let resumeCapped = false
 
   const deps: DispatchDeps = {
     now: () => Date.now(),
@@ -411,7 +430,20 @@ export function wireBoardDispatch(o: {
       for (const i of inbox ?? []) lastStates.set(i.id, 'queued')
       follower.reset()
       slots = null
-      return [...r.requests, ...(inbox ?? [])]
+      // §3.11: the left tasks last, so a request or a message is decided first under the same limits. A failed read is
+      // logged and leaves the rest of the pass to go on; its runs are judged on a later pass.
+      let resume: OpenRequest[] = []
+      if (o.resume?.on()) {
+        try {
+          const got = await readResumeRequests(o.resume.read, now)
+          resume = got.items
+          if (got.capped !== resumeCapped) { resumeCapped = got.capped; o.log('board.dispatch.resume-read', got.capped ? 'failed' : 'ok', { capped: got.capped, note: got.capped ? 'more released claims in the week than one pass reads; the oldest wait for a later pass' : 'every release of the week read' }) }
+        } catch (e) {
+          // Recorded through the dispatcher's own log, which writes to the ops log (`o.log`).
+          o.log('board.dispatch.resume-read', 'failed', { note: noteOf(e) })
+        }
+      }
+      return [...r.requests, ...(inbox ?? []), ...resume]
     },
     async responderLive(projectId, capability) {
       const r = await (slots ??= o.comms.responders(o.estateId))
@@ -502,6 +534,8 @@ export function wireBoardDispatch(o: {
     async requestState(requestId) { return lastStates.get(requestId) ?? follower.state(requestId) },
     // CO-559 (§3.8): an inbox run's message as its project reads it now (`createInboxState`).
     inboxState: (messageId, projectId) => inboxState.state(messageId, projectId),
+    // §3.11: a resume run's task, read now; absent the reader, unread (judged on a later pass, never «settled»).
+    resumeState: (taskId, releasedAt) => o.resume ? o.resume.state(taskId, releasedAt) : Promise.resolve(null),
     load() {
       let text: string
       try { text = readFileSync(o.file, 'utf8') } catch {
@@ -545,6 +579,7 @@ export function wireBoardDispatch(o: {
     close: () => observatory.close(),
     toOperator: () => dispatch.toOperator(),
     inboxGiven: () => dispatch.inboxGiven(),
+    resumeGiven: () => dispatch.resumeGiven(),
     boardRuns: () => {
       forget()
       return boardRunsOf(dispatch.records(), seen)

@@ -4,6 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/board-supervisor → main · fast-forward
+- files: `shared/boardResume.ts` (which tasks are left work, their state after a run), `main/boardResumeRead.ts` (the reads), `main/boardDispatchRun.ts` (the resume item, its packet, empty runs per release, `resumeGiven`), `main/boardDispatchWiring.ts`, `main/index.ts`, the setting `resumeLeftWork` (types, appSettings, Settings, i18n), the tests, ADR-0195, the on-demand spec §3.11, the map lane `iteration-2026-11-16-board-supervisor`
+- conflicts: `CHANGELOG.md`, `docs/MERGES.md`, the map's changelog (main's screens wave 2 and this one, both kept, this one on top)
+- summary: the board supervisor continues left work; ADR-0195 plans the board apart from the app
 ### 2026-11-16 · `—` · fix/screens-wave-2 → main · fast-forward
 - files: `launch.css` (adaptations: row end, kanban columns, milestone note, task facts, settings and access sizes, profile card), `ProjectLaunch.tsx`, `ProjectProfile.tsx`, `AgentPage.tsx`, `CommsScreen.tsx`, `AgentAccessPanel.tsx`, `i18n/{ru,en}.ts`, `scripts/test/screens-stand.browser.mjs` (a pill's words fit it), five scenario amendments, the map lane `iteration-2026-11-16-screens-wave-2`
 - conflicts: none

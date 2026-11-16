@@ -1002,6 +1002,8 @@ export const en = {
   'settings.access.open': "Open the list",
   'settings.saved': "Saved",
   'settings.dispatch': "Start an agent when a project gets board messages and no session of it is open",
+  'settings.resume': "Continue started work without me",
+  'settings.resumeHelp': "When a session ends with a task it took left unfinished, nobody holds it and you have not moved it, Fabric starts an agent 10 minutes later to continue it from the step the last session stopped at. The limits are the board starts' own: at most three agents on this computer and one per project. After three starts that never took the task, it waits for you. Works only while board starts are on.",
   'settings.dispatchHelp': "When a project gets a request, a message, a finding or a reply and no session of that project is open, Fabric waits two minutes, then starts the default agent (Claude Code or Codex, through Switchboard) in the project's folder with every permission. It does the work, answers in the thread, marks the messages read and ends. Its instructions tell it to stop before any step that touches production. Without Switchboard or a default agent nothing starts.",
   'settings.folderTrust': "Trust the folder a Claude Code session starts in",
   'settings.folderTrustHelp': "On: Claude Code does not ask whether you trust the folder, and that folder's own Claude Code settings and hooks run. Off: Claude Code asks in each folder it does not trust yet.",

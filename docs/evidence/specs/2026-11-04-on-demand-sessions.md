@@ -520,6 +520,48 @@ already decides is followed here, and nothing below adds a mechanism it does not
   into tasks for several projects, which is the manager session's (CO-522 wave D, the North Star's G10); the PM agents'
   `people.ask` responders, which are theirs.
 
+### 3.11 Left work is continued: the board supervisor
+
+The operator, 2026-11-16, this repository's session `5273c136`, after a session ended its turn with the second of the
+UI waves he had ordered still to do: «если у нас есть следующая волна то почему сессиб закрыл … надо как-то менеджить
+жто и стартовать всегда самому если все доделано и можно двигаться вперед а не ждать чего-то», and a supervisor «который
+мониторит достку и залачи и напоминает если надо сессиям и менеджит мсесии передает на модуль лайфсайкла, смержись со
+свитчбордом». The dispatcher already woke a project for a request (§3.1) and for an unread message (§3.8); nothing woke
+it for its own work left half done. [ADR-0195](../../adr/0195-the-board-runs-apart-from-the-app-and-its-supervisor-continues-left-work.md)
+records where this goes; this section is its first wave.
+
+- **What is left work** (`shared/boardResume.ts#resumeItems`). A task in backlog or running whose newest claim ended by
+  `session-ended`, `lapsed`, `let-go` or `handed-over` (never `done`, never the operator's own release) between 10
+  minutes (`RESUME_GRACE_MS`, so a resumed or cleared session never meets a second agent) and 7 days ago
+  (`RESUME_WINDOW_MS`), that nobody holds, that no person moved since that release (a person's move decides; an agent's
+  or the sweep's move after it is the release's own step), and that no open question to a person names (the run would
+  only ask again).
+- **The item.** Each such task is one more item of the dispatcher beside requests and inboxes
+  (`main/boardDispatchWiring.ts#resumeRequestOf`): its id is the task, its target the task's project, its capability
+  `board.resume` (no project's responder slot stands for it), its deadline the release plus the week. It goes through
+  `decideDispatch` unchanged: no run while the project has a live session (§3.2), after the grace, under the same limits
+  (three runs on the machine, one per project, twenty per project a day), never on another machine (the claim and its
+  notes are this board's), read last in a pass so a request or a message is decided first.
+- **The run.** Its packet (`main/boardDispatchRun.ts`, `resumeBody`) says why it was started, has it claim the task with
+  `fabric_work_claim` (and end at once when another agent holds it), read the brief, the notes and the last handoff,
+  continue from the exact next step they name, take one unit to its finish line, then release with done (whole task)
+  or with the exact next step in the note (more remains), which is what the next run continues from. Switchboard starts
+  it with `--reason request`; the packet reads Switchboard's «board request» as this task.
+- **Settled, empty, the operator's** (`shared/boardResume.ts#resumeStateOf`, `main/boardResumeRead.ts#readResumeState`).
+  A run whose task was claimed after the release it stands for (by it or anyone), moved on (review, done, cancelled) or
+  moved by a person ended `finished`; its own release is the next item. A run that never took the task is empty; three
+  in a row for one release give the task to the operator (`resumeGiven`, `toOperator` reason `resume`) for that release
+  only, and a later release (someone worked on it since) starts the count again.
+- **The switch.** Settings → «Запуск агентов» → «Продолжать начатую работу без меня» (`resumeLeftWork`, on by default),
+  acting only while the dispatcher's own switch is on.
+- **Not done in this wave.** A row in «На проверке» for a task given to the operator (today the ops log and `resumeGiven`
+  name it); the sweep's reminder to a live session that holds a task it is not moving is the sweep's own (CO-427). The
+  board apart from the app's process, and sessions that survive a restart of Fabric, are ADR-0195's later waves.
+- **Tests.** `src/shared/boardResume.test.ts` (which tasks are left work, their state after a run, a person's move
+  watched failing when its rule was taken out), `test/board-dispatch-run.test.mjs` «§3.11» (the packet, the limits, the
+  finished run, three empty runs for one release, an empty run before a finished one not carried, watched failing with
+  that reset taken out), `test/board-resume-read.test.mjs` (the reads over a stand-in store, a refused read throws).
+
 ## 4. Who does what
 
 | Product | Its part |

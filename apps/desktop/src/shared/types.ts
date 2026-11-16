@@ -481,6 +481,12 @@ export interface AppSettings {
    * reports and ends. On by default; off, nothing starts and the dispatcher records `skipped-off`.
    */
   dispatchBoardRequests: boolean
+  /**
+   * 2026-11-16 (the on-demand spec §3.11, the operator: never wait for him when the work can go on): a task a session
+   * left open, nobody holds and no person moved since, gets a run that continues it, 10 minutes after the release, under
+   * the dispatcher's limits. On by default; it runs only while the dispatcher runs.
+   */
+  resumeLeftWork: boolean
   /** 2026-11-12 (the dispatcher audit's C1): on a board this Fabric does not own (an external stack, `SUPABASE_URL`), the
    *  dispatcher runs only when this is true, so two machines on one board never both start a run for one request. False
    *  by default; set by hand in settings.json on the one machine that dispatches. */
@@ -508,7 +514,7 @@ export type MachineTrust = 'mine' | 'organization' | null
  * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
  * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
  */
-export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders' | 'dispatchBoardRequests' | 'dispatchTarget'>>
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders' | 'dispatchBoardRequests' | 'resumeLeftWork' | 'dispatchTarget'>>
 // #endregion settings-patch
 
 /**
@@ -541,6 +547,8 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   trustAgentFolders: true,
   // CO-409: the operator's word (2026-11-04); the person turns it off in Settings.
   dispatchBoardRequests: true,
+  // §3.11: the operator's word (2026-11-16); the person turns it off in Settings.
+  resumeLeftWork: true,
   dispatchOnSharedBoard: false,
   // CO-551: no other machine until one is named; stage B (CO-552) chooses by itself.
   dispatchTarget: null,

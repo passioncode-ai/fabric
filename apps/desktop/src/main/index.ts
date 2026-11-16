@@ -205,7 +205,8 @@ import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { primaryFolder, remoteTargetFor, wireBoardDispatch } from './boardDispatchWiring.ts'
-import { createDispatchWake, toOperatorMarks, type InboxGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
+import { createDispatchWake, toOperatorMarks, type InboxGiven, type ResumeGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
+import { readResumeCandidates, readResumeState } from './boardResumeRead.ts'
 import { dispatcherRuns, sessionLiveForDispatch, suspendedSince, WATCH_MS } from '../shared/boardDispatch.ts'
 import { SESSION_STALE_MS } from '../shared/workClaims.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
@@ -3086,7 +3087,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // The sweep of abandoned work (CO-427): every third pass of the cycle below. Its reads are the screens' own (claims,
   // running tasks), the operator's read door onto the board, and the observer's last pass over Fabric's terminals.
   const sweepBoard = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
-  const dispatchHolder: { current: { toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; boardRuns(): BoardRun[] } | null } = { current: null }
+  const dispatchHolder: { current: { toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; resumeGiven(): ResumeGiven[]; boardRuns(): BoardRun[] } | null } = { current: null }
   abandonedSweep = createAbandonedSweep({
     now: () => Date.now(),
     readClaims: (now) => readSweepClaims(store, now, sessionSignOf),
@@ -3163,7 +3164,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     freeDisk: () => freeDiskNow(),
     file: path.join(app.getPath('userData'), 'board-dispatches.json'),
     env: process.env,
-    log: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+    log: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } }),
+    // §3.11, the board supervisor (the operator, 2026-11-16): work a session left open is continued by a new run, while
+    // «Продолжать начатую работу без меня» is on (by default).
+    resume: {
+      on: () => readSettings().resumeLeftWork,
+      read: (now) => readResumeCandidates(store, now),
+      state: (taskId, releasedAt) => readResumeState(store, taskId, releasedAt)
+    }
   })
   dispatchHolder.current = dispatcher
   quit.onQuit(() => { void dispatcher.close() })

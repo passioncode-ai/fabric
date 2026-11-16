@@ -2145,3 +2145,115 @@ test('DA-6 (0.3.21 review, iteration 2): an inbox item to a project with no fold
   assert.equal(d.toOperator().size, 0, 'no row in «На проверке» for an inbox item')
   assert.equal(w.launches.length, 0)
 })
+
+// §3.11 (2026-11-16, the board supervisor): a task a session left open is one more item of the dispatcher.
+const { RESUME_CAPABILITY } = await import(path.resolve(import.meta.dirname, '../src/shared/boardResume.ts'))
+const { resumeRequestOf, readResumeRequests } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+const TASK = '66666666-6666-4666-8666-666666666666'
+const resumeItem = (over = {}) => resumeRequestOf({ taskId: TASK, projectId: 'p-target', title: 'Вторая волна правок интерфейса', how: 'session-ended',
+  releasedAt: new Date(T0 - 30 * MIN).toISOString(), deadline: new Date(T0 + 7 * DAY).toISOString(), ...over })
+
+test('§3.11: a task left open in a project with no live session starts a run that claims it and continues from its next step', async () => {
+  const w = world({ requests: [resumeItem()] })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  assert.equal(w.launches[0].request, TASK)
+  assert.equal(w.launches[0].reason, 'request')
+  assert.equal(w.launches[0].target, undefined)
+  const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.match(open.body.goal, new RegExp(`Continue the task fabric-task:${TASK}`))
+  const said = JSON.stringify(open.body.constraints)
+  assert.match(said, /fabric_work_claim/)
+  assert.match(said, /exact next step/)
+  assert.match(said, /nothing to com\.claim, com\.accept or com\.complete/)
+  assert.ok(open.body.artifacts.some((a) => a.ref === `fabric-task:${TASK}`))
+  assert.ok(open.body.artifacts.some((a) => a.ref === `capability:${RESUME_CAPABILITY}`))
+  assert.ok(!open.body.artifacts.some((a) => a.ref.startsWith('board-request:')))
+  assert.equal(d.records()[0].resume, resumeItem().resume.releasedAt)
+  // A live session in the project, or the switch off, starts nothing; a dispatch target never takes it elsewhere.
+  for (const over of [{ session: true }, { on: false }]) {
+    const v = world({ requests: [resumeItem()], ...over })
+    await createBoardDispatch(v.deps).onPass()
+    assert.equal(v.launches.length, 0, JSON.stringify(over))
+  }
+  const t = world({ requests: [resumeItem()], target: 'studio' })
+  await createBoardDispatch(t.deps).onPass()
+  assert.equal(t.launches[0].target, undefined)
+})
+
+test('§3.11: a run that took the task is finished, not empty; three runs that never took it give the task to the operator for that release only', async () => {
+  const w = world({ requests: [resumeItem()] })
+  const states = new Map()
+  w.deps.resumeState = async (taskId, releasedAt) => states.get(`${taskId}@${releasedAt}`) ?? 'queued'
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  // The run claimed the task, did a step and handed the rest on: answered, a finished run.
+  states.set(`${TASK}@${resumeItem().resume.releasedAt}`, 'answered')
+  w.runs.set('L1', 'ended'); w.requests = []; w.tick(3 * MIN); await d.onPass()
+  assert.equal(d.records()[0].outcome, 'finished')
+  assert.equal(d.records()[0].emptyRuns, 0)
+  // Its own release is the next item; three runs in a row that never take it give it to the operator.
+  const later = resumeItem({ releasedAt: new Date(T0 + 5 * MIN).toISOString() })
+  w.requests = [later]
+  for (let i = 2; i <= 4; i++) {
+    w.tick(15 * MIN); await d.onPass()
+    assert.equal(w.launches.length, i, `run ${i}`)
+    w.runs.set(`L${i}`, 'ended')
+  }
+  w.tick(15 * MIN); await d.onPass()
+  assert.equal(w.launches.length, 4, 'no fourth run')
+  assert.equal(d.records().at(-1).outcome, 'to-operator')
+  assert.deepEqual(d.resumeGiven().map((g) => g.taskId), [TASK])
+  assert.equal(d.toOperator().get(TASK), 'resume')
+  // Someone worked on it since (a newer release): a new item, its count starts again.
+  w.requests = [resumeItem({ releasedAt: new Date(T0 + 40 * MIN).toISOString() })]
+  w.tick(15 * MIN); await d.onPass()
+  assert.equal(w.launches.length, 5)
+  assert.equal(d.records().at(-1).emptyRuns, 0)
+})
+
+test('§3.11: a request and a left task of one project run one at a time; the request first', async () => {
+  const w = world({ requests: [request(), resumeItem()] })
+  await createBoardDispatch(w.deps).onPass()
+  assert.equal(w.launches.length, 1)
+  assert.equal(w.launches[0].request, request().id)
+})
+
+test('§3.11: a resume record survives the file round trip; a damaged release time is left out', async () => {
+  const { isDispatchRecord } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  const w = world({ requests: [resumeItem()] })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  const saved = w.saved.at(-1)[0]
+  assert.equal(isDispatchRecord(saved), true)
+  assert.equal(isDispatchRecord({ ...saved, resume: 'not a time' }), false)
+})
+
+test('§3.11: the wiring reads left tasks through resumeItems and turns each into an item of the dispatcher', async () => {
+  const released = new Date(T0 - 30 * MIN).toISOString()
+  const got = await readResumeRequests(async () => ({ capped: true, candidates: [
+    { taskId: TASK, projectId: 'p-target', title: 'Волна', status: 'backlog', movedAt: released, movedByKind: 'system', lastClaim: { claimedAt: new Date(T0 - 90 * MIN).toISOString(), releasedAt: released, how: 'let-go' }, openQuestion: false },
+    { taskId: 'held', projectId: 'p-target', title: 'Держит', status: 'running', movedAt: released, movedByKind: 'agent', lastClaim: { claimedAt: released, releasedAt: null, how: null }, openQuestion: false }
+  ] }), T0)
+  assert.equal(got.capped, true)
+  assert.deepEqual(got.items.map((i) => [i.id, i.capability, i.state, i.target, i.resume.how]), [[TASK, RESUME_CAPABILITY, 'queued', 'p-target', 'let-go']])
+})
+
+test('§3.11: an empty run before a run that took the task is not carried into the task\'s next release', async () => {
+  const w = world({ requests: [resumeItem()] })
+  const states = new Map()
+  w.deps.resumeState = async (taskId, releasedAt) => states.get(`${taskId}@${releasedAt}`) ?? 'queued'
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.runs.set('L1', 'ended'); w.tick(15 * MIN); await d.onPass()
+  assert.equal(d.records()[0].emptyRuns, 1, 'the first run never took the task')
+  assert.equal(w.launches.length, 2)
+  states.set(`${TASK}@${resumeItem().resume.releasedAt}`, 'answered')
+  w.runs.set('L2', 'ended'); w.requests = []; w.tick(3 * MIN); await d.onPass()
+  assert.equal(d.records()[1].outcome, 'finished')
+  w.requests = [resumeItem({ releasedAt: new Date(T0 + 20 * MIN).toISOString() })]
+  w.tick(15 * MIN); await d.onPass()
+  assert.equal(w.launches.length, 3)
+  assert.equal(d.records().at(-1).emptyRuns, 0)
+})
