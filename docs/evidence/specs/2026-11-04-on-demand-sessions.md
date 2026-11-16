@@ -546,7 +546,11 @@ records where this goes; this section is its first wave.
   `fabric_work_claim` (and end at once when another agent holds it), read the brief, the notes and the last handoff,
   continue from the exact next step they name, take one unit to its finish line, then release with done (whole task)
   or with the exact next step in the note (more remains), which is what the next run continues from. Switchboard starts
-  it with `--reason request`; the packet reads Switchboard's «board request» as this task.
+  it with `--reason resume` and the task's id in `--request` (fabric-switchboard SB-398, board thread `179a88f6`: a
+  `request` reason's exit contract would send the run after a board request that does not exist). Fabric starts a resume
+  run only on a Switchboard whose `dispatch --help` names `resume` (`main/boardDispatchWiring.ts#takesResumeReason`, read
+  at most once an hour); on an older one the start is refused as `resume_unsupported`, waits as for no default agent and
+  is said once in the ops log (`board.dispatch.resume-reason`).
 - **Settled, empty, the operator's** (`shared/boardResume.ts#resumeStateOf`, `main/boardResumeRead.ts#readResumeState`).
   A run whose task was claimed after the release it stands for (by it or anyone), moved on (review, done, cancelled) or
   moved by a person ended `finished`; its own release is the next item. A run that never took the task is empty; three

@@ -333,6 +333,8 @@ export function targetForOwner(owner: string | null, targets: Record<string, str
 export function refusalCheck(code: string): DispatchCheck {
   switch (code) {
     case 'no_agent': return 'deferred-no-agent'
+    // §3.11: the installed Switchboard does not take `--reason resume` yet (SB-398); the run waits, as for no agent.
+    case 'resume_unsupported': return 'deferred-no-agent'
     case 'not_in_group': return 'skipped-no-folder'
     case 'ceiling_reached':
     case 'spend_unknown': return 'deferred-cap'

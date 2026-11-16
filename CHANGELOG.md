@@ -21,6 +21,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   holds it and no person moved it, Fabric's board dispatcher starts an agent 10 minutes later that claims the task and
   continues from the step the last session left, under the dispatcher's limits; three starts that never take the task
   give it to the person. Settings → «Запуск агентов» → «Продолжать начатую работу без меня», on by default.
+  Such a run starts with Switchboard's own `--reason resume` (SB-398) and waits until the installed Switchboard takes it.
   [ADR-0195](docs/adr/0195-the-board-runs-apart-from-the-app-and-its-supervisor-continues-left-work.md) records where the
   board goes next: out of the window's process, sessions held by Switchboard, processes kept by the lifecycle broker.
 - **The other screens, second wave** (the operator, 2026-11-16). «Нужны вы» and the project's «Вопросы ко мне» keep a

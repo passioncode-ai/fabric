@@ -156,7 +156,7 @@ export interface DispatchDeps {
   /** The agent `switchboard dispatch` will start (its id, the hand-over's provider), or null when it starts none. */
   defaultProvider(): Promise<DispatchAgent | null>
   observatory: ToolCall
-  launch(args: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string; reason?: 'request' | 'inbox' }): Promise<{ launchId: string } | { refused: string }>
+  launch(args: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string; reason?: 'request' | 'inbox' | 'resume' }): Promise<{ launchId: string } | { refused: string }>
   /** CO-551: the machine Settings names for runs (`dispatchTarget`), or null for this one; absent, this one. */
   remoteTarget?(projectId: string): string | null | Promise<string | null>
   /** 2026-11-11 (the first live run on the Mac Studio): a request's text and its thread as plain text, for a run on
@@ -846,7 +846,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     const timeoutMinutes = Math.max(1, Math.floor((Date.parse(r.endsAt) - now) / 60_000))
     // CO-559: an inbox run asks Switchboard for its inbox exit contract (SB-338, 0.7.56); the wiring keeps `request`
     // for an older Switchboard, and the packet's constraints say the same either way.
-    const args = { dir, workflow: r.workflowId, handoff: r.handoffId, request: r.requestId, dispatchId: r.dispatchId, timeoutMinutes, reason: r.inbox ? 'inbox' as const : 'request' as const }
+    const args = { dir, workflow: r.workflowId, handoff: r.handoffId, request: r.requestId, dispatchId: r.dispatchId, timeoutMinutes, reason: r.resume ? 'resume' as const : r.inbox ? 'inbox' as const : 'request' as const }
     let started = await deps.launch(r.target ? { ...args, target: r.target } : args)
     // 2026-11-12 (C3): a start there that was not answered may be running there; a later refusal does not start it here.
     if (r.target && 'refused' in started && started.refused !== 'failed' && REMOTE_REFUSALS.has(started.refused) && r.remoteUnanswered) {

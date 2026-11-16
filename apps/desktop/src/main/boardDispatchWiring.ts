@@ -296,8 +296,10 @@ export async function requestThreadText(comms: Pick<SweepComms, 'list'>, estateI
 // #region board-dispatch-remote-wiring — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a
 /** `switchboard --json dispatch …` for one start; `--target <machine>` when the run goes to another machine (CO-551);
  *  `--reason inbox` for an inbox run when the installed Switchboard takes it (`takesInbox`, CO-559), else `request`. */
-export function dispatchArgs(a: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string; reason?: 'request' | 'inbox' }, takesInbox = false): string[] {
-  const reason = a.reason === 'inbox' && takesInbox && !a.target ? 'inbox' : 'request'
+export function dispatchArgs(a: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string; reason?: 'request' | 'inbox' | 'resume' }, takesInbox = false): string[] {
+  // §3.11: a resume run always says so (SB-398, `--request` carries the task); the wiring starts one only on a
+  // Switchboard that takes it (`takesResumeReason`), since `request` would send the run after a request that is not there.
+  const reason = a.reason === 'resume' ? 'resume' : a.reason === 'inbox' && takesInbox && !a.target ? 'inbox' : 'request'
   return ['--json', 'dispatch', '--dir', a.dir, '--workflow', a.workflow, '--handoff', a.handoff, '--request', a.request, '--dispatch-id', a.dispatchId,
     '--reason', reason, '--permissions', 'all', '--timeout-minutes', String(a.timeoutMinutes), ...(a.target ? ['--target', a.target] : [])]
 }
@@ -306,6 +308,11 @@ export function dispatchArgs(a: { dir: string; workflow: string; handoff: string
 export const INBOX_REASON_SINCE = [0, 7, 56] as const
 /** Whether `switchboard --version`'s answer ("switchboard 0.7.56") names a version that takes `--reason inbox`. An
  *  answer that names no version is no: an older Switchboard would refuse the argument and start nothing. */
+/** §3.11 (fabric-switchboard SB-398, board thread `179a88f6`, `a2f39d29`): whether `switchboard dispatch --help` names
+ *  the reason `resume`. Read from the help, not a version, so it holds from the release that ships it, whatever its number. */
+export function takesResumeReason(helpText: string): boolean {
+  return /\bresume\b/.test(helpText)
+}
 export function takesInboxReason(versionText: string): boolean {
   const m = /(\d+)\.(\d+)\.(\d+)/.exec(versionText)
   if (!m) return false
@@ -375,6 +382,16 @@ export function wireBoardDispatch(o: {
   const follower = createRequestFollower(o.comms.timeline ? (id) => o.comms.timeline!(o.estateId, id) : undefined)
   /** Switchboard's `--version`, kept an hour; one that cannot be read is asked again on the next start. */
   let version: { text: string; at: number } | null = null
+  /** `switchboard dispatch --help`, kept an hour like the version; one that cannot be read is asked again next time. */
+  let dispatchHelp: { text: string; at: number } | null = null
+  /** §3.11: whether the last read said resume runs are held, logged once per change. */
+  let resumeHeld: boolean | null = null
+  const helpOf = async (sb: string): Promise<string> => {
+    if (dispatchHelp && Date.now() - dispatchHelp.at < 3600_000) return dispatchHelp.text
+    const text = await run(sb, ['dispatch', '--help'], await envWith(), 10_000).catch(() => '')
+    if (text) dispatchHelp = { text, at: Date.now() }
+    return text
+  }
   const versionOf = async (sb: string): Promise<string> => {
     if (version && Date.now() - version.at < 3600_000) return version.text
     const text = await run(sb, ['--version'], await envWith(), 10_000).catch(() => '')
@@ -468,6 +485,13 @@ export function wireBoardDispatch(o: {
         // CO-559: the version is read for an inbox run only; a version that cannot be read keeps `request`. 2026-11-12 (H3):
         // read once an hour, not before every inbox start.
         const takesInbox = a.reason === 'inbox' ? takesInboxReason(await versionOf(sb)) : false
+        // §3.11: a resume run starts only where Switchboard takes `--reason resume` (SB-398); until then it is refused here,
+        // waits out the refusal's back-off and is asked again, said once in the ops log.
+        if (a.reason === 'resume') {
+          const takes = takesResumeReason(await helpOf(sb))
+          if (takes !== resumeHeld) { resumeHeld = takes; o.log('board.dispatch.resume-reason', takes ? 'ok' : 'unknown', { held: !takes, note: takes ? 'Switchboard takes --reason resume; left work is continued' : 'Switchboard does not take --reason resume yet (SB-398); runs that continue left work are held' }) }
+          if (!takes) return { refused: 'resume_unsupported' }
+        }
         const out = JSON.parse(await run(sb, dispatchArgs(a, takesInbox), await envWith())) as { data?: { launch_id?: string; state?: string; reason?: string } }
         const d = out.data ?? {}
         if (d.state === 'refused' || !d.launch_id) return { refused: d.reason ?? 'refused' }

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · fix/resume-reason → main · fast-forward
+- files: `main/boardDispatchWiring.ts` (`--reason resume`, `takesResumeReason` from `dispatch --help`), `main/boardDispatchRun.ts`, `shared/boardDispatch.ts` (`resume_unsupported` waits), the test, the on-demand spec §3.11, the map lane `iteration-2026-11-16-resume-reason`
+- conflicts: none
+- summary: a resume run starts with Switchboard's own exit contract (SB-398), only where Switchboard takes it
+
 ### 2026-11-16 · `—` · feat/people-ask-bridge → main · fast-forward
 - files: `shared/peopleAsk.ts` (new: the `fabric-people-ask/1` contract, routing, authority), `main/peopleAskRun.ts` (new: the pass and the window's doors), `main/index.ts` (region `people-ask-wiring`), `main/agentSurface.ts` (`operatorBoard().cancel`), `shared/types.ts`, `shared/appSettings.ts` (`peopleAsk`), `launch/SettingsScreen.tsx`, `i18n/{ru,en}.ts`, the tests (`peopleAsk.test.ts`, `test/people-ask-run.test.mjs`, `appSettings.test.ts`, `SettingsScreen.test.tsx`), the spec `docs/evidence/specs/2026-11-16-people-ask-bridge.md`, AGENTS.md's lifecycle row, the map lane `iteration-2026-11-16-people-ask-bridge`
 - conflicts: `AGENTS.md` (the dispatcher row kept as main has it, the bridge's row added), `package.json`, `main/index.ts`, the settings (`resumeLeftWork` from the board supervisor and `peopleAsk`, both kept), `CHANGELOG.md`, `docs/MERGES.md`, the map's changelog (both entries, this one on top)

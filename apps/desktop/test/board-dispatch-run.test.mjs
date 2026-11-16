@@ -2159,7 +2159,7 @@ test('§3.11: a task left open in a project with no live session starts a run th
   await d.onPass()
   assert.equal(w.launches.length, 1)
   assert.equal(w.launches[0].request, TASK)
-  assert.equal(w.launches[0].reason, 'request')
+  assert.equal(w.launches[0].reason, 'resume', 'SB-398: a resume run has its own exit contract, never a request\'s')
   assert.equal(w.launches[0].target, undefined)
   const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
   assert.match(open.body.goal, new RegExp(`Continue the task fabric-task:${TASK}`))
@@ -2256,4 +2256,18 @@ test('§3.11: an empty run before a run that took the task is not carried into t
   w.tick(15 * MIN); await d.onPass()
   assert.equal(w.launches.length, 3)
   assert.equal(d.records().at(-1).emptyRuns, 0)
+})
+
+test('§3.11 (SB-398): a resume run asks Switchboard for --reason resume, only where its dispatch help names it', async () => {
+  const { dispatchArgs, takesResumeReason } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  const { refusalCheck } = await import(path.resolve(import.meta.dirname, '../src/shared/boardDispatch.ts'))
+  const a = { dir: '/w', workflow: 'wf_0123456789abcdef', handoff: 'h', request: TASK, dispatchId: 'd', timeoutMinutes: 60 }
+  const reasonOf = (args) => args[args.indexOf('--reason') + 1]
+  assert.equal(reasonOf(dispatchArgs({ ...a, reason: 'resume' })), 'resume')
+  assert.equal(reasonOf(dispatchArgs({ ...a, reason: 'resume' }, true)), 'resume')
+  assert.equal(reasonOf(dispatchArgs({ ...a, reason: 'request' })), 'request')
+  assert.equal(takesResumeReason('--reason <REASON>  [possible values: request, inbox, resume]'), true)
+  assert.equal(takesResumeReason('--reason <REASON>  [possible values: request, inbox]'), false)
+  assert.equal(takesResumeReason(''), false)
+  assert.equal(refusalCheck('resume_unsupported'), 'deferred-no-agent')
 })
