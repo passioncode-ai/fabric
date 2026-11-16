@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · refactor/console-open → main · fast-forward
+- files: `main/consoleOpen.ts`, `main/taskStart.ts`, `test/console-open.test.mjs`, `test/task-start.test.mjs` (new), `main/index.ts`, `scripts/ci.sh`, the screens waves' S3 state, the map lane `iteration-2026-11-16-s3-console-open`
+- conflicts: none
+- summary: S3: the person's launch of a console and of a task are their own modules
+
 ### 2026-11-16 · `—` · feat/screens-wave4b → main · fast-forward
 - files: the stand's Agent access and Settings (`apps/desktop/stand`, `scripts/test/screens-stand.browser.mjs`), `AgentAccessPanel.tsx`, `i18n/{ru,en}.ts`, `launch.css`, the screens waves' S4 state, the map lane `iteration-2026-11-16-s4-access-settings`
 - conflicts: none

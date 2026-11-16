@@ -78,6 +78,17 @@ still registers 19 tools inline; the next group is the task tools.
 The session launch path (consoles, the dispatcher's runs, Switchboard calls) read end to end and split along the same
 line; the launch dialog's states checked in the stand.
 
+State, 2026-11-16: the person's launch of a console left `index.ts`'s `terminal.open` handler for
+`main/consoleOpen.ts` (`createConsoleOpen`): the folder lock (CO-236), the place the agent starts in (UXA-C04), the
+fallback order's walk (ADR-0125) and the first instruction's delivery with the attach claim it holds until then
+(CO-229). `test/console-open.test.mjs` (5 tests, no database; watched failing with the claim released before the
+instruction was delivered, and with the folder lock skipped: 1 fail each); `runner-fallback`, `pty-launch-failure`,
+`chain-launch-failure` and `managed-launch` still green. Then the person's «start a task» (`tasks.start`) left for
+`main/taskStart.ts` (`createTaskStart`): the fallback choice resolved to a runner before the task exists (ADR-0125), the
+setup preset's surface (0.3.3 verification), a known id brought forward or admitted again. `test/task-start.test.mjs`
+(5 tests, no database; watched failing with the fallback choice recorded instead of the runner: 1 fail);
+`task-retry` still green. `index.ts` 6 345 lines to 6 298. Next: the launch dialog's states in the stand.
+
 ## S4 · The rest of the screens in the stand
 
 The home, Pulse, Plan, the graph, Settings and Agent access join the stand, and their defects are fixed the same way.

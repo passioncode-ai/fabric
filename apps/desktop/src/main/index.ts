@@ -357,7 +357,7 @@ function listen(channel: string, fn: (event: Electron.IpcMainEvent, ...args: nev
   })
 }
 import { installMenu } from './menu'
-import { createKeyedQueue, liveSessionOf, planTaskStart, readbackFallbackRow, refuseSetupWithoutSurface } from './taskRetry'
+import { createKeyedQueue, liveSessionOf, readbackFallbackRow } from './taskRetry'
 import { adapterSkills } from './adapterSkills'
 import { decideNotification, rememberTold, type ShowOutcome } from '../shared/notify.ts'
 import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
@@ -434,9 +434,9 @@ import { answerAssigned, assignAcross, type AssignDeps } from './crossProjectAss
 import { reviewDecisionProblem, type ReviewDecision } from '../shared/reviewDecision.ts'
 import { readInbound, setInbound } from './claudeInbound.ts'
 import { readFabricReadiness } from './fabricReadinessRead.ts'
-import { FOLDER_HELD_SAYS, createFolderLocks } from './launchFolderLock.ts'
-import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
-import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
+import { createFolderLocks } from './launchFolderLock.ts'
+import { createRunnerFallback } from './runnerFallback.ts'
+import { presetNeedsSurface } from '../shared/runnerRoute.ts'
 import { settingsPatch, workingLanguageOfRead } from '../shared/appSettings.ts'
 import { folderTrustOverridden, trustsAgentFolders } from '../shared/folderTrust.ts'
 import { fetchWithDeadline } from './dbDeadline.ts'
@@ -465,6 +465,8 @@ import type { PersistedTabs } from '../shared/tabs.ts'
 import { createContinuationDelivery, type ContinuationResult } from './continuationDelivery.ts'
 import { createPastContext } from './pastContext.ts'
 import { launchPlace } from '../shared/launchPlace.ts'
+import { createConsoleOpen } from './consoleOpen.ts'
+import { createTaskStart } from './taskStart.ts'
 
 /**
  * Whether launchd started this process as the board's job, read before anything else runs; the job's label is then
@@ -2494,46 +2496,23 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
   )
 
-  handle(IPC.tasksStart, async (_e, input: Parameters<FabricApi['tasks']['start']>[0]): Promise<Returns<FabricApi['tasks']['start']>> => {
-    // ADR-0125: the fallback choice is resolved HERE, before the task exists, so the task records the
-    // runner that runs it and never the choice. A managed task never attaches: its admission mints a
-    // new session.
-    let optionId = input.optionId
-    let route: LaunchRoute | null = null
-    // The setup preset records through Fabric's tools; main holds the line whatever the window chose — a runner by
-    // name, a created agent or the fallback order (0.3.3 verification, iteration 2, UX-2/ER-5/DA-1).
-    const needsSurface = presetNeedsSurface(input.preset)
-    if (optionId === FALLBACK_OPTION) {
-      const walk = await runnerFallback.walk(input.projectId, { kind: 'task', permissionMode: input.permissionMode ?? null, needsSurface })
-      if (walk.state === 'exhausted') throw new Error(describeExhausted(walk))
-      optionId = walk.runner
-      route = launchRoute(walk)
-    }
-    if (needsSurface) {
-      let runner = optionId
-      if (UUID.test(optionId)) {
-        const { data, error } = await store.select('agent_bindings', 'provider_ref').eq('id', optionId).maybeSingle()
-        if (error || !data) throw new Error('The selected agent could not be read. Refresh its configuration.')
-        runner = data.provider_ref as string
-      }
-      refuseSetupWithoutSurface(runner, surface.endpoint !== '')
-    }
-    // A caller-chosen id makes a retry the SAME task (taskRetry.ts#planTaskStart); two starts naming one id run one
-    // after the other (createKeyedQueue), so the second finds the first's task.
-    const begin = async (): Promise<{ task: TaskRow; session: { sessionId: string } }> => {
-      const plan = await planTaskStart<TaskRow>(input, async (id) => await store.select('project_tasks', '*').eq('id', id).maybeSingle(),
-        (id) => liveSessionOf(taskBySession, (sessionId) => ptys.get(sessionId)?.running === true, id))
-      if (plan.kind === 'running') return { task: plan.task, session: { sessionId: plan.sessionId } }
-      if (plan.kind === 'again') {
-        const again = await launchManaged({ taskId: plan.task.id, trigger: 'operator', permissionMode: input.permissionMode })
-        if (!again.started) throw new Error(again.says)
-        return { task: plan.task, session: { sessionId: again.sessionId } }
-      }
-      return startTask({ projectId: input.projectId, instruction: input.instruction, optionId, taskId: plan.taskId,
-        preset: input.preset, presetEdited: input.presetEdited, permissionMode: input.permissionMode, route })
-    }
-    return typeof input.taskId === 'string' ? oneTaskAtATime(input.taskId, begin) : begin()
+  // The person's «start a task» (`taskStart.ts`): the fallback walk, the setup preset's surface, the retry of one id.
+  const startPersonTask = createTaskStart<TaskRow>({
+    walk: (projectId, launch) => runnerFallback.walk(projectId, launch),
+    bindingRunner: async (id) => {
+      const { data, error } = await store.select('agent_bindings', 'provider_ref').eq('id', id).maybeSingle()
+      if (error || !data) throw new Error('The selected agent could not be read. Refresh its configuration.')
+      return data.provider_ref as string
+    },
+    surfaceUp: () => surface.endpoint !== '',
+    readTask: async (id) => await store.select('project_tasks', '*').eq('id', id).maybeSingle(),
+    liveSession: (id) => liveSessionOf(taskBySession, (sessionId) => ptys.get(sessionId)?.running === true, id),
+    launchManaged: (input) => launchManaged(input),
+    startTask: (input) => startTask({ projectId: input.projectId, instruction: input.instruction, optionId: input.optionId, taskId: input.taskId,
+      preset: input.preset, presetEdited: input.presetEdited, permissionMode: input.permissionMode, route: input.route }),
+    oneAtATime: oneTaskAtATime
   })
+  handle(IPC.tasksStart, (_e, input: Parameters<FabricApi['tasks']['start']>[0]): Promise<Returns<FabricApi['tasks']['start']>> => startPersonTask(input))
 
   /**
    * Start a task that ALREADY EXISTS (S04).
@@ -5442,50 +5421,24 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         }) }
       : { configured: false, walk: null })
 
+  // The person's launch of a console (`consoleOpen.ts`): folder lock, place, fallback walk, first instruction.
+  const openConsole = createConsoleOpen({
+    readProject,
+    folderHeld: (projectId) => Boolean(folderLocks.holder(projectId)),
+    home: () => app.getPath('home'),
+    ptys,
+    walk: (projectId, permissionMode, failed, skip) => runnerFallback.walk(projectId, { kind: 'terminal', permissionMode }, failed, skip),
+    // ADR-0125 §4: nothing started — the walk may move on. Everything else stops it.
+    unavailable: (error) => error instanceof SpawnFailure || error instanceof RunnerUnavailable,
+    record: (op, detail) => ops.record({ op, outcome: op === 'runner.fallback-attached' ? 'ok' : 'failed',
+      level: op === 'runner.fallback-attached' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } }),
+    failed: (op, e) => ops.failed(op, e, { note: 'the first instruction was not delivered' }),
+    syncPower
+  })
   handle(
     IPC.terminalOpen,
-    async (
-      _e,
-      projectId: string,
-      optionId: string,
-      firstInstruction?: string,
-      permissionMode?: string | null
-    ): Promise<Returns<FabricApi['terminal']['open']>> => {
-      const project = await readProject(projectId)
-      // CO-236: no second coding agent in a folder an unresolved launch may still be writing in (a plain shell is no agent).
-      if (optionId !== 'shell' && folderLocks.holder(projectId)) throw new Error(FOLDER_HELD_SAYS)
-      // ONE RULE, and the surface reads the same one (UXA-C04). This choice
-      // used to live only here, so the launcher could not say where the agent
-      // was about to start — and with no repository attached it starts in the
-      // operator's own home folder, with write tools.
-      const place = launchPlace(project.repo_path)
-      const cwd = place.place === 'repository' ? place.path : app.getPath('home')
-      // CO-229: the held session this launch attached to is claimed until its first instruction is delivered.
-      let claimed: string | null = null
-      const session = optionId === FALLBACK_OPTION
-        ? await openWithFallback({
-            walk: (failed, skip) => runnerFallback.walk(projectId, { kind: 'terminal', permissionMode: permissionMode ?? null }, failed, skip),
-            open: (runner, route) => ptys.open(projectId, cwd, runner, null, permissionMode ?? null, null, undefined, undefined, route),
-            get: (sessionId) => ptys.get(sessionId),
-            claim: (sessionId) => { const ok = ptys.claimAttach(sessionId); if (ok) claimed = sessionId; return ok },
-            // ADR-0125 §4: nothing started — the walk may move on. Everything else stops it.
-            unavailable: (error) => error instanceof SpawnFailure || error instanceof RunnerUnavailable,
-            record: (op, detail) => ops.record({ op, outcome: op === 'runner.fallback-attached' ? 'ok' : 'failed',
-              level: op === 'runner.fallback-attached' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
-          })
-        : await ptys.open(projectId, cwd, optionId, null, permissionMode ?? null)
-      syncPower()
-      const release = (): void => { if (claimed) ptys.releaseAttach(claimed) }
-      if (firstInstruction?.trim()) {
-        // The same delivery as the task path, and it must be: two ways of
-        // handing an agent its first instruction is two behaviours to keep
-        // matched, and one of them would eventually stop being fixed (M103).
-        // The claim ends when the instruction is written (or refused): the session is busy from then on.
-        void ptys.deliverWhenReady(session.sessionId, firstInstruction.trim()).finally(release)
-          .catch((e) => ops.failed('terminal.first-instruction', e, { note: 'the first instruction was not delivered' }))
-      } else release()
-      return session
-    }
+    (_e, projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null): Promise<Returns<FabricApi['terminal']['open']>> =>
+      openConsole(projectId, optionId, firstInstruction, permissionMode)
   )
 
   handle(IPC.terminalList, (_e, projectId?: string): Returns<FabricApi['terminal']['list']> => ptys.list(projectId))
