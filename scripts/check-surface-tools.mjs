@@ -32,6 +32,9 @@ const REGISTERED = 'apps/desktop/src/main/agentSurface.ts'
 const REGISTERED_BOARD = 'apps/desktop/src/main/boardTools.ts'
 // The claim tools and the session's own observations (REQ-38; the session hooks' D4/D5) register in theirs.
 const REGISTERED_WORK = 'apps/desktop/src/main/workTools.ts'
+// The groups that left `serverFor` for their own modules (the screens waves S2, 2026-11-16): Agent access, the project's
+// tools, the effects and the owner's questions.
+const REGISTERED_GROUPS = ['relayedAccessTools.ts', 'projectTools.ts', 'effectTools.ts', 'questionTools.ts'].map((f) => `apps/desktop/src/main/${f}`)
 
 const problems = []
 const notes = []
@@ -47,7 +50,7 @@ if (declared.length === 0)
 // `registerTool` is called with the name as its first argument, on the line
 // after the call opens. Matched together rather than counted separately: two
 // counts that agree can still be two different sets.
-const registeredSource = read(REGISTERED) + '\n' + read(REGISTERED_BOARD) + '\n' + read(REGISTERED_WORK)
+const registeredSource = [REGISTERED, REGISTERED_BOARD, REGISTERED_WORK, ...REGISTERED_GROUPS].map(read).join('\n')
 const registered = [
   ...registeredSource.matchAll(/server\.registerTool\(\s*\n?\s*'(fabric_[a-z_]+|com\.[a-z_]+)'/g)
 ].map((m) => m[1])
