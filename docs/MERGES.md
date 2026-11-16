@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · refactor/board-ipc → main · fast-forward
+- files: `main/boardReads.ts` (the Board's three reads out of `index.ts`), `test/board-reads.test.mjs`, `scripts/ci.sh`, the screens waves' S2 state, the map lane `iteration-2026-11-16-s2-board-reads`
+- conflicts: none
+- summary: S2's first step: the Board's reads as their own tested module
+
 ### 2026-11-16 · `—` · feat/screens-wave1 → main · fast-forward
 - files: the screens stand (`apps/desktop/stand`, `scripts/stand/build-stand.mjs`, `scripts/test/screens-stand.browser.mjs`), `MarkdownText.tsx` and its test, the agent page (`AgentPage.tsx`, `SayToAgent.tsx`), the task page (`TaskPage.tsx`), the project page (`ProjectWay.tsx`, `ProjectAnalytics.tsx`, `ProjectProfile.tsx`), Переписка (`CommsScreen.tsx`, `CommsFeed.tsx`, `CommsParts.tsx`), `launch.css`, `i18n`, `docs/evidence/plans/2026-11-16-screens-waves.md`, the map lane `iteration-2026-11-16-s1-screens`
 - conflicts: none

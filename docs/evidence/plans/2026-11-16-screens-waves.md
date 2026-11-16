@@ -48,6 +48,11 @@ Found by looking at the stand's shots and fixed:
 `boardDispatchRun.ts` (1 250 lines) the dispatcher. One module per concern with an explicit deps object, as
 `homeView.ts` and `bugCapture.ts` were moved: behaviour unchanged, each with its own test.
 
+State, 2026-11-16: the Board's three reads (what waits, answered, set aside) moved to `main/boardReads.ts` with
+`test/board-reads.test.mjs` (a failed source is an error receipt, never an empty board; watched failing with the
+receipt forced to ok). Next: `agentSurface.ts`, one factory of 2 900 lines, split along its code regions (the hub's
+external door, the session registry, the work tools), one region per change.
+
 ## S3 · Launching sessions (next)
 
 The session launch path (consoles, the dispatcher's runs, Switchboard calls) read end to end and split along the same
