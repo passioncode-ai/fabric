@@ -74,7 +74,7 @@ import { type TaskState } from '../shared/ladder.ts'
 import type { AgentAccessDoor as RelayedAccessDoor } from './relayedAccess.ts'
 import { registerAccessTools } from './relayedAccessTools.ts'
 import type { Journal } from '@fabric/journal'
-import type { PtyManager } from './pty'
+import type { HubTerminals } from './hubPorts.ts'
 import type { Policy } from './policy'
 import { createScopedStore } from './scopedStore.ts'
 import { buildProtocol, protocolHash } from '../shared/protocol.ts'
@@ -228,7 +228,7 @@ export interface AgentSurfaceDeps {
    *  `undefined`. Typing it as always-present made `ptys().get(…)` a crash in
    *  that window instead of an answer, and a 500 is not a refusal: it carries no
    *  reason and leaves no row. Every reader of it below is total. */
-  ptys: () => PtyManager | undefined
+  ptys: () => HubTerminals | undefined
   /** The decision port. Optional so the probes can stand the surface up
    *  without one; the tool that needs it says so rather than pretending. */
   policy?: Policy

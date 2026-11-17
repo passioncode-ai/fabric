@@ -11,6 +11,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 **Upgrading.** No schema step from 0.3.22 (schema 102, no migration).
 
+- **The hub's reads of the window's process are four named ports** (ADR-0195 wave W1, board task `0647986c`). The
+  terminals, the sweep's nudges, the settings and the machine's agents the hub reads are `main/hubPorts.ts`'s
+  interfaces with one implementation; no agent sees a different answer. The next wave runs the hub apart from the
+  window ([the spec §3.13](docs/evidence/specs/2026-11-04-on-demand-sessions.md#313-the-hubs-boundary-wave-w1)).
 - **«Новая сессия» says who already works in the project first** (board task `4f83a67f`). The button in an ended
   session's console started a new agent at once; now it shows the same warning as the project page when another session
   works in the project, with «Всё равно запустить» and «Подождать».

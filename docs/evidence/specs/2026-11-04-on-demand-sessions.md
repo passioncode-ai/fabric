@@ -617,6 +617,26 @@ ten minutes later, while Switchboard waits for an account to resume the first.
   «§3.12» (a limit-stopped session's task waits; the packet names the workflow), `test/board-resume-read.test.mjs`,
   `test/switchboard-sessions.test.mjs`, `test/tracking-surface.test.mjs` «§3.12».
 
+### 3.13 The hub's boundary (wave W1)
+
+[ADR-0195](../../adr/0195-the-board-runs-apart-from-the-app-and-its-supervisor-continues-left-work.md) decision 5 moves
+the board out of the window's process in four waves. W1 names what the hub reads from that process, so W2's
+`fabric-board` can give the same reads its own implementation without touching the agent surface.
+
+- **The four ports** (`main/hubPorts.ts`). `HubTerminals` is the three reads the surface makes of the terminal manager
+  (`get`, `list`, `runnerOf`; `agentSurface.ts`, `effectTools.ts`), read late and `undefined` until the manager exists,
+  as before. `HubSweep` is the sweep's nudges (`takeNudges`, `showTurnNudges`), none before the sweep starts.
+  `HubSettings` is the working language and the computer's trust, read at each call, null when the settings file could
+  not be read. `HubRegistry` is this machine's agents for `fabric_whoami`.
+- **One implementation.** `windowHubPorts` builds the four from the window's process; `main/index.ts` builds it once and
+  hands its members to the agent surface and to the enrollment and access doors. Before W1 the trust read was written
+  three times there; it is one function now.
+- **What W1 does not change.** Every answer an agent gets is the same: the closures moved, their bodies did not. The
+  terminal manager's type at the surface narrowed from `PtyManager` to the three reads, so a later wave cannot reach
+  for a write through the hub by accident.
+- **Tests.** `test/hub-ports.test.mjs`: nothing before the terminals or the sweep exist, settings read at each call and
+  unreadable read as unnamed and untrusted, the registry read at each call.
+
 ## 4. Who does what
 
 | Product | Its part |

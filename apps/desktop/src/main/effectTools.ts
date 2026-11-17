@@ -6,7 +6,7 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { Policy } from './policy'
-import type { PtyManager } from './pty'
+import type { HubTerminals } from './hubPorts.ts'
 import type { ScopedStore } from './scopedStore.ts'
 import { assertAgentReference } from './agentReference.ts'
 
@@ -16,7 +16,7 @@ export interface EffectToolsDeps {
   /** The credential-scoped store `serverFor` built: every read is narrowed to the session's estate and project. */
   store: ScopedStore
   /** The terminals, to say which runner and permission mode asks (FA-09); undefined before they exist. */
-  ptys(): PtyManager | undefined
+  ptys(): HubTerminals | undefined
 }
 
 export interface EffectToolsScope { estateId: string; projectId: string; sessionId: string }

@@ -35,7 +35,7 @@ import { createTranscriptReceipt } from './transcriptReceipt.ts'
 import { createStopHostIdentity } from './stopHostIdentity.ts'
 import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
-import { machineAgentsOf } from '../shared/machineAgents.ts'
+import { windowHubPorts } from './hubPorts.ts'
 import { createPeerCheck } from './peerAccount.ts'
 import { createAgentFolders } from './agentFolders.ts'
 import { linkWindowPlan, resolveLink, type LinkRoute } from '../shared/linkRoute.ts'
@@ -443,7 +443,7 @@ import { readFabricReadiness } from './fabricReadinessRead.ts'
 import { createFolderLocks } from './launchFolderLock.ts'
 import { createRunnerFallback } from './runnerFallback.ts'
 import { presetNeedsSurface } from '../shared/runnerRoute.ts'
-import { settingsPatch, workingLanguageOfRead } from '../shared/appSettings.ts'
+import { settingsPatch } from '../shared/appSettings.ts'
 import { folderTrustOverridden, trustsAgentFolders } from '../shared/folderTrust.ts'
 import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
@@ -1204,6 +1204,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   linkRegistry = registry
   const stopWatching = registry.watch()
   quit.onQuit(stopWatching)
+  // ADR-0195 W1: what the hub reads from this process (the terminals, the sweep, the settings, the registry), one
+  // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
+  const hubPorts = windowHubPorts({ ptys: () => ptys, sweep: () => abandonedSweep, readSettings: readSettingsState, registry })
   const accessStore = createAccessStore({ db, journal, estateId: ACTIVE_ESTATE })
   const vault = createObservatoryVault()
   const hubState = { doorToken: null as string | null, down: null as string | null, downCode: undefined as HubDownCode | undefined, downFact: undefined as string | undefined }
@@ -1356,7 +1359,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // ADR-0160 §3 (0.3.7 wave 3): an agent the person disconnected is refused at the door until let back in.
     keptOut: (key) => keptOutAgents.has(key),
     // CO-506: an organization's machine grants no answering at once; unreadable reads as unmarked, as the surface's.
-    machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust }
+    machineTrust: hubPorts.settings.machineTrust
   })
   // #endregion session-enroll-wiring
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
@@ -1376,12 +1379,12 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const sessionHolds = createMachineSessionHolds(process.env, (sessionId, until, why) =>
     ops.failed('session.hold', new Error(why), { session_id: sessionId, until, note: 'the duty officer may close this session; the next claim, renewal or release asks again' }))
   surface = new AgentSurface({
-    db, journal, ptys: () => ptys, policy, estateId: ACTIVE_ESTATE,
+    db, journal, ptys: hubPorts.terminals, policy, estateId: ACTIVE_ESTATE,
     // SW-4: a session's nudges from the sweep of abandoned work ride on its fabric_work_list and fabric_heartbeat.
-    nudges: (sessionId, projectId) => abandonedSweep?.takeNudges(sessionId, projectId) ?? [],
+    nudges: hubPorts.sweep.takeNudges,
     // 0.3.14 wave 2: and on every turn the session hooks observe (fabric_session_observe), from the same queue, shown
     // there and never taken (the review, iteration 1, PL-1: an adapter before 0.51.2 throws a turn's answer away).
-    turnNudges: (sessionId, projectId, turnKey) => abandonedSweep?.showTurnNudges(sessionId, projectId, turnKey) ?? [],
+    turnNudges: hubPorts.sweep.showTurnNudges,
     // CO-459 (DEC-0140 PR-3): a turn's reported branch, for this machine's screens only, never journalled or shared.
     reportBranch: (sessionId, branch) => reportedBranches.set(sessionId, branch),
     // T4 (the turn-end spec §4.4): a Claude Code session holding a claim is held by Switchboard until the claim ends.
@@ -1390,13 +1393,11 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     onDoneInReview: (taskId) => { void answerAssigned(assignDeps(), taskId).then((r) => { if (r.reason) ops.record({ op: 'tasks.assign-answer', outcome: 'failed', level: 'warn', detail: { task_id: taskId, reason: r.reason }, ctx: { correlationId: ops.correlate() } }) }, (e: unknown) => ops.failed('tasks.assign-answer', e)) },
     // P-24: the interface's language is the agents' working language, read at each fabric_whoami.
     // OF-38: off in Settings, the hub names no working language and the agents keep their own.
-    // A settings file that could not be read answers with defaults; unknown is not on, so it names no language
-    // (0.3.11 review, iteration 2, ER-3: the person may have switched it off).
-    language: () => workingLanguageOfRead(readSettingsState()),
-    // ADR-0176 §3: an unreadable settings file reads as not trusted (null), never as the person's last answer.
-    machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust },
+    // An unreadable settings file names no language and reads as not trusted (`hubPorts.ts#windowHubPorts`).
+    language: hubPorts.settings.language,
+    machineTrust: hubPorts.settings.machineTrust,
     // The operator, 2026-11-07: the agents of this machine for every session's fabric_whoami (`machine.agents-first`).
-    machineAgents: () => machineAgentsOf(registry.snapshot()),
+    machineAgents: hubPorts.registry.machineAgents,
     // CO-514 (DEC-0154 HA-2 (b), HA-3): another account's process is refused before its request is read.
     peerAccount: createPeerCheck(),
     // CO-409 (§3.1): a board request a session stored wakes the dispatcher when its grace ends, not a cycle later.
@@ -1437,7 +1438,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         // the missing act is said in the operations log (the CO-506 review, N1).
         note: async (outcome, opts) => (actsForSurface ? actsForSurface.note(outcome, opts) : ops.record({ op: 'acts.record', outcome: 'failed', level: 'warn', detail: { kind: outcome.kind, reason: 'history not ready' }, ctx: { correlationId: ops.correlate() } }))
       }),
-      machineTrust: () => { const read = readSettingsState(); return read.status === 'unreadable' ? null : read.value.machineTrust },
+      machineTrust: hubPorts.settings.machineTrust,
       grantOwnRespond: (proof) => hubAccess.grantOwnProjectRespond(proof)
     },
     hub: {

@@ -12,7 +12,7 @@
 // Returning `null` is what makes a file UNREADABLE, which is what makes it
 // quarantined instead of overwritten (`main/localState.ts`).
 
-import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake, type SettingsPatch } from './types'
+import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake, type SettingsPatch } from './types.ts'
 import type { TabRef } from './tabs.ts'
 import { cleanOrder, type FallbackEntry } from './runnerRoute.ts'
 import { COMMS_THREAD_HEADS_LIMIT } from './commsRead.ts'

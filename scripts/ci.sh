@@ -273,6 +273,8 @@ node --experimental-strip-types --test --test-force-exit apps/desktop/test/docke
 # abandoned work, its receipt and the half-up stack's heal, without a database. Only the full tier ran them before.
 node --experimental-strip-types --test apps/desktop/test/ingress-owners.test.mjs
 node --experimental-strip-types --test apps/desktop/test/abandoned-sweep-run.test.mjs apps/desktop/test/stack-half-up.test.mjs
+# ADR-0195 W1: the hub's four ports over the window's process (the terminals, the sweep, the settings, the registry).
+node --experimental-strip-types --test apps/desktop/test/hub-ports.test.mjs
 node --experimental-strip-types --test --test-force-exit apps/desktop/test/stack-watch.test.mjs
 node --experimental-strip-types apps/desktop/test/transcripts.test.mjs
 node apps/desktop/test/file-roots.test.mjs
