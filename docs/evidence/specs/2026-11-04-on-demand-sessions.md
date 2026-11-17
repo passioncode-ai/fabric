@@ -637,6 +637,44 @@ the board out of the window's process in four waves. W1 names what the hub reads
 - **Tests.** `test/hub-ports.test.mjs`: nothing before the terminals or the sweep exist, settings read at each call and
   unreadable read as unnamed and untrusted, the registry read at each call.
 
+### 3.14 The board in a process of its own (wave W2): the design
+
+[ADR-0195](../../adr/0195-the-board-runs-apart-from-the-app-and-its-supervisor-continues-left-work.md) decision 5, W2:
+a headless Node process, `fabric-board`, runs the hub, the agent surface, the board's reads and writes, the dispatcher,
+the sweep and the supervisor against the same stack; the window reads the board through the loopback hub like any
+client. This section is the design W2 is built from; it lands in steps, each behind the gates.
+
+**What the board needs from Electron today (measured 2026-11-17 on `f01d11f7`).** Five main-process modules import
+`electron`: `index.ts`, `env.ts`, `localStore.ts`, `menu.ts`, `appIcon.ts`. None of the board's own modules
+(`agentSurface.ts`, `hub.ts`, `accessService.ts`, `abandonedSweepRun.ts`, `boardDispatchRun.ts`,
+`boardDispatchWiring.ts`, `peopleAskRun.ts`, `sessionEnroll.ts`, `workRelease.ts`, `ops.ts`, `agentRegistry.ts`)
+does. The board reaches Electron through two seams only: `localStore.ts` resolves its folder with
+`app.getPath('userData')` (settings, kept-out agents, digest marks), and `env.ts` resolves the stack and the paths with
+`app.isPackaged`, `app.getAppPath()` and `app.getPath('home')`.
+
+**Steps.**
+
+1. **W2a, one composition.** The board's pieces are built today across `index.ts` (the registry at the start of the
+   main flow, the surface and the hub, then the sweep, the dispatcher, the people bridge and the supervisor two
+   thousand lines later). W2a moves their construction into `main/board.ts#startBoard(ports, deps)`, called by
+   `index.ts` in the same process. The four ports of §3.13 are its window-facing inputs; the database client, the
+   journal, the ops log and the folder of the data are its other inputs. Nothing an agent sees changes.
+2. **W2b, the data folder as an input (landed first, 2026-11-17).** `localStore.ts` imports no Electron: the process's
+   entry names the folder once (`setLocalStoreDir`), the window `app.getPath('userData')` at the top of `index.ts`, and
+   a store read before that throws `LocalStoreDirUnset` by name rather than reading as empty. The board's entry will
+   name the same path from its command line. Every other module takes its paths as arguments: `app.getPath` is called
+   only in `index.ts` and `env.ts` (`resourceControlledPool.ts` is handed an `app`; `localState.ts` and
+   `sessionBundle.ts` name it in comments only). Test: `test/local-store-dir.test.mjs`.
+3. **W2c, the headless entry.** `main/boardMain.ts` starts `startBoard` under plain Node (Electron's `ELECTRON_RUN_AS_NODE`
+   in the bundle) against the stack the window started. The terminals port answers from the window over the loopback
+   hub until W3 moves consoles to Switchboard's session host; while the window is closed it answers `undefined`, which
+   every reader already treats as «cannot tell» (`AgentSurfaceDeps.ptys`).
+4. **W2d, the window as a client.** The window stops starting the hub and reads the board through the hub's loopback
+   door. Until W4 the window starts `fabric-board` itself and stops it at quit, so nothing outlives the app yet.
+
+**Not in W2.** The stack's start stays the window's (`env.ts`); the board waits for it as the hub's standby does today
+(`main/hubStandby.ts`). The launchd job is W4.
+
 ## 4. Who does what
 
 | Product | Its part |

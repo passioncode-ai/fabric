@@ -36,6 +36,7 @@ import { createStopHostIdentity } from './stopHostIdentity.ts'
 import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
 import { windowHubPorts } from './hubPorts.ts'
+import { setLocalStoreDir } from './localStore.ts'
 import { createPeerCheck } from './peerAccount.ts'
 import { createAgentFolders } from './agentFolders.ts'
 import { linkWindowPlan, resolveLink, type LinkRoute } from '../shared/linkRoute.ts'
@@ -473,6 +474,10 @@ import { createPastContext } from './pastContext.ts'
 import { launchPlace } from '../shared/launchPlace.ts'
 import { createConsoleOpen } from './consoleOpen.ts'
 import { createTaskStart } from './taskStart.ts'
+
+// ADR-0195 W2b: this process's data folder for every local store (settings, kept-out agents, digest marks), named
+// before any read; `fabric-board` names the same path in W2c.
+setLocalStoreDir(() => app.getPath('userData'))
 
 /**
  * Whether launchd started this process as the board's job, read before anything else runs; the job's label is then

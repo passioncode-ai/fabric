@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · feat/board-w2-design → main · fast-forward
+- files: `apps/desktop/src/main/localStore.ts` (no Electron, `setLocalStoreDir`), `index.ts` (names `userData` at start), `test/local-store-dir.test.mjs`, the on-demand spec §3.14, CO-545's row
+- conflicts: none
+- summary: ADR-0195 wave W2 designed (steps W2a to W2d) and step W2b landed (board task 8b86adf3)
+
 ### 2026-11-17 · `—` · feat/hub-ports → main · fast-forward
 - files: `apps/desktop/src/main/hubPorts.ts` (new), `index.ts`, `agentSurface.ts`, `effectTools.ts`, `shared/appSettings.ts` (an import with its extension), `test/hub-ports.test.mjs`, the on-demand spec §3.13, CO-545's row
 - conflicts: none
