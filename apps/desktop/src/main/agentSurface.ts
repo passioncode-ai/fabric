@@ -91,6 +91,7 @@ import { ExternalIngress, type HubIngress } from './externalIngress.ts'
 import { BodyReadTimeout, BodyTooLarge, readJson, refuse } from './requestBody.ts'
 import { registerWorkTools, type LiveSession } from './workTools.ts'
 import { readTurnVerdict, type VerdictStore } from './turnVerdictRead.ts'
+import { holdUntil } from './sessionHolds.ts'
 import { currentLeases } from './agentSyncLeases.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import type { LeaseRefsRead } from './agentSyncLeases.ts'
@@ -213,6 +214,9 @@ export interface AgentSurfaceDeps {
   turnNudges?: (sessionId: string, projectId: string, turnKey: string) => Nudge[]
   /** CO-459 (DEC-0140 PR-3): a turn's reported branch, held by the host for this machine's screens only. */
   reportBranch?: (sessionId: string, branch: string | null) => void
+  /** T4 (the turn-end spec §4.4): asks Switchboard to hold a Claude Code session (by its runtime id) until a Unix second,
+   *  or to release it with 0 (`sessionHolds.ts`). Fire and forget: the host says its own failures. */
+  holdSession?: (runtimeSessionId: string, until: number) => void
   /** CO-458: a task released done reached review; answers its cross-project board request, if it has one. */
   onDoneInReview?: (taskId: string) => void
   db: SupabaseClient
@@ -584,7 +588,11 @@ export class AgentSurface {
 
   /** The session is gone from this surface; its claims are released through `onSessionEnded` (once). */
   private sessionEnded(sessionId: string, why: 'ended' | 'app-quit'): void {
+    const gone = this.live.get(sessionId)
     if (!this.live.delete(sessionId)) return
+    // T4: an ended session holds nothing; its Switchboard hold is released. Fabric quitting is not the session's end:
+    // the agent runs on and rejoins after the restart, so its hold stays (it lapses at the claim's expiry anyway).
+    if (why === 'ended' && gone?.agent === 'claude-code' && gone.runtimeSessionId && this.claimHolders.has(sessionId)) this.deps.holdSession?.(gone.runtimeSessionId, 0)
     this.claimHolders.delete(sessionId)
     // #region board-release-session — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#5-leases-fences-and-the-clock
     // DEC-0073 §5: the session's end releases every responder slot it holds. Best effort: the authority recheck inside
@@ -1078,17 +1086,49 @@ export class AgentSurface {
     const rows = (r.data ?? []) as Array<{ id: string; work_id: string; expires_at: string }>
     if (!rows.length) {
       this.claimHolders.delete(scope.sessionId)
+      this.holdFor(scope, [])
       return
     }
     const now = this.now()
+    const expiries: string[] = []
     for (const c of rows) {
-      if (Date.parse(c.expires_at) - now > RENEW_WITHIN_MS) continue
+      if (Date.parse(c.expires_at) - now > RENEW_WITHIN_MS) { expiries.push(c.expires_at); continue }
+      const renewed = new Date(now + CLAIM_DEFAULT_MINUTES * 60_000).toISOString()
       await this.appendRedacted({
         estateId: scope.estateId, type: 'work.renewed@1', actor: { kind: 'agent', id: scope.sessionId }, projectId: scope.projectId,
-        payload: { work: c.work_id, owner: scope.sessionId, expires_at: new Date(now + CLAIM_DEFAULT_MINUTES * 60_000).toISOString(), claim_id: c.id }
+        payload: { work: c.work_id, owner: scope.sessionId, expires_at: renewed, claim_id: c.id }
       })
+      expiries.push(renewed)
     }
+    this.holdFor(scope, expiries)
   }
+
+  // #region session-hold-sync — docs: docs/evidence/specs/2026-11-16-turn-end-waits.md#44-a-live-session-the-duty-officer-must-not-close
+  /** T4: re-reads this session's live claims and asks Switchboard to hold it until the newest expires (release at none). */
+  private syncHold(scope: AgentScope): void {
+    if (!this.deps.holdSession || !this.holdable(scope)) return
+    const store = createScopedStore(this.deps.db, { kind: 'project', estateId: scope.estateId, projectId: scope.projectId })
+    void Promise.resolve(store.select('work_claims', 'expires_at').eq('owner_session', scope.sessionId).is('released_at', null)).then((r) => {
+      if (r.error) throw new Error(`the claims could not be read: ${r.error.message}`)
+      this.holdFor(scope, ((r.data ?? []) as Array<{ expires_at: string }>).map((c) => c.expires_at))
+    }).catch((e) => ops.failed('agentSurface.session-hold', e, { note: 'the hold is set again with the next claim, renewal or release', session_id: scope.sessionId }))
+  }
+
+  /** Only a Claude Code session with its runtime id: Switchboard's hold names Claude Code sessions. */
+  private holdable(scope: AgentScope): boolean {
+    return (scope.agent ?? this.live.get(scope.sessionId)?.agent) === 'claude-code' && this.runtimeIdOf(scope) !== null
+  }
+
+  private runtimeIdOf(scope: AgentScope): string | null {
+    return this.live.get(scope.sessionId)?.runtimeSessionId ?? scope.runtimeSessionId ?? null
+  }
+
+  private holdFor(scope: AgentScope, expiries: readonly string[]): void {
+    const rt = this.runtimeIdOf(scope)
+    if (!this.deps.holdSession || !rt || !this.holdable(scope)) return
+    this.deps.holdSession(rt, holdUntil(expiries, this.now()))
+  }
+  // #endregion session-hold-sync
   // #endregion claim-renewal
 
   /**
@@ -1902,7 +1942,9 @@ export class AgentSurface {
           ? this.deps.work.resolveSource(scope.projectId, source)
           : Promise.resolve({ ok: false, part: 'repository', reason: 'this Fabric resolves no backlog rows' }),
       leaseRefs: () => (this.deps.work ? this.deps.work.leaseRefs(scope.projectId) : Promise.resolve(null)),
+      onReleased: () => this.syncHold(scope),
       onClaimed: () => {
+        this.syncHold(scope)
         if (!this.claimHolders.has(scope.sessionId)) this.claimHolders.set(scope.sessionId, this.now() + RENEW_EVERY_MS)
       },
       // After the answer has gone: ending the session closes the transport this answer travels on.

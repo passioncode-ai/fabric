@@ -120,6 +120,8 @@ export interface WorkToolDeps {
   turnVerdict?(): Promise<TurnVerdict | null>
   /** CO-459 (DEC-0140 PR-3): the git branch a turn reports, held in this process for display only; never journalled. */
   reportBranch?(branch: string | null): void
+  /** T4 (the turn-end spec §4.4): a claim of this session was released; the host updates its Switchboard hold. */
+  onReleased?(): void
   /** CO-458: a task released done is in review; the host answers the board request it was assigned by, if any. */
   onDoneInReview?(taskId: string): void
   /** `com.list` through this session's own reader door, for `fabric_board_search`; absent, the board part says so. */
@@ -646,12 +648,16 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       const backToBacklog = (c: { id: string; work_id: string }) =>
         returnClaimedTaskToBacklog(c.id, () => ownTask(c.work_id), (id) => taskHeldElsewhere(store, id, { id: c.id, owner_session: scope.sessionId }, deps.now()),
           (task, to) => deps.append({ type: 'task.moved@1', payload: { task_id: task.id, from: task.status, to, note: backToBacklogNote(ending, said), claim_id: c.id } }))
-      const release = async (c: { id: string; work_id: string }, extra: Record<string, unknown> = {}): Promise<number> =>
-        (await deps.append({
+      const release = async (c: { id: string; work_id: string }, extra: Record<string, unknown> = {}): Promise<number> => {
+        const seq = (await deps.append({
           type: 'work.released@1',
           payload: { work: c.work_id, owner: scope.sessionId, outcome: RELEASE_OUTCOME[ending], how: ending, claim_id: c.id, note: said, ...(waits ? { wait: waits } : {}),
                      ...(idempotencyKey ? { idempotency_key: `release:${scope.sessionId}:${idempotencyKey}:${c.id}` } : {}), ...extra }
         })).seq
+        // T4: the session's Switchboard hold follows what it still holds.
+        deps.onReleased?.()
+        return seq
+      }
 
       if (claims === 'session') {
         // TR-2: a session-wide release is what the hooks send at an end; the end guards apply to it too.

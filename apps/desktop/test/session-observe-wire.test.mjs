@@ -284,3 +284,26 @@ test('T2: the tool\'s description tells the agent what a verdict means', async (
   assert.match(d, /verdict \{next: continue, reason, task_id\}/)
   assert.match(d, /goes on with that task now/)
 })
+
+// T4 (the turn-end spec §4.4): every claim a session releases tells the host, so its Switchboard hold follows.
+test('T4: a released claim tells the host (onReleased), once per claim written', async () => {
+  let read = 0
+  const claimsStore = {
+    select(table) {
+      const rows = table === 'work_claims' && read++ === 0 ? [{ id: 'c1', work_id: 'w1' }, { id: 'c2', work_id: 'w2' }] : []
+      const chain = new Proxy({}, {
+        get(_t, prop) {
+          if (prop === 'then') return (resolve) => resolve({ data: rows, error: null })
+          if (prop === 'maybeSingle' || prop === 'single') return async () => ({ data: null, error: null })
+          return () => chain
+        }
+      })
+      return chain
+    }
+  }
+  let told = 0
+  const h = await connect('rt-hook-1', { store: claimsStore, onReleased: () => { told++ } })
+  const r = said(await h.client.callTool({ name: 'fabric_work_release', arguments: { claims: 'session', how: 'let-go', note: 'session over' } }))
+  assert.equal(h.appended.filter((e) => e.type === 'work.released@1').length, 2, JSON.stringify(r))
+  assert.equal(told, 2)
+})

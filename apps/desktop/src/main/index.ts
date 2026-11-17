@@ -432,6 +432,7 @@ import { favourites, moveProject, projectOrder, replaceFavourite, toggleFavourit
 import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors, findOnPath, widenProbePath } from './executorDetect.ts'
+import { createMachineSessionHolds } from './sessionHolds.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
 import { readMachineLimitStops, readMachineSwitchboardSessions } from './switchboardSessions.ts'
 import { answerAssigned, assignAcross, type AssignDeps } from './crossProjectAssign.ts'
@@ -1325,6 +1326,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   quit.onQuit(() => { void agentCall.flush() })
   hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down }, get downCode() { return hubState.downCode }, get downFact() { return hubState.downFact } }
   const hubAccess = access
+  const sessionHolds = createMachineSessionHolds(process.env, (sessionId, until, why) =>
+    ops.failed('session.hold', new Error(why), { session_id: sessionId, until, note: 'the duty officer may close this session; the next claim, renewal or release asks again' }))
   surface = new AgentSurface({
     db, journal, ptys: () => ptys, policy, estateId: ACTIVE_ESTATE,
     // SW-4: a session's nudges from the sweep of abandoned work ride on its fabric_work_list and fabric_heartbeat.
@@ -1334,6 +1337,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     turnNudges: (sessionId, projectId, turnKey) => abandonedSweep?.showTurnNudges(sessionId, projectId, turnKey) ?? [],
     // CO-459 (DEC-0140 PR-3): a turn's reported branch, for this machine's screens only, never journalled or shared.
     reportBranch: (sessionId, branch) => reportedBranches.set(sessionId, branch),
+    // T4 (the turn-end spec §4.4): a Claude Code session holding a claim is held by Switchboard until the claim ends.
+    holdSession: (runtimeSessionId, until) => { void sessionHolds.set(runtimeSessionId, until) },
     // CO-458: a task assigned from another project answers its board request once released done (never awaited).
     onDoneInReview: (taskId) => { void answerAssigned(assignDeps(), taskId).then((r) => { if (r.reason) ops.record({ op: 'tasks.assign-answer', outcome: 'failed', level: 'warn', detail: { task_id: taskId, reason: r.reason }, ctx: { correlationId: ops.correlate() } }) }, (e: unknown) => ops.failed('tasks.assign-answer', e)) },
     // P-24: the interface's language is the agents' working language, read at each fabric_whoami.

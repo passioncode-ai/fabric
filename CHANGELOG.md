@@ -9,6 +9,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A session holding a task is not closed by Switchboard's duty officer** (the turn-end spec, wave T4). While a Claude
+  Code session holds a claim, Fabric asks Switchboard to hold it (`switchboard monitor hold`) until the newest claim
+  expires, renews it with the claims and releases it when none is left or the session ends.
 - **A left task Fabric gave up continuing shows in «На проверке»** (the turn-end spec, wave T6). When three runs the
   board supervisor started never took a task a session left unfinished, the sweep puts it in the operator's queue as
   its own row (`task-to-operator`), instead of the task waiting unseen.

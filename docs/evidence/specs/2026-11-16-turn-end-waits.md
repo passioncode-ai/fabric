@@ -107,7 +107,7 @@ Each wave lands on `main` on its own, gates green; nothing that works is broken 
 | T1 | `wait` on release; the supervisor continues a left task only once its wait clears, at once when it names nothing checkable | Fabric | `e46b39dc` |
 | T2 | The turn verdict in `fabric_session_observe` (`shared/turnVerdict.ts`, landed 2026-11-16) | Fabric | `8c5f66b5` |
 | T3 | The Stop hook acts on the verdict; the skill's turn-end rule | fabric-agent-adapter | request filed with this spec |
-| T4 | Holds for claim-holding sessions; `--reason resume` live | Fabric, Switchboard | `f53de384`, SB-398, SB-399 |
+| T4 | Holds for claim-holding sessions (`main/sessionHolds.ts`, landed 2026-11-16; `--reason fabric_claim` once Switchboard ships it); `--reason resume` live since Switchboard 0.7.109 | Fabric, Switchboard | `f53de384`, SB-398, SB-399 |
 | T5 | A remote run's question reaches «Нужны вы» and its answer resumes the run there | Fabric, Switchboard | filed with this spec |
 | T6 | «На проверке» shows a task the supervisor gave the operator (`task-to-operator`, landed 2026-11-16); a wait past its time is still open | Fabric | `a8993a15` |
 | B1 to B4 | The board out of the window's process (ADR-0195 W1 to W4) | Fabric, Switchboard | `0647986c`, `8b86adf3`, `dbeb4fcd`, `4e0976c6` |

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-16 · `—` · feat/session-holds → main · fast-forward
+- files: `main/sessionHolds.ts` (new), `main/agentSurface.ts` (holds on claim, renewal, release and end), `main/workTools.ts` (`onReleased`), `main/index.ts`, tests, AGENTS.md's background table
+- conflicts: none
+- summary: wave T4, a claim-holding Claude Code session is held by Switchboard
+
 ### 2026-11-16 · `—` · feat/resume-to-operator → main · fast-forward
 - files: `shared/abandonedSweep.ts` (`task-to-operator`, `SweepLeftTask`), `main/abandonedSweepRun.ts`, `main/index.ts` (the dispatcher's `resumeGiven` handed to the sweep), the attention title and its strings, tests, the sweep row in AGENTS.md
 - conflicts: none
@@ -16,7 +21,7 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 
 ### 2026-11-16 · `—` · docs/turn-end-waits → main · fast-forward
 - files: the turn-end spec, `shared/boardResume.ts` (`parseWait`, `waitCleared`, `waitLine`), `main/boardResumeRead.ts` (waits read from `work.released@1`, settled questions, access and board requests), `main/workTools.ts` (`wait` on `fabric_work_release`), the dispatcher's packet and wiring, `shared/protocolObligations.ts` (`turn-end-states`), the tests, AGENTS.md, the map lane `iteration-2026-11-16-turn-end-waits`
-- conflicts: none
+- conflicts: with fix/resumed-session-claims, rebased onto it: `shared/boardResume.ts` (`ResumeItem` keeps `wait` and the session and workflow; the limit-stop skip and the wait both hold a task), `main/boardResumeRead.ts`, the dispatcher's wiring and packet, `main/index.ts`, `test/board-resume-read.test.mjs`, the docs; both sides kept
 - summary: a release names what it waits for; the supervisor continues the task when the wait clears; a question to a person is one he understands (`shared/questionClarity.ts`, `fabric_question_ask` refuses `question-unclear`, the cards lead with a readable sentence); the wiki sync names a timed-out git call and its notice keeps one text per event id
 
 ### 2026-11-17 · `—` · fix/resumed-session-claims → main · fast-forward
