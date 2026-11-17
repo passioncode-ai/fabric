@@ -1038,7 +1038,9 @@ test('V2 ER-4: vault reads have bounded process concurrency and resolve the laun
 test('V2 ER-4: a cancelled vault read leaves its queue without spawning', async (t) => {
   const o=fakeObservatory()
   t.after(()=>rmSync(o.root,{recursive:true,force:true}))
-  const vault=createObservatoryVault({launcher:o.launcher,env:{...o.env,FAKE_RUN_SLEEP:'0.35'}})
+  // A deadline a loaded machine holds (a356dd6f's class, 3000db44): on a busy Mac the four reads' engine, `where` and
+  // `run` each start a Python, and the default 7 s once ended every read before it ran, read as 0 runs.
+  const vault=createObservatoryVault({launcher:o.launcher,env:{...o.env,FAKE_RUN_SLEEP:'0.35'},timeoutMs:60_000})
   await vault.put(slot,SECRET)
   const controller=new AbortController()
   const reads=Array.from({length:4},()=>vault.read(slot))
@@ -1047,7 +1049,7 @@ test('V2 ER-4: a cancelled vault read leaves its queue without spawning', async 
   const answer=await queued
   assert.equal(answer.ok,false)
   assert.match(answer.reason,/cancel/i)
-  await Promise.all(reads)
+  for (const r of await Promise.all(reads)) assert.equal(r.ok,true,`a read ahead of the cancelled one failed: ${r.reason}`)
   const runs=readFileSync(o.log,'utf8').trim().split('\n').map(l=>JSON.parse(l)).filter(a=>a[1]==='run')
   assert.equal(runs.length,4)
 })

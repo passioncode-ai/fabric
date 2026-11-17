@@ -26,7 +26,8 @@ const stubborn = path.join(dir, 'stubborn.py'); writeFileSync(stubborn, `import 
 const host = { hostInstanceId: randomUUID(), bootId: randomUUID() }
 const boundary = createProcessBoundary(), backends = [], views = [], registries = [], hosts = []
 const delay = ms => new Promise(r => setTimeout(r, ms))
-const until = async (fn, label, ms = 4000) => { const end = performance.now() + ms; while (performance.now() < end) { if (await fn()) return; await delay(10) } throw Error(label) }
+// 20 s as native-view-host's: on a loaded machine (load 67, 2026-11-17) a TUI took longer than 4 s to say it was ready.
+const until = async (fn, label, ms = 20_000) => { const end = performance.now() + ms; while (performance.now() < end) { if (await fn()) return; await delay(10) } throw Error(label) }
 const stamp = fd => { const s = fstatSync(fd); return `${s.dev}/${s.ino}/${s.rdev}/${s.mode}` }
 let serial = 10
 async function backend() {

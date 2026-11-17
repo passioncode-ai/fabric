@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/load-flakes → main · fast-forward
+- files: `apps/desktop/test/hub-products.test.mjs` (the cancelled-read test: a 60 s vault deadline, every read ahead asserted with its reason), `scripts/test/bounded-run.test.mjs` (the mid-takeover test: the late run starts once a live winner holds, the winner holds until let go), `apps/desktop/test/backend-view.test.mjs` (waits 20 s as native-view-host)
+- conflicts: none
+- summary: three tests no longer stop the gate under machine load (tasks 3000db44, ab73f87c)
+
 ### 2026-11-17 · `—` · fix/console-one-bar → main · fast-forward
 - files: `SessionWindow.tsx` (one bar under the terminal, `NewSession`), `TerminalView.tsx` (the unpadded fit box), `SessionStop.tsx` («Завершить сессию», its tooltip), `consoles.tsx` (`startClocks`, `shortFolder`), `launch/ConsoleTabs.tsx`, `App.tsx` (the tabs' and the title's start time, no back row), `styles.css`, `launch/launch.css`, `components/registry.ts`, `i18n/{ru,en}.ts`, the tests, the screens stand's console (`stand/`, `scripts/test/screens-stand.browser.mjs`), SCN-172's amendment, the product model and report, the map lane `iteration-2026-11-17-console-one-bar`
 - conflicts: none

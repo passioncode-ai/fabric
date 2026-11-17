@@ -203,7 +203,7 @@ test('a timed-out run ends the nested runs it started too, not only its own grou
 // another token, and a later run got the lock while the winner still held it.
 test('after a taker died mid-takeover: one winner, the lock names it, and a later run is refused', async () => {
   const lib = path.resolve(import.meta.dirname, '../lib/bounded-run.mjs')
-  const racer = `import { acquireLock } from ${JSON.stringify(lib)}; import { readFileSync } from 'node:fs'; const [file, hold] = process.argv.slice(-2); const token = 'r' + process.pid; let l; try { l = acquireLock(file, { token }) } catch (e) { process.stdout.write(JSON.stringify({ threw: e.code })); process.exit(0) } let owns = false; try { owns = JSON.parse(readFileSync(file, 'utf8')).token === token } catch {} process.stdout.write(JSON.stringify({ won: !!l, owns })); setTimeout(() => { l?.release(); process.exit(0) }, Number(hold))`
+  const racer = `import { acquireLock } from ${JSON.stringify(lib)}; import { existsSync, readFileSync } from 'node:fs'; const [file, hold] = process.argv.slice(-2); const token = 'r' + process.pid; let l; try { l = acquireLock(file, { token }) } catch (e) { process.stdout.write(JSON.stringify({ threw: e.code })); process.exit(0) } let owns = false; try { owns = JSON.parse(readFileSync(file, 'utf8')).token === token } catch {} process.stdout.write(JSON.stringify({ won: !!l, owns })); const end = Date.now() + Number(hold); const tick = setInterval(() => { if (!l || existsSync(file + '.let-go') || Date.now() > end) { clearInterval(tick); l?.release(); process.exit(0) } }, 20)`
   const run = (file, hold) => new Promise((resolve) => {
     const c = spawn(process.execPath, ['--input-type=module', '-e', racer, file, String(hold)], { stdio: ['ignore', 'pipe', 'inherit'] })
     let o = ''; c.stdout.on('data', (b) => { o += b }); c.on('exit', () => { try { resolve(JSON.parse(o)) } catch { resolve({ parse: o }) } })
@@ -216,9 +216,13 @@ test('after a taker died mid-takeover: one winner, the lock names it, and a late
     // The claim a taker leaves when it dies mid-takeover, in both the old and the current shape.
     writeFileSync(`${file}.takeover`, JSON.stringify({ pid: await deadPid(), token: 'mid', at: 'x' }))
     writeFileSync(`${file}.takeover.crashed.0`, JSON.stringify({ pid: await deadPid(), token: 'mid', at: 'x' }))
-    const first = Array.from({ length: 6 }, () => run(file, 2500))
-    await new Promise((r) => setTimeout(r, 1000))
+    // The winner holds until the late run has answered (a file it watches), never for a fixed time: on a loaded machine
+    // a late node took longer to start than a 2.5 s hold, so it was handed a lock already let go (ab73f87c).
+    const first = Array.from({ length: 6 }, () => run(file, 120_000))
+    const held = (() => { try { return /^r\d+$/.test(JSON.parse(readFileSync(file, 'utf8')).token) } catch { return false } })
+    for (const end = Date.now() + 60_000; !held(); await new Promise((r) => setTimeout(r, 20))) assert.ok(Date.now() < end, `round ${round}: no contender took the lock`)
     const late = await run(file, 0)
+    writeFileSync(`${file}.let-go`, '')
     const outs = await Promise.all(first)
     const winners = outs.filter((o) => o.won)
     assert.equal(outs.filter((o) => o.threw).length + (late.threw ? 1 : 0), 0, `round ${round}: a contender threw ${JSON.stringify([...outs, late])}`)
