@@ -238,6 +238,74 @@ test('an item decided on the computer is taken back: its request cancelled «р�
   assert.equal(b.records()[0].state, 'cancelled')
 })
 
+/** The board ending the n-th request as the PM side or its deadline would. */
+const endRequest = (w, i, state) => {
+  [...w.threads.values()][i][0].request.state = state
+}
+
+test('a request the board ends without the person\'s decision is asked once more while the item stays open (task 5f23ea40)', async () => {
+  for (const ended of ['failed_known', 'completed', 'expired']) {
+    const w = world()
+    const b = createPeopleAskBridge(w.deps)
+    await b.onPass()
+    endRequest(w, 0, ended)
+    await b.onPass()
+    assert.equal(w.submits.length, 2, `${ended}: asked again in the same pass`)
+    assert.equal(w.submits[1].input.idempotency.key, askKey(`question:${Q}`, 2, 2), `${ended}: under a key of its own`)
+    assert.notEqual(w.submits[1].input.idempotency.key, w.submits[0].input.idempotency.key)
+    assert.match(w.submits[1].input.thread.new.subject, /^Нужны вы, ещё раз: /)
+    assert.equal(w.cancels.length, 0, `${ended}: an ended request is not cancelled`)
+    const rec = b.records().find((r) => r.state === 'open')
+    assert.equal(rec.attempt, 2)
+    assert.ok(w.logs.some((l) => l.op === 'people.ask.ended' && l.detail.request_state === ended))
+    // The second request ends undecided too: nothing more is sent, now or after a restart.
+    endRequest(w, 1, ended)
+    await b.onPass()
+    await b.onPass()
+    assert.equal(w.submits.length, 2, `${ended}: once more, never a third`)
+    const w2 = world({ loaded: w.saved.at(-1), threads: w.threads })
+    await createPeopleAskBridge(w2.deps).onPass()
+    assert.equal(w2.submits.length, 0, `${ended}: a restart asks nothing again`)
+  }
+})
+
+test('an ended request whose item left «Нужны вы» or whose answer was applied is not asked again', async () => {
+  const w = world()
+  const b = createPeopleAskBridge(w.deps)
+  await b.onPass()
+  w.answer(0, answerBlock())
+  endRequest(w, 0, 'completed')
+  await b.onPass()
+  assert.equal(w.applied.length, 1)
+  assert.equal(b.records()[0].state, 'applied')
+  assert.equal(w.submits.length, 1, 'the person decided: nothing is asked again')
+  const w2 = world()
+  const b2 = createPeopleAskBridge(w2.deps)
+  await b2.onPass()
+  endRequest(w2, 0, 'failed_known')
+  w2.items = []
+  await b2.onPass()
+  assert.equal(w2.submits.length, 1, 'decided elsewhere: nothing is asked again')
+})
+
+test('an ended request with an answer this pass could not judge stays open until a reading can tell', async () => {
+  const w = world()
+  const b = createPeopleAskBridge(w.deps)
+  await b.onPass()
+  w.answer(0, answerBlock())
+  endRequest(w, 0, 'completed')
+  w.items = []
+  w.complete = false
+  await b.onPass()
+  assert.equal(b.records()[0].state, 'open', 'the answer waits; the request is not closed as undecided')
+  assert.equal(w.submits.length, 1)
+  w.items = entries([question()])
+  w.complete = true
+  await b.onPass()
+  assert.equal(w.applied.length, 1)
+  assert.equal(w.submits.length, 1)
+})
+
 test('an unreadable or partial «Нужны вы» cancels nothing and applies nothing it cannot confirm open', async () => {
   const w = world()
   const b = createPeopleAskBridge(w.deps)

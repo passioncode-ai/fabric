@@ -48,6 +48,10 @@ describe('itemOf: one item id per «Нужны вы» row, in the contract form 
   it('the request key is people-ask:<item>:<revision> and fits the board\'s idempotency key', () => {
     expect(askKey(`question:${Q}`, 3)).toBe(`people-ask:question:${Q}:3`)
     expect(askKey(`question:${Q}`, 3)).toMatch(/^[A-Za-z0-9._:-]{8,128}$/)
+    // Task 5f23ea40: the first ask keeps its 0.3.22 key, so a request already open is the same one; a second has its own.
+    expect(askKey(`question:${Q}`, 3, 1)).toBe(`people-ask:question:${Q}:3`)
+    expect(askKey(`question:${Q}`, 3, 2)).toBe(`people-ask:question:${Q}:3:2`)
+    expect(askKey(`question:${Q}`, 3, 2)).toMatch(/^[A-Za-z0-9._:-]{8,128}$/)
   })
 })
 

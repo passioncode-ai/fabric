@@ -119,10 +119,16 @@ Its own interval beside the dispatcher, every 45 s (`PEOPLE_ASK_WATCH_MS`), one 
    one of the item's, free text only where the item takes it, the decider's level at least `mayDecide.level`
    (owner > administrator > architect > member). An accepted answer is applied (§5), then the result is posted. A
    result that could not be posted is posted on a later pass with the same key; the decision is never made again.
-3. **Withdraws** an open request whose item left a complete reading, changed revision, or whose switch is off; a request
-   the board already expired or cancelled is closed without a cancel.
+3. **Withdraws** an open request whose item left a complete reading, changed revision, or whose switch is off. A request
+   the board already ended (expired, cancelled, or completed or failed by the PM side) with nothing applied here is closed
+   without a cancel and marked as ended without a decision (`people.ask.ended`), unless an answer in its thread waits for
+   a reading that can judge it. Added 2026-11-17 (task 5f23ea40): before, a request the PM side completed or failed with
+   no answer stayed open in the records, so its item was never asked again while it still waited in «Нужны вы»
+   (`review:09160077`, failed_known).
 4. **Asks** each item no request covers at its revision: routed (§3), the PM's responder live, then submitted. At most 10
-   new requests a pass. A refused submit is kept and tried again after an hour. What was not asked is counted by reason
+   new requests a pass. An item whose request ended without a decision is asked once more at the same revision
+   (`ASK_ATTEMPTS`, 2), under a key of its own (`askKey(item, revision, 2)`) and the subject «Нужны вы, ещё раз»; a
+   second ending asks nothing more, and the records keep that across a restart. A refused submit is kept and tried again after an hour. What was not asked is counted by reason
    and logged once each time the count changes (`people.ask.skipped`).
 
 What was asked and decided is kept in `userData/people-asks.json` (0600, written whole and renamed, as
@@ -164,7 +170,7 @@ offered only «Отказать».
 ## 6. Failure handling
 
 Every failure goes to the operations log and ends nothing else: `people.ask.read`, `people.ask.thread`,
-`people.ask.responders`, `people.ask.project`, `people.ask.submitted`, `people.ask.applied`, `people.ask.result`,
+`people.ask.responders`, `people.ask.project`, `people.ask.submitted` (with its attempt), `people.ask.ended`, `people.ask.applied`, `people.ask.result`,
 `people.ask.cancelled`, `people.ask.save`, `people.ask.records-unread`, `people.ask.pass`, with item ids, kinds,
 organizations and levels; never a person's words or Telegram id. A door that refuses (the question revised, the task no
 longer in review) leaves the item open and says why in the thread; a later answer may still decide it.

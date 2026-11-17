@@ -27,6 +27,10 @@ export const MAX_WATCHED = 100
 export const WATCH_CLOSED_MS = 2 * 3600_000
 /** A refused submit is tried again after this. */
 export const RETRY_UNSENT_MS = 3600_000
+/** How many requests one item gets at one revision: the board ending one with no decision asks once more (task 5f23ea40). */
+export const ASK_ATTEMPTS = 2
+/** The board's request states that end a request; one that ends with nothing applied here ended without a decision. */
+const ENDED = new Set(['expired', 'cancelled', 'completed', 'failed_known'])
 const KEEP_CLOSED_MS = 30 * 24 * 3600_000
 const MAX_RECORDS = 2000
 
@@ -48,6 +52,10 @@ export interface AskRecord {
   requestId: string | null
   thread: string | null
   askedAt: number
+  /** Which request this is for the item at its revision: absent is the first (`ASK_ATTEMPTS`). */
+  attempt?: number
+  /** The board ended the request (expired, cancelled, completed or failed by the PM side) with nothing applied here. */
+  endedUndecided?: boolean
   closedAt?: number
   retryAt?: number
   /** Each answer judged, by its message id, with the result said in the thread and whether that was posted. */
@@ -167,6 +175,8 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
     const watched = list.filter((r) => r.requestId && r.thread && (r.state === 'open' || (r.closedAt !== undefined && now - r.closedAt < WATCH_CLOSED_MS)
       || Object.values(r.handled).some((h) => !h.posted))).slice(0, MAX_WATCHED)
     const requestState = new Map<AskRecord, string>()
+    /** Records with an answer this pass could not judge yet: their request is never closed as undecided. */
+    const pending = new Set<AskRecord>()
     for (const r of watched) {
       if (deps.quitting()) return
       let messages: CommsMessage[]
@@ -201,7 +211,7 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
         else {
           const cur = current.get(r.item)
           // A reading that could not tell whether the item is open decides nothing: the answer waits for the next pass.
-          if (!cur && !complete) continue
+          if (!cur && !complete) { pending.add(r); continue }
           const judged = judgeAnswer(r.ask, parsed.answer, cur ? { revision: cur.revision } : null)
           if (!judged.ok) result = { applied: false, reason: judged.reason }
           else {
@@ -246,7 +256,17 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
       }
       if (r.state !== 'open') continue
       const st = requestState.get(r)
-      if (st === 'expired' || st === 'cancelled') { r.state = 'closed'; r.closedAt = now; dirty = true; continue }
+      if (st && ENDED.has(st) && !pending.has(r)) {
+        // The board ended it and nothing was applied here (an applied record is no longer open): the PM side completed or
+        // failed it without the person's answer, or it expired. Step 3 asks once more while the item stays open
+        // (task 5f23ea40: review:09160077 waited, its request closed failed_known, 2026-11-17).
+        r.state = 'closed'
+        r.closedAt = now
+        r.endedUndecided = true
+        dirty = true
+        deps.log('people.ask.ended', 'ok', { item: r.item, kind: r.kind, organization: r.organization, request_state: st, attempt: r.attempt ?? 1 })
+        continue
+      }
       const cur = current.get(r.item)
       const reason = !on ? 'присылать вопросы в Telegram выключено'
         : complete && !cur ? 'решено в другом месте'
@@ -292,7 +312,9 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
         if (deps.quitting()) return
         if (sent >= MAX_SUBMITS) { skip('pass-bound'); continue }
         const existing = list.find((r) => r.item === item && r.revision === cur.revision)
-        if (existing && !(existing.state === 'unsent' && now >= (existing.retryAt ?? 0))) continue
+        const again = existing?.state === 'closed' && existing.endedUndecided === true && (existing.attempt ?? 1) < ASK_ATTEMPTS
+        if (existing && !again && !(existing.state === 'unsent' && now >= (existing.retryAt ?? 0))) continue
+        const attempt = again ? (existing!.attempt ?? 1) + 1 : existing?.attempt ?? 1
         let project: ProjectFacts | null
         try { project = await deps.projectOf(cur.entry) } catch (e) { /* said through deps.log (the operations log) or as the refusal it returns */ skip('project-unread'); deps.log('people.ask.project', 'failed', { item, note: noteOf(e) }); continue }
         if (!project) { skip('no-project'); continue }
@@ -313,7 +335,7 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
         if (!prepared) { skip('not-askable'); continue }
         const { ask, act } = prepared
         const base: AskRecord = { item, revision: cur.revision, kind: cur.kind, sender: project.id, target: route.target, organization: route.organization,
-          ask, act, state: 'unsent', requestId: null, thread: null, askedAt: now, handled: existing?.handled ?? {} }
+          ask, act, state: 'unsent', requestId: null, thread: null, askedAt: now, handled: existing?.handled ?? {}, ...(attempt > 1 ? { attempt } : {}) }
         let refused: string | null = null
         let receipt: Record<string, unknown> = {}
         try {
@@ -321,8 +343,8 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
           if (epoch === null) refused = 'no-epoch'
           else {
             receipt = await deps.submit(project.id, {
-              idempotency: { epoch, key: askKey(item, cur.revision) },
-              thread: { new: { participants: [route.target], subject: [...`Нужны вы: ${ask.text}`].slice(0, 200).join('') } },
+              idempotency: { epoch, key: askKey(item, cur.revision, attempt) },
+              thread: { new: { participants: [route.target], subject: [...`${attempt > 1 ? 'Нужны вы, ещё раз' : 'Нужны вы'}: ${ask.text}`].slice(0, 200).join('') } },
               kind: 'request',
               body: { format: 'text/markdown', text: askBody(ask) },
               request: { target: route.target, capability: PEOPLE_ASK_CAPABILITY, deadline: ask.deadline }
@@ -338,7 +360,7 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
         const record: AskRecord = refused || !requestId || !thread
           ? { ...base, retryAt: now + RETRY_UNSENT_MS }
           : { ...base, state: 'open', requestId, thread }
-        deps.log('people.ask.submitted', record.state === 'open' ? 'ok' : 'failed', { item, kind: cur.kind, organization: route.organization,
+        deps.log('people.ask.submitted', record.state === 'open' ? 'ok' : 'failed', { item, kind: cur.kind, organization: route.organization, attempt,
           ...(record.state === 'open' ? { request: requestId } : { refused: refused ?? 'no-request-id' }) })
         if (existing) list.splice(list.indexOf(existing), 1, record)
         else list.push(record)

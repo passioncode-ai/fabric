@@ -92,7 +92,8 @@ export function itemOf(e: BoardEntry): { item: string; revision: number; kind: A
 }
 
 /** The request's idempotency key (the contract's `people-ask:<item>:<revision>`). */
-export const askKey = (item: string, revision: number): string => `people-ask:${item}:${revision}`
+/** The request's idempotency key: the first ask keeps the 0.3.22 form, a later one adds its attempt (task 5f23ea40). */
+export const askKey = (item: string, revision: number, attempt = 1): string => `people-ask:${item}:${revision}${attempt > 1 ? `:${attempt}` : ''}`
 
 const FLOOR_WORDS: Record<string, string> = { money: 'трату денег', deletion: 'удаление', publication: 'публикацию' }
 
