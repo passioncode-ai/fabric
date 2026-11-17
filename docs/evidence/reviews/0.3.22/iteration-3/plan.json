@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "8893248b9e98f1c0cfe59f5712e33035efe02145",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3/2026-11-17-plan.md",
+  "reportSha256": "f10844f940c11f419b120103459c89bf38cc9f9ec709f9536a792ae4ed2ff085",
+  "reviewerRun": "release-0322-i3d-plan-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: a new top lane in the map's `#changelog`, and `bash scripts/ci.sh fast` read on the release commit before the tag (item 0b)"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the Release close below carries the people-ask bridge's first live pass, T5's set-up on a second machine, the North Star note on §6 and G29, and the adapter's T3 request"
+      ]
+    }
+  ]
+}

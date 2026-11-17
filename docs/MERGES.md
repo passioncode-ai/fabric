@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · release/0.3.22-commit → main · fast-forward
+- files: `apps/desktop/package.json` (0.3.22), `CHANGELOG.md` (`## 0.3.22`; run four's DO-1 and DO-2), `docs/launch/release-gate.json` (`verifiedCommit` `8893248b`), the verification ledger and the three iterations' review reports and receipts, the handoff, the map
+- conflicts: none
+- summary: release: Fabric 0.3.22 (task 07510265)
+
 ### 2026-11-17 · `—` · fix/release-0322-i3 → main · fast-forward
 - files: `main/index.ts` and `main/sessionEnroll.ts` (one grant the person revokes marks its sessions first: `markGrantPersonEnded`, `idsForGrant`), `main/sessionHolds.ts` (the hold's comment), `CHANGELOG.md` (T4: at most an hour past the last tool call), `.github/workflows/ci.yml` and `platforms.yml` (the Supabase CLI pinned to 2.114.0: `latest` failed on GitHub's rate limit), the turn-end spec §7, CO-590
 - conflicts: none

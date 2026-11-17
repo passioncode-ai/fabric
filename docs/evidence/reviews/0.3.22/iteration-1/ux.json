@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "cffeb7111f5c3429986ded60a3984ab1aa732674",
+  "report": "docs/evidence/reviews/0.3.22/iteration-1/2026-11-17-ux.md",
+  "reportSha256": "fbcc166bb2b7e4d3beb18456c0018360b648b0c71a9a03f1664efc145e04418b",
+  "reviewerRun": "release-0322-i1-ux-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): the kanban's two notes name the column «In progress» as the column does (`launch.kanban.abandonedNote`, `launch.kanban.agentOnlyRunning`); the copy check found nothing"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): the buttons' accessible names use `shownTitle`; test «a screen reader names the buttons by the shown title, never the machine id» in `AgentAccessPanel.test.tsx`, watched failing on the old panel"
+      ]
+    }
+  ]
+}

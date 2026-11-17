@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "cffeb7111f5c3429986ded60a3984ab1aa732674",
+  "report": "docs/evidence/reviews/0.3.22/iteration-1/2026-11-17-errors.md",
+  "reportSha256": "929e7254e0fd6c393748c6604d8994ec4c2448eb46591ab6dae32324727c0169",
+  "reviewerRun": "release-0322-i1-errors-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): a change asked while a hold call runs is kept, newest wins, and asked after it (`sessionHolds.ts#createSessionHolds`); test «a release asked while the hold is in flight is asked once that call ends», watched failing"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): holds asked together share one lookup (`createMachineSessionHolds`, `looking`)"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): a failed read of a filed question is logged once as `board.dispatch.question` failed, reason unread; test «a filed question that cannot be read is said once as unread», watched failing"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    }
+  ]
+}

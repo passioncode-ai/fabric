@@ -7,14 +7,14 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.22
 
 **Upgrading.** No schema step from 0.3.21 (schema 102, no migration). From 0.3.19, take 0.3.20's step first
 (migration 129, by [the runbook](docs/launch/release-mac.md#upgrading-an-existing-database), with a backup). On macOS turn
 «Служба доски» off before the quit and on again once the new version runs. Two switches are new in Settings, both on:
 «Продолжать начатую работу без меня» and «Присылать вопросы в Telegram через агента организации». The board supervisor
-continues only work left after the new version first ran (`resume-since.json` in the app's data folder), never what agents
-left under 0.3.21, whose let-go named no wait. Going back to 0.3.21:
+continues only work left after its first read under the new version, with both its switches on (`resume-since.json` in
+the app's data folder), never what agents left before it, whose let-go named no wait. Going back to 0.3.21:
 first answer the questions a run on another machine asked; before upgrading back, remove `resume-since.json`, and set
 the two switches again after it (the runbook's 0.3.22 paragraph).
 
@@ -54,7 +54,7 @@ the two switches again after it (the runbook's 0.3.22 paragraph).
   client's leave only when no other own client of it has called in the last five minutes.
 - **A working session holding a task is not closed by Switchboard's duty officer** (the turn-end spec, wave T4). While
   a Claude Code session holds a claim, Fabric asks Switchboard to hold it (`switchboard monitor hold`) until the newest
-  claim expires, but at most an hour past the session's last tool call, renews it with the claims and its work, and
+  claim expires, but at most an hour past the session's last call of a Fabric tool (its turn report included), renews it with the claims and its work, and
   releases it when none is left, the session has been idle that hour or it ends; an idle session is judged by the duty
   officer as before.
 - **A left task Fabric gave up continuing shows in «На проверке»** (the turn-end spec, wave T6). When three runs the

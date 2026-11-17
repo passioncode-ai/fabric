@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "591905408b6ea855bfcdd2f671c5b0796bfba655",
+  "report": "docs/evidence/reviews/0.3.22/iteration-2/2026-11-17-data.md",
+  "reportSha256": "d7a78a46be174b7d1a69ec47b1934a89e23c45dfbae857f92c7e7bd6280ca5bd",
+  "reviewerRun": "release-0322-i2-data-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the supervisor continues only work left after it first ran here (`main/boardResumeRead.ts#resumeSince`, `resume-since.json`, named in `AGENTS.md` and the CHANGELOG's Upgrading); test «DA-1: only work left since the supervisor began on this machine is continued»"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    }
+  ]
+}

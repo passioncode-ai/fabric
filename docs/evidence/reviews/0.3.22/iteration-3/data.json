@@ -1,0 +1,13 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "8893248b9e98f1c0cfe59f5712e33035efe02145",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3/2026-11-17-data.md",
+  "reportSha256": "6b0b83761feea9da0cb645d00c632a92e77a318400b4b91c0df95fb28ae53d4d",
+  "reviewerRun": "release-0322-i3d-data-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": []
+}

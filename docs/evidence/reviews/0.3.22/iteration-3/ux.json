@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "8893248b9e98f1c0cfe59f5712e33035efe02145",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3/2026-11-17-ux.md",
+  "reportSha256": "85e5b515daec25731185fd0694f9a0e83cbc1c0d2a4080058057f943b2891540",
+  "reviewerRun": "release-0322-i3d-ux-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`)"
+      ]
+    }
+  ]
+}

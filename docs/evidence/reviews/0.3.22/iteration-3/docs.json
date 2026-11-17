@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "8893248b9e98f1c0cfe59f5712e33035efe02145",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3/2026-11-17-docs.md",
+  "reportSha256": "3931b979d02e8a303dea4bfb964b3fa7313e767da22a7e88f1fe22eb86b407c4",
+  "reviewerRun": "release-0322-i3d-docs-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit for the CHANGELOG (the hour runs from the session's last call of a Fabric tool, the turn report included); spec §4.4 and `AGENTS.md` at item 0c"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the Upgrading paragraph says the supervisor counts from its first read under the new version, with both switches on"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`)"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`)"
+      ]
+    }
+  ]
+}

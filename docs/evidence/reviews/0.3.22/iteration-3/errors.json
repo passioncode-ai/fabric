@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "8893248b9e98f1c0cfe59f5712e33035efe02145",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3/2026-11-17-errors.md",
+  "reportSha256": "16f28023bf5c7eeb49ab36e3cb13b4997dd7bba6596e7dc721c16e38973fc54e",
+  "reviewerRun": "release-0322-i3d-errors-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`)"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`)"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`); nothing acts on the verdict until the adapter's Stop hook ships (request `91e94d4c`)"
+      ]
+    }
+  ]
+}

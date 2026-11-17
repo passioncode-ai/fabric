@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "591905408b6ea855bfcdd2f671c5b0796bfba655",
+  "report": "docs/evidence/reviews/0.3.22/iteration-2/2026-11-17-ux.md",
+  "reportSha256": "8ad79910020457dbaeafe17c495c7b79e1c30bc751764a498bec96f510f764e6",
+  "reviewerRun": "release-0322-i2-ux-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the refusal says to wait with a nearer until and release again then, or keep the claim and wait in the session"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    }
+  ]
+}

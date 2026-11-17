@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "cffeb7111f5c3429986ded60a3984ab1aa732674",
+  "report": "docs/evidence/reviews/0.3.22/iteration-1/2026-11-17-plan.md",
+  "reportSha256": "9eee46bf1f200ce062e09b6bf6895fa6fb0064946929a363b620800e73da914d",
+  "reviewerRun": "release-0322-i1-plan-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): the same as DO-1: the CHANGELOG and spec §4.2 no longer promise the adapter's hook"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): the same as DO-2: a time past the window is refused, the open wait's end is said; the operator route ruled: CO-590"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    }
+  ]
+}

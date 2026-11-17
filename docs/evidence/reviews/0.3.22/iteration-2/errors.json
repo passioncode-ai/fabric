@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "591905408b6ea855bfcdd2f671c5b0796bfba655",
+  "report": "docs/evidence/reviews/0.3.22/iteration-2/2026-11-17-errors.md",
+  "reportSha256": "624e228c6ab118738d8df08f0ca91234d6e5ad20b06a89c8d966c953bf882cd7",
+  "reviewerRun": "release-0322-i2-errors-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the separate window offers no «Новая сессия» (`SessionWindow.tsx`); test «the separate window of an ended session offers no new session it could not start», watched failing; the CHANGELOG says so"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    }
+  ]
+}
