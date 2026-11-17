@@ -115,7 +115,7 @@ jobs:
           python-version: '3.12'
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.114.0
       - name: Documentation gate prerequisites
         run: |
           # ripgrep from apt, else the pinned release from GitHub: on 2026-11-11 the runners could not resolve the

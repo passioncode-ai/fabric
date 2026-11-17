@@ -159,8 +159,8 @@ it works and takes the next wave when one lands.
 ## 7. Checks that prove it
 
 T1: `src/shared/boardResume.test.ts` (each kind clears only on its condition; a wait without anything checkable is
-none), `test/board-resume-read.test.mjs` (the wait read back from the release's event), `test/board-dispatch-run.test.mjs`
-(a run's packet names the wait). T2: the verdict's unit tests (claim, wait, two empty turns). T5: `src/shared/boardDispatch.test.ts`
+none), `test/board-resume-read.test.mjs` (the wait read back from the release's event), a run's packet
+naming the wait has no test yet (CO-590). T2: the verdict's unit tests (claim, wait, two empty turns). T5: `src/shared/boardDispatch.test.ts`
 (a remote run's question read and refused by its code) and the `T5:` tests of `test/board-dispatch-run.test.mjs`
 (filed, waited on, resumed on the same machine with the answer). Every wave:
 `bash scripts/ci.sh fast` exit 0 on the commit that lands.

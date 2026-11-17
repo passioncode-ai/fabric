@@ -514,7 +514,11 @@ function markPersonEnded(sessionId: string): void {
 function markBindingPersonEnded(bindingId: string): void {
   for (const s of enrolledForMarks?.liveOf(bindingId) ?? []) markPersonEnded(s.sessionId)
 }
-let enrolledForMarks: { liveOf(bindingId: string): Array<{ sessionId: string }> } | null = null
+/** A grant the person revokes ends the sessions minted under it (`sessionEnroll.ts#endForGrant`): each is marked first. */
+function markGrantPersonEnded(grantId: string): void {
+  for (const id of enrolledForMarks?.idsForGrant(grantId) ?? []) markPersonEnded(id)
+}
+let enrolledForMarks: { liveOf(bindingId: string): Array<{ sessionId: string }>; idsForGrant(grantId: string): string[] } | null = null
 let admission: ReturnType<typeof createProjectAdmission>
 /** W2 S3/S4: files a project's onboarding task; set where the journal and store exist (below), read by the IPC handler. */
 let fileOnboardingTask: ((projectId: string, name: string) => Promise<{ taskId: string; filed: boolean }>) | null = null
@@ -1394,7 +1398,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       overview: () => hubAccess.overview(),
       request: (id) => accessStore.request(id),
       decide: (id, verdict, actor, relayed) => hubAccess.decide(id, verdict, actor, relayed),
-      revokeGrant: (id, actor, relayed) => hubAccess.revokeGrant(id, actor, relayed),
+      revokeGrant: (id, actor, relayed) => { markGrantPersonEnded(id); return hubAccess.revokeGrant(id, actor, relayed) },
       revokeAgent: createRevokeAgent({
         nameOf: async (bindingId) => {
           const b = await accessStore.binding(bindingId).catch((e: unknown) => { ops.failed('hub.access.revoke-name-unreadable', e, { binding_id: bindingId }); return null })
@@ -4467,7 +4471,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return done
   })
   handle(IPC.hubRevokeGrant, async (_e, grantId: string): Promise<Returns<FabricApi['hub']['revokeGrant']>> =>
-    hubReady().access.revokeGrant(String(grantId), OPERATOR_ACTOR))
+    (markGrantPersonEnded(String(grantId)), hubReady().access.revokeGrant(String(grantId), OPERATOR_ACTOR)))
   handle(IPC.hubRevokeAgent, async (_e, bindingId: string): Promise<Returns<FabricApi['hub']['revokeAgent']>> => {
     const h = hubReady()
     // The agent's name, read before the revocation, so История can say which agent it was (CO-353): the name its

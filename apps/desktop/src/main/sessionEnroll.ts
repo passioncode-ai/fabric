@@ -270,9 +270,15 @@ export class EnrolledSessions {
     return ids
   }
 
+  /** The sessions minted under a grant, which `endForGrant` would end (0.3.22 review, iteration 3, run three: a person's
+   *  revocation marks them first). */
+  idsForGrant(grantId: string): string[] {
+    return [...this.rows.values()].filter((r) => r.grantId === grantId || (r.grantIds ?? []).includes(grantId)).map((r) => r.sessionId)
+  }
+
   /** Ends every session minted under a grant; returns their ids. */
   endForGrant(grantId: string): string[] {
-    const ids = [...this.rows.values()].filter((r) => r.grantId === grantId || (r.grantIds ?? []).includes(grantId)).map((r) => r.sessionId)
+    const ids = this.idsForGrant(grantId)
     for (const id of ids) this.endSession(id)
     return ids
   }
