@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/browser-suites-advisory → main · fast-forward
+- files: `scripts/test/run-browser-suites.sh` (a failure printed in full; `FABRIC_BROWSER_ADVISORY=1` says it without failing), `.github/workflows/ci.yml` (hosted runs advisory)
+- conflicts: none
+- summary: `1dc1f280` turned hosted ci red: two browser suites fail on Linux only (run 44092831058); advisory there until fixed (board task a832e3ad)
+
 ### 2026-11-17 · `—` · fix/browser-suites-run → main · fast-forward
 - files: `.github/workflows/ci.yml` (Playwright 1.58.2 and the runner's Chrome for both jobs), `renderer/src/launch/launch.css` (`.as-said`, `.as-said li`, `.lp-analytics-stat`: `minmax(0,1fr)`), `scripts/test/layout-stress.browser.mjs` (`.as-facts` named as a label grid), `CHANGELOG.md`
 - conflicts: none
