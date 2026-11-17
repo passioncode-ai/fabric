@@ -66,24 +66,30 @@ async function readSettled(store: Store, waits: Wait[], requestState?: RequestSt
 /**
  * When the supervisor began on this machine (0.3.22 review, iteration 2, DA-1): a release before it was made by a Fabric
  * whose let-go meant «back to the queue» and could name no wait, so continuing it would start every task left in the week
- * before the upgrade at once (42 tasks in 30 projects on the operator's board). Kept in `file` from the first read on; a
- * file that cannot be read or written gives `now`, so nothing older is ever continued.
+ * before the upgrade at once (42 tasks in 30 projects on the operator's board). Kept in `file` from the first read on, and
+ * in this process too, so a file that cannot be written still begins once (iteration 3, ER-1: a fresh `now` on every pass
+ * read an empty window and silently continued nothing); its failure is said once through `failed`.
  */
-export function resumeSince(file: string, now: number): string {
+const begun = new Map<string, string>()
+export function resumeSince(file: string, now: number, failed?: (e: unknown) => void): string {
+  const known = begun.get(file)
+  if (known) return known
   try {
     const kept = JSON.parse(readFileSync(file, 'utf8')) as { since?: unknown }
-    if (typeof kept.since === 'string' && Number.isFinite(Date.parse(kept.since))) return kept.since
+    if (typeof kept.since === 'string' && Number.isFinite(Date.parse(kept.since))) { begun.set(file, kept.since); return kept.since }
   } catch {
     // No file yet, or one that does not read: the supervisor begins now, and the file is written below.
   }
   const since = new Date(now).toISOString()
+  begun.set(file, since)
   try {
     mkdirSync(path.dirname(file), { recursive: true })
     const tmp = `${file}.${process.pid}.tmp`
     writeFileSync(tmp, JSON.stringify({ since }) + '\n', { mode: 0o600 })
     renameSync(tmp, file)
-  } catch {
-    // Unwritten: the next read begins at its own now again, which still continues nothing older than this start.
+  } catch (e) {
+    // Unwritten: this process keeps its start (above); the next process begins at its own start, never earlier.
+    failed?.(e)
   }
   return since
 }

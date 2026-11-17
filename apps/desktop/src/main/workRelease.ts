@@ -201,19 +201,24 @@ async function taskOf(store: Store, taskId: string): Promise<{ id: string; statu
 }
 // #endregion work-release-returns-task
 
-/** Releases every live claim a session holds, as `session-ended`. Returns the claims released. */
-export async function releaseSessionClaims(store: Store, append: Append, sessionId: string, why: 'ended' | 'app-quit'): Promise<string[]> {
+/** Releases every live claim a session holds, as `session-ended`; as the person's own release (`operator`) when `byPerson`
+ *  names who ended it (0.3.22 review, iteration 3, PL-1: the board supervisor continues a `session-ended` release, so a
+ *  session the person ended with «Завершить сессию» came back ten minutes later). Returns the claims released. */
+export async function releaseSessionClaims(store: Store, append: Append, sessionId: string, why: 'ended' | 'app-quit', byPerson?: { kind: ActorKind; id: string }): Promise<string[]> {
   const r = await store.select('work_claims', 'id,work_id,project_id').eq('owner_session', sessionId).is('released_at', null)
   if (r.error) throw new Error(`the session's claims could not be read: ${r.error.message}`)
   const done: string[] = []
-  const how = why === 'app-quit' ? 'the app quit' : 'session-ended'
+  const person = why === 'ended' ? byPerson : undefined
+  const how = why === 'app-quit' ? 'the app quit' : person ? 'operator' : 'session-ended'
   for (const c of (r.data ?? []) as Array<{ id: string; work_id: string; project_id: string }>) {
-    const actor = { kind: 'system' as const, id: why === 'app-quit' ? 'app-quit' : 'session-end' }
+    const actor = person ?? { kind: 'system' as const, id: why === 'app-quit' ? 'app-quit' : 'session-end' }
     await append({
       type: 'work.released@1',
       actor,
       projectId: c.project_id,
-      payload: { work: c.work_id, owner: sessionId, outcome: RELEASE_OUTCOME['session-ended'], how: 'session-ended', claim_id: c.id }
+      payload: person
+        ? { work: c.work_id, owner: sessionId, outcome: RELEASE_OUTCOME.operator, how: 'operator', claim_id: c.id }
+        : { work: c.work_id, owner: sessionId, outcome: RELEASE_OUTCOME['session-ended'], how: 'session-ended', claim_id: c.id }
     })
     done.push(c.id)
     // DA-6, 0.3.14: the running task goes back to backlog when nothing else holds it; nobody is on it now.

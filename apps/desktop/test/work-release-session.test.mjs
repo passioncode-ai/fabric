@@ -254,3 +254,39 @@ test('turn-end §3: a release carries one checkable wait, refused on done and wh
   assert.match(tool, /if \(wait && !waits\) return reply\(\{ released: false, code: 'bad-input'/)
   assert.match(tool, /claim_id: c\.id, note: said, \.\.\.\(waits \? \{ wait: waits \} : \{\}\)/, 'the parsed wait, never the raw input, is journalled')
 })
+
+// 0.3.22 review, iteration 3, PL-1: a session the person ended («Завершить сессию») released its claims as
+// `session-ended`, which the board supervisor continues, so the stopped work came back ten minutes later. Released as
+// the person's own release (`operator`), it is not continued; an end nobody chose still reads `session-ended`.
+const { releaseSessionClaims } = await import(path.resolve(import.meta.dirname, '../src/main/workRelease.ts'))
+function endedStore() {
+  const rows = {
+    work_claims: [{ id: 'c1', work_id: 't1', project_id: 'p1' }],
+    project_tasks: { id: 't1', status: 'review' },
+    leases: null
+  }
+  const chain = (table) => {
+    const q = {
+      eq: () => q, is: () => q,
+      maybeSingle: async () => ({ data: table === 'project_tasks' ? rows.project_tasks : rows.leases, error: null }),
+      then: (ok, ko) => Promise.resolve({ data: table === 'work_claims' ? rows.work_claims : [], error: null }).then(ok, ko)
+    }
+    return q
+  }
+  return { select: (table) => chain(table) }
+}
+test('PL-1: a session the person ended releases its claims as the person\'s own, which is not continued', async () => {
+  const person = { kind: 'person', id: 'operator-1' }
+  const byPerson = []
+  await releaseSessionClaims(endedStore(), async (e) => { byPerson.push(e) }, 's1', 'ended', person)
+  const released = byPerson.filter((e) => e.type === 'work.released@1')
+  assert.equal(released.length, 1)
+  assert.equal(released[0].payload.how, 'operator')
+  assert.deepEqual(released[0].actor, person)
+  const nobody = []
+  await releaseSessionClaims(endedStore(), async (e) => { nobody.push(e) }, 's1', 'ended')
+  assert.equal(nobody.find((e) => e.type === 'work.released@1').payload.how, 'session-ended')
+  const quit = []
+  await releaseSessionClaims(endedStore(), async (e) => { quit.push(e) }, 's1', 'app-quit', person)
+  assert.equal(quit.find((e) => e.type === 'work.released@1').payload.how, 'session-ended', 'Fabric quitting is nobody\'s end of the work')
+})

@@ -343,7 +343,9 @@ prints nothing), so upgrading from 0.3.21 is the new bundle alone and going back
 questions first; a «Нужны вы» item sent to an organization's PM agent stays open there with nobody applying its answer;
 and 0.3.21's first write of `settings.json` drops the two switches it does not know, «Продолжать начатую работу без меня»
 and «Присылать вопросы в Telegram через агента организации», so upgrading again turns both back on: set them again
-after the upgrade.
+after the upgrade. Before upgrading again, remove `resume-since.json` from the app's data folder: it keeps the start of the
+first 0.3.22, and the supervisor would otherwise continue what agents left under 0.3.21 in between (the 0.3.22 review,
+iteration 3, PL-2, DA-1).
 
 1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
    on: turn it off and then quit before the bundle is replaced (`launchctl bootout` stops only a copy launchd started;

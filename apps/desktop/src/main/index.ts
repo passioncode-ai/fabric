@@ -500,6 +500,16 @@ let ACTIVE_ESTATE: string = DEFAULT_ESTATE
  * handle it carries is unchanged, so no event already written reads differently.
  */
 let OPERATOR_ACTOR: { kind: 'person'; id: string }
+
+/** PL-1 (0.3.22 review, iteration 3): sessions the person ended with «Завершить сессию», by session id, until their end
+ *  releases their claims; at most `PERSON_ENDED_MAX`, the oldest dropped. */
+const personEndedSessions = new Set<string>()
+const PERSON_ENDED_MAX = 200
+function markPersonEnded(sessionId: string): void {
+  personEndedSessions.delete(sessionId)
+  personEndedSessions.add(sessionId)
+  while (personEndedSessions.size > PERSON_ENDED_MAX) personEndedSessions.delete(personEndedSessions.values().next().value as string)
+}
 let admission: ReturnType<typeof createProjectAdmission>
 /** W2 S3/S4: files a project's onboarding task; set where the journal and store exist (below), read by the IPC handler. */
 let fileOnboardingTask: ((projectId: string, name: string) => Promise<{ taskId: string; filed: boolean }>) | null = null
@@ -1464,7 +1474,10 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     },
     // A session's claims end with it (REQ-38): its terminal exited, its enrollment was revoked or evicted, the app quits.
     onSessionEnded: async (sessionId, why) => {
-      await releaseSessionClaims(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), sessionId, why)
+      // PL-1 (0.3.22 review, iteration 3): a session the person ended releases its claims as the person's own release,
+      // which the board supervisor does not continue.
+      const byPerson = personEndedSessions.delete(sessionId) ? OPERATOR_ACTOR : undefined
+      await releaseSessionClaims(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), sessionId, why, byPerson)
     }
     // #endregion work-claims-wiring
   })
@@ -3190,7 +3203,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     resume: {
       on: () => readSettings().resumeLeftWork,
       // DA-1 (0.3.22 review, iteration 2): only work left since the supervisor began on this machine is continued.
-      read: (now, requestState) => readResumeCandidates(store, now, requestState, resumeSince(path.join(app.getPath('userData'), 'resume-since.json'), now)),
+      read: (now, requestState) => readResumeCandidates(store, now, requestState, resumeSince(path.join(app.getPath('userData'), 'resume-since.json'), now, (e) => ops.failed('board.resume-since', e, { note: 'the supervisor keeps its start in memory until Fabric quits' }))),
       state: (taskId, releasedAt) => readResumeState(store, taskId, releasedAt),
       // §3.12: a task whose session Switchboard will resume after a usage limit waits for that session.
       limitStops: () => readMachineLimitStops(sessionEnvironment(process.env))
@@ -5754,6 +5767,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (typeof sessionId !== 'string' || !UUID.test(sessionId)) throw new Error('Invalid session identity')
     // What the console was, read BEFORE it stops: «start it again where it stood» needs the place and the way it ran.
     const stood = consoleOf(ptys.get(sessionId))
+    // PL-1: marked before the stop, so the end it causes releases the session's claims as the person's (`onSessionEnded`).
+    markPersonEnded(sessionId)
     const result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true })
     if (stood) {
       const outcome = sessionStopOutcome(stood, result, await projectNameOf(stood.projectId))

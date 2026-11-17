@@ -15,8 +15,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 «Продолжать начатую работу без меня» and «Присылать вопросы в Telegram через агента организации». The board supervisor
 continues only work left after the new version first ran (`resume-since.json` in the app's data folder), never what agents
 left under 0.3.21, whose let-go named no wait. Going back to 0.3.21:
-first answer the questions a run on another machine asked, and set the two switches again after upgrading back (the
-runbook's 0.3.22 paragraph).
+first answer the questions a run on another machine asked; before upgrading back, remove `resume-since.json`, and set
+the two switches again after it (the runbook's 0.3.22 paragraph).
 
 - **No machine names on the screens, a narrow window keeps the project and the board whole** (wave U, 2026-11-16).
   История says an agent's act without repeating «агент» after «Кто» («Агент · взял задачу»); Agent access titles an agent
@@ -35,7 +35,8 @@ runbook's 0.3.22 paragraph).
   control. The act that ends a session is called «End session» (it read «Stop execution»), its tooltip says what stays,
   and an ended session's console in the main window offers «New session» with the same coding agent and permissions in the same project (a separate console window cannot open one, and offers none). Two tabs of
   one project and one coding agent now say when each session started («since 01:16»), in the tab and in the title.
-  No confirmation is asked before ending (ADR-0160). The screens stand draws the console at 1780, 1100 and 820 px.
+  No confirmation is asked before ending (ADR-0160). A session the person ends
+  leaves its tasks in the queue as the person's own release: the board supervisor does not start them again. The screens stand draws the console at 1780, 1100 and 820 px.
 
 - **A run on another machine can ask a person, and the answer continues the work there** (the turn-end spec, wave T5).
   A run Fabric starts through Switchboard on another machine has no board, so its packet now tells it to end

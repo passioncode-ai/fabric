@@ -142,9 +142,13 @@ test('DA-1: only work left since the supervisor began on this machine is continu
     })
     const r = await readResumeCandidates(s, NOW, undefined, begun)
     assert.deepEqual(r.candidates.map((c) => c.taskId), ['after'])
-    // A file that does not read begins now: nothing older is continued.
-    const unreadable = path.join(dir, 'no', 'such', '\0bad')
-    assert.equal(resumeSince(unreadable, NOW), new Date(NOW).toISOString())
+    // A file that cannot be written begins now, once: later passes keep that start (iteration 3, ER-1: a fresh now on
+    // every pass read an empty window and continued nothing), and the failure is said once.
+    const unwritable = path.join(dir, 'no', 'such', '\0bad')
+    const failures = []
+    assert.equal(resumeSince(unwritable, NOW, (e) => failures.push(e)), new Date(NOW).toISOString())
+    assert.equal(resumeSince(unwritable, NOW + 30 * MIN, (e) => failures.push(e)), new Date(NOW).toISOString())
+    assert.equal(failures.length, 1)
   } finally { rmSync(dir, { recursive: true, force: true }) }
 })
 

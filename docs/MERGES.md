@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/release-0322-i3 → main · fast-forward
+- files: `main/workRelease.ts` and `main/index.ts` (PL-1: a session the person ended releases as `operator`, `personEndedSessions`), `main/boardResumeRead.ts` (ER-1: the start kept in memory, a failed write logged), `CHANGELOG.md`, `docs/launch/release-mac.md` (PL-2: remove `resume-since.json` before upgrading again), CO-590
+- conflicts: none
+- summary: the 0.3.22 release review's iteration 3, its one blocking finding fixed (task 07510265)
+
 ### 2026-11-17 · `—` · fix/release-0322-i2 → main · fast-forward
 - files: `SessionWindow.tsx` (ER-1: no «Новая сессия» in a separate window), `main/boardResumeRead.ts` and `main/index.ts` (DA-1: `resumeSince`, `resume-since.json`), `main/workTools.ts` (UX-1: the far-wait refusal's advice), `CHANGELOG.md` (PL-1 title, Upgrading, rollback), `docs/launch/release-mac.md` (PL-2: the 0.3.22 rollback paragraph), the turn-end and on-demand specs (DO-1, PL-7, DO-4, DO-5), `AGENTS.md` (the supervisor's file), CO-590
 - conflicts: none
