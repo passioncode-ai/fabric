@@ -204,6 +204,9 @@ export interface DispatchDeps {
   /** W2 of the quality waves (2026-11-15, perf PF-1): free bytes on the data folder's disk, or null when unread. Below
    *  `DISK_FLOOR_BYTES` no run starts: a run writes, and the stack's database went down on a disk this full. */
   freeDisk?(): number | null
+  /** fabric-switchboard, 2026-11-17 (thread a55aef52): Switchboard's session cap on this machine (`switchboard capacity`),
+   *  or null when unread. At the cap no run starts and no workflow is opened: a start would be refused `at_capacity`. */
+  capacity?(): Promise<{ used: number; cap: number } | null>
   /** 2026-11-12 (C2): how long this machine slept since `from` (ms), from the power monitor. A run here was frozen with
    *  it, so its liveness and its end are judged on time awake; absent, no sleep is counted. */
   suspendedSince?(from: number): number
@@ -978,6 +981,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   }
 
   let diskWasLow = false
+  let wasAtCapacity = false
   const pass = async (): Promise<void> => {
     readThisPass = false
     const now = deps.now()
@@ -1124,6 +1128,16 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       }
     }
     if (!on || diskLow) return
+    // fabric-switchboard, 2026-11-17 (thread a55aef52): at Switchboard's session cap a start is refused `at_capacity`, and
+    // each retry offered a hand-over nobody took. At the cap nothing is opened or offered, said once per crossing; the
+    // requests wait and start on the first pass with a free slot. A cap that cannot be read holds nothing.
+    const capacity = deps.capacity ? await deps.capacity().catch(() => null) : null
+    const atCapacity = capacity !== null && capacity.used >= capacity.cap
+    if (atCapacity !== wasAtCapacity) {
+      wasAtCapacity = atCapacity
+      deps.log('board.dispatch.capacity', atCapacity ? 'failed' : 'ok', { used: capacity?.used ?? null, cap: capacity?.cap ?? null, starts: atCapacity ? 'held' : 'resumed' })
+    }
+    if (atCapacity) return
     const limits = limitsOf()
     // 2026-11-12 (H3): the agent Switchboard starts is asked once a pass, not once a request; a failure is no agent.
     let providerOnce: Promise<DispatchAgent | null> | null = null

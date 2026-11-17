@@ -296,6 +296,10 @@ What is owed around the tag, in order; each item is checked off here with its re
    session that ran this release came back holding its claim on task `07510265` (the claim-loss fix, live). Аня told on
    thread `bf635f68`.
 3. The Mac Studio by its host agent, asked on the board: each space's `schema_version()` read first (102), then 0.3.22.
+   Receipt (studio-agent, thread `c3b51cc0`, message `16bd60f1`, 2026-11-17 12:25 UTC): space sshlg read 102 before and
+   after, `/Applications/Fabric.app` 0.3.22 (`codesign` and `spctl` ok), `hub.json` pid 190, the board's launchd job names
+   0.3.22 and exits 75 while the broker's copy runs; the broker's `ensure_running` read ready at the first try. Space
+   aiteam1 runs no Fabric; no other space has one. Neither install fault of this Mac came back there.
 4. The people-ask bridge's first live pass on the installed Fabric (proven only against fakes; run four, PL-2 a): one
    access request routed to its organization's PM agent and its answer applied, or the failure named here.
 5. T5 set up and run once on a second machine (`dispatchTarget` or `dispatchTargets` in `settings.json`; null and empty on

@@ -105,6 +105,29 @@ test('W2 (the quality waves, perf PF-1): under the disk floor no run starts, sai
   assert.deepEqual(logged.filter(([op]) => op === 'board.dispatch.disk').map(([, o, x]) => [o, x.starts]), [['failed', 'held'], ['ok', 'resumed']])
 })
 
+test('at Switchboard\'s session cap no run starts and no workflow is opened, said once; starts resume when a slot frees', async () => {
+  // fabric-switchboard, 2026-11-17 (thread a55aef52): `switchboard dispatch` refused `at_capacity` (21 of 20) and each
+  // retry offered a hand-over nobody took, while the request sat queued with nobody told why.
+  const w = world()
+  let cap = { used: 21, cap: 20 }
+  const logged = []
+  const log = w.deps.log
+  const calls = []
+  const observatory = w.deps.observatory
+  const d = createBoardDispatch({ ...w.deps, capacity: async () => cap,
+    observatory: (name, args) => { calls.push(name); return observatory(name, args) },
+    log: (op, outcome, detail) => { logged.push([op, outcome, detail]); log?.(op, outcome, detail) } })
+  await d.onPass()
+  await d.onPass()
+  assert.equal(w.launches.length, 0)
+  assert.equal(calls.filter((n) => n === 'observatory_checkpoint_write' || n === 'observatory_handoff_create').length, 0, 'no workflow opened or offered while full')
+  assert.deepEqual(logged.filter(([op]) => op === 'board.dispatch.capacity').map(([, o, x]) => [o, x.starts, x.used, x.cap]), [['failed', 'held', 21, 20]])
+  cap = { used: 5, cap: 20 }
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  assert.deepEqual(logged.filter(([op]) => op === 'board.dispatch.capacity').map(([, o, x]) => [o, x.starts]), [['failed', 'held'], ['ok', 'resumed']])
+})
+
 test('nothing starts with the switch off, with a live responder, or with a live session inside the grace', async () => {
   for (const over of [{ on: false }, { responder: true }, { session: true, requests: [request({ submittedAt: new Date(T0 - MIN).toISOString() })] }]) {
     const w = world(over)

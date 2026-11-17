@@ -563,6 +563,12 @@ export function wireBoardDispatch(o: {
       return dispatchProvider(out.data)
     },
     observatory: (name, args) => observatory.call(name, args),
+    async capacity() {
+      const sb = await bin('switchboard')
+      if (!sb) return null
+      const d = (JSON.parse(await run(sb, ['--json', 'capacity'], await envWith())) as { data?: { used?: unknown; cap?: unknown } }).data
+      return typeof d?.used === 'number' && typeof d?.cap === 'number' && d.cap > 0 ? { used: d.used, cap: d.cap } : null
+    },
     async launch(a) {
       const sb = await bin('switchboard')
       if (!sb) return { refused: 'switchboard_absent' }

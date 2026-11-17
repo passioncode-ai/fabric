@@ -189,6 +189,13 @@ here until 2026-11-11 was refused, §3.7), with `done[]` and `notes` and no valu
 
 ### 3.5 The start
 
+Before any start, a pass reads Switchboard's session cap (`switchboard --json capacity`: `used`, `cap`). At the cap no
+workflow is opened, no hand-over offered and nothing started, said once per crossing in the ops log
+(`board.dispatch.capacity`, held then resumed); the requests stay queued and start on the first pass with a free slot.
+A cap that cannot be read holds nothing. Found 2026-11-17 (fabric-switchboard, thread `a55aef52`): `dispatch` refused
+`at_capacity` (21 of 20) and each retry offered a hand-over nobody took (`main/boardDispatchRun.ts`, test «at
+Switchboard's session cap no run starts» in `test/board-dispatch-run.test.mjs`).
+
 Fabric creates the hand-over itself (`observatory_handoff_create` as `service:fabric`, reason `plan_route`, `to.provider`
 the agent id `switchboard agents status` says `dispatch` will start, `data.dispatch_agent` (Switchboard's SB-294: Claude
 Code when no default is set), else its default agent, no account). The provider is that id as Switchboard writes it
