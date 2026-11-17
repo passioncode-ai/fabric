@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · feat/board-w2a2-state → main · fast-forward
+- files: `apps/desktop/src/main/boardState.ts` (new), `index.ts` (its module state through it), `test/board-state.test.mjs`, CHANGELOG, CO-545's row; the carry-over rows CO-591 to CO-595 for the board asks read that day and the register's count
+- conflicts: none
+- summary: ADR-0195 W2a.2, the board memory the window's doors and the board share in one object (board task 8b86adf3)
+
 ### 2026-11-17 · `—` · docs/board-apart-plan → main · fast-forward
 - files: `docs/evidence/plans/2026-11-17-board-apart-waves.md` (new), the design map
 - conflicts: none

@@ -36,6 +36,7 @@ import { createStopHostIdentity } from './stopHostIdentity.ts'
 import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
 import { windowHubPorts } from './hubPorts.ts'
+import { createBoardState } from './boardState.ts'
 import { setLocalStoreDir } from './localStore.ts'
 import { createPeerCheck } from './peerAccount.ts'
 import { createAgentFolders } from './agentFolders.ts'
@@ -61,7 +62,7 @@ import { legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, l
 import { RESTART_OUTCOME_FILE, askRestartWindow, restartConfirmation, spawnRestartHelper, takeRestartOutcome, takeRestartWindow } from './restartFabric.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
-import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readReviewAges, readRunningTasks, readSweepClaims, type AbandonedSweep } from './abandonedSweepRun.ts'
+import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readReviewAges, readRunningTasks, readSweepClaims } from './abandonedSweepRun.ts'
 import { createOpsDigestRun, type OpsDigestRun } from './opsDigestRun.ts'
 import { risenRows } from '../shared/opsDigest.ts'
 import { readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhereWork, readWork, type HeldSession } from './workRead.ts'
@@ -90,12 +91,11 @@ import { refreshFileRootsFrom } from './fileRootsRefresh.ts'
 import { readSettings, readSettingsState, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
-import { createBranchReader, createReportedBranches } from './agentBranches.ts'
+import { createBranchReader } from './agentBranches.ts'
 import { readHomeView as readHomeStages } from './homeView.ts'
 import { createRhythmReader } from './workRhythm.ts'
 import { createWaitingReader } from './commsWaitingList.ts'
 import { readProjectRequests, readProjectSources } from './projectRequests.ts'
-import type { BoardRun } from './agentWork.ts'
 import { createDisplayNameReader } from './projectNames.ts'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
@@ -104,7 +104,7 @@ import { createEditorRecovery } from './editorRecovery.ts'
 import { readGateway } from './gateway'
 import { classifyStartupFailure, freeDiskGb, startupDialog, type StartupFailure } from '../shared/startupFailure'
 import { dockerIsUnreachable, stackAlreadyRunning } from '../shared/stackStartRetry.ts'
-import { STARTUP_WAIT_LINES, retryAfterSeconds, stackBackoffMs, startupHeals, startupWaitLines, type StackHealthView, type StackRefusal } from '../shared/stackWatch.ts'
+import { STARTUP_WAIT_LINES, retryAfterSeconds, stackBackoffMs, startupHeals, startupWaitLines, type StackRefusal } from '../shared/stackWatch.ts'
 import { createStackWatch, type StackWatch } from './stackWatch.ts'
 import { closeHubStandby, openHubStandby, type StandbyOpen } from './hubStandby.ts'
 import { appendBounded } from './boundedLog.ts'
@@ -209,7 +209,7 @@ import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { createRemoteQuestions, primaryFolder, remoteTargetFor, wireBoardDispatch } from './boardDispatchWiring.ts'
-import { createDispatchWake, toOperatorMarks, type InboxGiven, type ResumeGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
+import { createDispatchWake, toOperatorMarks, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { readResumeCandidates, readResumeState, resumeSince } from './boardResumeRead.ts'
 import { handBackResumedClaims } from './resumedClaims.ts'
 import { dispatcherRuns, remoteOwnerOf, sessionLiveForDispatch, suspendedSince, WATCH_MS } from '../shared/boardDispatch.ts'
@@ -507,24 +507,11 @@ let ACTIVE_ESTATE: string = DEFAULT_ESTATE
  */
 let OPERATOR_ACTOR: { kind: 'person'; id: string }
 
-/** PL-1 (0.3.22 review, iteration 3): sessions the person ended with «Завершить сессию», by session id, until their end
- *  releases their claims; at most `PERSON_ENDED_MAX`, the oldest dropped. */
-const personEndedSessions = new Set<string>()
-const PERSON_ENDED_MAX = 200
-function markPersonEnded(sessionId: string): void {
-  personEndedSessions.delete(sessionId)
-  personEndedSessions.add(sessionId)
-  while (personEndedSessions.size > PERSON_ENDED_MAX) personEndedSessions.delete(personEndedSessions.values().next().value as string)
-}
-/** A binding the person revokes ends its enrolled sessions (`sessionEnroll.ts#endForBinding`): each is marked first. */
-function markBindingPersonEnded(bindingId: string): void {
-  for (const s of enrolledForMarks?.liveOf(bindingId) ?? []) markPersonEnded(s.sessionId)
-}
-/** A grant the person revokes ends the sessions minted under it (`sessionEnroll.ts#endForGrant`): each is marked first. */
-function markGrantPersonEnded(grantId: string): void {
-  for (const id of enrolledForMarks?.idsForGrant(grantId) ?? []) markPersonEnded(id)
-}
-let enrolledForMarks: { liveOf(bindingId: string): Array<{ sessionId: string }>; idsForGrant(grantId: string): string[] } | null = null
+/** ADR-0195 W2a.2: the board's memory both the window's doors and the board's own code use (`boardState.ts`). */
+const boardState = createBoardState()
+const markPersonEnded = boardState.personEnded.mark
+const markBindingPersonEnded = boardState.personEnded.markBinding
+const markGrantPersonEnded = boardState.personEnded.markGrant
 let admission: ReturnType<typeof createProjectAdmission>
 /** W2 S3/S4: files a project's onboarding task; set where the journal and store exist (below), read by the IPC handler. */
 let fileOnboardingTask: ((projectId: string, name: string) => Promise<{ taskId: string; filed: boolean }>) | null = null
@@ -764,7 +751,6 @@ function restartFromMenu(): void {
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
 const taskBySession = new Map<string, string>()
 /** The sweep of abandoned work (0.3.13 wave 2, CO-427), built with the cycle; the surface reads its nudges (SW-4). */
-let abandonedSweep: AbandonedSweep | null = null
 /** The hourly and daily reading of the operations log (CO-500); made before the sink, so it counts from the first record. */
 let opsDigest: OpsDigestRun | null = null
 /** When this process started: the sweep releases a lapsed claim only when this process knew it (CO-427, SW-8). */
@@ -1125,7 +1111,6 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
 /** CO-506: History's acts, set once `registerIpc` made them, for the surface's Agent access door. */
 let actsForSurface: ReturnType<typeof createActs> | null = null
 /** CO-409 (§3.1): wakes the board dispatcher for a request just stored; set once the dispatcher is wired. */
-let dispatchWake: { wake(): void; stop(): void } | null = null
 
 async function bootstrapReady(): Promise<{ estateId: string; estateName: string }> {
   journal = createDesktopJournal(createJournal(db))
@@ -1212,7 +1197,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // ADR-0195 W1: what the hub reads from this process (the terminals, the sweep, the settings, the registry), one
   // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
   const hubPorts = windowHubPorts({
-    ptys: () => ptys, sweep: () => abandonedSweep, readSettings: readSettingsState, registry,
+    ptys: () => ptys, sweep: boardState.sweep.get, readSettings: readSettingsState, registry,
     desktop: { openExternal: (url) => shell.openExternal(url), applicationInfoForProtocol: (url) => app.getApplicationInfoForProtocol(url) }
   })
   const accessStore = createAccessStore({ db, journal, estateId: ACTIVE_ESTATE })
@@ -1371,7 +1356,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
   access.onBindingRevoked((bindingId) => agentCall.forgetBinding(bindingId))
   // ADR-0134 §3: a revoked binding or grant ends the coding-agent sessions enrolled under it; the next call is refused.
-  enrolledForMarks = enrolled
+  boardState.personEnded.attach(enrolled)
   access.onBindingRevoked((bindingId) => { enrolled.endForBinding(bindingId) })
   access.onGrantRevoked((grantId) => { enrolled.endForGrant(grantId) })
   // COM03-10: a revoked board.respond grant releases the responder slots it admitted (best effort; the in-statement
@@ -1391,7 +1376,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // there and never taken (the review, iteration 1, PL-1: an adapter before 0.51.2 throws a turn's answer away).
     turnNudges: hubPorts.sweep.showTurnNudges,
     // CO-459 (DEC-0140 PR-3): a turn's reported branch, for this machine's screens only, never journalled or shared.
-    reportBranch: (sessionId, branch) => reportedBranches.set(sessionId, branch),
+    reportBranch: (sessionId, branch) => boardState.branches.set(sessionId, branch),
     // T4 (the turn-end spec §4.4): a Claude Code session holding a claim is held by Switchboard until the claim ends.
     holdSession: (runtimeSessionId, until) => { void sessionHolds.set(runtimeSessionId, until) },
     // CO-458: a task assigned from another project answers its board request once released done (never awaited).
@@ -1406,7 +1391,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // CO-514 (DEC-0154 HA-2 (b), HA-3): another account's process is refused before its request is read.
     peerAccount: createPeerCheck(),
     // CO-409 (§3.1): a board request a session stored wakes the dispatcher when its grace ends, not a cycle later.
-    onRequestStored: () => dispatchWake?.wake(),
+    onRequestStored: () => boardState.dispatchWake.get()?.wake(),
     // CO-489: the project page's «Выбрать папку…» and «Убрать» as a session's door, through the one admission service;
     // each change is an act History undoes, written with the session as its author.
     folders: createAgentFolders({
@@ -1520,7 +1505,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     onSessionEnded: async (sessionId, why) => {
       // PL-1 (0.3.22 review, iteration 3): a session the person ended releases its claims as the person's own release,
       // which the board supervisor does not continue.
-      const byPerson = personEndedSessions.delete(sessionId) ? OPERATOR_ACTOR : undefined
+      const byPerson = boardState.personEnded.take(sessionId) ? OPERATOR_ACTOR : undefined
       await releaseSessionClaims(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), sessionId, why, byPerson)
     }
     // #endregion work-claims-wiring
@@ -1913,7 +1898,6 @@ const repoStates = createRepoStateReader()
 /** The branch of each console Fabric holds, for the home's reading (0.3.14, the simple Fabric). */
 const agentBranchReader = createBranchReader()
 /** CO-459: the branches sessions report on their turns, held here for this machine's screens only (DEC-0140 PR-3). */
-const reportedBranches = createReportedBranches()
 /**
  * M57, reopened by M113 — what the code is doing, as opposed to what our own
  * storage holds. Its own reader with its own longer TTL: it is heavier than the
@@ -3162,8 +3146,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // The sweep of abandoned work (CO-427): every third pass of the cycle below. Its reads are the screens' own (claims,
   // running tasks), the operator's read door onto the board, and the observer's last pass over Fabric's terminals.
   const sweepBoard = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
-  const dispatchHolder: { current: { toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; resumeGiven(): ResumeGiven[]; boardRuns(): BoardRun[] } | null } = { current: null }
-  abandonedSweep = createAbandonedSweep({
+  const abandonedSweep = createAbandonedSweep({
     now: () => Date.now(),
     readClaims: (now) => readSweepClaims(store, now, sessionSignOf),
     readRunningTasks: () => readRunningTasks(store),
@@ -3171,13 +3154,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // whatever its state, and shows in «На проверке».
     readRequests: async (now) => {
       const r = await readBoardRequests(sweepBoard, ACTIVE_ESTATE, now)
-      const given = dispatchHolder.current?.toOperator() ?? new Map<string, ToOperatorWhy>()
+      const given = boardState.dispatcher.get()?.toOperator() ?? new Map<string, ToOperatorWhy>()
       const marked = given.size ? r.requests.map((x) => (given.has(x.requestId) ? { ...x, toOperator: true, ...toOperatorMarks(given.get(x.requestId)!) } : x)) : r.requests
       // CO-559 (§3.8): an inbox item given to the operator is a message, not a request: it joins the sweep as its own row.
-      const inbox = (dispatchHolder.current?.inboxGiven() ?? []).map((g) => ({ requestId: g.messageId, targetProjectId: g.projectId, requesterProjectId: '',
+      const inbox = (boardState.dispatcher.get()?.inboxGiven() ?? []).map((g) => ({ requestId: g.messageId, targetProjectId: g.projectId, requesterProjectId: '',
         state: 'queued', movedAt: g.at, answerUnreadSince: null, toOperator: true, inbox: true }))
       // T6 (the turn-end spec): a left task three runs never took is the operator's, a row of its own.
-      const leftToOperator = (dispatchHolder.current?.resumeGiven() ?? []).map((g) => ({ taskId: g.taskId, projectId: g.projectId, at: g.at }))
+      const leftToOperator = (boardState.dispatcher.get()?.resumeGiven() ?? []).map((g) => ({ taskId: g.taskId, projectId: g.projectId, at: g.at }))
       return { ...r, requests: [...marked, ...inbox], ...(leftToOperator.length ? { leftToOperator } : {}) }
     },
     // 0.3.14 wave 2: the session hooks' turns, to see a session changing files with no claim.
@@ -3213,6 +3196,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     quitting: () => quit.quitting,
     processStartedAt: PROCESS_STARTED_AT
   })
+  boardState.sweep.set(abandonedSweep)
   const sweep = abandonedSweep
   // #endregion abandoned-sweep-wiring
 
@@ -3256,10 +3240,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // fabric_question_ask does; «Нужны вы» shows it and the people-ask bridge carries it to the PM agent.
     questions: createRemoteQuestions({ store, append: (e) => journal.append(e), estateId: ACTIVE_ESTATE, clean: cleanOriginalText })
   })
-  dispatchHolder.current = dispatcher
+  boardState.dispatcher.set(dispatcher)
   quit.onQuit(() => { void dispatcher.close() })
-  dispatchWake = createDispatchWake(() => { if (!quit.quitting) void dispatcher.onPass() })
-  quit.onQuit(() => dispatchWake?.stop())
+  boardState.dispatchWake.set(createDispatchWake(() => { if (!quit.quitting) void dispatcher.onPass() }))
+  quit.onQuit(() => boardState.dispatchWake.get()?.stop())
   // CO-559 (§3.8): the dispatcher watches on its own 30 s cadence, beside the cycle and never inside its window (a start
   // can wait on Switchboard for a minute; its own guard keeps one pass at a time).
   const dispatchWatch = setInterval(() => { if (!quit.quitting) void dispatcher.onPass() }, WATCH_MS)
@@ -3872,7 +3856,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // every lease as a task and opening a page for one that does not exist.
     // SW-9: the latest sweep's findings join the queue as abandoned work; the tasks they name are read here with the
     // leases', for a title and to know whether each is a task.
-    const swept = abandonedSweep?.current() ?? null
+    const swept = boardState.sweep.get()?.current() ?? null
     const taskRead = await store.selectIn(
       'project_tasks',
       'id,title,instruction',
@@ -4939,7 +4923,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
 
   // ST-2, ST-1 (0.3.9): the stack's health as the runtime watch last read it; the window also hears each change.
-  handle(IPC.stackHealth, (): Returns<FabricApi['stack']['health']> => stackHealthNow)
+  handle(IPC.stackHealth, (): Returns<FabricApi['stack']['health']> => boardState.stackHealth.get())
 
   // Audit A7-009: a renderer failure is recorded beside the program's own — the boundary and the
   // root's `onUncaughtError` send it here, because the renderer's console reaches nobody.
@@ -5727,7 +5711,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     for (const c of [first, second])
       await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.note.added@1', actor: OPERATOR_ACTOR, projectId: c.project_id,
         payload: { task_id: c.work_id, note_id: randomUUID(), body_md: `${said} (overlap of sessions ${first.owner_session} and ${second.owner_session})` } })
-    abandonedSweep?.decideOverlap(overlapPair(first.id, second.id), choice)
+    boardState.sweep.get()?.decideOverlap(overlapPair(first.id, second.id), choice)
     return { ok: true }
   })
 
@@ -5736,11 +5720,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.workSay, async (_e, input: { sessionId: string; text: string }): Promise<Returns<FabricApi['work']['say']>> => {
     const sessionId = String(input?.sessionId ?? '').trim(), text = String(input?.text ?? '').trim().slice(0, 4000)
     if (!sessionId || !text) return { ok: false, reason: 'say what the agent should read' }
-    if (!abandonedSweep) return { ok: false, reason: 'Fabric is still starting; try again in a moment' }
-    return { ok: true, ...abandonedSweep.say(sessionId, text) }
+    const sweeper = boardState.sweep.get()
+    if (!sweeper) return { ok: false, reason: 'Fabric is still starting; try again in a moment' }
+    return { ok: true, ...sweeper.say(sessionId, text) }
   })
   handle(IPC.workMessages, async (_e, sessionId: string): Promise<Returns<FabricApi['work']['messages']>> =>
-    abandonedSweep?.messages(String(sessionId ?? '')) ?? [])
+    boardState.sweep.get()?.messages(String(sessionId ?? '')) ?? [])
 
   // W3 of the quality waves (perf PF-2): one reading for every reader, joined in flight and answered again for 2 s
   // (`sharedReading.ts`); the window, the rail and each screen asked for their own, up to 809 times an hour.
@@ -5748,9 +5733,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.workHome, (): Promise<Returns<FabricApi['work']['home']>> => homeReading.read())
   // The home's stages in order (`homeView.ts`), over this process's sessions, sweep, dispatcher and names.
   const readHomeView = (): Promise<Returns<FabricApi['work']['home']>> => readHomeStages({
-    store, heldSessions, sessionSign: sessionSignOf, branchReader: agentBranchReader, reportedBranch: reportedBranches.get,
-    boardRuns: () => dispatchHolder.current?.boardRuns() ?? [],
-    sweep: () => abandonedSweep?.current() ?? null,
+    store, heldSessions, sessionSign: sessionSignOf, branchReader: agentBranchReader, reportedBranch: boardState.branches.get,
+    boardRuns: () => boardState.dispatcher.get()?.boardRuns() ?? [],
+    sweep: () => boardState.sweep.get()?.current() ?? null,
     readNames: () => projectNames.read(namesStale),
     onNamesUnread: (e) => ops.failed('work.display-names-unread', e, { note: 'the screens print the stored names' })
   })
@@ -6215,7 +6200,6 @@ quit.onQuit(() => {
 // #region runtime-stack-watch — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
 /** ST-2, ST-1: the stack and the disk while Fabric runs (`main/stackWatch.ts`). */
 let stackWatch: StackWatch | null = null
-let stackHealthNow: StackHealthView | null = null
 
 /** Whether Fabric owns the stack (it started it, so it may start it again): not when SUPABASE_URL names another. */
 function ownsStack(): boolean {
@@ -6274,12 +6258,12 @@ function startStackWatch(): void {
     containers: local ? () => stackDatabaseContainer() : null,
     runtime: local ? dockerRuntime : null,
     onChange: (view, refusal) => {
-      stackHealthNow = view
+      boardState.stackHealth.set(view)
       surface?.setUnavailable(refusal)
       broadcast(IPC.stackHealthChanged, view)
     }
   })
-  stackHealthNow = stackWatch.view()
+  boardState.stackHealth.set(stackWatch.view())
   stackWatch.start()
   // One reading at once, so a disk already low is said now rather than in 30 s.
   void stackWatch.tick()
