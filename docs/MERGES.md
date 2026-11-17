@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · docs/board-apart-plan → main · fast-forward
+- files: `docs/evidence/plans/2026-11-17-board-apart-waves.md` (new), the design map
+- conflicts: none
+- summary: the board apart from the window, its end state per function with its proof, today's ties and the waves W2a.2 to W4 (board task 8b86adf3)
+
 ### 2026-11-17 · `—` · feat/board-w2a-hub → main · fast-forward
 - files: `apps/desktop/src/main/hubPorts.ts` (`HubLinks`), `index.ts` (the connector through it), `test/hub-ports.test.mjs`, the on-demand spec §3.13 and §3.14, CHANGELOG
 - conflicts: none
