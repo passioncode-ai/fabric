@@ -279,6 +279,7 @@ node --experimental-strip-types --test apps/desktop/test/hub-ports.test.mjs
 node --experimental-strip-types --test apps/desktop/test/local-store-dir.test.mjs
 # ADR-0195 W2a.2: the board's memory the window's doors and the board share, in one object.
 node --experimental-strip-types --test apps/desktop/test/board-state.test.mjs
+node --test apps/desktop/test/board-cycle.test.mjs
 node --experimental-strip-types --test --test-force-exit apps/desktop/test/stack-watch.test.mjs
 node --experimental-strip-types apps/desktop/test/transcripts.test.mjs
 node apps/desktop/test/file-roots.test.mjs
