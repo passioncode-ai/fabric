@@ -21,6 +21,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   bound to the version it was registered from, and launchd refused to start it (exit 78), so after a reboot nothing
   started the board; measured installing 0.3.22. The first start of a new version that launchd did not make registers
   the job again and writes `app.login-item-reregistered` in the operations log with the version launchd names after it.
+- **On Windows and Linux the console reaches the window's right edge** (board task `a832e3ad`). The main area keeps room
+  for a scroll bar, which those systems draw 15 px wide, so the console stopped 15 px short of the edge; the console's area
+  no longer keeps it (`scrollbar-gutter:auto`). macOS draws its scroll bars over the content and was not affected.
 - **A long word no longer pushes an agent's page or a project's analytics sideways** (board task `a832e3ad`). The list
   of what an agent said and the project's analytics numbers grew to the widest word in them; they now wrap inside their
   column. Found once the screen and mockup browser suites ran again: they had printed NOT_RUN everywhere, since no run

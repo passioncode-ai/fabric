@@ -1180,7 +1180,7 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
    объединить и снизу сделать»): the terminal fills the page edge to edge, the top bar alone names the session, and one
    slim bar under the terminal holds its state, folder and acts. The page around it neither pads nor scrolls, so the
    terminal's last line is never under the fold. The bar wraps at a narrow window rather than cutting a control. */
-.fab-place>.shell>main.content:has(>.session-embedded),main.content:has(>.session-embedded){padding:0;overflow:hidden}
+.fab-place>.shell>main.content:has(>.session-embedded),main.content:has(>.session-embedded){padding:0;overflow:hidden;scrollbar-gutter:auto}
 .session-embedded{height:100%;padding:0;gap:0}
 .session-embedded>.terminal-host{padding:var(--space-2) var(--space-3) var(--space-1)}
 .session-embedded>.lp-failure,.session-embedded>.session-note{flex:none;margin:0;padding:var(--space-2) var(--space-3)}

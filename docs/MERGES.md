@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/console-no-gutter → main · fast-forward
+- files: `renderer/src/launch/launch.css` (the console's main area: `scrollbar-gutter:auto`), `CHANGELOG.md`
+- conflicts: none
+- summary: on Windows and Linux the console stopped 15 px short of the window's edge, caught by the screens stand on the Linux runner (run 44104625069, board task a832e3ad)
+
 ### 2026-11-17 · `—` · fix/browser-suites-linux → main · fast-forward
 - files: `scripts/test/product-provider-accounts.browser.cjs` (takes `FABRIC_CHROME`), `scripts/test/screens-stand.browser.mjs` (`/favicon.ico` answered 204)
 - conflicts: none
