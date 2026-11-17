@@ -302,8 +302,17 @@ What is owed around the tag, in order; each item is checked off here with its re
    aiteam1 runs no Fabric; no other space has one. Neither install fault of this Mac came back there.
 4. The people-ask bridge's first live pass on the installed Fabric (proven only against fakes; run four, PL-2 a): one
    access request routed to its organization's PM agent and its answer applied, or the failure named here.
+   Receipt for 4 (2026-11-17): the first live items reached both PM agents. Морфеус's item `question:11968613` got
+   «не применено» for a progress note its bridge sent as a reply (thread `bf635f68`, message `4c1f1556`); the item stayed
+   open, and from 0.3.23 a reply with no answer block is a note (`d5797b10`); the adapter wrote the rule into its kit
+   (FAA-350, `d7209e06`) and the PM agent's bridge text is its K-50. Аня's slot took request `1b7e4ae2`, which another agent
+   sent directly, not a «Нужны вы» item (message `31c4b367`). A person's answer through `fabric-people-answer/1` is not yet
+   seen live; Аня and Морфеус note it on the first real item.
 5. T5 set up and run once on a second machine (`dispatchTarget` or `dispatchTargets` in `settings.json`; null and empty on
    this Mac; run four, PL-2 b), or recorded as not set up with its owner.
 6. North Star §6 and G29 in fabric-workspace, told on the board: the turn verdict, the supervisor and the Switchboard holds,
    and what the adapter's Stop hook (request `91e94d4c`, wave T3) still owes before a session goes on by itself (run four,
    PL-2 c and d).
+
+   Receipt for 6: announcement `b79c7d03` to fabric-workspace (thread `d1bf93da`, 2026-11-17 12:39 UTC): what 0.3.22 moves in
+   §6, and G29 narrowed, not closed (the reminder to an idle open session is not yet in Fabric, the rest of CO-571).

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · docs/release-0322-close-4-6 → main · fast-forward
+- files: the 0.3.22 verification ledger (receipts for close items 4 and 6)
+- conflicts: none
+- summary: the people-ask bridge's first live items and the North Star note recorded
+
 ### 2026-11-17 · `—` · fix/dispatch-at-capacity → main · fast-forward
 - files: `main/boardDispatchRun.ts` (`capacity` gate), `main/boardDispatchWiring.ts` (`switchboard --json capacity`), `test/board-dispatch-run.test.mjs`, the on-demand sessions spec §3.5, `AGENTS.md`, `CHANGELOG.md`
 - conflicts: none
