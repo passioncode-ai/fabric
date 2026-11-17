@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/board-service-follows-bundle → main · fast-forward
+- files: `shared/loginItem.ts` (`registeredBundleVersion`, `serviceNeedsReregister`) and its test, `main/index.ts` (`reregisterStaleService` at start), `CHANGELOG.md`, `AGENTS.md`
+- conflicts: none
+- summary: after an update «Служба доски» is registered again for the new bundle (task c9d019de)
+
 ### 2026-11-17 · `—` · docs/release-0322-install → main · fast-forward
 - files: the 0.3.22 verification ledger (receipts for close items 1 and 2)
 - conflicts: none

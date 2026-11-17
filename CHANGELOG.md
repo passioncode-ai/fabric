@@ -11,6 +11,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 **Upgrading.** No schema step from 0.3.22 (schema 102, no migration).
 
+- **«Служба доски» starts the new version after an update** (task `c9d019de`). Replacing Fabric left launchd's board job
+  bound to the version it was registered from, and launchd refused to start it (exit 78), so after a reboot nothing
+  started the board; measured installing 0.3.22. The first start of a new version that launchd did not make registers
+  the job again and writes `app.login-item-reregistered` in the operations log with the version launchd names after it.
 - **A coding agent's Stop hook can wait for the turn's verdict** (the turn-end spec §4.2, wave T3). `hub.json` names the
   feature `turn-verdict/1`: `fabric_session_observe` answers a turn with `continue` and its reason, or with nothing, and
   the adapter's Stop hook (FAA-349) waits for that answer only where the feature is named, so with an older Fabric it

@@ -216,4 +216,20 @@ export function startsInBackground(argv: readonly string[], openedAtLogin: boole
 export function startRecord(argv: readonly string[], openedAtLogin: boolean | null, version: string): { version: string; atLogin: boolean | 'unknown'; background: boolean } {
   return { version, atLogin: openedAtLogin ?? 'unknown', background: startsInBackground(argv, openedAtLogin === true) }
 }
+/** The bundle version launchd's board job was registered from, as `launchctl print` names it (task c9d019de); null when
+ *  the output names none (no job, a refused read, another macOS). */
+export function registeredBundleVersion(printed: string): string | null {
+  const m = /^\s*parent bundle version = (\S+)\s*$/m.exec(printed)
+  return m ? m[1] : null
+}
+
+/**
+ * Whether this start registers the board's service again (task c9d019de): an update replaced the bundle, the job still
+ * names the version it was registered from, and launchd refuses to start it (exit 78, `EX_CONFIG`; measured installing
+ * 0.3.22 on 2026-11-17). Only a packaged macOS start with the service on and not launchd's own copy, since unregistering
+ * the job would end the process launchd started; a job that names no version is left alone.
+ */
+export function serviceNeedsReregister(o: { platform: string; packaged: boolean; enabled: boolean; launchdStarted: boolean; registered: string | null; version: string }): boolean {
+  return o.platform === 'darwin' && o.packaged && o.enabled && !o.launchdStarted && o.registered !== null && o.registered !== o.version
+}
 // #endregion login-item

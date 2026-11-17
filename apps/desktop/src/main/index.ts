@@ -15,6 +15,7 @@ import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaTe
 import { createBoardReads } from './boardReads.ts'
 import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitReleaseCommand } from './commandIngressAdapters.ts'
 import { createHash, randomUUID } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
 import { dockerRuntimeFor } from './dockerLaunch'
 import { fixPath, halfUpDeps, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStartingStack } from './env'
 import { resolveHealingHalfUp } from './stackHalfUp.ts'
@@ -55,7 +56,7 @@ import { promises as fsPromises } from 'node:fs'
 import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
 import { resolveProject } from '../shared/projectResolve.ts'
-import { legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startRecord, startsInBackground, takeLaunchdStart, type LoginItemState } from '../shared/loginItem.ts'
+import { legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, registeredBundleVersion, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, serviceNeedsReregister, startRecord, startsInBackground, takeLaunchdStart, BOARD_LABEL, type LoginItemState } from '../shared/loginItem.ts'
 import { RESTART_OUTCOME_FILE, askRestartWindow, restartConfirmation, spawnRestartHelper, takeRestartOutcome, takeRestartWindow } from './restartFabric.ts'
 import { existingTempRoots } from './tempRoots.ts'
 import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
@@ -847,6 +848,7 @@ function applyLoginItem(enabled: boolean, atStart: boolean): void {
     const item = loginItemFor(enabled, process.platform, app.isPackaged)
     if (!item) return
     app.setLoginItemSettings(item)
+    if (atStart) reregisterStaleService(item, enabled)
     // setLoginItemSettings returns nothing on a refusal; the system's own status is the only receipt (ER-3).
     const state = readLoginItem()
     const system = state.supported ? state.system : 'unknown'
@@ -864,6 +866,29 @@ function applyLoginItem(enabled: boolean, atStart: boolean): void {
   } catch (e) {
     ops.failed('app.login-item', e, { enabled })
   }
+}
+/** The version launchd's board job names, or null when it cannot be read (a 3 s deadline, no shell). */
+function boardJobVersion(): string | null {
+  try {
+    const uid = typeof process.getuid === 'function' ? process.getuid() : null
+    if (uid === null) return null
+    return registeredBundleVersion(execFileSync('/bin/launchctl', ['print', `gui/${uid}/${BOARD_LABEL}`], { encoding: 'utf8', timeout: 3_000, stdio: ['ignore', 'pipe', 'ignore'] }))
+  } catch {
+    return null
+  }
+}
+/**
+ * Task c9d019de: an update replaces the bundle, but the board's job keeps the version it was registered from and launchd
+ * refuses to start it (exit 78), so after a reboot nothing starts the board. A start not made by launchd unregisters the
+ * job and registers it again, and says so in the operations log with the version launchd names afterwards.
+ */
+function reregisterStaleService(item: NonNullable<ReturnType<typeof loginItemFor>>, enabled: boolean): void {
+  const registered = process.platform === 'darwin' && app.isPackaged && enabled && !LAUNCHD_STARTED ? boardJobVersion() : null
+  if (!serviceNeedsReregister({ platform: process.platform, packaged: app.isPackaged, enabled, launchdStarted: LAUNCHD_STARTED, registered, version: app.getVersion() })) return
+  app.setLoginItemSettings({ ...item, openAtLogin: false })
+  app.setLoginItemSettings(item)
+  const after = boardJobVersion()
+  ops.record({ op: 'app.login-item-reregistered', outcome: after === app.getVersion() ? 'ok' : 'unknown', level: after === app.getVersion() ? 'info' : 'warn', detail: { from: registered, to: after }, ctx: { correlationId: ops.correlate() } })
 }
 /** Whether macOS reads the board's service back as enabled, so launchd keeps it (the 0.3.18 review PL-5, ER-2). */
 function serviceRunsUnderLaunchd(): boolean {

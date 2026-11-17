@@ -1,6 +1,6 @@
 // CO-322 (the operator, 2026-10-16): Fabric starts at login by default, quietly, and the person can turn it off.
 import { describe, expect, it } from 'vitest'
-import { APP_BUNDLE_ID, BOARD_LABEL, BOARD_SERVICE, LAUNCHD_RETRY_EXIT, RESTART_WINDOW_MS, launchdStarted, legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startRecord, startsInBackground, takeLaunchdStart, type LoginItemState } from './loginItem'
+import { APP_BUNDLE_ID, BOARD_LABEL, BOARD_SERVICE, LAUNCHD_RETRY_EXIT, RESTART_WINDOW_MS, launchdStarted, legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, registeredBundleVersion, relaunchArgs, serviceNeedsReregister, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, startRecord, startsInBackground, takeLaunchdStart, type LoginItemState } from './loginItem'
 
 describe('launch at login', () => {
   it('registers the packaged app with the system, on by default and off when the person says so', () => {
@@ -186,4 +186,23 @@ describe('the 0.3.18 review, iteration 1, UX-3: «Перезапустить Fab
     expect(restartShowsWindow(2000, 1000)).toBe(false)
   })
 
+})
+
+describe('the board service follows the bundle (task c9d019de)', () => {
+  const printed = 'gui/501/ai.passioncode.desktop.board = {\n\tpath = (submitted by smd.332)\n\tparent bundle identifier = ai.passioncode.desktop\n\tparent bundle version = 0.3.21\n\tlast exit code = 78: EX_CONFIG\n}'
+  it('reads the version the job was registered from, and none from output without it', () => {
+    expect(registeredBundleVersion(printed)).toBe('0.3.21')
+    expect(registeredBundleVersion('Could not find service "ai.passioncode.desktop.board" in domain for user gui: 501')).toBeNull()
+    expect(registeredBundleVersion('')).toBeNull()
+  })
+  const base = { platform: 'darwin', packaged: true, enabled: true, launchdStarted: false, registered: '0.3.21', version: '0.3.22' }
+  it('registers again when an update left the job on the old version', () => expect(serviceNeedsReregister(base)).toBe(true))
+  it('leaves it alone on the same version, with no version read, when off, unpackaged, elsewhere, or in launchd own copy', () => {
+    expect(serviceNeedsReregister({ ...base, registered: '0.3.22' })).toBe(false)
+    expect(serviceNeedsReregister({ ...base, registered: null })).toBe(false)
+    expect(serviceNeedsReregister({ ...base, enabled: false })).toBe(false)
+    expect(serviceNeedsReregister({ ...base, packaged: false })).toBe(false)
+    expect(serviceNeedsReregister({ ...base, platform: 'win32' })).toBe(false)
+    expect(serviceNeedsReregister({ ...base, launchdStarted: true })).toBe(false)
+  })
 })
