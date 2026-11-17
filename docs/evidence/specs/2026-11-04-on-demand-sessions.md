@@ -558,8 +558,8 @@ records where this goes; this section is its first wave.
   only, and a later release (someone worked on it since) starts the count again.
 - **The switch.** Settings → «Запуск агентов» → «Продолжать начатую работу без меня» (`resumeLeftWork`, on by default),
   acting only while the dispatcher's own switch is on.
-- **Not done in this wave.** A row in «На проверке» for a task given to the operator (today the ops log and `resumeGiven`
-  name it); the sweep's reminder to a live session that holds a task it is not moving is the sweep's own (CO-427). The
+- **Not done in this wave.** A row in «На проверке» for a task given to the operator came later, in the turn-end spec's
+  wave T6 (`task-to-operator`, [§6](2026-11-16-turn-end-waits.md#6-the-plan-in-waves-replanned-2026-11-16)); the sweep's reminder to a live session that holds a task it is not moving is the sweep's own (CO-427). The
   board apart from the app's process, and sessions that survive a restart of Fabric, are ADR-0195's later waves.
 - **Tests.** `src/shared/boardResume.test.ts` (which tasks are left work, their state after a run, a person's move
   watched failing when its rule was taken out), `test/board-dispatch-run.test.mjs` «§3.11» (the packet, the limits, the

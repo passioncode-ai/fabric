@@ -183,6 +183,15 @@ describe('a window onto one session', () => {
     expect(note.querySelector('.error-detail')?.textContent).toBe('claude: command not found')
   })
 
+  // 0.3.22 review, iteration 2, ER-1: a detached window may not open a terminal (`terminalOpen` is main-only), so its
+  // «New session» could only ever fail; the ended session's own window offers none.
+  it('the separate window of an ended session offers no new session it could not start', async () => {
+    stub(async () => session({ running: false, state: 'ended', exitCode: 0 }))
+    render(<I18nProvider locale="en"><SessionWindow sessionId="s1" /></I18nProvider>)
+    await screen.findByText('Claude Code')
+    expect(screen.queryByRole('button', { name: en['session.new'] })).toBeNull()
+  })
+
   // CO-472 (0.3.15 review UX-10): the console's header says the agent's status word and colour, as the agent page and the
   // rail do, from the one `sessionStatus` function; never the terminal's own state chip.
   it('CO-472: the header says the agent page\'s status word, not the terminal state', async () => {

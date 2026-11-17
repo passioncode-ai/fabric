@@ -335,6 +335,16 @@ is the backup with the bundle you came from.
 agents asked with options under 0.3.21: 0.3.20 refuses every answer to them, since 0.3.21 stores the asker's
 recommendation on the option (the 0.3.21 review, iteration 3, run six, PL-36); upgrading again answers them.
 
+**0.3.22 admits schema 102**, the same as 0.3.21: it adds no migration (`git diff --stat bfb4d31f..HEAD -- supabase`
+prints nothing), so upgrading from 0.3.21 is the new bundle alone and going back is the 0.3.21 bundle alone; turn «Служба
+доски» off before the quit and on again once the version reads back, as above. Going back to 0.3.21 loses three things
+0.3.22 keeps (the 0.3.22 review, iteration 1, DA-2; iteration 2, PL-2): a board request whose remote run asked a person
+(a `waiting` record in `board-dispatches.json`) is started again by 0.3.21 without the answer, so answer or close those
+questions first; a «Нужны вы» item sent to an organization's PM agent stays open there with nobody applying its answer;
+and 0.3.21's first write of `settings.json` drops the two switches it does not know, «Продолжать начатую работу без меня»
+and «Присылать вопросы в Telegram через агента организации», so upgrading again turns both back on: set them again
+after the upgrade.
+
 1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
    on: turn it off and then quit before the bundle is replaced (`launchctl bootout` stops only a copy launchd started;
    the 0.3.18 paragraph above), and turn it on again once the new build runs. A quiet window does not prove the database has

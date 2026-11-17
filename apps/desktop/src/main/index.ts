@@ -208,7 +208,7 @@ import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { createRemoteQuestions, primaryFolder, remoteTargetFor, wireBoardDispatch } from './boardDispatchWiring.ts'
 import { createDispatchWake, toOperatorMarks, type InboxGiven, type ResumeGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
-import { readResumeCandidates, readResumeState } from './boardResumeRead.ts'
+import { readResumeCandidates, readResumeState, resumeSince } from './boardResumeRead.ts'
 import { handBackResumedClaims } from './resumedClaims.ts'
 import { dispatcherRuns, remoteOwnerOf, sessionLiveForDispatch, suspendedSince, WATCH_MS } from '../shared/boardDispatch.ts'
 import { SESSION_STALE_MS } from '../shared/workClaims.ts'
@@ -3189,7 +3189,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // «Продолжать начатую работу без меня» is on (by default).
     resume: {
       on: () => readSettings().resumeLeftWork,
-      read: (now, requestState) => readResumeCandidates(store, now, requestState),
+      // DA-1 (0.3.22 review, iteration 2): only work left since the supervisor began on this machine is continued.
+      read: (now, requestState) => readResumeCandidates(store, now, requestState, resumeSince(path.join(app.getPath('userData'), 'resume-since.json'), now)),
       state: (taskId, releasedAt) => readResumeState(store, taskId, releasedAt),
       // §3.12: a task whose session Switchboard will resume after a usage limit waits for that session.
       limitStops: () => readMachineLimitStops(sessionEnvironment(process.env))

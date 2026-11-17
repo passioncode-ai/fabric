@@ -156,7 +156,9 @@ export function SessionWindow({
         <strong>{runner}</strong>
         <span className="muted mono">{session.cwd}</span>
         {state}
-        {!session.running && <NewSession session={session} runner={runner} />}
+        {/* No «Новая сессия» here (0.3.22 review, iteration 2, ER-1): a detached window may not open a terminal
+            (`terminalOpen` is main-only, `shared/ipcWindowPolicy.ts`), so the button would only ever fail; the
+            console under its tab in the main window offers it. */}
       </header>
       {notes}
       {stop}

@@ -34,7 +34,7 @@ At the end of every turn an agent is in exactly one state, and says which:
 |---|---|---|---|
 | **done** | the order is finished | `fabric_work_release {how: done}` | review; nothing waits |
 | **going on** | more to do now, nothing blocks | no wait declared while a claim is held | the turn does not end: the session continues (§4.2), or the supervisor starts a run once the session is gone (§4.1) |
-| **waiting** | one checkable thing blocks the next step | a `wait` (§3) on the release, or `fabric_heartbeat` waiting with `waitingOn` while the session stays | Fabric checks the condition and continues the work when it clears (§4) |
+| **waiting** | one checkable thing blocks the next step | a `wait` (§3) on the release; `fabric_heartbeat` waiting with `waitingOn` while the session stays | for a release's wait, Fabric checks the condition and continues the work when it clears (§4); a heartbeat's wait is not checked (0.3.22 review, iteration 2, DO-1, PL-7): it only holds back the turn's `continue` (§4.2) while the session stays |
 
 A wait names something Fabric can check. «Waiting» with nothing checkable is not a wait: `fabric_work_release` refuses it, and a release that names no wait is continued after the 10-minute grace (DO-4).
 
@@ -142,7 +142,7 @@ Each wave lands on `main` on its own, gates green; nothing that works is broken 
 | T1 | `wait` on release; the supervisor continues a left task only once its wait clears, after the 10-minute grace when it names none | Fabric | `e46b39dc` |
 | T2 | The turn verdict in `fabric_session_observe` (`shared/turnVerdict.ts`, landed 2026-11-16) | Fabric | `8c5f66b5` |
 | T3 | The Stop hook acts on the verdict; the skill's turn-end rule | fabric-agent-adapter | request filed with this spec |
-| T4 | Holds for claim-holding sessions (`main/sessionHolds.ts`, landed 2026-11-16; `--reason fabric_claim` once Switchboard ships it); `--reason resume` live since Switchboard 0.7.109 | Fabric, Switchboard | `f53de384`, SB-398, SB-399 |
+| T4 | Holds for claim-holding sessions (`main/sessionHolds.ts`, landed 2026-11-16; `--reason fabric_claim`, which Switchboard 0.7.111 takes, not sent yet: CO-590); `--reason resume` live since Switchboard 0.7.109 | Fabric, Switchboard | `f53de384`, SB-398, SB-399 |
 | T5 | A remote run's question reaches «Нужны вы» and its answer resumes the run there (§4.3, landed 2026-11-17) | Fabric, Switchboard | `853dae71` |
 | T6 | «На проверке» shows a task the supervisor gave the operator (`task-to-operator`, landed 2026-11-16); a wait past its time is still open | Fabric | `a8993a15` |
 | B1 to B4 | The board out of the window's process (ADR-0195 W1 to W4) | Fabric, Switchboard | `0647986c`, `8b86adf3`, `dbeb4fcd`, `4e0976c6` |

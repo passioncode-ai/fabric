@@ -646,7 +646,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       if (wait && !waits) return reply({ released: false, code: 'bad-input', reason: 'the wait names nothing checkable: time and limit need until; question, grant and request need ref' })
       // 0.3.22 review, iteration 1, PL-2: a time the supervisor would reach after its window is refused, never dropped unsaid.
       if (waits && waitTooFar(waits, deps.now()))
-        return reply({ released: false, code: 'bad-input', reason: 'a wait reaches at most 7 days ahead: Fabric continues left work only within a week of its release. Release without a wait, or with a nearer until' })
+        return reply({ released: false, code: 'bad-input', reason: 'a wait reaches at most 7 days ahead: Fabric continues left work only within a week of its release. Wait with a nearer until and release again then, or keep the claim and wait in the session' })
       // DA-6, 0.3.14 wave 2: the running task goes back to backlog when nothing else holds it, whoever moved it there.
       const backToBacklog = (c: { id: string; work_id: string }) =>
         returnClaimedTaskToBacklog(c.id, () => ownTask(c.work_id), (id) => taskHeldElsewhere(store, id, { id: c.id, owner_session: scope.sessionId }, deps.now()),

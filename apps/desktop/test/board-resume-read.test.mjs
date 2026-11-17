@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
 
-const { readResumeCandidates, readResumeState, RELEASES_READ } = await import(path.resolve(import.meta.dirname, '../src/main/boardResumeRead.ts'))
+const { readResumeCandidates, readResumeState, RELEASES_READ, resumeSince } = await import(path.resolve(import.meta.dirname, '../src/main/boardResumeRead.ts'))
 
 const NOW = Date.parse('2026-11-16T18:00:00Z')
 const MIN = 60_000
@@ -123,3 +123,28 @@ test('turn-end §3: the newest release\'s wait is read from its event, with whet
   assert.deepEqual([by.c.wait.kind, by.c.waitSettled], ['request', true])
   assert.equal(by.d.wait, undefined, 'a time without until names nothing checkable: no wait')
 })
+
+// 0.3.22 review, iteration 2, DA-1: a release made before the supervisor began here was made by a Fabric whose let-go
+// meant «back to the queue»; continuing it would start every task left in the week before the upgrade at once.
+test('DA-1: only work left since the supervisor began on this machine is continued; the start is kept across reads', async () => {
+  const { mkdtempSync, readFileSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const dir = mkdtempSync(path.join(tmpdir(), 'fabric-resume-since-'))
+  try {
+    const file = path.join(dir, 'resume-since.json')
+    const begun = resumeSince(file, NOW - 60 * MIN)
+    assert.equal(begun, ago(60 * MIN))
+    assert.equal(resumeSince(file, NOW), begun, 'a later read keeps the first start')
+    assert.deepEqual(JSON.parse(readFileSync(file, 'utf8')), { since: begun })
+    const s = store({
+      work_claims: [claim('before', ago(3 * 60 * MIN), ago(2 * 60 * MIN), 'let-go'), claim('after', ago(50 * MIN), ago(30 * MIN), 'let-go')],
+      project_tasks: [task('before'), task('after')], questions: []
+    })
+    const r = await readResumeCandidates(s, NOW, undefined, begun)
+    assert.deepEqual(r.candidates.map((c) => c.taskId), ['after'])
+    // A file that does not read begins now: nothing older is continued.
+    const unreadable = path.join(dir, 'no', 'such', '\0bad')
+    assert.equal(resumeSince(unreadable, NOW), new Date(NOW).toISOString())
+  } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+

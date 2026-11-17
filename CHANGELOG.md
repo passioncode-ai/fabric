@@ -9,6 +9,15 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+**Upgrading.** No schema step from 0.3.21 (schema 102, no migration). From 0.3.19, take 0.3.20's step first
+(migration 129, by [the runbook](docs/launch/release-mac.md#upgrading-an-existing-database), with a backup). On macOS turn
+«Служба доски» off before the quit and on again once the new version runs. Two switches are new in Settings, both on:
+«Продолжать начатую работу без меня» and «Присылать вопросы в Telegram через агента организации». The board supervisor
+continues only work left after the new version first ran (`resume-since.json` in the app's data folder), never what agents
+left under 0.3.21, whose let-go named no wait. Going back to 0.3.21:
+first answer the questions a run on another machine asked, and set the two switches again after upgrading back (the
+runbook's 0.3.22 paragraph).
+
 - **No machine names on the screens, a narrow window keeps the project and the board whole** (wave U, 2026-11-16).
   История says an agent's act without repeating «агент» after «Кто» («Агент · взял задачу»); Agent access titles an agent
   with no registry name «Агент без имени» / "An unnamed agent" and says its id below as where it registered; Переписка,
@@ -24,7 +33,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   and took one row more than fitted. One bar under the terminal holds the state, the folder (its last two parts, the
   whole path on hover), «End session» and the separate window, and wraps at a narrow window instead of cutting a
   control. The act that ends a session is called «End session» (it read «Stop execution»), its tooltip says what stays,
-  and an ended session offers «New session» with the same coding agent and permissions in the same project. Two tabs of
+  and an ended session's console in the main window offers «New session» with the same coding agent and permissions in the same project (a separate console window cannot open one, and offers none). Two tabs of
   one project and one coding agent now say when each session started («since 01:16»), in the tab and in the title.
   No confirmation is asked before ending (ADR-0160). The screens stand draws the console at 1780, 1100 and 820 px.
 
@@ -47,7 +56,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - **A left task Fabric gave up continuing shows in «На проверке»** (the turn-end spec, wave T6). When three runs the
   board supervisor started never took a task a session left unfinished, the sweep puts it in the operator's queue as
   its own row (`task-to-operator`), instead of the task waiting unseen.
-- **A live session goes on while it holds open work** (the turn-end spec, wave T2). A turn's answer from
+- **A turn's answer says whether a live session should go on** (the turn-end spec, wave T2). A turn's answer from
   `fabric_session_observe` carries `verdict {next: continue, reason, task_id}` when the session holds an open task,
   declared no wait and changed something in its last two turns; two quiet turns give none, so a loop stops. Fabric
   only answers: no released fabric-agent-adapter acts on the verdict yet (its Stop hook is wave T3, asked of the adapter
@@ -63,7 +72,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   takes `wait` (time, question, grant, request, limit); the board supervisor continues the task once the wait clears, and
   10 minutes after a release that names none. It holds a task for its wait up to 7 days after the release: a time or a
   limit further ahead is refused, and a question, grant or request still open then leaves the task in the queue, where
-  the board shows it. Every session reads the turn-end rule (done, going on, waiting) in
+  the board shows it. Going back to 0.3.21 loses a remote run's waiting question, the «Нужны вы» items sent to a PM agent and the two
+  new switches' settings: the runbook's 0.3.22 paragraph says what to do first. Every session reads the turn-end rule (done, going on, waiting) in
   Fabric's rules. Spec and replanned waves: [docs/evidence/specs/2026-11-16-turn-end-waits.md](docs/evidence/specs/2026-11-16-turn-end-waits.md).
 - **A session resumed after a usage limit holds its tasks again** (board finding from dissy, 2026-11-16). When
   Switchboard continues a session stopped on a limit (`claude --resume`, the same runtime session id), its new Fabric

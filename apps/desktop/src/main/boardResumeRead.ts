@@ -6,6 +6,8 @@
  * read that fails throws: an unread board is never «nothing to continue».
  */
 import { parseWait, RESUME_GRACE_MS, RESUME_HOWS, RESUME_WINDOW_MS, resumeStateOf, type ResumeCandidate, type Wait } from '../shared/boardResume.ts'
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
 import type { createScopedStore } from './scopedStore.ts'
 
 type Store = Pick<ReturnType<typeof createScopedStore>, 'select' | 'selectIn'>
@@ -61,10 +63,36 @@ async function readSettled(store: Store, waits: Wait[], requestState?: RequestSt
   return out
 }
 
-export async function readResumeCandidates(store: Store, now: number, requestState?: RequestStateRead): Promise<{ candidates: ResumeCandidate[]; capped: boolean }> {
+/**
+ * When the supervisor began on this machine (0.3.22 review, iteration 2, DA-1): a release before it was made by a Fabric
+ * whose let-go meant «back to the queue» and could name no wait, so continuing it would start every task left in the week
+ * before the upgrade at once (42 tasks in 30 projects on the operator's board). Kept in `file` from the first read on; a
+ * file that cannot be read or written gives `now`, so nothing older is ever continued.
+ */
+export function resumeSince(file: string, now: number): string {
+  try {
+    const kept = JSON.parse(readFileSync(file, 'utf8')) as { since?: unknown }
+    if (typeof kept.since === 'string' && Number.isFinite(Date.parse(kept.since))) return kept.since
+  } catch {
+    // No file yet, or one that does not read: the supervisor begins now, and the file is written below.
+  }
+  const since = new Date(now).toISOString()
+  try {
+    mkdirSync(path.dirname(file), { recursive: true })
+    const tmp = `${file}.${process.pid}.tmp`
+    writeFileSync(tmp, JSON.stringify({ since }) + '\n', { mode: 0o600 })
+    renameSync(tmp, file)
+  } catch {
+    // Unwritten: the next read begins at its own now again, which still continues nothing older than this start.
+  }
+  return since
+}
+
+export async function readResumeCandidates(store: Store, now: number, requestState?: RequestStateRead, since?: string): Promise<{ candidates: ResumeCandidate[]; capped: boolean }> {
+  const from = Math.max(now - RESUME_WINDOW_MS, since ? Date.parse(since) : Number.NEGATIVE_INFINITY)
   const r = await store.select('work_claims', 'work_id,claimed_at,released_at,released_how')
     .in('released_how', [...RESUME_HOWS])
-    .gte('released_at', new Date(now - RESUME_WINDOW_MS).toISOString())
+    .gte('released_at', new Date(from).toISOString())
     .lte('released_at', new Date(now - RESUME_GRACE_MS).toISOString())
     .order('released_at', { ascending: false }).limit(RELEASES_READ)
   if (r.error) throw new Error(`the released claims could not be read: ${r.error.message}`)
