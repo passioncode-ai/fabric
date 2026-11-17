@@ -50,3 +50,23 @@ test('T4: a refused or failed hold is said and not remembered, so the next chang
   assert.deepEqual(failures.map((f) => f[2]), ['exit 2: no such session', 'timed out'])
   assert.equal(h.asked('sess-1'), until)
 })
+
+// 0.3.22 review, iteration 1, DO-9: a release asked while the session's hold call still runs was dropped, so the hold
+// lasted until the claim's expiry. It is now kept and asked once that call ends; the newest change wins.
+test('T4: a release asked while the hold is in flight is asked once that call ends; the newest change wins', async () => {
+  let open
+  const gate = new Promise((r) => { open = r })
+  const calls = []
+  const h = createSessionHolds({
+    hold: async (_sessionId, until) => { calls.push(until); if (calls.length === 1) await gate; return { code: 0, stderr: '' } },
+    failed: () => {}
+  })
+  const S = '1c1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b'
+  const first = h.set(S, 1794900000)
+  await h.set(S, 1794903600)
+  await h.set(S, 0)
+  open()
+  await first
+  assert.deepEqual(calls, [1794900000, 0])
+  assert.equal(h.asked(S), undefined)
+})

@@ -36,7 +36,7 @@ At the end of every turn an agent is in exactly one state, and says which:
 | **going on** | more to do now, nothing blocks | no wait declared while a claim is held | the turn does not end: the session continues (§4.2), or the supervisor starts a run once the session is gone (§4.1) |
 | **waiting** | one checkable thing blocks the next step | a `wait` (§3) on the release, or `fabric_heartbeat` waiting with `waitingOn` while the session stays | Fabric checks the condition and continues the work when it clears (§4) |
 
-A wait names something Fabric can check. «Waiting» with nothing checkable is not a wait: the work goes on at once.
+A wait names something Fabric can check. «Waiting» with nothing checkable is not a wait: `fabric_work_release` refuses it, and a release that names no wait is continued after the 10-minute grace (DO-4).
 
 ## 3. The wait
 
@@ -55,8 +55,10 @@ back by the supervisor; no new table):
 | `request` | the board request `ref` (sent to another project) is settled or answered | the board |
 | `limit` | the usage limit resets at `until` | the clock (Switchboard's recovery resumes the same session itself) |
 
-A wait whose `ref` cannot be read is checked again on the next pass; a task still waiting past the supervisor's week goes
-to the operator like any left task. A `question` wait is also why the operator sees the question: it is in «Нужны вы»,
+A wait whose `ref` cannot be read is checked again on the next pass. The supervisor reads releases of the last 7 days
+(`RESUME_WINDOW_MS`), so `fabric_work_release` refuses a `time` or `limit` further ahead (`shared/boardResume.ts#waitTooFar`,
+the 0.3.22 review, iteration 1, PL-2), and a `question`, `grant` or `request` wait still open after 7 days leaves the task in
+the queue, where the board shows it; bringing such a task to the operator is a carry-over row of that review. A `question` wait is also why the operator sees the question: it is in «Нужны вы»,
 and the bridge sends it to the PM agent of the project's organization.
 
 ## 4. Continuing
@@ -65,14 +67,16 @@ and the bridge sends it to the PM agent of the project's organization.
 
 A left task with a `wait` is a resume item only once its wait clears (`shared/boardResume.ts#waitCleared`); without a
 wait it is one after the 10-minute grace, as in §3.11. An open question that the wait itself names does not hold the task
-once answered. The run's packet names the wait and how it cleared, so the run starts from the answer. The run goes where
-the project's runs go: this Mac, or the machine `dispatchTargets` names.
+once answered. The run's packet names the wait and how it cleared, so the run starts from the answer. A resume run starts
+on this Mac (`main/boardDispatchRun.ts`, as the on-demand spec §3.11 says); a board request's run may go to the machine
+`dispatchTargets` names (0.3.22 review, iteration 1, DO-3).
 
 ### 4.2 While the session is alive: the turn's verdict
 
 `fabric_session_observe {event: turn}` answers a verdict beside its nudges: `continue` with a reason when the session
 holds a live claim on an open task, declared no wait, and one of its last two turns changed something (files or lines), so
-a loop that changes nothing stops; else `stop`. The adapter's Stop hook turns `continue` into Claude Code's
+a loop that changes nothing stops; else no verdict at all (Fabric never sends `stop`: no verdict is the hook's ordinary
+end, DO-5). The adapter's Stop hook (wave T3, requested, not released at 0.3.22) is to turn `continue` into Claude Code's
 `{"decision": "block", "reason": …}`, so the agent goes on in the same session; it respects `stop_hook_active` and blocks
 at most three times in a row. Codex and Kimi send no turns; for them §4.1 does the work.
 
@@ -115,8 +119,9 @@ the file, the wiring's door).
 
 ### 4.4 A live session the duty officer must not close
 
-A session holding a claim is marked `switchboard monitor hold --session <id> --until <claim's expiry> --reason
-fabric_claim`, released with `--until 0` on release (SB-399, Fabric task `f53de384`).
+A session holding a claim is marked `switchboard monitor hold --session <id> --until <claim's expiry>`, released with
+`--until 0` on release (SB-399, Fabric task `f53de384`). Fabric sends no `--reason` yet; Switchboard 0.7.111 takes
+`--reason fabric_claim`, and sending it is a carry-over row (0.3.22 review, iteration 1, DO-6).
 
 ## 5. Who does what
 
@@ -125,7 +130,7 @@ fabric_claim`, released with `--until 0` on release (SB-399, Fabric task `f53de3
 | Fabric | the `wait` on release, the supervisor's check, the turn verdict, questions from a remote run, the holds, «На проверке» rows | this repository |
 | fabric-agent-adapter | the Stop hook acting on the verdict; `working-with-fabric`'s turn-end rule (one of the three states; a wait names a checkable thing) | request filed 2026-11-16 |
 | fabric-switchboard | `--reason resume` (SB-398), `monitor hold` (SB-399), the result file passed through (its body may carry the question's block, §4.3; no header added) | thread `179a88f6` |
-| PM agents (Аня, Кира) and the personal communicator | `people.ask` in Telegram | thread `bf635f68`: Аня live (`c89f4ab`), Кира 2026-11-19, the communicator 2026-11-20 |
+| PM agents (Аня, Кира) and the personal communicator | `people.ask` in Telegram | thread `bf635f68`: Аня live (`c89f4ab`); Кира's `people.ask` active in the board directory on 2026-11-17 (DO-10); the communicator 2026-11-20 |
 
 ## 6. The plan, in waves (replanned 2026-11-16)
 
@@ -134,7 +139,7 @@ Each wave lands on `main` on its own, gates green; nothing that works is broken 
 | Wave | What | Owner | Board |
 |---|---|---|---|
 | T0 | The wiki and data-room sync publishes again: the git step that times out every 2 hours named and bounded, its lock not left behind, the operator's notice under one event id per state | Fabric | finding `6f7d788c` |
-| T1 | `wait` on release; the supervisor continues a left task only once its wait clears, at once when it names nothing checkable | Fabric | `e46b39dc` |
+| T1 | `wait` on release; the supervisor continues a left task only once its wait clears, after the 10-minute grace when it names none | Fabric | `e46b39dc` |
 | T2 | The turn verdict in `fabric_session_observe` (`shared/turnVerdict.ts`, landed 2026-11-16) | Fabric | `8c5f66b5` |
 | T3 | The Stop hook acts on the verdict; the skill's turn-end rule | fabric-agent-adapter | request filed with this spec |
 | T4 | Holds for claim-holding sessions (`main/sessionHolds.ts`, landed 2026-11-16; `--reason fabric_claim` once Switchboard ships it); `--reason resume` live since Switchboard 0.7.109 | Fabric, Switchboard | `f53de384`, SB-398, SB-399 |

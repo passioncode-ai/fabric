@@ -566,4 +566,13 @@ describe('a nameless agent is never titled by its machine id (wave U)', () => {
     expect(strong).not.toContain('unknown-scraper')
     expect(screen.getByText(fill(ru['access.origin.plain']!, { id: 'unknown-scraper' }))).toBeTruthy()
   })
+  // 0.3.22 review, iteration 1, UX-10 (task ace24362): the buttons' accessible names said the machine id.
+  it('a screen reader names the buttons by the shown title, never the machine id', async () => {
+    stub(overview({ pending: [pending({ agent: nameless })] }))
+    show('ru')
+    await screen.findByRole('heading', { name: ru['access.unnamed']! })
+    const labels = screen.getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? '')
+    expect(labels.some((l) => l.includes(ru['access.unnamed']!))).toBe(true)
+    expect(labels.filter((l) => l.includes('board-answerer'))).toEqual([])
+  })
 })

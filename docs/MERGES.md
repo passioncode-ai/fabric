@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/release-0322-i1 → main · fast-forward
+- files: `main/boardReads.ts` (DA-1: only session uuids reach the askers' read, a failed read logged), `main/workTools.ts` and `shared/boardResume.ts` (`waitTooFar`, PL-2), `main/sessionHolds.ts` (DO-9, ER-2), `main/boardDispatchRun.ts` (ER-9), `AgentAccessPanel.tsx` (UX-10), `i18n/en.ts` (UX-4), `CHANGELOG.md` and the turn-end spec (PL-1, DO-1 to DO-6, DO-10), the carry-over register (CO-590)
+- conflicts: none
+- summary: the 0.3.22 release review's iteration 1, every blocking finding fixed and the rest fixed or ruled to CO-590 (task 07510265)
+
 ### 2026-11-17 · `—` · fix/ui-wave-u → main · fast-forward
 - files: `launch/HistoryScreen.tsx` (`saidOf`: an agent's act without its subject), `i18n/{ru,en}.ts` (`acts.did.*`, `access.unnamed`, `access.origin.unnamed*`, `board.capability.*`), `shared/accessWords.ts` (`shownTitle`, `sayBoardCapability`, `sayBoardRequests`), `AgentAccessPanel.tsx`, `styles.css`, `launch/CommsScreen.tsx`, `launch/CommsParts.tsx`, `launch/WorkDirections.tsx`, `launch/launch.css` (adaptations: project side column, board filters, thread title and message size), `stand/stand.tsx` (the real `LaunchShell`), the tests, the map lane `iteration-2026-11-16-ui-wave-u`
 - conflicts: `CHANGELOG.md`, `docs/MERGES.md`, `docs/reports/map.html` (both entries kept) and `stand/stand.tsx` beside the console's top bar: the stand draws the real `LaunchShell`, the console's title and tabs passed through its `title` and `consoles`

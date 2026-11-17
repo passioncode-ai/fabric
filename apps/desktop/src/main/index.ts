@@ -4131,7 +4131,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
    * underneath a consumer in this iteration.
    */
   // The Board's three reads (`boardReads.ts`; the screens waves, S2).
-  const boardReads = createBoardReads({ store, estateId: ACTIVE_ESTATE, attention: (stamp) => readAttentionWithSources(stamp) })
+  const boardReads = createBoardReads({ store, estateId: ACTIVE_ESTATE, attention: (stamp) => readAttentionWithSources(stamp), failed: (op, e) => ops.failed(op, e) })
   const readBoard = boardReads.board
   handle(IPC.boardQuery, (_e, q?: { projectId?: string | null; limit?: number; personOnly?: boolean }): Promise<Returns<FabricApi['board']['query']>> =>
     readBoard(q?.projectId ?? null, q?.limit ?? 5, q?.personOnly === true)

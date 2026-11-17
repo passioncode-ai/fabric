@@ -77,7 +77,7 @@ describe('resumeStateOf', () => {
 })
 
 // The turn-end spec §3 and §4.1: a declared wait holds the task until it clears.
-import { parseWait, waitCleared, waitLine } from './boardResume'
+import { parseWait, waitCleared, waitLine, waitTooFar } from './boardResume'
 const Q = '0a0a0a0a-0b0b-4c0c-8d0d-0e0e0e0e0e0e'
 
 describe('parseWait', () => {
@@ -116,3 +116,16 @@ describe('waitCleared and resumeItems with a wait', () => {
     expect(resumeItems([cand({ lastClaim, wait: later })], NOW + 61 * MIN)).toHaveLength(1)
   })
 })
+
+describe('waitTooFar (0.3.22 review, iteration 1, PL-2)', () => {
+  const NOW = Date.parse('2026-11-17T08:00:00Z')
+  it('a time or limit within the supervisor\'s week is kept, one past it is refused', () => {
+    expect(waitTooFar({ kind: 'time', until: '2026-11-24T07:59:00Z', ref: null, why: null }, NOW)).toBe(false)
+    expect(waitTooFar({ kind: 'time', until: '2026-11-24T08:01:00Z', ref: null, why: null }, NOW)).toBe(true)
+    expect(waitTooFar({ kind: 'limit', until: '2026-12-01T00:00:00Z', ref: null, why: null }, NOW)).toBe(true)
+  })
+  it('a wait on a question, grant or request has no time and is never refused for one', () => {
+    expect(waitTooFar({ kind: 'question', until: null, ref: '6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b', why: null }, NOW)).toBe(false)
+  })
+})
+

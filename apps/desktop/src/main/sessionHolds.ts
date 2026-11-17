@@ -49,12 +49,19 @@ export function createMachineSessionHolds(env: Record<string, string | undefined
   let file: string | null = null
   let lookedAt = Number.NEGATIVE_INFINITY
   let missingSaid = false
+  // 0.3.22 review, iteration 1, ER-2: holds asked together share one lookup, so none reads the binary as missing while
+  // the first lookup is still running.
+  let looking: Promise<string | null> | null = null
   const find = async (): Promise<string | null> => {
+    if (looking) return looking
     if (file || Date.now() - lookedAt < MISSING_RECHECK_MS) return file
     lookedAt = Date.now()
-    const PATH = await widenProbePath(env.PATH ?? '', env as Record<string, string>)
-    file = await findOnPath('switchboard', PATH)
-    return file
+    looking = (async () => {
+      const PATH = await widenProbePath(env.PATH ?? '', env as Record<string, string>)
+      file = await findOnPath('switchboard', PATH)
+      return file
+    })().finally(() => { looking = null })
+    return looking
   }
   return createSessionHolds({
     failed,
@@ -80,9 +87,13 @@ export function createMachineSessionHolds(env: Record<string, string | undefined
 export function createSessionHolds(deps: HoldDeps): SessionHolds {
   const asked = new Map<string, number>()
   const inFlight = new Set<string>()
-  return {
+  // 0.3.22 review, iteration 1, DO-9: a change asked while a call for the same session runs (a release while its hold is
+  // in flight) is kept, newest wins, and asked once that call ends, so a release is never dropped.
+  const next = new Map<string, number>()
+  const holds: SessionHolds = {
     async set(sessionId, until) {
-      if (!SESSION.test(sessionId) || inFlight.has(sessionId)) return
+      if (!SESSION.test(sessionId)) return
+      if (inFlight.has(sessionId)) { next.set(sessionId, until); return }
       const was = asked.get(sessionId)
       if (until === 0 ? was === undefined || was === 0 : was !== undefined && was !== 0 && Math.abs(was - until) * 1000 < HOLD_SLACK_MS) return
       inFlight.add(sessionId)
@@ -98,8 +109,14 @@ export function createSessionHolds(deps: HoldDeps): SessionHolds {
       } finally {
         inFlight.delete(sessionId)
       }
+      const later = next.get(sessionId)
+      if (later !== undefined) {
+        next.delete(sessionId)
+        await holds.set(sessionId, later)
+      }
     },
     asked: (sessionId) => asked.get(sessionId)
   }
+  return holds
 }
 // #endregion session-holds

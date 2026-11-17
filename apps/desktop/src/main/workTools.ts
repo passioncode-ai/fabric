@@ -20,7 +20,7 @@ import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { createScopedStore } from './scopedStore.ts'
 import { ORIGIN_KINDS } from '../shared/origin.ts'
-import { parseWait } from '../shared/boardResume.ts'
+import { parseWait, waitTooFar } from '../shared/boardResume.ts'
 import type { TurnVerdict } from '../shared/turnVerdict.ts'
 import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
 import { backToBacklogNote, moveDoneTaskToReview, returnClaimedTaskToBacklog, taskHeldElsewhere } from './workRelease.ts'
@@ -630,7 +630,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
           until: z.string().datetime({ offset: true }).optional().describe('For time and limit: when to look again'),
           ref: z.string().uuid().optional().describe('For question, grant and request: the id of what you wait for (a question you asked, an access request, a board request you sent)'),
           why: z.string().max(300).optional()
-        }).optional().describe('With let-go or handed-over: the ONE checkable thing the next step waits for. Fabric continues the task (a new run claims it and starts from your note) once it clears: the time passed, the question answered, the request decided or settled. Leave it out when nothing blocks: the task is then continued 10 minutes after the release. A wait that names nothing checkable is refused.'),
+        }).optional().describe('With let-go or handed-over: the ONE checkable thing the next step waits for. Fabric continues the task (a new run claims it and starts from your note) once it clears: the time passed, the question answered, the request decided or settled. Leave it out when nothing blocks: the task is then continued 10 minutes after the release. A wait that names nothing checkable is refused, and so is a time or limit past 7 days. Fabric holds the task for its wait up to 7 days after the release; a wait still open then leaves the task in the queue, where the board shows it.'),
         // #endregion work-release-wait
         idempotencyKey: KEY.optional()
       }
@@ -644,6 +644,9 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
       const waits = wait ? parseWait(wait) : null
       if (wait && ending === 'done') return reply({ released: false, code: 'bad-input', reason: 'a done release waits for nothing; release let-go or handed-over with the wait' })
       if (wait && !waits) return reply({ released: false, code: 'bad-input', reason: 'the wait names nothing checkable: time and limit need until; question, grant and request need ref' })
+      // 0.3.22 review, iteration 1, PL-2: a time the supervisor would reach after its window is refused, never dropped unsaid.
+      if (waits && waitTooFar(waits, deps.now()))
+        return reply({ released: false, code: 'bad-input', reason: 'a wait reaches at most 7 days ahead: Fabric continues left work only within a week of its release. Release without a wait, or with a nearer until' })
       // DA-6, 0.3.14 wave 2: the running task goes back to backlog when nothing else holds it, whoever moved it there.
       const backToBacklog = (c: { id: string; work_id: string }) =>
         returnClaimedTaskToBacklog(c.id, () => ownTask(c.work_id), (id) => taskHeldElsewhere(store, id, { id: c.id, owner_session: scope.sessionId }, deps.now()),

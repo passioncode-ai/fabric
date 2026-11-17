@@ -2518,3 +2518,20 @@ test('§3.12: a resume run\'s packet names the Observatory workflow the left cla
   const p = plain.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
   assert.doesNotMatch(JSON.stringify(p.body), /observatory-workflow:/)
 })
+
+// 0.3.22 review, iteration 1, ER-9: a filed question whose read fails was said exactly as an open one, so a broken read
+// could not be told from a person who had not answered. It is now said once as a failed question read, and no run starts.
+test('T5: a filed question that cannot be read is said once as unread, and the request still waits', async () => {
+  const w = asking(world({ target: 'studio' }))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.remote.set('L1', { state: 'exited', exitCode: 0, result: blockedWith(QUESTION) })
+  w.tick(3 * MIN)
+  await d.onPass()
+  w.deps.questionState = async () => { throw new Error('the questions read failed') }
+  for (let i = 0; i < 3; i++) { w.tick(5 * MIN); await d.onPass() }
+  const unread = w.logs.filter((l) => l.op === 'board.dispatch.question' && l.outcome === 'failed' && l.detail.reason === 'unread')
+  assert.equal(unread.length, 1, 'said once, not on every pass')
+  assert.equal(unread[0].detail.question, 'q-1')
+  assert.equal(w.launches.length, 1, 'no run starts while the question cannot be read')
+})

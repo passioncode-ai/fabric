@@ -19,7 +19,13 @@ export interface BoardReadDeps {
   /** The obligations beside the questions (reviews, proposals, access), each source with its own receipt. */
   attention(stamp: string): Promise<{ items: AttentionItem[]; sources: SourceReceipt[]; omitted?: Omission[] }>
   now?: () => Date
+  /** A part of the read that failed without failing the board (the askers' names, DA-1), for the operations log. */
+  failed?: (op: string, error: unknown) => void
 }
+
+/** `work_claims.owner_session` is a uuid: an asker id of another shape (a remote run's question, `dispatch-run:<launch>`)
+ *  names no session there, and one such id in the list would make the database refuse the whole read (0.3.22, DA-1). */
+const SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export function createBoardReads(deps: BoardReadDeps): {
   board(projectId: string | null, limit: number, personOnly?: boolean): Promise<ReadEnvelope<BoardCut>>
@@ -56,8 +62,11 @@ export function createBoardReads(deps: BoardReadDeps): {
     )
 
     // CO-391: an asking agent named by the runner its session claimed work as; a read that fails names no agent.
-    const askerSessions = [...new Set((questionRead.data ?? []).filter((q) => q.asked_by_kind === 'agent').map((q) => q.asked_by_id as string))]
+    const askerSessions = [...new Set((questionRead.data ?? []).filter((q) => q.asked_by_kind === 'agent').map((q) => q.asked_by_id as string)
+      .filter((id) => typeof id === 'string' && SESSION_ID.test(id)))]
     const askerRead = askerSessions.length ? await deps.store.selectIn('work_claims', 'owner_session,agent', 'owner_session', askerSessions) : { rows: [], failed: null }
+    // The askers' names are a nicety beside the questions: a failed read leaves them unnamed, said in the operations log.
+    if (askerRead.failed) deps.failed?.('board.read-askers', new Error(String(askerRead.failed)))
     const agentOf = new Map<string, string>()
     for (const r of (askerRead.rows ?? []) as Array<{ owner_session: string; agent: string | null }>) if (r.agent) agentOf.set(r.owner_session, r.agent)
     const questions: BoardQuestion[] = (questionRead.data ?? []).filter((q) => !setAside.has(q.id as string)).map((q) => ({

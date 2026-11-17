@@ -52,3 +52,32 @@ test('answered and set-aside lists read with their own receipts', async () => {
   const deferred = await reads.deferred(null, 50)
   assert.deepEqual(deferred.sources.map((s) => [s.name, s.status]), [['deferrals', 'ok'], ['questions', 'ok'], ['projects', 'ok']])
 })
+
+// 0.3.22 review, iteration 1, DA-1: a remote run's question is asked by `dispatch-run:<launch>`, not a session uuid.
+// `work_claims.owner_session` is a uuid, so the database refuses a read whose list holds such an id: the other agent
+// questions lost their askers' names, unsaid. The store here refuses as PostgREST does (invalid input for type uuid).
+test('a remote run\'s asker id never reaches the uuid read: the other askers keep their names, nothing fails', async () => {
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  const session = '6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b'
+  const store = fakeStore({ questions: [q('q1', { asked_by_kind: 'agent', asked_by_id: session }), q('q2', { asked_by_kind: 'agent', asked_by_id: 'dispatch-run:launch-7' })],
+    question_blocks: [], projects: [{ id: 'p1', name: 'Atlas', priority_tier: 'normal' }], question_deferrals: [], work_claims: [{ owner_session: session, agent: 'claude-code' }] })
+  const selectIn = store.selectIn
+  store.selectIn = async (t, c, k, ids) => (t === 'work_claims' && ids.some((id) => !UUID.test(id)) ? { rows: [], failed: 'invalid input syntax for type uuid' } : selectIn(t, c, k, ids))
+  const failures = []
+  const reads = createBoardReads({ estateId: 'e1', attention, now: () => NOW, store, failed: (op, e) => failures.push([op, e.message]) })
+  const read = await reads.board(null, 10)
+  const named = Object.fromEntries(read.data.items.filter((i) => i.askedBy).map((i) => [i.title.replace('question ', ''), i.askedBy.agent]))
+  assert.equal(named.q1, 'claude-code', 'the session\'s question lost its asker\'s name')
+  assert.equal(named.q2, null)
+  assert.deepEqual(failures, [])
+})
+
+test('a failed read of the askers leaves them unnamed and is said in the operations log', async () => {
+  const session = '6f1d2c3b-4a5e-4f60-9a7b-8c9d0e1f2a3b'
+  const failures = []
+  const reads = createBoardReads({ estateId: 'e1', attention, now: () => NOW, failed: (op, e) => failures.push([op, e.message]),
+    store: fakeStore({ questions: [q('q1', { asked_by_kind: 'agent', asked_by_id: session })], question_blocks: [], projects: [], question_deferrals: [], work_claims: 'permission denied' }) })
+  const read = await reads.board(null, 10)
+  assert.equal(read.data.items.length, 1)
+  assert.deepEqual(failures, [['board.read-askers', 'permission denied']])
+})

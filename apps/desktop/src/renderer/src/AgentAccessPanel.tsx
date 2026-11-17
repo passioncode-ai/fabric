@@ -9,7 +9,7 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import type { HubActResult, HubOverview, PendingRequestFacts } from '../../shared/access'
-import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayDecided, sayGrant, sayOrigin, sayRequest, shownName, shownTitle, type Say } from '../../shared/accessWords'
+import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayDecided, sayGrant, sayOrigin, sayRequest, shownTitle, type Say } from '../../shared/accessWords'
 import { humaniseError } from '../../shared/errorText'
 import { Banner, Button, EmptyState, Panel, Row, Toolbar } from './components'
 import { useLocale, useT } from './i18n'
@@ -237,7 +237,7 @@ export function AgentAccessPanel({ onClose, page = false }: { onClose: () => voi
             {view.overview.agents.length === 0
               ? <EmptyState read>{t('access.agents.none')}</EmptyState>
               : view.overview.agents.map((a) => {
-                const name = shownName(a.agent)
+                const name = shownTitle(t, a.agent) // the spoken name is the shown one (0.3.22 review, iteration 1, UX-10)
                 return (
                   <div key={a.bindingId} className="access-card">
                     <h4 className="access-name">{shownTitle(t, a.agent)}</h4>
@@ -268,7 +268,7 @@ export function AgentAccessPanel({ onClose, page = false }: { onClose: () => voi
             {view.overview.denials.length === 0
               ? <EmptyState read>{t('access.denials.none')}</EmptyState>
               : view.overview.denials.map((d) => {
-                const name = shownName(d.agent)
+                const name = shownTitle(t, d.agent)
                 return (
                   <Row key={d.requestId} trail={<Button tone="ghost" aria-label={t('access.clearFor', { name })} {...waiting} onClick={() => void act(`clear:${d.requestId}`, () => window.fabric.hub.clearDenial(d.requestId), { section: 'denials' })}>{t('access.denials.clear')}</Button>}>
                     <strong>{shownTitle(t, d.agent)}</strong> {t('access.denials.asked', { asks: d.ask.map((l) => sayAsk(t, l)).join('; ') })}
@@ -290,7 +290,7 @@ function PendingCard({ r, t, waiting, act }: {
   waiting: { 'aria-disabled'?: true }
   act: (key: string, run: Act, opts: ActOpts) => Promise<void>
 }): React.JSX.Element {
-  const name = shownName(r.agent)
+  const name = shownTitle(t, r.agent)
   // Allowed, but the product could not be opened: the Allow stands, and the panel says so — pointing to
   // Products in this panel, not to the screen the operator is already on (UX-5; iteration 2, UX-11).
   // #region access-decided-named — docs: docs/ux/scenarios.md#scn-132-an-external-agent-asks-for-access-and-the-operator-decides

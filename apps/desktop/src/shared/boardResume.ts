@@ -45,6 +45,12 @@ export function parseWait(raw: unknown): Wait | null {
   return { kind, until, ref, why }
 }
 
+/** Whether a wait's time lies past the supervisor's window (0.3.22 review, iteration 1, PL-2): it reads releases of the
+ *  last `RESUME_WINDOW_MS` only, so `fabric_work_release` refuses such a wait rather than promise what no pass keeps. */
+export function waitTooFar(wait: Wait, now: number): boolean {
+  return wait.until !== null && Date.parse(wait.until) - now > RESUME_WINDOW_MS
+}
+
 /**
  * Whether a wait has cleared (§3): a time or a limit once `until` has passed; a question, grant or request once its
  * referenced item reads settled (`refSettled` true). A reference that could not be read (null) has not cleared: it is

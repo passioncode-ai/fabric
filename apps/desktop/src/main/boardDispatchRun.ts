@@ -327,6 +327,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   const pastDue = new Set<string>()
   // CO-573 (9): requests to a project with no folder here, given to the operator after NO_FOLDER_TO_OPERATOR_MS.
   const noFolder = new Set<string>()
+  /** ER-9: requests whose filed question could not be read, said once until a read answers again. */
+  const questionUnread = new Set<string>()
   const said = (requestId: string, d: DispatchDecision): void => {
     const key = d.path + ('check' in d ? `:${d.check}` : '')
     if (decided.get(requestId) === key) return
@@ -1159,7 +1161,15 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       let asked: { packet: { constraint: string; notes: string }; target: string | null } | null = null
       if (!req.inbox && !req.resume && last && last.requestId === req.id && last.state === 'ended' && last.outcome === 'waiting' && last.question) {
         // A question that cannot be read proves nothing: it is read again on the next pass, as an open one is.
-        const q = deps.questionState ? await deps.questionState(last.question.id).catch(() => null) : null
+        // 0.3.22 review, iteration 1, ER-9: a failed read is said apart from an open question, once per request.
+        const q = deps.questionState ? await deps.questionState(last.question.id).catch((e: unknown) => {
+          if (!questionUnread.has(req.id)) {
+            questionUnread.add(req.id)
+            deps.log('board.dispatch.question', 'failed', { request: req.id, question: last.question!.id, reason: 'unread', note: (e instanceof Error ? e.message : String(e)).slice(0, 200) })
+          }
+          return null
+        }) : null
+        if (q) questionUnread.delete(req.id)
         if (!q || q.status === 'open') { said(req.id, { path: 'wait', check: 'waiting-question' }); continue }
         asked = { packet: answerPacket(q), target: last.target ?? null }
       }

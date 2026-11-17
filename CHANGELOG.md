@@ -49,8 +49,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   its own row (`task-to-operator`), instead of the task waiting unseen.
 - **A live session goes on while it holds open work** (the turn-end spec, wave T2). A turn's answer from
   `fabric_session_observe` carries `verdict {next: continue, reason, task_id}` when the session holds an open task,
-  declared no wait and changed something in its last two turns; two quiet turns give none, so a loop stops. The
-  adapter's Stop hook turns it into another turn. The wiki snapshot takes the new `passionview` repository, whose
+  declared no wait and changed something in its last two turns; two quiet turns give none, so a loop stops. Fabric
+  only answers: no released fabric-agent-adapter acts on the verdict yet (its Stop hook is wave T3, asked of the adapter
+  on the board), so until it does a live session still ends its turn as before and the supervisor continues the work
+  after the session ends. The wiki snapshot takes the new `passionview` repository, whose
   absence failed every publication.
 - **A question to a person is one he understands** (the operator, 2026-11-16). `fabric_question_ask` refuses a question
   longer than 240 characters, with ids, hashes, ticket numbers or tool names in it, or without a question mark, and
@@ -59,7 +61,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   its failure notice is no longer refused on a repeat.
 - **An agent says what it waits for, and Fabric goes on when it clears** (the operator, 2026-11-16). `fabric_work_release`
   takes `wait` (time, question, grant, request, limit); the board supervisor continues the task once the wait clears, and
-  10 minutes after a release that names none. Every session reads the turn-end rule (done, going on, waiting) in
+  10 minutes after a release that names none. It holds a task for its wait up to 7 days after the release: a time or a
+  limit further ahead is refused, and a question, grant or request still open then leaves the task in the queue, where
+  the board shows it. Every session reads the turn-end rule (done, going on, waiting) in
   Fabric's rules. Spec and replanned waves: [docs/evidence/specs/2026-11-16-turn-end-waits.md](docs/evidence/specs/2026-11-16-turn-end-waits.md).
 - **A session resumed after a usage limit holds its tasks again** (board finding from dissy, 2026-11-16). When
   Switchboard continues a session stopped on a limit (`claude --resume`, the same runtime session id), its new Fabric
