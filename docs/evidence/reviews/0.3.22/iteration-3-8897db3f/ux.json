@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "8897db3fa0829adf8286155593a0f5fc8052ea0f",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3-8897db3f/2026-11-17-ux.md",
+  "reportSha256": "30fd93920ef3215b49f8c8f1a1fd55001d180b2303b711479ab1d1b260f4fd26",
+  "reviewerRun": "release-0322-i3b-ux-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run two's wave (candidate `ac8fc30b`): History's stop and Agent access's revoke (the button, an undo, an agent relaying the operator's words) mark the session before they act (`markPersonEnded`, `markBindingPersonEnded` in `main/index.ts`), so its claims release as the person's own; test «PL-1 run two: every person's end of a session is marked before it acts», watched failing; the CHANGELOG names the three ways"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3, run two)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "fbb7d9b5b3b00474b63a3a2eb4c6dad201f06351",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3-fbb7d9b5/2026-11-17-docs.md",
+  "reportSha256": "73a5b110de0a64fde5dccb6e35b82c646f42ed03c8e6c50cf27e4778c2392203",
+  "reviewerRun": "release-0322-i3-docs-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run one's wave (candidate `8897db3f`): CO-590 no longer lists the rollback paragraph, shipped in iteration 2"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run one's wave (candidate `8897db3f`): the same as ER-1: the fallback keeps one start per process, and its comment says so"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3)"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "8897db3fa0829adf8286155593a0f5fc8052ea0f",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3-8897db3f/2026-11-17-plan.md",
+  "reportSha256": "4fc2c7fd210c56cc793932c7c54e8c72567ed8bfd90bc259f1460ad6825c4523",
+  "reviewerRun": "release-0322-i3b-plan-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run two's wave (candidate `ac8fc30b`): a hold runs at most an hour past the session's last tool call (`main/sessionHolds.ts#HOLD_IDLE_MS`, `holdFor` in `main/agentSurface.ts`), so an idle or stalled session is released to Switchboard's duty officer; test «the hold runs at most an hour past the session's last work», watched failing; spec §4.4 and `AGENTS.md` say it"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run two's wave (candidate `ac8fc30b`): History's stop and Agent access's revoke (the button, an undo, an agent relaying the operator's words) mark the session before they act (`markPersonEnded`, `markBindingPersonEnded` in `main/index.ts`), so its claims release as the person's own; test «PL-1 run two: every person's end of a session is marked before it acts», watched failing; the CHANGELOG names the three ways"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3, run two)"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3, run two)"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3, run two)"
+      ]
+    }
+  ]
+}

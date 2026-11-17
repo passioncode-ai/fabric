@@ -2,8 +2,8 @@
 /**
  * The turn-end spec's wave T4 (task f53de384): a live Claude Code session that holds a claim is marked with Switchboard
  * so its duty officer, a duplicate close, a session host's idle close and a restart wave leave it alone
- * (`switchboard monitor hold --session <id> --until <unix s>`, SB-399), until its newest claim expires; renewed as the
- * claims are, released (`--until 0`) when it holds none. Fabric keeps what it asked per session and asks again only when
+ * (`switchboard monitor hold --session <id> --until <unix s>`, SB-399), until its newest claim expires but at most
+ * `HOLD_IDLE_MS` past its last call of a Fabric tool; renewed as the claims and its work are, released (`--until 0`) when it holds none. Fabric keeps what it asked per session and asks again only when
  * the end moved by a minute or more, so a renewal every five minutes is one call. Every call has a deadline and no
  * shell; a failure is said once per session and end in the operations log, and the next change asks again.
  */

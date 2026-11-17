@@ -272,6 +272,10 @@ What is owed around the tag, in order; each item is checked off here with its re
    fast` read on it, `node scripts/release-mac.mjs --check-only --tag v0.3.22`, and its landing on `main` by fast-forward.
 0c. On `main` after the release commit: the superseded runs' folders; the run-four rulings appended to CO-590 (UX-1, UX-2,
    ER-1 to ER-3, DO-1 for spec §4.4 and `AGENTS.md`, DO-3, DO-4); board task `ace24362` (fixed in 0.3.22) closed.
+   Receipt for 0b: `bash scripts/ci.sh fast` exit 0 on `661bcf45`; `node scripts/release-mac.mjs --check-only --tag v0.3.22`
+   «its release gate is clear»; landed on `main` by fast-forward, tag `v0.3.22` pushed 2026-11-17.
+   Receipt for 0c: this commit carries the superseded runs, CO-590's run-four rulings, and DO-1 (spec §4.4, `AGENTS.md`),
+   DO-3 (`docs/brand/strings.md`) and DO-4 (`sessionHolds.ts`, `visibleClock.ts`) fixed rather than ruled.
 1. The CI release run green on every platform, the published release and its notes from `## 0.3.22`.
 2. Install 0.3.22 on this Mac by [the runbook](../../launch/release-mac.md#upgrading-an-existing-database) (no schema
    step): «Служба доски» off before the quit, the lifecycle broker's `fabric.desktop` held, the bundle checked and replaced,

@@ -764,9 +764,9 @@ lands beside SCN-132.
 | `access.queue.enrolled` | You let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1182 | SCN-132 (enrollment) | proposed |
 | `access.queue.enrollDenied` | You did not let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1183 | SCN-132 (enrollment) | proposed |
 | `event.session.enrolled@1` | a coding agent opened outside Fabric joined the project | apps/desktop/src/renderer/src/i18n/en.ts:1204 | SCN-132 (enrollment) | proposed |
-| `access.ask.respond` | answer requests {capabilities} sent to {project} | apps/desktop/src/renderer/src/i18n/en.ts:1261 | SCN-145 (responder grant) | proposed |
-| `access.ask.respondThis` | answer requests {capabilities} sent to this project | apps/desktop/src/renderer/src/i18n/en.ts:1262 | SCN-145 (responder grant) | proposed |
-| `access.respond.title` | Let {name} answer requests {capabilities} sent to {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1264 | SCN-145 (responder grant) | proposed |
+| `access.ask.respond` | answer requests {capabilities} sent to {project} | apps/desktop/src/renderer/src/i18n/en.ts:1266 | SCN-145 (responder grant) | proposed |
+| `access.ask.respondThis` | answer requests {capabilities} sent to this project | apps/desktop/src/renderer/src/i18n/en.ts:1267 | SCN-145 (responder grant) | proposed |
+| `access.respond.title` | Let {name} answer requests {capabilities} sent to {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1269 | SCN-145 (responder grant) | proposed |
 | `access.respond.message` | {name} asks to answer the requests other projects send to {project} | apps/desktop/src/renderer/src/i18n/en.ts:1064 | SCN-145 (responder grant) | proposed |
 | `access.respond.what` | It may take and answer the requests other projects send to {project} for these capabilities. This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is not an approval unless it carries your own words, when and where you said them, and what you approved. | apps/desktop/src/renderer/src/i18n/en.ts:1065 | SCN-145 (responder grant); DEC-0126, CO-435 (private29 d1af4aae) | proposed |
 | `access.respond.projectTo` | {name} | apps/desktop/src/renderer/src/i18n/en.ts:1066 | SCN-145 (responder grant) | proposed |
@@ -907,6 +907,7 @@ cell, on hover), never inside the sentence (UX-10). A count is "label: {count}",
 | `launch.comms.textsMissing` | The texts did not come back | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 / SCN-146 | proposed |
 | `launch.comms.textsMissingBody` | The journal records messages between projects: {count}. Their texts were not in the archive this estate was restored from, so there is nothing to show here. Nothing was lost from the journal itself. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 / SCN-146 | proposed |
 | `launch.comms.messageCount.one` | {count} message | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
+| `launch.comms.messageCount.few` | {count} messages | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.messageCount.many` | {count} messages | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.replyTo` | answers {sender}: “{words}” | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |
 | `launch.comms.replyToFrom` | answers a message from {sender} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-143 | proposed |

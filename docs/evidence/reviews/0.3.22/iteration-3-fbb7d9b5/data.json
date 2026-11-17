@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "fbb7d9b5b3b00474b63a3a2eb4c6dad201f06351",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3-fbb7d9b5/2026-11-17-data.md",
+  "reportSha256": "9fb37ba979c04a53a7c192c9bd1cd99e222b4f3ac81a5da5e27a870da4adf2fb",
+  "reviewerRun": "release-0322-i3-data-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run one's wave (candidate `8897db3f`): the runbook and the CHANGELOG say to remove `resume-since.json` before upgrading again after a rollback"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run one's wave (candidate `8897db3f`): the same as ER-1"
+      ]
+    }
+  ]
+}

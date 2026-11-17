@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "8897db3fa0829adf8286155593a0f5fc8052ea0f",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3-8897db3f/2026-11-17-docs.md",
+  "reportSha256": "9951eea9ede313ba5edbada385f9e9d837319fdb31b4957e92432fff435fda3e",
+  "reviewerRun": "release-0322-i3b-docs-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run two's wave (candidate `ac8fc30b`): History's stop and Agent access's revoke (the button, an undo, an agent relaying the operator's words) mark the session before they act (`markPersonEnded`, `markBindingPersonEnded` in `main/index.ts`), so its claims release as the person's own; test «PL-1 run two: every person's end of a session is marked before it acts», watched failing; the CHANGELOG names the three ways"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run two's wave (candidate `ac8fc30b`): the entry's title says the hidden window stops reading its feed, sessions and Comms count"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run two's wave (candidate `ac8fc30b`): the source test above holds the wiring"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3, run two)"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3, run two)"
+      ]
+    }
+  ]
+}

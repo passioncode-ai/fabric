@@ -120,7 +120,7 @@ the file, the wiring's door).
 ### 4.4 A live session the duty officer must not close
 
 A session holding a claim is marked `switchboard monitor hold --session <id> --until <claim's expiry>`, at most an hour past
-its last tool call (`main/sessionHolds.ts#HOLD_IDLE_MS`: fabric-mcp's ping renews the claims, so an idle or stalled session
+its last call of a Fabric tool, its turn report included (`main/sessionHolds.ts#HOLD_IDLE_MS`: fabric-mcp's ping renews the claims, so an idle or stalled session
 would otherwise stay held from the duty officer for as long as it lives; 0.3.22 review, iteration 3, run two, PL-1), released with
 `--until 0` on release (SB-399, Fabric task `f53de384`). Fabric sends no `--reason` yet; Switchboard 0.7.111 takes
 `--reason fabric_claim`, and sending it is a carry-over row (0.3.22 review, iteration 1, DO-6).

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · chore/release-0322-close → main · fast-forward
+- files: the superseded review runs of iteration 3 (`docs/evidence/reviews/0.3.22/iteration-3-*`), the ledger's 0b and 0c receipts, CO-590 (run four's rulings), the turn-end spec §4.4 and `AGENTS.md` (DO-1: the hour runs from the last call of a Fabric tool), `docs/brand/strings.md` (DO-3), `main/sessionHolds.ts` and `renderer/src/visibleClock.ts` comments (DO-4)
+- conflicts: none
+- summary: the 0.3.22 release close, item 0c (task 07510265)
+
 ### 2026-11-17 · `—` · release/0.3.22-commit → main · fast-forward
 - files: `apps/desktop/package.json` (0.3.22), `CHANGELOG.md` (`## 0.3.22`; run four's DO-1 and DO-2), `docs/launch/release-gate.json` (`verifiedCommit` `8893248b`), the verification ledger and the three iterations' review reports and receipts, the handoff, the map
 - conflicts: none
