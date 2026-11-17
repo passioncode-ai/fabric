@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "ac8fc30b3478bdd62e899a711835192970b8854d",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3-ac8fc30b/2026-11-17-ux.md",
+  "reportSha256": "e2d656f8666a94bb2bb3da42cbc9638baf8ddaa67cd44a2561481caf6fb9df33",
+  "reviewerRun": "release-0322-i3c-ux-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run three's wave (candidate `8893248b`): one grant the person revokes (Agent access's line, the button or a relayed `fabric_access_revoke` with a grantId) marks the sessions minted under it before it ends them (`markGrantPersonEnded` in `main/index.ts`, `idsForGrant` in `main/sessionEnroll.ts`), so their claims release as the person's own; the source test «PL-1 run two: every person's end of a session is marked before it acts» now counts both grant doors, watched failing"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3, run three)"
+      ]
+    }
+  ]
+}
