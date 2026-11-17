@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "cffeb7111f5c3429986ded60a3984ab1aa732674",
+  "report": "docs/evidence/reviews/0.3.22/iteration-1/2026-11-17-docs.md",
+  "reportSha256": "d3d52923a772f74f8e80cb0adbb2d1254d93421bf63b66db648f6a175c351ba2",
+  "reviewerRun": "release-0322-i1-docs-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): the CHANGELOG's T2 entry and spec §4.2 say Fabric only answers; the adapter's Stop hook is wave T3, requested, not released"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): `fabric_work_release` refuses a time or limit past 7 days (`shared/boardResume.ts#waitTooFar`, tests in `boardResume.test.ts`); the tool, the CHANGELOG and spec §3 say an open wait leaves the task in the queue after a week; its route to the operator ruled: CO-590"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): spec §4.1: a resume run starts on this Mac"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): spec §2 and the T1 row: a wait naming nothing checkable is refused; no wait is continued after the 10-minute grace"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): spec §4.2: Fabric never sends `stop`, no verdict is the ordinary end"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): spec §4.4 says Fabric sends no `--reason` yet; sending it ruled: CO-590"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): the same defect as ER-1, fixed there"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): spec §5: Кира's `people.ask` active in the directory on 2026-11-17"
+      ]
+    }
+  ]
+}

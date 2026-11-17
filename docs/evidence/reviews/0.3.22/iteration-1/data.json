@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "cffeb7111f5c3429986ded60a3984ab1aa732674",
+  "report": "docs/evidence/reviews/0.3.22/iteration-1/2026-11-17-data.md",
+  "reportSha256": "cc55f375fdbd672cce2868a542e71ddde06273ab42e455057ccbd9580d625741",
+  "reviewerRun": "release-0322-i1-data-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-1 wave (candidate 2, `76b5637f`): only session uuids reach the askers' read (`boardReads.ts`, `SESSION_ID`), a failed read is logged as `board.read-askers`; tests «a remote run's asker id never reaches the uuid read» (a store refusing a non-uuid as PostgREST does), watched failing, and «a failed read of the askers ... is said in the operations log»"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "DA-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    },
+    {
+      "id": "DA-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers)"
+      ]
+    }
+  ]
+}
