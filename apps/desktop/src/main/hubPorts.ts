@@ -3,7 +3,8 @@
  * What the hub reads from the window's process (ADR-0195 decision 5, wave W1): the terminals, the sweep of abandoned work,
  * the settings and the agent registry, each named as an interface with one implementation (`windowHubPorts`). Until W1
  * these were closures written inline where `main/index.ts` builds the agent surface, three of them copies of one settings
- * read. W2 gives `fabric-board` its own implementations of the same four; nothing the surface does changes with W1.
+ * read. W2a adds the fifth, the two acts a product's connection asks of the desktop (open its link, name the app that
+ * takes its scheme). W2 gives `fabric-board` its own implementations of the same five; nothing the surface does changes.
  */
 import type { PtyManager } from './pty'
 import type { AbandonedSweep } from './abandonedSweepRun.ts'
@@ -33,12 +34,20 @@ export interface HubRegistry {
   machineAgents(): MachineAgents
 }
 
+/** What a product's connection asks of the desktop (`productConnect.ts`): open its sign-in link in the person's browser,
+ *  and name the app registered for its callback scheme, null when none is. */
+export interface HubLinks {
+  openExternal(url: string): Promise<void>
+  handlerFor(url: string): Promise<{ name: string; path: string } | null>
+}
+
 export interface HubPorts {
   /** Read late: undefined until the terminal manager exists (`AgentSurfaceDeps.ptys`). */
   terminals(): HubTerminals | undefined
   sweep: HubSweep
   settings: HubSettings
   registry: HubRegistry
+  links: HubLinks
 }
 
 /** The window's process as the hub's one implementation of its four ports. */
@@ -48,6 +57,11 @@ export function windowHubPorts(w: {
   sweep: () => AbandonedSweep | null
   readSettings: () => LocalRead<AppSettings>
   registry: { snapshot(): Parameters<typeof machineAgentsOf>[0] }
+  /** Electron's `shell.openExternal` and `app.getApplicationInfoForProtocol`, handed in so this module imports no Electron. */
+  desktop: {
+    openExternal(url: string): Promise<void>
+    applicationInfoForProtocol(url: string): Promise<{ name: string; path: string }>
+  }
 }): HubPorts {
   return {
     terminals: () => w.ptys(),
@@ -62,7 +76,15 @@ export function windowHubPorts(w: {
       // ADR-0176 §3: an unreadable settings file reads as not trusted (null), never as the person's last answer.
       machineTrust: () => { const read = w.readSettings(); return read.status === 'unreadable' ? null : read.value.machineTrust }
     },
-    registry: { machineAgents: () => machineAgentsOf(w.registry.snapshot()) }
+    registry: { machineAgents: () => machineAgentsOf(w.registry.snapshot()) },
+    links: {
+      openExternal: (url) => w.desktop.openExternal(url),
+      // Electron answers an empty path when no app takes the scheme: that is no handler, not one without a path.
+      handlerFor: async (url) => {
+        const info = await w.desktop.applicationInfoForProtocol(url)
+        return info.path ? { name: info.name, path: info.path } : null
+      }
+    }
   }
 }
 // #endregion hub-ports

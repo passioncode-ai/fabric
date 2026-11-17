@@ -17,7 +17,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   window ([the spec §3.13](docs/evidence/specs/2026-11-04-on-demand-sessions.md#313-the-hubs-boundary-wave-w1)).
 - **The local stores take their folder from the process's entry** (ADR-0195 wave W2b, board task `8b86adf3`).
   `main/localStore.ts` imports no Electron; the window names `userData` once at start, and a store read before that
-  says so by name. The board's own process will read the same settings file
+  says so by name. A product connection's two desktop acts (open its link, name the app for its scheme) are the hub's
+  fifth port, `HubLinks` (W2a.1). The board's own process will read the same settings file
   ([the spec §3.14](docs/evidence/specs/2026-11-04-on-demand-sessions.md#314-the-board-in-a-process-of-its-own-wave-w2-the-design)).
 - **«Новая сессия» says who already works in the project first** (board task `4f83a67f`). The button in an ended
   session's console started a new agent at once; now it shows the same warning as the project page when another session

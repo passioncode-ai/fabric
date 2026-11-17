@@ -1,4 +1,4 @@
-// ADR-0195 decision 5, wave W1: the hub's four ports over the window's process (`main/hubPorts.ts`). Spec:
+// ADR-0195 decision 5, waves W1 and W2a: the hub's five ports over the window's process (`main/hubPorts.ts`). Spec:
 // docs/evidence/specs/2026-11-04-on-demand-sessions.md §3.13. No database, no terminals: every port's source is a stand-in.
 import assert from 'node:assert/strict'
 import test from 'node:test'
@@ -12,6 +12,7 @@ const ports = (over = {}) => windowHubPorts({
   sweep: () => null,
   readSettings: settings('ready', {}),
   registry: { snapshot: () => ({ entries: [], problems: [] }) },
+  desktop: { openExternal: async () => {}, applicationInfoForProtocol: async () => ({ name: '', path: '' }) },
   ...over
 })
 
@@ -61,4 +62,16 @@ test('the registry port reads the registry at each call', () => {
   p.registry.machineAgents()
   p.registry.machineAgents()
   assert.equal(reads, 2)
+})
+
+test('links: a link opens through the desktop, and an empty path is no handler for the scheme', async () => {
+  const opened = []
+  const p = ports({ desktop: {
+    openExternal: async (url) => { opened.push(url) },
+    applicationInfoForProtocol: async (url) => (url.startsWith('known:') ? { name: 'Inbox', path: '/Applications/Inbox.app' } : { name: '', path: '' })
+  } })
+  await p.links.openExternal('https://example.test/sign-in')
+  assert.deepEqual(opened, ['https://example.test/sign-in'])
+  assert.deepEqual(await p.links.handlerFor('known://'), { name: 'Inbox', path: '/Applications/Inbox.app' })
+  assert.equal(await p.links.handlerFor('unknown://'), null)
 })

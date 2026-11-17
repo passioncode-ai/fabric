@@ -1211,7 +1211,10 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   quit.onQuit(stopWatching)
   // ADR-0195 W1: what the hub reads from this process (the terminals, the sweep, the settings, the registry), one
   // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
-  const hubPorts = windowHubPorts({ ptys: () => ptys, sweep: () => abandonedSweep, readSettings: readSettingsState, registry })
+  const hubPorts = windowHubPorts({
+    ptys: () => ptys, sweep: () => abandonedSweep, readSettings: readSettingsState, registry,
+    desktop: { openExternal: (url) => shell.openExternal(url), applicationInfoForProtocol: (url) => app.getApplicationInfoForProtocol(url) }
+  })
   const accessStore = createAccessStore({ db, journal, estateId: ACTIVE_ESTATE })
   const vault = createObservatoryVault()
   const hubState = { doorToken: null as string | null, down: null as string | null, downCode: undefined as HubDownCode | undefined, downFact: undefined as string | undefined }
@@ -1221,11 +1224,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // Each estate's connections keep their secrets in slots of their own (DA-6, verification 0.3.1).
     estateId: ACTIVE_ESTATE,
     origin: () => (hubState.doorToken ? surface.origin : ''),
-    openExternal: (url) => shell.openExternal(url),
-    handlerFor: async (url) => {
-      const info = await app.getApplicationInfoForProtocol(url)
-      return info.path ? { name: info.name, path: info.path } : null
-    },
+    openExternal: hubPorts.links.openExternal,
+    handlerFor: hubPorts.links.handlerFor,
     actor: () => OPERATOR_ACTOR
   })
   let access: AccessService | null = null

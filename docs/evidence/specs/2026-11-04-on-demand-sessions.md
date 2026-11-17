@@ -627,7 +627,9 @@ the board out of the window's process in four waves. W1 names what the hub reads
   (`get`, `list`, `runnerOf`; `agentSurface.ts`, `effectTools.ts`), read late and `undefined` until the manager exists,
   as before. `HubSweep` is the sweep's nudges (`takeNudges`, `showTurnNudges`), none before the sweep starts.
   `HubSettings` is the working language and the computer's trust, read at each call, null when the settings file could
-  not be read. `HubRegistry` is this machine's agents for `fabric_whoami`.
+  not be read. `HubRegistry` is this machine's agents for `fabric_whoami`. `HubLinks` (added in W2a) is the two acts a
+  product's connection asks of the desktop: open its sign-in link, and name the app registered for its callback scheme
+  (`productConnect.ts`), an empty path read as no handler.
 - **One implementation.** `windowHubPorts` builds the four from the window's process; `main/index.ts` builds it once and
   hands its members to the agent surface and to the enrollment and access doors. Before W1 the trust read was written
   three times there; it is one function now.
@@ -657,8 +659,12 @@ does. The board reaches Electron through two seams only: `localStore.ts` resolve
 1. **W2a, one composition.** The board's pieces are built today across `index.ts` (the registry at the start of the
    main flow, the surface and the hub, then the sweep, the dispatcher, the people bridge and the supervisor two
    thousand lines later). W2a moves their construction into `main/board.ts#startBoard(ports, deps)`, called by
-   `index.ts` in the same process. The four ports of §3.13 are its window-facing inputs; the database client, the
-   journal, the ops log and the folder of the data are its other inputs. Nothing an agent sees changes.
+   `index.ts` in the same process. The ports of §3.13 are its window-facing inputs; the database client, the
+   journal, the ops log and the folder of the data are its other inputs. Nothing an agent sees changes. Measured
+   2026-11-17, the hub's composition (the registry to `startHub`) touches Electron in two places only: the product
+   connector's link and scheme handler, now the `HubLinks` port (W2a.1), and the consent presenter (dialog,
+   notification, main window). The presenter is not the hub's: `AccessService` never calls it (an agent's ask is a
+   question on Главная, ADR-0160 §4), and it serves the queue Agent access shows, so it stays with the window.
 2. **W2b, the data folder as an input (landed first, 2026-11-17).** `localStore.ts` imports no Electron: the process's
    entry names the folder once (`setLocalStoreDir`), the window `app.getPath('userData')` at the top of `index.ts`, and
    a store read before that throws `LocalStoreDirUnset` by name rather than reading as empty. The board's entry will
