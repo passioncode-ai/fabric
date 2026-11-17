@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/browser-suites-linux → main · fast-forward
+- files: `scripts/test/product-provider-accounts.browser.cjs` (takes `FABRIC_CHROME`), `scripts/test/screens-stand.browser.mjs` (`/favicon.ico` answered 204)
+- conflicts: none
+- summary: the two suites that failed on the Linux runner pass with real Chrome; advisory kept until a hosted run reads 26 of 26 (board task a832e3ad)
+
 ### 2026-11-17 · `—` · fix/browser-suites-advisory → main · fast-forward
 - files: `scripts/test/run-browser-suites.sh` (a failure printed in full; `FABRIC_BROWSER_ADVISORY=1` says it without failing), `.github/workflows/ci.yml` (hosted runs advisory)
 - conflicts: none

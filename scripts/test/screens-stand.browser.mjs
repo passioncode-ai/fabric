@@ -20,6 +20,9 @@ const dir = path.join(root, 'apps/desktop/out/stand')
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.woff': 'font/woff' }
 const server = http.createServer((q, r) => {
   const rel = decodeURIComponent(q.url.split('?')[0].split('#')[0])
+  // Board task a832e3ad: Chrome (unlike the headless shell) asks for /favicon.ico, and its 404 reached the page errors on
+  // the Linux runner (run 44097689294); the stand has no icon, so it answers with nothing.
+  if (rel === '/favicon.ico') { r.writeHead(204); return r.end() }
   const file = path.join(dir, rel === '/' ? 'index.html' : rel)
   if (!file.startsWith(dir) || !existsSync(file)) { r.writeHead(404); return r.end() }
   r.writeHead(200, { 'content-type': types[path.extname(file)] ?? 'application/octet-stream' })

@@ -7,7 +7,10 @@ let browser
 ;(async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r))
  const localChrome='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
- browser=await chromium.launch({headless:true,...(fs.existsSync(localChrome)?{executablePath:localChrome}:{})})
+ // Board task a832e3ad: the Chrome run-browser-suites.sh names (FABRIC_CHROME) first, as every other suite; on a Linux
+ // runner there is no macOS Chrome and no downloaded browser.
+ const chrome=process.env.FABRIC_CHROME||(fs.existsSync(localChrome)?localChrome:null)
+ browser=await chromium.launch({headless:true,...(chrome?{executablePath:chrome}:{})})
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[],checks=[]
  page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(8000)
  const base='http://127.0.0.1:'+server.address().port
