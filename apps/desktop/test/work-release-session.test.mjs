@@ -296,7 +296,8 @@ test('PL-1: a session the person ended releases its claims as the person\'s own,
 // by the button, an undo or an agent relaying the operator's words. A source read, as the wiring runs only in the app.
 test('PL-1 run two: every person\'s end of a session is marked before it acts', async () => {
   const { readFileSync } = await import('node:fs')
-  const src = readFileSync(path.resolve(import.meta.dirname, '../src/main/index.ts'), 'utf8')
+  // ADR-0195 W2a.3: the hub's half of the wiring is in board.ts, the window's doors stay in index.ts.
+  const src = ['index.ts', 'board.ts'].map((f) => readFileSync(path.resolve(import.meta.dirname, '../src/main', f), 'utf8')).join('\n')
   const stops = src.split("stopRuntime.stop(sessionId, 'operator_stop'")
   assert.equal(stops.length - 1, 2, 'two person stops')
   for (const before of stops.slice(0, -1)) assert.match(before.slice(-400), /markPersonEnded\(sessionId\)/)

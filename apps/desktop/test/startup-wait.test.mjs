@@ -34,7 +34,10 @@ test('ST-3: the wait retries with the backoff and ends on a quit', () => {
 test('ST-3: the hub standby opens before the stack starts and is taken over by the hub', () => {
   const boot = between('async function bootstrap()', 'async function bootstrapReady()')
   assert.ok(boot.indexOf('openHubStandby(') > 0 && boot.indexOf('openHubStandby(') < boot.indexOf('resolveEnvStartingStackIfNeeded()'), 'the standby must open before the stack starts')
-  assert.match(src, /startHub\(\{ surface, env: process\.env, claimedPorts: registry\.claimedPorts\(\), root: dirs\.root, standby: hubStandby\?\.open \? hubStandby : null \}\)/)
+  // ADR-0195 W2a.3: index.ts hands the standby to the hub's composition (board.ts), which gives it to startHub.
+  assert.match(src, /standby: hubStandby,\n\s*releaseStandby: \(\) => \{ hubStandby = null \},/)
+  const board = readFileSync(path.join(import.meta.dirname, '../src/main/board.ts'), 'utf8')
+  assert.match(board, /startHub\(\{ surface, env: process\.env, claimedPorts: registry\.claimedPorts\(\), root: dirs\.root, standby: d\.standby\?\.open \? d\.standby : null \}\)/)
 })
 
 test('ST-2: the runtime stack watch starts once the app has started, and puts the hub into the refusal mode', () => {

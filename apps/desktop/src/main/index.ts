@@ -1,7 +1,7 @@
 // The v1 control plane (ADR-0031 §2): the only Supabase client, the journal
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
-import { admitAccessAct, createRevokeAgent } from './relayedAccess.ts'
+import { admitAccessAct } from './relayedAccess.ts'
 import { createPeopleApply, createPeopleAskBridge, isAskRecord, PEOPLE_ASK_WATCH_MS, type AskRecord, type ProjectFacts } from './peopleAskRun.ts'
 import { routesOf } from '../shared/peopleAsk.ts'
 import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, shell } from 'electron'
@@ -36,32 +36,23 @@ import { createStopHostIdentity } from './stopHostIdentity.ts'
 import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
 import { windowHubPorts } from './hubPorts.ts'
+import { startBoardHub } from './board.ts'
 import { createBoardState } from './boardState.ts'
 import { setLocalStoreDir } from './localStore.ts'
-import { createPeerCheck } from './peerAccount.ts'
-import { createAgentFolders } from './agentFolders.ts'
 import { linkWindowPlan, resolveLink, type LinkRoute } from '../shared/linkRoute.ts'
 import { createLinkHold, createLinkOutbox } from '../shared/linkOutbox.ts'
-import { createAccessStore, type AccessStore } from './accessStore.ts'
+import { type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
-import { startHub, withdrawHub } from './hub.ts'
-import { hubServerFor } from './hubTools.ts'
-import { EnrolledSessions, enrollSession, joinBoardSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
+import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
-import { createOnboardingFiler, writePersonBusiness } from './projectOnboarding.ts'
+import { writePersonBusiness } from './projectOnboarding.ts'
 import { readGitPeople } from './gitPeople.ts'
 import { projectAnalytics, readNewestPaged } from '../shared/projectAnalytics.ts'
 import { composeGraph } from '../shared/projectGraph.ts'
-import { folderProjectId, gitTopLevel } from './folderResolver.ts'
-import { readGitFacts } from './gitFacts.ts'
-import { promises as fsPromises } from 'node:fs'
-import { resolveBacklogSource } from './backlogSource.ts'
 import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
-import { resolveProject } from '../shared/projectResolve.ts'
 import { legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, registeredBundleVersion, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, serviceNeedsReregister, startRecord, startsInBackground, takeLaunchdStart, BOARD_LABEL, type LoginItemState } from '../shared/loginItem.ts'
 import { RESTART_OUTCOME_FILE, askRestartWindow, restartConfirmation, spawnRestartHelper, takeRestartOutcome, takeRestartWindow } from './restartFabric.ts'
-import { existingTempRoots } from './tempRoots.ts'
-import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim, releaseSessionClaims } from './workRelease.ts'
+import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRunningToBacklog, releaseByOperator, releaseLapsedClaim } from './workRelease.ts'
 import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readReviewAges, readRunningTasks, readSweepClaims } from './abandonedSweepRun.ts'
 import { createOpsDigestRun, type OpsDigestRun } from './opsDigestRun.ts'
 import { risenRows } from '../shared/opsDigest.ts'
@@ -69,10 +60,7 @@ import { readProjectWork, readRunHolds, readSessionTasks, readTaskBoard, readWhe
 import { launchOverlap } from '../shared/launchOverlap.ts'
 import { OVERLAP_CHOICES, overlapPair, type OverlapChoice } from '../shared/abandonedSweep.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
-import { createAgentCall } from './hubCall.ts'
-import { createObservatoryVault } from './observatoryVault.ts'
 import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
-import { forwardToProduct } from './productForwarder.ts'
 import { ConsentPresenter } from './consentPresenter.ts'
 import { CONNECTABLE_PRODUCTS, agentFacts, askLines, pendingFacts, productName, type ConnectProblem, type HubActResult, type HubDownCode, type HubOverview } from '../shared/access.ts'
 import { translator, type Locale, type Translate } from '../renderer/src/i18n/translate.ts'
@@ -211,7 +199,6 @@ import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { createRemoteQuestions, primaryFolder, remoteTargetFor, wireBoardDispatch } from './boardDispatchWiring.ts'
 import { createDispatchWake, toOperatorMarks, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { readResumeCandidates, readResumeState, resumeSince } from './boardResumeRead.ts'
-import { handBackResumedClaims } from './resumedClaims.ts'
 import { dispatcherRuns, remoteOwnerOf, sessionLiveForDispatch, suspendedSince, WATCH_MS } from '../shared/boardDispatch.ts'
 import { SESSION_STALE_MS } from '../shared/workClaims.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
@@ -434,10 +421,9 @@ import { favourites, moveProject, projectOrder, replaceFavourite, toggleFavourit
 import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors, findOnPath, widenProbePath } from './executorDetect.ts'
-import { createMachineSessionHolds } from './sessionHolds.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
 import { readMachineLimitStops, readMachineSwitchboardSessions } from './switchboardSessions.ts'
-import { answerAssigned, assignAcross, type AssignDeps } from './crossProjectAssign.ts'
+import { assignAcross, type AssignDeps } from './crossProjectAssign.ts'
 import { reviewDecisionProblem, type ReviewDecision } from '../shared/reviewDecision.ts'
 import { readInbound, setInbound } from './claudeInbound.ts'
 import { readFabricReadiness } from './fabricReadinessRead.ts'
@@ -1188,345 +1174,59 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // ADR-0115: the same surface is the hub. The registry is read from the contract's directories, the
   // standing access lives in migration 76's projections, a product's secret lives in Project
   // Observatory's vault, and the operator answers in a native prompt (or the queue).
-  const dirs = registryDirs()
-  const registry = new AgentRegistry({ servicesDir: dirs.services, providersDir: dirs.providers })
-  registry.refresh()
-  linkRegistry = registry
-  const stopWatching = registry.watch()
-  quit.onQuit(stopWatching)
-  // ADR-0195 W1: what the hub reads from this process (the terminals, the sweep, the settings, the registry), one
-  // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
-  const hubPorts = windowHubPorts({
-    ptys: () => ptys, sweep: boardState.sweep.get, readSettings: readSettingsState, registry,
-    desktop: { openExternal: (url) => shell.openExternal(url), applicationInfoForProtocol: (url) => app.getApplicationInfoForProtocol(url) }
-  })
-  const accessStore = createAccessStore({ db, journal, estateId: ACTIVE_ESTATE })
-  const vault = createObservatoryVault()
-  const hubState = { doorToken: null as string | null, down: null as string | null, downCode: undefined as HubDownCode | undefined, downFact: undefined as string | undefined }
-  const connector = new ProductConnector({
-    store: accessStore,
-    vault,
-    // Each estate's connections keep their secrets in slots of their own (DA-6, verification 0.3.1).
-    estateId: ACTIVE_ESTATE,
-    origin: () => (hubState.doorToken ? surface.origin : ''),
-    openExternal: hubPorts.links.openExternal,
-    handlerFor: hubPorts.links.handlerFor,
-    actor: () => OPERATOR_ACTOR
-  })
-  let access: AccessService | null = null
-  const presenter = new ConsentPresenter({
-    window: () => mainWindow,
-    showMessageBox: (parent, options) => dialog.showMessageBox(parent as BrowserWindow, options),
-    notify: (title, body, onClick) => {
-      if (!Notification.isSupported()) return false
-      try {
-        const n = new Notification({ title, body })
-        n.on('click', onClick)
-        n.show()
-        return true
-      } catch (e) {
-        ops.failed('hub.consent.notify', e)
-        return false
-      }
-    },
-    openWindow: () => { if (mainWindow === null) createWindow() },
-    decide: (requestId, decision) => (access as AccessService).decide(requestId, decision, OPERATOR_ACTOR),
-    connect: async (product) => (product === FABRIC_INBOX.product ? connector.begin(FABRIC_INBOX) : { ok: false, problem: { code: 'no-flow' }, reason: `${product} has no connect flow` }),
-    // The prompt speaks the operator's language, read when it is made (UX-2).
-    say: () => translator(readSettings().locale),
-    stillPending: async (requestId) => {
-      const r = await accessStore.request(requestId)
-      return !!r && r.status === 'pending' && Date.parse(r.expires_at) > Date.now()
-    },
-    // A6-036: read when the prompt is made and before an Allow connects, not only when the request arrived.
-    connected: async (product) => (await accessStore.liveConnection(product)) !== null
-  })
-  // #region session-enroll-wiring — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
-  // How Fabric reads a folder an agent names — once, for the enrollment and for the ask, so the prompt shows the
-  // same fact the enrollment acts on (ADR-0134 amendment 2). The worktree probe is the resolver's own, asynchronous.
-  // #region project-onboarding — docs: docs/evidence/specs/2026-10-23-0312-w2-project-onboarding.md#decisions-the-questions-the-scenarios-leave-open
-  /** Files a project's onboarding task once (its id is derived from the project's), recorded as Fabric's own act; a task
-   *  found with part of its brief unwritten is completed, and two presses at once run one after the other (DA-5). */
-  const fileOnboarding = createOnboardingFiler({
-    readTask: async (taskId) => {
-      const existing = await store.select('project_tasks', 'id,brief_what,brief_why,brief_expected').eq('id', taskId).maybeSingle()
-      if (existing.error) throw new Error(`the onboarding task could not be read: ${existing.error.message}`)
-      const row = existing.data as { brief_what: string | null; brief_why: string | null; brief_expected: string | null } | null
-      return row ? { brief: { what: row.brief_what, why: row.brief_why, expected: row.brief_expected } } : null
-    },
-    append: (event) => journal.append({ estateId: ACTIVE_ESTATE, actor: { kind: 'system', id: 'fabric-onboarding' }, ...event }),
-    locale: () => { const settings = readSettingsState(); return settings.status === 'unreadable' ? null : settings.value.locale },
-    failed: (e, detail) => ops.failed('onboarding.file', e, detail)
-  })
-  fileOnboardingTask = fileOnboarding
-  // #endregion project-onboarding
-  admission = createProjectAdmission({
-    estateId: ACTIVE_ESTATE,
-    append: (event) => journal.append({ ...event, estateId: ACTIVE_ESTATE }),
-    readProject: readAdmissionProject,
-    listRepos,
-    readImported: readImportedIndex,
-    listRemovals: readRepoRemovals,
-    refresh: refreshFileRoots,
-    mirror: mirrorWorkspaceNow,
-    home: homedir(),
-    // W2-7 (0.3.12, OF-31): a new project's onboarding task, in the queue, with its brief written; never filed twice.
-    onboard: async (projectId, name) => { await fileOnboarding(projectId, name) }
-  })
-  const enrollFolders: FolderDeps = {
-    admittedFolders: async () => {
-      const repos = await store.selectAll('project_repos', 'path,project_id,remote_key,kind', { orderBy: ['project_id', 'path'] })
-      if (repos.failed) throw new Error(`repositories read failed: ${repos.failed}`)
-      return (repos.rows as Array<{ path: string; project_id: string; remote_key: string | null; kind: 'primary' | 'checkout' | 'worktree' | null }>).map((r) => ({
-        projectId: r.project_id,
-        path: r.path,
-        remoteKey: r.remote_key,
-        ...(r.kind ? { kind: r.kind } : {})
-      }))
-    },
-    detachedFolders: readRepoRemovals,
-    realpath: (folder) => {
-      try {
-        return realpathSync.native(folder)
-      } catch {
-        // A folder that does not exist is resolveAgentFolder's typed bad-folder answer, not a failure to record.
-        return null
-      }
-    },
-    remoteOf: originOf,
-    gitTopLevel,
-    inspectFolder,
-    projectIdForFolder: (root) => folderProjectId(ACTIVE_ESTATE, root),
-    home: homedir()
-  }
-  // The enrolled sessions this process minted, by binding and grant: a revocation of either ends them at the surface.
-  // The cap evicts by last call, and an evicted session's next call is told why (0.3.5 review i2 ER-4); a rejoin's
-  // replaced bearer goes alone (ER-5).
-  const enrolled = new EnrolledSessions({
-    end: (sessionId, reason) => surface.revokeSession(sessionId, reason),
-    state: (token) => surface.credentialState(token),
-    lastSign: (sessionId) => surface.sessionSign(sessionId)?.lastSignAt ?? null,
-    drop: (token) => surface.revokeCredential(token)
-  })
-  access = new AccessService({
-    store: accessStore,
-    registry,
-    // ADR-0160 §4 (0.3.7 wave 3): an agent's ask of a product's resources is a question on Главная (the board's access
-    // item, Разрешить / Не разрешать), never a native prompt or a notification. The request is journalled and read from
-    // there (attention.ts); nothing pops up. The presenter stays for the queue Agent access still shows.
-    present: (request) => { ops.record({ op: 'hub.access.asked-on-home', outcome: 'ok', detail: { request_id: request.row.id }, ctx: { correlationId: ops.correlate() } }) },
-    connected: async (product) => (await accessStore.liveConnection(product)) !== null,
-    // Who may ask Fabric itself for a session: a coding agent of the runner catalogue whose program is found on this
-    // computer (pty.ts#launchOption — the shell row has none and asks for nothing); which projects exist: this
-    // estate's; and the folder, resolved by Fabric.
-    enrollment: {
-      runner: (id) => {
-        const a = AGENTS.find((x) => x.id === id && x.program)
-        return a ? { key: a.id, name: a.label, summary: a.description ?? null } : null
-      },
-      available: async (key) => (await launchOption(key))?.available === true,
-      project: async (id) => enrollProject(id),
-      resolve: async (folder) => {
-        const f = await resolveAgentFolder(folder, enrollFolders)
-        return f.ok
-          ? {
-              ok: true,
-              projectId: f.projectId,
-              root: f.root,
-              real: f.real,
-              projectName: f.projectName,
-              how: f.how,
-              candidate: f.candidate,
-              remoteKey: f.remoteKey
-            }
-          : { ok: false, message: f.message }
-      },
-      admit: async (folder, agentId) => {
-        const project = await admission.enroll({ ...folder, real: folder.real ?? folder.root }, agentId)
-        return { id: project.id, name: project.name, root: folder.root, how: folder.how }
-      }
-    },
-    // ADR-0160 §3 (0.3.7 wave 3): an agent the person disconnected is refused at the door until let back in.
-    keptOut: (key) => keptOutAgents.has(key),
-    // CO-506: an organization's machine grants no answering at once; unreadable reads as unmarked, as the surface's.
-    machineTrust: hubPorts.settings.machineTrust
-  })
-  // #endregion session-enroll-wiring
-  const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
-  // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
-  access.onBindingRevoked((bindingId) => agentCall.forgetBinding(bindingId))
-  // ADR-0134 §3: a revoked binding or grant ends the coding-agent sessions enrolled under it; the next call is refused.
-  boardState.personEnded.attach(enrolled)
-  access.onBindingRevoked((bindingId) => { enrolled.endForBinding(bindingId) })
-  access.onGrantRevoked((grantId) => { enrolled.endForGrant(grantId) })
-  // COM03-10: a revoked board.respond grant releases the responder slots it admitted (best effort; the in-statement
-  // authority recheck is what refuses).
-  access.onGrantRevoked((grantId) => { void surface?.releaseBoardGrant(grantId) })
-  // CO-200: the counts of refusals not yet journalled are written as the app quits (best effort, within the drain).
-  quit.onQuit(() => { void agentCall.flush() })
-  hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down }, get downCode() { return hubState.downCode }, get downFact() { return hubState.downFact } }
-  const hubAccess = access
-  const sessionHolds = createMachineSessionHolds(process.env, (sessionId, until, why) =>
-    ops.failed('session.hold', new Error(why), { session_id: sessionId, until, note: 'the duty officer may close this session; the next claim, renewal or release asks again' }))
-  surface = new AgentSurface({
-    db, journal, ptys: hubPorts.terminals, policy, estateId: ACTIVE_ESTATE,
-    // SW-4: a session's nudges from the sweep of abandoned work ride on its fabric_work_list and fabric_heartbeat.
-    nudges: hubPorts.sweep.takeNudges,
-    // 0.3.14 wave 2: and on every turn the session hooks observe (fabric_session_observe), from the same queue, shown
-    // there and never taken (the review, iteration 1, PL-1: an adapter before 0.51.2 throws a turn's answer away).
-    turnNudges: hubPorts.sweep.showTurnNudges,
-    // CO-459 (DEC-0140 PR-3): a turn's reported branch, for this machine's screens only, never journalled or shared.
-    reportBranch: (sessionId, branch) => boardState.branches.set(sessionId, branch),
-    // T4 (the turn-end spec §4.4): a Claude Code session holding a claim is held by Switchboard until the claim ends.
-    holdSession: (runtimeSessionId, until) => { void sessionHolds.set(runtimeSessionId, until) },
-    // CO-458: a task assigned from another project answers its board request once released done (never awaited).
-    onDoneInReview: (taskId) => { void answerAssigned(assignDeps(), taskId).then((r) => { if (r.reason) ops.record({ op: 'tasks.assign-answer', outcome: 'failed', level: 'warn', detail: { task_id: taskId, reason: r.reason }, ctx: { correlationId: ops.correlate() } }) }, (e: unknown) => ops.failed('tasks.assign-answer', e)) },
-    // P-24: the interface's language is the agents' working language, read at each fabric_whoami.
-    // OF-38: off in Settings, the hub names no working language and the agents keep their own.
-    // An unreadable settings file names no language and reads as not trusted (`hubPorts.ts#windowHubPorts`).
-    language: hubPorts.settings.language,
-    machineTrust: hubPorts.settings.machineTrust,
-    // The operator, 2026-11-07: the agents of this machine for every session's fabric_whoami (`machine.agents-first`).
-    machineAgents: hubPorts.registry.machineAgents,
-    // CO-514 (DEC-0154 HA-2 (b), HA-3): another account's process is refused before its request is read.
-    peerAccount: createPeerCheck(),
-    // CO-409 (§3.1): a board request a session stored wakes the dispatcher when its grace ends, not a cycle later.
-    onRequestStored: () => boardState.dispatchWake.get()?.wake(),
-    // CO-489: the project page's «Выбрать папку…» and «Убрать» as a session's door, through the one admission service;
-    // each change is an act History undoes, written with the session as its author.
-    folders: createAgentFolders({
-      attach: (projectId, paths, actor) => admission.attach(projectId, paths, actor, { granted: (real) => real, candidates: scanCandidates, home: homedir() }),
-      detach: (projectId, repoId, actor) => admission.detach(projectId, repoId, actor),
-      listRepos,
-      listRemovals: readRepoRemovals,
-      isRepository: async (folder) => (await inspectFolder(folder)).git,
-      realpath: (folder) => {
+  // ADR-0195 W2a.3: the hub is composed in `board.ts#startBoardHub`; what it reads of this process is given here, and each
+  // part is handed back at the moment this module used to assign it.
+  await startBoardHub({
+    quit, db, store, journal, policy, estateId: ACTIVE_ESTATE, operator: OPERATOR_ACTOR, state: boardState,
+    // ADR-0195 W1: what the hub reads from this process (the terminals, the sweep, the settings, the registry), one
+    // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
+    ports: (registry) => windowHubPorts({
+      ptys: () => ptys, sweep: boardState.sweep.get, readSettings: readSettingsState, registry,
+      desktop: { openExternal: (url) => shell.openExternal(url), applicationInfoForProtocol: (url) => app.getApplicationInfoForProtocol(url) }
+    }),
+    presenter: ({ accessStore, connector, access }) => new ConsentPresenter({
+      window: () => mainWindow,
+      showMessageBox: (parent, options) => dialog.showMessageBox(parent as BrowserWindow, options),
+      notify: (title, body, onClick) => {
+        if (!Notification.isSupported()) return false
         try {
-          return realpathSync.native(folder)
-        } catch {
-          // No folder at that path: the door answers `missing` (attach) or matches the recorded path (detach).
-          return null
+          const n = new Notification({ title, body })
+          n.on('click', onClick)
+          n.show()
+          return true
+        } catch (e) {
+          ops.failed('hub.consent.notify', e)
+          return false
         }
       },
-      note: async (outcome, opts) => (actsForSurface ? actsForSurface.note(outcome, opts) : ops.record({ op: 'acts.record', outcome: 'failed', level: 'warn', detail: { kind: outcome.kind, reason: 'history not ready' }, ctx: { correlationId: ops.correlate() } }))
+      openWindow: () => { if (mainWindow === null) createWindow() },
+      decide: (requestId, decision) => (access() as AccessService).decide(requestId, decision, OPERATOR_ACTOR),
+      connect: async (product) => (product === FABRIC_INBOX.product ? connector.begin(FABRIC_INBOX) : { ok: false, problem: { code: 'no-flow' }, reason: `${product} has no connect flow` }),
+      // The prompt speaks the operator's language, read when it is made (UX-2).
+      say: () => translator(readSettings().locale),
+      stillPending: async (requestId) => {
+        const r = await accessStore.request(requestId)
+        return !!r && r.status === 'pending' && Date.parse(r.expires_at) > Date.now()
+      },
+      // A6-036: read when the prompt is made and before an Allow connects, not only when the request arrived.
+      connected: async (product) => (await accessStore.liveConnection(product)) !== null
     }),
-    // CO-506: Agent access's buttons as an agent's door, on the operator's relayed words (`relayedAccess.ts`). Revoking a
-    // whole agent writes the same act History shows for the button.
-    access: {
-      overview: () => hubAccess.overview(),
-      request: (id) => accessStore.request(id),
-      decide: (id, verdict, actor, relayed) => hubAccess.decide(id, verdict, actor, relayed),
-      revokeGrant: (id, actor, relayed) => { markGrantPersonEnded(id); return hubAccess.revokeGrant(id, actor, relayed) },
-      revokeAgent: createRevokeAgent({
-        nameOf: async (bindingId) => {
-          const b = await accessStore.binding(bindingId).catch((e: unknown) => { ops.failed('hub.access.revoke-name-unreadable', e, { binding_id: bindingId }); return null })
-          return b ? ((await accessStore.request(b.request_id).catch(() => null))?.registry?.name ?? AGENTS.find((a) => a.id === b.agent_id)?.label ?? b.agent_id) : null
-        },
-        // An agent relaying the operator's words revokes as the person (CO-506): its sessions' tasks are not continued.
-        revokeBinding: (bindingId, actor, relayed) => { markBindingPersonEnded(bindingId); return hubAccess.revokeBinding(bindingId, actor, relayed) },
-        // Before registerIpc made History's acts the revocation still stands and its event keeps the actor and the words;
-        // the missing act is said in the operations log (the CO-506 review, N1).
-        note: async (outcome, opts) => (actsForSurface ? actsForSurface.note(outcome, opts) : ops.record({ op: 'acts.record', outcome: 'failed', level: 'warn', detail: { kind: outcome.kind, reason: 'history not ready' }, ctx: { correlationId: ops.correlate() } }))
-      }),
-      machineTrust: hubPorts.settings.machineTrust,
-      grantOwnRespond: (proof) => hubAccess.grantOwnProjectRespond(proof)
+    standby: hubStandby,
+    releaseStandby: () => { hubStandby = null },
+    keptOut: keptOutAgents,
+    scanCandidates,
+    acts: () => actsForSurface,
+    assignDeps,
+    projects: {
+      read: readAdmissionProject, listRepos, readImported: readImportedIndex, listRemovals: readRepoRemovals, refreshFileRoots,
+      mirror: mirrorWorkspaceNow, enrollProject, reposWithRemotes: projectReposWithRemotes, leaseRefs: projectLeaseRefs
     },
-    hub: {
-      doorToken: () => hubState.doorToken,
-      access: hubAccess,
-      tools: (principal) => hubServerFor(principal, {
-        access: hubAccess,
-        call: agentCall,
-        enroll: (binding, args) => enrollSession(binding, args, {
-          ...enrollFolders,
-          liveGrants: (b) => hubAccess.liveGrantsOf(b),
-          projectName: async (id) => (await enrollProject(id))?.name ?? null,
-          mint: (projectId, sessionId, taskId, origin) => surface.mint(projectId, sessionId, taskId, origin),
-          sessions: enrolled,
-          stillLive: (bindingId, grantId) => hubAccess.enrollmentLive(bindingId, grantId),
-          journal: (type, projectId, payload) =>
-            journal.append({ estateId: ACTIVE_ESTATE, type, actor: { kind: 'system', id: 'fabric-hub' }, projectId, payload }),
-          // On-demand spec §3.12: a session Switchboard resumed after a usage limit takes back the claims it left.
-          resumeClaims: async (a) => {
-            const r = await handBackResumedClaims(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), {
-              ...a, now: Date.now(), runHolds: async (ids) => (await readRunHolds(store, ids)).map((h) => h.taskId)
-            })
-            if (r.handedBack.length) surface.noteClaims(a.sessionId)
-            if (r.handedBack.length || r.refused.length)
-              ops.record({ op: 'hub.session.resume-claims', outcome: r.refused.length ? 'failed' : 'ok', level: r.refused.length ? 'warn' : 'info',
-                detail: { session_id: a.sessionId, handed_back: r.handedBack.length, refused: r.refused.length }, ctx: { correlationId: ops.correlate() } })
-          }
-        }),
-        // #region board-join-wiring — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#4-service-agents-join-with-a-board-session
-        // A board session ends with its binding or any of its board.respond grants (EnrolledSessions, as ADR-0134 §3).
-        // ADR-0134's safeguards too (wave-2 fix 11): spare-bearer reuse, a board-session cap, the grants read again after
-        // the mint, and the grants' earliest expiry, past which the session ends at its next call.
-        // F9: the contract's folder attribution over Fabric's own state (shared/projectResolve.ts).
-        resolveProject: (folder) => resolveProject(folder, {
-          admitted: enrollFolders.admittedFolders,
-          detached: readRepoRemovals,
-          // Off the main thread (0.3.7 review ER-6): a caller's path on a mount that does not answer no longer stalls
-          // the window; the resolve's own deadline answers `pending` meanwhile.
-          realpath: (p) => fsPromises.realpath(p).catch(() => null),
-          // DEC-0092 (0.3.7 review PL-4): a folder outside Git is null; a probe that failed or timed out is
-          // `unreadable`, and the answer is `pending` rather than a plain-folder attribution.
-          git: async (dir) => {
-            const r = await readGitFacts(dir)
-            if (r.kind === 'none') return null
-            if (r.kind === 'unreadable') {
-              ops.record({ op: 'hub.project.resolve.git', outcome: 'failed', level: 'warn', detail: { why: r.why }, ctx: { correlationId: ops.correlate() } })
-              return { unreadable: r.why }
-            }
-            return { toplevel: r.toplevel, commonDir: r.commonDir, origin: r.origin }
-          },
-          home: homedir(),
-          tempRoots: existingTempRoots(),
-          platform: process.platform
-        }) as Promise<Record<string, unknown>>,
-        joinBoard: (binding, args) => joinBoardSession(binding, args, {
-          check: (bindingId, projectId) => surface.boardJoinCheck(bindingId, projectId),
-          liveGrants: (b) => hubAccess.liveGrantsOf(b),
-          mint: (projectId, sessionId, taskId, origin) => surface.mint(projectId, sessionId, taskId, origin),
-          sessions: enrolled,
-          stillLive: (bindingId, grantId) => hubAccess.enrollmentLive(bindingId, grantId)
-        })
-        // #endregion board-join-wiring
-      }),
-      callback: (product, req, res) => connector.callback(product, req, res)
-    },
-    // #region work-claims-wiring — docs: docs/ux/scenarios.md#scn-140-agents-ask-fabric-who-is-working-on-what-claim-their-task-are-warned-of-related-work-and-release-it
-    work: {
-      resolveSource: (projectId, source) => resolveBacklogSource(source, { repos: () => projectReposWithRemotes(projectId) }),
-      leaseRefs: (projectId) => projectLeaseRefs(projectId),
-      // An enrolled session ends the way a revocation ends it; a launched one is only revoked (its terminal goes on).
-      endSession: (sessionId, reason) => enrolled.endSession(sessionId, reason)
-    },
-    // A session's claims end with it (REQ-38): its terminal exited, its enrollment was revoked or evicted, the app quits.
-    onSessionEnded: async (sessionId, why) => {
-      // PL-1 (0.3.22 review, iteration 3): a session the person ended releases its claims as the person's own release,
-      // which the board supervisor does not continue.
-      const byPerson = boardState.personEnded.take(sessionId) ? OPERATOR_ACTOR : undefined
-      await releaseSessionClaims(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), sessionId, why, byPerson)
-    }
-    // #endregion work-claims-wiring
+    onRegistry: (registry) => { linkRegistry = registry },
+    onOnboardingFiler: (file) => { fileOnboardingTask = file },
+    onAdmission: (a) => { admission = a },
+    onSurface: (s) => { surface = s },
+    onHub: (h) => { hub = h }
   })
-  // THE PORT IS STABLE OR THERE IS NO HUB (ADR-0115 §1). A port the configuration refuses, or one a
-  // registered agent claims, or one another program holds, closes the hub with its reason (Settings →
-  // Agent access shows it) — and the sessions Fabric starts keep their surface on an ephemeral port, as
-  // before the hub existed, with the external ingress closed: no hub.json, no door token (`startHub`,
-  // driven by hub-door-db).
-  const started = await startHub({ surface, env: process.env, claimedPorts: registry.claimedPorts(), root: dirs.root, standby: hubStandby?.open ? hubStandby : null })
-  // The standby's sockets are the surface's now, or it stops: either way it holds the port no longer.
-  if (hubStandby?.open && hubStandby.standby.origin) void hubStandby.standby.stop()
-  hubStandby = null
-  if (started.open) {
-    hubState.doorToken = started.doorToken
-    quit.onQuit(() => {
-      hubState.doorToken = null
-      const w = withdrawHub(dirs.root)
-      if (!w.removed) ops.record({ op: 'hub.withdraw', outcome: 'ok', level: 'warn', detail: { reason: w.reason }, ctx: { correlationId: ops.correlate() } })
-    })
-  } else { hubState.down = started.down; hubState.downCode = started.downCode; hubState.downFact = started.downFact }
   // #endregion hub-wiring
 
   // #region usage-analytics-wiring — docs: docs/ANALYTICS.md#which-builds-send

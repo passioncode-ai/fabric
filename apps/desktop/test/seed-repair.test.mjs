@@ -112,7 +112,7 @@ assert.deepEqual(await run(fakeDb({ receipt: { status: 'conflict', says: 'this m
   const at = (needle) => { const i = src.indexOf(needle); assert.ok(i >= 0, `index.ts no longer has: ${needle}`); return i }
   const repairAt = at('await repairSeedOnlyEstate(seedRepairDb(db)')
   const refusalAt = at('throw new Error(`identity could not be established: ${gate.says}`')
-  for (const [what, needle] of [['the point after which retrying is unsafe', 'pastRetryPoint = true'], ['the hub opens', 'await startHub(']]) {
+  for (const [what, needle] of [['the point after which retrying is unsafe', 'pastRetryPoint = true'], ['the hub opens', 'await startBoardHub(']]) {
     assert.ok(repairAt < at(needle), `the repair runs before ${what}`)
     assert.ok(refusalAt < at(needle), `a refusal is thrown before ${what} (i2 ER-2, UX-3)`)
   }
@@ -217,7 +217,7 @@ assert.equal(operatorStartedAt(null), null)
   const refusalAt = at('throw new Error(`identity could not be established: ${gate.says}`')
   const retireAt = at('await retireSeedOwner(seedRetireDb(db)')
   assert.ok(refusalAt < retireAt, 'the retirement runs only once identity is established')
-  assert.ok(retireAt < at('pastRetryPoint = true') && retireAt < at('await startHub('), 'and before the retry point and the hub')
+  assert.ok(retireAt < at('pastRetryPoint = true') && retireAt < at('await startBoardHub('), 'and before the retry point and the hub')
   assert.ok(at('if (retire.retired || !retire.left)') > retireAt, 'a failure is recorded; a shape the rule leaves is not')
   const summaryAt = at('handle(IPC.estateSummary')
   assert.ok(at("store.select('memberships', 'created_at, changed_by')", summaryAt) > summaryAt, 'the summary reads the operator\'s membership')
