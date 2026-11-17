@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/ceo-host-timing → main · fast-forward
+- files: `apps/desktop/test/ceo-conversation-host.test.mjs` (deadlines that a loaded machine holds: 30 s by default, 250 ms in the hanging-guard test)
+- conflicts: none
+- summary: the CEO conversation host test no longer stops the gate under machine load (task a356dd6f)
+
 ### 2026-11-17 · `—` · feat/remote-question → main · fast-forward
 - files: `shared/boardDispatch.ts` (`remoteQuestionOf`, `answerPacket`, `notesWith`), `main/boardDispatchRun.ts` (the `waiting` record, `askRemote`, the next run's packet), `main/boardDispatchWiring.ts` (`createRemoteQuestions`), `main/index.ts`, tests, the turn-end spec §4.3, AGENTS.md's dispatcher row
 - conflicts: `main/boardDispatchWiring.ts` and `main/index.ts` beside the supervisor's `limitStops`, both kept; the map's stamp refreshed

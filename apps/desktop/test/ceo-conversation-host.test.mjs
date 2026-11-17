@@ -14,7 +14,9 @@ const deferred=()=>{let resolve;return {promise:new Promise(r=>resolve=r),resolv
 const resources=[]
 // 3 s by default: on a busy disk one fsync'd local draft save measured over 300 ms (2026-10-05) and answered
 // local_save_unknown. Cases ABOUT a deadline pass their own budget explicitly.
-async function fixture({timeoutMs=3000,prefix=''}={}){
+// a356dd6f (2026-11-17): a test that does not measure the deadline gets 30 s, not 3 s: at load 100+ a successful save
+// outlived 3 s and read as local_save_unknown. The tests that do measure it name their own.
+async function fixture({timeoutMs=30_000,prefix=''}={}){
  const dir=mkdtempSync(path.join(tmpdir(),'fabric-ceo-host-'))
  const state={subject:{personId:id(2),revision:1,source:'authenticated',role:'owner',displayName:'test',authUser:null},valid:true,online:true,guard:null,onHeld:null,onConnection:null,respond:null}
  const calls=[],sockets=new Set(),accepted=new Map()
@@ -78,10 +80,11 @@ await test('actual socket connection authority change is fenced before any HTTP 
  try{const result=await open(f);assert.equal(result.ok,false);assert.equal(connections,1);assert.equal(f.calls.length,0)}finally{http.request=original}
 })
 await test('a hanging underlying identity guard remains owned across timed-out waves and is never cached as permission',async()=>{
- const f=await fixture({timeoutMs:25}),wait=deferred();let guards=0
+ // a356dd6f: 250 ms, not 25: the last open must succeed inside the deadline, and at load 100+ 25 ms did not hold.
+ const f=await fixture({timeoutMs:250}),wait=deferred();let guards=0
  f.state.guard=()=>{guards++;return wait.promise}
  assert.equal((await open(f)).ok,false)
- for(let wave=0;wave<3;wave++){await new Promise(r=>setTimeout(r,30));const results=await Promise.all(Array.from({length:8},()=>open(f)));assert(results.every(r=>!r.ok))}
+ for(let wave=0;wave<3;wave++){await new Promise(r=>setTimeout(r,300));const results=await Promise.all(Array.from({length:8},()=>open(f)));assert(results.every(r=>!r.ok))}
  assert.equal(guards,1);assert.equal(f.calls.length,0)
  wait.resolve({ok:false,why:'not_a_member',says:'private'});await new Promise(r=>setImmediate(r))
  f.state.subject={...f.state.subject,revision:2};f.state.guard=async()=>{guards++;return {ok:false,why:'not_a_member',says:'private'}}
