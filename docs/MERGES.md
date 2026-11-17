@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/board-service-follows-bundle (gate) → main · fast-forward
+- files: `main/index.ts` (`boardJobVersion` says why its catch is silent), the map
+- conflicts: none
+- summary: `860dff14` landed with `ci.sh fast` at exit 1 (check-ops); this commit makes the gate pass
+
 ### 2026-11-17 · `—` · fix/board-service-follows-bundle → main · fast-forward
 - files: `shared/loginItem.ts` (`registeredBundleVersion`, `serviceNeedsReregister`) and its test, `main/index.ts` (`reregisterStaleService` at start), `CHANGELOG.md`, `AGENTS.md`
 - conflicts: none

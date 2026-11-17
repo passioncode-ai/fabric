@@ -874,6 +874,8 @@ function boardJobVersion(): string | null {
     if (uid === null) return null
     return registeredBundleVersion(execFileSync('/bin/launchctl', ['print', `gui/${uid}/${BOARD_LABEL}`], { encoding: 'utf8', timeout: 3_000, stdio: ['ignore', 'pipe', 'ignore'] }))
   } catch {
+    // Silence is right: no job (the service off or never registered) makes launchctl exit 113, which is the ordinary
+    // answer here, and an unreadable job is the same «nothing to register again»; the start's own line says the system's state.
     return null
   }
 }
