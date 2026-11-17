@@ -1317,6 +1317,225 @@ test('CO-551: each reason a request is the operator\'s becomes the sweep\'s mark
   assert.deepEqual(toOperatorMarks('remote-unanswered'), { pastDue: false, remote: 'unanswered' })
 })
 
+// The turn-end spec §4.3 (wave T5, the operator, 2026-11-16): a run on another machine that needs a person ends blocked
+// with one question in its result; Fabric files it as the project's question («Нужны вы», the people-ask bridge), posts
+// nothing, and starts the next run there with the answer.
+const QUESTION = { text: 'Выпускать версию сейчас или подождать до понедельника?', whyBlocked: 'Сборка готова, дежурного нет до понедельника.',
+  options: [{ id: 'now', label: 'Сейчас', consequence: 'Исправление сегодня.', recommended: true }, { id: 'monday', label: 'В понедельник' }] }
+const blockedWith = (q, over = {}) => resultFile({ outcome: 'blocked', branch: null, commit: null, body: ['Нужно решение человека.', '', '```fabric-question', JSON.stringify(q), '```'].join('\n'), ...over })
+function asking(w) {
+  w.asked = []
+  w.questions = new Map()
+  w.deps.askQuestion = async (input) => {
+    w.asked.push(input)
+    if (w.askThrows) throw new Error('the journal is down')
+    const id = `q-${w.asked.length}`
+    if (!w.questions.has(id)) w.questions.set(id, { status: 'open' })
+    return { questionId: id }
+  }
+  w.deps.questionState = async (id) => w.questionUnread ? null : (w.questions.get(id) ?? null)
+  return w
+}
+const opens = (w) => w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).map(([, a]) => a)
+
+test('T5: a remote run\'s packet tells it how to ask a person: one fabric-question block in a blocked result', async () => {
+  const w = asking(world({ target: 'studio' }))
+  await createBoardDispatch(w.deps).onPass()
+  const [open] = opens(w)
+  assert.ok(open.body.constraints.some((c) => c.includes('```fabric-question') && c.includes('outcome=blocked')), JSON.stringify(open.body.constraints))
+  assert.ok(open.body.constraints.every((c) => c.length <= 500), open.body.constraints.map((c) => c.length).join(','))
+  // A run here (no machine named) is told nothing of it: it has the board's own fabric_question_ask.
+  const v = asking(world())
+  await createBoardDispatch(v.deps).onPass()
+  assert.equal(opens(v)[0].body.constraints.some((c) => c.includes('fabric-question')), false)
+})
+
+test('T5: a blocked result with a clear question files it as the project\'s, posts nothing, counts no empty run, and the answer starts the next run there', async () => {
+  const w = asking(world({ target: 'studio' }))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.remote.set('L1', { state: 'exited', exitCode: 0, result: blockedWith(QUESTION) })
+  w.tick(3 * MIN)
+  await d.onPass()
+  assert.equal(w.asked.length, 1)
+  assert.equal(w.asked[0].projectId, 'p-target')
+  assert.equal(w.asked[0].requestId, request().id)
+  assert.equal(w.asked[0].launchId, 'L1')
+  assert.match(w.asked[0].key, /^dispatch-question:/)
+  assert.equal(w.asked[0].ask.text, QUESTION.text)
+  assert.deepEqual(w.asked[0].ask.options.map((o) => o.id), ['now', 'monday'])
+  const r = d.records()[0]
+  assert.equal(r.outcome, 'waiting')
+  assert.equal(r.question.id, 'q-1')
+  assert.equal(r.emptyRuns, 0)
+  assert.equal(w.relays.length, 0, 'nothing is posted to the requester yet')
+  assert.equal(r.closed, true)
+  assert.match(closes(w)[0].body.notes, /asked a person/)
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.question' && l.outcome === 'ok' && l.detail.question === 'q-1'))
+  assert.equal(JSON.stringify(w.logs).includes(QUESTION.text), false, 'the question\'s words never reach the log')
+  assert.equal(d.toOperator().has(request().id), false)
+  // While the question is open, or cannot be read, no run starts, however long it waits.
+  for (const unread of [false, true]) {
+    w.questionUnread = unread
+    w.tick(30 * MIN)
+    await d.onPass()
+    assert.equal(w.launches.length, 1, `unread ${unread}`)
+  }
+  w.questionUnread = false
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.decided' && l.detail.check === 'waiting-question'))
+  // Answered: the next run starts on the same machine with the answer in its packet, in a workflow of its own.
+  w.questions.set('q-1', { status: 'answered', text: QUESTION.text, answer: 'Выпускай сейчас.', chosen: 'Сейчас' })
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(w.launches.length, 2)
+  assert.equal(w.launches[1].target, 'studio')
+  const next = opens(w)[1]
+  assert.ok(next.body.constraints.some((c) => c.includes('open this packet\'s notes')), JSON.stringify(next.body.constraints))
+  assert.ok(next.body.constraints.every((c) => c.length <= 500), 'Observatory takes a constraint of at most 500 characters')
+  assert.match(next.body.notes, /^The previous run asked a person: Выпускать версию/)
+  assert.match(next.body.notes, /The person answered: Выпускай сейчас\. \(option: Сейчас\)/)
+  assert.equal(d.records()[1].emptyRuns, 0)
+  assert.equal(w.asked.length, 1, 'asked once')
+})
+
+test('T5: the next run goes to the machine that asked even when Settings now names another, and keeps the limits', async () => {
+  const w = asking(world({ target: 'studio' }))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.remote.set('L1', { state: 'exited', exitCode: 0, result: blockedWith(QUESTION) })
+  w.tick(3 * MIN)
+  await d.onPass()
+  w.target = 'other'
+  w.questions.set('q-1', { status: 'withdrawn', text: QUESTION.text, answer: null, chosen: null })
+  // Another run of the project holds its one place: the answered request waits for it, as any request does.
+  w.requests = [request({ id: '55555555-5555-4555-8555-555555555555' }), request()]
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(w.launches.length, 2)
+  assert.equal(w.launches[1].request, '55555555-5555-4555-8555-555555555555')
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.decided' && l.detail.request === request().id && l.detail.check === 'deferred-project-busy'))
+  w.remote.set('L2', { state: 'exited', exitCode: 0, result: null })
+  w.requests = [request()]
+  w.tick(3 * MIN)
+  await d.onPass()
+  assert.equal(w.launches.length, 3)
+  assert.equal(w.launches[2].target, 'studio')
+  assert.ok(opens(w).at(-1).body.notes.includes('closed without an answer (withdrawn)'))
+  assert.ok(opens(w).at(-1).body.constraints.some((c) => c.includes('closed without an answer')))
+})
+
+test('T5: an unclear question, or a block in another shape, is not filed; the run counts empty as today and the reason is logged', async () => {
+  for (const [result, reason] of [[blockedWith({ text: 'Slot generation 3 for com.enroll is stale (CT-336); answer not required' }), 'unclear'], [resultFile({ outcome: 'blocked', body: '```fabric-question\nnot json\n```' }), 'unreadable']]) {
+    const w = asking(world({ target: 'studio' }))
+    const d = createBoardDispatch(w.deps)
+    await d.onPass()
+    w.remote.set('L1', { state: 'exited', exitCode: 0, result })
+    w.tick(3 * MIN)
+    await d.onPass()
+    assert.equal(w.asked.length, 0, reason)
+    const r = d.records()[0]
+    assert.equal(r.outcome, 'exited-without-answer', reason)
+    assert.equal(r.emptyRuns, 1)
+    assert.equal(r.questionRefused, reason)
+    const log = w.logs.find((l) => l.op === 'board.dispatch.question')
+    assert.equal(log.outcome, 'failed')
+    assert.equal(log.detail.reason, reason)
+    if (reason === 'unclear') assert.deepEqual(log.detail.issues, ['machine-words', 'not-a-question'])
+    assert.match(closes(w)[0].body.notes, new RegExp(`question was not asked \\(${reason}`))
+    assert.equal(w.launches.length, 2, 'the next run starts as today')
+  }
+})
+
+test('T5: a question the journal refuses is asked again with the same key; one refused every time ends the run as today', async () => {
+  const w = asking(world({ target: 'studio', askThrows: true }))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.remote.set('L1', { state: 'exited', exitCode: 0, result: blockedWith(QUESTION) })
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(d.records()[0].state, 'running', 'kept for the next pass')
+  for (let i = 1; i < CLOSE_ATTEMPTS; i++) { w.tick(MIN); await d.onPass() }
+  assert.equal(w.asked.length, CLOSE_ATTEMPTS)
+  assert.equal(new Set(w.asked.map((a) => a.key)).size, 1)
+  const r = d.records()[0]
+  assert.equal(r.outcome, 'exited-without-answer')
+  assert.equal(r.questionRefused, 'not-filed')
+  // A dispatcher without the door (an older wiring) reads the block as today.
+  const v = world({ target: 'studio' })
+  const e = createBoardDispatch(v.deps)
+  await e.onPass()
+  v.remote.set('L1', { state: 'exited', exitCode: 0, result: blockedWith(QUESTION) })
+  v.tick(MIN)
+  await e.onPass()
+  assert.equal(e.records()[0].outcome, 'exited-without-answer')
+})
+
+test('T5: a request settled while its question waits starts no run; a waiting record survives the file', async () => {
+  const { isDispatchRecord } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  const base = { requestId: 'r', projectId: 'p', dispatchId: 'd', workflowId: WF, handoffId: HANDOFF, launchId: 'L1', startedAt: T0, endsAt: new Date(T0).toISOString(), state: 'ended', emptyRuns: 0, target: 'studio' }
+  assert.equal(isDispatchRecord({ ...base, outcome: 'waiting', question: { id: 'q-1', askedAt: T0 } }), true)
+  assert.equal(isDispatchRecord({ ...base, outcome: 'waiting', question: { id: '', askedAt: T0 } }), false)
+  assert.equal(isDispatchRecord({ ...base, questionRefused: 'unclear', questionAttempts: 2 }), true)
+  const w = asking(world({ target: 'studio' }))
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  w.remote.set('L1', { state: 'exited', exitCode: 0, result: blockedWith(QUESTION) })
+  w.tick(MIN)
+  await d.onPass()
+  w.requests = [request({ state: 'answered' })]
+  w.questions.set('q-1', { status: 'answered', text: QUESTION.text, answer: 'да', chosen: null })
+  w.tick(MIN)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+})
+
+test('T5: the wiring files a remote run\'s question as fabric_question_ask does, once per key, and reads its answer back', async () => {
+  const { createRemoteQuestions, commandIdOf } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  const rows = new Map()
+  const appended = []
+  const store = { select: (table, cols) => ({ eq: (col, value) => ({ maybeSingle: async () => {
+    assert.equal(table, 'questions')
+    if (store.fail) return { data: null, error: { message: 'down' } }
+    const row = [...rows.values()].find((r) => (col === 'id' ? r.id : r.asked_command_id) === value) ?? null
+    return { data: row ? Object.fromEntries(cols.split(',').map((c) => [c, row[c]])) : null, error: null }
+  } }) }) }
+  const q = createRemoteQuestions({ store, estateId: 'est', clean: (t) => t.replace('sk-secret', '[redacted]'),
+    append: async (e) => { appended.push(e); rows.set(e.payload.id, { id: e.payload.id, asked_command_id: e.payload.command_id, status: 'open', text: e.payload.text, options: e.payload.options }) } })
+  const ask = { text: 'Выпускать версию сейчас?', kind: 'decision', about: null, topic: null, whyBlocked: 'Ключ sk-secret в логе.', taskId: null, blocks: [],
+    options: [{ id: 'now', label: 'Сейчас', recommended: true }, { id: 'later', label: 'Позже' }] }
+  const key = 'dispatch-question:d-1'
+  const got = await q.ask({ projectId: 'p-target', requestId: 'r', launchId: 'L1', key, ask })
+  assert.ok(got.questionId)
+  assert.equal(appended.length, 1)
+  const [e] = appended
+  assert.equal(e.type, 'question.asked@1')
+  assert.deepEqual(e.actor, { kind: 'agent', id: 'dispatch-run:L1' })
+  assert.equal(e.projectId, 'p-target')
+  assert.equal(e.payload.project_id, 'p-target')
+  assert.equal(e.payload.command_id, commandIdOf(key))
+  assert.match(commandIdOf(key), /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+  assert.equal(e.payload.why_blocked, 'Ключ [redacted] в логе.', 'scrubbed as an agent\'s text is')
+  assert.deepEqual(e.payload.blocks, [])
+  // The same key answers the same question, nothing appended again.
+  assert.deepEqual(await q.ask({ projectId: 'p-target', requestId: 'r', launchId: 'L1', key, ask }), got)
+  assert.equal(appended.length, 1)
+  // A text the ingress refuses, or unclear after the scrub, is refused as unclear.
+  const refusing = createRemoteQuestions({ store, estateId: 'est', clean: () => { throw new Error('rejected') }, append: async () => assert.fail('nothing appended') })
+  assert.deepEqual(await refusing.ask({ projectId: 'p', requestId: 'r', launchId: 'L2', key: 'k-2', ask }), { refused: 'question-unclear' })
+  const machine = createRemoteQuestions({ store, estateId: 'est', clean: (t) => `${t} src/main`, append: async () => assert.fail('nothing appended') })
+  assert.deepEqual(await machine.ask({ projectId: 'p', requestId: 'r', launchId: 'L3', key: 'k-3', ask }), { refused: 'question-unclear' })
+  // Read back: open, answered with the chosen option's label, withdrawn, missing, unreadable.
+  assert.deepEqual(await q.state(got.questionId), { status: 'open' })
+  Object.assign(rows.get(got.questionId), { status: 'answered', answer: 'Да, сейчас.', chosen_option: 'now' })
+  assert.deepEqual(await q.state(got.questionId), { status: 'answered', text: ask.text, answer: 'Да, сейчас.', chosen: 'Сейчас' })
+  Object.assign(rows.get(got.questionId), { status: 'withdrawn', answer: null, chosen_option: null })
+  assert.deepEqual(await q.state(got.questionId), { status: 'withdrawn', text: ask.text, answer: null, chosen: null })
+  assert.equal(await q.state('nope'), null)
+  store.fail = true
+  await assert.rejects(q.state(got.questionId))
+  assert.match((await q.ask({ projectId: 'p', requestId: 'r', launchId: 'L4', key: 'k-4', ask })).refused, /could not be read/)
+})
+
 // CO-559 (§3.8 of the on-demand sessions spec): every addressee woken and watched. The operator, 2026-11-10: «Если нет
 // кодинга агента в проекте, которому идет задача, значит агент поднимается… если он не поднялся, поднимать насильно еще
 // раз. И валидация каждые 30 секунд.»

@@ -8,17 +8,21 @@
 import { closeSync, existsSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
+import { createHash, randomUUID } from 'node:crypto'
 import { hostname, networkInterfaces } from 'node:os'
 import type { CommsFactsReply, CommsInboxReply, CommsMessage, CommsRespondersReply, CommsTimelineReply } from '../shared/commsRead.ts'
 import type { SweepComms } from './abandonedSweepRun.ts'
 import { mandateOfRequest } from './boardMandate.ts'
 import { readRequestThreadIds } from './boardThreadIds.ts'
-import { INBOX_CAPABILITY, isSelfTarget, remoteOwnerOf, targetForOwner, type DispatchAgent } from '../shared/boardDispatch.ts'
+import { INBOX_CAPABILITY, isSelfTarget, remoteOwnerOf, targetForOwner, type DispatchAgent, type SettledQuestion } from '../shared/boardDispatch.ts'
+import { normaliseAsk, type NormalisedAsk } from '../shared/questionAsk.ts'
+import { clarityIssues } from '../shared/questionClarity.ts'
 import { createBoardDispatch, isDispatchRecord, noteOf, type DispatchDeps, type InboxGiven, type DispatchRecord, type OpenRequest, type RemoteState, type ResumeGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { RESUME_CAPABILITY, resumeItems, waitLine, type ResumeCandidate, type ResumeItem } from '../shared/boardResume.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 import { originOf } from './agentSyncLeases.ts'
+import type { createScopedStore } from './scopedStore.ts'
 import type { BoardRun } from './agentWork.ts'
 
 const WINDOW_MS = 7 * 24 * 3600_000
@@ -360,6 +364,69 @@ export async function relayReply(board: RelayBoard, requestId: string, text: str
 }
 // #endregion board-dispatch-remote-wiring
 
+// #region board-dispatch-remote-question-wiring — docs: docs/evidence/specs/2026-11-16-turn-end-waits.md#43-a-run-on-another-machine
+/** T5: a stable uuid for an idempotency key, so a question asked again under the same key is found, never asked twice. */
+export function commandIdOf(key: string): string {
+  const h = createHash('sha256').update(key).digest('hex')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-${(8 | (parseInt(h[16], 16) & 3)).toString(16)}${h.slice(17, 20)}-${h.slice(20, 32)}`
+}
+
+type QuestionStore = Pick<ReturnType<typeof createScopedStore>, 'select'>
+
+/**
+ * T5 (the turn-end spec §4.3): the door a remote run's question goes through. It files the question as its project's
+ * the way `fabric_question_ask` does (`question.asked@1`, the asker an agent, the clarity rule of §8, the text scrubbed
+ * as an agent's is), so «Нужны вы» shows it and the people-ask bridge carries it to the PM agent; and it reads a filed
+ * question back with its answer. Idempotent by the dispatcher's key (`asked_command_id`).
+ */
+export function createRemoteQuestions(o: {
+  store: QuestionStore
+  append(e: { estateId: string; type: string; actor: { kind: 'agent'; id: string }; projectId: string; payload: Record<string, unknown> }): Promise<unknown>
+  estateId: string
+  /** The scrub an agent's question text gets (`desktopIngress.ts#cleanOriginalText`); it throws on a text it refuses. */
+  clean(text: string): string
+}): { ask: NonNullable<DispatchDeps['askQuestion']>; state: NonNullable<DispatchDeps['questionState']> } {
+  return {
+    async ask({ projectId, launchId, key, ask }) {
+      const commandId = commandIdOf(key)
+      const already = await o.store.select('questions', 'id').eq('asked_command_id', commandId).maybeSingle()
+      if (already.error) return { refused: `the questions could not be read: ${already.error.message}` }
+      if (already.data && typeof already.data.id === 'string') return { questionId: already.data.id }
+      let asked: ReturnType<typeof normaliseAsk>
+      try {
+        const scrub = (v: string | null | undefined): string | undefined => (v === null || v === undefined ? undefined : v.trim() ? o.clean(v) : v)
+        asked = normaliseAsk({ text: scrub(ask.text), kind: ask.kind, whyBlocked: scrub(ask.whyBlocked),
+          options: ask.options.map((x: NormalisedAsk['options'][number]) => ({ id: x.id, label: scrub(x.label), consequence: scrub(x.consequence), ...(x.recommended ? { recommended: true } : {}) })) })
+      } catch {
+        // A text the ingress refuses to keep (an unreadable or oversized original) is not one Fabric puts to a person;
+        // the dispatcher logs the refusal and ends the run as a blocked one did before.
+        return { refused: 'question-unclear' }
+      }
+      if (!asked.ok || clarityIssues(asked.value.text).length) return { refused: 'question-unclear' }
+      const id = randomUUID()
+      await o.append({
+        estateId: o.estateId, type: 'question.asked@1', actor: { kind: 'agent', id: `dispatch-run:${launchId}` }, projectId,
+        payload: { id, command_id: commandId, project_id: projectId, text: asked.value.text, kind: asked.value.kind, topic: asked.value.topic,
+          about: asked.value.about, why_blocked: asked.value.whyBlocked, task_id: null, options: asked.value.options, blocks: [] }
+      })
+      return { questionId: id }
+    },
+    async state(questionId) {
+      const r = await o.store.select('questions', 'id,status,text,answer,chosen_option,options').eq('id', questionId).maybeSingle()
+      if (r.error) throw new Error(`the question could not be read: ${r.error.message}`)
+      const q = r.data
+      if (!q) return null
+      if (q.status === 'open') return { status: 'open' }
+      if (q.status !== 'answered' && q.status !== 'withdrawn' && q.status !== 'stale') return null
+      const chosenId = typeof q.chosen_option === 'string' ? q.chosen_option : null
+      const options = Array.isArray(q.options) ? q.options as Array<{ id?: unknown; label?: unknown }> : []
+      const chosen = chosenId ? (options.find((x) => x.id === chosenId)?.label as string | undefined) ?? chosenId : null
+      return { status: q.status, text: String(q.text ?? ''), answer: typeof q.answer === 'string' ? q.answer : null, chosen } satisfies SettledQuestion
+    }
+  }
+}
+// #endregion board-dispatch-remote-question-wiring
+
 export function wireBoardDispatch(o: {
   estateId: string
   comms: SweepComms & { responders(estateId: string): Promise<CommsRespondersReply>; timeline?(estateId: string, requestId: unknown): Promise<CommsTimelineReply>; inbox?(estateId: string, since: string): Promise<CommsInboxReply> }
@@ -382,6 +449,8 @@ export function wireBoardDispatch(o: {
   resume?: { on(): boolean; read(now: number, requestState: (requestId: string) => Promise<string | null>): Promise<{ candidates: ResumeCandidate[]; capped: boolean }>; state(taskId: string, releasedAt: string): Promise<string | null>
     /** §3.12: the runtime session ids Switchboard holds on a usage limit and will continue itself; null when unread. */
     limitStops?(): Promise<ReadonlySet<string> | null> }
+  /** T5 (the turn-end spec §4.3): the door a remote run's question is filed through and read back (`createRemoteQuestions`). */
+  questions?: { ask: NonNullable<DispatchDeps['askQuestion']>; state: NonNullable<DispatchDeps['questionState']> }
 }): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; resumeGiven(): ResumeGiven[]; boardRuns(): BoardRun[] } {
   let probePath: Promise<string> | null = null
   const pathFor = (): Promise<string> => (probePath ??= widenProbePath(o.env.PATH ?? '', o.env))
@@ -571,6 +640,7 @@ export function wireBoardDispatch(o: {
       }
     },
     relay: async (projectId, requestId, text, key) => (o.board ? relayReply(o.board(projectId), requestId, text, key) : { refused: 'no-door' }),
+    ...(o.questions ? { askQuestion: o.questions.ask, questionState: o.questions.state } : {}),
     async requestState(requestId) { return lastStates.get(requestId) ?? follower.state(requestId) },
     // CO-559 (§3.8): an inbox run's message as its project reads it now (`createInboxState`).
     inboxState: (messageId, projectId) => inboxState.state(messageId, projectId),

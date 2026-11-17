@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · feat/remote-question → main · fast-forward
+- files: `shared/boardDispatch.ts` (`remoteQuestionOf`, `answerPacket`, `notesWith`), `main/boardDispatchRun.ts` (the `waiting` record, `askRemote`, the next run's packet), `main/boardDispatchWiring.ts` (`createRemoteQuestions`), `main/index.ts`, tests, the turn-end spec §4.3, AGENTS.md's dispatcher row
+- conflicts: `main/boardDispatchWiring.ts` and `main/index.ts` beside the supervisor's `limitStops`, both kept; the map's stamp refreshed
+- summary: wave T5, a run on another machine asks a person through the project's question and its answer resumes the run there
+
 ### 2026-11-17 · `—` · fix/second-client-leave → main · fast-forward
 - files: `main/agentSurface.ts` (a client's leave ends the session only without another live own client; `lastCallAt` per bearer), `test/session-enroll.test.mjs`
 - conflicts: none

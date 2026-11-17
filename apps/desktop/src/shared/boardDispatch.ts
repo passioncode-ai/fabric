@@ -1,4 +1,6 @@
 // #region board-dispatch — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#3-the-flow
+import { normaliseAsk, type NormalisedAsk } from './questionAsk.ts'
+import { clarityIssues, type ClarityIssue } from './questionClarity.ts'
 /**
  * The dispatcher's decision (CO-409, wave 1; the operator, 2026-11-04, paraphrased: a request no agent of the project
  * picked up starts a new session that does the work, reports that it is done and ends). Pure: the main process reads the request, the responders, the sessions and the running dispatches,
@@ -105,8 +107,9 @@ export interface DispatchInput {
   limits?: Partial<DispatchLimits>
 }
 
-/** The check that stopped a dispatch, in the order of §3.3, plus the grace and Switchboard's failure to start. */
-export type DispatchCheck = 'grace' | 'skipped-off' | 'skipped-no-folder' | 'deferred-cap' | 'deferred-project-busy' | 'skipped-daily-cap' | 'deferred-no-agent' | 'failed-to-start'
+/** The check that stopped a dispatch, in the order of §3.3, plus the grace, Switchboard's failure to start, and (T5) a
+ *  question a run on another machine asked a person that is still open. */
+export type DispatchCheck = 'grace' | 'skipped-off' | 'skipped-no-folder' | 'deferred-cap' | 'deferred-project-busy' | 'skipped-daily-cap' | 'deferred-no-agent' | 'failed-to-start' | 'waiting-question'
 
 export type DispatchDecision =
   | { path: 'none' }
@@ -270,6 +273,81 @@ export function relayText(r: RunResult, machine: string): string {
   const said = ({ answered: 'агент ответил', failed: 'агент не справился', blocked: 'агент остановился' } as Record<string, string>)[r.outcome] ?? 'исход'
   return `_Ретрансляция запуска \`${r.launch}\` с машины \`${machine}\`: ${said} (\`${r.outcome}\`)${where ? `, ${where}` : ''}._\n\n${r.body}`
 }
+
+// #region board-dispatch-remote-question — docs: docs/evidence/specs/2026-11-16-turn-end-waits.md#43-a-run-on-another-machine
+/**
+ * The turn-end spec §4.3 (wave T5): a run on another machine has no board, so it cannot ask a person. It ends
+ * `outcome=blocked` and puts ONE question in its result's body as a fenced block opened by «```fabric-question», holding
+ * JSON `{text, whyBlocked?, options?: [{id?, label, consequence?, recommended?}], recommended?}`. Fabric files it as the
+ * project's question (the shape `fabric_question_ask` takes, the clarity rule of §8 included), waits for the answer
+ * and starts the next run there with it. A body without the block is read as before.
+ */
+export const QUESTION_FENCE = 'fabric-question'
+/** The most of a person's answer a next run's packet carries; the rest is said to be cut. */
+export const ANSWER_MAX = 1500
+/** Why a block in a result was not filed as a question: not JSON of the agreed shape (`unreadable`), more than one
+ *  block (`several`), refused by the ask's own rules (`invalid`), or one a person cannot answer (`unclear`). */
+export type QuestionRefusal = 'unreadable' | 'several' | 'invalid' | 'unclear'
+export type RemoteQuestion = { found: false } | { found: true; ok: true; ask: NormalisedAsk } | { found: true; ok: false; reason: QuestionRefusal; issues?: ClarityIssue[] }
+
+const FENCE = new RegExp('^```' + QUESTION_FENCE + '[ \\t]*\\n([\\s\\S]*?)\\n```[ \\t]*$', 'gm')
+const plain = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
+
+/** The question a blocked run's body carries, checked as `fabric_question_ask` checks one; `found: false` when the body
+ *  holds no block, which is every result written before this wave. Pure: nothing is filed here. */
+export function remoteQuestionOf(body: string): RemoteQuestion {
+  const blocks = [...body.replace(/\r\n/g, '\n').matchAll(FENCE)]
+  if (!blocks.length) return { found: false }
+  if (blocks.length > 1) return { found: true, ok: false, reason: 'several' }
+  let raw: unknown
+  try { raw = JSON.parse(blocks[0][1]) } catch {
+    // Not JSON: the run's block is refused by its code; the text never reaches a log.
+    return { found: true, ok: false, reason: 'unreadable' }
+  }
+  if (!plain(raw) || typeof raw.text !== 'string' || (raw.whyBlocked !== undefined && typeof raw.whyBlocked !== 'string')
+    || (raw.recommended !== undefined && typeof raw.recommended !== 'string')
+    || (raw.options !== undefined && (!Array.isArray(raw.options) || raw.options.length > 8 || !raw.options.every((o) => plain(o)
+      && typeof o.label === 'string' && (o.id === undefined || typeof o.id === 'string')
+      && (o.consequence === undefined || typeof o.consequence === 'string') && (o.recommended === undefined || typeof o.recommended === 'boolean')))))
+    return { found: true, ok: false, reason: 'unreadable' }
+  const asked = normaliseAsk({ text: raw.text, kind: 'decision', ...(raw.whyBlocked !== undefined ? { whyBlocked: raw.whyBlocked as string } : {}),
+    ...(raw.options !== undefined ? { options: raw.options as Array<{ id?: string; label: string; consequence?: string; recommended?: boolean }> } : {}),
+    ...(raw.recommended !== undefined ? { recommended: raw.recommended as string } : {}) })
+  if (!asked.ok) return { found: true, ok: false, reason: 'invalid' }
+  const issues = clarityIssues(asked.value.text)
+  return issues.length ? { found: true, ok: false, reason: 'unclear', issues } : { found: true, ok: true, ask: asked.value }
+}
+
+/** A filed question as it stands when the next run is decided: answered, or closed without an answer. */
+export interface SettledQuestion { status: 'answered' | 'withdrawn' | 'stale'; text: string; answer: string | null; chosen: string | null }
+
+/** The most of a checkpoint's `notes` Observatory takes is 4000 characters; the answer and the thread share this. */
+export const NOTES_MAX = 3990
+
+/**
+ * What the next run's packet carries after its question: one constraint (Observatory takes at most 500 characters) and
+ * the question with the person's answer, cut at `ANSWER_MAX`, at the top of its notes, the request's thread after it.
+ */
+export function answerPacket(q: SettledQuestion): { constraint: string; notes: string } {
+  const said = (q.answer ?? '').trim()
+  const answer = [...said].length > ANSWER_MAX ? `${[...said].slice(0, ANSWER_MAX).join('')} (cut)` : said
+  if (q.status === 'answered') return {
+    constraint: 'The previous run of this request asked a person a question; the question and the person\'s answer open this packet\'s notes. Continue the work from that answer: it is the person\'s decision for this request.',
+    notes: `The previous run asked a person: ${q.text}\nThe person answered: ${answer || '(no words)'}${q.chosen ? ` (option: ${q.chosen})` : ''}`
+  }
+  return {
+    constraint: 'The previous run of this request asked a person a question, which was closed without an answer (it opens this packet\'s notes). Decide it yourself by the project\'s recorded decisions and goal; end blocked with a new question only if a person must decide.',
+    notes: `The previous run asked a person: ${q.text}\nThe question was closed without an answer (${q.status}).`
+  }
+}
+
+/** A packet's notes: the answer first, then as much of the request's thread as fits within `NOTES_MAX`. */
+export function notesWith(head: string | null, thread: string | null): string | null {
+  if (!head) return thread
+  const out = thread ? `${head}\n\n${thread}` : head
+  return out.length > NOTES_MAX ? out.slice(0, NOTES_MAX) : out
+}
+// #endregion board-dispatch-remote-question
 
 /** The machine a run is started on, as Settings names it (`dispatchTarget`): an ssh host name, optionally with a user,
  *  never an option (a leading `-`), a space or `auto` (choosing by headroom is stage B, CO-552); anything else is none. */

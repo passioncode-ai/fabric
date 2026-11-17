@@ -78,10 +78,40 @@ at most three times in a row. Codex and Kimi send no turns; for them §4.1 does 
 
 ### 4.3 A run on another machine
 
-A run there has no board. Its result file may say `outcome=blocked` with a `wait=` header and, for a question, a JSON
-block with the question and its options; Fabric files that question as the project's in «Нужны вы» (the bridge carries
-it to the PM agent), records the task's wait as `question` with that id, and the supervisor starts the next run there
-once it is answered.
+A run there has no board (on-demand spec [§3.7](2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a)),
+so it asks a person through its result file. Built 2026-11-17 (wave T5, task `853dae71`):
+
+- **The packet.** A run started for another machine is told, in one constraint, that a step needing a person's decision
+  ends the result with `outcome=blocked` and ONE question in its body: a fenced block opened by «```fabric-question»
+  holding JSON `{text, whyBlocked?, options?: [{id?, label, consequence?, recommended?}], recommended?}`; `text` is one
+  short sentence in the person's language ending with `?`, without machine words (`main/boardDispatchRun.ts`, the remote
+  constraints). The result file's header is unchanged; Switchboard passes the file through as before.
+- **Read.** `shared/boardDispatch.ts#remoteQuestionOf` reads the block from a `blocked` body: none (`found: false`, every
+  result written before this wave, read as before), or one checked as `fabric_question_ask` checks a question
+  (`normaliseAsk`, then §8's `clarityIssues`). A body with two blocks (`several`), a block that is not JSON of that shape
+  (`unreadable`), one the ask refuses (`invalid`) or one a person cannot answer (`unclear`, with its issues) is not
+  filed: the run ends as a blocked one did (an empty run), the operations log says `board.dispatch.question` failed with
+  the reason code and the issues (never the text), and the workflow's closing checkpoint names the reason.
+- **Filed.** A clear question goes through `main/boardDispatchWiring.ts#createRemoteQuestions`: `question.asked@1` for the
+  request's target project, asked by the agent `dispatch-run:<launch>`, its texts scrubbed as an agent's are
+  (`cleanOriginalText`), under `asked_command_id` = a uuid of `dispatch-question:<dispatch id>`, so a retry finds the
+  question instead of asking twice. «Нужны вы» shows it and the people-ask bridge carries it to the PM agent of the
+  project's organization. A refusal is asked again with the same key on the next pass; after five the run ends as before
+  (`not-filed`). A request settled meanwhile files nothing.
+- **Waiting.** The run's record ends `waiting` with `question {id, askedAt}`: not an empty run, nothing posted to the
+  requester, the workflow closed (`status: blocked`, the next run opens its own). While the question reads open, or
+  cannot be read, the request gets no run (`board.dispatch.decided` `wait` `waiting-question`).
+- **Continued.** Once the question reads answered, withdrawn or stale, the request is decided as any other (the grace,
+  the live session, three runs at once, one per project, twenty a day, `EMPTY_RUNS_TO_OPERATOR`), and its next run goes
+  to the machine that asked, whatever `dispatchTargets` names now. Its packet carries one constraint and, at the top of
+  its notes, the question and the person's answer (cut at `ANSWER_MAX`, 1500 characters; the chosen option's label), or
+  that it was closed without one; the request's thread follows, the whole cut at `NOTES_MAX` (3990), since Observatory
+  takes a constraint of at most 500 characters and notes of at most 4000 (`shared/boardDispatch.ts#answerPacket`,
+  `#notesWith`).
+
+Tests: `src/shared/boardDispatch.test.ts` (`remoteQuestionOf`, `answerPacket`), `test/board-dispatch-run.test.mjs` (the
+`T5:` tests: the packet, filed and resumed, the machine and the limits, unclear and unreadable, refusals, the record in
+the file, the wiring's door).
 
 ### 4.4 A live session the duty officer must not close
 
@@ -94,7 +124,7 @@ fabric_claim`, released with `--until 0` on release (SB-399, Fabric task `f53de3
 |---|---|---|
 | Fabric | the `wait` on release, the supervisor's check, the turn verdict, questions from a remote run, the holds, «На проверке» rows | this repository |
 | fabric-agent-adapter | the Stop hook acting on the verdict; `working-with-fabric`'s turn-end rule (one of the three states; a wait names a checkable thing) | request filed 2026-11-16 |
-| fabric-switchboard | `--reason resume` (SB-398), `monitor hold` (SB-399), the result file's `wait=` header passed through | thread `179a88f6` |
+| fabric-switchboard | `--reason resume` (SB-398), `monitor hold` (SB-399), the result file passed through (its body may carry the question's block, §4.3; no header added) | thread `179a88f6` |
 | PM agents (Аня, Кира) and the personal communicator | `people.ask` in Telegram | thread `bf635f68`: Аня live (`c89f4ab`), Кира 2026-11-19, the communicator 2026-11-20 |
 
 ## 6. The plan, in waves (replanned 2026-11-16)
@@ -108,7 +138,7 @@ Each wave lands on `main` on its own, gates green; nothing that works is broken 
 | T2 | The turn verdict in `fabric_session_observe` (`shared/turnVerdict.ts`, landed 2026-11-16) | Fabric | `8c5f66b5` |
 | T3 | The Stop hook acts on the verdict; the skill's turn-end rule | fabric-agent-adapter | request filed with this spec |
 | T4 | Holds for claim-holding sessions (`main/sessionHolds.ts`, landed 2026-11-16; `--reason fabric_claim` once Switchboard ships it); `--reason resume` live since Switchboard 0.7.109 | Fabric, Switchboard | `f53de384`, SB-398, SB-399 |
-| T5 | A remote run's question reaches «Нужны вы» and its answer resumes the run there | Fabric, Switchboard | filed with this spec |
+| T5 | A remote run's question reaches «Нужны вы» and its answer resumes the run there (§4.3, landed 2026-11-17) | Fabric, Switchboard | `853dae71` |
 | T6 | «На проверке» shows a task the supervisor gave the operator (`task-to-operator`, landed 2026-11-16); a wait past its time is still open | Fabric | `a8993a15` |
 | B1 to B4 | The board out of the window's process (ADR-0195 W1 to W4) | Fabric, Switchboard | `0647986c`, `8b86adf3`, `dbeb4fcd`, `4e0976c6` |
 | P | The PM agents' and the communicator's `people.ask` | their projects | `bf635f68`, `e6154a6e` |
@@ -123,7 +153,9 @@ it works and takes the next wave when one lands.
 
 T1: `src/shared/boardResume.test.ts` (each kind clears only on its condition; a wait without anything checkable is
 none), `test/board-resume-read.test.mjs` (the wait read back from the release's event), `test/board-dispatch-run.test.mjs`
-(a run's packet names the wait). T2: the verdict's unit tests (claim, wait, two empty turns). Every wave:
+(a run's packet names the wait). T2: the verdict's unit tests (claim, wait, two empty turns). T5: `src/shared/boardDispatch.test.ts`
+(a remote run's question read and refused by its code) and the `T5:` tests of `test/board-dispatch-run.test.mjs`
+(filed, waited on, resumed on the same machine with the answer). Every wave:
 `bash scripts/ci.sh fast` exit 0 on the commit that lands.
 
 ## 8. A question a person understands

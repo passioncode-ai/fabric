@@ -9,6 +9,15 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A run on another machine can ask a person, and the answer continues the work there** (the turn-end spec, wave T5).
+  A run Fabric starts through Switchboard on another machine has no board, so its packet now tells it to end
+  `outcome=blocked` with one question in its result, a fenced block opened by «```fabric-question» holding JSON
+  `{text, whyBlocked, options}`. Fabric files it as the project's question (the way `fabric_question_ask` does, the
+  clarity rule included), so «Нужны вы» shows it and the people-ask bridge takes it to the PM agent; it posts nothing to
+  the requester and starts no run until the question is answered or closed. Then the next run starts on the machine that
+  asked, with the question and the answer at the top of its notes, under the usual limits. A question a person cannot
+  answer, or a block in another shape, is not filed: the run ends as a blocked one did and the reason is logged
+  (`board.dispatch.question`). A result without the block reads as before.
 - **A second client of a live session leaving no longer ends it** (task fb5b790a). A second fabric-mcp of the same agent
   session (a reconnect under its runtime id, such as a resumed subagent's) that left a second later ended the whole
   session, and the sweep then released every claim of a working agent as «its session ended». A session now ends on a

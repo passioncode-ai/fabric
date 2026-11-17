@@ -206,7 +206,7 @@ import { answerSaid, type AnswerOption } from '../shared/answerCommit'
 import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
 import { createCommsOperatorRead } from './commsOperatorRead.ts'
-import { primaryFolder, remoteTargetFor, wireBoardDispatch } from './boardDispatchWiring.ts'
+import { createRemoteQuestions, primaryFolder, remoteTargetFor, wireBoardDispatch } from './boardDispatchWiring.ts'
 import { createDispatchWake, toOperatorMarks, type InboxGiven, type ResumeGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { readResumeCandidates, readResumeState } from './boardResumeRead.ts'
 import { handBackResumedClaims } from './resumedClaims.ts'
@@ -3193,7 +3193,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       state: (taskId, releasedAt) => readResumeState(store, taskId, releasedAt),
       // §3.12: a task whose session Switchboard will resume after a usage limit waits for that session.
       limitStops: () => readMachineLimitStops(sessionEnvironment(process.env))
-    }
+    },
+    // T5 (the turn-end spec §4.3): a run on another machine asks a person through the project's question, as
+    // fabric_question_ask does; «Нужны вы» shows it and the people-ask bridge carries it to the PM agent.
+    questions: createRemoteQuestions({ store, append: (e) => journal.append(e), estateId: ACTIVE_ESTATE, clean: cleanOriginalText })
   })
   dispatchHolder.current = dispatcher
   quit.onQuit(() => { void dispatcher.close() })

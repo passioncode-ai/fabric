@@ -1,7 +1,7 @@
 // CO-409, wave 1: the dispatcher's decision. Spec: docs/evidence/specs/2026-11-04-on-demand-sessions.md (§3.1, §3.3,
 // §3.4, §3.5, §3.6).
 import { describe, expect, it } from 'vitest'
-import { dispatcherRuns, isSelfTarget, suspendedSince, sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, dispatchTargetsOf, remoteOwnerOf, targetForOwner, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, NO_FOLDER_TO_OPERATOR_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
+import { answerPacket, notesWith, remoteQuestionOf, ANSWER_MAX, NOTES_MAX, dispatcherRuns, isSelfTarget, suspendedSince, sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, dispatchTargetsOf, remoteOwnerOf, targetForOwner, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, NO_FOLDER_TO_OPERATOR_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
 
 const NOW = Date.parse('2026-11-04T15:00:00Z')
 const MIN = 60_000
@@ -267,5 +267,63 @@ describe('the dispatcher on two machines (2026-11-12)', () => {
     expect(isSelfTarget('studio-sshlg', '100.64.0.7', names)).toBe(true)
     expect(isSelfTarget('studio-sshlg', '100.64.0.9', names)).toBe(false)
     expect(isSelfTarget('studio-sshlg', null, names)).toBe(false)
+  })
+})
+
+// The turn-end spec §4.3 (wave T5): a blocked run's question in its result's body.
+describe('a remote run\'s question (remoteQuestionOf)', () => {
+  const fence = (json: string) => ['Не могу продолжить без решения.', '', '```fabric-question', json, '```', ''].join('\n')
+  const good = { text: 'Выпускать версию сейчас или подождать до понедельника?', whyBlocked: 'Сборка готова, но в пятницу вечером никто не дежурит.',
+    options: [{ id: 'now', label: 'Сейчас', consequence: 'Пользователи получат исправление сегодня.', recommended: true }, { id: 'monday', label: 'В понедельник' }] }
+
+  it('a body without the block is read as before: no question', () => {
+    expect(remoteQuestionOf('нужен оператор')).toEqual({ found: false })
+    expect(remoteQuestionOf('```json\n{"text":"Да?"}\n```')).toEqual({ found: false })
+  })
+
+  it('one clear question with options is the ask fabric_question_ask would file', () => {
+    const q = remoteQuestionOf(fence(JSON.stringify(good)))
+    expect(q.found && q.ok).toBe(true)
+    if (!q.found || !q.ok) return
+    expect(q.ask.text).toBe(good.text)
+    expect(q.ask.kind).toBe('decision')
+    expect(q.ask.whyBlocked).toBe(good.whyBlocked)
+    expect(q.ask.options.map((o) => o.id)).toEqual(['now', 'monday'])
+    expect(q.ask.options[0].recommended).toBe(true)
+    // CRLF line ends are read the same.
+    const crlf = remoteQuestionOf(fence(JSON.stringify({ text: 'Можно удалить старую ветку?' })).replace(/\n/g, '\r\n'))
+    expect(crlf.found && crlf.ok).toBe(true)
+  })
+
+  it('a question a person cannot answer is not filed: the clarity rule of §8, with its issues', () => {
+    const q = remoteQuestionOf(fence(JSON.stringify({ text: 'Slot generation 3 for com.enroll is stale (CT-336, 4bd48230); answer not required' })))
+    expect(q).toEqual({ found: true, ok: false, reason: 'unclear', issues: ['machine-words', 'not-a-question'] })
+  })
+
+  it('a block in another shape, two blocks, or one the ask refuses is refused by its code', () => {
+    expect(remoteQuestionOf(fence('not json'))).toEqual({ found: true, ok: false, reason: 'unreadable' })
+    expect(remoteQuestionOf(fence('["Да?"]'))).toEqual({ found: true, ok: false, reason: 'unreadable' })
+    expect(remoteQuestionOf(fence(JSON.stringify({ text: 'Да?', options: [{ id: 'a' }] })))).toEqual({ found: true, ok: false, reason: 'unreadable' })
+    expect(remoteQuestionOf(fence(JSON.stringify({ text: 'Да?' })) + fence(JSON.stringify({ text: 'Нет?' })))).toEqual({ found: true, ok: false, reason: 'several' })
+    // Two options with one id make the answer ambiguous: normaliseAsk refuses it.
+    expect(remoteQuestionOf(fence(JSON.stringify({ text: 'Какой вариант?', options: [{ id: 'x', label: 'А' }, { id: 'x', label: 'Б' }] })))).toEqual({ found: true, ok: false, reason: 'invalid' })
+  })
+
+  it('the next run\'s packet carries the answer in its notes, cut when long, or says none came; each constraint fits Observatory\'s 500', () => {
+    const answered = answerPacket({ status: 'answered', text: good.text, answer: 'Выпускай сейчас.', chosen: 'Сейчас' })
+    expect(answered.notes).toContain(good.text)
+    expect(answered.notes).toContain('Выпускай сейчас.')
+    expect(answered.notes).toContain('(option: Сейчас)')
+    const long = answerPacket({ status: 'answered', text: good.text, answer: 'я'.repeat(ANSWER_MAX + 50), chosen: null })
+    expect(long.notes).toContain('(cut)')
+    const withdrawn = answerPacket({ status: 'withdrawn', text: good.text, answer: null, chosen: null })
+    expect(withdrawn.notes).toContain('closed without an answer (withdrawn)')
+    for (const p of [answered, long, withdrawn]) expect(p.constraint.length).toBeLessThanOrEqual(500)
+    // The thread follows the answer and is cut so the whole fits Observatory's notes.
+    expect(notesWith(null, 'thread')).toBe('thread')
+    expect(notesWith('head', null)).toBe('head')
+    const both = notesWith(long.notes, 'т'.repeat(3900))!
+    expect(both.startsWith(long.notes)).toBe(true)
+    expect(both.length).toBe(NOTES_MAX)
   })
 })
