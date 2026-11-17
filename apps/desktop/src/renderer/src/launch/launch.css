@@ -1256,8 +1256,8 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 :is(h1,h2,h3,h4)[tabindex="-1"]:focus{outline:none}
 /* The agent's own questions on its page are read whole, never cut to two lines. */
 .as-questions.lh-qs .lh-q p.lh-q-text{display:block;-webkit-line-clamp:unset;overflow:visible}
-.as-said{display:grid;gap:var(--space-2);margin:0;padding:0;list-style:none;font-size:12.5px}
-.as-said li{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--app-line);border-radius:10px}
+.as-said{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2);margin:0;padding:0;list-style:none;font-size:12.5px}
+.as-said li{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;padding:8px 10px;border:1px solid var(--app-line);border-radius:10px}
 .as-said-text{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 /* A page's own actions keep their words on one line; in a narrow page they go under the title instead. */
 .as-head{flex-wrap:wrap}
@@ -1282,7 +1282,7 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .lp-way-title,.lp-glance-card,.lh-doing,.lp-dir-title{overflow-wrap:anywhere}
 /* «Как идёт работа»: each figure is its label over its value. */
 .lp-analytics{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:var(--space-3);margin:0}
-.lp-analytics-stat{display:grid;gap:2px;align-content:start;min-width:0}
+.lp-analytics-stat{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;align-content:start;min-width:0}
 .lp-analytics-stat.is-wide{grid-column:1/-1}
 .lp-analytics-stat dt{font-size:var(--app-fs-caption);color:var(--app-muted)}
 .lp-analytics-stat dd{margin:0;display:flex;align-items:flex-end;gap:var(--space-2);font-size:15px;font-weight:600;color:var(--app-ink);overflow-wrap:anywhere}

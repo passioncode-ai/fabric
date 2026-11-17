@@ -21,6 +21,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   bound to the version it was registered from, and launchd refused to start it (exit 78), so after a reboot nothing
   started the board; measured installing 0.3.22. The first start of a new version that launchd did not make registers
   the job again and writes `app.login-item-reregistered` in the operations log with the version launchd names after it.
+- **A long word no longer pushes an agent's page or a project's analytics sideways** (board task `a832e3ad`). The list
+  of what an agent said and the project's analytics numbers grew to the widest word in them; they now wrap inside their
+  column. Found once the screen and mockup browser suites ran again: they had printed NOT_RUN everywhere, since no run
+  set their Playwright and Chrome; hosted `ci` now installs a pinned Playwright and uses the runner's Chrome.
 - **The board dispatcher waits for a free session slot** (fabric-switchboard, thread `a55aef52`). At Switchboard's session
   cap a start was refused `at_capacity` and each retry offered a hand-over nobody took. The dispatcher now reads the cap
   before it starts anything: at the cap it opens no workflow and starts nothing, says so once in the operations log

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/browser-suites-run → main · fast-forward
+- files: `.github/workflows/ci.yml` (Playwright 1.58.2 and the runner's Chrome for both jobs), `renderer/src/launch/launch.css` (`.as-said`, `.as-said li`, `.lp-analytics-stat`: `minmax(0,1fr)`), `scripts/test/layout-stress.browser.mjs` (`.as-facts` named as a label grid), `CHANGELOG.md`
+- conflicts: none
+- summary: the browser suites run in hosted ci instead of NOT_RUN, and the two grids they caught wrap (board task a832e3ad)
+
 ### 2026-11-17 · `—` · docs/release-0322-close-4-6 → main · fast-forward
 - files: the 0.3.22 verification ledger (receipts for close items 4 and 6)
 - conflicts: none

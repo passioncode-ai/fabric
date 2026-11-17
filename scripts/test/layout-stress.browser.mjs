@@ -20,6 +20,7 @@ const FIXED=new Map([
   ['fp-indicator','a 30 px mark: it holds one state dot'],
   ['st-card-mark','a 30 px mark: it holds one glyph'],
   ['st-facts','`max-content minmax(0,1fr)`: its first column is its labels by design, the values column shrinks'],
+  ['as-facts','`max-content minmax(0,1fr)` with subgrid rows: its first column is the agent page\'s labels by design, the values column shrinks'],
 ])
 const wide='x'.repeat(400)
 const browser=await chromium.launch({headless:true,...(process.env.FABRIC_CHROME?{executablePath:process.env.FABRIC_CHROME}:{})})

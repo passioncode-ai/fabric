@@ -87,6 +87,15 @@ jobs:
           rg --version
           python3 -m pip install -r scripts/requirements-ci.txt
       - run: pnpm install --frozen-lockfile
+      - name: Browser suites' runtime (the pinned Playwright package and the runner's own Chrome; no browser is downloaded)
+        # Board task a832e3ad (2026-11-17): without these two variables scripts/test/run-browser-suites.sh prints NOT_RUN,
+        # and no run set them, so the screens stand and every mockup suite were checked nowhere (as before CO-171).
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pw" --no-save --no-audit --no-fund playwright@1.58.2
+          echo "FABRIC_PLAYWRIGHT_MODULE=$RUNNER_TEMP/pw/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "FABRIC_CHROME=$(command -v google-chrome || command -v google-chrome-stable)" >> "$GITHUB_ENV"
       - run: ./scripts/ci.sh fast
 
   full:
@@ -135,4 +144,13 @@ jobs:
           sudo apt-get install -y postgresql-17
           echo "FABRIC_PG_BIN=/usr/lib/postgresql/17/bin" >> "$GITHUB_ENV"
       - run: pnpm install --frozen-lockfile
+      - name: Browser suites' runtime (the pinned Playwright package and the runner's own Chrome; no browser is downloaded)
+        # Board task a832e3ad (2026-11-17): without these two variables scripts/test/run-browser-suites.sh prints NOT_RUN,
+        # and no run set them, so the screens stand and every mockup suite were checked nowhere (as before CO-171).
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pw" --no-save --no-audit --no-fund playwright@1.58.2
+          echo "FABRIC_PLAYWRIGHT_MODULE=$RUNNER_TEMP/pw/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "FABRIC_CHROME=$(command -v google-chrome || command -v google-chrome-stable)" >> "$GITHUB_ENV"
       - run: ./scripts/ci.sh full
