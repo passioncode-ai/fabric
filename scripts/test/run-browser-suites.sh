@@ -30,9 +30,8 @@ for suite in scripts/test/*.browser.mjs scripts/test/*.browser.cjs; do
   else failed=$((failed+1)); echo "  FAIL $(basename "$suite")"; echo "$log" | grep -v '^\s*at ' | head -40 | sed 's/^/       /'; fi
 done
 echo "browser suites: $((ran-failed)) of $ran pass"
-# Board task a832e3ad (2026-11-17): the first hosted run on Linux failed two suites that pass on macOS. Until they pass
-# there, hosted ci sets FABRIC_BROWSER_ADVISORY=1: a failure is printed in full and said, and does not fail the gate.
-# A run on the operator's machine keeps them binding.
+# Board task a832e3ad (2026-11-17): FABRIC_BROWSER_ADVISORY=1 says a failure without failing the gate. Hosted ci used it
+# while two suites failed on Linux only; since run 44111074244 read 26 of 26 there, no run sets it: the suites gate everywhere.
 if [[ $failed -gt 0 && "${FABRIC_BROWSER_ADVISORY:-}" == "1" ]]; then
   echo "ADVISORY: $failed browser suite(s) failed on this runner; not gating (board task a832e3ad)"
   exit 0

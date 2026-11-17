@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · ci/browser-suites-binding → main · fast-forward
+- files: `.github/workflows/ci.yml` (no `FABRIC_BROWSER_ADVISORY`), `scripts/test/run-browser-suites.sh` (its comment)
+- conflicts: none
+- summary: hosted run 44111074244 read 26 of 26 browser suites on Linux, so they gate hosted ci too (board task a832e3ad)
+
 ### 2026-11-17 · `—` · fix/console-no-gutter → main · fast-forward
 - files: `renderer/src/launch/launch.css` (the console's main area: `scrollbar-gutter:auto`), `CHANGELOG.md`
 - conflicts: none
