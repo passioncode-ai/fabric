@@ -52,9 +52,11 @@ the two switches again after it (the runbook's 0.3.22 paragraph).
   session (a reconnect under its runtime id, such as a resumed subagent's) that left a second later ended the whole
   session, and the sweep then released every claim of a working agent as «its session ended». A session now ends on a
   client's leave only when no other own client of it has called in the last five minutes.
-- **A session holding a task is not closed by Switchboard's duty officer** (the turn-end spec, wave T4). While a Claude
-  Code session holds a claim, Fabric asks Switchboard to hold it (`switchboard monitor hold`) until the newest claim
-  expires, renews it with the claims and releases it when none is left or the session ends.
+- **A working session holding a task is not closed by Switchboard's duty officer** (the turn-end spec, wave T4). While
+  a Claude Code session holds a claim, Fabric asks Switchboard to hold it (`switchboard monitor hold`) until the newest
+  claim expires, but at most an hour past the session's last tool call, renews it with the claims and its work, and
+  releases it when none is left, the session has been idle that hour or it ends; an idle session is judged by the duty
+  officer as before.
 - **A left task Fabric gave up continuing shows in «На проверке»** (the turn-end spec, wave T6). When three runs the
   board supervisor started never took a task a session left unfinished, the sweep puts it in the operator's queue as
   its own row (`task-to-operator`), instead of the task waiting unseen.

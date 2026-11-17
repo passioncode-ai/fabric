@@ -154,7 +154,7 @@ jobs:
         name: The Supabase CLI the bundled stack starts with (Docker is on the runner)
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.114.0
       - name: Start the installed app
         run: xvfb-run -a node scripts/smoke-platform.mjs --exe /usr/bin/passioncode-fabric --expect ${{ matrix.expect }} --timeout 900 --mcp
       - name: Start the AppImage (its sandbox helper cannot be setuid inside an AppImage)

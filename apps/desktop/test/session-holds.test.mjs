@@ -82,3 +82,10 @@ test('T4: the hold runs at most an hour past the session\'s last work; an idle s
   assert.equal(holdUntil(claims, NOW, NOW - HOLD_IDLE_MS - 1), 0, 'idle past the hour: released')
   assert.equal(holdUntil(claims, NOW), Math.floor((NOW + 30 * 60_000) / 1000), 'no work time given: the claims bound it, as before')
 })
+
+test('run three ER-3: the surface feeds the hold the session last tool call, and only a tool call is work', async () => {
+  const { readFileSync } = await import('node:fs')
+  const src = readFileSync(new URL('../src/main/agentSurface.ts', import.meta.url), 'utf8')
+  assert.match(src, /holdUntil\(expiries, this\.now\(\), s \? \(s\.lastWorkAt \?\? s\.mintedAt\) : undefined\)/)
+  assert.match(src, /if \(work\) s\.lastWorkAt = now/)
+})
