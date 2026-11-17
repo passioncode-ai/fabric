@@ -281,6 +281,20 @@ What is owed around the tag, in order; each item is checked off here with its re
    step): «Служба доски» off before the quit, the lifecycle broker's `fabric.desktop` held, the bundle checked and replaced,
    then the broker released and «Служба доски» on again once 0.3.22 reads back; board task `07510265` closed and Аня told
    on thread `bf635f68`.
+   Receipt for 1: [run 44062832682](https://github.com/passioncode-ai/fabric/actions/runs/44062832682) green on every
+   platform (preflight, guard, macOS, Windows x64 and arm64, Linux x64 and arm64, publish); the release `v0.3.22` carries
+   the universal DMG, the Windows and Linux installers, their JSON receipts, `SHA256SUMS` and its signature.
+   Receipt for 2 (2026-11-17, 10:46 to 11:06 UTC): the DMG's `SHA256SUMS` line OK, `codesign --verify --deep --strict` OK,
+   `spctl`: accepted, Notarized Developer ID, version 0.3.22; no console ran under Fabric; the broker stopped for the edit,
+   `fabric.desktop` held (policy revision 36), Fabric (launchd's copy) ended by SIGTERM with exit 0, 0.3.21 moved aside as the
+   way back, 0.3.22 copied with `ditto` and checked again, the hold released and `always_on` set again (revision 38), the
+   broker started. Two faults on the way, filed: the broker's own signature check ran past its 180 s limit again and again
+   under load (the same command took 12 s from a shell), so it never started Fabric (task `5a08ec7f`); and launchd's board
+   job stays bound to the 0.3.21 bundle (`parent bundle version = 0.3.21`, exit 78 `EX_CONFIG`), so it did not start it
+   either (task `c9d019de`). Fabric 0.3.22 was opened by its id in the background (`open -g -b ai.passioncode.desktop
+   --args --background`, what the broker itself does), pid 11053, `hub.json` read back, the broker reads it `ready`; the
+   session that ran this release came back holding its claim on task `07510265` (the claim-loss fix, live). Аня told on
+   thread `bf635f68`.
 3. The Mac Studio by its host agent, asked on the board: each space's `schema_version()` read first (102), then 0.3.22.
 4. The people-ask bridge's first live pass on the installed Fabric (proven only against fakes; run four, PL-2 a): one
    access request routed to its organization's PM agent and its answer applied, or the failure named here.

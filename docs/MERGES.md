@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · docs/release-0322-install → main · fast-forward
+- files: the 0.3.22 verification ledger (receipts for close items 1 and 2)
+- conflicts: none
+- summary: 0.3.22 published and installed on this Mac, two install faults filed (tasks 5a08ec7f, c9d019de)
+
 ### 2026-11-17 · `—` · feat/hub-turn-verdict-flag → main · fast-forward
 - files: `main/hub.ts` (`HUB_FEATURES` names `turn-verdict/1`), `test/hub-files.test.mjs`, the turn-end spec §4.2, `CHANGELOG.md` (`## Unreleased`)
 - conflicts: none
