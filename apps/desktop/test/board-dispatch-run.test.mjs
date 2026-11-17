@@ -200,6 +200,17 @@ test('a Switchboard refusal starts nothing and is named; a failure to open the w
   assert.ok(broken.logs.some((l) => l.op === 'board.dispatch.started' && l.outcome === 'failed'))
 })
 
+test('a request Switchboard refuses as past its deadline starts nothing again, as one Fabric finds past it (task e8facb06)', async () => {
+  const w = world({ refuse: 'deadline_passed' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.deepEqual(d.records().map((r) => [r.state, r.outcome, r.refused]), [['ended', 'refused', 'deadline_passed']])
+  assert.ok(w.logs.some((l) => l.op === 'board.dispatch.decided' && l.detail.check === 'skipped-expired'))
+  w.refuse = null
+  for (let i = 0; i < 8; i++) { w.tick(REFUSAL_BACKOFF_MAX_MS); await d.onPass() }
+  assert.equal(w.launches.length, 1, 'asked once, never again')
+})
+
 test('a run is cut to the deadline when it is nearer than the hour, and nothing starts within five minutes of it', async () => {
   const w = world({ requests: [request({ deadline: new Date(T0 + 20 * MIN).toISOString() })] })
   await createBoardDispatch(w.deps).onPass()

@@ -109,7 +109,7 @@ export interface DispatchInput {
 
 /** The check that stopped a dispatch, in the order of §3.3, plus the grace, Switchboard's failure to start, and (T5) a
  *  question a run on another machine asked a person that is still open. */
-export type DispatchCheck = 'grace' | 'skipped-off' | 'skipped-no-folder' | 'deferred-cap' | 'deferred-project-busy' | 'skipped-daily-cap' | 'deferred-no-agent' | 'failed-to-start' | 'waiting-question'
+export type DispatchCheck = 'grace' | 'skipped-off' | 'skipped-no-folder' | 'deferred-cap' | 'deferred-project-busy' | 'skipped-daily-cap' | 'deferred-no-agent' | 'failed-to-start' | 'waiting-question' | 'skipped-expired'
 
 export type DispatchDecision =
   | { path: 'none' }
@@ -414,6 +414,9 @@ export function refusalCheck(code: string): DispatchCheck {
     // §3.11: the installed Switchboard does not take `--reason resume` yet (SB-398); the run waits, as for no agent.
     case 'resume_unsupported': return 'deferred-no-agent'
     case 'not_in_group': return 'skipped-no-folder'
+    // fabric-switchboard, after 0.7.113 (board thread a55aef52): a request past its deadline is refused, as Fabric itself
+    // starts nothing for one (`candidate`); the request is never asked again (task e8facb06).
+    case 'deadline_passed': return 'skipped-expired'
     case 'ceiling_reached':
     case 'spend_unknown': return 'deferred-cap'
     default: return 'failed-to-start'

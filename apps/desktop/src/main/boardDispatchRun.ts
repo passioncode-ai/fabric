@@ -1249,6 +1249,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         continue
       }
       if (decision.path !== 'launch') continue
+      // Switchboard found the request past its deadline (task e8facb06): no run is started for it again, as for a request
+      // Fabric itself finds past it; the workflow kept for it is closed with the others (`board-dispatch-expiry`).
+      if (last?.outcome === 'refused' && last.refused === 'deadline_passed') continue
       if (last?.outcome === 'refused' || last?.outcome === 'failed-to-start') {
         let inRow = 0
         for (let i = mine.length - 1; i >= 0 && (mine[i].outcome === 'refused' || mine[i].outcome === 'failed-to-start'); i--) inRow++

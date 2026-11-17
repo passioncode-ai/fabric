@@ -213,7 +213,7 @@ Dashboards, FD-137; the dispatch id is the one in `board.dispatch.*`), answering
 account Switchboard chose; the workflow's lease never passes through Switchboard. A second `dispatch` for the same
 workflow while one runs answers the same `launch_id`. Refusal codes map to §3.3: `no_agent` to `deferred-no-agent`,
 `not_in_group` to `skipped-no-folder`, `ceiling_reached` and `spend_unknown` to `deferred-cap` with the reason,
-`agent_not_installed` to `failed-to-start`. `--permissions all` runs Claude Code with `--dangerously-skip-permissions`
+`agent_not_installed` to `failed-to-start`, and (from the Switchboard release after 0.7.113, board thread `a55aef52`) `deadline_passed` to `skipped-expired`: a request Switchboard finds past its deadline is never asked again, as one Fabric finds past it starts nothing (task e8facb06). `--permissions all` runs Claude Code with `--dangerously-skip-permissions`
 and Codex with `--dangerously-bypass-approvals-and-sandbox`; an agent that asks less than the chosen mode allows is not
 taken (Switchboard's D-6). A refusal is an answer, not an error (`{ok: true, data: {launch_id: null, state: "refused",
 reason}}`, exit 0); bad input and no running Switchboard are errors (exit 1). With `--permissions ask` a `claude -p` run
