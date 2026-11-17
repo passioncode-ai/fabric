@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · feat/hub-turn-verdict-flag → main · fast-forward
+- files: `main/hub.ts` (`HUB_FEATURES` names `turn-verdict/1`), `test/hub-files.test.mjs`, the turn-end spec §4.2, `CHANGELOG.md` (`## Unreleased`)
+- conflicts: none
+- summary: `hub.json` says Fabric answers a turn's verdict, as agreed with fabric-agent-adapter (FAA-349, thread e0e59fe5)
+
 ### 2026-11-17 · `—` · chore/release-0322-close → main · fast-forward
 - files: the superseded review runs of iteration 3 (`docs/evidence/reviews/0.3.22/iteration-3-*`), the ledger's 0b and 0c receipts, CO-590 (run four's rulings), the turn-end spec §4.4 and `AGENTS.md` (DO-1: the hour runs from the last call of a Fabric tool), `docs/brand/strings.md` (DO-3), `main/sessionHolds.ts` and `renderer/src/visibleClock.ts` comments (DO-4)
 - conflicts: none

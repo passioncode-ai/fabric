@@ -7,6 +7,16 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+**Upgrading.** No schema step from 0.3.22 (schema 102, no migration).
+
+- **A coding agent's Stop hook can wait for the turn's verdict** (the turn-end spec §4.2, wave T3). `hub.json` names the
+  feature `turn-verdict/1`: `fabric_session_observe` answers a turn with `continue` and its reason, or with nothing, and
+  the adapter's Stop hook (FAA-349) waits for that answer only where the feature is named, so with an older Fabric it
+  ends the turn as before.
+
+
 ## 0.3.22
 
 **Upgrading.** No schema step from 0.3.21 (schema 102, no migration). From 0.3.19, take 0.3.20's step first

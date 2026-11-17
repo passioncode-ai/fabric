@@ -58,8 +58,12 @@ export interface HubDocument {
  * because all four things they call are served: fabric-mcp enrolls with the runtime session id (D1), joins that
  * session with `--rejoin-only` (D2), `fabric_session_observe` (D4) and `fabric_work_release {claims: "session"}` (D5).
  * Without it the hooks read hub.json and return.
+ * `turn-verdict/1` (the turn-end spec §4.2, wave T3, fabric-agent-adapter FAA-349): `fabric_session_observe {event: turn}`
+ * answers a `verdict` (`next: continue`, `reason`, `task_id`) or none, and a failed read of it gives none, never a failed
+ * turn (`main/turnVerdictRead.ts`). The adapter's Stop hook waits for the worker's answer, within its own budget, only
+ * where this is said; without it the hook ends the turn as before.
  */
-export const HUB_FEATURES: readonly string[] = Object.freeze(['session-hooks/1'])
+export const HUB_FEATURES: readonly string[] = Object.freeze(['session-hooks/1', 'turn-verdict/1'])
 // #endregion hub-features
 
 export type PortChoice = { ok: true; port: number } | { ok: false; reason: string; code: HubDownCode; fact: string }

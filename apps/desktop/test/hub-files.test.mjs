@@ -43,8 +43,9 @@ test('publish writes the door token and hub.json, both 0600, hub.json naming the
   assert.equal(readFileSync(p.doorTokenFile, 'utf8'), p.doorToken)
   assert.deepEqual(JSON.parse(readFileSync(p.hubFile, 'utf8')), {
     protocol: HUB_PROTOCOL, origin: 'http://127.0.0.1:47070', mcp: '/mcp', doorTokenFile: p.doorTokenFile, pid: 4242, startedAt: '2026-10-03T12:00:00.000Z',
-    // D3 (fabric-agent-adapter#53): the session hooks act only where this is said.
-    features: ['session-hooks/1']
+    // D3 (fabric-agent-adapter#53): the session hooks act only where this is said; the Stop hook waits for a turn's
+    // verdict only where `turn-verdict/1` is (the turn-end spec §4.2, FAA-349).
+    features: ['session-hooks/1', 'turn-verdict/1']
   })
   assert.ok(!JSON.parse(readFileSync(p.hubFile, 'utf8')).doorToken, 'the token itself is never in hub.json')
 })

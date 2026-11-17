@@ -78,7 +78,9 @@ holds a live claim on an open task, declared no wait, and one of its last two tu
 a loop that changes nothing stops; else no verdict at all (Fabric never sends `stop`: no verdict is the hook's ordinary
 end, DO-5). The adapter's Stop hook (wave T3, requested, not released at 0.3.22) is to turn `continue` into Claude Code's
 `{"decision": "block", "reason": …}`, so the agent goes on in the same session; it respects `stop_hook_active` and blocks
-at most three times in a row. Codex and Kimi send no turns; for them §4.1 does the work.
+at most three times in a row. Fabric says it answers the verdict with the feature `turn-verdict/1` in `hub.json`
+(`main/hub.ts#HUB_FEATURES`, from 0.3.23; agreed on the board 2026-11-17, thread `e0e59fe5`): the hook waits for the
+worker's answer, within its own budget, only where it is said. Codex and Kimi send no turns; for them §4.1 does the work.
 
 ### 4.3 A run on another machine
 
