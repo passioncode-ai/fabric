@@ -11,11 +11,14 @@ interface Rows { data: unknown[] | null; error: { message: string } | null }
 interface Query extends PromiseLike<Rows> {
   eq(column: string, value: unknown): Query
   is(column: string, value: null): Query
-  in(column: string, values: readonly string[]): Query
   order(column: string, opts: { ascending: boolean }): Query
   limit(n: number): Query
 }
-export interface VerdictStore { select(table: string, columns: string): Query }
+export interface VerdictStore {
+  select(table: string, columns: string): Query
+  /** The scoped store's bounded list read (`scopedStore.ts#selectIn`): chunks, a failure named, never one huge filter. */
+  selectIn(table: string, columns: string, column: string, values: readonly string[], chunk?: number): Promise<{ rows: unknown[]; failed: string | null }>
+}
 
 /** A session holds few claims; more than this is not a session to keep going by itself. */
 const CLAIMS = 20
@@ -33,9 +36,9 @@ export async function readTurnVerdict(store: VerdictStore, sessionId: string, no
     if (refused) return unread(refused.message)
     const live = (claims.data ?? []) as Array<{ work_id: string; expires_at: string }>
     if (!live.length) return null
-    const tasks = await store.select('project_tasks', 'id,title,status').in('id', live.map((c) => c.work_id))
-    if (tasks.error) return unread(tasks.error.message)
-    const byId = new Map(((tasks.data ?? []) as Array<{ id: string; title: string | null; status: string }>).map((t) => [t.id, t]))
+    const tasks = await store.selectIn('project_tasks', 'id,title,status', 'id', live.map((c) => c.work_id), CLAIMS)
+    if (tasks.failed) return unread(tasks.failed)
+    const byId = new Map((tasks.rows as Array<{ id: string; title: string | null; status: string }>).map((t) => [t.id, t]))
     const held: HeldTask[] = live.flatMap((c) => {
       const t = byId.get(c.work_id)
       return t ? [{ taskId: t.id, title: t.title, status: t.status, expiresAt: c.expires_at }] : []

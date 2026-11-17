@@ -11,6 +11,10 @@ const S = 'session-1'
 /** A query builder over rows; a `payload->>key` filter reads the row's payload, as PostgREST does. */
 function store(tables, fail = null) {
   return {
+    async selectIn(table, _cols, column, values) {
+      if (table === fail) return { rows: [], failed: 'refused' }
+      return { rows: (tables[table] ?? []).filter((r) => values.includes(r[column])), failed: null }
+    },
     select(table) {
       let rows = [...(tables[table] ?? [])]
       const get = (r, c) => (c.startsWith('payload->>') ? r.payload?.[c.slice(10)] : r[c])

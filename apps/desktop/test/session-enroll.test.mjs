@@ -450,6 +450,48 @@ test('an enrolled agent that leaves (DELETE) ends its session and its claims go;
   assert.equal(sessions.liveOf(binding.id).length, 0)
 })
 
+// fb5b790a (2026-11-17): a second fabric-mcp of the same agent session (same runtime id, same process: a resumed
+// subagent) reconnects under the session (CO-561) and leaves a second later. Its leave must not end the session while
+// the agent's own client is still connected: before, it did, and the sweep released every claim as «session ended».
+test('a second client of a live session that leaves takes only itself while the first still calls (fb5b790a)', async (t) => {
+  const ended = []
+  const surface = await realSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e', onSessionEnded: async (id, why) => { ended.push([id, why]) } })
+  await surface.start()
+  t.after(() => surface.stop())
+  const sessions = new EnrolledSessions({ end: (id, why) => surface.revokeSession(id, why), state: (tok) => surface.credentialState(tok), lastSign: (id) => surface.sessionSign(id)?.lastSignAt ?? null, drop: (tok) => surface.revokeCredential(tok) })
+  const d = { ...deps().d, sessions, mint: (p, s, task, origin) => surface.mint(p, s, task, origin) }
+  const first = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1' }, d)
+  const mcp = await initialize(surface, first.session.bearer)
+  const second = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1' }, d)
+  assert.equal(second.session.sessionId, first.session.sessionId, 'the reconnect joins the same session')
+  assert.notEqual(second.session.bearer, first.session.bearer)
+  const secondMcp = await initialize(surface, second.session.bearer)
+  assert.equal((await leave(surface, second.session.bearer, secondMcp)).status, 200)
+  assert.deepEqual(ended, [], 'the session goes on')
+  assert.equal(surface.credentialState(first.session.bearer), 'claimed')
+  assert.ok(surface.sessionSign(first.session.sessionId), 'the session is still live for the sweep')
+  // The agent's own client leaving last ends it, as before.
+  assert.equal((await leave(surface, first.session.bearer, mcp)).status, 200)
+  assert.deepEqual(ended, [[first.session.sessionId, 'ended']])
+})
+
+test('a second client leaving ends the session when the first has been silent past five minutes (fb5b790a)', async (t) => {
+  const ended = []
+  let clock = Date.parse('2026-11-17T00:00:00Z')
+  const surface = await realSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e', now: () => clock, onSessionEnded: async (id, why) => { ended.push([id, why]) } })
+  await surface.start()
+  t.after(() => surface.stop())
+  const sessions = new EnrolledSessions({ end: (id, why) => surface.revokeSession(id, why), state: (tok) => surface.credentialState(tok), lastSign: (id) => surface.sessionSign(id)?.lastSignAt ?? null, drop: (tok) => surface.revokeCredential(tok) })
+  const d = { ...deps().d, sessions, mint: (p, s, task, origin) => surface.mint(p, s, task, origin) }
+  const first = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1' }, d)
+  await initialize(surface, first.session.bearer)
+  clock += 6 * 60_000
+  const second = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-1' }, d)
+  const secondMcp = await initialize(surface, second.session.bearer)
+  assert.equal((await leave(surface, second.session.bearer, secondMcp)).status, 200)
+  assert.deepEqual(ended, [[first.session.sessionId, 'ended']])
+})
+
 test('an evicted session\'s next call is told it was evicted and that its claims were released, not that Fabric restarted (0.3.5 review i2 ER-4)', async (t) => {
   const surface = await realSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e' })
   await surface.start()

@@ -288,8 +288,13 @@ interface ScopeState {
   callsInWindow: number
   /** Minted for a rejoin (MintOrigin.rejoin): not the session's own bearer. */
   rejoin: boolean
+  /** fb5b790a: this bearer's last request, so a second client of the session leaving knows the first still calls. */
+  lastCallAt?: number
 }
 
+/** fb5b790a: another own client of a session that called this recently keeps the session when one client leaves;
+ *  fabric-mcp signs every two minutes, so a live client has called within five. */
+export const OTHER_CLIENT_LIVE_MS = 5 * 60_000
 /** How many ended bearers the surface remembers the reason of, so their next call is told it (ER-4). Hashes only. */
 const ENDED_REMEMBERED = 256
 /** How many sessions' recorded ends a run remembers (DA-1): far more than the sessions one run of Fabric serves. */
@@ -921,6 +926,7 @@ export class AgentSurface {
       // must not both find it unclaimed, and burning it on a failed handshake is
       // the safe direction to be wrong in.
       st.claimedAt = now
+      st.lastCallAt = now
       this.touched(st.scope, !st.rejoin)
 
       const mcp = this.serverFor(st.scope, st.rejoin)
@@ -985,6 +991,7 @@ export class AgentSurface {
       AgentSurface.refuse(res, 401, 'mcp-session-id does not match this credential', {}, attempt)
       return
     }
+    st.lastCallAt = this.now()
     this.touched(st.scope, !st.rejoin, isWorkCall(body))
     await untilAnsweredOrGone(st.transport.handleRequest(req, res, body), res)
   }
@@ -1005,13 +1012,19 @@ export class AgentSurface {
     const sessionId = st.scope.sessionId
     // A board session (fabric.board.join) is a session its client owns, like an enrolled one: leaving ends it, so its
     // responder slots are released and it stops being listed as held (wave-2 fix 2).
-    const endsSession = (st.scope.cameIn === 'enrolled' || st.scope.surface === 'board') && !st.rejoin
+    // fb5b790a (2026-11-17): a second client of the same agent session (a reconnect under its runtime id, CO-561, such
+    // as a resumed subagent's fabric-mcp) leaving takes only itself while another own client of the session still calls;
+    // ending the session there released every claim of a working agent as «its session ended».
+    const now = this.now()
+    const otherLive = [...this.states].some(([t, o]) => t !== token && o.scope.sessionId === sessionId && !o.rejoin && o.claimedAt !== null
+      && typeof o.lastCallAt === 'number' && now - o.lastCallAt < OTHER_CLIENT_LIVE_MS)
+    const endsSession = (st.scope.cameIn === 'enrolled' || st.scope.surface === 'board') && !st.rejoin && !otherLive
     // DA-1 (TR-13): a coding agent's own fabric-mcp leaving is its end. The hook's end is refused while this client
     // signs (workTools.ts#endRefusal), so the end is journalled here, before the session ends and its claims go.
     if (endsSession && st.scope.cameIn === 'enrolled' && st.scope.surface !== 'board') this.recordAgentLeft(st.scope)
     if (endsSession) (this.deps.work?.endSession ?? ((id: string) => this.revokeSession(id)))(sessionId)
     else this.drop(token)
-    ops.record({ op: 'agentSurface.session-left', outcome: 'ok', level: 'info', detail: { ended_session: endsSession, rejoin: st.rejoin },
+    ops.record({ op: 'agentSurface.session-left', outcome: 'ok', level: 'info', detail: { ended_session: endsSession, rejoin: st.rejoin, ...(otherLive ? { other_client_live: true } : {}) },
       ctx: { correlationId: ops.correlate(), estateId: this.deps.estateId, sessionId } })
     res.writeHead(200, { 'content-type': 'application/json' })
     res.end(JSON.stringify({ left: true, sessionEnded: endsSession }))

@@ -9,6 +9,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A second client of a live session leaving no longer ends it** (task fb5b790a). A second fabric-mcp of the same agent
+  session (a reconnect under its runtime id, such as a resumed subagent's) that left a second later ended the whole
+  session, and the sweep then released every claim of a working agent as «its session ended». A session now ends on a
+  client's leave only when no other own client of it has called in the last five minutes.
 - **A session holding a task is not closed by Switchboard's duty officer** (the turn-end spec, wave T4). While a Claude
   Code session holds a claim, Fabric asks Switchboard to hold it (`switchboard monitor hold`) until the newest claim
   expires, renews it with the claims and releases it when none is left or the session ends.

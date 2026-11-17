@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/second-client-leave → main · fast-forward
+- files: `main/agentSurface.ts` (a client's leave ends the session only without another live own client; `lastCallAt` per bearer), `test/session-enroll.test.mjs`
+- conflicts: none
+- summary: a second client of a live session leaving takes only itself (task fb5b790a)
+
 ### 2026-11-16 · `—` · feat/session-holds → main · fast-forward
 - files: `main/sessionHolds.ts` (new), `main/agentSurface.ts` (holds on claim, renewal, release and end), `main/workTools.ts` (`onReleased`), `main/index.ts`, tests, AGENTS.md's background table
 - conflicts: none
