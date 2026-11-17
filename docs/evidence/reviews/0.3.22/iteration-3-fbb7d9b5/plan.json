@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "fbb7d9b5b3b00474b63a3a2eb4c6dad201f06351",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3-fbb7d9b5/2026-11-17-plan.md",
+  "reportSha256": "88b12a2599857a9ec1688b2c5365d1da9a062938784b9a00450f5c4dbc2fc6b5",
+  "reviewerRun": "release-0322-i3-plan-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run one's wave (candidate `8897db3f`): «Завершить сессию» marks the session before the stop, and its end releases its claims as the person's own (`how: operator`), which the supervisor does not continue (`main/workRelease.ts#releaseSessionClaims`, `personEndedSessions` in `main/index.ts`); test «PL-1: a session the person ended releases its claims as the person's own», watched failing; the CHANGELOG says it"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run one's wave (candidate `8897db3f`): the same as DA-1"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3)"
+      ]
+    }
+  ]
+}

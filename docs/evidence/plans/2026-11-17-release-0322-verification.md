@@ -135,5 +135,39 @@ on this machine's board). The reviewers agreed every iteration-1 finding ruled t
 | V2-28 | PL-7 | non-blocking | The spec's rule promises more for a live session than is built. §2's table says a session that stays and declares a wait with `fabric_heartbeat` waiting and … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the same as DO-1 |
 | V2-29 | PL-8 | non-blocking | «Вопросы должны быть понятны» is applied to the question's text only. Option labels and consequences, which a person reads as the choices on Главная and in … | ruled: CO-590 (appended for iteration 2) |
 
-Exit for iteration 2: candidate 3 is `fbb7d9b5` (the wave above); `bash scripts/ci.sh fast` runs on it before iteration 3.
+Exit for iteration 2: candidate 3 is `fbb7d9b5b3b00474b63a3a2eb4c6dad201f06351` (the wave above); `bash scripts/ci.sh fast`
+read green on it before iteration 3.
+Blocking findings open: none.
+
+## Iteration 3
+
+### Run one, fbb7d9b5 (superseded)
+
+Candidate `fbb7d9b5b3b00474b63a3a2eb4c6dad201f06351`. Five reviewers, fresh contexts, each reviewing the candidate and
+then iterations 1 and 2's dispositions; reports and receipts in `docs/evidence/reviews/0.3.22/iteration-3-fbb7d9b5/`.
+15 findings, 1 blocking (PL-1): a session the person ended with «Завершить сессию» released its claims as
+`session-ended`, which the board supervisor continues, so a new agent took the stopped work about ten minutes later. The
+fix is code, outside the files the gate allows after `verifiedCommit`, so iteration 3 runs again on the new candidate
+(as 0.3.21's iteration 3 did). The reviewers agreed every finding ruled to CO-590 in iterations 1 and 2 is non-blocking.
+The hosted full `ci` run on this candidate (44039814861) was cancelled once it was superseded.
+
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
+| V3a-1 | UX-1 | non-blocking | An agent with no registry name is named two ways. Agent access titles it «Агент без имени» / "An unnamed agent" (wave U), but the same request's title on … | ruled: CO-590 (appended for iteration 3) |
+| V3a-2 | UX-2 | non-blocking | A question asked before the clarity rule leads with its readable sentence only on Главная, the Board and in Telegram. The project page's «Вопросы ко мне», the … | ruled: CO-590 (appended for iteration 3) |
+| V3a-3 | UX-3 | non-blocking | The new «На проверке» row for a left task Fabric gave up on says «Задача ждёт вашего решения» / "it waits for your decision" but names no decision, and its … | ruled: CO-590 (appended for iteration 3) |
+| V3a-4 | ER-1 | non-blocking | The iteration-2 fix for DA-1 adds a silent way to switch the board supervisor off. `resumeSince` swallows a failed write of `resume-since.json` and returns its … | fixed in iteration 3 run one's wave (candidate `8897db3f`): `resumeSince` keeps its start in this process and says a failed write once (`board.resume-since`); test «DA-1: only work left since the supervisor began ...», watched failing |
+| V3a-5 | ER-2 | non-blocking | Iteration-1 ER-10 (ruled to CO-590 as «bounded by 20 runs per project per day») is wider than ruled. A resume run that claims the task and lets go again … | ruled: CO-590 (appended for iteration 3) |
+| V3a-6 | ER-3 | non-blocking | The hold module promises one log line per failure and gives one per attempt. Its header says «a failure is said once per session and end in the operations … | ruled: CO-590 (appended for iteration 3) |
+| V3a-7 | DA-1 | non-blocking | `resume-since.json` survives a rollback, so an upgrade, a return to 0.3.21 and a second upgrade within a week continues the work agents left under 0.3.21 in … | fixed in iteration 3 run one's wave (candidate `8897db3f`): the runbook and the CHANGELOG say to remove `resume-since.json` before upgrading again after a rollback |
+| V3a-8 | DA-2 | non-blocking | When `resume-since.json` cannot be written, the board supervisor silently continues nothing. Each read then begins at its own `now`, so the read's window … | fixed in iteration 3 run one's wave (candidate `8897db3f`): the same as ER-1 |
+| V3a-9 | DO-1 | non-blocking | The CO-590 register row still lists «a rollback paragraph for 0.3.22 in the runbook (DA-2)» among the open leftovers, although iteration 2 shipped that … | fixed in iteration 3 run one's wave (candidate `8897db3f`): CO-590 no longer lists the rollback paragraph, shipped in iteration 2 |
+| V3a-10 | DO-2 | non-blocking | `resumeSince`'s fallback is described as narrower than it is. When `resume-since.json` cannot be written, every pass returns its own `now`, and … | fixed in iteration 3 run one's wave (candidate `8897db3f`): the same as ER-1: the fallback keeps one start per process, and its comment says so |
+| V3a-11 | DO-3 | non-blocking | Turn-end spec §4.3 says a refusal of a filed remote question «is asked again with the same key on the next pass; after five the run ends as before … | ruled: CO-590 (appended for iteration 3) |
+| V3a-12 | DO-4 | non-blocking | Iteration 2's DA-1 fix is tested only below its wiring. The new test proves `readResumeCandidates` honours `since` and `resumeSince` keeps the first start, but … | ruled: CO-590 (appended for iteration 3) |
+| V3a-13 | PL-1 | blocking | A person who ends a session with «Завершить сессию» (or revokes the agent in Agent access) has that work restarted by a new agent about ten minutes later, … | fixed in iteration 3 run one's wave (candidate `8897db3f`): «Завершить сессию» marks the session before the stop, and its end releases its claims as the person's own (`how: operator`), which the supervisor does not continue (`main/workRelease.ts#releaseSessionClaims`, `personEndedSessions` in `main/index.ts`); test «PL-1: a session the person ended releases its claims as the person's own», watched failing; the CHANGELOG says it |
+| V3a-14 | PL-2 | non-blocking | The Upgrading paragraph promises the supervisor «never» continues what agents left under 0.3.21, but after a rollback to 0.3.21 and a second upgrade it does. … | fixed in iteration 3 run one's wave (candidate `8897db3f`): the same as DA-1 |
+| V3a-15 | PL-3 | non-blocking | The operator's «Colima everywhere» of 2026-11-17 has no record in the release's own documents. The only trace is two reviewers' notes that it was machine … | ruled: CO-590 (appended for iteration 3) |
+
+Exit for run one: candidate 4 is `8897db3f` (the wave above); `bash scripts/ci.sh fast` runs on it before run two.
 Blocking findings open: none.

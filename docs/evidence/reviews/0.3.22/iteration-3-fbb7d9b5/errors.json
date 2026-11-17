@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "fbb7d9b5b3b00474b63a3a2eb4c6dad201f06351",
+  "report": "docs/evidence/reviews/0.3.22/iteration-3-fbb7d9b5/2026-11-17-errors.md",
+  "reportSha256": "5c6209dba61d6b2f864550341201fb12b12987c8c0a48518c227866e36941bf8",
+  "reviewerRun": "release-0322-i3-errors-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3 run one's wave (candidate `8897db3f`): `resumeSince` keeps its start in this process and says a failed write once (`board.resume-since`); test «DA-1: only work left since the supervisor began ...», watched failing"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3)"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 3)"
+      ]
+    }
+  ]
+}
