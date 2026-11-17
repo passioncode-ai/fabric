@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.22",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "591905408b6ea855bfcdd2f671c5b0796bfba655",
+  "report": "docs/evidence/reviews/0.3.22/iteration-2/2026-11-17-plan.md",
+  "reportSha256": "4e82f89fb09e4cde40ae9f231140f5ce41d050ff1bff5cae67b0cd1ddfaaf262",
+  "reviewerRun": "release-0322-i2-plan-20261117",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the T2 entry's title says the turn only answers"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the runbook's 0.3.22 paragraph and the CHANGELOG say what going back to 0.3.21 loses and what to do first"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the ledger names candidate 2 `59190540`, the commit the gate and iteration 2 read"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the same as DO-1"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-590 (appended for iteration 2)"
+      ]
+    }
+  ]
+}

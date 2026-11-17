@@ -88,5 +88,52 @@ accessible names). The rest is ruled to CO-590, one row with each finding's id.
 | V1-45 | PL-6 | non-blocking | The spec waits for Switchboard to ship `--reason fabric_claim`, and it has: Switchboard 0.7.111 (installed here) takes it. Fabric still calls `monitor hold` … | ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers) |
 | V1-46 | PL-7 | non-blocking | The CHANGELOG says every «Нужны вы» item goes to «the project's organization agent». The people-ask spec records that the operator's personal boards are not … | ruled: CO-590 (the 0.3.22 review's iteration-1 leftovers) |
 
-Exit for iteration 1: candidate 2 is `76b5637f` (the wave above), `bash scripts/ci.sh fast` run on it before iteration 2.
+Exit for iteration 1: candidate 2 is `591905408b6ea855bfcdd2f671c5b0796bfba655`, the wave above with the gate's own fixes
+(the mockup receipt re-pinned, CO-590 cited by lane 12, the plan projection rebuilt; `76b5637f` was its first commit and
+failed the plan-ids gate, iteration 2, PL-5); `bash scripts/ci.sh fast` read green on it before iteration 2.
+Blocking findings open: none.
+
+## Iteration 2
+
+Candidate `591905408b6ea855bfcdd2f671c5b0796bfba655`. Five reviewers, fresh contexts, each first reviewing the candidate
+and then checking iteration 1's dispositions; their reports and receipts are in `docs/evidence/reviews/0.3.22/iteration-2/`.
+29 findings, 4 blocking (ER-1, DO-1, PL-1, PL-2; DO-1 and PL-7 one defect, PL-1 and DO-9 one defect): the separate
+console window's «Новая сессия» could never start; the T2 entry's title still promised a live session goes on; the spec
+promised to check a heartbeat's wait; no rollback paragraph for 0.3.22. Beside them DA-1, non-blocking as written, was
+fixed first: the supervisor would have restarted every task left in the week before the upgrade (42 tasks in 30 projects
+on this machine's board). The reviewers agreed every iteration-1 finding ruled to CO-590 is non-blocking.
+
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
+| V2-1 | UX-1 | non-blocking | The iteration-1 fix's new refusal tells an agent to do the opposite of waiting. A `fabric_work_release` with a `time` or `limit` wait past 7 days is refused … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the refusal says to wait with a nearer until and release again then, or keep the claim and wait in the session |
+| V2-2 | UX-2 | non-blocking | Iteration 1's UX-4 is fixed only inside the kanban. English still names the running state two ways: the kanban column, its notes and История's stage say "In … | ruled: CO-590 (appended for iteration 2) |
+| V2-3 | UX-3 | non-blocking | In История's «Что делали агенты», the reason a row opens nothing is now visually hidden and a mouse tooltip, so a sighted keyboard user no longer reads it; the … | ruled: CO-590 (appended for iteration 2) |
+| V2-4 | UX-4 | non-blocking | The console tabs tell two sessions of one project and coding agent apart by clock time only, never the day: a session left open since yesterday at 14:05 and … | ruled: CO-590 (appended for iteration 2) |
+| V2-5 | ER-1 | blocking | «Новая сессия» in the separate console window can never work. The detached window renders the button for an ended session, but its click calls … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the separate window offers no «Новая сессия» (`SessionWindow.tsx`); test «the separate window of an ended session offers no new session it could not start», watched failing; the CHANGELOG says so |
+| V2-6 | ER-2 | non-blocking | Iteration-1 ER-1 is fixed only in part. The newest-wins queue keeps calls in the order they reach `set`, but `syncHold` still issues one unordered claims read … | ruled: CO-590 (appended for iteration 2) |
+| V2-7 | ER-3 | non-blocking | A failed read of `switchboard dispatch --help` is not said and is logged as the wrong cause. `helpOf` turns a timeout or a non-zero exit (10 s deadline, a … | ruled: CO-590 (appended for iteration 2) |
+| V2-8 | ER-4 | non-blocking | A claim taken with `fabric_task_claim` is never held by Switchboard. Only `fabric_work_claim` calls `onClaimed` (`syncHold` and the renewal schedule); … | ruled: CO-590 (appended for iteration 2) |
+| V2-9 | DA-1 | non-blocking | On upgrade the board supervisor treats every release of the week before it as left work, though a 0.3.21 release could not say what it waited for. … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the supervisor continues only work left after it first ran here (`main/boardResumeRead.ts#resumeSince`, `resume-since.json`, named in `AGENTS.md` and the CHANGELOG's Upgrading); test «DA-1: only work left since the supervisor began on this machine is continued» |
+| V2-10 | DA-2 | non-blocking | Turning «Продолжать начатую работу без меня» off does not hold a resume start already in flight. A record left `starting` (Switchboard's answer lost) is asked … | ruled: CO-590 (appended for iteration 2) |
+| V2-11 | DA-3 | non-blocking | The iteration-1 fix of PL-2 and DO-2 (a time or limit wait past 7 days is refused) is tested only as the pure `waitTooFar`; nothing calls `fabric_work_release` … | ruled: CO-590 (appended for iteration 2) |
+| V2-12 | DO-1 | blocking | The turn-end spec's rule table promises that a session which says it waits through `fabric_heartbeat` (phase waiting with `waitingOn`) while it stays is … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): spec §2 says a heartbeat's wait is not checked, it only holds back the turn's continue |
+| V2-13 | DO-2 | non-blocking | Iteration 1's PL-2 and DO-2 are marked fixed with «tests in `boardResume.test.ts`», but those test only the helper `waitTooFar`. The refusal itself, in … | ruled: CO-590 (appended for iteration 2) |
+| V2-14 | DO-3 | non-blocking | The spec's checks cite «`test/board-dispatch-run.test.mjs` (a run's packet names the wait)» for T1. No such test exists: no test in that file builds a resume … | ruled: CO-590 (appended for iteration 2) |
+| V2-15 | DO-4 | non-blocking | Two leftovers of iteration 1's doc fixes. (a) DO-6 is marked fixed, but its second half is not: the T4 plan row still says `--reason fabric_claim` waits «once … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): (a) the T4 row says Switchboard 0.7.111 takes the reason, sending it is CO-590; (b) ruled: CO-590 |
+| V2-16 | DO-5 | non-blocking | The on-demand spec §3.11 still lists as «Not done in this wave» the «На проверке» row for a task given to the operator. The same release ships it (T6, … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the on-demand spec §3.11 points to T6's row |
+| V2-17 | DO-6 | non-blocking | `## Unreleased` has no `**Upgrading.**` paragraph, which every 0.3.x section carries and which the release workflow publishes as the notes. 0.3.22 adds no … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): `## Unreleased` opens with its Upgrading paragraph |
+| V2-18 | DO-7 | non-blocking | The ADR index's Next free ID says two opposite things about ADR-0193 in one sentence: «ADR-0193 (superseded, never used) was the pipeline reservation; ADR-0193 … | ruled: CO-590 (appended for iteration 2) |
+| V2-19 | DO-8 | non-blocking | The map lane for iteration 1 says «Остальные 33 замечания в строке переноса CO-590». The ledger rules 30 findings to CO-590 and fixes 16; the CO-590 row names … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the iteration-1 lane says 30 |
+| V2-20 | DO-9 | non-blocking | After iteration 1's DO-1 fix the T2 entry's body says a live session still ends its turn as before until the adapter acts on the verdict, but its bold title … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the T2 entry's title says the turn only answers |
+| V2-21 | DO-10 | non-blocking | Wave U changes person-facing words on four screens with no scenario amendment: История «Агент · взял задачу», Agent access «Агент без имени» / "An unnamed … | ruled: CO-590 (appended for iteration 2) |
+| V2-22 | PL-1 | blocking | Iteration 1's PL-1 and DO-1 are fixed only in the entry's body. The bold headline still says «A live session goes on while it holds open work», which is false … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the T2 entry's title says the turn only answers |
+| V2-23 | PL-2 | blocking | DA-2, ruled to CO-590, is a release blocker by this release line's own precedent, and its consequence is an outward send against the person's choice. The … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the runbook's 0.3.22 paragraph and the CHANGELOG say what going back to 0.3.21 loses and what to do first |
+| V2-24 | PL-3 | non-blocking | Two fixes the ledger calls done have no test that fails without them. PL-2's refusal of a wait past 7 days lives in `fabric_work_release`, but the only test … | ruled: CO-590 (appended for iteration 2) |
+| V2-25 | PL-4 | non-blocking | UX-4 is recorded fixed but half done. The finding was that English names one column two ways and its fix was one name everywhere; the wave changed only the two … | ruled: CO-590 (appended for iteration 2) |
+| V2-26 | PL-5 | non-blocking | The ledger names the wrong candidate 2. It says candidate 2 is `76b5637f` and that `bash scripts/ci.sh fast` ran on it, but `76b5637f` fails the plan-ids gate … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the ledger names candidate 2 `59190540`, the commit the gate and iteration 2 read |
+| V2-27 | PL-6 | non-blocking | Left work in a project with no folder on this Mac is never continued and never shown. A resume item whose project has no folder here is turned from … | ruled: CO-590 (appended for iteration 2) |
+| V2-28 | PL-7 | non-blocking | The spec's rule promises more for a live session than is built. §2's table says a session that stays and declares a wait with `fabric_heartbeat` waiting and … | fixed in the iteration-2 wave (candidate 3, `fbb7d9b5`): the same as DO-1 |
+| V2-29 | PL-8 | non-blocking | «Вопросы должны быть понятны» is applied to the question's text only. Option labels and consequences, which a person reads as the choices on Главная and in … | ruled: CO-590 (appended for iteration 2) |
+
+Exit for iteration 2: candidate 3 is `fbb7d9b5` (the wave above); `bash scripts/ci.sh fast` runs on it before iteration 3.
 Blocking findings open: none.
