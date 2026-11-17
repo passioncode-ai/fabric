@@ -9,6 +9,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A session resumed after a usage limit holds its tasks again** (board finding from dissy, 2026-11-16). When
+  Switchboard continues a session stopped on a limit (`claude --resume`, the same runtime session id), its new Fabric
+  session gets back, at enrollment, the claims its earlier session left when it ended, while nobody took the task since
+  and no person moved it; the task is running again. The board supervisor starts no second agent on a task whose session
+  Switchboard holds on a limit. `fabric_work_claim` takes `workflowId` (an Observatory workflow), and the agent that
+  continues the task reads that workflow first. On-demand sessions spec §3.12.
 - **«Нужны вы» decided from Telegram** (the operator, 2026-11-16). Every item of «Нужны вы» (a question, an agent's access
   request, a one-time permission, an overdue review, a proposal) goes as one board request to the project's organization
   agent (Kira for PassionCode.ai; each other organization's own PM agent, named on this machine only, once it takes such

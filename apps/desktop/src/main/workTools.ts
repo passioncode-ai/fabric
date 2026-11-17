@@ -455,10 +455,11 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
         minutes: z.number().int().min(1).max(CLAIM_MAX_MINUTES).optional().describe(`How long before the claim lapses unless renewed. Default ${CLAIM_DEFAULT_MINUTES}`),
         idempotencyKey: KEY.optional().describe('Your own key for this claim; the same key returns the same claim'),
         askHandover: z.boolean().optional().describe('When the task is held by another agent: ask that agent, through Fabric, to hand it over'),
-        note: z.string().max(400).optional().describe('One line for the holder, with askHandover')
+        note: z.string().max(400).optional().describe('One line for the holder, with askHandover'),
+        workflowId: z.string().regex(/^wf_[0-9a-f]{16}$/).optional().describe('The Observatory workflow you keep this task\'s state in (its checkpoints): the task stays linked to it, so a session that continues the task after you reads it')
       }
     },
-    async ({ taskId, source, title, origin, touches, minutes, idempotencyKey, askHandover, note }) => {
+    async ({ taskId, source, title, origin, touches, minutes, idempotencyKey, askHandover, note, workflowId }) => {
       for (const t of touches ?? []) deps.checkReference(t)
       deps.checkReference(origin?.ref)
       const key = idempotencyKey ? `claim:${scope.sessionId}:${idempotencyKey}` : null
@@ -544,7 +545,9 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
           type: 'work.claimed@1',
           payload: {
             work: id, owner: scope.sessionId, idempotency_key: key ?? `claim:${scope.sessionId}:${claimId}`, expires_at: expiresAt,
-            write_scopes: (touches ?? []).map(normaliseTouch).filter(Boolean), claim_id: claimId, agent: scope.agent, came_in: scope.cameIn
+            write_scopes: (touches ?? []).map(normaliseTouch).filter(Boolean), claim_id: claimId, agent: scope.agent, came_in: scope.cameIn,
+            // On-demand spec §3.12: the task's link to the session's Observatory workflow, carried by a resumed claim.
+            ...(workflowId ? { workflow_id: workflowId } : {})
           }
         })
       }

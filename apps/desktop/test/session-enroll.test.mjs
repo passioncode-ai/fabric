@@ -800,3 +800,18 @@ test('0.3.19 review ER-1: the hooks\' rejoin never revokes the bearer a reconnec
     assert.equal(h.surface.state(again.session.bearer), 'claimed', `turn ${turn}: the reconnected fabric-mcp still holds its bearer`)
   }
 })
+
+test('§3.12 (resumed claims): a new session under a runtime id asks for the claims its earlier sessions left, once, after the journal; a failing hand-back never fails the enrollment', async () => {
+  const asked = []
+  const h = deps({ resumeClaims: async (a) => { asked.push(a) } })
+  const r = await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-resumed' }, h.d)
+  assert.equal(r.ok, true)
+  assert.deepEqual(asked, [{ projectId: P, sessionId: r.session.sessionId, runtimeSessionId: 'rt-resumed', bindingId: 'b-1', agent: 'claude-code' }])
+  // The same session again (a reconnect) and a session with no runtime id ask nothing.
+  await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-resumed' }, h.d)
+  assert.equal(asked.length, 1)
+  await enrollSession(binding, { cwd: '/Users/example/DATA/site' }, h.d)
+  assert.equal(asked.length, 1)
+  const broken = deps({ resumeClaims: async () => { throw new Error('the board did not answer') } })
+  assert.equal((await enrollSession(binding, { cwd: '/Users/example/DATA/site', runtimeSessionId: 'rt-x' }, broken.d)).ok, true)
+})

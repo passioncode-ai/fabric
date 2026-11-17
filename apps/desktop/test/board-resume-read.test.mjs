@@ -52,7 +52,7 @@ test('§3.11: releases of the week that left work are read with each task\'s new
   assert.equal(r.capped, false)
   assert.deepEqual(r.candidates.map((c) => c.taskId).sort(), ['a', 'b'])
   const a = r.candidates.find((c) => c.taskId === 'a')
-  assert.deepEqual(a.lastClaim, { claimedAt: ago(90 * MIN), releasedAt: ago(30 * MIN), how: 'session-ended' })
+  assert.deepEqual(a.lastClaim, { claimedAt: ago(90 * MIN), releasedAt: ago(30 * MIN), how: 'session-ended', runtimeSessionId: null, workflowId: null })
   assert.equal(a.openQuestion, false, 'an answered question does not hold the task')
   assert.equal(r.candidates.find((c) => c.taskId === 'b').lastClaim.releasedAt, null, 'the newest claim is the live one')
 })
@@ -72,4 +72,28 @@ test('§3.11: a resume run\'s task reads answered once taken since the release, 
   assert.equal(await readResumeState(store({ project_tasks: [task('a', { status: 'review' })], work_claims: [] }), 'a', released), 'answered')
   assert.equal(await readResumeState(store({ project_tasks: [], work_claims: [] }), 'a', released), null)
   assert.equal(await readResumeState(store({ project_tasks: [task('a')], work_claims: [] }, 'project_tasks'), 'a', released), null)
+})
+
+test('§3.12: the newest claim names the runtime session that left it (its end wins over its enrolment) and the workflow it was linked to', async () => {
+  const ev = (type, payload) => ({ type, payload, ...Object.fromEntries(Object.entries(payload).map(([k, v]) => [`payload->>${k}`, v])) })
+  const s = store({
+    work_claims: [{ id: 'c-a', owner_session: 's-a', ...claim('a', ago(90 * MIN), ago(30 * MIN), 'session-ended') },
+      { id: 'c-b', owner_session: 's-b', ...claim('b', ago(90 * MIN), ago(30 * MIN), 'let-go') }],
+    project_tasks: [task('a'), task('b')],
+    questions: [],
+    journal: [
+      ev('session.enrolled@1', { session_id: 's-a', runtime_session_id: 'rt-before-clear' }),
+      ev('session.ended@1', { session_id: 's-a', runtime_session_id: 'rt-a' }),
+      ev('work.claimed@1', { owner: 's-a', claim_id: 'c-a', workflow_id: 'wf_0123456789abcdef' }),
+      ev('session.enrolled@1', { session_id: 's-b', runtime_session_id: 'rt-b' })
+    ]
+  })
+  const r = await readResumeCandidates(s, NOW)
+  const a = r.candidates.find((c) => c.taskId === 'a').lastClaim
+  assert.equal(a.runtimeSessionId, 'rt-a')
+  assert.equal(a.workflowId, 'wf_0123456789abcdef')
+  const b = r.candidates.find((c) => c.taskId === 'b').lastClaim
+  assert.equal(b.runtimeSessionId, 'rt-b')
+  assert.equal(b.workflowId, null)
+  await assert.rejects(readResumeCandidates(store({ work_claims: [{ id: 'c-a', owner_session: 's-a', ...claim('a', ago(90 * MIN), ago(30 * MIN), 'lapsed') }], project_tasks: [task('a')], questions: [] }, 'journal'), NOW), /journal|session/)
 })

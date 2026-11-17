@@ -209,6 +209,7 @@ import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { primaryFolder, remoteTargetFor, wireBoardDispatch } from './boardDispatchWiring.ts'
 import { createDispatchWake, toOperatorMarks, type InboxGiven, type ResumeGiven, type ToOperatorWhy } from './boardDispatchRun.ts'
 import { readResumeCandidates, readResumeState } from './boardResumeRead.ts'
+import { handBackResumedClaims } from './resumedClaims.ts'
 import { dispatcherRuns, remoteOwnerOf, sessionLiveForDispatch, suspendedSince, WATCH_MS } from '../shared/boardDispatch.ts'
 import { SESSION_STALE_MS } from '../shared/workClaims.ts'
 import { createObservatoryClient, findObservatoryServer } from './observatoryMemory.ts'
@@ -432,7 +433,7 @@ import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors, findOnPath, widenProbePath } from './executorDetect.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
-import { readMachineSwitchboardSessions } from './switchboardSessions.ts'
+import { readMachineLimitStops, readMachineSwitchboardSessions } from './switchboardSessions.ts'
 import { answerAssigned, assignAcross, type AssignDeps } from './crossProjectAssign.ts'
 import { reviewDecisionProblem, type ReviewDecision } from '../shared/reviewDecision.ts'
 import { readInbound, setInbound } from './claudeInbound.ts'
@@ -1400,7 +1401,17 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
           sessions: enrolled,
           stillLive: (bindingId, grantId) => hubAccess.enrollmentLive(bindingId, grantId),
           journal: (type, projectId, payload) =>
-            journal.append({ estateId: ACTIVE_ESTATE, type, actor: { kind: 'system', id: 'fabric-hub' }, projectId, payload })
+            journal.append({ estateId: ACTIVE_ESTATE, type, actor: { kind: 'system', id: 'fabric-hub' }, projectId, payload }),
+          // On-demand spec §3.12: a session Switchboard resumed after a usage limit takes back the claims it left.
+          resumeClaims: async (a) => {
+            const r = await handBackResumedClaims(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), {
+              ...a, now: Date.now(), runHolds: async (ids) => (await readRunHolds(store, ids)).map((h) => h.taskId)
+            })
+            if (r.handedBack.length) surface.noteClaims(a.sessionId)
+            if (r.handedBack.length || r.refused.length)
+              ops.record({ op: 'hub.session.resume-claims', outcome: r.refused.length ? 'failed' : 'ok', level: r.refused.length ? 'warn' : 'info',
+                detail: { session_id: a.sessionId, handed_back: r.handedBack.length, refused: r.refused.length }, ctx: { correlationId: ops.correlate() } })
+          }
         }),
         // #region board-join-wiring — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#4-service-agents-join-with-a-board-session
         // A board session ends with its binding or any of its board.respond grants (EnrolledSessions, as ADR-0134 §3).
@@ -3172,7 +3183,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     resume: {
       on: () => readSettings().resumeLeftWork,
       read: (now) => readResumeCandidates(store, now),
-      state: (taskId, releasedAt) => readResumeState(store, taskId, releasedAt)
+      state: (taskId, releasedAt) => readResumeState(store, taskId, releasedAt),
+      // §3.12: a task whose session Switchboard will resume after a usage limit waits for that session.
+      limitStops: () => readMachineLimitStops(sessionEnvironment(process.env))
     }
   })
   dispatchHolder.current = dispatcher

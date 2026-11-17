@@ -308,3 +308,20 @@ test('PL-10: fabric_task_claim names the brief\'s missing parts and fabric_task_
   assert.match(tools.get('fabric_task_claim'), /brief_missing/)
   assert.doesNotMatch(tools.get('fabric_task_claim'), /—/)
 })
+
+// On-demand spec §3.12: a claim may name the Observatory workflow the session keeps its state in; the claim's event
+// carries it, so a resumed session and a supervisor's run continue that workflow.
+test('§3.12: fabric_work_claim takes an Observatory workflow id and writes it into the claim', async (t) => {
+  const { surface } = await surfaceWith([])
+  t.after(() => surface.stop())
+  const scope = surface.mint('p', 's-w', null, { cameIn: 'enrolled', agent: 'claude-code', runtimeSessionId: 'rt-w' })
+  const client = await connect(surface, scope.token)
+  t.after(() => client.close())
+  const claim = (await client.listTools()).tools.find((x) => x.name === 'fabric_work_claim')
+  assert.equal(claim.inputSchema.properties.workflowId.pattern, '^wf_[0-9a-f]{16}$')
+  assert.match(claim.inputSchema.properties.workflowId.description, /Observatory workflow/)
+  const { readFileSync } = await import('node:fs')
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/main/workTools.ts'), 'utf8')
+  const tool = src.slice(src.indexOf("'fabric_work_claim',"), src.indexOf("'fabric_work_release',"))
+  assert.match(tool, /workflow_id: workflowId/)
+})

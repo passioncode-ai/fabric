@@ -30,19 +30,26 @@ export interface ResumeCandidate {
   movedAt: string | null
   movedByKind: string | null
   /** The task's newest claim, or null when it never had one. */
-  lastClaim: { claimedAt: string; releasedAt: string | null; how: string | null } | null
+  lastClaim: { claimedAt: string; releasedAt: string | null; how: string | null
+    /** The runtime session id of the session that held it (§3.12), when its enrolment or end named one. */
+    runtimeSessionId?: string | null
+    /** The Observatory workflow the claim was linked to (`fabric_work_claim` `workflowId`, §3.12), or none. */
+    workflowId?: string | null } | null
   /** An open question to a person names the task: the run would only ask again, so the person decides first. */
   openQuestion: boolean
 }
 
-export interface ResumeItem { taskId: string; projectId: string; title: string; how: string; releasedAt: string; deadline: string }
+export interface ResumeItem { taskId: string; projectId: string; title: string; how: string; releasedAt: string; deadline: string
+  /** §3.12: the session that left it, and the Observatory workflow its claim named; absent when unknown. */
+  runtimeSessionId?: string; workflowId?: string }
 
 /**
  * The tasks a run may be started for: open, with a project, whose newest claim ended by one of `RESUME_HOWS` between
  * `RESUME_WINDOW_MS` and `RESUME_GRACE_MS` ago, held by nobody now, not moved by a person since that release, with no
- * open question to a person. Oldest release first, so a task left longest is continued first.
+ * open question to a person, and whose session Switchboard does not hold on a usage limit (`limitStopped`, §3.12).
+ * Oldest release first, so a task left longest is continued first.
  */
-export function resumeItems(candidates: readonly ResumeCandidate[], now: number): ResumeItem[] {
+export function resumeItems(candidates: readonly ResumeCandidate[], now: number, opts: { limitStopped?: ReadonlySet<string> } = {}): ResumeItem[] {
   const out: ResumeItem[] = []
   for (const c of candidates) {
     if (!c.projectId || !OPEN_STATUSES.has(c.status) || c.openQuestion) continue
@@ -54,7 +61,11 @@ export function resumeItems(candidates: readonly ResumeCandidate[], now: number)
     // the supervisor never overrides a person's move. An agent's or the sweep's move after it is the release's own step.
     const moved = c.movedAt ? Date.parse(c.movedAt) : NaN
     if (c.movedByKind === 'person' && Number.isFinite(moved) && moved > released) continue
-    out.push({ taskId: c.taskId, projectId: c.projectId, title: c.title, how: claim.how, releasedAt: claim.releasedAt, deadline: new Date(released + RESUME_WINDOW_MS).toISOString() })
+    // §3.12: Switchboard holds the session that left it on a usage limit and continues that very session (`claude
+    // --resume`), which takes its claims back at its enrollment; a run started meanwhile is a second agent on the task.
+    if (claim.runtimeSessionId && opts.limitStopped?.has(claim.runtimeSessionId)) continue
+    out.push({ taskId: c.taskId, projectId: c.projectId, title: c.title, how: claim.how, releasedAt: claim.releasedAt, deadline: new Date(released + RESUME_WINDOW_MS).toISOString(),
+      ...(claim.runtimeSessionId ? { runtimeSessionId: claim.runtimeSessionId } : {}), ...(claim.workflowId ? { workflowId: claim.workflowId } : {}) })
   }
   return out.sort((a, b) => Date.parse(a.releasedAt) - Date.parse(b.releasedAt) || a.taskId.localeCompare(b.taskId))
 }

@@ -1063,6 +1063,11 @@ export class AgentSurface {
     })
   }
 
+  /** On-demand spec §3.12: claims Fabric gave this session back at its enrollment are renewed by its calls, as its own. */
+  noteClaims(sessionId: string): void {
+    if (this.live.has(sessionId) && !this.claimHolders.has(sessionId)) this.claimHolders.set(sessionId, this.now() + RENEW_EVERY_MS)
+  }
+
   // #region claim-renewal — docs: docs/ux/scenarios.md#scn-140-agents-ask-fabric-who-is-working-on-what-claim-their-task-are-warned-of-related-work-and-release-it
   /** Renews this session's claims that expire within the next quarter hour, by the default claim length. */
   private async renewClaims(scope: AgentScope): Promise<void> {

@@ -566,6 +566,50 @@ records where this goes; this section is its first wave.
   finished run, three empty runs for one release, an empty run before a finished one not carried, watched failing with
   that reset taken out), `test/board-resume-read.test.mjs` (the reads over a stand-in store, a refused read throws).
 
+### 3.12 A resumed session takes its claims back
+
+The board finding from dissy, 2026-11-16 (thread `b4033012`, points 1 and 4): a Claude Code session holding a task hit
+its usage limit and its process ended; the session that came back found no claims and the task in backlog. Switchboard
+continues a session stopped on a limit with `claude --resume`: a new process under the same runtime session id, whose
+fabric-mcp enrolls as a new Fabric session, since the old one ended with its process and its claims were released
+(`session-ended`, or `lapsed` by the sweep). The supervisor of §3.11 would then start a second agent on the same task
+ten minutes later, while Switchboard waits for an account to resume the first.
+
+- **Decision.** No new task state and no long-lived assignment (the finding's point 1): the claim stays the lease it is,
+  and two rules make the same session its owner again. (1) At its enrollment a new session under a runtime session id
+  takes back the claims the earlier Fabric sessions of that runtime session and binding left by `session-ended` or
+  `lapsed` (`shared/resumedClaims.ts#claimsToHandBack`, `main/resumedClaims.ts#handBackResumedClaims`, called from
+  `main/sessionEnroll.ts` and awaited at most `RESUME_CLAIMS_WAIT_MS`, 5 s, so the agent's first `fabric_work_list`
+  finds them). A claim is given back only while the work is still that session's: its release is the task's newest
+  claim (nobody took it since, the supervisor's run included), within the supervisor's week, the task in backlog or
+  running, held by no run, not moved by a person since. A claim the session let go, handed over or finished, or the
+  operator released, never comes back. The new claim is a `work.claimed@1` by the system `session-resume` naming the
+  claim it continues (`resumed_from`); the task moves back to running and the session's calls renew it
+  (`AgentSurface.noteClaims`). The earlier sessions are found by their enrolments under the runtime id and by their
+  ends, which carry the id a /clear renamed it to (TR-1). The same rule gives claims back after Fabric itself restarted
+  (`app-quit` releases as `session-ended`). (2) The supervisor waits for Switchboard: a left task whose session
+  Switchboard holds on a usage limit (`switchboard --json recovery`, waiting or claimed, not billing;
+  `main/switchboardSessions.ts#readLimitStops`) is no item (`shared/boardResume.ts#resumeItems` `limitStopped`), asked
+  only when an item names the session that left it. An unread recovery list proves no stop: the item goes on and the
+  ops log says so once (`board.dispatch.resume-stops`). A billing stop needs the person, so it holds nothing.
+- **The link to an Observatory workflow** (the finding's point 3). `fabric_work_claim` takes `workflowId`, the
+  workflow the session keeps the task's checkpoints in; the claim's event carries it (`workflow_id`), a claim given
+  back keeps it, and the supervisor's run for that task is told to read its latest checkpoint first and to claim with
+  the same workflow (`main/boardDispatchRun.ts`, `resumeBody`, artifact `observatory-workflow:<id>`).
+- **Why this and not a `suspended` state.** A state beside the claim would need its own projection, its own sweep and
+  its own screens, and would still need the same two answers: whose it is when the session comes back, and who else
+  may start meanwhile. The claim already answers who holds a task, and Switchboard already knows which sessions it will
+  resume; joining the two at the enrollment and at the supervisor's read changes no table.
+- **Not done.** A session resumed under a new runtime id (Switchboard starting a new session with a handoff pack
+  instead of `--resume`) does not take claims back by itself; it claims the task, as the supervisor's run does. A task
+  the supervisor's run took while the session was away is not taken from it; the resumed session reads it as held on
+  its next `fabric_work_list`.
+- **Tests.** `src/shared/resumedClaims.test.ts` (which claims come back), `test/resumed-claims.test.mjs` (the reads and
+  writes over a stand-in store; another binding watched taking the claim when its rule was taken out),
+  `test/session-enroll.test.mjs` «§3.12», `src/shared/boardResume.test.ts` and `test/board-dispatch-run.test.mjs`
+  «§3.12» (a limit-stopped session's task waits; the packet names the workflow), `test/board-resume-read.test.mjs`,
+  `test/switchboard-sessions.test.mjs`, `test/tracking-surface.test.mjs` «§3.12».
+
 ## 4. Who does what
 
 | Product | Its part |

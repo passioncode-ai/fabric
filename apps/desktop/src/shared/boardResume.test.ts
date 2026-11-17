@@ -43,6 +43,17 @@ describe('resumeItems', () => {
       expect(resumeItems([cand({ lastClaim: { claimedAt: ago(90 * MIN), releasedAt: ago(30 * MIN), how } })], NOW)).toHaveLength(1)
   })
 
+  it('waits while Switchboard holds the session that left it on a usage limit, and names the workflow the claim was linked to', () => {
+    // The resumed-claims fix (dissy finding, point 4): Switchboard continues that very session with `claude --resume`,
+    // which takes its claims back at its enrollment; a run started meanwhile would be a second agent on the same task.
+    const left = cand({ lastClaim: { claimedAt: ago(90 * MIN), releasedAt: ago(30 * MIN), how: 'session-ended', runtimeSessionId: 'rt-1', workflowId: 'wf_0123456789abcdef' } })
+    expect(resumeItems([left], NOW, { limitStopped: new Set(['rt-1']) })).toEqual([])
+    const [i] = resumeItems([left], NOW, { limitStopped: new Set(['rt-other']) })
+    expect(i).toMatchObject({ taskId: 't-1', runtimeSessionId: 'rt-1', workflowId: 'wf_0123456789abcdef' })
+    // No stop read (Switchboard absent or unread): continued as before.
+    expect(resumeItems([left], NOW)).toHaveLength(1)
+  })
+
   it('orders the oldest release first', () => {
     const items = resumeItems([cand({ taskId: 'new', lastClaim: { claimedAt: ago(90 * MIN), releasedAt: ago(20 * MIN), how: 'let-go' } }),
       cand({ taskId: 'old', lastClaim: { claimedAt: ago(9 * 60 * MIN), releasedAt: ago(8 * 60 * MIN), how: 'lapsed' } })], NOW)

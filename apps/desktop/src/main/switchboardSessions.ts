@@ -109,19 +109,42 @@ export async function readSwitchboardSessions(deps: { find(): Promise<string | n
   return { installed: true, rows, unread }
 }
 
+// #region switchboard-limit-stops — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#312-a-resumed-session-takes-its-claims-back
+/** §3.12: the coding-agent session ids Switchboard holds on a usage limit (waiting or being continued) and will continue
+ *  itself; a billing stop needs the person, so it holds nothing. Empty without Switchboard; null when unread. */
+export async function readLimitStops(deps: { find(): Promise<string | null>; run: Run }): Promise<ReadonlySet<string> | null> {
+  const sb = await deps.find()
+  if (!sb) return new Set()
+  const r = await deps.run(sb, ['--json', 'recovery']).catch(() => null)
+  const stops = r && r.code === 0 ? parseStops(r.stdout, () => null) : null
+  return stops === null ? null : new Set(stops.filter((x) => x.verdict !== 'billing').map((x) => x.session))
+}
+
+/** In the app, as `readMachineSwitchboardSessions` asks. */
+export async function readMachineLimitStops(env: Record<string, string>): Promise<ReadonlySet<string> | null> {
+  const PATH = await widenProbePath(env.PATH ?? '', env)
+  return readLimitStops({ find: () => findOnPath('switchboard', PATH), run: (file, args) => runSwitchboard(file, args, env, PATH) })
+}
+// #endregion switchboard-limit-stops
+
 /** In the app: Switchboard found on the session PATH (widened as agent detection widens it), asked with a deadline. */
 export async function readMachineSwitchboardSessions(env: Record<string, string>, now: number): Promise<SwitchboardSessions> {
   const PATH = await widenProbePath(env.PATH ?? '', env)
   return readSwitchboardSessions({
     find: () => findOnPath('switchboard', PATH),
     now,
-    run: (file, args) => new Promise((resolve, reject) => {
-      execFile(file, [...args], { env: { ...env, PATH }, timeout: SWITCHBOARD_SESSIONS_DEADLINE_MS, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
-        const exit = (err as { code?: unknown } | null)?.code
-        if (err && typeof exit !== 'number') return reject(err)
-        resolve({ code: err ? (exit as number) : 0, stdout: String(stdout), stderr: String(stderr) })
-      })
-    })
+    run: (file, args) => runSwitchboard(file, args, env, PATH)
   })
 }
 // #endregion switchboard-sessions
+
+/** `execFile` with a deadline and no shell. */
+function runSwitchboard(file: string, args: string[], env: Record<string, string>, PATH: string): Promise<{ code: number; stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    execFile(file, [...args], { env: { ...env, PATH }, timeout: SWITCHBOARD_SESSIONS_DEADLINE_MS, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
+      const exit = (err as { code?: unknown } | null)?.code
+      if (err && typeof exit !== 'number') return reject(err)
+      resolve({ code: err ? (exit as number) : 0, stdout: String(stdout), stderr: String(stderr) })
+    })
+  })
+}

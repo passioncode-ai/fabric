@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/resumed-session-claims → main · fast-forward
+- files: `shared/resumedClaims.ts`, `main/resumedClaims.ts` (claims given back at enrollment), `main/sessionEnroll.ts` (`resumeClaims`), `main/agentSurface.ts` (`noteClaims`), `shared/boardResume.ts` and `main/boardResumeRead.ts` (the left session and its workflow, `limitStopped`), `main/switchboardSessions.ts` (`readLimitStops`), `main/boardDispatchWiring.ts`, `main/boardDispatchRun.ts` (the workflow in the packet), `main/workTools.ts` (`workflowId` on a claim), tests, the on-demand spec §3.12, the map lane `iteration-2026-11-17-resumed-claims`
+- conflicts: none
+- summary: a session Switchboard resumed after a usage limit takes its claims back; the supervisor waits for it instead of starting a second agent
+
 ### 2026-11-16 · `—` · fix/resume-reason → main · fast-forward
 - files: `main/boardDispatchWiring.ts` (`--reason resume`, `takesResumeReason` from `dispatch --help`), `main/boardDispatchRun.ts`, `shared/boardDispatch.ts` (`resume_unsupported` waits), the test, the on-demand spec §3.11, the map lane `iteration-2026-11-16-resume-reason`
 - conflicts: none

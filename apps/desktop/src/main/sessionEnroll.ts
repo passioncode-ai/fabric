@@ -57,6 +57,10 @@ export interface EnrollDeps extends FolderDeps {
   /** Read again after the mint: the binding and the grant are both still live (the read-then-mint race). */
   stillLive(bindingId: string, grantId: string): Promise<boolean>
   journal(type: 'session.enrolled@1', projectId: string, payload: Record<string, unknown>): Promise<unknown>
+  /** On-demand spec §3.12: a new session under a runtime session id takes back the claims its earlier sessions of the
+   *  same binding left when they ended (`resumedClaims.ts`): a session Switchboard resumed after a usage limit. Awaited
+   *  at most `RESUME_CLAIMS_WAIT_MS`, so the agent's first call finds them; a failure is logged, never the enrollment's. */
+  resumeClaims?(a: { projectId: string; sessionId: string; runtimeSessionId: string; bindingId: string; agent: string }): Promise<unknown>
   /** Live enrolled sessions one binding may hold; a further enrollment ends the least recently active. Default 8. */
   maxSessionsPerBinding?: number
   /** The ceiling across every project of one binding; defaults to MAX_ENROLLED_PER_BINDING_TOTAL. */
@@ -65,6 +69,8 @@ export interface EnrollDeps extends FolderDeps {
 }
 
 const RUNTIME_SESSION = /^[A-Za-z0-9._:-]{1,128}$/
+/** How long an enrollment waits for the claims a resumed session takes back (§3.12) before it answers anyway. */
+export const RESUME_CLAIMS_WAIT_MS = 5_000
 /** Several terminals of one coding agent in one project are ordinary; a loop is not. */
 export const MAX_ENROLLED_PER_BINDING = 8
 /** One binding serves its coding agent in every project on the machine (2026-10-19, board thread 1afd08e7): the cap above
@@ -430,6 +436,15 @@ async function enrollSessionOnce(binding: BindingRow | null, args: { cwd: unknow
     deps.sessions.endSession(sessionId)
     throw e
   }
+  // #region session-enroll-resumed-claims — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#312-a-resumed-session-takes-its-claims-back
+  if (runtimeSessionId !== null && deps.resumeClaims) {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const handBack = deps.resumeClaims({ projectId: folder.projectId, sessionId, runtimeSessionId, bindingId: binding.id, agent: binding.agent_id })
+      .catch((e) => { ops.failed('hub.session.resume-claims', e, { note: 'the resumed session claims its tasks again itself', session_id: sessionId }) })
+    await Promise.race([handBack, new Promise<void>((r) => { timer = setTimeout(r, RESUME_CLAIMS_WAIT_MS); timer.unref?.() })])
+    clearTimeout(timer)
+  }
+  // #endregion session-enroll-resumed-claims
   return session(token, sessionId)
 }
 // #endregion session-enroll

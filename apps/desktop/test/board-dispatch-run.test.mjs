@@ -2271,3 +2271,31 @@ test('§3.11 (SB-398): a resume run asks Switchboard for --reason resume, only w
   assert.equal(takesResumeReason(''), false)
   assert.equal(refusalCheck('resume_unsupported'), 'deferred-no-agent')
 })
+
+test('§3.12: no run starts for a task whose session Switchboard holds on a usage limit; stops are asked only when an item names a session', async () => {
+  const released = new Date(T0 - 30 * MIN).toISOString()
+  const cand = (taskId, runtimeSessionId) => ({ taskId, projectId: 'p-target', title: 'Волна', status: 'backlog', movedAt: released, movedByKind: 'system',
+    lastClaim: { claimedAt: new Date(T0 - 90 * MIN).toISOString(), releasedAt: released, how: 'session-ended', runtimeSessionId, workflowId: null }, openQuestion: false })
+  let asked = 0
+  const stops = async () => { asked++; return new Set(['rt-limited']) }
+  const got = await readResumeRequests(async () => ({ capped: false, candidates: [cand('limited', 'rt-limited'), cand('free', 'rt-free')] }), T0, stops)
+  assert.deepEqual(got.items.map((i) => i.id), ['free'])
+  assert.equal(asked, 1)
+  await readResumeRequests(async () => ({ capped: false, candidates: [cand('nobody', null)] }), T0, stops)
+  assert.equal(asked, 1, 'no item names a session: Switchboard is not asked')
+  // An unread recovery list proves no stop: the item goes on as before, and the read says so.
+  const unread = await readResumeRequests(async () => ({ capped: false, candidates: [cand('limited', 'rt-limited')] }), T0, async () => null)
+  assert.deepEqual([unread.items.map((i) => i.id), unread.stopsUnread], [['limited'], true])
+})
+
+test('§3.12: a resume run\'s packet names the Observatory workflow the left claim was linked to', async () => {
+  const w = world({ requests: [resumeItem({ workflowId: 'wf_0123456789abcdef' })] })
+  await createBoardDispatch(w.deps).onPass()
+  const open = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.match(JSON.stringify(open.body.constraints), /observatory_checkpoint_latest \{workflowId: wf_0123456789abcdef\}/)
+  assert.ok(open.body.artifacts.some((a) => a.ref === 'observatory-workflow:wf_0123456789abcdef'))
+  const plain = world({ requests: [resumeItem()] })
+  await createBoardDispatch(plain.deps).onPass()
+  const p = plain.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId)[1]
+  assert.doesNotMatch(JSON.stringify(p.body), /observatory-workflow:/)
+})

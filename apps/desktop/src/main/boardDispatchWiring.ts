@@ -110,13 +110,23 @@ export function createInboxState(facts: (messageIds: string[]) => Promise<CommsF
 /** §3.11: a left task as the dispatcher's item: its id is the task, its project the target, `queued` until taken. */
 export function resumeRequestOf(i: ResumeItem): OpenRequest {
   return { id: i.taskId, thread: i.taskId, state: 'queued', target: i.projectId, capability: RESUME_CAPABILITY, submittedAt: i.releasedAt, deadline: i.deadline,
-    resume: { title: i.title, how: i.how, releasedAt: i.releasedAt } }
+    resume: { title: i.title, how: i.how, releasedAt: i.releasedAt, ...(i.workflowId ? { workflowId: i.workflowId } : {}) } }
 }
 
-/** §3.11: the left tasks of this pass, read through `read` and chosen by `shared/boardResume.ts#resumeItems`. */
-export async function readResumeRequests(read: (now: number) => Promise<{ candidates: ResumeCandidate[]; capped: boolean }>, now: number): Promise<{ items: OpenRequest[]; capped: boolean }> {
+/** §3.11: the left tasks of this pass, read through `read` and chosen by `shared/boardResume.ts#resumeItems`. §3.12:
+ *  when an item names the session that left it, Switchboard's open limit stops are asked once (`limitStops`), and a task
+ *  whose session Switchboard will resume itself waits for it; an unread list (null) holds nothing back (`stopsUnread`). */
+export async function readResumeRequests(read: (now: number) => Promise<{ candidates: ResumeCandidate[]; capped: boolean }>, now: number,
+  limitStops?: () => Promise<ReadonlySet<string> | null>): Promise<{ items: OpenRequest[]; capped: boolean; stopsUnread?: boolean }> {
   const r = await read(now)
-  return { items: resumeItems(r.candidates, now).map(resumeRequestOf), capped: r.capped }
+  let items = resumeItems(r.candidates, now)
+  let stopsUnread: boolean | undefined
+  if (limitStops && items.some((i) => i.runtimeSessionId)) {
+    const stopped = await limitStops().catch(() => null)
+    stopsUnread = stopped === null
+    if (stopped) items = resumeItems(r.candidates, now, { limitStopped: stopped })
+  }
+  return { items: items.map(resumeRequestOf), capped: r.capped, ...(stopsUnread !== undefined ? { stopsUnread } : {}) }
 }
 // #endregion board-dispatch-resume
 
@@ -369,7 +379,9 @@ export function wireBoardDispatch(o: {
   /** 2026-11-12 (C2): how long this machine slept since a time (ms); absent, none. */
   suspendedSince?: (from: number) => number
   /** §3.11, the board supervisor: the left tasks, read while `on()` holds, and a resume run's task state. */
-  resume?: { on(): boolean; read(now: number): Promise<{ candidates: ResumeCandidate[]; capped: boolean }>; state(taskId: string, releasedAt: string): Promise<string | null> }
+  resume?: { on(): boolean; read(now: number): Promise<{ candidates: ResumeCandidate[]; capped: boolean }>; state(taskId: string, releasedAt: string): Promise<string | null>
+    /** §3.12: the runtime session ids Switchboard holds on a usage limit and will continue itself; null when unread. */
+    limitStops?(): Promise<ReadonlySet<string> | null> }
 }): { onPass(): Promise<void>; close(): Promise<void>; toOperator(): Map<string, ToOperatorWhy>; inboxGiven(): InboxGiven[]; resumeGiven(): ResumeGiven[]; boardRuns(): BoardRun[] } {
   let probePath: Promise<string> | null = null
   const pathFor = (): Promise<string> => (probePath ??= widenProbePath(o.env.PATH ?? '', o.env))
@@ -421,6 +433,8 @@ export function wireBoardDispatch(o: {
   let threadsCapped = false
   /** §3.11: whether the last read of left tasks stopped at its bound, said once per change. */
   let resumeCapped = false
+  /** §3.12: whether the last read of Switchboard's limit stops failed, logged once per change. */
+  let stopsUnread = false
 
   const deps: DispatchDeps = {
     now: () => Date.now(),
@@ -452,8 +466,9 @@ export function wireBoardDispatch(o: {
       let resume: OpenRequest[] = []
       if (o.resume?.on()) {
         try {
-          const got = await readResumeRequests(o.resume.read, now)
+          const got = await readResumeRequests(o.resume.read, now, o.resume.limitStops)
           resume = got.items
+          if (got.stopsUnread !== undefined && got.stopsUnread !== stopsUnread) { stopsUnread = got.stopsUnread; o.log('board.dispatch.resume-stops', got.stopsUnread ? 'failed' : 'ok', { note: got.stopsUnread ? 'Switchboard\'s limit stops could not be read; left work is continued as if none' : 'Switchboard\'s limit stops read again' }) }
           if (got.capped !== resumeCapped) { resumeCapped = got.capped; o.log('board.dispatch.resume-read', got.capped ? 'failed' : 'ok', { capped: got.capped, note: got.capped ? 'more released claims in the week than one pass reads; the oldest wait for a later pass' : 'every release of the week read' }) }
         } catch (e) {
           // Recorded through the dispatcher's own log, which writes to the ops log (`o.log`).

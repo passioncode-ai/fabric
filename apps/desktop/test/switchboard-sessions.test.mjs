@@ -63,3 +63,14 @@ test('CO-457: Fabric only reads: it never asks Switchboard to run a hand-over or
   await readSwitchboardSessions({ find: async () => '/sb', now: NOW, run: async (_f, args) => { asked.push(args.join(' ')); return ok({ sessions: [] }) } })
   assert.deepEqual(asked.sort(), ['--json recovery', '--json sessions --all'])
 })
+
+const { readLimitStops } = await import(path.resolve(import.meta.dirname, '../src/main/switchboardSessions.ts'))
+
+test('§3.12 (on-demand spec): the sessions Switchboard holds on a usage limit and will continue itself; a billing stop needs the person and holds nothing', async () => {
+  const billing = { stop: { event: 'cc-c3-1793600002', session: 'c3', directory: '/Users/example/DATA/delta', provider: 'claude', state: 'waiting', kind: 'billing', stopped_at: s(NOW - 60_000), attempt: 1 }, ready: false }
+  const data = { data: { sessions: [...RECOVERY.data.sessions, billing] } }
+  assert.deepEqual([...await readLimitStops({ find: async () => '/sb', run: runner({ '--json recovery': ok(data) }) })], ['a1'])
+  assert.deepEqual([...await readLimitStops({ find: async () => null, run: runner({}) })], [], 'no Switchboard: no stop')
+  assert.equal(await readLimitStops({ find: async () => '/sb', run: runner({ '--json recovery': { code: 2, stdout: '', stderr: 'boom' } }) }), null)
+  assert.equal(await readLimitStops({ find: async () => '/sb', run: runner({ '--json recovery': ok('not json') }) }), null)
+})

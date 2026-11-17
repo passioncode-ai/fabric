@@ -33,7 +33,9 @@ export interface OpenRequest {
   inbox?: { unread: number; oldestAt: string }
   /** 2026-11-16 (§3.11, the board supervisor): a task left open, not a request. `id` is the task, `target` its project;
    *  it reads `queued` while nobody took the task since `releasedAt` and `answered` once someone did. */
-  resume?: { title: string; how: string; releasedAt: string }
+  resume?: { title: string; how: string; releasedAt: string
+    /** §3.12: the Observatory workflow the left claim was linked to (`fabric_work_claim` `workflowId`). */
+    workflowId?: string }
 }
 
 export interface DispatchRecord {
@@ -588,6 +590,8 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       // Switchboard's own instructions speak of one board request; here the id on the first line is the task.
       'Where the session\'s instructions speak of a board request, read it as this task: the request id on the first line names the task, not a board request, so there is nothing to com.claim, com.accept or com.complete for it.',
       'Claim the task first with fabric_work_claim {taskId}; when another agent holds it, leave it and end. Read its brief, its notes and the last session\'s handoff (the task\'s notes, the repository\'s handoff and its board thread, if any) before you act, and continue from the exact next step they name, never from the start.',
+      // §3.12: the left claim's Observatory workflow holds the last session's own state, step by step.
+      ...(req.resume!.workflowId ? [`The session that left it kept its state in the Observatory workflow ${req.resume!.workflowId}: read it with observatory_checkpoint_latest {workflowId: ${req.resume!.workflowId}} before you act, continue from its open steps, and claim the task with workflowId ${req.resume!.workflowId} so it stays linked.`] : []),
       'Do the next unit of the task to its finish line under the repository\'s own rules (its checks green on the artefact the operator uses). When the whole task is done, release the claim with done and move the task to review. When more remains, release with handed-over or let-go and put the exact next step in the note: the next run continues from that note.',
       QUESTIONS_RULE,
       'Stop before any step that touches production and hand it to a session the person is in or to the operator.',
@@ -597,6 +601,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     artifacts: [
       { kind: 'other', ref: `fabric-task:${req.id}` },
       { kind: 'other', ref: `capability:${RESUME_CAPABILITY}` },
+      ...(req.resume!.workflowId ? [{ kind: 'other', ref: `observatory-workflow:${req.resume!.workflowId}` }] : []),
       { kind: 'other', ref: `fabric-project:${req.target}` },
       ...(opening ? [{ kind: 'other', ref: `deadline:${packetDeadline(req.deadline, openAt)}` }] : []),
       { kind: 'other', ref: `run-ends-at:${endsAt}` }
