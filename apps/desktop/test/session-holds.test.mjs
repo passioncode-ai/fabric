@@ -70,3 +70,15 @@ test('T4: a release asked while the hold is in flight is asked once that call en
   assert.deepEqual(calls, [1794900000, 0])
   assert.equal(h.asked(S), undefined)
 })
+
+// 0.3.22 review, iteration 3, run two, PL-1: fabric-mcp's ping renews the claims every few minutes, so a hold bounded by
+// the claims alone kept an idle or stalled session from Switchboard's duty officer for as long as its process lived. The
+// hold runs at most an hour past the session's last work; past it the hold is released (0).
+test('T4: the hold runs at most an hour past the session\'s last work; an idle session is released to the duty officer', async () => {
+  const { HOLD_IDLE_MS } = await import(path.resolve(import.meta.dirname, '../src/main/sessionHolds.ts'))
+  const claims = [iso(NOW + 30 * 60_000)]
+  assert.equal(holdUntil(claims, NOW, NOW - 10 * 60_000), Math.floor((NOW + 30 * 60_000) / 1000), 'a claim inside the hour holds to its end')
+  assert.equal(holdUntil([iso(NOW + 3 * 3_600_000)], NOW, NOW - 10 * 60_000), Math.floor((NOW - 10 * 60_000 + HOLD_IDLE_MS) / 1000), 'capped an hour past the last work')
+  assert.equal(holdUntil(claims, NOW, NOW - HOLD_IDLE_MS - 1), 0, 'idle past the hour: released')
+  assert.equal(holdUntil(claims, NOW), Math.floor((NOW + 30 * 60_000) / 1000), 'no work time given: the claims bound it, as before')
+})

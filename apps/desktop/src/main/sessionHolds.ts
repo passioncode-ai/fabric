@@ -21,10 +21,17 @@ export const MISSING_RECHECK_MS = 10 * 60_000
 
 /** The end to ask for a session holding claims that expire at `expiries` (ISO): the newest, at most seven days ahead;
  *  0 (release) when it holds none or all have expired. In Unix seconds, as Switchboard takes it. */
-export function holdUntil(expiries: readonly string[], now: number): number {
+/** How long after a session's last work (a tool call, never a keep-alive ping) its hold may run (0.3.22 review, iteration 3,
+ *  run two, PL-1): the ping renews the claims every few minutes, so a hold bounded by the claims alone kept an idle or stalled
+ *  session from Switchboard's duty officer for as long as its process lived. Past it the duty officer judges it again. */
+export const HOLD_IDLE_MS = 60 * 60_000
+
+export function holdUntil(expiries: readonly string[], now: number, workedAt?: number): number {
   const live = expiries.map((e) => Date.parse(e)).filter((t) => Number.isFinite(t) && t > now)
   if (!live.length) return 0
-  return Math.floor(Math.min(Math.max(...live), now + HOLD_MAX_MS) / 1000)
+  const cap = Math.min(now + HOLD_MAX_MS, workedAt !== undefined ? workedAt + HOLD_IDLE_MS : Number.POSITIVE_INFINITY)
+  if (cap <= now) return 0
+  return Math.floor(Math.min(Math.max(...live), cap) / 1000)
 }
 
 export interface HoldDeps {

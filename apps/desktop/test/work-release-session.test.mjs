@@ -290,3 +290,19 @@ test('PL-1: a session the person ended releases its claims as the person\'s own,
   await releaseSessionClaims(endedStore(), async (e) => { quit.push(e) }, 's1', 'app-quit', person)
   assert.equal(quit.find((e) => e.type === 'work.released@1').payload.how, 'session-ended', 'Fabric quitting is nobody\'s end of the work')
 })
+
+// 0.3.22 review, iteration 3, run two (UX-1, ER-1, PL-2, DO-1): every way a person ends a session marks it before the act,
+// so its end releases its claims as the person's: «Завершить сессию», History's stop, and an agent revoked in Agent access,
+// by the button, an undo or an agent relaying the operator's words. A source read, as the wiring runs only in the app.
+test('PL-1 run two: every person\'s end of a session is marked before it acts', async () => {
+  const { readFileSync } = await import('node:fs')
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/main/index.ts'), 'utf8')
+  const stops = src.split("stopRuntime.stop(sessionId, 'operator_stop'")
+  assert.equal(stops.length - 1, 2, 'two person stops')
+  for (const before of stops.slice(0, -1)) assert.match(before.slice(-400), /markPersonEnded\(sessionId\)/)
+  const revokes = src.split(/revokeBinding\((?:String\(bindingId\)|bindingId), (?:OPERATOR_ACTOR|actor, relayed)\)/)
+  assert.equal(revokes.length - 1, 3, 'three person revocations')
+  for (const before of revokes.slice(0, -1)) assert.match(before.slice(-300), /markBindingPersonEnded\(/)
+  assert.match(src, /enrolledForMarks = enrolled\n\s*access\.onBindingRevoked\(\(bindingId\) => \{ enrolled\.endForBinding\(bindingId\) \}\)/)
+  assert.match(src, /const byPerson = personEndedSessions\.delete\(sessionId\) \? OPERATOR_ACTOR : undefined/)
+})

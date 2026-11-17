@@ -1139,7 +1139,9 @@ export class AgentSurface {
   private holdFor(scope: AgentScope, expiries: readonly string[]): void {
     const rt = this.runtimeIdOf(scope)
     if (!this.deps.holdSession || !rt || !this.holdable(scope)) return
-    this.deps.holdSession(rt, holdUntil(expiries, this.now()))
+    // PL-1 (iteration 3, run two): held only within an hour of the session's last work; its start counts before any.
+    const s = this.live.get(scope.sessionId)
+    this.deps.holdSession(rt, holdUntil(expiries, this.now(), s ? (s.lastWorkAt ?? s.mintedAt) : undefined))
   }
   // #endregion session-hold-sync
   // #endregion claim-renewal

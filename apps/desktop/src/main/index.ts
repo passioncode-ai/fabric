@@ -510,6 +510,11 @@ function markPersonEnded(sessionId: string): void {
   personEndedSessions.add(sessionId)
   while (personEndedSessions.size > PERSON_ENDED_MAX) personEndedSessions.delete(personEndedSessions.values().next().value as string)
 }
+/** A binding the person revokes ends its enrolled sessions (`sessionEnroll.ts#endForBinding`): each is marked first. */
+function markBindingPersonEnded(bindingId: string): void {
+  for (const s of enrolledForMarks?.liveOf(bindingId) ?? []) markPersonEnded(s.sessionId)
+}
+let enrolledForMarks: { liveOf(bindingId: string): Array<{ sessionId: string }> } | null = null
 let admission: ReturnType<typeof createProjectAdmission>
 /** W2 S3/S4: files a project's onboarding task; set where the journal and store exist (below), read by the IPC handler. */
 let fileOnboardingTask: ((projectId: string, name: string) => Promise<{ taskId: string; filed: boolean }>) | null = null
@@ -1327,6 +1332,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
   access.onBindingRevoked((bindingId) => agentCall.forgetBinding(bindingId))
   // ADR-0134 §3: a revoked binding or grant ends the coding-agent sessions enrolled under it; the next call is refused.
+  enrolledForMarks = enrolled
   access.onBindingRevoked((bindingId) => { enrolled.endForBinding(bindingId) })
   access.onGrantRevoked((grantId) => { enrolled.endForGrant(grantId) })
   // COM03-10: a revoked board.respond grant releases the responder slots it admitted (best effort; the in-statement
@@ -1394,7 +1400,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
           const b = await accessStore.binding(bindingId).catch((e: unknown) => { ops.failed('hub.access.revoke-name-unreadable', e, { binding_id: bindingId }); return null })
           return b ? ((await accessStore.request(b.request_id).catch(() => null))?.registry?.name ?? AGENTS.find((a) => a.id === b.agent_id)?.label ?? b.agent_id) : null
         },
-        revokeBinding: (bindingId, actor, relayed) => hubAccess.revokeBinding(bindingId, actor, relayed),
+        // An agent relaying the operator's words revokes as the person (CO-506): its sessions' tasks are not continued.
+        revokeBinding: (bindingId, actor, relayed) => { markBindingPersonEnded(bindingId); return hubAccess.revokeBinding(bindingId, actor, relayed) },
         // Before registerIpc made History's acts the revocation still stands and its event keeps the actor and the words;
         // the missing act is said in the operations log (the CO-506 review, N1).
         note: async (outcome, opts) => (actsForSurface ? actsForSurface.note(outcome, opts) : ops.record({ op: 'acts.record', outcome: 'failed', level: 'warn', detail: { kind: outcome.kind, reason: 'history not ready' }, ctx: { correlationId: ops.correlate() } }))
@@ -4476,6 +4483,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         return null
       }
     })()
+    markBindingPersonEnded(String(bindingId)) // PL-1 run two, UX-1: the person revoked it; its tasks are not continued
     const done = await h.access.revokeBinding(String(bindingId), OPERATOR_ACTOR)
     // The credential is gone and cannot be revived: the agent asks again and gets a new one (ADR-0160 §2: said, not hidden).
     if (done.ok) await acts.note({ kind: 'agent.disconnect', projectId: null, subject: { type: 'agent', id: String(bindingId), label: named },
@@ -4540,6 +4548,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       ...createSessionExecutors({
         runnerAvailable: async (id) => (UUID.test(id) ? true : (await launchOption(id))?.available === true),
         stop: async (sessionId) => {
+          markPersonEnded(sessionId) // PL-1 run two: History's act stops it for the person
           const r = await stopRuntime.stop(sessionId, 'operator_stop')
           return { sessionId, state: r.state, reasonCode: r.reasonCode, ...(r.taskId ? { taskId: r.taskId } : {}) }
         },
@@ -4565,6 +4574,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         keptOut: keptOutAgents,
         liveBindingsOf: async (agentId) => (await hubReady().accessStore.liveBindings()).filter((b) => b.agent_id === agentId && b.revoked_at === null).map((b) => b.id),
         revoke: async (bindingId) => {
+          markBindingPersonEnded(bindingId)
           const r = await hubReady().access.revokeBinding(bindingId, OPERATOR_ACTOR)
           return r.ok ? { ok: true } : { ok: false, reason: r.code ?? r.reason }
         },

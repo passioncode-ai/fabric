@@ -36,7 +36,8 @@ the two switches again after it (the runbook's 0.3.22 paragraph).
   and an ended session's console in the main window offers «New session» with the same coding agent and permissions in the same project (a separate console window cannot open one, and offers none). Two tabs of
   one project and one coding agent now say when each session started («since 01:16»), in the tab and in the title.
   No confirmation is asked before ending (ADR-0160). A session the person ends
-  leaves its tasks in the queue as the person's own release: the board supervisor does not start them again. The screens stand draws the console at 1780, 1100 and 820 px.
+  («Завершить сессию», an agent revoked in Agent access, or History's stop) leaves its tasks in the queue as the person's
+  own release: the board supervisor does not start them again. The screens stand draws the console at 1780, 1100 and 820 px.
 
 - **A run on another machine can ask a person, and the answer continues the work there** (the turn-end spec, wave T5).
   A run Fabric starts through Switchboard on another machine has no board, so its packet now tells it to end
@@ -163,7 +164,7 @@ the two switches again after it (the runbook's 0.3.22 paragraph).
 - **An agent left in a removed folder is told so** (the quality waves, W5). Git asked to run in a folder that no longer
   exists answered «spawn git ENOENT», which read as git missing; one agent was refused that way 2 400 times in a day.
   The answer now says the folder was moved or removed, and to open the agent where the repository is now.
-- **A hidden window reads nothing** (the quality waves, W3). The window's feed, sessions and Comms count were read every
+- **A hidden window stops reading its feed, sessions and Comms count** (the quality waves, W3). The window's feed, sessions and Comms count were read every
   2, 3 and 5 seconds whether or not anybody looked; they now pause while the window is hidden or minimised and read once
   the moment it is shown again.
 - **The home and the rail answer faster under many agents** (the quality waves, W3). Every window and screen now shares
