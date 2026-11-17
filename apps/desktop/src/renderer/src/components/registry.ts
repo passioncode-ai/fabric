@@ -215,7 +215,8 @@ export const LAYOUT: Readonly<Record<string, string>> = {
   'access-url': 'a product server address that may break anywhere',
   'access-problem': 'a failed connect attempt, in the warning ink',
   'access-acts': 'a card\'s acts, on their own line under its text',
-  'access-detail': 'the machine\'s own words, under a localised line'
+  'access-detail': 'the machine\'s own words, under a localised line',
+  'access-row-origin': 'where a nameless agent registered, on its own line under a denial (wave U)'
 }
 
 /** Every class the interface may name, from both kinds of entry. */

@@ -338,6 +338,8 @@ button:disabled { opacity: .4; cursor: default; }
 .access-card p { margin: 0; overflow-wrap: anywhere; }
 .access-asks li { overflow-wrap: anywhere; }
 .access-name { margin: 0; font-size: var(--app-fs-body); }
+/* Wave U: a nameless agent's denial says where it registered on a line of its own, under what it asked. */
+.access-row-origin { display: block; }
 .access-asks { margin: 0; padding-left: var(--space-3); }
 .access-url { overflow-wrap: anywhere; }
 .access-problem { color: var(--state-ink); border-left: 2px solid var(--state-idle); padding-left: var(--space-2); }

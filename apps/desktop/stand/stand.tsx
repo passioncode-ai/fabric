@@ -43,7 +43,8 @@ const asyncNoop = async (): Promise<void> => {}
 async function main(): Promise<void> {
   const { I18nProvider } = await import('../src/renderer/src/i18n')
   let node: React.ReactNode
-  let top: React.ReactNode = null
+  let consoleTitle: string | null = null
+  let consoleTabs: React.ReactNode = null
   if (screen === 'console' || screen === 'console-ended') {
     // The console under its tab (the operator, 2026-11-17): the top bar as the shell draws it (its title and the console
     // tabs, here two sessions of one project and one coding agent), the console full size under it.
@@ -57,8 +58,9 @@ async function main(): Promise<void> {
       (iso, seconds) => new Date(iso).toLocaleTimeString(locale, { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', ...(seconds ? { second: '2-digit' } : {}) }))
     const shown = consoleSessions[1].sessionId
     const title = words['consoles.sessionTitleAt'].replace('{project}', 'Atlas').replace('{runner}', 'Claude Code').replace('{at}', clocks.get(shown) ?? '')
-    top = <><h1>{title}</h1><ConsoleTabs tabs={consoleSessions.map((s) => ({ sessionId: s.sessionId, title: 'Atlas', runner: 'Claude Code', at: clocks.get(s.sessionId) ?? null }))}
-      activeId={shown} onSelect={noop} onClose={noop} /></>
+    consoleTitle = title
+    consoleTabs = <ConsoleTabs tabs={consoleSessions.map((s) => ({ sessionId: s.sessionId, title: 'Atlas', runner: 'Claude Code', at: clocks.get(s.sessionId) ?? null }))}
+      activeId={shown} onSelect={noop} onClose={noop} />
     node = <SessionWindow sessionId={shown} onDetach={asyncNoop} />
   } else if (screen === 'agent') {
     const { AgentsScreen } = await import('../src/renderer/src/launch/AgentsScreen')
@@ -105,13 +107,24 @@ async function main(): Promise<void> {
   } else {
     node = <p>unknown screen {screen}</p>
   }
+  // Wave U (2026-11-16): the app's real shell around the screen, its rail with places and projects (folding to signs
+  // under 900 px as the app's does), so a screen is measured at the width it really gets beside the rail.
+  const { LaunchShell } = await import('../src/renderer/src/launch/LaunchShell')
+  const at = screen === 'project' || screen === 'task' || screen === 'plan' || screen === 'graph' || screen === 'launch'
+    ? { kind: 'project' as const, projectId: 'p1' }
+    : screen === 'agent' ? { kind: 'agents' as const, session: agent.sessionId }
+      : screen === 'review' ? { kind: 'board' as const }
+        : screen === 'pulse' ? { kind: 'elsewhere' as const }
+          : { kind: screen as 'home' | 'board' | 'comms' | 'access' | 'history' | 'settings' }
   createRoot(document.getElementById('root')!).render(
     <I18nProvider locale={locale}>
       <div className="app launch-root">
-        <div className="fab-shell">
-          <aside className="rail" aria-label="rail"><div className="rail-brand"><b>Fabric</b></div></aside>
-          <div className="fab-main"><header className="fab-top">{top}</header><div className="fab-place"><div className="shell"><main className="content" id="page">{node}</main></div></div></div>
-        </div>
+        <LaunchShell projects={projects as never} projectsProblem={null} projectsReadAt={new Date(NOW).toISOString()} onRetryProjects={noop}
+          at={at} title={consoleTitle ?? (at.kind === 'project' ? 'Atlas' : '')} pins={['p1']} agents={{ rows: [], problem: null }} onAgent={noop} live={new Set(['p1'])}
+          waiting={{ total: 5, byProject: { p1: 5 } }} machine="ok" onPlace={noop} onCreateProject={noop} onProject={noop} onSearch={noop}
+          commsUnread={{ count: 2, atLeast: false }} consoles={consoleTabs}>
+          <div className="shell"><main className="content" id="page">{node}</main></div>
+        </LaunchShell>
       </div>
     </I18nProvider>
   )

@@ -641,13 +641,13 @@ describe('who answers a request (SCN-147 step 1)', () => {
 
   it('absent names the capability and project, and why the last one left when it is known', async () => {
     await openRequest('queued', { responders: async () => ({ ok: true, responders: [slot({ state: 'absent', agent: undefined, releasedCause: 'revoked', releasedAt: '2026-10-11T07:30:00.000Z' })] }) })
-    await waitFor(() => expect(responderText()).toContain('No agent answers analytics.retention requests for Beacon now.'))
+    await waitFor(() => expect(responderText()).toContain('No agent answers requests of the kind “analytics.retention” sent to Beacon now.'))
     expect(responderText()).toMatch(/The last one's permission was revoked, .+ ago\./)
   })
 
   it('a capability nobody ever answered is absent, with no cause invented', async () => {
     await openRequest('queued', { responders: async () => ({ ok: true, responders: [] }) })
-    await waitFor(() => expect(responderText()).toContain('No agent answers analytics.retention requests for Beacon now.'))
+    await waitFor(() => expect(responderText()).toContain('No agent answers requests of the kind “analytics.retention” sent to Beacon now.'))
     expect(responderText()).not.toMatch(/The last one/)
   })
 })
@@ -682,12 +682,12 @@ describe('how a request ended (SCN-147 steps 2–3)', () => {
     expect(en['launch.comms.request.state.outcome_unknown']).toBe('may have happened, awaiting reconciliation')
     expect(en['launch.comms.request.state.outcome_unknown']).not.toMatch(/\b(done|completed|succeeded|success)\b/i)
     expect(ru['launch.comms.request.state.outcome_unknown']).not.toMatch(/успешно|завершено/i)
-    await screen.findByText(en['launch.comms.unknown.settledBy'].replace('{capability}', 'analytics.retention'))
+    await screen.findByText(en['launch.comms.unknown.settledBy'].replace('{capability}', 'of the kind “analytics.retention”'))
   })
 
   it('outcome_unknown with nobody answering says nothing settles it until an agent does — and offers no settle control', async () => {
     await openRequest('outcome_unknown', { responders: async () => ({ ok: true, responders: [slot({ state: 'absent' })] }) })
-    await screen.findByText(en['launch.comms.unknown.nobody'].replace('{capability}', 'analytics.retention'))
+    await screen.findByText(en['launch.comms.unknown.nobody'].replace('{capability}', 'of the kind “analytics.retention”'))
     expect(screen.queryByRole('button', { name: /settle|закрыть/i })).toBeNull()
   })
 })

@@ -12,6 +12,7 @@ import { useT } from '../i18n'
 import { FailureNote } from '../OperatorError'
 import { usePaneRead } from './paneRead'
 import { runnerLabel } from '../runnerLabel'
+import { sayBoardRequests } from '../../../shared/accessWords.ts'
 
 type T = ReturnType<typeof useT>
 
@@ -41,7 +42,8 @@ function Card({ item, t, showAgent, onOpenTask, onOpenRequest }: {
   const body = (
     <>
       <span className="lp-dir-project">{item.projectName ?? t('launch.project.directions.unnamedProject')}</span>
-      <span className="lp-dir-title">{item.subject ?? item.capability}</span>
+      {/* Wave U: a request with no subject is named by what it asks for in words, never by the capability's machine name. */}
+      <span className="lp-dir-title">{item.subject ?? capitalized(sayBoardRequests(t, item.capability))}</span>
       <small className="lp-meta">{[t(`launch.project.directions.request.${item.word}` as 'launch.project.directions.request.waiting'), ago(item.at, t)].filter(Boolean).join(' · ')}</small>
     </>
   )
@@ -49,6 +51,9 @@ function Card({ item, t, showAgent, onOpenTask, onOpenRequest }: {
     ? <button type="button" className="lp-dir-card is-request" onClick={() => onOpenRequest(item.threadId)}>{body}</button>
     : <div className="lp-dir-card is-request">{body}</div>
 }
+
+/** «запросы на изменения» → «Запросы на изменения»: a title starts with a capital. */
+const capitalized = (s: string): string => s.charAt(0).toLocaleUpperCase() + s.slice(1)
 
 const REQUEST_ROWS = new Set(['fromProjects', 'toProjects'])
 

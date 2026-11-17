@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/ui-wave-u → main · fast-forward
+- files: `launch/HistoryScreen.tsx` (`saidOf`: an agent's act without its subject), `i18n/{ru,en}.ts` (`acts.did.*`, `access.unnamed`, `access.origin.unnamed*`, `board.capability.*`), `shared/accessWords.ts` (`shownTitle`, `sayBoardCapability`, `sayBoardRequests`), `AgentAccessPanel.tsx`, `styles.css`, `launch/CommsScreen.tsx`, `launch/CommsParts.tsx`, `launch/WorkDirections.tsx`, `launch/launch.css` (adaptations: project side column, board filters, thread title and message size), `stand/stand.tsx` (the real `LaunchShell`), the tests, the map lane `iteration-2026-11-16-ui-wave-u`
+- conflicts: `CHANGELOG.md`, `docs/MERGES.md`, `docs/reports/map.html` (both entries kept) and `stand/stand.tsx` beside the console's top bar: the stand draws the real `LaunchShell`, the console's title and tabs passed through its `title` and `consoles`
+- summary: wave U, four interface findings: History, Agent access, Comms' open thread, project and board at a narrow width
+
 ### 2026-11-17 · `—` · fix/load-flakes → main · fast-forward
 - files: `apps/desktop/test/hub-products.test.mjs` (the cancelled-read test: a 60 s vault deadline, every read ahead asserted with its reason), `scripts/test/bounded-run.test.mjs` (the mid-takeover test: the late run starts once a live winner holds, the winner holds until let go), `apps/desktop/test/backend-view.test.mjs` (waits 20 s as native-view-host)
 - conflicts: none

@@ -25,6 +25,7 @@ import { useLocale, useT, type Translate } from '../i18n'
 import { en, type StringKey } from '../i18n/en'
 import { FailureNote } from '../OperatorError'
 import { runnerLabel } from '../runnerLabel'
+import { sayBoardCapability } from '../../../shared/accessWords.ts'
 
 /** A machine word the contract owns, in the operator's language where this build knows it, raw where it does not. */
 export const contractWord = (t: Translate, group: string, value: string): string => {
@@ -65,7 +66,7 @@ export function ResponderLine({ request, state, nameOf }: { request: CommsReques
       text = t('launch.comms.responder.stale', { n: slot.generation, since: slot.leaseExpiresAt ? ago(t, slot.leaseExpiresAt) : '—' })
     } else if (!slot || slot.state === 'absent') {
       // No slot at all is absent too: nobody ever answered that capability for that project.
-      text = t('launch.comms.responder.absent', { capability: request.capability, project: nameOf(request.target) })
+      text = t('launch.comms.responder.absent', { capability: sayBoardCapability(t, request.capability), project: nameOf(request.target) })
       const cause = slot?.releasedCause
       if (cause && `launch.comms.responder.absentWhy.${cause}` in en) {
         why = t(`launch.comms.responder.absentWhy.${cause}` as StringKey, { since: slot?.releasedAt ? ago(t, slot.releasedAt) : '—' })
@@ -87,7 +88,7 @@ export function UnknownLine({ request, state }: { request: CommsRequest; state: 
   if (request.state !== 'outcome_unknown' || state.kind !== 'read') return null
   const slot = slotOf(state.responders, request)
   const held = slot !== null && (slot.state === 'active' || slot.state === 'stale')
-  return <p className="lp-meta" data-comms-unknown={held ? 'holder' : 'nobody'}>{t(held ? 'launch.comms.unknown.settledBy' : 'launch.comms.unknown.nobody', { capability: request.capability })}</p>
+  return <p className="lp-meta" data-comms-unknown={held ? 'holder' : 'nobody'}>{t(held ? 'launch.comms.unknown.settledBy' : 'launch.comms.unknown.nobody', { capability: sayBoardCapability(t, request.capability) })}</p>
 }
 
 /** How a finished request ended (SCN-147 step 2): the responder's outcome, or the requester's cancel reason. */

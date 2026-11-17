@@ -198,7 +198,8 @@ describe('«Directions of work» (SCN-181, CO-543)', () => {
     expect(rowOf('fromProjects').getByText('Docs')).toBeTruthy()
     expect(rowOf('fromProjects').getByText(/waiting/)).toBeTruthy()
     expect(rowOf('toProjects').getByText('Billing')).toBeTruthy()
-    expect(rowOf('toProjects').getByText('pricing')).toBeTruthy()
+    // Wave U: a request with no subject is named by what it asks for in words, never by the capability's machine name.
+    expect(rowOf('toProjects').getByText(/Requests of the kind “pricing”/)).toBeTruthy()
     expect(rowOf('fromBacklog').getByText('CO-41 in docs/backlog.md')).toBeTruthy()
     // The agent on a task in work is said on its card.
     // By the runner's display name, as every other card names it (the 0.3.18 review UX-6), never the machine id.

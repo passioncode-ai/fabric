@@ -26,6 +26,22 @@ export function sayResource(t: Say, r: ResourceRef): string {
   return r.text
 }
 
+/**
+ * A board capability in words (wave U, 2026-11-16): `change.request` is said «на изменения» / "change", the part that
+ * follows «запросы» / precedes "requests" in every sentence that names one, never the machine name. The capabilities
+ * the estate's projects declare are known here (`com.directory`, 2026-11-16); another is said in quotes as a kind of
+ * request («запросы вида «x»»), since no word for it exists yet.
+ */
+export const BOARD_CAPABILITY_WORDS: ReadonlySet<string> = new Set([
+  'change.request', 'agents.improve', 'people.ask', 'access.client-key', 'studio.move', 'contract.change', 'templates.update',
+  'agent-map.wiki', 'research-agent.fix', 'prod.fix', 'release.notes', 'review.summary', 'board.respond'
+])
+export function sayBoardCapability(t: Say, capability: string): string {
+  return BOARD_CAPABILITY_WORDS.has(capability) ? t(`board.capability.${capability}` as StringKey) : t('board.capability.other', { name: capability })
+}
+/** «запросы на изменения» / "change requests": a capability as the requests it names. */
+export const sayBoardRequests = (t: Say, capability: string): string => t('board.capability.requests', { what: sayBoardCapability(t, capability) })
+
 /** "a", "a and b", "a, b and c" — in the operator's language. */
 export function sayList(t: Say, items: string[]): string {
   if (items.length <= 1) return items[0] ?? ''
@@ -38,7 +54,7 @@ export function sayAsk(t: Say, line: AskLine): string {
   // #endregion enroll-words
   // #region board-respond-words — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#2-responding-is-a-standing-grant-of-its-own
   if (line.kind === 'respond')
-    return line.project.name ? t('access.ask.respond', { capabilities: sayList(t, line.capabilities), project: line.project.name }) : t('access.ask.respondThis', { capabilities: sayList(t, line.capabilities) })
+    return line.project.name ? t('access.ask.respond', { capabilities: sayList(t, line.capabilities.map((c) => sayBoardCapability(t, c))), project: line.project.name }) : t('access.ask.respondThis', { capabilities: sayList(t, line.capabilities.map((c) => sayBoardCapability(t, c))) })
   // #endregion board-respond-words
   if (line.kind === 'resolve') return t('access.ask.resolve')
   const resource = sayResource(t, line.resource)
@@ -51,6 +67,13 @@ export function sayAsk(t: Say, line: AskLine): string {
 export const shownName = (agent: AgentFacts): string => agent.name ?? agent.agentId
 
 /**
+ * A card's title (wave U, 2026-11-16): the registry's name, else what the agent is in words («Агент без имени»), never
+ * its machine id as a name. The id stays one line below, in the agent's origin (`sayOrigin`), so the person still
+ * tells two nameless agents apart.
+ */
+export const shownTitle = (t: Say, agent: AgentFacts): string => agent.name ?? t('access.unnamed')
+
+/**
  * A grant in "Agents with access": a product grant as its ask line; an enrollment as "works in <project>". Main
  * builds a grant's line from the grant alone, so the project is named through `nameOf` — the project list the
  * screen read: a name, `null` when the list was read and the project is not in it, `undefined` when it was not read.
@@ -59,7 +82,7 @@ export function sayGrant(t: Say, line: AskLine, nameOf?: (projectId: string) => 
   // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
   if (line.kind === 'respond') {
     const shown = line.project.name ?? nameOf?.(line.project.id)
-    return shown ? t('access.ask.respond', { capabilities: sayList(t, line.capabilities), project: shown }) : t('access.ask.respondThis', { capabilities: sayList(t, line.capabilities) })
+    return shown ? t('access.ask.respond', { capabilities: sayList(t, line.capabilities.map((c) => sayBoardCapability(t, c))), project: shown }) : t('access.ask.respondThis', { capabilities: sayList(t, line.capabilities.map((c) => sayBoardCapability(t, c))) })
   }
   if (line.kind !== 'enroll') return sayAsk(t, line)
   const name = line.project.name ?? nameOf?.(line.project.id)
@@ -244,7 +267,7 @@ export function consentPrompt(t: Say, input: {
   // #region board-respond-words — docs: docs/adr/0149-who-answers-a-projects-requests-participation-comes-with-a-session-responding-is-a-grant.md#2-responding-is-a-standing-grant-of-its-own
   if (input.respond) {
     const project = projectWords(t, input.respond.projectName)
-    const capabilities = sayList(t, input.respond.capabilities)
+    const capabilities = sayList(t, input.respond.capabilities.map((c) => sayBoardCapability(t, c)))
     const said = sayRequest(t, input)
     return {
       title: t('access.respond.title', { name, capabilities, project }),

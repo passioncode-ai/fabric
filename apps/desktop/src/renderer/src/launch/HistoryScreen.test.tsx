@@ -164,7 +164,9 @@ describe('a task Fabric released names no agent (CO-430)', () => {
     expect(rows[0].querySelector('.hx-who')!.textContent).toBe(en['acts.actor.fabric'])
     expect(rows[0].querySelector('.hx-said')!.textContent).toContain(en['acts.releasedByFabric'])
     expect(rows[0].textContent).not.toContain(en['event.work.released@1'])
-    expect(rows[1].querySelector('.hx-said')!.textContent).toContain(en['event.work.released@1'])
+    expect(rows[1].querySelector('.hx-who')!.textContent).toBe(en['acts.actor.agent'])
+    expect(rows[1].querySelector('.hx-said')!.textContent).toContain(en['acts.did.work.released@1'])
+    expect(rows[1].querySelector('.hx-said')!.textContent).not.toMatch(/agent/i)
   })
 
   it('says the operator released it themselves, without an agent (CO-430\'s rest)', async () => {
@@ -352,5 +354,34 @@ describe('«Отметить прочитанным» marks only what is shown (
     show(vi.fn(async () => {}))
     expect(await screen.findByRole('heading', { name: en['acts.agentsTitle'] })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /as read/i })).toBeNull()
+  })
+})
+
+// Wave U (2026-11-16): «Кто» names the agent, so its act is said without the word again («Агент · взял задачу»).
+describe('an agent\'s act is said without repeating «агент» (wave U)', () => {
+  it('drops the subject from every agent sentence that opens with it, in Russian and in English', async () => {
+    const { ru } = await import('../i18n/ru')
+    const types = ['work.claimed@1', 'agent.stage.reported@1', 'agent.heartbeat@1', 'question.asked@1', 'session.enrolled@1', 'session.turn.observed@1']
+    for (const [locale, reg] of [['ru', ru], ['en', en]] as const) {
+      vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+      const at = new Date().toISOString()
+      const feed = types.map((type, i) => ({ estate_id: 'e', seq: 60 + i, type, actor: { kind: 'agent', id: 's1' }, project_id: 'p1', occurred_at: at, payload: {} }))
+      const { unmount } = render(<I18nProvider locale={locale}><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }]} mark={0} feed={feed} feedProjects={[{ id: 'p1', name: 'Atlas' } as never]} /></I18nProvider>)
+      await screen.findByRole('heading', { name: reg['acts.agentsTitle']! })
+      const said = [...document.querySelectorAll('.hx-agents .hx-said')].map((n) => n.textContent ?? '')
+      expect(said).toHaveLength(types.length)
+      for (const s of said) expect(s).not.toMatch(/^(агент|an agent|a coding agent)/i)
+      expect(said.some((s) => s.startsWith(reg['acts.did.work.claimed@1']!))).toBe(true)
+      unmount()
+    }
+  })
+
+  it('keeps the whole sentence for an act no agent did, and for an event with no short form', async () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { acts: { history: vi.fn(async () => ({ rows: [], next: null })), undo: vi.fn() } } }))
+    const at = new Date().toISOString()
+    const feed = [{ estate_id: 'e', seq: 70, type: 'task.moved@1', actor: { kind: 'agent', id: 's1' }, project_id: 'p1', occurred_at: at, payload: { to: 'review' } }]
+    render(<I18nProvider locale="en"><HistoryScreen projects={[{ id: 'p1', name: 'Atlas' }]} mark={0} feed={feed} feedProjects={[{ id: 'p1', name: 'Atlas' } as never]} /></I18nProvider>)
+    await screen.findByRole('heading', { name: en['acts.agentsTitle'] })
+    expect(document.querySelector('.hx-agents .hx-said')!.textContent).toContain(en['event.task.moved@1'])
   })
 })

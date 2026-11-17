@@ -44,6 +44,7 @@ import { CommsFeed } from './CommsFeed'
 import { CommsAnnouncements } from './CommsAnnouncements'
 import { FailureNote, MachineDetail } from '../OperatorError'
 import { runnerLabel } from '../runnerLabel'
+import { sayBoardRequests } from '../../../shared/accessWords.ts'
 import { ALL_THREADS, MAX_HELD, PAGE as LIST_PAGE, appendOlder, boardFilterOf, cursorOf, mergeFirstPage, type Held, type ThreadFilters } from './commsList'
 import {
   ArtifactList,
@@ -705,7 +706,9 @@ function MessageRow({ message: m, answered, nameOf, t, locale, responders, facts
   facts: FactsState
 }): React.JSX.Element {
   const principal = m.sender.principal
-  const principalText = principal ? (principal.label ?? principal.id ?? principal.kind ?? null) : null
+  // Wave U (2026-11-16): who sent it by name, a coding agent by its own («Claude Code», not `claude-code`); a principal
+  // with no label is not named by its machine id.
+  const principalText = principal?.label ? runnerLabel(principal.label, t) : null
   // W6 (ui UI-21): one rule for when it was said, the exact time in the tooltip.
   const when = whenSaid(m.at, locale, t)
   const artifacts = (m.artifacts ?? []).map(artifactOf).filter((a): a is NonNullable<ReturnType<typeof artifactOf>> => a !== null)
@@ -732,7 +735,7 @@ function MessageRow({ message: m, answered, nameOf, t, locale, responders, facts
             {/* TWO separate facts, the way the contract keeps them (SCN-143 step 3). */}
             <div><dt>{t('launch.comms.request.state')}</dt><dd><span className="lp-pill">{contractWord(t, 'request.state', m.request.state)}</span></dd></div>
             <div><dt>{t('launch.comms.request.effect')}</dt><dd><span className="lp-pill">{contractWord(t, 'request.effect', m.request.effect)}</span></dd></div>
-            <div><dt>{t('launch.comms.request.target')}</dt><dd>{nameOf(m.request.target)} · {m.request.capability}</dd></div>
+            <div><dt>{t('launch.comms.request.target')}</dt><dd>{nameOf(m.request.target)} · {sayBoardRequests(t, m.request.capability)}</dd></div>
             <ResponderLine request={m.request} state={responders} nameOf={nameOf} />
           </dl>
           <UnknownLine request={m.request} state={responders} />

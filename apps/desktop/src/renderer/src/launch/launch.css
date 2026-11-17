@@ -1369,3 +1369,16 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 /* The page's own ways stay on one line each beside a long title («Открыть сессию» broke into two at 820 px). */
 .lp-task-head>.lp-actions{flex:none}
 .lp-task-head>.lp-actions>:is(.lp-button,.btn){white-space:nowrap}
+/* Wave U (2026-11-16, the stand at 1100 and 820 px with the real rail beside the page): a project page narrower than
+   1000 px puts its side column under the page, its cards side by side, rather than squeezing «Агенты на проекте» into
+   230 px (its title broke onto two lines and an agent's status into «Чте…»). */
+@container (max-width:1000px){.lp-project-grid{grid-template-columns:minmax(0,1fr)}.lp-project-grid>.lp-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--space-3);align-items:start}.lp-project-grid>.lp-side>*{margin:0}}
+/* The Board's filters at the size of every other control (34 px, as Переписка's), not 44 px over the stages; the
+   switch beside them stands on the same line. */
+.lk-filters .lk-filter select{padding:var(--space-2) var(--space-3);min-height:34px}
+.lk-filters .lk-toggle{min-height:34px;padding-bottom:0}
+/* An open thread: «Связанные ветки» stands apart from the title above it, and a message's words are the size of the
+   rest of the thread, in the ink colour, whether the sender wrote plain text or Markdown. */
+.lp-detail>h3+.lp-comms-disclosure{margin-top:var(--space-3)}
+.lp-message .lp-message-body,.lp-message p.lp-message-body{font-size:13px;line-height:1.55;color:var(--app-ink)}
+.lp-message .lp-message-body.md p{font-size:inherit;color:inherit}

@@ -9,7 +9,7 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import type { HubActResult, HubOverview, PendingRequestFacts } from '../../shared/access'
-import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayDecided, sayGrant, sayOrigin, sayRequest, shownName, type Say } from '../../shared/accessWords'
+import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayDecided, sayGrant, sayOrigin, sayRequest, shownName, shownTitle, type Say } from '../../shared/accessWords'
 import { humaniseError } from '../../shared/errorText'
 import { Banner, Button, EmptyState, Panel, Row, Toolbar } from './components'
 import { useLocale, useT } from './i18n'
@@ -240,11 +240,12 @@ export function AgentAccessPanel({ onClose, page = false }: { onClose: () => voi
                 const name = shownName(a.agent)
                 return (
                   <div key={a.bindingId} className="access-card">
-                    <h4 className="access-name">{name}</h4>
-                    {/* A coding agent is said as one (ADR-0134), never by its catalogue id. */}
-                    {a.agent.codingAgent
+                    <h4 className="access-name">{shownTitle(t, a.agent)}</h4>
+                    {/* A coding agent is said as one (ADR-0134), never by its catalogue id; an agent with no name is
+                        titled in words and its id said below as where it registered (wave U). */}
+                    {a.agent.codingAgent || !a.agent.name
                       ? <p className="muted">{sayOrigin(t, a.agent)}</p>
-                      : a.agent.name && <p className="mono muted">{a.agent.agentId}</p>}
+                      : <p className="mono muted">{a.agent.agentId}</p>}
                     {a.grants.length === 0
                       ? <p className="muted">{t('access.agents.noGrants')}</p>
                       : a.grants.map((g) => {
@@ -270,7 +271,8 @@ export function AgentAccessPanel({ onClose, page = false }: { onClose: () => voi
                 const name = shownName(d.agent)
                 return (
                   <Row key={d.requestId} trail={<Button tone="ghost" aria-label={t('access.clearFor', { name })} {...waiting} onClick={() => void act(`clear:${d.requestId}`, () => window.fabric.hub.clearDenial(d.requestId), { section: 'denials' })}>{t('access.denials.clear')}</Button>}>
-                    <strong>{name}</strong> {t('access.denials.asked', { asks: d.ask.map((l) => sayAsk(t, l)).join('; ') })}
+                    <strong>{shownTitle(t, d.agent)}</strong> {t('access.denials.asked', { asks: d.ask.map((l) => sayAsk(t, l)).join('; ') })}
+                    {!d.agent.name && <span className="access-row-origin muted">{sayOrigin(t, d.agent)}</span>}
                   </Row>
                 )
               })}
@@ -308,7 +310,7 @@ function PendingCard({ r, t, waiting, act }: {
       {/* The screens waves S4: who and until when on one line, what is asked as the card's main words, the agent's own
           reason as a quote, and the floor kept in sight; what changes after an answer is one fold away. */}
       <div className="access-request-head">
-        <h4 className="access-name">{name}</h4>
+        <h4 className="access-name">{shownTitle(t, r.agent)}</h4>
         <span className="access-expires">{expiresIn(t, r.expiresAt, Date.now())}</span>
       </div>
       <p className="muted">{said.origin}</p>

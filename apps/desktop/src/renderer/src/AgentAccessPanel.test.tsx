@@ -115,10 +115,12 @@ describe('SCR-76 agent access', () => {
     await waitFor(() => expect(h.revokeAgent).toHaveBeenCalledWith('b1'))
   })
 
-  it('UX-11: an agent with no registry name is named once, by its id; dates are the locale\'s', async () => {
+  it('UX-11, wave U: an agent with no registry name is titled in words, its id said once as where it registered; dates are the locale\'s', async () => {
     stub(overview({ agents: [{ bindingId: 'b2', agent: agentFacts('other-agent.work', null), since: '2026-10-03T10:00:00Z', grants: [grantOf('read_message', 'cloudflare:news@example.com')] }] }))
     const { container } = show()
-    await screen.findByRole('heading', { name: 'other-agent.work' })
+    await screen.findByRole('heading', { name: en['access.unnamed'] })
+    expect(screen.queryByRole('heading', { name: 'other-agent.work' })).toBeNull()
+    expect(screen.getByText(fill(en['access.origin.plain'], { id: 'other-agent.work' }))).toBeTruthy()
     expect((container.textContent ?? '').split('other-agent.work').length - 1).toBe(1)
     expect(screen.getByText(fill(en['access.agents.until'], { date: new Date('2027-10-03T10:00:00Z').toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' }) }))).toBeTruthy()
   })
@@ -543,4 +545,25 @@ it('I3: a late failed act after unmount does not start a follow-up read', async 
   panel.unmount()
   await reactAct(async () => disconnect.reject(new Error('late disconnect failure')))
   expect(h.overview).toHaveBeenCalledTimes(1)
+})
+
+// Wave U (2026-11-16): a waiting request and a denial from an agent with no name are titled in words, never by its id.
+describe('a nameless agent is never titled by its machine id (wave U)', () => {
+  const nameless = agentFacts('board-answerer', null)
+  it('titles a waiting request «Агент без имени» and says where it registered below', async () => {
+    stub(overview({ pending: [pending({ agent: nameless })] }))
+    show('ru')
+    expect(await screen.findByRole('heading', { name: ru['access.unnamed']! })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'board-answerer' })).toBeNull()
+    expect(screen.getByText(fill(ru['access.origin.plain']!, { id: 'board-answerer' }))).toBeTruthy()
+  })
+  it('names a denial in words and says its id once, as where it registered', async () => {
+    stub(overview({ denials: [{ requestId: 'r9', agent: agentFacts('unknown-scraper', null), callee: 'fabric', ask: askLines({ capabilities: ['send_email'], resources: ['cloudflare:ceo@example.com'] }), deniedAt: null }] }))
+    const { container } = show('ru')
+    await screen.findByText(ru['access.denials.title']!)
+    const strong = [...container.querySelectorAll('strong')].map((n) => n.textContent)
+    expect(strong).toContain(ru['access.unnamed']!)
+    expect(strong).not.toContain('unknown-scraper')
+    expect(screen.getByText(fill(ru['access.origin.plain']!, { id: 'unknown-scraper' }))).toBeTruthy()
+  })
 })

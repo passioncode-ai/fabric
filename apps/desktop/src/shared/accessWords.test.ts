@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { agentFacts, askLines, normaliseAccessRequest, pendingFacts, shortFolder, SENDS_MAIL, KNOWN_CAPABILITIES } from './access'
 import {
   consentPrompt,
+  BOARD_CAPABILITY_WORDS,
+  sayBoardCapability,
+  sayBoardRequests,
   sayActRefusal,
   sayAllow,
   sayAllowFor,
@@ -331,11 +334,20 @@ describe('a responder grant, as main sends it (ADR-0149 §2)', () => {
     expect(f.enroll).toBeUndefined()
     expect(askLines(respondRow())).toEqual([{ kind: 'respond', project: { id: RESPOND_PROJECT, name: 'Atlas' }, capabilities: ['analytics.cohorts', 'analytics.retention'] }])
     expect(sayAllow(tEn, f)).toBe('Allow')
-    expect(consentPrompt(tEn, f).title).toBe('Let Codex answer analytics.cohorts and analytics.retention requests for Atlas?')
-    expect(consentPrompt(tRu, f).title).toBe('Разрешить Codex отвечать на запросы analytics.cohorts и analytics.retention в проекте «Atlas»?')
-    expect(sayGrant(tEn, askLines(respondRow())[0])).toBe('answer analytics.cohorts and analytics.retention requests for Atlas')
-    expect(sayGrant(tEn, askLines(respondRow(null))[0], () => 'Atlas')).toBe('answer analytics.cohorts and analytics.retention requests for Atlas')
-    expect(sayAsk(tEn, askLines(respondRow(null))[0])).toBe('answer analytics.cohorts and analytics.retention requests for this project')
+    expect(consentPrompt(tEn, f).title).toBe('Let Codex answer requests of the kind “analytics.cohorts” and of the kind “analytics.retention” sent to Atlas?')
+    expect(consentPrompt(tRu, f).title).toBe('Разрешить Codex отвечать на запросы вида «analytics.cohorts» и вида «analytics.retention» в проекте «Atlas»?')
+    expect(sayGrant(tEn, askLines(respondRow())[0])).toBe('answer requests of the kind “analytics.cohorts” and of the kind “analytics.retention” sent to Atlas')
+    expect(sayGrant(tEn, askLines(respondRow(null))[0], () => 'Atlas')).toBe('answer requests of the kind “analytics.cohorts” and of the kind “analytics.retention” sent to Atlas')
+    expect(sayAsk(tEn, askLines(respondRow(null))[0])).toBe('answer requests of the kind “analytics.cohorts” and of the kind “analytics.retention” sent to this project')
+  })
+  // Wave U (2026-11-16): a capability the estate declares is said in words, never by its machine name.
+  it('says a known capability in words in both languages, and every known one has its words', () => {
+    expect(sayBoardRequests(tRu, 'change.request')).toBe('запросы на изменения')
+    expect(sayBoardRequests(tEn, 'change.request')).toBe('requests for changes')
+    expect(sayBoardCapability(tRu, 'analytics.cohorts')).toBe('вида «analytics.cohorts»')
+    for (const c of BOARD_CAPABILITY_WORDS) {
+      for (const t of [tRu, tEn]) expect(sayBoardCapability(t, c)).not.toContain(c)
+    }
   })
   it('Russian says where requests come FROM in the dative — «присылают/отправляют проекту «Atlas»» / «этому проекту» — never the locative (wave-2 product finding 4)', () => {
     const named = pendingFacts(respondRow(), false), unnamed = pendingFacts(respondRow(null), false)

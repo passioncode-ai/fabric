@@ -9,6 +9,14 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **No machine names on the screens, a narrow window keeps the project and the board whole** (wave U, 2026-11-16).
+  История says an agent's act without repeating «агент» after «Кто» («Агент · взял задачу»); Agent access titles an agent
+  with no registry name «Агент без имени» / "An unnamed agent" and says its id below as where it registered; Переписка,
+  the access requests and a project's directions say a board capability in words («запросы на изменения» /
+  "requests for changes") and a sender by its name («Claude Code»); an open thread's «Связанные ветки» stands apart from
+  the title and a message's text is the thread's size. A project page narrower than 1000 px puts its side column under
+  the page; the Board's filters are 34 px like every other control. The screens stand draws every screen inside the
+  app's real shell and rail.
 - **The console of a session fills the page, with one slim bar under it and a clear end** (the operator, 2026-11-17,
   over a console of a new project at about 1780 px). The console no longer repeats the window's navigation: the top
   bar's title and its tab name the session, and the console's own «← project · agent» row is gone. The terminal runs

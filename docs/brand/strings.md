@@ -764,9 +764,9 @@ lands beside SCN-132.
 | `access.queue.enrolled` | You let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1182 | SCN-132 (enrollment) | proposed |
 | `access.queue.enrollDenied` | You did not let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts:1183 | SCN-132 (enrollment) | proposed |
 | `event.session.enrolled@1` | a coding agent opened outside Fabric joined the project | apps/desktop/src/renderer/src/i18n/en.ts:1204 | SCN-132 (enrollment) | proposed |
-| `access.ask.respond` | answer {capabilities} requests for {project} | apps/desktop/src/renderer/src/i18n/en.ts:1061 | SCN-145 (responder grant) | proposed |
-| `access.ask.respondThis` | answer {capabilities} requests for this project | apps/desktop/src/renderer/src/i18n/en.ts:1062 | SCN-145 (responder grant) | proposed |
-| `access.respond.title` | Let {name} answer {capabilities} requests for {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1063 | SCN-145 (responder grant) | proposed |
+| `access.ask.respond` | answer requests {capabilities} sent to {project} | apps/desktop/src/renderer/src/i18n/en.ts:1261 | SCN-145 (responder grant) | proposed |
+| `access.ask.respondThis` | answer requests {capabilities} sent to this project | apps/desktop/src/renderer/src/i18n/en.ts:1262 | SCN-145 (responder grant) | proposed |
+| `access.respond.title` | Let {name} answer requests {capabilities} sent to {project}? | apps/desktop/src/renderer/src/i18n/en.ts:1264 | SCN-145 (responder grant) | proposed |
 | `access.respond.message` | {name} asks to answer the requests other projects send to {project} | apps/desktop/src/renderer/src/i18n/en.ts:1064 | SCN-145 (responder grant) | proposed |
 | `access.respond.what` | It may take and answer the requests other projects send to {project} for these capabilities. This grant itself lets it spend, publish or delete nothing; it still has its own tools, and a request is not an approval unless it carries your own words, when and where you said them, and what you approved. | apps/desktop/src/renderer/src/i18n/en.ts:1065 | SCN-145 (responder grant); DEC-0126, CO-435 (private29 d1af4aae) | proposed |
 | `access.respond.projectTo` | {name} | apps/desktop/src/renderer/src/i18n/en.ts:1066 | SCN-145 (responder grant) | proposed |
