@@ -35533,7 +35533,7 @@
       "registry_status": "implemented",
       "product_observation": "unobserved",
       "expected_result": "the consoles the person works in are in Fabric itself, one press apart, and the top bar says which are open.",
-      "errors_recovery": "a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said under the header and the console in Fabric stays.",
+      "errors_recovery": "a console that cannot be read says why in place of the terminal and keeps its tab, so the person can close it; a separate window that does not open is said above the terminal and the console in Fabric stays; a «Новая сессия» that does not start says «Новая сессия не запустилась.» with the machine's words beneath it.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 4334
@@ -35555,7 +35555,7 @@
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4356
+        "line": 4358
       }
     },
     {
@@ -35574,7 +35574,7 @@
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4388
+        "line": 4390
       }
     },
     {
@@ -35591,7 +35591,7 @@
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4414
+        "line": 4416
       }
     },
     {
@@ -35608,7 +35608,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4437
+        "line": 4439
       }
     },
     {
@@ -35625,7 +35625,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4460
+        "line": 4462
       }
     },
     {
@@ -35644,7 +35644,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4484
+        "line": 4486
       }
     },
     {
@@ -35662,7 +35662,7 @@
       "errors_recovery": "a refusal keeps the comment and the buttons; a hand-in note that cannot be read leaves the review in the list without its words.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4506
+        "line": 4508
       }
     },
     {
@@ -35679,7 +35679,7 @@
       "errors_recovery": "a read that fails names the part not read.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4530
+        "line": 4532
       }
     },
     {
@@ -35698,7 +35698,7 @@
       "errors_recovery": "tasks and requests are read separately; a failure of one is said on its rows and the other rows stay; a later read replaces an earlier one only when it lands (CO-544's reading).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4552
+        "line": 4554
       }
     }
   ],

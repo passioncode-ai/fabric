@@ -8,6 +8,8 @@ import {
   consoleTitleOf,
   neighbourOf,
   prunedConsoles,
+  shortFolder,
+  startClocks,
   readOpenConsoles,
   useOpenConsole,
   withConsole,
@@ -86,5 +88,32 @@ describe('every "open the console" control asks the shell', () => {
     render(<Opener id="s2" />)
     fireEvent.click(screen.getByRole('button', { name: 'open' }))
     expect(openSession).toHaveBeenCalledWith('s2')
+  })
+})
+
+// The operator, 2026-11-17: two sessions of one new project with Claude Code were two identical tabs.
+describe('telling tabs apart and shortening a folder', () => {
+  const clock = (iso: string, seconds: boolean): string => iso.slice(11, seconds ? 19 : 16)
+  it('gives the start time only to tabs that share a name and a coding agent', () => {
+    const at = startClocks([
+      { sessionId: 'a', title: 'Mia', runner: 'Claude Code', startedAt: '2026-11-17T01:16:17Z' },
+      { sessionId: 'b', title: 'Mia', runner: 'Claude Code', startedAt: '2026-11-17T01:18:06Z' },
+      { sessionId: 'c', title: 'Mia', runner: 'Codex', startedAt: '2026-11-17T01:19:00Z' },
+      { sessionId: 'd', title: null, runner: null, startedAt: null }
+    ], clock)
+    expect([...at.entries()]).toEqual([['a', '01:16'], ['b', '01:18']])
+  })
+  it('falls back to the second when two of them started in the same minute', () => {
+    const at = startClocks([
+      { sessionId: 'a', title: 'Mia', runner: 'Claude Code', startedAt: '2026-11-17T01:16:17Z' },
+      { sessionId: 'b', title: 'Mia', runner: 'Claude Code', startedAt: '2026-11-17T01:16:48Z' },
+      { sessionId: 'c', title: 'Mia', runner: 'Claude Code', startedAt: '2026-11-17T02:00:00Z' }
+    ], clock)
+    expect([...at.entries()]).toEqual([['a', '01:16:17'], ['b', '01:16:48'], ['c', '02:00']])
+  })
+  it('shortens a long folder to its last two parts and keeps a short one whole', () => {
+    expect(shortFolder('/Users/example/DATA/atlas-desktop/Atlas desktop')).toBe('…/atlas-desktop/Atlas desktop')
+    expect(shortFolder('/repo/atlas')).toBe('/repo/atlas')
+    expect(shortFolder('C:\\Users\\me\\work\\atlas')).toBe('…/work/atlas')
   })
 })

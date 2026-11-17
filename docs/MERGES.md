@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/console-one-bar → main · fast-forward
+- files: `SessionWindow.tsx` (one bar under the terminal, `NewSession`), `TerminalView.tsx` (the unpadded fit box), `SessionStop.tsx` («Завершить сессию», its tooltip), `consoles.tsx` (`startClocks`, `shortFolder`), `launch/ConsoleTabs.tsx`, `App.tsx` (the tabs' and the title's start time, no back row), `styles.css`, `launch/launch.css`, `components/registry.ts`, `i18n/{ru,en}.ts`, the tests, the screens stand's console (`stand/`, `scripts/test/screens-stand.browser.mjs`), SCN-172's amendment, the product model and report, the map lane `iteration-2026-11-17-console-one-bar`
+- conflicts: none
+- summary: the console fills the page with one bar under it, its last line on screen, two tabs of one project told apart, and «Завершить сессию» then «Новая сессия» (board task «Консоль сессии без лишних рамок и двойной навигации»)
+
 ### 2026-11-17 · `—` · fix/ceo-host-timing → main · fast-forward
 - files: `apps/desktop/test/ceo-conversation-host.test.mjs` (deadlines that a loaded machine holds: 30 s by default, 250 ms in the hanging-guard test)
 - conflicts: none

@@ -125,5 +125,8 @@ export function TerminalView({
     }
   }, [session.sessionId, focusOnMount])
 
-  return <div className="terminal-host" ref={hostRef} />
+  // The fit box carries no padding (the operator, 2026-11-17: the console's last line was cut). The fit addon sizes the
+  // terminal from its parent's computed height, which under `box-sizing: border-box` counts the parent's own padding:
+  // xterm mounted straight into the padded host took a row more than fitted. The padding stays on the host around it.
+  return <div className="terminal-host"><div className="terminal-fit" ref={hostRef} /></div>
 }

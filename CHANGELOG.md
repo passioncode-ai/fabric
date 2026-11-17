@@ -9,6 +9,17 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The console of a session fills the page, with one slim bar under it and a clear end** (the operator, 2026-11-17,
+  over a console of a new project at about 1780 px). The console no longer repeats the window's navigation: the top
+  bar's title and its tab name the session, and the console's own «← project · agent» row is gone. The terminal runs
+  edge to edge (the 24 px card margin is gone) and its last line is on screen again: xterm fitted itself to a padded box
+  and took one row more than fitted. One bar under the terminal holds the state, the folder (its last two parts, the
+  whole path on hover), «End session» and the separate window, and wraps at a narrow window instead of cutting a
+  control. The act that ends a session is called «End session» (it read «Stop execution»), its tooltip says what stays,
+  and an ended session offers «New session» with the same coding agent and permissions in the same project. Two tabs of
+  one project and one coding agent now say when each session started («since 01:16»), in the tab and in the title.
+  No confirmation is asked before ending (ADR-0160). The screens stand draws the console at 1780, 1100 and 820 px.
+
 - **A run on another machine can ask a person, and the answer continues the work there** (the turn-end spec, wave T5).
   A run Fabric starts through Switchboard on another machine has no board, so its packet now tells it to end
   `outcome=blocked` with one question in its result, a fenced block opened by «```fabric-question» holding JSON

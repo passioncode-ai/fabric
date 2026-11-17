@@ -148,8 +148,8 @@ describe('a console opens inside Fabric as a tab along the top', () => {
     expect(tab.getAttribute('aria-current')).toBe('page')
     expect(tab.textContent).toContain(en['glyph.consoleTab'])
     expect(api.windows.openSession).not.toHaveBeenCalled()
-    // The console itself, full size in the content area: its folder in the header.
-    await within(content()).findByText('/Users/me/DATA/fabric-dashboards')
+    // The console itself, full size in the content area: its folder in the bar under the terminal (the operator, 2026-11-17).
+    await within(content()).findByTitle('/Users/me/DATA/fabric-dashboards')
     // The separate window stays one press away, on the console itself.
     fireEvent.click(within(content()).getByRole('button', { name: en['consoles.detach'] }))
     await waitFor(() => expect(api.windows.openSession).toHaveBeenCalledWith('s1'))
@@ -214,5 +214,22 @@ describe('back and forward in the top bar', () => {
     fireEvent.click(within(tabsStrip()!).getByRole('button', { name: en['consoles.close'].replace('{name}', 'fabric-dashboards') }))
     await waitFor(() => expect(tabsStrip()).toBeNull())
     await waitFor(async () => expect((await travel())[1].disabled).toBe(true))
+  })
+
+  // The operator, 2026-11-17 (a new project, then a task started in it): two sessions of one new project with Claude
+  // Code were two tabs reading the same. Each tab and the top bar's title now say when its session started.
+  it('two open consoles of one project and one coding agent read apart, each with when it started', async () => {
+    const second = { ...session, sessionId: 's2', startedAt: '2026-10-19T10:02:00Z' }
+    stub([session, second])
+    window.sessionStorage.setItem('fabric.consoles.v1', JSON.stringify(['s1', 's2']))
+    render(<App />)
+    const strip = await waitFor(() => { const s = tabsStrip(); expect(s).toBeTruthy(); return s! })
+    const names = await waitFor(() => {
+      const n = [...strip.querySelectorAll('.fab-console-name')].map((e) => e.textContent)
+      expect(n.every((x) => x?.includes('since'))).toBe(true)
+      return n
+    })
+    expect(names).toHaveLength(2)
+    expect(new Set(names).size).toBe(2)
   })
 })

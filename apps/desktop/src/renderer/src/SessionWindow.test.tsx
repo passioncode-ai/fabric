@@ -27,8 +27,9 @@
 // session, which is the same misuse UXA-C02 removed from the CEO panel.
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import { SessionWindow } from './SessionWindow'
+import { OpenConsoleContext } from './consoles'
 import { I18nProvider } from './i18n'
 import { en } from './i18n/en'
 import { ru } from './i18n/ru'
@@ -121,23 +122,65 @@ describe('a window onto one session', () => {
     expect(note.querySelector('.error-detail')?.textContent).toBe('no display')
   })
 
-  // The mockup parity, wave 1: embedded under its tab, one quiet line leads with «← project · runner» back to the
-  // agent, the folder, the state, Stop and the separate window as an icon button; the terminal sits in a box below.
-  it('embedded: the back link goes to the agent, Stop and the separate window stay, the terminal is boxed', async () => {
-    stub(async () => session())
-    const onBack = vi.fn(), onDetach = vi.fn(async () => {})
+  // The operator, 2026-11-17: embedded under its tab, the console repeats no navigation (the top bar names the session);
+  // the terminal fills the page, and one bar UNDER it holds the state, the folder (short, the whole path on hover), the
+  // end of the session and the separate window.
+  it('embedded: no second header, the terminal first and one bar under it with the state, folder and acts', async () => {
+    stub(async () => session({ cwd: '/Users/example/DATA/atlas-desktop/Atlas desktop' }))
+    const onDetach = vi.fn(async () => {})
     render(
       <I18nProvider locale="en">
-        <SessionWindow sessionId="s1" onDetach={onDetach} onBack={onBack} projectName="Atlas" />
+        <SessionWindow sessionId="s1" onDetach={onDetach} />
       </I18nProvider>
     )
-    ;(await screen.findByRole('button', { name: en['session.back'].replace('{runner}', 'Claude Code').replace('{project}', 'Atlas') })).click()
-    expect(onBack).toHaveBeenCalled()
-    screen.getByRole('button', { name: en['consoles.detach'] }).click()
-    expect(onDetach).toHaveBeenCalled()
-    expect(document.querySelector('.session-bar .session-stop-slot button')).toBeTruthy()
-    expect(document.querySelector('.session-box .terminal-host')).toBeTruthy()
+    const bar = await screen.findByRole('contentinfo', { name: en['session.bar'] })
     expect(document.querySelector('.session-head')).toBeNull()
+    expect(screen.queryByText(/^←/)).toBeNull()
+    const embedded = document.querySelector('.session-embedded')!
+    expect([...embedded.children].map((c) => c.className)).toEqual(['terminal-host', 'session-bar'])
+    const cwd = bar.querySelector('.session-cwd')!
+    expect(cwd.textContent).toBe('…/atlas-desktop/Atlas desktop')
+    expect(cwd.getAttribute('title')).toBe('/Users/example/DATA/atlas-desktop/Atlas desktop')
+    expect(bar.querySelector('.as-status.s-working')).toBeTruthy()
+    const end = within(bar).getByRole('button', { name: en['session.stop.action'] })
+    expect(end.getAttribute('title')).toBe(en['session.stop.actionHelp'])
+    expect(within(bar).queryByRole('button', { name: en['session.new'] })).toBeNull()
+    within(bar).getByRole('button', { name: en['consoles.detach'] }).click()
+    expect(onDetach).toHaveBeenCalled()
+    expect(document.querySelector('.session-box')).toBeNull()
+  })
+
+  // The operator, 2026-11-17 («более качественные завершения»): once the session has ended, the bar offers what comes
+  // next: a new session of the same coding agent in the same project, opened as its own console.
+  it('an ended session offers a new one with the same agent and permissions, opened as its console', async () => {
+    const opened = session({ sessionId: 's2' })
+    const open = vi.fn(async () => opened)
+    stub(async () => session({ running: false, state: 'ended', exitCode: 0, permissionMode: 'fewer-prompts' }))
+    ;(window as unknown as { fabric: { terminal: Record<string, unknown> } }).fabric.terminal.open = open
+    const openConsole = vi.fn(async () => {})
+    render(
+      <I18nProvider locale="en">
+        <OpenConsoleContext.Provider value={openConsole}>
+          <SessionWindow sessionId="s1" onDetach={async () => {}} />
+        </OpenConsoleContext.Provider>
+      </I18nProvider>
+    )
+    const again = await screen.findByRole('button', { name: en['session.new'] })
+    expect(again.getAttribute('title')).toBe(en['session.newHelp'].replace('{runner}', 'Claude Code'))
+    await act(async () => { again.click() })
+    expect(open).toHaveBeenCalledWith('p1', 'claude-code', undefined, 'fewer-prompts')
+    expect(openConsole).toHaveBeenCalledWith('s2')
+  })
+
+  it('a new session that does not start says so in our words, the machine words on their own line', async () => {
+    stub(async () => session({ running: false, state: 'ended', exitCode: 0 }))
+    ;(window as unknown as { fabric: { terminal: Record<string, unknown> } }).fabric.terminal.open = vi.fn(async () => { throw new Error('claude: command not found') })
+    render(<I18nProvider locale="en"><SessionWindow sessionId="s1" onDetach={async () => {}} /></I18nProvider>)
+    const again = await screen.findByRole('button', { name: en['session.new'] })
+    await act(async () => { again.click() })
+    const note = await screen.findByRole('alert')
+    expect(note.querySelector('.lp-meta')?.textContent).toBe(en['session.newFailed'])
+    expect(note.querySelector('.error-detail')?.textContent).toBe('claude: command not found')
   })
 
   // CO-472 (0.3.15 review UX-10): the console's header says the agent's status word and colour, as the agent page and the

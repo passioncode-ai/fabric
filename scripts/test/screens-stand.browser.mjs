@@ -6,7 +6,9 @@
 // text under 11 px, and none of the leaks a screen shows when it renders a value it did not mean to: `undefined`,
 // `[object Object]`, `NaN`, raw Markdown marks or a registry key. Watched failing on 2026-11-16 before the wave's fixes
 // (a note's `**`, a long path past the project page's column). The second wave adds a pill cut at its edge (watched
-// failing on «Нужны вы» at 1024 px before its fix).
+// failing on «Нужны вы» at 1024 px before its fix). The console wave (the operator, 2026-11-17) adds the console under its
+// tab at 1780, 1100 and 820 px: one header (no second «← …» row), the terminal edge to edge with its last line on screen,
+// one bar under it inside the window, and two tabs of one project and one coding agent that read apart.
 import http from 'node:http'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -25,7 +27,7 @@ const server = http.createServer((q, r) => {
 })
 await new Promise((ok) => server.listen(0, '127.0.0.1', ok))
 const port = server.address().port
-const SCREENS = ['home', 'agent', 'task', 'project', 'board', 'review', 'comms', 'pulse', 'history', 'plan', 'graph', 'access', 'settings', 'launch']
+const SCREENS = ['home', 'agent', 'task', 'project', 'board', 'review', 'comms', 'pulse', 'history', 'plan', 'graph', 'access', 'settings', 'launch', 'console', 'console-ended']
 const browser = await chromium.launch({ headless: true, ...(process.env.FABRIC_CHROME ? { executablePath: process.env.FABRIC_CHROME } : {}) })
 let checks = 0
 try {
@@ -68,6 +70,52 @@ try {
     for (const leak of [/\bundefined\b/, /\[object Object\]/, /\bNaN\b/, /\*\*\S/, /(^|\s)(launch|agentPage|agentScreen|board|task|comms)\.[a-z][a-zA-Z.]+(\s|$)/m])
       assert.ok(!leak.test(r.text), `${where}: the screen shows ${leak}: ${(r.text.match(leak) ?? [''])[0]}`)
     checks += 11
+    await p.close()
+  }
+  // The console wave (2026-11-17), at the operator's window width and the two narrow ones.
+  for (const screen of ['console', 'console-ended']) for (const locale of ['ru', 'en']) for (const width of [1780, 1100, 820]) {
+    const where = `${screen} ${locale} ${width}`
+    const p = await browser.newPage({ viewport: { width, height: 900 } })
+    await p.goto(`http://127.0.0.1:${port}/index.html#screen=${screen}&locale=${locale}&theme=dark`)
+    await p.waitForSelector(`body[data-mounted="${screen}"]`, { timeout: 15000 })
+    await p.waitForSelector('.session-bar', { timeout: 15000 })
+    await p.waitForTimeout(900)
+    const c = await p.evaluate(() => {
+      const page = document.getElementById('page')
+      const pr = page.getBoundingClientRect()
+      const hostEl = document.querySelector('.session-embedded > .terminal-host')
+      if (!hostEl) return { missing: 'the terminal is not a direct child of the console (a box or a header wraps it)' }
+      const host = hostEl.getBoundingClientRect()
+      const fit = document.querySelector('.terminal-fit').getBoundingClientRect()
+      const bar = document.querySelector('.session-bar')
+      const br = bar.getBoundingClientRect()
+      const rows = [...document.querySelectorAll('.xterm-rows > div')]
+      const last = rows.filter((r) => r.textContent.includes('ПОСЛЕДНЯЯ СТРОКА')).pop()
+      const lr = last?.getBoundingClientRect()
+      return {
+        seconds: document.querySelectorAll('.session-head, .session-back').length + [...page.querySelectorAll('*')].filter((e) => /^←/.test(e.textContent.trim()) && e.children.length === 0).length,
+        scrolls: page.scrollHeight > page.clientHeight + 1,
+        margin: Math.max(Math.abs(host.left - pr.left), Math.abs(pr.right - host.right)),
+        lastSeen: !!lr && lr.top >= fit.top - 1 && lr.bottom <= fit.bottom + 1 && lr.bottom <= br.top + 1,
+        barInWindow: br.top >= 0 && br.bottom <= innerHeight + 1 && br.top >= host.bottom - 1,
+        barCut: [...bar.querySelectorAll('button')].filter((b) => { const r = b.getBoundingClientRect(); return r.right > br.right + 1 || r.left < br.left - 1 || b.scrollWidth > b.clientWidth + 1 }).map((b) => b.textContent.trim()),
+        tabs: [...document.querySelectorAll('.fab-console-name')].map((e) => e.textContent),
+        ended: !!document.querySelector('.session-new button'),
+        wide: document.documentElement.scrollWidth > innerWidth
+      }
+    })
+    assert.equal(c.missing, undefined, `${where}: ${c.missing}`)
+    assert.equal(c.seconds, 0, `${where}: a second header or «← …» row over the console`)
+    assert.equal(c.scrolls, false, `${where}: the page around the console scrolls`)
+    assert.ok(c.margin <= 1, `${where}: the terminal does not reach the page's edges (${c.margin}px)`)
+    assert.ok(c.lastSeen, `${where}: the terminal's last line is cut or off screen`)
+    assert.ok(c.barInWindow, `${where}: the bar under the terminal is not inside the window`)
+    assert.deepEqual(c.barCut, [], `${where}: a control of the bar is cut`)
+    assert.equal(c.tabs.length, 2, `${where}: two console tabs`)
+    assert.equal(new Set(c.tabs).size, 2, `${where}: two tabs read the same: ${c.tabs.join(' | ')}`)
+    assert.equal(c.ended, screen === 'console-ended', `${where}: «New session» is offered exactly when the session ended`)
+    assert.equal(c.wide, false, `${where}: the document is wider than the window`)
+    checks += 10
     await p.close()
   }
 } finally { await browser.close(); server.close() }

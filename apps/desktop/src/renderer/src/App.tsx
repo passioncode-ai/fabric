@@ -87,6 +87,7 @@ import {
   neighbourOf,
   prunedConsoles,
   readOpenConsoles,
+  startClocks,
   withConsole,
   withoutConsole,
   writeOpenConsoles
@@ -945,10 +946,14 @@ function Shell({
     for (const id of consoles) if (!kept.includes(id)) closeConsoleRef.current(id)
   }, [sessions, consoles])
   useEffect(() => { if (isMainWindow) writeOpenConsoles(consoles) }, [consoles, isMainWindow])
-  const consoleTabs = consoles.map((id) => {
+  const consoleRows = consoles.map((id) => {
     const s = (sessions ?? []).find((x) => x.sessionId === id)
-    return { sessionId: id, title: consoleTitleOf(s, projects), runner: s ? runnerLabel(s.optionId, t) : null }
+    return { sessionId: id, title: consoleTitleOf(s, projects), runner: s ? runnerLabel(s.optionId, t) : null, startedAt: s?.startedAt ?? null }
   })
+  // The operator, 2026-11-17: two consoles of one project and one coding agent read the same; each says when it started.
+  const consoleClocks = startClocks(consoleRows, (iso, seconds) =>
+    new Date(iso).toLocaleTimeString(settings.locale, { hour: '2-digit', minute: '2-digit', ...(seconds ? { second: '2-digit' } : {}) }))
+  const consoleTabs = consoleRows.map((row) => ({ ...row, at: consoleClocks.get(row.sessionId) ?? null }))
   const consoleSession = active.kind === 'console' ? (sessions ?? []).find((x) => x.sessionId === active.sessionId) : undefined
   // #endregion console-tabs-shell
 
@@ -1014,7 +1019,11 @@ function Shell({
     : active.kind === 'persona' ? t('settings.more.persona')
     : active.kind === 'welcome' ? t('launch.brand.product')
     : active.kind === 'console'
-      ? (consoleSession && consoleProject ? t('consoles.sessionTitle', { runner: runnerLabel(consoleSession.optionId, t), project: consoleProject }) : (consoleProject ?? t('consoles.reading')))
+      ? (consoleSession && consoleProject
+        ? (consoleClocks.has(consoleSession.sessionId)
+          ? t('consoles.sessionTitleAt', { runner: runnerLabel(consoleSession.optionId, t), project: consoleProject, at: consoleClocks.get(consoleSession.sessionId)! })
+          : t('consoles.sessionTitle', { runner: runnerLabel(consoleSession.optionId, t), project: consoleProject }))
+        : (consoleProject ?? t('consoles.reading')))
     : t('launch.nav.fabric')
 
   return (
@@ -1126,11 +1135,10 @@ function Shell({
       {/* Settings is a screen (SCR-52): the page under it stays mounted, so returning loses nothing typed. */}
       <main className="content" hidden={showSettings}>
         {active.kind === 'console' && (
+          // The operator, 2026-11-17: the top bar names the session (its title and its tab), so the console repeats
+          // neither; its state, folder and acts are one slim bar under the terminal.
           <SessionWindow key={active.sessionId} sessionId={active.sessionId}
-            onDetach={() => window.fabric.windows.openSession(active.sessionId)}
-            // The mockup parity: «← {runner} · {project}» back to the agent's page (agent gaps, console back link).
-            onBack={() => goTo({ kind: 'agents', session: active.sessionId })}
-            projectName={consoleProject} />
+            onDetach={() => window.fabric.windows.openSession(active.sessionId)} />
         )}
         {active.kind === 'history' && (
           <HistoryScreen projects={projects} mark={markOf(marks, ['act'])} feed={feed} feedProjects={projects} feedFailed={journalFailed} projectsFailed={projectsProblem !== null} sessions={sessions} onOpen={openEntity}

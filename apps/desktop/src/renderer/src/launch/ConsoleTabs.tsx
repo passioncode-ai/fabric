@@ -4,7 +4,8 @@
 // × takes the tab away and asks nothing: the session goes on running in the main process (ADR-0031 §2), and it is
 // opened again from wherever its console is offered. Not there at all while no console is open.
 // The mockup parity, 2026-10-27 (rail gaps 22, 23): one line «› {project} · {runner}», the project's name being
-// `projectDisplayName`'s (the caller's `consoleTitleOf`).
+// `projectDisplayName`'s (the caller's `consoleTitleOf`). Two tabs of one project and one coding agent add the time each
+// session started, «с 14:05», so they never read the same (the operator, 2026-11-17).
 
 import { useT } from '../i18n'
 
@@ -14,6 +15,9 @@ export interface ConsoleTab {
   title: string | null
   /** The coding agent, as `runnerLabel` calls it; null while unknown. */
   runner: string | null
+  /** When another open tab has the same name and coding agent: the clock time this session started, which tells them
+   *  apart (the operator, 2026-11-17, `consoles.tsx#startClocks`); null otherwise. */
+  at?: string | null
 }
 
 export function ConsoleTabs({
@@ -36,7 +40,8 @@ export function ConsoleTabs({
         {tabs.map((tab) => {
           const on = tab.sessionId === activeId
           const name = tab.title ?? t('consoles.reading')
-          const label = tab.runner ? t('consoles.tabTitle', { name, runner: tab.runner }) : name
+          const label = tab.runner && tab.at ? t('consoles.tabTitleAt', { name, runner: tab.runner, at: tab.at })
+            : tab.runner ? t('consoles.tabTitle', { name, runner: tab.runner }) : name
           return (
             <li key={tab.sessionId} className={on ? 'fab-console on' : 'fab-console'}>
               <button type="button" className="fab-console-open" aria-current={on ? 'page' : undefined}
@@ -44,7 +49,7 @@ export function ConsoleTabs({
                 <span className="fab-console-sign" aria-hidden="true">{t('glyph.consoleTab')}</span>
                 <span className="fab-console-name">{label}</span>
               </button>
-              <button type="button" className="fab-console-close" aria-label={t('consoles.close', { name })}
+              <button type="button" className="fab-console-close" aria-label={t('consoles.close', { name: tab.at ? label : name })}
                 onClick={() => onClose(tab.sessionId)}>
                 <span aria-hidden="true">{t('glyph.close')}</span>
               </button>

@@ -9,6 +9,7 @@ import '@fontsource/inter/400.css'
 import '@fontsource/inter/500.css'
 import '@fontsource/inter/600.css'
 import '@fontsource/jetbrains-mono/400.css'
+import '@xterm/xterm/css/xterm.css'
 import '../src/renderer/src/tokens.paperclip.css'
 import '../src/renderer/src/tokens.passioncode.css'
 import '../src/renderer/src/tokens.app.css'
@@ -19,7 +20,7 @@ import '../src/renderer/src/launch/rail.css'
 import '../src/renderer/src/start/start.css'
 import { fakeApi } from './fakeApi'
 import { APP_SETTINGS_DEFAULTS } from '../src/shared/types'
-import { NOW, agent, feed, fixtures, homeReading, project, projects, tasks } from './fixtures'
+import { NOW, agent, consoleSessions, feed, fixtures, homeReading, project, projects, tasks } from './fixtures'
 
 const params = new URLSearchParams(location.hash.slice(1))
 const screen = params.get('screen') ?? 'agent'
@@ -42,7 +43,24 @@ const asyncNoop = async (): Promise<void> => {}
 async function main(): Promise<void> {
   const { I18nProvider } = await import('../src/renderer/src/i18n')
   let node: React.ReactNode
-  if (screen === 'agent') {
+  let top: React.ReactNode = null
+  if (screen === 'console' || screen === 'console-ended') {
+    // The console under its tab (the operator, 2026-11-17): the top bar as the shell draws it (its title and the console
+    // tabs, here two sessions of one project and one coding agent), the console full size under it.
+    const { SessionWindow } = await import('../src/renderer/src/SessionWindow')
+    const { ConsoleTabs } = await import('../src/renderer/src/launch/ConsoleTabs')
+    const { startClocks } = await import('../src/renderer/src/consoles')
+    const { en } = await import('../src/renderer/src/i18n/en')
+    const { ru } = await import('../src/renderer/src/i18n/ru')
+    const words = locale === 'en' ? en : ru
+    const clocks = startClocks(consoleSessions.map((s) => ({ sessionId: s.sessionId, title: 'Atlas', runner: 'Claude Code', startedAt: s.startedAt })),
+      (iso, seconds) => new Date(iso).toLocaleTimeString(locale, { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', ...(seconds ? { second: '2-digit' } : {}) }))
+    const shown = consoleSessions[1].sessionId
+    const title = words['consoles.sessionTitleAt'].replace('{project}', 'Atlas').replace('{runner}', 'Claude Code').replace('{at}', clocks.get(shown) ?? '')
+    top = <><h1>{title}</h1><ConsoleTabs tabs={consoleSessions.map((s) => ({ sessionId: s.sessionId, title: 'Atlas', runner: 'Claude Code', at: clocks.get(s.sessionId) ?? null }))}
+      activeId={shown} onSelect={noop} onClose={noop} /></>
+    node = <SessionWindow sessionId={shown} onDetach={asyncNoop} />
+  } else if (screen === 'agent') {
     const { AgentsScreen } = await import('../src/renderer/src/launch/AgentsScreen')
     node = <AgentsScreen mark={0} hubMark={0} sessions={[{ id: agent.sessionId, projectId: 'p1', optionId: 'claude-code', title: 'Claude Code', cwd: agent.folder, startedAt: agent.startedAt, status: 'running', permissionMode: 'default' }] as never}
       projects={projects as never} onOpenProject={noop} onOpenTask={noop} onOpenGoal={noop} onCreate={noop} initialSession={agent.sessionId} onPick={noop} onHome={noop} />
@@ -92,7 +110,7 @@ async function main(): Promise<void> {
       <div className="app launch-root">
         <div className="fab-shell">
           <aside className="rail" aria-label="rail"><div className="rail-brand"><b>Fabric</b></div></aside>
-          <div className="fab-main"><header className="fab-top" /><div className="fab-place"><div className="shell"><main className="content" id="page">{node}</main></div></div></div>
+          <div className="fab-main"><header className="fab-top">{top}</header><div className="fab-place"><div className="shell"><main className="content" id="page">{node}</main></div></div></div>
         </div>
       </div>
     </I18nProvider>

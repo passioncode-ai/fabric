@@ -2,11 +2,13 @@
 // console tab, where `onDetach` offers the separate window as a secondary control. The session itself lives in the
 // main process (ADR-0031 §2), so closing either never ends it.
 //
-// The mockup parity, wave 1 (docs/reports/2026-10-27-mockup-parity/gaps/2026-10-27-agent.md, «Console view»): embedded, the console
-// leads. One quiet line above it: «← {project} · {runner}» back to the agent's page (when the shell passes `onBack`), the
-// folder, the state and the separate window as a small icon button; the terminal sits in a rounded, bordered box.
+// The operator, 2026-11-17 («двойную навигацию не надо ... статус ... объединить и снизу сделать»): embedded, the
+// terminal fills the page edge to edge and the top bar alone names the session (its title and its tab). One slim bar
+// under the terminal holds the state, the folder (shortened, the whole path on hover), «Новая сессия» once the session
+// has ended, «Завершить сессию» and the separate window as a small icon button. It wraps rather than clips.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { TerminalSession } from '../../shared/types'
 import { Banner, EmptyState } from './components'
 import { StatusPill } from './launch/StatusPill'
 import { sessionStatus, type SessionStatus } from '../../shared/sessionStatus.ts'
@@ -23,20 +25,15 @@ import {
   type SessionReading
 } from '../../shared/sessionReading.ts'
 import { runnerLabel } from './runnerLabel'
+import { shortFolder, useOpenConsole } from './consoles'
 
 export function SessionWindow({
   sessionId,
-  onDetach,
-  onBack,
-  projectName = null
+  onDetach
 }: {
   sessionId: string
   /** In the main window only: «Open in a separate window». Resolves when it opened; rejects with why it did not. */
   onDetach?: () => Promise<void>
-  /** In the main window only: back to the agent's page («← {project} · {runner}»). Absent: the runner's name, no link. */
-  onBack?: () => void
-  /** The session's project, for the back link's words; null: the runner alone. */
-  projectName?: string | null
 }): React.JSX.Element {
   const t = useT()
   /** Why the separate window did not open, said under the header; null when nothing failed. */
@@ -123,52 +120,76 @@ export function SessionWindow({
     setDetachProblem(null)
     onDetach?.().catch((e: unknown) => setDetachProblem(unwrap(e instanceof Error ? e.message : String(e))))
   }
-  return (
-    <div className={onDetach ? 'session-window session-embedded' : 'session-window'}>
-      {onDetach ? (
-        // Embedded: one quiet line, the console below it leads (the mockup's `#console`).
-        <div className="session-bar">
-          {onBack
-            ? <button type="button" className="lp-link session-back" onClick={onBack}>
-                {projectName ? t('session.back', { runner, project: projectName }) : t('session.backNoProject', { runner })}
-              </button>
-            : <strong>{runner}</strong>}
-          <span className="muted mono session-cwd" title={session.cwd}>{session.cwd}</span>
-          {state}
-          {/* Stop stays a control of the console, quiet in its line (the mockup has the console alone). */}
-          <span className="session-stop-slot">
-            <SessionStop key={session.sessionId} session={session} refresh={load}
-              onError={message => setReading(prev => afterRefusal(prev, message))} />
-          </span>
-          <button type="button" className="session-detach" aria-label={t('consoles.detach')} title={t('consoles.detach')} onClick={detach}>
-            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
-              <path d="M9 2.5h4.5V7M13.5 2.5 8 8M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </div>
-      ) : (
-        <header className="session-head">
-          <strong>{runner}</strong>
-          <span className="muted mono">{session.cwd}</span>
-          {state}
-        </header>
-      )}
-      {/* 0.3.7 review UX-16: our sentence, then the machine's words on their own line, never one paragraph. */}
-      {detachProblem !== null && <FailureNote said={t('consoles.detachFailed')} detail={detachProblem} />}
-      {/* A REFUSED REFRESH IS A CAVEAT, NOT A WALL. Taking the terminal away
-          because one poll failed costs the operator what they were reading;
-          leaving it with nothing said would let a frozen reading pass as a
-          live one. */}
-      {reading.problem !== null && (
-        <p className="muted">{t('session.stale', { reason: reading.problem })}</p>
-      )}
-      {!onDetach && <SessionStop key={session.sessionId} session={session} refresh={load}
-        onError={message => setReading(prev => afterRefusal(prev, message))} />}
-      {onDetach
-        ? <div className="session-box"><TerminalView session={session} /></div>
-        : <TerminalView session={session} />}
+  const stop = <SessionStop key={session.sessionId} session={session} refresh={load}
+    onError={message => setReading(prev => afterRefusal(prev, message))} />
+  const notes = <>
+    {/* 0.3.7 review UX-16: our sentence, then the machine's words on their own line, never one paragraph. */}
+    {detachProblem !== null && <FailureNote said={t('consoles.detachFailed')} detail={detachProblem} />}
+    {/* A REFUSED REFRESH IS A CAVEAT, NOT A WALL. Taking the terminal away
+        because one poll failed costs the operator what they were reading;
+        leaving it with nothing said would let a frozen reading pass as a
+        live one. */}
+    {reading.problem !== null && (
+      <p className="muted session-note">{t('session.stale', { reason: reading.problem })}</p>
+    )}
+  </>
+  if (onDetach) return (
+    <div className="session-window session-embedded">
+      {notes}
+      <TerminalView session={session} />
+      <footer className="session-bar" aria-label={t('session.bar')}>
+        {state}
+        <span className="muted mono session-cwd" title={session.cwd}>{shortFolder(session.cwd)}</span>
+        {!session.running && <NewSession session={session} runner={runner} />}
+        <span className="session-stop-slot">{stop}</span>
+        <button type="button" className="session-detach" aria-label={t('consoles.detach')} title={t('consoles.detach')} onClick={detach}>
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+            <path d="M9 2.5h4.5V7M13.5 2.5 8 8M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </footer>
     </div>
   )
+  return (
+    <div className="session-window">
+      <header className="session-head">
+        <strong>{runner}</strong>
+        <span className="muted mono">{session.cwd}</span>
+        {state}
+        {!session.running && <NewSession session={session} runner={runner} />}
+      </header>
+      {notes}
+      {stop}
+      <TerminalView session={session} />
+    </div>
+  )
+}
+
+/** Once a session has ended, what comes next (the operator, 2026-11-17: «более качественные завершения»): a new session
+ *  of the same coding agent, with the same permissions, in the same project, opened as its own console. */
+function NewSession({ session, runner }: { session: TerminalSession; runner: string }): React.JSX.Element {
+  const t = useT()
+  const openConsole = useOpenConsole()
+  const [busy, setBusy] = useState(false)
+  const [problem, setProblem] = useState<string | null>(null)
+  const start = async (): Promise<void> => {
+    setBusy(true)
+    setProblem(null)
+    try {
+      const next = await window.fabric.terminal.open(session.projectId, session.optionId, undefined, session.permissionMode)
+      await openConsole(next.sessionId)
+    } catch (e) {
+      setProblem(unwrap(e instanceof Error ? e.message : String(e)))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return <span className="session-new">
+    <button type="button" className="btn btn-ghost" disabled={busy} title={t('session.newHelp', { runner })} onClick={() => void start()}>
+      {t(busy ? 'session.newStarting' : 'session.new')}
+    </button>
+    {problem !== null && <FailureNote said={t('session.newFailed')} detail={problem} />}
+  </span>
 }
 
 /** The console header's status, in the agent page's words (CO-472): «работает» while it runs, the shared status word otherwise. */

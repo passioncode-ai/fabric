@@ -77,6 +77,42 @@ export function consoleTitleOf(
   return parts[parts.length - 1] ?? session.cwd
 }
 
+/**
+ * The operator, 2026-11-17: two consoles of one project and one coding agent read as two identical tabs. When open
+ * tabs share a name and a coding agent, each of them is told apart by the clock time its session started, to the
+ * minute, or to the second when two of them started in the same minute; a tab whose name is its own gets nothing.
+ * `clock(iso, seconds)` formats a start in the person's language. Answers sessionId -> the time to show.
+ */
+export function startClocks(
+  tabs: readonly { sessionId: string; title: string | null; runner: string | null; startedAt: string | null }[],
+  clock: (iso: string, seconds: boolean) => string
+): Map<string, string> {
+  const groups = new Map<string, { sessionId: string; startedAt: string }[]>()
+  for (const tab of tabs) {
+    if (tab.title === null || tab.startedAt === null) continue
+    const key = `${tab.title}\u0000${tab.runner ?? ''}`
+    groups.set(key, [...(groups.get(key) ?? []), { sessionId: tab.sessionId, startedAt: tab.startedAt }])
+  }
+  const out = new Map<string, string>()
+  for (const group of groups.values()) {
+    if (group.length < 2) continue
+    const minutes = group.map((g) => clock(g.startedAt, false))
+    const clash = new Set(minutes.filter((m, i) => minutes.indexOf(m) !== i))
+    group.forEach((g, i) => out.set(g.sessionId, clash.has(minutes[i]) ? clock(g.startedAt, true) : minutes[i]))
+  }
+  return out
+}
+
+/**
+ * The console's folder as its bar shows it: the last two parts after «…/» when the path is longer, the whole path
+ * otherwise; the bar keeps the whole path in its tooltip (the operator, 2026-11-17).
+ */
+export function shortFolder(cwd: string): string {
+  const parts = cwd.split(/[\\/]/).filter(Boolean)
+  if (parts.length <= 2) return cwd
+  return `…/${parts.slice(-2).join('/')}`
+}
+
 const STORE_KEY = 'fabric.consoles.v1'
 
 /**

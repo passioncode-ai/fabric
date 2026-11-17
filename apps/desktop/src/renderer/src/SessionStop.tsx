@@ -98,8 +98,12 @@ export function SessionStop({ session, refresh, onError }: {
         catch (e) { onError(String(e)) }
       }}>{t('agents.dismiss')}</Button>
         : <>
-        <Button tone="ghost" disabled={pending || state === 'requested'} onClick={() => void stop(false)}>
-          {t(state === 'requested' ? 'session.stop.requested' : unresolved ? 'session.stop.retry' : 'session.stop.action')}
+        {/* The operator, 2026-11-17: the act says what it does. It ends the session (the agent's process), not a run
+            inside it; its tooltip says what stays. ADR-0160 §1: one press, no «are you sure». */}
+        <Button tone="ghost" disabled={pending || state === 'requested'} onClick={() => void stop(false)}
+          title={state === 'requested' || unresolved || !session.running ? undefined : t('session.stop.actionHelp')}>
+          {/* An agent whose process already ended has nothing left to end: the same press checks that it did. */}
+          {t(state === 'requested' ? 'session.stop.requested' : unresolved || !session.running ? 'session.stop.retry' : 'session.stop.action')}
         </Button>
         {state === 'outcome_unknown' && !ended && <Button tone="ghost" disabled={pending} onClick={() => void stop(true)}>{t('session.stop.force')}</Button>}
         {ended && attestable(currentReceipt) && <Button disabled={pending} onClick={() => void attestOver()}>{t('session.runOver')}</Button>}

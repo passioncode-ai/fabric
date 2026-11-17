@@ -22,6 +22,14 @@ export const agent = { sessionId: 's1', projectId: 'p1', projectName: 'Atlas', a
   doing: { text: LONG, note: 'тесты на чтение доски', step: 2, ofSteps: 4, at: at(0.2) },
   task: { id: 't1', projectId: 'p1', summary: 'Чтение доски отдельным модулем' }, branch: 'feat/board-read-module-with-a-long-branch-name', folder: '/Users/example/DATA/_worktrees/atlas-board-read' }
 
+/** Two sessions of one project and one coding agent (the operator's screenshot of 2026-11-17 had two such tabs). The
+ *  stand's `ended` flag ends the second. */
+const consoleSession = (sessionId: string, startedAt: string, ended: boolean) => ({ sessionId, projectId: 'p1', cwd: '/Users/example/DATA/atlas-desktop/Atlas desktop app with a long folder name',
+  program: 'claude', optionId: 'claude-code', permissionMode: 'fewer-prompts', excerpt: '', written: 4000, running: !ended, state: ended ? 'ended' : 'running', startedAt,
+  lastActivityAt: at(0.05), lastOutputAt: at(0.05), tail: '', exitCode: ended ? 0 : null })
+export const consoleEnded = new URLSearchParams(location.hash.slice(1)).get('screen') === 'console-ended'
+export const consoleSessions = [consoleSession('c1', at(1.5), false), consoleSession('c2', at(1.47), consoleEnded)]
+
 const task = (id: string, title: string, status: string, hours: number, over: Record<string, unknown> = {}) => ({
   id, project_id: 'p1', title, instruction: title, status, started_at: at(hours), finished_at: status === 'done' ? at(hours - 1) : null, moved_at: at(hours - 0.5),
   position: null, assigned_by: null, assigned_to: null, origin_kind: 'person', origin_ref: null, session_id: status === 'running' ? 's1' : null,
@@ -84,6 +92,12 @@ export const fixtures: Fixtures = {
   'work.home': homeView,
   'work.sources': { rows: [], capped: false },
   'terminal.history': history,
+  // The console screen (the operator, 2026-11-17): two sessions of one project and one coding agent, the second open. The
+  // replay ends with a line the suite looks for at the bottom of the terminal, so a cut last line fails it.
+  'terminal.resize': null,
+  'terminal.write': null,
+  'terminal.get': (id: string) => consoleSessions.find((s) => s.sessionId === id) ?? null,
+  'terminal.scrollback': () => ({ text: Array.from({ length: 80 }, (_, i) => `строка ${i + 1}: агент читает репозиторий и пишет план`).join('\r\n') + '\r\nПОСЛЕДНЯЯ СТРОКА КОНСОЛИ', written: 4000 }),
   'tasks.detail': (id: string) => ({ task: tasks.find((t) => t.id === id) ?? tasks[0],
     notes: [{ id: 'n1', task_id: id, author_kind: 'agent', author_id: 's1', body_md: 'Попробовал вынести чтение целиком: ломается порядок подписки на журнал. Делаю **по одному чтению**.', promoted_fact_id: null, created_at: at(3) },
       { id: 'n2', task_id: id, author_kind: 'person', author_id: 'operator', body_md: `Ссылка на отчёт: https://example.com/${'very-long-segment-'.repeat(8)}`, promoted_fact_id: null, created_at: at(1) }],

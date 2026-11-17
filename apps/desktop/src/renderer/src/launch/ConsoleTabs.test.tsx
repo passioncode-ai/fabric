@@ -53,6 +53,18 @@ describe('the console tabs', () => {
     expect(props.onSelect).not.toHaveBeenCalled()
   })
 
+  // The operator, 2026-11-17: two sessions of one project and one coding agent were two identical tabs.
+  it('tells two tabs of one project and one coding agent apart by when each session started', () => {
+    mount({ tabs: [
+      { sessionId: 's1', title: 'Atlas', runner: 'Claude Code', at: '01:16' },
+      { sessionId: 's2', title: 'Atlas', runner: 'Claude Code', at: '01:18' }
+    ], activeId: 's2' })
+    const names = [...document.querySelectorAll('.fab-console-name')].map((e) => e.textContent)
+    expect(names).toEqual(['Atlas · Claude Code · since 01:16', 'Atlas · Claude Code · since 01:18'])
+    expect(new Set(names).size).toBe(2)
+    expect(screen.getByRole('button', { name: en['consoles.close'].replace('{name}', 'Atlas · Claude Code · since 01:18') })).toBeTruthy()
+  })
+
   it('says it is reading when the session has not been read yet', () => {
     mount({ tabs: [{ sessionId: 's9', title: null, runner: null }], activeId: null })
     expect(screen.getByRole('button', { name: new RegExp('^' + en['consoles.reading']) })).toBeTruthy()

@@ -1176,21 +1176,25 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 .xp-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
 .xp-row .lp-button{min-height:30px;padding:5px 12px}
 .xp-row .lp-button[disabled]{opacity:.55;cursor:default}
-/* The console under its tab: one quiet line, then the terminal in a rounded box (the mockup's `#console`). */
-.session-embedded{padding:var(--space-4) var(--space-5) var(--space-5);gap:var(--space-3)}
-.session-bar{display:flex;align-items:center;gap:var(--space-3);min-width:0;font-size:12px;-webkit-app-region:no-drag}
-.session-back{color:var(--app-muted);text-decoration:none;white-space:nowrap}
-@media(hover:hover){.session-back:hover{color:var(--app-ink)}}
-.session-cwd{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px}
+/* The console under its tab (the operator, 2026-11-17: «отступ, занимающий место ... двойную навигацию не надо ... статус
+   объединить и снизу сделать»): the terminal fills the page edge to edge, the top bar alone names the session, and one
+   slim bar under the terminal holds its state, folder and acts. The page around it neither pads nor scrolls, so the
+   terminal's last line is never under the fold. The bar wraps at a narrow window rather than cutting a control. */
+.fab-place>.shell>main.content:has(>.session-embedded),main.content:has(>.session-embedded){padding:0;overflow:hidden}
+.session-embedded{height:100%;padding:0;gap:0}
+.session-embedded>.terminal-host{padding:var(--space-2) var(--space-3) var(--space-1)}
+.session-embedded>.lp-failure,.session-embedded>.session-note{flex:none;margin:0;padding:var(--space-2) var(--space-3)}
+.session-bar{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-1) var(--space-3);min-width:0;padding:var(--space-1) var(--space-3);border-top:1px solid var(--app-line);background:var(--app-bg);font-size:12px;-webkit-app-region:no-drag}
+.session-cwd{flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px}
+.session-new{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0}
+.session-new .btn,.session-stop-slot .btn{min-height:28px;padding:0 var(--space-3);font-size:12px}
+.session-new .lp-failure{margin:0}
 .session-stop-slot{margin-left:auto;display:flex;align-items:center;min-width:0}
-.session-stop-slot>div{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.session-stop-slot>div{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0}
 .session-stop-slot p{margin:0;font-size:11.5px}
-.session-stop-slot .btn{min-height:28px;padding:0 var(--space-3);font-size:12px}
 .session-detach{flex:none;display:grid;place-items:center;width:28px;height:28px;border:1px solid transparent;border-radius:7px;background:none;color:var(--app-muted);cursor:pointer}
 @media(hover:hover){.session-detach:hover{color:var(--app-ink);border-color:var(--app-line);background:var(--app-panel-quiet)}}
 .session-detach:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
-.session-box{flex:1 1 auto;min-height:360px;display:flex;flex-direction:column;border:1px solid var(--app-line);border-radius:12px;overflow:hidden;background:var(--terminal)}
-.session-box>.terminal-host{padding:var(--space-3) var(--space-3) var(--space-2)}
 /* SCN-179 (CO-521): a task in review asks one decision. The agent's words on the left, the three answers and the
    comment on the right; one column when narrow. */
 .rd{display:flex;flex-wrap:wrap;gap:var(--space-4);padding:var(--space-4);margin:0 0 var(--space-4);border:1px solid var(--app-line);border-radius:12px;text-align:left}

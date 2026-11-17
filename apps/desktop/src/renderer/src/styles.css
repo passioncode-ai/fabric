@@ -232,8 +232,12 @@ button:disabled { opacity: .4; cursor: default; }
   padding: var(--space-2) var(--space-4);
   border-bottom: 1px solid var(--terminal-rule); background: var(--terminal-head);
 }
-.terminal-host { flex: 1; min-height: 0; padding: var(--space-2); background: var(--terminal); }
-.terminal-host .xterm { height: 100%; }
+.terminal-host { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: var(--space-2); background: var(--terminal); }
+/* xterm fits itself to this box, which has no padding: the fit addon reads the parent's border-box height (2026-11-17). */
+.terminal-fit { flex: 1 1 auto; min-height: 0; min-width: 0; }
+.terminal-fit .xterm { height: 100%; }
+/* The host carries the terminal's surface; xterm's own viewport painted the rows' remainder black under it (2026-11-17). */
+.terminal-fit .xterm .xterm-viewport { background-color: transparent; }
 /* In the main window under its console tab (OF-03, SCN-172): no room kept for the window's traffic lights, and the
    header is not a window drag handle, because the top bar above it is. */
 .session-embedded { flex: 1 1 auto; min-height: 0; }

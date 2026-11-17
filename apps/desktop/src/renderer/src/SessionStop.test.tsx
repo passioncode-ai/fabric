@@ -15,7 +15,7 @@ describe('Stop control',()=>{
  it('keeps verified receipt after stale requested props or a failed refresh',async()=>{
   const f=setup({},vi.fn().mockResolvedValue({sessionId:'s',state:'stopped',reasonCode:'termination_observed',receiptSeq:12}))
   f.refresh.mockRejectedValue(Error('refresh offline'))
-  fireEvent.click(screen.getByText('Stop execution'))
+  fireEvent.click(screen.getByText('End session'))
   await screen.findByText('Stop verified')
   f.view.rerender(<I18nProvider locale="en"><SessionStop session={{...session,termination:{sessionId:'s',state:'requested',reasonCode:'stop_requested'}}} refresh={f.refresh} onError={vi.fn()}/></I18nProvider>)
   expect(screen.getByText('Stop verified')).toBeTruthy()
@@ -30,7 +30,7 @@ describe('Stop control',()=>{
 
  // ADR-0160 §1 (0.3.7 wave 3): one press stops; no «are you sure» row. The stop is an act with its undo (start again).
  it('stops at once with one press, asks nothing, and does not claim success on unknown',async()=>{
-  const f=setup();fireEvent.click(screen.getByText('Stop execution'))
+  const f=setup();fireEvent.click(screen.getByText('End session'))
   expect(screen.queryByText('Stop this execution? The task and its history remain.')).toBeNull()
   await screen.findByText('Stop unverified')
   expect(f.end).toHaveBeenCalledWith('s',{force:false});expect(screen.queryByText('Dismiss')).toBeNull()
@@ -42,16 +42,17 @@ describe('Stop control',()=>{
   expect(screen.queryByText('Force this session to stop? Unsaved work may be lost.')).toBeNull()
  })
  it('IPC loss retains a recovery state',async()=>{
-  setup({},vi.fn().mockRejectedValue(Error('lost')));fireEvent.click(screen.getByText('Stop execution'))
+  setup({},vi.fn().mockRejectedValue(Error('lost')));fireEvent.click(screen.getByText('End session'))
   await screen.findByText('Stop unverified');expect(screen.getByText('Check stop again')).toBeTruthy()
  })
  it('blocks repeat input while the request is pending',async()=>{
-  const f=setup({},vi.fn(()=>new Promise(()=>{})));fireEvent.click(screen.getByText('Stop execution'))
+  const f=setup({},vi.fn(()=>new Promise(()=>{})));fireEvent.click(screen.getByText('End session'))
   const button=screen.getByRole('button',{name:'Stopping…'}) as HTMLButtonElement
   expect(button.disabled).toBe(true);fireEvent.click(button);expect(f.end).toHaveBeenCalledTimes(1)
  })
  it('root exit alone offers recovery, not dismissal',()=>{
-  setup({running:false});expect(screen.getByText('Stop execution')).toBeTruthy();expect(screen.queryByText('Dismiss')).toBeNull()
+  // The operator, 2026-11-17: an agent whose process ended is not offered «End session»; the same press checks its end.
+  setup({running:false});expect(screen.getByText('Check stop again')).toBeTruthy();expect(screen.queryByText('End session')).toBeNull();expect(screen.queryByText('Dismiss')).toBeNull()
  })
 
  // OF-02 (the operator, 2026-10-19): a session whose process ended said «Stop unverified» and offered Force stop to a
@@ -60,7 +61,7 @@ describe('Stop control',()=>{
   const ended={running:false,exitCode:1,termination:{sessionId:'s',state:'outcome_unknown',reasonCode:'provider_termination_unproved'}} as Partial<TerminalSession>
   setup(ended)
   expect(screen.queryByText('Force stop')).toBeNull()
-  expect(screen.queryByText('Stop execution')).toBeNull()
+  expect(screen.queryByText('End session')).toBeNull()
   expect(screen.getByText(/The agent's process ended/)).toBeTruthy()
   render(<I18nProvider locale="en"><StopStatus state={ended.termination!} session={{...session,...ended}}/></I18nProvider>)
   expect(screen.getByText('Session ended · exit 1')).toBeTruthy()
