@@ -202,6 +202,11 @@ export function parseAsk(text: string): PeopleAsk | null {
   return (found as PeopleAsk | undefined) ?? null
 }
 
+/** Whether a reply carries any `fabric-people-answer/1` block; one with none is the responder's note, not an answer. */
+export function hasAnswerBlock(text: string): boolean {
+  return blocks(text).some((b) => isObject(b) && b.schema === ANSWER_SCHEMA)
+}
+
 /** The PM agent's answer: the last `fabric-people-answer/1` block of its reply, checked field by field. */
 export function parseAnswer(text: string): { ok: true; answer: PeopleAnswer } | { ok: false; reason: string } {
   const found = blocks(text).filter((b): b is Record<string, unknown> => isObject(b) && b.schema === ANSWER_SCHEMA).pop()

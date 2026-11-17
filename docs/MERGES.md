@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/people-ask-note → main · fast-forward
+- files: `shared/peopleAsk.ts` (`hasAnswerBlock`), `main/peopleAskRun.ts` (a reply with no answer block is a note), `test/people-ask-run.test.mjs`, the people-ask bridge spec §2, `CHANGELOG.md`
+- conflicts: none
+- summary: a PM agent's progress note sent as a reply is no longer answered «не применено» (task d048b422, thread bf635f68)
+
 ### 2026-11-17 · `—` · fix/board-service-follows-bundle (gate) → main · fast-forward
 - files: `main/index.ts` (`boardJobVersion` says why its catch is silent), the map
 - conflicts: none

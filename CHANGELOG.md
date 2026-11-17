@@ -11,6 +11,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 **Upgrading.** No schema step from 0.3.22 (schema 102, no migration).
 
+- **A PM agent's progress note is not refused as an answer** (the people-ask bridge). A reply with no
+  `fabric-people-answer/1` block is read as the responder's note: Fabric no longer answers it «не применено», and the item
+  keeps waiting for its answer; found on the first live item on 0.3.22.
 - **«Служба доски» starts the new version after an update** (task `c9d019de`). Replacing Fabric left launchd's board job
   bound to the version it was registered from, and launchd refused to start it (exit 78), so after a reboot nothing
   started the board; measured installing 0.3.22. The first start of a new version that launchd did not make registers

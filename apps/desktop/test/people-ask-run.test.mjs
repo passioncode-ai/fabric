@@ -70,6 +70,14 @@ function world(over = {}) {
     thread.push({ id, thread: thread[0].thread, kind: 'reply', replyTo: thread[0].id, sender: { project: sender }, at: new Date(now).toISOString(), body: { text: replyText(block) } })
     return id
   }
+  /** A reply with plain text and no block, as a responder's progress note sent as a reply (2026-11-17). */
+  w.note = (i, text) => {
+    const s = w.submits[i]
+    const thread = [...w.threads.values()].find((t) => t[0].body === s.input.body)
+    const id = `a${++n}`
+    thread.push({ id, thread: thread[0].thread, kind: 'reply', replyTo: thread[0].id, sender: { project: KIRA }, at: new Date(now).toISOString(), body: { text } })
+    return id
+  }
   return w
 }
 
@@ -181,6 +189,25 @@ test('an answer is refused, and said so, for a level too low, a stale revision, 
   assert.equal(w.cancels.length, 1)
   assert.equal(w.submits.length, 2)
   assert.equal(w.submits[1].input.idempotency.key, askKey(`question:${Q}`, 3))
+})
+
+test('a reply with no answer block is a note: nothing is posted back, the item waits, and its answer still decides it', async () => {
+  const w = world()
+  const b = createPeopleAskBridge(w.deps)
+  await b.onPass()
+  w.note(0, 'Морфеус спросил администратора в Telegram.')
+  await b.onPass()
+  assert.equal(w.replies.length, 0, 'no «не применено» for a note')
+  assert.equal(w.applied.length, 0)
+  assert.equal(b.records()[0].state, 'open')
+  assert.ok(w.logs.some((l) => l.op === 'people.ask.note'))
+  await b.onPass()
+  assert.equal(w.logs.filter((l) => l.op === 'people.ask.note').length, 1, 'a note is read once')
+  w.answer(0, answerBlock())
+  await b.onPass()
+  assert.equal(w.applied.length, 1)
+  assert.equal(w.replies.length, 1)
+  assert.equal(w.replies[0].input.body.text.split('\n')[0], 'решено')
 })
 
 test('a door that refuses leaves the item open and says why; a later answer may still decide it', async () => {

@@ -15,7 +15,7 @@ import { createHash } from 'node:crypto'
 import type { BoardEntry } from '../shared/board.ts'
 import type { CommsMessage } from '../shared/commsRead.ts'
 import {
-  DELEGATE_ANSWER, DELEGATE_OPTION, PEOPLE_ASK_CAPABILITY, askBody, askKey, autoRouteOf, decisionOf, itemOf, judgeAnswer, parseAnswer, prepareAsk, resultText, routeOf,
+  DELEGATE_ANSWER, DELEGATE_OPTION, PEOPLE_ASK_CAPABILITY, askBody, askKey, autoRouteOf, decisionOf, hasAnswerBlock, itemOf, judgeAnswer, parseAnswer, prepareAsk, resultText, routeOf,
   type AskAct, type AskKind, type PeopleAnswer, type PeopleAsk, type PeopleRoute
 } from '../shared/peopleAsk.ts'
 
@@ -183,7 +183,17 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
           if (!done.posted) { done.posted = await post(r, m.id, done.result); dirty = true }
           continue
         }
-        const parsed = parseAnswer(m.redacted || !m.body ? '' : m.body.text)
+        const body = m.redacted || !m.body ? '' : m.body.text
+        if (!hasAnswerBlock(body)) {
+          // A reply with no answer block at all is the responder's note (its place is com.progress): it decides nothing and
+          // Fabric posts nothing back, so the item still waits for its answer (the first live item, 2026-11-17, thread bf635f68).
+          r.handled[m.id] = { result: '', posted: true }
+          save()
+          dirty = true
+          deps.log('people.ask.note', 'ok', { item: r.item, ...(m.redacted ? { redacted: true } : {}) })
+          continue
+        }
+        const parsed = parseAnswer(body)
         let result: { applied: true } | { applied: false; reason: string }
         if (!parsed.ok) result = { applied: false, reason: parsed.reason }
         else if (r.state === 'applied') result = { applied: false, reason: 'пункт уже решён' }
