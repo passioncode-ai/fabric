@@ -235,3 +235,53 @@ setup on GitHub's rate limit (`version: latest`), twice; candidate 6 pins the CL
 
 Exit for run three: candidate 6 is `8893248b` (the wave above); `bash scripts/ci.sh fast` read exit 0 on it before run four.
 Blocking findings open: none.
+
+### Run four, 8893248b (the verified candidate)
+
+Candidate `8893248b9e98f1c0cfe59f5712e33035efe02145`; reports and receipts in `docs/evidence/reviews/0.3.22/iteration-3/`.
+11 findings, none blocking; the data review found none. Run three's fixes read as fixed by all five, each new test failing on
+`ac8fc30b`. So `8893248b` is `verifiedCommit`. The superseded runs' folders (`iteration-3-fbb7d9b5/`, `iteration-3-8897db3f/`,
+`iteration-3-ac8fc30b/`) were written beside the review and land on `main` at item 0c, since the gate admits after
+`verifiedCommit` only the review artifacts it names.
+
+| Row | Finding | Severity | Defect | Disposition |
+|---|---|---|---|---|
+| V3d-1 | UX-1 | non-blocking | An agent that revokes a grant or a whole agent on the operator's relayed words is written as the agent in История (CO-506 F1: «never «Вы»»), but the claims t … | ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`) |
+| V3d-2 | UX-2 | non-blocking | «Завершить сессию»'s tooltip says only what stays («Агент остановится. Его вывод и история задачи останутся.»), not what happens to the task: since iteration … | ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`) |
+| V3d-3 | ER-1 | non-blocking | A person's end of a session is lost when its claims are not released at that moment, and the board supervisor then restarts the work. `onSessionEnded` delete … | ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`) |
+| V3d-4 | ER-2 | non-blocking | The Switchboard hold's deadline does not end a child that outlives SIGTERM, and such a hang silences every later hold and release of that session. `createMac … | ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`) |
+| V3d-5 | ER-3 | non-blocking | The turn verdict tells a session to go on while its held task waits on that session's own open question to a person. `turnVerdict` checks the claim, the hear … | ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`); nothing acts on the verdict until the adapter's Stop hook ships (request `91e94d4c`) |
+| V3d-6 | DO-1 | non-blocking | The T4 bound says "an hour past the session's last tool call" in the CHANGELOG, spec §4.4 and `AGENTS.md`, but the clock is the last call of a Fabric tool (a … | fixed in the release commit for the CHANGELOG (the hour runs from the session's last call of a Fabric tool, the turn report included); spec §4.4 and `AGENTS.md` at item 0c |
+| V3d-7 | DO-2 | non-blocking | The Upgrading paragraph says the supervisor "continues only work left after the new version first ran". `resume-since.json` is written at the supervisor's fi … | fixed in the release commit: the Upgrading paragraph says the supervisor counts from its first read under the new version, with both switches on |
+| V3d-8 | DO-3 | non-blocking | `docs/brand/strings.md` rows changed in this range cite en.ts lines that moved: `access.ask.respond`, `access.ask.respondThis`, `access.respond.title` cite ` … | ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`) |
+| V3d-9 | DO-4 | non-blocking | Two code comments still state what run two's fixes took back. `sessionHolds.ts`'s header says a session is held "until its newest claim expires" with no hour … | ruled: CO-590 (appended on `main` at item 0c, which the gate refuses after `verifiedCommit`) |
+| V3d-10 | PL-1 | non-blocking | The release branch that carries this release's records is red on every push, and the release commit will be red the same way. Every `ci` run on `release/0.3. … | fixed in the release commit: a new top lane in the map's `#changelog`, and `bash scripts/ci.sh fast` read on the release commit before the tag (item 0b) |
+| V3d-11 | PL-2 | non-blocking | The release close has no items yet for what the records say this release leaves unverified or owed, and three of them are the operator's own asks. (a) The pe … | fixed in the release commit: the Release close below carries the people-ask bridge's first live pass, T5's set-up on a second machine, the North Star note on §6 and G29, and the adapter's T3 request |
+
+Exit for iteration 3: every finding disposed above. Blocking findings open: none.
+
+## Release close
+
+What is owed around the tag, in order; each item is checked off here with its receipt.
+
+0. Before the release commit: one full hosted `ci` run green on `verifiedCommit` (`8893248b`).
+   Receipt: pending, run 44055756735 (workflow_dispatch on `8893248b`); the runs on `ac8fc30b` failed twice in the Supabase
+   CLI's setup on GitHub's rate limit, which candidate 6 fixed by pinning the CLI.
+0b. The release commit (the version, `## 0.3.22`, `docs/launch/release-gate.json` with the handoff
+   `docs/handoffs/2026-11-17-release-0322.md` in `releaseMetadata`, a new top map lane, the MERGES entry), `bash scripts/ci.sh
+   fast` read on it, `node scripts/release-mac.mjs --check-only --tag v0.3.22`, and its landing on `main` by fast-forward.
+0c. On `main` after the release commit: the superseded runs' folders; the run-four rulings appended to CO-590 (UX-1, UX-2,
+   ER-1 to ER-3, DO-1 for spec §4.4 and `AGENTS.md`, DO-3, DO-4); board task `ace24362` (fixed in 0.3.22) closed.
+1. The CI release run green on every platform, the published release and its notes from `## 0.3.22`.
+2. Install 0.3.22 on this Mac by [the runbook](../../launch/release-mac.md#upgrading-an-existing-database) (no schema
+   step): «Служба доски» off before the quit, the lifecycle broker's `fabric.desktop` held, the bundle checked and replaced,
+   then the broker released and «Служба доски» on again once 0.3.22 reads back; board task `07510265` closed and Аня told
+   on thread `bf635f68`.
+3. The Mac Studio by its host agent, asked on the board: each space's `schema_version()` read first (102), then 0.3.22.
+4. The people-ask bridge's first live pass on the installed Fabric (proven only against fakes; run four, PL-2 a): one
+   access request routed to its organization's PM agent and its answer applied, or the failure named here.
+5. T5 set up and run once on a second machine (`dispatchTarget` or `dispatchTargets` in `settings.json`; null and empty on
+   this Mac; run four, PL-2 b), or recorded as not set up with its owner.
+6. North Star §6 and G29 in fabric-workspace, told on the board: the turn verdict, the supervisor and the Switchboard holds,
+   and what the adapter's Stop hook (request `91e94d4c`, wave T3) still owes before a session goes on by itself (run four,
+   PL-2 c and d).
