@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/new-session-checks-live-work → main · fast-forward
+- files: `renderer/src/SessionWindow.tsx` (`NewSession` runs the launch check), `SessionWindow.test.tsx`, SCN-180's alt paths, `CHANGELOG.md`
+- conflicts: none
+- summary: «Новая сессия» in an ended console says who already works in the project before it starts (board task 4f83a67f)
+
 ### 2026-11-17 · `—` · fix/people-ask-note → main · fast-forward
 - files: `shared/peopleAsk.ts` (`hasAnswerBlock`), `main/peopleAskRun.ts` (a reply with no answer block is a note), `test/people-ask-run.test.mjs`, the people-ask bridge spec §2, `CHANGELOG.md`
 - conflicts: none

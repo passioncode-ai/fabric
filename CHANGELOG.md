@@ -11,6 +11,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 **Upgrading.** No schema step from 0.3.22 (schema 102, no migration).
 
+- **«Новая сессия» says who already works in the project first** (board task `4f83a67f`). The button in an ended
+  session's console started a new agent at once; now it shows the same warning as the project page when another session
+  works in the project, with «Всё равно запустить» and «Подождать».
 - **A PM agent's progress note is not refused as an answer** (the people-ask bridge). A reply with no
   `fabric-people-answer/1` block is read as the responder's note: Fabric no longer answers it «не применено», and the item
   keeps waiting for its answer; found on the first live item on 0.3.22.

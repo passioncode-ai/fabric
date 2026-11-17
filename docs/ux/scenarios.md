@@ -4541,7 +4541,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   3. The sessions coordinate on the board -> the overlap becomes a thread between their projects, and the person sees it as one item with the choices (wait, hand over, split).
   4. Person tells the Fabric agent what to do -> it acts across the sessions through the same claims, tasks and board (`fabric_work_*`, `com.*`).
 - **Expected result:** the person directs every session from Fabric and conflicting work is caught before it collides.
-- **Alt paths:** a session that does not report -> named as silent, never as idle; a session outside any project -> listed apart.
+- **Alt paths:** a session that does not report -> named as silent, never as idle; a session outside any project -> listed apart; «Новая сессия» in an ended session's console -> the same warning first, when anyone already works in the project (board task 4f83a67f, `SessionWindow.tsx#NewSession`).
 - **UI elements:** the sessions list; the overlap warning; the coordination item with its choices.
 - **States covered:** reading, empty, partial, success.
 - **Errors & recovery:** a read that fails names the part not read.

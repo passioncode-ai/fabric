@@ -26,6 +26,7 @@ import {
 } from '../../shared/sessionReading.ts'
 import { runnerLabel } from './runnerLabel'
 import { shortFolder, useOpenConsole } from './consoles'
+import { LaunchOverlapNote, checkLaunch, type LaunchCheck } from './launch/LaunchOverlapNote'
 
 export function SessionWindow({
   sessionId,
@@ -174,10 +175,17 @@ function NewSession({ session, runner }: { session: TerminalSession; runner: str
   const openConsole = useOpenConsole()
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
-  const start = async (): Promise<void> => {
+  // Board task 4f83a67f: who already works in the project is said before the new agent starts, as on the project page (CO-522).
+  const [overlap, setOverlap] = useState<Exclude<LaunchCheck, { at: 'clear' }> | null>(null)
+  const start = async (checked = false): Promise<void> => {
     setBusy(true)
     setProblem(null)
     try {
+      if (!checked) {
+        const c = await checkLaunch(session.projectId, '')
+        if (c.at !== 'clear') { setOverlap(c); return }
+      }
+      setOverlap(null)
       const next = await window.fabric.terminal.open(session.projectId, session.optionId, undefined, session.permissionMode)
       await openConsole(next.sessionId)
     } catch (e) {
@@ -191,6 +199,7 @@ function NewSession({ session, runner }: { session: TerminalSession; runner: str
       {t(busy ? 'session.newStarting' : 'session.new')}
     </button>
     {problem !== null && <FailureNote said={t('session.newFailed')} detail={problem} />}
+    {overlap && <LaunchOverlapNote check={overlap} onStart={() => void start(true)} onWait={() => setOverlap(null)} />}
   </span>
 }
 

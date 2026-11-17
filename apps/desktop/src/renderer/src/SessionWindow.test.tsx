@@ -74,7 +74,9 @@ function stub(get: (id: string) => Promise<TerminalSession | null>) {
           onData: () => () => {},
           write: () => {},
           resize: () => {}
-        }
+        },
+        // Who already works in the project (board task 4f83a67f): nobody, unless a test says otherwise.
+        work: { launchCheck: vi.fn(async () => ({ overlaps: [], alsoWorking: [], console: [] })) }
       }
     })
   )
@@ -170,6 +172,26 @@ describe('a window onto one session', () => {
     await act(async () => { again.click() })
     expect(open).toHaveBeenCalledWith('p1', 'claude-code', undefined, 'fewer-prompts')
     expect(openConsole).toHaveBeenCalledWith('s2')
+  })
+
+  it('board task 4f83a67f: a new session first says who already works in the project; it starts only when asked', async () => {
+    const open = vi.fn(async () => session({ sessionId: 's2' }))
+    stub(async () => session({ running: false, state: 'ended', exitCode: 0 }))
+    const fabric = (window as unknown as { fabric: { terminal: Record<string, unknown>; work: Record<string, unknown> } }).fabric
+    fabric.terminal.open = open
+    fabric.work.launchCheck = vi.fn(async () => ({ overlaps: [], console: [],
+      alsoWorking: [{ claimId: 'c1', heldBy: 'other', agent: 'Codex', taskTitle: 'Board fix', since: new Date().toISOString(), why: [] }] }))
+    render(<I18nProvider locale="en"><SessionWindow sessionId="s1" onDetach={async () => {}} /></I18nProvider>)
+    const again = await screen.findByRole('button', { name: en['session.new'] })
+    await act(async () => { again.click() })
+    expect(open).not.toHaveBeenCalled()
+    expect(await screen.findByText(en['launchCheck.alsoTitle'])).toBeTruthy()
+    await act(async () => { screen.getByRole('button', { name: en['launchCheck.wait'] }).click() })
+    expect(screen.queryByText(en['launchCheck.alsoTitle'])).toBeNull()
+    expect(open).not.toHaveBeenCalled()
+    await act(async () => { again.click() })
+    await act(async () => { (await screen.findByRole('button', { name: en['launchCheck.start'] })).click() })
+    expect(open).toHaveBeenCalledWith('p1', 'claude-code', undefined, null)
   })
 
   it('a new session that does not start says so in our words, the machine words on their own line', async () => {
