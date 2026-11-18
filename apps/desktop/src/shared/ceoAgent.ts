@@ -177,6 +177,25 @@ export function ceoBrief(opts: { locale: string }): string {
 /** The capability the CEO answers on the board (the PM chain, task ff3fe9c3). */
 export const CEO_BOARD_CAPABILITY = 'ceo.task'
 
+/** A board request as the CEO's nudge reads it (`shared/workDirections.ts#ProjectRequest`, narrowed). */
+export interface CeoBoardRequest { requestId: string; to: string; capability: string; subject: string | null; state: string | null; from: string | null }
+
+/**
+ * The requests a PM agent gave the CEO that wait and that the CEO was not told about yet (the PM chain): addressed to the
+ * CEO's project, capability `ceo.task`, not taken (queued, or never moved). Its line, typed into the CEO's console, or
+ * null when nothing new waits.
+ */
+export function ceoBoardNudge(requests: readonly CeoBoardRequest[], projectId: string, told: ReadonlySet<string>, names: Readonly<Record<string, string>> = {}):
+  { line: string; ids: string[] } | null {
+  const fresh = requests.filter((r) => r.to === projectId && r.capability === CEO_BOARD_CAPABILITY && (r.state === null || r.state === 'queued') && !told.has(r.requestId))
+  if (!fresh.length) return null
+  const list = fresh.slice(0, 5).map((r) => `«${(r.subject ?? r.capability).slice(0, 120)}»${r.from ? ` от ${names[r.from] ?? r.from}` : ''} (${r.requestId})`).join('; ')
+  return {
+    ids: fresh.map((r) => r.requestId),
+    line: `На доске ждут задачи для CEO (${fresh.length}): ${list}. Возьми их: com.list с unread: true, com.claim, делегируй сессиям, ответь com.reply и закрой com.complete.`
+  }
+}
+
 const MAX_TEXT = 8000
 
 /**

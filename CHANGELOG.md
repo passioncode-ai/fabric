@@ -7,6 +7,30 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## 0.3.24 (unreleased)
+
+- **Fabric has a CEO you can talk to** (ADR-0197; board tasks `a125cc0e`, `b8fc11e4`, `3fc98668`, `e7ff5556`,
+  `ff3fe9c3`). «Спросить CEO» on Главная and the floating «CEO» button on every screen open the CEO's window over the
+  app: its console, a composer that takes text and pasted, dropped or picked files, «Позвонить» and «Перезапустить CEO».
+  The CEO is one console per computer in Fabric's data folder, with its own brief and the project «Fabric CEO». It runs
+  on Claude Code with Opus, and falls back to Hermes on OpenRouter when Claude Code is not installed, is signed out,
+  does not start, reports its usage limit or ends as it starts; the person's last message is typed again, and the
+  window's head says which agent and model answer. Its models are Opus 5.5, then GPT-6.2 Sol, never below Sonnet 5.5
+  (settings `ceoRunners` and `ceoModels`, set by hand).
+- **The CEO manages the sessions of this computer.** Its console alone has `fabric_ceo_sessions`, `_session_read`,
+  `_session_input`, `_session_start`, `_session_stop`, `_session_resume`, `_session_open` and `_projects`: every session
+  (Fabric's consoles and the ones Switchboard sees), a session's screen or last turns, typing and keys (answer a question,
+  pick an option), a start in a named project, a stop or a kill, a continue and an open window. Every act carries its
+  reason in the operations log; starts and stops are acts in История with their undo.
+- **A voice call with the CEO** through xAI's realtime API: the key stays in the main process, the window gets a
+  five-minute secret; the CEO window's own page alone may reach `wss://api.x.ai`, and only it gets the microphone. The
+  call shows its minutes and price; the same session tools run while you talk, and a longer request goes to the console.
+  macOS asks once for the microphone (the app now carries the audio-input entitlement and its usage sentence).
+- **PM agents can give the CEO work**: a board request to «Fabric CEO» with capability `ceo.task` is typed into the
+  CEO's console once a minute while it runs.
+- Help's examples and the Guide's «Поговорить с Fabric» open the CEO's window; the side panel's conversation is no
+  longer opened (P-13).
+
 ## Unreleased
 
 **Upgrading.** No schema step from 0.3.22 (schema 102, no migration).

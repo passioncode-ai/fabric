@@ -431,7 +431,10 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     const parsed = tool.input.safeParse(args ?? {})
     if (!parsed.success) return refuse(`the arguments were refused: ${parsed.error.issues.map((i) => `${i.path.join('.') || 'input'}: ${i.message}`).join('; ').slice(0, 400)}`)
     try {
-      return await (table[name as CeoToolName] as (a: unknown) => Promise<Answer>)(parsed.data)
+      const answer = await (table[name as CeoToolName] as (a: unknown) => Promise<Answer>)(parsed.data)
+      // Every call, its name and whether it was refused: what the CEO looked at is as visible as what it did.
+      deps.record(`ceo.tool.${name}`, { outcome: answer.ok === false ? 'refused' : 'ok' })
+      return answer
     } catch (e) {
       // A door that threw refused the act: said, never an answer that looks like success.
       deps.record(`ceo.tool.${name}`, { outcome: 'failed', error: e instanceof Error ? e.message.slice(0, 200) : String(e) })

@@ -5,7 +5,7 @@ import test from 'node:test'
 import { mkdtempSync, readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { ceoBrief, ceoLaunchExtras, ceoLine, ceoModelAllowed, ceoModelsOf, ceoRunnersOf, claudeModelFlag, findProject, inboxName, keyBytes, screenText, typedText, CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT } from '../src/shared/ceoAgent.ts'
+import { ceoBoardNudge, ceoBrief, ceoLaunchExtras, ceoLine, ceoModelAllowed, ceoModelsOf, ceoRunnersOf, claudeModelFlag, findProject, inboxName, keyBytes, screenText, typedText, CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT } from '../src/shared/ceoAgent.ts'
 import { createCeoAgent, LIMIT_SAID } from '../src/main/ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, CEO_TOOLS } from '../src/main/ceoTools.ts'
 import { mintVoiceToken, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
@@ -370,4 +370,20 @@ test('the voice token: the key read for one request and never handed back; failu
   assert.ok(!JSON.stringify(refused).includes('xai-SECRET'))
   const empty = await mintVoiceToken({ vault, fetch: async () => new Response('{}', { status: 200 }) })
   assert.equal(empty.ok, false)
+})
+
+test('PM chain: a ceo.task request for the CEO is typed into its running console once; others and taken ones are not', async () => {
+  const P = '11111111-1111-4111-8111-111111111111'
+  const req = (id, over = {}) => ({ requestId: id, to: P, capability: 'ceo.task', subject: 'ship the release', state: null, from: 'pm', ...over })
+  assert.equal(ceoBoardNudge([req('r0', { capability: 'board.respond' }), req('r1', { state: 'claimed' }), req('r2', { to: 'other' })], P, new Set()), null)
+  const n = ceoBoardNudge([req('r3'), req('r4', { state: 'queued' })], P, new Set(), { pm: 'PM agent' })
+  assert.deepEqual(n.ids, ['r3', 'r4'])
+  assert.match(n.line, /«ship the release» от PM agent \(r3\)/)
+  assert.ok(!n.line.includes(String.fromCodePoint(0x2014)))
+  const k = keeper()
+  assert.equal(await k.agent.nudgeBoard([req('r5')]), false, 'not running: nothing typed, nothing started')
+  await k.agent.ensure()
+  assert.equal(await k.agent.nudgeBoard([req('r5')]), true)
+  assert.equal(await k.agent.nudgeBoard([req('r5')]), false, 'told once')
+  assert.match(k.delivered.at(-1)[1], /com\.claim/)
 })

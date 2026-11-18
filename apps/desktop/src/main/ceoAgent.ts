@@ -16,7 +16,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { TerminalSession } from '../shared/types.ts'
 import type { Walk } from '../shared/runnerRoute.ts'
-import { ceoBrief, ceoLine, inboxName, type CeoAttachment, type CeoState, type CeoStatus } from '../shared/ceoAgent.ts'
+import { ceoBoardNudge, ceoBrief, ceoLine, inboxName, type CeoAttachment, type CeoBoardRequest, type CeoState, type CeoStatus } from '../shared/ceoAgent.ts'
 export type { CeoAttachment, CeoState, CeoStatus }
 import { openWithFallback } from './runnerFallback.ts'
 import type { LaunchRoute } from './pty.ts'
@@ -228,8 +228,22 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     changed()
   }
 
+  /** PM chain (task ff3fe9c3): board requests for the CEO that it was not told about are typed into its running console,
+   *  each once; a console that is not running is not started for them (the next start's brief reads the board). */
+  const told = new Set<string>()
+  async function nudgeBoard(requests: readonly CeoBoardRequest[], names: Readonly<Record<string, string>> = {}): Promise<boolean> {
+    const live = sessionId ? deps.get(sessionId) : null
+    if (!live?.running || !projectId) return false
+    const nudge = ceoBoardNudge(requests, projectId, told, names)
+    if (!nudge) return false
+    for (const id of nudge.ids) told.add(id)
+    const r = await deps.deliver(live.sessionId, nudge.line)
+    deps.record('ceo.agent.board-nudge', { session_id: live.sessionId, requests: nudge.ids.length, state: r.state })
+    return r.state === 'written'
+  }
+
   return {
-    status, ensure, send, restart, onOutput, onExit,
+    status, ensure, send, restart, onOutput, onExit, nudgeBoard,
     isCeo: (id: string): boolean => id !== '' && (id === sessionId || opening.has(id)),
     sessionId: (): string | null => sessionId,
     projectId: (): string | null => projectId

@@ -5205,6 +5205,17 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } }),
     note: ceoNote
   })
+  // PM chain (task ff3fe9c3): once a minute, a board request a PM agent gave the CEO (capability `ceo.task`) is typed
+  // into its running console, each once.
+  const ceoBoardTick = setInterval(() => {
+    const projectId = agent.projectId()
+    if (!projectId || agent.status().state !== 'running') return
+    readProjectRequests(store as never, projectId, Date.now())
+      .then((view) => agent.nudgeBoard(view.requests, view.names))
+      .catch((e: unknown) => ops.failed('ceo.board-read', e, { note: 'the CEO is told about board requests at the next minute' }))
+  }, 60_000)
+  ceoBoardTick.unref?.()
+  quit.onQuit(() => clearInterval(ceoBoardTick))
   handle(IPC.ceoAgentStatus, (): Returns<FabricApi['ceoAgent']['status']> => agent.status())
   handle(IPC.ceoAgentEnsure, (): Promise<Returns<FabricApi['ceoAgent']['ensure']>> => agent.ensure())
   handle(IPC.ceoAgentSend, (_e, text: unknown, attachments: unknown): Promise<Returns<FabricApi['ceoAgent']['send']>> =>
