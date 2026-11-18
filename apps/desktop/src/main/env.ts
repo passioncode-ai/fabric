@@ -6,14 +6,14 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 
 const run = promisify(execFile)
-import { existsSync } from 'node:fs'
+import { existsSync, statfsSync } from 'node:fs'
 import path from 'node:path'
 import { chooseRepoRoot } from './repoRoot'
 import { materializeStack } from './bundledStack'
 import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
 import { STACK_EXCLUDED_SERVICES, afterOwnStop, removeExcludedContainers, stackContainers } from './stackServices.ts'
-import type { StackContainers } from '../shared/stackWatch.ts'
+import { startRefusedForDisk, type StackContainers } from '../shared/stackWatch.ts'
 import { nameTheLimit, recoveryStart, startWithRetry } from '../shared/stackStartRetry.ts'
 import { pingDocker } from './dockerPing.ts'
 import { dockerAppFor, launchDockerApp } from './dockerLaunch.ts'
@@ -214,7 +214,27 @@ export async function stackDatabaseContainer(): Promise<StackContainers> {
  *  watch then reads the missing containers as Fabric's to start, not as the operator's stop (0.3.13 review ER-3). */
 let stoppedByHeal = false
 
+/** CO-594, 0.3.23 review, iteration 1 (DA-4, ER-5): every start of Fabric's own stack (the launch, a Retry, the heal,
+ *  the watch's try) reads the data folder's disk first, as the watch does, so none makes the database write under the
+ *  floor. The refusal heals by waiting (`startupHeals`), and the start is tried again once space is freed. */
+function diskRefusal(): string | null {
+  let free: number | null = null
+  try {
+    const st = statfsSync(app.getPath('userData'))
+    free = st.bavail * st.bsize
+  } catch {
+    // Unreadable: nothing names the disk, and the start goes on as before.
+    free = null
+  }
+  return startRefusedForDisk(free)
+}
+
 async function startStackOnce(onLine?: (line: string) => void, limitMs: number | null = null): Promise<void> {
+  const refused = diskRefusal()
+  if (refused) {
+    ops.record({ op: 'stack.start.disk-held', outcome: 'failed', level: 'error', detail: { note: refused }, ctx: { correlationId: ops.correlate() } })
+    throw new Error(refused)
+  }
   // Only the services Fabric calls (lifecycle LC-09): the rest cost ~1.4 GiB at idle for nothing.
   // Its own 240 s, or less when the whole start's deadline leaves less (CO-311); `startWithRetry` begins no try with
   // under `STACK_START_RETRY.minTryMs` left (0.3.12 review ER-5).

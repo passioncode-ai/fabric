@@ -21,8 +21,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   ([the bridge spec §2](docs/evidence/specs/2026-11-16-people-ask-bridge.md#2-the-contract-fabric-people-ask1)).
 - **A disk near full no longer breaks the board's database** (CO-594). On 2026-11-17 the disk reached zero while the
   database wrote, and the Docker VM's file system broke until it was repaired by hand. Under 1 GB free Fabric now stops
-  its own local database keeping its data, says so on every screen, and starts it again once more than 3.5 GB are free;
-  agents are told the database waits for space. An external stack is never stopped.
+  its own local database keeping its data, says so on every screen as soon as the stop has ended, and starts it again
+  once more than 3.5 GB are free; agents are told the database waits for space. A stop that fails is tried again, at
+  most three times per crossing, and the screen then names no stop Fabric did not make: a database that went down by
+  itself on such a disk is said as down, and is started again above 1 GB. No start runs beside a stop still running, and
+  every start of the local stack (the launch, a Retry, the heal) waits while less than 1 GB is free. The 3.5 GB mark
+  holds while Fabric runs; a Fabric started again waits for 1 GB. An external stack is never stopped.
 - **The hub's reads of the window's process are four named ports** (ADR-0195 wave W1, board task `0647986c`). The
   terminals, the sweep's nudges, the settings and the machine's agents the hub reads are `main/hubPorts.ts`'s
   interfaces with one implementation; no agent sees a different answer. The next wave runs the hub apart from the
@@ -44,7 +48,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   waits on the board without a window, and a product's sign-in link opens with macOS `open`. Nothing starts it yet: the
   window keeps the hub until the board's doors and its switch land (W2c.2, W2d). The assign's reads and writes and the
   project reads left `index.ts`, so the window and the entry build them alike; no agent sees a different answer
-  ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
+  ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)). A start of the entry that fails after its
+  hub is up withdraws `hub.json` before it exits, so no file names a process that is gone.
 - **A request beside a busy session is no longer held for it** (§3.2 of
   [the on-demand spec](docs/evidence/specs/2026-11-04-on-demand-sessions.md#32-a-live-session)). A request to a project
   where someone worked waited as long as that session lived (485 such passes in one log).
@@ -54,14 +59,18 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   When the organization's PM agent completed or failed a request with no answer, or it expired, the item waited
   unasked; now it goes to the PM agent once more, as «Нужны вы, ещё раз», and never a third time
   ([the bridge spec §4](docs/evidence/specs/2026-11-16-people-ask-bridge.md#4-the-pass)).
-- **A request Switchboard finds past its deadline is not started again** (board task `e8facb06`): its `deadline_passed`
-  refusal starts nothing more for it, as for one Fabric itself finds past its deadline.
+- **A request Switchboard finds past its deadline is not started again** (board task `e8facb06`): a `deadline_passed`
+  refusal starts nothing more for that request (for a left task, for that release), as for one Fabric itself finds past
+  its deadline, and a project's later inbox messages are not held by it. No Switchboard sends this code yet (0.7.117,
+  the one installed here, has none): this guards the release that will.
 - **«Новая сессия» says who already works in the project first** (board task `4f83a67f`). The button in an ended
   session's console started a new agent at once; now it shows the same warning as the project page when another session
   works in the project, with «Всё равно запустить» and «Подождать».
-- **A PM agent's progress note is not refused as an answer** (the people-ask bridge). A reply with no
-  `fabric-people-answer/1` block is read as the responder's note: Fabric no longer answers it «не применено», and the item
-  keeps waiting for its answer; found on the first live item on 0.3.22.
+- **A PM agent's progress note is not refused as an answer** (the people-ask bridge, board task `d048b422`). A reply
+  that neither names `fabric-people-answer/1` nor holds a fenced block (untagged or `json`) is read as the responder's
+  note: Fabric no longer answers it «не применено», and the item keeps waiting for its answer; found on the first live
+  item on 0.3.22. A reply that tries to answer and whose block is malformed is still refused in the thread with its
+  reason, so the PM agent answers again.
 - **«Служба доски» starts the new version after an update** (task `c9d019de`). Replacing Fabric left launchd's board job
   bound to the version it was registered from, and launchd refused to start it (exit 78), so after a reboot nothing
   started the board; measured installing 0.3.22. The first start of a new version that launchd did not make registers
@@ -74,9 +83,17 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   column. Found once the screen and mockup browser suites ran again: they had printed NOT_RUN everywhere, since no run
   set their Playwright and Chrome; hosted `ci` now installs a pinned Playwright and uses the runner's Chrome.
 - **The board dispatcher waits for a free session slot** (fabric-switchboard, thread `a55aef52`). At Switchboard's session
-  cap a start was refused `at_capacity` and each retry offered a hand-over nobody took. The dispatcher now reads the cap
-  before it starts anything: at the cap it opens no workflow and starts nothing, says so once in the operations log
-  (`board.dispatch.capacity`), and the requests start on the first pass with a free slot.
+  cap a start was refused `at_capacity` and each retry offered a hand-over nobody took. The dispatcher now reads
+  Switchboard's session pool once a pass, only when a request would start, with a 10 s deadline: when Switchboard says a
+  board run is not admitted (`board_admitted: false`; from an older Switchboard, `used >= cap`) it opens no workflow
+  and starts nothing for that request, and the requests start on the first pass with room. Board runs Switchboard admits
+  within its board share at a full pool still start. Only the start waits: every other step of the pass goes on. Each
+  change is said once in the operations log (`board.dispatch.capacity`), and a pool that cannot be read holds nothing
+  and is said as unread. A start Switchboard refuses `at_capacity` waits for a slot rather than counting as failed.
+- **Board runs start again after Project Observatory is updated under a running Fabric**. Fabric keeps one Observatory
+  server running for the dispatcher's workflows; after Observatory 0.42.0 was updated to 0.42.1 that server answered
+  every call `stale-server`, and twenty starts were refused until Fabric restarted (2026-11-18). Fabric now ends such a
+  server and makes the call once more on a new one; a new one that is stale too is a refusal, not a loop.
 - **A coding agent's Stop hook can wait for the turn's verdict** (the turn-end spec §4.2, wave T3). `hub.json` names the
   feature `turn-verdict/1`: `fabric_session_observe` answers a turn with `continue` and its reason, or with nothing, and
   the adapter's Stop hook (FAA-349) waits for that answer only where the feature is named, so with an older Fabric it

@@ -572,8 +572,11 @@ export function wireBoardDispatch(o: {
     async capacity() {
       const sb = await bin('switchboard')
       if (!sb) return null
-      const d = (JSON.parse(await run(sb, ['--json', 'capacity'], await envWith())) as { data?: { used?: unknown; cap?: unknown } }).data
-      return typeof d?.used === 'number' && typeof d?.cap === 'number' && d.cap > 0 ? { used: d.used, cap: d.cap } : null
+      // 0.3.23 review, iteration 1: a short deadline, as the version read's (ER-2), and Switchboard's own `board_admitted`
+      // (SB-417), which decides for a board start when it is there (DA-1, ER-1).
+      const d = (JSON.parse(await run(sb, ['--json', 'capacity'], await envWith(), 10_000)) as { data?: { used?: unknown; cap?: unknown; board_admitted?: unknown } }).data
+      return typeof d?.used === 'number' && typeof d?.cap === 'number' && d.cap > 0
+        ? { used: d.used, cap: d.cap, boardAdmitted: typeof d.board_admitted === 'boolean' ? d.board_admitted : null } : null
     },
     async launch(a) {
       const sb = await bin('switchboard')

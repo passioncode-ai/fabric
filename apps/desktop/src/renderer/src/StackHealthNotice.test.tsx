@@ -13,7 +13,7 @@ import type { StackHealthView } from '../../shared/types'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-const up: StackHealthView = { stack: 'up', why: null, since: '2026-10-21T00:00:00Z', nextTryInS: null, trying: false, attempt: null, hold: null, platform: 'darwin', runtime: null, diskLow: false, freeDiskBytes: 50e9, diskLikelyCause: false }
+const up: StackHealthView = { stack: 'up', why: null, since: '2026-10-21T00:00:00Z', nextTryInS: null, trying: false, attempt: null, hold: null, platform: 'darwin', runtime: null, diskLow: false, freeDiskBytes: 50e9, diskLikelyCause: false, diskStopped: false, diskMarkBytes: null }
 
 function mount(view: StackHealthView | null, locale: 'en' | 'ru' = 'en'): { push: (v: StackHealthView) => void } {
   let listener: ((v: StackHealthView) => void) | null = null
@@ -88,11 +88,28 @@ describe('the stack health notice', () => {
     mount({ ...up, stack: 'down', why: 'database', hold: 'running' })
     expect((await screen.findByRole('alert')).textContent).toContain(en['stack.health.waitingContainers'])
     cleanup()
-    // CO-594: a database Fabric stopped for the disk is said as stopped to keep it whole, never as being brought back.
-    mount({ ...up, stack: 'down', why: 'database', hold: 'disk' }, 'ru')
+    // CO-594: a database Fabric stopped for the disk is said as stopped to keep it whole, never as being brought back;
+    // 0.3.23 review, iteration 1 (UX-1, UX-3, UX-9): only a stop Fabric saw end, under its own title, with no Docker cause
+    // beside it, and with the mark the watch gives.
+    mount({ ...up, stack: 'down', why: 'database', hold: 'disk', diskStopped: true, diskMarkBytes: 3.5e9, diskLow: true, freeDiskBytes: 0.8e9, diskLikelyCause: true }, 'ru')
     const disk = (await screen.findByRole('alert')).textContent ?? ''
-    expect(disk).toContain(ru['stack.health.diskHold']!)
-    expect(disk).not.toMatch(/поднимает её снова/)
+    expect(disk).toContain(ru['stack.health.diskStoppedTitle']!)
+    expect(disk).toContain(ru['stack.health.diskHold']!.replace('{mark}', '3,5'))
+    expect(disk).not.toMatch(/поднимает её снова|не отвечает|Docker останавливается/)
+  })
+
+  it('says a database that went down by itself on a nearly full disk as down, not as Fabric\'s stop (UX-1)', async () => {
+    mount({ ...up, stack: 'down', why: 'database', hold: 'disk', diskStopped: false, diskMarkBytes: 1e9, diskLow: true, freeDiskBytes: 0.6e9, diskLikelyCause: true })
+    const self = (await screen.findByRole('alert')).textContent ?? ''
+    expect(self).toContain(en['stack.health.title'])
+    expect(self).toContain(en['stack.health.diskDown'].replace('{mark}', '1.0'))
+    expect(self).toContain('This disk has 0.6 GB free.')
+    expect(self).not.toMatch(/stopped its|data is kept|3\.5/)
+    cleanup()
+    mount({ ...up, stack: 'down', why: 'docker', hold: 'disk', diskStopped: false, diskMarkBytes: 1e9, diskLow: true, freeDiskBytes: 0.6e9, diskLikelyCause: true }, 'ru')
+    const docker = (await screen.findByRole('alert')).textContent ?? ''
+    expect(docker).toContain(ru['stack.health.diskDownDocker']!.replace('{mark}', '1,0'))
+    expect(docker).not.toMatch(/данные сохранены/i)
   })
 
   // 0.3.9 review UX-4: each OS names its own Docker.

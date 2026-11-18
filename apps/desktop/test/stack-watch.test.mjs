@@ -28,7 +28,12 @@ function rig({ external = false, containers = null, readDeadlineMs, diskStop = f
     ...(readDeadlineMs ? { readDeadlineMs } : {}),
     pingDocker: external ? null : async () => world.docker,
     freeDisk: () => world.free,
-    ...(diskStop ? { stopForDisk: async () => { world.diskStops++; world.database = false } } : {}),
+    ...(diskStop ? { stopForDisk: async () => {
+      world.diskStops++
+      if (diskStop === 'fail') throw new Error('supabase stop: Error response from daemon: i/o error')
+      if (diskStop === 'hang') await new Promise((resolve) => { world.finishStop = resolve })
+      world.database = false
+    } } : {}),
     recover: external ? null : async () => {
       world.recovers++
       if (world.recovering) await world.recovering
@@ -427,5 +432,55 @@ test('CO-594: an external stack is never stopped for the disk', async () => {
   world.free = 0.2e9
   for (let i = 0; i < 3; i++) await tick()
   assert.equal(world.diskStops, 0)
+})
+test('0.3.23 review, iteration 1, UX-1, UX-4: a confirmed stop for the disk is said at once, as Fabric\'s own stop with the 3.5 GB mark', async () => {
+  const { DISK_RECOVERED_BYTES } = await import(path.resolve(SRC, '../shared/stackWatch.ts'))
+  const { tick, world, watch } = rig({ diskStop: true })
+  world.free = 0.8e9
+  await tick()
+  await settle()
+  const v = watch.view()
+  assert.equal(v.stack, 'down', 'no minute of ordinary low-disk warning after the stop')
+  assert.equal(v.hold, 'disk')
+  assert.equal(v.diskStopped, true)
+  assert.equal(v.diskMarkBytes, DISK_RECOVERED_BYTES)
+  assert.match(watch.refusal().reason, /stopped/)
+  assert.ok(world.changes.some((c) => c.view.hold === 'disk' && c.view.diskStopped), 'published at once')
+})
+
+test('0.3.23 review, iteration 1, UX-1, ER-4: a failed stop is tried again (bounded), and never held or said as Fabric\'s stop', async () => {
+  const { CRITICAL_DISK_BYTES, DISK_STOP_ATTEMPTS } = await import(path.resolve(SRC, '../shared/stackWatch.ts'))
+  const { tick, world, watch, records } = rig({ diskStop: 'fail' })
+  world.free = 0.8e9
+  for (let i = 0; i < DISK_STOP_ATTEMPTS + 4; i++) { await tick(120_000); await settle() }
+  assert.equal(world.diskStops, DISK_STOP_ATTEMPTS, 'tried again after a failure, and at most this many times per crossing')
+  const failed = records('stack.disk-stop').filter((r) => r.outcome === 'failed')
+  assert.equal(failed.length, DISK_STOP_ATTEMPTS)
+  assert.equal(failed.at(-1).detail.gave_up, true)
+  // The stack then goes down by itself: held under the floor, said as down near a full disk, not as Fabric's stop.
+  world.database = false
+  await tick(); await tick(); await tick()
+  assert.equal(watch.view().hold, 'disk')
+  assert.equal(watch.view().diskStopped, false)
+  assert.equal(watch.view().diskMarkBytes, CRITICAL_DISK_BYTES)
+  assert.doesNotMatch(watch.refusal().reason, /stopped because/)
+  world.free = 2e9
+  for (let i = 0; i < 3 && world.recovers === 0; i++) { await tick(120_000); await settle() }
+  assert.equal(world.recovers, 1, 'Fabric never stopped it, so the 1 GB floor alone holds the start')
+})
+
+test('0.3.23 review, iteration 1, ER-4: a start waits for a stop for the disk still in flight', async () => {
+  const { tick, world } = rig({ diskStop: 'hang' })
+  world.free = 0.8e9
+  await tick()
+  assert.equal(world.diskStops, 1)
+  world.database = false
+  world.free = 5e9
+  for (let i = 0; i < 4; i++) { await tick(120_000); await settle() }
+  assert.equal(world.recovers, 0, 'no supabase start beside the running supabase stop')
+  world.finishStop()
+  await settle()
+  for (let i = 0; i < 3 && world.recovers === 0; i++) { await tick(120_000); await settle() }
+  assert.equal(world.recovers, 1, 'started once the stop ended and the disk is above the mark')
 })
 // #endregion stack-watch

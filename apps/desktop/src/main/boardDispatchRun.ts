@@ -205,8 +205,10 @@ export interface DispatchDeps {
    *  `DISK_FLOOR_BYTES` no run starts: a run writes, and the stack's database went down on a disk this full. */
   freeDisk?(): number | null
   /** fabric-switchboard, 2026-11-17 (thread a55aef52): Switchboard's session cap on this machine (`switchboard capacity`),
-   *  or null when unread. At the cap no run starts and no workflow is opened: a start would be refused `at_capacity`. */
-  capacity?(): Promise<{ used: number; cap: number } | null>
+   *  or null when unread. When it holds (`capacityHolds`), no run starts and no workflow is opened: a start would be
+   *  refused `at_capacity`. `boardAdmitted` is Switchboard's own answer for a board start (SB-417, 0.7.117: a board run
+   *  starts at a full pool while its board share has room); absent on an older Switchboard. */
+  capacity?(): Promise<SessionCapacity | null>
   /** 2026-11-12 (C2): how long this machine slept since `from` (ms), from the power monitor. A run here was frozen with
    *  it, so its liveness and its end are judged on time awake; absent, no sleep is counted. */
   suspendedSince?(from: number): number
@@ -269,6 +271,16 @@ export function noteOf(e: unknown): string {
     : e && typeof e === 'object' ? String((e as { message?: unknown }).message ?? (e as { code?: unknown }).code ?? (() => { try { return JSON.stringify(e) } catch { /* a circular or throwing object: the note says so; noteOf's caller records it */ return 'an unreadable error' } })())
     : String(e)
   return said.replace(/(^|[\s'"`(=:[{<,;|])(?:file:\/\/|~|[A-Za-z]:)?[\\/][\s\S]*$/, '$1<path>').slice(0, 200)
+}
+
+/** Switchboard's session pool as `switchboard --json capacity` reads (fabric-switchboard `capacity.rs#view`). */
+export interface SessionCapacity { used: number; cap: number; boardAdmitted?: boolean | null }
+
+/** 0.3.23 review, iteration 1 (DA-1, ER-1): whether the pool holds a board run. Switchboard's `board_admitted` decides
+ *  when it names it (a board run starts at the cap while the board share has room); only an older Switchboard that
+ *  names none is judged by `used >= cap`. */
+export function capacityHolds(c: SessionCapacity): boolean {
+  return typeof c.boardAdmitted === 'boolean' ? !c.boardAdmitted : c.used >= c.cap
 }
 
 /** Why a request is the operator's: three runs left it unsettled (`inbox` for an inbox item, CO-559), or it passed its deadline accepted with no run (ER-7);
@@ -981,7 +993,9 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
   }
 
   let diskWasLow = false
-  let wasAtCapacity = false
+  // 0.3.23 review, iteration 1 (ER-2): the pool as last said, so a change is said once and a read that fails is said as
+  // unread, never as a resumption.
+  let capacitySaid: 'free' | 'held' | 'unread' = 'free'
   const pass = async (): Promise<void> => {
     readThisPass = false
     const now = deps.now()
@@ -1129,15 +1143,27 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     }
     if (!on || diskLow) return
     // fabric-switchboard, 2026-11-17 (thread a55aef52): at Switchboard's session cap a start is refused `at_capacity`, and
-    // each retry offered a hand-over nobody took. At the cap nothing is opened or offered, said once per crossing; the
-    // requests wait and start on the first pass with a free slot. A cap that cannot be read holds nothing.
-    const capacity = deps.capacity ? await deps.capacity().catch(() => null) : null
-    const atCapacity = capacity !== null && capacity.used >= capacity.cap
-    if (atCapacity !== wasAtCapacity) {
-      wasAtCapacity = atCapacity
-      deps.log('board.dispatch.capacity', atCapacity ? 'failed' : 'ok', { used: capacity?.used ?? null, cap: capacity?.cap ?? null, starts: atCapacity ? 'held' : 'resumed' })
-    }
-    if (atCapacity) return
+    // each retry offered a hand-over nobody took. While the pool holds a board run nothing is opened or offered, said
+    // once per change; the requests wait and start on the first pass with room. 0.3.23 review, iteration 1: the pool is
+    // read once a pass and only when a request would start (DA-6), held only as Switchboard admits board runs (DA-1,
+    // ER-1), and only the start waits, so every other path of the pass still runs (DA-2). A pool that cannot be read
+    // holds nothing and is said as unread (ER-2).
+    let capacityOnce: Promise<boolean> | null = null
+    const heldByCapacity = (): Promise<boolean> => (capacityOnce ??= (async () => {
+      if (!deps.capacity) return false
+      let c: SessionCapacity | null = null
+      let note: string | null = null
+      try { c = await deps.capacity() } catch (e) { note = noteOf(e) }
+      const state = c ? (capacityHolds(c) ? 'held' : 'free') : 'unread'
+      if (state !== capacitySaid) {
+        const before = capacitySaid
+        capacitySaid = state
+        if (state === 'unread') deps.log('board.dispatch.capacity', 'unknown', { starts: 'unread', note: note ?? 'Switchboard named no session pool' })
+        else deps.log('board.dispatch.capacity', state === 'held' ? 'failed' : 'ok', { used: c!.used, cap: c!.cap, board_admitted: c!.boardAdmitted ?? null,
+          starts: state === 'held' ? 'held' : before === 'held' ? 'resumed' : 'read' })
+      }
+      return state === 'held'
+    })())
     const limits = limitsOf()
     // 2026-11-12 (H3): the agent Switchboard starts is asked once a pass, not once a request; a failure is no agent.
     let providerOnce: Promise<DispatchAgent | null> | null = null
@@ -1251,8 +1277,12 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       }
       if (decision.path !== 'launch') continue
       // Switchboard found the request past its deadline (task e8facb06): no run is started for it again, as for a request
-      // Fabric itself finds past it; the workflow kept for it is closed with the others (`board-dispatch-expiry`).
-      if (last?.outcome === 'refused' && last.refused === 'deadline_passed') continue
+      // Fabric itself finds past it; the workflow kept for it is closed with the others (`board-dispatch-expiry`). No
+      // Switchboard sends `deadline_passed` yet (0.7.117): this guards the code it is to send. 0.3.23 review, iteration 1,
+      // ER-3: the refusal holds its own request (for a left task, its own release), never the project's next inbox
+      // message or the task's next release.
+      if (mine.some((r) => r.requestId === req.id && r.outcome === 'refused' && r.refused === 'deadline_passed'
+        && (!req.resume || r.resume === req.resume.releasedAt))) continue
       if (last?.outcome === 'refused' || last?.outcome === 'failed-to-start') {
         let inRow = 0
         for (let i = mine.length - 1; i >= 0 && (mine[i].outcome === 'refused' || mine[i].outcome === 'failed-to-start'); i--) inRow++
@@ -1262,6 +1292,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       // CO-544: and each failure in a row doubles that wait, so one that keeps failing is not asked every ten minutes.
       const failedOpen = openFailedAt.get(req.id)
       if (failedOpen && now - failedOpen.at < refusalBackoffMs(failedOpen.inRow)) continue
+      if (await heldByCapacity()) { said(req.id, { path: 'wait', check: 'deferred-cap' }); continue }
       const provider = await (providerOnce ??= deps.defaultProvider().catch((e: unknown) => {
         deps.log('board.dispatch.agent', 'failed', { note: noteOf(e) })
         return null

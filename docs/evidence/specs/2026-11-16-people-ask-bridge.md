@@ -66,7 +66,7 @@ person by a role key (Kira's choice), a Telegram user id (the other PM agent's),
 reply with this schema is read (`shared/peopleAsk.ts#parseAnswer`).
 A reply with no such block at all is the responder's note, not an answer: it decides nothing, Fabric posts nothing back and
 writes `people.ask.note` in its log, and the item keeps waiting (`shared/peopleAsk.ts#hasAnswerBlock`; the first live item,
-2026-11-17, got «не применено» for a progress note sent as `com.reply`). A note's place is `com.progress {note}`.
+2026-11-17, got «не применено» for a progress note sent as `com.reply`). A note's place is `com.progress {note}`. Changed by the 0.3.23 review, iteration 1 (ER-6, DA-3): a reply that names `fabric-people-answer/1` or holds a fenced block untagged or tagged `json` (in any case) is an answer attempt even when its block does not parse, and is refused «не применено: …» with its reason; only a reply with neither is a note.
 
 **Fabric's result.** A reply to the PM's answer, as the request's sender, idempotency key `people-ask-result:<answer
 message id>`. Its first line is exactly `решено` or `не применено: <причина>`, then a block
@@ -175,7 +175,7 @@ offered only «Отказать».
 
 Every failure goes to the operations log and ends nothing else: `people.ask.read`, `people.ask.thread`,
 `people.ask.responders`, `people.ask.project`, `people.ask.submitted` (with its attempt), `people.ask.ended`, `people.ask.applied`, `people.ask.result`,
-`people.ask.cancelled`, `people.ask.save`, `people.ask.records-unread`, `people.ask.pass`, with item ids, kinds,
+`people.ask.cancelled`, `people.ask.withdrawn` (the «снят» line a withdrawal posts, since 0.3.23), `people.ask.save`, `people.ask.records-unread`, `people.ask.pass`, with item ids, kinds,
 organizations and levels; never a person's words or Telegram id. A door that refuses (the question revised, the task no
 longer in review) leaves the item open and says why in the thread; a later answer may still decide it.
 

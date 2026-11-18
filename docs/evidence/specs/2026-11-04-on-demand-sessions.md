@@ -202,6 +202,16 @@ A cap that cannot be read holds nothing. Found 2026-11-17 (fabric-switchboard, t
 `at_capacity` (21 of 20) and each retry offered a hand-over nobody took (`main/boardDispatchRun.ts`, test «at
 Switchboard's session cap no run starts» in `test/board-dispatch-run.test.mjs`).
 
+Changed by the 0.3.23 review, iteration 1 (DA-1, DA-2, DA-6, ER-1, ER-2, 2026-11-18). Switchboard 0.7.117 (SB-417)
+keeps a board share in its pool: a board start is admitted at a full pool while `board_used < board_share`, and the
+answer says so as `board_admitted`. A board run therefore waits only when `board_admitted` is `false`; a Switchboard that
+names no `board_admitted` is judged by `used >= cap` (`boardDispatchRun.ts#capacityHolds`). The pool is read once a pass,
+only when a request would start, with a 10 s deadline (`boardDispatchWiring.ts`), and only that start waits (said as the
+wait `deferred-cap`): a request with no folder, a run past its empty runs and the live-session bookkeeping go on as on
+any pass. A pool that cannot be read holds nothing and is said once as unread (`unknown`), never as a resumption. A
+start Switchboard refuses `at_capacity` waits as a start at a spend cap does (`refusalCheck`, `deferred-cap`). Tests:
+«0.3.23 review, iteration 1» in `test/board-dispatch-run.test.mjs`.
+
 Fabric creates the hand-over itself (`observatory_handoff_create` as `service:fabric`, reason `plan_route`, `to.provider`
 the agent id `switchboard agents status` says `dispatch` will start, `data.dispatch_agent` (Switchboard's SB-294: Claude
 Code when no default is set), else its default agent, no account). The provider is that id as Switchboard writes it
@@ -373,8 +383,9 @@ CO-556, 49 requests `queued`, 65 projects with unread board messages, and five d
    week), so a Project gets one run for everything that waits, never one per message. A message sent in a clock hour in
    which its sender started 12 threads or more is a fan-out, an announcement in all but its kind, and wakes nobody, also
    after the round has stopped
-   (`board-inbox-operator`). The item takes the request's path: the grace of §3.1, no second agent beside a live
-   session (§3.2), the caps of §3.3, one run per Project at a time with its requests.
+   (`board-inbox-operator`). The item takes the request's path: the grace of §3.1, a live session's turn of §3.2 (since
+   2026-11-18 the grace and `LIVE_SESSION_TAKE_MS` more, then a run beside it), the caps of §3.3, one run per Project at
+   a time with its requests.
 2. **The inbox run's packet** (`boardDispatchRun.ts#inboxBody`): read what waits with `com.list {unread: true}`, do
    what is the Project's own, answer where an answer is owed, and mark every message read with `com.read_ack`; the run
    is settled once its message is read by the Project (`inboxState`, from the message's read marks). A Project's empty
@@ -636,7 +647,7 @@ the board out of the window's process in four waves. W1 names what the hub reads
   not be read. `HubRegistry` is this machine's agents for `fabric_whoami`. `HubLinks` (added in W2a) is the two acts a
   product's connection asks of the desktop: open its sign-in link, and name the app registered for its callback scheme
   (`productConnect.ts`), an empty path read as no handler.
-- **One implementation.** `windowHubPorts` builds the four from the window's process; `main/index.ts` builds it once and
+- **One implementation.** `windowHubPorts` builds the four from the window's process (five since W2a.1 added `HubLinks`); `main/index.ts` builds it once and
   hands its members to the agent surface and to the enrollment and access doors. Before W1 the trust read was written
   three times there; it is one function now.
 - **What W1 does not change.** Every answer an agent gets is the same: the closures moved, their bodies did not. The
@@ -683,6 +694,11 @@ does. The board reaches Electron through two seams only: `localStore.ts` resolve
    every reader already treats as «cannot tell» (`AgentSurfaceDeps.ptys`).
 4. **W2d, the window as a client.** The window stops starting the hub and reads the board through the hub's loopback
    door. Until W4 the window starts `fabric-board` itself and stops it at quit, so nothing outlives the app yet.
+
+**As built (2026-11-18, the 0.3.23 review, iteration 1, DO-6).** No `startBoard` was shipped. W2a.3 moved the hub's
+composition into `main/board.ts#startBoardHub` and W2a.4 the cycle into `main/boardCycle.ts#startBoardCycle`, both
+called by `index.ts` in the window's process. W2c.1a added `main/boardMain.ts`, which composes the hub only (the cycle is
+W2c.1b); nothing starts that entry in 0.3.23. The stack watch stays in `index.ts` until W2c.1b.
 
 **Not in W2.** The stack's start stays the window's (`env.ts`); the board waits for it as the hub's standby does today
 (`main/hubStandby.ts`). The launchd job is W4.

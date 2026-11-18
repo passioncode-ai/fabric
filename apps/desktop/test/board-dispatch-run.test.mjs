@@ -128,6 +128,57 @@ test('at Switchboard\'s session cap no run starts and no workflow is opened, sai
   assert.deepEqual(logged.filter(([op]) => op === 'board.dispatch.capacity').map(([, o, x]) => [o, x.starts]), [['failed', 'held'], ['ok', 'resumed']])
 })
 
+test('0.3.23 review, iteration 1, DA-1, ER-1: at the cap a board run Switchboard admits within its board share starts', async () => {
+  // Switchboard 0.7.117 (SB-417) admits a board start at a full pool while board_used < board_share, as `board_admitted`.
+  const w = world()
+  const d = createBoardDispatch({ ...w.deps, capacity: async () => ({ used: 40, cap: 40, boardAdmitted: true }) })
+  await d.onPass()
+  assert.equal(w.launches.length, 1, 'admitted within the board share: started')
+  const held = world()
+  await createBoardDispatch({ ...held.deps, capacity: async () => ({ used: 12, cap: 40, boardAdmitted: false }) }).onPass()
+  assert.equal(held.launches.length, 0, 'Switchboard says a board start is not admitted: held, whatever used and cap say')
+})
+
+test('0.3.23 review, iteration 1, ER-2: a capacity that cannot be read is said as unread once, never as a resumption, and holds nothing', async () => {
+  const w = world()
+  let cap = { used: 21, cap: 20 }
+  const logged = []
+  const d = createBoardDispatch({ ...w.deps, capacity: async () => { if (cap === 'throw') throw new Error('unrecognized subcommand capacity'); return cap },
+    log: (op, outcome, detail) => logged.push([op, outcome, detail]) })
+  await d.onPass()
+  assert.equal(w.launches.length, 0)
+  cap = 'throw'
+  await d.onPass()
+  await d.onPass()
+  assert.equal(w.launches.length, 1, 'an unread cap holds nothing')
+  const said = logged.filter(([op]) => op === 'board.dispatch.capacity').map(([, o, x]) => [o, x.starts])
+  assert.deepEqual(said, [['failed', 'held'], ['unknown', 'unread']])
+  assert.ok(logged.find(([op, o]) => op === 'board.dispatch.capacity' && o === 'unknown')[2].note.includes('unrecognized'))
+})
+
+test('0.3.23 review, iteration 1, DA-6, ER-2: the capacity is read only on a pass where a run would start', async () => {
+  let reads = 0
+  const capacity = async () => { reads++; return { used: 1, cap: 20 } }
+  const idle = world({ requests: [] })
+  await createBoardDispatch({ ...idle.deps, capacity }).onPass()
+  const young = world({ session: true, requests: [request({ submittedAt: new Date(T0 - MIN).toISOString() })] })
+  await createBoardDispatch({ ...young.deps, capacity }).onPass()
+  assert.equal(reads, 0, 'no request due to start: no capacity read')
+  const due = world()
+  await createBoardDispatch({ ...due.deps, capacity }).onPass()
+  assert.equal(reads, 1)
+})
+
+test('0.3.23 review, iteration 1, DA-2: at the cap a request with no folder here is still given to the operator', async () => {
+  const { NO_FOLDER_TO_OPERATOR_MS } = await import(path.resolve(import.meta.dirname, '../src/shared/boardDispatch.ts'))
+  const w = world({ folder: null })
+  const d = createBoardDispatch({ ...w.deps, capacity: async () => ({ used: 21, cap: 20 }) })
+  await d.onPass()
+  w.tick(NO_FOLDER_TO_OPERATOR_MS)
+  await d.onPass()
+  assert.equal(d.toOperator().get(request().id), 'no-folder')
+})
+
 test('nothing starts with the switch off, with a live responder, or with a live session inside the grace', async () => {
   for (const over of [{ on: false }, { responder: true }, { session: true, requests: [request({ submittedAt: new Date(T0 - MIN).toISOString() })] }]) {
     const w = world(over)
@@ -1621,6 +1672,19 @@ test('CO-559: an inbox run ends finished once its message is read; a newer messa
   assert.equal(d.records()[1].outcome, 'exited-without-answer')
   assert.equal(d.records()[1].emptyRuns, 1)
   assert.equal(w.launches.length, 3, 'started again for the same message')
+})
+
+test('0.3.23 review, iteration 1, ER-3: a deadline_passed refusal holds its own message, never the project\'s next inbox message', async () => {
+  const w = world({ requests: [inboxItem()], refuse: 'deadline_passed' })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  assert.equal(w.launches.length, 1)
+  w.refuse = null
+  const next = inboxItem({ id: '55555555-5555-4555-8555-555555555555', submittedAt: new Date(T0).toISOString() })
+  w.requests = [next]
+  w.tick(REFUSAL_BACKOFF_MAX_MS)
+  await d.onPass()
+  assert.equal(w.launches.length, 2, 'a newer message of the same project starts its run')
 })
 
 test('0.3.19 review PL-2: an inbox run starts on this machine even with a dispatch target named; a request still goes there', async () => {
