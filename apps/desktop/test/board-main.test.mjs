@@ -109,6 +109,16 @@ test('(a) the board process starts the hub against a stand-in database and answe
   assert.ok(opsLines(userData).some((r) => r.op === 'hub.published'), 'the board writes its own operations log')
 })
 
+test('0.3.23 review, iteration 1, ER-7: a start that fails after its hub is up withdraws hub.json before it fails, and exits nothing itself', async () => {
+  const exits = []
+  const { root } = registryDirs()
+  const hubFile = path.join(root, 'hub.json')
+  await assert.rejects(boardMain.startBoardProcess({ userData, db: standInDb(), signals: new EventEmitter(), exit: (code) => exits.push(code),
+    ready: () => { assert.ok(existsSync(hubFile), 'the hub was up'); throw new Error('a later step failed') } }), /a later step failed/)
+  assert.equal(existsSync(hubFile), false, 'hub.json is withdrawn: it names no dead process')
+  assert.deepEqual(exits, [], 'the caller exits 1 (main), never 0 from the quit')
+})
+
 test('(a) an unreadable estate choice stops the start before the hub opens', async () => {
   const bad = mkdtempSync(path.join(tmpdir(), 'board-main-bad-'))
   try {

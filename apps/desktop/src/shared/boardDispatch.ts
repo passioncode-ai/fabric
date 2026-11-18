@@ -157,8 +157,10 @@ export function decideDispatch(input: DispatchInput): DispatchDecision {
   if (!candidate(request, now)) return { path: 'none' }
   if (input.liveResponder) return { path: 'responder' }
   const waited = now - Date.parse(request.submittedAt)
-  // The 0.3.16 review (ER-5, DO-2): a project with a live session gets no second agent in the same folder; the request
-  // is that session's (and, unanswered, the operator's in «На проверке»), until the live session's wake of §3.2 exists.
+  // §3.2 (2026-11-18): a project with a live session has the request for the grace and `LIVE_SESSION_TAKE_MS` more; one
+  // the session did not take by then gets a run beside it, a second agent in the same folder. A left task (§3.11,
+  // `keptByLiveSession`) stays with the live session. Before 2026-11-18 the request was the session's alone (the 0.3.16
+  // review, ER-5, DO-2).
   if (input.liveSession && (input.keptByLiveSession === true || waited < GRACE_MS + LIVE_SESSION_TAKE_MS)) return { path: 'live-session' }
   if (!request.urgent && waited < GRACE_MS) return { path: 'wait', check: 'grace' }
   if (input.emptyRuns >= EMPTY_RUNS_TO_OPERATOR) return { path: 'to-operator' }
@@ -424,6 +426,8 @@ export function refusalCheck(code: string): DispatchCheck {
     // fabric-switchboard, after 0.7.113 (board thread a55aef52): a request past its deadline is refused, as Fabric itself
     // starts nothing for one (`candidate`); the request is never asked again (task e8facb06).
     case 'deadline_passed': return 'skipped-expired'
+    // 0.3.23 review, iteration 1, DA-2: Switchboard's session pool was full; the request waits for a slot.
+    case 'at_capacity':
     case 'ceiling_reached':
     case 'spend_unknown': return 'deferred-cap'
     default: return 'failed-to-start'

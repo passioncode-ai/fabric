@@ -13,7 +13,7 @@ organization); studio-agent's C8 `ea3274cd` (one device identity per organizatio
 
 | Today | After CO-422 |
 |---|---|
-| One Fabric process opens one estate (`main/activeEstate.ts#readActiveEstate`; `ACTIVE_ESTATE` has 136 uses in `main/index.ts`) | One Fabric serves the person's own context and every organization context they belong to, at once |
+| One Fabric process opens one estate (`main/activeEstate.ts#readActiveEstate`; `ACTIVE_ESTATE` had 136 uses in `main/index.ts` at `6b590cfa`; since W2a.3 and W2a.4 moved the composition out, 108 there, 12 in `main/board.ts` and 19 in `main/boardCycle.ts`, counted 2026-11-18) | One Fabric serves the person's own context and every organization context they belong to, at once |
 | Every project is in the one open estate | Every project is in exactly one context, shown by its badge; it moves only by the person's act |
 | A session in any project sees the whole board | A session sees only its project's context: its projects, tasks, board, grants and accounts |
 | Board events of every project may reach a mirror | An organization's events go only to that organization's own copy; personal events never leave the machine |

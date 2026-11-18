@@ -73,6 +73,9 @@ export interface BoardQuit {
   /** Begins the quit (once): every stop, then the shutdown, then exit 0. A second call while draining by a signal forces
    *  the exit; any other second call returns the drain already running. */
   quit(reason: QuitSignal | 'stop'): Promise<void>
+  /** 0.3.23 review, iteration 1, ER-7: runs every stop and the shutdown, as the quit does, and exits nothing: a start that
+   *  failed after its hub was up withdraws `hub.json` here, and its caller exits with the failed start's code. */
+  release(): Promise<void>
 }
 
 /**
@@ -125,13 +128,20 @@ export function createBoardQuit(o: {
     return drain
   }
   if (o.signals) listenForQuitSignals(o.signals, (signal) => { void quit(signal) })
+  const release = async (): Promise<void> => {
+    if (drain) return drain
+    quitting = true
+    for (const stop of stops.splice(0)) runStop(stop)
+    try { await o.shutdown?.() } catch (e) { ops.failed('board.quit-shutdown', e, { note: 'the surface did not stop cleanly after a failed start' }) }
+  }
   return {
     get quitting() { return quitting },
     onQuit(stop) {
       if (quitting) runStop(stop)
       else stops.push(stop)
     },
-    quit
+    quit,
+    release
   }
 }
 // #endregion board-main-quit
@@ -214,6 +224,9 @@ export interface BoardProcessOptions {
   openUrl?: (url: string) => Promise<void>
   /** The quit's deadline; `quit.ts`'s 10 s by default. */
   deadlineMs?: number
+  /** The caller's own step once the hub is up (the cycle, W2c.1b). A throw from it fails the start, and the hub is
+   *  withdrawn first (0.3.23 review, iteration 1, ER-7). */
+  ready?: (board: BoardProcess) => Promise<void> | void
 }
 
 export interface BoardProcess {
@@ -259,58 +272,67 @@ export async function startBoardProcess(opts: BoardProcessOptions): Promise<Boar
   let registry: AgentRegistry | null = null
   let hub: BoardHub | null = null
   const openUrl = opts.openUrl ?? ((url: string) => openWithSystem(url))
-  await startBoardHub({
-    quit, db, store, journal, policy, estateId, operator, state,
-    // The window's port implementation, given the board's own parts: no terminals (unknown, not none), the sweep's handle
-    // (empty until the cycle runs here, W2c.1b), the settings file the window writes, and Node's link opener.
-    ports: (reg) => windowHubPorts({
-      ptys: () => undefined, sweep: state.sweep.get, readSettings: readSettingsState, registry: reg,
-      desktop: { openExternal: openUrl, applicationInfoForProtocol: async () => ({ name: '', path: '' }) }
-    }),
-    presenter: ({ accessStore, connector, access }) => headlessPresenter({ access, accessStore, connector, operator }),
-    standby: null,
-    releaseStandby: () => {},
-    keptOut,
-    // No window lists repositories for the board: an agent's folder is admitted by its own rules alone.
-    scanCandidates: new ScanCandidates(),
-    // History's acts are the window's: an act is said in the board's log (board.ts#noteAct).
-    acts: () => null,
-    assignDeps: () => createAssignDeps({ store, journal, estateId, operator,
-      board: (projectId) => {
-        if (!surface) throw new Error('the board door is not open yet')
-        return surface.operatorBoard(projectId, operator.id)
-      } }),
-    projects: {
-      read: (id) => reads.read(id),
-      listRepos: (projectId) => reads.listRepos(projectId),
-      readImported: () => reads.readImported(),
-      listRemovals: () => reads.listRemovals(),
-      // The file roots bound the window's file API; the board serves none, so there is nothing to refresh here.
-      refreshFileRoots: async () => {
-        if (saidFileRoots) return
-        saidFileRoots = true
-        ops.record({ op: 'board.file-roots', outcome: 'ok', detail: { note: 'the board holds no file roots; the window refreshes its own' }, ctx: { correlationId: ops.correlate() } })
+  // 0.3.23 review, iteration 1, ER-7: from here on the hub may be up (`hub.json`, the door token, the registry watch);
+  // a start that fails after it withdraws them before the throw, so no `hub.json` is left naming a dead process.
+  try {
+    await startBoardHub({
+      quit, db, store, journal, policy, estateId, operator, state,
+      // The window's port implementation, given the board's own parts: no terminals (unknown, not none), the sweep's handle
+      // (empty until the cycle runs here, W2c.1b), the settings file the window writes, and Node's link opener.
+      ports: (reg) => windowHubPorts({
+        ptys: () => undefined, sweep: state.sweep.get, readSettings: readSettingsState, registry: reg,
+        desktop: { openExternal: openUrl, applicationInfoForProtocol: async () => ({ name: '', path: '' }) }
+      }),
+      presenter: ({ accessStore, connector, access }) => headlessPresenter({ access, accessStore, connector, operator }),
+      standby: null,
+      releaseStandby: () => {},
+      keptOut,
+      // No window lists repositories for the board: an agent's folder is admitted by its own rules alone.
+      scanCandidates: new ScanCandidates(),
+      // History's acts are the window's: an act is said in the board's log (board.ts#noteAct).
+      acts: () => null,
+      assignDeps: () => createAssignDeps({ store, journal, estateId, operator,
+        board: (projectId) => {
+          if (!surface) throw new Error('the board door is not open yet')
+          return surface.operatorBoard(projectId, operator.id)
+        } }),
+      projects: {
+        read: (id) => reads.read(id),
+        listRepos: (projectId) => reads.listRepos(projectId),
+        readImported: () => reads.readImported(),
+        listRemovals: () => reads.listRemovals(),
+        // The file roots bound the window's file API; the board serves none, so there is nothing to refresh here.
+        refreshFileRoots: async () => {
+          if (saidFileRoots) return
+          saidFileRoots = true
+          ops.record({ op: 'board.file-roots', outcome: 'ok', detail: { note: 'the board holds no file roots; the window refreshes its own' }, ctx: { correlationId: ops.correlate() } })
+        },
+        mirror: () => {
+          const root = readSettings().workspace.path
+          if (!root) return
+          void writeWorkspace(root, store).catch((e) => ops.failed('board.workspace-mirror', e, { note: 'the workspace mirror could not be written' }))
+        },
+        enrollProject: (id) => reads.enroll(id),
+        reposWithRemotes: (projectId) => reads.reposWithRemotes(projectId),
+        leaseRefs: (projectId) => reads.leaseRefs(projectId)
       },
-      mirror: () => {
-        const root = readSettings().workspace.path
-        if (!root) return
-        void writeWorkspace(root, store).catch((e) => ops.failed('board.workspace-mirror', e, { note: 'the workspace mirror could not be written' }))
-      },
-      enrollProject: (id) => reads.enroll(id),
-      reposWithRemotes: (projectId) => reads.reposWithRemotes(projectId),
-      leaseRefs: (projectId) => reads.leaseRefs(projectId)
-    },
-    onRegistry: (r) => { registry = r },
-    onOnboardingFiler: () => {},
-    onAdmission: () => {},
-    onSurface: (s) => { surface = s },
-    onHub: (h) => { hub = h }
-  })
-  if (!hub || !surface || !registry) throw new Error('the board hub did not compose')
-  const composed = { hub: hub as BoardHub, surface: surface as AgentSurface, registry: registry as AgentRegistry }
-  ops.record({ op: 'board.started', outcome: 'ok', level: composed.hub.down ? 'warn' : 'info',
-    detail: { pid: process.pid, origin: composed.surface.origin || null, down: composed.hub.downCode ?? null }, ctx: { correlationId: ops.correlate(), estateId } })
-  return { ...composed, quit, estateId, operator, stop: () => quit.quit('stop') }
+      onRegistry: (r) => { registry = r },
+      onOnboardingFiler: () => {},
+      onAdmission: () => {},
+      onSurface: (s) => { surface = s },
+      onHub: (h) => { hub = h }
+    })
+    if (!hub || !surface || !registry) throw new Error('the board hub did not compose')
+    const composed = { hub: hub as BoardHub, surface: surface as AgentSurface, registry: registry as AgentRegistry }
+    ops.record({ op: 'board.started', outcome: 'ok', level: composed.hub.down ? 'warn' : 'info',
+      detail: { pid: process.pid, origin: composed.surface.origin || null, down: composed.hub.downCode ?? null }, ctx: { correlationId: ops.correlate(), estateId } })
+    const board: BoardProcess = { ...composed, quit, estateId, operator, stop: () => quit.quit('stop') }
+    await opts.ready?.(board)
+    return board
+  } catch (e) {
+    await quit.release()
+    throw e
+  }
 }
 
 /** The command line: `--user-data <absolute folder>`. */

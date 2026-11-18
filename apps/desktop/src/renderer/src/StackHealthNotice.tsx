@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react'
 import type { StackHealthView } from '../../shared/types'
 import { freeDiskGb } from '../../shared/startupFailure'
-import { platformKey } from '../../shared/stackWatch'
+import { DISK_RECOVERED_BYTES, platformKey } from '../../shared/stackWatch'
 import { Banner } from './components'
 import { useLocale, useT } from './i18n'
 import type { StringKey } from './i18n/en'
@@ -50,18 +50,25 @@ export function StackHealthNotice(): React.JSX.Element | null {
   if (view.stack === 'down') {
     // Said as it is (0.3.9 review UX-2, UX-4, ER-3): a stack Fabric does not bring back is waited for, never promised;
     // a try in flight is said as one, never as a countdown frozen at 0; each OS names its own Docker.
+    // CO-594, 0.3.23 review, iteration 1 (UX-1, UX-3): under the disk hold, a stop Fabric made and saw end is said as its
+    // own, with its own title and without the Docker cause beside it; a database that went down by itself on the
+    // nearly full disk is said as down (Docker named when Docker is why), with the disk line first. The free space the
+    // start waits for comes from the watch (UX-9), never a figure in the words.
+    const diskStopped = view.hold === 'disk' && view.diskStopped === true
     const cause: StringKey =
       view.hold === 'external' ? 'stack.health.external'
         : view.hold === 'stopped' ? 'stack.health.stopped'
           : view.hold === 'running' ? 'stack.health.waitingContainers'
-            : view.hold === 'disk' ? 'stack.health.diskHold'
-            : view.why === 'docker' ? (platformKey('stack.health.docker', view.platform ?? 'darwin', view.runtime ?? null) as StringKey)
-              : 'stack.health.database'
+            : diskStopped ? 'stack.health.diskHold'
+              : view.hold === 'disk' ? (view.why === 'docker' ? 'stack.health.diskDownDocker' : 'stack.health.diskDown')
+                : view.why === 'docker' ? (platformKey('stack.health.docker', view.platform ?? 'darwin', view.runtime ?? null) as StringKey)
+                  : 'stack.health.database'
+    const mark = freeDiskGb(view.diskMarkBytes ?? DISK_RECOVERED_BYTES, locale)
     return (
       <Banner>
-        <b>{t('stack.health.title')}</b>
-        {view.diskLikelyCause && free !== null && <p>{t('stack.health.diskCause', { free })}</p>}
-        <p>{t(cause)}</p>
+        <b>{t(diskStopped ? 'stack.health.diskStoppedTitle' : 'stack.health.title')}</b>
+        {!diskStopped && view.diskLikelyCause && free !== null && <p>{t('stack.health.diskCause', { free })}</p>}
+        <p>{t(cause, { mark })}</p>
         {/* The countdown ticks every second; inside the alert it would be announced again with every tick (0.3.12 review
             UX-5). The ticking line is shown and kept out of the live region; a screen reader hears, once, the moment of the
             next try, which stays true however late the notice is read (iteration 2, UX-6). */}

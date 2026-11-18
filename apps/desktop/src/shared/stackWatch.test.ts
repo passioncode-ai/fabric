@@ -11,6 +11,8 @@ import {
   CRITICAL_DISK_BYTES,
   DISK_RECOVERED_BYTES,
   diskHoldsRecovery,
+  diskStoppedState,
+  startRefusedForDisk,
   diskStopDue,
   STACK_DOWN_AFTER,
   STACK_DOWN_AFTER_SLOW,
@@ -430,5 +432,27 @@ describe('CO-594: the stack and a disk near full', () => {
     const r = hubRefusalFor({ ...at(5e8, 'down'), hold: 'disk' }, 0)
     expect(r?.code).toBe('stack-unavailable')
     expect(r?.reason).toMatch(/almost full/)
+  })
+  // 0.3.23 review, iteration 1, UX-1: the stop is said as Fabric's only once it has ended; a database that went down by
+  // itself near a full disk is said as down, with the floor (not the recovered mark) as what the start waits for.
+  it('says a confirmed stop as Fabric\'s, and a database down by itself as down', () => {
+    const stoppedNow = diskStoppedState({ ...at(8e8, 'up') }, 1_000)
+    expect(stoppedNow.events.map((e) => e.kind)).toEqual(['stack-lost'])
+    expect(stoppedNow.state.stack).toBe('down')
+    const v = stackHealthView(stoppedNow.state, 1_000)
+    expect([v.hold, v.diskStopped, v.diskMarkBytes]).toEqual(['disk', true, DISK_RECOVERED_BYTES])
+    expect(hubRefusalFor(stoppedNow.state, 1_000)?.reason).toMatch(/stopped because/)
+    const self = { ...at(8e8, 'down'), hold: 'disk' as const }
+    const w = stackHealthView(self, 1_000)
+    expect([w.hold, w.diskStopped, w.diskMarkBytes]).toEqual(['disk', false, CRITICAL_DISK_BYTES])
+    expect(hubRefusalFor(self, 1_000)?.reason).not.toMatch(/stopped because/)
+  })
+  // DA-4, ER-5: the launch's start reads the floor too, and the refusal waits rather than ending in the failure window.
+  it('refuses a start under the floor, and the refusal heals by waiting', () => {
+    expect(startRefusedForDisk(null)).toBeNull()
+    expect(startRefusedForDisk(CRITICAL_DISK_BYTES)).toBeNull()
+    const said = startRefusedForDisk(CRITICAL_DISK_BYTES - 1)
+    expect(said).toMatch(/disk this full/)
+    expect(startupHeals(classifyStartupFailure({ message: said! }))).toBe(true)
   })
 })

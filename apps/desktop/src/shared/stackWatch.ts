@@ -73,7 +73,7 @@ export function startupHeals(failure: Pick<StartupFailure, 'cause' | 'detail' | 
       // CO-389: a query the database was too busy to finish in time (PostgreSQL's statement_timeout, SQLSTATE 57014)
       // heals by waiting; the start reads nothing past its retry point before it fails this way.
       return dockerIsUnreachable(failure.detail) || stackStartIsTransient(failure.detail) || /Docker did not answer within/.test(failure.detail) ||
-        /canceling statement due to statement timeout/i.test(failure.detail)
+        /canceling statement due to statement timeout/i.test(failure.detail) || failure.detail.includes(DISK_START_REFUSAL)
     default:
       return false
   }
@@ -107,11 +107,41 @@ export const CRITICAL_DISK_BYTES = 1e9
 
 /** CO-594: a due try waits for the disk: under the critical floor, and after Fabric stopped its stack for the disk until
  *  the disk is back above the recovered mark, so a disk at the floor does not stop, start and stop the stack again.
- *  An unread disk holds nothing. */
+ *  An unread disk holds nothing. The recovered mark is this process's: a Fabric started again after the stop holds only
+ *  at the floor (`startRefusedForDisk`). */
 export function diskHoldsRecovery(state: StackWatchState, stoppedForDisk: boolean): boolean {
   const free = state.freeDiskBytes
   if (free === null) return false
-  return free < (stoppedForDisk ? DISK_RECOVERED_BYTES : CRITICAL_DISK_BYTES)
+  return free < diskMarkBytes(stoppedForDisk)
+}
+
+/** The free space a start waits for: the recovered mark after Fabric's own stop for the disk, else the floor. */
+export function diskMarkBytes(stoppedForDisk: boolean): number {
+  return stoppedForDisk ? DISK_RECOVERED_BYTES : CRITICAL_DISK_BYTES
+}
+
+/** 0.3.23 review, iteration 1, ER-4: a stop for the disk that failed is tried again this many times per crossing of the
+ *  floor, `DISK_STOP_BACKOFF` apart; a stop that never works is said each time and then left (the notice still warns). */
+export const DISK_STOP_ATTEMPTS = 3
+export const DISK_STOP_BACKOFF: BackoffPlan = { firstMs: 30_000, maxMs: 300_000 }
+
+/** 0.3.23 review, iteration 1, UX-4: Fabric's own stop for the disk has ended: the stack is down at once, held for the
+ *  disk and said as Fabric's stop, rather than an ordinary low-disk warning until two reads fail. */
+export function diskStoppedState(state: StackWatchState, now: number): { state: StackWatchState; events: StackWatchEvent[] } {
+  const events: StackWatchEvent[] = state.stack === 'up' ? [{ kind: 'stack-lost', why: 'database', freeDiskBytes: state.freeDiskBytes }] : []
+  const base = state.stack === 'up'
+    ? { ...state, stack: 'down' as const, why: 'database' as const, since: now, recoveries: 0, failures: STACK_DOWN_AFTER, failuresAllSlow: false }
+    : state
+  return { state: { ...base, diskStopped: true, trying: false, hold: 'disk', nextRecoveryAt: now + STACK_WATCH_MS }, events }
+}
+
+/** 0.3.23 review, iteration 1, DA-4, ER-5: why a start of Fabric's own stack is refused for the disk, or null. The launch,
+ *  a Retry and the heal's start read it, as the watch does, so no start makes the database write under the floor; the
+ *  refusal waits and is tried again (`startupHeals`). */
+export const DISK_START_REFUSAL = 'Fabric does not start its database on a disk this full'
+export function startRefusedForDisk(freeDiskBytes: number | null): string | null {
+  if (freeDiskBytes === null || freeDiskBytes >= CRITICAL_DISK_BYTES) return null
+  return `${DISK_START_REFUSAL}: under ${CRITICAL_DISK_BYTES / 1e9} GB free on the data folder's disk (CO-594). It is started once space is freed.`
 }
 
 /** CO-594: the stack is up on a disk under the critical floor, and Fabric owns it: its database is stopped (its data kept)
@@ -147,6 +177,9 @@ export interface StackWatchState {
   trying: boolean
   /** Why no try is made (null while Fabric tries). */
   hold: StackHold | null
+  /** CO-594, 0.3.23 review, iteration 1 (UX-1): Fabric's own stop for the disk has ended and no start ran since; only
+   *  then is the stop said as Fabric's and the recovered mark held. */
+  diskStopped: boolean
   /** When the stack entered its current state (ms). */
   since: number
   disk: 'ok' | 'low' | 'unknown'
@@ -165,7 +198,7 @@ export type StackWatchEvent =
 
 export function initialStackWatch(now: number, opts: { recovers?: boolean } = {}): StackWatchState {
   return {
-    stack: 'up', why: null, failures: 0, failuresAllSlow: true, recovers: opts.recovers ?? true, trying: false, hold: null,
+    stack: 'up', why: null, failures: 0, failuresAllSlow: true, recovers: opts.recovers ?? true, trying: false, hold: null, diskStopped: false,
     since: now, disk: 'unknown', freeDiskBytes: null, recoveries: 0, nextRecoveryAt: null
   }
 }
@@ -190,7 +223,7 @@ export function observeStack(state: StackWatchState, reading: StackReading, now:
   if (reading.database === true) {
     if (next.stack === 'down') {
       events.push({ kind: 'stack-back', downMs: now - next.since, recoveries: next.recoveries })
-      next = { ...next, stack: 'up', why: null, since: now, recoveries: 0, nextRecoveryAt: null, hold: null }
+      next = { ...next, stack: 'up', why: null, since: now, recoveries: 0, nextRecoveryAt: null, hold: null, diskStopped: false }
     }
     next.failures = 0
     next.failuresAllSlow = true
@@ -271,7 +304,9 @@ export function hubRefusalFor(state: StackWatchState, now: number): StackRefusal
   if (state.hold === 'external') return say("Fabric's database is not answering; Fabric does not run this database, so it waits for it to come back.", retryAfterSeconds(STACK_WATCH_MS))
   if (state.hold === 'stopped') return say("Fabric's local database was stopped on this computer (its containers are gone); Fabric does not start it again by itself.", retryAfterSeconds(2 * STACK_WATCH_MS))
   if (state.hold === 'running') return say("Fabric's database is not answering, though its containers are running; Fabric waits for it to answer.", retryAfterSeconds(STACK_WATCH_MS))
-  if (state.hold === 'disk') return say("Fabric's database is stopped because this computer's disk is almost full; Fabric starts it again once space is freed.", retryAfterSeconds(2 * STACK_WATCH_MS))
+  if (state.hold === 'disk') return say(state.diskStopped
+    ? "Fabric's database is stopped because this computer's disk is almost full; Fabric starts it again once space is freed."
+    : `Fabric's ${what} is not answering and this computer's disk is almost full; Fabric does not start the database until space is freed.`, retryAfterSeconds(2 * STACK_WATCH_MS))
   if (state.trying) return say(`Fabric's ${what} is not answering; Fabric is trying to bring it back now.`, retryAfterSeconds(STACK_WATCH_MS))
   const wait = state.nextRecoveryAt === null ? STACK_WATCH_MS : state.nextRecoveryAt - now
   return say(`Fabric's ${what} is not answering; Fabric is bringing it back.`, retryAfterSeconds(wait))
@@ -304,6 +339,10 @@ export interface StackHealthView {
   freeDiskBytes: number | null
   /** The stack is down on a low disk: the disk is the likely cause, and freeing space comes first. */
   diskLikelyCause: boolean
+  /** Under the `disk` hold: Fabric stopped the database itself and the stop ended (UX-1); false when it went down by itself. */
+  diskStopped: boolean
+  /** Under the `disk` hold: the free space the start waits for (UX-9: the words take it from here), else null. */
+  diskMarkBytes: number | null
 }
 
 export function stackHealthView(state: StackWatchState, now: number, platform: string = typeof process === 'undefined' ? 'darwin' : process.platform, runtime: string | null = null): StackHealthView {
@@ -325,7 +364,9 @@ export function stackHealthView(state: StackWatchState, now: number, platform: s
     runtime,
     diskLow,
     freeDiskBytes: state.freeDiskBytes,
-    diskLikelyCause: down && diskLow
+    diskLikelyCause: down && diskLow,
+    diskStopped: down && state.hold === 'disk' && state.diskStopped,
+    diskMarkBytes: down && state.hold === 'disk' ? diskMarkBytes(state.diskStopped) : null
   }
 }
 /** The key for this platform's words, where they differ by OS: `.win32` names Docker Desktop, `.linux` Docker Engine,

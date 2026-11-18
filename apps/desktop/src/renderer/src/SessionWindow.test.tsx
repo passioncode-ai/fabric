@@ -174,6 +174,22 @@ describe('a window onto one session', () => {
     expect(openConsole).toHaveBeenCalledWith('s2')
   })
 
+  it('0.3.23 review, iteration 1, UX-6: while the check reads who works, the button keeps its name and says no start', async () => {
+    stub(async () => session({ running: false, state: 'ended', exitCode: 0 }))
+    const fabric = (window as unknown as { fabric: { terminal: Record<string, unknown>; work: Record<string, unknown> } }).fabric
+    let answer!: (v: unknown) => void
+    fabric.work.launchCheck = vi.fn(() => new Promise((r) => { answer = r }))
+    fabric.terminal.open = vi.fn(async () => session({ sessionId: 's2' }))
+    render(<I18nProvider locale="en"><SessionWindow sessionId="s1" onDetach={async () => {}} /></I18nProvider>)
+    const again = await screen.findByRole('button', { name: en['session.new'] })
+    await act(async () => { again.click() })
+    expect(again.textContent).toBe(en['session.new'])
+    expect((again as HTMLButtonElement).disabled).toBe(true)
+    await act(async () => { answer({ overlaps: [], console: [],
+      alsoWorking: [{ claimId: 'c1', heldBy: 'other', agent: 'Codex', taskTitle: 'Board fix', since: new Date().toISOString(), why: [] }] }) })
+    expect(fabric.terminal.open).not.toHaveBeenCalled()
+  })
+
   it('board task 4f83a67f: a new session first says who already works in the project; it starts only when asked', async () => {
     const open = vi.fn(async () => session({ sessionId: 's2' }))
     stub(async () => session({ running: false, state: 'ended', exitCode: 0 }))
@@ -186,9 +202,13 @@ describe('a window onto one session', () => {
     await act(async () => { again.click() })
     expect(open).not.toHaveBeenCalled()
     expect(await screen.findByText(en['launchCheck.alsoTitle'])).toBeTruthy()
+    // 0.3.23 review, iteration 1, UX-6: the check started nothing, so the button never said «Starting…».
+    expect(screen.queryByRole('button', { name: en['session.newStarting'] })).toBeNull()
     await act(async () => { screen.getByRole('button', { name: en['launchCheck.wait'] }).click() })
     expect(screen.queryByText(en['launchCheck.alsoTitle'])).toBeNull()
     expect(open).not.toHaveBeenCalled()
+    // UX-7: «Wait» takes the note away and gives the focus back to «New session».
+    expect(document.activeElement).toBe(again)
     await act(async () => { again.click() })
     await act(async () => { (await screen.findByRole('button', { name: en['launchCheck.start'] })).click() })
     expect(open).toHaveBeenCalledWith('p1', 'claude-code', undefined, null)

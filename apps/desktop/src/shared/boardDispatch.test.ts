@@ -147,6 +147,8 @@ describe('refusalCheck (§3.5)', () => {
     expect(refusalCheck('not_in_group')).toBe('skipped-no-folder')
     expect(refusalCheck('ceiling_reached')).toBe('deferred-cap')
     expect(refusalCheck('spend_unknown')).toBe('deferred-cap')
+    // 0.3.23 review, iteration 1, DA-2: a start refused at Switchboard's session cap waits for a slot, as at a spend cap.
+    expect(refusalCheck('at_capacity')).toBe('deferred-cap')
     expect(refusalCheck('agent_not_installed')).toBe('failed-to-start')
     expect(refusalCheck('something_new')).toBe('failed-to-start')
   })

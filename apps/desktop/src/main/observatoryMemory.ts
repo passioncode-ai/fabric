@@ -39,6 +39,13 @@ export async function findObservatoryServer(launcher: string | null): Promise<Ob
   return { python, server: path.join(engine, 'mcp', 'server.py') }
 }
 
+/** Observatory's answer when its server process runs code an update has since replaced (`capability_tools.py#stale_answer`:
+ *  `{"error": "stale-server", "detail": ...}`). */
+export function isStaleServer(body: Record<string, unknown> | undefined): boolean {
+  const e = body?.error
+  return e === 'stale-server' || (typeof e === 'object' && e !== null && (e as { code?: unknown }).code === 'stale-server')
+}
+
 export type ToolCall = (name: string, args: Record<string, unknown>) => Promise<Record<string, unknown>>
 
 /** A stdio client to Observatory: `call` answers the tool's structured content, or throws with its error. */
@@ -66,29 +73,45 @@ export function createObservatoryClient(locate: () => Promise<ObservatoryServer 
     })()
     try { return await connecting } finally { connecting = null }
   }
+  /** One tool call on the current child; `stale` when the child runs code an update replaced (Observatory answers
+   *  `stale-server` before any work, OBS-159). */
+  const once = async (name: string, args: Record<string, unknown>): Promise<{ stale: true } | { stale: false; body: Record<string, unknown>; isError: boolean }> => {
+    const c = await connect()
+    let result
+    try {
+      result = await c.callTool({ name, arguments: args }, undefined, { timeout: timeoutMs })
+    } catch (e) {
+      // A broken child is started again on the next call.
+      client = null
+      void c.close().catch(() => undefined)
+      throw e
+    }
+    const r = result as { structuredContent?: Record<string, unknown>; content?: Array<{ type: string; text?: string }>; isError?: boolean }
+    let body = r.structuredContent
+    if (!body) {
+      const text = r.content?.find((x) => x.type === 'text')?.text
+      try { body = text ? JSON.parse(text) as Record<string, unknown> : {} } catch {
+        // A tool that answered plain text: kept as text, the caller reads the ids it needs and refuses without them.
+        body = { text }
+      }
+    }
+    if (r.isError && isStaleServer(body)) {
+      // 2026-11-18 (Observatory 0.42.0 to 0.42.1 under a running Fabric: twenty dispatch starts refused): the child runs
+      // the release an update replaced, and only a new child runs the installed one. This child is ended here.
+      if (client === c) client = null
+      await c.close().catch(() => undefined)
+      return { stale: true }
+    }
+    return { stale: false, body, isError: r.isError === true }
+  }
   return {
     async call(name, args) {
-      const c = await connect()
-      let result
-      try {
-        result = await c.callTool({ name, arguments: args }, undefined, { timeout: timeoutMs })
-      } catch (e) {
-        // A broken child is started again on the next call.
-        client = null
-        void c.close().catch(() => undefined)
-        throw e
-      }
-      const r = result as { structuredContent?: Record<string, unknown>; content?: Array<{ type: string; text?: string }>; isError?: boolean }
-      let body = r.structuredContent
-      if (!body) {
-        const text = r.content?.find((x) => x.type === 'text')?.text
-        try { body = text ? JSON.parse(text) as Record<string, unknown> : {} } catch {
-          // A tool that answered plain text: kept as text, the caller reads the ids it needs and refuses without them.
-          body = { text }
-        }
-      }
-      if (r.isError) throw new Error(`${name} refused: ${JSON.stringify(body).slice(0, 300)}`)
-      return body
+      let answer = await once(name, args)
+      // The stale child did nothing (Observatory checks before any work), so the call is made once more on a new child.
+      if (answer.stale) answer = await once(name, args)
+      if (answer.stale) throw new Error(`${name} refused: Project Observatory answered stale-server from a newly started server too`)
+      if (answer.isError) throw new Error(`${name} refused: ${JSON.stringify(answer.body).slice(0, 300)}`)
+      return answer.body
     },
     async close() {
       const c = client

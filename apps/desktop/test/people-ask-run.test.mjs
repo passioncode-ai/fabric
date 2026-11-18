@@ -212,6 +212,32 @@ test('a reply with no answer block is a note: nothing is posted back, the item w
   assert.equal(w.replies[0].input.body.text.split('\n')[0], 'решено')
 })
 
+test('0.3.23 review, iteration 1, ER-6, DA-3: a malformed answer block is refused in the thread, not taken as a note', async () => {
+  const malformed = [
+    'Ответ:\n```json\n{"schema": "fabric-people-answer/1", "item": "x",}\n```\n',
+    'Ответ:\n```\n{"schema": "fabric-people-answer/1"}\n```\n',
+    'Ответ:\n```JSON\n{"schema": "fabric-people-answer/1"}\n```\n',
+    'Ответ: fabric-people-answer/1, вариант sqlite'
+  ]
+  for (const text of malformed) {
+    const w = world()
+    const b = createPeopleAskBridge(w.deps)
+    await b.onPass()
+    w.note(0, text)
+    await b.onPass()
+    assert.equal(w.replies.length, 1, text)
+    assert.match(w.replies[0].input.body.text, /^не применено: /, text)
+    assert.ok(!w.logs.some((l) => l.op === 'people.ask.note'), text)
+  }
+  // A note with a fence of another language (code it quotes) stays a note.
+  const w = world()
+  const b = createPeopleAskBridge(w.deps)
+  await b.onPass()
+  w.note(0, 'Смотрю:\n```bash\nls\n```\n')
+  await b.onPass()
+  assert.equal(w.replies.length, 0)
+})
+
 test('a door that refuses leaves the item open and says why; a later answer may still decide it', async () => {
   const w = world({ applyAnswer: { ok: false, reason: 'кнопка Fabric отказала: the question was revised' } })
   const b = createPeopleAskBridge(w.deps)

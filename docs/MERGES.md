@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-18 · `FABRIC-0323-I1` · fix/0323-i1 → main · fast-forward
+- files: `scripts/ci.sh` (mode 100755), `apps/desktop/src/main/{boardDispatchRun,boardDispatchWiring,boardMain,stackWatch,env,observatoryMemory}.ts`, `apps/desktop/src/shared/{boardDispatch,peopleAsk,stackWatch}.ts`, `apps/desktop/src/renderer/src/{StackHealthNotice,SessionWindow}.tsx`, `i18n/{en,ru}.ts`, tests, AGENTS.md, CHANGELOG, the on-demand and bridge specs, the board-apart plan, the carry-over (CO-545, CO-591, CO-594), SCN-172 and the CO-594 amendment, the map
+- conflicts: none
+- summary: the 0.3.23 review, iteration 1: the three blocking findings (DO-1/PL-1, DA-1/ER-1, UX-1) and the non-blocking ones it could close in the same change
+
 ### 2026-11-18 · `—` · refactor/board-main → main · fast-forward
 - files: `apps/desktop/src/main/boardMain.ts` (new, the `board-main` entry), `projectReads.ts` (new), `crossProjectAssign.ts#createAssignDeps`, `index.ts`, `electron.vite.config.ts`, `test/board-main.test.mjs`, `test/helpers/ts-resolve.mjs`, the plan's W2c.1a and W2c.1b rows, CHANGELOG, the map
 - conflicts: none
