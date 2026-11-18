@@ -73,6 +73,9 @@ pnpm gates:docs
 node --test scripts/test/check-regions.test.mjs
 node --test scripts/test/conflict-markers.test.mjs
 node scripts/check-conflict-markers.mjs
+# 0.3.23 review, iteration 2, PL-8: ci.yml runs ./scripts/ci.sh, so a lost exec bit fails the hosted run before any gate.
+node --test scripts/test/script-modes.test.mjs
+node scripts/check-script-modes.mjs
 # 0.3.5 verification, iteration 2, DO-1: release.yml did not parse for two days and nothing local noticed —
 # GitHub refuses a workflow that is not YAML, so a tag would have released nothing.
 python3 scripts/check-workflows.py

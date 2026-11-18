@@ -13,7 +13,7 @@ import type { StackHealthView } from '../../shared/types'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-const up: StackHealthView = { stack: 'up', why: null, since: '2026-10-21T00:00:00Z', nextTryInS: null, trying: false, attempt: null, hold: null, platform: 'darwin', runtime: null, diskLow: false, freeDiskBytes: 50e9, diskLikelyCause: false, diskStopped: false, diskMarkBytes: null }
+const up: StackHealthView = { stack: 'up', why: null, since: '2026-10-21T00:00:00Z', nextTryInS: null, trying: false, attempt: null, hold: null, platform: 'darwin', runtime: null, diskLow: false, freeDiskBytes: 50e9, diskLikelyCause: false, diskStopped: false, diskMarkBytes: null, diskStopFailed: false }
 
 function mount(view: StackHealthView | null, locale: 'en' | 'ru' = 'en'): { push: (v: StackHealthView) => void } {
   let listener: ((v: StackHealthView) => void) | null = null
@@ -96,6 +96,21 @@ describe('the stack health notice', () => {
     expect(disk).toContain(ru['stack.health.diskStoppedTitle']!)
     expect(disk).toContain(ru['stack.health.diskHold']!.replace('{mark}', '3,5'))
     expect(disk).not.toMatch(/поднимает её снова|не отвечает|Docker останавливается/)
+  })
+
+  // 0.3.23 review, iteration 2, UX-10: after the last failed stop the database still writes on a nearly full disk, and
+  // the person is told in plain words, not only the ordinary low-disk warning.
+  it('says that Fabric could not stop its database once its last stop for the disk failed', async () => {
+    mount({ ...up, diskLow: true, freeDiskBytes: 0.8e9, diskStopFailed: true })
+    const failed = (await screen.findByRole('alert')).textContent ?? ''
+    expect(failed).toContain(en['stack.health.diskStopFailed'])
+    expect(failed).toContain('This disk has 0.8 GB free.')
+    cleanup()
+    mount({ ...up, diskLow: true, freeDiskBytes: 0.8e9, diskStopFailed: true }, 'ru')
+    expect((await screen.findByRole('alert')).textContent).toContain(ru['stack.health.diskStopFailed']!)
+    cleanup()
+    mount({ ...up, diskLow: true, freeDiskBytes: 0.8e9 })
+    expect((await screen.findByRole('alert')).textContent).not.toContain(en['stack.health.diskStopFailed'])
   })
 
   it('says a database that went down by itself on a nearly full disk as down, not as Fabric\'s stop (UX-1)', async () => {

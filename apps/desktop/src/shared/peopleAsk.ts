@@ -204,15 +204,25 @@ export function parseAsk(text: string): PeopleAsk | null {
 }
 
 /**
- * Whether a reply tries to answer: it names the answer schema, or holds a fenced block that is untagged or tagged `json`
- * in any case (a block that fails to parse included). Only a reply with neither is the responder's note; an attempt goes
- * to `parseAnswer`, so a malformed one is told «не применено» and the PM side answers again (0.3.23 review, iteration 1,
- * ER-6, DA-3). A fence of another language (code a note quotes) is not an attempt.
+ * Whether a reply tries to answer: it names the answer schema, or holds a fenced block tagged `json` in any case (one that
+ * fails to parse included), or an untagged block whose content parses as a JSON object. Only a reply with none of these is
+ * the responder's note; an attempt goes to `parseAnswer`, so a malformed one is told «не применено» and the PM side answers
+ * again (0.3.23 review, iteration 1, ER-6, DA-3). An untagged block of anything else (a stack trace, a log excerpt a note
+ * quotes) and a fence of another language are not attempts (iteration 2, ER-9, DA-7).
  */
 export function hasAnswerBlock(text: string): boolean {
   if (/fabric-people-answer/i.test(text)) return true
   // Fences pair up in order: every other one opens a block, and only an opener's tag says what the block is.
-  return [...text.matchAll(/```([^\n`]*)/g)].some((m, i) => i % 2 === 0 && /^\s*(json)?\s*$/i.test(m[1]))
+  const fences = [...text.matchAll(/```([^\n`]*)/g)]
+  return fences.some((m, i) => {
+    if (i % 2 !== 0) return false
+    const tag = m[1].trim()
+    if (/^json$/i.test(tag)) return true
+    if (tag !== '') return false
+    const start = (m.index ?? 0) + m[0].length
+    const content = text.slice(start, fences[i + 1]?.index ?? text.length)
+    try { return isObject(JSON.parse(content)) } catch { return false }
+  })
 }
 
 /** The PM agent's answer: the last `fabric-people-answer/1` block of its reply, checked field by field. */

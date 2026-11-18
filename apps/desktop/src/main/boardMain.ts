@@ -74,7 +74,8 @@ export interface BoardQuit {
    *  the exit; any other second call returns the drain already running. */
   quit(reason: QuitSignal | 'stop'): Promise<void>
   /** 0.3.23 review, iteration 1, ER-7: runs every stop and the shutdown, as the quit does, and exits nothing: a start that
-   *  failed after its hub was up withdraws `hub.json` here, and its caller exits with the failed start's code. */
+   *  failed after its hub was up withdraws `hub.json` here, and its caller exits with the failed start's code. A shutdown
+   *  that has not settled by the quit's deadline is said as `board.quit-deadline` and left (iteration 2, ER-8). */
   release(): Promise<void>
 }
 
@@ -132,7 +133,20 @@ export function createBoardQuit(o: {
     if (drain) return drain
     quitting = true
     for (const stop of stops.splice(0)) runStop(stop)
-    try { await o.shutdown?.() } catch (e) { ops.failed('board.quit-shutdown', e, { note: 'the surface did not stop cleanly after a failed start' }) }
+    // 0.3.23 review, iteration 2, ER-8: the shutdown races the quit's own deadline, so a surface that never stops cannot
+    // keep the failed start's catch from its rethrow (main then exits BOARD_START_FAILED_EXIT_CODE). It exits nothing.
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const deadline = new Promise<void>((resolve) => {
+      timer = setTimeout(() => {
+        ops.failed('board.quit-deadline', new Error('quit_deadline'), { note: 'the surface did not stop after a failed start; the start fails anyway', deadline_ms: deadlineMs })
+        resolve()
+      }, deadlineMs)
+      timer.unref?.()
+    })
+    const shutdown = Promise.resolve()
+      .then(() => o.shutdown?.())
+      .catch((e: unknown) => { ops.failed('board.quit-shutdown', e, { note: 'the surface did not stop cleanly after a failed start' }) })
+    try { await Promise.race([shutdown, deadline]) } finally { clearTimeout(timer) }
   }
   return {
     get quitting() { return quitting },

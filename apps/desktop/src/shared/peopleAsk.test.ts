@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { boardEntries, type BoardEntry, type BoardQuestion } from './board'
 import type { AttentionItem } from './attention'
 import {
-  ANSWER_SCHEMA, ASK_SCHEMA, DEFAULT_PEOPLE_ROUTES, askBody, askKey, autoRouteOf, decisionOf, itemOf, judgeAnswer, levelAtLeast,
+  ANSWER_SCHEMA, ASK_SCHEMA, DEFAULT_PEOPLE_ROUTES, askBody, askKey, autoRouteOf, decisionOf, hasAnswerBlock, itemOf, judgeAnswer, levelAtLeast,
   parseAnswer, parseAsk, prepareAsk, resultText, routeOf, routesOf, type PeopleAnswer
 } from './peopleAsk'
 
@@ -203,6 +203,30 @@ describe('decisionOf: the person\'s words in DEC-0121\'s shape', () => {
     expect(d).toEqual({ by: 'operator', via: 'relayed-instruction', action: 'people.question', target: `question:${Q}`,
       instruction: 'а'.repeat(500), at: '2026-11-16T18:01:00Z', source: { project: P, thread: 'th-1' } })
     expect(decisionOf(ask, answer(), { project: P, thread: 'th-1' }, 'access.allow').action).toBe('access.allow')
+  })
+})
+
+describe('hasAnswerBlock: an answer attempt or a note (0.3.23 review, iteration 2, ER-9, DA-7)', () => {
+  const fence = (tag: string, body: string): string => '```' + tag + '\n' + body + '\n```\n'
+  it('a stack trace or log excerpt in an untagged fence is a note, not an attempt', () => {
+    expect(hasAnswerBlock('Упало:\n' + fence('', 'Error: ENOENT\n    at open (node:fs:1)\n    at main (run.ts:12)'))).toBe(false)
+    expect(hasAnswerBlock('Лог:\n' + fence('', '[12:00] started\n[12:01] waiting'))).toBe(false)
+    expect(hasAnswerBlock('Лог:\n' + fence('', '{"a": 1,}'))).toBe(false)
+  })
+  it('an untagged fence holding a JSON object, or naming the schema, is an attempt', () => {
+    expect(hasAnswerBlock(fence('', '{"item": "review:t", "revision": 1}'))).toBe(true)
+    expect(hasAnswerBlock(fence('', '{"schema": "fabric-people-answer/1",}'))).toBe(true)
+  })
+  it('a json fence in any case is an attempt even when it does not parse; another language is a note', () => {
+    expect(hasAnswerBlock(fence('json', 'not json at all'))).toBe(true)
+    expect(hasAnswerBlock(fence('JSON', '{'))).toBe(true)
+    expect(hasAnswerBlock(fence('bash', 'ls'))).toBe(false)
+    expect(hasAnswerBlock('Ответ: fabric-people-answer/1, вариант sqlite')).toBe(true)
+    expect(hasAnswerBlock('Морфеус спросил администратора в Telegram.')).toBe(false)
+  })
+  it('only an opener counts: the untagged fence that closes a bash block is not read as one', () => {
+    expect(hasAnswerBlock(fence('bash', 'ls') + 'и ещё\n' + fence('', 'at main (run.ts:12)'))).toBe(false)
+    expect(hasAnswerBlock(fence('bash', 'ls') + fence('', '{"item": "x"}'))).toBe(true)
   })
 })
 

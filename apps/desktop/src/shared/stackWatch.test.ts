@@ -13,6 +13,7 @@ import {
   diskHoldsRecovery,
   diskStoppedState,
   startRefusedForDisk,
+  diskStartPlan,
   diskStopDue,
   STACK_DOWN_AFTER,
   STACK_DOWN_AFTER_SLOW,
@@ -454,5 +455,17 @@ describe('CO-594: the stack and a disk near full', () => {
     const said = startRefusedForDisk(CRITICAL_DISK_BYTES - 1)
     expect(said).toMatch(/disk this full/)
     expect(startupHeals(classifyStartupFailure({ message: said! }))).toBe(true)
+  })
+  // 0.3.23 review, iteration 2, ER-10: a stack that already runs on a disk under the floor is not refused with a false
+  // «started once space is freed»: nothing is started, and the runtime watch stops its database for the disk.
+  it('under the floor, a stack already running is left to the watch; any other state is refused', () => {
+    expect(diskStartPlan(null, 'unknown')).toEqual({ kind: 'start' })
+    expect(diskStartPlan(CRITICAL_DISK_BYTES, 'absent')).toEqual({ kind: 'start' })
+    expect(diskStartPlan(CRITICAL_DISK_BYTES - 1, 'running')).toEqual({ kind: 'running' })
+    for (const containers of ['partial', 'stopped', 'absent', 'unknown'] as const) {
+      const plan = diskStartPlan(CRITICAL_DISK_BYTES - 1, containers)
+      expect(plan.kind).toBe('refused')
+      expect(plan.kind === 'refused' && plan.why).toBe(startRefusedForDisk(CRITICAL_DISK_BYTES - 1))
+    }
   })
 })

@@ -132,7 +132,7 @@ export function diskStoppedState(state: StackWatchState, now: number): { state: 
   const base = state.stack === 'up'
     ? { ...state, stack: 'down' as const, why: 'database' as const, since: now, recoveries: 0, failures: STACK_DOWN_AFTER, failuresAllSlow: false }
     : state
-  return { state: { ...base, diskStopped: true, trying: false, hold: 'disk', nextRecoveryAt: now + STACK_WATCH_MS }, events }
+  return { state: { ...base, diskStopped: true, diskStopFailed: false, trying: false, hold: 'disk', nextRecoveryAt: now + STACK_WATCH_MS }, events }
 }
 
 /** 0.3.23 review, iteration 1, DA-4, ER-5: why a start of Fabric's own stack is refused for the disk, or null. The launch,
@@ -142,6 +142,18 @@ export const DISK_START_REFUSAL = 'Fabric does not start its database on a disk 
 export function startRefusedForDisk(freeDiskBytes: number | null): string | null {
   if (freeDiskBytes === null || freeDiskBytes >= CRITICAL_DISK_BYTES) return null
   return `${DISK_START_REFUSAL}: under ${CRITICAL_DISK_BYTES / 1e9} GB free on the data folder's disk (CO-594). It is started once space is freed.`
+}
+
+/** 0.3.23 review, iteration 2, ER-10: what a start of Fabric's own stack does with the disk read. Above the floor (or the
+ *  disk unread) it starts. Under it, a stack whose database, rest and kong already run is `running`: nothing is started,
+ *  the launch goes on to read it, and the runtime watch stops its database for the disk (`diskStopDue`), so the person is
+ *  not held on the splash by a refusal saying it starts once space is freed. Any other state is refused. */
+export type DiskStartPlan = { kind: 'start' } | { kind: 'running' } | { kind: 'refused'; why: string }
+export function diskStartPlan(freeDiskBytes: number | null, containers: StackContainers): DiskStartPlan {
+  const why = startRefusedForDisk(freeDiskBytes)
+  if (why === null) return { kind: 'start' }
+  if (containers === 'running') return { kind: 'running' }
+  return { kind: 'refused', why }
 }
 
 /** CO-594: the stack is up on a disk under the critical floor, and Fabric owns it: its database is stopped (its data kept)
@@ -180,6 +192,9 @@ export interface StackWatchState {
   /** CO-594, 0.3.23 review, iteration 1 (UX-1): Fabric's own stop for the disk has ended and no start ran since; only
    *  then is the stop said as Fabric's and the recovered mark held. */
   diskStopped: boolean
+  /** 0.3.23 review, iteration 2, UX-10: Fabric's stop for the disk failed its last attempt on this crossing of the floor
+   *  and was left; the database still writes. Cleared by a disk back above the floor or a stop that ended. */
+  diskStopFailed: boolean
   /** When the stack entered its current state (ms). */
   since: number
   disk: 'ok' | 'low' | 'unknown'
@@ -198,7 +213,7 @@ export type StackWatchEvent =
 
 export function initialStackWatch(now: number, opts: { recovers?: boolean } = {}): StackWatchState {
   return {
-    stack: 'up', why: null, failures: 0, failuresAllSlow: true, recovers: opts.recovers ?? true, trying: false, hold: null, diskStopped: false,
+    stack: 'up', why: null, failures: 0, failuresAllSlow: true, recovers: opts.recovers ?? true, trying: false, hold: null, diskStopped: false, diskStopFailed: false,
     since: now, disk: 'unknown', freeDiskBytes: null, recoveries: 0, nextRecoveryAt: null
   }
 }
@@ -343,6 +358,9 @@ export interface StackHealthView {
   diskStopped: boolean
   /** Under the `disk` hold: the free space the start waits for (UX-9: the words take it from here), else null. */
   diskMarkBytes: number | null
+  /** 0.3.23 review, iteration 2, UX-10: the stack is up and Fabric's last stop for the disk failed, so its database still
+   *  writes on a disk under the floor: the person is told to free space now. */
+  diskStopFailed: boolean
 }
 
 export function stackHealthView(state: StackWatchState, now: number, platform: string = typeof process === 'undefined' ? 'darwin' : process.platform, runtime: string | null = null): StackHealthView {
@@ -366,7 +384,8 @@ export function stackHealthView(state: StackWatchState, now: number, platform: s
     freeDiskBytes: state.freeDiskBytes,
     diskLikelyCause: down && diskLow,
     diskStopped: down && state.hold === 'disk' && state.diskStopped,
-    diskMarkBytes: down && state.hold === 'disk' ? diskMarkBytes(state.diskStopped) : null
+    diskMarkBytes: down && state.hold === 'disk' ? diskMarkBytes(state.diskStopped) : null,
+    diskStopFailed: !down && state.diskStopFailed === true
   }
 }
 /** The key for this platform's words, where they differ by OS: `.win32` names Docker Desktop, `.linux` Docker Engine,

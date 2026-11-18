@@ -25,8 +25,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   once more than 3.5 GB are free; agents are told the database waits for space. A stop that fails is tried again, at
   most three times per crossing, and the screen then names no stop Fabric did not make: a database that went down by
   itself on such a disk is said as down, and is started again above 1 GB. No start runs beside a stop still running, and
-  every start of the local stack (the launch, a Retry, the heal) waits while less than 1 GB is free. The 3.5 GB mark
-  holds while Fabric runs; a Fabric started again waits for 1 GB. An external stack is never stopped.
+  every start of the local stack (the launch, a Retry, the heal) waits while less than 1 GB is free; a stack that
+  already runs when Fabric opens on such a disk is not held on the start screen, and Fabric stops its database for the
+  disk as it does while running. When the third stop fails too, the warning on every screen says so: Fabric could not
+  stop its database to protect it, and space should be freed now. The 3.5 GB mark holds while Fabric runs; a Fabric
+  started again waits for 1 GB. An external stack is never stopped.
 - **The hub's reads of the window's process are four named ports** (ADR-0195 wave W1, board task `0647986c`). The
   terminals, the sweep's nudges, the settings and the machine's agents the hub reads are `main/hubPorts.ts`'s
   interfaces with one implementation; no agent sees a different answer. The next wave runs the hub apart from the
@@ -67,10 +70,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   session's console started a new agent at once; now it shows the same warning as the project page when another session
   works in the project, with «Всё равно запустить» and «Подождать».
 - **A PM agent's progress note is not refused as an answer** (the people-ask bridge, board task `d048b422`). A reply
-  that neither names `fabric-people-answer/1` nor holds a fenced block (untagged or `json`) is read as the responder's
-  note: Fabric no longer answers it «не применено», and the item keeps waiting for its answer; found on the first live
-  item on 0.3.22. A reply that tries to answer and whose block is malformed is still refused in the thread with its
-  reason, so the PM agent answers again.
+  that neither names `fabric-people-answer/1` nor holds a `json` fenced block, or an untagged one whose content is a
+  JSON object, is read as the responder's note: Fabric no longer answers it «не применено», and the item keeps waiting
+  for its answer; found on the first live item on 0.3.22. An untagged block of anything else, such as a stack trace or
+  a log excerpt the note quotes, keeps it a note. A reply that tries to answer and whose block is malformed is still
+  refused in the thread with its reason, so the PM agent answers again.
 - **«Служба доски» starts the new version after an update** (task `c9d019de`). Replacing Fabric left launchd's board job
   bound to the version it was registered from, and launchd refused to start it (exit 78), so after a reboot nothing
   started the board; measured installing 0.3.22. The first start of a new version that launchd did not make registers

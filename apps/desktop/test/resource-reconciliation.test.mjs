@@ -118,15 +118,36 @@ for (const mode of ['missing-schema', 'missing-ledger-read', 'throw', 'timeout']
   f.readHook = () => { if (mode === 'throw') throw Error('private read'); if (mode === 'timeout') return new Promise(() => {}); return { data: null, error: { code: mode } } }
   const result = await f.make().sweep(); assert.equal(result.scan, 'unavailable'); assert.equal(f.calls.length, 0)
 })
-test('timed-out release stays unknown; late completion never mutates returned result or cursor', async () => {
-  const f = fixture(3, { timeoutMs: 20 }); let finish
-  f.rpcHook = () => new Promise(resolve => { finish = resolve })
-  const recovery = f.make(), result = await recovery.sweep(), snapshot = structuredClone(result)
+// 0.3.23 review, iteration 2, PL-9: under machine load a 20 ms sweep can run out before it asks any release (the page
+// read itself took the deadline), and then no release timed out. The property is asserted on a sweep that did time out
+// a release; one that ran out earlier is set up again (a fresh fixture), never a resolver called before it exists.
+// `loaded` plants that slow first read, so the retry is exercised on every run, not only on a busy machine.
+for (const loaded of [false, true]) test(`timed-out release stays unknown; late completion never mutates returned result or cursor${loaded ? ' (a first read slower than the deadline, as under load)' : ''}`, async () => {
+  let f, recovery, result, finish, asked = false, slow = loaded
+  for (let attempt = 0; attempt < 20 && !asked; attempt++) {
+    f = fixture(3, { timeoutMs: 20 }); finish = undefined
+    f.readHook = async () => { if (slow) { slow = false; await new Promise(resolve => setTimeout(resolve, 60)) } }
+    f.rpcHook = () => new Promise(resolve => { finish = resolve })
+    recovery = f.make(); result = await recovery.sweep()
+    // Read at the sweep's return: a release asked only after it returned is not the release this sweep timed out.
+    asked = f.calls.length > 0 && typeof finish === 'function'
+    if (!asked) assert.ok(result.items.every(item => item.state !== 'released'), 'a sweep that ran out early releases nothing')
+  }
+  assert.ok(asked, 'a sweep timed out a release within 20 set-ups')
+  const snapshot = structuredClone(result)
   assert.equal(result.items[0].state, 'unknown'); assert.equal(result.next.afterSeq, 10)
   finish({ data: { released: true, repeated: false, receipt_seq: 100 } }); await new Promise(resolve => setImmediate(resolve))
   assert.deepEqual(result, snapshot)
   f.rpcHook = undefined
-  assert.equal((await recovery.sweep()).items[0].reservationId, 'r-2')
+  // The cursor stays past r-1: the next sweep that reads a row starts at r-2. A sweep that runs out before reading one is
+  // swept again (at most 50 times, 10 ms apart), as the uncancellable cases do.
+  let next = await recovery.sweep()
+  for (let i = 0; i < 50 && next.items.length === 0; i++) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+    next = await recovery.sweep()
+  }
+  assert.equal(next.items[0].reservationId, 'r-2')
+  assert.deepEqual(result, snapshot)
 })
 test('lost RPC response after SQL release never becomes local released proof', async () => {
   const f = fixture()

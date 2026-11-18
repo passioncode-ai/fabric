@@ -178,6 +178,11 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
           detail: { free_disk_gb: free === null ? null : freeDiskGb(free), attempt, gave_up: gaveUp,
             why: (e instanceof Error ? e.message : String(e)).split('\n').slice(-2).join(' ').slice(0, 300) },
           ctx: { correlationId: ops.correlate() } })
+        // 0.3.23 review, iteration 2, UX-10: the last attempt left the database writing; the person is told, not only the log.
+        if (gaveUp && !stopped) {
+          state = { ...state, diskStopFailed: true }
+          publish()
+        }
       })
       .finally(() => { diskStopping = null })
   }
@@ -186,7 +191,15 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
    *  only at its back-off and within its attempts. */
   const diskStopNow = (t: number): boolean => {
     const free = state.freeDiskBytes
-    if (free !== null && free >= CRITICAL_DISK_BYTES) { diskStopFails = 0; diskStopRetryAt = null }
+    if (free !== null && free >= CRITICAL_DISK_BYTES) {
+      diskStopFails = 0
+      diskStopRetryAt = null
+      // UX-10: a new crossing; the warning that the stop failed goes with it, said at once.
+      if (state.diskStopFailed) {
+        state = { ...state, diskStopFailed: false }
+        publish()
+      }
+    }
     if (stopped || diskStopping || !deps.stopForDisk || !diskStopDue(state, state.diskStopped)) return false
     if (diskStopFails >= DISK_STOP_ATTEMPTS) return false
     return diskStopRetryAt === null || t >= diskStopRetryAt

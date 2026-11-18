@@ -1104,6 +1104,7 @@ export const en = {
   'stack.health.diskCause': "This disk has {free} GB free. A full disk stops Docker, and the database with it: free some space first.",
   'stack.health.diskTitle': "The disk is almost full",
   'stack.health.diskLow': "This disk has {free} GB free. Docker stops when the disk runs out, and Fabric's database with it: free some space soon.",
+  'stack.health.diskStopFailed': "Fabric could not stop its database to protect it from the full disk, and the database is still writing. Free some disk space now.",
   'startup.active-estate-unreadable.title': "Fabric does not know which Estate to open",
   'startup.active-estate-unreadable.remedy': "The file recording the Estate you chose could not be read, and Fabric will not open another Estate in its place. Remove active-estate.json from Fabric’s data folder to open the default Estate, or put the file back.",
   'startup.identity-refused.title': "Fabric does not have access to the Estate it was opening",

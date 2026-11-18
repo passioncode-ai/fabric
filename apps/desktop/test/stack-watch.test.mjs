@@ -469,6 +469,23 @@ test('0.3.23 review, iteration 1, UX-1, ER-4: a failed stop is tried again (boun
   assert.equal(world.recovers, 1, 'Fabric never stopped it, so the 1 GB floor alone holds the start')
 })
 
+test('0.3.23 review, iteration 2, UX-10: after the last failed stop for the disk the view says so, published at once, until the disk is back above the floor', async () => {
+  const { DISK_STOP_ATTEMPTS } = await import(path.resolve(SRC, '../shared/stackWatch.ts'))
+  const { tick, world, watch } = rig({ diskStop: 'fail' })
+  world.free = 0.8e9
+  for (let i = 0; i < DISK_STOP_ATTEMPTS - 1; i++) { await tick(120_000); await settle() }
+  assert.equal(watch.view().diskStopFailed, false, 'not while an attempt is still left')
+  for (let i = 0; i < 4; i++) { await tick(120_000); await settle() }
+  assert.equal(world.diskStops, DISK_STOP_ATTEMPTS)
+  assert.equal(watch.view().stack, 'up')
+  assert.equal(watch.view().diskStopFailed, true, 'the database still writes and Fabric could not stop it')
+  assert.ok(world.changes.some((c) => c.view.diskStopFailed === true), 'published, not only written to the log')
+  world.free = 1.5e9
+  await tick(120_000); await settle()
+  assert.equal(watch.view().diskStopFailed, false, 'a disk back above the floor is a new crossing')
+  assert.equal(world.changes.at(-1).view.diskStopFailed, false, 'the clearing is published too')
+})
+
 test('0.3.23 review, iteration 1, ER-4: a start waits for a stop for the disk still in flight', async () => {
   const { tick, world } = rig({ diskStop: 'hang' })
   world.free = 0.8e9
