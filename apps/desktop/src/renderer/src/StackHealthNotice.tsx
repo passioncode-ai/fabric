@@ -82,11 +82,14 @@ export function StackHealthNotice(): React.JSX.Element | null {
       </Banner>
     )
   }
-  if (view.diskLow && free !== null)
+  // 0.3.23 review, iteration 2, UX-10: Fabric's last stop for the disk failed and the database still writes: said in plain
+  // words after the free space, so the person frees space now.
+  if ((view.diskLow || view.diskStopFailed === true) && free !== null)
     return (
       <Banner tone="warn">
         <b>{t('stack.health.diskTitle')}</b>
         <p>{t('stack.health.diskLow', { free })}</p>
+        {view.diskStopFailed === true && <p>{t('stack.health.diskStopFailed')}</p>}
       </Banner>
     )
   return null

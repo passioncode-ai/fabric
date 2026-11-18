@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.23",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "8e18964d40ec58c22059ebf7d91062fee6491566",
+  "report": "docs/evidence/reviews/0.3.23/iteration-2/2026-11-18-plan.md",
+  "reportSha256": "b44bfaa1b2d30c7cb9802c361ab39ea3d3299dba31cae36d3e7769edb73a670f",
+  "reviewerRun": "release-0323-i2-plan-20261118",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 2's wave (candidate 3 `f056b3b6`): scripts/check-script-modes.mjs + scripts/lib/script-modes.mjs, wired at scripts/ci.sh:77-78; exit 0; script-modes.test.mjs 3 pass. Hosted ci on the final head not readable offline (ledger item)."
+      ]
+    },
+    {
+      "id": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 2's wave (candidate 3 `f056b3b6`): resource-reconciliation.test.mjs timed-out release case re-sets up when the sweep ran out early, with a planted slow first read variant; 38 pass in two runs at load about 60."
+      ]
+    }
+  ]
+}

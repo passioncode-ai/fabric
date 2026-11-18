@@ -236,6 +236,14 @@ test('0.3.23 review, iteration 1, ER-6, DA-3: a malformed answer block is refuse
   w.note(0, 'Смотрю:\n```bash\nls\n```\n')
   await b.onPass()
   assert.equal(w.replies.length, 0)
+  // Iteration 2, ER-9: an untagged fence quoting a stack trace stays a note too.
+  const w2 = world()
+  const b2 = createPeopleAskBridge(w2.deps)
+  await b2.onPass()
+  w2.note(0, 'Упало:\n```\nError: ENOENT\n    at open (node:fs:1)\n```\n')
+  await b2.onPass()
+  assert.equal(w2.replies.length, 0, 'no «не применено» for a stack trace')
+  assert.ok(w2.logs.some((l) => l.op === 'people.ask.note'))
 })
 
 test('a door that refuses leaves the item open and says why; a later answer may still decide it', async () => {

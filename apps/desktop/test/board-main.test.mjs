@@ -167,6 +167,18 @@ test('(b) the quit exits 0 once the drain ends, and at its deadline when the dra
   assert.deepEqual(stalled, [boardMain.BOARD_FORCED_EXIT_CODE], 'a stalled drain is ended at the deadline')
 })
 
+test('0.3.23 review, iteration 2, ER-8: a failed start\'s release ends at the quit\'s deadline when the shutdown stalls, and exits nothing', async () => {
+  const exits = []
+  const ran = []
+  const q = boardMain.createBoardQuit({ signals: new EventEmitter(), exit: (code) => exits.push(code), shutdown: () => new Promise(() => {}), deadlineMs: 30 })
+  q.onQuit(() => ran.push('stop'))
+  const settled = await Promise.race([q.release().then(() => 'released'), new Promise((r) => setTimeout(() => r('stalled'), 1000).unref())])
+  assert.equal(settled, 'released', 'the release returns at the deadline, so the start-failure catch reaches its rethrow')
+  assert.deepEqual(ran, ['stop'], 'the stops ran')
+  assert.equal(q.quitting, true)
+  assert.deepEqual(exits, [], 'the release exits nothing: main exits with BOARD_START_FAILED_EXIT_CODE')
+})
+
 test('(c) the presenter without a window never throws and says the pending consent in the operations log', async () => {
   // The log of this file's board (the start refused above pointed the sink at a folder it then removed).
   const { createOps } = await import(path.join(SRC, 'ops.ts'))

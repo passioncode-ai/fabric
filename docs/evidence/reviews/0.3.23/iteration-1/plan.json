@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.23",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "22403642f28ff666c723486a8fb12c8d56f3d94c",
+  "report": "docs/evidence/reviews/0.3.23/iteration-1/2026-11-18-plan.md",
+  "reportSha256": "abe35299383603b6d22d66a19386f685a17de79ff76df4dbba827bfa2b6dd3db",
+  "reviewerRun": "release-0323-i1-plan-20261118",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): git ls-files -s scripts/ci.sh = 100755; git diff --summary v0.3.22..HEAD has no mode change. Hosted ci on the new head not readable offline (PL-8)."
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): docs/evidence/plans/2026-11-17-board-apart-waves.md rows W2a.3/W2a.4/W2c.1a say landed with 50c79ce4/205d7bd8/22403642; wireBoardDispatch, holds factory, cycle pass tests and the stack watch move carried to W2c.1b with exit check."
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): CO-545 row names the three landed steps and commits; W2c.1b, W2c.2, W2d remain."
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): CO-594 Done lists the floor before every start (main/env.ts#diskRefusal, shared/stackWatch.ts#startRefusedForDisk); Left names the in-memory 3.5 GB mark, journal growth, container logs; CHANGELOG states it; stack-watch 21 pass."
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): ru.ts:297/300 and en.ts settings.dispatchHelp say two minutes without a session, twelve with one; AGENTS.md dispatcher row names LIVE_SESSION_TAKE_MS and keptByLiveSession; boardDispatch.ts:160 comment rewritten."
+      ]
+    },
+    {
+      "id": "PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-591 (re-ruled 2026-11-18: built with W2c of ADR-0195; 0.3.23 lands W2c.1a only)"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): CHANGELOG bullet names board task d048b422."
+      ]
+    }
+  ]
+}

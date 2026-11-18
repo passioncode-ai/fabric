@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.23",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "8e18964d40ec58c22059ebf7d91062fee6491566",
+  "report": "docs/evidence/reviews/0.3.23/iteration-2/2026-11-18-errors.md",
+  "reportSha256": "f052ab1f4aa47b5159539ee51abaf3ea68fdef349683e94af39d88af7451758f",
+  "reviewerRun": "release-0323-i2-errors-20261118",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 2's wave (candidate 3 `f056b3b6`): apps/desktop/src/main/boardMain.ts release(): shutdown raced against deadlineMs with unref'd timer, board.quit-deadline logged, timer cleared in finally; board-main tests 12 pass"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 2's wave (candidate 3 `f056b3b6`): apps/desktop/src/shared/peopleAsk.ts#hasAnswerBlock: untagged fence counts only when its content parses as a JSON object; peopleAsk tests and people-ask-run 22 pass"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 2's wave (candidate 3 `f056b3b6`): apps/desktop/src/main/env.ts#diskPlan + shared/stackWatch.ts#diskStartPlan: running stack skipped under the floor; Docker error/hang (10 s timeout) maps to unknown and refuses; partial/stopped/absent refuse"
+      ]
+    }
+  ]
+}

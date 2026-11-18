@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.23",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "22403642f28ff666c723486a8fb12c8d56f3d94c",
+  "report": "docs/evidence/reviews/0.3.23/iteration-1/2026-11-18-ux.md",
+  "reportSha256": "470b825592c2cde9355e8db3cc63393aba38c0e5e4ec4e2de3d836d4c72fc3c9",
+  "reviewerRun": "release-0323-i1-ux-20261118",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): StackHealthNotice.tsx splits diskStopped from self-down; stopForDisk sets state.diskStopped only after the stop resolves; hubRefusalFor second sentence; test stack-watch.test.mjs UX-1, ER-4"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): i18n/ru.ts stack.health.diskHold rewritten"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): StackHealthNotice.tsx own title diskStoppedTitle, diskCause omitted when diskStopped"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): main/stackWatch.ts stopForDisk then: diskStoppedState + publish at once"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): stop retried 3 times with back-off (shared/stackWatch.ts DISK_STOP_ATTEMPTS, main/stackWatch.ts diskStopNow); notice after giving up remains a warning, see UX-10"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): SessionWindow.tsx phase checking/starting; label Запускаем only for starting"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): onWait returns focus to button.current"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): scenarios.md SCN-172 step 6, UI elements, states amended"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): {mark} placeholder from view.diskMarkBytes via freeDiskGb in en.ts and ru.ts"
+      ]
+    }
+  ]
+}

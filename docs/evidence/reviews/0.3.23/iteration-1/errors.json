@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.23",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "22403642f28ff666c723486a8fb12c8d56f3d94c",
+  "report": "docs/evidence/reviews/0.3.23/iteration-1/2026-11-18-errors.md",
+  "reportSha256": "53b4c4239b082f9c274d28f92a2f88e7b12ba91df5ee35331be7a49ee7e69580",
+  "reviewerRun": "release-0323-i1-errors-20261118",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): apps/desktop/src/main/boardDispatchRun.ts#capacityHolds (boardAdmitted decides when a boolean, else used >= cap); boardDispatchWiring.ts capacity() maps data.board_admitted; tests in test/board-dispatch-run.test.mjs (145 pass)"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): boardDispatchRun.ts heldByCapacity: read lazily once a pass only when a decision reaches launch, failure said once as 'unknown' starts:'unread' (never 'resumed'), 10 s deadline in boardDispatchWiring.ts capacity()"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): boardDispatchRun.ts deadline_passed skip now scoped: mine.some(requestId === req.id && refused deadline_passed && (!req.resume || r.resume === req.resume.releasedAt)); comment says no Switchboard sends it yet"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): apps/desktop/src/main/stackWatch.ts: diskStopping promise tracked, tick skips tryRecover while it runs, failures retried DISK_STOP_ATTEMPTS=3 with DISK_STOP_BACKOFF, diskStopped set in state only after the stop ended; stack-watch tests (21 pass) and stackWatch.test.ts (37 pass)"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): apps/desktop/src/main/env.ts#diskRefusal read at the top of startStackOnce (launch, retry, heal, watch try); shared/stackWatch.ts#startRefusedForDisk; startupHeals accepts DISK_START_REFUSAL, verified by classifying the message (cause unknown, heals true)"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): shared/peopleAsk.ts#hasAnswerBlock now true when the text names fabric-people-answer or holds an untagged/json fence, so a malformed block reaches parseAnswer and gets the refusal; peopleAsk.test.ts 22 pass, people-ask-run 22 pass"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): boardMain.ts startBoardProcess try/catch calls quit.release() (runs stops and shutdown, withdraws hub.json) before rethrow; BoardQuit.release added; board-main.test.mjs 11 pass"
+      ]
+    }
+  ]
+}
