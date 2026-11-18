@@ -17,6 +17,8 @@ export interface AppEntry {
   devOrigin?: string | null
   /** The packaged renderer's `index.html`, as a file URL path. */
   indexFile: string
+  /** The renderer's other documents, the same way (ADR-0197: the CEO's popup, `ceo.html`). */
+  otherFiles?: readonly string[]
 }
 
 /** Whether `target` is Fabric's renderer document itself (any query or hash). */
@@ -29,7 +31,10 @@ export function isAppDocument(target: string, entry: AppEntry): boolean {
   if (url.protocol !== 'file:') return false
   // A malformed escape (`%E0%A4%A`) makes decodeURIComponent throw; such a path is not the app's either,
   // and the guard runs inside Electron's navigation event, where a throw would let the navigation through.
-  try { return decodeURIComponent(url.pathname) === entry.indexFile } catch { return false /* a malformed escape: not the app's document */ }
+  try {
+    const file = decodeURIComponent(url.pathname)
+    return file === entry.indexFile || (entry.otherFiles ?? []).includes(file)
+  } catch { return false /* a malformed escape: not the app's document */ }
 }
 
 /** The URL to hand the person's browser instead, or null when it is not a web link. */

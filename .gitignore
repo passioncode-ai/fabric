@@ -5,6 +5,8 @@ build/
 !/apps/desktop/build/
 /apps/desktop/build/*
 !/apps/desktop/build/launchd/
+# ADR-0197 §4: the entitlements the signed app carries (the microphone for the CEO's voice call) are source too.
+!/apps/desktop/build/entitlements.mac.plist
 .next/
 *.tsbuildinfo
 

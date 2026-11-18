@@ -108,7 +108,8 @@ export function createProjectAdmission(deps: ProjectAdmissionDeps) {
     await deps.refresh()
   }
 
-  async function create(input: CreateProjectInput, actor: AdmissionActor, reach: AdmissionReach, scope = `agent:${actor.id}`): Promise<ProjectRow> {
+  /** `opts.onboard: false` files no onboarding task (the CEO's own project, ADR-0197: there is nothing to get to know). */
+  async function create(input: CreateProjectInput, actor: AdmissionActor, reach: AdmissionReach, scope = `agent:${actor.id}`, opts: { onboard?: boolean } = {}): Promise<ProjectRow> {
     const nameProblem = projectNameProblem(input?.name)
     if (nameProblem) throw new Error(`project-name-refused:${nameProblem}`)
     const name = (input.name as string).trim()
@@ -144,7 +145,7 @@ export function createProjectAdmission(deps: ProjectAdmissionDeps) {
     if (!current) throw new Error('the new project could not be read after admission')
     // The project is admitted either way: the host's filer records any failure (`onboarding.file`) before it throws, and
     // the page's «Познакомиться с проектом» files it again (DA-5).
-    if (deps.onboard) await deps.onboard(id, name).catch(() => undefined)
+    if (deps.onboard && opts.onboard !== false) await deps.onboard(id, name).catch(() => undefined)
     return current
   }
 

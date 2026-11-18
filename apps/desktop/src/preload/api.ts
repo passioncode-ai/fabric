@@ -321,6 +321,26 @@ export function createApi(ipc: BridgeIpc): FabricApi {
         return () => ipc.removeListener(IPC.terminalExit, listener)
       }
     },
+    ceoAgent: {
+      status: () => ipc.invoke(IPC.ceoAgentStatus),
+      ensure: () => ipc.invoke(IPC.ceoAgentEnsure),
+      send: (text, attachments) => ipc.invoke(IPC.ceoAgentSend, text, attachments),
+      restart: () => ipc.invoke(IPC.ceoAgentRestart),
+      open: (draft) => ipc.invoke(IPC.ceoAgentOpen, draft ?? null),
+      takeDraft: () => ipc.invoke(IPC.ceoAgentTakeDraft),
+      voice: () => ipc.invoke(IPC.ceoAgentVoice),
+      voiceTool: (name, args) => ipc.invoke(IPC.ceoAgentVoiceTool, name, args),
+      onChanged: (cb) => {
+        const listener = (_e: unknown, status: Parameters<typeof cb>[0]): void => cb(status)
+        ipc.on(IPC.ceoAgentChanged, listener)
+        return () => ipc.removeListener(IPC.ceoAgentChanged, listener)
+      },
+      onDraft: (cb) => {
+        const listener = (): void => cb()
+        ipc.on(IPC.ceoAgentDraft, listener)
+        return () => ipc.removeListener(IPC.ceoAgentDraft, listener)
+      }
+    },
     windows: {
       openSession: (sessionId) => ipc.invoke(IPC.windowsOpenSession, sessionId),
       openFile: (filePath) => ipc.invoke(IPC.windowsOpenFile, filePath)

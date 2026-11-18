@@ -4,6 +4,7 @@ import type { FeedEvent, ProjectRow, Quota, TerminalSession } from '../../shared
 import { markOf, type FeedMarks } from '../../shared/feedMarks.ts'
 import { Banner, Button, EmptyState, Panel, Row, StateChip, Toolbar } from './components'
 import { Feed } from './Feed'
+import { CeoComposer } from './ceo/CeoComposer'
 import { useEffect, useState } from 'react'
 import { FAVOURITE_LIMIT, offersFavourites, partitionByFavourite } from '../../shared/favourites.ts'
 import { dayPart } from '../../shared/homeView.ts'
@@ -397,6 +398,8 @@ export function EstateHome({
             </div>
             <HomeRhythm feed={feed} now={now} onPulse={onPulse} rhythm={rhythm} />
           </header>
+          {/* ADR-0197, SCN-182: the CEO answers here; a send opens its popup over the app. */}
+          <CeoComposer where="home" />
           {/* 0.3.14, the simple Fabric §2a: the statistics strip, six numbers, each opening where it is counted. */}
           <HomeStats reading={home} waiting={waitingForYou === undefined ? (counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null) : personWaiting}
             toReview={toReview === undefined ? undefined : (toReview?.total ?? null)}

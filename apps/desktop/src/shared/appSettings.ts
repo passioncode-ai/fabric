@@ -17,6 +17,7 @@ import type { TabRef } from './tabs.ts'
 import { cleanOrder, type FallbackEntry } from './runnerRoute.ts'
 import { COMMS_THREAD_HEADS_LIMIT } from './commsRead.ts'
 import { dispatchTargetOf, dispatchTargetsOf } from './boardDispatch.ts'
+import { ceoModelsOf, ceoRunnersOf } from './ceoAgent.ts'
 
 /** The working language from a settings read: an unreadable file names none, since unknown is not on (ER-3). */
 export function workingLanguageOfRead(read: { status: string; value: { locale: string; agentLanguage?: boolean } }): string | null {
@@ -174,6 +175,10 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     dispatchTargets: dispatchTargetsOf(raw.dispatchTargets),
     // Task 11ebbf83: on unless the person turned it off.
     peopleAsk: raw.peopleAsk !== false,
+    // ADR-0197: known runners only, each once; anything else is the default order.
+    ceoRunners: ceoRunnersOf(raw.ceoRunners),
+    // The operator, 2026-11-18: a model below Sonnet 5.5 is dropped; nothing left is the default list.
+    ceoModels: ceoModelsOf(raw.ceoModels),
     firstRun: {
       completedAt:
         raw.firstRun !== null && typeof raw.firstRun === 'object' && !Array.isArray(raw.firstRun) &&

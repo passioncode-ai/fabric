@@ -478,3 +478,46 @@ test('matching mode updates apply only to this ACP session; a foreign update can
   assert.equal(s.requests.filter(r => r.method === 'session/prompt').length, 1)
 })
 // #endregion acp-shell
+
+// ADR-0197: a session held to a list of models (the CEO's floor) takes the first the agent acknowledges, and one that
+// takes none sends no prompt, so the CEO never runs below its floor.
+const modelSession = ({ refused = [] } = {}) => {
+  const input = new PassThrough(), output = new PassThrough(), stdin = new PassThrough(), stdout = new PassThrough()
+  const requests = []; let shown = '', exit = () => {}, alive = true
+  output.on('data', b => { shown += b })
+  const reply = (id, value) => stdout.write(JSON.stringify({ jsonrpc: '2.0', id, ...value }) + '\n')
+  stdin.on('data', bytes => {
+    for (const line of String(bytes).trim().split('\n')) {
+      const m = JSON.parse(line); requests.push(m)
+      if (m.id === undefined) continue
+      if (m.method === 'initialize') reply(m.id, { result: { agentCapabilities: { mcpCapabilities: { http: true } } } })
+      else if (m.method === 'session/new') reply(m.id, { result: { sessionId: 'model-fixture' } })
+      else if (m.method === 'session/set_model') reply(m.id, refused.includes(m.params.modelId) ? { error: { code: -32602, message: 'model refused' } } : { result: {} })
+      else if (m.method === 'session/prompt') reply(m.id, { result: { stopReason: 'end_turn' } })
+    }
+  })
+  stdin.on('finish', () => { alive = false; queueMicrotask(() => exit(0)) })
+  const done = runAcpShell({ ...spec(), sessionModels: ['anthropic/claude-opus-5.5', 'openai/gpt-6.2-sol', 'anthropic/claude-sonnet-5.5'] },
+    { input, output, timeouts: { requestMs: 1000 }, spawnAgent: () => ({ stdin, stdout, stderr: null, alive: () => alive, kill: () => { alive = false; exit(0) }, onExit: cb => { exit = cb } }) })
+  return { input, done, requests, shown: () => shown }
+}
+
+test('ADR-0197: the session takes the first model the agent acknowledges, before the brief', async () => {
+  const s = modelSession({ refused: ['anthropic/claude-opus-5.5'] })
+  try {
+    assert.equal(await waitFor(() => s.requests.some(r => r.method === 'session/prompt'), 1000), true)
+    const asked = s.requests.filter(r => r.method === 'session/set_model').map(r => r.params.modelId)
+    assert.deepEqual(asked, ['anthropic/claude-opus-5.5', 'openai/gpt-6.2-sol'])
+    const order = s.requests.map(r => r.method)
+    assert.ok(order.lastIndexOf('session/set_model') < order.indexOf('session/prompt'), 'the model is set before the brief')
+    assert.match(s.shown(), /runs on openai\/gpt-6\.2-sol/)
+  } finally { s.input.end(); await s.done }
+})
+
+test('ADR-0197: an agent that takes none of the models sends no prompt and ends with 3', async () => {
+  const s = modelSession({ refused: ['anthropic/claude-opus-5.5', 'openai/gpt-6.2-sol', 'anthropic/claude-sonnet-5.5'] })
+  s.input.end()
+  assert.equal(await s.done, 3)
+  assert.equal(s.requests.some(r => r.method === 'session/prompt'), false)
+  assert.match(s.shown(), /none of the models/)
+})

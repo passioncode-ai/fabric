@@ -262,9 +262,11 @@ function Shell({
   const searchOpen = panel === 'search'
   /** An example from Help put in the composer (SCR-44); null when the chat is opened plainly. */
   const [chatSuggestion, setChatSuggestion] = useState<string | null>(null)
+  // ADR-0197 (P-13): «Поговорить с Fabric» opens the CEO's popup, its console; Help's example goes into its composer.
+  // The side panel's conversation is no longer opened from here.
   const openChat = (suggestion: string | null): void => {
-    setChatSuggestion(suggestion)
-    setPanel('chat')
+    setChatSuggestion(null)
+    window.fabric.ceoAgent.open(suggestion).catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
   }
   /**
    * What a panel asked to be shown, addressed to one project and CONSUMED when
@@ -1439,6 +1441,11 @@ function Shell({
           />
         )}
         {chatOpen && <CeoChat key={chatSuggestion ?? 'chat'} suggestion={chatSuggestion} onClose={() => setPanel((p) => closePanel(p, 'chat'))} projects={projects} />}
+        {/* ADR-0197, SCN-110: the floating button over every screen of the main window opens the CEO's popup. */}
+        <button type="button" className="ceo-floating" title={t('ceoAgent.floating')} aria-label={t('ceoAgent.floating')}
+          onClick={() => window.fabric.ceoAgent.open(null).catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))}>
+          {t('ceoAgent.title')}
+        </button>
         {historyOpen && <PrivateHistoryPanel onClose={() => setPanel((p) => closePanel(p, 'history'))} />}
         {accessOpen && <AgentAccessPanel onClose={() => setPanel((p) => closePanel(p, 'access'))} />}
       </div>

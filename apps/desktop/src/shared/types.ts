@@ -1,4 +1,5 @@
 import type { ActAnswer, ActHistoryPage, ActHistoryQuery } from './acts.ts'
+import { CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT, type CeoAttachment, type CeoSendResult, type CeoStatus, type CeoVoiceSession } from './ceoAgent.ts'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from './boardResolved.ts'
 import type { ReleaseCommandResult, ReleaseEntry } from './releases.ts'
 import type { TerminalStopResult, TerminalTermination } from './stop.ts'
@@ -506,6 +507,14 @@ export interface AppSettings {
    * `userData/people-ask-routes.json` (`shared/peopleAsk.ts#routesOf`), since they name private organizations.
    */
   peopleAsk: boolean
+  /**
+   * ADR-0197 (the operator, 2026-11-18: «не только на подписке Claude, обязательный fallback»): the runners the CEO's console
+   * walks, in order; one that is not installed, is signed out, cannot start or reports a limit is passed over. Set by hand
+   * in settings.json; anything not a known runner is dropped, an empty or broken list is the default order.
+   */
+  ceoRunners: string[]
+  /** The CEO's models, best first, none below Sonnet 5.5 (the operator, 2026-11-18; `shared/ceoAgent.ts#ceoModelsOf`). */
+  ceoModels: string[]
 }
 
 export interface BoardFilters { project: string | null; agent: string | null; cancelled: boolean }
@@ -561,7 +570,11 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   dispatchTarget: null,
   dispatchTargets: {},
   // Task 11ebbf83: the operator's word (2026-11-16); the person turns it off in Settings.
-  peopleAsk: true
+  peopleAsk: true,
+  // ADR-0197: Claude Code first, then Hermes on OpenRouter, then the rest.
+  ceoRunners: [...CEO_RUNNERS_DEFAULT],
+  // The operator, 2026-11-18: Opus, then GPT Sol, never below Sonnet 5.5.
+  ceoModels: [...CEO_MODELS_DEFAULT]
 }
 
 export interface FeedEvent {
@@ -1790,6 +1803,25 @@ export interface FabricApi {
     onData(cb: (sessionId: string, data: string, written: number) => void): () => void
     onExit(cb: (sessionId: string, exitCode: number) => void): () => void
   }
+  /**
+   * The CEO agent (ADR-0197): one console Fabric keeps on this computer, talked to from the home composer, the floating
+   * button and its popup window. `send` types the person's words into it (attachments saved in its inbox and named by
+   * path); `voice` is the CEO window's call, an ephemeral secret and the call's tools, never the key.
+   */
+  ceoAgent: {
+    status(): Promise<CeoStatus>
+    ensure(): Promise<CeoStatus>
+    send(text: string, attachments: CeoAttachment[]): Promise<CeoSendResult>
+    restart(): Promise<CeoStatus>
+    /** Open the popup window over the app, with `draft` put in its composer. */
+    open(draft?: string | null): Promise<void>
+    /** The draft the last `open` left for the popup; null when none. */
+    takeDraft(): Promise<string | null>
+    voice(): Promise<CeoVoiceSession>
+    voiceTool(name: string, args: unknown): Promise<Record<string, unknown>>
+    onChanged(cb: (status: CeoStatus) => void): () => void
+    onDraft(cb: () => void): () => void
+  }
   windows: {
     openSession(sessionId: string): Promise<void>
     openFile(filePath: string): Promise<void>
@@ -2020,5 +2052,15 @@ export const IPC = {
   opsRendererError: 'ops:renderer-error',
   stackExposure: 'stack:exposure',
   stackHealth: 'stack:health',
-  stackHealthChanged: 'stack:health-changed'
+  stackHealthChanged: 'stack:health-changed',
+  ceoAgentStatus: 'ceo-agent:status',
+  ceoAgentEnsure: 'ceo-agent:ensure',
+  ceoAgentSend: 'ceo-agent:send',
+  ceoAgentRestart: 'ceo-agent:restart',
+  ceoAgentOpen: 'ceo-agent:open',
+  ceoAgentTakeDraft: 'ceo-agent:take-draft',
+  ceoAgentVoice: 'ceo-agent:voice',
+  ceoAgentVoiceTool: 'ceo-agent:voice-tool',
+  ceoAgentChanged: 'ceo-agent:changed',
+  ceoAgentDraft: 'ceo-agent:draft'
 } as const

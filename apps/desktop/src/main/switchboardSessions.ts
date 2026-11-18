@@ -138,6 +138,14 @@ export async function readMachineSwitchboardSessions(env: Record<string, string>
 }
 // #endregion switchboard-sessions
 
+/** One `switchboard` call in the app (the CEO's session control, ADR-0197): found on the session PATH, a deadline, no
+ *  shell; null when Switchboard is not installed. */
+export async function runMachineSwitchboard(env: Record<string, string>, args: string[]): Promise<{ code: number; stdout: string; stderr: string } | null> {
+  const PATH = await widenProbePath(env.PATH ?? '', env)
+  const sb = await findOnPath('switchboard', PATH)
+  return sb ? runSwitchboard(sb, args, env, PATH) : null
+}
+
 /** `execFile` with a deadline and no shell. */
 function runSwitchboard(file: string, args: string[], env: Record<string, string>, PATH: string): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {

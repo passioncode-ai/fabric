@@ -119,7 +119,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-107 | An agent waits for my choice | Interaction points | P-01 | ST-044, FLW-61 | draft | — |
 | SCN-108 | A job fails or its result is unknown | Tasking | P-01 | ST-043, FLW-61 | draft | — |
 | SCN-109 | A coding agent calls Fabric within its grant | External control | P-01 | ST-045, FLW-62 | draft | — |
-| SCN-110 | Ask the floating Fabric to change what is on screen | Floating CEO | P-01 | ST-046, FLW-63 | draft | — |
+| SCN-110 | Talk to the floating CEO over any screen | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
 | SCN-111 | Micro-controls on the screen | Floating CEO | P-01 | ST-046, FLW-63 | draft | — |
 | SCN-112 | Fabric composes a pipeline and I approve it | Pipelines | P-01 | ST-047, FLW-64 | draft | — |
 | SCN-113 | A pipeline fails its checks | Pipelines | P-01 | ST-047, FLW-64 | draft | — |
@@ -185,6 +185,10 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-179 | Decide on work handed in for review in one place | Task | P-01 | ST-037, SCR-32, SCR-41 | implemented | unobserved |
 | SCN-180 | Fabric keeps every coding session in view and coordinates conflicting work | Manager | P-01 | ST-037, SCR-41 | implemented in part | unobserved |
 | SCN-181 | See a project's work by where it came from and where it goes | Projects | P-01 | ST-037, SCR-31, SCR-87 | implemented in part | unobserved |
+| SCN-182 | Talk to the CEO from the home screen or its popup | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
+| SCN-183 | The CEO manages the sessions of this computer | Floating CEO | P-01 | ST-037, FLW-63, SCR-64 | implemented | unobserved |
+| SCN-184 | Call the CEO and talk | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
+| SCN-185 | The CEO keeps answering when its first agent cannot | Floating CEO | P-01 | ST-046, FLW-63 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -2874,24 +2878,25 @@ Source: the approved [design](../evidence/specs/2026-09-29-agent-registry-design
 - **Coverage:** none yet
 - **Product:** unobserved
 
-### SCN-110: Ask the floating Fabric to change what is on screen
+### SCN-110: Talk to the floating CEO over any screen
 - **Persona:** P-01
 - **Feature:** Floating CEO
-- **Traces:** ST-046, FLW-63 (JTBD-02)
-- **Entry point:** Floating avatar on any screen.
-- **Preconditions:** A pipeline is open.
+- **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
+- **Entry point:** the floating «CEO» button at the bottom right of every screen of the main window; Help's examples; the Guide's «Поговорить с Fabric».
+- **Preconditions:** Fabric is open.
 - **Steps:**
-  1. Operator opens the avatar → the conversation shows the attached context (this pipeline, this stage).
-  2. Operator says "put a checker before publishing" → Fabric proposes the change on this pipeline with the new graph; the operator confirms; a new version is saved and the screen updates.
-- **Expected result:** Edits are sentences to Fabric, grounded in what the operator is looking at.
-- **Alt paths:** Operator detaches the context to ask about something else.
-- **UI elements:** Context chip (view and selection); proposal with preview; Confirm; Decline.
-- **States covered:** context-attached, proposal, applied, declined
-- **Errors & recovery:** An ambiguous target ("this" with two selections) makes Fabric ask which; context is knowledge, never authority.
+  1. Operator presses the floating button -> a window opens over the app: its head says the CEO's state and the coding agent it runs on, its body is the CEO's own console, its foot a composer.
+  2. Operator writes, or presses an example in Help -> the example is in the composer; Enter types it into the CEO's console, which answers there.
+  3. Operator keeps working in the main window -> the CEO's window stays where it was, over the app; pressing the button again brings it forward.
+- **Expected result:** one press from anywhere reaches the CEO, and what it answers is in front of the operator.
+- **Alt paths:** the CEO is not running yet -> the window says it is starting, and the console appears when it is up; it did not start -> the window says why with «Попробовать снова»; «Перезапустить CEO» starts it again.
+- **UI elements:** floating button; the CEO window's head (state, runner, «Позвонить», «Перезапустить CEO»), console, composer.
+- **States covered:** starting, running, failed, ended
+- **Errors & recovery:** a failed start names the runners tried and why each was passed over (SCN-185); the console never asks the operator for a key.
+- **Design rationale:** the operator, 2026-11-18 (paraphrased): bring the floating button back; a chat over the screen where the CEO answers; ADR-0123 makes that chat the CEO's console (ADR-0197).
 - **Telemetry:** none.
-- **Implementation tasks:** design module AR-4 ([design](../evidence/specs/2026-09-29-agent-registry-design.md#12-modules-stages-310-run-per-module-ids-ar-0ar-11-so-they-never-collide-with-backlog-m-ids)).
-- **Status:** draft
-- **Coverage:** none yet
+- **Status:** implemented (2026-11-18, ADR-0197). Amended 2026-11-18: the earlier draft (asking the floating Fabric to change the pipeline on screen, with a context chip and proposals) is not built; the floating CEO answers in its console.
+- **Coverage:** `apps/desktop/src/renderer/src/App.tsx` (the floating button, `openChat`), `apps/desktop/src/renderer/src/ceo/CeoPopup.tsx#CeoPopup`, `apps/desktop/src/renderer/src/ceo.tsx`, `apps/desktop/src/main/index.ts#openCeoWindow`, `apps/desktop/src/main/ceoAgent.ts#createCeoAgent`; tests `apps/desktop/test/ceo-agent.test.mjs`, `apps/desktop/test/ipc-window-policy.test.mjs` («the CEO popup reaches only its own console»), acceptance `docs/evidence/plans/2026-11-18-ceo-agent/acceptance.md`.
 - **Product:** unobserved
 
 ### SCN-111: Micro-controls on the screen
@@ -4574,4 +4579,92 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Status:** implemented in part (2026-11-09, CO-543): the project page shows «Направления работы» in place of the board glance, one row per direction with its count and a strip of cards that scrolls sideways, newest first; a task card says its summary, its state, the agent on it and how long ago it moved, a backlog card also its row and file; a request card says the other project, what it asks (the thread's subject, else the capability) and its state; a task opens its page, a request opens its thread in Comms; an agent's page shows its tasks in the same rows above the stage chips, which filter them. «От других проектов» carries the board requests addressed to the project and never a task: no task records today that it came from another project (`origin_kind` is one of observation, person, task, document, memory; `assigned_by` is written only as `agent:<session>`; a task link points only at a task or a goal), so a task is filed by the rest of the order, with a task in review in «Ждут вашей проверки» only. Not built: an outgoing request's answer on its card (the state word is said; the answer is in its thread), and requests older than 30 days (the read covers the last 30 days and says when it was cut at 200 each way). The board's request states the scenario does not name are said too: «выполнен», «отменён», «не выполнен», «исход неизвестен».
 - **Amended 2026-11-16 (the screens wave 2):** the row of tasks agents opened themselves is «От агентов», as its neighbours «От вас» and «От других проектов» are named (it was «Нашли агенты»).
 - **Coverage:** `apps/desktop/src/shared/workDirections.ts#composeDirections` (the order, `directionOfTask`; the words, `taskWord`, `requestWord`; an agent's task, `directionTaskOfSession`), `apps/desktop/src/main/projectRequests.ts#readProjectRequests` and `#readProjectSources` (IPC `comms:project-requests`, `work:sources`), `apps/desktop/src/renderer/src/launch/WorkDirections.tsx#ProjectDirections` and `#DirectionRows`, mounted in `apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx` and `apps/desktop/src/renderer/src/launch/AgentPage.tsx`; the agent's tasks carry their origin and backlog row from `apps/desktop/src/main/workRead.ts#readSessionTasks`; a request opens its thread through the route `{kind: 'comms', thread}` (`apps/desktop/src/renderer/src/launch/CommsScreen.tsx#CommsScreen`, `thread`). Tests: `apps/desktop/src/shared/workDirections.test.ts`, `apps/desktop/test/project-requests.test.mjs`, `apps/desktop/src/shared/sessionTasks.test.ts` («SCN-181: carries where each task came from…»), `apps/desktop/src/renderer/src/launch/ProjectLaunch.test.tsx` («Directions of work»), `apps/desktop/src/renderer/src/launch/AgentPage.test.tsx` («the agent's tasks in rows by direction»).
+- **Product:** unobserved
+
+### SCN-182: Talk to the CEO from the home screen or its popup
+- **Persona:** P-01
+- **Feature:** Floating CEO
+- **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
+- **Entry point:** «Спросить CEO» on Главная; the composer at the foot of the CEO window.
+- **Preconditions:** Fabric is open.
+- **Steps:**
+  1. Operator writes a request on Главная («какие сессии сейчас идут») and presses Enter -> the CEO window opens first, then the words are typed into the CEO's console, and the composer says «Отправлено CEO.».
+  2. Operator pastes, drops or picks a picture or a file -> it is listed under the box by name and can be removed; on send it is saved in the CEO's inbox and the console line names its path, so the CEO opens it.
+  3. The CEO answers in its console, in Russian.
+- **Expected result:** anything the operator can type or show reaches the CEO from the first screen.
+- **Alt paths:** Shift+Enter breaks the line instead of sending; a file over 25 MB is not attached and the composer says so; more than ten files keep the first ten.
+- **UI elements:** the home card (title, hint, box, «Приложить файл», «Отправить»); the popup's composer; attachment chips.
+- **States covered:** idle, sending, sent, refused
+- **Errors & recovery:** a message the CEO did not take («Сообщение не дошло до CEO.» with the reason) keeps the words in the box to send again.
+- **Design rationale:** the operator, 2026-11-18 (paraphrased): a chat on the home screen where anything can be sent, text or a picture, that opens the CEO's popup over the screen.
+- **Telemetry:** none.
+- **Status:** implemented (2026-11-18, ADR-0197).
+- **Coverage:** `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx#CeoComposer`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/main/ceoAgent.ts` (`send`, the inbox), `apps/desktop/src/shared/ceoAgent.ts#ceoLine`; tests `apps/desktop/src/renderer/src/ceo/CeoComposer.test.tsx`, `apps/desktop/test/ceo-agent.test.mjs` («attachments land in the inbox»).
+- **Product:** unobserved
+
+### SCN-183: The CEO manages the sessions of this computer
+- **Persona:** P-01
+- **Feature:** Floating CEO
+- **Traces:** ST-037, FLW-63, SCR-64 (JTBD-02)
+- **Entry point:** a request to the CEO, written or spoken.
+- **Preconditions:** the CEO is running; sessions run on this computer, in Fabric's consoles or elsewhere.
+- **Steps:**
+  1. Operator asks which sessions run -> the CEO lists Fabric's consoles (project, agent, state, last line) and the machine's sessions Switchboard sees (needs you, running, waiting on a limit).
+  2. Operator asks what one session is doing -> the CEO reads its screen, or a Claude Code session's last turns, and says it.
+  3. A session waits for an answer or a choice -> the CEO types the answer or presses the keys (a digit, up or down, Enter) when the operator's words decide it, and reads the screen after.
+  4. Operator asks for work in a named project -> the CEO finds the project and starts a session there with the task.
+  5. Operator asks to stop, kill, continue or show a session -> the CEO stops it (or kills it), starts an ended one again, or opens its console in a window of its own.
+- **Expected result:** the operator manages every session by talking to the CEO, without another window.
+- **Alt paths:** two projects match the name -> the CEO asks which; a folder Fabric does not know -> it becomes a project; a session outside Fabric is ended through Switchboard, and its process is signalled only when the operator's order says to force it.
+- **UI elements:** none of its own: the CEO's console and the windows it opens.
+- **States covered:** success, refused, partial (Switchboard not read: the list says so)
+- **Errors & recovery:** every act needs a reason, is written to the operations log and, for a start or a stop, to История with its undo; the CEO never acts on its own console.
+- **Design rationale:** the operator, 2026-11-18: «Решать все вопросы - это значит менеджмент сессий: смотреть, что происходит в сессиях, отвечать на какие-то вопросы в сессиях, возможно что-то там нужно выбирать; открывать, закрывать, приоткрывать, запускать».
+- **Telemetry:** ops log `ceo.session.*`.
+- **Status:** implemented (2026-11-18, ADR-0197).
+- **Coverage:** `apps/desktop/src/main/ceoTools.ts#createCeoOperations` and `#registerCeoTools`, `apps/desktop/src/main/agentSurface.ts` (region `ceo-surface`), `apps/desktop/src/main/index.ts` (region `ceo-agent-wiring`); tests `apps/desktop/test/ceo-agent.test.mjs` («sessions», «read», «input», «start», «stop», «resume», «open, projects»).
+- **Product:** unobserved
+
+### SCN-184: Call the CEO and talk
+- **Persona:** P-01
+- **Feature:** Floating CEO
+- **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
+- **Entry point:** «Позвонить» in the CEO window's head.
+- **Preconditions:** the xAI key is in Observatory's vault; the computer has a microphone; macOS has let Fabric use it.
+- **Steps:**
+  1. Operator presses «Позвонить» -> «Соединяем…», then «Слушаю»; the call's minutes and price show beside it.
+  2. Operator says «покажи сессии» -> the CEO's voice answers after reading the sessions with its tool; the panel shows the words said and the tool used.
+  3. Operator speaks over the answer -> the answer stops and the CEO listens.
+  4. Operator asks for something longer -> the voice hands it to the CEO's console, which works on it there.
+  5. Operator presses «Положить трубку» -> the microphone and the connection close.
+- **Expected result:** the operator talks to the CEO and it acts on the sessions while they talk.
+- **Alt paths:** words typed under the call («Сказать текстом») are answered aloud the same way.
+- **UI elements:** «Позвонить» / «Положить трубку»; the call panel (state, minutes and price, the last lines, «Сказать текстом»).
+- **States covered:** connecting, listening, speaking, ended, failed
+- **Errors & recovery:** no key, a refused key or a microphone that did not open ends the call with the reason; the key itself never reaches the window.
+- **Design rationale:** the operator, 2026-11-18 (paraphrased): a voice call through the xAI API, first just working, a voice of his choosing later.
+- **Telemetry:** ops log `ceo.voice.*`.
+- **Status:** implemented (2026-11-18, ADR-0197).
+- **Coverage:** `apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoPopup.tsx` (`VoiceCall`), `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.
+- **Product:** unobserved
+
+### SCN-185: The CEO keeps answering when its first agent cannot
+- **Persona:** P-01
+- **Feature:** Floating CEO
+- **Traces:** ST-046, FLW-63 (JTBD-02)
+- **Entry point:** any start of the CEO; a usage limit in its console.
+- **Preconditions:** the CEO's order names more than one runner (by default Claude Code, then Hermes on OpenRouter).
+- **Steps:**
+  1. Claude Code is not installed, signed out or does not start -> the CEO starts on the next runner of its order (Hermes on OpenRouter), and the window's head says «работает на Hermes Agent» and why Claude Code was passed over.
+  2. The running CEO reports its usage limit, or ends as it starts -> it is set aside for an hour, the next runner starts, and the operator's last message is typed again.
+  3. Whichever runner answers, its model is Opus 5.5 or GPT-6.2 Sol, never below Sonnet 5.5 -> Claude Code starts with `--model opus`, Hermes takes the first model of the list its session acknowledges, and a Hermes that takes none is passed over.
+- **Expected result:** the CEO answers whatever the state of one subscription.
+- **Alt paths:** every runner of the order failed -> the window says the CEO did not start and why each was passed over, with «Попробовать снова».
+- **UI elements:** the head's runner and the notes under it.
+- **States covered:** running, failed
+- **Errors & recovery:** the order and the models are set by hand in settings.json (`ceoRunners`, `ceoModels`); an unknown runner, and a model below Sonnet 5.5, is dropped.
+- **Design rationale:** the operator, 2026-11-18: the CEO runs not only on a Claude subscription, and a fallback (Hermes on OpenRouter) is mandatory; the same day: «модель минимум сонет на разговор CEO но лучше OPUS или GPT SOL».
+- **Telemetry:** ops log `ceo.agent.*`.
+- **Status:** implemented (2026-11-18, ADR-0197).
+- **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`start`, `onOutput`, `onExit`, `LIMIT_SAID`), `apps/desktop/src/shared/ceoAgent.ts#ceoRunnersOf`, `#ceoModelsOf`, `#ceoLaunchExtras`, `apps/desktop/src/main/acpShell.ts` (region `acp-session-models`); tests `apps/desktop/test/ceo-agent.test.mjs` («MANDATORY FALLBACK», «THE FLOOR», «a usage limit sets the runner aside», «a console that ends at its start»), `apps/desktop/test/acp-shell.test.mjs` («ADR-0197»).
 - **Product:** unobserved

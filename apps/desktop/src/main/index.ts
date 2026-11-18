@@ -2,7 +2,7 @@
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
 import { admitAccessAct } from './relayedAccess.ts'
-import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, shell } from 'electron'
+import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, session, shell } from 'electron'
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
@@ -44,6 +44,11 @@ import { type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
 import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
+import { createCeoAgent, type CeoAgent } from './ceoAgent.ts'
+import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
+import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
+import { createObservatoryVault } from './observatoryVault.ts'
+import { CEO_PROJECT_NAME, ceoLaunchExtras, type CeoAttachment } from '../shared/ceoAgent.ts'
 import { writePersonBusiness } from './projectOnboarding.ts'
 import { readGitPeople } from './gitPeople.ts'
 import { projectAnalytics, readNewestPaged } from '../shared/projectAnalytics.ts'
@@ -274,7 +279,9 @@ const APP_ENTRY: AppEntry = {
   // A packaged app has no dev server: an inherited ELECTRON_RENDERER_URL there would name an origin the
   // windows never load, and the guard would let any page on it drive the bridge (0.3.2 verification ER-9).
   devOrigin: devServer(),
-  indexFile: path.join(import.meta.dirname, '../renderer/index.html')
+  indexFile: path.join(import.meta.dirname, '../renderer/index.html'),
+  // ADR-0197: the CEO's popup is the renderer's second document, with a policy of its own (`electron.vite.config.ts`).
+  otherFiles: [path.join(import.meta.dirname, '../renderer/ceo.html')]
 }
 
 // #region ipc-window-authority — docs: docs/adr/0020-provider-views-are-sandboxed-extensions-and-layout-is-host-owned.md#provider-views-are-sandboxed-extensions-workspace-layout-is-host-owned
@@ -408,7 +415,7 @@ import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
-import { readMachineSwitchboardSessions } from './switchboardSessions.ts'
+import { readMachineSwitchboardSessions, runMachineSwitchboard } from './switchboardSessions.ts'
 import { assignAcross, createAssignDeps, type AssignDeps } from './crossProjectAssign.ts'
 import { reviewDecisionProblem, type ReviewDecision } from '../shared/reviewDecision.ts'
 import { readInbound, setInbound } from './claudeInbound.ts'
@@ -523,6 +530,13 @@ let hub: {
  *  beside the hub's credentials; `localStore` resolves its folder per call, so this is safe before the app is ready. */
 const keptOutAgents = createKeptOut(localStore<KeptOutFile>('kept-out-agents.json', {}, validateKeptOutFile))
 let mainWindow: BrowserWindow | null = null
+/** The CEO agent (ADR-0197): its console's keeper, its operations and its popup window; null until registerIpc runs. */
+let ceoAgent: CeoAgent | null = null
+let ceoOperations: CeoOperations | null = null
+let ceoWindow: BrowserWindow | null = null
+/** A draft the popup takes when it opens (Help's example, the home composer's words not yet sent). */
+let ceoDraft: string | null = null
+const ceoVault = createObservatoryVault()
 
 // #region fabric-link-handler — docs: docs/ux/scenarios.md#scn-142-open-fabric-from-a-products-button-in-that-products-project-and-go-on-in-a-coding-agent
 /**
@@ -739,7 +753,7 @@ const sessionWindows = new Map<string, BrowserWindow>()
 const fileWindows = new Map<string, BrowserWindow>()
 
 function allWindows(): BrowserWindow[] {
-  return [mainWindow, ...sessionWindows.values(), ...fileWindows.values()].filter(
+  return [mainWindow, ceoWindow, ...sessionWindows.values(), ...fileWindows.values()].filter(
     (w): w is BrowserWindow => !!w && !w.isDestroyed()
   )
 }
@@ -1171,6 +1185,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
     ports: (registry) => windowHubPorts({
       ptys: () => ptys, sweep: boardState.sweep.get, readSettings: readSettingsState, registry,
+      ceo: () => (ceoAgent ? { isCeo: ceoAgent.isCeo, operations: () => ceoOperations } : null),
       desktop: { openExternal: (url) => shell.openExternal(url), applicationInfoForProtocol: (url) => app.getApplicationInfoForProtocol(url) }
     }),
     presenter: ({ accessStore, connector, access }) => new ConsentPresenter({
@@ -1370,10 +1385,11 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // One permission choice for every agent this machine starts (CO-305, ADR-0168), read at each launch.
   setPermissionPreference(() => readSettings().agentPermissions)
   ptys = new PtyManager(journal, ACTIVE_ESTATE, {
-    onData: (sessionId, data, written) => broadcast(IPC.terminalData, sessionId, data, written),
+    onData: (sessionId, data, written) => { broadcast(IPC.terminalData, sessionId, data, written); ceoAgent?.onOutput(sessionId, data) },
     onExit: async (sessionId, exitCode) => {
       const requestedByFabric = !!ptys.get(sessionId)?.termination || quit.quitting
       broadcast(IPC.terminalExit, sessionId, exitCode)
+      if (!quit.quitting) ceoAgent?.onExit(sessionId)
       syncPower()
       // Observed local exit revokes Fabric credentials even if Run lookup is
       // unavailable. Repeated revocation in the finalizer is idempotent.
@@ -5108,7 +5124,158 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
 
   handle(IPC.windowsOpenSession, (_e, sessionId: string): Returns<FabricApi['windows']['openSession']> => openSessionWindow(sessionId))
+
+  // #region ceo-agent-wiring — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#decision
+  // ADR-0197: the CEO is one console this process keeps, in `<userData>/ceo`, walked over its own runner order; its
+  // session control is the operations below, given to its console's surface (`hubPorts.ts#HubCeo`) and its voice call.
+  const ceoOrder = { current: [] as string[] }
+  const ceoFallback = createRunnerFallback({
+    order: () => ceoOrder.current.map((runner) => ({ runner, session: 'spawn' as const })),
+    detect: (runners) => detectExecutors(runners, { env: sessionEnvironment(process.env) }),
+    surfaceUp: () => surface.endpoint !== '',
+    // The CEO is its own console: it never attaches to a session another launch left.
+    attachable: () => null
+  })
+  const ceoReach = { granted: (real: string) => real, candidates: scanCandidates, home: homedir() }
+  ceoAgent = createCeoAgent({
+    root: path.join(app.getPath('userData'), 'ceo'),
+    locale: () => readSettings().locale,
+    ensureProject: async (folder, knownId) => {
+      const id = knownId ?? randomUUID()
+      const { data, error } = await store.select('projects', 'id,status').eq('id', id).maybeSingle()
+      if (error) throw new Error(`the CEO's project could not be read: ${error.message}`)
+      if (data && (data as { status?: string }).status !== 'archived') return id
+      let real = folder
+      try { real = realpathSync.native(folder) } catch { /* not there yet: admission says so */ }
+      const holders = (await readImportedIndex()).get(real)
+      if (holders?.length) return holders[0]!.id
+      const row = await admission.create({ id, name: CEO_PROJECT_NAME, repoPaths: [folder] }, { kind: 'system', id: 'ceo' }, ceoReach, 'system:ceo', { onboard: false })
+      return row.id
+    },
+    runners: () => readSettings().ceoRunners,
+    walk: (projectId, order, failed, skip) => {
+      ceoOrder.current = order
+      ceoFallback.invalidate()
+      return ceoFallback.walk(projectId, { kind: 'terminal', permissionMode: null }, failed, skip)
+    },
+    models: () => readSettings().ceoModels,
+    // The operator, 2026-11-18: the CEO runs on Opus or GPT Sol, never below Sonnet 5.5 (`shared/ceoAgent.ts#ceoLaunchExtras`).
+    open: (projectId, cwd, runner, route, sessionId) => {
+      ptys.prepareLaunch(sessionId, ceoLaunchExtras(runner, readSettings().ceoModels))
+      return ptys.open(projectId, cwd, runner, null, null, null, sessionId, undefined, route)
+    },
+    get: (id) => ptys.get(id),
+    deliver: (id, text) => ptys.deliverWhenReady(id, text),
+    stop: (id) => { markPersonEnded(id); return stopRuntime.stop(id, 'operator_stop', { force: false }) },
+    unavailable: (error) => error instanceof SpawnFailure || error instanceof RunnerUnavailable,
+    record: (op, detail) => ops.record({ op, outcome: /failed/.test(op) ? 'failed' : 'ok', level: /failed|fallback/.test(op) ? 'warn' : 'info', detail, ctx: { correlationId: ops.correlate() } }),
+    onChange: (status) => {
+      // The popup speaks only about the CEO's console: its subject follows each restart.
+      if (ceoWindow && !ceoWindow.isDestroyed()) windowKinds.resubject(ceoWindow.webContents.id, status.sessionId ?? '')
+      broadcast(IPC.ceoAgentChanged, status)
+    }
+  })
+  const agent = ceoAgent
+  const ceoNote = (kind: 'session.start' | 'session.stop', d: { sessionId: string; projectId: string | null; label: string; runner: string; reason: string }): void => {
+    void acts.note({
+      kind, projectId: d.projectId, subject: { type: 'session', id: d.sessionId, label: d.label },
+      said: { key: kind === 'session.start' ? 'act.ceo.session.start' : 'act.ceo.session.stop', params: { project: d.label, runner: d.runner, reason: d.reason } },
+      inverse: kind === 'session.start'
+        ? { kind: 'session.stop', args: { session_id: d.sessionId } }
+        : d.projectId ? { kind: 'session.start', args: { project_id: d.projectId, option_id: d.runner, permission_mode: null, cwd: null, task_id: null, from_session: d.sessionId } } : null
+    }, { actor: { kind: 'agent', id: agent.sessionId() ?? 'ceo' } }).catch((e: unknown) => ops.failed('ceo.act-note', e))
+  }
+  ceoOperations = createCeoOperations({
+    ptys: { list: () => ptys.list(), get: (id) => ptys.get(id), scrollbackOf: (id) => ptys.scrollbackOf(id), write: (id, data) => ptys.write(id, data) },
+    ceoSessionId: () => agent.sessionId(),
+    projects: async () => {
+      const { data, error } = await store.select('projects', 'id,name,repo_path,default_agent').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
+      if (error) throw new Error(`the projects could not be read: ${error.message}`)
+      return (data ?? []) as Array<{ id: string; name: string; repo_path: string | null; default_agent: string | null }>
+    },
+    admitFolder: async (folder) => {
+      const row = await admission.create({ id: randomUUID(), name: path.basename(folder), repoPaths: [folder] }, { kind: 'agent', id: agent.sessionId() ?? 'ceo' }, ceoReach)
+      return { id: row.id, name: row.name, repo_path: row.repo_path }
+    },
+    openConsole: (projectId, runner, task) => openConsole(projectId, runner, task, null),
+    stop: async (id, force) => { markPersonEnded(id); return stopRuntime.stop(id, 'operator_stop', { force }) },
+    openWindow: (id) => openSessionWindow(id),
+    switchboard: (args) => runMachineSwitchboard(sessionEnvironment(process.env), args),
+    signal: (pid) => { process.kill(pid, 'SIGTERM') },
+    record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } }),
+    note: ceoNote
+  })
+  handle(IPC.ceoAgentStatus, (): Returns<FabricApi['ceoAgent']['status']> => agent.status())
+  handle(IPC.ceoAgentEnsure, (): Promise<Returns<FabricApi['ceoAgent']['ensure']>> => agent.ensure())
+  handle(IPC.ceoAgentSend, (_e, text: unknown, attachments: unknown): Promise<Returns<FabricApi['ceoAgent']['send']>> =>
+    agent.send(typeof text === 'string' ? text : '', Array.isArray(attachments)
+      ? attachments.filter((a): a is CeoAttachment => !!a && typeof a === 'object' && typeof (a as CeoAttachment).name === 'string' && typeof (a as CeoAttachment).data === 'string')
+      : []))
+  handle(IPC.ceoAgentRestart, (): Promise<Returns<FabricApi['ceoAgent']['restart']>> => agent.restart('person'))
+  handle(IPC.ceoAgentOpen, (_e, draft: unknown): Returns<FabricApi['ceoAgent']['open']> => {
+    ceoDraft = typeof draft === 'string' && draft.trim() ? draft.slice(0, 8000) : ceoDraft
+    openCeoWindow()
+    if (ceoDraft) broadcast(IPC.ceoAgentDraft)
+    // The console starts with the window: by the time the person has typed, it is up.
+    void agent.ensure()
+  })
+  handle(IPC.ceoAgentTakeDraft, (): Returns<FabricApi['ceoAgent']['takeDraft']> => { const d = ceoDraft; ceoDraft = null; return d })
+  handle(IPC.ceoAgentVoice, async (): Promise<Returns<FabricApi['ceoAgent']['voice']>> => {
+    const token = await mintVoiceToken({ vault: ceoVault, fetch })
+    ops.record({ op: 'ceo.voice.token', outcome: token.ok ? 'ok' : 'failed', level: token.ok ? 'info' : 'warn', detail: token.ok ? {} : { reason: token.reason.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
+    if (!token.ok) return token
+    const locale = readSettings().locale
+    return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
+      instructions: voiceInstructions(locale), voice: 'eve', tools: [...ceoVoiceTools(), ASK_CEO_TOOL] }
+  })
+  handle(IPC.ceoAgentVoiceTool, async (_e, name: unknown, args: unknown): Promise<Returns<FabricApi['ceoAgent']['voiceTool']>> => {
+    const tool = typeof name === 'string' ? name : ''
+    ops.record({ op: 'ceo.voice.tool', outcome: 'ok', level: 'info', detail: { tool: tool.slice(0, 40) }, ctx: { correlationId: ops.correlate() } })
+    if (tool === 'ask_ceo') {
+      const text = typeof (args as { text?: unknown } | null)?.text === 'string' ? (args as { text: string }).text : ''
+      const r = await agent.send(text, [])
+      return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console' : undefined }
+    }
+    if (!tool.startsWith('session_')) return { ok: false, reason: `unknown tool ${tool}` }
+    return ceoOperations!.run(tool.slice('session_'.length), args)
+  })
+  // #endregion ceo-agent-wiring
 }
+
+// #region ceo-window — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#the-popup-window
+/** The CEO's popup (ADR-0197 §2): one window over the main one, the CEO's console with a composer and the voice call.
+ *  Its own document (`ceo.html`), so its policy alone admits the realtime socket, and the microphone is given to it alone. */
+function openCeoWindow(): void {
+  showForService()
+  if (ceoWindow && !ceoWindow.isDestroyed()) {
+    if (ceoWindow.isMinimized()) ceoWindow.restore()
+    ceoWindow.show()
+    ceoWindow.focus()
+    return
+  }
+  const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : null
+  const bounds = parent?.getBounds()
+  const width = 520, height = 720
+  const w = new BrowserWindow({
+    ...WINDOW_CHROME,
+    width, height, minWidth: 380, minHeight: 420,
+    ...(bounds ? { x: Math.max(bounds.x, bounds.x + bounds.width - width - 24), y: Math.max(bounds.y, bounds.y + bounds.height - height - 24) } : {}),
+    ...(parent ? { parent } : {}),
+    title: 'CEO',
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('ceo')] }
+  })
+  ceoWindow = w
+  const contentsId = w.webContents.id
+  windowKinds.register(contentsId, { kind: 'ceo', subject: ceoAgent?.sessionId() ?? '' })
+  if (devServer()) void w.loadURL(new URL('ceo.html', devServer()!.endsWith('/') ? devServer()! : `${devServer()}/`).toString())
+  else void w.loadFile(path.join(import.meta.dirname, '../renderer/ceo.html'))
+  w.on('closed', () => {
+    windowKinds.forget(contentsId)
+    revokeWindowRoots(contentsId)
+    if (ceoWindow === w) ceoWindow = null
+  })
+}
+// #endregion ceo-window
 
 function rendererTarget(query: string): { url?: string; file?: string; search: string } {
   // A packaged build loads only its own files, whatever it inherited (0.3.2 verification ER-6).
@@ -5297,6 +5464,18 @@ app.whenReady().then(async () => {
   } catch (e) {
     ops.failed('link.register', e)
   }
+
+  // #region ceo-microphone — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#the-voice-call
+  // ADR-0197 §4: the microphone is the CEO popup's alone, and only for audio; every other permission keeps the answer
+  // Electron gave before a handler existed (granted), so nothing else any window does changes.
+  session.defaultSession.setPermissionRequestHandler((contents, permission, callback, details) => {
+    if (permission !== 'media') return callback(true)
+    const audioOnly = !((details as { mediaTypes?: string[] }).mediaTypes ?? []).includes('video')
+    callback(audioOnly && windowKinds.entry(contents.id)?.kind === 'ceo')
+  })
+  session.defaultSession.setPermissionCheckHandler((contents, permission) =>
+    permission !== 'media' || (contents ? windowKinds.entry(contents.id)?.kind === 'ceo' : false))
+  // #endregion ceo-microphone
 
   // M116 — before the splash, so the first thing on the dock is already the mark.
   applyAppIcon()

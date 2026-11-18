@@ -18,6 +18,10 @@ const spec = JSON.parse(raw) as AcpSessionSpec
 // This removes the copy in this process's environment that children inherit; the kernel's copy of
 // the environment this process was started with is not rewritten (`ps -E` by the same user shows it).
 delete process.env.FABRIC_ACP_SESSION
+// ADR-0197: the models a session must run on, best first (the CEO's floor); the agent does not inherit the list.
+const models = (process.env.FABRIC_ACP_MODELS ?? '').split(',').map((m) => m.trim()).filter(Boolean)
+if (models.length) spec.sessionModels = models
+delete process.env.FABRIC_ACP_MODELS
 const runsAsNode = process.env.ELECTRON_RUN_AS_NODE
 delete process.env.ELECTRON_RUN_AS_NODE
 

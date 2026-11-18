@@ -28,7 +28,10 @@ describe('validateSettings', () => {
       dispatchOnSharedBoard: true,
       dispatchTarget: 'studio',
       dispatchTargets: { 'owner-a': 'node-a' },
-      peopleAsk: false
+      peopleAsk: false,
+      // ADR-0197: the CEO's order, kept as written when every runner is known.
+      ceoRunners: ['hermes', 'claude-code'],
+      ceoModels: ['openai/gpt-6.2-sol', 'anthropic/claude-sonnet-5.5']
     }
     expect(validateSettings(file)).toEqual(file)
   })

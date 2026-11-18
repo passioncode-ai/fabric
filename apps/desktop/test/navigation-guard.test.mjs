@@ -26,3 +26,10 @@ test('only web links go to the browser', () => {
 test('a malformed escape in a file path is refused, not thrown', () => {
   assert.equal(isAppDocument('file:///Users/me/%E0%A4%A.html', packaged), false)
 })
+
+test('ADR-0197: the CEO popup\'s own document is the app too, and only the one named', () => {
+  const withCeo = { ...packaged, otherFiles: ['/Applications/Fabric.app/Contents/Resources/app.asar/out/renderer/ceo.html'] }
+  assert.equal(isAppDocument('file:///Applications/Fabric.app/Contents/Resources/app.asar/out/renderer/ceo.html', withCeo), true)
+  assert.equal(isAppDocument('file:///Applications/Fabric.app/Contents/Resources/app.asar/out/renderer/ceo.html', packaged), false, 'not named, not the app')
+  assert.equal(isAppDocument('file:///Applications/Fabric.app/Contents/Resources/app.asar/out/renderer/other.html', withCeo), false)
+})

@@ -34,6 +34,11 @@ const EVERY_WINDOW = ['settingsRead', 'personaRead', 'metaInfo', 'opsRendererErr
   // 0.3.12 (CO-374): the lost-stack notice shows in every window (`StackHealthNotice.tsx`).
   'stackHealth', 'stackHealthChanged']
 const SESSION_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalEnd', 'terminalAttestOver', 'terminalDismiss', 'terminalData', 'terminalExit']
+/** ADR-0197: the CEO popup reads and types its console (`TerminalView.tsx`), opens it in a window, and speaks the CEO's
+ *  own channels; the voice call's two are its alone. */
+const CEO_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalData', 'terminalExit',
+  'windowsOpenSession', 'ceoAgentStatus', 'ceoAgentEnsure', 'ceoAgentSend', 'ceoAgentRestart', 'ceoAgentOpen', 'ceoAgentTakeDraft',
+  'ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentChanged', 'ceoAgentDraft']
 const EDITOR_USES = [...EVERY_WINDOW, 'filesRead', 'filesWrite', 'filesRequestOverwrite', 'filesOpenExternally', 'filesRecoveryKeep', 'filesRecoveryFlush', 'filesRecoveryRead']
 
 test('every channel declares at least one window kind, and only known kinds', () => {
@@ -47,8 +52,28 @@ test('every channel declares at least one window kind, and only known kinds', ()
   for (const key of Object.keys(CHANNEL_RULES)) assert.ok(key in IPC, `a rule for ${key}, which is no channel`)
 })
 
+test('ADR-0197: the CEO popup reaches only its own console, and its subject follows a restart', () => {
+  const reg = createWindowRegistry()
+  reg.register(7, { kind: 'ceo', subject: 'ceo-1' })
+  assert.equal(reg.check(7, IPC.terminalWrite, ['ceo-1', 'x']), null)
+  assert.equal(reg.check(7, IPC.terminalWrite, ['other', 'rm -rf ~\r'])?.reason, 'subject')
+  assert.equal(reg.check(7, IPC.terminalEnd, ['ceo-1'])?.reason, 'kind', 'stopping a console is not the popup\'s')
+  assert.equal(reg.check(7, IPC.feedReplay, [0])?.reason, 'kind')
+  assert.equal(reg.check(7, IPC.ceoAgentVoice, []), null)
+  reg.resubject(7, 'ceo-2')
+  assert.equal(reg.entry(7)?.kind, 'ceo')
+  assert.equal(reg.check(7, IPC.terminalWrite, ['ceo-1', 'x'])?.reason, 'subject', 'the old console is not its own any more')
+  assert.equal(reg.check(7, IPC.terminalWrite, ['ceo-2', 'x']), null)
+  reg.resubject(8, 'x')
+  assert.equal(reg.entry(8), undefined, 'resubject registers nobody')
+  assert.equal(new IpcWindowRefused(IPC.ceoAgentVoice, 'main', 'kind').kind, 'main')
+  assert.equal(authorise({ kind: 'main' }, IPC.ceoAgentVoiceTool, ['session_stop', {}]).reason, 'kind', 'the voice tools run from the popup alone')
+})
+
 test('the main window keeps the whole bridge; detached windows get exactly what they use', () => {
-  assert.deepEqual(channelsFor('main').sort(), Object.keys(IPC).sort())
+  // The voice call's channels are the CEO popup's alone (ADR-0197 §4): the main window has the rest.
+  assert.deepEqual(channelsFor('main').sort(), Object.keys(IPC).filter((k) => k !== 'ceoAgentVoice' && k !== 'ceoAgentVoiceTool').sort())
+  assert.deepEqual(channelsFor('ceo').sort(), [...CEO_USES].sort())
   assert.deepEqual(channelsFor('session').sort(), [...SESSION_USES].sort())
   assert.deepEqual(channelsFor('editor').sort(), [...EDITOR_USES].sort())
 })
@@ -199,7 +224,7 @@ test('the menu\'s Cmd+W reaches the focused window only through the registry: th
 test('every window Fabric gives the preload is created with its kind', () => {
   const main = readFileSync(path.join(HERE, '..', 'src', 'main', 'index.ts'), 'utf8')
   const preloads = [...main.matchAll(/preload:\s*path\.join/g)].length
-  const kinded = [...main.matchAll(/additionalArguments:\s*\[windowKindArg\('(main|session|editor)'\)\]/g)].length
+  const kinded = [...main.matchAll(/additionalArguments:\s*\[windowKindArg\('(main|session|editor|ceo)'\)\]/g)].length
   assert.ok(preloads > 0)
   assert.equal(kinded, preloads, 'a window with the preload but no kind argument')
   const registered = [...main.matchAll(/windowKinds\.register\(/g)].length

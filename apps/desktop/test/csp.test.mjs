@@ -56,6 +56,23 @@ if (/senderFrame\?\.url/.test(MAIN) && /function listen\(/.test(MAIN) && /functi
   ok('handle() and listen() check the sender frame against the app document')
 else fail('the IPC wrappers do not check senderFrame — any document that reached the window may drive the bridge')
 
+// 4. ADR-0197 §4: the CEO popup's document is the ONE that may reach outside the app, and only xAI's realtime socket;
+//    the main page still reaches nothing. The microphone is the CEO window's alone.
+const CEO_PAGE = path.join(HERE, '..', 'out', 'renderer', 'ceo.html')
+if (!existsSync(CEO_PAGE)) fail('no built page at out/renderer/ceo.html — the CEO popup has no document of its own')
+else {
+  const ceo = readFileSync(CEO_PAGE, 'utf8').match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1] ?? ''
+  const main = existsSync(PAGE) ? (readFileSync(PAGE, 'utf8').match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1] ?? '') : ''
+  const ceoConnect = ceo.split(';').map((d) => d.trim()).find((d) => d.startsWith('connect-src')) ?? ''
+  if (ceoConnect !== "connect-src 'self' wss://api.x.ai") fail(`the CEO page's connect-src is «${ceoConnect}», not exactly 'self' and wss://api.x.ai`)
+  else if (!ceo.includes("script-src 'self'") || ceo.includes("'unsafe-eval'")) fail('the CEO page loosened its script-src')
+  else if (main.includes('api.x.ai')) fail('the main page may reach xAI: only the CEO popup may')
+  else ok(`the CEO popup alone reaches wss://api.x.ai (${ceoConnect})`)
+}
+if (/setPermissionRequestHandler/.test(MAIN) && /permission !== 'media'/.test(MAIN) && /kind === 'ceo'/.test(MAIN))
+  ok('the microphone is granted to the CEO window alone')
+else fail('src/main/index.ts does not keep the microphone to the CEO window')
+
 if (failures) {
   console.error(`\ncsp: ${failures} probe(s) failed`)
   process.exit(1)

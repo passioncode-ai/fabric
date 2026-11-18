@@ -23,8 +23,10 @@
  */
 import { IPC } from './types.ts'
 
-export const WINDOW_KINDS = ['main', 'session', 'editor'] as const
-/** The Fabric window kinds: the main shell, a detached session terminal, a detached file editor. */
+export const WINDOW_KINDS = ['main', 'session', 'editor', 'ceo'] as const
+/** The Fabric window kinds: the main shell, a detached session terminal, a detached file editor, and the CEO's popup
+ *  (ADR-0197: the CEO's console, its composer and its voice call; its subject is the CEO's console, set again at each
+ *  restart). */
 export type WindowKind = (typeof WINDOW_KINDS)[number]
 
 /** `any`: every call by that kind. `own`: only calls whose first argument is the window's subject. */
@@ -44,8 +46,15 @@ export type RefusalReason = 'unregistered' | 'undeclared' | 'kind' | 'subject'
 
 const MAIN_ONLY: ChannelRule = { main: 'any' }
 /** The boot every window runs: its settings, the persona provider, which window it is, crash reports. */
-const EVERY_WINDOW: ChannelRule = { main: 'any', session: 'any', editor: 'any' }
+const EVERY_WINDOW: ChannelRule = { main: 'any', session: 'any', editor: 'any', ceo: 'any' }
 const MAIN_AND_OWN_SESSION: ChannelRule = { main: 'any', session: 'own' }
+/** What a console view reads and types (`TerminalView.tsx`): a session window's subject is its session, the CEO popup's
+ *  the CEO's console (ADR-0197). Stopping or dismissing a console stays the session window's and the main window's. */
+const MAIN_AND_OWN_CONSOLE: ChannelRule = { main: 'any', session: 'own', ceo: 'own' }
+/** The CEO agent (ADR-0197): the home composer and the floating button in the main window, and the popup itself. */
+const MAIN_AND_CEO: ChannelRule = { main: 'any', ceo: 'any' }
+/** The voice call is the popup's alone: its window is the one given the microphone and the realtime socket. */
+const CEO_ONLY: ChannelRule = { ceo: 'any' }
 const MAIN_AND_OWN_FILE: ChannelRule = { main: 'any', editor: 'own' }
 
 /**
@@ -232,22 +241,33 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   workSources: MAIN_ONLY,
   workRhythm: MAIN_ONLY,
   workRelease: MAIN_ONLY,
-  terminalGet: MAIN_AND_OWN_SESSION,
-  terminalScrollback: MAIN_AND_OWN_SESSION,
-  terminalWrite: MAIN_AND_OWN_SESSION,
-  terminalResize: MAIN_AND_OWN_SESSION,
+  terminalGet: MAIN_AND_OWN_CONSOLE,
+  terminalScrollback: MAIN_AND_OWN_CONSOLE,
+  terminalWrite: MAIN_AND_OWN_CONSOLE,
+  terminalResize: MAIN_AND_OWN_CONSOLE,
   terminalEnd: MAIN_AND_OWN_SESSION,
   terminalAttestOver: MAIN_AND_OWN_SESSION,
   terminalDismiss: MAIN_AND_OWN_SESSION,
-  terminalData: MAIN_AND_OWN_SESSION,
-  terminalExit: MAIN_AND_OWN_SESSION,
-  windowsOpenSession: MAIN_ONLY,
+  terminalData: MAIN_AND_OWN_CONSOLE,
+  terminalExit: MAIN_AND_OWN_CONSOLE,
+  // The CEO popup opens its own console in a window of its own (its subject), nothing else.
+  windowsOpenSession: { main: 'any', ceo: 'own' },
   metaInfo: EVERY_WINDOW,
   opsRendererError: EVERY_WINDOW,
   stackExposure: MAIN_ONLY,
   // CO-374: the stack's health is said in the detached console and editor windows too; a read, nothing more.
   stackHealth: EVERY_WINDOW,
-  stackHealthChanged: EVERY_WINDOW
+  stackHealthChanged: EVERY_WINDOW,
+  ceoAgentStatus: MAIN_AND_CEO,
+  ceoAgentEnsure: MAIN_AND_CEO,
+  ceoAgentSend: MAIN_AND_CEO,
+  ceoAgentRestart: MAIN_AND_CEO,
+  ceoAgentOpen: MAIN_AND_CEO,
+  ceoAgentTakeDraft: MAIN_AND_CEO,
+  ceoAgentVoice: CEO_ONLY,
+  ceoAgentVoiceTool: CEO_ONLY,
+  ceoAgentChanged: MAIN_AND_CEO,
+  ceoAgentDraft: MAIN_AND_CEO
 }
 
 /** Channel value (`feed:replay`) → its key, so a rule is found from what Electron hands the wrapper. */

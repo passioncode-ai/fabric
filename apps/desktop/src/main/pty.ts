@@ -474,6 +474,8 @@ export class PtyManager {
   ): Promise<TerminalSession> {
     const sessionId = requestedSessionId ?? randomUUID()
     if (this.sessions.has(sessionId) || this.opening.has(sessionId)) throw new Error('session identity already used')
+    const extras = this.launchExtras.get(sessionId)
+    this.launchExtras.delete(sessionId)
     this.opening.add(sessionId)
     try {
     const unit = ownedUnit ? this.ownedUnits.get(ownedUnit) : undefined
@@ -558,7 +560,7 @@ export class PtyManager {
     // the synchronous native spawn below.
     let launch: Awaited<ReturnType<typeof programForPty>>
     try {
-      launch = await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args])
+      launch = await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args, ...(extras?.args ?? [])])
     } catch (e) {
       discardBundle()
       throw new SpawnFailure(program, cwd, e instanceof Error ? e.message : String(e))
@@ -586,7 +588,7 @@ export class PtyManager {
         // say so is what made "a third agent is one row" false.
         // The actual N028 child key wins over every inherited/configured layer.
         // This immutable token was refreshed before the final SQL guard.
-        env: { ...sessionEnvironment(process.env), ...(descriptor?.env ?? {}), ...verdict.env, ...(bundle?.env ?? {}), ...(unit?.childEnvironment ?? {}) }
+        env: { ...sessionEnvironment(process.env), ...(descriptor?.env ?? {}), ...verdict.env, ...(bundle?.env ?? {}), ...(extras?.env ?? {}), ...(unit?.childEnvironment ?? {}) }
       })
     } catch (e) {
       // The bundle was written and its credential minted before spawn was even
@@ -753,6 +755,16 @@ export class PtyManager {
     return false
   }
   // #endregion attach-claim
+
+  // #region launch-extras — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#the-ceos-models
+  /** What one launch adds to its runner (ADR-0197: the CEO's model), by the session id it will open as; taken once. */
+  private readonly launchExtras = new Map<string, { args: string[]; env: Record<string, string> }>()
+  /** Given before `open` with the same `requestedSessionId`: arguments for a runner started as itself (not through a
+   *  shell of Fabric's, whose command is the bundle's), and environment for every runner. */
+  prepareLaunch(sessionId: string, extras: { args: string[]; env: Record<string, string> }): void {
+    this.launchExtras.set(sessionId, { args: [...extras.args], env: { ...extras.env } })
+  }
+  // #endregion launch-extras
 
   list(projectId?: string): TerminalSession[] {
     return [...this.sessions.values()]

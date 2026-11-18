@@ -91,7 +91,7 @@ for (const key of Object.keys(CHANNEL_RULES)) if (!(key in IPC)) kindProblems.pu
 // Every window built with the preload is built with its kind: the registry is what the rule is read
 // against, and the preload narrows by the same argument.
 const preloads = [...src.matchAll(/preload:\s*path\.join/g)].length
-const kinded = [...src.matchAll(/additionalArguments:\s*\[windowKindArg\('(?:main|session|editor)'\)\]/g)].length
+const kinded = [...src.matchAll(/additionalArguments:\s*\[windowKindArg\('(?:main|session|editor|ceo)'\)\]/g)].length
 const registered = [...src.matchAll(/windowKinds\.register\(/g)].length
 if (kinded !== preloads) kindProblems.push(`${FILE}: ${preloads} windows carry the preload and ${kinded} are given a window kind`)
 if (registered !== preloads) kindProblems.push(`${FILE}: ${preloads} windows carry the preload and ${registered} are registered with windowKinds`)

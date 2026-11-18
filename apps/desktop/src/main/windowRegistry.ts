@@ -43,6 +43,9 @@ export class IpcWindowRefused extends Error {
 export interface WindowRegistry {
   /** A window Fabric built, with the kind it built it as. Replaces any earlier entry for the id. */
   register(webContentsId: number, entry: WindowEntry): void
+  /** The window's subject changed, its kind kept (ADR-0197: the CEO popup follows the CEO's console across restarts).
+   *  An id the registry does not hold stays unknown. */
+  resubject(webContentsId: number, subject: string): void
   /** The window closed: its id grants nothing from now on. */
   forget(webContentsId: number): void
   entry(webContentsId: number): WindowEntry | undefined
@@ -56,6 +59,10 @@ export function createWindowRegistry(): WindowRegistry {
   const byId = new Map<number, WindowEntry>()
   return {
     register: (id, entry) => void byId.set(id, Object.freeze({ ...entry })),
+    resubject: (id, subject) => {
+      const entry = byId.get(id)
+      if (entry) byId.set(id, Object.freeze({ ...entry, subject }))
+    },
     forget: (id) => void byId.delete(id),
     entry: (id) => byId.get(id),
     check(id, channel, args) {

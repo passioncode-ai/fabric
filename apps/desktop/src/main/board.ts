@@ -281,6 +281,8 @@ export async function startBoardHub(d: BoardHubDeps): Promise<void> {
     ops.failed('session.hold', new Error(why), { session_id: sessionId, until, note: 'the duty officer may close this session; the next claim, renewal or release asks again' }))
   surface = new AgentSurface({
     db, journal, ptys: hubPorts.terminals, policy, estateId: ACTIVE_ESTATE,
+    // ADR-0197: the CEO's tools, for its own console only (absent in the board's own entry).
+    ...(hubPorts.ceo ? { ceo: hubPorts.ceo } : {}),
     // SW-4: a session's nudges from the sweep of abandoned work ride on its fabric_work_list and fabric_heartbeat.
     nudges: hubPorts.sweep.takeNudges,
     // 0.3.14 wave 2: and on every turn the session hooks observe (fabric_session_observe), from the same queue, shown

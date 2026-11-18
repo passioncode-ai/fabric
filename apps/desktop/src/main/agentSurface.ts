@@ -70,6 +70,8 @@ import { stageTaskOf, type LiveClaim } from '../shared/spawnParent.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
 import { BOARD_SESSION_OPERATIONS, createBoard, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
 import { registerBoardTools } from './boardTools.ts'
+import { registerCeoTools } from './ceoTools.ts'
+import type { HubCeo } from './hubPorts.ts'
 import { type TaskState } from '../shared/ladder.ts'
 import type { AgentAccessDoor as RelayedAccessDoor } from './relayedAccess.ts'
 import { registerAccessTools } from './relayedAccessTools.ts'
@@ -205,6 +207,8 @@ export interface AgentAccessDoor extends RelayedAccessDoor {
 }
 
 export interface AgentSurfaceDeps {
+  /** ADR-0197: the CEO agent's session control, registered on the CEO's own session's server and no other. */
+  ceo?: HubCeo
   access?: AgentAccessDoor
   /** A session's nudges from the sweep of abandoned work, taken by the answer that carries them (0.3.13 wave 2, SW-4;
    *  `abandonedSweepRun.ts#createAbandonedSweep`). Absent: no answer carries nudges. */
@@ -2002,6 +2006,12 @@ export class AgentSurface {
       }
     })
     registerBoardTools(server, ownBoard, () => this.boardCaller(scope, runnerOfScope()))
+
+    // #region ceo-surface — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#the-session-control-tools
+    // ADR-0197 §3: the CEO's session control is on the CEO's own console's server alone; no other session sees the tools.
+    const ceoOps = this.deps.ceo?.isCeo(scope.sessionId) ? this.deps.ceo.operations() : null
+    if (ceoOps) registerCeoTools(server, ceoOps)
+    // #endregion ceo-surface
 
     return server
   }

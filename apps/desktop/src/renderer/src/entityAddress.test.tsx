@@ -150,11 +150,13 @@ const searchFor = async (text: string): Promise<void> => {
   await waitFor(() => expect(document.querySelector('.fab-top')).toBeTruthy())
   // The shell's ⌘K listener is attached by an effect that may run after the top bar is on screen (a slow runner,
   // 2026-10-20): press again until the field is there, and never press while it is open (⌘K toggles search).
+  // The search field, not the home's CEO composer and its file picker (ADR-0197), which the home also shows.
+  const field = (): HTMLInputElement | null => document.querySelector('.search-panel input, input[type=search], input:not([type=file])')
   await waitFor(() => {
-    if (!document.querySelector('input')) fireEvent.keyDown(window, { key: 'k', metaKey: true })
-    expect(document.querySelector('input')).toBeTruthy()
+    if (!field()) fireEvent.keyDown(window, { key: 'k', metaKey: true })
+    expect(field()).toBeTruthy()
   })
-  fireEvent.change(document.querySelector('input') as HTMLInputElement, { target: { value: text } })
+  fireEvent.change(field() as HTMLInputElement, { target: { value: text } })
 }
 
 describe('opening an entity puts the shell AT it, not merely near it', () => {

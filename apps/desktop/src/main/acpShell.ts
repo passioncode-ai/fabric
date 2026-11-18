@@ -36,6 +36,9 @@ export interface AcpSessionSpec {
   mode: 'ask' | 'bypass'
   /** Native mode advertised by session/new and acknowledged by session/set_mode before any prompt. */
   sessionMode?: string
+  /** ADR-0197: models the session must run on, best first; the first `session/set_model` acknowledges is kept, and a
+   *  session that takes none sends no prompt (the CEO's floor is never run below). */
+  sessionModels?: string[]
   /** The project's granted gateway servers, as HTTP MCP servers (they live on the machine's gateway). */
   grants?: Extract<AcpMcpServer, { type: 'http' }>[]
   /**
@@ -499,6 +502,27 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
       return stop(3)
     }
   }
+  // #region acp-session-models — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#the-ceos-models
+  // ADR-0197: a session held to a list of models takes the first the agent acknowledges; none, and no prompt is sent,
+  // so a CEO never runs below its floor (the runner is then passed over and the next one started).
+  if (spec.sessionModels?.length) {
+    let took: string | null = null
+    for (const modelId of spec.sessionModels) {
+      try {
+        const ack = await rpc.request('session/set_model', { sessionId, modelId })
+        if (ack === null || record(ack)) { took = modelId; break }
+      } catch {
+        // This model was refused (an id the agent's provider does not serve): the next one of the list is asked.
+        if (stopping) return stopping
+      }
+    }
+    if (!took) {
+      out('\nFabric: the agent took none of the models this session must run on; no prompt was sent.\n')
+      return stop(3)
+    }
+    out(`\x1b[2mFabric: the session runs on ${took}.\x1b[22m\n`)
+  }
+  // #endregion acp-session-models
   opened = true
   out(`\x1b[2mFabric: connected through ${overHttp ? 'HTTP' : 'the stdio bridge'}${carried.length ? ` with ${carried.length} granted server(s)` : ''}; sending the session brief.\x1b[22m\n`)
 

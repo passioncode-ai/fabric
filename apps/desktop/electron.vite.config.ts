@@ -31,12 +31,20 @@ export const RENDERER_CSP = [
   "form-action 'none'"
 ].join('; ')
 
+/**
+ * The CEO popup's policy (ADR-0197 §4): the renderer's, and the realtime socket to xAI, the one origin outside the app
+ * any Fabric document may reach. Only `ceo.html` carries it, so the main window and the detached ones still reach nothing.
+ */
+export const CEO_CSP = RENDERER_CSP.replace("connect-src 'self'", "connect-src 'self' wss://api.x.ai")
+
 function contentSecurityPolicy() {
   return {
     name: 'fabric-renderer-csp',
     apply: 'build' as const,
-    transformIndexHtml: (html: string) =>
-      html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="${RENDERER_CSP}" />`)
+    transformIndexHtml: (html: string, ctx: { filename?: string; path?: string }) => {
+      const policy = /ceo\.html$/.test(ctx.filename ?? ctx.path ?? '') ? CEO_CSP : RENDERER_CSP
+      return html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="${policy}" />`)
+    }
   }
 }
 
@@ -85,6 +93,15 @@ export default defineConfig({
     }
   },
   renderer: {
-    plugins: [react(), contentSecurityPolicy()]
+    plugins: [react(), contentSecurityPolicy()],
+    // ADR-0197: the CEO popup is the renderer's second document, so its policy is its own.
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(import.meta.dirname, 'src/renderer/index.html'),
+          ceo: resolve(import.meta.dirname, 'src/renderer/ceo.html')
+        }
+      }
+    }
   }
 })
