@@ -30,6 +30,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   CEO's console once a minute while it runs.
 - Help's examples and the Guide's «Поговорить с Fabric» open the CEO's window; the side panel's conversation is no
   longer opened (P-13).
+- **A Hermes console reaches its own session's tools.** Fabric's server now goes to an ACP agent under a name of its
+  own per session (`fabric_` and eight hex digits), as Codex's already did: under the name `fabric`, Hermes kept the
+  `fabric` server of the person's own configuration and talked to the installed Fabric instead of the session that
+  started it.
 
 ## Unreleased
 

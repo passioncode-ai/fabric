@@ -5166,6 +5166,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     },
     get: (id) => ptys.get(id),
     deliver: (id, text) => ptys.deliverWhenReady(id, text),
+    write: (id, data) => ptys.write(id, data),
     stop: (id) => { markPersonEnded(id); return stopRuntime.stop(id, 'operator_stop', { force: false }) },
     unavailable: (error) => error instanceof SpawnFailure || error instanceof RunnerUnavailable,
     record: (op, detail) => ops.record({ op, outcome: /failed/.test(op) ? 'failed' : 'ok', level: /failed|fallback/.test(op) ? 'warn' : 'info', detail, ctx: { correlationId: ops.correlate() } }),

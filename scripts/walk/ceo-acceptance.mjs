@@ -65,7 +65,7 @@ if (cmd === 'launch') {
   const env = { ...stackEnv, FABRIC_NO_KEYCHAIN: '1' }
   if (noClaude) { mkdirSync(path.join(work, 'no-claude-config'), { recursive: true }); env.CLAUDE_CONFIG_DIR = path.join(work, 'no-claude-config') }
   const args = [APP, `--user-data-dir=${userData}`, `--remote-debugging-port=${port}`]
-  if (voice) args.unshift('--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${voice}`)
+  if (voice) args.unshift('--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${voice}`, '--disable-features=AudioServiceOutOfProcess,AudioServiceSandbox')
   const child = spawn(electron, args, { env, stdio: ['ignore', 'pipe', 'pipe'], detached: true })
   const log = path.join(work, noClaude ? 'app-no-claude.log' : 'app.log')
   child.stdout.on('data', (d) => writeFileSync(log, d, { flag: 'a' }))

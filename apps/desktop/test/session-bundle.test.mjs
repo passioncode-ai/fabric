@@ -453,6 +453,11 @@ else {
   if (spec && path.isAbsolute(spec.stdio.command) && spec.stdio.args.some((a) => a.endsWith('mcpStdioBridgeMain.ts')) && bridgeEnv.FABRIC_BRIDGE_AUTHORIZATION === 'Bearer tok-' + sidH && !spec.stdio.args.join(' ').includes('tok-'))
     ok('and the stdio bridge it offers an agent without HTTP MCP takes the bearer from its environment')
   else fail('the bridge entry is wrong: ' + JSON.stringify(spec?.stdio))
+  // ADR-0197 acceptance (h): a fabric server in the person's own Hermes config shadowed this session's surface.
+  const otherSpec = JSON.parse((await bundles.compile(randomUUID(), randomUUID(), null, 'hermes', 'acp-session', null, { acpMode: 'ask' })).env.FABRIC_ACP_SESSION)
+  if (spec && /^fabric_[0-9a-f]{8}$/.test(spec.http.name) && spec.stdio.name === spec.http.name && otherSpec.http.name !== spec.http.name)
+    ok('and the surface goes under a random name per session, so a configured fabric server cannot shadow it')
+  else fail('the ACP surface name can collide with a configured server: ' + JSON.stringify([spec?.http?.name, spec?.stdio?.name, otherSpec.http.name]))
   if (h.env.HERMES_ACP_SKIP_CONFIGURED_MCP === '1') ok('and Hermes skips its own configured MCP servers, as --strict-mcp-config does')
   else fail('HERMES_ACP_SKIP_CONFIGURED_MCP is not set')
   const sidB = randomUUID()

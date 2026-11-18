@@ -138,6 +138,21 @@ export const COMPONENTS: readonly ComponentEntry[] = [
     component: 'Banner',
     classes: ['banner', 'banner-error', 'banner-warn', 'banner-actions', 'banner-remedy', 'banner-why'],
     purpose: 'Something the operator must read before continuing. Absorbs .error-banner, .conflict-banner, .settings-note.'
+  },
+  {
+    component: 'CeoComposer',
+    classes: ['ceo-composer', 'ceo-composer-home', 'ceo-composer-popup', 'ceo-composer-title', 'ceo-composer-hint', 'ceo-composer-text', 'ceo-composer-actions', 'ceo-composer-files'],
+    purpose: 'Where the person writes to the CEO (ADR-0197, SCN-182): the home card and the popup\'s foot, words and attached files.'
+  },
+  {
+    component: 'CeoPopup',
+    classes: ['ceo-popup', 'ceo-popup-head', 'ceo-popup-title', 'ceo-popup-state', 'ceo-popup-runner', 'ceo-popup-head-actions', 'ceo-popup-notes', 'ceo-popup-console', 'ceo-popup-wait', 'ceo-call', 'ceo-call-panel', 'ceo-call-lines', 'ceo-call-say', 'who-person', 'who-tool', 's-running', 's-failed'],
+    purpose: 'The CEO\'s popup window (ADR-0197, SCN-110, SCN-184): its head (state, runner, call, restart), its console, and the voice call\'s panel.'
+  },
+  {
+    component: 'App',
+    classes: ['ceo-floating'],
+    purpose: 'The floating CEO button over every screen of the main window (ADR-0197, SCN-110).'
   }
 ] as const
 

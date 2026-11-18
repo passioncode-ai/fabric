@@ -38,6 +38,10 @@ export interface CeoAgentDeps {
   open(projectId: string, cwd: string, runner: string, route: LaunchRoute, sessionId: string): Promise<TerminalSession>
   get(sessionId: string): TerminalSession | null
   deliver(sessionId: string, text: string): Promise<DeliveryWriteResult>
+  /** Raw input to the console (the Enter a pasted image path swallowed); the tests may leave it out. */
+  write?(sessionId: string, data: string): void
+  /** Wait; the tests pass none and wait nothing. */
+  sleep?(ms: number): Promise<void>
   stop(sessionId: string): Promise<unknown>
   /** ADR-0125 §4: nothing started, the walk may move on. */
   unavailable(error: unknown): boolean
@@ -48,6 +52,10 @@ export interface CeoAgentDeps {
 
 /** What a runner prints when its plan's limit stops it (Claude Code's own words, measured on 2.1.x). */
 export const LIMIT_SAID = /(usage limit reached|hit your (?:usage )?limit|limit reached\s*[·∙•]\s*resets|credit balance is too low|exceeded your (?:current )?quota)/i
+/** What a runner prints when it is not signed in and asks for it (Claude Code's onboarding, measured 2026-11-18 on
+ *  2.1.299 with an empty config: its auth probe may not answer in time under load, so the walk lets it start). A first
+ *  run opens on the theme picker before the login menu: nobody is there to pick, so it reads the same. */
+export const SIGNED_OUT_SAID = /(Select login method|Please run \/login|Invalid API key|not logged in|Choose the text style that looks best)/i
 /** A console that ends this soon after its start did not start: the next runner is tried. */
 export const EARLY_END_MS = 20_000
 /** How long a runner that hit its limit or did not start is left out of the walk. */
@@ -126,6 +134,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
         record: (op, detail) => deps.record(`ceo.${op}`, detail)
       })
       sessionId = session.sessionId
+      heard = ''
       runner = session.optionId
       models = deps.models()
       startedAt = now()
@@ -184,7 +193,17 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     const line = ceoLine(text, paths, deps.locale())
     if (line === null) return { ok: false, reason: 'nothing to send', status: status() }
     lastLine = line
-    const r = await deliverLine(line)
+    const seq = fallbacks
+    let r = await deliverLine(line)
+    // The console was set aside while the message waited (a sign-in screen, a limit): the fallback types it again.
+    if (!r.ok && (pendingFallback || fallbacks !== seq)) { await pendingFallback; r = retyped ? { ok: true } : r }
+    // Measured 2026-11-18 on Claude Code: a pasted image path becomes «[Image #1]» while the paste is read, and the
+    // Enter after it is lost, so the message waits in the box. One more Enter once it has settled sends it; on an empty
+    // prompt Claude Code ignores it.
+    if (r.ok && paths.length && runner === 'claude-code' && sessionId && deps.write) {
+      await (deps.sleep ?? ((ms: number) => new Promise<void>((res) => setTimeout(res, ms))))(1500)
+      try { deps.write(sessionId, '\r') } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.enter-failed', { error: e instanceof Error ? e.message : String(e) }) }
+    }
     return { ...r, status: status() }
   }
 
@@ -200,28 +219,43 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     return ensure()
   }
 
+  /** Whether the last fallback typed the person's last message into the next runner. */
+  let retyped = false
   /** Set a runner aside and start the next one, the person's last message typed again. */
   async function fallBack(why: string): Promise<void> {
     if (!runner) return
     setAside.set(runner, { until: now() + SET_ASIDE_MS, why })
     deps.record('ceo.agent.fallback', { runner, why })
     await restart(why)
-    if (lastLine && state === 'running') await deliverLine(lastLine)
+    retyped = lastLine && state === 'running' ? (await deliverLine(lastLine)).ok : false
   }
 
   let fallingBack = false
-  /** The console's output, as the terminal manager hands it on: a limit sets the runner aside. */
-  function onOutput(id: string, data: string): void {
-    if (id !== sessionId || fallingBack || !LIMIT_SAID.test(data)) return
+  /** A fallback under way, so a message sent meanwhile waits for it instead of reporting the console it lost. */
+  let pendingFallback: Promise<void> | null = null
+  /** How many fallbacks have started: a send compares it before and after its delivery. */
+  let fallbacks = 0
+  const startFallback = (why: string): void => {
+    fallbacks++
     fallingBack = true
-    void fallBack('limit').finally(() => { fallingBack = false })
+    pendingFallback = fallBack(why).finally(() => { fallingBack = false; pendingFallback = null })
+  }
+  /** The console's recent output as words: a TUI places its words with cursor moves (`\x1b[9G`), not spaces, and a
+   *  sentence may arrive in two chunks (measured 2026-11-18 on Claude Code 2.1.299's sign-in screen). */
+  let heard = ''
+  /** The console's output, as the terminal manager hands it on: a limit or a sign-in screen sets the runner aside. */
+  function onOutput(id: string, data: string): void {
+    if (id !== sessionId || fallingBack) return
+    // eslint-disable-next-line no-control-regex
+    heard = (heard + data.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, ' ').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '').replace(/\s+/g, ' ')).slice(-4000)
+    if (LIMIT_SAID.test(heard)) { heard = ''; startFallback('limit') }
+    else if (SIGNED_OUT_SAID.test(heard)) { heard = ''; startFallback('not-connected') }
   }
 
   function onExit(id: string): void {
     if (id !== sessionId) return
     if (now() - startedAt < EARLY_END_MS && !fallingBack) {
-      fallingBack = true
-      void fallBack('ended-at-start').finally(() => { fallingBack = false })
+      startFallback('ended-at-start')
       return
     }
     state = 'ended'

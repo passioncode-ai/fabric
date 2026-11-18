@@ -39,12 +39,15 @@ walk is Fabric's own.
 2. **The fallback is Fabric's, and it is mandatory.** The console walks the CEO's own order, settings `ceoRunners`
    (default: Claude Code, then Hermes on OpenRouter), with ADR-0125's walk: a runner not installed, signed out, not
    answering or that could not be spawned is passed over. Two cases the walk cannot see are caught after the start: a
-   runner that prints its usage limit (`ceoAgent.ts#LIMIT_SAID`) and one that ends within 20 seconds are set aside for an
+   runner that prints its usage limit (`main/ceoAgent.ts#LIMIT_SAID`) and one that ends within 20 seconds are set aside for an
    hour, the next runner starts, and the person's last message is typed again. The popup's head says which runner the CEO
    runs on and why any was passed over or set aside. Kimi Code and Codex are not CEO runners: Fabric cannot hold their
-   model to the floor below. Hermes's ACP session keeps `HERMES_ACP_SKIP_CONFIGURED_MCP` as every Fabric Hermes console
-   does, so a Hermes CEO has Fabric's tools (the CEO's included) but not the person's other MCP servers: recorded as a
-   gap, not hidden.
+   model to the floor below. A Hermes CEO's surface goes under a random name per session (`fabric_` and eight hex
+   digits, `sessionBundle.ts`, as Codex's does): Hermes keys its MCP connections by name and keeps the one already
+   connected, so under the name `fabric` the person's own Hermes `fabric` server (the installed Fabric's `fabric-mcp`)
+   answered instead, and the walked CEO acted on another Fabric (acceptance finding 3). Hermes still loads the person's
+   configured MCP servers beside it, whatever `HERMES_ACP_SKIP_CONFIGURED_MCP` says, so the brief names the other
+   `fabric` server as another Fabric's.
    <a id="the-ceos-models"></a>**The CEO's models** (the operator, 2026-11-18, about 22:10: «модель минимум сонет на
    разговор CEO но лучше OPUS или GPT SOL ... под его оркестрацию если нет кодинг агента активного в нем»; it overrides
    the wiki model map for the CEO alone): one list, settings `ceoModels`, default `anthropic/claude-opus-5.5`,

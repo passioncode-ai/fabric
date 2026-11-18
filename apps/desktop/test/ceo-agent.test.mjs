@@ -111,6 +111,8 @@ function keeper(over = {}) {
     },
     get: (id) => consoles.get(id) ?? null,
     deliver: async (id, text) => { delivered.push([id, text]); return { state: 'written' } },
+    write: (id, data) => delivered.push([id, `raw:${JSON.stringify(data)}`]),
+    sleep: async () => {},
     stop: async (id) => { const s = consoles.get(id); if (s) s.running = false },
     unavailable: (e) => e?.unavailable === true,
     record: (op, d) => log.push([op, d]),
@@ -178,12 +180,13 @@ test('attachments land in the inbox and are named by path; an empty file is refu
   const k = keeper()
   const r = await k.agent.send('что на картинке', [{ name: 'shot.png', data: Buffer.from('png-bytes').toString('base64') }])
   assert.equal(r.ok, true)
+  assert.equal(k.delivered.at(-1)[1], 'raw:"\\r"', 'Claude Code swallows the Enter after a pasted image path: one more is pressed')
   const files = readdirSync(path.join(k.root, 'inbox'))
   assert.equal(files.length, 1)
   assert.match(k.delivered[0][1], new RegExp(`что на картинке\\n\\nВложения: ${path.join(k.root, 'inbox', files[0]).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`))
   const bad = await k.agent.send('x', [{ name: 'empty.png', data: '' }])
   assert.equal(bad.ok, false)
-  assert.equal(k.delivered.length, 1)
+  assert.equal(k.delivered.length, 2)
 })
 
 test('restart stops the console and starts another; a start that fails says why', async () => {
@@ -386,4 +389,39 @@ test('PM chain: a ceo.task request for the CEO is typed into its running console
   assert.equal(await k.agent.nudgeBoard([req('r5')]), true)
   assert.equal(await k.agent.nudgeBoard([req('r5')]), false, 'told once')
   assert.match(k.delivered.at(-1)[1], /com\.claim/)
+})
+
+test('a runner on its first-run theme picker is passed over too', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  // Claude Code 2.1.299 with an empty config, measured 2026-11-18: the theme picker comes before the login menu.
+  k.agent.onOutput(first, '\x1b[2GChoose\x1b[9Gthe text style that looks best with your terminal\r\r\n')
+  await new Promise((r) => setTimeout(r, 5))
+  assert.equal(k.agent.status().runner, 'hermes')
+  assert.equal(k.agent.status().setAside[0].why, 'not-connected')
+})
+
+test('a runner that shows its sign-in screen is passed over, and a message sent meanwhile reaches the next one', async () => {
+  const k = keeper()
+  // The message is waiting for the console when Claude Code prints its login menu (a probe that did not answer in time).
+  let release
+  k.deps.deliver = async (id, text) => {
+    if (k.consoles.get(id)?.optionId === 'claude-code') { await new Promise((r) => { release = r }); return { state: 'failed_before_write', reason: 'session_closed' } }
+    k.delivered.push([id, text]); return { state: 'written' }
+  }
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  const sent = k.agent.send('2+3?', [])
+  await new Promise((r) => setTimeout(r, 5))
+  // As Claude Code 2.1.299 draws it: words placed by cursor moves, the sentence cut across two chunks.
+  k.agent.onOutput(first, '\x1b[2GSelect\x1b[9Glo')
+  k.agent.onOutput(first, 'gin\x1b[15Gmethod:\r\r\n')
+  await new Promise((r) => setTimeout(r, 5))
+  release()
+  const r = await sent
+  assert.equal(r.ok, true, 'the fallback typed it into Hermes')
+  assert.equal(k.agent.status().runner, 'hermes')
+  assert.equal(k.agent.status().setAside[0].why, 'not-connected')
+  assert.deepEqual(k.delivered.at(-1), [k.agent.sessionId(), '2+3?'])
 })

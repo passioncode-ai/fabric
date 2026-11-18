@@ -344,10 +344,15 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             const authorization = `Bearer ${scope.token}`
             const bridgeBase = Object.entries(bridge.env).map(([name, value]) => ({ name, value }))
             const granted = plan.grant.filter((g) => g.name !== 'fabric')
+            // ADR-0197, acceptance (h): the surface goes under a RANDOM name per session, as Codex's does. Hermes keys
+            // its MCP connections by name and keeps an already-connected one, so a `fabric` server in the person's own
+            // Hermes config (the installed Fabric's fabric-mcp) answered in place of this session's surface: the CEO
+            // on Hermes lost its tools and its acts landed in another Fabric (measured 2026-11-18).
+            const surfaceName = `fabric_${randomBytes(4).toString('hex')}`
             const spec = {
-              http: { type: 'http', name: 'fabric', url: deps.surface.endpoint, headers: [{ name: 'Authorization', value: authorization }] },
+              http: { type: 'http', name: surfaceName, url: deps.surface.endpoint, headers: [{ name: 'Authorization', value: authorization }] },
               stdio: {
-                name: 'fabric',
+                name: surfaceName,
                 command: bridge.program,
                 args: bridge.args,
                 env: [
