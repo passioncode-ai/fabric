@@ -120,12 +120,19 @@ for (const approvedRemote of ['/tmp/repo', 'file:///tmp/r', 'ext::anything', 'ss
 })
 test('timeout keeps the outstanding slot; repeated calls do not accumulate I/O; late settling permits a fresh read', async () => {
   install(); let settle, count = 0, first = true
-  // 4 s: the first read hangs and must time out, but the fresh read after it runs a real git under the same deadline,
-  // and at load 300 that git outlasted 1.5 s (2026-10-17).
+  // The fresh read must not race a real git against the deadline: at load 300 a git outlasted 1.5 s (2026-10-17) and at
+  // load 35 one outlasted 4 s (2026-11-18, ci-fast-i1b-11 and -12). So a warm-up read records the real git answers
+  // first, and the fresh read after the timeout replays them: it still performs Git I/O through the transport (count),
+  // under the same short deadline, without depending on the machine's load.
+  const recorded = new Map()
+  assert.equal((await reader({}, { git: async (args, opts) => {
+    const out = await git(args, opts); recorded.set(JSON.stringify(args), out); return out
+  } }).read()).status, 'observed')
   const r = reader({ timeoutMs: 4000 }, { git: async (args, opts) => {
     count++
     if (first) { first = false; return new Promise(resolve => { settle = resolve }) }
-    return git(args, opts)
+    const key = JSON.stringify(args)
+    return recorded.has(key) ? recorded.get(key) : git(args, opts)
   } })
   assert.equal((await r.read()).reason, 'timeout')
   for (let i = 0; i < 50; i++) assert.equal((await r.read()).reason, 'prior_io_unresolved')
