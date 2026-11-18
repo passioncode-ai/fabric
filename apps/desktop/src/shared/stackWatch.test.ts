@@ -8,7 +8,10 @@ import { en } from '../renderer/src/i18n/en.ts'
 import { ru } from '../renderer/src/i18n/ru.ts'
 import { translator as typedTranslator } from '../renderer/src/i18n/translate.ts'
 import {
+  CRITICAL_DISK_BYTES,
   DISK_RECOVERED_BYTES,
+  diskHoldsRecovery,
+  diskStopDue,
   STACK_DOWN_AFTER,
   STACK_DOWN_AFTER_SLOW,
   STACK_READ_DEADLINE_MS,
@@ -403,3 +406,29 @@ describe('when Docker is away, the person is told to start it, per OS (review it
   }
 })
 // #endregion stack-watch
+
+// CO-594: on 2026-11-17 the disk reached zero while the database wrote, and the Docker VM's file system broke.
+describe('CO-594: the stack and a disk near full', () => {
+  const at = (free: number | null, stack: 'up' | 'down', recovers = true) =>
+    ({ ...initialStackWatch(0, { recovers }), stack, freeDiskBytes: free })
+  it('stops an owned stack that is up under the floor, once', () => {
+    expect(diskStopDue(at(CRITICAL_DISK_BYTES - 1, 'up'), false)).toBe(true)
+    expect(diskStopDue(at(CRITICAL_DISK_BYTES - 1, 'up'), true)).toBe(false)
+    expect(diskStopDue(at(CRITICAL_DISK_BYTES, 'up'), false)).toBe(false)
+    expect(diskStopDue(at(CRITICAL_DISK_BYTES - 1, 'up', false), false)).toBe(false)
+    expect(diskStopDue(at(null, 'up'), false)).toBe(false)
+    expect(diskStopDue(at(CRITICAL_DISK_BYTES - 1, 'down'), false)).toBe(false)
+  })
+  it('holds a try under the floor, and after a stop for the disk until the recovered mark', () => {
+    expect(diskHoldsRecovery(at(CRITICAL_DISK_BYTES - 1, 'down'), false)).toBe(true)
+    expect(diskHoldsRecovery(at(CRITICAL_DISK_BYTES + 1, 'down'), false)).toBe(false)
+    expect(diskHoldsRecovery(at(DISK_RECOVERED_BYTES - 1, 'down'), true)).toBe(true)
+    expect(diskHoldsRecovery(at(DISK_RECOVERED_BYTES + 1, 'down'), true)).toBe(false)
+    expect(diskHoldsRecovery(at(null, 'down'), true)).toBe(false)
+  })
+  it('tells agents the database waits for space', () => {
+    const r = hubRefusalFor({ ...at(5e8, 'down'), hold: 'disk' }, 0)
+    expect(r?.code).toBe('stack-unavailable')
+    expect(r?.reason).toMatch(/almost full/)
+  })
+})

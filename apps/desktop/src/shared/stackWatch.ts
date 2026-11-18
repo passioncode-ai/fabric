@@ -98,7 +98,27 @@ export interface StackReading {
  *  - `running`: the containers run but the database does not answer; a `supabase start` would only say «already
  *    running», so Fabric waits for the database (Docker's restart policy, or the database finishing its recovery).
  */
-export type StackHold = 'external' | 'stopped' | 'running'
+export type StackHold = 'external' | 'stopped' | 'running' | 'disk'
+
+/** CO-594: under this much free space on the data folder's disk Fabric neither starts its stack nor keeps its own
+ *  database writing. On 2026-11-17 the disk reached zero while the database wrote; the Docker VM's file system took I/O
+ *  errors and needed `e2fsck` by hand. A database stopped in time keeps its data whole. */
+export const CRITICAL_DISK_BYTES = 1e9
+
+/** CO-594: a due try waits for the disk: under the critical floor, and after Fabric stopped its stack for the disk until
+ *  the disk is back above the recovered mark, so a disk at the floor does not stop, start and stop the stack again.
+ *  An unread disk holds nothing. */
+export function diskHoldsRecovery(state: StackWatchState, stoppedForDisk: boolean): boolean {
+  const free = state.freeDiskBytes
+  if (free === null) return false
+  return free < (stoppedForDisk ? DISK_RECOVERED_BYTES : CRITICAL_DISK_BYTES)
+}
+
+/** CO-594: the stack is up on a disk under the critical floor, and Fabric owns it: its database is stopped (its data kept)
+ *  before the disk runs out. Once per crossing: a stop already made is not made again. */
+export function diskStopDue(state: StackWatchState, stoppedForDisk: boolean): boolean {
+  return state.stack === 'up' && state.recovers && !stoppedForDisk && state.freeDiskBytes !== null && state.freeDiskBytes < CRITICAL_DISK_BYTES
+}
 
 /** What Docker says of the stack's database container: `stopped` exists and is not running (exited, created, dead),
  *  `absent` does not exist, `unknown` could not be asked (Docker away, no CLI). */
@@ -251,6 +271,7 @@ export function hubRefusalFor(state: StackWatchState, now: number): StackRefusal
   if (state.hold === 'external') return say("Fabric's database is not answering; Fabric does not run this database, so it waits for it to come back.", retryAfterSeconds(STACK_WATCH_MS))
   if (state.hold === 'stopped') return say("Fabric's local database was stopped on this computer (its containers are gone); Fabric does not start it again by itself.", retryAfterSeconds(2 * STACK_WATCH_MS))
   if (state.hold === 'running') return say("Fabric's database is not answering, though its containers are running; Fabric waits for it to answer.", retryAfterSeconds(STACK_WATCH_MS))
+  if (state.hold === 'disk') return say("Fabric's database is stopped because this computer's disk is almost full; Fabric starts it again once space is freed.", retryAfterSeconds(2 * STACK_WATCH_MS))
   if (state.trying) return say(`Fabric's ${what} is not answering; Fabric is trying to bring it back now.`, retryAfterSeconds(STACK_WATCH_MS))
   const wait = state.nextRecoveryAt === null ? STACK_WATCH_MS : state.nextRecoveryAt - now
   return say(`Fabric's ${what} is not answering; Fabric is bringing it back.`, retryAfterSeconds(wait))

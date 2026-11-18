@@ -1094,6 +1094,7 @@ export const en = {
   'stack.health.database': "The local database stopped answering. Fabric is bringing it back, and agents are asked to wait.",
   'stack.health.external': "The database Fabric was given (SUPABASE_URL) stopped answering. Fabric does not run it, so it waits for it to come back, and agents are asked to wait.",
   'stack.health.stopped': "The local database was stopped: its containers are gone, as after supabase stop. Fabric does not start it again by itself. Start it, or choose “Restart Fabric” in the menu; agents are asked to wait.",
+  'stack.health.diskHold': "Fabric stopped its local database because this disk is almost full, so the full disk cannot damage it; its data is kept. Free some space: Fabric starts it again once more than 3.5 GB are free. Agents are asked to wait.",
   'stack.health.waitingContainers': "The local database stopped answering, though its containers are running. Fabric waits for it to answer, and agents are asked to wait.",
   'stack.health.nextTry': "Next try in {seconds} s.",
   'stack.health.nextTryAt': "Next try at {time}.",

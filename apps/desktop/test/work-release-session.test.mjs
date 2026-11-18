@@ -307,6 +307,6 @@ test('PL-1 run two: every person\'s end of a session is marked before it acts', 
   const grants = src.split(/revokeGrant\((?:String\(grantId\), OPERATOR_ACTOR|id, actor, relayed)\)/)
   assert.equal(grants.length - 1, 2, 'two person grant revocations')
   for (const before of grants.slice(0, -1)) assert.match(before.slice(-200), /markGrantPersonEnded\(/)
-  assert.match(src, /enrolledForMarks = enrolled\n\s*access\.onBindingRevoked\(\(bindingId\) => \{ enrolled\.endForBinding\(bindingId\) \}\)/)
-  assert.match(src, /const byPerson = personEndedSessions\.delete\(sessionId\) \? OPERATOR_ACTOR : undefined/)
+  assert.match(src, /boardState\.personEnded\.attach\(enrolled\)\n\s*access\.onBindingRevoked\(\(bindingId\) => \{ enrolled\.endForBinding\(bindingId\) \}\)/)
+  assert.match(src, /const byPerson = boardState\.personEnded\.take\(sessionId\) \? OPERATOR_ACTOR : undefined/)
 })

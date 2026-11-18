@@ -82,9 +82,13 @@ sys.exit(2)
 
 const slot = { project: 'fabric', env: 'local', name: 'FABRIC_INBOX_CLIENT_SECRET' }
 
+// The fake engine is a Python process per call: on a loaded machine (load 167, 2026-11-17, task 3000db44) a lookup and a
+// run took past the vault's own 5 and 7 s, which read as a refusal. Tests that measure no deadline give it room.
+const LOADED_MS = 60_000
+
 test('vault: put sends the value on stdin only; a second put rotates; read brings it back through a pipe, never an argv', async () => {
   const o = fakeObservatory()
-  const vault = createObservatoryVault({ launcher: o.launcher, env: o.env })
+  const vault = createObservatoryVault({ launcher: o.launcher, env: o.env, timeoutMs: LOADED_MS })
   assert.deepEqual(await vault.put(slot, SECRET), { ok: true })
   assert.equal(readFileSync(path.join(o.store, 'fabric/local/FABRIC_INBOX_CLIENT_SECRET'), 'utf8'), SECRET)
   assert.deepEqual(await vault.put(slot, SECRET + 'x'), { ok: true })
@@ -97,7 +101,7 @@ test('vault: put sends the value on stdin only; a second put rotates; read bring
 
 test('vault: a value that resolves outside the vault is refused, and so is a missing one', async () => {
   const o = fakeObservatory()
-  const vault = createObservatoryVault({ launcher: o.launcher, env: o.env })
+  const vault = createObservatoryVault({ launcher: o.launcher, env: o.env, timeoutMs: LOADED_MS })
   const missing = await vault.read(slot)
   assert.equal(missing.ok, false)
   assert.match(missing.reason, /not in the vault/)
@@ -135,7 +139,7 @@ test('connect: the link is exactly what Fabric Inbox parses, and the state is si
   const o = fakeObservatory()
   const store = recordingStore()
   let origin = ''
-  const connector = new ProductConnector({ estateId: ESTATE_A, store, vault: createObservatoryVault({ launcher: o.launcher, env: o.env }), origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
+  const connector = new ProductConnector({ estateId: ESTATE_A, store, vault: createObservatoryVault({ launcher: o.launcher, env: o.env, timeoutMs: LOADED_MS }), origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
   const surface = await hubWith(connector)
   origin = surface.origin
   assert.equal((await connector.begin(FABRIC_INBOX)).ok, true)
@@ -988,7 +992,7 @@ test('vault: six slow reads at once leave an unrelated file read fast (no FIFO o
   const { readFile } = await import('node:fs/promises')
   const o = fakeObservatory()
   const vault = createObservatoryVault({ launcher: o.launcher, env: { ...o.env, FAKE_RUN_SLEEP: '1.5' } })
-  assert.deepEqual(await createObservatoryVault({ launcher: o.launcher, env: o.env }).put(slot, SECRET), { ok: true })
+  assert.deepEqual(await createObservatoryVault({ launcher: o.launcher, env: o.env, timeoutMs: LOADED_MS }).put(slot, SECRET), { ok: true })
   const reads = Array.from({ length: 6 }, () => vault.read(slot))
   await new Promise((r) => setTimeout(r, 900)) // every read has started and its engine is sleeping
   const t0 = Date.now()
@@ -1001,17 +1005,17 @@ test('vault: six slow reads at once leave an unrelated file read fast (no FIFO o
 
 test('vault: a run that exits 0 without handing the key over is a refusal, not a call that never ends', async () => {
   const o = fakeObservatory()
-  assert.deepEqual(await createObservatoryVault({ launcher: o.launcher, env: o.env }).put(slot, SECRET), { ok: true })
-  const vault = createObservatoryVault({ launcher: o.launcher, env: { ...o.env, FAKE_RUN_NOWRITE: '1' } })
-  const r = await Promise.race([vault.read(slot), new Promise((resolve) => setTimeout(() => resolve('still pending after 5 s'), 5000))])
-  assert.notEqual(r, 'still pending after 5 s', 'the read never ended')
+  assert.deepEqual(await createObservatoryVault({ launcher: o.launcher, env: o.env, timeoutMs: LOADED_MS }).put(slot, SECRET), { ok: true })
+  const vault = createObservatoryVault({ launcher: o.launcher, env: { ...o.env, FAKE_RUN_NOWRITE: '1' }, timeoutMs: LOADED_MS })
+  const r = await Promise.race([vault.read(slot), new Promise((resolve) => setTimeout(() => resolve('still pending after 30 s'), 30_000))])
+  assert.notEqual(r, 'still pending after 30 s', 'the read never ended')
   assert.equal(r.ok, false)
   assert.match(r.reason, /handed nothing over/)
 })
 
 test('vault: the read asks the vault only — `run` carries --vault-only', async () => {
   const o = fakeObservatory()
-  const vault = createObservatoryVault({ launcher: o.launcher, env: o.env })
+  const vault = createObservatoryVault({ launcher: o.launcher, env: o.env, timeoutMs: LOADED_MS })
   await vault.put(slot, SECRET)
   await vault.read(slot)
   const runs = readFileSync(o.log, 'utf8').trim().split('\n').map((l) => JSON.parse(l)).filter((a) => a[0].endsWith('use_secret.py') && a[1] === 'run')

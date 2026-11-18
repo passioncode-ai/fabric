@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { PulseScreen } from './PulseScreen'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
@@ -61,15 +61,18 @@ describe('the pulse (SCR-42)', () => {
     const rhythm = { days, totals: { results: 4, decisions: 2, events: 58 }, today: { results: 3, decisions: 2, events: 41 }, marksCapped: false, timeZone: 'Europe/Warsaw', readAt: '2026-09-29T12:00:00Z' }
     const full = Array.from({ length: FEED_WINDOW }, (_, i) => ev(i + 1, i === 0 ? '2026-09-28T10:00:00' : '2026-09-29T10:00:00', 'task.created@1'))
     const { api } = mount({ feed: full, rhythm })
-    await waitFor(() => expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', shortDay('2026-09-29')).replace('{count}', '41') })).toBeTruthy())
-    expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', shortDay('2026-09-20')).replace('{count}', '17') })).toBeTruthy()
-    expect(screen.getByRole('button', { name: en['launch.pulse.dayUnknown'].replace('{date}', shortDay('2026-09-21')) }), 'a day the journal could not read is unknown').toBeTruthy()
+    // The day bars are read within the rhythm panel: a query by role and name over the whole screen computes a name for
+    // each of the feed's 500 rows, and under a loaded machine that alone ran past the 30 s limit (task 1536f13b).
+    const bars = () => within(document.querySelector('.fp-activity') as HTMLElement)
+    await waitFor(() => expect(bars().getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', shortDay('2026-09-29')).replace('{count}', '41') })).toBeTruthy())
+    expect(bars().getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', shortDay('2026-09-20')).replace('{count}', '17') })).toBeTruthy()
+    expect(bars().getByRole('button', { name: en['launch.pulse.dayUnknown'].replace('{date}', shortDay('2026-09-21')) }), 'a day the journal could not read is unknown').toBeTruthy()
     fireEvent.change(screen.getByLabelText(en['launch.pulse.dayLabel']), { target: { value: '2026-09-20' } })
     expect(screen.getByText(en['launch.pulse.countOnly'])).toBeTruthy()
     expect(document.querySelector('.fp-formula p')?.textContent).toContain('2 decisions and 4 results')
     cleanup()
     const one = mount({ feed: full, rhythm, projectId: 'p1' })
-    expect(screen.getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', shortDay('2026-09-29')).replace('{count}', String(FEED_WINDOW - 1)) })).toBeTruthy()
+    expect(bars().getByRole('button', { name: en['launch.pulse.dayCount'].replace('{date}', shortDay('2026-09-29')).replace('{count}', String(FEED_WINDOW - 1)) })).toBeTruthy()
     expect(one.api.work?.rhythm, 'one project does not read the estate\'s counts').not.toHaveBeenCalled()
     expect(api.work?.rhythm).toHaveBeenCalled()
   })

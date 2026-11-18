@@ -17,7 +17,7 @@ import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitR
 import { createHash, randomUUID } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { dockerRuntimeFor } from './dockerLaunch'
-import { fixPath, halfUpDeps, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStartingStack } from './env'
+import { fixPath, halfUpDeps, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStackKeepingData, stopStartingStack } from './env'
 import { resolveHealingHalfUp } from './stackHalfUp.ts'
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { createSharedReading } from '../shared/sharedReading'
@@ -6255,6 +6255,8 @@ function startStackWatch(): void {
     // One `supabase start` per try, and none when Docker says the containers are gone (a deliberate stop) or running
     // (a database still coming up): 0.3.9 review ER-3.
     recover: local ? () => recoverStack() : null,
+    // CO-594: under 1 GB free the stack is stopped keeping its data, before a full disk breaks the Docker VM's file system.
+    stopForDisk: local ? () => stopStackKeepingData() : null,
     containers: local ? () => stackDatabaseContainer() : null,
     runtime: local ? dockerRuntime : null,
     onChange: (view, refusal) => {

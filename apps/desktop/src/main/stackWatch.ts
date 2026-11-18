@@ -12,7 +12,9 @@
  *     a try first asks Docker for the stack's containers (`containers`): gone is a stop someone made, which Fabric
  *     respects, and running is a database still coming up, which a start cannot help (review ER-3);
  *   - a low disk (under 3 GB) is recorded once per crossing and goes with the stack's state to the window, naming the
- *     disk as the likely cause when the stack is down.
+ *     disk as the likely cause when the stack is down;
+ *   - CO-594: under the critical floor (1 GB) Fabric stops its own stack keeping its data (`stopForDisk`), once per
+ *     crossing, and makes no try to start it until the disk is back above 3.5 GB (`diskHoldsRecovery`).
  *
  * Electron-free: every reading and action is passed in, so the probe drives it with a clock and a fake stack.
  */
@@ -20,6 +22,8 @@ import { ops } from './opsSink.ts'
 import { freeDiskGb } from '../shared/startupFailure.ts'
 import {
   STACK_READ_DEADLINE_MS,
+  diskHoldsRecovery,
+  diskStopDue,
   hubRefusalFor,
   initialStackWatch,
   observeStack,
@@ -47,6 +51,8 @@ export interface StackWatchDeps {
   freeDisk: () => number | null
   /** Bring the stack back (the launch's start path, once, bounded); null when Fabric does not own the stack. */
   recover: (() => Promise<'started' | 'already-running' | void>) | null
+  /** CO-594: stop the stack keeping its data (`env.ts#stopStackKeepingData`); null when Fabric does not own the stack. */
+  stopForDisk?: (() => Promise<void>) | null
   /** What Docker says of the stack's database container (ER-3); absent, every due try starts the stack. */
   containers?: (() => Promise<StackContainers>) | null
   /** The database read's deadline; the probe shortens it. */
@@ -129,6 +135,35 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
   let recovering: Promise<void> | null = null
   /** The hold last recorded, so a hold is recorded once per change, not once per re-check. */
   let heldRecorded: StackHold | null = null
+  /** CO-594: Fabric stopped its stack for the disk and has not started it since: no second stop, and no try until the
+   *  disk is back above the recovered mark. A try that ran clears it. */
+  let stoppedForDisk = false
+
+  const stopForDisk = (): void => {
+    if (!deps.stopForDisk) return
+    stoppedForDisk = true
+    const free = state.freeDiskBytes
+    const begun = now()
+    void deps.stopForDisk()
+      .then(() => ops.record({ op: 'stack.disk-stop', outcome: 'ok', level: 'error', ms: now() - begun,
+        detail: { free_disk_gb: free === null ? null : freeDiskGb(free), note: 'under 1 GB free: Fabric stopped its database keeping its data, so a full disk cannot break it; it starts again above 3.5 GB' },
+        ctx: { correlationId: ops.correlate() } }))
+      .catch((e) => ops.record({ op: 'stack.disk-stop', outcome: 'failed', level: 'error', ms: now() - begun,
+        detail: { free_disk_gb: free === null ? null : freeDiskGb(free), why: (e instanceof Error ? e.message : String(e)).split('\n').slice(-2).join(' ').slice(0, 300) },
+        ctx: { correlationId: ops.correlate() } }))
+  }
+
+  /** CO-594: a due try held for the disk, recorded once per change as the other holds are. */
+  const holdForDisk = (t: number): void => {
+    state = recoveryEnded(recoveryBegun(state, t), t, { held: 'disk' })
+    if (heldRecorded !== 'disk') {
+      heldRecorded = 'disk'
+      ops.record({ op: 'stack.recover.held', outcome: 'ok', level: 'warn',
+        detail: { hold: 'disk', free_disk_gb: state.freeDiskBytes === null ? null : freeDiskGb(state.freeDiskBytes), stopped_for_disk: stoppedForDisk,
+          note: 'the disk is almost full: Fabric starts its database again once space is freed' },
+        ctx: { correlationId: ops.correlate() } })
+    }
+  }
 
   const view = (): StackHealthView => stackHealthView(state, now(), platform, deps.runtime?.() ?? null)
   const publish = (): void => deps.onChange(view(), hubRefusalFor(state, now()))
@@ -207,6 +242,8 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
       const because = containers === 'stopped' ? 'the stack\'s containers exist and are not running'
         : containers === 'partial' ? 'the database container runs while rest or kong does not (CO-374)'
           : 'Docker could not say whether the stack\'s containers run'
+      // CO-594: a start runs, so the stop made for the disk is over whatever this try's outcome.
+      stoppedForDisk = false
       try {
         const result = await deps.recover!()
         ops.record({ op: 'stack.recover', outcome: 'ok', level: 'warn', ms: now() - begun, detail: { attempt, down, containers, because, result: result ?? 'started' }, ctx: { correlationId: ops.correlate() } })
@@ -252,7 +289,11 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
       state = observed.state
       for (const e of observed.events) recordEvent(e)
       if (state.stack === 'up') heldRecorded = null
-      if (!stopped && recoveryDue(state, t)) tryRecover()
+      if (!stopped && diskStopDue(state, stoppedForDisk) && deps.stopForDisk) stopForDisk()
+      if (!stopped && recoveryDue(state, t)) {
+        if (diskHoldsRecovery(state, stoppedForDisk)) holdForDisk(t)
+        else tryRecover()
+      }
       if (observed.events.length > 0 || state.stack === 'down') publish()
     } catch (e) {
       ops.failed('stack.watch.tick', e)

@@ -122,7 +122,8 @@ export function createObservatoryVault(opts: {
     if (platform === 'win32') return { ok: false, reason: WINDOWS }
     const launcher = opts.launcher ?? 'project-observatory'
     const found = await new Promise<{ path: string | null; reason?: string }>((resolve) =>
-      execFile(launcher, ['full-path'], { env, timeout: 5000 }, (e, stdout) => {
+      // A caller that names its own deadline (a test on a loaded machine) gives it to this lookup too; by default 5 s.
+      execFile(launcher, ['full-path'], { env, timeout: opts.timeoutMs ?? 5000 }, (e, stdout) => {
         if (e) {
           const code = (e as NodeJS.ErrnoException).code
           resolve({ path: null, reason: code === 'ENOENT' ? 'Project Observatory is not installed: `project-observatory` was not found on PATH' : `\`project-observatory full-path\` failed: ${said(String((e as Error).message))}` })

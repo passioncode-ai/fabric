@@ -11,6 +11,10 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 **Upgrading.** No schema step from 0.3.22 (schema 102, no migration).
 
+- **A disk near full no longer breaks the board's database** (CO-594). On 2026-11-17 the disk reached zero while the
+  database wrote, and the Docker VM's file system broke until it was repaired by hand. Under 1 GB free Fabric now stops
+  its own local database keeping its data, says so on every screen, and starts it again once more than 3.5 GB are free;
+  agents are told the database waits for space. An external stack is never stopped.
 - **The hub's reads of the window's process are four named ports** (ADR-0195 wave W1, board task `0647986c`). The
   terminals, the sweep's nudges, the settings and the machine's agents the hub reads are `main/hubPorts.ts`'s
   interfaces with one implementation; no agent sees a different answer. The next wave runs the hub apart from the

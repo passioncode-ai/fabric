@@ -18,16 +18,17 @@ const { createOps } = await import(path.join(SRC, 'ops.ts'))
 const { useOps } = await import(path.join(SRC, 'opsSink.ts'))
 const { createStackWatch } = await import(path.join(SRC, 'stackWatch.ts'))
 
-function rig({ external = false, containers = null, readDeadlineMs } = {}) {
+function rig({ external = false, containers = null, readDeadlineMs, diskStop = false } = {}) {
   const ops = createOps({ dir: mkdtempSync(path.join(tmpdir(), 'fabric-stack-watch-')) })
   useOps(ops)
-  const world = { database: true, docker: true, free: 50e9, t: 1_000_000, recovers: 0, recovering: null, changes: [], containers }
+  const world = { database: true, docker: true, free: 50e9, t: 1_000_000, recovers: 0, recovering: null, changes: [], containers, diskStops: 0 }
   const watch = createStackWatch({
     readDatabase: async () => (world.database === 'hang' ? new Promise(() => {}) : world.database),
     ...(containers ? { containers: async () => world.containers } : {}),
     ...(readDeadlineMs ? { readDeadlineMs } : {}),
     pingDocker: external ? null : async () => world.docker,
     freeDisk: () => world.free,
+    ...(diskStop ? { stopForDisk: async () => { world.diskStops++; world.database = false } } : {}),
     recover: external ? null : async () => {
       world.recovers++
       if (world.recovering) await world.recovering
@@ -375,7 +376,6 @@ test('ER-1 (i3): a try whose Docker question is in flight when stop comes launch
   assert.equal(world.recovers, 0, 'the try launched supabase start after stop')
   assert.equal(watch.view().trying, false, 'the try ended')
 })
-// #endregion stack-watch
 
 // CO-374: the database runs and rest or kong is gone, so the read fails: that is not a database coming up, a try starts.
 test('CO-374: a partial stack (the database up, rest or kong gone) is started, with why', async () => {
@@ -388,3 +388,44 @@ test('CO-374: a partial stack (the database up, rest or kong gone) is started, w
   assert.equal(tried[0].detail.containers, 'partial')
   assert.match(tried[0].detail.because, /rest or kong/)
 })
+
+// CO-594: on 2026-11-17 the disk reached zero while the database wrote, and the Docker VM's file system broke.
+test('CO-594: under 1 GB the watch stops its own stack once, keeping its data, and starts it only above 3.5 GB', async () => {
+  const { tick, records, world, watch } = rig({ diskStop: true })
+  world.free = 0.8e9
+  await tick()
+  await tick()
+  assert.equal(world.diskStops, 1, 'one stop per crossing, never a second while it holds')
+  assert.equal(records('stack.disk-stop').length, 1)
+  for (let i = 0; i < 6; i++) await tick(120_000)
+  assert.equal(world.recovers, 0, 'no start while the disk is under the floor')
+  assert.equal(records('stack.recover.held').filter((r) => r.detail.hold === 'disk').length, 1, 'the hold is recorded once')
+  assert.equal(watch.view().hold, 'disk')
+  assert.match(watch.refusal().reason, /disk is almost full/)
+  world.free = 2e9
+  for (let i = 0; i < 3; i++) await tick(120_000)
+  assert.equal(world.recovers, 0, 'above the floor but under 3.5 GB after a stop for the disk: still held')
+  world.free = 4e9
+  await tick(120_000)
+  assert.equal(world.recovers, 1, 'back above 3.5 GB: the stack is started again')
+})
+
+test('CO-594: a stack that went down by itself on a near-full disk is not started under the floor, and is at 1 GB', async () => {
+  const { tick, world } = rig()
+  world.free = 0.5e9
+  world.database = false
+  world.docker = false
+  for (let i = 0; i < 5; i++) await tick(120_000)
+  assert.equal(world.recovers, 0)
+  world.free = 1.5e9
+  await tick(120_000)
+  assert.equal(world.recovers, 1, 'no stop was made for the disk, so the floor alone holds')
+})
+
+test('CO-594: an external stack is never stopped for the disk', async () => {
+  const { tick, world } = rig({ external: true, diskStop: true })
+  world.free = 0.2e9
+  for (let i = 0; i < 3; i++) await tick()
+  assert.equal(world.diskStops, 0)
+})
+// #endregion stack-watch

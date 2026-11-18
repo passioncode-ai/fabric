@@ -371,11 +371,12 @@ const USAGE = {
   // working-tree edit and a stopped watcher that still speaks — both false, and
   // both of them looked like real findings for a minute.
   // Drained until QUIET, not for a fixed time: a settle that ends with no new
-  // echo is the proof the loop's events are spent (at most 10 rounds, ~6 s).
-  for (let round = 0; round < 10; round++) {
+  // echo is the proof the loop's events are spent. Two quiet rounds in a row, at most 20 (~12 s): at load 167 on
+  // 2026-11-17 one quiet 600 ms window was followed by a late echo, and both negative checks below read it.
+  for (let round = 0, quiet = 0; round < 20 && quiet < 2; round++) {
     const echoes = seen.length
     await settle()
-    if (seen.length === echoes) break
+    quiet = seen.length === echoes ? quiet + 1 : 0
   }
   seen.length = 0
 

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-17 · `—` · fix/stack-disk-floor → main · fast-forward
+- files: `apps/desktop/src/shared/stackWatch.ts`, `src/main/stackWatch.ts`, `src/main/index.ts` (`stopForDisk`), `StackHealthNotice.tsx` and both locales, tests, SCN amendment, `AGENTS.md`, CHANGELOG, CO-594's row; the mockup receipts re-pinned after W2a.2's register count (SRC-02 on `docs/evidence/backlog.md`, which `0d81cc39` changed without them) and the reports rebuilt; CO-591 to CO-595 named in the general plan's lane 12; `PulseScreen.test.tsx` CO-474 reads the day bars within the rhythm panel (it ran past the 30 s limit twice under load 167, task 1536f13b); `work-release-session.test.mjs` PL-1 pins W2a.2's `boardState.personEnded` wiring (it still read the module variables `0d81cc39` removed, unseen while vitest failed first); `repo-quota.test.mjs` drains the watcher's echoes until two quiet rounds in a row (a late fsevents echo at load 167 failed both negative checks); `hub-products.test.mjs` gives the vault tests on the fake engine a 60 s deadline (`LOADED_MS`) and `observatoryVault.ts` lets an explicit `timeoutMs` reach the engine lookup too, 5 s by default as before (task 3000db44)
+- conflicts: none
+- summary: CO-594, the stack stops keeping its data under 1 GB free and starts again above 3.5 GB
+
 ### 2026-11-17 · `—` · feat/board-w2a2-state → main · fast-forward
 - files: `apps/desktop/src/main/boardState.ts` (new), `index.ts` (its module state through it), `test/board-state.test.mjs`, CHANGELOG, CO-545's row; the carry-over rows CO-591 to CO-595 for the board asks read that day and the register's count
 - conflicts: none

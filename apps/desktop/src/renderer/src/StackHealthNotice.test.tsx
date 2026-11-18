@@ -87,6 +87,12 @@ describe('the stack health notice', () => {
     cleanup()
     mount({ ...up, stack: 'down', why: 'database', hold: 'running' })
     expect((await screen.findByRole('alert')).textContent).toContain(en['stack.health.waitingContainers'])
+    cleanup()
+    // CO-594: a database Fabric stopped for the disk is said as stopped to keep it whole, never as being brought back.
+    mount({ ...up, stack: 'down', why: 'database', hold: 'disk' }, 'ru')
+    const disk = (await screen.findByRole('alert')).textContent ?? ''
+    expect(disk).toContain(ru['stack.health.diskHold']!)
+    expect(disk).not.toMatch(/поднимает её снова/)
   })
 
   // 0.3.9 review UX-4: each OS names its own Docker.
