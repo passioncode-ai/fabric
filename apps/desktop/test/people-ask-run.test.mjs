@@ -185,8 +185,10 @@ test('an answer is refused, and said so, for a level too low, a stale revision, 
   w.answer(0, answerBlock())
   await b.onPass()
   assert.equal(w.applied.length, 0)
-  assert.match(w.replies.at(-1).input.body.text, /^не применено: пункт изменился/)
+  assert.match(w.replies.filter((r) => r.input.idempotency.key.startsWith('people-ask-result:')).at(-1).input.body.text, /^не применено: пункт изменился/)
   assert.equal(w.cancels.length, 1)
+  // Task d6413458: the old request's withdrawal is said in its thread too.
+  assert.match(w.replies.at(-1).input.body.text, /^снят: пункт изменился, вопрос задан заново\n/)
   assert.equal(w.submits.length, 2)
   assert.equal(w.submits[1].input.idempotency.key, askKey(`question:${Q}`, 3))
 })
@@ -441,4 +443,29 @@ test('a proposal, an allow-once and an access request go through their own doors
   assert.deepEqual(await refused({ kind: 'access', requestId: 'req' }, decided({ option: 'allow' })), { ok: false, reason: 'разрешить это можно только в окне Fabric: Allowing a product is the person\'s step' })
   const thrown = createPeopleApply(doors({ grant: async () => { throw new Error('not a floor class') } }))
   assert.deepEqual(await thrown({ kind: 'effect', projectId: P, floorClass: 'x', target: 't' }, decided({ option: 'allow' })), { ok: false, reason: 'кнопка Fabric отказала: not a floor class' })
+})
+
+test('task d6413458: a withdrawn item is said in its thread, also when the board refuses the cancel of a request in progress', async () => {
+  // 2026-11-18 07:48:51Z: item question:81ad7a1c was decided in Fabric while the PM side held its request in progress;
+  // com.cancel answered reconcile_required and the PM agent was never told, so it kept the buttons until the deadline.
+  for (const refused of [null, 'reconcile_required']) {
+    const w = world()
+    if (refused) w.deps.cancel = async (project, input) => { w.cancels.push({ project, input }); return { error: { code: refused, message: 'no' } } }
+    const b = createPeopleAskBridge(w.deps)
+    await b.onPass()
+    w.items = []
+    await b.onPass()
+    const said = w.replies.filter((r) => r.input.idempotency.key === 'people-ask-withdrawn:r1')
+    assert.equal(said.length, 1, `one withdrawal line in the thread (cancel ${refused ?? 'taken'})`)
+    assert.equal(said[0].project, P)
+    assert.equal(said[0].input.replyTo, 'r1')
+    const text = said[0].input.body.text
+    assert.match(text, /^снят: решено в другом месте\n/)
+    const block = JSON.parse(text.match(/```json\n(.*)\n```/)[1])
+    assert.deepEqual({ schema: block.schema, applied: block.applied, withdrawn: block.withdrawn, reason: block.reason },
+      { schema: 'fabric-people-result/1', applied: false, withdrawn: true, reason: 'решено в другом месте' })
+    assert.equal(b.records()[0].state, 'cancelled')
+    await b.onPass()
+    assert.equal(w.replies.filter((r) => r.input.idempotency.key === 'people-ask-withdrawn:r1').length, 1, 'said once')
+  }
 })

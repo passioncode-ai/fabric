@@ -268,6 +268,14 @@ export function resultText(r: { item: string; revision: number; applied: true } 
   return `${head}\n\n\`\`\`json\n${JSON.stringify(block)}\n\`\`\`\n`
 }
 
+/** Task d6413458: Fabric's line in the thread when it takes an item back: «снят: <причина>», then the result block with
+ *  `withdrawn: true`. Said beside the `com.cancel`, so a PM side that already took the request (the board then refuses the
+ *  cancel, `reconcile_required`) still learns it and removes its buttons. */
+export function withdrawnText(r: { item: string; revision: number; reason: string }): string {
+  const block = { schema: RESULT_SCHEMA, item: r.item, revision: r.revision, applied: false, withdrawn: true, reason: r.reason }
+  return `снят: ${r.reason}\n\n\`\`\`json\n${JSON.stringify(block)}\n\`\`\`\n`
+}
+
 // #region people-ask-routes — docs: docs/evidence/specs/2026-11-16-people-ask-bridge.md#3-routing
 /** One organization's PM project: a project goes there by its recorded business, else by its repository's owner. */
 export interface PeopleRoute { organization: string; target: string; businesses: string[]; owners: string[] }

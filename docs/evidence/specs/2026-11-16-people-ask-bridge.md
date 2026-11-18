@@ -74,7 +74,11 @@ message id>`. Its first line is exactly `решено` or `не применен
 
 **Withdrawal.** `com.cancel` by the sender Project, key `people-ask-cancel:<request id>`, reason «решено в другом месте»
 (the item left «Нужны вы»), «пункт изменился, вопрос задан заново» (a new revision, which is asked as a new request), or
-«присылать вопросы в Telegram выключено» (the switch). The PM agent removes its buttons.
+«присылать вопросы в Telegram выключено» (the switch). The PM agent removes its buttons. Since 2026-11-18 (task
+`d6413458`) the withdrawal is also said in the thread, as the sender's reply to the request under the key
+`people-ask-withdrawn:<request id>`: its first line is `снят: <причина>`, then the result block with `applied: false` and
+`withdrawn: true` (`peopleAsk.ts#withdrawnText`). A request the PM side already took refuses the cancel
+(`reconcile_required`, measured 2026-11-18 07:48 UTC on item `question:81ad7a1c`), so the line is what tells it.
 
 ## 3. Routing
 
@@ -184,7 +188,7 @@ longer in review) leaves the item open and says why in the thread; a later answe
 - **Answer with one `com.reply`** on the request carrying the `fabric-people-answer/1` block: the words verbatim (a voice
   answer transcribed, `voice: true`), the decider by role key and/or Telegram id, and the level.
 - **Read Fabric's result** (the first line of its reply to your answer) and tell the person; on a `com.cancel` of the
-  request, remove the buttons.
+  request, or a Fabric line starting `снят:` in its thread, remove the buttons.
 - **The personal communicator** takes `people.ask` like the others; until its slot is live, Fabric
   sends it nothing.
 

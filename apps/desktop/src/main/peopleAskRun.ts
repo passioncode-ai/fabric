@@ -15,7 +15,7 @@ import { createHash } from 'node:crypto'
 import type { BoardEntry } from '../shared/board.ts'
 import type { CommsMessage } from '../shared/commsRead.ts'
 import {
-  DELEGATE_ANSWER, DELEGATE_OPTION, PEOPLE_ASK_CAPABILITY, askBody, askKey, autoRouteOf, decisionOf, hasAnswerBlock, itemOf, judgeAnswer, parseAnswer, prepareAsk, resultText, routeOf,
+  DELEGATE_ANSWER, DELEGATE_OPTION, PEOPLE_ASK_CAPABILITY, askBody, askKey, autoRouteOf, decisionOf, hasAnswerBlock, itemOf, judgeAnswer, parseAnswer, prepareAsk, resultText, routeOf, withdrawnText,
   type AskAct, type AskKind, type PeopleAnswer, type PeopleAsk, type PeopleRoute
 } from '../shared/peopleAsk.ts'
 
@@ -155,6 +155,18 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
       deps.log('people.ask.cancelled', refused ? 'failed' : 'ok', { item: r.item, reason, ...(refused ? { refused } : {}) })
     } catch (e) { /* said through deps.log (the operations log) or as the refusal it returns */
       deps.log('people.ask.cancelled', 'failed', { item: r.item, note: noteOf(e) })
+    }
+    // Task d6413458: the withdrawal is also said in the thread, under its own key (a retry is the same message), because a
+    // request the PM side already took cannot be cancelled (`reconcile_required`) and its agent would keep the buttons.
+    try {
+      const epoch = await deps.epoch(r.sender)
+      if (epoch === null) throw new Error('no epoch')
+      const said = await deps.reply(r.sender, { idempotency: { epoch, key: `people-ask-withdrawn:${r.requestId}` }, replyTo: r.requestId,
+        body: { format: 'text/markdown', text: withdrawnText({ item: r.item, revision: r.revision, reason }) } })
+      const refused = errorOf(said)
+      deps.log('people.ask.withdrawn', refused ? 'failed' : 'ok', { item: r.item, ...(refused ? { refused } : {}) })
+    } catch (e) { /* said through deps.log (the operations log) or as the refusal it returns */
+      deps.log('people.ask.withdrawn', 'failed', { item: r.item, note: noteOf(e) })
     }
   }
 
