@@ -137,6 +137,11 @@ export async function readResumeRequests(read: (now: number) => Promise<{ candid
 /** Switchboard's refusal codes, the only words of its stderr that are kept (the 0.3.16 review, iteration 2, DA-5: a
  *  failure's own text carries the command line and the project's folder, and never reaches the log). */
 const REFUSAL_CODES = /\b(no_agent|not_in_group|ceiling_reached|spend_unknown|agent_not_installed|not_on_target|target_busy|target_unreachable)\b/
+/** Task 3332191a (2026-11-18): Switchboard's CLI gave up waiting for its owner, which may still do the act (a dispatch
+ *  started minutes later). Its sentence is fixed text with no path (`switchboard-runtime/src/control.rs`), so it is
+ *  matched whole and said in Fabric's own words; any other text stays out of the log (DA-5). */
+const CONTROL_TIMEOUT = 'Control request timed out. Check state before retrying a mutation.'
+export const CONTROL_TIMEOUT_NOTE = 'Switchboard did not answer in time; the act may still happen'
 /** Most of a CLI's output kept (4 Mi characters, as execFile's `maxBuffer` was). */
 const OUT_MAX = 4 * 1024 * 1024
 /**
@@ -172,7 +177,8 @@ export const run = (file: string, args: string[], env: NodeJS.ProcessEnv, deadli
     // system code, never by its text; that is the one cause a dispatcher saw for 2.5 hours without being told it.
     if (e) return reject(new Error(`could not be started: ${(e as NodeJS.ErrnoException).code ?? 'error'}`))
     const refusal = err.match(REFUSAL_CODES)?.[1]
-    reject(new Error(refusal ? `refused: ${refusal}` : killed ? 'no answer within the deadline' : over ? 'the answer was larger than the call takes' : `exited ${code ?? 'with an error'}`))
+    reject(new Error(refusal ? `refused: ${refusal}` : killed ? 'no answer within the deadline' : over ? 'the answer was larger than the call takes'
+      : err.includes(CONTROL_TIMEOUT) ? CONTROL_TIMEOUT_NOTE : `exited ${code ?? 'with an error'}`))
   }
   child.on('error', (e) => finish(e, null))
   child.on('close', (code) => finish(null, code))
@@ -595,7 +601,8 @@ export function wireBoardDispatch(o: {
         // starts after a restart left no cause. The cause is logged once each time it changes, never every pass.
         if (!code) {
           const note = noteOf(e)
-          if (note !== lastLaunchFailure) { lastLaunchFailure = note; o.log('board.dispatch.launch', 'failed', { note }) }
+          // A control timeout is not a failure: the run may have started, and the record's later pass asks again.
+          if (note !== lastLaunchFailure) { lastLaunchFailure = note; o.log('board.dispatch.launch', note === CONTROL_TIMEOUT_NOTE ? 'unknown' : 'failed', { note }) }
         }
         return { refused: code ?? 'failed' }
       }

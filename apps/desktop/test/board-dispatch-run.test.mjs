@@ -2579,3 +2579,16 @@ test('T5: a filed question that cannot be read is said once as unread, and the r
   assert.equal(unread[0].detail.question, 'q-1')
   assert.equal(w.launches.length, 1, 'no run starts while the question cannot be read')
 })
+
+test('task 3332191a: a Switchboard that did not answer its owner in time is said as such, never as a bare exit 1', async () => {
+  // Measured 2026-11-18 04:00 and 04:11 UTC: `switchboard --json dispatch` exited 1 with its control-timeout sentence
+  // (Switchboard error-counts control_slow dispatch: 50 that day) while its owner went on and started the run; Fabric
+  // logged `board.dispatch.launch failed: exited 1`. The sentence is fixed text with no path, so it is matched whole.
+  const { run, CONTROL_TIMEOUT_NOTE } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchWiring.ts'))
+  const say = (body, code) => ['-e', `process.stderr.write(${JSON.stringify(body)}); process.exit(${code})`]
+  const slow = JSON.stringify({ ok: false, error: 'Control request timed out. Check state before retrying a mutation.' })
+  await assert.rejects(run(process.execPath, say(slow, 1), process.env), (e) => e.message === CONTROL_TIMEOUT_NOTE)
+  // Any other text stays out of the note (DA-5: it may carry the command line and a folder).
+  const other = JSON.stringify({ ok: false, error: 'No folder /srv/projects/alpha found.' })
+  await assert.rejects(run(process.execPath, say(other, 1), process.env), (e) => e.message === 'exited 1' && !e.message.includes('/srv'))
+})
