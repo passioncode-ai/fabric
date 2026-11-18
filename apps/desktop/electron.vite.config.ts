@@ -57,7 +57,9 @@ export default defineConfig({
           'acp-shell': resolve(import.meta.dirname, 'src/main/acpShellMain.ts'),
           'mcp-bridge': resolve(import.meta.dirname, 'src/main/mcpStdioBridgeMain.ts'),
           // ADR-0134: the MCP entry a coding agent opened outside Fabric registers (bin/fabric-mcp runs it).
-          'fabric-mcp': resolve(import.meta.dirname, 'src/main/fabricMcpMain.ts')
+          'fabric-mcp': resolve(import.meta.dirname, 'src/main/fabricMcpMain.ts'),
+          // ADR-0195 W2c.1a: the board's hub apart from the window, run as Node (`boardMain.ts`).
+          'board-main': resolve(import.meta.dirname, 'src/main/boardMain.ts')
         }
       }
     }

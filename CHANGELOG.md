@@ -38,6 +38,13 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   terminals, the consent prompt, the doors an answer is applied through and the machine's sleep. No agent sees a
   different answer. The board's own process will read the same settings file
   ([the spec §3.14](docs/evidence/specs/2026-11-04-on-demand-sessions.md#314-the-board-in-a-process-of-its-own-wave-w2-the-design)).
+- **The board's hub can run as a process of its own** (ADR-0195 wave W2c.1a, board task `8b86adf3`). A new bundle
+  entry, `board-main`, starts the same hub the window starts under Electron's binary as plain Node, against the stack
+  the window started, with its own database client, operations log (`<user data>/board/logs`) and quit; a consent request
+  waits on the board without a window, and a product's sign-in link opens with macOS `open`. Nothing starts it yet: the
+  window keeps the hub until the board's doors and its switch land (W2c.2, W2d). The assign's reads and writes and the
+  project reads left `index.ts`, so the window and the entry build them alike; no agent sees a different answer
+  ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
 - **A request beside a busy session is no longer held for it** (§3.2 of
   [the on-demand spec](docs/evidence/specs/2026-11-04-on-demand-sessions.md#32-a-live-session)). A request to a project
   where someone worked waited as long as that session lived (485 such passes in one log).

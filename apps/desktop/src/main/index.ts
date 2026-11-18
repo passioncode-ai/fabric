@@ -48,7 +48,7 @@ import { writePersonBusiness } from './projectOnboarding.ts'
 import { readGitPeople } from './gitPeople.ts'
 import { projectAnalytics, readNewestPaged } from '../shared/projectAnalytics.ts'
 import { composeGraph } from '../shared/projectGraph.ts'
-import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
+import { createProjectReads } from './projectReads.ts'
 import { legacyLoginItem, legacyLoginItemAction, loginItemFor, loginItemQuery, loginItemState, ownsBoardService, quitHolds, registeredBundleVersion, relaunchArgs, restartPlan, restartShowsWindow, secondInstanceExitCode, secondInstanceShows, serviceNeedsReregister, startRecord, startsInBackground, takeLaunchdStart, BOARD_LABEL, type LoginItemState } from '../shared/loginItem.ts'
 import { RESTART_OUTCOME_FILE, askRestartWindow, restartConfirmation, spawnRestartHelper, takeRestartOutcome, takeRestartWindow } from './restartFabric.ts'
 import { releaseByOperator } from './workRelease.ts'
@@ -409,7 +409,7 @@ import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.t
 import { detectExecutors } from './executorDetect.ts'
 import { readMachineAgentCatalog } from './agentCatalogRead.ts'
 import { readMachineSwitchboardSessions } from './switchboardSessions.ts'
-import { assignAcross, type AssignDeps } from './crossProjectAssign.ts'
+import { assignAcross, createAssignDeps, type AssignDeps } from './crossProjectAssign.ts'
 import { reviewDecisionProblem, type ReviewDecision } from '../shared/reviewDecision.ts'
 import { readInbound, setInbound } from './claudeInbound.ts'
 import { readFabricReadiness } from './fabricReadinessRead.ts'
@@ -422,7 +422,7 @@ import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
-import { ParentChoices, ScanCandidates, indexImported, realOrResolved, walkPickFor } from './startChoices.ts'
+import { ParentChoices, ScanCandidates, realOrResolved, walkPickFor } from './startChoices.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
 import { projectNameProblem, scanViewOf, type CandidateView, type FolderFacts, type ScanView } from '../shared/startPaths.ts'
 import { livenessFor } from './livenessRead.ts'
@@ -1136,6 +1136,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     if (!gate.ok)
       throw new Error(`identity could not be established: ${gate.says}` +
         (seedRepairWhy ? ` — the repair for a database only the old seed touched did not apply: ${seedRepairWhy}` : ''))
+    // The hub is handed its operator by value (`board.ts#BoardHubDeps.operator`, since W2a.3): it is the established
+    // identity's actor from here, before the hub opens, not the undefined it held until the later read below.
+    OPERATOR_ACTOR = identity.actor()
     // CO-242: a repaired estate's old seed owner `…0002` is retired through the membership door — before the hub opens,
     // on this start or on the first start of a database 0.3.4 repaired. The estate is the operator's either way, so a
     // failure is logged and the start goes on; a shape the rule leaves alone (every later start) records nothing.
@@ -1449,34 +1452,20 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
 }
 
 // #region work-claims-reads — docs: docs/ux/scenarios.md#scn-141-see-where-work-is-across-every-project--sessions-claims-review-and-sessions-with-no-project
-/** agent-sync's lease refs, read-only and kept a minute (REQ-08); the remotes the backlog links resolve by, kept five. */
-const leaseRefReader = createLeaseRefReader({ remoteOf: originOf, lsRemote: lsRemoteLeases })
-const remoteCache = new Map<string, { at: number; remote: Promise<string | null> }>()
+/** The project reads the hub and these doors share with the board's entry (`projectReads.ts`, ADR-0195 W2c.1a): agent-sync's
+ *  lease refs kept a minute (REQ-08), the remotes the backlog links resolve by kept five. `store` is read per call. */
+const projectReads = createProjectReads({ store: () => store })
 function cachedOrigin(repoPath: string): Promise<string | null> {
-  const hit = remoteCache.get(repoPath)
-  if (hit && Date.now() - hit.at < 300_000) return hit.remote
-  // A remote that cannot be read resolves by folder only; the address still names the repository by its folder.
-  const remote = originOf(repoPath).catch((e) => {
-    ops.failed('work.origin-read', e as Error, { note: 'this repository resolves backlog rows by its folder only' })
-    return null
-  })
-  remoteCache.set(repoPath, { at: Date.now(), remote })
-  return remote
+  return projectReads.cachedOrigin(repoPath)
 }
 async function projectRepos(projectId: string): Promise<Array<{ path: string; is_primary: boolean }>> {
-  const { data, error } = await store.select('project_repos', 'path,is_primary').eq('project_id', projectId)
-  if (error) throw new Error(`the project's repositories could not be read: ${error.message}`)
-  return (data ?? []) as Array<{ path: string; is_primary: boolean }>
+  return projectReads.projectRepos(projectId)
 }
 async function projectReposWithRemotes(projectId: string): Promise<Array<{ path: string; remote: string | null }>> {
-  const repos = await projectRepos(projectId)
-  return Promise.all(repos.map(async (r) => ({ path: r.path, remote: await cachedOrigin(r.path) })))
+  return projectReads.reposWithRemotes(projectId)
 }
 async function projectLeaseRefs(projectId: string) {
-  const repos = await projectRepos(projectId)
-  const primary = repos.find((r) => r.is_primary) ?? repos[0]
-  if (!primary) return null
-  return { ...(await leaseRefReader.read(primary.path)), repository: primary.path }
+  return projectReads.leaseRefs(projectId)
 }
 /** Every session the screens show: what the surface holds (launched and enrolled) and the terminals running. */
 function heldSessions(projectId?: string): HeldSession[] {
@@ -1675,21 +1664,11 @@ function mirrorWorkspaceNow(): void {
 }
 
 async function readAdmissionProject(id: string): Promise<ProjectRow | null> {
-  const { data, error } = await store.select('projects', '*').eq('id', id).maybeSingle()
-  if (error) throw new Error(`project read failed: ${error.message}`)
-  return (data as ProjectRow | null) ?? null
+  return projectReads.read(id)
 }
 
 async function readRepoRemovals() {
-  const removed = await store.selectAll('project_repo_removals', 'id,project_id,path,remote_key,kind', { orderBy: ['project_id', 'id'] })
-  if (removed.failed) throw new Error(`repository removals read failed: ${removed.failed}`)
-  return removed.rows.map((row) => ({
-    id: String(row.id),
-    projectId: String(row.project_id),
-    path: row.path === null ? null : String(row.path),
-    remoteKey: row.remote_key === null ? null : String(row.remote_key),
-    kind: row.kind === null ? null : String(row.kind) as 'primary' | 'checkout' | 'worktree'
-  }))
+  return projectReads.listRemovals()
 }
 
 async function readProject(id: string): Promise<ProjectRow> {
@@ -1699,29 +1678,17 @@ async function readProject(id: string): Promise<ProjectRow> {
 }
 
 async function listRepos(projectId: string): Promise<RepoRow[]> {
-  const { data, error } = await store
-    .select('project_repos', '*')
-    .eq('project_id', projectId)
-    .order('attached_at', { ascending: true })
-  if (error) throw new Error(`repositories read failed: ${error.message}`)
-  return (data ?? []) as RepoRow[]
+  return projectReads.listRepos(projectId)
 }
 
 /** A project of this estate by id, for an enrollment ask (ADR-0134); null when there is none. A failed read throws. */
 async function enrollProject(id: string): Promise<{ id: string; name: string } | null> {
-  const { data, error } = await store.select('projects', 'id,name').eq('id', id).maybeSingle()
-  if (error) throw new Error(`project read failed: ${error.message}`)
-  return (data as { id: string; name: string } | null) ?? null
+  return projectReads.enroll(id)
 }
 
 /** Which projects hold each folder, by real path, every page read (`startChoices.ts#indexImported`). */
 async function readImportedIndex(): Promise<Map<string, { id: string; name: string }[]>> {
-  const [repos, projects] = await Promise.all([
-    store.selectAll('project_repos', 'path,project_id', { orderBy: ['project_id', 'path'] }),
-    store.selectAll('projects', 'id,name', { orderBy: ['id'] })
-  ])
-  if (repos.failed || projects.failed) throw new Error(`projects read failed: ${repos.failed ?? projects.failed}`)
-  return indexImported(repos.rows, projects.rows)
+  return projectReads.readImported()
 }
 
 /**
@@ -5530,28 +5497,9 @@ function dockerRuntime(): string | null {
 /** CO-458: what «Поручить агенту B» and its done answer read and write: the projections, the journal's task events,
  *  and the operator's door onto the board for the Project the act speaks for. */
 function assignDeps(): AssignDeps {
-  const one = async <T>(q: PromiseLike<{ data: unknown; error: { message: string } | null }>): Promise<T | null> => {
-    const r = await q
-    if (r.error) throw new Error(r.error.message)
-    return (r.data as T | null) ?? null
-  }
-  return {
-    readTask: (id) => one(store.select('project_tasks', 'id,project_id,title,instruction').eq('id', id).maybeSingle()),
-    readProject: (id) => one(store.select('projects', 'id,name').eq('id', id).maybeSingle()),
-    submit: (projectId, input) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id).submit(input),
-    reply: (projectId, input) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id).reply(input),
-    epoch: (projectId) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id).epoch(),
-    fileTask: async (projectId, id, title, instruction) => {
-      await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.created@1', actor: OPERATOR_ACTOR, projectId,
-        payload: { id, title, instruction, origin: { kind: 'person', ref: OPERATOR_ACTOR.id } } })
-      return { id }
-    },
-    note: async (taskId, projectId, body) => {
-      await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.note.added@1', actor: OPERATOR_ACTOR, projectId,
-        payload: { task_id: taskId, note_id: randomUUID(), body_md: body } })
-    },
-    notes: async (taskId) => ((await one<Array<{ body_md: string }>>(store.select('task_notes', 'body_md').eq('task_id', taskId).order('created_at', { ascending: false }).limit(50))) ?? []).map((n) => n.body_md)
-  }
+  // `crossProjectAssign.ts#createAssignDeps`, shared with the board's entry (ADR-0195 W2c.1a); the board door is read late.
+  return createAssignDeps({ store, journal, estateId: ACTIVE_ESTATE, operator: OPERATOR_ACTOR,
+    board: (projectId) => surface.operatorBoard(projectId, OPERATOR_ACTOR.id) })
 }
 
 function startStackWatch(): void {

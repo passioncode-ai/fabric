@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-18 · `—` · refactor/board-main → main · fast-forward
+- files: `apps/desktop/src/main/boardMain.ts` (new, the `board-main` entry), `projectReads.ts` (new), `crossProjectAssign.ts#createAssignDeps`, `index.ts`, `electron.vite.config.ts`, `test/board-main.test.mjs`, `test/helpers/ts-resolve.mjs`, the plan's W2c.1a and W2c.1b rows, CHANGELOG, the map
+- conflicts: none
+- summary: ADR-0195 W2c.1a, the board's hub composed under plain Node from its own entry; nothing starts it until W2c.2 and W2d
+
 ### 2026-11-18 · `—` · fix/dispatch-exit-reason → main · fast-forward
 - files: `apps/desktop/src/main/boardDispatchWiring.ts` (Switchboard's control timeout), `peopleAskRun.ts`, `shared/peopleAsk.ts` (`withdrawnText`), their tests, the bridge spec §2 and §7, CHANGELOG, the map
 - conflicts: none

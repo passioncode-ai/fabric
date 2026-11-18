@@ -12,7 +12,9 @@
  * with the request it stored, finds the task an earlier attempt filed instead of filing a second, and writes the marks
  * that attempt left unwritten. Without the mark on B's task, releasing it would never answer the request.
  */
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
+import type { Journal } from '@fabric/journal'
+import type { ScopedStore } from './scopedStore.ts'
 
 export interface AssignDeps {
   readTask(taskId: string): Promise<{ id: string; project_id: string; title: string | null; instruction: string } | null>
@@ -27,6 +29,48 @@ export interface AssignDeps {
   note(taskId: string, projectId: string, body: string): Promise<void>
   /** The notes of one task, newest first (bounded). */
   notes(taskId: string): Promise<string[]>
+}
+
+/** The operator's door onto the board for one Project (`AgentSurface#operatorBoard`), as the assign reads it. */
+export interface AssignBoard {
+  submit(input: Record<string, unknown>): Promise<Record<string, unknown>>
+  reply(input: Record<string, unknown>): Promise<Record<string, unknown>>
+  epoch(): Promise<number | null>
+}
+
+/** What «Поручить агенту B» and its done answer read and write: the projections, the journal's task events, and the
+ *  operator's door onto the board for the Project the act speaks for. Until ADR-0195 W2c.1a this was `index.ts#assignDeps`;
+ *  the window and the board's entry (`boardMain.ts`) build it here alike. */
+export function createAssignDeps(d: {
+  store: ScopedStore
+  journal: Pick<Journal, 'append'>
+  estateId: string
+  operator: { kind: 'person'; id: string }
+  board(projectId: string): AssignBoard
+}): AssignDeps {
+  const { store, journal, estateId, operator } = d
+  const one = async <T>(q: PromiseLike<{ data: unknown; error: { message: string } | null }>): Promise<T | null> => {
+    const r = await q
+    if (r.error) throw new Error(r.error.message)
+    return (r.data as T | null) ?? null
+  }
+  return {
+    readTask: (id) => one(store.select('project_tasks', 'id,project_id,title,instruction').eq('id', id).maybeSingle()),
+    readProject: (id) => one(store.select('projects', 'id,name').eq('id', id).maybeSingle()),
+    submit: (projectId, input) => d.board(projectId).submit(input),
+    reply: (projectId, input) => d.board(projectId).reply(input),
+    epoch: (projectId) => d.board(projectId).epoch(),
+    fileTask: async (projectId, id, title, instruction) => {
+      await journal.append({ estateId, type: 'task.created@1', actor: operator, projectId,
+        payload: { id, title, instruction, origin: { kind: 'person', ref: operator.id } } })
+      return { id }
+    },
+    note: async (taskId, projectId, body) => {
+      await journal.append({ estateId, type: 'task.note.added@1', actor: operator, projectId,
+        payload: { task_id: taskId, note_id: randomUUID(), body_md: body } })
+    },
+    notes: async (taskId) => ((await one<Array<{ body_md: string }>>(store.select('task_notes', 'body_md').eq('task_id', taskId).order('created_at', { ascending: false }).limit(50))) ?? []).map((n) => n.body_md)
+  }
 }
 
 export type AssignResult =
