@@ -11,6 +11,14 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 **Upgrading.** No schema step from 0.3.22 (schema 102, no migration).
 
+- **A dispatch Switchboard was slow to answer is no longer logged as a failed start** (board task `3332191a`). Under
+  load Switchboard's command line gives up waiting for its own service and exits 1 while the run still starts (measured
+  2026-11-18: two such starts ran a few minutes later). Fabric now names that case, logs the start as unknown and asks
+  again, as it already did; any other text Switchboard prints stays out of the log.
+- **An item taken back from the PM agent is said in its thread** (board task `d6413458`). A request the PM agent had
+  already taken could not be cancelled, so it kept the person's buttons until its deadline. Fabric now also writes
+  «снят: <причина>» in the thread, and the PM agent removes the buttons
+  ([the bridge spec §2](docs/evidence/specs/2026-11-16-people-ask-bridge.md#2-the-contract-fabric-people-ask1)).
 - **A disk near full no longer breaks the board's database** (CO-594). On 2026-11-17 the disk reached zero while the
   database wrote, and the Docker VM's file system broke until it was repaired by hand. Under 1 GB free Fabric now stops
   its own local database keeping its data, says so on every screen, and starts it again once more than 3.5 GB are free;

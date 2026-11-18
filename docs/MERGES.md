@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-18 · `—` · fix/dispatch-exit-reason → main · fast-forward
+- files: `apps/desktop/src/main/boardDispatchWiring.ts` (Switchboard's control timeout), `peopleAskRun.ts`, `shared/peopleAsk.ts` (`withdrawnText`), their tests, the bridge spec §2 and §7, CHANGELOG, the map
+- conflicts: none
+- summary: a Switchboard that did not answer its owner in time is logged as unknown, not as a failed exit 1 (3332191a); a withdrawn item is said in its thread, so a PM side that took the request still removes its buttons (d6413458)
+
 ### 2026-11-18 · `—` · refactor/board-cycle → main · fast-forward
 - files: `apps/desktop/src/main/board.ts` (new), `boardCycle.ts` (new), `index.ts` (the hub and the cycle given what is the window's), `peopleAskRun.ts`, `shared/peopleAsk.ts`, `shared/boardDispatch.ts`, `boardDispatchRun.ts`, their tests, `test/board-cycle.test.mjs` (new, in `ci.sh` and the package script), `startup-wait`, `seed-repair` and `work-release-session` tests reading `board.ts` too; the on-demand spec (§3.2 done, the `deadline_passed` code), the bridge spec §4, the waves plan, the CO-422 design and its carry-over row, ADR-0137's `TICK_MS` citation moved to `boardCycle.ts`, CHANGELOG
 - conflicts: none
