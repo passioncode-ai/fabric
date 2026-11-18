@@ -44,4 +44,4 @@ shows the result.
 
 ## Evidence
 
-- The code study, 2026-10-11 (the plan, canvas C7: `chainAdvance.ts#createChainAdvance`, `apps/desktop/src/main/index.ts#TICK_MS`, `routines` migration 22).
+- The code study, 2026-10-11 (the plan, canvas C7: `chainAdvance.ts#createChainAdvance`, `apps/desktop/src/main/boardCycle.ts#TICK_MS` (in `index.ts` until ADR-0195 W2a.4), `routines` migration 22).

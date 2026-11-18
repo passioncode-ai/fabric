@@ -24,8 +24,23 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   says so by name. A product connection's two desktop acts (open its link, name the app for its scheme) are the hub's
   fifth port, `HubLinks` (W2a.1). The board's memory that the window's doors and the board share (the sessions the
   person ended, reported branches, the dispatcher's wake and view, the sweep, the stack's health) is one object,
-  `main/boardState.ts` (W2a.2). The board's own process will read the same settings file
+  `main/boardState.ts` (W2a.2). The hub itself (registry, access, connector, enrolment, agent surface) is composed in
+  `main/board.ts#startBoardHub` (W2a.3), and the board's cycle (routine tick, chain advance, observer, sweep,
+  dispatcher, people-ask bridge, digests) in `main/boardCycle.ts#startBoardCycle` (W2a.4); the window gives them its
+  terminals, the consent prompt, the doors an answer is applied through and the machine's sleep. No agent sees a
+  different answer. The board's own process will read the same settings file
   ([the spec §3.14](docs/evidence/specs/2026-11-04-on-demand-sessions.md#314-the-board-in-a-process-of-its-own-wave-w2-the-design)).
+- **A request beside a busy session is no longer held for it** (§3.2 of
+  [the on-demand spec](docs/evidence/specs/2026-11-04-on-demand-sessions.md#32-a-live-session)). A request to a project
+  where someone worked waited as long as that session lived (485 such passes in one log).
+  Now a live session has it for the grace and ten minutes more; then the dispatcher starts a run that does the work and
+  ends. A task left open stays with the live session.
+- **A «Нужны вы» item whose request closed without the person's decision is asked once more** (board task `5f23ea40`).
+  When the organization's PM agent completed or failed a request with no answer, or it expired, the item waited
+  unasked; now it goes to the PM agent once more, as «Нужны вы, ещё раз», and never a third time
+  ([the bridge spec §4](docs/evidence/specs/2026-11-16-people-ask-bridge.md#4-the-pass)).
+- **A request Switchboard finds past its deadline is not started again** (board task `e8facb06`): its `deadline_passed`
+  refusal starts nothing more for it, as for one Fabric itself finds past its deadline.
 - **«Новая сессия» says who already works in the project first** (board task `4f83a67f`). The button in an ended
   session's console started a new agent at once; now it shows the same warning as the project page when another session
   works in the project, with «Всё равно запустить» and «Подождать».
