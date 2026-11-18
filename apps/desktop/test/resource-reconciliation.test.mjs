@@ -172,8 +172,17 @@ for (const boundary of ['query', 'release']) test(`uncancellable ${boundary} own
   // this sweep's proof. Actual settlement only opens the next fresh query.
   finish(boundary === 'query' ? { data: [makeRow(1)] } : { data: { released: true, repeated: false, receipt_seq: 1010 } })
   await new Promise(resolve => setImmediate(resolve))
-  const next = await recovery.sweep()
+  let next = await recovery.sweep()
   assert.notEqual(next.reason, 'prior_io_unresolved')
   assert.ok(f.reads.length > readsAtDeadline)
+  // Under machine load a fresh 20 ms sweep can itself run out (2026-11-18, load
+  // 155: items came back unknown/deadline). Such a sweep still never turns the
+  // late receipt into a release; sweep again until one finishes within its deadline.
+  for (let i = 0; i < 50 && (next.reason === 'deadline' || next.reason === 'prior_io_unresolved'); i++) {
+    assert.ok(next.items.every(item => item.state !== 'released'))
+    await new Promise(resolve => setTimeout(resolve, 10))
+    next = await recovery.sweep()
+  }
+  assert.notEqual(next.reason, 'deadline')
   assert.ok(next.items.every(item => item.state === 'retained'))
 })
