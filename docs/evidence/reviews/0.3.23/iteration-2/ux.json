@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.23",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "8e18964d40ec58c22059ebf7d91062fee6491566",
+  "report": "docs/evidence/reviews/0.3.23/iteration-2/2026-11-18-ux.md",
+  "reportSha256": "77f1a5242ed985957a7dd5755d32bba40e454b2fe3f9fc7f84bfaad4d4f8703b",
+  "reviewerRun": "release-0323-i2-ux-20261118",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 2's wave (candidate 3 `f056b3b6`): main/stackWatch.ts give-up branch sets diskStopFailed and publishes; shared/stackWatch.ts:388 view; StackHealthNotice.tsx:87-92 sentence; en.ts:1107, ru.ts:387; cleared on recovery above floor and on a stop that ended; test in StackHealthNotice.test.tsx"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 2's wave (candidate 3 `f056b3b6`): docs/ux/scenarios.md SCN-147 and SCN-180 amended 2026-11-18 with the twelve-minute rule and shipped label; en.ts:1008,1011 match; product-model.json regenerated"
+      ]
+    }
+  ]
+}

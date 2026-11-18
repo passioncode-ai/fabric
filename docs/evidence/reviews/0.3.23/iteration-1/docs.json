@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.23",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "22403642f28ff666c723486a8fb12c8d56f3d94c",
+  "report": "docs/evidence/reviews/0.3.23/iteration-1/2026-11-18-docs.md",
+  "reportSha256": "79650a6b3ba2170d3125a01a041914a63090cd173a575e34c15456c77810a455",
+  "reviewerRun": "release-0323-i1-docs-20261118",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): git ls-files -s scripts/ci.sh = 100755; no mode change in v0.3.22..HEAD"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): AGENTS.md:174 names LIVE_SESSION_TAKE_MS hold and keptByLiveSession"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): on-demand spec :386-387; shared/boardDispatch.ts:158-161"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): AGENTS.md:175 ASK_ATTEMPTS, ещё раз, снят; bridge spec :178 people.ask.withdrawn"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): plan rows :88-91 landed shas, BoardState members, stack watch in index.ts until W2c.1b"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): on-demand spec :698-701 As built; :650 five"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): carryover :560 W2a done, W2c.1a landed, remainder named"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): boardDispatchRun.ts#capacityHolds; CHANGELOG, spec §3.5, AGENTS.md agree on board_admitted"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): contexts-beside-personal.md:16 names commit and 108/12/19 split"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.23",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "22403642f28ff666c723486a8fb12c8d56f3d94c",
+  "report": "docs/evidence/reviews/0.3.23/iteration-1/2026-11-18-data.md",
+  "reportSha256": "0262968fb14ea1139371ac7ed236eb77cb8452b179471c4ab9d01e372d36122d",
+  "reviewerRun": "release-0323-i1-data-20261118",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): boardDispatchRun.ts#capacityHolds uses board_admitted when named, used>=cap only when absent; boardDispatchWiring.ts reads board_admitted; board-dispatch-run.test.mjs 145 pass"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): hold applied only at the launch path via heldByCapacity(); pass no longer returns before the loop; refusalCheck maps at_capacity to deferred-cap"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): peopleAsk.ts#hasAnswerBlock true for schema name or untagged/json fence, so malformed attempts reach parseAnswer; CHANGELOG lines 71-72"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-594 (every stack start now waits under 1 GB, `env.ts#startStackOnce`; the 3.5 GB mark is per process and the CHANGELOG says a restarted Fabric waits for 1 GB)"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-596 (no installed Switchboard sends `deadline_passed` yet, 0.7.117; the CHANGELOG says so and the guard is scoped to its own request)"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 1's wave (`cb1a453a`, candidate 2 `8e18964d`): capacity read once per pass at the first launch decision (capacityOnce), 10 s deadline in boardDispatchWiring.ts; unread pool holds nothing and is logged once"
+      ]
+    }
+  ]
+}

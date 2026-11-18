@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-18 · `FABRIC-0323-I1B` · fix/0323-i1b → main · fast-forward
+- files: `apps/desktop/src/main/{boardMain,env,stackWatch}.ts`, `apps/desktop/src/shared/{peopleAsk,stackWatch}.ts`, `StackHealthNotice.tsx` and both locales, `scripts/check-script-modes.mjs`, `scripts/lib/script-modes.mjs`, `scripts/ci.sh`, tests (`resource-reconciliation`, `git-lease-snapshot`, `script-modes`), SCN-147 and SCN-180, the product report, the 0.3.23 review receipts and ledger, `docs/launch/release-gate.json`, the version, CHANGELOG `## 0.3.23`
+- conflicts: none
+- summary: the 0.3.23 release: iteration 2's fixes (ER-8 to ER-10, DA-7, UX-10, UX-11, PL-8, PL-9), two load-proof tests, three review iterations closed on `f056b3b6`
+
 ### 2026-11-18 · `FABRIC-0323-I1` · fix/0323-i1 → main · fast-forward
 - files: `scripts/ci.sh` (mode 100755), `apps/desktop/src/main/{boardDispatchRun,boardDispatchWiring,boardMain,stackWatch,env,observatoryMemory}.ts`, `apps/desktop/src/shared/{boardDispatch,peopleAsk,stackWatch}.ts`, `apps/desktop/src/renderer/src/{StackHealthNotice,SessionWindow}.tsx`, `i18n/{en,ru}.ts`, tests, AGENTS.md, CHANGELOG, the on-demand and bridge specs, the board-apart plan, the carry-over (CO-545, CO-591, CO-594), SCN-172 and the CO-594 amendment, the map
 - conflicts: none
