@@ -1,7 +1,7 @@
 // CO-409, wave 1: the dispatcher's decision. Spec: docs/evidence/specs/2026-11-04-on-demand-sessions.md (§3.1, §3.3,
 // §3.4, §3.5, §3.6).
 import { describe, expect, it } from 'vitest'
-import { answerPacket, notesWith, remoteQuestionOf, ANSWER_MAX, NOTES_MAX, dispatcherRuns, isSelfTarget, suspendedSince, sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, dispatchTargetsOf, remoteOwnerOf, targetForOwner, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, NO_FOLDER_TO_OPERATOR_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
+import { answerPacket, notesWith, remoteQuestionOf, ANSWER_MAX, NOTES_MAX, dispatcherRuns, isSelfTarget, suspendedSince, sessionLiveForDispatch, checkRunResult, decideDispatch, dispatchTargetOf, dispatchTargetsOf, remoteOwnerOf, targetForOwner, firstLine, packetDeadline, parseFirstLine, refusalCheck, relayText, runEndsAt, PACKET_HORIZON_MS, DISPATCH_DEFAULTS, GRACE_MS, NO_FOLDER_TO_OPERATOR_MS, LIVE_SESSION_TAKE_MS, LAUNCH_MARGIN_MS, REMOTE_REFUSALS, RESULT_MAX_BYTES, RUN_END_TO_DEADLINE_MS, type DispatchInput } from './boardDispatch'
 
 const NOW = Date.parse('2026-11-04T15:00:00Z')
 const MIN = 60_000
@@ -24,9 +24,11 @@ describe('decideDispatch (§3.1–§3.3)', () => {
   it('a live responder takes it and nothing is started', () => {
     expect(decideDispatch(with_({ liveResponder: true }))).toEqual({ path: 'responder' })
   })
-  it('0.3.16 review (ER-5, DO-2): a project with a live session never gets a second agent, inside the grace or after it', () => {
+  it('§3.2: a live session has the request for its grace and ten minutes more; then a run takes it (the operator, 2026-11-18)', () => {
     expect(decideDispatch(with_({ liveSession: true }, { submittedAt: new Date(NOW - MIN).toISOString() }))).toEqual({ path: 'live-session' })
     expect(decideDispatch(with_({ liveSession: true }, { submittedAt: new Date(NOW - GRACE_MS - 1).toISOString() }))).toEqual({ path: 'live-session' })
+    expect(decideDispatch(with_({ liveSession: true }, { submittedAt: new Date(NOW - GRACE_MS - LIVE_SESSION_TAKE_MS + 1000).toISOString() }))).toEqual({ path: 'live-session' })
+    expect(decideDispatch(with_({ liveSession: true }, { submittedAt: new Date(NOW - GRACE_MS - LIVE_SESSION_TAKE_MS - 1).toISOString() })).path).toBe('launch')
     expect(decideDispatch(with_({ liveSession: false }, { submittedAt: new Date(NOW - GRACE_MS - 1).toISOString() })).path).toBe('launch')
   })
   it('waits for the grace before starting anything, unless the asker marked it urgent', () => {

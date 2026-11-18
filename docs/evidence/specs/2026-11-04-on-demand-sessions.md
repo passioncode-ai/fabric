@@ -118,6 +118,12 @@ request to that session as an incoming message through Claude Code's cross-sessi
 session that does not take the slot within G is treated as absent and the request is dispatched; the live session sees
 the dispatch on its next turn and leaves the request alone.
 
+Done 2026-11-18 (the operator: «можно было бы не ждать вообще, вызвать сессию, сделать работу и убрать эту сессию»):
+until then the code held a request beside a live session for as long as the session lived, so a request to a project whose
+person worked in another task there waited without end (`board.dispatch.decided` `live-session` 485 times in one log). Now
+G is `LIVE_SESSION_TAKE_MS`, ten minutes after the grace (`shared/boardDispatch.ts#decideDispatch`); a left task (§3.11)
+stays with the live session, which the sweep reminds. The incoming message to the live session is still to come.
+
 ### 3.3 Dispatch
 
 Before starting anything the dispatcher checks, in order, and records which check stopped it:

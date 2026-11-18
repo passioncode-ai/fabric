@@ -1218,6 +1218,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
         request: { id: req.id, state: req.state, submittedAt: req.submittedAt, deadline: req.deadline, urgent: false, holderLive, attemptLapsed: !holderLive },
         liveResponder: slotLive,
         liveSession: deps.sessionLive(req.target),
+        keptByLiveSession: req.capability === RESUME_CAPABILITY,
         switchOn: on,
         hasFolder: (await deps.folderOf(req.target)) !== null,
         runningOnMachine: active.length,

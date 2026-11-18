@@ -12,6 +12,10 @@ export const GRACE_MS = 2 * 60_000
 /** CO-573 (9): a request to a project with no folder on this machine is skipped each pass; this long after it was
  *  filed it is the operator's (in «На проверке»), since no run can ever start for it here (one waited two days). */
 export const NO_FOLDER_TO_OPERATOR_MS = 30 * 60_000
+/** §3.2: a live session that has not taken the request this long after its grace is treated as absent, and a run is
+ *  started (the operator, 2026-11-18: «можно было бы не ждать вообще, вызвать сессию, сделать работу и убрать эту
+ *  сессию»; until then a request beside a busy interactive session waited for it forever, 485 such passes on one log). */
+export const LIVE_SESSION_TAKE_MS = 10 * 60_000
 /** After this many runs that ended without settling the request, no more are started for it (§3.6, option (b)). Three
  *  since CO-559 (the operator, 2026-11-11: «если он не поднялся, поднимать насильно еще раз»): a run that did not take
  *  the hand-over or went silent is started again by force, and only a third such run hands the item to the operator. */
@@ -93,6 +97,9 @@ export interface DispatchInput {
   liveResponder: boolean
   /** A live session is enrolled in the target project. */
   liveSession: boolean
+  /** A left task (§3.11) stays with a live session of its project however long it waits; a request or an inbox item
+   *  goes to a run once the live session has not taken it in `LIVE_SESSION_TAKE_MS` after the grace. */
+  keptByLiveSession?: boolean
   /** The switch «Запускать агента, когда проекту пишут на доске, а открытой сессии проекта нет» (named for requests alone until 0.3.19). */
   switchOn: boolean
   /** The target project has a folder on this machine. */
@@ -152,7 +159,7 @@ export function decideDispatch(input: DispatchInput): DispatchDecision {
   const waited = now - Date.parse(request.submittedAt)
   // The 0.3.16 review (ER-5, DO-2): a project with a live session gets no second agent in the same folder; the request
   // is that session's (and, unanswered, the operator's in «На проверке»), until the live session's wake of §3.2 exists.
-  if (input.liveSession) return { path: 'live-session' }
+  if (input.liveSession && (input.keptByLiveSession === true || waited < GRACE_MS + LIVE_SESSION_TAKE_MS)) return { path: 'live-session' }
   if (!request.urgent && waited < GRACE_MS) return { path: 'wait', check: 'grace' }
   if (input.emptyRuns >= EMPTY_RUNS_TO_OPERATOR) return { path: 'to-operator' }
   const limits = limitsOf(input.limits)

@@ -2406,6 +2406,16 @@ const TASK = '66666666-6666-4666-8666-666666666666'
 const resumeItem = (over = {}) => resumeRequestOf({ taskId: TASK, projectId: 'p-target', title: 'Вторая волна правок интерфейса', how: 'session-ended',
   releasedAt: new Date(T0 - 30 * MIN).toISOString(), deadline: new Date(T0 + 7 * DAY).toISOString(), ...over })
 
+test('§3.2: a request beside a live session waits for it the grace and ten minutes, then a run takes it (the operator, 2026-11-18)', async () => {
+  const early = world({ requests: [request({ submittedAt: new Date(T0 - 5 * MIN).toISOString() })], session: true })
+  await createBoardDispatch(early.deps).onPass()
+  assert.equal(early.launches.length, 0, 'the live session has it inside its time')
+  assert.ok(early.logs.some((l) => l.op === 'board.dispatch.decided' && l.detail.path === 'live-session'))
+  const late = world({ requests: [request({ submittedAt: new Date(T0 - 13 * MIN).toISOString() })], session: true })
+  await createBoardDispatch(late.deps).onPass()
+  assert.equal(late.launches.length, 1, 'a live session that did not take it is treated as absent')
+})
+
 test('§3.11: a task left open in a project with no live session starts a run that claims it and continues from its next step', async () => {
   const w = world({ requests: [resumeItem()] })
   const d = createBoardDispatch(w.deps)
