@@ -189,6 +189,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-183 | The CEO manages the sessions of this computer | Floating CEO | P-01 | ST-037, FLW-63, SCR-64 | implemented | unobserved |
 | SCN-184 | Call the CEO and talk | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
 | SCN-185 | The CEO keeps answering when its first agent cannot | Floating CEO | P-01 | ST-046, FLW-63 | implemented | unobserved |
+| SCN-188 | Show the CEO what you mean | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -4669,4 +4670,27 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** ops log `ceo.agent.*`.
 - **Status:** implemented (2026-11-18, ADR-0197).
 - **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`start`, `onOutput`, `onExit`, `LIMIT_SAID`), `apps/desktop/src/shared/ceoAgent.ts#ceoRunnersOf`, `#ceoModelsOf`, `#ceoLaunchExtras`, `apps/desktop/src/main/acpShell.ts` (region `acp-session-models`); tests `apps/desktop/test/ceo-agent.test.mjs` («MANDATORY FALLBACK», «THE FLOOR», «a usage limit sets the runner aside», «a console that ends at its start»), `apps/desktop/test/acp-shell.test.mjs` («ADR-0197»).
+- **Product:** unobserved
+
+### SCN-188: Show the CEO what you mean
+- **Persona:** P-01
+- **Feature:** Floating CEO
+- **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
+- **Entry point:** «Записать показ» and «Снимок» beside «Позвонить» in the CEO window and in the CEO card on Главная, under a task's notes, or ⌃⌥⌘R and ⌃⌥⌘S over any app.
+- **Preconditions:** Fabric for macOS; macOS lets Fabric record the screen and use the microphone.
+- **Steps:**
+  1. Operator presses «Записать показ» (or ⌃⌥⌘R), on a call or not -> «Идёт запись · 0:12» with a red dot; the screen with the cursor and the voice are recorded.
+  2. Operator points with the mouse and talks («вот тут смотри») -> every 45 seconds a part is ready: what was said with times, frames where they pointed, clicked or the picture changed, the cursor ringed in red.
+  3. Each part reaches the CEO conversation as it is ready -> «Кусок 1 у CEO»; on a call the CEO says in one phrase what it understood, quoting the operator.
+  4. Operator presses «Снимок» (or ⌃⌥⌘S) and drags over an area -> the screenshot reaches the CEO at once: «Снимок у CEO».
+  5. Operator presses «Остановить показ» (or ⌃⌥⌘R) -> the last part follows within seconds.
+- **Expected result:** the CEO has what the operator showed and said, in order, and answers about it in the same conversation.
+- **Alt paths:** on a task the parts and screenshots are added to the task as notes («Кусок 1 добавлен в задачу»). Without Fabric the same recorder runs from a terminal or the menu bar (`scripts/record-show/README.md`), its result in one `context.md`.
+- **UI elements:** «Записать показ» / «Остановить показ», «Снимок», the recording state with its time, the delivery note.
+- **States covered:** idle, recording, recording for another target, delivered, refused
+- **Errors & recovery:** no Screen Recording or Microphone permission: nothing is recorded, and the words name the permission and where to turn it on (ru and en); a part the CEO could not take is offered again on the next pass, in order.
+- **Design rationale:** the operator, 2026-11-19 (paraphrased): record the screen and the voice in pieces while he shows with the mouse and talks, the pieces added to the prompt or the task so the agent has the most context; on a voice call too, each piece into the current conversation; a screenshot with one key or button during the call.
+- **Telemetry:** ops log `record-show.*`.
+- **Status:** implemented (2026-11-19).
+- **Coverage:** `apps/desktop/src/main/recordShow.ts#createRecordShow`, `apps/desktop/src/shared/recordShow.ts#duePieces`, `apps/desktop/src/renderer/src/recordShow/ShowControls.tsx#ShowControls`, `scripts/record-show/record-show.mjs`; tests `apps/desktop/test/record-show.test.mjs`, `apps/desktop/src/shared/recordShow.test.ts`, `scripts/test/record-show.test.mjs`.
 - **Product:** unobserved

@@ -9,6 +9,19 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A show the owner records goes to an agent as context.** `node scripts/record-show/record-show.mjs toggle` (or
+  ⌃⌥⌘R from the menu bar item `record-show menubar` starts) records the screen with the cursor and the microphone in
+  chunks of 45 seconds; each chunk becomes the speech with times (whisper.cpp, Russian and English detected), key
+  frames where a pointing word was said, a button was pressed or the picture changed, the cursor ringed in red, and
+  clicks, all in one `context.md` an agent reads whole. ⌃⌥⌘S adds a screenshot of an area (`shot --window`,
+  `--screen`) to the same context. Without Screen Recording or Microphone it stops before recording and names the app
+  and the settings pane. Sessions stay outside Git and go after 7 days (`scripts/record-show/README.md`).
+- **«Записать показ» and «Снимок» in Fabric, on a call too.** Beside «Позвонить» in the CEO window and on the home
+  card, and under a task's notes, «Записать показ» records the same way, and each part reaches the CEO conversation as
+  soon as it is ready («Кусок 1 у CEO»), or the task as a note; on a voice call the CEO then says in one phrase what it
+  understood, quoting the owner. «Снимок» (or ⌃⌥⌘S over any app) sends a screenshot of an area at once; ⌃⌥⌘R starts
+  and stops a recording over any app. Without Screen Recording or Microphone nothing is recorded and the words say
+  which permission and where (SCN-188, `main/recordShow.ts`, `renderer/src/recordShow/ShowControls.tsx`).
 - **The CEO on the home screen is one small block at the top right, with the call in it.** The operator's review of
   2026-11-19: «Спросить CEO» filled the width under the header in large type. The header (greeting and rhythm) is back
   as it was, and the CEO card stands at its right: a two-line box (files pasted with ⌘V or Ctrl+V, dropped or picked),

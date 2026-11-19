@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-19 · `FABRIC-RECORD-SHOW` · feat/record-show → main · fast-forward
+- files: `scripts/record-show/{record-show.mjs,lib.mjs,helper.swift,README.md}`, `scripts/test/record-show.test.mjs`, `apps/desktop/src/main/recordShow.ts` and its wiring in `main/index.ts`, `apps/desktop/src/shared/{recordShow,types,ipcWindowPolicy}.ts`, `preload/api.ts`, `renderer/src/recordShow/ShowControls.tsx` (mounted in `ceo/CeoCall.tsx` and `TaskPage.tsx`), both locales, `styles.css`, the component registry, `electron-builder.yml`, SCN-188, the product model, AGENTS.md's lifecycle row, CHANGELOG, the design map
+- conflicts: none
+- summary: the owner records a show (screen with the cursor, voice) in chunks and screenshots; each piece reaches the CEO conversation, a voice call included, or a task as soon as it is ready (the owner, 2026-11-19, voice CEO backlog items 1 and 2)
+
 ### 2026-11-19 · `FABRIC-HOME-CEO` · fix/home-ceo-panel → main · fast-forward
 - files: `apps/desktop/src/renderer/src/ceo/{CeoCall,CeoComposer,CeoPopup,voiceCall}.ts(x)`, `EstateHome.tsx`, `styles.css`, `launch/launch.css`, the component registry, both locales, tests, SCN-182 and SCN-184, ADR-0197 amendment 1, CHANGELOG, the product model, the design map
 - conflicts: none

@@ -2,7 +2,7 @@
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
 import { admitAccessAct } from './relayedAccess.ts'
-import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, safeStorage, session, shell } from 'electron'
+import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, globalShortcut, ipcMain, net, powerMonitor, safeStorage, session, shell } from 'electron'
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
@@ -49,7 +49,10 @@ import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoToo
 import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
-import { CEO_PROJECT_NAME, ceoLaunchExtras, type CeoAttachment } from '../shared/ceoAgent.ts'
+import { CEO_PROJECT_NAME, ceoLaunchExtras, ceoLine, type CeoAttachment } from '../shared/ceoAgent.ts'
+import { createRecordShow, recordShowScript } from './recordShow.ts'
+import { nodeHost } from './helperProcess.ts'
+import { isTarget as isRecordShowTarget, type RecordShowTarget } from '../shared/recordShow.ts'
 import { writePersonBusiness } from './projectOnboarding.ts'
 import { readGitPeople } from './gitPeople.ts'
 import { projectAnalytics, readNewestPaged } from '../shared/projectAnalytics.ts'
@@ -5213,6 +5216,48 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } }),
     note: ceoNote
   })
+  // #region record-show-wiring — docs: docs/ux/scenarios.md#scn-188-show-the-ceo-what-you-mean
+  // «Записать показ» and «Снимок» (SCN-188): the recorder's chunks and screenshots go into the CEO conversation, a voice
+  // call included, or onto a task, as each is ready (`main/recordShow.ts`); ⌃⌥⌘R and ⌃⌥⌘S work over any app.
+  const recordShow = createRecordShow({
+    script: recordShowScript(process.resourcesPath, app.getAppPath()),
+    node: nodeHost(process.execPath),
+    env: process.versions.electron ? { ELECTRON_RUN_AS_NODE: '1' } : {},
+    root: path.join(app.getPath('home'), 'Library', 'Application Support', 'ai.passioncode.fabric', 'show-recordings'),
+    inbox: path.join(app.getPath('userData'), 'ceo', 'inbox'),
+    locale: () => readSettings().locale,
+    toCeo: async (text, files) => {
+      const line = ceoLine(text, files, readSettings().locale)
+      return line !== null && (await agent.send(line, [])).ok
+    },
+    toTask: async (taskId, body) => {
+      const { data: task } = await store.select('project_tasks', 'project_id').eq('id', taskId).single()
+      await journal.append({
+        estateId: ACTIVE_ESTATE, type: 'task.note.added@1', actor: OPERATOR_ACTOR, projectId: task?.project_id as string,
+        payload: { task_id: taskId, note_id: randomUUID(), body_md: body }
+      })
+    },
+    emit: (event) => broadcast(IPC.recordShowChanged, event),
+    record: (op, detail) => ops.record({ op, outcome: /failed|refused/.test(op) ? 'failed' : 'ok', level: /failed|refused/.test(op) ? 'warn' : 'info', detail: detail ?? {}, ctx: { correlationId: ops.correlate() } })
+  })
+  recordShow.watch()
+  quit.onQuit(() => recordShow.stop())
+  if (recordShow.available) {
+    const keys: Array<[string, () => void]> = [
+      ['Control+Alt+Command+R', () => { void recordShow.toggle('ceo') }],
+      ['Control+Alt+Command+S', () => { void recordShow.shot('area', 'ceo') }]
+    ]
+    // Another program may hold the keys (the recorder's own menu bar item): its keys send to the CEO too.
+    for (const [accelerator, run] of keys)
+      if (!globalShortcut.register(accelerator, run)) ops.record({ op: 'record-show.hotkey-taken', outcome: 'ok', level: 'info', detail: { accelerator }, ctx: { correlationId: ops.correlate() } })
+    quit.onQuit(() => { for (const [accelerator] of keys) globalShortcut.unregister(accelerator) })
+  }
+  const targetOf = (to: unknown): RecordShowTarget => (isRecordShowTarget(to) ? to : 'ceo')
+  handle(IPC.recordShowState, (): Returns<FabricApi['recordShow']['state']> => recordShow.state())
+  handle(IPC.recordShowToggle, (_e, to: unknown): Promise<Returns<FabricApi['recordShow']['toggle']>> => recordShow.toggle(targetOf(to)))
+  handle(IPC.recordShowShot, (_e, mode: unknown, to: unknown): Promise<Returns<FabricApi['recordShow']['shot']>> =>
+    recordShow.shot(mode === 'window' || mode === 'screen' ? mode : 'area', targetOf(to)))
+  // #endregion record-show-wiring
   // PM chain (task ff3fe9c3): once a minute, a board request a PM agent gave the CEO (capability `ceo.task`) is typed
   // into its running console, each once.
   const ceoBoardTick = setInterval(() => {

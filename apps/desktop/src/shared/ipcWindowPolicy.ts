@@ -272,7 +272,12 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   ceoAgentVoiceKeySet: MAIN_AND_CEO,
   ceoAgentVoiceKeyClear: MAIN_ONLY,
   ceoAgentChanged: MAIN_AND_CEO,
-  ceoAgentDraft: MAIN_AND_CEO
+  ceoAgentDraft: MAIN_AND_CEO,
+  // SCN-188: «Записать показ» and «Снимок» sit beside the call, in the CEO window and on the home card, and on a task.
+  recordShowState: MAIN_AND_CEO,
+  recordShowToggle: MAIN_AND_CEO,
+  recordShowShot: MAIN_AND_CEO,
+  recordShowChanged: MAIN_AND_CEO
 }
 
 /** Channel value (`feed:replay`) → its key, so a rule is found from what Electron hands the wrapper. */

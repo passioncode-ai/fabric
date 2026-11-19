@@ -45,6 +45,7 @@ import { CrossProjectConsole } from './launch/CrossProjectConsole'
 import { ReviewDecision } from './launch/ReviewDecision'
 import { reviewAsk } from '../../shared/reviewDecision.ts'
 import { MarkdownText } from './MarkdownText'
+import { ShowControls } from './recordShow/ShowControls'
 
 export function TaskPage({
   project,
@@ -381,6 +382,7 @@ export function TaskPage({
           />
           <button type="button" className="lp-button" disabled={!note.trim()} onClick={() => void addNote()}>{t('task.noteAdd')}</button>
         </div>
+        <ShowControls to={`task:${taskId}`} />
       </section>
       {/* What is read rarely is folded, one line each (2026-11-12). */}
       {showInstruction && (
