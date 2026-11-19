@@ -4,8 +4,8 @@
 //   request          ask macOS for both permissions (shows the system prompts)
 //   mouse <file>     append the cursor and button state as JSON lines until SIGTERM
 //   menubar <node> <script>
-//                    a menu bar item and the hotkey Control-Option-Command-R that run
-//                    `<node> <script> toggle`
+//                    a menu bar item and two hotkeys: Control-Option-Command-R runs
+//                    `<node> <script> toggle`, Control-Option-Command-S runs `... shot`
 //
 // None of this needs Accessibility or Input Monitoring: the cursor is read from
 // CGEvent(source: nil).location and the buttons from CGEventSource.buttonState,
@@ -112,6 +112,9 @@ final class MenuBar: NSObject {
     let menu = NSMenu()
     toggleItem.target = self
     menu.addItem(toggleItem)
+    let shotItem = NSMenuItem(title: "Снимок области  ⌃⌥⌘S", action: #selector(shot), keyEquivalent: "")
+    shotItem.target = self
+    menu.addItem(shotItem)
     let open = NSMenuItem(title: "Открыть папку записей", action: #selector(openFolder), keyEquivalent: "")
     open.target = self
     menu.addItem(open)
@@ -158,28 +161,38 @@ final class MenuBar: NSObject {
     }
   }
 
+  @objc func shot() {
+    DispatchQueue.global().async { _ = self.run(["shot", "--from-menu"]) }
+  }
+
   @objc func openFolder() { _ = run(["open"]) }
   @objc func quit() { NSApp.terminate(nil) }
 }
 
 var menuBar: MenuBar?
 
-func hotkey(_ handler: @escaping () -> Void) {
+// Carbon hotkeys need no Accessibility permission. id 1 is ⌃⌥⌘R, id 2 is ⌃⌥⌘S.
+func hotkeys(_ handler: @escaping (UInt32) -> Void) {
   var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
   let box = Unmanaged.passRetained(HandlerBox(handler)).toOpaque()
-  InstallEventHandler(GetApplicationEventTarget(), { _, _, data in
-    Unmanaged<HandlerBox>.fromOpaque(data!).takeUnretainedValue().run()
+  InstallEventHandler(GetApplicationEventTarget(), { _, event, data in
+    var id = EventHotKeyID()
+    GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
+                      nil, MemoryLayout<EventHotKeyID>.size, nil, &id)
+    Unmanaged<HandlerBox>.fromOpaque(data!).takeUnretainedValue().run(id.id)
     return noErr
   }, 1, &spec, box, nil)
-  var ref: EventHotKeyRef?
-  let id = EventHotKeyID(signature: OSType(0x5253_4857), id: 1)  // "RSHW"
-  RegisterEventHotKey(UInt32(kVK_ANSI_R), UInt32(controlKey | optionKey | cmdKey), id,
-                      GetApplicationEventTarget(), 0, &ref)
+  for (n, key) in [(UInt32(1), kVK_ANSI_R), (UInt32(2), kVK_ANSI_S)] {
+    var ref: EventHotKeyRef?
+    RegisterEventHotKey(UInt32(key), UInt32(controlKey | optionKey | cmdKey),
+                        EventHotKeyID(signature: OSType(0x5253_4857), id: n),  // "RSHW"
+                        GetApplicationEventTarget(), 0, &ref)
+  }
 }
 
 final class HandlerBox {
-  let run: () -> Void
-  init(_ run: @escaping () -> Void) { self.run = run }
+  let run: (UInt32) -> Void
+  init(_ run: @escaping (UInt32) -> Void) { self.run = run }
 }
 
 let args = CommandLine.arguments
@@ -191,7 +204,7 @@ case "menubar" where args.count > 3:
   let app = NSApplication.shared
   app.setActivationPolicy(.accessory)
   menuBar = MenuBar(node: args[2], script: args[3])
-  hotkey { menuBar?.toggle() }
+  hotkeys { id in if id == 1 { menuBar?.toggle() } else { menuBar?.shot() } }
   app.run()
 default:
   FileHandle.standardError.write("usage: helper check | request | mouse <file> | menubar <node> <script>\n".data(using: .utf8)!)

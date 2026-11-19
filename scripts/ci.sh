@@ -71,6 +71,7 @@ step "documentation: structure, links, scenarios, brand, registers"
 pnpm gates:docs
 # Code region markers resolve to documentation (REQ-20; AGENTS.md "Code region markers").
 node --test scripts/test/check-regions.test.mjs
+node --test scripts/test/record-show.test.mjs
 node --test scripts/test/conflict-markers.test.mjs
 node scripts/check-conflict-markers.mjs
 # 0.3.23 review, iteration 2, PL-8: ci.yml runs ./scripts/ci.sh, so a lost exec bit fails the hosted run before any gate.
