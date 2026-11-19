@@ -10,8 +10,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 ## Unreleased
 
 **Upgrading.** No schema step from 0.3.23 (schema 102, no migration). The CEO needs, on each Mac: the microphone
-consent for a call (macOS asks once), the vault slot `fabric/prod/XAI_API_KEY` in Project Observatory for the voice
-call, and for the Hermes fallback a Hermes signed in with an OpenRouter key; an OpenRouter key issued later than the
+consent for a call (macOS asks once), the person's own xAI key for the voice call (or the vault slot
+`fabric/prod/XAI_API_KEY` in Project Observatory), and for the Hermes fallback a Hermes signed in with an OpenRouter key; an OpenRouter key issued later than the
 others answers 403 for `openai/*` models until it is added to its workspace's BYOK list. Going back to 0.3.23 keeps
 the «Fabric CEO» project and `userData/ceo`; `ceoRunners` and `ceoModels` set by hand must be set again after coming
 back.
@@ -34,7 +34,10 @@ back.
   reason in the operations log; a start or stop of a Fabric console is an act in История with its undo, and a stop or
   continue of a session Switchboard runs is an act with no undo. What the CEO reads of a session's screen or turns
   passes Fabric's redaction first, and goes to the CEO's model (and to xAI during a call).
-- **A voice call with the CEO** through xAI's realtime API: the key stays in the main process, the window gets a
+- **A voice call with the CEO** through xAI's realtime API, on each person's own xAI key: pasted once in the CEO window,
+  or dropped from the clipboard by a coding agent that never reads it ([docs/launch/ceo-setup.md](docs/launch/ceo-setup.md));
+  kept encrypted on the computer, with Observatory's vault slot as the fallback. Every failure says what to do in the
+  person's language. The key stays in the main process, the window gets a
   five-minute secret; the CEO window's own page alone may reach `wss://api.x.ai`, and only it gets the microphone. The
   call shows its minutes and price; the same session tools run while you talk, and a longer request goes to the console.
   macOS asks once for the microphone (the app now carries the audio-input entitlement and its usage sentence).

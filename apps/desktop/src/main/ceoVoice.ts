@@ -1,7 +1,8 @@
 // #region ceo-voice — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#the-voice-call
 /**
  * The voice call's main-process half (ADR-0197, the voice call, board task e7ff5556): the xAI key never leaves this process. It is
- * read from Project Observatory's vault for one call (`observatoryVault.ts`, slot `fabric/prod/XAI_API_KEY`) and spent
+ * the person's own key (`ceoVoiceKey.ts`) or else Project Observatory's vault for one call (`observatoryVault.ts`, slot
+ * `fabric/prod/XAI_API_KEY`), spent
  * on an ephemeral client secret (`POST /v1/realtime/client_secrets`, five minutes); the CEO window opens the realtime
  * socket with that secret alone. The call's instructions and tools are composed here, so the window holds no prompt
  * of its own, and every tool the call asks for runs here through the CEO's operations (`ceoTools.ts`) with their gates.
@@ -37,6 +38,8 @@ export const ASK_CEO_TOOL = {
 }
 
 export interface VoiceDeps {
+  /** The person's own key (`ceoVoiceKey.ts`), tried first; null when none is set. */
+  ownKey?: () => string | null
   vault: Pick<VaultPort, 'read'>
   fetch: typeof fetch
   now?: () => number
@@ -44,8 +47,9 @@ export interface VoiceDeps {
 
 /** One ephemeral secret for one call; the key itself is held for this request only. */
 export async function mintVoiceToken(deps: VoiceDeps): Promise<VoiceTokenAnswer> {
-  const key = await deps.vault.read(XAI_KEY_SLOT)
-  if (!key.ok) return { ok: false, reason: 'no-key', detail: `the xAI key could not be read from Observatory: ${key.reason}` }
+  const own = deps.ownKey?.() ?? null
+  const key = own ? { ok: true as const, value: own } : await deps.vault.read(XAI_KEY_SLOT)
+  if (!key.ok) return { ok: false, reason: 'no-key', detail: `no xAI key of the person's, and Observatory's could not be read: ${key.reason}` }
   let res: Response
   try {
     res = await deps.fetch(XAI_SECRETS_URL, {

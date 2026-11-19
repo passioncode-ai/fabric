@@ -139,7 +139,8 @@ function VoiceCall(): React.JSX.Element {
         <div className="ceo-call-panel" role="status">
           <span>{t(`ceoAgent.call.${phase}` as 'ceoAgent.call.listening')}</span>
           {active && phase !== 'connecting' && <span className="muted">{t('ceoAgent.call.spent', { minutes: spent.minutes.toFixed(1), usd: spent.usd.toFixed(2) })}</span>}
-          {why && <span className="field-problem">{why}</span>}
+          {why && <span className="field-problem">{t(`ceoAgent.call.why.${why}` as 'ceoAgent.call.why.no-key')}</span>}
+          {!active && (why === 'no-key' || why === 'refused') && <VoiceKeyForm onSaved={() => { setWhy(null); setPhase('idle') }} />}
           <ul className="ceo-call-lines">
             {lines.map((l, i) => <li key={i} className={`who-${l.who}`}>{l.who === 'tool' ? t('ceoAgent.call.tool', { name: l.text }) : l.text}</li>)}
           </ul>
@@ -151,6 +152,29 @@ function VoiceCall(): React.JSX.Element {
         </div>
       )}
     </span>
+  )
+}
+/** The person's own xAI key (the operator, 2026-11-19): pasted once, kept by main, never shown back. */
+function VoiceKeyForm({ onSaved }: { onSaved: () => void }): React.JSX.Element {
+  const t = useT()
+  const [value, setValue] = useState('')
+  const [problem, setProblem] = useState<string | null>(null)
+  const save = async (): Promise<void> => {
+    const r = await window.fabric.ceoAgent.setVoiceKey(value)
+    setValue('')
+    if (r.ok) onSaved()
+    else setProblem(t(`ceoAgent.voiceKey.${r.reason}` as 'ceoAgent.voiceKey.malformed'))
+  }
+  return (
+    <form className="ceo-voice-key" onSubmit={(e) => { e.preventDefault(); void save() }}>
+      <label>
+        <span>{t('ceoAgent.voiceKey.label')}</span>
+        <input type="password" autoComplete="off" spellCheck={false} value={value} placeholder="xai-…" onChange={(e) => setValue(e.target.value)} />
+      </label>
+      <button type="submit" className="btn" disabled={!value.trim()}>{t('ceoAgent.voiceKey.save')}</button>
+      <span className="muted">{t('ceoAgent.voiceKey.help')}</span>
+      {problem && <span className="field-problem">{problem}</span>}
+    </form>
   )
 }
 // #endregion ceo-popup

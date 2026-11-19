@@ -66,10 +66,10 @@ describe('the CEO voice call', () => {
 
   it('a refused session says why and opens no socket; hanging up stops the microphone and the socket', async () => {
     const socket = vi.fn(), phases: Array<[string, string | undefined]> = []
-    const refused = createCall({ session: async () => ({ ok: false, reason: 'no key' }), runTool: vi.fn(), socket, audio: fakeAudio(), onPhase: (p, w) => phases.push([p, w]), onLine: () => {} })
+    const refused = createCall({ session: async () => ({ ok: false, reason: 'no-key' }), runTool: vi.fn(), socket, audio: fakeAudio(), onPhase: (p, w) => phases.push([p, w]), onLine: () => {} })
     await refused.start()
     expect(socket).not.toHaveBeenCalled()
-    expect(phases.at(-1)).toEqual(['failed', 'no key'])
+    expect(phases.at(-1)).toEqual(['failed', 'no-key'])
     const ws = fakeSocket(), audio = fakeAudio()
     const call = createCall({ session: async () => session, runTool: vi.fn(), socket: () => ws, audio, onPhase: () => {}, onLine: () => {} })
     await call.start(); ws.onopen?.({})

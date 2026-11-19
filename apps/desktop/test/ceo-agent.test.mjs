@@ -9,6 +9,7 @@ import { ceoBoardNudge, ceoBrief, ceoLaunchExtras, ceoLine, ceoModelAllowed, ceo
 import { createCeoAgent, LIMIT_SAID } from '../src/main/ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, CEO_TOOLS } from '../src/main/ceoTools.ts'
 import { mintVoiceToken, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
+import { createVoiceKeyStore, voiceKeyShapeOk } from '../src/main/ceoVoiceKey.ts'
 import { validateSettings } from '../src/shared/appSettings.ts'
 
 const EM_DASH = String.fromCodePoint(0x2014)
@@ -373,6 +374,45 @@ test('the voice token: the key read for one request and never handed back; failu
   assert.ok(!JSON.stringify(refused).includes('xai-SECRET'))
   const empty = await mintVoiceToken({ vault, fetch: async () => new Response('{}', { status: 200 }) })
   assert.equal(empty.ok, false)
+})
+
+test('the person\'s own xAI key: kept encrypted, tried before Observatory, taken from a coding agent\'s drop file', async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'ceo-key-'))
+  const safe = { isEncryptionAvailable: () => true, encryptString: (s) => Buffer.from([...s].reverse().join('')), decryptString: (b) => [...b.toString()].reverse().join('') }
+  const keys = createVoiceKeyStore(dir, safe)
+  const KEY = 'xai-' + 'A'.repeat(40)
+  assert.equal(keys.source(), 'none')
+  assert.deepEqual(keys.set('  '), { ok: false, reason: 'empty' })
+  assert.deepEqual(keys.set('sk-not-xai'), { ok: false, reason: 'malformed' })
+  assert.equal(voiceKeyShapeOk('xai-short'), false)
+  assert.deepEqual(keys.set(KEY), { ok: true })
+  assert.ok(!readFileSync(path.join(dir, 'xai-key.bin')).toString().includes(KEY), 'the file holds no plain key')
+  assert.equal((await import('node:fs')).statSync(path.join(dir, 'xai-key.bin')).mode & 0o777, 0o600)
+  assert.equal(keys.read(), KEY)
+  // Tried first: Observatory is not read when the person's key is set.
+  const sent = []
+  let vaultRead = 0
+  const vault = { read: async () => { vaultRead++; return { ok: false, reason: 'no slot' } } }
+  const fetch = async (url, init) => { sent.push(init); return new Response(JSON.stringify({ value: 'ephemeral' }), { status: 200 }) }
+  const r = await mintVoiceToken({ ownKey: () => keys.read(), vault, fetch })
+  assert.equal(r.ok, true)
+  assert.equal(vaultRead, 0)
+  assert.equal(sent[0].headers.authorization, `Bearer ${KEY}`)
+  // A coding agent drops a key from the clipboard: taken in at the next read, the drop file removed.
+  keys.clear()
+  assert.equal(keys.source(), 'none')
+  const OTHER = 'xai-' + 'B'.repeat(40)
+  writeFileSync(keys.dropPath, OTHER + '\n', { mode: 0o600 })
+  assert.equal(keys.read(), OTHER)
+  assert.equal(existsSync(keys.dropPath), false, 'the drop file is gone once taken')
+  // A malformed drop is removed and changes nothing.
+  writeFileSync(keys.dropPath, 'not a key', { mode: 0o600 })
+  assert.equal(keys.read(), OTHER)
+  assert.equal(existsSync(keys.dropPath), false)
+  // Without encryption the key is kept under the same mode.
+  const plain = createVoiceKeyStore(mkdtempSync(path.join(tmpdir(), 'ceo-key-')), null)
+  assert.deepEqual(plain.set(KEY), { ok: true })
+  assert.equal(plain.read(), KEY)
 })
 
 test('PM chain: a ceo.task request for the CEO is typed into its running console once; others and taken ones are not', async () => {

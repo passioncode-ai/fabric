@@ -1819,6 +1819,11 @@ export interface FabricApi {
     takeDraft(): Promise<string | null>
     voice(): Promise<CeoVoiceSession>
     voiceTool(name: string, args: unknown): Promise<Record<string, unknown>>
+    /** Whether the person's own xAI key is set (`main/ceoVoiceKey.ts`); never the key. */
+    voiceKey(): Promise<{ own: boolean }>
+    /** Keep the person's own xAI key for the call; refused when empty or not shaped like an xAI key. */
+    setVoiceKey(value: string): Promise<{ ok: true } | { ok: false; reason: 'empty' | 'malformed' | 'unwritable' }>
+    clearVoiceKey(): Promise<void>
     onChanged(cb: (status: CeoStatus) => void): () => void
     onDraft(cb: () => void): () => void
   }
@@ -2061,6 +2066,9 @@ export const IPC = {
   ceoAgentTakeDraft: 'ceo-agent:take-draft',
   ceoAgentVoice: 'ceo-agent:voice',
   ceoAgentVoiceTool: 'ceo-agent:voice-tool',
+  ceoAgentVoiceKey: 'ceo-agent:voice-key',
+  ceoAgentVoiceKeySet: 'ceo-agent:voice-key-set',
+  ceoAgentVoiceKeyClear: 'ceo-agent:voice-key-clear',
   ceoAgentChanged: 'ceo-agent:changed',
   ceoAgentDraft: 'ceo-agent:draft'
 } as const

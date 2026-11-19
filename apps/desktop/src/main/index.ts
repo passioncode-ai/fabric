@@ -2,7 +2,7 @@
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
 import { admitAccessAct } from './relayedAccess.ts'
-import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, session, shell } from 'electron'
+import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, safeStorage, session, shell } from 'electron'
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
@@ -47,6 +47,7 @@ import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
 import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
+import { createVoiceKeyStore } from './ceoVoiceKey.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
 import { CEO_PROJECT_NAME, ceoLaunchExtras, type CeoAttachment } from '../shared/ceoAgent.ts'
 import { writePersonBusiness } from './projectOnboarding.ts'
@@ -5237,13 +5238,25 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   handle(IPC.ceoAgentTakeDraft, (): Returns<FabricApi['ceoAgent']['takeDraft']> => { const d = ceoDraft; ceoDraft = null; return d })
   handle(IPC.ceoAgentVoice, async (): Promise<Returns<FabricApi['ceoAgent']['voice']>> => {
-    const token = await mintVoiceToken({ vault: ceoVault, fetch })
+    const token = await mintVoiceToken({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch })
     ops.record({ op: 'ceo.voice.token', outcome: token.ok ? 'ok' : 'failed', level: token.ok ? 'info' : 'warn', detail: token.ok ? {} : { reason: token.reason, detail: token.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
     // ER-7: the window gets the code; the raw detail stays in the operations log.
     if (!token.ok) return { ok: false, reason: token.reason }
     const locale = readSettings().locale
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
       instructions: voiceInstructions(locale), voice: 'eve', tools: [...ceoVoiceTools(), ASK_CEO_TOOL] }
+  })
+  // The person's own xAI key (the operator, 2026-11-19): set in the CEO window, or dropped by a coding agent.
+  const voiceKeys = createVoiceKeyStore(path.join(app.getPath('userData'), 'ceo'), safeStorage)
+  handle(IPC.ceoAgentVoiceKey, (): Returns<FabricApi['ceoAgent']['voiceKey']> => ({ own: voiceKeys.source() === 'own' }))
+  handle(IPC.ceoAgentVoiceKeySet, (_e, value: unknown): Returns<FabricApi['ceoAgent']['setVoiceKey']> => {
+    const r = voiceKeys.set(typeof value === 'string' ? value : '')
+    ops.record({ op: 'ceo.voice.key-set', outcome: r.ok ? 'ok' : 'failed', level: 'info', detail: r.ok ? {} : { reason: r.reason }, ctx: { correlationId: ops.correlate() } })
+    return r
+  })
+  handle(IPC.ceoAgentVoiceKeyClear, (): Returns<FabricApi['ceoAgent']['clearVoiceKey']> => {
+    voiceKeys.clear()
+    ops.record({ op: 'ceo.voice.key-cleared', outcome: 'ok', level: 'info', detail: {}, ctx: { correlationId: ops.correlate() } })
   })
   handle(IPC.ceoAgentVoiceTool, async (_e, name: unknown, args: unknown): Promise<Returns<FabricApi['ceoAgent']['voiceTool']>> => {
     const tool = typeof name === 'string' ? name : ''
