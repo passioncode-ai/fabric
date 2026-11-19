@@ -267,8 +267,8 @@ test('DO-1, ER-6: the osascript runner turns a kill at its deadline into a timeo
 
 test('UX-1, UX-2: the owner\'s words name one dashboard or are asked about; a description never chooses one', () => {
   const reg = [
-    { key: 'frame-agent.default', name: 'Frame Agent', summary: 'video', placement: 'local' },
-    { key: 'frame-agent.cloud', name: 'Org Frame Agent', summary: 'video', placement: 'remote' },
+    { key: 'clip-agent.default', name: 'Clip Agent', summary: 'video', placement: 'local' },
+    { key: 'clip-agent.cloud', name: 'Org Clip Agent', summary: 'video', placement: 'remote' },
     { key: 'analytics.default', name: 'Analytics agent', summary: 'metrics', placement: 'remote' },
     { key: 'pulse.default', name: 'World Pulse', summary: 'Аналитик мира для агентов', placement: 'local' },
     { key: 'nika-agent.default', name: 'Ника', summary: 'PM', placement: 'local' },
@@ -277,8 +277,8 @@ test('UX-1, UX-2: the owner\'s words name one dashboard or are asked about; a de
     { key: 'bot-b.default', name: 'Shop helper', summary: '', placement: 'local' }
   ]
   const pick = (q) => { const r = pickDashboard(reg, q); return r.found ? r.found.key : r.ambiguous ? r.ambiguous.map((d) => d.key) : null }
-  assert.equal(pick('Frame Agent'), 'frame-agent.default', 'the owner\'s own copy before an organisation\'s')
-  assert.equal(pick('Фрейм агент'), 'frame-agent.default', 'Cyrillic sounds out the Latin name')
+  assert.equal(pick('Clip Agent'), 'clip-agent.default', 'the owner\'s own copy before an organisation\'s')
+  assert.equal(pick('Клип агент'), 'clip-agent.default', 'Cyrillic sounds out the Latin name')
   assert.equal(pick('открой аналитику'), 'analytics.default', 'not World Pulse, whose description says «Аналитик»')
   assert.equal(pick('дашборд Ники'), 'nika-agent.default', 'a filler word gives the showcase nothing')
   assert.deepEqual(pick('Shop'), ['bot-a.default', 'bot-b.default'], 'a tie is asked about')
@@ -389,22 +389,22 @@ test('DA-1, DA-5: an editor is named by its file only; a failed save answers its
     ptys: { list: () => [], get: () => null, scrollbackOf: () => null, write: () => {} }, ceoSessionId: () => null,
     projects: async () => [], admitFolder: async () => ({}), openConsole: async () => ({}), stop: async () => ({}), openWindow: () => {},
     switchboard: async () => null, signal: () => {}, record: (op, d) => records.push([op, d]), note: () => {}, sleep: async () => {},
-    windows: createWindowsPort({ main: () => mainWin, ceo: () => null, sessions: () => new Map(), files: () => new Map([['/home/u/secret/.env', win('/home/u/secret/.env', { x: 0, y: 0, width: 10, height: 10 })]]),
+    windows: createWindowsPort({ main: () => mainWin, ceo: () => null, sessions: () => new Map(), files: () => new Map([['/srv/u/secret/.env', win('/srv/u/secret/.env', { x: 0, y: 0, width: 10, height: 10 })]]),
       displays: () => [MAIN], openMain() {}, openCeo() {}, openSession() {} }),
-    layouts: { read: () => ({}), write: () => { throw Object.assign(new Error('EACCES: permission denied, open \'/home/u/data/window-layouts.json\''), { code: 'EACCES' }) } }
+    layouts: { read: () => ({}), write: () => { throw Object.assign(new Error('EACCES: permission denied, open \'/srv/u/data/window-layouts.json\''), { code: 'EACCES' }) } }
   })
   const w = await ops.run('windows', {})
   const editor = w.windows.find((x) => x.kind === 'editor')
   assert.equal(editor.file, '.env')
   assert.equal(editor.title, undefined)
-  assert.ok(!JSON.stringify(w).includes('/home/u'))
+  assert.ok(!JSON.stringify(w).includes('/srv/u'))
   const saved = await ops.run('window_layout', { save_as: 'a', reason: 'keep it' })
   assert.equal(saved.ok, false)
   assert.equal(saved.reason, 'the layout could not be kept (EACCES)')
   assert.match(JSON.stringify(records), /permission denied/)
   const port = createDashboardsPort({ services: () => [], openExternal: async () => {}, trusted: () => true, platform: 'darwin',
-    osascript: async () => { throw new Error('/Users/someone/x: execution error: Can’t get window 1. (-1719)') } })
+    osascript: async () => { throw new Error('/srv/someone/x: execution error: Can’t get window 1. (-1719)') } })
   const r = await port.place({ fullScreen: true })
-  assert.ok(!r.reason.includes('/Users/'), r.reason)
+  assert.ok(!r.reason.includes('/srv/'), r.reason)
   assert.match(r.reason, /-1719/)
 })
