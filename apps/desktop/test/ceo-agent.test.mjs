@@ -11,6 +11,7 @@ import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, 
 import { mintVoiceToken, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
 import { createVoiceKeyStore, voiceKeyShapeOk } from '../src/main/ceoVoiceKey.ts'
 import { validateSettings } from '../src/shared/appSettings.ts'
+import { currentLaunchOrigin } from '../src/main/launchOrigin.ts'
 
 const EM_DASH = String.fromCodePoint(0x2014)
 
@@ -215,6 +216,7 @@ function operations(over = {}) {
     ['s2', { sessionId: 's2', projectId: 'p1', cwd: '/d/app', optionId: 'shell', state: 'exited', running: false, startedAt: 'x', lastActivityAt: 'x', tail: '' }]
   ])
   const opened = []
+  const origins = []
   const switchboard = []
   const deps = {
     ptys: {
@@ -226,7 +228,7 @@ function operations(over = {}) {
     ceoSessionId: () => 'ceo',
     projects: async () => [{ id: 'p1', name: 'App', repo_path: '/d/app', default_agent: 'codex' }, { id: 'p2', name: 'Site', repo_path: '/d/site', default_agent: null }],
     admitFolder: async (folder) => ({ id: 'p9', name: path.basename(folder), repo_path: folder }),
-    openConsole: async (projectId, runner, task) => { opened.push([projectId, runner, task]); return { sessionId: 'new', projectId, cwd: '/d/app', optionId: runner, state: 'starting', running: true } },
+    openConsole: async (projectId, runner, task) => { opened.push([projectId, runner, task]); origins.push(currentLaunchOrigin()); return { sessionId: 'new', projectId, cwd: '/d/app', optionId: runner, state: 'starting', running: true } },
     stop: async (id, force) => { consoles.get(id).running = false; return { state: force ? 'killed' : 'stopped' } },
     openWindow: (id) => opened.push(['window', id]),
     switchboard: async (args) => {
@@ -241,9 +243,11 @@ function operations(over = {}) {
     record: (op, d) => records.push([op, d]),
     note: (kind, d) => notes.push([kind, d]),
     sleep: async () => {},
-    transcriptRoots: over.transcriptRoots ?? []
+    transcriptRoots: over.transcriptRoots ?? [],
+    ...(over.launches ? { launches: over.launches } : {}),
+    ...(over.diskSessions ? { diskSessions: over.diskSessions } : {})
   }
-  return { ops: createCeoOperations(deps), writes, records, notes, opened, switchboard, consoles }
+  return { ops: createCeoOperations(deps), writes, records, notes, opened, origins, switchboard, consoles }
 }
 
 test('sessions: the Fabric consoles and the machine\'s, the CEO marked, ended ones only when asked', async () => {
@@ -674,4 +678,61 @@ test('DA-7: an archived known CEO project gets a fresh id', async () => {
   assert.equal(await ceoProjectFor(d('archived'), '/ceo', known), '33333333-3333-4333-8333-333333333333')
   assert.deepEqual(created, ['33333333-3333-4333-8333-333333333333'])
   assert.equal(await ceoProjectFor(d('active'), '/ceo', null), '33333333-3333-4333-8333-333333333333')
+})
+
+// Board request eef5abeb: the launch journal read by the CEO, its starts written as the CEO's, and the machine's
+// sessions still seen when Switchboard does not answer.
+const launch = (over) => ({ sessionId: 's1', projectId: 'p1', cwd: '/d/app', branch: 'main', runner: 'claude-code', optionId: 'claude-code', program: 'claude',
+  by: 'person', via: 'screen', reason: null, parentSessionId: null, taskId: null, requestId: null, machine: 'mac', appPid: 1, appVersion: 'v', pid: 9,
+  startedAt: '2026-11-19T19:00:00Z', runnerSessionId: null, stopAskedBy: null, stopReason: null, endedAt: null, end: null, exitCode: null, signal: null, ...over })
+
+test('a start by the CEO is written as the CEO\'s, with its reason, its console as the parent and the door it came through', async () => {
+  const o = operations()
+  await o.ops.run('start', { project: 'App', task: 'go', reason: 'the owner asked for it' }, 'voice')
+  const origin = o.origins[0]
+  assert.deepEqual(origin, { by: 'ceo', via: 'voice', reason: 'the owner asked for it', parentSessionId: 'ceo' })
+  await o.ops.run('start', { project: 'App', reason: 'again from the console' })
+  assert.equal(o.origins[1].via, 'console', 'no door named: the console')
+})
+
+test('launches: who started what, the chain, the resume command, the open ones; refused without a journal', async () => {
+  const rows = [
+    launch({ sessionId: 'b', by: 'ceo', via: 'voice', parentSessionId: 'ceo', runnerSessionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', startedAt: '2026-11-19T19:02:00Z' }),
+    launch({ sessionId: 'old', end: 'app-quit', endedAt: '2026-11-19T19:05:00Z', startedAt: '2026-11-19T19:01:00Z' }),
+    launch({ sessionId: 'ceo', projectId: 'p0', by: 'fabric', startedAt: '2026-11-19T19:00:00Z' })
+  ]
+  const o = operations({ launches: async () => rows })
+  const r = await o.ops.run('launches', {})
+  assert.equal(r.ok, true)
+  const b = r.launches.find((l) => l.session_id === 'b')
+  assert.equal(b.launched_by, 'ceo')
+  assert.equal(b.resume, 'claude --resume aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+  assert.deepEqual(b.chain.map((c) => c.session_id), ['ceo'])
+  assert.equal(r.launches.find((l) => l.session_id === 'ceo').running_now, true)
+  assert.deepEqual((await o.ops.run('launches', { open_only: true })).launches.map((l) => l.session_id), ['b', 'ceo'])
+  assert.deepEqual((await o.ops.run('launches', { session_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' })).launches.map((l) => l.session_id), ['b'], 'found by the runner\'s own id too')
+  assert.deepEqual((await o.ops.run('launches', { project: 'App', limit: 1 })).launches.map((l) => l.session_id), ['b'])
+  assert.equal((await operations().ops.run('launches', {})).ok, false)
+})
+
+test('sessions: each console says who started it and in which branch; Switchboard unread, the machine is read from disk', async () => {
+  const disk = [
+    { pid: 501, sessionId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', cwd: '/d/site/x', name: 'site', status: 'busy', kind: 'interactive', entrypoint: 'cli', startedAt: null, updatedAt: null, config: '/h' },
+    { pid: 502, sessionId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', cwd: '/d/app', name: null, status: null, kind: null, entrypoint: null, startedAt: null, updatedAt: null, config: '/h' }
+  ]
+  const o = operations({
+    launches: async () => [launch({ runnerSessionId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', branch: 'feat/x' })],
+    diskSessions: async () => disk,
+    switchboard: async () => { throw new Error('switchboard did not answer within 10 s') }
+  })
+  const r = await o.ops.run('sessions', {})
+  const s1 = r.fabric_consoles.find((c) => c.session_id === 's1')
+  assert.equal(s1.launched_by, 'person')
+  assert.equal(s1.branch, 'feat/x')
+  assert.match(r.machine_sessions.unread, /within 10 s/, 'the reason is named, never «Command failed»')
+  assert.deepEqual(r.machine_sessions_on_disk.map((d) => d.pid), [501], 'a Fabric console\'s own Claude process is not listed twice')
+  const site = await o.ops.run('sessions', { project: 'Site' })
+  assert.deepEqual(site.machine_sessions_on_disk.map((d) => d.pid), [501])
+  const read = await operations({ diskSessions: async () => disk }).ops.run('sessions', {})
+  assert.equal(read.machine_sessions_on_disk, undefined, 'Switchboard read: its rows, not the disk')
 })

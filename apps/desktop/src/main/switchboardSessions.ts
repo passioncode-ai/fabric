@@ -123,7 +123,7 @@ export async function readLimitStops(deps: { find(): Promise<string | null>; run
 /** In the app, as `readMachineSwitchboardSessions` asks. */
 export async function readMachineLimitStops(env: Record<string, string>): Promise<ReadonlySet<string> | null> {
   const PATH = await widenProbePath(env.PATH ?? '', env)
-  return readLimitStops({ find: () => findOnPath('switchboard', PATH), run: (file, args) => runSwitchboard(file, args, env, PATH) })
+  return readLimitStops({ find: () => findOnPath('switchboard', PATH), run: (file, args) => withOneRetry((d) => runSwitchboard(file, args, env, PATH, d), SWITCHBOARD_SESSIONS_DEADLINE_MS) })
 }
 // #endregion switchboard-limit-stops
 
@@ -133,7 +133,7 @@ export async function readMachineSwitchboardSessions(env: Record<string, string>
   return readSwitchboardSessions({
     find: () => findOnPath('switchboard', PATH),
     now,
-    run: (file, args) => runSwitchboard(file, args, env, PATH)
+    run: (file, args) => withOneRetry((d) => runSwitchboard(file, args, env, PATH, d), SWITCHBOARD_SESSIONS_DEADLINE_MS)
   })
 }
 // #endregion switchboard-sessions
@@ -143,16 +143,65 @@ export async function readMachineSwitchboardSessions(env: Record<string, string>
 export async function runMachineSwitchboard(env: Record<string, string>, args: string[]): Promise<{ code: number; stdout: string; stderr: string } | null> {
   const PATH = await widenProbePath(env.PATH ?? '', env)
   const sb = await findOnPath('switchboard', PATH)
-  return sb ? runSwitchboard(sb, args, env, PATH) : null
+  if (!sb) return null
+  // Only a read is tried twice: a `sessions end` or `continue` that timed out may have acted, and acting twice is not
+  // the person's ask.
+  return readOnlySwitchboardCall(args)
+    ? withOneRetry((deadline) => runSwitchboard(sb, args, env, PATH, deadline), SWITCHBOARD_SESSIONS_DEADLINE_MS)
+    : runSwitchboard(sb, args, env, PATH)
 }
 
-/** `execFile` with a deadline and no shell. */
-function runSwitchboard(file: string, args: string[], env: Record<string, string>, PATH: string): Promise<{ code: number; stdout: string; stderr: string }> {
+/** A `switchboard --json sessions [--rows|--all|show …]` or `--json recovery` read: nothing on the machine changes. */
+export function readOnlySwitchboardCall(args: readonly string[]): boolean {
+  if (args[0] !== '--json') return false
+  if (args[1] === 'recovery') return args.length === 2
+  return args[1] === 'sessions' && args.slice(2).every((a) => a === '--rows' || a === '--all' || a === '--tree' || a === '--machine')
+}
+
+// #region switchboard-run-failure — docs: docs/evidence/specs/2026-11-19-session-launch-journal.md#5-when-switchboard-does-not-answer
+/** Switchboard's output may be large (184 KB for 445 rows, measured 2026-11-19); 16 MB keeps a busy machine readable. */
+export const SWITCHBOARD_MAX_OUTPUT = 16 * 1024 * 1024
+
+/**
+ * Why a `switchboard` call gave no exit code, in words a person reads (board request eef5abeb: the CEO saw only
+ * «Command failed: …/switchboard --json sessions --rows», `execFile`'s message for a child that was killed, which says
+ * neither the deadline nor the signal). `retry` is true for what a second try can cure: the deadline, a signal (the
+ * app's binary being replaced by its own update), an output over the buffer is not.
+ */
+export function switchboardFailure(err: unknown, deadlineMs: number): { reason: string; retry: boolean } {
+  const e = (err ?? {}) as { code?: unknown; signal?: unknown; killed?: unknown; message?: unknown }
+  const tail = typeof e.message === 'string' ? e.message.split('\n').slice(1).join(' ').trim().slice(0, 160) : ''
+  const said = (s: string): string => (tail ? `${s} (${tail})` : s)
+  if (e.code === 'ENOENT') return { reason: 'the switchboard program is not where it was found (being updated or removed)', retry: true }
+  if (e.code === 'EACCES') return { reason: 'the switchboard program may not be run (permission denied)', retry: false }
+  if (e.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER') return { reason: 'switchboard answered more than Fabric reads at once', retry: false }
+  if (e.killed === true && (e.signal === 'SIGTERM' || e.signal === null || e.signal === undefined))
+    return { reason: said(`switchboard did not answer within ${Math.round(deadlineMs / 1000)} s`), retry: true }
+  if (typeof e.signal === 'string') return { reason: said(`switchboard was ended by ${e.signal}`), retry: true }
+  return { reason: said(typeof e.message === 'string' ? e.message.split('\n')[0]!.slice(0, 200) : String(err)), retry: false }
+}
+
+/** `execFile` with a deadline and no shell. A call that gave no exit code throws an Error naming why
+ *  (`switchboardFailure`), with `retry` on it. */
+function runSwitchboard(file: string, args: string[], env: Record<string, string>, PATH: string, deadlineMs = SWITCHBOARD_SESSIONS_DEADLINE_MS): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    execFile(file, [...args], { env: { ...env, PATH }, timeout: SWITCHBOARD_SESSIONS_DEADLINE_MS, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
+    execFile(file, [...args], { env: { ...env, PATH }, timeout: deadlineMs, maxBuffer: SWITCHBOARD_MAX_OUTPUT }, (err, stdout, stderr) => {
       const exit = (err as { code?: unknown } | null)?.code
-      if (err && typeof exit !== 'number') return reject(err)
+      if (err && typeof exit !== 'number') {
+        const f = switchboardFailure(err, deadlineMs)
+        return reject(Object.assign(new Error(f.reason), { retry: f.retry }))
+      }
       resolve({ code: err ? (exit as number) : 0, stdout: String(stdout), stderr: String(stderr) })
     })
   })
 }
+
+/** One call with one more try for a failure a second try can cure, a second later and with twice the deadline. */
+export async function withOneRetry<T>(call: (deadlineMs: number) => Promise<T>, deadlineMs: number, sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))): Promise<T> {
+  try { return await call(deadlineMs) } catch (e) {
+    if (!(e as { retry?: unknown })?.retry) throw e
+    await sleep(1000)
+    return call(deadlineMs * 2)
+  }
+}
+// #endregion switchboard-run-failure

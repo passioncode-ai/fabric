@@ -22,7 +22,7 @@ import { createSharedReading } from '../shared/sharedReading'
 import { startBugCapture, type BugCapture } from './bugCapture'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
-import { launchOption, launchOptions, PtyManager, setFolderTrust, setPermissionPreference } from './pty'
+import { launchOption, launchOptions, PtyManager, setFolderTrust, setLaunchSink, setPermissionPreference } from './pty'
 import { trustFolderForClaude } from './claudeTrust.ts'
 import { classifyFailure } from '../shared/failure.ts'
 import { createPreparedLaunchInputs } from './preparedLaunchInput.ts'
@@ -201,7 +201,7 @@ import { toOperatorMarks } from './boardDispatchRun.ts'
 import { suspendedSince } from '../shared/boardDispatch.ts'
 import { createIpcOutcomeLog } from './ipcOutcome.ts'
 import { agentCounts, createAnalytics, installationPath, type Analytics } from './analytics'
-import { homedir } from 'node:os'
+import { homedir, hostname } from 'node:os'
 import { decideProposal } from './commands/proposalCommands.ts'
 import { withDeliveryHeader } from '../shared/deliveryState.ts'
 import { continuationText, routeContinuation, type ContinuationState } from '../shared/continuation.ts'
@@ -453,6 +453,10 @@ import { createContinuationDelivery, type ContinuationResult } from './continuat
 import { createPastContext } from './pastContext.ts'
 import { launchPlace } from '../shared/launchPlace.ts'
 import { createConsoleOpen } from './consoleOpen.ts'
+import { redact } from '../shared/redact.ts'
+import { claudeSessionOf, createLaunchJournal, readGitBranch, type LaunchJournal } from './sessionLaunches.ts'
+import { withLaunchOrigin } from './launchOrigin.ts'
+import { claudeConfigDirs, liveClaudeSessions } from './diskSessions.ts'
 import { createTaskStart } from './taskStart.ts'
 
 // ADR-0195 W2b: this process's data folder for every local store (settings, kept-out agents, digest marks), named
@@ -490,6 +494,8 @@ let OPERATOR_ACTOR: { kind: 'person'; id: string }
 /** ADR-0195 W2a.2: the board's memory both the window's doors and the board's own code use (`boardState.ts`). */
 const boardState = createBoardState()
 const markPersonEnded = boardState.personEnded.mark
+/** The launch journal on disk (`sessionLaunches.ts`, board request eef5abeb); set once the data folder is known. */
+let launchJournal: LaunchJournal | null = null
 const markBindingPersonEnded = boardState.personEnded.markBinding
 const markGrantPersonEnded = boardState.personEnded.markGrant
 let admission: ReturnType<typeof createProjectAdmission>
@@ -620,7 +626,8 @@ const quit = createQuitCoordinator({
   starting: () => !windowReady,
   // Quit requests scoped termination. A deadline leaves unresolved ownership
   // durable; closing the host does not manufacture a successful Stop receipt.
-  shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
+  // The launch journal's last ends are written before the surface goes (`sessionLaunches.ts#flush`).
+  shutdown: () => stopRuntime.shutdown().then(() => launchJournal?.flush()).then(() => surface?.stop()),
   // ADR-0192: while the board's service is on, the person's quit hides Fabric and the board keeps running; logout,
   // restart and shutdown (powerMonitor's 'shutdown', posted for each on macOS), a signal, «Перезапустить Fabric» and the
   // Quit of a failed start still end it (the 0.3.18 review, iteration 1: PL-3, PL-4, PL-5, ER-2, ER-4, UX-3).
@@ -1385,6 +1392,22 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   setFolderTrust((folder) => trustFolderForClaude(folder), () => trustsAgentFolders(readSettings(), process.env))
   // One permission choice for every agent this machine starts (CO-305, ADR-0168), read at each launch.
   setPermissionPreference(() => readSettings().agentPermissions)
+  // #region launch-journal-wiring — docs: docs/evidence/specs/2026-11-19-session-launch-journal.md#4-on-disk
+  launchJournal = createLaunchJournal({
+    dir: path.join(app.getPath('userData'), 'launches'),
+    machine: hostname(),
+    appVersion: app.getVersion(),
+    appPid: process.pid,
+    redact: (text) => redact(text).text,
+    readBranch: readGitBranch,
+    readRunnerSession: claudeSessionOf,
+    quitting: () => quit.quitting,
+    failed: (kind, e) => ops.failed(`launches.${kind}`, e, { note: 'the launch journal missed a line; the console runs on' })
+  })
+  setLaunchSink(launchJournal)
+  void launchJournal.prune().then((removed) => { if (removed.length) ops.record({ op: 'launches.pruned', outcome: 'ok', level: 'info', detail: { files: removed.length }, ctx: { correlationId: ops.correlate() } }) })
+  quit.onQuit(() => { launchJournal?.markQuitting(); launchJournal?.dispose() })
+  // #endregion launch-journal-wiring
   ptys = new PtyManager(journal, ACTIVE_ESTATE, {
     onData: (sessionId, data, written) => { broadcast(IPC.terminalData, sessionId, data, written); ceoAgent?.onOutput(sessionId, data) },
     onExit: async (sessionId, exitCode) => {
@@ -3433,9 +3456,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         // instead of reading the journal back (release review iteration 2, memory finding 7).
         launchTriggerBySession.set(sessionId, input.trigger)
         try {
-          const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
+          // The launch journal's origin: the person's start of a task, or a routine's, a chain's, an answer's.
+          const origin = { by: input.trigger === 'operator' ? 'person' as const : input.trigger, via: 'task' as const, ...(input.taskId ? { taskId: input.taskId } : {}) }
+          const session = await withLaunchOrigin(origin, () => ptys.open(receipt.project_id!, project.repo_path!, optionId,
             input.taskId, input.permissionMode ?? null, agent, sessionId,
-            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared, unit)
+            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared, unit))
           syncPower()
           return session
         } finally {
@@ -3881,7 +3906,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           const project = await readProject(a.project_id)
           const place = launchPlace(project.repo_path)
           const cwd = a.cwd && existsSync(a.cwd) ? a.cwd : place.place === 'repository' ? place.path : app.getPath('home')
-          const opened = await ptys.open(a.project_id, cwd, a.option_id, null, a.permission_mode)
+          const opened = await withLaunchOrigin({ by: 'person', via: 'restart' },
+            () => ptys.open(a.project_id, cwd, a.option_id, null, a.permission_mode))
           syncPower()
           return { sessionId: opened.sessionId, label: labelOf(a.option_id) }
         }
@@ -4934,7 +4960,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(
     IPC.terminalOpen,
     (_e, projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null): Promise<Returns<FabricApi['terminal']['open']>> =>
-      openConsole(projectId, optionId, firstInstruction, permissionMode)
+      withLaunchOrigin({ by: 'person', via: 'screen' }, () => openConsole(projectId, optionId, firstInstruction, permissionMode))
   )
 
   handle(IPC.terminalList, (_e, projectId?: string): Returns<FabricApi['terminal']['list']> => ptys.list(projectId))
@@ -5098,6 +5124,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const stood = consoleOf(ptys.get(sessionId))
     // PL-1: marked before the stop, so the end it causes releases the session's claims as the person's (`onSessionEnded`).
     markPersonEnded(sessionId)
+    void launchJournal?.stopAsked(sessionId, 'person')
     const result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true })
     if (stood) {
       const outcome = sessionStopOutcome(stood, result, await projectNameOf(stood.projectId))
@@ -5206,12 +5233,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return { id: row.id, name: row.name, repo_path: row.repo_path }
     },
     openConsole: (projectId, runner, task) => openConsole(projectId, runner, task, null),
-    stop: async (id, force) => { markPersonEnded(id); return stopRuntime.stop(id, 'operator_stop', { force }) },
+    stop: async (id, force) => { markPersonEnded(id); void launchJournal?.stopAsked(id, 'ceo'); return stopRuntime.stop(id, 'operator_stop', { force }) },
     openWindow: (id) => openSessionWindow(id),
     switchboard: (args) => runMachineSwitchboard(sessionEnvironment(process.env), args),
     signal: (pid) => { process.kill(pid, 'SIGTERM') },
     record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } }),
-    note: ceoNote
+    note: ceoNote,
+    launches: (q) => launchJournal ? launchJournal.read(q) : Promise.resolve([]),
+    diskSessions: async () => liveClaudeSessions(await claudeConfigDirs())
   })
   // PM chain (task ff3fe9c3): once a minute, a board request a PM agent gave the CEO (capability `ceo.task`) is typed
   // into its running console, each once.
@@ -5269,7 +5298,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console' : undefined }
     }
     if (!tool.startsWith('session_')) return { ok: false, reason: `unknown tool ${tool}` }
-    return ceoOperations!.run(tool.slice('session_'.length), args)
+    return ceoOperations!.run(tool.slice('session_'.length), args, 'voice')
   })
   // #endregion ceo-agent-wiring
 }
