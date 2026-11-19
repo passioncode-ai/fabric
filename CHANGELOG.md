@@ -16,6 +16,9 @@ others answers 403 for `openai/*` models until it is added to its workspace's BY
 the «Fabric CEO» project and `userData/ceo`; `ceoRunners` and `ceoModels` set by hand must be set again after coming
 back.
 
+- **The board dispatcher starts up to 5 agents at once** (3 before) and up to 100 runs a project a day (20 before):
+  the operator, 2026-11-19, set this computer's session limit in Switchboard to 30, 5 of them for board runs, and asked
+  for no low limits; Fabric's own bound now matches Switchboard's.
 - **Fabric has a CEO you can talk to** (ADR-0197; board tasks `a125cc0e`, `b8fc11e4`, `3fc98668`, `e7ff5556`,
   `ff3fe9c3`). «Спросить CEO» on Главная and the floating «CEO» button on every screen open the CEO's window over the
   app: its console, a composer that takes text and pasted, dropped or picked files, «Позвонить» and «Перезапустить CEO».
