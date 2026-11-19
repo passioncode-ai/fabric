@@ -35762,7 +35762,7 @@
       "registry_status": "implemented (2026-11-18, ADR-0197).",
       "product_observation": "unobserved",
       "expected_result": "the operator talks to the CEO and it acts on the sessions while they talk.",
-      "errors_recovery": "no key, a refused key or a microphone that did not open ends the call with the reason; the key itself never reaches the window.",
+      "errors_recovery": "no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 4630

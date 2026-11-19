@@ -72,6 +72,8 @@ export function createVoiceKeyStore(dir: string, safe: SafeStoragePort | null) {
       const text = body.toString('utf8')
       return text.startsWith(PLAIN) ? text.slice(PLAIN.length) : null
     } catch {
+      // Silence is right: an unreadable or undecryptable key reads as no key, so the call answers `no-key` and the
+      // window asks for the key again; logging here could only name a failure the person already sees.
       return null
     }
   }
