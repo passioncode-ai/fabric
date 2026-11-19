@@ -876,3 +876,46 @@ test('ER-9 (0.3.25): a stop during a start that leaves the opened console runnin
   assert.equal(r.reason, 'still-running')
   assert.ok(k.agent.sessionId(), 'the running console is the CEO\'s again')
 })
+
+// 0.3.25 review iteration 3, ER-10: a console-window stop of a console still opening ends, and a message is answered.
+test('ER-10 (0.3.25): a console-window stop of the console still opening does not leave a message waiting forever', async () => {
+  const k = keeper()
+  let release
+  const gate = new Promise((r) => { release = r })
+  let openedId = null
+  k.deps.open = async (projectId, cwd, runner, _route, sessionId) => {
+    openedId = sessionId
+    k.agent.personStopping(sessionId)
+    await gate
+    const s = { sessionId, projectId, cwd, optionId: runner, running: false, state: 'ended' }
+    k.consoles.set(sessionId, s)
+    return s
+  }
+  const starting = k.agent.ensure().catch(() => null)
+  await settle()
+  k.agent.onExit(openedId)
+  k.agent.personStopEnded(openedId)
+  release()
+  await starting
+  k.deps.open = async (projectId, cwd, runner, _route, sessionId) => { const s = { sessionId, projectId, cwd, optionId: runner, running: true }; k.consoles.set(sessionId, s); return s }
+  const sent = await Promise.race([k.agent.send('ты тут', []), new Promise((r) => setTimeout(() => r('hung'), 2000))])
+  assert.notEqual(sent, 'hung', 'the message is answered')
+})
+
+// ER-11: a second stop door does not release the hold the first door set.
+test('ER-11 (0.3.25): a second stop door that leaves the console running does not release the first door\'s hold', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const id = k.agent.sessionId()
+  k.tick(2_000)
+  k.agent.personStopping(id) // the console's own window
+  k.agent.personStopping(id) // History, the same moment
+  k.agent.personStopEnded(id) // History's stop returned, console still running
+  assert.equal(k.agent.status().state === 'stopped' || k.agent.status().state === 'running', true)
+  k.consoles.get(id).running = false
+  k.agent.onExit(id) // the first door's stop ends the console
+  k.agent.personStopEnded(id)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1, 'no early-end fallback')
+})

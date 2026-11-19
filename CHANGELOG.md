@@ -15,7 +15,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   «Запустить», «Перезапустить». Under the CEO's console, a call is a panel: a meter that moves with whoever speaks, the
   state («Соединяем…», «Слушаю», «Говорит»), the time out of five minutes, the price, who said what, «Сказать текстом»,
   and «CEO отвечает вслух», which turns the CEO's voice off so its answers arrive as lines (the voice that reads answers
-  and session screens on a call is the CEO). A call that ended stays in the chat, folded, with its lines; the last ten are kept on this computer. On Главная the
+  and session screens on a call is the CEO). A call that ended stays in the chat, folded, with its lines; the last ten
+  are kept on this computer. On Главная the
   CEO card is one small block at the top right beside the greeting and the rhythm; its «Позвонить» opens the CEO window
   and starts the call there. Under reduced motion the meter and the rings hold still and their colour says the state
   (`ceo/CeoPopup.tsx`, `ceo/CeoCall.tsx`; SCN-182, SCN-184). A call ends by itself after a minute in which nobody speaks
@@ -33,7 +34,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   its console's window in its first 20 seconds was read as an early end and the next agent started at once, and any later
   opening of its window started it again. «Остановить» now stops it, and it stays stopped (also when stopped from the
   console's own window, and also when pressed while the CEO is still starting) until «Запустить», «Перезапустить» or a
-  message; a stop that leaves the console running says so
+  message (for as long as Fabric runs); a stop that leaves the console running says so
   (`main/ceoAgent.ts` `stop`, `personStopping`; SCN-187).
 - **Unattended runs can mark board messages read and reply again.** Claude Code 2.1.327 leaves out of a session any
   MCP tool whose input schema has `anyOf`, `oneOf` or `allOf` at its top (the Anthropic API refuses such a tool), and

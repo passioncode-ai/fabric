@@ -423,7 +423,6 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-call-head { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 .ceo-call-state { font-weight: 600; }
 .ceo-call-meta { display: inline-flex; gap: var(--space-2); color: var(--app-muted); font-size: var(--app-fs-caption); font-variant-numeric: tabular-nums; }
-.ceo-call-hangup { margin-left: auto; }
 .ceo-meter { display: inline-flex; align-items: center; gap: 2px; height: 18px; width: 22px; flex: none; }
 .ceo-meter-bar { width: 3px; height: 100%; border-radius: 2px; background: var(--app-muted); transform: scaleY(.25); transform-origin: center; }
 .ceo-meter .ceo-meter-bar:nth-child(2), .ceo-meter .ceo-meter-bar:nth-child(4) { transform: scaleY(.4); }
@@ -454,7 +453,9 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-call-say { width: 100%; font: inherit; padding: var(--space-1) var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: var(--app-bg, transparent); color: var(--app-ink); }
 .ceo-call-history { display: flex; flex-direction: column; gap: var(--space-1); }
 .ceo-call-record { border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-1) var(--space-2); }
-.ceo-call-record summary { display: flex; justify-content: space-between; gap: var(--space-2); cursor: pointer; font-size: var(--app-fs-caption); color: var(--app-muted); }
+.ceo-call-record summary { display: flex; justify-content: space-between; gap: var(--space-2); cursor: pointer; font-size: var(--app-fs-caption); color: var(--app-muted); list-style: none; }
+.ceo-call-record summary::before { content: '\25B8'; margin-right: var(--space-1); }
+.ceo-call-record[open] summary::before { content: '\25BE'; }
 .ceo-call-record[open] .ceo-call-lines { margin-top: var(--space-2); }
 .ceo-voice-key { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); align-items: flex-end; }
 .ceo-voice-key label { display: flex; flex-direction: column; gap: 2px; flex: 1 1 160px; min-width: 0; font-size: var(--app-fs-caption); }

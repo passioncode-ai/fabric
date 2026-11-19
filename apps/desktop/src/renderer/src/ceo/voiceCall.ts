@@ -165,7 +165,8 @@ export function createCall(deps: CallDeps) {
     }
     socket.onerror = () => { if (gen === generation && phase !== 'ended') end('connection') }
     socket.onclose = () => { if (gen === generation) end() }
-    socket.onmessage = (ev) => { if (gen === generation) void receive(typeof ev.data === 'string' ? ev.data : '') }
+    // ER-12 (0.3.25): an event that cannot be played is dropped, never an unhandled rejection.
+    socket.onmessage = (ev) => { if (gen === generation) receive(typeof ev.data === 'string' ? ev.data : '').catch(() => undefined) }
   }
 
   async function receive(raw: string): Promise<void> {

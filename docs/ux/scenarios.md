@@ -4705,7 +4705,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   1. Operator presses «Остановить» -> the CEO's console stops; the head says «остановлен» and the chat «CEO остановлен. Он не запустится сам: нажмите «Запустить» или напишите ему.»
   2. Operator closes and opens the CEO window -> it is still stopped; nothing started it.
   3. Operator presses «Запустить» -> it starts on the first agent of its order (any agent set aside comes back); writing to the CEO starts it too, on the first agent not set aside.
-- **Expected result:** a stopped CEO stays stopped until the operator starts it.
+- **Expected result:** a stopped CEO stays stopped until the operator starts it, for as long as Fabric runs; a restart of Fabric starts the CEO with its window, as before.
 - **Alt paths:** «Перезапустить» stops and starts it in one press. A console stopped from its own window holds the CEO the same way. A stop that leaves the console running says «Консоль CEO не остановилась» and the CEO stays as it was.
 - **UI elements:** «Остановить» / «Запустить», «Перезапустить»; the face's ring (grey when stopped).
 - **States covered:** running, stopping, stopped, failed to stop

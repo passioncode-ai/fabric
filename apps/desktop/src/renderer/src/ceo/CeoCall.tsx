@@ -82,7 +82,10 @@ export function useVoiceCall(make: typeof createCall = createCall): VoiceCallSta
     const c = call.current
     const s = c?.spent() ?? { minutes: 0, usd: 0 }
     if (!said.current.length && s.minutes === 0) return
-    const record: CallRecord = { id: `${startedAt.current}`, at: startedAt.current, ms: Math.round(s.minutes * 60_000), usd: s.usd, lines: said.current.slice(), end }
+    // At most 40 000 characters a call are kept (DA-7, 0.3.25): ten calls stay well inside the window's storage.
+    let budget = 40_000
+    const lines = said.current.slice().reverse().filter((l) => (budget -= l.text.length) >= 0).reverse()
+    const record: CallRecord = { id: `${startedAt.current}`, at: startedAt.current, ms: Math.round(s.minutes * 60_000), usd: s.usd, lines, end }
     // Written here, not in a state updater: a call kept while the window closes is still stored (PL-9, 0.3.25).
     const next = [record, ...readKept().filter((r) => r.id !== record.id)].slice(0, KEPT_CALLS)
     try { window.localStorage.setItem(STORE, JSON.stringify(next)) } catch { /* the history is shown even when it cannot be kept */ }
@@ -189,7 +192,7 @@ export function CallPanel({ call }: { call: VoiceCallState }): React.JSX.Element
   const [said, setSaid] = useState('')
   const list = useRef<HTMLOListElement>(null)
   useEffect(() => { const el = list.current; if (el) el.scrollTop = el.scrollHeight }, [call.lines])
-  const showLive = call.active || call.why !== null
+  const showLive = call.active || call.phase === 'failed'
   if (!showLive && call.history.length === 0) return null
   const keyAsked = !call.active && (call.why === 'no-key' || call.why === 'refused')
   return (
@@ -234,6 +237,7 @@ export function CallPanel({ call }: { call: VoiceCallState }): React.JSX.Element
                 <span>{t('ceoAgent.call.record', { time: new Date(r.at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}</span>
                 <span className="ceo-call-meta">{clock(r.ms)} · ${r.usd.toFixed(2)}</span>
               </summary>
+              {(r.end === 'limit' || r.end === 'idle') && <p className="muted">{t(`ceoAgent.call.why.${r.end}`)}</p>}
               {r.lines.length > 0
                 ? <ol className="ceo-call-lines">{r.lines.map((l, i) => <CallLineItem key={i} line={l} />)}</ol>
                 : <p className="muted">{t('ceoAgent.call.recordEmpty')}</p>}
@@ -262,7 +266,8 @@ function VoiceKeyForm({ onSaved }: { onSaved: () => void }): React.JSX.Element {
   const [value, setValue] = useState('')
   const [problem, setProblem] = useState<string | null>(null)
   const save = async (): Promise<void> => {
-    const r = await window.fabric.ceoAgent.setVoiceKey(value)
+    let r: Awaited<ReturnType<typeof window.fabric.ceoAgent.setVoiceKey>>
+    try { r = await window.fabric.ceoAgent.setVoiceKey(value) } catch { r = { ok: false, reason: 'unwritable' } /* said below as «Не получилось сохранить ключ» */ }
     setValue('')
     if (r.ok) onSaved()
     else setProblem(t(`ceoAgent.voiceKey.${r.reason}` as 'ceoAgent.voiceKey.malformed'))

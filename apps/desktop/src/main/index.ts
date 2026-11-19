@@ -6,7 +6,7 @@ import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipc
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, statfsSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, statfsSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -5276,7 +5276,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const r = await voiceSample({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch, cache: {
       read: (name) => { try { return readFileSync(path.join(samples, name)) } catch { return null /* not kept yet: the sample is fetched */ } },
       // Owner-only folders (DA-3), and a whole file or none (DA-4): written beside, then renamed into place.
-      write: (name, bytes) => { mkdirSync(samples, { recursive: true, mode: 0o700 }); const tmp = path.join(samples, `.${name}.${process.pid}.tmp`); writeFileSync(tmp, bytes, { mode: 0o600 }); renameSync(tmp, path.join(samples, name)) }
+      write: (name, bytes) => {
+        mkdirSync(samples, { recursive: true, mode: 0o700 })
+        const tmp = path.join(samples, `.${name}.${randomUUID()}.tmp`)
+        try { writeFileSync(tmp, bytes, { mode: 0o600 }); renameSync(tmp, path.join(samples, name)) } finally { rmSync(tmp, { force: true }) }
+      }
     } }, typeof voice === 'string' ? voice : '', readSettings().locale)
     ops.record({ op: 'ceo.voice.sample', outcome: r.ok ? 'ok' : 'failed', level: r.ok ? 'info' : 'warn', detail: r.ok ? {} : { reason: r.reason, detail: r.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
     return r.ok ? r : { ok: false, reason: r.reason }

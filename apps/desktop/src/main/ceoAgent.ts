@@ -126,6 +126,11 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     const done = new Promise<void>((r) => { end = r })
     personStop = { done, end: () => { personStop = null; end() } }
   }
+  /** A hold another door set (the console's window, History), its console, and how many such stops are in flight
+   *  (ER-10, ER-11, 0.3.25): only the last of them settles the hold, and the popup's own stop is never released by them. */
+  let doorHold = false
+  let stopDoorId: string | null = null
+  let doors = 0
   const waitPersonStop = async (): Promise<void> => { while (personStop) await personStop.done }
   const setAside = new Map<string, { until: number; why: string }>()
   /** The person's recent lines, newest last (ER-13). */
@@ -381,6 +386,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   }
   async function stopNow(): Promise<{ ok: boolean; reason?: 'still-running'; status: CeoStatus }> {
     held = true
+    doorHold = false
     // ER-3 (0.3.25): a fallback waiting to run after this one is dropped.
     deferred = null
     changed()
@@ -407,8 +413,12 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** Another door (the console's own window, History's act) is stopping a console for the person: when it is the CEO's,
    *  the CEO is held as by `stop`, so its end starts nothing. */
   function personStopping(id: string): void {
-    if (id === '' || (id !== sessionId && !opening.has(id)) || held) return
+    if (id === '' || (id !== sessionId && !opening.has(id))) return
+    doors++
+    if (held) return
     held = true
+    doorHold = true
+    stopDoorId = id
     deferred = null
     beginPersonStop()
     deps.record('ceo.agent.held', { session_id: id, door: 'console' })
@@ -416,10 +426,15 @@ export function createCeoAgent(deps: CeoAgentDeps) {
 
   /** ER-6 (0.3.25): the other door's stop has returned; a console it left running is not held. */
   function personStopEnded(id: string): void {
-    if (id !== sessionId) return
-    if (!held || !deps.get(id)?.running) { personStop?.end(); return }
-    held = false
+    if (id === '' || (id !== sessionId && id !== stopDoorId)) return
+    if (doors > 0) doors--
+    if (doors > 0 || !doorHold) return
+    const stillRunning = held && !!deps.get(id)?.running
+    doorHold = false
+    stopDoorId = null
     personStop?.end()
+    if (!stillRunning) return
+    held = false
     deps.record('ceo.agent.hold-released', { session_id: id, why: 'still-running' })
     changed()
   }
@@ -483,6 +498,8 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   }
 
   function onExit(id: string): void {
+    // ER-10 (0.3.25): the console a door stopped while it was opening has ended: so has that stop.
+    if (held && id === stopDoorId && id !== sessionId) { if (personStop && !stopping) personStop.end(); return }
     if (id !== sessionId) return
     // The console's end is the end of the person's stop, whichever door asked for it.
     if (held) { state = 'idle'; if (personStop && !stopping) personStop.end(); changed(); return }

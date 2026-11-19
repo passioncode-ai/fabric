@@ -151,7 +151,7 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   },
   {
     component: 'CeoCall',
-    classes: ['ceo-call-button', 'ceo-icon', 'ceo-call-panel', 'ceo-call-live', 'ceo-call-head', 'ceo-call-state', 'ceo-call-meta', 'ceo-call-time', 'ceo-call-price', 'ceo-call-hangup', 'ceo-meter', 'ceo-meter-bar', 'p-connecting', 'p-listening', 'p-speaking', 'p-ended', 'p-failed', 'p-idle', 'ceo-call-lines', 'ceo-call-who', 'ceo-call-hint', 'ceo-call-say-form', 'ceo-call-say', 'ceo-call-mute', 'ceo-call-history', 'ceo-call-record', 'ceo-voice-key', 'who-person', 'who-ceo', 'who-tool'],
+    classes: ['ceo-call-button', 'ceo-icon', 'ceo-call-panel', 'ceo-call-live', 'ceo-call-head', 'ceo-call-state', 'ceo-call-meta', 'ceo-call-time', 'ceo-call-price', 'ceo-meter', 'ceo-meter-bar', 'p-connecting', 'p-listening', 'p-speaking', 'p-ended', 'p-failed', 'p-idle', 'ceo-call-lines', 'ceo-call-who', 'ceo-call-hint', 'ceo-call-say-form', 'ceo-call-say', 'ceo-call-mute', 'ceo-call-history', 'ceo-call-record', 'ceo-voice-key', 'who-person', 'who-ceo', 'who-tool'],
     purpose: 'The voice call with the CEO (SCN-184): a panel inside the CEO\'s chat (state, a live meter, time out of five minutes, price, who said what, typed words, the CEO\'s voice on or off) and the past calls kept under it; its button in the popup\'s head and on the home card.'
   },
   {
