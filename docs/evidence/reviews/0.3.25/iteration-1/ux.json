@@ -1,0 +1,98 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "91d952ded1cfe6bdd46b6ae288927471037875aa",
+  "report": "docs/evidence/reviews/0.3.25/iteration-1/2026-11-19-ux.md",
+  "reportSha256": "7d278648251b41da6e64c15875ed3120ebde69e53a7a96d156a332ff0cab602b",
+  "reviewerRun": "release-0325-i1-ux-codex-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: role=status on the state label only (CeoCall.tsx#CallPanel)"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: the listen button's name follows its state (VoicePicker.tsx); test 'Стоп: Женский'"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: native radio inputs (VoicePicker.tsx)"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: the last ten calls kept in localStorage (CeoCall.tsx#readKept); SCN-184 and CHANGELOG say so"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: a stopped CEO shows only «Запустить»; «Остановить» only running or starting (CeoPopup.tsx)"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: the tokens are defined in tokens.app.css, which ceo.tsx imports; the rings were seen in the built app (walk screenshots)"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 item 1"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 item 2"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: personStopEnded releases the hold (ceoAgent.ts); test ER-6 (0.3.25)"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: CEO_USES names ceoAgentTakeCall; voice-ready and voice-sample are MAIN_ONLY"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: the call time uses the app's locale (CeoCall.tsx#CallPanel)"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: «Остановить» works while starting; start stops what it opened when held; test ER-1 (0.3.25)"
+      ]
+    }
+  ]
+}

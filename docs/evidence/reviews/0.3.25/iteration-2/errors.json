@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "938f4b16e3a2adcb94f6ab6570ed66e81a56c79a",
+  "report": "docs/evidence/reviews/0.3.25/iteration-2/2026-11-19-errors.md",
+  "reportSha256": "b63a3b09f24ab3adb724ce3834229b7ea2f8612d0cd24c9c1f2291d2c4398ca1",
+  "reviewerRun": "release-0325-i2-errors-codex-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: one person-stop marker that send and a person's restart wait for (ceoAgent.ts beginPersonStop, waitPersonStop); test ER-7 (0.3.25), red before the fix"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: the console-window door begins the same marker; the console's end or personStopEnded ends it; test ER-8 (0.3.25), red before the fix"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: a console the stop could not end during a start stays the CEO's and the stop answers still-running; test ER-9 (0.3.25), red before the fix"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: the sample's context is installed only after start and closed on every failure (VoicePicker.tsx#listen)"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: personStopEnded in a finally on both other doors (index.ts)"
+      ]
+    }
+  ]
+}

@@ -28,8 +28,8 @@ export function VoicePicker({ style, value, onChange, canSample, labelledBy }: {
   style: PersonaStyle
   value: VoiceGender | undefined
   onChange(next: VoiceGender): void
-  /** A sample needs an xAI key; without one the choice is still kept for the first call. */
-  canSample: boolean
+  /** A sample needs an xAI key; without one the choice is still kept for the first call. Null while it is asked. */
+  canSample: boolean | null
   labelledBy?: string
 }): React.JSX.Element {
   const t = useT()
@@ -66,12 +66,12 @@ export function VoicePicker({ style, value, onChange, canSample, labelledBy }: {
       node.buffer = buffer
       node.connect(ctx.destination)
       node.onended = () => { if (playing.current?.node === node) { silence(); setHearing(null) } }
-      playing.current = { ctx, node }
       node.start()
+      playing.current = { ctx, node }
       setHearing({ voice, state: 'playing' })
     } catch {
       // ER-4 (0.3.25): a sample that does not decode or start closes its context.
-      if (ctx && playing.current?.ctx !== ctx) void ctx.close().catch(() => undefined)
+      if (ctx) void ctx.close().catch(() => undefined)
       if (gen === generation.current) setHearing({ voice, state: 'failed', reason: 'unavailable' })
     }
   }
@@ -105,7 +105,7 @@ export function VoicePicker({ style, value, onChange, canSample, labelledBy }: {
         })}
       </div>
       {hearing?.state === 'failed' && <p className="field-problem" role="status">{t(`ceoAgent.voice.sampleFailed.${hearing.reason === 'no-key' || hearing.reason === 'refused' ? hearing.reason : 'other'}` as 'ceoAgent.voice.sampleFailed.other')}</p>}
-      <small className="ceo-voice-hint">{t(canSample ? 'ceoAgent.voice.hint' : 'ceoAgent.voice.hintNoKey')}</small>
+      <small className="ceo-voice-hint">{t(canSample === false ? 'ceoAgent.voice.hintNoKey' : 'ceoAgent.voice.hint')}</small>
     </div>
   )
 }

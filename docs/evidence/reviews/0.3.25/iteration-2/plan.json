@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "938f4b16e3a2adcb94f6ab6570ed66e81a56c79a",
+  "report": "docs/evidence/reviews/0.3.25/iteration-2/2026-11-19-plan.md",
+  "reportSha256": "b84b69b88dcbbe319188fecebe87088215bc18fc8edc01c7260ed45772e06a53",
+  "reviewerRun": "release-0325-i2-plan-codex-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-3",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: personaRead is allowed to the CEO window (ipcWindowPolicy.ts, CEO_USES in ipc-window-policy.test.mjs); the handler's voice is xaiVoiceOf(persona().persona), xaiVoiceOf tested in persona.test.ts; setDraft spreads the draft, so voice is kept; the chosen face showed in the built app's CEO window"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: CeoPopup's composerTools names its render site, ceo.tsx; the other session wires its button there"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: an ended call shows its reason only; its lines live in the history"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: the kept call is written outside the state updater (CeoCall.tsx useVoiceCall keep)"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 item 5"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: test 'the kept calls' (CeoPopup.test.tsx) for readKept"
+      ]
+    },
+    {
+      "id": "PL-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 item 6"
+      ]
+    }
+  ]
+}

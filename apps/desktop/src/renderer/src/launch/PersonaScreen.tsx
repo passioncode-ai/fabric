@@ -85,7 +85,7 @@ export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Ele
             ))}
           </div>
           <p className="lp-kicker" id="persona-voice">{t('ceoAgent.voice.label')}</p>
-          <VoicePicker style={draft.style} value={draft.voice} onChange={(voice) => setDraft({ ...draft, voice })} canSample={voiceReady === true} labelledBy="persona-voice" />
+          <VoicePicker style={draft.style} value={draft.voice} onChange={(voice) => setDraft({ ...draft, voice })} canSample={voiceReady} labelledBy="persona-voice" />
           <p className="lp-meta">{t('launch.persona.local')}</p>
           <div className="lp-divider" />
           {said && !said.ok && <div className="lp-callout" role="alert"><p>{t('launch.persona.notSaved', { reason: said.reason ?? '' })}</p></div>}

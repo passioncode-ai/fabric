@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "91d952ded1cfe6bdd46b6ae288927471037875aa",
+  "report": "docs/evidence/reviews/0.3.25/iteration-1/2026-11-19-data.md",
+  "reportSha256": "3fc507837daf3e710ce07cfb49e2571425def4f04e49f121ea87c5170f5b9da7",
+  "reviewerRun": "release-0325-i1-data-codex-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: kept records validated one by one (CeoCall.tsx#readKept)"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: CEO_USES names ceoAgentTakeCall; ipc-window-policy 16 of 16"
+      ]
+    }
+  ]
+}

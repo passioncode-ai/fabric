@@ -6,7 +6,7 @@ import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipc
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, mkdirSync, readFileSync, realpathSync, statfsSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, statfsSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -3871,8 +3871,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         stop: async (sessionId) => {
           markPersonEnded(sessionId) // PL-1 run two: History's act stops it for the person
           ceoAgent?.personStopping(sessionId)
-          const r = await stopRuntime.stop(sessionId, 'operator_stop')
-          ceoAgent?.personStopEnded(sessionId)
+          let r: Awaited<ReturnType<typeof stopRuntime.stop>>
+          try { r = await stopRuntime.stop(sessionId, 'operator_stop') } finally { ceoAgent?.personStopEnded(sessionId) }
           return { sessionId, state: r.state, reasonCode: r.reasonCode, ...(r.taskId ? { taskId: r.taskId } : {}) }
         },
         snapshot: (id) => { const s = ptys.get(id); return s?.running ? consoleOf(s) : null },
@@ -5105,8 +5105,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     markPersonEnded(sessionId)
     // The CEO's console stopped from its own window stays stopped (the owner, 2026-11-19), never read as an early end.
     ceoAgent?.personStopping(sessionId)
-    const result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true })
-    ceoAgent?.personStopEnded(sessionId)
+    // ER-6 (0.3.25): the CEO's hold is settled however the stop ends.
+    let result: Awaited<ReturnType<typeof stopRuntime.stop>>
+    try { result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true }) } finally { ceoAgent?.personStopEnded(sessionId) }
     if (stood) {
       const outcome = sessionStopOutcome(stood, result, await projectNameOf(stood.projectId))
       if (outcome) await acts.note(outcome)
@@ -5274,7 +5275,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.ceoAgentVoiceSample, async (_e, voice: unknown): Promise<Returns<FabricApi['ceoAgent']['voiceSample']>> => {
     const r = await voiceSample({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch, cache: {
       read: (name) => { try { return readFileSync(path.join(samples, name)) } catch { return null /* not kept yet: the sample is fetched */ } },
-      write: (name, bytes) => { mkdirSync(samples, { recursive: true }); writeFileSync(path.join(samples, name), bytes, { mode: 0o600 }) }
+      // Owner-only folders (DA-3), and a whole file or none (DA-4): written beside, then renamed into place.
+      write: (name, bytes) => { mkdirSync(samples, { recursive: true, mode: 0o700 }); const tmp = path.join(samples, `.${name}.${process.pid}.tmp`); writeFileSync(tmp, bytes, { mode: 0o600 }); renameSync(tmp, path.join(samples, name)) }
     } }, typeof voice === 'string' ? voice : '', readSettings().locale)
     ops.record({ op: 'ceo.voice.sample', outcome: r.ok ? 'ok' : 'failed', level: r.ok ? 'info' : 'warn', detail: r.ok ? {} : { reason: r.reason, detail: r.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
     return r.ok ? r : { ok: false, reason: r.reason }

@@ -23,7 +23,7 @@ export interface CallRecord { id: string; at: number; ms: number; usd: number; l
 export const KEPT_CALLS = 10
 const STORE = 'fabric.ceo.calls'
 const MUTED = 'fabric.ceo.voiceMuted'
-function readMuted(): boolean { try { return localStorage.getItem(MUTED) === '1' } catch { return false } }
+function readMuted(): boolean { try { return window.localStorage.getItem(MUTED) === '1' } catch { return false } }
 
 const isLine = (l: unknown): l is CallLine => !!l && typeof l === 'object' && ['person', 'ceo', 'tool'].includes((l as CallLine).who) && typeof (l as CallLine).text === 'string'
 const isRecord = (r: unknown): r is CallRecord => {
@@ -34,7 +34,7 @@ const isRecord = (r: unknown): r is CallRecord => {
 /** The kept calls; a record that does not read (DA-1, 0.3.25) is dropped, never a broken window. */
 export function readKept(): CallRecord[] {
   try {
-    const v = JSON.parse(localStorage.getItem(STORE) ?? '[]') as unknown
+    const v = JSON.parse(window.localStorage.getItem(STORE) ?? '[]') as unknown
     return Array.isArray(v) ? v.filter(isRecord).slice(0, KEPT_CALLS) : []
   } catch { return [] /* an unreadable store is an empty history, never a broken window */ }
 }
@@ -83,11 +83,10 @@ export function useVoiceCall(make: typeof createCall = createCall): VoiceCallSta
     const s = c?.spent() ?? { minutes: 0, usd: 0 }
     if (!said.current.length && s.minutes === 0) return
     const record: CallRecord = { id: `${startedAt.current}`, at: startedAt.current, ms: Math.round(s.minutes * 60_000), usd: s.usd, lines: said.current.slice(), end }
-    setHistory((prev) => {
-      const next = [record, ...prev.filter((r) => r.id !== record.id)].slice(0, KEPT_CALLS)
-      try { localStorage.setItem(STORE, JSON.stringify(next)) } catch { /* the history is shown even when it cannot be kept */ }
-      return next
-    })
+    // Written here, not in a state updater: a call kept while the window closes is still stored (PL-9, 0.3.25).
+    const next = [record, ...readKept().filter((r) => r.id !== record.id)].slice(0, KEPT_CALLS)
+    try { window.localStorage.setItem(STORE, JSON.stringify(next)) } catch { /* the history is shown even when it cannot be kept */ }
+    setHistory(next)
   }, [])
 
   const start = useCallback(() => {
@@ -107,7 +106,7 @@ export function useVoiceCall(make: typeof createCall = createCall): VoiceCallSta
         if (problem) setWhy(problem)
         if (p === 'ended' || p === 'failed') { if (call.current) setSpent(call.current.spent()); keep(problem ?? null) }
       },
-      onLine: (line) => { said.current = [...said.current, line].slice(-200); setLines(said.current) }
+      onLine: (line) => { said.current = [...said.current, { ...line, text: line.text.slice(0, 2000) }].slice(-200); setLines(said.current) }
     })
     void call.current.start()
   }, [keep, make])
@@ -122,7 +121,7 @@ export function useVoiceCall(make: typeof createCall = createCall): VoiceCallSta
     setMuted: (on) => {
       mutedRef.current = on
       setMutedState(on)
-      try { localStorage.setItem(MUTED, on ? '1' : '0') } catch { /* kept for this call only */ }
+      try { window.localStorage.setItem(MUTED, on ? '1' : '0') } catch { /* kept for this call only */ }
       call.current?.mute(on)
     }
   }
@@ -190,9 +189,8 @@ export function CallPanel({ call }: { call: VoiceCallState }): React.JSX.Element
   const [said, setSaid] = useState('')
   const list = useRef<HTMLOListElement>(null)
   useEffect(() => { const el = list.current; if (el) el.scrollTop = el.scrollHeight }, [call.lines])
-  const live = call.phase !== 'idle'
-  if (!live && call.history.length === 0) return null
   const showLive = call.active || call.why !== null
+  if (!showLive && call.history.length === 0) return null
   const keyAsked = !call.active && (call.why === 'no-key' || call.why === 'refused')
   return (
     <section className="ceo-call-panel" aria-label={t('ceoAgent.call.panel')}>
@@ -207,7 +205,6 @@ export function CallPanel({ call }: { call: VoiceCallState }): React.JSX.Element
                 <span className="ceo-call-price">{t('ceoAgent.call.price', { usd: call.spent.usd.toFixed(2) })}</span>
               </span>
             )}
-            {call.active && <button type="button" className="btn btn-quiet ceo-call-hangup" onClick={call.hangUp}>{t('ceoAgent.hangUp')}</button>}
           </div>
           <label className="ceo-call-mute">
             <input type="checkbox" checked={!call.muted} onChange={(e) => call.setMuted(!e.target.checked)} />
@@ -216,7 +213,7 @@ export function CallPanel({ call }: { call: VoiceCallState }): React.JSX.Element
           </label>
           {call.why && <p className={call.phase === 'failed' ? 'field-problem' : 'muted'}>{t(`ceoAgent.call.why.${call.why}` as 'ceoAgent.call.why.no-key')}</p>}
           {keyAsked && <VoiceKeyForm onSaved={call.reset} />}
-          {(call.active || call.lines.length > 0) && (
+          {call.active && (
             <ol ref={list} className="ceo-call-lines" aria-live="polite">
               {call.lines.length === 0 && call.active && <li className="ceo-call-hint muted">{t(call.phase === 'connecting' ? 'ceoAgent.call.hintConnecting' : 'ceoAgent.call.hintSpeak')}</li>}
               {call.lines.map((l, i) => <CallLineItem key={i} line={l} />)}

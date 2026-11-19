@@ -4597,10 +4597,10 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   3. The CEO answers in its console, in the language of Fabric's interface (Russian or English, `shared/ceoAgent.ts#ceoBrief`).
 - **Expected result:** anything the operator can type or show reaches the CEO from the first screen.
 - **Alt paths:** Shift+Enter breaks the line instead of sending; a file over 25 MB is not attached and the composer says so; more than ten files keep the first ten.
-- **UI elements:** the home card (title with the hint on hover, «Позвонить», a two-line box, «Приложить файл», «Отправить»); the popup's composer; attachment chips.
+- **UI elements:** the home card (title with the hint on hover, «Позвонить», which opens the CEO window and starts the call there (SCN-184), a two-line box, «Приложить файл», «Отправить»); the popup's composer; attachment chips.
 - **States covered:** idle, sending, sent, refused
 - **Errors & recovery:** a message the CEO did not take («Сообщение не дошло до CEO.» with the reason) keeps the words in the box to send again.
-- **Design rationale:** the operator, 2026-11-18 (paraphrased): a chat on the home screen where anything can be sent, text or a picture, that opens the CEO's popup over the screen. The review of 2026-11-19 (paraphrased): the header as it was, and the chat with the call as one small block at the top right, beside the header and the statistics; files pasted with ⌘V.
+- **Design rationale:** the operator, 2026-11-18 (paraphrased): a chat on the home screen where anything can be sent, text or a picture, that opens the CEO's popup over the screen. The review of 2026-11-19 (paraphrased): the header as it was, and the chat with the call as one small block at the top right, beside the header and the statistics; files pasted with ⌘V. The owner, later the same day: the live call is a panel in the CEO's chat, so the card's «Позвонить» opens it there.
 - **Telemetry:** none.
 - **Status:** implemented (2026-11-18, ADR-0197).
 - **Coverage:** `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx#CeoComposer`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/main/ceoAgent.ts` (`send`, the inbox), `apps/desktop/src/shared/ceoAgent.ts#ceoLine`; tests `apps/desktop/src/renderer/src/ceo/CeoComposer.test.tsx`, `apps/desktop/test/ceo-agent.test.mjs` («attachments land in the inbox»).
@@ -4649,7 +4649,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Design rationale:** the operator, 2026-11-18 (paraphrased): a voice call through the xAI API, first just working, a voice of his choosing later. The review of 2026-11-19 (paraphrased): the call is managed from the home card too; the owner the same day: the live call is a panel inside the CEO's chat, and its history stays in the chat; a minute with nobody speaking hangs up, a call lasts five minutes at most and is then called again.
 - **Telemetry:** ops log `ceo.voice.*`.
 - **Status:** implemented (2026-11-18, ADR-0197).
-- **Coverage:** `apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#useVoiceCall`, `#CallPanel`, `#VoiceMeter`, `#CallLauncher`, `#readKept`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`, `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.
+- **Coverage:** `apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#useVoiceCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#CallPanel`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#VoiceMeter`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#CallLauncher`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#readKept`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`, `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.
 - **Product:** unobserved
 
 ### SCN-185: The CEO keeps answering when its first agent cannot
@@ -4692,7 +4692,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Design rationale:** the owner, 2026-11-19: «Голос: по умолчанию мужской, но в настройках должен быть выбор мужской/женский, в зависимости от выбранного персонажа. На этапе анбординга, если он подключён, сразу добавить выбор голоса.» Gender is measured from xAI's samples (`docs/architecture/external-contracts.md#xai-voices`).
 - **Telemetry:** ops log `ceo.voice.sample`.
 - **Status:** implemented (2026-11-19).
-- **Coverage:** `apps/desktop/src/shared/persona.ts#xaiVoiceOf`, `#voiceGenderOf`, `#validatePersona`, `apps/desktop/src/renderer/src/ceo/VoicePicker.tsx#VoicePicker`, `apps/desktop/src/renderer/src/launch/PersonaScreen.tsx#PersonaScreen`, `apps/desktop/src/renderer/src/start/FirstRun.tsx#PersonaStep`, `apps/desktop/src/main/ceoVoice.ts#voiceSample`; tests `apps/desktop/src/shared/persona.test.ts`, `apps/desktop/src/renderer/src/ceo/VoicePicker.test.tsx`, `apps/desktop/test/ceo-agent.test.mjs` («a voice sample»).
+- **Coverage:** `apps/desktop/src/shared/persona.ts#xaiVoiceOf`, `apps/desktop/src/shared/persona.ts#voiceGenderOf`, `apps/desktop/src/shared/persona.ts#validatePersona`, `apps/desktop/src/renderer/src/ceo/VoicePicker.tsx#VoicePicker`, `apps/desktop/src/renderer/src/launch/PersonaScreen.tsx#PersonaScreen`, `apps/desktop/src/renderer/src/start/FirstRun.tsx#PersonaStep`, `apps/desktop/src/main/ceoVoice.ts#voiceSample`; tests `apps/desktop/src/shared/persona.test.ts`, `apps/desktop/src/renderer/src/ceo/VoicePicker.test.tsx`, `apps/desktop/test/ceo-agent.test.mjs` («a voice sample»).
 - **Product:** unobserved
 
 ### SCN-187: Stop the CEO, and start it again

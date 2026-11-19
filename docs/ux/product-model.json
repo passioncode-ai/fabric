@@ -35763,7 +35763,7 @@
       "screen_refs": [
         "SCR-64"
       ],
-      "coverage": "`apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#useVoiceCall`, `#CallPanel`, `#VoiceMeter`, `#CallLauncher`, tests `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.",
+      "coverage": "`apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#useVoiceCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#CallPanel`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#VoiceMeter`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#CallLauncher`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#readKept`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`, `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.",
       "registry_status": "implemented (2026-11-18, ADR-0197).",
       "product_observation": "unobserved",
       "expected_result": "the operator talks to the CEO and it acts on the sessions while they talk, and reads back what was said.",
@@ -35798,7 +35798,7 @@
         "SCR-36",
         "SCR-64"
       ],
-      "coverage": "`apps/desktop/src/shared/persona.ts#xaiVoiceOf`, `apps/desktop/src/renderer/src/ceo/VoicePicker.tsx#VoicePicker`, `apps/desktop/src/main/ceoVoice.ts#voiceSample`; tests `apps/desktop/src/shared/persona.test.ts`, `apps/desktop/src/renderer/src/ceo/VoicePicker.test.tsx`, `apps/desktop/test/ceo-agent.test.mjs` («a voice sample»).",
+      "coverage": "`apps/desktop/src/shared/persona.ts#xaiVoiceOf`, `apps/desktop/src/shared/persona.ts#voiceGenderOf`, `apps/desktop/src/shared/persona.ts#validatePersona`, `apps/desktop/src/renderer/src/ceo/VoicePicker.tsx#VoicePicker`, `apps/desktop/src/renderer/src/launch/PersonaScreen.tsx#PersonaScreen`, `apps/desktop/src/renderer/src/start/FirstRun.tsx#PersonaStep`, `apps/desktop/src/main/ceoVoice.ts#voiceSample`; tests `apps/desktop/src/shared/persona.test.ts`, `apps/desktop/src/renderer/src/ceo/VoicePicker.test.tsx`, `apps/desktop/test/ceo-agent.test.mjs` («a voice sample»).",
       "registry_status": "implemented (2026-11-19).",
       "product_observation": "unobserved",
       "expected_result": "the CEO speaks in the voice the operator chose, male unless they chose otherwise.",
@@ -35817,7 +35817,7 @@
       "screen_refs": [
         "SCR-64"
       ],
-      "coverage": "`apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `onExit`, `ensure`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.",
+      "coverage": "`apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `personStopEnded`, `onExit`, `ensure`, `send`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP», «ER-1 (0.3.25)», «ER-2 (0.3.25)», «ER-3 (0.3.25)», «ER-6 (0.3.25)»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.",
       "registry_status": "implemented (2026-11-19).",
       "product_observation": "unobserved",
       "expected_result": "a stopped CEO stays stopped until the operator starts it.",

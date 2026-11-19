@@ -117,6 +117,16 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** The person stopped the CEO (the owner, 2026-11-19): its console's end is not an early end, and nothing starts it
    *  again (no fallback, no popup opening) until the person starts it, restarts it or writes to it. */
   let held = false
+  /** The person's stop under way, from any door (ER-7, ER-8, 0.3.25): a message or a restart waits for it to end, so the
+   *  stop's exit is read as the person's and the stop never undoes what the person asked after it. */
+  let personStop: { done: Promise<void>; end: () => void } | null = null
+  const beginPersonStop = (): void => {
+    if (personStop) return
+    let end!: () => void
+    const done = new Promise<void>((r) => { end = r })
+    personStop = { done, end: () => { personStop = null; end() } }
+  }
+  const waitPersonStop = async (): Promise<void> => { while (personStop) await personStop.done }
   const setAside = new Map<string, { until: number; why: string }>()
   /** The person's recent lines, newest last (ER-13). */
   const sent: SentLine[] = []
@@ -217,8 +227,8 @@ export function createCeoAgent(deps: CeoAgentDeps) {
         const done = stopConsole(session.sessionId)
         stopping = done
         try { await done } finally { if (stopping === done) stopping = null }
-        state = 'idle'
-        return finish()
+        // ER-9 (0.3.25): a console the stop could not end stays the CEO's, so the stop says still-running.
+        if (!deps.get(session.sessionId)?.running) { state = 'idle'; return finish() }
       }
       sessionId = session.sessionId
       heard = ''
@@ -302,6 +312,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     const seq = fallbacks
     // Writing to a stopped CEO is the person asking it back, once its stop has ended (ER-2, 0.3.25): the stop's exit is
     // read as the person's, never as an early end that sets the runner aside.
+    await waitPersonStop()
     if (stopping) await stopping.catch(() => undefined /* recorded by stopConsole */)
     held = false
     const s = await ensure()
@@ -341,7 +352,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
 
   /** Stop the console and start another. A person's restart (or retry) also brings back every runner set aside (UX-4). */
   async function restart(why = 'restart'): Promise<CeoStatus> {
-    if (why === 'person') { setAside.clear(); held = false }
+    if (why === 'person') { await waitPersonStop(); setAside.clear(); held = false }
     if (held) return status()
     const id = sessionId
     // ER-3: the console is no longer the CEO's before its stop is awaited, so its exit is never read as an early end.
@@ -364,6 +375,11 @@ export function createCeoAgent(deps: CeoAgentDeps) {
    *  any console is, its end is read as the person's, and the CEO stays stopped until the person starts it. A stop that
    *  leaves the console running answers `still-running`, and the CEO is not held. */
   async function stop(): Promise<{ ok: boolean; reason?: 'still-running'; status: CeoStatus }> {
+    await waitPersonStop()
+    beginPersonStop()
+    try { return await stopNow() } finally { personStop?.end() }
+  }
+  async function stopNow(): Promise<{ ok: boolean; reason?: 'still-running'; status: CeoStatus }> {
     held = true
     // ER-3 (0.3.25): a fallback waiting to run after this one is dropped.
     deferred = null
@@ -371,7 +387,6 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     // ER-1 (0.3.25): a start in flight sees the hold and stops what it opened; the stop answers once it has.
     if (starting) await starting.catch(() => undefined /* a failed start opened nothing to stop */)
     if (pendingFallback) await pendingFallback.catch(() => undefined /* a failed fallback opened nothing to stop */)
-    held = true
     const id = sessionId
     if (id && deps.get(id)?.running) {
       const done = stopConsole(id)
@@ -395,13 +410,16 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     if (id === '' || (id !== sessionId && !opening.has(id)) || held) return
     held = true
     deferred = null
+    beginPersonStop()
     deps.record('ceo.agent.held', { session_id: id, door: 'console' })
   }
 
   /** ER-6 (0.3.25): the other door's stop has returned; a console it left running is not held. */
   function personStopEnded(id: string): void {
-    if (!held || id !== sessionId || !deps.get(id)?.running) return
+    if (id !== sessionId) return
+    if (!held || !deps.get(id)?.running) { personStop?.end(); return }
     held = false
+    personStop?.end()
     deps.record('ceo.agent.hold-released', { session_id: id, why: 'still-running' })
     changed()
   }
@@ -466,7 +484,9 @@ export function createCeoAgent(deps: CeoAgentDeps) {
 
   function onExit(id: string): void {
     if (id !== sessionId) return
-    if (held) { state = 'idle'; changed(); return }
+    // The console's end is the end of the person's stop, whichever door asked for it.
+    if (held) { state = 'idle'; if (personStop && !stopping) personStop.end(); changed(); return }
+
     if (now() - startedAt < EARLY_END_MS) {
       startFallback('ended-at-start')
       return

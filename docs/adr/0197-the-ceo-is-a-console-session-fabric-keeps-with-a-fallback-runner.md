@@ -141,7 +141,7 @@ The operator's review of the home screen (2026-11-19, paraphrased): the header a
 one small block at the top right; a call that hears nobody for a minute hangs up, and a call lasts five minutes at most,
 then is called again. So decision 5's bounds change: `MAX_CALL_MS` is 5 minutes and `IDLE_CALL_MS` one minute
 (`apps/desktop/src/renderer/src/ceo/voiceCall.ts`), each still ending the call with its reason said («прошло 5 минут»,
-«минуту никто не говорил»). The call's controls were then one component (`CeoCall.tsx`, its `VoiceCall` of that day, replaced by
+«минуту никто не говорил»). The call's controls were then one component (in `CeoCall.tsx`, the call component of that day, replaced by
 amendment 2), shown in the popup's head as before and in place on the home card (`CeoComposer.tsx`, SCN-182, SCN-184), with the call's time out of five minutes.
 Nothing else in this record changes.
 

@@ -819,3 +819,60 @@ test('ER-6 (0.3.25): a console-window stop that fails releases the hold', async 
   k.agent.personStopEnded(id)
   assert.equal(k.agent.status().state, 'running')
 })
+
+// 0.3.25 review iteration 2, ER-7: a message while stop() still waits for a start in flight is answered after the stop.
+test('ER-7 (0.3.25): a message sent while the stop waits for a start revives the CEO after the stop', async () => {
+  const k = keeper()
+  let release
+  const gate = new Promise((r) => { release = r })
+  const open = k.deps.open
+  k.deps.open = async (...a) => { await gate; return open(...a) }
+  const starting = k.agent.ensure()
+  await settle()
+  const stopping = k.agent.stop()
+  await settle()
+  const sending = k.agent.send('вернись', [])
+  release()
+  await starting
+  await stopping
+  const sent = await sending
+  assert.equal(sent.ok, true)
+  assert.equal(k.agent.status().state, 'running', 'the message, sent after the stop was pressed, starts it again')
+})
+
+// ER-8: a message during a console-window stop waits for that stop; its exit is the person's.
+test('ER-8 (0.3.25): a message during a console-window stop does not set the runner aside', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const id = k.agent.sessionId()
+  k.tick(2_000)
+  k.agent.personStopping(id)
+  const sending = k.agent.send('ещё раз', [])
+  await settle()
+  k.consoles.get(id).running = false
+  k.agent.onExit(id)
+  k.agent.personStopEnded(id)
+  const sent = await sending
+  assert.equal(sent.ok, true)
+  assert.deepEqual(k.agent.status().setAside, [])
+  assert.equal(k.agent.status().runner, 'claude-code')
+})
+
+// ER-9: a stop during a start that cannot stop the opened console says so and keeps it tracked.
+test('ER-9 (0.3.25): a stop during a start that leaves the opened console running answers still-running', async () => {
+  const k = keeper()
+  k.deps.stop = async () => {}
+  let release
+  const gate = new Promise((r) => { release = r })
+  const open = k.deps.open
+  k.deps.open = async (...a) => { await gate; return open(...a) }
+  const starting = k.agent.ensure()
+  await settle()
+  const stopping = k.agent.stop()
+  release()
+  await starting
+  const r = await stopping
+  assert.equal(r.ok, false)
+  assert.equal(r.reason, 'still-running')
+  assert.ok(k.agent.sessionId(), 'the running console is the CEO\'s again')
+})

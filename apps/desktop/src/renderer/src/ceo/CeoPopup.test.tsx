@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { CeoPopup } from './CeoPopup'
-import { CallPanel, type VoiceCallState } from './CeoCall'
+import { CallButton, CallPanel, type VoiceCallState } from './CeoCall'
 import { I18nProvider } from '../i18n'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
@@ -74,8 +74,7 @@ describe('the call panel in the chat', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Сказать текстом' }), { target: { value: 'и что дальше' } })
     fireEvent.submit(screen.getByRole('textbox', { name: 'Сказать текстом' }))
     expect(call.say).toHaveBeenCalledWith('и что дальше')
-    fireEvent.click(screen.getByRole('button', { name: 'Положить трубку' }))
-    expect(call.hangUp).toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: 'Положить трубку' }), 'one hang-up: the head\'s (UX-13)').toBeNull()
   })
 
   it('the CEO\'s voice can be turned off, and the switch says what that voice is', () => {
@@ -91,5 +90,35 @@ describe('the call panel in the chat', () => {
     render(<I18nProvider locale="ru"><CallPanel call={call} /></I18nProvider>)
     expect(screen.getByText(/2:31 · \$0.20/)).toBeTruthy()
     expect(screen.getByText('Готово.')).toBeTruthy()
+  })
+})
+
+describe('the kept calls', () => {
+  it('a record that does not read is dropped, the rest are kept (DA-1, PL-11)', async () => {
+    const { readKept } = await import('./CeoCall')
+    // Node's own experimental localStorage hides jsdom's here: a store of the test's own.
+    const kept = new Map<string, string>()
+    Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: (k: string) => kept.get(k) ?? null, setItem: (k: string, v: string) => { kept.set(k, v) }, removeItem: (k: string) => { kept.delete(k) } } })
+    window.localStorage.setItem('fabric.ceo.calls', JSON.stringify([
+      { id: '1', at: 1, ms: 1000, usd: 0.01, end: null, lines: [{ who: 'ceo', text: 'ok' }] },
+      null, { id: 2 }, { id: '3', at: 1, ms: 1, usd: 0, end: null, lines: [{ who: 'robot', text: 'x' }] }
+    ]))
+    expect(readKept().map((r) => r.id)).toEqual(['1'])
+    window.localStorage.setItem('fabric.ceo.calls', '{not json')
+    expect(readKept()).toEqual([])
+    window.localStorage.removeItem('fabric.ceo.calls')
+  })
+})
+
+describe('the call button', () => {
+  it('hangs up while a call runs, and calls otherwise', () => {
+    const call = callState()
+    const { rerender } = render(<I18nProvider locale="ru"><CallButton call={call} /></I18nProvider>)
+    fireEvent.click(screen.getByRole('button', { name: 'Положить трубку' }))
+    expect(call.hangUp).toHaveBeenCalled()
+    const idle = callState({ phase: 'idle', active: false })
+    rerender(<I18nProvider locale="ru"><CallButton call={idle} /></I18nProvider>)
+    fireEvent.click(screen.getByRole('button', { name: 'Позвонить' }))
+    expect(idle.start).toHaveBeenCalled()
   })
 })

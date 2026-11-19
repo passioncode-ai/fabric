@@ -10,7 +10,7 @@ import { claudeModelFlag, type CeoStatus } from '../../../shared/ceoAgent.ts'
 import type { TerminalSession } from '../../../shared/types'
 import { TerminalView } from '../TerminalView'
 import { Banner } from '../components'
-import { useT } from '../i18n'
+import { useLocale, useT } from '../i18n'
 import { runnerLabel } from '../runnerLabel'
 import { CeoComposer } from './CeoComposer'
 import { CallButton, CallPanel, useVoiceCall } from './CeoCall'
@@ -24,8 +24,11 @@ function modelOf(status: CeoStatus): string {
   return status.runner === 'claude-code' ? claudeModelFlag(status.models) : (status.models[0] ?? '').replace(/^[^/]+\//, '')
 }
 
+/** `composerTools`: controls another feature adds to the composer's row (the screen recording of fabric-screen-notes);
+ *  its render site is `ceo.tsx`. */
 export function CeoPopup({ composerTools }: { composerTools?: React.ReactNode } = {}): React.JSX.Element {
   const t = useT()
+  const locale = useLocale()
   const name = useFabricName(t('ceoAgent.title'))
   const call = useVoiceCall()
   const [status, setStatus] = useState<CeoStatus | null>(null)
@@ -98,7 +101,7 @@ export function CeoPopup({ composerTools }: { composerTools?: React.ReactNode } 
         </div>
         <div className="ceo-popup-head-actions">
           <CallButton call={call} />
-          {stopped
+          {stopped && state !== 'stopped'
             ? <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void restart()}>{t('ceoAgent.start')}</button>
             : (state === 'running' || state === 'starting') && <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void stop()}>{t(busy === 'stop' ? 'ceoAgent.stopping' : 'ceoAgent.stop')}</button>}
           {!stopped && (
@@ -111,15 +114,15 @@ export function CeoPopup({ composerTools }: { composerTools?: React.ReactNode } 
       {status && (status.passedOver.length > 0 || status.setAside.length > 0) && (
         <ul className="ceo-popup-notes muted">
           {status.passedOver.map((p) => <li key={`p-${p.runner}`}>{t('ceoAgent.passedOver', { runner: runnerLabel(p.runner, t), why: why(p.result) })}</li>)}
-          {status.setAside.map((p) => <li key={`a-${p.runner}`}>{t('ceoAgent.setAside', { runner: runnerLabel(p.runner, t), time: new Date(p.until).toLocaleTimeString(), why: why(p.why) })}</li>)}
+          {status.setAside.map((p) => <li key={`a-${p.runner}`}>{t('ceoAgent.setAside', { runner: runnerLabel(p.runner, t), time: new Date(p.until).toLocaleTimeString(locale), why: why(p.why) })}</li>)}
         </ul>
       )}
       {problem !== null && <Banner tone="warn">{problem}</Banner>}
       <main className="ceo-popup-chat">
         <div className="ceo-popup-console">
           {state === 'stopped' ? (
-            <div className="ceo-popup-stopped" role="status">
-              <p>{t('ceoAgent.stopped')}</p>
+            <div className="ceo-popup-stopped">
+              <p role="status">{t('ceoAgent.stopped')}</p>
               <button type="button" className="btn" disabled={busy !== null} onClick={() => void restart()}>{t('ceoAgent.start')}</button>
             </div>
           ) : session ? <TerminalView key={session.sessionId} session={session} focusOnMount={false} />

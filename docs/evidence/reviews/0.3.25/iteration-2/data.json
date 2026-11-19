@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "938f4b16e3a2adcb94f6ab6570ed66e81a56c79a",
+  "report": "docs/evidence/reviews/0.3.25/iteration-2/2026-11-19-data.md",
+  "reportSha256": "57c4cee5937fe91834cedb2c1ff12c25d2b5b9f8b6e51b4d5633303ee1594c3d",
+  "reviewerRun": "release-0325-i2-data-codex-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: the sample folders are created 0700 (index.ts voiceSample handler)"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: a sample is written beside and renamed into place"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 item 5 (a way to clear kept calls); each kept line is now cut at 2000 characters"
+      ]
+    }
+  ]
+}
