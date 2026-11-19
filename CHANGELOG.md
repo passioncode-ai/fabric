@@ -7,6 +7,17 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **Unattended runs can mark board messages read and reply again.** Claude Code 2.1.327 leaves out of a session any
+  MCP tool whose input schema has `anyOf`, `oneOf` or `allOf` at its top (the Anthropic API refuses such a tool), and
+  `com.read_ack` and `com.reply` published their forms that way. On the Mac Studio a run the board dispatcher started
+  for an unread message listed every `com.*` tool but those two, could not mark the message it handled read, ended
+  blocked, and the dispatcher started it again (Dissy's and studio-agent's questions of 2026-11-17 and 2026-11-18).
+  Both now publish one flat object schema declaring every form's properties; which forms are allowed stays in their
+  descriptions, and the board service still refuses any other (`boardTools.ts#publishedBoardSchema`; test
+  `board-tool-schemas.test.mjs`, no tool on a session or a board session publishes a combinator at its top).
+
 ## 0.3.24
 
 **Upgrading.** No schema step from 0.3.23 (schema 102, no migration). The CEO needs, on each Mac: the microphone

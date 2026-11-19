@@ -87,4 +87,22 @@ test('the board stays the validator: a forged field and a string where the contr
   })
   assert.equal(calls.filter((c) => c.fn === 'board_submit').length, 0, 'a forged submission reached the board')
 })
+// The Anthropic API refuses a tool whose input_schema has oneOf, anyOf or allOf at its top, and Claude Code 2.1.327
+// leaves such a tool out of the session without a word (measured 2026-11-19 on the Studio: an unattended run listed
+// every com.* tool but com.read_ack and com.reply, so it could not mark the message it handled read and the dispatcher
+// started it again and again). No tool Fabric serves may publish a combinator at the top of its input schema.
+const TOP_COMBINATORS = ['anyOf', 'oneOf', 'allOf', 'not', 'if', 'then', 'else']
+test('no tool on a session or a board session publishes a combinator at the top of its input schema', async () => {
+  for (const s of [scope, { ...scope, surface: 'board', cameIn: 'hub', bindingId: 'binding-b' }]) {
+    const { surface } = surfaceWith()
+    await linked(surface.serverFor(s), async (client) => {
+      const tools = (await client.listTools()).tools
+      assert.ok(tools.some((t) => t.name === 'com.reply'), `${s.surface}: com.reply is not listed`)
+      for (const t of tools) {
+        const top = TOP_COMBINATORS.filter((k) => k in (t.inputSchema ?? {}))
+        assert.deepEqual(top, [], `${s.surface}: ${t.name} publishes ${top.join(', ')} at the top of its input schema`)
+      }
+    })
+  }
+})
 // #endregion board-tool-schemas

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-19 · `FABRIC-FLAT-SCHEMAS` · fix/flat-board-schemas → main · fast-forward
+- files: `apps/desktop/src/main/boardTools.ts`, `apps/desktop/test/board-tool-schemas.test.mjs`, CHANGELOG, the design map
+- conflicts: none
+- summary: `com.read_ack` and `com.reply` publish flat input schemas, so Claude Code 2.1.327 keeps them in unattended board runs (Mac Studio, 2026-11-19)
+
 ### 2026-11-19 · `FABRIC-0324` · feat/ceo-agent → main · fast-forward
 - files: `apps/desktop/src/main/{ceoAgent,ceoTools,ceoVoice,ceoVoiceKey}.ts`, the CEO wiring in `main/index.ts`, `apps/desktop/src/shared/{ceoAgent,acts,boardDispatch,ipcWindowPolicy}.ts`, `renderer/src/ceo/*`, `launch/actWords.ts`, both locales, tests (`ceo-agent`, `acts`, `ipc-window-policy`, `mac-entitlements`, `voiceCall`, `actWords`), the release entitlements, ADR-0197, AGENTS.md LC-09 rows, `docs/launch/ceo-setup.md`, SCN-182 to SCN-184, CO-597, the product report and previews, the 0.3.24 review receipts and ledger, `docs/launch/release-gate.json`, the version, CHANGELOG `## 0.3.24`
 - conflicts: none

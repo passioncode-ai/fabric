@@ -47,18 +47,25 @@ export const BOARD_TOOL_INPUT: Readonly<Record<CommsOperation, z.ZodType>> = {
   'com.directory': commsDirectoryArgsSchema
 }
 
+/** What a published schema never carries at its top: the Anthropic API refuses a tool whose input_schema has
+ *  oneOf, anyOf or allOf there, and Claude Code 2.1.327 drops such a tool from the session without a word (the
+ *  Studio's unattended runs, 2026-11-19: no com.read_ack and no com.reply). */
+const TOP_COMBINATORS = ['anyOf', 'oneOf', 'allOf', 'not', 'if', 'then', 'else'] as const
+
 /** A shape as tools/list publishes it. MCP requires an object schema at the top, and a client types each
  *  argument by the top-level properties, so a union of object forms (com.reply: a participant's or a
- *  responder's) is published as one object declaring every form's properties — required only where all forms
- *  require them — with the forms themselves as its anyOf. */
+ *  responder's; com.read_ack: one message, many, or a thread up to one) is published as one object declaring
+ *  every form's properties — required only where all forms require them — and no combinator at its top. Which
+ *  forms are allowed is the tool's description; the board service, the one validator, refuses any other. */
 export function publishedBoardSchema(shape: z.ZodType): Record<string, unknown> {
   const json = z.toJSONSchema(shape, { io: 'input', target: 'draft-2020-12', unrepresentable: 'any' }) as Record<string, unknown>
-  if (json.type === 'object') return json
-  const forms = (json.anyOf ?? []) as Array<{ type?: string; properties?: Record<string, unknown>; required?: string[] }>
-  if (forms.length === 0 || forms.some((f) => f.type !== 'object')) return { ...json, type: 'object' }
-  const properties = Object.assign({}, ...forms.map((f) => f.properties ?? {})) as Record<string, unknown>
+  const flat = (o: Record<string, unknown>): Record<string, unknown> =>
+    Object.fromEntries(Object.entries(o).filter(([k]) => !(TOP_COMBINATORS as readonly string[]).includes(k)))
+  const forms = (json.anyOf ?? json.oneOf ?? []) as Array<{ type?: string; properties?: Record<string, unknown>; required?: string[] }>
+  if (forms.length === 0 || forms.some((f) => f.type !== 'object')) return { ...flat(json), type: 'object' }
+  const properties = Object.assign({}, ...forms.map((f) => f.properties ?? {}), json.properties ?? {}) as Record<string, unknown>
   const required = Object.keys(properties).filter((k) => forms.every((f) => (f.required ?? []).includes(k)))
-  return { ...json, type: 'object', properties, ...(required.length ? { required } : {}), additionalProperties: false }
+  return { ...flat(json), type: 'object', properties, ...(required.length ? { required } : {}), additionalProperties: false }
 }
 
 // Open for the SDK's validation, typed for tools/list: zod merges a schema's metadata into its JSON Schema.
