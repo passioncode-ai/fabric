@@ -15,8 +15,8 @@ export function CeoButton({ onError }: { onError: (message: string) => void }): 
   const [state, setState] = useState<CeoState | null>(null)
   useEffect(() => {
     let live = true
-    window.fabric.ceoAgent.status?.().then((s) => { if (live) setState(s.state) }, () => { /* no status: the ring stays neutral */ })
-    const off = window.fabric.ceoAgent.onChanged?.((s) => setState(s.state))
+    window.fabric.ceoAgent?.status?.().then((s) => { if (live) setState(s.state) }, () => { /* no status: the ring stays neutral */ })
+    const off = window.fabric.ceoAgent?.onChanged?.((s) => setState(s.state))
     return () => { live = false; off?.() }
   }, [])
   const label = state ? `${t('ceoAgent.floating')} (${t(`ceoAgent.state.${state}` as 'ceoAgent.state.running')})` : t('ceoAgent.floating')
