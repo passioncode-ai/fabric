@@ -39,7 +39,7 @@ back.
   kept encrypted on the computer, with Observatory's vault slot as the fallback. Every failure says what to do in the
   person's language. The key stays in the main process, the window gets a
   five-minute secret; the CEO window's own page alone may reach `wss://api.x.ai`, and only it gets the microphone. The
-  call shows its minutes and price; the same session tools run while you talk, and a longer request goes to the console.
+  call shows its minutes and price and ends by itself after three minutes of silence or 30 minutes; the same session tools run while you talk, and a longer request goes to the console.
   macOS asks once for the microphone (the app now carries the audio-input entitlement and its usage sentence).
 - **PM agents can give the CEO work**: a board request to «Fabric CEO» with capability `ceo.task` is typed into the
   CEO's console once a minute while it runs. To claim and answer it the CEO takes its project's responder slot at
