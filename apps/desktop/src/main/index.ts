@@ -590,6 +590,7 @@ async function openLink(url: string, dropped = 0): Promise<void> {
       return (data ?? []) as Array<{ id: string; name: string }>
     },
     remotes: async (projectId) => (await projectReposWithRemotes(projectId)).map((r) => r.remote),
+    folders: async (projectId) => (await projectReposWithRemotes(projectId)).map((r) => r.path),
     services: () => (linkRegistry?.snapshot().entries ?? [])
       .filter((e) => e.kind === 'service')
       .map((e) => ({ key: e.key, id: e.id, repository: e.repository })),

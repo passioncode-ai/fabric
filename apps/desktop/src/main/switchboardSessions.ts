@@ -14,7 +14,9 @@ import { mergeSessions, type SbSessionRecord } from '../shared/vendor/dashboards
 import type { SwitchboardSessions } from '../shared/switchboardSessions.ts'
 export type { SwitchboardSessions }
 
-export const SWITCHBOARD_SESSIONS_DEADLINE_MS = 10_000
+/** 30 s (Switchboard's measure of 2026-11-19, board thread 3ca40854: under a load average of 120 its slow answers took
+ *  28 s at the median, so 10 s killed calls that would have answered). */
+export const SWITCHBOARD_SESSIONS_DEADLINE_MS = 30_000
 
 type Run = (file: string, args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>
 
@@ -196,12 +198,13 @@ function runSwitchboard(file: string, args: string[], env: Record<string, string
   })
 }
 
-/** One call with one more try for a failure a second try can cure, a second later and with twice the deadline. */
+/** One call with one more try, a second later and with the same deadline, for a failure a second try can cure
+ *  (Switchboard's advice, board thread 3ca40854: 30 s and one retry; it joins concurrent calls itself, SB-580). */
 export async function withOneRetry<T>(call: (deadlineMs: number) => Promise<T>, deadlineMs: number, sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))): Promise<T> {
   try { return await call(deadlineMs) } catch (e) {
     if (!(e as { retry?: unknown })?.retry) throw e
     await sleep(1000)
-    return call(deadlineMs * 2)
+    return call(deadlineMs)
   }
 }
 // #endregion switchboard-run-failure

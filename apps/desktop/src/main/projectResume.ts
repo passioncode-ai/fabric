@@ -7,7 +7,7 @@
  * the person's home and every Switchboard home, for the project's folder, its worktrees and every folder the launch
  * journal saw it in. A transcript with no turn of the person's (a console opened and closed) is not a session to go on.
  */
-import { execFile } from 'node:child_process'
+import { gitRun } from './gitRun.ts'
 import { open, readdir, stat } from 'node:fs/promises'
 import path from 'node:path'
 
@@ -57,24 +57,22 @@ export async function lastSessionOf(folders: readonly string[], configs: readonl
   return null
 }
 
-/** The worktrees of a repository (`git worktree list --porcelain`, 3 s, no shell); the folder alone on any failure. */
-export function gitWorktrees(repo: string): Promise<string[]> {
-  return new Promise((resolve) => {
-    execFile('git', ['-C', repo, 'worktree', 'list', '--porcelain'], { timeout: 3000, killSignal: 'SIGKILL', windowsHide: true, maxBuffer: 1024 * 1024 },
-      (err, stdout) => resolve(err ? [repo] : [repo, ...String(stdout).split('\n').filter((l) => l.startsWith('worktree ')).map((l) => l.slice(9).trim()).filter(Boolean)]))
-  })
+/** The worktrees of a repository (`git worktree list --porcelain` through the hardened runner, 3 s); the folder alone
+ *  on any failure. */
+export async function gitWorktrees(repoPath: string): Promise<string[]> {
+  try {
+    const out = await gitRun(repoPath, ['worktree', 'list', '--porcelain'], { timeoutMs: 3000, killSignal: 'SIGKILL' })
+    return [repoPath, ...out.split('\n').filter((l) => l.startsWith('worktree ')).map((l) => l.slice(9).trim()).filter(Boolean)]
+  } catch { return [repoPath] /* not a repository, or git did not answer: the folder alone is looked in */ }
 }
 
 /** The repository a folder belongs to, by git's common directory (a worktree's is its main checkout's `.git`); null
  *  outside a repository. */
-export function gitMainFolder(folder: string): Promise<string | null> {
-  return new Promise((resolve) => {
-    execFile('git', ['-C', folder, 'rev-parse', '--path-format=absolute', '--git-common-dir'], { timeout: 3000, killSignal: 'SIGKILL', windowsHide: true, maxBuffer: 64 * 1024 },
-      (err, stdout) => {
-        const common = err ? '' : String(stdout).trim()
-        resolve(common && path.basename(common) === '.git' ? path.dirname(common) : null)
-      })
-  })
+export async function gitMainFolder(repoPath: string): Promise<string | null> {
+  try {
+    const common = (await gitRun(repoPath, ['rev-parse', '--path-format=absolute', '--git-common-dir'], { timeoutMs: 3000, killSignal: 'SIGKILL' })).trim()
+    return common && path.basename(common) === '.git' ? path.dirname(common) : null
+  } catch { return null /* not a repository: no project by its main checkout */ }
 }
 
 /** The project whose folder holds this one: the longest repository folder that is it or above it, else the project of

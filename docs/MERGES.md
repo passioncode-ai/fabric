@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-19 · `FABRIC-LAUNCH-JOURNAL` · feat/session-launch-journal → main · fast-forward
+- files: `apps/desktop/src/{shared,main}/sessionLaunches.ts`, `main/{launchOrigin,diskSessions,machineSessions,projectResume}.ts`, `main/{pty,ceoTools,switchboardSessions,index}.ts`, `renderer/src/launch/{LaunchShell,SessionLaunch,MachineSessions,AgentsScreen}.tsx`, IPC and preload, both locales, CSS, tests, SCN-166, the spec, CHANGELOG, the design map
+- conflicts: none
+- summary: the launch journal on disk read by the CEO; Switchboard failures named and a read retried; a press on an agent opens its console; «новая / последняя» on each project; sessions outside Fabric read, continued in Fabric and closed (board request eef5abeb)
+
 ### 2026-11-19 · `FABRIC-HOME-CEO` · fix/home-ceo-panel → main · fast-forward
 - files: `apps/desktop/src/renderer/src/ceo/{CeoCall,CeoComposer,CeoPopup,voiceCall}.ts(x)`, `EstateHome.tsx`, `styles.css`, `launch/launch.css`, the component registry, both locales, tests, SCN-182 and SCN-184, ADR-0197 amendment 1, CHANGELOG, the product model, the design map
 - conflicts: none

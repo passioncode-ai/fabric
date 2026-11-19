@@ -52,9 +52,7 @@ export function SessionLaunch({ sessionId, canClose }: { sessionId: string; canC
           </dd></div>
           {l.parentSessionId && (
             <div><dt>{t('sessionLaunch.parent')}</dt><dd>
-              <span className="rail-branch-word" title={l.parentSessionId}>
-                {l.by === 'ceo' ? t('sessionLaunch.parentCeo', { id: l.parentSessionId.slice(0, 8) }) : l.parentSessionId.slice(0, 8)}
-              </span>
+              <span>{l.by === 'ceo' ? t('sessionLaunch.parentCeo') : t('sessionLaunch.parentOther')}</span>
             </dd></div>
           )}
           {l.branch && <div><dt>{t('sessionLaunch.branch')}</dt><dd><span className="rail-branch-word" title={l.cwd}>{l.branch}</span></dd></div>}

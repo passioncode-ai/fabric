@@ -6,7 +6,7 @@
  * said once per kind in the operations log and never stops a console. What it never holds: an argument list, an
  * environment, a token. The reason a caller gave is redacted and cut to 1 000 characters.
  */
-import { execFile } from 'node:child_process'
+import { gitRun } from './gitRun.ts'
 import { mkdir, appendFile, readdir, readFile, rm, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import path from 'node:path'
@@ -149,7 +149,7 @@ export function createLaunchJournal(deps: LaunchJournalDeps) {
             const l = raw.trim() ? parseLaunchLine(raw) : null
             if (l) lines.push(l)
           }
-        } catch (e) { failed('read', e) }
+        } catch (e) { failed('read', e) /* said once in the operations log (`failed`); the other months still read */ }
       }
       let all = foldLaunches(lines)
       if (q.sessionId) all = all.filter((l) => l.sessionId === q.sessionId || l.runnerSessionId === q.sessionId)
@@ -167,7 +167,7 @@ export function createLaunchJournal(deps: LaunchJournalDeps) {
       for (const name of names) {
         const m = FILE.exec(name)
         if (!m || m[1]! >= oldest) continue
-        try { await rm(path.join(deps.dir, name)); removed.push(name) } catch (e) { failed('prune', e) }
+        try { await rm(path.join(deps.dir, name)); removed.push(name) } catch (e) { failed('prune', e) /* said once in the operations log (`failed`); the next start tries again */ }
       }
       return removed
     },
@@ -179,12 +179,10 @@ export function createLaunchJournal(deps: LaunchJournalDeps) {
 }
 export type LaunchJournal = ReturnType<typeof createLaunchJournal>
 
-/** A folder's branch: `git rev-parse --abbrev-ref HEAD`, 2 s, no shell; null outside a repository or on any failure. */
-export function readGitBranch(cwd: string): Promise<string | null> {
-  return new Promise((resolve) => {
-    execFile('git', ['-C', cwd, 'rev-parse', '--abbrev-ref', 'HEAD'], { timeout: 2000, killSignal: 'SIGKILL', windowsHide: true, maxBuffer: 64 * 1024 },
-      (err, stdout) => resolve(err ? null : String(stdout).trim().slice(0, 200) || null))
-  })
+/** A folder's branch, through the hardened git runner (`gitRun.ts`), 2 s; null outside a repository or on any failure. */
+export async function readGitBranch(repoPath: string): Promise<string | null> {
+  try { return (await gitRun(repoPath, ['rev-parse', '--abbrev-ref', 'HEAD'], { timeoutMs: 2000, killSignal: 'SIGKILL' })).trim().slice(0, 200) || null }
+  catch { return null /* not a repository, or git did not answer: the launch is written without a branch */ }
 }
 
 /**

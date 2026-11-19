@@ -12,7 +12,7 @@ const id = (n) => `${String(n).repeat(8)}-aaaa-4aaa-8aaa-aaaaaaaaaaaa`
 const USER = JSON.stringify({ type: 'user', message: { role: 'user', content: 'go' } }) + '\n'
 
 test("Claude Code's folder slug: every character but a letter or digit is «-»", () => {
-  assert.equal(claudeSlug('/Users/sshlg/DATA/_worktrees/fabric-ceo.x'), '-Users-sshlg-DATA--worktrees-fabric-ceo-x')
+  assert.equal(claudeSlug('/Users/example/DATA/_worktrees/fabric-ceo.x'), '-Users-example-DATA--worktrees-fabric-ceo-x')
 })
 
 test('the last session of a project: the newest not running, with a turn of the person, across homes and folders', async () => {

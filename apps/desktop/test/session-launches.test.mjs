@@ -168,7 +168,7 @@ test('a switchboard call killed by its deadline or a signal is named, never «Co
   assert.match(switchboardFailure({ signal: 'SIGKILL', killed: false, message: 'Command failed: x' }, 1).reason, /ended by SIGKILL/)
 })
 
-test('only a read is tried twice, a second later with twice the deadline; an act is never repeated', async () => {
+test('only a read is tried twice, a second later with the same deadline; an act is never repeated', async () => {
   assert.equal(readOnlySwitchboardCall(['--json', 'sessions', '--rows']), true)
   assert.equal(readOnlySwitchboardCall(['--json', 'recovery']), true)
   assert.equal(readOnlySwitchboardCall(['sessions', 'end', 'l1']), false)
@@ -177,7 +177,7 @@ test('only a read is tried twice, a second later with twice the deadline; an act
   const slept = []
   const ok = await withOneRetry(async (d) => { deadlines.push(d); if (deadlines.length === 1) throw Object.assign(new Error('late'), { retry: true }); return 'rows' }, 10_000, async (ms) => { slept.push(ms) })
   assert.equal(ok, 'rows')
-  assert.deepEqual(deadlines, [10_000, 20_000])
+  assert.deepEqual(deadlines, [10_000, 10_000])
   assert.deepEqual(slept, [1000])
   let calls = 0
   await assert.rejects(withOneRetry(async () => { calls++; throw new Error('exit 2') }, 10, async () => {}), /exit 2/)
