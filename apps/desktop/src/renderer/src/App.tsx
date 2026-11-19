@@ -41,6 +41,7 @@ import { BoardScreen } from './launch/BoardScreen'
 import { GraphScreen } from './launch/GraphScreen'
 import { CommsScreen } from './launch/CommsScreen'
 import { PersonaProvider } from './launch/persona'
+import { CeoButton } from './ceo/CeoButton'
 import { PlanScreen } from './launch/PlanScreen'
 import { PulseScreen } from './launch/PulseScreen'
 import { ReleasesScreen } from './launch/ReleasesScreen'
@@ -1442,10 +1443,7 @@ function Shell({
         )}
         {chatOpen && <CeoChat key={chatSuggestion ?? 'chat'} suggestion={chatSuggestion} onClose={() => setPanel((p) => closePanel(p, 'chat'))} projects={projects} />}
         {/* ADR-0197, SCN-110: the floating button over every screen of the main window opens the CEO's popup. */}
-        <button type="button" className="ceo-floating" title={t('ceoAgent.floating')} aria-label={t('ceoAgent.floating')}
-          onClick={() => window.fabric.ceoAgent.open(null).catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))}>
-          {t('ceoAgent.title')}
-        </button>
+        <CeoButton onError={setError} />
         {historyOpen && <PrivateHistoryPanel onClose={() => setPanel((p) => closePanel(p, 'history'))} />}
         {accessOpen && <AgentAccessPanel onClose={() => setPanel((p) => closePanel(p, 'access'))} />}
       </div>

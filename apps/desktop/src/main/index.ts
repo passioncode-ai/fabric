@@ -538,6 +538,8 @@ let ceoOperations: CeoOperations | null = null
 let ceoWindow: BrowserWindow | null = null
 /** A draft the popup takes when it opens (Help's example, the home composer's words not yet sent). */
 let ceoDraft: string | null = null
+/** The home card asked for a call; the popup starts it and takes the ask once (SCN-184). */
+let ceoCallWanted = false
 const ceoVault = createObservatoryVault()
 
 // #region fabric-link-handler — docs: docs/ux/scenarios.md#scn-142-open-fabric-from-a-products-button-in-that-products-project-and-go-on-in-a-coding-agent
@@ -5236,14 +5238,17 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       : []))
   handle(IPC.ceoAgentRestart, (): Promise<Returns<FabricApi['ceoAgent']['restart']>> => agent.restart('person'))
   handle(IPC.ceoAgentStop, (): Promise<Returns<FabricApi['ceoAgent']['stop']>> => agent.stop())
-  handle(IPC.ceoAgentOpen, (_e, draft: unknown): Returns<FabricApi['ceoAgent']['open']> => {
+  handle(IPC.ceoAgentOpen, (_e, draft: unknown, options: unknown): Returns<FabricApi['ceoAgent']['open']> => {
     ceoDraft = typeof draft === 'string' && draft.trim() ? draft.slice(0, 8000) : ceoDraft
+    // The home card's «Позвонить» (SCN-184): the call runs in the popup, beside the chat; the popup takes the ask once.
+    if (options && typeof options === 'object' && (options as { call?: unknown }).call === true) ceoCallWanted = true
     openCeoWindow()
-    if (ceoDraft) broadcast(IPC.ceoAgentDraft)
+    if (ceoDraft || ceoCallWanted) broadcast(IPC.ceoAgentDraft)
     // The console starts with the window: by the time the person has typed, it is up.
     void agent.ensure()
   })
   handle(IPC.ceoAgentTakeDraft, (): Returns<FabricApi['ceoAgent']['takeDraft']> => { const d = ceoDraft; ceoDraft = null; return d })
+  handle(IPC.ceoAgentTakeCall, (): Returns<FabricApi['ceoAgent']['takeCall']> => { const c = ceoCallWanted; ceoCallWanted = false; return c })
   handle(IPC.ceoAgentVoice, async (): Promise<Returns<FabricApi['ceoAgent']['voice']>> => {
     const token = await mintVoiceToken({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch })
     ops.record({ op: 'ceo.voice.token', outcome: token.ok ? 'ok' : 'failed', level: token.ok ? 'info' : 'warn', detail: token.ok ? {} : { reason: token.reason, detail: token.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
@@ -5315,7 +5320,8 @@ function openCeoWindow(): void {
     ...(bounds ? { x: Math.max(bounds.x, bounds.x + bounds.width - width - 24), y: Math.max(bounds.y, bounds.y + bounds.height - height - 24) } : {}),
     ...(parent ? { parent } : {}),
     title: 'CEO',
-    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('ceo')] }
+    // A call the home card started plays its first answer before any click in this window (SCN-184).
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('ceo')], autoplayPolicy: 'no-user-gesture-required' }
   })
   ceoWindow = w
   const contentsId = w.webContents.id

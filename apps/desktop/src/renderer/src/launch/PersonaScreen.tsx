@@ -8,6 +8,7 @@ import { useT } from '../i18n'
 import { FabricAvatar } from './FabricAvatar'
 import { usePersona } from './persona'
 import { ProfileSection } from '../ProfileSection'
+import { VoicePicker, useVoiceReady } from '../ceo/VoicePicker'
 
 export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Element {
   const t = useT()
@@ -17,6 +18,7 @@ export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Ele
   const [busy, setBusy] = useState(false)
   const [said, setSaid] = useState<{ ok: boolean; reason?: string } | null>(null)
   const variants = variantsOf(generation)
+  const voiceReady = useVoiceReady()
 
   const [name, setName] = useState(persona.name ?? '')
   const tooLong = name.trim().length > PERSONA_NAME_MAX
@@ -25,7 +27,7 @@ export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Ele
     setSaid(null)
     try {
       const n = personaName(name)
-      const r = await save(n ? { seed: draft.seed, style: draft.style, name: n } : { seed: draft.seed, style: draft.style })
+      const r = await save({ seed: draft.seed, style: draft.style, ...(n ? { name: n } : {}), ...(draft.voice ? { voice: draft.voice } : {}) })
       setSaid(r.saved ? { ok: true } : { ok: false, reason: r.reason })
       if (r.saved) onDone()
     } catch (e) {
@@ -82,6 +84,8 @@ export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Ele
               </button>
             ))}
           </div>
+          <p className="lp-kicker" id="persona-voice">{t('ceoAgent.voice.label')}</p>
+          <VoicePicker style={draft.style} value={draft.voice} onChange={(voice) => setDraft({ ...draft, voice })} canSample={voiceReady === true} labelledBy="persona-voice" />
           <p className="lp-meta">{t('launch.persona.local')}</p>
           <div className="lp-divider" />
           {said && !said.ok && <div className="lp-callout" role="alert"><p>{t('launch.persona.notSaved', { reason: said.reason ?? '' })}</p></div>}

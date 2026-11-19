@@ -263,6 +263,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   ceoAgentSend: MAIN_AND_CEO,
   ceoAgentRestart: MAIN_AND_CEO,
   ceoAgentStop: MAIN_AND_CEO,
+  ceoAgentTakeCall: MAIN_AND_CEO,
   ceoAgentOpen: MAIN_AND_CEO,
   ceoAgentTakeDraft: MAIN_AND_CEO,
   ceoAgentVoice: CEO_ONLY,

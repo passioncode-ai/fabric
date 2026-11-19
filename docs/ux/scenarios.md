@@ -189,6 +189,8 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-183 | The CEO manages the sessions of this computer | Floating CEO | P-01 | ST-037, FLW-63, SCR-64 | implemented | unobserved |
 | SCN-184 | Call the CEO and talk | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
 | SCN-185 | The CEO keeps answering when its first agent cannot | Floating CEO | P-01 | ST-046, FLW-63 | implemented | unobserved |
+| SCN-186 | Choose the CEO's voice | Floating CEO | P-01 | ST-046, SCR-36, SCR-64 | implemented | unobserved |
+| SCN-187 | Stop the CEO, and start it again | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -2882,7 +2884,7 @@ Source: the approved [design](../evidence/specs/2026-09-29-agent-registry-design
 - **Persona:** P-01
 - **Feature:** Floating CEO
 - **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
-- **Entry point:** the floating «CEO» button at the bottom right of every screen of the main window; Help's examples; the Guide's «Поговорить с Fabric».
+- **Entry point:** the floating CEO button at the bottom right of every screen of the main window (the character's face with a ring for the CEO's state, and the word «CEO»; 2026-11-19); Help's examples; the Guide's «Поговорить с Fabric».
 - **Preconditions:** Fabric is open.
 - **Steps:**
   1. Operator presses the floating button -> a window opens over the app: its head says the CEO's state and the coding agent it runs on, its body is the CEO's own console, its foot a composer.
@@ -4631,23 +4633,23 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Persona:** P-01
 - **Feature:** Floating CEO
 - **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
-- **Entry point:** «Позвонить» in the CEO window's head, or in the CEO card on Главная, where the call's state, time and lines show in place.
+- **Entry point:** «Позвонить» in the CEO window's head, or in the CEO card on Главная, which opens the CEO window and starts the call there (2026-11-19: the call is a panel inside the CEO's chat, not a block in the card).
 - **Preconditions:** the person's own xAI key is set (pasted in the CEO window, or dropped by a coding agent, `docs/launch/ceo-setup.md`), else the key is in Observatory's vault; the computer has a microphone; macOS has let Fabric use it.
 - **Steps:**
-  1. Operator presses «Позвонить» -> «Соединяем…», then «Слушаю»; the call's time out of five minutes («1:24 из 5:00») and price show beside it.
+  1. Operator presses «Позвонить» -> a call panel opens inside the chat, under the CEO's console: «Соединяем…», then «Слушаю»; a meter moves with the operator's voice, and the call's time out of five minutes («1:24 из 5:00») and price show beside it.
   2. Operator says «покажи сессии» -> the CEO's voice answers after reading the sessions with its tool; the panel shows the words said and the tool used.
   3. Operator speaks over the answer -> the answer stops and the CEO listens.
   4. Operator asks for something longer -> the voice hands it to the CEO's console, which works on it there.
-  5. Operator presses «Положить трубку» -> the microphone and the connection close.
-- **Expected result:** the operator talks to the CEO and it acts on the sessions while they talk.
-- **Alt paths:** words typed under the call («Сказать текстом») are answered aloud the same way. No key: the call ends with «Нет ключа xAI», and the field «Ваш ключ xAI» takes the person's key; the next «Позвонить» works. A minute in which nobody speaks, or five minutes in all, end the call by itself with the reason said; the person calls again to go on.
-- **UI elements:** «Позвонить» / «Положить трубку»; the call panel (state, time out of five minutes and price, the last lines, «Сказать текстом»).
-- **States covered:** connecting, listening, speaking, ended, failed
+  5. Operator presses «Положить трубку» -> the microphone and the connection close; the call stays in the chat as «Звонок в 19:40 · 2:31 · $0.20», its lines folded under it.
+- **Expected result:** the operator talks to the CEO and it acts on the sessions while they talk, and reads back what was said.
+- **Alt paths:** words typed under the call («Сказать текстом») are answered aloud the same way. «CEO отвечает вслух» off: the CEO's voice is silent and its answers arrive as lines only; the switch says that the voice reading answers and session screens is the CEO (the owner, 2026-11-19, heard «a voice that reads the screen»). No key: the call ends with «Нет ключа xAI», and the field «Ваш ключ xAI» takes the person's key; the next «Позвонить» works. A minute in which nobody speaks, or five minutes in all, end the call by itself with the reason said; the person calls again to go on.
+- **UI elements:** «Позвонить» / «Положить трубку»; the call panel in the chat (a live meter, state, time out of five minutes and price, who said what, «Сказать текстом», «CEO отвечает вслух»); the past calls under it.
+- **States covered:** connecting, listening, speaking, ended, failed; reduced motion: the meter holds still and its colour says the state
 - **Errors & recovery:** no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.
 - **Design rationale:** the operator, 2026-11-18 (paraphrased): a voice call through the xAI API, first just working, a voice of his choosing later. The review of 2026-11-19 (paraphrased): the call is managed from the home card too; a minute with nobody speaking hangs up, a call lasts five minutes at most and is then called again.
 - **Telemetry:** ops log `ceo.voice.*`.
 - **Status:** implemented (2026-11-18, ADR-0197).
-- **Coverage:** `apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#VoiceCall`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.
+- **Coverage:** `apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#useVoiceCall`, `#CallPanel`, `#VoiceMeter`, `#CallLauncher`, tests `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.
 - **Product:** unobserved
 
 ### SCN-185: The CEO keeps answering when its first agent cannot
@@ -4669,4 +4671,47 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** ops log `ceo.agent.*`.
 - **Status:** implemented (2026-11-18, ADR-0197).
 - **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`start`, `onOutput`, `onExit`, `LIMIT_SAID`), `apps/desktop/src/shared/ceoAgent.ts#ceoRunnersOf`, `#ceoModelsOf`, `#ceoLaunchExtras`, `apps/desktop/src/main/acpShell.ts` (region `acp-session-models`); tests `apps/desktop/test/ceo-agent.test.mjs` («MANDATORY FALLBACK», «THE FLOOR», «a usage limit sets the runner aside», «a console that ends at its start»), `apps/desktop/test/acp-shell.test.mjs` («ADR-0197»).
+- **Product:** unobserved
+
+### SCN-186: Choose the CEO's voice
+- **Persona:** P-01
+- **Feature:** Floating CEO
+- **Traces:** ST-046, SCR-36, SCR-64 (JTBD-02)
+- **Entry point:** «Голос CEO» in Your Fabric (the character's page); the first run's character step when this computer can call the CEO.
+- **Preconditions:** none for the choice; a sample and the first-run step need an xAI key (the person's own or Observatory's).
+- **Steps:**
+  1. Operator opens Your Fabric -> «Голос CEO» shows «Мужской» chosen, each option with the character's tone («уверенный и чёткий», «энергичный и бодрый»).
+  2. Operator presses «Послушать» beside «Женский» -> a short sample in the interface's language plays in that voice; «Стоп» ends it.
+  3. Operator picks «Женский» and keeps the look -> the next call speaks in the character's female voice.
+  4. Operator changes the character -> the same choice now speaks in that character's voice.
+- **Expected result:** the CEO speaks in the voice the operator chose, male unless they chose otherwise.
+- **Alt paths:** no xAI key: the choice is offered without «Послушать», and the first run has no voice step. A sample that fails says why and the choice still saves.
+- **UI elements:** «Голос CEO»: «Мужской» / «Женский», each with its tone and «Послушать».
+- **States covered:** default (male), chosen, playing, sample failed, no key
+- **Errors & recovery:** an unknown stored voice reads as male, never as a broken look; a refused or missing key is said in words (ru and en).
+- **Design rationale:** the owner, 2026-11-19: «Голос: по умолчанию мужской, но в настройках должен быть выбор мужской/женский, в зависимости от выбранного персонажа. На этапе анбординга, если он подключён, сразу добавить выбор голоса.» Gender is measured from xAI's samples (`docs/architecture/external-contracts.md#xai-voices`).
+- **Telemetry:** ops log `ceo.voice.sample`.
+- **Status:** implemented (2026-11-19).
+- **Coverage:** `apps/desktop/src/shared/persona.ts#xaiVoiceOf`, `apps/desktop/src/renderer/src/ceo/VoicePicker.tsx#VoicePicker`, `apps/desktop/src/main/ceoVoice.ts#voiceSample`; tests `apps/desktop/src/shared/persona.test.ts`, `apps/desktop/src/renderer/src/ceo/VoicePicker.test.tsx`, `apps/desktop/test/ceo-agent.test.mjs` («a voice sample»).
+- **Product:** unobserved
+
+### SCN-187: Stop the CEO, and start it again
+- **Persona:** P-01
+- **Feature:** Floating CEO
+- **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
+- **Entry point:** «Остановить» in the CEO window's head; «Завершить сессию» in the CEO console's own window.
+- **Preconditions:** the CEO is running.
+- **Steps:**
+  1. Operator presses «Остановить» -> the CEO's console stops; the head says «остановлен» and the chat «CEO остановлен. Он не запустится сам: нажмите «Запустить» или напишите ему.»
+  2. Operator closes and opens the CEO window -> it is still stopped; nothing started it.
+  3. Operator presses «Запустить», or writes to the CEO -> it starts on the first agent of its order.
+- **Expected result:** a stopped CEO stays stopped until the operator starts it.
+- **Alt paths:** «Перезапустить» stops and starts it in one press. A console stopped from its own window holds the CEO the same way. A stop that leaves the console running says «Консоль CEO не остановилась» and the CEO stays as it was.
+- **UI elements:** «Остановить» / «Запустить», «Перезапустить»; the face's ring (grey when stopped).
+- **States covered:** running, stopping, stopped, failed to stop
+- **Errors & recovery:** a failed stop is said and can be pressed again; a forced stop follows a plain one that did not end the console (ER-10).
+- **Design rationale:** the owner, 2026-11-19: tried to stop the CEO console and could not. The CEO had no stop: a stop from its window in its first 20 seconds was read as an early end and the next agent started at once, and any later opening of its window started it again.
+- **Telemetry:** ops log `ceo.agent.held`, `ceo.agent.stopped`.
+- **Status:** implemented (2026-11-19).
+- **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `onExit`, `ensure`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.
 - **Product:** unobserved

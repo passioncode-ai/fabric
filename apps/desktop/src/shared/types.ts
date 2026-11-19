@@ -1816,7 +1816,9 @@ export interface FabricApi {
     /** The person's stop (the owner, 2026-11-19): the CEO stays stopped until `restart`, or a message, starts it. */
     stop(): Promise<{ ok: boolean; reason?: 'still-running'; status: CeoStatus }>
     /** Open the popup window over the app, with `draft` put in its composer. */
-    open(draft?: string | null): Promise<void>
+    open(draft?: string | null, options?: { call?: boolean } | null): Promise<void>
+    /** Whether the last `open` asked for a call (the home card's «Позвонить»); taken once. */
+    takeCall(): Promise<boolean>
     /** The draft the last `open` left for the popup; null when none. */
     takeDraft(): Promise<string | null>
     voice(): Promise<CeoVoiceSession>
@@ -2069,6 +2071,7 @@ export const IPC = {
   ceoAgentSend: 'ceo-agent:send',
   ceoAgentRestart: 'ceo-agent:restart',
   ceoAgentStop: 'ceo-agent:stop',
+  ceoAgentTakeCall: 'ceo-agent:take-call',
   ceoAgentOpen: 'ceo-agent:open',
   ceoAgentTakeDraft: 'ceo-agent:take-draft',
   ceoAgentVoice: 'ceo-agent:voice',
