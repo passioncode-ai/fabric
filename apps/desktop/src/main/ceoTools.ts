@@ -17,6 +17,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { TerminalSession } from '../shared/types.ts'
 import { decodePty } from '../shared/pty-decode.ts'
 import { findProject, keyBytes, screenText, typedText, type NamedProject } from '../shared/ceoAgent.ts'
+import { redact } from '../shared/redact.ts'
 
 const reason = z.string().trim().min(3).max(400).describe('Why: one sentence the owner reads in History.')
 const sessionId = z.string().trim().min(1).max(128).describe('A session id from fabric_ceo_sessions (a Fabric console\'s or a Switchboard session\'s).')
@@ -77,7 +78,7 @@ export const CEO_TOOLS = {
     mcp: 'fabric_ceo_session_open',
     title: 'Open a session for the owner',
     description: 'Open a Fabric console in a window of its own for the owner to watch or type in. Only Fabric consoles open here.',
-    input: z.object({ session_id: sessionId }).strict()
+    input: z.object({ session_id: sessionId, reason }).strict()
   },
   projects: {
     mcp: 'fabric_ceo_projects',
@@ -126,7 +127,8 @@ export interface CeoOpsDeps {
   /** One line of the operations log, never thrown. */
   record(op: string, detail: Record<string, unknown>): void
   /** An act in История (`acts.note`), never thrown. */
-  note(kind: 'session.start' | 'session.stop', d: { sessionId: string; projectId: string | null; label: string; runner: string; reason: string }): void
+  /** An act in История. `machine`: a session Switchboard runs, whose act has no inverse in Fabric. */
+  note(kind: 'session.start' | 'session.stop', d: { sessionId: string; projectId: string | null; label: string; runner: string; reason: string; machine?: boolean }): void
   /** Wait, for the screen after typing; the tests pass none. */
   sleep?(ms: number): Promise<void>
   /** Where Claude Code keeps transcripts: the person's home, then Switchboard's runtimes. */
@@ -232,7 +234,8 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
   const screen = (id: string, lines: number): string => {
     const sb = deps.ptys.scrollbackOf(id)
-    return sb ? screenText(decodePty(sb.text), lines) : ''
+    // DA-6: what the CEO reads goes to its model (and to xAI during a call): Fabric's redaction first.
+    return sb ? redact(screenText(decodePty(sb.text), lines)).text : ''
   }
   const consoleRow = (s: TerminalSession, names: Map<string, string>): Answer => ({
     session_id: s.sessionId, kind: 'fabric-console', project: names.get(s.projectId) ?? null, project_id: s.projectId,
@@ -286,7 +289,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
       return refuse(`the transcript could not be read: ${e instanceof Error ? e.message : String(e)}`)
     }
-    return { ok: true, kind: 'transcript', session_id: a.session_id, folder: path.basename(path.dirname(file)), turns: transcriptTurns(text) }
+    return { ok: true, kind: 'transcript', session_id: a.session_id, folder: path.basename(path.dirname(file)), turns: transcriptTurns(text).map((t) => ({ ...t, text: redact(t.text).text })) }
   }
 
   async function input(a: z.infer<typeof CEO_TOOLS.input.input>): Promise<Answer> {
@@ -349,7 +352,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
         const r = await deps.stop(s.sessionId, a.force === true)
         deps.record('ceo.session.stop', { session_id: s.sessionId, force: a.force === true, state: r.state, reason: a.reason })
         const names = await projectNames()
-        deps.note('session.stop', { sessionId: s.sessionId, projectId: s.projectId, label: names.get(s.projectId) ?? s.cwd, runner: s.optionId, reason: a.reason })
+        deps.note('session.stop', { sessionId: s.sessionId, projectId: s.projectId, label: names.get(s.projectId) ?? path.basename(s.cwd), runner: s.optionId, reason: a.reason })
         return { ok: true, state: r.state }
       } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
         return refuse(`the console did not stop: ${e instanceof Error ? e.message : String(e)}`)
@@ -363,7 +366,10 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     if (row.launch_id && row.acts.includes('end')) {
       const r = await deps.switchboard(['sessions', 'end', row.launch_id]).catch((e: unknown) => ({ code: 1, stdout: '', stderr: e instanceof Error ? e.message : String(e) }))
       deps.record('ceo.session.stop', { session_id: a.session_id, via: 'switchboard', code: r?.code ?? null, reason: a.reason })
-      if (r && r.code === 0) return { ok: true, state: 'ended', via: 'switchboard' }
+      if (r && r.code === 0) {
+        deps.note('session.stop', { sessionId: a.session_id, projectId: null, label: path.basename(row.folder) || 'Switchboard', runner: row.agent, reason: a.reason, machine: true })
+        return { ok: true, state: 'ended', via: 'switchboard' }
+      }
       if (!a.force) return refuse(`Switchboard did not end it: ${r?.stderr.slice(0, 200) ?? 'not installed'}`)
     }
     if (!a.force) return refuse('this session runs outside Fabric and no session host holds it: stop it with force true (SIGTERM to its process)')
@@ -371,6 +377,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     try {
       deps.signal(row.pid)
       deps.record('ceo.session.stop', { session_id: a.session_id, via: 'sigterm', pid: row.pid, reason: a.reason })
+      deps.note('session.stop', { sessionId: a.session_id, projectId: null, label: path.basename(row.folder) || 'Switchboard', runner: row.agent, reason: a.reason, machine: true })
       return { ok: true, state: 'signalled', pid: row.pid }
     } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
       return refuse(`the process did not take the signal: ${e instanceof Error ? e.message : String(e)}`)
@@ -386,7 +393,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
         const next = await deps.openConsole(s.projectId, s.optionId, task)
         deps.record('ceo.session.resume', { from_session: s.sessionId, session_id: next.sessionId, reason: a.reason })
         const names = await projectNames()
-        deps.note('session.start', { sessionId: next.sessionId, projectId: s.projectId, label: names.get(s.projectId) ?? s.cwd, runner: next.optionId, reason: a.reason })
+        deps.note('session.start', { sessionId: next.sessionId, projectId: s.projectId, label: names.get(s.projectId) ?? path.basename(s.cwd), runner: next.optionId, reason: a.reason })
         return { ok: true, session_id: next.sessionId, runner: next.optionId, folder: next.cwd }
       } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
         return refuse(`the session did not start again: ${e instanceof Error ? e.message : String(e)}`)
@@ -396,6 +403,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     const r = await deps.switchboard(['sessions', 'continue', a.session_id]).catch((e: unknown) => ({ code: 1, stdout: '', stderr: e instanceof Error ? e.message : String(e) }))
     deps.record('ceo.session.resume', { session_id: a.session_id, via: 'switchboard', code: r?.code ?? null, reason: a.reason })
     if (!r) return refuse('Switchboard is not installed on this computer')
+    if (r.code === 0) deps.note('session.start', { sessionId: a.session_id, projectId: null, label: 'Switchboard', runner: 'switchboard', reason: a.reason, machine: true })
     return r.code === 0 ? { ok: true, via: 'switchboard', said: r.stdout.slice(0, 400) } : refuse(`Switchboard did not continue it: ${(r.stderr || r.stdout).slice(0, 300)}`)
   }
 
@@ -403,7 +411,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     const s = deps.ptys.get(a.session_id)
     if (!s) return refuse('only a Fabric console opens in a Fabric window')
     deps.openWindow(s.sessionId)
-    deps.record('ceo.session.open', { session_id: s.sessionId })
+    deps.record('ceo.session.open', { session_id: s.sessionId, reason: a.reason })
     return { ok: true, opened: s.sessionId }
   }
 

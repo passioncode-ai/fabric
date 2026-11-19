@@ -272,13 +272,16 @@ test('read: a console\'s screen as text, or a Claude Code session\'s last turns 
   const id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
   writeFileSync(path.join(root, 'projects', '-d-site', `${id}.jsonl`), [
     JSON.stringify({ type: 'user', message: { role: 'user', content: 'fix the build' } }),
+    JSON.stringify({ type: 'user', message: { role: 'user', content: 'use sk-ant-ABCDEFGHIJKLMNOPQRSTUV for it' } }),
     '{"cut',
     JSON.stringify({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: 'Running tests' }, { type: 'tool_use', name: 'Bash' }] } })
   ].join('\n'))
   const t = operations({ transcriptRoots: [root] })
   const tr = await t.ops.run('read', { session_id: id })
   assert.equal(tr.kind, 'transcript')
-  assert.deepEqual(tr.turns, [{ role: 'user', text: 'fix the build' }, { role: 'assistant', text: 'Running tests [tool Bash]' }])
+  assert.ok(!JSON.stringify(tr.turns).includes('sk-ant-ABCDEFGHIJKLMNOPQRSTUV'), 'DA-6: a key in a turn reaches the CEO redacted')
+  assert.deepEqual([tr.turns[0], tr.turns[2]], [{ role: 'user', text: 'fix the build' }, { role: 'assistant', text: 'Running tests [tool Bash]' }])
+  assert.match(tr.turns[1].text, /^use .+ for it$/)
   assert.equal((await t.ops.run('read', { session_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' })).ok, false)
 })
 
@@ -341,9 +344,10 @@ test('resume: an ended console starts again in its project with its runner; a Sw
 
 test('open, projects, an unknown tool and refused arguments', async () => {
   const o = operations()
-  assert.equal((await o.ops.run('open', { session_id: 's1' })).ok, true)
+  assert.equal((await o.ops.run('open', { session_id: 's1' })).ok, false, 'DO-2: an open needs a reason like every act')
+  assert.equal((await o.ops.run('open', { session_id: 's1', reason: 'the owner wants to watch it' })).ok, true)
   assert.deepEqual(o.opened.at(-1), ['window', 's1'])
-  assert.equal((await o.ops.run('open', { session_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' })).ok, false)
+  assert.equal((await o.ops.run('open', { session_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', reason: 'the owner wants to watch it' })).ok, false)
   const p = await o.ops.run('projects', { query: 'site' })
   assert.deepEqual(p.projects.map((x) => x.name), ['Site'])
   assert.equal((await o.ops.run('rm_rf', {})).ok, false)

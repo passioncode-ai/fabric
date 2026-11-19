@@ -5182,11 +5182,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
   })
   const agent = ceoAgent
-  const ceoNote = (kind: 'session.start' | 'session.stop', d: { sessionId: string; projectId: string | null; label: string; runner: string; reason: string }): void => {
+  const ceoNote = (kind: 'session.start' | 'session.stop', d: { sessionId: string; projectId: string | null; label: string; runner: string; reason: string; machine?: boolean }): void => {
     void acts.note({
       kind, projectId: d.projectId, subject: { type: 'session', id: d.sessionId, label: d.label },
       said: { key: kind === 'session.start' ? 'act.ceo.session.start' : 'act.ceo.session.stop', params: { project: d.label, runner: d.runner, reason: d.reason } },
-      inverse: kind === 'session.start'
+      // A session Switchboard runs has no inverse in Fabric (ADR-0197 decision 3).
+      inverse: d.machine ? null : kind === 'session.start'
         ? { kind: 'session.stop', args: { session_id: d.sessionId } }
         : d.projectId ? { kind: 'session.start', args: { project_id: d.projectId, option_id: d.runner, permission_mode: null, cwd: null, task_id: null, from_session: d.sessionId } } : null
     }, { actor: { kind: 'agent', id: agent.sessionId() ?? 'ceo' } }).catch((e: unknown) => ops.failed('ceo.act-note', e))

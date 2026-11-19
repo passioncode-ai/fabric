@@ -3456,6 +3456,6 @@ export const ru: Partial<Record<StringKey, string>> = {
   'ceoAgent.voiceKey.malformed': "Это не похоже на ключ xAI: он начинается с «xai-».",
   'ceoAgent.voiceKey.unwritable': "Не получилось сохранить ключ. Попробуйте ещё раз.",
   'ceoAgent.openWindow': "Открыть консоль в окне",
-  'act.ceo.session.start': "CEO запустил {runner} в проекте {project}: {reason}",
-  'act.ceo.session.stop': "CEO остановил {runner} в проекте {project}: {reason}",
+  'act.ceo.session.start': "CEO запустил {agent} в проекте {project}: {reason}",
+  'act.ceo.session.stop': "CEO остановил {agent} в проекте {project}: {reason}",
 }

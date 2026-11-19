@@ -3593,8 +3593,8 @@ export const en = {
   'ceoAgent.voiceKey.malformed': "This does not look like an xAI key: it starts with «xai-».",
   'ceoAgent.voiceKey.unwritable': "The key could not be saved. Try again.",
   'ceoAgent.openWindow': "Open the console in a window",
-  'act.ceo.session.start': "CEO started {runner} in {project}: {reason}",
-  'act.ceo.session.stop': "CEO stopped {runner} in {project}: {reason}",
+  'act.ceo.session.start': "CEO started {agent} in {project}: {reason}",
+  'act.ceo.session.stop': "CEO stopped {agent} in {project}: {reason}",
 } as const
 
 export type StringKey = keyof typeof en

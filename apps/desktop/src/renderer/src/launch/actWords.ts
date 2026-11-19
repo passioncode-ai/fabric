@@ -15,7 +15,7 @@ const KNOWN_SAID = new Set([
   'act.task.move', 'act.task.close', 'act.claim.release', 'act.claim.take', 'act.repo.detach', 'act.repo.attach',
   'act.project.rename', 'act.project.edit', 'act.question.answer', 'act.question.reopen', 'act.session.stop',
   'act.session.start', 'act.draft.discard', 'act.draft.restore', 'act.release.record', 'act.agent.disconnect',
-  'act.agent.let_in', 'act.run.attest', 'act.run.unattest'
+  'act.agent.let_in', 'act.run.attest', 'act.run.unattest', 'act.ceo.session.start', 'act.ceo.session.stop'
 ])
 const STATES = new Set(['backlog', 'running', 'review', 'done', 'cancelled'])
 const WHY = new Set([

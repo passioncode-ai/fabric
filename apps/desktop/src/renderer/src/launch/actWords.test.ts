@@ -33,3 +33,17 @@ describe('a revoked credential names its agent in История (CO-353)', () =
     expect(actSentence(t, rec(null))).toBe(en['act.agent.disconnect'].replace('{agent}', en['acts.actor.agent']))
   })
 })
+
+describe('the CEO\'s starts and stops read as sentences in История (0.3.24 review UX-7, DA-1)', () => {
+  it('names the runner in words, the project and the reason, never the bare project', async () => {
+    const { actSentence } = await import('./actWords')
+    const rec = (key: string) => ({ v: 1 as const, kind: 'session.stop' as never, category: 'sessions' as never, subject: { type: 'session', id: 's1', label: 'demo-shop' },
+      said: { key, params: { project: 'demo-shop', runner: 'claude-code', reason: 'the task is done' } }, inverse: null, why_not: null as never, undoes: null, ref_seq: null })
+    const ru_ = actSentence(translator('ru'), rec('act.ceo.session.stop'))
+    expect(ru_).toContain('CEO остановил')
+    expect(ru_).toContain('demo-shop')
+    expect(ru_).toContain('the task is done')
+    expect(ru_).not.toContain('claude-code')
+    expect(actSentence(translator('en'), rec('act.ceo.session.start'))).toContain('CEO started')
+  })
+})
