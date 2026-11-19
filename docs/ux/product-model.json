@@ -35739,7 +35739,7 @@
       "screen_refs": [
         "SCR-64"
       ],
-      "coverage": "`apps/desktop/src/main/ceoTools.ts#createCeoOperations` and `#registerCeoTools`, `apps/desktop/src/main/agentSurface.ts` (region `ceo-surface`), `apps/desktop/src/main/index.ts` (region `ceo-agent-wiring`); tests `apps/desktop/test/ceo-agent.test.mjs` («sessions», «read», «input», «start», «stop», «resume», «open, projects»).",
+      "coverage": "`apps/desktop/src/main/ceoTools.ts#createCeoOperations` and `#registerCeoTools`, `apps/desktop/src/main/agentSurface.ts` (region `ceo-surface`), `apps/desktop/src/main/index.ts` (region `ceo-agent-wiring`); `apps/desktop/src/main/ceoWindows.ts#createWindowsPort` and `#createDashboardsPort`, `apps/desktop/src/shared/windowLayout.ts#fitAreas`, `apps/desktop/src/shared/dashboardMatch.ts#pickDashboard`; tests `apps/desktop/test/ceo-agent.test.mjs` («sessions», «read», «input», «start», «stop», «resume», «open, projects»), `apps/desktop/test/ceo-windows.test.mjs`.",
       "registry_status": "implemented (2026-11-18, ADR-0197).",
       "product_observation": "unobserved",
       "expected_result": "the operator manages every session by talking to the CEO, without another window.",
@@ -35765,7 +35765,7 @@
       "errors_recovery": "no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4630
+        "line": 4633
       }
     },
     {
@@ -35782,7 +35782,7 @@
       "errors_recovery": "the order and the models are set by hand in settings.json (`ceoRunners`, `ceoModels`); an unknown runner, and a model below Sonnet 5.5, is dropped.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4653
+        "line": 4656
       }
     }
   ],
