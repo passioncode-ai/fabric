@@ -1,0 +1,64 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "6da674bdc092ed36a34521198dd0f5d472d0d531",
+  "report": "docs/evidence/reviews/0.3.25/iteration-3/2026-11-19-plan.md",
+  "reportSha256": "c63d94d897373712a8bd43a73c9e18777a6b523e0e1c83ee0bafbbba3c2213d8",
+  "reviewerRun": "release-0325-i3-plan-openrouter-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-13",
+      "status": "fixed",
+      "evidence": [
+        "as ER-10, test ER-10 (0.3.25)"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: personaRead allowed to the CEO window; xaiVoiceOf tested; the chosen face rendered in the built app"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: the slot is the other session's to fill (fabric-screen-notes), its render site named in CeoPopup.tsx"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 item 8"
+      ]
+    },
+    {
+      "id": "PL-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 6da674bd: SCN-187 and CHANGELOG say the hold lasts for as long as Fabric runs"
+      ]
+    },
+    {
+      "id": "PL-15",
+      "status": "ruled",
+      "evidence": [
+        "run one's PL-15 (an ended call kept its live block) fixed in 6da674bd as UX-20",
+        "run two's PL-15 (the voice switch shown in the failed phase) ruled: CO-601 (its row gains this item after the release, on main)"
+      ]
+    },
+    {
+      "id": "PL-16",
+      "status": "ruled",
+      "evidence": [
+        "as ER-14"
+      ]
+    }
+  ]
+}

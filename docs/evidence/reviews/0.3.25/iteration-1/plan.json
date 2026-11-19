@@ -6,7 +6,7 @@
   "candidateCommit": "91d952ded1cfe6bdd46b6ae288927471037875aa",
   "report": "docs/evidence/reviews/0.3.25/iteration-1/2026-11-19-plan.md",
   "reportSha256": "d431053f280515a664b0fb267d570b0903ee057b266941c3eca361a0255d6433",
-  "reviewerRun": "release-0325-i1-plan-codex-20261119",
+  "reviewerRun": "release-0325-i1-plan-openrouter-20261119",
   "status": "closed",
   "blockingFindingsOpen": [],
   "findings": [

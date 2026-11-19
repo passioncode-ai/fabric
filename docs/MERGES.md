@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-19 · `FABRIC-0325` · feat/ceo-popup-redesign → main · fast-forward
+- files: `apps/desktop/src/main/{ceoAgent,ceoTools,ceoVoice}.ts`, the CEO wiring in `main/index.ts`, `apps/desktop/src/shared/{ceoAgent,persona,types,ipcWindowPolicy}.ts`, the preload, `renderer/src/ceo/{CeoPopup,CeoCall,CeoButton,CeoComposer,VoicePicker,voiceCall}.ts(x)`, `PersonaScreen.tsx`, `FirstRun.tsx`, `App.tsx`, `ceo.tsx`, `styles.css`, the component registry, both locales, tests, SCN-110, SCN-182, SCN-184, SCN-186, SCN-187, ADR-0197 amendment 2, the xAI voices in `external-contracts.md`, CO-601, the product model, the 0.3.25 review receipts and ledger, `docs/launch/release-gate.json`, the version, CHANGELOG `## 0.3.25`
+- conflicts: none
+- summary: the 0.3.25 release: the CEO popup redesigned with the call as a panel in the chat and its history kept, the CEO button with the character's face, the CEO's voice (male by default, male or female per character, a sample in Your Fabric and the first run), and the person's stop of the CEO that holds; three review iterations closed on `6da674bd`
+
 ### 2026-11-19 · `FABRIC-HOME-CEO` · fix/home-ceo-panel → main · fast-forward
 - files: `apps/desktop/src/renderer/src/ceo/{CeoCall,CeoComposer,CeoPopup,voiceCall}.ts(x)`, `EstateHome.tsx`, `styles.css`, `launch/launch.css`, the component registry, both locales, tests, SCN-182 and SCN-184, ADR-0197 amendment 1, CHANGELOG, the product model, the design map
 - conflicts: none

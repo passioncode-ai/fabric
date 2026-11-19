@@ -6,7 +6,7 @@
   "candidateCommit": "91d952ded1cfe6bdd46b6ae288927471037875aa",
   "report": "docs/evidence/reviews/0.3.25/iteration-1/2026-11-19-ux.md",
   "reportSha256": "7d278648251b41da6e64c15875ed3120ebde69e53a7a96d156a332ff0cab602b",
-  "reviewerRun": "release-0325-i1-ux-codex-20261119",
+  "reviewerRun": "release-0325-i1-ux-openrouter-20261119",
   "status": "closed",
   "blockingFindingsOpen": [],
   "findings": [

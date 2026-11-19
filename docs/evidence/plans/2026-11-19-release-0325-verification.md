@@ -114,3 +114,48 @@ whole budget reasoning and returned nothing, so it ran again on `anthropic/claud
 | V2-UX-18 | UX-18 | non-blocking | fixed in iteration 3's candidate: the set-aside time uses the app's locale (CeoPopup.tsx) |
 
 Exit for iteration 2: every finding disposed above. Blocking findings open: none.
+
+## Iteration 3
+
+Candidate `6da674bdc092ed36a34521198dd0f5d472d0d531`, the release's verified commit. Reports and receipts in
+[`docs/evidence/reviews/0.3.25/iteration-3/`](../reviews/0.3.25/iteration-3/). The iteration ran twice. Run one, on
+`bb5f4065`, found two blocking defects in the stop doors: a console-window or History stop while the CEO console was
+still opening could leave the person-stop marker pending for ever (ER-10), and a second stop door could release the
+first door's hold (ER-11). Both were fixed in `6da674bd` with the stop doors counted and the opening console's end
+ending its stop, tests `ER-10 (0.3.25)` and `ER-11 (0.3.25)` seen failing first, together with the run's non-blocking
+fixes. Run two, on `6da674bd`, was given run one's reports and found no blocking finding at any level; its errors
+reviewer ran on `anthropic/claude-sonnet-5.5` after Kimi returned nothing. The reports here join both runs. The items
+ruled to CO-601 below are added to its row on `main` after the release, since the carry-over ledger is not release
+metadata.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-UX-19 | UX-19 | non-blocking | fixed in 6da674bd: the folded call row shows a chevron (styles.css .ceo-call-record summary::before) |
+| V3-UX-20 | UX-20 | non-blocking | fixed in 6da674bd: a self-ended call leaves no live block; its reason is in its record |
+| V3-UX-21 | UX-21 | non-blocking | (a) fixed in 6da674bd: the unused hang-up class removed; (b, c) ruled: CO-601 item 7 |
+| V3-UX-22 | UX-22 | non-blocking | ruled: CO-601 (its row gains this item after the release, on main): the reason of a self-ended call visible and announced, not only in its folded record; CHANGELOG worded 'the call's record says why' in the release commit |
+| V3-UX-23 | UX-23 | non-blocking | ruled: CO-601 (its row gains this item after the release, on main): the history row's three flex items |
+| V3-UX-24 | UX-24 | non-blocking | ruled: CO-601 (its row gains this item after the release, on main): the unused strings ceoAgent.restart and the hint wording |
+| V3-ER-10 | ER-10 | blocking | fixed in 6da674bd: the console a door stopped while opening ends that stop (ceoAgent.ts onExit, stopDoorId); test ER-10 (0.3.25), red before the fix |
+| V3-ER-11 | ER-11 | blocking | fixed in 6da674bd: stop doors counted, only the last settles a door's hold (ceoAgent.ts doors, doorHold); test ER-11 (0.3.25), red before the fix |
+| V3-ER-12 | ER-12 | non-blocking | fixed in 6da674bd: an unplayable event is dropped (voiceCall.ts socket.onmessage catch) |
+| V3-ER-13 | ER-13 | non-blocking | fixed in 6da674bd: a refused key save says it (CeoCall.tsx VoiceKeyForm save) |
+| V3-ER-14 | ER-14 | non-blocking | ruled: CO-601 (its row gains this item after the release, on main): the door counter across a restart |
+| V3-ER-15 | ER-15 | non-blocking | ruled: CO-601 (its row gains this item after the release, on main): the sample body and vault read inside the worded answer |
+| V3-ER-16 | ER-16 | non-blocking | ruled: CO-601 (its row gains this item after the release, on main): the person-stop marker ended by identity |
+| V3-DO-9 | DO-9 | non-blocking | partly fixed in 6da674bd (CHANGELOG rewrapped); the ADR line ruled: CO-601 |
+| V3-DO-10 | DO-10 | non-blocking | fixed in 6da674bd: the registry no longer lists ceo-call-hangup |
+| V3-DO-11 | DO-11 | non-blocking | as UX-22; the CHANGELOG says the record says why, in the release commit |
+| V3-DO-12 | DO-12 | non-blocking | the ledger rows above name UX-21; CO-601 item 8 is the useVoiceCall hook test, the narrower remainder of PL-11 |
+| V3-DO-13 | DO-13 | non-blocking | ruled: CO-601 (its row gains this item after the release, on main): SCN-187's ER-10 names the 0.3.24 finding |
+| V3-DA-6 | DA-6 | non-blocking | (a, b) fixed in 6da674bd: the temporary file is removed on failure and named uniquely; (c) ruled: CO-601 (its row gains this item after the release, on main): a non-audio 200 answer cached as a sample |
+| V3-DA-7 | DA-7 | non-blocking | fixed in 6da674bd: a kept call holds at most 40 000 characters |
+| V3-PL-13 | PL-13 | blocking | as ER-10, test ER-10 (0.3.25) |
+| V3-PL-3 | PL-3 | non-blocking | not a defect: personaRead allowed to the CEO window; xaiVoiceOf tested; the chosen face rendered in the built app |
+| V3-PL-5 | PL-5 | non-blocking | not a defect: the slot is the other session's to fill (fabric-screen-notes), its render site named in CeoPopup.tsx |
+| V3-PL-11 | PL-11 | non-blocking | ruled: CO-601 item 8 |
+| V3-PL-14 | PL-14 | non-blocking | fixed in 6da674bd: SCN-187 and CHANGELOG say the hold lasts for as long as Fabric runs |
+| V3-PL-15 | PL-15 | non-blocking | run one's PL-15 (an ended call kept its live block) fixed in 6da674bd as UX-20; run two's PL-15 (the voice switch shown in the failed phase) ruled: CO-601 (its row gains this item after the release, on main) |
+| V3-PL-16 | PL-16 | non-blocking | as ER-14 |
+
+Exit for iteration 3: every finding disposed above. Blocking findings open: none.

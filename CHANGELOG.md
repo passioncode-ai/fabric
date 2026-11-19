@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.25
 
 - **The CEO's window is new, and the call is a panel inside its chat.** The owner, 2026-11-19: the popup looked worn,
   and the call should sit in the chat, not in a card. The window's head is the CEO itself: the character's face with a
@@ -20,7 +20,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   CEO card is one small block at the top right beside the greeting and the rhythm; its «Позвонить» opens the CEO window
   and starts the call there. Under reduced motion the meter and the rings hold still and their colour says the state
   (`ceo/CeoPopup.tsx`, `ceo/CeoCall.tsx`; SCN-182, SCN-184). A call ends by itself after a minute in which nobody speaks
-  and at five minutes, and says why (`voiceCall.ts#MAX_CALL_MS`, `IDLE_CALL_MS`; ADR-0197 amendment 1).
+  and at five minutes; the call's record in the history says why (`voiceCall.ts#MAX_CALL_MS`, `IDLE_CALL_MS`;
+  ADR-0197 amendment 1).
 - **The CEO button has the character's face.** The floating button at the bottom right of every screen shows Fabric's
   character with a ring for the CEO's state, and the word «CEO» (`ceo/CeoButton.tsx`, SCN-110).
 - **The CEO's voice: male by default, male or female in the settings and at the first run.** The CEO now speaks in a

@@ -6,7 +6,7 @@
   "candidateCommit": "91d952ded1cfe6bdd46b6ae288927471037875aa",
   "report": "docs/evidence/reviews/0.3.25/iteration-1/2026-11-19-errors.md",
   "reportSha256": "58a2287bf8de02c5af5c6c2adcc763245ee86fad51939a351a56c56609de7da4",
-  "reviewerRun": "release-0325-i1-errors-codex-20261119",
+  "reviewerRun": "release-0325-i1-errors-openrouter-20261119",
   "status": "closed",
   "blockingFindingsOpen": [],
   "findings": [
