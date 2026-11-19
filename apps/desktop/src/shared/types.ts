@@ -1603,6 +1603,12 @@ export interface FabricApi {
     /** One field across every project. Grouped by store, never merged: a ranked
      *  hit and a substring hit are different promises (M141). */
     run(query: string): Promise<SearchGroup[]>
+    /** One ranked search over every session, transcript, task, board message and commit (the estate index, ADR-0200). */
+    everywhere(query: string): Promise<import('./estateSearch.ts').EverywhereAnswer>
+    /** A graph node's neighbourhood, N steps both ways (spec 2026-11-19 §4.3). */
+    around(node: string, depth: number): Promise<import('./estateSearch.ts').AroundAnswer>
+    /** Continue a session found here in a Fabric console, as itself when Fabric knows its Claude or Codex session. */
+    resume(sessionId: string): Promise<{ ok: boolean; reason?: string; session_id?: string }>
   },
   digest: {
     /** What happened while the operator was away. Composed from stores, never
@@ -2015,6 +2021,9 @@ export const IPC = {
   personaRead: 'persona:read',
   personaSave: 'persona:save',
   searchRun: 'search:run',
+  searchEverywhere: 'search:everywhere',
+  searchAround: 'search:around',
+  searchResume: 'search:resume',
   digestRead: 'digest:read',
   digestSeen: 'digest:seen',
   memoryOverview: 'memory:overview',

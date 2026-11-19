@@ -238,7 +238,10 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       save: (next) => ipc.invoke(IPC.personaSave, next)
     },
     search: {
-      run: (query) => ipc.invoke(IPC.searchRun, query)
+      run: (query) => ipc.invoke(IPC.searchRun, query),
+      everywhere: (query) => ipc.invoke(IPC.searchEverywhere, query),
+      around: (node, depth) => ipc.invoke(IPC.searchAround, node, depth),
+      resume: (sessionId) => ipc.invoke(IPC.searchResume, sessionId)
     },
     digest: {
       read: (projectId) => ipc.invoke(IPC.digestRead, projectId),

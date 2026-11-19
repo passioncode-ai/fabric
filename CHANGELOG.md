@@ -9,6 +9,23 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **One search over every session, transcript and task, and the graph of what relates to what.** The operator's backlog
+  of 2026-11-19, relayed by the CEO: search tasks across every session and project, and a knowledge base for all of
+  Fabric, a linked graph of tasks, actions and data. Fabric keeps a local index (`userData/estate-index`) of the Claude
+  Code and Codex transcripts, its own consoles, every project's tasks, notes and board messages, and the commits, and
+  searches it by words in Russian and English, by parts of identifiers and, when a local Ollama model is installed, by
+  meaning; nothing leaves the machine. Every hit names its project, context (personal or an organization), the
+  file and lines it stands at, its session id and the command that continues it. The CEO gets two tools,
+  `fabric_knowledge_search` and `fabric_knowledge_execute` (what relates to a task, a session or a commit, N steps out,
+  and the shortest chain between two of them); the search panel gets the group «Везде» with «Связи», «Продолжить» and
+  «Скопировать команду» (ADR-0200; spec `docs/evidence/specs/2026-11-19-estate-index-and-graph.md`).
+- **The CEO finds a project by its folder's name and continues a console after Fabric restarted.** `fabric_ceo_projects`
+  answers each project with its role (canonical, duplicate, worktree, temporary) and leaves temporary folders out unless
+  asked; `fabric_ceo_session_start` takes a folder's name with a typo forgiven and answers a list when several canonical
+  projects match; `fabric_ceo_session_resume` continues a console from before a restart as the same Claude Code or Codex
+  session (`claude --resume`, `codex resume`) in a Fabric console, instead of answering «Switchboard has no record». No
+  router agent is added: measured on the CEO's own transcript, the same task took 16 calls and 3 min 50 s and now takes 4
+  calls and about 4 s (ADR-0199).
 - **The CEO on the home screen is one small block at the top right, with the call in it.** The operator's review of
   2026-11-19: «Спросить CEO» filled the width under the header in large type. The header (greeting and rhythm) is back
   as it was, and the CEO card stands at its right: a two-line box (files pasted with ⌘V or Ctrl+V, dropped or picked),

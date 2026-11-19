@@ -1387,3 +1387,6 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .lp-detail>h3+.lp-comms-disclosure{margin-top:var(--space-3)}
 .lp-message .lp-message-body,.lp-message p.lp-message-body{font-size:13px;line-height:1.55;color:var(--app-ink)}
 .lp-message .lp-message-body.md p{font-size:inherit;color:inherit}
+/* The search panel's «Везде» group (spec 2026-11-19 §2): a hit's acts on one line, the neighbourhood drawing below. */
+.everywhere-acts{ display: inline-flex; gap: var(--space-1); flex-wrap: wrap; }
+.everywhere-around{ margin-top: var(--space-3); }
