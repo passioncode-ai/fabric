@@ -23,7 +23,7 @@ export function CeoButton({ onError }: { onError: (message: string) => void }): 
   return (
     <button type="button" className={`ceo-floating s-${state ?? 'unknown'}`} title={label} aria-label={label}
       onClick={() => window.fabric.ceoAgent.open(null).catch((e: unknown) => onError(e instanceof Error ? e.message : String(e)))}>
-      <FabricAvatar size="tiny" label="" />
+      <span className="ceo-floating-face"><FabricAvatar size="tiny" label="" /></span>
       <span className="ceo-floating-label" aria-hidden="true">{t('ceoAgent.title')}</span>
     </button>
   )

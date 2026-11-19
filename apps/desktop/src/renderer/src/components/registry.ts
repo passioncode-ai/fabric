@@ -161,7 +161,7 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   },
   {
     component: 'CeoButton',
-    classes: ['ceo-floating', 'ceo-floating-label', 's-unknown'],
+    classes: ['ceo-floating', 'ceo-floating-face', 'ceo-floating-label', 's-unknown'],
     purpose: 'The floating CEO button over every screen of the main window (ADR-0197, SCN-110): the character\'s face with a ring for the CEO\'s state.'
   }
 ] as const

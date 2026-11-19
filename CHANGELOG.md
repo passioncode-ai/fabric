@@ -9,14 +9,31 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-- **The CEO on the home screen is one small block at the top right, with the call in it.** The operator's review of
-  2026-11-19: «Спросить CEO» filled the width under the header in large type. The header (greeting and rhythm) is back
-  as it was, and the CEO card stands at its right: a two-line box (files pasted with ⌘V or Ctrl+V, dropped or picked),
-  «Приложить файл», «Отправить» and «Позвонить». The call's state, its time out of five minutes, its price and its
-  last lines show in the card, and «Положить трубку» ends it (`ceo/CeoCall.tsx#VoiceCall`, the same component the CEO
-  window's head uses; SCN-182, SCN-184). A call now ends by itself after a minute in which nobody speaks and at five
-  minutes, and says why; the person calls again to go on (`voiceCall.ts#MAX_CALL_MS`, `IDLE_CALL_MS`; ADR-0197
-  amendment 1).
+- **The CEO's window is new, and the call is a panel inside its chat.** The owner, 2026-11-19: the popup looked worn,
+  and the call should sit in the chat, not in a card. The window's head is the CEO itself: the character's face with a
+  ring for its state (on, starting, stopped, failed), its name, the agent it runs on, and «Позвонить», «Остановить» or
+  «Запустить», «Перезапустить». Under the CEO's console, a call is a panel: a meter that moves with whoever speaks, the
+  state («Соединяем…», «Слушаю», «Говорит»), the time out of five minutes, the price, who said what, «Сказать текстом»,
+  and «CEO отвечает вслух», which turns the CEO's voice off so its answers arrive as lines (the voice that reads answers
+  and session screens on a call is the CEO). A call that ended stays in the chat, folded, with its lines. On Главная the
+  CEO card is one small block at the top right beside the greeting and the rhythm; its «Позвонить» opens the CEO window
+  and starts the call there. Under reduced motion the meter and the rings hold still and their colour says the state
+  (`ceo/CeoPopup.tsx`, `ceo/CeoCall.tsx`; SCN-182, SCN-184). A call ends by itself after a minute in which nobody speaks
+  and at five minutes, and says why (`voiceCall.ts#MAX_CALL_MS`, `IDLE_CALL_MS`; ADR-0197 amendment 1).
+- **The CEO button has the character's face.** The floating button at the bottom right of every screen shows Fabric's
+  character with a ring for the CEO's state, and the word «CEO» (`ceo/CeoButton.tsx`, SCN-110).
+- **The CEO's voice: male by default, male or female in the settings and at the first run.** The CEO now speaks in a
+  male voice unless the person chooses otherwise in Your Fabric («Голос CEO»), where each option says its tone and
+  «Послушать» plays a short sample. The character decides which of xAI's voices that is (orbit Rex or Eve, spark Sal or
+  Ara, wave Leo or Eve); xAI documents no gender, so it was measured from xAI's published samples
+  ([external contracts](docs/architecture/external-contracts.md#xai-voices)). The first run's character step offers the
+  choice when this computer can call the CEO (an xAI key). A sample costs under a cent and is fetched once per voice and
+  language. A look saved before this reads as male (SCN-186).
+- **The CEO can be stopped.** The owner tried to stop the CEO's console and could not: the CEO had no stop, a stop from
+  its console's window in its first 20 seconds was read as an early end and the next agent started at once, and any later
+  opening of its window started it again. «Остановить» now stops it, and it stays stopped (also when stopped from the
+  console's own window) until «Запустить», «Перезапустить» or a message; a stop that leaves the console running says so
+  (`main/ceoAgent.ts` `stop`, `personStopping`; SCN-187).
 - **Unattended runs can mark board messages read and reply again.** Claude Code 2.1.327 leaves out of a session any
   MCP tool whose input schema has `anyOf`, `oneOf` or `allOf` at its top (the Anthropic API refuses such a tool), and
   `com.read_ack` and `com.reply` published their forms that way. On the Mac Studio a run the board dispatcher started

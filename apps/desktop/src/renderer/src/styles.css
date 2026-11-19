@@ -371,16 +371,15 @@ button:disabled { opacity: .4; cursor: default; }
    colour carries the state; only the starting ring breathes, and it holds still under reduced motion. */
 .ceo-floating { position: fixed; right: var(--space-4); bottom: var(--space-4); z-index: 40; display: inline-flex; align-items: center; gap: var(--space-2); padding: 4px var(--space-3) 4px 4px; border-radius: var(--app-radius-pill); border: 1px solid var(--app-line-strong); background: var(--app-panel); color: var(--app-ink); font: inherit; font-weight: 600; font-size: var(--app-fs-label); cursor: pointer; box-shadow: var(--shadow-modal); transition: border-color var(--dur-quick) var(--ease-enter), background-color var(--dur-quick) var(--ease-enter); }
 .ceo-floating:hover { border-color: var(--app-ink); }
-.ceo-floating:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 2px; }
-.ceo-floating .fp-face { border-radius: 50%; box-shadow: 0 0 0 2px var(--app-panel), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }
-.ceo-floating-label { letter-spacing: .02em; }
+.ceo-floating:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 2px; }
+.ceo-floating-face { display: inline-flex; border-radius: 50%; box-shadow: 0 0 0 2px var(--app-panel), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }
 .ceo-floating.s-running, .ceo-presence.s-running { --ceo-ring: var(--state-good); }
 .ceo-floating.s-starting, .ceo-presence.s-starting { --ceo-ring: var(--state-running); }
 .ceo-floating.s-failed, .ceo-presence.s-failed { --ceo-ring: var(--state-danger); }
 .ceo-floating.s-stopped, .ceo-floating.s-ended, .ceo-floating.s-idle, .ceo-presence.s-stopped, .ceo-presence.s-ended, .ceo-presence.s-idle { --ceo-ring: var(--state-ended); }
 @media (prefers-reduced-motion: no-preference) {
   /* Why it moves: the CEO is coming up, not yet answering. First and last frames match, so the reduced branch is still. */
-  .ceo-floating.s-starting .fp-face, .ceo-presence.s-starting .fp-face { animation: ceo-breathe 1.6s ease-in-out infinite; }
+  .ceo-floating.s-starting .ceo-floating-face, .ceo-presence.s-starting { animation: ceo-breathe 1.6s ease-in-out infinite; }
 }
 @keyframes ceo-breathe { 0%, 100% { box-shadow: 0 0 0 2px var(--app-panel), 0 0 0 4px var(--ceo-ring); } 50% { box-shadow: 0 0 0 2px var(--app-panel), 0 0 0 4px transparent; } }
 
@@ -389,10 +388,9 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-popup { display: flex; flex-direction: column; height: 100vh; padding-top: calc(var(--space-6, 32px) + 2px); box-sizing: border-box; background: var(--app-bg); }
 .ceo-popup-head { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3) var(--space-3); border-bottom: 1px solid var(--app-line); -webkit-app-region: drag; }
 .ceo-popup-head button, .ceo-popup-head input, .ceo-call-panel, .ceo-popup-chat { -webkit-app-region: no-drag; }
-.ceo-presence { flex: none; display: inline-flex; }
-.ceo-presence .fp-face { border-radius: 50%; box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }
+.ceo-presence { flex: none; display: inline-flex; border-radius: 50%; box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }
 .ceo-popup-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
-.ceo-popup-title { font-size: var(--app-fs-title); font-weight: 600; line-height: 1.2; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ceo-popup-title { font-size: var(--app-fs-title); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ceo-popup-sub { display: flex; flex-wrap: wrap; gap: 2px var(--space-2); font-size: var(--app-fs-caption); color: var(--app-muted); min-width: 0; }
 .ceo-popup-state { font-weight: 500; }
 .ceo-popup-state.s-running { color: var(--state-good); }
@@ -466,7 +464,7 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-voice-option[data-chosen="true"] { border: 2px solid var(--app-ink); padding: calc(var(--space-2) - 1px); }
 .ceo-voice-choice { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: var(--space-2); text-align: left; font: inherit; color: var(--app-ink); background: none; border: 0; padding: 0; cursor: pointer; }
 .ceo-voice-choice small { grid-column: 2; color: var(--app-muted); font-size: var(--app-fs-caption); }
-.ceo-voice-choice:focus-visible, .ceo-voice-listen:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 2px; border-radius: 4px; }
+.ceo-voice-choice:focus-visible, .ceo-voice-listen:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 2px; border-radius: 4px; }
 .ceo-voice-name { font-weight: 600; }
 .ceo-voice-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--app-line-strong); }
 .ceo-voice-option[data-chosen="true"] .ceo-voice-dot { border-color: var(--app-ink); background: radial-gradient(var(--app-ink) 45%, transparent 50%); }
