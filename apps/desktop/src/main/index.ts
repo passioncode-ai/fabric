@@ -2,11 +2,11 @@
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
 import { admitAccessAct } from './relayedAccess.ts'
-import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, safeStorage, session, shell } from 'electron'
+import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, safeStorage, screen, session, shell, systemPreferences } from 'electron'
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, realpathSync, statfsSync } from 'node:fs'
+import { existsSync, readFileSync, realpathSync, statfsSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -46,6 +46,8 @@ import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
+import { createDashboardsPort, createWindowsPort } from './ceoWindows.ts'
+import { parseLayouts } from '../shared/windowLayout.ts'
 import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -5211,7 +5213,31 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     switchboard: (args) => runMachineSwitchboard(sessionEnvironment(process.env), args),
     signal: (pid) => { process.kill(pid, 'SIGTERM') },
     record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } }),
-    note: ceoNote
+    note: ceoNote,
+    // Board requests 26989d91, 07db5c30, 374f27bf: the windows the CEO closes and arranges, and Fabric Dashboards.
+    windows: createWindowsPort({
+      main: () => mainWindow, ceo: () => ceoWindow, sessions: () => sessionWindows, files: () => fileWindows,
+      displays: () => {
+        const primary = screen.getPrimaryDisplay().id
+        return screen.getAllDisplays().map((d) => ({ id: d.id, bounds: d.bounds, workArea: d.workArea, primary: d.id === primary, label: d.label || `${d.size.width}×${d.size.height}` }))
+      },
+      openMain: () => { if (mainWindow === null || mainWindow.isDestroyed()) createWindow() },
+      openCeo: () => openCeoWindow(),
+      openSession: (id) => openSessionWindow(id)
+    }),
+    dashboards: createDashboardsPort({
+      services: () => (linkRegistry?.snapshot().entries ?? []).filter((e) => e.kind === 'service')
+        .map((e) => ({ key: e.key, name: e.name, summary: e.summary, placement: e.placement })),
+      openExternal: (link) => shell.openExternal(link),
+      trusted: (prompt) => process.platform !== 'darwin' || systemPreferences.isTrustedAccessibilityClient(prompt)
+    }),
+    layouts: (() => {
+      const file = path.join(app.getPath('userData'), 'window-layouts.json')
+      return {
+        read: () => { try { return parseLayouts(readFileSync(file, 'utf8')) } catch { return {} /* none saved yet */ } },
+        write: (all) => writeFileSync(file, `${JSON.stringify(all, null, 2)}\n`, { mode: 0o600 })
+      }
+    })()
   })
   // PM chain (task ff3fe9c3): once a minute, a board request a PM agent gave the CEO (capability `ceo.task`) is typed
   // into its running console, each once.

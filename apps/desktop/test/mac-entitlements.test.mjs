@@ -47,3 +47,10 @@ test('UX-2: one entitlements file for the local and the release build, so they c
 test('UX-2: macOS asks for the microphone with Fabric\'s own sentence', () => {
   assert.match(readFileSync(path.join(here, 'electron-builder.yml'), 'utf8'), /NSMicrophoneUsageDescription:\s*"[^"]+"/)
 })
+
+test('07db5c30: the CEO moves Fabric Dashboards\' window through Apple Events, in both builds, with Fabric\'s own sentence', () => {
+  const base = macKeys('electron-builder.yml')
+  const release = { ...base, ...macKeys('electron-builder.release.yml') }
+  assert.ok(grants(release.entitlements, 'com.apple.security.automation.apple-events'))
+  assert.match(readFileSync(path.join(here, 'electron-builder.yml'), 'utf8'), /NSAppleEventsUsageDescription:\s*"[^"]+"/)
+})

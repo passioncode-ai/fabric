@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-19 · `FABRIC-CEO-WINDOWS` · feat/ceo-session-windows → main · fast-forward
+- files: `apps/desktop/src/main/{ceoTools,ceoWindows,ceoVoice}.ts`, the wiring in `main/index.ts`, `apps/desktop/src/shared/{windowLayout,ceoAgent}.ts`, `resources/entitlements.mac.plist`, `electron-builder.yml`, tests (`ceo-windows`, `mac-entitlements`), ADR-0197 amendment 3, CHANGELOG, the design map
+- conflicts: none
+- summary: the CEO lists, closes and arranges windows and opens Fabric Dashboards' dashboards by voice and text; console windows close without stopping their sessions (board requests 26989d91, 07db5c30, 374f27bf)
+
 ### 2026-11-19 · `FABRIC-HOME-CEO` · fix/home-ceo-panel → main · fast-forward
 - files: `apps/desktop/src/renderer/src/ceo/{CeoCall,CeoComposer,CeoPopup,voiceCall}.ts(x)`, `EstateHome.tsx`, `styles.css`, `launch/launch.css`, the component registry, both locales, tests, SCN-182 and SCN-184, ADR-0197 amendment 1, CHANGELOG, the product model, the design map
 - conflicts: none

@@ -13,5 +13,9 @@
        the hardened runtime refuses it without this. -->
   <key>com.apple.security.device.audio-input</key>
   <true/>
+  <!-- Board request 07db5c30: the CEO puts Fabric Dashboards' window where the owner says, through System Events;
+       the hardened runtime refuses Apple Events without this. macOS asks the person once (Automation). -->
+  <key>com.apple.security.automation.apple-events</key>
+  <true/>
 </dict>
 </plist>

@@ -81,6 +81,7 @@ mac:
   entitlementsInherit: resources/entitlements.mac.plist
   extendInfo:
     NSMicrophoneUsageDescription: "Fabric listens while you talk to its CEO on a voice call, and only then."
+    NSAppleEventsUsageDescription: "Fabric moves the Fabric Dashboards window where you ask its CEO to put it."
   # ADR-0192: the board's launch agent, at Contents/Library/LaunchAgents (loginItem.ts#BOARD_SERVICE).
   extraFiles:
     - from: build/launchd/ai.passioncode.desktop.board.plist
