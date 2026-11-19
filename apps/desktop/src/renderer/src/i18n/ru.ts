@@ -2390,6 +2390,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'everywhere.kind.message': "Доска",
   'everywhere.kind.console': "Консоль",
   'everywhere.kind.project': "Проект",
+  'everywhere.kind.document': "Документ",
   'everywhere.kind.commit': "Коммит",
   'everywhere.aroundTitle': "Что связано с «{name}»",
   'everywhere.aroundEmpty': "В индексе с этим пока ничего не связано.",

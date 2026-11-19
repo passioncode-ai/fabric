@@ -11,7 +11,7 @@ import path from 'node:path'
 import { catalogue, type CatalogueInput } from '../shared/estateSearch.ts'
 import type { Embedder, EstateIndex } from './estateIndex.ts'
 import {
-  boardBatch, claimBatch, commitBatch, headOf, journalBatch, linkBatch, listTranscripts, mainOfWorktree, makeContext, noteBatch,
+  boardBatch, claimBatch, commitBatch, documentBatch, factBatch, headOf, journalBatch, linkBatch, listTranscripts, mainOfWorktree, makeContext, noteBatch,
   projectBatch, readTranscript, taskBatch, type Batch, type SourceContext, type TranscriptRoot
 } from './estateSources.ts'
 
@@ -33,7 +33,7 @@ export interface EstateRunDeps {
    *  (Observatory's default); empty when they cannot be read. */
   organizations(): { folders: Map<string, string>; personal: string | null }
   /** One page of a table by its sequence column above `after`, oldest first. */
-  page(table: 'project_tasks' | 'task_notes' | 'task_links' | 'work_claims', seqColumn: string, after: number, limit: number): Promise<Rows>
+  page(table: 'project_tasks' | 'task_notes' | 'task_links' | 'work_claims' | 'memory_facts', seqColumn: string, after: number, limit: number): Promise<Rows>
   journal(types: readonly string[], after: number, limit: number): Promise<Rows>
   /** The board's messages after a sequence, oldest first, 100 at most (the operator's door). */
   board(after: number): Promise<{ messages: Rows; last: number; more: boolean }>
@@ -49,6 +49,7 @@ export interface PassReport {
   docs: number
   transcripts: { read: number; turns: number; left: number }
   commits: number
+  documents: number
   embedded: number
   degraded: string[]
 }
@@ -92,7 +93,7 @@ export function createEstateRunner(deps: EstateRunDeps) {
     return ctx
   }
 
-  async function table(name: 'project_tasks' | 'task_notes' | 'task_links' | 'work_claims', col: string, build: (rows: Rows) => Batch, onRows: (rows: Rows) => void, degraded: string[]): Promise<number> {
+  async function table(name: 'project_tasks' | 'task_notes' | 'task_links' | 'work_claims' | 'memory_facts', col: string, build: (rows: Rows) => Batch, onRows: (rows: Rows) => void, degraded: string[]): Promise<number> {
     let n = 0
     try {
       for (let i = 0; i < PAGES; i++) {
@@ -115,7 +116,7 @@ export function createEstateRunner(deps: EstateRunDeps) {
     let ctx: SourceContext
     try { ctx = await context(degraded) } catch (e) {
       // Without the projects nothing can be placed: the pass says so and writes nothing.
-      const report: PassReport = { at: new Date(started).toISOString(), ms: deps.now() - started, docs: 0, transcripts: { read: 0, turns: 0, left: 0 }, commits: 0, embedded: 0,
+      const report: PassReport = { at: new Date(started).toISOString(), ms: deps.now() - started, docs: 0, transcripts: { read: 0, turns: 0, left: 0 }, commits: 0, documents: 0, embedded: 0,
         degraded: [`projects-unread: ${e instanceof Error ? e.message.slice(0, 160) : String(e)}`] }
       ix.setMeta('last_pass', JSON.stringify(report))
       return report
@@ -125,6 +126,7 @@ export function createEstateRunner(deps: EstateRunDeps) {
     docs += await table('task_notes', 'seq', (r) => noteBatch(ctx, r), () => {}, degraded)
     docs += await table('task_links', 'seq', linkBatch, () => {}, degraded)
     docs += await table('work_claims', 'claimed_seq', claimBatch, () => {}, degraded)
+    docs += await table('memory_facts', 'seq', (r) => factBatch(ctx, r), () => {}, degraded)
     try {
       for (let i = 0; i < PAGES; i++) {
         const rows = await deps.journal(JOURNAL_TYPES, seq('journal'), PAGE)
@@ -164,6 +166,7 @@ export function createEstateRunner(deps: EstateRunDeps) {
     } catch (e) { /* named in the pass's degraded; the other sources still land */ degraded.push(`transcripts-unread: ${e instanceof Error ? e.message.slice(0, 160) : String(e)}`) }
 
     let commits = 0
+    let documents = 0
     for (const p of ctx.projects.values()) {
       if (p.role !== 'canonical' || !p.repo_path || !existsSync(p.repo_path)) continue
       try {
@@ -172,8 +175,12 @@ export function createEstateRunner(deps: EstateRunDeps) {
         const b = await commitBatch(ctx, p)
         put(b)
         commits += b.nodes.length
+        // The project's documents at this HEAD; a repository read past the budget waits for the next pass.
+        if (deps.now() - started <= budgetMs * 2) { const d = await documentBatch(ctx, p); docs += put(d); documents += d.nodes.length }
+        else { degraded.push(`documents-deferred: ${p.name}`); continue }
         ix.setMeta(`head:${p.id}`, head)
       } catch (e) { /* named in the pass's degraded; the other sources still land */ degraded.push(`git-unread: ${p.name}: ${e instanceof Error ? e.message.slice(0, 100) : String(e)}`) }
+      await deps.yieldNow()
     }
 
     let embedded = 0
@@ -191,7 +198,7 @@ export function createEstateRunner(deps: EstateRunDeps) {
       }
     } catch (e) { /* named in the pass's degraded; the other sources still land */ degraded.push(`embedding-failed: ${e instanceof Error ? e.message.slice(0, 120) : String(e)}`) }
 
-    const report: PassReport = { at: new Date(started).toISOString(), ms: deps.now() - started, docs, transcripts: { read, turns, left }, commits, embedded, degraded }
+    const report: PassReport = { at: new Date(started).toISOString(), ms: deps.now() - started, docs, transcripts: { read, turns, left }, commits, documents, embedded, degraded }
     ix.setMeta('last_pass', JSON.stringify(report))
     return report
   }

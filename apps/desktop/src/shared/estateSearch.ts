@@ -18,8 +18,8 @@ export const TURN_CHARS = 1800
 export const MESSAGE_CHARS = 6000
 export const PASSAGE_CHARS = 300
 
-export type DocKind = 'session' | 'turn' | 'task' | 'note' | 'message' | 'console' | 'project' | 'commit'
-export const DOC_KINDS: readonly DocKind[] = ['session', 'turn', 'task', 'note', 'message', 'console', 'project', 'commit']
+export type DocKind = 'session' | 'turn' | 'task' | 'note' | 'message' | 'console' | 'project' | 'commit' | 'document'
+export const DOC_KINDS: readonly DocKind[] = ['session', 'turn', 'task', 'note', 'message', 'console', 'project', 'commit', 'document']
 
 export type Ranking = 'words' | 'trigram' | 'vector'
 
@@ -202,6 +202,50 @@ export function resumeCommand(runtime: 'claude' | 'codex', sessionId: string, cw
   return `${cd}${configDir ? `CLAUDE_CONFIG_DIR=${q(configDir)} ` : ''}claude --resume ${sessionId}`
 }
 // #endregion transcripts
+
+// #region documents — docs: docs/evidence/specs/2026-11-19-estate-index-and-graph.md#33-sources-and-how-each-is-kept-current
+
+/** The Markdown a project's documents are read from: decisions, specs, plans, reports, its README and agent briefs. */
+export function documentWanted(file: string): boolean {
+  const f = file.toLowerCase()
+  if (!f.endsWith('.md') || /(^|\/)(node_modules|vendor|dist|build|\.git)\//.test(f)) return false
+  return /^(readme|agents|claude|changelog|context|handoff)\.md$/.test(f) || f.startsWith('docs/') || /(^|\/)(adr|decisions|specs|plans)\//.test(f)
+}
+
+export const SECTION_CHARS = 2400
+
+/** A Markdown file cut at its headings into sections of at most SECTION_CHARS, each with its first and last line and the
+ *  heading path it sits under. */
+export function sections(text: string): Array<{ heading: string; text: string; lineStart: number; lineEnd: number }> {
+  const lines = text.split('\n')
+  const out: Array<{ heading: string; text: string; lineStart: number; lineEnd: number }> = []
+  let heading = ''
+  let buf: string[] = []
+  let start = 1
+  let fence = false
+  const flush = (end: number) => {
+    const body = buf.join('\n').trim()
+    // The section ends at its last line with text, so its citation names no trailing blank line.
+    let last = end
+    while (last > start && !(buf[last - start] ?? '').trim()) last--
+    if (body) out.push({ heading, text: body, lineStart: start, lineEnd: last })
+    buf = []
+  }
+  lines.forEach((line, i) => {
+    if (/^\s*```/.test(line)) fence = !fence
+    const h = !fence ? /^(#{1,4})\s+(.+?)\s*#*\s*$/.exec(line) : null
+    const size = buf.reduce((n, l) => n + l.length + 1, 0)
+    if (h || size + line.length > SECTION_CHARS) {
+      flush(i)
+      start = i + 1
+      if (h) heading = h[2]!.slice(0, 160)
+    }
+    buf.push(line)
+  })
+  flush(lines.length)
+  return out
+}
+// #endregion documents
 
 // #region project-catalogue — docs: docs/evidence/specs/2026-11-19-estate-index-and-graph.md#35-projects-without-duplicates
 

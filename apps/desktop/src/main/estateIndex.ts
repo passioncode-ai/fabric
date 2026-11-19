@@ -12,7 +12,9 @@ import { DatabaseSync, type StatementSync } from 'node:sqlite'
 import { terms } from '../shared/boardSearch.ts'
 import { fuse, passage, trigramQuery, wordsQuery, type DocKind, type Ranking } from '../shared/estateSearch.ts'
 
-export const SCHEMA_VERSION = '1'
+export const SCHEMA_VERSION = '2'
+/** The text the trigram half reads of one document: its identifiers and phrases sit near the start. */
+export const TRI_CHARS = 1200
 /** How many candidates each ranking contributes before fusion. */
 const CANDIDATES = 300
 /** At most this many hits of one node (one session's many turns never fill the page). */
@@ -89,8 +91,10 @@ export class EstateIndex {
         session_id TEXT, runtime TEXT, resume TEXT, path TEXT, line_start INTEGER, line_end INTEGER, digest TEXT NOT NULL);
       CREATE INDEX IF NOT EXISTS docs_node ON docs(node);
       CREATE INDEX IF NOT EXISTS docs_session ON docs(session_id);
-      CREATE VIRTUAL TABLE IF NOT EXISTS docs_words USING fts5(stems, tokenize = "unicode61 tokenchars '-_./'");
-      CREATE VIRTUAL TABLE IF NOT EXISTS docs_tri USING fts5(text, tokenize = 'trigram');
+      -- Contentless (schema 2): the text is in docs already; a copy in each FTS table doubled the file (measured 2026-11-19:
+      -- 866 MB of 2.5 GB). contentless_delete lets a changed document's row be replaced.
+      CREATE VIRTUAL TABLE IF NOT EXISTS docs_words USING fts5(stems, content = '', contentless_delete = 1, tokenize = "unicode61 tokenchars '-_./'");
+      CREATE VIRTUAL TABLE IF NOT EXISTS docs_tri USING fts5(text, content = '', contentless_delete = 1, tokenize = 'trigram');
       CREATE TABLE IF NOT EXISTS vectors (digest TEXT NOT NULL, model TEXT NOT NULL, vec BLOB NOT NULL, PRIMARY KEY (digest, model));
       CREATE TABLE IF NOT EXISTS nodes (id TEXT PRIMARY KEY, kind TEXT NOT NULL, label TEXT NOT NULL, at TEXT, attrs TEXT);
       CREATE TABLE IF NOT EXISTS edges (src TEXT NOT NULL, rel TEXT NOT NULL, dst TEXT NOT NULL, at TEXT, evidence TEXT, PRIMARY KEY (src, rel, dst));
@@ -150,7 +154,7 @@ export class EstateIndex {
         this.st.wordsDel!.run(r.rowid)
         this.st.triDel!.run(r.rowid)
         this.st.wordsIns!.run(r.rowid, terms(`${d.title}\n${body}`.slice(0, 6000)).join(' '))
-        this.st.triIns!.run(r.rowid, (d.tri ?? `${d.title}\n${body}`).slice(0, 3000))
+        this.st.triIns!.run(r.rowid, (d.tri ?? `${d.title}\n${body}`).slice(0, TRI_CHARS))
       }
     })
     return changed
@@ -176,15 +180,24 @@ export class EstateIndex {
     try { fn(); this.db.exec('COMMIT') } catch (e) { this.db.exec('ROLLBACK'); throw e }
   }
 
-  private filtered(sql: string, match: string, o: SearchOpts): string[] {
-    const where: string[] = []
-    const args: Array<string | number> = [match]
-    if (o.kinds?.length) { where.push(`d.kind IN (${o.kinds.map(() => '?').join(',')})`); args.push(...o.kinds) }
-    if (o.project) { where.push('(d.project = ? OR d.folder = ? OR d.folder LIKE ?)'); args.push(o.project, o.project, `${o.project.replace(/\/+$/, '')}/%`) }
-    if (o.context) { where.push('d.context = ?'); args.push(o.context) }
-    args.push(CANDIDATES)
-    const rows = this.db.prepare(sql.replace('/*where*/', where.length ? `AND ${where.join(' AND ')}` : '')).all(...args) as Array<{ id: string }>
-    return rows.map((r) => r.id)
+  /** One FTS ranking: the index alone answers the best rowids (a join with docs made the planner walk every match,
+   *  4 s on 180 000 documents), then the documents are read by rowid and filtered here. */
+  private ranked(table: 'docs_words' | 'docs_tri', match: string, o: SearchOpts): string[] {
+    const filtering = !!(o.kinds?.length || o.project || o.context)
+    const rows = this.db.prepare(`SELECT rowid FROM ${table} WHERE ${table} MATCH ? ORDER BY bm25(${table}) LIMIT ?`).all(match, filtering ? CANDIDATES * 4 : CANDIDATES) as Array<{ rowid: number }>
+    const get = this.db.prepare('SELECT id, kind, project, folder, context FROM docs WHERE rowid = ?')
+    const out: string[] = []
+    const dir = o.project?.replace(/\/+$/, '')
+    for (const r of rows) {
+      const d = get.get(r.rowid) as { id: string; kind: string; project: string | null; folder: string | null; context: string } | undefined
+      if (!d) continue
+      if (o.kinds?.length && !o.kinds.includes(d.kind)) continue
+      if (o.context && d.context !== o.context) continue
+      if (dir && d.project !== o.project && d.folder !== dir && !(d.folder ?? '').startsWith(`${dir}/`)) continue
+      out.push(d.id)
+      if (out.length >= CANDIDATES) break
+    }
+    return out
   }
 
   /** The hybrid search (spec §3.4): words, trigrams and, given an embedder, meaning; fused by reciprocal rank. */
@@ -193,11 +206,11 @@ export class EstateIndex {
     const rankings: Partial<Record<Ranking, string[]>> = {}
     const wq = wordsQuery(query)
     try {
-      if (wq) rankings.words = this.filtered(`SELECT d.id FROM docs_words w JOIN docs d ON d.rowid = w.rowid WHERE docs_words MATCH ? /*where*/ ORDER BY bm25(docs_words) LIMIT ?`, wq, o)
+      if (wq) rankings.words = this.ranked('docs_words', wq, o)
     } catch (e) { /* said in the answer's degraded, never thrown at the caller */ degraded.push(`words-failed: ${e instanceof Error ? e.message.slice(0, 120) : String(e)}`) }
     const tq = trigramQuery(query)
     try {
-      if (tq) rankings.trigram = this.filtered(`SELECT d.id FROM docs_tri t JOIN docs d ON d.rowid = t.rowid WHERE docs_tri MATCH ? /*where*/ ORDER BY bm25(docs_tri) LIMIT ?`, tq, o)
+      if (tq) rankings.trigram = this.ranked('docs_tri', tq, o)
     } catch (e) { /* said in the answer's degraded, never thrown at the caller */ degraded.push(`trigram-failed: ${e instanceof Error ? e.message.slice(0, 120) : String(e)}`) }
     if (!embedder) degraded.push('vector-unavailable')
     else {

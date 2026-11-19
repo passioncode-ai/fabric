@@ -10,11 +10,11 @@
  *   git          the canonical projects' commits, when their HEAD moved
  */
 import { execFile } from 'node:child_process'
-import { closeSync, openSync, readdirSync, readSync, statSync } from 'node:fs'
+import { closeSync, openSync, readFileSync, readdirSync, readSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
 import path from 'node:path'
 import {
-  contextOf, emptyFacts, holder, readClaudeLines, readCodexLines, refsOf, resumeCommand, turnPassages,
+  contextOf, documentWanted, emptyFacts, holder, readClaudeLines, sections, readCodexLines, refsOf, resumeCommand, turnPassages,
   type CatalogueRow, type TranscriptFacts
 } from '../shared/estateSearch.ts'
 import type { EstateIndex, IndexDoc, IndexEdge, IndexNode } from './estateIndex.ts'
@@ -325,14 +325,14 @@ function git(cwd: string, args: string[], timeoutMs = 8000): Promise<string> {
 }
 
 /** A repository's HEAD, or null when the folder is not one. */
-export async function headOf(folder: string): Promise<string | null> {
-  try { return (await git(folder, ['rev-parse', 'HEAD'], 3000)).trim() || null } catch { return null /* not a repository, or no commit yet */ }
+export async function headOf(repoPath: string): Promise<string | null> {
+  try { return (await git(repoPath, ['rev-parse', 'HEAD'], 3000)).trim() || null } catch { return null /* not a repository, or no commit yet */ }
 }
 
 /** A linked worktree's main folder (its common directory's parent), null for a main checkout or a plain folder. */
-export async function mainOfWorktree(folder: string): Promise<string | null> {
+export async function mainOfWorktree(repoPath: string): Promise<string | null> {
   try {
-    const [gitDir, common] = (await git(folder, ['rev-parse', '--path-format=absolute', '--git-dir', '--git-common-dir'], 3000)).trim().split('\n')
+    const [gitDir, common] = (await git(repoPath, ['rev-parse', '--path-format=absolute', '--git-dir', '--git-common-dir'], 3000)).trim().split('\n')
     if (!gitDir || !common || gitDir === common) return null
     return path.dirname(common)
   } catch { return null /* not a repository */ }
@@ -357,4 +357,63 @@ export async function commitBatch(ctx: SourceContext, project: CatalogueRow & { 
   return b
 }
 // #endregion git
+
+// #region documents — docs: docs/evidence/specs/2026-11-19-estate-index-and-graph.md#33-sources-and-how-each-is-kept-current
+
+export const DOC_FILES = 300
+export const DOC_BYTES = 300_000
+
+/** A canonical project's Markdown documents at HEAD, cut into sections: each a document of its own, the file a node that
+ *  belongs to the project, an ADR file also the node of its record (`record:ADR-NNNN`), so a commit or a turn that cites
+ *  the ADR reaches its text. */
+export async function documentBatch(ctx: SourceContext, project: CatalogueRow & { context: string }): Promise<Batch> {
+  const b = batch()
+  if (!project.repo_path) return b
+  // Decisions and specs first, then briefs and the rest of docs/, so a repository past DOC_FILES keeps what matters most.
+  const rank = (f: string): number => (/(^|\/)(adr|decisions)\//.test(f) ? 0 : /(^|\/)(specs|designs)\//.test(f) ? 1 : !f.includes('/') ? 2 : /(^|\/)(audit|reports|evidence\/plans)\//.test(f) ? 4 : 3)
+  const files = (await git(project.repo_path, ['ls-files', '-z', '--', '*.md'], 15_000)).split('\0').filter((f) => f && documentWanted(f))
+    .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b)).slice(0, DOC_FILES)
+  for (const rel of files) {
+    const abs = path.join(project.repo_path, rel)
+    let text: string
+    try {
+      if (statSync(abs).size > DOC_BYTES) continue
+      text = readFileSync(abs, 'utf8')
+    } catch { continue /* tracked but absent from the checkout (a sparse or moved file): nothing to read */ }
+    const node = `doc:${project.id}/${rel}`
+    const title = (/^#\s+(.+)$/m.exec(text)?.[1] ?? path.basename(rel)).slice(0, 200)
+    const adr = /(?:^|\/)(\d{4})-[^/]+\.md$/.exec(rel) && /(^|\/)adr\//.test(rel) ? `record:ADR-${/(\d{4})-[^/]+\.md$/.exec(rel)![1]}` : null
+    b.nodes.push({ id: node, kind: 'document', label: title, attrs: { project: project.name, path: rel } })
+    b.edges.push({ src: node, rel: 'belongs-to', dst: `project:${project.id}` })
+    if (adr) b.edges.push({ src: node, rel: 'records', dst: adr, evidence: rel })
+    for (const sec of sections(text).slice(0, 30)) {
+      b.docs.push({ id: `${node}#${sec.lineStart}`, kind: 'document', source: 'git', node, title: sec.heading ? `${title} · ${sec.heading}` : title, body: sec.text,
+        tri: `${title} ${sec.heading}\n${sec.text.slice(0, 400)}`, at: null, folder: project.repo_path, project: project.name, context: project.context, path: abs, lineStart: sec.lineStart, lineEnd: sec.lineEnd })
+    }
+    for (const c of citesOf(ctx, text)) if (c !== node && c !== adr) b.edges.push({ src: node, rel: 'cites', dst: c, evidence: rel })
+  }
+  return b
+}
+
+/** Fabric's memory facts (decisions, findings, traps, notes) as documents, a decision also a node of its own. */
+export function factBatch(ctx: SourceContext, rows: ReadonlyArray<Record<string, unknown>>): Batch {
+  const b = batch()
+  for (const f of rows) {
+    const id = str(f.id)
+    const claim = str(f.claim)
+    if (!id || !claim || f.withdrawn_seq != null) continue
+    const p = ctx.projects.get(String(f.project_id ?? ''))
+    const kind = str(f.kind) ?? 'note'
+    const node = kind === 'decision' ? `decision:${id}` : p ? `project:${p.id}` : `fact:${id}`
+    if (kind === 'decision') {
+      b.nodes.push({ id: node, kind: 'decision', label: claim.slice(0, 200), at: str(f.recorded_at), attrs: { source: f.source_ref ?? null } })
+      if (p) b.edges.push({ src: node, rel: 'belongs-to', dst: `project:${p.id}`, at: str(f.recorded_at) })
+      for (const c of citesOf(ctx, `${claim} ${String(f.source_ref ?? '')}`)) b.edges.push({ src: node, rel: 'cites', dst: c, at: str(f.recorded_at), evidence: 'the decision\'s text' })
+    }
+    b.docs.push({ id: `fact:${id}`, kind: 'document', source: 'fabric', node, title: `${kind}: ${claim.slice(0, 120)}`, body: `${claim}\n${String(f.source_ref ?? '')}`,
+      at: str(f.recorded_at), folder: p?.repo_path ?? null, project: p?.name ?? null, context: p?.context ?? 'personal' })
+  }
+  return b
+}
+// #endregion documents
 // #endregion estate-sources

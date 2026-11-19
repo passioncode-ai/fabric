@@ -58,7 +58,7 @@ carries kind, path, lines, date and title):
 | Column | Meaning |
 |---|---|
 | `id` | stable: `claude:<session>#<first line>`, `task:<uuid>`, `commit:<repo>@<sha>` … |
-| `kind` | `session`, `turn`, `task`, `note`, `message`, `console`, `project`, `commit` |
+| `kind` | `session`, `turn`, `task`, `note`, `message`, `console`, `project`, `commit`, `document` |
 | `source` | `claude`, `codex`, `fabric`, `git` |
 | `node` | the graph node it belongs to (a turn belongs to its session) |
 | `title`, `body` | what is searched; `body` is the verbatim text the passage quotes |
@@ -83,6 +83,8 @@ otherwise, a pasted fragment). `vectors(digest, model, vec)` holds the meaning h
 | Fabric consoles | `terminal.opened@1` and `session.turn.observed@1` | by journal `seq` above the last one read |
 | Tasks, notes, board messages, projects | Fabric's own tables, every project of the estate (the operator's door) | tasks and notes by `updated_at`/`created_at` above the last pass; board messages through the operator's thread door, newest 500 threads |
 | Commits | `git log` of every canonical project folder, 120 days, at most 400 a repository | when the repository's HEAD changed |
+| Documents | a canonical repository's tracked Markdown at HEAD: ADRs and decisions first, then specs and designs, briefs (README, AGENTS, CLAUDE, CHANGELOG, HANDOFF), the rest of `docs/`; at most 300 files of 300 KB, cut at headings into sections of 2 400 characters with their lines (`shared/estateSearch.ts#sections`); an ADR file is also the node `record:ADR-NNNN` | with the commits, when HEAD moved |
+| Decisions and facts | Fabric's memory facts (decision, finding, trap, note); a decision is a node of its own | by `seq` |
 
 A pass runs at start (after the stack is up), every five minutes, and on demand (`index.refresh`). One pass at a time; a
 source that fails is named in the pass's `degraded` and the others still land. `index.rebuild` deletes the file and
@@ -194,3 +196,9 @@ documents, 78 350 edges, about 470 MB. Queries on it (`EstateIndex.search`, no v
 Fabric» 1 070 ms, finding the sessions that hold the phrase with their continue commands; «роутер-навигатор» 5 ms;
 «fabric_ceo_session_resume» 83 ms; «голосовой звонок CEO» 10 ms. With 400 passages embedded by `embeddinggemma`, a query
 by meaning took 423 ms and answered `vectors-partial`.
+
+After documents and decisions joined (the operator's addition of 2026-11-19, ~20:35: «весь проект весь фабрик весь
+харнес был граф векторный векторный поиск граф по данным познаниям»): four passes on a fresh file (138, 127, 37, 13 s),
+179 510 documents, 109 221 edges, about 880 MB with contentless FTS tables (2.5 GB with a text copy in each). Searches,
+warm: «Задачи от владельца (CEO-агенту Fabric» 411 to 576 ms, «the journal is the spine» 212 to 302 ms (ADR-0014's own
+sections first), «fabric_ceo_session_resume» 111 to 139 ms.

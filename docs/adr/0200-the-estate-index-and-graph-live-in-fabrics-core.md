@@ -23,7 +23,8 @@ reads a project through those doors, never by copying it (D-78, «one engine, tw
 
 ## Decision
 
-1. **The index is Fabric's**, a derived SQLite file in `userData/estate-index/index.sqlite` (`main/estateIndex.ts`),
+1. **The index is Fabric's**, covering all of Fabric and this computer's harness (sessions, transcripts, tasks, the board,
+   the journal's acts, documents, decisions, commits), a derived SQLite file in `userData/estate-index/index.sqlite` (`main/estateIndex.ts`),
    rebuilt by deleting it. Nothing reads it to decide a write; the journal stays the spine.
 2. **One engine with the organization's graph**, ported, not copied: the words ranking uses Fabric's own Russian and
    English stemmer (`shared/boardSearch.ts#terms`, so a word means the same as in `fabric_board_search`), a trigram
@@ -41,9 +42,12 @@ reads a project through those doors, never by copying it (D-78, «one engine, tw
 
 ## Consequences
 
-- A first index of this Mac took 87 s for Fabric's rows, 628 transcripts and 24 192 commits, and three more passes to read
-  every transcript; later passes read only what changed (11 to 21 s). The file is about 470 MB for 56 812 documents; the
-  trigram text is capped at 3 000 characters per document to keep it there.
+- With documents and decisions (amendment of the same day, the operator's «весь фабрик весь харнес был граф векторный»),
+  a first index of this Mac took four passes (138, 127, 37 and 13 s): 792 transcripts, 24 197 commits, 4 702 document
+  files cut into sections, Fabric's rows and memory facts, 179 510 documents and 109 221 edges in about 880 MB. The FTS
+  tables are contentless (schema 2): with a copy of the text in each they took 2.5 GB. The trigram half reads the first
+  1 200 characters of a document. A search answers in 0.1 to 0.6 s once the file is cached (`EstateIndex#ranked` asks
+  the FTS index alone and filters after; a join with the documents took 4 s).
 - Embedding the whole index takes many passes (400 passages a pass, about 10 s with `embeddinggemma`): meaning ranks the
   newest passages first and the rest over the following hours.
 - A project session's own narrowed search waits for CO-422 (contexts as estates); until then only the CEO, the operator's

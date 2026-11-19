@@ -101,7 +101,7 @@ export function startEstateIndex(deps: EstateWiringDeps): Estate {
     if (!open() || !runner) throw new Error(`the index is not open: ${unavailable}`)
     const report = await runner.pass(budgetMs)
     deps.record('estate.index.pass', report.degraded.some((d) => /unread|failed/.test(d)) ? 'failed' : 'ok', {
-      ms: report.ms, docs: report.docs, transcripts: report.transcripts, commits: report.commits, embedded: report.embedded, degraded: report.degraded.slice(0, 8) })
+      ms: report.ms, docs: report.docs, transcripts: report.transcripts, commits: report.commits, documents: report.documents, embedded: report.embedded, degraded: report.degraded.slice(0, 8) })
     return report
   }
 

@@ -12,7 +12,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 - **One search over every session, transcript and task, and the graph of what relates to what.** The operator's backlog
   of 2026-11-19, relayed by the CEO: search tasks across every session and project, and a knowledge base for all of
   Fabric, a linked graph of tasks, actions and data. Fabric keeps a local index (`userData/estate-index`) of the Claude
-  Code and Codex transcripts, its own consoles, every project's tasks, notes and board messages, and the commits, and
+  Code and Codex transcripts, its own consoles, every project's tasks, notes and board messages, the repositories'
+  documents and decisions (ADRs first, cut at headings with their lines), the project memory's facts, and the commits, and
   searches it by words in Russian and English, by parts of identifiers and, when a local Ollama model is installed, by
   meaning; nothing leaves the machine. Every hit names its project, context (personal or an organization), the
   file and lines it stands at, its session id and the command that continues it. The CEO gets two tools,

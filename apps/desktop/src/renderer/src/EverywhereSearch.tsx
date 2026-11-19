@@ -24,7 +24,10 @@ export function EverywhereSearch({ query, onError }: { query: string; onError: (
     if (text.length < 2) { setAnswer(null); return }
     let alive = true
     const timer = setTimeout(() => {
-      window.fabric.search.everywhere(text).then((a) => { if (alive) setAnswer(a) }, (e: unknown) => alive && onError(String(e)))
+      // A door that throws (or a window without it) is said in the group as «could not be searched», never thrown.
+      Promise.resolve().then(() => window.fabric.search.everywhere(text)).then(
+        (a) => { if (alive) setAnswer(a) },
+        (e: unknown) => { if (alive) setAnswer({ ok: false, reason: e instanceof Error ? e.message : String(e) }) })
     }, 300)
     return () => { alive = false; clearTimeout(timer) }
   }, [query])

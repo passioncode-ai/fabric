@@ -124,14 +124,18 @@ test('one pass reads Fabric rows, transcripts and a real Git repository, and wal
   t.after(() => rmSync(repo, { recursive: true, force: true }))
   execFileSync('git', ['init', '-q', repo])
   execFileSync('git', ['-C', repo, '-c', 'user.email=a@b', '-c', 'user.name=a', 'commit', '-q', '--allow-empty', '-m', 'feat: the graph (task 57781f0d-b2cd-4c2e-b080-52245bdc6ed6)'])
-  const sha = execFileSync('git', ['-C', repo, 'rev-parse', 'HEAD']).toString().trim()
+  mkdirSync(path.join(repo, 'docs', 'adr'), { recursive: true })
+  writeFileSync(path.join(repo, 'docs', 'adr', '0007-the-graph-lives-here.md'), '# ADR-0007: the graph lives here\n\n## Decision\n\nOne local index with its graph, for task 57781f0d.\n')
+  execFileSync('git', ['-C', repo, 'add', '.'])
+  execFileSync('git', ['-C', repo, '-c', 'user.email=a@b', '-c', 'user.name=a', 'commit', '-q', '-m', 'docs: ADR-0007'])
+  const sha = execFileSync('git', ['-C', repo, 'rev-parse', 'HEAD~1']).toString().trim()
   const task = '57781f0d-b2cd-4c2e-b080-52245bdc6ed6'
   const dir = tmp(), proj = path.join(dir, 'projects', '-r')
   mkdirSync(proj, { recursive: true })
   writeFileSync(path.join(proj, '22222222-2222-4222-8222-222222222222.jsonl'), `${JSON.stringify({ type: 'user', sessionId: '22222222-2222-4222-8222-222222222222', cwd: repo, timestamp: '2026-11-19T10:00:00Z', message: { content: 'сделай граф знаний для задачи 57781f0d' } })}\n`)
   const rows = {
     project_tasks: [{ id: task, project_id: 'p1', title: 'Граф знаний Fabric', instruction: 'граф', status: 'running', seq: 5 }],
-    task_notes: [], task_links: [], work_claims: [{ owner_session: 'f1', work_id: task, claimed_at: '2026-11-19T10:00:00Z', claimed_seq: 7 }]
+    task_notes: [], task_links: [], memory_facts: [{ id: 'f1', project_id: 'p1', kind: 'decision', claim: 'The graph lives in the core (ADR-0007)', source_ref: 'docs/adr/0007', recorded_at: '2026-11-19T11:00:00Z', seq: 3 }], work_claims: [{ owner_session: 'f1', work_id: task, claimed_at: '2026-11-19T10:00:00Z', claimed_seq: 7 }]
   }
   const runner = createEstateRunner({
     index: ix,
@@ -149,7 +153,15 @@ test('one pass reads Fabric rows, transcripts and a real Git repository, and wal
   const report = await runner.pass(10_000)
   assert.deepEqual(report.degraded, ['vector-unavailable'])
   assert.equal(report.transcripts.read, 1)
-  assert.equal(report.commits, 1)
+  assert.equal(report.commits, 2)
+  assert.equal(report.documents, 1)
+  // A document section is found with its file and lines, and the ADR's record node reaches its text and the decision.
+  const doc = (await ix.search('one local index', { kinds: ['document'] }, null)).hits[0]
+  assert.match(doc.cite, /docs\/adr\/0007-the-graph-lives-here\.md:3-5$/)
+  assert.match(doc.title, /ADR-0007: the graph lives here · Decision/)
+  const record = ix.neighbours('record:ADR-0007', 1).nodes.map((n) => n.id)
+  assert.ok(record.some((id) => id.startsWith('doc:p1/docs/adr/0007')), 'the ADR file records its id')
+  assert.ok(record.includes('decision:f1'), 'the decision that cites it')
   const around = ix.neighbours(`task:${task}`, 3).nodes.map((n) => n.id)
   assert.ok(around.includes(`commit:${sha}`), 'the commit that cites the task')
   assert.ok(around.includes('console:f1'), 'the console that claimed it')

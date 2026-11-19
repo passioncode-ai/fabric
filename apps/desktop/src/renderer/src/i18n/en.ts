@@ -529,6 +529,7 @@ export const en = {
   'everywhere.kind.message': "Board",
   'everywhere.kind.console': "Console",
   'everywhere.kind.project': "Project",
+  'everywhere.kind.document': "Document",
   'everywhere.kind.commit': "Commit",
   'everywhere.aroundTitle': "What relates to «{name}»",
   'everywhere.aroundEmpty': "Nothing in the index relates to it yet.",

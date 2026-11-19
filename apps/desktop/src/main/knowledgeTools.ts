@@ -11,13 +11,13 @@ import { checkClaims, matchProject, type CatalogueRow } from '../shared/estateSe
 import type { Embedder, EstateIndex } from './estateIndex.ts'
 import type { PassReport } from './estateRun.ts'
 
-const KINDS = ['session', 'turn', 'task', 'note', 'message', 'console', 'project', 'commit'] as const
+const KINDS = ['session', 'turn', 'task', 'note', 'message', 'console', 'project', 'commit', 'document'] as const
 
 export const KNOWLEDGE_TOOLS = {
   search: {
     mcp: 'fabric_knowledge_search',
     title: 'Search everything the agents did',
-    description: 'One search over every session and transcript on this computer (Claude Code, Codex, Fabric consoles), every project\'s tasks, notes and board messages, and the commits: Russian and English word forms, parts of identifiers, and meaning when a local model serves vectors. Each hit carries its session id, project, context, a verbatim passage with its file:lines and the command that continues it. Use it first to find where something happened; walk what relates to a hit with fabric_knowledge_execute.',
+    description: 'One search over every session and transcript on this computer (Claude Code, Codex, Fabric consoles), every project\'s tasks, notes and board messages, its documents and decisions (ADRs, specs, plans, README, memory facts), and the commits: Russian and English word forms, parts of identifiers, and meaning when a local model serves vectors. Each hit carries its session id, project, context, a verbatim passage with its file:lines and the command that continues it. Use it first to find where something happened; walk what relates to a hit with fabric_knowledge_execute.',
     input: z.object({
       query: z.string().trim().min(2).max(400).describe('Words or a phrase, in any language; put a subject in Russian and English for both.'),
       kinds: z.array(z.enum(KINDS)).max(8).optional().describe('Only these kinds of hits.'),

@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   catalogue, checkClaims, contextOf, emptyFacts, folderRole, fuse, holder, matchProject, passage, readClaudeLines,
-  readCodexLines, refsOf, resumeCommand, trigramQuery, turnPassages, wordsQuery, TURN_CHARS
+  readCodexLines, refsOf, resumeCommand, trigramQuery, turnPassages, wordsQuery, TURN_CHARS, documentWanted, sections, SECTION_CHARS
 } from './estateSearch.ts'
 
 describe('queries', () => {
@@ -161,5 +161,20 @@ describe('refs and quotes', () => {
       { doc: 'd1', quote: 'short' }
     ], docs)
     expect(v.map((x) => (x.kept ? 'kept' : x.reason))).toEqual(['kept', 'adds-number', 'not-verbatim', 'changed', 'unknown-doc', 'short'])
+  })
+})
+
+describe('documents', () => {
+  it('reads decisions, specs, docs and briefs, never dependencies or build output', () => {
+    expect(['docs/adr/0001-x.md', 'README.md', 'AGENTS.md', 'pkg/adr/0002-y.md', 'docs/guide.md'].every(documentWanted)).toBe(true)
+    expect(['node_modules/a/README.md', 'src/notes.md', 'docs/a.txt', 'dist/docs/x.md'].some(documentWanted)).toBe(false)
+  })
+  it('cuts at headings with their lines, never inside a code fence, and keeps a long section within SECTION_CHARS', () => {
+    const text = ['# Title', 'intro', '## Decision', 'we choose A', '```', '# not a heading', '```', '## Long', ...Array.from({ length: 80 }, () => 'x'.repeat(60))].join('\n')
+    const s = sections(text)
+    expect(s.slice(0, 3).map((x) => [x.heading, x.lineStart])).toEqual([['Title', 1], ['Decision', 3], ['Long', 8]])
+    expect(s[1]!.text).toContain('# not a heading')
+    expect(s.every((x) => x.text.length <= SECTION_CHARS + 61)).toBe(true)
+    expect(s.length).toBeGreaterThan(3)
   })
 })
