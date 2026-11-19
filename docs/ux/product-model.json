@@ -35765,7 +35765,7 @@
       "errors_recovery": "no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4633
+        "line": 4634
       }
     },
     {
@@ -35782,7 +35782,7 @@
       "errors_recovery": "the order and the models are set by hand in settings.json (`ceoRunners`, `ceoModels`); an unknown runner, and a model below Sonnet 5.5, is dropped.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4656
+        "line": 4657
       }
     }
   ],
