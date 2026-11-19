@@ -16,7 +16,8 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   their screen), `fabric_ceo_window_layout` (halves, thirds, quarters, the whole screen or macOS full screen, on
   screen 1, 2 or the other; «открой одно окно, второе» puts the second beside the first; a layout kept by name and put
   back), `fabric_ceo_dashboards` and `fabric_ceo_dashboard_open` (a dashboard named by the owner's words, Russian or
-  English, opened in Fabric Dashboards, switched, put full screen; words that fit several are asked about). Fabric
+  English, opened in Fabric Dashboards, switched, put full screen; words that fit several, or a name that only sounds
+  like one, are asked about). A console the CEO opens while console windows are open takes its place beside them. Fabric
   Dashboards' window moves through System Events: macOS asks the owner once each for Accessibility and Automation, and
   until then the dashboard still opens and the CEO says which permission is missing; both permissions cover Fabric as
   a whole, its consoles' agents included (`main/ceoWindows.ts`, `docs/launch/ceo-setup.md` §5; ADR-0197 amendment 3).

@@ -86,7 +86,11 @@ export function pickDashboard(all: readonly DashboardLike[], query: string): Das
   // A dashboard found by its letters beats one found only by sound.
   const sure = scored.filter((x) => !x.near)
   const hits = (sure.length ? sure : scored).map((x) => x.d)
-  const products = new Set(hits.map((d) => productOf(d.key)))
+  // An organisation's copy whose id carries its prefix («org-asset-foundry») is a copy of the product it ends with
+  // when that product is installed too (UX-17).
+  const ids = new Set(all.map((d) => productOf(d.key)))
+  const canonical = (key: string) => { const id = productOf(key); for (const other of ids) if (other !== id && id.endsWith(`-${other}`)) return other; return id }
+  const products = new Set(hits.map((d) => canonical(d.key)))
   const sorted = [...hits].sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name))
   // Several products, or a match by sound only: asked about, never guessed.
   if (products.size > 1 || !sure.length) return { ambiguous: products.size > 1 ? sorted : sorted.slice(0, 1) }

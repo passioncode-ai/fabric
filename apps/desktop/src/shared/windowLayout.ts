@@ -208,7 +208,7 @@ export function parseLayouts(text: string): SavedLayouts {
  *  and says so instead of the next save writing over it (ER-17, DA-9). */
 export function readLayouts(text: string): { layouts: SavedLayouts; damaged: boolean } {
   const out: SavedLayouts = Object.create(null)
-  if (text.length > MAX_LAYOUTS_BYTES) return { layouts: out, damaged: true }
+  if (Buffer.byteLength(text, 'utf8') > MAX_LAYOUTS_BYTES) return { layouts: out, damaged: true }
   let raw: unknown
   try { raw = JSON.parse(text) } catch { return { layouts: out, damaged: true } }
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { layouts: out, damaged: true }
@@ -220,6 +220,8 @@ export function readLayouts(text: string): { layouts: SavedLayouts; damaged: boo
     const at = (v as { saved_at?: unknown }).saved_at
     if (ok.length) out[name] = { saved_at: typeof at === 'string' && !Number.isNaN(Date.parse(at)) ? at : '', placements: ok }
   }
-  return { layouts: boundLayouts(out), damaged: false }
+  // A file with entries none of which reads as a layout (another version's shape) is damaged too (DA-14, DO-19).
+  const entries = Object.keys(raw as Record<string, unknown>).length
+  return { layouts: boundLayouts(out), damaged: entries > 0 && Object.keys(out).length === 0 }
 }
 // #endregion ceo-window-layout

@@ -6,7 +6,7 @@ import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipc
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, readFileSync, realpathSync, renameSync, statfsSync } from 'node:fs'
+import { existsSync, readFileSync, realpathSync, renameSync, statSync, statfsSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -47,7 +47,7 @@ import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
 import { createDashboardsPort, createWindowsPort } from './ceoWindows.ts'
-import { readLayouts } from '../shared/windowLayout.ts'
+import { MAX_LAYOUTS_BYTES, readLayouts } from '../shared/windowLayout.ts'
 import { atomicWrite } from './localState.ts'
 import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
@@ -5234,25 +5234,38 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }),
     layouts: (() => {
       const file = path.join(app.getPath('userData'), 'window-layouts.json')
+      let layoutsHeld = false
       return {
         read: () => {
+          // ER-25, DA-13: the size first, so a file Fabric did not write is never read whole on the main thread.
           let text: string
-          try { text = readFileSync(file, 'utf8') } catch (e) {
+          try {
+            text = statSync(file).size > MAX_LAYOUTS_BYTES ? '\u0000'.repeat(MAX_LAYOUTS_BYTES + 1) : readFileSync(file, 'utf8')
+          } catch (e) {
             // None saved yet is ENOENT; anything else is logged, and the next save writes the file whole.
             if ((e as { code?: string }).code !== 'ENOENT') ops.failed('ceo.window.layouts-unread', e)
             return {}
           }
           const r = readLayouts(text)
           if (r.damaged) {
-            // ER-17, DA-9: a damaged file is moved aside with its time and said once, never written over.
+            // ER-17, DA-9: a damaged file is moved aside with its time and said once; when it cannot be moved, the
+            // next save is refused rather than writing over it (ER-25, DA-14).
             const aside = `${file}.damaged-${Date.now()}`
-            try { renameSync(file, aside) } catch (e) { ops.failed('ceo.window.layouts-unread', e) }
-            ops.record({ op: 'ceo.window.layouts-damaged', outcome: 'failed', level: 'warn', detail: { kept_as: path.basename(aside) }, ctx: { correlationId: ops.correlate() } })
+            try {
+              renameSync(file, aside)
+              ops.record({ op: 'ceo.window.layouts-damaged', outcome: 'failed', level: 'warn', detail: { kept_as: path.basename(aside) }, ctx: { correlationId: ops.correlate() } })
+            } catch (e) {
+              layoutsHeld = true
+              ops.failed('ceo.window.layouts-damaged', e, { note: 'the damaged layouts file stays where it is; saves are refused until it is moved' })
+            }
           }
           return r.layouts
         },
         // DA-3: a temp file 0600 beside it, then a rename: a crash never leaves half a file.
-        write: (all) => atomicWrite(file, `${JSON.stringify(all, null, 2)}\n`, `${file}.${process.pid}.tmp`)
+        write: (all) => {
+          if (layoutsHeld) throw Object.assign(new Error('a damaged layouts file could not be moved aside'), { code: 'EDAMAGED' })
+          atomicWrite(file, `${JSON.stringify(all, null, 2)}\n`, `${file}.${process.pid}.tmp`)
+        }
       }
     })()
   })

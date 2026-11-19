@@ -430,11 +430,35 @@ test('ER-14, PL-17, PL-16: windows opened one by one keep their order, a save ke
 
 test('PL-14: a console the CEO opens takes its place beside the one it opened before', async () => {
   const o = setup()
-  o.sessions.clear()
-  await o.ops.run('open', { session_id: 's1', reason: 'the first window' })
-  await o.ops.run('open', { session_id: 's3', reason: 'the second window' })
+  o.sessions.delete('s3')
+  // s1 is open where the owner left it (on the built-in screen); s3 opens beside it, and each takes a half.
+  o.sessions.get('s1').bounds = { x: 100, y: 100, width: 1000, height: 680 }
+  const r = await o.ops.run('open', { session_id: 's3', reason: 'the second window' })
+  assert.equal(r.ok, true)
   assert.deepEqual(o.sessions.get('s1').bounds, areaRect(MAIN.workArea, 'left'))
   assert.deepEqual(o.sessions.get('s3').bounds, areaRect(MAIN.workArea, 'right'))
+  // PL-24: with no other console open, a console opens as the person's own open does, not over the whole screen.
+  const lone = setup()
+  lone.sessions.clear()
+  const plain = await lone.ops.run('open', { session_id: 's1', reason: 'one window' })
+  assert.equal(plain.placed, undefined)
+})
+
+test('ER-22: a console whose placement did not show it is opened the plain way, and the answer says so', async () => {
+  const opened = []
+  const consoles = new Map([['s1', { sessionId: 's1', projectId: 'p1', cwd: '/d', optionId: 'claude-code', state: 'running', running: true, lastActivityAt: '1', tail: '' }],
+    ['s2', { sessionId: 's2', projectId: 'p1', cwd: '/d', optionId: 'claude-code', state: 'running', running: true, lastActivityAt: '2', tail: '' }]])
+  const sessions = new Map([['s1', win('s1', { x: 0, y: 40, width: 600, height: 400 })]])
+  const ops = createCeoOperations({
+    ptys: { list: () => [...consoles.values()], get: (id) => consoles.get(id) ?? null, scrollbackOf: () => null, write: () => {} }, ceoSessionId: () => null,
+    projects: async () => [], admitFolder: async () => ({}), openConsole: async () => ({}), stop: async () => ({}), openWindow: (id) => opened.push(id),
+    switchboard: async () => null, signal: () => {}, record: () => {}, note: () => {}, sleep: async () => {},
+    // A port whose session windows never appear: the arrangement cannot place s2.
+    windows: createWindowsPort({ main: () => null, ceo: () => null, sessions: () => sessions, files: () => new Map(), displays: () => [MAIN], openMain() {}, openCeo() {}, openSession() {} })
+  })
+  const r = await ops.run('open', { session_id: 's2', reason: 'the second window' })
+  assert.deepEqual(opened, ['s2'])
+  assert.match(r.note, /could not be placed/)
 })
 
 test('UX-12, PL-19, PL-20: a screen not here falls back for the whole call; a dashboard stays on its screen; full screen takes no room', async () => {
@@ -500,4 +524,23 @@ test('ER-17, DA-8: a damaged layouts text says so; a layout keeps and reopens th
   o.linked.length = 0
   await o.ops.run('window_layout', { restore: 'рост', reason: 'back' })
   assert.equal(o.linked.at(-1), 'fabric-dashboards://service/sshlg-growth.reader?path=%2F')
+})
+
+// ── iteration 3 of the review ───────────────────────────────────────────────
+
+test('ER-23, ER-24, UX-17, DA-14: a gone dashboard is said on restore; a dashboard kept beside a later window keeps its page; an org-prefixed copy is a copy', async () => {
+  const o = setup()
+  await o.ops.run('window_layout', { place: [{ window: 'dashboards', dashboard: 'Growth (read-only)' }], display: 'primary', reason: 'Growth first' })
+  await o.ops.run('window_layout', { place: [{ window: 's1' }], display: 'primary', save_as: 'пара', reason: 'and a console, kept' })
+  assert.equal(o.saved['пара'].placements.find((p) => p.window === 'dashboards').dashboard, 'sshlg-growth.reader')
+  o.saved['пара'].placements.find((p) => p.window === 'dashboards').dashboard = 'gone-agent.default'
+  const back = await o.ops.run('window_layout', { restore: 'пара', reason: 'back' })
+  assert.equal(back.ok, false)
+  assert.match(back.skipped[0].reason, /no longer installed/)
+  const reg = [
+    { key: 'asset-maker.default', name: 'Asset Maker', summary: '', placement: 'local' },
+    { key: 'orgx-asset-maker.cloud', name: 'Orgx Asset Maker', summary: '', placement: 'remote' }
+  ]
+  assert.equal(pickDashboard(reg, 'Asset Maker').found.key, 'asset-maker.default')
+  assert.equal(readLayouts(JSON.stringify({ a: { placements: [{ window: 'nope', area: 'left' }] } })).damaged, true)
 })
