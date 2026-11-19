@@ -1813,6 +1813,8 @@ export interface FabricApi {
     ensure(): Promise<CeoStatus>
     send(text: string, attachments: CeoAttachment[]): Promise<CeoSendResult>
     restart(): Promise<CeoStatus>
+    /** The person's stop (the owner, 2026-11-19): the CEO stays stopped until `restart`, or a message, starts it. */
+    stop(): Promise<{ ok: boolean; reason?: 'still-running'; status: CeoStatus }>
     /** Open the popup window over the app, with `draft` put in its composer. */
     open(draft?: string | null): Promise<void>
     /** The draft the last `open` left for the popup; null when none. */
@@ -2062,6 +2064,7 @@ export const IPC = {
   ceoAgentEnsure: 'ceo-agent:ensure',
   ceoAgentSend: 'ceo-agent:send',
   ceoAgentRestart: 'ceo-agent:restart',
+  ceoAgentStop: 'ceo-agent:stop',
   ceoAgentOpen: 'ceo-agent:open',
   ceoAgentTakeDraft: 'ceo-agent:take-draft',
   ceoAgentVoice: 'ceo-agent:voice',

@@ -113,6 +113,9 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   let starting: Promise<CeoStatus> | null = null
   /** A stop of the previous console under way: a start waits for it (ER-10). */
   let stopping: Promise<void> | null = null
+  /** The person stopped the CEO (the owner, 2026-11-19): its console's end is not an early end, and nothing starts it
+   *  again (no fallback, no popup opening) until the person starts it, restarts it or writes to it. */
+  let held = false
   const setAside = new Map<string, { until: number; why: string }>()
   /** The person's recent lines, newest last (ER-13). */
   const sent: SentLine[] = []
@@ -123,7 +126,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
 
   const status = (): CeoStatus => {
     const live = sessionId ? deps.get(sessionId) : null
-    const s: CeoState = state === 'running' && live && !live.running ? 'ended' : state
+    const s: CeoState = held && !live?.running ? 'stopped' : state === 'running' && live && !live.running ? 'ended' : state
     const t = now()
     return {
       state: s, sessionId, runner, models, passedOver, folder: deps.root, problem,
@@ -234,6 +237,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** The console, started when there is none running. Concurrent callers share one start. */
   async function ensure(): Promise<CeoStatus> {
     if (stopping) await stopping
+    if (held) return status()
     const live = sessionId ? deps.get(sessionId) : null
     if (live?.running) return status()
     if (starting) return starting
@@ -287,6 +291,8 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     sent.push(entry)
     if (sent.length > KEPT_LINES) sent.splice(0, sent.length - KEPT_LINES)
     const seq = fallbacks
+    // Writing to a stopped CEO is the person asking it back.
+    held = false
     const s = await ensure()
     let ok = false
     let reason: CeoSendReason = 'not-running'
@@ -324,7 +330,8 @@ export function createCeoAgent(deps: CeoAgentDeps) {
 
   /** Stop the console and start another. A person's restart (or retry) also brings back every runner set aside (UX-4). */
   async function restart(why = 'restart'): Promise<CeoStatus> {
-    if (why === 'person') setAside.clear()
+    if (why === 'person') { setAside.clear(); held = false }
+    if (held) return status()
     const id = sessionId
     // ER-3: the console is no longer the CEO's before its stop is awaited, so its exit is never read as an early end.
     sessionId = null
@@ -340,6 +347,37 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     deps.record('ceo.agent.restart', { from_session: id, why })
     state = 'idle'
     return ensure()
+  }
+
+  /** The person's stop (the owner, 2026-11-19: «пытался остановить эту консоль, но не смог»): the console is stopped as
+   *  any console is, its end is read as the person's, and the CEO stays stopped until the person starts it. A stop that
+   *  leaves the console running answers `still-running`, and the CEO is not held. */
+  async function stop(): Promise<{ ok: boolean; reason?: 'still-running'; status: CeoStatus }> {
+    const id = sessionId
+    held = true
+    changed()
+    if (id && deps.get(id)?.running) {
+      const done = stopConsole(id)
+      stopping = done
+      try { await done } finally { if (stopping === done) stopping = null }
+    }
+    if (id && deps.get(id)?.running) {
+      held = false
+      changed()
+      return { ok: false, reason: 'still-running', status: status() }
+    }
+    state = 'idle'
+    deps.record('ceo.agent.held', { session_id: id })
+    changed()
+    return { ok: true, status: status() }
+  }
+
+  /** Another door (the console's own window, History's act) is stopping a console for the person: when it is the CEO's,
+   *  the CEO is held as by `stop`, so its end starts nothing. */
+  function personStopping(id: string): void {
+    if (id === '' || id !== sessionId || held) return
+    held = true
+    deps.record('ceo.agent.held', { session_id: id, door: 'console' })
   }
 
   /** Set a runner aside and start the next one; the person's lines typed into the lost console are typed again, each
@@ -390,7 +428,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
    *  it aside: a limit or a sign-in screen in its first `EARLY_END_MS` or in the `REPLY_WINDOW_MS` after a typed line. Other output (the CEO quoting a session at its
    *  limit, a tool's result) and the echo of text Fabric typed never do. */
   function onOutput(id: string, data: string): void {
-    if (id !== sessionId) return
+    if (id !== sessionId || held) return
     const inStart = !quiet && now() - startedAt < EARLY_END_MS
     if (!inStart && now() >= replyUntil) { heard = ''; return }
     // eslint-disable-next-line no-control-regex
@@ -401,6 +439,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
 
   function onExit(id: string): void {
     if (id !== sessionId) return
+    if (held) { state = 'idle'; changed(); return }
     if (now() - startedAt < EARLY_END_MS) {
       startFallback('ended-at-start')
       return
@@ -433,7 +472,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   }
 
   return {
-    status, ensure, send, restart, onOutput, onExit, nudgeBoard,
+    status, ensure, send, restart, stop, personStopping, onOutput, onExit, nudgeBoard,
     isCeo: (id: string): boolean => id !== '' && (id === sessionId || opening.has(id)),
     sessionId: (): string | null => sessionId,
     projectId: (): string | null => projectId

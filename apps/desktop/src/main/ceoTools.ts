@@ -344,7 +344,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
 
   async function stop(a: z.infer<typeof CEO_TOOLS.stop.input>): Promise<Answer> {
-    if (a.session_id === deps.ceoSessionId()) return refuse('this is your own console: the owner restarts the CEO from the popup')
+    if (a.session_id === deps.ceoSessionId()) return refuse('this is your own console: the owner stops or restarts the CEO from its popup')
     const s = deps.ptys.get(a.session_id)
     if (s) {
       if (!s.running) return { ok: true, state: 'already-ended' }

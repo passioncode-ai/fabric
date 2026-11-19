@@ -27,6 +27,7 @@ export function CeoPopup(): React.JSX.Element {
   const [session, setSession] = useState<TerminalSession | null>(null)
   const [draft, setDraft] = useState<string | null>(null)
   const [restarting, setRestarting] = useState(false)
+  const [stopping, setStopping] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
 
   const takeDraft = useCallback(() => {
@@ -62,6 +63,16 @@ export function CeoPopup(): React.JSX.Element {
     try { setStatus(await window.fabric.ceoAgent.restart()) } catch (e) { setProblem(e instanceof Error ? e.message : String(e)) } finally { setRestarting(false) }
   }
 
+  const stop = async (): Promise<void> => {
+    setStopping(true)
+    setProblem(null)
+    try {
+      const r = await window.fabric.ceoAgent.stop()
+      setStatus(r.status)
+      if (!r.ok) setProblem(t('ceoAgent.stopFailed'))
+    } catch (e) { setProblem(e instanceof Error ? e.message : String(e)) } finally { setStopping(false) }
+  }
+
   const why = (w: string): string => (WHY_KEYS.has(w) ? t(`ceoAgent.why.${w}` as 'ceoAgent.why.limit') : w)
   const state = status?.state ?? 'starting'
 
@@ -73,6 +84,9 @@ export function CeoPopup(): React.JSX.Element {
         {status?.runner && <span className="ceo-popup-runner">{t('ceoAgent.runsOn', { runner: `${runnerLabel(status.runner, t)} · ${modelOf(status)}` })}</span>}
         <span className="ceo-popup-head-actions">
           <VoiceCall />
+          {state === 'stopped'
+            ? <button type="button" className="btn btn-ghost" disabled={restarting} onClick={() => void restart()}>{t('ceoAgent.start')}</button>
+            : <button type="button" className="btn btn-ghost" disabled={stopping || restarting || state === 'starting'} onClick={() => void stop()}>{t(stopping ? 'ceoAgent.stopping' : 'ceoAgent.stop')}</button>}
           <button type="button" className="btn btn-ghost" disabled={restarting} onClick={() => void restart()}>
             {t(restarting ? 'ceoAgent.restarting' : 'ceoAgent.restart')}
           </button>
@@ -91,7 +105,8 @@ export function CeoPopup(): React.JSX.Element {
             <Banner actions={<button type="button" className="btn" onClick={() => void restart()}>{t('ceoAgent.retry')}</button>}>
               {t('ceoAgent.failed')} {status?.problem ?? ''}
             </Banner>
-          ) : <p className="muted ceo-popup-wait">{t('ceoAgent.starting')}</p>}
+          ) : state === 'stopped' ? <p className="muted ceo-popup-wait">{t('ceoAgent.stopped')}</p>
+          : <p className="muted ceo-popup-wait">{t('ceoAgent.starting')}</p>}
       </div>
       <CeoComposer where="popup" draft={draft} onDraftTaken={() => setDraft(null)} />
     </div>

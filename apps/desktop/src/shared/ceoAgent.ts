@@ -10,7 +10,8 @@
  * that failed) the next runner of the order runs it (Hermes on OpenRouter by default), so the CEO answers on any day.
  */
 
-export type CeoState = 'idle' | 'starting' | 'running' | 'ended' | 'failed'
+/** `stopped`: the person stopped it, and it stays stopped until the person starts it again (the owner, 2026-11-19). */
+export type CeoState = 'idle' | 'starting' | 'running' | 'ended' | 'stopped' | 'failed'
 
 /** Why the CEO did not start, as a code the window words (0.3.24 review, ER-7): every runner set aside, none of the
  *  order could start (`passedOver` says why for each), the CEO's project could not be read or made, or another failure

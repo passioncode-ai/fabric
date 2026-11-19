@@ -37,7 +37,7 @@ const SESSION_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'ter
 /** ADR-0197: the CEO popup reads and types its console (`TerminalView.tsx`), opens it in a window, and speaks the CEO's
  *  own channels; the voice call's two are its alone. */
 const CEO_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalData', 'terminalExit',
-  'windowsOpenSession', 'ceoAgentStatus', 'ceoAgentEnsure', 'ceoAgentSend', 'ceoAgentRestart', 'ceoAgentOpen', 'ceoAgentTakeDraft',
+  'windowsOpenSession', 'ceoAgentStatus', 'ceoAgentEnsure', 'ceoAgentSend', 'ceoAgentRestart', 'ceoAgentStop', 'ceoAgentOpen', 'ceoAgentTakeDraft',
   'ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceKeySet', 'ceoAgentChanged', 'ceoAgentDraft']
 const EDITOR_USES = [...EVERY_WINDOW, 'filesRead', 'filesWrite', 'filesRequestOverwrite', 'filesOpenExternally', 'filesRecoveryKeep', 'filesRecoveryFlush', 'filesRecoveryRead']
 

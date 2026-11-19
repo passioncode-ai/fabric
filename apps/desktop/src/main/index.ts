@@ -3867,6 +3867,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         runnerAvailable: async (id) => (UUID.test(id) ? true : (await launchOption(id))?.available === true),
         stop: async (sessionId) => {
           markPersonEnded(sessionId) // PL-1 run two: History's act stops it for the person
+          ceoAgent?.personStopping(sessionId)
           const r = await stopRuntime.stop(sessionId, 'operator_stop')
           return { sessionId, state: r.state, reasonCode: r.reasonCode, ...(r.taskId ? { taskId: r.taskId } : {}) }
         },
@@ -5098,6 +5099,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const stood = consoleOf(ptys.get(sessionId))
     // PL-1: marked before the stop, so the end it causes releases the session's claims as the person's (`onSessionEnded`).
     markPersonEnded(sessionId)
+    // The CEO's console stopped from its own window stays stopped (the owner, 2026-11-19), never read as an early end.
+    ceoAgent?.personStopping(sessionId)
     const result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true })
     if (stood) {
       const outcome = sessionStopOutcome(stood, result, await projectNameOf(stood.projectId))
@@ -5231,6 +5234,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       ? attachments.filter((a): a is CeoAttachment => !!a && typeof a === 'object' && typeof (a as CeoAttachment).name === 'string' && typeof (a as CeoAttachment).data === 'string')
       : []))
   handle(IPC.ceoAgentRestart, (): Promise<Returns<FabricApi['ceoAgent']['restart']>> => agent.restart('person'))
+  handle(IPC.ceoAgentStop, (): Promise<Returns<FabricApi['ceoAgent']['stop']>> => agent.stop())
   handle(IPC.ceoAgentOpen, (_e, draft: unknown): Returns<FabricApi['ceoAgent']['open']> => {
     ceoDraft = typeof draft === 'string' && draft.trim() ? draft.slice(0, 8000) : ceoDraft
     openCeoWindow()

@@ -675,3 +675,59 @@ test('DA-7: an archived known CEO project gets a fresh id', async () => {
   assert.deepEqual(created, ['33333333-3333-4333-8333-333333333333'])
   assert.equal(await ceoProjectFor(d('active'), '/ceo', null), '33333333-3333-4333-8333-333333333333')
 })
+
+// The owner, 2026-11-19: «пытался остановить эту консоль (CEO), но не смог». The CEO had no stop of its own: a stop from
+// the console's window was read as an early end and the next runner started at once, and any later open of the popup
+// started a console again. The person's stop now holds until the person starts it.
+test('THE PERSON\'S STOP: a stop of the CEO console holds; no fallback, no start on the popup\'s ensure; Start brings it back', async () => {
+  const k = keeper()
+  // As pty.ts does: the exit callback runs before the stop resolves.
+  k.deps.stop = async (id) => { const s = k.consoles.get(id); if (s) { s.running = false; k.agent.onExit(id) } }
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  k.tick(2_000) // inside the start window: an exit here used to be read as «ended at start»
+  const r = await k.agent.stop()
+  assert.equal(r.ok, true)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  assert.equal(k.consoles.get(first).running, false)
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1, 'no runner started after the person\'s stop')
+  assert.deepEqual(k.agent.status().setAside, [], 'the stopped runner is not set aside')
+  // The popup opening again asks ensure(): it does not start a stopped CEO.
+  const again = await k.agent.ensure()
+  assert.equal(again.state, 'stopped')
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1)
+  // Start (the person's restart) brings it back on the first runner.
+  const back = await k.agent.restart('person')
+  assert.equal(back.state, 'running')
+  assert.equal(back.runner, 'claude-code')
+  assert.notEqual(back.sessionId, first)
+})
+
+test('THE PERSON\'S STOP from another door: a console stopped from its own window holds the CEO too', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  k.tick(2_000)
+  // terminal.end marks the CEO's console as the person's stop before it stops it (index.ts).
+  k.agent.personStopping(first)
+  k.consoles.get(first).running = false
+  k.agent.onExit(first)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1, 'no fallback start')
+  // A message from the composer is the person asking again: it starts the CEO.
+  const sent = await k.agent.send('ты тут?', [])
+  assert.equal(sent.ok, true)
+  assert.equal(k.agent.status().state, 'running')
+})
+
+test('THE PERSON\'S STOP that leaves the console running says so', async () => {
+  const k = keeper()
+  k.deps.stop = async () => {}
+  await k.agent.ensure()
+  const r = await k.agent.stop()
+  assert.equal(r.ok, false)
+  assert.equal(r.reason, 'still-running')
+  assert.equal(r.status.state, 'running')
+})
