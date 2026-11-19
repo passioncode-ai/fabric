@@ -165,15 +165,17 @@ and by text. So the session control tools of decision 3 grow by five, in the sam
   one of those words; a console window not open yet is opened, and `dashboard` with the window `dashboards` opens that
   dashboard first. Windows named together go to one screen: the call's, else the first Fabric window named's. Windows
   named without an area take the room the others leave, beside the windows the CEO placed before with no area, which
-  move aside (`fitAreas`); up to four fit apart, more are placed and said to overlap. Fabric's main window moves before
+  move aside in the order they came (`fitAreas`); a console the CEO opens with `fabric_ceo_session_open` takes its place
+  the same way; up to four fit apart, more are placed and said to overlap; a window in macOS full screen takes no room. Fabric's main window moves before
   the CEO window, its child, so the child ends where it was asked. A layout is kept by name in
   `<userData>/window-layouts.json` (each placement with the screen it went to; at most 50) and put back by `restore`, a
-  console that ended giving its place to its project's running one; a screen no longer attached falls back to the
-  primary one.
+  console that ended giving its place to its project's running one, a dashboard reopened; a screen no longer attached
+  falls back to the primary one; a damaged file is moved aside with its time, never written over.
 - `fabric_ceo_dashboards` and `fabric_ceo_dashboard_open`: the services of the registry Fabric Dashboards lists
   (`main/agentRegistry.ts`), named by key or by the owner's words (`shared/dashboardMatch.ts#pickDashboard`: every word
   that is not a filler must match a word of the name or key, a Cyrillic word also the Latin name it sounds like; the
-  owner's own copy before an organisation's, a local one before an online one; a tie is asked about, never guessed),
+  owner's own copy of one product before an organisation's; names that fit several products, two organisations'
+  copies, or a match by sound alone are asked about, never guessed),
   opened as a `fabric-dashboards://service/<key>` link in the installed app, never a browser; opening another switches
   to it, and `area` places its window once it exists.
 
@@ -183,6 +185,6 @@ apps' windows) and Automation (Fabric may control System Events). Until they are
 the CEO is told which one is missing. Both are granted to Fabric as a whole, so a coding agent in one of Fabric's
 consoles can then also script other apps' windows; the owner turns them off in System Settings to take that back
 (`docs/launch/ceo-setup.md` §5). A window operation of Fabric Dashboards' own, and its `link` operation for the link,
-would remove both and are asked of it (CO-602). Building a simple dashboard on request stays a session's work: the CEO
+would remove both and are asked of it (board thread `d85d75cd`, CO-602). Building a simple dashboard on request stays a session's work: the CEO
 starts one with the adapter's dashboard-only recipe, or files a task when it is not quick (the brief says so). Nothing
 else in this record changes.

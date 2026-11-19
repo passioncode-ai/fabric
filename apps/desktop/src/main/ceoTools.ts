@@ -79,7 +79,7 @@ export const CEO_TOOLS = {
   open: {
     mcp: 'fabric_ceo_session_open',
     title: 'Open a session for the owner',
-    description: 'Open a Fabric console in a window of its own for the owner to watch or type in. Only Fabric consoles open here.',
+    description: 'Open a Fabric console in a window of its own for the owner to watch or type in, beside the windows you placed before. Only Fabric consoles open here.',
     input: z.object({ session_id: sessionId, reason }).strict()
   },
   projects: {
@@ -109,7 +109,7 @@ export const CEO_TOOLS = {
   window_layout: {
     mcp: 'fabric_ceo_window_layout',
     title: 'Arrange windows on the screens',
-    description: 'Put windows where the owner says: «console X on the left, dashboard Y on the right», halves, thirds, quarters, the whole screen or macOS full screen, on screen 1, 2 or the other one. A window is a console by its session id or its project (a project is looked up first), main (Fabric\'s window), ceo (the CEO window) or dashboards (Fabric Dashboards; with dashboard it opens that one first); a console window not open yet is opened. Windows named together stay on one screen unless a screen is named. Windows with no area take the room the others leave, beside the windows placed here before: up to four side by side or in a grid; the answer says when they had to overlap. save_as keeps the arrangement under a name (with no place, Fabric\'s windows and Fabric Dashboards\' as they stand now); restore puts a saved one back.',
+    description: 'Put windows where the owner says: «console X on the left, dashboard Y on the right», halves, thirds, quarters, the whole screen or macOS full screen, on screen 1, 2 or the other one. A window is a console by its session id or its project (a project is looked up first), main (Fabric\'s window), ceo (the CEO window) or dashboards (Fabric Dashboards; with dashboard it opens that one first); a console window not open yet is opened. Windows named together stay on one screen unless a screen is named. Windows with no area take the room the others leave, beside the windows placed here before: up to four side by side or in a grid; the answer says when they had to overlap. save_as keeps the arrangement under a name (with no place, Fabric\'s windows as they stand now and Fabric Dashboards\' when macOS lets Fabric read it; what was not kept is said); restore puts a saved one back.',
     input: z.object({
       place: z.array(z.object({
         window: z.string().trim().min(1).max(400).describe('main, ceo, dashboards, a session id, or a project (its running console).'),
@@ -502,9 +502,13 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   async function open(a: z.infer<typeof CEO_TOOLS.open.input>): Promise<Answer> {
     const s = deps.ptys.get(a.session_id)
     if (!s) return refuse('only a Fabric console opens in a Fabric window')
-    deps.openWindow(s.sessionId)
+    // PL-14: a console the CEO opens takes its place beside the windows it placed before («открой одно окно, второе»).
+    const placed = deps.windows && !deps.windows.list().some((x) => x.kind === 'session' && x.subject === s.sessionId)
+      ? (await arrange([{ target: { kind: 'session', subject: s.sessionId, project_id: s.projectId } }], undefined))
+      : null
+    if (!placed) deps.openWindow(s.sessionId)
     deps.record('ceo.session.open', { session_id: s.sessionId, reason: a.reason })
-    return { ok: true, opened: s.sessionId }
+    return { ok: true, opened: s.sessionId, ...(placed ? { placed: placed.map(shown) } : {}) }
   }
 
   async function projects(a: z.infer<typeof CEO_TOOLS.projects.input>): Promise<Answer> {
@@ -606,7 +610,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       if (!DASH_WORDS.includes(lower)) return { refused: 'dashboard goes with window dashboards' }
       const pick = pickDashboard(deps.dashboards?.list() ?? [], dashboard)
       if ('missing' in pick) return { refused: `no dashboard «${dashboard}»: fabric_ceo_dashboards lists them` }
-      if ('ambiguous' in pick) return { refused: `«${dashboard}» fits several dashboards: ${pick.ambiguous.slice(0, 6).map((d) => `${d.name} (${d.key})`).join(', ')}; ask the owner which` }
+      if ('ambiguous' in pick) return { refused: `«${dashboard}» ${pick.ambiguous.length === 1 ? 'only sounds like' : 'fits several dashboards:'} ${pick.ambiguous.slice(0, 6).map((d) => `${d.name} (${d.key})`).join(', ')}; ask the owner which` }
       return { kind: 'dashboards', open: pick.found as CeoDashboard }
     }
     const s = deps.ptys.get(word)
@@ -626,81 +630,96 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
 
   type Want = { target: Target; area?: WindowArea; display?: string }
-  type Placed = { window: string; ok: boolean; area?: WindowArea; screen?: number; reason?: string; overlaps?: boolean; moved_to?: number }
+  type Placed = { window: string; ok: boolean; area?: WindowArea; screen?: number; reason?: string; overlaps?: boolean; moved_to?: number; target?: Target }
+  /** What the model reads of a placement: its target stays inside (the save reads it, ER-14). */
+  const shown = (p: Placed): Answer => { const { target: _t, ...rest } = p; return rest }
 
   /**
    * Put each window where it was asked, as one arrangement:
-   * - windows named together go to one screen (PL-2): the call's `display`, else the screen of the first Fabric window
-   *   named, else the main window's; a window's own `display` wins; a screen this computer lacks falls back to the
-   *   primary one and says so (ER-12);
+   * - windows named together go to one screen (PL-2): the call's `display`, else the screen of the first window named
+   *   that stands somewhere (Fabric Dashboards' too, PL-19), else the main window's; a window's own `display` wins; a
+   *   screen this computer lacks falls back to the primary one and says so (ER-12, UX-12);
    * - windows with an area take it; those without take the room left beside the named areas and beside the windows
-   *   placed here before with no area, which are placed again with them (PL-1, `fitAreas`);
+   *   placed here before with no area, which are placed again with them in the order they came (PL-1, PL-17);
    * - Fabric's main window moves before the CEO window, its child, so the child ends where it was asked (ER-1).
    */
   async function arrange(wants: Want[], callDisplay: string | undefined): Promise<Placed[]> {
     const w = deps.windows!
     const displays = w.displays()
     const list = w.list()
-    const boundsOf = (t: Target): Rect | null => t.kind === 'dashboards' ? null
+    const primary = pickDisplay(displays, 'primary', null)
+    const primaryNo = primary ? ordered(displays).indexOf(primary) + 1 : undefined
+    // Moving Fabric Dashboards is an act: its window is read (macOS may ask once) so it stays on its own screen (PL-19).
+    const movesDash = wants.some((x) => x.target.kind === 'dashboards')
+    const dashNow = deps.dashboards ? await deps.dashboards.window(movesDash).catch((): CeoDashboardsWindow => ({ known: false, why: '' })) : null
+    const dashRect = dashNow && dashNow.known ? dashNow.rect : null
+    const boundsOf = (t: Target): Rect | null => t.kind === 'dashboards' ? dashRect
       : list.find((x) => x.kind === t.kind && (t.kind !== 'session' || x.subject === t.subject))?.bounds ?? null
     const main = list.find((x) => x.kind === 'main')?.bounds ?? null
     const anchor = wants.map((x) => boundsOf(x.target)).find((b) => b !== null) ?? main
-    const callScreen = pickDisplay(displays, callDisplay, anchor ? displayOf(displays, anchor) : null)
+    const anchorScreen = anchor ? displayOf(displays, anchor) : null
+    let callScreen = pickDisplay(displays, callDisplay, anchorScreen)
+    const callMoved = callDisplay && !callScreen ? primaryNo : undefined
+    if (!callScreen) callScreen = callDisplay ? primary : anchorScreen ?? primary
     const screenOf = (x: Want): { d: (DisplayLike & { label: string }) | null; movedTo?: number } => {
-      if (!x.display) return { d: callScreen }
+      if (!x.display) return { d: callScreen, movedTo: callMoved }
       const d = pickDisplay(displays, x.display, callScreen)
-      if (d) return { d }
-      const primary = pickDisplay(displays, 'primary', null)
-      return { d: primary, movedTo: primary ? ordered(displays).indexOf(primary) + 1 : undefined }
+      return d ? { d } : { d: primary, movedTo: primaryNo }
     }
     const resolved = wants.map((x) => ({ ...x, ...screenOf(x) }))
-    // The windows placed here before with no area, still open and not named now, share again (PL-1).
+    // The windows placed here before with no area, still open and not named now, share again (PL-1), first first.
     const namedKeys = new Set(wants.map((x) => keyOf(x.target)))
     const openKeys = new Set(list.map((x) => (x.kind === 'session' ? `session:${x.subject}` : x.kind)))
-    const dashOpen = deps.dashboards ? await deps.dashboards.window(false).catch(() => ({ known: false as const, why: '' })) : null
-    if (dashOpen && dashOpen.known && dashOpen.rect) openKeys.add('dashboards')
+    if (dashRect) openKeys.add('dashboards')
+    const earlier: typeof resolved = []
     for (const [key, p] of placedHere) {
-      if (namedKeys.has(key) || p.named || !openKeys.has(key)) continue
+      if (namedKeys.has(key) || p.named || !openKeys.has(key) || p.area === 'fullscreen') continue
       const d = ordered(displays)[p.screen - 1]
       if (!d || !resolved.some((r) => r.d?.id === d.id && !r.area)) continue
       const target: Target = key.startsWith('session:') ? { kind: 'session', subject: key.slice(8) } : key === 'dashboards' ? { kind: 'dashboards' } : { kind: key as 'main' | 'ceo', subject: null }
-      // The window placed first keeps the first place (left, then top): it goes before the ones named now.
-      resolved.unshift({ target, d })
+      earlier.push({ target, d })
     }
-    // Areas per screen: the named ones are fixed, plus those the earlier placements named.
+    resolved.unshift(...earlier)
+    // Areas per screen: the named ones are fixed, plus those the earlier placements named; a window in macOS full
+    // screen lives on its own Space and takes no room (PL-20).
     const overlapsOn = new Set<number>()
     for (const d of new Set(resolved.map((r) => r.d).filter((x): x is NonNullable<typeof x> => !!x))) {
       const here = resolved.filter((r) => r.d?.id === d.id)
       const fixed = here.filter((r) => r.area && r.area !== 'fullscreen').map((r) => r.area as WindowArea)
-      for (const [key, p] of placedHere) if (p.named && !namedKeys.has(key) && openKeys.has(key) && ordered(displays)[p.screen - 1]?.id === d.id) fixed.push(p.area)
+      for (const [key, p] of placedHere) if (p.named && p.area !== 'fullscreen' && !namedKeys.has(key) && openKeys.has(key) && ordered(displays)[p.screen - 1]?.id === d.id) fixed.push(p.area)
       const free = here.filter((r) => !r.area)
       const fit = fitAreas(d.workArea, fixed, free.length)
       free.forEach((r, i) => { r.area = fit.areas[i] })
-      if (fit.overlaps) overlapsOn.add(d.id)
+      if (fit.overlaps && free.length) overlapsOn.add(d.id)
     }
     // Main before its child, the CEO window (ER-1); the rest in the order named.
-    resolved.sort((a, b) => (a.target.kind === 'main' ? 0 : a.target.kind === 'ceo' ? 1 : 2) - (b.target.kind === 'main' ? 0 : b.target.kind === 'ceo' ? 1 : 2))
+    const order = (k: Target['kind']) => (k === 'main' ? 0 : k === 'ceo' ? 1 : 2)
+    resolved.sort((a, b) => order(a.target.kind) - order(b.target.kind))
     const out: Placed[] = []
     for (const x of resolved) {
       const label = x.target.kind === 'session' ? x.target.subject ?? 'session' : x.target.kind
-      if (!x.d) { out.push({ window: label, ok: false, reason: 'this computer reports no screen' }); continue }
+      if (!x.d) { out.push({ window: label, ok: false, reason: 'this computer reports no screen', target: x.target }); continue }
       const area = x.area ?? 'full'
       const screen = ordered(displays).indexOf(x.d) + 1
       const to: CeoPlacement = area === 'fullscreen' ? { fullScreen: true } : { bounds: areaRect(x.d.workArea, area) }
       const done = (ok: boolean, reason?: string) => {
-        out.push({ window: label, ok, area, screen, ...(reason ? { reason } : {}), ...(overlapsOn.has(x.d!.id) ? { overlaps: true } : {}), ...(x.movedTo ? { moved_to: x.movedTo } : {}) })
+        // A reason only with a failure (ER-20, DA-7): the model reads it aloud.
+        out.push({ window: label, ok, area, screen, ...(!ok && reason ? { reason } : {}), ...(overlapsOn.has(x.d!.id) ? { overlaps: true } : {}), ...(x.movedTo ? { moved_to: x.movedTo } : {}), target: x.target })
         // A window named with an area keeps it next time; one placed beside others is placed again with the next ones.
         const asked = wants.find((wa) => keyOf(wa.target) === keyOf(x.target))
-        if (ok) placedHere.set(keyOf(x.target), { screen, area, named: asked ? asked.area !== undefined : false })
+        if (ok) placedHere.set(keyOf(x.target), { screen, area, named: asked ? asked.area !== undefined : (placedHere.get(keyOf(x.target))?.named ?? false) })
       }
       if (x.target.kind === 'dashboards') {
         if (!deps.dashboards) { done(false, 'Fabric Dashboards is not reachable from here'); continue }
         if (x.target.open) {
           try { await deps.dashboards.open(dashLink(x.target.open.key, '/')) } catch { done(false, 'Fabric Dashboards did not take the link'); continue }
         }
+        // A pending macOS question is said after the one Apple Event that met it (UX-13, ER-21).
+        if (dashNow && !dashNow.known && dashNow.why.startsWith('macOS asks')) { done(false, dashNow.why); continue }
         // A cold start: the window comes after the link (UX-5, ER-5).
         const there = await deps.dashboards.waitWindow(8000)
         if (there.known && !there.rect) { done(false, 'Fabric Dashboards shows no window yet; ask again in a moment'); continue }
+        if (!there.known && there.why.startsWith('macOS asks')) { done(false, there.why); continue }
         const r = await deps.dashboards.place(to)
         if (r.ok) done(true); else done(false, r.reason)
         continue
@@ -732,7 +751,12 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       if (!layout) return refuse(`no layout «${a.restore}»; saved: ${Object.keys(saved).join(', ') || 'none'}`)
       for (const p of layout.placements) {
         const display = p.display === undefined ? undefined : String(p.display)
-        if (p.window !== 'session') { wants.push({ target: p.window === 'dashboards' ? { kind: 'dashboards' } : { kind: p.window, subject: null }, area: p.area, display }); continue }
+        if (p.window === 'dashboards') {
+          const open = p.dashboard ? deps.dashboards?.list().find((d) => d.key === p.dashboard) : undefined
+          wants.push({ target: open ? { kind: 'dashboards', open } : { kind: 'dashboards' }, area: p.area, display })
+          continue
+        }
+        if (p.window !== 'session') { wants.push({ target: { kind: p.window, subject: null }, area: p.area, display }); continue }
         const same = p.session_id ? deps.ptys.get(p.session_id) : null
         const live = same?.running ? same : deps.ptys.list().find((s) => s.running && p.project_id && s.projectId === p.project_id && s.sessionId !== deps.ceoSessionId())
         if (live) wants.push({ target: { kind: 'session', subject: live.sessionId, project_id: live.projectId }, area: p.area, display })
@@ -752,14 +776,13 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       let placements: SavedPlacement[]
       const asScreen = (n: number | undefined): SavedPlacement['display'] => (n && n >= 1 && n <= 8 ? n : undefined)
       if (wants.length) {
-        // The screen each one went to is kept, so a restore on two screens puts it back there (UX-8).
-        placements = placed.filter((p) => p.ok).map((p): SavedPlacement => {
-          const key = p.window
-          const want = wants.find((x) => (x.target.kind === 'session' ? x.target.subject : x.target.kind) === key)
-          const t = want?.target
-          return t && t.kind === 'session'
-            ? { window: 'session', session_id: t.subject ?? undefined, project_id: t.project_id ?? null, area: p.area ?? 'full', display: asScreen(p.screen) }
-            : { window: (t?.kind ?? key) as 'main' | 'ceo' | 'dashboards', area: p.area ?? 'full', display: asScreen(p.screen) }
+        // Each placed window by its own target, those moved aside included (ER-14, DA-6), with the screen it went to
+        // (UX-8) and the dashboard it shows (DA-8).
+        placements = placed.filter((p) => p.ok && p.target).map((p): SavedPlacement => {
+          const t = p.target!
+          if (t.kind === 'session') return { window: 'session', session_id: t.subject ?? undefined, project_id: t.project_id ?? deps.ptys.get(t.subject ?? '')?.projectId ?? null, area: p.area ?? 'full', display: asScreen(p.screen) }
+          if (t.kind === 'dashboards') return { window: 'dashboards', area: p.area ?? 'full', display: asScreen(p.screen), ...(t.open ? { dashboard: t.open.key } : {}) }
+          return { window: t.kind, area: p.area ?? 'full', display: asScreen(p.screen) }
         })
       } else {
         // The windows as they stand: each one's nearest area on its own screen, Fabric Dashboards' too (UX-8, ER-10).
@@ -777,8 +800,10 @@ export function createCeoOperations(deps: CeoOpsDeps) {
           }
           return [{ window: x.kind as 'main' | 'ceo', ...p }]
         })
-        const dash = deps.dashboards ? await deps.dashboards.window(false).catch(() => null) : null
+        // A save is an act: it may ask macOS once to read Fabric Dashboards' window; what it could not read is said (ER-18).
+        const dash = deps.dashboards ? await deps.dashboards.window(true).catch((): CeoDashboardsWindow => ({ known: false, why: 'it could not be read' })) : null
         if (dash && dash.known && dash.rect) { const p = at(dash.rect, false); if (p) placements.push({ window: 'dashboards', ...p }) }
+        else if (dash && !dash.known) skipped.push({ window: 'dashboards', reason: `not kept: ${dash.why}` })
         if (!placements.length) return refuse('no window is open to keep')
       }
       const write = saving.then(() => {
@@ -795,14 +820,14 @@ export function createCeoOperations(deps: CeoOpsDeps) {
         // DA-5: the caller (and the voice call) gets the error's code; the message, with its paths, stays in the record.
         const code = (e as { code?: unknown })?.code
         deps.record('ceo.window.layout', { outcome: 'failed', saved: saveName, windows: placed.length, error: e instanceof Error ? e.message.slice(0, 200) : String(e), reason: a.reason })
-        return refuse(`the layout could not be kept${typeof code === 'string' ? ` (${code})` : ''}`, { placed })
+        return refuse(`the layout could not be kept${typeof code === 'string' ? ` (${code})` : ''}`, { placed: placed.map(shown) })
       }
     }
     const failed = placed.filter((p) => !p.ok).length
     deps.record('ceo.window.layout', { windows: placed.length, failed, skipped: skipped.length, restored: a.restore ?? null, saved: savedAs, reason: a.reason })
     // ER-3: a restore that put nothing back, or left some out, does not answer as a success.
     const ok = failed === 0 && skipped.length === 0 && (placed.length > 0 || (!!savedAs && !a.restore))
-    return { ok, ...(ok ? {} : { partial: placed.some((p) => p.ok) || !!savedAs }), placed, skipped, saved_as: savedAs }
+    return { ok, ...(ok ? {} : { partial: placed.some((p) => p.ok) || !!savedAs }), placed: placed.map(shown), skipped, saved_as: savedAs }
   }
 
   async function dashboards(a: z.infer<typeof CEO_TOOLS.dashboards.input>): Promise<Answer> {
@@ -817,7 +842,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     const pick = pickDashboard(deps.dashboards.list(), a.dashboard)
     // UX-1, UX-2, ER-4: a tie or a weak match is asked about, never guessed.
     if ('missing' in pick) return refuse(`no dashboard «${a.dashboard}»: fabric_ceo_dashboards lists them`)
-    if ('ambiguous' in pick) return refuse(`«${a.dashboard}» fits several dashboards; ask the owner which`, { candidates: pick.ambiguous.slice(0, 8).map((d) => ({ key: d.key, name: d.name, placement: d.placement })) })
+    if ('ambiguous' in pick) return refuse(pick.ambiguous.length === 1 ? `«${a.dashboard}» only sounds like ${pick.ambiguous[0].name}: ask the owner whether it is the one` : `«${a.dashboard}» fits several dashboards; ask the owner which`, { candidates: pick.ambiguous.slice(0, 8).map((d) => ({ key: d.key, name: d.name, placement: d.placement })) })
     const top = pick.found
     const link = dashLink(top.key, a.path ?? '/')
     try {
@@ -836,7 +861,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     // ER-5: the dashboard opened; a move asked for and not made is said at the top, not only inside `placed`.
     return {
       ok: !placed || placed.ok, ...(placed && !placed.ok ? { partial: true } : {}),
-      opened: { key: top.key, name: top.name }, link, ...(placed ? { placed } : {}),
+      opened: { key: top.key, name: top.name }, link, ...(placed ? { placed: shown(placed) } : {}),
       note: 'Opening another dashboard switches to it in the same window.'
     }
   }

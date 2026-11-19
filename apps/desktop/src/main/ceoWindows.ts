@@ -87,7 +87,8 @@ export function createWindowsPort(d: WindowsPortDeps): CeoWindowsPort {
       } else if (w.isFullScreen()) {
         // macOS animates out of full screen; a size set before it ends is lost. A transition that never comes (another
         // Space) drops the listener after a few seconds rather than applying old bounds later (ER-11).
-        const apply = () => { if (!w.isDestroyed()) w.setBounds(to.bounds) }
+        // The CEO child goes back once main has moved, not before (ER-15).
+        const apply = () => { if (!w.isDestroyed()) w.setBounds(to.bounds); if (childAt && live(child)) child.setBounds(childAt) }
         if (w.once) {
           w.once('leave-full-screen', apply)
           setTimeout(() => w.removeListener?.('leave-full-screen', apply), 4000).unref?.()
@@ -167,8 +168,9 @@ export function createDashboardsPort(d: DashboardsPortDeps): CeoDashboardsPort {
       reached = true
       return { known: true, rect: parseBounds(out) }
     } catch (e) {
-      // -600: the process is not running, so it has no window.
-      if (e instanceof Error && /-600\b|isn.t running|not running/i.test(e.message)) { reached = true; return { known: true, rect: null } }
+      // System Events answers -1728 («Can't get process») for an app that is not running, -600 for one that ended:
+      // either way it has no window, which a cold start waits out (UX-5, ER-19, DO-14).
+      if (e instanceof Error && /-1728\b|-600\b|can.t get process|isn.t running|not running/i.test(e.message)) { reached = true; return { known: true, rect: null } }
       return { known: false, why: e instanceof OsascriptTimeout ? AUTOMATION : 'macOS would not say where it is' }
     }
   }

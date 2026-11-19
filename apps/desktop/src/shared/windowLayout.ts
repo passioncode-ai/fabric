@@ -2,7 +2,7 @@
 /**
  * Where a window goes when the owner says so (board requests 07db5c30 and 26989d91, the owner, 2026-11-19: «открой одно
  * окно, второе», halves, the whole screen). Pure: a display's work area and a named area give a rectangle; a number of
- * windows gives the areas they share without covering one another. No Electron here, so the tests read it as it runs.
+ * windows gives the areas they share: up to four apart, more overlap and the caller says so. No Electron here, so the tests read it as it runs.
  */
 
 export interface Rect { x: number; y: number; width: number; height: number }
@@ -153,7 +153,7 @@ export function nearestArea(work: Rect, r: Rect): WindowArea {
 
 /** One window of a saved layout: by its kind, and for a console by its session and project, so a layout outlives the
  *  console it was saved with (the project's running console takes its place). */
-export interface SavedPlacement { window: 'main' | 'ceo' | 'dashboards' | 'session'; session_id?: string; project_id?: string | null; area: WindowArea; display?: number | 'primary' | 'other' }
+export interface SavedPlacement { window: 'main' | 'ceo' | 'dashboards' | 'session'; session_id?: string; project_id?: string | null; area: WindowArea; display?: number | 'primary' | 'other'; dashboard?: string }
 export interface SavedLayouts { [name: string]: { saved_at: string; placements: SavedPlacement[] } }
 
 const NAME = /^[\p{L}\p{N} _-]{1,40}$/u
@@ -179,6 +179,7 @@ function placementOf(p: unknown): SavedPlacement | null {
   const out: SavedPlacement = { window: x.window as SavedPlacement['window'], area: x.area as WindowArea }
   if (typeof x.display === 'number' && Number.isInteger(x.display) && x.display >= 1 && x.display <= 8) out.display = x.display
   else if (x.display === 'primary' || x.display === 'other') out.display = x.display
+  if (out.window === 'dashboards' && typeof x.dashboard === 'string' && /^[a-z0-9][a-z0-9._-]{0,159}$/.test(x.dashboard)) out.dashboard = x.dashboard
   if (out.window === 'session') {
     out.session_id = typeof x.session_id === 'string' && ID.test(x.session_id) ? x.session_id : undefined
     out.project_id = typeof x.project_id === 'string' && ID.test(x.project_id) ? x.project_id : null
@@ -200,11 +201,17 @@ export function boundLayouts(all: SavedLayouts): SavedLayouts {
 /** Saved layouts read back: anything that is not a layout is dropped, never trusted, and each placement is rebuilt
  *  from its checked fields (0.3.26 review, DA-2, DA-4). The result has no prototype, so no name reaches Object's. */
 export function parseLayouts(text: string): SavedLayouts {
+  return readLayouts(text).layouts
+}
+
+/** The same, saying whether the text was damaged (not JSON, not an object, too large), so the reader moves it aside
+ *  and says so instead of the next save writing over it (ER-17, DA-9). */
+export function readLayouts(text: string): { layouts: SavedLayouts; damaged: boolean } {
   const out: SavedLayouts = Object.create(null)
-  if (text.length > MAX_LAYOUTS_BYTES) return out
+  if (text.length > MAX_LAYOUTS_BYTES) return { layouts: out, damaged: true }
   let raw: unknown
-  try { raw = JSON.parse(text) } catch { return out /* an unreadable file holds no layout; the next save writes it whole */ }
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out
+  try { raw = JSON.parse(text) } catch { return { layouts: out, damaged: true } }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { layouts: out, damaged: true }
   for (const [name, v] of Object.entries(raw as Record<string, unknown>)) {
     if (layoutName(name) !== name || !v || typeof v !== 'object') continue
     const placements = (v as { placements?: unknown }).placements
@@ -213,6 +220,6 @@ export function parseLayouts(text: string): SavedLayouts {
     const at = (v as { saved_at?: unknown }).saved_at
     if (ok.length) out[name] = { saved_at: typeof at === 'string' && !Number.isNaN(Date.parse(at)) ? at : '', placements: ok }
   }
-  return boundLayouts(out)
+  return { layouts: boundLayouts(out), damaged: false }
 }
 // #endregion ceo-window-layout

@@ -19,44 +19,81 @@ const FILLERS = new Set([
 ])
 
 const CYR: Record<string, string> = {
-  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'i', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p',
-  р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sh', ъ: '', ы: 'i', ь: '', э: 'e', ю: 'u', я: 'a'
+  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p',
+  р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sh', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya'
 }
 const translit = (w: string) => [...w].map((c) => CYR[c] ?? c).join('')
-/** Consonants only, with the letters that sound alike made one (c and k, ph and f, w and v): «фрейм» and «frame» meet. */
-const skeleton = (latin: string) => latin.replace(/ph/g, 'f').replace(/ck/g, 'k').replace(/[cq]/g, 'k').replace(/w/g, 'v').replace(/x/g, 'ks').replace(/[aeiouy]/g, '').replace(/(.)\1+/g, '$1')
+/** One spelling for letters that sound alike (y and i, c and k, ph and f, w and v, x and ks): «аналитику» and «analytics» meet. */
+const plain = (latin: string) => latin.replace(/ph/g, 'f').replace(/ck/g, 'k').replace(/[cq]/g, 'k').replace(/w/g, 'v').replace(/x/g, 'ks').replace(/y/g, 'i').replace(/(.)\1+/g, '$1')
+/** Consonants only: «фрейм» and «frame» meet, and so do many words that only sound near (UX-11), so a match on it alone is asked about. */
+const skeleton = (latin: string) => plain(latin).replace(/[aeiou]/g, '')
 const words = (s: string) => s.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean)
 /** A word's start as the owner says it in any case: «Аню», «Ани» and «Аня» meet at «ан». */
 const stem = (w: string) => (w.length <= 3 ? w.slice(0, Math.max(2, w.length - 1)) : w.length <= 5 ? w.slice(0, w.length - 1) : w.slice(0, w.length - 2))
 const cyrillic = (w: string) => /[Ѐ-ӿ]/.test(w)
 
-function wordMatches(query: string, token: string): boolean {
-  if (token.startsWith(stem(query))) return true
-  if (cyrillic(query) && !cyrillic(token)) {
-    const q = skeleton(translit(stem(query)))
-    return q.length >= 2 && skeleton(token).startsWith(q)
-  }
-  return false
+/** How a query word meets a dashboard's word: `sure` by its letters (in either script), `near` by its consonants only. */
+function wordMatch(query: string, token: string): 'sure' | 'near' | null {
+  if (token.startsWith(stem(query))) return 'sure'
+  // A word in one script against a name in the other: by its spelling there, then by its consonants (UX-14, UX-11).
+  if (cyrillic(query) === cyrillic(token)) return null
+  const q = cyrillic(query) ? plain(translit(query)) : plain(query)
+  const t = cyrillic(token) ? plain(translit(token)) : plain(token)
+  // By letters across scripts only on four letters or more, or the whole word: «ан» meets far too much (UX-11).
+  const qStem = plain(cyrillic(query) ? translit(stem(query)) : stem(query))
+  if (t === q || (qStem.length >= 4 && t.startsWith(qStem))) return 'sure'
+  const qs = skeleton(q), ts = skeleton(t)
+  // The whole word's consonants, all of them: «рост» (rst) never meets «research» (rsrk).
+  if (qs.length >= 3 && (ts === qs || (qs.length >= 4 && ts.startsWith(qs) && ts.length - qs.length <= 1))) return 'near'
+  return null
 }
 
+/** The product a dashboard is a copy of: `id` of `id.instance`; a showcase shows the product it names. */
+const productOf = (key: string) => {
+  const [id, instance] = key.split('.', 2)
+  return id === 'studio-showcase' && instance ? instance : id
+}
+/** Among copies of ONE product only (UX-10): the owner's own (`default`) first, then a local one, a showcase last. */
 const rank = (d: DashboardLike) =>
   (d.key.endsWith('.default') || !d.key.includes('.') ? 0 : 2) + (d.key.startsWith('studio-showcase.') ? 4 : 0) + (d.placement === 'local' ? 0 : 1)
 
 export type DashboardPick = { found: DashboardLike } | { ambiguous: DashboardLike[] } | { missing: true }
 
 export function pickDashboard(all: readonly DashboardLike[], query: string): DashboardPick {
-  const exact = all.find((d) => d.key === query.trim())
+  const q = query.trim()
+  const exact = all.find((d) => d.key === q)
   if (exact) return { found: exact }
-  const asked = words(query).filter((w) => !FILLERS.has(w) && w.length >= 2)
-  if (!asked.length) return { missing: true }
-  const hits = all.filter((d) => {
-    const tokens = words(`${d.key.replace(/[._-]/g, ' ')} ${d.name}`)
-    return asked.every((q) => tokens.some((t) => wordMatches(q, t)))
+  const lower = q.toLowerCase()
+  // A whole name or a product's id is the owner naming it: «Research Agent», «research-agent» (UX-10).
+  const named = all.filter((d) => d.name.toLowerCase() === lower || productOf(d.key) === lower)
+  const pool = named.length ? named : null
+  const asked = words(q).filter((w) => !FILLERS.has(w) && w.length >= 2)
+  if (!pool && !asked.length) return { missing: true }
+  const scored = (pool ?? all).flatMap((d) => {
+    if (pool) return [{ d, near: false }]
+    // A showcase's own word in its key names no product: «студию» means Studio, not every showcase.
+    const tokens = words(`${d.key.replace(/^studio-showcase\./, '').replace(/[._-]/g, ' ')} ${d.name}`)
+    let near = false
+    for (const w of asked) {
+      const m = tokens.map((t) => wordMatch(w, t))
+      if (m.includes('sure')) continue
+      if (m.includes('near')) { near = true; continue }
+      return []
+    }
+    return [{ d, near }]
   })
-  if (!hits.length) return { missing: true }
-  const best = Math.min(...hits.map(rank))
-  const top = hits.filter((d) => rank(d) === best)
-  return top.length === 1 ? { found: top[0] } : { ambiguous: [...top].sort((a, b) => a.name.localeCompare(b.name)) }
+  if (!scored.length) return { missing: true }
+  // A dashboard found by its letters beats one found only by sound.
+  const sure = scored.filter((x) => !x.near)
+  const hits = (sure.length ? sure : scored).map((x) => x.d)
+  const products = new Set(hits.map((d) => productOf(d.key)))
+  const sorted = [...hits].sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name))
+  // Several products, or a match by sound only: asked about, never guessed.
+  if (products.size > 1 || !sure.length) return { ambiguous: products.size > 1 ? sorted : sorted.slice(0, 1) }
+  // Copies of one product with none of them the owner's own and two as good: which organisation's is asked (UX-1).
+  const tied = sorted.filter((d) => rank(d) === rank(sorted[0]))
+  if (tied.length > 1 && rank(sorted[0]) > 0) return { ambiguous: tied }
+  return { found: sorted[0] }
 }
 
 /** Every dashboard whose name, key or description holds the words: the list the owner looks through. */
@@ -65,7 +102,7 @@ export function listDashboards<D extends DashboardLike>(all: readonly D[], query
   if (!asked.length) return [...all]
   return all.filter((d) => {
     const tokens = words(`${d.key.replace(/[._-]/g, ' ')} ${d.name} ${d.summary ?? ''}`)
-    return asked.every((q) => tokens.some((t) => wordMatches(q, t)))
+    return asked.every((q) => tokens.some((t) => wordMatch(q, t) !== null))
   }).sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name))
 }
 // #endregion ceo-dashboard-match
