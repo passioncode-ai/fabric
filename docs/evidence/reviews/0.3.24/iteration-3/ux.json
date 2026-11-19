@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.24",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "24e6bdda62362e8cf449e394ed237a17aa3cafff",
+  "report": "docs/evidence/reviews/0.3.24/iteration-3/2026-11-19-ux.md",
+  "reportSha256": "19cefe3b6bc4f2439b3570363ac0047987f17939410956241c26778ea97ee130",
+  "reviewerRun": "release-0324-i3r2-ux-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-22",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597 (the act words for a Switchboard session)"
+      ]
+    },
+    {
+      "id": "UX-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597 (the same case as ER-24, seen by the person)"
+      ]
+    }
+  ]
+}

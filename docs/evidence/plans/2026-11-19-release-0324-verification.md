@@ -94,7 +94,7 @@ works there; a launched session's own grant is CO-597 item 1.
 | V1-PL-6 | PL-6 | non-blocking | fixed in `0322c9b3`..`7e0bd14c` |
 | V1-PL-7 | PL-7 | non-blocking | fixed: section Spend below |
 | V1-PL-8 | PL-8 | non-blocking | fixed in `0322c9b3`..`7e0bd14c` |
-| V1-PL-9 | PL-9 | non-blocking | at the release close (board moves) |
+| V1-PL-9 | PL-9 | non-blocking | fixed: the five board tasks moved to review at the release close (journal seq 199297 to 199305) |
 | V1-PL-10 | PL-10 | non-blocking | fixed in `0322c9b3`..`7e0bd14c` |
 | V1-PL-11 | PL-11 | non-blocking | ruled: CO-597 |
 | V1-PL-12 | PL-12 | non-blocking | fixed in `0322c9b3`..`7e0bd14c` |
@@ -115,6 +115,8 @@ works there; a launched session's own grant is CO-597 item 1.
 | V1-UX-13 | UX-13 | non-blocking | fixed in `0322c9b3`..`7e0bd14c` |
 | V1-UX-14 | UX-14 | non-blocking | ruled: CO-597 |
 | V1-UX-15 | UX-15 | non-blocking | ruled: CO-597 |
+
+Exit for iteration 1: every finding disposed above. Blocking findings open: none.
 
 ## Iteration 2
 
@@ -154,18 +156,26 @@ watched failing on the old code; the CEO's key moved out of its own folder (DA-1
 | V2-UX-20 | UX-20 | non-blocking | ruled: CO-597 |
 | V2-UX-21 | UX-21 | non-blocking | ruled: CO-597 |
 
+Exit for iteration 2: every finding disposed above. Blocking findings open: none.
+
 ## Iteration 3
 
-Candidate `f69917e015f43c2dacd1ab8f6fb2afe1528908c7`. Every iteration-2 finding is fixed or ruled to CO-597 at every
+Candidate `24e6bdda62362e8cf449e394ed237a17aa3cafff`, the `verifiedCommit`. Iteration 3 ran twice. Run one read candidate `f69917e015f43c2dacd1ab8f6fb2afe1528908c7`. Every iteration-2 finding is fixed or ruled to CO-597 at every
 level. 9 new findings, 2 blocking, one defect seen twice (ER-23 and DO-21): the reply window of iteration 2's DO-15 fix
 was in the code but not in the CHANGELOG, ADR-0197 decision 2, the AGENTS.md CEO row and the header of
-`main/ceoAgent.ts`, which still said a limit counts only before the first answer. Fixed in the commit
-«fix(release): 0.3.24 review iteration 3», with ER-25 (a key across the 200-character cut of a console's last line,
+`main/ceoAgent.ts`, which still said a limit counts only before the first answer. Fixed in `24e6bdda`, with ER-25 (a key across the 200-character cut of a console's last line,
 now redacted before the cut; test `DA-13 / ER-25` watched failing on the old line), DA-13 (that test) and DO-22
 (SCN-182 names the interface's language, SCN-183 an act with no undo). Iteration 2's summary overstated two things
 (PL-19): DA-10's fix had no test until DA-13, and DO-18 was half done until DO-22. The local `ci.sh fast` on the
 candidate also found `ceoAgent.call.why.microphone` naming macOS on every platform (`platformWords.test.ts`); the
 string now names the system settings (the copy check: en `92b4d920`, ru `d101d3f7`, no finding).
+
+Run two read `24e6bdda62362e8cf449e394ed237a17aa3cafff` in fresh contexts (errors and ux; docs, data and plan), each
+checking run one's dispositions and then the whole candidate: every run-one finding fixed or ruled, one new
+non-blocking finding (DO-23: SCN-184's precondition still names macOS for the microphone while the error string no
+longer does), no blocking finding; tests on a copy of the candidate: `ceo-agent` 38, `acts` 15, `ipc-window-policy` 16,
+`voiceCall` 11, `actWords` 5, `platformWords` 4, all passing; the read-only gates exit 0. The receipts in
+`docs/evidence/reviews/0.3.24/iteration-3/` name run two's candidate; each report carries run one's text after its own.
 
 | Row | Finding | Severity | Disposition |
 |---|---|---|---|
@@ -178,3 +188,6 @@ string now names the system settings (the copy check: en `92b4d920`, ru `d101d3f
 | V3-PL-19 | PL-19 | non-blocking | fixed: this paragraph |
 | V3-UX-22 | UX-22 | non-blocking | ruled: CO-597 (the act words for a Switchboard session) |
 | V3-UX-23 | UX-23 | non-blocking | ruled: CO-597 (the same case as ER-24, seen by the person) |
+| V3-DO-23 | DO-23 | non-blocking | ruled: CO-597 (SCN-184's microphone precondition names macOS) |
+
+Exit for iteration 3: every finding disposed above. Blocking findings open: none.

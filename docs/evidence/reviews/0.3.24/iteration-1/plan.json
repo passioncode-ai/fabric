@@ -1,0 +1,112 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.24",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "b2e350d3500ca599343bdd79537e87eb5a286463",
+  "report": "docs/evidence/reviews/0.3.24/iteration-1/2026-11-19-plan.md",
+  "reportSha256": "588187712bd7277f034275aa50eefcf1dc5bd28e64bf2d62a7aa2968f7e82f41",
+  "reviewerRun": "release-0324-i1-plan-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: section Spend below"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the five board tasks moved to review at the release close (journal seq 199297 to 199305)"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "PL-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "PL-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: this ledger"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.24",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "b2e350d3500ca599343bdd79537e87eb5a286463",
+  "report": "docs/evidence/reviews/0.3.24/iteration-1/2026-11-19-errors.md",
+  "reportSha256": "b0249e46147ca32a7a521c658e27ed32ec5340593cf13d05e63fca10c37f4965",
+  "reviewerRun": "release-0324-i1-errors-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "ER-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "ER-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `0322c9b3`..`7e0bd14c`"
+      ]
+    }
+  ]
+}

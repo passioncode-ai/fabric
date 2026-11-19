@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.24",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "24e6bdda62362e8cf449e394ed237a17aa3cafff",
+  "report": "docs/evidence/reviews/0.3.24/iteration-3/2026-11-19-errors.md",
+  "reportSha256": "84f5a016e71740881b478c230d7d2c220938f5a167f57c05eeafc0f08c41d0b1",
+  "reviewerRun": "release-0324-i3r2-errors-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the same texts and the `main/ceoAgent.ts` header"
+      ]
+    },
+    {
+      "id": "ER-24",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597 (a limit quoted by a tool within the 10 s reply window)"
+      ]
+    },
+    {
+      "id": "ER-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `main/ceoTools.ts` `consoleRow` redacts before the cut"
+      ]
+    }
+  ]
+}

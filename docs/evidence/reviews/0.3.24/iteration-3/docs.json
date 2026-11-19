@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.24",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "24e6bdda62362e8cf449e394ed237a17aa3cafff",
+  "report": "docs/evidence/reviews/0.3.24/iteration-3/2026-11-19-docs.md",
+  "reportSha256": "fd9fa854ecbfc763bfc87f9451f1211bbcf0e723279bce361fdf9a74bf50b04e",
+  "reviewerRun": "release-0324-i3r2-docs-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG, ADR-0197 decision 2, AGENTS.md CEO row"
+      ]
+    },
+    {
+      "id": "DO-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/ux/scenarios.md` SCN-182, SCN-183"
+      ]
+    },
+    {
+      "id": "DO-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597 (SCN-184's microphone precondition names macOS)"
+      ]
+    }
+  ]
+}

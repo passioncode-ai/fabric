@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-19 · `FABRIC-0324` · feat/ceo-agent → main · fast-forward
+- files: `apps/desktop/src/main/{ceoAgent,ceoTools,ceoVoice,ceoVoiceKey}.ts`, the CEO wiring in `main/index.ts`, `apps/desktop/src/shared/{ceoAgent,acts,boardDispatch,ipcWindowPolicy}.ts`, `renderer/src/ceo/*`, `launch/actWords.ts`, both locales, tests (`ceo-agent`, `acts`, `ipc-window-policy`, `mac-entitlements`, `voiceCall`, `actWords`), the release entitlements, ADR-0197, AGENTS.md LC-09 rows, `docs/launch/ceo-setup.md`, SCN-182 to SCN-184, CO-597, the product report and previews, the 0.3.24 review receipts and ledger, `docs/launch/release-gate.json`, the version, CHANGELOG `## 0.3.24`
+- conflicts: none
+- summary: the 0.3.24 release: the CEO agent (ADR-0197) with its fallback runner, session tools, window and voice call on the person's own xAI key; the board dispatcher at 5 runs and 100 a day; three review iterations closed on `24e6bdda`
+
 ### 2026-11-18 · `FABRIC-0323-I1B` · fix/0323-i1b → main · fast-forward
 - files: `apps/desktop/src/main/{boardMain,env,stackWatch}.ts`, `apps/desktop/src/shared/{peopleAsk,stackWatch}.ts`, `StackHealthNotice.tsx` and both locales, `scripts/check-script-modes.mjs`, `scripts/lib/script-modes.mjs`, `scripts/ci.sh`, tests (`resource-reconciliation`, `git-lease-snapshot`, `script-modes`), SCN-147 and SCN-180, the product report, the 0.3.23 review receipts and ledger, `docs/launch/release-gate.json`, the version, CHANGELOG `## 0.3.23`
 - conflicts: none

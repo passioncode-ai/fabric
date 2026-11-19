@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.24
 
 **Upgrading.** No schema step from 0.3.23 (schema 102, no migration). The CEO needs, on each Mac: the microphone
 consent for a call (macOS asks once), the person's own xAI key for the voice call (or the vault slot

@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.24",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "2daa1d494321783ca077fe9d51cf33d7bc0a3608",
+  "report": "docs/evidence/reviews/0.3.24/iteration-2/2026-11-19-docs.md",
+  "reportSha256": "35cb3277606017d08e4c210ebb156fb2952c7d754337405989fdf510ac60c76e",
+  "reviewerRun": "release-0324-i2-docs-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `7f04d0ad`"
+      ]
+    },
+    {
+      "id": "DO-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `7f04d0ad`"
+      ]
+    },
+    {
+      "id": "DO-17",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "DO-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `7f04d0ad`"
+      ]
+    },
+    {
+      "id": "DO-19",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    },
+    {
+      "id": "DO-20",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-597"
+      ]
+    }
+  ]
+}

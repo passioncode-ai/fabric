@@ -1,0 +1,21 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.24",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "24e6bdda62362e8cf449e394ed237a17aa3cafff",
+  "report": "docs/evidence/reviews/0.3.24/iteration-3/2026-11-19-plan.md",
+  "reportSha256": "e8bc2b88a0bc6faf830c8dc8d93184a7a9b67f5443aa968075c4bc8d537ed60d",
+  "reviewerRun": "release-0324-i3r2-plan-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: this paragraph"
+      ]
+    }
+  ]
+}
