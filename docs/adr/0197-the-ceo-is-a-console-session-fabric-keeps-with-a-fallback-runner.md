@@ -141,6 +141,27 @@ The operator's review of the home screen (2026-11-19, paraphrased): the header a
 one small block at the top right; a call that hears nobody for a minute hangs up, and a call lasts five minutes at most,
 then is called again. So decision 5's bounds change: `MAX_CALL_MS` is 5 minutes and `IDLE_CALL_MS` one minute
 (`apps/desktop/src/renderer/src/ceo/voiceCall.ts`), each still ending the call with its reason said («прошло 5 минут»,
-«минуту никто не говорил»). The call's controls are one component, `CeoCall.tsx#VoiceCall`, shown in the popup's head as
-before and in place on the home card (`CeoComposer.tsx`, SCN-182, SCN-184), with the call's time out of five minutes.
+«минуту никто не говорил»). The call's controls were then one component (`CeoCall.tsx`, its `VoiceCall` of that day, replaced by
+amendment 2), shown in the popup's head as before and in place on the home card (`CeoComposer.tsx`, SCN-182, SCN-184), with the call's time out of five minutes.
+Nothing else in this record changes.
+
+## Amendment 2 (2026-11-19): the call is a panel in the chat, the CEO speaks in the character's voice, and stops when stopped
+
+The owner, 2026-11-19: the popup looked worn; the live call should be a panel inside the CEO's chat, not a block in a
+card; the voice is male by default, male or female in the settings and at the first run, depending on the character; and
+the CEO's console could not be stopped. So:
+
+1. The popup's body is the chat: the CEO's console with the call as a panel under it (`CeoCall.tsx#CallPanel`), its
+   lines kept after the call as the window's past calls. The home card's «Позвонить» opens the popup and starts the call
+   there (`CeoCall.tsx#CallLauncher`, IPC `ceo-agent:take-call`); the CEO window may play audio before a click in it.
+   «CEO отвечает вслух» silences the CEO's voice for the call (answers arrive as lines).
+2. Decision 5's voice (`eve`) becomes the character's: `shared/persona.ts#xaiVoiceOf`, male by default
+   (orbit `rex`, spark `sal`, wave `leo`; female `eve`, `ara`, `eve`), the person's choice kept as `voice` in
+   `persona.json`; gender measured from xAI's samples (`docs/architecture/external-contracts.md#xai-voices`). A sample
+   of a voice is one text-to-speech request of under 90 characters, kept per voice and language (`ceoVoice.ts#voiceSample`).
+3. The CEO has a stop (`ceoAgent.ts` `stop`, IPC `ceo-agent:stop`): a stopped CEO is held, its console's end is never read
+   as an early end, and nothing starts it again (no fallback, no opening of its window) until the person starts or
+   restarts it or writes to it; a console stopped from its own window or from History holds it the same way
+   (`personStopping`). The tool `fabric_ceo_session_stop` still refuses the CEO's own console.
+
 Nothing else in this record changes.
