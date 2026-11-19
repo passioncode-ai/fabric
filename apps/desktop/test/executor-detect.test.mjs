@@ -131,7 +131,7 @@ console.log('PASS executor detection: found with version, unresponsive on timeou
 
   // End to end: an agent installed only through volta is FOUND from a Dock PATH.
   const p = path.join(volta, 'codex'); writeFileSync(p, '#!/bin/sh\necho "codex-cli 0.50.1"\n'); chmodSync(p, 0o755)
-  const [row] = await detectExecutors([{ id: 'codex', label: 'Codex', program: 'codex', connected: false }], { env: { PATH: '/usr/bin:/bin', HOME: home } })
+  const [row] = await detectExecutors([{ id: 'codex', label: 'Codex', program: 'codex', connected: false }], { env: { PATH: '/usr/bin:/bin', HOME: home }, timeoutMs: 30_000 }) // the subject is the PATH, not the deadline: a loaded machine took 3 s to answer
   assert.equal(row.state, 'found', 'a volta-installed agent is found from the Dock PATH')
   assert.equal(row.path, p)
   assert.equal(row.version, '0.50.1')
