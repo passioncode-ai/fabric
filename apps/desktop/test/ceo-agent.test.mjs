@@ -8,7 +8,7 @@ import path from 'node:path'
 import { ceoBoardNudge, ceoBrief, ceoLaunchExtras, ceoLine, ceoModelAllowed, ceoModelsOf, ceoRunnersOf, claudeModelFlag, findProject, inboxName, keyBytes, screenText, typedText, CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT } from '../src/shared/ceoAgent.ts'
 import { createCeoAgent, LIMIT_SAID } from '../src/main/ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, CEO_TOOLS } from '../src/main/ceoTools.ts'
-import { mintVoiceToken, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
+import { mintVoiceToken, sampleText, voiceSample, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
 import { createVoiceKeyStore, voiceKeyShapeOk } from '../src/main/ceoVoiceKey.ts'
 import { validateSettings } from '../src/shared/appSettings.ts'
 
@@ -730,4 +730,28 @@ test('THE PERSON\'S STOP that leaves the console running says so', async () => {
   assert.equal(r.ok, false)
   assert.equal(r.reason, 'still-running')
   assert.equal(r.status.state, 'running')
+})
+
+test('a voice sample: fetched once per voice and language with the key held for the request, kept, never the key', async () => {
+  const kept = new Map()
+  const cache = { read: (n) => kept.get(n) ?? null, write: (n, b) => kept.set(n, b) }
+  const sent = []
+  const fetch = async (url, init) => { sent.push([url, init]); return new Response(new Uint8Array([1, 2, 3]), { status: 200 }) }
+  const vault = { read: async () => ({ ok: true, value: 'xai-SECRET' }) }
+  const r = await voiceSample({ vault, fetch, cache }, 'rex', 'ru')
+  assert.deepEqual(r, { ok: true, data: Buffer.from([1, 2, 3]).toString('base64') })
+  assert.equal(sent[0][0], 'https://api.x.ai/v1/tts')
+  assert.deepEqual(JSON.parse(sent[0][1].body), { text: sampleText('ru'), voice_id: 'rex', language: 'ru' })
+  assert.ok(!sampleText('ru').includes(EM_DASH) && !sampleText('en').includes(EM_DASH))
+  await voiceSample({ vault, fetch, cache }, 'rex', 'ru')
+  assert.equal(sent.length, 1, 'the second hearing is the kept file')
+  await voiceSample({ vault, fetch, cache }, 'rex', 'en')
+  assert.equal(sent.length, 2, 'another language is another sample')
+  const unknown = await voiceSample({ vault, fetch, cache }, '../../etc', 'ru')
+  assert.equal(unknown.reason, 'unknown-voice')
+  const refused = await voiceSample({ vault, fetch: async () => new Response('', { status: 401 }), cache: { read: () => null, write: () => {} } }, 'eve', 'ru')
+  assert.equal(refused.reason, 'refused')
+  assert.ok(!JSON.stringify(refused).includes('xai-SECRET'))
+  const noKey = await voiceSample({ vault: { read: async () => ({ ok: false, reason: 'none' }) }, fetch, cache: { read: () => null, write: () => {} } }, 'eve', 'ru')
+  assert.equal(noKey.reason, 'no-key')
 })

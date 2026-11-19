@@ -1,5 +1,5 @@
 import type { ActAnswer, ActHistoryPage, ActHistoryQuery } from './acts.ts'
-import { CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT, type CeoAttachment, type CeoSendResult, type CeoStatus, type CeoVoiceSession } from './ceoAgent.ts'
+import { CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT, type CeoAttachment, type CeoSendResult, type CeoStatus, type CeoVoiceProblem, type CeoVoiceSession } from './ceoAgent.ts'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from './boardResolved.ts'
 import type { ReleaseCommandResult, ReleaseEntry } from './releases.ts'
 import type { TerminalStopResult, TerminalTermination } from './stop.ts'
@@ -1823,6 +1823,10 @@ export interface FabricApi {
     voiceTool(name: string, args: unknown): Promise<Record<string, unknown>>
     /** Whether the person's own xAI key is set (`main/ceoVoiceKey.ts`); never the key. */
     voiceKey(): Promise<{ own: boolean }>
+    /** Whether a call can be made: the person's key or Observatory's (onboarding asks before it offers the voice step). */
+    voiceReady(): Promise<{ ready: boolean }>
+    /** One short sample of an xAI voice (`persona.ts#xaiVoiceOf`) as base64 MP3, kept after the first fetch. */
+    voiceSample(voice: string): Promise<{ ok: true; data: string } | { ok: false; reason: CeoVoiceProblem | 'unknown-voice' }>
     /** Keep the person's own xAI key for the call; refused when empty or not shaped like an xAI key. */
     setVoiceKey(value: string): Promise<{ ok: true } | { ok: false; reason: 'empty' | 'malformed' | 'unwritable' }>
     clearVoiceKey(): Promise<void>
@@ -2070,6 +2074,8 @@ export const IPC = {
   ceoAgentVoice: 'ceo-agent:voice',
   ceoAgentVoiceTool: 'ceo-agent:voice-tool',
   ceoAgentVoiceKey: 'ceo-agent:voice-key',
+  ceoAgentVoiceReady: 'ceo-agent:voice-ready',
+  ceoAgentVoiceSample: 'ceo-agent:voice-sample',
   ceoAgentVoiceKeySet: 'ceo-agent:voice-key-set',
   ceoAgentVoiceKeyClear: 'ceo-agent:voice-key-clear',
   ceoAgentChanged: 'ceo-agent:changed',

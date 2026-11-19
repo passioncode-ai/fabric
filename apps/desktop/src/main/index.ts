@@ -6,7 +6,7 @@ import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipc
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, realpathSync, statfsSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, realpathSync, statfsSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -46,7 +46,8 @@ import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
-import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
+import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
+import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
 import { CEO_PROJECT_NAME, ceoLaunchExtras, type CeoAttachment } from '../shared/ceoAgent.ts'
@@ -5250,11 +5251,27 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (!token.ok) return { ok: false, reason: token.reason }
     const locale = readSettings().locale
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
-      instructions: voiceInstructions(locale), voice: 'eve', tools: [...ceoVoiceTools(), ASK_CEO_TOOL] }
+      instructions: voiceInstructions(locale), voice: xaiVoiceOf(persona().persona), tools: [...ceoVoiceTools(), ASK_CEO_TOOL] }
   })
   // The person's own xAI key (the operator, 2026-11-19): set in the CEO window, or dropped by a coding agent.
   const voiceKeys = createVoiceKeyStore(path.join(app.getPath('userData'), 'ceo-voice'), safeStorage) // outside the CEO's own folder: its runner never reads the key (0.3.24 review iteration 2, DA-11)
   handle(IPC.ceoAgentVoiceKey, (): Returns<FabricApi['ceoAgent']['voiceKey']> => ({ own: voiceKeys.source() === 'own' }))
+  // Whether a call can be made at all (onboarding's voice step, the owner 2026-11-19): the person's key, or Observatory's
+  // slot read once and dropped; the value never leaves this handler.
+  handle(IPC.ceoAgentVoiceReady, async (): Promise<Returns<FabricApi['ceoAgent']['voiceReady']>> => {
+    if (voiceKeys.source() === 'own') return { ready: true }
+    try { return { ready: (await ceoVault.read({ project: 'fabric', env: 'prod', name: 'XAI_API_KEY' })).ok } } catch { return { ready: false } }
+  })
+  // One sample of a voice, kept per voice and language in the voice's own folder (never the CEO's).
+  const samples = path.join(app.getPath('userData'), 'ceo-voice', 'samples')
+  handle(IPC.ceoAgentVoiceSample, async (_e, voice: unknown): Promise<Returns<FabricApi['ceoAgent']['voiceSample']>> => {
+    const r = await voiceSample({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch, cache: {
+      read: (name) => { try { return readFileSync(path.join(samples, name)) } catch { return null } },
+      write: (name, bytes) => { mkdirSync(samples, { recursive: true }); writeFileSync(path.join(samples, name), bytes, { mode: 0o600 }) }
+    } }, typeof voice === 'string' ? voice : '', readSettings().locale)
+    ops.record({ op: 'ceo.voice.sample', outcome: r.ok ? 'ok' : 'failed', level: r.ok ? 'info' : 'warn', detail: r.ok ? {} : { reason: r.reason, detail: r.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
+    return r.ok ? r : { ok: false, reason: r.reason }
+  })
   handle(IPC.ceoAgentVoiceKeySet, (_e, value: unknown): Returns<FabricApi['ceoAgent']['setVoiceKey']> => {
     const r = voiceKeys.set(typeof value === 'string' ? value : '')
     ops.record({ op: 'ceo.voice.key-set', outcome: r.ok ? 'ok' : 'failed', level: 'info', detail: r.ok ? {} : { reason: r.reason }, ctx: { correlationId: ops.correlate() } })

@@ -38,7 +38,7 @@ const SESSION_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'ter
  *  own channels; the voice call's two are its alone. */
 const CEO_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalData', 'terminalExit',
   'windowsOpenSession', 'ceoAgentStatus', 'ceoAgentEnsure', 'ceoAgentSend', 'ceoAgentRestart', 'ceoAgentStop', 'ceoAgentOpen', 'ceoAgentTakeDraft',
-  'ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceKeySet', 'ceoAgentChanged', 'ceoAgentDraft']
+  'ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceKeySet', 'ceoAgentVoiceReady', 'ceoAgentVoiceSample', 'ceoAgentChanged', 'ceoAgentDraft']
 const EDITOR_USES = [...EVERY_WINDOW, 'filesRead', 'filesWrite', 'filesRequestOverwrite', 'filesOpenExternally', 'filesRecoveryKeep', 'filesRecoveryFlush', 'filesRecoveryRead']
 
 test('every channel declares at least one window kind, and only known kinds', () => {
