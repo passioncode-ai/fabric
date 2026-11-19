@@ -24,6 +24,16 @@ import { useLocale, useT } from '../i18n'
 import brandMark from '../../../../../../assets/brand/favicon/transparent/passioncode-favicon-64.svg?url'
 import './rail.css'
 
+/** A session that ended, as «Агенты» lists it under the running ones. */
+export interface RecentSession {
+  projectId: string
+  projectName: string | null
+  runner: string
+  branch: string | null
+  endedAt: string | null
+  startedAt: string
+}
+
 export type ProjectSection = 'overview' | 'team' | 'cycles' | 'goals' | 'memory' | 'settings'
 export const PROJECT_SECTION_ANCHOR: Record<ProjectSection, string | null> = {
   overview: null, team: 'sec-agents', cycles: 'sec-automations', goals: 'sec-plan', memory: 'sec-memory', settings: 'sec-project-settings'
@@ -101,6 +111,12 @@ export interface LaunchShellProps {
   /** The console icon beside an agent whose console Fabric holds (the operator's second review, R-6): opens its session
    *  as a tab at once. Absent, no icon is drawn. */
   onAgentConsole?(sessionId: string): void
+  /** A new session in this project with its own agent, opened as a console tab (the owner, 2026-11-19). */
+  onNewSession?(projectId: string): void | Promise<void>
+  /** The project's newest session that is not running, wherever it was started, continued in a console tab. */
+  onResumeLast?(projectId: string): void | Promise<void>
+  /** Sessions that ended, newest first, one per project (the launch journal); asked when «Агенты» shows. */
+  loadRecent?(): Promise<RecentSession[]>
   /** Projects where an agent works now (`liveProjectsOf`: Fabric's terminals and the agents that joined on their own). */
   live: ReadonlySet<string>
   /** The home reading's pulse per project, which says which projects are at work (`projectsAtWork`); null while unread. */
@@ -212,6 +228,24 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   const atAgents = at.kind === 'agents'
   useEffect(() => { if (atAgents) setView('agents') }, [atAgents])
   const viewButtons = useRef<Record<RailView, HTMLButtonElement | null>>({ projects: null, agents: null })
+  // A session start or resume in flight, by its button, so a second press does not start two (the owner, 2026-11-19).
+  const [pending, setPending] = useState<string | null>(null)
+  const act = (key: string, fn: () => void | Promise<void>): void => {
+    if (pending) return
+    setPending(key)
+    void (async () => fn())().finally(() => setPending(null))
+  }
+  // «Новая сессия» in «Агенты»: the projects to start one in, opened by its button.
+  const [picking, setPicking] = useState(false)
+  // «Недавние»: sessions that ended, newest first, read when «Агенты» shows (the owner: running first, then the rest).
+  const [recent, setRecent] = useState<RecentSession[] | null>(null)
+  const loadRecent = props.loadRecent
+  useEffect(() => {
+    if (view !== 'agents' || !loadRecent) return
+    let alive = true
+    loadRecent().then((r) => { if (alive) setRecent(r) }, () => { if (alive) setRecent([]) /* the running agents still show */ })
+    return () => { alive = false }
+  }, [view, loadRecent, props.agents.rows?.length])
   const onViewKey = (e: React.KeyboardEvent): void => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') return
     e.preventDefault()
@@ -329,6 +363,24 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                       {p.favourite && <span className="rail-star" role="img" aria-label={t('rail.favourite')}>{t('glyph.star')}</span>}
                       {waiting > 0 && <span className="rail-c" aria-label={t('rail.waitingProject', { count: waiting })}>{waiting}</span>}
                     </a>
+                    {(props.onNewSession || props.onResumeLast) && (
+                      <span className="rail-session-acts">
+                        {props.onNewSession && (
+                          <button type="button" className="rail-console" disabled={pending === `new:${p.id}`} aria-busy={pending === `new:${p.id}`}
+                            aria-label={t('rail.session.new', { name: p.name })} title={t('rail.session.new', { name: p.name })}
+                            onClick={() => act(`new:${p.id}`, () => props.onNewSession!(p.id))}>
+                            <span aria-hidden="true">{t('glyph.plus')}</span>
+                          </button>
+                        )}
+                        {props.onResumeLast && (
+                          <button type="button" className="rail-console" disabled={pending === `resume:${p.id}`} aria-busy={pending === `resume:${p.id}`}
+                            aria-label={t('rail.session.resume', { name: p.name })} title={t('rail.session.resume', { name: p.name })}
+                            onClick={() => act(`resume:${p.id}`, () => props.onResumeLast!(p.id))}>
+                            <span aria-hidden="true">{t('glyph.resume')}</span>
+                          </button>
+                        )}
+                      </span>
+                    )}
                   </li>
                 )
               })}
@@ -351,6 +403,23 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
           {/* UX-18: the reading can be asked again here. */}
           {props.agents.problem && props.agents.retry && <button type="button" className="rail-small" onClick={props.agents.retry}>{t('common.retry')}</button>}
           {props.agents.rows === null && !props.agents.problem && <p className="rail-muted" role="status">{t('rail.agents.reading')}</p>}
+          {/* The owner, 2026-11-19: a new session for a project chosen from the list, from here. */}
+          {props.onNewSession && (props.projects?.length ?? 0) > 0 && (
+            <button type="button" className="rail-small rail-new-session" aria-expanded={picking} onClick={() => setPicking((x) => !x)}>
+              {t('rail.session.newAny')}
+            </button>
+          )}
+          {picking && props.onNewSession && (
+            <ul className="rail-pick" aria-label={t('rail.session.pickProject')}>
+              {(props.projects ?? []).map((p) => (
+                <li key={p.id}>
+                  <button type="button" className="rail-small" disabled={pending !== null} onClick={() => { setPicking(false); act(`new:${p.id}`, () => props.onNewSession!(p.id)) }}>
+                    {p.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
           {props.agents.rows !== null && props.agents.rows.length === 0 && <p className="rail-muted">{t('rail.agents.none')}</p>}
           {props.agents.rows !== null && props.agents.rows.length > 0 && (
             <ul aria-label={t('rail.agents.list')}>
@@ -400,6 +469,31 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                 )
               })}
             </ul>
+          )}
+          {/* The owner, 2026-11-19: the running agents first, then the sessions that ended, each continued with one press. */}
+          {recent && recent.length > 0 && (
+            <>
+              <p className="rail-muted rail-sub">{t('rail.agents.recent')}</p>
+              <ul aria-label={t('rail.agents.recent')}>
+                {recent.map((r) => (
+                  <li key={r.projectId}>
+                    <button type="button" className="rail-agent rail-recent" disabled={pending !== null || !props.onResumeLast}
+                      title={t('rail.session.resume', { name: r.projectName ?? '' })}
+                      onClick={() => act(`resume:${r.projectId}`, () => props.onResumeLast?.(r.projectId))}>
+                      <span className="rail-dot s-ended" role="img" aria-label={t('status.ended')} />
+                      <span className="rail-agent-words">
+                        <span className="rail-name">{r.projectName ?? t('launch.home.agents.noProject')}</span>
+                        <span className="rail-agent-line">
+                          <span className="rail-source">{t('rail.session.resumeShort')}</span>
+                          <span className="rail-runner"> · {runnerLabel(r.runner, t)}</span>
+                          {r.branch && <span className="rail-branch-word"> · {r.branch}</span>}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
         )}

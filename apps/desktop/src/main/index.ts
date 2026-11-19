@@ -456,7 +456,10 @@ import { createConsoleOpen } from './consoleOpen.ts'
 import { redact } from '../shared/redact.ts'
 import { claudeSessionOf, createLaunchJournal, readGitBranch, type LaunchJournal } from './sessionLaunches.ts'
 import { withLaunchOrigin } from './launchOrigin.ts'
-import { claudeConfigDirs, liveClaudeSessions } from './diskSessions.ts'
+import { claudeConfigDirs, defaultAlive, liveClaudeSessions } from './diskSessions.ts'
+import { createMachineSessions } from './machineSessions.ts'
+import { gitWorktrees, lastSessionOf, projectForFolder } from './projectResume.ts'
+import { findTranscript, defaultTranscriptRoots, transcriptTurns } from './ceoTools.ts'
 import { createTaskStart } from './taskStart.ts'
 
 // ADR-0195 W2b: this process's data folder for every local store (settings, kept-out agents, digest marks), named
@@ -1709,6 +1712,13 @@ async function readAdmissionProject(id: string): Promise<ProjectRow | null> {
 
 async function readRepoRemovals() {
   return projectReads.listRemovals()
+}
+
+/** The active projects, as the rail lists them. */
+async function activeProjectsRead(): Promise<ProjectRow[]> {
+  const { data, error } = await store.select('projects', '*').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
+  if (error) throw new Error(`projects list failed: ${error.message}`)
+  return (data ?? []) as ProjectRow[]
 }
 
 async function readProject(id: string): Promise<ProjectRow> {
@@ -4718,6 +4728,66 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // CO-457: read-only, Switchboard's sessions and limit stops merged as Fabric Dashboards merges them.
   handle(IPC.agentsSwitchboardSessions, (): Promise<Returns<FabricApi['agents']['switchboardSessions']>> =>
     readMachineSwitchboardSessions(sessionEnvironment(process.env), Date.now()))
+  // #region resume-in-fabric — docs: docs/ux/scenarios.md#scn-166-see-every-agent-and-open-its-console-in-one-press
+  // The owner, 2026-11-19 (eef5abeb, and «либо новую, либо последнюю»): a Claude Code session, wherever it was started,
+  // continued in a Fabric console with `claude --resume <id>` in its folder and the Claude home it ran in.
+  const runningClaudeIds = async (): Promise<Set<string>> => {
+    const ids = new Set((await liveClaudeSessions(await claudeConfigDirs())).map((s) => s.sessionId))
+    const live = new Set(ptys.list().filter((s) => s.running).map((s) => s.sessionId))
+    for (const l of (await launchJournal?.read()) ?? []) if (l.runnerSessionId && live.has(l.sessionId)) ids.add(l.runnerSessionId)
+    return ids
+  }
+  const resumeInFabric = async (projectId: string, cwd: string, claudeId: string, config: string, reason: string): Promise<{ sessionId: string }> => {
+    const sessionId = randomUUID()
+    const own = path.join(homedir(), '.claude')
+    ptys.prepareLaunch(sessionId, { args: ['--resume', claudeId], env: config === own ? {} : { CLAUDE_CONFIG_DIR: config } })
+    const opened = await withLaunchOrigin({ by: 'person', via: 'screen', reason }, () => ptys.open(projectId, cwd, 'claude-code', null, null, null, sessionId))
+    syncPower()
+    return { sessionId: opened.sessionId }
+  }
+  handle(IPC.projectsResumeLast, async (_e, projectId: unknown): Promise<Returns<FabricApi['projects']['resumeLast']>> => {
+    if (typeof projectId !== 'string' || !UUID.test(projectId)) throw new Error('Invalid project identity')
+    const project = await readProject(projectId)
+    if (!project.repo_path) return { ok: false, why: 'no-folder' }
+    const folders = [...await gitWorktrees(project.repo_path), ...((await launchJournal?.read({ projectId })) ?? []).map((l) => l.cwd)]
+    const last = await lastSessionOf(folders, await claudeConfigDirs(), await runningClaudeIds())
+    if (!last) return { ok: false, why: 'none' }
+    try {
+      const opened = await resumeInFabric(projectId, last.cwd, last.sessionId, last.config, 'Продолжить последнюю сессию проекта')
+      ops.record({ op: 'projects.resume-last', outcome: 'ok', level: 'info', detail: { project_id: projectId, runner_session_id: last.sessionId, console: opened.sessionId }, ctx: { correlationId: ops.correlate() } })
+      return { ok: true, sessionId: opened.sessionId }
+    } catch (e) {
+      ops.failed('projects.resume-last', e, { project_id: projectId })
+      return { ok: false, why: 'failed', says: e instanceof Error ? e.message.slice(0, 300) : String(e) }
+    }
+  })
+  const machineSessions = createMachineSessions({
+    live: async () => liveClaudeSessions(await claudeConfigDirs()),
+    fabricRunnerIds: async () => {
+      const live = new Set(ptys.list().filter((s) => s.running).map((s) => s.sessionId))
+      return new Set(((await launchJournal?.read()) ?? []).filter((l) => l.runnerSessionId && live.has(l.sessionId)).map((l) => l.runnerSessionId!))
+    },
+    alive: defaultAlive,
+    signal: (pid) => { process.kill(pid, 'SIGTERM') },
+    stillNames: async (s) => (await liveClaudeSessions([s.config])).some((x) => x.pid === s.pid && x.sessionId === s.sessionId),
+    transcript: (id) => findTranscript(defaultTranscriptRoots(), id),
+    turns: transcriptTurns,
+    continueInFabric: async (s) => {
+      const project = await projectForFolder(s.cwd, await activeProjectsRead())
+      if (!project) throw new Error(`the folder ${s.cwd} is not in a Fabric project: add it as a project first`)
+      return resumeInFabric(project.id, s.cwd, s.sessionId, s.config, 'Перенесена в Fabric из терминала вне Fabric')
+    },
+    record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  const sessionArg = (v: unknown): string => {
+    if (typeof v !== 'string' || !/^[0-9a-f-]{36}$/i.test(v)) throw new Error('Invalid session identity')
+    return v
+  }
+  handle(IPC.agentsMachineSessions, (): Promise<Returns<FabricApi['agents']['machineSessions']>> => machineSessions.list())
+  handle(IPC.agentsMachineRead, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineRead']>> => machineSessions.read(sessionArg(id)))
+  handle(IPC.agentsMachineClose, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineClose']>> => machineSessions.close(sessionArg(id)))
+  handle(IPC.agentsMachineContinue, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineContinue']>> => machineSessions.continueInFabric(sessionArg(id)))
+  // #endregion resume-in-fabric
   // CO-407: Claude Code's cross-session messages, only by the person's switch; and the launcher doctor, only on asking.
   const inboundAnswer = (r: ReturnType<typeof readInbound>) =>
     'unreadable' in r ? { unreadable: true as const } : { accepting: r.accepting, value: r.value, ...(r.notSaved ? { notSaved: r.notSaved } : {}) }
@@ -4964,6 +5034,19 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   )
 
   handle(IPC.terminalList, (_e, projectId?: string): Returns<FabricApi['terminal']['list']> => ptys.list(projectId))
+  // «Недавние» in the rail: the newest ended launch of each project, not running now, eight at most.
+  handle(IPC.terminalRecent, async (): Promise<Returns<FabricApi['terminal']['recent']>> => {
+    const running = new Set(ptys.list().filter((s) => s.running).map((s) => s.projectId))
+    const names = new Map((await activeProjectsRead()).map((p) => [p.id, p.name]))
+    const out: Returns<FabricApi['terminal']['recent']> = []
+    for (const l of (await launchJournal?.read()) ?? []) {
+      if (l.end === null && ptys.get(l.sessionId)?.running) continue
+      if (running.has(l.projectId) || !names.has(l.projectId) || out.some((o) => o.projectId === l.projectId)) continue
+      out.push({ projectId: l.projectId, projectName: names.get(l.projectId) ?? null, runner: l.optionId, branch: l.branch, endedAt: l.endedAt, startedAt: l.startedAt })
+      if (out.length >= 8) break
+    }
+    return out
+  })
   // Who started a console and from where (the launch journal, board request eef5abeb): read for the agent's page.
   handle(IPC.terminalLaunch, async (_e, sessionId: unknown): Promise<Returns<FabricApi['terminal']['launch']>> => {
     if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 128) throw new Error('Invalid session identity')

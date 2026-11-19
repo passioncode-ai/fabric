@@ -132,6 +132,9 @@ function backLabel(from: AppRoute['kind'], t: Translate): string {
     : t('task.backTo.back')
 }
 
+/** «Недавние» in the rail, a stable function so the rail asks once per showing (`LaunchShell.tsx#loadRecent`). */
+const loadRecentSessions = (): ReturnType<typeof window.fabric.terminal.recent> => window.fabric.terminal.recent()
+
 export function App(): React.JSX.Element {
   const [settings, setSettings] = useState<AppSettings | null>(null)
 
@@ -1054,6 +1057,22 @@ function Shell({
         agents={{ rows: railAgentRows, problem: homeReading.problem, retry: homeReading.retry }}
         onAgent={(session) => { setShowSettings(false); setWorkspaceFor(null); goTo({ kind: 'agents', session }) }}
         onAgentConsole={(session) => void openConsole(session)}
+        loadRecent={loadRecentSessions}
+        // The owner, 2026-11-19: «либо новую, либо последнюю, две кнопочки в списке проектов».
+        onNewSession={async (projectId) => {
+          const project = (projects ?? []).find((p) => p.id === projectId)
+          try {
+            const s = await window.fabric.terminal.open(projectId, project?.default_agent || 'claude-code')
+            await openConsole(s.sessionId)
+          } catch (e) { setError(t('rail.session.startFailed', { why: e instanceof Error ? e.message : String(e) })) }
+        }}
+        onResumeLast={async (projectId) => {
+          try {
+            const r = await window.fabric.projects.resumeLast(projectId)
+            if (r.ok) { await openConsole(r.sessionId); return }
+            setError(r.why === 'none' ? t('rail.session.noneToResume') : r.why === 'no-folder' ? t('rail.session.noFolder') : t('rail.session.resumeFailed', { why: r.says ?? '' }))
+          } catch (e) { setError(t('rail.session.resumeFailed', { why: e instanceof Error ? e.message : String(e) })) }
+        }}
         waiting={waiting}
         machine={machineOf({ read: feed !== null, failed: journalFailed }, error)}
         commsUnread={commsUnread}

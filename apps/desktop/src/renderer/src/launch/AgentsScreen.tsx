@@ -25,6 +25,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SwitchboardSessionsPanel } from './SwitchboardSessions'
+import { MachineSessionsPanel } from './MachineSessions'
 import type { ActAnswer } from '../../../shared/acts.ts'
 import type { HubOverview } from '../../../shared/access.ts'
 import type { SwitchboardCatalog } from '../../../shared/agentCatalog'
@@ -335,6 +336,8 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
           <button type="button" className="lp-button" onClick={onCreate}>{t('agentsPlace.create')}</button>
           {/* CO-457: the sessions Switchboard runs and holds here, as Fabric Dashboards lists them. */}
           <SwitchboardSessionsPanel />
+          {/* eef5abeb point 3: the Claude Code sessions outside Fabric, from Claude Code's own files. */}
+          <MachineSessionsPanel onOpenConsole={openAsTab} />
         </div>
       )}
     </div>

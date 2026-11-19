@@ -3,7 +3,7 @@
 // count where something waits for the person, or every agent at work with its project and branch; История and
 // Настройки at the foot. No tab strip, no back button of Fabric's own, no scope bar.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { ru } from '../i18n/ru'
@@ -198,6 +198,43 @@ describe('the left column', () => {
     fireEvent.click(rows[1])
     expect(props.onAgent).toHaveBeenCalledWith('s2')
     expect(onAgentConsole).toHaveBeenCalledTimes(1)
+  })
+
+  // The owner, 2026-11-19: «либо новую, либо последнюю, две кнопочки в списке проектов»; in «Агенты» a new session in a
+  // project chosen from the list, and the running agents first, then the sessions that ended.
+  it('starts a new session or continues the last one from a project\'s row, one press at a time', async () => {
+    let finish: () => void = () => {}
+    const onNewSession = vi.fn(() => new Promise<void>((r) => { finish = r }))
+    const onResumeLast = vi.fn(async () => {})
+    shell({ onNewSession, onResumeLast })
+    const list = screen.getByRole('list', { name: en['rail.projects'] })
+    const start = within(list).getByRole('button', { name: en['rail.session.new'].replace('{name}', 'Maple') })
+    fireEvent.click(start)
+    expect(onNewSession).toHaveBeenCalledWith('p1')
+    await waitFor(() => expect((start as HTMLButtonElement).disabled).toBe(true))
+    fireEvent.click(within(list).getByRole('button', { name: en['rail.session.resume'].replace('{name}', 'Maple') }))
+    expect(onResumeLast, 'a second press while one start is in flight starts nothing').not.toHaveBeenCalled()
+    finish()
+    await waitFor(() => expect((start as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(within(list).getByRole('button', { name: en['rail.session.resume'].replace('{name}', 'atlas') }))
+    expect(onResumeLast).toHaveBeenCalledWith('p2')
+  })
+
+  it('in «Агенты»: a new session in a project chosen from the list; the sessions that ended under the running ones', async () => {
+    const onNewSession = vi.fn(async () => {})
+    const onResumeLast = vi.fn(async () => {})
+    const loadRecent = vi.fn(async () => [{ projectId: 'p2', projectName: 'atlas', runner: 'codex', branch: 'main', endedAt: null, startedAt: '2026-11-19T10:00:00Z' }])
+    shell({ onNewSession, onResumeLast, loadRecent })
+    fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))
+    const recent = await screen.findByRole('list', { name: en['rail.agents.recent'] })
+    const lists = screen.getAllByRole('list').map((l) => l.getAttribute('aria-label'))
+    expect(lists.indexOf(en['rail.agents.list'])).toBeLessThan(lists.indexOf(en['rail.agents.recent']))
+    fireEvent.click(within(recent).getByRole('button'))
+    await waitFor(() => expect(onResumeLast).toHaveBeenCalledWith('p2'))
+    fireEvent.click(screen.getByRole('button', { name: en['rail.session.newAny'] }))
+    fireEvent.click(within(screen.getByRole('list', { name: en['rail.session.pickProject'] })).getByRole('button', { name: 'Fabric' }))
+    await waitFor(() => expect(onNewSession).toHaveBeenCalledWith('p3'))
+    expect(screen.queryByRole('list', { name: en['rail.session.pickProject'] })).toBeNull()
   })
 
   it('moves between Проекты and Агенты with the arrow keys, focus following', () => {

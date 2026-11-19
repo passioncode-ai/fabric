@@ -203,7 +203,7 @@ export function transcriptTurns(jsonl: string, max = 12): Array<{ role: string; 
   return turns.slice(-max)
 }
 
-function findTranscript(roots: readonly string[], id: string): string | null {
+export function findTranscript(roots: readonly string[], id: string): string | null {
   if (!/^[0-9a-f-]{36}$/.test(id)) return null
   const name = `${id}.jsonl`
   const tryProjects = (projects: string): string | null => {

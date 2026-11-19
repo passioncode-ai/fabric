@@ -59,6 +59,7 @@ function stub(sessions: unknown[]) {
     },
     terminal: {
       launch: vi.fn(async () => null),
+      recent: vi.fn(async () => []),
       list: async () => sessions,
       get: async (id: string) => (sessions as Array<{ sessionId: string }>).find((s) => s.sessionId === id) ?? null,
       history: async () => [],
