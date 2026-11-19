@@ -5265,13 +5265,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // slot read once and dropped; the value never leaves this handler.
   handle(IPC.ceoAgentVoiceReady, async (): Promise<Returns<FabricApi['ceoAgent']['voiceReady']>> => {
     if (voiceKeys.source() === 'own') return { ready: true }
-    try { return { ready: (await ceoVault.read({ project: 'fabric', env: 'prod', name: 'XAI_API_KEY' })).ok } } catch { return { ready: false } }
+    try { return { ready: (await ceoVault.read({ project: 'fabric', env: 'prod', name: 'XAI_API_KEY' })).ok } } catch (e) { ops.failed('ceo.voice.ready', e); return { ready: false } }
   })
   // One sample of a voice, kept per voice and language in the voice's own folder (never the CEO's).
   const samples = path.join(app.getPath('userData'), 'ceo-voice', 'samples')
   handle(IPC.ceoAgentVoiceSample, async (_e, voice: unknown): Promise<Returns<FabricApi['ceoAgent']['voiceSample']>> => {
     const r = await voiceSample({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch, cache: {
-      read: (name) => { try { return readFileSync(path.join(samples, name)) } catch { return null } },
+      read: (name) => { try { return readFileSync(path.join(samples, name)) } catch { return null /* not kept yet: the sample is fetched */ } },
       write: (name, bytes) => { mkdirSync(samples, { recursive: true }); writeFileSync(path.join(samples, name), bytes, { mode: 0o600 }) }
     } }, typeof voice === 'string' ? voice : '', readSettings().locale)
     ops.record({ op: 'ceo.voice.sample', outcome: r.ok ? 'ok' : 'failed', level: r.ok ? 'info' : 'warn', detail: r.ok ? {} : { reason: r.reason, detail: r.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })

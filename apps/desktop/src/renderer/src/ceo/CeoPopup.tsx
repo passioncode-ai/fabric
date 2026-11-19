@@ -93,7 +93,7 @@ export function CeoPopup(): React.JSX.Element {
           <strong className="ceo-popup-title">{name}</strong>
           <span className="ceo-popup-sub">
             <span className={`ceo-popup-state s-${state}`}>{t(`ceoAgent.state.${state}` as 'ceoAgent.state.running')}</span>
-            {status?.runner && <span className="ceo-popup-runner">{t('ceoAgent.runsOn', { runner: `${runnerLabel(status.runner, t)} · ${modelOf(status)}` })}</span>}
+            {status?.runner && state !== 'stopped' && <span className="ceo-popup-runner">{t('ceoAgent.runsOn', { runner: `${runnerLabel(status.runner, t)} · ${modelOf(status)}` })}</span>}
           </span>
         </div>
         <div className="ceo-popup-head-actions">
@@ -102,7 +102,7 @@ export function CeoPopup(): React.JSX.Element {
             ? <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void restart()}>{t('ceoAgent.start')}</button>
             : <button type="button" className="btn btn-ghost" disabled={busy !== null || state === 'starting'} onClick={() => void stop()}>{t(busy === 'stop' ? 'ceoAgent.stopping' : 'ceoAgent.stop')}</button>}
           <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void restart()}>
-            {t(busy === 'restart' ? 'ceoAgent.restarting' : 'ceoAgent.restart')}
+            {t(busy === 'restart' ? 'ceoAgent.restarting' : 'ceoAgent.restartShort')}
           </button>
         </div>
       </header>

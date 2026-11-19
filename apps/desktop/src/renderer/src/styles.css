@@ -359,7 +359,8 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-composer, .ceo-composer-form { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .ceo-composer-home { padding: var(--space-3); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); background: var(--app-panel); }
 .ceo-composer-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
-.ceo-composer-title { margin: 0; white-space: nowrap; font-size: var(--app-fs-body); font-weight: 600; line-height: var(--app-lh-body); padding-top: var(--space-1); }
+/* Two classes: the launch screens' `h2` size (42px) must not reach the card's small title (the owner's review, 2026-11-19). */
+.ceo-composer .ceo-composer-title { margin: 0; white-space: nowrap; font-size: var(--app-fs-body); letter-spacing: normal; font-weight: 600; line-height: var(--app-lh-body); padding-top: var(--space-1); }
 .ceo-composer-home .ceo-composer-text { min-height: 56px; }
 .ceo-composer-send { margin-left: auto; }
 .ceo-composer-text { width: 100%; resize: vertical; font: inherit; padding: var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: var(--app-bg, transparent); color: var(--app-ink); }
@@ -388,7 +389,9 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-popup { display: flex; flex-direction: column; height: 100vh; padding-top: calc(var(--space-6, 32px) + 2px); box-sizing: border-box; background: var(--app-bg); }
 .ceo-popup-head { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3) var(--space-3); border-bottom: 1px solid var(--app-line); -webkit-app-region: drag; }
 .ceo-popup-head button, .ceo-popup-head input, .ceo-call-panel, .ceo-popup-chat { -webkit-app-region: no-drag; }
-.ceo-presence { flex: none; display: inline-flex; border-radius: 50%; box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }
+/* The CEO window loads no launch stylesheet, so the face is sized here. */
+.ceo-presence svg { display: block; width: 40px; height: 40px; }
+.ceo-presence { flex: none; display: inline-flex; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }
 .ceo-popup-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
 .ceo-popup-title { font-size: var(--app-fs-title); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ceo-popup-sub { display: flex; flex-wrap: wrap; gap: 2px var(--space-2); font-size: var(--app-fs-caption); color: var(--app-muted); min-width: 0; }
@@ -398,6 +401,7 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-popup-state.s-failed { color: var(--state-danger); }
 .ceo-popup-runner { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ceo-popup-head-actions { margin-left: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-1); align-items: center; }
+.ceo-popup-head-actions .btn { padding: 4px var(--space-2); font-size: var(--app-fs-label); }
 .ceo-popup-notes { margin: 0; padding: var(--space-1) var(--space-3) var(--space-1) var(--space-5, 1.5rem); font-size: var(--app-fs-caption); }
 .ceo-popup-chat { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-2) var(--space-3) 0; }
 .ceo-popup-console { flex: 1; min-height: 120px; display: flex; flex-direction: column; }
@@ -412,7 +416,7 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-icon rect { fill: currentColor; stroke: none; }
 
 /* The call, a panel inside the chat (SCN-184): live while it runs, then its past calls, folded. */
-.ceo-call-panel { flex: none; display: flex; flex-direction: column; gap: var(--space-2); max-height: 45%; overflow-y: auto; font-size: var(--app-fs-body); }
+.ceo-call-panel { flex: none; display: flex; flex-direction: column; gap: var(--space-2); max-height: 62%; overflow-y: auto; font-size: var(--app-fs-body); }
 .ceo-call-live { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); background: var(--app-panel); }
 .ceo-call-live.p-listening, .ceo-call-live.p-speaking { border-color: color-mix(in srgb, var(--state-good) 45%, var(--app-line)); }
 .ceo-call-live.p-failed { border-color: color-mix(in srgb, var(--state-danger) 45%, var(--app-line)); }
@@ -445,8 +449,8 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-call-lines .who-tool { display: block; color: var(--app-muted); font-family: var(--font-mono); font-size: var(--app-fs-caption); padding-left: calc(3.2em + var(--space-2)); }
 .ceo-call-lines .ceo-call-hint { display: block; }
 .ceo-call-say-form { display: flex; }
-.ceo-call-mute { display: grid; grid-template-columns: auto 1fr; column-gap: var(--space-2); align-items: center; font-size: var(--app-fs-caption); cursor: pointer; }
-.ceo-call-mute small { grid-column: 2; }
+.ceo-call-mute { display: flex; flex-wrap: wrap; column-gap: var(--space-2); align-items: center; font-size: var(--app-fs-caption); cursor: pointer; }
+.ceo-call-mute small { flex-basis: 100%; padding-left: calc(13px + var(--space-2)); }
 .ceo-call-say { width: 100%; font: inherit; padding: var(--space-1) var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: var(--app-bg, transparent); color: var(--app-ink); }
 .ceo-call-history { display: flex; flex-direction: column; gap: var(--space-1); }
 .ceo-call-record { border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-1) var(--space-2); }
@@ -459,11 +463,11 @@ button:disabled { opacity: .4; cursor: default; }
 
 /* The CEO's voice (SCN-186): male or female, each with the character's tone and a sample. */
 .ceo-voice-picker { display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-2) 0 var(--space-4); }
-.ceo-voice-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.ceo-voice-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-2); }
 .ceo-voice-option { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); background: var(--app-panel); }
 .ceo-voice-option[data-chosen="true"] { border: 2px solid var(--app-ink); padding: calc(var(--space-2) - 1px); }
-.ceo-voice-choice { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: var(--space-2); text-align: left; font: inherit; color: var(--app-ink); background: none; border: 0; padding: 0; cursor: pointer; }
-.ceo-voice-choice small { grid-column: 2; color: var(--app-muted); font-size: var(--app-fs-caption); }
+.ceo-voice-choice { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--space-2); text-align: left; font: inherit; color: var(--app-ink); background: none; border: 0; padding: 0; cursor: pointer; }
+.ceo-voice-choice small { flex-basis: 100%; padding-left: calc(12px + var(--space-2)); color: var(--app-muted); font-size: var(--app-fs-caption); }
 .ceo-voice-choice:focus-visible, .ceo-voice-listen:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 2px; border-radius: 4px; }
 .ceo-voice-name { font-weight: 600; }
 .ceo-voice-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--app-line-strong); }

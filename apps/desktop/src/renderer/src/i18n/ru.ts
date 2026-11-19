@@ -3467,6 +3467,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'ceoAgent.why.limit': "сообщил о лимите",
   'ceoAgent.why.ended-at-start': "закончился сразу после запуска",
   'ceoAgent.restart': "Перезапустить CEO",
+  'ceoAgent.restartShort': "Перезапустить",
   'ceoAgent.restarting': "Перезапускаем…",
   'ceoAgent.retry': "Попробовать снова",
   'ceoAgent.starting': "CEO запускается в своей консоли.",

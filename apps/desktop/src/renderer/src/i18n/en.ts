@@ -3604,6 +3604,7 @@ export const en = {
   'ceoAgent.why.limit': "it reported its usage limit",
   'ceoAgent.why.ended-at-start': "it ended as it started",
   'ceoAgent.restart': "Restart CEO",
+  'ceoAgent.restartShort': "Restart",
   'ceoAgent.restarting': "Restarting…",
   'ceoAgent.retry': "Try again",
   'ceoAgent.starting': "The CEO is starting in its console.",
