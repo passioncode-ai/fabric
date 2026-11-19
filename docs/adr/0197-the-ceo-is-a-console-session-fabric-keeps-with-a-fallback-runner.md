@@ -154,7 +154,8 @@ the CEO's console could not be stopped. So:
 1. The popup's body is the chat: the CEO's console with the call as a panel under it (`CeoCall.tsx#CallPanel`), its
    lines kept after the call as the window's past calls. The home card's «Позвонить» opens the popup and starts the call
    there (`CeoCall.tsx#CallLauncher`, IPC `ceo-agent:take-call`); the CEO window may play audio before a click in it.
-   «CEO отвечает вслух» silences the CEO's voice for the call (answers arrive as lines).
+   «CEO отвечает вслух» silences the CEO's voice (answers arrive as lines), a choice kept for the next calls; the last ten
+   calls are kept on this computer in the CEO window's own storage.
 2. Decision 5's voice (`eve`) becomes the character's: `shared/persona.ts#xaiVoiceOf`, male by default
    (orbit `rex`, spark `sal`, wave `leo`; female `eve`, `ara`, `eve`), the person's choice kept as `voice` in
    `persona.json`; gender measured from xAI's samples (`docs/architecture/external-contracts.md#xai-voices`). A sample
@@ -162,6 +163,8 @@ the CEO's console could not be stopped. So:
 3. The CEO has a stop (`ceoAgent.ts` `stop`, IPC `ceo-agent:stop`): a stopped CEO is held, its console's end is never read
    as an early end, and nothing starts it again (no fallback, no opening of its window) until the person starts or
    restarts it or writes to it; a console stopped from its own window or from History holds it the same way
-   (`personStopping`). The tool `fabric_ceo_session_stop` still refuses the CEO's own console.
+   (`personStopping`, released by `personStopEnded` when that stop leaves the console running). A stop pressed while the
+   CEO is starting stops what the start opens, and a message sent during a stop waits for it. The tool
+   `fabric_ceo_session_stop` still refuses the CEO's own console.
 
 Nothing else in this record changes.

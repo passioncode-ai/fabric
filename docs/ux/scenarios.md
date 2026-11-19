@@ -4640,16 +4640,16 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   2. Operator says «покажи сессии» -> the CEO's voice answers after reading the sessions with its tool; the panel shows the words said and the tool used.
   3. Operator speaks over the answer -> the answer stops and the CEO listens.
   4. Operator asks for something longer -> the voice hands it to the CEO's console, which works on it there.
-  5. Operator presses «Положить трубку» -> the microphone and the connection close; the call stays in the chat as «Звонок в 19:40 · 2:31 · $0.20», its lines folded under it.
+  5. Operator presses «Положить трубку» -> the microphone and the connection close; the call stays in the chat as «Звонок в 19:40 · 2:31 · $0.20», its lines folded under it; the last ten calls are kept on this computer and are there the next time the CEO window opens.
 - **Expected result:** the operator talks to the CEO and it acts on the sessions while they talk, and reads back what was said.
-- **Alt paths:** words typed under the call («Сказать текстом») are answered aloud the same way. «CEO отвечает вслух» off: the CEO's voice is silent and its answers arrive as lines only; the switch says that the voice reading answers and session screens is the CEO (the owner, 2026-11-19, heard «a voice that reads the screen»). No key: the call ends with «Нет ключа xAI», and the field «Ваш ключ xAI» takes the person's key; the next «Позвонить» works. A minute in which nobody speaks, or five minutes in all, end the call by itself with the reason said; the person calls again to go on.
+- **Alt paths:** words typed under the call («Сказать текстом») are answered aloud the same way. «CEO отвечает вслух» off: the CEO's voice is silent and its answers arrive as lines only, and the choice is kept for the next calls; the switch says that the voice reading answers and session screens is the CEO (the owner, 2026-11-19, heard «a voice that reads the screen»). No key: the call ends with «Нет ключа xAI», and the field «Ваш ключ xAI» takes the person's key; the next «Позвонить» works. A minute in which nobody speaks, or five minutes in all, end the call by itself with the reason said; the person calls again to go on.
 - **UI elements:** «Позвонить» / «Положить трубку»; the call panel in the chat (a live meter, state, time out of five minutes and price, who said what, «Сказать текстом», «CEO отвечает вслух»); the past calls under it.
 - **States covered:** connecting, listening, speaking, ended, failed; reduced motion: the meter holds still and its colour says the state
 - **Errors & recovery:** no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.
-- **Design rationale:** the operator, 2026-11-18 (paraphrased): a voice call through the xAI API, first just working, a voice of his choosing later. The review of 2026-11-19 (paraphrased): the call is managed from the home card too; a minute with nobody speaking hangs up, a call lasts five minutes at most and is then called again.
+- **Design rationale:** the operator, 2026-11-18 (paraphrased): a voice call through the xAI API, first just working, a voice of his choosing later. The review of 2026-11-19 (paraphrased): the call is managed from the home card too; the owner the same day: the live call is a panel inside the CEO's chat, and its history stays in the chat; a minute with nobody speaking hangs up, a call lasts five minutes at most and is then called again.
 - **Telemetry:** ops log `ceo.voice.*`.
 - **Status:** implemented (2026-11-18, ADR-0197).
-- **Coverage:** `apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#useVoiceCall`, `#CallPanel`, `#VoiceMeter`, `#CallLauncher`, tests `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.
+- **Coverage:** `apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#useVoiceCall`, `#CallPanel`, `#VoiceMeter`, `#CallLauncher`, `#readKept`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`, `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.
 - **Product:** unobserved
 
 ### SCN-185: The CEO keeps answering when its first agent cannot
@@ -4692,7 +4692,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Design rationale:** the owner, 2026-11-19: «Голос: по умолчанию мужской, но в настройках должен быть выбор мужской/женский, в зависимости от выбранного персонажа. На этапе анбординга, если он подключён, сразу добавить выбор голоса.» Gender is measured from xAI's samples (`docs/architecture/external-contracts.md#xai-voices`).
 - **Telemetry:** ops log `ceo.voice.sample`.
 - **Status:** implemented (2026-11-19).
-- **Coverage:** `apps/desktop/src/shared/persona.ts#xaiVoiceOf`, `apps/desktop/src/renderer/src/ceo/VoicePicker.tsx#VoicePicker`, `apps/desktop/src/main/ceoVoice.ts#voiceSample`; tests `apps/desktop/src/shared/persona.test.ts`, `apps/desktop/src/renderer/src/ceo/VoicePicker.test.tsx`, `apps/desktop/test/ceo-agent.test.mjs` («a voice sample»).
+- **Coverage:** `apps/desktop/src/shared/persona.ts#xaiVoiceOf`, `#voiceGenderOf`, `#validatePersona`, `apps/desktop/src/renderer/src/ceo/VoicePicker.tsx#VoicePicker`, `apps/desktop/src/renderer/src/launch/PersonaScreen.tsx#PersonaScreen`, `apps/desktop/src/renderer/src/start/FirstRun.tsx#PersonaStep`, `apps/desktop/src/main/ceoVoice.ts#voiceSample`; tests `apps/desktop/src/shared/persona.test.ts`, `apps/desktop/src/renderer/src/ceo/VoicePicker.test.tsx`, `apps/desktop/test/ceo-agent.test.mjs` («a voice sample»).
 - **Product:** unobserved
 
 ### SCN-187: Stop the CEO, and start it again
@@ -4704,7 +4704,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Steps:**
   1. Operator presses «Остановить» -> the CEO's console stops; the head says «остановлен» and the chat «CEO остановлен. Он не запустится сам: нажмите «Запустить» или напишите ему.»
   2. Operator closes and opens the CEO window -> it is still stopped; nothing started it.
-  3. Operator presses «Запустить», or writes to the CEO -> it starts on the first agent of its order.
+  3. Operator presses «Запустить» -> it starts on the first agent of its order (any agent set aside comes back); writing to the CEO starts it too, on the first agent not set aside.
 - **Expected result:** a stopped CEO stays stopped until the operator starts it.
 - **Alt paths:** «Перезапустить» stops and starts it in one press. A console stopped from its own window holds the CEO the same way. A stop that leaves the console running says «Консоль CEO не остановилась» and the CEO stays as it was.
 - **UI elements:** «Остановить» / «Запустить», «Перезапустить»; the face's ring (grey when stopped).
@@ -4713,5 +4713,5 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Design rationale:** the owner, 2026-11-19: tried to stop the CEO console and could not. The CEO had no stop: a stop from its window in its first 20 seconds was read as an early end and the next agent started at once, and any later opening of its window started it again.
 - **Telemetry:** ops log `ceo.agent.held`, `ceo.agent.stopped`.
 - **Status:** implemented (2026-11-19).
-- **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `onExit`, `ensure`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.
+- **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `personStopEnded`, `onExit`, `ensure`, `send`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP», «ER-1 (0.3.25)», «ER-2 (0.3.25)», «ER-3 (0.3.25)», «ER-6 (0.3.25)»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.
 - **Product:** unobserved

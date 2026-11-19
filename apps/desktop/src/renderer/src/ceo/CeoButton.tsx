@@ -1,9 +1,9 @@
 // #region ceo-button — docs: docs/ux/scenarios.md#scn-110-talk-to-the-floating-ceo-over-any-screen
 /**
  * The floating CEO button over every screen of the main window (ADR-0197, SCN-110): the character's own face, so the
- * CEO is someone and not a word, with a ring that says whether it is on (running), starting, stopped or failed. A press
- * opens the CEO's popup. The ring's colour is the only state signal that moves; the starting ring breathes, and holds
- * still under reduced motion.
+ * CEO is someone and not a word, with a ring that says whether it is on (running), starting, stopped or failed, and the
+ * state in its accessible name. A press opens the CEO's popup. The ring's colour is the state signal; only the starting
+ * ring moves (it breathes), and it holds still under reduced motion.
  */
 import { useEffect, useState } from 'react'
 import type { CeoState } from '../../../shared/ceoAgent.ts'

@@ -24,7 +24,7 @@ function modelOf(status: CeoStatus): string {
   return status.runner === 'claude-code' ? claudeModelFlag(status.models) : (status.models[0] ?? '').replace(/^[^/]+\//, '')
 }
 
-export function CeoPopup(): React.JSX.Element {
+export function CeoPopup({ composerTools }: { composerTools?: React.ReactNode } = {}): React.JSX.Element {
   const t = useT()
   const name = useFabricName(t('ceoAgent.title'))
   const call = useVoiceCall()
@@ -100,10 +100,12 @@ export function CeoPopup(): React.JSX.Element {
           <CallButton call={call} />
           {stopped
             ? <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void restart()}>{t('ceoAgent.start')}</button>
-            : <button type="button" className="btn btn-ghost" disabled={busy !== null || state === 'starting'} onClick={() => void stop()}>{t(busy === 'stop' ? 'ceoAgent.stopping' : 'ceoAgent.stop')}</button>}
-          <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void restart()}>
-            {t(busy === 'restart' ? 'ceoAgent.restarting' : 'ceoAgent.restartShort')}
-          </button>
+            : (state === 'running' || state === 'starting') && <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void stop()}>{t(busy === 'stop' ? 'ceoAgent.stopping' : 'ceoAgent.stop')}</button>}
+          {!stopped && (
+            <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void restart()}>
+              {t(busy === 'restart' ? 'ceoAgent.restarting' : 'ceoAgent.restartShort')}
+            </button>
+          )}
         </div>
       </header>
       {status && (status.passedOver.length > 0 || status.setAside.length > 0) && (
@@ -129,7 +131,7 @@ export function CeoPopup(): React.JSX.Element {
         </div>
         <CallPanel call={call} />
       </main>
-      <CeoComposer where="popup" draft={draft} onDraftTaken={() => setDraft(null)} />
+      <CeoComposer where="popup" draft={draft} onDraftTaken={() => setDraft(null)} tools={composerTools} />
     </div>
   )
 }

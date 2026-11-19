@@ -3,7 +3,8 @@
  * The CEO agent (ADR-0197, board task a125cc0e): one console Fabric keeps on this computer, in a folder of its own
  * (`<userData>/ceo`, with its brief as CLAUDE.md and AGENTS.md and an `inbox/` for attachments), in a project of its own
  * so it runs like every other console (its bundle, its surface, its journal). It starts on first use and keeps
- * running; «Перезапустить CEO» stops it and starts it again.
+ * running; «Перезапустить» stops it and starts it again. The person's «Остановить» holds it stopped: nothing starts it
+ * (no fallback, no opening of its window) until «Запустить», «Перезапустить» or a message (ADR-0197 amendment 2).
  *
  * THE FALLBACK IS FABRIC'S (the operator, 2026-11-18: mandatory). The console walks the CEO's own order (Claude Code,
  * then Hermes on OpenRouter; only these two can be CEO runners, `shared/ceoAgent.ts#CEO_RUNNERS_KNOWN`, settings
@@ -211,6 +212,14 @@ export function createCeoAgent(deps: CeoAgentDeps) {
         unavailable: deps.unavailable,
         record: (op, detail) => deps.record(`ceo.${op}`, detail)
       })
+      // ER-1 (0.3.25): the person stopped the CEO while this console was opening: it is stopped, never installed.
+      if (held) {
+        const done = stopConsole(session.sessionId)
+        stopping = done
+        try { await done } finally { if (stopping === done) stopping = null }
+        state = 'idle'
+        return finish()
+      }
       sessionId = session.sessionId
       heard = ''
       quiet = false
@@ -291,7 +300,9 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     sent.push(entry)
     if (sent.length > KEPT_LINES) sent.splice(0, sent.length - KEPT_LINES)
     const seq = fallbacks
-    // Writing to a stopped CEO is the person asking it back.
+    // Writing to a stopped CEO is the person asking it back, once its stop has ended (ER-2, 0.3.25): the stop's exit is
+    // read as the person's, never as an early end that sets the runner aside.
+    if (stopping) await stopping.catch(() => undefined /* recorded by stopConsole */)
     held = false
     const s = await ensure()
     let ok = false
@@ -353,9 +364,15 @@ export function createCeoAgent(deps: CeoAgentDeps) {
    *  any console is, its end is read as the person's, and the CEO stays stopped until the person starts it. A stop that
    *  leaves the console running answers `still-running`, and the CEO is not held. */
   async function stop(): Promise<{ ok: boolean; reason?: 'still-running'; status: CeoStatus }> {
-    const id = sessionId
     held = true
+    // ER-3 (0.3.25): a fallback waiting to run after this one is dropped.
+    deferred = null
     changed()
+    // ER-1 (0.3.25): a start in flight sees the hold and stops what it opened; the stop answers once it has.
+    if (starting) await starting.catch(() => undefined /* a failed start opened nothing to stop */)
+    if (pendingFallback) await pendingFallback.catch(() => undefined /* a failed fallback opened nothing to stop */)
+    held = true
+    const id = sessionId
     if (id && deps.get(id)?.running) {
       const done = stopConsole(id)
       stopping = done
@@ -375,15 +392,24 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** Another door (the console's own window, History's act) is stopping a console for the person: when it is the CEO's,
    *  the CEO is held as by `stop`, so its end starts nothing. */
   function personStopping(id: string): void {
-    if (id === '' || id !== sessionId || held) return
+    if (id === '' || (id !== sessionId && !opening.has(id)) || held) return
     held = true
+    deferred = null
     deps.record('ceo.agent.held', { session_id: id, door: 'console' })
+  }
+
+  /** ER-6 (0.3.25): the other door's stop has returned; a console it left running is not held. */
+  function personStopEnded(id: string): void {
+    if (!held || id !== sessionId || !deps.get(id)?.running) return
+    held = false
+    deps.record('ceo.agent.hold-released', { session_id: id, why: 'still-running' })
+    changed()
   }
 
   /** Set a runner aside and start the next one; the person's lines typed into the lost console are typed again, each
    *  at most once (ER-1, ER-13). */
   async function fallBack(why: string): Promise<void> {
-    if (!runner) return
+    if (!runner || held) return
     const lost = sessionId
     setAside.set(runner, { until: now() + SET_ASIDE_MS, why })
     deps.record('ceo.agent.fallback', { runner, why })
@@ -406,6 +432,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** A start screen or an early end of the NEXT console seen while a fallback still types into it: run after it. */
   let deferred: string | null = null
   const startFallback = (why: string): void => {
+    if (held) return
     if (fallingBack) { deferred ??= why; return }
     fallbacks++
     fallingBack = true
@@ -414,7 +441,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
       pendingFallback = null
       const next = deferred
       deferred = null
-      if (next && sessionId) startFallback(next)
+      if (next && sessionId && !held) startFallback(next)
     })
   }
   /** The console's recent output as words: a TUI places its words with cursor moves (`\x1b[9G`), not spaces, and a
@@ -472,7 +499,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   }
 
   return {
-    status, ensure, send, restart, stop, personStopping, onOutput, onExit, nudgeBoard,
+    status, ensure, send, restart, stop, personStopping, personStopEnded, onOutput, onExit, nudgeBoard,
     isCeo: (id: string): boolean => id !== '' && (id === sessionId || opening.has(id)),
     sessionId: (): string | null => sessionId,
     projectId: (): string | null => projectId

@@ -271,8 +271,8 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   // The CEO window only saves a key (its «Ваш ключ xAI» field); reading whether one is set and removing it stay the
   // main window's, so a detached window gets exactly what it uses.
   ceoAgentVoiceKey: MAIN_ONLY,
-  ceoAgentVoiceReady: MAIN_AND_CEO,
-  ceoAgentVoiceSample: MAIN_AND_CEO,
+  ceoAgentVoiceReady: MAIN_ONLY,
+  ceoAgentVoiceSample: MAIN_ONLY,
   ceoAgentVoiceKeySet: MAIN_AND_CEO,
   ceoAgentVoiceKeyClear: MAIN_ONLY,
   ceoAgentChanged: MAIN_AND_CEO,

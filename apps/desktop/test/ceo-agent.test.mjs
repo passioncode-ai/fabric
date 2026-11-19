@@ -755,3 +755,67 @@ test('a voice sample: fetched once per voice and language with the key held for 
   const noKey = await voiceSample({ vault: { read: async () => ({ ok: false, reason: 'none' }) }, fetch, cache: { read: () => null, write: () => {} } }, 'eve', 'ru')
   assert.equal(noKey.reason, 'no-key')
 })
+
+// 0.3.25 review iteration 1, ER-1: a stop during a start in flight is not acknowledged and then undone by that start.
+test('ER-1 (0.3.25): a stop while the console is still opening stops what the start opens', async () => {
+  const k = keeper()
+  let release
+  const gate = new Promise((r) => { release = r })
+  const open = k.deps.open
+  k.deps.open = async (...a) => { await gate; return open(...a) }
+  const starting = k.agent.ensure()
+  await settle()
+  const stopped = k.agent.stop()
+  release()
+  await starting
+  const r = await stopped
+  assert.equal(r.ok, true)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  const opened = [...k.consoles.values()]
+  assert.equal(opened.length, 1)
+  assert.equal(opened[0].running, false, 'the console the start opened was stopped')
+})
+
+// ER-2: a message sent while the person's stop is still running waits for that stop; its exit is the person's.
+test('ER-2 (0.3.25): a message sent during the person\'s stop does not set the runner aside', async () => {
+  const k = keeper()
+  let finish
+  k.deps.stop = (id) => new Promise((r) => { finish = () => { const s = k.consoles.get(id); s.running = false; k.agent.onExit(id); r() } })
+  await k.agent.ensure()
+  k.tick(2_000)
+  const stopping = k.agent.stop()
+  await settle()
+  const sending = k.agent.send('снова ты', [])
+  await settle()
+  finish()
+  await stopping
+  const sent = await sending
+  assert.equal(sent.ok, true)
+  assert.deepEqual(k.agent.status().setAside, [], 'the stopped runner is not set aside')
+  assert.equal(k.agent.status().runner, 'claude-code')
+})
+
+// ER-3: a fallback deferred before the person's stop does not run after it.
+test('ER-3 (0.3.25): a deferred fallback does not run after the person\'s stop', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  k.agent.onOutput(first, 'usage limit reached')
+  k.agent.onOutput(k.agent.sessionId(), 'usage limit reached')
+  await k.agent.stop()
+  await settle(30)
+  assert.equal(k.agent.status().state, 'stopped')
+  const running = [...k.consoles.values()].filter((s) => s.running)
+  assert.deepEqual(running, [], 'nothing runs after the stop')
+})
+
+// ER-6: a stop from the console's own window that leaves it running does not leave the CEO held.
+test('ER-6 (0.3.25): a console-window stop that fails releases the hold', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const id = k.agent.sessionId()
+  k.agent.personStopping(id)
+  k.agent.personStopEnded(id)
+  assert.equal(k.agent.status().state, 'running')
+})

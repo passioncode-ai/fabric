@@ -7,7 +7,7 @@
  * opens the popup and starts the call there, so a call is always seen beside the chat.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useT } from '../i18n'
+import { useLocale, useT } from '../i18n'
 import { MAX_CALL_MS, browserAudio, createCall, type Call, type CallEnd, type CallLine, type CallPhase, type CallProblem } from './voiceCall'
 
 /** m:ss of a length in ms, floored to the second. */
@@ -19,16 +19,23 @@ export function clock(ms: number): string {
 /** A call that ended: its lines stay in the chat (the owner, 2026-11-19: «история звонка остаётся в чате»). */
 export interface CallRecord { id: string; at: number; ms: number; usd: number; lines: CallLine[]; end: CallProblem | CallEnd | null }
 
-/** Calls kept for this window's life and a reload of it; the newest first, at most this many. */
+/** Calls kept on this computer (the CEO window's own storage), the newest first, at most this many. */
 export const KEPT_CALLS = 10
 const STORE = 'fabric.ceo.calls'
 const MUTED = 'fabric.ceo.voiceMuted'
 function readMuted(): boolean { try { return localStorage.getItem(MUTED) === '1' } catch { return false } }
 
-function readKept(): CallRecord[] {
+const isLine = (l: unknown): l is CallLine => !!l && typeof l === 'object' && ['person', 'ceo', 'tool'].includes((l as CallLine).who) && typeof (l as CallLine).text === 'string'
+const isRecord = (r: unknown): r is CallRecord => {
+  const x = r as CallRecord
+  return !!x && typeof x === 'object' && typeof x.id === 'string' && Number.isFinite(x.at) && Number.isFinite(x.ms) && Number.isFinite(x.usd) && Array.isArray(x.lines) && x.lines.every(isLine)
+}
+
+/** The kept calls; a record that does not read (DA-1, 0.3.25) is dropped, never a broken window. */
+export function readKept(): CallRecord[] {
   try {
-    const v = JSON.parse(sessionStorage.getItem(STORE) ?? '[]') as unknown
-    return Array.isArray(v) ? (v as CallRecord[]).slice(0, KEPT_CALLS) : []
+    const v = JSON.parse(localStorage.getItem(STORE) ?? '[]') as unknown
+    return Array.isArray(v) ? v.filter(isRecord).slice(0, KEPT_CALLS) : []
   } catch { return [] /* an unreadable store is an empty history, never a broken window */ }
 }
 
@@ -78,7 +85,7 @@ export function useVoiceCall(make: typeof createCall = createCall): VoiceCallSta
     const record: CallRecord = { id: `${startedAt.current}`, at: startedAt.current, ms: Math.round(s.minutes * 60_000), usd: s.usd, lines: said.current.slice(), end }
     setHistory((prev) => {
       const next = [record, ...prev.filter((r) => r.id !== record.id)].slice(0, KEPT_CALLS)
-      try { sessionStorage.setItem(STORE, JSON.stringify(next)) } catch { /* the history is shown even when it cannot be kept */ }
+      try { localStorage.setItem(STORE, JSON.stringify(next)) } catch { /* the history is shown even when it cannot be kept */ }
       return next
     })
   }, [])
@@ -179,20 +186,21 @@ export function CallButton({ call }: { call: VoiceCallState }): React.JSX.Elemen
 /** The call inside the chat: live while it runs, then its lines kept as a past call. */
 export function CallPanel({ call }: { call: VoiceCallState }): React.JSX.Element | null {
   const t = useT()
+  const locale = useLocale()
   const [said, setSaid] = useState('')
   const list = useRef<HTMLOListElement>(null)
   useEffect(() => { const el = list.current; if (el) el.scrollTop = el.scrollHeight }, [call.lines])
   const live = call.phase !== 'idle'
   if (!live && call.history.length === 0) return null
-  const showLive = call.active || call.why !== null || call.phase === 'ended'
+  const showLive = call.active || call.why !== null
   const keyAsked = !call.active && (call.why === 'no-key' || call.why === 'refused')
   return (
     <section className="ceo-call-panel" aria-label={t('ceoAgent.call.panel')}>
       {showLive && (
         <div className={`ceo-call-live p-${call.phase}`}>
-          <div className="ceo-call-head" role="status">
+          <div className="ceo-call-head">
             <VoiceMeter phase={call.phase} levels={call.levels} />
-            <span className="ceo-call-state">{t(`ceoAgent.call.${call.phase === 'idle' ? 'ended' : call.phase}` as 'ceoAgent.call.listening')}</span>
+            <span className="ceo-call-state" role="status">{t(`ceoAgent.call.${call.phase === 'idle' ? 'ended' : call.phase}` as 'ceoAgent.call.listening')}</span>
             {call.active && call.phase !== 'connecting' && (
               <span className="ceo-call-meta">
                 <span className="ceo-call-time">{t('ceoAgent.call.elapsed', { elapsed: clock(call.spent.minutes * 60_000), limit: clock(MAX_CALL_MS) })}</span>
@@ -226,7 +234,7 @@ export function CallPanel({ call }: { call: VoiceCallState }): React.JSX.Element
           {call.history.map((r) => (
             <details key={r.id} className="ceo-call-record">
               <summary>
-                <span>{t('ceoAgent.call.record', { time: new Date(r.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) })}</span>
+                <span>{t('ceoAgent.call.record', { time: new Date(r.at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}</span>
                 <span className="ceo-call-meta">{clock(r.ms)} · ${r.usd.toFixed(2)}</span>
               </summary>
               {r.lines.length > 0

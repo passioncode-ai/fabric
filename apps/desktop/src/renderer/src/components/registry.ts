@@ -156,7 +156,7 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   },
   {
     component: 'VoicePicker',
-    classes: ['ceo-voice-picker', 'ceo-voice-options', 'ceo-voice-option', 'ceo-voice-choice', 'ceo-voice-name', 'ceo-voice-dot', 'ceo-voice-listen', 'ceo-voice-listen-icon', 'is-playing', 'ceo-voice-hint'],
+    classes: ['ceo-voice-picker', 'ceo-voice-options', 'ceo-voice-option', 'ceo-voice-choice', 'ceo-voice-name', 'ceo-voice-listen', 'ceo-voice-listen-icon', 'is-playing', 'ceo-voice-hint'],
     purpose: 'The CEO\'s voice, male or female, with a sample (SCN-186): in Your Fabric and on the first run\'s character step.'
   },
   {

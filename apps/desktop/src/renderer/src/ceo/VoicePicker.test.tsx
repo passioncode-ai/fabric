@@ -25,8 +25,8 @@ function setup(props: Partial<Parameters<typeof VoicePicker>[0]> = {}, sample = 
 describe('the CEO voice picker', () => {
   it('reads no choice as male and offers both, each with the character\'s own tone', () => {
     setup()
-    expect(screen.getByRole('radio', { name: /Мужской/ }).getAttribute('aria-checked')).toBe('true')
-    expect(screen.getByRole('radio', { name: /Женский/ }).getAttribute('aria-checked')).toBe('false')
+    expect((screen.getByRole('radio', { name: /Мужской/ }) as HTMLInputElement).checked).toBe(true)
+    expect((screen.getByRole('radio', { name: /Женский/ }) as HTMLInputElement).checked).toBe(false)
     expect(screen.getByText('уверенный и чёткий')).toBeTruthy()
     expect(screen.getByText('энергичный и бодрый')).toBeTruthy()
   })
@@ -42,7 +42,7 @@ describe('the CEO voice picker', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Послушать: Женский' }))
     await waitFor(() => expect(f.started).toEqual(['start']))
     expect(f.sample).toHaveBeenCalledWith('ara')
-    expect(screen.getByRole('button', { name: 'Послушать: Женский' }).textContent).toContain('Стоп')
+    expect(screen.getByRole('button', { name: 'Стоп: Женский' }).textContent).toContain('Стоп')
   })
 
   it('without a key there is no sample to ask for', () => {

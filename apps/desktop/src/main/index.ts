@@ -46,7 +46,7 @@ import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
-import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
+import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
 import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -3872,6 +3872,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           markPersonEnded(sessionId) // PL-1 run two: History's act stops it for the person
           ceoAgent?.personStopping(sessionId)
           const r = await stopRuntime.stop(sessionId, 'operator_stop')
+          ceoAgent?.personStopEnded(sessionId)
           return { sessionId, state: r.state, reasonCode: r.reasonCode, ...(r.taskId ? { taskId: r.taskId } : {}) }
         },
         snapshot: (id) => { const s = ptys.get(id); return s?.running ? consoleOf(s) : null },
@@ -5105,6 +5106,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // The CEO's console stopped from its own window stays stopped (the owner, 2026-11-19), never read as an early end.
     ceoAgent?.personStopping(sessionId)
     const result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true })
+    ceoAgent?.personStopEnded(sessionId)
     if (stood) {
       const outcome = sessionStopOutcome(stood, result, await projectNameOf(stood.projectId))
       if (outcome) await acts.note(outcome)
@@ -5265,7 +5267,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // slot read once and dropped; the value never leaves this handler.
   handle(IPC.ceoAgentVoiceReady, async (): Promise<Returns<FabricApi['ceoAgent']['voiceReady']>> => {
     if (voiceKeys.source() === 'own') return { ready: true }
-    try { return { ready: (await ceoVault.read({ project: 'fabric', env: 'prod', name: 'XAI_API_KEY' })).ok } } catch (e) { ops.failed('ceo.voice.ready', e); return { ready: false } }
+    try { return { ready: (await ceoVault.read(XAI_KEY_SLOT)).ok } } catch (e) { ops.failed('ceo.voice.ready', e); return { ready: false } }
   })
   // One sample of a voice, kept per voice and language in the voice's own folder (never the CEO's).
   const samples = path.join(app.getPath('userData'), 'ceo-voice', 'samples')
@@ -5332,6 +5334,8 @@ function openCeoWindow(): void {
     windowKinds.forget(contentsId)
     revokeWindowRoots(contentsId)
     if (ceoWindow === w) ceoWindow = null
+    // PL-7 (0.3.25): a call asked for a window that closed is not started by the next opening.
+    ceoCallWanted = false
   })
 }
 // #endregion ceo-window

@@ -5,7 +5,7 @@
  * (`persona.ts#xaiVoiceOf`). «Послушать» plays one short sample of that voice, fetched once and kept by main; a window
  * with no xAI key shows the choice without the sample. The sample is decoded by Web Audio, so no page policy changes.
  */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { VOICE_GENDERS, voiceGenderOf, xaiVoiceOf, type PersonaStyle, type VoiceGender } from '../../../shared/persona.ts'
 import { useT } from '../i18n'
 
@@ -34,8 +34,11 @@ export function VoicePicker({ style, value, onChange, canSample, labelledBy }: {
 }): React.JSX.Element {
   const t = useT()
   const chosen = voiceGenderOf({ voice: value })
+  const name = useId()
   const [hearing, setHearing] = useState<Hearing>(null)
   const playing = useRef<{ ctx: AudioContext; node: AudioBufferSourceNode } | null>(null)
+  /** Each listen is a generation: a sample that arrives for an older one, or after unmount, is closed unplayed (ER-5). */
+  const generation = useRef(0)
 
   const silence = (): void => {
     const p = playing.current
@@ -44,17 +47,21 @@ export function VoicePicker({ style, value, onChange, canSample, labelledBy }: {
     try { p.node.stop() } catch { /* already ended */ }
     void p.ctx.close().catch(() => undefined)
   }
-  useEffect(() => silence, [])
+  useEffect(() => () => { generation.current++; silence() }, [])
 
   const listen = async (voice: VoiceGender): Promise<void> => {
     silence()
+    const gen = ++generation.current
     setHearing({ voice, state: 'loading' })
+    let ctx: AudioContext | null = null
     try {
       const r = await window.fabric.ceoAgent.voiceSample(xaiVoiceOf({ style, voice }))
+      if (gen !== generation.current) return
       if (!r.ok) { setHearing({ voice, state: 'failed', reason: r.reason }); return }
       const bytes = Uint8Array.from(atob(r.data), (c) => c.charCodeAt(0))
-      const ctx = new AudioContext()
+      ctx = new AudioContext()
       const buffer = await ctx.decodeAudioData(bytes.buffer)
+      if (gen !== generation.current) { void ctx.close().catch(() => undefined); return }
       const node = ctx.createBufferSource()
       node.buffer = buffer
       node.connect(ctx.destination)
@@ -63,28 +70,34 @@ export function VoicePicker({ style, value, onChange, canSample, labelledBy }: {
       node.start()
       setHearing({ voice, state: 'playing' })
     } catch {
-      setHearing({ voice, state: 'failed', reason: 'unavailable' })
+      // ER-4 (0.3.25): a sample that does not decode or start closes its context.
+      if (ctx && playing.current?.ctx !== ctx) void ctx.close().catch(() => undefined)
+      if (gen === generation.current) setHearing({ voice, state: 'failed', reason: 'unavailable' })
     }
   }
 
+  const voiceName = (g: VoiceGender): string => t(`ceoAgent.voice.${g}` as 'ceoAgent.voice.male')
   return (
     <div className="ceo-voice-picker">
       <div className="ceo-voice-options" role="radiogroup" aria-labelledby={labelledBy} aria-label={labelledBy ? undefined : t('ceoAgent.voice.label')}>
         {VOICE_GENDERS.map((g) => {
-          const busy = hearing?.voice === g && hearing.state !== 'failed'
+          const loading = hearing?.voice === g && hearing.state === 'loading'
+          const isPlaying = hearing?.voice === g && hearing.state === 'playing'
+          const word = loading ? 'ceoAgent.voice.loading' : isPlaying ? 'ceoAgent.voice.stopListening' : 'ceoAgent.voice.listen'
           return (
             <div key={g} className="ceo-voice-option" data-chosen={chosen === g}>
-              <button type="button" role="radio" aria-checked={chosen === g} className="ceo-voice-choice" onClick={() => onChange(g)}>
-                <span className="ceo-voice-dot" aria-hidden="true" />
-                <span className="ceo-voice-name">{t(`ceoAgent.voice.${g}` as 'ceoAgent.voice.male')}</span>
+              {/* Native radios (UX-3, 0.3.25): one tab stop, arrow keys move the choice. */}
+              <label className="ceo-voice-choice">
+                <input type="radio" name={name} value={g} checked={chosen === g} onChange={() => onChange(g)} />
+                <span className="ceo-voice-name">{voiceName(g)}</span>
                 <small>{t(`ceoAgent.voice.tone.${xaiVoiceOf({ style, voice: g })}` as 'ceoAgent.voice.tone.rex')}</small>
-              </button>
+              </label>
               {canSample && (
-                <button type="button" className="ceo-voice-listen" aria-label={t('ceoAgent.voice.listenTo', { voice: t(`ceoAgent.voice.${g}` as 'ceoAgent.voice.male') })}
-                  disabled={hearing?.voice === g && hearing.state === 'loading'}
-                  onClick={() => (busy && hearing?.state === 'playing' ? (silence(), setHearing(null)) : void listen(g))}>
-                  <span className={`ceo-voice-listen-icon ${busy && hearing?.state === 'playing' ? 'is-playing' : ''}`} aria-hidden="true" />
-                  {t(hearing?.voice === g && hearing.state === 'loading' ? 'ceoAgent.voice.loading' : busy && hearing?.state === 'playing' ? 'ceoAgent.voice.stopListening' : 'ceoAgent.voice.listen')}
+                <button type="button" className="ceo-voice-listen" disabled={loading}
+                  aria-label={`${t(word)}: ${voiceName(g)}`}
+                  onClick={() => (isPlaying ? (generation.current++, silence(), setHearing(null)) : void listen(g))}>
+                  <span className={`ceo-voice-listen-icon ${isPlaying ? 'is-playing' : ''}`} aria-hidden="true" />
+                  {t(word)}
                 </button>
               )}
             </div>
