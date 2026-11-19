@@ -1,6 +1,7 @@
 import type { ActAnswer, ActHistoryPage, ActHistoryQuery } from './acts.ts'
 import { CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT, type CeoAttachment, type CeoSendResult, type CeoStatus, type CeoVoiceSession } from './ceoAgent.ts'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from './boardResolved.ts'
+import type { RecordShowAnswer, RecordShowEvent, RecordShowState, RecordShowTarget } from './recordShow.ts'
 import type { ReleaseCommandResult, ReleaseEntry } from './releases.ts'
 import type { TerminalStopResult, TerminalTermination } from './stop.ts'
 import type { OpsLevel, OpsRecord } from './opsLog.ts'
@@ -1827,6 +1828,18 @@ export interface FabricApi {
     onChanged(cb: (status: CeoStatus) => void): () => void
     onDraft(cb: () => void): () => void
   }
+  /**
+   * «Записать показ» and «Снимок» (SCN-188): the screen with the cursor and the voice in chunks, and screenshots,
+   * delivered as each is ready into the CEO conversation (a voice call included) or onto a task as a note.
+   */
+  recordShow: {
+    state(): Promise<RecordShowState>
+    /** Start a recording whose pieces go to `to`, or stop the one running. */
+    toggle(to: RecordShowTarget): Promise<RecordShowAnswer>
+    shot(mode: 'area' | 'window' | 'screen', to: RecordShowTarget): Promise<RecordShowAnswer>
+    /** The state changed, or a piece was delivered. */
+    onChanged(cb: (event: RecordShowEvent) => void): () => void
+  }
   windows: {
     openSession(sessionId: string): Promise<void>
     openFile(filePath: string): Promise<void>
@@ -2070,5 +2083,9 @@ export const IPC = {
   ceoAgentVoiceKeySet: 'ceo-agent:voice-key-set',
   ceoAgentVoiceKeyClear: 'ceo-agent:voice-key-clear',
   ceoAgentChanged: 'ceo-agent:changed',
-  ceoAgentDraft: 'ceo-agent:draft'
+  ceoAgentDraft: 'ceo-agent:draft',
+  recordShowState: 'record-show:state',
+  recordShowToggle: 'record-show:toggle',
+  recordShowShot: 'record-show:shot',
+  recordShowChanged: 'record-show:changed'
 } as const

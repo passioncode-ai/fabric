@@ -156,13 +156,13 @@ final class MenuBar: NSObject {
   @objc func toggle() {
     item.button?.title = recording ? "… Сохраняю" : "… Начинаю"
     DispatchQueue.global().async {
-      _ = self.run(["toggle", "--from-menu"])
+      _ = self.run(["toggle", "--from-menu", "--to", "ceo"])
       DispatchQueue.main.async { self.refresh() }
     }
   }
 
   @objc func shot() {
-    DispatchQueue.global().async { _ = self.run(["shot", "--from-menu"]) }
+    DispatchQueue.global().async { _ = self.run(["shot", "--from-menu", "--to", "ceo"]) }
   }
 
   @objc func openFolder() { _ = run(["open"]) }

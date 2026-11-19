@@ -62,6 +62,16 @@ class Refusal extends Error {
   }
 }
 
+/** Where the pieces go as they get ready: `ceo` (Fabric's CEO conversation) or `task:<id>`; Fabric reads it and delivers. */
+function deliverTarget() {
+  const to = option("to", "");
+  if (!to) return null;
+  if (to === "ceo" || /^task:[0-9a-f-]{8,64}$/i.test(to)) return to;
+  throw new Refusal(`Не понимаю адресата «${to}»: ceo или task:<id>`, 64);
+}
+
+let deliver = null;
+
 // ---------- small process helpers ----------
 
 const alive = (pid) => {
@@ -309,11 +319,10 @@ function saveManifest(dir, manifest) {
     s.near = lines.filter((l) => l.end >= s.at - 8 && l.start <= s.at + 8).map((l) => l.text);
   writeJson(path.join(dir, "manifest.json"), manifest);
   fs.writeFileSync(path.join(dir, "context.md"), renderContext(manifest));
-  // One file per chunk, for whoever attaches chunks as they get ready.
-  fs.mkdirSync(path.join(dir, "chunks"), { recursive: true });
+  // One file per chunk, beside frames/ and shots/ so its relative paths hold, for whoever attaches chunks as they get ready.
   for (const c of manifest.items.filter((i) => i.kind === "chunk")) {
-    const own = { ...manifest, items: [c, ...manifest.items.filter((s) => s.kind === "shot" && s.at >= c.start && s.at < c.end)] };
-    fs.writeFileSync(path.join(dir, "chunks", `${String(c.index).padStart(3, "0")}.md`), renderContext(own));
+    const own = { ...manifest, status: "done", items: [c, ...manifest.items.filter((s) => s.kind === "shot" && s.at >= c.start && s.at < c.end)] };
+    fs.writeFileSync(path.join(dir, `chunk-${String(c.index).padStart(3, "0")}.md`), renderContext(own));
   }
 }
 
@@ -469,6 +478,7 @@ async function start() {
     screen: screenIndex,
     display: display && { x: display.x, y: display.y, width: display.width, height: display.height },
     segmentSeconds: SEGMENT_SECONDS,
+    deliver,
     ffmpegPid: ff.pid,
     mousePid: mouse.pid,
     cwd: process.cwd(),
@@ -478,7 +488,7 @@ async function start() {
   w.unref();
   writeJson(CURRENT, { name, dir, ffmpegPid: ff.pid, mousePid: mouse.pid, workerPid: w.pid, startedAt: session.startedAt });
   if (!flag("quiet")) sound("Tink");
-  if (json) console.log(JSON.stringify({ recording: true, dir, mic: session.audio ? mic.name : null }));
+  if (json) console.log(JSON.stringify({ recording: true, dir, mic: session.audio ? mic.name : null, deliver }));
   else say(`Запись идёт: экран ${screenIndex}${mic ? `, микрофон «${mic.name}»` : ", без звука"}.\nПапка: ${dir}\nОстановить: node ${path.relative(process.cwd(), SCRIPT)} stop`);
 }
 
@@ -515,6 +525,7 @@ function status() {
     dir: c?.dir ?? null,
     startedAt: c?.startedAt ?? null,
     chunksReady: manifest?.items.filter((i) => i.kind === "chunk").length ?? 0,
+    deliver: c ? (readJson(path.join(c.dir, "session.json"))?.deliver ?? null) : null,
     root: ROOT,
   };
   if (json) console.log(JSON.stringify(value));
@@ -546,14 +557,14 @@ async function shot() {
     else say("Снимок отменён.");
     return;
   }
-  fs.appendFileSync(path.join(dir, "shots.jsonl"), `${JSON.stringify({ kind: "shot", at, file, mode, takenAt: new Date().toISOString(), near: [] })}\n`);
+  fs.appendFileSync(path.join(dir, "shots.jsonl"), `${JSON.stringify({ kind: "shot", at, file, mode, takenAt: new Date().toISOString(), near: [], ...(deliver ? { deliver } : {}) })}\n`);
   // While recording, the worker folds the shot into context.md within a second; otherwise do it here.
   if (!live || !alive(live.workerPid)) {
     const manifest = readJson(path.join(dir, "manifest.json")) ?? { schema: "record-show/1", startedAt: session.startedAt, status: live ? "recording" : "done", display: session.display, items: [] };
     saveManifest(dir, manifest);
   }
   if (!flag("quiet")) sound("Tink");
-  if (json) console.log(JSON.stringify({ shot: path.join(dir, file), dir, context: path.join(dir, "context.md") }));
+  if (json) console.log(JSON.stringify({ shot: path.join(dir, file), dir, context: path.join(dir, "context.md"), deliver }));
   else say(`Снимок: ${path.join(dir, file)}\nКонтекст: ${path.join(dir, "context.md")}`);
 }
 
@@ -569,6 +580,7 @@ function help() {
   say(`record-show: записать показ (экран с курсором и микрофон) кусками для агента.
 
   node scripts/record-show/record-show.mjs toggle     начать или остановить запись
+  ... --to ceo | --to task:<id>                         куски и снимки сами уходят в разговор с CEO или в задачу Fabric
   node scripts/record-show/record-show.mjs start [--screen N] [--mic имя] [--no-audio] [--name метка]
   node scripts/record-show/record-show.mjs stop [--no-wait]
   node scripts/record-show/record-show.mjs shot [--window | --screen]   снимок области, окна или экрана
@@ -608,6 +620,7 @@ const commands = {
 };
 
 try {
+  deliver = deliverTarget();
   if (!commands[command]) throw new Refusal(`Нет команды «${command}». Список: record-show help`, 64);
   await commands[command]();
 } catch (e) {

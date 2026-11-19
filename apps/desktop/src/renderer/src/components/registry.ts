@@ -155,6 +155,11 @@ export const COMPONENTS: readonly ComponentEntry[] = [
     purpose: 'The voice call with the CEO (SCN-184): its button, state, time out of five minutes, price, last lines and typed words; a floating panel in the popup, in place on the home card.'
   },
   {
+    component: 'ShowControls',
+    classes: ['record-show', 'record-show-state', 'record-show-dot', 'record-show-note'],
+    purpose: '«Записать показ» and «Снимок» (SCN-188): beside the call in the CEO window and on the home card, and on a task; the recording state and what was delivered.'
+  },
+  {
     component: 'App',
     classes: ['ceo-floating'],
     purpose: 'The floating CEO button over every screen of the main window (ADR-0197, SCN-110).'

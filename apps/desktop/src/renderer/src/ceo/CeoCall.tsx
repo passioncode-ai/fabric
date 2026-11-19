@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useT } from '../i18n'
 import { MAX_CALL_MS, browserAudio, createCall, type Call, type CallLine, type CallPhase } from './voiceCall'
+import { ShowControls } from '../recordShow/ShowControls'
 
 /** m:ss of a length in ms, floored to the second. */
 export function clock(ms: number): string {
@@ -53,6 +54,7 @@ export function VoiceCall({ variant = 'popover' }: { variant?: 'popover' | 'inli
       {active
         ? <button type="button" className="btn btn-danger" onClick={() => call.current?.hangUp()}>{t('ceoAgent.hangUp')}</button>
         : <button type="button" className="btn btn-ghost" onClick={start}>{t('ceoAgent.call')}</button>}
+      <ShowControls to="ceo" call={call} live={phase === 'listening' || phase === 'speaking'} />
       {phase !== 'idle' && (
         <div className="ceo-call-panel" role="status">
           <span className="ceo-call-state">

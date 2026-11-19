@@ -19,6 +19,10 @@ node scripts/record-show/record-show.mjs open | clean | help
 node scripts/record-show/record-show.mjs process <session folder>   # rebuild the context of a session
 ```
 
+`--to ceo` or `--to task:<id>` (on `start`, `toggle`, `shot`) names where the pieces go: Fabric reads the session
+and delivers each chunk and screenshot as soon as it is ready, into the CEO conversation (a voice call included) or as
+a note on the task. The menu bar item and its hotkeys always send to the CEO.
+
 `stop` waits for the last chunk, prints the path of `context.md` and copies it to the clipboard:
 paste it into a task or an agent's chat. Every command takes `--json` for a program to read.
 
@@ -32,7 +36,7 @@ Sessions live in `~/Library/Application Support/ai.passioncode.fabric/show-recor
 | File | What |
 |---|---|
 | `context.md` | The whole show in order: what was said (with the cursor), clicks, key frames, screenshots |
-| `chunks/NNN.md` | The same for one chunk, written as soon as that chunk is ready |
+| `chunk-NNN.md` | The same for one chunk, written as soon as that chunk is ready, beside `frames/` so its paths hold |
 | `manifest.json` | `record-show/1`: every chunk (lines, clicks, frames, warnings) and shot, with times in seconds from the first frame |
 | `frames/*.jpg` | Key frames, 1280 px wide, the cursor ringed in red |
 | `shots/*.png` | Screenshots |

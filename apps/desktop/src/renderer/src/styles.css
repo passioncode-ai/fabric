@@ -402,3 +402,7 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-call-lines .who-person { color: var(--app-muted); }
 .ceo-call-lines .who-tool { color: var(--app-muted); font-family: var(--font-mono); }
 .ceo-call-say { width: 100%; font: inherit; padding: var(--space-1) var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: transparent; color: var(--app-ink); }
+.record-show { display: inline-flex; align-items: center; gap: var(--space-1); flex-wrap: wrap; }
+.record-show-state { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--app-fs-caption); font-variant-numeric: tabular-nums; }
+.record-show-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--state-danger); }
+.record-show-note { font-size: var(--app-fs-caption); }

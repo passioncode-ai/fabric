@@ -321,6 +321,16 @@ export function createApi(ipc: BridgeIpc): FabricApi {
         return () => ipc.removeListener(IPC.terminalExit, listener)
       }
     },
+    recordShow: {
+      state: () => ipc.invoke(IPC.recordShowState),
+      toggle: (to) => ipc.invoke(IPC.recordShowToggle, to),
+      shot: (mode, to) => ipc.invoke(IPC.recordShowShot, mode, to),
+      onChanged: (cb) => {
+        const listener = (_e: unknown, event: Parameters<typeof cb>[0]): void => cb(event)
+        ipc.on(IPC.recordShowChanged, listener)
+        return () => ipc.removeListener(IPC.recordShowChanged, listener)
+      }
+    },
     ceoAgent: {
       status: () => ipc.invoke(IPC.ceoAgentStatus),
       ensure: () => ipc.invoke(IPC.ceoAgentEnsure),
