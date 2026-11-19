@@ -12,9 +12,16 @@ export type CallPhase = 'idle' | 'connecting' | 'listening' | 'speaking' | 'ende
 
 /** Why a call failed, as a code the window words (0.3.24 review, ER-7): main's refusal, or the call's own. */
 export type CallProblem = CeoVoiceProblem | 'unavailable' | 'microphone' | 'connection' | 'timeout'
+/** Why a call that worked ended by itself: its length reached the cap, or nobody spoke for a while. */
+export type CallEnd = 'limit' | 'idle'
 
 /** How long the socket may take to open before the call fails (ER-4). */
 export const CONNECT_DEADLINE_MS = 15_000
+/** The longest call: xAI bills the open session and its secret does not bound the session's length (measured by the
+ *  Dissy and PlaySing sessions, 2026-11-19), so the call bounds itself. */
+export const MAX_CALL_MS = 30 * 60_000
+/** A call nobody spoke in, and that is not answering or running a tool, for this long ends: silence is billed too. */
+export const IDLE_CALL_MS = 3 * 60_000
 
 export interface CallLine { who: 'person' | 'ceo' | 'tool'; text: string }
 
@@ -44,7 +51,7 @@ export interface CallDeps {
   runTool(name: string, args: unknown): Promise<Record<string, unknown>>
   socket(url: string, protocols: string[]): SocketLike
   audio: CallAudio
-  onPhase(phase: CallPhase, problem?: CallProblem): void
+  onPhase(phase: CallPhase, problem?: CallProblem | CallEnd): void
   onLine(line: CallLine): void
   now?: () => number
 }
@@ -82,21 +89,25 @@ export function createCall(deps: CallDeps) {
   /** Each start and each hang-up is a new generation: an await that comes back to an older one stops there (ER-4). */
   let generation = 0
   let deadline: ReturnType<typeof setTimeout> | null = null
+  let watch: ReturnType<typeof setInterval> | null = null
+  let lastActivity = 0
+  const touch = (): void => { lastActivity = now() }
 
-  const set = (p: CallPhase, problem?: CallProblem): void => { phase = p; deps.onPhase(p, problem) }
+  const set = (p: CallPhase, problem?: CallProblem | CallEnd): void => { phase = p; deps.onPhase(p, problem) }
   const send = (o: Record<string, unknown>): void => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)) }
   const clearDeadline = (): void => { if (deadline) { clearTimeout(deadline); deadline = null } }
 
   /** End the call: the microphone, the socket and the deadline; `failed` with its code, else `ended`. */
-  function end(problem?: CallProblem): void {
+  function end(problem?: CallProblem, ended?: CallEnd): void {
     generation++
     clearDeadline()
+    if (watch) { clearInterval(watch); watch = null }
     deps.audio.stop()
     const socket = ws
     ws = null
     if (socket) { try { socket.close() } catch { /* already closed: the call has ended either way */ } }
     if (problem) set('failed', problem)
-    else if (phase !== 'failed') set('ended')
+    else if (phase !== 'failed') set('ended', ended)
   }
 
   async function start(): Promise<void> {
@@ -124,6 +135,12 @@ export function createCall(deps: CallDeps) {
       clearDeadline()
       send(sessionUpdate(ready))
       startedAt = now()
+      touch()
+      watch = setInterval(() => {
+        if (gen !== generation) return
+        if (now() - startedAt >= MAX_CALL_MS) end(undefined, 'limit')
+        else if (phase === 'listening' && pending.size === 0 && now() - lastActivity >= IDLE_CALL_MS) end(undefined, 'idle')
+      }, 1000)
       deps.audio.start((chunk) => { if (gen === generation) send({ type: 'input_audio_buffer.append', audio: chunk }) })
         .then(() => {
           // The microphone opened after the hang-up: it is closed again at once.
@@ -158,6 +175,7 @@ export function createCall(deps: CallDeps) {
         if (type === 'response.done' && phase === 'speaking') set('listening')
         return
       case 'input_audio_buffer.speech_started':
+        touch()
         deps.audio.interrupt()
         if (phase === 'speaking') set('listening')
         return
@@ -170,6 +188,7 @@ export function createCall(deps: CallDeps) {
         personLine = ''
         return
       case 'response.created':
+        touch()
         if (personLine.trim()) deps.onLine({ who: 'person', text: personLine.trim() })
         personLine = ''
         return
@@ -187,6 +206,7 @@ export function createCall(deps: CallDeps) {
 
   async function callTool(name: string, callId: string, argsText: string): Promise<void> {
     if (!callId) return
+    touch()
     pending.add(callId)
     let args: unknown = {}
     try { args = JSON.parse(argsText || '{}') } catch { args = {} /* unreadable arguments: the tool refuses them by its own schema */ }
@@ -195,6 +215,7 @@ export function createCall(deps: CallDeps) {
     try { result = await deps.runTool(name, args) } catch (e) { result = { ok: false, reason: e instanceof Error ? e.message : String(e) } }
     send({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: callId, output: JSON.stringify(result).slice(0, 60_000) } })
     pending.delete(callId)
+    touch()
     respondAfterTools = true
     if (pending.size === 0 && respondAfterTools) { respondAfterTools = false; send({ type: 'response.create' }) }
   }
@@ -202,6 +223,7 @@ export function createCall(deps: CallDeps) {
   /** Words typed instead of spoken: the same conversation, answered aloud. */
   function say(text: string): void {
     if (!text.trim()) return
+    touch()
     deps.onLine({ who: 'person', text: text.trim() })
     send({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: text.trim() }] } })
     send({ type: 'response.create' })

@@ -3586,6 +3586,8 @@ export const en = {
   'ceoAgent.call.why.microphone': "The microphone did not open. Allow Fabric to use it in macOS settings.",
   'ceoAgent.call.why.connection': "The call's connection dropped. Call again.",
   'ceoAgent.call.why.timeout': "The call did not connect in time. Call again.",
+  'ceoAgent.call.why.idle': "The call ended after three minutes of silence. Call again when you need to.",
+  'ceoAgent.call.why.limit': "The call ended after 30 minutes. Call again to go on.",
   'ceoAgent.voiceKey.label': "Your xAI key",
   'ceoAgent.voiceKey.save': "Save key",
   'ceoAgent.voiceKey.help': "The key stays on this computer, encrypted. Get one at console.x.ai.",

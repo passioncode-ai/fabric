@@ -1,7 +1,7 @@
 // ADR-0197 §4: the voice call's protocol, with the socket and the audio replaced: the session the call opens with, the
 // microphone's chunks, the answer's audio, a function call answered before the model speaks again, and the hang-up.
 import { describe, expect, it, vi } from 'vitest'
-import { CONNECT_DEADLINE_MS, createCall, floatToPcm16Base64, pcm16Base64ToFloat, sessionUpdate, type CallAudio, type SocketLike } from './voiceCall'
+import { CONNECT_DEADLINE_MS, IDLE_CALL_MS, MAX_CALL_MS, createCall, floatToPcm16Base64, pcm16Base64ToFloat, sessionUpdate, type CallAudio, type SocketLike } from './voiceCall'
 
 function fakeSocket(): SocketLike & { sent: Record<string, unknown>[]; url?: string; protocols?: string[] } {
   return { readyState: 1, sent: [], send(d: string) { this.sent.push(JSON.parse(d)) }, close: vi.fn(), onopen: null, onmessage: null, onerror: null, onclose: null }
@@ -133,6 +133,32 @@ describe('the CEO voice call', () => {
       vi.advanceTimersByTime(CONNECT_DEADLINE_MS + 1)
       expect(phases.at(-1)).toEqual(['failed', 'timeout'])
       expect(ws.close).toHaveBeenCalled()
+    } finally { vi.useRealTimers() }
+  })
+
+  it('a call ends by itself after silence, but not while a tool runs, and at its length cap whatever is said', async () => {
+    vi.useFakeTimers()
+    try {
+      let clock = 0
+      const ws = fakeSocket(), audio = fakeAudio(), phases: Array<[string, string | undefined]> = []
+      let release: (v: Record<string, unknown>) => void = () => {}
+      const runTool = vi.fn(() => new Promise<Record<string, unknown>>((r) => { release = r }))
+      const call = createCall({ session: async () => session, runTool, socket: () => ws, audio, onPhase: (p, w) => phases.push([p, w]), onLine: () => {}, now: () => clock })
+      await call.start(); ws.onopen?.({}); await Promise.resolve(); await Promise.resolve()
+      // A tool that runs past the silence keeps the call.
+      void call.receive(JSON.stringify({ type: 'response.function_call_arguments.done', name: 'session_sessions', call_id: 'c1', arguments: '{}' }))
+      clock += IDLE_CALL_MS + 5_000; vi.advanceTimersByTime(2_000)
+      expect(call.phase()).not.toBe('ended')
+      release({ ok: true }); await Promise.resolve(); await Promise.resolve()
+      clock += IDLE_CALL_MS + 1_000; vi.advanceTimersByTime(2_000)
+      expect(phases.at(-1)).toEqual(['ended', 'idle'])
+      expect(audio.stopped).toBeGreaterThan(0)
+      // The cap: a second call that keeps talking ends at MAX_CALL_MS.
+      const ws2 = fakeSocket(), phases2: Array<[string, string | undefined]> = []
+      const c2 = createCall({ session: async () => session, runTool: vi.fn(), socket: () => ws2, audio: fakeAudio(), onPhase: (p, w) => phases2.push([p, w]), onLine: () => {}, now: () => clock })
+      await c2.start(); ws2.onopen?.({}); await Promise.resolve(); await Promise.resolve()
+      for (let t = 0; t < MAX_CALL_MS; t += 60_000) { clock += 60_000; void c2.receive(JSON.stringify({ type: 'input_audio_buffer.speech_started' })); vi.advanceTimersByTime(1_000) }
+      expect(phases2.at(-1)).toEqual(['ended', 'limit'])
     } finally { vi.useRealTimers() }
   })
 
