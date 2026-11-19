@@ -9,6 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **«Завершить сессию» closes a console at once.** The operator, 2026-11-19: the button under a console hung. It sent
+  SIGTERM and waited; Claude Code often outlived it, and even an ended agent read «Остановка не подтверждена», which
+  kept the console on screen with «Проверить остановку». Now the person's press ends a console still running 0.8 s
+  later as Force stop does, and a console whose process is gone leaves with its tab and window in the same press. A
+  task's run keeps its TERM-only stop and its receipts (`shared/stop.ts#processGone`, `main/nativeStopRuntime.ts`).
 - **The CEO on the home screen is one small block at the top right, with the call in it.** The operator's review of
   2026-11-19: «Спросить CEO» filled the width under the header in large type. The header (greeting and rhythm) is back
   as it was, and the CEO card stands at its right: a two-line box (files pasted with ⌘V or Ctrl+V, dropped or picked),

@@ -35565,7 +35565,7 @@
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4365
+        "line": 4366
       }
     },
     {
@@ -35584,7 +35584,7 @@
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4397
+        "line": 4398
       }
     },
     {
@@ -35601,7 +35601,7 @@
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4423
+        "line": 4424
       }
     },
     {
@@ -35618,7 +35618,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4446
+        "line": 4447
       }
     },
     {
@@ -35635,7 +35635,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4469
+        "line": 4470
       }
     },
     {
@@ -35654,7 +35654,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4493
+        "line": 4494
       }
     },
     {
@@ -35672,7 +35672,7 @@
       "errors_recovery": "a refusal keeps the comment and the buttons; a hand-in note that cannot be read leaves the review in the list without its words.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4515
+        "line": 4516
       }
     },
     {
@@ -35689,7 +35689,7 @@
       "errors_recovery": "a read that fails names the part not read.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4539
+        "line": 4540
       }
     },
     {
@@ -35708,7 +35708,7 @@
       "errors_recovery": "tasks and requests are read separately; a failure of one is said on its rows and the other rows stay; a later read replaces an earlier one only when it lands (CO-544's reading).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4562
+        "line": 4563
       }
     },
     {
@@ -35727,7 +35727,7 @@
       "errors_recovery": "a message the CEO did not take («Сообщение не дошло до CEO.» with the reason) keeps the words in the box to send again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4586
+        "line": 4587
       }
     },
     {
@@ -35746,7 +35746,7 @@
       "errors_recovery": "every act needs a reason, is written to the operations log and, for a start or a stop, to История with its undo, or with why it has none (a session Switchboard runs, `shared/acts.ts#WHY_NOT` `outside_fabric`); the CEO never acts on its own console.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4607
+        "line": 4608
       }
     },
     {
@@ -35765,7 +35765,7 @@
       "errors_recovery": "no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4630
+        "line": 4631
       }
     },
     {
@@ -35782,7 +35782,7 @@
       "errors_recovery": "the order and the models are set by hand in settings.json (`ceoRunners`, `ceoModels`); an unknown runner, and a model below Sonnet 5.5, is dropped.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4653
+        "line": 4654
       }
     }
   ],

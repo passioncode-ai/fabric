@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-19 · `FABRIC-SESSION-END` · fix/session-end-fast → main · fast-forward
+- files: `apps/desktop/src/shared/stop.ts` (+ test), `apps/desktop/src/main/{nativeStopRuntime,pty}.ts`, `apps/desktop/src/renderer/src/{SessionStop,App}.tsx`, `SessionWindow.test.tsx`, `native-stop-runtime.test.mjs`, SCN of the console, CHANGELOG, the design map
+- conflicts: none
+- summary: «Завершить сессию» closes a console at once: the person's press kills a console still running after 0.8 s, and an ended console leaves with its tab (the operator, 2026-11-19)
+
 ### 2026-11-19 · `FABRIC-HOME-CEO` · fix/home-ceo-panel → main · fast-forward
 - files: `apps/desktop/src/renderer/src/ceo/{CeoCall,CeoComposer,CeoPopup,voiceCall}.ts(x)`, `EstateHome.tsx`, `styles.css`, `launch/launch.css`, the component registry, both locales, tests, SCN-182 and SCN-184, ADR-0197 amendment 1, CHANGELOG, the product model, the design map
 - conflicts: none

@@ -8,7 +8,7 @@ import { preparedLaunchMatches, type PreparedLaunchPacket } from './preparedLaun
 
 import { spawn as ptySpawn, type IPty } from 'node-pty'
 import type { TranscriptStore } from './transcripts'
-import type { TerminalTermination } from '../shared/stop.ts'
+import { processGone, type TerminalTermination } from '../shared/stop.ts'
 import { randomUUID } from 'node:crypto'
 import { checkAuthorityTarget } from '../shared/authorityIngress.ts'
 import { execFile } from 'node:child_process'
@@ -932,7 +932,8 @@ export class PtyManager {
   /** Remove an already-ended session from the board. */
   dismiss(sessionId: string): void {
     const s = this.sessions.get(sessionId)
-    if (s && !s.running && s.closedRecorded && s.exitFinalized && (!s.termination || s.termination.state === 'stopped')) this.sessions.delete(sessionId)
+    // The operator, 2026-11-19: an ended session leaves at once, also when only the provider's work stays unproved.
+    if (s && !s.running && s.closedRecorded && s.exitFinalized && (!s.termination || processGone(s.termination))) this.sessions.delete(sessionId)
   }
 
   /**

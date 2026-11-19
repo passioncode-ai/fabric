@@ -183,7 +183,9 @@ export function createNativeStopRuntime(deps: NativeStopDeps) {
         return revoked && transcript.committed && !!transcript.evidenceRef
           ? result('stopped', shell ? 'unmanaged_shell_observed' : 'unmanaged_agent_observed') : result('outcome_unknown', 'finalization_unproved')
       }
-      if (force && i === escalation)
+      // The operator, 2026-11-19: the person's «Завершить сессию» ends it fast; a process still there at the escalation
+      // sample is killed, as Force stop does.
+      if ((force || reason === 'operator_stop') && i === escalation)
         try { await bounded(a, () => deps.ptys.signalProcess(a.sessionId, 'SIGKILL', () => local(a))) } catch { /* observe */ }
       if (i + 1 < samples) await pause(a, number(deps.sampleIntervalMs, 100, 0, 1_000))
     }
