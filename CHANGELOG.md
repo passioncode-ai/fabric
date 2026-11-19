@@ -9,6 +9,14 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The CEO on the home screen is one small block at the top right, with the call in it.** The operator's review of
+  2026-11-19: «Спросить CEO» filled the width under the header in large type. The header (greeting and rhythm) is back
+  as it was, and the CEO card stands at its right: a two-line box (files pasted with ⌘V or Ctrl+V, dropped or picked),
+  «Приложить файл», «Отправить» and «Позвонить». The call's state, its time out of five minutes, its price and its
+  last lines show in the card, and «Положить трубку» ends it (`ceo/CeoCall.tsx#VoiceCall`, the same component the CEO
+  window's head uses; SCN-182, SCN-184). A call now ends by itself after a minute in which nobody speaks and at five
+  minutes, and says why; the person calls again to go on (`voiceCall.ts#MAX_CALL_MS`, `IDLE_CALL_MS`; ADR-0197
+  amendment 1).
 - **Unattended runs can mark board messages read and reply again.** Claude Code 2.1.327 leaves out of a session any
   MCP tool whose input schema has `anyOf`, `oneOf` or `allOf` at its top (the Anthropic API refuses such a tool), and
   `com.read_ack` and `com.reply` published their forms that way. On the Mac Studio a run the board dispatcher started

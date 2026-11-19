@@ -53,4 +53,14 @@ describe('the CEO composer', () => {
     expect(screen.getByRole('alert').textContent).toContain('Сообщение не дошло до CEO. the CEO console is not running')
     expect(box.value).toBe('что тут')
   })
+
+  it('the home card (the operator, 2026-11-19): the call sits in its head, no form inside another, and ⌘V attaches a file', async () => {
+    const { container } = render(<I18nProvider locale="ru"><CeoComposer where="home" /></I18nProvider>)
+    expect(screen.getByRole('button', { name: 'Позвонить' })).toBeTruthy()
+    expect(container.querySelectorAll('form form').length).toBe(0)
+    const box = screen.getByRole('textbox', { name: 'Напишите CEO' }) as HTMLTextAreaElement
+    expect(box.placeholder).toContain('⌘V')
+    fireEvent.paste(box, { clipboardData: { files: [new File([new Uint8Array([7])], 'note.txt')], types: ['Files'] } })
+    await screen.findByText('note.txt')
+  })
 })

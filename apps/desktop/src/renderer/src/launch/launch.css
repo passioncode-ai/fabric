@@ -886,6 +886,11 @@ button.lg-node{ cursor: pointer; }
    iteration 1, UX-8). */
 /* CO-476: below 1100 px the right column is rendered inside the main one (EstateHome.tsx), in DOM order, never moved by `order`. */
 @media(max-width:1100px){.estate-home .lh-home{grid-template-columns:minmax(0,1fr)}.estate-home .lh-main-column>*{min-width:0}}
+/* The top row (the operator's review, 2026-11-19): the hero as it was, and the CEO card at its right, the top right
+   block of the home. One column when the main column is narrow. */
+.estate-home .lh-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);gap:var(--space-3);align-items:stretch;margin:0 0 var(--space-3)}
+.estate-home .lh-top>.lh-hero{margin:0}
+@container (max-width:900px){.estate-home .lh-top{grid-template-columns:minmax(0,1fr)}}
 /* The hero: one framed card, face | words | chart (B1 to B5, B8). */
 .estate-home .lh-hero{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(260px,360px);gap:var(--space-5);align-items:center;padding:var(--space-4) var(--space-5);border:1px solid var(--app-line);border-radius:var(--app-radius-panel);background:linear-gradient(135deg,color-mix(in srgb,var(--app-accent) 7%,var(--app-panel)),var(--app-panel) 55%);margin:0 0 var(--space-3)}
 .estate-home .lh-hero>.fp-face{width:72px;height:72px;min-width:72px;border-radius:24px;overflow:hidden;box-shadow:0 6px 18px color-mix(in srgb,var(--app-ink) 12%,transparent)}

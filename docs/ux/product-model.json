@@ -35758,7 +35758,7 @@
       "screen_refs": [
         "SCR-64"
       ],
-      "coverage": "`apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoPopup.tsx` (`VoiceCall`), `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.",
+      "coverage": "`apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#VoiceCall`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.",
       "registry_status": "implemented (2026-11-18, ADR-0197).",
       "product_observation": "unobserved",
       "expected_result": "the operator talks to the CEO and it acts on the sessions while they talk.",

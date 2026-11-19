@@ -1,12 +1,15 @@
 // #region ceo-composer — docs: docs/ux/scenarios.md#scn-182-talk-to-the-ceo-from-the-home-screen-or-its-popup
 /**
  * Where the person writes to the CEO (ADR-0197 §2, SCN-182): on the home screen and at the foot of the CEO popup. Words,
- * and files pasted, dropped or picked (each at most 25 MB, ten at most); Enter sends, Shift+Enter breaks the line. On
- * the home screen a send opens the popup first, so the person watches the CEO take it.
+ * and files pasted (⌘V / Ctrl+V), dropped or picked (each at most 25 MB, ten at most); Enter sends, Shift+Enter breaks
+ * the line. On the home screen a send opens the popup first, so the person watches the CEO take it. The home card is
+ * the top right block beside the greeting and the rhythm, and carries the voice call too (the operator's review of
+ * 2026-11-19: chat, call and its time in one small block, the header as it was).
  */
 import { useEffect, useRef, useState } from 'react'
 import type { CeoAttachment } from '../../../shared/ceoAgent.ts'
 import { useT } from '../i18n'
+import { VoiceCall } from './CeoCall'
 
 const MAX_BYTES = 25 * 1024 * 1024
 const MAX_FILES = 10
@@ -85,51 +88,53 @@ export function CeoComposer({
   }
 
   return (
-    <form
+    <div
       className={`ceo-composer ceo-composer-${where}`}
-      aria-label={t('ceoAgent.composer.title')}
-      onSubmit={(e) => { e.preventDefault(); void send() }}
       onDragOver={(e) => { if (e.dataTransfer.types.includes('Files')) e.preventDefault() }}
       onDrop={(e) => { if (e.dataTransfer.files.length) { e.preventDefault(); void attach(e.dataTransfer.files) } }}
     >
-      {where === 'home' && <>
-        <h2 className="ceo-composer-title">{t('ceoAgent.composer.title')}</h2>
-        <p className="muted ceo-composer-hint">{t('ceoAgent.composer.hint')}</p>
-      </>}
-      <textarea
-        ref={box}
-        className="ceo-composer-text"
-        rows={where === 'home' ? 3 : 2}
-        value={text}
-        placeholder={t('ceoAgent.composer.placeholder')}
-        aria-label={t('ceoAgent.composer.placeholder')}
-        onChange={(e) => { setText(e.target.value); setSent(false) }}
-        onPaste={(e) => { if (e.clipboardData.files.length) { e.preventDefault(); void attach(e.clipboardData.files) } }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send() }
-        }}
-      />
-      {files.length > 0 && (
-        <ul className="ceo-composer-files">
-          {files.map((f, i) => (
-            <li key={`${f.name}-${i}`}>
-              <span className="mono">{f.name}</span>
-              <button type="button" className="btn btn-quiet" aria-label={t('ceoAgent.composer.remove', { name: f.name })}
-                onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}>×</button>
-            </li>
-          ))}
-        </ul>
+      {where === 'home' && (
+        <div className="ceo-composer-head">
+          <h2 className="ceo-composer-title" title={t('ceoAgent.composer.hint')}>{t('ceoAgent.composer.title')}</h2>
+          <VoiceCall variant="inline" />
+        </div>
       )}
-      <div className="ceo-composer-actions">
-        <input ref={picker} type="file" multiple hidden aria-label={t('ceoAgent.composer.attach')} onChange={(e) => { void attach(e.target.files); e.target.value = '' }} />
-        <button type="button" className="btn btn-ghost" onClick={() => picker.current?.click()}>{t('ceoAgent.composer.attach')}</button>
-        <button type="submit" className="btn" disabled={busy || (!text.trim() && files.length === 0)}>
-          {t(busy ? 'ceoAgent.composer.sending' : 'ceoAgent.composer.send')}
-        </button>
-        {sent && <span className="muted" role="status">{t('ceoAgent.composer.sent')}</span>}
-      </div>
-      {problem !== null && <p className="field-problem" role="alert">{problem}</p>}
-    </form>
+      <form className="ceo-composer-form" aria-label={t('ceoAgent.composer.title')} onSubmit={(e) => { e.preventDefault(); void send() }}>
+        <textarea
+          ref={box}
+          className="ceo-composer-text"
+          rows={2}
+          value={text}
+          placeholder={t(where === 'home' ? 'ceoAgent.composer.placeholderHome' : 'ceoAgent.composer.placeholder')}
+          aria-label={t('ceoAgent.composer.placeholder')}
+          onChange={(e) => { setText(e.target.value); setSent(false) }}
+          onPaste={(e) => { if (e.clipboardData.files.length) { e.preventDefault(); void attach(e.clipboardData.files) } }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send() }
+          }}
+        />
+        {files.length > 0 && (
+          <ul className="ceo-composer-files">
+            {files.map((f, i) => (
+              <li key={`${f.name}-${i}`}>
+                <span className="mono">{f.name}</span>
+                <button type="button" className="btn btn-quiet" aria-label={t('ceoAgent.composer.remove', { name: f.name })}
+                  onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}>×</button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="ceo-composer-actions">
+          <input ref={picker} type="file" multiple hidden aria-label={t('ceoAgent.composer.attach')} onChange={(e) => { void attach(e.target.files); e.target.value = '' }} />
+          <button type="button" className="btn btn-ghost" onClick={() => picker.current?.click()}>{t('ceoAgent.composer.attach')}</button>
+          {sent && <span className="muted" role="status">{t('ceoAgent.composer.sent')}</span>}
+          <button type="submit" className="btn ceo-composer-send" disabled={busy || (!text.trim() && files.length === 0)}>
+            {t(busy ? 'ceoAgent.composer.sending' : 'ceoAgent.composer.send')}
+          </button>
+        </div>
+        {problem !== null && <p className="field-problem" role="alert">{problem}</p>}
+      </form>
+    </div>
   )
 }
 // #endregion ceo-composer

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-19 · `FABRIC-HOME-CEO` · fix/home-ceo-panel → main · fast-forward
+- files: `apps/desktop/src/renderer/src/ceo/{CeoCall,CeoComposer,CeoPopup,voiceCall}.ts(x)`, `EstateHome.tsx`, `styles.css`, `launch/launch.css`, the component registry, both locales, tests, SCN-182 and SCN-184, ADR-0197 amendment 1, CHANGELOG, the product model, the design map
+- conflicts: none
+- summary: the CEO card at the top right of the home with the call in it, the header as it was; a call ends after a minute of silence and at five minutes (the operator's review, 2026-11-19)
+
 ### 2026-11-19 · `FABRIC-FLAT-SCHEMAS` · fix/flat-board-schemas → main · fast-forward
 - files: `apps/desktop/src/main/boardTools.ts`, `apps/desktop/test/board-tool-schemas.test.mjs`, CHANGELOG, the design map
 - conflicts: none

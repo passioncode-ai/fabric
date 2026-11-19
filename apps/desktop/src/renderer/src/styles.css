@@ -356,10 +356,12 @@ button:disabled { opacity: .4; cursor: default; }
 
 /* ADR-0197, SCN-110, SCN-182: the CEO. The composer on the home screen and at the popup's foot, the floating button on
    every screen of the main window, and the popup window: its head, its console filling what is left, its call panel. */
-.ceo-composer { display: flex; flex-direction: column; gap: var(--space-2); }
-.ceo-composer-home { padding: var(--space-3); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); background: var(--app-panel); margin-bottom: var(--space-4); }
-.ceo-composer-title { margin: 0; font-size: var(--app-fs-title, 1.1rem); }
-.ceo-composer-hint { margin: 0; font-size: var(--app-fs-caption); }
+.ceo-composer, .ceo-composer-form { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.ceo-composer-home { padding: var(--space-3); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); background: var(--app-panel); }
+.ceo-composer-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+.ceo-composer-title { margin: 0; white-space: nowrap; font-size: var(--app-fs-body); font-weight: 600; line-height: var(--app-lh-body); padding-top: var(--space-1); }
+.ceo-composer-home .ceo-composer-text { min-height: 56px; }
+.ceo-composer-send { margin-left: auto; }
 .ceo-composer-text { width: 100%; resize: vertical; font: inherit; padding: var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: var(--app-bg, transparent); color: var(--app-ink); }
 .ceo-composer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .ceo-composer-files { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
@@ -381,6 +383,21 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-popup-wait { flex: none; }
 .ceo-call { position: relative; }
 .ceo-call-panel { position: absolute; right: 0; top: calc(100% + var(--space-1)); z-index: 5; width: 300px; display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-panel); background: var(--app-panel); box-shadow: var(--shadow-modal); font-size: var(--app-fs-caption); }
+/* On the home card the call's button stays in the head's row and its state, time, lines and key field take a full
+   row of the card under it, not a floating panel (`display: contents` lets both be the head's own flex items). */
+.ceo-call-inline { display: contents; }
+.ceo-call-inline .ceo-call-panel { position: static; order: 1; flex: 1 0 100%; width: auto; padding: var(--space-2); border: 1px solid var(--app-line); background: var(--app-bg, transparent); box-shadow: none; }
+.ceo-call-inline .ceo-call-lines { max-height: 72px; }
+.ceo-call-inline .ceo-voice-key { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); align-items: flex-end; }
+.ceo-call-inline .ceo-voice-key label { display: flex; flex-direction: column; gap: 2px; flex: 1 1 160px; min-width: 0; }
+.ceo-call-inline .ceo-voice-key label input { width: 100%; }
+.ceo-call-inline .ceo-voice-key > .muted, .ceo-call-inline .ceo-voice-key > .field-problem { flex-basis: 100%; }
+.ceo-call-state { display: inline-flex; align-items: center; gap: var(--space-1); flex-wrap: wrap; }
+.ceo-call-time { font-variant-numeric: tabular-nums; }
+.ceo-call-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--app-muted); }
+.ceo-call-dot.p-listening, .ceo-call-dot.p-speaking { background: var(--state-ok, var(--app-accent)); }
+.ceo-call-dot.p-connecting { background: var(--app-accent); }
+.ceo-call-dot.p-failed { background: var(--state-danger); }
 .ceo-call-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 180px; overflow-y: auto; }
 .ceo-call-lines .who-person { color: var(--app-muted); }
 .ceo-call-lines .who-tool { color: var(--app-muted); font-family: var(--font-mono); }

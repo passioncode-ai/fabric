@@ -4587,18 +4587,18 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Persona:** P-01
 - **Feature:** Floating CEO
 - **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
-- **Entry point:** «Спросить CEO» on Главная; the composer at the foot of the CEO window.
+- **Entry point:** the «Спросить CEO» card at the top right of Главная, beside the greeting and the rhythm; the composer at the foot of the CEO window.
 - **Preconditions:** Fabric is open.
 - **Steps:**
   1. Operator writes a request on Главная («какие сессии сейчас идут») and presses Enter -> the CEO window opens first, then the words are typed into the CEO's console, and the composer says «Отправлено CEO.».
-  2. Operator pastes, drops or picks a picture or a file -> it is listed under the box by name and can be removed; on send it is saved in the CEO's inbox and the console line names its path, so the CEO opens it.
+  2. Operator pastes (⌘V or Ctrl+V), drops or picks a picture or a file -> it is listed under the box by name and can be removed; on send it is saved in the CEO's inbox and the console line names its path, so the CEO opens it.
   3. The CEO answers in its console, in the language of Fabric's interface (Russian or English, `shared/ceoAgent.ts#ceoBrief`).
 - **Expected result:** anything the operator can type or show reaches the CEO from the first screen.
 - **Alt paths:** Shift+Enter breaks the line instead of sending; a file over 25 MB is not attached and the composer says so; more than ten files keep the first ten.
-- **UI elements:** the home card (title, hint, box, «Приложить файл», «Отправить»); the popup's composer; attachment chips.
+- **UI elements:** the home card (title with the hint on hover, «Позвонить», a two-line box, «Приложить файл», «Отправить»); the popup's composer; attachment chips.
 - **States covered:** idle, sending, sent, refused
 - **Errors & recovery:** a message the CEO did not take («Сообщение не дошло до CEO.» with the reason) keeps the words in the box to send again.
-- **Design rationale:** the operator, 2026-11-18 (paraphrased): a chat on the home screen where anything can be sent, text or a picture, that opens the CEO's popup over the screen.
+- **Design rationale:** the operator, 2026-11-18 (paraphrased): a chat on the home screen where anything can be sent, text or a picture, that opens the CEO's popup over the screen. The review of 2026-11-19 (paraphrased): the header as it was, and the chat with the call as one small block at the top right, beside the header and the statistics; files pasted with ⌘V.
 - **Telemetry:** none.
 - **Status:** implemented (2026-11-18, ADR-0197).
 - **Coverage:** `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx#CeoComposer`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/main/ceoAgent.ts` (`send`, the inbox), `apps/desktop/src/shared/ceoAgent.ts#ceoLine`; tests `apps/desktop/src/renderer/src/ceo/CeoComposer.test.tsx`, `apps/desktop/test/ceo-agent.test.mjs` («attachments land in the inbox»).
@@ -4631,23 +4631,23 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Persona:** P-01
 - **Feature:** Floating CEO
 - **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
-- **Entry point:** «Позвонить» in the CEO window's head.
+- **Entry point:** «Позвонить» in the CEO window's head, or in the CEO card on Главная, where the call's state, time and lines show in place.
 - **Preconditions:** the person's own xAI key is set (pasted in the CEO window, or dropped by a coding agent, `docs/launch/ceo-setup.md`), else the key is in Observatory's vault; the computer has a microphone; macOS has let Fabric use it.
 - **Steps:**
-  1. Operator presses «Позвонить» -> «Соединяем…», then «Слушаю»; the call's minutes and price show beside it.
+  1. Operator presses «Позвонить» -> «Соединяем…», then «Слушаю»; the call's time out of five minutes («1:24 из 5:00») and price show beside it.
   2. Operator says «покажи сессии» -> the CEO's voice answers after reading the sessions with its tool; the panel shows the words said and the tool used.
   3. Operator speaks over the answer -> the answer stops and the CEO listens.
   4. Operator asks for something longer -> the voice hands it to the CEO's console, which works on it there.
   5. Operator presses «Положить трубку» -> the microphone and the connection close.
 - **Expected result:** the operator talks to the CEO and it acts on the sessions while they talk.
-- **Alt paths:** words typed under the call («Сказать текстом») are answered aloud the same way. No key: the call ends with «Нет ключа xAI», and the field «Ваш ключ xAI» takes the person's key; the next «Позвонить» works. Three minutes of silence, or 30 minutes in all, end the call by itself with the reason said.
-- **UI elements:** «Позвонить» / «Положить трубку»; the call panel (state, minutes and price, the last lines, «Сказать текстом»).
+- **Alt paths:** words typed under the call («Сказать текстом») are answered aloud the same way. No key: the call ends with «Нет ключа xAI», and the field «Ваш ключ xAI» takes the person's key; the next «Позвонить» works. A minute in which nobody speaks, or five minutes in all, end the call by itself with the reason said; the person calls again to go on.
+- **UI elements:** «Позвонить» / «Положить трубку»; the call panel (state, time out of five minutes and price, the last lines, «Сказать текстом»).
 - **States covered:** connecting, listening, speaking, ended, failed
 - **Errors & recovery:** no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.
-- **Design rationale:** the operator, 2026-11-18 (paraphrased): a voice call through the xAI API, first just working, a voice of his choosing later.
+- **Design rationale:** the operator, 2026-11-18 (paraphrased): a voice call through the xAI API, first just working, a voice of his choosing later. The review of 2026-11-19 (paraphrased): the call is managed from the home card too; a minute with nobody speaking hangs up, a call lasts five minutes at most and is then called again.
 - **Telemetry:** ops log `ceo.voice.*`.
 - **Status:** implemented (2026-11-18, ADR-0197).
-- **Coverage:** `apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoPopup.tsx` (`VoiceCall`), `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.
+- **Coverage:** `apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#VoiceCall`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.
 - **Product:** unobserved
 
 ### SCN-185: The CEO keeps answering when its first agent cannot

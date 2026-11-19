@@ -384,7 +384,9 @@ export function EstateHome({
       <div className={`lh-layout lh-home ${inWorkAside ? 'is-needs' : 'is-clear'}`} data-home-layout={inWorkAside ? 'needs' : 'clear'}>
         <div className="lh-main-column">
           {/* The operator's review, 2026-10-26: the CEO's face and greeting, then the activity chart, as one framed card
-              laid out face | words | chart (gap map B1, B2). */}
+              laid out face | words | chart (gap map B1, B2). The review of 2026-11-19: that header as it was, and the CEO's
+              chat and call as one small block at its right, the top right of the home (SCN-182). */}
+          <div className="lh-top">
           <header className="lh-hero">
             <FabricAvatar size="small" label={t('launch.avatar.label')} />
             <div className="lh-hero-words">
@@ -400,6 +402,7 @@ export function EstateHome({
           </header>
           {/* ADR-0197, SCN-182: the CEO answers here; a send opens its popup over the app. */}
           <CeoComposer where="home" />
+          </div>
           {/* 0.3.14, the simple Fabric §2a: the statistics strip, six numbers, each opening where it is counted. */}
           <HomeStats reading={home} waiting={waitingForYou === undefined ? (counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null) : personWaiting}
             toReview={toReview === undefined ? undefined : (toReview?.total ?? null)}

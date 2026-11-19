@@ -134,3 +134,13 @@ walk is Fabric's own.
 - Not built here (CO-597): Settings rows for `ceoRunners` and `ceoModels` (set by hand in settings.json), keeping the
   person's own `fabric` server out of a Hermes session's toolsets, a voice of the operator's choosing (the call uses
   `eve`), and the CEO's tools behind search and execute (task `e9af6c95`).
+
+## Amendment 1 (2026-11-19): five minutes a call, a minute of silence, and the call on the home card
+
+The operator's review of the home screen (2026-11-19, paraphrased): the header as it was, and the chat with the call as
+one small block at the top right; a call that hears nobody for a minute hangs up, and a call lasts five minutes at most,
+then is called again. So decision 5's bounds change: `MAX_CALL_MS` is 5 minutes and `IDLE_CALL_MS` one minute
+(`apps/desktop/src/renderer/src/ceo/voiceCall.ts`), each still ending the call with its reason said («прошло 5 минут»,
+«минуту никто не говорил»). The call's controls are one component, `CeoCall.tsx#VoiceCall`, shown in the popup's head as
+before and in place on the home card (`CeoComposer.tsx`, SCN-182, SCN-184), with the call's time out of five minutes.
+Nothing else in this record changes.

@@ -153,6 +153,8 @@ describe('the CEO voice call', () => {
       clock += IDLE_CALL_MS + 1_000; vi.advanceTimersByTime(2_000)
       expect(phases.at(-1)).toEqual(['ended', 'idle'])
       expect(audio.stopped).toBeGreaterThan(0)
+      // The operator's numbers (2026-11-19): five minutes a call, a minute of silence.
+      expect([MAX_CALL_MS, IDLE_CALL_MS]).toEqual([5 * 60_000, 60_000])
       // The cap: a second call that keeps talking ends at MAX_CALL_MS.
       const ws2 = fakeSocket(), phases2: Array<[string, string | undefined]> = []
       const c2 = createCall({ session: async () => session, runTool: vi.fn(), socket: () => ws2, audio: fakeAudio(), onPhase: (p, w) => phases2.push([p, w]), onLine: () => {}, now: () => clock })
