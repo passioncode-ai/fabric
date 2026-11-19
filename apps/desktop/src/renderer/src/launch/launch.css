@@ -819,6 +819,9 @@ button.lg-node{ cursor: pointer; }
 .rail-branch.unknown{font-family:inherit;color:var(--app-muted)}
 /* CO-498: the folder an agent works in, before its branch. */
 .rail-folder{font-family:var(--font-mono);font-size:11px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin-right:4px}
+/* The owner, 2026-11-19 (eef5abeb): where the session runs leads the line, the branch (or folder) ends it. */
+.rail-source{flex:none}
+.rail-branch-word{font-family:var(--font-mono);font-size:11px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin-right:4px}
 /* История and Настройки at the column's foot. */
 .rail-foot{margin-top:auto;padding-top:6px;border-top:1px solid var(--app-line)}
 @media(max-width:900px){

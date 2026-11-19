@@ -361,33 +361,38 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                 const title = a.projectName ?? runnerLabel(a.runner, t)
                 const folder = folderName(a.folder)
                 const status = a.status ?? (a.state === 'working' ? 'working' : 'idle')
+                const consoleHere = a.console && !!props.onAgentConsole
                 return (
                   <li key={a.sessionId}>
                     {/* The class is merged, never replaced by `current`'s «on»: the open agent's row kept its layout only
                         then (its dot fell to the branch's line, found by the mockup parity's screenshots). */}
-                    <a href="#" title={name} aria-current={agentSession === a.sessionId ? 'page' : undefined}
+                    {/* The owner, 2026-11-19 (board request eef5abeb): a press on an agent whose console Fabric holds opens
+                        that console at once; its page («Задачи», history, who started it) is the small button beside. */}
+                    <a href="#" title={consoleHere ? t('rail.agents.openSession', { name }) : name} aria-current={agentSession === a.sessionId ? 'page' : undefined}
                       className={agentSession === a.sessionId ? 'rail-agent on' : 'rail-agent'}
-                      onClick={(e) => go(e, () => props.onAgent(a.sessionId))}>
-                      {/* UX-17: the status has a name for every reader, «working» included. */}
+                      onClick={(e) => go(e, () => (consoleHere ? props.onAgentConsole!(a.sessionId) : props.onAgent(a.sessionId)))}>
+                      {/* UX-17: the status has a name for every reader, «working» included. The owner, 2026-11-19: the dot
+                          says it to the eye, so no word «Работает» beside it; the line says where the session runs. */}
                       <span className={`rail-dot s-${status}`} role="img" aria-label={t(`status.${status}` as 'status.idle')} />
                       <span className="rail-agent-words">
                         <span className="rail-name">{title}</span>
                         <span className="rail-agent-line">
+                          <span className="rail-source">{t(a.console ? 'rail.agents.inFabric' : 'rail.agents.outside')}</span>
                           {/* With no project the title is already the runner: the line says «Без проекта» instead (0.3.16 review, UX-6). */}
-                          <span className="rail-runner">{a.projectName ? runnerLabel(a.runner, t) : t('launch.home.agents.noProject')}</span>
-                          {/* CO-498: the folder it works in, by its last segment, the whole path on hover. */}
-                          {folder && <span className="rail-folder" title={a.folder ?? undefined}> · {folder}</span>}
-                          {/* Every status keeps its word beside its shape, «Работает» included (0.3.14's UX-26, R-19; the
-                              0.3.15 review, iteration 1, UX-1), quiet as the mockup's «· молчит». */}
-                          <span className="rail-word"> · {t(`status.${status}` as 'status.idle')}</span>
+                          <span className="rail-runner"> · {a.projectName ? runnerLabel(a.runner, t) : t('launch.home.agents.noProject')}</span>
+                          {/* The branch it works on (the owner, 2026-11-19), else its folder by its last segment (CO-498);
+                              the whole folder on hover either way. */}
+                          {a.branch
+                            ? <span className="rail-branch-word" title={a.folder ?? undefined}> · {a.branch}</span>
+                            : folder && <span className="rail-folder" title={a.folder ?? undefined}> · {folder}</span>}
                         </span>
                       </span>
                     </a>
                     {props.onAgentConsole && (a.console
                       ? (
-                        <button type="button" className="rail-console" aria-label={t('rail.agents.openSession', { name })} title={t('rail.agents.openSession', { name })}
-                          onClick={() => props.onAgentConsole?.(a.sessionId)}>
-                          <span aria-hidden="true">{t('glyph.console')}</span>
+                        <button type="button" className="rail-console" aria-label={t('rail.agents.details', { name })} title={t('rail.agents.details', { name })}
+                          onClick={() => props.onAgent(a.sessionId)}>
+                          <span aria-hidden="true">{t('glyph.info')}</span>
                         </button>
                       )
                       : <span className="rail-console elsewhere" role="img" aria-label={t('rail.agents.elsewhere')} title={t('rail.agents.elsewhere')}>{t('glyph.console')}</span>)}

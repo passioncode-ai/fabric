@@ -58,6 +58,7 @@ function stub(sessions: unknown[]) {
       saveSettings: async () => ({ state: 'committed', revision: '1' })
     },
     terminal: {
+      launch: vi.fn(async () => null),
       list: async () => sessions,
       get: async (id: string) => (sessions as Array<{ sessionId: string }>).find((s) => s.sessionId === id) ?? null,
       history: async () => [],
@@ -129,8 +130,15 @@ async function openFromAgents(): Promise<void> {
   await screen.findByRole('navigation', { name: en['rail.label'] })
   // The toggle «Агенты» in the left column, the agent's row there, then its screen's «Открыть сессию».
   fireEvent.click(within(screen.getByRole('group', { name: en['rail.view.label'] })).getByRole('button', { name: en['rail.agents'] }))
+  // The owner, 2026-11-19 (eef5abeb): a press on the row of an agent whose console Fabric holds opens it as a tab.
   fireEvent.click(await waitFor(() => agentRow()))
-  // The agent's screen opens no console on arrival; «Открыть сессию» in its session card opens it as a tab (0.3.14).
+}
+
+/** The agent's screen, by the button beside its row; «Открыть сессию» in its session card opens the console (0.3.14). */
+async function openFromAgentPage(): Promise<void> {
+  await screen.findByRole('navigation', { name: en['rail.label'] })
+  fireEvent.click(within(screen.getByRole('group', { name: en['rail.view.label'] })).getByRole('button', { name: en['rail.agents'] }))
+  fireEvent.click(await waitFor(() => within(screen.getByRole('list', { name: en['rail.agents.list'] })).getByRole('button', { name: /fabric-dashboards/ })))
   fireEvent.click(await within(content()).findByRole('button', { name: en['agentScreen.openSession'] }))
 }
 
@@ -171,7 +179,7 @@ describe('a console opens inside Fabric as a tab along the top', () => {
   it('× closes the tab only: the session is not ended, and the strip goes with its last tab', async () => {
     const { api } = stub([session])
     render(<App />)
-    await openFromAgents()
+    await openFromAgentPage()
     await waitFor(() => expect(tabsStrip()).toBeTruthy())
     fireEvent.click(within(tabsStrip()!).getByRole('button', { name: en['consoles.close'].replace('{name}', 'fabric-dashboards') }))
     await waitFor(() => expect(tabsStrip()).toBeNull())
@@ -189,7 +197,7 @@ describe('back and forward in the top bar', () => {
     render(<App />)
     const travel = async () => within(await screen.findByRole('navigation', { name: en['nav.travel'] })).getAllByRole('button') as HTMLButtonElement[]
     expect((await travel())[0].disabled).toBe(true)
-    await openFromAgents()
+    await openFromAgentPage()
     await waitFor(() => expect(tabsStrip()).toBeTruthy())
     const [back] = await travel()
     expect(back.disabled).toBe(false)
@@ -206,7 +214,7 @@ describe('back and forward in the top bar', () => {
     stub([session])
     render(<App />)
     const travel = async () => within(await screen.findByRole('navigation', { name: en['nav.travel'] })).getAllByRole('button') as HTMLButtonElement[]
-    await openFromAgents()
+    await openFromAgentPage()
     await waitFor(() => expect(tabsStrip()).toBeTruthy())
     fireEvent.click((await travel())[0])
     await waitFor(() => expect(agentRow().getAttribute('aria-current')).toBe('page'))

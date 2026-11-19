@@ -303,6 +303,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       history: (sessionId) => ipc.invoke(IPC.terminalHistory, sessionId),
       get: (sessionId) => ipc.invoke(IPC.terminalGet, sessionId),
       scrollback: (sessionId) => ipc.invoke(IPC.terminalScrollback, sessionId),
+      launch: (sessionId) => ipc.invoke(IPC.terminalLaunch, sessionId),
       write: (sessionId, data) => ipc.send(IPC.terminalWrite, sessionId, data),
       resize: (sessionId, cols, rows) => ipc.send(IPC.terminalResize, sessionId, cols, rows),
       end: (sessionId, options) => ipc.invoke(IPC.terminalEnd, sessionId, options),

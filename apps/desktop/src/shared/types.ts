@@ -1,3 +1,4 @@
+import type { Launch } from './sessionLaunches.ts'
 import type { ActAnswer, ActHistoryPage, ActHistoryQuery } from './acts.ts'
 import { CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT, type CeoAttachment, type CeoSendResult, type CeoStatus, type CeoVoiceSession } from './ceoAgent.ts'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from './boardResolved.ts'
@@ -1789,6 +1790,9 @@ export interface FabricApi {
      *  that started first can drop what this answer already contains rather
      *  than losing those bytes or writing them twice (FA-08). */
     scrollback(sessionId: string): Promise<{ text: string; written: number } | null>
+    /** Who started this console and from where, from the launch journal on disk (board request eef5abeb); null when
+     *  Fabric did not start it or started it before the journal. Throws when the journal could not be read. */
+    launch(sessionId: string): Promise<Launch | null>
     write(sessionId: string, data: string): void
     resize(sessionId: string, cols: number, rows: number): void
     /** Ends a running session; the record stays on the board with its exit code. */
@@ -2045,6 +2049,7 @@ export const IPC = {
   workRelease: 'work:release',
   terminalGet: 'terminal:get',
   terminalScrollback: 'terminal:scrollback',
+  terminalLaunch: 'terminal:launch',
   terminalWrite: 'terminal:write',
   terminalResize: 'terminal:resize',
   terminalEnd: 'terminal:end',

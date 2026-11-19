@@ -4964,6 +4964,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   )
 
   handle(IPC.terminalList, (_e, projectId?: string): Returns<FabricApi['terminal']['list']> => ptys.list(projectId))
+  // Who started a console and from where (the launch journal, board request eef5abeb): read for the agent's page.
+  handle(IPC.terminalLaunch, async (_e, sessionId: unknown): Promise<Returns<FabricApi['terminal']['launch']>> => {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 128) throw new Error('Invalid session identity')
+    return (await launchJournal?.read({ sessionId }))?.find((l) => l.sessionId === sessionId) ?? null
+  })
   handle(
     IPC.terminalScrollback,
     (_e, sessionId: string): Returns<FabricApi['terminal']['scrollback']> => ptys.scrollbackOf(sessionId)
