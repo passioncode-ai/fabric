@@ -169,7 +169,7 @@ function VoiceKeyForm({ onSaved }: { onSaved: () => void }): React.JSX.Element {
     <form className="ceo-voice-key" onSubmit={(e) => { e.preventDefault(); void save() }}>
       <label>
         <span>{t('ceoAgent.voiceKey.label')}</span>
-        <input type="password" autoComplete="off" spellCheck={false} value={value} placeholder="xai-…" onChange={(e) => setValue(e.target.value)} />
+        <input type="password" autoComplete="off" spellCheck={false} value={value} placeholder={t('ceoAgent.voiceKey.placeholder')} onChange={(e) => setValue(e.target.value)} />
       </label>
       <button type="submit" className="btn" disabled={!value.trim()}>{t('ceoAgent.voiceKey.save')}</button>
       <span className="muted">{t('ceoAgent.voiceKey.help')}</span>

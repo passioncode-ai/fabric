@@ -3453,6 +3453,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'ceoAgent.call.why.idle': "Звонок закончен: три минуты тишины. Позвоните снова, когда понадобится.",
   'ceoAgent.call.why.limit': "Звонок закончен: прошло 30 минут. Позвоните снова, чтобы продолжить.",
   'ceoAgent.voiceKey.label': "Ваш ключ xAI",
+  'ceoAgent.voiceKey.placeholder': "xai-…",
   'ceoAgent.voiceKey.save': "Сохранить ключ",
   'ceoAgent.voiceKey.help': "Ключ остаётся на этом компьютере в зашифрованном виде. Взять его можно на console.x.ai.",
   'ceoAgent.voiceKey.empty': "Вставьте ключ.",

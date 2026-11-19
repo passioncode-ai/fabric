@@ -3590,6 +3590,7 @@ export const en = {
   'ceoAgent.call.why.idle': "The call ended after three minutes of silence. Call again when you need to.",
   'ceoAgent.call.why.limit': "The call ended after 30 minutes. Call again to go on.",
   'ceoAgent.voiceKey.label': "Your xAI key",
+  'ceoAgent.voiceKey.placeholder': "xai-…",
   'ceoAgent.voiceKey.save': "Save key",
   'ceoAgent.voiceKey.help': "The key stays on this computer, encrypted. Get one at console.x.ai.",
   'ceoAgent.voiceKey.empty': "Paste a key.",
