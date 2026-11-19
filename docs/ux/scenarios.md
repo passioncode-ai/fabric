@@ -4632,7 +4632,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Feature:** Floating CEO
 - **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
 - **Entry point:** «Позвонить» in the CEO window's head.
-- **Preconditions:** the xAI key is in Observatory's vault; the computer has a microphone; macOS has let Fabric use it.
+- **Preconditions:** the person's own xAI key is set (pasted in the CEO window, or dropped by a coding agent, `docs/launch/ceo-setup.md`), else the key is in Observatory's vault; the computer has a microphone; macOS has let Fabric use it.
 - **Steps:**
   1. Operator presses «Позвонить» -> «Соединяем…», then «Слушаю»; the call's minutes and price show beside it.
   2. Operator says «покажи сессии» -> the CEO's voice answers after reading the sessions with its tool; the panel shows the words said and the tool used.
@@ -4640,10 +4640,10 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   4. Operator asks for something longer -> the voice hands it to the CEO's console, which works on it there.
   5. Operator presses «Положить трубку» -> the microphone and the connection close.
 - **Expected result:** the operator talks to the CEO and it acts on the sessions while they talk.
-- **Alt paths:** words typed under the call («Сказать текстом») are answered aloud the same way.
+- **Alt paths:** words typed under the call («Сказать текстом») are answered aloud the same way. No key: the call ends with «Нет ключа xAI», and the field «Ваш ключ xAI» takes the person's key; the next «Позвонить» works. Three minutes of silence, or 30 minutes in all, end the call by itself with the reason said.
 - **UI elements:** «Позвонить» / «Положить трубку»; the call panel (state, minutes and price, the last lines, «Сказать текстом»).
 - **States covered:** connecting, listening, speaking, ended, failed
-- **Errors & recovery:** no key, a refused key or a microphone that did not open ends the call with the reason; the key itself never reaches the window.
+- **Errors & recovery:** no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.
 - **Design rationale:** the operator, 2026-11-18 (paraphrased): a voice call through the xAI API, first just working, a voice of his choosing later.
 - **Telemetry:** ops log `ceo.voice.*`.
 - **Status:** implemented (2026-11-18, ADR-0197).

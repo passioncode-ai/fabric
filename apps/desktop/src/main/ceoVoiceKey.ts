@@ -5,10 +5,10 @@
  *
  * Two ways in, neither printing the value:
  * - the CEO window's field (IPC `ceoAgentVoiceKeySet`): the person pastes it;
- * - a drop file for a coding agent: `userData/ceo/xai-key.drop`, written with mode 0600 from the clipboard
+ * - a drop file for a coding agent: `userData/ceo-voice/xai-key.drop`, written with mode 0600 from the clipboard
  *   (`pbpaste > …`), so the agent never reads the value. The next read takes it in and deletes the file.
  *
- * The key is kept in `userData/ceo/xai-key.bin` (0600), encrypted with Electron's `safeStorage` when the platform
+ * The key is kept in `userData/ceo-voice/xai-key.bin` (0600), outside the CEO's own folder so its runner never reads it, encrypted with Electron's `safeStorage` when the platform
  * offers it (the app's own Keychain item on macOS; no item of Fabric's), else in plain text under the same mode.
  * It is read in the main process only and spent on an ephemeral secret (`ceoVoice.ts`); nothing logs it.
  */

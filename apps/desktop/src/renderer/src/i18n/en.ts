@@ -3307,6 +3307,7 @@ export const en = {
   'act.why.delivered': "the message is already delivered to another project",
   'act.why.credential_gone': "its access is gone, it asks again and gets new access",
   'act.why.answer_needs_person': "an answer is yours to give again",
+  'act.why.outside_fabric': "Switchboard runs this session; Fabric does not bring it back",
   'act.why.task_gone': "the task no longer exists",
   'act.why.already_there': "the task is already there",
   'act.why.ladder': "a task cannot move there from where it is",

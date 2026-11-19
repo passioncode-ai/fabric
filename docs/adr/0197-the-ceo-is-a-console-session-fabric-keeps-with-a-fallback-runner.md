@@ -94,7 +94,7 @@ walk is Fabric's own.
    console, and it is the only window given the voice call's two channels. Help's examples and the Guide's «Поговорить с
    Fabric» open this window with the example in its composer; the side panel's conversation is no longer opened (P-13).
 5. <a id="the-voice-call"></a>**The voice call.** «Позвонить» in the popup opens xAI's realtime socket (`grok-voice-latest`) from the CEO window with
-   an ephemeral secret: main reads `XAI_API_KEY` from Observatory's vault (`fabric/prod`) for one request, spends it on
+   an ephemeral secret: main reads the person's own xAI key, else `XAI_API_KEY` from Observatory's vault (`fabric/prod`), for one request, spends it on
    `POST /v1/realtime/client_secrets` (five minutes), and hands the window the secret, the call's instructions and its
    tools, never the key (`ceoVoice.ts`). The microphone is read at 24 kHz and sent as PCM16; the answer's audio plays as
    it arrives and is cut when the person speaks over it; a function call runs in main through the operations above, plus
@@ -103,6 +103,14 @@ walk is Fabric's own.
    microphone permission is granted to the CEO window alone, for audio alone; every other permission keeps Electron's
    answer. The signed app carries the audio-input entitlement and a microphone usage sentence; macOS asks the person once.
    The call shows its length and its price at xAI's list rate (USD 0.08 a minute).
+   <a id="the-persons-own-voice-key"></a>**The person's own key** (the operator, 2026-11-19: «Токен ... пусть каждый свой кастомный
+   просто вставляет и все ... Это все сетапится клауд-кодом»): each person brings an xAI key of their own, so the key
+   cannot be only the operator's vault slot. It is pasted in the CEO window or dropped from the clipboard by a coding agent
+   that never reads it, and kept in `userData/ceo-voice/xai-key.bin`, encrypted with Electron's `safeStorage` (0600), outside
+   the CEO's own folder (`ceoVoiceKey.ts`). This departs from ADR-0115's rule that a product's secret goes to
+   Observatory's vault: a person without Observatory still needs the call, and the key never leaves the main process.
+   Observatory's slot stays the fallback. The call ends by itself after three minutes of silence and at 30 minutes, since
+   the secret does not bound the session and xAI bills it whole.
 6. **The PM chain.** The CEO's brief tells it to enrol for the board capability `ceo.task` on its own project and to read
    its unread board messages; a PM agent gives the CEO a task as a board request to the «Fabric CEO» project with that
    capability. The session's own `com.enroll` grants the slot ([ADR-0190](0190-an-agent-decides-agent-access-on-the-operators-relayed-words-and-answering-is-granted-for-the-sessions-own-project.md): own project), so no second mechanism answers it. The grant

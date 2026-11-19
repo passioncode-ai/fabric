@@ -240,7 +240,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   const consoleRow = (s: TerminalSession, names: Map<string, string>): Answer => ({
     session_id: s.sessionId, kind: 'fabric-console', project: names.get(s.projectId) ?? null, project_id: s.projectId,
     folder: s.cwd, runner: s.optionId, state: s.state, running: s.running, started_at: s.startedAt,
-    last_activity_at: s.lastActivityAt, last_line: s.tail.slice(0, 200), is_ceo: s.sessionId === deps.ceoSessionId()
+    last_activity_at: s.lastActivityAt, last_line: redact(s.tail.slice(0, 200)).text, is_ceo: s.sessionId === deps.ceoSessionId()
   })
 
   async function sessions(a: z.infer<typeof CEO_TOOLS.sessions.input>): Promise<Answer> {

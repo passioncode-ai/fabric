@@ -53,7 +53,9 @@ export const WHY_NOT = [
    *  Agent access; «Отключить» on the agent itself has the real inverse «Пустить снова», 0.3.7 wave 3) */
   'credential_gone',
   /** an answer is the person's words: Fabric reopens the question, it does not re-answer it */
-  'answer_needs_person'
+  'answer_needs_person',
+  /** a session Switchboard runs outside Fabric: Fabric neither starts it again nor stops it back (ADR-0197 decision 3) */
+  'outside_fabric'
 ] as const
 export type WhyNot = (typeof WHY_NOT)[number]
 

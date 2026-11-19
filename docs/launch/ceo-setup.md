@@ -19,12 +19,12 @@ Each person uses their own key from `console.x.ai` (the operator, 2026-11-19). T
   agent runs
 
   ```sh
-  D="$HOME/Library/Application Support/@fabric/desktop/ceo"
+  D="$HOME/Library/Application Support/@fabric/desktop/ceo-voice"
   mkdir -p "$D" && (umask 077; pbpaste | tr -d '\r\n' > "$D/xai-key.drop")
   ```
 
-  (Linux: `~/.config/@fabric/desktop/ceo`, with `xclip -o -selection clipboard` or `wl-paste` for `pbpaste`;
-  Windows: `%APPDATA%\@fabric\desktop\ceo`, with `Get-Clipboard`.) Fabric takes the drop file in at the next call,
+  (Linux: `~/.config/@fabric/desktop/ceo-voice`, with `xclip -o -selection clipboard` or `wl-paste` for `pbpaste`;
+  Windows: `%APPDATA%\@fabric\desktop\ceo-voice`, with `Get-Clipboard`.) Fabric takes the drop file in at the next call,
   keeps the key encrypted in `xai-key.bin` (Electron `safeStorage`, mode 0600) and deletes the drop file
   (`apps/desktop/src/main/ceoVoiceKey.ts`). A drop that is not shaped like an xAI key (`xai-` and at least 20
   characters) is deleted and changes nothing.

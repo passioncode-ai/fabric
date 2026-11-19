@@ -22,7 +22,7 @@ const WHY = new Set([
   'already_undone', 'not_an_act', 'unavailable', 'failed', 'write_failed', 'invalid_estate', 'task_closed', 'published',
   'delivered', 'credential_gone', 'answer_needs_person', 'task_gone', 'already_there', 'ladder', 'claim_gone',
   'already_released', 'already_held', 'held_by_other', 'owner_gone', 'runner_gone', 'folder_gone', 'already_attached',
-  'held_by_other_project', 'project_gone', 'question_gone', 'not_answered', 'draft_gone', 'session_gone', 'agent_gone',
+  'held_by_other_project', 'outside_fabric', 'project_gone', 'question_gone', 'not_answered', 'draft_gone', 'session_gone', 'agent_gone',
   'already_in', 'already_out', 'invalid', 'unreadable', 'no_inverse', 'run_gone', 'run_resolved', 'not_attested',
   'task_moved_on', 'run_still_running', 'person_required', 'already_attested'
 ])

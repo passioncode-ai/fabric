@@ -3174,6 +3174,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'act.why.delivered': "сообщение уже доставлено другому проекту",
   'act.why.credential_gone': "доступ агента уже снят, он попросит и получит новый",
   'act.why.answer_needs_person': "ответить снова можете только вы",
+  'act.why.outside_fabric': "эту сессию ведёт Switchboard, Fabric её не возвращает",
   'act.why.task_gone': "задачи больше нет",
   'act.why.already_there': "задача уже там",
   'act.why.ladder': "оттуда, где задача сейчас, туда её не перенести",

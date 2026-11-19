@@ -64,6 +64,10 @@ export const SIGNED_OUT_SAID = /(Select login method|Please run \/login|Invalid 
 export const EARLY_END_MS = 20_000
 /** How long a runner that hit its limit or did not start is left out of the walk. */
 export const SET_ASIDE_MS = 60 * 60_000
+/** How long after Fabric types a line the runner's answer is read for a limit or sign-in screen (0.3.24 review
+ *  iteration 2, DO-15, ER-16): Claude Code answers a turn it cannot run at once, while a CEO quoting a session at its
+ *  limit does so only after a tool call. */
+export const REPLY_WINDOW_MS = 10_000
 /** How long an attachment is kept in `<userData>/ceo/inbox` (DA-5): older ones are removed at the next start. */
 export const INBOX_KEEP_MS = 30 * 24 * 60 * 60_000
 /** The person's lines kept for a fallback to type again (ER-13). */
@@ -253,7 +257,11 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** ER-2: a line Fabric types that itself reads as a limit or a sign-in screen closes the console's start window, so
    *  its echo is never taken for the runner's own screen. */
   function typing(id: string, line: string): void {
-    if (id === sessionId && (LIMIT_SAID.test(line) || SIGNED_OUT_SAID.test(line))) quiet = true
+    if (id !== sessionId) return
+    if (LIMIT_SAID.test(line) || SIGNED_OUT_SAID.test(line)) { quiet = true; replyUntil = 0; return }
+    // The runner's answer to this line is read for a limit or a sign-in screen: a limit reached mid-work shows here.
+    heard = ''
+    replyUntil = now() + REPLY_WINDOW_MS
   }
 
   /** Type a line into a console; the raw reason stays in the operations log. */
@@ -375,16 +383,19 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   let heard = ''
   /** The start window closed early: Fabric typed a line that itself reads as a limit or sign-in screen (ER-2). */
   let quiet = false
+  /** Until when the runner's answer to the line Fabric typed last is read (REPLY_WINDOW_MS). */
+  let replyUntil = 0
   /** The console's output, as the terminal manager hands it on. ER-2 / UX-1: only the runner's own start screens set
    *  it aside: a limit or a sign-in screen in its first `EARLY_END_MS`. Later output (the CEO quoting a session at its
    *  limit, a tool's result) and the echo of text Fabric typed never do. */
   function onOutput(id: string, data: string): void {
-    if (id !== sessionId || quiet) return
-    if (now() - startedAt >= EARLY_END_MS) { heard = ''; return }
+    if (id !== sessionId) return
+    const inStart = !quiet && now() - startedAt < EARLY_END_MS
+    if (!inStart && now() >= replyUntil) { heard = ''; return }
     // eslint-disable-next-line no-control-regex
     heard = (heard + data.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, ' ').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '').replace(/\s+/g, ' ')).slice(-4000)
-    if (LIMIT_SAID.test(heard)) { heard = ''; startFallback('limit') }
-    else if (SIGNED_OUT_SAID.test(heard)) { heard = ''; startFallback('not-connected') }
+    if (LIMIT_SAID.test(heard)) { heard = ''; replyUntil = 0; startFallback('limit') }
+    else if (SIGNED_OUT_SAID.test(heard)) { heard = ''; replyUntil = 0; startFallback('not-connected') }
   }
 
   function onExit(id: string): void {

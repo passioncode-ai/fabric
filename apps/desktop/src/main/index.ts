@@ -5187,6 +5187,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       kind, projectId: d.projectId, subject: { type: 'session', id: d.sessionId, label: d.label },
       said: { key: kind === 'session.start' ? 'act.ceo.session.start' : 'act.ceo.session.stop', params: { project: d.label, runner: d.runner, reason: d.reason } },
       // A session Switchboard runs has no inverse in Fabric (ADR-0197 decision 3).
+      ...(d.machine ? { whyNot: 'outside_fabric' as const } : {}),
       inverse: d.machine ? null : kind === 'session.start'
         ? { kind: 'session.stop', args: { session_id: d.sessionId } }
         : d.projectId ? { kind: 'session.start', args: { project_id: d.projectId, option_id: d.runner, permission_mode: null, cwd: null, task_id: null, from_session: d.sessionId } } : null
@@ -5248,7 +5249,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       instructions: voiceInstructions(locale), voice: 'eve', tools: [...ceoVoiceTools(), ASK_CEO_TOOL] }
   })
   // The person's own xAI key (the operator, 2026-11-19): set in the CEO window, or dropped by a coding agent.
-  const voiceKeys = createVoiceKeyStore(path.join(app.getPath('userData'), 'ceo'), safeStorage)
+  const voiceKeys = createVoiceKeyStore(path.join(app.getPath('userData'), 'ceo-voice'), safeStorage) // outside the CEO's own folder: its runner never reads the key (0.3.24 review iteration 2, DA-11)
   handle(IPC.ceoAgentVoiceKey, (): Returns<FabricApi['ceoAgent']['voiceKey']> => ({ own: voiceKeys.source() === 'own' }))
   handle(IPC.ceoAgentVoiceKeySet, (_e, value: unknown): Returns<FabricApi['ceoAgent']['setVoiceKey']> => {
     const r = voiceKeys.set(typeof value === 'string' ? value : '')

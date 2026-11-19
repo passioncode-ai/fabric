@@ -295,3 +295,13 @@ test('a refused reversal chunk is an error, never "nothing undid it"', async () 
   const log = createActLog({ journal: { append: async () => ({ seq: 1 }) }, store, estateId: 'e1' })
   await assert.rejects(log.reversersOf([1, 2]), /the act log could not be read \(reversals\)/)
 })
+
+test('0.3.24 review iteration 2, ER-15: a CEO act on a session Switchboard runs records with its reason, never throws', () => {
+  assert.ok(WHY_NOT.includes('outside_fabric'))
+  const rec = buildRecord({ kind: 'session.stop', subject: { type: 'session', id: 's9', label: 'app' },
+    said: { key: 'act.ceo.session.stop', params: { project: 'app', runner: 'claude-code', reason: 'done' } }, projectId: null, inverse: null, whyNot: 'outside_fabric' }, null)
+  assert.equal(rec.why_not, 'outside_fabric')
+  assert.ok(validateActRecord(rec), 'the record reads back')
+  assert.throws(() => buildRecord({ kind: 'session.stop', subject: { type: 'session', id: 's9', label: 'app' },
+    said: { key: 'act.ceo.session.stop', params: {} }, projectId: null, inverse: null }, null), /says no reason/)
+})

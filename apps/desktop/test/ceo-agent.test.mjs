@@ -521,6 +521,27 @@ test('ER-2 / UX-1: a limit or sign-in phrase after the start window, or one the 
   assert.deepEqual(s.setAside, [])
 })
 
+test('DO-15 / ER-16: a limit Claude Code shows in answer to a message long after the start sets it aside; a quote later does not', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  k.tick(30 * 60_000)
+  // The answer to a line Fabric typed, within the reply window, is the runner's own screen.
+  await k.agent.send('что с сессиями?', [])
+  k.tick(2_000)
+  k.agent.onOutput(first, "  ⎿  You've hit your limit · resets 5pm")
+  await settle()
+  assert.equal(k.agent.status().runner, 'hermes', 'a limit reached mid-work moves the CEO to the next runner')
+  // On the new runner, a quote well after the reply window keeps it.
+  const second = k.agent.sessionId()
+  k.tick(30 * 60_000)
+  await k.agent.send('прочитай demo', [])
+  k.tick(15_000)
+  k.agent.onOutput(second, "⏺ demo пишет: You've hit your limit · resets 5pm")
+  await settle()
+  assert.equal(k.agent.sessionId(), second)
+})
+
 test('ER-3 / UX-3: a restart within the start window is not an early end, even when the stop reports the exit at once', async () => {
   const k = keeper()
   // As pty.ts does: the exit callback runs before the stop resolves.
