@@ -6,7 +6,7 @@ import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipc
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, readFileSync, realpathSync, statfsSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, realpathSync, statSync, statfsSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -47,7 +47,8 @@ import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
 import { createDashboardsPort, createWindowsPort } from './ceoWindows.ts'
-import { parseLayouts } from '../shared/windowLayout.ts'
+import { MAX_LAYOUTS_BYTES, parseLayouts } from '../shared/windowLayout.ts'
+import { atomicWrite } from './localState.ts'
 import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -5234,8 +5235,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     layouts: (() => {
       const file = path.join(app.getPath('userData'), 'window-layouts.json')
       return {
-        read: () => { try { return parseLayouts(readFileSync(file, 'utf8')) } catch { return {} /* none saved yet */ } },
-        write: (all) => writeFileSync(file, `${JSON.stringify(all, null, 2)}\n`, { mode: 0o600 })
+        read: () => {
+          try {
+            if (statSync(file).size > MAX_LAYOUTS_BYTES) { ops.record({ op: 'ceo.window.layouts-unread', outcome: 'failed', level: 'warn', detail: { why: 'too-large' }, ctx: { correlationId: ops.correlate() } }); return {} }
+            return parseLayouts(readFileSync(file, 'utf8'))
+          } catch (e) {
+            // None saved yet is ENOENT; anything else is said once in the log, and the next save writes the file whole.
+            if ((e as { code?: string }).code !== 'ENOENT') ops.failed('ceo.window.layouts-unread', e)
+            return {}
+          }
+        },
+        // DA-3: a temp file 0600 beside it, then a rename: a crash never leaves half a file.
+        write: (all) => atomicWrite(file, `${JSON.stringify(all, null, 2)}\n`, `${file}.${process.pid}.tmp`)
       }
     })()
   })

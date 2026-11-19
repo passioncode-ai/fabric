@@ -47,3 +47,14 @@ person who needs that turns it on there.
 macOS asks once for the microphone the first time «Позвонить» is pressed; the release build carries the audio-input
 entitlement (`apps/desktop/resources/entitlements.mac.plist`). A refused permission is turned on again in System
 Settings, Privacy and Security, Microphone.
+
+## 5. Moving Fabric Dashboards' window
+
+When the CEO is asked to put a dashboard on the screen («открой Growth на весь экран», «консоль слева, дашборд
+справа»), Fabric moves Fabric Dashboards' window through macOS's System Events, and macOS asks twice, once each:
+Accessibility (System Settings, Privacy and Security, Accessibility: turn Fabric on) and Automation (Fabric may control
+System Events). Until both are given, the dashboard still opens and the CEO says which permission is missing; the
+release build carries the Apple Events entitlement (`apps/desktop/resources/entitlements.mac.plist`). Both are granted
+to Fabric as a whole, so a coding agent running in one of Fabric's consoles can then also script other apps' windows
+without a further question; turn them off in the same places to take that back. Fabric's own windows (consoles, the CEO
+window, the main window) move without either.

@@ -153,22 +153,36 @@ agent closes console windows without stopping their sessions, arranges windows o
 and by text. So the session control tools of decision 3 grow by five, in the same closed set and through both doors
 (`main/ceoTools.ts#CEO_TOOLS`; the voice call gets them as `session_<name>`):
 
-- `fabric_ceo_windows`: Fabric's open windows (main, CEO, each console with its session and project, each editor) with
-  their screen, the screens counted left to right from 1, Fabric Dashboards' window, and the layouts saved by name.
+- `fabric_ceo_windows`: Fabric's open windows (main, CEO, each console with its session and project, each editor by
+  its file's name only) with their screen, the screens counted left to right from 1, Fabric Dashboards' window (`open:
+  null` with the reason when it cannot be read yet: a listing never raises a macOS question), and the saved layouts.
 - `fabric_ceo_window_close`: closes a console's window, a project's or all of them. The console's process lives in the
   main process, so its session runs on, and `fabric_ceo_session_open` opens it again with its kept screen. It never
   stops a session; ending one stays `fabric_ceo_session_stop`.
-- `fabric_ceo_window_layout`: puts named windows (main, ceo, dashboards, a console by its session or its project's
-  newest running console) on an area of a screen: halves, thirds, quarters, the whole work area or macOS full screen
-  (`shared/windowLayout.ts#WINDOW_AREAS`); windows named without an area share their screen without covering one
-  another (`autoAreas`); a console window not open is opened. A layout is kept by name in `<userData>/window-layouts.json`
-  and put back by `restore`, a console that ended giving its place to its project's running one.
+- `fabric_ceo_window_layout`: puts named windows on an area of a screen: halves, thirds, quarters, the whole work area
+  or macOS full screen (`shared/windowLayout.ts#WINDOW_AREAS`). A window is named by a console's session id, a project
+  (its most recently active running console; a project is looked up before the words main, ceo and dashboards), or
+  one of those words; a console window not open yet is opened, and `dashboard` with the window `dashboards` opens that
+  dashboard first. Windows named together go to one screen: the call's, else the first Fabric window named's. Windows
+  named without an area take the room the others leave, beside the windows the CEO placed before with no area, which
+  move aside (`fitAreas`); up to four fit apart, more are placed and said to overlap. Fabric's main window moves before
+  the CEO window, its child, so the child ends where it was asked. A layout is kept by name in
+  `<userData>/window-layouts.json` (each placement with the screen it went to; at most 50) and put back by `restore`, a
+  console that ended giving its place to its project's running one; a screen no longer attached falls back to the
+  primary one.
 - `fabric_ceo_dashboards` and `fabric_ceo_dashboard_open`: the services of the registry Fabric Dashboards lists
-  (`main/agentRegistry.ts`), found by key or by the owner's words, opened as a `fabric-dashboards://service/<key>` link
-  in the installed app, never a browser; opening another switches to it, and `area` places its window.
+  (`main/agentRegistry.ts`), named by key or by the owner's words (`shared/dashboardMatch.ts#pickDashboard`: every word
+  that is not a filler must match a word of the name or key, a Cyrillic word also the Latin name it sounds like; the
+  owner's own copy before an organisation's, a local one before an online one; a tie is asked about, never guessed),
+  opened as a `fabric-dashboards://service/<key>` link in the installed app, never a browser; opening another switches
+  to it, and `area` places its window once it exists.
 
 Fabric Dashboards' window is another app's: it moves through macOS's System Events (`main/ceoWindows.ts`), which needs
-the Apple Events entitlement and the person's consent to Accessibility, asked once by macOS itself; until it is given
-the move is refused with that reason and the dashboard still opens. Building a simple dashboard on request stays a
-session's work: the CEO starts one with the adapter's dashboard-only recipe (the brief says so). Nothing else in this
-record changes.
+the Apple Events entitlement and two consents macOS asks for once each: Accessibility (Fabric may read and move other
+apps' windows) and Automation (Fabric may control System Events). Until they are given, the dashboard still opens and
+the CEO is told which one is missing. Both are granted to Fabric as a whole, so a coding agent in one of Fabric's
+consoles can then also script other apps' windows; the owner turns them off in System Settings to take that back
+(`docs/launch/ceo-setup.md` §5). A window operation of Fabric Dashboards' own, and its `link` operation for the link,
+would remove both and are asked of it (CO-602). Building a simple dashboard on request stays a session's work: the CEO
+starts one with the adapter's dashboard-only recipe, or files a task when it is not quick (the brief says so). Nothing
+else in this record changes.

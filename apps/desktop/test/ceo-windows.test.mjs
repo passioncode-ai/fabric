@@ -2,9 +2,10 @@
 // their sessions, arranges windows by voice and text, and opens dashboards in Fabric Dashboards.
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { areaRect, autoAreas, displayOf, layoutName, nearestArea, orderedDisplays, parseLayouts, pickDisplay, WINDOW_AREAS } from '../src/shared/windowLayout.ts'
+import { areaRect, autoAreas, displayOf, fitAreas, layoutName, nearestArea, orderedDisplays, parseLayouts, pickDisplay, WINDOW_AREAS } from '../src/shared/windowLayout.ts'
 import { createCeoOperations, ceoVoiceTools, CEO_TOOLS } from '../src/main/ceoTools.ts'
-import { createDashboardsPort, createWindowsPort, dashboardsScript, parseBounds } from '../src/main/ceoWindows.ts'
+import { createDashboardsPort, createWindowsPort, dashboardsScript, parseBounds, OsascriptTimeout } from '../src/main/ceoWindows.ts'
+import { pickDashboard } from '../src/shared/dashboardMatch.ts'
 import { ceoBrief } from '../src/shared/ceoAgent.ts'
 
 const LEFT = { id: 2, bounds: { x: -1920, y: 0, width: 1920, height: 1080 }, workArea: { x: -1920, y: 25, width: 1920, height: 1055 }, primary: false, label: 'Dell' }
@@ -55,7 +56,7 @@ test('layouts: a name in any case is one layout; a stored file that is not a lay
   assert.equal(layoutName('  Рабочая '), 'рабочая')
   assert.equal(layoutName('a/b'), null)
   assert.equal(nearestArea(MAIN.workArea, areaRect(MAIN.workArea, 'right-third')), 'right-third')
-  assert.deepEqual(parseLayouts('not json'), {})
+  assert.deepEqual(Object.keys(parseLayouts('not json')), [])
   const kept = parseLayouts(JSON.stringify({ рабочая: { saved_at: 'x', placements: [{ window: 'main', area: 'left' }, { window: 'rm', area: 'left' }, { window: 'ceo', area: 'sideways' }] }, 'a/b': { placements: [] } }))
   assert.deepEqual(Object.keys(kept), ['рабочая'])
   assert.equal(kept['рабочая'].placements.length, 1)
@@ -93,6 +94,7 @@ function setup(over = {}) {
   })
   const placedDash = []
   const linked = []
+  const dash = { rect: over.dashAt === undefined ? { x: 10, y: 40, width: 800, height: 600 } : over.dashAt }
   const dashboards = createDashboardsPort({
     services: () => [
       { key: 'nika-agent.default', name: 'Ника', summary: 'Организационный агент команды', placement: 'local' },
@@ -102,8 +104,14 @@ function setup(over = {}) {
     ],
     openExternal: async (link) => { if (over.openFails) throw new Error('no handler'); linked.push(link) },
     trusted: () => over.trusted ?? true,
-    osascript: async (script) => { placedDash.push(script); return script.includes('return') ? '10,20,800,600' : '' },
-    platform: 'darwin'
+    osascript: async (script) => {
+      placedDash.push(script)
+      if (over.osaFails) throw over.osaFails
+      const pos = /set position of window 1 to \{(-?\d+), (-?\d+)\}/.exec(script), size = /set size of window 1 to \{(\d+), (\d+)\}/.exec(script)
+      if (pos && size) dash.rect = { x: +pos[1], y: +pos[2], width: +size[1], height: +size[2] }
+      return script.includes('return') ? (dash.rect ? `${dash.rect.x},${dash.rect.y},${dash.rect.width},${dash.rect.height}` : '') : ''
+    },
+    platform: 'darwin', sleep: async () => {}
   })
   let saved = {}
   const ops = createCeoOperations({
@@ -124,7 +132,7 @@ function setup(over = {}) {
     layouts: { read: () => saved, write: (all) => { saved = JSON.parse(JSON.stringify(all)) } },
     now: () => new Date('2026-11-19T20:00:00Z')
   })
-  return { ops, main, sessions, consoles, records, opened, linked, placedDash, get ceo() { return ceo }, get saved() { return saved } }
+  return { ops, main, sessions, consoles, records, opened, linked, placedDash, dash, get ceo() { return ceo }, set ceo(v) { ceo = v }, get saved() { return saved } }
 }
 
 test('windows: Fabric\'s own windows with their screens, the consoles with their projects, the screens counted', async () => {
@@ -135,7 +143,9 @@ test('windows: Fabric\'s own windows with their screens, the consoles with their
   assert.equal(r.windows[1].project, 'App')
   assert.equal(r.windows[0].screen, 2, 'main stands on the built-in screen, the second from the left')
   assert.deepEqual(r.screens.map((s) => s.screen), [1, 2])
-  assert.equal(r.dashboards_window.open, true)
+  assert.equal(r.dashboards_window.open, null, 'ER-7: a listing never asks macOS; before the first move it cannot tell')
+  await o.ops.run('dashboard_open', { dashboard: 'growth', area: 'left', reason: 'move it once' })
+  assert.equal((await o.ops.run('windows', {})).dashboards_window.open, true)
 })
 
 test('close: a console\'s window goes, its session keeps running; a project\'s, all; exactly one scope', async () => {
@@ -149,6 +159,10 @@ test('close: a console\'s window goes, its session keeps running; a project\'s, 
   assert.equal((await o.ops.run('window_close', { reason: 'nothing named here' })).ok, false)
   assert.equal((await o.ops.run('window_close', { all: true, project: 'App', reason: 'two scopes named' })).ok, false)
   assert.ok(o.records.some(([op]) => op === 'ceo.window.close'))
+  // PL-7: the closed console is listed running, and opening it again opens that same session.
+  const listed = await o.ops.run('sessions', {})
+  assert.equal(listed.fabric_consoles.find((c) => c.session_id === 's1').running, true)
+  assert.equal((await o.ops.run('open', { session_id: 's1', reason: 'the owner wants it back' })).opened, 's1')
 })
 
 test('layout: «console App left, dashboards right» opens the newest App console and puts each on its half', async () => {
@@ -165,23 +179,29 @@ test('layout: «console App left, dashboards right» opens the newest App consol
 
 test('layout: windows named without an area share their screen; full screen; a screen not here is said', async () => {
   const o = setup()
-  const r = await o.ops.run('window_layout', { place: [{ window: 's1' }, { window: 's3' }, { window: 'main' }], display: 1, reason: 'the owner asked for three windows on the big screen' })
+  const r = await o.ops.run('window_layout', { place: [{ window: 's1' }, { window: 's3' }, { window: 'main' }], display: '1', reason: 'the owner asked for three windows on the big screen' })
   assert.equal(r.ok, true)
   assert.deepEqual(o.sessions.get('s1').bounds, areaRect(LEFT.workArea, 'left-third'))
   assert.deepEqual(o.main.bounds, areaRect(LEFT.workArea, 'right-third'))
   await o.ops.run('window_layout', { place: [{ window: 'ceo', area: 'fullscreen' }], reason: 'the owner asked for the CEO full screen' })
   assert.equal(o.ceo.full, true, 'the CEO window was opened and put in full screen')
-  const missing = await o.ops.run('window_layout', { place: [{ window: 'main', display: 5 }], reason: 'a fifth screen' })
-  assert.equal(missing.ok, false)
-  assert.equal(missing.placed[0].reason, 'no such screen on this computer')
+  const missing = await o.ops.run('window_layout', { place: [{ window: 'main', display: '5' }], reason: 'a fifth screen' })
+  assert.equal(missing.ok, true, 'ER-12: a screen this computer lacks falls back to the primary one')
+  assert.equal(missing.placed[0].moved_to, 2)
   assert.equal((await o.ops.run('window_layout', { place: [{ window: 'nothing-like-it' }], reason: 'a word that names nothing' })).ok, false)
+  // A project named like the app is its console, never the main window.
+  const fabricProject = setup()
+  fabricProject.consoles.set('f1', { sessionId: 'f1', projectId: 'p1', cwd: '/d/app', optionId: 'claude-code', state: 'running', running: true, lastActivityAt: '9', tail: '' })
+  await fabricProject.ops.run('window_layout', { place: [{ window: 'App', area: 'left' }], display: 'primary', reason: 'the owner named the project' })
+  assert.deepEqual(fabricProject.opened, ['f1'])
 })
 
 test('layout: saved by name and put back; a console that ended gives its place to its project\'s running one', async () => {
   const o = setup()
   await o.ops.run('window_layout', { place: [{ window: 's1', area: 'left' }, { window: 'main', area: 'right' }], display: 'primary', save_as: 'Рабочая', reason: 'the owner keeps this arrangement' })
   assert.deepEqual(Object.keys(o.saved), ['рабочая'])
-  assert.equal(o.saved['рабочая'].placements[0].project_id, 'p1')
+  assert.equal(o.saved['рабочая'].placements.find((x) => x.window === 'session').project_id, 'p1')
+  assert.equal(o.saved['рабочая'].placements.find((x) => x.window === 'session').display, 2, 'UX-8: the screen it went to is kept')
   o.consoles.get('s1').running = false
   o.main.bounds = { x: 0, y: 0, width: 10, height: 10 }
   const back = await o.ops.run('window_layout', { restore: 'рабочая', reason: 'the owner asked for the working layout' })
@@ -208,6 +228,8 @@ test('dashboards: «Нику» finds Ника, the agent before its showcase; a 
   assert.match(o.placedDash.at(-1), /AXFullScreen" of window 1 to true/)
   assert.equal(full.placed.ok, true)
   assert.equal((await o.ops.run('dashboard_open', { dashboard: 'zzzz qqqq', reason: 'nothing like it' })).ok, false)
+  assert.equal((await o.ops.run('dashboard_open', { dashboard: 'X', reason: 'one letter' })).ok, false, 'ER-4')
+  assert.equal((await o.ops.run('dashboard_open', { dashboard: 'Zebra growth', reason: 'one word of two' })).ok, false, 'ER-4: every word must match')
 })
 
 test('dashboards: a link the app would not take, and a move macOS has not allowed, are said, never a success', async () => {
@@ -215,8 +237,9 @@ test('dashboards: a link the app would not take, and a move macOS has not allowe
   assert.match((await o.ops.run('dashboard_open', { dashboard: 'growth', reason: 'the owner asked for Growth' })).reason, /did not take the link/)
   const t = setup({ trusted: false })
   const r = await t.ops.run('dashboard_open', { dashboard: 'growth', area: 'left', reason: 'the owner asked for Growth on the left' })
-  assert.equal(r.ok, true, 'the dashboard opened')
-  assert.equal(r.placed.ok, false)
+  assert.equal(r.opened.key, 'sshlg-growth.default', 'the dashboard opened')
+  assert.equal(r.ok, false, 'ER-5: the move asked for was not made')
+  assert.equal(r.partial, true)
   assert.match(r.placed.reason, /Accessibility/)
 })
 
@@ -228,7 +251,94 @@ test('an Apple Event macOS held for its own question is said as the Automation s
   assert.match(r.reason, /Automation/)
   const off = createDashboardsPort({ services: () => [], openExternal: async () => {}, trusted: () => true, platform: 'linux' })
   assert.equal((await off.place({ fullScreen: true })).ok, false)
-  assert.equal(await off.bounds(), null)
+  assert.equal((await off.window(true)).known, false)
+  // DO-1, ER-6: the real runner's kill at its deadline is a timeout, said as the Automation step.
+  const slow = createDashboardsPort({ services: () => [], openExternal: async () => {}, trusted: () => true, platform: 'darwin',
+    osascript: async () => { throw new OsascriptTimeout('osascript did not answer in time') } })
+  const t = await slow.place({ fullScreen: true })
+  assert.match(t.reason, /Automation/)
+  assert.ok(!/tell application/.test(t.reason))
+})
+
+test('DO-1, ER-6: the osascript runner turns a kill at its deadline into a timeout, never the script text', async () => {
+  const { runOsascript } = await import('../src/main/ceoWindows.ts')
+  await assert.rejects(runOsascript('delay 3', 300), (e) => e instanceof OsascriptTimeout && !/delay/.test(e.message))
+})
+
+test('UX-1, UX-2: the owner\'s words name one dashboard or are asked about; a description never chooses one', () => {
+  const reg = [
+    { key: 'frame-agent.default', name: 'Frame Agent', summary: 'video', placement: 'local' },
+    { key: 'frame-agent.cloud', name: 'Org Frame Agent', summary: 'video', placement: 'remote' },
+    { key: 'analytics.default', name: 'Analytics agent', summary: 'metrics', placement: 'remote' },
+    { key: 'pulse.default', name: 'World Pulse', summary: 'Аналитик мира для агентов', placement: 'local' },
+    { key: 'nika-agent.default', name: 'Ника', summary: 'PM', placement: 'local' },
+    { key: 'studio-showcase.nika-agent', name: 'Ника (витрина)', summary: 'Снимок дашборда Ники', placement: 'remote' },
+    { key: 'bot-a.default', name: 'Shop bot', summary: '', placement: 'local' },
+    { key: 'bot-b.default', name: 'Shop helper', summary: '', placement: 'local' }
+  ]
+  const pick = (q) => { const r = pickDashboard(reg, q); return r.found ? r.found.key : r.ambiguous ? r.ambiguous.map((d) => d.key) : null }
+  assert.equal(pick('Frame Agent'), 'frame-agent.default', 'the owner\'s own copy before an organisation\'s')
+  assert.equal(pick('Фрейм агент'), 'frame-agent.default', 'Cyrillic sounds out the Latin name')
+  assert.equal(pick('открой аналитику'), 'analytics.default', 'not World Pulse, whose description says «Аналитик»')
+  assert.equal(pick('дашборд Ники'), 'nika-agent.default', 'a filler word gives the showcase nothing')
+  assert.deepEqual(pick('Shop'), ['bot-a.default', 'bot-b.default'], 'a tie is asked about')
+  assert.equal(pick('открой'), null)
+})
+
+test('PL-1: «open one window, then the second» puts the second beside the first; a named area is kept by the next call', async () => {
+  const o = setup()
+  await o.ops.run('window_layout', { place: [{ window: 's1' }], reason: 'the owner asked for the first console' })
+  assert.deepEqual(o.sessions.get('s1').bounds, areaRect(MAIN.workArea, 'full'))
+  await o.ops.run('window_layout', { place: [{ window: 's3' }], reason: 'and the second' })
+  assert.deepEqual(o.sessions.get('s1').bounds, areaRect(MAIN.workArea, 'left'), 'the first moved aside')
+  assert.deepEqual(o.sessions.get('s3').bounds, areaRect(MAIN.workArea, 'right'))
+  // One with an area, one without: the second takes what the first leaves.
+  const p = setup()
+  await p.ops.run('window_layout', { place: [{ window: 's1', area: 'left' }, { window: 's3' }], reason: 'left, and the other' })
+  assert.deepEqual(p.sessions.get('s3').bounds, areaRect(MAIN.workArea, 'right'))
+  await p.ops.run('window_layout', { place: [{ window: 'main' }], reason: 'and Fabric too' })
+  assert.deepEqual(p.sessions.get('s1').bounds, areaRect(MAIN.workArea, 'left'), 'a named area stays')
+  const shared = [p.sessions.get('s3').bounds, p.main.bounds]
+  assert.deepEqual(shared, [areaRect(MAIN.workArea, 'top-right'), areaRect(MAIN.workArea, 'bottom-right')])
+  // Past what a screen holds apart, the answer says they overlap.
+  const r = await p.ops.run('window_layout', { place: [{ window: 's1', area: 'left' }, { window: 's3', area: 'right' }, { window: 'main' }], reason: 'three on two halves' })
+  assert.equal(r.placed.find((x) => x.window === 'main').overlaps, true)
+  assert.deepEqual(fitAreas(MAIN.workArea, ['left'], 1).areas, ['right'])
+})
+
+test('PL-2: windows named together go to one screen, the first Fabric window\'s, though Fabric Dashboards stands on the other', async () => {
+  const o = setup({ dashAt: { x: -1500, y: 100, width: 900, height: 700 } })
+  await o.ops.run('dashboard_open', { dashboard: 'growth', reason: 'reach it once' })
+  o.sessions.get('s1').bounds = { x: 50, y: 60, width: 600, height: 500 }
+  const r = await o.ops.run('window_layout', { place: [{ window: 's1', area: 'left' }, { window: 'dashboards', area: 'right' }], reason: 'console left, dashboard right' })
+  assert.equal(r.ok, true, JSON.stringify(r))
+  const right = areaRect(MAIN.workArea, 'right')
+  assert.deepEqual(o.dash.rect, right, 'the dashboard came to the console\'s screen')
+  assert.deepEqual(o.sessions.get('s1').bounds, areaRect(MAIN.workArea, 'left'))
+})
+
+test('ER-1: «CEO left, Fabric right»: the CEO window, the main window\'s child, ends where it was asked', async () => {
+  const o = setup()
+  o.ceo = win('CEO', { x: 600, y: 300, width: 520, height: 720 })
+  // macOS moves a child window with its parent: the fake does too.
+  const setMain = o.main.setBounds
+  o.main.setBounds = (b) => { const dx = b.x - o.main.bounds.x, dy = b.y - o.main.bounds.y; setMain(b); o.ceo.bounds = { ...o.ceo.bounds, x: o.ceo.bounds.x + dx, y: o.ceo.bounds.y + dy } }
+  await o.ops.run('window_layout', { place: [{ window: 'ceo', area: 'left' }, { window: 'main', area: 'right' }], display: 'primary', reason: 'CEO left, Fabric right' })
+  assert.deepEqual(o.ceo.bounds, areaRect(MAIN.workArea, 'left'))
+  assert.deepEqual(o.main.bounds, areaRect(MAIN.workArea, 'right'))
+})
+
+test('ER-2, ER-3, PL-3: a bad name moves nothing; a restore that put nothing back is no success; a place opens the dashboard it names', async () => {
+  const o = setup()
+  const before = { ...o.main.bounds }
+  assert.equal((await o.ops.run('window_layout', { place: [{ window: 'main', area: 'left' }], save_as: 'work/1', reason: 'a name with a slash' })).ok, false)
+  assert.deepEqual(o.main.bounds, before)
+  o.saved['мёртвая'] = { saved_at: '2026-11-19T00:00:00Z', placements: [{ window: 'session', session_id: 'gone', project_id: 'p9', area: 'left' }] }
+  const r = await o.ops.run('window_layout', { restore: 'мёртвая', reason: 'its consoles ended' })
+  assert.equal(r.ok, false)
+  const both = await o.ops.run('window_layout', { place: [{ window: 's1', area: 'left' }, { window: 'dashboards', dashboard: 'Ника', area: 'right' }], display: 'primary', reason: 'console left, Nika right' })
+  assert.equal(both.ok, true, JSON.stringify(both))
+  assert.equal(o.linked.at(-1), 'fabric-dashboards://service/nika-agent.default?path=%2F')
 })
 
 test('the AppleScript carries numbers only, and the bounds it answers read back', () => {
@@ -253,4 +363,48 @@ test('without a window system every window tool refuses, never answers as if it 
   })
   for (const [name, args] of [['windows', {}], ['window_close', { all: true, reason: 'x x x' }], ['window_layout', { save_as: 'a', reason: 'x x x' }], ['dashboards', {}], ['dashboard_open', { dashboard: 'a', reason: 'x x x' }]])
     assert.equal((await ops.run(name, args)).ok, false, name)
+})
+
+test('DA-2, DA-4: a name an object answers for is no layout; a stored placement is rebuilt from its checked fields; at most 50', async () => {
+  assert.equal(layoutName('__proto__'), null)
+  assert.equal(layoutName('Constructor'), null)
+  const kept = parseLayouts(JSON.stringify({ a: { saved_at: '2026-11-19T00:00:00Z', placements: [{ window: 'session', session_id: { evil: 'x' }, project_id: 42, display: 'zz', extra: 'kept', area: 'left' }, { window: 'session', session_id: 's-1', project_id: 'p-1', display: 2, area: 'right' }] } }))
+  assert.deepEqual(kept.a.placements, [{ window: 'session', area: 'right', display: 2, session_id: 's-1', project_id: 'p-1' }])
+  const many = {}
+  for (let i = 0; i < 60; i++) many[`l${i}`] = { saved_at: new Date(Date.UTC(2026, 0, 1, 0, i)).toISOString(), placements: [{ window: 'main', area: 'left' }] }
+  const bounded = parseLayouts(JSON.stringify(many))
+  assert.equal(Object.keys(bounded).length, 50)
+  assert.ok(!('l0' in bounded) && 'l59' in bounded, 'the oldest go first')
+  assert.deepEqual(Object.keys(parseLayouts('x'.repeat(300 * 1024))), [])
+  const o = setup()
+  const r = await o.ops.run('window_layout', { restore: 'constructor', reason: 'a name objects answer for' })
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /no layout/)
+})
+
+test('DA-1, DA-5: an editor is named by its file only; a failed save answers its code, the message stays in the record', async () => {
+  const records = []
+  const mainWin = win('Fabric', { x: 0, y: 40, width: 700, height: 900 })
+  const ops = createCeoOperations({
+    ptys: { list: () => [], get: () => null, scrollbackOf: () => null, write: () => {} }, ceoSessionId: () => null,
+    projects: async () => [], admitFolder: async () => ({}), openConsole: async () => ({}), stop: async () => ({}), openWindow: () => {},
+    switchboard: async () => null, signal: () => {}, record: (op, d) => records.push([op, d]), note: () => {}, sleep: async () => {},
+    windows: createWindowsPort({ main: () => mainWin, ceo: () => null, sessions: () => new Map(), files: () => new Map([['/home/u/secret/.env', win('/home/u/secret/.env', { x: 0, y: 0, width: 10, height: 10 })]]),
+      displays: () => [MAIN], openMain() {}, openCeo() {}, openSession() {} }),
+    layouts: { read: () => ({}), write: () => { throw Object.assign(new Error('EACCES: permission denied, open \'/home/u/data/window-layouts.json\''), { code: 'EACCES' }) } }
+  })
+  const w = await ops.run('windows', {})
+  const editor = w.windows.find((x) => x.kind === 'editor')
+  assert.equal(editor.file, '.env')
+  assert.equal(editor.title, undefined)
+  assert.ok(!JSON.stringify(w).includes('/home/u'))
+  const saved = await ops.run('window_layout', { save_as: 'a', reason: 'keep it' })
+  assert.equal(saved.ok, false)
+  assert.equal(saved.reason, 'the layout could not be kept (EACCES)')
+  assert.match(JSON.stringify(records), /permission denied/)
+  const port = createDashboardsPort({ services: () => [], openExternal: async () => {}, trusted: () => true, platform: 'darwin',
+    osascript: async () => { throw new Error('/Users/someone/x: execution error: Can’t get window 1. (-1719)') } })
+  const r = await port.place({ fullScreen: true })
+  assert.ok(!r.reason.includes('/Users/'), r.reason)
+  assert.match(r.reason, /-1719/)
 })

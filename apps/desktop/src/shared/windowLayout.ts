@@ -1,4 +1,4 @@
-// #region ceo-window-layout — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#the-session-control-tools
+// #region ceo-window-layout — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-3-2026-11-19-the-ceo-closes-and-arranges-windows-and-opens-dashboards
 /**
  * Where a window goes when the owner says so (board requests 07db5c30 and 26989d91, the owner, 2026-11-19: «открой одно
  * окно, второе», halves, the whole screen). Pure: a display's work area and a named area give a rectangle; a number of
@@ -58,6 +58,49 @@ export function autoAreas(n: number): WindowArea[] {
   return Array.from({ length: n }, (_, i) => grid[i % 4])
 }
 
+/** The areas windows share; `full`, `fullscreen` and `center` take a screen alone. */
+const SHARED_AREAS: WindowArea[] = ['left', 'right', 'top', 'bottom', 'left-third', 'center-third', 'right-third', 'left-two-thirds', 'right-two-thirds', 'top-left', 'top-right', 'bottom-left', 'bottom-right']
+const overlap = (a: Rect, b: Rect) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+/** The order a tie keeps: halves before thirds before quarters, left before right (the order the owner reads). */
+const PREFER = (a: WindowArea) => SHARED_AREAS.indexOf(a)
+
+/**
+ * Areas for `k` windows beside the ones that keep `fixed`, on one screen: none of them covers another or a fixed one,
+ * and together they take as much of the screen as can be (PL-1: «открой одно окно, второе» puts the second beside the
+ * first). `overlaps` is true when no such areas exist (more windows than a screen holds apart): the windows then take
+ * `autoAreas` and the caller says so.
+ */
+export function fitAreas(work: Rect, fixed: readonly WindowArea[], k: number): { areas: WindowArea[]; overlaps: boolean } {
+  if (k <= 0) return { areas: [], overlaps: false }
+  const taken = fixed.map((a) => areaRect(work, a))
+  if (fixed.length === 0 && k <= 4) return { areas: autoAreas(k), overlaps: false }
+  const free = SHARED_AREAS.filter((a) => !taken.some((t) => overlap(t, areaRect(work, a))))
+  let best: WindowArea[] | null = null
+  let bestArea = -1
+  let bestOrder = Infinity
+  const pick = (start: number, chosen: WindowArea[]): void => {
+    if (chosen.length === k) {
+      const rects = chosen.map((a) => areaRect(work, a))
+      const total = rects.reduce((s, r) => s + r.width * r.height, 0)
+      const order = chosen.reduce((s, a) => s * 16 + PREFER(a), 0)
+      if (total > bestArea || (total === bestArea && order < bestOrder)) { best = [...chosen]; bestArea = total; bestOrder = order }
+      return
+    }
+    for (let i = start; i < free.length; i++) {
+      const r = areaRect(work, free[i])
+      if (chosen.some((c) => overlap(areaRect(work, c), r))) continue
+      chosen.push(free[i]); pick(i + 1, chosen); chosen.pop()
+    }
+  }
+  pick(0, [])
+  if (best) {
+    // Left to right, then top to bottom: the first window named takes the leftmost place.
+    const sorted = (best as WindowArea[]).sort((a, b) => { const ra = areaRect(work, a), rb = areaRect(work, b); return ra.x - rb.x || ra.y - rb.y })
+    return { areas: sorted, overlaps: false }
+  }
+  return { areas: autoAreas(k + fixed.length).slice(fixed.length, fixed.length + k).concat(autoAreas(k)).slice(0, k), overlaps: true }
+}
+
 /** The displays in the order the owner counts them: left to right, then top to bottom; the first is «1». */
 export function orderedDisplays<D extends DisplayLike>(displays: readonly D[]): D[] {
   return [...displays].sort((a, b) => a.bounds.x - b.bounds.x || a.bounds.y - b.bounds.y)
@@ -114,27 +157,62 @@ export interface SavedPlacement { window: 'main' | 'ceo' | 'dashboards' | 'sessi
 export interface SavedLayouts { [name: string]: { saved_at: string; placements: SavedPlacement[] } }
 
 const NAME = /^[\p{L}\p{N} _-]{1,40}$/u
+/** Names an object already answers for: never a layout's (0.3.26 review, DA-2). */
+const RESERVED = new Set(['__proto__', 'constructor', 'prototype', 'hasownproperty', 'tostring', 'valueof'])
+/** At most this many layouts are kept; the oldest go first. */
+export const MAX_LAYOUTS = 50
+/** A layouts file larger than this is not read (the owner's few layouts are a few kilobytes). */
+export const MAX_LAYOUTS_BYTES = 256 * 1024
 /** A layout's name as the owner says it, trimmed and in lower case so «Рабочая» and «рабочая» are one layout. */
 export function layoutName(name: string): string | null {
   const n = name.trim().toLowerCase().replace(/\s+/g, ' ')
-  return NAME.test(n) ? n : null
+  return NAME.test(n) && !RESERVED.has(n) ? n : null
 }
 
-/** Saved layouts read back: anything that is not a layout is dropped, never trusted. */
-export function parseLayouts(text: string): SavedLayouts {
-  let raw: unknown
-  try { raw = JSON.parse(text) } catch { return {} /* an unreadable file holds no layout; the next save writes it whole */ }
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
-  const out: SavedLayouts = {}
-  for (const [name, v] of Object.entries(raw as Record<string, unknown>)) {
-    if (!layoutName(name) || !v || typeof v !== 'object') continue
-    const placements = (v as { placements?: unknown }).placements
-    if (!Array.isArray(placements)) continue
-    const ok = placements.filter((p): p is SavedPlacement => !!p && typeof p === 'object'
-      && ['main', 'ceo', 'dashboards', 'session'].includes((p as SavedPlacement).window)
-      && (WINDOW_AREAS as readonly string[]).includes((p as SavedPlacement).area))
-    if (ok.length) out[name] = { saved_at: String((v as { saved_at?: unknown }).saved_at ?? ''), placements: ok.slice(0, 12) }
+const ID = /^[A-Za-z0-9-]{1,128}$/
+/** One placement rebuilt from its checked fields only; null when its window or area is not one of ours. */
+function placementOf(p: unknown): SavedPlacement | null {
+  if (!p || typeof p !== 'object') return null
+  const x = p as Record<string, unknown>
+  if (typeof x.window !== 'string' || !['main', 'ceo', 'dashboards', 'session'].includes(x.window)) return null
+  if (typeof x.area !== 'string' || !(WINDOW_AREAS as readonly string[]).includes(x.area)) return null
+  const out: SavedPlacement = { window: x.window as SavedPlacement['window'], area: x.area as WindowArea }
+  if (typeof x.display === 'number' && Number.isInteger(x.display) && x.display >= 1 && x.display <= 8) out.display = x.display
+  else if (x.display === 'primary' || x.display === 'other') out.display = x.display
+  if (out.window === 'session') {
+    out.session_id = typeof x.session_id === 'string' && ID.test(x.session_id) ? x.session_id : undefined
+    out.project_id = typeof x.project_id === 'string' && ID.test(x.project_id) ? x.project_id : null
+    if (!out.session_id && !out.project_id) return null
   }
   return out
+}
+
+/** Keep the newest `MAX_LAYOUTS`, by when each was saved. */
+export function boundLayouts(all: SavedLayouts): SavedLayouts {
+  const names = Object.keys(all)
+  if (names.length <= MAX_LAYOUTS) return all
+  const keep = names.sort((a, b) => all[b].saved_at.localeCompare(all[a].saved_at)).slice(0, MAX_LAYOUTS)
+  const out: SavedLayouts = Object.create(null)
+  for (const n of keep) out[n] = all[n]
+  return out
+}
+
+/** Saved layouts read back: anything that is not a layout is dropped, never trusted, and each placement is rebuilt
+ *  from its checked fields (0.3.26 review, DA-2, DA-4). The result has no prototype, so no name reaches Object's. */
+export function parseLayouts(text: string): SavedLayouts {
+  const out: SavedLayouts = Object.create(null)
+  if (text.length > MAX_LAYOUTS_BYTES) return out
+  let raw: unknown
+  try { raw = JSON.parse(text) } catch { return out /* an unreadable file holds no layout; the next save writes it whole */ }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out
+  for (const [name, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (layoutName(name) !== name || !v || typeof v !== 'object') continue
+    const placements = (v as { placements?: unknown }).placements
+    if (!Array.isArray(placements)) continue
+    const ok = placements.slice(0, 12).map(placementOf).filter((p): p is SavedPlacement => p !== null)
+    const at = (v as { saved_at?: unknown }).saved_at
+    if (ok.length) out[name] = { saved_at: typeof at === 'string' && !Number.isNaN(Date.parse(at)) ? at : '', placements: ok }
+  }
+  return boundLayouts(out)
 }
 // #endregion ceo-window-layout

@@ -14,11 +14,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   CEO tools, also in the voice call: `fabric_ceo_windows` (the open windows and the screens, counted left to right),
   `fabric_ceo_window_close` (a console's window, a project's or all; the sessions keep running and open again with
   their screen), `fabric_ceo_window_layout` (halves, thirds, quarters, the whole screen or macOS full screen, on
-  screen 1, 2 or the other; a layout kept by name and put back), `fabric_ceo_dashboards` and
-  `fabric_ceo_dashboard_open` (a dashboard found by the owner's words, opened in Fabric Dashboards, switched, put full
-  screen). Fabric Dashboards' window moves through System Events: macOS asks the person once (Accessibility and
-  Automation), and until then the dashboard still opens and the move says why (`main/ceoWindows.ts`; ADR-0197
-  amendment 3).
+  screen 1, 2 or the other; «открой одно окно, второе» puts the second beside the first; a layout kept by name and put
+  back), `fabric_ceo_dashboards` and `fabric_ceo_dashboard_open` (a dashboard named by the owner's words, Russian or
+  English, opened in Fabric Dashboards, switched, put full screen; words that fit several are asked about). Fabric
+  Dashboards' window moves through System Events: macOS asks the owner once each for Accessibility and Automation, and
+  until then the dashboard still opens and the CEO says which permission is missing; both permissions cover Fabric as
+  a whole, its consoles' agents included (`main/ceoWindows.ts`, `docs/launch/ceo-setup.md` §5; ADR-0197 amendment 3).
 - **The CEO on the home screen is one small block at the top right, with the call in it.** The operator's review of
   2026-11-19: «Спросить CEO» filled the width under the header in large type. The header (greeting and rhythm) is back
   as it was, and the CEO card stands at its right: a two-line box (files pasted with ⌘V or Ctrl+V, dropped or picked),
