@@ -39,9 +39,10 @@ walk is Fabric's own.
 2. **The fallback is Fabric's, and it is mandatory.** The console walks the CEO's own order, settings `ceoRunners`
    (default: Claude Code, then Hermes on OpenRouter), with ADR-0125's walk: a runner not installed, signed out, not
    answering or that could not be spawned is passed over. Two cases the walk cannot see are caught after the start: a
-   runner that prints its usage limit (`main/ceoAgent.ts#LIMIT_SAID`) or its sign-in screen before its first answer, and one
+   runner that prints its usage limit (`main/ceoAgent.ts#LIMIT_SAID`) or its sign-in screen in its first 20 seconds or within 10 seconds after a line Fabric typed into it
+   (`REPLY_WINDOW_MS`), and one
    that ends within 20 seconds, are set aside for an hour, the next runner starts, and the person's undelivered messages
-   are typed again. Those screens are read only in the start window: later the CEO itself quotes sessions at their limit
+   are typed again. Those screens are read only in the start window and in the reply window after each typed line: at other times the CEO itself quotes sessions at their limit
    and the person's words are echoed, and neither is the runner's own state (0.3.24 review, ER-2). When every runner is
    set aside the CEO stops as failed, naming each runner, why and until when, and starts nothing until the person's
    retry or restart, which clears the list (ER-1, UX-4); a restart the keeper makes itself is never read as an early end

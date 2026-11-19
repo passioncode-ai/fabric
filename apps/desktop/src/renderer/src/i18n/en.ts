@@ -3584,7 +3584,7 @@ export const en = {
   'ceoAgent.call.why.unreachable': "xAI did not answer. Check the network and call again.",
   'ceoAgent.call.why.no-secret': "xAI gave no access to the call. Call again.",
   'ceoAgent.call.why.unavailable': "The call is not available right now. Call again later.",
-  'ceoAgent.call.why.microphone': "The microphone did not open. Allow Fabric to use it in macOS settings.",
+  'ceoAgent.call.why.microphone': "The microphone did not open. Allow Fabric to use it in the system settings.",
   'ceoAgent.call.why.connection': "The call's connection dropped. Call again.",
   'ceoAgent.call.why.timeout': "The call did not connect in time. Call again.",
   'ceoAgent.call.why.idle': "The call ended after three minutes of silence. Call again when you need to.",

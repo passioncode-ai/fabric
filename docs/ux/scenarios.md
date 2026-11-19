@@ -4592,7 +4592,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Steps:**
   1. Operator writes a request on Главная («какие сессии сейчас идут») and presses Enter -> the CEO window opens first, then the words are typed into the CEO's console, and the composer says «Отправлено CEO.».
   2. Operator pastes, drops or picks a picture or a file -> it is listed under the box by name and can be removed; on send it is saved in the CEO's inbox and the console line names its path, so the CEO opens it.
-  3. The CEO answers in its console, in Russian.
+  3. The CEO answers in its console, in the language of Fabric's interface (Russian or English, `shared/ceoAgent.ts#ceoBrief`).
 - **Expected result:** anything the operator can type or show reaches the CEO from the first screen.
 - **Alt paths:** Shift+Enter breaks the line instead of sending; a file over 25 MB is not attached and the composer says so; more than ten files keep the first ten.
 - **UI elements:** the home card (title, hint, box, «Приложить файл», «Отправить»); the popup's composer; attachment chips.
@@ -4620,7 +4620,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Alt paths:** two projects match the name -> the CEO asks which; a folder Fabric does not know -> it becomes a project; a session outside Fabric is ended through Switchboard, and its process is signalled only when the operator's order says to force it.
 - **UI elements:** none of its own: the CEO's console and the windows it opens.
 - **States covered:** success, refused, partial (Switchboard not read: the list says so)
-- **Errors & recovery:** every act needs a reason, is written to the operations log and, for a start or a stop, to История with its undo; the CEO never acts on its own console.
+- **Errors & recovery:** every act needs a reason, is written to the operations log and, for a start or a stop, to История with its undo, or with why it has none (a session Switchboard runs, `shared/acts.ts#WHY_NOT` `outside_fabric`); the CEO never acts on its own console.
 - **Design rationale:** the operator, 2026-11-18: «Решать все вопросы - это значит менеджмент сессий: смотреть, что происходит в сессиях, отвечать на какие-то вопросы в сессиях, возможно что-то там нужно выбирать; открывать, закрывать, приоткрывать, запускать».
 - **Telemetry:** ops log `ceo.session.*`.
 - **Status:** implemented (2026-11-18, ADR-0197).

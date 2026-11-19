@@ -35743,7 +35743,7 @@
       "registry_status": "implemented (2026-11-18, ADR-0197).",
       "product_observation": "unobserved",
       "expected_result": "the operator manages every session by talking to the CEO, without another window.",
-      "errors_recovery": "every act needs a reason, is written to the operations log and, for a start or a stop, to История with its undo; the CEO never acts on its own console.",
+      "errors_recovery": "every act needs a reason, is written to the operations log and, for a start or a stop, to История with its undo, or with why it has none (a session Switchboard runs, `shared/acts.ts#WHY_NOT` `outside_fabric`); the CEO never acts on its own console.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 4607

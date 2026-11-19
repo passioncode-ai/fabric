@@ -156,4 +156,25 @@ watched failing on the old code; the CEO's key moved out of its own folder (DA-1
 
 ## Iteration 3
 
-To be run on the candidate after iteration 2's fixes.
+Candidate `f69917e015f43c2dacd1ab8f6fb2afe1528908c7`. Every iteration-2 finding is fixed or ruled to CO-597 at every
+level. 9 new findings, 2 blocking, one defect seen twice (ER-23 and DO-21): the reply window of iteration 2's DO-15 fix
+was in the code but not in the CHANGELOG, ADR-0197 decision 2, the AGENTS.md CEO row and the header of
+`main/ceoAgent.ts`, which still said a limit counts only before the first answer. Fixed in the commit
+«fix(release): 0.3.24 review iteration 3», with ER-25 (a key across the 200-character cut of a console's last line,
+now redacted before the cut; test `DA-13 / ER-25` watched failing on the old line), DA-13 (that test) and DO-22
+(SCN-182 names the interface's language, SCN-183 an act with no undo). Iteration 2's summary overstated two things
+(PL-19): DA-10's fix had no test until DA-13, and DO-18 was half done until DO-22. The local `ci.sh fast` on the
+candidate also found `ceoAgent.call.why.microphone` naming macOS on every platform (`platformWords.test.ts`); the
+string now names the system settings (the copy check: en `92b4d920`, ru `d101d3f7`, no finding).
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-DA-13 | DA-13 | non-blocking | fixed: test `DA-13 / ER-25` in `test/ceo-agent.test.mjs` |
+| V3-DO-21 | DO-21 | blocking | fixed: CHANGELOG, ADR-0197 decision 2, AGENTS.md CEO row |
+| V3-DO-22 | DO-22 | non-blocking | fixed: `docs/ux/scenarios.md` SCN-182, SCN-183 |
+| V3-ER-23 | ER-23 | blocking | fixed: the same texts and the `main/ceoAgent.ts` header |
+| V3-ER-24 | ER-24 | non-blocking | ruled: CO-597 (a limit quoted by a tool within the 10 s reply window) |
+| V3-ER-25 | ER-25 | non-blocking | fixed: `main/ceoTools.ts` `consoleRow` redacts before the cut |
+| V3-PL-19 | PL-19 | non-blocking | fixed: this paragraph |
+| V3-UX-22 | UX-22 | non-blocking | ruled: CO-597 (the act words for a Switchboard session) |
+| V3-UX-23 | UX-23 | non-blocking | ruled: CO-597 (the same case as ER-24, seen by the person) |

@@ -8,7 +8,8 @@
  * THE FALLBACK IS FABRIC'S (the operator, 2026-11-18: mandatory). The console walks the CEO's own order (Claude Code,
  * then Hermes on OpenRouter; only these two can be CEO runners, `shared/ceoAgent.ts#CEO_RUNNERS_KNOWN`, settings
  * `ceoRunners`): a runner that is not installed, is signed out or could not be spawned is passed over (ADR-0125's walk).
- * A runner that, in its start window (its first 20 seconds), shows a usage limit or a sign-in screen, or ends, is set
+ * A runner that, in its start window (its first 20 seconds) or in the 10 seconds after a line Fabric typed into it
+ * (`REPLY_WINDOW_MS`), shows a usage limit or a sign-in screen, or that ends in its start window, is set
  * aside for an hour and the next one is started, the person's messages typed into the lost console typed again, each
  * at most once. When every runner is set aside the CEO stops as failed and walks none of them again until the set-aside
  * time passes or the person retries or restarts it (0.3.24 review, ER-1). Which runner answers is in the status the
@@ -386,7 +387,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** Until when the runner's answer to the line Fabric typed last is read (REPLY_WINDOW_MS). */
   let replyUntil = 0
   /** The console's output, as the terminal manager hands it on. ER-2 / UX-1: only the runner's own start screens set
-   *  it aside: a limit or a sign-in screen in its first `EARLY_END_MS`. Later output (the CEO quoting a session at its
+   *  it aside: a limit or a sign-in screen in its first `EARLY_END_MS` or in the `REPLY_WINDOW_MS` after a typed line. Other output (the CEO quoting a session at its
    *  limit, a tool's result) and the echo of text Fabric typed never do. */
   function onOutput(id: string, data: string): void {
     if (id !== sessionId) return

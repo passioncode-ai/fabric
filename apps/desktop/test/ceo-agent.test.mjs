@@ -285,6 +285,19 @@ test('read: a console\'s screen as text, or a Claude Code session\'s last turns 
   assert.equal((await t.ops.run('read', { session_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' })).ok, false)
 })
 
+test('DA-13 / ER-25: a console\'s last line reaches the CEO redacted, a key across the 200-character cut included', async () => {
+  const o = operations()
+  o.consoles.get('s1').tail = 'export ANTHROPIC_API_KEY=sk-ant-ABCDEFGHIJKLMNOPQRSTUV'
+  const whole = (await o.ops.run('sessions', {})).fabric_consoles.find((s) => s.session_id === 's1').last_line
+  assert.ok(!whole.includes('ABCDEFGHIJKLMNOPQRSTUV'), 'a key in the last line is redacted')
+  o.consoles.get('s1').tail = 'x '.repeat(95) + 'sk-ant-ABCDEFGHIJKLMNOPQRSTUV'
+  const cut = (await o.ops.run('sessions', {})).fabric_consoles.find((s) => s.session_id === 's1').last_line
+  assert.ok(cut.length <= 200)
+  assert.ok(!cut.includes('sk-ant-A'), 'no part of a key that the cut would split reaches the CEO')
+  const read = await o.ops.run('read', { session_id: 's1' })
+  assert.ok(!read.last_line.includes('sk-ant-A'))
+})
+
 test('input: text then Enter, or keys in order; never the CEO\'s own console, never an ended one, every act recorded', async () => {
   const o = operations()
   const r = await o.ops.run('input', { session_id: 's1', text: '2', reason: 'the owner chose option two' })

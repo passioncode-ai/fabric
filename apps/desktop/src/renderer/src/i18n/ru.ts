@@ -3447,7 +3447,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'ceoAgent.call.why.unreachable': "xAI не ответил. Проверьте сеть и позвоните ещё раз.",
   'ceoAgent.call.why.no-secret': "xAI не выдал доступ к звонку. Позвоните ещё раз.",
   'ceoAgent.call.why.unavailable': "Звонок сейчас недоступен. Позвоните ещё раз позже.",
-  'ceoAgent.call.why.microphone': "Микрофон не открылся. Разрешите Fabric доступ к микрофону в настройках macOS.",
+  'ceoAgent.call.why.microphone': "Микрофон не открылся. Разрешите Fabric доступ к микрофону в настройках системы.",
   'ceoAgent.call.why.connection': "Связь со звонком оборвалась. Позвоните ещё раз.",
   'ceoAgent.call.why.timeout': "Звонок не соединился вовремя. Позвоните ещё раз.",
   'ceoAgent.call.why.idle': "Звонок закончен: три минуты тишины. Позвоните снова, когда понадобится.",

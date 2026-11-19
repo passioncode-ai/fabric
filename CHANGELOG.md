@@ -25,8 +25,9 @@ back.
   The CEO is one console per computer in Fabric's data folder, with its own brief and the project «Fabric CEO». It runs
   on Claude Code with Opus, and falls back to Hermes on OpenRouter when Claude Code is not installed, is signed out,
   does not start, reports its usage limit or ends as it starts; the person's undelivered messages are typed again, and
-  the window's head says which agent answers and the first model of its list. A limit or sign-in screen counts only
-  before the runner's first answer, so the CEO quoting a session at its limit stays on its runner. When every runner is
+  the window's head says which agent answers and the first model of its list. A limit or sign-in screen counts in the
+  runner's first 20 seconds and for 10 seconds after each line Fabric types into it, so a limit met mid-work still moves
+  the CEO on, and the CEO quoting a session at its limit later stays on its runner. When every runner is
   set aside the CEO stops and says which runner, why and until when; «Попробовать снова» and «Перезапустить CEO» bring
   them back. Its models are Opus 5.5, then GPT-6.2 Sol, never below Sonnet 5.5
   (settings `ceoRunners` and `ceoModels`, set by hand).
