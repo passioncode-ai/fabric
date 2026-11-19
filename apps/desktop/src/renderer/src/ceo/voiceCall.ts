@@ -1,14 +1,20 @@
 // #region ceo-voice-call — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#the-voice-call
 /**
- * The CEO popup's voice call (ADR-0197 §4, board task e7ff5556): xAI's realtime socket, opened with the ephemeral
+ * The CEO popup's voice call (ADR-0197, the voice call, board task e7ff5556): xAI's realtime socket, opened with the ephemeral
  * secret main minted (`ceoAgent.voice`), never the key. The microphone is read at 24 kHz, sent as PCM16; the answer's
  * audio is played as it arrives and cut when the person speaks over it. A function call the model makes is run by
  * main (`ceoAgent.voiceTool`), with the gates the CEO's console has, and its answer is handed back before the model
  * speaks again. Pure of React; the socket and the audio are injected, so the protocol is tested without either.
  */
-import type { CeoVoiceSession } from '../../../shared/ceoAgent.ts'
+import type { CeoVoiceProblem, CeoVoiceSession } from '../../../shared/ceoAgent.ts'
 
 export type CallPhase = 'idle' | 'connecting' | 'listening' | 'speaking' | 'ended' | 'failed'
+
+/** Why a call failed, as a code the window words (0.3.24 review, ER-7): main's refusal, or the call's own. */
+export type CallProblem = CeoVoiceProblem | 'unavailable' | 'microphone' | 'connection' | 'timeout'
+
+/** How long the socket may take to open before the call fails (ER-4). */
+export const CONNECT_DEADLINE_MS = 15_000
 
 export interface CallLine { who: 'person' | 'ceo' | 'tool'; text: string }
 
@@ -38,7 +44,7 @@ export interface CallDeps {
   runTool(name: string, args: unknown): Promise<Record<string, unknown>>
   socket(url: string, protocols: string[]): SocketLike
   audio: CallAudio
-  onPhase(phase: CallPhase, problem?: string): void
+  onPhase(phase: CallPhase, problem?: CallProblem): void
   onLine(line: CallLine): void
   now?: () => number
 }
@@ -73,33 +79,62 @@ export function createCall(deps: CallDeps) {
   const pending = new Set<string>()
   let respondAfterTools = false
 
-  const set = (p: CallPhase, problem?: string): void => { phase = p; deps.onPhase(p, problem) }
+  /** Each start and each hang-up is a new generation: an await that comes back to an older one stops there (ER-4). */
+  let generation = 0
+  let deadline: ReturnType<typeof setTimeout> | null = null
+
+  const set = (p: CallPhase, problem?: CallProblem): void => { phase = p; deps.onPhase(p, problem) }
   const send = (o: Record<string, unknown>): void => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)) }
+  const clearDeadline = (): void => { if (deadline) { clearTimeout(deadline); deadline = null } }
+
+  /** End the call: the microphone, the socket and the deadline; `failed` with its code, else `ended`. */
+  function end(problem?: CallProblem): void {
+    generation++
+    clearDeadline()
+    deps.audio.stop()
+    const socket = ws
+    ws = null
+    if (socket) { try { socket.close() } catch { /* already closed: the call has ended either way */ } }
+    if (problem) set('failed', problem)
+    else if (phase !== 'failed') set('ended')
+  }
 
   async function start(): Promise<void> {
     if (phase === 'connecting' || phase === 'listening' || phase === 'speaking') return
+    const gen = ++generation
     set('connecting')
     let s: CeoVoiceSession
-    try { s = await deps.session() } catch (e) { set('failed', e instanceof Error ? e.message : String(e)); return }
-    if (!s.ok) { set('failed', s.reason); return }
+    try { s = await deps.session() } catch { if (gen === generation) end('unavailable'); return }
+    // Hung up while the secret was minted: no socket, no microphone.
+    if (gen !== generation) return
+    if (!s.ok) { end(s.reason); return }
     usdPerMinute = s.usdPerMinute
     const ready = s
+    let socket: SocketLike
     try {
-      ws = deps.socket(s.url, [`xai-client-secret.${s.token}`])
-    } catch (e) {
-      set('failed', e instanceof Error ? e.message : String(e))
+      socket = deps.socket(s.url, [`xai-client-secret.${s.token}`])
+    } catch {
+      end('connection')
       return
     }
-    ws.onopen = () => {
+    ws = socket
+    deadline = setTimeout(() => { if (gen === generation && phase === 'connecting') end('timeout') }, CONNECT_DEADLINE_MS)
+    socket.onopen = () => {
+      if (gen !== generation) { try { socket.close() } catch { /* closing a call already ended */ } return }
+      clearDeadline()
       send(sessionUpdate(ready))
       startedAt = now()
-      deps.audio.start((chunk) => send({ type: 'input_audio_buffer.append', audio: chunk }))
-        .then(() => { if (phase === 'connecting') set('listening') })
-        .catch((e: unknown) => { set('failed', `the microphone did not open: ${e instanceof Error ? e.message : String(e)}`); hangUp() })
+      deps.audio.start((chunk) => { if (gen === generation) send({ type: 'input_audio_buffer.append', audio: chunk }) })
+        .then(() => {
+          // The microphone opened after the hang-up: it is closed again at once.
+          if (gen !== generation) { deps.audio.stop(); return }
+          if (phase === 'connecting') set('listening')
+        })
+        .catch(() => { if (gen === generation) end('microphone') })
     }
-    ws.onerror = () => { if (phase !== 'ended') set('failed', 'the call\'s connection failed') }
-    ws.onclose = () => { deps.audio.stop(); if (phase !== 'failed') set('ended') }
-    ws.onmessage = (ev) => { void receive(typeof ev.data === 'string' ? ev.data : '') }
+    socket.onerror = () => { if (gen === generation && phase !== 'ended') end('connection') }
+    socket.onclose = () => { if (gen === generation) end() }
+    socket.onmessage = (ev) => { if (gen === generation) void receive(typeof ev.data === 'string' ? ev.data : '') }
   }
 
   async function receive(raw: string): Promise<void> {
@@ -172,12 +207,7 @@ export function createCall(deps: CallDeps) {
     send({ type: 'response.create' })
   }
 
-  function hangUp(): void {
-    deps.audio.stop()
-    if (ws) { try { ws.close() } catch { /* already closed: the call has ended either way */ } }
-    ws = null
-    if (phase !== 'failed') set('ended')
-  }
+  function hangUp(): void { end() }
 
   return {
     start, say, hangUp, receive,

@@ -2,11 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <!-- Hardened runtime for a Developer ID build. V8 compiles JavaScript at run time, so the
-       renderer and main processes need JIT; nothing else is granted. -->
+  <!-- Hardened runtime for a Developer ID build, and the one entitlements file of both the release and the local
+       build (electron-builder.yml, electron-builder.release.yml). V8 compiles JavaScript at run time, so the
+       renderer and main processes need JIT. -->
   <key>com.apple.security.cs.allow-jit</key>
   <true/>
   <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <true/>
+  <!-- ADR-0197, the voice call (docs/adr/0197-...#the-voice-call): the CEO popup's voice call reads the microphone;
+       the hardened runtime refuses it without this. -->
+  <key>com.apple.security.device.audio-input</key>
   <true/>
 </dict>
 </plist>

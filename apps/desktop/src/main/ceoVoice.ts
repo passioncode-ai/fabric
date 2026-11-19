@@ -1,22 +1,25 @@
 // #region ceo-voice — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#the-voice-call
 /**
- * The voice call's main-process half (ADR-0197 §4, board task e7ff5556): the xAI key never leaves this process. It is
+ * The voice call's main-process half (ADR-0197, the voice call, board task e7ff5556): the xAI key never leaves this process. It is
  * read from Project Observatory's vault for one call (`observatoryVault.ts`, slot `fabric/prod/XAI_API_KEY`) and spent
  * on an ephemeral client secret (`POST /v1/realtime/client_secrets`, five minutes); the CEO window opens the realtime
  * socket with that secret alone. The call's instructions and tools are composed here, so the window holds no prompt
  * of its own, and every tool the call asks for runs here through the CEO's operations (`ceoTools.ts`) with their gates.
  */
 import type { VaultPort } from './observatoryVault.ts'
+import type { CeoVoiceProblem } from '../shared/ceoAgent.ts'
 
 export const XAI_KEY_SLOT = { project: 'fabric', env: 'prod' as const, name: 'XAI_API_KEY' }
 export const XAI_SECRETS_URL = 'https://api.x.ai/v1/realtime/client_secrets'
 export const XAI_REALTIME_URL = 'wss://api.x.ai/v1/realtime?model=grok-voice-latest'
-/** xAI's list price for a realtime minute (2026-11-18), shown beside the call's length. */
+/** xAI's list price for a realtime minute, shown beside the call's length: USD 0.08 a minute, from
+ *  `docs.x.ai/developers/models/voice-agent-api`, fetched 2026-11-19 (docs/architecture/external-contracts.md, xAI). */
 export const XAI_USD_PER_MINUTE = 0.08
 const TOKEN_SECONDS = 300
 
 export interface VoiceToken { ok: true; value: string; expiresAt: number; url: string; usdPerMinute: number }
-export type VoiceTokenAnswer = VoiceToken | { ok: false; reason: string }
+/** A refusal: its code for the window, its raw detail for the operations log only (ER-7). */
+export type VoiceTokenAnswer = VoiceToken | { ok: false; reason: CeoVoiceProblem; detail: string }
 
 /** The call's instructions: who speaks, in which language, and which tools it has. */
 export function voiceInstructions(locale: string): string {
@@ -42,7 +45,7 @@ export interface VoiceDeps {
 /** One ephemeral secret for one call; the key itself is held for this request only. */
 export async function mintVoiceToken(deps: VoiceDeps): Promise<VoiceTokenAnswer> {
   const key = await deps.vault.read(XAI_KEY_SLOT)
-  if (!key.ok) return { ok: false, reason: `the xAI key could not be read from Observatory: ${key.reason}` }
+  if (!key.ok) return { ok: false, reason: 'no-key', detail: `the xAI key could not be read from Observatory: ${key.reason}` }
   let res: Response
   try {
     res = await deps.fetch(XAI_SECRETS_URL, {
@@ -52,15 +55,15 @@ export async function mintVoiceToken(deps: VoiceDeps): Promise<VoiceTokenAnswer>
       signal: AbortSignal.timeout(15_000)
     })
   } catch (e) {
-    return { ok: false, reason: `xAI did not answer: ${e instanceof Error ? e.message : String(e)}` }
+    return { ok: false, reason: 'unreachable', detail: `xAI did not answer: ${e instanceof Error ? e.name : String(e)}` }
   }
-  if (!res.ok) return { ok: false, reason: `xAI refused the call: HTTP ${res.status}` }
+  if (!res.ok) return { ok: false, reason: 'refused', detail: `xAI refused the call: HTTP ${res.status}` }
   let body: { value?: unknown; expires_at?: unknown }
   try { body = (await res.json()) as typeof body } catch {
     // Not JSON: no secret to hand over.
-    return { ok: false, reason: 'xAI answered without a secret' }
+    return { ok: false, reason: 'no-secret', detail: 'xAI answered without a secret' }
   }
-  if (typeof body.value !== 'string' || !body.value) return { ok: false, reason: 'xAI answered without a secret' }
+  if (typeof body.value !== 'string' || !body.value) return { ok: false, reason: 'no-secret', detail: 'xAI answered without a secret' }
   const expiresAt = typeof body.expires_at === 'number' ? body.expires_at * 1000 : (deps.now ?? Date.now)() + TOKEN_SECONDS * 1000
   return { ok: true, value: body.value, expiresAt, url: XAI_REALTIME_URL, usdPerMinute: XAI_USD_PER_MINUTE }
 }

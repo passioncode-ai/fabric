@@ -367,9 +367,9 @@ test('the voice token: the key read for one request and never handed back; failu
   assert.equal(sent[0][1].headers.authorization, 'Bearer xai-SECRET')
   assert.deepEqual(JSON.parse(sent[0][1].body), { expires_after: { seconds: 300 } })
   const noKey = await mintVoiceToken({ vault: { read: async () => ({ ok: false, reason: 'no slot' }) }, fetch })
-  assert.match(noKey.reason, /no slot/)
+  assert.deepEqual([noKey.reason, /no slot/.test(noKey.detail)], ['no-key', true], 'a code for the window, the detail for the log')
   const refused = await mintVoiceToken({ vault, fetch: async () => new Response('{}', { status: 401 }) })
-  assert.match(refused.reason, /401/)
+  assert.deepEqual([refused.reason, /401/.test(refused.detail)], ['refused', true])
   assert.ok(!JSON.stringify(refused).includes('xai-SECRET'))
   const empty = await mintVoiceToken({ vault, fetch: async () => new Response('{}', { status: 200 }) })
   assert.equal(empty.ok, false)
@@ -424,4 +424,176 @@ test('a runner that shows its sign-in screen is passed over, and a message sent 
   assert.equal(k.agent.status().runner, 'hermes')
   assert.equal(k.agent.status().setAside[0].why, 'not-connected')
   assert.deepEqual(k.delivered.at(-1), [k.agent.sessionId(), '2+3?'])
+})
+
+// ── 0.3.24 review, iteration 1 ─────────────────────────────────────────────
+
+const settle = async (n = 10) => { for (let i = 0; i < n; i++) await new Promise((r) => setTimeout(r, 2)) }
+
+test('ER-1: when every runner ends at its start the CEO stops as failed, walks nothing again and retypes once', async () => {
+  const k = keeper()
+  const open = k.deps.open
+  // Each console ends right after it starts (a signed-out Claude Code, a Hermes that took no model).
+  k.deps.open = async (...a) => { const s = await open(...a); setTimeout(() => { s.running = false; k.agent.onExit(s.sessionId) }, 1); return s }
+  const sent = k.agent.send('hello', [])
+  await settle(30)
+  await sent
+  const s = k.agent.status()
+  assert.equal(s.state, 'failed')
+  assert.equal(s.problem, 'all-set-aside')
+  assert.deepEqual(s.setAside.map((a) => [a.runner, a.why]).sort(), [['claude-code', 'ended-at-start'], ['hermes', 'ended-at-start']])
+  const opens = k.log.filter((l) => l[0] === 'open').length
+  assert.equal(opens, 2, 'each runner opened once')
+  assert.ok(k.delivered.filter(([, t]) => t === 'hello').length <= 2, 'typed at most once and retyped at most once')
+  // Nothing walks the set-aside runners again by itself, and a send does not either.
+  await settle(30)
+  const again = await k.agent.send('again', [])
+  assert.equal(again.ok, false)
+  assert.equal(again.reason, 'not-running')
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, opens)
+  // The set-aside time passing lets the walk try them.
+  k.tick(60 * 60_000 + 1)
+  await k.agent.ensure()
+  assert.equal(k.log.filter((l) => l[0] === 'open').length > opens, true)
+})
+
+test('ER-2 / UX-1: a limit or sign-in phrase after the start window, or one the person typed, keeps the runner', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  // The person types the words of a sign-in screen in the start window: the echo is not the runner's screen.
+  await k.agent.send('почему сессия X пишет not logged in?', [])
+  k.agent.onOutput(first, '> почему сессия X пишет not logged in?')
+  await settle()
+  assert.equal(k.agent.status().runner, 'claude-code')
+  // Ten minutes later the CEO quotes a session waiting on its limit.
+  k.tick(10 * 60_000)
+  k.agent.onOutput(first, "⏺ Сессия demo пишет: You've hit your limit · resets 5pm")
+  k.agent.onOutput(first, 'Please run /login')
+  await settle()
+  const s = k.agent.status()
+  assert.equal(s.runner, 'claude-code')
+  assert.equal(k.agent.sessionId(), first)
+  assert.deepEqual(s.setAside, [])
+})
+
+test('ER-3 / UX-3: a restart within the start window is not an early end, even when the stop reports the exit at once', async () => {
+  const k = keeper()
+  // As pty.ts does: the exit callback runs before the stop resolves.
+  k.deps.stop = async (id) => { const s = k.consoles.get(id); if (s) { s.running = false; k.agent.onExit(id) } }
+  await k.agent.send('hi', [])
+  const first = k.agent.sessionId()
+  k.tick(5_000)
+  await k.agent.restart('person')
+  await settle()
+  const s = k.agent.status()
+  assert.equal(s.runner, 'claude-code')
+  assert.notEqual(s.sessionId, first)
+  assert.deepEqual(s.setAside, [])
+  assert.equal(k.delivered.filter(([, t]) => t === 'hi').length, 1, 'the last message is not typed again')
+})
+
+test('UX-4: the person\'s restart brings back a runner set aside', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  k.agent.onOutput(k.agent.sessionId(), 'usage limit reached')
+  await settle()
+  assert.equal(k.agent.status().runner, 'hermes')
+  const s = await k.agent.restart('person')
+  assert.equal(s.runner, 'claude-code')
+  assert.deepEqual(s.setAside, [])
+})
+
+test('ER-10: a stop that leaves the old console running is forced, and the outcome recorded', async () => {
+  const k = keeper()
+  const forced = []
+  k.deps.stop = async (id, force) => { forced.push(force === true); if (force) k.consoles.get(id).running = false }
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  await k.agent.restart('person')
+  assert.deepEqual(forced, [false, true])
+  assert.equal(k.consoles.get(first).running, false)
+  assert.ok(k.log.some(([op, d]) => op === 'ceo.agent.stopped' && d.outcome === 'forced'))
+})
+
+test('ER-8: a board request is told only once it was typed; a failed delivery is tried again', async () => {
+  const P = '11111111-1111-4111-8111-111111111111'
+  const req = { requestId: 'r9', to: P, capability: 'ceo.task', subject: 'ship', state: null, from: 'pm' }
+  const k = keeper()
+  await k.agent.ensure()
+  let fail = true
+  k.deps.deliver = async (id, text) => (fail ? { state: 'failed_before_write', reason: 'readiness_timeout' } : (k.delivered.push([id, text]), { state: 'written' }))
+  assert.equal(await k.agent.nudgeBoard([req]), false)
+  fail = false
+  assert.equal(await k.agent.nudgeBoard([req]), true)
+  assert.equal(await k.agent.nudgeBoard([req]), false)
+})
+
+test('ER-13: two messages sent while a fallback runs are each typed again into the next runner', async () => {
+  const k = keeper()
+  const releases = []
+  k.deps.deliver = async (id, text) => {
+    if (k.consoles.get(id)?.optionId === 'claude-code') { await new Promise((r) => { releases.push(r) }); return { state: 'failed_before_write', reason: 'session_closed' } }
+    k.delivered.push([id, text]); return { state: 'written' }
+  }
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  const a = k.agent.send('one', [])
+  const b = k.agent.send('two', [])
+  await settle(3)
+  k.agent.onOutput(first, 'Select login method:')
+  await settle()
+  for (const r of releases) r()
+  const [ra, rb] = await Promise.all([a, b])
+  assert.equal(ra.ok, true)
+  assert.equal(rb.ok, true)
+  assert.deepEqual(k.delivered.map(([, t]) => t).sort(), ['one', 'two'])
+})
+
+test('ER-13 / DA-5: attachments older than 30 days are pruned from the inbox at start', async () => {
+  const k = keeper()
+  const inbox = path.join(k.root, 'inbox')
+  mkdirSync(inbox, { recursive: true })
+  writeFileSync(path.join(inbox, 'old.png'), 'x')
+  writeFileSync(path.join(inbox, 'new.png'), 'y')
+  const { utimesSync } = await import('node:fs')
+  const nowMs = Date.UTC(2026, 10, 19)
+  k.deps.now = () => nowMs
+  const k2 = { ...k, agent: (await import('../src/main/ceoAgent.ts')).createCeoAgent(k.deps) }
+  const old = (nowMs - 31 * 24 * 3600_000) / 1000
+  utimesSync(path.join(inbox, 'old.png'), old, old)
+  const fresh = (nowMs - 29 * 24 * 3600_000) / 1000
+  utimesSync(path.join(inbox, 'new.png'), fresh, fresh)
+  await k2.agent.ensure()
+  assert.deepEqual(readdirSync(inbox), ['new.png'])
+})
+
+test('ER-7 / UX-5: a refused send answers a code the window words, never an English sentence', async () => {
+  const k = keeper()
+  assert.equal((await k.agent.send('   ', [])).reason, 'nothing-to-send')
+  const empty = await k.agent.send('x', [{ name: 'a.png', data: '' }])
+  assert.deepEqual([empty.reason, empty.name], ['empty-file', 'a.png'])
+  k.deps.deliver = async () => ({ state: 'failed_before_write', reason: 'readiness_timeout' })
+  assert.equal((await k.agent.send('x', [])).reason, 'not-delivered')
+  const none = keeper({ refuse: ['claude-code', 'hermes'] })
+  const s = await none.agent.ensure()
+  assert.equal(s.problem, 'none-could-start')
+  assert.deepEqual(s.passedOver.map((p) => p.runner), ['claude-code', 'hermes'])
+  assert.ok(!none.log.some(([op, d]) => op === 'ceo.agent.start-failed' && 'error' in d), 'the message is not logged, its class is')
+})
+
+test('DA-7: an archived known CEO project gets a fresh id', async () => {
+  const { ceoProjectFor } = await import('../src/main/ceoAgent.ts')
+  const known = '22222222-2222-4222-8222-222222222222'
+  const created = []
+  const d = (status) => ({
+    read: async (id) => (id === known ? { status } : null),
+    heldBy: async () => null,
+    create: async (id) => { created.push(id); return id },
+    newId: () => '33333333-3333-4333-8333-333333333333'
+  })
+  assert.equal(await ceoProjectFor(d('active'), '/ceo', known), known)
+  assert.equal(await ceoProjectFor(d('archived'), '/ceo', known), '33333333-3333-4333-8333-333333333333')
+  assert.deepEqual(created, ['33333333-3333-4333-8333-333333333333'])
+  assert.equal(await ceoProjectFor(d('active'), '/ceo', null), '33333333-3333-4333-8333-333333333333')
 })

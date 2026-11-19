@@ -44,7 +44,7 @@ import { type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
 import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
-import { createCeoAgent, type CeoAgent } from './ceoAgent.ts'
+import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
 import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -5140,18 +5140,22 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   ceoAgent = createCeoAgent({
     root: path.join(app.getPath('userData'), 'ceo'),
     locale: () => readSettings().locale,
-    ensureProject: async (folder, knownId) => {
-      const id = knownId ?? randomUUID()
-      const { data, error } = await store.select('projects', 'id,status').eq('id', id).maybeSingle()
-      if (error) throw new Error(`the CEO's project could not be read: ${error.message}`)
-      if (data && (data as { status?: string }).status !== 'archived') return id
-      let real = folder
-      try { real = realpathSync.native(folder) } catch { /* not there yet: admission says so */ }
-      const holders = (await readImportedIndex()).get(real)
-      if (holders?.length) return holders[0]!.id
-      const row = await admission.create({ id, name: CEO_PROJECT_NAME, repoPaths: [folder] }, { kind: 'system', id: 'ceo' }, ceoReach, 'system:ceo', { onboard: false })
-      return row.id
-    },
+    // DA-7: an archived CEO project is never brought back; a new one is made under a fresh id (`ceoAgent.ts#ceoProjectFor`).
+    ensureProject: (folder, knownId) => ceoProjectFor({
+      read: async (id) => {
+        const { data, error } = await store.select('projects', 'id,status').eq('id', id).maybeSingle()
+        if (error) throw new Error(`the CEO's project could not be read: ${error.message}`)
+        return (data as { status?: string } | null) ?? null
+      },
+      heldBy: async (f) => {
+        let real = f
+        try { real = realpathSync.native(f) } catch { /* not there yet: admission says so */ }
+        const holders = (await readImportedIndex()).get(real)
+        return holders?.length ? holders[0]!.id : null
+      },
+      create: async (id) => (await admission.create({ id, name: CEO_PROJECT_NAME, repoPaths: [folder] }, { kind: 'system', id: 'ceo' }, ceoReach, 'system:ceo', { onboard: false })).id,
+      newId: () => randomUUID()
+    }, folder, knownId),
     runners: () => readSettings().ceoRunners,
     walk: (projectId, order, failed, skip) => {
       ceoOrder.current = order
@@ -5167,9 +5171,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     get: (id) => ptys.get(id),
     deliver: (id, text) => ptys.deliverWhenReady(id, text),
     write: (id, data) => ptys.write(id, data),
-    stop: (id) => { markPersonEnded(id); return stopRuntime.stop(id, 'operator_stop', { force: false }) },
+    stop: (id, force) => { markPersonEnded(id); return stopRuntime.stop(id, 'operator_stop', { force: force === true }) },
     unavailable: (error) => error instanceof SpawnFailure || error instanceof RunnerUnavailable,
-    record: (op, detail) => ops.record({ op, outcome: /failed/.test(op) ? 'failed' : 'ok', level: /failed|fallback/.test(op) ? 'warn' : 'info', detail, ctx: { correlationId: ops.correlate() } }),
+    record: (op, detail) => ops.record({ op, outcome: /failed/.test(op) ? 'failed' : 'ok', level: /failed|fallback/.test(op) || detail.outcome === 'still-running' ? 'warn' : 'info', detail, ctx: { correlationId: ops.correlate() } }),
     onChange: (status) => {
       // The popup speaks only about the CEO's console: its subject follows each restart.
       if (ceoWindow && !ceoWindow.isDestroyed()) windowKinds.resubject(ceoWindow.webContents.id, status.sessionId ?? '')
@@ -5234,8 +5238,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.ceoAgentTakeDraft, (): Returns<FabricApi['ceoAgent']['takeDraft']> => { const d = ceoDraft; ceoDraft = null; return d })
   handle(IPC.ceoAgentVoice, async (): Promise<Returns<FabricApi['ceoAgent']['voice']>> => {
     const token = await mintVoiceToken({ vault: ceoVault, fetch })
-    ops.record({ op: 'ceo.voice.token', outcome: token.ok ? 'ok' : 'failed', level: token.ok ? 'info' : 'warn', detail: token.ok ? {} : { reason: token.reason.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
-    if (!token.ok) return token
+    ops.record({ op: 'ceo.voice.token', outcome: token.ok ? 'ok' : 'failed', level: token.ok ? 'info' : 'warn', detail: token.ok ? {} : { reason: token.reason, detail: token.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
+    // ER-7: the window gets the code; the raw detail stays in the operations log.
+    if (!token.ok) return { ok: false, reason: token.reason }
     const locale = readSettings().locale
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
       instructions: voiceInstructions(locale), voice: 'eve', tools: [...ceoVoiceTools(), ASK_CEO_TOOL] }

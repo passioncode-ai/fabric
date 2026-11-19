@@ -74,10 +74,11 @@ mac:
   identity: null
   icon: build/icon.png
   category: public.app-category.developer-tools
-  # ADR-0197 §4: the CEO popup's voice call. The hardened runtime needs the audio-input entitlement, and macOS asks the
-  # person with this sentence the first time the microphone is read (the operator answers it once).
-  entitlements: build/entitlements.mac.plist
-  entitlementsInherit: build/entitlements.mac.plist
+  # ADR-0197, the voice call (#the-voice-call): the CEO popup reads the microphone. The hardened runtime needs the
+  # audio-input entitlement, and macOS asks the person with this sentence the first time the microphone is read (the
+  # operator answers it once). One entitlements file for this build and the release (test/mac-entitlements.test.mjs).
+  entitlements: resources/entitlements.mac.plist
+  entitlementsInherit: resources/entitlements.mac.plist
   extendInfo:
     NSMicrophoneUsageDescription: "Fabric listens while you talk to its CEO on a voice call, and only then."
   # ADR-0192: the board's launch agent, at Contents/Library/LaunchAgents (loginItem.ts#BOARD_SERVICE).

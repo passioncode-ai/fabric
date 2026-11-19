@@ -12,6 +12,14 @@
 
 export type CeoState = 'idle' | 'starting' | 'running' | 'ended' | 'failed'
 
+/** Why the CEO did not start, as a code the window words (0.3.24 review, ER-7): every runner set aside, none of the
+ *  order could start (`passedOver` says why for each), the CEO's project could not be read or made, or another failure
+ *  (its raw detail stays in the operations log). */
+export type CeoProblem = 'all-set-aside' | 'none-could-start' | 'project' | 'start-failed'
+
+/** Why a message did not reach the CEO, as a code the window words (ER-7). */
+export type CeoSendReason = 'empty-file' | 'too-big' | 'not-saved' | 'nothing-to-send' | 'not-running' | 'not-delivered'
+
 /** What the popup's head and the home composer read of the CEO's console. */
 export interface CeoStatus {
   state: CeoState
@@ -25,18 +33,24 @@ export interface CeoStatus {
   /** Runners set aside after a limit or a failed start, until when (ms). */
   setAside: Array<{ runner: string; until: number; why: string }>
   folder: string
-  problem: string | null
+  /** Why it is `failed`; its raw detail is in the operations log only. */
+  problem: CeoProblem | null
 }
 
 /** A file the person attached: its name and its bytes as base64 (the window reads them; main keeps them in the inbox). */
 export interface CeoAttachment { name: string; data: string }
 
-export interface CeoSendResult { ok: boolean; reason?: string; status: CeoStatus }
+/** `name` is the file an `empty-file` or `too-big` refusal is about. */
+export interface CeoSendResult { ok: boolean; reason?: CeoSendReason; name?: string; status: CeoStatus }
 
 /** One voice call's setup, as main hands it to the CEO window: an ephemeral secret, never the key. */
 export type CeoVoiceSession =
   | { ok: true; token: string; expiresAt: number; url: string; usdPerMinute: number; instructions: string; voice: string; tools: unknown[] }
-  | { ok: false; reason: string }
+  | { ok: false; reason: CeoVoiceProblem }
+
+/** Why main could not set a call up, as a code the window words (ER-7): no xAI key in Observatory's vault, xAI refused
+ *  the key, xAI did not answer, or answered without a secret. The raw detail stays in the operations log. */
+export type CeoVoiceProblem = 'no-key' | 'refused' | 'unreachable' | 'no-secret'
 
 /** The order the CEO's console walks (the operator, 2026-11-18: «не только на подписке Claude, обязательный fallback»). Kimi
  *  Code and Codex are not in it: their models are not held to the CEO's floor below. */
@@ -50,7 +64,8 @@ export const CEO_RUNNERS_KNOWN: readonly string[] = ['claude-code', 'hermes']
  * The CEO's models, best first (the operator, 2026-11-18, ~22:10: «модель минимум сонет на разговор CEO но лучше OPUS или
  * GPT SOL ... под его оркестрацию»): Opus 5.5, then GPT-6.2 Sol, never below Sonnet 5.5. One list for every runner: Claude
  * Code takes its first Anthropic model as `--model`, Hermes tries them in order on its OpenRouter key. An OpenAI model
- * answers on an organization's OpenRouter key only through BYOK, for keys Observatory issued: a key that answers 403 falls to the next.
+ * answers on an organization's OpenRouter key only through BYOK, for keys Observatory issued: a model Hermes's ACP
+ * session refuses at `session/set_model` falls to the next; a 403 at the first turn is not caught yet (0.3.24 review, ER-9).
  */
 export const CEO_MODELS_DEFAULT: readonly string[] = ['anthropic/claude-opus-5.5', 'openai/gpt-6.2-sol', 'anthropic/claude-sonnet-5.5']
 
@@ -103,7 +118,7 @@ export function ceoRunnersOf(raw: unknown): string[] {
 /** The name the CEO's project carries in the estate (a project is what a console runs in). */
 export const CEO_PROJECT_NAME = 'Fabric CEO'
 
-/** The folder's brief: CLAUDE.md for Claude Code, AGENTS.md for Hermes, Kimi and Codex; the same words in both. */
+/** The folder's brief: CLAUDE.md for Claude Code, AGENTS.md for Hermes; the same words in both. */
 export function ceoBrief(opts: { locale: string }): string {
   const ru = opts.locale !== 'en'
   const lines = ru ? [

@@ -6,17 +6,20 @@
  * running; «Перезапустить CEO» stops it and starts it again.
  *
  * THE FALLBACK IS FABRIC'S (the operator, 2026-11-18: mandatory). The console walks the CEO's own order (Claude Code,
- * then Hermes on OpenRouter, then the rest; `shared/ceoAgent.ts#CEO_RUNNERS_DEFAULT`, settings `ceoRunners`): a runner
- * that is not installed, is signed out or could not be spawned is passed over (ADR-0125's walk). A runner that started
- * and then reports a usage limit, or ends within its first 20 seconds, is set aside for an hour and the next one is
- * started, the person's last message typed again. Which runner answers is in the status the popup's head shows.
+ * then Hermes on OpenRouter; only these two can be CEO runners, `shared/ceoAgent.ts#CEO_RUNNERS_KNOWN`, settings
+ * `ceoRunners`): a runner that is not installed, is signed out or could not be spawned is passed over (ADR-0125's walk).
+ * A runner that, in its start window (its first 20 seconds), shows a usage limit or a sign-in screen, or ends, is set
+ * aside for an hour and the next one is started, the person's messages typed into the lost console typed again, each
+ * at most once. When every runner is set aside the CEO stops as failed and walks none of them again until the set-aside
+ * time passes or the person retries or restarts it (0.3.24 review, ER-1). Which runner answers is in the status the
+ * popup's head shows.
  */
 import { randomUUID } from 'node:crypto'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { TerminalSession } from '../shared/types.ts'
 import type { Walk } from '../shared/runnerRoute.ts'
-import { ceoBoardNudge, ceoBrief, ceoLine, inboxName, type CeoAttachment, type CeoBoardRequest, type CeoState, type CeoStatus } from '../shared/ceoAgent.ts'
+import { ceoBoardNudge, ceoBrief, ceoLine, inboxName, type CeoAttachment, type CeoBoardRequest, type CeoProblem, type CeoSendReason, type CeoState, type CeoStatus } from '../shared/ceoAgent.ts'
 export type { CeoAttachment, CeoState, CeoStatus }
 import { openWithFallback } from './runnerFallback.ts'
 import type { LaunchRoute } from './pty.ts'
@@ -42,7 +45,8 @@ export interface CeoAgentDeps {
   write?(sessionId: string, data: string): void
   /** Wait; the tests pass none and wait nothing. */
   sleep?(ms: number): Promise<void>
-  stop(sessionId: string): Promise<unknown>
+  /** The person's stop; `force` kills a console the plain stop left running (ER-10). */
+  stop(sessionId: string, force?: boolean): Promise<unknown>
   /** ADR-0125 §4: nothing started, the walk may move on. */
   unavailable(error: unknown): boolean
   record(op: string, detail: Record<string, unknown>): void
@@ -60,6 +64,36 @@ export const SIGNED_OUT_SAID = /(Select login method|Please run \/login|Invalid 
 export const EARLY_END_MS = 20_000
 /** How long a runner that hit its limit or did not start is left out of the walk. */
 export const SET_ASIDE_MS = 60 * 60_000
+/** How long an attachment is kept in `<userData>/ceo/inbox` (DA-5): older ones are removed at the next start. */
+export const INBOX_KEEP_MS = 30 * 24 * 60 * 60_000
+/** The person's lines kept for a fallback to type again (ER-13). */
+const KEPT_LINES = 10
+
+/** One line the person sent: the console it was typed into, and whether a fallback typed it again (at most once). */
+interface SentLine { line: string; sessionId: string | null; retyped: boolean; retypedOk: boolean }
+
+/** The CEO's project (DA-7): the known one while it lives, the one that holds the folder, else a new one under a fresh
+ *  id. An archived known project is never reused: its id would bring the archived row back. */
+export async function ceoProjectFor(d: {
+  read(id: string): Promise<{ status?: string } | null>
+  heldBy(folder: string): Promise<string | null>
+  create(id: string): Promise<string>
+  newId(): string
+}, folder: string, knownId: string | null): Promise<string> {
+  if (knownId) {
+    const row = await d.read(knownId)
+    if (row && row.status !== 'archived') return knownId
+  }
+  const held = await d.heldBy(folder)
+  if (held) return held
+  return d.create(d.newId())
+}
+
+/** An error as the operations log keeps it (DA-8): its class and code, never a message that may carry a path. */
+function errorClass(e: unknown): Record<string, string> {
+  const code = (e as { code?: unknown } | null)?.code
+  return { error_class: e instanceof Error ? e.constructor.name : typeof e, ...(typeof code === 'string' ? { code } : {}) }
+}
 
 export function createCeoAgent(deps: CeoAgentDeps) {
   const now = deps.now ?? Date.now
@@ -69,11 +103,14 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   let models: string[] = []
   let startedAt = 0
   let passedOver: CeoStatus['passedOver'] = []
-  let problem: string | null = null
+  let problem: CeoProblem | null = null
   let state: CeoState = 'idle'
   let starting: Promise<CeoStatus> | null = null
-  let lastLine: string | null = null
+  /** A stop of the previous console under way: a start waits for it (ER-10). */
+  let stopping: Promise<void> | null = null
   const setAside = new Map<string, { until: number; why: string }>()
+  /** The person's recent lines, newest last (ER-13). */
+  const sent: SentLine[] = []
   /** Ids handed to a launch not yet answered: its surface may be asked for before `open` returns. */
   const opening = new Set<string>()
   const inbox = path.join(deps.root, 'inbox')
@@ -88,11 +125,29 @@ export function createCeoAgent(deps: CeoAgentDeps) {
       setAside: [...setAside.entries()].filter(([, v]) => v.until > t).map(([r, v]) => ({ runner: r, until: v.until, why: v.why }))
     }
   }
-  const changed = (): void => { try { deps.onChange(status()) } catch (e) { /* recorded in the operations log through deps.record, the host's ops.record */ deps.record('ceo.agent.change-broadcast', { error: e instanceof Error ? e.message : String(e) }) } }
+  const changed = (): void => { try { deps.onChange(status()) } catch (e) { /* recorded in the operations log through deps.record, the host's ops.record */ deps.record('ceo.agent.change-broadcast', errorClass(e)) } }
+
+  /** Attachments older than `INBOX_KEEP_MS` are removed (DA-5, ER-13); a file that cannot be read or removed stays. */
+  function pruneInbox(): void {
+    let removed = 0
+    let kept = 0
+    const cutoff = now() - INBOX_KEEP_MS
+    let names: string[] = []
+    try { names = readdirSync(inbox) } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.inbox-prune-failed', errorClass(e)); return }
+    for (const name of names) {
+      const file = path.join(inbox, name)
+      try {
+        const st = statSync(file)
+        if (st.isFile() && st.mtimeMs < cutoff) { unlinkSync(file); removed++ }
+      } catch (e) { /* recorded below as kept: the next start tries again */ kept++; deps.record('ceo.agent.inbox-prune-failed', errorClass(e)) }
+    }
+    if (removed || kept) deps.record('ceo.agent.inbox-pruned', { removed, kept })
+  }
 
   /** The folder and its brief, written at every start so the brief follows the language and this build. */
   function prepareFolder(): void {
     mkdirSync(inbox, { recursive: true, mode: 0o700 })
+    pruneInbox()
     const brief = ceoBrief({ locale: deps.locale() })
     for (const name of ['CLAUDE.md', 'AGENTS.md']) writeFileSync(path.join(deps.root, name), brief, { encoding: 'utf8', mode: 0o600 })
   }
@@ -107,21 +162,36 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     }
   }
 
+  function fail(code: CeoProblem, detail: Record<string, unknown>): void {
+    state = 'failed'
+    problem = code
+    deps.record('ceo.agent.start-failed', { problem: code, ...detail })
+  }
+
   async function start(): Promise<CeoStatus> {
     state = 'starting'
     problem = null
     changed()
+    let walked: Walk | null = null
     try {
       prepareFolder()
-      projectId ??= await deps.ensureProject(deps.root, knownProject())
+      try {
+        projectId ??= await deps.ensureProject(deps.root, knownProject())
+      } catch (e) { /* recorded through fail(), the host's ops.record */
+        fail('project', errorClass(e))
+        return finish()
+      }
       writeFileSync(metaFile, JSON.stringify({ projectId }, null, 2), { encoding: 'utf8', mode: 0o600 })
       const t = now()
       const order = deps.runners().filter((r) => (setAside.get(r)?.until ?? 0) <= t)
-      // Every runner set aside: the whole order is walked again rather than none (a limit may have reset).
-      const walkOrder = order.length ? order : deps.runners()
-      let walked: Walk | null = null
+      // ER-1: every runner set aside. None is walked again until its time passes or the person retries.
+      if (order.length === 0) {
+        passedOver = []
+        fail('all-set-aside', { set_aside: [...setAside.entries()].map(([r, v]) => `${r}:${v.why}`).join(',') })
+        return finish()
+      }
       const session = await openWithFallback<TerminalSession>({
-        walk: async (failed, skip) => (walked = await deps.walk(projectId!, walkOrder, failed, skip)),
+        walk: async (failed, skip) => (walked = await deps.walk(projectId!, order, failed, skip)),
         open: (r, route) => {
           const id = randomUUID()
           opening.add(id)
@@ -135,6 +205,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
       })
       sessionId = session.sessionId
       heard = ''
+      quiet = false
       runner = session.optionId
       models = deps.models()
       startedAt = now()
@@ -142,19 +213,22 @@ export function createCeoAgent(deps: CeoAgentDeps) {
       passedOver = w && w.state === 'selected' ? w.passedOver.map((p) => ({ runner: p.runner, result: p.result })) : []
       state = 'running'
       deps.record('ceo.agent.started', { session_id: sessionId, runner, passed_over: passedOver.map((p) => `${p.runner}:${p.result}`).join(',') })
-    } catch (e) { /* recorded in the operations log through deps.record, the host's ops.record */
-      state = 'failed'
-      problem = e instanceof Error ? e.message : String(e)
-      deps.record('ceo.agent.start-failed', { error: problem.slice(0, 300) })
+    } catch (e) { /* recorded through fail(), the host's ops.record */
+      const w = walked as Walk | null
+      if (w && w.state === 'exhausted') {
+        passedOver = w.passedOver.map((p) => ({ runner: p.runner, result: p.result }))
+        fail('none-could-start', { passed_over: passedOver.map((p) => `${p.runner}:${p.result}`).join(',') })
+      } else fail('start-failed', errorClass(e))
     } finally {
       opening.clear()
     }
-    changed()
-    return status()
+    return finish()
   }
+  function finish(): CeoStatus { changed(); return status() }
 
   /** The console, started when there is none running. Concurrent callers share one start. */
   async function ensure(): Promise<CeoStatus> {
+    if (stopping) await stopping
     const live = sessionId ? deps.get(sessionId) : null
     if (live?.running) return status()
     if (starting) return starting
@@ -168,66 +242,113 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     const t = now()
     return files.slice(0, 10).map((f, i) => {
       const bytes = Buffer.from(String(f.data ?? ''), 'base64')
-      if (bytes.length === 0) throw new Error(`«${f.name}» is empty`)
-      if (bytes.length > 25 * 1024 * 1024) throw new Error(`«${f.name}» is over 25 MB`)
+      if (bytes.length === 0) throw Object.assign(new Error('empty'), { ceo: 'empty-file' as CeoSendReason, file: f.name })
+      if (bytes.length > 25 * 1024 * 1024) throw Object.assign(new Error('too big'), { ceo: 'too-big' as CeoSendReason, file: f.name })
       const file = path.join(inbox, inboxName(f.name, t, i + 1))
       writeFileSync(file, bytes, { mode: 0o600 })
       return file
     })
   }
 
-  async function deliverLine(line: string): Promise<{ ok: boolean; reason?: string }> {
-    const s = await ensure()
-    if (s.state !== 'running' || !s.sessionId) return { ok: false, reason: s.problem ?? 'the CEO console is not running' }
-    const r = await deps.deliver(s.sessionId, line)
-    deps.record('ceo.agent.delivered', { session_id: s.sessionId, state: r.state, ...(r.reason ? { reason: r.reason } : {}), chars: line.length })
-    return r.state === 'written' ? { ok: true } : { ok: false, reason: r.reason ?? r.state }
+  /** ER-2: a line Fabric types that itself reads as a limit or a sign-in screen closes the console's start window, so
+   *  its echo is never taken for the runner's own screen. */
+  function typing(id: string, line: string): void {
+    if (id === sessionId && (LIMIT_SAID.test(line) || SIGNED_OUT_SAID.test(line))) quiet = true
+  }
+
+  /** Type a line into a console; the raw reason stays in the operations log. */
+  async function typeInto(id: string, line: string, op: string): Promise<boolean> {
+    typing(id, line)
+    const r = await deps.deliver(id, line)
+    deps.record(op, { session_id: id, state: r.state, ...(r.reason ? { reason: r.reason } : {}), chars: line.length })
+    return r.state === 'written'
   }
 
   /** A message from the person: typed into the console, its attachments named by path. */
-  async function send(text: string, attachments: readonly CeoAttachment[] = []): Promise<{ ok: boolean; reason?: string; status: CeoStatus }> {
+  async function send(text: string, attachments: readonly CeoAttachment[] = []): Promise<{ ok: boolean; reason?: CeoSendReason; name?: string; status: CeoStatus }> {
     let paths: string[]
     try { paths = saveAttachments(attachments) } catch (e) {
-      return { ok: false, reason: e instanceof Error ? e.message : String(e), status: status() }
+      const x = e as { ceo?: CeoSendReason; file?: string }
+      if (!x.ceo) deps.record('ceo.agent.attach-failed', errorClass(e))
+      return { ok: false, reason: x.ceo ?? 'not-saved', ...(x.file ? { name: x.file } : {}), status: status() }
     }
     const line = ceoLine(text, paths, deps.locale())
-    if (line === null) return { ok: false, reason: 'nothing to send', status: status() }
-    lastLine = line
+    if (line === null) return { ok: false, reason: 'nothing-to-send', status: status() }
+    const entry: SentLine = { line, sessionId: null, retyped: false, retypedOk: false }
+    sent.push(entry)
+    if (sent.length > KEPT_LINES) sent.splice(0, sent.length - KEPT_LINES)
     const seq = fallbacks
-    let r = await deliverLine(line)
+    const s = await ensure()
+    let ok = false
+    let reason: CeoSendReason = 'not-running'
+    if (s.state === 'running' && s.sessionId) {
+      entry.sessionId = s.sessionId
+      ok = await typeInto(s.sessionId, line, 'ceo.agent.delivered')
+      reason = 'not-delivered'
+    }
     // The console was set aside while the message waited (a sign-in screen, a limit): the fallback types it again.
-    if (!r.ok && (pendingFallback || fallbacks !== seq)) { await pendingFallback; r = retyped ? { ok: true } : r }
+    if (!ok && (pendingFallback || fallbacks !== seq)) {
+      await pendingFallback
+      if (entry.retyped) ok = entry.retypedOk
+    }
     // Measured 2026-11-18 on Claude Code: a pasted image path becomes «[Image #1]» while the paste is read, and the
     // Enter after it is lost, so the message waits in the box. One more Enter once it has settled sends it; on an empty
     // prompt Claude Code ignores it.
-    if (r.ok && paths.length && runner === 'claude-code' && sessionId && deps.write) {
+    if (ok && paths.length && runner === 'claude-code' && sessionId && deps.write) {
       await (deps.sleep ?? ((ms: number) => new Promise<void>((res) => setTimeout(res, ms))))(1500)
-      try { deps.write(sessionId, '\r') } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.enter-failed', { error: e instanceof Error ? e.message : String(e) }) }
+      try { deps.write(sessionId, '\r') } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.enter-failed', errorClass(e)) }
     }
-    return { ...r, status: status() }
+    return ok ? { ok: true, status: status() } : { ok: false, reason, status: status() }
   }
 
-  async function restart(why = 'restart'): Promise<CeoStatus> {
-    const id = sessionId
-    if (id && deps.get(id)?.running) {
-      try { await deps.stop(id) } catch (e) { /* recorded in the operations log through deps.record, the host's ops.record */ deps.record('ceo.agent.stop-failed', { session_id: id, error: e instanceof Error ? e.message : String(e) }) }
+  /** ER-10: the person's stop, then, when the console still runs, a forced one; the outcome is recorded. */
+  async function stopConsole(id: string): Promise<void> {
+    let outcome = 'stopped'
+    try { await deps.stop(id) } catch (e) { /* recorded below with the outcome */ deps.record('ceo.agent.stop-failed', { session_id: id, ...errorClass(e) }) }
+    if (deps.get(id)?.running) {
+      outcome = 'forced'
+      try { await deps.stop(id, true) } catch (e) { /* recorded below with the outcome */ deps.record('ceo.agent.stop-failed', { session_id: id, force: true, ...errorClass(e) }) }
+      if (deps.get(id)?.running) outcome = 'still-running'
     }
-    deps.record('ceo.agent.restart', { from_session: id, why })
+    deps.record('ceo.agent.stopped', { session_id: id, outcome })
+  }
+
+  /** Stop the console and start another. A person's restart (or retry) also brings back every runner set aside (UX-4). */
+  async function restart(why = 'restart'): Promise<CeoStatus> {
+    if (why === 'person') setAside.clear()
+    const id = sessionId
+    // ER-3: the console is no longer the CEO's before its stop is awaited, so its exit is never read as an early end.
     sessionId = null
     runner = null
+    state = 'starting'
+    problem = null
+    changed()
+    if (id && deps.get(id)?.running) {
+      const done = stopConsole(id)
+      stopping = done
+      try { await done } finally { if (stopping === done) stopping = null }
+    }
+    deps.record('ceo.agent.restart', { from_session: id, why })
     state = 'idle'
     return ensure()
   }
 
-  /** Whether the last fallback typed the person's last message into the next runner. */
-  let retyped = false
-  /** Set a runner aside and start the next one, the person's last message typed again. */
+  /** Set a runner aside and start the next one; the person's lines typed into the lost console are typed again, each
+   *  at most once (ER-1, ER-13). */
   async function fallBack(why: string): Promise<void> {
     if (!runner) return
+    const lost = sessionId
     setAside.set(runner, { until: now() + SET_ASIDE_MS, why })
     deps.record('ceo.agent.fallback', { runner, why })
+    const owed = sent.filter((e) => e.sessionId === lost && !e.retyped)
+    for (const e of owed) e.retyped = true
     await restart(why)
-    retyped = lastLine && state === 'running' ? (await deliverLine(lastLine)).ok : false
+    for (const e of owed) {
+      const id = sessionId
+      if (state !== 'running' || !id) { e.retypedOk = false; continue }
+      e.sessionId = id
+      e.retypedOk = await typeInto(id, e.line, 'ceo.agent.retyped')
+    }
   }
 
   let fallingBack = false
@@ -235,17 +356,31 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   let pendingFallback: Promise<void> | null = null
   /** How many fallbacks have started: a send compares it before and after its delivery. */
   let fallbacks = 0
+  /** A start screen or an early end of the NEXT console seen while a fallback still types into it: run after it. */
+  let deferred: string | null = null
   const startFallback = (why: string): void => {
+    if (fallingBack) { deferred ??= why; return }
     fallbacks++
     fallingBack = true
-    pendingFallback = fallBack(why).finally(() => { fallingBack = false; pendingFallback = null })
+    pendingFallback = fallBack(why).finally(() => {
+      fallingBack = false
+      pendingFallback = null
+      const next = deferred
+      deferred = null
+      if (next && sessionId) startFallback(next)
+    })
   }
   /** The console's recent output as words: a TUI places its words with cursor moves (`\x1b[9G`), not spaces, and a
    *  sentence may arrive in two chunks (measured 2026-11-18 on Claude Code 2.1.299's sign-in screen). */
   let heard = ''
-  /** The console's output, as the terminal manager hands it on: a limit or a sign-in screen sets the runner aside. */
+  /** The start window closed early: Fabric typed a line that itself reads as a limit or sign-in screen (ER-2). */
+  let quiet = false
+  /** The console's output, as the terminal manager hands it on. ER-2 / UX-1: only the runner's own start screens set
+   *  it aside: a limit or a sign-in screen in its first `EARLY_END_MS`. Later output (the CEO quoting a session at its
+   *  limit, a tool's result) and the echo of text Fabric typed never do. */
   function onOutput(id: string, data: string): void {
-    if (id !== sessionId || fallingBack) return
+    if (id !== sessionId || quiet) return
+    if (now() - startedAt >= EARLY_END_MS) { heard = ''; return }
     // eslint-disable-next-line no-control-regex
     heard = (heard + data.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, ' ').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '').replace(/\s+/g, ' ')).slice(-4000)
     if (LIMIT_SAID.test(heard)) { heard = ''; startFallback('limit') }
@@ -254,7 +389,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
 
   function onExit(id: string): void {
     if (id !== sessionId) return
-    if (now() - startedAt < EARLY_END_MS && !fallingBack) {
+    if (now() - startedAt < EARLY_END_MS) {
       startFallback('ended-at-start')
       return
     }
@@ -263,17 +398,26 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   }
 
   /** PM chain (task ff3fe9c3): board requests for the CEO that it was not told about are typed into its running console,
-   *  each once; a console that is not running is not started for them (the next start's brief reads the board). */
+   *  each once it was written (ER-8: a failed delivery is tried again at the next tick); a console that is not running is
+   *  not started for them (the next start's brief reads the board). */
   const told = new Set<string>()
+  let nudging = false
   async function nudgeBoard(requests: readonly CeoBoardRequest[], names: Readonly<Record<string, string>> = {}): Promise<boolean> {
     const live = sessionId ? deps.get(sessionId) : null
-    if (!live?.running || !projectId) return false
+    if (!live?.running || !projectId || nudging) return false
     const nudge = ceoBoardNudge(requests, projectId, told, names)
     if (!nudge) return false
-    for (const id of nudge.ids) told.add(id)
-    const r = await deps.deliver(live.sessionId, nudge.line)
-    deps.record('ceo.agent.board-nudge', { session_id: live.sessionId, requests: nudge.ids.length, state: r.state })
-    return r.state === 'written'
+    nudging = true
+    try {
+      typing(live.sessionId, nudge.line)
+      const r = await deps.deliver(live.sessionId, nudge.line)
+      deps.record('ceo.agent.board-nudge', { session_id: live.sessionId, requests: nudge.ids.length, state: r.state })
+      if (r.state !== 'written') return false
+      for (const id of nudge.ids) told.add(id)
+      return true
+    } finally {
+      nudging = false
+    }
   }
 
   return {

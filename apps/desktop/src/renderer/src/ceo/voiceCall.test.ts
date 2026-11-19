@@ -1,7 +1,7 @@
 // ADR-0197 §4: the voice call's protocol, with the socket and the audio replaced: the session the call opens with, the
 // microphone's chunks, the answer's audio, a function call answered before the model speaks again, and the hang-up.
 import { describe, expect, it, vi } from 'vitest'
-import { createCall, floatToPcm16Base64, pcm16Base64ToFloat, sessionUpdate, type CallAudio, type SocketLike } from './voiceCall'
+import { CONNECT_DEADLINE_MS, createCall, floatToPcm16Base64, pcm16Base64ToFloat, sessionUpdate, type CallAudio, type SocketLike } from './voiceCall'
 
 function fakeSocket(): SocketLike & { sent: Record<string, unknown>[]; url?: string; protocols?: string[] } {
   return { readyState: 1, sent: [], send(d: string) { this.sent.push(JSON.parse(d)) }, close: vi.fn(), onopen: null, onmessage: null, onerror: null, onclose: null }
@@ -82,6 +82,66 @@ describe('the CEO voice call', () => {
     expect(ws.close).toHaveBeenCalled()
     expect(audio.stopped).toBeGreaterThan(0)
     expect(call.phase()).toBe('ended')
+  })
+
+  it('ER-4: hanging up while the secret is minted opens no socket and no microphone', async () => {
+    let answer: (s: typeof session) => void = () => {}
+    const socket = vi.fn(), audio = fakeAudio(), phases: string[] = []
+    const call = createCall({ session: () => new Promise((r) => { answer = r }), runTool: vi.fn(), socket, audio, onPhase: (p) => phases.push(p), onLine: () => {} })
+    const started = call.start()
+    call.hangUp()
+    answer(session)
+    await started
+    expect(socket).not.toHaveBeenCalled()
+    expect(audio.chunk).toBeUndefined()
+    expect(call.phase()).toBe('ended')
+    expect(phases.at(-1)).toBe('ended')
+  })
+
+  it('ER-4: hanging up before the socket opens closes it and never starts the microphone', async () => {
+    const ws = fakeSocket(), audio = fakeAudio()
+    const call = createCall({ session: async () => session, runTool: vi.fn(), socket: () => ws, audio, onPhase: () => {}, onLine: () => {} })
+    await call.start()
+    call.hangUp()
+    ws.onopen?.({})
+    await Promise.resolve()
+    expect(audio.chunk).toBeUndefined()
+    expect(ws.sent).toEqual([])
+    expect(call.phase()).toBe('ended')
+  })
+
+  it('ER-4: a microphone that opens after the hang-up is stopped at once', async () => {
+    const ws = fakeSocket(), audio = fakeAudio()
+    let opened: () => void = () => {}
+    audio.start = (on) => new Promise<void>((r) => { audio.chunk = on; opened = r })
+    const call = createCall({ session: async () => session, runTool: vi.fn(), socket: () => ws, audio, onPhase: () => {}, onLine: () => {} })
+    await call.start(); ws.onopen?.({})
+    const stoppedBefore = audio.stopped
+    call.hangUp()
+    opened()
+    await Promise.resolve(); await Promise.resolve()
+    expect(audio.stopped).toBe(stoppedBefore + 2) // the hang-up, then the microphone that opened after it
+    expect(call.phase()).toBe('ended')
+  })
+
+  it('ER-4: a socket that never opens fails the call at its deadline', async () => {
+    vi.useFakeTimers()
+    try {
+      const ws = fakeSocket(), phases: Array<[string, string | undefined]> = []
+      const call = createCall({ session: async () => session, runTool: vi.fn(), socket: () => ws, audio: fakeAudio(), onPhase: (p, w) => phases.push([p, w]), onLine: () => {} })
+      await call.start()
+      vi.advanceTimersByTime(CONNECT_DEADLINE_MS + 1)
+      expect(phases.at(-1)).toEqual(['failed', 'timeout'])
+      expect(ws.close).toHaveBeenCalled()
+    } finally { vi.useRealTimers() }
+  })
+
+  it('ER-7: a failure is a code the window words', async () => {
+    const ws = fakeSocket(), phases: Array<[string, string | undefined]> = []
+    const call = createCall({ session: async () => session, runTool: vi.fn(), socket: () => ws, audio: fakeAudio(), onPhase: (p, w) => phases.push([p, w]), onLine: () => {} })
+    await call.start()
+    ws.onerror?.({})
+    expect(phases.at(-1)).toEqual(['failed', 'connection'])
   })
 
   it('PCM16 both ways', () => {
