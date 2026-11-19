@@ -1,8 +1,9 @@
 # The CEO agent: acceptance walk (ADR-0197)
 
-**Status:** walked 2026-11-18 on branch `feat/ceo-agent`; scenarios (a) to (i) pass, with the findings at the end. The
+**Status:** walked 2026-11-18 on branch `feat/ceo-agent` (before main with 0.3.23 was merged in `b2e350d3`); scenarios (a) to (i) pass, with the findings at the end. The
 walk ran a development build with a data folder of its own, against a disposable database stack
-(`scripts/test-stack.mjs`), never the operator's installed Fabric or its stack. Decision: [ADR-0197](../../../adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md);
+(`scripts/test-stack.mjs`), never the operator's installed Fabric or its stack. There is no separate spec or plan: ADR-0197's six decisions and board tasks `a125cc0e`, `b8fc11e4`, `3fc98668`,
+`e7ff5556` and `ff3fe9c3` are the plan of record. Decision: [ADR-0197](../../../adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md);
 scenarios SCN-110 and SCN-182 to SCN-185 in [`docs/ux/scenarios.md`](../../../ux/scenarios.md).
 
 ## How the walk runs
@@ -27,7 +28,7 @@ phrase (`--use-file-for-fake-audio-capture`), and `--disable-features=AudioServi
 without which the fake capture is silent in Electron 44.
 
 Work folder of the run: `~/DATA/_worktrees/fabric-ceo-acceptance` (outside the repository); the screenshots in this
-folder are copies from it, scaled to 1000 px.
+folder are copies from it, scaled to at most 1000 px.
 
 ## Models
 
@@ -82,11 +83,12 @@ Every CEO act was journalled with its reason (`ceo.session.*` acts in Истор
    loads the person's own `fabric` server beside it (its ACP adapter puts configured servers in the agent's toolsets
    whatever `HERMES_ACP_SKIP_CONFIGURED_MCP` says), which is why the brief names it. **Left in the installed Fabric:**
    project «ceo» (`70d8992b`), its enrolled session `73ac60b2` and three memory facts, written by the walked Hermes CEO
-   before the fix; to archive.
+   before the fix; to archive (board task `543e0340`, CO-597 item 7).
 4. **The PM chain's `com.enroll` on `ceo.task` answers `not_authorized` where the runner never enrolled through
    `fabric-mcp`**: the own-project grant (ADR-0190) needs a live binding of the runner, and the disposable estate had
    none (ops log `board.own-respond`: «no live credential of this session or its runner»). On the operator's machine
-   Claude Code and Hermes hold bindings. Not changed here; a board row.
+   Claude Code and Hermes hold bindings (`fabric_access_list` on 2026-11-19: nine live
+   credentials of `claude-code`, one of `hermes`). Not changed in 0.3.24: CO-597 item 1.
 5. **Switchboard's sessions were unreadable in the signed-out run**: with `CLAUDE_CONFIG_DIR` pointing at an empty
    folder, `switchboard --json sessions --rows` failed, and the CEO said the list was incomplete instead of guessing.
    Expected for that setup.

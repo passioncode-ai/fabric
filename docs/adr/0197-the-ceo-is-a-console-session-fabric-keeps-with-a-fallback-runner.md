@@ -29,7 +29,7 @@ walk is Fabric's own.
 ## Decision
 
 1. **One CEO console per computer, in a folder of its own.** Fabric keeps one console in `<userData>/ceo`, whose brief is
-   written there as `CLAUDE.md` and `AGENTS.md` at every start (role, tools, how to delegate, Russian, no em dash), with an
+   written there as `CLAUDE.md` and `AGENTS.md` at every start (role, tools, how to delegate, the person's language, Russian by default, no em dash), with an
    `inbox/` for attachments. A console needs a project, so the folder is admitted as the project «Fabric CEO» (no
    onboarding task is filed for it; `projectAdmission.ts#create` takes `onboard: false`). It starts on first use (the
    popup opening, a message, a call) and keeps running; «Перезапустить CEO» stops it and starts it again. The console is
@@ -39,9 +39,14 @@ walk is Fabric's own.
 2. **The fallback is Fabric's, and it is mandatory.** The console walks the CEO's own order, settings `ceoRunners`
    (default: Claude Code, then Hermes on OpenRouter), with ADR-0125's walk: a runner not installed, signed out, not
    answering or that could not be spawned is passed over. Two cases the walk cannot see are caught after the start: a
-   runner that prints its usage limit (`main/ceoAgent.ts#LIMIT_SAID`) and one that ends within 20 seconds are set aside for an
-   hour, the next runner starts, and the person's last message is typed again. The popup's head says which runner the CEO
-   runs on and why any was passed over or set aside. Kimi Code and Codex are not CEO runners: Fabric cannot hold their
+   runner that prints its usage limit (`main/ceoAgent.ts#LIMIT_SAID`) or its sign-in screen before its first answer, and one
+   that ends within 20 seconds, are set aside for an hour, the next runner starts, and the person's undelivered messages
+   are typed again. Those screens are read only in the start window: later the CEO itself quotes sessions at their limit
+   and the person's words are echoed, and neither is the runner's own state (0.3.24 review, ER-2). When every runner is
+   set aside the CEO stops as failed, naming each runner, why and until when, and starts nothing until the person's
+   retry or restart, which clears the list (ER-1, UX-4); a restart the keeper makes itself is never read as an early end
+   (ER-3). The popup's head says which runner the CEO
+   runs on, the first model of its list, and why any was passed over or set aside. Kimi Code and Codex are not CEO runners: Fabric cannot hold their
    model to the floor below. A Hermes CEO's surface goes under a random name per session (`fabric_` and eight hex
    digits, `sessionBundle.ts`, as Codex's does): Hermes keys its MCP connections by name and keeps the one already
    connected, so under the name `fabric` the person's own Hermes `fabric` server (the installed Fabric's `fabric-mcp`)
@@ -73,9 +78,11 @@ walk is Fabric's own.
    Code transcript's last turns; typing is `PtyManager.write` (keys by name, never raw control bytes from a model); a
    start is the person's console launch (`consoleOpen.ts`); a stop is the person's stop (force kills); a Switchboard
    session is ended or continued through Switchboard; a process outside Fabric is sent SIGTERM only with `force`. The CEO
-   never types into, stops or kills its own console. Every act needs a reason, is written to the operations log with it,
-   and a start or a stop is also an act in История (`act.ceo.session.start`, `act.ceo.session.stop`, actor the CEO's
-   session) with its inverse. The authority is the person's, delegated by the operator's order; the gates are the doors'
+   never types into, stops or kills its own console. Every act, an open included, needs a reason and is written to the operations log with it;
+   a start or a stop of a Fabric console is also an act in История (`act.ceo.session.start`, `act.ceo.session.stop`,
+   actor the CEO's session) with its inverse, and a stop or continue of a session Switchboard runs is an act with no
+   inverse. A session's screen and turns pass `shared/redact.ts#redact` before the tool returns them; they go to the
+   CEO's model and, during a call, to xAI. The authority is the person's, delegated by the operator's order; the gates are the doors'
    own (folder locks, the stop runtime). The hub has no search and execute doors yet (task `e9af6c95`), so these tools
    take the hub's existing style; moving them behind the two doors is that task's.
 4. <a id="the-popup-window"></a>**The popup window.** «Спросить CEO» on the home screen and the floating button on every screen of the main window open
@@ -98,7 +105,13 @@ walk is Fabric's own.
    The call shows its length and its price at xAI's list rate (USD 0.08 a minute).
 6. **The PM chain.** The CEO's brief tells it to enrol for the board capability `ceo.task` on its own project and to read
    its unread board messages; a PM agent gives the CEO a task as a board request to the «Fabric CEO» project with that
-   capability. The session's own `com.enroll` grants the slot ([ADR-0190](0190-an-agent-decides-agent-access-on-the-operators-relayed-words-and-answering-is-granted-for-the-sessions-own-project.md): own project), so no second mechanism is built.
+   capability. The session's own `com.enroll` grants the slot ([ADR-0190](0190-an-agent-decides-agent-access-on-the-operators-relayed-words-and-answering-is-granted-for-the-sessions-own-project.md): own project), so no second mechanism answers it. The grant
+   rests on the runner's live binding: a runner that never enrolled through `fabric-mcp` on this computer has none, and
+   `com.enroll` then answers `not_authorized` (acceptance finding 4; on the operator's computer Claude Code and Hermes
+   hold live bindings, `fabric_access_list` read 2026-11-19); a grant for a session Fabric launched without its runner's
+   binding is CO-597. Beside it Fabric nudges the CEO: while its console runs, once a minute, each `ceo.task` request
+   it was not told about is typed into the console once, and one whose delivery failed is tried again at the next
+   minute (`main/ceoAgent.ts#nudgeBoard`); the nudge claims, answers and completes nothing.
 
 ## Consequences
 
@@ -109,5 +122,6 @@ walk is Fabric's own.
   История. A CEO model that misreads an order can stop a session: every stop needs a reason and a read first by the brief,
   and a process outside Fabric is killed only with `force`.
 - The side panel's conversation code stays in the tree unused until its removal is its own change (P-13's rest).
-- Not built here: a Settings row for `ceoRunners` (set by hand in settings.json), Hermes with the person's MCP servers,
-  a voice of the operator's choosing (the call uses `eve`), and the CEO's tools behind search and execute.
+- Not built here (CO-597): Settings rows for `ceoRunners` and `ceoModels` (set by hand in settings.json), keeping the
+  person's own `fabric` server out of a Hermes session's toolsets, a voice of the operator's choosing (the call uses
+  `eve`), and the CEO's tools behind search and execute (task `e9af6c95`).

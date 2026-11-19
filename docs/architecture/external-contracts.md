@@ -241,6 +241,22 @@ exceptions and 1500 survey responses per month, usage-priced after that.
 
 ---
 
+### xAI realtime voice (the CEO's call, ADR-0197 decision 5)
+
+Sources: `docs.x.ai/developers/models/voice-agent-api` and `docs.x.ai/developers/pricing`, fetched 2026-11-19;
+`docs.x.ai/developers/model-capabilities/audio/voice`, fetched 2026-11-19.
+
+| Term | Value |
+|---|---|
+| Endpoint | `wss://api.x.ai/v1/realtime`, model `grok-voice-latest`; compatible with the OpenAI Realtime API's events |
+| Client access | an ephemeral token from `POST /v1/realtime/client_secrets`, so the API key never reaches the client (Fabric asks for five minutes, `apps/desktop/src/main/ceoVoice.ts`) |
+| Audio | billed USD 0.08 a minute (USD 4.80 an hour); with server turn detection the whole session's duration is billed |
+| Text input | USD 0.004 per `conversation.item.create` event; tool results (`function_call_output`) and `response.create` are not billed |
+| Earlier rate | USD 0.05 a minute at the Voice Agent API's announcement (`x.ai/news/grok-voice-agent-api`); the call's price shown in Fabric uses 0.08 |
+
+The audio format Fabric sends (24 kHz PCM16) is Fabric's choice in `apps/desktop/src/renderer/src/ceo/voiceCall.ts`, not
+a number read from these pages.
+
 ## 4. What this changes
 
 Three consequences the module map at stage 2 has to absorb.
