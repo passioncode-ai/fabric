@@ -136,3 +136,14 @@ What is owed around the tag, in order; each item is checked off here with its re
 2. Install 0.3.23 on this Mac by [the runbook](../../launch/release-mac.md#upgrading-an-existing-database) (no schema
    step: schema 102 as in 0.3.22), through the lifecycle broker; board task `3ff9a3e2` moved to review.
 3. The Mac Studio by its host agent, asked on the board.
+
+Receipt for 0 (2026-11-18): the push run of `ci` on `f056b3b6` read its fast job green; the full job runs only on dispatch
+or the nightly schedule, so [run 44413219961](https://github.com/passioncode-ai/fabric/actions/runs/44413219961), dispatched
+on `cf834842`, whose difference to `f056b3b6` is documents only (the receipts, this ledger, the gate, the version, CHANGELOG,
+MERGES, the map), read green in both the fast job and the full job with a disposable stack. `bash scripts/ci.sh fast` exit 0
+on `f056b3b6` and on `cf834842`.
+Receipt for 0b: the release commit `817f2a6e` and the map's redaction entry `cf834842` (the pre-push private-text check
+found a private agent's name in iteration 1's plan report; the name was replaced and its receipt's hash recomputed);
+`node scripts/release-mac.mjs --check-only --tag v0.3.23` «its release gate is clear»; landed on `main` by fast-forward
+(`22403642..cf834842`), tag `v0.3.23` pushed 2026-11-18 23:22 UTC.
+Receipt for 0c: this commit carries the CO-596 row.
