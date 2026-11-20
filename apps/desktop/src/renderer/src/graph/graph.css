@@ -1,5 +1,5 @@
 /* @fabric/graph's views (docs/evidence/specs/2026-11-20-memory-dashboard.md §6): the app's tokens only. */
-.graph-map{ --graph-c1: var(--state-running); --graph-c2: var(--app-accent); --graph-c3: var(--state-good); --graph-c4: var(--state-idle); --graph-c5: var(--state-danger); --graph-c6: var(--app-link);
+.graph-map{ --graph-c1: var(--state-running); --graph-c2: var(--app-accent); --graph-c3: var(--state-good); --graph-c4: var(--app-link); --graph-c5: var(--state-danger); --graph-c6: var(--state-idle);
   position: relative; border: var(--report-line) solid var(--app-line); border-radius: var(--app-radius-panel); background: var(--app-panel); overflow: hidden; }
 .graph-canvas{ display: block; cursor: grab; touch-action: none; }
 .graph-canvas:active{ cursor: grabbing; }

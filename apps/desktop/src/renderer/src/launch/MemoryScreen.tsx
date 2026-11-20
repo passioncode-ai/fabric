@@ -4,7 +4,7 @@
 // of @fabric/graph with the board's requests between projects, a project's card, the search with its citations checked,
 // and what changed. Every part reads the execute operations the CEO's doors run (window.fabric.memoryIndex), and the map
 // has its text twin (the table) beneath it.
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { EverywhereAnswer, EverywhereHit } from '../../../shared/estateSearch'
 import type { MemoryChanges, MemoryCheck, MemoryGraph, MemoryIndexOverview, MemoryRefusal } from '../../../shared/memory'
 import { GraphMap, GraphTable, type GraphData, type GraphNode } from '../graph'
@@ -42,6 +42,10 @@ export function MemoryScreen({ onError }: { onError(message: string): void }): R
   const [found, setFound] = useState<EverywhereAnswer | null>(null)
   const [checks, setChecks] = useState<Record<string, MemoryCheck | MemoryRefusal | 'checking'>>({})
   const [tick, setTick] = useState(0)
+  const [noCanvas, setNoCanvas] = useState(false)
+  const cardRef = useRef<HTMLDivElement | null>(null)
+  // R2 (design review 2026-11-20): a picked project's card is brought into view, not opened below the fold.
+  useEffect(() => { if (picked) cardRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }) }, [picked])
 
   const project = picked?.kind === 'project' ? picked.label : undefined
   const fail = useCallback((e: unknown) => onError(e instanceof Error ? e.message : String(e)), [onError])
@@ -121,10 +125,10 @@ export function MemoryScreen({ onError }: { onError(message: string): void }): R
               <li key={s.source} className={`memory-source f-${s.state}`}>
                 <b>{t(`memoryBase.source.${s.source}` as 'memoryBase.source.git')}</b>
                 <span>{t(`memoryBase.state.${s.state}` as 'memoryBase.state.fresh')}</span>
-                <small>{s.readAt ? t('memoryBase.readAt', { when: when(s.readAt) }) : t('memoryBase.never')}</small>
+                {s.readAt && <small>{t('memoryBase.readAt', { when: when(s.readAt) })}</small>}
                 {s.left > 0 && <small>{t('memoryBase.left', { n: num(s.left) })}</small>}
                 {s.unread > 0 && <small>{t('memoryBase.unread', { n: num(s.unread) })}</small>}
-                {s.error && <small title={s.error}>{t('memoryBase.error')}</small>}
+                {s.error && <small className="memory-source-why">{t('memoryBase.error', { reason: s.error })}</small>}
               </li>
             ))}
           </ul>
@@ -140,10 +144,10 @@ export function MemoryScreen({ onError }: { onError(message: string): void }): R
             <>
               <GraphMap data={data} focus={picked?.id ?? null} onPick={setPicked} hubs={(n) => n.kind === 'organization'}
                 label={t('memoryBase.graphLabel', { orgs: graph && graph.ok ? graph.organizations.length : 0, projects: data.nodes.filter((n) => n.kind === 'project').length })}
-                noCanvas={t('memoryBase.noCanvas')} fitLabel={t('memoryBase.fit')} />
-              <p className="lp-meta">{t('memoryBase.graphHow')}</p>
-              {picked && <ProjectCard node={picked} onClose={() => setPicked(null)} num={num} when={when} orgLabel={orgLabel} />}
-              <details className="lp-panel">
+                noCanvas={t('memoryBase.noCanvas')} fitLabel={t('memoryBase.fit')} onNoCanvas={() => setNoCanvas(true)} />
+              {!noCanvas && <p className="lp-meta">{t('memoryBase.graphHow')}</p>}
+              {picked && <div ref={cardRef}><ProjectCard node={picked} onClose={() => setPicked(null)} num={num} when={when} orgLabel={orgLabel} /></div>}
+              <details className="lp-panel" open={noCanvas || undefined}>
                 <summary>{t('memoryBase.tableSummary')}</summary>
                 <GraphTable data={data} caption={t('memoryBase.tableCaption')} rows={(n) => n.kind === 'project'} groupTitle={orgLabel}
                   onPick={setPicked} pickLabel={(n) => t('memoryBase.pick', { name: n.label })}
@@ -171,10 +175,11 @@ export function MemoryScreen({ onError }: { onError(message: string): void }): R
                 const c = checks[h.id]
                 return (
                   <li key={h.id}>
-                    <span className="memory-hit-top">{t(`everywhere.kind.${h.kind}` as 'everywhere.kind.task')} · {[h.project ?? h.folder, h.at?.slice(0, 10)].filter(Boolean).join(' · ')}</span>
+                    <span className="memory-hit-top">{t(`everywhere.kind.${h.kind}` as 'everywhere.kind.task')} · {[h.project ?? h.folder, h.at ? when(h.at) : null].filter(Boolean).join(' · ')}</span>
                     <b>{h.title}</b>
                     <blockquote className="memory-quote">{h.passage}</blockquote>
                     {h.cite && <code className="memory-cite">{h.cite}</code>}
+                    <span className="memory-hit-top">{t('memoryBase.via', { via: h.via.map((v) => t(`memoryBase.via.${v}` as 'memoryBase.via.words')).join(', ') })}</span>
                     <span className="memory-hit-acts">
                       <button type="button" className="lp-button" disabled={c === 'checking'} onClick={() => check(h)}>{t('memoryBase.check')}</button>
                       {c && c !== 'checking' && (c.ok

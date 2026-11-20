@@ -66,7 +66,8 @@ describe('MemoryScreen', () => {
     const sources = screen.getByRole('list', { name: en['memoryBase.sourcesLabel'] })
     expect(within(sources).getByText(en['memoryBase.state.catching-up'])).toBeTruthy()
     expect(within(sources).getByText(en['memoryBase.state.unread'])).toBeTruthy()
-    expect(within(sources).getByTitle('board-unread: the board could not be read')).toBeTruthy()
+    // The reason is text a keyboard or touch reader gets too, not a hover title (design review 2026-11-20, R4).
+    expect(within(sources).getByText(en['memoryBase.error'].replace('{reason}', 'board-unread: the board could not be read'))).toBeTruthy()
     expect(screen.getByText('2.9 % (5,600)')).toBeTruthy()
   })
 

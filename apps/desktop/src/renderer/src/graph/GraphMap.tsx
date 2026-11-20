@@ -25,6 +25,8 @@ export interface GraphMapProps {
   /** The fit button's words. */
   fitLabel: string
   height?: number
+  /** Told once when no 2D canvas is available, so the host can open the text twin. */
+  onNoCanvas?(): void
 }
 
 function tokens(el: Element): { colors: string[]; ink: string; muted: string; line: string; panel: string; focus: string } {
@@ -34,7 +36,7 @@ function tokens(el: Element): { colors: string[]; ink: string; muted: string; li
   return { colors: PALETTE.map(v), ink: v('--app-ink'), muted: v('--app-muted'), line: v('--app-line'), panel: v('--app-panel'), focus: v('--app-focus') }
 }
 
-export function GraphMap({ data, focus = null, onPick, hubs, label, noCanvas, fitLabel, height = 520 }: GraphMapProps): React.JSX.Element {
+export function GraphMap({ data, focus = null, onPick, hubs, label, noCanvas, fitLabel, height = 520, onNoCanvas }: GraphMapProps): React.JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [hover, setHover] = useState<string | null>(null)
   const [noCtx, setNoCtx] = useState(false)
@@ -70,7 +72,7 @@ export function GraphMap({ data, focus = null, onPick, hubs, label, noCanvas, fi
     const c = canvasRef.current
     if (!c || !view) return
     const ctx = c.getContext('2d')
-    if (!ctx) { setNoCtx(true); return }
+    if (!ctx) { if (!noCtx) onNoCanvas?.(); setNoCtx(true); return }
     const dpr = window.devicePixelRatio || 1
     const w = c.clientWidth || 800
     c.width = Math.round(w * dpr); c.height = Math.round(height * dpr)
