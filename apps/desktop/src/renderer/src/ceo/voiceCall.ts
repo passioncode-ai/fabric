@@ -67,6 +67,12 @@ export interface CallDeps {
   audio: CallAudio
   onPhase(phase: CallPhase, problem?: CallProblem | CallEnd): void
   onLine(line: CallLine): void
+  /** The call's journal in main (voice CEO retro 2026-11-20, finding 1): the owner's and the voice's lines and the
+   *  call's end, under the id main gave with the session. Absent: nothing is kept beyond the window. */
+  journal?: {
+    line(callId: string, who: 'person' | 'ceo', text: string): void
+    end(callId: string, spent: { minutes: number; usd: number; end: string | null }): void
+  }
   now?: () => number
 }
 
@@ -94,6 +100,13 @@ export function createCall(deps: CallDeps) {
   let startedAt = 0
   let usdPerMinute = 0
   let ceoLine = ''
+  /** The journal's id for this call, from main's session; null when main keeps none. */
+  let callId: string | null = null
+  /** A line for the window and, for the owner's and the voice's words, for the journal. */
+  const line = (l: CallLine): void => {
+    deps.onLine(l)
+    if (callId && l.who !== 'tool') { try { deps.journal?.line(callId, l.who, l.text) } catch { /* the window still shows it */ } }
+  }
   /** The person's words so far, as the cumulative transcript reports them; said once the answer starts. */
   let personLine = ''
   /** Function calls of the current response not answered yet; the next response waits for all of them. */
@@ -113,6 +126,12 @@ export function createCall(deps: CallDeps) {
 
   /** End the call: the microphone, the socket and the deadline; `failed` with its code, else `ended`. */
   function end(problem?: CallProblem, ended?: CallEnd): void {
+    if (callId) {
+      const id = callId
+      callId = null
+      const minutes = startedAt ? (now() - startedAt) / 60_000 : 0
+      try { deps.journal?.end(id, { minutes, usd: Math.round(minutes * usdPerMinute * 100) / 100, end: problem ?? ended ?? 'hung-up' }) } catch { /* the call ends either way */ }
+    }
     generation++
     clearDeadline()
     if (watch) { clearInterval(watch); watch = null }
@@ -134,6 +153,7 @@ export function createCall(deps: CallDeps) {
     if (gen !== generation) return
     if (!s.ok) { end(s.reason); return }
     usdPerMinute = s.usdPerMinute
+    callId = typeof s.callId === 'string' ? s.callId : null
     const ready = s
     let socket: SocketLike
     try {
@@ -185,7 +205,7 @@ export function createCall(deps: CallDeps) {
       case 'response.output_audio_transcript.done':
       case 'response.audio_transcript.done':
       case 'response.done':
-        if (ceoLine.trim()) deps.onLine({ who: 'ceo', text: ceoLine.trim() })
+        if (ceoLine.trim()) line({ who: 'ceo', text: ceoLine.trim() })
         ceoLine = ''
         if (type === 'response.done' && phase === 'speaking') set('listening')
         return
@@ -199,12 +219,12 @@ export function createCall(deps: CallDeps) {
         return
       case 'conversation.item.input_audio_transcription.completed':
         if (typeof m.transcript === 'string') personLine = m.transcript
-        if (personLine.trim()) deps.onLine({ who: 'person', text: personLine.trim() })
+        if (personLine.trim()) line({ who: 'person', text: personLine.trim() })
         personLine = ''
         return
       case 'response.created':
         touch()
-        if (personLine.trim()) deps.onLine({ who: 'person', text: personLine.trim() })
+        if (personLine.trim()) line({ who: 'person', text: personLine.trim() })
         personLine = ''
         return
       case 'response.function_call_arguments.done':
@@ -242,7 +262,7 @@ export function createCall(deps: CallDeps) {
   function say(text: string): void {
     if (!text.trim()) return
     touch()
-    deps.onLine({ who: 'person', text: text.trim() })
+    line({ who: 'person', text: text.trim() })
     send({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: text.trim() }] } })
     send({ type: 'response.create' })
   }

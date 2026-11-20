@@ -1842,6 +1842,10 @@ export interface FabricApi {
     takeDraft(): Promise<string | null>
     voice(): Promise<CeoVoiceSession>
     voiceTool(name: string, args: unknown): Promise<Record<string, unknown>>
+    /** One line of the call for its journal (voice CEO retro, finding 1): what the owner said or the voice answered. */
+    voiceLine(callId: string, who: 'person' | 'ceo', text: string): Promise<void>
+    /** The call's end for its journal: its length and price as the window measured them, and why it ended. */
+    voiceEnd(callId: string, spent: { minutes: number; usd: number; end: string | null }): Promise<void>
     /** Whether the person's own xAI key is set (`main/ceoVoiceKey.ts`); never the key. */
     voiceKey(): Promise<{ own: boolean }>
     /** Whether a call can be made: the person's key or Observatory's (onboarding asks before it offers the voice step). */
@@ -2102,6 +2106,8 @@ export const IPC = {
   ceoAgentTakeDraft: 'ceo-agent:take-draft',
   ceoAgentVoice: 'ceo-agent:voice',
   ceoAgentVoiceTool: 'ceo-agent:voice-tool',
+  ceoAgentVoiceLine: 'ceo-agent:voice-line',
+  ceoAgentVoiceEnd: 'ceo-agent:voice-end',
   ceoAgentVoiceKey: 'ceo-agent:voice-key',
   ceoAgentVoiceReady: 'ceo-agent:voice-ready',
   ceoAgentVoiceSample: 'ceo-agent:voice-sample',

@@ -29,7 +29,27 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
   into zsh («parse error near `)'»). The CEO's start refuses that before anything starts and names the agents to use;
   the console never types a first instruction into a shell (`main/consoleOpen.ts#TAKES_NO_TASK`).
 
-**Upgrading.** No schema step. Nothing to set.
+The owner, the same day: «разбери общение с голосовым агентом твоим … исправим все баги и недоработки и недостающие
+инструменты добавим» ([the voice retro](docs/reports/2026-11-20-voice-ceo-retro/README.md), [its fixes](docs/reports/2026-11-20-voice-ceo-retro/fixes.md)).
+
+- **Every voice call is kept on this computer.** What the owner said, what the voice answered, every tool it called
+  with its arguments and answer, the call's length and price: one file a call in the CEO's folder (`ceo/calls/`,
+  owner-only), secrets cut before writing, kept 30 days, read by the CEO's console. Before, the words lived in the
+  window only (`main/ceoVoiceJournal.ts`).
+- **The voice hands work to agents instead of doing it by hand.** Its instructions say new work goes to the project's
+  agent with the task in words, a terminal only on the owner's ask; it types into a console only to answer a question
+  (three times in three minutes for a shell, six for an agent), and the CEO's own console only through «ask_ceo».
+- **A project is found by how its name sounds.** «DC» and «Диззи» are dissy, «ПлейСинг» playsing, «Саунд энджин»
+  sound-engine; a worktree folder is found through its project; the home folder is no project. Several matches answer
+  three names to choose from, none the three nearest, and the CEO keeps the names the owner uses for a project
+  (`shared/heardName.ts`, `fabric_ceo_project_alias`).
+- **The voice reads the CEO's answer aloud** (`ceo_reply`), and has four tools more: `machine_status`, `board_search`,
+  `recap` (what changed since the previous call) and `session_task` (did a started session take its task).
+- **A cache or temporary folder never becomes a project.** An agent started in `~/.cache` or a temporary folder is
+  refused, and 18 such projects left by probes were archived (their folders untouched).
+
+**Upgrading.** No schema step. Nothing to set. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
+days) and `<userData>/ceo/project-aliases.json` (0600).
 
 ## 0.3.26
 

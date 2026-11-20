@@ -47,6 +47,9 @@ import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
 import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
+import { createVoiceJournal } from './ceoVoiceJournal.ts'
+import { createVoiceTools, VOICE_TOOLS } from './ceoVoiceTools.ts'
+import { createAliasStore } from './ceoProjectAliases.ts'
 import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -202,7 +205,7 @@ import { toOperatorMarks } from './boardDispatchRun.ts'
 import { suspendedSince } from '../shared/boardDispatch.ts'
 import { createIpcOutcomeLog } from './ipcOutcome.ts'
 import { agentCounts, createAnalytics, installationPath, type Analytics } from './analytics'
-import { homedir, hostname } from 'node:os'
+import { cpus, freemem, homedir, hostname, loadavg, totalmem, uptime } from 'node:os'
 import { decideProposal } from './commands/proposalCommands.ts'
 import { withDeliveryHeader } from '../shared/deliveryState.ts'
 import { continuationText, routeContinuation, type ContinuationState } from '../shared/continuation.ts'
@@ -461,6 +464,9 @@ import { claudeConfigDirs, defaultAlive, liveClaudeSessions } from './diskSessio
 import { continueOrigin, createMachineSessions, linkOriginOf, readHead, transcriptCwd } from './machineSessions.ts'
 import { gitWorktrees, lastSessionOf, projectForFolder } from './projectResume.ts'
 import { findTranscript, defaultTranscriptRoots, parseMachineRows, redactedTurns } from './ceoTools.ts'
+import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
+import { decodePty } from '../shared/pty-decode.ts'
+import { screenText } from '../shared/ceoAgent.ts'
 import { createTaskStart } from './taskStart.ts'
 
 // ADR-0195 W2b: this process's data folder for every local store (settings, kept-out agents, digest marks), named
@@ -5389,14 +5395,20 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         : d.projectId ? { kind: 'session.start', args: { project_id: d.projectId, option_id: d.runner, permission_mode: null, cwd: null, task_id: null, from_session: d.sessionId } } : null
     }, { actor: { kind: 'agent', id: agent.sessionId() ?? 'ceo' } }).catch((e: unknown) => ops.failed('ceo.act-note', e))
   }
+  // Voice CEO retro 2026-11-20 (finding 4): the names the owner uses for projects, kept in the CEO's folder.
+  const ceoRoot = path.join(app.getPath('userData'), 'ceo')
+  const projectAliases = createAliasStore(ceoRoot)
   ceoOperations = createCeoOperations({
     ptys: { list: () => ptys.list(), get: (id) => ptys.get(id), scrollbackOf: (id) => ptys.scrollbackOf(id), write: (id, data) => ptys.write(id, data) },
     ceoSessionId: () => agent.sessionId(),
     projects: async () => {
       const { data, error } = await store.select('projects', 'id,name,repo_path,default_agent').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
       if (error) throw new Error(`the projects could not be read: ${error.message}`)
-      return (data ?? []) as Array<{ id: string; name: string; repo_path: string | null; default_agent: string | null }>
+      const aliases = projectAliases.read()
+      return ((data ?? []) as Array<{ id: string; name: string; repo_path: string | null; default_agent: string | null }>)
+        .map((p) => (aliases[p.id]?.length ? { ...p, aliases: aliases[p.id] } : p))
     },
+    saveAlias: async (projectId, alias) => projectAliases.add(projectId, alias),
     admitFolder: async (folder) => {
       const row = await admission.create({ id: randomUUID(), name: path.basename(folder), repoPaths: [folder] }, { kind: 'agent', id: agent.sessionId() ?? 'ceo' }, ceoReach)
       return { id: row.id, name: row.name, repo_path: row.repo_path }
@@ -5442,15 +5454,76 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   handle(IPC.ceoAgentTakeDraft, (): Returns<FabricApi['ceoAgent']['takeDraft']> => { const d = ceoDraft; ceoDraft = null; return d })
   handle(IPC.ceoAgentTakeCall, (): Returns<FabricApi['ceoAgent']['takeCall']> => { const c = ceoCallWanted; ceoCallWanted = false; return c })
+  // #region ceo-voice-journal-wiring — docs: docs/reports/2026-11-20-voice-ceo-retro/fixes.md#1-the-call-journal
+  // Voice CEO retro 2026-11-20 (finding 1): every call kept on this computer, in the CEO's folder, redacted.
+  const voiceJournal = createVoiceJournal({ folder: ceoRoot, failed: (what, e) => ops.failed('ceo.voice.journal', e, { detail: { what } }) })
+  try { const n = voiceJournal.prune(); if (n) ops.record({ op: 'ceo.voice.journal-pruned', outcome: 'ok', level: 'info', detail: { removed: n }, ctx: { correlationId: ops.correlate() } }) } catch (e) { ops.failed('ceo.voice.journal-prune', e) }
+  /** When ask_ceo last handed the CEO a request in the open call (findings 7): ceo_reply reads what came after it. */
+  let voiceAskedAt: number | null = null
+  const ceoScreenNow = (lines: number): string => {
+    const id = agent.sessionId()
+    const sb = id ? ptys.scrollbackOf(id) : null
+    return sb ? redact(screenText(decodePty(sb.text), lines)).text : ''
+  }
+  const voiceTools = createVoiceTools({
+    askedAt: () => voiceAskedAt,
+    ceoTranscript: async () => {
+      const id = agent.sessionId()
+      if (!id || !launchJournal) return null
+      const runnerId = (await launchJournal.read({ sessionId: id })).find((l) => l.sessionId === id)?.runnerSessionId
+      const file = runnerId ? findTranscript(defaultTranscriptRoots(), runnerId) : null
+      return file ? readTail(file, READ_TAIL_BYTES) : null
+    },
+    ceoScreen: () => ceoScreenNow(60),
+    ceoLastActivity: () => {
+      const id = agent.sessionId()
+      const at = id ? ptys.get(id)?.lastActivityAt : null
+      return at ? Date.parse(at) : null
+    },
+    machine: () => {
+      let diskFreeGb: number | null = null, diskTotalGb: number | null = null
+      try { const st = statfsSync(homedir()); diskFreeGb = Math.round(st.bavail * st.bsize / 1e8) / 10; diskTotalGb = Math.round(st.blocks * st.bsize / 1e8) / 10 } catch { /* unreadable: said as null */ }
+      return { diskFreeGb, diskTotalGb, load1: loadavg()[0] ?? 0, cpus: cpus().length, memFreeGb: Math.round(freemem() / 1e8) / 10, memTotalGb: Math.round(totalmem() / 1e8) / 10, uptimeHours: Math.round(uptime() / 360) / 10 }
+    },
+    consolesRunning: () => ptys.list().filter((x) => x.running).length,
+    claudeSessions: async () => (await liveClaudeSessions(await claudeConfigDirs())).length,
+    boardSearch: async (q) => {
+      const r = await commsRead.search(ACTIVE_ESTATE, q, null)
+      return r.ok ? { ok: true as const, hits: r.hits, more: r.more } : { ok: false as const, reason: 'reason' in r ? String((r as { reason?: unknown }).reason ?? '') : undefined, message: 'message' in r ? String((r as { message?: unknown }).message ?? '') : undefined }
+    },
+    launches: () => launchJournal ? launchJournal.read({}) : Promise.resolve([]),
+    previousCallEnd: () => {
+      const open = voiceJournal.current()
+      const prev = voiceJournal.list(5).find((c) => c.call !== open && c.minutes !== null)
+      return prev?.startedAt ? new Date(Date.parse(prev.startedAt) + (prev.minutes ?? 0) * 60_000).toISOString() : null
+    },
+    projectName: () => null
+  })
   handle(IPC.ceoAgentVoice, async (): Promise<Returns<FabricApi['ceoAgent']['voice']>> => {
     const token = await mintVoiceToken({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch })
     ops.record({ op: 'ceo.voice.token', outcome: token.ok ? 'ok' : 'failed', level: token.ok ? 'info' : 'warn', detail: token.ok ? {} : { reason: token.reason, detail: token.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
     // ER-7: the window gets the code; the raw detail stays in the operations log.
     if (!token.ok) return { ok: false, reason: token.reason }
     const locale = readSettings().locale
+    const voice = xaiVoiceOf(persona().persona)
+    // A call left open (the window closed mid-call) is closed in its journal by the next one.
+    const left = voiceJournal.current()
+    if (left) voiceJournal.end(left, { minutes: 0, usd: 0, end: 'not-closed' })
+    voiceAskedAt = null
+    const callId = voiceJournal.begin({ voice, usdPerMinute: token.usdPerMinute })
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
-      instructions: voiceInstructions(locale), voice: xaiVoiceOf(persona().persona), tools: [...ceoVoiceTools(), ASK_CEO_TOOL] }
+      instructions: voiceInstructions(locale), voice, tools: [...ceoVoiceTools(), ASK_CEO_TOOL, ...VOICE_TOOLS], callId }
   })
+  handle(IPC.ceoAgentVoiceLine, (_e, callId: unknown, who: unknown, text: unknown): void => {
+    if (typeof callId !== 'string' || (who !== 'person' && who !== 'ceo') || typeof text !== 'string') return
+    voiceJournal.line(callId, who, text)
+  })
+  handle(IPC.ceoAgentVoiceEnd, (_e, callId: unknown, spent: unknown): void => {
+    if (typeof callId !== 'string' || !spent || typeof spent !== 'object') return
+    const m = spent as { minutes?: unknown; usd?: unknown; end?: unknown }
+    voiceJournal.end(callId, { minutes: m.minutes, usd: m.usd, end: m.end })
+  })
+  // #endregion ceo-voice-journal-wiring
   // The person's own xAI key (the operator, 2026-11-19): set in the CEO window, or dropped by a coding agent.
   const voiceKeys = createVoiceKeyStore(path.join(app.getPath('userData'), 'ceo-voice'), safeStorage) // outside the CEO's own folder: its runner never reads the key (0.3.24 review iteration 2, DA-11)
   handle(IPC.ceoAgentVoiceKey, (): Returns<FabricApi['ceoAgent']['voiceKey']> => ({ own: voiceKeys.source() === 'own' }))
@@ -5487,14 +5560,26 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.ceoAgentVoiceTool, async (_e, name: unknown, args: unknown): Promise<Returns<FabricApi['ceoAgent']['voiceTool']>> => {
     const tool = typeof name === 'string' ? name : ''
     ops.record({ op: 'ceo.voice.tool', outcome: 'ok', level: 'info', detail: { tool: tool.slice(0, 40) }, ctx: { correlationId: ops.correlate() } })
+    const began = Date.now()
+    const answer = await runVoiceTool(tool, args)
+    // Finding 1: each tool with its arguments and answer, in the open call's journal (redacted there).
+    const call = voiceJournal.current()
+    if (call) voiceJournal.tool(call, tool, args, answer, Date.now() - began)
+    return answer
+  })
+  async function runVoiceTool(tool: string, args: unknown): Promise<Record<string, unknown>> {
     if (tool === 'ask_ceo') {
       const text = typeof (args as { text?: unknown } | null)?.text === 'string' ? (args as { text: string }).text : ''
+      const asked = Date.now()
       const r = await agent.send(text, [])
-      return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console' : undefined }
+      if (r.ok) voiceAskedAt = asked
+      return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console; read its answer with ceo_reply' : undefined }
     }
+    const own = await voiceTools.run(tool, args)
+    if (own) return own
     if (!tool.startsWith('session_')) return { ok: false, reason: `unknown tool ${tool}` }
     return ceoOperations!.run(tool.slice('session_'.length), args, 'voice')
-  })
+  }
   // #endregion ceo-agent-wiring
 }
 

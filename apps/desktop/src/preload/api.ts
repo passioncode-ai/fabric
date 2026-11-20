@@ -339,6 +339,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       takeDraft: () => ipc.invoke(IPC.ceoAgentTakeDraft),
       voice: () => ipc.invoke(IPC.ceoAgentVoice),
       voiceTool: (name, args) => ipc.invoke(IPC.ceoAgentVoiceTool, name, args),
+      voiceLine: (callId, who, text) => ipc.invoke(IPC.ceoAgentVoiceLine, callId, who, text),
+      voiceEnd: (callId, spent) => ipc.invoke(IPC.ceoAgentVoiceEnd, callId, spent),
       voiceKey: () => ipc.invoke(IPC.ceoAgentVoiceKey),
       voiceReady: () => ipc.invoke(IPC.ceoAgentVoiceReady),
       voiceSample: (voice) => ipc.invoke(IPC.ceoAgentVoiceSample, voice),

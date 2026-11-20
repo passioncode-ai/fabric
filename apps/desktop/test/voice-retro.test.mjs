@@ -1,0 +1,311 @@
+// The voice CEO retro of 2026-11-20 (docs/reports/2026-11-20-voice-ceo-retro/): one test per finding, each on the real
+// module the voice reaches, never a copy of its rule.
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { mkdtempSync, readFileSync, readdirSync, statSync, utimesSync, writeFileSync, mkdirSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+import { findProject } from '../src/shared/ceoAgent.ts'
+import { heardClose, heardKeys, nameKeys, soundKey } from '../src/shared/heardName.ts'
+import { isScratchFolder } from '../src/shared/scratchFolder.ts'
+import { createCeoOperations, VOICE_INPUTS, VOICE_REPEATS } from '../src/main/ceoTools.ts'
+import { voiceInstructions, ASK_CEO_TOOL } from '../src/main/ceoVoice.ts'
+import { createVoiceJournal, readCall, CALL_BYTES, KEEP_DAYS } from '../src/main/ceoVoiceJournal.ts'
+import { assistantSince, createVoiceTools, VOICE_TOOLS } from '../src/main/ceoVoiceTools.ts'
+import { createAliasStore, MAX_PER_PROJECT } from '../src/main/ceoProjectAliases.ts'
+import { resolveAgentFolder, SCRATCH_FOLDER_MESSAGE } from '../src/main/sessionEnroll.ts'
+import { backoffFor } from '../src/main/fabricMcp.ts'
+
+const EM_DASH = String.fromCodePoint(0x2014)
+// A credential shape Fabric's redaction knows (an Anthropic key), built so this file holds none.
+const KEY = ['sk', 'ant', 'api03', 'A'.repeat(40)].join('-')
+
+// ── finding 1: the call journal ──────────────────────────────────────────────
+
+test('finding 1: a call is kept on disk, private, redacted, each tool tied to the turn that asked for it', () => {
+  const folder = mkdtempSync(path.join(tmpdir(), 'voice-journal-'))
+  let t = Date.parse('2026-11-20T12:15:00Z')
+  const j = createVoiceJournal({ folder, now: () => t })
+  const call = j.begin({ voice: 'ara', usdPerMinute: 0.08 })
+  assert.equal(j.current(), call)
+  j.line(call, 'person', `запусти клининг, ключ ${KEY}`)
+  j.tool(call, 'session_start', { project: 'fabric', task: `use ${KEY}` }, { ok: false, reason: 'no project' }, 12)
+  j.line(call, 'ceo', 'Не нашёл проект.')
+  j.line(call, 'person', 'тогда спроси CEO')
+  j.tool(call, 'ask_ceo', { text: 'clean' }, { ok: true }, 3)
+  t += 90_000
+  j.end(call, { minutes: 99, usd: 0.12, end: 'idle' })
+  assert.equal(j.current(), null)
+
+  const [file] = readdirSync(path.join(folder, 'calls'))
+  const full = path.join(folder, 'calls', file)
+  assert.equal(statSync(path.join(folder, 'calls')).mode & 0o777, 0o700)
+  assert.equal(statSync(full).mode & 0o777, 0o600)
+  const text = readFileSync(full, 'utf8')
+  assert.ok(!text.includes(KEY), 'no credential reaches the disk')
+  const rows = readCall(full)
+  assert.deepEqual(rows.map((r) => r.kind), ['start', 'person', 'tool', 'ceo', 'person', 'tool', 'end'])
+  assert.deepEqual(rows.filter((r) => r.kind === 'tool').map((r) => [r.name, r.turn, r.ok]), [['session_start', 1, false], ['ask_ceo', 2, true]])
+  const end = rows.at(-1)
+  // The window said 99 minutes; the wall clock since the secret was minted says 1.5: the journal keeps the bound.
+  assert.equal(end.minutes, 1.5)
+  assert.equal(end.turns, 2)
+  assert.equal(end.tools, 2)
+  assert.deepEqual(j.list(5).map((c) => [c.call, c.turns, c.tools, c.end]), [[call, 2, 2, 'idle']])
+})
+
+test('finding 1: a call is bounded, an unknown call is dropped, old calls are pruned and nothing else is touched', () => {
+  const folder = mkdtempSync(path.join(tmpdir(), 'voice-journal-'))
+  const j = createVoiceJournal({ folder })
+  j.line('nope', 'person', 'lost')
+  const call = j.begin({ voice: 'eve', usdPerMinute: 0.08 })
+  for (let i = 0; i < 700; i++) j.line(call, 'ceo', 'x'.repeat(4000))
+  j.end(call, { minutes: 1, usd: 0.08, end: null })
+  const file = path.join(folder, 'calls', readdirSync(path.join(folder, 'calls'))[0])
+  const rows = readCall(file)
+  assert.ok(statSync(file).size <= CALL_BYTES + 10_000)
+  assert.equal(rows.filter((r) => r.kind === 'cut').length, 1)
+  assert.equal(rows.at(-1).kind, 'end', 'the end is written past the cut')
+  const old = path.join(folder, 'calls', '2026-09-01T00-00-00-000Z-aaaaaaaa.jsonl')
+  writeFileSync(old, '{}\n')
+  const past = Date.now() / 1000 - (KEEP_DAYS + 1) * 86_400
+  utimesSync(old, past, past)
+  writeFileSync(path.join(folder, 'calls', 'notes.txt'), 'kept')
+  assert.equal(j.prune(), 1)
+  assert.deepEqual(readdirSync(path.join(folder, 'calls')).sort(), [path.basename(file), 'notes.txt'].sort())
+})
+
+// ── findings 2 and 3: the voice delegates ────────────────────────────────────
+
+function ops(over = {}) {
+  const writes = []
+  const records = []
+  const consoles = new Map([
+    ['ceo', { sessionId: 'ceo', projectId: 'p0', cwd: '/c/ceo', optionId: 'claude-code', state: 'running', running: true, startedAt: 'x', lastActivityAt: 'x', tail: '' }],
+    ['sh', { sessionId: 'sh', projectId: 'fab', cwd: '/d/fabric', optionId: 'shell', state: 'running', running: true, startedAt: 'x', lastActivityAt: 'x', tail: '%' }],
+    ['ag', { sessionId: 'ag', projectId: 'fab', cwd: '/d/_worktrees/sound-engine-digest-runner', optionId: 'claude-code', state: 'running', running: true, startedAt: 'x', lastActivityAt: 'x', tail: '>' }]
+  ])
+  const projects = [
+    { id: 'dis', name: 'dissy', repo_path: '/d/dissy', default_agent: null },
+    { id: 'ps', name: 'playsing', repo_path: '/d/playsing', default_agent: null },
+    { id: 'se', name: 'sound-engine', repo_path: '/d/sound-engine', default_agent: null },
+    { id: 'swarm', name: 'sound-engine-fix-swarm-a', repo_path: '/d/_worktrees/sound-engine-fix-swarm-a', default_agent: null },
+    { id: 'fab', name: 'fabric', repo_path: '/d/fabric', default_agent: null },
+    { id: 'fsw', name: 'fabric-switchboard', repo_path: '/d/fabric-switchboard', default_agent: null },
+    { id: 'db', name: 'fabric-agents-database', repo_path: '/d/fabric-agents-database', default_agent: null },
+    { id: 'dbc', name: 'fabric-agents-database', repo_path: '/Users/example/.cache/fabric-agents-database', default_agent: null }
+  ]
+  const aliases = {}
+  const deps = {
+    ptys: { list: () => [...consoles.values()], get: (id) => consoles.get(id) ?? null, scrollbackOf: () => ({ text: 'ready\r\n' }), write: (id, d) => writes.push([id, d]) },
+    ceoSessionId: () => 'ceo',
+    projects: async () => projects.map((p) => (aliases[p.id] ? { ...p, aliases: aliases[p.id] } : p)),
+    admitFolder: async (folder) => ({ id: 'new', name: path.basename(folder), repo_path: folder }),
+    openConsole: async (projectId, runner, task) => ({ sessionId: 'started', projectId, cwd: '/d/x', optionId: runner, state: 'starting', running: true }),
+    stop: async () => ({ state: 'stopped' }),
+    openWindow: () => {},
+    switchboard: async () => null,
+    signal: () => {},
+    record: (op, d) => records.push([op, d]),
+    note: () => {},
+    sleep: async () => {},
+    transcriptRoots: [],
+    saveAlias: async (id, a) => { (aliases[id] ??= []).push(a); return aliases[id] },
+    scratch: over.scratch ?? (() => false),
+    launches: async () => [],
+    ...(over.firstTask ? { firstTask: over.firstTask } : {})
+  }
+  return { ops: createCeoOperations(deps), writes, records }
+}
+
+test('findings 2, 3: the voice types into a shell at most three times and into an agent six, then is told to delegate', async () => {
+  const o = ops()
+  for (let i = 0; i < VOICE_INPUTS.shell; i++) assert.equal((await o.ops.run('input', { session_id: 'sh', text: `ls ${i}`, reason: 'look' }, 'voice')).ok, true)
+  const r = await o.ops.run('input', { session_id: 'sh', text: 'cat x', reason: 'debug' }, 'voice')
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /doing the work by hand/)
+  assert.match(r.next, /session_start/)
+  for (let i = 0; i < VOICE_INPUTS.agent; i++) assert.equal((await o.ops.run('input', { session_id: 'ag', text: '1', reason: 'pick' }, 'voice')).ok, true)
+  assert.equal((await o.ops.run('input', { session_id: 'ag', text: '2', reason: 'pick' }, 'voice')).ok, false)
+  // The CEO's console door is not the voice: it is not limited.
+  for (let i = 0; i < 8; i++) assert.equal((await o.ops.run('input', { session_id: 'sh', text: 'pwd', reason: 'look' }, 'console')).ok, true)
+})
+
+test('findings 2, 3, 6, 7, 8: the voice is told to delegate, never a shell for work, and how to find a name once', () => {
+  for (const locale of ['ru', 'en']) {
+    const text = voiceInstructions(locale)
+    assert.ok(!text.includes(EM_DASH), `${locale}: no em dash`)
+    for (const word of ['runner shell', 'session_start', 'ask_ceo', 'ceo_reply', 'session_projects', 'session_alias', 'is_ceo', 'machine_status', 'board_search', 'recap'])
+      assert.ok(text.includes(word), `${locale} instructions name ${word}`)
+  }
+  assert.match(ASK_CEO_TOOL.description, /ceo_reply/)
+})
+
+// ── finding 4: names heard by voice ──────────────────────────────────────────
+
+test('finding 4: a name heard by voice is found by sound, Cyrillic or Latin, a spelt acronym, and an alias', async () => {
+  const o = ops()
+  const all = await (async () => (await o.ops.run('projects', {})).projects)()
+  const ps = all.map((p) => ({ id: p.id, name: p.name, repo_path: p.folder }))
+  for (const [heard, id] of [['DC', 'dis'], ['Диззи', 'dis'], ['ПлейСинг', 'ps'], ['Саунд энджин', 'se'], ['фабрик', 'fab'], ['свитчборд', 'fsw']]) {
+    const r = findProject(ps, heard)
+    assert.equal(r.found?.id, id, `${heard} → ${id}: ${JSON.stringify(r)}`)
+  }
+  assert.equal(findProject(ps, 'Диззи').heard, true, 'a match by sound says so')
+  // «диск» is not «dissy»: four letters must sound the same.
+  const disk = findProject(ps, 'диск')
+  assert.equal(disk.missing, true)
+  // A name the owner gave is kept and found.
+  assert.equal((await o.ops.run('alias', { project: 'dissy', alias: 'Дисси бэк', reason: 'the owner said so' })).ok, true)
+  // Heard a little otherwise («бек» for «бэк»): found by sound, and the answer says which project it understood.
+  const withAlias = (await o.ops.run('projects', { query: 'дисси бек' }))
+  assert.deepEqual(withAlias.projects.map((p) => p.id), ['dis'])
+  assert.equal(withAlias.understood_as, 'dissy')
+})
+
+test('finding 4: a worktree folder is found through its project, the home folder is no project, a cache copy gives way', () => {
+  const ps = [
+    { id: 'se', name: 'sound-engine', repo_path: '/Users/example/DATA/sound-engine' },
+    { id: 'fab', name: 'fabric', repo_path: '/Users/example/DATA/fabric' },
+    { id: 'db', name: 'fabric-agents-database', repo_path: '/Users/example/DATA/fabric-agents-database' },
+    { id: 'dbc', name: 'fabric-agents-database', repo_path: '/Users/example/.cache/fabric-agents-database' }
+  ]
+  const folders = [{ path: '/Users/example/DATA/_worktrees/sound-engine-digest-runner', projectId: 'se' }]
+  assert.equal(findProject(ps, 'sound-engine-digest-runner', folders).found.id, 'se')
+  assert.equal(findProject(ps, '_worktrees/sound-engine-digest-runner', folders).found.id, 'se')
+  assert.equal(findProject(ps, '/Users/example/DATA/_worktrees/sound-engine-digest-runner', folders).found.id, 'se')
+  assert.equal(findProject(ps, '/Users/example/DATA/fabric/apps/desktop').found.id, 'fab', 'a folder inside a project is that project')
+  const home = findProject(ps, '/Users/example')
+  assert.equal(home.missing, true)
+  assert.equal(home.why, 'too-broad')
+  assert.equal(findProject(ps, 'fabric-agents-database').found.id, 'db')
+})
+
+// ── findings 6 and 8: the CEO's console, and refusals that help ──────────────
+
+test('finding 6: the voice typing into the CEO\'s own console is sent to ask_ceo', async () => {
+  const o = ops()
+  const r = await o.ops.run('input', { session_id: 'ceo', text: 'hello', reason: 'talk' }, 'voice')
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /ask_ceo/)
+  assert.equal(o.writes.length, 0)
+})
+
+test('finding 8: a missed name answers the nearest names, several ask for a choice of three, repeats are told to stop', async () => {
+  const o = ops()
+  const near = await o.ops.run('launches', { project: 'digest' }, 'voice')
+  assert.equal(near.ok, false)
+  assert.ok(Array.isArray(near.near) && near.near.length > 0 && near.near.length <= 3, JSON.stringify(near))
+  assert.match(near.next, /nearest|projects/)
+  const several = await o.ops.run('start', { project: 'fabr', task: 'go', reason: 'the owner asked' }, 'voice')
+  assert.equal(several.ok, false)
+  assert.ok(several.choices?.length >= 2 && several.choices.length <= 3, JSON.stringify(several))
+  assert.match(several.next, /ask the owner/)
+  let last
+  for (let i = 0; i < VOICE_REPEATS; i++) last = await o.ops.run('launches', { project: `zz${i}` }, 'voice')
+  assert.match(last.stop, /stop trying/)
+})
+
+// ── finding 5: caches and temporary folders are no projects ──────────────────
+
+test('finding 5: a cache or temporary folder is scratch; a project folder is not', () => {
+  for (const p of ['/Users/example/.cache/board-submit', '/Users/example/Library/Caches/x', '/private/tmp', '/tmp/a', '/private/var/folders/3r/ab/T/tmp.MILK'])
+    assert.equal(isScratchFolder(p), true, p)
+  for (const p of ['/Users/example/DATA/fabric', '/Users/example/DATA/_worktrees/fabric-voice-retro', '/Users/example/.cachet', '/Users/example'])
+    assert.equal(isScratchFolder(p), false, p)
+  assert.equal(isScratchFolder('/x/T/probe', '/Users/example', '/x/T'), true, 'the system temporary folder given')
+})
+
+test('finding 5: enrollment refuses a scratch folder for good, the CEO\'s start refuses it, a lookup prefers the real copy', async () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'scratch-probe-'))
+  mkdirSync(path.join(dir, 'src'))
+  const r = await resolveAgentFolder(dir, {
+    admittedFolders: async () => [], realpath: (f) => f, gitCommonDir: () => null, home: '/Users/example',
+    inspectFolder: async () => ({ git: false }), projectIdForFolder: () => 'pid', scratch: (f) => isScratchFolder(f, '/Users/example', path.dirname(dir))
+  })
+  assert.equal(r.ok, false)
+  assert.equal(r.message, SCRATCH_FOLDER_MESSAGE)
+  assert.ok(backoffFor('no-project', 4, SCRATCH_FOLDER_MESSAGE) > backoffFor('no-project', 1, SCRATCH_FOLDER_MESSAGE), 'refused for longer each time, like a too-broad folder')
+  const o = ops({ scratch: (f) => isScratchFolder(f, '/Users/example', path.dirname(dir)) })
+  const s = await o.ops.run('start', { project: dir, reason: 'a probe' }, 'voice')
+  assert.equal(s.ok, false)
+  assert.match(s.reason, /cache or temporary/)
+})
+
+// ── finding 7 and 10: the voice's own tools ──────────────────────────────────
+
+test('finding 7: ceo_reply waits for the CEO\'s answer after the ask, says still working, and needs an ask first', async () => {
+  const asked = Date.parse('2026-11-20T13:00:00Z')
+  const jsonl = [
+    { type: 'assistant', timestamp: '2026-11-20T12:59:00Z', message: { content: [{ type: 'text', text: 'old answer' }] } },
+    { type: 'user', timestamp: '2026-11-20T13:00:01Z', message: { content: 'clean the disk' } },
+    { type: 'assistant', timestamp: '2026-11-20T13:00:05Z', message: { content: [{ type: 'tool_use', name: 'x' }, { type: 'text', text: `Started the cleaning. ${KEY}` }] } }
+  ].map((r) => JSON.stringify(r)).join('\n')
+  assert.deepEqual(assistantSince(jsonl, asked).turns, 1)
+  let t = asked + 10_000
+  const base = { now: () => t, sleep: async (ms) => { t += ms }, ceoScreen: () => 'screen', machine: () => ({}), consolesRunning: () => 1, boardSearch: async () => ({ ok: true, hits: [], more: false }), launches: async () => [], previousCallEnd: () => null, projectName: () => null }
+  const none = createVoiceTools({ ...base, askedAt: () => null, ceoTranscript: async () => jsonl, ceoLastActivity: () => t })
+  assert.equal((await none.run('ceo_reply', {})).ok, false)
+  const quiet = createVoiceTools({ ...base, askedAt: () => asked, ceoTranscript: async () => jsonl, ceoLastActivity: () => asked + 5000 })
+  const a = await quiet.run('ceo_reply', {})
+  assert.equal(a.state, 'answered')
+  assert.match(a.answer, /Started the cleaning/)
+  assert.ok(!a.answer.includes(KEY) && !a.answer.includes('old answer'))
+  const busy = createVoiceTools({ ...base, askedAt: () => asked, ceoTranscript: async () => jsonl, ceoLastActivity: () => t })
+  const b = await busy.run('ceo_reply', { wait_seconds: 3 })
+  assert.equal(b.state, 'still_working')
+})
+
+test('finding 10: the voice\'s tools: machine, board, recap since the last call, a task check; each said as a tool', async () => {
+  assert.deepEqual(VOICE_TOOLS.map((t) => t.name), ['ceo_reply', 'machine_status', 'board_search', 'recap'])
+  for (const t of VOICE_TOOLS) assert.ok(!t.description.includes(EM_DASH))
+  const tools = createVoiceTools({
+    askedAt: () => null, ceoTranscript: async () => null, ceoScreen: () => '', ceoLastActivity: () => null,
+    machine: () => ({ diskFreeGb: 120.5, diskTotalGb: 994.7, load1: 3.456, cpus: 12, memFreeGb: 4.1, memTotalGb: 64, uptimeHours: 50.2 }),
+    consolesRunning: () => 3,
+    claudeSessions: async () => 17,
+    boardSearch: async (q) => (q === 'down' ? { ok: false, reason: 'unavailable' } : { ok: true, more: false, hits: [{ at: 't', subject: 'S', snippet: `ask ${KEY}`, participants: ['a'] }] }),
+    launches: async () => [
+      { sessionId: 'n1', projectId: 'p', cwd: '/d/p', optionId: 'claude-code', by: 'ceo', via: 'voice', reason: 'r', startedAt: '2026-11-20T13:10:00Z', endedAt: null, end: null, exitCode: null },
+      { sessionId: 'o1', projectId: 'p', cwd: '/d/p', optionId: 'shell', by: 'ceo', via: 'voice', reason: 'r', startedAt: '2026-11-20T11:00:00Z', endedAt: '2026-11-20T13:20:00Z', end: 'stopped', exitCode: 0 }
+    ],
+    previousCallEnd: () => '2026-11-20T13:00:00Z',
+    projectName: (id) => (id === 'p' ? 'Proj' : null)
+  })
+  const m = await tools.run('machine_status', {})
+  assert.deepEqual([m.disk_free_gb, m.load_1min, m.fabric_consoles_running, m.claude_code_sessions], [120.5, 3.46, 3, 17])
+  const b = await tools.run('board_search', { query: 'ask' })
+  assert.ok(!JSON.stringify(b).includes(KEY))
+  assert.equal((await tools.run('board_search', { query: 'down' })).ok, false, 'an unread board is said, never an empty result')
+  const r = await tools.run('recap', {})
+  assert.deepEqual(r.started.map((x) => x.session_id), ['n1'])
+  assert.deepEqual(r.ended.map((x) => [x.session_id, x.end, x.project]), [['o1', 'stopped', 'Proj']])
+  assert.equal(r.since_is, 'the previous call')
+  assert.equal(await tools.run('session_read', {}), null, 'not one of these: the caller tries the session tools')
+  const o = ops({ firstTask: () => new Promise(() => {}) })
+  const task = await o.ops.run('task', { session_id: 'ag' }, 'voice')
+  assert.equal(task.first_task.state, 'pending')
+  assert.equal(typeof task.screen, 'string')
+})
+
+test('finding 4: the alias file keeps names whole, private, once each, at most ten a project', () => {
+  const folder = mkdtempSync(path.join(tmpdir(), 'aliases-'))
+  const store = createAliasStore(folder)
+  assert.deepEqual(store.read(), {})
+  store.add('dis', 'Диззи')
+  store.add('dis', 'диззи')
+  assert.deepEqual(store.add('dis', '  Дисси   бэк '), ['Диззи', 'Дисси бэк'])
+  for (let i = 0; i < 15; i++) store.add('ps', `name ${i}`)
+  assert.equal(store.read().ps.length, MAX_PER_PROJECT)
+  assert.equal(store.read().ps.at(-1), 'name 14')
+  assert.equal(statSync(path.join(folder, 'project-aliases.json')).mode & 0o777, 0o600)
+  writeFileSync(path.join(folder, 'project-aliases.json'), '{broken')
+  assert.deepEqual(store.read(), {}, 'an unreadable file reads as none, never a throw')
+})
+
+test('heard names: keys stay stable for the cases the retro measured', () => {
+  assert.equal(soundKey('Диззи'), soundKey('dissy'))
+  assert.ok(heardKeys('DC').includes(soundKey('dissy')))
+  assert.ok(nameKeys('project-observatory', null).includes(soundKey('observatory')))
+  assert.equal(heardClose(soundKey('диск'), soundKey('dissy')), false)
+})

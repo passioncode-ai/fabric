@@ -385,6 +385,8 @@ export const BACKOFF_MS: Record<ProxyState['kind'], number> = {
  *  keep their base, because the person can lift them in Fabric or they pass by themselves (0.3.8 review UX-6, i3
  *  UX-1). The agent's own fabric_whoami still wakes every wait at once. */
 export const LASTING_NO_PROJECT = 'This folder is too broad for a Project'
+/** A cache or temporary folder is refused for as long (voice CEO retro 2026-11-20, finding 5): only starting elsewhere lifts it. */
+export const LASTING_SCRATCH = 'This folder is a cache or temporary folder'
 export const BACKOFF_GROWS: ReadonlySet<ProxyState['kind']> = new Set(['no-project', 'failed'])
 export const BACKOFF_CEILING_MS = 10 * 60_000
 /** A failure that repeats (a refused access ask, a hub that keeps failing) grows too, but only to a minute: a short
@@ -393,7 +395,7 @@ export const FAILED_CEILING_MS = 60_000
 export function backoffFor(kind: ProxyState['kind'], repeats: number, message?: string): number {
   const base = BACKOFF_MS[kind]
   if (!BACKOFF_GROWS.has(kind) || repeats <= 1) return base
-  if (kind === 'no-project' && !message?.startsWith(LASTING_NO_PROJECT)) return base
+  if (kind === 'no-project' && !message?.startsWith(LASTING_NO_PROJECT) && !message?.startsWith(LASTING_SCRATCH)) return base
   return Math.min(kind === 'failed' ? FAILED_CEILING_MS : BACKOFF_CEILING_MS, base * 2 ** Math.min(repeats - 1, 16))
 }
 // #endregion audit-038-backoff

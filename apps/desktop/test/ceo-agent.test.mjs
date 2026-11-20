@@ -258,7 +258,11 @@ function operations(over = {}) {
     transcriptRoots: over.transcriptRoots ?? [],
     ...(over.launches ? { launches: over.launches } : {}),
     ...(over.diskSessions ? { diskSessions: over.diskSessions } : {}),
-    ...(over.firstTask ? { firstTask: over.firstTask } : {})
+    ...(over.firstTask ? { firstTask: over.firstTask } : {}),
+    ...(over.saveAlias ? { saveAlias: over.saveAlias } : {}),
+    ...(over.projects ? { projects: over.projects } : {}),
+    // The fixtures' new folders live in the system's temporary folder; the scratch rule is tested on its own below.
+    scratch: over.scratch ?? (() => false)
   }
   return { ops: createCeoOperations(deps), writes, records, notes, opened, origins, switchboard, consoles }
 }

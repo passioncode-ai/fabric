@@ -64,6 +64,26 @@ describe('the CEO voice call', () => {
     expect(JSON.parse((ws.sent[0].item as { output: string }).output)).toEqual({ ok: false, reason: 'boom' })
   })
 
+  it('voice retro finding 1: the owner\'s and the voice\'s lines and the call\'s end reach main\'s journal, tools stay main\'s', async () => {
+    const ws = fakeSocket(), lines: Array<[string, string, string]> = [], ends: Array<[string, { end: string | null }]> = []
+    let t = 1_000_000
+    const call = createCall({
+      session: async () => ({ ...session, callId: 'call-1' }), runTool: async () => ({ ok: true }), socket: () => ws, audio: fakeAudio(), onPhase: () => {}, onLine: () => {},
+      journal: { line: (id, who, text) => lines.push([id, who, text]), end: (id, spent) => ends.push([id, spent]) }, now: () => t
+    })
+    await call.start(); ws.onopen?.({})
+    await call.receive(JSON.stringify({ type: 'conversation.item.input_audio_transcription.completed', transcript: 'запусти диззи' }))
+    await call.receive(JSON.stringify({ type: 'response.function_call_arguments.done', name: 'session_start', call_id: 'c1', arguments: '{}' }))
+    await call.receive(JSON.stringify({ type: 'response.output_audio_transcript.delta', delta: 'Запустил' }))
+    await call.receive(JSON.stringify({ type: 'response.done' }))
+    call.say('спасибо')
+    t += 120_000
+    call.hangUp()
+    call.hangUp()
+    expect(lines).toEqual([['call-1', 'person', 'запусти диззи'], ['call-1', 'ceo', 'Запустил'], ['call-1', 'person', 'спасибо']])
+    expect(ends).toEqual([['call-1', { minutes: 2, usd: 0.16, end: 'hung-up' }]])
+  })
+
   it('a refused session says why and opens no socket; hanging up stops the microphone and the socket', async () => {
     const socket = vi.fn(), phases: Array<[string, string | undefined]> = []
     const refused = createCall({ session: async () => ({ ok: false, reason: 'no-key' }), runTool: vi.fn(), socket, audio: fakeAudio(), onPhase: (p, w) => phases.push([p, w]), onLine: () => {} })

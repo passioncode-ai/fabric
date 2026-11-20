@@ -9,7 +9,8 @@
  * it, so a call that arrives while the hub starts finds what it found before.
  */
 import { realpathSync, promises as fsPromises } from 'node:fs'
-import { homedir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
+import { isScratchFolder } from '../shared/scratchFolder.ts'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Journal } from '@fabric/journal'
 import { AccessService } from './accessService.ts'
@@ -185,6 +186,7 @@ export async function startBoardHub(d: BoardHubDeps): Promise<void> {
   })
   d.onAdmission(admission)
   const enrollFolders: FolderDeps = {
+    scratch: (folder) => isScratchFolder(folder, homedir(), tmpdir()),
     admittedFolders: async () => {
       const repos = await store.selectAll('project_repos', 'path,project_id,remote_key,kind', { orderBy: ['project_id', 'path'] })
       if (repos.failed) throw new Error(`repositories read failed: ${repos.failed}`)

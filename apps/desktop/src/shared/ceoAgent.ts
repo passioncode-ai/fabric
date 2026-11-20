@@ -10,6 +10,9 @@
  * that failed) the next runner of the order runs it (Hermes on OpenRouter by default), so the CEO answers on any day.
  */
 
+import { heardDistance, heardClose, heardKeys, nameKeys, soundKey } from './heardName.ts'
+import { isScratchFolder } from './scratchFolder.ts'
+
 /** `stopped`: the person stopped it, and it stays stopped until the person starts it again (the owner, 2026-11-19). */
 export type CeoState = 'idle' | 'starting' | 'running' | 'ended' | 'stopped' | 'failed'
 
@@ -46,7 +49,8 @@ export interface CeoSendResult { ok: boolean; reason?: CeoSendReason; name?: str
 
 /** One voice call's setup, as main hands it to the CEO window: an ephemeral secret, never the key. */
 export type CeoVoiceSession =
-  | { ok: true; token: string; expiresAt: number; url: string; usdPerMinute: number; instructions: string; voice: string; tools: unknown[] }
+  /** `callId`: the call's journal (`main/ceoVoiceJournal.ts`, voice CEO retro finding 1); the window writes its lines to it. */
+  | { ok: true; token: string; expiresAt: number; url: string; usdPerMinute: number; instructions: string; voice: string; tools: unknown[]; callId?: string }
   | { ok: false; reason: CeoVoiceProblem }
 
 /** Why main could not set a call up, as a code the window words (ER-7): no xAI key in Observatory's vault, xAI refused
@@ -139,7 +143,9 @@ export function ceoBrief(opts: { locale: string }): string {
     '- `fabric_ceo_session_resume`: продолжить законченную сессию.',
     '- `fabric_ceo_session_open`: открыть консоль сессии владельцу в окне Fabric.',
     '- `fabric_ceo_launches`: журнал запусков на диске: кто и откуда запустил сессию, цепочка, ветка, id для `claude --resume` и чем она закончилась (так находятся сессии, оборванные перезапуском).',
-    '- `fabric_ceo_projects`: проекты Fabric с папками.',
+    '- `fabric_ceo_projects`: проекты Fabric с папками; имя ищется и на слух (кириллица, латиница, «DC» вместо «Диззи»).',
+    '- `fabric_ceo_session_task`: дошла ли до запущенной сессии ее первая задача, и последние строки экрана.',
+    '- `fabric_ceo_project_alias`: запомнить, как владелец называет проект, чтобы находить его по этому имени.',
     'Кроме них у тебя все серверы MCP этого компьютера: Observatory (проекты, папки, ключи по именам), Switchboard (аккаунты и сессии), Fabric Dashboards и другие.',
     '',
     '## Как работать',
@@ -151,6 +157,7 @@ export function ceoBrief(opts: { locale: string }): string {
     '5. Прежде чем остановить или убить сессию, прочитай ее и назови причину в поле `reason`.',
     '',
     'Вложения владельца лежат в папке `inbox/` рядом; путь приходит в сообщении. Картинку открой инструментом чтения файла.',
+    'Каждый голосовой звонок записан в `calls/` рядом (файл JSONL на звонок: реплики, вызовы инструментов, длительность и цена, секреты вырезаны). Просьба из звонка приходит тебе через ask_ceo; голос читает твой ответ, так что отвечай коротко и первым предложением по сути.',
     '',
     '## Задачи от PM-агентов',
     '',
@@ -173,7 +180,9 @@ export function ceoBrief(opts: { locale: string }): string {
     '- `fabric_ceo_session_resume`: continue a session that ended.',
     '- `fabric_ceo_session_open`: open a session\'s console for the owner in a Fabric window.',
     '- `fabric_ceo_launches`: the launch journal on disk: who started a session and from where, the chain, branch, the id for `claude --resume` and how it ended (this is how sessions cut by a restart are found).',
-    '- `fabric_ceo_projects`: Fabric\'s projects with their folders.',
+    '- `fabric_ceo_projects`: Fabric\'s projects with their folders; a name is also found by sound (Cyrillic, Latin, «DC» for «Диззи»).',
+    '- `fabric_ceo_session_task`: whether a started session took its first task, and the last lines of its screen.',
+    '- `fabric_ceo_project_alias`: remember what the owner calls a project, so it is found by that name.',
     'You also have every MCP server of this computer: Observatory (projects, folders, keys by name), Switchboard, Fabric Dashboards and others.',
     '',
     '## How to work',
@@ -183,6 +192,7 @@ export function ceoBrief(opts: { locale: string }): string {
     '5. Before you stop or kill a session, read it and give the reason in `reason`.',
     '',
     'The owner\'s attachments are in `inbox/` next to you; the message names the path. Open an image with your file reading tool.',
+    'Every voice call is kept in `calls/` next to you (one JSONL file a call: lines, tool calls, length and price, secrets cut). A request from a call reaches you through ask_ceo; the voice reads your answer aloud, so answer briefly, the point in the first sentence.',
     '',
     '## Tasks from PM agents',
     '',
@@ -282,44 +292,108 @@ export function screenText(decoded: string, lines = 60): string {
   return out.slice(-Math.max(1, Math.min(400, lines))).join('\n')
 }
 
-export interface NamedProject { id: string; name: string; repo_path: string | null }
+export interface NamedProject { id: string; name: string; repo_path: string | null; aliases?: readonly string[] }
+
+/** A folder a session works in and the project that holds it (a running console's, a launch's): an agent's worktree
+ *  copy, which is no project of its own, is found through the project it belongs to (voice retro 2026-11-20, finding 4). */
+export interface WorkFolder { path: string; projectId: string }
+
+/** What `findProject` answers. `heard`: found by how the name sounds, not by its spelling, so the voice says which
+ *  project it understood. `near`: the closest names to offer when nothing matched (finding 8). */
+export type ProjectLookup<P> =
+  | { found: P; heard?: true }
+  | { ambiguous: string[] }
+  | { missing: true; near: string[]; why?: 'too-broad' }
 
 /**
- * A project by what the CEO called it: its id, its folder, its exact name, then a name that contains the words (one
- * match only). Two matches answer `ambiguous` with their names, so the CEO asks rather than guesses.
+ * A project by what the CEO called it: its id, its folder (or a folder inside it), its exact name, a name that holds
+ * the words, then, for a name heard by voice, by sound (`heardName.ts`: Cyrillic or Latin, «DC» for «Диззи», an alias
+ * the owner gave). One match is found; several answer `ambiguous` with the closest first, so the CEO asks rather than
+ * guesses; none answers `missing` with the nearest names.
  */
-export function findProject<P extends NamedProject>(projects: readonly P[], query: string):
-  | { found: P }
-  | { ambiguous: string[] }
-  | { missing: true } {
+export function findProject<P extends NamedProject>(projects: readonly P[], query: string, folders: readonly WorkFolder[] = []): ProjectLookup<P> {
   const q = String(query ?? '').trim()
-  if (!q) return { missing: true }
+  if (!q) return { missing: true, near: [] }
   const byId = projects.find((p) => p.id === q)
   if (byId) return { found: byId }
-  const folder = q.replace(/\/+$/, '')
-  const byFolder = projects.find((p) => p.repo_path && p.repo_path.replace(/\/+$/, '') === folder)
-  if (byFolder) return { found: byFolder }
+  const label = (p: P): string => p.repo_path ? `${p.name} (${p.repo_path})` : p.name
+  if (q.startsWith('/') || q.startsWith('~')) {
+    // A folder: the project that holds it, the deepest first (a subfolder or a worktree under the project's own folder).
+    // Never a match by words: every project's folder starts with the home folder (2026-11-20: «/Users/…» named 30).
+    const folder = q.replace(/\/+$/, '')
+    const holds = (root: string): boolean => folder === root || folder.startsWith(root + '/')
+    const byFolder = projects.filter((p) => p.repo_path && holds(p.repo_path.replace(/\/+$/, '')))
+      .sort((a, b) => b.repo_path!.length - a.repo_path!.length)
+    if (byFolder.length) return { found: byFolder[0]! }
+    const worked = folders.filter((f) => holds(f.path.replace(/\/+$/, ''))).sort((a, b) => b.path.length - a.path.length)
+    const owner = worked.length ? projects.find((p) => p.id === worked[0]!.projectId) : undefined
+    if (owner) return { found: owner }
+    const broad = !projects.some((p) => p.repo_path && p.repo_path.startsWith(folder + '/')) ? undefined : 'too-broad' as const
+    return { missing: true, near: [], ...(broad ? { why: broad } : {}) }
+  }
   // 2026-11-20: a name heard by voice is «sound engine» for «sound-engine»; spaces, hyphens and underscores read alike.
   const low = nameKey(q)
-  // Of several with the same name, the one outside an agent's worktree is the project the person means (the
-  // estate holds worktree copies under the same name until they are merged away).
+  // Of several with the same name, the one outside an agent's worktree and outside a cache or temporary folder is the
+  // project the person means (the estate holds such copies under the same name until they are cleaned away).
   const settle = (list: P[]): P[] => {
     if (list.length < 2) return list
-    const main = list.filter((p) => !p.repo_path || !WORKTREE_FOLDER.test(p.repo_path))
+    const main = list.filter((p) => !p.repo_path || (!WORKTREE_FOLDER.test(p.repo_path) && !isScratchFolder(p.repo_path)))
     return main.length >= 1 ? main : list
   }
-  const exact = settle(projects.filter((p) => nameKey(p.name) === low))
+  const exact = settle(projects.filter((p) => nameKey(p.name) === low || (p.aliases ?? []).some((a) => nameKey(a) === low)))
   if (exact.length === 1) return { found: exact[0]! }
   const folderName = settle(projects.filter((p) => p.repo_path && nameKey(p.repo_path.replace(/\/+$/, '').split('/').pop() ?? '') === low))
   if (exact.length === 0 && folderName.length === 1) return { found: folderName[0]! }
+  // An agent's worktree folder named by its last part («sound-engine-digest-runner»): the project that works there.
+  if (exact.length === 0 && folderName.length === 0) {
+    const tail = nameKey(q.replace(/\/+$/, '').split('/').pop() ?? '')
+    const owners = new Set(folders.filter((f) => nameKey(f.path.replace(/\/+$/, '').split('/').pop() ?? '') === tail).map((f) => f.projectId))
+    if (owners.size === 1) { const owner = projects.find((p) => p.id === [...owners][0]); if (owner) return { found: owner } }
+  }
   const words = q.toLowerCase().split(/[\s_-]+/).filter(Boolean)
-  const partial = projects.filter((p) => {
+  const partial = settle(projects.filter((p) => {
     const hay = `${p.name} ${p.repo_path ?? ''}`.toLowerCase()
     return words.every((w) => hay.includes(w))
-  })
-  if (partial.length === 1) return { found: partial[0]! }
-  if (partial.length > 1 || exact.length > 1) return { ambiguous: (exact.length > 1 ? exact : partial).slice(0, 10).map((p) => p.repo_path ? `${p.name} (${p.repo_path})` : p.name) }
-  return { missing: true }
+  }))
+  if (exact.length === 0 && partial.length === 1) return { found: partial[0]! }
+  if (partial.length > 1 || exact.length > 1) return { ambiguous: (exact.length > 1 ? exact : rankBySound(q, partial)).slice(0, 10).map(label) }
+  // By sound: the name as transcription wrote it. The best tier wins: a whole name or alias before a run of its words.
+  const ranked = soundCandidates(q, projects)
+  const close = ranked.filter((r) => r.close)
+  if (close.length) {
+    const best = close[0]!
+    const tier = settle(close.filter((r) => r.tier === best.tier && r.distance <= best.distance + 0.05).map((r) => r.project))
+    if (tier.length === 1) return { found: tier[0]!, heard: true }
+    return { ambiguous: tier.slice(0, 10).map(label) }
+  }
+  return { missing: true, near: ranked.slice(0, 3).map((r) => r.project.name) }
+}
+
+/** Projects ranked by how close each sounds to the query: tier 0 its whole name, folder or alias, tier 1 a run of its words. */
+function soundCandidates<P extends NamedProject>(query: string, projects: readonly P[]): Array<{ project: P; distance: number; tier: number; close: boolean }> {
+  const heard = heardKeys(query)
+  const out: Array<{ project: P; distance: number; tier: number; close: boolean }> = []
+  for (const p of projects) {
+    const whole = nameKeys(p.name, p.repo_path, p.aliases)
+    const full = new Set([soundKey(p.name), soundKey(p.repo_path?.replace(/\/+$/, '').split('/').pop() ?? ''), ...(p.aliases ?? []).map(soundKey)])
+    let best = { distance: 1, tier: 2, close: false }
+    for (const h of heard) {
+      for (const k of whole) {
+        const tier = full.has(k) ? 0 : 1
+        const distance = heardDistance(h, k)
+        const close = heardClose(h, k)
+        if (close && (!best.close || tier < best.tier || (tier === best.tier && distance < best.distance))) best = { distance, tier, close }
+        else if (!best.close && distance < best.distance) best = { distance, tier, close }
+      }
+    }
+    out.push({ project: p, ...best })
+  }
+  return out.sort((a, b) => Number(b.close) - Number(a.close) || a.tier - b.tier || a.distance - b.distance)
+}
+
+/** Several matches by words, the closest by sound first. */
+function rankBySound<P extends NamedProject>(query: string, list: readonly P[]): P[] {
+  return soundCandidates(query, list).map((r) => r.project)
 }
 
 /** A project's name as the CEO compares it: lower case, runs of spaces, hyphens and underscores as one hyphen. */

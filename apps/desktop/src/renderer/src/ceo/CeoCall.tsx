@@ -102,6 +102,10 @@ export function useVoiceCall(make: typeof createCall = createCall): VoiceCallSta
     call.current = make({
       session: () => window.fabric.ceoAgent.voice(),
       runTool: (name, args) => window.fabric.ceoAgent.voiceTool(name, args),
+      journal: {
+        line: (id, who, text) => { void window.fabric.ceoAgent.voiceLine(id, who, text).catch(() => undefined) },
+        end: (id, spent) => { void window.fabric.ceoAgent.voiceEnd(id, spent).catch(() => undefined) }
+      },
       socket: (url, protocols) => new WebSocket(url, protocols) as unknown as ReturnType<Parameters<typeof createCall>[0]['socket']>,
       audio: browserAudio(mutedRef.current),
       onPhase: (p, problem) => {
