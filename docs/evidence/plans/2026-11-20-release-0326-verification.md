@@ -262,7 +262,7 @@ order `3aa89c92` were in no record of this release.
 ### Run four, 19b42226 (superseded)
 
 Candidate `19b422264b26d1dbed6b380574978d2f9cc0d25f`. Reports and receipts in
-[`docs/evidence/reviews/0.3.26/iteration-3-19b42226/`](../reviews/0.3.26/iteration-3-5d549a8d/) (kept as the record; not
+[`docs/evidence/reviews/0.3.26/iteration-3-19b42226/`](../reviews/0.3.26/iteration-3-19b42226/) (kept as the record; not
 this iteration's receipts). Gate: hosted `ci.yml` run 44687173294 success (browser suites 26 of 26, 06:39:09Z); local
 `ci.sh fast` with both browser variables set, exit 0, browser suites 26 of 26. Every run-two fix held, two in part. 19 findings, 2 blocking:
 ER-26, run two's move of the waiting link to React state left the ask's answer calling a callback of an older render, so a
