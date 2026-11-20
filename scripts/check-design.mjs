@@ -25,7 +25,7 @@
 // introduced them (see docs/evidence/verification.md), which is the only reason
 // a green line from them means anything.
 
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
@@ -614,6 +614,38 @@ if (literals === 0) ok('strings: no literal interface text in components')
     else ok(`evidence: all ${declared.length} anchors name a section the screens render`)
   }
 }
+
+// #region ui-kit-ratchet — docs: docs/brand/ui-kit.md#how-a-screen-is-checked
+// RATCHET — the screen sheets ported from the launch prototype still hold raw px font sizes, spacings and radii
+// (measured 2026-11-20: launch.css 337, 151, 49). They move onto the kit screen by screen; until then each count is
+// recorded in docs/brand/ui-kit-baseline.json and may only go down, so no new screen adds to them. A lower count is
+// written back with `node scripts/check-design.mjs --ratchet`.
+{
+  const BASELINE = path.join(ROOT, 'docs/brand/ui-kit-baseline.json')
+  const SCREEN_SHEETS = ['launch/launch.css', 'launch/rail.css', 'start/start.css']
+  const strip = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '')
+  const measure = (css) => ({
+    fontPx: (css.match(/font-size:\s*[0-9.]+px/g) ?? []).length,
+    spacePx: (css.match(/(?:padding|margin|gap)[a-z-]*:\s*[^;}]*\b[1-9][0-9.]*px/g) ?? []).length,
+    radiusPx: (css.match(/border-radius:\s*[0-9.]+px/g) ?? []).length
+  })
+  const now = Object.fromEntries(SCREEN_SHEETS.map((s) => [s, measure(strip(readFileSync(path.join(SRC, 'renderer/src', s), 'utf8')))]))
+  let base = null
+  try { base = JSON.parse(readFileSync(BASELINE, 'utf8')).sheets } catch { fail(`no ${path.relative(ROOT, BASELINE)}: run node scripts/check-design.mjs --ratchet`) }
+  if (base) {
+    let rose = 0
+    for (const s of SCREEN_SHEETS) for (const k of ['fontPx', 'spacePx', 'radiusPx']) {
+      const was = base[s]?.[k] ?? 0, is = now[s][k]
+      if (is > was) { fail(`${s}: ${k} rose from ${was} to ${is}; use the kit's tokens (docs/brand/ui-kit.md) instead of a raw px`); rose++ }
+    }
+    if (!rose) ok(`ratchet: the screen sheets hold no more raw px than recorded (${SCREEN_SHEETS.map((s) => `${path.basename(s)} ${now[s].fontPx}/${now[s].spacePx}/${now[s].radiusPx}`).join(', ')})`)
+  }
+  if (process.argv.includes('--ratchet') && !(base && SCREEN_SHEETS.some((s) => ['fontPx', 'spacePx', 'radiusPx'].some((k) => now[s][k] > (base[s]?.[k] ?? 0))))) {
+    writeFileSync(BASELINE, JSON.stringify({ note: 'Raw px counts in the screen sheets: font sizes, spacings, radii. They may only go down (scripts/check-design.mjs, docs/brand/ui-kit.md).', sheets: now }, null, 2) + '\n')
+    console.log(`  wrote ${path.relative(ROOT, BASELINE)}`)
+  }
+}
+// #endregion ui-kit-ratchet
 
 if (failures > 0) {
   console.error(`\n${failures} design/i18n gate failure(s)`)

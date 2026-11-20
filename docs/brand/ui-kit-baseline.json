@@ -1,0 +1,20 @@
+{
+  "note": "Raw px counts in the screen sheets: font sizes, spacings, radii. They may only go down (scripts/check-design.mjs, docs/brand/ui-kit.md).",
+  "sheets": {
+    "launch/launch.css": {
+      "fontPx": 345,
+      "spacePx": 171,
+      "radiusPx": 37
+    },
+    "launch/rail.css": {
+      "fontPx": 40,
+      "spacePx": 66,
+      "radiusPx": 14
+    },
+    "start/start.css": {
+      "fontPx": 6,
+      "spacePx": 11,
+      "radiusPx": 1
+    }
+  }
+}

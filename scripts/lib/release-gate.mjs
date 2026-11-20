@@ -89,10 +89,79 @@ function reviewProblems(gate, version, readCommitted) {
   }
   return problems
 }
+// #region release-ui-rounds — docs: docs/launch/release-mac.md#ui-rounds-before-a-release
+// The owner, 2026-11-20 (brief `2026-11-20-release-ui-rounds-and-graph-docs-brief.md`, item 1): «перед тем, как будем
+// выкатывать версии, будем прогонять их … несколько кругов UI, все изменения, связанные экраны, а поначалу вообще все
+// надо будет прогнать … в соответствии с нашей документацией, брендовому пакету, элементам». From UI_ROUNDS_FROM on, a
+// release names its interface review rounds in `gate.uiRounds`: at least UI_ROUNDS_MIN, each a design-tester round over
+// the changed and related screens, checked against the documentation, the scenarios, the brand pack and the component
+// set, closed with no blocking finding; the last one reviewed the exact verifiedCommit. Until a round over ALL screens
+// is recorded in docs/brand/ui-rounds.json, one of the release's rounds must cover all screens (scope `all`).
+// 0.3.27 is exempt: its three review iterations closed before the rule. WIP (2026-11-21): the ADR recording this rule is
+// not written yet (docs/handoffs/2026-11-21-package-4-paused/README.md).
+export const UI_ROUNDS_FROM = '0.3.28'
+export const UI_ROUNDS_MIN = 2
+export const UI_ROUNDS_SCHEMA = 'fabric-ui-rounds/1'
+export const UI_ROUNDS_CHECKED = Object.freeze(['docs', 'scenarios', 'brand-pack', 'components'])
+export const UI_ROUNDS_HISTORY = 'docs/brand/ui-rounds.json'
+const versionAtLeast = (v, floor) => {
+  const a = String(v).split('-')[0].split('.').map(Number), b = floor.split('.').map(Number)
+  for (let i = 0; i < 3; i++) if ((a[i] ?? 0) !== b[i]) return (a[i] ?? 0) > b[i]
+  return true
+}
+/** Whether `version` owes interface review rounds. */
+export const owesUiRounds = (version) => versionAtLeast(version, UI_ROUNDS_FROM)
+
+/** Problems with the release's interface review rounds; empty when they clear it (or the version predates the rule). */
+export function uiRoundProblems(gate, version, readCommitted) {
+  if (!owesUiRounds(version)) return []
+  const packet = gate?.uiRounds
+  if (packet?.schema !== UI_ROUNDS_SCHEMA) return [`from ${UI_ROUNDS_FROM} a release names its interface review rounds: gate.uiRounds with schema ${UI_ROUNDS_SCHEMA} (docs/launch/release-mac.md#ui-rounds-before-a-release)`]
+  const rounds = Array.isArray(packet.rounds) ? packet.rounds : []
+  if (rounds.length < UI_ROUNDS_MIN) return [`the release names ${rounds.length} interface review round(s); at least ${UI_ROUNDS_MIN} are required`]
+  if (typeof readCommitted !== 'function') return ['the release gate requires a committed-file reader for interface review artifacts']
+  const read = (p) => { try { const t = readCommitted(p); return typeof t === 'string' && t.length ? t : null } catch { return null } }
+  const problems = [], paths = new Set(), runs = new Set()
+  let history = []
+  try { history = JSON.parse(read(UI_ROUNDS_HISTORY) ?? '{"rounds":[]}').rounds ?? [] } catch { problems.push(`${UI_ROUNDS_HISTORY} is not JSON`) }
+  const fullBefore = history.some((r) => r?.scope === 'all')
+  rounds.forEach((round, i) => {
+    const label = `interface round ${i + 1}`
+    if (round?.round !== i + 1) problems.push(`${label} must be numbered ${i + 1}`)
+    if (!['all', 'changed'].includes(round?.scope)) problems.push(`${label} scope must be all or changed`)
+    if (!SHA.test(round?.candidateCommit ?? '')) problems.push(`${label} must name an exact candidate commit`)
+    for (const [field, extension] of [['report', 'md'], ['receipt', 'json']]) {
+      if (!docPath(round?.[field], extension)) { problems.push(`${label} has an invalid ${field} path under docs/`); return }
+      if (paths.has(round[field])) problems.push(`${label} reuses ${round[field]}`)
+      paths.add(round[field])
+    }
+    const reportText = read(round.report), receiptText = read(round.receipt)
+    if (reportText === null) problems.push(`${label} report is absent from the release commit: ${round.report}`)
+    if (receiptText === null) { problems.push(`${label} receipt is absent from the release commit: ${round.receipt}`); return }
+    let r
+    try { r = JSON.parse(receiptText) } catch { problems.push(`${label} receipt is not JSON`); return }
+    if (r?.schema !== UI_ROUNDS_SCHEMA || r.version !== version || r.round !== round.round || r.scope !== round.scope || r.candidateCommit !== round.candidateCommit || r.report !== round.report)
+      problems.push(`${label} receipt does not match its schema, version, round, scope, report and exact candidate`)
+    if (reportText !== null && r?.reportSha256 !== createHash('sha256').update(reportText).digest('hex')) problems.push(`${label} report hash does not match its committed bytes`)
+    if (!Array.isArray(r?.screens) || !r.screens.length || !r.screens.every(nonempty)) problems.push(`${label} receipt names no screens`)
+    const missing = UI_ROUNDS_CHECKED.filter((c) => !(r?.checkedAgainst ?? []).includes(c))
+    if (missing.length) problems.push(`${label} was not checked against ${missing.join(', ')}`)
+    if (!nonempty(r?.reviewerRun)) problems.push(`${label} receipt has no declared reviewerRun`)
+    else { if (runs.has(r.reviewerRun)) problems.push(`${label} reuses reviewerRun ${r.reviewerRun}`); runs.add(r.reviewerRun) }
+    if (r?.status !== 'closed' || !Array.isArray(r.blockingFindingsOpen) || r.blockingFindingsOpen.length) problems.push(`${label} receipt is not closed with an empty blockingFindingsOpen array`)
+  })
+  if (rounds.at(-1)?.candidateCommit !== gate.verifiedCommit) problems.push('the last interface round must review the exact verifiedCommit')
+  if (!fullBefore && !rounds.some((r) => r?.scope === 'all')) problems.push(`no round over all screens is recorded in ${UI_ROUNDS_HISTORY}: one of this release's rounds must have scope all`)
+  return problems
+}
+// #endregion release-ui-rounds
 /** Only valid committed review metadata may be added after the reviewed source. */
 export function validatedReviewArtifactPaths(gate, version, readCommitted) {
   if (reviewProblems(gate, version, readCommitted).length) return new Set()
   const paths = gate.reviewReceipts.iterations.flatMap(item => item.reviews.flatMap(review => [review.report, review.receipt]))
+  // The interface rounds' reports land after the commit they reviewed, as the review iterations' do.
+  if (owesUiRounds(version) && !uiRoundProblems(gate, version, readCommitted).length)
+    paths.push(...gate.uiRounds.rounds.flatMap((round) => [round.report, round.receipt]))
   return new Set(paths.filter(p => /^docs\/(?:reports|evidence\/reviews)\//.test(p)))
 }
 const DISPOSED = /^(?:fixed|ruled|not a defect|not recoverable|stopped)(?=$|[\s:;,.(`—–-])/i
@@ -108,7 +177,7 @@ export function releaseGateProblems({ version, gateText, ledgerText, readCommitt
   if (typeof gate.ledger !== 'string' || !/^docs\/[\w./-]+\.md$/.test(gate.ledger) || gate.ledger.includes('..'))
     return ['the release gate must name a ledger under docs/ (a .md path, no "..")']
   if (typeof ledgerText !== 'string' || !ledgerText) return [`the verification ledger ${gate.ledger} cannot be read`]
-  const problems = reviewProblems(gate, version, readCommitted)
+  const problems = [...reviewProblems(gate, version, readCommitted), ...uiRoundProblems(gate, version, readCommitted)]
   const lines = ledgerText.split('\n')
   const title = lines.find((l) => /^# /.test(l)) ?? ''
   const exact = new RegExp(String.raw`(?<![\d.])${version.replace(/\./g, '\\.')}(?![\d]|\.\d)`)

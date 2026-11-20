@@ -1,0 +1,1451 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabric · UI kit</title>
+<style>
+/* ── tokens.passioncode.css ── */
+/* PassionCode design system v1.1.0. Canonical: passioncode.ai/design-system/.
+   Marketing and desktop share roles; each surface chooses its own density. */
+:root {
+  color-scheme: dark;
+  --pc-bg: #0a070d;
+  --pc-panel: #110c15;
+  --pc-panel-raised: #1b1420;
+  --pc-text: #fff9f0;
+  --pc-text-muted: #b6aabc;
+  --pc-border: #342b3a;
+  --pc-border-strong: #5c4e63;
+  --pc-accent: #ffd21a;
+  --pc-accent-hover: #ffdf5e;
+  --pc-on-accent: #211900;
+  --pc-accent-soft: #30270e;
+  --pc-focus: var(--pc-accent);
+  --pc-link: var(--pc-accent);
+  --pc-brand-plum: #41054b;
+  --pc-brand-magenta: #f20673;
+  --pc-positive: #79d49a;
+  --pc-positive-soft: #12291c;
+  --pc-warning: #f6ba75;
+  --pc-warning-soft: #332314;
+  --pc-negative: #ff969f;
+  --pc-negative-soft: #35191f;
+  --pc-info: #a6bfff;
+  --pc-info-soft: #18243d;
+  --pc-font: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --pc-font-data: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --pc-radius-control: 8px;
+  --pc-radius-panel: 16px;
+  --pc-radius-feature: 24px;
+  --pc-radius-pill: 999px;
+  --pc-space-1: 4px;
+  --pc-space-2: 8px;
+  --pc-space-3: 12px;
+  --pc-space-4: 16px;
+  --pc-space-5: 24px;
+  --pc-space-6: 32px;
+  --pc-type-meta: 12px;
+  --pc-type-body: 14px;
+  --pc-type-card: 16px;
+  --pc-type-section: 22px;
+  --pc-type-page: 32px;
+  --pc-shadow-overlay: 0 20px 60px #00000080;
+  --pc-ease: cubic-bezier(.2, 0, 0, 1);
+  --pc-duration-hover: 120ms;
+  --pc-duration-state: 180ms;
+}
+
+/* v1.1.0: opt-in light palette. Dark values above remain the v1.0.0 contract.
+   Gold stays the action fill; readable gold-brown is the focus/link role. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --pc-bg: #ffffff;
+  --pc-panel: #f7f5f8;
+  --pc-panel-raised: #ffffff;
+  --pc-text: #211725;
+  --pc-text-muted: #655769;
+  --pc-border: #ddd4df;
+  --pc-border-strong: #8f8095;
+  --pc-accent: #ffd21a;
+  --pc-accent-hover: #edbd00;
+  --pc-on-accent: #211900;
+  --pc-accent-soft: #fff2b8;
+  --pc-focus: #806200;
+  --pc-link: #806200;
+  --pc-positive: #246b3b;
+  --pc-positive-soft: #e4f3e8;
+  --pc-warning: #8a4b0b;
+  --pc-warning-soft: #fff0dc;
+  --pc-negative: #a82f44;
+  --pc-negative-soft: #fde8ec;
+  --pc-info: #345da7;
+  --pc-info-soft: #e8efff;
+  --pc-shadow-overlay: 0 20px 60px #21172526;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --pc-duration-hover: 0ms; --pc-duration-state: 0ms; }
+}
+
+/* ── tokens.paperclip.css ── */
+/* SHELEG Design — Paperclip token layer (dark default + light twin).
+   Copy verbatim; consume only var(--…) in components.
+
+   Measured 2026-08-14 from https://paperclip.ing, stylesheets
+   /_next/static/chunks/0sw-z-v7xc9dd.css (the product/shell layer) and
+   /_next/static/chunks/19xj4kovk13jy.css (the landing layer), plus the hero's
+   inline SVG. Every value below is either lifted from those files or marked
+   DERIVED with the reason.
+
+   Theme switch: set data-theme="light" on :root. Dark is the default here
+   because it is the default there — the shipped page carries data-theme="dark"
+   and every screenshot of the product is on the coal field.
+
+   The stationery names below (--bond, --manila, --parchment, --graphite,
+   --aluminum, --charcoal, --stone) are the reference's own. They are kept
+   because they are the pack's whole idea in a naming scheme: a paper stock and
+   a metal, which is what an office is made of, and what the product is named
+   after. --bg / --ink / --muted are the roles; the stock names are the stock. */
+
+:root {
+  color-scheme: dark; /* the theme is explicit — never let the UA pick */
+
+  /* ── field: three coal steps, and a terminal that is warm where nothing else is ──
+     --bg → --surface → --surface-quiet is the whole elevation ladder, and it is
+     built from fill alone: there is no shadow on a resting element anywhere in
+     the reference. The terminal is the one surface with a hue — #1f1d1a is warm
+     against a neutral #0a0a0a — because it is quoting a real shell. */
+  --bg: #0a0a0a; /* --background (dark) */
+  --surface: #171717; /* --card, --popover — the default container, 1.10:1 on --bg */
+  --surface-quiet: #262626; /* --muted, --secondary, --accent — chip fills, 1.31:1 on --bg */
+  --terminal: #1f1d1a; /* .terminal body — warm, and darker than --surface */
+  --terminal-head: #161412; /* .terminal-header */
+  --terminal-rule: #2f2c28; /* .terminal border and tab fill */
+  /* @role non-text: --terminal-dim, 2.92:1 on --terminal. The reference spends
+     it on the prompt glyph AND on the inactive tab label; this pack keeps it for
+     the glyph only, which is aria-hidden punctuation, and routes any label a
+     reader can click to --terminal-mid. See paperclip.md, Components. */
+  --terminal-dim: #6a6560; /* the prompt glyph — never a label */
+  --terminal-mid: #9a958a; /* inactive tab label and hover — 5.64:1 on --terminal */
+  --terminal-dot: #3a3836; /* the three inert window dots */
+
+  --ink: #fafafa; /* --foreground, 18.97:1 on --bg */
+  --muted: #a1a1a1; /* --muted-foreground, 7.66:1 on --bg */
+
+  /* Hairlines are alpha, not a colour: the same token reads correctly over the
+     field, over --surface and over the terminal. --border-strong is the
+     reference's own --input value, one step up, for a control that must be
+     found. */
+  --border: #ffffff1a; /* --border, white at 10% */
+  --border-strong: #ffffff26; /* --input, white at 15% */
+
+  /* ── THE accent, and it is the inverted field ───────────────────────────
+     There is no brand hue in the interface. Every control that must be pressed
+     goes solid ink with a field-coloured label — .navbar-cta, .hero-btn-primary,
+     .sim-submit, .cta-btn are one component wearing four names. Colour exists on
+     this page, but it is never functional: it is the hero artwork and the
+     section badges, and neither can be clicked. */
+  --accent: #fafafa;
+  --accent-ink: #0a0a0a; /* text ON the accent — 18.97:1 */
+  --accent-hover: #ffffff; /* --cream / --bond: dark hover goes hollow, see paperclip.md */
+
+  /* ── the stationery names, kept from the reference ─────────────────────── */
+  --bond: #ffffff; /* the whitest stock — button fill on hover */
+  --manila: #ffffff; /* terminal ink */
+  --parchment: #fafafa; /* the light theme's hover fill */
+  --charcoal: #141413; /* the dark band a section sits on */
+  --graphite: #52585d; /* the darkest metal, 2.75:1 on --bg — non-text */
+  --aluminum: #a8aeb2; /* idle, 8.83:1 on --bg */
+  --stone: #e5e5e5; /* the light theme's hairline */
+  --mark-rest: #b5b0a8; /* a schedule tick before it fires — a mark, never text */
+  /* The modal veil, and it does NOT flip with the theme: the reference paints
+     #0a0a0a8c on both, so a light-theme modal is still veiled in coal. Kept as
+     a literal because the palette gate cannot compute a colour-mix into
+     `transparent`, and an unparseable token is a failure rather than a skip. */
+  --scrim: #0a0a0a8c; /* the field at 55%, in both themes */
+
+  /* ── status: four states, and each one carries its word ────────────────── */
+  --good: #34d06f; /* --status-task-icon-done (dark), 9.80:1 on --bg */
+  --warn: #fbbf24; /* --status-task-icon-todo (dark), 11.86:1 on --bg */
+  --danger: #fb2c36; /* --destructive (dark), 5.20:1 on --bg */
+  /* DERIVED. The dark block overrides five status ICON colours and leaves the
+     four base status colours at their light-theme values, so the reference's own
+     --status-task-in_progress (#2563eb) renders at 3.83:1 on the coal field —
+     below AA, and it is set as TEXT in the sidebar ("● 1 live"). This pack ships
+     the 400-step of the same blue ramp instead: same hue, 7.79:1, text-safe. */
+  --info: #60a5fa;
+  --review: #9474f0; /* --status-task-icon-in_review (dark), 5.67:1 — not a peer of the four */
+  --idle: #9a958a; /* --status-task-icon-backlog (dark), 6.64:1 — absence, not a state */
+
+  /* ── the twelve section-badge gradients ────────────────────────────────────
+     The one place colour is allowed to be loud, and it is always ornament: a
+     badge is a label, never a control. Each pair ships with the ink the
+     reference chose for it — hand-picked per gradient, not computed, because a
+     90deg ramp has two ends and one label has to clear both. Use them in order;
+     a section takes the next one, and no gradient repeats on one page. */
+  --badge-01-from: #dc2f68; --badge-01-to: #1f7a3a; --badge-01-ink: #ffffff;
+  --badge-02-from: #c9a9e8; --badge-02-to: #ee79a1; --badge-02-ink: #2a1530;
+  --badge-03-from: #28164b; --badge-03-to: #7a1530; --badge-03-ink: #ffffff;
+  --badge-04-from: #f3e6c4; --badge-04-to: #e3a21a; --badge-04-ink: #3d3010;
+  --badge-05-from: #1f4dd6; --badge-05-to: #2f844a; --badge-05-ink: #ffffff;
+  --badge-06-from: #d83a16; --badge-06-to: #5a1122; --badge-06-ink: #ffffff;
+  --badge-07-from: #7eb6e3; --badge-07-to: #ee79a1; --badge-07-ink: #1a2a40;
+  --badge-08-from: #9ce8a7; --badge-08-to: #bd7ff0; --badge-08-ink: #2a2340;
+  --badge-09-from: #c94e38; --badge-09-to: #1f4ed4; --badge-09-ink: #ffffff;
+  --badge-10-from: #f2d95f; --badge-10-to: #4fbcba; --badge-10-ink: #1a3a38;
+  --badge-11-from: #6b6bc7; --badge-11-to: #5e3450; --badge-11-ink: #ffffff;
+  --badge-12-from: #32807e; --badge-12-to: #2f844a; --badge-12-ink: #ffffff;
+
+  /* ── the hero spectrum: four anchors, and everything between them is derived ──
+     The hero art is 96 capsules in 8 columns, filled from 45 generated
+     gradients. Nothing is hand-picked: each column interpolates its TOP stop
+     forward around the hue wheel and its BOTTOM stop backward, at near-constant
+     saturation and lightness, so every capsule is a near-complementary pair and
+     the column inverts its own gradient from first cap to last. These four are
+     the ends of the two ramps the reference actually ships. */
+  --spectrum-violet: #3c23fb; /* top stop, cap 0 — H 247° S 96% L 56% */
+  --spectrum-orange: #fb8b24; /* bottom stop, cap 0 — H 29° S 96% L 56% */
+  --spectrum-ember: #e36414; /* top stop, cap 11 — H 23° S 84% L 48% */
+  --spectrum-iris: #5c1a8f; /* bottom stop, cap 11 — H 274° S 69% L 33% */
+  --hero-hue-step-top: 12.39deg; /* the top stop rotates forward, per capsule */
+  --hero-hue-step-bottom: -10.45deg; /* the bottom stop rotates backward */
+
+  /* ── grain: one noise recipe, applied to every saturated surface ─────────
+     fractalNoise, baseFrequency 2.95, 5 octaves, seed 9, tiled at 256px and
+     composited with mix-blend-mode: overlay. It is on the badges at .12 and on
+     the hero artwork at .86 through an alpha mask of the capsules themselves.
+     It is the reason a twelve-gradient page does not band. */
+  --dither-tile-size: 256px;
+  --dither-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.95' numOctaves='5' seed='9' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --dither-opacity-badge: 0.12;
+  --dither-opacity-art: 0.86;
+
+  /* ── radius: one root, and the ladder is multiplication ───────────────────
+     --radius: .5rem with six derived steps is the reference's own ladder. The
+     alias row beneath it is the one the components actually spend, and it SKIPS
+     --radius-md and --radius-lg — see the Gotchas in paperclip.md. Kept as
+     shipped, because a pack that silently repairs its reference stops being a
+     measurement. */
+  --radius: 0.5rem; /* 8px — the root */
+  --radius-sm: calc(var(--radius) * 0.6); /* 4.8px */
+  --radius-md: calc(var(--radius) * 0.8); /* 6.4px — defined, never spent */
+  --radius-lg: var(--radius); /* 8px */
+  --radius-xl: calc(var(--radius) * 1.4); /* 11.2px */
+  --radius-2xl: calc(var(--radius) * 1.8); /* 14.4px */
+  --radius-3xl: calc(var(--radius) * 2.2); /* 17.6px */
+
+  --r-sm: var(--radius-sm); /* 4.8px — copy buttons, terminal tabs, tags */
+  --r-md: var(--radius); /* 8px — cards, inputs, mock frames, terminals */
+  --r-lg: var(--radius-xl); /* 11.2px — modals, the largest panels */
+  --r-pill: 9999px; /* buttons, badges, org nodes, schedule dots — the pack's shape */
+
+  /* ── elevation: a hairline, and a shadow only where something floats ────── */
+  --shadow-modal: 0 32px 64px -24px #00000080; /* .sim-card, the only resting shadow */
+  /* DERIVED. The reference writes 0 2px 8px #f59e0b26 — its LIGHT-theme amber,
+     hardcoded into a value it only ever paints on the dark field. Derived from
+     --warn instead, so it tracks the token in both themes. */
+  --shadow-alert: 0 2px 8px color-mix(in srgb, var(--warn) 15%, transparent);
+
+  /* ── type: three families, and the display face is a grotesque ───────────
+     The reference calls it --font-serif and it is Inter Tight. The name is
+     inherited and wrong; the ROLE is display. Anything reaching for the "serif"
+     slot in this pack gets a tight grotesque — see Gotchas. */
+  --font-display: "Inter Tight", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Display ramp — the tracking closes as the size opens. */
+  --fs-hero: 60px; /* fixed above 768px; clamp(2.25rem, 11.5vw, 3.75rem) below */
+  --lh-hero: 0.98;
+  --track-hero: -0.035em;
+  --fs-section: clamp(2rem, 4.5vw, 4rem); /* 32px → 64px, the section headline */
+  --lh-section: 1.05;
+  --track-section: -0.03em;
+  --fs-h2: clamp(2rem, 4vw, 3.5rem); /* 32px → 56px */
+  --fs-h3: clamp(2rem, 4vw, 2.8rem); /* the two-column feature heading */
+  --fs-h4: clamp(1.25rem, 2vw, 1.5rem); /* a step title */
+  --track-h4: -0.02em;
+  --fs-card-title: 1rem; /* a feature card's title, weight 600 */
+  --track-card-title: -0.01em;
+  --fs-wordmark: 44px; /* the footer wordmark, tracking -0.045em */
+  --track-wordmark: -0.045em;
+
+  /* Body ramp — Inter, and the line-height never drops below 1.5. */
+  --fs-lede: clamp(1rem, 2vw, 1.125rem);
+  --lh-lede: 1.6;
+  --fs-body-lg: 1.125rem;
+  --fs-body: 1rem;
+  --lh-body: 1.65;
+  --fs-body-sm: 0.9rem;
+  --lh-body-sm: 1.6;
+  --fs-caption: 0.875rem;
+  --lh-caption: 1.6;
+
+  /* Mono ramp — px-anchored, and the tracking opens as the size closes. */
+  --fs-badge: 0.75rem; /* 12px, the section badge */
+  --track-badge: 0.08em;
+  --fs-mono: 0.8rem; /* 12.8px, a step number */
+  --fs-mono-sm: 0.75rem; /* 12px, a handle */
+  --fs-mono-xs: 0.65rem; /* 10.4px, a cadence */
+  --fs-mono-2xs: 0.62rem; /* 9.9px, an axis mark */
+  --track-label: 0.05em; /* an uppercase column heading */
+  --track-eyebrow: 0.06em; /* a goal label */
+
+  /* ── space: the reference's own scale, fluid from --space-lg up ─────────── */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: clamp(2rem, calc(1.5rem + 1.5vw), 3rem);
+  --space-xl: clamp(3rem, calc(2rem + 3vw), 5rem);
+  --space-2xl: clamp(4rem, calc(2.5rem + 4.5vw), 7rem);
+  --space-3xl: clamp(5rem, calc(3rem + 6vw), 10rem);
+  --space-section: clamp(6.25rem, calc(5.75rem + 0.75vw), 6.9rem);
+  --space-section-gap: clamp(2rem, 5vw, 6rem);
+  --page-max: 1600px; /* --max-width — wide, because the marquee runs edge to edge */
+  --nav-height: 60px; /* 52px below 768px */
+
+  /* ── z: named, so nothing is written as a number at the call site ───────── */
+  --z-raised: 3;
+  --z-sticky: 100;
+  --z-overlay: 200;
+
+  /* ── motion: four curves, six durations, one stagger, one spring ─────────
+     --ease-exit is declared because the reference declares it; the page spends
+     it nowhere, and that is recorded rather than tidied away. */
+  --ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1); /* everything the reader triggers */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 0.6); /* declared; the page never spends it */
+  --ease-hero: cubic-bezier(0.22, 1, 0.36, 1); /* entrances and bar fills */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoot — the interrupt only */
+  --t-micro: 0.15s; /* colour on hover */
+  --t-short: 0.25s; /* the default state change */
+  --t-medium: 0.4s; /* a card revealing, a panel opening */
+  --t-fill: 1.2s; /* a budget bar reaching its value */
+  --t-hero-art: 1.1s; /* the hero artwork's entrance */
+  --t-hero-copy: 0.9s; /* the headline's, 220ms behind it */
+  --stagger: 0.14s; /* ONE stagger constant: org nodes, swim lanes, everything */
+
+  background-color: var(--bg);
+  color: var(--ink);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* The light twin has NO surface step: --background and --card are both pure
+     white in the reference, so a card is separated from the page by a hairline
+     and nothing else. --parchment is the hover fill, not a resting surface. */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-quiet: #f5f5f5; /* --muted, --secondary */
+  --terminal: #1f1d1a; /* still the dark warm block — the idea survives the theme */
+  --terminal-head: #161412;
+  --terminal-rule: #2f2c28;
+
+  --ink: #0a0a0a; /* --foreground, 19.80:1 on --bg */
+  --muted: #737373; /* --muted-foreground, 4.74:1 — AA, with nothing to spare */
+
+  --border: #e5e5e5; /* --border, 1.26:1 on --bg — a seam, never a mark */
+  --border-strong: #a1a1a1;
+
+  --accent: #0a0a0a;
+  --accent-ink: #ffffff;
+  --accent-hover: #ffffff;
+
+  --parchment: #fafafa; /* the feature card's hover fill, 1.04:1 on --bg */
+  --graphite: #52585d; /* 7.21:1 on --bg here — the same metal, text-safe on paper */
+  --aluminum: #a8aeb2; /* 2.24:1 on --bg — non-text on paper */
+
+  /* Status drops to the base half of each ramp, which is the reference's own
+     arrangement: one hue at two lightnesses rather than two colours. */
+  --good: #22c55e; /* 2.28:1 on --bg on paper */
+  --warn: #f59e0b; /* 2.15:1 on --bg */
+  --danger: #dc2626; /* 4.83:1 on --bg */
+  --info: #2563eb; /* 5.17:1 on --bg */
+  --review: #7c3aed;
+  --idle: #a8aeb2;
+}
+
+/* @role non-text: --good and --warn in the LIGHT theme, at 2.28:1 on --bg and 2.15:1 on
+   paper — below the 3:1 non-text floor there, so they are bar fills, dots and
+   chip tints and the WORD beside them carries the meaning. In dark all four
+   clear AA and may be set as text. The rule that makes this safe is in
+   paperclip.md: status is never colour alone, in either theme. */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-micro: 0s;
+    --t-short: 0s;
+    --t-medium: 0s;
+    --t-fill: 0s;
+    --t-hero-art: 0s;
+    --t-hero-copy: 0s;
+    --stagger: 0s;
+  }
+}
+
+/* ── tokens.app.css ── */
+/* The app's semantic layer. Since CO-169 (2026-09-28) every colour, focus, state,
+   radius, font and motion role resolves to the shared PassionCode design system
+   (tokens.passioncode.css, vendored byte-for-byte; see its manifest). The
+   Paperclip pack below it still supplies the type ramp and terminal tokens that
+   PassionCode does not define.
+
+   Earlier note, kept: the app's semantic layer over the Paperclip pack.
+   Rule: components consume ONLY var(--…). Nothing below invents a value —
+   every declaration here either aliases a pack token or derives one from it by
+   a stated ratio. `scripts/check-design.mjs` fails the build on a raw colour,
+   a raw font-size/letter-spacing, or a px value outside this ladder.
+
+   Pack: paperclip (SHELEG style pack) — chosen because its Register names this
+   product: "agent teams and orchestrators, scheduler and cron surfaces, job
+   runners". Dials: DESIGN_VARIANCE 5 / MOTION_INTENSITY 2 / VISUAL_DENSITY 7. */
+
+:root {
+  /* ── Fabric's persona face (SCR-36, FabricAvatar.tsx): identity art, the same in both themes ── */
+  --avatar-orbit-0: #E8DFFF; --avatar-orbit-1: #7260DB; --avatar-orbit-2: #A8EFDC; --avatar-orbit-3: #332753;
+  --avatar-spark-0: #FFE4D2; --avatar-spark-1: #EE8868; --avatar-spark-2: #FFE283; --avatar-spark-3: #603B39;
+  --avatar-wave-0: #D8EDEB; --avatar-wave-1: #438EA3; --avatar-wave-2: #BCD78C; --avatar-wave-3: #204451;
+  /* The app icon drawn from the face (wave I, dockIcon.ts): the soft shadow under the tile on Apple's icon grid. */
+  --avatar-icon-shadow: rgba(0, 0, 0, 0.28);
+
+  /* ── space ────────────────────────────────────────────────────────────────
+     VISUAL_DENSITY 7 asks for a tighter rhythm than the pack's landing-page
+     ladder, so the app's steps are DERIVED from it rather than invented beside
+     it: a pack upgrade moves this screen. --space-xs is 0.5rem, --space-sm 1rem,
+     --space-md 1.5rem. */
+  --space-1: var(--pc-space-1); /* 4px */
+  --space-2: var(--pc-space-2); /* 8px */
+  --space-3: var(--pc-space-3); /* 12px */
+  --space-4: var(--pc-space-4); /* 16px */
+  --space-5: var(--pc-space-5); /* 24px */
+  --space-6: var(--pc-space-6); /* 32px */
+
+  /* ── type ─────────────────────────────────────────────────────────────────
+     Every size the app spends maps onto the pack's ramp, which is rem-based,
+     so OS text scaling works (it did not when these were px literals). */
+  --app-fs-body: var(--fs-body-sm); /* 0.9rem — the interface's reading size */
+  --app-lh-body: var(--lh-body-sm);
+  --app-fs-caption: var(--fs-mono-sm); /* 0.75rem — muted lines, meta */
+  --app-fs-label: var(--fs-mono-sm); /* uppercase section headings */
+  --app-track-label: var(--track-label);
+  --app-fs-badge: max(11px, var(--fs-mono-xs)); /* 0.65rem — state badges */
+  --app-track-badge: var(--track-badge);
+  --app-fs-mono: var(--fs-mono-sm);
+  --app-fs-title: var(--fs-h4); /* project name, window titles */
+  --app-track-title: var(--track-h4);
+  --app-fs-stat: var(--fs-card-title); /* the statistics numbers */
+
+  /* ── platform ─────────────────────────────────────────────────────────────
+     Not a rhythm decision and deliberately NOT on the --space-* ladder: this is
+     the physical width the macOS traffic lights occupy under `hiddenInset`,
+     plus their inset. Every window's own top strip starts clear of it (M63).
+     It lives here because a component may not hold a raw pixel — and because
+     when Apple moves them, one line moves. */
+  --chrome-lights: 84px;
+
+  /* ── colour roles ─────────────────────────────────────────────────────────*/
+  --app-bg: var(--pc-bg);
+  --app-panel: var(--pc-panel);
+  --app-panel-quiet: var(--pc-panel-raised);
+  --app-ink: var(--pc-text);
+  --app-muted: var(--pc-text-muted);
+  --app-line: var(--pc-border);
+  --app-line-strong: var(--pc-border-strong);
+  /* W6 (ui UI-14): the edge of something a person clicks (a card, a row, a post), 3:1 or more against its panel in both
+     themes; --app-line stays for dividers, which identify nothing. */
+  --app-line-control: color-mix(in oklab, var(--app-line-strong) 88%, var(--app-ink));
+  /* Gold is action, selection and focus — never a state (ui.md). Dark text on
+     gold for the one primary action of a task region. */
+  --app-accent: var(--pc-accent);
+  --app-accent-hover: var(--pc-accent-hover);
+  --app-accent-ink: var(--pc-on-accent);
+  --app-focus: var(--pc-focus);
+  --app-link: var(--pc-link);
+
+  /* ── shape, type family, elevation ──────────────────────────────────────── */
+  --app-radius-control: var(--pc-radius-control); /* inputs, buttons, tags */
+  --app-radius-panel: var(--pc-radius-panel); /* resting panels and widgets */
+  --app-radius-pill: var(--pc-radius-pill); /* state chips */
+  --font-body: var(--pc-font);
+  --font-display: var(--pc-font);
+  --font-mono: var(--pc-font-data);
+  --shadow-modal: var(--pc-shadow-overlay); /* only for what floats */
+  /* Behind a modal: the page canvas at 70%, so the scrim is the same hue in both themes. */
+  --app-scrim: color-mix(in srgb, var(--pc-bg) 70%, transparent);
+
+  /* State roles. The pack's rule is that the word carries the state and the
+     hue supports it; these are spent on borders and dots, never on the text,
+     because in the light twin --warn and --idle sit below the 3:1 non-text
+     floor on paper and would be unreadable as labels. */
+  --state-running: var(--pc-info);
+  /* The state that requires a PERSON. It had no role at all, which is why an
+     agent that cannot proceed looked exactly like one that is thinking. */
+  --state-blocked: var(--pc-negative);
+  --state-idle: var(--pc-warning);
+  /* Absence, not a state: the muted ink, never a hue. */
+  --state-ended: var(--pc-text-muted);
+  --state-good: var(--pc-positive);
+  --state-danger: var(--pc-negative);
+  /* Text that must be readable in both themes stays on the ink ramp. */
+  --state-ink: var(--app-ink);
+  --state-ink-quiet: var(--app-muted);
+
+  /* ── motion budget, in full ───────────────────────────────────────────────
+     One CSS transition (hover opacity) and one JS scroll, and the scroll checks
+     prefers-reduced-motion itself because a media query cannot reach it. */
+  --dur-quick: var(--pc-duration-hover);
+  --ease-enter: var(--pc-ease);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+/* Reduced motion: tokens.passioncode.css sets its durations to 0ms, and
+   --dur-quick follows it. */
+
+/* ── styles.css ── */
+/* Component styles. Every value here is a var(--…) from the token layer —
+   the palette gate (scripts/check-design.mjs) fails the build on a raw colour,
+   which is what keeps a new screen from inventing its own look. */
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  font: var(--app-fs-body)/var(--app-lh-body) var(--font-body);
+  background: var(--app-bg);
+  color: var(--app-ink);
+}
+.mono { font-family: var(--font-mono); font-size: var(--app-fs-mono); }
+.muted { color: var(--app-muted); font-size: var(--app-fs-caption); }
+h1 { font-size: var(--app-fs-title); margin: 0 0 2px; font-family: var(--font-display); letter-spacing: var(--app-track-title); }
+h2 { font-size: var(--app-fs-label); margin: 0 0 var(--space-3); letter-spacing: var(--app-track-label); text-transform: uppercase; color: var(--app-muted); }
+h3 { font-size: var(--app-fs-caption); margin: 0; }
+label { font-size: var(--app-fs-caption); }
+
+input, select, textarea {
+  background: var(--app-panel-quiet);
+  border: 1px solid var(--app-line-strong);
+  border-radius: var(--app-radius-control);
+  color: inherit;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--app-fs-body);
+  font-family: inherit;
+}
+/* Every textarea here takes prose — an instruction, an answer, a note — so it is set in the body face.
+   Mono was a costume on them (sheleg-design V019); code is shown in <code>/<pre>, never typed here. */
+textarea { font: inherit; width: 100%; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
+  outline: 2px solid var(--app-focus); outline-offset: 1px;
+}
+
+button {
+  background: var(--app-accent);
+  border: none;
+  border-radius: var(--app-radius-control);
+  color: var(--app-accent-ink);
+  padding: var(--space-2) var(--space-4);
+  font-weight: 600;
+  font-size: var(--app-fs-body);
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity var(--dur-quick) var(--ease-enter);
+}
+button:hover { opacity: .88; }
+button:disabled { opacity: .4; cursor: default; }
+.booting { display: flex; align-items: center; justify-content: center; height: 100%; }
+
+/* M106a — the window could not read what it is for, and now says so instead of
+   holding the answer one branch away in unreachable state. */
+.boot-failure {
+  max-width: 46ch;
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-4);
+  text-align: left;
+}
+/* The machine's own words: kept, and subordinate to our sentence. Wrapped
+   because an unbroken path or stack line would otherwise widen the banner past
+   the window. */
+.error-detail {
+  margin: 0;
+  overflow-wrap: anywhere;
+  max-height: 8lh;
+  overflow-y: auto;
+}
+
+.app { display: flex; flex-direction: column; height: 100%; }
+
+/* ── tab bar: projects are tabs ─────────────────────────────── */
+.tabbar {
+  display: flex; align-items: stretch; gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--app-line);
+  background: var(--app-panel); flex-wrap: wrap;
+}
+.tab-btn {
+  display: inline-flex; align-items: stretch;
+  background: var(--app-panel-quiet);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-control);
+  color: var(--app-ink); font-weight: 500; padding: 0; overflow: hidden;
+}
+.tab-btn.active { border-color: var(--app-focus); }
+.tab-btn.active .tab-label, .tab-btn.active > span[aria-hidden] { font-weight: 700; }
+.tab-btn.active { box-shadow: inset 0 -2px 0 0 var(--app-focus); }
+.tab-btn.home, .tab-btn.plus, .tab-btn.settings-btn {
+  padding: var(--space-1) var(--space-3);
+  background: var(--app-panel-quiet); color: var(--app-ink); font-weight: 500;
+}
+.tab-btn .tab-label {
+  background: none; border: none; color: inherit;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3); font-weight: 500;
+}
+.tab-btn .tab-close {
+  background: none; border: none; color: var(--app-muted);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1); font-weight: 500;
+}
+.tab-btn .tab-close:hover { color: var(--state-danger); }
+.live-count {
+  margin-left: var(--space-2); font-size: var(--app-fs-badge);
+  text-transform: uppercase; letter-spacing: var(--app-track-badge);
+  color: var(--state-ink-quiet);
+}
+.live-count::before {
+  content: ''; display: inline-block; width: 6px; height: 6px; margin-right: var(--space-1);
+  border-radius: var(--app-radius-pill); background: var(--state-good);
+}
+.tabbar-estate { margin-left: auto; align-self: center; color: var(--app-muted); font-size: var(--app-fs-caption); }
+
+.settings-usage { display: flex; flex-direction: column; gap: var(--space-1); max-width: 42ch; }
+/* The fallback order (ADR-0125): heading, note, then one aligned row per agent (0.3.3 verification UX-7). */
+.settings-fallback { display: flex; flex-direction: column; gap: var(--space-2); max-width: 64ch; }
+.settings-fallback ol { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-1); }
+.settings-fallback li { display: grid; grid-template-columns: minmax(10ch, 14ch) minmax(0, 1fr) auto auto auto; gap: var(--space-2); align-items: center; }
+.settings-fallback li select, .settings-fallback-add select { min-width: 0; font: inherit; }
+.settings-fallback-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.settings-fallback-add { display: flex; gap: var(--space-2); align-items: center; }
+.settings-note { color: var(--app-muted); font-size: var(--app-fs-badge); max-width: 42ch; line-height: var(--app-lh-body); }
+
+/* min-width: 0 — a flex item defaults to its widest descendant, so without it one wide row (the plan's
+   node track at 1280 px) pushed the whole page past the window. It was set only beside a side panel. */
+.content { flex: 1; overflow-y: auto; min-height: 0; min-width: 0;
+  /* Room for the fixed controls in the bottom corner, so the last card is never under them. */
+  padding-bottom: calc(2.5rem + var(--space-3) * 2); }
+
+/* ── estate home ────────────────────────────────────────────── */
+/* The home fills the main area, as the approved mockup does (mockup parity, gap map A2); launch.css sets its padding. */
+.estate-home { padding: var(--space-5) var(--space-5) var(--space-6); }
+.project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--space-3); }
+
+/* ── onboarding ─────────────────────────────────────────────── */
+.onboarding { padding: var(--space-5); max-width: 720px; }
+.onboarding header { margin-bottom: var(--space-5); }
+.onboarding .field { margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2); }
+.onboarding .field > label, .field-label { color: var(--app-muted); text-transform: uppercase; letter-spacing: var(--app-track-label); font-size: var(--app-fs-label); display: block; }
+.onboarding .actions { display: flex; gap: var(--space-2); }
+.choice-row { display: flex; flex-direction: column; gap: var(--space-2); }
+.choice {
+  display: flex; gap: var(--space-3); align-items: flex-start;
+  border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-3);
+}
+.choice > span { display: flex; flex-direction: column; gap: 2px; }
+.repo-list { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* ── project home ───────────────────────────────────────────── */
+.project-home { padding: var(--space-4) var(--space-5); max-width: 1400px; }
+.project-header {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4);
+  padding-bottom: var(--space-3); margin-bottom: var(--space-3); border-bottom: 1px solid var(--app-line);
+}
+.project-header p { margin: 1px 0; }
+.edit-grid { display: flex; gap: var(--space-3); flex-wrap: wrap; flex: 1; }
+.edit-grid label { display: flex; flex-direction: column; gap: var(--space-1); color: var(--app-muted); flex: 1; min-width: 180px; }
+/* TWO children: main then side. `ProjectHome` renders them in that order. */
+.project-columns { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: var(--space-3); }
+
+/* THREE children: list, console, where-it-is-working — the estate agents screen
+   (UX28-14). It used `.project-columns` and put three children into two tracks,
+   so the session LIST took the wide 1.6fr, the console took the narrow one, and
+   the third panel wrapped to a second row. The console is the widest track here
+   because it is the thing being read; the list needs a name and a state chip,
+   and the right column needs a branch and a count.
+
+   The `col-main`/`col-side` names have no rule in any stylesheet — placement is
+   positional — so `ProjectHome` is correct BY ACCIDENT, its order happening to
+   match its names. `check-grid-arity.mjs` refuses the mismatch rather than the
+   naming, because the naming is a comment and the arity is the defect. */
+.project-columns-3 { grid-template-columns: minmax(220px, 1fr) minmax(0, 2.2fr) minmax(280px, 1fr); }
+
+/* One column below 1000px, for BOTH templates. A three-track grid at 375 css
+   pixels gives each panel 125 of them; the card's narrow targets are 640 and
+   375 and this is the rule that answers them. Declared after the templates so
+   it wins on source order at equal specificity. */
+@media (max-width: 1000px) {
+  .project-columns,
+  .project-columns-3 { grid-template-columns: minmax(0,1fr); }
+}
+/* Beside an open side panel the page is 22rem narrower than the window: one column before the third runs under it,
+   and before the middle column is the narrowest (208 px at 1300, 0.3.10 review UX-5). */
+@media (max-width: 1440px) { .shell-with-panel .project-columns-3 { grid-template-columns: minmax(0,1fr); } }
+
+
+
+.agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-3); }
+
+/* The word carries the state; the colour supports it (paperclip: status is
+   never by colour alone). */
+/* The word carries the state; the hue is spent on the border and the dot only.
+   In the light twin --warn and --idle sit below the 3:1 non-text floor on
+   paper, which the pack states outright — so they are never set as text. */
+
+.file-tree { list-style: none; margin: 0; padding-inline-start: var(--space-4); }
+.file-row {
+  display: flex; gap: var(--space-2); align-items: center; width: 100%;
+  background: none; border: none; color: var(--app-ink); padding: 2px 0;
+  font-weight: 400; text-align: left; border-radius: var(--app-radius-control);
+}
+.file-row.dir { cursor: pointer; }
+.file-row.dir:hover { background: var(--app-panel-quiet); }
+.caret { width: 12px; color: var(--app-muted); font-size: var(--app-fs-badge); }
+
+.memory-add { display: flex; gap: var(--space-2); margin-bottom: var(--space-2); }
+.memory-add input { flex: 1; }
+.memory-search { width: 100%; margin-bottom: var(--space-2); }
+.memory-list { max-height: 260px; overflow-y: auto; }
+
+/* ── workspace canvas ───────────────────────────────────────── */
+.workspace { padding: var(--space-4) var(--space-5); }
+.workspace-head { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+.canvas-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+@media (max-width: 900px) { .canvas-grid { grid-template-columns: minmax(0,1fr); } }
+.widget { background: var(--app-panel); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); padding: var(--space-3) var(--space-4); }
+.widget.span-2 { grid-column: span 2; }
+@media (max-width: 900px) { .widget.span-2 { grid-column: span 1; } }
+.widget-list { list-style: none; margin: 0; padding: 0; }
+.widget-list li { display: flex; gap: var(--space-2); align-items: center; padding: var(--space-1) 0; border-bottom: 1px solid var(--app-line); }
+
+/* ── feed ───────────────────────────────────────────────────── */
+.feed { max-height: 420px; overflow-y: auto; }
+.feed.compact { max-height: 240px; }
+
+/* ── session window ─────────────────────────────────────────── */
+/* A detached console or editor window: the stack notice above, the window below in the rest (0.3.12 review UX-4). */
+.detached-window { display: flex; flex-direction: column; height: 100%; }
+.detached-window > .banner { flex: 0 1 auto; max-height: 33%; overflow-y: auto; margin: 0; }
+.detached-window > .session-window, .detached-window > .editor-window { flex: 1 1 auto; min-height: 0; height: auto; }
+.session-window { display: flex; flex-direction: column; height: 100%; }
+.session-head {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--terminal-rule); background: var(--terminal-head);
+}
+.terminal-host { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: var(--space-2); background: var(--terminal); }
+/* xterm fits itself to this box, which has no padding: the fit addon reads the parent's border-box height (2026-11-17). */
+.terminal-fit { flex: 1 1 auto; min-height: 0; min-width: 0; }
+.terminal-fit .xterm { height: 100%; }
+/* The host carries the terminal's surface; xterm's own viewport painted the rows' remainder black under it (2026-11-17). */
+.terminal-fit .xterm .xterm-viewport { background-color: transparent; }
+/* In the main window under its console tab (OF-03, SCN-172): no room kept for the window's traffic lights, and the
+   header is not a window drag handle, because the top bar above it is. */
+.session-embedded { flex: 1 1 auto; min-height: 0; }
+.session-embedded .session-head { padding-left: var(--space-4); -webkit-app-region: no-drag; }
+
+/* The message reads on the ink ramp in both themes; the danger hue is the rule
+   above it. A dismiss button replaced click-anywhere, so it is reachable by
+   keyboard. */
+
+/* ── tasks ──────────────────────────────────────────────────── */
+.task-panel .task-input { width: 100%; margin: var(--space-2) 0; }
+.task-history-head { margin: var(--space-4) 0 var(--space-2); color: var(--app-muted);
+  text-transform: uppercase; letter-spacing: var(--app-track-label); font-size: var(--app-fs-label); }
+.task-history { list-style: none; margin: 0; padding: 0; }
+.task-history li { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: var(--space-3);
+  align-items: center; padding: var(--space-2) 0; border-bottom: 1px solid var(--app-line); }
+
+/* ── collapsible panel head ─────────────────────────────────── */
+
+/* ── stats strip as navigation ──────────────────────────────── */
+
+/* ── editor window ──────────────────────────────────────────── */
+.editor-window { display: flex; flex-direction: column; height: 100%; }
+.editor-head { display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--terminal-rule);
+  background: var(--terminal-head); }
+.editor-head .mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.editor-host { flex: 1; min-height: 0; }
+.file-row.file { cursor: pointer; }
+.file-row.file:hover { background: var(--app-panel-quiet); }
+
+/* ── accessibility helpers ──────────────────────────────────────────────── */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; clip-path: inset(50%); padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Every number that ticks — a duration, a countdown, an age — sits on tabular
+   figures. Without this the row jitters horizontally once a second as the glyph
+   widths change, which is the difference between a live number and a nervous
+   one. Applied by class so it can be spent deliberately rather than globally. */
+/* hiddenInset draws the traffic lights over the content, so every window's own
+   top strip starts clear of them (M63). */
+.tabbar, .session-head, .editor-head { padding-left: var(--chrome-lights); -webkit-app-region: drag; }
+.tabbar button, .session-head button, .editor-head button,
+.tabbar input, .session-head input { -webkit-app-region: no-drag; }
+
+
+/* An agent's self-report sits beside what Fabric observed, marked as an account
+   rather than a measurement: the label is part of the meaning, not decoration. */
+/* Not a button: nothing to scroll to. Same rhythm, no affordance it cannot honour. */
+/* The one state that needs a person, so the only one that earns a colour here. */
+
+/* The age is what makes the label mean anything. A claim from three hours ago
+   and a measurement from four seconds ago look identical without it. */
+/* Behind the observation: the agent is still working and has stopped narrating.
+   Colour is never the only carrier — the text already says how long ago. */
+
+/* Sessions recorded: L0 is the row, L1 the excerpt under it, L2 on request. */
+.transcript-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+/* An agent's account is marked, and the words already say so — the colour only
+   makes it findable at a glance. */
+/* A corrected fact is dimmed and marked, never struck through: it is not wrong,
+   it stopped being current, and the words say which (M48). */
+.correcting {
+  display: flex; gap: var(--space-2); align-items: baseline; justify-content: space-between;
+  margin: var(--space-2) 0 0; padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--state-idle); border-radius: var(--app-radius-control);
+  font-size: var(--app-fs-caption);
+}
+.memory-toggle { margin-top: var(--space-2); font-size: var(--app-fs-badge); }
+
+.transcript-body { margin-top: var(--space-2); display: grid; gap: var(--space-2); }
+.transcript-body pre {
+  margin: 0; padding: var(--space-3); background: var(--app-panel-quiet);
+  border-radius: var(--app-radius-control); font-size: var(--app-fs-caption);
+  white-space: pre-wrap; word-break: break-word; max-height: 24em; overflow: auto;
+}
+
+/* The CEO panel PUSHES rather than covers (M146): a panel that overlays the
+   board hides the thing you opened it to act on. */
+.shell { display: flex; min-height: 0; flex: 1; }
+.shell-with-panel .content { flex: 1; min-width: 0; }
+.ceo-panel {
+  width: 22rem; max-width: 40vw; flex: none;
+  border-left: 1px solid var(--app-line);
+  overflow-y: auto; padding: var(--space-3);
+}
+/* In the narrow panel the title keeps its line and the actions take the next one. */
+.ceo-panel .panel-head .panel-title { flex: 1 0 100%; }
+
+/* Agent access (SCR-76): one bordered card per product, request and agent; the text owns the width and
+   the acts take their own line under it, so a narrow panel never squeezes the words into a column (UX-1). */
+.access-card { border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-2); margin-bottom: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); }
+.access-card { min-width: 0; }
+/* Iteration 2 for 0.3.1: an address or an id is one unbreakable token; it wraps inside the card, so the whole
+   resource being granted can be read (UX-3), and a card's acts wrap in a narrow window (UX-10). */
+.access-card p { margin: 0; overflow-wrap: anywhere; }
+.access-asks li { overflow-wrap: anywhere; }
+.access-name { margin: 0; font-size: var(--app-fs-body); }
+/* Wave U: a nameless agent's denial says where it registered on a line of its own, under what it asked. */
+.access-row-origin { display: block; }
+.access-asks { margin: 0; padding-left: var(--space-3); }
+.access-url { overflow-wrap: anywhere; }
+.access-problem { color: var(--state-ink); border-left: 2px solid var(--state-idle); padding-left: var(--space-2); }
+.access-acts { margin-top: var(--space-1); }
+.access-detail { display: block; overflow-wrap: anywhere; }
+
+/* The conversation with Fabric (SCR-64), opened from the launcher in the navigation. The panel
+   reuses .ceo-panel; the log is the only growing area and the composer stays at the bottom. */
+.chat-log { display: flex; flex-direction: column; gap: var(--space-2); min-height: 8rem; overflow-y: auto; }
+.chat-message { padding: var(--space-2); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); }
+.chat-message p { margin: var(--space-1) 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-composer { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
+.chat-composer textarea { width: 100%; resize: vertical; font: inherit; }
+
+/* ADR-0197, SCN-110, SCN-182: the CEO. The composer on the home screen and at the popup's foot, the floating button on
+   every screen of the main window, and the popup window: its head, its console filling what is left, its call panel. */
+.ceo-composer, .ceo-composer-form { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.ceo-composer-home { padding: var(--space-3); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); background: var(--app-panel); }
+.ceo-composer-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+/* Two classes: the launch screens' `h2` size (42px) must not reach the card's small title (the owner's review, 2026-11-19). */
+.ceo-composer .ceo-composer-title { margin: 0; white-space: nowrap; font-size: var(--app-fs-body); letter-spacing: normal; font-weight: 600; line-height: var(--app-lh-body); padding-top: var(--space-1); }
+.ceo-composer-home .ceo-composer-text { min-height: 56px; }
+.ceo-composer-send { margin-left: auto; }
+.ceo-composer-text { width: 100%; resize: vertical; font: inherit; padding: var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: var(--app-bg, transparent); color: var(--app-ink); }
+.ceo-composer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.ceo-composer-files { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.ceo-composer-files li { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0 var(--space-2); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); font-size: var(--app-fs-caption); }
+.ceo-composer-popup { padding: var(--space-2) var(--space-3) var(--space-3); border-top: 1px solid var(--app-line); }
+/* The CEO's floating button (SCN-110, the owner 2026-11-19): the character's face with a ring for its state. The ring's
+   colour carries the state; only the starting ring breathes, and it holds still under reduced motion. */
+.ceo-floating { position: fixed; right: var(--space-4); bottom: var(--space-4); z-index: 40; display: inline-flex; align-items: center; gap: var(--space-2); padding: 4px var(--space-3) 4px 4px; border-radius: var(--app-radius-pill); border: 1px solid var(--app-line-strong); background: var(--app-panel); color: var(--app-ink); font: inherit; font-weight: 600; font-size: var(--app-fs-label); cursor: pointer; box-shadow: var(--shadow-modal); transition: border-color var(--dur-quick) var(--ease-enter), background-color var(--dur-quick) var(--ease-enter); }
+.ceo-floating:hover { border-color: var(--app-ink); }
+.ceo-floating:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 2px; }
+.ceo-floating-face { display: inline-flex; border-radius: 50%; box-shadow: 0 0 0 2px var(--app-panel), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }
+.ceo-floating.s-running, .ceo-presence.s-running { --ceo-ring: var(--state-good); }
+.ceo-floating.s-starting, .ceo-presence.s-starting { --ceo-ring: var(--state-running); }
+.ceo-floating.s-failed, .ceo-presence.s-failed { --ceo-ring: var(--state-danger); }
+.ceo-floating.s-stopped, .ceo-floating.s-ended, .ceo-floating.s-idle, .ceo-presence.s-stopped, .ceo-presence.s-ended, .ceo-presence.s-idle { --ceo-ring: var(--state-ended); }
+@media (prefers-reduced-motion: no-preference) {
+  /* Why it moves: the CEO is coming up, not yet answering. First and last frames match, so the reduced branch is still. */
+  .ceo-floating.s-starting .ceo-floating-face, .ceo-presence.s-starting { animation: ceo-breathe 1.6s ease-in-out infinite; }
+}
+@keyframes ceo-breathe { 0%, 100% { box-shadow: 0 0 0 2px var(--app-panel), 0 0 0 4px var(--ceo-ring); } 50% { box-shadow: 0 0 0 2px var(--app-panel), 0 0 0 4px transparent; } }
+
+/* The CEO popup (ADR-0197 §2): the CEO in its head, the chat (console, then the call panel) in its body, the composer
+   at its foot. */
+.ceo-popup { display: flex; flex-direction: column; height: 100vh; padding-top: calc(var(--space-6, 32px) + 2px); box-sizing: border-box; background: var(--app-bg); }
+.ceo-popup-head { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3) var(--space-3); border-bottom: 1px solid var(--app-line); -webkit-app-region: drag; }
+.ceo-popup-head button, .ceo-popup-head input, .ceo-call-panel, .ceo-popup-chat { -webkit-app-region: no-drag; }
+/* The CEO window loads no launch stylesheet, so the face is sized here. */
+.ceo-presence svg { display: block; width: 40px; height: 40px; }
+.ceo-presence { flex: none; display: inline-flex; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }
+.ceo-popup-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.ceo-popup-title { font-size: var(--app-fs-title); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ceo-popup-sub { display: flex; flex-wrap: wrap; gap: 2px var(--space-2); font-size: var(--app-fs-caption); color: var(--app-muted); min-width: 0; }
+.ceo-popup-state { font-weight: 500; }
+.ceo-popup-state.s-running { color: var(--state-good); }
+.ceo-popup-state.s-starting { color: var(--state-running); }
+.ceo-popup-state.s-failed { color: var(--state-danger); }
+.ceo-popup-runner { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ceo-popup-head-actions { margin-left: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-1); align-items: center; }
+.ceo-popup-head-actions .btn { padding: 4px var(--space-2); font-size: var(--app-fs-label); }
+.ceo-popup-notes { margin: 0; padding: var(--space-1) var(--space-3) var(--space-1) var(--space-5, 1.5rem); font-size: var(--app-fs-caption); }
+.ceo-popup-chat { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-2) var(--space-3) 0; }
+.ceo-popup-console { flex: 1; min-height: 120px; display: flex; flex-direction: column; }
+.ceo-popup-console > * { flex: 1; min-height: 0; }
+.ceo-popup-wait { flex: none; }
+.ceo-popup-stopped { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-4); border: 1px dashed var(--app-line-strong); border-radius: var(--app-radius-panel); color: var(--app-muted); }
+.ceo-popup-stopped p { margin: 0; color: var(--app-ink); }
+
+/* The call's button: a microphone and a word, the same in the popup's head and on the home card. */
+.ceo-call-button { display: inline-flex; align-items: center; gap: 6px; }
+.ceo-icon { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+.ceo-icon rect { fill: currentColor; stroke: none; }
+
+/* The call, a panel inside the chat (SCN-184): live while it runs, then its past calls, folded. */
+.ceo-call-panel { flex: none; display: flex; flex-direction: column; gap: var(--space-2); max-height: 62%; overflow-y: auto; font-size: var(--app-fs-body); }
+.ceo-call-live { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); background: var(--app-panel); }
+.ceo-call-live.p-listening, .ceo-call-live.p-speaking { border-color: color-mix(in srgb, var(--state-good) 45%, var(--app-line)); }
+.ceo-call-live.p-failed { border-color: color-mix(in srgb, var(--state-danger) 45%, var(--app-line)); }
+.ceo-call-head { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.ceo-call-state { font-weight: 600; }
+.ceo-call-meta { display: inline-flex; gap: var(--space-2); color: var(--app-muted); font-size: var(--app-fs-caption); font-variant-numeric: tabular-nums; }
+.ceo-meter { display: inline-flex; align-items: center; gap: 2px; height: 18px; width: 22px; flex: none; }
+.ceo-meter-bar { width: 3px; height: 100%; border-radius: 2px; background: var(--app-muted); transform: scaleY(.25); transform-origin: center; }
+.ceo-meter .ceo-meter-bar:nth-child(2), .ceo-meter .ceo-meter-bar:nth-child(4) { transform: scaleY(.4); }
+.ceo-meter .ceo-meter-bar:nth-child(3) { transform: scaleY(.55); }
+.ceo-meter.p-listening .ceo-meter-bar { background: var(--state-good); }
+.ceo-meter.p-speaking .ceo-meter-bar { background: var(--app-accent); }
+.ceo-meter.p-connecting .ceo-meter-bar { background: var(--state-running); }
+.ceo-meter.p-failed .ceo-meter-bar { background: var(--state-danger); }
+@media (prefers-reduced-motion: no-preference) {
+  /* Why it moves: the call is connecting and nothing can be heard yet. Matching first and last frames. */
+  .ceo-meter.p-connecting .ceo-meter-bar { animation: ceo-connect 1.2s ease-in-out infinite; }
+  .ceo-meter.p-connecting .ceo-meter-bar:nth-child(2) { animation-delay: .1s; }
+  .ceo-meter.p-connecting .ceo-meter-bar:nth-child(3) { animation-delay: .2s; }
+  .ceo-meter.p-connecting .ceo-meter-bar:nth-child(4) { animation-delay: .3s; }
+  .ceo-meter.p-connecting .ceo-meter-bar:nth-child(5) { animation-delay: .4s; }
+}
+@keyframes ceo-connect { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+.ceo-call-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); min-height: 48px; max-height: 200px; overflow-y: auto; }
+.ceo-call-lines li { display: grid; grid-template-columns: 3.2em 1fr; gap: var(--space-2); line-height: var(--app-lh-body, 1.45); }
+.ceo-call-who { color: var(--app-muted); font-size: var(--app-fs-caption); font-weight: 600; padding-top: 2px; }
+.ceo-call-lines .who-ceo { color: var(--app-ink); }
+.ceo-call-lines .who-person > span:last-child { color: var(--app-ink); }
+.ceo-call-lines .who-tool { display: block; color: var(--app-muted); font-family: var(--font-mono); font-size: var(--app-fs-caption); padding-left: calc(3.2em + var(--space-2)); }
+.ceo-call-lines .ceo-call-hint { display: block; }
+.ceo-call-say-form { display: flex; }
+.ceo-call-mute { display: flex; flex-wrap: wrap; column-gap: var(--space-2); align-items: center; font-size: var(--app-fs-caption); cursor: pointer; }
+.ceo-call-mute small { flex-basis: 100%; padding-left: calc(13px + var(--space-2)); }
+.ceo-call-say { width: 100%; font: inherit; padding: var(--space-1) var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: var(--app-bg, transparent); color: var(--app-ink); }
+.ceo-call-history { display: flex; flex-direction: column; gap: var(--space-1); }
+.ceo-call-record { border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-1) var(--space-2); }
+.ceo-call-record summary { display: flex; justify-content: space-between; gap: var(--space-2); cursor: pointer; font-size: var(--app-fs-caption); color: var(--app-muted); list-style: none; }
+.ceo-call-record summary::before { content: '\25B8'; margin-right: var(--space-1); }
+.ceo-call-record[open] summary::before { content: '\25BE'; }
+.ceo-call-record[open] .ceo-call-lines { margin-top: var(--space-2); }
+.ceo-voice-key { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); align-items: flex-end; }
+.ceo-voice-key label { display: flex; flex-direction: column; gap: 2px; flex: 1 1 160px; min-width: 0; font-size: var(--app-fs-caption); }
+.ceo-voice-key label input { width: 100%; }
+.ceo-voice-key > .muted, .ceo-voice-key > .field-problem { flex-basis: 100%; font-size: var(--app-fs-caption); }
+
+/* The CEO's voice (SCN-186): male or female, each with the character's tone and a sample. */
+.ceo-voice-picker { display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-2) 0 var(--space-4); }
+.ceo-voice-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-2); }
+.ceo-voice-option { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); background: var(--app-panel); }
+.ceo-voice-option[data-chosen="true"] { border: 2px solid var(--app-ink); padding: calc(var(--space-2) - 1px); }
+.ceo-voice-choice { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--space-2); text-align: left; font: inherit; color: var(--app-ink); background: none; border: 0; padding: 0; cursor: pointer; }
+.ceo-voice-choice small { flex-basis: 100%; padding-left: calc(12px + var(--space-2)); color: var(--app-muted); font-size: var(--app-fs-caption); }
+.ceo-voice-choice input:focus-visible, .ceo-voice-listen:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 2px; border-radius: 4px; }
+.ceo-voice-name { font-weight: 600; }
+.ceo-voice-choice input { margin: 0; accent-color: var(--app-ink); }
+.ceo-voice-listen { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: var(--app-fs-caption); color: var(--app-ink); background: none; border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-pill); padding: 2px var(--space-2); cursor: pointer; }
+.ceo-voice-listen:disabled { opacity: .6; cursor: progress; }
+.ceo-voice-listen-icon { width: 0; height: 0; border-left: 7px solid currentColor; border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+.ceo-voice-listen-icon.is-playing { width: 7px; height: 7px; border: 0; background: currentColor; border-radius: 1px; }
+.ceo-voice-hint { color: var(--app-muted); font-size: var(--app-fs-caption); }
+
+/* ── components.css ── */
+/* The component set (M117).
+ *
+ * Every class here is declared in `components/registry.ts`, and
+ * `scripts/check-design.mjs` fails on a class that is in one and not the other.
+ * That is the whole mechanism: the set cannot grow by accident, and it cannot
+ * shrink into dead CSS either.
+ *
+ * Values come from the token ladders only. `docs/brand/ui.md`: resting elevation
+ * is fill plus a hairline rather than a shadow, controls stay monochrome, and a
+ * state is carried by its word with colour supporting it. */
+
+/* ── Panel ───────────────────────────────────────────────────── */
+.panel {
+  background: var(--app-panel);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-panel);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+.panel-quiet { padding: var(--space-3) var(--space-4); }
+.panel-interactive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  color: var(--app-ink);
+  font: inherit;
+  font-size: var(--app-fs-body);
+  cursor: pointer;
+}
+.panel-interactive:hover { border-color: var(--app-line-strong); background: var(--app-panel-quiet); }
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.panel-quiet .panel-head { align-items: baseline; margin-bottom: var(--space-2); }
+.panel-title {
+  margin: 0;
+  font-size: var(--app-fs-label);
+  letter-spacing: var(--app-track-label);
+  text-transform: uppercase;
+  color: var(--app-muted);
+}
+.panel-body { margin: 0; }
+
+/* ── StateChip ───────────────────────────────────────────────── */
+.chip {
+  font-size: var(--app-fs-badge);
+  text-transform: uppercase;
+  letter-spacing: var(--app-track-badge);
+  padding: 1px var(--space-2);
+  border-radius: var(--app-radius-pill);
+  border: 1px solid var(--app-line-strong);
+  color: var(--state-ink-quiet);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+.chip-dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--app-radius-pill);
+  background: currentColor;
+}
+.chip-quiet { color: var(--state-ink-quiet); }
+.chip-good { border-color: var(--state-good); color: var(--state-ink); }
+.chip-warn { border-color: var(--state-idle); color: var(--state-ink); }
+.chip-danger { border-color: var(--state-danger); color: var(--state-ink); }
+.chip-info { border-color: var(--state-running); color: var(--state-ink); }
+.chip-good.chip-dot::before { background: var(--state-good); }
+.chip-warn.chip-dot::before { background: var(--state-idle); }
+.chip-danger.chip-dot::before { background: var(--state-danger); }
+.chip-info.chip-dot::before { background: var(--state-running); }
+.chip-quiet.chip-dot::before { background: var(--state-ended); }
+
+/* ── EmptyState ──────────────────────────────────────────────── */
+.empty { padding: var(--space-3) 2px; color: var(--app-muted); margin: 0; }
+.empty-loud { padding: var(--space-6) 2px; text-align: center; }
+
+/* ── Row ─────────────────────────────────────────────────────── */
+.row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--app-line);
+  width: 100%;
+  text-align: left;
+  color: var(--app-ink);
+  font-size: var(--app-fs-body);
+  line-height: var(--app-lh-body);
+}
+.row:last-child { border-bottom: none; }
+.row-interactive {
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-radius: var(--app-radius-control);
+  cursor: pointer;
+}
+.row-interactive:hover { background: var(--app-panel-quiet); }
+.row-lead {
+  color: var(--app-muted);
+  font-family: var(--font-mono);
+  font-size: var(--app-fs-mono);
+  /* A lead cell is nearly always an id, a sequence number or a time. Giving it a
+   * floor keeps a column of them aligned, which `.feed-row .seq` used to do with
+   * a hand-picked 42px for one list only. */
+  min-width: 3.5rem;
+}
+/* A long path wraps inside the row instead of running under its trailing pills (iteration 3). */
+.row-main { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.row-trail { color: var(--app-muted); font-size: var(--app-fs-caption); white-space: nowrap; flex-shrink: 0; }
+.row-trail-acts { display: inline-flex; align-items: center; gap: var(--space-2); }
+.row-quiet { color: var(--app-muted); }
+
+/* ── Toolbar ─────────────────────────────────────────────────── */
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; min-width: 0; }
+/* A toolbar never pushes its panel wider than its column: a long option label or a third control wraps
+   to the next line (the task panel's agent + permission + Run row overflowed the project page by 105 px). */
+.toolbar > select, .toolbar > input { min-width: 0; max-width: 100%; }
+.toolbar-end { justify-content: flex-end; }
+.toolbar-between { justify-content: space-between; width: 100%; }
+
+/* ── Stat ────────────────────────────────────────────────────── */
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.stat-value {
+  font-family: var(--font-display);
+  font-size: var(--app-fs-stat);
+  letter-spacing: var(--app-track-title);
+}
+.stat-label { font-size: var(--app-fs-caption); color: var(--app-muted); }
+.stat-strip { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+.stat-interactive {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: var(--app-ink);
+  cursor: pointer;
+  border-radius: var(--app-radius-control);
+}
+.stat-interactive:hover .stat-value { color: var(--app-accent); }
+.stat-interactive:hover .stat-label { color: var(--app-ink); }
+
+/* ── Field ───────────────────────────────────────────────────── */
+.field { display: flex; flex-direction: column; gap: var(--space-1); }
+.field-label { font-size: var(--app-fs-caption); color: var(--app-muted); }
+.field-hint { font-size: var(--app-fs-caption); color: var(--app-muted); margin: 0; }
+.field-problem { font-size: var(--app-fs-caption); color: var(--state-danger); margin: 0; }
+.field-row { display: flex; gap: var(--space-3); align-items: flex-end; }
+.field-actions { display: flex; gap: var(--space-2); align-items: center; }
+.field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3); }
+
+/* ── Button ──────────────────────────────────────────────────── */
+.btn {
+  font: inherit;
+  font-size: var(--app-fs-body);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--app-radius-control);
+  border: 1px solid var(--app-line-strong);
+  background: var(--app-accent);
+  color: var(--app-accent-ink);
+  cursor: pointer;
+}
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn-ghost { background: none; color: var(--app-ink); }
+.btn-ghost:hover:not(:disabled) { background: var(--app-panel-quiet); }
+.btn-quiet { background: none; border-color: transparent; color: var(--app-muted); }
+.btn-quiet:hover:not(:disabled) { color: var(--app-ink); }
+.btn-danger { background: none; border-color: var(--state-danger); color: var(--state-danger); }
+.disclosure {
+  width: 100%;
+  justify-content: space-between;
+  display: flex;
+  font-size: var(--app-fs-label);
+  letter-spacing: var(--app-track-label);
+  text-transform: uppercase;
+  color: var(--app-muted);
+  padding: 0;
+}
+.disclosure .caret { color: var(--app-muted); }
+
+/* ── Banner ──────────────────────────────────────────────────── */
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--app-radius-control);
+  border: 1px solid var(--app-line-strong);
+  margin-bottom: var(--space-3);
+  font-size: var(--app-fs-body);
+}
+.banner-error { border-color: var(--state-danger); }
+.banner-warn { border-color: var(--state-idle); }
+.banner-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); flex: none; }
+.banner p { margin: var(--space-1) 0 0; }
+/* A remedy is a short list of commands, one row per tool: the command as code, copyable, then what follows. */
+.banner-remedy { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: grid; gap: var(--space-1); }
+.banner-remedy li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.banner-remedy code { font-family: var(--font-mono); font-size: var(--app-fs-caption); padding: 0 var(--space-1); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); overflow-wrap: anywhere; }
+.banner-why { margin-top: var(--space-2); color: var(--app-muted); font-size: var(--app-fs-caption); }
+.banner-why summary { cursor: pointer; }
+/* An action is one line: a button that wraps its own label reads as broken (found 2026-09-29). */
+.banner-actions button, .panel-head button { white-space: nowrap; }
+
+/* ── StatusBar ───────────────────────────────────────────────── */
+.status-bar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3); margin-bottom: var(--space-3);
+  border: 1px solid var(--app-line); border-radius: var(--app-radius-panel);
+  background: var(--app-panel); font-size: var(--app-fs-caption);
+}
+.status-cell {
+  display: inline-flex; align-items: baseline; gap: var(--space-2);
+  padding: var(--space-1) var(--space-2); border: 0; border-radius: var(--app-radius-control);
+  background: none; color: var(--app-ink); font: inherit; cursor: pointer; white-space: nowrap;
+}
+.status-cell:hover { background: var(--app-panel-quiet); }
+.status-cell:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 1px; }
+.status-quiet { cursor: default; color: var(--app-muted); }
+.status-quiet:hover { background: none; }
+.status-dot {
+  width: 7px; height: 7px; border-radius: var(--app-radius-pill); background: var(--app-muted);
+  align-self: center;
+}
+.status-dot.live { background: var(--state-running); }
+.tick { font-variant-numeric: tabular-nums; }
+.tick-muted { color: var(--app-muted); }
+.tick-mono { font-family: var(--font-mono); font-size: var(--app-fs-mono); }
+
+/* ── Claim and Tail ─────────────────────────────────────────── */
+.tail {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  color: var(--app-muted);
+  font-family: var(--font-mono);
+  font-size: var(--app-fs-mono);
+}
+.claim { margin: 0; display: flex; gap: var(--space-2); align-items: baseline; }
+.claim-label {
+  font-size: var(--app-fs-badge); text-transform: uppercase;
+  letter-spacing: var(--app-track-badge); color: var(--app-muted); white-space: nowrap;
+}
+.claim-stage { font-size: var(--app-fs-caption); color: var(--app-ink); }
+.claim-age { font-size: var(--app-fs-badge); color: var(--app-muted); white-space: nowrap; }
+.claim-stale .claim-age { color: var(--state-idle); }
+.claim-stale .claim-label { color: var(--state-idle); }
+
+/* Board (M146) — columns of a projection, not a layout of divs. */
+.board {
+  display: grid;
+  /* AUTO-FIT, not `repeat(4, …)` (UX28-14).
+   *
+   * Two problems in one rule. `repeat(4, minmax(0, 1fr))` gave each column
+   * about 85 css pixels at the 375-wide target this card names — a track too
+   * narrow for a task card's title, let alone its origin line — and
+   * `components.css` had no media query at all, so every width got the same
+   * four tracks. And the four was hardcoded beside a column list built from
+   * data: today it renders exactly four (`done` deliberately holds cancelled
+   * too), and a fifth would have wrapped into a second row silently.
+   *
+   * `auto-fit` answers both: four columns at 1280, two at 640, one at 375, and
+   * no number in the stylesheet to disagree with the number in the component.
+   * `check-grid-arity.mjs` skips auto-fit grids for exactly that reason — their
+   * arity is not fixed, so there is nothing to disagree with. */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-2);
+  align-items: start;
+}
+.board-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.board-column-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--app-line);
+}
+.board-column-title {
+  font: var(--app-fs-label);
+  letter-spacing: var(--app-track-label);
+  color: var(--app-muted);
+  text-transform: uppercase;
+}
+.board-count {
+  font: var(--app-fs-badge);
+  color: var(--app-muted);
+  font-variant-numeric: tabular-nums;
+}
+.board-column-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* One task. Provenance is part of the card, not a detail behind a click. */
+.task-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: var(--app-panel-quiet);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-control);
+  text-align: left;
+  min-width: 0;
+}
+.task-card-interactive {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+}
+.task-card-interactive:hover {
+  border-color: var(--app-line-strong);
+}
+.task-card-quiet {
+  opacity: 0.65;
+}
+.task-card-title {
+  font: var(--app-fs-body);
+  line-height: var(--app-lh-body);
+  color: var(--app-ink);
+  overflow-wrap: anywhere;
+}
+.task-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1);
+  font: var(--app-fs-caption);
+  color: var(--app-muted);
+  min-width: 0;
+}
+.task-card-origin {
+  flex: none;
+}
+.task-card-hand {
+  overflow-wrap: anywhere;
+}
+.task-card-trail {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* M124 — what the mover makes this column mean. Quiet by default: it is a
+   sentence under a card, and a loud one under every card is a sentence nobody
+   reads. The warning variant is for the case the ladder says cannot happen. */
+.task-card-note {
+  font-size: var(--app-fs-caption);
+  color: var(--app-muted);
+  overflow-wrap: anywhere;
+}
+.task-card-note-warn {
+  color: var(--state-danger);
+}
+
+/* A column that will accept what is being dragged. */
+.board-column-target {
+  outline: 1px dashed var(--app-line-strong);
+  outline-offset: var(--space-1);
+  border-radius: var(--app-radius-control);
+}
+/* The moves, as a control a keyboard can reach — drag is the accelerator. */
+.task-card-move {
+  font: var(--app-fs-caption);
+  color: var(--app-muted);
+  background: transparent;
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-control);
+  padding: 0 var(--space-1);
+  max-width: 100%;
+}
+.task-card-move:hover {
+  border-color: var(--app-line-strong);
+  color: var(--app-ink);
+}
+
+/* ── the page's own frame, built on the same tokens ── */
+body { margin: 0; background: var(--app-bg); color: var(--app-ink); font-family: var(--font-body); font-size: var(--app-fs-body); }
+.k-page { max-width: 1080px; margin: 0 auto; padding: var(--space-6) var(--space-5); }
+.k-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); }
+.k-top h1 { font-size: var(--app-fs-title); margin: 0; }
+section { margin-top: var(--space-6); }
+section h2 { font-size: var(--app-fs-title); margin: 0 0 var(--space-2); }
+section h3 { font-size: var(--app-fs-body); margin: var(--space-5) 0 var(--space-2); color: var(--app-muted); }
+.k-lead, .k-note { color: var(--app-muted); max-width: 72ch; }
+.k-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-2); }
+.k-sw { display: grid; grid-template-columns: 32px 1fr; column-gap: var(--space-2); align-items: center; }
+.k-sw .k-chip { grid-row: span 3; width: 32px; height: 32px; border-radius: var(--app-radius-control); border: 1px solid var(--app-line); }
+.k-sw small, .k-type small, .k-space small { color: var(--app-muted); font-family: var(--font-mono); font-size: var(--app-fs-caption); }
+.k-sw em, .k-type em, .k-radius em { color: var(--app-muted); font-style: normal; font-size: var(--app-fs-caption); }
+.k-type { display: grid; grid-template-columns: 1fr 200px; column-gap: var(--space-4); padding: var(--space-2) 0; border-bottom: 1px solid var(--app-line); }
+.k-space { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-1) 0; }
+.k-space span { display: inline-block; height: 12px; background: var(--app-accent); }
+.k-radius { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; }
+.k-radius span { width: 56px; height: 40px; background: var(--app-panel); border: 1px solid var(--app-line-strong); }
+.k-row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.k-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.k-dialog { position: relative; padding: var(--space-6); border-radius: var(--app-radius-panel); overflow: hidden; }
+.k-scrim { position: absolute; inset: 0; background: var(--app-scrim); }
+.k-float { position: relative; max-width: 420px; margin: 0 auto; box-shadow: var(--shadow-modal); }
+table { border-collapse: collapse; width: 100%; } td, th { text-align: left; padding: var(--space-1) var(--space-2); border-bottom: 1px solid var(--app-line); vertical-align: top; }
+.k-foot { margin-top: var(--space-6); color: var(--app-muted); font-size: var(--app-fs-caption); }
+</style>
+</head>
+<body>
+<div class="k-page">
+<div class="k-top"><h1>Fabric · UI kit</h1><button class="btn btn-ghost" id="k-theme">Светлая тема</button></div>
+<p class="k-lead">Один источник для всех экранов Fabric: правила в <a href="ui-kit.md">ui-kit.md</a>, значения в стилях приложения. Эта страница собрана из них скриптом <code>scripts/build-ui-kit.mjs</code>; править её руками бесполезно, гейт найдёт расхождение. Шрифт PassionCode здесь заменён системным.</p>
+<section id="colour"><h2>Цвета: роли интерфейса</h2><p class="k-lead">Компоненты берут только эти роли (<code>--app-*</code>), никогда сырой цвет: так обе темы и обновление PassionCode меняют все экраны сразу. Золото это действие, выбор и фокус, но не состояние.</p><div class="k-grid"><div class="k-sw"><span class="k-chip" style="background:var(--app-bg)"></span><code>--app-bg</code><small data-var="--app-bg"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-panel)"></span><code>--app-panel</code><small data-var="--app-panel"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-panel-quiet)"></span><code>--app-panel-quiet</code><small data-var="--app-panel-quiet"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-ink)"></span><code>--app-ink</code><small data-var="--app-ink"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-muted)"></span><code>--app-muted</code><small data-var="--app-muted"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-line)"></span><code>--app-line</code><small data-var="--app-line"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-line-strong)"></span><code>--app-line-strong</code><small data-var="--app-line-strong"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-line-control)"></span><code>--app-line-control</code><small data-var="--app-line-control"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-accent)"></span><code>--app-accent</code><small data-var="--app-accent"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-accent-hover)"></span><code>--app-accent-hover</code><small data-var="--app-accent-hover"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-accent-ink)"></span><code>--app-accent-ink</code><small data-var="--app-accent-ink"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-focus)"></span><code>--app-focus</code><small data-var="--app-focus"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-link)"></span><code>--app-link</code><small data-var="--app-link"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--app-scrim)"></span><code>--app-scrim</code><small data-var="--app-scrim"></small></div></div></section>
+<section id="state"><h2>Цвета состояний</h2><p class="k-lead">Состояние говорит слово, цвет его поддерживает: рамка чипа или точка, но не текст.</p><div class="k-grid"><div class="k-sw"><span class="k-chip" style="background:var(--state-running)"></span><code>--state-running</code><small data-var="--state-running"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--state-blocked)"></span><code>--state-blocked</code><small data-var="--state-blocked"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--state-idle)"></span><code>--state-idle</code><small data-var="--state-idle"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--state-ended)"></span><code>--state-ended</code><small data-var="--state-ended"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--state-good)"></span><code>--state-good</code><small data-var="--state-good"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--state-danger)"></span><code>--state-danger</code><small data-var="--state-danger"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--state-ink)"></span><code>--state-ink</code><small data-var="--state-ink"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--state-ink-quiet)"></span><code>--state-ink-quiet</code><small data-var="--state-ink-quiet"></small></div></div></section>
+<section id="type"><h2>Типографика</h2><p class="k-lead">Шкала в rem: системный размер текста масштабирует весь интерфейс. Новый экран не вводит свой размер шрифта.</p><div class="k-type"><span style="font-size:var(--app-fs-body)">Агент закончил шаг · 12:40</span><code>--app-fs-body</code><small data-var="--app-fs-body"></small><em>0.9rem — the interface's reading size</em></div><div class="k-type"><span style="font-size:var(--app-fs-caption)">Агент закончил шаг · 12:40</span><code>--app-fs-caption</code><small data-var="--app-fs-caption"></small><em>0.75rem — muted lines, meta</em></div><div class="k-type"><span style="font-size:var(--app-fs-label)">Агент закончил шаг · 12:40</span><code>--app-fs-label</code><small data-var="--app-fs-label"></small><em>uppercase section headings</em></div><div class="k-type"><span style="font-size:var(--app-fs-badge)">Агент закончил шаг · 12:40</span><code>--app-fs-badge</code><small data-var="--app-fs-badge"></small><em>0.65rem — state badges</em></div><div class="k-type"><span style="font-size:var(--app-fs-mono)">Агент закончил шаг · 12:40</span><code>--app-fs-mono</code><small data-var="--app-fs-mono"></small></div><div class="k-type"><span style="font-size:var(--app-fs-title)">Агент закончил шаг · 12:40</span><code>--app-fs-title</code><small data-var="--app-fs-title"></small><em>project name, window titles</em></div><div class="k-type"><span style="font-size:var(--app-fs-stat)">Агент закончил шаг · 12:40</span><code>--app-fs-stat</code><small data-var="--app-fs-stat"></small><em>the statistics numbers</em></div></section>
+<section id="space"><h2>Отступы</h2><p class="k-lead">Шесть шагов. Внутри строки и кнопки 1 и 2, между элементами карточки 3, вокруг карточки 4, между блоками экрана 5 и 6.</p><div class="k-space"><span style="width:var(--space-1)"></span><code>--space-1</code><small data-var="--space-1"></small></div><div class="k-space"><span style="width:var(--space-2)"></span><code>--space-2</code><small data-var="--space-2"></small></div><div class="k-space"><span style="width:var(--space-3)"></span><code>--space-3</code><small data-var="--space-3"></small></div><div class="k-space"><span style="width:var(--space-4)"></span><code>--space-4</code><small data-var="--space-4"></small></div><div class="k-space"><span style="width:var(--space-5)"></span><code>--space-5</code><small data-var="--space-5"></small></div><div class="k-space"><span style="width:var(--space-6)"></span><code>--space-6</code><small data-var="--space-6"></small></div></section>
+<section id="radius"><h2>Скругления и тени</h2><div class="k-radius"><span style="border-radius:var(--app-radius-control)"></span><code>--app-radius-control</code><em>inputs, buttons, tags</em></div><div class="k-radius"><span style="border-radius:var(--app-radius-panel)"></span><code>--app-radius-panel</code><em>resting panels and widgets</em></div><div class="k-radius"><span style="border-radius:var(--app-radius-pill)"></span><code>--app-radius-pill</code><em>state chips</em></div><div class="k-radius"><span style="box-shadow:var(--shadow-modal);border-radius:var(--app-radius-panel)"></span><code>--shadow-modal</code><em>только то, что парит над интерфейсом: поп-ап, меню</em></div></section>
+<section id="components"><h2>Компоненты</h2><p class="k-lead">Живые образцы на настоящих стилях приложения. Новый экран собирается из них; класс, которого нет в реестре, гейт <code>check-design</code> не пропустит.</p>
+<h3>Кнопки</h3><div class="k-row"><button class="btn">Основное действие</button><button class="btn btn-ghost">Вторичное</button><button class="btn btn-quiet">Тихое</button><button class="btn btn-danger">Опасное</button><button class="btn" disabled>Недоступно</button></div>
+<p class="k-note">Одна основная кнопка на область задачи. Остальные с рамкой или тихие.</p>
+<h3>Чипы состояний</h3><div class="k-row"><span class="chip chip-dot chip-info">работает</span><span class="chip chip-dot chip-warn">ждёт</span><span class="chip chip-dot chip-good">готово</span><span class="chip chip-dot chip-danger">нужен человек</span><span class="chip chip-quiet">закончено</span></div>
+<h3>Карточка (Panel)</h3><div class="k-cols"><div class="panel"><div class="panel-head"><h3 class="panel-title">Fabric</h3><span class="chip chip-dot chip-info">2 агента</span></div><p class="panel-body">Карточка лежит на поверхности: заливка и тонкая линия, без тени.</p></div><div class="panel panel-quiet panel-interactive" tabindex="0"><div class="panel-head"><h3 class="panel-title">Кликабельная</h3></div><p class="panel-body muted">Вся карточка одна кнопка: наведение меняет линию и фон.</p></div></div>
+<h3>Список (Row)</h3><div class="panel"><div class="row row-interactive" tabindex="0"><span class="row-lead"><span class="chip chip-dot chip-info">работает</span></span><span class="row-main">Сборка выпуска 0.3.27</span><span class="row-trail">2 мин назад</span></div><div class="row"><span class="row-lead"><span class="chip chip-quiet">закончено</span></span><span class="row-main">Обновление на месте, одна иконка</span><span class="row-trail">сегодня</span></div><div class="row row-quiet"><span class="row-main">Тихая строка: второстепенное</span></div></div>
+<h3>Плашки (Banner)</h3><div class="banner banner-warn" role="status"><span>Диск почти полон: 6 ГБ свободно.</span><span class="banner-actions"><button class="btn btn-ghost">Почистить</button></span></div><div class="banner banner-error" role="status"><span>Fabric не смог запустить CEO.</span><span class="banner-actions"><button class="btn">Повторить</button></span></div>
+<h3>Цифры (Stat)</h3><div class="stat-strip"><div class="stat"><span class="stat-value">202</span><span class="stat-label">на проверке</span></div><div class="stat"><span class="stat-value">7</span><span class="stat-label">брошено</span></div><div class="stat"><span class="stat-value">14</span><span class="stat-label">без задачи</span></div></div>
+<h3>Поле (Field)</h3><div class="field"><label class="field-label" for="k-f">Имя проекта</label><input id="k-f" value="fabric"><span class="field-hint">Как в GitHub</span></div>
+<h3>Пустое состояние</h3><p class="empty">Здесь пока ничего нет: агенты ещё не брали задач.</p>
+<h3>Поп-ап (Dialog)</h3><div class="k-dialog"><div class="k-scrim"></div><div class="panel k-float"><div class="panel-head"><h3 class="panel-title">Удалить сессию?</h3></div><p class="panel-body">Поп-ап это карточка с тенью <code>--shadow-modal</code> над затемнением <code>--app-scrim</code>; одна основная кнопка справа.</p><div class="toolbar toolbar-end"><button class="btn btn-ghost">Отмена</button><button class="btn btn-danger">Удалить</button></div></div></div>
+</section>
+<section id="registry"><h2>Реестр компонентов</h2><p class="k-lead">Каждый класс принадлежит ровно одному компоненту (<code>components/registry.ts</code>).</p><table><thead><tr><th>Компонент</th><th>Классы</th></tr></thead><tbody><tr><td><code>OperatorError</code></td><td><code>error-detail</code> <code>boot-failure</code> <code>booting-failed</code></td></tr><tr><td><code>Panel</code></td><td><code>panel</code> <code>panel-quiet</code> <code>panel-interactive</code> <code>panel-head</code> <code>panel-title</code> <code>panel-body</code> <code>span-2</code></td></tr><tr><td><code>StateChip</code></td><td><code>chip</code> <code>chip-dot</code> <code>chip-warn</code> <code>chip-good</code> <code>chip-danger</code> <code>chip-info</code> <code>chip-quiet</code></td></tr><tr><td><code>EmptyState</code></td><td><code>empty</code> <code>empty-loud</code></td></tr><tr><td><code>Row</code></td><td><code>row</code> <code>row-interactive</code> <code>row-lead</code> <code>row-main</code> <code>row-trail</code> <code>row-quiet</code> <code>row-trail-acts</code></td></tr><tr><td><code>Toolbar</code></td><td><code>toolbar</code> <code>toolbar-end</code> <code>toolbar-between</code></td></tr><tr><td><code>Stat</code></td><td><code>stat</code> <code>stat-value</code> <code>stat-label</code> <code>stat-strip</code> <code>stat-interactive</code></td></tr><tr><td><code>Field</code></td><td><code>field</code> <code>field-label</code> <code>field-hint</code> <code>field-problem</code> <code>field-row</code> <code>field-grid</code> <code>field-actions</code></td></tr><tr><td><code>Button</code></td><td><code>btn</code> <code>btn-ghost</code> <code>btn-quiet</code> <code>btn-danger</code> <code>disclosure</code></td></tr><tr><td><code>Claim</code></td><td><code>claim</code> <code>claim-label</code> <code>claim-stage</code> <code>claim-age</code> <code>claim-stale</code> <code>tail</code></td></tr><tr><td><code>StatusBar</code></td><td><code>status-bar</code> <code>status-cell</code> <code>status-quiet</code> <code>status-dot</code> <code>live</code> <code>idle</code> <code>tick</code> <code>tick-muted</code> <code>tick-mono</code></td></tr><tr><td><code>TabStrip</code></td><td><code>tabbar</code> <code>tab-btn</code> <code>tab-label</code> <code>tab-close</code> <code>tabbar-estate</code> <code>live-count</code> <code>active</code> <code>home</code> <code>plus</code> <code>settings-btn</code></td></tr><tr><td><code>FileTree</code></td><td><code>file-tree</code> <code>file-row</code> <code>dir</code> <code>file</code></td></tr><tr><td><code>Caret</code></td><td><code>caret</code></td></tr><tr><td><code>Board</code></td><td><code>board</code> <code>board-column</code> <code>board-column-head</code> <code>board-column-title</code> <code>board-count</code> <code>board-column-body</code> <code>board-column-target</code></td></tr><tr><td><code>TaskCard</code></td><td><code>task-card</code> <code>task-card-quiet</code> <code>task-card-interactive</code> <code>task-card-title</code> <code>task-card-meta</code> <code>task-card-origin</code> <code>task-card-hand</code> <code>task-card-trail</code> <code>task-card-move</code> <code>task-card-note</code> <code>task-card-note-warn</code></td></tr><tr><td><code>Banner</code></td><td><code>banner</code> <code>banner-error</code> <code>banner-warn</code> <code>banner-actions</code> <code>banner-remedy</code> <code>banner-why</code></td></tr><tr><td><code>CeoComposer</code></td><td><code>ceo-composer</code> <code>ceo-composer-home</code> <code>ceo-composer-popup</code> <code>ceo-composer-head</code> <code>ceo-composer-title</code> <code>ceo-composer-form</code> <code>ceo-composer-text</code> <code>ceo-composer-actions</code> <code>ceo-composer-send</code> <code>ceo-composer-files</code></td></tr><tr><td><code>CeoPopup</code></td><td><code>ceo-popup</code> <code>ceo-popup-head</code> <code>ceo-presence</code> <code>ceo-popup-who</code> <code>ceo-popup-title</code> <code>ceo-popup-sub</code> <code>ceo-popup-state</code> <code>ceo-popup-runner</code> <code>ceo-popup-head-actions</code> <code>ceo-popup-notes</code> <code>ceo-popup-chat</code> <code>ceo-popup-console</code> <code>ceo-popup-wait</code> <code>ceo-popup-stopped</code> <code>s-running</code> <code>s-starting</code> <code>s-stopped</code> <code>s-ended</code> <code>s-idle</code> <code>s-failed</code></td></tr><tr><td><code>CeoCall</code></td><td><code>ceo-call-button</code> <code>ceo-icon</code> <code>ceo-call-panel</code> <code>ceo-call-live</code> <code>ceo-call-head</code> <code>ceo-call-state</code> <code>ceo-call-meta</code> <code>ceo-call-time</code> <code>ceo-call-price</code> <code>ceo-meter</code> <code>ceo-meter-bar</code> <code>p-connecting</code> <code>p-listening</code> <code>p-speaking</code> <code>p-ended</code> <code>p-failed</code> <code>p-idle</code> <code>ceo-call-lines</code> <code>ceo-call-who</code> <code>ceo-call-hint</code> <code>ceo-call-say-form</code> <code>ceo-call-say</code> <code>ceo-call-mute</code> <code>ceo-call-history</code> <code>ceo-call-record</code> <code>ceo-voice-key</code> <code>who-person</code> <code>who-ceo</code> <code>who-tool</code></td></tr><tr><td><code>VoicePicker</code></td><td><code>ceo-voice-picker</code> <code>ceo-voice-options</code> <code>ceo-voice-option</code> <code>ceo-voice-choice</code> <code>ceo-voice-name</code> <code>ceo-voice-listen</code> <code>ceo-voice-listen-icon</code> <code>is-playing</code> <code>ceo-voice-hint</code></td></tr><tr><td><code>CeoButton</code></td><td><code>ceo-floating</code> <code>ceo-floating-face</code> <code>ceo-floating-label</code> <code>s-unknown</code></td></tr></tbody></table></section>
+<section id="face"><h2>Лицо CEO и значок приложения</h2><p class="k-lead">Значок Fabric в Dock это лицо CEO, которое выбрал человек (одна настройка). Знак PassionCode остаётся знаком организации.</p><div class="k-grid"><div class="k-sw"><span class="k-chip" style="background:var(--avatar-orbit-0)"></span><code>--avatar-orbit-0</code><small data-var="--avatar-orbit-0"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-orbit-1)"></span><code>--avatar-orbit-1</code><small data-var="--avatar-orbit-1"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-orbit-2)"></span><code>--avatar-orbit-2</code><small data-var="--avatar-orbit-2"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-orbit-3)"></span><code>--avatar-orbit-3</code><small data-var="--avatar-orbit-3"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-spark-0)"></span><code>--avatar-spark-0</code><small data-var="--avatar-spark-0"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-spark-1)"></span><code>--avatar-spark-1</code><small data-var="--avatar-spark-1"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-spark-2)"></span><code>--avatar-spark-2</code><small data-var="--avatar-spark-2"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-spark-3)"></span><code>--avatar-spark-3</code><small data-var="--avatar-spark-3"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-wave-0)"></span><code>--avatar-wave-0</code><small data-var="--avatar-wave-0"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-wave-1)"></span><code>--avatar-wave-1</code><small data-var="--avatar-wave-1"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-wave-2)"></span><code>--avatar-wave-2</code><small data-var="--avatar-wave-2"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-wave-3)"></span><code>--avatar-wave-3</code><small data-var="--avatar-wave-3"></small></div><div class="k-sw"><span class="k-chip" style="background:var(--avatar-icon-shadow)"></span><code>--avatar-icon-shadow</code><small data-var="--avatar-icon-shadow"></small></div></div></section>
+<p class="k-foot">Источники: <code>tokens.passioncode.css</code>, <code>tokens.paperclip.css</code>, <code>tokens.app.css</code>, <code>styles.css</code>, <code>components.css</code>, <code>components/registry.ts</code>. Отпечаток: <code>027446d307659a9f</code>.</p>
+</div>
+<script>
+// The value each token resolves to in the theme shown, read from the page itself.
+function fill() { const cs = getComputedStyle(document.documentElement); document.querySelectorAll('[data-var]').forEach((el) => { el.textContent = cs.getPropertyValue(el.dataset.var).trim() }) }
+document.getElementById('k-theme').addEventListener('click', (e) => { const r = document.documentElement; const light = r.dataset.theme !== 'light'; r.dataset.theme = light ? 'light' : 'dark'; e.target.textContent = light ? 'Тёмная тема' : 'Светлая тема'; fill() })
+fill()
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+// DRAFT (paused 2026-11-21, not built, not tested): renderer/src/ceo/callHistory.ts for the CEO call history.
+// #region ceo-call-history — docs: docs/brand/ui-kit.md#lists
+// What one kept call reads as in the CEO window's history (the owner, 2026-11-20: «история этих звонков платных тоже
+// как-то странно выглядит»; brief package 4: date, length, cost, what it was about, the transcript). Measured before:
+// a call showed only its clock time («Звонок в 22:10» for yesterday and the day before alike) and its length as
+// `10:00`, which reads as a time of day. Pure, so the wording is tested without a window.
+
+export interface CallLineLike { who: 'person' | 'ceo' | 'tool'; text: string }
+
+const DAY = 86_400_000
+const startOfDay = (t: number): number => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime() }
+
+/** When the call was: «сегодня, 20:10», «вчера, 22:10», else the date with the time («18 нояб., 22:10»). */
+export function callWhen(at: number, now: number, locale: string, words: { today: string; yesterday: string }): string {
+  const time = new Date(at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  const days = Math.round((startOfDay(now) - startOfDay(at)) / DAY)
+  if (days === 0) return `${words.today}, ${time}`
+  if (days === 1) return `${words.yesterday}, ${time}`
+  const sameYear = new Date(at).getFullYear() === new Date(now).getFullYear()
+  const date = new Date(at).toLocaleDateString(locale, { day: 'numeric', month: 'short', ...(sameYear ? {} : { year: 'numeric' }) })
+  return `${date}, ${time}`
+}
+
+/** How long it lasted, in words, never `mm:ss`: «5 мин 12 с», «45 с», «1 ч 2 мин». */
+export function callLength(ms: number, units: { h: string; min: string; s: string }): string {
+  const total = Math.max(0, Math.round(ms / 1000))
+  const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60
+  if (h) return `${h} ${units.h}${m ? ` ${m} ${units.min}` : ''}`
+  if (m) return `${m} ${units.min}${s ? ` ${s} ${units.s}` : ''}`
+  return `${s} ${units.s}`
+}
+
+/** What it cost, in the person's locale, always with its currency: «$0,26». */
+export function callCost(usd: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number.isFinite(usd) ? usd : 0)
+}
+
+/** What it was about: the first thing the person said, on one line, cut at `max` characters; null when nothing was said. */
+export function callTopic(lines: readonly CallLineLike[], max = 80): string | null {
+  const first = lines.find((l) => l.who === 'person' && l.text.trim())
+  if (!first) return null
+  const one = first.text.replace(/\s+/g, ' ').trim()
+  return one.length > max ? `${one.slice(0, max - 1).trimEnd()}…` : one
+}
+// #endregion ceo-call-history

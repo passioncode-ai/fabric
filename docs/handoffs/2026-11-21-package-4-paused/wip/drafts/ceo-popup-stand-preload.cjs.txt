@@ -1,0 +1,28 @@
+// Stand for snapshots of the CEO popup (ceo.html from an electron-vite build) without the operator's Fabric:
+// a stand-in window.fabric; every call answers a harmless default; the CEO's state and kept calls are seeded.
+// Run: electron ceo-popup-stand-shoot.cjs <out/renderer/ceo.html> <out.png> [width] [height], CEO_SCENARIO=running|passed|stopped|nocalls
+const scenario = process.env.CEO_SCENARIO || 'running'
+const now = Date.parse('2026-11-20T21:10:00Z')
+const status = {
+  state: scenario === 'stopped' ? 'stopped' : 'running', runner: 'claude-code', models: ['opus'], sessionId: null,
+  passedOver: scenario === 'passed' ? [{ runner: 'codex', result: 'not-installed' }, { runner: 'hermes', result: 'limit' }] : [],
+  setAside: scenario === 'passed' ? [{ runner: 'kimi', until: now + 3600_000, why: 'limit' }] : [], problem: null
+}
+const calls = [
+  { id: '1', at: now - 3_600_000 * 2, ms: 312_000, usd: 0.26, end: null, lines: [{ who: 'person', text: 'Запусти в sound-engine монитор раннеров раз в десять минут' }, { who: 'tool', text: 'session_start' }, { who: 'ceo', text: 'Запустил, сессия работает.' }] },
+  { id: '2', at: now - 86_400_000, ms: 95_000, usd: 0.08, end: 'idle', lines: [{ who: 'person', text: 'Что с выпуском 0.3.26?' }, { who: 'ceo', text: 'Опубликован утром, проверки DMG пройдены.' }] },
+  { id: '3', at: now - 86_400_000 * 2, ms: 600_000, usd: 0.5, end: 'limit', lines: [] }
+]
+const defaults = {
+  settings: { read: async () => ({ locale: 'ru', theme: 'dark' }) },
+  persona: { read: async () => ({ persona: { seed: 731, style: 'orbit' }, chosen: true }) },
+  ceoAgent: { ensure: async () => status, onChanged: () => () => {}, onDraft: () => () => {}, takeDraft: async () => null, takeCall: async () => false, stop: async () => ({ ok: true, status }), restart: async () => status },
+  terminal: { get: async () => null, onExit: () => () => {} }
+}
+const stub = (path) => new Proxy(function () {}, {
+  get: (_t, k) => (k === 'then' ? undefined : stub([...path, String(k)])),
+  apply: () => { const tail = path[path.length - 1]; return tail && tail.startsWith('on') ? () => {} : Promise.resolve(null) }
+})
+const merge = (obj, path) => new Proxy(obj, { get: (t, k) => (k in t ? (typeof t[k] === 'object' && t[k] ? merge(t[k], [...path, k]) : t[k]) : stub([...path, String(k)])) })
+window.fabric = merge(defaults, [])
+try { if (scenario !== 'nocalls') localStorage.setItem('fabric.ceo.calls', JSON.stringify(calls)); else localStorage.removeItem('fabric.ceo.calls') } catch {}
