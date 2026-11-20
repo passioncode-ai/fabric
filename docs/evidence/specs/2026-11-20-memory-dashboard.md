@@ -238,8 +238,11 @@ links. It counts work, never ranks people (the agents database's rule on reading
 A task is a node of the same graph, linked to what it is about: the product's nodes (a scenario, a screen, a module, a
 document section), the sessions and commits that worked on it, the decisions it waits on, the risks and what to study
 first. An agent taking a task gets its neighbourhood (`graph.neighbours` from the task) instead of a list; a person gets
-the picture (the map and the time line of `@fabric/graph`). The task manager's own research and pages are session
-8343a070's (the CEO board, the decision graph); Memory gives them the graph, the links and the doors. People management
+the picture (the map and the time line of `@fabric/graph`). The task graph's design is Memory's (agreed with session
+8343a070 on 2026-11-20, the owner's package 4); its research of the task manager is the input (`docs/evidence/plans/2026-11-20-task-manager/README.md`
+on branch `feat/pages-wave` at `d1908672`: tasks journal-first, five states, `shared/ladder.ts#mayMove`, priority only as a position
+inside a goal, no OKR or metrics, the backlog in two places; its advice: our own core, a product layer in five steps,
+no open-source engine under it). Its project and task pages draw the task graph with Memory's views. People management
 reads only work facts (claims, releases, reviews), never a score of a person.
 
 ## 14. The estate graph and the central brain
