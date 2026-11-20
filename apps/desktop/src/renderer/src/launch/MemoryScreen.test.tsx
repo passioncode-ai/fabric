@@ -6,6 +6,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { MemoryScreen, memoryGraphData, quoteOf } from './MemoryScreen'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
+import type { MemoryGraph } from '../../../shared/memory'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
@@ -23,17 +24,17 @@ const overview = {
   ],
   lastPass: null
 }
-const graph = {
-  ok: true as const,
+const graph: MemoryGraph & { ok: true } = {
+  ok: true,
   nodes: [
-    { id: 'ctx:personal', kind: 'organization' as const, label: 'Owner', context: 'personal', docs: 30, projects: 2 },
-    { id: 'project:p1', kind: 'project' as const, label: 'alpha', context: 'personal', docs: 20, byKind: { task: 12, commit: 8 }, lastAt: NOW, role: 'canonical', folder: '/d/alpha' },
-    { id: 'project:p2', kind: 'project' as const, label: 'beta', context: 'personal', docs: 10, byKind: { message: 10 }, lastAt: null, role: 'canonical', folder: '/d/beta' }
+    { id: 'ctx:personal', kind: 'organization', label: 'Owner', context: 'personal', docs: 30, projects: 2 },
+    { id: 'project:p1', kind: 'project', label: 'alpha', context: 'personal', docs: 20, byKind: { task: 12, commit: 8 }, lastAt: NOW, role: 'canonical', folder: '/d/alpha' },
+    { id: 'project:p2', kind: 'project', label: 'beta', context: 'personal', docs: 10, byKind: { message: 10 }, lastAt: null, role: 'canonical', folder: '/d/beta' }
   ],
   edges: [
-    { source: 'project:p1', target: 'ctx:personal', kind: 'in' as const, weight: 1 },
-    { source: 'project:p2', target: 'ctx:personal', kind: 'in' as const, weight: 1 },
-    { source: 'project:p1', target: 'project:p2', kind: 'board' as const, weight: 4 }
+    { source: 'project:p1', target: 'ctx:personal', kind: 'in', weight: 1 },
+    { source: 'project:p2', target: 'ctx:personal', kind: 'in', weight: 1 },
+    { source: 'project:p1', target: 'project:p2', kind: 'board', weight: 4 }
   ],
   organizations: [{ context: 'personal', label: 'Owner', projects: 2, docs: 30 }]
 }

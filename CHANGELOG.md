@@ -9,6 +9,15 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **«Memory»: what Fabric knows about every project, as a place of its own.** The owner, 2026-11-20, in the CEO
+  window: the knowledge base should live inside Fabric as «Memory» and render as well as Sound Engine's brain. «Memory»
+  in the left column shows what the base holds and how fresh each source is (agent sessions, tasks and the journal, the
+  board, commits and documents, the local model's vectors), the organizations and their projects on a map whose lines
+  are the board requests between projects, a project's card, a search whose quotes can be checked word for word against
+  their source, and what changed over a day or a week. The CEO reads the same through `fabric_knowledge_execute`
+  (`memory.overview`, `memory.graph`, `memory.changes`). The graph is one module now, `@fabric/graph`, with a map, a
+  time line and a table. Two index defects found while measuring are fixed: a transcript or a changed document no longer
+  fails to be written, and a repository's commits are no longer read again on every pass while its documents wait.
 - **One search over every session, transcript and task, and the graph of what relates to what.** The operator's backlog
   of 2026-11-19, relayed by the CEO: search tasks across every session and project, and a knowledge base for all of
   Fabric, a linked graph of tasks, actions and data. Fabric keeps a local index (`userData/estate-index`) of the Claude
