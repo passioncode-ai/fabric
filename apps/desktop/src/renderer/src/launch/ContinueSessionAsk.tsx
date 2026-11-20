@@ -79,11 +79,18 @@ export function ContinueSessionAsk(props: {
   // UX-30, UX-33: a session only Switchboard names whose process RUNS is not acted on from here (Fabric does not know that
   // process); one no process runs is an ended session, continued from its history like any other.
   const shown = typeof about === 'object' && about !== null ? about : null
-  // UX-37: once a press stopped the session, the retry from its history is offered whatever a stale read says of it.
-  const half = refused !== null && halfDone(refused)
+  // UX-45: the session as the first read named it, to say which one was stopped.
+  const first = useRef<MachineSession | null>(null)
+  if (shown && !first.current) first.current = shown
+  // UX-37, ER-28: once a press stopped the session, the retry from its history is offered and the stale Switchboard
+  // read is not said; a Claude Code file of a live process (someone continued it) is said, and the press is a continue.
+  const resumedSince = refused !== null && halfDone(refused) && !!shown && shown.source === 'claude' && shown.live
+  const half = refused !== null && halfDone(refused) && !resumedSince
   const elsewhere = !half && !!shown && shown.source === 'switchboard' && shown.live
   const ended = about === null || (!!shown && shown.source === 'switchboard' && !shown.live)
-  const which = half ? '' : about === undefined ? t('links.continue.reading')
+  const stopped = first.current
+  const which = half ? (stopped ? t('links.continue.whichStopped', { folder: folderName(stopped.cwd) ?? stopped.cwd, agent: runnerLabel(stopped.agent ?? 'claude-code', t) }) : '')
+    : about === undefined ? t('links.continue.reading')
     : about === 'unread' ? t('links.continue.unread')
     : ended && shown ? t('links.continue.whichEnded', { folder: folderName(shown.cwd) ?? shown.cwd, agent: runnerLabel(shown.agent ?? 'claude-code', t) })
     : ended || !shown ? t('links.continue.ended')
@@ -95,20 +102,20 @@ export function ContinueSessionAsk(props: {
   // DO-22: a link's id found nowhere is said as not on this computer, not as a session that ended.
   // ER-27: a session Switchboard lists whose history is not in a Claude home Fabric reads is not «not on this computer».
   const why = (w: string): string => (w === 'gone' ? t(shown?.source === 'switchboard' ? 'links.continue.goneHome' : 'links.continue.gone') : machineWhy(t, w))
-  const said = refused === null ? null : halfDone(refused) ? why(refused) : `${t('machineSessions.refused')} ${why(refused)}`
+  const said = refused === null || resumedSince ? null : halfDone(refused) ? why(refused) : `${t('machineSessions.refused')} ${why(refused)}`
   return (
     <Banner tone="warn" actions={
       <>
         {/* UX-36: a session not acted on from here offers no press, only the way out. */}
         {!elsewhere && <Button tone="primary" disabled={busy || about === undefined} onClick={go}>
-          {refused && halfDone(refused) ? t('machineSessions.resumeFromHistory') : t('machineSessions.continue')}
+          {half ? t('machineSessions.resumeFromHistory') : t('machineSessions.continue')}
         </Button>}
         {/* UX-20: once sent the act is not cancelled by this button, so it waits for the answer. */}
         <Button tone="ghost" disabled={busy} onClick={() => latest.current.onDone()}>{elsewhere ? t('links.continue.close') : t('common.cancel')}</Button>
       </>
     }>
       <span data-testid="continue-ask">
-        {elsewhere && shown ? t('links.continue.viaSwitchboard', { folder: folderName(shown.cwd) ?? shown.cwd }) : `${t('links.continue.ask')} ${which}`}
+        {elsewhere && shown ? t('links.continue.viaSwitchboard', { folder: folderName(shown.cwd) ?? shown.cwd }) : half ? which : `${t('links.continue.ask')} ${which}`}
         {app && ` ${t('links.continue.from', { app })}`}
         {waiting && ` ${t('links.continue.queued')}`}
         {busy && ` ${t('machineSessions.busy')}`}

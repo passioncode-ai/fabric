@@ -32,7 +32,7 @@ export function machineWhy(t: T, why: string): string {
 /** A stopped session that did not reach a console is half done (UX-18): its sentence leads, without «Не сделано». */
 export const halfDone = (why: string): boolean => why === 'stopped-not-continued'
 
-type Ask = { id: string; act: 'continue' | 'close' } | null
+type Ask = { id: string; act: 'continue' | 'close'; ended?: boolean } | null
 
 export function MachineSessionsPanel({ onOpenConsole, folded = false }: { onOpenConsole(sessionId: string): void; folded?: boolean }): React.JSX.Element | null {
   const t = useT()
@@ -40,7 +40,7 @@ export function MachineSessionsPanel({ onOpenConsole, folded = false }: { onOpen
   const [problem, setProblem] = useState<string | null>(null)
   const [asking, setAsking] = useState<Ask>(null)
   const [busy, setBusy] = useState<string | null>(null)
-  const [refused, setRefused] = useState<{ id: string; why: string } | null>(null)
+  const [refused, setRefused] = useState<{ id: string; why: string; viaSwitchboard?: boolean } | null>(null)
   const [turns, setTurns] = useState<{ id: string; list: Array<{ role: string; text: string }> | null | 'failed' } | null>(null)
   const [tick, setTick] = useState(0)
   useEffect(() => {
@@ -58,15 +58,15 @@ export function MachineSessionsPanel({ onOpenConsole, folded = false }: { onOpen
     return () => { alive = false; clearInterval(timer) }
   }, [tick])
 
-  const run = async (id: string, act: 'continue' | 'close'): Promise<void> => {
+  const run = async (id: string, act: 'continue' | 'close', viaSwitchboard = false): Promise<void> => {
     setAsking(null)
     setBusy(id)
     setRefused(null)
     try {
       const r = act === 'continue' ? await window.fabric.agents.machineContinue(id) : await window.fabric.agents.machineClose(id)
-      if (!r.ok) setRefused({ id, why: r.why })
+      if (!r.ok) setRefused({ id, why: r.why, viaSwitchboard })
       else if (act === 'continue' && r.sessionId) onOpenConsole(r.sessionId)
-    } catch (e) { setRefused({ id, why: e instanceof Error ? e.message : String(e) }) } finally {
+    } catch (e) { setRefused({ id, why: e instanceof Error ? e.message : String(e), viaSwitchboard }) } finally {
       setBusy(null)
       setTick((x) => x + 1)
     }
@@ -76,6 +76,9 @@ export function MachineSessionsPanel({ onOpenConsole, folded = false }: { onOpen
     setTurns({ id, list: null })
     window.fabric.agents.machineRead(id).then((r) => setTurns({ id, list: r ? r.turns : [] }), () => setTurns({ id, list: 'failed' }))
   }
+  // UX-44, ER-29: a session Switchboard names whose history Fabric cannot read is said as such, as the link's ask says it.
+  const refusal = (r: { why: string; viaSwitchboard?: boolean }): string =>
+    r.why === 'gone' && r.viaSwitchboard ? t('links.continue.goneHome') : machineWhy(t, r.why)
   // UX-26: two sessions in one folder are told apart by when they started.
   const label = (s: MachineSession): string => {
     const folder = folderName(s.cwd) ?? s.cwd
@@ -121,19 +124,20 @@ export function MachineSessionsPanel({ onOpenConsole, folded = false }: { onOpen
                 <button type="button" className="lp-link" aria-expanded={turns?.id === s.sessionId} aria-label={t('machineSessions.readAbout', { folder: label(s) })} onClick={() => read(s.sessionId)}>{t('machineSessions.read')}</button>
                 {/* A session only Switchboard names has no process Fabric knows: it is read here, closed or taken over there. */}
                 {/* UX-41: one no process runs (Switchboard's «ready to continue») is continued from its history, as a link can. */}
-                {(s.source === 'claude' || !s.live) && <button type="button" className="lp-button" disabled={busy !== null} aria-label={t('machineSessions.continueAbout', { folder: label(s) })} onClick={() => setAsking({ id: s.sessionId, act: 'continue' })}>{t('machineSessions.continue')}</button>}
+                {(s.source === 'claude' || !s.live) && <button type="button" className="lp-button" disabled={busy !== null} aria-label={t('machineSessions.continueAbout', { folder: label(s) })} onClick={() => setAsking({ id: s.sessionId, act: 'continue', ended: !s.live })}>{t('machineSessions.continue')}</button>}
                 {s.source === 'claude' && <button type="button" className="lp-button" disabled={busy !== null} aria-label={t('machineSessions.closeAbout', { folder: label(s) })} onClick={() => setAsking({ id: s.sessionId, act: 'close' })}>{t('machineSessions.close')}</button>}
               </span>
               {asking?.id === s.sessionId && (
                 <div className="as-launch-ask" role="group" aria-label={t(asking.act === 'continue' ? 'machineSessions.continue' : 'machineSessions.close')}>
-                  <p className="lp-meta">{t(asking.act === 'continue' ? 'machineSessions.continueAsk' : 'machineSessions.closeAsk')}</p>
-                  <button type="button" className="lp-button primary" onClick={() => void run(s.sessionId, asking.act)}>{t('machineSessions.yes')}</button>
+                  {/* UX-43: a session no process runs is not stopped anywhere; it is continued from its history. */}
+                  <p className="lp-meta">{t(asking.act === 'continue' ? (asking.ended ? 'machineSessions.continueEndedAsk' : 'machineSessions.continueAsk') : 'machineSessions.closeAsk')}</p>
+                  <button type="button" className="lp-button primary" onClick={() => void run(s.sessionId, asking.act, s.source === 'switchboard')}>{t('machineSessions.yes')}</button>
                   <button type="button" className="lp-button" onClick={() => setAsking(null)}>{t('common.cancel')}</button>
                 </div>
               )}
               {busy === s.sessionId && <p className="lp-meta" role="status">{t('machineSessions.busy')}</p>}
               {/* UX-28: a code with a sentence is not shown again under it; only a message Fabric has no sentence for is. */}
-              {refused?.id === s.sessionId && !halfDone(refused.why) && <FailureNote said={`${t('machineSessions.refused')} ${machineWhy(t, refused.why)}`}
+              {refused?.id === s.sessionId && !halfDone(refused.why) && <FailureNote said={`${t('machineSessions.refused')} ${refusal(refused)}`}
                 detail={machineWhy(t, refused.why) === t('machineSessions.why.other') ? refused.why : null} />}
               {turns?.id === s.sessionId && (
                 turns.list === null ? <p className="lp-meta" role="status">{t('machineSessions.reading')}</p>

@@ -21,7 +21,7 @@ import { redact } from '../shared/redact.ts'
 import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
 import { chainOf, type Launch, type LaunchVia } from '../shared/sessionLaunches.ts'
 import { withLaunchOrigin } from './launchOrigin.ts'
-import type { DiskSession } from './diskSessions.ts'
+import { switchboardHomeRoots, type DiskSession } from './diskSessions.ts'
 
 const reason = z.string().trim().min(3).max(400).describe('Why: one sentence the owner reads in History.')
 const sessionId = z.string().trim().min(1).max(128).describe('A session id from fabric_ceo_sessions (a Fabric console\'s or a Switchboard session\'s).')
@@ -224,7 +224,7 @@ export function findTranscript(roots: readonly string[], id: string): string | n
   for (const root of roots) {
     const direct = tryProjects(path.join(root, 'projects'))
     if (direct) return direct
-    // Switchboard's runtimes: <root>/<home>/projects, one level down.
+    // Switchboard's runtimes and homes: <root>/<home>/projects, one level down.
     let homes: string[]
     try { homes = readdirSync(root) } catch { continue /* a root not on this computer */ }
     for (const h of homes.slice(0, 200)) {
@@ -235,9 +235,9 @@ export function findTranscript(roots: readonly string[], id: string): string | n
   return null
 }
 
-export function defaultTranscriptRoots(): string[] {
-  const home = homedir()
-  return [path.join(home, '.claude'), path.join(home, 'Library/Application Support/ai.passioncode.fabric-switchboard/runtimes')]
+/** `~/.claude` and Switchboard's folders of Claude homes (`runtimes`, `homes`; `diskSessions.ts#switchboardHomeRoots`). */
+export function defaultTranscriptRoots(home = homedir()): string[] {
+  return [path.join(home, '.claude'), ...switchboardHomeRoots(home)]
 }
 
 export function createCeoOperations(deps: CeoOpsDeps) {

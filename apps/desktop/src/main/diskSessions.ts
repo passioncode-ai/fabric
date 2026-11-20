@@ -25,12 +25,21 @@ export interface DiskSession {
 }
 
 /** Where Claude Code keeps its per-process files: the person's home, then every Switchboard runtime home. */
+/** The folders under which Switchboard keeps Claude homes, one home per child: `runtimes` (a session's isolated home) and
+ *  `homes` (an account's home, where the sessions it launches write their transcripts; the 0.3.26 review, iteration 3,
+ *  run four, UX-42: without it no session Switchboard launched could be read or continued from its history). */
+export function switchboardHomeRoots(home = homedir()): string[] {
+  const data = path.join(home, 'Library/Application Support/ai.passioncode.fabric-switchboard')
+  return [path.join(data, 'runtimes'), path.join(data, 'homes')]
+}
+
 export async function claudeConfigDirs(home = homedir()): Promise<string[]> {
   const out = [path.join(home, '.claude')]
-  const runtimes = path.join(home, 'Library/Application Support/ai.passioncode.fabric-switchboard/runtimes')
-  try {
-    for (const h of (await readdir(runtimes)).slice(0, 200)) out.push(path.join(runtimes, h))
-  } catch { /* no Switchboard on this computer: its homes are not there */ }
+  for (const root of switchboardHomeRoots(home)) {
+    try {
+      for (const h of (await readdir(root)).slice(0, 200)) out.push(path.join(root, h))
+    } catch { /* no Switchboard on this computer, or not this kind of home: nothing there */ }
+  }
   return out
 }
 

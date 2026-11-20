@@ -232,9 +232,9 @@ every session only Switchboard names read-only, the ended ones too, which Fabric
 ### Run three, b83bed27 (superseded)
 
 Candidate `b83bed27ec8fe80ada818372290fd78d18b66a57`. Reports and receipts in
-[`docs/evidence/reviews/0.3.26/iteration-3-b83bed27/`](../reviews/0.3.26/iteration-3-5d549a8d/) (kept as the record; not
+[`docs/evidence/reviews/0.3.26/iteration-3-b83bed27/`](../reviews/0.3.26/iteration-3-b83bed27/) (kept as the record; not
 this iteration's receipts). Gate: hosted `ci.yml` run 44687173294 success (browser suites 26 of 26, 06:39:09Z); local
-`ci.sh fast` with both browser variables set, exit 0, browser suites 26 of 26. Every run-two fix held, two in part. 16 findings, 3 blocking:
+`ci.sh fast` with both browser variables set, exit 0, browser suites 26 of 26. Every run-two fix held except ER-18, which regressed (ER-26); three held in part (UX-33, UX-35, ER-23), whose gaps are UX-37, UX-39 and ER-26. 16 findings, 3 blocking:
 ER-26, run two's move of the waiting link to React state left the ask's answer calling a callback of an older render, so a
 link waiting behind a successful press was dropped; UX-37, after a half-done answer a stale read hid the retry; both in
 code the gate refuses after `verifiedCommit`, so the iteration runs again. PL-30, items 2 to 4 of the owner's release
@@ -258,3 +258,36 @@ order `3aa89c92` were in no record of this release.
 | V3-PL-32 | PL-32 | non-blocking | fixed in the release close: the knowledge base's roadmap, products and plans pages updated to 0.3.26 in one fabric-workspace pull request after the publication |
 | V3-PL-33 | PL-33 | non-blocking | fixed in the release close: the shipped tasks moved to review with the version, the partly shipped ones noted with what remains |
 | V3-PL-34 | PL-34 | non-blocking | fixed in the iteration-3 run-four candidate: CO-603's owner column gives Fabric's half of (2) (installing the service, task c0e6b2d2) to this repository's release session |
+
+### Run four, 19b42226 (superseded)
+
+Candidate `19b422264b26d1dbed6b380574978d2f9cc0d25f`. Reports and receipts in
+[`docs/evidence/reviews/0.3.26/iteration-3-19b42226/`](../reviews/0.3.26/iteration-3-5d549a8d/) (kept as the record; not
+this iteration's receipts). Gate: hosted `ci.yml` run 44687173294 success (browser suites 26 of 26, 06:39:09Z); local
+`ci.sh fast` with both browser variables set, exit 0, browser suites 26 of 26. Every run-two fix held, two in part. 19 findings, 2 blocking:
+ER-26, run two's move of the waiting link to React state left the ask's answer calling a callback of an older render, so a
+link waiting behind a successful press was dropped; UX-37, after a half-done answer a stale read hid the retry; both in
+code the gate refuses after `verifiedCommit`, so the iteration runs again. PL-30, items 2 to 4 of the owner's release
+order `3aa89c92` were in no record of this release.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-UX-42 | UX-42 | blocking | fixed in the iteration-3 run-five candidate: Switchboard's account homes (homes/) are read beside runtimes/, for live sessions and transcripts alike (diskSessions.ts switchboardHomeRoots, claudeConfigDirs; ceoTools.ts defaultTranscriptRoots); test «Switchboard's account homes are Claude homes: their sessions are read and continued from history», red before |
+| V3-UX-43 | UX-43 | non-blocking | fixed in the iteration-3 run-five candidate: Агенты asks an ended session's continue as one from history, nothing stopped (machineSessions.continueEndedAsk); test «a session only Switchboard names that no process runs can be continued, not closed» |
+| V3-UX-44 | UX-44 | non-blocking | fixed in the iteration-3 run-five candidate: Агенты says gone for a Switchboard session as its history out of Fabric's reach (links.continue.goneHome); test «a Switchboard session whose history Fabric cannot read says so in the panel» |
+| V3-UX-45 | UX-45 | non-blocking | fixed in the iteration-3 run-five candidate: after a half-done answer the ask names the stopped session from its first read and drops the opening question (links.continue.whichStopped); test «after a half-done answer the stopped session is named from the first read» |
+| V3-UX-46 | UX-46 | non-blocking | fixed in the iteration-3 run-five candidate: SCN-142 says a running Switchboard-only session is said with «Закрыть» only |
+| V3-UX-47 | UX-47 | non-blocking | fixed in the iteration-3 run-five candidate: the run-three link points at iteration-3-b83bed27/ |
+| V3-ER-28 | ER-28 | non-blocking | fixed in the iteration-3 run-five candidate: after a half-done answer only a stale Switchboard read is not said; a live Claude Code row (continued elsewhere) is said as running and the press is a continue (ContinueSessionAsk.tsx resumedSince); test «a session continued elsewhere after a half-done answer is said as running» |
+| V3-ER-29 | ER-29 | non-blocking | fixed in the iteration-3 run-five candidate: as UX-43 and UX-44 |
+| V3-ER-30 | ER-30 | non-blocking | fixed in the iteration-3 run-five candidate: an act starts a new generation of the rows cache; a read begun before it is never fresh after it and is not joined (index.ts sbGen, sbInFlightGen); no test, the cache is inline wiring (CO-604 (19)) |
+| V3-DO-31 | DO-31 | non-blocking | fixed in the iteration-3 run-five candidate: as UX-47 |
+| V3-DO-32 | DO-32 | non-blocking | fixed in the iteration-3 run-five candidate: the run-three paragraph names ER-18's regression and the three in-part fixes with their gaps |
+| V3-DO-33 | DO-33 | non-blocking | fixed in the iteration-3 run-five candidate: the AGENTS.md row names rowsChanged and the homes folder |
+| V3-DO-34 | DO-34 | non-blocking | fixed in the iteration-3 run-five candidate: continueQueue.ts and its test in the FABRIC-0326 entry and in SCN-142's coverage |
+| V3-DA-26 | DA-26 | non-blocking | fixed in the iteration-3 run-five candidate: as UX-44 |
+| V3-PL-35 | PL-35 | blocking | fixed in the iteration-3 run-five candidate: the order 51d22d2b is CO-603 (12) and a row of spec §4, owner this repository's release session; thread fe5f93aa is told the version at the release |
+| V3-PL-36 | PL-36 | non-blocking | fixed in the release close: it lists every thread the release owes a notice (20ee2630, 3ca40854, 12e4a915, fe5f93aa, 7e7889f6) and the people.ask 5467c685 |
+| V3-PL-37 | PL-37 | non-blocking | fixed in the iteration-3 run-five candidate: as UX-47 |
+| V3-PL-38 | PL-38 | non-blocking | fixed in the release close: post-tag acts are listed as owed items, each checked off with its receipt on main after the tag |
+| V3-PL-39 | PL-39 | non-blocking | fixed in the iteration-3 run-five candidate: as DO-33 |

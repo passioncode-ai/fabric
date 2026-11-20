@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "19b422264b26d1dbed6b380574978d2f9cc0d25f",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-19b42226/2026-11-20-errors.md",
+  "reportSha256": "b7825256bed4bcbc9a2c447bbf27540abaaea3f486b93ea18b9017863771573a",
+  "reviewerRun": "release-0326-i3r4-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: after a half-done answer only a stale Switchboard read is not said; a live Claude Code row (continued elsewhere) is said as running and the press is a continue (ContinueSessionAsk.tsx resumedSince); test «a session continued elsewhere after a half-done answer is said as running»"
+      ]
+    },
+    {
+      "id": "ER-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: as UX-43 and UX-44"
+      ]
+    },
+    {
+      "id": "ER-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: an act starts a new generation of the rows cache; a read begun before it is never fresh after it and is not joined (index.ts sbGen, sbInFlightGen); no test, the cache is inline wiring (CO-604 (19))"
+      ]
+    }
+  ]
+}

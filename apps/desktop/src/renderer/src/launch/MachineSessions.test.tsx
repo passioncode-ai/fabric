@@ -67,8 +67,19 @@ describe('MachineSessionsPanel', () => {
     const item = await screen.findByTestId('machine-session')
     expect(within(item).queryByRole('button', { name: about('machineSessions.closeAbout') })).toBeNull()
     fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.continueAbout') }))
+    // UX-43: nothing runs it, so nothing is stopped: the confirmation says so.
+    expect(within(item).getByText(en['machineSessions.continueEndedAsk'])).toBeTruthy()
     fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
     await waitFor(() => expect(api.machineContinue).toHaveBeenCalledWith(row.sessionId))
+  })
+  // UX-44, ER-29: its history out of Fabric's reach is said as such, not as «already ended».
+  it('a Switchboard session whose history Fabric cannot read says so in the panel', async () => {
+    mount({ machineSessions: vi.fn(async () => [{ ...row, pid: 0, live: false, name: null, status: null, source: 'switchboard', state: 'needs_you' }]),
+      machineContinue: vi.fn(async () => ({ ok: false, why: 'gone' })) })
+    const item = await screen.findByTestId('machine-session')
+    fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.continueAbout') }))
+    fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
+    expect(await within(item).findByText(`${en['machineSessions.refused']} ${en['links.continue.goneHome']}`)).toBeTruthy()
   })
   // UX-1: a folder in no project is refused before anything is stopped; a continue that failed after the stop says so.
   it('a continue refused for no project, and one stopped but not continued, are said with what to do', async () => {

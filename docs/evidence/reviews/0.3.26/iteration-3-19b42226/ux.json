@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "19b422264b26d1dbed6b380574978d2f9cc0d25f",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-19b42226/2026-11-20-ux.md",
+  "reportSha256": "f6afddbdaa036cfd40a3a88dcf7e510df2948de9949ffee973ea2372a96e7254",
+  "reviewerRun": "release-0326-i3r4-ux-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: Switchboard's account homes (homes/) are read beside runtimes/, for live sessions and transcripts alike (diskSessions.ts switchboardHomeRoots, claudeConfigDirs; ceoTools.ts defaultTranscriptRoots); test «Switchboard's account homes are Claude homes: their sessions are read and continued from history», red before"
+      ]
+    },
+    {
+      "id": "UX-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: Агенты asks an ended session's continue as one from history, nothing stopped (machineSessions.continueEndedAsk); test «a session only Switchboard names that no process runs can be continued, not closed»"
+      ]
+    },
+    {
+      "id": "UX-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: Агенты says gone for a Switchboard session as its history out of Fabric's reach (links.continue.goneHome); test «a Switchboard session whose history Fabric cannot read says so in the panel»"
+      ]
+    },
+    {
+      "id": "UX-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: after a half-done answer the ask names the stopped session from its first read and drops the opening question (links.continue.whichStopped); test «after a half-done answer the stopped session is named from the first read»"
+      ]
+    },
+    {
+      "id": "UX-46",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: SCN-142 says a running Switchboard-only session is said with «Закрыть» only"
+      ]
+    },
+    {
+      "id": "UX-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: the run-three link points at iteration-3-b83bed27/"
+      ]
+    }
+  ]
+}

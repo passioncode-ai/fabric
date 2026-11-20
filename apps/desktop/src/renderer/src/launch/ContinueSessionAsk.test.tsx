@@ -62,7 +62,9 @@ describe('ContinueSessionAsk', () => {
     expect(onDone).toHaveBeenCalled()
   })
   it('a stopped session that did not reach a console is half done: no «not done», a retry from its history', async () => {
-    mount({ machineContinue: vi.fn(async () => ({ ok: false, why: 'stopped-not-continued', resume: { sessionId: id, cwd: '/d/site' } })) })
+    // Its process is gone after the stop: the next read no longer lists it.
+    const reads = [[row]]
+    mount({ machineSessions: vi.fn(async () => reads.shift() ?? []), machineContinue: vi.fn(async () => ({ ok: false, why: 'stopped-not-continued', resume: { sessionId: id, cwd: '/d/site' } })) })
     const go = await screen.findByRole('button', { name: en['machineSessions.continue'] })
     await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false))
     fireEvent.click(go)
@@ -149,6 +151,33 @@ describe('ContinueSessionAsk after an answer', () => {
     expect((retry as HTMLButtonElement).disabled).toBe(false)
     expect(screen.getByTestId('continue-ask').textContent).not.toContain('only through Switchboard')
     expect(screen.getByTestId('continue-ask').textContent).not.toContain(en['machineSessions.state.working'])
+  })
+  it('UX-45: after a half-done answer the stopped session is named from the first read, without the opening question', async () => {
+    const reads = [[row], [{ ...row, pid: 0, live: true, source: 'switchboard' as const }]]
+    mount({
+      machineSessions: vi.fn(async () => reads.shift() ?? []),
+      machineContinue: vi.fn(async () => ({ ok: false, why: 'stopped-not-continued', resume: { sessionId: id, cwd: '/d/site' } }))
+    })
+    const go = await screen.findByRole('button', { name: en['machineSessions.continue'] })
+    await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(go)
+    await screen.findByTestId('continue-refused')
+    const ask = screen.getByTestId('continue-ask').textContent ?? ''
+    expect(ask).toContain(en['links.continue.whichStopped'].replace('{folder}', 'site').replace('{agent}', 'Claude Code'))
+    expect(ask).not.toContain(en['links.continue.ask'])
+  })
+  it('ER-28: a session continued elsewhere after a half-done answer is said as running, and the press is a continue', async () => {
+    const reads = [[row], [{ ...row, pid: 777, live: true, source: 'claude' as const, state: 'working' as const }]]
+    mount({
+      machineSessions: vi.fn(async () => reads.shift() ?? [{ ...row, pid: 777 }]),
+      machineContinue: vi.fn(async () => ({ ok: false, why: 'stopped-not-continued', resume: { sessionId: id, cwd: '/d/site' } }))
+    })
+    const go = await screen.findByRole('button', { name: en['machineSessions.continue'] })
+    await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(go)
+    await waitFor(() => expect(screen.getByTestId('continue-ask').textContent).toContain(en['machineSessions.state.working']))
+    expect(screen.queryByRole('button', { name: en['machineSessions.resumeFromHistory'] })).toBeNull()
+    expect(screen.getByRole('button', { name: en['machineSessions.continue'] })).toBeTruthy()
   })
   it('ER-26: the answer calls the callbacks of the newest render', async () => {
     let answer: (v: unknown) => void = () => {}

@@ -7,7 +7,8 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { claudeSlug, lastSessionOf, projectForFolder } from '../src/main/projectResume.ts'
 import { continueOrigin, createMachineSessions, linkOriginOf, readTail, transcriptCwd, TAKE_OVER_WAIT_MS } from '../src/main/machineSessions.ts'
-import { redactedTurns } from '../src/main/ceoTools.ts'
+import { defaultTranscriptRoots, findTranscript, redactedTurns } from '../src/main/ceoTools.ts'
+import { claudeConfigDirs } from '../src/main/diskSessions.ts'
 
 const id = (n) => `${String(n).repeat(8)}-aaaa-4aaa-8aaa-aaaaaaaaaaaa`
 const USER = JSON.stringify({ type: 'user', message: { role: 'user', content: 'go' } }) + '\n'
@@ -215,4 +216,19 @@ test('a continue\'s origin: a link is a link with its app in the contract\'s gra
   assert.deepEqual(continueOrigin('resumed', {}), { reason: 'Продолжена в Fabric по ссылке из другого приложения', via: 'link' }, 'a link with no app is still a link (DA-20)')
   assert.deepEqual(continueOrigin('resumed'), { reason: 'Продолжена в Fabric из её истории', via: 'screen' })
   assert.deepEqual(continueOrigin('moved'), { reason: 'Перенесена в Fabric из терминала вне Fabric', via: 'screen' })
+})
+
+test('Switchboard\'s account homes are Claude homes: their sessions are read and continued from history (iteration 3, run four, UX-42)', async () => {
+  const home = mkdtempSync(path.join(tmpdir(), 'sb-home-'))
+  const data = path.join(home, 'Library/Application Support/ai.passioncode.fabric-switchboard')
+  const acct = path.join(data, 'homes', 'h-account')
+  mkdirSync(path.join(acct, 'projects', '-d-site'), { recursive: true })
+  mkdirSync(path.join(data, 'runtimes', 'r-1'), { recursive: true })
+  writeFileSync(path.join(acct, 'projects', '-d-site', `${id(7)}.jsonl`), USER)
+  const dirs = await claudeConfigDirs(home)
+  assert.ok(dirs.includes(acct), 'an account home is read for live sessions')
+  assert.ok(dirs.includes(path.join(data, 'runtimes', 'r-1')), 'runtimes still are')
+  const file = findTranscript(defaultTranscriptRoots(home), id(7))
+  assert.equal(file, path.join(acct, 'projects', '-d-site', `${id(7)}.jsonl`), 'its transcript is found')
+  assert.equal(path.resolve(file, '..', '..', '..'), acct, 'and continued in its own home')
 })

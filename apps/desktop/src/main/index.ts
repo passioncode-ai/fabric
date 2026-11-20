@@ -4781,12 +4781,21 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   const ROWS_FRESH_MS = 20_000, ROWS_WAIT_MS = 3_000
   let sbSettled: { at: number; rows: ReturnType<typeof parseMachineRows> } | null = null
   let sbInFlight: Promise<ReturnType<typeof parseMachineRows>> | null = null
+  // ER-30 (iteration 3, run four): an act starts a new generation; a read begun before it is never fresh after it, and a
+  // listing after the act does not join it.
+  let sbGen = 0
+  let sbInFlightGen = -1
   const switchboardRows = async (): Promise<ReturnType<typeof parseMachineRows>> => {
     if (sbSettled && Date.now() - sbSettled.at < ROWS_FRESH_MS) return sbSettled.rows
-    sbInFlight ??= runMachineSwitchboard(sessionEnvironment(process.env), ['--json', 'sessions', '--rows'])
-      .then((r) => (r && r.code === 0 ? parseMachineRows(r.stdout) : null), () => null)
-      .then((rows) => { sbSettled = { at: Date.now(), rows: rows ?? sbSettled?.rows ?? null }; return rows })
-      .finally(() => { sbInFlight = null })
+    if (!sbInFlight || sbInFlightGen !== sbGen) {
+      const gen = sbGen
+      const read: Promise<ReturnType<typeof parseMachineRows>> = runMachineSwitchboard(sessionEnvironment(process.env), ['--json', 'sessions', '--rows'])
+        .then((r) => (r && r.code === 0 ? parseMachineRows(r.stdout) : null), () => null)
+        .then((rows) => { sbSettled = { at: gen === sbGen ? Date.now() : 0, rows: rows ?? sbSettled?.rows ?? null }; return rows })
+        .finally(() => { if (sbInFlight === read) sbInFlight = null })
+      sbInFlight = read
+      sbInFlightGen = gen
+    }
     const waited = await Promise.race([sbInFlight, new Promise<'late'>((r) => setTimeout(() => r('late'), ROWS_WAIT_MS).unref())])
     return waited === 'late' ? (sbSettled?.rows ?? null) : waited
   }
@@ -4848,7 +4857,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.agentsMachineRead, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineRead']>> => machineSessions.read(sessionArg(id)))
   // UX-37 (iteration 3, run three): an act changes what Switchboard sees, so the next listing asks it again instead of the
   // rows read before the act (the old rows stay only as the fallback of a read that does not answer in time).
-  const rowsChanged = <T,>(p: Promise<T>): Promise<T> => p.finally(() => { if (sbSettled) sbSettled = { ...sbSettled, at: 0 } })
+  const rowsChanged = <T,>(p: Promise<T>): Promise<T> => p.finally(() => { sbGen++; if (sbSettled) sbSettled = { ...sbSettled, at: 0 } })
   handle(IPC.agentsMachineClose, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineClose']>> => rowsChanged(machineSessions.close(sessionArg(id))))
   handle(IPC.agentsMachineContinue, (_e, id: unknown, link: unknown): Promise<Returns<FabricApi['agents']['machineContinue']>> =>
     rowsChanged(machineSessions.continueInFabric(sessionArg(id), linkOriginOf(link))))
