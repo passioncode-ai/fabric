@@ -15,6 +15,8 @@
 // home says what waits); Настройки carries no Comms count (Настройки → Ещё → Переписка does); an agent at work shows its
 // green dot and no word, every other status keeps its word. Every project name printed here is `projectDisplayName`'s.
 
+import type { MachineSession } from '../../../main/machineSessions.ts'
+import { MACHINE_POLL_MS } from './MachineSessions'
 import { useEffect, useRef, useState } from 'react'
 import type { ProjectRow } from '../../../shared/types'
 import { projectsAtWork, railProjects, type RailWork } from '../../../shared/railProjects.ts'
@@ -117,6 +119,10 @@ export interface LaunchShellProps {
   onResumeLast?(projectId: string): void | Promise<void>
   /** Sessions that ended, newest first, one per project (the launch journal); asked when «Агенты» shows. */
   loadRecent?(): Promise<RecentSession[]>
+  /** Every agent session of this Mac outside Fabric's consoles (`agents.machineSessions`), read while «Агенты» shows. */
+  loadMachine?(): Promise<MachineSession[]>
+  /** The Агенты screen, where each of those sessions is read, continued in Fabric or closed. */
+  onAllSessions?(): void
   /** Projects where an agent works now (`liveProjectsOf`: Fabric's terminals and the agents that joined on their own). */
   live: ReadonlySet<string>
   /** The home reading's pulse per project, which says which projects are at work (`projectsAtWork`); null while unread. */
@@ -246,6 +252,18 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
     loadRecent().then((r) => { if (alive) setRecent(r) }, () => { if (alive) setRecent([]) /* the running agents still show */ })
     return () => { alive = false }
   }, [view, loadRecent, props.agents.rows?.length])
+  // The operator, 2026-11-20: «в дашборде вот вижу сессии а в фабрике не вижу». The sessions of this Mac that no Fabric
+  // console holds, from Claude Code's files and Switchboard (`main/machineSessions.ts`), every 15 s while «Агенты» shows.
+  const [machine, setMachine] = useState<MachineSession[] | null>(null)
+  const loadMachine = props.loadMachine
+  useEffect(() => {
+    if (view !== 'agents' || !loadMachine) return
+    let alive = true
+    const read = (): void => { loadMachine().then((r) => { if (alive) setMachine(r) }, () => { /* the last reading stays */ }) }
+    read()
+    const timer = setInterval(read, MACHINE_POLL_MS)
+    return () => { alive = false; clearInterval(timer) }
+  }, [view, loadMachine])
   const onViewKey = (e: React.KeyboardEvent): void => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') return
     e.preventDefault()
@@ -469,6 +487,28 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                 )
               })}
             </ul>
+          )}
+          {machine && machine.length > 0 && (
+            <>
+              <p className="rail-muted rail-sub">{t('rail.agents.machine', { count: machine.length })}</p>
+              <ul aria-label={t('rail.agents.machine', { count: machine.length })} data-testid="rail-machine">
+                {machine.map((m) => (
+                  <li key={m.sessionId}>
+                    <button type="button" className="rail-agent rail-recent" title={m.cwd} disabled={!props.onAllSessions} onClick={() => props.onAllSessions?.()}>
+                      <span className={`rail-dot s-${m.state === 'working' ? 'working' : m.state === 'needs_you' ? 'error' : 'waiting'}`} role="img"
+                        aria-label={t(`machineSessions.state.${m.state ?? 'waiting'}` as 'machineSessions.state.waiting')} />
+                      <span className="rail-agent-words">
+                        <span className="rail-name">{folderName(m.cwd) ?? m.cwd}</span>
+                        <span className="rail-agent-line">
+                          <span className="rail-source">{t(`machineSessions.state.${m.state ?? 'waiting'}` as 'machineSessions.state.waiting')}</span>
+                          <span className="rail-runner"> · {runnerLabel(m.agent ?? 'claude-code', t)}</span>
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
           {/* The owner, 2026-11-19: the running agents first, then the sessions that ended, each continued with one press. */}
           {recent && recent.length > 0 && (

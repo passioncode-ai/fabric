@@ -58,6 +58,7 @@ function machine(over = {}) {
     turns: (text) => [{ role: 'user', text }],
     continueInFabric: async (s) => { opened.push(s.sessionId); if (over.openFails) throw new Error('no project'); return { sessionId: 'console-1' } },
     record: (op, d) => records.push([op, d]),
+    ...(over.rows !== undefined ? { switchboardRows: async () => { if (over.rows instanceof Error) throw over.rows; return over.rows } } : {}),
     sleep: async () => {}
   })
   return { m, signals, records, opened }
@@ -94,4 +95,33 @@ test('read: the last turns from its transcript; null when the transcript is not 
   writeFileSync(path.join(dir, 't.jsonl'), 'hello')
   assert.deepEqual(await machine({ transcript: path.join(dir, 't.jsonl') }).m.read(id(1)), { turns: [{ role: 'user', text: 'hello' }] })
   assert.equal(await machine().m.read(id(1)), null)
+})
+
+// The operator, 2026-11-20: «в дашборде вот вижу сессии а в фабрике не вижу». Fabric Dashboards lists Switchboard's
+// rows; a session whose Claude home is not one Fabric reads was missing here.
+test("every session of this Mac: Switchboard's running, waiting and needs-you rows join the files' sessions, never twice, never Fabric's own", async () => {
+  const rows = [
+    { session_id: id(1), agent: 'claude-code', folder: '/w/a', group: 'running', why: null },
+    { session_id: id(2), agent: 'claude-code', folder: '/w/fabric', group: 'running', why: null },
+    { session_id: id(7), agent: 'claude-code', folder: '/w/studio-agent', group: 'running', why: null },
+    { session_id: id(8), agent: 'codex', folder: '/w/riffly', group: 'waiting', why: null },
+    { session_id: id(9), agent: 'claude-code', folder: '/w/copy', group: 'needs_you', why: 'duplicate' },
+    { session_id: null, agent: 'claude-code', folder: '/w/gone', group: 'needs_you', why: 'gone' },
+    { session_id: id(6), agent: 'claude-code', folder: '/w/old', group: 'ended', why: null }
+  ]
+  const { m } = machine({ rows })
+  const list = await m.list()
+  assert.deepEqual(list.map((s) => [s.sessionId, s.source, s.state]), [
+    [id(9), 'switchboard', 'needs_you'],
+    [id(1), 'claude', 'working'],
+    [id(7), 'switchboard', 'working'],
+    [id(8), 'switchboard', 'waiting']
+  ])
+  assert.equal(list.find((s) => s.sessionId === id(8)).agent, 'codex')
+  assert.equal(list.find((s) => s.sessionId === id(7)).cwd, '/w/studio-agent')
+  // A session only Switchboard names is not acted on from here: its process is not known.
+  assert.deepEqual(await m.close(id(7)), { ok: false, why: 'gone' })
+  // Switchboard not answering leaves the files' sessions.
+  assert.deepEqual((await machine({ rows: null }).m.list()).map((s) => s.sessionId), [id(1)])
+  assert.deepEqual((await machine({ rows: new Error('timed out') }).m.list()).map((s) => s.sessionId), [id(1)])
 })

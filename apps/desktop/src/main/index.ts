@@ -460,7 +460,7 @@ import { withLaunchOrigin } from './launchOrigin.ts'
 import { claudeConfigDirs, defaultAlive, liveClaudeSessions } from './diskSessions.ts'
 import { createMachineSessions } from './machineSessions.ts'
 import { gitWorktrees, lastSessionOf, projectForFolder } from './projectResume.ts'
-import { findTranscript, defaultTranscriptRoots, transcriptTurns } from './ceoTools.ts'
+import { findTranscript, defaultTranscriptRoots, parseMachineRows, transcriptTurns } from './ceoTools.ts'
 import { createTaskStart } from './taskStart.ts'
 
 // ADR-0195 W2b: this process's data folder for every local store (settings, kept-out agents, digest marks), named
@@ -4767,8 +4767,19 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return { ok: false, why: 'failed', says: e instanceof Error ? e.message.slice(0, 300) : String(e) }
     }
   })
+  // The operator, 2026-11-20: Агенты must show the sessions Fabric Dashboards shows. Switchboard's rows, one read in
+  // flight and kept 20 s, so the panel's 15 s poll never stacks calls on a loaded machine.
+  let sbRows: { at: number; rows: Promise<ReturnType<typeof parseMachineRows>> } | null = null
+  const switchboardRows = (): Promise<ReturnType<typeof parseMachineRows>> => {
+    if (sbRows && Date.now() - sbRows.at < 20_000) return sbRows.rows
+    const rows = runMachineSwitchboard(sessionEnvironment(process.env), ['--json', 'sessions', '--rows'])
+      .then((r) => (r && r.code === 0 ? parseMachineRows(r.stdout) : null), () => null)
+    sbRows = { at: Date.now(), rows }
+    return rows
+  }
   const machineSessions = createMachineSessions({
     live: async () => liveClaudeSessions(await claudeConfigDirs()),
+    switchboardRows,
     fabricRunnerIds: async () => {
       const live = new Set(ptys.list().filter((s) => s.running).map((s) => s.sessionId))
       return new Set(((await launchJournal?.read()) ?? []).filter((l) => l.runnerSessionId && live.has(l.sessionId)).map((l) => l.runnerSessionId!))

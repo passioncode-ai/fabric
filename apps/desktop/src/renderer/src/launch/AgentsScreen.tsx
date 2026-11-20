@@ -316,7 +316,15 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
         <Centre row={chosen} mark={mark} hub={hub} homeUnread={home.view === null && home.problem !== null} goalsUnread={home.view?.goalsUnread ?? null} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onOpenGoal={onOpenGoal} onAsTab={openAsTab}
           terminal={chosen.sessionId ? ((sessions ?? []).find((x) => x.sessionId === chosen.sessionId) ?? null) : null}
           onHome={onHome} runnerVersion={r.versionOf(chosen.runner)} projectOf={(id) => (projects ?? []).find((p) => p.id === id) ?? null} />
-      ) : home.view === null && home.problem && (rows.length === 0 || (initialSession && !chosen)) ? (
+      ) : null}
+      {chosen && (
+        // The operator, 2026-11-20: every session of this Mac stays one press away while an agent's page is open.
+        <details className="ag-machine-fold">
+          <summary>{t('machineSessions.title')}</summary>
+          <MachineSessionsPanel onOpenConsole={openAsTab} />
+        </details>
+      )}
+      {chosen ? null : home.view === null && home.problem && (rows.length === 0 || (initialSession && !chosen)) ? (
         // UX-25 (iteration 3): an arrival for a session while who works could not be read says the reading failed,
         // never that the session ended.
         <div className="lp-meta ag-pick" role="status">
@@ -334,10 +342,10 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
         <div className="ag-pick">
           <p className="lp-meta">{t('agentScreen.pick')}</p>
           <button type="button" className="lp-button" onClick={onCreate}>{t('agentsPlace.create')}</button>
-          {/* CO-457: the sessions Switchboard runs and holds here, as Fabric Dashboards lists them. */}
-          <SwitchboardSessionsPanel />
-          {/* eef5abeb point 3: the Claude Code sessions outside Fabric, from Claude Code's own files. */}
+          {/* eef5abeb point 3 and the operator, 2026-11-20: every session of this Mac outside Fabric's consoles, first. */}
           <MachineSessionsPanel onOpenConsole={openAsTab} />
+          {/* CO-457: the sessions Switchboard launched here and those waiting for a limit's reset. */}
+          <SwitchboardSessionsPanel />
         </div>
       )}
     </div>

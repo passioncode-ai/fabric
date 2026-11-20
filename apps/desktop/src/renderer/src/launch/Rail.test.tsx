@@ -237,6 +237,24 @@ describe('the left column', () => {
     expect(screen.queryByRole('list', { name: en['rail.session.pickProject'] })).toBeNull()
   })
 
+  // The operator, 2026-11-20: «в дашборде вот вижу сессии а в фабрике не вижу».
+  it('«Агенты» lists every session of this Mac outside Fabric, its state said, and a press opens Агенты', async () => {
+    const onAllSessions = vi.fn()
+    const loadMachine = vi.fn(async () => [
+      { pid: 0, sessionId: '11111111-1111-4111-8111-111111111111', cwd: '/w/alpha-agent', name: null, status: null, kind: null, entrypoint: null, startedAt: null, updatedAt: null, source: 'switchboard' as const, state: 'working' as const, agent: 'claude-code' },
+      { pid: 7, sessionId: '22222222-2222-4222-8222-222222222222', cwd: '/w/beta-agent', name: null, status: 'idle', kind: null, entrypoint: null, startedAt: null, updatedAt: null, source: 'claude' as const, state: 'waiting' as const, agent: 'claude-code' }
+    ])
+    shell({ loadMachine, onAllSessions })
+    expect(loadMachine).not.toHaveBeenCalled()
+    fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))
+    const list = await screen.findByRole('list', { name: en['rail.agents.machine'].replace('{count}', '2') })
+    expect(within(list).getByText('alpha-agent')).toBeTruthy()
+    expect(within(list).getByText('beta-agent')).toBeTruthy()
+    expect(within(list).getByRole('img', { name: en['machineSessions.state.working'] })).toBeTruthy()
+    fireEvent.click(within(list).getAllByRole('button')[0])
+    expect(onAllSessions).toHaveBeenCalledTimes(1)
+  })
+
   it('moves between Проекты and Агенты with the arrow keys, focus following', () => {
     shell()
     const projects = within(toggle()).getByRole('button', { name: en['rail.projects'] })

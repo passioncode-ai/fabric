@@ -65,20 +65,27 @@ export function MachineSessionsPanel({ onOpenConsole }: { onOpenConsole(sessionI
       {!rows && !problem && <p className="lp-meta" role="status">{t('machineSessions.reading')}</p>}
       {rows && rows.length === 0 && <p className="lp-meta">{t('machineSessions.none')}</p>}
       {rows && rows.length > 0 && (
+        <p className="lp-meta" data-testid="machine-counts">{t('machineSessions.counts', {
+          working: rows.filter((s) => s.state === 'working').length, waiting: rows.filter((s) => s.state === 'waiting').length,
+          needs: rows.filter((s) => s.state === 'needs_you').length })}</p>
+      )}
+      {rows && rows.length > 0 && (
         <ul className="ag-machine">
           {rows.map((s) => (
-            <li key={s.sessionId} data-testid="machine-session">
+            <li key={s.sessionId} data-testid="machine-session" data-state={s.state ?? 'unknown'}>
+              {s.state && <span className={`ag-machine-state is-${s.state}`}>{t(`machineSessions.state.${s.state}`)}</span>}{' '}
               <b title={s.cwd}>{s.name ?? folderName(s.cwd) ?? s.cwd}</b>
               {' · '}<span className="rail-folder" title={s.cwd}>{folderName(s.cwd)}</span>
               <br />
               <span className="lp-meta">
-                {[s.entrypoint === 'sdk-cli' || s.kind === 'print' ? t('machineSessions.headless') : t('machineSessions.terminal'),
+                {[s.source === 'switchboard' ? t('machineSessions.viaSwitchboard') : s.entrypoint === 'sdk-cli' || s.kind === 'print' ? t('machineSessions.headless') : t('machineSessions.terminal'),
                   s.status, s.startedAt ? t('board.ago', { time: since(s.startedAt, t) }) : null].filter(Boolean).join(' · ')}
               </span>
               <span className="ag-machine-acts">
                 <button type="button" className="lp-link" aria-expanded={turns?.id === s.sessionId} onClick={() => read(s.sessionId)}>{t('machineSessions.read')}</button>
-                <button type="button" className="lp-button" disabled={busy !== null} onClick={() => setAsking({ id: s.sessionId, act: 'continue' })}>{t('machineSessions.continue')}</button>
-                <button type="button" className="lp-button" disabled={busy !== null} onClick={() => setAsking({ id: s.sessionId, act: 'close' })}>{t('machineSessions.close')}</button>
+                {/* A session only Switchboard names has no process Fabric knows: it is read here, closed or taken over there. */}
+                {s.source === 'claude' && <button type="button" className="lp-button" disabled={busy !== null} onClick={() => setAsking({ id: s.sessionId, act: 'continue' })}>{t('machineSessions.continue')}</button>}
+                {s.source === 'claude' && <button type="button" className="lp-button" disabled={busy !== null} onClick={() => setAsking({ id: s.sessionId, act: 'close' })}>{t('machineSessions.close')}</button>}
               </span>
               {asking?.id === s.sessionId && (
                 <div className="as-launch-ask" role="group" aria-label={t(asking.act === 'continue' ? 'machineSessions.continue' : 'machineSessions.close')}>
