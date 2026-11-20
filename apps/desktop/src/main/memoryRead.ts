@@ -62,7 +62,9 @@ export function memoryOverview(ix: EstateIndex, file: string | null, labels: Mem
  * is not drawn apart from its canonical project. The board's requests between two projects are the lines between them.
  */
 export function memoryGraph(ix: EstateIndex, labels: MemoryLabels, context?: string): MemoryGraph {
-  const rows = ix.db.prepare("SELECT id, label, attrs FROM nodes WHERE kind = 'project'").all() as Row[]
+  // Fabric's own projects only: a source may write nodes of kind project too (`mail:project:…`), and those are its
+  // entities, never one of Fabric's projects (spec 2026-11-20 §10).
+  const rows = ix.db.prepare("SELECT id, label, attrs FROM nodes WHERE kind = 'project' AND id LIKE 'project:%'").all() as Row[]
   const projects = new Map<string, ProjectCounts>()
   for (const r of rows) {
     const a = r.attrs ? JSON.parse(String(r.attrs)) as Row : {}
