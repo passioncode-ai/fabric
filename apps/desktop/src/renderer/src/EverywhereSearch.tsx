@@ -3,14 +3,14 @@
 // message and commit, the estate index's (ADR-0200). Its order IS a relevance rank, unlike the groups above it, and its
 // header says so. Each hit names where it happened and how to continue it; «Связи» draws what relates to it, the same
 // neighbourhood the CEO's `graph.neighbours` answers, and lists it as text beneath so nothing is only on the drawing.
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ringLayout, type AroundAnswer, type EverywhereAnswer, type EverywhereHit } from '../../shared/estateSearch.ts'
 import { Button, Row } from './components'
 import { useT } from './i18n'
 
-const SIZE = 420
-const NODE_W = 150
-const NODE_H = 40
+const SIZE = 320
+const NODE_W = 130
+const NODE_H = 46
 
 export function EverywhereSearch({ query, onError }: { query: string; onError: (message: string) => void }): React.JSX.Element | null {
   const t = useT()
@@ -53,18 +53,16 @@ export function EverywhereSearch({ query, onError }: { query: string; onError: (
       {answer.ok && answer.hits.length === 0 && <p className="muted">{t('everywhere.nothing', { docs: answer.docs })}</p>}
       {said && <p className="muted" role="status">{said}</p>}
       {answer.ok && answer.hits.map((hit) => (
-        <Row key={hit.id}
-          lead={<span className="muted">{t(`everywhere.kind.${hit.kind}` as 'everywhere.kind.task')}</span>}
-          trail={
-            <span className="everywhere-acts">
-              <Button tone="ghost" onClick={() => walk(hit.node)}>{t('everywhere.links')}</Button>
-              {hit.session_id && <Button tone="ghost" onClick={() => resume(hit)}>{t('everywhere.resume')}</Button>}
-              {hit.resume && <Button tone="ghost" onClick={() => copy(hit.resume!)}>{t('everywhere.copy')}</Button>}
-            </span>
-          }>
+        <Row key={hit.id} lead={<span className="muted">{t(`everywhere.kind.${hit.kind}` as 'everywhere.kind.task')}</span>}>
           <b>{hit.title}</b>
           <span className="muted"> · {[hit.project ?? hit.folder, hit.context, hit.at?.slice(0, 10)].filter(Boolean).join(' · ')}</span>
-          <br /><span>{hit.passage}</span>
+          <br /><span className="everywhere-passage">{hit.passage}</span>
+          {/* Under the text, not beside it: in the side panel three buttons beside a hit left its text one letter wide. */}
+          <span className="everywhere-acts">
+            <Button tone="ghost" onClick={() => walk(hit.node)}>{t('everywhere.links')}</Button>
+            {hit.session_id && <Button tone="ghost" onClick={() => resume(hit)}>{t('everywhere.resume')}</Button>}
+            {hit.resume && <Button tone="ghost" onClick={() => copy(hit.resume!)}>{t('everywhere.copy')}</Button>}
+          </span>
         </Row>
       ))}
       {around && <Around state={around} onWalk={walk} />}
@@ -75,6 +73,9 @@ export function EverywhereSearch({ query, onError }: { query: string; onError: (
 function Around({ state, onWalk }: { state: { node: string; answer: AroundAnswer }; onWalk: (node: string) => void }): React.JSX.Element {
   const t = useT()
   const a = state.answer
+  const scroller = useRef<HTMLDivElement>(null)
+  // The drawing is wider than the side panel: it opens scrolled to its centre, the node asked about.
+  useEffect(() => { const el = scroller.current; if (el) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2 }, [state])
   if (!a.ok) return <p className="muted">{t('search.unsearchable', { reason: a.reason })}</p>
   const at = ringLayout(a.nodes, SIZE)
   const c = SIZE / 2
@@ -82,7 +83,7 @@ function Around({ state, onWalk }: { state: { node: string; answer: AroundAnswer
     <section className="everywhere-around" aria-label={t('everywhere.aroundTitle', { name: a.start?.label ?? state.node })}>
       <h3 className="task-history-head">{t('everywhere.aroundTitle', { name: a.start?.label ?? state.node })}</h3>
       {a.nodes.length === 0 ? <p className="muted">{t('everywhere.aroundEmpty')}</p> : (
-        <div className="lg-scroll">
+        <div className="lg-scroll" ref={scroller}>
           <div className="lg-canvas" style={{ width: SIZE + NODE_W, height: SIZE + NODE_H }}>
             <svg className="lg-lines" width={SIZE + NODE_W} height={SIZE + NODE_H} aria-hidden="true">
               {a.nodes.map((n) => { const p = at.get(n.id)!; return <line key={n.id} className={n.hop > 1 ? 'lg-line board' : 'lg-line'} x1={c + NODE_W / 2} y1={c + NODE_H / 2} x2={p.x + NODE_W / 2} y2={p.y + NODE_H / 2} /> })}
