@@ -5514,11 +5514,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
       instructions: voiceInstructions(locale), voice, tools: [...ceoVoiceTools(), ASK_CEO_TOOL, ...VOICE_TOOLS], callId }
   })
-  handle(IPC.ceoAgentVoiceLine, (_e, callId: unknown, who: unknown, text: unknown): void => {
+  handle(IPC.ceoAgentVoiceLine, (_e, callId: unknown, who: unknown, text: unknown): Returns<FabricApi['ceoAgent']['voiceLine']> => {
     if (typeof callId !== 'string' || (who !== 'person' && who !== 'ceo') || typeof text !== 'string') return
     voiceJournal.line(callId, who, text)
   })
-  handle(IPC.ceoAgentVoiceEnd, (_e, callId: unknown, spent: unknown): void => {
+  handle(IPC.ceoAgentVoiceEnd, (_e, callId: unknown, spent: unknown): Returns<FabricApi['ceoAgent']['voiceEnd']> => {
     if (typeof callId !== 'string' || !spent || typeof spent !== 'object') return
     const m = spent as { minutes?: unknown; usd?: unknown; end?: unknown }
     voiceJournal.end(callId, { minutes: m.minutes, usd: m.usd, end: m.end })
