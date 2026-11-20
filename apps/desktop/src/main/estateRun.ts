@@ -9,6 +9,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import path from 'node:path'
 import { catalogue, type CatalogueInput } from '../shared/estateSearch.ts'
+import { nextMarks, type SourceMarks } from '../shared/memory.ts'
 import type { Embedder, EstateIndex } from './estateIndex.ts'
 import {
   boardBatch, claimBatch, commitBatch, documentBatch, factBatch, headOf, journalBatch, linkBatch, listTranscripts, mainOfWorktree, makeContext, noteBatch,
@@ -56,22 +57,25 @@ export interface PassReport {
 
 /** Folder to organization from Observatory's registry (its projects' `local_folders` are relative to `~/DATA`), and the
  *  organization its `config/organizations.json` marks as the default, the person's own. */
-export function readOrganizations(dataHome = process.env.OBSERVATORY_DATA ?? path.join(homedir(), '.local/share/project-observatory-full'), base = path.join(homedir(), 'DATA')): { folders: Map<string, string>; personal: string | null } {
+export function readOrganizations(dataHome = process.env.OBSERVATORY_DATA ?? path.join(homedir(), '.local/share/project-observatory-full'), base = path.join(homedir(), 'DATA')): { folders: Map<string, string>; personal: string | null; names: Map<string, string> } {
   const out = new Map<string, string>()
   let personal: string | null = null
+  // Each organization's display name (its `label`), for Memory's graph; never written in Fabric's code.
+  const names = new Map<string, string>()
   const config = path.join(dataHome, 'config', 'organizations.json')
   if (existsSync(config)) {
-    const c = JSON.parse(readFileSync(config, 'utf8')) as { organizations?: Record<string, { default?: unknown }> }
+    const c = JSON.parse(readFileSync(config, 'utf8')) as { organizations?: Record<string, { default?: unknown; label?: unknown }> }
     personal = Object.entries(c.organizations ?? {}).find(([, v]) => v?.default === true)?.[0] ?? null
+    for (const [id, v] of Object.entries(c.organizations ?? {})) if (typeof v?.label === 'string' && v.label.trim()) names.set(id, v.label.trim().slice(0, 80))
   }
   const file = path.join(dataHome, 'registry', 'projects.json')
-  if (!existsSync(file)) return { folders: out, personal }
+  if (!existsSync(file)) return { folders: out, personal, names }
   const j = JSON.parse(readFileSync(file, 'utf8')) as { projects?: Array<{ organization?: unknown; local_folders?: unknown }> }
   for (const p of j.projects ?? []) {
     if (typeof p.organization !== 'string' || !Array.isArray(p.local_folders)) continue
     for (const f of p.local_folders) if (typeof f === 'string' && f) out.set(path.isAbsolute(f) ? f : path.join(base, f), p.organization)
   }
-  return { folders: out, personal }
+  return { folders: out, personal, names }
 }
 
 export function createEstateRunner(deps: EstateRunDeps) {
@@ -137,9 +141,11 @@ export function createEstateRunner(deps: EstateRunDeps) {
         await deps.yieldNow()
       }
     } catch (e) { /* named in the pass's degraded; the other sources still land */ degraded.push(`journal-unread: ${e instanceof Error ? e.message.slice(0, 160) : String(e)}`) }
+    let boardMore = false
     try {
       for (let i = 0; i < BOARD_PAGES; i++) {
         const page = await deps.board(seq('board'))
+        boardMore = page.more
         for (const m of page.messages) if (typeof m.id === 'string') ctx.messages.add(m.id)
         docs += put(boardBatch(ctx, page.messages))
         setSeq('board', page.last)
@@ -205,6 +211,9 @@ export function createEstateRunner(deps: EstateRunDeps) {
 
     const report: PassReport = { at: new Date(started).toISOString(), ms: deps.now() - started, docs, transcripts: { read, turns, left }, commits, documents, embedded, degraded }
     ix.setMeta('last_pass', JSON.stringify(report))
+    // Each source's own mark for Memory's freshness (spec 2026-11-20 §3): a source that failed keeps its last read.
+    const prev = ix.meta('sources')
+    ix.setMeta('sources', JSON.stringify(nextMarks(prev ? JSON.parse(prev) as Partial<SourceMarks> : null, { at: report.at, transcripts: { left }, degraded, boardMore })))
     return report
   }
 

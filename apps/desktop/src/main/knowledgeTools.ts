@@ -10,6 +10,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { checkClaims, matchProject, type CatalogueRow } from '../shared/estateSearch.ts'
 import type { Embedder, EstateIndex } from './estateIndex.ts'
 import type { PassReport } from './estateRun.ts'
+import { memoryChanges, memoryGraph, memoryOverview, type MemoryLabels } from './memoryRead.ts'
 
 const KINDS = ['session', 'turn', 'task', 'note', 'message', 'console', 'project', 'commit', 'document'] as const
 
@@ -29,7 +30,7 @@ export const KNOWLEDGE_TOOLS = {
   execute: {
     mcp: 'fabric_knowledge_execute',
     title: 'Walk the graph and run the index\'s operations',
-    description: 'Run one operation of Fabric\'s knowledge graph by name: graph.neighbours {node, depth 1-3, limit, rels} (what relates to a node, N steps, both ways), graph.path {from, to, depth} (the shortest chain between two nodes), node.get {id}, quote.check {claims: [{quote, doc, text?, digest?}]} (keeps a claim only when its quote stands verbatim in the cited hit), projects.list {query?, include_temporary?} (every project once, with its folder and role), index.status, index.refresh, index.rebuild. Node ids are the hits\' node fields (task:<id>, session:<id>, console:<id>, project:<id>, commit:<sha>, message:<id>). Pass operations: true to list them.',
+    description: 'Run one operation of Fabric\'s knowledge graph by name: graph.neighbours {node, depth 1-3, limit, rels} (what relates to a node, N steps, both ways), graph.path {from, to, depth} (the shortest chain between two nodes), node.get {id}, quote.check {claims: [{quote, doc, text?, digest?}]} (keeps a claim only when its quote stands verbatim in the cited hit), projects.list {query?, include_temporary?} (every project once, with its folder and role), memory.overview (what the index holds, by kind, source and context, and how fresh each source is), memory.graph {context?} (the organizations and their projects with their counts, and the board requests between projects), memory.changes {hours 1-168, project?} (what the index got in that window, by project and kind, newest first), index.status, index.refresh, index.rebuild. Node ids are the hits\' node fields (task:<id>, session:<id>, console:<id>, project:<id>, commit:<sha>, message:<id>). Pass operations: true to list them.',
     input: z.object({
       operation: z.string().trim().max(40).optional(),
       arguments: z.record(z.string(), z.unknown()).optional(),
@@ -44,6 +45,9 @@ const OPS = {
   'node.get': z.object({ id: z.string().min(3).max(200) }).strict(),
   'quote.check': z.object({ claims: z.array(z.object({ quote: z.string().max(2000), doc: z.string().max(300), text: z.string().max(4000).optional(), digest: z.string().max(80).optional() }).strict()).min(1).max(50) }).strict(),
   'projects.list': z.object({ query: z.string().max(200).optional(), include_temporary: z.boolean().optional() }).strict(),
+  'memory.overview': z.object({}).strict(),
+  'memory.graph': z.object({ context: z.string().max(80).optional() }).strict(),
+  'memory.changes': z.object({ hours: z.number().int().min(1).max(168).optional(), project: z.string().max(200).optional() }).strict(),
   'index.status': z.object({}).strict(),
   'index.refresh': z.object({}).strict(),
   'index.rebuild': z.object({}).strict()
@@ -57,13 +61,21 @@ export interface KnowledgeDeps {
   catalogue(): Promise<Array<CatalogueRow & { context?: string }>>
   refresh(): Promise<PassReport>
   rebuild(): Promise<PassReport>
+  /** The index file (its size is part of Memory's overview); null when unknown. */
+  file?: string | null
+  /** The organizations' display names from Observatory and how the person's own context is named (Memory's graph). */
+  labels?(): MemoryLabels
   record(op: string, detail: Record<string, unknown>): void
 }
 
 type Answer = Record<string, unknown>
 const refuse = (reason: string, extra: Answer = {}): Answer => ({ ok: false, reason, ...extra })
 
+/** How long a Memory answer is kept when no pass ran meanwhile: the freshness chips age even when nothing is read. */
+const MEMO_MS = 60_000
+
 export function createKnowledgeOperations(deps: KnowledgeDeps) {
+  const memo = new Map<string, { pass: string; at: number; answer: Answer }>()
   /** The open index, or the refusal that says why it is not open. */
   const open = (): { ix: EstateIndex } | { refused: Answer } => {
     const ix = deps.index()
@@ -108,6 +120,23 @@ export function createKnowledgeOperations(deps: KnowledgeDeps) {
     const o = open()
     if ('refused' in o) return o.refused
     const index = o.ix
+    // #region memory-ops — docs: docs/evidence/specs/2026-11-20-memory-dashboard.md#2-one-module-three-callers
+    // Memory's reads, the same for the window, the CEO and the voice; an answer is kept until the next pass writes the
+    // index, so a dashboard opened twice reads it once (each read is 0.3 to 0.5 s on 195 000 documents).
+    if (op === 'memory.overview' || op === 'memory.graph' || op === 'memory.changes') {
+      const pass = index.meta('last_pass') ?? ''
+      const key = `${op}|${JSON.stringify(args)}`
+      const kept = memo.get(key)
+      if (kept && kept.pass === pass && Date.now() - kept.at < MEMO_MS) return kept.answer
+      const labels = deps.labels?.() ?? { names: new Map<string, string>(), personal: 'personal' }
+      const answer: Answer = op === 'memory.overview' ? { ...memoryOverview(index, deps.file ?? null, labels) }
+        : op === 'memory.graph' ? { ok: true, ...memoryGraph(index, labels, typeof args.context === 'string' ? args.context : undefined) }
+          : { ...memoryChanges(index, typeof args.hours === 'number' ? args.hours : 24, typeof args.project === 'string' ? args.project : undefined) }
+      memo.set(key, { pass, at: Date.now(), answer })
+      if (memo.size > 64) memo.delete(memo.keys().next().value!)
+      return answer
+    }
+    // #endregion memory-ops
     if (op === 'index.status') return { ok: true, ...index.status() }
     if (op === 'node.get') { const n = index.node(String(args.id)); return n ? { ok: true, node: n } : refuse(`no node ${String(args.id)} in the index`) }
     if (op === 'graph.neighbours') {

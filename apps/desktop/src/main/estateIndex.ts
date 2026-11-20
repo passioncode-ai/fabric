@@ -102,6 +102,11 @@ export class EstateIndex {
       CREATE TABLE IF NOT EXISTS nodes (id TEXT PRIMARY KEY, kind TEXT NOT NULL, label TEXT NOT NULL, at TEXT, attrs TEXT);
       CREATE TABLE IF NOT EXISTS edges (src TEXT NOT NULL, rel TEXT NOT NULL, dst TEXT NOT NULL, at TEXT, evidence TEXT, PRIMARY KEY (src, rel, dst));
       CREATE INDEX IF NOT EXISTS edges_dst ON edges(dst);
+      -- Memory's reads (spec 2026-11-20): «what changed» by time, and the counts by kind, source, context and project from
+      -- covering indexes, never a scan of the rows that hold the text (17 s on 195 000 documents, 2026-11-20).
+      CREATE INDEX IF NOT EXISTS docs_at ON docs(at);
+      CREATE INDEX IF NOT EXISTS docs_counts ON docs(kind, source, context);
+      CREATE INDEX IF NOT EXISTS docs_project ON docs(project, kind, at);
       CREATE TABLE IF NOT EXISTS files (path TEXT PRIMARY KEY, size INTEGER NOT NULL, mtime REAL NOT NULL, offset INTEGER NOT NULL, lines INTEGER NOT NULL, state TEXT);
     `)
     const version = this.meta('schema')

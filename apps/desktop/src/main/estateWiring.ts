@@ -130,6 +130,7 @@ export function startEstateIndex(deps: EstateWiringDeps): Estate {
     return fresh.map((r) => { const k = known.get(r.id); return k?.role ? { ...r, role: k.role, of: k.of ?? null, context: k.context } as CatalogueRow : r })
   }
 
+  let labelsCache: { at: number; value: { names: Map<string, string>; personal: string } } | null = null
   const knowledge = createKnowledgeOperations({
     index: () => open() ?? { unavailable },
     embedder,
@@ -142,7 +143,16 @@ export function startEstateIndex(deps: EstateWiringDeps): Estate {
       for (const ext of ['', '-wal', '-shm']) rmSync(file + ext, { force: true })
       return pass(60_000)
     },
-    record: (op, detail) => deps.record(op, detail.outcome === 'failed' ? 'failed' : 'ok', detail)
+    record: (op, detail) => deps.record(op, detail.outcome === 'failed' ? 'failed' : 'ok', detail),
+    file,
+    // Memory's graph names each organization as Observatory does; the person's own by its own organization's name.
+    labels: () => {
+      if (labelsCache && Date.now() - labelsCache.at < 60_000) return labelsCache.value
+      let value = { names: new Map<string, string>(), personal: 'personal' }
+      try { const o = readOrganizations(); value = { names: o.names, personal: (o.personal && o.names.get(o.personal)) || 'personal' } } catch { /* Observatory unread: the contexts' own ids stand for their names */ }
+      labelsCache = { at: Date.now(), value }
+      return value
+    }
   })
 
   return {
