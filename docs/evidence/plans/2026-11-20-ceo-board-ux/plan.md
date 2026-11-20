@@ -167,3 +167,42 @@ unanswered choice is built as recommended. The three below change a wave's scope
 ## Rows this plan opens
 
 Filed on the Fabric board as tasks with this plan as their source: wave 0's four found rows, waves B to I one row each.
+
+## Amended 2026-11-20, evening: part 5 of the owner's words
+
+[Part 5](owner-words.md#часть-5-2026-11-20-вечер-то-же-окно-ceo) adds to the plan, appended here rather than written into
+the waves above, which stay as they were planned.
+
+- **Wave 0 grows by one fix.** The red banner «База данных не отвечает. Скорее всего, локальный стек остановлен» during a
+  disk stop Fabric made itself: branch `fix/stack-outage-banner` (the stack watch's notice speaks alone during an outage,
+  the banner goes when the database is back, the log counts the outage's failures into `stack.back`, the disk is said under
+  15 GB). Disk cleanup and the disk watchdog stay with the Observatory session.
+- **The owner's dictation tail** («Продолжение следует» is no order): in the CEO's brief and the voice's instructions,
+  branch `fix/ceo-dictation-tail` on top of 0.3.27 (`shared/ceoAgent.ts#DICTATION_TAIL`).
+- **The CEO's window** moves and resizes freely, opens where it was left on any display, never off every screen; then two
+  or three polish iterations of that window and the home's greeting block with captures before and after (sheleg-design,
+  focused visual work: composition, states, finish; the project's own tokens, no new pack). The greeting block stays light.
+- **Wave C's model** is checked against the owner's first data: [org-graph-model.md](org-graph-model.md) (shares, roles,
+  PM agents, a project of several repositories, the personal organisation). The data stays on the owner's computer.
+
+## Wave J: the CEO's editor mode (not a priority; design only)
+
+The owner: «пока не приоритет, а все остальное приоритет». A row on the board (`b291a1e5`) and this sketch; nothing is
+built until the owner raises it.
+
+- **The switch.** «Режим редактора» in the CEO's window. On, the CEO stops delegating elsewhere: each thing the owner
+  says becomes a Fabric task on the board at high priority (ahead of other sessions' non-critical work, behind a critical
+  bug in progress), and the CEO starts or reuses one Fabric developer console on it.
+- **Who may change code.** Only a Fabric run from its own source (a development checkout: `electron-vite dev`, which
+  already rebuilds the renderer on save and restarts main). Fabric knows it is one by `app.isPackaged === false` and a
+  repository at its root; the developer console runs in that checkout's own worktree, so the owner's running window
+  keeps working while the change is made, and a feature switch (the settings file) turns a new behaviour on for the
+  owner only until it is reviewed.
+- **Everyone else.** An installed build has no source: the same switch files a feature request to PassionCode (the board
+  of the Fabric project, kind request, with the words and the screen it is about) instead of a code change.
+- **Design mode for a request.** The request can carry a mockup: the current screen opened in a copy where its parts can
+  be moved and changed, saved as a static HTML page attached to the request. The renderer's screens stand
+  (`apps/desktop/stand`) already renders each real screen from fixtures, so the copy needs no live data.
+- **Traps to settle before building.** A hot rebuild under a live CEO must not restart the CEO's own console; a change the
+  owner did not see through review must not ship in a release (the switch defaults off in a packaged build); the board
+  priority needs a field the board does not have yet (today the order is the register's own, ADR-0101 §3).

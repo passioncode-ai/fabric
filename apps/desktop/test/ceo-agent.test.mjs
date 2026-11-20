@@ -52,6 +52,17 @@ test('the brief names every tool, the board capability, and carries no em dash i
   }
 })
 
+// The owner, 2026-11-20: «Продолжение следует» at the end of a dictated message is the dictation's tail, not a promise;
+// written by hand into the CEO's CLAUDE.md it was lost each time Fabric wrote the brief again.
+test('the brief carries the owner\'s rule on «Продолжение следует», in both languages', () => {
+  for (const locale of ['ru', 'en']) {
+    const b = ceoBrief({ locale })
+    assert.ok(b.includes('«Продолжение следует»'), `${locale} brief names the phrase`)
+    assert.match(b, locale === 'ru' ? /не обещание продолжения/ : /not a promise of more/)
+    assert.match(b, locale === 'ru' ? /полное поручение/ : /whole order/)
+  }
+})
+
 test('a message line: words, then the attachments by path; nothing for nothing', () => {
   assert.equal(ceoLine('  hi  ', [], 'ru'), 'hi')
   assert.equal(ceoLine('look', ['/a/b.png'], 'ru'), 'look\n\nВложения: /a/b.png')

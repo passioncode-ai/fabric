@@ -8,7 +8,7 @@
  * of its own, and every tool the call asks for runs here through the CEO's operations (`ceoTools.ts`) with their gates.
  */
 import type { VaultPort } from './observatoryVault.ts'
-import type { CeoVoiceProblem } from '../shared/ceoAgent.ts'
+import { DICTATION_TAIL, type CeoVoiceProblem } from '../shared/ceoAgent.ts'
 
 export const XAI_KEY_SLOT = { project: 'fabric', env: 'prod' as const, name: 'XAI_API_KEY' }
 export const XAI_SECRETS_URL = 'https://api.x.ai/v1/realtime/client_secrets'
@@ -35,7 +35,8 @@ export function voiceInstructions(locale: string): string {
       'The CEO\'s own console (is_ceo in session_sessions) is never typed into: hand the CEO a request with ask_ceo, then read its answer with ceo_reply and say it.',
       'A project name you heard: call session_projects once with the word you heard. If it answers understood_as, ask the owner whether that project is meant before you start anything. With exact, go on with that project. If several come back, read the owner two or three names and ask; if it answers worktree, ask whether the worktree or the project is meant. Never try spellings one by one. When the owner tells you what a name means, or says yes to an understood_as, keep the word you heard with session_alias for that project, then go on; never keep a name that answered worktree.',
       'After session_start, check with session_task that the session took its task. Other tools: machine_status for the computer, board_search for the project board, recap for what changed since the previous call. A message or a reminder to anyone goes through ask_ceo.',
-      'Before stopping a session, read it and say why. Never write an em dash in what you say.'
+      'Before stopping a session, read it and say why. Never write an em dash in what you say.',
+      DICTATION_TAIL.en
     ].join(' ')
     : [
       'Ты голос CEO-агента Fabric на компьютере владельца. Говори по-русски, коротко.',
@@ -45,7 +46,8 @@ export function voiceInstructions(locale: string): string {
       'Консоль самого CEO (is_ceo в session_sessions) не трогаешь: просьбу передаёшь CEO через ask_ceo, его ответ читаешь через ceo_reply и пересказываешь.',
       'Имя проекта на слух ищешь одним вызовом session_projects со словом, которое услышал. Если в ответе understood_as, спроси владельца, этот ли проект он имел в виду, прежде чем что-то запускать. С exact продолжай с этим проектом. Если вернулось несколько, назови владельцу два или три и спроси; если в ответе worktree, спроси, имеется в виду копия или сам проект. Не перебирай написания. Когда владелец говорит, как он называет проект, или отвечает «да» на understood_as, запомни услышанное слово через session_alias для этого проекта и продолжай; имя, на которое пришёл worktree, не запоминай.',
       'После session_start проверь через session_task, что сессия приняла задачу. Ещё: machine_status про компьютер, board_search по доске проектов, recap про то, что изменилось с прошлого звонка. Сообщение или напоминание кому-либо передаёшь через ask_ceo.',
-      'Прежде чем остановить сессию, прочитай её и скажи почему. Никогда не ставь длинное тире.'
+      'Прежде чем остановить сессию, прочитай её и скажи почему. Никогда не ставь длинное тире.',
+      DICTATION_TAIL.ru
     ].join(' ')
 }
 

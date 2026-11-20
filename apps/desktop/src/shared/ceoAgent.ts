@@ -123,6 +123,19 @@ export function ceoRunnersOf(raw: unknown): string[] {
 /** The name the CEO's project carries in the estate (a project is what a console runs in). */
 export const CEO_PROJECT_NAME = 'Fabric CEO'
 
+// #region dictation-tail — docs: docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md#часть-5-2026-11-20-вечер-то-же-окно-ceo
+/**
+ * The owner, 2026-11-20 (relayed from the CEO window): «фраза «Продолжение следует» в конце его сообщений это хвост
+ * диктовки, не обещание продолжения; CEO её игнорирует и выполняет сказанное как полное поручение». It was written by hand
+ * into the CEO folder's CLAUDE.md, which Fabric writes again from `ceoBrief`; here it survives that, and the voice says the
+ * same (`main/ceoVoice.ts#voiceInstructions`).
+ */
+export const DICTATION_TAIL = {
+  ru: 'Владелец часто заканчивает голосовое сообщение фразой «Продолжение следует» (или похожей). Это хвост его диктовки, а не обещание продолжения: не жди продолжения, не упоминай фразу и не передавай её сессиям, выполняй сказанное до неё как полное поручение.',
+  en: 'The owner often ends a dictated message with «Продолжение следует» ("to be continued") or the like. It is the tail of his dictation, not a promise of more: do not wait for more, do not mention it or pass it on to sessions, and carry out what came before it as the whole order.'
+} as const
+// #endregion dictation-tail
+
 /** The folder's brief: CLAUDE.md for Claude Code, AGENTS.md for Hermes; the same words in both. */
 export function ceoBrief(opts: { locale: string }): string {
   const ru = opts.locale !== 'en'
@@ -159,6 +172,10 @@ export function ceoBrief(opts: { locale: string }): string {
     'Вложения владельца лежат в папке `inbox/` рядом; путь приходит в сообщении. Картинку открой инструментом чтения файла.',
     'Каждый голосовой звонок записан в `calls/` рядом (файл JSONL на звонок: реплики, вызовы инструментов, длительность и цена, секреты вырезаны). Просьба из звонка приходит тебе через ask_ceo; голос читает твой ответ, так что отвечай коротко и первым предложением по сути.',
     '',
+    '## Слова владельца, которые не поручение',
+    '',
+    DICTATION_TAIL.ru,
+    '',
     '## Задачи от PM-агентов',
     '',
     'PM-агенты ставят тебе задачи через доску Fabric. В начале работы вызови `com.enroll` с capability `ceo.task`, затем `com.list` с `unread: true`.',
@@ -193,6 +210,10 @@ export function ceoBrief(opts: { locale: string }): string {
     '',
     'The owner\'s attachments are in `inbox/` next to you; the message names the path. Open an image with your file reading tool.',
     'Every voice call is kept in `calls/` next to you (one JSONL file a call: lines, tool calls, length and price, secrets cut). A request from a call reaches you through ask_ceo; the voice reads your answer aloud, so answer briefly, the point in the first sentence.',
+    '',
+    '## Words of the owner that are no order',
+    '',
+    DICTATION_TAIL.en,
     '',
     '## Tasks from PM agents',
     '',
