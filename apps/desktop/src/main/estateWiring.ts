@@ -88,7 +88,7 @@ export function startEstateIndex(deps: EstateWiringDeps): Estate {
         // The type filter is bounded by the vocabulary written in code (`estateRun.ts#JOURNAL_TYPES`), never by the
         // data: whatever the runner passes is cut to that list first (`check-list-reads.mjs`).
         journal: async (types, after) => read((deps.store.select('journal', 'seq,type,occurred_at,project_id,actor,payload') as Query).in('type', [...JOURNAL_TYPES.filter((t) => types.includes(t))]).gt('seq', after).order('seq', { ascending: true }), 'the journal'),
-        board: deps.boardList, roots: () => defaultRoots(), embedder, now: Date.now,
+        board: deps.boardList, roots: () => defaultRoots(), sourcesDir: () => path.join(dir, 'sources'), embedder, now: Date.now,
         yieldNow: () => new Promise((r) => setImmediate(r))
       })
       return ix

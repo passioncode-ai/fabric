@@ -15,7 +15,7 @@ import { homedir } from 'node:os'
 import path from 'node:path'
 import {
   contextOf, documentWanted, emptyFacts, holder, readClaudeLines, sections, readCodexLines, refsOf, resumeCommand, turnPassages,
-  type CatalogueRow, type TranscriptFacts
+  DOC_KINDS, type CatalogueRow, type DocKind, type TranscriptFacts
 } from '../shared/estateSearch.ts'
 import type { EstateIndex, IndexDoc, IndexEdge, IndexNode } from './estateIndex.ts'
 
@@ -312,6 +312,78 @@ export function readTranscript(index: EstateIndex, ctx: SourceContext, t: { file
   }
 }
 // #endregion transcript-files
+
+// #region memory-sources — docs: docs/evidence/specs/2026-11-20-memory-dashboard.md#10-other-sources-the-connection-point-fabric-inbox-first
+/** A source's folder of `memory-bundle/1` lines: `<sources>/<source>/*.jsonl`, the source named by its folder. */
+export function listSourceFiles(dir: string | null): Array<{ file: string; source: string; size: number; mtime: number }> {
+  if (!dir) return []
+  const out: Array<{ file: string; source: string; size: number; mtime: number }> = []
+  let names: string[] = []
+  try { names = readdirSync(dir) } catch { return out /* no sources folder yet: no source gave anything */ }
+  for (const source of names) {
+    if (!/^[a-z0-9][a-z0-9._-]{0,63}$/.test(source)) continue
+    let files: string[] = []
+    try { files = readdirSync(path.join(dir, source)) } catch { continue /* a file where a folder was expected: not a source */ }
+    for (const f of files) {
+      if (!f.endsWith('.jsonl')) continue
+      try { const st = statSync(path.join(dir, source, f)); if (st.isFile() && st.size > 0) out.push({ file: path.join(dir, source, f), source, size: st.size, mtime: st.mtimeMs }) } catch { /* gone between list and stat */ }
+    }
+  }
+  return out
+}
+
+const CONTEXT = /^(personal|org:[A-Za-z0-9._-]{1,64})$/
+const s200 = (v: unknown, n = 200): string | null => (typeof v === 'string' && v.trim() ? v.slice(0, n) : null)
+
+/**
+ * Reads one source file from where the last pass stopped (spec 2026-11-20 §10). A line is taken only when it is a
+ * `memory-bundle/1` record of this folder's source, its context is personal or an organization's, and every id it writes
+ * carries the source's own prefix (`mail:` for fabric-inbox's `mail:…`, so two sources never collide and no source
+ * rewrites Fabric's own rows); an edge may point at any node. Anything else is counted as refused, never guessed.
+ */
+export function readSourceFile(index: EstateIndex, f: { file: string; source: string; size: number; mtime: number }): { docs: number; nodes: number; edges: number; refused: number } {
+  const prev = index.fileState(f.file)
+  const out = { docs: 0, nodes: 0, edges: 0, refused: 0 }
+  if (prev && prev.size === f.size && prev.mtime === f.mtime && prev.offset >= f.size) return out
+  const offset = prev && prev.offset <= f.size ? prev.offset : 0
+  const fd = openSync(f.file, 'r')
+  try {
+    const len = Math.min(CHUNK, f.size - offset)
+    const buf = Buffer.alloc(len)
+    const got = readSync(fd, buf, 0, len, offset)
+    const text = buf.subarray(0, got).toString('utf8')
+    const lastNl = text.lastIndexOf('\n')
+    if (lastNl < 0) return out
+    const whole = text.slice(0, lastNl)
+    const b = batch()
+    const own = (id: unknown): id is string => typeof id === 'string' && id.length <= 300 && /^[a-z][a-z0-9-]*:/.test(id) && !/^(task|session|console|project|commit|message|act|decision|record|doc|agent|claude|codex|fact|note):/.test(id)
+    for (const raw of whole.split('\n')) {
+      if (!raw.trim()) continue
+      let r: Record<string, unknown>
+      try { r = JSON.parse(raw) as Record<string, unknown> } catch { out.refused++; continue }
+      if (r.bundle !== 'memory-bundle/1' || r.source !== f.source || typeof r.context !== 'string' || !CONTEXT.test(r.context)) { out.refused++; continue }
+      const at = s200(r.at, 40)
+      if (r.kind === 'doc' && own(r.id) && own(r.node) && typeof r.body === 'string') {
+        b.docs.push({ id: r.id, kind: (DOC_KINDS as readonly string[]).includes(String(r.doc_kind)) ? r.doc_kind as DocKind : 'document', source: f.source, node: r.node, title: s200(r.title, 400) ?? r.id, body: r.body.slice(0, 20_000), at,
+          context: r.context, path: s200(r.path, 400), lineStart: typeof r.line_start === 'number' ? r.line_start : null, lineEnd: typeof r.line_end === 'number' ? r.line_end : null })
+        out.docs++
+      } else if (r.kind === 'node' && own(r.id)) {
+        b.nodes.push({ id: r.id, kind: s200(r.node_kind, 40) ?? 'item', label: s200(r.label, 400) ?? r.id, at, attrs: { source: f.source, context: r.context, ...(typeof r.retain_until === 'string' ? { retain_until: r.retain_until } : {}) } })
+        out.nodes++
+      } else if (r.kind === 'edge' && own(r.src) && typeof r.dst === 'string' && r.dst.length <= 300 && typeof r.rel === 'string' && /^[a-z][a-z-]{1,30}$/.test(r.rel)) {
+        b.edges.push({ src: r.src, rel: r.rel, dst: r.dst, at, evidence: s200(r.evidence, 300) })
+        out.edges++
+      } else out.refused++
+    }
+    index.putDocs(b.docs)
+    index.putGraph(b.nodes, b.edges)
+    index.setFileState(f.file, { size: f.size, mtime: f.mtime, offset: offset + Buffer.byteLength(text.slice(0, lastNl + 1)), lines: (prev?.lines ?? 0) + whole.split('\n').length, state: null })
+    return out
+  } finally {
+    closeSync(fd)
+  }
+}
+// #endregion memory-sources
 
 // #region git — docs: docs/evidence/specs/2026-11-19-estate-index-and-graph.md#33-sources-and-how-each-is-kept-current
 

@@ -12,7 +12,7 @@ import { catalogue, type CatalogueInput } from '../shared/estateSearch.ts'
 import { nextMarks, type SourceMarks } from '../shared/memory.ts'
 import type { Embedder, EstateIndex } from './estateIndex.ts'
 import {
-  boardBatch, claimBatch, commitBatch, documentBatch, factBatch, headOf, journalBatch, linkBatch, listTranscripts, mainOfWorktree, makeContext, noteBatch,
+  boardBatch, claimBatch, listSourceFiles, readSourceFile, commitBatch, documentBatch, factBatch, headOf, journalBatch, linkBatch, listTranscripts, mainOfWorktree, makeContext, noteBatch,
   projectBatch, readTranscript, taskBatch, type Batch, type SourceContext, type TranscriptRoot
 } from './estateSources.ts'
 
@@ -39,6 +39,8 @@ export interface EstateRunDeps {
   /** The board's messages after a sequence, oldest first, 100 at most (the operator's door). */
   board(after: number): Promise<{ messages: Rows; last: number; more: boolean }>
   roots(): TranscriptRoot[]
+  /** The folder of other sources' `memory-bundle/1` files (spec 2026-11-20 §10); absent or null when none is read. */
+  sourcesDir?(): string | null
   embedder(): Promise<Embedder | null>
   now(): number
   yieldNow(): Promise<void>
@@ -52,6 +54,8 @@ export interface PassReport {
   commits: number
   documents: number
   embedded: number
+  /** What other sources gave this pass (fabric-inbox and the like); absent before any source folder exists. */
+  sources?: { files: number; docs: number; nodes: number; edges: number; refused: number }
   degraded: string[]
 }
 
@@ -171,6 +175,27 @@ export function createEstateRunner(deps: EstateRunDeps) {
       }
     } catch (e) { /* named in the pass's degraded; the other sources still land */ degraded.push(`transcripts-unread: ${e instanceof Error ? e.message.slice(0, 160) : String(e)}`) }
 
+    // #region memory-sources-pass — docs: docs/evidence/specs/2026-11-20-memory-dashboard.md#10-other-sources-the-connection-point-fabric-inbox-first
+    // Other sources' bundles (fabric-inbox first): each file from where the last pass stopped; a refused line is counted.
+    let sources: PassReport['sources']
+    try {
+      const files = listSourceFiles(deps.sourcesDir?.() ?? null)
+      if (files.length) {
+        sources = { files: 0, docs: 0, nodes: 0, edges: 0, refused: 0 }
+        for (const f of files) {
+          if (deps.now() - started > budgetMs * 2) { degraded.push(`source-deferred: ${f.source}`); continue }
+          try {
+            const r = readSourceFile(ix, f)
+            sources.files++; sources.docs += r.docs; sources.nodes += r.nodes; sources.edges += r.edges; sources.refused += r.refused
+            docs += r.docs
+            if (r.refused) degraded.push(`source-refused: ${f.source}: ${r.refused}`)
+          } catch (e) { /* named in the pass's degraded; the other sources still land */ degraded.push(`source-unread: ${f.source}: ${e instanceof Error ? e.message.slice(0, 100) : String(e)}`) }
+          await deps.yieldNow()
+        }
+      }
+    } catch (e) { /* named in the pass's degraded; the other sources still land */ degraded.push(`sources-unread: ${e instanceof Error ? e.message.slice(0, 160) : String(e)}`) }
+    // #endregion memory-sources-pass
+
     let commits = 0
     let documents = 0
     for (const p of ctx.projects.values()) {
@@ -209,7 +234,7 @@ export function createEstateRunner(deps: EstateRunDeps) {
       }
     } catch (e) { /* named in the pass's degraded; the other sources still land */ degraded.push(`embedding-failed: ${e instanceof Error ? e.message.slice(0, 120) : String(e)}`) }
 
-    const report: PassReport = { at: new Date(started).toISOString(), ms: deps.now() - started, docs, transcripts: { read, turns, left }, commits, documents, embedded, degraded }
+    const report: PassReport = { at: new Date(started).toISOString(), ms: deps.now() - started, docs, transcripts: { read, turns, left }, commits, documents, embedded, ...(sources ? { sources } : {}), degraded }
     ix.setMeta('last_pass', JSON.stringify(report))
     // Each source's own mark for Memory's freshness (spec 2026-11-20 §3): a source that failed keeps its last read.
     const prev = ix.meta('sources')

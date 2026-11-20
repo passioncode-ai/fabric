@@ -114,3 +114,30 @@ test('the execute door answers the memory operations for every caller, lists the
   ix.setMeta('last_pass', JSON.stringify({ at: '2026-11-20T21:00:00Z' }))
   assert.equal((await ops.run('execute', { operation: 'memory.overview' })).docs, o1.docs + 1, 'read again after a pass')
 })
+
+test('a source\'s bundle lines (fabric-inbox) are taken from where the last pass stopped, a foreign or broken line counted and never guessed', async () => {
+  const { readSourceFile } = await import(path.resolve(import.meta.dirname, '../src/main/estateSources.ts'))
+  const { mkdirSync, writeFileSync, appendFileSync, statSync } = await import('node:fs')
+  const ix = new EstateIndex(path.join(mkdtempSync(path.join(tmpdir(), 'memory-src-')), 'index.sqlite'))
+  const dir = path.join(mkdtempSync(path.join(tmpdir(), 'memory-sources-')), 'fabric-inbox')
+  mkdirSync(dir, { recursive: true })
+  const file = path.join(dir, '2026-11-20.jsonl')
+  const line = (o) => JSON.stringify({ bundle: 'memory-bundle/1', source: 'fabric-inbox', context: 'personal', ...o }) + '\n'
+  writeFileSync(file, line({ kind: 'doc', id: 'mail:m1', node: 'mail:t1', doc_kind: 'message', title: 'Счёт за сервер', body: 'Счёт за сервер на ноябрь', at: '2026-11-20T10:00:00Z' })
+    + line({ kind: 'node', id: 'mail:t1', node_kind: 'thread', label: 'Счёт за сервер', at: '2026-11-20T10:00:00Z' })
+    + line({ kind: 'edge', src: 'mail:t1', rel: 'relates-to', dst: 'project:p1', at: '2026-11-20T10:00:00Z', evidence: 'subject names the project' })
+    + line({ kind: 'doc', id: 'task:t1', node: 'task:t1', doc_kind: 'task', title: 'x', body: 'y' })
+    + '{not json\n'
+    + JSON.stringify({ bundle: 'memory-bundle/1', source: 'other', context: 'personal', kind: 'doc', id: 'mail:m9', node: 'mail:t9', doc_kind: 'message', title: 'a', body: 'b' }) + '\n')
+  const st = () => { const s = statSync(file); return { file, source: 'fabric-inbox', size: s.size, mtime: s.mtimeMs } }
+  const first = readSourceFile(ix, st())
+  assert.deepEqual({ docs: first.docs, nodes: first.nodes, edges: first.edges }, { docs: 1, nodes: 1, edges: 1 })
+  assert.equal(first.refused, 3, 'an id without the source prefix, a broken line, another source\'s line')
+  const hit = (await ix.search('счёт сервер', {}, null)).hits[0]
+  assert.equal(hit.id, 'mail:m1')
+  assert.equal(hit.context, 'personal')
+  appendFileSync(file, line({ kind: 'doc', id: 'mail:m2', node: 'mail:t1', doc_kind: 'message', title: 'Оплачено', body: 'Счёт оплачен', at: '2026-11-20T11:00:00Z' }))
+  const second = readSourceFile(ix, st())
+  assert.deepEqual({ docs: second.docs, refused: second.refused }, { docs: 1, refused: 0 }, 'only the appended line')
+  assert.equal(ix.neighbours('mail:t1', 1).nodes.some((n) => n.id === 'project:p1'), true)
+})

@@ -92,12 +92,21 @@ packages 1 and 2), verbatim in part: «Когда у нас несколько �
 организации появляется глобальная memory организации всех её проектов, всех дел. Это большой единый датаграф». The
 working names are the brief's and every session uses them:
 
-| Name | Is | Lives |
+The levels, as the owner named them at ~22:35 the same evening (brief
+`ceo/inbox/2026-11-20-logging-passioncode-analytics-brain-levels-brief.md`, item 3): «есть брейн проекта, есть брейн
+организации, где есть связи между разными проектами, есть брейн межорганизациями, есть брейн рабочего места, который
+связывает конкретно твой вижен, и он не шарится внутрь, он твой персональный, в твоем облаке хранится». Every session
+uses these names:
+
+| Level | Is | Lives |
 |---|---|---|
-| **Memory машины** | the estate index of one machine (§1 to §6): the projects whose folders are on it | that machine's `userData/estate-index` |
-| **Memory** (главная машина) | the union of the owner's Memory машины, each link carrying where it came from | the owner's main machine |
-| **Memory организации** | one growing data graph of an organization's projects from every member's machine; only that organization's context | the organization's cloud on PassionCode (passioncode-platform) |
-| **Оболочка** | the owner's own layer of links between projects of different organizations and his personal ones (reuse, borrowing, a decision carried over); operated by CEO Fabric | the owner's main machine only; never exported |
+| **Memory проекта** | one project's documents, sessions, tasks, commits and the links among them | wherever the project's folder is; in every level above as that project's part |
+| **Memory организации** | the links between an organization's projects from every member's machine, one growing data graph; only that organization's context | the organization's cloud on PassionCode (passioncode-platform) |
+| **Memory между организациями** | links between projects of different organizations (reuse, borrowing, a decision carried over) | the owner's side only, as part of the level below |
+| **Memory рабочего места** (= **Оболочка**) | one person's own view: built only from the links that concern that person, across his organizations and personal projects; operated by CEO Fabric; never passed inside an organization | the person's personal cloud, mirrored on his main machine |
+
+The **index of a machine** (Memory машины, §1 to §6) is not a level: it is how every level is collected. Each machine
+indexes the projects whose folders it holds and sends each level only its share.
 
 ### 7.1 Identity that survives a second machine
 
@@ -131,9 +140,9 @@ the Оболочка). On import the cloud checks every row's context against th
 whole on one foreign row. A member's personal projects and other organizations' never leave the member's machine.
 Tests plant a cross-context edge and a foreign document and watch both refused at each end.
 
-### 7.5 Оболочка
+### 7.5 Memory рабочего места (Оболочка) and Memory между организациями
 
-The cross-context links live in the owner's main Memory as `layer = 'overlay'` (relates-to, cites, reuse, carried-over
+The cross-context links (Memory между организациями) and the person's own links live in his Memory рабочего места as `layer = 'overlay'`, kept in his personal cloud and mirrored on his main machine (relates-to, cites, reuse, carried-over
 decision), written by the passes and by CEO Fabric through `fabric_knowledge_execute` (`overlay.link`, `overlay.list`,
 `overlay.unlink`, the owner's words as the reason). No bundle carries them; an organization's Memory never sees them.
 The Memory screen shows them as dashed lines between organizations, only on the owner's machine.
@@ -149,3 +158,49 @@ The Memory screen shows them as dashed lines between organizations, only on the 
 
 Wave 2 of the readiness report (the golden set and the shadow index, task `90cf6d17`) runs beside M1: every merge rule
 is measured on the golden set before it is switched on.
+
+## 8. «Сон»: cleaning, rebuilding and healing
+
+The owner, 2026-11-20 ~22:30 (brief `ceo/inbox/2026-11-20-inbox-graph-and-brain-sleep-brief.md`): «Это ненужная
+информация, устаревшая из мозгов, как сон, как происходит у людей, когда происходит перестроение, очистка мусора,
+лечение». Every level runs a sleep phase, at night or when the machine idles, never during a pass:
+
+| Step | Does | Undo |
+|---|---|---|
+| Archive | moves what aged out of use (a session nobody found or linked in 90 days, a superseded document section, a retracted fact) to `archive.sqlite` beside the index, with why and when | `memory.restore {id}` brings it back with its links |
+| Rebuild links | recomputes derived links (cites, relates-to, the board pairs) from the documents that remain; drops an edge no document asserts any more | the previous edges are kept in the archive for one sleep |
+| Heal | finds what is broken: an edge to a node that never appeared, a document whose file moved or vanished, a vector of a digest no document holds, an FTS row with no document; fixes what can be fixed and lists the rest | each repair is a log line with before and after |
+| Compact | `VACUUM` and FTS `optimize` when the archive moved more than a tenth of the rows | none needed: derived |
+
+A sleep writes one report (`sleep/1`: counts per step, time, what it could not heal) and Memory's overview shows the
+last one. The pattern is recorded in the agents database (session 4deaa22b) for every brain: Memory, Memory
+организации, Sound Engine's brain, the agents database, the data rooms.
+
+## 9. Logs at every level
+
+The owner, ~22:35: «на все должно логироваться … сборы данных типа обработки, передачи на разных уровнях логи. чистятся,
+не засоряются». Each level writes its processing and transfer log in Fabric's operations log (`main/ops.ts`, rotated in
+8 MB segments within a 96 MB budget, 7 to 30 days): a pass (`estate.index.pass`: counts and degraded, already there), a
+bundle sent or taken (`memory.bundle.sent`, `memory.bundle.taken`: machine, context, cursor, counts, refused rows by
+reason), a scope-gate refusal (`memory.scope.refused`), a sleep (`memory.sleep`), a source taken (`memory.source.taken`).
+No document text and no secret reaches a log line: counts, ids, digests and reasons only. The cloud levels keep their
+own logs under the platform's rotation.
+
+## 10. Other sources: the connection point (fabric-inbox first)
+
+A service that builds part of the graph (fabric-inbox from mail, the PassionCode analytics from metrics) gives Fabric
+its share in the same format as a machine (`memory-bundle/1`, §7.3), as JSON lines in a folder Fabric reads on every
+pass: `userData/estate-index/sources/<source>/*.jsonl`, one record per line:
+
+```json
+{"bundle":"memory-bundle/1","source":"fabric-inbox","context":"personal","kind":"doc","id":"mail:<message-id>","node":"mail:<thread-id>","doc_kind":"message","title":"Subject","body":"verbatim text a quote can be checked against","at":"2026-11-20T21:00:00Z","path":null,"retain_until":null}
+{"bundle":"memory-bundle/1","source":"fabric-inbox","context":"personal","kind":"node","id":"mail:<thread-id>","node_kind":"thread","label":"Subject","at":"2026-11-20T21:00:00Z"}
+{"bundle":"memory-bundle/1","source":"fabric-inbox","context":"personal","kind":"edge","src":"mail:<thread-id>","rel":"relates-to","dst":"project:<project id>","at":"2026-11-20T21:00:00Z","evidence":"why"}
+```
+
+A file is read from where the last pass stopped (as a transcript is); a line Fabric cannot read is counted and named in
+the pass, never guessed. The source decides what enters: spam and noise never reach the folder (the owner: «Мы не должны
+формировать Inbox, спам»); `retain_until` lets a source mark what the sleep archives at that date. Ids carry the source's
+prefix (`mail:`, `metric:`), so two sources never collide; `context` follows §7.4 and a document of an organization's
+context reaches only that organization's Memory. The PassionCode analytics (session sshlg-analytics) give their metrics
+this way with `context: org:passioncode`, so they link into Memory организации PassionCode.

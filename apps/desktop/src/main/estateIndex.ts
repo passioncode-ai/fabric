@@ -23,7 +23,8 @@ const PER_NODE = 2
 export interface IndexDoc {
   id: string
   kind: DocKind
-  source: 'claude' | 'codex' | 'fabric' | 'git'
+  /** Fabric's own readers, or another source's name (`fabric-inbox`, spec 2026-11-20 §10). */
+  source: 'claude' | 'codex' | 'fabric' | 'git' | (string & {})
   node: string
   title: string
   body: string
