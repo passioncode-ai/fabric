@@ -547,8 +547,11 @@ test('ER-1: when every runner ends at its start the CEO stops as failed, walks n
   // Nothing walks the set-aside runners again by itself, and a send does not either.
   await settle(30)
   const again = await k.agent.send('again', [])
-  assert.equal(again.ok, false)
+  // 2026-11-20: never lost: kept for the console, said as waiting, with why it could not be typed now.
+  assert.equal(again.ok, true)
+  assert.equal(again.queued, true)
   assert.equal(again.reason, 'not-running')
+  assert.equal(again.status.queued, 1)
   assert.equal(k.log.filter((l) => l[0] === 'open').length, opens)
   // The set-aside time passing lets the walk try them.
   k.tick(60 * 60_000 + 1)
@@ -1017,4 +1020,44 @@ test('sessions: each console says who started it and in which branch; Switchboar
   assert.deepEqual(site.machine_sessions_on_disk.map((d) => d.pid), [501])
   const read = await operations({ diskSessions: async () => disk }).ops.run('sessions', {})
   assert.equal(read.machine_sessions_on_disk, undefined, 'Switchboard read: its rows, not the disk')
+})
+
+// The owner, 2026-11-20, 21:37: «не отправляется сообщение из поп-апа разговора с CEO. Пишется, что сообщение не дошло до
+// CEO. Я руками вставил выше в консоль». The operations log: ceo.agent.delivered failed_before_write readiness_timeout,
+// then ipc.ceo-agent:send not-delivered after 30 s, while the CEO was working. A message is never lost now.
+test('a message the working CEO did not take is kept on disk, said as waiting, and typed when the console takes it, after a restart too', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  const r = await k.agent.send('сделай отчёт', [])
+  assert.equal(r.ok, true, 'never said as lost')
+  assert.equal(r.queued, true)
+  assert.equal(r.reason, 'not-delivered')
+  assert.equal(r.status.queued, 1)
+  const kept = JSON.parse(readFileSync(path.join(k.root, 'pending.json'), 'utf8'))
+  assert.equal(kept.length, 1)
+  assert.match(kept[0].line, /сделай отчёт/)
+  // A second message waits behind the first, in order.
+  await k.agent.send('и ещё одно', [])
+  assert.equal(k.agent.status().queued, 2)
+  // The console takes input again: both are typed, oldest first, and the queue is emptied on disk.
+  busy = false
+  await k.agent.drain()
+  assert.deepEqual(k.delivered.filter(([, t]) => /сделай отчёт|и ещё одно/.test(t)).map(([, t]) => t.includes('сделай') ? 1 : 2), [1, 2])
+  assert.equal(k.agent.status().queued, undefined)
+  assert.deepEqual(JSON.parse(readFileSync(path.join(k.root, 'pending.json'), 'utf8')), [])
+  assert.ok(k.log.some(([op]) => op === 'ceo.agent.queued'))
+  assert.ok(k.log.some(([op, d]) => op === 'ceo.agent.queue-delivered' && d.left === 0))
+})
+
+test('what waited when Fabric quit is still waiting at the next start, and is typed then', async () => {
+  const k = keeper()
+  writeFileSync(path.join(k.root, 'pending.json'), JSON.stringify([{ line: 'до перезапуска', at: 1 }]))
+  const again = createCeoAgent({ ...k.deps })
+  assert.equal(again.status().queued, 1)
+  await again.ensure()
+  await again.drain()
+  assert.ok(k.delivered.some(([, t]) => t === 'до перезапуска'))
+  assert.equal(again.status().queued, undefined)
 })

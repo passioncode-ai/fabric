@@ -17,11 +17,11 @@
  * popup's head shows.
  */
 import { randomUUID } from 'node:crypto'
-import { mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { TerminalSession } from '../shared/types.ts'
 import type { Walk } from '../shared/runnerRoute.ts'
-import { ceoBoardNudge, ceoBrief, ceoLine, inboxName, type CeoAttachment, type CeoBoardRequest, type CeoProblem, type CeoSendReason, type CeoState, type CeoStatus } from '../shared/ceoAgent.ts'
+import { CEO_QUEUE_RETRY_MS, ceoBoardNudge, ceoBrief, ceoLine, inboxName, type CeoAttachment, type CeoBoardRequest, type CeoProblem, type CeoSendReason, type CeoState, type CeoStatus } from '../shared/ceoAgent.ts'
 export type { CeoAttachment, CeoState, CeoStatus }
 import { openWithFallback } from './runnerFallback.ts'
 import type { LaunchRoute } from './pty.ts'
@@ -139,13 +139,58 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   const opening = new Set<string>()
   const inbox = path.join(deps.root, 'inbox')
   const metaFile = path.join(deps.root, 'ceo.json')
+  // #region ceo-queue — docs: docs/ux/scenarios.md#scn-189-a-message-to-the-ceo-is-never-lost
+  /** The person's messages the console has not taken yet, oldest first, kept on disk so a restart of Fabric keeps them
+   *  (the owner, 2026-11-20, 21:37: «не отправляется сообщение из поп-апа … Я руками вставил»). */
+  const queueFile = path.join(deps.root, 'pending.json')
+  let queued: Array<{ line: string; at: number }> = (() => {
+    try {
+      const raw = JSON.parse(readFileSync(queueFile, 'utf8')) as unknown
+      return Array.isArray(raw) ? raw.filter((x): x is { line: string; at: number } => !!x && typeof (x as { line?: unknown }).line === 'string' && typeof (x as { at?: unknown }).at === 'number').slice(0, 50) : []
+    } catch { /* no queue kept, or a file that is not one: nothing waits */ return [] }
+  })()
+  const saveQueue = (): void => {
+    try {
+      mkdirSync(deps.root, { recursive: true })
+      writeFileSync(`${queueFile}.tmp`, JSON.stringify(queued), { mode: 0o600 })
+      renameSync(`${queueFile}.tmp`, queueFile)
+    } catch (e) { /* the queue still holds in memory; recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.queue-save-failed', errorClass(e)) }
+  }
+  let draining = false
+  let drainTimer: ReturnType<typeof setTimeout> | null = null
+  const drainLater = (): void => {
+    if (drainTimer || queued.length === 0) return
+    drainTimer = setTimeout(() => { drainTimer = null; void drain() }, CEO_QUEUE_RETRY_MS)
+    ;(drainTimer as { unref?: () => void }).unref?.()
+  }
+  /** Types the waiting messages into the running console, oldest first; one that is not taken waits for the next try. */
+  async function drain(): Promise<void> {
+    if (draining || queued.length === 0) return
+    draining = true
+    try {
+      while (queued.length > 0) {
+        const live = sessionId ? deps.get(sessionId) : null
+        if (!live?.running || state !== 'running') break
+        const head = queued[0]!
+        if (!(await typeInto(live.sessionId, head.line, 'ceo.agent.delivered'))) break
+        queued.shift()
+        saveQueue()
+        deps.record('ceo.agent.queue-delivered', { session_id: live.sessionId, waited_s: Math.round((now() - head.at) / 1000), left: queued.length })
+        changed()
+      }
+    } finally {
+      draining = false
+      drainLater()
+    }
+  }
+  // #endregion ceo-queue
 
   const status = (): CeoStatus => {
     const live = sessionId ? deps.get(sessionId) : null
     const s: CeoState = held && !live?.running ? 'stopped' : state === 'running' && live && !live.running ? 'ended' : state
     const t = now()
     return {
-      state: s, sessionId, runner, models, passedOver, folder: deps.root, problem,
+      state: s, sessionId, runner, models, passedOver, folder: deps.root, problem, ...(queued.length ? { queued: queued.length } : {}),
       setAside: [...setAside.entries()].filter(([, v]) => v.until > t).map(([r, v]) => ({ runner: r, until: v.until, why: v.why }))
     }
   }
@@ -302,7 +347,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   }
 
   /** A message from the person: typed into the console, its attachments named by path. */
-  async function send(text: string, attachments: readonly CeoAttachment[] = []): Promise<{ ok: boolean; reason?: CeoSendReason; name?: string; status: CeoStatus }> {
+  async function send(text: string, attachments: readonly CeoAttachment[] = []): Promise<{ ok: boolean; reason?: CeoSendReason; name?: string; status: CeoStatus; queued?: boolean }> {
     let paths: string[]
     try { paths = saveAttachments(attachments) } catch (e) {
       const x = e as { ceo?: CeoSendReason; file?: string }
@@ -340,7 +385,14 @@ export function createCeoAgent(deps: CeoAgentDeps) {
       await (deps.sleep ?? ((ms: number) => new Promise<void>((res) => setTimeout(res, ms))))(1500)
       try { deps.write(sessionId, '\r') } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.enter-failed', errorClass(e)) }
     }
-    return ok ? { ok: true, status: status() } : { ok: false, reason, status: status() }
+    if (ok) { void drain(); return { ok: true, status: status() } }
+    // Never lost (2026-11-20): kept and typed when the console takes it, after a restart of Fabric too.
+    queued.push({ line, at: now() })
+    saveQueue()
+    deps.record('ceo.agent.queued', { reason, waiting: queued.length, chars: line.length })
+    drainLater()
+    changed()
+    return { ok: true, queued: true, reason, status: status() }
   }
 
   /** ER-10: the person's stop, then, when the console still runs, a forced one; the outcome is recorded. */
@@ -535,8 +587,11 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     }
   }
 
+  // What waited when Fabric last quit is typed once the console runs.
+  if (queued.length) drainLater()
+
   return {
-    status, ensure, send, restart, stop, personStopping, personStopEnded, onOutput, onExit, nudgeBoard,
+    status, ensure, send, restart, stop, personStopping, personStopEnded, onOutput, onExit, nudgeBoard, drain,
     isCeo: (id: string): boolean => id !== '' && (id === sessionId || opening.has(id)),
     sessionId: (): string | null => sessionId,
     projectId: (): string | null => projectId

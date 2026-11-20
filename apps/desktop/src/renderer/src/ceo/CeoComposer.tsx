@@ -46,7 +46,8 @@ export function CeoComposer({
   const [files, setFiles] = useState<Array<CeoAttachment & { size: number }>>([])
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
-  const [sent, setSent] = useState(false)
+  /** `queued`: the console was busy and the message waits for it (2026-11-20: never said as lost). */
+  const [sent, setSent] = useState<false | 'sent' | 'queued'>(false)
   const box = useRef<HTMLTextAreaElement>(null)
   const picker = useRef<HTMLInputElement>(null)
 
@@ -82,7 +83,7 @@ export function CeoComposer({
       if (r.ok) {
         setText('')
         setFiles([])
-        setSent(true)
+        setSent(r.queued ? 'queued' : 'sent')
       } else setProblem(`${t('ceoAgent.composer.failed')} ${r.reason ?? ''}`.trim())
     } catch (e) {
       setProblem(`${t('ceoAgent.composer.failed')} ${e instanceof Error ? e.message : String(e)}`)
@@ -132,7 +133,7 @@ export function CeoComposer({
           <input ref={picker} type="file" multiple hidden aria-label={t('ceoAgent.composer.attach')} onChange={(e) => { void attach(e.target.files); e.target.value = '' }} />
           <button type="button" className="btn btn-ghost" onClick={() => picker.current?.click()}>{t('ceoAgent.composer.attach')}</button>
           {tools}
-          {sent && <span className="muted" role="status">{t('ceoAgent.composer.sent')}</span>}
+          {sent && <span className="muted" role="status">{t(sent === 'queued' ? 'ceoAgent.composer.queued' : 'ceoAgent.composer.sent')}</span>}
           <button type="submit" className="btn ceo-composer-send" disabled={busy || (!text.trim() && files.length === 0)}>
             {t(busy ? 'ceoAgent.composer.sending' : 'ceoAgent.composer.send')}
           </button>

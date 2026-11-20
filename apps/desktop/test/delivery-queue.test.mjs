@@ -70,3 +70,54 @@ test('0.3.27 review DO-6: a first instruction (quietOnly) is never written while
   assert.deepEqual(r, { state: 'failed_before_write', reason: 'readiness_timeout' })
   assert.equal(h.writes.length, 0)
 })
+
+// 2026-11-20: the first task of a session the CEO started was lost again (0daa75f1, e150fe59). Measured on this Mac:
+// Claude Code prints a cursor save and restore about 3 s after its start, then nothing while its start-up hooks run; the
+// settle rule took that quiet for ready, and the paste was dropped before the input box existed. Written once the box's
+// footer shows, the task was taken in every run.
+import { claudePromptDrawn } from '../src/shared/delivery.ts'
+
+test('Claude Code: nothing is typed before its input box is drawn, however quiet the start is', async () => {
+  const writes = []
+  const q = new DeliveryQueue((t) => writes.push(t), () => true, { settleMs: 30, maxWaitMs: 2000, busyAfterMs: 60, promptDrawn: claudePromptDrawn })
+  const r = q.enqueue('the task')
+  q.noteOutput('\x1b7\x1b8')
+  await after(300)
+  assert.equal(writes.length, 0, 'the start-up quiet is not the prompt')
+  assert.equal(q.ready, false)
+  // The box is drawn in pieces; the footer arrives in its own chunk, with colour codes between the words.
+  q.noteOutput('\x1b[2m────────────────────────────\x1b[0m\r\n⏵⏵ auto mode on\r\n (shift+tab ')
+  q.noteOutput('\x1b[2mto cycle)\x1b[0m')
+  assert.equal(q.ready, true)
+  assert.deepEqual(await r, { state: 'written' })
+  assert.equal(writes.length, 1)
+  q.close()
+})
+
+test('Claude Code in its default mode: «? for shortcuts» is the drawn prompt too', () => {
+  assert.equal(claudePromptDrawn('> \n  ? for shortcuts'), true)
+  assert.equal(claudePromptDrawn('╭───────────────╮\n│ ✻ Welcome to Claude Code │'), false)
+})
+
+test('a prompt never recognised does not hold the queue forever: after its wait the settle rule alone applies', async () => {
+  const writes = []
+  const q = new DeliveryQueue((t) => writes.push(t), () => true, { settleMs: 20, maxWaitMs: 2000, promptDrawn: () => false, promptWaitMs: 200 })
+  const r = q.enqueue('hello')
+  q.noteOutput('some other screen')
+  await after(100)
+  assert.equal(writes.length, 0)
+  q.noteOutput('still printing')
+  assert.deepEqual(await r, { state: 'written' })
+  q.close()
+})
+
+test('the busy path does not jump the prompt: a working start-up waits for the box too', async () => {
+  const writes = []
+  const q = new DeliveryQueue((t) => writes.push(t), () => true, { settleMs: 20, maxWaitMs: 600, busyAfterMs: 30, promptDrawn: claudePromptDrawn, promptWaitMs: 5000 })
+  const timer = setInterval(() => q.noteOutput('⠋ starting'), 10)
+  const r = await q.enqueue('hello')
+  clearInterval(timer)
+  q.close()
+  assert.equal(r.reason, 'readiness_timeout')
+  assert.equal(writes.length, 0)
+})

@@ -3518,6 +3518,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'ceoAgent.composer.remove': "Убрать {name}",
   'ceoAgent.composer.tooBig': "{name} больше 25 МБ, не приложен.",
   'ceoAgent.composer.failed': "Сообщение не дошло до CEO.",
+  'ceoAgent.composer.queued': "CEO занят: сообщение в очереди и уйдёт само, как только консоль его примет.",
   'ceoAgent.composer.sent': "Отправлено CEO.",
   'ceoAgent.floating': "Поговорить с CEO",
   'ceoAgent.state.idle': "не запущен",

@@ -3655,6 +3655,7 @@ export const en = {
   'ceoAgent.composer.remove': "Remove {name}",
   'ceoAgent.composer.tooBig': "{name} is over 25 MB and was not attached.",
   'ceoAgent.composer.failed': "The message did not reach the CEO.",
+  'ceoAgent.composer.queued': "The CEO is busy: the message is queued and goes in by itself as soon as the console takes it.",
   'ceoAgent.composer.sent': "Sent to the CEO.",
   'ceoAgent.floating': "Talk to the CEO",
   'ceoAgent.state.idle': "not started",

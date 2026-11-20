@@ -21,6 +21,7 @@ import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } fro
 import { createSharedReading } from '../shared/sharedReading'
 import { startBugCapture, type BugCapture } from './bugCapture'
 import { applyAppIcon, windowIcon } from './appIcon'
+import { claudeTurnTaken } from './claudeTranscript.ts'
 import { isFloorClass, Policy } from './policy'
 import { launchOption, launchOptions, PtyManager, setFolderTrust, setLaunchSink, setPermissionPreference } from './pty'
 import { trustFolderForClaude } from './claudeTrust.ts'
@@ -5105,6 +5106,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     record: (op, detail) => ops.record({ op, outcome: op === 'runner.fallback-attached' ? 'ok' : 'failed',
       level: op === 'runner.fallback-attached' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } }),
     failed: (op, e) => ops.failed(op, e, { note: 'the first instruction was not delivered' }),
+    // 2026-11-20: the transcript says whether the task became a turn (`main/claudeTranscript.ts#claudeTurnTaken`).
+    turnTaken: async (sessionId) => {
+      const l = (await launchJournal?.read({ sessionId }))?.find((x) => x.sessionId === sessionId)
+      return l && l.runner === 'claude-code' && l.runnerSessionId ? claudeTurnTaken(l.cwd, l.runnerSessionId) : null
+    },
     // 2026-11-20: every first instruction's end is written, so a console that sat on an empty prompt says why.
     // 0.3.27 review, PL-10: a task written with no turn started is a warning with the screen's last lines, redacted, so the
     // next empty prompt shows which screen took the text (CO-606's lead).

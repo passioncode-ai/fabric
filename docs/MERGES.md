@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-20 · `DELIVERY-NEVER-DROPS` · fix/delivery-never-drops → feat/voice-retro (the 0.3.27 candidate) · merge
+- files: `apps/desktop/src/main/{deliveryQueue,pty,consoleOpen,claudeTranscript,ceoAgent,index}.ts`, `apps/desktop/src/shared/{delivery,ceoAgent}.ts`, `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx`, i18n, tests `delivery-queue`, `console-open`, `claude-transcript` (new, in `scripts/ci.sh`), `ceo-agent`, `CeoComposer.test.tsx`
+- conflicts: none expected; CHANGELOG written by the release session
+- summary: the owner's blocker of 2026-11-20 evening: nothing is typed into Claude Code before its input box is drawn, a first task with no turn in the transcript is typed once more, a message to the CEO waits in a queue on disk instead of being said as lost
+
 ### 2026-11-20 · `VOICE-RETRO` · feat/voice-retro → main (the 0.3.27 candidate, on top of CEO-BOARD-UX)
 - files: `apps/desktop/src/main/{ceoVoice,ceoVoiceJournal,ceoVoiceTools,ceoProjectAliases,ceoTools,sessionEnroll,fabricMcp,board,index}.ts`, `apps/desktop/src/shared/{heardName,scratchFolder,ceoAgent,types,ipcWindowPolicy}.ts`, the preload, `renderer/src/ceo/{voiceCall,CeoCall}.ts(x)`, tests `voice-retro` (new, in `scripts/ci.sh`), `ceo-agent`, `voiceCall`; CHANGELOG `0.3.27`, SCN-184, `docs/reports/2026-11-20-voice-ceo-retro/`
 - conflicts: the map and mockup coverage (both sides' entries kept, regenerated)

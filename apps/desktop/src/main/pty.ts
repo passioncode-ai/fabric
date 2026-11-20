@@ -20,6 +20,7 @@ import type { LaunchOption, SessionState, TerminalSession } from '../shared/type
 import { AGENTS, mayLaunch, preferredMode, type AgentPermissions, type SurfaceAdapter } from '../shared/agents.ts'
 import { trustsAgentFolders } from '../shared/folderTrust.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
+import { claudePromptDrawn } from '../shared/delivery.ts'
 import { BUSY_WRITE_AFTER_MS, DeliveryQueue, type DeliveryQueueTiming, type DeliveryWriteOptions, type DeliveryWriteResult } from './deliveryQueue.ts'
 import { LaunchRefusedBeforeSpawn, PtyLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
@@ -627,7 +628,8 @@ export class PtyManager {
         session.lastActivityAt = Date.now()
       }, () => session.running && !session.inputHalted,
       // Claude Code takes a message typed while it works and answers it after the turn (deliveryQueue.ts#busyAfterMs).
-      { busyAfterMs: runnerId === 'claude-code' ? BUSY_WRITE_AFTER_MS : undefined, ...this.deliveryTiming }),
+      // 2026-11-20: and nothing is typed into it before its input box is drawn (deliveryQueue.ts#promptDrawn).
+      { busyAfterMs: runnerId === 'claude-code' ? BUSY_WRITE_AFTER_MS : undefined, promptDrawn: runnerId === 'claude-code' ? claudePromptDrawn : undefined, ...this.deliveryTiming }),
       pty,
       scrollback: createBoundedScrollback(),
       written: 0,
@@ -651,7 +653,7 @@ export class PtyManager {
       // and must remain observable until an actual exit arrives.
       pty.onData((data) => {
         this.transcripts?.write(sessionId, data)
-        session.delivery.noteOutput()
+        session.delivery.noteOutput(data)
         session.scrollback.push(data)
         session.written += data.length
         session.lastActivityAt = Date.now()

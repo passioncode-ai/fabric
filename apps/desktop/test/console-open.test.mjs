@@ -89,7 +89,7 @@ test('the fallback order spawns past a runner that could not serve', async () =>
 
 // 2026-11-20, the owner's «what blocks work first»: a CEO-started session sat 40 minutes on an empty prompt. The first
 // instruction is now followed to its end, and its end is written.
-function follow({ results, screen = () => '', runner = 'claude-code', echo = '❯ [Pasted text #1 +12 lines]', enterStarts = true } = {}) {
+function follow({ results, screen = () => '', runner = 'claude-code', echo = '❯ [Pasted text #1 +12 lines]', enterStarts = true, turnTaken } = {}) {
   const log = []
   let text = ''
   const queue = [...results]
@@ -114,7 +114,8 @@ function follow({ results, screen = () => '', runner = 'claude-code', echo = '�
     failed: (op) => log.push(['failed', op]),
     syncPower: () => {},
     delivered: (d) => log.push(['delivered', d]),
-    sleep: async () => {}
+    sleep: async () => {},
+    ...(turnTaken ? { turnTaken } : {})
   }
   const open = createConsoleOpen(deps)
   return { open, log }
@@ -172,4 +173,33 @@ test('0.3.27 review ER-20, DO-6: an Enter after which no turn starts is unconfir
   await lost.open('p1', 'claude-code', 'Long task')
   assert.deepEqual(await lost.open.firstInstruction('s1'), { state: 'written_unconfirmed', reason: 'no_turn_after_enter', attempts: 1 })
   assert.deepEqual(lost.log.find((l) => l[0] === 'deliver')[1], { quietOnly: true }, 'a first instruction never takes the busy path')
+})
+
+// 2026-11-20 (0daa75f1, e150fe59): the paste written before Claude Code drew its box left no trace on the screen; its
+// transcript held no turn from the person. Then the task is typed once more; an unknown transcript never retypes.
+test('a first task dropped without a trace is typed once more when the transcript holds no turn', async () => {
+  const turns = [false, true]
+  const h = follow({ results: [{ state: 'written' }, { state: 'written' }], echo: '', turnTaken: async () => turns.shift() ?? null })
+  const s = await h.open('p1', 'claude-code', 'Do it')
+  const o = await h.open.firstInstruction(s.sessionId)
+  assert.deepEqual(o, { state: 'resubmitted', reason: 'retyped', attempts: 2 })
+  assert.equal(h.log.filter((l) => l[0] === 'deliver').length, 2, 'typed once more, never twice more')
+  assert.equal(h.log.filter((l) => l[0] === 'write').length, 0, 'no bare Enter that could answer a screen')
+})
+
+test('an unknown transcript never retypes; a turn in the transcript is delivered', async () => {
+  const unknown = follow({ results: [{ state: 'written' }], echo: '', turnTaken: async () => null })
+  const s1 = await unknown.open('p1', 'claude-code', 'Do it')
+  assert.deepEqual(await unknown.open.firstInstruction(s1.sessionId), { state: 'written_unconfirmed', reason: 'no_turn_started', attempts: 1 })
+  assert.equal(unknown.log.filter((l) => l[0] === 'deliver').length, 1)
+  const taken = follow({ results: [{ state: 'written' }], echo: '', turnTaken: async () => true })
+  const s2 = await taken.open('p1', 'claude-code', 'Do it')
+  assert.deepEqual(await taken.open.firstInstruction(s2.sessionId), { state: 'delivered', reason: 'turn_in_transcript', attempts: 1 })
+  assert.equal(taken.log.filter((l) => l[0] === 'deliver').length, 1)
+})
+
+test('a retype that still makes no turn is said as unconfirmed, with why', async () => {
+  const h = follow({ results: [{ state: 'written' }, { state: 'written' }], echo: '', turnTaken: async () => false })
+  const s = await h.open('p1', 'claude-code', 'Do it')
+  assert.deepEqual(await h.open.firstInstruction(s.sessionId), { state: 'written_unconfirmed', reason: 'no_turn_after_retype', attempts: 2 })
 })
