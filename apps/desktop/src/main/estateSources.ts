@@ -360,7 +360,7 @@ export function readSourceFile(index: EstateIndex, f: { file: string; source: st
     for (const raw of whole.split('\n')) {
       if (!raw.trim()) continue
       let r: Record<string, unknown>
-      try { r = JSON.parse(raw) as Record<string, unknown> } catch { out.refused++; continue }
+      try { r = JSON.parse(raw) as Record<string, unknown> } catch { /* a line that is not JSON is counted as refused and named in the pass, never guessed */ out.refused++; continue }
       if (r.bundle !== 'memory-bundle/1' || r.source !== f.source || typeof r.context !== 'string' || !CONTEXT.test(r.context)) { out.refused++; continue }
       const at = s200(r.at, 40)
       if (r.kind === 'doc' && own(r.id) && own(r.node) && typeof r.body === 'string') {
