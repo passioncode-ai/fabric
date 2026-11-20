@@ -1613,7 +1613,7 @@ export interface FabricApi {
     /** Keep a look. It changes how Fabric looks, never what it may do. */
     save(next: import('./persona.ts').Persona): Promise<PersonaWrite>
     /** The face drawn as a 1024 PNG data URL becomes the Dock icon (wave I); main window only. */
-    dockIcon?(png: string): Promise<{ applied: boolean; reason?: string }>
+    dockIcon(png: string): Promise<{ applied: boolean; reason?: string }>
   },
   search: {
     /** One field across every project. Grouped by store, never merged: a ranked
