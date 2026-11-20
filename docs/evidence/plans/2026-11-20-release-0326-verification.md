@@ -349,3 +349,23 @@ binary). The claude.ai connectors that need a sign-in are a human gate, not a de
    continues from its history; a running one is not touched), `12e4a915`, `fe5f93aa`, `7e7889f6`, `6255f2d5` (the ADR-0195
    wave, by 2026-11-21 12:00 UTC) and the people.ask `5467c685` (PL-36, PL-41).
 5. The release installed on this computer through the lifecycle broker and its version read back.
+
+**Receipts for the owed items** (2026-11-20, after the tag):
+
+1. CO-604 (34) to (38) and the amendments of (18) and (25): `bd8a00ab` on main, the first commit after the tag.
+2. The knowledge base at 0.3.26 (and 0.3.24, which it had not recorded): fabric-workspace PR #933, merged as `76b0edb7`;
+   its `check:releases` matches Fabric's cells (the other products' cells it reports behind were behind on main before).
+3. Tasks `5c047d7d`, `3bc39496`, `c15ae8cc`, `e5f6aa38` and `5ed0b35b` in review with the version; `226f3fa6` and
+   `340012fe` noted with what remains.
+4. Notices: messages `d727ae63` (thread `20ee2630`), `b518d8f7` (`3ca40854`, with the shipped behaviour for sessions seen
+   only through Switchboard), `7929f44f` (`12e4a915`), `883c7b45` (`fe5f93aa`), `e7f9b805` (`7e7889f6`), `34278a1b`
+   (`6255f2d5`; the ADR-0195 answer stays due by 2026-11-21 12:00 UTC) and `846d1fcc` (thread `49cbd20e`, the people.ask
+   `5467c685`).
+5. Release run 44700970845 green on every platform; v0.3.26 published 2026-11-20 08:33:02 UTC with 14 files; the DMG's
+   `SHA256SUMS` line OK, `gpg --verify` good, `spctl` Notarized Developer ID, `stapler validate` OK. **Not installed by
+   a restart:** the CEO asked (2026-11-20, this session) not to restart the installed Fabric while nine consoles live in
+   it, since bringing consoles back after a restart lands only on 2026-11-21 (CO-603 (5)). The verified bundle is
+   staged beside the installed 0.3.24, and a launchd agent (`ai.passioncode.fabric-0326-apply`, RunAtLoad, outside
+   Fabric) waits for the running Fabric to end, by a quit, a crash, logout or reboot, then swaps the bundles by two
+   renames on one volume, keeps 0.3.24 as the way back, starts nothing and tells the operator's private chat. The
+   installed version is read back on main once that has happened.
