@@ -88,6 +88,8 @@ node --test scripts/test/windows-test-imports.test.mjs
 # The universal macOS pack (0.3.4): node-pty joined with lipo, and no thin or unreadable Mach-O passes; it skips
 # off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs
+# An update replaces Fabric in place, one icon in the Dock (docs/launch/release-mac.md#installing-an-update-on-a-mac).
+node --test scripts/test/install-mac-update.test.mjs
 # ADR-0192 (0.3.18 review, iteration 1, PL-1, PL-2): the board's launch agent is in the tree, ships at
 # Contents/Library/LaunchAgents under the name the app registers, and afterPack refuses an app without it.
 node --experimental-strip-types --test scripts/test/board-service.test.mjs

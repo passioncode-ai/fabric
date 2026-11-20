@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `UPDATE-IN-PLACE` · fix/update-in-place → main · fast-forward (toward 0.3.27)
+- files: `scripts/install-mac-update.mjs`, `scripts/lib/install-mac-update.mjs`, test `install-mac-update` (in `scripts/ci.sh`), `docs/launch/release-mac.md#installing-an-update-on-a-mac`, CHANGELOG, the map, handoff `docs/handoffs/2026-11-21-package-4-paused/`
+- conflicts: none
+- summary: the owner's bug of 2026-11-20, a second Fabric icon after an update: an update swaps only `Contents` of `/Applications/Fabric.app`, keeps the way back as a zip, removes other registrations of the id and keeps one Dock tile; the rest of package 4 waits on `feat/dock-icon-face` and `feat/ui-kit` (paused 2026-11-21 for the strategic plan)
+
 ### 2026-11-20 · `DISPATCH-REFUSALS` · fix/dispatch-refusals-escalate → main · fast-forward (toward 0.3.27)
 - files: `apps/desktop/src/main/boardDispatchRun.ts`, tests `board-dispatch-run` and `adapter-skills` (its calls pass an empty `env`, so a session inside a Switchboard home no longer leaks `CLAUDE_CONFIG_DIR` into it), on-demand spec §3.8 item 6, carryover CO-607, CHANGELOG `0.3.27 (unreleased)`, the design map
 - conflicts: none
