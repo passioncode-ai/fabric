@@ -53,10 +53,10 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
       if (o.cut) return
       o.cut = true
       const cut = JSON.stringify({ t: new Date(now()).toISOString(), kind: 'cut', bytes: o.bytes } satisfies JournalEntry) + '\n'
-      try { appendFileSync(o.file, cut, { mode: 0o600 }) } catch (e) { deps.failed?.('cut', e) }
+      try { appendFileSync(o.file, cut, { mode: 0o600 }) } catch (e) { /* counted by the host (ops.failed), never thrown into the call */ deps.failed?.('cut', e) }
       return
     }
-    try { appendFileSync(o.file, line, { mode: 0o600 }); o.bytes += line.length } catch (e) { deps.failed?.(entry.kind, e) }
+    try { appendFileSync(o.file, line, { mode: 0o600 }); o.bytes += line.length } catch (e) { /* counted by the host (ops.failed), never thrown into the call */ deps.failed?.(entry.kind, e) }
   }
 
   /** A new call: its file is created with its first line; answers the call's id. */
@@ -64,7 +64,7 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
     const call = randomUUID()
     const startedAt = now()
     const stamp = new Date(startedAt).toISOString().replace(/[:.]/g, '-')
-    try { mkdirSync(dir, { recursive: true, mode: 0o700 }) } catch (e) { deps.failed?.('folder', e) }
+    try { mkdirSync(dir, { recursive: true, mode: 0o700 }) } catch (e) { /* counted by the host (ops.failed); the call goes on without a journal */ deps.failed?.('folder', e) }
     const o: Open = { file: path.join(dir, `${stamp}-${call.slice(0, 8)}.jsonl`), bytes: 0, turn: 0, tools: 0, cut: false, startedAt }
     open.set(call, o)
     write(o, { t: new Date(startedAt).toISOString(), kind: 'start', call, voice: clean(meta.voice).slice(0, 40), usd_per_minute: meta.usdPerMinute })
@@ -121,7 +121,7 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
       const f = path.join(dir, n)
       try {
         if (now() - statSync(f).mtimeMs > KEEP_DAYS * 86_400_000) { rmSync(f, { force: true }); removed++ }
-      } catch (e) { deps.failed?.('prune', e) }
+      } catch (e) { /* counted by the host (ops.failed); the file is tried again at the next start */ deps.failed?.('prune', e) }
     }
     return removed
   }
@@ -129,7 +129,7 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
   /** The newest calls first, each summed up from its own file. */
   function list(limit = 10): CallSummary[] {
     let names: string[]
-    try { names = readdirSync(dir).filter((n) => n.endsWith('.jsonl')).sort().reverse().slice(0, Math.max(1, Math.min(limit, 100))) } catch { return [] }
+    try { names = readdirSync(dir).filter((n) => n.endsWith('.jsonl')).sort().reverse().slice(0, Math.max(1, Math.min(limit, 100))) } catch { return [] /* no calls kept yet: the folder is made by the first call */ }
     const out: CallSummary[] = []
     for (const n of names) {
       const rows = readCall(path.join(dir, n))
@@ -149,7 +149,7 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
 /** One call's lines, read back; a line cut while it was written is skipped. */
 export function readCall(file: string): JournalEntry[] {
   let text: string
-  try { text = readFileSync(file, 'utf8') } catch { return [] }
+  try { text = readFileSync(file, 'utf8') } catch { return [] /* a file pruned or unreadable reads as no lines; list() names it with none */ }
   const out: JournalEntry[] = []
   for (const l of text.split('\n')) {
     if (!l.trim()) continue
