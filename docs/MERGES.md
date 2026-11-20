@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-20 · `REGISTRY-CONTRACT` · fix/registry-contract → feat/voice-retro (the 0.3.27 candidate) · merge
+- files: `apps/desktop/src/main/agentRegistry.ts`, `apps/desktop/test/agent-registry.test.mjs`
+- conflicts: none expected; CHANGELOG written by the release session
+- summary: Fabric Inbox's session found that the registry refused descriptors valid by the contract (runner, peer, channels; manager person without an origin), so Inbox was absent and agents could not reach it; the validator now follows the contract
+
 ### 2026-11-20 · `VOICE-RETRO` · feat/voice-retro → main (the 0.3.27 candidate, on top of CEO-BOARD-UX)
 - files: `apps/desktop/src/main/{ceoVoice,ceoVoiceJournal,ceoVoiceTools,ceoProjectAliases,ceoTools,sessionEnroll,fabricMcp,board,index}.ts`, `apps/desktop/src/shared/{heardName,scratchFolder,ceoAgent,types,ipcWindowPolicy}.ts`, the preload, `renderer/src/ceo/{voiceCall,CeoCall}.ts(x)`, tests `voice-retro` (new, in `scripts/ci.sh`), `ceo-agent`, `voiceCall`; CHANGELOG `0.3.27`, SCN-184, `docs/reports/2026-11-20-voice-ceo-retro/`
 - conflicts: the map and mockup coverage (both sides' entries kept, regenerated)
