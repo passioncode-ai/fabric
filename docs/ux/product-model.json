@@ -35763,7 +35763,7 @@
       "screen_refs": [
         "SCR-64"
       ],
-      "coverage": "`apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#useVoiceCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#CallPanel`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#VoiceMeter`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#CallLauncher`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#readKept`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`, `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/csp.test.mjs`.",
+      "coverage": "`apps/desktop/src/renderer/src/ceo/voiceCall.ts#createCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#useVoiceCall`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#CallPanel`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#VoiceMeter`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#CallLauncher`, `apps/desktop/src/renderer/src/ceo/CeoCall.tsx#readKept`, `apps/desktop/src/main/ceoVoice.ts#mintVoiceToken`, `apps/desktop/src/main/ceoVoice.ts#voiceInstructions`, `apps/desktop/src/main/ceoVoiceJournal.ts#createVoiceJournal`, `apps/desktop/src/main/ceoVoiceTools.ts#createVoiceTools`, `apps/desktop/src/shared/heardName.ts#soundKey`, `apps/desktop/electron.vite.config.ts#CEO_CSP`; tests `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`, `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts`, `apps/desktop/test/ceo-agent.test.mjs` («the voice token»), `apps/desktop/test/voice-retro.test.mjs`, `apps/desktop/test/csp.test.mjs`.",
       "registry_status": "implemented (2026-11-18, ADR-0197).",
       "product_observation": "unobserved",
       "expected_result": "the operator talks to the CEO and it acts on the sessions while they talk, and reads back what was said.",
@@ -35787,7 +35787,7 @@
       "errors_recovery": "the order and the models are set by hand in settings.json (`ceoRunners`, `ceoModels`); an unknown runner, and a model below Sonnet 5.5, is dropped.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4663
+        "line": 4664
       }
     },
     {
@@ -35805,7 +35805,7 @@
       "errors_recovery": "an unknown stored voice reads as male, never as a broken look; a refused or missing key is said in words (ru and en).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4684
+        "line": 4685
       }
     },
     {
@@ -35824,7 +35824,7 @@
       "errors_recovery": "a failed stop is said and can be pressed again; a forced stop follows a plain one that did not end the console (ER-10).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4706
+        "line": 4707
       }
     }
   ],
