@@ -20,6 +20,7 @@ decides.**
 | CEO access: start a session on a chosen Switchboard account; wait for a session's answer | `feat/ceo-access` (`30564571`) | Built and tested. Not released. | `docs/reports/2026-11-20-ceo-access-audit/README.md` |
 | Approval modes and the agents' behaviour journal (package D) | `feat/approval-modes` (`52249c78`, on top of ceo-access) | Built and tested. Not released. **Paused.** | `docs/adr/0203-the-owners-approval-mode-says-which-acts-wait-for-him.md`, `docs/reports/2026-11-20-ceo-access-audit/HANDOFF.md` |
 | CEO persona on the home, voice options, calls | `feat/ceo-persona` (on top of approval-modes) | Persona module and header built and tested. Voice and calls researched only. **Paused.** | `docs/evidence/specs/2026-11-20-ceo-persona.md` |
+| Agents reach Fabric Inbox again: the registry follows the descriptor contract (session 8343a070) | `fix/registry-contract` (`279dcd15`) | A bug fix, tested (agent-registry 19/19). Held out of 0.3.27 because the pause allows only the voice retro's fixes. **Take it first in the next release.** | its commit message and `apps/desktop/test/agent-registry.test.mjs` |
 | Fabric mobile app (order of 2026-11-21 00:05) | none | **Not started:** it arrived as the pause began. | `userData/ceo/inbox/2026-11-21-fabric-mobile-app-brief.md` |
 
 ## Decisions the strategist holds
