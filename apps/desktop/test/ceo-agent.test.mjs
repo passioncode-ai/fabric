@@ -355,6 +355,15 @@ test('start says what became of the first task: delivered, or not delivered with
   assert.equal((await none.ops.run('start', { project: 'app', reason: 'no task given' })).first_task, undefined, 'no task, nothing to follow')
 })
 
+test('start refuses a task in words for a plain shell before anything starts; a shell without a task starts', async () => {
+  const o = operations()
+  const r = await o.ops.run('start', { project: 'app', runner: 'shell', task: 'Сделай обзор (кратко)', reason: 'the owner asked' })
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /coding agent/)
+  assert.equal(o.opened.length, 0, 'no empty shell is left behind')
+  assert.equal((await o.ops.run('start', { project: 'app', runner: 'shell', reason: 'a shell to type into' })).ok, true)
+})
+
 test('stop: a console as the person\'s stop, force kills; a Switchboard session ends through Switchboard; its own console never', async () => {
   const o = operations()
   assert.equal((await o.ops.run('stop', { session_id: 'ceo', reason: 'should be refused' })).ok, false)

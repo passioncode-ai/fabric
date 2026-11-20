@@ -21,6 +21,7 @@ import { redact } from '../shared/redact.ts'
 import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
 import { chainOf, type Launch, type LaunchVia } from '../shared/sessionLaunches.ts'
 import { withLaunchOrigin } from './launchOrigin.ts'
+import { SHELL_TAKES_NO_TASK, TAKES_NO_TASK } from './consoleOpen.ts'
 import { switchboardHomeRoots, type DiskSession } from './diskSessions.ts'
 
 const reason = z.string().trim().min(3).max(400).describe('Why: one sentence the owner reads in History.')
@@ -58,7 +59,7 @@ export const CEO_TOOLS = {
   start: {
     mcp: 'fabric_ceo_session_start',
     title: 'Start a session in a project',
-    description: 'Start a coding session in a project as its own Fabric console, with its first task; first_task in the answer says whether the task reached the session (delivered, resubmitted, not_delivered with the next step, or pending). Name the project by its name, id or folder (fabric_ceo_projects lists them); a folder Fabric does not know becomes a project. Use it for new work; to steer a running session use fabric_ceo_session_input.',
+    description: 'Start a coding session in a project as its own Fabric console, with its first task (a task in words goes to a coding agent only: with runner shell, give no task, then type commands with fabric_ceo_session_input); first_task in the answer says whether the task reached the session (delivered, resubmitted, not_delivered with the next step, or pending). Name the project by its name, id or folder (fabric_ceo_projects lists them); a folder Fabric does not know becomes a project. Use it for new work; to steer a running session use fabric_ceo_session_input.',
     input: z.object({
       project: z.string().trim().min(1).max(400).describe('The project\'s name, id or absolute folder.'),
       task: z.string().trim().max(8000).optional().describe('The first instruction the session is given.'),
@@ -390,6 +391,8 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     if ('missing' in found) return refuse(`no project «${a.project}»: name it by fabric_ceo_projects, or give its absolute folder`)
     const project = projects.find((p) => p.id === found.found.id) ?? found.found
     const runner = a.runner ?? ((project as { default_agent?: string | null }).default_agent || 'claude-code')
+    // 2026-11-20: a task in words typed into zsh is a parse error, never work. Refused before anything starts.
+    if (a.task?.trim() && TAKES_NO_TASK.has(runner)) return refuse(`${SHELL_TAKES_NO_TASK}: start it with a coding agent (runner claude-code, codex, hermes, kimi-code or kilo), or without a task and type the command with fabric_ceo_session_input`)
     try {
       const s = await withLaunchOrigin({ by: 'ceo', via: via ?? 'console', reason: a.reason, parentSessionId: deps.ceoSessionId() ?? undefined },
         () => deps.openConsole(project.id, runner, a.task))

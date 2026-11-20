@@ -31,6 +31,13 @@ export const FIRST_INSTRUCTION_CHECK_MS = 3000
 const PASTE_WAITING = /\[Pasted text #\d+/
 /** Claude Code's working line: a turn started, so the instruction was taken (and an Enter now could answer a prompt). */
 const TURN_STARTED = /esc to interrupt/i
+/**
+ * A plain shell takes commands, not a task in words (2026-11-20, the CEO: three sessions started with runner «shell» and a
+ * task printed the task into zsh, which answered «parse error near `)'»). Its first instruction is never typed.
+ */
+export const TAKES_NO_TASK: ReadonlySet<string> = new Set(['shell'])
+export const SHELL_TAKES_NO_TASK = 'a plain shell takes commands, not a task: start an agent for the task, or type a command into the shell'
+
 /** A readiness the queue gave up on may come back: the console printed, then kept printing or stayed silent. */
 const WAIT_AGAIN = new Set(['readiness_timeout', 'readiness_changed'])
 
@@ -129,7 +136,11 @@ export function createConsoleOpen<S extends { sessionId: string; optionId?: stri
       : await deps.ptys.open(projectId, cwd, optionId, null, mode)
     deps.syncPower()
     const release = (): void => { if (claimed) deps.ptys.releaseAttach(claimed) }
-    if (firstInstruction?.trim()) {
+    if (firstInstruction?.trim() && TAKES_NO_TASK.has(optionId)) {
+      release()
+      try { deps.delivered?.({ session_id: session.sessionId, runner: optionId, state: 'not_delivered', reason: 'shell_takes_no_task', attempts: 0 }) } catch { /* the log says its own failures */ }
+      outcomes.set(session.sessionId, Promise.resolve({ state: 'not_delivered', reason: 'shell_takes_no_task', attempts: 0 }))
+    } else if (firstInstruction?.trim()) {
       // The same delivery as the task path, and it must be: two ways of handing an agent its first instruction is two
       // behaviours to keep matched (M103). The claim ends when the instruction is written or refused.
       const outcome = deliverFirst(session, firstInstruction.trim())

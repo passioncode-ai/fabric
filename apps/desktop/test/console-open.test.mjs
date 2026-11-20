@@ -147,3 +147,11 @@ test('a paste left waiting in Claude Code\'s box gets one more Enter; a turn tha
   assert.equal((await working.open.firstInstruction('s1')).state, 'delivered')
   assert.ok(!working.log.some((l) => l[0] === 'write'), 'no Enter once a turn started: it could answer the agent\'s question')
 })
+
+test('a plain shell is never typed a task in words; the end says why (2026-11-20, «parse error near )»)', async () => {
+  const h = follow({ results: [{ state: 'written' }], runner: 'shell' })
+  const s = await h.open('p1', 'shell', 'Сделай обзор (кратко)')
+  assert.equal(h.log.filter((l) => l[0] === 'deliver').length, 0, 'nothing reaches the shell')
+  assert.deepEqual(await h.open.firstInstruction(s.sessionId), { state: 'not_delivered', reason: 'shell_takes_no_task', attempts: 0 })
+  assert.equal(h.log.find((l) => l[0] === 'delivered')[1].reason, 'shell_takes_no_task')
+})
