@@ -9,7 +9,7 @@ import { mkdirSync, renameSync, rmSync } from 'node:fs'
 import path from 'node:path'
 import { catalogue as catalogueOf, type CatalogueInput, type CatalogueRow } from '../shared/estateSearch.ts'
 import { EstateIndex, type Embedder } from './estateIndex.ts'
-import { createEstateRunner, ollamaEmbedder, readOrganizations, type EstateRunner, type PassReport } from './estateRun.ts'
+import { createEstateRunner, JOURNAL_TYPES, ollamaEmbedder, readOrganizations, type EstateRunner, type PassReport } from './estateRun.ts'
 import { defaultRoots } from './estateSources.ts'
 import { createKnowledgeOperations, pastConsoles, recallSession, type KnowledgeOperations, type Recalled } from './knowledgeTools.ts'
 
@@ -85,7 +85,9 @@ export function startEstateIndex(deps: EstateWiringDeps): Estate {
       runner = createEstateRunner({
         index: ix, projects, organizations: () => readOrganizations(),
         page: async (table, col, after, limit) => read((deps.store.select(table, '*') as Query).gt(col, after).order(col, { ascending: true }), table).then((r) => r.slice(0, limit)),
-        journal: async (types, after) => read((deps.store.select('journal', 'seq,type,occurred_at,project_id,actor,payload') as Query).in('type', types).gt('seq', after).order('seq', { ascending: true }), 'the journal'),
+        // The type filter is bounded by the vocabulary written in code (`estateRun.ts#JOURNAL_TYPES`), never by the
+        // data: whatever the runner passes is cut to that list first (`check-list-reads.mjs`).
+        journal: async (types, after) => read((deps.store.select('journal', 'seq,type,occurred_at,project_id,actor,payload') as Query).in('type', [...JOURNAL_TYPES.filter((t) => types.includes(t))]).gt('seq', after).order('seq', { ascending: true }), 'the journal'),
         board: deps.boardList, roots: () => defaultRoots(), embedder, now: Date.now,
         yieldNow: () => new Promise((r) => setImmediate(r))
       })
