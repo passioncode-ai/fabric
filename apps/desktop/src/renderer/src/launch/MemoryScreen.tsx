@@ -119,6 +119,7 @@ export function MemoryScreen({ onError }: { onError(message: string): void }): R
             <div><dt>{t('memoryBase.stat.vectors')}</dt><dd>{t('memoryBase.stat.vectorsValue', { share: vectorsShare.toLocaleString(locale), n: num(ov.vectors.embedded) })}</dd></div>
             {ov.bytes !== null && <div><dt>{t('memoryBase.stat.size')}</dt><dd>{t('memoryBase.stat.mb', { mb: num(Math.round(ov.bytes / 1_048_576)) })}</dd></div>}
           </dl>
+          {ov.byContext.length > 0 && <p className="lp-meta memory-contexts">{t('memoryBase.contexts', { list: ov.byContext.map((c) => `${c.context === 'personal' ? t('memoryBase.personal') : c.label} ${num(c.docs)}`).join(' · ') })}</p>}
           {catching && <p className="lp-meta" role="status">{t('memoryBase.catching', { left: num(catching.left) })}</p>}
           <ul className="memory-sources" aria-label={t('memoryBase.sourcesLabel')}>
             {ov.sources.map((s) => (

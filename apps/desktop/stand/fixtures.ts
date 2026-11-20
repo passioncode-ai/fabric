@@ -100,7 +100,7 @@ const memGraph = {
 
 export const fixtures: Fixtures = {
   'memoryIndex.overview': { ok: true, at: at(0), docs: 194897, nodes: 76528, edges: 135552, bytes: 1008730112, projects: 121, sessions: 867,
-    byKind: { session: 867, turn: 12317, task: 1602, message: 37948, commit: 24209, document: 117019 }, bySource: {}, byContext: [], vectors: { model: 'embeddinggemma', embedded: 5600, of: 194897 },
+    byKind: { session: 867, turn: 12317, task: 1602, message: 37948, commit: 24209, document: 117019 }, byContext: [{ context: 'personal', label: 'Личное', docs: 108340 }, { context: 'org:north', label: 'North', docs: 55510 }, { context: 'org:harbor', label: 'Harbor', docs: 31047 }], vectors: { model: 'embeddinggemma', embedded: 5600, of: 194897 },
     sources: [{ source: 'transcripts', state: 'fresh', readAt: at(0.05), left: 0, unread: 0, error: null }, { source: 'fabric', state: 'fresh', readAt: at(0.05), left: 0, unread: 0, error: null },
       { source: 'board', state: 'catching-up', readAt: at(0.05), left: 1, unread: 0, error: null }, { source: 'git', state: 'fresh', readAt: at(0.05), left: 0, unread: 0, error: null },
       { source: 'vectors', state: 'fresh', readAt: at(0.05), left: 0, unread: 0, error: null }], lastPass: null },

@@ -13,7 +13,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const NOW = '2026-11-20T21:00:00.000Z'
 const overview = {
   ok: true as const, at: NOW, docs: 194897, nodes: 76528, edges: 135552, bytes: 1_008_730_112, projects: 121, sessions: 867,
-  byKind: { session: 867, turn: 12317, task: 1602, message: 37948, commit: 24209, document: 117019 }, bySource: {},
+  byKind: { session: 867, turn: 12317, task: 1602, message: 37948, commit: 24209, document: 117019 },
   byContext: [{ context: 'personal', label: 'Owner', docs: 100 }], vectors: { model: 'embeddinggemma', embedded: 5600, of: 194897 },
   sources: [
     { source: 'transcripts' as const, state: 'catching-up' as const, readAt: NOW, left: 197, unread: 0, error: null },

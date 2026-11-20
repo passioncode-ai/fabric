@@ -541,6 +541,8 @@ export const en = {
   'memoryBase.via.words': "words",
   'memoryBase.via.trigram': "part of a word",
   'memoryBase.via.vector': "meaning",
+  'memoryBase.contexts': "By context: {list}",
+  'memoryBase.personal': "Personal",
   'memoryBase.title': "Memory",
   'memoryBase.lead': "What Fabric knows about every project on this computer: agent sessions, tasks, the board, commits and documents, with the source of every answer.",
   'memoryBase.refresh': "Refresh",

@@ -27,6 +27,8 @@ export interface GraphNode {
   group?: string
   /** How much it weighs (a project's documents); the map sizes it by this. */
   size?: number
+  /** The community the node falls in (Louvain, by code): a zone of the brain; Sound Engine's addition, 2026-11-20. */
+  zone?: number
   /** Anything else the host shows on the node's card. */
   attrs?: Record<string, unknown>
 }
@@ -38,6 +40,9 @@ export interface GraphEdge {
   kind: string
   /** How strong the relation is (requests between two projects); 1 when absent. */
   weight?: number
+  /** How the relation is known: resolved or declared in a document, or guessed by a heuristic (a guessed one never takes
+   *  part in a gate); Sound Engine's addition, 2026-11-20. */
+  conf?: 'proven' | 'declared' | 'heuristic'
 }
 
 export interface GraphData {

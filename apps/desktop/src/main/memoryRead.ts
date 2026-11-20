@@ -29,7 +29,6 @@ export function memoryOverview(ix: EstateIndex, file: string | null, labels: Mem
   const all = (sql: string, ...args: Array<string | number>) => ix.db.prepare(sql).all(...args) as Row[]
   const one = (sql: string, ...args: Array<string | number>) => n((ix.db.prepare(sql).get(...args) as Row | undefined)?.n)
   const byKind = Object.fromEntries(all('SELECT kind, count(*) AS n FROM docs GROUP BY kind').map((r) => [String(r.kind), n(r.n)]))
-  const bySource = Object.fromEntries(all('SELECT source, count(*) AS n FROM docs GROUP BY source').map((r) => [String(r.source), n(r.n)]))
   const byContext = all('SELECT context, count(*) AS n FROM docs GROUP BY context ORDER BY n DESC').map((r) => ({ context: String(r.context), label: labelOf(String(r.context), labels), docs: n(r.n) }))
   const docs = Object.values(byKind).reduce((a, b) => a + b, 0)
   const model = s((ix.db.prepare('SELECT model, count(*) AS n FROM vectors GROUP BY model ORDER BY n DESC LIMIT 1').get() as Row | undefined)?.model)
@@ -47,7 +46,7 @@ export function memoryOverview(ix: EstateIndex, file: string | null, labels: Mem
     bytes,
     projects: one("SELECT count(DISTINCT project) AS n FROM docs WHERE project IS NOT NULL"),
     sessions: byKind.session ?? 0,
-    byKind, bySource, byContext,
+    byKind, byContext,
     vectors: { model, embedded: model ? one('SELECT count(*) AS n FROM vectors WHERE model = ?', model) : 0, of: docs },
     sources: MEMORY_SOURCES.map((source) => {
       const m = marks[source] ?? { readAt: null, left: 0, unread: 0, error: null }

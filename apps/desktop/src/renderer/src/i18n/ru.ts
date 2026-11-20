@@ -2402,6 +2402,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'memoryBase.via.words': "по словам",
   'memoryBase.via.trigram': "по части слова",
   'memoryBase.via.vector': "по смыслу",
+  'memoryBase.contexts': "По контекстам: {list}",
+  'memoryBase.personal': "Личное",
   'memoryBase.title': "Memory",
   'memoryBase.lead': "Что Fabric знает обо всех проектах этого компьютера: сессии агентов, задачи, доска, коммиты и документы, с источником у каждого ответа.",
   'memoryBase.refresh': "Обновить",

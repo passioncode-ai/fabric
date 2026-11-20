@@ -158,7 +158,6 @@ export interface MemoryIndexOverview {
   projects: number
   sessions: number
   byKind: Record<string, number>
-  bySource: Record<string, number>
   byContext: Array<{ context: string; label: string; docs: number }>
   vectors: { model: string | null; embedded: number; of: number }
   sources: Array<{ source: MemorySource; state: Freshness } & SourceMark>
