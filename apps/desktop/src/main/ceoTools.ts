@@ -727,7 +727,11 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       if (x.target.kind === 'dashboards') {
         if (!deps.dashboards) { done(false, 'Fabric Dashboards is not reachable from here'); continue }
         if (x.target.open) {
-          try { await deps.dashboards.open(dashLink(x.target.open.key, '/')) } catch { done(false, 'Fabric Dashboards did not take the link'); continue }
+          try { await deps.dashboards.open(dashLink(x.target.open.key, '/')) } catch (e) {
+            // Said to the caller as this window's failed row; the act's record keeps the reason.
+            deps.record('ceo.dashboard.open', { key: x.target.open.key, outcome: 'failed', error: e instanceof Error ? e.message.slice(0, 200) : String(e) })
+            done(false, 'Fabric Dashboards did not take the link'); continue
+          }
         }
         // A pending macOS question is said after the one Apple Event that met it (UX-13, ER-21).
         if (dashNow && !dashNow.known && dashNow.why.startsWith('macOS asks')) { done(false, dashNow.why); continue }
