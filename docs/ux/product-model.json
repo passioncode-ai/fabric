@@ -35884,7 +35884,7 @@
       "errors_recovery": "no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4639
+        "line": 4641
       }
     },
     {
@@ -35901,7 +35901,7 @@
       "errors_recovery": "the order and the models are set by hand in settings.json (`ceoRunners`, `ceoModels`); an unknown runner, and a model below Sonnet 5.5, is dropped.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4662
+        "line": 4664
       }
     },
     {
@@ -35919,7 +35919,7 @@
       "errors_recovery": "an unknown stored voice reads as male, never as a broken look; a refused or missing key is said in words (ru and en).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4683
+        "line": 4685
       }
     },
     {
@@ -35938,7 +35938,7 @@
       "errors_recovery": "a failed stop is said and can be pressed again; a forced stop follows a plain one that did not end the console (ER-10).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4705
+        "line": 4707
       }
     },
     {
@@ -35957,7 +35957,7 @@
       "errors_recovery": "a part that cannot be read says so in its own place and the others still show; «Обновить» reads again; a check that fails is said and can be pressed again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4725
+        "line": 4727
       }
     }
   ],

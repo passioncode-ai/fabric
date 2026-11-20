@@ -419,6 +419,20 @@ CO-556, 49 requests `queued`, 65 projects with unread board messages, and five d
    «На проверке», its workflow closed.
 5. **Nothing left open** (`board-dispatch-expiry`): the workflow of a run that ended with its item open is kept for the
    next run `KEEP_OPEN_MS` (two hours), then closed, with the switch on or off; a later run opens a new one.
+6. **A refused start is said and does not starve** (org-index's board request `42c14b72`, thread `2afc5038`,
+   2026-11-20). Every run of org-index's inbox from 2026-11-14 to 11-20 was refused by Switchboard before it started
+   (`no_agent` in five workflows, `at_capacity` in one; 1 137 `no_agent` and 241 `at_capacity` across the machine's
+   `board-dispatches.json`), so each offer ended `lapsed` or `superseded` in Observatory with no reason, and the doubling
+   back-off reached six hours and missed every moment an account had room. Since then: a refusal writes a checkpoint
+   `launch-refused` naming Switchboard's code into the workflow Fabric still holds (`board-dispatch-refusal-note`); a
+   passing refusal (`no_agent`, `at_capacity`, `boardDispatchRun.ts#TRANSIENT_REFUSALS`) waits at most 30 minutes
+   (`#refusalWaitMs`), any other keeps `refusalBackoffMs`; and a pass offers launches to the items waiting six hours or
+   more first, the longest first, an inbox item by its oldest unread message (`#launchOrder`, `#STARVED_MS`), the rest in
+   the board's order (requests before mail and left tasks, §3.11). The inbox packet says what its count leaves out
+   (requests, announcements, fan-outs, messages answered later in their thread), so it may be lower than
+   `com.list {unread: true}`. Not in this step, kept in [CO-607](2026-08-16-software-fabric-carryover.md): a series of
+   refusals counted toward the operator (refusals still never count as empty runs) and one signal per project episode
+   through the communicator and «На проверке».
 
 Corrected by the scenario walk of 2026-11-11 ([CO-562](2026-08-16-software-fabric-carryover.md) keeps what it left):
 the liveness checks count from the run's launch (`DispatchRecord.launchedAt`), not the record's creation; a request

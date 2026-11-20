@@ -4,6 +4,16 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-20 · `DISPATCH-REFUSALS` · fix/dispatch-refusals-escalate → main · fast-forward (toward 0.3.27)
+- files: `apps/desktop/src/main/boardDispatchRun.ts`, tests `board-dispatch-run` and `adapter-skills` (its calls pass an empty `env`, so a session inside a Switchboard home no longer leaks `CLAUDE_CONFIG_DIR` into it), on-demand spec §3.8 item 6, carryover CO-607, CHANGELOG `0.3.27 (unreleased)`, the design map
+- conflicts: none
+- summary: org-index's board request `42c14b72`: a refused board start writes Switchboard's code into its workflow (`launch-refused`), `no_agent` and `at_capacity` wait at most 30 min instead of doubling to 6 h, items waiting 6 h or more are offered a free place first, and the inbox packet says what its count leaves out; the operator's signal after a series of refusals is CO-607
+
+### 2026-11-20 · `CEO-BOARD-UX` · feat/ceo-board-ux → main · fast-forward (toward 0.3.27)
+- files: `apps/desktop/src/main/{consoleOpen,deliveryQueue,pty,ceoTools,agentSurface,index}.ts`, `apps/desktop/src/shared/ceoAgent.ts`, tests `console-open`, `delivery-queue` (new, in `scripts/ci.sh`), `ceo-agent`, `agent-surface`; CHANGELOG `0.3.27 (unreleased)`, SCN-183 amendment, the product model, the map, mockup coverage and previews; `docs/evidence/plans/2026-11-20-ceo-board-ux/` (the owner's words, spec, plan, eight mockups, the modules review, an ADR draft, the research)
+- conflicts: none
+- summary: the owner's order of 2026-11-20, «what blocks work» first: a session's first task followed to its end and said to the CEO (`first_task`), a message to a working Claude Code written after 3 s, a project heard by voice found, no task typed into a plain shell, an unknown hub client named by digest; then the plan in waves and the mockups for the owner to choose from. The voice retro (`feat/voice-retro`, session 9cda1c0f) stacks on this and releases 0.3.27
+
 ### 2026-11-20 · `FABRIC-0326` · fix/home-ceo-right → main · fast-forward at the 0.3.26 release
 - files: `EstateHome.tsx`, `launch/{launch.css,rail.css,LaunchShell.tsx,AgentsScreen.tsx,MachineSessions.tsx,ContinueSessionAsk.tsx,continueQueue.ts}`, `apps/desktop/stand/fixtures.ts` (the screens stand), `main/{machineSessions,index,ceoTools,pty,sessionLaunches,diskSessions}.ts`, `shared/{linkRoute,sessionLaunches}.ts`, `shared/contract/{fabricLinks,secretShape}.ts` (DEC-0189 re-vendored at `4c978495`), IPC and preload, both locales, `App.tsx`, tests (`session-resume`, `session-launches`, `ceo-agent`, `Rail`, `MachineSessions`, `ContinueSessionAsk`, `continueQueue`, `linkRoute`), `scripts/ci.sh`, CHANGELOG, the spec `2026-11-20-home-agents-sessions.md`, SCN-142, SCN-166 and SCN-182, the carry-over (CO-601, CO-603, CO-604), the release ledger and reviews, the map; merges of `feat/ceo-popup-redesign`, `feat/session-launch-journal`, `fix/session-end-fast`
 - conflicts: CHANGELOG, MERGES, the map, the product model, `main/index.ts` (the person's stop of the CEO and the launch journal's stop record, both kept), `ceo-agent.test.mjs` (both sides' tests kept)

@@ -80,8 +80,20 @@ test('a project by id, folder, name or words; two matches ask instead of guessin
   assert.equal(findProject(ps, '/d/alpha/').found.id, '1')
   assert.equal(findProject(ps, 'alpha').found.id, '1')
   assert.equal(findProject(ps, 'beta').found.id, '3')
-  assert.deepEqual(findProject(ps, 'alp').ambiguous, ['Alpha', 'Alpha Web'])
+  assert.deepEqual(findProject(ps, 'alp').ambiguous.map((n) => n.replace(/ \(.*\)$/, '')), ['Alpha', 'Alpha Web'])
   assert.equal(findProject(ps, 'nothing').missing, true)
+  // 2026-11-20, the CEO's voice: «sound engine» is «sound-engine», and a worktree copy of the same name gives way.
+  const heard = [
+    { id: 'se', name: 'sound-engine', repo_path: '/d/sound-engine' },
+    { id: 'sw', name: 'sound-engine-fix-swarm-a', repo_path: '/d/_worktrees/sound-engine-fix-swarm-a' },
+    { id: 'db', name: 'fabric-agents-database', repo_path: '/d/fabric-agents-database' },
+    { id: 'db2', name: 'fabric-agents-database', repo_path: '/d/_worktrees/fabric-agents-database-x' }
+  ]
+  assert.equal(findProject(heard, 'sound engine').found.id, 'se')
+  assert.equal(findProject(heard, 'Sound_Engine').found.id, 'se')
+  assert.equal(findProject(heard, 'fabric-agents-database').found.id, 'db')
+  assert.deepEqual(findProject([heard[2], { ...heard[2], id: 'db3', repo_path: '/e/fabric-agents-database' }], 'fabric-agents-database').ambiguous,
+    ['fabric-agents-database (/d/fabric-agents-database)', 'fabric-agents-database (/e/fabric-agents-database)'], 'two real copies are asked about, by folder')
 })
 
 // ── the keeper ─────────────────────────────────────────────────────────────
@@ -246,6 +258,7 @@ function operations(over = {}) {
     transcriptRoots: over.transcriptRoots ?? [],
     ...(over.launches ? { launches: over.launches } : {}),
     ...(over.diskSessions ? { diskSessions: over.diskSessions } : {}),
+    ...(over.firstTask ? { firstTask: over.firstTask } : {}),
     ...(over.deps ?? {})
   }
   return { ops: createCeoOperations(deps), writes, records, notes, opened, origins, switchboard, consoles }
@@ -329,6 +342,27 @@ test('start: a project by name with its own runner and the task; a new folder be
   assert.equal(n.ok, true)
   assert.deepEqual(o.opened[1], ['p9', 'shell', undefined])
   assert.equal((await o.ops.run('start', { project: 'zzz', reason: 'nothing like it' })).ok, false)
+})
+
+test('start says what became of the first task: delivered, or not delivered with the next step (2026-11-20)', async () => {
+  const fine = operations({ firstTask: () => Promise.resolve({ state: 'resubmitted', attempts: 1 }) })
+  assert.deepEqual((await fine.ops.run('start', { project: 'app', task: 'go', reason: 'the owner asked' })).first_task, { state: 'resubmitted', attempts: 1 })
+  const lost = operations({ firstTask: () => Promise.resolve({ state: 'not_delivered', reason: 'readiness_timeout', attempts: 2 }) })
+  const r = await lost.ops.run('start', { project: 'app', task: 'go', reason: 'the owner asked' })
+  assert.equal(r.ok, true, 'the session did start')
+  assert.equal(r.first_task.state, 'not_delivered')
+  assert.match(r.first_task.next, /fabric_ceo_session_input/)
+  const none = operations({ firstTask: () => Promise.resolve({ state: 'delivered', attempts: 1 }) })
+  assert.equal((await none.ops.run('start', { project: 'app', reason: 'no task given' })).first_task, undefined, 'no task, nothing to follow')
+})
+
+test('start refuses a task in words for a plain shell before anything starts; a shell without a task starts', async () => {
+  const o = operations()
+  const r = await o.ops.run('start', { project: 'app', runner: 'shell', task: 'Сделай обзор (кратко)', reason: 'the owner asked' })
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /coding agent/)
+  assert.equal(o.opened.length, 0, 'no empty shell is left behind')
+  assert.equal((await o.ops.run('start', { project: 'app', runner: 'shell', reason: 'a shell to type into' })).ok, true)
 })
 
 test('stop: a console as the person\'s stop, force kills; a Switchboard session ends through Switchboard; its own console never', async () => {
