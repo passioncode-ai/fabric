@@ -62,6 +62,10 @@
       "description": "On a reply only: the deliverTo its sender gave (DEC-0135 DR-4); absent, the reply was delivered as sender, except one stored before its board adopted DEC-0135, delivered as that board delivered it then. A host sends it only to a reader pinned at or after DEC-0135.",
       "$ref": "comms-common.schema.json#/$defs/deliverTo"
     },
+    "via": {
+      "description": "On a responder's message only (DEC-0181): the operation that wrote it, reply (a fenced com.reply), progress (a com.progress note), effect (the summary of com.effect_begin) or checkpoint (the summary of a replacement's transfer checkpoint). Absent on a participant's message. Only a message with no via, or with via reply, is an answer; a host sends it only to a reader pinned at or after DEC-0181.",
+      "$ref": "comms-common.schema.json#/$defs/responderVia"
+    },
     "request": {
       "type": "object",
       "required": [
@@ -195,6 +199,30 @@
           "reaction": false,
           "deliverTo": false
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "via": true
+        },
+        "required": [
+          "via"
+        ]
+      },
+      "then": {
+        "description": "A responder's message is a reply to the request, takes no deliverTo and carries no reaction (DEC-0135 DR-3, DEC-0181).",
+        "properties": {
+          "kind": {
+            "const": "reply"
+          },
+          "deliverTo": false,
+          "reaction": false,
+          "replyTo": true
+        },
+        "required": [
+          "replyTo"
+        ]
       }
     }
   ]

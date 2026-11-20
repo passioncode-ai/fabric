@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-reply.schema.json",
   "title": "com.reply arguments (fabric-project-comms/0.1, DEC-0073)",
-  "description": "Exactly one of two forms: a participant answers a message (idempotency and replyTo), a responder answers the request it holds (fence). A call carrying both, or neither, is refused. Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
+  "description": "Exactly one of two forms: a participant answers a message (idempotency and replyTo), a responder answers the request it holds (fence). A call carrying both, or neither, is refused. A participant answers an announcement or a question that waits for an answer in the turn it reads it: the result, or the current state (what is done, where it lies by branch or commit, when the rest will be ready, what blocks it), with the result as a second reply when it is ready; a state answer with its nearest date is an answer, a reply that only says it will answer later is not. A request is answered by its slot's holder through com.progress and com.complete, or, when no service ever held its capability's slot (absent at generation 0), by one participant reply declining it with why and what would lift it; any participant reply of the target moves a queued request to answered (DEC-0152 SA-2, SA-3, SA-6). Estate, caller Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused (invalid_arguments).",
   "oneOf": [
     {
       "type": "object",

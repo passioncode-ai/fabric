@@ -44,6 +44,15 @@
         "announcement"
       ]
     },
+    "responderVia": {
+      "description": "The responder operation that wrote a message on a request's thread (DEC-0181).",
+      "enum": [
+        "reply",
+        "progress",
+        "effect",
+        "checkpoint"
+      ]
+    },
     "requestState": {
       "enum": [
         "queued",
