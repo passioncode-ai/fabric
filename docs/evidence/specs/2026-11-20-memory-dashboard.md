@@ -202,7 +202,7 @@ A file is read from where the last pass stopped (as a transcript is); a line Fab
 the pass, never guessed. The source decides what enters: spam and noise never reach the folder (the owner: «Мы не должны
 формировать Inbox, спам»); `retain_until` lets a source mark what the sleep archives at that date. Ids carry the source's
 prefix (`mail:`, `metric:`), so two sources never collide; `context` follows §7.4 and a document of an organization's
-context reaches only that organization's Memory. The PassionCode analytics (session sshlg-analytics) give their metrics
+context reaches only that organization's Memory. The PassionCode analytics (the analytics session) give their metrics
 this way with `context: org:passioncode`, so they link into Memory организации PassionCode.
 
 ## 11. Access by the ownership graph, and smart delegation

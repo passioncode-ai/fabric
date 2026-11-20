@@ -12,7 +12,7 @@ ten-persona matrix could not be computed, and this review walked the scenario's 
 ## Gate output (first evidence)
 
 The report gate reads JSON, so it was run on the fenced `design-review/1` block below, copied verbatim to the
-scratchpad (`/private/tmp/claude-501/-Users-sshlg-DATA-fabric/fd9a633a-633f-48d6-981f-ea24a95c9d0e/scratchpad/design-review.json`).
+scratchpad (временная папка сессии).
 Gate: task-pipeline 1.105.1 `scripts/design_gate.py`.
 
 ```
