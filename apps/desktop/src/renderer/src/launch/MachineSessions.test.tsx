@@ -7,7 +7,9 @@ import { MachineSessionsPanel } from './MachineSessions'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-const row = { pid: 501, sessionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', cwd: '/d/site', name: 'site', status: 'busy', kind: 'interactive', entrypoint: 'cli', startedAt: null, updatedAt: null }
+const row = { pid: 501, sessionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', cwd: '/d/site', name: 'site', status: 'busy', kind: 'interactive', entrypoint: 'cli', startedAt: null, updatedAt: null,
+  source: 'claude' as const, state: 'working' as const, agent: 'claude-code' }
+const about = (key: 'machineSessions.readAbout' | 'machineSessions.continueAbout' | 'machineSessions.closeAbout') => en[key].replace('{folder}', 'site')
 
 function mount(over: Record<string, unknown> = {}) {
   const api = {
@@ -28,14 +30,14 @@ describe('MachineSessionsPanel', () => {
     const { api } = mount()
     const item = await screen.findByTestId('machine-session')
     expect(item.textContent).toContain('site')
-    fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.read'] }))
+    fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.readAbout') }))
     expect(await within(item).findByText('fix the header')).toBeTruthy()
     expect(api.machineRead).toHaveBeenCalledWith(row.sessionId)
   })
   it('continues one in Fabric after the second press and opens its console', async () => {
     const { api, onOpenConsole } = mount()
     const item = await screen.findByTestId('machine-session')
-    fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.continue'] }))
+    fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.continueAbout') }))
     expect(api.machineContinue).not.toHaveBeenCalled()
     fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
     await waitFor(() => expect(onOpenConsole).toHaveBeenCalledWith('console-1'))
@@ -43,12 +45,40 @@ describe('MachineSessionsPanel', () => {
   it('closes one only after the second press; a refusal says why; Cancel does nothing', async () => {
     const { api } = mount({ machineClose: vi.fn(async () => ({ ok: false, why: 'changed' })) })
     const item = await screen.findByTestId('machine-session')
-    fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.close'] }))
+    fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.closeAbout') }))
     fireEvent.click(within(item).getByRole('button', { name: en['common.cancel'] }))
     expect(api.machineClose).not.toHaveBeenCalled()
-    fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.close'] }))
+    fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.closeAbout') }))
     fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
     expect(await screen.findByText(en['machineSessions.why.changed'])).toBeTruthy()
+  })
+  // 0.3.26 review, iteration 1, UX-3: a session only Switchboard names is read here and offers no act.
+  it('a session only Switchboard names is read, never continued or closed from here', async () => {
+    mount({ machineSessions: vi.fn(async () => [{ ...row, pid: 0, name: null, status: null, source: 'switchboard', state: 'waiting' }]) })
+    const item = await screen.findByTestId('machine-session')
+    expect(within(item).getByRole('button', { name: about('machineSessions.readAbout') })).toBeTruthy()
+    expect(within(item).queryByRole('button', { name: about('machineSessions.continueAbout') })).toBeNull()
+    expect(within(item).queryByRole('button', { name: about('machineSessions.closeAbout') })).toBeNull()
+    expect(item.textContent).toContain(en['machineSessions.viaSwitchboard'])
+  })
+  // UX-1: a folder in no project is refused before anything is stopped; a continue that failed after the stop says so.
+  it('a continue refused for no project, and one stopped but not continued, are said with what to do', async () => {
+    mount({ machineContinue: vi.fn(async () => ({ ok: false, why: 'no-project' })) })
+    let item = await screen.findByTestId('machine-session')
+    fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.continueAbout') }))
+    fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
+    expect(await screen.findByText(en['machineSessions.why.noProject'])).toBeTruthy()
+    cleanup()
+    mount({ machineContinue: vi.fn(async () => ({ ok: false, why: 'stopped-not-continued', resume: { sessionId: row.sessionId, cwd: '/d/site' } })) })
+    item = await screen.findByTestId('machine-session')
+    fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.continueAbout') }))
+    fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
+    expect(await screen.findByText(en['machineSessions.why.stoppedNotContinued'].replace('{id}', row.sessionId).replace('{cwd}', '/d/site'))).toBeTruthy()
+  })
+  it('counts sum to the list: a session with no state is counted as such', async () => {
+    mount({ machineSessions: vi.fn(async () => [row, { ...row, sessionId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', state: null }]) })
+    const counts = await screen.findByTestId('machine-counts')
+    expect(counts.textContent).toContain(en['machineSessions.countsUnknown'].replace('{unknown}', '1').trim())
   })
   it('none, and a read that failed, are said differently', async () => {
     mount({ machineSessions: vi.fn(async () => []) })

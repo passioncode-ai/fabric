@@ -58,6 +58,24 @@ describe('routeForLink', () => {
     expect(routeForLink('fabric://session/new?project=ghost', deps())).toEqual({ route: { kind: 'home' }, notice: 'project-unknown' })
   })
 
+  // DEC-0189 (board thread 3ca40854, fabric-session-links/1): open and continue a session from another app.
+  it('session/open: a console Fabric holds, by its own id or its runner session id, opens it; any other opens Агенты', () => {
+    const consoleOf = (id: string): string | null => (id === 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' ? 'f1f1f1f1-1111-4111-8111-111111111111' : null)
+    expect(routeForLink('fabric://session/open?session=AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA&from=fabric-dashboards', deps({ consoleOf })))
+      .toEqual({ route: { kind: 'agents', session: 'f1f1f1f1-1111-4111-8111-111111111111' }, notice: 'open-session', from: 'fabric-dashboards' })
+    expect(routeForLink('fabric://session/open?session=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', deps({ consoleOf })))
+      .toEqual({ route: { kind: 'agents', session: null }, notice: 'session-outside' })
+  })
+  it('session/continue asks to continue a session no console holds, and opens one a console already runs', () => {
+    const consoleOf = (id: string): string | null => (id === 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' ? 'f1f1f1f1-1111-4111-8111-111111111111' : null)
+    expect(routeForLink('fabric://session/continue?session=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb&from=fabric-switchboard', deps({ consoleOf })))
+      .toEqual({ route: { kind: 'agents', session: null }, notice: 'continue-session', continueSession: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', from: 'fabric-switchboard' })
+    expect(routeForLink('fabric://session/continue?session=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', deps({ consoleOf })).notice).toBe('open-session')
+  })
+  it('a session link with no UUID, or with words, is refused and acts on nothing', () => {
+    expect(routeForLink('fabric://session/open?session=not-a-uuid', deps()).notice).toBe('link-refused')
+    expect(routeForLink('fabric://session/continue?session=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb&prompt=rm', deps()).notice).toBe('link-refused')
+  })
   it('a session link opens its project, ready to start a session', () => {
     expect(routeForLink('fabric://session/new?project=p-atlas&runner=codex', deps())).toEqual({ route: { kind: 'project', projectId: 'p-atlas' }, notice: 'start-session' })
   })

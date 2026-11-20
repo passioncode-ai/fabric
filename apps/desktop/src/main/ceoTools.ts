@@ -488,7 +488,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       launches: rows.slice(0, a.limit ?? 30).map((l) => ({
         session_id: l.sessionId, project: names.get(l.projectId) ?? null, project_id: l.projectId, folder: l.cwd, branch: l.branch,
         runner: l.optionId, launched_by: l.by, via: l.via, reason: l.reason, parent_session_id: l.parentSessionId, task_id: l.taskId,
-        request_id: l.requestId, machine: l.machine, started_at: l.startedAt, runner_session_id: l.runnerSessionId,
+        request_id: l.requestId, started_at: l.startedAt, runner_session_id: l.runnerSessionId,
         resume: l.runnerSessionId && l.runner === 'claude-code' ? `claude --resume ${l.runnerSessionId}` : null,
         running_now: live.has(l.sessionId), ended_at: l.endedAt, end: l.end, exit_code: l.exitCode, stop_asked_by: l.stopAskedBy,
         chain: chainOf(l, byId).map((p) => ({ session_id: p.sessionId, launched_by: p.by, project: names.get(p.projectId) ?? null }))

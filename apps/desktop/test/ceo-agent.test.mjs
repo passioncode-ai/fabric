@@ -922,6 +922,7 @@ test('ER-11 (0.3.25): a second stop door that leaves the console running does no
   await settle()
   assert.equal(k.agent.status().state, 'stopped')
   assert.equal(k.log.filter((l) => l[0] === 'open').length, 1, 'no early-end fallback')
+})
 
 // Board request eef5abeb: the launch journal read by the CEO, its starts written as the CEO's, and the machine's
 // sessions still seen when Switchboard does not answer.

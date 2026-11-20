@@ -6,7 +6,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, utimesSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { claudeSlug, lastSessionOf, projectForFolder } from '../src/main/projectResume.ts'
-import { createMachineSessions, TAKE_OVER_WAIT_MS } from '../src/main/machineSessions.ts'
+import { createMachineSessions, readTail, transcriptCwd, TAKE_OVER_WAIT_MS } from '../src/main/machineSessions.ts'
 
 const id = (n) => `${String(n).repeat(8)}-aaaa-4aaa-8aaa-aaaaaaaaaaaa`
 const USER = JSON.stringify({ type: 'user', message: { role: 'user', content: 'go' } }) + '\n'
@@ -50,7 +50,11 @@ function machine(over = {}) {
   const signals = [], records = [], opened = []
   const m = createMachineSessions({
     live: async () => disk.filter((d) => alive.has(d.pid)),
-    fabricRunnerIds: async () => new Set([id(2)]),
+    fabricRunnerIds: async () => new Set(over.runnerIds ?? [id(2)]),
+    ...(over.fabricPids ? { fabricPids: async () => new Set(over.fabricPids) } : {}),
+    ...('parents' in over ? { parents: async () => (over.parents ? new Map(over.parents) : null) } : {}),
+    ...('project' in over ? { projectFor: async () => over.project } : {}),
+    ...(over.resumeEnded ? { resumeEnded: over.resumeEnded } : {}),
     alive: (pid) => alive.has(pid),
     signal: (pid) => { signals.push(pid); if (!over.stubborn) alive.delete(pid) },
     stillNames: async (s) => over.reused ? false : alive.has(s.pid),
@@ -86,8 +90,30 @@ test('continue in Fabric: stop it outside, wait for it to end, then the console;
   assert.deepEqual(stubborn.opened, [])
   assert.deepEqual(stubborn.signals, [501], 'one SIGTERM, no SIGKILL')
   assert.ok(TAKE_OVER_WAIT_MS >= 5000)
+  // UX-1 (0.3.26 review, iteration 1): a console that failed after the stop says so, with how to go on by hand.
   const fails = machine({ openFails: true })
-  assert.deepEqual(await fails.m.continueInFabric(id(1)), { ok: false, why: 'no project' })
+  assert.deepEqual(await fails.m.continueInFabric(id(1)), { ok: false, why: 'stopped-not-continued', resume: { sessionId: id(1), cwd: '/d/app' } })
+})
+
+test('continue in Fabric: a folder in no project is refused BEFORE anything is stopped (0.3.26 review, UX-1)', async () => {
+  const none = machine({ project: null })
+  assert.deepEqual(await none.m.continueInFabric(id(1)), { ok: false, why: 'no-project' })
+  assert.deepEqual(none.signals, [], 'the person\'s session is left running')
+  assert.deepEqual(none.opened, [])
+  const found = machine({ project: 'p-1' })
+  assert.deepEqual(await found.m.continueInFabric(id(1)), { ok: true, sessionId: 'console-1' })
+  assert.deepEqual(found.signals, [501])
+})
+
+test('a Fabric console is never «outside»: by its pid, or a parent pid, before the journal names its runner session (ER-3, UX-2)', async () => {
+  // 501 runs under 400, a console Fabric holds; the journal does not name it yet.
+  const under = machine({ runnerIds: [], fabricPids: [400], parents: [[501, 450], [450, 400], [400, 1]] })
+  assert.deepEqual((await under.m.list()).map((s) => s.pid), [502])
+  assert.deepEqual(await under.m.close(id(1)), { ok: false, why: 'gone' })
+  assert.deepEqual(under.signals, [], 'Fabric\'s own console is never signalled from here')
+  // The process table not read: only the pid itself is Fabric's.
+  const itself = machine({ runnerIds: [], fabricPids: [501], parents: null })
+  assert.deepEqual((await itself.m.list()).map((s) => s.pid), [502])
 })
 
 test('read: the last turns from its transcript; null when the transcript is not here', async () => {
@@ -124,4 +150,24 @@ test("every session of this Mac: Switchboard's running, waiting and needs-you ro
   // Switchboard not answering leaves the files' sessions.
   assert.deepEqual((await machine({ rows: null }).m.list()).map((s) => s.sessionId), [id(1)])
   assert.deepEqual((await machine({ rows: new Error('timed out') }).m.list()).map((s) => s.sessionId), [id(1)])
+})
+
+// DEC-0189 SL-5: a session that ended is continued from its history; one not here says so.
+test('continue a session that no longer runs: from its transcript, through resumeEnded; without it, gone', async () => {
+  const asked = []
+  const ended = machine({ resumeEnded: async (sid) => { asked.push(sid); return { ok: true, sessionId: 'console-9' } } })
+  assert.deepEqual(await ended.m.continueInFabric(id(7)), { ok: true, sessionId: 'console-9' })
+  assert.deepEqual(asked, [id(7)])
+  assert.deepEqual(ended.signals, [], 'nothing runs, so nothing is signalled')
+  assert.deepEqual(await machine().m.continueInFabric(id(7)), { ok: false, why: 'gone' })
+})
+
+test("a transcript's folder is its first absolute cwd; the tail read starts at a whole line (ER-8)", async () => {
+  assert.equal(transcriptCwd('{"type":"summary"}\n{"cwd":"/w/app","type":"user"}\n'), '/w/app')
+  assert.equal(transcriptCwd('{"cwd":"relative"}\n{"cwd":"/w/b"'), null)
+  const dir = mkdtempSync(path.join(tmpdir(), 'tail-'))
+  const file = path.join(dir, 't.jsonl')
+  writeFileSync(file, 'line-one-is-long\nline-two\nline-three\n')
+  assert.equal(await readTail(file, 18), 'line-three\n')
+  assert.equal(await readTail(file, 1000), 'line-one-is-long\nline-two\nline-three\n')
 })

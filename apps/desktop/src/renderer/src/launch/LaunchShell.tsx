@@ -259,7 +259,13 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   useEffect(() => {
     if (view !== 'agents' || !loadMachine) return
     let alive = true
-    const read = (): void => { loadMachine().then((r) => { if (alive) setMachine(r) }, () => { /* the last reading stays */ }) }
+    // ER-2: a bridge without the method (an older preload, a test's) leaves the rest of the rail as it is.
+    let inFlight = false
+    const read = (): void => {
+      if (inFlight) return
+      inFlight = true
+      Promise.resolve().then(loadMachine).then((r) => { if (alive) setMachine(r) }, () => { /* the last reading stays */ }).finally(() => { inFlight = false })
+    }
     read()
     const timer = setInterval(read, MACHINE_POLL_MS)
     return () => { alive = false; clearInterval(timer) }
@@ -495,12 +501,12 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                 {machine.map((m) => (
                   <li key={m.sessionId}>
                     <button type="button" className="rail-agent rail-recent" title={m.cwd} disabled={!props.onAllSessions} onClick={() => props.onAllSessions?.()}>
-                      <span className={`rail-dot s-${m.state === 'working' ? 'working' : m.state === 'needs_you' ? 'error' : 'waiting'}`} role="img"
-                        aria-label={t(`machineSessions.state.${m.state ?? 'waiting'}` as 'machineSessions.state.waiting')} />
+                      {/* UX-10: the state is said once, by the word beside it; the dot is for the eye. */}
+                      <span className={`rail-dot s-${m.state === 'working' ? 'working' : m.state === 'needs_you' ? 'error' : m.state === 'waiting' ? 'waiting' : 'idle'}`} aria-hidden="true" />
                       <span className="rail-agent-words">
                         <span className="rail-name">{folderName(m.cwd) ?? m.cwd}</span>
                         <span className="rail-agent-line">
-                          <span className="rail-source">{t(`machineSessions.state.${m.state ?? 'waiting'}` as 'machineSessions.state.waiting')}</span>
+                          <span className="rail-source">{t(`machineSessions.state.${m.state ?? 'unknown'}` as 'machineSessions.state.unknown')}</span>
                           <span className="rail-runner"> · {runnerLabel(m.agent ?? 'claude-code', t)}</span>
                         </span>
                       </span>

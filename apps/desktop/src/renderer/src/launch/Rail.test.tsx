@@ -238,7 +238,7 @@ describe('the left column', () => {
   })
 
   // The operator, 2026-11-20: «в дашборде вот вижу сессии а в фабрике не вижу».
-  it('«Агенты» lists every session of this Mac outside Fabric, its state said, and a press opens Агенты', async () => {
+  it('«Агенты» lists every session of this computer outside Fabric, its state said, and a press opens Агенты', async () => {
     const onAllSessions = vi.fn()
     const loadMachine = vi.fn(async () => [
       { pid: 0, sessionId: '11111111-1111-4111-8111-111111111111', cwd: '/w/alpha-agent', name: null, status: null, kind: null, entrypoint: null, startedAt: null, updatedAt: null, source: 'switchboard' as const, state: 'working' as const, agent: 'claude-code' },
@@ -250,7 +250,9 @@ describe('the left column', () => {
     const list = await screen.findByRole('list', { name: en['rail.agents.machine'].replace('{count}', '2') })
     expect(within(list).getByText('alpha-agent')).toBeTruthy()
     expect(within(list).getByText('beta-agent')).toBeTruthy()
-    expect(within(list).getByRole('img', { name: en['machineSessions.state.working'] })).toBeTruthy()
+    // UX-10: the state is said once, as a word (the dot is hidden from a screen reader).
+    expect(within(list).getByText(en['machineSessions.state.working'])).toBeTruthy()
+    expect(within(list).queryAllByRole('img')).toHaveLength(0)
     fireEvent.click(within(list).getAllByRole('button')[0])
     expect(onAllSessions).toHaveBeenCalledTimes(1)
   })

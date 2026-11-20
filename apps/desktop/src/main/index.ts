@@ -13,7 +13,7 @@ import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaTe
 import { createBoardReads } from './boardReads.ts'
 import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitReleaseCommand } from './commandIngressAdapters.ts'
 import { createHash, randomUUID } from 'node:crypto'
-import { execFileSync } from 'node:child_process'
+import { execFile, execFileSync } from 'node:child_process'
 import { dockerRuntimeFor } from './dockerLaunch'
 import { fixPath, halfUpDeps, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStackKeepingData, stopStartingStack } from './env'
 import { resolveHealingHalfUp } from './stackHalfUp.ts'
@@ -458,7 +458,7 @@ import { redact } from '../shared/redact.ts'
 import { claudeSessionOf, createLaunchJournal, readGitBranch, type LaunchJournal } from './sessionLaunches.ts'
 import { withLaunchOrigin } from './launchOrigin.ts'
 import { claudeConfigDirs, defaultAlive, liveClaudeSessions } from './diskSessions.ts'
-import { createMachineSessions } from './machineSessions.ts'
+import { createMachineSessions, readHead, transcriptCwd } from './machineSessions.ts'
 import { gitWorktrees, lastSessionOf, projectForFolder } from './projectResume.ts'
 import { findTranscript, defaultTranscriptRoots, parseMachineRows, transcriptTurns } from './ceoTools.ts'
 import { createTaskStart } from './taskStart.ts'
@@ -585,8 +585,16 @@ function linksStartupDone(): void {
   linkStartupDone = true
 }
 async function openLink(url: string, dropped = 0): Promise<void> {
+  // DEC-0189 SL-4: a session id is a console's own, or the runner session one of Fabric's running consoles runs.
+  const running = ptys ? ptys.list().filter((s) => s.running).map((s) => s.sessionId) : []
+  const runnerToConsole = new Map<string, string>()
+  try {
+    const live = new Set(running)
+    for (const l of (await launchJournal?.read()) ?? []) if (l.runnerSessionId && live.has(l.sessionId)) runnerToConsole.set(l.runnerSessionId.toLowerCase(), l.sessionId)
+  } catch (e) { ops.failed('link.open', e, { note: 'the launch journal was not read: a runner session id opens Агенты' }) }
   // A failed read is `link-unreadable`, said in the window — never routed against an empty list (ER-1, UX-14).
   const result = await resolveLink(url, {
+    consoleOf: (id) => running.find((s) => s.toLowerCase() === id) ?? runnerToConsole.get(id) ?? null,
     projects: async () => {
       const { data, error } = await store.select('projects', 'id,name').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
       if (error) throw new Error(`the projects could not be read: ${error.message}`)
@@ -599,7 +607,7 @@ async function openLink(url: string, dropped = 0): Promise<void> {
       .map((e) => ({ key: e.key, id: e.id, repository: e.repository })),
     failed: (e) => ops.failed('link.open', e, { note: 'the link was answered with link-unreadable' })
   })
-  ops.record({ op: 'link.open', outcome: 'ok', level: result.notice === 'link-refused' || result.notice === 'link-unreadable' ? 'warn' : 'info', detail: { notice: result.notice }, ctx: { correlationId: ops.correlate() } })
+  ops.record({ op: 'link.open', outcome: 'ok', level: result.notice === 'link-refused' || result.notice === 'link-unreadable' ? 'warn' : 'info', detail: { notice: result.notice, ...(result.from ? { from: result.from } : {}) }, ctx: { correlationId: ops.correlate() } })
   // The window closed while the link was read: it waits for the one acceptLink opens.
   if (!mainWindow) { acceptLink(url); return }
   if (mainWindow.isMinimized()) mainWindow.restore()
@@ -4767,16 +4775,29 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return { ok: false, why: 'failed', says: e instanceof Error ? e.message.slice(0, 300) : String(e) }
     }
   })
-  // The operator, 2026-11-20: Агенты must show the sessions Fabric Dashboards shows. Switchboard's rows, one read in
-  // flight and kept 20 s, so the panel's 15 s poll never stacks calls on a loaded machine.
-  let sbRows: { at: number; rows: Promise<ReturnType<typeof parseMachineRows>> } | null = null
-  const switchboardRows = (): Promise<ReturnType<typeof parseMachineRows>> => {
-    if (sbRows && Date.now() - sbRows.at < 20_000) return sbRows.rows
-    const rows = runMachineSwitchboard(sessionEnvironment(process.env), ['--json', 'sessions', '--rows'])
+  // The operator, 2026-11-20: Агенты must show the sessions Fabric Dashboards shows. Switchboard's rows: one read in
+  // flight at a time, fresh for 20 s counted from when it settled; a listing never waits for a read in flight past
+  // ROWS_WAIT_MS and takes the last settled rows instead (0.3.26 review, iteration 1, ER-5, DA-6, UX-11).
+  const ROWS_FRESH_MS = 20_000, ROWS_WAIT_MS = 3_000
+  let sbSettled: { at: number; rows: ReturnType<typeof parseMachineRows> } | null = null
+  let sbInFlight: Promise<ReturnType<typeof parseMachineRows>> | null = null
+  const switchboardRows = async (): Promise<ReturnType<typeof parseMachineRows>> => {
+    if (sbSettled && Date.now() - sbSettled.at < ROWS_FRESH_MS) return sbSettled.rows
+    sbInFlight ??= runMachineSwitchboard(sessionEnvironment(process.env), ['--json', 'sessions', '--rows'])
       .then((r) => (r && r.code === 0 ? parseMachineRows(r.stdout) : null), () => null)
-    sbRows = { at: Date.now(), rows }
-    return rows
+      .then((rows) => { sbSettled = { at: Date.now(), rows: rows ?? sbSettled?.rows ?? null }; return rows })
+      .finally(() => { sbInFlight = null })
+    const waited = await Promise.race([sbInFlight, new Promise<'late'>((r) => setTimeout(() => r('late'), ROWS_WAIT_MS).unref())])
+    return waited === 'late' ? (sbSettled?.rows ?? null) : waited
   }
+  const processParents = (): Promise<Map<number, number> | null> => new Promise((resolve) => {
+    execFile('/bin/ps', ['-A', '-o', 'pid=,ppid='], { timeout: 3_000, maxBuffer: 4 * 1024 * 1024 }, (err, out) => {
+      if (err) { resolve(null); return }
+      const map = new Map<number, number>()
+      for (const line of out.split('\n')) { const [pid, ppid] = line.trim().split(/\s+/).map(Number); if (pid > 1 && ppid >= 0) map.set(pid, ppid) }
+      resolve(map)
+    })
+  })
   const machineSessions = createMachineSessions({
     live: async () => liveClaudeSessions(await claudeConfigDirs()),
     switchboardRows,
@@ -4784,17 +4805,35 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const live = new Set(ptys.list().filter((s) => s.running).map((s) => s.sessionId))
       return new Set(((await launchJournal?.read()) ?? []).filter((l) => l.runnerSessionId && live.has(l.sessionId)).map((l) => l.runnerSessionId!))
     },
+    fabricPids: async () => ptys.runningPids(),
+    parents: processParents,
     alive: defaultAlive,
     signal: (pid) => { process.kill(pid, 'SIGTERM') },
     stillNames: async (s) => (await liveClaudeSessions([s.config])).some((x) => x.pid === s.pid && x.sessionId === s.sessionId),
     transcript: (id) => findTranscript(defaultTranscriptRoots(), id),
-    turns: transcriptTurns,
-    continueInFabric: async (s) => {
-      const project = await projectForFolder(s.cwd, await activeProjectsRead())
-      if (!project) throw new Error(`the folder ${s.cwd} is not in a Fabric project: add it as a project first`)
-      return resumeInFabric(project.id, s.cwd, s.sessionId, s.config, 'Перенесена в Fabric из терминала вне Fabric')
+    // DA-1 (0.3.26 review, iteration 1): another session's words are redacted before they reach the screen, as the CEO's read does.
+    turns: (jsonl, max) => transcriptTurns(jsonl, max).map((t) => ({ ...t, text: redact(t.text).text })),
+    projectFor: async (s) => (await projectForFolder(s.cwd, await activeProjectsRead()))?.id ?? null,
+    // DEC-0189 SL-5: a session that no longer runs is continued from its transcript: its folder is the transcript's
+    // own `cwd`, its Claude home the folder above its projects folder.
+    resumeEnded: async (id) => {
+      if ((await runningClaudeIds()).has(id)) return { ok: false, why: 'still-running' }
+      const file = findTranscript(defaultTranscriptRoots(), id)
+      if (!file) return { ok: false, why: 'gone' }
+      const cwd = transcriptCwd(await readHead(file, 256 * 1024))
+      if (!cwd) return { ok: false, why: 'gone' }
+      const project = await projectForFolder(cwd, await activeProjectsRead())
+      if (!project) return { ok: false, why: 'no-project' }
+      const opened = await resumeInFabric(project.id, cwd, id, path.resolve(file, '..', '..', '..'), 'Продолжена в Fabric по ссылке из другого приложения')
+      return { ok: true, sessionId: opened.sessionId }
     },
-    record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } })
+    continueInFabric: async (s, projectId) => {
+      const id = projectId ?? (await projectForFolder(s.cwd, await activeProjectsRead()))?.id
+      if (!id) throw new Error(`the folder ${s.cwd} is not in a Fabric project`)
+      return resumeInFabric(id, s.cwd, s.sessionId, s.config, 'Перенесена в Fabric из терминала вне Fabric')
+    },
+    // DA-11: every outcome but ok is a failure in the operations log.
+    record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'ok' || detail.outcome === undefined ? 'ok' : 'failed', level: detail.outcome === 'ok' || detail.outcome === undefined ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
   })
   const sessionArg = (v: unknown): string => {
     if (typeof v !== 'string' || !/^[0-9a-f-]{36}$/i.test(v)) throw new Error('Invalid session identity')

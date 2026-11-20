@@ -13,7 +13,10 @@ const LINK_NOTICE_KEY: Record<LinkNotice, StringKey> = {
   'service-unknown': 'links.notice.service-unknown',
   'service-in-no-project': 'links.notice.service-in-no-project',
   'service-in-many-projects': 'links.notice.service-in-many-projects',
-  'link-unreadable': 'links.notice.link-unreadable'
+  'link-unreadable': 'links.notice.link-unreadable',
+  'open-session': 'links.notice.open-session',
+  'session-outside': 'links.notice.session-outside',
+  'continue-session': 'links.notice.continue-session'
 }
 import { NO_MARKS, advance, type FeedMarks } from '../../shared/feedMarks.ts'
 import { APP_SETTINGS_DEFAULTS } from '../../shared/types'
@@ -136,7 +139,8 @@ function backLabel(from: AppRoute['kind'], t: Translate): string {
 
 /** «Недавние» in the rail, a stable function so the rail asks once per showing (`LaunchShell.tsx#loadRecent`). */
 const loadRecentSessions = (): ReturnType<typeof window.fabric.terminal.recent> => window.fabric.terminal.recent()
-const loadMachineSessions = (): ReturnType<typeof window.fabric.agents.machineSessions> => window.fabric.agents.machineSessions()
+const loadMachineSessions = (): ReturnType<typeof window.fabric.agents.machineSessions> =>
+  typeof window.fabric.agents?.machineSessions === 'function' ? window.fabric.agents.machineSessions() : Promise.resolve([])
 
 export function App(): React.JSX.Element {
   const [settings, setSettings] = useState<AppSettings | null>(null)
@@ -573,8 +577,12 @@ function Shell({
   const linkDecided = useRef(false)
   const activeKind = useRef(active.kind)
   activeKind.current = active.kind
+  // DEC-0189 SL-5: a `session/continue` link asks here; the move happens only on the person's press.
+  const [continueAsk, setContinueAsk] = useState<{ session: string; busy: boolean; refused: string | null } | null>(null)
   const applyLink = (r: LinkRoute): void => {
-    goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId) : { kind: 'home' })
+    goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId)
+      : r.route.kind === 'agents' ? { kind: 'agents', ...(r.route.session ? { session: r.route.session } : {}) } : { kind: 'home' })
+    setContinueAsk(r.continueSession ? { session: r.continueSession, busy: false, refused: null } : null)
     setLinkNotice(r.notice)
     setLinksDropped(r.dropped ?? 0)
   }
@@ -1112,6 +1120,29 @@ function Shell({
         >
           {t(LINK_NOTICE_KEY[linkNotice])}
           {linksDropped > 0 && ` ${t('links.notice.dropped', { count: linksDropped })}`}
+        </Banner>
+      )}
+      {continueAsk && (
+        <Banner
+          actions={
+            <>
+              <Button tone="primary" disabled={continueAsk.busy} onClick={() => {
+                const id = continueAsk.session
+                setContinueAsk({ session: id, busy: true, refused: null })
+                window.fabric.agents.machineContinue(id).then((r) => {
+                  if (r.ok) { setContinueAsk(null); setLinkNotice(null); if (r.sessionId) void openConsole(r.sessionId); return }
+                  setContinueAsk({ session: id, busy: false, refused: r.why === 'no-project' ? t('machineSessions.why.noProject')
+                    : r.why === 'gone' ? t('links.continue.gone') : r.why === 'still-running' ? t('machineSessions.why.stillRunning')
+                    : r.why === 'stopped-not-continued' && r.resume ? t('machineSessions.why.stoppedNotContinued', { id: r.resume.sessionId, cwd: r.resume.cwd }) : r.why })
+                }, (e: unknown) => setContinueAsk({ session: id, busy: false, refused: e instanceof Error ? e.message : String(e) }))
+              }}>{t('machineSessions.continue')}</Button>
+              <Button tone="ghost" onClick={() => setContinueAsk(null)}>{t('common.cancel')}</Button>
+            </>
+          }
+        >
+          {t('links.continue.ask', { id: continueAsk.session.slice(0, 8) })}
+          {continueAsk.busy && ` ${t('machineSessions.busy')}`}
+          {continueAsk.refused && ` ${t('machineSessions.refused')} ${continueAsk.refused}`}
         </Banner>
       )}
 

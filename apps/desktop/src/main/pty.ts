@@ -795,6 +795,16 @@ export class PtyManager {
       .map((s) => this.toPublic(s))
   }
 
+  /** The root process of every console that runs now: what «вне Fabric» must never list (0.3.26 review, iteration 1, ER-3). */
+  runningPids(): Set<number> {
+    const out = new Set<number>()
+    for (const s of this.sessions.values()) {
+      const pid = s.process?.pid ?? s.pty?.pid
+      if (s.running && typeof pid === 'number' && pid > 1) out.add(pid)
+    }
+    return out
+  }
+
   get(sessionId: string): TerminalSession | null {
     const s = this.sessions.get(sessionId)
     return s ? this.toPublic(s) : null
