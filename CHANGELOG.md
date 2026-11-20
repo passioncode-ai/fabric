@@ -7,6 +7,15 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **The board has a door of its own for the window** (ADR-0195 wave W2c.2a, board task `8b86adf3`). A new module,
+  `main/operatorDoor.ts`, serves named doors on a loopback port of its own, published as `board-door.json` with a 0600
+  token beside `hub.json`; it refuses another account's process (CO-514), a wrong token, a browser origin and a wrong
+  Host before it reads a call. Nothing starts it yet: the doors the window will call through it land in W2c.2b, and the
+  window switches to it in W2d. No agent and no screen sees a change
+  ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
+
 ## 0.3.26
 
 0.3.25 was not published; its changes are in this release ([the release spec](docs/evidence/specs/2026-11-20-home-agents-sessions.md)).

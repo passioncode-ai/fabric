@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-20 · `—` · refactor/board-operator-door → main · fast-forward
+- files: `apps/desktop/src/main/operatorDoor.ts` (new), `apps/desktop/test/operator-door.test.mjs` (new), `apps/desktop/package.json` (the test in `test`), the plan's W2c.2a, W2c.2b and W2c.1b rows, CHANGELOG `Unreleased`, the map
+- conflicts: none
+- summary: ADR-0195 W2c.2a, the board's operator door as a transport (loopback, owner check, 0600 token, the window's client); nothing starts it until W2c.2b and W2d
+
 ### 2026-11-20 · `FABRIC-0326` · fix/home-ceo-right → main · fast-forward at the 0.3.26 release
 - files: `EstateHome.tsx`, `launch/{launch.css,rail.css,LaunchShell.tsx,AgentsScreen.tsx,MachineSessions.tsx,ContinueSessionAsk.tsx,continueQueue.ts}`, `apps/desktop/stand/fixtures.ts` (the screens stand), `main/{machineSessions,index,ceoTools,pty,sessionLaunches,diskSessions}.ts`, `shared/{linkRoute,sessionLaunches}.ts`, `shared/contract/{fabricLinks,secretShape}.ts` (DEC-0189 re-vendored at `4c978495`), IPC and preload, both locales, `App.tsx`, tests (`session-resume`, `session-launches`, `ceo-agent`, `Rail`, `MachineSessions`, `ContinueSessionAsk`, `continueQueue`, `linkRoute`), `scripts/ci.sh`, CHANGELOG, the spec `2026-11-20-home-agents-sessions.md`, SCN-142, SCN-166 and SCN-182, the carry-over (CO-601, CO-603, CO-604), the release ledger and reviews, the map; merges of `feat/ceo-popup-redesign`, `feat/session-launch-journal`, `fix/session-end-fast`
 - conflicts: CHANGELOG, MERGES, the map, the product model, `main/index.ts` (the person's stop of the CEO and the launch journal's stop record, both kept), `ceo-agent.test.mjs` (both sides' tests kept)
