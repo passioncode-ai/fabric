@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "6a8c9b6730d257bf75e296ab217366bf2a19f5a8",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-6a8c9b67/2026-11-21-plan.md",
+  "reportSha256": "1e563fd484206982c5ba511ee7338640008e5f4d43831bb0937a272e068592df",
+  "reviewerRun": "release-0327-i3r5-plan-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the release commit after the last run changes only declared metadata; a register edit goes in a candidate or on main after the tag; the last run's section names the Claude Code build its gate ran with"
+      ]
+    },
+    {
+      "id": "PL-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run three's sentence says code changed at the 21:37 blocker; V3-PL-16 points at the last run; run four's gate outcome and exit lines for runs three and four are recorded"
+      ]
+    },
+    {
+      "id": "PL-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-609 points at `iteration-3-cbc57ae3/`"
+      ]
+    },
+    {
+      "id": "PL-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-50"
+      ]
+    },
+    {
+      "id": "PL-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Now line, CO-606 and the retro's HANDOFF name the pause and CO-614"
+      ]
+    },
+    {
+      "id": "PL-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rule is stated in this section"
+      ]
+    },
+    {
+      "id": "PL-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-50; the CHANGELOG says a later queue unknown is recorded"
+      ]
+    },
+    {
+      "id": "PL-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the times are named as the owner's, as relayed, in this section and the HANDOFF"
+      ]
+    }
+  ]
+}

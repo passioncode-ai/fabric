@@ -58,6 +58,8 @@ export interface VoiceToolDeps {
   askedAt(): number | null
   /** When the ask's line was written into the CEO's console (its echo follows); absent: the ask's own time. */
   askWrittenAt?(): number | null
+  /** The ask still waits in the CEO's queue, not typed yet (run five, DO-46). */
+  askWaiting?(): boolean
   /** The CEO console's Claude Code transcript (its tail), or null when it has none (another runner, not found). */
   ceoTranscript(): Promise<string | null>
   /** The CEO console's screen, redacted, its last lines; '' when it does not run. */
@@ -120,6 +122,7 @@ export function createVoiceTools(deps: VoiceToolDeps) {
   async function ceoReply(a: { wait_seconds?: unknown }): Promise<Answer> {
     const asked = deps.askedAt()
     if (asked === null) return { ok: false, reason: 'nothing was handed to the CEO in this call: use ask_ceo first' }
+    if (deps.askWaiting?.()) return { ok: false, state: 'queued', reason: 'the ask still waits in the CEO\'s queue: its console has not taken it yet', next: 'do not ask again; tell the owner it waits, and try ceo_reply in a while' }
     const waitS = typeof a.wait_seconds === 'number' && Number.isFinite(a.wait_seconds) ? Math.max(0, Math.min(CEO_REPLY_MAX_S, Math.round(a.wait_seconds))) : CEO_REPLY_WAIT_S
     const until = now() + waitS * 1000
     if (deps.ceoLastActivity() === null) return { ok: false, reason: 'the CEO console is not running: its answer cannot be read now', next: 'tell the owner; the CEO window starts the console again' }

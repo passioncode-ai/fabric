@@ -5356,7 +5356,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     attachable: () => null
   })
   const ceoReach = { granted: (real: string) => real, candidates: scanCandidates, home: homedir() }
+  // Set once the voice's ask mark exists below: the queue tells it when a waiting ask was typed (run five, DO-46).
+  let ceoLineTyped: (line: string) => void = () => {}
   ceoAgent = createCeoAgent({
+    typed: (line) => ceoLineTyped(line),
     root: path.join(app.getPath('userData'), 'ceo'),
     locale: () => readSettings().locale,
     // DA-7: an archived CEO project is never brought back; a new one is made under a fresh id (`ceoAgent.ts#ceoProjectFor`).
@@ -5478,7 +5481,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   try { const n = voiceJournal.closeOrphans(); if (n) ops.record({ op: 'ceo.voice.journal-orphans', outcome: 'ok', level: 'info', detail: { closed: n }, ctx: { correlationId: ops.correlate() } }) } catch (e) { ops.failed('ceo.voice.journal-orphans', e) }
   /** When ask_ceo last handed the CEO a request, by call (finding 7; 0.3.27 review, ER-4): ceo_reply reads what came
    *  after it, and a late ask of an earlier call never sets the next call's. */
-  let voiceAskedAt: { call: string | null; at: number; wroteAt: number } | null = null
+  /** `wroteAt` null: the ask waits in the CEO's queue, `text` finds its line when the queue types it (run five, DO-46). */
+  let voiceAskedAt: { call: string | null; at: number; wroteAt: number | null; text?: string } | null = null
+  ceoLineTyped = (line) => { if (voiceAskedAt && voiceAskedAt.wroteAt === null && voiceAskedAt.text && line.includes(voiceAskedAt.text)) voiceAskedAt.wroteAt = Date.now() }
   let ceoTranscriptFile: { sessionId: string; file: string; at: number } | null = null
   const ceoScreenNow = (lines: number): string => {
     const id = agent.sessionId()
@@ -5488,6 +5493,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   const voiceTools = createVoiceTools({
     askedAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.at : null),
     askWrittenAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.wroteAt : null),
+    askWaiting: () => !!voiceAskedAt && voiceAskedAt.call === voiceJournal.current() && voiceAskedAt.wroteAt === null,
     // The transcript's path is found once per CEO runner session, not on every poll (0.3.27 review, ER-5).
     ceoTranscript: async () => {
       const id = agent.sessionId()
@@ -5611,10 +5617,16 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const r = await agent.send(text, [])
       // The echo window starts when the line was written, not when it was asked (0.3.27 review, ER-25). A queued line was
       // not written: the voice is told it waits, and no echo window starts (0.3.27 review, run four, DO-37).
+      // A queued ask keeps its mark with no write time; ceo_reply then says it waits instead of «ask again» (run five,
+      // DO-46, UX-53). An unknown write may have gone in: marked as written, never asked again (ER-52).
       if (r.ok && !r.queued) voiceAskedAt = { call, at: asked, wroteAt: Date.now() }
-      const said = !r.ok ? undefined : r.queued
-        ? 'queued for the CEO: its console has not taken it yet, and it is typed as soon as it does; tell the owner it waits, and read the answer with ceo_reply later'
-        : 'typed into the CEO console; read its answer with ceo_reply'
+      else if (r.ok && r.queued) voiceAskedAt = { call, at: asked, wroteAt: null, text: text.trim().slice(0, 200) }
+      else if (r.reason === 'delivery-unknown') voiceAskedAt = { call, at: asked, wroteAt: Date.now() }
+      const said = r.reason === 'delivery-unknown'
+        ? 'the write to the CEO console broke off and may have gone in: do not ask again; read ceo_reply, and tell the owner to check the CEO window'
+        : !r.ok ? undefined : r.queued
+          ? 'queued for the CEO: its console has not taken it yet, and it is typed as soon as it does; do not ask again; tell the owner it waits and the answer will be in the CEO window; ceo_reply says when it was typed'
+          : 'typed into the CEO console; read its answer with ceo_reply'
       return { ok: r.ok, ...(r.queued ? { queued: true } : {}), ...(r.reason ? { reason: r.reason } : {}), said }
     }
     const own = await voiceTools.run(tool, args)

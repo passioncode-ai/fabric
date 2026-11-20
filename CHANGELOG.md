@@ -22,8 +22,10 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
   the owner pasted it into the console by hand. A message the console does not take at once now waits in a queue kept
   on disk, in the order it was sent, the window says it is queued, and it is typed as soon as the console takes it,
   after a restart of Fabric too. A CEO that is not running is said as not running, with its message kept for its start;
-  at most 50 messages wait, and a 51st is refused and said; a write whose outcome is unknown is said so and never typed
-  again (`main/ceoAgent.ts`, region `ceo-queue`; SCN-189).
+  writing to a stopped CEO still starts it; at most 50 messages wait, and a 51st is refused and said; a write whose
+  outcome is unknown is said so to the message's sender (one the queue types later is recorded) and never typed again;
+  a line typed into a console that then shows its limit is typed again on the next runner, once (`main/ceoAgent.ts`,
+  region `ceo-queue`; SCN-189).
 - **A session the CEO starts gets its task, and the CEO hears whether it did.** A session started with a task sat 40
   minutes on an empty prompt, and nothing said why: the first instruction's end was dropped unless it threw. Now a
   readiness that lapsed waits one more window (still never a blind write), a long paste left waiting in Claude Code's

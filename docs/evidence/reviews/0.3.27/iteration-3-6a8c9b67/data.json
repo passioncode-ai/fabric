@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "6a8c9b6730d257bf75e296ab217366bf2a19f5a8",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-6a8c9b67/2026-11-21-data.md",
+  "reportSha256": "1f68b52a39dee5f6037e29ad8c4a019fee497994a86d0b557d5a74d682238dc3",
+  "reviewerRun": "release-0327-i3r5-data-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: kept-aside files are kept 30 days and at most three; the record says whether the rename worked (`ceoAgent.ts#keepAside`; test «run five: a full queue refuses before saving any file…»)"
+      ]
+    },
+    {
+      "id": "DA-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a file of the wrong shape, or with invalid entries, is kept aside and recorded (same test)"
+      ]
+    },
+    {
+      "id": "DA-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a full queue refuses before any file is saved (same test)"
+      ]
+    },
+    {
+      "id": "DA-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-48"
+      ]
+    }
+  ]
+}

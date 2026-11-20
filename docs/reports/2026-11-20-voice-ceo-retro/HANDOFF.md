@@ -63,6 +63,14 @@ missing tools ([the retro](README.md)). Session 9cda1c0f.
 `feat/ceo-board-ux` landed on `main` (`37d69d6a`) and this branch merged it; the release of 0.3.27 is under way. Its
 ledger is the entry point from here: `docs/evidence/plans/2026-11-20-release-0327-verification.md`.
 
+On 2026-11-20 at 21:37 (the owner's time, as relayed) the owner reported a session's first task and the CEO popup's
+messages lost; the home's session fixed it on `fix/delivery-never-drops`, merged before the tag, which reopened review
+iteration 3 (runs four and more, each in the ledger). On 2026-11-21 (00:30 as relayed) the owner paused new features
+until the strategic plan (fabric-workspace session 2d03ce15): only fixes go ahead. The registry fix held out of 0.3.27
+by that pause goes first in the next release (CO-614); what the review's runs leave is CO-609 and CO-615. The paused
+CEO work (access, approval modes, persona, voice, calls) has its own handoff for the strategist on `feat/ceo-persona`:
+`docs/reports/2026-11-21-paused-ceo-work-handoff/README.md`.
+
 ## The exact next task (as written before the merge)
 
 When `feat/ceo-board-ux` is on `main`: `git merge origin/main` in the worktree, `bash scripts/ci.sh fast`, then open

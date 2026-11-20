@@ -1150,3 +1150,78 @@ test('run four: a pending file that does not parse is kept aside and recorded, n
   assert.ok(k.log.some(([op]) => op === 'ceo.agent.queue-read-failed'))
   assert.ok(readdirSync(k.root).some((f) => f.startsWith('pending.json.corrupt-')))
 })
+
+// 0.3.27 review, iteration 3, run five: every send goes through the one queue.
+test('run five: with a message waiting, writing to a CEO the person stopped starts it, and both go in order', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  assert.equal((await k.agent.send('A', [])).queued, true)
+  await k.agent.stop()
+  busy = false
+  const r = await k.agent.send('B', [])
+  assert.equal(r.ok, true)
+  assert.equal(k.agent.status().state, 'running')
+  assert.deepEqual(k.delivered.filter(([, t]) => t === 'A' || t === 'B').map(([, t]) => t), ['A', 'B'])
+})
+
+test('run five: a line the queue typed into a console that answers with a limit is typed again on the next runner', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  assert.equal((await k.agent.send('отчёт', [])).queued, true)
+  busy = false
+  await k.agent.drain()
+  k.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  for (let i = 0; i < 40 && k.agent.status().runner !== 'hermes'; i++) await new Promise((r) => setTimeout(r, 5))
+  await new Promise((r) => setTimeout(r, 20))
+  const typed = k.delivered.filter(([, t]) => t === 'отчёт')
+  assert.equal(typed.length, 2, 'once into each console')
+  assert.equal(typed[1][0], k.agent.sessionId())
+})
+
+test('run five: two sends that overlap are typed in the order they were sent', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let n = 0
+  k.deps.deliver = async (id, text) => { n++; if (n === 1) { await new Promise((r) => setTimeout(r, 20)); return { state: 'failed_before_write', reason: 'readiness_timeout' } } k.delivered.push([id, text]); return { state: 'written' } }
+  const a = k.agent.send('FIRST', [])
+  await new Promise((r) => setTimeout(r, 2))
+  const b = k.agent.send('SECOND', [])
+  await Promise.all([a, b])
+  await k.agent.drain()
+  assert.deepEqual(k.delivered.filter(([, t]) => /FIRST|SECOND/.test(t)).map(([, t]) => t), ['FIRST', 'SECOND'])
+})
+
+test('run five: a line the queue typed with an unknown outcome is said so to its sender', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; if (text === 'B') return { state: 'outcome_unknown', reason: 'pty_write_failed' }; k.delivered.push([id, text]); return { state: 'written' } }
+  await k.agent.send('A', [])
+  busy = false
+  const r = await k.agent.send('B', [])
+  assert.equal(r.ok, false)
+  assert.equal(r.reason, 'delivery-unknown')
+})
+
+test('run five: a full queue refuses before saving any file; a file of the wrong shape is kept aside; kept-aside files are bounded', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  k.deps.deliver = async () => ({ state: 'failed_before_write', reason: 'readiness_timeout' })
+  for (let i = 0; i < 50; i++) await k.agent.send(`m${i}`, [])
+  const png = Buffer.from('89504e470d0a1a0a', 'hex').toString('base64')
+  const before = existsSync(path.join(k.root, 'inbox')) ? readdirSync(path.join(k.root, 'inbox')).length : 0
+  assert.equal((await k.agent.send('with file', [{ name: 'a.png', data: png }])).reason, 'queue-full')
+  const after = existsSync(path.join(k.root, 'inbox')) ? readdirSync(path.join(k.root, 'inbox')).length : 0
+  assert.equal(after, before, 'no file saved for a refused message')
+  const k2 = keeper()
+  writeFileSync(path.join(k2.root, 'pending.json'), JSON.stringify({ line: 'one order', at: 1 }))
+  createCeoAgent({ ...k2.deps })
+  assert.ok(k2.log.some(([op, d]) => op === 'ceo.agent.queue-read-failed' && d.why === 'not-a-list' && d.kept_aside === true))
+  for (let i = 0; i < 5; i++) { writeFileSync(path.join(k2.root, 'pending.json'), '{'); createCeoAgent({ ...k2.deps }); await new Promise((r) => setTimeout(r, 2)) }
+  assert.ok(readdirSync(k2.root).filter((f) => f.startsWith('pending.json.corrupt-')).length <= 3)
+})

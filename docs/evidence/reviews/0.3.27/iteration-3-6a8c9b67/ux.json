@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "6a8c9b6730d257bf75e296ab217366bf2a19f5a8",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-6a8c9b67/2026-11-21-ux.md",
+  "reportSha256": "1d5f5bbb5c68979dd671ba52a2f98ea14d5d4e9cd36e86fcc0b712109dda2124",
+  "reviewerRun": "release-0327-i3r5-ux-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-49",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every send goes through the queue after the stop is waited for, the hold cleared and the console started (`ceoAgent.ts#send`); the line names «Запустить» or, after a failed start, «Попробовать снова» (`CeoComposer.tsx`); test «run five: with a message waiting, writing to a CEO the person stopped starts it…», watched red with the start removed"
+      ]
+    },
+    {
+      "id": "UX-50",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a line typed for a waiting send whose write breaks off is said as `delivery-unknown` (`endedUnknown`; test «run five: a line the queue typed with an unknown outcome…»); a later timer drain's unknown is ruled: CO-615 (4)"
+      ]
+    },
+    {
+      "id": "UX-51",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a start resets the backoff and drains at once (`ceoAgent.ts#start`)"
+      ]
+    },
+    {
+      "id": "UX-52",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a CEO still starting is said as busy (`not-delivered`)"
+      ]
+    },
+    {
+      "id": "UX-53",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a queued ask keeps its mark with no write time; `ceo_reply` answers `queued` with «do not ask again», and the queue sets the write time when it types the line (`index.ts#runVoiceTool`, `ceoVoiceTools.ts#ceoReply`; test «run five: ceo_reply says a queued ask waits…»)"
+      ]
+    }
+  ]
+}

@@ -209,7 +209,7 @@ ER-24's two-project rule, DA-24's link check.
 | V3-DA-23 | DA-23 | non-blocking | fixed in the run-two candidate: a voice tool that throws is answered as a redacted refusal and written to the journal (index.ts) |
 | V3-DA-24 | DA-24 | non-blocking | fixed in the run-two candidate: the calls folder is refused when it is a link and set to 0700 when it exists; test «iteration 3 run one», red with the check removed; the DA-13 wording narrowed to «ended» |
 | V3-PL-15 | PL-15 | blocking | fixed in the run-two candidate: as UX-25 |
-| V3-PL-16 | PL-16 | non-blocking | fixed by run three: ci.sh fast with both browser variables reached its last step on cbc57ae3 (iteration 3, run three's gate, carried from run two under DO-28); the final candidate's own gate is recorded in its run's section (run four, PL-30) |
+| V3-PL-16 | PL-16 | non-blocking | fixed by run three: ci.sh fast with both browser variables reached its last step on cbc57ae3 (iteration 3, run three's gate, carried from run two under DO-28); the final candidate's own gate is recorded in its run's section (the last run of this iteration; run five's PL-38) |
 | V3-PL-17 | PL-17 | non-blocking | ruled: CO-605 (12), as DA-19 |
 | V3-PL-18 | PL-18 | non-blocking | fixed in the run-two candidate: as ER-28 |
 | V3-PL-19 | PL-19 | non-blocking | fixed in the run-two candidate: fixes.md's count; the iteration-1 receipts mark ER-5, ER-7 and DA-8 ruled, re-hashed |
@@ -273,8 +273,9 @@ under a load average of 114) and once on `hub-surface.test.mjs` I3 (an admission
 each green alone (8 of 8; 16 of 16, three times); the steps after `hub-surface` ran to the script's last line, browser
 suites 26 of 26, «fast tier green». The browser suites ran on the Chromium Playwright keeps (`chromium-1234`); the
 `chromium-1255` an earlier run used was removed from that cache between two runs by a cleanup outside this release.
-No code changed after this candidate: the release commit carries the version, the CHANGELOG, this ledger, the
-release gate, the merge log, the design map, the review reports and receipts, and fixes.md and the HANDOFF.
+No code changed after this candidate until the owner's blocker of 21:37 (run four): the release commit then planned
+carried only the version, the CHANGELOG, this ledger, the release gate, the merge log, the design map, the review
+reports and receipts, and fixes.md and the HANDOFF.
 
 | Row | Finding | Severity | Disposition |
 |---|---|---|---|
@@ -298,6 +299,8 @@ release gate, the merge log, the design map, the review reports and receipts, an
 | V3-PL-27 | PL-27 | non-blocking | fixed in the release commit: V3-PL-16 names the verified candidate and this section records its gate; fixes.md's count is 36; CO-605 (12)'s range (to 67c15053, the comment already on main) ruled: CO-609 (8), written to the carry-over register before run four |
 | V3-PL-28 | PL-28 | non-blocking | ruled: CO-609 (9), written to the carry-over register before run four, once the delivery fix reopened the candidate: the release gate's row rule takes the V1-UX-1 form, with a test watched red |
 
+Exit for run three: every finding disposed above; superseded by run four (the owner's blocker of 21:37).
+
 ### Run four, b5683470 (superseded)
 
 Candidate `b5683470db10e0356217c709bd1a37e0cea71d94`. The owner's blocker of 2026-11-20, 21:37 (a session's first task
@@ -306,7 +309,9 @@ the tag (`40250359`), which reopened this iteration; CO-609 was written to the r
 paused new features until the strategic plan: only the voice retro's bug fixes continue, so the registry fix
 `fix/registry-contract` (`279dcd15`) was held out, its row CO-614. Reports and receipts in
 [`docs/evidence/reviews/0.3.27/iteration-3-b5683470/`](../reviews/0.3.27/iteration-3-b5683470/) (kept as the record).
-Gate: `bash scripts/ci.sh fast` on this candidate; a first run used a wrong Playwright path and is not counted. 41 findings,
+Gate: `bash scripts/ci.sh fast` on this candidate; a first run used a wrong Playwright path and is not counted; the
+counted run passed every step through the browser suites (26 of 26) and stopped red at the provider matrix, since
+Claude Code updated itself on this Mac from 2.1.329 to 2.1.330 during the release (re-pinned in `6a8c9b67`). 41 findings,
 8 blocking (UX-41, UX-42, UX-43, ER-38, ER-39, DO-35, DO-36, DA-31: the CEO queue's order, its one owner per line, a
 stopped CEO said as busy, the files' Enter); the plan reviewer found none blocking. Each is fixed in the next candidate,
 with tests watched red with their mechanism removed (the order check, the queue's ownership). What remains is CO-615.
@@ -354,6 +359,55 @@ with tests watched red with their mechanism removed (the order check, the queue'
 | V3R4-PL-34 | PL-34 | non-blocking | fixed: «Next free ID» reads `CO-616` and names CO-607 to CO-615 |
 | V3R4-PL-35 | PL-35 | non-blocking | fixed: as ER-38 |
 | V3R4-PL-36 | PL-36 | non-blocking | fixed: as ER-42 and UX-41: the bound is said, a stopped CEO is said |
+
+Exit for run four: every finding disposed above; superseded by run five.
+
+### Run five, 6a8c9b67 (superseded)
+
+Candidate `6a8c9b6730d257bf75e296ab217366bf2a19f5a8`. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-6a8c9b67/`](../reviews/0.3.27/iteration-3-6a8c9b67/) (kept as the record).
+The times «21:37» and «00:30» in this ledger are the owner's, as his relayed messages give them; this session's clock
+(CET, UTC+1) had the pause before `824dd2b1` (00:10). The rule applied under the pause: a fix of a review finding on code
+already in the candidate is part of releasing that candidate, while a fix of code outside it (the registry, CO-614)
+waits. Gate: `bash scripts/ci.sh fast` on this candidate. 31 findings, 5 blocking (UX-49, ER-46, DO-45: with a message
+waiting, writing to a stopped CEO no longer started it, a regression of run four's order fix; ER-47: a queued line
+typed into a console that then showed its limit was lost; DO-46: a queued voice ask sent the voice to ask again). The
+fix routes every send through the one queue, which records what it types as owed to that console; tests watched red
+with their mechanism removed. What remains is in CO-615.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3R5-UX-49 | UX-49 | blocking | fixed: every send goes through the queue after the stop is waited for, the hold cleared and the console started (`ceoAgent.ts#send`); the line names «Запустить» or, after a failed start, «Попробовать снова» (`CeoComposer.tsx`); test «run five: with a message waiting, writing to a CEO the person stopped starts it…», watched red with the start removed |
+| V3R5-UX-50 | UX-50 | non-blocking | fixed: a line typed for a waiting send whose write breaks off is said as `delivery-unknown` (`endedUnknown`; test «run five: a line the queue typed with an unknown outcome…»); a later timer drain's unknown is ruled: CO-615 (4) |
+| V3R5-UX-51 | UX-51 | non-blocking | fixed: a start resets the backoff and drains at once (`ceoAgent.ts#start`) |
+| V3R5-UX-52 | UX-52 | non-blocking | fixed: a CEO still starting is said as busy (`not-delivered`) |
+| V3R5-UX-53 | UX-53 | non-blocking | fixed: a queued ask keeps its mark with no write time; `ceo_reply` answers `queued` with «do not ask again», and the queue sets the write time when it types the line (`index.ts#runVoiceTool`, `ceoVoiceTools.ts#ceoReply`; test «run five: ceo_reply says a queued ask waits…») |
+| V3R5-ER-46 | ER-46 | blocking | fixed: as UX-49 |
+| V3R5-ER-47 | ER-47 | blocking | fixed: the queue records what it typed as owed to that console, so a limit or sign-in answer retypes it on the next runner, once; a failed write moves on to a console a fallback brought (`ceoAgent.ts#drainOnce`; test «run five: a line the queue typed into a console that answers with a limit…», watched red with the record removed) |
+| V3R5-ER-48 | ER-48 | non-blocking | fixed: every send goes through the one queue (test «run five: two sends that overlap…») |
+| V3R5-ER-49 | ER-49 | non-blocking | fixed: an unknown write in the queue is never queued again nor owed |
+| V3R5-ER-50 | ER-50 | non-blocking | fixed: as UX-51 |
+| V3R5-ER-51 | ER-51 | non-blocking | fixed: a send waits for the drain in flight, which holds until a files line's Enter is written |
+| V3R5-ER-52 | ER-52 | non-blocking | fixed: `ask_ceo` answers an unknown write with «do not ask again; read ceo_reply» and starts the echo window |
+| V3R5-DO-45 | DO-45 | blocking | fixed: as UX-49 |
+| V3R5-DO-46 | DO-46 | blocking | fixed: as UX-53 |
+| V3R5-DO-47 | DO-47 | non-blocking | fixed: as ER-48 |
+| V3R5-DO-48 | DO-48 | non-blocking | fixed: as UX-51 and UX-52 |
+| V3R5-DO-49 | DO-49 | non-blocking | fixed: SCN-189 lists the new lines and states |
+| V3R5-DO-50 | DO-50 | non-blocking | fixed: CO-615 says eight blocking findings (four defects) |
+| V3R5-DO-51 | DO-51 | non-blocking | fixed: the map entry says the matrix data changes, behaviour does not |
+| V3R5-DA-38 | DA-38 | non-blocking | fixed: kept-aside files are kept 30 days and at most three; the record says whether the rename worked (`ceoAgent.ts#keepAside`; test «run five: a full queue refuses before saving any file…») |
+| V3R5-DA-39 | DA-39 | non-blocking | fixed: a file of the wrong shape, or with invalid entries, is kept aside and recorded (same test) |
+| V3R5-DA-40 | DA-40 | non-blocking | fixed: a full queue refuses before any file is saved (same test) |
+| V3R5-DA-41 | DA-41 | non-blocking | fixed: as ER-48 |
+| V3R5-PL-37 | PL-37 | non-blocking | fixed: the release commit after the last run changes only declared metadata; a register edit goes in a candidate or on main after the tag; the last run's section names the Claude Code build its gate ran with |
+| V3R5-PL-38 | PL-38 | non-blocking | fixed: run three's sentence says code changed at the 21:37 blocker; V3-PL-16 points at the last run; run four's gate outcome and exit lines for runs three and four are recorded |
+| V3R5-PL-39 | PL-39 | non-blocking | fixed: CO-609 points at `iteration-3-cbc57ae3/` |
+| V3R5-PL-40 | PL-40 | non-blocking | fixed: as DO-50 |
+| V3R5-PL-41 | PL-41 | non-blocking | fixed: the Now line, CO-606 and the retro's HANDOFF name the pause and CO-614 |
+| V3R5-PL-42 | PL-42 | non-blocking | fixed: the rule is stated in this section |
+| V3R5-PL-43 | PL-43 | non-blocking | fixed: as UX-50; the CHANGELOG says a later queue unknown is recorded |
+| V3R5-PL-44 | PL-44 | non-blocking | fixed: the times are named as the owner's, as relayed, in this section and the HANDOFF |
 
 Exit for iteration 3: every finding disposed above. Blocking findings open: none.
 

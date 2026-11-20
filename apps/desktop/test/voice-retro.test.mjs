@@ -600,3 +600,11 @@ test('0.3.27 review ER-31, DA-27: a linked calls folder is neither pruned, ended
   assert.deepEqual(j.list(5), [])
   assert.equal(readFileSync(old, 'utf8').split('\n').filter(Boolean).length, 1)
 })
+
+test('run five: ceo_reply says a queued ask waits and never asks for it again', async () => {
+  const { createVoiceTools } = await import('../src/main/ceoVoiceTools.ts')
+  const tools = createVoiceTools({ askedAt: () => 1, askWrittenAt: () => null, askWaiting: () => true, ceoTranscript: async () => null, ceoLastActivity: () => 1, ceoScreen: () => '', machine: async () => ({}), board: async () => ({}), recap: async () => ({}) })
+  const r = await tools.run('ceo_reply', {})
+  assert.equal(r.state, 'queued')
+  assert.match(r.next, /do not ask again/)
+})
