@@ -58,7 +58,7 @@ export const CEO_TOOLS = {
   start: {
     mcp: 'fabric_ceo_session_start',
     title: 'Start a session in a project',
-    description: 'Start a coding session in a project as its own Fabric console, with its first task. Name the project by its name, id or folder (fabric_ceo_projects lists them); a folder Fabric does not know becomes a project. Use it for new work; to steer a running session use fabric_ceo_session_input.',
+    description: 'Start a coding session in a project as its own Fabric console, with its first task; first_task in the answer says whether the task reached the session (delivered, resubmitted, not_delivered with the next step, or pending). Name the project by its name, id or folder (fabric_ceo_projects lists them); a folder Fabric does not know becomes a project. Use it for new work; to steer a running session use fabric_ceo_session_input.',
     input: z.object({
       project: z.string().trim().min(1).max(400).describe('The project\'s name, id or absolute folder.'),
       task: z.string().trim().max(8000).optional().describe('The first instruction the session is given.'),
@@ -132,6 +132,8 @@ export interface CeoOpsDeps {
   admitFolder(folder: string): Promise<NamedProject>
   /** The person's console launch (`consoleOpen.ts`). */
   openConsole(projectId: string, runner: string, task: string | undefined): Promise<TerminalSession>
+  /** What became of a console's first task (`consoleOpen.ts#firstInstruction`); absent: not followed. */
+  firstTask?(sessionId: string): Promise<{ state: string; reason?: string; attempts: number }> | null
   /** The person's stop (`terminal.end`'s runtime). */
   stop(sessionId: string, force: boolean): Promise<{ state: string }>
   openWindow(sessionId: string): void
@@ -155,6 +157,8 @@ export interface CeoOpsDeps {
 }
 
 type Answer = Record<string, unknown>
+/** How long fabric_ceo_session_start waits for the first task's end: two readiness windows and the check after. */
+export const FIRST_TASK_WAIT_MS = 70_000
 const refuse = (why: string, extra: Answer = {}): Answer => ({ ok: false, reason: why, ...extra })
 
 export function parseMachineRows(stdout: string): MachineRow[] | null {
@@ -363,6 +367,17 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     return { ok: true, sent: { text_chars: text.length, keys: a.keys ?? [], submit }, screen_after: screen(s.sessionId, 30) }
   }
 
+  /** The first task's end, waited for at most FIRST_TASK_WAIT_MS; past it the answer says it is still on its way. */
+  async function firstTaskOf(sessionId: string): Promise<Answer> {
+    const pending = deps.firstTask?.(sessionId)
+    if (!pending) return { state: 'unknown', next: 'read the session with fabric_ceo_session_read before you rely on it' }
+    const timeout = new Promise<null>((res) => { const t = setTimeout(() => res(null), FIRST_TASK_WAIT_MS); (t as { unref?: () => void }).unref?.() })
+    const o = await Promise.race([pending.catch(() => null), timeout])
+    if (!o) return { state: 'pending', next: 'the console is not ready yet: read it with fabric_ceo_session_read in a minute; if the prompt is empty, type the task with fabric_ceo_session_input' }
+    if (o.state === 'not_delivered') return { state: o.state, reason: o.reason ?? null, attempts: o.attempts, next: 'the task did not reach the session: read its screen with fabric_ceo_session_read, then type the task with fabric_ceo_session_input' }
+    return { state: o.state, attempts: o.attempts }
+  }
+
   async function start(a: z.infer<typeof CEO_TOOLS.start.input>, via?: LaunchVia): Promise<Answer> {
     const projects = await deps.projects()
     let found = findProject(projects, a.project)
@@ -380,7 +395,11 @@ export function createCeoOperations(deps: CeoOpsDeps) {
         () => deps.openConsole(project.id, runner, a.task))
       deps.record('ceo.session.start', { session_id: s.sessionId, project_id: project.id, runner: s.optionId, reason: a.reason })
       deps.note('session.start', { sessionId: s.sessionId, projectId: project.id, label: project.name, runner: s.optionId, reason: a.reason })
-      return { ok: true, session_id: s.sessionId, project: project.name, folder: s.cwd, runner: s.optionId, state: s.state }
+      // 2026-11-20: a started session sat 40 minutes on an empty prompt and the CEO believed it had its task. The answer
+      // now waits for the task's delivery (bounded) and says what became of it.
+      const firstTask = a.task?.trim() ? await firstTaskOf(s.sessionId) : null
+      return { ok: true, session_id: s.sessionId, project: project.name, folder: s.cwd, runner: s.optionId, state: s.state,
+        ...(firstTask ? { first_task: firstTask } : {}) }
     } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
       deps.record('ceo.session.start', { project_id: project.id, outcome: 'failed', reason: a.reason })
       return refuse(`the session did not start: ${e instanceof Error ? e.message : String(e)}`)

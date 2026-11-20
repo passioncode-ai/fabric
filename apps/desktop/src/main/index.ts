@@ -5099,6 +5099,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     record: (op, detail) => ops.record({ op, outcome: op === 'runner.fallback-attached' ? 'ok' : 'failed',
       level: op === 'runner.fallback-attached' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } }),
     failed: (op, e) => ops.failed(op, e, { note: 'the first instruction was not delivered' }),
+    // 2026-11-20: every first instruction's end is written, so a console that sat on an empty prompt says why.
+    delivered: (d) => ops.record({ op: 'terminal.first-instruction', outcome: d.state === 'not_delivered' ? 'failed' : 'ok',
+      level: d.state === 'not_delivered' ? 'warn' : 'info', detail: d, ctx: { correlationId: ops.correlate() } }),
     syncPower
   })
   handle(
@@ -5399,6 +5402,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return { id: row.id, name: row.name, repo_path: row.repo_path }
     },
     openConsole: (projectId, runner, task) => openConsole(projectId, runner, task, null),
+    firstTask: (sessionId) => openConsole.firstInstruction(sessionId),
     stop: async (id, force) => { markPersonEnded(id); void launchJournal?.stopAsked(id, 'ceo'); return stopRuntime.stop(id, 'operator_stop', { force }) },
     openWindow: (id) => openSessionWindow(id),
     switchboard: (args) => runMachineSwitchboard(sessionEnvironment(process.env), args),

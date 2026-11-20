@@ -245,7 +245,8 @@ function operations(over = {}) {
     sleep: async () => {},
     transcriptRoots: over.transcriptRoots ?? [],
     ...(over.launches ? { launches: over.launches } : {}),
-    ...(over.diskSessions ? { diskSessions: over.diskSessions } : {})
+    ...(over.diskSessions ? { diskSessions: over.diskSessions } : {}),
+    ...(over.firstTask ? { firstTask: over.firstTask } : {})
   }
   return { ops: createCeoOperations(deps), writes, records, notes, opened, origins, switchboard, consoles }
 }
@@ -328,6 +329,18 @@ test('start: a project by name with its own runner and the task; a new folder be
   assert.equal(n.ok, true)
   assert.deepEqual(o.opened[1], ['p9', 'shell', undefined])
   assert.equal((await o.ops.run('start', { project: 'zzz', reason: 'nothing like it' })).ok, false)
+})
+
+test('start says what became of the first task: delivered, or not delivered with the next step (2026-11-20)', async () => {
+  const fine = operations({ firstTask: () => Promise.resolve({ state: 'resubmitted', attempts: 1 }) })
+  assert.deepEqual((await fine.ops.run('start', { project: 'app', task: 'go', reason: 'the owner asked' })).first_task, { state: 'resubmitted', attempts: 1 })
+  const lost = operations({ firstTask: () => Promise.resolve({ state: 'not_delivered', reason: 'readiness_timeout', attempts: 2 }) })
+  const r = await lost.ops.run('start', { project: 'app', task: 'go', reason: 'the owner asked' })
+  assert.equal(r.ok, true, 'the session did start')
+  assert.equal(r.first_task.state, 'not_delivered')
+  assert.match(r.first_task.next, /fabric_ceo_session_input/)
+  const none = operations({ firstTask: () => Promise.resolve({ state: 'delivered', attempts: 1 }) })
+  assert.equal((await none.ops.run('start', { project: 'app', reason: 'no task given' })).first_task, undefined, 'no task, nothing to follow')
 })
 
 test('stop: a console as the person\'s stop, force kills; a Switchboard session ends through Switchboard; its own console never', async () => {
