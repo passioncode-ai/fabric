@@ -6,7 +6,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, utimesSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { claudeSlug, lastSessionOf, projectForFolder } from '../src/main/projectResume.ts'
-import { createMachineSessions, readTail, transcriptCwd, TAKE_OVER_WAIT_MS } from '../src/main/machineSessions.ts'
+import { continueOrigin, createMachineSessions, linkOriginOf, readTail, transcriptCwd, TAKE_OVER_WAIT_MS } from '../src/main/machineSessions.ts'
 import { redactedTurns } from '../src/main/ceoTools.ts'
 
 const id = (n) => `${String(n).repeat(8)}-aaaa-4aaa-8aaa-aaaaaaaaaaaa`
@@ -203,4 +203,16 @@ test('another session\'s turns are redacted whole before they are cut: a key acr
   assert.equal(turn.text.length <= 700, true)
   assert.equal(turn.text.includes('sk-ant-'), false, 'not even the prefix stays')
   assert.equal(/x{8}/.test(turn.text), false, 'no part of the key body stays')
+})
+
+test('a continue\'s origin: a link is a link with its app in the contract\'s grammar, a press is a screen (iteration 3, ER-25, DA-24)', () => {
+  assert.deepEqual(linkOriginOf({ from: 'observatory.default' }), { from: 'observatory.default' }, 'name.instance is kept (DA-19)')
+  assert.deepEqual(linkOriginOf({ from: 'Bad App' }), {}, 'outside the grammar: a link with no app')
+  assert.deepEqual(linkOriginOf({}), {})
+  assert.equal(linkOriginOf(undefined), undefined, 'no object: a press on a screen')
+  assert.equal(linkOriginOf('observatory'), undefined)
+  assert.deepEqual(continueOrigin('moved', { from: 'observatory.default' }), { reason: 'Перенесена в Fabric по ссылке из observatory.default', via: 'link' })
+  assert.deepEqual(continueOrigin('resumed', {}), { reason: 'Продолжена в Fabric по ссылке из другого приложения', via: 'link' }, 'a link with no app is still a link (DA-20)')
+  assert.deepEqual(continueOrigin('resumed'), { reason: 'Продолжена в Fabric из её истории', via: 'screen' })
+  assert.deepEqual(continueOrigin('moved'), { reason: 'Перенесена в Fabric из терминала вне Fabric', via: 'screen' })
 })

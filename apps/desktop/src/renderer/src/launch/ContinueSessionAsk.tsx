@@ -29,9 +29,11 @@ export function appName(from: string | undefined): string | null {
   return APP_NAMES[name] ?? name
 }
 
-export function ContinueSessionAsk({ session, from, onOpened, onDone, onBusy }: {
+export function ContinueSessionAsk({ session, from, onOpened, onDone, onBusy, waiting = false }: {
   session: string
   from?: string
+  /** Another continue link arrived while this ask's press was answered; it is shown after this one (UX-34). */
+  waiting?: boolean
   /** A press is being answered (true) or was answered (false): App keeps this ask while it is (ER-18). */
   onBusy?(busy: boolean): void
   /** The console the session continues in. */
@@ -69,15 +71,18 @@ export function ContinueSessionAsk({ session, from, onOpened, onDone, onBusy }: 
   }
 
   const app = appName(from)
-  // UX-30: a session only Switchboard names has no process Fabric knows; it is not acted on from here.
-  const elsewhere = typeof about === 'object' && about !== null && about.source === 'switchboard'
+  // UX-30, UX-33: a session only Switchboard names whose process RUNS is not acted on from here (Fabric does not know that
+  // process); one no process runs is an ended session, continued from its history like any other.
+  const shown = typeof about === 'object' && about !== null ? about : null
+  const elsewhere = !!shown && shown.source === 'switchboard' && shown.live
+  const ended = about === null || (!!shown && shown.source === 'switchboard' && !shown.live)
   const which = about === undefined ? t('links.continue.reading')
     : about === 'unread' ? t('links.continue.unread')
-    : about === null ? t('links.continue.ended')
+    : ended || !shown ? t('links.continue.ended')
     : t('links.continue.which', {
-      folder: folderName(about.cwd) ?? about.cwd,
-      agent: runnerLabel(about.agent ?? 'claude-code', t),
-      state: t(`machineSessions.state.${about.state ?? 'unknown'}` as 'machineSessions.state.unknown')
+      folder: folderName(shown.cwd) ?? shown.cwd,
+      agent: runnerLabel(shown.agent ?? 'claude-code', t),
+      state: t(`machineSessions.state.${shown.state ?? 'unknown'}` as 'machineSessions.state.unknown')
     })
   // DO-22: a link's id found nowhere is said as not on this computer, not as a session that ended.
   const why = (w: string): string => (w === 'gone' ? t('links.continue.gone') : machineWhy(t, w))
@@ -85,17 +90,18 @@ export function ContinueSessionAsk({ session, from, onOpened, onDone, onBusy }: 
   return (
     <Banner tone="warn" actions={
       <>
-        <Button tone="primary" disabled={busy || about === undefined || elsewhere} onClick={go}>
+        {/* UX-36: a session not acted on from here offers no press, only the way out. */}
+        {!elsewhere && <Button tone="primary" disabled={busy || about === undefined} onClick={go}>
           {refused && halfDone(refused) ? t('machineSessions.resumeFromHistory') : t('machineSessions.continue')}
-        </Button>
+        </Button>}
         {/* UX-20: once sent the act is not cancelled by this button, so it waits for the answer. */}
         <Button tone="ghost" disabled={busy} onClick={onDone}>{t('common.cancel')}</Button>
       </>
     }>
       <span data-testid="continue-ask">
-        {t('links.continue.ask')} {which}
+        {elsewhere ? `${t('links.continue.viaSwitchboard')} ${which}` : `${t('links.continue.ask')} ${which}`}
         {app && ` ${t('links.continue.from', { app })}`}
-        {elsewhere && ` ${t('links.continue.viaSwitchboard')}`}
+        {waiting && ` ${t('links.continue.queued')}`}
         {busy && ` ${t('machineSessions.busy')}`}
       </span>
       {said && <span role="status" title={refused ?? undefined} data-testid="continue-refused"> {said}</span>}

@@ -76,6 +76,7 @@ describe('ContinueSessionAsk', () => {
     expect(appName('observatory.default')).toBe('Observatory')
     expect(appName('fabric-dashboards')).toBe('Fabric Dashboards')
     expect(appName('some-agent')).toBe('some-agent')
+    expect(en['links.continue.from']).toContain('names itself')
     expect(appName('Bad App')).toBeNull()
     expect(appName(undefined)).toBeNull()
   })
@@ -94,12 +95,31 @@ describe('ContinueSessionAsk', () => {
     await waitFor(() => expect(ask.textContent).toContain(en['links.continue.unread']))
     expect(ask.textContent).not.toContain(en['links.continue.ended'])
   })
-  // UX-30: a session only Switchboard names is not acted on from here.
-  it('a session only Switchboard names is read-only here', async () => {
-    mount({ machineSessions: vi.fn(async () => [{ ...row, pid: 0, source: 'switchboard' }]) })
+  // UX-30, UX-36: a session only Switchboard names whose process runs is not acted on from here: no question, no press.
+  it('a running session only Switchboard names is read-only here', async () => {
+    mount({ machineSessions: vi.fn(async () => [{ ...row, pid: 0, live: true, source: 'switchboard' }]) })
     const ask = await screen.findByTestId('continue-ask')
     await waitFor(() => expect(ask.textContent).toContain(en['links.continue.viaSwitchboard']))
-    expect((screen.getByRole('button', { name: en['machineSessions.continue'] }) as HTMLButtonElement).disabled).toBe(true)
+    expect(ask.textContent).not.toContain(en['links.continue.ask'])
+    expect(screen.queryByRole('button', { name: en['machineSessions.continue'] })).toBeNull()
+    expect(screen.getByRole('button', { name: en['common.cancel'] })).toBeTruthy()
+  })
+  // UX-33, ER-24: one no process runs (Switchboard's «needs you», ready to continue) is ended: continued from its history.
+  it('an ended session only Switchboard names is continued from its history', async () => {
+    const { api } = mount({ machineSessions: vi.fn(async () => [{ ...row, pid: 0, live: false, source: 'switchboard', state: 'needs_you' }]) })
+    const ask = await screen.findByTestId('continue-ask')
+    await waitFor(() => expect(ask.textContent).toContain(en['links.continue.ended']))
+    expect(ask.textContent).not.toContain(en['links.continue.viaSwitchboard'])
+    const go = screen.getByRole('button', { name: en['machineSessions.continue'] }) as HTMLButtonElement
+    expect(go.disabled).toBe(false)
+    fireEvent.click(go)
+    await waitFor(() => expect(api.machineContinue).toHaveBeenCalledWith(id, {}))
+  })
+  // UX-34: a continue link that arrived meanwhile is said.
+  it('says when another continue link waits behind this one', async () => {
+    vi.stubGlobal('window', Object.assign(window, { fabric: { agents: { machineSessions: vi.fn(async () => [row]), machineContinue: vi.fn() } } }))
+    render(<I18nProvider locale="en"><ContinueSessionAsk session={id} waiting onOpened={() => {}} onDone={() => {}} /></I18nProvider>)
+    expect((await screen.findByTestId('continue-ask')).textContent).toContain(en['links.continue.queued'])
   })
   // DO-22: an id found nowhere is said as not on this computer.
   it('a session found nowhere is said as not on this computer', async () => {

@@ -455,11 +455,10 @@ import { createPastContext } from './pastContext.ts'
 import { launchPlace } from '../shared/launchPlace.ts'
 import { createConsoleOpen } from './consoleOpen.ts'
 import { redact } from '../shared/redact.ts'
-import { AGENT_ID } from '../shared/contract/fabricLinks.ts'
 import { claudeSessionOf, createLaunchJournal, readGitBranch, type LaunchJournal } from './sessionLaunches.ts'
 import { withLaunchOrigin } from './launchOrigin.ts'
 import { claudeConfigDirs, defaultAlive, liveClaudeSessions } from './diskSessions.ts'
-import { createMachineSessions, readHead, transcriptCwd } from './machineSessions.ts'
+import { continueOrigin, createMachineSessions, linkOriginOf, readHead, transcriptCwd } from './machineSessions.ts'
 import { gitWorktrees, lastSessionOf, projectForFolder } from './projectResume.ts'
 import { findTranscript, defaultTranscriptRoots, parseMachineRows, redactedTurns } from './ceoTools.ts'
 import { createTaskStart } from './taskStart.ts'
@@ -4752,9 +4751,6 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     for (const l of (await launchJournal?.read()) ?? []) if (l.runnerSessionId && live.has(l.sessionId)) ids.add(l.runnerSessionId)
     return ids
   }
-  // DA-15: the link's app (DEC-0189 SL-1, AGENT_ID grammar, a claim never trusted) is kept in the launch journal.
-  // DA-19 (iteration 3): the contract's own grammar, `name` or `name.instance`, so a valid id is never dropped.
-  const linkReason = (what: string, from: string | undefined): string => (from && AGENT_ID.test(from) ? `${what} из ${from}` : `${what} из другого приложения`)
   const resumeInFabric = async (projectId: string, cwd: string, claudeId: string, config: string, reason: string, via: 'screen' | 'link' = 'screen'): Promise<{ sessionId: string }> => {
     const sessionId = randomUUID()
     const own = path.join(homedir(), '.claude')
@@ -4831,14 +4827,15 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const project = await projectForFolder(cwd, await activeProjectsRead())
       if (!project) return { ok: false, why: 'no-project' }
       // DA-20: a link is said by the link itself, `from` or not; a press on a screen is a press on a screen.
-      const opened = await resumeInFabric(project.id, cwd, id, path.resolve(file, '..', '..', '..'),
-        link ? linkReason('Продолжена в Fabric по ссылке', link.from) : 'Продолжена в Fabric из её истории', link ? 'link' : 'screen')
+      const origin = continueOrigin('resumed', link)
+      const opened = await resumeInFabric(project.id, cwd, id, path.resolve(file, '..', '..', '..'), origin.reason, origin.via)
       return { ok: true, sessionId: opened.sessionId }
     },
     continueInFabric: async (s, projectId, link) => {
       const id = projectId ?? (await projectForFolder(s.cwd, await activeProjectsRead()))?.id
       if (!id) throw new Error(`the folder ${s.cwd} is not in a Fabric project`)
-      return resumeInFabric(id, s.cwd, s.sessionId, s.config, link ? linkReason('Перенесена в Fabric по ссылке', link.from) : 'Перенесена в Fabric из терминала вне Fabric', link ? 'link' : 'screen')
+      const origin = continueOrigin('moved', link)
+      return resumeInFabric(id, s.cwd, s.sessionId, s.config, origin.reason, origin.via)
     },
     // DA-11: every outcome but ok is a failure in the operations log.
     record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'ok' || detail.outcome === undefined ? 'ok' : 'failed', level: detail.outcome === 'ok' || detail.outcome === undefined ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
@@ -4850,12 +4847,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.agentsMachineSessions, (): Promise<Returns<FabricApi['agents']['machineSessions']>> => machineSessions.list())
   handle(IPC.agentsMachineRead, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineRead']>> => machineSessions.read(sessionArg(id)))
   handle(IPC.agentsMachineClose, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineClose']>> => machineSessions.close(sessionArg(id)))
-  handle(IPC.agentsMachineContinue, (_e, id: unknown, link: unknown): Promise<Returns<FabricApi['agents']['machineContinue']>> => {
-    // A link's origin is an object; its `from` is kept only in the contract's grammar (AGENT_ID).
-    const from = link && typeof link === 'object' ? (link as { from?: unknown }).from : undefined
-    return machineSessions.continueInFabric(sessionArg(id), link && typeof link === 'object'
-      ? { ...(typeof from === 'string' && AGENT_ID.test(from) ? { from } : {}) } : undefined)
-  })
+  handle(IPC.agentsMachineContinue, (_e, id: unknown, link: unknown): Promise<Returns<FabricApi['agents']['machineContinue']>> =>
+    machineSessions.continueInFabric(sessionArg(id), linkOriginOf(link)))
   // #endregion resume-in-fabric
   // CO-407: Claude Code's cross-session messages, only by the person's switch; and the launcher doctor, only on asking.
   const inboundAnswer = (r: ReturnType<typeof readInbound>) =>

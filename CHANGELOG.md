@@ -39,8 +39,8 @@ bringing sessions back by themselves is planned work (CO-603).
   `3ca40854`). `fabric://session/open?session=<id>` opens the console of a session Fabric holds, by its own id or the
   runner session it runs, and otherwise Агенты with this computer's sessions. `fabric://session/continue?session=<id>`
   of a session a Fabric console already runs opens that console; for any other it asks first with «Продолжить в Fabric»,
-  naming a running session by its folder, agent and state, and the app the link came from; a session seen only
-  through Switchboard is not acted on from there. On the press a running
+  naming a running session by its folder, agent and state (an ended one is said as ended), and the app the link names
+  itself; a running session seen only through Switchboard is not acted on from there. On the press a running
   session is stopped where it runs and continued in a Fabric console with its history, and one that ended is continued
   from its transcript; one continue of a session runs at a time. A link opens a view and acts on nothing by itself; the
   link and the app it came from (`from`, as `name` or `name.instance`) are recorded in the launch journal (`shared/linkRoute.ts`, `launch/ContinueSessionAsk.tsx`).

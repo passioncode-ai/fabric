@@ -14,6 +14,7 @@
  */
 import { open } from 'node:fs/promises'
 import type { DiskSession } from './diskSessions.ts'
+import { AGENT_ID } from '../shared/contract/fabricLinks.ts'
 
 /** One `switchboard --json sessions --rows` row, as `ceoTools.ts#parseMachineRows` reads it. */
 export interface SwitchboardRow {
@@ -54,6 +55,21 @@ export interface MachineSession {
 /** A continue a `fabric://session/continue` link asked for (DEC-0189), with the linking app when it said one (`from`,
  *  the contract's AGENT_ID, a claim never trusted). Absent: a press on a Fabric screen (0.3.26 review, iteration 3, DA-20). */
 export interface LinkOrigin { from?: string }
+
+/** What the IPC hands main for a continue (ER-25, DA-24): an object is a link, whose `from` is kept only in the contract's
+ *  grammar; anything else is a press on a screen. */
+export function linkOriginOf(v: unknown): LinkOrigin | undefined {
+  if (!v || typeof v !== 'object') return undefined
+  const from = (v as { from?: unknown }).from
+  return typeof from === 'string' && AGENT_ID.test(from) ? { from } : {}
+}
+/** The launch journal's reason and origin for a continue: a link says so, with its app when it named one in the contract's
+ *  grammar (DA-19, DA-20); a screen press says where the session came from. */
+export function continueOrigin(kind: 'moved' | 'resumed', link?: LinkOrigin): { reason: string; via: 'link' | 'screen' } {
+  if (!link) return { reason: kind === 'moved' ? 'Перенесена в Fabric из терминала вне Fabric' : 'Продолжена в Fabric из её истории', via: 'screen' }
+  const what = kind === 'moved' ? 'Перенесена в Fabric по ссылке' : 'Продолжена в Fabric по ссылке'
+  return { reason: link.from && AGENT_ID.test(link.from) ? `${what} из ${link.from}` : `${what} из другого приложения`, via: 'link' }
+}
 
 export type MachineAct = { ok: true; sessionId?: string } | { ok: false; why: string; resume?: { sessionId: string; cwd: string } }
 

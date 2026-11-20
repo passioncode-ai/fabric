@@ -168,7 +168,8 @@ Exit for iteration 2: every finding disposed above. Blocking findings open: none
 
 Candidate `4ba9fd6214dd80526eeba127b5c2fcb0a962647c`. Five reviewers, one per level; their reports and receipts are in
 [`docs/evidence/reviews/0.3.26/iteration-3-4ba9fd62/`](../reviews/0.3.26/iteration-3-4ba9fd62/) (kept as the record; not
-this iteration's receipts). Every iteration-2 fix held. 23 findings, 2 blocking, both in files the gate refuses after
+this iteration's receipts). Every iteration-2 fix held, three in part (UX-22, UX-25, DA-15), whose gaps are UX-27, UX-31,
+DA-19 and DA-20. 23 findings, 2 blocking, both in files the gate refuses after
 `verifiedCommit`, so the iteration runs again: DA-19, a link's `from` in the contract's `name.instance` form dropped by
 Fabric's narrower checks, so the journal recorded a false reason, and PL-23, hosted `ci.yml` run 44681000417 red on two
 browser suites (`layout-stress`: the new grids `.rail-pick`, `.ag-machine`, `.ag-machine-turns` grew past a 600 px column;
@@ -201,3 +202,29 @@ exit 0 on this candidate because the browser suites print NOT_RUN without `FABRI
 | V3-PL-25 | PL-25 | non-blocking | fixed in the iteration-3 run-two candidate: CO-603 (10), owner this repository's release session; spec §2a names it |
 | V3-PL-26 | PL-26 | non-blocking | fixed in the iteration-3 run-two candidate: spec §1 row 2 and §2 say live processes are counted beside Switchboard's groups, with Switchboard's reply |
 | V3-PL-27 | PL-27 | non-blocking | ruled: CO-604 (30); this release's rows are read by hand at the release commit |
+
+### Run two, 5d549a8d (superseded)
+
+Candidate `5d549a8dc93396a096fef8998e37d50fe3aa0a2a`. Reports and receipts in
+[`docs/evidence/reviews/0.3.26/iteration-3-5d549a8d/`](../reviews/0.3.26/iteration-3-5d549a8d/) (kept as the record; not
+this iteration's receipts). Gate: hosted `ci.yml` run 44684581786 success (browser suites 26 of 26, 06:15:32Z); local
+`ci.sh fast` with both browser variables set, exit 0, browser suites 26 of 26. Every run-one fix held. 14 findings, 1 blocking,
+in code the gate refuses after `verifiedCommit`, so the iteration runs again: UX-33 (ER-24), run one's UX-30 fix made
+every session only Switchboard names read-only, the ended ones too, which Fabric continues from their history.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-UX-33 | UX-33 | blocking | fixed in the iteration-3 run-three candidate: only a Switchboard-only row whose process runs (live) is read-only; one no process runs is ended and continued from its history (ContinueSessionAsk.tsx elsewhere, ended); test «an ended session only Switchboard names is continued from its history», red before |
+| V3-UX-34 | UX-34 | non-blocking | fixed in the iteration-3 run-three candidate: a queued continue link is said in the ask (links.continue.queued) and dropped when another link replaces the ask (App.tsx continueQueued state); test «says when another continue link waits behind this one» |
+| V3-UX-35 | UX-35 | non-blocking | fixed in the iteration-3 run-three candidate: the app is said as the link's own claim, «Ссылка называет себя: …» (links.continue.from) |
+| V3-UX-36 | UX-36 | non-blocking | fixed in the iteration-3 run-three candidate: a read-only session shows its sentence instead of the question and no primary press, only Cancel; test «a running session only Switchboard names is read-only here» |
+| V3-ER-23 | ER-23 | non-blocking | fixed in the iteration-3 run-three candidate: the queue is React state, cleared when a link replaces the ask, said in the ask, shown after the answer; the App-level test ruled: CO-604 (31) |
+| V3-ER-24 | ER-24 | non-blocking | fixed in the iteration-3 run-three candidate: as UX-33 |
+| V3-ER-25 | ER-25 | non-blocking | fixed in the iteration-3 run-three candidate: the IPC origin filter and the reason-and-via choice are pure, exported and tested (machineSessions.ts linkOriginOf, continueOrigin); test «a continue's origin: a link is a link with its app in the contract's grammar, a press is a screen» |
+| V3-DO-24 | DO-24 | non-blocking | fixed in the iteration-3 run-three candidate: spec row 8 and SCN-142 say a running session is named by folder, agent and state and an ended one as ended |
+| V3-DO-25 | DO-25 | non-blocking | fixed in the release commit: the ledger's Release close records the session reading with the commit it was built from |
+| V3-DO-26 | DO-26 | non-blocking | fixed in the iteration-3 run-three candidate: the run-one paragraph says three iteration-2 fixes held in part and names their gaps |
+| V3-DO-27 | DO-27 | non-blocking | fixed in the iteration-3 run-three candidate: the FABRIC-0326 entry lists launch/rail.css and the screens stand's fixtures |
+| V3-DA-24 | DA-24 | non-blocking | fixed in the iteration-3 run-three candidate: as ER-25 |
+| V3-PL-28 | PL-28 | non-blocking | fixed in the iteration-3 run-three candidate: CO-603's owner column gives Fabric's half of (5) (task dbeb4fcd, board request 508c1048) to this repository's release session |
+| V3-PL-29 | PL-29 | non-blocking | fixed in the release commit: the ledger records the hosted run and the local ci.sh fast exit for each run, and the Release close the session reading with its commit |
