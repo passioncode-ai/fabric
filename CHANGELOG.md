@@ -9,6 +9,16 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## 0.3.28 (unreleased)
 
+- **The owner chooses how much he is asked.** Five approval modes, «одобрять важные» (the default, as before), «только
+  критичные», «только траты», «только нестандартные» and «ничего, полная автоматика», say which acts above the floor
+  (spending, deleting, publishing) wait for his yes. An act that does not wait gets a one-shot permission Fabric issues
+  itself, recorded with the mode that allowed it. Every session reads the mode in `fabric_whoami`, the CEO's brief and the
+  voice say it, and a sign-in, a one-time code, a payment, a secret and a consent screen wait for the person in every
+  mode ([ADR-0203](docs/adr/0203-the-owners-approval-mode-says-which-acts-wait-for-him.md)).
+- **Who did what, on whose word.** The agents' behaviour journal keeps each act of the CEO, its voice and the sessions'
+  floor with whose word it was done on and what was decided, tied to the voice call that asked for it; the CEO and the
+  voice read it with `fabric_ceo_journal` (ADR-0203 §6).
+
 The owner, 2026-11-20 (paraphrased): start a session with the agent or the subscription he picks, also by voice and
 through the CEO, and check that the CEO has every access it needs ([the CEO access audit](docs/reports/2026-11-20-ceo-access-audit/README.md)).
 

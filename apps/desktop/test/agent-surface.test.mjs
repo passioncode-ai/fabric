@@ -210,6 +210,11 @@ off.protocol?.language === null && off.rules?.length
   : fail('the switch off still named a language: ' + JSON.stringify(off.protocol?.language))
 surfaceLanguage = 'ru'
 
+// ADR-0203: no mode given is the default, and the rule names it and the gates that always wait, in the working language.
+me.approval?.mode === 'important' && (me.approval.rule ?? '').includes('одобрять важные') && (me.approval.rule ?? '').includes('одноразовый код')
+  ? ok('fabric_whoami names the approval mode of the owner (the default) and its rule with the human gates')
+  : fail('no approval mode in whoami: ' + JSON.stringify(me.approval))
+
 // ADR-0176 §3: the computer's trust from Settings is named, and the cross-project rule follows it.
 me.protocol?.machine?.trust === 'mine' && me.protocol.machine.trusted === true &&
 me.rules.some((r) => r.includes('you may make the change yourself'))

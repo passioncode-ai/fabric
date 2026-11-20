@@ -9,6 +9,7 @@
  * What is NOT here: a second implementation of any door. A start is the person's console launch (`openConsole`), a
  * stop the person's stop (`stop`), Switchboard's sessions its own CLI. The CEO never acts on its own console.
  */
+import type { BehaviourJournal } from './behaviourJournal.ts'
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import path from 'node:path'
@@ -137,10 +138,23 @@ export const CEO_TOOLS = {
       remove: z.boolean().optional().describe('Forget this name instead (it was kept for the wrong project).'),
       reason
     }).strict()
+  },
+  journal: {
+    mcp: 'fabric_ceo_journal',
+    title: 'What agents did, on whose word',
+    description: 'The agents\' behaviour journal (ADR-0203): what the CEO, its voice and the sessions did, newest first, each with whose word it was done on (the owner by voice, naming the call; the CEO; the owner\'s approval mode; an owner\'s grant; the agent\'s own ask) and what was decided. Use it when the owner asks who did something or why, or what was done in a call.',
+    input: z.object({
+      days: z.number().int().min(1).max(30).optional().describe('How many days back; 1 by default.'),
+      call: z.string().trim().max(80).optional().describe('Only the acts asked for in this voice call (its id).'),
+      limit: z.number().int().min(1).max(200).optional().describe('At most this many; 30 by default.')
+    }).strict()
   }
 } as const
 
 export type CeoToolName = keyof typeof CEO_TOOLS
+
+/** The tools that act (ADR-0203 §6): written to the behaviour journal. */
+const ACTS: ReadonlySet<string> = new Set(['input', 'start', 'stop', 'resume', 'open', 'alias'])
 
 /** One row of `switchboard --json sessions --rows`, as far as this module reads it. */
 export interface MachineRow {
@@ -170,6 +184,8 @@ export interface CeoOpsDeps {
   /** The person's console launch (`consoleOpen.ts`); `account`: the Switchboard account it runs on. */
   openConsole(projectId: string, runner: string, task: string | undefined, account?: string | null): Promise<TerminalSession>
   /** Switchboard's accounts and a folder's group (`launchAccounts.ts`); absent: no account can be chosen here. */
+  /** The agents' behaviour journal (ADR-0203 §6); absent: acts are not written there and `journal` says so. */
+  behaviour?: Pick<BehaviourJournal, 'note' | 'read'>
   launchAccounts?: { accounts(): Promise<import('./launchAccounts.ts').AccountsRead>; folderPool(folder: string): Promise<{ ok: true; pool: string | null } | { ok: false; reason: string }> }
   /** What became of a console's first task (`consoleOpen.ts#firstInstruction`); absent: not followed. */
   firstTask?(sessionId: string): Promise<{ state: string; reason?: string; attempts: number }> | null
@@ -854,12 +870,36 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
 
   const table: { [K in CeoToolName]: (a: z.infer<(typeof CEO_TOOLS)[K]['input']>, via?: LaunchVia) => Promise<Answer> } = {
-    sessions, read, input, start, stop, resume, open, launches, projects, task, alias, accounts, wait
+    sessions, read, input, start, stop, resume, open, launches, projects, task, alias, accounts, wait, journal
+  }
+
+  /** ADR-0203 §6: every act of the CEO and its voice in the behaviour journal, on whose word and what came of it.
+   *  Reads (sessions, read, projects, …) are not acts and are not written. */
+  function noteAct(name: string, a: Record<string, unknown>, answer: Answer, via: LaunchVia | undefined, call: string | null | undefined, threw = false): void {
+    if (!deps.behaviour || !ACTS.has(name)) return
+    const byVoice = via === 'voice'
+    const target = (answer as { session_id?: unknown }).session_id ?? a.session_id ?? a.project ?? null
+    try {
+      deps.behaviour.note({
+        actor: byVoice ? { kind: 'voice', id: call ?? 'call' } : { kind: 'ceo', id: 'console' },
+        act: name === 'alias' ? 'project.alias' : `session.${name}`,
+        target: typeof target === 'string' ? target : null,
+        word: byVoice ? { of: 'owner', via: 'voice', ref: call ?? null } : { of: 'ceo', via: via ?? 'console' },
+        decision: threw ? 'failed' : answer.ok === false ? 'refused' : 'done',
+        reason: typeof a.reason === 'string' ? a.reason : null
+      })
+    } catch (e) { /* the journal is a record of the act, never a reason to fail it */ deps.record('ceo.behaviour.note', { outcome: 'failed', error: e instanceof Error ? e.message.slice(0, 200) : String(e) }) }
+  }
+
+  async function journal(a: z.infer<typeof CEO_TOOLS.journal.input>): Promise<Answer> {
+    if (!deps.behaviour) return refuse('the behaviour journal is not kept in this process')
+    const r = deps.behaviour.read({ daysBack: a.days ?? 1, call: a.call ?? null, limit: a.limit ?? 30 })
+    return { ok: true, entries: r.entries, ...(r.unreadable ? { unreadable_lines: r.unreadable } : {}) }
   }
 
   /** Run one tool by its short name with unchecked arguments: checked here, refused with the first problem. `via`:
    *  the door it came through (the CEO's console over MCP, or the voice call), written with a launch it makes. */
-  async function run(name: string, args: unknown, via?: LaunchVia): Promise<Answer> {
+  async function run(name: string, args: unknown, via?: LaunchVia, call?: string | null): Promise<Answer> {
     if (!(name in CEO_TOOLS)) return refuse(`unknown tool ${name}`)
     const tool = CEO_TOOLS[name as CeoToolName]
     const parsed = tool.input.safeParse(args ?? {})
@@ -868,6 +908,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       const answer = await (table[name as CeoToolName] as (a: unknown, via?: LaunchVia) => Promise<Answer>)(parsed.data, via)
       // Every call, its name and whether it was refused: what the CEO looked at is as visible as what it did.
       deps.record(`ceo.tool.${name}`, { outcome: answer.ok === false ? 'refused' : 'ok', ...(via ? { via } : {}) })
+      noteAct(name, parsed.data as Record<string, unknown>, answer, via, call)
       // A tie that asks the owner to choose is a question, not a failed guess (0.3.27 review, PL-5): it does not count.
       if (via === 'voice' && answer.ok === false && !Array.isArray(answer.choices)) {
         // Finding 8: seven refused lookups in seven seconds. The third refusal in a row says stop and ask.
@@ -879,6 +920,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     } catch (e) {
       // A door that threw refused the act: said, never an answer that looks like success.
       deps.record(`ceo.tool.${name}`, { outcome: 'failed', error: e instanceof Error ? e.message.slice(0, 200) : String(e) })
+      noteAct(name, parsed.data as Record<string, unknown>, { ok: false }, via, call, true)
       return refuse(e instanceof Error ? e.message.slice(0, 300) : String(e))
     }
   }

@@ -6,6 +6,8 @@
  * read. W2a adds the fifth, the two acts a product's connection asks of the desktop (open its link, name the app that
  * takes its scheme). W2 gives `fabric-board` its own implementations of the same five; nothing the surface does changes.
  */
+import type { BehaviourJournal } from './behaviourJournal.ts'
+import { DEFAULT_APPROVAL_MODE, approvalModeOf, type ApprovalMode } from '../shared/approvalMode.ts'
 import type { PtyManager } from './pty'
 import type { AbandonedSweep } from './abandonedSweepRun.ts'
 import type { CeoOperations } from './ceoTools.ts'
@@ -28,6 +30,8 @@ export interface HubSweep {
 export interface HubSettings {
   language(): string | null
   machineTrust(): string | null
+  /** The owner's approval mode (ADR-0203); an unreadable file reads as the default, never a looser mode. */
+  approvalMode(): ApprovalMode
 }
 
 /** The agents and services of this machine (the operator, 2026-11-07), for each session's fabric_whoami. */
@@ -57,6 +61,8 @@ export interface HubPorts {
   settings: HubSettings
   registry: HubRegistry
   links: HubLinks
+  /** ADR-0203 §6: the agents' behaviour journal, for the floor's decisions; absent: not written. */
+  behaviour?: Pick<BehaviourJournal, 'note'>
 }
 
 /** The window's process as the hub's one implementation of its four ports. */
@@ -68,6 +74,8 @@ export function windowHubPorts(w: {
   /** The CEO agent, read late: null until it exists. */
   ceo?: () => { isCeo(sessionId: string): boolean; operations(): CeoOperations | null } | null
   registry: { snapshot(): Parameters<typeof machineAgentsOf>[0] }
+  /** ADR-0203 §6: the agents' behaviour journal in `userData/ceo`. */
+  behaviour?: Pick<BehaviourJournal, 'note'>
   /** Electron's `shell.openExternal` and `app.getApplicationInfoForProtocol`, handed in so this module imports no Electron. */
   desktop: {
     openExternal(url: string): Promise<void>
@@ -75,6 +83,7 @@ export function windowHubPorts(w: {
   }
 }): HubPorts {
   return {
+    ...(w.behaviour ? { behaviour: w.behaviour } : {}),
     ...(w.ceo ? { ceo: { isCeo: (id: string) => w.ceo?.()?.isCeo(id) ?? false, operations: () => w.ceo?.()?.operations() ?? null } } : {}),
     terminals: () => w.ptys(),
     sweep: {
@@ -86,7 +95,8 @@ export function windowHubPorts(w: {
       // (0.3.11 review, iteration 2, ER-3: the person may have switched it off).
       language: () => workingLanguageOfRead(w.readSettings()),
       // ADR-0176 §3: an unreadable settings file reads as not trusted (null), never as the person's last answer.
-      machineTrust: () => { const read = w.readSettings(); return read.status === 'unreadable' ? null : read.value.machineTrust }
+      machineTrust: () => { const read = w.readSettings(); return read.status === 'unreadable' ? null : read.value.machineTrust },
+      approvalMode: () => { const read = w.readSettings(); return read.status === 'unreadable' ? DEFAULT_APPROVAL_MODE : approvalModeOf(read.value.approvalMode) }
     },
     registry: { machineAgents: () => machineAgentsOf(w.registry.snapshot()) },
     links: {

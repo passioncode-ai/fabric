@@ -12,6 +12,7 @@
 // Returning `null` is what makes a file UNREADABLE, which is what makes it
 // quarantined instead of overwritten (`main/localState.ts`).
 
+import { approvalModeOf } from './approvalMode.ts'
 import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake, type SettingsPatch } from './types.ts'
 import type { TabRef } from './tabs.ts'
 import { cleanOrder, type FallbackEntry } from './runnerRoute.ts'
@@ -38,7 +39,7 @@ export { APP_SETTINGS_DEFAULTS }
  *  be marked at once (0.3.12 review DA-12: at 4096 a fifth of a full listing read as unread again), and still bounded. */
 export const COMMS_READ_THROUGH_MAX = COMMS_THREAD_HEADS_LIMIT
 
-const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters', 'trustAgentFolders', 'dispatchBoardRequests', 'resumeLeftWork', 'dispatchTarget', 'peopleAsk']
+const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'commsReadThrough', 'firstRun', 'runnerFallback', 'agentPermissions', 'launchAtLogin', 'agentLanguage', 'machineTrust', 'boardFilters', 'trustAgentFolders', 'dispatchBoardRequests', 'resumeLeftWork', 'dispatchTarget', 'peopleAsk', 'approvalMode']
 
 /**
  * A window's settings write, checked before anything is merged (audit 2026-10-05 A7-008, A7-025). A key a
@@ -175,6 +176,8 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     dispatchTargets: dispatchTargetsOf(raw.dispatchTargets),
     // Task 11ebbf83: on unless the person turned it off.
     peopleAsk: raw.peopleAsk !== false,
+    // ADR-0203: an unknown mode is the default, never a looser one.
+    approvalMode: approvalModeOf(raw.approvalMode),
     // ADR-0197: known runners only, each once; anything else is the default order.
     ceoRunners: ceoRunnersOf(raw.ceoRunners),
     // The operator, 2026-11-18: a model below Sonnet 5.5 is dropped; nothing left is the default list.

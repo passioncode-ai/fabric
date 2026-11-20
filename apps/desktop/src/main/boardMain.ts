@@ -18,6 +18,7 @@
  * The cycle (the routine tick, the sweep, the dispatcher, the people-ask bridge) is not started here: it applies the
  * person's decisions through the window's doors, which move to the board in W2c.2 (W2c.1b).
  */
+import { createBehaviourJournal } from './behaviourJournal.ts'
 import { spawn } from 'node:child_process'
 import { realpathSync } from 'node:fs'
 import path from 'node:path'
@@ -295,6 +296,7 @@ export async function startBoardProcess(opts: BoardProcessOptions): Promise<Boar
       // (empty until the cycle runs here, W2c.1b), the settings file the window writes, and Node's link opener.
       ports: (reg) => windowHubPorts({
         ptys: () => undefined, sweep: state.sweep.get, readSettings: readSettingsState, registry: reg,
+        behaviour: createBehaviourJournal({ folder: path.join(userData, 'ceo'), failed: (what, e) => ops.failed('board.behaviour', e, { detail: { what } }) }),
         desktop: { openExternal: openUrl, applicationInfoForProtocol: async () => ({ name: '', path: '' }) }
       }),
       presenter: ({ accessStore, connector, access }) => headlessPresenter({ access, accessStore, connector, operator }),

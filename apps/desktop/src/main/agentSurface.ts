@@ -1,4 +1,6 @@
 import { closeHttpServer } from './closeHttpServer.ts'
+import type { BehaviourJournal } from './behaviourJournal.ts'
+import { DEFAULT_APPROVAL_MODE, approvalModeLabel, approvalModeOf, approvalRule, type ApprovalMode } from '../shared/approvalMode.ts'
 import { pidAlive } from './hub.ts'
 // The agent surface — Fabric's own door, opened toward the agents working in it.
 //
@@ -255,6 +257,11 @@ export interface AgentSurfaceDeps {
   language?: () => string | null | undefined
   /** This computer's trust from Settings (ADR-0176 §3), read at each fabric_whoami; null or absent is not trusted. */
   machineTrust?: () => string | null | undefined
+  /** The owner's approval mode (ADR-0203), read at each fabric_whoami and each fabric_effect_request. Absent or throwing:
+   *  the default, `important`, never a looser mode. */
+  approvalMode?: () => ApprovalMode
+  /** ADR-0203 §6: the behaviour journal the floor's decisions are written to; absent: not written. */
+  behaviour?: Pick<BehaviourJournal, 'note'>
   /** The operator, 2026-11-07: the agents and services of this machine (`shared/machineAgents.ts`), read at each
    *  fabric_whoami so a session calls the agent that owns a job; null when the registry could not be read. */
   machineAgents?: () => MachineAgents | null
@@ -392,6 +399,14 @@ export class AgentSurface {
     try { return this.deps.machineTrust?.() ?? null } catch (e) {
       ops.failed('agentSurface.machine-trust-read', e, { note: 'the settings could not be read; this computer is treated as not trusted' })
       return null
+    }
+  }
+
+  /** The owner's approval mode (ADR-0203). A read that throws is the default: the stricter rule. */
+  private readApprovalMode(): ApprovalMode {
+    try { return approvalModeOf(this.deps.approvalMode?.()) } catch (e) {
+      ops.failed('agentSurface.approval-mode-read', e, { note: 'the settings could not be read; the approval mode is the default' })
+      return DEFAULT_APPROVAL_MODE
     }
   }
 
@@ -1456,7 +1471,9 @@ export class AgentSurface {
             machine: protocol.machine,
             vocabulary: protocol.vocabulary
           },
-          rules: protocol.rules
+          rules: protocol.rules,
+          // ADR-0203: the owner's approval mode and the rule it gives every session, read per call.
+          approval: (() => { const mode = this.readApprovalMode(); const l = protocol.language?.code === 'ru' ? 'ru' : 'en'; return { mode, label: approvalModeLabel(mode, l), rule: approvalRule(mode, l) } })()
         })
       }
     )
@@ -1922,7 +1939,7 @@ export class AgentSurface {
 
     // The two effect tools (`effectTools.ts`): fabric_effect_request asks before an act above the floor (ADR-0050),
     // fabric_effect_report says what happened after.
-    registerEffectTools(server, { policy: () => this.deps.policy, store, ptys }, scope)
+    registerEffectTools(server, { policy: () => this.deps.policy, store, ptys, approvalMode: () => this.readApprovalMode(), ...(this.deps.behaviour ? { behaviour: this.deps.behaviour } : {}) }, scope)
 
     server.registerTool(
       'fabric_leases_list',

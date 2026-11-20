@@ -191,6 +191,24 @@ export class Policy {
   // #endregion grants-from-the-journal
 
   /**
+   * Whether this project has done an act of this class on this target before (ADR-0203, «только нестандартные»): a
+   * grant for it that was spent. Null when it could not be read, which the mode reads as a first time, the safe side.
+   */
+  async actedBefore(input: { estateId: string; projectId: string | null; floorClass: FloorClass; target: string }): Promise<boolean | null> {
+    let q = this.db
+      .from('grants')
+      .select('id')
+      .eq('estate_id', input.estateId)
+      .eq('floor_class', input.floorClass)
+      .eq('target', input.target)
+      .not('consumed_at', 'is', null)
+    q = input.projectId === null ? q.is('project_id', null) : q.eq('project_id', input.projectId)
+    const { data, error } = await q.limit(1)
+    if (error || !data) return null
+    return data.length > 0
+  }
+
+  /**
    * Find an unspent grant the operator already issued for exactly this act
    * (M140).
    *

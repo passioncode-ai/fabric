@@ -7,6 +7,7 @@
  * socket with that secret alone. The call's instructions and tools are composed here, so the window holds no prompt
  * of its own, and every tool the call asks for runs here through the CEO's operations (`ceoTools.ts`) with their gates.
  */
+import { DEFAULT_APPROVAL_MODE, approvalRule, type ApprovalMode } from '../shared/approvalMode.ts'
 import type { VaultPort } from './observatoryVault.ts'
 import type { CeoVoiceProblem } from '../shared/ceoAgent.ts'
 
@@ -25,7 +26,9 @@ export type VoiceTokenAnswer = VoiceToken | { ok: false; reason: CeoVoiceProblem
 /** The call's instructions: who speaks, in which language, which tools it has, and how it works with them (voice CEO
  *  retro 2026-11-20, findings 2, 3, 4, 6, 7, 8: the voice ran work in a bare shell, typed twelve commands into it,
  *  guessed project names seven times in seven seconds and typed into the CEO's own console). */
-export function voiceInstructions(locale: string): string {
+export function voiceInstructions(locale: string, approvalMode: ApprovalMode = DEFAULT_APPROVAL_MODE): string {
+  // ADR-0203: the owner's approval mode at the call's start, with the gates that wait for the person in every mode.
+  const approval = approvalRule(approvalMode, locale === 'en' ? 'en' : 'ru')
   return locale === 'en'
     ? [
       'You are the voice of Fabric\'s CEO agent on the owner\'s computer. Speak English, briefly.',
@@ -35,7 +38,8 @@ export function voiceInstructions(locale: string): string {
       'The CEO\'s own console (is_ceo in session_sessions) is never typed into: hand the CEO a request with ask_ceo, then read its answer with ceo_reply and say it.',
       'A project name you heard: call session_projects once with the word you heard. If it answers understood_as, ask the owner whether that project is meant before you start anything. With exact, go on with that project. If several come back, read the owner two or three names and ask; if it answers worktree, ask whether the worktree or the project is meant. Never try spellings one by one. When the owner tells you what a name means, or says yes to an understood_as, keep the word you heard with session_alias for that project, then go on; never keep a name that answered worktree.',
       'When the owner names the agent or the account («на Codex», «на аккаунте Y»), pass runner or account to session_start; session_accounts lists the accounts with room. After session_start, check with session_task that the session took its task; to hear a session\'s answer, session_wait. Other tools: machine_status for the computer, board_search for the project board, recap for what changed since the previous call. A message or a reminder to anyone goes through ask_ceo.',
-      'Before stopping a session, read it and say why. Never write an em dash in what you say.'
+      'Before stopping a session, read it and say why. Never write an em dash in what you say.',
+      approval
     ].join(' ')
     : [
       'Ты голос CEO-агента Fabric на компьютере владельца. Говори по-русски, коротко.',
@@ -45,7 +49,8 @@ export function voiceInstructions(locale: string): string {
       'Консоль самого CEO (is_ceo в session_sessions) не трогаешь: просьбу передаёшь CEO через ask_ceo, его ответ читаешь через ceo_reply и пересказываешь.',
       'Имя проекта на слух ищешь одним вызовом session_projects со словом, которое услышал. Если в ответе understood_as, спроси владельца, этот ли проект он имел в виду, прежде чем что-то запускать. С exact продолжай с этим проектом. Если вернулось несколько, назови владельцу два или три и спроси; если в ответе worktree, спроси, имеется в виду копия или сам проект. Не перебирай написания. Когда владелец говорит, как он называет проект, или отвечает «да» на understood_as, запомни услышанное слово через session_alias для этого проекта и продолжай; имя, на которое пришёл worktree, не запоминай.',
       'Когда владелец называет агента или аккаунт («на Codex», «на аккаунте Y»), передай runner или account в session_start; session_accounts покажет аккаунты, где есть место. После session_start проверь через session_task, что сессия приняла задачу; чтобы услышать ответ сессии, session_wait. Ещё: machine_status про компьютер, board_search по доске проектов, recap про то, что изменилось с прошлого звонка. Сообщение или напоминание кому-либо передаёшь через ask_ceo.',
-      'Прежде чем остановить сессию, прочитай её и скажи почему. Никогда не ставь длинное тире.'
+      'Прежде чем остановить сессию, прочитай её и скажи почему. Никогда не ставь длинное тире.',
+      approval
     ].join(' ')
 }
 

@@ -1,6 +1,7 @@
 // The v1 control plane (ADR-0031 §2): the only Supabase client, the journal
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
+import { createBehaviourJournal } from './behaviourJournal.ts'
 import { admitAccessAct } from './relayedAccess.ts'
 import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipcMain, net, powerMonitor, safeStorage, session, shell } from 'electron'
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
@@ -1216,6 +1217,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
     ports: (registry) => windowHubPorts({
       ptys: () => ptys, sweep: boardState.sweep.get, readSettings: readSettingsState, registry,
+      behaviour: createBehaviourJournal({ folder: path.join(app.getPath('userData'), 'ceo'), failed: (what, e) => ops.failed('board.behaviour', e, { detail: { what } }) }),
       ceo: () => (ceoAgent ? { isCeo: ceoAgent.isCeo, operations: () => ceoOperations } : null),
       desktop: { openExternal: (url) => shell.openExternal(url), applicationInfoForProtocol: (url) => app.getApplicationInfoForProtocol(url) }
     }),
@@ -5412,6 +5414,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   const projectAliases = createAliasStore(ceoRoot, (what, e) => ops.failed('ceo.project-aliases', e, { detail: { what } }))
   // The one reader of Switchboard's accounts for a launch (shared with the launch menu, `launchAccounts.ts`).
   const launchAccounts = createLaunchAccounts((args) => runMachineSwitchboard(sessionEnvironment(process.env), args))
+  // ADR-0203 §6: what the CEO, its voice and the sessions did, on whose word; the board's floor writes the same folder.
+  const behaviour = createBehaviourJournal({ folder: ceoRoot, failed: (what, e) => ops.failed('ceo.behaviour', e, { detail: { what } }) })
   ceoOperations = createCeoOperations({
     ptys: { list: () => ptys.list(), get: (id) => ptys.get(id), scrollbackOf: (id) => ptys.scrollbackOf(id), write: (id, data) => ptys.write(id, data) },
     ceoSessionId: () => agent.sessionId(),
@@ -5436,6 +5440,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return openConsole(projectId, runner, task, null, { switchboard: program, id: account })
     },
     launchAccounts,
+    behaviour,
     firstTask: (sessionId) => openConsole.firstInstruction(sessionId),
     stop: async (id, force) => { markPersonEnded(id); void launchJournal?.stopAsked(id, 'ceo'); return stopRuntime.stop(id, 'operator_stop', { force }) },
     openWindow: (id) => openSessionWindow(id),
@@ -5549,7 +5554,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     voiceAskedAt = null
     const callId = voiceJournal.begin({ voice, usdPerMinute: token.usdPerMinute })
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
-      instructions: voiceInstructions(locale), voice, tools: [...ceoVoiceTools(), ASK_CEO_TOOL, ...VOICE_TOOLS], callId }
+      instructions: voiceInstructions(locale, readSettings().approvalMode), voice, tools: [...ceoVoiceTools(), ASK_CEO_TOOL, ...VOICE_TOOLS], callId }
   })
   handle(IPC.ceoAgentVoiceLine, (_e, callId: unknown, who: unknown, text: unknown): Returns<FabricApi['ceoAgent']['voiceLine']> => {
     if (typeof callId !== 'string' || (who !== 'person' && who !== 'ceo') || typeof text !== 'string') return
@@ -5621,7 +5626,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const own = await voiceTools.run(tool, args)
     if (own) return own
     if (!tool.startsWith('session_')) return { ok: false, reason: `unknown tool ${tool}` }
-    return ceoOperations!.run(tool.slice('session_'.length), args, 'voice')
+    return ceoOperations!.run(tool.slice('session_'.length), args, 'voice', call)
   }
   // #endregion ceo-agent-wiring
 }

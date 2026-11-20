@@ -77,7 +77,7 @@ function ops(over = {}) {
     sleep: over.sleep ?? (async () => {}), transcriptRoots: [], launches: async () => [], scratch: () => false,
     launchAccounts: { accounts: async () => ({ ok: true, accounts: ACCOUNTS, readAt: 0 }), folderPool: async () => ({ ok: true, pool: 'teamA' }) }
   }
-  return { ops: createCeoOperations(deps), opened, consoles }
+  return { ops: createCeoOperations(deps), opened, consoles, deps }
 }
 
 test('G1: the CEO starts a session on a chosen account, and refuses one of another agent or group with the usable ones', async () => {
@@ -122,4 +122,16 @@ test('G1: a console on an account is prepared with it and opened under the prepa
   assert.deepEqual(log[0], ['prepare', s.sessionId, { switchboard: '/bin/switchboard', id: 'a1' }])
   assert.deepEqual(log[1], ['open', s.sessionId])
   await assert.rejects(open('p1', 'fallback-order', undefined, null, { switchboard: '/bin/switchboard', id: 'a1' }))
+})
+
+test('ADR-0203 §6: a voice start is written to the behaviour journal on the owner\'s word with its call, a read is not', async () => {
+  const lines = []
+  const o = ops()
+  const withJournal = createCeoOperations({ ...o.deps, behaviour: { note: (e) => lines.push(e), read: () => ({ entries: lines, unreadable: 0 }) } })
+  await withJournal.run('start', { project: 'app', task: 'go', reason: 'the owner asked' }, 'voice', 'call-7')
+  await withJournal.run('sessions', {}, 'voice', 'call-7')
+  assert.deepEqual(lines.map((l) => [l.actor.kind, l.actor.id, l.act, l.word.of, l.word.ref, l.decision]), [['voice', 'call-7', 'session.start', 'owner', 'call-7', 'done']])
+  const read = await withJournal.run('journal', { call: 'call-7' }, 'console')
+  assert.equal(read.ok, true)
+  assert.equal(read.entries.length, 1)
 })
