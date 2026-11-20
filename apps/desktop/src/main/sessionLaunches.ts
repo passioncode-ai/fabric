@@ -73,7 +73,8 @@ export function createLaunchJournal(deps: LaunchJournalDeps) {
   /** Ended before its opening was written: no runner-session watch is started for it. */
   const endedEarly = new Set<string>()
 
-  const ensureDir = (): Promise<void> => (ready ??= mkdir(deps.dir, { recursive: true, mode: 0o700 }).then(() => undefined))
+  // DA-9 (0.3.26 review): a failed mkdir is tried again by the next write, never kept for the life of the process.
+  const ensureDir = (): Promise<void> => (ready ??= mkdir(deps.dir, { recursive: true, mode: 0o700 }).then(() => undefined, (e: unknown) => { ready = null; throw e }))
 
   function write(line: LaunchLine): Promise<void> {
     const file = path.join(deps.dir, `launches-${monthOf(new Date(line.at))}.jsonl`)

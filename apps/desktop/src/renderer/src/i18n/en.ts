@@ -3282,7 +3282,7 @@ export const en = {
   'machineSessions.viaSwitchboard': "seen through Switchboard",
   'machineSessions.reading': "Reading…",
   'machineSessions.failed': "Could not read the sessions outside Fabric.",
-  'machineSessions.none': "No Claude Code session is running outside Fabric.",
+  'machineSessions.none': "No agent session is running on this computer outside Fabric.",
   'machineSessions.terminal': "in a terminal",
   'machineSessions.headless': "background run",
   'machineSessions.read': "Last messages",

@@ -9,22 +9,34 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-0.3.25 was prepared and never published: the fix of its floating CEO button landed after its verified commit. Its
-changes ship here ([the release spec](docs/evidence/specs/2026-11-20-home-agents-sessions.md)).
+0.3.25 was prepared and never published: a fix to it landed after its verified commit, which the release gate does
+not admit. Its changes ship here ([the release spec](docs/evidence/specs/2026-11-20-home-agents-sessions.md)).
+
+**Upgrading.** No schema step from 0.3.24 (schema 102, no migration). New on disk: the launch journal,
+`<userData>/launches/` (folder 0700, files 0600, kept 13 months). The CEO's voice is a new optional field of
+`persona.json`; going back to 0.3.24 forgets that choice and keeps everything else.
 
 - **«Спросить CEO» stands at the top right of Главная again.** The operator, 2026-11-20: «чат должен быть справа, а не
   снизу». The card sat in the main column, which «В работе» narrowed to 595 to 835 px at 1280 to 1680 px windows, so it
   fell under the greeting. The greeting and the CEO card are now one row above both columns, the card at the right; it
   goes under the greeting only in a content area under 640 px (`EstateHome.tsx`, `launch/launch.css`).
-- **Fabric sees every session of this Mac, as Fabric Dashboards does.** The operator, 2026-11-20: «в дашборде вот вижу
-  сессии а в фабрике не вижу». Fabric listed only its own consoles, Switchboard's own launches (`sessions --all`) and
-  the Claude Code sessions of two known homes. The list now joins Switchboard's `sessions --rows`, so a session started in
-  a terminal, by Fabric Dashboards or under another Claude home shows too, with its state as Switchboard counts it
-  (идёт, ждёт, нужны вы). «На этом Mac вне Fabric · N» is in the left column's «Агенты»; a press opens Агенты, where the
-  list comes first with its counts, each session read in place and, when its process is known here, continued in Fabric
-  or closed (`main/machineSessions.ts`).
-- **The floating CEO button no longer takes the window down** when the CEO's bridge has not answered yet
-  (`ceo/CeoButton.tsx`).
+- **Fabric lists the sessions Fabric Dashboards lists.** The operator, 2026-11-20: «в дашборде вот вижу сессии а в
+  фабрике не вижу». Fabric listed only its own consoles, Switchboard's own launches (`sessions --all`) and the Claude
+  Code sessions of two known homes. The list now joins Switchboard's `sessions --rows`, the source Fabric Dashboards
+  reads, so a session started in a terminal, by Fabric Dashboards or under another Claude home shows too, counted by
+  Switchboard's groups (идёт, ждёт, нужны вы); Fabric Dashboards still groups its own way, and one definition for both
+  is asked of Switchboard and Dashboards (CO-603). «На этом компьютере вне Fabric · N» is in the left column's
+  «Агенты»; a press opens Агенты, where «Сессии этого компьютера вне Fabric» comes first with its counts. Each session's
+  last messages are read in place, with keys and tokens redacted. A session whose process Fabric knows can be continued
+  in a Fabric console or closed; «Продолжить в Fabric» asks for the folder's project before it stops anything, and says
+  so when the session was stopped but not continued. A session only Switchboard names is read here and not acted on.
+  Fabric's own consoles are never listed there, by their process (`main/machineSessions.ts`).
+- **Other apps open and continue sessions in Fabric** (the contract's DEC-0189, `fabric-session-links/1`, board thread
+  `3ca40854`). `fabric://session/open?session=<id>` opens the console of a session Fabric holds, by its own id or the
+  runner session it runs, and otherwise Агенты with this computer's sessions. `fabric://session/continue?session=<id>`
+  asks «Продолжить в Fabric?»; on the press a running session is stopped where it runs and continued in a Fabric console
+  with its history, and one that ended is continued from its transcript. A link opens a view and acts on nothing by
+  itself; the app it came from (`from`) is recorded with it (`shared/linkRoute.ts`, `shared/contract/fabricLinks.ts`).
 - **Every console Fabric starts is in a launch journal, a press on an agent opens its console, and a project's last
   session continues with one press.** The owner's order of 2026-11-19 (board request `eef5abeb`). Each console is a
   line in `<userData>/launches/launches-YYYY-MM.jsonl`: who started it (you, the CEO, a routine, a chain), through what
@@ -32,17 +44,15 @@ changes ship here ([the release spec](docs/evidence/specs/2026-11-20-home-agents
   Claude Code's own session id for `claude --resume`, and how it ended (`sessionLaunches.ts`). The CEO reads it with
   `fabric_ceo_launches`. In the left column a press on an agent opens its console; its line says «Fabric · терминал»
   and its branch instead of «Работает»; its page (the small button beside) says who started it and has «Закрыть
-  сессию». Each project's row has «＋» for a new session and «↻» to continue its newest session that is not running,
-  wherever it was started; «Агенты» has «+ Новая сессия» and the recent sessions under the running ones. «Сессии вне
-  Fabric» on Агенты lists the Claude Code sessions running in a terminal or through Switchboard, read from Claude
-  Code's own files: their last messages, «Продолжить в Fabric» and «Закрыть». A Switchboard call that timed out or was
-  killed is now named instead of «Command failed», and a read is tried once more (`switchboardSessions.ts#switchboardFailure`).
+  сессию». Each project's row has «＋» for a new session and «↻» to continue its newest Claude Code session that is not
+  running, wherever it was started; «Агенты» has «+ Новая сессия» and the recent sessions under the running ones. A
+  Switchboard call that timed out or was killed is now named instead of «Command failed», and a read is tried once more
+  (`switchboardSessions.ts#switchboardFailure`).
 - **«Завершить сессию» closes a console at once.** The operator, 2026-11-19: the button under a console hung. It sent
   SIGTERM and waited; Claude Code often outlived it, and even an ended agent read «Остановка не подтверждена», which
   kept the console on screen with «Проверить остановку». Now the person's press ends a console still running 0.8 s
   later as Force stop does, and a console whose process is gone leaves with its tab and window in the same press. A
   task's run keeps its TERM-only stop and its receipts (`shared/stop.ts#processGone`, `main/nativeStopRuntime.ts`).
-
 - **The CEO's window is new, and the call is a panel inside its chat.** The owner, 2026-11-19: the popup looked worn,
   and the call should sit in the chat, not in a card. The window's head is the CEO itself: the character's face with a
   ring for its state (on, starting, stopped, failed), its name, the agent it runs on, and «Позвонить», «Остановить» or
@@ -50,9 +60,8 @@ changes ship here ([the release spec](docs/evidence/specs/2026-11-20-home-agents
   state («Соединяем…», «Слушаю», «Говорит»), the time out of five minutes, the price, who said what, «Сказать текстом»,
   and «CEO отвечает вслух», which turns the CEO's voice off so its answers arrive as lines (the voice that reads answers
   and session screens on a call is the CEO). A call that ended stays in the chat, folded, with its lines; the last ten
-  are kept on this computer. On Главная the
-  CEO card is one small block at the top right beside the greeting and the rhythm; its «Позвонить» opens the CEO window
-  and starts the call there. Under reduced motion the meter and the rings hold still and their colour says the state
+  are kept on this computer. The home card's «Позвонить» opens the CEO window and starts the call there. Under reduced
+  motion the meter and the rings hold still and their colour says the state
   (`ceo/CeoPopup.tsx`, `ceo/CeoCall.tsx`; SCN-182, SCN-184). A call ends by itself after a minute in which nobody speaks
   and at five minutes; the call's record in the history says why (`voiceCall.ts#MAX_CALL_MS`, `IDLE_CALL_MS`;
   ADR-0197 amendment 1).

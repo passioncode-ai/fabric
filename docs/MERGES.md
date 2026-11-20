@@ -4,22 +4,22 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-11-20 · `FABRIC-0326` · fix/home-ceo-right → main · fast-forward
+### 2026-11-20 · `FABRIC-0326` · fix/home-ceo-right → main · fast-forward at the 0.3.26 release
 - files: `EstateHome.tsx`, `launch/{launch.css,LaunchShell.tsx,AgentsScreen.tsx,MachineSessions.tsx}`, `main/{machineSessions,index}.ts`, both locales, `App.tsx`, tests (`session-resume`, `Rail`), CHANGELOG, the spec `2026-11-20-home-agents-sessions.md`, SCN-166 and SCN-182, the map; merges of `feat/ceo-popup-redesign`, `feat/session-launch-journal`, `fix/session-end-fast`
 - conflicts: CHANGELOG, MERGES, the map, the product model, `main/index.ts` (the person's stop of the CEO and the launch journal's stop record, both kept), `ceo-agent.test.mjs` (both sides' tests kept)
 - summary: the 0.3.26 candidate: the CEO card at the top right of Главная again; every session of this Mac in Агенты and the rail from Switchboard's rows; the unpublished 0.3.25, the launch journal and the fast session end in one release
 
-### 2026-11-19 · `FABRIC-SESSION-END` · fix/session-end-fast → main · fast-forward
+### 2026-11-20 · `FABRIC-SESSION-END` · fix/session-end-fast → fix/home-ceo-right (the 0.3.26 candidate) · merge `454ac20e`
 - files: `apps/desktop/src/shared/stop.ts` (+ test), `apps/desktop/src/main/{nativeStopRuntime,pty}.ts`, `apps/desktop/src/renderer/src/{SessionStop,App}.tsx`, `SessionWindow.test.tsx`, `native-stop-runtime.test.mjs`, SCN of the console, CHANGELOG, the design map
-- conflicts: none
+- conflicts: CHANGELOG, MERGES, the map, the product model (resolved in the merge; see FABRIC-0326)
 - summary: «Завершить сессию» closes a console at once: the person's press kills a console still running after 0.8 s, and an ended console leaves with its tab (the operator, 2026-11-19)
 
-### 2026-11-19 · `FABRIC-LAUNCH-JOURNAL` · feat/session-launch-journal → main · fast-forward
+### 2026-11-20 · `FABRIC-LAUNCH-JOURNAL` · feat/session-launch-journal → fix/home-ceo-right (the 0.3.26 candidate) · merge `beebcc06`
 - files: `apps/desktop/src/{shared,main}/sessionLaunches.ts`, `main/{launchOrigin,diskSessions,machineSessions,projectResume}.ts`, `main/{pty,ceoTools,switchboardSessions,index}.ts`, `renderer/src/launch/{LaunchShell,SessionLaunch,MachineSessions,AgentsScreen}.tsx`, IPC and preload, both locales, CSS, tests, SCN-166, the spec, CHANGELOG, the design map
-- conflicts: none
+- conflicts: CHANGELOG, MERGES, the map, the product model, `main/index.ts`, `ceo-agent.test.mjs` (resolved in the merge; the test file lost a closing brace there, found by the 0.3.26 review ER-1 and restored in `527ca936`)
 - summary: the launch journal on disk read by the CEO; Switchboard failures named and a read retried; a press on an agent opens its console; «новая / последняя» on each project; sessions outside Fabric read, continued in Fabric and closed (board request eef5abeb)
 
-### 2026-11-19 · `FABRIC-0325` · feat/ceo-popup-redesign → main · fast-forward
+### 2026-11-20 · `FABRIC-0325` · feat/ceo-popup-redesign → fix/home-ceo-right (the 0.3.26 candidate, branched from its tip `886e555e`); 0.3.25 never tagged
 - files: `apps/desktop/src/main/{ceoAgent,ceoTools,ceoVoice}.ts`, the CEO wiring in `main/index.ts`, `apps/desktop/src/shared/{ceoAgent,persona,types,ipcWindowPolicy}.ts`, the preload, `renderer/src/ceo/{CeoPopup,CeoCall,CeoButton,CeoComposer,VoicePicker,voiceCall}.ts(x)`, `PersonaScreen.tsx`, `FirstRun.tsx`, `App.tsx`, `ceo.tsx`, `styles.css`, the component registry, both locales, tests, SCN-110, SCN-182, SCN-184, SCN-186, SCN-187, ADR-0197 amendment 2, the xAI voices in `external-contracts.md`, CO-601, the product model, the 0.3.25 review receipts and ledger, `docs/launch/release-gate.json`, the version, CHANGELOG `## 0.3.25`
 - conflicts: none
 - summary: the 0.3.25 release: the CEO popup redesigned with the call as a panel in the chat and its history kept, the CEO button with the character's face, the CEO's voice (male by default, male or female per character, a sample in Your Fabric and the first run), and the person's stop of the CEO that holds; three review iterations closed on `6da674bd`

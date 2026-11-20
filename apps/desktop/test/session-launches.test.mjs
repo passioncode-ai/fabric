@@ -2,7 +2,7 @@
 // session id for `--resume`, and how it ended; on disk, one JSON line per event.
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { chainOf, endOf, foldLaunches, parseLaunchLine } from '../src/shared/sessionLaunches.ts'
@@ -199,4 +199,21 @@ test("the machine's Claude Code sessions from Claude Code's own files: live ones
   const live = await liveClaudeSessions([a, b, path.join(a, 'missing')], (pid) => pid !== 12)
   assert.deepEqual(live.map((s) => s.pid), [11], 'gone, renamed, relative, torn and invalid files are skipped')
   assert.equal(live[0].startedAt, new Date(1795113564080).toISOString())
+})
+
+// DA-9 (0.3.26 review, iteration 1): one failed mkdir is tried again by the next write, not kept for the process.
+test('a journal folder that could not be made is tried again by the next write', async () => {
+  const base = mkdtempSync(path.join(tmpdir(), 'launches-blocked-'))
+  const dir = path.join(base, 'launches')
+  writeFileSync(dir, 'a file where the folder should be')
+  const { j, failures } = journal({ deps: { dir } })
+  await j.opened(opened({ sessionId: 'first' }))
+  await j.flush?.()
+  assert.ok(failures.length >= 1, 'the failed write is said')
+  rmSync(dir)
+  await j.opened(opened({ sessionId: 'second' }))
+  await j.flush?.()
+  const files = readdirSync(dir)
+  assert.equal(files.length, 1)
+  assert.match(readFileSync(path.join(dir, files[0]), 'utf8'), /"second"/)
 })

@@ -3150,7 +3150,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'machineSessions.viaSwitchboard': "видна через Switchboard",
   'machineSessions.reading': "Читаю…",
   'machineSessions.failed': "Не удалось прочитать сессии вне Fabric.",
-  'machineSessions.none': "Вне Fabric сессий Claude Code сейчас нет.",
+  'machineSessions.none': "На этом компьютере вне Fabric сейчас нет сессий агентов.",
   'machineSessions.terminal': "в терминале",
   'machineSessions.headless': "фоновый запуск",
   'machineSessions.read': "Последние сообщения",
