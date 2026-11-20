@@ -1061,3 +1061,92 @@ test('what waited when Fabric quit is still waiting at the next start, and is ty
   assert.ok(k.delivered.some(([, t]) => t === 'до перезапуска'))
   assert.equal(again.status().queued, undefined)
 })
+
+// 0.3.27 review, iteration 3, run four: the queue keeps order, has one owner per line, never retypes an unknown write,
+// says a stopped CEO as stopped, has one bound, presses the files' Enter, and keeps a broken file aside.
+test('run four: a message sent while others wait goes behind them, and they are typed in the order they were sent', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  assert.equal((await k.agent.send('FIRST', [])).queued, true)
+  busy = false
+  const second = await k.agent.send('SECOND', [])
+  assert.equal(second.ok, true)
+  assert.equal(second.queued, undefined, 'both went in, so the second is not said as waiting')
+  assert.deepEqual(k.delivered.filter(([, t]) => /FIRST|SECOND/.test(t)).map(([, t]) => t), ['FIRST', 'SECOND'])
+})
+
+test('run four: a queued line belongs to the queue, so a fallback after it does not type it a second time', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  assert.equal((await k.agent.send('сделай отчёт', [])).queued, true)
+  busy = false
+  k.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  for (let i = 0; i < 20 && k.agent.status().runner !== 'hermes'; i++) await new Promise((r) => setTimeout(r, 5))
+  await k.agent.drain()
+  assert.equal(k.delivered.filter(([, t]) => t === 'сделай отчёт').length, 1)
+})
+
+test('run four: a write whose outcome is unknown is said so and never typed again', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let calls = 0
+  k.deps.deliver = async () => { calls++; return { state: 'outcome_unknown', reason: 'pty_write_failed' } }
+  const r = await k.agent.send('одно', [])
+  assert.equal(r.ok, false)
+  assert.equal(r.reason, 'delivery-unknown')
+  assert.equal(k.agent.status().queued, undefined, 'not queued')
+  await k.agent.drain()
+  assert.equal(calls, 1)
+})
+
+test('run four: a CEO that is not running keeps the message and says not-running, never busy', async () => {
+  const k = keeper({ refuse: ['claude-code', 'hermes'] })
+  const r = await k.agent.send('hello', [])
+  assert.equal(r.ok, true)
+  assert.equal(r.queued, true)
+  assert.equal(r.reason, 'not-running')
+})
+
+test('run four: one bound in memory and on disk; a send past it is refused, a file past it is cut and the cut recorded', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  k.deps.deliver = async () => ({ state: 'failed_before_write', reason: 'readiness_timeout' })
+  for (let i = 0; i < 50; i++) await k.agent.send(`m${i}`, [])
+  assert.equal(k.agent.status().queued, 50)
+  const over = await k.agent.send('m50', [])
+  assert.equal(over.ok, false)
+  assert.equal(over.reason, 'queue-full')
+  const k2 = keeper()
+  writeFileSync(path.join(k2.root, 'pending.json'), JSON.stringify(Array.from({ length: 60 }, (_, i) => ({ line: `x${i}`, at: 1 }))))
+  const again = createCeoAgent({ ...k2.deps })
+  assert.equal(again.status().queued, 50)
+  assert.ok(k2.log.some(([op, d]) => op === 'ceo.agent.queue-trimmed' && d.dropped === 10))
+})
+
+test('run four: a queued message naming files gets its settled Enter when the queue types it', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  const png = Buffer.from('89504e470d0a1a0a', 'hex').toString('base64')
+  assert.equal((await k.agent.send('see', [{ name: 'shot.png', data: png }])).queued, true)
+  busy = false
+  await k.agent.drain()
+  const i = k.delivered.findIndex(([, t]) => t.startsWith('see'))
+  assert.ok(i >= 0)
+  assert.equal(k.delivered[i + 1]?.[1], 'raw:"\\r"')
+})
+
+test('run four: a pending file that does not parse is kept aside and recorded, never overwritten silently', () => {
+  const k = keeper()
+  writeFileSync(path.join(k.root, 'pending.json'), '[{"line":"x","at":')
+  const again = createCeoAgent({ ...k.deps })
+  assert.equal(again.status().queued, undefined)
+  assert.ok(k.log.some(([op]) => op === 'ceo.agent.queue-read-failed'))
+  assert.ok(readdirSync(k.root).some((f) => f.startsWith('pending.json.corrupt-')))
+})

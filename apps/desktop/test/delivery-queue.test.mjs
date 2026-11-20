@@ -121,3 +121,11 @@ test('the busy path does not jump the prompt: a working start-up waits for the b
   assert.equal(r.reason, 'readiness_timeout')
   assert.equal(writes.length, 0)
 })
+
+test('run four: a hint drawn with cursor moves for its spaces is the prompt (UX-44)', async () => {
+  const q = new DeliveryQueue(() => {}, () => true, { settleMs: 20, maxWaitMs: 2000, promptDrawn: claudePromptDrawn })
+  assert.equal(q.ready, false)
+  q.noteOutput('  ?\x1b[1Cfor\x1b[1Cshortcuts')
+  assert.equal(q.ready, true)
+  q.close()
+})

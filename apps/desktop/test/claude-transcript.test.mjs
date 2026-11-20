@@ -25,3 +25,14 @@ test('hooks alone are no turn; a line from the person is; a missing file is unkn
   assert.equal(await claudeTurnTaken('/work/x', 's1', claudeTranscriptPaths('/work/x', 's1', {}, home)), true)
   assert.equal(await claudeTurnTaken('/work/x', 'other', claudeTranscriptPaths('/work/x', 'other', {}, home)), null)
 })
+
+test('run four: a meta line or tool results alone are no turn; Claude Code taking the message into its queue is one', () => {
+  const meta = '{"type":"user","isMeta":true,"message":{"role":"user","content":"Another Claude session sent a message"}}\n'
+  const tool = '{"type":"user","message":{"role":"user","content":[{"type":"tool_result","content":"ok"}]}}\n'
+  assert.equal(hasPersonTurn(meta), false)
+  assert.equal(hasPersonTurn(tool), false)
+  assert.equal(hasPersonTurn(meta + '{"type":"queue-operation","operation":"dequeue"}\n'), true)
+  assert.equal(hasPersonTurn(meta + '{"type":"queue-operation","operation":"remove"}\n'), false)
+  assert.equal(hasPersonTurn(meta + '{"type":"user","message":{"role":"user","content":"Do it"}}\n'), true)
+  assert.equal(hasPersonTurn('{"type":"user","message":{"content":"cut'), false, 'a cut last line is not a turn')
+})

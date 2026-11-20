@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "b5683470db10e0356217c709bd1a37e0cea71d94",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-b5683470/2026-11-21-data.md",
+  "reportSha256": "6e50186a3c52df9af1ab9c196b2d1dfe5cc5a65e031de0df63e586b1d2d67a46",
+  "reviewerRun": "release-0327-i3r4-data-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-42"
+      ]
+    },
+    {
+      "id": "DA-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-42"
+      ]
+    },
+    {
+      "id": "DA-33",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-615 (1): no age limit and no list or discard for waiting messages"
+      ]
+    },
+    {
+      "id": "DA-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-38"
+      ]
+    },
+    {
+      "id": "DA-35",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-615 (2): transcripts in a home Switchboard made are not looked for; their check answers unknown and nothing is retyped"
+      ]
+    },
+    {
+      "id": "DA-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: in part: `isMeta` lines are no turn (as ER-45); a transcript not yet written counted as no turn is ruled: CO-615 (3)"
+      ]
+    },
+    {
+      "id": "DA-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-40"
+      ]
+    }
+  ]
+}

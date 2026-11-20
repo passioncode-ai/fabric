@@ -5609,9 +5609,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const text = typeof (args as { text?: unknown } | null)?.text === 'string' ? (args as { text: string }).text : ''
       const asked = Date.now()
       const r = await agent.send(text, [])
-      // The echo window starts when the line was written, not when it was asked (0.3.27 review, ER-25).
-      if (r.ok) voiceAskedAt = { call, at: asked, wroteAt: Date.now() }
-      return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console; read its answer with ceo_reply' : undefined }
+      // The echo window starts when the line was written, not when it was asked (0.3.27 review, ER-25). A queued line was
+      // not written: the voice is told it waits, and no echo window starts (0.3.27 review, run four, DO-37).
+      if (r.ok && !r.queued) voiceAskedAt = { call, at: asked, wroteAt: Date.now() }
+      const said = !r.ok ? undefined : r.queued
+        ? 'queued for the CEO: its console has not taken it yet, and it is typed as soon as it does; tell the owner it waits, and read the answer with ceo_reply later'
+        : 'typed into the CEO console; read its answer with ceo_reply'
+      return { ok: r.ok, ...(r.queued ? { queued: true } : {}), ...(r.reason ? { reason: r.reason } : {}), said }
     }
     const own = await voiceTools.run(tool, args)
     if (own) return own

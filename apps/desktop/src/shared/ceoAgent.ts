@@ -22,10 +22,15 @@ export type CeoState = 'idle' | 'starting' | 'running' | 'ended' | 'stopped' | '
 export type CeoProblem = 'all-set-aside' | 'none-could-start' | 'project' | 'start-failed'
 
 /** Why a message did not reach the CEO, as a code the window words (ER-7). */
-export type CeoSendReason = 'empty-file' | 'too-big' | 'not-saved' | 'nothing-to-send' | 'not-running' | 'not-delivered'
+export type CeoSendReason = 'empty-file' | 'too-big' | 'not-saved' | 'nothing-to-send' | 'not-running' | 'not-delivered' | 'queue-full' | 'delivery-unknown'
 /** 2026-11-20 (the owner: «не отправляется сообщение из поп-апа … пишется, что сообщение не дошло»): a message the console
  *  did not take at once is kept, on disk, and typed when it can be; the window says it waits, never that it was lost. */
 export const CEO_QUEUE_RETRY_MS = 10_000
+/** At most this many messages wait for the CEO, in memory and on disk; a send past it is refused and said (0.3.27 review,
+ *  run four, DA-32, ER-42). */
+export const CEO_QUEUE_MAX = 50
+/** A message waiting for the CEO: the line as typed, when it was sent, and whether it names files (UX-43). */
+export interface QueuedLine { line: string; at: number; files?: boolean }
 
 /** What the popup's head and the home composer read of the CEO's console. */
 export interface CeoStatus {

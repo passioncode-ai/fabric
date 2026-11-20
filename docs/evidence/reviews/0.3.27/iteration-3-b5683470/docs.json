@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "b5683470db10e0356217c709bd1a37e0cea71d94",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-b5683470/2026-11-21-docs.md",
+  "reportSha256": "3101e1e2e1e559820d6bf31cc92a90863b7c14d8d49061533689fd27a88951c2",
+  "reviewerRun": "release-0327-i3r4-docs-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-42"
+      ]
+    },
+    {
+      "id": "DO-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-38"
+      ]
+    },
+    {
+      "id": "DO-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the voice's `ask_ceo` says a queued line waits, and no echo window starts for it (`index.ts#runVoiceTool`)"
+      ]
+    },
+    {
+      "id": "DO-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `pending.json` and the queue's retry in AGENTS.md's `userData/ceo` and CEO console rows and in CHANGELOG «Upgrading»"
+      ]
+    },
+    {
+      "id": "DO-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG bullet 3 and CO-606 point to the measured cause; the `first_task` meanings and `FirstInstructionOutcome` name the transcript and the retype"
+      ]
+    },
+    {
+      "id": "DO-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-45; `FIRST_TASK_WAIT_MS`'s comment says a slow start answers `pending`"
+      ]
+    },
+    {
+      "id": "DO-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG bullet 1 says «for at most a minute, then the old rule»"
+      ]
+    },
+    {
+      "id": "DO-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-41"
+      ]
+    },
+    {
+      "id": "DO-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-42; CHANGELOG bullet 2 says the bound"
+      ]
+    },
+    {
+      "id": "DO-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed: this section; the gate moves to the final candidate in the release commit"
+      ]
+    }
+  ]
+}

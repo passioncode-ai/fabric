@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "b5683470db10e0356217c709bd1a37e0cea71d94",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-b5683470/2026-11-21-errors.md",
+  "reportSha256": "5d8d3adb515cbc581e323f4408e2771e451f1aba62b9883a4464dd8dfb4bef83",
+  "reviewerRun": "release-0327-i3r4-errors-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a queued line is owned by the queue alone (`entry.retyped`), so a fallback does not retype it (test «run four: a queued line belongs to the queue…», watched red with the mark removed)"
+      ]
+    },
+    {
+      "id": "ER-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-41"
+      ]
+    },
+    {
+      "id": "ER-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an unknown write is said as `delivery-unknown`, never queued or typed again; an unknown retype counts as typed; the queue's retries back off from 10 s to five minutes (`ceoAgent.ts#typeInto`, `drainLater`; test «run four: a write whose outcome is unknown…»)"
+      ]
+    },
+    {
+      "id": "ER-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a file that does not parse is kept aside as `pending.json.corrupt-<time>` and recorded (test «run four: a pending file that does not parse…»)"
+      ]
+    },
+    {
+      "id": "ER-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one bound, 50, at send and at load; a send past it is refused and said, a cut at load recorded (`CEO_QUEUE_MAX`; test «run four: one bound…»)"
+      ]
+    },
+    {
+      "id": "ER-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-42"
+      ]
+    },
+    {
+      "id": "ER-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a `queue-operation` enqueue or dequeue line counts as taken (`claudeTranscript.ts#hasPersonTurn`; test «run four: a meta line…»)"
+      ]
+    },
+    {
+      "id": "ER-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `isMeta` lines and tool results alone are no turn (`hasPersonTurn` parses the lines; same test)"
+      ]
+    }
+  ]
+}

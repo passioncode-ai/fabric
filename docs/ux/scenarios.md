@@ -191,6 +191,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-185 | The CEO keeps answering when its first agent cannot | Floating CEO | P-01 | ST-046, FLW-63 | implemented | unobserved |
 | SCN-186 | Choose the CEO's voice | Floating CEO | P-01 | ST-046, SCR-36, SCR-64 | implemented | unobserved |
 | SCN-187 | Stop the CEO, and start it again | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
+| SCN-189 | A message to the CEO is never lost | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -4735,16 +4736,16 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Entry point:** the composer of the CEO window, or the home's «Спросить CEO».
 - **Preconditions:** the CEO's console is working on a turn, still starting, or has stopped by itself.
 - **Steps:**
-  1. Operator writes to the CEO and presses «Отправить» -> when the console takes it at once, «Отправлено CEO.»; when it does not (the CEO is busy, starting, or set aside), the box is cleared and the window says «CEO занят: сообщение в очереди и уйдёт само, как только консоль его примет.»
-  2. Operator goes on working -> the waiting messages are typed into the console in the order they were sent, as soon as it takes input (tried every 10 s); a working Claude Code takes a message typed mid-turn and answers it after the turn.
+  1. Operator writes to the CEO and presses «Отправить» -> when the console takes it at once, «Отправлено CEO.»; when it does not and the console runs (busy, starting), the box is cleared and the window says «CEO занят: сообщение в очереди и уйдёт само, как только консоль его примет.»; when the CEO is not running (it failed to start, or every runner is set aside), it says «CEO не запущен: сообщение сохранено и уйдёт, как только CEO запустится…» beside the popup's «Попробовать снова» (amended 2026-11-21, the 0.3.27 review's run four, UX-41); a message sent while others wait goes behind them.
+  2. Operator goes on working -> the waiting messages are typed into the console in the order they were sent, as soon as it takes input (tried after 10 s, the wait doubling up to five minutes while it does not); a working Claude Code takes a message typed mid-turn and answers it after the turn.
   3. Operator quits and opens Fabric -> what still waited is kept and typed once the CEO's console runs.
 - **Expected result:** the operator never has to paste a message into the console by hand; nothing written to the CEO is said as lost while it can still be delivered.
-- **Alt paths:** the CEO stopped by the operator -> the message waits, and writing to it is the operator asking it back (SCN-187); attachments are saved first, and a file that cannot be saved is refused at once, as before.
+- **Alt paths:** the CEO stopped by the operator -> the message waits, and writing to it is the operator asking it back (SCN-187); attachments are saved first, and a file that cannot be saved is refused at once, as before; a queued message naming files gets the same settled Enter as one typed at once; 50 messages already waiting -> the 51st is refused and the window says so; a write to the console that broke off may have gone in -> it is said as unknown and never typed again (amended 2026-11-21, run four).
 - **UI elements:** the composer's status line («Отправлено CEO.», «CEO занят: сообщение в очереди…»).
 - **States covered:** taken at once, queued, typed later, kept across a restart.
-- **Errors & recovery:** a queue that cannot be written to disk still holds in memory and is recorded (`ceo.agent.queue-save-failed`); each message typed from the queue is recorded with how long it waited (`ceo.agent.queue-delivered`).
+- **Errors & recovery:** a queue that cannot be written to disk still holds in memory and is recorded (`ceo.agent.queue-save-failed`); a queue file that does not parse is kept aside as `pending.json.corrupt-<time>` and recorded (`ceo.agent.queue-read-failed`); a line queued is owned by the queue alone, so a fallback to the next runner does not type it again; each message typed from the queue is recorded with how long it waited (`ceo.agent.queue-delivered`).
 - **Design rationale:** the owner, 2026-11-20, 21:37: «не отправляется сообщение из поп-апа разговора с CEO. Пишется, что сообщение не дошло до CEO. Я руками вставил выше в консоль». The operations log at 20:36:33Z and 20:37:11Z: `ceo.agent.delivered` failed before the write (`readiness_timeout`), then the popup's send answered not delivered after 30 s, while the CEO was working.
-- **Telemetry:** ops log `ceo.agent.queued`, `ceo.agent.queue-delivered`.
+- **Telemetry:** ops log `ceo.agent.queued`, `ceo.agent.queue-delivered`, `ceo.agent.queue-full`, `ceo.agent.queue-unknown`, `ceo.agent.queue-trimmed`, `ceo.agent.queue-read-failed`.
 - **Status:** implemented (2026-11-20).
-- **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (region `ceo-queue`: `drain`, `send`), `apps/desktop/src/shared/ceoAgent.ts#CEO_QUEUE_RETRY_MS`, `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx`; tests `ceo-agent.test.mjs` «a message the working CEO did not take…», «what waited when Fabric quit…», `CeoComposer.test.tsx` «said as queued».
+- **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (region `ceo-queue`: `drain`, `send`), `apps/desktop/src/shared/ceoAgent.ts#CEO_QUEUE_RETRY_MS`, `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx`; tests `ceo-agent.test.mjs` «a message the working CEO did not take…», «what waited when Fabric quit…», the seven «run four: …» tests, `CeoComposer.test.tsx` «said as queued».
 - **Product:** unobserved

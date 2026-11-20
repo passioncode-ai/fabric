@@ -4,7 +4,7 @@
   "iteration": 3,
   "level": "errors",
   "candidateCommit": "cbc57ae3bc5271f3b21280c0415e8e873a0d9b2f",
-  "report": "docs/evidence/reviews/0.3.27/iteration-3/2026-11-20-errors.md",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/2026-11-20-errors.md",
   "reportSha256": "8d530ea4f4cb4d3e92a175ec5577896a46902e62c0abaddabf3c2d3dd90521c9",
   "reviewerRun": "release-0327-i3-errors-claude-subagent-20261120",
   "status": "closed",

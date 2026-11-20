@@ -203,7 +203,9 @@ export const VOICE_REPEATS = 3
 export const VOICE_REPEAT_WINDOW_MS = 30_000
 
 type Answer = Record<string, unknown>
-/** How long fabric_ceo_session_start waits for the first task's end: two readiness windows and the check after. */
+/** How long fabric_ceo_session_start waits for the first task's end before it answers `pending`. A Claude Code console can
+ *  hold its first task up to a minute for its input box (`deliveryQueue.ts#PROMPT_WAIT_MS`), so a slow start often answers
+ *  `pending`, and `fabric_ceo_session_task` reads the end later (0.3.27 review, run four, DO-40). */
 export const FIRST_TASK_WAIT_MS = 70_000
 const refuse = (why: string, extra: Answer = {}): Answer => ({ ok: false, reason: why, ...extra })
 

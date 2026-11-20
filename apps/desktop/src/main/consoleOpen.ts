@@ -16,8 +16,10 @@ import type { DeliveryWriteResult } from './deliveryQueue.ts'
 /**
  * What became of a console's first instruction (2026-11-20, the owner's «what blocks work»: a CEO-started session sat
  * 40 minutes on an empty prompt and nothing in the log said why). `delivered`: written, and the runner took it (for
- * Claude Code: its working line appeared after the write; another runner: written). `resubmitted`: written, the paste was
- * still waiting in Claude Code's box, and one more Enter sent it. `written_unconfirmed` (0.3.27 review, PL-2): written
+ * Claude Code: its working line appeared after the write, or its own transcript shows the task taken, `reason`
+ * `turn_in_transcript`; another runner: written). `resubmitted`: written, the paste was still waiting in Claude Code's box,
+ * and one more Enter sent it; or no turn showed and the transcript held none, so the task was typed once more, `reason`
+ * `retyped` (SCN-183, amended 2026-11-20). `written_unconfirmed` (0.3.27 review, PL-2): written
  * to Claude Code, but no turn started within two checks; the text may sit in the box, or a trust or update screen may
  * have taken it, so the caller reads the screen before it relies on it. `not_delivered`: never written (after one more
  * wait for readiness), or written with an unknown outcome; `reason` says which.

@@ -209,7 +209,7 @@ ER-24's two-project rule, DA-24's link check.
 | V3-DA-23 | DA-23 | non-blocking | fixed in the run-two candidate: a voice tool that throws is answered as a redacted refusal and written to the journal (index.ts) |
 | V3-DA-24 | DA-24 | non-blocking | fixed in the run-two candidate: the calls folder is refused when it is a link and set to 0700 when it exists; test «iteration 3 run one», red with the check removed; the DA-13 wording narrowed to «ended» |
 | V3-PL-15 | PL-15 | blocking | fixed in the run-two candidate: as UX-25 |
-| V3-PL-16 | PL-16 | non-blocking | fixed by run three: ci.sh fast with both browser variables reached its last step on the verified candidate cbc57ae3 before the tag (iteration 3, run three's gate, carried from run two under DO-28) |
+| V3-PL-16 | PL-16 | non-blocking | fixed by run three: ci.sh fast with both browser variables reached its last step on cbc57ae3 (iteration 3, run three's gate, carried from run two under DO-28); the final candidate's own gate is recorded in its run's section (run four, PL-30) |
 | V3-PL-17 | PL-17 | non-blocking | ruled: CO-605 (12), as DA-19 |
 | V3-PL-18 | PL-18 | non-blocking | fixed in the run-two candidate: as ER-28 |
 | V3-PL-19 | PL-19 | non-blocking | fixed in the run-two candidate: fixes.md's count; the iteration-1 receipts mark ER-5, ER-7 and DA-8 ruled, re-hashed |
@@ -258,10 +258,11 @@ removed: UX-32's alias guard, UX-27's resume refusal, DA-27's link check.
 
 Exit for run two: every finding disposed above; superseded by run three.
 
-### Run three, cbc57ae3
+### Run three, cbc57ae3 (superseded)
 
-Candidate `cbc57ae3bc5271f3b21280c0415e8e873a0d9b2f`, the verified candidate. Reports and receipts in
-[`docs/evidence/reviews/0.3.27/iteration-3/`](../reviews/0.3.27/iteration-3/), this iteration's receipts. The docs and
+Candidate `cbc57ae3bc5271f3b21280c0415e8e873a0d9b2f`, verified until the owner's blocker of 21:37 reopened the iteration
+(run four below). Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/`](../reviews/0.3.27/iteration-3-cbc57ae3/) (kept as the record). The docs and
 data reviewers were cut off by a network error of the model's API and run again from the start with the same brief;
 the reports are the second runs'. Every run-two fix held (UX-32 to UX-36, ER-29 to ER-32, DA-25 to DA-29, DO-24 to
 DO-29, PL-21 to PL-24). 19 findings, none blocking; the five reviewers answered «Ready».
@@ -296,6 +297,63 @@ release gate, the merge log, the design map, the review reports and receipts, an
 | V3-PL-26 | PL-26 | non-blocking | ruled: CO-609 (2), written to the carry-over register before run four, once the delivery fix reopened the candidate (as UX-38) |
 | V3-PL-27 | PL-27 | non-blocking | fixed in the release commit: V3-PL-16 names the verified candidate and this section records its gate; fixes.md's count is 36; CO-605 (12)'s range (to 67c15053, the comment already on main) ruled: CO-609 (8), written to the carry-over register before run four |
 | V3-PL-28 | PL-28 | non-blocking | ruled: CO-609 (9), written to the carry-over register before run four, once the delivery fix reopened the candidate: the release gate's row rule takes the V1-UX-1 form, with a test watched red |
+
+### Run four, b5683470 (superseded)
+
+Candidate `b5683470db10e0356217c709bd1a37e0cea71d94`. The owner's blocker of 2026-11-20, 21:37 (a session's first task
+and the CEO popup's messages were lost) was fixed on `fix/delivery-never-drops` by the home's session and merged before
+the tag (`40250359`), which reopened this iteration; CO-609 was written to the register. At 2026-11-21, 00:30 the owner
+paused new features until the strategic plan: only the voice retro's bug fixes continue, so the registry fix
+`fix/registry-contract` (`279dcd15`) was held out, its row CO-614. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-b5683470/`](../reviews/0.3.27/iteration-3-b5683470/) (kept as the record).
+Gate: `bash scripts/ci.sh fast` on this candidate; a first run used a wrong Playwright path and is not counted. 41 findings,
+8 blocking (UX-41, UX-42, UX-43, ER-38, ER-39, DO-35, DO-36, DA-31: the CEO queue's order, its one owner per line, a
+stopped CEO said as busy, the files' Enter); the plan reviewer found none blocking. Each is fixed in the next candidate,
+with tests watched red with their mechanism removed (the order check, the queue's ownership). What remains is CO-615.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3R4-UX-41 | UX-41 | blocking | fixed: a CEO that is not running is said as not running beside «Попробовать снова», never as busy (`CeoComposer.tsx`, `ceoAgent.composer.queuedStopped`; test «a CEO that is not running is said as not running») |
+| V3R4-UX-42 | UX-42 | blocking | fixed: a message sent while others wait goes behind them (`ceoAgent.ts#send`, `enqueue`; test «run four: a message sent while others wait…», watched red with the check removed) |
+| V3R4-UX-43 | UX-43 | blocking | fixed: a queued line naming files gets the settled Enter when the queue types it (`ceoAgent.ts#enterAfterFiles`; test «run four: a queued message naming files…») |
+| V3R4-UX-44 | UX-44 | non-blocking | fixed: cursor moves read as spaces before the prompt test (`deliveryQueue.ts#noteOutput`; test «a hint drawn with cursor moves…») |
+| V3R4-UX-45 | UX-45 | non-blocking | fixed: the longer window holds only until the prompt is drawn; after it an item waits 30 s (`deliveryQueue.ts#enqueue`) |
+| V3R4-UX-46 | UX-46 | non-blocking | ruled: CO-615 (1): the window lists no waiting messages and has no discard |
+| V3R4-UX-47 | UX-47 | non-blocking | fixed: as ER-45 |
+| V3R4-UX-48 | UX-48 | non-blocking | fixed: as ER-40 |
+| V3R4-ER-38 | ER-38 | blocking | fixed: a queued line is owned by the queue alone (`entry.retyped`), so a fallback does not retype it (test «run four: a queued line belongs to the queue…», watched red with the mark removed) |
+| V3R4-ER-39 | ER-39 | blocking | fixed: as UX-41 |
+| V3R4-ER-40 | ER-40 | non-blocking | fixed: an unknown write is said as `delivery-unknown`, never queued or typed again; an unknown retype counts as typed; the queue's retries back off from 10 s to five minutes (`ceoAgent.ts#typeInto`, `drainLater`; test «run four: a write whose outcome is unknown…») |
+| V3R4-ER-41 | ER-41 | non-blocking | fixed: a file that does not parse is kept aside as `pending.json.corrupt-<time>` and recorded (test «run four: a pending file that does not parse…») |
+| V3R4-ER-42 | ER-42 | non-blocking | fixed: one bound, 50, at send and at load; a send past it is refused and said, a cut at load recorded (`CEO_QUEUE_MAX`; test «run four: one bound…») |
+| V3R4-ER-43 | ER-43 | non-blocking | fixed: as UX-42 |
+| V3R4-ER-44 | ER-44 | non-blocking | fixed: a `queue-operation` enqueue or dequeue line counts as taken (`claudeTranscript.ts#hasPersonTurn`; test «run four: a meta line…») |
+| V3R4-ER-45 | ER-45 | non-blocking | fixed: `isMeta` lines and tool results alone are no turn (`hasPersonTurn` parses the lines; same test) |
+| V3R4-DO-35 | DO-35 | blocking | fixed: as UX-42 |
+| V3R4-DO-36 | DO-36 | blocking | fixed: as ER-38 |
+| V3R4-DO-37 | DO-37 | non-blocking | fixed: the voice's `ask_ceo` says a queued line waits, and no echo window starts for it (`index.ts#runVoiceTool`) |
+| V3R4-DO-38 | DO-38 | non-blocking | fixed: `pending.json` and the queue's retry in AGENTS.md's `userData/ceo` and CEO console rows and in CHANGELOG «Upgrading» |
+| V3R4-DO-39 | DO-39 | non-blocking | fixed: CHANGELOG bullet 3 and CO-606 point to the measured cause; the `first_task` meanings and `FirstInstructionOutcome` name the transcript and the retype |
+| V3R4-DO-40 | DO-40 | non-blocking | fixed: as UX-45; `FIRST_TASK_WAIT_MS`'s comment says a slow start answers `pending` |
+| V3R4-DO-41 | DO-41 | non-blocking | fixed: CHANGELOG bullet 1 says «for at most a minute, then the old rule» |
+| V3R4-DO-42 | DO-42 | non-blocking | fixed: as UX-41 |
+| V3R4-DO-43 | DO-43 | non-blocking | fixed: as ER-42; CHANGELOG bullet 2 says the bound |
+| V3R4-DO-44 | DO-44 | non-blocking | fixed: this section; the gate moves to the final candidate in the release commit |
+| V3R4-DA-31 | DA-31 | blocking | fixed: as UX-42 |
+| V3R4-DA-32 | DA-32 | non-blocking | fixed: as ER-42 |
+| V3R4-DA-33 | DA-33 | non-blocking | ruled: CO-615 (1): no age limit and no list or discard for waiting messages |
+| V3R4-DA-34 | DA-34 | non-blocking | fixed: as DO-38 |
+| V3R4-DA-35 | DA-35 | non-blocking | ruled: CO-615 (2): transcripts in a home Switchboard made are not looked for; their check answers unknown and nothing is retyped |
+| V3R4-DA-36 | DA-36 | non-blocking | fixed: in part: `isMeta` lines are no turn (as ER-45); a transcript not yet written counted as no turn is ruled: CO-615 (3) |
+| V3R4-DA-37 | DA-37 | non-blocking | fixed: as ER-40 |
+| V3R4-PL-29 | PL-29 | non-blocking | fixed: run three kept in `iteration-3-cbc57ae3/`, run four in `iteration-3-b5683470/`, moved in the fix commit before the next candidate |
+| V3R4-PL-30 | PL-30 | non-blocking | fixed: run three titled superseded; V3-PL-16 no longer names cbc57ae3 as final |
+| V3R4-PL-31 | PL-31 | non-blocking | fixed: the pause and the held registry fix named in this section; its row is CO-614 |
+| V3R4-PL-32 | PL-32 | non-blocking | fixed: as DO-38 |
+| V3R4-PL-33 | PL-33 | non-blocking | fixed: SCN-189 has its index row |
+| V3R4-PL-34 | PL-34 | non-blocking | fixed: «Next free ID» reads `CO-616` and names CO-607 to CO-615 |
+| V3R4-PL-35 | PL-35 | non-blocking | fixed: as ER-38 |
+| V3R4-PL-36 | PL-36 | non-blocking | fixed: as ER-42 and UX-41: the bound is said, a stopped CEO is said |
 
 Exit for iteration 3: every finding disposed above. Blocking findings open: none.
 

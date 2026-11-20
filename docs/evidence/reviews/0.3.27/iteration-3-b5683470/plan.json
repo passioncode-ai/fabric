@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "b5683470db10e0356217c709bd1a37e0cea71d94",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-b5683470/2026-11-21-plan.md",
+  "reportSha256": "5dab91db8950a08f98c96bc36260a1f9f2f888c0f5ad0c403e8846b5b07269ea",
+  "reviewerRun": "release-0327-i3r4-plan-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run three kept in `iteration-3-cbc57ae3/`, run four in `iteration-3-b5683470/`, moved in the fix commit before the next candidate"
+      ]
+    },
+    {
+      "id": "PL-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run three titled superseded; V3-PL-16 no longer names cbc57ae3 as final"
+      ]
+    },
+    {
+      "id": "PL-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the pause and the held registry fix named in this section; its row is CO-614"
+      ]
+    },
+    {
+      "id": "PL-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-38"
+      ]
+    },
+    {
+      "id": "PL-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-189 has its index row"
+      ]
+    },
+    {
+      "id": "PL-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Next free ID» reads `CO-616` and names CO-607 to CO-615"
+      ]
+    },
+    {
+      "id": "PL-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-38"
+      ]
+    },
+    {
+      "id": "PL-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-42 and UX-41: the bound is said, a stopped CEO is said"
+      ]
+    }
+  ]
+}

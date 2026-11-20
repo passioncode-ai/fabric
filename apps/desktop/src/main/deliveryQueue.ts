@@ -105,7 +105,9 @@ export class DeliveryQueue {
         deadline: setTimeout(() => {
           this.finish(item, { state: 'failed_before_write', reason: 'readiness_timeout' })
           this.schedule()
-        }, this.maxWaitMs)
+        // The longer window holds only while the prompt is not drawn yet; once it is, an item waits the ordinary 30 s
+        // (0.3.27 review, run four, UX-45, DO-40: every message waited 90 s).
+        }, this.promptReady && this.promptDrawn ? Math.min(this.maxWaitMs, 30_000) : this.maxWaitMs)
       }
       this.items.push(item)
       this.schedule()
@@ -115,7 +117,10 @@ export class DeliveryQueue {
   noteOutput(data?: string): void {
     if (this.closed) return
     if (!this.promptReady && data !== undefined && this.promptDrawn) {
-      this.recent = (this.recent + data.replace(ANSI, '')).slice(-4096)
+      // A cursor move is a gap on the screen: `CSI n C` is n spaces and `CSI n G` one, so «?␛[1Cfor␛[1Cshortcuts» reads
+      // as the hint (0.3.27 review, run four, UX-44; the same decoding as `consoleOpen.ts#printedSince`, ER-18).
+      const spaced = data.replace(/\x1b\[(\d*)C/g, (_m, n: string) => ' '.repeat(Math.min(Number(n || 1), 200))).replace(/\x1b\[\d*G/g, ' ')
+      this.recent = (this.recent + spaced.replace(ANSI, '')).slice(-4096)
       if (this.promptDrawn(this.recent)) {
         this.promptReady = true
         this.recent = ''

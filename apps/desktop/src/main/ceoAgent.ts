@@ -21,7 +21,7 @@ import { mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync,
 import path from 'node:path'
 import type { TerminalSession } from '../shared/types.ts'
 import type { Walk } from '../shared/runnerRoute.ts'
-import { CEO_QUEUE_RETRY_MS, ceoBoardNudge, ceoBrief, ceoLine, inboxName, type CeoAttachment, type CeoBoardRequest, type CeoProblem, type CeoSendReason, type CeoState, type CeoStatus } from '../shared/ceoAgent.ts'
+import { CEO_QUEUE_MAX, CEO_QUEUE_RETRY_MS, ceoBoardNudge, ceoBrief, ceoLine, inboxName, type CeoAttachment, type CeoBoardRequest, type CeoProblem, type CeoSendReason, type QueuedLine, type CeoState, type CeoStatus } from '../shared/ceoAgent.ts'
 export type { CeoAttachment, CeoState, CeoStatus }
 import { openWithFallback } from './runnerFallback.ts'
 import type { LaunchRoute } from './pty.ts'
@@ -143,11 +143,24 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** The person's messages the console has not taken yet, oldest first, kept on disk so a restart of Fabric keeps them
    *  (the owner, 2026-11-20, 21:37: «не отправляется сообщение из поп-апа … Я руками вставил»). */
   const queueFile = path.join(deps.root, 'pending.json')
-  let queued: Array<{ line: string; at: number }> = (() => {
-    try {
-      const raw = JSON.parse(readFileSync(queueFile, 'utf8')) as unknown
-      return Array.isArray(raw) ? raw.filter((x): x is { line: string; at: number } => !!x && typeof (x as { line?: unknown }).line === 'string' && typeof (x as { at?: unknown }).at === 'number').slice(0, 50) : []
-    } catch { /* no queue kept, or a file that is not one: nothing waits */ return [] }
+  // One bound for the queue in memory and on disk (0.3.27 review, run four, DA-32, ER-42): a send past it is refused and
+  // said, never dropped; a file holding more at a start keeps the oldest and records the cut.
+  let queued: QueuedLine[] = (() => {
+    let text: string
+    try { text = readFileSync(queueFile, 'utf8') } catch (e) { /* no file is an empty queue; any other failure is recorded below */
+      if ((e as NodeJS.ErrnoException).code !== 'ENOENT') deps.record('ceo.agent.queue-read-failed', errorClass(e))
+      return []
+    }
+    let raw: unknown
+    try { raw = JSON.parse(text) } catch (e) {
+      // ER-41: a file that does not parse is kept aside, never overwritten by the next save without a trace.
+      try { renameSync(queueFile, `${queueFile}.corrupt-${Date.now()}`) } catch (e2) { /* recorded below with the read failure */ void e2 }
+      deps.record('ceo.agent.queue-read-failed', errorClass(e))
+      return []
+    }
+    const all = Array.isArray(raw) ? raw.filter((x): x is QueuedLine => !!x && typeof (x as { line?: unknown }).line === 'string' && typeof (x as { at?: unknown }).at === 'number') : []
+    if (all.length > CEO_QUEUE_MAX) deps.record('ceo.agent.queue-trimmed', { kept: CEO_QUEUE_MAX, dropped: all.length - CEO_QUEUE_MAX })
+    return all.slice(0, CEO_QUEUE_MAX)
   })()
   const saveQueue = (): void => {
     try {
@@ -158,9 +171,12 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   }
   let draining = false
   let drainTimer: ReturnType<typeof setTimeout> | null = null
+  // Tries that found the console not taking input, in a row: each doubles the wait, up to five minutes, so a console that
+  // stays closed is not written to and logged every 10 s all day (0.3.27 review, run four, ER-40).
+  let drainMisses = 0
   const drainLater = (): void => {
     if (drainTimer || queued.length === 0) return
-    drainTimer = setTimeout(() => { drainTimer = null; void drain() }, CEO_QUEUE_RETRY_MS)
+    drainTimer = setTimeout(() => { drainTimer = null; void drain() }, Math.min(CEO_QUEUE_RETRY_MS * 2 ** drainMisses, 5 * 60_000))
     ;(drainTimer as { unref?: () => void }).unref?.()
   }
   /** Types the waiting messages into the running console, oldest first; one that is not taken waits for the next try. */
@@ -172,9 +188,15 @@ export function createCeoAgent(deps: CeoAgentDeps) {
         const live = sessionId ? deps.get(sessionId) : null
         if (!live?.running || state !== 'running') break
         const head = queued[0]!
-        if (!(await typeInto(live.sessionId, head.line, 'ceo.agent.delivered'))) break
+        const typed = await typeInto(live.sessionId, head.line, 'ceo.agent.delivered')
+        if (typed === 'failed') { drainMisses = Math.min(drainMisses + 1, 5); break }
+        drainMisses = 0
         queued.shift()
         saveQueue()
+        // ER-40: a write whose outcome is unknown may have gone in; it is never typed again, only said.
+        if (typed === 'unknown') { deps.record('ceo.agent.queue-unknown', { session_id: live.sessionId, left: queued.length }); changed(); continue }
+        // UX-43: a line naming files gets the same settled Enter the direct path gives it.
+        if (head.files) await enterAfterFiles(live.sessionId)
         deps.record('ceo.agent.queue-delivered', { session_id: live.sessionId, waited_s: Math.round((now() - head.at) / 1000), left: queued.length })
         changed()
       }
@@ -338,12 +360,32 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     replyUntil = now() + REPLY_WINDOW_MS
   }
 
-  /** Type a line into a console; the raw reason stays in the operations log. */
-  async function typeInto(id: string, line: string, op: string): Promise<boolean> {
+  /** Type a line into a console; the raw reason stays in the operations log. `unknown`: the write may have gone in, so it
+   *  is never typed again (0.3.27 review, run four, ER-40); `failed`: nothing was written. */
+  async function typeInto(id: string, line: string, op: string): Promise<'written' | 'unknown' | 'failed'> {
     typing(id, line)
     const r = await deps.deliver(id, line)
     deps.record(op, { session_id: id, state: r.state, ...(r.reason ? { reason: r.reason } : {}), chars: line.length })
-    return r.state === 'written'
+    return r.state === 'written' ? 'written' : r.state === 'outcome_unknown' ? 'unknown' : 'failed'
+  }
+
+  /** Measured 2026-11-18 on Claude Code: a pasted image path becomes «[Image #1]» while the paste is read, and the Enter
+   *  after it is lost, so the message waits in the box. One more Enter once it has settled sends it; on an empty prompt
+   *  Claude Code ignores it. */
+  async function enterAfterFiles(id: string): Promise<void> {
+    if (runner !== 'claude-code' || !deps.write) return
+    await (deps.sleep ?? ((ms: number) => new Promise<void>((res) => setTimeout(res, ms))))(1500)
+    try { deps.write(id, '\r') } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.enter-failed', errorClass(e)) }
+  }
+
+  /** Puts a line behind the waiting ones (oldest first); false when the queue is full. */
+  function enqueue(line: string, files: boolean, reason: CeoSendReason): QueuedLine | null {
+    if (queued.length >= CEO_QUEUE_MAX) { deps.record('ceo.agent.queue-full', { waiting: queued.length, chars: line.length }); return null }
+    const item: QueuedLine = { line, at: now(), ...(files ? { files: true } : {}) }
+    queued.push(item)
+    saveQueue()
+    deps.record('ceo.agent.queued', { reason, waiting: queued.length, chars: line.length })
+    return item
   }
 
   /** A message from the person: typed into the console, its attachments named by path. */
@@ -356,6 +398,19 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     }
     const line = ceoLine(text, paths, deps.locale())
     if (line === null) return { ok: false, reason: 'nothing-to-send', status: status() }
+    const files = paths.length > 0
+    // 0.3.27 review, run four (DA-31, UX-42, DO-35, ER-43): while older messages wait, a new one goes behind them, and the
+    // queue types them in the order they were sent. The queue alone owns such a line: no fallback retypes it (ER-38).
+    if (queued.length > 0) {
+      const item = enqueue(line, files, 'not-delivered')
+      if (!item) return { ok: false, reason: 'queue-full', status: status() }
+      await drain()
+      const waiting = queued.includes(item)
+      if (!waiting) return { ok: true, status: status() }
+      drainLater()
+      changed()
+      return { ok: true, queued: true, reason: state === 'running' ? 'not-delivered' : 'not-running', status: status() }
+    }
     const entry: SentLine = { line, sessionId: null, retyped: false, retypedOk: false }
     sent.push(entry)
     if (sent.length > KEPT_LINES) sent.splice(0, sent.length - KEPT_LINES)
@@ -370,8 +425,11 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     let reason: CeoSendReason = 'not-running'
     if (s.state === 'running' && s.sessionId) {
       entry.sessionId = s.sessionId
-      ok = await typeInto(s.sessionId, line, 'ceo.agent.delivered')
+      const typed = await typeInto(s.sessionId, line, 'ceo.agent.delivered')
+      ok = typed === 'written'
       reason = 'not-delivered'
+      // ER-40: the write may have gone in; never queued, never typed again, said as unknown (as 0.3.26 did).
+      if (typed === 'unknown' && !pendingFallback && fallbacks === seq) { entry.retyped = true; return { ok: false, reason: 'delivery-unknown', status: status() } }
     }
     // The console was set aside while the message waited (a sign-in screen, a limit): the fallback types it again.
     if (!ok && (pendingFallback || fallbacks !== seq)) {
@@ -381,15 +439,12 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     // Measured 2026-11-18 on Claude Code: a pasted image path becomes «[Image #1]» while the paste is read, and the
     // Enter after it is lost, so the message waits in the box. One more Enter once it has settled sends it; on an empty
     // prompt Claude Code ignores it.
-    if (ok && paths.length && runner === 'claude-code' && sessionId && deps.write) {
-      await (deps.sleep ?? ((ms: number) => new Promise<void>((res) => setTimeout(res, ms))))(1500)
-      try { deps.write(sessionId, '\r') } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.enter-failed', errorClass(e)) }
-    }
+    if (ok && files && sessionId) await enterAfterFiles(sessionId)
     if (ok) { void drain(); return { ok: true, status: status() } }
-    // Never lost (2026-11-20): kept and typed when the console takes it, after a restart of Fabric too.
-    queued.push({ line, at: now() })
-    saveQueue()
-    deps.record('ceo.agent.queued', { reason, waiting: queued.length, chars: line.length })
+    // Never lost (2026-11-20): kept and typed when the console takes it, after a restart of Fabric too. The queue now owns
+    // the line: a fallback after this does not retype it as owed (0.3.27 review, run four, ER-38, DO-36).
+    entry.retyped = true
+    if (!enqueue(line, files, reason)) return { ok: false, reason: 'queue-full', status: status() }
     drainLater()
     changed()
     return { ok: true, queued: true, reason, status: status() }
@@ -505,7 +560,8 @@ export function createCeoAgent(deps: CeoAgentDeps) {
       const id = sessionId
       if (state !== 'running' || !id) { e.retypedOk = false; continue }
       e.sessionId = id
-      e.retypedOk = await typeInto(id, e.line, 'ceo.agent.retyped')
+      // An unknown write may have gone in: counted as typed, so it is never queued and typed a third time (ER-40).
+      e.retypedOk = (await typeInto(id, e.line, 'ceo.agent.retyped')) !== 'failed'
     }
   }
 

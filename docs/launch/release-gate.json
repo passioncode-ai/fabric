@@ -77,28 +77,28 @@
         "reviews": [
           {
             "level": "ux",
-            "report": "docs/evidence/reviews/0.3.27/iteration-3/2026-11-20-ux.md",
-            "receipt": "docs/evidence/reviews/0.3.27/iteration-3/ux.json"
+            "report": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/2026-11-20-ux.md",
+            "receipt": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/ux.json"
           },
           {
             "level": "errors",
-            "report": "docs/evidence/reviews/0.3.27/iteration-3/2026-11-20-errors.md",
-            "receipt": "docs/evidence/reviews/0.3.27/iteration-3/errors.json"
+            "report": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/2026-11-20-errors.md",
+            "receipt": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/errors.json"
           },
           {
             "level": "docs",
-            "report": "docs/evidence/reviews/0.3.27/iteration-3/2026-11-20-docs.md",
-            "receipt": "docs/evidence/reviews/0.3.27/iteration-3/docs.json"
+            "report": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/2026-11-20-docs.md",
+            "receipt": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/docs.json"
           },
           {
             "level": "data",
-            "report": "docs/evidence/reviews/0.3.27/iteration-3/2026-11-20-data.md",
-            "receipt": "docs/evidence/reviews/0.3.27/iteration-3/data.json"
+            "report": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/2026-11-20-data.md",
+            "receipt": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/data.json"
           },
           {
             "level": "plan",
-            "report": "docs/evidence/reviews/0.3.27/iteration-3/2026-11-20-plan.md",
-            "receipt": "docs/evidence/reviews/0.3.27/iteration-3/plan.json"
+            "report": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/2026-11-20-plan.md",
+            "receipt": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/plan.json"
           }
         ]
       }

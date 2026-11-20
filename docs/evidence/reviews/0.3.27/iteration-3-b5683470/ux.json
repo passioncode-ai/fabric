@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "b5683470db10e0356217c709bd1a37e0cea71d94",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-b5683470/2026-11-21-ux.md",
+  "reportSha256": "ce37787ac05719d594e427f7d717ee03bce6aa224d016d1e2e481af1cb0b38ff",
+  "reviewerRun": "release-0327-i3r4-ux-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a CEO that is not running is said as not running beside «Попробовать снова», never as busy (`CeoComposer.tsx`, `ceoAgent.composer.queuedStopped`; test «a CEO that is not running is said as not running»)"
+      ]
+    },
+    {
+      "id": "UX-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a message sent while others wait goes behind them (`ceoAgent.ts#send`, `enqueue`; test «run four: a message sent while others wait…», watched red with the check removed)"
+      ]
+    },
+    {
+      "id": "UX-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a queued line naming files gets the settled Enter when the queue types it (`ceoAgent.ts#enterAfterFiles`; test «run four: a queued message naming files…»)"
+      ]
+    },
+    {
+      "id": "UX-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed: cursor moves read as spaces before the prompt test (`deliveryQueue.ts#noteOutput`; test «a hint drawn with cursor moves…»)"
+      ]
+    },
+    {
+      "id": "UX-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the longer window holds only until the prompt is drawn; after it an item waits 30 s (`deliveryQueue.ts#enqueue`)"
+      ]
+    },
+    {
+      "id": "UX-46",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-615 (1): the window lists no waiting messages and has no discard"
+      ]
+    },
+    {
+      "id": "UX-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-45"
+      ]
+    },
+    {
+      "id": "UX-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-40"
+      ]
+    }
+  ]
+}

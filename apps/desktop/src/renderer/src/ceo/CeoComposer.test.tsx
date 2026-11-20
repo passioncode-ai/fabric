@@ -40,6 +40,15 @@ describe('the CEO composer', () => {
     expect(box.value).toBe('')
   })
 
+  it('a CEO that is not running is said as not running, never as busy (run four, UX-41)', async () => {
+    setup('popup', vi.fn().mockResolvedValue({ ok: true, queued: true, reason: 'not-running', status: { queued: 1 } }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Напишите CEO' }), { target: { value: 'сделай отчёт' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Отправить' }))
+    const line = (await screen.findByRole('status')).textContent ?? ''
+    expect(line).toMatch(/не запущен/)
+    expect(line).not.toMatch(/занят/)
+  })
+
   it('Enter sends, Shift+Enter does not; the popup does not open another popup', async () => {
     const f = setup('popup')
     const box = screen.getByRole('textbox', { name: 'Напишите CEO' })

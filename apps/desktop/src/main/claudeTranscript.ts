@@ -19,8 +19,22 @@ export function claudeTranscriptPaths(cwd: string, runnerSessionId: string, env:
   return [...new Set(homes)].map((h) => path.join(h, 'projects', slug, `${runnerSessionId}.jsonl`))
 }
 
+/** Whether a transcript's first part shows Claude Code took a person's message: a line of `queue-operation` that took a
+ *  message in (`enqueue`, `dequeue`), or a `user` line that is the person's own (0.3.27 review, run four, ER-44, ER-45,
+ *  DA-36, UX-47): not a meta line Claude Code writes itself (`isMeta`: another session's message, a command caveat) and
+ *  not only tool results. A line that does not parse (the read's cut end) is skipped. */
 export function hasPersonTurn(text: string): boolean {
-  return /"type"\s*:\s*"user"/.test(text)
+  for (const raw of text.split('\n')) {
+    if (!raw.includes('"type"')) continue
+    let line: { type?: unknown; operation?: unknown; isMeta?: unknown; message?: { content?: unknown } }
+    try { line = JSON.parse(raw) } catch { /* the 2 MB read's cut last line, or not JSON: not a turn */ continue }
+    if (line.type === 'queue-operation' && (line.operation === 'enqueue' || line.operation === 'dequeue')) return true
+    if (line.type !== 'user' || line.isMeta === true) continue
+    const content = line.message?.content
+    if (Array.isArray(content) && content.length > 0 && content.every((c) => (c as { type?: unknown })?.type === 'tool_result')) continue
+    return true
+  }
+  return false
 }
 
 export async function claudeTurnTaken(cwd: string, runnerSessionId: string, files = claudeTranscriptPaths(cwd, runnerSessionId)): Promise<boolean | null> {

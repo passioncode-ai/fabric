@@ -4,7 +4,7 @@
   "iteration": 3,
   "level": "plan",
   "candidateCommit": "cbc57ae3bc5271f3b21280c0415e8e873a0d9b2f",
-  "report": "docs/evidence/reviews/0.3.27/iteration-3/2026-11-20-plan.md",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/2026-11-20-plan.md",
   "reportSha256": "95c7aff6d2b4624f97522f4e998f4588fcdb6ba344d51ac246a2adad784c5d77",
   "reviewerRun": "release-0327-i3-plan-claude-subagent-20261120",
   "status": "closed",

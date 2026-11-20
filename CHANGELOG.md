@@ -14,23 +14,27 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
 - **A session's first task reaches Claude Code.** On 2026-11-20 four sessions the CEO started sat with no task.
   Measured on this Mac: Claude Code prints a cursor save and restore about 3 s after its start, then nothing while its
   start-up hooks run; Fabric took that quiet for ready and wrote the task before the input box existed, and Claude Code
-  dropped it without a trace. Now nothing is typed into Claude Code before its box is drawn, and a task that left no
-  turn in Claude Code's own transcript is typed once more (`main/deliveryQueue.ts#promptDrawn`, `main/consoleOpen.ts`,
+  dropped it without a trace. Now nothing is typed into Claude Code before its box is drawn (for at most a minute, then
+  the old rule), and a task that left no turn in Claude Code's own transcript (no message of the person's, no message
+  taken into its queue) is typed once more; a transcript Fabric cannot find is an unknown and is never retyped (`main/deliveryQueue.ts#promptDrawn`, `main/consoleOpen.ts`,
   `main/claudeTranscript.ts`; SCN-183).
 - **A message to the CEO is never lost.** The CEO window said «Сообщение не дошло до CEO» when the CEO was working, and
   the owner pasted it into the console by hand. A message the console does not take at once now waits in a queue kept
-  on disk, the window says it is queued, and it is typed as soon as the console takes it, after a restart of Fabric too
-  (`main/ceoAgent.ts`, region `ceo-queue`; SCN-189).
+  on disk, in the order it was sent, the window says it is queued, and it is typed as soon as the console takes it,
+  after a restart of Fabric too. A CEO that is not running is said as not running, with its message kept for its start;
+  at most 50 messages wait, and a 51st is refused and said; a write whose outcome is unknown is said so and never typed
+  again (`main/ceoAgent.ts`, region `ceo-queue`; SCN-189).
 - **A session the CEO starts gets its task, and the CEO hears whether it did.** A session started with a task sat 40
   minutes on an empty prompt, and nothing said why: the first instruction's end was dropped unless it threw. Now a
   readiness that lapsed waits one more window (still never a blind write), a long paste left waiting in Claude Code's
   box («[Pasted text #1 …]», no turn started) gets one more Enter, and every end is written to the operations log as
   `terminal.first-instruction`. `fabric_ceo_session_start` waits for it (at most 70 s) and answers `first_task`:
-  delivered (Claude Code started its turn; another runner: the text was written), resubmitted (the turn started after the
-  extra Enter), written but unconfirmed (no turn started within two looks: the
+  delivered (Claude Code started its turn, or its transcript shows the task taken; another runner: the text was
+  written), resubmitted (the turn started after the extra Enter, or the task was typed once more), written but unconfirmed (no turn started within two looks: the
   CEO reads the screen before it relies on it), not delivered with the next step, or pending
-  (`main/consoleOpen.ts#deliverFirst`; SCN-183). Why the two sessions of 2026-11-20 sat empty is not proven; a trust or
-  update screen taking the text is the lead, carried in CO-606.
+  (`main/consoleOpen.ts#deliverFirst`; SCN-183). The measured cause of sessions sitting empty is the first bullet's
+  (a paste written before Claude Code's box); whether the two sessions noted earlier that day were among the four measured
+  was not checked, and a trust or update screen taking the text stays a lead, carried in CO-606.
 - **A message to the CEO while it works is no longer lost.** 5 of the owner's last 20 messages to the CEO timed out on
   2026-11-19 and 20: a working Claude Code prints its spinner without the 400 ms quiet the delivery waited for. A
   message that waited 3 s is now written into a working Claude Code, which queues it and answers after its turn
@@ -76,7 +80,8 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
   on 2026-11-20 (their folders untouched); other machines keep theirs (CO-605).
 
 **Upgrading.** No schema step. Nothing to set. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
-days and the newest 200 at most) and `<userData>/ceo/project-aliases.json` (0600).
+days and the newest 200 at most), `<userData>/ceo/project-aliases.json` (0600) and `<userData>/ceo/pending.json` (0600, the
+messages waiting for the CEO, at most 50).
 
 ## 0.3.26
 

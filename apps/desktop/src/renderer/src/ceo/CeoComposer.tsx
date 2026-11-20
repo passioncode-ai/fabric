@@ -47,7 +47,7 @@ export function CeoComposer({
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
   /** `queued`: the console was busy and the message waits for it (2026-11-20: never said as lost). */
-  const [sent, setSent] = useState<false | 'sent' | 'queued'>(false)
+  const [sent, setSent] = useState<false | 'sent' | 'queued' | 'queuedStopped'>(false)
   const box = useRef<HTMLTextAreaElement>(null)
   const picker = useRef<HTMLInputElement>(null)
 
@@ -83,8 +83,11 @@ export function CeoComposer({
       if (r.ok) {
         setText('')
         setFiles([])
-        setSent(r.queued ? 'queued' : 'sent')
-      } else setProblem(`${t('ceoAgent.composer.failed')} ${r.reason ?? ''}`.trim())
+        // 0.3.27 review, run four (UX-41, ER-39): a CEO that is not running is never called busy; its message waits for it.
+        setSent(r.queued ? (r.reason === 'not-running' ? 'queuedStopped' : 'queued') : 'sent')
+      } else if (r.reason === 'queue-full') setProblem(t('ceoAgent.composer.queueFull'))
+      else if (r.reason === 'delivery-unknown') setProblem(t('ceoAgent.composer.unknown'))
+      else setProblem(`${t('ceoAgent.composer.failed')} ${r.reason ?? ''}`.trim())
     } catch (e) {
       setProblem(`${t('ceoAgent.composer.failed')} ${e instanceof Error ? e.message : String(e)}`)
     } finally {
@@ -133,7 +136,7 @@ export function CeoComposer({
           <input ref={picker} type="file" multiple hidden aria-label={t('ceoAgent.composer.attach')} onChange={(e) => { void attach(e.target.files); e.target.value = '' }} />
           <button type="button" className="btn btn-ghost" onClick={() => picker.current?.click()}>{t('ceoAgent.composer.attach')}</button>
           {tools}
-          {sent && <span className="muted" role="status">{t(sent === 'queued' ? 'ceoAgent.composer.queued' : 'ceoAgent.composer.sent')}</span>}
+          {sent && <span className="muted" role="status">{t(sent === 'queued' ? 'ceoAgent.composer.queued' : sent === 'queuedStopped' ? 'ceoAgent.composer.queuedStopped' : 'ceoAgent.composer.sent')}</span>}
           <button type="submit" className="btn ceo-composer-send" disabled={busy || (!text.trim() && files.length === 0)}>
             {t(busy ? 'ceoAgent.composer.sending' : 'ceoAgent.composer.send')}
           </button>
