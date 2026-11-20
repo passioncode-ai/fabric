@@ -22,7 +22,7 @@ removed, R-006), and the fix. Tests: `apps/desktop/test/voice-retro.test.mjs` (1
 | 1 | The call is not kept | fixed | `main/ceoVoiceJournal.ts`, `renderer/src/ceo/voiceCall.ts#createCall` | «finding 1: …» (2), voiceCall «voice retro finding 1» |
 | 2, 3 | The voice works by hand in a shell | fixed | `main/ceoVoice.ts#voiceInstructions`, `main/ceoTools.ts` (`VOICE_INPUTS`) | «findings 2, 3: …» (2) |
 | 4 | Project names heard by voice | fixed | `shared/heardName.ts`, `shared/ceoAgent.ts#findProject`, `main/ceoProjectAliases.ts` | «finding 4: …» (3), «heard names …» |
-| 5 | Junk in the project registry | rule fixed, 18 records archived, list below | `shared/scratchFolder.ts`, `main/sessionEnroll.ts`, `main/board.ts` | «finding 5: …» (2) |
+| 5 | Junk in the project registry | rule fixed, 18 records archived, the rest CO-605 (1) | `shared/scratchFolder.ts`, `main/sessionEnroll.ts`, `main/board.ts` | «finding 5: …» (2) |
 | 6 | The voice types into the CEO's console | fixed | `main/ceoTools.ts` (`input`, voice door) | «finding 6: …» |
 | 7 | The CEO's answer does not come back | fixed: `ceo_reply` | `main/ceoVoiceTools.ts#assistantSince` | «finding 7: …» |
 | 8 | A burst of the same refused call | fixed | `main/ceoTools.ts` (`notOne`, `VOICE_REPEATS`) | «finding 8: …» |
