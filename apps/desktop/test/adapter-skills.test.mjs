@@ -12,6 +12,8 @@ const md = (v) => `---\nname: x\nmetadata:\n  version: "${v}"\n---\n# x\n`
 const skills = (dir, v = '0.8.0', which = ['creating-fabric-agents', 'adapting-projects-to-fabric']) => {
   for (const s of which) { mkdirSync(path.join(dir, s), { recursive: true }); writeFileSync(path.join(dir, s, 'SKILL.md'), md(v)) }
 }
+// Every call names its env: the run's own CLAUDE_CONFIG_DIR or SWITCHBOARD_CLAUDE_SOURCE_DIR (a session inside a
+// Switchboard home) would otherwise point adapterSkills at the real Claude folder instead of the planted one.
 const home = () => realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-skills-')))
 
 assert.equal(skillVersion(md('0.8.0')), '0.8.0')
@@ -23,11 +25,11 @@ assert.equal(skillVersion('# no front matter'), null)
   mkdirSync(path.join(h, '.claude', 'plugins'), { recursive: true })
   writeFileSync(path.join(h, '.claude', 'settings.json'), JSON.stringify({ enabledPlugins: { [ADAPTER_PLUGIN]: true } }))
   writeFileSync(path.join(h, '.claude', 'plugins', 'installed_plugins.json'), JSON.stringify({ plugins: { [ADAPTER_PLUGIN]: [{ installPath: install, version: '0.8.0' }] } }))
-  const v = await adapterSkills('claude-code', { home: h })
+  const v = await adapterSkills('claude-code', { home: h, env: {} })
   assert.deepEqual([v.ready, v.where, v.version], [true, 'plugin', '0.8.0'])
   // The same plugin switched off is not "installed for Claude Code".
   writeFileSync(path.join(h, '.claude', 'settings.json'), JSON.stringify({ enabledPlugins: { [ADAPTER_PLUGIN]: false } }))
-  assert.equal((await adapterSkills('claude-code', { home: h })).where, 'none', 'a disabled plugin does not count')
+  assert.equal((await adapterSkills('claude-code', { home: h, env: {} })).where, 'none', 'a disabled plugin does not count')
 }
 
 { // An enabled plugin whose install path lacks one skill is not ready; a plain copy in ~/.claude/skills is.
@@ -36,23 +38,23 @@ assert.equal(skillVersion('# no front matter'), null)
   mkdirSync(path.join(h, '.claude', 'plugins'), { recursive: true })
   writeFileSync(path.join(h, '.claude', 'settings.json'), JSON.stringify({ enabledPlugins: { [ADAPTER_PLUGIN]: true } }))
   writeFileSync(path.join(h, '.claude', 'plugins', 'installed_plugins.json'), JSON.stringify({ plugins: { [ADAPTER_PLUGIN]: [{ installPath: install }] } }))
-  assert.equal((await adapterSkills('claude-code', { home: h })).ready, false, 'half a skill set is not ready')
+  assert.equal((await adapterSkills('claude-code', { home: h, env: {} })).ready, false, 'half a skill set is not ready')
   skills(path.join(h, '.claude', 'skills'), '0.7.0')
-  const v = await adapterSkills('claude-code', { home: h })
+  const v = await adapterSkills('claude-code', { home: h, env: {} })
   assert.deepEqual([v.ready, v.where, v.version], [true, 'agent-folder', '0.7.0'])
 }
 
 { // Codex: its own folder counts; the shared folder alone is said as shared and not called ready.
   const h = home()
   skills(path.join(h, '.agents', 'skills'))
-  const shared = await adapterSkills('codex', { home: h })
+  const shared = await adapterSkills('codex', { home: h, env: {} })
   assert.deepEqual([shared.ready, shared.where], [false, 'shared'], 'found only in the shared folder: not claimed as read by the agent')
   skills(path.join(h, '.codex', 'skills'))
-  assert.deepEqual([(await adapterSkills('codex', { home: h })).ready, (await adapterSkills('codex', { home: h })).where], [true, 'agent-folder'])
+  assert.deepEqual([(await adapterSkills('codex', { home: h, env: {} })).ready, (await adapterSkills('codex', { home: h, env: {} })).where], [true, 'agent-folder'])
 }
 
 { // Nothing anywhere: not ready, and the install command is always there to copy.
-  const v = await adapterSkills('hermes', { home: home() })
+  const v = await adapterSkills('hermes', { home: home(), env: {} })
   assert.deepEqual([v.ready, v.where, v.version], [false, 'none', null])
   assert.equal(v.command, INSTALL_COMMAND)
   assert.equal(INSTALL_COMMAND, 'npx @passioncode-ai/passioncode@latest update')
@@ -60,21 +62,21 @@ assert.equal(skillVersion('# no front matter'), null)
 
 { // An unknown agent has no folder of its own: only the shared folder is looked at.
   const h = home(); skills(path.join(h, '.agents', 'skills'))
-  assert.equal((await adapterSkills('some-new-agent', { home: h })).where, 'shared')
+  assert.equal((await adapterSkills('some-new-agent', { home: h, env: {} })).where, 'shared')
 }
 
 { // Unreadable or malformed files are "not found", never a thrown error that blocks the screen.
   const h = home(); mkdirSync(path.join(h, '.claude'), { recursive: true }); writeFileSync(path.join(h, '.claude', 'settings.json'), '{ not json')
-  assert.equal((await adapterSkills('claude-code', { home: h })).where, 'none')
+  assert.equal((await adapterSkills('claude-code', { home: h, env: {} })).where, 'none')
 }
 
 { // What the install command covers is said per agent (the launcher has no channel for Cline or Kimi Code).
   const h = home()
   for (const [id, covered] of [['claude-code', true], ['codex', true], ['kilo', true], ['hermes', true], ['cline', false], ['kimi-code', false]])
-    assert.equal((await adapterSkills(id, { home: h })).launcherCovers, covered, id)
+    assert.equal((await adapterSkills(id, { home: h, env: {} })).launcherCovers, covered, id)
   // Cline has no folder of its own we know of: only the shared folder is looked at.
   skills(path.join(h, '.agents', 'skills'))
-  assert.equal((await adapterSkills('cline', { home: h })).where, 'shared')
+  assert.equal((await adapterSkills('cline', { home: h, env: {} })).where, 'shared')
 }
 
 { // 0.3.3 verification ER-7: a FIFO is never read (the check would hang), an unreadable file is said as such,
