@@ -277,25 +277,25 @@ release gate, the merge log, the design map, the review reports and receipts, an
 
 | Row | Finding | Severity | Disposition |
 |---|---|---|---|
-| V3-UX-37 | UX-37 | non-blocking | ruled: CO-609 (1), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the project list checks the work folders' last parts before the word filter |
-| V3-UX-38 | UX-38 | non-blocking | ruled: CO-609 (2), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the alias guard checks the named project's own worktrees only, with a next step; its worktree branch answers worktree |
-| V3-UX-39 | UX-39 | non-blocking | ruled: CO-609 (3), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the deeper of a holder and a worked folder wins; a folder query inside a holder also lists the projects under it |
-| V3-UX-40 | UX-40 | non-blocking | ruled: CO-609 (4), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the next step says Switchboard continues in a Terminal window of its own, checked once on a real ended worktree console |
-| V3-ER-33 | ER-33 | non-blocking | ruled: CO-609 (5), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): a one-word worktree name answers ambiguous with the project the words find |
-| V3-ER-34 | ER-34 | non-blocking | ruled: CO-609 (2), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as UX-38) |
-| V3-ER-35 | ER-35 | non-blocking | ruled: CO-609 (6), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): ops.failed takes the tool's name directly and the ok line moves after the run |
-| V3-ER-36 | ER-36 | non-blocking | ruled: CO-609 (7), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the folders above home are no holder, as isTooBroad says |
+| V3-UX-37 | UX-37 | non-blocking | ruled: CO-609 (1), written to the carry-over register before run four, once the delivery fix reopened the candidate: the project list checks the work folders' last parts before the word filter |
+| V3-UX-38 | UX-38 | non-blocking | ruled: CO-609 (2), written to the carry-over register before run four, once the delivery fix reopened the candidate: the alias guard checks the named project's own worktrees only, with a next step; its worktree branch answers worktree |
+| V3-UX-39 | UX-39 | non-blocking | ruled: CO-609 (3), written to the carry-over register before run four, once the delivery fix reopened the candidate: the deeper of a holder and a worked folder wins; a folder query inside a holder also lists the projects under it |
+| V3-UX-40 | UX-40 | non-blocking | ruled: CO-609 (4), written to the carry-over register before run four, once the delivery fix reopened the candidate: the next step says Switchboard continues in a Terminal window of its own, checked once on a real ended worktree console |
+| V3-ER-33 | ER-33 | non-blocking | ruled: CO-609 (5), written to the carry-over register before run four, once the delivery fix reopened the candidate: a one-word worktree name answers ambiguous with the project the words find |
+| V3-ER-34 | ER-34 | non-blocking | ruled: CO-609 (2), written to the carry-over register before run four, once the delivery fix reopened the candidate (as UX-38) |
+| V3-ER-35 | ER-35 | non-blocking | ruled: CO-609 (6), written to the carry-over register before run four, once the delivery fix reopened the candidate: ops.failed takes the tool's name directly and the ok line moves after the run |
+| V3-ER-36 | ER-36 | non-blocking | ruled: CO-609 (7), written to the carry-over register before run four, once the delivery fix reopened the candidate: the folders above home are no holder, as isTooBroad says |
 | V3-ER-37 | ER-37 | non-blocking | fixed in the release commit: the CHANGELOG says a Claude Code console's answer names its session id |
 | V3-DO-30 | DO-30 | non-blocking | fixed in the release commit: as PL-27 |
 | V3-DO-31 | DO-31 | non-blocking | ruled: CO-609 (8), as PL-27 |
 | V3-DO-32 | DO-32 | non-blocking | fixed in the release commit: fixes.md says 22 review tests, 36 in all |
 | V3-DO-33 | DO-33 | non-blocking | fixed in the release commit: V3-UX-34's row says why is described in the project list's description, not the instructions |
 | V3-DO-34 | DO-34 | non-blocking | fixed in the release commit: the protocol's baseline line names 0.3.26's close and origin/main at 37d69d6a inside the candidate |
-| V3-DA-30 | DA-30 | non-blocking | ruled: CO-609 (6), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as ER-35) |
-| V3-PL-25 | PL-25 | non-blocking | ruled: CO-609 (5), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as ER-33) |
-| V3-PL-26 | PL-26 | non-blocking | ruled: CO-609 (2), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as UX-38) |
-| V3-PL-27 | PL-27 | non-blocking | fixed in the release commit: V3-PL-16 names the verified candidate and this section records its gate; fixes.md's count is 36; CO-605 (12)'s range (to 67c15053, the comment already on main) ruled: CO-609 (8), written on main after the tag |
-| V3-PL-28 | PL-28 | non-blocking | ruled: CO-609 (9), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the release gate's row rule takes the V1-UX-1 form, with a test watched red |
+| V3-DA-30 | DA-30 | non-blocking | ruled: CO-609 (6), written to the carry-over register before run four, once the delivery fix reopened the candidate (as ER-35) |
+| V3-PL-25 | PL-25 | non-blocking | ruled: CO-609 (5), written to the carry-over register before run four, once the delivery fix reopened the candidate (as ER-33) |
+| V3-PL-26 | PL-26 | non-blocking | ruled: CO-609 (2), written to the carry-over register before run four, once the delivery fix reopened the candidate (as UX-38) |
+| V3-PL-27 | PL-27 | non-blocking | fixed in the release commit: V3-PL-16 names the verified candidate and this section records its gate; fixes.md's count is 36; CO-605 (12)'s range (to 67c15053, the comment already on main) ruled: CO-609 (8), written to the carry-over register before run four |
+| V3-PL-28 | PL-28 | non-blocking | ruled: CO-609 (9), written to the carry-over register before run four, once the delivery fix reopened the candidate: the release gate's row rule takes the V1-UX-1 form, with a test watched red |
 
 Exit for iteration 3: every finding disposed above. Blocking findings open: none.
 
