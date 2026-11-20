@@ -22,6 +22,7 @@ import { createSharedReading } from '../shared/sharedReading'
 import { startBugCapture, type BugCapture } from './bugCapture'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { ceoWindowBounds, rememberCeoWindow } from './ceoWindowPlacement.ts'
+import { createSessionMetaReader } from './sessionMetaRead.ts'
 import { isFloorClass, Policy } from './policy'
 import { launchOption, launchOptions, PtyManager, setFolderTrust, setLaunchSink, setPermissionPreference } from './pty'
 import { trustFolderForClaude } from './claudeTrust.ts'
@@ -1630,6 +1631,12 @@ function toTranscript(row: Record<string, unknown>): SessionTranscript {
 const repoStates = createRepoStateReader()
 /** The branch of each console Fabric holds, for the home's reading (0.3.14, the simple Fabric). */
 const agentBranchReader = createBranchReader()
+/** The consoles' system line (2026-11-20): one reader, so every console shares its Switchboard reads. */
+const sessionMetaReader = createSessionMetaReader({
+  switchboard: (args) => runMachineSwitchboard(sessionEnvironment(process.env), args),
+  branch: agentBranchReader,
+  launch: async (sessionId) => (await launchJournal?.read({ sessionId }))?.find((l) => l.sessionId === sessionId) ?? null
+})
 /** CO-459: the branches sessions report on their turns, held here for this machine's screens only (DEC-0140 PR-3). */
 /**
  * M57, reopened by M113 — what the code is doing, as opposed to what our own
@@ -5126,6 +5133,21 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       if (out.length >= 8) break
     }
     return out
+  })
+  // A console's system line (the owner, 2026-11-20): `main/sessionMetaRead.ts`, its reads cached and bounded.
+  handle(IPC.terminalMeta, async (_e, sessionId: unknown): Promise<Returns<FabricApi['terminal']['meta']>> => {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 128) throw new Error('Invalid session identity')
+    const s = ptys.get(sessionId)
+    if (!s) return null
+    return sessionMetaReader.read({ sessionId, cwd: s.cwd, runner: s.optionId, startedAt: s.startedAt })
+  })
+  // The line's folder, opened in Finder: only the console's own folder, which Fabric started it in.
+  handle(IPC.terminalRevealFolder, async (_e, sessionId: unknown): Promise<Returns<FabricApi['terminal']['revealFolder']>> => {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 128) throw new Error('Invalid session identity')
+    const s = ptys.get(sessionId)
+    if (!s) return { ok: false, reason: 'no such console' }
+    const reason = await shell.openPath(s.cwd)
+    return reason ? { ok: false, reason } : { ok: true }
   })
   // Who started a console and from where (the launch journal, board request eef5abeb): read for the agent's page.
   handle(IPC.terminalLaunch, async (_e, sessionId: unknown): Promise<Returns<FabricApi['terminal']['launch']>> => {

@@ -4724,3 +4724,24 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Status:** implemented (2026-11-19).
 - **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `personStopEnded`, `onExit`, `ensure`, `send`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP», «ER-1 (0.3.25)», «ER-2 (0.3.25)», «ER-3 (0.3.25)», «ER-6 (0.3.25)»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.
 - **Product:** unobserved
+
+### SCN-188: Read a console's system line
+- **Persona:** P-01
+- **Feature:** Consoles
+- **Traces:** ST-046 (JTBD-02)
+- **Entry point:** the bottom bar of any console under its tab in the main window.
+- **Preconditions:** a console runs (or ran) in Fabric.
+- **Steps:**
+  1. Operator looks at the console's bottom bar -> one thin line says who started it and when («Вы, 18:02», «CEO голосом, 18:40», «Передана Switchboard, 20:58»), the account it runs on («claude13@…»), the organisation it works for («PassionCode.ai», or «личное»), the model («Opus 5.5»; the agent's name on hover, since the tab already says it), the folder by its own name, the git branch and the session's short id («id 8343a070»), and on a wide window the agent's own id («агент 1fc71162»). The folder and the ids are dotted to say they can be pressed.
+  2. Operator rests the pointer on a part -> it says itself whole: the e-mail, the full folder, the branch, the whole id, and where the account came from (Switchboard's record of the session, or the group's account now, which may change on a switch).
+  3. Operator presses the folder -> it opens in Finder; presses an id -> it is copied, and the part says «Скопировано» for a moment.
+- **Expected result:** without opening another app, the operator sees on which account and for which organisation a console works, who started it and in what folder and branch.
+- **Alt paths:** Switchboard is not installed or did not answer -> the account and the organisation are left out, the rest stays; a console Switchboard launched is matched by the coding agent's own session id, else by its folder and a start within 20 s; the line is read again every 30 s while the window is seen and when it comes back into view, so a switched account shows within half a minute. A narrow window (under 940 px) keeps whole parts only: who started it, the account, the organisation and the folder; the model, the branch and the ids step out and stay on hover and on the agent's page. Amended the same day after the design review (`docs/reports/2026-11-20-console-meta-line/`): at 1280 px the folder, branch and organisation had been cut on the part that tells them apart.
+- **UI elements:** the console's bottom bar (`session-bar`): the state, the system line, «Новая сессия» after an end, the stop, «Открыть в отдельном окне».
+- **States covered:** running, ended; Switchboard read, not read; a long folder, branch or e-mail cut with an ellipsis.
+- **Errors & recovery:** a part that could not be read is left out, never guessed; a failed read keeps the line it had; a folder that cannot be opened says nothing more than the OS does.
+- **Design rationale:** the owner, 2026-11-20, 20:59: «в дашборде типа сессии показываются, когда открываются, видно типа с какого она аккаунта, типа вот кто ее вытащил, короче вот такая мета. Давай ее в фабрике тоже сделаем, типа внизу в строчечке … плюс типа там папка, ветка какая». The account and the organisation come from Switchboard, read the way Fabric Dashboards reads them (its session merge is vendored in `shared/vendor/dashboardsSessions.ts`); once Fabric Dashboards' `sessions-core` (FD-357) and Switchboard's client (SB-586) ship, the reads move onto them.
+- **Telemetry:** none.
+- **Status:** implemented (2026-11-20).
+- **Coverage:** `apps/desktop/src/shared/sessionMeta.ts#sessionMeta`, `apps/desktop/src/main/sessionMetaRead.ts#createSessionMetaReader`, `apps/desktop/src/main/switchboardSessions.ts` (`parseSessionLites`, `parseAccounts`, `parseGroupOrgs`, `parseShellEnv`), `apps/desktop/src/renderer/src/SessionMetaLine.tsx#SessionMetaLine`; tests `sessionMeta.test.ts`, `SessionMetaLine.test.tsx`.
+- **Product:** unobserved

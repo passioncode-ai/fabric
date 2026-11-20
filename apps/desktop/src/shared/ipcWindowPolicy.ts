@@ -249,6 +249,8 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   terminalGet: MAIN_AND_OWN_CONSOLE,
   terminalScrollback: MAIN_AND_OWN_CONSOLE,
   terminalLaunch: MAIN_ONLY,
+  terminalMeta: MAIN_ONLY,
+  terminalRevealFolder: MAIN_ONLY,
   terminalRecent: MAIN_ONLY,
   terminalWrite: MAIN_AND_OWN_CONSOLE,
   terminalResize: MAIN_AND_OWN_CONSOLE,

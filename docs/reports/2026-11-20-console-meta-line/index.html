@@ -1,0 +1,26 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Строка сведений консоли: снимки до и после</title>
+<style>body{font:14px/1.5 -apple-system,system-ui,sans-serif;margin:24px;background:#111;color:#eee}h1{font-size:20px}h2{font-size:16px;margin-top:28px}img{display:block;max-width:100%;border:1px solid #333;margin:6px 0}p{max-width:900px}figcaption{font-size:12px;color:#aaa}</style></head><body>
+<!-- report: fabric/2026-11-20-console-meta-line; owner fabric; date 2026-11-20; source docs/ux/scenarios.md SCN-188 -->
+<h1>Строка сведений в нижней панели консоли (SCN-188)</h1>
+<p>Заказ владельца 2026-11-20, 20:59: как в Fabric Dashboards, видеть у сессии аккаунт, кто её запустил, контекст, папку и ветку. Одна тонкая строка: кто и когда запустил, аккаунт (почта сокращена, целиком при наведении), организация, агент и модель, папка (нажать: открыть в Finder), ветка, id сессии и id агента (нажать: скопировать). Аккаунт и контекст берутся у Switchboard так же, как их читает Fabric Dashboards. Снимки со стенда экранов с одинаковыми данными; полоса панели крупно (2x), ниже экран целиком.</p>
+<h2>До: в нижней панели только папка</h2>
+<figure><img src="shots/before-bar-dark-1280.jpg" alt="До: в нижней панели только папка, 1280 px, тёмная тема"><figcaption>Нижняя панель, 1280 px, тёмная тема</figcaption></figure>
+<figure><img src="shots/before-bar-dark-820.jpg" alt="До: в нижней панели только папка, 820 px, тёмная тема"><figcaption>Нижняя панель, 820 px, тёмная тема</figcaption></figure>
+<figure><img src="shots/before-console-light-1280.jpg" alt="До: в нижней панели только папка, экран целиком" style="max-width:640px"><figcaption>Экран консоли, светлая тема</figcaption></figure>
+<h2>Итерация 1: все сведения, но каждый кусок обрезан, id превратился в «…»</h2>
+<figure><img src="shots/it1-bar-dark-1280.jpg" alt="Итерация 1: все сведения, но каждый кусок обрезан, id превратился в «…», 1280 px, тёмная тема"><figcaption>Нижняя панель, 1280 px, тёмная тема</figcaption></figure>
+<figure><img src="shots/it1-bar-dark-820.jpg" alt="Итерация 1: все сведения, но каждый кусок обрезан, id превратился в «…», 820 px, тёмная тема"><figcaption>Нижняя панель, 820 px, тёмная тема</figcaption></figure>
+<figure><img src="shots/it1-console-light-1280.jpg" alt="Итерация 1: все сведения, но каждый кусок обрезан, id превратился в «…», экран целиком" style="max-width:640px"><figcaption>Экран консоли, светлая тема</figcaption></figure>
+<h2>Итерация 2: аккаунт, агент с моделью и id не сжимаются, первыми уступают папка и ветка; ветка значком</h2>
+<figure><img src="shots/it2-bar-dark-1280.jpg" alt="Итерация 2: аккаунт, агент с моделью и id не сжимаются, первыми уступают папка и ветка; ветка значком, 1280 px, тёмная тема"><figcaption>Нижняя панель, 1280 px, тёмная тема</figcaption></figure>
+<figure><img src="shots/it2-bar-dark-820.jpg" alt="Итерация 2: аккаунт, агент с моделью и id не сжимаются, первыми уступают папка и ветка; ветка значком, 820 px, тёмная тема"><figcaption>Нижняя панель, 820 px, тёмная тема</figcaption></figure>
+<figure><img src="shots/it2-console-light-1280.jpg" alt="Итерация 2: аккаунт, агент с моделью и id не сжимаются, первыми уступают папка и ветка; ветка значком, экран целиком" style="max-width:640px"><figcaption>Экран консоли, светлая тема</figcaption></figure>
+<h2>Итерация 3, итог: на узком окне ветка и id уходят целиком, ничего не режется посреди</h2>
+<figure><img src="shots/it3-bar-dark-1280.jpg" alt="Итерация 3, итог: на узком окне ветка и id уходят целиком, ничего не режется посреди, 1280 px, тёмная тема"><figcaption>Нижняя панель, 1280 px, тёмная тема</figcaption></figure>
+<figure><img src="shots/it3-bar-dark-820.jpg" alt="Итерация 3, итог: на узком окне ветка и id уходят целиком, ничего не режется посреди, 820 px, тёмная тема"><figcaption>Нижняя панель, 820 px, тёмная тема</figcaption></figure>
+<figure><img src="shots/it3-console-light-1280.jpg" alt="Итерация 3, итог: на узком окне ветка и id уходят целиком, ничего не режется посреди, экран целиком" style="max-width:640px"><figcaption>Экран консоли, светлая тема</figcaption></figure>
+<h2>После независимой проверки (итог)</h2><p>Проверка нашла, что в итерации 3 при 1280 px папка, ветка, организация и время запуска обрезались на той части, по которой их узнают. Исправлено: папка показывается своим именем (полный путь при наведении), агент уходит в подсказку, на строке остаётся модель; id агента виден на широком окне (от 1440 px), на узком только в подсказке и на странице агента; нажимаемое (папка, id) подчёркнуто пунктиром всегда; у id подписи «id» и «агент»; «Скопировано» говорится экранному диктору, ширина не прыгает.</p>
+<figure><img src="shots/final-bar-dark-1280.jpg" alt="Итог, 1280 px"><figcaption>Нижняя панель, 1280 px, тёмная тема</figcaption></figure>
+<figure><img src="shots/final-bar-dark-820.jpg" alt="Итог, 820 px"><figcaption>Нижняя панель, 820 px</figcaption></figure>
+<figure><img src="shots/final-console-light-1280.jpg" alt="Итог, экран целиком" style="max-width:640px"><figcaption>Экран консоли, светлая тема</figcaption></figure>
+<h2>Независимая проверка</h2><p><a href="design-review.md">design-review.md</a> (design-tester по этим снимкам).</p></body></html>

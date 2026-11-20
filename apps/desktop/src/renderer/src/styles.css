@@ -394,7 +394,13 @@ button:disabled { opacity: .4; cursor: default; }
 /* The head is the window's title bar (the owner, 2026-11-20: the window is moved by it): one row beside the traffic
    lights, which `main/index.ts` centres on it (CEO_LIGHTS). */
 .ceo-popup-head { display: flex; align-items: center; gap: var(--space-2); min-height: 52px; padding: var(--space-2) var(--space-3) var(--space-2) var(--chrome-lights); box-sizing: border-box; border-bottom: 1px solid var(--app-line); -webkit-app-region: drag; user-select: none; }
-.ceo-popup-head button, .ceo-popup-head input, .ceo-call-panel, .ceo-popup-chat { -webkit-app-region: no-drag; }
+/* The owner, 2026-11-20: «перетаскивается только за имя, за остальное нет». A region given to the head alone left its
+   face, its state and every free strip of the window outside it (each part draws its own layer), so the window is moved by
+   its whole head and every free area, and only what takes a press or a typed key is held out of it, the signs inside a
+   button included. */
+.ceo-popup, .ceo-popup-head, .ceo-popup-head *, .ceo-popup-chat, .ceo-composer-popup, .ceo-composer-popup .ceo-composer-form, .ceo-composer-popup .ceo-composer-actions { -webkit-app-region: drag; }
+.ceo-popup button, .ceo-popup button *, .ceo-popup input, .ceo-popup textarea, .ceo-popup a, .ceo-popup select, .ceo-popup label,
+.ceo-popup-console, .ceo-call-panel, .ceo-popup-notes, .ceo-composer-files, .ceo-popup .banner, .ceo-popup [role="dialog"], .ceo-popup [role="menu"] { -webkit-app-region: no-drag; }
 /* The CEO window loads no launch stylesheet, so the face is sized here. */
 .ceo-presence svg { display: block; width: 32px; height: 32px; }
 .ceo-presence { flex: none; display: inline-flex; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }

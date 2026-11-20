@@ -1211,6 +1211,28 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 .session-detach{flex:none;display:grid;place-items:center;width:28px;height:28px;border:1px solid transparent;border-radius:7px;background:none;color:var(--app-muted);cursor:pointer}
 @media(hover:hover){.session-detach:hover{color:var(--app-ink);border-color:var(--app-line);background:var(--app-panel-quiet)}}
 .session-detach:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
+/* SCN-188 (the owner, 2026-11-20): the console's system line, one quiet row in the bar's free width. Short facts keep
+   their few characters; the folder (by its own name) and the branch give way first; each says itself whole on hover. The
+   folder and the ids are presses, dotted at rest so they read as such (design review F1 to F8). */
+.session-meta{flex:1 1 0;min-width:0;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:11.5px;color:var(--app-muted)}
+.session-meta-item{flex:0 0 auto;min-width:0;max-width:20em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.session-meta-item.is-folder{flex-shrink:4;min-width:6em}.session-meta-item.is-branch{flex-shrink:2;min-width:6em}.session-meta-item.is-soft{flex-shrink:0}
+.session-meta-item+.session-meta-item::before{content:"·";display:inline-block;padding:0 6px;color:var(--app-muted);text-decoration:none}
+.session-meta-press{font:inherit;font-size:11.5px;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left;text-decoration:underline dotted;text-underline-offset:3px;text-decoration-color:var(--app-line-strong)}
+.session-meta-press.mono{font-family:var(--font-mono)}
+@media(hover:hover){.session-meta-press:hover{color:var(--app-ink);text-decoration-style:solid;text-decoration-color:currentColor}}
+.session-meta-press:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px;border-radius:3px}
+.session-meta-icon{width:12px;height:12px;margin-right:3px;vertical-align:-2px}
+.session-meta-copied{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(max-width:1440px){.session-meta-item.is-extra{display:none}}
+/* A narrow window keeps whole parts only: who started it, the account, the organisation and the folder; the model, the
+   branch and the ids step out (the agent's page shows them all). */
+@media(max-width:940px){.session-meta-item.is-branch,.session-meta-item.is-id,.session-meta-item.is-model{display:none}}
+.session-meta-item+.session-meta-item::before{content:"·";padding:0 6px;color:var(--app-line-strong)}
+.session-meta-press{font:inherit;font-size:11.5px;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.session-meta-press.mono{font-family:var(--font-mono)}
+@media(hover:hover){.session-meta-press:hover{color:var(--app-ink);text-decoration:underline;text-underline-offset:2px}}
+.session-meta-press:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px;border-radius:3px}
 /* SCN-179 (CO-521): a task in review asks one decision. The agent's words on the left, the three answers and the
    comment on the right; one column when narrow. */
 .rd{display:flex;flex-wrap:wrap;gap:var(--space-4);padding:var(--space-4);margin:0 0 var(--space-4);border:1px solid var(--app-line);border-radius:12px;text-align:left}
