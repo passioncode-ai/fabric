@@ -66,6 +66,7 @@ import { WhereWorkScreen } from './launch/WhereWorkScreen'
 import { Banner, Button } from './components'
 import { StackHealthNotice } from './StackHealthNotice'
 import { I18nProvider, useT, type Locale, type Translate } from './i18n'
+import { MemoryScreen } from './launch/MemoryScreen'
 import { LaunchShell, machineOf, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, type RailPlace } from './launch/LaunchShell'
 import { ActLine, latestPersonAct } from './launch/ActLine'
 import { HistoryScreen } from './launch/HistoryScreen'
@@ -1044,6 +1045,7 @@ function Shell({
     : active.kind === 'comms' ? t('launch.nav.comms')
     : active.kind === 'access' ? t('access.title')
     : active.kind === 'graph' ? t('graph.title')
+    : active.kind === 'memory' ? t('memoryBase.title')
     : active.kind === 'plan' ? projectPlaceTitle('plan', projectNameOf(active.projectId), t)
     : active.kind === 'help' ? t('launch.nav.help')
     : active.kind === 'where' ? t('launch.nav.where')
@@ -1234,6 +1236,7 @@ function Shell({
             }}
           />
         )}
+        {active.kind === 'memory' && <MemoryScreen onError={setError} />}
         {active.kind === 'graph' && (
           <GraphScreen projectId={active.projectId ?? null} feedMark={markOf(marks, ['project'])}
             onProject={openProject} onWhole={() => setActive({ kind: 'graph' })} />
@@ -1507,7 +1510,7 @@ function Shell({
 
 /** The route as a tab, where it is one. The agents view and the board are not. */
 function tabOf(route: AppRoute): Tab | null {
-  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'access' || route.kind === 'graph' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
+  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'access' || route.kind === 'graph' || route.kind === 'memory' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
 }
 
 function keyOf(tab: Tab): string {

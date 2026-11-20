@@ -191,6 +191,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-185 | The CEO keeps answering when its first agent cannot | Floating CEO | P-01 | ST-046, FLW-63 | implemented | unobserved |
 | SCN-186 | Choose the CEO's voice | Floating CEO | P-01 | ST-046, SCR-36, SCR-64 | implemented | unobserved |
 | SCN-187 | Stop the CEO, and start it again | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
+| SCN-190 | See what Fabric knows about every project and where each answer comes from | Memory/context | P-01 | ST-028, FLW-31, SCR-92 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -4720,4 +4721,27 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** ops log `ceo.agent.held`, `ceo.agent.stopped`.
 - **Status:** implemented (2026-11-19).
 - **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `personStopEnded`, `onExit`, `ensure`, `send`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP», «ER-1 (0.3.25)», «ER-2 (0.3.25)», «ER-3 (0.3.25)», «ER-6 (0.3.25)»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.
+- **Product:** unobserved
+### SCN-190: See what Fabric knows about every project and where each answer comes from
+- **Persona:** P-01
+- **Feature:** Memory/context
+- **Traces:** ST-028, FLW-31, SCR-92 (JTBD-02)
+- **Entry point:** «Memory» in the left column, under «Переписка».
+- **Preconditions:** Fabric is running; the estate index has made at least one pass (ADR-0200).
+- **Steps:**
+  1. Operator opens «Memory» -> the head says what the base holds (documents, projects, sessions, transcripts, tasks, board, commits, documents, the graph, the share read by meaning, the file's size) and one chip per source says how fresh it is: fresh, catching up with what is left, not read for a while, cannot be read with its reason on hover.
+  2. Operator looks at «Организации и проекты» -> each organization is a hub in its colour with its projects around it, a project's size is how much the base knows of it, a line between two projects is the board's requests between them; hover lights a node's neighbours.
+  3. Operator presses a project (on the map or in «То же таблицей») -> its card opens with its counts by kind and last activity, and the search and «Что изменилось» narrow to that project.
+  4. Operator types a phrase in «Поиск с цитатами» -> hits come with their kind, project, date, a verbatim passage and its file:lines.
+  5. Operator presses «Проверить цитату» on a hit -> «Цитата дословно есть в источнике», or why not (not verbatim, the source changed, a number the quote lacks).
+  6. Operator switches «Что изменилось» between «Сутки» and «Неделя» -> the newest documents by project and kind for that window.
+- **Expected result:** the operator sees in one place how much Fabric knows, how fresh it is, how projects and organizations connect, and can trust an answer because its quote is checked against its source.
+- **Alt paths:** an agent reads the same through the CEO's doors (`fabric_knowledge_execute` operations `memory.overview`, `memory.graph`, `memory.changes`; `fabric_knowledge_search`; `quote.check`).
+- **UI elements:** «Memory» rail place; stats; source chips; the map with «По размеру окна»; the project card with «Закрыть»; «То же таблицей»; the search field; «Проверить цитату»; «Сутки» / «Неделя».
+- **States covered:** reading, not open (with the reason), first index catching up, source not read, no canvas (the table alone), nothing found, nothing changed, verified, not verified.
+- **Errors & recovery:** a part that cannot be read says so in its own place and the others still show; «Обновить» reads again; a check that fails is said and can be pressed again.
+- **Design rationale:** the owner, 2026-11-20, in the CEO window: «давайте ее называем memory … должна у нас рендерится вот в виде дашборда прям фабрики … так же хорошо как … brain … для sound engine»; spec `docs/evidence/specs/2026-11-20-memory-dashboard.md`.
+- **Telemetry:** ops log `knowledge.execute` with the operation.
+- **Status:** implemented (2026-11-20).
+- **Coverage:** `apps/desktop/src/renderer/src/launch/MemoryScreen.tsx` region `memory-screen`; `apps/desktop/src/main/memoryRead.ts`; tests `apps/desktop/src/renderer/src/launch/MemoryScreen.test.tsx`, `apps/desktop/test/memory-read.test.mjs`, `apps/desktop/src/renderer/src/graph/graph.test.tsx`.
 - **Product:** unobserved

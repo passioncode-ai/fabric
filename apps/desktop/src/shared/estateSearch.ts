@@ -435,6 +435,8 @@ export interface EverywhereHit {
   session_id: string | null
   resume: string | null
   cite: string | null
+  /** sha256 of the hit's text when it was found: `quote.check` refuses a claim once the source changed (Memory). */
+  digest?: string
   via: string[]
 }
 
