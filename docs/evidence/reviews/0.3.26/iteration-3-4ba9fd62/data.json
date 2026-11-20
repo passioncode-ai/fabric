@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "4ba9fd6214dd80526eeba127b5c2fcb0a962647c",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-4ba9fd62/2026-11-20-data.md",
+  "reportSha256": "6c9c2211c212ae8b7da11e0221c88304c1bc15fd5c61e27814f4af1bd89d8077",
+  "reviewerRun": "release-0326-i3r1-data-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: every check of from uses the contract's AGENT_ID (index.ts linkReason and the IPC handler, ContinueSessionAsk.tsx appName); tests «the link and its app, in the contract's name.instance form, reach the console» and «names the app by its product, the instance form included», red before"
+      ]
+    },
+    {
+      "id": "DA-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: the ask passes an explicit link origin, separate from from; via and the reason follow it (machineSessions.ts LinkOrigin, index.ts resumeEnded and continueInFabric); test «a link with no app still continues as a link»"
+      ]
+    },
+    {
+      "id": "DA-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: as ER-19"
+      ]
+    },
+    {
+      "id": "DA-22",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (28); the unread case fixed as UX-29 (a)"
+      ]
+    },
+    {
+      "id": "DA-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (27)"
+      ]
+    }
+  ]
+}

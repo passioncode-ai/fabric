@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "6da674bdc092ed36a34521198dd0f5d472d0d531",
+  "report": "docs/evidence/reviews/0.3.25/iteration-3/2026-11-19-docs.md",
+  "reportSha256": "bfc8f208253245018672e3a16dfb1f249be2f3dec90e89638d0a51081947e519",
+  "reviewerRun": "release-0325-i3-docs-openrouter-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-9",
+      "status": "ruled",
+      "evidence": [
+        "partly fixed in 6da674bd (CHANGELOG rewrapped); the ADR line ruled: CO-601"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 6da674bd: the registry no longer lists ceo-call-hangup"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "status": "ruled",
+      "evidence": [
+        "as UX-22; the CHANGELOG says the record says why, in the release commit"
+      ]
+    },
+    {
+      "id": "DO-12",
+      "status": "ruled",
+      "evidence": [
+        "the ledger rows below name UX-21; CO-601 item 8 is the useVoiceCall hook test, the narrower remainder of PL-11"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 (its row gains this item after the release, on main): SCN-187's ER-10 names the 0.3.24 finding"
+      ]
+    }
+  ]
+}

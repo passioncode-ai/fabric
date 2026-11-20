@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "2f138c70f4569d0d20a2c4a4e07fd359c89f8a45",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3/2026-11-20-plan.md",
+  "reportSha256": "be419fb8111bae04b9533d15d8b80eb08c2b117d152e23ff3077cbe3e082c02c",
+  "reviewerRun": "release-0326-i3r5-plan-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: as DO-35"
+      ]
+    },
+    {
+      "id": "PL-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the release close lists thread 6255f2d5 with its 2026-11-21 12:00 UTC deadline, and the 3ca40854 notice states the shipped behaviour for sessions seen only through Switchboard"
+      ]
+    },
+    {
+      "id": "PL-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the run-five subsection records hosted run 44695060165, the local exit and that the reviewers started while the local run ran"
+      ]
+    }
+  ]
+}

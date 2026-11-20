@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "c88f68ecf3cad6fbd65e1f744cbf432d22e47dd1",
+  "report": "docs/evidence/reviews/0.3.27/iteration-1/2026-11-19-ux.md",
+  "reportSha256": "09ba56c0a15a0ba502aa410ed7d1bd3de94e2255fb1e238a4b8303b8a057dd83",
+  "reviewerRun": "release-0326-i1-ux-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    }
+  ]
+}

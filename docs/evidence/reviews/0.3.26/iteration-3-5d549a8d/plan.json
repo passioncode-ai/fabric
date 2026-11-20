@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "5d549a8dc93396a096fef8998e37d50fe3aa0a2a",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-5d549a8d/2026-11-20-plan.md",
+  "reportSha256": "ec15079d4f1a57d64f6ec75e92633a075f183f2741da7c0266a668e0dd14cdac",
+  "reviewerRun": "release-0326-i3r2-plan-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: CO-603's owner column gives Fabric's half of (5) (task dbeb4fcd, board request 508c1048) to this repository's release session"
+      ]
+    },
+    {
+      "id": "PL-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the ledger records the hosted run and the local ci.sh fast exit for each run, and the Release close the session reading with its commit"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "779b6ce0c0ababdddbaceddf381ad4c554770801",
+  "report": "docs/evidence/reviews/0.3.27/iteration-2/2026-11-19-plan.md",
+  "reportSha256": "012fcf71d6426b947a33b4ede036dc2bec60c8bf6c1068fdc02541695a9cd777",
+  "reviewerRun": "release-0326-i2-plan-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    },
+    {
+      "id": "PL-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    },
+    {
+      "id": "PL-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    },
+    {
+      "id": "PL-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    },
+    {
+      "id": "PL-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    },
+    {
+      "id": "PL-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    },
+    {
+      "id": "PL-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    }
+  ]
+}

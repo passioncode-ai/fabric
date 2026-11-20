@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "91d952ded1cfe6bdd46b6ae288927471037875aa",
+  "report": "docs/evidence/reviews/0.3.25/iteration-1/2026-11-19-errors.md",
+  "reportSha256": "58a2287bf8de02c5af5c6c2adcc763245ee86fad51939a351a56c56609de7da4",
+  "reviewerRun": "release-0325-i1-errors-openrouter-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: stop awaits a start in flight and start stops a console opened while held; test ER-1 (0.3.25), red before the fix"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: send awaits the stop before clearing the hold; test ER-2 (0.3.25), red before the fix"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: the stop drops a deferred fallback and fallBack and startFallback check the hold; test ER-3 (0.3.25)"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: a sample that fails closes its AudioContext (VoicePicker.tsx#listen)"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: a listen generation; a stale or unmounted sample is closed unplayed"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: personStopEnded after the other doors' stop; test ER-6 (0.3.25), red before the fix"
+      ]
+    }
+  ]
+}

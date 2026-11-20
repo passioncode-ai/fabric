@@ -15,6 +15,8 @@
 // home says what waits); Настройки carries no Comms count (Настройки → Ещё → Переписка does); an agent at work shows its
 // green dot and no word, every other status keeps its word. Every project name printed here is `projectDisplayName`'s.
 
+import type { MachineSession } from '../../../main/machineSessions.ts'
+import { MACHINE_POLL_MS } from './MachineSessions'
 import { useEffect, useRef, useState } from 'react'
 import type { ProjectRow } from '../../../shared/types'
 import { projectsAtWork, railProjects, type RailWork } from '../../../shared/railProjects.ts'
@@ -23,6 +25,16 @@ import { runnerLabel } from '../runnerLabel'
 import { useLocale, useT } from '../i18n'
 import brandMark from '../../../../../../assets/brand/favicon/transparent/passioncode-favicon-64.svg?url'
 import './rail.css'
+
+/** A session that ended, as «Агенты» lists it under the running ones. */
+export interface RecentSession {
+  projectId: string
+  projectName: string | null
+  runner: string
+  branch: string | null
+  endedAt: string | null
+  startedAt: string
+}
 
 export type ProjectSection = 'overview' | 'team' | 'cycles' | 'goals' | 'memory' | 'settings'
 export const PROJECT_SECTION_ANCHOR: Record<ProjectSection, string | null> = {
@@ -101,6 +113,16 @@ export interface LaunchShellProps {
   /** The console icon beside an agent whose console Fabric holds (the operator's second review, R-6): opens its session
    *  as a tab at once. Absent, no icon is drawn. */
   onAgentConsole?(sessionId: string): void
+  /** A new session in this project with its own agent, opened as a console tab (the owner, 2026-11-19). */
+  onNewSession?(projectId: string): void | Promise<void>
+  /** The project's newest session that is not running, wherever it was started, continued in a console tab. */
+  onResumeLast?(projectId: string): void | Promise<void>
+  /** Sessions that ended, newest first, one per project (the launch journal); asked when «Агенты» shows. */
+  loadRecent?(): Promise<RecentSession[]>
+  /** Every agent session of this Mac outside Fabric's consoles (`agents.machineSessions`), read while «Агенты» shows. */
+  loadMachine?(): Promise<MachineSession[]>
+  /** The Агенты screen, where each of those sessions is read, continued in Fabric or closed. */
+  onAllSessions?(): void
   /** Projects where an agent works now (`liveProjectsOf`: Fabric's terminals and the agents that joined on their own). */
   live: ReadonlySet<string>
   /** The home reading's pulse per project, which says which projects are at work (`projectsAtWork`); null while unread. */
@@ -212,6 +234,42 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
   const atAgents = at.kind === 'agents'
   useEffect(() => { if (atAgents) setView('agents') }, [atAgents])
   const viewButtons = useRef<Record<RailView, HTMLButtonElement | null>>({ projects: null, agents: null })
+  // A session start or resume in flight, by its button, so a second press does not start two (the owner, 2026-11-19).
+  const [pending, setPending] = useState<string | null>(null)
+  const act = (key: string, fn: () => void | Promise<void>): void => {
+    if (pending) return
+    setPending(key)
+    void (async () => fn())().finally(() => setPending(null))
+  }
+  // «Новая сессия» in «Агенты»: the projects to start one in, opened by its button.
+  const [picking, setPicking] = useState(false)
+  // «Недавние»: sessions that ended, newest first, read when «Агенты» shows (the owner: running first, then the rest).
+  const [recent, setRecent] = useState<RecentSession[] | null>(null)
+  const loadRecent = props.loadRecent
+  useEffect(() => {
+    if (view !== 'agents' || !loadRecent) return
+    let alive = true
+    loadRecent().then((r) => { if (alive) setRecent(r) }, () => { if (alive) setRecent([]) /* the running agents still show */ })
+    return () => { alive = false }
+  }, [view, loadRecent, props.agents.rows?.length])
+  // The operator, 2026-11-20: «в дашборде вот вижу сессии а в фабрике не вижу». The sessions of this Mac that no Fabric
+  // console holds, from Claude Code's files and Switchboard (`main/machineSessions.ts`), every 15 s while «Агенты» shows.
+  const [machine, setMachine] = useState<MachineSession[] | null>(null)
+  const loadMachine = props.loadMachine
+  useEffect(() => {
+    if (view !== 'agents' || !loadMachine) return
+    let alive = true
+    // ER-2: a bridge without the method (an older preload, a test's) leaves the rest of the rail as it is.
+    let inFlight = false
+    const read = (): void => {
+      if (inFlight) return
+      inFlight = true
+      Promise.resolve().then(loadMachine).then((r) => { if (alive) setMachine(r) }, () => { /* the last reading stays */ }).finally(() => { inFlight = false })
+    }
+    read()
+    const timer = setInterval(read, MACHINE_POLL_MS)
+    return () => { alive = false; clearInterval(timer) }
+  }, [view, loadMachine])
   const onViewKey = (e: React.KeyboardEvent): void => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') return
     e.preventDefault()
@@ -329,6 +387,24 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                       {p.favourite && <span className="rail-star" role="img" aria-label={t('rail.favourite')}>{t('glyph.star')}</span>}
                       {waiting > 0 && <span className="rail-c" aria-label={t('rail.waitingProject', { count: waiting })}>{waiting}</span>}
                     </a>
+                    {(props.onNewSession || props.onResumeLast) && (
+                      <span className="rail-session-acts">
+                        {props.onNewSession && (
+                          <button type="button" className="rail-console" disabled={pending === `new:${p.id}`} aria-busy={pending === `new:${p.id}`}
+                            aria-label={t('rail.session.new', { name: p.name })} title={t('rail.session.new', { name: p.name })}
+                            onClick={() => act(`new:${p.id}`, () => props.onNewSession!(p.id))}>
+                            <span aria-hidden="true">{t('glyph.plus')}</span>
+                          </button>
+                        )}
+                        {props.onResumeLast && (
+                          <button type="button" className="rail-console" disabled={pending === `resume:${p.id}`} aria-busy={pending === `resume:${p.id}`}
+                            aria-label={t('rail.session.resume', { name: p.name })} title={t('rail.session.resume', { name: p.name })}
+                            onClick={() => act(`resume:${p.id}`, () => props.onResumeLast!(p.id))}>
+                            <span aria-hidden="true">{t('glyph.resume')}</span>
+                          </button>
+                        )}
+                      </span>
+                    )}
                   </li>
                 )
               })}
@@ -351,6 +427,23 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
           {/* UX-18: the reading can be asked again here. */}
           {props.agents.problem && props.agents.retry && <button type="button" className="rail-small" onClick={props.agents.retry}>{t('common.retry')}</button>}
           {props.agents.rows === null && !props.agents.problem && <p className="rail-muted" role="status">{t('rail.agents.reading')}</p>}
+          {/* The owner, 2026-11-19: a new session for a project chosen from the list, from here. */}
+          {props.onNewSession && (props.projects?.length ?? 0) > 0 && (
+            <button type="button" className="rail-small rail-new-session" aria-expanded={picking} onClick={() => setPicking((x) => !x)}>
+              {t('rail.session.newAny')}
+            </button>
+          )}
+          {picking && props.onNewSession && (
+            <ul className="rail-pick" aria-label={t('rail.session.pickProject')}>
+              {(props.projects ?? []).map((p) => (
+                <li key={p.id}>
+                  <button type="button" className="rail-small" disabled={pending !== null} onClick={() => { setPicking(false); act(`new:${p.id}`, () => props.onNewSession!(p.id)) }}>
+                    {p.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
           {props.agents.rows !== null && props.agents.rows.length === 0 && <p className="rail-muted">{t('rail.agents.none')}</p>}
           {props.agents.rows !== null && props.agents.rows.length > 0 && (
             <ul aria-label={t('rail.agents.list')}>
@@ -361,33 +454,38 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                 const title = a.projectName ?? runnerLabel(a.runner, t)
                 const folder = folderName(a.folder)
                 const status = a.status ?? (a.state === 'working' ? 'working' : 'idle')
+                const consoleHere = a.console && !!props.onAgentConsole
                 return (
                   <li key={a.sessionId}>
                     {/* The class is merged, never replaced by `current`'s «on»: the open agent's row kept its layout only
                         then (its dot fell to the branch's line, found by the mockup parity's screenshots). */}
-                    <a href="#" title={name} aria-current={agentSession === a.sessionId ? 'page' : undefined}
+                    {/* The owner, 2026-11-19 (board request eef5abeb): a press on an agent whose console Fabric holds opens
+                        that console at once; its page («Задачи», history, who started it) is the small button beside. */}
+                    <a href="#" title={consoleHere ? t('rail.agents.openSession', { name }) : name} aria-current={agentSession === a.sessionId ? 'page' : undefined}
                       className={agentSession === a.sessionId ? 'rail-agent on' : 'rail-agent'}
-                      onClick={(e) => go(e, () => props.onAgent(a.sessionId))}>
-                      {/* UX-17: the status has a name for every reader, «working» included. */}
+                      onClick={(e) => go(e, () => (consoleHere ? props.onAgentConsole!(a.sessionId) : props.onAgent(a.sessionId)))}>
+                      {/* UX-17: the status has a name for every reader, «working» included. The owner, 2026-11-19: the dot
+                          says it to the eye, so no word «Работает» beside it; the line says where the session runs. */}
                       <span className={`rail-dot s-${status}`} role="img" aria-label={t(`status.${status}` as 'status.idle')} />
                       <span className="rail-agent-words">
                         <span className="rail-name">{title}</span>
                         <span className="rail-agent-line">
+                          <span className="rail-source">{t(a.console ? 'rail.agents.inFabric' : 'rail.agents.outside')}</span>
                           {/* With no project the title is already the runner: the line says «Без проекта» instead (0.3.16 review, UX-6). */}
-                          <span className="rail-runner">{a.projectName ? runnerLabel(a.runner, t) : t('launch.home.agents.noProject')}</span>
-                          {/* CO-498: the folder it works in, by its last segment, the whole path on hover. */}
-                          {folder && <span className="rail-folder" title={a.folder ?? undefined}> · {folder}</span>}
-                          {/* Every status keeps its word beside its shape, «Работает» included (0.3.14's UX-26, R-19; the
-                              0.3.15 review, iteration 1, UX-1), quiet as the mockup's «· молчит». */}
-                          <span className="rail-word"> · {t(`status.${status}` as 'status.idle')}</span>
+                          <span className="rail-runner"> · {a.projectName ? runnerLabel(a.runner, t) : t('launch.home.agents.noProject')}</span>
+                          {/* The branch it works on (the owner, 2026-11-19), else its folder by its last segment (CO-498);
+                              the whole folder on hover either way. */}
+                          {a.branch
+                            ? <span className="rail-branch-word" title={a.folder ?? undefined}> · {a.branch}</span>
+                            : folder && <span className="rail-folder" title={a.folder ?? undefined}> · {folder}</span>}
                         </span>
                       </span>
                     </a>
                     {props.onAgentConsole && (a.console
                       ? (
-                        <button type="button" className="rail-console" aria-label={t('rail.agents.openSession', { name })} title={t('rail.agents.openSession', { name })}
-                          onClick={() => props.onAgentConsole?.(a.sessionId)}>
-                          <span aria-hidden="true">{t('glyph.console')}</span>
+                        <button type="button" className="rail-console" aria-label={t('rail.agents.details', { name })} title={t('rail.agents.details', { name })}
+                          onClick={() => props.onAgent(a.sessionId)}>
+                          <span aria-hidden="true">{t('glyph.info')}</span>
                         </button>
                       )
                       : <span className="rail-console elsewhere" role="img" aria-label={t('rail.agents.elsewhere')} title={t('rail.agents.elsewhere')}>{t('glyph.console')}</span>)}
@@ -395,6 +493,53 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
                 )
               })}
             </ul>
+          )}
+          {machine && machine.length > 0 && (
+            <>
+              <p className="rail-muted rail-sub">{t('rail.agents.machine', { count: machine.length })}</p>
+              <ul aria-label={t('rail.agents.machine', { count: machine.length })} data-testid="rail-machine">
+                {machine.map((m) => (
+                  <li key={m.sessionId}>
+                    <button type="button" className="rail-agent rail-recent" title={m.cwd} disabled={!props.onAllSessions} onClick={() => props.onAllSessions?.()}>
+                      {/* UX-10: the state is said once, by the word beside it; the dot is for the eye. */}
+                      <span className={`rail-dot s-${m.state === 'working' ? 'working' : m.state === 'needs_you' ? 'error' : m.state === 'waiting' ? 'waiting' : 'idle'}`} aria-hidden="true" />
+                      <span className="rail-agent-words">
+                        <span className="rail-name">{folderName(m.cwd) ?? m.cwd}</span>
+                        <span className="rail-agent-line">
+                          <span className="rail-source">{t(`machineSessions.state.${m.state ?? 'unknown'}` as 'machineSessions.state.unknown')}</span>
+                          <span className="rail-runner"> · {runnerLabel(m.agent ?? 'claude-code', t)}</span>
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {/* The owner, 2026-11-19: the running agents first, then the sessions that ended, each continued with one press. */}
+          {recent && recent.length > 0 && (
+            <>
+              <p className="rail-muted rail-sub">{t('rail.agents.recent')}</p>
+              <ul aria-label={t('rail.agents.recent')}>
+                {recent.map((r) => (
+                  <li key={r.projectId}>
+                    <button type="button" className="rail-agent rail-recent" disabled={pending !== null || !props.onResumeLast}
+                      title={t('rail.session.resume', { name: r.projectName ?? '' })}
+                      onClick={() => act(`resume:${r.projectId}`, () => props.onResumeLast?.(r.projectId))}>
+                      <span className="rail-dot s-ended" role="img" aria-label={t('status.ended')} />
+                      <span className="rail-agent-words">
+                        <span className="rail-name">{r.projectName ?? t('launch.home.agents.noProject')}</span>
+                        <span className="rail-agent-line">
+                          <span className="rail-source">{t('rail.session.resumeShort')}</span>
+                          <span className="rail-runner"> · {runnerLabel(r.runner, t)}</span>
+                          {r.branch && <span className="rail-branch-word"> · {r.branch}</span>}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
         )}

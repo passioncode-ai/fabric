@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "938f4b16e3a2adcb94f6ab6570ed66e81a56c79a",
+  "report": "docs/evidence/reviews/0.3.25/iteration-2/2026-11-19-ux.md",
+  "reportSha256": "45210acc46a7631e45cd328437b096f43723226b681d599dd36ae4d127e7af28",
+  "reviewerRun": "release-0325-i2-ux-openrouter-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-6",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: every token named is defined in apps/desktop/src/renderer/src/tokens.app.css, which ceo.tsx imports (lines 59 to 109 of that file); the rings rendered in the built app's walk"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: one hang-up, the head's (CeoCall.tsx#CallPanel); test 'the call button'"
+      ]
+    },
+    {
+      "id": "UX-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: a stopped CEO's start is the body's alone; role=status on its sentence only (CeoPopup.tsx)"
+      ]
+    },
+    {
+      "id": "UX-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: SCN-182 UI elements and rationale name the call opening in the CEO window"
+      ]
+    },
+    {
+      "id": "UX-16",
+      "status": "ruled",
+      "evidence": [
+        "(a) fixed in iteration 3's candidate: the no-key hint shows only once readiness says no; (b) the unused string ruled: CO-601 item 7"
+      ]
+    },
+    {
+      "id": "UX-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: CallPanel renders nothing with no live call and no history"
+      ]
+    },
+    {
+      "id": "UX-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in iteration 3's candidate: the set-aside time uses the app's locale (CeoPopup.tsx)"
+      ]
+    }
+  ]
+}

@@ -71,4 +71,51 @@ export async function mintVoiceToken(deps: VoiceDeps): Promise<VoiceTokenAnswer>
   const expiresAt = typeof body.expires_at === 'number' ? body.expires_at * 1000 : (deps.now ?? Date.now)() + TOKEN_SECONDS * 1000
   return { ok: true, value: body.value, expiresAt, url: XAI_REALTIME_URL, usdPerMinute: XAI_USD_PER_MINUTE }
 }
+/** xAI's text to speech: one short sample of a voice, so the person hears it before choosing (onboarding, Settings).
+ *  USD 15 per million characters (docs.x.ai/developers/pricing, fetched 2026-11-19): a sample of about 90 characters is
+ *  well under a cent, and each voice and language is fetched once, then kept on this computer. */
+export const XAI_TTS_URL = 'https://api.x.ai/v1/tts'
+export const XAI_BUILT_IN_VOICES = ['ara', 'eve', 'leo', 'rex', 'sal'] as const
+/** The cache's version: a new sample text takes a new name, an old file is never played for the new words. */
+const SAMPLE_VERSION = 1
+
+export function sampleText(locale: string): string {
+  return locale === 'en'
+    ? 'Hello. I am the CEO of your Fabric. I watch your sessions and answer you by voice.'
+    : 'Здравствуйте. Я CEO вашего Fabric. Слежу за сессиями и отвечаю вам голосом.'
+}
+
+export interface SampleDeps extends Omit<VoiceDeps, 'now'> {
+  cache: { read(name: string): Buffer | null; write(name: string, bytes: Buffer): void }
+}
+export type VoiceSampleAnswer = { ok: true; data: string } | { ok: false; reason: CeoVoiceProblem | 'unknown-voice'; detail: string }
+
+/** One sample of `voice` in `locale`, as base64 MP3: from the cache, else from xAI with the key held for this request. */
+export async function voiceSample(deps: SampleDeps, voice: string, locale: string): Promise<VoiceSampleAnswer> {
+  if (!(XAI_BUILT_IN_VOICES as readonly string[]).includes(voice)) return { ok: false, reason: 'unknown-voice', detail: 'not a built-in voice' }
+  const lang = locale === 'en' ? 'en' : 'ru'
+  const name = `${voice}-${lang}-v${SAMPLE_VERSION}.mp3`
+  const kept = deps.cache.read(name)
+  if (kept && kept.length > 0) return { ok: true, data: kept.toString('base64') }
+  const own = deps.ownKey?.() ?? null
+  const key = own ? { ok: true as const, value: own } : await deps.vault.read(XAI_KEY_SLOT)
+  if (!key.ok) return { ok: false, reason: 'no-key', detail: `no xAI key: ${key.reason}` }
+  let res: Response
+  try {
+    res = await deps.fetch(XAI_TTS_URL, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${key.value}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ text: sampleText(lang), voice_id: voice, language: lang }),
+      signal: AbortSignal.timeout(20_000)
+    })
+  } catch (e) {
+    return { ok: false, reason: 'unreachable', detail: `xAI did not answer: ${e instanceof Error ? e.name : String(e)}` }
+  }
+  if (!res.ok) return { ok: false, reason: 'refused', detail: `xAI refused the sample: HTTP ${res.status}` }
+  const bytes = Buffer.from(await res.arrayBuffer())
+  if (bytes.length === 0) return { ok: false, reason: 'no-secret', detail: 'xAI answered without audio' }
+  // A sample that cannot be kept is still played; it is fetched again next time.
+  try { deps.cache.write(name, bytes) } catch { /* the cache is a saving, not a requirement */ }
+  return { ok: true, data: bytes.toString('base64') }
+}
 // #endregion ceo-voice

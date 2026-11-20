@@ -3,10 +3,10 @@
   "version": "0.3.26",
   "iteration": 1,
   "level": "plan",
-  "candidateCommit": "c88f68ecf3cad6fbd65e1f744cbf432d22e47dd1",
-  "report": "docs/evidence/reviews/0.3.26/iteration-1/2026-11-19-plan.md",
-  "reportSha256": "9df7d5cb0477632b040173d2f8ae76d4fc9ab0c3e4d0c808542c7816bed228f9",
-  "reviewerRun": "release-0326-i1-plan-20261119",
+  "candidateCommit": "314c956660b35a25b4b71e3ba97cbd8b548914a4",
+  "report": "docs/evidence/reviews/0.3.26/iteration-1/2026-11-20-plan.md",
+  "reportSha256": "fd7acd3f6f665069dfc37049347dfc0527f339f9dfd5931fe32c1bc5ad950ceb",
+  "reviewerRun": "release-0326-i1-plan-claude-subagent-20261120",
   "status": "closed",
   "blockingFindingsOpen": [],
   "findings": [
@@ -14,91 +14,91 @@
       "id": "PL-1",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in the commit «docs(0.3.26): review iteration 1, the document findings»: CHANGELOG, spec §1 row 2 and §2 say the same sessions, counted by Switchboard's groups; the shared definition is CO-603 (1)"
       ]
     },
     {
       "id": "PL-2",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in the commit «docs(0.3.26): review iteration 1, the document findings»: CO-603 and CO-604 reserved and written; update pointed at P-12 and P-27"
       ]
     },
     {
       "id": "PL-3",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in the commit «docs(0.3.26): review iteration 1, the document findings»: CO-601 gains the nine 0.3.25 iteration-3 items and is re-dated to 0.3.27 with its reason"
       ]
     },
     {
       "id": "PL-4",
-      "status": "ruled",
+      "status": "fixed",
       "evidence": [
-        "ruled: CO-602"
+        "fixed in the commit «docs(0.3.26): review iteration 1, the document findings»: as DO-5"
       ]
     },
     {
       "id": "PL-5",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in the commit «docs(0.3.26): review iteration 1, the document findings»: screenshots committed (docs/evidence/reviews/0.3.26/shots), the ledger records each candidate's gate"
       ]
     },
     {
       "id": "PL-6",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "ruled: CO-604 (16)"
       ]
     },
     {
       "id": "PL-7",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "ruled: CO-603 (7)"
       ]
     },
     {
       "id": "PL-8",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "ruled: CO-604 (12)"
       ]
     },
     {
       "id": "PL-9",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in the commit «docs(0.3.26): review iteration 1, the document findings»: spec §2a maps every ask to what shipped or where it went"
       ]
     },
     {
       "id": "PL-10",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed at the release: PRs #66 and #68 closed as superseded; the version, gate and ledger point at 0.3.26"
       ]
     },
     {
       "id": "PL-11",
       "status": "fixed",
       "evidence": [
-        "fixed in `a1467e18`"
+        "fixed in the commit «docs(0.3.26): review iteration 1, the document findings»: as DO-2"
       ]
     },
     {
       "id": "PL-12",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "ruled: CO-603 (8)"
       ]
     },
     {
       "id": "PL-13",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
-        "fixed in the release commit: one version, its gate and ledger"
+        "ruled: CO-603 (5)"
       ]
     }
   ]

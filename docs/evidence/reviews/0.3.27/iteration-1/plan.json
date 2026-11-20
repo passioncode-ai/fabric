@@ -1,0 +1,105 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "c88f68ecf3cad6fbd65e1f744cbf432d22e47dd1",
+  "report": "docs/evidence/reviews/0.3.27/iteration-1/2026-11-19-plan.md",
+  "reportSha256": "9df7d5cb0477632b040173d2f8ae76d4fc9ab0c3e4d0c808542c7816bed228f9",
+  "reviewerRun": "release-0326-i1-plan-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-602"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `a1467e18`"
+      ]
+    },
+    {
+      "id": "PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in `779b6ce0`"
+      ]
+    },
+    {
+      "id": "PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: one version, its gate and ledger"
+      ]
+    }
+  ]
+}

@@ -3,60 +3,81 @@
   "version": "0.3.26",
   "iteration": 2,
   "level": "ux",
-  "candidateCommit": "779b6ce0c0ababdddbaceddf381ad4c554770801",
-  "report": "docs/evidence/reviews/0.3.26/iteration-2/2026-11-19-ux.md",
-  "reportSha256": "fb8312e4ce625054a7a83461cac5528cab43d7019c4ec9721f07667bacd9ccfa",
-  "reviewerRun": "release-0326-i2-ux-20261119",
+  "candidateCommit": "30552b73e58571047945ef0eafb6c63d44fcb42a",
+  "report": "docs/evidence/reviews/0.3.26/iteration-2/2026-11-20-ux.md",
+  "reportSha256": "2b06fd327d8fea88811467e9f4d4fd25bb4acac8f6676d88cbe7810120d19708",
+  "reviewerRun": "release-0326-i2-ux-claude-subagent-20261120",
   "status": "closed",
   "blockingFindingsOpen": [],
   "findings": [
     {
-      "id": "UX-5",
+      "id": "UX-17",
       "status": "fixed",
       "evidence": [
-        "fixed in `a1467e18`"
+        "fixed in the iteration-2 commit: a link to a console Fabric holds opens that console as the rail does (shared/linkRoute.ts consoleToOpen, App.tsx applyLink); linkRoute test «a link to a console Fabric holds opens that console at once»"
       ]
     },
     {
-      "id": "UX-10",
+      "id": "UX-18",
       "status": "fixed",
       "evidence": [
-        "fixed in `a1467e18`"
+        "fixed in the iteration-2 commit: a stopped session not opened in a console leads with its own sentence, no «Не сделано», and offers «Продолжить из истории» (MachineSessions.tsx halfDone, ContinueSessionAsk.tsx); tests in both"
       ]
     },
     {
-      "id": "UX-11",
+      "id": "UX-19",
       "status": "fixed",
       "evidence": [
-        "fixed in `a1467e18`"
+        "fixed in the iteration-2 commit: no manual command; «Продолжить из истории» continues the session from its transcript in its own Claude home (resumeEnded); MachineSessions test of the retry"
       ]
     },
     {
-      "id": "UX-12",
+      "id": "UX-20",
       "status": "fixed",
       "evidence": [
-        "fixed in `a1467e18`"
+        "fixed in the iteration-2 commit: one warning banner for a continue (the notice is not shown beside it), Cancel disabled while the press is answered (ContinueSessionAsk.tsx); test «a refusal is said in words and keeps the ask»"
       ]
     },
     {
-      "id": "UX-13",
+      "id": "UX-21",
       "status": "fixed",
       "evidence": [
-        "fixed in `a1467e18`"
+        "fixed in the iteration-2 commit: one machineWhy for the panel and the ask, every code a sentence, an unknown one in words; a running session not outside is not-outside, not still-running (index.ts resumeEnded); test «an unknown refusal code is never shown as the sentence»"
       ]
     },
     {
-      "id": "UX-14",
+      "id": "UX-22",
       "status": "fixed",
       "evidence": [
-        "fixed in `a1467e18`"
+        "fixed in the iteration-2 commit: the ask names the folder, agent, state and the app the link came from, never the id (ContinueSessionAsk.tsx); test «names the session by folder, agent and state»"
       ]
     },
     {
-      "id": "UX-15",
-      "status": "not-a-defect",
+      "id": "UX-23",
+      "status": "ruled",
       "evidence": [
-        "not a defect: a listing never raises a macOS question by design (ER-7); a move or a save reads the window and says what it could not"
+        "ruled: CO-604 (11), extended in iteration 2"
+      ]
+    },
+    {
+      "id": "UX-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: en machineSessions.continueAsk says «window or terminal»"
+      ]
+    },
+    {
+      "id": "UX-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: SCN-142 amended with session/open and continue; SCN-166 says «компьютере» and the iteration-1 fixes"
+      ]
+    },
+    {
+      "id": "UX-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: two sessions in one folder are named with their start; the panel heading is hidden inside the fold (MachineSessions.tsx label, folded)"
       ]
     }
   ]

@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "19b422264b26d1dbed6b380574978d2f9cc0d25f",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-19b42226/2026-11-20-plan.md",
+  "reportSha256": "bb6aa6ddf5169db104c4987c6a9d3262e1b4e060685411a16fc9fa0b0fe230f4",
+  "reviewerRun": "release-0326-i3r4-plan-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: the order 51d22d2b is CO-603 (12) and a row of spec §4, owner this repository's release session; thread fe5f93aa is told the version at the release"
+      ]
+    },
+    {
+      "id": "PL-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release close: it lists every thread the release owes a notice (20ee2630, 3ca40854, 12e4a915, fe5f93aa, 7e7889f6) and the people.ask 5467c685"
+      ]
+    },
+    {
+      "id": "PL-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: as UX-47"
+      ]
+    },
+    {
+      "id": "PL-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release close: post-tag acts are listed as owed items, each checked off with its receipt on main after the tag"
+      ]
+    },
+    {
+      "id": "PL-39",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: as DO-33"
+      ]
+    }
+  ]
+}

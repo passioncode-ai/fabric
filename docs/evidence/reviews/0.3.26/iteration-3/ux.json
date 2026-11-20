@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "2f138c70f4569d0d20a2c4a4e07fd359c89f8a45",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3/2026-11-20-ux.md",
+  "reportSha256": "13495c8ba833cef29f96e57713edb5c05201a907c5198e34a57ba659d2378474",
+  "reviewerRun": "release-0326-i3r5-ux-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-48",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (34), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the panel's half-done note names no session and its retry's busy state and refusal show only in a row the stopped session no longer has"
+      ]
+    },
+    {
+      "id": "UX-49",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (35), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the link ask's half-done banner says «остановлена» twice; one sentence in 0.3.27"
+      ]
+    },
+    {
+      "id": "UX-50",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (18) amended, written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the homes read widens (18) from runtimes/ to every dispatched run; measured 15 live disk sessions (.claude 10, runtimes 2, homes 3), two of the homes ones Switchboard origin fabric"
+      ]
+    }
+  ]
+}

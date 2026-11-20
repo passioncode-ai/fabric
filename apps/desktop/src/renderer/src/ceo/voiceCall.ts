@@ -46,6 +46,18 @@ export interface CallAudio {
   /** Cut what is playing and queued (the person spoke over it). */
   interrupt(): void
   stop(): void
+  /** Silence the CEO's voice (text only) or bring it back; the answers still arrive as lines. */
+  mute?(on: boolean): void
+  /** How loud the person (`input`) and the CEO (`output`) are now, each 0..1; read per frame by the voice meter. */
+  levels?(): { input: number; output: number }
+}
+
+/** The loudness of a chunk as 0..1: its RMS, lifted so speech fills the meter (speech RMS sits near 0.05..0.3). */
+export function levelOf(samples: Float32Array): number {
+  if (!samples.length) return 0
+  let sum = 0
+  for (let i = 0; i < samples.length; i++) sum += samples[i]! * samples[i]!
+  return Math.min(1, Math.sqrt(sum / samples.length) * 4)
 }
 
 export interface CallDeps {
@@ -153,7 +165,8 @@ export function createCall(deps: CallDeps) {
     }
     socket.onerror = () => { if (gen === generation && phase !== 'ended') end('connection') }
     socket.onclose = () => { if (gen === generation) end() }
-    socket.onmessage = (ev) => { if (gen === generation) void receive(typeof ev.data === 'string' ? ev.data : '') }
+    // ER-12 (0.3.25): an event that cannot be played is dropped, never an unhandled rejection.
+    socket.onmessage = (ev) => { if (gen === generation) receive(typeof ev.data === 'string' ? ev.data : '').catch(() => undefined) }
   }
 
   async function receive(raw: string): Promise<void> {
@@ -222,6 +235,9 @@ export function createCall(deps: CallDeps) {
     if (pending.size === 0 && respondAfterTools) { respondAfterTools = false; send({ type: 'response.create' }) }
   }
 
+  /** The CEO's voice off or on for the rest of the call (the owner, 2026-11-19: a voice reading the screen aloud). */
+  function mute(on: boolean): void { deps.audio.mute?.(on) }
+
   /** Words typed instead of spoken: the same conversation, answered aloud. */
   function say(text: string): void {
     if (!text.trim()) return
@@ -234,8 +250,10 @@ export function createCall(deps: CallDeps) {
   function hangUp(): void { end() }
 
   return {
-    start, say, hangUp, receive,
+    start, say, hangUp, receive, mute,
     phase: (): CallPhase => phase,
+    /** The audio's levels now; silence when the call has no audio or the audio keeps none. */
+    levels: (): { input: number; output: number } => (ws ? deps.audio.levels?.() ?? { input: 0, output: 0 } : { input: 0, output: 0 }),
     /** Minutes on the call and their price at xAI's list rate. */
     spent: (): { minutes: number; usd: number } => {
       const minutes = startedAt ? (now() - startedAt) / 60_000 : 0
@@ -273,12 +291,17 @@ export function pcm16Base64ToFloat(b64: string): Float32Array {
 }
 
 /** The browser's audio: the microphone through a ScriptProcessor (no worklet module to load under the page's policy). */
-export function browserAudio(): CallAudio {
+export function browserAudio(startMuted = false): CallAudio {
+  let muted = startMuted
   let ctx: AudioContext | null = null
   let stream: MediaStream | null = null
   let proc: ScriptProcessorNode | null = null
   let next = 0
   const playing = new Set<AudioBufferSourceNode>()
+  /** The last microphone chunk's level, and the played chunks' levels with the time each starts and ends. */
+  let input = 0
+  let inputAt = 0
+  const outLevels: Array<{ from: number; to: number; level: number }> = []
   const ensure = (): AudioContext => (ctx ??= new AudioContext({ sampleRate: 24000 }))
   return {
     async start(onChunk) {
@@ -286,12 +309,18 @@ export function browserAudio(): CallAudio {
       stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
       const src = c.createMediaStreamSource(stream)
       proc = c.createScriptProcessor(4096, 1, 1)
-      proc.onaudioprocess = (ev) => onChunk(floatToPcm16Base64(ev.inputBuffer.getChannelData(0)))
+      proc.onaudioprocess = (ev) => {
+        const samples = ev.inputBuffer.getChannelData(0)
+        input = levelOf(samples)
+        inputAt = c.currentTime
+        onChunk(floatToPcm16Base64(samples))
+      }
       src.connect(proc)
       // A ScriptProcessor runs only while it is connected to the destination; it writes silence there.
       proc.connect(c.destination)
     },
     play(b64) {
+      if (muted) return
       const c = ensure()
       const samples = pcm16Base64ToFloat(b64)
       if (!samples.length) return
@@ -302,6 +331,8 @@ export function browserAudio(): CallAudio {
       node.connect(c.destination)
       next = Math.max(next, c.currentTime + 0.02)
       node.start(next)
+      outLevels.push({ from: next, to: next + buf.duration, level: levelOf(samples) })
+      if (outLevels.length > 64) outLevels.splice(0, outLevels.length - 64)
       next += buf.duration
       playing.add(node)
       node.onended = () => playing.delete(node)
@@ -310,6 +341,18 @@ export function browserAudio(): CallAudio {
       for (const n of playing) { try { n.stop() } catch { /* ended already */ } }
       playing.clear()
       next = 0
+      outLevels.length = 0
+    },
+    mute(on) {
+      muted = on
+      if (on) this.interrupt()
+    },
+    levels() {
+      if (!ctx) return { input: 0, output: 0 }
+      const now = ctx.currentTime
+      const out = outLevels.find((l) => l.from <= now && now < l.to)?.level ?? 0
+      // A microphone chunk is about 170 ms; an older reading is silence.
+      return { input: now - inputAt < 0.3 ? input : 0, output: out }
     },
     stop() {
       this.interrupt()

@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "2f138c70f4569d0d20a2c4a4e07fd359c89f8a45",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3/2026-11-20-data.md",
+  "reportSha256": "d97d46f4116844fe46c7565a9dfdbbcb3755fe5bcc01fe16b5fe7c4cbfd4737b",
+  "reviewerRun": "release-0326-i3r5-data-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-27",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (38), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the comments in machineSessions.ts, ceoTools.ts and diskSessions.ts name homes"
+      ]
+    },
+    {
+      "id": "DA-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: as DO-35"
+      ]
+    }
+  ]
+}

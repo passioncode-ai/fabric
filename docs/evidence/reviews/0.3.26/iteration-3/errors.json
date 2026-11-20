@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "2f138c70f4569d0d20a2c4a4e07fd359c89f8a45",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3/2026-11-20-errors.md",
+  "reportSha256": "88fa6be4ae922d4d8e377ecc43ccb037f8d44b4c77c2d2096e056adb4560390e",
+  "reviewerRun": "release-0326-i3r5-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-31",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (36), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): an older Switchboard read that settles after a newer one overwrites its post-act rows; the settle keeps the generation and replaces only an older one"
+      ]
+    },
+    {
+      "id": "ER-32",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (37), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the panel's «ended» confirmation is chosen at the click; it is chosen from the current row at render time, and main refuses to signal a press confirmed as ended"
+      ]
+    },
+    {
+      "id": "ER-33",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (25) amended, written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): ER-28 part (b), a live Switchboard-only row after a half-done answer, is carried; the run-four row V3-ER-28 covers part (a) only"
+      ]
+    },
+    {
+      "id": "ER-34",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (38), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the doc comment of claudeConfigDirs moves back above it and names homes"
+      ]
+    }
+  ]
+}

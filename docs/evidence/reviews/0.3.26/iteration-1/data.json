@@ -3,10 +3,10 @@
   "version": "0.3.26",
   "iteration": 1,
   "level": "data",
-  "candidateCommit": "c88f68ecf3cad6fbd65e1f744cbf432d22e47dd1",
-  "report": "docs/evidence/reviews/0.3.26/iteration-1/2026-11-19-data.md",
-  "reportSha256": "ee2f45ad3d037c0f490ecb0220c388b8494c459bd15a7f173ba18759d9c13650",
-  "reviewerRun": "release-0326-i1-data-20261119",
+  "candidateCommit": "314c956660b35a25b4b71e3ba97cbd8b548914a4",
+  "report": "docs/evidence/reviews/0.3.26/iteration-1/2026-11-20-data.md",
+  "reportSha256": "ee2fbb9c525a518c9e3a6858d082cfec6b8139f233e39d8e625289a86967a332",
+  "reviewerRun": "release-0326-i1-data-claude-subagent-20261120",
   "status": "closed",
   "blockingFindingsOpen": [],
   "findings": [
@@ -14,35 +14,77 @@
       "id": "DA-1",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in 527ca936: turns redacted in the wiring (index.ts machineSessions turns)"
       ]
     },
     {
       "id": "DA-2",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in 527ca936: the tail read (readTail); the synchronous transcript lookup ruled with CO-604 (5)"
       ]
     },
     {
       "id": "DA-3",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "ruled: CO-604 (1)"
       ]
     },
     {
       "id": "DA-4",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in 527ca936: as ER-3"
       ]
     },
     {
       "id": "DA-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (2)"
+      ]
+    },
+    {
+      "id": "DA-6",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in 527ca936: as ER-5"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (3)"
+      ]
+    },
+    {
+      "id": "DA-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (4)"
+      ]
+    },
+    {
+      "id": "DA-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the commit «docs(0.3.26): review iteration 1, the document findings»: a rejected mkdir is forgotten (sessionLaunches.ts ensureDir); test «a journal folder that could not be made is tried again», red before"
+      ]
+    },
+    {
+      "id": "DA-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 527ca936: no machine in the CEO launches tool (ceoTools.ts)"
+      ]
+    },
+    {
+      "id": "DA-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 527ca936: every outcome but ok is failed, at warn (index.ts record)"
       ]
     }
   ]

@@ -257,6 +257,31 @@ Sources: `docs.x.ai/developers/models/voice-agent-api` and `docs.x.ai/developers
 The audio format Fabric sends (24 kHz PCM16) is Fabric's choice in `apps/desktop/src/renderer/src/ceo/voiceCall.ts`, not
 a number read from these pages.
 
+<a id="xai-voices"></a>
+#### xAI voices (the CEO's voice, SCN-186)
+
+Sources: `docs.x.ai/developers/model-capabilities/audio/text-to-speech` and `docs.x.ai/docs/guides/voice`, rendered and
+read 2026-11-19 (the voice table is drawn by the page's script; a plain fetch returns it empty). The same voices work in
+the realtime `session.update` `voice` field and in text to speech; `eve` is xAI's default.
+
+| Voice | xAI's tone (verbatim) | Accent | Median pitch of xAI's sample | Fabric reads it as |
+|---|---|---|---|---|
+| `ara` | Warm and friendly | | 222 Hz | female |
+| `eve` | Energetic and upbeat | British | 193 Hz | female |
+| `leo` | Authoritative and strong | British | 113 Hz | male |
+| `rex` | Confident and clear | | 108 Hz | male |
+| `sal` | Smooth and balanced | | 125 Hz | male |
+
+xAI documents no gender. The pitch column is measured, not quoted: each sample at `docs.x.ai/assets/audio/voice_<id>.mp3`
+was decoded to 16 kHz mono and its median fundamental frequency read by autocorrelation over 40 ms voiced frames
+(2026-11-19). Fabric's mapping by character (`apps/desktop/src/shared/persona.ts#PERSONA_VOICES`): orbit rex or eve, spark
+sal or ara, wave leo or eve; male is the default (the owner, 2026-11-19).
+
+| Term | Value |
+|---|---|
+| Sample | `POST https://api.x.ai/v1/tts` with `text`, `voice_id`, `language`; the body is raw audio, MP3 24 kHz / 128 kbps by default |
+| Price | USD 15 per million characters (`docs.x.ai/developers/pricing`, 2026-11-19); Fabric's sample is under 90 characters, fetched once per voice and language and kept (`apps/desktop/src/main/ceoVoice.ts#voiceSample`) |
+
 ## 4. What this changes
 
 Three consequences the module map at stage 2 has to absorb.

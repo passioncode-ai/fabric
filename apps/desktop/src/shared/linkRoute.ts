@@ -12,9 +12,12 @@
 import { parseFabricLink } from './contract/fabricLinks.ts'
 
 export interface LinkRouteDeps {
-  projects: ReadonlyArray<{ id: string; name: string; remotes: ReadonlyArray<string | null> }>
+  projects: ReadonlyArray<{ id: string; name: string; remotes: ReadonlyArray<string | null>; folders?: ReadonlyArray<string> }>
   /** The registry's services: `key` is `id.instance`. */
   services: ReadonlyArray<{ key: string; id: string; repository: string | null }>
+  /** The Fabric console a session id names: the console's own id, or the runner session id one runs (DEC-0189 SL-4);
+   *  null when no console Fabric holds is that session. */
+  consoleOf?(sessionId: string): string | null
 }
 
 export type LinkNotice =
@@ -27,9 +30,19 @@ export type LinkNotice =
   | 'service-in-many-projects'
   /** The projects or their repositories could not be read: said, never routed against an empty list (ER-1). */
   | 'link-unreadable'
+  /** `session/open` of a console Fabric holds: its console opens (DEC-0189 SL-4). */
+  | 'open-session'
+  /** `session/open` of a session no Fabric console holds: Агенты shows this computer's sessions, it among them. */
+  | 'session-outside'
+  /** `session/continue`: the person confirms the move into a Fabric console (DEC-0189 SL-5). */
+  | 'continue-session'
 
 export interface LinkRoute {
-  route: { kind: 'home' } | { kind: 'project'; projectId: string }
+  route: { kind: 'home' } | { kind: 'project'; projectId: string } | { kind: 'agents'; session: string | null }
+  /** `session/continue`: the runner session the person is asked to continue in Fabric. */
+  continueSession?: string
+  /** The app the link came from (`from`, DEC-0189 SL-1): a claim of the page, recorded, never trusted for anything. */
+  from?: string
   notice: LinkNotice
   /** How many earlier links waited past the limit and were not opened (0.3.5 review i2 ER-7); said beside the notice. */
   dropped?: number
@@ -63,20 +76,41 @@ export function normaliseRepository(url: string): string | null {
 
 const home = (notice: LinkNotice): LinkRoute => ({ route: { kind: 'home' }, notice })
 
+/** The last segment of a folder, either separator. */
+const folderLeaf = (folder: string): string => folder.replace(/[\\/]+$/, '').split(/[\\/]/).pop() ?? ''
+
+/** A project by its id, else its name, else the name of one of its folders (board thread 3ca40854, 2026-11-19: an app
+ *  that knows a session's folder names its repository folder, since a link carries no path). Two projects a name could
+ *  mean is no project: the link opens home and says it is unknown. */
 function projectByRef(ref: string, deps: LinkRouteDeps): string | null {
   const byId = deps.projects.find((p) => p.id === ref)
   if (byId) return byId.id
-  const named = deps.projects.filter((p) => p.name.toLowerCase() === ref.toLowerCase())
-  return named.length === 1 ? named[0].id : null
+  const lower = ref.toLowerCase()
+  const named = deps.projects.filter((p) => p.name.toLowerCase() === lower)
+  if (named.length) return named.length === 1 ? named[0].id : null
+  const byFolder = deps.projects.filter((p) => (p.folders ?? []).some((f) => folderLeaf(f).toLowerCase() === lower))
+  return byFolder.length === 1 ? byFolder[0].id : null
 }
 
 export function routeForLink(url: string, deps: LinkRouteDeps): LinkRoute {
   const parsed = parseFabricLink(url)
   if (!parsed.ok) return home('link-refused')
   const link = parsed.link
+  const from = link.action !== 'chat' && link.from ? { from: link.from } : {}
+  if (link.action === 'session.open') {
+    const console = deps.consoleOf?.(link.session) ?? null
+    return console ? { route: { kind: 'agents', session: console }, notice: 'open-session', ...from }
+      : { route: { kind: 'agents', session: null }, notice: 'session-outside', ...from }
+  }
+  if (link.action === 'session.continue') {
+    // A session a Fabric console already runs is opened, not moved again.
+    const console = deps.consoleOf?.(link.session) ?? null
+    return console ? { route: { kind: 'agents', session: console }, notice: 'open-session', ...from }
+      : { route: { kind: 'agents', session: null }, notice: 'continue-session', continueSession: link.session, ...from }
+  }
   if (link.action === 'session.new') {
     const projectId = projectByRef(link.project, deps)
-    return projectId ? { route: { kind: 'project', projectId }, notice: 'start-session' } : home('project-unknown')
+    return projectId ? { route: { kind: 'project', projectId }, notice: 'start-session', ...from } : home('project-unknown')
   }
   if (link.project !== undefined) {
     const projectId = projectByRef(link.project, deps)
@@ -97,7 +131,11 @@ export interface LinkReads {
   projects(): Promise<ReadonlyArray<{ id: string; name: string }>>
   /** A project's repository remotes; throws when they cannot be read. */
   remotes(projectId: string): Promise<ReadonlyArray<string | null>>
+  /** A project's repository folders, for a link that names one by its last segment; none when not given. */
+  folders?(projectId: string): Promise<ReadonlyArray<string>>
   services(): LinkRouteDeps['services']
+  /** See `LinkRouteDeps.consoleOf`. */
+  consoleOf?(sessionId: string): string | null
   /** Where a failed read goes: the log, never the window (the notice says it there). */
   failed(e: unknown): void
 }
@@ -112,8 +150,8 @@ export async function resolveLink(url: string, reads: LinkReads): Promise<LinkRo
   if (!parseFabricLink(url).ok) return home('link-refused')
   try {
     const rows = await reads.projects()
-    const projects = await Promise.all(rows.map(async (p) => ({ id: p.id, name: p.name, remotes: await reads.remotes(p.id) })))
-    return routeForLink(url, { projects, services: reads.services() })
+    const projects = await Promise.all(rows.map(async (p) => ({ id: p.id, name: p.name, remotes: await reads.remotes(p.id), folders: (await reads.folders?.(p.id)) ?? [] })))
+    return routeForLink(url, { projects, services: reads.services(), ...(reads.consoleOf ? { consoleOf: reads.consoleOf } : {}) })
   } catch (e) {
     reads.failed(e)
     return home('link-unreadable')
@@ -129,4 +167,10 @@ export function linkWindowPlan(s: { startupDone: boolean; hasWindow: boolean }):
   if (!s.startupDone) return 'hold'
   return s.hasWindow ? 'open' : 'hold-and-open-window'
 }
+/** The console a routed link opens at once (UX-17, 0.3.26 review, iteration 2): a link to a console Fabric holds opens
+ *  that console, as the rail's press does, not the agent's page; null when the link opens a place instead. */
+export function consoleToOpen(r: LinkRoute): string | null {
+  return r.notice === 'open-session' && r.route.kind === 'agents' && r.route.session ? r.route.session : null
+}
+
 // #endregion fabric-link-route

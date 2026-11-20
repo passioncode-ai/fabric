@@ -109,6 +109,15 @@ export const fixtures: Fixtures = {
   'board.resolved': envelope({ data: [], sources: [{ name: 'board', status: 'ok' as const, asOf: at(0) }], asOf: at(0), freshness: 'fresh' as const }),
   'goals.list': [{ id: 'g1', project_id: 'p1', title: 'Выпустить командный доступ к концу месяца', autonomy: 'safe', created_at: at(500) }],
   'agents.list': [],
+  // 0.3.26 (the operator, 2026-11-20): this computer's sessions outside Fabric, one with a long folder name, and an agent's
+  // launch line on its page.
+  'agents.machineSessions': [
+    { pid: 4101, live: true, sessionId: 'aaaaaaaa-0000-4000-8000-000000000001', cwd: '/Users/example/DATA/_worktrees/support-desk-a-very-long-worktree-name-for-a-feature-branch', name: null, status: 'busy', kind: 'interactive', entrypoint: 'cli', startedAt: at(1), updatedAt: at(0), source: 'claude', state: 'working', agent: 'claude-code' },
+    { pid: 0, live: false, sessionId: 'aaaaaaaa-0000-4000-8000-000000000002', cwd: '/Users/example/DATA/atlas', name: null, status: null, kind: null, entrypoint: null, startedAt: null, updatedAt: null, source: 'switchboard', state: 'needs_you', agent: 'codex' }
+  ],
+  'terminal.launch': (id: string) => ({ sessionId: id, projectId: 'p1', cwd: '/Users/example/DATA/support-desk', branch: 'feat/queue', runner: 'claude-code', optionId: 'claude-code',
+    program: 'claude', by: 'person', via: 'screen', reason: 'Продолжить последнюю сессию проекта', parentSessionId: null, taskId: null, requestId: null, machine: 'stand',
+    appPid: 1, appVersion: '0.3.26', pid: 4100, startedAt: at(2), runnerSessionId: null, stopAskedBy: null, stopReason: null, endedAt: null, end: null, exitCode: null, signal: null }),
   'comms.projectRequests': { requests: [], names: {}, capped: false, windowDays: 30 },
   'projects.analytics': { donePerWeek: [1, 3, 2, 5, 4, 6, 2, 7], leadHours: 26, reviewHours: 9, reopenedShare: 0.1, questionsWaiting: 3, oldestQuestionAt: at(40), weeks: 8 },
   'projects.relations': [],

@@ -359,7 +359,8 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-composer, .ceo-composer-form { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .ceo-composer-home { padding: var(--space-3); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); background: var(--app-panel); }
 .ceo-composer-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
-.ceo-composer-title { margin: 0; white-space: nowrap; font-size: var(--app-fs-body); font-weight: 600; line-height: var(--app-lh-body); padding-top: var(--space-1); }
+/* Two classes: the launch screens' `h2` size (42px) must not reach the card's small title (the owner's review, 2026-11-19). */
+.ceo-composer .ceo-composer-title { margin: 0; white-space: nowrap; font-size: var(--app-fs-body); letter-spacing: normal; font-weight: 600; line-height: var(--app-lh-body); padding-top: var(--space-1); }
 .ceo-composer-home .ceo-composer-text { min-height: 56px; }
 .ceo-composer-send { margin-left: auto; }
 .ceo-composer-text { width: 100%; resize: vertical; font: inherit; padding: var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: var(--app-bg, transparent); color: var(--app-ink); }
@@ -367,38 +368,112 @@ button:disabled { opacity: .4; cursor: default; }
 .ceo-composer-files { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .ceo-composer-files li { display: inline-flex; align-items: center; gap: var(--space-1); padding: 0 var(--space-2); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); font-size: var(--app-fs-caption); }
 .ceo-composer-popup { padding: var(--space-2) var(--space-3) var(--space-3); border-top: 1px solid var(--app-line); }
-.ceo-floating { position: fixed; right: var(--space-4); bottom: var(--space-4); z-index: 40; width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--app-line-strong); background: var(--app-accent); color: var(--app-accent-ink); font: inherit; font-weight: 600; cursor: pointer; box-shadow: var(--shadow-modal); }
-.ceo-floating:hover { filter: brightness(1.08); }
-.ceo-popup { display: flex; flex-direction: column; height: 100vh; padding-top: calc(var(--space-6, 32px) + 2px); box-sizing: border-box; }
-.ceo-popup-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--app-line); -webkit-app-region: drag; }
-.ceo-popup-head button, .ceo-popup-head input, .ceo-call-panel { -webkit-app-region: no-drag; }
-.ceo-popup-title { font-size: var(--app-fs-body); }
-.ceo-popup-state, .ceo-popup-runner { font-size: var(--app-fs-caption); color: var(--app-muted); }
-.ceo-popup-state.s-running { color: var(--state-ok, var(--app-ink)); }
+/* The CEO's floating button (SCN-110, the owner 2026-11-19): the character's face with a ring for its state. The ring's
+   colour carries the state; only the starting ring breathes, and it holds still under reduced motion. */
+.ceo-floating { position: fixed; right: var(--space-4); bottom: var(--space-4); z-index: 40; display: inline-flex; align-items: center; gap: var(--space-2); padding: 4px var(--space-3) 4px 4px; border-radius: var(--app-radius-pill); border: 1px solid var(--app-line-strong); background: var(--app-panel); color: var(--app-ink); font: inherit; font-weight: 600; font-size: var(--app-fs-label); cursor: pointer; box-shadow: var(--shadow-modal); transition: border-color var(--dur-quick) var(--ease-enter), background-color var(--dur-quick) var(--ease-enter); }
+.ceo-floating:hover { border-color: var(--app-ink); }
+.ceo-floating:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 2px; }
+.ceo-floating-face { display: inline-flex; border-radius: 50%; box-shadow: 0 0 0 2px var(--app-panel), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }
+.ceo-floating.s-running, .ceo-presence.s-running { --ceo-ring: var(--state-good); }
+.ceo-floating.s-starting, .ceo-presence.s-starting { --ceo-ring: var(--state-running); }
+.ceo-floating.s-failed, .ceo-presence.s-failed { --ceo-ring: var(--state-danger); }
+.ceo-floating.s-stopped, .ceo-floating.s-ended, .ceo-floating.s-idle, .ceo-presence.s-stopped, .ceo-presence.s-ended, .ceo-presence.s-idle { --ceo-ring: var(--state-ended); }
+@media (prefers-reduced-motion: no-preference) {
+  /* Why it moves: the CEO is coming up, not yet answering. First and last frames match, so the reduced branch is still. */
+  .ceo-floating.s-starting .ceo-floating-face, .ceo-presence.s-starting { animation: ceo-breathe 1.6s ease-in-out infinite; }
+}
+@keyframes ceo-breathe { 0%, 100% { box-shadow: 0 0 0 2px var(--app-panel), 0 0 0 4px var(--ceo-ring); } 50% { box-shadow: 0 0 0 2px var(--app-panel), 0 0 0 4px transparent; } }
+
+/* The CEO popup (ADR-0197 §2): the CEO in its head, the chat (console, then the call panel) in its body, the composer
+   at its foot. */
+.ceo-popup { display: flex; flex-direction: column; height: 100vh; padding-top: calc(var(--space-6, 32px) + 2px); box-sizing: border-box; background: var(--app-bg); }
+.ceo-popup-head { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3) var(--space-3); border-bottom: 1px solid var(--app-line); -webkit-app-region: drag; }
+.ceo-popup-head button, .ceo-popup-head input, .ceo-call-panel, .ceo-popup-chat { -webkit-app-region: no-drag; }
+/* The CEO window loads no launch stylesheet, so the face is sized here. */
+.ceo-presence svg { display: block; width: 40px; height: 40px; }
+.ceo-presence { flex: none; display: inline-flex; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }
+.ceo-popup-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.ceo-popup-title { font-size: var(--app-fs-title); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ceo-popup-sub { display: flex; flex-wrap: wrap; gap: 2px var(--space-2); font-size: var(--app-fs-caption); color: var(--app-muted); min-width: 0; }
+.ceo-popup-state { font-weight: 500; }
+.ceo-popup-state.s-running { color: var(--state-good); }
+.ceo-popup-state.s-starting { color: var(--state-running); }
 .ceo-popup-state.s-failed { color: var(--state-danger); }
-.ceo-popup-head-actions { margin-left: auto; display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: flex-start; }
+.ceo-popup-runner { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ceo-popup-head-actions { margin-left: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-1); align-items: center; }
+.ceo-popup-head-actions .btn { padding: 4px var(--space-2); font-size: var(--app-fs-label); }
 .ceo-popup-notes { margin: 0; padding: var(--space-1) var(--space-3) var(--space-1) var(--space-5, 1.5rem); font-size: var(--app-fs-caption); }
-.ceo-popup-console { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: var(--space-2) var(--space-3) 0; }
+.ceo-popup-chat { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-2) var(--space-3) 0; }
+.ceo-popup-console { flex: 1; min-height: 120px; display: flex; flex-direction: column; }
 .ceo-popup-console > * { flex: 1; min-height: 0; }
 .ceo-popup-wait { flex: none; }
-.ceo-call { position: relative; }
-.ceo-call-panel { position: absolute; right: 0; top: calc(100% + var(--space-1)); z-index: 5; width: 300px; display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-panel); background: var(--app-panel); box-shadow: var(--shadow-modal); font-size: var(--app-fs-caption); }
-/* On the home card the call's button stays in the head's row and its state, time, lines and key field take a full
-   row of the card under it, not a floating panel (`display: contents` lets both be the head's own flex items). */
-.ceo-call-inline { display: contents; }
-.ceo-call-inline .ceo-call-panel { position: static; order: 1; flex: 1 0 100%; width: auto; padding: var(--space-2); border: 1px solid var(--app-line); background: var(--app-bg, transparent); box-shadow: none; }
-.ceo-call-inline .ceo-call-lines { max-height: 72px; }
-.ceo-call-inline .ceo-voice-key { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); align-items: flex-end; }
-.ceo-call-inline .ceo-voice-key label { display: flex; flex-direction: column; gap: 2px; flex: 1 1 160px; min-width: 0; }
-.ceo-call-inline .ceo-voice-key label input { width: 100%; }
-.ceo-call-inline .ceo-voice-key > .muted, .ceo-call-inline .ceo-voice-key > .field-problem { flex-basis: 100%; }
-.ceo-call-state { display: inline-flex; align-items: center; gap: var(--space-1); flex-wrap: wrap; }
-.ceo-call-time { font-variant-numeric: tabular-nums; }
-.ceo-call-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--app-muted); }
-.ceo-call-dot.p-listening, .ceo-call-dot.p-speaking { background: var(--state-ok, var(--app-accent)); }
-.ceo-call-dot.p-connecting { background: var(--app-accent); }
-.ceo-call-dot.p-failed { background: var(--state-danger); }
-.ceo-call-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 180px; overflow-y: auto; }
-.ceo-call-lines .who-person { color: var(--app-muted); }
-.ceo-call-lines .who-tool { color: var(--app-muted); font-family: var(--font-mono); }
-.ceo-call-say { width: 100%; font: inherit; padding: var(--space-1) var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: transparent; color: var(--app-ink); }
+.ceo-popup-stopped { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-4); border: 1px dashed var(--app-line-strong); border-radius: var(--app-radius-panel); color: var(--app-muted); }
+.ceo-popup-stopped p { margin: 0; color: var(--app-ink); }
+
+/* The call's button: a microphone and a word, the same in the popup's head and on the home card. */
+.ceo-call-button { display: inline-flex; align-items: center; gap: 6px; }
+.ceo-icon { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+.ceo-icon rect { fill: currentColor; stroke: none; }
+
+/* The call, a panel inside the chat (SCN-184): live while it runs, then its past calls, folded. */
+.ceo-call-panel { flex: none; display: flex; flex-direction: column; gap: var(--space-2); max-height: 62%; overflow-y: auto; font-size: var(--app-fs-body); }
+.ceo-call-live { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); background: var(--app-panel); }
+.ceo-call-live.p-listening, .ceo-call-live.p-speaking { border-color: color-mix(in srgb, var(--state-good) 45%, var(--app-line)); }
+.ceo-call-live.p-failed { border-color: color-mix(in srgb, var(--state-danger) 45%, var(--app-line)); }
+.ceo-call-head { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.ceo-call-state { font-weight: 600; }
+.ceo-call-meta { display: inline-flex; gap: var(--space-2); color: var(--app-muted); font-size: var(--app-fs-caption); font-variant-numeric: tabular-nums; }
+.ceo-meter { display: inline-flex; align-items: center; gap: 2px; height: 18px; width: 22px; flex: none; }
+.ceo-meter-bar { width: 3px; height: 100%; border-radius: 2px; background: var(--app-muted); transform: scaleY(.25); transform-origin: center; }
+.ceo-meter .ceo-meter-bar:nth-child(2), .ceo-meter .ceo-meter-bar:nth-child(4) { transform: scaleY(.4); }
+.ceo-meter .ceo-meter-bar:nth-child(3) { transform: scaleY(.55); }
+.ceo-meter.p-listening .ceo-meter-bar { background: var(--state-good); }
+.ceo-meter.p-speaking .ceo-meter-bar { background: var(--app-accent); }
+.ceo-meter.p-connecting .ceo-meter-bar { background: var(--state-running); }
+.ceo-meter.p-failed .ceo-meter-bar { background: var(--state-danger); }
+@media (prefers-reduced-motion: no-preference) {
+  /* Why it moves: the call is connecting and nothing can be heard yet. Matching first and last frames. */
+  .ceo-meter.p-connecting .ceo-meter-bar { animation: ceo-connect 1.2s ease-in-out infinite; }
+  .ceo-meter.p-connecting .ceo-meter-bar:nth-child(2) { animation-delay: .1s; }
+  .ceo-meter.p-connecting .ceo-meter-bar:nth-child(3) { animation-delay: .2s; }
+  .ceo-meter.p-connecting .ceo-meter-bar:nth-child(4) { animation-delay: .3s; }
+  .ceo-meter.p-connecting .ceo-meter-bar:nth-child(5) { animation-delay: .4s; }
+}
+@keyframes ceo-connect { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+.ceo-call-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); min-height: 48px; max-height: 200px; overflow-y: auto; }
+.ceo-call-lines li { display: grid; grid-template-columns: 3.2em 1fr; gap: var(--space-2); line-height: var(--app-lh-body, 1.45); }
+.ceo-call-who { color: var(--app-muted); font-size: var(--app-fs-caption); font-weight: 600; padding-top: 2px; }
+.ceo-call-lines .who-ceo { color: var(--app-ink); }
+.ceo-call-lines .who-person > span:last-child { color: var(--app-ink); }
+.ceo-call-lines .who-tool { display: block; color: var(--app-muted); font-family: var(--font-mono); font-size: var(--app-fs-caption); padding-left: calc(3.2em + var(--space-2)); }
+.ceo-call-lines .ceo-call-hint { display: block; }
+.ceo-call-say-form { display: flex; }
+.ceo-call-mute { display: flex; flex-wrap: wrap; column-gap: var(--space-2); align-items: center; font-size: var(--app-fs-caption); cursor: pointer; }
+.ceo-call-mute small { flex-basis: 100%; padding-left: calc(13px + var(--space-2)); }
+.ceo-call-say { width: 100%; font: inherit; padding: var(--space-1) var(--space-2); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: var(--app-bg, transparent); color: var(--app-ink); }
+.ceo-call-history { display: flex; flex-direction: column; gap: var(--space-1); }
+.ceo-call-record { border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-1) var(--space-2); }
+.ceo-call-record summary { display: flex; justify-content: space-between; gap: var(--space-2); cursor: pointer; font-size: var(--app-fs-caption); color: var(--app-muted); list-style: none; }
+.ceo-call-record summary::before { content: '\25B8'; margin-right: var(--space-1); }
+.ceo-call-record[open] summary::before { content: '\25BE'; }
+.ceo-call-record[open] .ceo-call-lines { margin-top: var(--space-2); }
+.ceo-voice-key { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); align-items: flex-end; }
+.ceo-voice-key label { display: flex; flex-direction: column; gap: 2px; flex: 1 1 160px; min-width: 0; font-size: var(--app-fs-caption); }
+.ceo-voice-key label input { width: 100%; }
+.ceo-voice-key > .muted, .ceo-voice-key > .field-problem { flex-basis: 100%; font-size: var(--app-fs-caption); }
+
+/* The CEO's voice (SCN-186): male or female, each with the character's tone and a sample. */
+.ceo-voice-picker { display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-2) 0 var(--space-4); }
+.ceo-voice-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-2); }
+.ceo-voice-option { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); background: var(--app-panel); }
+.ceo-voice-option[data-chosen="true"] { border: 2px solid var(--app-ink); padding: calc(var(--space-2) - 1px); }
+.ceo-voice-choice { display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--space-2); text-align: left; font: inherit; color: var(--app-ink); background: none; border: 0; padding: 0; cursor: pointer; }
+.ceo-voice-choice small { flex-basis: 100%; padding-left: calc(12px + var(--space-2)); color: var(--app-muted); font-size: var(--app-fs-caption); }
+.ceo-voice-choice input:focus-visible, .ceo-voice-listen:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 2px; border-radius: 4px; }
+.ceo-voice-name { font-weight: 600; }
+.ceo-voice-choice input { margin: 0; accent-color: var(--app-ink); }
+.ceo-voice-listen { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: var(--app-fs-caption); color: var(--app-ink); background: none; border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-pill); padding: 2px var(--space-2); cursor: pointer; }
+.ceo-voice-listen:disabled { opacity: .6; cursor: progress; }
+.ceo-voice-listen-icon { width: 0; height: 0; border-left: 7px solid currentColor; border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+.ceo-voice-listen-icon.is-playing { width: 7px; height: 7px; border: 0; background: currentColor; border-radius: 1px; }
+.ceo-voice-hint { color: var(--app-muted); font-size: var(--app-fs-caption); }

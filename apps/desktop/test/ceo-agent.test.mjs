@@ -8,9 +8,10 @@ import path from 'node:path'
 import { ceoBoardNudge, ceoBrief, ceoLaunchExtras, ceoLine, ceoModelAllowed, ceoModelsOf, ceoRunnersOf, claudeModelFlag, findProject, inboxName, keyBytes, screenText, typedText, CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT } from '../src/shared/ceoAgent.ts'
 import { createCeoAgent, LIMIT_SAID } from '../src/main/ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, CEO_TOOLS } from '../src/main/ceoTools.ts'
-import { mintVoiceToken, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
+import { mintVoiceToken, sampleText, voiceSample, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
 import { createVoiceKeyStore, voiceKeyShapeOk } from '../src/main/ceoVoiceKey.ts'
 import { validateSettings } from '../src/shared/appSettings.ts'
+import { currentLaunchOrigin } from '../src/main/launchOrigin.ts'
 
 const EM_DASH = String.fromCodePoint(0x2014)
 
@@ -215,6 +216,7 @@ function operations(over = {}) {
     ['s2', { sessionId: 's2', projectId: 'p1', cwd: '/d/app', optionId: 'shell', state: 'exited', running: false, startedAt: 'x', lastActivityAt: 'x', tail: '' }]
   ])
   const opened = []
+  const origins = []
   const switchboard = []
   const deps = {
     ptys: {
@@ -226,7 +228,7 @@ function operations(over = {}) {
     ceoSessionId: () => 'ceo',
     projects: async () => [{ id: 'p1', name: 'App', repo_path: '/d/app', default_agent: 'codex' }, { id: 'p2', name: 'Site', repo_path: '/d/site', default_agent: null }],
     admitFolder: async (folder) => ({ id: 'p9', name: path.basename(folder), repo_path: folder }),
-    openConsole: async (projectId, runner, task) => { opened.push([projectId, runner, task]); return { sessionId: 'new', projectId, cwd: '/d/app', optionId: runner, state: 'starting', running: true } },
+    openConsole: async (projectId, runner, task) => { opened.push([projectId, runner, task]); origins.push(currentLaunchOrigin()); return { sessionId: 'new', projectId, cwd: '/d/app', optionId: runner, state: 'starting', running: true } },
     stop: async (id, force) => { consoles.get(id).running = false; return { state: force ? 'killed' : 'stopped' } },
     openWindow: (id) => opened.push(['window', id]),
     switchboard: async (args) => {
@@ -241,9 +243,11 @@ function operations(over = {}) {
     record: (op, d) => records.push([op, d]),
     note: (kind, d) => notes.push([kind, d]),
     sleep: async () => {},
-    transcriptRoots: over.transcriptRoots ?? []
+    transcriptRoots: over.transcriptRoots ?? [],
+    ...(over.launches ? { launches: over.launches } : {}),
+    ...(over.diskSessions ? { diskSessions: over.diskSessions } : {})
   }
-  return { ops: createCeoOperations(deps), writes, records, notes, opened, switchboard, consoles }
+  return { ops: createCeoOperations(deps), writes, records, notes, opened, origins, switchboard, consoles }
 }
 
 test('sessions: the Fabric consoles and the machine\'s, the CEO marked, ended ones only when asked', async () => {
@@ -674,4 +678,305 @@ test('DA-7: an archived known CEO project gets a fresh id', async () => {
   assert.equal(await ceoProjectFor(d('archived'), '/ceo', known), '33333333-3333-4333-8333-333333333333')
   assert.deepEqual(created, ['33333333-3333-4333-8333-333333333333'])
   assert.equal(await ceoProjectFor(d('active'), '/ceo', null), '33333333-3333-4333-8333-333333333333')
+})
+
+// The owner, 2026-11-19: «пытался остановить эту консоль (CEO), но не смог». The CEO had no stop of its own: a stop from
+// the console's window was read as an early end and the next runner started at once, and any later open of the popup
+// started a console again. The person's stop now holds until the person starts it.
+test('THE PERSON\'S STOP: a stop of the CEO console holds; no fallback, no start on the popup\'s ensure; Start brings it back', async () => {
+  const k = keeper()
+  // As pty.ts does: the exit callback runs before the stop resolves.
+  k.deps.stop = async (id) => { const s = k.consoles.get(id); if (s) { s.running = false; k.agent.onExit(id) } }
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  k.tick(2_000) // inside the start window: an exit here used to be read as «ended at start»
+  const r = await k.agent.stop()
+  assert.equal(r.ok, true)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  assert.equal(k.consoles.get(first).running, false)
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1, 'no runner started after the person\'s stop')
+  assert.deepEqual(k.agent.status().setAside, [], 'the stopped runner is not set aside')
+  // The popup opening again asks ensure(): it does not start a stopped CEO.
+  const again = await k.agent.ensure()
+  assert.equal(again.state, 'stopped')
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1)
+  // Start (the person's restart) brings it back on the first runner.
+  const back = await k.agent.restart('person')
+  assert.equal(back.state, 'running')
+  assert.equal(back.runner, 'claude-code')
+  assert.notEqual(back.sessionId, first)
+})
+
+test('THE PERSON\'S STOP from another door: a console stopped from its own window holds the CEO too', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  k.tick(2_000)
+  // terminal.end marks the CEO's console as the person's stop before it stops it (index.ts).
+  k.agent.personStopping(first)
+  k.consoles.get(first).running = false
+  k.agent.onExit(first)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1, 'no fallback start')
+  // A message from the composer is the person asking again: it starts the CEO.
+  const sent = await k.agent.send('ты тут?', [])
+  assert.equal(sent.ok, true)
+  assert.equal(k.agent.status().state, 'running')
+})
+
+test('THE PERSON\'S STOP that leaves the console running says so', async () => {
+  const k = keeper()
+  k.deps.stop = async () => {}
+  await k.agent.ensure()
+  const r = await k.agent.stop()
+  assert.equal(r.ok, false)
+  assert.equal(r.reason, 'still-running')
+  assert.equal(r.status.state, 'running')
+})
+
+test('a voice sample: fetched once per voice and language with the key held for the request, kept, never the key', async () => {
+  const kept = new Map()
+  const cache = { read: (n) => kept.get(n) ?? null, write: (n, b) => kept.set(n, b) }
+  const sent = []
+  const fetch = async (url, init) => { sent.push([url, init]); return new Response(new Uint8Array([1, 2, 3]), { status: 200 }) }
+  const vault = { read: async () => ({ ok: true, value: 'xai-SECRET' }) }
+  const r = await voiceSample({ vault, fetch, cache }, 'rex', 'ru')
+  assert.deepEqual(r, { ok: true, data: Buffer.from([1, 2, 3]).toString('base64') })
+  assert.equal(sent[0][0], 'https://api.x.ai/v1/tts')
+  assert.deepEqual(JSON.parse(sent[0][1].body), { text: sampleText('ru'), voice_id: 'rex', language: 'ru' })
+  assert.ok(!sampleText('ru').includes(EM_DASH) && !sampleText('en').includes(EM_DASH))
+  await voiceSample({ vault, fetch, cache }, 'rex', 'ru')
+  assert.equal(sent.length, 1, 'the second hearing is the kept file')
+  await voiceSample({ vault, fetch, cache }, 'rex', 'en')
+  assert.equal(sent.length, 2, 'another language is another sample')
+  const unknown = await voiceSample({ vault, fetch, cache }, '../../etc', 'ru')
+  assert.equal(unknown.reason, 'unknown-voice')
+  const refused = await voiceSample({ vault, fetch: async () => new Response('', { status: 401 }), cache: { read: () => null, write: () => {} } }, 'eve', 'ru')
+  assert.equal(refused.reason, 'refused')
+  assert.ok(!JSON.stringify(refused).includes('xai-SECRET'))
+  const noKey = await voiceSample({ vault: { read: async () => ({ ok: false, reason: 'none' }) }, fetch, cache: { read: () => null, write: () => {} } }, 'eve', 'ru')
+  assert.equal(noKey.reason, 'no-key')
+})
+
+// 0.3.25 review iteration 1, ER-1: a stop during a start in flight is not acknowledged and then undone by that start.
+test('ER-1 (0.3.25): a stop while the console is still opening stops what the start opens', async () => {
+  const k = keeper()
+  let release
+  const gate = new Promise((r) => { release = r })
+  const open = k.deps.open
+  k.deps.open = async (...a) => { await gate; return open(...a) }
+  const starting = k.agent.ensure()
+  await settle()
+  const stopped = k.agent.stop()
+  release()
+  await starting
+  const r = await stopped
+  assert.equal(r.ok, true)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  const opened = [...k.consoles.values()]
+  assert.equal(opened.length, 1)
+  assert.equal(opened[0].running, false, 'the console the start opened was stopped')
+})
+
+// ER-2: a message sent while the person's stop is still running waits for that stop; its exit is the person's.
+test('ER-2 (0.3.25): a message sent during the person\'s stop does not set the runner aside', async () => {
+  const k = keeper()
+  let finish
+  k.deps.stop = (id) => new Promise((r) => { finish = () => { const s = k.consoles.get(id); s.running = false; k.agent.onExit(id); r() } })
+  await k.agent.ensure()
+  k.tick(2_000)
+  const stopping = k.agent.stop()
+  await settle()
+  const sending = k.agent.send('снова ты', [])
+  await settle()
+  finish()
+  await stopping
+  const sent = await sending
+  assert.equal(sent.ok, true)
+  assert.deepEqual(k.agent.status().setAside, [], 'the stopped runner is not set aside')
+  assert.equal(k.agent.status().runner, 'claude-code')
+})
+
+// ER-3: a fallback deferred before the person's stop does not run after it.
+test('ER-3 (0.3.25): a deferred fallback does not run after the person\'s stop', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  k.agent.onOutput(first, 'usage limit reached')
+  k.agent.onOutput(k.agent.sessionId(), 'usage limit reached')
+  await k.agent.stop()
+  await settle(30)
+  assert.equal(k.agent.status().state, 'stopped')
+  const running = [...k.consoles.values()].filter((s) => s.running)
+  assert.deepEqual(running, [], 'nothing runs after the stop')
+})
+
+// ER-6: a stop from the console's own window that leaves it running does not leave the CEO held.
+test('ER-6 (0.3.25): a console-window stop that fails releases the hold', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const id = k.agent.sessionId()
+  k.agent.personStopping(id)
+  k.agent.personStopEnded(id)
+  assert.equal(k.agent.status().state, 'running')
+})
+
+// 0.3.25 review iteration 2, ER-7: a message while stop() still waits for a start in flight is answered after the stop.
+test('ER-7 (0.3.25): a message sent while the stop waits for a start revives the CEO after the stop', async () => {
+  const k = keeper()
+  let release
+  const gate = new Promise((r) => { release = r })
+  const open = k.deps.open
+  k.deps.open = async (...a) => { await gate; return open(...a) }
+  const starting = k.agent.ensure()
+  await settle()
+  const stopping = k.agent.stop()
+  await settle()
+  const sending = k.agent.send('вернись', [])
+  release()
+  await starting
+  await stopping
+  const sent = await sending
+  assert.equal(sent.ok, true)
+  assert.equal(k.agent.status().state, 'running', 'the message, sent after the stop was pressed, starts it again')
+})
+
+// ER-8: a message during a console-window stop waits for that stop; its exit is the person's.
+test('ER-8 (0.3.25): a message during a console-window stop does not set the runner aside', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const id = k.agent.sessionId()
+  k.tick(2_000)
+  k.agent.personStopping(id)
+  const sending = k.agent.send('ещё раз', [])
+  await settle()
+  k.consoles.get(id).running = false
+  k.agent.onExit(id)
+  k.agent.personStopEnded(id)
+  const sent = await sending
+  assert.equal(sent.ok, true)
+  assert.deepEqual(k.agent.status().setAside, [])
+  assert.equal(k.agent.status().runner, 'claude-code')
+})
+
+// ER-9: a stop during a start that cannot stop the opened console says so and keeps it tracked.
+test('ER-9 (0.3.25): a stop during a start that leaves the opened console running answers still-running', async () => {
+  const k = keeper()
+  k.deps.stop = async () => {}
+  let release
+  const gate = new Promise((r) => { release = r })
+  const open = k.deps.open
+  k.deps.open = async (...a) => { await gate; return open(...a) }
+  const starting = k.agent.ensure()
+  await settle()
+  const stopping = k.agent.stop()
+  release()
+  await starting
+  const r = await stopping
+  assert.equal(r.ok, false)
+  assert.equal(r.reason, 'still-running')
+  assert.ok(k.agent.sessionId(), 'the running console is the CEO\'s again')
+})
+
+// 0.3.25 review iteration 3, ER-10: a console-window stop of a console still opening ends, and a message is answered.
+test('ER-10 (0.3.25): a console-window stop of the console still opening does not leave a message waiting forever', async () => {
+  const k = keeper()
+  let release
+  const gate = new Promise((r) => { release = r })
+  let openedId = null
+  k.deps.open = async (projectId, cwd, runner, _route, sessionId) => {
+    openedId = sessionId
+    k.agent.personStopping(sessionId)
+    await gate
+    const s = { sessionId, projectId, cwd, optionId: runner, running: false, state: 'ended' }
+    k.consoles.set(sessionId, s)
+    return s
+  }
+  const starting = k.agent.ensure().catch(() => null)
+  await settle()
+  k.agent.onExit(openedId)
+  k.agent.personStopEnded(openedId)
+  release()
+  await starting
+  k.deps.open = async (projectId, cwd, runner, _route, sessionId) => { const s = { sessionId, projectId, cwd, optionId: runner, running: true }; k.consoles.set(sessionId, s); return s }
+  const sent = await Promise.race([k.agent.send('ты тут', []), new Promise((r) => setTimeout(() => r('hung'), 2000))])
+  assert.notEqual(sent, 'hung', 'the message is answered')
+})
+
+// ER-11: a second stop door does not release the hold the first door set.
+test('ER-11 (0.3.25): a second stop door that leaves the console running does not release the first door\'s hold', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const id = k.agent.sessionId()
+  k.tick(2_000)
+  k.agent.personStopping(id) // the console's own window
+  k.agent.personStopping(id) // History, the same moment
+  k.agent.personStopEnded(id) // History's stop returned, console still running
+  assert.equal(k.agent.status().state === 'stopped' || k.agent.status().state === 'running', true)
+  k.consoles.get(id).running = false
+  k.agent.onExit(id) // the first door's stop ends the console
+  k.agent.personStopEnded(id)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1, 'no early-end fallback')
+})
+
+// Board request eef5abeb: the launch journal read by the CEO, its starts written as the CEO's, and the machine's
+// sessions still seen when Switchboard does not answer.
+const launch = (over) => ({ sessionId: 's1', projectId: 'p1', cwd: '/d/app', branch: 'main', runner: 'claude-code', optionId: 'claude-code', program: 'claude',
+  by: 'person', via: 'screen', reason: null, parentSessionId: null, taskId: null, requestId: null, machine: 'mac', appPid: 1, appVersion: 'v', pid: 9,
+  startedAt: '2026-11-19T19:00:00Z', runnerSessionId: null, stopAskedBy: null, stopReason: null, endedAt: null, end: null, exitCode: null, signal: null, ...over })
+
+test('a start by the CEO is written as the CEO\'s, with its reason, its console as the parent and the door it came through', async () => {
+  const o = operations()
+  await o.ops.run('start', { project: 'App', task: 'go', reason: 'the owner asked for it' }, 'voice')
+  const origin = o.origins[0]
+  assert.deepEqual(origin, { by: 'ceo', via: 'voice', reason: 'the owner asked for it', parentSessionId: 'ceo' })
+  await o.ops.run('start', { project: 'App', reason: 'again from the console' })
+  assert.equal(o.origins[1].via, 'console', 'no door named: the console')
+})
+
+test('launches: who started what, the chain, the resume command, the open ones; refused without a journal', async () => {
+  const rows = [
+    launch({ sessionId: 'b', by: 'ceo', via: 'voice', parentSessionId: 'ceo', runnerSessionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', startedAt: '2026-11-19T19:02:00Z' }),
+    launch({ sessionId: 'old', end: 'app-quit', endedAt: '2026-11-19T19:05:00Z', startedAt: '2026-11-19T19:01:00Z' }),
+    launch({ sessionId: 'ceo', projectId: 'p0', by: 'fabric', startedAt: '2026-11-19T19:00:00Z' })
+  ]
+  const o = operations({ launches: async () => rows })
+  const r = await o.ops.run('launches', {})
+  assert.equal(r.ok, true)
+  const b = r.launches.find((l) => l.session_id === 'b')
+  assert.equal(b.launched_by, 'ceo')
+  assert.equal(b.resume, 'claude --resume aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+  assert.deepEqual(b.chain.map((c) => c.session_id), ['ceo'])
+  assert.equal(r.launches.find((l) => l.session_id === 'ceo').running_now, true)
+  assert.deepEqual((await o.ops.run('launches', { open_only: true })).launches.map((l) => l.session_id), ['b', 'ceo'])
+  assert.deepEqual((await o.ops.run('launches', { session_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' })).launches.map((l) => l.session_id), ['b'], 'found by the runner\'s own id too')
+  assert.deepEqual((await o.ops.run('launches', { project: 'App', limit: 1 })).launches.map((l) => l.session_id), ['b'])
+  assert.equal((await operations().ops.run('launches', {})).ok, false)
+})
+
+test('sessions: each console says who started it and in which branch; Switchboard unread, the machine is read from disk', async () => {
+  const disk = [
+    { pid: 501, sessionId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', cwd: '/d/site/x', name: 'site', status: 'busy', kind: 'interactive', entrypoint: 'cli', startedAt: null, updatedAt: null, config: '/h' },
+    { pid: 502, sessionId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', cwd: '/d/app', name: null, status: null, kind: null, entrypoint: null, startedAt: null, updatedAt: null, config: '/h' }
+  ]
+  const o = operations({
+    launches: async () => [launch({ runnerSessionId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', branch: 'feat/x' })],
+    diskSessions: async () => disk,
+    switchboard: async () => { throw new Error('switchboard did not answer within 10 s') }
+  })
+  const r = await o.ops.run('sessions', {})
+  const s1 = r.fabric_consoles.find((c) => c.session_id === 's1')
+  assert.equal(s1.launched_by, 'person')
+  assert.equal(s1.branch, 'feat/x')
+  assert.match(r.machine_sessions.unread, /within 10 s/, 'the reason is named, never «Command failed»')
+  assert.deepEqual(r.machine_sessions_on_disk.map((d) => d.pid), [501], 'a Fabric console\'s own Claude process is not listed twice')
+  const site = await o.ops.run('sessions', { project: 'Site' })
+  assert.deepEqual(site.machine_sessions_on_disk.map((d) => d.pid), [501])
+  const read = await operations({ diskSessions: async () => disk }).ops.run('sessions', {})
+  assert.equal(read.machine_sessions_on_disk, undefined, 'Switchboard read: its rows, not the disk')
 })

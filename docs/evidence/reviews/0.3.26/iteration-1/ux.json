@@ -3,10 +3,10 @@
   "version": "0.3.26",
   "iteration": 1,
   "level": "ux",
-  "candidateCommit": "c88f68ecf3cad6fbd65e1f744cbf432d22e47dd1",
-  "report": "docs/evidence/reviews/0.3.26/iteration-1/2026-11-19-ux.md",
-  "reportSha256": "09ba56c0a15a0ba502aa410ed7d1bd3de94e2255fb1e238a4b8303b8a057dd83",
-  "reviewerRun": "release-0326-i1-ux-20261119",
+  "candidateCommit": "314c956660b35a25b4b71e3ba97cbd8b548914a4",
+  "report": "docs/evidence/reviews/0.3.26/iteration-1/2026-11-20-ux.md",
+  "reportSha256": "8bcb83607294f6e6f50bcd5293ccb9277ccfe2226836c5c1e87e458b3e8a8ba8",
+  "reviewerRun": "release-0326-i1-ux-claude-subagent-20261120",
   "status": "closed",
   "blockingFindingsOpen": [],
   "findings": [
@@ -14,63 +14,105 @@
       "id": "UX-1",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in 527ca936: the project is asked before any signal; a console that fails after the stop says so with claude --resume (machineSessions.ts continueInFabric); tests «a folder in no project is refused BEFORE anything is stopped» and MachineSessions «a continue refused for no project…», red before"
       ]
     },
     {
       "id": "UX-2",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in 527ca936: a process that is a Fabric console or runs under one is Fabric's (machineSessions.ts ownedBy, pty.ts runningPids, the process table); test «a Fabric console is never «outside»», red before"
       ]
     },
     {
       "id": "UX-3",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in 527ca936: the fixture carries source; a Switchboard-only row shows no act (MachineSessions.test.tsx, 7 pass)"
       ]
     },
     {
       "id": "UX-4",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
-        "fixed in `a1467e18`"
+        "ruled: CO-604 (10)"
       ]
     },
     {
       "id": "UX-5",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
-        "fixed in `a1467e18`"
+        "ruled: CO-601 (9)"
       ]
     },
     {
       "id": "UX-6",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "ruled: CO-604 (11)"
       ]
     },
     {
       "id": "UX-7",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in 527ca936: a session with no state is counted as such in both places (MachineSessions.tsx counts, LaunchShell.tsx rail); test «counts sum to the list»"
       ]
     },
     {
       "id": "UX-8",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
-        "fixed in `a1467e18`"
+        "ruled: CO-604 (12)"
       ]
     },
     {
       "id": "UX-9",
       "status": "fixed",
       "evidence": [
-        "fixed in `779b6ce0`"
+        "fixed in 527ca936: no raw status word; the folder once when there is no name (MachineSessions.tsx)"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 527ca936: every act button names its folder; the rail says the state once (dot aria-hidden); Rail.test.tsx"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 527ca936: a listing waits at most 3 s for Switchboard and takes the last settled rows (index.ts switchboardRows)"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (13)"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (14)"
+      ]
+    },
+    {
+      "id": "UX-14",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (15)"
+      ]
+    },
+    {
+      "id": "UX-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the commit «docs(0.3.26): review iteration 1, the document findings»: CHANGELOG names the shipped title and scope; the empty text says agent sessions"
       ]
     }
   ]

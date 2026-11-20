@@ -22,3 +22,18 @@ export interface TerminalStopResult {
   managed?: boolean
 }
 export type TerminalTermination = TerminalStopResult | { sessionId: string; state: 'requested'; reasonCode: string }
+
+/**
+ * The reasons the stop runtime gives only after it saw the root process exit and the whole process tree go quiet
+ * (`main/nativeStopRuntime.ts`): what stays unproved is the provider's background work or a finalisation, never the
+ * process. Nothing is left to stop.
+ */
+export const QUIET_TREE_REASONS: ReadonlySet<string> = new Set(['provider_termination_unproved', 'exit_outcome_unavailable', 'finalization_unproved', 'exit_receipt_unavailable'])
+
+/**
+ * The operator, 2026-11-19: «Завершить сессию» closes it at once. A session whose process is gone, stopped or ended
+ * with only the provider's work unproved, leaves the board and its window with the press (`pty.ts#dismiss`).
+ */
+export function processGone(t: TerminalTermination | null | undefined): boolean {
+  return !!t && (t.state === 'stopped' || (t.state === 'outcome_unknown' && QUIET_TREE_REASONS.has(t.reasonCode)))
+}
