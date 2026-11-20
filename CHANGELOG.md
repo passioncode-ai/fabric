@@ -9,6 +9,22 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+0.3.25 was prepared and never published: the fix of its floating CEO button landed after its verified commit. Its
+changes ship here ([the release spec](docs/evidence/specs/2026-11-20-home-agents-sessions.md)).
+
+- **«Спросить CEO» stands at the top right of Главная again.** The operator, 2026-11-20: «чат должен быть справа, а не
+  снизу». The card sat in the main column, which «В работе» narrowed to 595 to 835 px at 1280 to 1680 px windows, so it
+  fell under the greeting. The greeting and the CEO card are now one row above both columns, the card at the right; it
+  goes under the greeting only in a content area under 640 px (`EstateHome.tsx`, `launch/launch.css`).
+- **Fabric sees every session of this Mac, as Fabric Dashboards does.** The operator, 2026-11-20: «в дашборде вот вижу
+  сессии а в фабрике не вижу». Fabric listed only its own consoles, Switchboard's own launches (`sessions --all`) and
+  the Claude Code sessions of two known homes. The list now joins Switchboard's `sessions --rows`, so a session started in
+  a terminal, by Fabric Dashboards or under another Claude home shows too, with its state as Switchboard counts it
+  (идёт, ждёт, нужны вы). «На этом Mac вне Fabric · N» is in the left column's «Агенты»; a press opens Агенты, where the
+  list comes first with its counts, each session read in place and, when its process is known here, continued in Fabric
+  or closed (`main/machineSessions.ts`).
+- **The floating CEO button no longer takes the window down** when the CEO's bridge has not answered yet
+  (`ceo/CeoButton.tsx`).
 - **Every console Fabric starts is in a launch journal, a press on an agent opens its console, and a project's last
   session continues with one press.** The owner's order of 2026-11-19 (board request `eef5abeb`). Each console is a
   line in `<userData>/launches/launches-YYYY-MM.jsonl`: who started it (you, the CEO, a routine, a chain), through what
@@ -26,8 +42,6 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   kept the console on screen with «Проверить остановку». Now the person's press ends a console still running 0.8 s
   later as Force stop does, and a console whose process is gone leaves with its tab and window in the same press. A
   task's run keeps its TERM-only stop and its receipts (`shared/stop.ts#processGone`, `main/nativeStopRuntime.ts`).
-
-## 0.3.25
 
 - **The CEO's window is new, and the call is a panel inside its chat.** The owner, 2026-11-19: the popup looked worn,
   and the call should sit in the chat, not in a card. The window's head is the CEO itself: the character's face with a
