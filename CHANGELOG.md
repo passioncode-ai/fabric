@@ -11,6 +11,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).
 
+- **A board run Switchboard refuses is said, and mail is not starved.** org-index's mail waited six days with no run
+  (board request `42c14b72`): every start was refused `no_agent` (no account with room) or `at_capacity`, the wait after
+  a refusal doubled to six hours, and the offers lapsed in Observatory with no reason. Now a refusal writes its code
+  into the workflow (step `launch-refused`), `no_agent` and `at_capacity` wait at most 30 minutes, an item waiting six
+  hours or more is offered a free place first, and the inbox packet says what its count leaves out. The signal to the
+  operator after a series of refusals is CO-607 ([on-demand spec §3.8](docs/evidence/specs/2026-11-04-on-demand-sessions.md#38-every-addressee-woken-and-watched-co-559), item 6).
 - **A session the CEO starts gets its task, and the CEO hears whether it did.** A session started with a task sat 40
   minutes on an empty prompt, and nothing said why: the first instruction's end was dropped unless it threw. Now a
   readiness that lapsed waits one more window (still never a blind write), a long paste left waiting in Claude Code's

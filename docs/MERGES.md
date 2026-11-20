@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-20 · `DISPATCH-REFUSALS` · fix/dispatch-refusals-escalate → main · fast-forward (toward 0.3.27)
+- files: `apps/desktop/src/main/boardDispatchRun.ts`, test `board-dispatch-run`, on-demand spec §3.8 item 6, carryover CO-607, CHANGELOG `0.3.27 (unreleased)`, the design map
+- conflicts: none
+- summary: org-index's board request `42c14b72`: a refused board start writes Switchboard's code into its workflow (`launch-refused`), `no_agent` and `at_capacity` wait at most 30 min instead of doubling to 6 h, items waiting 6 h or more are offered a free place first, and the inbox packet says what its count leaves out; the operator's signal after a series of refusals is CO-607
+
 ### 2026-11-20 · `CEO-BOARD-UX` · feat/ceo-board-ux → main · fast-forward (toward 0.3.27)
 - files: `apps/desktop/src/main/{consoleOpen,deliveryQueue,pty,ceoTools,agentSurface,index}.ts`, `apps/desktop/src/shared/ceoAgent.ts`, tests `console-open`, `delivery-queue` (new, in `scripts/ci.sh`), `ceo-agent`, `agent-surface`; CHANGELOG `0.3.27 (unreleased)`, SCN-183 amendment, the product model, the map, mockup coverage and previews; `docs/evidence/plans/2026-11-20-ceo-board-ux/` (the owner's words, spec, plan, eight mockups, the modules review, an ADR draft, the research)
 - conflicts: none
