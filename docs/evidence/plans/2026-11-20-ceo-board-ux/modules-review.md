@@ -98,18 +98,18 @@ the rest: rules and vectors in the contract, each product a reader.
 ## 3. The duplication, ranked
 
 1. **Four ways to run one CLI.** `switchboard` is run by four implementations with four deadlines and four output
-   bounds: `switchboardSessions.ts#runSwitchboard` (30 s, retry, 16 MB), `boardDispatchWiring.ts#run` (60 s, process
+   bounds: `apps/desktop/src/main/switchboardSessions.ts#runSwitchboard` (30 s, retry, 16 MB), `boardDispatchWiring.ts#run` (60 s, process
    group, 4 Mi), `agentCatalogRead.ts#readMachineAgentCatalog` (5 s, 1 MB), `sessionHolds.ts#createMachineSessionHolds`
    (10 s, 256 KB). Only one has the failure words of the 2026-11-19 spec §5 and only one ends a hung ssh. Switchboard's
    own MCP server offers the same operations as typed tools.
 2. **Switchboard's JSON parsed in five places, in three session shapes.** `sessions --all`
-   (`switchboardSessions.ts#parseSessions`), `sessions --rows` (`ceoTools.ts#parseMachineRows`,
+   (`apps/desktop/src/main/switchboardSessions.ts#parseSessions`), `sessions --rows` (`ceoTools.ts#parseMachineRows`,
    `machineSessions.ts#SwitchboardRow`), `sessions show` (`boardDispatchWiring.ts#runStateOf`); `agents status` twice
    (`shared/agentCatalog.ts#parseSwitchboardAgents`, `boardDispatchWiring.ts#dispatchProvider`). Each guesses the
    shape from Switchboard's output; nothing versions it.
 3. **Another product's private files read directly.** `diskSessions.ts#switchboardHomeRoots` hard-codes Switchboard's
    data folder; `ceoTools.ts#findTranscript` walks its homes; Claude Code's per-process file is read by both
-   `diskSessions.ts#liveClaudeSessions` and `sessionLaunches.ts#claudeSessionOf`. Switchboard reads the same files to
+   `diskSessions.ts#liveClaudeSessions` and `apps/desktop/src/main/sessionLaunches.ts#claudeSessionOf`. Switchboard reads the same files to
    build `sessions --rows` with a pid **[предположение, подтвердить у владельца проекта]**. A change of Switchboard's
    layout breaks Fabric silently.
 4. **Code shared by copying, three ways.** The Dashboards merge is a 461-line copy with no pin
@@ -135,7 +135,7 @@ settings, its packaging. Fabric is the main product and shows only what the owne
 |---|---|---|---|---|
 | `@passioncode-ai/fabric-agent-contract` (published, not vendored) | fabric-agent-contract | schemas; grammars (`AGENT_ID`, capability name); `fabric://` links; folder attribution with its vectors; secret shape; one integrity rule | `shared/contract/*`, `access.ts#AGENT_ID_PATTERN`, `agentRegistry.ts#AGENT_ID` | every product; the adapter's Node kit |
 | `@passioncode-ai/switchboard-client` | fabric-switchboard | one runner (deadline, process group, read-only retry, named failures, output bound); typed reads and acts for `sessions` (rows, all, show), `recovery`, `agents status`, `capacity`, `dispatch` (start, stop, status), `monitor hold`, `sessions end`, `continue`, the Claude homes list; each answer validated against a JSON schema Switchboard publishes per version | `switchboardSessions.ts`, `boardDispatchWiring.ts#run`, `agentCatalogRead.ts`, `sessionHolds.ts`, `ceoTools.ts#parseMachineRows` | Fabric (session manager, dispatcher, CEO), Dashboards, Switchboard's own app |
-| `@passioncode-ai/sessions-core` | Fabric Dashboards today, moving to a shared owner (question D1) | the session model and merge (sources, states, groups, actions); readers of a runner's local session files and transcripts (Claude Code first) with redaction; the launch record format | `shared/vendor/dashboardsSessions.ts`, `diskSessions.ts`, `sessionLaunches.ts#claudeSessionOf`, `ceoTools.ts#transcriptTurns`, `#findTranscript`, `shared/sessionLaunches.ts#parseLaunchLine` | Fabric's «Сессии» screen and CEO tools, Dashboards' «Сессии» |
+| `@passioncode-ai/sessions-core` | Fabric Dashboards today, moving to a shared owner (question D1) | the session model and merge (sources, states, groups, actions); readers of a runner's local session files and transcripts (Claude Code first) with redaction; the launch record format | `shared/vendor/dashboardsSessions.ts`, `diskSessions.ts`, `apps/desktop/src/main/sessionLaunches.ts#claudeSessionOf`, `ceoTools.ts#transcriptTurns`, `#findTranscript`, `shared/sessionLaunches.ts#parseLaunchLine` | Fabric's «Сессии» screen and CEO tools, Dashboards' «Сессии» |
 | `@passioncode-ai/service-registry` (the published reader part of `fabric-service-host`) | Fabric Dashboards | read and validate `services/` and `providers/`; resolve `id.instance`; build a `fabric-dashboards://` link from a service key and path | `agentRegistry.ts#readRegistry`, `#validateServiceDescriptor` | Fabric (consent, the agent's dashboard button), Dashboards |
 | `@passioncode-ai/product-connect` (or inside the contract) | Fabric Inbox | the connect link and callback wire; the account normaliser; the narrowing version rule | `productConnect.ts#FABRIC_INBOX`, `access.ts#normaliseInboxAccount`, `productForwarder.ts` | Fabric; any later connectable product |
 | `@passioncode-ai/observatory-client` | Project Observatory | locate and start (or reach) Observatory's server without its private layout; one shared child per process | `observatoryMemory.ts`, `observatoryVault.ts` | Fabric, Dashboards, Switchboard |
@@ -173,7 +173,7 @@ Fabric takes in its own change; a product may stay on the old major while it mov
 | A defect in a shared package reaches every product at once | exact pins, each product upgrades in its own change; the package carries the vectors its consumers run |
 | Private packages cannot be pinned with a frozen lockfile (the reason `agentRegistry.ts` gave) | a registry the org's CI can read (GitHub Packages under `passioncode-ai`) is decided before phase 2; missing CI is not passing CI |
 | Runtimes differ: Electron main, Node, Cloudflare Workers, a Rust CLI, Python | packages stay pure (no Node or Electron imports in the shared core, as `dashboardsSessions.ts` already is); Rust and Python owners publish schemas, the TypeScript client is generated or written against them |
-| Switchboard is slow under load (median 28 s at a load average of 120, `switchboardSessions.ts#SWITCHBOARD_SESSIONS_DEADLINE_MS`) | the client keeps the 30 s deadline and read-only retry; acts are never retried |
+| Switchboard is slow under load (median 28 s at a load average of 120, `apps/desktop/src/main/switchboardSessions.ts#SWITCHBOARD_SESSIONS_DEADLINE_MS`) | the client keeps the 30 s deadline and read-only retry; acts are never retried |
 | An owner does not agree or cannot schedule | phase 1 needs nobody; every later phase is per owner and Fabric keeps its current path until then |
 | Licence and privacy | each package carries ADR-0092's licence; no private data (records, names, paths) moves into a package |
 | Two masters for one screen | the owner's part 4: Fabric shows only what is needed; a tool's full interface stays in its own wrapper |
