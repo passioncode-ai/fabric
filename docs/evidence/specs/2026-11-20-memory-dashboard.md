@@ -204,3 +204,47 @@ the pass, never guessed. The source decides what enters: spam and noise never re
 prefix (`mail:`, `metric:`), so two sources never collide; `context` follows §7.4 and a document of an organization's
 context reaches only that organization's Memory. The PassionCode analytics (session sshlg-analytics) give their metrics
 this way with `context: org:passioncode`, so they link into Memory организации PassionCode.
+
+## 11. Access by the ownership graph, and smart delegation
+
+The owner, 2026-11-20 ~23:20 and ~23:25 (briefs `2026-11-20-datarooms-graph-of-graphs-tasks-brain-ai-native-manifest-brief.md`,
+package 2, and `2026-11-20-estate-graph-central-brain-ownership-access-brief.md`, package 4; the CEO's reading of them):
+an agent reaches another's graph only on a person's approval, with the sections and gates of that graph fixed when the
+key is issued; several independent people may share one brain, each giving the part his agent selected for the task;
+access is decided by the ownership graph (who owns what: whole, partial, by share, for a time) and checked at every
+door; a client of our agents never reaches our internal brains (the agents database, PassionCode's projects) directly.
+
+| Piece | Is |
+|---|---|
+| Ownership edges | `owns` edges from a person or an organization to a project, a section or a source, each with `kind` (whole, partial, share with its fraction, temporary with `until`) and the evidence it came from (a registry, a contract row, the owner's words); kept in the level that owns them, never inferred |
+| Grant | `memory-grant/1` {holder (an agent key), graph, sections (node kinds, projects or tags), gates (read, cite, link, write back), purpose, until, approved_by, approved_at}; issued only on a person's approval, never widened by the holder |
+| The door's check | `fabric_knowledge_search` and `fabric_knowledge_execute` answer only nodes inside the caller's grant and his ownership path; a hit outside is not said to exist (no count, no title); a refusal names the gate, never the content |
+| Shared brain | a task's brain is the union of the parts each owner's agent selected and granted for that task; each part keeps its owner on every node and link, and leaves with its grant |
+| Never direct | a client's key never resolves to the agents database or a PassionCode internal project: those answer only through our own agents' doors, which return results, never their graph |
+
+The grant format and its check are wave M5, after the scope-gate (M3) they generalize.
+
+## 12. The contribution map
+
+Every brain shows who built it: per person, project and agent, how many documents, links and decisions each
+contributed, over time, and which of their links others use most (a link followed by a search or a walk). The data is
+already there (every document has its project, every turn its session, every commit its author's role, never a
+person's name where a role suffices); it becomes `memory.contributions` beside `memory.overview`, and a panel on the
+Memory screen: a stream chart of contributions by week, the projects that feed each organization, and the most used
+links. It counts work, never ranks people (the agents database's rule on readings of a person).
+
+## 13. Tasks as a brain
+
+A task is a node of the same graph, linked to what it is about: the product's nodes (a scenario, a screen, a module, a
+document section), the sessions and commits that worked on it, the decisions it waits on, the risks and what to study
+first. An agent taking a task gets its neighbourhood (`graph.neighbours` from the task) instead of a list; a person gets
+the picture (the map and the time line of `@fabric/graph`). The task manager's own research and pages are session
+8343a070's (the CEO board, the decision graph); Memory gives them the graph, the links and the doors. People management
+reads only work facts (claims, releases, reviews), never a score of a person.
+
+## 14. The estate graph and the central brain
+
+project-observatory (session 5330262a) builds the estate graph (projects, machines, worktrees, Switchboard's sessions,
+Fabric's services) on this engine, through the connection point of §10 (`source: observatory`, ids `obs:`); the agents
+database (session 4deaa22b) is the central brain that records how graphs and memories are built (patterns
+`hybrid-retrieval`, `brain-sleep`, the levels) and rolls improvements out to the projects that contributed.
