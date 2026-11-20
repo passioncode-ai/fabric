@@ -29,6 +29,7 @@ import { createProcessBoundary, type OwnedProcess } from './processBoundary.ts'
 import { defaultShell, killPty, launchFor, stopWindowsTree } from './platform.ts'
 import { findOnPath } from './executorDetect.ts'
 import { currentLaunchOrigin } from './launchOrigin.ts'
+import { switchboardLaunchArgs } from './launchAccounts.ts'
 import type { OpenedLaunch } from './sessionLaunches.ts'
 
 /** How a fallback walk chose the runner a session runs (ADR-0125): the basis is the installation's
@@ -575,7 +576,13 @@ export class PtyManager {
     // the synchronous native spawn below.
     let launch: Awaited<ReturnType<typeof programForPty>>
     try {
-      launch = await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args, ...(extras?.args ?? [])])
+      const agentArgs = [...(bundle?.args ?? []), ...verdict.args, ...(extras?.args ?? [])]
+      // An agent on a chosen account runs inside Switchboard's launch, which picks the account's home and program.
+      // A runner whose command is a bundle's own (a shell of Fabric's) takes no account: refused, never run without it.
+      if (extras?.account && bundle?.command) throw new Error('this runner cannot start on a chosen account')
+      launch = extras?.account
+        ? await programForPty(extras.account.switchboard, switchboardLaunchArgs(extras.account.id, cwd, agentArgs))
+        : await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : agentArgs)
     } catch (e) {
       discardBundle()
       throw new SpawnFailure(program, cwd, e instanceof Error ? e.message : String(e))
@@ -782,11 +789,13 @@ export class PtyManager {
 
   // #region launch-extras — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#the-ceos-models
   /** What one launch adds to its runner (ADR-0197: the CEO's model), by the session id it will open as; taken once. */
-  private readonly launchExtras = new Map<string, { args: string[]; env: Record<string, string> }>()
+  private readonly launchExtras = new Map<string, { args: string[]; env: Record<string, string>; account?: { switchboard: string; id: string } }>()
   /** Given before `open` with the same `requestedSessionId`: arguments for a runner started as itself (not through a
    *  shell of Fabric's, whose command is the bundle's), and environment for every runner. */
-  prepareLaunch(sessionId: string, extras: { args: string[]; env: Record<string, string> }): void {
-    this.launchExtras.set(sessionId, { args: [...extras.args], env: { ...extras.env } })
+  /** `account` (the owner, 2026-11-20): run the agent on that Switchboard account, through `switchboard launch <id>
+   *  --in-place` in this console (`launchAccounts.ts#switchboardLaunchArgs`); only for a runner started as itself. */
+  prepareLaunch(sessionId: string, extras: { args: string[]; env: Record<string, string>; account?: { switchboard: string; id: string } }): void {
+    this.launchExtras.set(sessionId, { args: [...extras.args], env: { ...extras.env }, ...(extras.account ? { account: { ...extras.account } } : {}) })
   }
   // #endregion launch-extras
 

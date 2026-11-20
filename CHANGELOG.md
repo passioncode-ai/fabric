@@ -7,6 +7,21 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## 0.3.28 (unreleased)
+
+The owner, 2026-11-20 (paraphrased): start a session with the agent or the subscription he picks, also by voice and
+through the CEO, and check that the CEO has every access it needs ([the CEO access audit](docs/reports/2026-11-20-ceo-access-audit/README.md)).
+
+- **The CEO and its voice start a session on a chosen account.** `fabric_ceo_session_start` (by voice `session_start`)
+  takes `account` beside `runner`: Claude Code on a claude account, Codex on a codex one, an account of a group only in
+  that group's folders and one of the default group anywhere; the console then runs the agent through
+  `switchboard launch <id> --in-place`. `fabric_ceo_accounts` (by voice `session_accounts`) lists the accounts with
+  room, the most quota left first. A refusal names the accounts that can be used.
+- **The CEO waits for a session's answer.** `fabric_ceo_session_wait` (by voice `session_wait`) waits until a console
+  printed and went quiet, bounded, and answers its last turns; before, the CEO read the screen again and again.
+
+**Upgrading.** No schema step. Nothing to set.
+
 ## 0.3.27 (unreleased)
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).

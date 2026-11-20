@@ -46,6 +46,8 @@ import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
+import { createLaunchAccounts } from './launchAccounts.ts'
+import { findOnPath } from './executorDetect.ts'
 import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
 import { createVoiceJournal } from './ceoVoiceJournal.ts'
 import { createVoiceTools, VOICE_TOOLS } from './ceoVoiceTools.ts'
@@ -5408,6 +5410,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // Voice CEO retro 2026-11-20 (finding 4): the names the owner uses for projects, kept in the CEO's folder.
   const ceoRoot = path.join(app.getPath('userData'), 'ceo')
   const projectAliases = createAliasStore(ceoRoot, (what, e) => ops.failed('ceo.project-aliases', e, { detail: { what } }))
+  // The one reader of Switchboard's accounts for a launch (shared with the launch menu, `launchAccounts.ts`).
+  const launchAccounts = createLaunchAccounts((args) => runMachineSwitchboard(sessionEnvironment(process.env), args))
   ceoOperations = createCeoOperations({
     ptys: { list: () => ptys.list(), get: (id) => ptys.get(id), scrollbackOf: (id) => ptys.scrollbackOf(id), write: (id, data) => ptys.write(id, data) },
     ceoSessionId: () => agent.sessionId(),
@@ -5424,7 +5428,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const row = await admission.create({ id: randomUUID(), name: path.basename(folder), repoPaths: [folder] }, { kind: 'agent', id: agent.sessionId() ?? 'ceo' }, ceoReach)
       return { id: row.id, name: row.name, repo_path: row.repo_path }
     },
-    openConsole: (projectId, runner, task) => openConsole(projectId, runner, task, null),
+    // The owner, 2026-11-20: a start on a chosen Switchboard account runs the agent through `switchboard launch <id> --in-place`.
+    openConsole: async (projectId, runner, task, account) => {
+      if (!account) return openConsole(projectId, runner, task, null)
+      const program = await findOnPath('switchboard', sessionEnvironment(process.env).PATH ?? '')
+      if (!program) throw new Error('switchboard was not found on this computer\'s PATH')
+      return openConsole(projectId, runner, task, null, { switchboard: program, id: account })
+    },
+    launchAccounts,
     firstTask: (sessionId) => openConsole.firstInstruction(sessionId),
     stop: async (id, force) => { markPersonEnded(id); void launchJournal?.stopAsked(id, 'ceo'); return stopRuntime.stop(id, 'operator_stop', { force }) },
     openWindow: (id) => openSessionWindow(id),

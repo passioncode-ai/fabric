@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 // #region console-open — docs: docs/evidence/plans/2026-11-16-screens-waves.md#s3--launching-sessions-next
 /**
  * Opening a console for a project (the screens waves S3, 2026-11-16: moved out of `index.ts`'s `terminal.open`
@@ -53,7 +54,9 @@ export interface ConsoleOpenDeps<S extends { sessionId: string }> {
   /** The terminals (`PtyManager`), narrowed to what a launch uses. */
   ptys: {
     open(projectId: string, cwd: string, optionId: string, taskId: string | null, permissionMode: string | null,
-      agent?: null, requestedSessionId?: undefined, preset?: undefined, route?: LaunchRoute): Promise<S>
+      agent?: null, requestedSessionId?: string, preset?: undefined, route?: LaunchRoute): Promise<S>
+    /** What one launch adds (`pty.ts#prepareLaunch`): here, the Switchboard account it runs on. */
+    prepareLaunch?(sessionId: string, extras: { args: string[]; env: Record<string, string>; account?: { switchboard: string; id: string } }): void
     get(sessionId: string): S | null
     claimAttach(sessionId: string): boolean
     releaseAttach(sessionId: string): void
@@ -131,7 +134,11 @@ export function createConsoleOpen<S extends { sessionId: string; optionId?: stri
     return TURN_STARTED.test(since) ? { state: 'delivered', attempts } : { state: 'written_unconfirmed', reason: 'no_turn_started', attempts }
   }
 
-  const open = async (projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null): Promise<S> => {
+  /** `account` (the owner, 2026-11-20): the Switchboard account the agent runs on, with the `switchboard` program that
+   *  launches it; never with the fallback walk, which picks its runner itself. */
+  const open = async (projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null, account?: { switchboard: string; id: string } | null): Promise<S> => {
+    if (account && optionId === FALLBACK_OPTION) throw new Error('a chosen account needs a chosen agent, not the fallback order')
+    if (account && !deps.ptys.prepareLaunch) throw new Error('this Fabric cannot start a console on a chosen account')
     const project = await deps.readProject(projectId)
     // CO-236: no second coding agent in a folder an unresolved launch may still be writing in (a plain shell is no agent).
     if (optionId !== 'shell' && deps.folderHeld(projectId)) throw new Error(FOLDER_HELD_SAYS)
@@ -151,7 +158,13 @@ export function createConsoleOpen<S extends { sessionId: string; optionId?: stri
           unavailable: deps.unavailable,
           record: deps.record
         })
-      : await deps.ptys.open(projectId, cwd, optionId, null, mode)
+      : account
+        ? await (async () => {
+          const id = randomUUID()
+          deps.ptys.prepareLaunch!(id, { args: [], env: {}, account })
+          return deps.ptys.open(projectId, cwd, optionId, null, mode, null, id)
+        })()
+        : await deps.ptys.open(projectId, cwd, optionId, null, mode)
     deps.syncPower()
     const release = (): void => { if (claimed) deps.ptys.releaseAttach(claimed) }
     if (firstInstruction?.trim() && TAKES_NO_TASK.has(optionId)) {
