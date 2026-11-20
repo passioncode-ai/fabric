@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabric · макет · Atlas</title>
+<style>
+/* Fabric page mockups, 2026-11-20. Light theme values copied from the app:
+   tokens.passioncode.css (v1.1.0 light palette), tokens.app.css (semantic roles),
+   rail.css (the 216 px rail). Fonts: the system UI stack stands in for Inter.
+   One type system for every mockup: page 22, section 16, body 14, meta 12, label 11. */
+:root{
+  color-scheme:light;
+  --pc-bg:#ffffff;--pc-panel:#f7f5f8;--pc-panel-raised:#ffffff;--pc-text:#211725;--pc-text-muted:#655769;
+  --pc-border:#ddd4df;--pc-border-strong:#8f8095;--pc-accent:#ffd21a;--pc-accent-hover:#edbd00;--pc-on-accent:#211900;
+  --pc-accent-soft:#fff2b8;--pc-focus:#806200;--pc-link:#806200;--pc-positive:#246b3b;--pc-positive-soft:#e4f3e8;
+  --pc-warning:#8a4b0b;--pc-warning-soft:#fff0dc;--pc-negative:#a82f44;--pc-negative-soft:#fde8ec;--pc-info:#345da7;--pc-info-soft:#e8efff;
+  --app-bg:var(--pc-bg);--app-panel:var(--pc-panel);--app-panel-quiet:var(--pc-panel-raised);--app-ink:var(--pc-text);--app-muted:var(--pc-text-muted);
+  --app-line:var(--pc-border);--app-line-strong:var(--pc-border-strong);
+  --app-line-control:color-mix(in oklab,var(--app-line-strong) 88%,var(--app-ink));
+  --app-accent:var(--pc-accent);--app-focus:var(--pc-focus);--app-link:var(--pc-link);
+  --state-running:var(--pc-info);--state-blocked:var(--pc-negative);--state-idle:var(--pc-warning);--state-ended:var(--pc-text-muted);--state-good:var(--pc-positive);
+  --ceo:#7260DB;--ceo-soft:#E8DFFF;
+  --r-control:8px;--r-panel:16px;--r-pill:999px;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --fs-page:22px;--fs-section:16px;--fs-body:14px;--fs-meta:12px;--fs-label:11px;--fs-stat:20px;
+  --ease:cubic-bezier(.2,0,0,1);--dur:120ms;--dur-state:180ms;
+}
+@media (prefers-reduced-motion:reduce){:root{--dur:0ms;--dur-state:0ms}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);font-size:var(--fs-body);line-height:1.5;color:var(--app-ink);background:var(--app-bg);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p{margin:0}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
+
+/* ── type roles ── */
+.t-page{font-size:var(--fs-page);font-weight:650;letter-spacing:-.02em;line-height:1.25}
+.t-section{font-size:var(--fs-section);font-weight:650;letter-spacing:-.01em;line-height:1.35}
+.t-body{font-size:var(--fs-body)}
+.t-meta{font-size:var(--fs-meta);color:var(--app-muted)}
+.t-label{font-size:var(--fs-label);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--app-muted)}
+.t-mono{font-family:var(--mono);font-size:var(--fs-meta)}
+.t-stat{font-size:var(--fs-stat);font-weight:650;letter-spacing:-.02em;line-height:1.2}
+.muted{color:var(--app-muted)}
+.quote{font-size:var(--fs-body);line-height:1.5;color:var(--app-ink)}
+.quote::before{content:"«"}.quote::after{content:"»"}
+.link{color:var(--app-link);text-decoration:underline;text-underline-offset:2px;cursor:pointer;background:none;border:0;padding:0;font-size:inherit}
+
+/* ── shell and rail (rail.css: 216 px, panel fill, hairline) ── */
+.fab-shell{display:grid;grid-template-columns:216px minmax(0,1fr);min-height:100vh;background:linear-gradient(to right,var(--app-panel) 215px,var(--app-line) 215px,var(--app-line) 216px,var(--app-bg) 216px)}
+.rail{border-right:1px solid var(--app-line);padding:12px 10px;display:flex;flex-direction:column;background:var(--app-panel);position:sticky;top:0;height:100vh}
+.rail-brand{display:flex;align-items:center;gap:9px;padding:20px 8px 12px}
+.rail-brand b{font-size:15px;font-weight:600;letter-spacing:-.01em;display:block}
+.rail-brand small{display:block;font-size:11px;color:var(--app-muted);margin-top:1px}
+.rail-create{display:flex;align-items:center;justify-content:center;gap:5px;margin:0 4px 12px;height:30px;border-radius:8px;background:var(--app-ink);color:var(--app-bg);font-size:13px;font-weight:550;border:0;cursor:pointer}
+.rail-view{display:grid;grid-template-columns:1fr 1fr;margin:0 4px 8px;padding:2px;border:1px solid var(--app-line);border-radius:8px;background:var(--app-bg)}
+.rail-view a{display:grid;place-items:center;border-radius:6px;height:26px;font-size:12.5px;color:var(--app-muted);text-decoration:none}
+.rail-view a.on{background:var(--app-panel);color:var(--app-ink);font-weight:600}
+.rail-sect{display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--app-muted);padding:10px 8px 4px}
+.rail-sort{border:0;background:none;font-size:11px;letter-spacing:0;text-transform:none;color:var(--app-muted);cursor:pointer;padding:2px 4px;border-radius:5px}
+.rail-sort[aria-pressed="true"]{color:var(--app-ink);background:color-mix(in srgb,var(--app-ink) 7%,transparent);font-weight:600}
+.rail-projects{flex:1 1 auto;overflow-y:auto}
+.rail-projects ul{list-style:none;margin:0;padding:0;display:grid}
+.rail-projects li{min-width:0;border-radius:6px}
+.rail-projects a,.rail-places a{display:flex;align-items:center;gap:8px;min-height:28px;padding:3px 8px;border-radius:6px;color:var(--app-muted);font-size:12.5px;text-decoration:none}
+.rail-projects a.on,.rail-places a.on{background:color-mix(in srgb,var(--app-ink) 7%,transparent);color:var(--app-ink)}
+.rail-projects a:hover,.rail-places a:hover{color:var(--app-ink)}
+.rail-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rail-sub{display:block;font-size:11px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rail-dot{width:6px;height:6px;border-radius:50%;background:var(--app-line-strong);flex:none}
+.rail-dot.live{background:var(--state-good);box-shadow:0 0 0 3px color-mix(in srgb,var(--state-good) 15%,transparent)}
+.rail-star{color:var(--app-link);font-size:11px;margin-left:-4px}
+.rail-c{margin-left:auto;font-size:11px;color:var(--app-link);font-weight:600}
+.rail-grip{display:none;color:var(--app-muted);font-size:11px;letter-spacing:-2px;cursor:grab;margin-left:auto}
+.rail-projects.sorting .rail-grip{display:inline}
+.rail-projects.sorting .rail-c{display:none}
+.rail-projects.sorting li{cursor:grab}
+.rail-projects li.drag{opacity:.4}
+.rail-projects li.over{box-shadow:inset 0 2px 0 var(--app-focus)}
+.rail-hint{font-size:11px;color:var(--app-muted);padding:4px 8px 0;display:none}
+.rail-projects.sorting + .rail-hint{display:block}
+.rail-agent a{align-items:flex-start}
+.rail-agent .rail-dot{margin-top:6px}
+.rail-places{display:grid;border-top:1px solid var(--app-line);padding-top:8px;margin-top:8px}
+.rail-i{width:13px;height:13px;border:1.5px solid currentColor;border-radius:4px;opacity:.85;flex:none}
+.rail-i-board{border-radius:2px;box-shadow:inset 4px 0 0 -2.5px currentColor}
+.rail-i-comms{border-radius:6px 6px 6px 1px}
+.rail-i-access{border-radius:50% 50% 3px 3px}
+.rail-i-history{border-style:dashed}
+.rail-i-settings{border-radius:3px 8px}
+
+.fab-main{min-width:0;display:flex;flex-direction:column}
+.fab-top{height:42px;display:flex;align-items:center;gap:var(--s3);padding:0 20px;border-bottom:1px solid var(--app-line);background:var(--app-bg);position:sticky;top:0;z-index:5}
+.fab-top h1{font-size:14px;font-weight:600}
+.mock-switch{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--app-muted);border:1px dashed var(--app-line-strong);border-radius:8px;padding:3px 6px}
+.mock-switch button{border:0;background:none;font-size:11px;padding:2px 6px;border-radius:5px;cursor:pointer;color:var(--app-muted)}
+.mock-switch button[aria-pressed="true"]{background:var(--app-panel);color:var(--app-ink);font-weight:600}
+.page{padding:20px 24px 48px;max-width:1500px;width:100%}
+
+/* ── controls ── */
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--r-control);border:1px solid var(--app-line-control);background:var(--app-bg);font-size:13px;cursor:pointer;white-space:nowrap;text-decoration:none;color:var(--app-ink)}
+.btn:hover{background:var(--app-panel)}
+.btn-primary{background:var(--app-ink);color:var(--app-bg);border-color:var(--app-ink);font-weight:550}
+.btn-primary:hover{background:color-mix(in srgb,var(--app-ink) 88%,white)}
+.btn-quiet{border-color:transparent;background:none;color:var(--app-muted)}
+.btn-sm{height:26px;padding:0 9px;font-size:12px}
+.seg{display:inline-flex;padding:2px;border:1px solid var(--app-line);border-radius:8px;background:var(--app-bg)}
+.seg button{border:0;background:none;border-radius:6px;height:26px;padding:0 10px;font-size:12.5px;color:var(--app-muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--app-panel);color:var(--app-ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--app-line)}
+.check{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--app-ink);cursor:pointer;user-select:none}
+.check input{accent-color:var(--app-ink);margin:0}
+textarea,input[type=text]{font:inherit;font-size:13px;width:100%;border:1px solid var(--app-line-control);border-radius:var(--r-control);padding:8px 10px;background:var(--app-bg);color:var(--app-ink);resize:vertical}
+
+/* ── chips (the word carries the state, the hue supports it) ── */
+.chip{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:var(--r-pill);border:1px solid var(--app-line);font-size:11.5px;color:var(--app-ink);white-space:nowrap;background:var(--app-bg)}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--state-ended)}
+.chip.nodot::before{display:none}
+.chip.good{border-color:color-mix(in srgb,var(--state-good) 40%,transparent);background:var(--pc-positive-soft)}.chip.good::before{background:var(--state-good)}
+.chip.info{border-color:color-mix(in srgb,var(--state-running) 40%,transparent);background:var(--pc-info-soft)}.chip.info::before{background:var(--state-running)}
+.chip.warn{border-color:color-mix(in srgb,var(--state-idle) 40%,transparent);background:var(--pc-warning-soft)}.chip.warn::before{background:var(--state-idle)}
+.chip.bad{border-color:color-mix(in srgb,var(--state-blocked) 40%,transparent);background:var(--pc-negative-soft)}.chip.bad::before{background:var(--state-blocked)}
+.count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;border:1px solid var(--app-line);font-size:11.5px;font-weight:600;color:var(--app-ink)}
+.count.ask{background:var(--pc-accent-soft);border-color:color-mix(in srgb,var(--pc-accent) 70%,var(--app-line))}
+
+/* ── panels and sections ── */
+.panel{background:var(--app-panel);border:1px solid var(--app-line);border-radius:var(--r-panel);padding:var(--s4)}
+.card{background:var(--app-bg);border:1px solid var(--app-line-control);border-radius:12px;padding:var(--s3) var(--s4)}
+.sec{margin-top:var(--s6)}
+.sec:first-child{margin-top:0}
+.sec-head{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3);flex-wrap:wrap}
+.sec-head .end{margin-left:auto;display:flex;gap:var(--s2);align-items:center}
+.sec-note{font-size:var(--fs-meta);color:var(--app-muted)}
+.facts{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px var(--s3);font-size:var(--fs-body)}
+.facts dt{font-size:var(--fs-meta);color:var(--app-muted);padding-top:2px}
+.facts dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.facts .src{display:block;font-size:11px;color:var(--app-muted)}
+.bar{height:6px;border-radius:3px;background:var(--app-line);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--state-good);border-radius:3px}
+.bar.info>i{background:var(--state-running)}
+.quiet-line{font-size:13px;color:var(--app-muted);padding:6px 0}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--state-ended);flex:none}
+.dot.good{background:var(--state-good)}.dot.info{background:var(--state-running)}.dot.warn{background:var(--state-idle)}.dot.bad{background:var(--state-blocked)}.dot.ceo{background:var(--ceo)}.dot.person{background:var(--app-ink)}
+.row{display:flex;align-items:baseline;gap:var(--s3);padding:8px 0;border-bottom:1px solid var(--app-line)}
+.row:last-child{border-bottom:0}
+.row-main{flex:1;min-width:0;overflow-wrap:anywhere}
+.row-trail{font-size:var(--fs-meta);color:var(--app-muted);white-space:nowrap}
+.spark{display:block}
+
+/* ══ @fabric/graph mock ═════════════════════════════════════════ */
+.g-tools{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;margin-bottom:var(--s3)}
+.g-tools .end{margin-left:auto;display:flex;gap:var(--s3);align-items:center}
+
+/* GraphTimeline */
+.gt{position:relative;padding-left:22px}
+.gt::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:1px;background:var(--app-line)}
+.gt-item{position:relative;margin-bottom:10px}
+.gt-item::before{content:"";position:absolute;left:-19px;top:14px;width:9px;height:9px;border-radius:50%;background:var(--app-bg);border:2px solid var(--state-ended)}
+.gt-item.person::before{background:var(--app-ink);border-color:var(--app-ink)}
+.gt-item.ceo::before{background:var(--ceo);border-color:var(--ceo)}
+.gt-item.done::before{border-color:var(--state-good)}
+.gt-item.open::before{border-color:var(--state-running)}
+.gt-item.waiting::before{border-color:var(--state-idle);background:var(--pc-warning-soft)}
+.gt-item.refused::before{border-color:var(--state-blocked)}
+.gt-item.future::before{border-style:dashed}
+.gt-item.fold::before{width:7px;height:7px;left:-18px;top:11px;border-width:1px;border-color:var(--app-line-strong)}
+.gt-card{border:1px solid var(--app-line);border-radius:12px;padding:10px 14px;background:var(--app-bg);transition:border-color var(--dur) var(--ease)}
+.gt-card:hover,.gt-card.hl{border-color:var(--app-line-strong)}
+.gt-item.person .gt-card{border-left:3px solid var(--app-ink);background:var(--app-bg)}
+.gt-item.ceo .gt-card{border-left:3px solid var(--ceo)}
+.gt-item.waiting .gt-card{background:var(--pc-warning-soft);border-color:color-mix(in srgb,var(--state-idle) 35%,var(--app-line))}
+.gt-item.future .gt-card{border-style:dashed;background:none}
+.gt-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:var(--fs-meta);color:var(--app-muted);margin-bottom:3px}
+.gt-head b{color:var(--app-ink);font-weight:600}
+.gt-head .chip{margin-left:auto}
+.gt-title{font-size:var(--fs-body);font-weight:500}
+.gt-item.person .gt-title{font-size:15px;font-weight:450;line-height:1.5}
+.gt-acts{margin-top:8px;display:flex;gap:8px}
+.gt-fold{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px dashed var(--app-line-strong);border-radius:10px;background:var(--app-panel);padding:6px 12px;font-size:12.5px;color:var(--app-muted);cursor:pointer}
+.gt-fold:hover{color:var(--app-ink)}
+.gt-fold b{color:var(--app-ink);font-weight:600}
+.gt-fold .tw{display:inline-block;transition:transform var(--dur) var(--ease);font-size:10px}
+.gt-fold[aria-expanded="true"] .tw{transform:rotate(90deg)}
+.gt-steps{display:none;margin:6px 0 0;padding:4px 0 0 12px;border-left:1px dashed var(--app-line-strong)}
+.gt-fold[aria-expanded="true"] + .gt-steps{display:block}
+.gt-step{display:grid;grid-template-columns:86px 110px minmax(0,1fr);gap:10px;font-size:12.5px;padding:3px 0;color:var(--app-ink)}
+.gt-step .t{font-family:var(--mono);font-size:11.5px;color:var(--app-muted)}
+.gt-step .a{color:var(--app-muted)}
+.gt-more{font-size:12px;color:var(--app-muted);padding:3px 0}
+.gt-lane{display:inline-block;font-size:11px;padding:0 6px;border-radius:4px;background:var(--app-panel);border:1px solid var(--app-line);color:var(--app-muted)}
+
+/* GraphMap */
+.gm-wrap{position:relative;overflow-x:auto;border:1px solid var(--app-line);border-radius:12px;background:var(--app-bg)}
+.gm{position:relative}
+.gm svg{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.gm-lane{position:absolute;left:0;right:0;border-top:1px solid var(--app-line)}
+.gm-lane:first-of-type{border-top:0}
+.gm-lane span{position:absolute;left:10px;top:6px;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--app-muted)}
+.gm-now{position:absolute;top:0;bottom:0;border-left:1px dashed var(--app-line-strong)}
+.gm-now span{position:absolute;top:6px;left:6px;font-size:10.5px;color:var(--app-muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.gm-node{position:absolute;width:118px;min-height:58px;padding:6px 8px;border:1px solid var(--app-line-control);border-radius:10px;background:var(--app-bg);font-size:11.5px;line-height:1.35;cursor:pointer;text-align:left;transition:opacity var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+.gm-node .h{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--app-muted);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gm-node .l{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--app-ink)}
+.gm-node.person{border-left:3px solid var(--app-ink)}
+.gm-node.person .l{font-style:normal}
+.gm-node.ceo{border-left:3px solid var(--ceo)}
+.gm-node.waiting{background:var(--pc-warning-soft)}
+.gm-node.future{border-style:dashed;background:none}
+.gm-node.sel{box-shadow:0 0 0 2px var(--app-focus)}
+.gm.hovering .gm-node:not(.hl){opacity:.35}
+.gm-badge{position:absolute;transform:translate(-50%,-50%);min-width:22px;height:20px;padding:0 6px;border-radius:10px;border:1px solid var(--app-line-strong);background:var(--app-panel);font-size:11px;font-weight:600;color:var(--app-ink);cursor:pointer;display:grid;place-items:center;transition:opacity var(--dur) var(--ease)}
+.gm.hovering .gm-badge:not(.hl){opacity:.3}
+.gm-edge{fill:none;stroke:var(--app-line-strong);stroke-width:1.4;transition:opacity var(--dur) var(--ease)}
+.gm-edge.answered{stroke-dasharray:4 3}
+.gm-edge.spawned{stroke:var(--app-line);stroke-width:1.2}
+.gm-edge.decided{stroke:var(--app-ink);stroke-width:1.8}
+.gm.hovering .gm-edge:not(.hl){opacity:.18}
+.gm.hovering .gm-edge.hl{stroke:var(--app-ink)}
+.gm-detail{margin-top:var(--s3)}
+.gm-detail .gt-item::before{display:none}
+.gm-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--app-muted);margin-top:8px;align-items:center}
+.gm-legend i{display:inline-block;vertical-align:middle;margin-right:5px}
+.lg-person{width:10px;height:12px;border-left:3px solid var(--app-ink);border:1px solid var(--app-line-control);border-left-width:3px;border-radius:2px}
+.lg-ceo{width:10px;height:12px;border:1px solid var(--app-line-control);border-left:3px solid var(--ceo);border-radius:2px}
+.lg-line{width:22px;height:0;border-top:1.4px solid var(--app-line-strong)}
+.lg-dash{width:22px;height:0;border-top:1.4px dashed var(--app-line-strong)}
+.lg-bold{width:22px;height:0;border-top:2px solid var(--app-ink)}
+.lg-badge{min-width:18px;height:14px;border-radius:7px;border:1px solid var(--app-line-strong);background:var(--app-panel)}
+
+/* GraphTable */
+.gtab{width:100%;border-collapse:collapse;font-size:13px}
+.gtab th{text-align:left;font-size:var(--fs-label);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--app-muted);padding:6px 8px;border-bottom:1px solid var(--app-line-strong);white-space:nowrap}
+.gtab th button{border:0;background:none;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;cursor:pointer;padding:0}
+.gtab td{padding:7px 8px;border-bottom:1px solid var(--app-line);vertical-align:top}
+.gtab td.t{font-family:var(--mono);font-size:11.5px;color:var(--app-muted);white-space:nowrap}
+.gtab tr.person td.w{font-weight:600}
+.gtab tr.fold td{color:var(--app-muted)}
+
+
+.pj-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
+.pj-head .end{margin-left:auto;display:flex;gap:8px}
+.pj-grid{display:grid;grid-template-columns:420px minmax(0,1fr);gap:24px;align-items:start}
+.pj-meta{position:sticky;top:62px;display:grid;gap:16px}
+.pj-meta .panel{padding:16px 18px}
+.pj-lead{font-size:15px;line-height:1.5;margin:6px 0 12px}
+.goal{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:10px 12px;border:1px solid var(--app-line);border-radius:10px;background:var(--app-bg);margin-bottom:14px}
+.goal .bar{grid-column:1/-1}
+.mini-quote{display:block;border-left:3px solid var(--app-ink);padding-left:8px;margin-top:4px;font-size:13px}
+.ag-row{display:grid;grid-template-columns:8px minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--app-line);font-size:13px}
+.ag-row:last-child{border-bottom:0}
+.ag-row .dot{transform:translateY(-1px)}
+.ag-row small{display:block;font-size:12px;color:var(--app-muted)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.stats .t-meta{display:block}
+.q{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:4px 12px;padding:12px 0;border-bottom:1px solid var(--app-line)}
+.q:last-of-type{border-bottom:0}
+.q .num{font-family:var(--mono);font-size:12px;color:var(--app-muted);padding-top:2px}
+.q .qt{font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.q .qs{font-size:12px;color:var(--app-muted)}
+.q .side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.q .acts{grid-column:2/-1;display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.q .acts .btn[aria-pressed="true"]{border-color:var(--app-ink);box-shadow:inset 0 0 0 1px var(--app-ink)}
+.answer-box{grid-column:2/-1;display:grid;gap:8px;margin-top:8px}
+.answer-box textarea{min-height:64px}
+.dirs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.dir{display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--app-line-control);border-radius:12px;background:var(--app-bg);text-decoration:none;color:inherit}
+.dir:hover{background:var(--app-panel)}
+.dir .chips{display:flex;gap:6px;flex-wrap:wrap}
+.okr{border:1px solid var(--app-line);border-radius:12px;padding:14px 16px;background:var(--app-bg)}
+.kr{display:grid;grid-template-columns:minmax(0,1fr) 120px 96px;gap:4px 16px;align-items:center;padding:10px 0;border-top:1px solid var(--app-line)}
+.kr .t-meta{grid-column:1}
+.kr b{font-size:13px;text-align:right;font-weight:600;white-space:nowrap}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tile{border:1px solid var(--app-line);border-radius:12px;padding:12px 14px;background:var(--app-bg)}
+.tile .tr{font-size:12px;font-weight:600}
+.tr.up{color:var(--state-good)}.tr.down-good{color:var(--state-good)}.tr.bad{color:var(--state-blocked)}
+.kan{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.kan-col{background:var(--app-panel);border:1px solid var(--app-line);border-radius:12px;padding:10px}
+.kan-col h4{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.kan-card{background:var(--app-bg);border:1px solid var(--app-line-control);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px}
+.kan-card .t-meta{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.kr-tag{font-size:11px;border:1px solid var(--app-line);border-radius:4px;padding:0 5px;color:var(--app-muted)}
+.note{display:grid;grid-template-columns:80px minmax(0,1fr) auto;gap:12px;padding:9px 0;border-bottom:1px solid var(--app-line);align-items:baseline}
+.note:last-child{border-bottom:0}
+.note .tag{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--app-muted)}
+.sub-h{display:flex;align-items:center;gap:8px;margin:20px 0 10px}
+.sub-h:first-of-type{margin-top:4px}
+[hidden]{display:none!important}
+
+
+</style>
+<script>
+/* @fabric/graph, mocked in plain DOM and SVG for the 2026-11-20 page mockups.
+   Data: node {id, kind, label, quote, at, when, actor: person|agent|ceo|system, who, where, state: open|done|waiting|refused,
+   future, group, col, lane}; edge {from, to, kind: caused|answered|spawned|decided, at, when, count, steps:[{when, who, label}]}.
+   Agents' steps live on the edges between the nodes people care about: the timeline folds them into
+   «агенты: N шагов», the map shows the number on the edge, the table lists them as one row. */
+(function () {
+  var STATE = { open: ['идёт', 'info'], done: ['сделано', 'good'], waiting: ['ждёт ответа', 'warn'], refused: ['отказ', 'bad'] };
+  var KIND = { command: 'сказал', answer: 'ответил', question: 'вопрос владельцу', task: 'завёл задачу', milestone: 'веха', goal: '', relay: 'передал' };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function plural(n, one, few, many) { var m10 = n % 10, m100 = n % 100; if (m10 === 1 && m100 !== 11) return one; if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few; return many; }
+  function steps(n) { return n + ' ' + plural(n, 'шаг', 'шага', 'шагов'); }
+  function stateChip(n) {
+    if (n.future) return '<span class="chip nodot">впереди</span>';
+    if (n.actor === 'person' && n.state !== 'refused' && n.state !== 'waiting') return '';
+    var s = STATE[n.state]; return s ? '<span class="chip ' + s[1] + '">' + s[0] + '</span>' : '';
+  }
+  function nodeClass(n) { return [n.actor === 'person' ? 'person' : n.actor === 'ceo' ? 'ceo' : '', n.state || '', n.future ? 'future' : ''].join(' '); }
+  function agentsOf(st) { var seen = {}; st.forEach(function (s) { if (s.who) seen[s.who] = 1; }); return Object.keys(seen).join(', '); }
+
+  function stream(data) {
+    var items = data.nodes.map(function (n) { return { type: 'node', at: n.at, n: n }; });
+    data.edges.forEach(function (e) {
+      if (!e.count) return;
+      var from = data.nodes.filter(function (n) { return n.id === e.from; })[0];
+      items.push({ type: 'fold', at: e.at || (from && from.at + '~'), count: e.count, steps: (e.steps || []).slice(), edge: e, group: from && from.group, when: e.when });
+    });
+    items.sort(function (a, b) { return a.at < b.at ? -1 : a.at > b.at ? 1 : 0; });
+    return items;
+  }
+
+  function cardHtml(n, lanes) {
+    var head = '<b>' + esc(n.who) + '</b><span>' + esc(KIND[n.kind] || '') + '</span>' + (n.where ? '<span>· ' + esc(n.where) + '</span>' : '') +
+      (n.when ? '<span>· ' + esc(n.when) + '</span>' : '') + (lanes && n.group ? '<span class="gt-lane">' + esc(n.group) + '</span>' : '') + stateChip(n);
+    var title = n.actor === 'person' ? '<p class="gt-title quote">' + esc(n.quote || n.label) + '</p>' : '<p class="gt-title">' + esc(n.label) + '</p>';
+    var acts = '';
+    if (n.kind === 'question' && n.state === 'waiting') acts = '<div class="gt-acts"><button class="btn btn-sm btn-primary" type="button">Ответить</button><button class="btn btn-sm" type="button">Открыть задачу</button></div>';
+    if (n.note) title += '<p class="t-meta" style="margin-top:4px">' + esc(n.note) + '</p>';
+    return '<div class="gt-head">' + head + '</div>' + title + acts;
+  }
+
+  function timeline(el, data, opt) {
+    var items = stream(data), out = [], only = opt.onlyPeople;
+    if (only) { // merge folds that touch
+      items.forEach(function (it) {
+        var last = out[out.length - 1];
+        if (it.type === 'fold' && last && last.type === 'fold') { last.count += it.count; last.steps = last.steps.concat(it.steps); last.when = (last.when || '').split(' до ')[0] + (it.when ? ' до ' + it.when.split(' до ').pop() : ''); }
+        else out.push(Object.assign({}, it, { steps: it.steps && it.steps.slice() }));
+      });
+    } else out = items;
+    var h = '';
+    out.forEach(function (it) {
+      if (it.type === 'node') {
+        h += '<div class="gt-item ' + nodeClass(it.n) + '" data-id="' + it.n.id + '"><div class="gt-card">' + cardHtml(it.n, opt.lanes) + '</div></div>';
+      } else {
+        var shown = it.steps.map(function (s) { return '<div class="gt-step"><span class="t">' + esc(s.when) + '</span><span class="a">' + esc(s.who) + '</span><span>' + esc(s.label) + '</span></div>'; }).join('');
+        var rest = it.count - it.steps.length;
+        if (rest > 0) shown += '<div class="gt-more">и ещё ' + steps(rest) + ': полностью в Истории</div>';
+        h += '<div class="gt-item fold"><button class="gt-fold" type="button" aria-expanded="' + (!only) + '"><span class="tw">▶</span><span>агенты: <b>' + steps(it.count) + '</b></span><span>· ' + esc(agentsOf(it.steps)) + '</span>' + (it.when ? '<span>· ' + esc(it.when) + '</span>' : '') + '</button><div class="gt-steps">' + shown + '</div></div>';
+      }
+    });
+    el.innerHTML = '<div class="gt">' + h + '</div>';
+    el.querySelectorAll('.gt-fold').forEach(function (b) { b.addEventListener('click', function () { b.setAttribute('aria-expanded', b.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'); }); });
+  }
+
+  function map(el, data, opt) {
+    var colW = opt.colW || 140, laneH = opt.laneH || 112, pad = opt.pad || 16, lanes = opt.lanes || [''], cardW = opt.cardW || 118;
+    var maxCol = 0; data.nodes.forEach(function (n) { if (n.col > maxCol) maxCol = n.col; });
+    var W = Math.max(el.clientWidth - 2, pad * 2 + maxCol * colW + cardW), H = lanes.length * laneH;
+    var h = '<div class="gm" style="width:' + W + 'px;height:' + H + 'px">';
+    lanes.forEach(function (name, i) { h += '<div class="gm-lane" style="top:' + (i * laneH) + 'px;height:' + laneH + 'px"><span>' + esc(name) + '</span></div>'; });
+    if (opt.nowCol != null) h += '<div class="gm-now" style="left:' + (pad + opt.nowCol * colW - 10) + 'px"><span>сейчас</span></div>';
+    h += '<svg width="' + W + '" height="' + H + '"></svg>';
+    data.nodes.forEach(function (n) {
+      var x = pad + n.col * colW, y = n.lane * laneH + 26;
+      var label = n.actor === 'person' ? '«' + (n.short || n.quote || n.label) + '»' : (n.short || n.label);
+      var dotc = n.actor === 'person' ? 'person' : n.actor === 'ceo' ? 'ceo' : (STATE[n.state] || [0, ''])[1];
+      h += '<button type="button" class="gm-node ' + nodeClass(n) + '" data-id="' + n.id + '" style="left:' + x + 'px;top:' + y + 'px;width:' + cardW + 'px"><span class="h"><i class="dot ' + dotc + '"></i>' + esc(n.whenShort || n.when) + '</span><span class="l">' + esc(label) + '</span></button>';
+    });
+    h += '</div>';
+    el.innerHTML = h;
+    var gm = el.querySelector('.gm'), svg = el.querySelector('svg');
+    function box(id) { var b = gm.querySelector('[data-id="' + id + '"]'); return { x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight }; }
+    var paths = '', badges = '';
+    data.edges.forEach(function (e, i) {
+      var a = box(e.from), b = box(e.to), x1, y1, x2, y2, d;
+      if (Math.abs(a.x - b.x) < a.w) { // cards overlap in x: vertical
+        var down = b.y > a.y; x1 = a.x + a.w / 2; y1 = down ? a.y + a.h : a.y; x2 = b.x + b.w / 2; y2 = down ? b.y : b.y + b.h;
+        d = 'M' + x1 + ',' + y1 + ' C' + x1 + ',' + (y1 + y2) / 2 + ' ' + x2 + ',' + (y1 + y2) / 2 + ' ' + x2 + ',' + y2;
+      } else {
+        x1 = a.x + a.w; y1 = a.y + a.h / 2; x2 = b.x; y2 = b.y + b.h / 2; var mx = (x1 + x2) / 2;
+        d = 'M' + x1 + ',' + y1 + ' C' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + x2 + ',' + y2;
+      }
+      paths += '<path class="gm-edge ' + e.kind + '" data-e="' + i + '" data-from="' + e.from + '" data-to="' + e.to + '" d="' + d + '"/>';
+      if (e.count) badges += '<button type="button" class="gm-badge" data-e="' + i + '" title="агенты: ' + steps(e.count) + '" style="left:' + (x1 + x2) / 2 + 'px;top:' + (y1 + y2) / 2 + 'px">' + e.count + '</button>';
+    });
+    svg.innerHTML = '<defs></defs>' + paths;
+    gm.insertAdjacentHTML('beforeend', badges);
+    function light(ids, edgesOn) {
+      gm.classList.add('hovering');
+      gm.querySelectorAll('.gm-node').forEach(function (n) { n.classList.toggle('hl', ids.indexOf(n.dataset.id) >= 0); });
+      gm.querySelectorAll('[data-e]').forEach(function (p) { p.classList.toggle('hl', edgesOn.indexOf(+p.dataset.e) >= 0); });
+    }
+    function off() { gm.classList.remove('hovering'); gm.querySelectorAll('.hl').forEach(function (x) { x.classList.remove('hl'); }); }
+    gm.querySelectorAll('.gm-node').forEach(function (nb) {
+      var id = nb.dataset.id;
+      nb.addEventListener('mouseenter', function () {
+        var ids = [id], es = [];
+        data.edges.forEach(function (e, i) { if (e.from === id || e.to === id) { es.push(i); ids.push(e.from, e.to); } });
+        light(ids, es);
+      });
+      nb.addEventListener('mouseleave', off);
+      nb.addEventListener('click', function () { select(id); });
+    });
+    gm.querySelectorAll('.gm-badge').forEach(function (bb) {
+      var e = data.edges[+bb.dataset.e];
+      bb.addEventListener('mouseenter', function () { light([e.from, e.to], [+bb.dataset.e]); });
+      bb.addEventListener('mouseleave', off);
+      bb.addEventListener('click', function () { detailFold(e); });
+    });
+    function byId(id) { return data.nodes.filter(function (n) { return n.id === id; })[0]; }
+    function select(id) {
+      gm.querySelectorAll('.gm-node').forEach(function (n) { n.classList.toggle('sel', n.dataset.id === id); });
+      if (!opt.detailEl) return;
+      var n = byId(id), ins = [], outs = [];
+      data.edges.forEach(function (e) { if (e.to === id) ins.push(byId(e.from)); if (e.from === id) outs.push(byId(e.to)); });
+      function names(list) { return list.map(function (x) { return x.actor === 'person' ? '«' + (x.short || x.quote) + '»' : x.short || x.label; }).join('; '); }
+      opt.detailEl.innerHTML = '<div class="gt-item ' + nodeClass(n) + '" style="margin:0"><div class="gt-card">' + cardHtml(n, true) +
+        ((ins.length || outs.length) ? '<p class="t-meta" style="margin-top:6px">' + (ins.length ? 'Из чего: ' + esc(names(ins)) + '. ' : '') + (outs.length ? 'Что дальше: ' + esc(names(outs)) + '.' : '') + '</p>' : '') + '</div></div>';
+    }
+    function detailFold(e) {
+      if (!opt.detailEl) return;
+      var st = (e.steps || []).map(function (s) { return '<div class="gt-step"><span class="t">' + esc(s.when) + '</span><span class="a">' + esc(s.who) + '</span><span>' + esc(s.label) + '</span></div>'; }).join('');
+      var rest = e.count - (e.steps || []).length;
+      opt.detailEl.innerHTML = '<div class="gt-card"><div class="gt-head"><b>агенты: ' + steps(e.count) + '</b><span>· ' + esc(agentsOf(e.steps || [])) + '</span>' + (e.when ? '<span>· ' + esc(e.when) + '</span>' : '') + '</div>' + st + (rest > 0 ? '<div class="gt-more">и ещё ' + steps(rest) + ': полностью в Истории</div>' : '') + '</div>';
+    }
+    if (opt.selected) select(opt.selected);
+  }
+
+  function table(el, data, opt) {
+    var dir = 1;
+    function draw() {
+      var rows = stream(data).filter(function (it) { return !(opt.onlyPeople === false && false); });
+      rows.sort(function (a, b) { return (a.at < b.at ? -1 : a.at > b.at ? 1 : 0) * dir; });
+      var h = '<table class="gtab"><thead><tr><th><button type="button" data-sort>Когда ' + (dir > 0 ? '↑' : '↓') + '</button></th><th>Кто</th><th>Что</th><th>Где</th>' + (opt.lanes !== false ? '<th>Направление</th>' : '') + '<th>Состояние</th></tr></thead><tbody>';
+      rows.forEach(function (it) {
+        if (it.type === 'node') {
+          var n = it.n, s = n.future ? 'впереди' : (STATE[n.state] || [''])[0];
+          h += '<tr class="' + (n.actor === 'person' ? 'person' : '') + '"><td class="t">' + esc(n.when) + '</td><td class="w">' + esc(n.who) + '</td><td>' + (n.actor === 'person' ? '«' + esc(n.quote) + '»' : esc(n.label)) + '</td><td>' + esc(n.where || '') + '</td>' + (opt.lanes !== false ? '<td>' + esc(n.group || '') + '</td>' : '') + '<td>' + esc(s) + '</td></tr>';
+        } else {
+          h += '<tr class="fold"><td class="t">' + esc(it.when || '') + '</td><td>' + esc(agentsOf(it.steps)) + '</td><td>агенты: ' + steps(it.count) + '</td><td></td>' + (opt.lanes !== false ? '<td>' + esc(it.group || '') + '</td>' : '') + '<td>сделано</td></tr>';
+        }
+      });
+      el.innerHTML = h + '</tbody></table>';
+      el.querySelector('[data-sort]').addEventListener('click', function () { dir = -dir; draw(); });
+    }
+    draw();
+  }
+
+  function mount(root, data, opt) {
+    var state = { view: opt.view || 'timeline', onlyPeople: opt.onlyPeople !== false, lanes: !!opt.lanesOn };
+    var views = { timeline: root.querySelector('.g-view-timeline'), map: root.querySelector('.g-view-map'), table: root.querySelector('.g-view-table') };
+    var detail = root.querySelector('.g-detail');
+    function render() {
+      Object.keys(views).forEach(function (k) { if (views[k]) views[k].hidden = k !== state.view; });
+      if (detail) detail.hidden = state.view !== 'map';
+      root.querySelectorAll('[data-view]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.view === state.view); });
+      root.querySelectorAll('.only-t').forEach(function (x) { x.hidden = state.view !== 'timeline'; });
+      if (state.view === 'timeline') timeline(views.timeline, data, { onlyPeople: state.onlyPeople, lanes: state.lanes });
+      if (state.view === 'map') map(views.map, data, { lanes: opt.lanes, colW: opt.colW, cardW: opt.cardW, laneH: opt.laneH, nowCol: opt.nowCol, detailEl: detail, selected: opt.selected });
+      if (state.view === 'table') table(views.table, data, { lanes: opt.tableLanes });
+    }
+    root.querySelectorAll('[data-view]').forEach(function (b) { b.addEventListener('click', function () { state.view = b.dataset.view; render(); }); });
+    var only = root.querySelector('[data-only]'); if (only) { only.checked = state.onlyPeople; only.addEventListener('change', function () { state.onlyPeople = only.checked; render(); }); }
+    var ln = root.querySelector('[data-lanes]'); if (ln) { ln.checked = state.lanes; ln.addEventListener('change', function () { state.lanes = ln.checked; render(); }); }
+    render();
+    return { render: render, state: state };
+  }
+
+  window.FabricGraph = { timeline: timeline, map: map, table: table, mount: mount, steps: steps };
+})();
+
+/* Shared behaviour of the mockups: the rail's «Приоритет» drag order, generic tab groups, inline answers. */
+(function () {
+  function dragList(ul, onDrop) {
+    var dragged = null;
+    ul.querySelectorAll('li').forEach(function (li) {
+      li.addEventListener('dragstart', function (e) { dragged = li; li.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; });
+      li.addEventListener('dragend', function () { li.classList.remove('drag'); ul.querySelectorAll('.over').forEach(function (x) { x.classList.remove('over'); }); });
+      li.addEventListener('dragover', function (e) { if (!dragged) return; e.preventDefault(); ul.querySelectorAll('.over').forEach(function (x) { x.classList.remove('over'); }); li.classList.add('over'); });
+      li.addEventListener('drop', function (e) { e.preventDefault(); if (dragged && dragged !== li) ul.insertBefore(dragged, li); li.classList.remove('over'); if (onDrop) onDrop(); });
+    });
+  }
+  window.FabricDrag = dragList;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var sort = document.querySelector('.rail-sort'), list = document.querySelector('.rail-projects');
+    if (sort && list) {
+      var ul = list.querySelector('ul');
+      dragList(ul);
+      sort.addEventListener('click', function () {
+        var on = sort.getAttribute('aria-pressed') !== 'true';
+        sort.setAttribute('aria-pressed', on); list.classList.toggle('sorting', on);
+        ul.querySelectorAll('li').forEach(function (li) { li.draggable = on; });
+      });
+    }
+    // generic tabs: [data-tabs] holds buttons [data-tab=x]; panels [data-pane=x] inside [data-tabs-scope]
+    document.querySelectorAll('[data-tabs]').forEach(function (g) {
+      var scope = g.closest('[data-tabs-scope]') || document;
+      g.querySelectorAll('[data-tab]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          g.querySelectorAll('[data-tab]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+          scope.querySelectorAll('[data-pane]').forEach(function (p) { p.hidden = p.dataset.pane !== b.dataset.tab; });
+        });
+      });
+    });
+    // inline answer: [data-answer] toggles the next .answer-box
+    document.querySelectorAll('[data-answer]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var box = b.closest('[data-q]').querySelector('.answer-box');
+        box.hidden = !box.hidden; if (!box.hidden) box.querySelector('textarea').focus();
+      });
+    });
+    document.querySelectorAll('[data-pick]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var q = b.closest('[data-q]'); q.querySelectorAll('[data-pick]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+        var box = q.querySelector('.answer-box'); box.hidden = false; box.querySelector('textarea').value = b.textContent.trim() + '. ';
+      });
+    });
+  });
+})();
+
+</script>
+</head>
+<body>
+<div class="fab-shell">
+<aside class="rail"><a class="rail-brand" href="03-home.html" style="text-decoration:none;color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#f20673"/><g fill="#ffd21a"><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(0 12 12)"/><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(120 12 12)"/><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(180 12 12)"/><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(240 12 12)"/><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(300 12 12)"/></g><circle cx="12" cy="12" r="2.4" fill="#41054b"/></svg><span><b>Fabric</b><small>PassionCode.ai</small></span></a>
+<button class="rail-create" type="button">+ Создать</button>
+<nav class="rail-view"><a href="03-home.html" class="on">Проекты</a><a href="01-agent.html" class="">Агенты</a></nav>
+<div class="rail-sect"><span>Проекты</span><button class="rail-sort" type="button" aria-pressed="false" title="Порядок перетаскиванием">⇅ Приоритет</button></div><div class="rail-projects"><ul><li><a href="02-project.html" class="on"><span class="rail-dot live"></span><span class="rail-name">Atlas</span><span class="rail-star">★</span><span class="rail-c">3</span><span class="rail-grip" aria-hidden="true">⋮⋮</span></a></li><li><a href="02-project.html" class=""><span class="rail-dot live"></span><span class="rail-name">Media house</span><span class="rail-star">★</span><span class="rail-c">1</span><span class="rail-grip" aria-hidden="true">⋮⋮</span></a></li><li><a href="02-project.html" class=""><span class="rail-dot "></span><span class="rail-name">Store listings</span><span class="rail-star">★</span><span class="rail-c">1</span><span class="rail-grip" aria-hidden="true">⋮⋮</span></a></li><li><a href="02-project.html" class=""><span class="rail-dot "></span><span class="rail-name">Docs site</span><span class="rail-grip" aria-hidden="true">⋮⋮</span></a></li></ul></div><p class="rail-hint">Перетащите, чтобы задать порядок. Тот же порядок на главной.</p>
+<nav class="rail-places"><a href="#"><i class="rail-i rail-i-board"></i><span class="rail-name">Доска</span><span class="rail-c">5</span></a><a href="#"><i class="rail-i rail-i-comms"></i><span class="rail-name">Переписка</span><span class="rail-c">2</span></a><a href="#"><i class="rail-i rail-i-access"></i><span class="rail-name">Доступ агентов</span></a><a href="04-decision-chain.html"><i class="rail-i rail-i-history"></i><span class="rail-name">История</span></a><a href="#"><i class="rail-i rail-i-settings"></i><span class="rail-name">Настройки</span></a></nav></aside>
+<div class="fab-main">
+
+<header class="fab-top"><h1>Atlas</h1></header>
+<main class="page">
+  <div class="pj-head">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px"><h2 class="t-page">Atlas</h2><span class="chip good">работает</span><span class="rail-star" style="margin:0;font-size:14px">★</span></div>
+      <p class="t-meta" style="margin-top:4px">Сейчас: чтение доски отдельным модулем, шаг 2 из 4 · 1 агент работает · 3 вопроса ждут вас</p>
+    </div>
+    <div class="end"><button class="btn" type="button">★ Закреплён</button><button class="btn" type="button">План</button><button class="btn btn-primary" type="button">Доска проекта</button></div>
+  </div>
+
+  <div class="pj-grid">
+    <!-- 1. META: 420 px, 1.5 × today's 280 px -->
+    <aside class="pj-meta" aria-label="О проекте">
+      <div class="panel">
+        <h3 class="t-label">Что за проект</h3>
+        <p class="pj-lead">Командный доступ без потери контекста: агенты работают в одном проекте, видят задачи друг друга и не теряют ответы.</p>
+        <div class="goal"><span><span class="t-meta">Цель</span><br><b style="font-weight:600">Командный доступ к 30 нояб.</b></span><span class="t-meta">3 из 5 задач</span><div class="bar"><i style="width:60%"></i></div></div>
+        <dl class="facts">
+          <dt>Откуда</dt><dd>Завёл владелец 2 сент. в окне CEO<span class="mini-quote quote">Сделай командный доступ: агенты работают в одном проекте и не теряют контекст</span></dd>
+          <dt>Организация</dt><dd>PassionCode.ai · бизнес Fabric</dd>
+          <dt>Папки</dt><dd class="t-mono">~/DATA/atlas<br>~/DATA/atlas-site</dd>
+          <dt>Связи</dt><dd><a class="link" href="#">Media house</a> читает доску Atlas<br><a class="link" href="#">Store listings</a> выходит через выпуск Atlas</dd>
+          <dt>Люди из Git</dt><dd>2 автора: 214 и 18 коммитов за год</dd>
+        </dl>
+      </div>
+      <div class="panel">
+        <div class="sec-head" style="margin-bottom:4px"><h3 class="t-label">Агенты на проекте</h3><span class="count">2</span><a class="link t-meta end" href="01-agent.html">Все</a></div>
+        <a class="ag-row" href="01-agent.html" style="text-decoration:none;color:inherit"><span class="dot good"></span><span><b style="font-weight:600">Claude Code</b> <span class="t-mono" style="color:var(--state-running)">atlas-board-read</span><small>Чтение доски модулем · шаг 2 из 4 · claude13@…</small></span><span class="t-meta">3 мин</span></a>
+        <a class="ag-row" href="01-agent.html" style="text-decoration:none;color:inherit"><span class="dot warn"></span><span><b style="font-weight:600">Codex</b> <span class="t-mono" style="color:var(--state-running)">atlas-release</span><small>Ждёт ответа: выпуск 0.3.22 · codex4@…</small></span><span class="t-meta">40 ч</span></a>
+      </div>
+      <div class="panel">
+        <h3 class="t-label" style="margin-bottom:10px">Как идёт работа · 8 недель</h3>
+        <div class="stats">
+          <div><span class="t-meta">Сделано</span><span class="t-stat">30</span> <span id="sp-done"></span></div>
+          <div><span class="t-meta">От задачи до готово</span><span class="t-stat">26 ч</span> <span class="t-meta" style="display:inline">медиана</span></div>
+          <div><span class="t-meta">На проверке</span><span class="t-stat">9 ч</span> <span class="t-meta" style="display:inline">медиана</span></div>
+          <div><span class="t-meta">Возвращено с проверки</span><span class="t-stat">10%</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <div>
+      <!-- 2. QUESTIONS: always on top when there are any -->
+      <section class="sec" aria-label="Вопросы ко мне">
+        <div class="sec-head"><h2 class="t-section">Вопросы ко мне</h2><span class="count ask">3</span><span class="sec-note">самый старый ждёт 40 ч</span><div class="end"><a class="link t-meta" href="#">Ещё 2 на проверке</a></div></div>
+        <div class="q" data-q><span class="num">01</span><div><p class="qt">Выпускать 0.3.22 сейчас или вместе с волной 5?</p><p class="qs">Агент выпуска · держит 1 задачу · ответ нужен, чтобы выпуск пошёл</p></div><div class="side"><span class="chip warn">вопрос</span><span class="t-meta">40 ч</span></div>
+          <div class="acts"><button class="btn btn-sm" data-pick>Сейчас</button><button class="btn btn-sm" data-pick>С волной 5</button><button class="btn btn-sm btn-quiet" data-answer>Ответить своими словами</button></div>
+          <div class="answer-box" hidden><textarea placeholder="Что решили и что сделать дальше"></textarea><div><button class="btn btn-sm btn-primary">Записать решение</button></div></div></div>
+        <div class="q" data-q><span class="num">02</span><div><p class="qt">Куда положить чтение доски: в main/boardRead.ts или в общий модуль чтений?</p><p class="qs">Claude Code · держит задачу «Чтение доски модулем»</p></div><div class="side"><span class="chip warn">вопрос</span><span class="t-meta">2 ч</span></div>
+          <div class="acts"><button class="btn btn-sm" data-pick>main/boardRead.ts</button><button class="btn btn-sm" data-pick>Общий модуль чтений</button><button class="btn btn-sm btn-quiet" data-answer>Ответить своими словами</button></div>
+          <div class="answer-box" hidden><textarea placeholder="Что решили и что сделать дальше"></textarea><div><button class="btn btn-sm btn-primary">Записать решение</button></div></div></div>
+        <div class="q" data-q><span class="num">03</span><div><p class="qt">Публикация пакета @example/atlas 0.3.22 в npm остановлена</p><p class="qs">Агент выпуска хотел опубликовать. По вашему правилу от 15 окт. в npm без вас не публикуем.</p></div><div class="side"><span class="chip bad">ждёт разрешения</span><span class="t-meta">1 ч</span></div>
+          <div class="acts"><button class="btn btn-sm btn-primary">Разрешить один раз</button><button class="btn btn-sm">Отказать</button><button class="btn btn-sm btn-quiet" data-answer>Своими словами</button></div>
+          <div class="answer-box" hidden><textarea placeholder="Что решили"></textarea><div><button class="btn btn-sm btn-primary">Записать решение</button></div></div></div>
+      </section>
+
+      <!-- 3. WHERE FROM, WHERE TO: interactive graph first, timeline and table as alternatives -->
+      <section class="sec" id="path" aria-label="Откуда пришли, куда идём">
+        <div class="g-tools">
+          <h2 class="t-section">Откуда пришли, куда идём</h2>
+          <div class="end"><label class="check only-t"><input type="checkbox" data-only> Только команды людей</label><label class="check only-t"><input type="checkbox" data-lanes> Направления</label>
+            <div class="seg" role="group" aria-label="Вид"><button type="button" data-view="map">Граф</button><button type="button" data-view="timeline">Лента</button><button type="button" data-view="table">Таблица</button></div></div>
+        </div>
+        <div class="g-view-map gm-wrap"></div><div class="g-view-timeline" hidden></div><div class="g-view-table" hidden></div>
+        <div class="gm-legend only-m"><span><i class="lg-person"></i>сказал человек</span><span><i class="lg-ceo"></i>CEO</span><span><i class="lg-line"></i>вызвало</span><span><i class="lg-dash"></i>ответ</span><span><i class="lg-bold"></i>решение</span><span><i class="lg-badge"></i>число: шаги агентов, нажмите</span><span>наведите на карточку: её связи</span></div>
+        <div class="g-detail gm-detail"></div>
+      </section>
+
+      <!-- 4. DIRECTIONS -->
+      <section class="sec" aria-label="Направления работы">
+        <div class="sec-head"><h2 class="t-section">Направления работы</h2><div class="end"><button class="btn btn-sm">+ Задача</button><a class="link t-meta" href="#">Вся доска</a></div></div>
+        <div class="dirs">
+          <a class="dir" href="#"><span class="t-label">Доска</span><b style="font-weight:600">Доска живёт без окна и не теряет ответы</b><div class="bar info"><i style="width:55%"></i></div><div class="chips"><span class="chip info">в работе 1</span><span class="chip">на проверке 1</span></div><span class="t-meta">Последнее: тест на чтение доски, 3 мин назад</span></a>
+          <a class="dir" href="#"><span class="t-label">Доступ</span><b style="font-weight:600">Агенты входят в проект по согласию</b><div class="bar"><i style="width:80%"></i></div><div class="chips"><span class="chip good">сделано 6</span><span class="chip">в очереди 1</span></div><span class="t-meta">Последнее: отзыв доступа, 2 дн. назад</span></a>
+          <a class="dir" href="#"><span class="t-label">Выпуск</span><b style="font-weight:600">Выпуски без ручных шагов</b><div class="bar"><i style="width:40%"></i></div><div class="chips"><span class="chip warn">ждут вас 2</span></div><span class="t-meta">Последнее: 0.3.21 вышел 3 нояб.</span></a>
+        </div>
+      </section>
+
+      <!-- 5. PRODUCT BOARD -->
+      <section class="sec" aria-label="Продуктовая доска">
+        <div class="sec-head"><h2 class="t-section">Продуктовая доска</h2><span class="sec-note">цели, метрики, бэклог и заметки проекта</span><div class="end"><button class="btn btn-sm">+ Заметка</button></div></div>
+
+        <div class="okr">
+          <div style="display:flex;align-items:baseline;gap:10px"><span class="t-label">Цель на квартал</span><span class="t-meta" style="margin-left:auto">IV кв. 2026 · 58%</span></div>
+          <p style="font-size:15px;font-weight:600;margin:4px 0 8px">Агенты работают командой и не теряют контекст</p>
+          <div class="kr"><span>Ответы на запросы доски доходят после перезапуска Fabric</span><div class="bar"><i style="width:96%"></i></div><b>96 → 100%</b><span class="t-meta">метрика «Доставка ответов» · журнал Fabric</span></div>
+          <div class="kr"><span>Время от задачи до готово</span><div class="bar info"><i style="width:46%"></i></div><b>26 → 12 ч</b><span class="t-meta">метрика «Цикл задачи», медиана</span></div>
+          <div class="kr"><span>Брошенных задач без владельца</span><div class="bar"><i style="width:60%"></i></div><b>2 → 0</b><span class="t-meta">метрика «Брошено», в неделю</span></div>
+        </div>
+
+        <div class="sub-h"><h3 class="t-label">Метрики</h3><span class="t-meta">8 недель</span></div>
+        <div class="tiles">
+          <div class="tile"><span class="t-meta">Доставка ответов</span><div style="display:flex;align-items:baseline;gap:8px"><span class="t-stat">96%</span><span class="tr up">↑ 4 п.</span></div><span data-spark="88,90,89,92,93,92,95,96"></span></div>
+          <div class="tile"><span class="t-meta">Цикл задачи, медиана</span><div style="display:flex;align-items:baseline;gap:8px"><span class="t-stat">26 ч</span><span class="tr down-good">↓ 6 ч</span></div><span data-spark="38,35,36,33,31,30,28,26" data-low></span></div>
+          <div class="tile"><span class="t-meta">Брошено в неделю</span><div style="display:flex;align-items:baseline;gap:8px"><span class="t-stat">2</span><span class="tr down-good">↓ 1</span></div><span data-spark="5,4,4,3,4,3,3,2" data-low></span></div>
+        </div>
+
+        <div class="sub-h"><h3 class="t-label">Бэклог</h3><span class="t-meta">каждая карточка привязана к ключевому результату</span></div>
+        <div class="kan">
+          <div class="kan-col"><h4 class="t-label">Сейчас <span class="count">2</span></h4>
+            <div class="kan-card">Чтение доски отдельным модулем<div class="t-meta"><span class="kr-tag">KR доставка</span><span>Claude Code</span></div></div>
+            <div class="kan-card">Выпуск 0.3.22<div class="t-meta"><span class="kr-tag">KR цикл</span><span>ждёт вас</span></div></div></div>
+          <div class="kan-col"><h4 class="t-label">Дальше <span class="count">3</span></h4>
+            <div class="kan-card">Повтор ответа, если адресат спит<div class="t-meta"><span class="kr-tag">KR доставка</span></div></div>
+            <div class="kan-card">Задача без владельца возвращается в очередь за 10 мин<div class="t-meta"><span class="kr-tag">KR брошено</span></div></div>
+            <div class="kan-card">Сводка дня для владельца<div class="t-meta"><span class="kr-tag">KR цикл</span></div></div></div>
+          <div class="kan-col"><h4 class="t-label">Потом <span class="count">2</span></h4>
+            <div class="kan-card">Доска на втором Mac<div class="t-meta"><span class="kr-tag">без KR</span></div></div>
+            <div class="kan-card">Открытый трекер задач под капотом: оценить<div class="t-meta"><span class="kr-tag">исследование</span></div></div></div>
+        </div>
+
+        <div class="sub-h"><h3 class="t-label">Продуктовые заметки</h3></div>
+        <div>
+          <div class="note"><span class="tag">Инсайт</span><span>Владелец отвечает на вопросы с вариантами в 4 раза быстрее, чем на открытые.</span><span class="t-meta">CEO · 18 нояб.</span></div>
+          <div class="note"><span class="tag">Гипотеза</span><span>Если шаги агентов свернуть, цепочку решений читают до конца.</span><span class="t-meta">владелец · 20 нояб.</span></div>
+          <div class="note"><span class="tag">Решение</span><span>В npm без владельца не публикуем.</span><span class="t-meta">владелец · 15 окт.</span></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+<script>
+function spark(vals, w, h, low) {
+  var max = Math.max.apply(null, vals), min = Math.min.apply(null, vals), r = max - min || 1;
+  var pts = vals.map(function (v, i) { return (i * (w - 4) / (vals.length - 1) + 2).toFixed(1) + ',' + (h - 3 - (v - min) / r * (h - 6)).toFixed(1); });
+  var last = pts[pts.length - 1].split(',');
+  return '<svg class="spark" width="' + w + '" height="' + h + '" aria-hidden="true"><polyline fill="none" stroke="var(--app-line-strong)" stroke-width="1.5" points="' + pts.join(' ') + '"/><circle cx="' + last[0] + '" cy="' + last[1] + '" r="2.5" fill="var(--state-good)"/></svg>';
+}
+var PATH = {
+  nodes: [
+    { id: 'P1', kind: 'command', actor: 'person', who: 'Владелец', where: 'окно CEO', at: '2026-09-02T10:00', when: '2 сент., 10:00', whenShort: '2 сент.', state: 'done', group: 'Доступ', col: 0, lane: 0, quote: 'Сделай командный доступ: агенты работают в одном проекте и не теряют контекст', short: 'Сделай командный доступ' },
+    { id: 'M1', kind: 'milestone', actor: 'agent', who: 'Claude Code', at: '2026-09-20T18:00', when: '20 сент.', state: 'done', group: 'Доступ', col: 1, lane: 0, label: 'Доступ агентов: первая версия', short: 'Доступ агентов v1' },
+    { id: 'P2', kind: 'command', actor: 'person', who: 'Владелец', where: 'Переписка', at: '2026-09-28T09:30', when: '28 сент., 09:30', whenShort: '28 сент.', state: 'done', group: 'Доска', col: 1, lane: 1, quote: 'Доска должна работать и без открытого окна Fabric', short: 'Доска без открытого окна' },
+    { id: 'M2', kind: 'milestone', actor: 'agent', who: 'Claude Code', at: '2026-10-12T16:00', when: '12 окт.', state: 'done', group: 'Доска', col: 2, lane: 1, label: 'Доска стала службой: её держит launchd', short: 'Доска как служба' },
+    { id: 'P3', kind: 'command', actor: 'person', who: 'Владелец', where: 'ответ на вопрос', at: '2026-10-15T20:00', when: '15 окт., 20:00', whenShort: '15 окт.', state: 'refused', group: 'Выпуск', col: 2, lane: 2, quote: 'Нет. В npm без меня не публикуем.', short: 'В npm без меня не публикуем' },
+    { id: 'M3', kind: 'milestone', actor: 'agent', who: 'Агент выпуска', at: '2026-11-03T12:00', when: '3 нояб.', state: 'done', group: 'Выпуск', col: 3, lane: 2, label: 'Выпуск 0.3.21 вышел', short: 'Выпуск 0.3.21' },
+    { id: 'P4', kind: 'command', actor: 'person', who: 'Владелец', where: 'окно CEO', at: '2026-11-16T07:52', when: '16 нояб., 07:52', whenShort: '16 нояб.', state: 'done', group: 'Доска', col: 3, lane: 1, quote: 'Главный файл вырос до шести с половиной тысяч строк. Вынеси чтение доски отдельно и покрой тестом.', short: 'Вынеси чтение доски, покрой тестом' },
+    { id: 'Q1', kind: 'question', actor: 'agent', who: 'Агент выпуска', at: '2026-11-19T08:00', when: '19 нояб., 08:00', whenShort: '19 нояб.', state: 'waiting', group: 'Выпуск', col: 4, lane: 2, label: 'Выпускать 0.3.22 сейчас или вместе с волной 5?' },
+    { id: 'T1', kind: 'milestone', actor: 'agent', who: 'Claude Code', at: '2026-11-20T12:00', when: 'сейчас', state: 'open', group: 'Доска', col: 4, lane: 1, label: 'Чтение доски модулем: шаг 2 из 4' },
+    { id: 'G1', kind: 'goal', actor: 'system', who: 'Цель', at: '2026-11-30T00:00', when: '30 нояб.', state: 'open', future: true, group: 'Доступ', col: 4, lane: 0, label: 'Командный доступ к 30 нояб.: 3 из 5 задач' }
+  ],
+  edges: [
+    { from: 'P1', to: 'M1', kind: 'caused', at: '2026-09-02T11:00', when: 'с 2 по 20 сент.', count: 24, steps: [{ when: '2 сент.', who: 'CEO', label: 'завёл проект Atlas и три направления' }, { when: '3 сент.', who: 'Claude Code', label: 'дверь доступа: запрос, согласие, отзыв' }, { when: '19 сент.', who: 'Codex', label: 'проверка: отзыв закрывает все сессии агента' }] },
+    { from: 'P2', to: 'M2', kind: 'caused', at: '2026-09-28T10:00', when: 'с 28 сент. по 12 окт.', count: 31, steps: [{ when: '29 сент.', who: 'Claude Code', label: 'доска отделена от окна' }, { when: '8 окт.', who: 'Claude Code', label: 'служба launchd, перезапуск после сбоя' }] },
+    { from: 'M2', to: 'M3', kind: 'spawned' },
+    { from: 'P3', to: 'M3', kind: 'decided', at: '2026-10-16T09:00', when: 'с 16 окт. по 3 нояб.', count: 18, steps: [{ when: '16 окт.', who: 'Агент выпуска', label: 'публикация в npm только после разрешения' }, { when: '3 нояб.', who: 'Агент выпуска', label: '0.3.21: метка, сборка, проверка' }] },
+    { from: 'M3', to: 'Q1', kind: 'caused', at: '2026-11-04T09:00', when: 'с 4 по 19 нояб.', count: 4, steps: [{ when: '18 нояб.', who: 'Агент выпуска', label: 'собрал кандидата 0.3.22' }] },
+    { from: 'P4', to: 'T1', kind: 'caused', at: '2026-11-16T08:00', when: 'с 16 нояб.', count: 12, steps: [{ when: '16 нояб.', who: 'CEO', label: 'завёл задачу «Чтение доски отдельным модулем»' }, { when: '17 нояб.', who: 'Claude Code', label: 'тест на чтение доски падает на старом коде, как и должен' }] },
+    { from: 'M1', to: 'G1', kind: 'spawned' },
+    { from: 'T1', to: 'G1', kind: 'spawned' }
+  ]
+};
+document.addEventListener('DOMContentLoaded', function () {
+  document.getElementById('sp-done').innerHTML = spark([2, 3, 2, 5, 4, 3, 6, 5], 70, 22);
+  document.querySelectorAll('[data-spark]').forEach(function (s) { s.innerHTML = spark(s.dataset.spark.split(',').map(Number), 200, 36); });
+  var root = document.getElementById('path');
+  FabricGraph.mount(root, PATH, { view: 'map', lanes: ['Доступ', 'Доска', 'Выпуск'], colW: 150, cardW: 112, laneH: 108, nowCol: 4, selected: 'P4', lanesOn: true });
+  root.querySelectorAll('[data-view]').forEach(function (b) { b.addEventListener('click', function () { root.querySelector('.only-m').hidden = b.dataset.view !== 'map'; }); });
+});
+</script>
+
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabric · макет · Главная</title>
+<style>
+/* Fabric page mockups, 2026-11-20. Light theme values copied from the app:
+   tokens.passioncode.css (v1.1.0 light palette), tokens.app.css (semantic roles),
+   rail.css (the 216 px rail). Fonts: the system UI stack stands in for Inter.
+   One type system for every mockup: page 22, section 16, body 14, meta 12, label 11. */
+:root{
+  color-scheme:light;
+  --pc-bg:#ffffff;--pc-panel:#f7f5f8;--pc-panel-raised:#ffffff;--pc-text:#211725;--pc-text-muted:#655769;
+  --pc-border:#ddd4df;--pc-border-strong:#8f8095;--pc-accent:#ffd21a;--pc-accent-hover:#edbd00;--pc-on-accent:#211900;
+  --pc-accent-soft:#fff2b8;--pc-focus:#806200;--pc-link:#806200;--pc-positive:#246b3b;--pc-positive-soft:#e4f3e8;
+  --pc-warning:#8a4b0b;--pc-warning-soft:#fff0dc;--pc-negative:#a82f44;--pc-negative-soft:#fde8ec;--pc-info:#345da7;--pc-info-soft:#e8efff;
+  --app-bg:var(--pc-bg);--app-panel:var(--pc-panel);--app-panel-quiet:var(--pc-panel-raised);--app-ink:var(--pc-text);--app-muted:var(--pc-text-muted);
+  --app-line:var(--pc-border);--app-line-strong:var(--pc-border-strong);
+  --app-line-control:color-mix(in oklab,var(--app-line-strong) 88%,var(--app-ink));
+  --app-accent:var(--pc-accent);--app-focus:var(--pc-focus);--app-link:var(--pc-link);
+  --state-running:var(--pc-info);--state-blocked:var(--pc-negative);--state-idle:var(--pc-warning);--state-ended:var(--pc-text-muted);--state-good:var(--pc-positive);
+  --ceo:#7260DB;--ceo-soft:#E8DFFF;
+  --r-control:8px;--r-panel:16px;--r-pill:999px;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --fs-page:22px;--fs-section:16px;--fs-body:14px;--fs-meta:12px;--fs-label:11px;--fs-stat:20px;
+  --ease:cubic-bezier(.2,0,0,1);--dur:120ms;--dur-state:180ms;
+}
+@media (prefers-reduced-motion:reduce){:root{--dur:0ms;--dur-state:0ms}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);font-size:var(--fs-body);line-height:1.5;color:var(--app-ink);background:var(--app-bg);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p{margin:0}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--app-focus);outline-offset:2px}
+
+/* ── type roles ── */
+.t-page{font-size:var(--fs-page);font-weight:650;letter-spacing:-.02em;line-height:1.25}
+.t-section{font-size:var(--fs-section);font-weight:650;letter-spacing:-.01em;line-height:1.35}
+.t-body{font-size:var(--fs-body)}
+.t-meta{font-size:var(--fs-meta);color:var(--app-muted)}
+.t-label{font-size:var(--fs-label);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--app-muted)}
+.t-mono{font-family:var(--mono);font-size:var(--fs-meta)}
+.t-stat{font-size:var(--fs-stat);font-weight:650;letter-spacing:-.02em;line-height:1.2}
+.muted{color:var(--app-muted)}
+.quote{font-size:var(--fs-body);line-height:1.5;color:var(--app-ink)}
+.quote::before{content:"«"}.quote::after{content:"»"}
+.link{color:var(--app-link);text-decoration:underline;text-underline-offset:2px;cursor:pointer;background:none;border:0;padding:0;font-size:inherit}
+
+/* ── shell and rail (rail.css: 216 px, panel fill, hairline) ── */
+.fab-shell{display:grid;grid-template-columns:216px minmax(0,1fr);min-height:100vh;background:linear-gradient(to right,var(--app-panel) 215px,var(--app-line) 215px,var(--app-line) 216px,var(--app-bg) 216px)}
+.rail{border-right:1px solid var(--app-line);padding:12px 10px;display:flex;flex-direction:column;background:var(--app-panel);position:sticky;top:0;height:100vh}
+.rail-brand{display:flex;align-items:center;gap:9px;padding:20px 8px 12px}
+.rail-brand b{font-size:15px;font-weight:600;letter-spacing:-.01em;display:block}
+.rail-brand small{display:block;font-size:11px;color:var(--app-muted);margin-top:1px}
+.rail-create{display:flex;align-items:center;justify-content:center;gap:5px;margin:0 4px 12px;height:30px;border-radius:8px;background:var(--app-ink);color:var(--app-bg);font-size:13px;font-weight:550;border:0;cursor:pointer}
+.rail-view{display:grid;grid-template-columns:1fr 1fr;margin:0 4px 8px;padding:2px;border:1px solid var(--app-line);border-radius:8px;background:var(--app-bg)}
+.rail-view a{display:grid;place-items:center;border-radius:6px;height:26px;font-size:12.5px;color:var(--app-muted);text-decoration:none}
+.rail-view a.on{background:var(--app-panel);color:var(--app-ink);font-weight:600}
+.rail-sect{display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--app-muted);padding:10px 8px 4px}
+.rail-sort{border:0;background:none;font-size:11px;letter-spacing:0;text-transform:none;color:var(--app-muted);cursor:pointer;padding:2px 4px;border-radius:5px}
+.rail-sort[aria-pressed="true"]{color:var(--app-ink);background:color-mix(in srgb,var(--app-ink) 7%,transparent);font-weight:600}
+.rail-projects{flex:1 1 auto;overflow-y:auto}
+.rail-projects ul{list-style:none;margin:0;padding:0;display:grid}
+.rail-projects li{min-width:0;border-radius:6px}
+.rail-projects a,.rail-places a{display:flex;align-items:center;gap:8px;min-height:28px;padding:3px 8px;border-radius:6px;color:var(--app-muted);font-size:12.5px;text-decoration:none}
+.rail-projects a.on,.rail-places a.on{background:color-mix(in srgb,var(--app-ink) 7%,transparent);color:var(--app-ink)}
+.rail-projects a:hover,.rail-places a:hover{color:var(--app-ink)}
+.rail-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rail-sub{display:block;font-size:11px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rail-dot{width:6px;height:6px;border-radius:50%;background:var(--app-line-strong);flex:none}
+.rail-dot.live{background:var(--state-good);box-shadow:0 0 0 3px color-mix(in srgb,var(--state-good) 15%,transparent)}
+.rail-star{color:var(--app-link);font-size:11px;margin-left:-4px}
+.rail-c{margin-left:auto;font-size:11px;color:var(--app-link);font-weight:600}
+.rail-grip{display:none;color:var(--app-muted);font-size:11px;letter-spacing:-2px;cursor:grab;margin-left:auto}
+.rail-projects.sorting .rail-grip{display:inline}
+.rail-projects.sorting .rail-c{display:none}
+.rail-projects.sorting li{cursor:grab}
+.rail-projects li.drag{opacity:.4}
+.rail-projects li.over{box-shadow:inset 0 2px 0 var(--app-focus)}
+.rail-hint{font-size:11px;color:var(--app-muted);padding:4px 8px 0;display:none}
+.rail-projects.sorting + .rail-hint{display:block}
+.rail-agent a{align-items:flex-start}
+.rail-agent .rail-dot{margin-top:6px}
+.rail-places{display:grid;border-top:1px solid var(--app-line);padding-top:8px;margin-top:8px}
+.rail-i{width:13px;height:13px;border:1.5px solid currentColor;border-radius:4px;opacity:.85;flex:none}
+.rail-i-board{border-radius:2px;box-shadow:inset 4px 0 0 -2.5px currentColor}
+.rail-i-comms{border-radius:6px 6px 6px 1px}
+.rail-i-access{border-radius:50% 50% 3px 3px}
+.rail-i-history{border-style:dashed}
+.rail-i-settings{border-radius:3px 8px}
+
+.fab-main{min-width:0;display:flex;flex-direction:column}
+.fab-top{height:42px;display:flex;align-items:center;gap:var(--s3);padding:0 20px;border-bottom:1px solid var(--app-line);background:var(--app-bg);position:sticky;top:0;z-index:5}
+.fab-top h1{font-size:14px;font-weight:600}
+.mock-switch{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--app-muted);border:1px dashed var(--app-line-strong);border-radius:8px;padding:3px 6px}
+.mock-switch button{border:0;background:none;font-size:11px;padding:2px 6px;border-radius:5px;cursor:pointer;color:var(--app-muted)}
+.mock-switch button[aria-pressed="true"]{background:var(--app-panel);color:var(--app-ink);font-weight:600}
+.page{padding:20px 24px 48px;max-width:1500px;width:100%}
+
+/* ── controls ── */
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--r-control);border:1px solid var(--app-line-control);background:var(--app-bg);font-size:13px;cursor:pointer;white-space:nowrap;text-decoration:none;color:var(--app-ink)}
+.btn:hover{background:var(--app-panel)}
+.btn-primary{background:var(--app-ink);color:var(--app-bg);border-color:var(--app-ink);font-weight:550}
+.btn-primary:hover{background:color-mix(in srgb,var(--app-ink) 88%,white)}
+.btn-quiet{border-color:transparent;background:none;color:var(--app-muted)}
+.btn-sm{height:26px;padding:0 9px;font-size:12px}
+.seg{display:inline-flex;padding:2px;border:1px solid var(--app-line);border-radius:8px;background:var(--app-bg)}
+.seg button{border:0;background:none;border-radius:6px;height:26px;padding:0 10px;font-size:12.5px;color:var(--app-muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--app-panel);color:var(--app-ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--app-line)}
+.check{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--app-ink);cursor:pointer;user-select:none}
+.check input{accent-color:var(--app-ink);margin:0}
+textarea,input[type=text]{font:inherit;font-size:13px;width:100%;border:1px solid var(--app-line-control);border-radius:var(--r-control);padding:8px 10px;background:var(--app-bg);color:var(--app-ink);resize:vertical}
+
+/* ── chips (the word carries the state, the hue supports it) ── */
+.chip{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:var(--r-pill);border:1px solid var(--app-line);font-size:11.5px;color:var(--app-ink);white-space:nowrap;background:var(--app-bg)}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--state-ended)}
+.chip.nodot::before{display:none}
+.chip.good{border-color:color-mix(in srgb,var(--state-good) 40%,transparent);background:var(--pc-positive-soft)}.chip.good::before{background:var(--state-good)}
+.chip.info{border-color:color-mix(in srgb,var(--state-running) 40%,transparent);background:var(--pc-info-soft)}.chip.info::before{background:var(--state-running)}
+.chip.warn{border-color:color-mix(in srgb,var(--state-idle) 40%,transparent);background:var(--pc-warning-soft)}.chip.warn::before{background:var(--state-idle)}
+.chip.bad{border-color:color-mix(in srgb,var(--state-blocked) 40%,transparent);background:var(--pc-negative-soft)}.chip.bad::before{background:var(--state-blocked)}
+.count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;border:1px solid var(--app-line);font-size:11.5px;font-weight:600;color:var(--app-ink)}
+.count.ask{background:var(--pc-accent-soft);border-color:color-mix(in srgb,var(--pc-accent) 70%,var(--app-line))}
+
+/* ── panels and sections ── */
+.panel{background:var(--app-panel);border:1px solid var(--app-line);border-radius:var(--r-panel);padding:var(--s4)}
+.card{background:var(--app-bg);border:1px solid var(--app-line-control);border-radius:12px;padding:var(--s3) var(--s4)}
+.sec{margin-top:var(--s6)}
+.sec:first-child{margin-top:0}
+.sec-head{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3);flex-wrap:wrap}
+.sec-head .end{margin-left:auto;display:flex;gap:var(--s2);align-items:center}
+.sec-note{font-size:var(--fs-meta);color:var(--app-muted)}
+.facts{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px var(--s3);font-size:var(--fs-body)}
+.facts dt{font-size:var(--fs-meta);color:var(--app-muted);padding-top:2px}
+.facts dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.facts .src{display:block;font-size:11px;color:var(--app-muted)}
+.bar{height:6px;border-radius:3px;background:var(--app-line);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--state-good);border-radius:3px}
+.bar.info>i{background:var(--state-running)}
+.quiet-line{font-size:13px;color:var(--app-muted);padding:6px 0}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--state-ended);flex:none}
+.dot.good{background:var(--state-good)}.dot.info{background:var(--state-running)}.dot.warn{background:var(--state-idle)}.dot.bad{background:var(--state-blocked)}.dot.ceo{background:var(--ceo)}.dot.person{background:var(--app-ink)}
+.row{display:flex;align-items:baseline;gap:var(--s3);padding:8px 0;border-bottom:1px solid var(--app-line)}
+.row:last-child{border-bottom:0}
+.row-main{flex:1;min-width:0;overflow-wrap:anywhere}
+.row-trail{font-size:var(--fs-meta);color:var(--app-muted);white-space:nowrap}
+.spark{display:block}
+
+/* ══ @fabric/graph mock ═════════════════════════════════════════ */
+.g-tools{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;margin-bottom:var(--s3)}
+.g-tools .end{margin-left:auto;display:flex;gap:var(--s3);align-items:center}
+
+/* GraphTimeline */
+.gt{position:relative;padding-left:22px}
+.gt::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:1px;background:var(--app-line)}
+.gt-item{position:relative;margin-bottom:10px}
+.gt-item::before{content:"";position:absolute;left:-19px;top:14px;width:9px;height:9px;border-radius:50%;background:var(--app-bg);border:2px solid var(--state-ended)}
+.gt-item.person::before{background:var(--app-ink);border-color:var(--app-ink)}
+.gt-item.ceo::before{background:var(--ceo);border-color:var(--ceo)}
+.gt-item.done::before{border-color:var(--state-good)}
+.gt-item.open::before{border-color:var(--state-running)}
+.gt-item.waiting::before{border-color:var(--state-idle);background:var(--pc-warning-soft)}
+.gt-item.refused::before{border-color:var(--state-blocked)}
+.gt-item.future::before{border-style:dashed}
+.gt-item.fold::before{width:7px;height:7px;left:-18px;top:11px;border-width:1px;border-color:var(--app-line-strong)}
+.gt-card{border:1px solid var(--app-line);border-radius:12px;padding:10px 14px;background:var(--app-bg);transition:border-color var(--dur) var(--ease)}
+.gt-card:hover,.gt-card.hl{border-color:var(--app-line-strong)}
+.gt-item.person .gt-card{border-left:3px solid var(--app-ink);background:var(--app-bg)}
+.gt-item.ceo .gt-card{border-left:3px solid var(--ceo)}
+.gt-item.waiting .gt-card{background:var(--pc-warning-soft);border-color:color-mix(in srgb,var(--state-idle) 35%,var(--app-line))}
+.gt-item.future .gt-card{border-style:dashed;background:none}
+.gt-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:var(--fs-meta);color:var(--app-muted);margin-bottom:3px}
+.gt-head b{color:var(--app-ink);font-weight:600}
+.gt-head .chip{margin-left:auto}
+.gt-title{font-size:var(--fs-body);font-weight:500}
+.gt-item.person .gt-title{font-size:15px;font-weight:450;line-height:1.5}
+.gt-acts{margin-top:8px;display:flex;gap:8px}
+.gt-fold{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1px dashed var(--app-line-strong);border-radius:10px;background:var(--app-panel);padding:6px 12px;font-size:12.5px;color:var(--app-muted);cursor:pointer}
+.gt-fold:hover{color:var(--app-ink)}
+.gt-fold b{color:var(--app-ink);font-weight:600}
+.gt-fold .tw{display:inline-block;transition:transform var(--dur) var(--ease);font-size:10px}
+.gt-fold[aria-expanded="true"] .tw{transform:rotate(90deg)}
+.gt-steps{display:none;margin:6px 0 0;padding:4px 0 0 12px;border-left:1px dashed var(--app-line-strong)}
+.gt-fold[aria-expanded="true"] + .gt-steps{display:block}
+.gt-step{display:grid;grid-template-columns:86px 110px minmax(0,1fr);gap:10px;font-size:12.5px;padding:3px 0;color:var(--app-ink)}
+.gt-step .t{font-family:var(--mono);font-size:11.5px;color:var(--app-muted)}
+.gt-step .a{color:var(--app-muted)}
+.gt-more{font-size:12px;color:var(--app-muted);padding:3px 0}
+.gt-lane{display:inline-block;font-size:11px;padding:0 6px;border-radius:4px;background:var(--app-panel);border:1px solid var(--app-line);color:var(--app-muted)}
+
+/* GraphMap */
+.gm-wrap{position:relative;overflow-x:auto;border:1px solid var(--app-line);border-radius:12px;background:var(--app-bg)}
+.gm{position:relative}
+.gm svg{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.gm-lane{position:absolute;left:0;right:0;border-top:1px solid var(--app-line)}
+.gm-lane:first-of-type{border-top:0}
+.gm-lane span{position:absolute;left:10px;top:6px;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--app-muted)}
+.gm-now{position:absolute;top:0;bottom:0;border-left:1px dashed var(--app-line-strong)}
+.gm-now span{position:absolute;top:6px;left:6px;font-size:10.5px;color:var(--app-muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.gm-node{position:absolute;width:118px;min-height:58px;padding:6px 8px;border:1px solid var(--app-line-control);border-radius:10px;background:var(--app-bg);font-size:11.5px;line-height:1.35;cursor:pointer;text-align:left;transition:opacity var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+.gm-node .h{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--app-muted);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gm-node .l{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--app-ink)}
+.gm-node.person{border-left:3px solid var(--app-ink)}
+.gm-node.person .l{font-style:normal}
+.gm-node.ceo{border-left:3px solid var(--ceo)}
+.gm-node.waiting{background:var(--pc-warning-soft)}
+.gm-node.future{border-style:dashed;background:none}
+.gm-node.sel{box-shadow:0 0 0 2px var(--app-focus)}
+.gm.hovering .gm-node:not(.hl){opacity:.35}
+.gm-badge{position:absolute;transform:translate(-50%,-50%);min-width:22px;height:20px;padding:0 6px;border-radius:10px;border:1px solid var(--app-line-strong);background:var(--app-panel);font-size:11px;font-weight:600;color:var(--app-ink);cursor:pointer;display:grid;place-items:center;transition:opacity var(--dur) var(--ease)}
+.gm.hovering .gm-badge:not(.hl){opacity:.3}
+.gm-edge{fill:none;stroke:var(--app-line-strong);stroke-width:1.4;transition:opacity var(--dur) var(--ease)}
+.gm-edge.answered{stroke-dasharray:4 3}
+.gm-edge.spawned{stroke:var(--app-line);stroke-width:1.2}
+.gm-edge.decided{stroke:var(--app-ink);stroke-width:1.8}
+.gm.hovering .gm-edge:not(.hl){opacity:.18}
+.gm.hovering .gm-edge.hl{stroke:var(--app-ink)}
+.gm-detail{margin-top:var(--s3)}
+.gm-detail .gt-item::before{display:none}
+.gm-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--app-muted);margin-top:8px;align-items:center}
+.gm-legend i{display:inline-block;vertical-align:middle;margin-right:5px}
+.lg-person{width:10px;height:12px;border-left:3px solid var(--app-ink);border:1px solid var(--app-line-control);border-left-width:3px;border-radius:2px}
+.lg-ceo{width:10px;height:12px;border:1px solid var(--app-line-control);border-left:3px solid var(--ceo);border-radius:2px}
+.lg-line{width:22px;height:0;border-top:1.4px solid var(--app-line-strong)}
+.lg-dash{width:22px;height:0;border-top:1.4px dashed var(--app-line-strong)}
+.lg-bold{width:22px;height:0;border-top:2px solid var(--app-ink)}
+.lg-badge{min-width:18px;height:14px;border-radius:7px;border:1px solid var(--app-line-strong);background:var(--app-panel)}
+
+/* GraphTable */
+.gtab{width:100%;border-collapse:collapse;font-size:13px}
+.gtab th{text-align:left;font-size:var(--fs-label);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--app-muted);padding:6px 8px;border-bottom:1px solid var(--app-line-strong);white-space:nowrap}
+.gtab th button{border:0;background:none;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;cursor:pointer;padding:0}
+.gtab td{padding:7px 8px;border-bottom:1px solid var(--app-line);vertical-align:top}
+.gtab td.t{font-family:var(--mono);font-size:11.5px;color:var(--app-muted);white-space:nowrap}
+.gtab tr.person td.w{font-weight:600}
+.gtab tr.fold td{color:var(--app-muted)}
+
+
+.hm{max-width:1180px}
+.greet{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) 320px;gap:24px;align-items:center;padding:18px 20px;border:1px solid var(--app-line);border-radius:var(--r-panel);background:linear-gradient(120deg,#fbf7f0,#f7f5f8 60%,#f4f1fb)}
+.face{width:56px;height:56px;border-radius:16px;background:var(--avatar,#E8DFFF);display:grid;place-items:center;flex:none}
+.greet-id{display:flex;align-items:center;gap:14px}
+.greet-id h2{font-size:20px;font-weight:600;letter-spacing:-.02em;line-height:1.3}
+.greet-id p{font-size:13px;color:var(--app-muted);margin-top:2px}
+.rhythm{border-left:1px solid var(--app-line);padding-left:20px}
+.rhythm .bars{display:flex;align-items:flex-end;gap:3px;height:44px;margin:6px 0 4px}
+.rhythm .bars i{display:block;width:7px;background:var(--app-line-strong);border-radius:2px 2px 0 0;opacity:.75}
+.rhythm .bars i.today{background:var(--app-ink);opacity:1}
+.ask{display:grid;gap:8px}
+.ask textarea{min-height:44px;height:44px;background:rgba(255,255,255,.8)}
+.ask .row2{display:flex;justify-content:space-between;gap:8px}
+.qs-list{border:1px solid var(--app-line);border-radius:var(--r-panel);padding:4px 16px;background:var(--app-bg)}
+.hq{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 16px;padding:12px 0;border-bottom:1px solid var(--app-line)}
+.hq:last-child{border-bottom:0}
+.hq .who{font-size:12px;color:var(--app-muted)}
+.hq .who b{color:var(--app-ink);font-weight:600}
+.hq .qt{font-size:14px;font-weight:600;margin-top:2px}
+.hq .side{display:flex;align-items:center;gap:8px;grid-row:1/3;grid-column:2}
+.hq .acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.hq .acts .btn[aria-pressed="true"]{border-color:var(--app-ink);box-shadow:inset 0 0 0 1px var(--app-ink)}
+.answer-box{grid-column:1/-1;display:grid;gap:8px;margin-top:8px}
+.answer-box textarea{min-height:60px}
+.pins{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pin{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:1px solid var(--app-line-control);border-radius:14px;background:var(--app-bg);text-decoration:none;color:inherit;min-height:196px}
+.pin:hover{background:var(--app-panel)}
+.pin-h{display:flex;align-items:center;gap:8px}
+.pin-h b{font-size:16px;font-weight:650;letter-spacing:-.01em}
+.pin-h .chip{margin-left:auto}
+.pin .lbl{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--app-muted)}
+.pin .ms{margin-top:auto;padding-top:10px;border-top:1px solid var(--app-line)}
+.pin .ms-row{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin:2px 0 6px}
+.pin-add{display:grid;place-items:center;border:1px dashed var(--app-line-strong);border-radius:14px;color:var(--app-muted);font-size:13px;min-height:60px}
+.lower{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}
+.ms-list .day{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--app-muted);margin:14px 0 4px}
+.ms-list .day:first-child{margin-top:0}
+.ev{display:grid;grid-template-columns:48px 14px minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--app-line);font-size:13px}
+.ev .t{font-family:var(--mono);font-size:11.5px;color:var(--app-muted)}
+.ev .p{font-size:12px;color:var(--app-muted)}
+.ev .k{font-weight:600}
+.prio li{display:grid;grid-template-columns:18px 22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--app-line);border-radius:10px;background:var(--app-bg);margin-bottom:6px;cursor:grab}
+.prio li.drag{opacity:.4}.prio li.over{box-shadow:inset 0 2px 0 var(--app-focus)}
+.prio{list-style:none;margin:0;padding:0}
+.prio .g{color:var(--app-muted);letter-spacing:-2px;font-size:12px}
+.prio .n{font-family:var(--mono);font-size:12px;color:var(--app-muted)}
+.d30{display:grid;grid-template-columns:130px minmax(0,1fr) 110px;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--app-line);font-size:13px}
+.d30 .cells{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;height:22px;align-items:end}
+.d30 .cells i{display:block;background:var(--app-line-strong);border-radius:1px;opacity:.8}
+.d30 .cells i.z{background:var(--app-line);height:2px!important;opacity:1}
+.side-list .row{font-size:13px}
+.go{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.go a{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--app-line);border-radius:10px;text-decoration:none;color:inherit;font-size:13px;background:var(--app-bg)}
+.go a:hover{background:var(--app-panel)}
+.go .rail-c{margin-left:auto}
+[hidden]{display:none!important}
+
+
+</style>
+<script>
+/* @fabric/graph, mocked in plain DOM and SVG for the 2026-11-20 page mockups.
+   Data: node {id, kind, label, quote, at, when, actor: person|agent|ceo|system, who, where, state: open|done|waiting|refused,
+   future, group, col, lane}; edge {from, to, kind: caused|answered|spawned|decided, at, when, count, steps:[{when, who, label}]}.
+   Agents' steps live on the edges between the nodes people care about: the timeline folds them into
+   «агенты: N шагов», the map shows the number on the edge, the table lists them as one row. */
+(function () {
+  var STATE = { open: ['идёт', 'info'], done: ['сделано', 'good'], waiting: ['ждёт ответа', 'warn'], refused: ['отказ', 'bad'] };
+  var KIND = { command: 'сказал', answer: 'ответил', question: 'вопрос владельцу', task: 'завёл задачу', milestone: 'веха', goal: '', relay: 'передал' };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function plural(n, one, few, many) { var m10 = n % 10, m100 = n % 100; if (m10 === 1 && m100 !== 11) return one; if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few; return many; }
+  function steps(n) { return n + ' ' + plural(n, 'шаг', 'шага', 'шагов'); }
+  function stateChip(n) {
+    if (n.future) return '<span class="chip nodot">впереди</span>';
+    if (n.actor === 'person' && n.state !== 'refused' && n.state !== 'waiting') return '';
+    var s = STATE[n.state]; return s ? '<span class="chip ' + s[1] + '">' + s[0] + '</span>' : '';
+  }
+  function nodeClass(n) { return [n.actor === 'person' ? 'person' : n.actor === 'ceo' ? 'ceo' : '', n.state || '', n.future ? 'future' : ''].join(' '); }
+  function agentsOf(st) { var seen = {}; st.forEach(function (s) { if (s.who) seen[s.who] = 1; }); return Object.keys(seen).join(', '); }
+
+  function stream(data) {
+    var items = data.nodes.map(function (n) { return { type: 'node', at: n.at, n: n }; });
+    data.edges.forEach(function (e) {
+      if (!e.count) return;
+      var from = data.nodes.filter(function (n) { return n.id === e.from; })[0];
+      items.push({ type: 'fold', at: e.at || (from && from.at + '~'), count: e.count, steps: (e.steps || []).slice(), edge: e, group: from && from.group, when: e.when });
+    });
+    items.sort(function (a, b) { return a.at < b.at ? -1 : a.at > b.at ? 1 : 0; });
+    return items;
+  }
+
+  function cardHtml(n, lanes) {
+    var head = '<b>' + esc(n.who) + '</b><span>' + esc(KIND[n.kind] || '') + '</span>' + (n.where ? '<span>· ' + esc(n.where) + '</span>' : '') +
+      (n.when ? '<span>· ' + esc(n.when) + '</span>' : '') + (lanes && n.group ? '<span class="gt-lane">' + esc(n.group) + '</span>' : '') + stateChip(n);
+    var title = n.actor === 'person' ? '<p class="gt-title quote">' + esc(n.quote || n.label) + '</p>' : '<p class="gt-title">' + esc(n.label) + '</p>';
+    var acts = '';
+    if (n.kind === 'question' && n.state === 'waiting') acts = '<div class="gt-acts"><button class="btn btn-sm btn-primary" type="button">Ответить</button><button class="btn btn-sm" type="button">Открыть задачу</button></div>';
+    if (n.note) title += '<p class="t-meta" style="margin-top:4px">' + esc(n.note) + '</p>';
+    return '<div class="gt-head">' + head + '</div>' + title + acts;
+  }
+
+  function timeline(el, data, opt) {
+    var items = stream(data), out = [], only = opt.onlyPeople;
+    if (only) { // merge folds that touch
+      items.forEach(function (it) {
+        var last = out[out.length - 1];
+        if (it.type === 'fold' && last && last.type === 'fold') { last.count += it.count; last.steps = last.steps.concat(it.steps); last.when = (last.when || '').split(' до ')[0] + (it.when ? ' до ' + it.when.split(' до ').pop() : ''); }
+        else out.push(Object.assign({}, it, { steps: it.steps && it.steps.slice() }));
+      });
+    } else out = items;
+    var h = '';
+    out.forEach(function (it) {
+      if (it.type === 'node') {
+        h += '<div class="gt-item ' + nodeClass(it.n) + '" data-id="' + it.n.id + '"><div class="gt-card">' + cardHtml(it.n, opt.lanes) + '</div></div>';
+      } else {
+        var shown = it.steps.map(function (s) { return '<div class="gt-step"><span class="t">' + esc(s.when) + '</span><span class="a">' + esc(s.who) + '</span><span>' + esc(s.label) + '</span></div>'; }).join('');
+        var rest = it.count - it.steps.length;
+        if (rest > 0) shown += '<div class="gt-more">и ещё ' + steps(rest) + ': полностью в Истории</div>';
+        h += '<div class="gt-item fold"><button class="gt-fold" type="button" aria-expanded="' + (!only) + '"><span class="tw">▶</span><span>агенты: <b>' + steps(it.count) + '</b></span><span>· ' + esc(agentsOf(it.steps)) + '</span>' + (it.when ? '<span>· ' + esc(it.when) + '</span>' : '') + '</button><div class="gt-steps">' + shown + '</div></div>';
+      }
+    });
+    el.innerHTML = '<div class="gt">' + h + '</div>';
+    el.querySelectorAll('.gt-fold').forEach(function (b) { b.addEventListener('click', function () { b.setAttribute('aria-expanded', b.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'); }); });
+  }
+
+  function map(el, data, opt) {
+    var colW = opt.colW || 140, laneH = opt.laneH || 112, pad = opt.pad || 16, lanes = opt.lanes || [''], cardW = opt.cardW || 118;
+    var maxCol = 0; data.nodes.forEach(function (n) { if (n.col > maxCol) maxCol = n.col; });
+    var W = Math.max(el.clientWidth - 2, pad * 2 + maxCol * colW + cardW), H = lanes.length * laneH;
+    var h = '<div class="gm" style="width:' + W + 'px;height:' + H + 'px">';
+    lanes.forEach(function (name, i) { h += '<div class="gm-lane" style="top:' + (i * laneH) + 'px;height:' + laneH + 'px"><span>' + esc(name) + '</span></div>'; });
+    if (opt.nowCol != null) h += '<div class="gm-now" style="left:' + (pad + opt.nowCol * colW - 10) + 'px"><span>сейчас</span></div>';
+    h += '<svg width="' + W + '" height="' + H + '"></svg>';
+    data.nodes.forEach(function (n) {
+      var x = pad + n.col * colW, y = n.lane * laneH + 26;
+      var label = n.actor === 'person' ? '«' + (n.short || n.quote || n.label) + '»' : (n.short || n.label);
+      var dotc = n.actor === 'person' ? 'person' : n.actor === 'ceo' ? 'ceo' : (STATE[n.state] || [0, ''])[1];
+      h += '<button type="button" class="gm-node ' + nodeClass(n) + '" data-id="' + n.id + '" style="left:' + x + 'px;top:' + y + 'px;width:' + cardW + 'px"><span class="h"><i class="dot ' + dotc + '"></i>' + esc(n.whenShort || n.when) + '</span><span class="l">' + esc(label) + '</span></button>';
+    });
+    h += '</div>';
+    el.innerHTML = h;
+    var gm = el.querySelector('.gm'), svg = el.querySelector('svg');
+    function box(id) { var b = gm.querySelector('[data-id="' + id + '"]'); return { x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight }; }
+    var paths = '', badges = '';
+    data.edges.forEach(function (e, i) {
+      var a = box(e.from), b = box(e.to), x1, y1, x2, y2, d;
+      if (Math.abs(a.x - b.x) < a.w) { // cards overlap in x: vertical
+        var down = b.y > a.y; x1 = a.x + a.w / 2; y1 = down ? a.y + a.h : a.y; x2 = b.x + b.w / 2; y2 = down ? b.y : b.y + b.h;
+        d = 'M' + x1 + ',' + y1 + ' C' + x1 + ',' + (y1 + y2) / 2 + ' ' + x2 + ',' + (y1 + y2) / 2 + ' ' + x2 + ',' + y2;
+      } else {
+        x1 = a.x + a.w; y1 = a.y + a.h / 2; x2 = b.x; y2 = b.y + b.h / 2; var mx = (x1 + x2) / 2;
+        d = 'M' + x1 + ',' + y1 + ' C' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + x2 + ',' + y2;
+      }
+      paths += '<path class="gm-edge ' + e.kind + '" data-e="' + i + '" data-from="' + e.from + '" data-to="' + e.to + '" d="' + d + '"/>';
+      if (e.count) badges += '<button type="button" class="gm-badge" data-e="' + i + '" title="агенты: ' + steps(e.count) + '" style="left:' + (x1 + x2) / 2 + 'px;top:' + (y1 + y2) / 2 + 'px">' + e.count + '</button>';
+    });
+    svg.innerHTML = '<defs></defs>' + paths;
+    gm.insertAdjacentHTML('beforeend', badges);
+    function light(ids, edgesOn) {
+      gm.classList.add('hovering');
+      gm.querySelectorAll('.gm-node').forEach(function (n) { n.classList.toggle('hl', ids.indexOf(n.dataset.id) >= 0); });
+      gm.querySelectorAll('[data-e]').forEach(function (p) { p.classList.toggle('hl', edgesOn.indexOf(+p.dataset.e) >= 0); });
+    }
+    function off() { gm.classList.remove('hovering'); gm.querySelectorAll('.hl').forEach(function (x) { x.classList.remove('hl'); }); }
+    gm.querySelectorAll('.gm-node').forEach(function (nb) {
+      var id = nb.dataset.id;
+      nb.addEventListener('mouseenter', function () {
+        var ids = [id], es = [];
+        data.edges.forEach(function (e, i) { if (e.from === id || e.to === id) { es.push(i); ids.push(e.from, e.to); } });
+        light(ids, es);
+      });
+      nb.addEventListener('mouseleave', off);
+      nb.addEventListener('click', function () { select(id); });
+    });
+    gm.querySelectorAll('.gm-badge').forEach(function (bb) {
+      var e = data.edges[+bb.dataset.e];
+      bb.addEventListener('mouseenter', function () { light([e.from, e.to], [+bb.dataset.e]); });
+      bb.addEventListener('mouseleave', off);
+      bb.addEventListener('click', function () { detailFold(e); });
+    });
+    function byId(id) { return data.nodes.filter(function (n) { return n.id === id; })[0]; }
+    function select(id) {
+      gm.querySelectorAll('.gm-node').forEach(function (n) { n.classList.toggle('sel', n.dataset.id === id); });
+      if (!opt.detailEl) return;
+      var n = byId(id), ins = [], outs = [];
+      data.edges.forEach(function (e) { if (e.to === id) ins.push(byId(e.from)); if (e.from === id) outs.push(byId(e.to)); });
+      function names(list) { return list.map(function (x) { return x.actor === 'person' ? '«' + (x.short || x.quote) + '»' : x.short || x.label; }).join('; '); }
+      opt.detailEl.innerHTML = '<div class="gt-item ' + nodeClass(n) + '" style="margin:0"><div class="gt-card">' + cardHtml(n, true) +
+        ((ins.length || outs.length) ? '<p class="t-meta" style="margin-top:6px">' + (ins.length ? 'Из чего: ' + esc(names(ins)) + '. ' : '') + (outs.length ? 'Что дальше: ' + esc(names(outs)) + '.' : '') + '</p>' : '') + '</div></div>';
+    }
+    function detailFold(e) {
+      if (!opt.detailEl) return;
+      var st = (e.steps || []).map(function (s) { return '<div class="gt-step"><span class="t">' + esc(s.when) + '</span><span class="a">' + esc(s.who) + '</span><span>' + esc(s.label) + '</span></div>'; }).join('');
+      var rest = e.count - (e.steps || []).length;
+      opt.detailEl.innerHTML = '<div class="gt-card"><div class="gt-head"><b>агенты: ' + steps(e.count) + '</b><span>· ' + esc(agentsOf(e.steps || [])) + '</span>' + (e.when ? '<span>· ' + esc(e.when) + '</span>' : '') + '</div>' + st + (rest > 0 ? '<div class="gt-more">и ещё ' + steps(rest) + ': полностью в Истории</div>' : '') + '</div>';
+    }
+    if (opt.selected) select(opt.selected);
+  }
+
+  function table(el, data, opt) {
+    var dir = 1;
+    function draw() {
+      var rows = stream(data).filter(function (it) { return !(opt.onlyPeople === false && false); });
+      rows.sort(function (a, b) { return (a.at < b.at ? -1 : a.at > b.at ? 1 : 0) * dir; });
+      var h = '<table class="gtab"><thead><tr><th><button type="button" data-sort>Когда ' + (dir > 0 ? '↑' : '↓') + '</button></th><th>Кто</th><th>Что</th><th>Где</th>' + (opt.lanes !== false ? '<th>Направление</th>' : '') + '<th>Состояние</th></tr></thead><tbody>';
+      rows.forEach(function (it) {
+        if (it.type === 'node') {
+          var n = it.n, s = n.future ? 'впереди' : (STATE[n.state] || [''])[0];
+          h += '<tr class="' + (n.actor === 'person' ? 'person' : '') + '"><td class="t">' + esc(n.when) + '</td><td class="w">' + esc(n.who) + '</td><td>' + (n.actor === 'person' ? '«' + esc(n.quote) + '»' : esc(n.label)) + '</td><td>' + esc(n.where || '') + '</td>' + (opt.lanes !== false ? '<td>' + esc(n.group || '') + '</td>' : '') + '<td>' + esc(s) + '</td></tr>';
+        } else {
+          h += '<tr class="fold"><td class="t">' + esc(it.when || '') + '</td><td>' + esc(agentsOf(it.steps)) + '</td><td>агенты: ' + steps(it.count) + '</td><td></td>' + (opt.lanes !== false ? '<td>' + esc(it.group || '') + '</td>' : '') + '<td>сделано</td></tr>';
+        }
+      });
+      el.innerHTML = h + '</tbody></table>';
+      el.querySelector('[data-sort]').addEventListener('click', function () { dir = -dir; draw(); });
+    }
+    draw();
+  }
+
+  function mount(root, data, opt) {
+    var state = { view: opt.view || 'timeline', onlyPeople: opt.onlyPeople !== false, lanes: !!opt.lanesOn };
+    var views = { timeline: root.querySelector('.g-view-timeline'), map: root.querySelector('.g-view-map'), table: root.querySelector('.g-view-table') };
+    var detail = root.querySelector('.g-detail');
+    function render() {
+      Object.keys(views).forEach(function (k) { if (views[k]) views[k].hidden = k !== state.view; });
+      if (detail) detail.hidden = state.view !== 'map';
+      root.querySelectorAll('[data-view]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.view === state.view); });
+      root.querySelectorAll('.only-t').forEach(function (x) { x.hidden = state.view !== 'timeline'; });
+      if (state.view === 'timeline') timeline(views.timeline, data, { onlyPeople: state.onlyPeople, lanes: state.lanes });
+      if (state.view === 'map') map(views.map, data, { lanes: opt.lanes, colW: opt.colW, cardW: opt.cardW, laneH: opt.laneH, nowCol: opt.nowCol, detailEl: detail, selected: opt.selected });
+      if (state.view === 'table') table(views.table, data, { lanes: opt.tableLanes });
+    }
+    root.querySelectorAll('[data-view]').forEach(function (b) { b.addEventListener('click', function () { state.view = b.dataset.view; render(); }); });
+    var only = root.querySelector('[data-only]'); if (only) { only.checked = state.onlyPeople; only.addEventListener('change', function () { state.onlyPeople = only.checked; render(); }); }
+    var ln = root.querySelector('[data-lanes]'); if (ln) { ln.checked = state.lanes; ln.addEventListener('change', function () { state.lanes = ln.checked; render(); }); }
+    render();
+    return { render: render, state: state };
+  }
+
+  window.FabricGraph = { timeline: timeline, map: map, table: table, mount: mount, steps: steps };
+})();
+
+/* Shared behaviour of the mockups: the rail's «Приоритет» drag order, generic tab groups, inline answers. */
+(function () {
+  function dragList(ul, onDrop) {
+    var dragged = null;
+    ul.querySelectorAll('li').forEach(function (li) {
+      li.addEventListener('dragstart', function (e) { dragged = li; li.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; });
+      li.addEventListener('dragend', function () { li.classList.remove('drag'); ul.querySelectorAll('.over').forEach(function (x) { x.classList.remove('over'); }); });
+      li.addEventListener('dragover', function (e) { if (!dragged) return; e.preventDefault(); ul.querySelectorAll('.over').forEach(function (x) { x.classList.remove('over'); }); li.classList.add('over'); });
+      li.addEventListener('drop', function (e) { e.preventDefault(); if (dragged && dragged !== li) ul.insertBefore(dragged, li); li.classList.remove('over'); if (onDrop) onDrop(); });
+    });
+  }
+  window.FabricDrag = dragList;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var sort = document.querySelector('.rail-sort'), list = document.querySelector('.rail-projects');
+    if (sort && list) {
+      var ul = list.querySelector('ul');
+      dragList(ul);
+      sort.addEventListener('click', function () {
+        var on = sort.getAttribute('aria-pressed') !== 'true';
+        sort.setAttribute('aria-pressed', on); list.classList.toggle('sorting', on);
+        ul.querySelectorAll('li').forEach(function (li) { li.draggable = on; });
+      });
+    }
+    // generic tabs: [data-tabs] holds buttons [data-tab=x]; panels [data-pane=x] inside [data-tabs-scope]
+    document.querySelectorAll('[data-tabs]').forEach(function (g) {
+      var scope = g.closest('[data-tabs-scope]') || document;
+      g.querySelectorAll('[data-tab]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          g.querySelectorAll('[data-tab]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+          scope.querySelectorAll('[data-pane]').forEach(function (p) { p.hidden = p.dataset.pane !== b.dataset.tab; });
+        });
+      });
+    });
+    // inline answer: [data-answer] toggles the next .answer-box
+    document.querySelectorAll('[data-answer]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var box = b.closest('[data-q]').querySelector('.answer-box');
+        box.hidden = !box.hidden; if (!box.hidden) box.querySelector('textarea').focus();
+      });
+    });
+    document.querySelectorAll('[data-pick]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var q = b.closest('[data-q]'); q.querySelectorAll('[data-pick]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+        var box = q.querySelector('.answer-box'); box.hidden = false; box.querySelector('textarea').value = b.textContent.trim() + '. ';
+      });
+    });
+  });
+})();
+
+</script>
+</head>
+<body>
+<div class="fab-shell">
+<aside class="rail"><a class="rail-brand" href="03-home.html" style="text-decoration:none;color:inherit"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#f20673"/><g fill="#ffd21a"><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(0 12 12)"/><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(120 12 12)"/><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(180 12 12)"/><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(240 12 12)"/><ellipse cx="12" cy="6.6" rx="2.2" ry="3.6" transform="rotate(300 12 12)"/></g><circle cx="12" cy="12" r="2.4" fill="#41054b"/></svg><span><b>Fabric</b><small>PassionCode.ai</small></span></a>
+<button class="rail-create" type="button">+ Создать</button>
+<nav class="rail-view"><a href="03-home.html" class="on">Проекты</a><a href="01-agent.html" class="">Агенты</a></nav>
+<div class="rail-sect"><span>Проекты</span><button class="rail-sort" type="button" aria-pressed="false" title="Порядок перетаскиванием">⇅ Приоритет</button></div><div class="rail-projects"><ul><li><a href="02-project.html" class=""><span class="rail-dot live"></span><span class="rail-name">Atlas</span><span class="rail-star">★</span><span class="rail-c">3</span><span class="rail-grip" aria-hidden="true">⋮⋮</span></a></li><li><a href="02-project.html" class=""><span class="rail-dot live"></span><span class="rail-name">Media house</span><span class="rail-star">★</span><span class="rail-c">1</span><span class="rail-grip" aria-hidden="true">⋮⋮</span></a></li><li><a href="02-project.html" class=""><span class="rail-dot "></span><span class="rail-name">Store listings</span><span class="rail-star">★</span><span class="rail-c">1</span><span class="rail-grip" aria-hidden="true">⋮⋮</span></a></li><li><a href="02-project.html" class=""><span class="rail-dot "></span><span class="rail-name">Docs site</span><span class="rail-grip" aria-hidden="true">⋮⋮</span></a></li></ul></div><p class="rail-hint">Перетащите, чтобы задать порядок. Тот же порядок на главной.</p>
+<nav class="rail-places"><a href="#"><i class="rail-i rail-i-board"></i><span class="rail-name">Доска</span><span class="rail-c">5</span></a><a href="#"><i class="rail-i rail-i-comms"></i><span class="rail-name">Переписка</span><span class="rail-c">2</span></a><a href="#"><i class="rail-i rail-i-access"></i><span class="rail-name">Доступ агентов</span></a><a href="04-decision-chain.html"><i class="rail-i rail-i-history"></i><span class="rail-name">История</span></a><a href="#"><i class="rail-i rail-i-settings"></i><span class="rail-name">Настройки</span></a></nav></aside>
+<div class="fab-main">
+
+<header class="fab-top"><h1>Главная</h1></header>
+<main class="page"><div class="hm">
+  <!-- light greeting, kept: the owner liked it -->
+  <section class="greet" aria-label="Сегодня">
+    <div class="greet-id"><div class="face"><svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><rect x="5" y="9" width="28" height="22" rx="10" fill="#7260DB"/><rect x="9" y="14" width="20" height="10" rx="5" fill="#332753"/><circle cx="15" cy="19" r="2.2" fill="#A8EFDC"/><circle cx="23" cy="19" r="2.2" fill="#A8EFDC"/><path d="M15 27 q4 3 8 0" stroke="#E8DFFF" stroke-width="1.6" fill="none"/></svg></div>
+      <div><h2>Добрый вечер. Вас ждут 5 решений.</h2><p>Работают 2 агента · сдано сегодня 3</p></div></div>
+    <a class="rhythm" href="#" style="text-decoration:none;color:inherit"><span class="t-meta"><b style="color:var(--app-ink)">Ритм работы</b> · 28 дн.<br>решений 26 · результатов 41</span><span class="bars" id="bars"></span><span class="t-meta"><i class="dot good"></i> есть движение</span></a>
+    <div class="ask"><textarea placeholder="Спросить CEO. Файл вставьте через ⌘V"></textarea><div class="row2"><button class="btn btn-sm">Приложить файл</button><span style="display:flex;gap:6px"><button class="btn btn-sm"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><rect x="4" y="1" width="4" height="7" rx="2" fill="currentColor"/><path d="M2.5 6a3.5 3.5 0 0 0 7 0M6 9.5V11" stroke="currentColor" fill="none" stroke-width="1.2"/></svg> Позвонить</button><button class="btn btn-sm btn-primary">Отправить</button></span></div></div>
+  </section>
+
+  <!-- 1. QUESTIONS FIRST -->
+  <section class="sec" aria-label="Нужны вы">
+    <div class="sec-head"><h2 class="t-section">Нужны вы</h2><span class="count ask">5</span><span class="sec-note">сначала самые старые</span><div class="end"><a class="link t-meta" href="#">Открыть доску</a></div></div>
+    <div class="qs-list">
+      <div class="hq" data-q><span class="who"><b>Atlas</b> · агент выпуска · 40 ч</span><p class="qt">Выпускать 0.3.22 сейчас или вместе с волной 5?</p><span class="side"><span class="chip warn">вопрос</span></span>
+        <div class="acts"><button class="btn btn-sm" data-pick>Сейчас</button><button class="btn btn-sm" data-pick>С волной 5</button><button class="btn btn-sm btn-quiet" data-answer>Своими словами</button></div>
+        <div class="answer-box" hidden><textarea placeholder="Что решили и что сделать дальше"></textarea><div><button class="btn btn-sm btn-primary">Записать решение</button></div></div></div>
+      <div class="hq" data-q><span class="who"><b>Atlas</b> · Claude Code · 2 ч</span><p class="qt">Куда положить чтение доски: в main/boardRead.ts или в общий модуль чтений?</p><span class="side"><span class="chip warn">вопрос</span></span>
+        <div class="acts"><button class="btn btn-sm" data-pick>main/boardRead.ts</button><button class="btn btn-sm" data-pick>Общий модуль чтений</button><button class="btn btn-sm btn-quiet" data-answer>Своими словами</button></div>
+        <div class="answer-box" hidden><textarea placeholder="Что решили и что сделать дальше"></textarea><div><button class="btn btn-sm btn-primary">Записать решение</button></div></div></div>
+      <div class="hq" data-q><span class="who"><b>Media house</b> · DC backend · 1 ч</span><p class="qt">Провайдер видео отвечает 503 уже час. Переключить заказы на запасного?</p><span class="side"><span class="chip warn">вопрос</span></span>
+        <div class="acts"><button class="btn btn-sm" data-pick>Да, переключить</button><button class="btn btn-sm" data-pick>Нет, ждать</button><button class="btn btn-sm btn-quiet" data-answer>Своими словами</button></div>
+        <div class="answer-box" hidden><textarea placeholder="Что решили"></textarea><div><button class="btn btn-sm btn-primary">Записать решение</button></div></div></div>
+    </div>
+    <p class="t-meta" style="margin-top:8px"><a class="link" href="#">Ещё 2</a>: разрешение на публикацию в npm (Atlas), запрос доступа от Release helper (Store listings).</p>
+  </section>
+
+  <!-- 2. PINNED PROJECTS -->
+  <section class="sec" aria-label="Закреплённые проекты">
+    <div class="sec-head"><h2 class="t-section">Закреплённые проекты</h2><span class="sec-note">порядок как в «Приоритете» слева</span><div class="end"><a class="link t-meta" href="#">Закрепить ещё</a></div></div>
+    <div class="pins">
+      <a class="pin" href="02-project.html"><div class="pin-h"><span class="rail-dot live"></span><b>Atlas</b><span class="chip good">работает</span></div>
+        <div><span class="lbl">Сейчас</span><p style="margin-top:2px">Чтение доски отдельным модулем · шаг 2 из 4</p><p class="t-meta">Claude Code · 3 мин назад · ждут вас 3</p></div>
+        <div class="ms"><span class="lbl">Следующая веха</span><div class="ms-row"><span>Командный доступ</span><span class="muted">30 нояб.</span></div><div class="bar"><i style="width:60%"></i></div></div></a>
+      <a class="pin" href="02-project.html"><div class="pin-h"><span class="rail-dot live"></span><b>Media house</b><span class="chip good">работает</span></div>
+        <div><span class="lbl">Сейчас</span><p style="margin-top:2px">Повторная отправка заказов после сбоя провайдера · шаг 3 из 5</p><p class="t-meta">DC backend · 4 мин назад · ждут вас 1</p></div>
+        <div class="ms"><span class="lbl">Следующая веха</span><div class="ms-row"><span>Заказы без потерь</span><span class="muted">25 нояб.</span></div><div class="bar"><i style="width:70%"></i></div></div></a>
+      <a class="pin" href="02-project.html"><div class="pin-h"><span class="rail-dot"></span><b>Store listings</b><span class="chip">тихо 2 дн.</span></div>
+        <div><span class="lbl">Последнее</span><p style="margin-top:2px">Скриншоты витрины на трёх языках готовы</p><p class="t-meta">Codex · 18 нояб. · ждёт вас 1</p></div>
+        <div class="ms"><span class="lbl">Следующая веха</span><div class="ms-row"><span>Витрина на пяти языках</span><span class="muted">5 дек.</span></div><div class="bar"><i style="width:35%"></i></div></div></a>
+    </div>
+  </section>
+
+  <!-- 3. USEFUL BLOCKS -->
+  <div class="lower sec">
+    <section aria-label="В работе" data-tabs-scope>
+      <div class="sec-head"><h2 class="t-section">В работе</h2><div class="end"><div class="seg" data-tabs role="group" aria-label="Вид"><button type="button" data-tab="ms" aria-pressed="true">Вехи</button><button type="button" data-tab="prio" aria-pressed="false">Приоритет</button><button type="button" data-tab="d30" aria-pressed="false">30 дней</button></div></div></div>
+      <div data-pane="ms" class="ms-list">
+        <p class="day">Сегодня</p>
+        <div class="ev"><span class="t">15:10</span><i class="dot info"></i><span><span class="k">Шаг начат</span> · уведомление владельцу после пятой попытки <span class="p">Media house · DC backend</span></span><span></span></div>
+        <div class="ev"><span class="t">14:50</span><i class="dot good"></i><span><span class="k">Шаг закончен</span> · повтор после 503 проходит тест <span class="p">Media house · DC backend</span></span><span></span></div>
+        <div class="ev"><span class="t">13:05</span><i class="dot warn"></i><span><span class="k">Ждёт вопроса</span> · куда положить чтение доски <span class="p">Atlas · Claude Code</span></span><a class="link t-meta" href="#">Ответить</a></div>
+        <div class="ev"><span class="t">10:20</span><i class="dot good"></i><span><span class="k">Задача закончена</span> · проверка подписи ответа провайдера <span class="p">Media house</span></span><span></span></div>
+        <p class="day">Вчера</p>
+        <div class="ev"><span class="t">18:20</span><i class="dot good"></i><span><span class="k">Задача закончена</span> · очередь заказов в отдельном модуле <span class="p">Media house</span></span><span></span></div>
+        <div class="ev"><span class="t">08:00</span><i class="dot warn"></i><span><span class="k">Ждёт вопроса</span> · выпуск 0.3.22 <span class="p">Atlas · агент выпуска</span></span><a class="link t-meta" href="#">Ответить</a></div>
+        <p class="t-meta" style="margin-top:8px">Только вехи: начало и конец задач, законченные шаги, вопросы к вам. Всё подряд: <a class="link" href="04-decision-chain.html">История</a>.</p>
+      </div>
+      <div data-pane="prio" hidden>
+        <p class="t-meta" style="margin-bottom:8px">Перетащите строки. Порядок общий: левая колонка, закреплённые, доска.</p>
+        <ol class="prio" id="prio">
+          <li draggable="true"><span class="g">⋮⋮</span><span class="n">1</span><span><b style="font-weight:600">Atlas</b> <span class="t-meta">· чтение доски модулем, шаг 2 из 4</span></span><span class="chip warn">ждут вас 3</span></li>
+          <li draggable="true"><span class="g">⋮⋮</span><span class="n">2</span><span><b style="font-weight:600">Media house</b> <span class="t-meta">· повторная отправка заказов, шаг 3 из 5</span></span><span class="chip good">работает</span></li>
+          <li draggable="true"><span class="g">⋮⋮</span><span class="n">3</span><span><b style="font-weight:600">Store listings</b> <span class="t-meta">· витрина на пяти языках</span></span><span class="chip">тихо 2 дн.</span></li>
+          <li draggable="true"><span class="g">⋮⋮</span><span class="n">4</span><span><b style="font-weight:600">Docs site</b> <span class="t-meta">· нет задач</span></span><span class="chip">тихо 9 дн.</span></li>
+        </ol>
+      </div>
+      <div data-pane="d30" hidden id="d30"></div>
+    </section>
+
+    <aside>
+      <div class="sec-head"><h2 class="t-section">Недавние проекты</h2></div>
+      <div class="side-list">
+        <div class="row"><span class="rail-dot live" style="align-self:center"></span><a class="row-main" href="02-project.html" style="text-decoration:none">Atlas</a><span class="row-trail">сейчас</span></div>
+        <div class="row"><span class="rail-dot live" style="align-self:center"></span><a class="row-main" href="02-project.html" style="text-decoration:none">Media house</a><span class="row-trail">20 мин назад</span></div>
+        <div class="row"><span class="rail-dot" style="align-self:center"></span><a class="row-main" href="02-project.html" style="text-decoration:none">Store listings</a><span class="row-trail">вчера</span></div>
+        <div class="row"><span class="rail-dot" style="align-self:center"></span><a class="row-main" href="02-project.html" style="text-decoration:none">Docs site</a><span class="row-trail">11 нояб.</span></div>
+      </div>
+      <div class="sec-head" style="margin-top:24px"><h2 class="t-section">Куда дальше</h2></div>
+      <div class="go">
+        <a href="#"><i class="rail-i rail-i-board"></i>Доска<span class="rail-c">5</span></a>
+        <a href="#"><i class="rail-i rail-i-comms"></i>Переписка<span class="rail-c">2</span></a>
+        <a href="01-agent.html"><i class="rail-i" style="border-radius:50%"></i>Агенты<span class="rail-c">2</span></a>
+        <a href="04-decision-chain.html"><i class="rail-i rail-i-history"></i>История</a>
+      </div>
+    </aside>
+  </div>
+</div></main>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var b = [3, 6, 9, 4, 7, 2, 5, 0, 6, 8, 3, 9, 7, 4, 6, 2, 8, 5, 3, 7, 9, 4, 2, 6, 8, 5, 7, 6];
+  document.getElementById('bars').innerHTML = b.map(function (v, i) { return '<i class="' + (i === b.length - 1 ? 'today' : '') + '" style="height:' + Math.max(2, v * 4.4) + 'px"></i>'; }).join('');
+  FabricDrag(document.getElementById('prio'), function () { document.querySelectorAll('#prio .n').forEach(function (n, i) { n.textContent = i + 1; }); });
+  function seq(seed, density) { var out = [], x = seed; for (var i = 0; i < 30; i++) { x = (x * 9301 + 49297) % 233280; var r = x / 233280; out.push(r < density ? 0 : Math.ceil(r * 4)); } return out; }
+  var rows = [['Atlas', seq(7, .3), '22 задачи · 9 решений'], ['Media house', seq(11, .45), '14 задач · 4 решения'], ['Store listings', seq(3, .65), '6 задач · 2 решения'], ['Docs site', seq(5, .85), '2 задачи']];
+  document.getElementById('d30').innerHTML = '<p class="t-meta" style="margin-bottom:6px">Сделанные задачи по дням, 21 окт. по 20 нояб.</p>' + rows.map(function (r) {
+    return '<div class="d30"><b style="font-weight:600">' + r[0] + '</b><span class="cells">' + r[1].map(function (v) { return v ? '<i style="height:' + (v * 5 + 2) + 'px"></i>' : '<i class="z"></i>'; }).join('') + '</span><span class="t-meta">' + r[2] + '</span></div>';
+  }).join('');
+});
+</script>
+
+</div>
+</div>
+</body>
+</html>
