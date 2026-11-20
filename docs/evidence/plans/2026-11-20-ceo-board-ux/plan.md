@@ -182,6 +182,8 @@ the waves above, which stay as they were planned.
 - **The CEO's window** moves and resizes freely, opens where it was left on any display, never off every screen; then two
   or three polish iterations of that window and the home's greeting block with captures before and after (sheleg-design,
   focused visual work: composition, states, finish; the project's own tokens, no new pack). The greeting block stays light.
+- **The board's answers** to waves C and G are in [board-answers.md](board-answers.md): both module owners agree with
+  the ADR draft and opened their rows; wave D takes sessions per machine from the session service's `rows`.
 - **Wave C's model** is checked against the owner's first data: [org-graph-model.md](org-graph-model.md) (shares, roles,
   PM agents, a project of several repositories, the personal organisation). The data stays on the owner's computer.
 
