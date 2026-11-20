@@ -7,10 +7,10 @@ kind: handoff
 
 # Handoff for the strategist: CEO work paused on 2026-11-21 00:30
 
-The owner paused new features until the strategic plan is ready (fabric-workspace session 2d03ce15, brief
-`userData/ceo/inbox/2026-11-21-strategic-plan-fable-brief.md`). Only fixes for the voice retro's bugs continue, through
-release 0.3.27. Everything already designed is committed and pushed. **Nothing below ships until the strategist
-decides.**
+The owner's pause (fabric-workspace session 2d03ce15, brief `2026-11-21-strategic-plan-fable-brief.md`): new features
+wait for the strategic plan; in 0.3.27 only the voice retro's fixes and the review's findings on its own code go ahead;
+whether a fix outside 0.3.27 may start before the plan is the owner's open question, held in CO-614. Everything already
+designed is committed and pushed. **Nothing below ships until the strategist decides.**
 
 ## One entry point per piece of work
 
@@ -20,7 +20,7 @@ decides.**
 | CEO access: start a session on a chosen Switchboard account; wait for a session's answer | `feat/ceo-access` (`30564571`) | Built and tested. Not released. | `docs/reports/2026-11-20-ceo-access-audit/README.md` |
 | Approval modes and the agents' behaviour journal (package D) | `feat/approval-modes` (`52249c78`, on top of ceo-access) | Built and tested. Not released. **Paused.** | `docs/adr/0203-the-owners-approval-mode-says-which-acts-wait-for-him.md`, `docs/reports/2026-11-20-ceo-access-audit/HANDOFF.md` |
 | CEO persona on the home, voice options, calls | `feat/ceo-persona` (on top of approval-modes) | Persona module and header built and tested. Voice and calls researched only. **Paused.** | `docs/evidence/specs/2026-11-20-ceo-persona.md` |
-| Agents reach Fabric Inbox again: the registry follows the descriptor contract (session 8343a070) | `fix/registry-contract` (`279dcd15`) | A bug fix, tested (agent-registry 19/19). Held out of 0.3.27 because the pause allows only the voice retro's fixes. **Take it first in the next release.** | its commit message and `apps/desktop/test/agent-registry.test.mjs` |
+| Agents reach Fabric Inbox again: the registry follows the descriptor contract (session 8343a070) | `fix/registry-contract` (`279dcd15`) | A bug fix, tested (agent-registry 19/19). Held out of 0.3.27 by the pause. **Proposed first in the next release; whether it may start before the plan is the open question in CO-614.** | its commit message and `apps/desktop/test/agent-registry.test.mjs` |
 | Fabric mobile app (order of 2026-11-21 00:05) | none | **Not started:** it arrived as the pause began. | `userData/ceo/inbox/2026-11-21-fabric-mobile-app-brief.md` |
 
 ## Decisions the strategist holds
