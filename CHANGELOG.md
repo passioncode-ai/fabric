@@ -7,6 +7,30 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## 0.3.27 (unreleased)
+
+The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).
+
+- **A session the CEO starts gets its task, and the CEO hears whether it did.** A session started with a task sat 40
+  minutes on an empty prompt, and nothing said why: the first instruction's end was dropped unless it threw. Now a
+  readiness that lapsed waits one more window (still never a blind write), a long paste left waiting in Claude Code's
+  box («[Pasted text #1 …]», no turn started) gets one more Enter, and every end is written to the operations log as
+  `terminal.first-instruction`. `fabric_ceo_session_start` waits for it (at most 70 s) and answers `first_task`:
+  delivered, resubmitted, not delivered with the next step, or pending (`main/consoleOpen.ts#deliverFirst`; SCN-183).
+- **A message to the CEO while it works is no longer lost.** 5 of the owner's last 20 messages to the CEO timed out on
+  2026-11-19 and 20: a working Claude Code prints its spinner without the 400 ms quiet the delivery waited for. A
+  message that waited 3 s is now written into a working Claude Code, which queues it and answers after its turn
+  (measured on a live Claude Code the same day). It still needs output since the last write, and an item with a write
+  gate still waits for quiet; other agents keep the quiet rule (`main/deliveryQueue.ts`, `busyAfterMs`).
+- **The CEO finds a project by its spoken name.** «sound engine» is sound-engine (spaces, hyphens and underscores read
+  alike), a worktree copy of the same name gives way to the project, and a real tie is asked about with each folder
+  (`shared/ceoAgent.ts#findProject`). 10 lookups failed on 2026-11-19 and 20.
+- **A task in words is never typed into a plain shell.** A session started with runner «shell» and a task typed the task
+  into zsh («parse error near `)'»). The CEO's start refuses that before anything starts and names the agents to use;
+  the console never types a first instruction into a shell (`main/consoleOpen.ts#TAKES_NO_TASK`).
+
+**Upgrading.** No schema step. Nothing to set.
+
 ## 0.3.26
 
 0.3.25 was not published; its changes are in this release ([the release spec](docs/evidence/specs/2026-11-20-home-agents-sessions.md)).

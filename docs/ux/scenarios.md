@@ -4635,6 +4635,8 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Coverage:** `apps/desktop/src/main/ceoTools.ts#createCeoOperations` and `#registerCeoTools`, `apps/desktop/src/main/agentSurface.ts` (region `ceo-surface`), `apps/desktop/src/main/index.ts` (region `ceo-agent-wiring`); tests `apps/desktop/test/ceo-agent.test.mjs` («sessions», «read», «input», «start», «stop», «resume», «open, projects»).
 - **Product:** unobserved
 
+- **Amended 2026-11-20 ([the owner's words](../evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4: fix what blocks work first):** step 4's start says what became of the task: `first_task` is delivered, resubmitted (a paste left in Claude Code's box got one more Enter), not delivered with the next step (type it with the input tool), or pending; a task for a plain shell is refused before anything starts. A message to the CEO while it works is written after 3 s (Claude Code queues it). A project heard as «sound engine» is sound-engine; a worktree copy gives way. Coverage adds `apps/desktop/src/main/consoleOpen.ts#createConsoleOpen`, `apps/desktop/src/main/deliveryQueue.ts#DeliveryQueue`; tests `apps/desktop/test/console-open.test.mjs`, `apps/desktop/test/delivery-queue.test.mjs`, `apps/desktop/test/ceo-agent.test.mjs` («start says what became of the first task», «start refuses a task in words for a plain shell»).
+
 ### SCN-184: Call the CEO and talk
 - **Persona:** P-01
 - **Feature:** Floating CEO
