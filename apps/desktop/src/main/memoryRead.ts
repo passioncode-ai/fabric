@@ -8,7 +8,7 @@
 import { statSync } from 'node:fs'
 import type { EstateIndex } from './estateIndex.ts'
 import {
-  composeMemoryGraph, freshnessOf, MEMORY_SOURCES, type MemoryChange, type MemoryChanges, type MemoryGraph, type MemoryOverview,
+  composeMemoryGraph, freshnessOf, MEMORY_SOURCES, type MemoryChange, type MemoryChanges, type MemoryGraph, type MemoryIndexOverview,
   type ProjectCounts, type SourceMarks
 } from '../shared/memory.ts'
 
@@ -25,7 +25,7 @@ const s = (v: unknown): string | null => (typeof v === 'string' ? v : null)
 const labelOf = (context: string, l: MemoryLabels): string => (context === 'personal' ? l.personal : l.names.get(context.slice('org:'.length)) ?? context.slice('org:'.length))
 
 /** What the index holds, how it was read and how fresh each source is. */
-export function memoryOverview(ix: EstateIndex, file: string | null, labels: MemoryLabels, now = Date.now()): MemoryOverview {
+export function memoryOverview(ix: EstateIndex, file: string | null, labels: MemoryLabels, now = Date.now()): MemoryIndexOverview {
   const all = (sql: string, ...args: Array<string | number>) => ix.db.prepare(sql).all(...args) as Row[]
   const one = (sql: string, ...args: Array<string | number>) => n((ix.db.prepare(sql).get(...args) as Row | undefined)?.n)
   const byKind = Object.fromEntries(all('SELECT kind, count(*) AS n FROM docs GROUP BY kind').map((r) => [String(r.kind), n(r.n)]))

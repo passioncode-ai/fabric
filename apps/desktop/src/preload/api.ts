@@ -248,6 +248,13 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       around: (node, depth) => ipc.invoke(IPC.searchAround, node, depth),
       resume: (sessionId) => ipc.invoke(IPC.searchResume, sessionId)
     },
+    memoryIndex: {
+      overview: () => ipc.invoke(IPC.memoryIndexOverview),
+      graph: (context) => ipc.invoke(IPC.memoryIndexGraph, context),
+      changes: (hours, project) => ipc.invoke(IPC.memoryIndexChanges, hours, project),
+      check: (claims) => ipc.invoke(IPC.memoryIndexCheck, claims),
+      search: (query, project) => ipc.invoke(IPC.memoryIndexSearch, query, project)
+    },
     digest: {
       read: (projectId) => ipc.invoke(IPC.digestRead, projectId),
       seen: (projectId, boundary) => ipc.invoke(IPC.digestSeen, projectId, boundary)

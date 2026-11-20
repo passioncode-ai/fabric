@@ -65,3 +65,20 @@ registry. The organizations' ownership shares and people stay in the owner's dat
 A golden question set with recall@5 and MRR, faster vectors, query synonyms, the disk line, the live layer of agents on
 the graph, the organization graph connector (CO-600) and doors for project sessions (CO-422): rows of the carry-over
 ledger, the report's waves 2 and 3.
+
+## 6. One graph module
+
+The owner, 2026-11-20 ~21:30, relayed by session 8343a070: «Граф решений и граф Memory: общий модуль графа с сессией
+0daa75f1 (Memory) и sound-engine e150fe59 (3D-граф), не три копии». So the graph is a package of its own,
+`packages/graph` (`@fabric/graph`), with a data model that names no source and views that draw it:
+
+| Part | Is | Used by |
+|---|---|---|
+| `@fabric/graph/model` | `GraphNode {id, kind, label, at?, actor?, state?, ref?, group?, size?, attrs?}`, `GraphEdge {from, to, kind, weight?}`, and pure helpers: `neighbours`, `byTime`, `collapseAgents`, `groupsOf`, `joined` | every view, any host, tests |
+| `GraphMap` | the network on WebGL (sigma 4, graphology, ForceAtlas2); without WebGL it says so and shows the table | Memory |
+| `GraphTimeline` | cards in time order with their state, lanes by group (`groupBy`), agents' steps between people's commands folded (`onlyPeople`); no WebGL | the decision graph (8343a070) |
+| `GraphTable` | the same data as a table | every view's text twin |
+
+Memory maps its organizations and projects into this model (`shared/memory.ts`); the decision graph maps the journal's
+tasks, decisions, the owner's commands and session launches into it. A three-dimensional mode for Sound Engine's hub
+is offered to sound-engine on the board as a bundle of the same module, not built here.

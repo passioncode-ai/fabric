@@ -148,7 +148,7 @@ export function composeMemoryGraph(projects: readonly ProjectCounts[], pairs: Re
 
 // ---------------------------------------------------------------- the answers
 
-export interface MemoryOverview {
+export interface MemoryIndexOverview {
   ok: true
   at: string
   docs: number
@@ -180,4 +180,7 @@ export interface MemoryChanges {
   changes: MemoryChange[]
   capped: boolean
 }
+export interface MemoryRefusal { ok: false; reason: string }
+
+export interface MemoryCheck { ok: true; outcome: 'answer' | 'no-answer'; kept: number; verdicts: Array<{ doc: string; kept: boolean; reason?: string }> }
 // #endregion memory-shared

@@ -1624,6 +1624,16 @@ export interface FabricApi {
     /** Continue a session found here in a Fabric console, as itself when Fabric knows its Claude or Codex session. */
     resume(sessionId: string): Promise<{ ok: boolean; reason?: string; session_id?: string }>
   },
+  /** Memory, the dashboard of the estate index (spec 2026-11-20): the same execute operations the CEO's doors run. */
+  memoryIndex: {
+    overview(): Promise<import('./memory.ts').MemoryIndexOverview | import('./memory.ts').MemoryRefusal>
+    graph(context?: string): Promise<(import('./memory.ts').MemoryGraph & { ok: true }) | import('./memory.ts').MemoryRefusal>
+    changes(hours: number, project?: string): Promise<import('./memory.ts').MemoryChanges | import('./memory.ts').MemoryRefusal>
+    /** Keeps a claim only when its quote stands verbatim in the cited hit (`quote.check`). */
+    check(claims: Array<{ quote: string; doc: string; digest?: string }>): Promise<import('./memory.ts').MemoryCheck | import('./memory.ts').MemoryRefusal>
+    /** The hybrid search, narrowed to one project when named. */
+    search(query: string, project?: string): Promise<import('./estateSearch.ts').EverywhereAnswer>
+  },
   digest: {
     /** What happened while the operator was away. Composed from stores, never
      *  generated: every line carries the row that opens it (M133). */
@@ -2056,6 +2066,11 @@ export const IPC = {
   searchEverywhere: 'search:everywhere',
   searchAround: 'search:around',
   searchResume: 'search:resume',
+  memoryIndexOverview: 'memory-index:overview',
+  memoryIndexGraph: 'memory-index:graph',
+  memoryIndexChanges: 'memory-index:changes',
+  memoryIndexCheck: 'memory-index:check',
+  memoryIndexSearch: 'memory-index:search',
   digestRead: 'digest:read',
   digestSeen: 'digest:seen',
   memoryOverview: 'memory:overview',

@@ -4181,6 +4181,32 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return r.ok === false ? { ok: false, reason: String(r.reason ?? 'refused') } : { ok: true, session_id: String(r.session_id ?? '') }
   })
   // #endregion estate-search-ipc
+  // #region memory-ipc — docs: docs/evidence/specs/2026-11-20-memory-dashboard.md#2-one-module-three-callers
+  // Memory's window half: the execute operations the CEO's doors and the voice run, never a read of its own.
+  const memoryRun = async (operation: string, args: Record<string, unknown>): Promise<Record<string, unknown>> => {
+    if (!knowledgeOperations) return { ok: false, reason: 'the index is not running yet' }
+    const r = await knowledgeOperations.run('execute', { operation, arguments: args })
+    return r.ok === false ? { ok: false, reason: String(r.reason ?? 'refused') } : r
+  }
+  handle(IPC.memoryIndexOverview, async (): Promise<Returns<FabricApi['memoryIndex']['overview']>> => await memoryRun('memory.overview', {}) as never)
+  handle(IPC.memoryIndexGraph, async (_e, context: unknown): Promise<Returns<FabricApi['memoryIndex']['graph']>> =>
+    await memoryRun('memory.graph', typeof context === 'string' && context ? { context: context.slice(0, 80) } : {}) as never)
+  handle(IPC.memoryIndexChanges, async (_e, hours: unknown, project: unknown): Promise<Returns<FabricApi['memoryIndex']['changes']>> =>
+    await memoryRun('memory.changes', { hours: typeof hours === 'number' ? Math.min(Math.max(Math.round(hours), 1), 168) : 24, ...(typeof project === 'string' && project ? { project: project.slice(0, 200) } : {}) }) as never)
+  handle(IPC.memoryIndexCheck, async (_e, claims: unknown): Promise<Returns<FabricApi['memoryIndex']['check']>> => {
+    const list = Array.isArray(claims) ? claims.slice(0, 50).filter((c): c is { quote: string; doc: string; digest?: string } => !!c && typeof (c as { quote?: unknown }).quote === 'string' && typeof (c as { doc?: unknown }).doc === 'string')
+      .map((c) => ({ quote: c.quote.slice(0, 2000), doc: c.doc.slice(0, 300), ...(typeof c.digest === 'string' ? { digest: c.digest.slice(0, 80) } : {}) })) : []
+    if (!list.length) return { ok: false, reason: 'no claim to check' }
+    return await memoryRun('quote.check', { claims: list }) as never
+  })
+  handle(IPC.memoryIndexSearch, async (_e, query: unknown, project: unknown): Promise<Returns<FabricApi['memoryIndex']['search']>> => {
+    if (!knowledgeOperations) return { ok: false, reason: 'the index is not running yet' }
+    const r = await knowledgeOperations.run('search', { query: typeof query === 'string' ? query.slice(0, 400) : '', limit: 25, ...(typeof project === 'string' && project ? { project: project.slice(0, 400) } : {}) })
+    if (r.ok === false) return { ok: false, reason: String(r.reason ?? 'refused') }
+    const index = r.index as { docs?: number } | undefined
+    return { ok: true, hits: r.hits as never, degraded: (r.degraded as string[]) ?? [], docs: index?.docs ?? 0 }
+  })
+  // #endregion memory-ipc
   handle(IPC.searchRun, async (_e, query: string): Promise<Returns<FabricApi['search']['run']>> => {
     // A thin dispatcher. Five queries and their five groups lived here inline,
     // and the one property that matters — that the searched set and the
