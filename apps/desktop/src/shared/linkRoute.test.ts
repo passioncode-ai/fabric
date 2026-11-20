@@ -24,6 +24,19 @@ describe('normaliseRepository', () => {
 })
 
 describe('routeForLink', () => {
+  it('finds a project by the last segment of one of its folders when no id or name matches (board thread 3ca40854)', () => {
+    const d: LinkRouteDeps = { services: [], projects: [
+      { id: 'p1', name: 'Fabric CEO', remotes: [], folders: ['/Users/example/DATA/fabric', '/Users/example/DATA/_worktrees/fabric-x'] },
+      { id: 'p2', name: 'Site', remotes: [], folders: ['/Users/example/DATA/site/'] },
+      { id: 'p3', name: 'Twin', remotes: [], folders: ['/a/shared'] },
+      { id: 'p4', name: 'Twin 2', remotes: [], folders: ['/b/shared'] }
+    ] }
+    expect(routeForLink('fabric://session/new?project=fabric', d)).toEqual({ route: { kind: 'project', projectId: 'p1' }, notice: 'start-session' })
+    expect(routeForLink('fabric://session/new?project=fabric-x', d).route).toEqual({ kind: 'project', projectId: 'p1' })
+    expect(routeForLink('fabric://session/new?project=site', d).route).toEqual({ kind: 'project', projectId: 'p2' })
+    expect(routeForLink('fabric://session/new?project=shared', d), 'a folder name two projects hold is no project').toEqual({ route: { kind: 'home' }, notice: 'project-unknown' })
+  })
+
   it('a chat link with a project opens that project, by id or by name', () => {
     expect(routeForLink('fabric://chat?project=p-site', deps())).toEqual({ route: { kind: 'project', projectId: 'p-site' }, notice: 'conversation-soon' })
     expect(routeForLink('fabric://chat?project=atlas', deps())).toEqual({ route: { kind: 'project', projectId: 'p-atlas' }, notice: 'conversation-soon' })

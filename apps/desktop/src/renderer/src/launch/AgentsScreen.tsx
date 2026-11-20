@@ -25,6 +25,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SwitchboardSessionsPanel } from './SwitchboardSessions'
+import { MachineSessionsPanel } from './MachineSessions'
 import type { ActAnswer } from '../../../shared/acts.ts'
 import type { HubOverview } from '../../../shared/access.ts'
 import type { SwitchboardCatalog } from '../../../shared/agentCatalog'
@@ -37,6 +38,7 @@ import { runnerLabel } from '../runnerLabel'
 import { folderName } from '../../../shared/railAgents'
 import { FailureNote } from '../OperatorError'
 import { useOpenConsole } from '../consoles'
+import { SessionLaunch } from './SessionLaunch'
 import { AgentPage } from './AgentPage'
 import { CappedNote, KeptNote, useHome } from './HomeWork'
 import { useRead } from './useRead'
@@ -334,6 +336,8 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
           <button type="button" className="lp-button" onClick={onCreate}>{t('agentsPlace.create')}</button>
           {/* CO-457: the sessions Switchboard runs and holds here, as Fabric Dashboards lists them. */}
           <SwitchboardSessionsPanel />
+          {/* eef5abeb point 3: the Claude Code sessions outside Fabric, from Claude Code's own files. */}
+          <MachineSessionsPanel onOpenConsole={openAsTab} />
         </div>
       )}
     </div>
@@ -425,7 +429,8 @@ function Centre({ row, mark, hub, homeUnread, goalsUnread = null, onOpenProject,
   // Where its session runs: a console Fabric holds; with the joined agents unread, not known; otherwise a terminal.
   const where = row.console && row.sessionId ? 'fabric' : hub.read.at === 'failed' ? 'unknown' : 'terminal'
   return live ? (
-    <AgentPage key={live.sessionId} agent={live} mark={mark} title={name} state={waitingState} actions={act} note={note}
+    <AgentPage key={live.sessionId} agent={live} mark={mark} title={name} state={waitingState} note={note}
+      actions={<>{act}<SessionLaunch sessionId={live.sessionId} canClose={where === 'fabric' && terminal?.running === true} /></>}
       where={where} onConsole={row.console && row.sessionId ? onAsTab : undefined} terminal={terminal}
       workUnread={homeUnread && !row.live} goalsUnread={goalsUnread} onOpenProject={onOpenProject} onOpenTask={onOpenTask} onOpenGoal={onOpenGoal}
       onHome={onHome} runnerVersion={runnerVersion} permission={terminal?.permissionMode ?? null} projectOf={projectOf} />

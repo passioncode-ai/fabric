@@ -1,3 +1,4 @@
+import type { Launch } from './sessionLaunches.ts'
 import type { ActAnswer, ActHistoryPage, ActHistoryQuery } from './acts.ts'
 import { CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT, type CeoAttachment, type CeoSendResult, type CeoStatus, type CeoVoiceProblem, type CeoVoiceSession } from './ceoAgent.ts'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from './boardResolved.ts'
@@ -1040,6 +1041,9 @@ export interface FabricApi {
      */
     saveSettings(input: SaveSettingsInput): Promise<ProjectSettingsWrite>
     list(): Promise<ProjectRow[]>
+    /** «Продолжить последнюю» (the owner, 2026-11-19): the project's newest Claude Code session that is not running,
+     *  wherever it was started, continued in a Fabric console with `claude --resume` (`main/projectResume.ts`). */
+    resumeLast(projectId: string): Promise<{ ok: true; sessionId: string } | { ok: false; why: 'none' | 'no-folder' | 'failed'; says?: string }>
     stats(projectId: string): Promise<ProjectStats>
     /** M56 — the state of every repository attached to this project. */
     repoStates(projectId: string): Promise<RepoState[]>
@@ -1195,6 +1199,14 @@ export interface FabricApi {
     /** CO-457: the sessions Switchboard launched and the ones it holds on a usage limit, merged as Fabric Dashboards
      *  merges them (read-only; `main/switchboardSessions.ts`). */
     switchboardSessions(): Promise<import('./switchboardSessions.ts').SwitchboardSessions>
+    /** The Claude Code sessions running outside Fabric, from Claude Code's own files (eef5abeb, `main/machineSessions.ts`). */
+    machineSessions(): Promise<import('../main/machineSessions.ts').MachineSession[]>
+    /** Its last turns from its transcript; null when its transcript is not on this computer. */
+    machineRead(sessionId: string): Promise<{ turns: Array<{ role: string; text: string }> } | null>
+    /** SIGTERM to it, only while its process still names it. */
+    machineClose(sessionId: string): Promise<import('../main/machineSessions.ts').MachineAct>
+    /** Stop it outside, then continue it in a Fabric console (`claude --resume`). */
+    machineContinue(sessionId: string): Promise<import('../main/machineSessions.ts').MachineAct>
     /**
      * Create one. The servers it asks for are checked against what the project
      * grants: a request outside that ceiling is REFUSED here rather than trimmed,
@@ -1789,6 +1801,11 @@ export interface FabricApi {
      *  that started first can drop what this answer already contains rather
      *  than losing those bytes or writing them twice (FA-08). */
     scrollback(sessionId: string): Promise<{ text: string; written: number } | null>
+    /** Who started this console and from where, from the launch journal on disk (board request eef5abeb); null when
+     *  Fabric did not start it or started it before the journal. Throws when the journal could not be read. */
+    launch(sessionId: string): Promise<Launch | null>
+    /** Sessions that ended, newest first, one per project, from the launch journal (the rail's «Недавние»). */
+    recent(): Promise<Array<{ projectId: string; projectName: string | null; runner: string; branch: string | null; endedAt: string | null; startedAt: string }>>
     write(sessionId: string, data: string): void
     resize(sessionId: string, cols: number, rows: number): void
     /** Ends a running session; the record stays on the board with its exit code. */
@@ -1975,6 +1992,11 @@ export const IPC = {
   settingsWrite: 'settings:write',
   settingsAgentCatalog: 'settings:agentCatalog',
   agentsSwitchboardSessions: 'agents:switchboardSessions',
+  agentsMachineSessions: 'agents:machineSessions',
+  agentsMachineRead: 'agents:machineRead',
+  agentsMachineClose: 'agents:machineClose',
+  agentsMachineContinue: 'agents:machineContinue',
+  projectsResumeLast: 'projects:resumeLast',
   settingsLoginItem: 'settings:loginItem',
   settingsFolderTrustLocked: 'settings:folderTrustLocked',
   settingsClaudeInbound: 'settings:claudeInbound',
@@ -2053,6 +2075,8 @@ export const IPC = {
   workRelease: 'work:release',
   terminalGet: 'terminal:get',
   terminalScrollback: 'terminal:scrollback',
+  terminalLaunch: 'terminal:launch',
+  terminalRecent: 'terminal:recent',
   terminalWrite: 'terminal:write',
   terminalResize: 'terminal:resize',
   terminalEnd: 'terminal:end',

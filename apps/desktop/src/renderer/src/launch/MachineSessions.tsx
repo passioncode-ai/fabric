@@ -1,0 +1,105 @@
+// #region machine-sessions-panel — docs: docs/ux/scenarios.md#scn-166-see-every-agent-and-open-its-console-in-one-press
+/**
+ * «Сессии вне Fabric» on Агенты (board request eef5abeb, point 3): the Claude Code sessions running on this computer
+ * outside Fabric (a terminal, Switchboard, a `claude -p` run), read from Claude Code's own files, so the list does not
+ * depend on Switchboard (point 4). Each one's last messages are read in place; «Продолжить в Fabric» stops it outside
+ * and continues it in a Fabric console with its context; «Закрыть» stops it. Both ask once more before they act.
+ */
+import { useEffect, useState } from 'react'
+import type { MachineSession } from '../../../main/machineSessions.ts'
+import { useT } from '../i18n'
+import { since } from '../duration'
+import { folderName } from '../../../shared/railAgents'
+import { FailureNote } from '../OperatorError'
+
+export const MACHINE_POLL_MS = 15_000
+
+type Ask = { id: string; act: 'continue' | 'close' } | null
+
+export function MachineSessionsPanel({ onOpenConsole }: { onOpenConsole(sessionId: string): void }): React.JSX.Element | null {
+  const t = useT()
+  const [rows, setRows] = useState<MachineSession[] | null>(null)
+  const [problem, setProblem] = useState<string | null>(null)
+  const [asking, setAsking] = useState<Ask>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [refused, setRefused] = useState<{ id: string; why: string } | null>(null)
+  const [turns, setTurns] = useState<{ id: string; list: Array<{ role: string; text: string }> | null | 'failed' } | null>(null)
+  const [tick, setTick] = useState(0)
+  useEffect(() => {
+    let alive = true
+    const ask = (): void => {
+      Promise.resolve().then(() => window.fabric.agents.machineSessions()).then((r) => { if (alive) { setRows(r); setProblem(null) } },
+        (e: unknown) => { if (alive) setProblem(e instanceof Error ? e.message : String(e)) })
+    }
+    ask()
+    const timer = setInterval(ask, MACHINE_POLL_MS)
+    return () => { alive = false; clearInterval(timer) }
+  }, [tick])
+
+  const run = async (id: string, act: 'continue' | 'close'): Promise<void> => {
+    setAsking(null)
+    setBusy(id)
+    setRefused(null)
+    try {
+      const r = act === 'continue' ? await window.fabric.agents.machineContinue(id) : await window.fabric.agents.machineClose(id)
+      if (!r.ok) setRefused({ id, why: r.why })
+      else if (act === 'continue' && r.sessionId) onOpenConsole(r.sessionId)
+    } catch (e) { setRefused({ id, why: e instanceof Error ? e.message : String(e) }) } finally {
+      setBusy(null)
+      setTick((x) => x + 1)
+    }
+  }
+  const read = (id: string): void => {
+    if (turns?.id === id) { setTurns(null); return }
+    setTurns({ id, list: null })
+    window.fabric.agents.machineRead(id).then((r) => setTurns({ id, list: r ? r.turns : [] }), () => setTurns({ id, list: 'failed' }))
+  }
+  const why = (w: string): string => w === 'gone' ? t('machineSessions.why.gone') : w === 'changed' ? t('machineSessions.why.changed')
+    : w === 'still-running' ? t('machineSessions.why.stillRunning') : w
+
+  return (
+    <section className="lp-panel" aria-labelledby="ag-machine-title">
+      <h3 id="ag-machine-title">{t('machineSessions.title')}</h3>
+      <p className="lp-meta">{t('machineSessions.lede')}</p>
+      {problem && <p className="lp-meta" role="status" title={problem}>{t('machineSessions.failed')}</p>}
+      {!rows && !problem && <p className="lp-meta" role="status">{t('machineSessions.reading')}</p>}
+      {rows && rows.length === 0 && <p className="lp-meta">{t('machineSessions.none')}</p>}
+      {rows && rows.length > 0 && (
+        <ul className="ag-machine">
+          {rows.map((s) => (
+            <li key={s.sessionId} data-testid="machine-session">
+              <b title={s.cwd}>{s.name ?? folderName(s.cwd) ?? s.cwd}</b>
+              {' · '}<span className="rail-folder" title={s.cwd}>{folderName(s.cwd)}</span>
+              <br />
+              <span className="lp-meta">
+                {[s.entrypoint === 'sdk-cli' || s.kind === 'print' ? t('machineSessions.headless') : t('machineSessions.terminal'),
+                  s.status, s.startedAt ? t('board.ago', { time: since(s.startedAt, t) }) : null].filter(Boolean).join(' · ')}
+              </span>
+              <span className="ag-machine-acts">
+                <button type="button" className="lp-link" aria-expanded={turns?.id === s.sessionId} onClick={() => read(s.sessionId)}>{t('machineSessions.read')}</button>
+                <button type="button" className="lp-button" disabled={busy !== null} onClick={() => setAsking({ id: s.sessionId, act: 'continue' })}>{t('machineSessions.continue')}</button>
+                <button type="button" className="lp-button" disabled={busy !== null} onClick={() => setAsking({ id: s.sessionId, act: 'close' })}>{t('machineSessions.close')}</button>
+              </span>
+              {asking?.id === s.sessionId && (
+                <div className="as-launch-ask" role="group" aria-label={t(asking.act === 'continue' ? 'machineSessions.continue' : 'machineSessions.close')}>
+                  <p className="lp-meta">{t(asking.act === 'continue' ? 'machineSessions.continueAsk' : 'machineSessions.closeAsk')}</p>
+                  <button type="button" className="lp-button primary" onClick={() => void run(s.sessionId, asking.act)}>{t('machineSessions.yes')}</button>
+                  <button type="button" className="lp-button" onClick={() => setAsking(null)}>{t('common.cancel')}</button>
+                </div>
+              )}
+              {busy === s.sessionId && <p className="lp-meta" role="status">{t('machineSessions.busy')}</p>}
+              {refused?.id === s.sessionId && <FailureNote said={t('machineSessions.refused')} detail={why(refused.why)} />}
+              {turns?.id === s.sessionId && (
+                turns.list === null ? <p className="lp-meta" role="status">{t('machineSessions.reading')}</p>
+                  : turns.list === 'failed' ? <p className="lp-meta">{t('machineSessions.readFailed')}</p>
+                  : turns.list.length === 0 ? <p className="lp-meta">{t('machineSessions.noTranscript')}</p>
+                  : <ol className="ag-machine-turns">{turns.list.map((x, i) => <li key={i} data-role={x.role}><b>{x.role === 'user' ? t('machineSessions.you') : t('machineSessions.agent')}</b> {x.text}</li>)}</ol>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+// #endregion machine-sessions-panel

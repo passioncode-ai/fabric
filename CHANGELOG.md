@@ -7,6 +7,21 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **Every console Fabric starts is in a launch journal, a press on an agent opens its console, and a project's last
+  session continues with one press.** The owner's order of 2026-11-19 (board request `eef5abeb`). Each console is a
+  line in `<userData>/launches/launches-YYYY-MM.jsonl`: who started it (you, the CEO, a routine, a chain), through what
+  (a screen, the CEO's console, its voice call), the reason, the session above it, project, folder, branch, runner,
+  Claude Code's own session id for `claude --resume`, and how it ended (`sessionLaunches.ts`). The CEO reads it with
+  `fabric_ceo_launches`. In the left column a press on an agent opens its console; its line says «Fabric · терминал»
+  and its branch instead of «Работает»; its page (the small button beside) says who started it and has «Закрыть
+  сессию». Each project's row has «＋» for a new session and «↻» to continue its newest session that is not running,
+  wherever it was started; «Агенты» has «+ Новая сессия» and the recent sessions under the running ones. «Сессии вне
+  Fabric» on Агенты lists the Claude Code sessions running in a terminal or through Switchboard, read from Claude
+  Code's own files: their last messages, «Продолжить в Fabric» and «Закрыть». A Switchboard call that timed out or was
+  killed is now named instead of «Command failed», and a read is tried once more (`switchboardSessions.ts#switchboardFailure`).
+
 ## 0.3.25
 
 - **The CEO's window is new, and the call is a panel inside its chat.** The owner, 2026-11-19: the popup looked worn,

@@ -12,7 +12,7 @@
 import { parseFabricLink } from './contract/fabricLinks.ts'
 
 export interface LinkRouteDeps {
-  projects: ReadonlyArray<{ id: string; name: string; remotes: ReadonlyArray<string | null> }>
+  projects: ReadonlyArray<{ id: string; name: string; remotes: ReadonlyArray<string | null>; folders?: ReadonlyArray<string> }>
   /** The registry's services: `key` is `id.instance`. */
   services: ReadonlyArray<{ key: string; id: string; repository: string | null }>
 }
@@ -63,11 +63,20 @@ export function normaliseRepository(url: string): string | null {
 
 const home = (notice: LinkNotice): LinkRoute => ({ route: { kind: 'home' }, notice })
 
+/** The last segment of a folder, either separator. */
+const folderLeaf = (folder: string): string => folder.replace(/[\\/]+$/, '').split(/[\\/]/).pop() ?? ''
+
+/** A project by its id, else its name, else the name of one of its folders (board thread 3ca40854, 2026-11-19: an app
+ *  that knows a session's folder names its repository folder, since a link carries no path). Two projects a name could
+ *  mean is no project: the link opens home and says it is unknown. */
 function projectByRef(ref: string, deps: LinkRouteDeps): string | null {
   const byId = deps.projects.find((p) => p.id === ref)
   if (byId) return byId.id
-  const named = deps.projects.filter((p) => p.name.toLowerCase() === ref.toLowerCase())
-  return named.length === 1 ? named[0].id : null
+  const lower = ref.toLowerCase()
+  const named = deps.projects.filter((p) => p.name.toLowerCase() === lower)
+  if (named.length) return named.length === 1 ? named[0].id : null
+  const byFolder = deps.projects.filter((p) => (p.folders ?? []).some((f) => folderLeaf(f).toLowerCase() === lower))
+  return byFolder.length === 1 ? byFolder[0].id : null
 }
 
 export function routeForLink(url: string, deps: LinkRouteDeps): LinkRoute {
@@ -97,6 +106,8 @@ export interface LinkReads {
   projects(): Promise<ReadonlyArray<{ id: string; name: string }>>
   /** A project's repository remotes; throws when they cannot be read. */
   remotes(projectId: string): Promise<ReadonlyArray<string | null>>
+  /** A project's repository folders, for a link that names one by its last segment; none when not given. */
+  folders?(projectId: string): Promise<ReadonlyArray<string>>
   services(): LinkRouteDeps['services']
   /** Where a failed read goes: the log, never the window (the notice says it there). */
   failed(e: unknown): void
@@ -112,7 +123,7 @@ export async function resolveLink(url: string, reads: LinkReads): Promise<LinkRo
   if (!parseFabricLink(url).ok) return home('link-refused')
   try {
     const rows = await reads.projects()
-    const projects = await Promise.all(rows.map(async (p) => ({ id: p.id, name: p.name, remotes: await reads.remotes(p.id) })))
+    const projects = await Promise.all(rows.map(async (p) => ({ id: p.id, name: p.name, remotes: await reads.remotes(p.id), folders: (await reads.folders?.(p.id)) ?? [] })))
     return routeForLink(url, { projects, services: reads.services() })
   } catch (e) {
     reads.failed(e)

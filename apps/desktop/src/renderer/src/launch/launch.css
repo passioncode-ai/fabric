@@ -819,6 +819,9 @@ button.lg-node{ cursor: pointer; }
 .rail-branch.unknown{font-family:inherit;color:var(--app-muted)}
 /* CO-498: the folder an agent works in, before its branch. */
 .rail-folder{font-family:var(--font-mono);font-size:11px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin-right:4px}
+/* The owner, 2026-11-19 (eef5abeb): where the session runs leads the line, the branch (or folder) ends it. */
+.rail-source{flex:none}
+.rail-branch-word{font-family:var(--font-mono);font-size:11px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin-right:4px}
 /* История and Настройки at the column's foot. */
 .rail-foot{margin-top:auto;padding-top:6px;border-top:1px solid var(--app-line)}
 @media(max-width:900px){
@@ -1387,3 +1390,11 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .lp-detail>h3+.lp-comms-disclosure{margin-top:var(--space-3)}
 .lp-message .lp-message-body,.lp-message p.lp-message-body{font-size:13px;line-height:1.55;color:var(--app-ink)}
 .lp-message .lp-message-body.md p{font-size:inherit;color:inherit}
+/* eef5abeb point 3: the sessions outside Fabric on Агенты. */
+.ag-machine{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:10px}
+.ag-machine-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.ag-machine-turns{margin:6px 0 0;padding-left:18px;display:grid;gap:4px;font-size:12.5px;max-height:260px;overflow:auto}
+.as-launch-ask{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.as-launch-ask .lp-meta{flex-basis:100%;margin:0}
+.as-launch-reason{display:block}
+.as-launch-resume{font-family:var(--font-mono);font-size:11px;word-break:break-all}

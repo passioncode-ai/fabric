@@ -22,7 +22,7 @@ import { createSharedReading } from '../shared/sharedReading'
 import { startBugCapture, type BugCapture } from './bugCapture'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
-import { launchOption, launchOptions, PtyManager, setFolderTrust, setPermissionPreference } from './pty'
+import { launchOption, launchOptions, PtyManager, setFolderTrust, setLaunchSink, setPermissionPreference } from './pty'
 import { trustFolderForClaude } from './claudeTrust.ts'
 import { classifyFailure } from '../shared/failure.ts'
 import { createPreparedLaunchInputs } from './preparedLaunchInput.ts'
@@ -202,7 +202,7 @@ import { toOperatorMarks } from './boardDispatchRun.ts'
 import { suspendedSince } from '../shared/boardDispatch.ts'
 import { createIpcOutcomeLog } from './ipcOutcome.ts'
 import { agentCounts, createAnalytics, installationPath, type Analytics } from './analytics'
-import { homedir } from 'node:os'
+import { homedir, hostname } from 'node:os'
 import { decideProposal } from './commands/proposalCommands.ts'
 import { withDeliveryHeader } from '../shared/deliveryState.ts'
 import { continuationText, routeContinuation, type ContinuationState } from '../shared/continuation.ts'
@@ -454,6 +454,13 @@ import { createContinuationDelivery, type ContinuationResult } from './continuat
 import { createPastContext } from './pastContext.ts'
 import { launchPlace } from '../shared/launchPlace.ts'
 import { createConsoleOpen } from './consoleOpen.ts'
+import { redact } from '../shared/redact.ts'
+import { claudeSessionOf, createLaunchJournal, readGitBranch, type LaunchJournal } from './sessionLaunches.ts'
+import { withLaunchOrigin } from './launchOrigin.ts'
+import { claudeConfigDirs, defaultAlive, liveClaudeSessions } from './diskSessions.ts'
+import { createMachineSessions } from './machineSessions.ts'
+import { gitWorktrees, lastSessionOf, projectForFolder } from './projectResume.ts'
+import { findTranscript, defaultTranscriptRoots, transcriptTurns } from './ceoTools.ts'
 import { createTaskStart } from './taskStart.ts'
 
 // ADR-0195 W2b: this process's data folder for every local store (settings, kept-out agents, digest marks), named
@@ -491,6 +498,8 @@ let OPERATOR_ACTOR: { kind: 'person'; id: string }
 /** ADR-0195 W2a.2: the board's memory both the window's doors and the board's own code use (`boardState.ts`). */
 const boardState = createBoardState()
 const markPersonEnded = boardState.personEnded.mark
+/** The launch journal on disk (`sessionLaunches.ts`, board request eef5abeb); set once the data folder is known. */
+let launchJournal: LaunchJournal | null = null
 const markBindingPersonEnded = boardState.personEnded.markBinding
 const markGrantPersonEnded = boardState.personEnded.markGrant
 let admission: ReturnType<typeof createProjectAdmission>
@@ -584,6 +593,7 @@ async function openLink(url: string, dropped = 0): Promise<void> {
       return (data ?? []) as Array<{ id: string; name: string }>
     },
     remotes: async (projectId) => (await projectReposWithRemotes(projectId)).map((r) => r.remote),
+    folders: async (projectId) => (await projectReposWithRemotes(projectId)).map((r) => r.path),
     services: () => (linkRegistry?.snapshot().entries ?? [])
       .filter((e) => e.kind === 'service')
       .map((e) => ({ key: e.key, id: e.id, repository: e.repository })),
@@ -623,7 +633,8 @@ const quit = createQuitCoordinator({
   starting: () => !windowReady,
   // Quit requests scoped termination. A deadline leaves unresolved ownership
   // durable; closing the host does not manufacture a successful Stop receipt.
-  shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
+  // The launch journal's last ends are written before the surface goes (`sessionLaunches.ts#flush`).
+  shutdown: () => stopRuntime.shutdown().then(() => launchJournal?.flush()).then(() => surface?.stop()),
   // ADR-0192: while the board's service is on, the person's quit hides Fabric and the board keeps running; logout,
   // restart and shutdown (powerMonitor's 'shutdown', posted for each on macOS), a signal, «Перезапустить Fabric» and the
   // Quit of a failed start still end it (the 0.3.18 review, iteration 1: PL-3, PL-4, PL-5, ER-2, ER-4, UX-3).
@@ -1388,6 +1399,22 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   setFolderTrust((folder) => trustFolderForClaude(folder), () => trustsAgentFolders(readSettings(), process.env))
   // One permission choice for every agent this machine starts (CO-305, ADR-0168), read at each launch.
   setPermissionPreference(() => readSettings().agentPermissions)
+  // #region launch-journal-wiring — docs: docs/evidence/specs/2026-11-19-session-launch-journal.md#4-on-disk
+  launchJournal = createLaunchJournal({
+    dir: path.join(app.getPath('userData'), 'launches'),
+    machine: hostname(),
+    appVersion: app.getVersion(),
+    appPid: process.pid,
+    redact: (text) => redact(text).text,
+    readBranch: readGitBranch,
+    readRunnerSession: claudeSessionOf,
+    quitting: () => quit.quitting,
+    failed: (kind, e) => ops.failed(`launches.${kind}`, e, { note: 'the launch journal missed a line; the console runs on' })
+  })
+  setLaunchSink(launchJournal)
+  void launchJournal.prune().then((removed) => { if (removed.length) ops.record({ op: 'launches.pruned', outcome: 'ok', level: 'info', detail: { files: removed.length }, ctx: { correlationId: ops.correlate() } }) })
+  quit.onQuit(() => { launchJournal?.markQuitting(); launchJournal?.dispose() })
+  // #endregion launch-journal-wiring
   ptys = new PtyManager(journal, ACTIVE_ESTATE, {
     onData: (sessionId, data, written) => { broadcast(IPC.terminalData, sessionId, data, written); ceoAgent?.onOutput(sessionId, data) },
     onExit: async (sessionId, exitCode) => {
@@ -1689,6 +1716,13 @@ async function readAdmissionProject(id: string): Promise<ProjectRow | null> {
 
 async function readRepoRemovals() {
   return projectReads.listRemovals()
+}
+
+/** The active projects, as the rail lists them. */
+async function activeProjectsRead(): Promise<ProjectRow[]> {
+  const { data, error } = await store.select('projects', '*').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
+  if (error) throw new Error(`projects list failed: ${error.message}`)
+  return (data ?? []) as ProjectRow[]
 }
 
 async function readProject(id: string): Promise<ProjectRow> {
@@ -3436,9 +3470,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         // instead of reading the journal back (release review iteration 2, memory finding 7).
         launchTriggerBySession.set(sessionId, input.trigger)
         try {
-          const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
+          // The launch journal's origin: the person's start of a task, or a routine's, a chain's, an answer's.
+          const origin = { by: input.trigger === 'operator' ? 'person' as const : input.trigger, via: 'task' as const, ...(input.taskId ? { taskId: input.taskId } : {}) }
+          const session = await withLaunchOrigin(origin, () => ptys.open(receipt.project_id!, project.repo_path!, optionId,
             input.taskId, input.permissionMode ?? null, agent, sessionId,
-            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared, unit)
+            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared, unit))
           syncPower()
           return session
         } finally {
@@ -3886,7 +3922,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           const project = await readProject(a.project_id)
           const place = launchPlace(project.repo_path)
           const cwd = a.cwd && existsSync(a.cwd) ? a.cwd : place.place === 'repository' ? place.path : app.getPath('home')
-          const opened = await ptys.open(a.project_id, cwd, a.option_id, null, a.permission_mode)
+          const opened = await withLaunchOrigin({ by: 'person', via: 'restart' },
+            () => ptys.open(a.project_id, cwd, a.option_id, null, a.permission_mode))
           syncPower()
           return { sessionId: opened.sessionId, label: labelOf(a.option_id) }
         }
@@ -4697,6 +4734,66 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // CO-457: read-only, Switchboard's sessions and limit stops merged as Fabric Dashboards merges them.
   handle(IPC.agentsSwitchboardSessions, (): Promise<Returns<FabricApi['agents']['switchboardSessions']>> =>
     readMachineSwitchboardSessions(sessionEnvironment(process.env), Date.now()))
+  // #region resume-in-fabric — docs: docs/ux/scenarios.md#scn-166-see-every-agent-and-open-its-console-in-one-press
+  // The owner, 2026-11-19 (eef5abeb, and «либо новую, либо последнюю»): a Claude Code session, wherever it was started,
+  // continued in a Fabric console with `claude --resume <id>` in its folder and the Claude home it ran in.
+  const runningClaudeIds = async (): Promise<Set<string>> => {
+    const ids = new Set((await liveClaudeSessions(await claudeConfigDirs())).map((s) => s.sessionId))
+    const live = new Set(ptys.list().filter((s) => s.running).map((s) => s.sessionId))
+    for (const l of (await launchJournal?.read()) ?? []) if (l.runnerSessionId && live.has(l.sessionId)) ids.add(l.runnerSessionId)
+    return ids
+  }
+  const resumeInFabric = async (projectId: string, cwd: string, claudeId: string, config: string, reason: string): Promise<{ sessionId: string }> => {
+    const sessionId = randomUUID()
+    const own = path.join(homedir(), '.claude')
+    ptys.prepareLaunch(sessionId, { args: ['--resume', claudeId], env: config === own ? {} : { CLAUDE_CONFIG_DIR: config } })
+    const opened = await withLaunchOrigin({ by: 'person', via: 'screen', reason }, () => ptys.open(projectId, cwd, 'claude-code', null, null, null, sessionId))
+    syncPower()
+    return { sessionId: opened.sessionId }
+  }
+  handle(IPC.projectsResumeLast, async (_e, projectId: unknown): Promise<Returns<FabricApi['projects']['resumeLast']>> => {
+    if (typeof projectId !== 'string' || !UUID.test(projectId)) throw new Error('Invalid project identity')
+    const project = await readProject(projectId)
+    if (!project.repo_path) return { ok: false, why: 'no-folder' }
+    const folders = [...await gitWorktrees(project.repo_path), ...((await launchJournal?.read({ projectId })) ?? []).map((l) => l.cwd)]
+    const last = await lastSessionOf(folders, await claudeConfigDirs(), await runningClaudeIds())
+    if (!last) return { ok: false, why: 'none' }
+    try {
+      const opened = await resumeInFabric(projectId, last.cwd, last.sessionId, last.config, 'Продолжить последнюю сессию проекта')
+      ops.record({ op: 'projects.resume-last', outcome: 'ok', level: 'info', detail: { project_id: projectId, runner_session_id: last.sessionId, console: opened.sessionId }, ctx: { correlationId: ops.correlate() } })
+      return { ok: true, sessionId: opened.sessionId }
+    } catch (e) {
+      ops.failed('projects.resume-last', e, { project_id: projectId })
+      return { ok: false, why: 'failed', says: e instanceof Error ? e.message.slice(0, 300) : String(e) }
+    }
+  })
+  const machineSessions = createMachineSessions({
+    live: async () => liveClaudeSessions(await claudeConfigDirs()),
+    fabricRunnerIds: async () => {
+      const live = new Set(ptys.list().filter((s) => s.running).map((s) => s.sessionId))
+      return new Set(((await launchJournal?.read()) ?? []).filter((l) => l.runnerSessionId && live.has(l.sessionId)).map((l) => l.runnerSessionId!))
+    },
+    alive: defaultAlive,
+    signal: (pid) => { process.kill(pid, 'SIGTERM') },
+    stillNames: async (s) => (await liveClaudeSessions([s.config])).some((x) => x.pid === s.pid && x.sessionId === s.sessionId),
+    transcript: (id) => findTranscript(defaultTranscriptRoots(), id),
+    turns: transcriptTurns,
+    continueInFabric: async (s) => {
+      const project = await projectForFolder(s.cwd, await activeProjectsRead())
+      if (!project) throw new Error(`the folder ${s.cwd} is not in a Fabric project: add it as a project first`)
+      return resumeInFabric(project.id, s.cwd, s.sessionId, s.config, 'Перенесена в Fabric из терминала вне Fabric')
+    },
+    record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  const sessionArg = (v: unknown): string => {
+    if (typeof v !== 'string' || !/^[0-9a-f-]{36}$/i.test(v)) throw new Error('Invalid session identity')
+    return v
+  }
+  handle(IPC.agentsMachineSessions, (): Promise<Returns<FabricApi['agents']['machineSessions']>> => machineSessions.list())
+  handle(IPC.agentsMachineRead, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineRead']>> => machineSessions.read(sessionArg(id)))
+  handle(IPC.agentsMachineClose, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineClose']>> => machineSessions.close(sessionArg(id)))
+  handle(IPC.agentsMachineContinue, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineContinue']>> => machineSessions.continueInFabric(sessionArg(id)))
+  // #endregion resume-in-fabric
   // CO-407: Claude Code's cross-session messages, only by the person's switch; and the launcher doctor, only on asking.
   const inboundAnswer = (r: ReturnType<typeof readInbound>) =>
     'unreadable' in r ? { unreadable: true as const } : { accepting: r.accepting, value: r.value, ...(r.notSaved ? { notSaved: r.notSaved } : {}) }
@@ -4939,10 +5036,28 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(
     IPC.terminalOpen,
     (_e, projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null): Promise<Returns<FabricApi['terminal']['open']>> =>
-      openConsole(projectId, optionId, firstInstruction, permissionMode)
+      withLaunchOrigin({ by: 'person', via: 'screen' }, () => openConsole(projectId, optionId, firstInstruction, permissionMode))
   )
 
   handle(IPC.terminalList, (_e, projectId?: string): Returns<FabricApi['terminal']['list']> => ptys.list(projectId))
+  // «Недавние» in the rail: the newest ended launch of each project, not running now, eight at most.
+  handle(IPC.terminalRecent, async (): Promise<Returns<FabricApi['terminal']['recent']>> => {
+    const running = new Set(ptys.list().filter((s) => s.running).map((s) => s.projectId))
+    const names = new Map((await activeProjectsRead()).map((p) => [p.id, p.name]))
+    const out: Returns<FabricApi['terminal']['recent']> = []
+    for (const l of (await launchJournal?.read()) ?? []) {
+      if (l.end === null && ptys.get(l.sessionId)?.running) continue
+      if (running.has(l.projectId) || !names.has(l.projectId) || out.some((o) => o.projectId === l.projectId)) continue
+      out.push({ projectId: l.projectId, projectName: names.get(l.projectId) ?? null, runner: l.optionId, branch: l.branch, endedAt: l.endedAt, startedAt: l.startedAt })
+      if (out.length >= 8) break
+    }
+    return out
+  })
+  // Who started a console and from where (the launch journal, board request eef5abeb): read for the agent's page.
+  handle(IPC.terminalLaunch, async (_e, sessionId: unknown): Promise<Returns<FabricApi['terminal']['launch']>> => {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 128) throw new Error('Invalid session identity')
+    return (await launchJournal?.read({ sessionId }))?.find((l) => l.sessionId === sessionId) ?? null
+  })
   handle(
     IPC.terminalScrollback,
     (_e, sessionId: string): Returns<FabricApi['terminal']['scrollback']> => ptys.scrollbackOf(sessionId)
@@ -5105,6 +5220,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     markPersonEnded(sessionId)
     // The CEO's console stopped from its own window stays stopped (the owner, 2026-11-19), never read as an early end.
     ceoAgent?.personStopping(sessionId)
+    void launchJournal?.stopAsked(sessionId, 'person')
     // ER-6 (0.3.25): the CEO's hold is settled however the stop ends.
     let result: Awaited<ReturnType<typeof stopRuntime.stop>>
     try { result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true }) } finally { ceoAgent?.personStopEnded(sessionId) }
@@ -5215,12 +5331,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return { id: row.id, name: row.name, repo_path: row.repo_path }
     },
     openConsole: (projectId, runner, task) => openConsole(projectId, runner, task, null),
-    stop: async (id, force) => { markPersonEnded(id); return stopRuntime.stop(id, 'operator_stop', { force }) },
+    stop: async (id, force) => { markPersonEnded(id); void launchJournal?.stopAsked(id, 'ceo'); return stopRuntime.stop(id, 'operator_stop', { force }) },
     openWindow: (id) => openSessionWindow(id),
     switchboard: (args) => runMachineSwitchboard(sessionEnvironment(process.env), args),
     signal: (pid) => { process.kill(pid, 'SIGTERM') },
     record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } }),
-    note: ceoNote
+    note: ceoNote,
+    launches: (q) => launchJournal ? launchJournal.read(q) : Promise.resolve([]),
+    diskSessions: async () => liveClaudeSessions(await claudeConfigDirs())
   })
   // PM chain (task ff3fe9c3): once a minute, a board request a PM agent gave the CEO (capability `ceo.task`) is typed
   // into its running console, each once.
@@ -5303,7 +5421,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console' : undefined }
     }
     if (!tool.startsWith('session_')) return { ok: false, reason: `unknown tool ${tool}` }
-    return ceoOperations!.run(tool.slice('session_'.length), args)
+    return ceoOperations!.run(tool.slice('session_'.length), args, 'voice')
   })
   // #endregion ceo-agent-wiring
 }

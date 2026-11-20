@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-19 · `FABRIC-LAUNCH-JOURNAL` · feat/session-launch-journal → main · fast-forward
+- files: `apps/desktop/src/{shared,main}/sessionLaunches.ts`, `main/{launchOrigin,diskSessions,machineSessions,projectResume}.ts`, `main/{pty,ceoTools,switchboardSessions,index}.ts`, `renderer/src/launch/{LaunchShell,SessionLaunch,MachineSessions,AgentsScreen}.tsx`, IPC and preload, both locales, CSS, tests, SCN-166, the spec, CHANGELOG, the design map
+- conflicts: none
+- summary: the launch journal on disk read by the CEO; Switchboard failures named and a read retried; a press on an agent opens its console; «новая / последняя» on each project; sessions outside Fabric read, continued in Fabric and closed (board request eef5abeb)
+
 ### 2026-11-19 · `FABRIC-0325` · feat/ceo-popup-redesign → main · fast-forward
 - files: `apps/desktop/src/main/{ceoAgent,ceoTools,ceoVoice}.ts`, the CEO wiring in `main/index.ts`, `apps/desktop/src/shared/{ceoAgent,persona,types,ipcWindowPolicy}.ts`, the preload, `renderer/src/ceo/{CeoPopup,CeoCall,CeoButton,CeoComposer,VoicePicker,voiceCall}.ts(x)`, `PersonaScreen.tsx`, `FirstRun.tsx`, `App.tsx`, `ceo.tsx`, `styles.css`, the component registry, both locales, tests, SCN-110, SCN-182, SCN-184, SCN-186, SCN-187, ADR-0197 amendment 2, the xAI voices in `external-contracts.md`, CO-601, the product model, the 0.3.25 review receipts and ledger, `docs/launch/release-gate.json`, the version, CHANGELOG `## 0.3.25`
 - conflicts: none
