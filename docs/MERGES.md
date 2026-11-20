@@ -5,7 +5,7 @@
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
 ### 2026-11-20 · `DISPATCH-REFUSALS` · fix/dispatch-refusals-escalate → main · fast-forward (toward 0.3.27)
-- files: `apps/desktop/src/main/boardDispatchRun.ts`, test `board-dispatch-run`, on-demand spec §3.8 item 6, carryover CO-607, CHANGELOG `0.3.27 (unreleased)`, the design map
+- files: `apps/desktop/src/main/boardDispatchRun.ts`, tests `board-dispatch-run` and `adapter-skills` (its calls pass an empty `env`, so a session inside a Switchboard home no longer leaks `CLAUDE_CONFIG_DIR` into it), on-demand spec §3.8 item 6, carryover CO-607, CHANGELOG `0.3.27 (unreleased)`, the design map
 - conflicts: none
 - summary: org-index's board request `42c14b72`: a refused board start writes Switchboard's code into its workflow (`launch-refused`), `no_agent` and `at_capacity` wait at most 30 min instead of doubling to 6 h, items waiting 6 h or more are offered a free place first, and the inbox packet says what its count leaves out; the operator's signal after a series of refusals is CO-607
 
