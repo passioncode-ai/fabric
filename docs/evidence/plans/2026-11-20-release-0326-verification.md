@@ -263,12 +263,12 @@ order `3aa89c92` were in no record of this release.
 
 Candidate `19b422264b26d1dbed6b380574978d2f9cc0d25f`. Reports and receipts in
 [`docs/evidence/reviews/0.3.26/iteration-3-19b42226/`](../reviews/0.3.26/iteration-3-19b42226/) (kept as the record; not
-this iteration's receipts). Gate: hosted `ci.yml` run 44687173294 success (browser suites 26 of 26, 06:39:09Z); local
-`ci.sh fast` with both browser variables set, exit 0, browser suites 26 of 26. Every run-two fix held, two in part. 19 findings, 2 blocking:
-ER-26, run two's move of the waiting link to React state left the ask's answer calling a callback of an older render, so a
-link waiting behind a successful press was dropped; UX-37, after a half-done answer a stale read hid the retry; both in
-code the gate refuses after `verifiedCommit`, so the iteration runs again. PL-30, items 2 to 4 of the owner's release
-order `3aa89c92` were in no record of this release.
+this iteration's receipts). Gate: hosted `ci.yml` run 44689889864 success (browser suites 26 of 26); local `ci.sh fast`
+with both browser variables set, exit 0 at 07:01:07Z, browser suites 26 of 26. Every run-three fix held, UX-40 and UX-41
+only on screen: their act could not reach a session in Switchboard's account homes. 19 findings, 2 blocking: UX-42,
+Switchboard's account homes (`homes/`) were not read, so no session Switchboard launched there could be continued from
+its history, which made three shipped claims false; this is code, so the iteration runs again. PL-35, the order
+`51d22d2b` was in no record of this release.
 
 | Row | Finding | Severity | Disposition |
 |---|---|---|---|
@@ -291,3 +291,61 @@ order `3aa89c92` were in no record of this release.
 | V3-PL-37 | PL-37 | non-blocking | fixed in the iteration-3 run-five candidate: as UX-47 |
 | V3-PL-38 | PL-38 | non-blocking | fixed in the release close: post-tag acts are listed as owed items, each checked off with its receipt on main after the tag |
 | V3-PL-39 | PL-39 | non-blocking | fixed in the iteration-3 run-five candidate: as DO-33 |
+
+### Run five, 2f138c70
+
+Candidate `2f138c70f4569d0d20a2c4a4e07fd359c89f8a45`. Reports and receipts in
+[`docs/evidence/reviews/0.3.26/iteration-3/`](../reviews/0.3.26/iteration-3/). Its only change after the run-four
+fixes (`c7ebfbbb`) is documents: the hosted `ci.yml` run 44694559115 on `c7ebfbbb` failed in `check-docs.sh` because the
+run-four docs report quoted a Markdown link that the relative-link check read as broken. In `2f138c70` that quote (DO-31's
+evidence) names the link text and target without link syntax, the receipt's `reportSha256` moved from `8aae01f8…` to
+`cdad9411…`, the wording is otherwise the reviewer's, and the ledger's run-four link points at its own folder. Gate:
+hosted `ci.yml` run 44695060165 success (browser suites 26 of 26, 07:42:35Z); local `ci.sh fast` with both browser
+variables set, exit 0, browser suites 26 of 26. The reviewers started while the local run ran (PL-42); both runs ended
+green before any disposition. Every run-four fix held; ER-28 holds for its part (a), and part (b) is carried (ER-33).
+15 findings, none blocking.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-UX-48 | UX-48 | non-blocking | ruled: CO-604 (34), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the panel's half-done note names no session and its retry's busy state and refusal show only in a row the stopped session no longer has |
+| V3-UX-49 | UX-49 | non-blocking | ruled: CO-604 (35), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the link ask's half-done banner says «остановлена» twice; one sentence in 0.3.27 |
+| V3-UX-50 | UX-50 | non-blocking | ruled: CO-604 (18) amended, written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the homes read widens (18) from runtimes/ to every dispatched run; measured 15 live disk sessions (.claude 10, runtimes 2, homes 3), two of the homes ones Switchboard origin fabric |
+| V3-ER-31 | ER-31 | non-blocking | ruled: CO-604 (36), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): an older Switchboard read that settles after a newer one overwrites its post-act rows; the settle keeps the generation and replaces only an older one |
+| V3-ER-32 | ER-32 | non-blocking | ruled: CO-604 (37), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the panel's «ended» confirmation is chosen at the click; it is chosen from the current row at render time, and main refuses to signal a press confirmed as ended |
+| V3-ER-33 | ER-33 | non-blocking | ruled: CO-604 (25) amended, written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): ER-28 part (b), a live Switchboard-only row after a half-done answer, is carried; the run-four row V3-ER-28 covers part (a) only |
+| V3-ER-34 | ER-34 | non-blocking | ruled: CO-604 (38), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the doc comment of claudeConfigDirs moves back above it and names homes |
+| V3-DO-35 | DO-35 | non-blocking | fixed in the release commit: the run-four paragraph names its own hosted run 44689889864, that every run-three fix held, and its blocking findings UX-42 and PL-35 |
+| V3-DO-36 | DO-36 | non-blocking | fixed in the release commit: the run-five subsection records the re-quoted DO-31 evidence in the run-four docs report (prior hash 8aae01f8, wording otherwise the reviewer's) and the red hosted run 44694559115 on c7ebfbbb |
+| V3-DO-37 | DO-37 | non-blocking | ruled: CO-604 (38), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): as ER-34 |
+| V3-DA-27 | DA-27 | non-blocking | ruled: CO-604 (38), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): the comments in machineSessions.ts, ceoTools.ts and diskSessions.ts name homes |
+| V3-DA-28 | DA-28 | non-blocking | fixed in the release commit: as DO-35 |
+| V3-PL-40 | PL-40 | non-blocking | fixed in the release commit: as DO-35 |
+| V3-PL-41 | PL-41 | non-blocking | fixed in the release commit: the release close lists thread 6255f2d5 with its 2026-11-21 12:00 UTC deadline, and the 3ca40854 notice states the shipped behaviour for sessions seen only through Switchboard |
+| V3-PL-42 | PL-42 | non-blocking | fixed in the release commit: the run-five subsection records hosted run 44695060165, the local exit and that the reviewers started while the local run ran |
+
+Exit for iteration 3: every finding disposed above. Blocking findings open: none.
+
+## Release close
+
+**Session reading on a build of the verified candidate.** `2f138c70` built with `electron-vite build`, run against the
+disposable stack with this computer's real sessions, 07:49Z: the CEO card at x = 876, 1036 and 1276 (y = 68) for windows
+1280, 1440 and 1680 px wide, to the right of the hero; the rail and Агенты list 18 sessions, «Идут: 9 · ждут: 5 · нужны
+вы: 4 · живых процессов: 14»; no page error. Switchboard's rows at the same minute: 438, of them 425 ended, running 5,
+needs_you 7, waiting 1. The two differ by design (CO-603 (1)): Fabric also lists live Claude Code processes Switchboard
+does not name and counts each by its own state.
+
+**MCP probe.** Observatory's `machine.mcp.refresh`, 07:09:32Z: 63 servers declared across 6 agent configs. Every server
+the operator's tools declare at user scope answered, Fabric's own `fabric`, `fabric-dashboards`, `switchboard`, `observatory`
+and `local-lifecycle` among them. Not probed: 4 (scoped to other projects, declared only for another agent, or a missing
+binary). The claude.ai connectors that need a sign-in are a human gate, not a defect of this release.
+
+**Owed after the tag**, each checked off on main with its receipt:
+
+1. CO-604 (34) to (38) and the amendments of (18) and (25) from run five, in the first commit on main after the tag.
+2. The knowledge base's roadmap, products and plans pages at 0.3.26, in one fabric-workspace pull request (PL-32).
+3. Tasks `5c047d7d`, `3bc39496`, `c15ae8cc`, `e5f6aa38` and `5ed0b35b` moved to review with the version; `226f3fa6` and
+   `340012fe` noted with what remains (PL-33).
+4. Notices with the version: threads `20ee2630`, `3ca40854` (a session seen only through Switchboard is read; an ended one
+   continues from its history; a running one is not touched), `12e4a915`, `fe5f93aa`, `7e7889f6`, `6255f2d5` (the ADR-0195
+   wave, by 2026-11-21 12:00 UTC) and the people.ask `5467c685` (PL-36, PL-41).
+5. The release installed on this computer through the lifecycle broker and its version read back.

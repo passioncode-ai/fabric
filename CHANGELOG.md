@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## Unreleased
+## 0.3.26
 
 0.3.25 was not published; its changes are in this release ([the release spec](docs/evidence/specs/2026-11-20-home-agents-sessions.md)).
 

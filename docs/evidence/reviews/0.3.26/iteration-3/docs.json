@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "2f138c70f4569d0d20a2c4a4e07fd359c89f8a45",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3/2026-11-20-docs.md",
+  "reportSha256": "d50fc313e64963770cf3b3d337df4921f6173bed273c08b6e5d1cabb5ad5e4e7",
+  "reviewerRun": "release-0326-i3r5-docs-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the run-four paragraph names its own hosted run 44689889864, that every run-three fix held, and its blocking findings UX-42 and PL-35"
+      ]
+    },
+    {
+      "id": "DO-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the run-five subsection records the re-quoted DO-31 evidence in the run-four docs report (prior hash 8aae01f8, wording otherwise the reviewer's) and the red hosted run 44694559115 on c7ebfbbb"
+      ]
+    },
+    {
+      "id": "DO-37",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (38), written on main in the first commit after the tag (the carry-over register may not change after verifiedCommit): as ER-34"
+      ]
+    }
+  ]
+}
