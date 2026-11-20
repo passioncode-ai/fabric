@@ -28,6 +28,10 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
 - **A task in words is never typed into a plain shell.** A session started with runner «shell» and a task typed the task
   into zsh («parse error near `)'»). The CEO's start refuses that before anything starts and names the agents to use;
   the console never types a first instruction into a shell (`main/consoleOpen.ts#TAKES_NO_TASK`).
+- **A client the hub refuses as unknown is named.** After a restart, a client kept knocking with a revoked credential
+  every 20 s for two hours and the log named nobody. The refusal now writes `hub.unknown-credential` once per 10 minutes
+  per credential, with a short digest of what was sent (never the credential) and the client's User-Agent
+  (`main/agentSurface.ts#sayUnknownCredential`).
 
 **Upgrading.** No schema step. Nothing to set.
 
