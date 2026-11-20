@@ -8,8 +8,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { joined, neighbours, type GraphData, type GraphNode } from '@fabric/graph/model'
 import { bounds, layout, type Placed } from './layout'
 
-/** The categorical colours of the app's status tokens, readable on both themes (tokens.paperclip.css). */
-const PALETTE = ['--info', '--review', '--good', '--warn', '--danger', '--idle']
+/** The categorical colours, set in graph.css from the app's state tokens (readable on both themes). */
+const PALETTE = ['--graph-c1', '--graph-c2', '--graph-c3', '--graph-c4', '--graph-c5', '--graph-c6']
 
 export interface GraphMapProps {
   data: GraphData
@@ -29,12 +29,9 @@ export interface GraphMapProps {
 
 function tokens(el: Element): { colors: string[]; ink: string; muted: string; line: string; panel: string; focus: string } {
   const cs = getComputedStyle(el)
-  const v = (name: string, fallback: string) => cs.getPropertyValue(name).trim() || fallback
-  return {
-    colors: PALETTE.map((p, i) => v(p, ['#60a5fa', '#9474f0', '#34d06f', '#fbbf24', '#fb2c36', '#9a958a'][i]!)),
-    ink: v('--app-ink', '#e8e6e3'), muted: v('--app-muted', '#9a958a'), line: v('--app-line', '#3a3a3a'),
-    panel: v('--app-panel', '#151515'), focus: v('--app-focus', '#60a5fa')
-  }
+  // A token the stylesheet did not reach falls back to the element's own text colour, never to a colour of its own.
+  const v = (name: string) => cs.getPropertyValue(name).trim() || cs.color
+  return { colors: PALETTE.map(v), ink: v('--app-ink'), muted: v('--app-muted'), line: v('--app-line'), panel: v('--app-panel'), focus: v('--app-focus') }
 }
 
 export function GraphMap({ data, focus = null, onPick, hubs, label, noCanvas, fitLabel, height = 520 }: GraphMapProps): React.JSX.Element {

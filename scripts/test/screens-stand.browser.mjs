@@ -30,7 +30,7 @@ const server = http.createServer((q, r) => {
 })
 await new Promise((ok) => server.listen(0, '127.0.0.1', ok))
 const port = server.address().port
-const SCREENS = ['home', 'agent', 'task', 'project', 'board', 'review', 'comms', 'pulse', 'history', 'plan', 'graph', 'access', 'settings', 'launch', 'console', 'console-ended']
+const SCREENS = ['home', 'agent', 'task', 'project', 'board', 'review', 'comms', 'pulse', 'history', 'plan', 'graph', 'memory', 'access', 'settings', 'launch', 'console', 'console-ended']
 const browser = await chromium.launch({ headless: true, ...(process.env.FABRIC_CHROME ? { executablePath: process.env.FABRIC_CHROME } : {}) })
 let checks = 0
 try {
