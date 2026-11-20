@@ -1236,7 +1236,9 @@ function Shell({
             }}
           />
         )}
-        {active.kind === 'memory' && <MemoryScreen onError={setError} />}
+        {active.kind === 'memory' && (
+          <MemoryScreen onError={setError} />
+        )}
         {active.kind === 'graph' && (
           <GraphScreen projectId={active.projectId ?? null} feedMark={markOf(marks, ['project'])}
             onProject={openProject} onWhole={() => setActive({ kind: 'graph' })} />
