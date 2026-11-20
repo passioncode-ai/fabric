@@ -330,17 +330,16 @@ export function findProject<P extends NamedProject>(projects: readonly P[], quer
     // Never a match by words: every project's folder starts with the home folder (2026-11-20: «/Users/…» named 30).
     const folder = q.replace(/\/+$/, '')
     const holds = (root: string): boolean => folder === root || folder.startsWith(root + '/')
-    // A project whose folder is too broad (a home folder, a folder right under it, one holding other projects) holds
-    // no folder for the CEO (0.3.27 review, DO-1): it would take every new folder under home.
+    // A project whose folder is the home folder or a root holds no folder for the CEO (0.3.27 review, DO-1, DO-29): it would
+    // take every new folder under home.
     // A project's own folder is that project, whatever is below it (0.3.26's rule; 0.3.27 review, PL-9).
     // The home folder or a root is never a project's folder, even for a project kept from before (ER-28).
     const homeOrRoot = (root: string): boolean => root === '' || root === '/' || /^\/(Users|home)\/[^/]+$/.test(root)
     const exactFolder = homeOrRoot(folder) ? undefined : projects.find((p) => p.repo_path && p.repo_path.replace(/\/+$/, '') === folder)
     if (exactFolder) return { found: exactFolder }
-    // A container is no holder: the home folder, a root, or a folder holding two projects or more that are not copies
-    // (0.3.27 review, ER-24: one project inside another still lets the outer one hold its subfolders).
+    // Only the home folder or a root is no holder; otherwise the deepest registered project holding the folder is its project,
+    // whatever else it holds (0.3.27 review, ER-24, ER-30): a folder inside a project is that project's.
     const broad = (root: string): boolean => homeOrRoot(root)
-      || projects.filter((o) => o.repo_path && !isCopyFolder(o.repo_path) && o.repo_path.replace(/\/+$/, '').startsWith(root + '/')).length >= 2
     const byFolder = projects.filter((p) => p.repo_path && !broad(p.repo_path.replace(/\/+$/, '')) && holds(p.repo_path.replace(/\/+$/, '')))
       .sort((a, b) => b.repo_path!.length - a.repo_path!.length)
     if (byFolder.length) return { found: byFolder[0]! }
@@ -366,6 +365,17 @@ export function findProject<P extends NamedProject>(projects: readonly P[], quer
   if (exact.length === 1) return { found: exact[0]! }
   const folderName = settle(projects.filter((p) => p.repo_path && nameKey(p.repo_path.replace(/\/+$/, '').split('/').pop() ?? '') === low))
   if (exact.length === 0 && folderName.length === 1) return { found: folderName[0]! }
+  // A worktree named in full by its folder (0.3.27 review, ER-29): before the words, which a project's path could match.
+  if (exact.length === 0 && folderName.length === 0) {
+    const tail = nameKey(q.replace(/\/+$/, '').split('/').pop() ?? '')
+    const tailOf = (f: WorkFolder): string => nameKey(f.path.replace(/\/+$/, '').split('/').pop() ?? '')
+    const owners = new Set(folders.filter((f) => tailOf(f) === tail).map((f) => f.projectId))
+    if (owners.size === 1) {
+      const owner = projects.find((p) => p.id === [...owners][0])
+      const wt = folders.find((f) => f.projectId === owner?.id && tailOf(f) === tail)
+      if (owner) return { found: owner, ...(wt && wt.path.replace(/\/+$/, '') !== owner.repo_path?.replace(/\/+$/, '') ? { worktree: wt.path } : {}) }
+    }
+  }
   const words = q.toLowerCase().split(/[\s_-]+/).filter(Boolean)
   const partial = settle(projects.filter((p) => {
     const hay = `${p.name} ${p.repo_path ?? ''}`.toLowerCase()

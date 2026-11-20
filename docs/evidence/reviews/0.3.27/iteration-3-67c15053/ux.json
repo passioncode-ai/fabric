@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "67c15053480dfbe75b8692b4cb448d1dd26a5785",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-67c15053/2026-11-20-ux.md",
+  "reportSha256": "404be26851018ad69b13558098d9d475bf2b69a9a89a5fea9739d33c83098aa2",
+  "reviewerRun": "release-0327-i3r2-ux-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: a worktree match in the project list carries worktree and next, never understood_as; an alias that is a worktree's folder name or last words is refused; the instructions say never keep it; test «iteration 3 run two», red with the alias guard removed"
+      ]
+    },
+    {
+      "id": "UX-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: a running console in that folder is named before an ended one (ceoTools.ts start)"
+      ]
+    },
+    {
+      "id": "UX-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: the project list's description and both instruction languages say what exact, understood_as, worktree and why mean"
+      ]
+    },
+    {
+      "id": "UX-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: the refusals name the console's Claude Code session id to continue where it ran; test «PL-21, UX-35»"
+      ]
+    },
+    {
+      "id": "UX-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: as ER-30"
+      ]
+    }
+  ]
+}

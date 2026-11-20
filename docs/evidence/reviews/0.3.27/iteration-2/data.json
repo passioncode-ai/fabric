@@ -28,7 +28,7 @@
       "id": "DA-13",
       "status": "fixed",
       "evidence": [
-        "fixed in the iteration-3 candidate: only files named as calls, real files and never links, whose first row is a start, are pruned, listed or ended (callFiles); test «0.3.27 review DA-13, DA-15», red with the name rule removed"
+        "fixed in the iteration-3 candidate: only files named as calls, real files and never links, are pruned or listed, and a call whose first row is a start is ended (callFiles, closeOrphans); test «0.3.27 review DA-13, DA-15», red with the name rule removed"
       ]
     },
     {

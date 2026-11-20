@@ -51,13 +51,16 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
   sound-engine; a worktree folder is found through its project; the home folder is no project. Several matches answer
   three names to choose from, none up to three near names when any are close, and the CEO keeps the names the owner uses for a project
   (`shared/heardName.ts`, `fabric_ceo_project_alias`).
-- **The voice reads the CEO's answer aloud** (`ceo_reply`), and has four tools more: `machine_status`, `board_search`,
-  `recap` (what changed since the previous call) and `session_task` (did a started session take its task).
+- **The voice reads the CEO's answer aloud** (`ceo_reply`), and has five tools more: `machine_status`, `board_search`,
+  `recap` (what changed since the previous call), `session_task` (did a started session take its task) and
+  `session_alias`.
 - **The CEO's console gets the same doors.** `fabric_ceo_session_task`, `fabric_ceo_project_alias` (keep or forget a
   name the owner uses; another project's name is refused) and `fabric_ceo_launches` by `via` (`voice` for the voice's
   own starts). A name matched by sound is asked back before a start; a folder inside a project or a worktree Fabric has
   run in, by path or by its folder's name, is refused with where to go, since the console would open in the project's own folder; a tie answers three choices,
-  each read back as offered.
+  each read back as offered. A console that ran outside its project's folder (an agent's worktree) is no longer
+  resumed in the project's folder: the answer names its Claude Code session to continue where it ran. Only the home
+  folder or a root holds no folder: a folder inside a project is that project's, whatever else it holds.
 - **A cache or temporary folder never becomes a project.** An agent started in `~/.cache` or a temporary folder is
   refused. Projects made there before stay until archived by hand: on the owner's Mac, 18 left by probes were archived
   on 2026-11-20 (their folders untouched); other machines keep theirs (CO-605).

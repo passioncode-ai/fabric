@@ -19,8 +19,8 @@ branch `feat/voice-retro`, session 9cda1c0f, which runs this release by agreemen
 - A finding is fixed (with its test or check), ruled (with its register id), not a defect (with why), not recoverable,
   or stopped.
 - A run's candidate passes `bash scripts/ci.sh fast` with the browser suites run (`FABRIC_PLAYWRIGHT_MODULE` and
-  `FABRIC_CHROME` set, the Chromium Playwright keeps, never the owner's Chrome), before its reviewers start or while
-  they run (0.3.26, PL-42).
+  `FABRIC_CHROME` set, the Chromium Playwright keeps, never the owner's Chrome), started before its reviewers or while
+  they run (0.3.26, PL-42), and the verified candidate's run reaches its last step before the tag (DO-28).
 
 ## What 0.3.27 carries
 
@@ -36,8 +36,10 @@ the later steps did not run on this candidate. 56 findings, 8 blocking: `first_t
 started (PL-2), the plan gate red (PL-1), a match by sound started work in the wrong project (UX-1), a folder inside a
 project started in the project's main folder (UX-2), a tie could not be chosen (UX-3), a launch in the home folder
 claimed every folder under home (ER-1), a home-folder project would do the same (DO-1), and a secret on a later line of
-a tool argument reached the call journal (DA-1). Fixes of code carry a test except UX-8 (a refusal's wording), ER-12 (`voiceInputs` drops ended consoles) and, in
-iteration 2, ER-17, UX-18, UX-19, UX-22, UX-23 and DA-16, which were read, not tested; the six named in fixes.md
+a tool argument reached the call journal (DA-1). Fixes of code carry a test except these, which were read, not tested: UX-8 (a refusal's wording), ER-12
+(`voiceInputs` drops ended consoles) and ER-13 (the unknown-credential log); in iteration 2, ER-17, ER-22, PL-10, UX-18,
+UX-19, UX-22, UX-23 and DA-16; in iteration 3 run one, UX-29, ER-25, ER-27 and DA-23 (UX-27 gained its test in run
+two); in run two, UX-33, UX-34 and DA-29; the six named in fixes.md
 «Watched red» were watched red with their mechanism removed, the others were not planted; the fixes of documents and
 of the voice's instructions carry no test. Two reports name synthetic probe folders; their home part is written `/Users/example` for the privacy gate (the docs report's `/Users/x`, the ux report's `/Users/u`). In iteration 2 (DA-11), the names of the owner's private worktrees and folders were replaced by placeholders in the ux, docs and data reports («<worktree-a>», «<a second folder>/research-agent» and the like); the wording is otherwise the reviewers', and the receipts carry the new hashes.
 
@@ -148,7 +150,7 @@ echo window, ER-18's cursor moves (console-open) and DA-13's call names.
 | V2-DO-19 | DO-19 | non-blocking | fixed in the iteration-3 candidate in part: CO-605 (1) cites CO-497 for the duplicate; the region keeps its one reference (§10), as a region names one heading |
 | V2-DA-11 | DA-11 | blocking | fixed in the iteration-3 candidate: the owner's private worktree and folder names are replaced by placeholders in the iteration-1 and iteration-2 reports, the retro README, the code comment and the tests' fixtures; the ledger says so and the receipts carry the new hashes |
 | V2-DA-12 | DA-12 | non-blocking | ruled: CO-605 (10), kept verbatim by the owner's order of 2026-11-20 to keep his words with the retros |
-| V2-DA-13 | DA-13 | non-blocking | fixed in the iteration-3 candidate: only files named as calls, real files and never links, whose first row is a start, are pruned, listed or ended (callFiles); test «0.3.27 review DA-13, DA-15», red with the name rule removed |
+| V2-DA-13 | DA-13 | non-blocking | fixed in the iteration-3 candidate: only files named as calls, real files and never links, are pruned or listed, and a call whose first row is a start is ended (callFiles, closeOrphans); test «0.3.27 review DA-13, DA-15», red with the name rule removed |
 | V2-DA-14 | DA-14 | non-blocking | fixed in the iteration-3 candidate: pruned to KEEP_CALLS - 1 before a call starts, so 200 at most; age from the start in the file name; test «DA-4» asserts 200 |
 | V2-DA-15 | DA-15 | non-blocking | fixed in the iteration-3 candidate: keys are redacted like values (cleanKeys); test «0.3.27 review DA-13, DA-15» |
 | V2-DA-16 | DA-16 | non-blocking | fixed in the iteration-3 candidate: every voice tool's answer is redacted whole before it goes back to the call (index.ts, redactPayload) |
@@ -214,4 +216,45 @@ ER-24's two-project rule, DA-24's link check.
 | V3-PL-20 | PL-20 | non-blocking | fixed in the run-two candidate: CO-606 names who files the board request and when (after the install, from the log's digest) |
 
 Exit for run one: every finding disposed above; superseded by run two.
+
+### Run two, 67c15053 (superseded)
+
+Candidate `67c15053480dfbe75b8692b4cb448d1dd26a5785`. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-67c15053/`](../reviews/0.3.27/iteration-3-67c15053/) (kept as the record).
+Gate: the local `ci.sh fast` with both browser variables ran to the wiki projections: every step before passed,
+browser suites 26 of 26, mockup previews pinned; it stopped red at `build-plan-projection.mjs --check` (the plan
+projection, stale after this release's backlog rows; rebuilt in the run-three candidate). Every run-one fix held, four
+in part: UX-26 (its `understood_as` let a «yes» keep a worktree's name as an alias, UX-32), UX-30 (`exact` described
+nowhere, UX-34), ER-24 (a project holding two, ER-30), DA-24 (the link check in writes only, DA-27). 24 findings, 1
+blocking (UX-32); the errors, docs, data and plan reviewers found none blocking. Tests watched red with their mechanism
+removed: UX-32's alias guard, UX-27's resume refusal, DA-27's link check.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-UX-32 | UX-32 | blocking | fixed in the run-three candidate: a worktree match in the project list carries worktree and next, never understood_as; an alias that is a worktree's folder name or last words is refused; the instructions say never keep it; test «iteration 3 run two», red with the alias guard removed |
+| V3-UX-33 | UX-33 | non-blocking | fixed in the run-three candidate: a running console in that folder is named before an ended one (ceoTools.ts start) |
+| V3-UX-34 | UX-34 | non-blocking | fixed in the run-three candidate: the project list's description and both instruction languages say what exact, understood_as, worktree and why mean |
+| V3-UX-35 | UX-35 | non-blocking | fixed in the run-three candidate: the refusals name the console's Claude Code session id to continue where it ran; test «PL-21, UX-35» |
+| V3-UX-36 | UX-36 | non-blocking | fixed in the run-three candidate: as ER-30 |
+| V3-ER-29 | ER-29 | non-blocking | fixed in the run-three candidate: a worktree named in full is matched before the words, its last words after them; test «iteration 3 run two» (fabric-data) |
+| V3-ER-30 | ER-30 | non-blocking | fixed in the run-three candidate: only the home folder or a root is no holder; the deepest project holding a folder is its project; the CHANGELOG says so; same test (mono with two packages) |
+| V3-ER-31 | ER-31 | non-blocking | fixed in the run-three candidate: a calls folder that is a link gives no call files, so nothing there is pruned, ended or listed; test «ER-31, DA-27», red with the check removed |
+| V3-ER-32 | ER-32 | non-blocking | fixed in the run-three candidate: the code comment names no project; the dated map entry of 2026-11-19 stays as published history (ADR-0096), CO-605 (12) |
+| V3-DO-24 | DO-24 | non-blocking | fixed in the run-three candidate: V2-DA-13's wording says what callFiles and closeOrphans do; its receipt re-hashed |
+| V3-DO-25 | DO-25 | non-blocking | fixed in the run-three candidate: CO-605 (12) names commits a30f3fff to 3dc2eba7 and the personal project's name |
+| V3-DO-26 | DO-26 | non-blocking | fixed in the run-three candidate: the three rows use the retro README's placeholders; receipts re-hashed |
+| V3-DO-27 | DO-27 | non-blocking | fixed in the run-three candidate: the ledger lists every code fix without a test, iterations 1 to 3 |
+| V3-DO-28 | DO-28 | non-blocking | fixed in the run-three candidate: the protocol line says the gate runs to its end before the tag; run two's section records its gate |
+| V3-DO-29 | DO-29 | non-blocking | fixed in the run-three candidate: the findProject comment, «five tools more», the map entry's remainder and the README's status |
+| V3-DA-25 | DA-25 | non-blocking | fixed in the run-three candidate: as DO-26 |
+| V3-DA-26 | DA-26 | non-blocking | fixed in the run-three candidate: as DO-26 for the reports and ER-32 for the comment; the name is no secret and stays in published history, CO-605 (12) |
+| V3-DA-27 | DA-27 | non-blocking | fixed in the run-three candidate: as ER-31 |
+| V3-DA-28 | DA-28 | non-blocking | fixed in the run-three candidate: ADR-0197 amendment 4 lists project names with folders and the computer's state, as ceo-setup §3 does |
+| V3-DA-29 | DA-29 | non-blocking | fixed in the run-three candidate: a voice tool that throws is also logged with ops.failed |
+| V3-PL-21 | PL-21 | non-blocking | fixed in the run-three candidate: the CHANGELOG, SCN-183 and the resume description say the refusal; test «PL-21, UX-35», red with the refusal removed; continuing in place ruled: CO-605 (13) |
+| V3-PL-22 | PL-22 | non-blocking | fixed in the run-three candidate: as DO-27 |
+| V3-PL-23 | PL-23 | non-blocking | fixed in the run-three candidate: as DO-26 |
+| V3-PL-24 | PL-24 | non-blocking | fixed in the run-three candidate: CO-605 (12) says landing by fast-forward puts the history into main, and the release session lands it |
+
+Exit for run two: every finding disposed above; superseded by run three.
 

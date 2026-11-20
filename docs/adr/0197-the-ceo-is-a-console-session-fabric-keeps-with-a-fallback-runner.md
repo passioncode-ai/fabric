@@ -199,8 +199,8 @@ Released in 0.3.27. So:
    what `ask_ceo` handed it, read from its transcript after its own record of the request), `machine_status`,
    `board_search` (the board's messages through the operator's read door) and `recap` (launches since the previous
    call). What reaches xAI during a call grows with them: the CEO's answer (3000 characters at most), 10 board hits of
-   300 characters, the launches since the previous call with their reasons, all redacted, and ambiguous lookups' project
-   folders.
+   300 characters, the launches since the previous call with their reasons, project names with their folders, and the
+   computer's disk, load, memory and session counts, all redacted and bounded.
 
 Nothing else in this record changes.
 

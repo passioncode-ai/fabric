@@ -77,7 +77,7 @@ export const CEO_TOOLS = {
   resume: {
     mcp: 'fabric_ceo_session_resume',
     title: 'Continue a session that ended',
-    description: 'Continue a session that ended: a Fabric console starts again in its project with the same runner (and the task you give, or one that says to carry on); a Switchboard session continues as itself (claude --resume in a Terminal window of its own).',
+    description: 'Continue a session that ended: a Fabric console starts again in its project\'s folder with the same runner (and the task you give, or one that says to carry on), and one that ran in another folder (an agent\'s worktree) is refused with its Claude Code session id to continue where it ran; a Switchboard session continues as itself (claude --resume in a Terminal window of its own).',
     input: z.object({ session_id: sessionId, task: z.string().trim().max(8000).optional(), reason }).strict()
   },
   open: {
@@ -101,7 +101,7 @@ export const CEO_TOOLS = {
   projects: {
     mcp: 'fabric_ceo_projects',
     title: 'Fabric\'s projects',
-    description: 'The projects Fabric knows, with their folders, default runner and how many of their consoles run. A query matches by words and, for a name heard by voice, by sound (Cyrillic or Latin, «DC» for «Диззи»). Call it ONCE with the word you heard instead of trying spellings in other tools; when several come back, ask the owner which one. Observatory knows every project of the computer.',
+    description: 'The projects Fabric knows, with their folders, default runner and how many of their consoles run. A query matches by words, by a folder (the projects in it) and, for a name heard by voice, by sound (Cyrillic or Latin, «DC» for «Диззи»). Call it ONCE with the word you heard instead of trying spellings in other tools. With exact, go on with that project unless the owner said otherwise; with understood_as or worktree, ask the owner first; with several and no exact, ask which one; why too-broad means a folder of many projects. Observatory knows every project of the computer.',
     input: z.object({ query: z.string().trim().max(200).optional().describe('Only projects whose name or folder holds these words, or that sound like them.') }).strict()
   },
   task: {
@@ -304,6 +304,10 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   // `~` is the home folder (0.3.27 review, UX-13): «~» alone is then too broad, «~/DATA/x» a folder.
   const lookup = async <P extends NamedProject>(projects: readonly P[], query: string): Promise<ProjectLookup<P>> =>
     findProject(projects, /^~(\/|$)/.test(query.trim()) ? path.join(homedir(), query.trim().slice(1)) : query, await workFolders())
+  /** A console's Claude Code session id from the launch journal, for a resume where it ran (0.3.27 review, UX-35). */
+  const runnerIdOf = async (sessionId: string): Promise<string | null> => {
+    try { return (await deps.launches?.({ sessionId }))?.find((l) => l.sessionId === sessionId)?.runnerSessionId ?? null } catch { return null /* the journal is a courtesy here */ }
+  }
   /** A lookup that found no one project, said so the voice can act on it in one more step (findings 4 and 8). */
   const notOne = (query: string, found: Exclude<ProjectLookup<NamedProject>, { found: NamedProject }>, folderHint = false): Answer => {
     if ('ambiguous' in found) {
@@ -510,13 +514,14 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     const asked = /^[/~]/.test(a.project.trim()) ? path.resolve(a.project.trim().replace(/^~(?=\/|$)/, homedir())).replace(/\/+$/, '') : null
     const other = ('worktree' in found && found.worktree) || (!admittedNow && asked && project.repo_path && asked !== project.repo_path.replace(/\/+$/, '') ? asked : null)
     if (other) {
-      const there = deps.ptys.list().find((x) => x.cwd.replace(/\/+$/, '') === String(other).replace(/\/+$/, ''))
+      const inThere = deps.ptys.list().filter((x) => x.cwd.replace(/\/+$/, '') === String(other).replace(/\/+$/, ''))
+      const there = inThere.find((x) => x.running) ?? inThere.at(-1)
       return refuse(`${other} belongs to the project ${project.name}, whose console opens in ${project.repo_path ?? 'its own folder'}, not in that folder; nothing was started`, {
         choices: [project.name],
         next: there?.running
           ? `an agent works in that folder (session ${there.sessionId}): answer it with ${T.input}; or call again with the name ${project.name} to work in the project's own folder`
           : there
-            ? `the session there (${there.sessionId}) has ended; open it for the owner with ${T.open}, or call again with the name ${project.name} to work in the project's own folder`
+            ? `the session there (${there.sessionId}) has ended; open it for the owner with ${T.open}${(await runnerIdOf(there.sessionId)) ? `, or continue it where it ran with ${T.resume} and the id ${await runnerIdOf(there.sessionId)}` : ''}, or call again with the name ${project.name} to work in the project's own folder`
             : `to work in the project's own folder, call again with the name ${project.name}`
       })
     }
@@ -588,7 +593,12 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       // A console that ran outside its project's folder (an agent's worktree) would come back in the project's own folder
       // (0.3.27 review, UX-27): refused, never a fresh agent told to carry on somewhere else.
       const own = (await deps.projects()).find((p) => p.id === s.projectId)?.repo_path?.replace(/\/+$/, '')
-      if (own && s.cwd.replace(/\/+$/, '') !== own) return refuse(`this console ran in ${s.cwd}, but a resume would open in the project's folder ${own}; nothing was started`, { next: `open it for the owner with ${T.open}, or start new work in the project with its name` })
+      if (own && s.cwd.replace(/\/+$/, '') !== own) {
+        const rid = await runnerIdOf(s.sessionId)
+        return refuse(`this console ran in ${s.cwd}, but a resume would open in the project's folder ${own}; nothing was started`, {
+          next: rid ? `continue it where it ran with ${T.resume} and the id ${rid} (its Claude Code session), open it for the owner with ${T.open}, or start new work in the project with its name` : `open it for the owner with ${T.open}, or start new work in the project with its name`
+        })
+      }
       const task = a.task ?? 'Продолжи работу этой сессии с того места, где она остановилась: прочитай состояние проекта и свои незакрытые задачи.'
       try {
         const next = await deps.openConsole(s.projectId, s.optionId, task)
@@ -633,7 +643,8 @@ export function createCeoOperations(deps: CeoOpsDeps) {
         matched = [found.found]
         if (found.heard) heard = found.found.name
         // Found through an agent's worktree: said, as a start says it (0.3.27 review, UX-26).
-        if (found.worktree) { worktree = found.worktree; heard = found.found.name }
+        // A worktree match is said with worktree and next, never understood_as: a «yes» to it must not become an alias (UX-32).
+        if (found.worktree) worktree = found.worktree
       }
       else if (folderQuery) {
         // A folder that is no one project's: every project in it, as 0.3.26 listed them (0.3.27 review, UX-25, PL-15).
@@ -657,7 +668,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     return {
       ok: true,
       ...(heard ? { understood_as: heard } : {}),
-      ...(worktree ? { worktree, next: `that is a worktree of ${heard}: a start would open in the project's own folder; ask the owner which is meant` } : {}),
+      ...(worktree ? { worktree, next: `that is a worktree of ${matched[0]?.name}: a start would open in the project's own folder; ask the owner which is meant, and keep no alias for it` } : {}),
       ...(why ? { why } : {}),
       ...(copies ? { copies_hidden: copies } : {}),
       ...(matched.length && exactName(matched[0]!) ? { exact: matched[0]!.name } : {}),
@@ -731,6 +742,10 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       deps.record('ceo.project.alias', { project_id: found.found.id, chars: a.alias.length, removed: true, reason: a.reason })
       return { ok: true, project: found.found.name, aliases: names }
     }
+    // A worktree's folder name, or its last words, is never an alias of the project (UX-32): it would lose the worktree guard.
+    const wkey = a.alias.trim().toLowerCase().replace(/[\s_-]+/g, '-')
+    const wtName = (await workFolders()).find((f) => { const t = f.path.replace(/\/+$/, '').split('/').pop()?.toLowerCase().replace(/[\s_-]+/g, '-') ?? ''; return t === wkey || (wkey.length >= 4 && t.endsWith(`-${wkey}`)) })
+    if (wtName) return refuse(`«${a.alias}» names the worktree ${wtName.path}; it is not kept as a name of ${found.found.name}`)
     // Another project's own name is never an alias (0.3.27 review, UX-9): it would make that project ambiguous.
     const key = a.alias.trim().toLowerCase().replace(/[\s_-]+/g, '-')
     const owner = all.find((p) => p.id !== found.found.id && p.name.trim().toLowerCase().replace(/[\s_-]+/g, '-') === key)

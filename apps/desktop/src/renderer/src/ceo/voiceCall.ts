@@ -18,7 +18,7 @@ export type CallEnd = 'limit' | 'idle'
 /** How long the socket may take to open before the call fails (ER-4). */
 export const CONNECT_DEADLINE_MS = 15_000
 /** The longest call: xAI bills the open session and its secret does not bound the session's length (measured by the
- *  Dissy and PlaySing sessions, 2026-11-19), so the call bounds itself. Five minutes, then the person calls again (the
+ *  two projects' sessions, 2026-11-19), so the call bounds itself. Five minutes, then the person calls again (the
  *  operator, 2026-11-19: «максимально длительность звонка 5 минут»). */
 export const MAX_CALL_MS = 5 * 60_000
 /** A call nobody spoke in, and that is not answering or running a tool, for this long ends: silence is billed too (the

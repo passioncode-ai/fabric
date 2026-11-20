@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "67c15053480dfbe75b8692b4cb448d1dd26a5785",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-67c15053/2026-11-20-errors.md",
+  "reportSha256": "ec1b8cd876556695b106e8089c7850bd9d9e77eada6b462e66e5e31213e2f89a",
+  "reviewerRun": "release-0327-i3r2-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: a worktree named in full is matched before the words, its last words after them; test «iteration 3 run two» (fabric-data)"
+      ]
+    },
+    {
+      "id": "ER-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: only the home folder or a root is no holder; the deepest project holding a folder is its project; the CHANGELOG says so; same test (mono with two packages)"
+      ]
+    },
+    {
+      "id": "ER-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: a calls folder that is a link gives no call files, so nothing there is pruned, ended or listed; test «ER-31, DA-27», red with the check removed"
+      ]
+    },
+    {
+      "id": "ER-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: the code comment names no project; the dated map entry of 2026-11-19 stays as published history (ADR-0096), CO-605 (12)"
+      ]
+    }
+  ]
+}

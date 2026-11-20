@@ -115,7 +115,7 @@ function ops(over = {}) {
     launches: async () => over.launches ?? [],
     ...(over.firstTask ? { firstTask: over.firstTask } : {})
   }
-  return { ops: createCeoOperations(deps), writes, records }
+  return { ops: createCeoOperations(deps), writes, records, consoles }
 }
 
 test('findings 2, 3: the voice types into a shell at most three times and into an agent six, then is told to delegate', async () => {
@@ -561,4 +561,42 @@ test('0.3.27 review, iteration 3 run one: a folder lists its projects; a worktre
   j.begin({ voice: 'ara', usdPerMinute: 0.08 })
   assert.deepEqual(readdirSync(elsewhere), [], 'DA-24: nothing is written through a linked folder')
   assert.deepEqual(failures, ['folder'])
+})
+
+test('0.3.27 review, iteration 3 run two: a worktree name never becomes an alias; a resume outside the project folder is refused with its id; the full worktree name and nested folders', async () => {
+  const launches = [{ sessionId: 'w1', cwd: '/d/_worktrees/sound-engine-tune-runner', projectId: 'se', runnerSessionId: 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa' }]
+  const o = ops({ launches })
+  const listed = await o.ops.run('projects', { query: 'tune runner' }, 'voice')
+  assert.equal(listed.understood_as, undefined, 'UX-32: a worktree match carries no understood_as')
+  assert.ok(listed.worktree)
+  assert.equal((await o.ops.run('alias', { project: 'sound-engine', alias: 'tune runner', reason: 'the owner said yes' }, 'voice')).ok, false, 'UX-32: a worktree name is never kept')
+  assert.equal((await o.ops.run('start', { project: 'tune runner', task: 'go', reason: 'the owner asked' }, 'voice')).ok, false)
+  const ps = [{ id: 'f', name: 'fabric', repo_path: '/Users/example/DATA/fabric' }]
+  const r = findProject(ps, 'fabric-data', [{ path: '/Users/example/DATA/_worktrees/fabric-data', projectId: 'f' }])
+  assert.ok(r.worktree, 'ER-29: a worktree named in full is marked even when the words are in the project\'s path')
+  const mono = [{ id: 'm', name: 'mono', repo_path: '/Users/example/DATA/mono' }, { id: 'a', name: 'a', repo_path: '/Users/example/DATA/mono/packages/a' }, { id: 'b', name: 'b', repo_path: '/Users/example/DATA/mono/packages/b' }]
+  assert.equal(findProject(mono, '/Users/example/DATA/mono/docs').found?.id, 'm', 'ER-30: the deepest holder wins whatever it holds')
+})
+
+test('0.3.27 review PL-21, UX-35: a console that ran in a worktree is not resumed in the main folder; its Claude Code id is named', async () => {
+  const fx = ops({ launches: [{ sessionId: 'ag', cwd: '/d/_worktrees/sound-engine-task-runner', projectId: 'fab', runnerSessionId: 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb' }] })
+  // The fixture's console «ag» ran in a worktree folder of project fab and has ended.
+  fx.consoles.get('ag').running = false
+  const r = await fx.ops.run('resume', { session_id: 'ag', reason: 'the owner asked' }, 'voice')
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /would open in the project's folder/)
+  assert.match(r.next, /bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb/)
+})
+
+test('0.3.27 review ER-31, DA-27: a linked calls folder is neither pruned, ended nor listed', () => {
+  const folder = mkdtempSync(path.join(tmpdir(), 'voice-journal-'))
+  const elsewhere = mkdtempSync(path.join(tmpdir(), 'elsewhere-'))
+  const old = path.join(elsewhere, '2026-09-01T00-00-00-000Z-cccccccc.jsonl')
+  writeFileSync(old, '{"t":"2026-09-01T00:00:00.000Z","kind":"start","call":"c","voice":"a","usd_per_minute":0.08}\n')
+  symlinkSync(elsewhere, path.join(folder, 'calls'))
+  const j = createVoiceJournal({ folder })
+  assert.equal(j.prune(), 0)
+  assert.equal(j.closeOrphans(), 0)
+  assert.deepEqual(j.list(5), [])
+  assert.equal(readFileSync(old, 'utf8').split('\n').filter(Boolean).length, 1)
 })

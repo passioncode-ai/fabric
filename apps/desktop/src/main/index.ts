@@ -5593,7 +5593,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // What goes back to the call (and on to xAI) is redacted whole, field by field (0.3.27 review, DA-16).
     // A tool that throws is answered as a refusal, redacted and written like any other (0.3.27 review, DA-23).
     let raw: Record<string, unknown>
-    try { raw = await runVoiceTool(tool, args, call) } catch (e) { /* said to the call as a refusal and written to its journal below */ raw = { ok: false, reason: redact(e instanceof Error ? e.message : String(e)).text.slice(0, 300) } }
+    try { raw = await runVoiceTool(tool, args, call) } catch (e) { /* said to the call as a refusal and written to its journal below; logged too (DA-29) */ ops.failed('ceo.voice.tool', e, { detail: { tool: tool.slice(0, 40) } }); raw = { ok: false, reason: redact(e instanceof Error ? e.message : String(e)).text.slice(0, 300) } }
     const answer = redactPayload(raw).payload
     if (call) voiceJournal.tool(call, tool, args, answer, Date.now() - began)
     return answer

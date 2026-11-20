@@ -5,7 +5,7 @@
   "level": "errors",
   "candidateCommit": "81e2ee85fb27ac36e9f2fa19cdbcbd2919a1b956",
   "report": "docs/evidence/reviews/0.3.27/iteration-2/2026-11-20-errors.md",
-  "reportSha256": "0a34f32f3f33a535ba8f8da90b31a26d100ea8b83f4608dbd0292ca3caf38545",
+  "reportSha256": "f0c0071e60b740f24cb6857b09cc3f01d316aabe9fb10fed493c0113dc4630b5",
   "reviewerRun": "release-0327-i2-errors-claude-subagent-20261120",
   "status": "closed",
   "blockingFindingsOpen": [],

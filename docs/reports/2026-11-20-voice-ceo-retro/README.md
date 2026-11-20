@@ -3,7 +3,7 @@ report: fabric-voice-ceo-retro
 date: 2026-11-20
 project: fabric
 kind: retro
-status: fixed on the 0.3.27 candidate except what CO-605 carries (fixes.md)
+status: fixed on the 0.3.27 candidate except what CO-605 and CO-606 carry (fixes.md)
 ---
 
 # Ретро голосового агента CEO Fabric, 2026-11-20

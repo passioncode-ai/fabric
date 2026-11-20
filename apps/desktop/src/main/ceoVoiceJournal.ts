@@ -35,6 +35,8 @@ const startOf = (name: string): number => {
 }
 /** The call files of the folder, oldest first: real files with a call's name, never a link. */
 function callFiles(dir: string): string[] {
+  // A calls folder that is a link is not ours: nothing in it is pruned, ended or listed (0.3.27 review, ER-31, DA-27).
+  try { if (lstatSync(dir).isSymbolicLink()) return [] } catch { return [] /* no calls kept yet */ }
   let names: string[]
   try { names = readdirSync(dir) } catch { return [] /* no calls kept yet */ }
   return names.filter((n) => {
