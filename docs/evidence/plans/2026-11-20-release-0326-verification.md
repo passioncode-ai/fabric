@@ -22,6 +22,8 @@ spec.
   or stopped.
 - 0.3.25's ledger ([2026-11-19](2026-11-19-release-0325-verification.md)) stays as the record of that candidate; its
   three iterations are not reused here.
+- A run's candidate passes `bash scripts/ci.sh fast` with the browser suites run (`FABRIC_PLAYWRIGHT_MODULE` and
+  `FABRIC_CHROME` set), as the hosted run does, before its reviewers start (iteration 3, run one, PL-23).
 - Built-app check: the disposable stack (`scripts/test-stack.mjs`) with `scripts/fixtures/launch-estate.sql`, the
   built candidate under a temporary HOME, windows of 1280, 1440 and 1680 px, screenshots at 1440 and 1280 (spec §3).
 
@@ -159,3 +161,43 @@ the commit «fix(0.3.26): review iteration 2, every finding fixed or ruled».
 | V2-PL-22 | PL-22 | non-blocking | fixed in the iteration-2 commit: spec §4 lists the moved promise with CO-603 (6) and cites CO-603 in its tracking column; thread 3ca40854 is told at the release |
 
 Exit for iteration 2: every finding disposed above. Blocking findings open: none.
+
+## Iteration 3
+
+### Run one, 4ba9fd62 (superseded)
+
+Candidate `4ba9fd6214dd80526eeba127b5c2fcb0a962647c`. Five reviewers, one per level; their reports and receipts are in
+[`docs/evidence/reviews/0.3.26/iteration-3-4ba9fd62/`](../reviews/0.3.26/iteration-3-4ba9fd62/) (kept as the record; not
+this iteration's receipts). Every iteration-2 fix held. 23 findings, 2 blocking, both in files the gate refuses after
+`verifiedCommit`, so the iteration runs again: DA-19, a link's `from` in the contract's `name.instance` form dropped by
+Fabric's narrower checks, so the journal recorded a false reason, and PL-23, hosted `ci.yml` run 44681000417 red on two
+browser suites (`layout-stress`: the new grids `.rail-pick`, `.ag-machine`, `.ag-machine-turns` grew past a 600 px column;
+`screens-stand`: the stand did not feed `terminal.launch` and `agents.machineSessions`). The local `ci.sh fast` read
+exit 0 on this candidate because the browser suites print NOT_RUN without `FABRIC_PLAYWRIGHT_MODULE` and
+`FABRIC_CHROME`; run two's candidate runs them with both set.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-UX-27 | UX-27 | non-blocking | fixed in the iteration-3 run-two candidate: the agent by runnerLabel, the app by its product name (ContinueSessionAsk.tsx appName); test «names the app by its product» |
+| V3-UX-28 | UX-28 | non-blocking | fixed in the iteration-3 run-two candidate: a code with a sentence is not printed under it; only a message with no sentence is (MachineSessions.tsx FailureNote detail) |
+| V3-UX-29 | UX-29 | non-blocking | fixed in the iteration-3 run-two candidate for (a) and (b): an unread list is said as unread, the session is read again after every answer (ContinueSessionAsk.tsx); test «a list read that failed is said as unread»; (c) ruled: CO-604 (24) |
+| V3-UX-30 | UX-30 | non-blocking | fixed in the iteration-3 run-two candidate for the ask: a session only Switchboard names is read-only there, with where to act; test «a session only Switchboard names is read-only here»; the main side ruled: CO-604 (25) |
+| V3-UX-31 | UX-31 | non-blocking | fixed in the iteration-3 run-two candidate: the SCN-142 amendment names every refusal, its states and its coverage |
+| V3-UX-32 | UX-32 | non-blocking | ruled: CO-604 (26) |
+| V3-ER-18 | ER-18 | non-blocking | fixed in the iteration-3 run-two candidate: an ask whose press is being answered stays until its answer; a newer continue link waits behind it and is shown after (App.tsx applyLink, continueBusy, continueQueued; ContinueSessionAsk onBusy) |
+| V3-ER-19 | ER-19 | non-blocking | fixed in the iteration-3 run-two candidate: sessionLaunch.via.link in both locales; test «every LAUNCH_BY and LAUNCH_VIA value has a sentence in en and ru», red before |
+| V3-ER-20 | ER-20 | non-blocking | fixed in the iteration-3 run-two candidate: as DA-19 and DA-20 |
+| V3-ER-21 | ER-21 | non-blocking | ruled: CO-604 (23) |
+| V3-ER-22 | ER-22 | non-blocking | fixed in the iteration-3 run-two candidate: as UX-29 (a) |
+| V3-DO-22 | DO-22 | non-blocking | fixed in the iteration-3 run-two candidate: a link's id found nowhere is said as links.continue.gone; the CHANGELOG says the ask names a running session; SCN-142 lists the refusals; test «a session found nowhere is said as not on this computer» |
+| V3-DO-23 | DO-23 | non-blocking | fixed in the iteration-3 run-two candidate: the CHANGELOG says what 0.3.24 listed (consoles, enrolled terminals, Switchboard's launches; only the CEO read the others) |
+| V3-DA-19 | DA-19 | blocking | fixed in the iteration-3 run-two candidate: every check of from uses the contract's AGENT_ID (index.ts linkReason and the IPC handler, ContinueSessionAsk.tsx appName); tests «the link and its app, in the contract's name.instance form, reach the console» and «names the app by its product, the instance form included», red before |
+| V3-DA-20 | DA-20 | non-blocking | fixed in the iteration-3 run-two candidate: the ask passes an explicit link origin, separate from from; via and the reason follow it (machineSessions.ts LinkOrigin, index.ts resumeEnded and continueInFabric); test «a link with no app still continues as a link» |
+| V3-DA-21 | DA-21 | non-blocking | fixed in the iteration-3 run-two candidate: as ER-19 |
+| V3-DA-22 | DA-22 | non-blocking | ruled: CO-604 (28); the unread case fixed as UX-29 (a) |
+| V3-DA-23 | DA-23 | non-blocking | ruled: CO-604 (27) |
+| V3-PL-23 | PL-23 | blocking | fixed in the iteration-3 run-two candidate: the three grids take minmax(0,1fr) columns and their items wrap (rail.css .rail-pick, launch.css .ag-machine, .ag-machine-turns); the screens stand feeds terminal.launch and agents.machineSessions (stand/fixtures.ts); layout-stress «125 grid classes, none grows past its column» and screens-stand «1528 checks pass», both red before; run-browser-suites.sh 26 of 26 locally |
+| V3-PL-24 | PL-24 | non-blocking | fixed in the iteration-3 run-two candidate: run one's rulings are CO-604 (23) to (30); run two's are written in the ledger and added to CO-604 on main after the tag |
+| V3-PL-25 | PL-25 | non-blocking | fixed in the iteration-3 run-two candidate: CO-603 (10), owner this repository's release session; spec §2a names it |
+| V3-PL-26 | PL-26 | non-blocking | fixed in the iteration-3 run-two candidate: spec §1 row 2 and §2 say live processes are counted beside Switchboard's groups, with Switchboard's reply |
+| V3-PL-27 | PL-27 | non-blocking | ruled: CO-604 (30); this release's rows are read by hand at the release commit |

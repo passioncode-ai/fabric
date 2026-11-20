@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "4ba9fd6214dd80526eeba127b5c2fcb0a962647c",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-4ba9fd62/2026-11-20-docs.md",
+  "reportSha256": "90d1416cb0f1d8366f7244fde77d4cdb4fa53f1d79180a80100e1feac21e44df",
+  "reviewerRun": "release-0326-i3r1-docs-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: a link's id found nowhere is said as links.continue.gone; the CHANGELOG says the ask names a running session; SCN-142 lists the refusals; test «a session found nowhere is said as not on this computer»"
+      ]
+    },
+    {
+      "id": "DO-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: the CHANGELOG says what 0.3.24 listed (consoles, enrolled terminals, Switchboard's launches; only the CEO read the others)"
+      ]
+    }
+  ]
+}

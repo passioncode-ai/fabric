@@ -51,6 +51,10 @@ export interface MachineSession {
   updatedAt: string | null
 }
 
+/** A continue a `fabric://session/continue` link asked for (DEC-0189), with the linking app when it said one (`from`,
+ *  the contract's AGENT_ID, a claim never trusted). Absent: a press on a Fabric screen (0.3.26 review, iteration 3, DA-20). */
+export interface LinkOrigin { from?: string }
+
 export type MachineAct = { ok: true; sessionId?: string } | { ok: false; why: string; resume?: { sessionId: string; cwd: string } }
 
 export interface MachineSessionsDeps {
@@ -67,14 +71,14 @@ export interface MachineSessionsDeps {
   /** The Fabric project of the session's folder, or null when the folder is in none: asked BEFORE any signal. */
   projectFor?(s: DiskSession): Promise<string | null>
   /** A Fabric console in the folder that continues the session (`claude --resume`), with the home it ran in. */
-  continueInFabric(s: DiskSession, projectId?: string, from?: string): Promise<{ sessionId: string }>
+  continueInFabric(s: DiskSession, projectId?: string, link?: LinkOrigin): Promise<{ sessionId: string }>
   /** The pids of the consoles Fabric runs now. A Claude Code process that is one of them, or runs under one, is
    *  Fabric's, even before the launch journal names its runner session id (0.3.26 review, iteration 1, UX-2, ER-3). */
   fabricPids?(): Promise<ReadonlySet<number>>
   /** Each process's parent, read once per listing; null when it could not be read. */
   parents?(): Promise<ReadonlyMap<number, number> | null>
   /** A session no process runs any more, continued in a Fabric console from its transcript (DEC-0189 SL-5). */
-  resumeEnded?(sessionId: string, from?: string): Promise<MachineAct>
+  resumeEnded?(sessionId: string, link?: LinkOrigin): Promise<MachineAct>
   /** Switchboard's rows of this computer; null when Switchboard is not installed or did not answer. */
   switchboardRows?(): Promise<SwitchboardRow[] | null>
   record(op: string, detail: Record<string, unknown>): void
@@ -193,20 +197,20 @@ export function createMachineSessions(deps: MachineSessionsDeps) {
       deps.record('agents.machine-close', { session_id: s.sessionId, pid: s.pid, folder: s.cwd })
       return { ok: true }
     },
-    async continueInFabric(sessionId: string, from?: string): Promise<MachineAct> {
+    async continueInFabric(sessionId: string, link?: LinkOrigin): Promise<MachineAct> {
       // DA-16 (0.3.26 review, iteration 2): one continue of a session at a time; a second press or link waits its answer.
       if (continuing.has(sessionId)) return { ok: false, why: 'busy' }
       continuing.add(sessionId)
-      try { return await continueOnce(sessionId, from) } finally { continuing.delete(sessionId) }
+      try { return await continueOnce(sessionId, link) } finally { continuing.delete(sessionId) }
     }
   }
-  async function continueOnce(sessionId: string, from?: string): Promise<MachineAct> {
+  async function continueOnce(sessionId: string, link?: LinkOrigin): Promise<MachineAct> {
       const s = await find(sessionId)
       if (s === 'unknown-owner') return { ok: false, why: 'unknown-owner' }
       if (!s) {
         // Not running here: a session that ended is continued from its history; one Fabric runs was never «outside».
         if (!deps.resumeEnded) return { ok: false, why: 'gone' }
-        const r = await deps.resumeEnded(sessionId, from).catch((e: unknown) => ({ ok: false as const, why: e instanceof Error ? e.message.slice(0, 300) : String(e) }))
+        const r = await deps.resumeEnded(sessionId, link).catch((e: unknown) => ({ ok: false as const, why: e instanceof Error ? e.message.slice(0, 300) : String(e) }))
         deps.record('agents.machine-continue', { session_id: sessionId, outcome: r.ok ? 'ok' : r.why, ended: true, ...(r.ok && r.sessionId ? { console: r.sessionId } : {}) })
         return r
       }
@@ -231,7 +235,7 @@ export function createMachineSessions(deps: MachineSessionsDeps) {
         await sleep(250)
       }
       try {
-        const opened = await deps.continueInFabric(s, projectId, from)
+        const opened = await deps.continueInFabric(s, projectId, link)
         deps.record('agents.machine-continue', { session_id: s.sessionId, pid: s.pid, console: opened.sessionId, outcome: 'ok' })
         return { ok: true, sessionId: opened.sessionId }
       } catch (e) {

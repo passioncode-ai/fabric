@@ -61,7 +61,7 @@ function machine(over = {}) {
     stillNames: async (s) => over.reused ? false : alive.has(s.pid),
     transcript: () => over.transcript ?? null,
     turns: (text) => [{ role: 'user', text }],
-    continueInFabric: async (s, _p, from) => { opened.push(from ? [s.sessionId, from] : s.sessionId); if (over.gate) await over.gate; if (over.openFails) throw new Error('no project'); return { sessionId: 'console-1' } },
+    continueInFabric: async (s, _p, link) => { opened.push(link ? [s.sessionId, link.from ?? null] : s.sessionId); if (over.gate) await over.gate; if (over.openFails) throw new Error('no project'); return { sessionId: 'console-1' } },
     record: (op, d) => records.push([op, d]),
     ...(over.rows !== undefined ? { switchboardRows: async () => { if (over.rows instanceof Error) throw over.rows; return over.rows } } : {}),
     sleep: async () => {}
@@ -129,13 +129,13 @@ test('one continue of a session at a time; the link\'s app reaches the console (
   let open = () => {}
   const gate = new Promise((r) => { open = r })
   const two = machine({ project: 'p-1', gate })
-  const first = two.m.continueInFabric(id(1), 'fabric-dashboards')
+  const first = two.m.continueInFabric(id(1), { from: 'observatory.default' })
   assert.deepEqual(await two.m.continueInFabric(id(1)), { ok: false, why: 'busy' })
   assert.deepEqual(await two.m.close(id(1)), { ok: false, why: 'busy' })
   open()
   assert.deepEqual(await first, { ok: true, sessionId: 'console-1' })
   assert.deepEqual(two.signals, [501], 'one signal')
-  assert.deepEqual(two.opened, [[id(1), 'fabric-dashboards']])
+  assert.deepEqual(two.opened, [[id(1), 'observatory.default']], 'the link and its app, in the contract\'s name.instance form, reach the console')
 })
 
 test('read: the last turns from its transcript; null when the transcript is not here', async () => {

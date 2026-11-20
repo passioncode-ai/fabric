@@ -22,8 +22,9 @@ bringing sessions back by themselves is planned work (CO-603).
   operator, 2026-11-20: «чат должен быть справа, а не снизу»); it goes under the greeting only in a content area under
   640 px (`EstateHome.tsx`, `launch/launch.css`).
 - **Fabric lists the sessions Fabric Dashboards lists.** The operator, 2026-11-20: «в дашборде вот вижу сессии а в
-  фабрике не вижу». In 0.3.24 Fabric listed its own consoles and Switchboard's own launches (`sessions --all`), not
-  the other sessions running on this computer. Агенты and the left column now list them, read from Claude Code's own
+  фабрике не вижу». In 0.3.24 Агенты and the left column listed the sessions Fabric holds (its consoles and the
+  terminals enrolled through fabric-mcp) and Switchboard's own launches (`sessions --all`); only the CEO could read the
+  others. Агенты and the left column now list them, read from Claude Code's own
   files and from Switchboard's `sessions --rows`, the source Fabric Dashboards reads, so a session started in a
   terminal, by Fabric Dashboards or under another Claude home shows too, counted by Switchboard's groups (идёт, ждёт,
   нужны вы) and by the live processes among them (Switchboard's groups also hold sessions whose process is gone);
@@ -37,11 +38,12 @@ bringing sessions back by themselves is planned work (CO-603).
 - **Other apps open and continue sessions in Fabric** (the contract's DEC-0189, `fabric-session-links/1`, board thread
   `3ca40854`). `fabric://session/open?session=<id>` opens the console of a session Fabric holds, by its own id or the
   runner session it runs, and otherwise Агенты with this computer's sessions. `fabric://session/continue?session=<id>`
-  of a session a Fabric console already runs opens that console; for any other it asks first, naming the session by
-  its folder, agent and state and the app the link came from, with «Продолжить в Fabric». On the press a running
+  of a session a Fabric console already runs opens that console; for any other it asks first with «Продолжить в Fabric»,
+  naming a running session by its folder, agent and state, and the app the link came from; a session seen only
+  through Switchboard is not acted on from there. On the press a running
   session is stopped where it runs and continued in a Fabric console with its history, and one that ended is continued
   from its transcript; one continue of a session runs at a time. A link opens a view and acts on nothing by itself; the
-  app it came from (`from`) is recorded in the launch journal (`shared/linkRoute.ts`, `launch/ContinueSessionAsk.tsx`).
+  link and the app it came from (`from`, as `name` or `name.instance`) are recorded in the launch journal (`shared/linkRoute.ts`, `launch/ContinueSessionAsk.tsx`).
   Links are now checked for secret-shaped values by the contract's detector of DEC-0151 and DEC-0177, for every
   `fabric://` link (`shared/contract/secretShape.ts`).
 - **Every console Fabric starts is in a launch journal, a press on an agent opens its console, and a project's last

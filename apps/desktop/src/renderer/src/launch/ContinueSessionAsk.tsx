@@ -13,53 +13,79 @@ import { Banner } from '../components/Banner'
 import { Button } from '../components/Button'
 import { folderName } from '../../../shared/railAgents'
 import { halfDone, machineWhy } from './MachineSessions'
+import { runnerLabel } from '../runnerLabel'
+import { AGENT_ID } from '../../../shared/contract/fabricLinks.ts'
 
-/** The link's app, said only when it reads as a name (DEC-0189's `AGENT_ID` grammar); anything else is left out. */
-const appName = (from: string | undefined): string | null => (from && /^[a-z][a-z0-9-]{0,62}$/.test(from) ? from : null)
+/** Our products' names for the ids their links carry; any other id in the contract's grammar is said as it is. */
+const APP_NAMES: Readonly<Record<string, string>> = {
+  'fabric-dashboards': 'Fabric Dashboards', 'fabric-switchboard': 'Switchboard', switchboard: 'Switchboard',
+  'fabric-inbox': 'Fabric Inbox', observatory: 'Observatory', 'project-observatory': 'Observatory', fabric: 'Fabric'
+}
+/** The link's app (DEC-0189 SL-1, `name` or `name.instance`), said by its product's name when it is one of ours (UX-27,
+ *  DA-19); a value outside the contract's grammar is left out. */
+export function appName(from: string | undefined): string | null {
+  if (!from || !AGENT_ID.test(from)) return null
+  const name = from.split('.')[0]
+  return APP_NAMES[name] ?? name
+}
 
-export function ContinueSessionAsk({ session, from, onOpened, onDone }: {
+export function ContinueSessionAsk({ session, from, onOpened, onDone, onBusy }: {
   session: string
   from?: string
+  /** A press is being answered (true) or was answered (false): App keeps this ask while it is (ER-18). */
+  onBusy?(busy: boolean): void
   /** The console the session continues in. */
   onOpened(consoleId: string): void
   /** The ask is over (continued or cancelled). */
   onDone(): void
 }): React.JSX.Element {
   const t = useT()
-  // undefined: still reading; null: no running session by this id (its history may still continue it).
-  const [about, setAbout] = useState<MachineSession | null | undefined>(undefined)
+  // undefined: still reading; null: no running session by this id (its history may still continue it); 'unread': the
+  // list could not be read, said as such, never as «not running» (ER-22, UX-29).
+  const [about, setAbout] = useState<MachineSession | null | 'unread' | undefined>(undefined)
   const [busy, setBusy] = useState(false)
   const [refused, setRefused] = useState<string | null>(null)
+  // UX-29: read again after every answer, so the line never says «идёт» beside «остановлена».
+  const [reads, setReads] = useState(0)
   useEffect(() => {
     let alive = true
     Promise.resolve().then(() => window.fabric.agents.machineSessions())
-      .then((rows) => { if (alive) setAbout(rows.find((s) => s.sessionId === session) ?? null) }, () => { if (alive) setAbout(null) })
+      .then((rows) => { if (alive) setAbout(rows.find((s) => s.sessionId === session) ?? null) }, () => { if (alive) setAbout('unread') })
     return () => { alive = false }
-  }, [session])
+  }, [session, reads])
 
   const go = (): void => {
     setBusy(true)
     setRefused(null)
-    Promise.resolve().then(() => window.fabric.agents.machineContinue(session, from)).then((r) => {
+    onBusy?.(true)
+    // DA-20: the link itself is the origin, with or without `from`.
+    Promise.resolve().then(() => window.fabric.agents.machineContinue(session, from ? { from } : {})).then((r) => {
       setBusy(false)
+      onBusy?.(false)
       if (r.ok) { if (r.sessionId) onOpened(r.sessionId); onDone(); return }
       setRefused(r.why)
-    }, (e: unknown) => { setBusy(false); setRefused(e instanceof Error ? e.message : String(e)) })
+      setReads((x) => x + 1)
+    }, (e: unknown) => { setBusy(false); onBusy?.(false); setRefused(e instanceof Error ? e.message : String(e)) })
   }
 
   const app = appName(from)
+  // UX-30: a session only Switchboard names has no process Fabric knows; it is not acted on from here.
+  const elsewhere = typeof about === 'object' && about !== null && about.source === 'switchboard'
   const which = about === undefined ? t('links.continue.reading')
+    : about === 'unread' ? t('links.continue.unread')
     : about === null ? t('links.continue.ended')
     : t('links.continue.which', {
       folder: folderName(about.cwd) ?? about.cwd,
-      agent: about.agent ?? 'claude-code',
+      agent: runnerLabel(about.agent ?? 'claude-code', t),
       state: t(`machineSessions.state.${about.state ?? 'unknown'}` as 'machineSessions.state.unknown')
     })
-  const said = refused === null ? null : halfDone(refused) ? machineWhy(t, refused) : `${t('machineSessions.refused')} ${machineWhy(t, refused)}`
+  // DO-22: a link's id found nowhere is said as not on this computer, not as a session that ended.
+  const why = (w: string): string => (w === 'gone' ? t('links.continue.gone') : machineWhy(t, w))
+  const said = refused === null ? null : halfDone(refused) ? why(refused) : `${t('machineSessions.refused')} ${why(refused)}`
   return (
     <Banner tone="warn" actions={
       <>
-        <Button tone="primary" disabled={busy || about === undefined} onClick={go}>
+        <Button tone="primary" disabled={busy || about === undefined || elsewhere} onClick={go}>
           {refused && halfDone(refused) ? t('machineSessions.resumeFromHistory') : t('machineSessions.continue')}
         </Button>
         {/* UX-20: once sent the act is not cancelled by this button, so it waits for the answer. */}
@@ -69,6 +95,7 @@ export function ContinueSessionAsk({ session, from, onOpened, onDone }: {
       <span data-testid="continue-ask">
         {t('links.continue.ask')} {which}
         {app && ` ${t('links.continue.from', { app })}`}
+        {elsewhere && ` ${t('links.continue.viaSwitchboard')}`}
         {busy && ` ${t('machineSessions.busy')}`}
       </span>
       {said && <span role="status" title={refused ?? undefined} data-testid="continue-refused"> {said}</span>}

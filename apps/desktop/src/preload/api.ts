@@ -93,7 +93,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       machineSessions: () => ipc.invoke(IPC.agentsMachineSessions),
       machineRead: (sessionId) => ipc.invoke(IPC.agentsMachineRead, sessionId),
       machineClose: (sessionId) => ipc.invoke(IPC.agentsMachineClose, sessionId),
-      machineContinue: (sessionId, from) => ipc.invoke(IPC.agentsMachineContinue, sessionId, from)
+      machineContinue: (sessionId, link) => ipc.invoke(IPC.agentsMachineContinue, sessionId, link)
     },
     tabs: {
       read: () => ipc.invoke(IPC.tabsRead),

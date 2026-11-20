@@ -581,14 +581,19 @@ function Shell({
   activeKind.current = active.kind
   // DEC-0189 SL-5: a `session/continue` link asks here; the move happens only on the person's press.
   const [continueAsk, setContinueAsk] = useState<{ session: string; from?: string } | null>(null)
+  /** The session whose continue press is being answered (ER-18), and the continue link that arrived meanwhile. */
+  const continueBusy = useRef<string | null>(null)
+  const continueQueued = useRef<{ session: string; from?: string } | null>(null)
   const applyLink = (r: LinkRoute): void => {
     // UX-17 (0.3.26 review, iteration 2): a link to a console Fabric holds opens that console, as the rail's press does.
     const console = consoleToOpen(r)
     if (console) void openConsoleRef.current(console)
     else goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId)
       : r.route.kind === 'agents' ? { kind: 'agents', ...(r.route.session ? { session: r.route.session } : {}) } : { kind: 'home' })
-    // DA-16: a link that names the session already being continued keeps that ask (and its press in flight).
-    setContinueAsk((old) => r.continueSession ? (old?.session === r.continueSession ? old : { session: r.continueSession, from: r.from }) : null)
+    // DA-16, ER-18: an ask whose press is being answered stays until the answer; a newer continue link waits behind it.
+    const next = r.continueSession ? { session: r.continueSession, from: r.from } : null
+    if (continueBusy.current) { if (next && next.session !== continueBusy.current) continueQueued.current = next }
+    else setContinueAsk((old) => next ? (old?.session === next.session ? old : next) : null)
     // UX-20: a continue is said once, by its ask; the notice would be a second banner for the same thing.
     setLinkNotice(r.continueSession ? null : r.notice)
     setLinksDropped(r.dropped ?? 0)
@@ -1134,7 +1139,9 @@ function Shell({
       )}
       {continueAsk && (
         <ContinueSessionAsk key={continueAsk.session} session={continueAsk.session} from={continueAsk.from}
-          onOpened={(id) => void openConsole(id)} onDone={() => setContinueAsk(null)} />
+          onOpened={(id) => void openConsole(id)}
+          onBusy={(b) => { continueBusy.current = b ? continueAsk.session : null }}
+          onDone={() => { const queued = continueQueued.current; continueQueued.current = null; setContinueAsk(queued) }} />
       )}
 
       {notReopened > 0 && (

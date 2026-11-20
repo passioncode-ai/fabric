@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
-import { ContinueSessionAsk } from './ContinueSessionAsk'
+import { appName, ContinueSessionAsk } from './ContinueSessionAsk'
+import { LAUNCH_BY, LAUNCH_VIA } from '../../../shared/sessionLaunches'
+import { ru } from '../i18n/ru'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
@@ -24,8 +26,8 @@ describe('ContinueSessionAsk', () => {
   it('names the session by folder, agent and state and the app that asked, never by its id', async () => {
     mount({}, 'fabric-dashboards')
     const ask = await screen.findByTestId('continue-ask')
-    await waitFor(() => expect(ask.textContent).toContain(en['links.continue.which'].replace('{folder}', 'site').replace('{agent}', 'claude-code').replace('{state}', en['machineSessions.state.working'])))
-    expect(ask.textContent).toContain(en['links.continue.from'].replace('{app}', 'fabric-dashboards'))
+    await waitFor(() => expect(ask.textContent).toContain(en['links.continue.which'].replace('{folder}', 'site').replace('{agent}', 'Claude Code').replace('{state}', en['machineSessions.state.working'])))
+    expect(ask.textContent).toContain(en['links.continue.from'].replace('{app}', 'Fabric Dashboards'))
     expect(ask.textContent).not.toContain('aaaaaaaa')
   })
   it('an ended session is said as continued from its history; an app id that is not a name is left out', async () => {
@@ -40,7 +42,7 @@ describe('ContinueSessionAsk', () => {
     await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false))
     fireEvent.click(go)
     await waitFor(() => expect(onOpened).toHaveBeenCalledWith('console-1'))
-    expect(api.machineContinue).toHaveBeenCalledWith(id, 'fabric-dashboards')
+    expect(api.machineContinue).toHaveBeenCalledWith(id, { from: 'fabric-dashboards' })
     expect(onDone).toHaveBeenCalled()
   })
   it('a refusal is said in words and keeps the ask; Cancel waits while the act is sent', async () => {
@@ -68,5 +70,53 @@ describe('ContinueSessionAsk', () => {
     expect(said.textContent).toContain(en['machineSessions.why.stoppedNotContinued'])
     expect(said.textContent).not.toContain(en['machineSessions.refused'])
     expect(screen.getByRole('button', { name: en['machineSessions.resumeFromHistory'] })).toBeTruthy()
+  })
+  // DA-19, UX-27: the contract's name.instance form is a valid app, said by its product's name.
+  it('names the app by its product, the instance form included; a value outside the grammar is left out', () => {
+    expect(appName('observatory.default')).toBe('Observatory')
+    expect(appName('fabric-dashboards')).toBe('Fabric Dashboards')
+    expect(appName('some-agent')).toBe('some-agent')
+    expect(appName('Bad App')).toBeNull()
+    expect(appName(undefined)).toBeNull()
+  })
+  // DA-20: a link without `from` is still a link.
+  it('a link with no app still continues as a link', async () => {
+    const { api } = mount()
+    const go = await screen.findByRole('button', { name: en['machineSessions.continue'] })
+    await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(go)
+    await waitFor(() => expect(api.machineContinue).toHaveBeenCalledWith(id, {}))
+  })
+  // ER-22, UX-29: a list that could not be read is not said as «not running».
+  it('a list read that failed is said as unread', async () => {
+    mount({ machineSessions: vi.fn(async () => { throw new Error('EACCES') }) })
+    const ask = await screen.findByTestId('continue-ask')
+    await waitFor(() => expect(ask.textContent).toContain(en['links.continue.unread']))
+    expect(ask.textContent).not.toContain(en['links.continue.ended'])
+  })
+  // UX-30: a session only Switchboard names is not acted on from here.
+  it('a session only Switchboard names is read-only here', async () => {
+    mount({ machineSessions: vi.fn(async () => [{ ...row, pid: 0, source: 'switchboard' }]) })
+    const ask = await screen.findByTestId('continue-ask')
+    await waitFor(() => expect(ask.textContent).toContain(en['links.continue.viaSwitchboard']))
+    expect((screen.getByRole('button', { name: en['machineSessions.continue'] }) as HTMLButtonElement).disabled).toBe(true)
+  })
+  // DO-22: an id found nowhere is said as not on this computer.
+  it('a session found nowhere is said as not on this computer', async () => {
+    mount({ machineSessions: vi.fn(async () => []), machineContinue: vi.fn(async () => ({ ok: false, why: 'gone' })) })
+    const go = await screen.findByRole('button', { name: en['machineSessions.continue'] })
+    await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(go)
+    expect((await screen.findByTestId('continue-refused')).textContent).toContain(en['links.continue.gone'])
+  })
+})
+
+// DA-21, ER-19: every launch origin the journal can record has its words in both locales.
+describe('the launch journal\'s words', () => {
+  it('every LAUNCH_BY and LAUNCH_VIA value has a sentence in en and ru', () => {
+    for (const dict of [en, ru] as Array<Record<string, string>>) {
+      for (const by of LAUNCH_BY) expect(dict[`sessionLaunch.by.${by}`], by).toBeTruthy()
+      for (const via of LAUNCH_VIA) expect(dict[`sessionLaunch.via.${via}`], via).toBeTruthy()
+    }
   })
 })

@@ -107,4 +107,13 @@ describe('MachineSessionsPanel', () => {
     mount({ machineSessions: vi.fn(async () => { throw new Error('EACCES') }) })
     expect(await screen.findByText(en['machineSessions.failed'])).toBeTruthy()
   })
+  // UX-26: two sessions in one folder are told apart by when they started; (the folded heading is a class, checked on screen).
+  it('two sessions in one folder are named with their start', async () => {
+    const started = new Date(Date.now() - 5 * 60_000).toISOString()
+    mount({ machineSessions: vi.fn(async () => [{ ...row, startedAt: started }, { ...row, sessionId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', startedAt: started }]) })
+    const items = await screen.findAllByTestId('machine-session')
+    const names = items.map((i) => within(i).getByRole('button', { name: /^Last messages/ }).getAttribute('aria-label') ?? '')
+    expect(names[0]).not.toBe(about('machineSessions.readAbout'))
+    expect(names[0]).toContain('site,')
+  })
 })

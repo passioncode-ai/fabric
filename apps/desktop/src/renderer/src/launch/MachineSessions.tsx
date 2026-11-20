@@ -131,7 +131,9 @@ export function MachineSessionsPanel({ onOpenConsole, folded = false }: { onOpen
                 </div>
               )}
               {busy === s.sessionId && <p className="lp-meta" role="status">{t('machineSessions.busy')}</p>}
-              {refused?.id === s.sessionId && !halfDone(refused.why) && <FailureNote said={`${t('machineSessions.refused')} ${machineWhy(t, refused.why)}`} detail={refused.why} />}
+              {/* UX-28: a code with a sentence is not shown again under it; only a message Fabric has no sentence for is. */}
+              {refused?.id === s.sessionId && !halfDone(refused.why) && <FailureNote said={`${t('machineSessions.refused')} ${machineWhy(t, refused.why)}`}
+                detail={machineWhy(t, refused.why) === t('machineSessions.why.other') ? refused.why : null} />}
               {turns?.id === s.sessionId && (
                 turns.list === null ? <p className="lp-meta" role="status">{t('machineSessions.reading')}</p>
                   : turns.list === 'failed' ? <p className="lp-meta">{t('machineSessions.readFailed')}</p>

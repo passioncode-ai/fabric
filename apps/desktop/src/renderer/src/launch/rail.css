@@ -193,7 +193,7 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 .rail-console:disabled{cursor:progress;opacity:.6}
 /* «Агенты»: a new session in a chosen project, and the sessions that ended under the running ones. */
 .rail-new-session{align-self:flex-start}
-.rail-pick{list-style:none;margin:0 0 6px;padding:0 0 0 10px;display:grid;gap:2px}
+.rail-pick{list-style:none;margin:0 0 6px;padding:0 0 0 10px;display:grid;grid-template-columns:minmax(0,1fr);gap:2px}
 .rail-pick .rail-small{margin:0;width:100%;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rail-sub{margin-top:10px;text-transform:none;font-size:11.5px}
 button.rail-recent{width:100%;text-align:left;background:transparent;border:0;font:inherit;color:inherit;cursor:pointer;padding:6px 10px;border-radius:8px;display:flex;gap:8px;align-items:flex-start}
