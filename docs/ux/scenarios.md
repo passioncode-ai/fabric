@@ -4632,6 +4632,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Design rationale:** the operator, 2026-11-18: «Решать все вопросы - это значит менеджмент сессий: смотреть, что происходит в сессиях, отвечать на какие-то вопросы в сессиях, возможно что-то там нужно выбирать; открывать, закрывать, приоткрывать, запускать».
 - **Telemetry:** ops log `ceo.session.*`.
 - **Status:** implemented (2026-11-18, ADR-0197).
+- **Amended 2026-11-20, evening (the first task lost again: 0daa75f1, e150fe59, and two more that day):** measured on this Mac, Claude Code prints a cursor save and restore about 3 s after it starts, then nothing while its start-up hooks run (up to 10 s); the settle rule took that quiet for ready and the task, written before the input box existed, was dropped without a trace. Now nothing is typed into Claude Code before its box is drawn (the line under it, «(shift+tab to cycle)» or «? for shortcuts»; `apps/desktop/src/shared/delivery.ts#claudePromptDrawn`, `apps/desktop/src/main/deliveryQueue.ts`, at most 60 s, then the settle rule alone), and when no turn shows on the screen and Claude Code's own transcript holds no turn from the person, the task is typed once more, once; a transcript that cannot be read never retypes (`apps/desktop/src/main/consoleOpen.ts`, `apps/desktop/src/main/claudeTranscript.ts#claudeTurnTaken`; `first_task` says `resubmitted` with `retyped`). Tests: `delivery-queue.test.mjs`, `console-open.test.mjs`, `claude-transcript.test.mjs`.
 - **Coverage:** `apps/desktop/src/main/ceoTools.ts#createCeoOperations` and `#registerCeoTools`, `apps/desktop/src/main/agentSurface.ts` (region `ceo-surface`), `apps/desktop/src/main/index.ts` (region `ceo-agent-wiring`); tests `apps/desktop/test/ceo-agent.test.mjs` («sessions», «read», «input», «start», «stop», «resume», «open, projects»).
 - **Product:** unobserved
 
@@ -4725,4 +4726,25 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** ops log `ceo.agent.held`, `ceo.agent.stopped`.
 - **Status:** implemented (2026-11-19).
 - **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `personStopEnded`, `onExit`, `ensure`, `send`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP», «ER-1 (0.3.25)», «ER-2 (0.3.25)», «ER-3 (0.3.25)», «ER-6 (0.3.25)»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.
+- **Product:** unobserved
+
+### SCN-189: A message to the CEO is never lost
+- **Persona:** P-01
+- **Feature:** Floating CEO
+- **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
+- **Entry point:** the composer of the CEO window, or the home's «Спросить CEO».
+- **Preconditions:** the CEO's console is working on a turn, still starting, or has stopped by itself.
+- **Steps:**
+  1. Operator writes to the CEO and presses «Отправить» -> when the console takes it at once, «Отправлено CEO.»; when it does not (the CEO is busy, starting, or set aside), the box is cleared and the window says «CEO занят: сообщение в очереди и уйдёт само, как только консоль его примет.»
+  2. Operator goes on working -> the waiting messages are typed into the console in the order they were sent, as soon as it takes input (tried every 10 s); a working Claude Code takes a message typed mid-turn and answers it after the turn.
+  3. Operator quits and opens Fabric -> what still waited is kept and typed once the CEO's console runs.
+- **Expected result:** the operator never has to paste a message into the console by hand; nothing written to the CEO is said as lost while it can still be delivered.
+- **Alt paths:** the CEO stopped by the operator -> the message waits, and writing to it is the operator asking it back (SCN-187); attachments are saved first, and a file that cannot be saved is refused at once, as before.
+- **UI elements:** the composer's status line («Отправлено CEO.», «CEO занят: сообщение в очереди…»).
+- **States covered:** taken at once, queued, typed later, kept across a restart.
+- **Errors & recovery:** a queue that cannot be written to disk still holds in memory and is recorded (`ceo.agent.queue-save-failed`); each message typed from the queue is recorded with how long it waited (`ceo.agent.queue-delivered`).
+- **Design rationale:** the owner, 2026-11-20, 21:37: «не отправляется сообщение из поп-апа разговора с CEO. Пишется, что сообщение не дошло до CEO. Я руками вставил выше в консоль». The operations log at 20:36:33Z and 20:37:11Z: `ceo.agent.delivered` failed before the write (`readiness_timeout`), then the popup's send answered not delivered after 30 s, while the CEO was working.
+- **Telemetry:** ops log `ceo.agent.queued`, `ceo.agent.queue-delivered`.
+- **Status:** implemented (2026-11-20).
+- **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (region `ceo-queue`: `drain`, `send`), `apps/desktop/src/shared/ceoAgent.ts#CEO_QUEUE_RETRY_MS`, `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx`; tests `ceo-agent.test.mjs` «a message the working CEO did not take…», «what waited when Fabric quit…», `CeoComposer.test.tsx` «said as queued».
 - **Product:** unobserved

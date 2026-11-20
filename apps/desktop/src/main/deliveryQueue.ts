@@ -23,7 +23,23 @@ export type DeliveryQueueTiming = {
    * and the owner's message to the CEO was lost (5 of 20 on 2026-11-19 and 20). Never for an item with a write gate.
    */
   busyAfterMs?: number
+  /**
+   * 2026-11-20 (the owner: the first task of a session the CEO started was lost three times, 0daa75f1, e150fe59 and more):
+   * Claude Code prints a cursor save and restore (13 characters) about 3 s after it starts, then nothing while its
+   * start-up hooks run; the settle rule read that quiet as ready, and a paste written then was dropped, before Claude
+   * Code had drawn its input box (reproduced on this Mac, no turn, no transcript, in 45 s). With this set, nothing is
+   * written until the runner's output shows its prompt is drawn; written once that shows, the task was taken in every
+   * run. The test reads the recent output, ANSI stripped; once true it stays true for the session.
+   */
+  promptDrawn?: (recentOutput: string) => boolean
+  /** A runner whose prompt was never recognised is treated as ready after this long, so a new version of its screen does
+   *  not hold every message forever; the settle rule still applies. */
+  promptWaitMs?: number
 }
+
+/** How long a console waits for its runner's prompt before it falls back to the settle rule alone. */
+export const PROMPT_WAIT_MS = 60_000
+const ANSI = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[78=>]/g
 
 type Item = {
   text: string
@@ -48,6 +64,11 @@ export class DeliveryQueue {
   private busyTimer?: ReturnType<typeof setTimeout>
   private busyHead?: Item
   private readonly busyAfterMs: number | undefined
+  private readonly promptDrawn: ((recent: string) => boolean) | undefined
+  /** False until the runner's prompt has been seen (or its wait has passed); a queue with no prompt test is ready. */
+  private promptReady: boolean
+  private recent = ''
+  private promptTimer?: ReturnType<typeof setTimeout>
   private readonly settleMs: number
   private readonly maxWaitMs: number
   private readonly capacity: number
@@ -58,10 +79,21 @@ export class DeliveryQueue {
     this.write = write
     this.isRunning = isRunning
     this.settleMs = timing.settleMs ?? 400
-    this.maxWaitMs = timing.maxWaitMs ?? 30_000
+    // A runner whose prompt is awaited is given that wait on top of the usual 30 s, so its first item is not timed out
+    // by a start-up that is only slow (its hooks took 10 s on 2026-11-20).
+    this.maxWaitMs = timing.maxWaitMs ?? (timing.promptDrawn ? (timing.promptWaitMs ?? PROMPT_WAIT_MS) + 30_000 : 30_000)
     this.capacity = timing.capacity ?? 32
     this.busyAfterMs = timing.busyAfterMs
+    this.promptDrawn = timing.promptDrawn
+    this.promptReady = !timing.promptDrawn
+    if (!this.promptReady) {
+      this.promptTimer = setTimeout(() => { this.promptTimer = undefined; this.promptReady = true; this.schedule() }, timing.promptWaitMs ?? PROMPT_WAIT_MS)
+      ;(this.promptTimer as { unref?: () => void }).unref?.()
+    }
   }
+
+  /** Whether the runner's prompt has been seen (always true for a runner with no prompt test). */
+  get ready(): boolean { return this.promptReady }
 
   enqueue(instruction: string, options: DeliveryWriteOptions = {}): Promise<DeliveryWriteResult> {
     if (this.closed || !this.isRunning()) return Promise.resolve({ state: 'failed_before_write', reason: 'session_closed' })
@@ -80,8 +112,17 @@ export class DeliveryQueue {
     })
   }
 
-  noteOutput(): void {
+  noteOutput(data?: string): void {
     if (this.closed) return
+    if (!this.promptReady && data !== undefined && this.promptDrawn) {
+      this.recent = (this.recent + data.replace(ANSI, '')).slice(-4096)
+      if (this.promptDrawn(this.recent)) {
+        this.promptReady = true
+        this.recent = ''
+        if (this.promptTimer) clearTimeout(this.promptTimer)
+        this.promptTimer = undefined
+      }
+    }
     this.generation++
     this.lastOutputAt = Date.now()
     this.schedule()
@@ -99,6 +140,8 @@ export class DeliveryQueue {
 
   close(reason = 'session_closed'): void {
     this.closed = true
+    if (this.promptTimer) clearTimeout(this.promptTimer)
+    this.promptTimer = undefined
     if (this.settleTimer) clearTimeout(this.settleTimer)
     this.settleTimer = undefined
     if (this.busyTimer) clearTimeout(this.busyTimer)
@@ -127,6 +170,8 @@ export class DeliveryQueue {
       this.busyHead = undefined
     }
     if (this.closed || !head || head.gating) return
+    // Before the runner's prompt is drawn nothing is written, busy or quiet: the output that draws it schedules again.
+    if (!this.promptReady) return
     // The busy path: due at the item's own age; once past, looked at again every settle period, so it cannot spin.
     if (this.busyAfterMs !== undefined && !head.options.beforeWrite && !head.options.quietOnly && !this.busyTimer) {
       const due = head.since + this.busyAfterMs - Date.now()
@@ -147,6 +192,7 @@ export class DeliveryQueue {
   private async flush(item: Item, busy = false): Promise<void> {
     if (this.closed || item.done || this.items[0] !== item) return
     if (!this.isRunning()) { this.close(); return }
+    if (!this.promptReady) return
     // Even busy, the write needs output the console printed since the last write: never a blind write.
     if (this.generation <= this.consumedGeneration) { if (busy) this.schedule(); return }
     if (!busy && Date.now() - this.lastOutputAt < this.settleMs) { this.schedule(); return }

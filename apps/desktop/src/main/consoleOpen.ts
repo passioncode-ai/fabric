@@ -76,6 +76,10 @@ export interface ConsoleOpenDeps<S extends { sessionId: string }> {
   delivered?(detail: { session_id: string; runner: string | null } & FirstInstructionOutcome): void
   /** Waits; the tests pass their own. */
   sleep?(ms: number): Promise<void>
+  /** 2026-11-20: whether the runner's own transcript holds a turn from the person yet (Claude Code's
+   *  `<home>/projects/<folder>/<session>.jsonl`): true, false, or null when it cannot be read. Only a false that is read,
+   *  with no paste waiting on the screen, types the task once more; an unknown never does. */
+  turnTaken?(sessionId: string): Promise<boolean | null>
 }
 
 export function createConsoleOpen<S extends { sessionId: string; optionId?: string }>(deps: ConsoleOpenDeps<S>) {
@@ -128,7 +132,22 @@ export function createConsoleOpen<S extends { sessionId: string; optionId?: stri
     // the screen, never that the session is working (an Enter here could accept a trust or update screen).
     await sleep(FIRST_INSTRUCTION_CHECK_MS)
     since = printedSince()
-    return TURN_STARTED.test(since) ? { state: 'delivered', attempts } : { state: 'written_unconfirmed', reason: 'no_turn_started', attempts }
+    if (TURN_STARTED.test(since)) return { state: 'delivered', attempts }
+    // 2026-11-20 (0daa75f1, e150fe59): a paste written before Claude Code drew its box is dropped without a trace on the
+    // screen. Its transcript says it: no turn from the person. Then, and only then, the task is typed once more.
+    const taken = deps.turnTaken ? await deps.turnTaken(id).catch(() => null) : null
+    if (taken === false && !PASTE_WAITING.test(since) && deps.ptys.get(id)) {
+      before = lengthNow()
+      const again = asResult(await deps.ptys.deliverWhenReady(id, instruction, { quietOnly: true }))
+      if (again.state !== 'written') return { state: 'written_unconfirmed', reason: `retype_${again.reason ?? again.state}`, attempts: attempts + 1 }
+      await sleep(FIRST_INSTRUCTION_CHECK_MS)
+      const now = await (deps.turnTaken?.(id) ?? Promise.resolve(null)).catch(() => null)
+      return now === true || TURN_STARTED.test(printedSince())
+        ? { state: 'resubmitted', reason: 'retyped', attempts: attempts + 1 }
+        : { state: 'written_unconfirmed', reason: 'no_turn_after_retype', attempts: attempts + 1 }
+    }
+    if (taken === true) return { state: 'delivered', reason: 'turn_in_transcript', attempts }
+    return { state: 'written_unconfirmed', reason: 'no_turn_started', attempts }
   }
 
   const open = async (projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null): Promise<S> => {

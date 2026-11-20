@@ -11,6 +11,16 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).
 
+- **A session's first task reaches Claude Code.** On 2026-11-20 four sessions the CEO started sat with no task.
+  Measured on this Mac: Claude Code prints a cursor save and restore about 3 s after its start, then nothing while its
+  start-up hooks run; Fabric took that quiet for ready and wrote the task before the input box existed, and Claude Code
+  dropped it without a trace. Now nothing is typed into Claude Code before its box is drawn, and a task that left no
+  turn in Claude Code's own transcript is typed once more (`main/deliveryQueue.ts#promptDrawn`, `main/consoleOpen.ts`,
+  `main/claudeTranscript.ts`; SCN-183).
+- **A message to the CEO is never lost.** The CEO window said «Сообщение не дошло до CEO» when the CEO was working, and
+  the owner pasted it into the console by hand. A message the console does not take at once now waits in a queue kept
+  on disk, the window says it is queued, and it is typed as soon as the console takes it, after a restart of Fabric too
+  (`main/ceoAgent.ts`, region `ceo-queue`; SCN-189).
 - **A session the CEO starts gets its task, and the CEO hears whether it did.** A session started with a task sat 40
   minutes on an empty prompt, and nothing said why: the first instruction's end was dropped unless it threw. Now a
   readiness that lapsed waits one more window (still never a blind write), a long paste left waiting in Claude Code's

@@ -23,6 +23,9 @@ export type CeoProblem = 'all-set-aside' | 'none-could-start' | 'project' | 'sta
 
 /** Why a message did not reach the CEO, as a code the window words (ER-7). */
 export type CeoSendReason = 'empty-file' | 'too-big' | 'not-saved' | 'nothing-to-send' | 'not-running' | 'not-delivered'
+/** 2026-11-20 (the owner: «не отправляется сообщение из поп-апа … пишется, что сообщение не дошло»): a message the console
+ *  did not take at once is kept, on disk, and typed when it can be; the window says it waits, never that it was lost. */
+export const CEO_QUEUE_RETRY_MS = 10_000
 
 /** What the popup's head and the home composer read of the CEO's console. */
 export interface CeoStatus {
@@ -39,13 +42,15 @@ export interface CeoStatus {
   folder: string
   /** Why it is `failed`; its raw detail is in the operations log only. */
   problem: CeoProblem | null
+  /** Messages from the person kept for the console, not typed yet (CEO_QUEUE_RETRY_MS); absent or 0 when none wait. */
+  queued?: number
 }
 
 /** A file the person attached: its name and its bytes as base64 (the window reads them; main keeps them in the inbox). */
 export interface CeoAttachment { name: string; data: string }
 
 /** `name` is the file an `empty-file` or `too-big` refusal is about. */
-export interface CeoSendResult { ok: boolean; reason?: CeoSendReason; name?: string; status: CeoStatus }
+export interface CeoSendResult { ok: boolean; reason?: CeoSendReason; name?: string; status: CeoStatus; queued?: boolean }
 
 /** One voice call's setup, as main hands it to the CEO window: an ephemeral secret, never the key. */
 export type CeoVoiceSession =

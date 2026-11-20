@@ -8886,7 +8886,8 @@
         "SCN-183",
         "SCN-184",
         "SCN-186",
-        "SCN-187"
+        "SCN-187",
+        "SCN-189"
       ],
       "flow_ids": [
         "FLW-57",
@@ -27674,7 +27675,8 @@
         "SCN-184",
         "SCN-185",
         "SCN-186",
-        "SCN-187"
+        "SCN-187",
+        "SCN-189"
       ],
       "coverage_flow_ids": [
         "FLW-59",
@@ -35770,7 +35772,7 @@
       "errors_recovery": "no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4642
+        "line": 4643
       }
     },
     {
@@ -35787,7 +35789,7 @@
       "errors_recovery": "the order and the models are set by hand in settings.json (`ceoRunners`, `ceoModels`); an unknown runner, and a model below Sonnet 5.5, is dropped.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4666
+        "line": 4667
       }
     },
     {
@@ -35805,7 +35807,7 @@
       "errors_recovery": "an unknown stored voice reads as male, never as a broken look; a refused or missing key is said in words (ru and en).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4687
+        "line": 4688
       }
     },
     {
@@ -35824,7 +35826,26 @@
       "errors_recovery": "a failed stop is said and can be pressed again; a forced stop follows a plain one that did not end the console (ER-10).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4709
+        "line": 4710
+      }
+    },
+    {
+      "id": "SCN-189",
+      "title": "A message to the CEO is never lost",
+      "flow_ids": [
+        "FLW-63"
+      ],
+      "screen_refs": [
+        "SCR-64"
+      ],
+      "coverage": "`apps/desktop/src/main/ceoAgent.ts` (region `ceo-queue`: `drain`, `send`), `apps/desktop/src/shared/ceoAgent.ts#CEO_QUEUE_RETRY_MS`, `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx`; tests `ceo-agent.test.mjs` «a message the working CEO did not take…», «what waited when Fabric quit…», `CeoComposer.test.tsx` «said as queued».",
+      "registry_status": "implemented (2026-11-20).",
+      "product_observation": "unobserved",
+      "expected_result": "the operator never has to paste a message into the console by hand; nothing written to the CEO is said as lost while it can still be delivered.",
+      "errors_recovery": "a queue that cannot be written to disk still holds in memory and is recorded (`ceo.agent.queue-save-failed`); each message typed from the queue is recorded with how long it waited (`ceo.agent.queue-delivered`).",
+      "source": {
+        "file": "docs/ux/scenarios.md",
+        "line": 4731
       }
     }
   ],
@@ -37242,7 +37263,8 @@
         "SCN-183",
         "SCN-184",
         "SCN-185",
-        "SCN-187"
+        "SCN-187",
+        "SCN-189"
       ]
     },
     {
