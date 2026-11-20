@@ -120,7 +120,8 @@ export function MachineSessionsPanel({ onOpenConsole, folded = false }: { onOpen
               <span className="ag-machine-acts">
                 <button type="button" className="lp-link" aria-expanded={turns?.id === s.sessionId} aria-label={t('machineSessions.readAbout', { folder: label(s) })} onClick={() => read(s.sessionId)}>{t('machineSessions.read')}</button>
                 {/* A session only Switchboard names has no process Fabric knows: it is read here, closed or taken over there. */}
-                {s.source === 'claude' && <button type="button" className="lp-button" disabled={busy !== null} aria-label={t('machineSessions.continueAbout', { folder: label(s) })} onClick={() => setAsking({ id: s.sessionId, act: 'continue' })}>{t('machineSessions.continue')}</button>}
+                {/* UX-41: one no process runs (Switchboard's «ready to continue») is continued from its history, as a link can. */}
+                {(s.source === 'claude' || !s.live) && <button type="button" className="lp-button" disabled={busy !== null} aria-label={t('machineSessions.continueAbout', { folder: label(s) })} onClick={() => setAsking({ id: s.sessionId, act: 'continue' })}>{t('machineSessions.continue')}</button>}
                 {s.source === 'claude' && <button type="button" className="lp-button" disabled={busy !== null} aria-label={t('machineSessions.closeAbout', { folder: label(s) })} onClick={() => setAsking({ id: s.sessionId, act: 'close' })}>{t('machineSessions.close')}</button>}
               </span>
               {asking?.id === s.sessionId && (

@@ -99,17 +99,18 @@ describe('ContinueSessionAsk', () => {
   it('a running session only Switchboard names is read-only here', async () => {
     mount({ machineSessions: vi.fn(async () => [{ ...row, pid: 0, live: true, source: 'switchboard' }]) })
     const ask = await screen.findByTestId('continue-ask')
-    await waitFor(() => expect(ask.textContent).toContain(en['links.continue.viaSwitchboard']))
+    await waitFor(() => expect(ask.textContent).toContain(en['links.continue.viaSwitchboard'].replace('{folder}', 'site')))
     expect(ask.textContent).not.toContain(en['links.continue.ask'])
     expect(screen.queryByRole('button', { name: en['machineSessions.continue'] })).toBeNull()
-    expect(screen.getByRole('button', { name: en['common.cancel'] })).toBeTruthy()
+    expect(screen.getByRole('button', { name: en['links.continue.close'] })).toBeTruthy()
   })
   // UX-33, ER-24: one no process runs (Switchboard's «needs you», ready to continue) is ended: continued from its history.
   it('an ended session only Switchboard names is continued from its history', async () => {
     const { api } = mount({ machineSessions: vi.fn(async () => [{ ...row, pid: 0, live: false, source: 'switchboard', state: 'needs_you' }]) })
     const ask = await screen.findByTestId('continue-ask')
-    await waitFor(() => expect(ask.textContent).toContain(en['links.continue.ended']))
-    expect(ask.textContent).not.toContain(en['links.continue.viaSwitchboard'])
+    // UX-40: named by its folder and agent, said as ended.
+    await waitFor(() => expect(ask.textContent).toContain(en['links.continue.whichEnded'].replace('{folder}', 'site').replace('{agent}', 'Claude Code')))
+    expect(ask.textContent).not.toContain('only through Switchboard')
     const go = screen.getByRole('button', { name: en['machineSessions.continue'] }) as HTMLButtonElement
     expect(go.disabled).toBe(false)
     fireEvent.click(go)
@@ -128,6 +129,50 @@ describe('ContinueSessionAsk', () => {
     await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false))
     fireEvent.click(go)
     expect((await screen.findByTestId('continue-refused')).textContent).toContain(en['links.continue.gone'])
+  })
+})
+
+// UX-37, ER-26, ER-27 (iteration 3, run three).
+describe('ContinueSessionAsk after an answer', () => {
+  it('UX-37: a half-done answer keeps the retry, even when the next read sees the stopped session as Switchboard\'s running one', async () => {
+    const reads = [[row], [{ ...row, pid: 0, live: true, source: 'switchboard' as const }]]
+    const { api } = mount({
+      machineSessions: vi.fn(async () => reads.shift() ?? [{ ...row, pid: 0, live: true, source: 'switchboard' as const }]),
+      machineContinue: vi.fn(async () => ({ ok: false, why: 'stopped-not-continued', resume: { sessionId: id, cwd: '/d/site' } }))
+    })
+    const go = await screen.findByRole('button', { name: en['machineSessions.continue'] })
+    await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(go)
+    await screen.findByTestId('continue-refused')
+    await waitFor(() => expect(api.machineSessions).toHaveBeenCalledTimes(2))
+    const retry = await screen.findByRole('button', { name: en['machineSessions.resumeFromHistory'] })
+    expect((retry as HTMLButtonElement).disabled).toBe(false)
+    expect(screen.getByTestId('continue-ask').textContent).not.toContain('only through Switchboard')
+    expect(screen.getByTestId('continue-ask').textContent).not.toContain(en['machineSessions.state.working'])
+  })
+  it('ER-26: the answer calls the callbacks of the newest render', async () => {
+    let answer: (v: unknown) => void = () => {}
+    const api = { machineSessions: vi.fn(async () => [row]), machineContinue: vi.fn(() => new Promise((r) => { answer = r })) }
+    vi.stubGlobal('window', Object.assign(window, { fabric: { agents: api } }))
+    const first = vi.fn(), second = vi.fn()
+    const view = render(<I18nProvider locale="en"><ContinueSessionAsk session={id} onOpened={() => {}} onDone={first} /></I18nProvider>)
+    const go = await screen.findByRole('button', { name: en['machineSessions.continue'] })
+    await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(go)
+    await waitFor(() => expect(api.machineContinue).toHaveBeenCalled())
+    view.rerender(<I18nProvider locale="en"><ContinueSessionAsk session={id} waiting onOpened={() => {}} onDone={second} /></I18nProvider>)
+    answer({ ok: true, sessionId: 'console-1' })
+    await waitFor(() => expect(second).toHaveBeenCalled())
+    expect(first).not.toHaveBeenCalled()
+  })
+  it('ER-27: a Switchboard session whose history Fabric cannot read is not said as «not on this computer»', async () => {
+    mount({ machineSessions: vi.fn(async () => [{ ...row, pid: 0, live: false, source: 'switchboard' as const }]), machineContinue: vi.fn(async () => ({ ok: false, why: 'gone' })) })
+    const go = await screen.findByRole('button', { name: en['machineSessions.continue'] })
+    await waitFor(() => expect((go as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(go)
+    const said = (await screen.findByTestId('continue-refused')).textContent ?? ''
+    expect(said).toContain(en['links.continue.goneHome'])
+    expect(said).not.toContain(en['links.continue.gone'])
   })
 })
 

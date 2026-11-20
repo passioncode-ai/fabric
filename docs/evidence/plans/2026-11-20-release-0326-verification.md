@@ -228,3 +228,33 @@ every session only Switchboard names read-only, the ended ones too, which Fabric
 | V3-DA-24 | DA-24 | non-blocking | fixed in the iteration-3 run-three candidate: as ER-25 |
 | V3-PL-28 | PL-28 | non-blocking | fixed in the iteration-3 run-three candidate: CO-603's owner column gives Fabric's half of (5) (task dbeb4fcd, board request 508c1048) to this repository's release session |
 | V3-PL-29 | PL-29 | non-blocking | fixed in the release commit: the ledger records the hosted run and the local ci.sh fast exit for each run, and the Release close the session reading with its commit |
+
+### Run three, b83bed27 (superseded)
+
+Candidate `b83bed27ec8fe80ada818372290fd78d18b66a57`. Reports and receipts in
+[`docs/evidence/reviews/0.3.26/iteration-3-b83bed27/`](../reviews/0.3.26/iteration-3-5d549a8d/) (kept as the record; not
+this iteration's receipts). Gate: hosted `ci.yml` run 44687173294 success (browser suites 26 of 26, 06:39:09Z); local
+`ci.sh fast` with both browser variables set, exit 0, browser suites 26 of 26. Every run-two fix held, two in part. 16 findings, 3 blocking:
+ER-26, run two's move of the waiting link to React state left the ask's answer calling a callback of an older render, so a
+link waiting behind a successful press was dropped; UX-37, after a half-done answer a stale read hid the retry; both in
+code the gate refuses after `verifiedCommit`, so the iteration runs again. PL-30, items 2 to 4 of the owner's release
+order `3aa89c92` were in no record of this release.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-UX-37 | UX-37 | blocking | fixed in the iteration-3 run-four candidate: after a half-done answer the retry from history is always offered and the stale state is not said (ContinueSessionAsk.tsx half); main asks Switchboard again after an act (index.ts rowsChanged); test «a half-done answer keeps the retry, even when the next read sees the stopped session as Switchboard's running one», red before |
+| V3-UX-38 | UX-38 | non-blocking | fixed in the iteration-3 run-four candidate: the read-only sentence opens with what the link asks and names the folder; its only press is «Закрыть» (links.continue.viaSwitchboard, links.continue.close); test «a running session only Switchboard names is read-only here» |
+| V3-UX-39 | UX-39 | non-blocking | ruled: CO-604 (32) |
+| V3-UX-40 | UX-40 | non-blocking | fixed in the iteration-3 run-four candidate: an ended Switchboard-only session is named by its folder and agent, said as ended (links.continue.whichEnded); test «an ended session only Switchboard names is continued from its history» |
+| V3-UX-41 | UX-41 | non-blocking | fixed in the iteration-3 run-four candidate: Агенты offers «Продолжить в Fabric» for a session Switchboard names that no process runs, and no «Закрыть» (MachineSessions.tsx); test «a session only Switchboard names that no process runs can be continued, not closed»; SCN-166 says so |
+| V3-ER-26 | ER-26 | blocking | fixed in the iteration-3 run-four candidate: the asks App shows are a reducer (launch/continueQueue.ts, 7 tests), dispatched from the ask, and the ask calls the newest render's callbacks (ContinueSessionAsk.tsx latest); tests «a link that arrived during a press is shown after the press succeeds» and «the answer calls the callbacks of the newest render», red before |
+| V3-ER-27 | ER-27 | non-blocking | fixed in the iteration-3 run-four candidate: gone for a session Switchboard lists says its history is not in a Claude folder Fabric reads (links.continue.goneHome); test «a Switchboard session whose history Fabric cannot read is not said as «not on this computer»» |
+| V3-DO-28 | DO-28 | non-blocking | fixed in the iteration-3 run-four candidate: SCN-142 names the queued state and the CHANGELOG says a continue link waits behind another |
+| V3-DO-29 | DO-29 | non-blocking | fixed in the iteration-3 run-four candidate: spec row 8 states the read-only exception and the ended case |
+| V3-DO-30 | DO-30 | non-blocking | fixed in the iteration-3 run-four candidate: the header comment of ContinueSessionAsk.tsx says what the ask does now |
+| V3-DA-25 | DA-25 | non-blocking | fixed in the iteration-3 run-four candidate: the CHANGELOG says the app the link names itself; the journal reason's wording ruled: CO-604 (33) |
+| V3-PL-30 | PL-30 | blocking | fixed in the iteration-3 run-four candidate: items 2 to 4 of 3aa89c92 and the ideas dated 0.3.26 in 2cec2091 are CO-603 (11) and a row of spec §4, with their branches and tasks; thread 20ee2630 is told the version at the release |
+| V3-PL-31 | PL-31 | non-blocking | fixed in the release commit: the ledger records each run's hosted run and local exit, and the Release close the session reading on the verified candidate |
+| V3-PL-32 | PL-32 | non-blocking | fixed in the release close: the knowledge base's roadmap, products and plans pages updated to 0.3.26 in one fabric-workspace pull request after the publication |
+| V3-PL-33 | PL-33 | non-blocking | fixed in the release close: the shipped tasks moved to review with the version, the partly shipped ones noted with what remains |
+| V3-PL-34 | PL-34 | non-blocking | fixed in the iteration-3 run-four candidate: CO-603's owner column gives Fabric's half of (2) (installing the service, task c0e6b2d2) to this repository's release session |

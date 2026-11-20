@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import type { LinkNotice, LinkRoute } from '../../shared/linkRoute.ts'
 import { consoleToOpen } from '../../shared/linkRoute.ts'
+import { continueQueue, NO_CONTINUE } from './launch/continueQueue'
 import { receiveLink, releaseLink, type LinkGate } from './linkArrival'
 import { SESSION_DISMISSED } from './SessionStop'
 import type { StringKey } from './i18n/en.ts'
@@ -580,24 +581,16 @@ function Shell({
   const activeKind = useRef(active.kind)
   activeKind.current = active.kind
   // DEC-0189 SL-5: a `session/continue` link asks here; the move happens only on the person's press.
-  const [continueAsk, setContinueAsk] = useState<{ session: string; from?: string } | null>(null)
-  /** The session whose continue press is being answered (ER-18), and the continue link that arrived meanwhile. */
-  const continueBusy = useRef<string | null>(null)
-  const [continueQueued, setContinueQueued] = useState<{ session: string; from?: string } | null>(null)
+  const [continueState, dispatchContinue] = useReducer(continueQueue, NO_CONTINUE)
+  const continueAsk = continueState.ask
   const applyLink = (r: LinkRoute): void => {
     // UX-17 (0.3.26 review, iteration 2): a link to a console Fabric holds opens that console, as the rail's press does.
     const console = consoleToOpen(r)
     if (console) void openConsoleRef.current(console)
     else goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId)
       : r.route.kind === 'agents' ? { kind: 'agents', ...(r.route.session ? { session: r.route.session } : {}) } : { kind: 'home' })
-    // DA-16, ER-18: an ask whose press is being answered stays until the answer; a newer continue link waits behind it.
-    const next = r.continueSession ? { session: r.continueSession, from: r.from } : null
-    if (continueBusy.current) { if (next && next.session !== continueBusy.current) setContinueQueued(next) }
-    else {
-      // ER-23: a link that replaces the ask also drops what waited behind the old one.
-      setContinueQueued(null)
-      setContinueAsk((old) => next ? (old?.session === next.session ? old : next) : null)
-    }
+    // DA-16, ER-18, ER-23, ER-26: one continue ask at a time (launch/continueQueue.ts).
+    dispatchContinue({ type: 'link', next: r.continueSession ? { session: r.continueSession, from: r.from } : null })
     // UX-20: a continue is said once, by its ask; the notice would be a second banner for the same thing.
     setLinkNotice(r.continueSession ? null : r.notice)
     setLinksDropped(r.dropped ?? 0)
@@ -1144,8 +1137,8 @@ function Shell({
       {continueAsk && (
         <ContinueSessionAsk key={continueAsk.session} session={continueAsk.session} from={continueAsk.from}
           onOpened={(id) => void openConsole(id)}
-          onBusy={(b) => { continueBusy.current = b ? continueAsk.session : null }} waiting={continueQueued !== null}
-          onDone={() => { setContinueAsk(continueQueued); setContinueQueued(null) }} />
+          onBusy={(b) => dispatchContinue({ type: 'busy', session: b ? continueAsk.session : null })} waiting={continueState.queued !== null}
+          onDone={() => dispatchContinue({ type: 'done' })} />
       )}
 
       {notReopened > 0 && (

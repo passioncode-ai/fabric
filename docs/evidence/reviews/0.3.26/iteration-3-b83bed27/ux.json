@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "b83bed27ec8fe80ada818372290fd78d18b66a57",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-b83bed27/2026-11-20-ux.md",
+  "reportSha256": "248bc4fb40d5df947b509d739728df11e26a6510b506600ae0245b8b41b7817f",
+  "reviewerRun": "release-0326-i3r3-ux-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: after a half-done answer the retry from history is always offered and the stale state is not said (ContinueSessionAsk.tsx half); main asks Switchboard again after an act (index.ts rowsChanged); test «a half-done answer keeps the retry, even when the next read sees the stopped session as Switchboard's running one», red before"
+      ]
+    },
+    {
+      "id": "UX-38",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: the read-only sentence opens with what the link asks and names the folder; its only press is «Закрыть» (links.continue.viaSwitchboard, links.continue.close); test «a running session only Switchboard names is read-only here»"
+      ]
+    },
+    {
+      "id": "UX-39",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (32)"
+      ]
+    },
+    {
+      "id": "UX-40",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: an ended Switchboard-only session is named by its folder and agent, said as ended (links.continue.whichEnded); test «an ended session only Switchboard names is continued from its history»"
+      ]
+    },
+    {
+      "id": "UX-41",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: Агенты offers «Продолжить в Fabric» for a session Switchboard names that no process runs, and no «Закрыть» (MachineSessions.tsx); test «a session only Switchboard names that no process runs can be continued, not closed»; SCN-166 says so"
+      ]
+    }
+  ]
+}

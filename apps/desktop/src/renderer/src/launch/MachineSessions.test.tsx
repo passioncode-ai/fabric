@@ -61,6 +61,15 @@ describe('MachineSessionsPanel', () => {
     expect(within(item).queryByRole('button', { name: about('machineSessions.closeAbout') })).toBeNull()
     expect(item.textContent).toContain(en['machineSessions.viaSwitchboard'])
   })
+  // UX-41: a session Switchboard names that no process runs is continued from its history; there is nothing to close.
+  it('a session only Switchboard names that no process runs can be continued, not closed', async () => {
+    const { api } = mount({ machineSessions: vi.fn(async () => [{ ...row, pid: 0, live: false, name: null, status: null, source: 'switchboard', state: 'needs_you' }]) })
+    const item = await screen.findByTestId('machine-session')
+    expect(within(item).queryByRole('button', { name: about('machineSessions.closeAbout') })).toBeNull()
+    fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.continueAbout') }))
+    fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
+    await waitFor(() => expect(api.machineContinue).toHaveBeenCalledWith(row.sessionId))
+  })
   // UX-1: a folder in no project is refused before anything is stopped; a continue that failed after the stop says so.
   it('a continue refused for no project, and one stopped but not continued, are said with what to do', async () => {
     mount({ machineContinue: vi.fn(async () => ({ ok: false, why: 'no-project' })) })

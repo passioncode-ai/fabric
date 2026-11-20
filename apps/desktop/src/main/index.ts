@@ -4846,9 +4846,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   }
   handle(IPC.agentsMachineSessions, (): Promise<Returns<FabricApi['agents']['machineSessions']>> => machineSessions.list())
   handle(IPC.agentsMachineRead, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineRead']>> => machineSessions.read(sessionArg(id)))
-  handle(IPC.agentsMachineClose, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineClose']>> => machineSessions.close(sessionArg(id)))
+  // UX-37 (iteration 3, run three): an act changes what Switchboard sees, so the next listing asks it again instead of the
+  // rows read before the act (the old rows stay only as the fallback of a read that does not answer in time).
+  const rowsChanged = <T,>(p: Promise<T>): Promise<T> => p.finally(() => { if (sbSettled) sbSettled = { ...sbSettled, at: 0 } })
+  handle(IPC.agentsMachineClose, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineClose']>> => rowsChanged(machineSessions.close(sessionArg(id))))
   handle(IPC.agentsMachineContinue, (_e, id: unknown, link: unknown): Promise<Returns<FabricApi['agents']['machineContinue']>> =>
-    machineSessions.continueInFabric(sessionArg(id), linkOriginOf(link)))
+    rowsChanged(machineSessions.continueInFabric(sessionArg(id), linkOriginOf(link))))
   // #endregion resume-in-fabric
   // CO-407: Claude Code's cross-session messages, only by the person's switch; and the launcher doctor, only on asking.
   const inboundAnswer = (r: ReturnType<typeof readInbound>) =>

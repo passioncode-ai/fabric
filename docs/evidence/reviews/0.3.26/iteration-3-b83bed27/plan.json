@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "b83bed27ec8fe80ada818372290fd78d18b66a57",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-b83bed27/2026-11-20-plan.md",
+  "reportSha256": "9d10891681a30b913cb9210e23ddfd637dc1c651d9f5679d4916ec404d95f3bd",
+  "reviewerRun": "release-0326-i3r3-plan-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: items 2 to 4 of 3aa89c92 and the ideas dated 0.3.26 in 2cec2091 are CO-603 (11) and a row of spec §4, with their branches and tasks; thread 20ee2630 is told the version at the release"
+      ]
+    },
+    {
+      "id": "PL-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the ledger records each run's hosted run and local exit, and the Release close the session reading on the verified candidate"
+      ]
+    },
+    {
+      "id": "PL-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release close: the knowledge base's roadmap, products and plans pages updated to 0.3.26 in one fabric-workspace pull request after the publication"
+      ]
+    },
+    {
+      "id": "PL-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release close: the shipped tasks moved to review with the version, the partly shipped ones noted with what remains"
+      ]
+    },
+    {
+      "id": "PL-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: CO-603's owner column gives Fabric's half of (2) (installing the service, task c0e6b2d2) to this repository's release session"
+      ]
+    }
+  ]
+}

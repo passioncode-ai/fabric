@@ -33,7 +33,8 @@ bringing sessions back by themselves is planned work (CO-603).
   «Агенты»; a press opens Агенты, where «Сессии этого компьютера вне Fabric» comes first with its counts. Each session's
   last messages are read in place, with keys and tokens redacted. A session whose process Fabric knows can be continued
   in a Fabric console or closed; «Продолжить в Fabric» asks for the folder's project before it stops anything, and says
-  so when the session was stopped but not continued. A session only Switchboard names is read here and not acted on.
+  so when the session was stopped but not continued. A session only Switchboard names is read here; one no process runs
+  can be continued from its history, and a running one is not acted on.
   Fabric's own consoles are never listed there, by their process (`main/machineSessions.ts`).
 - **Other apps open and continue sessions in Fabric** (the contract's DEC-0189, `fabric-session-links/1`, board thread
   `3ca40854`). `fabric://session/open?session=<id>` opens the console of a session Fabric holds, by its own id or the
@@ -43,7 +44,8 @@ bringing sessions back by themselves is planned work (CO-603).
   itself; a running session seen only through Switchboard is not acted on from there. On the press a running
   session is stopped where it runs and continued in a Fabric console with its history, and one that ended is continued
   from its transcript; one continue of a session runs at a time. A link opens a view and acts on nothing by itself; the
-  link and the app it came from (`from`, as `name` or `name.instance`) are recorded in the launch journal (`shared/linkRoute.ts`, `launch/ContinueSessionAsk.tsx`).
+  link and the app it names itself (`from`, as `name` or `name.instance`) are recorded in the launch journal; a continue
+  link that arrives while another is being answered waits and is shown after it (`shared/linkRoute.ts`, `launch/ContinueSessionAsk.tsx`).
   Links are now checked for secret-shaped values by the contract's detector of DEC-0151 and DEC-0177, for every
   `fabric://` link (`shared/contract/secretShape.ts`).
 - **Every console Fabric starts is in a launch journal, a press on an agent opens its console, and a project's last

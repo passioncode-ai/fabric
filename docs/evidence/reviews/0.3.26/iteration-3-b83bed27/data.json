@@ -1,0 +1,21 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "b83bed27ec8fe80ada818372290fd78d18b66a57",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-b83bed27/2026-11-20-data.md",
+  "reportSha256": "f3876ee286001e1209c736ad0246f5c5f03d94c394a1fbcd0d40c5e65152c7b1",
+  "reviewerRun": "release-0326-i3r3-data-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: the CHANGELOG says the app the link names itself; the journal reason's wording ruled: CO-604 (33)"
+      ]
+    }
+  ]
+}
