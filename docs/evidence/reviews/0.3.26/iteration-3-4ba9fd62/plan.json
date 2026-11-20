@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "4ba9fd6214dd80526eeba127b5c2fcb0a962647c",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-4ba9fd62/2026-11-20-plan.md",
+  "reportSha256": "f61f391d9ad2c667a9ae28018b4a2d6870e2805d34718ea35f2d3e3c0006ce7b",
+  "reviewerRun": "release-0326-i3r1-plan-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: the three grids take minmax(0,1fr) columns and their items wrap (rail.css .rail-pick, launch.css .ag-machine, .ag-machine-turns); the screens stand feeds terminal.launch and agents.machineSessions (stand/fixtures.ts); layout-stress «125 grid classes, none grows past its column» and screens-stand «1528 checks pass», both red before; run-browser-suites.sh 26 of 26 locally"
+      ]
+    },
+    {
+      "id": "PL-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: run one's rulings are CO-604 (23) to (30); run two's are written in the ledger and added to CO-604 on main after the tag"
+      ]
+    },
+    {
+      "id": "PL-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: CO-603 (10), owner this repository's release session; spec §2a names it"
+      ]
+    },
+    {
+      "id": "PL-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: spec §1 row 2 and §2 say live processes are counted beside Switchboard's groups, with Switchboard's reply"
+      ]
+    },
+    {
+      "id": "PL-27",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (30); this release's rows are read by hand at the release commit"
+      ]
+    }
+  ]
+}

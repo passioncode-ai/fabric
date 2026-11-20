@@ -6,14 +6,14 @@ import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipc
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, realpathSync, statfsSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, statfsSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
 import { createBoardReads } from './boardReads.ts'
 import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitReleaseCommand } from './commandIngressAdapters.ts'
 import { createHash, randomUUID } from 'node:crypto'
-import { execFileSync } from 'node:child_process'
+import { execFile, execFileSync } from 'node:child_process'
 import { dockerRuntimeFor } from './dockerLaunch'
 import { fixPath, halfUpDeps, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStackKeepingData, stopStartingStack } from './env'
 import { resolveHealingHalfUp } from './stackHalfUp.ts'
@@ -22,7 +22,7 @@ import { createSharedReading } from '../shared/sharedReading'
 import { startBugCapture, type BugCapture } from './bugCapture'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
-import { launchOption, launchOptions, PtyManager, setFolderTrust, setPermissionPreference } from './pty'
+import { launchOption, launchOptions, PtyManager, setFolderTrust, setLaunchSink, setPermissionPreference } from './pty'
 import { trustFolderForClaude } from './claudeTrust.ts'
 import { classifyFailure } from '../shared/failure.ts'
 import { createPreparedLaunchInputs } from './preparedLaunchInput.ts'
@@ -48,7 +48,8 @@ import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
 import { startEstateIndex, type Estate } from './estateWiring.ts'
 import { knowledgeVoiceTools, type KnowledgeOperations } from './knowledgeTools.ts'
-import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
+import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
+import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
 import { CEO_PROJECT_NAME, ceoLaunchExtras, type CeoAttachment } from '../shared/ceoAgent.ts'
@@ -203,7 +204,7 @@ import { toOperatorMarks } from './boardDispatchRun.ts'
 import { suspendedSince } from '../shared/boardDispatch.ts'
 import { createIpcOutcomeLog } from './ipcOutcome.ts'
 import { agentCounts, createAnalytics, installationPath, type Analytics } from './analytics'
-import { homedir } from 'node:os'
+import { homedir, hostname } from 'node:os'
 import { decideProposal } from './commands/proposalCommands.ts'
 import { withDeliveryHeader } from '../shared/deliveryState.ts'
 import { continuationText, routeContinuation, type ContinuationState } from '../shared/continuation.ts'
@@ -455,6 +456,13 @@ import { createContinuationDelivery, type ContinuationResult } from './continuat
 import { createPastContext } from './pastContext.ts'
 import { launchPlace } from '../shared/launchPlace.ts'
 import { createConsoleOpen } from './consoleOpen.ts'
+import { redact } from '../shared/redact.ts'
+import { claudeSessionOf, createLaunchJournal, readGitBranch, type LaunchJournal } from './sessionLaunches.ts'
+import { withLaunchOrigin } from './launchOrigin.ts'
+import { claudeConfigDirs, defaultAlive, liveClaudeSessions } from './diskSessions.ts'
+import { continueOrigin, createMachineSessions, linkOriginOf, readHead, transcriptCwd } from './machineSessions.ts'
+import { gitWorktrees, lastSessionOf, projectForFolder } from './projectResume.ts'
+import { findTranscript, defaultTranscriptRoots, parseMachineRows, redactedTurns } from './ceoTools.ts'
 import { createTaskStart } from './taskStart.ts'
 
 // ADR-0195 W2b: this process's data folder for every local store (settings, kept-out agents, digest marks), named
@@ -492,6 +500,8 @@ let OPERATOR_ACTOR: { kind: 'person'; id: string }
 /** ADR-0195 W2a.2: the board's memory both the window's doors and the board's own code use (`boardState.ts`). */
 const boardState = createBoardState()
 const markPersonEnded = boardState.personEnded.mark
+/** The launch journal on disk (`sessionLaunches.ts`, board request eef5abeb); set once the data folder is known. */
+let launchJournal: LaunchJournal | null = null
 const markBindingPersonEnded = boardState.personEnded.markBinding
 const markGrantPersonEnded = boardState.personEnded.markGrant
 let admission: ReturnType<typeof createProjectAdmission>
@@ -542,6 +552,8 @@ let estate: Estate | null = null
 let ceoWindow: BrowserWindow | null = null
 /** A draft the popup takes when it opens (Help's example, the home composer's words not yet sent). */
 let ceoDraft: string | null = null
+/** The home card asked for a call; the popup starts it and takes the ask once (SCN-184). */
+let ceoCallWanted = false
 const ceoVault = createObservatoryVault()
 
 // #region fabric-link-handler — docs: docs/ux/scenarios.md#scn-142-open-fabric-from-a-products-button-in-that-products-project-and-go-on-in-a-coding-agent
@@ -578,20 +590,29 @@ function linksStartupDone(): void {
   linkStartupDone = true
 }
 async function openLink(url: string, dropped = 0): Promise<void> {
+  // DEC-0189 SL-4: a session id is a console's own, or the runner session one of Fabric's running consoles runs.
+  const running = ptys ? ptys.list().filter((s) => s.running).map((s) => s.sessionId) : []
+  const runnerToConsole = new Map<string, string>()
+  try {
+    const live = new Set(running)
+    for (const l of (await launchJournal?.read()) ?? []) if (l.runnerSessionId && live.has(l.sessionId)) runnerToConsole.set(l.runnerSessionId.toLowerCase(), l.sessionId)
+  } catch (e) { ops.failed('link.open', e, { note: 'the launch journal was not read: a runner session id opens Агенты' }) }
   // A failed read is `link-unreadable`, said in the window — never routed against an empty list (ER-1, UX-14).
   const result = await resolveLink(url, {
+    consoleOf: (id) => running.find((s) => s.toLowerCase() === id) ?? runnerToConsole.get(id) ?? null,
     projects: async () => {
       const { data, error } = await store.select('projects', 'id,name').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
       if (error) throw new Error(`the projects could not be read: ${error.message}`)
       return (data ?? []) as Array<{ id: string; name: string }>
     },
     remotes: async (projectId) => (await projectReposWithRemotes(projectId)).map((r) => r.remote),
+    folders: async (projectId) => (await projectReposWithRemotes(projectId)).map((r) => r.path),
     services: () => (linkRegistry?.snapshot().entries ?? [])
       .filter((e) => e.kind === 'service')
       .map((e) => ({ key: e.key, id: e.id, repository: e.repository })),
     failed: (e) => ops.failed('link.open', e, { note: 'the link was answered with link-unreadable' })
   })
-  ops.record({ op: 'link.open', outcome: 'ok', level: result.notice === 'link-refused' || result.notice === 'link-unreadable' ? 'warn' : 'info', detail: { notice: result.notice }, ctx: { correlationId: ops.correlate() } })
+  ops.record({ op: 'link.open', outcome: 'ok', level: result.notice === 'link-refused' || result.notice === 'link-unreadable' ? 'warn' : 'info', detail: { notice: result.notice, ...(result.from ? { from: result.from } : {}) }, ctx: { correlationId: ops.correlate() } })
   // The window closed while the link was read: it waits for the one acceptLink opens.
   if (!mainWindow) { acceptLink(url); return }
   if (mainWindow.isMinimized()) mainWindow.restore()
@@ -625,7 +646,8 @@ const quit = createQuitCoordinator({
   starting: () => !windowReady,
   // Quit requests scoped termination. A deadline leaves unresolved ownership
   // durable; closing the host does not manufacture a successful Stop receipt.
-  shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
+  // The launch journal's last ends are written before the surface goes (`sessionLaunches.ts#flush`).
+  shutdown: () => stopRuntime.shutdown().then(() => launchJournal?.flush()).then(() => surface?.stop()),
   // ADR-0192: while the board's service is on, the person's quit hides Fabric and the board keeps running; logout,
   // restart and shutdown (powerMonitor's 'shutdown', posted for each on macOS), a signal, «Перезапустить Fabric» and the
   // Quit of a failed start still end it (the 0.3.18 review, iteration 1: PL-3, PL-4, PL-5, ER-2, ER-4, UX-3).
@@ -1390,6 +1412,22 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   setFolderTrust((folder) => trustFolderForClaude(folder), () => trustsAgentFolders(readSettings(), process.env))
   // One permission choice for every agent this machine starts (CO-305, ADR-0168), read at each launch.
   setPermissionPreference(() => readSettings().agentPermissions)
+  // #region launch-journal-wiring — docs: docs/evidence/specs/2026-11-19-session-launch-journal.md#4-on-disk
+  launchJournal = createLaunchJournal({
+    dir: path.join(app.getPath('userData'), 'launches'),
+    machine: hostname(),
+    appVersion: app.getVersion(),
+    appPid: process.pid,
+    redact: (text) => redact(text).text,
+    readBranch: readGitBranch,
+    readRunnerSession: claudeSessionOf,
+    quitting: () => quit.quitting,
+    failed: (kind, e) => ops.failed(`launches.${kind}`, e, { note: 'the launch journal missed a line; the console runs on' })
+  })
+  setLaunchSink(launchJournal)
+  void launchJournal.prune().then((removed) => { if (removed.length) ops.record({ op: 'launches.pruned', outcome: 'ok', level: 'info', detail: { files: removed.length }, ctx: { correlationId: ops.correlate() } }) })
+  quit.onQuit(() => { launchJournal?.markQuitting(); launchJournal?.dispose() })
+  // #endregion launch-journal-wiring
   ptys = new PtyManager(journal, ACTIVE_ESTATE, {
     onData: (sessionId, data, written) => { broadcast(IPC.terminalData, sessionId, data, written); ceoAgent?.onOutput(sessionId, data) },
     onExit: async (sessionId, exitCode) => {
@@ -1691,6 +1729,13 @@ async function readAdmissionProject(id: string): Promise<ProjectRow | null> {
 
 async function readRepoRemovals() {
   return projectReads.listRemovals()
+}
+
+/** The active projects, as the rail lists them. */
+async function activeProjectsRead(): Promise<ProjectRow[]> {
+  const { data, error } = await store.select('projects', '*').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
+  if (error) throw new Error(`projects list failed: ${error.message}`)
+  return (data ?? []) as ProjectRow[]
 }
 
 async function readProject(id: string): Promise<ProjectRow> {
@@ -3438,9 +3483,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         // instead of reading the journal back (release review iteration 2, memory finding 7).
         launchTriggerBySession.set(sessionId, input.trigger)
         try {
-          const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
+          // The launch journal's origin: the person's start of a task, or a routine's, a chain's, an answer's.
+          const origin = { by: input.trigger === 'operator' ? 'person' as const : input.trigger, via: 'task' as const, ...(input.taskId ? { taskId: input.taskId } : {}) }
+          const session = await withLaunchOrigin(origin, () => ptys.open(receipt.project_id!, project.repo_path!, optionId,
             input.taskId, input.permissionMode ?? null, agent, sessionId,
-            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared, unit)
+            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared, unit))
           syncPower()
           return session
         } finally {
@@ -3872,7 +3919,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         runnerAvailable: async (id) => (UUID.test(id) ? true : (await launchOption(id))?.available === true),
         stop: async (sessionId) => {
           markPersonEnded(sessionId) // PL-1 run two: History's act stops it for the person
-          const r = await stopRuntime.stop(sessionId, 'operator_stop')
+          ceoAgent?.personStopping(sessionId)
+          let r: Awaited<ReturnType<typeof stopRuntime.stop>>
+          try { r = await stopRuntime.stop(sessionId, 'operator_stop') } finally { ceoAgent?.personStopEnded(sessionId) }
           return { sessionId, state: r.state, reasonCode: r.reasonCode, ...(r.taskId ? { taskId: r.taskId } : {}) }
         },
         snapshot: (id) => { const s = ptys.get(id); return s?.running ? consoleOf(s) : null },
@@ -3886,7 +3935,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           const project = await readProject(a.project_id)
           const place = launchPlace(project.repo_path)
           const cwd = a.cwd && existsSync(a.cwd) ? a.cwd : place.place === 'repository' ? place.path : app.getPath('home')
-          const opened = await ptys.open(a.project_id, cwd, a.option_id, null, a.permission_mode)
+          const opened = await withLaunchOrigin({ by: 'person', via: 'restart' },
+            () => ptys.open(a.project_id, cwd, a.option_id, null, a.permission_mode))
           syncPower()
           return { sessionId: opened.sessionId, label: labelOf(a.option_id) }
         }
@@ -4723,6 +4773,126 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // CO-457: read-only, Switchboard's sessions and limit stops merged as Fabric Dashboards merges them.
   handle(IPC.agentsSwitchboardSessions, (): Promise<Returns<FabricApi['agents']['switchboardSessions']>> =>
     readMachineSwitchboardSessions(sessionEnvironment(process.env), Date.now()))
+  // #region resume-in-fabric — docs: docs/ux/scenarios.md#scn-166-see-every-agent-and-open-its-console-in-one-press
+  // The owner, 2026-11-19 (eef5abeb, and «либо новую, либо последнюю»): a Claude Code session, wherever it was started,
+  // continued in a Fabric console with `claude --resume <id>` in its folder and the Claude home it ran in.
+  const runningClaudeIds = async (): Promise<Set<string>> => {
+    const ids = new Set((await liveClaudeSessions(await claudeConfigDirs())).map((s) => s.sessionId))
+    const live = new Set(ptys.list().filter((s) => s.running).map((s) => s.sessionId))
+    for (const l of (await launchJournal?.read()) ?? []) if (l.runnerSessionId && live.has(l.sessionId)) ids.add(l.runnerSessionId)
+    return ids
+  }
+  const resumeInFabric = async (projectId: string, cwd: string, claudeId: string, config: string, reason: string, via: 'screen' | 'link' = 'screen'): Promise<{ sessionId: string }> => {
+    const sessionId = randomUUID()
+    const own = path.join(homedir(), '.claude')
+    ptys.prepareLaunch(sessionId, { args: ['--resume', claudeId], env: config === own ? {} : { CLAUDE_CONFIG_DIR: config } })
+    const opened = await withLaunchOrigin({ by: 'person', via, reason }, () => ptys.open(projectId, cwd, 'claude-code', null, null, null, sessionId))
+    syncPower()
+    return { sessionId: opened.sessionId }
+  }
+  handle(IPC.projectsResumeLast, async (_e, projectId: unknown): Promise<Returns<FabricApi['projects']['resumeLast']>> => {
+    if (typeof projectId !== 'string' || !UUID.test(projectId)) throw new Error('Invalid project identity')
+    const project = await readProject(projectId)
+    if (!project.repo_path) return { ok: false, why: 'no-folder' }
+    const folders = [...await gitWorktrees(project.repo_path), ...((await launchJournal?.read({ projectId })) ?? []).map((l) => l.cwd)]
+    const last = await lastSessionOf(folders, await claudeConfigDirs(), await runningClaudeIds())
+    if (!last) return { ok: false, why: 'none' }
+    try {
+      const opened = await resumeInFabric(projectId, last.cwd, last.sessionId, last.config, 'Продолжить последнюю сессию проекта')
+      ops.record({ op: 'projects.resume-last', outcome: 'ok', level: 'info', detail: { project_id: projectId, runner_session_id: last.sessionId, console: opened.sessionId }, ctx: { correlationId: ops.correlate() } })
+      return { ok: true, sessionId: opened.sessionId }
+    } catch (e) {
+      ops.failed('projects.resume-last', e, { project_id: projectId })
+      return { ok: false, why: 'failed', says: e instanceof Error ? e.message.slice(0, 300) : String(e) }
+    }
+  })
+  // The operator, 2026-11-20: Агенты must show the sessions Fabric Dashboards shows. Switchboard's rows: one read in
+  // flight at a time, fresh for 20 s counted from when it settled; a listing never waits for a read in flight past
+  // ROWS_WAIT_MS and takes the last settled rows instead (0.3.26 review, iteration 1, ER-5, DA-6, UX-11).
+  const ROWS_FRESH_MS = 20_000, ROWS_WAIT_MS = 3_000
+  let sbSettled: { at: number; rows: ReturnType<typeof parseMachineRows> } | null = null
+  let sbInFlight: Promise<ReturnType<typeof parseMachineRows>> | null = null
+  // ER-30 (iteration 3, run four): an act starts a new generation; a read begun before it is never fresh after it, and a
+  // listing after the act does not join it.
+  let sbGen = 0
+  let sbInFlightGen = -1
+  const switchboardRows = async (): Promise<ReturnType<typeof parseMachineRows>> => {
+    if (sbSettled && Date.now() - sbSettled.at < ROWS_FRESH_MS) return sbSettled.rows
+    if (!sbInFlight || sbInFlightGen !== sbGen) {
+      const gen = sbGen
+      const read: Promise<ReturnType<typeof parseMachineRows>> = runMachineSwitchboard(sessionEnvironment(process.env), ['--json', 'sessions', '--rows'])
+        .then((r) => (r && r.code === 0 ? parseMachineRows(r.stdout) : null), () => null)
+        .then((rows) => { sbSettled = { at: gen === sbGen ? Date.now() : 0, rows: rows ?? sbSettled?.rows ?? null }; return rows })
+        .finally(() => { if (sbInFlight === read) sbInFlight = null })
+      sbInFlight = read
+      sbInFlightGen = gen
+    }
+    const waited = await Promise.race([sbInFlight, new Promise<'late'>((r) => setTimeout(() => r('late'), ROWS_WAIT_MS).unref())])
+    return waited === 'late' ? (sbSettled?.rows ?? null) : waited
+  }
+  const processParents = (): Promise<Map<number, number> | null> => new Promise((resolve) => {
+    execFile('/bin/ps', ['-A', '-o', 'pid=,ppid='], { timeout: 3_000, maxBuffer: 4 * 1024 * 1024 }, (err, out) => {
+      if (err) { resolve(null); return }
+      const map = new Map<number, number>()
+      for (const line of out.split('\n')) { const [pid, ppid] = line.trim().split(/\s+/).map(Number); if (pid > 1 && ppid >= 0) map.set(pid, ppid) }
+      resolve(map)
+    })
+  })
+  const machineSessions = createMachineSessions({
+    live: async () => liveClaudeSessions(await claudeConfigDirs()),
+    switchboardRows,
+    fabricRunnerIds: async () => {
+      const live = new Set(ptys.list().filter((s) => s.running).map((s) => s.sessionId))
+      return new Set(((await launchJournal?.read()) ?? []).filter((l) => l.runnerSessionId && live.has(l.sessionId)).map((l) => l.runnerSessionId!))
+    },
+    fabricPids: async () => ptys.runningPids(),
+    parents: processParents,
+    alive: defaultAlive,
+    signal: (pid) => { process.kill(pid, 'SIGTERM') },
+    stillNames: async (s) => (await liveClaudeSessions([s.config])).some((x) => x.pid === s.pid && x.sessionId === s.sessionId),
+    transcript: (id) => findTranscript(defaultTranscriptRoots(), id),
+    // DA-1 (0.3.26 review, iteration 1): another session's words are redacted before they reach the screen, as the CEO's read does.
+    turns: redactedTurns,
+    projectFor: async (s) => (await projectForFolder(s.cwd, await activeProjectsRead()))?.id ?? null,
+    // DEC-0189 SL-5: a session that no longer runs is continued from its transcript: its folder is the transcript's
+    // own `cwd`, its Claude home the folder above its projects folder.
+    resumeEnded: async (id, link) => {
+      // UX-21: running and not «outside» means a Fabric console (or one under it) holds it: said as such, nothing stopped.
+      if ((await runningClaudeIds()).has(id)) return { ok: false, why: 'not-outside' }
+      const file = findTranscript(defaultTranscriptRoots(), id)
+      if (!file) return { ok: false, why: 'gone' }
+      const cwd = transcriptCwd(await readHead(file, 256 * 1024))
+      // DA-18: a history whose first record is too long to read its folder is not «gone».
+      if (!cwd) return { ok: false, why: 'unreadable' }
+      const project = await projectForFolder(cwd, await activeProjectsRead())
+      if (!project) return { ok: false, why: 'no-project' }
+      // DA-20: a link is said by the link itself, `from` or not; a press on a screen is a press on a screen.
+      const origin = continueOrigin('resumed', link)
+      const opened = await resumeInFabric(project.id, cwd, id, path.resolve(file, '..', '..', '..'), origin.reason, origin.via)
+      return { ok: true, sessionId: opened.sessionId }
+    },
+    continueInFabric: async (s, projectId, link) => {
+      const id = projectId ?? (await projectForFolder(s.cwd, await activeProjectsRead()))?.id
+      if (!id) throw new Error(`the folder ${s.cwd} is not in a Fabric project`)
+      const origin = continueOrigin('moved', link)
+      return resumeInFabric(id, s.cwd, s.sessionId, s.config, origin.reason, origin.via)
+    },
+    // DA-11: every outcome but ok is a failure in the operations log.
+    record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'ok' || detail.outcome === undefined ? 'ok' : 'failed', level: detail.outcome === 'ok' || detail.outcome === undefined ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  const sessionArg = (v: unknown): string => {
+    if (typeof v !== 'string' || !/^[0-9a-f-]{36}$/i.test(v)) throw new Error('Invalid session identity')
+    return v
+  }
+  handle(IPC.agentsMachineSessions, (): Promise<Returns<FabricApi['agents']['machineSessions']>> => machineSessions.list())
+  handle(IPC.agentsMachineRead, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineRead']>> => machineSessions.read(sessionArg(id)))
+  // UX-37 (iteration 3, run three): an act changes what Switchboard sees, so the next listing asks it again instead of the
+  // rows read before the act (the old rows stay only as the fallback of a read that does not answer in time).
+  const rowsChanged = <T,>(p: Promise<T>): Promise<T> => p.finally(() => { sbGen++; if (sbSettled) sbSettled = { ...sbSettled, at: 0 } })
+  handle(IPC.agentsMachineClose, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineClose']>> => rowsChanged(machineSessions.close(sessionArg(id))))
+  handle(IPC.agentsMachineContinue, (_e, id: unknown, link: unknown): Promise<Returns<FabricApi['agents']['machineContinue']>> =>
+    rowsChanged(machineSessions.continueInFabric(sessionArg(id), linkOriginOf(link))))
+  // #endregion resume-in-fabric
   // CO-407: Claude Code's cross-session messages, only by the person's switch; and the launcher doctor, only on asking.
   const inboundAnswer = (r: ReturnType<typeof readInbound>) =>
     'unreadable' in r ? { unreadable: true as const } : { accepting: r.accepting, value: r.value, ...(r.notSaved ? { notSaved: r.notSaved } : {}) }
@@ -4965,10 +5135,28 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(
     IPC.terminalOpen,
     (_e, projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null): Promise<Returns<FabricApi['terminal']['open']>> =>
-      openConsole(projectId, optionId, firstInstruction, permissionMode)
+      withLaunchOrigin({ by: 'person', via: 'screen' }, () => openConsole(projectId, optionId, firstInstruction, permissionMode))
   )
 
   handle(IPC.terminalList, (_e, projectId?: string): Returns<FabricApi['terminal']['list']> => ptys.list(projectId))
+  // «Недавние» in the rail: the newest ended launch of each project, not running now, eight at most.
+  handle(IPC.terminalRecent, async (): Promise<Returns<FabricApi['terminal']['recent']>> => {
+    const running = new Set(ptys.list().filter((s) => s.running).map((s) => s.projectId))
+    const names = new Map((await activeProjectsRead()).map((p) => [p.id, p.name]))
+    const out: Returns<FabricApi['terminal']['recent']> = []
+    for (const l of (await launchJournal?.read()) ?? []) {
+      if (l.end === null && ptys.get(l.sessionId)?.running) continue
+      if (running.has(l.projectId) || !names.has(l.projectId) || out.some((o) => o.projectId === l.projectId)) continue
+      out.push({ projectId: l.projectId, projectName: names.get(l.projectId) ?? null, runner: l.optionId, branch: l.branch, endedAt: l.endedAt, startedAt: l.startedAt })
+      if (out.length >= 8) break
+    }
+    return out
+  })
+  // Who started a console and from where (the launch journal, board request eef5abeb): read for the agent's page.
+  handle(IPC.terminalLaunch, async (_e, sessionId: unknown): Promise<Returns<FabricApi['terminal']['launch']>> => {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 128) throw new Error('Invalid session identity')
+    return (await launchJournal?.read({ sessionId }))?.find((l) => l.sessionId === sessionId) ?? null
+  })
   handle(
     IPC.terminalScrollback,
     (_e, sessionId: string): Returns<FabricApi['terminal']['scrollback']> => ptys.scrollbackOf(sessionId)
@@ -5129,7 +5317,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const stood = consoleOf(ptys.get(sessionId))
     // PL-1: marked before the stop, so the end it causes releases the session's claims as the person's (`onSessionEnded`).
     markPersonEnded(sessionId)
-    const result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true })
+    // The CEO's console stopped from its own window stays stopped (the owner, 2026-11-19), never read as an early end.
+    ceoAgent?.personStopping(sessionId)
+    void launchJournal?.stopAsked(sessionId, 'person')
+    // ER-6 (0.3.25): the CEO's hold is settled however the stop ends.
+    let result: Awaited<ReturnType<typeof stopRuntime.stop>>
+    try { result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true }) } finally { ceoAgent?.personStopEnded(sessionId) }
     if (stood) {
       const outcome = sessionStopOutcome(stood, result, await projectNameOf(stood.projectId))
       if (outcome) await acts.note(outcome)
@@ -5251,7 +5444,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return { id: row.id, name: row.name, repo_path: row.repo_path }
     },
     openConsole: (projectId, runner, task) => openConsole(projectId, runner, task, null),
-    stop: async (id, force) => { markPersonEnded(id); return stopRuntime.stop(id, 'operator_stop', { force }) },
+    stop: async (id, force) => { markPersonEnded(id); void launchJournal?.stopAsked(id, 'ceo'); return stopRuntime.stop(id, 'operator_stop', { force }) },
     openWindow: (id) => openSessionWindow(id),
     switchboard: (args) => runMachineSwitchboard(sessionEnvironment(process.env), args),
     signal: (pid) => { process.kill(pid, 'SIGTERM') },
@@ -5267,7 +5460,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const sessionId = randomUUID()
       ptys.prepareLaunch(sessionId, { args: runner === 'codex' ? ['resume', runtimeSessionId] : ['--resume', runtimeSessionId], env })
       return ptys.open(projectId, cwd ?? project.repo_path ?? homedir(), runner, null, null, null, sessionId)
-    }
+    },
+    launches: (q) => launchJournal ? launchJournal.read(q) : Promise.resolve([]),
+    diskSessions: async () => liveClaudeSessions(await claudeConfigDirs())
   })
   // PM chain (task ff3fe9c3): once a minute, a board request a PM agent gave the CEO (capability `ceo.task`) is typed
   // into its running console, each once.
@@ -5287,14 +5482,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       ? attachments.filter((a): a is CeoAttachment => !!a && typeof a === 'object' && typeof (a as CeoAttachment).name === 'string' && typeof (a as CeoAttachment).data === 'string')
       : []))
   handle(IPC.ceoAgentRestart, (): Promise<Returns<FabricApi['ceoAgent']['restart']>> => agent.restart('person'))
-  handle(IPC.ceoAgentOpen, (_e, draft: unknown): Returns<FabricApi['ceoAgent']['open']> => {
+  handle(IPC.ceoAgentStop, (): Promise<Returns<FabricApi['ceoAgent']['stop']>> => agent.stop())
+  handle(IPC.ceoAgentOpen, (_e, draft: unknown, options: unknown): Returns<FabricApi['ceoAgent']['open']> => {
     ceoDraft = typeof draft === 'string' && draft.trim() ? draft.slice(0, 8000) : ceoDraft
+    // The home card's «Позвонить» (SCN-184): the call runs in the popup, beside the chat; the popup takes the ask once.
+    if (options && typeof options === 'object' && (options as { call?: unknown }).call === true) ceoCallWanted = true
     openCeoWindow()
-    if (ceoDraft) broadcast(IPC.ceoAgentDraft)
+    if (ceoDraft || ceoCallWanted) broadcast(IPC.ceoAgentDraft)
     // The console starts with the window: by the time the person has typed, it is up.
     void agent.ensure()
   })
   handle(IPC.ceoAgentTakeDraft, (): Returns<FabricApi['ceoAgent']['takeDraft']> => { const d = ceoDraft; ceoDraft = null; return d })
+  handle(IPC.ceoAgentTakeCall, (): Returns<FabricApi['ceoAgent']['takeCall']> => { const c = ceoCallWanted; ceoCallWanted = false; return c })
   handle(IPC.ceoAgentVoice, async (): Promise<Returns<FabricApi['ceoAgent']['voice']>> => {
     const token = await mintVoiceToken({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch })
     ops.record({ op: 'ceo.voice.token', outcome: token.ok ? 'ok' : 'failed', level: token.ok ? 'info' : 'warn', detail: token.ok ? {} : { reason: token.reason, detail: token.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
@@ -5302,11 +5501,32 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (!token.ok) return { ok: false, reason: token.reason }
     const locale = readSettings().locale
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
-      instructions: voiceInstructions(locale), voice: 'eve', tools: [...ceoVoiceTools(), ...knowledgeVoiceTools(), ASK_CEO_TOOL] }
+      instructions: voiceInstructions(locale), voice: xaiVoiceOf(persona().persona), tools: [...ceoVoiceTools(), ...knowledgeVoiceTools(), ASK_CEO_TOOL] }
   })
   // The person's own xAI key (the operator, 2026-11-19): set in the CEO window, or dropped by a coding agent.
   const voiceKeys = createVoiceKeyStore(path.join(app.getPath('userData'), 'ceo-voice'), safeStorage) // outside the CEO's own folder: its runner never reads the key (0.3.24 review iteration 2, DA-11)
   handle(IPC.ceoAgentVoiceKey, (): Returns<FabricApi['ceoAgent']['voiceKey']> => ({ own: voiceKeys.source() === 'own' }))
+  // Whether a call can be made at all (onboarding's voice step, the owner 2026-11-19): the person's key, or Observatory's
+  // slot read once and dropped; the value never leaves this handler.
+  handle(IPC.ceoAgentVoiceReady, async (): Promise<Returns<FabricApi['ceoAgent']['voiceReady']>> => {
+    if (voiceKeys.source() === 'own') return { ready: true }
+    try { return { ready: (await ceoVault.read(XAI_KEY_SLOT)).ok } } catch (e) { ops.failed('ceo.voice.ready', e); return { ready: false } }
+  })
+  // One sample of a voice, kept per voice and language in the voice's own folder (never the CEO's).
+  const samples = path.join(app.getPath('userData'), 'ceo-voice', 'samples')
+  handle(IPC.ceoAgentVoiceSample, async (_e, voice: unknown): Promise<Returns<FabricApi['ceoAgent']['voiceSample']>> => {
+    const r = await voiceSample({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch, cache: {
+      read: (name) => { try { return readFileSync(path.join(samples, name)) } catch { return null /* not kept yet: the sample is fetched */ } },
+      // Owner-only folders (DA-3), and a whole file or none (DA-4): written beside, then renamed into place.
+      write: (name, bytes) => {
+        mkdirSync(samples, { recursive: true, mode: 0o700 })
+        const tmp = path.join(samples, `.${name}.${randomUUID()}.tmp`)
+        try { writeFileSync(tmp, bytes, { mode: 0o600 }); renameSync(tmp, path.join(samples, name)) } finally { rmSync(tmp, { force: true }) }
+      }
+    } }, typeof voice === 'string' ? voice : '', readSettings().locale)
+    ops.record({ op: 'ceo.voice.sample', outcome: r.ok ? 'ok' : 'failed', level: r.ok ? 'info' : 'warn', detail: r.ok ? {} : { reason: r.reason, detail: r.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
+    return r.ok ? r : { ok: false, reason: r.reason }
+  })
   handle(IPC.ceoAgentVoiceKeySet, (_e, value: unknown): Returns<FabricApi['ceoAgent']['setVoiceKey']> => {
     const r = voiceKeys.set(typeof value === 'string' ? value : '')
     ops.record({ op: 'ceo.voice.key-set', outcome: r.ok ? 'ok' : 'failed', level: 'info', detail: r.ok ? {} : { reason: r.reason }, ctx: { correlationId: ops.correlate() } })
@@ -5326,7 +5546,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
     if (tool.startsWith('knowledge_') && knowledgeOperations) return knowledgeOperations.run(tool.slice('knowledge_'.length), args)
     if (!tool.startsWith('session_')) return { ok: false, reason: `unknown tool ${tool}` }
-    return ceoOperations!.run(tool.slice('session_'.length), args)
+    return ceoOperations!.run(tool.slice('session_'.length), args, 'voice')
   })
   // #endregion ceo-agent-wiring
 }
@@ -5351,7 +5571,8 @@ function openCeoWindow(): void {
     ...(bounds ? { x: Math.max(bounds.x, bounds.x + bounds.width - width - 24), y: Math.max(bounds.y, bounds.y + bounds.height - height - 24) } : {}),
     ...(parent ? { parent } : {}),
     title: 'CEO',
-    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('ceo')] }
+    // A call the home card started plays its first answer before any click in this window (SCN-184).
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('ceo')], autoplayPolicy: 'no-user-gesture-required' }
   })
   ceoWindow = w
   const contentsId = w.webContents.id
@@ -5362,6 +5583,8 @@ function openCeoWindow(): void {
     windowKinds.forget(contentsId)
     revokeWindowRoots(contentsId)
     if (ceoWindow === w) ceoWindow = null
+    // PL-7 (0.3.25): a call asked for a window that closed is not started by the next opening.
+    ceoCallWanted = false
   })
 }
 // #endregion ceo-window

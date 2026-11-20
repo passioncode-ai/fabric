@@ -1,0 +1,21 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "5d549a8dc93396a096fef8998e37d50fe3aa0a2a",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-5d549a8d/2026-11-20-data.md",
+  "reportSha256": "67186e489f019956c4dff88c7a9e2b373db84d4f761600e8d518e35865e0d11f",
+  "reviewerRun": "release-0326-i3r2-data-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: as ER-25"
+      ]
+    }
+  ]
+}

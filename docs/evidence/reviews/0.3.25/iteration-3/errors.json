@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "6da674bdc092ed36a34521198dd0f5d472d0d531",
+  "report": "docs/evidence/reviews/0.3.25/iteration-3/2026-11-19-errors.md",
+  "reportSha256": "8a612396d9e2fa121370b5860925f29c88369e1a5dcf0e3434e494b5cbb59837",
+  "reviewerRun": "release-0325-i3-errors-openrouter-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 6da674bd: the console a door stopped while opening ends that stop (ceoAgent.ts onExit, stopDoorId); test ER-10 (0.3.25), red before the fix"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 6da674bd: stop doors counted, only the last settles a door's hold (ceoAgent.ts doors, doorHold); test ER-11 (0.3.25), red before the fix"
+      ]
+    },
+    {
+      "id": "ER-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 6da674bd: an unplayable event is dropped (voiceCall.ts socket.onmessage catch)"
+      ]
+    },
+    {
+      "id": "ER-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 6da674bd: a refused key save says it (CeoCall.tsx VoiceKeyForm save)"
+      ]
+    },
+    {
+      "id": "ER-14",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 (its row gains this item after the release, on main): the door counter across a restart"
+      ]
+    },
+    {
+      "id": "ER-15",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 (its row gains this item after the release, on main): the sample body and vault read inside the worded answer"
+      ]
+    },
+    {
+      "id": "ER-16",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 (its row gains this item after the release, on main): the person-stop marker ended by identity"
+      ]
+    }
+  ]
+}

@@ -241,6 +241,9 @@ step "pure tests — no database"
 # Named one by one rather than by a wildcard: a test that quietly starts needing
 # the stack must FAIL here rather than be silently promoted to the full tier.
 pnpm --filter @fabric/desktop exec vitest run
+# The 0.3.26 review, iteration 1, ER-1: a merge left ceo-agent.test.mjs unparsable and no fast step noticed, so every
+# node test file must at least parse here, whichever tier runs it.
+for f in apps/desktop/test/*.test.mjs; do node --check "$f"; done
 node apps/desktop/test/app-icon.test.mjs
 # ADR-0100 D5: the icon PNG is the render of fabric-icon.svg, never a hand edit.
 node scripts/build-app-icon.mjs --check
@@ -437,7 +440,7 @@ node --experimental-strip-types apps/desktop/test/hub-call-i3.test.mjs
 node --experimental-strip-types --test-force-exit apps/desktop/test/hub-surface.test.mjs
 # 2026-11-16 (the quality waves): these were written and never run by any tier. A test file no tier names is now a
 # failure (scripts/check-test-chains.mjs, below); one that is a manual probe says so in its first lines.
-for t in act-session-words board-reads board-wall-reads bug-capture bug-store ceo-conversation-host-tls console-open task-start cross-project-assign docker-runtime-words effect-tools process-boundary-native project-tools task-tools provider-capability-upgrade question-tools relayed-access-tools relayed-close resumed-claims switchboard-sessions; do
+for t in act-session-words board-reads board-wall-reads bug-capture bug-store ceo-conversation-host-tls console-open task-start cross-project-assign docker-runtime-words effect-tools process-boundary-native project-tools task-tools provider-capability-upgrade question-tools relayed-access-tools relayed-close resumed-claims switchboard-sessions ceo-agent session-resume session-launches; do
   node --experimental-strip-types --test "apps/desktop/test/$t.test.mjs"
 done
 node scripts/check-test-chains.mjs

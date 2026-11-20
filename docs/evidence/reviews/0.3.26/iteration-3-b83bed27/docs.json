@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "b83bed27ec8fe80ada818372290fd78d18b66a57",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-b83bed27/2026-11-20-docs.md",
+  "reportSha256": "3b085cfbbc7a6f65a2153897aff0623011e92d10abac1a5e5b9e93df19a47bca",
+  "reviewerRun": "release-0326-i3r3-docs-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: SCN-142 names the queued state and the CHANGELOG says a continue link waits behind another"
+      ]
+    },
+    {
+      "id": "DO-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: spec row 8 states the read-only exception and the ended case"
+      ]
+    },
+    {
+      "id": "DO-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: the header comment of ContinueSessionAsk.tsx says what the ask does now"
+      ]
+    }
+  ]
+}

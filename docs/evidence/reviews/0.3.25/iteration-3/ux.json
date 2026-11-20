@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "6da674bdc092ed36a34521198dd0f5d472d0d531",
+  "report": "docs/evidence/reviews/0.3.25/iteration-3/2026-11-19-ux.md",
+  "reportSha256": "aaf57674aa453ece652ba0f99221232b76f80468692e0a20491a4c4ddca840c1",
+  "reviewerRun": "release-0325-i3-ux-openrouter-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 6da674bd: the folded call row shows a chevron (styles.css .ceo-call-record summary::before)"
+      ]
+    },
+    {
+      "id": "UX-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 6da674bd: a self-ended call leaves no live block; its reason is in its record"
+      ]
+    },
+    {
+      "id": "UX-21",
+      "status": "ruled",
+      "evidence": [
+        "(a) fixed in 6da674bd: the unused hang-up class removed; (b, c) ruled: CO-601 item 7"
+      ]
+    },
+    {
+      "id": "UX-22",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 (its row gains this item after the release, on main): the reason of a self-ended call visible and announced, not only in its folded record; CHANGELOG worded 'the call's record says why' in the release commit"
+      ]
+    },
+    {
+      "id": "UX-23",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 (its row gains this item after the release, on main): the history row's three flex items"
+      ]
+    },
+    {
+      "id": "UX-24",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-601 (its row gains this item after the release, on main): the unused strings ceoAgent.restart and the hint wording"
+      ]
+    }
+  ]
+}

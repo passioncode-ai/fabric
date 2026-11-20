@@ -152,6 +152,31 @@ describe('a window onto one session', () => {
     expect(document.querySelector('.session-box')).toBeNull()
   })
 
+  // The operator, 2026-11-19: «кнопка зависает а надо быстро закрыл и все». A press whose stop saw the process go leaves
+  // at once (`shared/stop.ts#processGone`); a stop that could not see it stays, with «Проверить остановку».
+  it('«Завершить сессию» closes the console at once once its process is gone, and only then', async () => {
+    for (const [answer, closes] of [
+      [{ sessionId: 's1', state: 'outcome_unknown', reasonCode: 'provider_termination_unproved', managed: false }, true],
+      [{ sessionId: 's1', state: 'stopped', reasonCode: 'unmanaged_agent_observed', managed: false }, true],
+      [{ sessionId: 's1', state: 'outcome_unknown', reasonCode: 'termination_unproved', managed: false }, false]
+    ] as const) {
+      stub(async () => session())
+      const end = vi.fn(async () => answer)
+      const dismiss = vi.fn(async () => {})
+      Object.assign(window.fabric.terminal, { end, dismiss })
+      render(
+        <I18nProvider locale="en">
+          <SessionWindow sessionId="s1" onDetach={async () => {}} />
+        </I18nProvider>
+      )
+      const bar = await screen.findByRole('contentinfo', { name: en['session.bar'] })
+      await act(async () => { within(bar).getByRole('button', { name: en['session.stop.action'] }).click() })
+      await waitFor(() => expect(end).toHaveBeenCalledWith('s1', { force: false }))
+      await waitFor(() => expect(dismiss).toHaveBeenCalledTimes(closes ? 1 : 0))
+      cleanup()
+    }
+  })
+
   // The operator, 2026-11-17 («более качественные завершения»): once the session has ended, the bar offers what comes
   // next: a new session of the same coding agent in the same project, opened as its own console.
   it('an ended session offers a new one with the same agent and permissions, opened as its console', async () => {

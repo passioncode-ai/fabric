@@ -19,6 +19,10 @@ import { decodePty } from '../shared/pty-decode.ts'
 import { keyBytes, screenText, typedText, type NamedProject } from '../shared/ceoAgent.ts'
 import { catalogue as catalogueOf, holder, matchProject, type CatalogueRow, type ProjectMatch } from '../shared/estateSearch.ts'
 import { redact } from '../shared/redact.ts'
+import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
+import { chainOf, type Launch, type LaunchVia } from '../shared/sessionLaunches.ts'
+import { withLaunchOrigin } from './launchOrigin.ts'
+import { switchboardHomeRoots, type DiskSession } from './diskSessions.ts'
 
 const reason = z.string().trim().min(3).max(400).describe('Why: one sentence the owner reads in History.')
 const sessionId = z.string().trim().min(1).max(128).describe('A session id from fabric_ceo_sessions (a Fabric console\'s or a Switchboard session\'s).')
@@ -80,6 +84,17 @@ export const CEO_TOOLS = {
     title: 'Open a session for the owner',
     description: 'Open a Fabric console in a window of its own for the owner to watch or type in. Only Fabric consoles open here.',
     input: z.object({ session_id: sessionId, reason }).strict()
+  },
+  launches: {
+    mcp: 'fabric_ceo_launches',
+    title: 'Who started which session',
+    description: 'The launch history Fabric keeps on disk: every console it started, who asked (the owner on a screen, you, a routine, a chain, a board run, a restore), through what (console, voice), the reason given, the chain above it, the project, folder, branch, runner, the runner\'s own session id (what claude --resume takes) and how it ended (exited, stopped, crashed, app-quit; none when it runs or was cut by a restart). Use it for «who started this», to find what to continue after a restart, or to trace a chain; to see what runs now use fabric_ceo_sessions.',
+    input: z.object({
+      session_id: z.string().trim().min(1).max(128).optional().describe('Only this session: its Fabric id or its runner\'s own id.'),
+      project: z.string().trim().max(200).optional().describe('Only this project (name, id or folder).'),
+      open_only: z.boolean().optional().describe('Only launches with no end written: running now, or cut by a restart of Fabric or the computer.'),
+      limit: z.number().int().min(1).max(100).optional().describe('How many, newest first; 30 by default.')
+    }).strict()
   },
   projects: {
     mcp: 'fabric_ceo_projects',
@@ -145,6 +160,10 @@ export interface CeoOpsDeps {
   pastConsoles?(limit: number): Promise<RecalledSession[]>
   /** A Fabric console that continues a Claude Code or Codex session as itself (`claude --resume`, `codex resume`). */
   openResumed?(projectId: string, runner: 'claude-code' | 'codex', runtimeSessionId: string, cwd: string | null, env: Record<string, string>): Promise<TerminalSession>
+  /** The launch journal (`sessionLaunches.ts`), newest first; absent: no journal on this host. */
+  launches?(q: { sessionId?: string; projectId?: string }): Promise<Launch[]>
+  /** The Claude Code processes running on this computer, read from Claude Code's own files (`diskSessions.ts`). */
+  diskSessions?(): Promise<DiskSession[]>
 }
 
 /** A session that does not run in Fabric now, as the journal and the estate index know it. */
@@ -189,8 +208,9 @@ export function parseMachineRows(stdout: string): MachineRow[] | null {
   }
 }
 
-/** The last turns of a Claude Code transcript (JSONL): who spoke, their words, the tools they called. */
-export function transcriptTurns(jsonl: string, max = 12): Array<{ role: string; text: string }> {
+/** The last turns of a Claude Code transcript (JSONL): who spoke, their words, the tools they called. `clean` runs on
+ *  a turn's whole text before it is cut, so a cut never splits a credential the cleaning would have caught. */
+export function transcriptTurns(jsonl: string, max = 12, clean: (text: string) => string = (x) => x): Array<{ role: string; text: string }> {
   const turns: Array<{ role: string; text: string }> = []
   for (const line of jsonl.split('\n')) {
     if (!line.trim()) continue
@@ -208,12 +228,16 @@ export function transcriptTurns(jsonl: string, max = 12): Array<{ role: string; 
       }
     const text = parts.join(' ').replace(/\s+/g, ' ').trim()
     if (!text || text === '[tool result]') continue
-    turns.push({ role: String(row.type), text: text.slice(0, 700) })
+    turns.push({ role: String(row.type), text: clean(text).slice(0, 700) })
   }
   return turns.slice(-max)
 }
 
-function findTranscript(roots: readonly string[], id: string): string | null {
+/** Another session's turns as they may reach a screen or a model: redacted whole, then cut (0.3.26 review, iteration 2,
+ *  DA-13; DA-14 tests it with a key across the cut). */
+export const redactedTurns = (jsonl: string, max = 12): Array<{ role: string; text: string }> => transcriptTurns(jsonl, max, (x) => redact(x).text)
+
+export function findTranscript(roots: readonly string[], id: string): string | null {
   if (!/^[0-9a-f-]{36}$/.test(id)) return null
   const name = `${id}.jsonl`
   const tryProjects = (projects: string): string | null => {
@@ -228,7 +252,7 @@ function findTranscript(roots: readonly string[], id: string): string | null {
   for (const root of roots) {
     const direct = tryProjects(path.join(root, 'projects'))
     if (direct) return direct
-    // Switchboard's runtimes: <root>/<home>/projects, one level down.
+    // Switchboard's runtimes and homes: <root>/<home>/projects, one level down.
     let homes: string[]
     try { homes = readdirSync(root) } catch { continue /* a root not on this computer */ }
     for (const h of homes.slice(0, 200)) {
@@ -239,9 +263,9 @@ function findTranscript(roots: readonly string[], id: string): string | null {
   return null
 }
 
-export function defaultTranscriptRoots(): string[] {
-  const home = homedir()
-  return [path.join(home, '.claude'), path.join(home, 'Library/Application Support/ai.passioncode.fabric-switchboard/runtimes')]
+/** `~/.claude` and Switchboard's folders of Claude homes (`runtimes`, `homes`; `diskSessions.ts#switchboardHomeRoots`). */
+export function defaultTranscriptRoots(home = homedir()): string[] {
+  return [path.join(home, '.claude'), ...switchboardHomeRoots(home)]
 }
 
 export function createCeoOperations(deps: CeoOpsDeps) {
@@ -274,11 +298,18 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     // DA-6: what the CEO reads goes to its model (and to xAI during a call): Fabric's redaction first.
     return sb ? redact(screenText(decodePty(sb.text), lines)).text : ''
   }
-  const consoleRow = (s: TerminalSession, names: Map<string, string>): Answer => ({
-    session_id: s.sessionId, kind: 'fabric-console', project: names.get(s.projectId) ?? null, project_id: s.projectId,
-    folder: s.cwd, runner: s.optionId, state: s.state, running: s.running, started_at: s.startedAt,
-    last_activity_at: s.lastActivityAt, last_line: redact(s.tail).text.slice(0, 200), is_ceo: s.sessionId === deps.ceoSessionId()
-  })
+  const launchesOf = async (q: { sessionId?: string; projectId?: string } = {}): Promise<Map<string, Launch>> => {
+    try { return new Map((await deps.launches?.(q) ?? []).map((l) => [l.sessionId, l])) } catch { return new Map() /* the journal is a courtesy here: the consoles still answer */ }
+  }
+  const consoleRow = (s: TerminalSession, names: Map<string, string>, launches: Map<string, Launch> = new Map()): Answer => {
+    const l = launches.get(s.sessionId)
+    return {
+      session_id: s.sessionId, kind: 'fabric-console', project: names.get(s.projectId) ?? null, project_id: s.projectId,
+      folder: s.cwd, runner: s.optionId, state: s.state, running: s.running, started_at: s.startedAt,
+      last_activity_at: s.lastActivityAt, last_line: redact(s.tail).text.slice(0, 200), is_ceo: s.sessionId === deps.ceoSessionId(),
+      ...(l ? { launched_by: l.by, via: l.via, branch: l.branch, parent_session_id: l.parentSessionId, runner_session_id: l.runnerSessionId } : {})
+    }
+  }
 
   async function sessions(a: z.infer<typeof CEO_TOOLS.sessions.input>): Promise<Answer> {
     const names = await projectNames()
@@ -292,7 +323,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       consoles = consoles.filter((s) => s.projectId === id)
       folderFilter = found.found.repo_path
     }
-    const machine = await machineRows()
+    const [machine, launches] = await Promise.all([machineRows(), launchesOf()])
     const fabricIds = new Set(deps.ptys.list().map((s) => s.sessionId))
     const seen = new Set<string>()
     const rows = 'rows' in machine ? machine.rows.filter((r) => {
@@ -312,12 +343,25 @@ export function createCeoOperations(deps: CeoOpsDeps) {
             runner: r.runner, continues: r.runtimeSessionId, last_activity_at: r.at, resumable_as_itself: !!r.runtimeSessionId }))
       } catch (e) { past = { unread: e instanceof Error ? e.message.slice(0, 200) : String(e) } /* said in the answer, never read as no past consoles */ }
     }
+    // Switchboard unread: the Claude Code processes running here, from Claude Code's own files (board request eef5abeb,
+    // point 4), so the machine's sessions are still seen; the Fabric consoles among them are left out.
+    let onDisk: Answer[] | undefined
+    if (!rows && deps.diskSessions) {
+      const runnerIds = new Set([...launches.values()].map((l) => l.runnerSessionId).filter(Boolean))
+      try {
+        onDisk = (await deps.diskSessions())
+          .filter((d) => !runnerIds.has(d.sessionId) && (!folderFilter || d.cwd.startsWith(folderFilter)))
+          .slice(0, 80)
+          .map((d) => ({ session_id: d.sessionId, pid: d.pid, folder: d.cwd, name: d.name, status: d.status, kind: d.kind, entrypoint: d.entrypoint, started_at: d.startedAt, updated_at: d.updatedAt }))
+      } catch { onDisk = undefined /* both unread: the answer says Switchboard's reason */ }
+    }
     return {
       ok: true,
-      fabric_consoles: consoles.map((s) => consoleRow(s, names)),
+      fabric_consoles: consoles.map((s) => consoleRow(s, names, launches)),
       ...(a.include_ended ? { past_fabric_consoles: past } : {}),
       machine_sessions: rows ?? { unread: (machine as { unread: string }).unread },
-      note: 'Fabric consoles can be read, typed into, stopped and opened here; a machine session is read from its transcript, continued or ended through Switchboard.'
+      ...(onDisk ? { machine_sessions_on_disk: onDisk } : {}),
+      note: 'Fabric consoles can be read, typed into, stopped and opened here; a machine session is read from its transcript, continued or ended through Switchboard. When Switchboard is unread, machine_sessions_on_disk lists the Claude Code processes running here, read from Claude Code\'s own files.'
     }
   }
 
@@ -331,13 +375,12 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     if (!file) return refuse(`no Fabric console and no Claude Code transcript has the id ${a.session_id}`)
     let text: string
     try {
-      const size = statSync(file).size
-      text = readFileSync(file, 'utf8')
-      if (size > 4_000_000) text = text.slice(-2_000_000)
+      // ER-16 (0.3.26 review, iteration 2): the tail only, through a handle, never the whole transcript in memory.
+      text = await readTail(file, READ_TAIL_BYTES)
     } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
       return refuse(`the transcript could not be read: ${e instanceof Error ? e.message : String(e)}`)
     }
-    return { ok: true, kind: 'transcript', session_id: a.session_id, folder: path.basename(path.dirname(file)), turns: transcriptTurns(text).map((t) => ({ ...t, text: redact(t.text).text })) }
+    return { ok: true, kind: 'transcript', session_id: a.session_id, folder: path.basename(path.dirname(file)), turns: redactedTurns(text) }
   }
 
   async function input(a: z.infer<typeof CEO_TOOLS.input.input>): Promise<Answer> {
@@ -368,7 +411,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     return { ok: true, sent: { text_chars: text.length, keys: a.keys ?? [], submit }, screen_after: screen(s.sessionId, 30) }
   }
 
-  async function start(a: z.infer<typeof CEO_TOOLS.start.input>): Promise<Answer> {
+  async function start(a: z.infer<typeof CEO_TOOLS.start.input>, via?: LaunchVia): Promise<Answer> {
     const projects = await rolesOf()
     const m = matchProject(projects, a.project)
     let picked: NamedProject | null = 'found' in m ? m.found : null
@@ -383,7 +426,8 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     const project = projects.find((p) => p.id === found.found.id) ?? found.found
     const runner = a.runner ?? ((project as { default_agent?: string | null }).default_agent || 'claude-code')
     try {
-      const s = await deps.openConsole(project.id, runner, a.task)
+      const s = await withLaunchOrigin({ by: 'ceo', via: via ?? 'console', reason: a.reason, parentSessionId: deps.ceoSessionId() ?? undefined },
+        () => deps.openConsole(project.id, runner, a.task))
       deps.record('ceo.session.start', { session_id: s.sessionId, project_id: project.id, runner: s.optionId, reason: a.reason })
       deps.note('session.start', { sessionId: s.sessionId, projectId: project.id, label: project.name, runner: s.optionId, reason: a.reason })
       return { ok: true, session_id: s.sessionId, project: project.name, folder: s.cwd, runner: s.optionId, state: s.state }
@@ -394,7 +438,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
 
   async function stop(a: z.infer<typeof CEO_TOOLS.stop.input>): Promise<Answer> {
-    if (a.session_id === deps.ceoSessionId()) return refuse('this is your own console: the owner restarts the CEO from the popup')
+    if (a.session_id === deps.ceoSessionId()) return refuse('this is your own console: the owner stops or restarts the CEO from its popup')
     const s = deps.ptys.get(a.session_id)
     if (s) {
       if (!s.running) return { ok: true, state: 'already-ended' }
@@ -513,18 +557,50 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     }
   }
 
-  const table: { [K in CeoToolName]: (a: z.infer<(typeof CEO_TOOLS)[K]['input']>) => Promise<Answer> } = {
-    sessions, read, input, start, stop, resume, open, projects
+  async function launches(a: z.infer<typeof CEO_TOOLS.launches.input>): Promise<Answer> {
+    if (!deps.launches) return refuse('this Fabric keeps no launch journal')
+    let projectId: string | undefined
+    if (a.project) {
+      const found = matchProject(await rolesOf(), a.project)
+      if ('ambiguous' in found) return refuse(`«${a.project}» names several projects: name one by its folder`, { candidates: listOf(found.ambiguous) })
+      if ('missing' in found) return refuse(`no project «${a.project}»`, found.near.length ? { near: listOf(found.near) } : {})
+      projectId = found.found.id
+    }
+    const [names, all] = await Promise.all([projectNames(), deps.launches({})])
+    const byId = new Map(all.map((l) => [l.sessionId, l]))
+    let rows = all
+    if (a.session_id) rows = rows.filter((l) => l.sessionId === a.session_id || l.runnerSessionId === a.session_id)
+    if (projectId) rows = rows.filter((l) => l.projectId === projectId)
+    if (a.open_only) rows = rows.filter((l) => l.end === null)
+    const live = new Set(deps.ptys.list().filter((s) => s.running).map((s) => s.sessionId))
+    return {
+      ok: true,
+      launches: rows.slice(0, a.limit ?? 30).map((l) => ({
+        session_id: l.sessionId, project: names.get(l.projectId) ?? null, project_id: l.projectId, folder: l.cwd, branch: l.branch,
+        runner: l.optionId, launched_by: l.by, via: l.via, reason: l.reason, parent_session_id: l.parentSessionId, task_id: l.taskId,
+        request_id: l.requestId, started_at: l.startedAt, runner_session_id: l.runnerSessionId,
+        resume: l.runnerSessionId && l.runner === 'claude-code' ? `claude --resume ${l.runnerSessionId}` : null,
+        running_now: live.has(l.sessionId), ended_at: l.endedAt, end: l.end, exit_code: l.exitCode, stop_asked_by: l.stopAskedBy,
+        chain: chainOf(l, byId).map((p) => ({ session_id: p.sessionId, launched_by: p.by, project: names.get(p.projectId) ?? null }))
+      })),
+      total: rows.length,
+      note: 'end null with running_now false: the console was cut by a restart of Fabric or the computer (no end was written).'
+    }
   }
 
-  /** Run one tool by its short name with unchecked arguments: checked here, refused with the first problem. */
-  async function run(name: string, args: unknown): Promise<Answer> {
+  const table: { [K in CeoToolName]: (a: z.infer<(typeof CEO_TOOLS)[K]['input']>, via?: LaunchVia) => Promise<Answer> } = {
+    sessions, read, input, start, stop, resume, open, launches, projects
+  }
+
+  /** Run one tool by its short name with unchecked arguments: checked here, refused with the first problem. `via`:
+   *  the door it came through (the CEO's console over MCP, or the voice call), written with a launch it makes. */
+  async function run(name: string, args: unknown, via?: LaunchVia): Promise<Answer> {
     if (!(name in CEO_TOOLS)) return refuse(`unknown tool ${name}`)
     const tool = CEO_TOOLS[name as CeoToolName]
     const parsed = tool.input.safeParse(args ?? {})
     if (!parsed.success) return refuse(`the arguments were refused: ${parsed.error.issues.map((i) => `${i.path.join('.') || 'input'}: ${i.message}`).join('; ').slice(0, 400)}`)
     try {
-      const answer = await (table[name as CeoToolName] as (a: unknown) => Promise<Answer>)(parsed.data)
+      const answer = await (table[name as CeoToolName] as (a: unknown, via?: LaunchVia) => Promise<Answer>)(parsed.data, via)
       // Every call, its name and whether it was refused: what the CEO looked at is as visible as what it did.
       deps.record(`ceo.tool.${name}`, { outcome: answer.ok === false ? 'refused' : 'ok' })
       return answer
@@ -550,7 +626,7 @@ export function registerCeoTools(server: McpServer, ops: CeoOperations): void {
     server.registerTool(
       tool.mcp,
       { title: tool.title, description: tool.description, inputSchema: tool.input.shape },
-      async (args: unknown) => json(await ops.run(name, args))
+      async (args: unknown) => json(await ops.run(name, args, 'console'))
     )
   }
 }

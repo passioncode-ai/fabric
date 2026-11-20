@@ -13,6 +13,7 @@ import type { RunnerFallback } from '../../../shared/runnerRoute.ts'
 import { LOCALES, useLocale, useT, type Locale } from '../i18n'
 import { FabricAvatar } from '../launch/FabricAvatar'
 import { usePersona } from '../launch/persona'
+import { VoicePicker, useVoiceReady } from '../ceo/VoicePicker'
 import { FALLBACK_CHANGED } from '../useFallbackChoice'
 import { CopyButton, StartCards, errorText, type StartPath } from './StartPaths'
 import { programOf } from './startParts'
@@ -91,13 +92,15 @@ function PersonaStep({ onNext, locale, onLocale }: { onNext(): void; locale?: Lo
   useEffect(() => { if (!touched.current) { setDraft(persona); setName(persona.name ?? '') } }, [persona])
   const shown = personaName(name) ?? t('launch.brand.product')
   const tooLong = name.trim().length > PERSONA_NAME_MAX
+  // The voice is chosen here only when the CEO can be called (an xAI key); otherwise it stays male until Settings.
+  const voiceReady = useVoiceReady()
 
   const next = async (): Promise<void> => {
     setBusy(true)
     setProblem(null)
     try {
       const n = personaName(name)
-      const r = await save(n ? { seed: draft.seed, style: draft.style, name: n } : { seed: draft.seed, style: draft.style })
+      const r = await save({ seed: draft.seed, style: draft.style, ...(n ? { name: n } : {}), ...(draft.voice ? { voice: draft.voice } : {}) })
       if (!r.saved) { setProblem(t('first.persona.notSaved', { reason: r.reason ?? '' })); return }
       onNext()
     } catch (e) {
@@ -142,6 +145,10 @@ function PersonaStep({ onNext, locale, onLocale }: { onNext(): void; locale?: Lo
             </button>
           ))}
         </div>
+        {voiceReady === true && <>
+          <p className="lp-kicker" id="first-persona-voice">{t('ceoAgent.voice.label')}</p>
+          <VoicePicker style={draft.style} value={draft.voice} onChange={(voice) => { touched.current = true; setDraft({ ...draft, voice }) }} canSample labelledBy="first-persona-voice" />
+        </>}
         <div className="lp-actions">
           <button type="button" className="lp-button primary" disabled={busy || tooLong} onClick={() => void next()}>{t('first.next')}</button>
           <button type="button" className="lp-button" disabled={busy} onClick={onNext}>{t('first.skip')}</button>

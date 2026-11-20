@@ -25,6 +25,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       updateSettings: (input) => ipc.invoke(IPC.projectsUpdateSettings, input),
       saveSettings: (input) => ipc.invoke(IPC.projectsSaveSettings, input),
       list: () => ipc.invoke(IPC.projectsList),
+      resumeLast: (projectId) => ipc.invoke(IPC.projectsResumeLast, projectId),
       stats: (projectId) => ipc.invoke(IPC.projectsStats, projectId),
       repoStates: (projectId) => ipc.invoke(IPC.projectsRepoStates, projectId),
       relations: (projectId) => ipc.invoke(IPC.projectsRelations, projectId),
@@ -88,7 +89,11 @@ export function createApi(ipc: BridgeIpc): FabricApi {
     agents: {
       list: (projectId) => ipc.invoke(IPC.agentsList, projectId),
       create: (input) => ipc.invoke(IPC.agentsCreate, input),
-      switchboardSessions: () => ipc.invoke(IPC.agentsSwitchboardSessions)
+      switchboardSessions: () => ipc.invoke(IPC.agentsSwitchboardSessions),
+      machineSessions: () => ipc.invoke(IPC.agentsMachineSessions),
+      machineRead: (sessionId) => ipc.invoke(IPC.agentsMachineRead, sessionId),
+      machineClose: (sessionId) => ipc.invoke(IPC.agentsMachineClose, sessionId),
+      machineContinue: (sessionId, link) => ipc.invoke(IPC.agentsMachineContinue, sessionId, link)
     },
     tabs: {
       read: () => ipc.invoke(IPC.tabsRead),
@@ -306,6 +311,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       history: (sessionId) => ipc.invoke(IPC.terminalHistory, sessionId),
       get: (sessionId) => ipc.invoke(IPC.terminalGet, sessionId),
       scrollback: (sessionId) => ipc.invoke(IPC.terminalScrollback, sessionId),
+      launch: (sessionId) => ipc.invoke(IPC.terminalLaunch, sessionId),
+      recent: () => ipc.invoke(IPC.terminalRecent),
       write: (sessionId, data) => ipc.send(IPC.terminalWrite, sessionId, data),
       resize: (sessionId, cols, rows) => ipc.send(IPC.terminalResize, sessionId, cols, rows),
       end: (sessionId, options) => ipc.invoke(IPC.terminalEnd, sessionId, options),
@@ -329,11 +336,15 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       ensure: () => ipc.invoke(IPC.ceoAgentEnsure),
       send: (text, attachments) => ipc.invoke(IPC.ceoAgentSend, text, attachments),
       restart: () => ipc.invoke(IPC.ceoAgentRestart),
-      open: (draft) => ipc.invoke(IPC.ceoAgentOpen, draft ?? null),
+      stop: () => ipc.invoke(IPC.ceoAgentStop),
+      open: (draft, options) => ipc.invoke(IPC.ceoAgentOpen, draft ?? null, options ?? null),
+      takeCall: () => ipc.invoke(IPC.ceoAgentTakeCall),
       takeDraft: () => ipc.invoke(IPC.ceoAgentTakeDraft),
       voice: () => ipc.invoke(IPC.ceoAgentVoice),
       voiceTool: (name, args) => ipc.invoke(IPC.ceoAgentVoiceTool, name, args),
       voiceKey: () => ipc.invoke(IPC.ceoAgentVoiceKey),
+      voiceReady: () => ipc.invoke(IPC.ceoAgentVoiceReady),
+      voiceSample: (voice) => ipc.invoke(IPC.ceoAgentVoiceSample, voice),
       setVoiceKey: (value) => ipc.invoke(IPC.ceoAgentVoiceKeySet, value),
       clearVoiceKey: () => ipc.invoke(IPC.ceoAgentVoiceKeyClear),
       onChanged: (cb) => {

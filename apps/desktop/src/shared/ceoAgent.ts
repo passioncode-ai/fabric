@@ -10,7 +10,8 @@
  * that failed) the next runner of the order runs it (Hermes on OpenRouter by default), so the CEO answers on any day.
  */
 
-export type CeoState = 'idle' | 'starting' | 'running' | 'ended' | 'failed'
+/** `stopped`: the person stopped it, and it stays stopped until the person starts it again (the owner, 2026-11-19). */
+export type CeoState = 'idle' | 'starting' | 'running' | 'ended' | 'stopped' | 'failed'
 
 /** Why the CEO did not start, as a code the window words (0.3.24 review, ER-7): every runner set aside, none of the
  *  order could start (`passedOver` says why for each), the CEO's project could not be read or made, or another failure
@@ -137,6 +138,7 @@ export function ceoBrief(opts: { locale: string }): string {
     '- `fabric_ceo_session_stop`: остановить сессию; `force: true` убивает ее.',
     '- `fabric_ceo_session_resume`: продолжить законченную сессию.',
     '- `fabric_ceo_session_open`: открыть консоль сессии владельцу в окне Fabric.',
+    '- `fabric_ceo_launches`: журнал запусков на диске: кто и откуда запустил сессию, цепочка, ветка, id для `claude --resume` и чем она закончилась (так находятся сессии, оборванные перезапуском).',
     '- `fabric_ceo_projects`: проекты Fabric с папками.',
     'Кроме них у тебя все серверы MCP этого компьютера: Observatory (проекты, папки, ключи по именам), Switchboard (аккаунты и сессии), Fabric Dashboards и другие.',
     '',
@@ -170,6 +172,7 @@ export function ceoBrief(opts: { locale: string }): string {
     '- `fabric_ceo_session_stop`: stop a session; `force: true` kills it.',
     '- `fabric_ceo_session_resume`: continue a session that ended.',
     '- `fabric_ceo_session_open`: open a session\'s console for the owner in a Fabric window.',
+    '- `fabric_ceo_launches`: the launch journal on disk: who started a session and from where, the chain, branch, the id for `claude --resume` and how it ended (this is how sessions cut by a restart are found).',
     '- `fabric_ceo_projects`: Fabric\'s projects with their folders.',
     'You also have every MCP server of this computer: Observatory (projects, folders, keys by name), Switchboard, Fabric Dashboards and others.',
     '',

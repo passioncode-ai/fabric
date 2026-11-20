@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "5d549a8dc93396a096fef8998e37d50fe3aa0a2a",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-5d549a8d/2026-11-20-docs.md",
+  "reportSha256": "7a1d0c3f9878809ae1b29181413fd6411c19849b73b6d5167fa19f9383b80a51",
+  "reviewerRun": "release-0326-i3r2-docs-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: spec row 8 and SCN-142 say a running session is named by folder, agent and state and an ended one as ended"
+      ]
+    },
+    {
+      "id": "DO-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the ledger's Release close records the session reading with the commit it was built from"
+      ]
+    },
+    {
+      "id": "DO-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: the run-one paragraph says three iteration-2 fixes held in part and names their gaps"
+      ]
+    },
+    {
+      "id": "DO-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: the FABRIC-0326 entry lists launch/rail.css and the screens stand's fixtures"
+      ]
+    }
+  ]
+}

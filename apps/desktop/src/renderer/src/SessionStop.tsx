@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { TerminalSession } from '../../shared/types'
-import type { TerminalTermination } from '../../shared/stop'
+import { QUIET_TREE_REASONS, processGone, type TerminalTermination } from '../../shared/stop'
 import { Button, StateChip, Toolbar } from './components'
 import { useT } from './i18n'
 import { FailureNote } from './OperatorError'
@@ -9,11 +9,13 @@ import { unwrap } from '../../shared/errorText'
 
 /** OF-02: the process is gone and only the provider's background work is unproved. Said as an end, never as a stop
  *  that failed; the caveat stays in words (`session.endedHelp`), and the receipt rules below do not change. */
-// The reasons `nativeStopRuntime.ts` gives only after it saw the root exit and the whole process tree go quiet: nothing is
-// left to stop here, so Force stop has nothing to do. Any other unknown keeps Force (a child may still run).
-const QUIET_TREE_REASONS = new Set(['provider_termination_unproved', 'exit_outcome_unavailable', 'finalization_unproved', 'exit_receipt_unavailable'])
+// `QUIET_TREE_REASONS` (shared/stop.ts): the root exited and the whole process tree went quiet, so Force stop has nothing
+// to do. Any other unknown keeps Force (a child may still run).
 export const processEnded = (session: Pick<TerminalSession, 'running'> | undefined, state: TerminalTermination | undefined): boolean =>
   !!session && !session.running && state?.state === 'outcome_unknown' && QUIET_TREE_REASONS.has(state.reasonCode)
+
+/** Said on `window` when a press closed a session: the shell drops its tab at once (`App.tsx`). */
+export const SESSION_DISMISSED = 'fabric:session-dismissed'
 
 const attested = (r: TerminalTermination | null | undefined): boolean => r?.state === 'stopped' && 'basis' in r && r.basis === 'attested'
 const seqOf = (r: TerminalTermination): number | undefined => ('receiptSeq' in r ? r.receiptSeq : undefined)
@@ -61,9 +63,19 @@ export function SessionStop({ session, refresh, onError }: {
   const stop = async (force: boolean) => {
     setPending(true)
     setReceipt({ sessionId: session.sessionId, state: 'requested', reasonCode: 'stop_requested' })
-    try { setReceipt(await window.fabric.terminal.end(session.sessionId, { force })) }
+    let ended: TerminalTermination | null = null
+    try { ended = await window.fabric.terminal.end(session.sessionId, { force }); setReceipt(ended) }
     catch { setReceipt({ sessionId: session.sessionId, state: 'outcome_unknown', reasonCode: 'ipc_unavailable' }) }
     finally { setPending(false) }
+    // The operator, 2026-11-19: «быстро закрыл и все». A process that is gone leaves with the press; only a stop that
+    // could not see the process end stays, with «Проверить остановку».
+    if (processGone(ended)) {
+      try {
+        await window.fabric.terminal.dismiss(session.sessionId)
+        // The shell reads the sessions now, so the console's tab goes with the press, not at the next poll.
+        window.dispatchEvent(new CustomEvent(SESSION_DISMISSED, { detail: session.sessionId }))
+      } catch (e) { onError(String(e)) }
+    }
     // A failed refresh cannot revoke an acknowledged Stop receipt.
     try { await refresh() } catch (e) { onError(String(e)) }
   }

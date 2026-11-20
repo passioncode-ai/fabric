@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "91d952ded1cfe6bdd46b6ae288927471037875aa",
+  "report": "docs/evidence/reviews/0.3.25/iteration-1/2026-11-19-plan.md",
+  "reportSha256": "d431053f280515a664b0fb267d570b0903ee057b266941c3eca361a0255d6433",
+  "reviewerRun": "release-0325-i1-plan-openrouter-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: calls kept on this computer, ten"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: as DA-2; voice-ready and voice-sample MAIN_ONLY"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: personaRead is allowed to the CEO window (CEO_USES); the face and name of the chosen character were seen in the built app; setDraft spreads the draft, so voice is kept"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: as ER-1 and ER-6"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: CeoPopup passes composerTools to the composer's tools slot"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "status": "ruled",
+      "evidence": [
+        "partly fixed in 4b7acb6f (XAI_KEY_SLOT); the live sample and the vault deadline ruled: CO-601 items 3 and 4"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: the call ask is dropped when the CEO window closes (index.ts)"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 4b7acb6f: an ended call without a problem shows only in the history"
+      ]
+    }
+  ]
+}

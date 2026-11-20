@@ -177,3 +177,13 @@ describe('the CEO voice call', () => {
     expect(Array.from(back).map((v) => Math.round(v * 100) / 100)).toEqual([0, 0.5, -0.5, 1, -1])
   })
 })
+
+describe('the voice meter\'s levels', () => {
+  it('a chunk\'s level is its loudness, 0 for silence, capped at 1', async () => {
+    const { levelOf } = await import('./voiceCall')
+    expect(levelOf(new Float32Array(0))).toBe(0)
+    expect(levelOf(new Float32Array(480))).toBe(0)
+    expect(levelOf(new Float32Array(480).fill(0.1))).toBeCloseTo(0.4, 5)
+    expect(levelOf(new Float32Array(480).fill(0.9))).toBe(1)
+  })
+})
