@@ -1854,6 +1854,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.project.questions': "Вопросы ко мне",
   'launch.project.agentsHere': "Агенты на проекте",
   'launch.project.nowLine': "Сейчас: {text}",
+  'launch.ceoHeader.label': "{name}, ваш CEO",
   'launch.home.stats.label': "Прямо сейчас",
   'launch.home.stats.working.one': "агент работает",
   'launch.home.stats.working.few': "агента работают",

@@ -1409,3 +1409,25 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .as-launch-ask .lp-meta{flex-basis:100%;margin:0}
 .as-launch-reason{display:block}
 .as-launch-resume{font-family:var(--font-mono);font-size:11px;word-break:break-all}
+
+/* The home's header (docs/evidence/specs/2026-11-20-ceo-persona.md §2): the CEO's face, its line, the numbers that speak. */
+.ceo-head{display:flex;gap:var(--space-4);align-items:flex-start;padding:var(--space-4);border-radius:var(--app-radius-panel);background:var(--app-panel);border:1px solid var(--app-line)}
+.ceo-head-face{position:relative;flex:none}
+.ceo-head-pulse{position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:50%;background:var(--state-danger);box-shadow:0 0 0 0 color-mix(in srgb,var(--state-danger) 60%,transparent);animation:ceo-head-pulse 1.6s ease-out infinite}
+@keyframes ceo-head-pulse{to{box-shadow:0 0 0 10px transparent}}
+@media (prefers-reduced-motion:reduce){.ceo-head-pulse{animation:none}}
+.ceo-head-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--space-2)}
+.ceo-head-name{margin:0;font-size:12px;color:var(--app-muted)}
+.ceo-head-line{margin:0;font-size:17px;line-height:1.35;font-weight:500;text-align:left;background:none;border:0;padding:0;color:inherit}
+button.ceo-head-line{cursor:pointer;text-decoration:underline;text-decoration-color:color-mix(in srgb,currentColor 30%,transparent);text-underline-offset:3px}
+.mood-alarm .ceo-head-line{color:var(--state-danger)}
+.mood-unknown .ceo-head-line{color:var(--app-muted)}
+.ceo-head-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-2)}
+.ceo-head-stat{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:var(--space-2) var(--space-3);border-radius:var(--app-radius-control);border:1px solid var(--app-line);background:var(--app-panel-quiet);color:var(--app-ink);text-align:left;cursor:pointer}
+.ceo-head-stat b{font-size:22px;font-weight:600;line-height:1.1}
+.ceo-head-stat span{font-size:11px;color:var(--app-muted)}
+.ceo-head-stat small{font-size:11px;line-height:1.3}
+.ceo-head-stat.warn b{color:var(--state-idle)}
+.ceo-head-stat.attention b{color:var(--app-link)}
+.ceo-head-stat.live b{color:var(--state-good)}
+@media(max-width:1150px){.ceo-head-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}

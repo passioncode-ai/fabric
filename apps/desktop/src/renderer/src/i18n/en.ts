@@ -2561,6 +2561,7 @@ export const en = {
   'launch.project.questions': "Questions for you",
   'launch.project.agentsHere': "Agents on this project",
   'launch.project.nowLine': "Now: {text}",
+  'launch.ceoHeader.label': "{name}, your CEO",
   'launch.home.stats.label': "Right now",
   'launch.home.stats.working.one': "agent working",
   'launch.home.stats.working.few': "agents working",
