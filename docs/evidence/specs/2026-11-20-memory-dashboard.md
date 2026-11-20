@@ -82,3 +82,70 @@ The owner, 2026-11-20 ~21:30, relayed by session 8343a070: «Граф решен
 Memory maps its organizations and projects into this model (`shared/memory.ts`); the decision graph maps the journal's
 tasks, decisions, the owner's commands and session launches into it. A three-dimensional mode for Sound Engine's hub
 is offered to sound-engine on the board as a bundle of the same module, not built here.
+
+## 7. Memory машины, Memory организации, Оболочка (the owner's extension, 2026-11-20 ~22:15)
+
+The owner, the same evening, in the CEO window (brief `ceo/inbox/2026-11-20-memory-multimachine-org-overlay-brief.md`,
+packages 1 and 2), verbatim in part: «Когда у нас несколько машин, каждая машина делает индекс проекта, который на ней,
+и всё это мерджится в облако, в общий индекс … можно разбить связи: показать отдельно, какая связь пришла с каждой
+машины и как она замерджилась»; «Оболочка не передаётся внутрь, но она связывает, и ей оперирует фабрика»; «в облаке
+организации появляется глобальная memory организации всех её проектов, всех дел. Это большой единый датаграф». The
+working names are the brief's and every session uses them:
+
+| Name | Is | Lives |
+|---|---|---|
+| **Memory машины** | the estate index of one machine (§1 to §6): the projects whose folders are on it | that machine's `userData/estate-index` |
+| **Memory** (главная машина) | the union of the owner's Memory машины, each link carrying where it came from | the owner's main machine |
+| **Memory организации** | one growing data graph of an organization's projects from every member's machine; only that organization's context | the organization's cloud on PassionCode (passioncode-platform) |
+| **Оболочка** | the owner's own layer of links between projects of different organizations and his personal ones (reuse, borrowing, a decision carried over); operated by CEO Fabric | the owner's main machine only; never exported |
+
+### 7.1 Identity that survives a second machine
+
+A node merges across machines only when its id does not depend on a folder: a task, a message and a decision already
+carry their uuid, a commit its sha. A project's id becomes its canonical key: the repository's normalized remote URL
+(`git@github.com:o/r.git` and `https://github.com/o/r` are one key), else Fabric's project id; a document is
+`doc:<project key>/<path>`. A session keeps its runtime id and gains the machine it ran on.
+
+### 7.2 Provenance on every link
+
+Each machine has a stable id (`machine:<hash>` of its install id; its display name is the owner's). A pass writes, beside
+`edges`, one row per assertion: `edge_origins(src, rel, dst, machine, first_at, last_at, digest)`. The merged edge is the
+union; how it merged is read, never stored as a guess: `own` (one machine), `same` (several machines, one digest),
+`differs` (several, different evidence, both kept). Decomposing is a delete: drop one machine's origin rows and every
+edge left with no origin goes, so a machine's contribution can be shown alone, compared or taken back. Documents carry
+`machine` the same way.
+
+### 7.3 The bundle and the merge
+
+A machine exports what changed since the receiver's cursor as one bundle per context: `memory-bundle/1` {machine,
+context, cursor, docs (id, kind, title, the verbatim passage, path, lines, digest), nodes, edges with their origin},
+signed with the machine's key. The main machine imports its other machines' bundles of every context; a cloud imports
+only bundles of its organization's context. An import is idempotent by (machine, cursor) and never deletes another
+machine's origin rows.
+
+### 7.4 Isolation (scope-gate)
+
+On export the gate keeps a document, node or edge only when its context is the target organization's
+(`org:<id>`, §3.6 of the estate spec); an edge whose two ends stand in different contexts is never exported (it belongs to
+the Оболочка). On import the cloud checks every row's context against the caller's token scope and refuses the bundle
+whole on one foreign row. A member's personal projects and other organizations' never leave the member's machine.
+Tests plant a cross-context edge and a foreign document and watch both refused at each end.
+
+### 7.5 Оболочка
+
+The cross-context links live in the owner's main Memory as `layer = 'overlay'` (relates-to, cites, reuse, carried-over
+decision), written by the passes and by CEO Fabric through `fabric_knowledge_execute` (`overlay.link`, `overlay.list`,
+`overlay.unlink`, the owner's words as the reason). No bundle carries them; an organization's Memory never sees them.
+The Memory screen shows them as dashed lines between organizations, only on the owner's machine.
+
+### 7.6 Waves
+
+| Wave | Delivers | Done when |
+|---|---|---|
+| M1 | canonical ids (§7.1), `edge_origins` and the machine id, «по машинам» on the map (colour by origin, show one machine) | a two-machine test merges, shows and decomposes one link |
+| M2 | `memory-bundle/1` export and import between the owner's machines (MacBook and Mac Studio over the existing tunnel) | the main Memory holds both machines' projects with origins, measured |
+| M3 | the scope-gate and the cloud Memory организации on PassionCode (passioncode-platform: storage, keys, backup) | an organization's cloud graph grows from two members' machines, foreign rows refused in tests |
+| M4 | the Оболочка layer and its CEO operations | the CEO links two projects of different organizations and no export carries it |
+
+Wave 2 of the readiness report (the golden set and the shadow index, task `90cf6d17`) runs beside M1: every merge rule
+is measured on the golden set before it is switched on.

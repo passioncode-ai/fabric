@@ -15032,7 +15032,8 @@
       "title": "Память и сессии",
       "screen_id": "SCR-34",
       "screen_ids": [
-        "SCR-34"
+        "SCR-34",
+        "SCR-92"
       ],
       "horizon": "near",
       "purpose": "Найти прошлую работу, проверить источник и добавить его в разговор Fabric.",
@@ -17415,7 +17416,8 @@
         "SCN-034",
         "SCN-067",
         "SCN-127",
-        "SCN-128"
+        "SCN-128",
+        "SCN-190"
       ],
       "coverage_flow_ids": [
         "FLW-18",
@@ -17435,7 +17437,8 @@
         "SCR-32",
         "SCR-12",
         "SCR-71",
-        "SCR-72"
+        "SCR-72",
+        "SCR-92"
       ],
       "step_count_reason": "Семь разных inspectable surfaces для первого полноценного цикла; это свободная работа, не обязательный setup wizard."
     },
