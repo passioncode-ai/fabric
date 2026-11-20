@@ -172,9 +172,14 @@ export function createEstateRunner(deps: EstateRunDeps) {
       try {
         const head = await headOf(p.repo_path)
         if (!head || ix.meta(`head:${p.id}`) === head) continue
-        const b = await commitBatch(ctx, p)
-        put(b)
-        commits += b.nodes.length
+        // The commits and the documents keep their own HEAD: a repository whose documents wait for the next pass is not
+        // read for its commits again (the 2026-11-20 measurement read 24 208 commits, then 14 685 of the same again).
+        if (ix.meta(`commits:${p.id}`) !== head) {
+          const b = await commitBatch(ctx, p)
+          put(b)
+          commits += b.nodes.length
+          ix.setMeta(`commits:${p.id}`, head)
+        }
         // The project's documents at this HEAD; a repository read past the budget waits for the next pass.
         if (deps.now() - started <= budgetMs * 2) { const d = await documentBatch(ctx, p); docs += put(d); documents += d.nodes.length }
         else { degraded.push(`documents-deferred: ${p.name}`); continue }

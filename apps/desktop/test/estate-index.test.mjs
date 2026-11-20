@@ -62,6 +62,15 @@ test('an unchanged document keeps its index rows, a changed one is indexed again
   assert.equal((await ix.search('логотип', {}, null)).hits[0].id, 'task:t2')
 })
 
+test('a document changed many times is written again: the FTS tombstone pages past 2^53 never fail a write (2026-11-20 measurement)', () => {
+  const ix = fresh()
+  const doc = (i, v) => ({ id: `task:t${i}`, kind: 'task', source: 'fabric', node: `task:t${i}`, title: `Task ${i}`, body: `${v} body ${i}`, at: '2026-11-20T10:00:00Z', context: 'personal' })
+  for (let i = 1; i <= 200; i++) ix.putDocs([doc(i, 'alpha')])
+  // Each rewrite deletes from a flushed segment; contentless_delete writes a tombstone page whose rowid is above 2^53.
+  for (let i = 1; i <= 200; i++) assert.doesNotThrow(() => ix.putDocs([doc(i, 'gamma')]), `rewrite ${i}`)
+  assert.equal(ix.status().docs, 200)
+})
+
 test('vectors join by reciprocal rank when an embedder serves them', async () => {
   const ix = fresh(); seed(ix)
   const embedder = { model: 'fake', embed: async (texts) => texts.map((t) => Float32Array.from([/иконк|логотип|picture/i.test(t) ? 1 : 0, 1])) }
@@ -173,6 +182,40 @@ test('one pass reads Fabric rows, transcripts and a real Git repository, and wal
   const again = await runner.pass(10_000)
   assert.equal(again.docs, 0, 'a second pass over unchanged sources writes nothing')
   assert.equal(again.commits, 0)
+})
+
+test('a repository whose documents wait for the next pass is not read for its commits again (2026-11-20 measurement)', async (t) => {
+  const ix = fresh()
+  const repo = mkdtempSync(path.join(homedir(), '.fabric-estate-test-'))
+  t.after(() => rmSync(repo, { recursive: true, force: true }))
+  execFileSync('git', ['init', '-q', repo])
+  mkdirSync(path.join(repo, 'docs'), { recursive: true })
+  writeFileSync(path.join(repo, 'docs', 'note.md'), '# Note\n\nThe memory dashboard reads the index.\n')
+  execFileSync('git', ['-C', repo, 'add', '.'])
+  execFileSync('git', ['-C', repo, '-c', 'user.email=a@b', '-c', 'user.name=a', 'commit', '-q', '-m', 'docs: a note'])
+  // The clock jumps past the budget once the transcripts start, the way a first index's transcripts eat a pass: the
+  // commits are read, the documents wait.
+  let late = false, slow = true
+  const runner = createEstateRunner({
+    index: ix,
+    projects: async () => [{ id: 'p1', name: 'memory-repo', repo_path: repo }],
+    organizations: () => ({ folders: new Map(), personal: null }),
+    page: async () => [], journal: async () => [], board: async () => ({ messages: [], last: 0, more: false }),
+    roots: () => { if (slow) late = true; return [] },
+    embedder: async () => null,
+    now: () => Date.now() + (late ? 1e9 : 0),
+    yieldNow: () => new Promise((r) => setImmediate(r))
+  })
+  const first = await runner.pass(10_000)
+  assert.equal(first.commits, 1)
+  assert.equal(first.documents, 0)
+  assert.ok(first.degraded.includes('documents-deferred: memory-repo'))
+  late = false; slow = false
+  const second = await runner.pass(10_000)
+  assert.equal(second.commits, 0, 'the commits at this HEAD were read already')
+  assert.equal(second.documents, 1, 'the documents that waited are read now')
+  const third = await runner.pass(10_000)
+  assert.equal(third.commits + third.documents, 0, 'nothing more at an unchanged HEAD')
 })
 
 test('a console Fabric no longer runs is recalled with the newest session it ran as; a transcript with its config home', () => {

@@ -76,6 +76,9 @@ function cosine(a: Float32Array, b: Float32Array): number {
   return na && nb ? dot / Math.sqrt(na * nb) : 0
 }
 
+/** A statement whose `run()` answers its last insert's rowid as a BigInt, so a rowid past 2^53 never throws. */
+function bigRowids(st: StatementSync): StatementSync { st.setReadBigInts(true); return st }
+
 export class EstateIndex {
   readonly db: DatabaseSync
   private readonly st: Record<string, StatementSync>
@@ -113,10 +116,13 @@ export class EstateIndex {
           digest = excluded.digest
         RETURNING rowid`),
       rowOf: this.db.prepare('SELECT rowid, digest FROM docs WHERE id = ?'),
-      wordsDel: this.db.prepare('DELETE FROM docs_words WHERE rowid = ?'),
-      wordsIns: this.db.prepare('INSERT INTO docs_words (rowid, stems) VALUES (?, ?)'),
-      triDel: this.db.prepare('DELETE FROM docs_tri WHERE rowid = ?'),
-      triIns: this.db.prepare('INSERT INTO docs_tri (rowid, text) VALUES (?, ?)'),
+      // The FTS writes answer their last insert's rowid as a BigInt: a delete from a contentless_delete table writes a
+      // tombstone page whose rowid is above 2^53 (segment id + 2^16, shifted by 37), and node:sqlite refuses to answer
+      // that as a number, failing the write (the 2026-11-20 measurement: «Value is too large … 9008161327415296»).
+      wordsDel: bigRowids(this.db.prepare('DELETE FROM docs_words WHERE rowid = ?')),
+      wordsIns: bigRowids(this.db.prepare('INSERT INTO docs_words (rowid, stems) VALUES (?, ?)')),
+      triDel: bigRowids(this.db.prepare('DELETE FROM docs_tri WHERE rowid = ?')),
+      triIns: bigRowids(this.db.prepare('INSERT INTO docs_tri (rowid, text) VALUES (?, ?)')),
       node: this.db.prepare(`INSERT INTO nodes (id, kind, label, at, attrs) VALUES (?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET kind = excluded.kind, label = excluded.label, at = coalesce(excluded.at, nodes.at), attrs = coalesce(excluded.attrs, nodes.attrs)`),
       edge: this.db.prepare(`INSERT INTO edges (src, rel, dst, at, evidence) VALUES (?, ?, ?, ?, ?)
