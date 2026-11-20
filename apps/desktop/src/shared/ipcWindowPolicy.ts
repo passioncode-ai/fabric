@@ -174,6 +174,8 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   settingsFolderTrustLocked: MAIN_ONLY,
   settingsClaudeInbound: MAIN_ONLY,
   settingsSetClaudeInbound: MAIN_ONLY,
+  settingsPeopleRoutes: MAIN_ONLY,
+  settingsSetPeopleRoute: MAIN_ONLY,
   settingsReadiness: MAIN_ONLY,
   terminalMemoryBackends: MAIN_ONLY,
   feedReplay: MAIN_ONLY,

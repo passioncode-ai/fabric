@@ -2779,7 +2779,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
 
   // ADR-0195 W2a.4: the board's cycle is composed in `boardCycle.ts#startBoardCycle`; what it reads of this process is
   // given here: the terminals, the quota, `startTask`, the doors the buttons call, the reading of «Нужны вы», the sleep.
-  const { admitExisting } = startBoardCycle({
+  const { admitExisting, peopleRoutes, setPeopleChoice } = startBoardCycle({
     quit, db, store, journal, estateId: ACTIVE_ESTATE, operator: OPERATOR_ACTOR, state: boardState, surface,
     userData: app.getPath('userData'),
     terminals: ptys,
@@ -4888,6 +4888,22 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   // Read-only: whether the environment keeps folder trust off whatever the switch says (0.3.13 review, iteration 1, UX-9).
   handle(IPC.settingsFolderTrustLocked, (): Returns<FabricApi['settings']['folderTrustLocked']> => folderTrustOverridden(process.env))
+  // The owner, 2026-11-20: where «Нужны вы» goes in Telegram is seen and chosen in Settings, never guessed or built in.
+  handle(IPC.settingsPeopleRoutes, async (): Promise<Returns<FabricApi['settings']['peopleRoutes']>> => {
+    try { return await peopleRoutes() } catch (e) {
+      ops.failed('settings.people-routes', e, { note: 'Settings could not show where questions go' })
+      return { error: e instanceof Error ? e.message : String(e) }
+    }
+  })
+  handle(IPC.settingsSetPeopleRoute, (_e, projectId: unknown, choice: unknown): Returns<FabricApi['settings']['setPeopleRoute']> => {
+    const c = choice as Record<string, unknown> | null
+    const parsed = c === null ? null : c && c.off === true ? { off: true as const } : c && typeof c.target === 'string' ? { target: c.target } : undefined
+    if (typeof projectId !== 'string' || parsed === undefined) return { ok: false, reason: 'invalid-arguments' }
+    try { setPeopleChoice(projectId, parsed); return { ok: true } } catch (e) {
+      ops.failed('settings.people-route', e, { note: 'the choice was not saved' })
+      return { ok: false, reason: e instanceof Error ? e.message : String(e) }
+    }
+  })
   handle(IPC.settingsWrite, (_e, raw: unknown): Returns<FabricApi['settings']['write']> => {
     // A window changes only the preferences it shows; tabs and the workspace folder are main's (audit A7-008/A7-025).
     const checked = settingsPatch(raw)

@@ -1451,6 +1451,11 @@ export interface FabricApi {
     /** True when `FABRIC_TRUST_AGENT_FOLDERS=0` keeps folder trust off on this machine whatever the switch says
      *  (`folderTrust.ts#folderTrustOverridden`; 0.3.13 review, iteration 1, UX-9). */
     folderTrustLocked(): Promise<boolean>
+    /** Where each project's «Нужны вы» goes in Telegram: its organization's PM project, whether it takes questions now and
+     *  where the link came from (`shared/peopleAsk.ts#routeTable`); `{error}` when the projects could not be read. */
+    peopleRoutes(): Promise<import('./peopleAsk.ts').PeopleRoutesView | { error: string }>
+    /** The person's choice for one project: a PM project, `{off: true}` (no Telegram), or null (what Fabric finds). */
+    setPeopleRoute(projectId: string, choice: import('./peopleAsk.ts').PeopleChoice | null): Promise<{ ok: true } | { ok: false; reason: string }>
     /** CO-407: Claude Code's `crossSessionInbound` in its user settings, read and set by the person's switch. */
     claudeInbound(): Promise<{ accepting: boolean; value: string | null } | { unreadable: true }>
     /** `notSaved` (0.3.12 review ER-7): the change was not written, because Claude Code held its lock (`locked`) or the
@@ -2003,6 +2008,8 @@ export const IPC = {
   settingsFolderTrustLocked: 'settings:folderTrustLocked',
   settingsClaudeInbound: 'settings:claudeInbound',
   settingsSetClaudeInbound: 'settings:setClaudeInbound',
+  settingsPeopleRoutes: 'settings:peopleRoutes',
+  settingsSetPeopleRoute: 'settings:setPeopleRoute',
   settingsReadiness: 'settings:readiness',
   terminalMemoryBackends: 'terminal:memory-backends',
   feedReplay: 'feed:replay',

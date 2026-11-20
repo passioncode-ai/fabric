@@ -222,6 +222,13 @@ step "build — what ships is what the probes read"
 # and it removes the class.
 pnpm --filter @fabric/desktop exec electron-vite build
 
+step "privacy: the built app holds nothing of one machine"
+# The owner, 2026-11-20 (docs/reports/2026-11-20-owner-hardcode-audit): what ships is empty of his values. The gate reads
+# the BUILT bundles, which carry comments, where check-private reads only the tracked files: paths and vault slots always;
+# the org denylist and this machine's own Fabric settings where they exist (NOT_RUN, passing, in hosted CI).
+node --test scripts/test/check-build-private.test.mjs
+node scripts/check-build-private.mjs
+
 step "release: the build identifies itself from the artifact it actually contains"
 # S07. Nothing in the running application said which build it was, so a defect
 # report could not name what was running. The identity is generated at build

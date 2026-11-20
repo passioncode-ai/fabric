@@ -172,7 +172,7 @@ export interface DispatchDeps {
   launch(args: { dir: string; workflow: string; handoff: string; request: string; dispatchId: string; timeoutMinutes: number; target?: string; reason?: 'request' | 'inbox' | 'resume' }): Promise<{ launchId: string } | { refused: string }>
   /** CO-551: the machine Settings names for runs (`dispatchTarget`), or null for this one; absent, this one. */
   remoteTarget?(projectId: string): string | null | Promise<string | null>
-  /** 2026-11-11 (the first live run on the Mac Studio): a request's text and its thread as plain text, for a run on
+  /** 2026-11-11 (the first live run on another machine): a request's text and its thread as plain text, for a run on
    *  another machine, which has no board to read them from; null when they cannot be read. */
   requestThread?(req: OpenRequest): Promise<string | null>
   /** CO-551: a run on another machine as `switchboard dispatch status --json` says it; a failure reads `unknown`. */
@@ -703,7 +703,7 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
       // Observatory redacts a bare UUID in text; the reference form keeps it (thread 7ae9ac3a).
       goal: `Answer the board request board-request:${req.id} addressed to this project, then end.`,
       constraints: [
-        // 2026-11-11, the first live run on the Mac Studio: a run on another machine has no board, so its packet carries
+        // 2026-11-11, the first live run on another machine: a run on another machine has no board, so its packet carries
         // the request and its thread in `notes`; the same packet serves a run that a refusal there starts here.
         // 2026-11-12 (C4): a Fabric on that machine has a board of its own, where this request does not exist; its com.*
         // tools are used only when fabric_whoami names this request's project.

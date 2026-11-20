@@ -1,0 +1,8 @@
+# Reviewed synthetic findings in the BUILT app (check-build-private.mjs), one `<rule>:<first 16 hex of sha256(matched text)>`
+# per line: the file part of the org checker's fingerprint is dropped, because a bundle's file name carries a build hash.
+# P1 (a denylist term) is never allowable. Reviewed 2026-11-20 on the 0.3.27 candidate build.
+P2:36e96648c5410d00  # a placeholder address in supabase-js doc comments bundled into main
+P2:8a77fe02a1966fdb  # a second placeholder address, supabase-js doc comments
+P2:f3273dd18d95bc19  # a third placeholder address, supabase-js doc comments
+P3:dc2370f3919b6b5e  # /home/linuxbrew, Homebrew's Linux prefix in appVersion's PATH probe
+P3:e976f5f48e113bc3  # a home path in TypeScript's own language-service worker (Monaco), not Fabric's

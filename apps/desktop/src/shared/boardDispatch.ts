@@ -227,7 +227,7 @@ export function parseFirstLine(line: string): DispatchIds | null {
 
 // #region board-dispatch-remote — docs: docs/evidence/specs/2026-11-04-on-demand-sessions.md#37-a-run-on-another-machine-co-551-stage-a
 /**
- * CO-551, stage A: a run started on another machine (the Mac Studio) has no `fabric-mcp` there, so it writes a result
+ * CO-551, stage A: a run started on another machine (a shared studio machine) has no `fabric-mcp` there, so it writes a result
  * file that Switchboard fetches over the same ssh and hands back in `dispatch status --json` (fabric-switchboard SB-317,
  * 0.7.40). The dispatcher posts its answer in the request's thread only when the file is the run's own: its first line
  * names the workflow, hand-over and request Fabric passed (`FABRIC_DISPATCH_*`) and the launch Switchboard answered.

@@ -70,7 +70,7 @@ export type PortChoice = { ok: true; port: number } | { ok: false; reason: strin
 
 // #region hub-port-per-user — docs: docs/evidence/specs/2026-08-16-software-fabric-carryover.md#co-505--one-hub-port-per-user--2026-11-04
 /**
- * The default port of this user's hub (CO-505): two people on one machine (the operator's Mac Studio, one macOS user per
+ * The default port of this user's hub (CO-505): two people on one machine (a shared studio machine, one macOS user per
  * organization) each run their own Fabric, and both cannot hold 47070. The first user of the platform keeps 47070, as
  * every machine has until now; the next take the ports after it, one per user id: macOS from uid 501, Linux from 1000,
  * at most 100 users. Windows and an unknown uid keep 47070. Agents never guess it: they read this user's `hub.json`.

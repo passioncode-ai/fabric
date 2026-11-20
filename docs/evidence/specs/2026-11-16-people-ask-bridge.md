@@ -91,8 +91,16 @@ responder ask's project name).
 The routes are a file on the machine, `userData/people-ask-routes.json` (a list of
 `{organization, target, businesses, owners}`, or `{routes: [...]}`; read each pass), because they name organizations
 and repository owners that are private and never enter this public repository (ADR-0096, CO-520; the private-data gate
-refused them). Without the file, the routes this repository may name apply (`DEFAULT_PEOPLE_ROUTES`: PassionCode.ai to
-`passioncode-pm-agent`, `d6e9657c-6332-87fa-9585-6fe913352680`, by business `passioncode.ai` or owner `passioncode-ai`).
+refused them). Without the file there is no route (`DEFAULT_PEOPLE_ROUTES` is empty since 2026-11-20; until then it named
+PassionCode.ai's PM project, which the owner's machine keeps in its own routes file; the owner's audit
+[OH-01](../../reports/2026-11-20-owner-hardcode-audit/README.md), §A).
+
+**The person's choice comes first (2026-11-20, OH-03).** The same file holds `projects: {<project id>: {target: <PM
+project id>} | {off: true}}`, written by Settings' table «Куда уходят вопросы» (`peopleAsk.ts#withChoice`, every other key
+kept, written whole and renamed over). A chosen PM project is used before any route; `off` sends nothing for that
+project (skipped as `chosen-off`). The table shows, for every active project, the agent its questions go to, whether that
+agent takes questions now, and where the link came from: chosen, the routes file, found by itself, off, none, or several
+fit (`peopleAsk.ts#routeTable`). Which Telegram and which people are the PM agent's: Fabric keeps no chat, bot or person.
 
 A Project no route names goes to **the one Project that holds a live `people.ask` responder** with the same recorded
 business or, when neither records one, the same repository owner (`autoRouteOf`). None, or two, is no route: a question

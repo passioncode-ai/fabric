@@ -140,7 +140,7 @@ export function agentCounts(grants: ReadonlyArray<{ agent_id: string; callee: st
 
 interface QueuedEvent { timestamp: string; sessionId: string; eventName: string; systemProps: Record<string, unknown>; props: Props; at: number }
 /**
- * sshlg-growth's contract (its report 2026-10-05-analytics-platform-review, decision 3): it counts
+ * the growth service's contract (its report 2026-10-05-analytics-platform-review, decision 3): it counts
  * installs by `props.iid` and keeps only events whose `props.environment` is `production` or
  * `sandbox`. A release build of a release version is `production`; a development build, or a
  * version with a pre-release suffix (`0.3.2-rc.1`), is `sandbox`. Same rule as Switchboard

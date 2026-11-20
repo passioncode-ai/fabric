@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { ru } from '../i18n/ru'
-import { AgentCatalogPanel, AgentLinksSetting, ReadinessPanel, SettingsScreen } from './SettingsScreen'
+import { AgentCatalogPanel, AgentLinksSetting, PeopleRoutesSetting, ReadinessPanel, SettingsScreen } from './SettingsScreen'
 import type { AppSettings } from '../../../shared/types'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
@@ -516,5 +516,33 @@ describe('the five sections, «Сохранено» after a change, and folder t
     await waitFor(() => expect(box.checked).toBe(true))
     expect(box.disabled).toBe(false)
     expect(screen.queryByText(en['settings.folderTrustLocked'])).toBeNull()
+  })
+})
+
+describe('where «Нужны вы» goes in Telegram (the owner, 2026-11-20)', () => {
+  const PM = '79000000-0000-4000-8000-0000000000f1'
+  const APP = '79000000-0000-4000-8000-0000000000f3'
+  const routesStub = (view: unknown, set = vi.fn(async () => ({ ok: true }))) => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { settings: { peopleRoutes: async () => view, setPeopleRoute: set } } }))
+    return set
+  }
+  it('shows each project\'s organization agent, whether it answers, and where the link came from; a choice is saved', async () => {
+    const set = routesStub({ respondersRead: true, pms: [{ id: PM, name: 'acme-pm', live: false }],
+      rows: [{ project: { id: APP, name: 'acme-site' }, organization: 'acme-pm', pm: { id: PM, name: 'acme-pm', live: false }, source: 'found', by: { business: null, owner: 'acme-org' } }] })
+    show(<PeopleRoutesSetting />)
+    await waitFor(() => expect(screen.getByText('acme-site')).toBeTruthy())
+    expect(screen.getByText(en['settings.peopleRoutes.src.found'])).toBeTruthy()
+    expect(screen.getByText(en['settings.peopleRoutes.waits'])).toBeTruthy()
+    expect(screen.getByText(en['settings.peopleRoutes.by'].replace('{business}', en['settings.peopleRoutes.unset']).replace('{owner}', 'acme-org'))).toBeTruthy()
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'off' } })
+    await waitFor(() => expect(set).toHaveBeenCalledWith(APP, { off: true }))
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: PM } })
+    await waitFor(() => expect(set).toHaveBeenCalledWith(APP, { target: PM }))
+  })
+  it('a fresh install names no organization: it says what to connect, in Russian too', async () => {
+    routesStub({ respondersRead: true, pms: [], rows: [] })
+    render(<I18nProvider locale="ru"><PeopleRoutesSetting /></I18nProvider>)
+    await waitFor(() => expect(screen.getByText(ru['settings.peopleRoutes.noAgent'] as string)).toBeTruthy())
+    expect(screen.queryByRole('table')).toBeNull()
   })
 })

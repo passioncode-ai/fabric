@@ -11,6 +11,16 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).
 
+- **Where «Нужны вы» goes in Telegram is shown and chosen in Settings, and Fabric names no organization of its own.**
+  The setting «Присылать вопросы в Telegram через агента организации» said neither which organization, which agent nor
+  which Telegram, and its hint named the owner's agent. Fabric now starts with no route; under the switch, «Куда уходят
+  вопросы» lists every project with its organization agent, whether that agent answers now and where the link came
+  from, and lets the person pick an agent or «Не отправлять в Telegram» per project. A machine that already had a routes
+  file keeps every route (`shared/peopleAsk.ts#routeTable`; the owner's audit,
+  [docs/reports/2026-11-20-owner-hardcode-audit](docs/reports/2026-11-20-owner-hardcode-audit/README.md)).
+- **The built app is checked for anything of one machine.** `scripts/check-build-private.mjs` reads the built bundles
+  (comments included) for a projects-root path, a vault slot, a home path, the organization's private terms and the
+  values of this machine's own Fabric settings, and prints only where a finding is.
 - **A session the CEO starts gets its task, and the CEO hears whether it did.** A session started with a task sat 40
   minutes on an empty prompt, and nothing said why: the first instruction's end was dropped unless it threw. Now a
   readiness that lapsed waits one more window (still never a blind write), a long paste left waiting in Claude Code's

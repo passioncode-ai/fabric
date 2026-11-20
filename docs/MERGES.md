@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-20 · `FABRIC-OWNER-HARDCODE` · audit/owner-hardcode → main · fast-forward (wave 1 of the owner's audit, toward 0.3.27)
+- files: `apps/desktop/src/shared/peopleAsk.ts` (+ test), `apps/desktop/src/main/{peopleAskRun,boardCycle,index}.ts`, `apps/desktop/test/people-ask-run.test.mjs`, `apps/desktop/src/shared/{types,ipcWindowPolicy}.ts`, the preload, `renderer/src/launch/SettingsScreen.tsx`, `i18n/{en,ru}.ts`, comments in `main/{hub,analytics,agentSyncLeases,boardDispatchRun,boardDispatchWiring}.ts` and `shared/{appSettings,boardDispatch,ceoAgent}.ts`, `scripts/check-build-private.mjs` (+ test, `.allow`, in `scripts/ci.sh`), the people-ask spec §3, the report `docs/reports/2026-11-20-owner-hardcode-audit`
+- conflicts: none
+- summary: the owner's order of 2026-11-20: nothing of his ships. No built-in organization route (`DEFAULT_PEOPLE_ROUTES` empty; his machine keeps its routes file); Settings shows and changes where each project's questions go in Telegram; a gate reads the BUILT app for paths, vault slots and this machine's own settings values
+
 ### 2026-11-20 · `CEO-BOARD-UX` · feat/ceo-board-ux → main · fast-forward (toward 0.3.27)
 - files: `apps/desktop/src/main/{consoleOpen,deliveryQueue,pty,ceoTools,agentSurface,index}.ts`, `apps/desktop/src/shared/ceoAgent.ts`, tests `console-open`, `delivery-queue` (new, in `scripts/ci.sh`), `ceo-agent`, `agent-surface`; CHANGELOG `0.3.27 (unreleased)`, SCN-183 amendment, the product model, the map, mockup coverage and previews; `docs/evidence/plans/2026-11-20-ceo-board-ux/` (the owner's words, spec, plan, eight mockups, the modules review, an ADR draft, the research)
 - conflicts: none
