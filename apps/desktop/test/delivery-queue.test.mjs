@@ -62,3 +62,11 @@ test('a quiet console is still written on the settle rule, before busyAfterMs', 
   assert.ok(Date.now() - t0 < 500)
   await after(1)
 })
+
+test('0.3.27 review DO-6: a first instruction (quietOnly) is never written while a start-up still prints', async () => {
+  const h = spinning({ settleMs: 40, maxWaitMs: 400, busyAfterMs: 60 })
+  const r = await h.q.enqueue('the first task', { quietOnly: true })
+  h.stop()
+  assert.deepEqual(r, { state: 'failed_before_write', reason: 'readiness_timeout' })
+  assert.equal(h.writes.length, 0)
+})

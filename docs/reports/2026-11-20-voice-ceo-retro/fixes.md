@@ -13,21 +13,30 @@ agreed with that session on 2026-11-20 (agent-sync lease `VOICE-RETRO`, a direct
 this branch does not touch `consoleOpen.ts#deliverFirst`, the shell refusal in `fabric_ceo_session_start` or
 `first_task`.
 
-Every finding below: where it was checked in the code, the test that catches it (each watched red with its mechanism
-removed, R-006), and the fix. Tests: `apps/desktop/test/voice-retro.test.mjs` (14 tests) and
+Every finding below: where it was checked in the code, the test that catches it, and the fix. Tests:
+`apps/desktop/test/voice-retro.test.mjs` (14 tests for the retro, 14 more for the 0.3.27 review's iteration 1) and
 `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts` («voice retro finding 1»).
+
+**Watched red (R-006).** Each mechanism below was removed in turn and its test went red (`ℹ fail 1`), then put back:
+the voice's input limit (`if (recent.length >= limit)`, findings 2-3); the journal's redaction (`clean` without
+`redact`, finding 1); the sound tier of `findProject` (finding 4); the CEO start's scratch refusal (finding 5); the
+voice door's `ask_ceo` refusal for the CEO's console (finding 6); `assistantSince`'s `at < since` (finding 7). For the
+review's iteration 1: the confirm of a sound match (UX-1), the worktree-only work folders (ER-1), the reply window after
+the CEO's own record of the ask (UX-14), the field-by-field redaction of tool payloads (DA-1), the scratch check before
+a remote attach (DA-7), and `written_unconfirmed` in `consoleOpen.ts#deliverFirst` (PL-2, `console-open.test.mjs`).
+Findings 8 and 10 were not planted: their tests assert answers (`near`, `stop`, the four tools) no other code gives.
 
 | # | Finding | State | Code | Test |
 |---|---|---|---|---|
-| 1 | The call is not kept | fixed | `main/ceoVoiceJournal.ts`, `renderer/src/ceo/voiceCall.ts#createCall` | «finding 1: …» (2), voiceCall «voice retro finding 1» |
+| 1 | The call is not kept | fixed; a window view of older calls from disk: CO-605 (4) | `main/ceoVoiceJournal.ts`, `renderer/src/ceo/voiceCall.ts#createCall` | «finding 1: …» (2), voiceCall «voice retro finding 1» |
 | 2, 3 | The voice works by hand in a shell | fixed | `main/ceoVoice.ts#voiceInstructions`, `main/ceoTools.ts` (`VOICE_INPUTS`) | «findings 2, 3: …» (2) |
-| 4 | Project names heard by voice | fixed | `shared/heardName.ts`, `shared/ceoAgent.ts#findProject`, `main/ceoProjectAliases.ts` | «finding 4: …» (3), «heard names …» |
+| 4 | Project names heard by voice | fixed; a tie answers a choice of three, still `ok: false` so no tool acts on a guess, and never counted as a failed guess | `shared/heardName.ts`, `shared/ceoAgent.ts#findProject`, `main/ceoProjectAliases.ts` | «finding 4: …» (3), «heard names …» |
 | 5 | Junk in the project registry | rule fixed, 18 records archived, the rest CO-605 (1) | `shared/scratchFolder.ts`, `main/sessionEnroll.ts`, `main/board.ts` | «finding 5: …» (2) |
 | 6 | The voice types into the CEO's console | fixed | `main/ceoTools.ts` (`input`, voice door) | «finding 6: …» |
 | 7 | The CEO's answer does not come back | fixed: `ceo_reply` | `main/ceoVoiceTools.ts#assistantSince` | «finding 7: …» |
 | 8 | A burst of the same refused call | fixed | `main/ceoTools.ts` (`notOne`, `VOICE_REPEATS`) | «finding 8: …» |
 | 9 | A start loses its first task | 8343a070, `3dbbe573` | `main/consoleOpen.ts#deliverFirst` | `console-open.test.mjs` |
-| 10 | Missing voice tools | fixed for five of six; one delegated | `main/ceoVoiceTools.ts`, `main/ceoTools.ts` (`task`, `alias`, `launches.via`) | «finding 10: …» |
+| 10 | Missing voice tools | five of six; board messages searched, tasks not: CO-605 (3); a message to the owner delegated: CO-605 (2) | `main/ceoVoiceTools.ts`, `main/ceoTools.ts` (`task`, `alias`, `launches.via`) | «finding 10: …» |
 
 ## 1. The call journal
 
@@ -73,9 +82,11 @@ sessions working there, words, then sound; a match by sound says `heard`, and th
 
 ## 5. The project registry
 
-Checked: 137 active projects on 2026-11-20; 18 had their folder in `~/.cache`, `/private/tmp` or the system's
-temporary folder (probes and scratch clones of agents), 13 in agents' worktree folders, and two names twice
-(`fabric-agents-database` in `~/DATA` and in `~/.cache`, `research-agent` in two folders). Enrollment made a project of
+Checked on 2026-11-20 with `select name, repo_path from projects where status='active' and archived_at is null` on the
+local stack: 137 active projects; 18 had their folder in `~/.cache`, `/private/tmp` or the system's temporary folder
+(probes and scratch clones of agents), 13 in agents' worktree folders, and two names twice (one in `~/DATA` and in
+`~/.cache`, another in two folders). No project's folder was the home folder: the call's «~ names several projects»
+came from a match by words, every folder starting with the home folder. Enrollment made a project of
 any plain folder not right under the home folder (`sessionEnroll.ts#resolveAgentFolder`).
 
 Fix: `shared/scratchFolder.ts#isScratchFolder` (a cache or temporary folder or one inside it). Enrollment refuses such a
@@ -83,14 +94,18 @@ folder with `SCRATCH_FOLDER_MESSAGE`, and the agent's `fabric-mcp` waits longer 
 (`fabricMcp.ts#LASTING_SCRATCH`); the CEO's start refuses it; a lookup prefers the copy outside one. A folder an existing
 project already holds is still answered by that project.
 
-Archived (journal `project.archived@1`, actor this session, the owner's words as the reason; folders on disk not
-touched): the 18 records in caches and temporary folders. Each had at most its automatic «Познакомиться с проектом»
-task open. Afterwards no active project has its folder in a cache or temporary folder (`select count(*) … = 0`).
+Archived on this computer only, by appending `project.archived@1` through `append_event` (actor: this session, kind
+agent; reason: the owner's order to remove only cache and temporary records; folders on disk not touched). Fabric has
+no door that archives a project (CO-574), and nothing in the product brings one back. Receipt: journal seqs 214331 to
+214348, 18 events, projects `5d15ab84`, `aaa422cb`, `82807ce6`, `b997f093`, `873895a0`, `20cfc0c6`, `30360255`,
+`c0107261`, `e6e98108`, `dddbcd1d`, `b37d8b24`, `77eccbb5`, `6ef2ae91`, `62f69abc`, `43799c23`, `57159828`,
+`700d99d5`, `471888e0`. Each had at most its automatic onboarding task open, left as it was under the archived project.
+Afterwards `select count(*) from projects where status='active' and (repo_path like '/Users/%/.cache/%' or repo_path
+like '/private/%' or repo_path like '/tmp%')` printed 0, and 119 projects were active. Another install keeps its own.
 
-For the owner to decide (not touched, worktrees and duplicates): `b276-scratch`, `b337-neutral`, `board-r28`, `ceo`
-(a CEO acceptance copy), `fabric-board-25a11adb`, `fabric-board-client`, `fd-242-probe`, `neutral-1111`,
-`pc-board-7809`, `playsing-figma-inter`, `sound-engine-fix-swarm-a`, `tools`, `ws`, all under `~/DATA/_worktrees/`;
-and `research-agent` twice (`~/DATA/research-agent`, `~/DATA/0xDEV/research-agent`).
+For the owner to decide (not touched): 13 projects whose folder is an agent's worktree under `~/DATA/_worktrees/`, and
+one name held by two projects in two folders. The list with names went to the owner privately, not into this public
+repository (CO-605 (1)).
 
 ## 6-8. The CEO's console, its answer and refusals
 

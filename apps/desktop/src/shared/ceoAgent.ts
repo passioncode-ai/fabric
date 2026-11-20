@@ -312,24 +312,39 @@ export type ProjectLookup<P> =
  * guesses; none answers `missing` with the nearest names.
  */
 export function findProject<P extends NamedProject>(projects: readonly P[], query: string, folders: readonly WorkFolder[] = []): ProjectLookup<P> {
-  const q = String(query ?? '').trim()
+  let q = String(query ?? '').trim()
   if (!q) return { missing: true, near: [] }
   const byId = projects.find((p) => p.id === q)
   if (byId) return { found: byId }
   const label = (p: P): string => p.repo_path ? `${p.name} (${p.repo_path})` : p.name
+  // A choice read back as offered, «name (folder)» (0.3.27 review, UX-3): the folder in it decides.
+  const offered = /^(.+?)\s+\((\/[^()]+)\)$/.exec(q)
+  if (offered) {
+    const folder = offered[2]!.replace(/\/+$/, '')
+    const one = projects.find((p) => p.repo_path && p.repo_path.replace(/\/+$/, '') === folder)
+    if (one) return { found: one }
+    q = offered[1]!.trim()
+  }
   if (q.startsWith('/') || q.startsWith('~')) {
     // A folder: the project that holds it, the deepest first (a subfolder or a worktree under the project's own folder).
     // Never a match by words: every project's folder starts with the home folder (2026-11-20: «/Users/…» named 30).
     const folder = q.replace(/\/+$/, '')
     const holds = (root: string): boolean => folder === root || folder.startsWith(root + '/')
-    const byFolder = projects.filter((p) => p.repo_path && holds(p.repo_path.replace(/\/+$/, '')))
+    // A project whose folder is too broad (a home folder, a folder right under it, one holding other projects) holds
+    // no folder for the CEO (0.3.27 review, DO-1): it would take every new folder under home.
+    const broad = (root: string): boolean => /^\/(Users|home)\/[^/]+(\/[^/]+)?$/.test(root) || root === '/'
+      || projects.some((o) => o.repo_path && o.repo_path.replace(/\/+$/, '').startsWith(root + '/'))
+    const byFolder = projects.filter((p) => p.repo_path && !broad(p.repo_path.replace(/\/+$/, '')) && holds(p.repo_path.replace(/\/+$/, '')))
       .sort((a, b) => b.repo_path!.length - a.repo_path!.length)
     if (byFolder.length) return { found: byFolder[0]! }
     const worked = folders.filter((f) => holds(f.path.replace(/\/+$/, ''))).sort((a, b) => b.path.length - a.path.length)
     const owner = worked.length ? projects.find((p) => p.id === worked[0]!.projectId) : undefined
     if (owner) return { found: owner }
-    const broad = !projects.some((p) => p.repo_path && p.repo_path.startsWith(folder + '/')) ? undefined : 'too-broad' as const
-    return { missing: true, near: [], ...(broad ? { why: broad } : {}) }
+    // Too broad: the home folder or a root, or a folder holding two projects or more (0.3.27 review, ER-9: one registered
+    // worktree under a folder does not make that folder too broad).
+    const below = projects.filter((p) => p.repo_path && !isCopyFolder(p.repo_path) && p.repo_path.startsWith(folder + '/')).length
+    const tooBroad = /^\/(Users|home)\/[^/]+$/.test(folder) || folder === '' || below >= 2 ? 'too-broad' as const : undefined
+    return { missing: true, near: [], ...(tooBroad ? { why: tooBroad } : {}) }
   }
   // 2026-11-20: a name heard by voice is «sound engine» for «sound-engine»; spaces, hyphens and underscores read alike.
   const low = nameKey(q)
@@ -347,7 +362,10 @@ export function findProject<P extends NamedProject>(projects: readonly P[], quer
   // An agent's worktree folder named by its last part («sound-engine-digest-runner»): the project that works there.
   if (exact.length === 0 && folderName.length === 0) {
     const tail = nameKey(q.replace(/\/+$/, '').split('/').pop() ?? '')
-    const owners = new Set(folders.filter((f) => nameKey(f.path.replace(/\/+$/, '').split('/').pop() ?? '') === tail).map((f) => f.projectId))
+    const tailOf = (f: WorkFolder): string => nameKey(f.path.replace(/\/+$/, '').split('/').pop() ?? '')
+    let owners = new Set(folders.filter((f) => tailOf(f) === tail).map((f) => f.projectId))
+    // «digest-runner» for the worktree folder «sound-engine-digest-runner» (0.3.27 review, UX-5): its last words.
+    if (owners.size === 0 && tail.length >= 4) owners = new Set(folders.filter((f) => tailOf(f).endsWith(`-${tail}`)).map((f) => f.projectId))
     if (owners.size === 1) { const owner = projects.find((p) => p.id === [...owners][0]); if (owner) return { found: owner } }
   }
   const words = q.toLowerCase().split(/[\s_-]+/).filter(Boolean)
@@ -366,7 +384,17 @@ export function findProject<P extends NamedProject>(projects: readonly P[], quer
     if (tier.length === 1) return { found: tier[0]!, heard: true }
     return { ambiguous: tier.slice(0, 10).map(label) }
   }
-  return { missing: true, near: ranked.slice(0, 3).map((r) => r.project.name) }
+  // Only names near enough to be what was meant, each once (0.3.27 review, UX-5): a far name invites a guess.
+  const near = [...new Set(ranked.filter((r) => r.distance <= NEAR_DISTANCE).map((r) => r.project.name))].slice(0, 3)
+  return { missing: true, near }
+}
+
+/** How far a name may sound from the query and still be offered as near. */
+const NEAR_DISTANCE = 0.5
+
+/** A copy of a project (an agent's worktree, a cache or temporary folder): another project of the same name wins. */
+export function isCopyFolder(folder: string | null): boolean {
+  return !!folder && (WORKTREE_FOLDER.test(folder) || isScratchFolder(folder))
 }
 
 /** Projects ranked by how close each sounds to the query: tier 0 its whole name, folder or alias, tier 1 a run of its words. */

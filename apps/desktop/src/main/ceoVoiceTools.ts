@@ -1,4 +1,4 @@
-// #region ceo-voice-tools — docs: docs/reports/2026-11-20-voice-ceo-retro/fixes.md#6-8-the-ceos-console-its-answer-and-refusals
+// #region ceo-voice-tools — docs: docs/reports/2026-11-20-voice-ceo-retro/fixes.md#10-missing-voice-tools
 /**
  * The voice call's own tools, beside the session tools it shares with the CEO's console (`ceoTools.ts`) and ask_ceo
  * (voice CEO retro 2026-11-20, findings 7 and 10):
@@ -67,23 +67,31 @@ export interface VoiceToolDeps {
   launches(): Promise<Launch[]>
   /** When the previous call ended (the newest finished call before this one), ISO; null when none is kept. */
   previousCallEnd(): string | null
-  projectName(projectId: string): string | null
+  /** Project names by id, read once per recap (0.3.27 review, UX-11, DA-6, DO-8); an empty map leaves folder names. */
+  projectNames(): Promise<Map<string, string>>
 }
 
 type Answer = Record<string, unknown>
 
-/** The CEO's words after `since`: the text of its assistant turns, in order, tools named but not their output. */
+/** How long before the ask the CEO's own record of the request may be stamped (clocks and the console's write). */
+const ASK_SLACK_MS = 2000
+
+/** The CEO's words in answer to the ask made at `since`: the text of its assistant turns after the first person's turn
+ *  recorded at or after the ask (0.3.27 review, UX-14: a CEO busy at the ask still finishes the previous answer, which is
+ *  not this one), in order, tools named but not their output. No person's turn yet: no answer yet. */
 export function assistantSince(jsonl: string, since: number): { text: string; turns: number; lastAt: number | null } {
   const parts: string[] = []
   let turns = 0
   let lastAt: number | null = null
+  let asked = false
   for (const line of jsonl.split('\n')) {
     if (!line.trim()) continue
     let row: { type?: unknown; timestamp?: unknown; message?: { content?: unknown } }
     try { row = JSON.parse(line) } catch { continue /* a line cut while being written */ }
-    if (row.type !== 'assistant') continue
     const at = typeof row.timestamp === 'string' ? Date.parse(row.timestamp) : NaN
-    if (!Number.isFinite(at) || at < since) continue
+    if (!Number.isFinite(at) || at < since - ASK_SLACK_MS) continue
+    if (row.type === 'user') { asked = true; continue }
+    if (row.type !== 'assistant' || !asked) continue
     const content = row.message?.content
     const text = typeof content === 'string' ? content
       : Array.isArray(content) ? (content as Array<Record<string, unknown>>).filter((c) => c?.type === 'text' && typeof c.text === 'string').map((c) => c.text as string).join(' ') : ''
@@ -104,10 +112,13 @@ export function createVoiceTools(deps: VoiceToolDeps) {
     if (asked === null) return { ok: false, reason: 'nothing was handed to the CEO in this call: use ask_ceo first' }
     const waitS = typeof a.wait_seconds === 'number' && Number.isFinite(a.wait_seconds) ? Math.max(0, Math.min(CEO_REPLY_MAX_S, Math.round(a.wait_seconds))) : CEO_REPLY_WAIT_S
     const until = now() + waitS * 1000
+    if (deps.ceoLastActivity() === null) return { ok: false, reason: 'the CEO console is not running: its answer cannot be read now', next: 'tell the owner; the CEO window starts the console again' }
     for (;;) {
       const jsonl = await deps.ceoTranscript().catch(() => null)
       const last = deps.ceoLastActivity()
       const quiet = last !== null && now() - last >= CEO_QUIET_MS
+      // Printed since the ask: on another runner, quiet alone would read a CEO still thinking as answered (ER-6).
+      const printedSinceAsk = last !== null && last > asked
       if (jsonl !== null) {
         const r = assistantSince(jsonl, asked)
         if (r.turns > 0 && quiet) return { ok: true, state: 'answered', answer: redact(r.text).text.slice(-3000), turns: r.turns }
@@ -116,9 +127,9 @@ export function createVoiceTools(deps: VoiceToolDeps) {
             ? { ok: true, state: 'still_working', so_far: redact(r.text).text.slice(-1500), next: 'tell the owner the CEO is still on it; call ceo_reply again in a while' }
             : { ok: true, state: 'still_working', next: 'the CEO has not answered yet: tell the owner it is on it, and call ceo_reply again in a while' }
         }
-      } else if (now() >= until || quiet) {
+      } else if (now() >= until || (quiet && printedSinceAsk)) {
         // No transcript (the CEO runs on another runner): its screen is what it said.
-        return { ok: true, state: quiet ? 'answered' : 'still_working', screen: deps.ceoScreen().slice(-3000), note: 'read from the CEO console\'s screen' }
+        return { ok: true, state: quiet && printedSinceAsk ? 'answered' : 'still_working', screen: deps.ceoScreen().slice(-3000), note: 'read from the CEO console\'s screen' }
       }
       await sleep(POLL_MS)
     }
@@ -150,7 +161,8 @@ export function createVoiceTools(deps: VoiceToolDeps) {
     const since = deps.previousCallEnd()
     const sinceMs = since ? Date.parse(since) : now() - 24 * 3_600_000
     const all = await deps.launches().catch(() => [] as Launch[])
-    const name = (l: Launch): string => deps.projectName(l.projectId) ?? l.cwd.split('/').pop() ?? l.projectId
+    const names = await deps.projectNames().catch(() => new Map<string, string>())
+    const name = (l: Launch): string => names.get(l.projectId) ?? l.cwd.split('/').pop() ?? l.projectId
     const started = all.filter((l) => Date.parse(l.startedAt) >= sinceMs).slice(0, 20)
       .map((l) => ({ session_id: l.sessionId, project: name(l), runner: l.optionId, by: l.by, via: l.via, reason: l.reason ? redact(l.reason).text.slice(0, 200) : null, at: l.startedAt }))
     const ended = all.filter((l) => l.endedAt && Date.parse(l.endedAt) >= sinceMs).slice(0, 20)

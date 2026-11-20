@@ -16,7 +16,10 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
   readiness that lapsed waits one more window (still never a blind write), a long paste left waiting in Claude Code's
   box («[Pasted text #1 …]», no turn started) gets one more Enter, and every end is written to the operations log as
   `terminal.first-instruction`. `fabric_ceo_session_start` waits for it (at most 70 s) and answers `first_task`:
-  delivered, resubmitted, not delivered with the next step, or pending (`main/consoleOpen.ts#deliverFirst`; SCN-183).
+  delivered (Claude Code started its turn), resubmitted, written but unconfirmed (no turn started within two looks: the
+  CEO reads the screen before it relies on it), not delivered with the next step, or pending
+  (`main/consoleOpen.ts#deliverFirst`; SCN-183). Why the two sessions of 2026-11-20 sat empty is not proven; a trust or
+  update screen taking the text is the lead, carried in CO-606.
 - **A message to the CEO while it works is no longer lost.** 5 of the owner's last 20 messages to the CEO timed out on
   2026-11-19 and 20: a working Claude Code prints its spinner without the 400 ms quiet the delivery waited for. A
   message that waited 3 s is now written into a working Claude Code, which queues it and answers after its turn
@@ -33,8 +36,8 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
   per credential, with a short digest of what was sent (never the credential) and the client's User-Agent
   (`main/agentSurface.ts#sayUnknownCredential`).
 
-The owner, the same day: «разбери общение с голосовым агентом твоим … исправим все баги и недоработки и недостающие
-инструменты добавим» ([the voice retro](docs/reports/2026-11-20-voice-ceo-retro/README.md), [its fixes](docs/reports/2026-11-20-voice-ceo-retro/fixes.md)).
+The owner, the same day (paraphrased): review the calls with the voice, fix every defect and add the missing tools
+([the voice retro](docs/reports/2026-11-20-voice-ceo-retro/README.md), [its fixes](docs/reports/2026-11-20-voice-ceo-retro/fixes.md)).
 
 - **Every voice call is kept on this computer.** What the owner said, what the voice answered, every tool it called
   with its arguments and answer, the call's length and price: one file a call in the CEO's folder (`ceo/calls/`,
@@ -49,8 +52,14 @@ The owner, the same day: «разбери общение с голосовым �
   (`shared/heardName.ts`, `fabric_ceo_project_alias`).
 - **The voice reads the CEO's answer aloud** (`ceo_reply`), and has four tools more: `machine_status`, `board_search`,
   `recap` (what changed since the previous call) and `session_task` (did a started session take its task).
+- **The CEO's console gets the same doors.** `fabric_ceo_session_task`, `fabric_ceo_project_alias` (keep or forget a
+  name the owner uses; another project's name is refused) and `fabric_ceo_launches` by `via` (`voice` for the voice's
+  own starts). A name matched by sound is asked back before a start; a folder inside a project or an agent's worktree
+  is refused with where to go, since the console would open in the project's own folder; a tie answers three choices,
+  each read back as offered.
 - **A cache or temporary folder never becomes a project.** An agent started in `~/.cache` or a temporary folder is
-  refused, and 18 such projects left by probes were archived (their folders untouched).
+  refused. Projects made there before stay until archived by hand: on the owner's Mac, 18 left by probes were archived
+  on 2026-11-20 (their folders untouched); other machines keep theirs (CO-605).
 
 **Upgrading.** No schema step. Nothing to set. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
 days) and `<userData>/ceo/project-aliases.json` (0600).

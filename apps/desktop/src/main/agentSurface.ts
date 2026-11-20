@@ -747,6 +747,8 @@ export class AgentSurface {
     const now = Date.now()
     const last = this.unknownSaid.get(key)
     if (last !== undefined && now - last < UNKNOWN_SAID_EVERY_MS) return
+    // Evicted by last use, not first insertion (0.3.27 review, ER-13).
+    this.unknownSaid.delete(key)
     this.unknownSaid.set(key, now)
     if (this.unknownSaid.size > 256) this.unknownSaid.delete(this.unknownSaid.keys().next().value!)
     const ua = String(req.headers['user-agent'] ?? '').replace(/[^\x20-\x7e]/g, '').slice(0, 80)
@@ -847,7 +849,8 @@ export class AgentSurface {
       if (token && !leaving && hub && (await this.ingress.handle(token, hub, req, res, ctx, attempt))) return
       // No credential, no scope, no surface. The absence of a token is not a
       // reason to fall back to something broader.
-      this.sayUnknownCredential(token, req)
+      // A leave (DELETE) skips the hub's door, so its credential is not known to be unknown (0.3.27 review, ER-13).
+      if (!leaving) this.sayUnknownCredential(token, req)
       AgentSurface.refuse(res, 401, 'unknown or revoked credential', {}, attempt)
       return
     }

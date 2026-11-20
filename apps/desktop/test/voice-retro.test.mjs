@@ -8,9 +8,9 @@ import path from 'node:path'
 import { findProject } from '../src/shared/ceoAgent.ts'
 import { heardClose, heardKeys, nameKeys, soundKey } from '../src/shared/heardName.ts'
 import { isScratchFolder } from '../src/shared/scratchFolder.ts'
-import { createCeoOperations, VOICE_INPUTS, VOICE_REPEATS } from '../src/main/ceoTools.ts'
+import { createCeoOperations, ceoVoiceTools, VOICE_INPUTS, VOICE_REPEATS } from '../src/main/ceoTools.ts'
 import { voiceInstructions, ASK_CEO_TOOL } from '../src/main/ceoVoice.ts'
-import { createVoiceJournal, readCall, CALL_BYTES, KEEP_DAYS } from '../src/main/ceoVoiceJournal.ts'
+import { createVoiceJournal, readCall, CALL_BYTES, KEEP_DAYS, KEEP_CALLS } from '../src/main/ceoVoiceJournal.ts'
 import { assistantSince, createVoiceTools, VOICE_TOOLS } from '../src/main/ceoVoiceTools.ts'
 import { createAliasStore, MAX_PER_PROJECT } from '../src/main/ceoProjectAliases.ts'
 import { resolveAgentFolder, SCRATCH_FOLDER_MESSAGE } from '../src/main/sessionEnroll.ts'
@@ -112,7 +112,7 @@ function ops(over = {}) {
     transcriptRoots: [],
     saveAlias: async (id, a) => { (aliases[id] ??= []).push(a); return aliases[id] },
     scratch: over.scratch ?? (() => false),
-    launches: async () => [],
+    launches: async () => over.launches ?? [],
     ...(over.firstTask ? { firstTask: over.firstTask } : {})
   }
   return { ops: createCeoOperations(deps), writes, records }
@@ -178,6 +178,10 @@ test('finding 4: a worktree folder is found through its project, the home folder
   const home = findProject(ps, '/Users/example')
   assert.equal(home.missing, true)
   assert.equal(home.why, 'too-broad')
+  // A project whose folder IS the home folder holds no new folder under it (0.3.27 review, DO-1).
+  const withHome = [...ps, { id: 'home', name: 'home', repo_path: '/Users/example' }]
+  assert.equal(findProject(withHome, '/Users/example/DATA/newthing').missing, true)
+  assert.equal(findProject(withHome, '/Users/example/DATA/fabric/apps').found.id, 'fab')
   assert.equal(findProject(ps, 'fabric-agents-database').found.id, 'db')
 })
 
@@ -196,7 +200,7 @@ test('finding 8: a missed name answers the nearest names, several ask for a choi
   const near = await o.ops.run('launches', { project: 'digest' }, 'voice')
   assert.equal(near.ok, false)
   assert.ok(Array.isArray(near.near) && near.near.length > 0 && near.near.length <= 3, JSON.stringify(near))
-  assert.match(near.next, /nearest|projects/)
+  assert.match(near.next, /near names|projects/)
   const several = await o.ops.run('start', { project: 'fabr', task: 'go', reason: 'the owner asked' }, 'voice')
   assert.equal(several.ok, false)
   assert.ok(several.choices?.length >= 2 && several.choices.length <= 3, JSON.stringify(several))
@@ -204,6 +208,12 @@ test('finding 8: a missed name answers the nearest names, several ask for a choi
   let last
   for (let i = 0; i < VOICE_REPEATS; i++) last = await o.ops.run('launches', { project: `zz${i}` }, 'voice')
   assert.match(last.stop, /stop trying/)
+  // A tie asks the owner; asking is no failed guess, so three ties never say stop (0.3.27 review, PL-5).
+  const ties = ops()
+  let tie
+  for (let i = 0; i < VOICE_REPEATS + 1; i++) tie = await ties.ops.run('start', { project: 'fabr', task: 'go', reason: 'the owner asked' }, 'voice')
+  assert.equal(tie.stop, undefined)
+  assert.ok(tie.choices.length >= 2)
 })
 
 // ── finding 5: caches and temporary folders are no projects ──────────────────
@@ -243,7 +253,7 @@ test('finding 7: ceo_reply waits for the CEO\'s answer after the ask, says still
   ].map((r) => JSON.stringify(r)).join('\n')
   assert.deepEqual(assistantSince(jsonl, asked).turns, 1)
   let t = asked + 10_000
-  const base = { now: () => t, sleep: async (ms) => { t += ms }, ceoScreen: () => 'screen', machine: () => ({}), consolesRunning: () => 1, boardSearch: async () => ({ ok: true, hits: [], more: false }), launches: async () => [], previousCallEnd: () => null, projectName: () => null }
+  const base = { now: () => t, sleep: async (ms) => { t += ms }, ceoScreen: () => 'screen', machine: () => ({}), consolesRunning: () => 1, boardSearch: async () => ({ ok: true, hits: [], more: false }), launches: async () => [], previousCallEnd: () => null, projectNames: async () => new Map() }
   const none = createVoiceTools({ ...base, askedAt: () => null, ceoTranscript: async () => jsonl, ceoLastActivity: () => t })
   assert.equal((await none.run('ceo_reply', {})).ok, false)
   const quiet = createVoiceTools({ ...base, askedAt: () => asked, ceoTranscript: async () => jsonl, ceoLastActivity: () => asked + 5000 })
@@ -270,7 +280,7 @@ test('finding 10: the voice\'s tools: machine, board, recap since the last call,
       { sessionId: 'o1', projectId: 'p', cwd: '/d/p', optionId: 'shell', by: 'ceo', via: 'voice', reason: 'r', startedAt: '2026-11-20T11:00:00Z', endedAt: '2026-11-20T13:20:00Z', end: 'stopped', exitCode: 0 }
     ],
     previousCallEnd: () => '2026-11-20T13:00:00Z',
-    projectName: (id) => (id === 'p' ? 'Proj' : null)
+    projectNames: async () => new Map([['p', 'Proj']])
   })
   const m = await tools.run('machine_status', {})
   assert.deepEqual([m.disk_free_gb, m.load_1min, m.fabric_consoles_running, m.claude_code_sessions], [120.5, 3.46, 3, 17])
@@ -308,4 +318,152 @@ test('heard names: keys stay stable for the cases the retro measured', () => {
   assert.ok(heardKeys('DC').includes(soundKey('dissy')))
   assert.ok(nameKeys('project-observatory', null).includes(soundKey('observatory')))
   assert.equal(heardClose(soundKey('диск'), soundKey('dissy')), false)
+})
+
+// ── the 0.3.27 review, iteration 1 ───────────────────────────────────────────
+
+test('UX-1, UX-9: a name matched by sound is asked back; nothing starts and no alias is kept on a guess', async () => {
+  const opened = []
+  const o = ops()
+  const r = await o.ops.run('start', { project: 'Диззи', task: 'run the audit', reason: 'the owner asked' }, 'voice')
+  assert.equal(r.ok, false)
+  assert.equal(r.understood_as, 'dissy')
+  assert.deepEqual(r.choices, ['dissy'])
+  assert.match(r.next, /call again with the name dissy/)
+  const exact = await o.ops.run('start', { project: 'dissy', task: 'run the audit', reason: 'the owner asked' }, 'voice')
+  assert.equal(exact.ok, true)
+  assert.equal((await o.ops.run('alias', { project: 'Диззи', alias: 'дизи', reason: 'the owner said so' })).ok, false)
+  void opened
+})
+
+test('UX-2: a folder inside a project or its worktree is not where a start would open: refused, never run elsewhere', async () => {
+  const o = ops({ launches: [{ cwd: '/d/_worktrees/sound-engine-digest-runner', projectId: 'se' }] })
+  const sub = await o.ops.run('start', { project: '/d/fabric/apps', task: 'go', reason: 'the owner asked' }, 'voice')
+  assert.equal(sub.ok, false)
+  assert.match(sub.reason, /belongs to the project fabric/)
+  const wt = await o.ops.run('start', { project: '/d/_worktrees/sound-engine-digest-runner', task: 'go', reason: 'the owner asked' }, 'voice')
+  assert.equal(wt.ok, false)
+  assert.match(wt.next, /session_resume/)
+})
+
+test('UX-3: a choice read back as offered, «name (folder)», picks that project', () => {
+  const ps = [{ id: 'r1', name: 'research-agent', repo_path: '/d/research-agent' }, { id: 'r2', name: 'research-agent', repo_path: '/d/x/research-agent' }]
+  const tie = findProject(ps, 'research-agent')
+  assert.ok(tie.ambiguous)
+  assert.equal(findProject(ps, tie.ambiguous[1]).found.id, 'r2')
+})
+
+test('UX-4: the project list hides a worktree copy when the project of its name is listed', async () => {
+  const o = ops()
+  const r = await o.ops.run('projects', { query: 'fabric-agents-database' }, 'voice')
+  assert.deepEqual(r.projects.map((p) => p.id), ['db'])
+  assert.equal(r.copies_hidden, 1)
+})
+
+test('UX-5, ER-1: a worktree is found by its last words; a far name is never «near»; a launch in home claims no folder', async () => {
+  const ps = [{ id: 'se', name: 'sound-engine', repo_path: '/Users/example/DATA/sound-engine' }, { id: 'notes', name: 'notes', repo_path: null }]
+  const folders = [{ path: '/Users/example/DATA/_worktrees/sound-engine-digest-runner', projectId: 'se' }]
+  assert.equal(findProject(ps, 'digest-runner', folders).found.id, 'se')
+  assert.deepEqual(findProject(ps, 'Банк').near, [])
+  const o = ops({ launches: [{ cwd: '/Users/example', projectId: 'fab' }] })
+  const r = await o.ops.run('sessions', { project: '/Users/example/DATA/other' }, 'voice')
+  assert.equal(r.ok, false, 'a launch that ran in the home folder makes no folder under home that project')
+})
+
+test('UX-6: by voice a start answers pending after a short wait and points at session_task', async () => {
+  const o = ops({ firstTask: () => new Promise(() => {}) })
+  const t0 = Date.now()
+  const r = await o.ops.run('start', { project: 'dissy', task: 'go', reason: 'the owner asked' }, 'voice')
+  assert.ok(Date.now() - t0 < 15_000)
+  assert.equal(r.first_task.state, 'pending')
+  assert.match(r.first_task.next, /session_task/)
+})
+
+test('UX-7: the voice\'s tool descriptions name its own tools, never the console\'s MCP names', () => {
+  for (const t of ceoVoiceTools()) assert.ok(!/fabric_ceo_/.test(t.description), t.name)
+})
+
+test('UX-9: another project\'s name is never an alias; a wrong alias can be forgotten', async () => {
+  const o = ops()
+  assert.match((await o.ops.run('alias', { project: 'dissy', alias: 'playsing', reason: 'the owner said so' })).reason, /name of the project playsing/)
+  assert.equal((await o.ops.run('alias', { project: 'dissy', alias: 'бэкенд', reason: 'the owner said so' })).ok, true)
+})
+
+test('UX-13, ER-9: «~» is the home folder; one worktree under a folder does not make it too broad', async () => {
+  const ps = [{ id: 'fab', name: 'fabric', repo_path: '/d/fabric' }, { id: 'wt', name: 'x', repo_path: '/d/fabric/.claude/worktrees/x' }]
+  assert.notEqual(findProject(ps, '/d').why, 'too-broad')
+  const o = ops()
+  const r = await o.ops.run('sessions', { project: '~' }, 'voice')
+  assert.equal(r.ok, false)
+})
+
+test('UX-14, ER-6: ceo_reply skips the end of a previous answer; a CEO console that does not run is said', async () => {
+  const asked = Date.parse('2026-11-20T13:00:00Z')
+  const jsonl = [
+    { type: 'assistant', timestamp: '2026-11-20T13:00:01Z', message: { content: [{ type: 'text', text: 'the end of the previous answer' }] } },
+    { type: 'user', timestamp: '2026-11-20T13:00:03Z', message: { content: 'clean the disk' } },
+    { type: 'assistant', timestamp: '2026-11-20T13:00:06Z', message: { content: [{ type: 'text', text: 'Cleaning now.' }] } }
+  ].map((r) => JSON.stringify(r)).join('\n')
+  const got = assistantSince(jsonl, asked)
+  assert.equal(got.text, 'Cleaning now.')
+  let t = asked + 20_000
+  const off = createVoiceTools({ now: () => t, sleep: async (ms) => { t += ms }, askedAt: () => asked, ceoTranscript: async () => jsonl, ceoScreen: () => '', ceoLastActivity: () => null, machine: () => ({}), consolesRunning: () => 0, boardSearch: async () => ({ ok: true, hits: [], more: false }), launches: async () => [], previousCallEnd: () => null, projectNames: async () => new Map() })
+  assert.match((await off.run('ceo_reply', {})).reason, /not running/)
+})
+
+test('DA-1, DA-2: a secret on a later line of a tool argument is cut; the cap counts bytes', () => {
+  const folder = mkdtempSync(path.join(tmpdir(), 'voice-journal-'))
+  const j = createVoiceJournal({ folder })
+  const call = j.begin({ voice: 'ara', usdPerMinute: 0.08 })
+  j.tool(call, 'session_start', { task: 'ls\nDATABASE_PASSWORD=hunter2xyz99\nok' }, { ok: true, said: 'ls\napi_key: abcdefghijklmnop1234' }, 1)
+  for (let i = 0; i < 400; i++) j.line(call, 'ceo', 'ж'.repeat(4000))
+  j.end(call, { minutes: 1, usd: 0.08, end: null })
+  const file = path.join(folder, 'calls', readdirSync(path.join(folder, 'calls'))[0])
+  const text = readFileSync(file, 'utf8')
+  assert.ok(!text.includes('hunter2xyz99') && !text.includes('abcdefghijklmnop1234'), 'redacted field by field')
+  assert.ok(statSync(file).size <= CALL_BYTES + 20_000, `bytes, not characters: ${statSync(file).size}`)
+})
+
+test('DA-3, ER-2, ER-4: a tool lands in the call that asked; a left call is ended with its measured length; orphans too', () => {
+  const folder = mkdtempSync(path.join(tmpdir(), 'voice-journal-'))
+  let t = Date.parse('2026-11-20T12:00:00Z')
+  const j = createVoiceJournal({ folder, now: () => t })
+  const a = j.begin({ voice: 'ara', usdPerMinute: 0.08 })
+  t += 60_000
+  j.line(a, 'person', 'hello')
+  t += 60_000
+  j.closeLeft(a)
+  const b = j.begin({ voice: 'ara', usdPerMinute: 0.08 })
+  j.tool(a, 'ceo_reply', {}, { ok: true }, 5)
+  const byCall = Object.fromEntries(j.list(5).map((c) => [c.call, c]))
+  assert.equal(byCall[a].tools, 1)
+  assert.equal(byCall[b].tools, 0)
+  assert.equal(byCall[a].minutes, 1, 'measured to its last line, never 0')
+  assert.equal(byCall[a].end, 'not-closed')
+  // A run that quit mid-call: the next start ends it.
+  const again = createVoiceJournal({ folder, now: () => t })
+  assert.equal(again.closeOrphans(), 1)
+  assert.equal(again.list(5).find((c) => c.call === b).end, 'not-closed')
+})
+
+test('DA-4: the folder keeps at most KEEP_CALLS calls, the oldest go first, at every new call', () => {
+  const folder = mkdtempSync(path.join(tmpdir(), 'voice-journal-'))
+  mkdirSync(path.join(folder, 'calls'), { recursive: true })
+  for (let i = 0; i < KEEP_CALLS + 3; i++) writeFileSync(path.join(folder, 'calls', `2026-11-01T00-00-${String(i).padStart(3, '0')}-0000Z-aaaaaaaa.jsonl`), '{}\n')
+  const j = createVoiceJournal({ folder })
+  j.begin({ voice: 'ara', usdPerMinute: 0.08 })
+  const left = readdirSync(path.join(folder, 'calls')).filter((n) => n.endsWith('.jsonl'))
+  assert.ok(left.length <= KEEP_CALLS + 1)
+  assert.ok(!left.includes('2026-11-01T00-00-000-0000Z-aaaaaaaa.jsonl'), 'the oldest went first')
+})
+
+test('DA-7, ER-10: a scratch clone of a known repository is not attached to its project', async () => {
+  const r = await resolveAgentFolder('/private/tmp/clone-of-fabric', {
+    admittedFolders: async () => [{ projectId: 'fab', path: '/Users/example/DATA/fabric', remoteKey: 'github.com/acme/fabric' }],
+    realpath: (f) => f, gitCommonDir: () => null, home: '/Users/example',
+    remoteOf: async () => 'git@github.com:acme/fabric.git', gitTopLevel: async (f) => f,
+    inspectFolder: async () => ({ git: true }), projectIdForFolder: () => 'pid', scratch: (f) => isScratchFolder(f)
+  })
+  assert.equal(r.ok, false)
+  assert.equal(r.message, SCRATCH_FOLDER_MESSAGE)
 })

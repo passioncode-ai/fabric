@@ -58,7 +58,12 @@ missing tools ([the retro](README.md)). Session 9cda1c0f.
 - `bash scripts/ci.sh fast`: see the ledger of the release (the first run failed on stale mockup coverage, rebuilt
   in `cea84623`).
 
-## The exact next task
+## Since then
+
+`feat/ceo-board-ux` landed on `main` (`37d69d6a`) and this branch merged it; the release of 0.3.27 is under way. Its
+ledger is the entry point from here: `docs/evidence/plans/2026-11-20-release-0327-verification.md`.
+
+## The exact next task (as written before the merge)
 
 When `feat/ceo-board-ux` is on `main`: `git merge origin/main` in the worktree, `bash scripts/ci.sh fast`, then open
 review iteration 1 of 0.3.27 on that commit.

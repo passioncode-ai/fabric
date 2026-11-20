@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "f6990a9aaed3f243d65a40be601e5b519b9af30d",
+  "report": "docs/evidence/reviews/0.3.27/iteration-1/2026-11-20-data.md",
+  "reportSha256": "8c96efb11577b39a16c9bd99b1726c77c936bbd9f117517bd497de205bbcb3a7",
+  "reviewerRun": "release-0327-i1-data-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: tool arguments and answers pass redactPayload field by field before they are serialised; test «DA-1, DA-2», red with it removed"
+      ]
+    },
+    {
+      "id": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the cap counts Buffer.byteLength; test «DA-1, DA-2» with Cyrillic lines"
+      ]
+    },
+    {
+      "id": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: as ER-4"
+      ]
+    },
+    {
+      "id": "DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: pruned at every call, at most KEEP_CALLS (200) files; AGENTS.md row; test «DA-4»"
+      ]
+    },
+    {
+      "id": "DA-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: ADR-0197 amendment 4 and ceo-setup.md §3 say the CEO's runner reads the calls and what reaches its provider; keeping them in the CEO's folder is the decision recorded there"
+      ]
+    },
+    {
+      "id": "DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the same two documents list what reaches xAI; recap reads project names"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: a scratch clone of a known repository is refused before the remote attach (sessionEnroll.ts); test «DA-7, ER-10», red with the check removed"
+      ]
+    },
+    {
+      "id": "DA-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: fixes.md records the method, query, seqs 214331 to 214348 and ids, the open onboarding tasks; the CHANGELOG says on the owner's computer only; a restore door ruled with CO-574"
+      ]
+    },
+    {
+      "id": "DA-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: fixes.md §5 names no private project or folder; the list went to the owner privately"
+      ]
+    },
+    {
+      "id": "DA-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the header names project-aliases.json; an archived project's names are never read, since the lookup reads active projects only (not a defect)"
+      ]
+    }
+  ]
+}

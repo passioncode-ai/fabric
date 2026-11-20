@@ -16,7 +16,7 @@ import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { TerminalSession } from '../shared/types.ts'
 import { decodePty } from '../shared/pty-decode.ts'
-import { findProject, keyBytes, screenText, typedText, type NamedProject, type ProjectLookup, type WorkFolder } from '../shared/ceoAgent.ts'
+import { findProject, isCopyFolder, keyBytes, screenText, typedText, type NamedProject, type ProjectLookup, type WorkFolder } from '../shared/ceoAgent.ts'
 import { isScratchFolder } from '../shared/scratchFolder.ts'
 import { redact } from '../shared/redact.ts'
 import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
@@ -117,6 +117,7 @@ export const CEO_TOOLS = {
     input: z.object({
       project: z.string().trim().min(1).max(400).describe('The project, by name, id or folder.'),
       alias: z.string().trim().min(2).max(60).describe('The other name, as the owner says it.'),
+      remove: z.boolean().optional().describe('Forget this name instead (it was kept for the wrong project).'),
       reason
     }).strict()
   }
@@ -175,9 +176,23 @@ export interface CeoOpsDeps {
   diskSessions?(): Promise<DiskSession[]>
   /** Keep another name for a project (`ceoProjectAliases.ts`); answers the project's names after the write. */
   saveAlias?(projectId: string, alias: string): Promise<string[]>
+  /** Forget one name of a project; answers its names after the write. */
+  removeAlias?(projectId: string, alias: string): Promise<string[]>
   /** Whether a folder is a cache or temporary one, never made a project; the host's default reads its own home. */
   scratch?(folder: string): boolean
 }
+
+/** A tool as both doors name it (0.3.27 review, UX-7): the console's MCP name and the voice's function name. */
+const T = {
+  read: 'fabric_ceo_session_read (session_read by voice)',
+  input: 'fabric_ceo_session_input (session_input by voice)',
+  resume: 'fabric_ceo_session_resume (session_resume by voice)',
+  projects: 'fabric_ceo_projects (session_projects by voice)',
+  task: 'fabric_ceo_session_task (session_task by voice)',
+  open: 'fabric_ceo_session_open (session_open by voice)'
+} as const
+/** By voice, a start waits this long for the first task, then answers pending (0.3.27 review, UX-6): the line is silent. */
+export const VOICE_FIRST_TASK_WAIT_MS = 8000
 
 /** Voice CEO retro 2026-11-20, finding 3: the voice typed twelve commands into a shell in two minutes, debugging by
  *  hand. The voice door types into one console at most this many times in VOICE_INPUT_WINDOW_MS: a shell fewer. */
@@ -279,28 +294,31 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)))
   const scratch = deps.scratch ?? ((folder: string) => isScratchFolder(folder, homedir(), tmpdir()))
   /** The folders sessions work in, each with its project: an agent's worktree copy is found through them. */
+  // Only an agent's worktree copy is a work folder here (0.3.27 review, ER-1): a console of a project with no repository
+  // runs in the home folder, which must never make every folder under home that project's.
   const workFolders = async (): Promise<WorkFolder[]> => {
     const out: WorkFolder[] = deps.ptys.list().map((s) => ({ path: s.cwd, projectId: s.projectId }))
     try { for (const l of (await deps.launches?.({})) ?? []) out.push({ path: l.cwd, projectId: l.projectId }) } catch { /* the journal is a courtesy here: the consoles still answer */ }
-    return out.filter((f) => f.path && f.projectId)
+    return out.filter((f) => f.path && f.projectId && isCopyFolder(f.path) && !isScratchFolder(f.path))
   }
+  // `~` is the home folder (0.3.27 review, UX-13): «~» alone is then too broad, «~/DATA/x» a folder.
   const lookup = async <P extends NamedProject>(projects: readonly P[], query: string): Promise<ProjectLookup<P>> =>
-    findProject(projects, query, await workFolders())
+    findProject(projects, /^~(\/|$)/.test(query.trim()) ? path.join(homedir(), query.trim().slice(1)) : query, await workFolders())
   /** A lookup that found no one project, said so the voice can act on it in one more step (findings 4 and 8). */
   const notOne = (query: string, found: Exclude<ProjectLookup<NamedProject>, { found: NamedProject }>, folderHint = false): Answer => {
     if ('ambiguous' in found) {
       const choices = found.ambiguous.slice(0, 3)
-      return refuse(`«${query}» names several projects: ${found.ambiguous.join(', ')}`, {
+      return refuse(`«${query}» names several projects: ${choices.join(', ')}${found.ambiguous.length > 3 ? ` and ${found.ambiguous.length - 3} more` : ''}`, {
         choices,
-        next: `ask the owner which one, reading at most these ${choices.length} names aloud, then call again with the chosen name`
+        next: `ask the owner which one, reading at most these ${choices.length} aloud, then call again with the chosen choice exactly as written here (its folder decides)`
       })
     }
-    if (found.why === 'too-broad') return refuse(`«${query}» is a folder that holds many projects, not one project: name the project`, { next: 'call fabric_ceo_projects (session_projects by voice) once with a word of its name' })
-    return refuse(`no project «${query}»${folderHint ? ': name it by fabric_ceo_projects, or give its absolute folder' : ''}`, {
+    if (found.why === 'too-broad') return refuse(`«${query}» is a folder that holds many projects, not one project: name the project`, { next: `call ${T.projects} once with a word of its name` })
+    return refuse(`no project «${query}»${folderHint ? `: name it by ${T.projects}, or give its absolute folder` : ''}`, {
       ...(found.near.length ? { near: found.near } : {}),
       next: found.near.length
-        ? `the nearest names are ${found.near.join(', ')}: if one is what the owner meant, call again with it; else ask the owner`
-        : 'call fabric_ceo_projects once with a word of the name; do not try spellings one by one'
+        ? `read these near names to the owner and ask which one was meant: ${found.near.join(', ')}`
+        : `call ${T.projects} once with a word of the name; do not try spellings one by one`
     })
   }
   /** Voice inputs per console, newest last; refusals per tool, for the voice door's limits. */
@@ -408,7 +426,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     }
     const s = deps.ptys.get(a.session_id)
     if (!s) return refuse('not a Fabric console: only consoles Fabric runs can be typed into; write to a Switchboard session through its own tools')
-    if (!s.running) return refuse('the console has ended: continue it with fabric_ceo_session_resume')
+    if (!s.running) return refuse(`the console has ended: continue it with ${T.resume}`)
     if (via === 'voice') {
       // Finding 3: the voice answers a question or picks an option; it does not do a session's work by hand.
       const shell = s.optionId === 'shell'
@@ -417,11 +435,13 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       if (recent.length >= limit) {
         return refuse(`${recent.length} inputs into this console in ${Math.round(VOICE_INPUT_WINDOW_MS / 60_000)} minutes: that is doing the work by hand`, {
           next: shell
-            ? 'start the project\'s coding agent with session_start and the task in words, or hand it to the CEO with ask_ceo'
-            : 'let the session work, read it later with session_read, or hand the request to the CEO with ask_ceo'
+            ? 'start the project\'s coding agent with session_start and the task in words, hand it to the CEO with ask_ceo, or open the console for the owner to type in with session_open'
+            : 'let the session work, read it later with session_read, hand the request to the CEO with ask_ceo, or open the console for the owner with session_open'
         })
       }
       voiceInputs.set(s.sessionId, [...recent, now()])
+      // Consoles that ended leave the map (0.3.27 review, ER-12).
+      for (const id of voiceInputs.keys()) if (!deps.ptys.get(id)?.running) voiceInputs.delete(id)
     }
     const keys: string[] = []
     for (const k of a.keys ?? []) {
@@ -447,13 +467,15 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
 
   /** The first task's end, waited for at most FIRST_TASK_WAIT_MS; past it the answer says it is still on its way. */
-  async function firstTaskOf(sessionId: string): Promise<Answer> {
+  async function firstTaskOf(sessionId: string, via?: LaunchVia): Promise<Answer> {
     const pending = deps.firstTask?.(sessionId)
-    if (!pending) return { state: 'unknown', next: 'read the session with fabric_ceo_session_read before you rely on it' }
-    const timeout = new Promise<null>((res) => { const t = setTimeout(() => res(null), FIRST_TASK_WAIT_MS); (t as { unref?: () => void }).unref?.() })
+    if (!pending) return { state: 'unknown', next: `read the session with ${T.read} before you rely on it` }
+    const wait = via === 'voice' ? VOICE_FIRST_TASK_WAIT_MS : FIRST_TASK_WAIT_MS
+    const timeout = new Promise<null>((res) => { const t = setTimeout(() => res(null), wait); (t as { unref?: () => void }).unref?.() })
     const o = await Promise.race([pending.catch(() => null), timeout])
-    if (!o) return { state: 'pending', next: 'the console is not ready yet: read it with fabric_ceo_session_read in a minute; if the prompt is empty, type the task with fabric_ceo_session_input' }
-    if (o.state === 'not_delivered') return { state: o.state, reason: o.reason ?? null, attempts: o.attempts, next: 'the task did not reach the session: read its screen with fabric_ceo_session_read, then type the task with fabric_ceo_session_input' }
+    if (!o) return { state: 'pending', next: `the session is still taking its task: check in a minute with ${T.task}; if its prompt is empty, type the task with ${T.input}` }
+    if (o.state === 'not_delivered') return { state: o.state, reason: o.reason ?? null, attempts: o.attempts, next: `the task did not reach the session: read its screen with ${T.read}, then type the task with ${T.input}` }
+    if (o.state === 'written_unconfirmed') return { state: o.state, reason: o.reason ?? null, attempts: o.attempts, next: `the task was typed but no turn started: read the screen with ${T.read}; if the prompt is empty or holds the task, press enter or type it again with ${T.input}` }
     return { state: o.state, attempts: o.attempts }
   }
 
@@ -471,10 +493,27 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     }
     if (!('found' in found)) return notOne(a.project, found, true)
     const project = projects.find((p) => p.id === found.found.id) ?? found.found
-    const heard = 'heard' in found && found.heard ? { understood_as: project.name } : {}
+    // 0.3.27 review, UX-1: a name matched by sound is asked back, never acted on: «SEO» is not the project ceo until
+    // the owner says so. The second call names the project exactly.
+    if ('heard' in found && found.heard) {
+      return refuse(`«${a.project}» sounds like the project ${project.name}; nothing was started`, {
+        understood_as: project.name, choices: [project.name],
+        next: `ask the owner whether ${project.name} is meant; if yes, call again with the name ${project.name}`
+      })
+    }
+    // 0.3.27 review, UX-2: a folder that is not the project's own (a subfolder, an agent's worktree) is not where the
+    // console would open: it opens in the project's folder. Said, never done silently.
+    const asked = /^[/~]/.test(a.project.trim()) ? path.resolve(a.project.trim().replace(/^~(?=\/|$)/, homedir())).replace(/\/+$/, '') : null
+    if (asked && project.repo_path && asked !== project.repo_path.replace(/\/+$/, '')) {
+      return refuse(`${asked} belongs to the project ${project.name}, whose console opens in ${project.repo_path}, not in that folder; nothing was started`, {
+        choices: [project.name],
+        next: `to work in the project's own folder, call again with the name ${project.name}; to go on in that folder, continue its session with ${T.resume}`
+      })
+    }
+    const heard = {}
     const runner = a.runner ?? ((project as { default_agent?: string | null }).default_agent || 'claude-code')
     // 2026-11-20: a task in words typed into zsh is a parse error, never work. Refused before anything starts.
-    if (a.task?.trim() && TAKES_NO_TASK.has(runner)) return refuse(`${SHELL_TAKES_NO_TASK}: start it with a coding agent (runner claude-code, codex, hermes, kimi-code or kilo), or without a task and type the command with fabric_ceo_session_input`)
+    if (a.task?.trim() && TAKES_NO_TASK.has(runner)) return refuse(`${SHELL_TAKES_NO_TASK}: start it with a coding agent (runner claude-code, codex, hermes, kimi-code or kilo), or without a task and type the command with ${T.input}`)
     try {
       const s = await withLaunchOrigin({ by: 'ceo', via: via ?? 'console', reason: a.reason, parentSessionId: deps.ceoSessionId() ?? undefined },
         () => deps.openConsole(project.id, runner, a.task))
@@ -482,7 +521,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       deps.note('session.start', { sessionId: s.sessionId, projectId: project.id, label: project.name, runner: s.optionId, reason: a.reason })
       // 2026-11-20: a started session sat 40 minutes on an empty prompt and the CEO believed it had its task. The answer
       // now waits for the task's delivery (bounded) and says what became of it.
-      const firstTask = a.task?.trim() ? await firstTaskOf(s.sessionId) : null
+      const firstTask = a.task?.trim() ? await firstTaskOf(s.sessionId, via) : null
       return { ok: true, session_id: s.sessionId, project: project.name, folder: s.cwd, runner: s.optionId, state: s.state,
         ...heard, ...(firstTask ? { first_task: firstTask } : {}) }
     } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
@@ -576,9 +615,14 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       else if ('ambiguous' in found) { const names = new Set(found.ambiguous); matched = all.filter((p) => names.has(p.repo_path ? `${p.name} (${p.repo_path})` : p.name)) }
       else if (found.near.length) return { ok: true, projects: [], near: found.near, next: `nothing by that name; the nearest are ${found.near.join(', ')}` }
     }
+    // A copy (an agent's worktree, a cache) gives way to the project of the same name (0.3.27 review, UX-4).
+    const mains = new Set(matched.filter((p) => !isCopyFolder(p.repo_path)).map((p) => p.name))
+    const copies = matched.filter((p) => isCopyFolder(p.repo_path) && mains.has(p.name)).length
+    matched = matched.filter((p) => !(isCopyFolder(p.repo_path) && mains.has(p.name)))
     return {
       ok: true,
       ...(heard ? { understood_as: heard } : {}),
+      ...(copies ? { copies_hidden: copies } : {}),
       projects: matched
         .slice(0, 200)
         .map((p) => ({ id: p.id, name: p.name, folder: p.repo_path, default_runner: p.default_agent ?? null, consoles_running: live.filter((s) => s.projectId === p.id).length, ...(p.aliases?.length ? { aliases: p.aliases } : {}) }))
@@ -618,7 +662,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
 
   async function task(a: z.infer<typeof CEO_TOOLS.task.input>): Promise<Answer> {
     const s = deps.ptys.get(a.session_id)
-    if (!s) return refuse('only a console Fabric started has a first task to check; read another session with fabric_ceo_session_read')
+    if (!s) return refuse(`only a console Fabric started has a first task to check; read another session with ${T.read}`)
     const pending = deps.firstTask?.(s.sessionId)
     // A short look, never the start's long wait: the voice is on the line.
     const o = pending ? await Promise.race([pending.catch(() => null), sleep(1500).then(() => 'pending' as const)]) : null
@@ -628,8 +672,21 @@ export function createCeoOperations(deps: CeoOpsDeps) {
 
   async function alias(a: z.infer<typeof CEO_TOOLS.alias.input>): Promise<Answer> {
     if (!deps.saveAlias) return refuse('this Fabric keeps no project names of its own')
-    const found = await lookup(await deps.projects(), a.project)
+    const all = await deps.projects()
+    const found = await lookup(all, a.project)
     if (!('found' in found)) return notOne(a.project, found)
+    // A name heard by sound is asked back first, as for a start (0.3.27 review, UX-1, UX-9).
+    if ('heard' in found && found.heard) return refuse(`«${a.project}» sounds like the project ${found.found.name}; nothing was kept`, { understood_as: found.found.name, choices: [found.found.name], next: `ask the owner, then call again with the name ${found.found.name}` })
+    if (a.remove) {
+      if (!deps.removeAlias) return refuse('this Fabric cannot forget a name yet')
+      const names = await deps.removeAlias(found.found.id, a.alias)
+      deps.record('ceo.project.alias', { project_id: found.found.id, chars: a.alias.length, removed: true, reason: a.reason })
+      return { ok: true, project: found.found.name, aliases: names }
+    }
+    // Another project's own name is never an alias (0.3.27 review, UX-9): it would make that project ambiguous.
+    const key = a.alias.trim().toLowerCase().replace(/[\s_-]+/g, '-')
+    const owner = all.find((p) => p.id !== found.found.id && p.name.trim().toLowerCase().replace(/[\s_-]+/g, '-') === key)
+    if (owner) return refuse(`«${a.alias}» is the name of the project ${owner.name}; it cannot also name ${found.found.name}`)
     const names = await deps.saveAlias(found.found.id, a.alias)
     deps.record('ceo.project.alias', { project_id: found.found.id, chars: a.alias.length, reason: a.reason })
     return { ok: true, project: found.found.name, aliases: names }
@@ -650,7 +707,8 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       const answer = await (table[name as CeoToolName] as (a: unknown, via?: LaunchVia) => Promise<Answer>)(parsed.data, via)
       // Every call, its name and whether it was refused: what the CEO looked at is as visible as what it did.
       deps.record(`ceo.tool.${name}`, { outcome: answer.ok === false ? 'refused' : 'ok', ...(via ? { via } : {}) })
-      if (via === 'voice' && answer.ok === false) {
+      // A tie that asks the owner to choose is a question, not a failed guess (0.3.27 review, PL-5): it does not count.
+      if (via === 'voice' && answer.ok === false && !Array.isArray(answer.choices)) {
         // Finding 8: seven refused lookups in seven seconds. The third refusal in a row says stop and ask.
         const recent = [...(voiceRefusals.get(name) ?? []).filter((t) => now() - t < VOICE_REPEAT_WINDOW_MS), now()]
         voiceRefusals.set(name, recent)
@@ -686,10 +744,13 @@ export function registerCeoTools(server: McpServer, ops: CeoOperations): void {
 
 /** The voice door: the same tools as function definitions for the realtime session (`session.update`). */
 export function ceoVoiceTools(): Array<{ type: 'function'; name: string; description: string; parameters: unknown }> {
+  // The voice knows its tools by their function names (0.3.27 review, UX-7): each MCP name in a description is said so.
+  const byVoice = new Map(Object.entries(CEO_TOOLS).map(([name, tool]) => [tool.mcp as string, `session_${name}`]))
+  const voiced = (text: string): string => text.replace(/fabric_ceo_[a-z_]+/g, (m) => byVoice.get(m) ?? m)
   return Object.entries(CEO_TOOLS).map(([name, tool]) => ({
     type: 'function' as const,
     name: `session_${name}`,
-    description: tool.description,
+    description: voiced(tool.description),
     parameters: z.toJSONSchema(tool.input)
   }))
 }

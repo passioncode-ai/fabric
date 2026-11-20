@@ -1,0 +1,91 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "f6990a9aaed3f243d65a40be601e5b519b9af30d",
+  "report": "docs/evidence/reviews/0.3.27/iteration-1/2026-11-20-docs.md",
+  "reportSha256": "10619c92862595b3d20b8de388c55c12a3dc4c5d85239738f2154d2edef87ecd",
+  "reviewerRun": "release-0327-i1-docs-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: a project whose folder is home, right under it or holds others holds no folder (findProject); no such project exists in the registry (fixes.md §5); test «finding 4: a worktree folder…» extended"
+      ]
+    },
+    {
+      "id": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: SCN-183 amended, CHANGELOG line «The CEO's console gets the same doors»"
+      ]
+    },
+    {
+      "id": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: ADR-0197 amendment 4; the journal's header says who reads it"
+      ]
+    },
+    {
+      "id": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: AGENTS.md rows `userData/ceo` (calls/, project-aliases.json) and fabric-mcp (the scratch refusal and its wait)"
+      ]
+    },
+    {
+      "id": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: fixes.md names every plant and the archive's query, seqs and ids"
+      ]
+    },
+    {
+      "id": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: a first instruction is quietOnly, never on the busy path (deliveryQueue.ts); test «0.3.27 review DO-6» in delivery-queue.test.mjs"
+      ]
+    },
+    {
+      "id": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: as UX-6"
+      ]
+    },
+    {
+      "id": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: as UX-11"
+      ]
+    },
+    {
+      "id": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the HANDOFF points at the release's ledger"
+      ]
+    },
+    {
+      "id": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the aliases header names project-aliases.json, the voice tools' region points at §10, deliveryQueue.ts has its region"
+      ]
+    },
+    {
+      "id": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the owner is paraphrased in the CHANGELOG and the retro's head (ADR-0096); fixes.md §5 names no private project or folder"
+      ]
+    }
+  ]
+}

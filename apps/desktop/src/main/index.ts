@@ -5409,6 +5409,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         .map((p) => (aliases[p.id]?.length ? { ...p, aliases: aliases[p.id] } : p))
     },
     saveAlias: async (projectId, alias) => projectAliases.add(projectId, alias),
+    removeAlias: async (projectId, alias) => projectAliases.remove(projectId, alias),
     admitFolder: async (folder) => {
       const row = await admission.create({ id: randomUUID(), name: path.basename(folder), repoPaths: [folder] }, { kind: 'agent', id: agent.sessionId() ?? 'ceo' }, ceoReach)
       return { id: row.id, name: row.name, repo_path: row.repo_path }
@@ -5458,21 +5459,28 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // Voice CEO retro 2026-11-20 (finding 1): every call kept on this computer, in the CEO's folder, redacted.
   const voiceJournal = createVoiceJournal({ folder: ceoRoot, failed: (what, e) => ops.failed('ceo.voice.journal', e, { detail: { what } }) })
   try { const n = voiceJournal.prune(); if (n) ops.record({ op: 'ceo.voice.journal-pruned', outcome: 'ok', level: 'info', detail: { removed: n }, ctx: { correlationId: ops.correlate() } }) } catch (e) { ops.failed('ceo.voice.journal-prune', e) }
-  /** When ask_ceo last handed the CEO a request in the open call (findings 7): ceo_reply reads what came after it. */
-  let voiceAskedAt: number | null = null
+  try { const n = voiceJournal.closeOrphans(); if (n) ops.record({ op: 'ceo.voice.journal-orphans', outcome: 'ok', level: 'info', detail: { closed: n }, ctx: { correlationId: ops.correlate() } }) } catch (e) { ops.failed('ceo.voice.journal-orphans', e) }
+  /** When ask_ceo last handed the CEO a request, by call (finding 7; 0.3.27 review, ER-4): ceo_reply reads what came
+   *  after it, and a late ask of an earlier call never sets the next call's. */
+  let voiceAskedAt: { call: string | null; at: number } | null = null
+  let ceoTranscriptFile: { sessionId: string; file: string } | null = null
   const ceoScreenNow = (lines: number): string => {
     const id = agent.sessionId()
     const sb = id ? ptys.scrollbackOf(id) : null
     return sb ? redact(screenText(decodePty(sb.text), lines)).text : ''
   }
   const voiceTools = createVoiceTools({
-    askedAt: () => voiceAskedAt,
+    askedAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.at : null),
+    // The transcript's path is found once per CEO runner session, not on every poll (0.3.27 review, ER-5).
     ceoTranscript: async () => {
       const id = agent.sessionId()
       if (!id || !launchJournal) return null
-      const runnerId = (await launchJournal.read({ sessionId: id })).find((l) => l.sessionId === id)?.runnerSessionId
-      const file = runnerId ? findTranscript(defaultTranscriptRoots(), runnerId) : null
-      return file ? readTail(file, READ_TAIL_BYTES) : null
+      if (ceoTranscriptFile?.sessionId !== id) {
+        const runnerId = (await launchJournal.read({ sessionId: id })).find((l) => l.sessionId === id)?.runnerSessionId
+        const file = runnerId ? findTranscript(defaultTranscriptRoots(), runnerId) : null
+        if (file) ceoTranscriptFile = { sessionId: id, file }
+      }
+      return ceoTranscriptFile?.sessionId === id ? readTail(ceoTranscriptFile.file, READ_TAIL_BYTES) : null
     },
     ceoScreen: () => ceoScreenNow(60),
     ceoLastActivity: () => {
@@ -5497,7 +5505,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const prev = voiceJournal.list(5).find((c) => c.call !== open && c.minutes !== null)
       return prev?.startedAt ? new Date(Date.parse(prev.startedAt) + (prev.minutes ?? 0) * 60_000).toISOString() : null
     },
-    projectName: () => null
+    projectNames: async () => {
+      const { data, error } = await store.select('projects', 'id,name').eq('estate_id', ACTIVE_ESTATE)
+      if (error) throw new Error(error.message)
+      return new Map(((data ?? []) as Array<{ id: string; name: string }>).map((p) => [p.id, p.name]))
+    }
   })
   handle(IPC.ceoAgentVoice, async (): Promise<Returns<FabricApi['ceoAgent']['voice']>> => {
     const token = await mintVoiceToken({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch })
@@ -5506,9 +5518,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (!token.ok) return { ok: false, reason: token.reason }
     const locale = readSettings().locale
     const voice = xaiVoiceOf(persona().persona)
-    // A call left open (the window closed mid-call) is closed in its journal by the next one.
+    // A call left open (the window closed mid-call) is closed by the next one, its length measured to its last line
+    // (0.3.27 review, ER-2).
     const left = voiceJournal.current()
-    if (left) voiceJournal.end(left, { minutes: 0, usd: 0, end: 'not-closed' })
+    if (left) voiceJournal.closeLeft(left)
     voiceAskedAt = null
     const callId = voiceJournal.begin({ voice, usdPerMinute: token.usdPerMinute })
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
@@ -5561,18 +5574,19 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const tool = typeof name === 'string' ? name : ''
     ops.record({ op: 'ceo.voice.tool', outcome: 'ok', level: 'info', detail: { tool: tool.slice(0, 40) }, ctx: { correlationId: ops.correlate() } })
     const began = Date.now()
-    const answer = await runVoiceTool(tool, args)
-    // Finding 1: each tool with its arguments and answer, in the open call's journal (redacted there).
+    // Finding 1: each tool with its arguments and answer, in the journal of the call that ASKED for it (0.3.27 review,
+    // DA-3, ER-4: a tool that ends after a hang-up and a new call stays in its own call).
     const call = voiceJournal.current()
+    const answer = await runVoiceTool(tool, args, call)
     if (call) voiceJournal.tool(call, tool, args, answer, Date.now() - began)
     return answer
   })
-  async function runVoiceTool(tool: string, args: unknown): Promise<Record<string, unknown>> {
+  async function runVoiceTool(tool: string, args: unknown, call: string | null): Promise<Record<string, unknown>> {
     if (tool === 'ask_ceo') {
       const text = typeof (args as { text?: unknown } | null)?.text === 'string' ? (args as { text: string }).text : ''
       const asked = Date.now()
       const r = await agent.send(text, [])
-      if (r.ok) voiceAskedAt = asked
+      if (r.ok) voiceAskedAt = { call, at: asked }
       return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console; read its answer with ceo_reply' : undefined }
     }
     const own = await voiceTools.run(tool, args)

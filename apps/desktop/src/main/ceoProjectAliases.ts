@@ -1,7 +1,7 @@
 // #region ceo-project-aliases — docs: docs/reports/2026-11-20-voice-ceo-retro/fixes.md#4-project-names-heard-by-voice
 /**
  * The names the owner uses for projects (voice CEO retro 2026-11-20, finding 4): «Диззи» for dissy, «плейсинг» for
- * playsing. Kept on this computer in one small file (`aliases.json` in the CEO's folder, 0600), written whole or not at
+ * playsing. Kept on this computer in one small file (`project-aliases.json` in the CEO's folder, 0600), written whole or not at
  * all (beside, then renamed), read on every lookup so a name kept in the console is heard by the next call. At most
  * MAX_PER_PROJECT names a project, each at most 60 characters; a name already kept is not added twice.
  */
@@ -17,6 +17,8 @@ export interface AliasStore {
   read(): Record<string, string[]>
   /** Keep one more name for a project; answers its names after the write. */
   add(projectId: string, alias: string): string[]
+  /** Forget one name of a project (0.3.27 review, UX-9); answers its names after the write. */
+  remove(projectId: string, alias: string): string[]
 }
 
 export function createAliasStore(folder: string): AliasStore {
@@ -39,14 +41,24 @@ export function createAliasStore(folder: string): AliasStore {
     if (name.length > 1 && !list.some((a) => a.toLowerCase() === name.toLowerCase())) list.push(name)
     // The oldest name gives way when a project has too many.
     all[projectId] = list.slice(-MAX_PER_PROJECT)
+    return write(all, projectId)
+  }
+  function remove(projectId: string, alias: string): string[] {
+    const name = alias.trim().replace(/\s+/g, ' ').toLowerCase()
+    const all = read()
+    all[projectId] = (all[projectId] ?? []).filter((a) => a.toLowerCase() !== name)
+    if (!all[projectId]!.length) delete all[projectId]
+    return write(all, projectId)
+  }
+  function write(all: Record<string, string[]>, projectId: string): string[] {
     mkdirSync(folder, { recursive: true, mode: 0o700 })
     const tmp = path.join(folder, `.${ALIAS_FILE}.${randomUUID()}.tmp`)
     try {
       writeFileSync(tmp, JSON.stringify({ version: 1, aliases: all }, null, 2), { mode: 0o600 })
       renameSync(tmp, file)
     } finally { rmSync(tmp, { force: true }) }
-    return all[projectId]!
+    return all[projectId] ?? []
   }
-  return { read, add }
+  return { read, add, remove }
 }
 // #endregion ceo-project-aliases

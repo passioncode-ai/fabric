@@ -130,6 +130,8 @@ export async function resolveAgentFolder(folder: unknown, deps: FolderDeps): Pro
   const detachedPaths = new Set((await (deps.detachedFolders?.() ?? Promise.resolve([]))).map((row) => row.path).filter(Boolean))
   if (match.projectId) {
     if (detachedPaths.has(base) || detachedPaths.has(real)) return { ok: false, code: 'no-project', message: DETACHED_PROJECT_MESSAGE }
+    // A scratch clone of a known repository is not attached to its project either (0.3.27 review, DA-7, ER-10).
+    if (deps.scratch?.(base)) return { ok: false, code: 'no-project', message: SCRATCH_FOLDER_MESSAGE }
     return { ok: true, real: base, projectId: match.projectId, how: 'remote', root: match.root, candidate: 'attach', remoteKey: match.remoteKey ?? null }
   }
   if (!deps.inspectFolder || !deps.projectIdForFolder) return { ok: false, code: 'no-project', message: NO_PROJECT_MESSAGE }

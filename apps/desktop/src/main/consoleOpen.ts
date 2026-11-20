@@ -15,12 +15,15 @@ import type { DeliveryWriteResult } from './deliveryQueue.ts'
 
 /**
  * What became of a console's first instruction (2026-11-20, the owner's «what blocks work»: a CEO-started session sat
- * 40 minutes on an empty prompt and nothing in the log said why). `delivered`: written, and the runner took it.
- * `resubmitted`: written, the paste was still waiting in Claude Code's box, and one more Enter sent it. `not_delivered`:
- * never written (after one more wait for readiness), or written with an unknown outcome; `reason` says which.
+ * 40 minutes on an empty prompt and nothing in the log said why). `delivered`: written, and the runner took it (for
+ * Claude Code: its working line appeared after the write; another runner: written). `resubmitted`: written, the paste was
+ * still waiting in Claude Code's box, and one more Enter sent it. `written_unconfirmed` (0.3.27 review, PL-2): written
+ * to Claude Code, but no turn started within two checks; the text may sit in the box, or a trust or update screen may
+ * have taken it, so the caller reads the screen before it relies on it. `not_delivered`: never written (after one more
+ * wait for readiness), or written with an unknown outcome; `reason` says which.
  */
 export type FirstInstructionOutcome = {
-  state: 'delivered' | 'resubmitted' | 'not_delivered'
+  state: 'delivered' | 'resubmitted' | 'written_unconfirmed' | 'not_delivered'
   reason?: string
   attempts: number
 }
@@ -30,7 +33,7 @@ export const FIRST_INSTRUCTION_CHECK_MS = 3000
 /** Claude Code shows a long paste as «[Pasted text #1 +12 lines]» until it is sent. */
 const PASTE_WAITING = /\[Pasted text #\d+/
 /** Claude Code's working line: a turn started, so the instruction was taken (and an Enter now could answer a prompt). */
-const TURN_STARTED = /esc to interrupt/i
+const TURN_STARTED = /esc to (?:interrupt|stop)/i
 /**
  * A plain shell takes commands, not a task in words (2026-11-20, the CEO: three sessions started with runner «shell» and a
  * task printed the task into zsh, which answered «parse error near `)'»). Its first instruction is never typed.
@@ -54,7 +57,7 @@ export interface ConsoleOpenDeps<S extends { sessionId: string }> {
     get(sessionId: string): S | null
     claimAttach(sessionId: string): boolean
     releaseAttach(sessionId: string): void
-    deliverWhenReady(sessionId: string, instruction: string): Promise<DeliveryWriteResult | unknown>
+    deliverWhenReady(sessionId: string, instruction: string, options?: import('./deliveryQueue.ts').DeliveryWriteOptions): Promise<DeliveryWriteResult | unknown>
     /** The console's output so far (raw), and how many characters it has written in all; absent in older tests. */
     scrollbackOf?(sessionId: string): { text: string; written?: number } | null
     /** Type into the console (the one extra Enter). */
@@ -89,12 +92,12 @@ export function createConsoleOpen<S extends { sessionId: string; optionId?: stri
     // Measured before the write: the paste's echo arrives in the output after it, whenever the queue writes.
     const lengthNow = (): number => deps.ptys.scrollbackOf?.(id)?.text.length ?? 0
     let before = lengthNow()
-    let r = asResult(await deps.ptys.deliverWhenReady(id, instruction))
+    let r = asResult(await deps.ptys.deliverWhenReady(id, instruction, { quietOnly: true }))
     // One more wait for readiness: never a blind write (the queue's rule), only a second window for fresh output.
     if (r.state === 'failed_before_write' && r.reason && WAIT_AGAIN.has(r.reason) && deps.ptys.get(id)) {
       attempts = 2
       before = lengthNow()
-      r = asResult(await deps.ptys.deliverWhenReady(id, instruction))
+      r = asResult(await deps.ptys.deliverWhenReady(id, instruction, { quietOnly: true }))
     }
     if (r.state !== 'written') return { state: 'not_delivered', reason: r.reason ?? r.state, attempts }
     // Claude Code reads a long paste as «[Pasted text #1 …]», and the Enter written with it can be lost: the
@@ -102,15 +105,24 @@ export function createConsoleOpen<S extends { sessionId: string; optionId?: stri
     // while no turn has started, so it cannot answer a question the agent asks.
     const runner = deps.ptys.get(id)?.optionId ?? session.optionId ?? null
     if (runner !== 'claude-code' || !deps.ptys.scrollbackOf || !deps.ptys.write) return { state: 'delivered', attempts }
-    await sleep(FIRST_INSTRUCTION_CHECK_MS)
-    const now = deps.ptys.scrollbackOf(id)?.text ?? ''
     // What the console printed since the write (the scrollback is bounded: once it was cut, its newest part).
-    const since = now.length >= before ? now.slice(before) : now.slice(-8000)
+    const printedSince = (): string => {
+      const now = deps.ptys.scrollbackOf?.(id)?.text ?? ''
+      // Raw PTY output: styling escapes can split a hint (0.3.27 review, ER-7), so they are taken out before matching.
+      return (now.length >= before ? now.slice(before) : now.slice(-8000)).replace(/\x1b\[[0-9;?]*[ -\/]*[@-~]/g, '')
+    }
+    await sleep(FIRST_INSTRUCTION_CHECK_MS)
+    let since = printedSince()
     if (PASTE_WAITING.test(since) && !TURN_STARTED.test(since.slice(since.search(PASTE_WAITING)))) {
       try { deps.ptys.write(id, '\r') } catch { return { state: 'not_delivered', reason: 'enter_failed', attempts } }
       return { state: 'resubmitted', attempts }
     }
-    return { state: 'delivered', attempts }
+    if (TURN_STARTED.test(since)) return { state: 'delivered', attempts }
+    // 0.3.27 review, PL-2: written is not taken. A second look for the working line; none means the CEO is told to read
+    // the screen, never that the session is working (an Enter here could accept a trust or update screen).
+    await sleep(FIRST_INSTRUCTION_CHECK_MS)
+    since = printedSince()
+    return TURN_STARTED.test(since) ? { state: 'delivered', attempts } : { state: 'written_unconfirmed', reason: 'no_turn_started', attempts }
   }
 
   const open = async (projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null): Promise<S> => {

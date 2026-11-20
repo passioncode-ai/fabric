@@ -42,6 +42,13 @@ USD 0.08 a minute of open session, shown during the call
 xAI keeps conversation data for 30 days unless the key's team has zero data retention turned on in its console; a
 person who needs that turns it on there.
 
+Fabric keeps each call on this computer too (0.3.27, [ADR-0197 amendment 4](../adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-4-2026-11-20-the-call-is-kept-on-this-computer-the-voice-delegates-and-finds-a-project-by-sound)):
+one file a call in `<userData>/ceo/calls/` (owner-only), with what was said, each tool and its answer, the length and the
+price, secrets cut before writing, removed after 30 days or past the newest 200 calls. The CEO's console reads these
+files, so their text reaches the CEO's runner's provider as any file it opens. During a call, xAI receives what the
+voice's tools answer: session screens and turns, the CEO's answer, board snippets and recent launches, all redacted and
+bounded. To keep no calls, delete the folder; Fabric makes it again at the next call.
+
 ## 4. The microphone
 
 macOS asks once for the microphone the first time «Позвонить» is pressed; the release build carries the audio-input

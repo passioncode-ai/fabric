@@ -1,0 +1,112 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "f6990a9aaed3f243d65a40be601e5b519b9af30d",
+  "report": "docs/evidence/reviews/0.3.27/iteration-1/2026-11-20-ux.md",
+  "reportSha256": "76207acd203afc7a20bfa0484cc818d6926f0a095232f814c189499b86142e82",
+  "reviewerRun": "release-0327-i1-ux-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: a match by sound is asked back with understood_as and choices, nothing starts or is kept until the project is named exactly (ceoTools.ts start, alias); the instructions say ask first; test «UX-1, UX-9: a name matched by sound is asked back», red with the confirm removed"
+      ]
+    },
+    {
+      "id": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: a folder that is not the project's own folder is refused with where to go (ceoTools.ts start); test «UX-2: a folder inside a project or its worktree…»"
+      ]
+    },
+    {
+      "id": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: findProject takes a choice read back as offered, «name (folder)», by its folder; test «UX-3»"
+      ]
+    },
+    {
+      "id": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the project list hides a copy when the project of its name is listed, copies_hidden says how many; test «UX-4»"
+      ]
+    },
+    {
+      "id": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: near names only within distance 0.5, each once; next says read them and ask; a worktree folder found by its last words; test «UX-5, ER-1»"
+      ]
+    },
+    {
+      "id": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: by voice a start waits 8 s (VOICE_FIRST_TASK_WAIT_MS), then pending pointing at session_task; test «UX-6»"
+      ]
+    },
+    {
+      "id": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: next steps name both doors' tools; the voice's tool descriptions use its own names (ceoVoiceTools); test «UX-7»"
+      ]
+    },
+    {
+      "id": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the refusal's next offers session_open, and the instructions say the limit"
+      ]
+    },
+    {
+      "id": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: an alias can be forgotten (remove), another project's name is refused, a match by sound is asked back before keeping; test «UX-9»; an alias the owner gave is an exact name, so it answers no understood_as (not a defect)"
+      ]
+    },
+    {
+      "id": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: as PL-2, written_unconfirmed when no turn started"
+      ]
+    },
+    {
+      "id": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: recap reads project names (index.ts projectNames); test «finding 10»"
+      ]
+    },
+    {
+      "id": "UX-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: SCN-183 amended 2026-11-20 (the voice retro and the review), the alt paths for scratch and subfolders"
+      ]
+    },
+    {
+      "id": "UX-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: `~` is expanded before the lookup; «~» alone is too broad; test «UX-13, ER-9»"
+      ]
+    },
+    {
+      "id": "UX-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: ceo_reply reads assistant turns after the CEO's own record of the ask (assistantSince); test «UX-14, ER-6», red with the window removed"
+      ]
+    }
+  ]
+}

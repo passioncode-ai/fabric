@@ -1,3 +1,4 @@
+// #region delivery-queue — docs: docs/ux/scenarios.md#scn-183-the-ceo-manages-the-sessions-of-this-computer
 import { asOnePaste } from '../shared/delivery.ts'
 
 /** A PTY write receipt is not an acknowledgement that an agent accepted work. */
@@ -7,7 +8,9 @@ export type DeliveryWriteResult = {
 }
 /** How long an item waits for quiet before it is written into a working Claude Code (`busyAfterMs`). */
 export const BUSY_WRITE_AFTER_MS = 3000
-export type DeliveryWriteOptions = { beforeWrite?: () => Promise<boolean> }
+/** `quietOnly`: never written while the runner prints, whatever `busyAfterMs` says (0.3.27 review, DO-6): a console's
+ *  first instruction waits for the prompt, never for a start-up still printing. */
+export type DeliveryWriteOptions = { beforeWrite?: () => Promise<boolean>; quietOnly?: boolean }
 export type DeliveryQueueTiming = {
   settleMs?: number
   maxWaitMs?: number
@@ -125,7 +128,7 @@ export class DeliveryQueue {
     }
     if (this.closed || !head || head.gating) return
     // The busy path: due at the item's own age; once past, looked at again every settle period, so it cannot spin.
-    if (this.busyAfterMs !== undefined && !head.options.beforeWrite && !this.busyTimer) {
+    if (this.busyAfterMs !== undefined && !head.options.beforeWrite && !head.options.quietOnly && !this.busyTimer) {
       const due = head.since + this.busyAfterMs - Date.now()
       this.busyHead = head
       this.busyTimer = setTimeout(() => {
@@ -188,3 +191,4 @@ export class DeliveryQueue {
     this.schedule()
   }
 }
+// #endregion delivery-queue

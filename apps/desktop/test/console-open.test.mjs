@@ -89,7 +89,7 @@ test('the fallback order spawns past a runner that could not serve', async () =>
 
 // 2026-11-20, the owner's «what blocks work first»: a CEO-started session sat 40 minutes on an empty prompt. The first
 // instruction is now followed to its end, and its end is written.
-function follow({ results, screen = () => '', runner = 'claude-code' } = {}) {
+function follow({ results, screen = () => '', runner = 'claude-code', echo = '❯ [Pasted text #1 +12 lines]' } = {}) {
   const log = []
   let text = ''
   const queue = [...results]
@@ -103,7 +103,7 @@ function follow({ results, screen = () => '', runner = 'claude-code' } = {}) {
       get: () => session,
       claimAttach: () => true,
       releaseAttach: () => {},
-      deliverWhenReady: async () => { log.push(['deliver']); const r = queue.shift(); text += '❯ [Pasted text #1 +12 lines]'; return r },
+      deliverWhenReady: async () => { log.push(['deliver']); const r = queue.shift(); text += echo; return r },
       scrollbackOf: () => ({ text: text + screen() }),
       write: (_id, data) => log.push(['write', data])
     },
@@ -146,6 +146,16 @@ test('a paste left waiting in Claude Code\'s box gets one more Enter; a turn tha
   await working.open('p1', 'claude-code', 'Long task')
   assert.equal((await working.open.firstInstruction('s1')).state, 'delivered')
   assert.ok(!working.log.some((l) => l[0] === 'write'), 'no Enter once a turn started: it could answer the agent\'s question')
+})
+
+test('0.3.27 review PL-2: a short task written to Claude Code with no turn started is unconfirmed, never «delivered»', async () => {
+  const silent = follow({ results: [{ state: 'written' }], echo: '❯ go' })
+  await silent.open('p1', 'claude-code', 'go')
+  assert.deepEqual(await silent.open.firstInstruction('s1'), { state: 'written_unconfirmed', reason: 'no_turn_started', attempts: 1 })
+  assert.ok(!silent.log.some((l) => l[0] === 'write'), 'no blind Enter: it could accept a trust or update screen')
+  const started = follow({ results: [{ state: 'written' }], echo: '❯ go\n✻ Working… (esc to interrupt)' })
+  await started.open('p1', 'claude-code', 'go')
+  assert.equal((await started.open.firstInstruction('s1')).state, 'delivered')
 })
 
 test('a plain shell is never typed a task in words; the end says why (2026-11-20, «parse error near )»)', async () => {

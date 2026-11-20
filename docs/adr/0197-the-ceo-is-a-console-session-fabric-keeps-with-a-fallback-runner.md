@@ -169,3 +169,38 @@ the CEO's console could not be stopped. So:
    `fabric_ceo_session_stop` still refuses the CEO's own console.
 
 Nothing else in this record changes.
+
+## Amendment 4 (2026-11-20): the call is kept on this computer, the voice delegates, and finds a project by sound
+
+Numbered 4: amendment 3 (the CEO's windows and dashboards) is on `feat/ceo-session-windows`, not yet on `main`. The
+owner, 2026-11-20 (paraphrased): review the calls with the voice, fix every defect and add the missing tools
+([the voice retro](../reports/2026-11-20-voice-ceo-retro/README.md), [its fixes](../reports/2026-11-20-voice-ceo-retro/fixes.md)).
+Released in 0.3.27. So:
+
+1. **Every call is kept on this computer** (`main/ceoVoiceJournal.ts`): one JSONL file a call in `<userData>/ceo/calls/`
+   (folder 0700, files 0600): the owner's lines, the voice's lines, each tool with its arguments and answer tied to the
+   turn that asked for it, the call's length and price. Each text, and each tool's arguments and answer field by field,
+   passes Fabric's redaction before it is written; a call is cut at 2 MB (bytes); files older than 30 days and past the
+   newest 200 are removed at every call and at start; a call a window or a run left open is ended with its measured
+   length. Fabric sends none of it anywhere. It lives in the CEO's folder on purpose: the CEO's console reads its
+   calls, and what it reads goes to its runner's provider (Anthropic, or OpenRouter under the Hermes fallback) as any
+   file it opens; the voice key stays apart (`ceo-voice/`). The window writes its lines through two more CEO-only
+   channels, `ceo-agent:voice-line` and `ceo-agent:voice-end` (four in all with decision 4's two).
+2. **The voice delegates.** Its instructions send work to the project's agent with the task in words, a shell only when
+   the owner asks for a terminal, and the CEO's own console only through `ask_ceo`; the voice door types into a console
+   at most 3 times in 3 minutes for a shell, 6 for an agent.
+3. **A project by sound** (`shared/heardName.ts`, `shared/ceoAgent.ts#findProject`): Cyrillic or Latin, a spelt acronym,
+   an alias the owner gave (`fabric_ceo_project_alias`, kept in `<userData>/ceo/project-aliases.json`). A match by sound
+   is asked back before anything starts or is kept; a tie answers at most three choices; nothing found answers the
+   near names. A folder inside a project, or an agent's worktree, is not where a start would open, so it is refused
+   with where to go instead. A cache or temporary folder is never made a project (enrollment and the CEO's start).
+4. **Tools added.** On both doors: `fabric_ceo_session_task` (did a started session take its first task) and
+   `fabric_ceo_project_alias`; `fabric_ceo_launches` takes `via`. For the voice only: `ceo_reply` (the CEO's answer to
+   what `ask_ceo` handed it, read from its transcript after its own record of the request), `machine_status`,
+   `board_search` (the board's messages through the operator's read door) and `recap` (launches since the previous
+   call). What reaches xAI during a call grows with them: the CEO's answer (3000 characters at most), 10 board hits of
+   300 characters, the launches since the previous call with their reasons, all redacted, and ambiguous lookups' project
+   folders.
+
+Nothing else in this record changes.
+
