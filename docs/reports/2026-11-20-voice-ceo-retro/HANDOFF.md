@@ -25,7 +25,7 @@ missing tools ([the retro](README.md)). Session 9cda1c0f.
 
 ## Decisions
 
-- Stacked on 8343a070's branch rather than `main`: the same files (`ceoAgent.ts#findProject`, `ceoTools.ts#start`)
+- Stacked on 8343a070's branch rather than `main`: the same files (`shared/ceoAgent.ts#findProject`, `main/ceoTools.ts#start`)
   carry its fixes of findings 2 and 9. The split was agreed with that session (agent-sync lease `VOICE-RETRO`).
 - 8343a070 lands `feat/ceo-board-ux` on `main`; this branch then takes `main` by a merge (so reviewed commits stay
   ancestors) and runs the 0.3.27 release for both (that session's words, 2026-11-20).
