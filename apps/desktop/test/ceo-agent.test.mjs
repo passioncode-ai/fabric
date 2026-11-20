@@ -80,8 +80,20 @@ test('a project by id, folder, name or words; two matches ask instead of guessin
   assert.equal(findProject(ps, '/d/alpha/').found.id, '1')
   assert.equal(findProject(ps, 'alpha').found.id, '1')
   assert.equal(findProject(ps, 'beta').found.id, '3')
-  assert.deepEqual(findProject(ps, 'alp').ambiguous, ['Alpha', 'Alpha Web'])
+  assert.deepEqual(findProject(ps, 'alp').ambiguous.map((n) => n.replace(/ \(.*\)$/, '')), ['Alpha', 'Alpha Web'])
   assert.equal(findProject(ps, 'nothing').missing, true)
+  // 2026-11-20, the CEO's voice: «sound engine» is «sound-engine», and a worktree copy of the same name gives way.
+  const heard = [
+    { id: 'se', name: 'sound-engine', repo_path: '/d/sound-engine' },
+    { id: 'sw', name: 'sound-engine-fix-swarm-a', repo_path: '/d/_worktrees/sound-engine-fix-swarm-a' },
+    { id: 'db', name: 'fabric-agents-database', repo_path: '/d/fabric-agents-database' },
+    { id: 'db2', name: 'fabric-agents-database', repo_path: '/d/_worktrees/fabric-agents-database-x' }
+  ]
+  assert.equal(findProject(heard, 'sound engine').found.id, 'se')
+  assert.equal(findProject(heard, 'Sound_Engine').found.id, 'se')
+  assert.equal(findProject(heard, 'fabric-agents-database').found.id, 'db')
+  assert.deepEqual(findProject([heard[2], { ...heard[2], id: 'db3', repo_path: '/e/fabric-agents-database' }], 'fabric-agents-database').ambiguous,
+    ['fabric-agents-database (/d/fabric-agents-database)', 'fabric-agents-database (/e/fabric-agents-database)'], 'two real copies are asked about, by folder')
 })
 
 // ── the keeper ─────────────────────────────────────────────────────────────

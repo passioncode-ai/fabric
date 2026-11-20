@@ -299,18 +299,33 @@ export function findProject<P extends NamedProject>(projects: readonly P[], quer
   const folder = q.replace(/\/+$/, '')
   const byFolder = projects.find((p) => p.repo_path && p.repo_path.replace(/\/+$/, '') === folder)
   if (byFolder) return { found: byFolder }
-  const low = q.toLowerCase()
-  const exact = projects.filter((p) => p.name.toLowerCase() === low)
+  // 2026-11-20: a name heard by voice is «sound engine» for «sound-engine»; spaces, hyphens and underscores read alike.
+  const low = nameKey(q)
+  // Of several with the same name, the one outside an agent's worktree is the project the person means (the
+  // estate holds worktree copies under the same name until they are merged away).
+  const settle = (list: P[]): P[] => {
+    if (list.length < 2) return list
+    const main = list.filter((p) => !p.repo_path || !WORKTREE_FOLDER.test(p.repo_path))
+    return main.length >= 1 ? main : list
+  }
+  const exact = settle(projects.filter((p) => nameKey(p.name) === low))
   if (exact.length === 1) return { found: exact[0]! }
-  const folderName = projects.filter((p) => p.repo_path && p.repo_path.replace(/\/+$/, '').split('/').pop()?.toLowerCase() === low)
+  const folderName = settle(projects.filter((p) => p.repo_path && nameKey(p.repo_path.replace(/\/+$/, '').split('/').pop() ?? '') === low))
   if (exact.length === 0 && folderName.length === 1) return { found: folderName[0]! }
-  const words = low.split(/[\s_-]+/).filter(Boolean)
+  const words = q.toLowerCase().split(/[\s_-]+/).filter(Boolean)
   const partial = projects.filter((p) => {
     const hay = `${p.name} ${p.repo_path ?? ''}`.toLowerCase()
     return words.every((w) => hay.includes(w))
   })
   if (partial.length === 1) return { found: partial[0]! }
-  if (partial.length > 1 || exact.length > 1) return { ambiguous: (exact.length > 1 ? exact : partial).slice(0, 10).map((p) => p.name) }
+  if (partial.length > 1 || exact.length > 1) return { ambiguous: (exact.length > 1 ? exact : partial).slice(0, 10).map((p) => p.repo_path ? `${p.name} (${p.repo_path})` : p.name) }
   return { missing: true }
 }
+
+/** A project's name as the CEO compares it: lower case, runs of spaces, hyphens and underscores as one hyphen. */
+function nameKey(name: string): string {
+  return name.trim().toLowerCase().replace(/[\s_-]+/g, '-')
+}
+/** An agent's working copy: `~/DATA/_worktrees/<task>` (the operator's rule) or a Claude Code worktree. */
+const WORKTREE_FOLDER = /\/(_worktrees|\.claude\/worktrees|\.worktrees)\//
 // #endregion ceo-agent-shared
