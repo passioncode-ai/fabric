@@ -1206,7 +1206,8 @@ export interface FabricApi {
     /** SIGTERM to it, only while its process still names it. */
     machineClose(sessionId: string): Promise<import('../main/machineSessions.ts').MachineAct>
     /** Stop it outside, then continue it in a Fabric console (`claude --resume`). */
-    machineContinue(sessionId: string): Promise<import('../main/machineSessions.ts').MachineAct>
+    /** `from`: the app whose `fabric://session/continue` link asked (DEC-0189 SL-1), kept in the launch journal. */
+    machineContinue(sessionId: string, from?: string): Promise<import('../main/machineSessions.ts').MachineAct>
     /**
      * Create one. The servers it asks for are checked against what the project
      * grants: a request outside that ceiling is REFUSED here rather than trimmed,

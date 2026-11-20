@@ -9,23 +9,26 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-0.3.25 was prepared and never published: a fix to it landed after its verified commit, which the release gate does
-not admit. Its changes ship here ([the release spec](docs/evidence/specs/2026-11-20-home-agents-sessions.md)).
+0.3.25 was not published; its changes are in this release ([the release spec](docs/evidence/specs/2026-11-20-home-agents-sessions.md)).
 
 **Upgrading.** No schema step from 0.3.24 (schema 102, no migration). New on disk: the launch journal,
 `<userData>/launches/` (folder 0700, files 0600, kept 13 months). The CEO's voice is a new optional field of
-`persona.json`; going back to 0.3.24 forgets that choice and keeps everything else.
+`persona.json`; going back to 0.3.24 forgets that choice and keeps everything else. After Fabric restarts, its
+consoles are not opened again: «↻» on a project continues its newest Claude Code session with its history, and
+bringing sessions back by themselves is planned work (CO-603).
 
-- **«Спросить CEO» stands at the top right of Главная again.** The operator, 2026-11-20: «чат должен быть справа, а не
-  снизу». The card sat in the main column, which «В работе» narrowed to 595 to 835 px at 1280 to 1680 px windows, so it
-  fell under the greeting. The greeting and the CEO card are now one row above both columns, the card at the right; it
-  goes under the greeting only in a content area under 640 px (`EstateHome.tsx`, `launch/launch.css`).
+- **«Спросить CEO» is a card at the top right of Главная.** In 0.3.24 it filled the width under the header in large
+  type. It is now a small card beside the greeting and the rhythm, in one row above both columns, at the right (the
+  operator, 2026-11-20: «чат должен быть справа, а не снизу»); it goes under the greeting only in a content area under
+  640 px (`EstateHome.tsx`, `launch/launch.css`).
 - **Fabric lists the sessions Fabric Dashboards lists.** The operator, 2026-11-20: «в дашборде вот вижу сессии а в
-  фабрике не вижу». Fabric listed only its own consoles, Switchboard's own launches (`sessions --all`) and the Claude
-  Code sessions of two known homes. The list now joins Switchboard's `sessions --rows`, the source Fabric Dashboards
-  reads, so a session started in a terminal, by Fabric Dashboards or under another Claude home shows too, counted by
-  Switchboard's groups (идёт, ждёт, нужны вы); Fabric Dashboards still groups its own way, and one definition for both
-  is asked of Switchboard and Dashboards (CO-603). «На этом компьютере вне Fabric · N» is in the left column's
+  фабрике не вижу». In 0.3.24 Fabric listed its own consoles and Switchboard's own launches (`sessions --all`), not
+  the other sessions running on this computer. Агенты and the left column now list them, read from Claude Code's own
+  files and from Switchboard's `sessions --rows`, the source Fabric Dashboards reads, so a session started in a
+  terminal, by Fabric Dashboards or under another Claude home shows too, counted by Switchboard's groups (идёт, ждёт,
+  нужны вы) and by the live processes among them (Switchboard's groups also hold sessions whose process is gone);
+  Fabric Dashboards still groups its own way, and one definition for both is asked of Switchboard and Dashboards
+  (CO-603). «На этом компьютере вне Fabric · N» is in the left column's
   «Агенты»; a press opens Агенты, where «Сессии этого компьютера вне Fabric» comes first with its counts. Each session's
   last messages are read in place, with keys and tokens redacted. A session whose process Fabric knows can be continued
   in a Fabric console or closed; «Продолжить в Fabric» asks for the folder's project before it stops anything, and says
@@ -34,9 +37,13 @@ not admit. Its changes ship here ([the release spec](docs/evidence/specs/2026-11
 - **Other apps open and continue sessions in Fabric** (the contract's DEC-0189, `fabric-session-links/1`, board thread
   `3ca40854`). `fabric://session/open?session=<id>` opens the console of a session Fabric holds, by its own id or the
   runner session it runs, and otherwise Агенты with this computer's sessions. `fabric://session/continue?session=<id>`
-  asks «Продолжить в Fabric?»; on the press a running session is stopped where it runs and continued in a Fabric console
-  with its history, and one that ended is continued from its transcript. A link opens a view and acts on nothing by
-  itself; the app it came from (`from`) is recorded with it (`shared/linkRoute.ts`, `shared/contract/fabricLinks.ts`).
+  of a session a Fabric console already runs opens that console; for any other it asks first, naming the session by
+  its folder, agent and state and the app the link came from, with «Продолжить в Fabric». On the press a running
+  session is stopped where it runs and continued in a Fabric console with its history, and one that ended is continued
+  from its transcript; one continue of a session runs at a time. A link opens a view and acts on nothing by itself; the
+  app it came from (`from`) is recorded in the launch journal (`shared/linkRoute.ts`, `launch/ContinueSessionAsk.tsx`).
+  Links are now checked for secret-shaped values by the contract's detector of DEC-0151 and DEC-0177, for every
+  `fabric://` link (`shared/contract/secretShape.ts`).
 - **Every console Fabric starts is in a launch journal, a press on an agent opens its console, and a project's last
   session continues with one press.** The owner's order of 2026-11-19 (board request `eef5abeb`). Each console is a
   line in `<userData>/launches/launches-YYYY-MM.jsonl`: who started it (you, the CEO, a routine, a chain), through what

@@ -4,12 +4,12 @@ Release gate ledger for 0.3.26 ([the release runbook](../../launch/release-mac.m
 iterations, five reviewers each (ux, errors, docs, data, plan), every reviewer a fresh context reading the candidate
 read-only; findings are disposed here and in the receipts under `docs/evidence/reviews/0.3.26/`.
 
-0.3.26 carries [the release spec](../specs/2026-11-20-home-agents-sessions.md): the CEO card at the top right of Главная
-again, every session of this Mac in Агенты and the left column (Claude Code's files joined with Switchboard's
-`sessions --rows`), the launch journal with a press on an agent opening its console and a project's new or last session,
-the fast «Завершить сессию», the CEO window redesigned with the CEO's stop that holds (prepared as 0.3.25 and never
-published), and the floating CEO button that no longer takes the window down without the CEO's bridge. The operator's
-orders of 2026-11-20 are quoted in the spec.
+0.3.26 carries [the release spec](../specs/2026-11-20-home-agents-sessions.md): the CEO card at the top right of Главная,
+every session of this computer in Агенты and the left column (Claude Code's files joined with Switchboard's
+`sessions --rows`), `fabric://session/open` and `continue` (DEC-0189), the launch journal with a press on an agent
+opening its console and a project's new or last session, the fast «Завершить сессию», and the CEO window redesigned with
+the CEO's stop that holds (prepared as 0.3.25 and not published). The operator's orders of 2026-11-20 are quoted in the
+spec.
 
 ## Protocol
 
@@ -23,7 +23,7 @@ orders of 2026-11-20 are quoted in the spec.
 - 0.3.25's ledger ([2026-11-19](2026-11-19-release-0325-verification.md)) stays as the record of that candidate; its
   three iterations are not reused here.
 - Built-app check: the disposable stack (`scripts/test-stack.mjs`) with `scripts/fixtures/launch-estate.sql`, the
-  built candidate under a temporary HOME, screenshots at 1280, 1440 and 1680 px (spec §3).
+  built candidate under a temporary HOME, windows of 1280, 1440 and 1680 px, screenshots at 1440 and 1280 (spec §3).
 
 ## What 0.3.26 carries
 
@@ -104,3 +104,58 @@ mockup coverage page).
 | V1-PL-13 | PL-13 | non-blocking | ruled: CO-603 (5) |
 
 Exit for iteration 1: every finding disposed above. Blocking findings open: none.
+
+## Iteration 2
+
+Candidate `30552b73e58571047945ef0eafb6c63d44fcb42a`. Reports and receipts in
+[`docs/evidence/reviews/0.3.26/iteration-2/`](../reviews/0.3.26/iteration-2/). Every iteration-1 fix held. 39 new findings, 4 blocking:
+a `session/open` link opened the agent's page instead of the console (UX-17), two CHANGELOG bullets measured against
+builds never published (DO-13), CO-603 and CO-604 in no lane of the plan (DO-14), and the continue ask naming a
+session only by its id, with the gate red on SP-2 (PL-15). Gate on the candidate: hosted `ci.yml` run 44677433773 and
+local `ci.sh fast` red on SP-2; with the SP-2 fix, red only on the mockup receipt of `backlog.md` (re-reviewed and
+re-pinned by `repin-mockup-receipts.mjs`, the cited row unchanged). Code and documents fixed in
+the commit «fix(0.3.26): review iteration 2, every finding fixed or ruled».
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V2-UX-17 | UX-17 | blocking | fixed in the iteration-2 commit: a link to a console Fabric holds opens that console as the rail does (shared/linkRoute.ts consoleToOpen, App.tsx applyLink); linkRoute test «a link to a console Fabric holds opens that console at once» |
+| V2-UX-18 | UX-18 | non-blocking | fixed in the iteration-2 commit: a stopped session not opened in a console leads with its own sentence, no «Не сделано», and offers «Продолжить из истории» (MachineSessions.tsx halfDone, ContinueSessionAsk.tsx); tests in both |
+| V2-UX-19 | UX-19 | non-blocking | fixed in the iteration-2 commit: no manual command; «Продолжить из истории» continues the session from its transcript in its own Claude home (resumeEnded); MachineSessions test of the retry |
+| V2-UX-20 | UX-20 | non-blocking | fixed in the iteration-2 commit: one warning banner for a continue (the notice is not shown beside it), Cancel disabled while the press is answered (ContinueSessionAsk.tsx); test «a refusal is said in words and keeps the ask» |
+| V2-UX-21 | UX-21 | non-blocking | fixed in the iteration-2 commit: one machineWhy for the panel and the ask, every code a sentence, an unknown one in words; a running session not outside is not-outside, not still-running (index.ts resumeEnded); test «an unknown refusal code is never shown as the sentence» |
+| V2-UX-22 | UX-22 | non-blocking | fixed in the iteration-2 commit: the ask names the folder, agent, state and the app the link came from, never the id (ContinueSessionAsk.tsx); test «names the session by folder, agent and state» |
+| V2-UX-23 | UX-23 | non-blocking | ruled: CO-604 (11), extended in iteration 2 |
+| V2-UX-24 | UX-24 | non-blocking | fixed in the iteration-2 commit: en machineSessions.continueAsk says «window or terminal» |
+| V2-UX-25 | UX-25 | non-blocking | fixed in the iteration-2 commit: SCN-142 amended with session/open and continue; SCN-166 says «компьютере» and the iteration-1 fixes |
+| V2-UX-26 | UX-26 | non-blocking | fixed in the iteration-2 commit: two sessions in one folder are named with their start; the panel heading is hidden inside the fold (MachineSessions.tsx label, folded) |
+| V2-ER-12 | ER-12 | non-blocking | fixed in the iteration-2 commit for (a): one continue of a session at a time, close refused while it runs, the link keeps the ask in flight (machineSessions.ts continuing, App.tsx applyLink); test «one continue of a session at a time», red before; (b) ruled: CO-604 (22) |
+| V2-ER-13 | ER-13 | non-blocking | ruled: CO-604 (18) |
+| V2-ER-14 | ER-14 | non-blocking | fixed in the iteration-2 commit: with the process table unread, close and continue refuse with unknown-owner and the list still shows the row (machineSessions.ts find); test «the process table not read: no act runs», red before |
+| V2-ER-15 | ER-15 | non-blocking | ruled: CO-604 (19) |
+| V2-ER-16 | ER-16 | non-blocking | fixed in the iteration-2 commit: the CEO read takes the transcript tail through readTail (ceoTools.ts read); ceo-agent tests 54 pass |
+| V2-ER-17 | ER-17 | non-blocking | fixed in the iteration-2 commit: readTail decodes only bytesRead (machineSessions.ts readTail); no test, a file shrinking between stat and read |
+| V2-DO-13 | DO-13 | blocking | fixed in the iteration-2 commit: both bullets rewritten against 0.3.24 (the full-width card, no sessions list in 0.3.24) |
+| V2-DO-14 | DO-14 | blocking | fixed in the iteration-2 commit: CO-603 and CO-604 in lane 12; check-plan-ids.mjs PASS |
+| V2-DO-15 | DO-15 | non-blocking | fixed in the iteration-2 commit: the CHANGELOG, spec row 8 and SCN-142 quote the button and say a console Fabric runs is opened, not moved; the dated map entry stays as its record, the iteration-2 entry says it |
+| V2-DO-16 | DO-16 | non-blocking | fixed in the iteration-2 commit: spec row 3, SCN-166 and the test name say «компьютер» / this computer |
+| V2-DO-17 | DO-17 | non-blocking | fixed in the iteration-2 commit: SCN-142 amended; UX-1 and ER-3 added to the SCN-166 amendment |
+| V2-DO-18 | DO-18 | non-blocking | fixed in the iteration-2 commit: the synchronous transcript lookup is CO-604 (17) |
+| V2-DO-19 | DO-19 | non-blocking | fixed: PRs #66 and #68 closed as superseded on 2026-11-20 (gh pr close, both heads in the candidate); the version and the gate move in the release commit |
+| V2-DO-20 | DO-20 | non-blocking | fixed in the iteration-2 commit: «0.3.25 was not published; its changes are in this release» |
+| V2-DO-21 | DO-21 | non-blocking | fixed in the iteration-2 commit: the ledger intro drops the CEO button clause; the protocol says windows of 1280, 1440 and 1680 px, screenshots at 1440 and 1280 |
+| V2-DA-13 | DA-13 | non-blocking | fixed in the iteration-2 commit: a turn is redacted whole, then cut (ceoTools.ts transcriptTurns clean, redactedTurns); test «redacted whole before they are cut», red with the old order |
+| V2-DA-14 | DA-14 | non-blocking | fixed in the iteration-2 commit: the composed reader redactedTurns is exported, used by the panel and the CEO, and tested with a key across the cut |
+| V2-DA-15 | DA-15 | non-blocking | fixed in the iteration-2 commit: the ask names the session and the app; the press carries from to the launch journal as via link with the app in the reason (sessionLaunches.ts LAUNCH_VIA, index.ts resumeInFabric linkReason); test «the link's app reaches the console» |
+| V2-DA-16 | DA-16 | non-blocking | fixed in the iteration-2 commit: as ER-12 (a) |
+| V2-DA-17 | DA-17 | non-blocking | ruled: CO-604 (20) |
+| V2-DA-18 | DA-18 | non-blocking | fixed in the iteration-2 commit: a history whose folder cannot be read answers unreadable with its own sentence, not gone (index.ts resumeEnded) |
+| V2-PL-15 | PL-15 | blocking | fixed in the iteration-2 commit: no id on screen (check-design SP-2 passes), the ask names folder, agent, state and app, every refusal a sentence, and the ask has five tests (ContinueSessionAsk.test.tsx); the gate on the iteration-3 candidate is recorded below |
+| V2-PL-16 | PL-16 | non-blocking | fixed in the iteration-2 commit: the CHANGELOG says links are checked by the DEC-0151 and DEC-0177 detector; the folder-attribution twin ruled: CO-604 (20) |
+| V2-PL-17 | PL-17 | non-blocking | fixed in the iteration-2 commit: SCN-142 amended, the FABRIC-0326 merge entry lists the links and the contract files; the product model state ruled: CO-604 (21) |
+| V2-PL-18 | PL-18 | non-blocking | fixed in the iteration-2 commit: the Upgrading paragraph says consoles are not opened again after a restart, «↻» continues, CO-603 |
+| V2-PL-19 | PL-19 | non-blocking | fixed: as DO-19 |
+| V2-PL-20 | PL-20 | non-blocking | fixed in the iteration-2 commit: spec §3 marks its count as a reading on 314c9566; the release close records the reading on the verified candidate |
+| V2-PL-21 | PL-21 | non-blocking | fixed in the plan: the iteration-3 candidate is a new commit descending from both, it becomes verifiedCommit, and nothing but metadata and the version changes after it; no new scope after iteration 2 (the live-process count of iteration 2 answers the operator's count ask with Switchboard's reply of 2026-11-20) |
+| V2-PL-22 | PL-22 | non-blocking | fixed in the iteration-2 commit: spec §4 lists the moved promise with CO-603 (6) and cites CO-603 in its tracking column; thread 3ca40854 is told at the release |
+
+Exit for iteration 2: every finding disposed above. Blocking findings open: none.

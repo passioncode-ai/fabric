@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "30552b73e58571047945ef0eafb6c63d44fcb42a",
+  "report": "docs/evidence/reviews/0.3.26/iteration-2/2026-11-20-errors.md",
+  "reportSha256": "5859b557ed564058ffebe70f4527738feeb74b44ac37c83e49fbd53ab6ff892f",
+  "reviewerRun": "release-0326-i2-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit for (a): one continue of a session at a time, close refused while it runs, the link keeps the ask in flight (machineSessions.ts continuing, App.tsx applyLink); test «one continue of a session at a time», red before; (b) ruled: CO-604 (22)"
+      ]
+    },
+    {
+      "id": "ER-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (18)"
+      ]
+    },
+    {
+      "id": "ER-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: with the process table unread, close and continue refuse with unknown-owner and the list still shows the row (machineSessions.ts find); test «the process table not read: no act runs», red before"
+      ]
+    },
+    {
+      "id": "ER-15",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (19)"
+      ]
+    },
+    {
+      "id": "ER-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: the CEO read takes the transcript tail through readTail (ceoTools.ts read); ceo-agent tests 54 pass"
+      ]
+    },
+    {
+      "id": "ER-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: readTail decodes only bytesRead (machineSessions.ts readTail); no test, a file shrinking between stat and read"
+      ]
+    }
+  ]
+}

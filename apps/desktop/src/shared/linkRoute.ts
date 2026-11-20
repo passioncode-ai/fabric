@@ -167,4 +167,10 @@ export function linkWindowPlan(s: { startupDone: boolean; hasWindow: boolean }):
   if (!s.startupDone) return 'hold'
   return s.hasWindow ? 'open' : 'hold-and-open-window'
 }
+/** The console a routed link opens at once (UX-17, 0.3.26 review, iteration 2): a link to a console Fabric holds opens
+ *  that console, as the rail's press does, not the agent's page; null when the link opens a place instead. */
+export function consoleToOpen(r: LinkRoute): string | null {
+  return r.notice === 'open-session' && r.route.kind === 'agents' && r.route.session ? r.route.session : null
+}
+
 // #endregion fabric-link-route

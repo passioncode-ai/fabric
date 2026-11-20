@@ -18,6 +18,8 @@ import type { DiskSession } from './diskSessions.ts'
 /** One `switchboard --json sessions --rows` row, as `ceoTools.ts#parseMachineRows` reads it. */
 export interface SwitchboardRow {
   session_id: string | null
+  /** The process Switchboard sees running it; null for a session whose process is gone. */
+  pid?: number | null
   agent: string
   folder: string
   group: string
@@ -32,6 +34,10 @@ export type MachineState = 'working' | 'waiting' | 'needs_you'
 export interface MachineSession {
   /** The process; 0 for a session only Switchboard names. */
   pid: number
+  /** A process runs it now: a Claude Code file of a live process, or a Switchboard row with a pid. Switchboard's
+   *  needs_you and waiting also hold sessions whose process is gone (its launch ended, or it stopped), so the
+   *  count of these is the count of running agents (Switchboard, 2026-11-20, board 7c726479; SB-582). */
+  live: boolean
   source: MachineSource
   state: MachineState | null
   agent: string | null
@@ -61,14 +67,14 @@ export interface MachineSessionsDeps {
   /** The Fabric project of the session's folder, or null when the folder is in none: asked BEFORE any signal. */
   projectFor?(s: DiskSession): Promise<string | null>
   /** A Fabric console in the folder that continues the session (`claude --resume`), with the home it ran in. */
-  continueInFabric(s: DiskSession, projectId?: string): Promise<{ sessionId: string }>
+  continueInFabric(s: DiskSession, projectId?: string, from?: string): Promise<{ sessionId: string }>
   /** The pids of the consoles Fabric runs now. A Claude Code process that is one of them, or runs under one, is
    *  Fabric's, even before the launch journal names its runner session id (0.3.26 review, iteration 1, UX-2, ER-3). */
   fabricPids?(): Promise<ReadonlySet<number>>
   /** Each process's parent, read once per listing; null when it could not be read. */
   parents?(): Promise<ReadonlyMap<number, number> | null>
   /** A session no process runs any more, continued in a Fabric console from its transcript (DEC-0189 SL-5). */
-  resumeEnded?(sessionId: string): Promise<MachineAct>
+  resumeEnded?(sessionId: string, from?: string): Promise<MachineAct>
   /** Switchboard's rows of this computer; null when Switchboard is not installed or did not answer. */
   switchboardRows?(): Promise<SwitchboardRow[] | null>
   record(op: string, detail: Record<string, unknown>): void
@@ -107,8 +113,9 @@ export async function readTail(file: string, max: number): Promise<string> {
     const { size } = await fh.stat()
     const start = Math.max(0, size - max)
     const buf = Buffer.alloc(size - start)
-    await fh.read(buf, 0, buf.length, start)
-    const text = buf.toString('utf8')
+    // ER-17: a file that shrank since the stat yields fewer bytes; the rest of the buffer is not text.
+    const { bytesRead } = await fh.read(buf, 0, buf.length, start)
+    const text = buf.subarray(0, bytesRead).toString('utf8')
     return start === 0 ? text : text.slice(text.indexOf('\n') + 1)
   } finally { await fh.close() }
 }
@@ -127,20 +134,24 @@ const ORDER: Record<string, number> = { needs_you: 0, working: 1, waiting: 2 }
 export function createMachineSessions(deps: MachineSessionsDeps) {
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)))
   /** Fabric's own: its runner session id is in the journal, or its process is a Fabric console or runs under one. */
-  const ownedBy = async (): Promise<(s: DiskSession) => boolean> => {
+  const ownedBy = async (): Promise<((s: DiskSession) => boolean) & { parentsUnread: boolean }> => {
     const [ours, pids, parents] = await Promise.all([deps.fabricRunnerIds(), deps.fabricPids?.() ?? Promise.resolve(new Set<number>()),
       deps.parents?.().catch(() => null) ?? Promise.resolve(null)])
     const underFabric = (pid: number): boolean => {
       for (let p: number | undefined = pid, hops = 0; p && p > 1 && hops < 32; p = parents?.get(p), hops++) if (pids.has(p)) return true
       return false
     }
-    return (s) => ours.has(s.sessionId) || underFabric(s.pid)
+    // ER-14 (0.3.26 review, iteration 2): with no process table, a process nested under a console cannot be told apart.
+    return Object.assign((s: DiskSession) => ours.has(s.sessionId) || underFabric(s.pid), { parentsUnread: !!deps.parents && parents === null })
   }
-  const outside = async (): Promise<DiskSession[]> => {
+  const continuing = new Set<string>()
+  /** The session to act on, or why not: an act never runs on a process whose owner could not be checked (ER-14). */
+  const find = async (sessionId: string): Promise<DiskSession | null | 'unknown-owner'> => {
     const [live, owned] = await Promise.all([deps.live(), ownedBy()])
-    return live.filter((s) => !owned(s))
+    const s = live.find((x) => x.sessionId === sessionId)
+    if (!s || owned(s)) return null
+    return owned.parentsUnread && s.pid > 1 ? 'unknown-owner' : s
   }
-  const find = async (sessionId: string): Promise<DiskSession | null> => (await outside()).find((s) => s.sessionId === sessionId) ?? null
 
   return {
     async list(): Promise<MachineSession[]> {
@@ -154,7 +165,7 @@ export function createMachineSessions(deps: MachineSessionsDeps) {
         // Switchboard's group wins when it names the session, so this list counts as Switchboard and Fabric Dashboards do
         // (the operator, 2026-11-20: one machine, one count); the file's status only when Switchboard does not know it.
         const state = (row ? ROW_STATE[row.group] : undefined) ?? stateOfStatus(s.status)
-        return { ...s, source: 'claude' as const, state, agent: row?.agent ?? 'claude-code' }
+        return { ...s, source: 'claude' as const, live: true, state, agent: row?.agent ?? 'claude-code' }
       })
       const listed = new Set(disk.map((s) => s.sessionId))
       for (const r of rows ?? []) {
@@ -162,7 +173,7 @@ export function createMachineSessions(deps: MachineSessionsDeps) {
         const state = ROW_STATE[r.group]
         if (!state) continue
         listed.add(r.session_id)
-        out.push({ pid: 0, sessionId: r.session_id, cwd: r.folder, name: null, status: null, kind: null, entrypoint: null,
+        out.push({ pid: 0, live: r.pid != null, sessionId: r.session_id, cwd: r.folder, name: null, status: null, kind: null, entrypoint: null,
           startedAt: null, updatedAt: null, source: 'switchboard', state, agent: r.agent })
       }
       return out.sort((a, b) => (ORDER[a.state ?? ''] ?? 3) - (ORDER[b.state ?? ''] ?? 3))
@@ -173,19 +184,29 @@ export function createMachineSessions(deps: MachineSessionsDeps) {
       return { turns: deps.turns(await readTail(file, READ_TAIL_BYTES), 12) }
     },
     async close(sessionId: string): Promise<MachineAct> {
+      if (continuing.has(sessionId)) return { ok: false, why: 'busy' }
       const s = await find(sessionId)
       if (!s) return { ok: false, why: 'gone' }
+      if (s === 'unknown-owner') return { ok: false, why: 'unknown-owner' }
       if (!(await deps.stillNames(s))) return { ok: false, why: 'changed' }
       deps.signal(s.pid)
       deps.record('agents.machine-close', { session_id: s.sessionId, pid: s.pid, folder: s.cwd })
       return { ok: true }
     },
-    async continueInFabric(sessionId: string): Promise<MachineAct> {
+    async continueInFabric(sessionId: string, from?: string): Promise<MachineAct> {
+      // DA-16 (0.3.26 review, iteration 2): one continue of a session at a time; a second press or link waits its answer.
+      if (continuing.has(sessionId)) return { ok: false, why: 'busy' }
+      continuing.add(sessionId)
+      try { return await continueOnce(sessionId, from) } finally { continuing.delete(sessionId) }
+    }
+  }
+  async function continueOnce(sessionId: string, from?: string): Promise<MachineAct> {
       const s = await find(sessionId)
+      if (s === 'unknown-owner') return { ok: false, why: 'unknown-owner' }
       if (!s) {
         // Not running here: a session that ended is continued from its history; one Fabric runs was never «outside».
         if (!deps.resumeEnded) return { ok: false, why: 'gone' }
-        const r = await deps.resumeEnded(sessionId).catch((e: unknown) => ({ ok: false as const, why: e instanceof Error ? e.message.slice(0, 300) : String(e) }))
+        const r = await deps.resumeEnded(sessionId, from).catch((e: unknown) => ({ ok: false as const, why: e instanceof Error ? e.message.slice(0, 300) : String(e) }))
         deps.record('agents.machine-continue', { session_id: sessionId, outcome: r.ok ? 'ok' : r.why, ended: true, ...(r.ok && r.sessionId ? { console: r.sessionId } : {}) })
         return r
       }
@@ -210,7 +231,7 @@ export function createMachineSessions(deps: MachineSessionsDeps) {
         await sleep(250)
       }
       try {
-        const opened = await deps.continueInFabric(s, projectId)
+        const opened = await deps.continueInFabric(s, projectId, from)
         deps.record('agents.machine-continue', { session_id: s.sessionId, pid: s.pid, console: opened.sessionId, outcome: 'ok' })
         return { ok: true, sessionId: opened.sessionId }
       } catch (e) {
@@ -218,7 +239,6 @@ export function createMachineSessions(deps: MachineSessionsDeps) {
         // The session was stopped and no console continued it: said as such, with how to go on by hand.
         return { ok: false, why: 'stopped-not-continued', resume: { sessionId: s.sessionId, cwd: s.cwd } }
       }
-    }
   }
 }
 export type MachineSessions = ReturnType<typeof createMachineSessions>

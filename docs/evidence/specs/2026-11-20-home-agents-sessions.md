@@ -25,12 +25,12 @@ Sources, the operator's words:
 |---|---|---|---|
 | 1 | «Спросить CEO» sat inside the main column; whenever «В работе» took the right column the main column was 595 to 835 px (built app, 1280 to 1680 px windows), so the card fell under the hero | The top row (the hero and the CEO card) spans the home above both columns; the card stands at the top right at 1280, 1440 and 1680 px and stacks only under a 640 px content area | `EstateHome.tsx`, `launch/launch.css` (the `.lh-top` container rules) |
 | 2 | Агенты and the rail listed only the sessions Fabric holds (its consoles and the fabric-mcp sessions of this run); the Switchboard panel read `sessions --all`, Switchboard's own launches; the «outside» panel read Claude Code's files in `~/.claude` and Switchboard's runtimes only | One list of this computer's sessions outside Fabric's consoles: Claude Code's files joined with Switchboard's `sessions --rows`, the source Fabric Dashboards reads; one read in flight, fresh 20 s from when it settled, a listing waiting at most 3 s for it; state is Switchboard's group (running, waiting, needs you) when it names the session, else the file's status. Fabric's own consoles are excluded by their process, not only by the journal. Fabric lists the same sessions as Dashboards and counts them by Switchboard's groups; Dashboards' own grouping is not changed here (§2, CO-603) | `main/machineSessions.ts#createMachineSessions`, `main/index.ts` (`switchboardRows`) |
-| 3 | Those sessions showed only on Агенты with nothing selected | «На этом Mac вне Fabric · N» in the rail's «Агенты», each with its state; a press opens Агенты; the panel is first on Агенты and folded under an open agent's page | `launch/LaunchShell.tsx`, `launch/AgentsScreen.tsx`, `launch/MachineSessions.tsx` |
+| 3 | Those sessions showed only on Агенты with nothing selected | «На этом компьютере вне Fabric · N» in the rail's «Агенты», each with its state; a press opens Агенты; the panel is first on Агенты and folded under an open agent's page | `launch/LaunchShell.tsx`, `launch/AgentsScreen.tsx`, `launch/MachineSessions.tsx` |
 | 4 | No record of who started a console; a press on an agent opened its page; no new or last session from a project | The launch journal, a press opens the console, «＋» and «↻» on a project, «+ Новая сессия» and the recent sessions on Агенты ([2026-11-19 spec](2026-11-19-session-launch-journal.md)) | `feat/session-launch-journal` |
 | 5 | «Завершить сессию» sent SIGTERM and waited; Claude Code often outlived it | The person's press kills a console still running after 0.8 s; a console whose process is gone leaves with its tab | `fix/session-end-fast` |
 | 6 | The CEO popup and button as of 0.3.24; the CEO could not be stopped | The popup redesigned, the call a panel in the chat, the character's face on the button, the voice by character, a stop that holds (prepared as 0.3.25, never published) | `feat/ceo-popup-redesign` |
 | 7 | The floating CEO button, new in 0.3.25, threw when the bridge carried no CEO, which only the window tests' mocks do (`Cannot read properties of undefined (reading 'status')` in `<CeoButton>`; 29 window tests red on the 0.3.25 release commit). No published build had the button | The button renders with no CEO on the bridge | `886e555e` |
-| 8 | Another app could open a session in Fabric only by `fabric://session/new` | `fabric://session/open` and `fabric://session/continue` (the contract's DEC-0189, re-vendored at `4c978495`): open a console Fabric holds by its id or its runner session id, else Агенты; continue asks first, then moves a running session or continues an ended one from its transcript | `shared/linkRoute.ts#routeForLink`, `shared/contract/fabricLinks.ts`, `App.tsx` (`continueAsk`) |
+| 8 | Another app could open a session in Fabric only by `fabric://session/new` | `fabric://session/open` and `fabric://session/continue` (the contract's DEC-0189, re-vendored at `4c978495`): open a console Fabric holds by its id or its runner session id, else Агенты; continue of a session a Fabric console runs opens that console, of any other asks first (naming its folder, agent, state and the app that asked, with «Продолжить в Fabric»), then moves a running session or continues an ended one from its transcript, one continue of a session at a time | `shared/linkRoute.ts#routeForLink`, `shared/contract/fabricLinks.ts`, `launch/ContinueSessionAsk.tsx` |
 
 0.3.25 was prepared and reviewed but never tagged: its fix of row 7 landed after its verified commit, and the release
 gate admits no code change after it. Its changes ship in 0.3.26 with this release's own three review iterations.
@@ -77,18 +77,21 @@ request `7c726479`, CO-603).
   temporary HOME (its hub files there, the operator's Fabric untouched), 1280, 1440 and 1680 px windows. Before: the card
   under the hero at all three (the card's top below the hero's bottom). After: the card at the hero's top (y = 68) at all
   three.
-- With the temporary HOME linked to `~/.claude` and Switchboard's data folder (read only): the rail lists 16 sessions
-  of this Mac, Агенты the same 16 with «Идут: 4 · ждут: 8 · нужны вы: 4».
+- With the temporary HOME linked to `~/.claude` and Switchboard's data folder (read only), on candidate `314c9566`:
+  the rail listed 16 sessions of this computer, Агенты the same 16 with «Идут: 4 · ждут: 8 · нужны вы: 4». This reading
+  predates the iteration-1 fixes (Fabric's consoles excluded by process, sessions with no state counted); the release
+  ledger records the reading on the verified candidate.
 - Tests: `test/session-resume.test.mjs` «every session of this Mac» (red before the change), `Rail.test.tsx` «Агенты
-  lists every session of this Mac outside Fabric».
+  lists every session of this computer outside Fabric».
 
 ## 4. What is not in this release, and who owns it
 
 | Item | Owner | Where it is tracked |
 |---|---|---|
-| The session manager (session host and lifecycle) installed as a service with any of our software, so Fabric alone brings it | Switchboard, with Fabric installing it when absent | board request `31261095` (Dashboards to Switchboard); Fabric task `c0e6b2d2` |
+| The session manager (session host and lifecycle) installed as a service with any of our software, so Fabric alone brings it | Switchboard, with Fabric installing it when absent | board request `31261095` (Dashboards to Switchboard); Fabric task `c0e6b2d2`; CO-603 (2). Switchboard's answer of 2026-11-20 (`7c726479`): `fabric-sessions install --if-newer` is its plan SB-397 (W3.1), not built yet |
 | One definition of «running / waiting / needs you» for Switchboard, Dashboards and Fabric | Switchboard (the source), Dashboards | board request `7c726479`, CO-603 |
 | Fabric's own automatic update (no updater yet) | Fabric | plan rows P-12 (RM-19) and P-27, CO-603 |
 | The sub-agents inside a session shown on its row | Fabric | task `ccd5c232`, CO-603 |
-| Sessions back after a restart of the session manager | Switchboard (`boot_resume`), Fabric's consoles under the session host (task `dbeb4fcd`) | those rows |
-| A live probe of every product's MCP (Fabric, the board, Switchboard, Dashboards) | each product | the release close's MCP check (`machine.mcp.refresh`) |
+| Sessions back after a restart of the session manager | Switchboard (`boot_resume`), Fabric's consoles under the session host (task `dbeb4fcd`) | those rows, CO-603 (5) |
+| A live probe of every product's MCP (Fabric, the board, Switchboard, Dashboards) | each product | the release close's MCP check (`machine.mcp.refresh`), CO-603 (8) |
+| «На этом компьютере / на других» for agents and the tidier session window, promised on board thread `3ca40854` for 20.11 21:00 | Fabric | moved to the next release on that thread; CO-603 (6) |

@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { claudeSlug, lastSessionOf, projectForFolder } from '../src/main/projectResume.ts'
 import { createMachineSessions, readTail, transcriptCwd, TAKE_OVER_WAIT_MS } from '../src/main/machineSessions.ts'
+import { redactedTurns } from '../src/main/ceoTools.ts'
 
 const id = (n) => `${String(n).repeat(8)}-aaaa-4aaa-8aaa-aaaaaaaaaaaa`
 const USER = JSON.stringify({ type: 'user', message: { role: 'user', content: 'go' } }) + '\n'
@@ -60,7 +61,7 @@ function machine(over = {}) {
     stillNames: async (s) => over.reused ? false : alive.has(s.pid),
     transcript: () => over.transcript ?? null,
     turns: (text) => [{ role: 'user', text }],
-    continueInFabric: async (s) => { opened.push(s.sessionId); if (over.openFails) throw new Error('no project'); return { sessionId: 'console-1' } },
+    continueInFabric: async (s, _p, from) => { opened.push(from ? [s.sessionId, from] : s.sessionId); if (over.gate) await over.gate; if (over.openFails) throw new Error('no project'); return { sessionId: 'console-1' } },
     record: (op, d) => records.push([op, d]),
     ...(over.rows !== undefined ? { switchboardRows: async () => { if (over.rows instanceof Error) throw over.rows; return over.rows } } : {}),
     sleep: async () => {}
@@ -114,6 +115,27 @@ test('a Fabric console is never «outside»: by its pid, or a parent pid, before
   // The process table not read: only the pid itself is Fabric's.
   const itself = machine({ runnerIds: [], fabricPids: [501], parents: null })
   assert.deepEqual((await itself.m.list()).map((s) => s.pid), [502])
+})
+
+test('the process table not read: no act runs on a process whose owner could not be checked (0.3.26 review, iteration 2, ER-14)', async () => {
+  const blind = machine({ runnerIds: [], fabricPids: [400], parents: null, project: 'p-1' })
+  assert.deepEqual(await blind.m.close(id(1)), { ok: false, why: 'unknown-owner' })
+  assert.deepEqual(await blind.m.continueInFabric(id(1)), { ok: false, why: 'unknown-owner' })
+  assert.deepEqual(blind.signals, [], 'nothing is signalled')
+  assert.equal((await blind.m.list()).some((x) => x.sessionId === id(1)), true, 'the list still shows it')
+})
+
+test('one continue of a session at a time; the link\'s app reaches the console (iteration 2, DA-16, ER-12, DA-15)', async () => {
+  let open = () => {}
+  const gate = new Promise((r) => { open = r })
+  const two = machine({ project: 'p-1', gate })
+  const first = two.m.continueInFabric(id(1), 'fabric-dashboards')
+  assert.deepEqual(await two.m.continueInFabric(id(1)), { ok: false, why: 'busy' })
+  assert.deepEqual(await two.m.close(id(1)), { ok: false, why: 'busy' })
+  open()
+  assert.deepEqual(await first, { ok: true, sessionId: 'console-1' })
+  assert.deepEqual(two.signals, [501], 'one signal')
+  assert.deepEqual(two.opened, [[id(1), 'fabric-dashboards']])
 })
 
 test('read: the last turns from its transcript; null when the transcript is not here', async () => {
@@ -170,4 +192,15 @@ test("a transcript's folder is its first absolute cwd; the tail read starts at a
   writeFileSync(file, 'line-one-is-long\nline-two\nline-three\n')
   assert.equal(await readTail(file, 18), 'line-three\n')
   assert.equal(await readTail(file, 1000), 'line-one-is-long\nline-two\nline-three\n')
+})
+
+test('another session\'s turns are redacted whole before they are cut: a key across the cut leaves nothing (iteration 2, DA-13, DA-14)', () => {
+  // An Anthropic-shaped key built at run time, starting 10 characters before the 700-character cut.
+  const key = 'sk-ant-' + 'api03-' + 'x'.repeat(40)
+  const text = 'a'.repeat(689) + ' ' + key + ' tail'
+  const line = JSON.stringify({ type: 'user', message: { role: 'user', content: text } })
+  const [turn] = redactedTurns(line, 12)
+  assert.equal(turn.text.length <= 700, true)
+  assert.equal(turn.text.includes('sk-ant-'), false, 'not even the prefix stays')
+  assert.equal(/x{8}/.test(turn.text), false, 'no part of the key body stays')
 })

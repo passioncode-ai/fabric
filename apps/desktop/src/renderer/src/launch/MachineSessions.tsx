@@ -14,15 +14,33 @@ import { FailureNote } from '../OperatorError'
 
 export const MACHINE_POLL_MS = 15_000
 
+type T = ReturnType<typeof useT>
+/** One sentence for every refusal of a machine act, shared by this panel and the link's ask (iteration 2, UX-21): a
+ *  code Fabric does not know is said as a failure in words, never shown raw (its code goes to the tooltip). */
+export function machineWhy(t: T, why: string): string {
+  return why === 'gone' ? t('machineSessions.why.gone')
+    : why === 'changed' ? t('machineSessions.why.changed')
+    : why === 'still-running' ? t('machineSessions.why.stillRunning')
+    : why === 'no-project' ? t('machineSessions.why.noProject')
+    : why === 'not-outside' ? t('machineSessions.why.notOutside')
+    : why === 'unreadable' ? t('machineSessions.why.unreadable')
+    : why === 'busy' ? t('machineSessions.why.busy')
+    : why === 'unknown-owner' ? t('machineSessions.why.unknownOwner')
+    : why === 'stopped-not-continued' ? t('machineSessions.why.stoppedNotContinued')
+    : t('machineSessions.why.other')
+}
+/** A stopped session that did not reach a console is half done (UX-18): its sentence leads, without «Не сделано». */
+export const halfDone = (why: string): boolean => why === 'stopped-not-continued'
+
 type Ask = { id: string; act: 'continue' | 'close' } | null
 
-export function MachineSessionsPanel({ onOpenConsole }: { onOpenConsole(sessionId: string): void }): React.JSX.Element | null {
+export function MachineSessionsPanel({ onOpenConsole, folded = false }: { onOpenConsole(sessionId: string): void; folded?: boolean }): React.JSX.Element | null {
   const t = useT()
   const [rows, setRows] = useState<MachineSession[] | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
   const [asking, setAsking] = useState<Ask>(null)
   const [busy, setBusy] = useState<string | null>(null)
-  const [refused, setRefused] = useState<{ id: string; why: string; resume?: { sessionId: string; cwd: string } } | null>(null)
+  const [refused, setRefused] = useState<{ id: string; why: string } | null>(null)
   const [turns, setTurns] = useState<{ id: string; list: Array<{ role: string; text: string }> | null | 'failed' } | null>(null)
   const [tick, setTick] = useState(0)
   useEffect(() => {
@@ -46,7 +64,7 @@ export function MachineSessionsPanel({ onOpenConsole }: { onOpenConsole(sessionI
     setRefused(null)
     try {
       const r = act === 'continue' ? await window.fabric.agents.machineContinue(id) : await window.fabric.agents.machineClose(id)
-      if (!r.ok) setRefused({ id, why: r.why, ...(r.resume ? { resume: r.resume } : {}) })
+      if (!r.ok) setRefused({ id, why: r.why })
       else if (act === 'continue' && r.sessionId) onOpenConsole(r.sessionId)
     } catch (e) { setRefused({ id, why: e instanceof Error ? e.message : String(e) }) } finally {
       setBusy(null)
@@ -58,24 +76,32 @@ export function MachineSessionsPanel({ onOpenConsole }: { onOpenConsole(sessionI
     setTurns({ id, list: null })
     window.fabric.agents.machineRead(id).then((r) => setTurns({ id, list: r ? r.turns : [] }), () => setTurns({ id, list: 'failed' }))
   }
-  const why = (w: string, resume?: { sessionId: string; cwd: string }): string => w === 'gone' ? t('machineSessions.why.gone')
-    : w === 'changed' ? t('machineSessions.why.changed')
-    : w === 'still-running' ? t('machineSessions.why.stillRunning')
-    : w === 'no-project' ? t('machineSessions.why.noProject')
-    : w === 'stopped-not-continued' && resume ? t('machineSessions.why.stoppedNotContinued', { id: resume.sessionId, cwd: resume.cwd }) : w
+  // UX-26: two sessions in one folder are told apart by when they started.
+  const label = (s: MachineSession): string => {
+    const folder = folderName(s.cwd) ?? s.cwd
+    const twin = (rows ?? []).filter((x) => x.cwd === s.cwd).length > 1
+    return twin && s.startedAt ? `${folder}, ${t('board.ago', { time: since(s.startedAt, t) })}` : folder
+  }
 
   return (
     <section className="lp-panel" aria-labelledby="ag-machine-title">
-      <h3 id="ag-machine-title">{t('machineSessions.title')}</h3>
+      {/* UX-26: inside the fold its summary already says it; the heading stays for the section's name, unseen. */}
+      <h3 id="ag-machine-title" className={folded ? 'visually-hidden' : undefined}>{t('machineSessions.title')}</h3>
       <p className="lp-meta">{t('machineSessions.lede')}</p>
       {problem && <p className="lp-meta" role="status" title={problem}>{t('machineSessions.failed')}</p>}
       {!rows && !problem && <p className="lp-meta" role="status">{t('machineSessions.reading')}</p>}
+      {refused && halfDone(refused.why) && (
+        <div className="as-launch-ask" role="status">
+          <p className="lp-meta">{machineWhy(t, refused.why)}</p>
+          <button type="button" className="lp-button primary" disabled={busy !== null} onClick={() => void run(refused.id, 'continue')}>{t('machineSessions.resumeFromHistory')}</button>
+        </div>
+      )}
       {rows && rows.length === 0 && <p className="lp-meta">{t('machineSessions.none')}</p>}
       {rows && rows.length > 0 && (
         // UX-7: the parts sum to the rail's count; a session with no state is counted as such.
         <p className="lp-meta" data-testid="machine-counts">{t('machineSessions.counts', {
           working: rows.filter((s) => s.state === 'working').length, waiting: rows.filter((s) => s.state === 'waiting').length,
-          needs: rows.filter((s) => s.state === 'needs_you').length })}{rows.some((s) => !s.state)
+          needs: rows.filter((s) => s.state === 'needs_you').length, live: rows.filter((s) => s.live).length })}{rows.some((s) => !s.state)
           ? t('machineSessions.countsUnknown', { unknown: rows.filter((s) => !s.state).length }) : ''}</p>
       )}
       {rows && rows.length > 0 && (
@@ -92,10 +118,10 @@ export function MachineSessionsPanel({ onOpenConsole }: { onOpenConsole(sessionI
                   s.startedAt ? t('board.ago', { time: since(s.startedAt, t) }) : null].filter(Boolean).join(' · ')}
               </span>
               <span className="ag-machine-acts">
-                <button type="button" className="lp-link" aria-expanded={turns?.id === s.sessionId} aria-label={t('machineSessions.readAbout', { folder: folderName(s.cwd) ?? s.cwd })} onClick={() => read(s.sessionId)}>{t('machineSessions.read')}</button>
+                <button type="button" className="lp-link" aria-expanded={turns?.id === s.sessionId} aria-label={t('machineSessions.readAbout', { folder: label(s) })} onClick={() => read(s.sessionId)}>{t('machineSessions.read')}</button>
                 {/* A session only Switchboard names has no process Fabric knows: it is read here, closed or taken over there. */}
-                {s.source === 'claude' && <button type="button" className="lp-button" disabled={busy !== null} aria-label={t('machineSessions.continueAbout', { folder: folderName(s.cwd) ?? s.cwd })} onClick={() => setAsking({ id: s.sessionId, act: 'continue' })}>{t('machineSessions.continue')}</button>}
-                {s.source === 'claude' && <button type="button" className="lp-button" disabled={busy !== null} aria-label={t('machineSessions.closeAbout', { folder: folderName(s.cwd) ?? s.cwd })} onClick={() => setAsking({ id: s.sessionId, act: 'close' })}>{t('machineSessions.close')}</button>}
+                {s.source === 'claude' && <button type="button" className="lp-button" disabled={busy !== null} aria-label={t('machineSessions.continueAbout', { folder: label(s) })} onClick={() => setAsking({ id: s.sessionId, act: 'continue' })}>{t('machineSessions.continue')}</button>}
+                {s.source === 'claude' && <button type="button" className="lp-button" disabled={busy !== null} aria-label={t('machineSessions.closeAbout', { folder: label(s) })} onClick={() => setAsking({ id: s.sessionId, act: 'close' })}>{t('machineSessions.close')}</button>}
               </span>
               {asking?.id === s.sessionId && (
                 <div className="as-launch-ask" role="group" aria-label={t(asking.act === 'continue' ? 'machineSessions.continue' : 'machineSessions.close')}>
@@ -105,7 +131,7 @@ export function MachineSessionsPanel({ onOpenConsole }: { onOpenConsole(sessionI
                 </div>
               )}
               {busy === s.sessionId && <p className="lp-meta" role="status">{t('machineSessions.busy')}</p>}
-              {refused?.id === s.sessionId && <FailureNote said={t('machineSessions.refused')} detail={why(refused.why, refused.resume)} />}
+              {refused?.id === s.sessionId && !halfDone(refused.why) && <FailureNote said={`${t('machineSessions.refused')} ${machineWhy(t, refused.why)}`} detail={refused.why} />}
               {turns?.id === s.sessionId && (
                 turns.list === null ? <p className="lp-meta" role="status">{t('machineSessions.reading')}</p>
                   : turns.list === 'failed' ? <p className="lp-meta">{t('machineSessions.readFailed')}</p>

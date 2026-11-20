@@ -7,7 +7,7 @@ import { MachineSessionsPanel } from './MachineSessions'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-const row = { pid: 501, sessionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', cwd: '/d/site', name: 'site', status: 'busy', kind: 'interactive', entrypoint: 'cli', startedAt: null, updatedAt: null,
+const row = { pid: 501, live: true, sessionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', cwd: '/d/site', name: 'site', status: 'busy', kind: 'interactive', entrypoint: 'cli', startedAt: null, updatedAt: null,
   source: 'claude' as const, state: 'working' as const, agent: 'claude-code' }
 const about = (key: 'machineSessions.readAbout' | 'machineSessions.continueAbout' | 'machineSessions.closeAbout') => en[key].replace('{folder}', 'site')
 
@@ -50,7 +50,7 @@ describe('MachineSessionsPanel', () => {
     expect(api.machineClose).not.toHaveBeenCalled()
     fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.closeAbout') }))
     fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
-    expect(await screen.findByText(en['machineSessions.why.changed'])).toBeTruthy()
+    expect(await screen.findByText(`${en['machineSessions.refused']} ${en['machineSessions.why.changed']}`)).toBeTruthy()
   })
   // 0.3.26 review, iteration 1, UX-3: a session only Switchboard names is read here and offers no act.
   it('a session only Switchboard names is read, never continued or closed from here', async () => {
@@ -67,13 +67,33 @@ describe('MachineSessionsPanel', () => {
     let item = await screen.findByTestId('machine-session')
     fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.continueAbout') }))
     fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
-    expect(await screen.findByText(en['machineSessions.why.noProject'])).toBeTruthy()
+    expect(await screen.findByText(`${en['machineSessions.refused']} ${en['machineSessions.why.noProject']}`)).toBeTruthy()
     cleanup()
     mount({ machineContinue: vi.fn(async () => ({ ok: false, why: 'stopped-not-continued', resume: { sessionId: row.sessionId, cwd: '/d/site' } })) })
     item = await screen.findByTestId('machine-session')
     fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.continueAbout') }))
     fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
-    expect(await screen.findByText(en['machineSessions.why.stoppedNotContinued'].replace('{id}', row.sessionId).replace('{cwd}', '/d/site'))).toBeTruthy()
+    // UX-18: half done is said without «It was not done», with a retry from the history that opens the console.
+    expect(await screen.findByText(en['machineSessions.why.stoppedNotContinued'])).toBeTruthy()
+    expect(screen.queryByText(new RegExp(en['machineSessions.refused']))).toBeNull()
+    const api = window.fabric.agents as unknown as { machineContinue: ReturnType<typeof vi.fn> }
+    api.machineContinue.mockResolvedValueOnce({ ok: true, sessionId: 'console-2' })
+    fireEvent.click(await screen.findByRole('button', { name: en['machineSessions.resumeFromHistory'] }))
+    await waitFor(() => expect(api.machineContinue).toHaveBeenCalledTimes(2))
+  })
+  // UX-21: a refusal Fabric has no sentence for is said in words; its code is only the detail.
+  it('an unknown refusal code is never shown as the sentence', async () => {
+    mount({ machineClose: vi.fn(async () => ({ ok: false, why: 'EPERM' })) })
+    const item = await screen.findByTestId('machine-session')
+    fireEvent.click(within(item).getByRole('button', { name: about('machineSessions.closeAbout') }))
+    fireEvent.click(within(item).getByRole('button', { name: en['machineSessions.yes'] }))
+    expect(await within(item).findByText(`${en['machineSessions.refused']} ${en['machineSessions.why.other']}`)).toBeTruthy()
+  })
+  // Switchboard, 2026-11-20 (board 7c726479): needs_you and waiting hold gone processes; the live ones are counted apart.
+  it('counts the sessions a process runs now', async () => {
+    mount({ machineSessions: vi.fn(async () => [row, { ...row, sessionId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', pid: 0, live: false, source: 'switchboard', state: 'needs_you' }]) })
+    const counts = await screen.findByTestId('machine-counts')
+    expect(counts.textContent).toContain(en['machineSessions.counts'].replace('{working}', '1').replace('{waiting}', '0').replace('{needs}', '1').replace('{live}', '1'))
   })
   it('counts sum to the list: a session with no state is counted as such', async () => {
     mount({ machineSessions: vi.fn(async () => [row, { ...row, sessionId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', state: null }]) })

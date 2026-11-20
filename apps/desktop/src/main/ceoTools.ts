@@ -18,6 +18,7 @@ import type { TerminalSession } from '../shared/types.ts'
 import { decodePty } from '../shared/pty-decode.ts'
 import { findProject, keyBytes, screenText, typedText, type NamedProject } from '../shared/ceoAgent.ts'
 import { redact } from '../shared/redact.ts'
+import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
 import { chainOf, type Launch, type LaunchVia } from '../shared/sessionLaunches.ts'
 import { withLaunchOrigin } from './launchOrigin.ts'
 import type { DiskSession } from './diskSessions.ts'
@@ -179,8 +180,9 @@ export function parseMachineRows(stdout: string): MachineRow[] | null {
   }
 }
 
-/** The last turns of a Claude Code transcript (JSONL): who spoke, their words, the tools they called. */
-export function transcriptTurns(jsonl: string, max = 12): Array<{ role: string; text: string }> {
+/** The last turns of a Claude Code transcript (JSONL): who spoke, their words, the tools they called. `clean` runs on
+ *  a turn's whole text before it is cut, so a cut never splits a credential the cleaning would have caught. */
+export function transcriptTurns(jsonl: string, max = 12, clean: (text: string) => string = (x) => x): Array<{ role: string; text: string }> {
   const turns: Array<{ role: string; text: string }> = []
   for (const line of jsonl.split('\n')) {
     if (!line.trim()) continue
@@ -198,10 +200,14 @@ export function transcriptTurns(jsonl: string, max = 12): Array<{ role: string; 
       }
     const text = parts.join(' ').replace(/\s+/g, ' ').trim()
     if (!text || text === '[tool result]') continue
-    turns.push({ role: String(row.type), text: text.slice(0, 700) })
+    turns.push({ role: String(row.type), text: clean(text).slice(0, 700) })
   }
   return turns.slice(-max)
 }
+
+/** Another session's turns as they may reach a screen or a model: redacted whole, then cut (0.3.26 review, iteration 2,
+ *  DA-13; DA-14 tests it with a key across the cut). */
+export const redactedTurns = (jsonl: string, max = 12): Array<{ role: string; text: string }> => transcriptTurns(jsonl, max, (x) => redact(x).text)
 
 export function findTranscript(roots: readonly string[], id: string): string | null {
   if (!/^[0-9a-f-]{36}$/.test(id)) return null
@@ -321,13 +327,12 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     if (!file) return refuse(`no Fabric console and no Claude Code transcript has the id ${a.session_id}`)
     let text: string
     try {
-      const size = statSync(file).size
-      text = readFileSync(file, 'utf8')
-      if (size > 4_000_000) text = text.slice(-2_000_000)
+      // ER-16 (0.3.26 review, iteration 2): the tail only, through a handle, never the whole transcript in memory.
+      text = await readTail(file, READ_TAIL_BYTES)
     } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
       return refuse(`the transcript could not be read: ${e instanceof Error ? e.message : String(e)}`)
     }
-    return { ok: true, kind: 'transcript', session_id: a.session_id, folder: path.basename(path.dirname(file)), turns: transcriptTurns(text).map((t) => ({ ...t, text: redact(t.text).text })) }
+    return { ok: true, kind: 'transcript', session_id: a.session_id, folder: path.basename(path.dirname(file)), turns: redactedTurns(text) }
   }
 
   async function input(a: z.infer<typeof CEO_TOOLS.input.input>): Promise<Answer> {

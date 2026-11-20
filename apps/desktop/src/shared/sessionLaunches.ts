@@ -12,7 +12,7 @@ export const LAUNCH_BY = ['person', 'ceo', 'routine', 'chain', 'answer', 'board-
 export type LaunchBy = (typeof LAUNCH_BY)[number]
 
 /** Through what the ask came: a screen of Fabric, the CEO's console or its voice call, a restart of an ended one. */
-export const LAUNCH_VIA = ['console', 'voice', 'screen', 'restart', 'task', 'board', 'switchboard'] as const
+export const LAUNCH_VIA = ['console', 'voice', 'screen', 'restart', 'task', 'board', 'switchboard', 'link'] as const
 export type LaunchVia = (typeof LAUNCH_VIA)[number]
 
 /** What a caller says about a launch before it happens (`main/launchOrigin.ts` carries it to the spawn). */

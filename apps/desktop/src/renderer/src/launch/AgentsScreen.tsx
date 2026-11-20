@@ -321,7 +321,7 @@ export function AgentsScreen({ mark, hubMark, sessions, projects, onOpenProject,
         // The operator, 2026-11-20: every session of this Mac stays one press away while an agent's page is open.
         <details className="ag-machine-fold">
           <summary>{t('machineSessions.title')}</summary>
-          <MachineSessionsPanel onOpenConsole={openAsTab} />
+          <MachineSessionsPanel onOpenConsole={openAsTab} folded />
         </details>
       )}
       {chosen ? null : home.view === null && home.problem && (rows.length === 0 || (initialSession && !chosen)) ? (

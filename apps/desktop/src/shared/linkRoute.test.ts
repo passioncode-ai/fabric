@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { normaliseRepository, routeForLink, type LinkRouteDeps } from './linkRoute.ts'
+import { consoleToOpen, normaliseRepository, routeForLink, type LinkRouteDeps } from './linkRoute.ts'
 
 const deps = (over: Partial<LinkRouteDeps> = {}): LinkRouteDeps => ({
   projects: [
@@ -59,6 +59,14 @@ describe('routeForLink', () => {
   })
 
   // DEC-0189 (board thread 3ca40854, fabric-session-links/1): open and continue a session from another app.
+  // UX-17 (0.3.26 review, iteration 2): the link opens the console itself, not the agent's page.
+  it('a link to a console Fabric holds opens that console at once; any other link opens a place', () => {
+    const consoleOf = (id: string): string | null => (id === 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' ? 'f1f1f1f1-1111-4111-8111-111111111111' : null)
+    expect(consoleToOpen(routeForLink('fabric://session/open?session=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', deps({ consoleOf })))).toBe('f1f1f1f1-1111-4111-8111-111111111111')
+    expect(consoleToOpen(routeForLink('fabric://session/continue?session=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', deps({ consoleOf })))).toBe('f1f1f1f1-1111-4111-8111-111111111111')
+    expect(consoleToOpen(routeForLink('fabric://session/open?session=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', deps({ consoleOf })))).toBeNull()
+    expect(consoleToOpen(routeForLink('fabric://session/continue?session=bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', deps({ consoleOf })))).toBeNull()
+  })
   it('session/open: a console Fabric holds, by its own id or its runner session id, opens it; any other opens Агенты', () => {
     const consoleOf = (id: string): string | null => (id === 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' ? 'f1f1f1f1-1111-4111-8111-111111111111' : null)
     expect(routeForLink('fabric://session/open?session=AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA&from=fabric-dashboards', deps({ consoleOf })))

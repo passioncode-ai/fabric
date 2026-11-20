@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { LinkNotice, LinkRoute } from '../../shared/linkRoute.ts'
+import { consoleToOpen } from '../../shared/linkRoute.ts'
 import { receiveLink, releaseLink, type LinkGate } from './linkArrival'
 import { SESSION_DISMISSED } from './SessionStop'
 import type { StringKey } from './i18n/en.ts'
@@ -44,6 +45,7 @@ import { mergeDraft, type TaskDraft } from '../../shared/taskDraft.ts'
 import { BoardScreen } from './launch/BoardScreen'
 import { GraphScreen } from './launch/GraphScreen'
 import { CommsScreen } from './launch/CommsScreen'
+import { ContinueSessionAsk } from './launch/ContinueSessionAsk'
 import { PersonaProvider } from './launch/persona'
 import { CeoButton } from './ceo/CeoButton'
 import { PlanScreen } from './launch/PlanScreen'
@@ -578,15 +580,22 @@ function Shell({
   const activeKind = useRef(active.kind)
   activeKind.current = active.kind
   // DEC-0189 SL-5: a `session/continue` link asks here; the move happens only on the person's press.
-  const [continueAsk, setContinueAsk] = useState<{ session: string; busy: boolean; refused: string | null } | null>(null)
+  const [continueAsk, setContinueAsk] = useState<{ session: string; from?: string } | null>(null)
   const applyLink = (r: LinkRoute): void => {
-    goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId)
+    // UX-17 (0.3.26 review, iteration 2): a link to a console Fabric holds opens that console, as the rail's press does.
+    const console = consoleToOpen(r)
+    if (console) void openConsoleRef.current(console)
+    else goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId)
       : r.route.kind === 'agents' ? { kind: 'agents', ...(r.route.session ? { session: r.route.session } : {}) } : { kind: 'home' })
-    setContinueAsk(r.continueSession ? { session: r.continueSession, busy: false, refused: null } : null)
-    setLinkNotice(r.notice)
+    // DA-16: a link that names the session already being continued keeps that ask (and its press in flight).
+    setContinueAsk((old) => r.continueSession ? (old?.session === r.continueSession ? old : { session: r.continueSession, from: r.from }) : null)
+    // UX-20: a continue is said once, by its ask; the notice would be a second banner for the same thing.
+    setLinkNotice(r.continueSession ? null : r.notice)
     setLinksDropped(r.dropped ?? 0)
   }
   const applyLinkRef = useRef(applyLink)
+  // openConsole is defined further down; a link arriving before then has nothing to open yet.
+  const openConsoleRef = useRef<(sessionId: string) => Promise<void>>(async () => {})
   applyLinkRef.current = applyLink
   const releaseHeld = (how: Parameters<typeof releaseLink>[1]): void => {
     const { apply, offer } = releaseLink(heldLink.current, how)
@@ -937,6 +946,7 @@ function Shell({
     setHonoured(null)
     return Promise.resolve()
   }, [])
+  openConsoleRef.current = openConsole
   /** Where the person was before the consoles: the newest place in the way back that is not a console. */
   const placeBeforeConsoles = (): AppRoute => {
     for (let i = past.current.length - 1; i >= 0; i--) {
@@ -1123,27 +1133,8 @@ function Shell({
         </Banner>
       )}
       {continueAsk && (
-        <Banner
-          actions={
-            <>
-              <Button tone="primary" disabled={continueAsk.busy} onClick={() => {
-                const id = continueAsk.session
-                setContinueAsk({ session: id, busy: true, refused: null })
-                window.fabric.agents.machineContinue(id).then((r) => {
-                  if (r.ok) { setContinueAsk(null); setLinkNotice(null); if (r.sessionId) void openConsole(r.sessionId); return }
-                  setContinueAsk({ session: id, busy: false, refused: r.why === 'no-project' ? t('machineSessions.why.noProject')
-                    : r.why === 'gone' ? t('links.continue.gone') : r.why === 'still-running' ? t('machineSessions.why.stillRunning')
-                    : r.why === 'stopped-not-continued' && r.resume ? t('machineSessions.why.stoppedNotContinued', { id: r.resume.sessionId, cwd: r.resume.cwd }) : r.why })
-                }, (e: unknown) => setContinueAsk({ session: id, busy: false, refused: e instanceof Error ? e.message : String(e) }))
-              }}>{t('machineSessions.continue')}</Button>
-              <Button tone="ghost" onClick={() => setContinueAsk(null)}>{t('common.cancel')}</Button>
-            </>
-          }
-        >
-          {t('links.continue.ask', { id: continueAsk.session.slice(0, 8) })}
-          {continueAsk.busy && ` ${t('machineSessions.busy')}`}
-          {continueAsk.refused && ` ${t('machineSessions.refused')} ${continueAsk.refused}`}
-        </Banner>
+        <ContinueSessionAsk key={continueAsk.session} session={continueAsk.session} from={continueAsk.from}
+          onOpened={(id) => void openConsole(id)} onDone={() => setContinueAsk(null)} />
       )}
 
       {notReopened > 0 && (

@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "30552b73e58571047945ef0eafb6c63d44fcb42a",
+  "report": "docs/evidence/reviews/0.3.26/iteration-2/2026-11-20-data.md",
+  "reportSha256": "54329f80e504faea1408381380c272cc94b581b32c2f2e7f177ab603032d6da9",
+  "reviewerRun": "release-0326-i2-data-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: a turn is redacted whole, then cut (ceoTools.ts transcriptTurns clean, redactedTurns); test «redacted whole before they are cut», red with the old order"
+      ]
+    },
+    {
+      "id": "DA-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: the composed reader redactedTurns is exported, used by the panel and the CEO, and tested with a key across the cut"
+      ]
+    },
+    {
+      "id": "DA-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: the ask names the session and the app; the press carries from to the launch journal as via link with the app in the reason (sessionLaunches.ts LAUNCH_VIA, index.ts resumeInFabric linkReason); test «the link's app reaches the console»"
+      ]
+    },
+    {
+      "id": "DA-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: as ER-12 (a)"
+      ]
+    },
+    {
+      "id": "DA-17",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (20)"
+      ]
+    },
+    {
+      "id": "DA-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: a history whose folder cannot be read answers unreadable with its own sentence, not gone (index.ts resumeEnded)"
+      ]
+    }
+  ]
+}

@@ -460,7 +460,7 @@ import { withLaunchOrigin } from './launchOrigin.ts'
 import { claudeConfigDirs, defaultAlive, liveClaudeSessions } from './diskSessions.ts'
 import { createMachineSessions, readHead, transcriptCwd } from './machineSessions.ts'
 import { gitWorktrees, lastSessionOf, projectForFolder } from './projectResume.ts'
-import { findTranscript, defaultTranscriptRoots, parseMachineRows, transcriptTurns } from './ceoTools.ts'
+import { findTranscript, defaultTranscriptRoots, parseMachineRows, redactedTurns } from './ceoTools.ts'
 import { createTaskStart } from './taskStart.ts'
 
 // ADR-0195 W2b: this process's data folder for every local store (settings, kept-out agents, digest marks), named
@@ -4751,11 +4751,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     for (const l of (await launchJournal?.read()) ?? []) if (l.runnerSessionId && live.has(l.sessionId)) ids.add(l.runnerSessionId)
     return ids
   }
-  const resumeInFabric = async (projectId: string, cwd: string, claudeId: string, config: string, reason: string): Promise<{ sessionId: string }> => {
+  // DA-15: the link's app (DEC-0189 SL-1, AGENT_ID grammar, a claim never trusted) is kept in the launch journal.
+  const linkReason = (what: string, from: string | undefined): string => (from && /^[a-z][a-z0-9-]{0,94}$/.test(from) ? `${what} из ${from}` : `${what} из другого приложения`)
+  const resumeInFabric = async (projectId: string, cwd: string, claudeId: string, config: string, reason: string, via: 'screen' | 'link' = 'screen'): Promise<{ sessionId: string }> => {
     const sessionId = randomUUID()
     const own = path.join(homedir(), '.claude')
     ptys.prepareLaunch(sessionId, { args: ['--resume', claudeId], env: config === own ? {} : { CLAUDE_CONFIG_DIR: config } })
-    const opened = await withLaunchOrigin({ by: 'person', via: 'screen', reason }, () => ptys.open(projectId, cwd, 'claude-code', null, null, null, sessionId))
+    const opened = await withLaunchOrigin({ by: 'person', via, reason }, () => ptys.open(projectId, cwd, 'claude-code', null, null, null, sessionId))
     syncPower()
     return { sessionId: opened.sessionId }
   }
@@ -4812,25 +4814,27 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     stillNames: async (s) => (await liveClaudeSessions([s.config])).some((x) => x.pid === s.pid && x.sessionId === s.sessionId),
     transcript: (id) => findTranscript(defaultTranscriptRoots(), id),
     // DA-1 (0.3.26 review, iteration 1): another session's words are redacted before they reach the screen, as the CEO's read does.
-    turns: (jsonl, max) => transcriptTurns(jsonl, max).map((t) => ({ ...t, text: redact(t.text).text })),
+    turns: redactedTurns,
     projectFor: async (s) => (await projectForFolder(s.cwd, await activeProjectsRead()))?.id ?? null,
     // DEC-0189 SL-5: a session that no longer runs is continued from its transcript: its folder is the transcript's
     // own `cwd`, its Claude home the folder above its projects folder.
-    resumeEnded: async (id) => {
-      if ((await runningClaudeIds()).has(id)) return { ok: false, why: 'still-running' }
+    resumeEnded: async (id, from) => {
+      // UX-21: running and not «outside» means a Fabric console (or one under it) holds it: said as such, nothing stopped.
+      if ((await runningClaudeIds()).has(id)) return { ok: false, why: 'not-outside' }
       const file = findTranscript(defaultTranscriptRoots(), id)
       if (!file) return { ok: false, why: 'gone' }
       const cwd = transcriptCwd(await readHead(file, 256 * 1024))
-      if (!cwd) return { ok: false, why: 'gone' }
+      // DA-18: a history whose first record is too long to read its folder is not «gone».
+      if (!cwd) return { ok: false, why: 'unreadable' }
       const project = await projectForFolder(cwd, await activeProjectsRead())
       if (!project) return { ok: false, why: 'no-project' }
-      const opened = await resumeInFabric(project.id, cwd, id, path.resolve(file, '..', '..', '..'), 'Продолжена в Fabric по ссылке из другого приложения')
+      const opened = await resumeInFabric(project.id, cwd, id, path.resolve(file, '..', '..', '..'), linkReason('Продолжена в Fabric по ссылке', from), from ? 'link' : 'screen')
       return { ok: true, sessionId: opened.sessionId }
     },
-    continueInFabric: async (s, projectId) => {
+    continueInFabric: async (s, projectId, from) => {
       const id = projectId ?? (await projectForFolder(s.cwd, await activeProjectsRead()))?.id
       if (!id) throw new Error(`the folder ${s.cwd} is not in a Fabric project`)
-      return resumeInFabric(id, s.cwd, s.sessionId, s.config, 'Перенесена в Fabric из терминала вне Fabric')
+      return resumeInFabric(id, s.cwd, s.sessionId, s.config, from ? linkReason('Перенесена в Fabric по ссылке', from) : 'Перенесена в Fabric из терминала вне Fabric', from ? 'link' : 'screen')
     },
     // DA-11: every outcome but ok is a failure in the operations log.
     record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'ok' || detail.outcome === undefined ? 'ok' : 'failed', level: detail.outcome === 'ok' || detail.outcome === undefined ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
@@ -4842,7 +4846,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.agentsMachineSessions, (): Promise<Returns<FabricApi['agents']['machineSessions']>> => machineSessions.list())
   handle(IPC.agentsMachineRead, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineRead']>> => machineSessions.read(sessionArg(id)))
   handle(IPC.agentsMachineClose, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineClose']>> => machineSessions.close(sessionArg(id)))
-  handle(IPC.agentsMachineContinue, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineContinue']>> => machineSessions.continueInFabric(sessionArg(id)))
+  handle(IPC.agentsMachineContinue, (_e, id: unknown, from: unknown): Promise<Returns<FabricApi['agents']['machineContinue']>> =>
+    machineSessions.continueInFabric(sessionArg(id), typeof from === 'string' && /^[a-z][a-z0-9-]{0,94}$/.test(from) ? from : undefined))
   // #endregion resume-in-fabric
   // CO-407: Claude Code's cross-session messages, only by the person's switch; and the launcher doctor, only on asking.
   const inboundAnswer = (r: ReturnType<typeof readInbound>) =>
