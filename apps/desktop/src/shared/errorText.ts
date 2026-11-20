@@ -86,3 +86,33 @@ export function humaniseError(e: unknown): OperatorMessage {
   // refusal (0.3.4): it stops startup and has no IPC call to fail.
   return { kind: cause === 'unknown' || cause === 'schema-not-ready' || cause === 'active-estate-unreadable' || cause === 'identity-refused' ? null : cause, detail }
 }
+
+// #region outage-failure — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+/**
+ * Whether a failure is the database (or the hub in front of it) not being reachable, as every read fails while the
+ * stack is down: the transport's own words, never a refusal the database gave. 2026-11-20, the operator's screen: during
+ * a 175 s outage 91 such failures went into the log one by one, and the replay's became a red banner that said the stack
+ * «is most likely stopped» while Fabric itself had stopped it for the disk and was waiting to start it again. While the
+ * watch says the stack is down these are counted, and the stack watch's own notice says what happened.
+ */
+const OUTAGE_WORDS = /\bfetch failed\b|ECONNREFUSED|ECONNRESET|EHOSTUNREACH|socket hang up|\bstack-unavailable\b|\bstack-starting\b/i
+export function outageFailure(e: unknown): boolean {
+  if (e === null || e === undefined) return false
+  const own = textOf(e)
+  if (OUTAGE_WORDS.test(own)) return true
+  // undici's «fetch failed» carries the socket's words on its cause.
+  const cause = typeof e === 'object' && 'cause' in e ? (e as { cause: unknown }).cause : undefined
+  return cause !== undefined && cause !== e && OUTAGE_WORDS.test(textOf(cause))
+}
+
+/** The banner's next text (`App.tsx` outage-banner): a failure that is only the outage is not shown while the watch says
+ *  the stack is lost, since its own notice says why and when Fabric tries next; the banner keeps what it had. */
+export function bannerAfter(prev: string | null, next: string | null, stackDown: boolean): string | null {
+  return next !== null && stackDown && outageFailure(next) ? prev : next
+}
+
+/** The banner once the database answers again: a failure that was only the outage is no longer true and goes. */
+export function bannerWhenBack(prev: string | null): string | null {
+  return prev !== null && outageFailure(prev) ? null : prev
+}
+// #endregion outage-failure

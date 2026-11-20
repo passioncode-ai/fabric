@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react'
 import type { StackHealthView } from '../../shared/types'
 import { freeDiskGb } from '../../shared/startupFailure'
-import { DISK_RECOVERED_BYTES, platformKey } from '../../shared/stackWatch'
+import { CRITICAL_DISK_BYTES, DISK_RECOVERED_BYTES, diskSoonBand, platformKey } from '../../shared/stackWatch'
 import { Banner } from './components'
 import { useLocale, useT } from './i18n'
 import type { StringKey } from './i18n/en'
@@ -19,6 +19,8 @@ export function StackHealthNotice(): React.JSX.Element | null {
   // CO-374: the next try's moment, counted down here each second; a view only says how many seconds were left when read.
   const [nextAt, setNextAt] = useState<number | null>(null)
   const [now, setNow] = useState(() => Date.now())
+  /** The early disk line, put away at this many whole gigabytes left: it comes back two gigabytes later (2026-11-20). */
+  const [soonPutAway, setSoonPutAway] = useState<number | null>(null)
   const take = (v: StackHealthView): void => {
     const at = Date.now()
     setView(v)
@@ -91,6 +93,16 @@ export function StackHealthNotice(): React.JSX.Element | null {
         <p>{t('stack.health.diskLow', { free })}</p>
         {view.diskStopFailed === true && <p>{t('stack.health.diskStopFailed')}</p>}
       </Banner>
+    )
+  // 2026-11-20, the operator: «заранее предупреждать о диске (<15 ГБ) в окне». A quiet line well before anything stops; it
+  // can be put away, and comes back once two more gigabytes are gone.
+  const band = diskSoonBand(view.freeDiskBytes)
+  if (view.diskSoon && free !== null && band !== null && (soonPutAway === null || band <= soonPutAway - 2))
+    return (
+      <p className="fab-notice" role="status" data-testid="stack-disk-soon">
+        <span>{t('stack.health.diskSoon', { free, floor: freeDiskGb(CRITICAL_DISK_BYTES, locale) })}</span>
+        <button type="button" className="fab-notice-dismiss" onClick={() => setSoonPutAway(band)}>{t('common.dismiss')}</button>
+      </p>
     )
   return null
 }

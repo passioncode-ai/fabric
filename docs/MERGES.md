@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-20 · `STACK-OUTAGE-BANNER` · fix/stack-outage-banner → main · fast-forward (toward 0.3.27)
+- files: `apps/desktop/src/shared/{errorText,stackWatch}.ts`, `apps/desktop/src/main/{ops,opsSink,stackWatch,index}.ts`, `apps/desktop/src/renderer/src/{App,StackHealthNotice}.tsx`, i18n, tests `stack-watch.test.mjs`, `errorText.test.ts`, `StackHealthNotice.test.tsx`
+- conflicts: none
+- summary: the owner's screen of 2026-11-20: a database outage is said once by the stack watch's notice, the red banner no longer guesses «stack stopped» and goes when the database is back, the log counts the outage's failures into `stack.back`, and the disk is said under 15 GB
+
 ### 2026-11-20 · `CEO-BOARD-UX` · feat/ceo-board-ux → main · fast-forward (toward 0.3.27)
 - files: `apps/desktop/src/main/{consoleOpen,deliveryQueue,pty,ceoTools,agentSurface,index}.ts`, `apps/desktop/src/shared/ceoAgent.ts`, tests `console-open`, `delivery-queue` (new, in `scripts/ci.sh`), `ceo-agent`, `agent-surface`; CHANGELOG `0.3.27 (unreleased)`, SCN-183 amendment, the product model, the map, mockup coverage and previews; `docs/evidence/plans/2026-11-20-ceo-board-ux/` (the owner's words, spec, plan, eight mockups, the modules review, an ADR draft, the research)
 - conflicts: none

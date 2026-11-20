@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState, type SetStateAction } from 'react'
+import { bannerAfter, bannerWhenBack, outageFailure } from '../../shared/errorText'
 import type { LinkNotice, LinkRoute } from '../../shared/linkRoute.ts'
 import { consoleToOpen } from '../../shared/linkRoute.ts'
 import { continueQueue, NO_CONTINUE } from './launch/continueQueue'
@@ -257,7 +258,37 @@ function Shell({
    * the first sentence for both, diagnosing the operator's machine on its very
    * first paint. A failed read joined them through the catch below.
    */
-  const [error, setError] = useState<string | null>(null)
+  const [error, setErrorState] = useState<string | null>(null)
+  // #region outage-banner — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+  /** 2026-11-20, the operator's screen: during a stack outage the journal's replay failed with «fetch failed», and the
+   *  banner said «the local stack is most likely stopped» beside the watch's own notice, which knew Fabric had stopped it
+   *  for the disk and when it would start it; the banner stayed after the stack came back. While the watch says the stack
+   *  is lost a failure that is only that never becomes this banner, and one already shown goes when it is back. */
+  const stackDown = useRef(false)
+  const setError = useCallback((next: SetStateAction<string | null>) => {
+    setErrorState((prev) => {
+      return bannerAfter(prev, typeof next === 'function' ? next(prev) : next, stackDown.current)
+    })
+  }, [])
+  /** Counts the stack's returns, so the journal is read again at once rather than at its next poll. */
+  const [stackBack, setStackBack] = useState(0)
+  useEffect(() => {
+    const stack = window.fabric?.stack
+    if (typeof stack?.onHealth !== 'function') return
+    const take = (down: boolean): void => {
+      const was = stackDown.current
+      stackDown.current = down
+      if (was && !down) {
+        setErrorState(bannerWhenBack)
+        setStackBack((n) => n + 1)
+      }
+    }
+    let alive = true
+    if (typeof stack.health === 'function') void stack.health().then((v) => alive && v && take(v.stack === 'down'), () => {})
+    const off = stack.onHealth((v) => alive && take(v.stack === 'down'))
+    return () => { alive = false; off() }
+  }, [])
+  // #endregion outage-banner
   /** How many saved places of the last session were not reopened (M111): said once, quietly, never as a failure (the
    *  mockup parity, 2026-10-27, home A5 and rail gap 26). */
   const [notReopened, setNotReopened] = useState(0)
@@ -469,6 +500,8 @@ function Shell({
         // A successful read of an empty journal is a reading — the estate has nothing yet — not "not read":
         // leaving the feed null kept every freshness line on "Reading…" for an estate with no events.
         setJournalFailed(false)
+        // The journal answers again: a banner its outage left is no longer true (2026-11-20).
+        setErrorState(bannerWhenBack)
         if (events.length === 0) { setFeed((old) => old ?? []); return }
         lastSeq.current = events[events.length - 1].seq
         setMarks((prev) => advance(prev, events))
@@ -482,6 +515,9 @@ function Shell({
         // dismiss; raise it once and keep quiet until something changes.
         const message = String(e)
         setJournalFailed(true)
+        // 2026-11-20: a database that is not reachable is the stack watch's to say (`StackHealthNotice`, with why and the
+        // next try), never this banner's; the rail's foot line still says the journal is not read.
+        if (outageFailure(message)) return
         setError((prev) => (prev === message ? prev : message))
       } finally {
         ticking.current = false
@@ -494,7 +530,7 @@ function Shell({
       stop = true
       off()
     }
-  }, [sessionWindowId, refreshProjects, refreshSessions])
+  }, [sessionWindowId, refreshProjects, refreshSessions, stackBack])
 
   // #region comms-unread — docs: docs/ux/screens.md#scr-81-project-comms
   // The Comms rail badge: one bounded read on its own clock, whether or not the screen
