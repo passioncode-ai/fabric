@@ -11,7 +11,7 @@ branch `feat/voice-retro`, session 9cda1c0f, which runs this release by agreemen
 
 ## Protocol
 
-- Baseline: `origin/main` `44cd80ca` (0.3.26's release close).
+- Baseline: 0.3.26's release close `44cd80ca`; `origin/main` has since taken wave 0 at `37d69d6a`, inside the candidate.
 - The reviewers: Claude Code subagents of the release session (Opus 5.5), each a fresh context given
   [the brief](../reviews/0.3.27/brief.md) and its level's focus, reading a separate read-only worktree checked out at the
   candidate, recording HEAD and `git status --short | wc -l` before and after. They ran single test files at most; the
@@ -209,7 +209,7 @@ ER-24's two-project rule, DA-24's link check.
 | V3-DA-23 | DA-23 | non-blocking | fixed in the run-two candidate: a voice tool that throws is answered as a redacted refusal and written to the journal (index.ts) |
 | V3-DA-24 | DA-24 | non-blocking | fixed in the run-two candidate: the calls folder is refused when it is a link and set to 0700 when it exists; test «iteration 3 run one», red with the check removed; the DA-13 wording narrowed to «ended» |
 | V3-PL-15 | PL-15 | blocking | fixed in the run-two candidate: as UX-25 |
-| V3-PL-16 | PL-16 | non-blocking | fixed in the run-two candidate: ci.sh fast with both browser variables is run to its end on the run-two candidate before the tag and recorded in this section |
+| V3-PL-16 | PL-16 | non-blocking | fixed by run three: ci.sh fast with both browser variables reached its last step on the verified candidate cbc57ae3 before the tag (iteration 3, run three's gate, carried from run two under DO-28) |
 | V3-PL-17 | PL-17 | non-blocking | ruled: CO-605 (12), as DA-19 |
 | V3-PL-18 | PL-18 | non-blocking | fixed in the run-two candidate: as ER-28 |
 | V3-PL-19 | PL-19 | non-blocking | fixed in the run-two candidate: fixes.md's count; the iteration-1 receipts mark ER-5, ER-7 and DA-8 ruled, re-hashed |
@@ -233,7 +233,7 @@ removed: UX-32's alias guard, UX-27's resume refusal, DA-27's link check.
 |---|---|---|---|
 | V3-UX-32 | UX-32 | blocking | fixed in the run-three candidate: a worktree match in the project list carries worktree and next, never understood_as; an alias that is a worktree's folder name or last words is refused; the instructions say never keep it; test «iteration 3 run two», red with the alias guard removed |
 | V3-UX-33 | UX-33 | non-blocking | fixed in the run-three candidate: a running console in that folder is named before an ended one (ceoTools.ts start) |
-| V3-UX-34 | UX-34 | non-blocking | fixed in the run-three candidate: the project list's description and both instruction languages say what exact, understood_as, worktree and why mean |
+| V3-UX-34 | UX-34 | non-blocking | fixed in the run-three candidate: the project list's description says what exact, understood_as, worktree and why mean; both instruction languages say it for exact, understood_as and worktree |
 | V3-UX-35 | UX-35 | non-blocking | fixed in the run-three candidate: the refusals name the console's Claude Code session id to continue where it ran; test «PL-21, UX-35» |
 | V3-UX-36 | UX-36 | non-blocking | fixed in the run-three candidate: as ER-30 |
 | V3-ER-29 | ER-29 | non-blocking | fixed in the run-three candidate: a worktree named in full is matched before the words, its last words after them; test «iteration 3 run two» (fabric-data) |
@@ -257,4 +257,45 @@ removed: UX-32's alias guard, UX-27's resume refusal, DA-27's link check.
 | V3-PL-24 | PL-24 | non-blocking | fixed in the run-three candidate: CO-605 (12) says landing by fast-forward puts the history into main, and the release session lands it |
 
 Exit for run two: every finding disposed above; superseded by run three.
+
+### Run three, cbc57ae3
+
+Candidate `cbc57ae3bc5271f3b21280c0415e8e873a0d9b2f`, the verified candidate. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3/`](../reviews/0.3.27/iteration-3/), this iteration's receipts. The docs and
+data reviewers were cut off by a network error of the model's API and run again from the start with the same brief;
+the reports are the second runs'. Every run-two fix held (UX-32 to UX-36, ER-29 to ER-32, DA-25 to DA-29, DO-24 to
+DO-29, PL-21 to PL-24). 19 findings, none blocking; the five reviewers answered «Ready».
+
+Gate: `bash scripts/ci.sh fast` with both browser variables on this candidate, in parts, each part read by its own exit
+(R-009): a run reached vitest, 269 of 269 (run c); a run past vitest stopped once on `PulseScreen.test.tsx` (32.7 s
+under a load average of 114) and once on `hub-surface.test.mjs` I3 (an admission count under a load average near 80),
+each green alone (8 of 8; 16 of 16, three times); the steps after `hub-surface` ran to the script's last line, browser
+suites 26 of 26, «fast tier green». The browser suites ran on the Chromium Playwright keeps (`chromium-1234`); the
+`chromium-1255` an earlier run used was removed from that cache between two runs by a cleanup outside this release.
+No code changed after this candidate: the release commit carries the version, the CHANGELOG, this ledger, the
+release gate, the merge log, the design map, the review reports and receipts, and fixes.md and the HANDOFF.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-UX-37 | UX-37 | non-blocking | ruled: CO-609 (1), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the project list checks the work folders' last parts before the word filter |
+| V3-UX-38 | UX-38 | non-blocking | ruled: CO-609 (2), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the alias guard checks the named project's own worktrees only, with a next step; its worktree branch answers worktree |
+| V3-UX-39 | UX-39 | non-blocking | ruled: CO-609 (3), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the deeper of a holder and a worked folder wins; a folder query inside a holder also lists the projects under it |
+| V3-UX-40 | UX-40 | non-blocking | ruled: CO-609 (4), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the next step says Switchboard continues in a Terminal window of its own, checked once on a real ended worktree console |
+| V3-ER-33 | ER-33 | non-blocking | ruled: CO-609 (5), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): a one-word worktree name answers ambiguous with the project the words find |
+| V3-ER-34 | ER-34 | non-blocking | ruled: CO-609 (2), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as UX-38) |
+| V3-ER-35 | ER-35 | non-blocking | ruled: CO-609 (6), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): ops.failed takes the tool's name directly and the ok line moves after the run |
+| V3-ER-36 | ER-36 | non-blocking | ruled: CO-609 (7), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the folders above home are no holder, as isTooBroad says |
+| V3-ER-37 | ER-37 | non-blocking | fixed in the release commit: the CHANGELOG says a Claude Code console's answer names its session id |
+| V3-DO-30 | DO-30 | non-blocking | fixed in the release commit: as PL-27 |
+| V3-DO-31 | DO-31 | non-blocking | ruled: CO-609 (8), as PL-27 |
+| V3-DO-32 | DO-32 | non-blocking | fixed in the release commit: fixes.md says 22 review tests, 36 in all |
+| V3-DO-33 | DO-33 | non-blocking | fixed in the release commit: V3-UX-34's row says why is described in the project list's description, not the instructions |
+| V3-DO-34 | DO-34 | non-blocking | fixed in the release commit: the protocol's baseline line names 0.3.26's close and origin/main at 37d69d6a inside the candidate |
+| V3-DA-30 | DA-30 | non-blocking | ruled: CO-609 (6), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as ER-35) |
+| V3-PL-25 | PL-25 | non-blocking | ruled: CO-609 (5), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as ER-33) |
+| V3-PL-26 | PL-26 | non-blocking | ruled: CO-609 (2), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as UX-38) |
+| V3-PL-27 | PL-27 | non-blocking | fixed in the release commit: V3-PL-16 names the verified candidate and this section records its gate; fixes.md's count is 36; CO-605 (12)'s range (to 67c15053, the comment already on main) ruled: CO-609 (8), written on main after the tag |
+| V3-PL-28 | PL-28 | non-blocking | ruled: CO-609 (9), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the release gate's row rule takes the V1-UX-1 form, with a test watched red |
+
+Exit for iteration 3: every finding disposed above. Blocking findings open: none.
 

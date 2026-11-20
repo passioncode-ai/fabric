@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "cbc57ae3bc5271f3b21280c0415e8e873a0d9b2f",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3/2026-11-20-ux.md",
+  "reportSha256": "dce393f1aec58dd1cf5aab184b423977aafebaf84014f34c28aa90ffbc4f68ca",
+  "reviewerRun": "release-0327-i3-ux-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-37",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (1), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the project list checks the work folders' last parts before the word filter"
+      ]
+    },
+    {
+      "id": "UX-38",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (2), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the alias guard checks the named project's own worktrees only, with a next step; its worktree branch answers worktree"
+      ]
+    },
+    {
+      "id": "UX-39",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (3), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the deeper of a holder and a worked folder wins; a folder query inside a holder also lists the projects under it"
+      ]
+    },
+    {
+      "id": "UX-40",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (4), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the next step says Switchboard continues in a Terminal window of its own, checked once on a real ended worktree console"
+      ]
+    }
+  ]
+}

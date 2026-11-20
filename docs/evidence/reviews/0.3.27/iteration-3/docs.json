@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "cbc57ae3bc5271f3b21280c0415e8e873a0d9b2f",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3/2026-11-20-docs.md",
+  "reportSha256": "a633b6ee290a6446d5199993367e84b1226db3fe02a5eb1ea38fd01766e925f4",
+  "reviewerRun": "release-0327-i3-docs-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: as PL-27"
+      ]
+    },
+    {
+      "id": "DO-31",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (8), as PL-27"
+      ]
+    },
+    {
+      "id": "DO-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: fixes.md says 22 review tests, 36 in all"
+      ]
+    },
+    {
+      "id": "DO-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: V3-UX-34's row says why is described in the project list's description, not the instructions"
+      ]
+    },
+    {
+      "id": "DO-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the protocol's baseline line names 0.3.26's close and origin/main at 37d69d6a inside the candidate"
+      ]
+    }
+  ]
+}

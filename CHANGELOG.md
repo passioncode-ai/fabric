@@ -7,7 +7,7 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
-## 0.3.27 (unreleased)
+## 0.3.27
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).
 
@@ -59,7 +59,7 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
   own starts). A name matched by sound is asked back before a start; a folder inside a project or a worktree Fabric has
   run in, by path or by its folder's name, is refused with where to go, since the console would open in the project's own folder; a tie answers three choices,
   each read back as offered. A console that ran outside its project's folder (an agent's worktree) is no longer
-  resumed in the project's folder: the answer names its Claude Code session to continue where it ran. Only the home
+  resumed in the project's folder: for a Claude Code console the answer names its session id to continue where it ran. Only the home
   folder or a root holds no folder: a folder inside a project is that project's, whatever else it holds.
 - **A cache or temporary folder never becomes a project.** An agent started in `~/.cache` or a temporary folder is
   refused. Projects made there before stay until archived by hand: on the owner's Mac, 18 left by probes were archived

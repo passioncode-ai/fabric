@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "cbc57ae3bc5271f3b21280c0415e8e873a0d9b2f",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3/2026-11-20-errors.md",
+  "reportSha256": "8d530ea4f4cb4d3e92a175ec5577896a46902e62c0abaddabf3c2d3dd90521c9",
+  "reviewerRun": "release-0327-i3-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-33",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (5), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): a one-word worktree name answers ambiguous with the project the words find"
+      ]
+    },
+    {
+      "id": "ER-34",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (2), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as UX-38)"
+      ]
+    },
+    {
+      "id": "ER-35",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (6), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): ops.failed takes the tool's name directly and the ok line moves after the run"
+      ]
+    },
+    {
+      "id": "ER-36",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (7), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the folders above home are no holder, as isTooBroad says"
+      ]
+    },
+    {
+      "id": "ER-37",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG says a Claude Code console's answer names its session id"
+      ]
+    }
+  ]
+}

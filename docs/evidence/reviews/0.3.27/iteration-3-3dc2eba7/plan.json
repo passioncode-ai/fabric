@@ -21,7 +21,7 @@
       "id": "PL-16",
       "status": "fixed",
       "evidence": [
-        "fixed in the run-two candidate: ci.sh fast with both browser variables is run to its end on the run-two candidate before the tag and recorded in this section"
+        "fixed by run three: ci.sh fast with both browser variables reached its last step on the verified candidate cbc57ae3 before the tag (iteration 3, run three's gate, carried from run two under DO-28)"
       ]
     },
     {

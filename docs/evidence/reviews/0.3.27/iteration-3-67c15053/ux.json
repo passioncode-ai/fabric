@@ -28,7 +28,7 @@
       "id": "UX-34",
       "status": "fixed",
       "evidence": [
-        "fixed in the run-three candidate: the project list's description and both instruction languages say what exact, understood_as, worktree and why mean"
+        "fixed in the run-three candidate: the project list's description says what exact, understood_as, worktree and why mean; both instruction languages say it for exact, understood_as and worktree"
       ]
     },
     {
