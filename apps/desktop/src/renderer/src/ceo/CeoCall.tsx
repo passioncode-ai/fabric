@@ -181,8 +181,8 @@ function MicIcon(): React.JSX.Element {
 export function CallButton({ call }: { call: VoiceCallState }): React.JSX.Element {
   const t = useT()
   return call.active
-    ? <button type="button" className="btn btn-danger ceo-call-button" onClick={call.hangUp}><MicIcon />{t('ceoAgent.hangUp')}</button>
-    : <button type="button" className="btn ceo-call-button" onClick={call.start}><MicIcon />{t('ceoAgent.call')}</button>
+    ? <button type="button" className="btn btn-danger btn-sm ceo-call-button" onClick={call.hangUp} title={t('ceoAgent.hangUp')}><MicIcon /><span className="ceo-call-label">{t('ceoAgent.hangUp')}</span></button>
+    : <button type="button" className="btn btn-ghost btn-sm ceo-call-button" onClick={call.start} title={t('ceoAgent.call')}><MicIcon /><span className="ceo-call-label">{t('ceoAgent.call')}</span></button>
 }
 
 /** The call inside the chat: live while it runs, then its lines kept as a past call. */
@@ -289,7 +289,7 @@ function VoiceKeyForm({ onSaved }: { onSaved: () => void }): React.JSX.Element {
 export function CallLauncher({ onError }: { onError?: (message: string) => void }): React.JSX.Element {
   const t = useT()
   return (
-    <button type="button" className="btn btn-ghost ceo-call-button"
+    <button type="button" className="btn btn-ghost btn-sm ceo-call-button"
       onClick={() => window.fabric.ceoAgent.open(null, { call: true }).catch((e: unknown) => onError?.(e instanceof Error ? e.message : String(e)))}>
       <MicIcon />{t('ceoAgent.call')}
     </button>

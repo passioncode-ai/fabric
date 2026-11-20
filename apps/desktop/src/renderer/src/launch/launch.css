@@ -77,6 +77,9 @@
 .lp-button.primary{background:var(--app-ink);color:var(--app-bg);border-color:var(--app-ink);font-weight:600}
 .lp-button:hover{border-color:var(--app-muted);background:var(--app-panel-quiet)}
 .lp-button.primary:hover{color:var(--app-ink)}
+/* 2026-11-20: a primary that cannot be pressed reads as the app's other disabled primaries (components.css .btn), not a grey fill. */
+.lp-button.primary:disabled{opacity:1;background:var(--app-panel-quiet);border-color:var(--app-line-strong);color:var(--app-muted);font-weight:600;cursor:default}
+.lp-button.primary:disabled:hover{color:var(--app-muted)}
 .lp button:disabled{opacity:.4;cursor:not-allowed}
 .lp :is(a,button,input,textarea,summary):focus-visible{outline:2px solid var(--app-focus);outline-offset:3px}
 .lp-actions{display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap}

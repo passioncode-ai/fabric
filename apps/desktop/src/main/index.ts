@@ -21,6 +21,7 @@ import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } fro
 import { createSharedReading } from '../shared/sharedReading'
 import { startBugCapture, type BugCapture } from './bugCapture'
 import { applyAppIcon, windowIcon } from './appIcon'
+import { ceoWindowBounds, rememberCeoWindow } from './ceoWindowPlacement.ts'
 import { isFloorClass, Policy } from './policy'
 import { launchOption, launchOptions, PtyManager, setFolderTrust, setLaunchSink, setPermissionPreference } from './pty'
 import { trustFolderForClaude } from './claudeTrust.ts'
@@ -799,6 +800,8 @@ function broadcast(channel: string, ...args: unknown[]): void {
  * from a token; it is the one place the dark ground is a literal, and it is
  * written here once rather than in three places.
  */
+/** The CEO window's traffic lights on the middle of its 52 px head (`.ceo-popup-head`): 26 px down, the lights 12 px tall. */
+const CEO_LIGHTS = { x: 16, y: 20 }
 const WINDOW_CHROME = {
   titleBarStyle: 'hiddenInset' as const,
   trafficLightPosition: { x: 14, y: 14 },
@@ -5509,19 +5512,26 @@ function openCeoWindow(): void {
     ceoWindow.focus()
     return
   }
-  const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : null
-  const bounds = parent?.getBounds()
+  // The owner, 2026-11-20: the window moves and resizes freely and opens where it was left, on any display. It is no
+  // longer the main window's child: a child follows its parent and cannot stay on another screen by itself.
+  const main = mainWindow && !mainWindow.isDestroyed() ? mainWindow.getBounds() : null
   const width = 520, height = 720
+  const min = { width: 380, height: 420 }
+  const fallback = main
+    ? { x: Math.max(main.x, main.x + main.width - width - 24), y: Math.max(main.y, main.y + main.height - height - 24), width, height }
+    : { x: 120, y: 120, width, height }
+  const place = ceoWindowBounds(fallback, min)
   const w = new BrowserWindow({
     ...WINDOW_CHROME,
-    width, height, minWidth: 380, minHeight: 420,
-    ...(bounds ? { x: Math.max(bounds.x, bounds.x + bounds.width - width - 24), y: Math.max(bounds.y, bounds.y + bounds.height - height - 24) } : {}),
-    ...(parent ? { parent } : {}),
+    // The popup's head is its title bar, 52 px tall: the lights sit on its middle line (CEO_LIGHTS, styles.css).
+    trafficLightPosition: CEO_LIGHTS,
+    ...place, minWidth: min.width, minHeight: min.height,
     title: 'CEO',
     // A call the home card started plays its first answer before any click in this window (SCN-184).
     webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('ceo')], autoplayPolicy: 'no-user-gesture-required' }
   })
   ceoWindow = w
+  rememberCeoWindow(w)
   const contentsId = w.webContents.id
   windowKinds.register(contentsId, { kind: 'ceo', subject: ceoAgent?.sessionId() ?? '' })
   if (devServer()) void w.loadURL(new URL('ceo.html', devServer()!.endsWith('/') ? devServer()! : `${devServer()}/`).toString())

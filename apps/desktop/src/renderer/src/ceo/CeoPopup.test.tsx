@@ -32,6 +32,23 @@ describe('the CEO popup', () => {
     await waitFor(() => expect(f.restart).toHaveBeenCalledOnce())
   })
 
+  // The owner, 2026-11-20 («кривые кнопки»): the head is one row of one height; stop and restart are quiet signs that keep
+  // their names for a screen reader and on hover, and the call is the same secondary button as on the home.
+  it('the head is one row: the call in words, stop and restart as named signs of one size', async () => {
+    setup()
+    const stop = await screen.findByRole('button', { name: 'Остановить' })
+    const restart = screen.getByRole('button', { name: 'Перезапустить' })
+    const call = screen.getByRole('button', { name: 'Позвонить' })
+    for (const sign of [stop, restart]) {
+      expect(sign.className).toContain('btn-icon')
+      expect(sign.getAttribute('title')).toBe(sign.getAttribute('aria-label'))
+      expect(sign.querySelector('svg')).toBeTruthy()
+    }
+    expect(call.className).toContain('btn-ghost')
+    expect(call.className).toContain('btn-sm')
+    expect(stop.closest('.ceo-popup-head-actions')).toBe(call.closest('.ceo-popup-head-actions'))
+  })
+
   it('a stop that leaves the console running says so', async () => {
     setup(vi.fn().mockResolvedValue({ ok: false, reason: 'still-running', status: status('running') }))
     fireEvent.click(await screen.findByRole('button', { name: 'Остановить' }))
