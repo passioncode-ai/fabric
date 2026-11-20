@@ -24,7 +24,7 @@ Fabric reaches four tools of its own (ADR-0090) and Observatory, and today it do
   (`apps/desktop/src/main/switchboardSessions.ts#runSwitchboard`, `apps/desktop/src/main/boardDispatchWiring.ts#run`,
   `apps/desktop/src/main/agentCatalogRead.ts#readMachineAgentCatalog`,
   `apps/desktop/src/main/sessionHolds.ts#createMachineSessionHolds`), and its JSON is parsed in five places in three
-  session shapes (`switchboardSessions.ts#parseSessions`, `apps/desktop/src/main/ceoTools.ts#parseMachineRows`,
+  session shapes (`apps/desktop/src/main/switchboardSessions.ts#parseSessions`, `apps/desktop/src/main/ceoTools.ts#parseMachineRows`,
   `boardDispatchWiring.ts#runStateOf`; `apps/desktop/src/shared/agentCatalog.ts#parseSwitchboardAgents` and
   `boardDispatchWiring.ts#dispatchProvider` for `agents status`).
 - Fabric reads Switchboard's private data folder by a hard-coded path
