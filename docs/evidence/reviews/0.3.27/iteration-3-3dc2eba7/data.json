@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "3dc2eba711b3ee9a799ecf8559b0256c6d56e71c",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-3dc2eba7/2026-11-20-data.md",
+  "reportSha256": "f7349227240920240a1a6523c5075416e3c53e94414f7b3046be0509e714dd78",
+  "reviewerRun": "release-0327-i3r1-data-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-19",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-605 (12), the owner's decision (a rewrite needs a force-push)"
+      ]
+    },
+    {
+      "id": "DA-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: the worktree's name is a placeholder in the retro README and a neutral fixture name in the code and tests"
+      ]
+    },
+    {
+      "id": "DA-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: the personal project's name is an example in the CHANGELOG, the tool description, comments, tests and fixes.md, a placeholder in the retro README"
+      ]
+    },
+    {
+      "id": "DA-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: the row carries a note of the release session saying how its path was rewritten"
+      ]
+    },
+    {
+      "id": "DA-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: a voice tool that throws is answered as a redacted refusal and written to the journal (index.ts)"
+      ]
+    },
+    {
+      "id": "DA-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: the calls folder is refused when it is a link and set to 0700 when it exists; test «iteration 3 run one», red with the check removed; the DA-13 wording narrowed to «ended»"
+      ]
+    }
+  ]
+}

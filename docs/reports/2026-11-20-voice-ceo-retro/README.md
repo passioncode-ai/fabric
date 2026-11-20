@@ -24,8 +24,8 @@ ADR-0096): домашняя папка владельца записана ка�
 ## Хронология (UTC), 4 звонка
 
 - 12:15 звонок 1. session_sessions, ask_ceo, session_read x2, затем session_launches 7 раз за 7 секунд с отказами:
-  «no project «_worktrees/sound-engine-digest-runner»», «no project «digest-runner»», «no project
-  «sound-engine-digest-runner»», ««fabric-agents-database» names several projects: fabric-agents-database,
+  «no project «_worktrees/<worktree sound-engine>»», «no project «<часть имени worktree>»», «no project
+  «<worktree sound-engine>»», ««fabric-agents-database» names several projects: fabric-agents-database,
   fabric-agents-database». 12:18:40 session_start: sound-engine, монитор раннеров раз в 10 минут (сессия 4b098231,
   работает). ask_ceo.
 - 12:36 звонок 2. session_read x4, ask_ceo, session_read x2, затем session_input: отказ «not-delivered», и сразу
@@ -52,9 +52,9 @@ ADR-0096): домашняя папка владельца записана ка�
    «шелл не принимает прозу» уже передана сессии 8343a070.)
 3. **Голос сам делает работу агента.** 12 session_input в шелл за 2 минуты: отладка руками через терминал. Нужно:
    правило в инструкции «не исполняй работу сам, делегируй агенту проекта или ask_ceo», и предел на серию вводов.
-4. **Имена проектов на слух не находятся.** «DC» (dissy), «sound engine» (два проекта), «digest-runner» (worktree),
+4. **Имена проектов на слух не находятся.** «DC» (dissy), «sound engine» (два проекта), «<часть имени worktree>» (worktree),
    «~» (домашняя папка как проект). Нужно: нечёткий поиск по звучанию и транслиту (кириллица/латиница,
-   «Диззи», «ПлейСинг», «Саунд энджин»), алиасы проекта, при неоднозначности короткий выбор голосом из 2–3 вариантов,
+   «Диззи», «<личный проект владельца>», «Саунд энджин»), алиасы проекта, при неоднозначности короткий выбор голосом из 2–3 вариантов,
    а не отказ; worktree находятся через основной проект.
 5. **Мусор в реестре проектов.** Дубли с одинаковым именем (`fabric-agents-database` в `~/DATA` и в `~/.cache`),
    проекты-папки из `~/.cache`, worktree и временные копии (`<a worktree copy of sound-engine>`, `<probe copies>`), проект с

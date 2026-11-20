@@ -14,7 +14,7 @@ this branch does not touch `consoleOpen.ts#deliverFirst`, the shell refusal in `
 `first_task`.
 
 Every finding below: where it was checked in the code, the test that catches it, and the fix. Tests:
-`apps/desktop/test/voice-retro.test.mjs` (14 tests for the retro, 14 more for the 0.3.27 review's iteration 1) and
+`apps/desktop/test/voice-retro.test.mjs` (14 tests for the retro and 19 more from the 0.3.27 review, 33 in all; the review's plants are named in its ledger, `docs/evidence/plans/2026-11-20-release-0327-verification.md`) and
 `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts` («voice retro finding 1»).
 
 **Watched red (R-006).** Each mechanism below was removed in turn and its test went red (`ℹ fail 1`), then put back:
@@ -50,8 +50,8 @@ line the owner said and the voice answered (`voiceLine`), main writes each tool 
 main by the wall clock since the secret. One JSONL file a call in `<userData>/ceo/calls/` (folder 0700, files 0600),
 so the CEO's console reads its calls where it works; the CEO's brief says so. (The rule as released, after the 0.3.27
 review: [ADR-0197 amendment 4](../../adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-4-2026-11-20-the-call-is-kept-on-this-computer-the-voice-delegates-and-finds-a-project-by-sound).) Every text and argument passes
-`shared/redact.ts` before it is written; a call stops at 2 MB with one `cut` line and still gets its end; files older
-than 30 days are removed at start, nothing else in the folder. A person's line opens a turn and the tools after it carry
+`shared/redact.ts` before it is written; a call stops at 2 MB with one `cut` line and still gets its end; as released, calls
+older than 30 days and past the newest 200 are removed at every call and at start, only files named as calls. A person's line opens a turn and the tools after it carry
 its number. A call whose window closed mid-call is closed in its journal by the next call (`end: not-closed`).
 
 ## 2-3. The voice delegates
@@ -75,10 +75,11 @@ letters' names, English spellings of one sound to one letter, a magic e, doubled
 distance: a key of four letters must sound the same («диск» is not dissy), one edit up to seven, a quarter beyond. A
 project answers to its name, its folder, each run of its words of four letters or more, and each alias the owner gave
 (`fabric_ceo_project_alias`, by voice `session_alias`, kept in `<userData>/ceo/project-aliases.json`). `findProject`
-tries id, folder (the deepest project holding it, or a session's working folder, never a match by words; a folder
-holding projects answers `too-broad`), exact name or alias, folder name, a worktree folder's last part through the
-sessions working there, words, then sound; a match by sound says `heard`, and the start and the project list answer
-`understood_as`. Measured cases: «DC», «Диззи» → dissy; «ПлейСинг» → playsing; «Саунд энджин» → sound-engine;
+tries id, folder (a project's own folder first; else the deepest project holding it, or an agent's worktree a session
+worked in; never a match by words; the home folder, a root or a folder holding two projects or more answers
+`too-broad`), exact name or alias, folder name, words, a worktree folder's last part through the sessions working
+there, then sound; a match by sound says `heard`, and the start and the project list answer
+`understood_as`. Cases from the retro (a personal project's name replaced by an example): «DC», «Диззи» → dissy; «ПлейТюн» → playtune; «Саунд энджин» → sound-engine;
 «фабрик» → fabric; «свитчборд» → fabric-switchboard; «обсерватория» → project-observatory.
 
 ## 5. The project registry
@@ -121,7 +122,7 @@ Fix: the voice door's refusal for the CEO's console names `ask_ceo` and `ceo_rep
 default, 60 at most) for the CEO's answer after the ask: the assistant turns of the CEO's Claude Code transcript written
 after the ask, once its console has been quiet 4 s, redacted; `still_working` with what it said so far when the wait
 ends; the console's screen when the CEO runs on another runner. A lookup that finds no one project answers `choices`
-(three at most) with «ask the owner which one», or `near` (three nearest names) with the next step; the third refusal of
+(three at most) with «ask the owner which one», or `near` (up to three names, only those close enough) with the next step; the third refusal of
 one tool by voice in 30 s adds `stop`.
 
 ## 10. Missing voice tools

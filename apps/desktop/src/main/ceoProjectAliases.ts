@@ -1,11 +1,11 @@
 // #region ceo-project-aliases — docs: docs/reports/2026-11-20-voice-ceo-retro/fixes.md#4-project-names-heard-by-voice
 /**
- * The names the owner uses for projects (voice CEO retro 2026-11-20, finding 4): «Диззи» for dissy, «плейсинг» for
- * playsing. Kept on this computer in one small file (`project-aliases.json` in the CEO's folder, 0600), written whole or not at
+ * The names the owner uses for projects (voice CEO retro 2026-11-20, finding 4): «Диззи» for dissy, «плейтюн» for
+ * playtune. Kept on this computer in one small file (`project-aliases.json` in the CEO's folder, 0600), written whole or not at
  * all (beside, then renamed), read on every lookup so a name kept in the console is heard by the next call. At most
  * MAX_PER_PROJECT names a project, each at most 60 characters; a name already kept is not added twice.
  */
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 
@@ -25,11 +25,18 @@ export function createAliasStore(folder: string, failed?: (what: string, e: unkn
   const file = path.join(folder, ALIAS_FILE)
   /** A file that exists and does not parse: kept aside before any write, never overwritten (0.3.27 review, DA-18). */
   let unreadable = false
+  /** The unreadable file's mtime last said, so a lookup does not log it again and again (0.3.27 review, ER-27). */
+  let saidFor = -1
   function read(): Record<string, string[]> {
     let raw: unknown
     unreadable = false
     try { raw = JSON.parse(readFileSync(file, 'utf8')) } catch (e) {
-      if (existsSync(file)) { unreadable = true; failed?.('read', e) }
+      if (existsSync(file)) {
+        unreadable = true
+        let at = 0
+        try { at = statSync(file).mtimeMs } catch { at = 0 /* gone meanwhile: said once more */ }
+        if (at !== saidFor) { saidFor = at; failed?.('read', e) }
+      }
       return {} /* no names kept yet: none */
     }
     const out: Record<string, string[]> = {}

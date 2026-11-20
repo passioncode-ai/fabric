@@ -5472,7 +5472,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   try { const n = voiceJournal.closeOrphans(); if (n) ops.record({ op: 'ceo.voice.journal-orphans', outcome: 'ok', level: 'info', detail: { closed: n }, ctx: { correlationId: ops.correlate() } }) } catch (e) { ops.failed('ceo.voice.journal-orphans', e) }
   /** When ask_ceo last handed the CEO a request, by call (finding 7; 0.3.27 review, ER-4): ceo_reply reads what came
    *  after it, and a late ask of an earlier call never sets the next call's. */
-  let voiceAskedAt: { call: string | null; at: number } | null = null
+  let voiceAskedAt: { call: string | null; at: number; wroteAt: number } | null = null
   let ceoTranscriptFile: { sessionId: string; file: string; at: number } | null = null
   const ceoScreenNow = (lines: number): string => {
     const id = agent.sessionId()
@@ -5481,6 +5481,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   }
   const voiceTools = createVoiceTools({
     askedAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.at : null),
+    askWrittenAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.wroteAt : null),
     // The transcript's path is found once per CEO runner session, not on every poll (0.3.27 review, ER-5).
     ceoTranscript: async () => {
       const id = agent.sessionId()
@@ -5590,7 +5591,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // DA-3, ER-4: a tool that ends after a hang-up and a new call stays in its own call).
     const call = voiceJournal.current()
     // What goes back to the call (and on to xAI) is redacted whole, field by field (0.3.27 review, DA-16).
-    const answer = redactPayload(await runVoiceTool(tool, args, call)).payload
+    // A tool that throws is answered as a refusal, redacted and written like any other (0.3.27 review, DA-23).
+    let raw: Record<string, unknown>
+    try { raw = await runVoiceTool(tool, args, call) } catch (e) { /* said to the call as a refusal and written to its journal below */ raw = { ok: false, reason: redact(e instanceof Error ? e.message : String(e)).text.slice(0, 300) } }
+    const answer = redactPayload(raw).payload
     if (call) voiceJournal.tool(call, tool, args, answer, Date.now() - began)
     return answer
   })
@@ -5599,7 +5603,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const text = typeof (args as { text?: unknown } | null)?.text === 'string' ? (args as { text: string }).text : ''
       const asked = Date.now()
       const r = await agent.send(text, [])
-      if (r.ok) voiceAskedAt = { call, at: asked }
+      // The echo window starts when the line was written, not when it was asked (0.3.27 review, ER-25).
+      if (r.ok) voiceAskedAt = { call, at: asked, wroteAt: Date.now() }
       return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console; read its answer with ceo_reply' : undefined }
     }
     const own = await voiceTools.run(tool, args)

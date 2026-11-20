@@ -85,7 +85,8 @@ export function createConsoleOpen<S extends { sessionId: string; optionId?: stri
   const asResult = (r: unknown): DeliveryWriteResult =>
     r && typeof r === 'object' && 'state' in r ? r as DeliveryWriteResult : { state: 'written' }
 
-  /** The first instruction, followed to its end: delivered, resubmitted or not delivered, and the log says which. */
+  /** The first instruction, followed to its end: delivered, resubmitted, written_unconfirmed or not delivered, and the
+   *  log says which. */
   async function deliverFirst(session: S, instruction: string): Promise<FirstInstructionOutcome> {
     const id = session.sessionId
     let attempts = 1

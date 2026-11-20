@@ -333,10 +333,14 @@ export function findProject<P extends NamedProject>(projects: readonly P[], quer
     // A project whose folder is too broad (a home folder, a folder right under it, one holding other projects) holds
     // no folder for the CEO (0.3.27 review, DO-1): it would take every new folder under home.
     // A project's own folder is that project, whatever is below it (0.3.26's rule; 0.3.27 review, PL-9).
-    const exactFolder = projects.find((p) => p.repo_path && p.repo_path.replace(/\/+$/, '') === folder)
+    // The home folder or a root is never a project's folder, even for a project kept from before (ER-28).
+    const homeOrRoot = (root: string): boolean => root === '' || root === '/' || /^\/(Users|home)\/[^/]+$/.test(root)
+    const exactFolder = homeOrRoot(folder) ? undefined : projects.find((p) => p.repo_path && p.repo_path.replace(/\/+$/, '') === folder)
     if (exactFolder) return { found: exactFolder }
-    const broad = (root: string): boolean => /^\/(Users|home)\/[^/]+(\/[^/]+)?$/.test(root) || root === '/'
-      || projects.some((o) => o.repo_path && !isCopyFolder(o.repo_path) && o.repo_path.replace(/\/+$/, '').startsWith(root + '/'))
+    // A container is no holder: the home folder, a root, or a folder holding two projects or more that are not copies
+    // (0.3.27 review, ER-24: one project inside another still lets the outer one hold its subfolders).
+    const broad = (root: string): boolean => homeOrRoot(root)
+      || projects.filter((o) => o.repo_path && !isCopyFolder(o.repo_path) && o.repo_path.replace(/\/+$/, '').startsWith(root + '/')).length >= 2
     const byFolder = projects.filter((p) => p.repo_path && !broad(p.repo_path.replace(/\/+$/, '')) && holds(p.repo_path.replace(/\/+$/, '')))
       .sort((a, b) => b.repo_path!.length - a.repo_path!.length)
     if (byFolder.length) return { found: byFolder[0]! }
@@ -362,20 +366,6 @@ export function findProject<P extends NamedProject>(projects: readonly P[], quer
   if (exact.length === 1) return { found: exact[0]! }
   const folderName = settle(projects.filter((p) => p.repo_path && nameKey(p.repo_path.replace(/\/+$/, '').split('/').pop() ?? '') === low))
   if (exact.length === 0 && folderName.length === 1) return { found: folderName[0]! }
-  // An agent's worktree folder named by its last part («sound-engine-digest-runner»): the project that works there.
-  if (exact.length === 0 && folderName.length === 0) {
-    const tail = nameKey(q.replace(/\/+$/, '').split('/').pop() ?? '')
-    const tailOf = (f: WorkFolder): string => nameKey(f.path.replace(/\/+$/, '').split('/').pop() ?? '')
-    let owners = new Set(folders.filter((f) => tailOf(f) === tail).map((f) => f.projectId))
-    // «digest-runner» for the worktree folder «sound-engine-digest-runner» (0.3.27 review, UX-5): its last words.
-    if (owners.size === 0 && tail.length >= 4) owners = new Set(folders.filter((f) => tailOf(f).endsWith(`-${tail}`)).map((f) => f.projectId))
-    // Found through an agent's worktree: said, so a start refuses rather than opening the main folder (0.3.27 review, UX-15).
-    if (owners.size === 1) {
-      const owner = projects.find((p) => p.id === [...owners][0])
-      const wt = folders.find((f) => f.projectId === owner?.id && (tailOf(f) === tail || tailOf(f).endsWith(`-${tail}`)))
-      if (owner) return { found: owner, ...(wt ? { worktree: wt.path } : {}) }
-    }
-  }
   const words = q.toLowerCase().split(/[\s_-]+/).filter(Boolean)
   const partial = settle(projects.filter((p) => {
     const hay = `${p.name} ${p.repo_path ?? ''}`.toLowerCase()
@@ -383,6 +373,22 @@ export function findProject<P extends NamedProject>(projects: readonly P[], quer
   }))
   if (exact.length === 0 && partial.length === 1) return { found: partial[0]! }
   if (partial.length > 1 || exact.length > 1) return { ambiguous: (exact.length > 1 ? exact : rankBySound(q, partial)).slice(0, 10).map(label) }
+  // An agent's worktree folder named by its last part («sound-engine-task-runner»): the project that works there.
+  // After the words (0.3.27 review, UX-28): a project the words find wins over a worktree's last words.
+  if (exact.length === 0 && folderName.length === 0 && partial.length === 0) {
+    const tail = nameKey(q.replace(/\/+$/, '').split('/').pop() ?? '')
+    const tailOf = (f: WorkFolder): string => nameKey(f.path.replace(/\/+$/, '').split('/').pop() ?? '')
+    let owners = new Set(folders.filter((f) => tailOf(f) === tail).map((f) => f.projectId))
+    // «task-runner» for the worktree folder «sound-engine-task-runner» (0.3.27 review, UX-5): its last words.
+    if (owners.size === 0 && tail.length >= 4) owners = new Set(folders.filter((f) => tailOf(f).endsWith(`-${tail}`)).map((f) => f.projectId))
+    // Found through an agent's worktree: said, so a start refuses rather than opening the main folder (0.3.27 review, UX-15).
+    if (owners.size === 1) {
+      const owner = projects.find((p) => p.id === [...owners][0])
+      const wt = folders.find((f) => f.projectId === owner?.id && (tailOf(f) === tail || tailOf(f).endsWith(`-${tail}`)))
+      // A copy registered as its own project is its own folder, no worktree of itself (UX-29).
+      if (owner) return { found: owner, ...(wt && wt.path.replace(/\/+$/, '') !== owner.repo_path?.replace(/\/+$/, '') ? { worktree: wt.path } : {}) }
+    }
+  }
   // By sound: the name as transcription wrote it. The best tier wins: a whole name or alias before a run of its words.
   const ranked = soundCandidates(q, projects)
   const close = ranked.filter((r) => r.close)

@@ -14,7 +14,7 @@
  * start. A write that fails is counted, never
  * thrown into the call.
  */
-import { appendFileSync, closeSync, fstatSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, rmSync } from 'node:fs'
+import { appendFileSync, chmodSync, closeSync, fstatSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, rmSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { redact, redactPayload } from '../shared/redact.ts'
@@ -110,6 +110,9 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
     try { appendFileSync(o.file, line, { mode: 0o600 }); o.bytes += size; o.lastAt = now() } catch (e) { /* counted by the host (ops.failed), never thrown into the call */ deps.failed?.(entry.kind, e) }
   }
 
+  /** A call kept nowhere (its folder could not be used): an id the other methods ignore. */
+  function dropped(): string { return randomUUID() }
+
   /** A new call: its file is created with its first line; answers the call's id. */
   function begin(meta: { voice: string; usdPerMinute: number }): string {
     // Pruned at every call, not only at start (0.3.27 review, DA-4), with room for this one (DA-14): KEEP_CALLS at most.
@@ -117,7 +120,12 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
     const call = randomUUID()
     const startedAt = now()
     const stamp = new Date(startedAt).toISOString().replace(/[:.]/g, '-')
-    try { mkdirSync(dir, { recursive: true, mode: 0o700 }) } catch (e) { /* counted by the host (ops.failed); the call goes on without a journal */ deps.failed?.('folder', e) }
+    try {
+      mkdirSync(dir, { recursive: true, mode: 0o700 })
+      // The folder is ours, never a link to elsewhere, and owner-only even when it was made before (0.3.27 review, DA-24).
+      if (lstatSync(dir).isSymbolicLink()) throw new Error('the calls folder is a link')
+      chmodSync(dir, 0o700)
+    } catch (e) { /* counted by the host (ops.failed); the call goes on without a journal */ deps.failed?.('folder', e); return dropped() }
     const o: Open = { file: path.join(dir, `${stamp}-${call.slice(0, 8)}.jsonl`), bytes: 0, turn: 0, tools: 0, cut: false, startedAt, lastAt: startedAt, usdPerMinute: meta.usdPerMinute }
     open.set(call, o)
     write(o, { t: new Date(startedAt).toISOString(), kind: 'start', call, voice: clean(meta.voice).slice(0, 40), usd_per_minute: meta.usdPerMinute })

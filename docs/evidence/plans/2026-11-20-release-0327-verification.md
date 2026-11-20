@@ -36,8 +36,10 @@ the later steps did not run on this candidate. 56 findings, 8 blocking: `first_t
 started (PL-2), the plan gate red (PL-1), a match by sound started work in the wrong project (UX-1), a folder inside a
 project started in the project's main folder (UX-2), a tie could not be chosen (UX-3), a launch in the home folder
 claimed every folder under home (ER-1), a home-folder project would do the same (DO-1), and a secret on a later line of
-a tool argument reached the call journal (DA-1). Fixes of code carry a test; the six named in fixes.md «Watched red» were watched red with their mechanism removed,
-the others were not planted; the fixes of documents and of the voice's instructions carry no test. Two reports name synthetic probe folders; their home part is written `/Users/example` for the privacy gate (the docs report's `/Users/x`, the ux report's `/Users/u`). In iteration 2 (DA-11), the names of the owner's private worktrees and folders were replaced by placeholders in the ux, docs and data reports («<worktree-a>», «<a second folder>/research-agent» and the like); the wording is otherwise the reviewers', and the receipts carry the new hashes.
+a tool argument reached the call journal (DA-1). Fixes of code carry a test except UX-8 (a refusal's wording), ER-12 (`voiceInputs` drops ended consoles) and, in
+iteration 2, ER-17, UX-18, UX-19, UX-22, UX-23 and DA-16, which were read, not tested; the six named in fixes.md
+«Watched red» were watched red with their mechanism removed, the others were not planted; the fixes of documents and
+of the voice's instructions carry no test. Two reports name synthetic probe folders; their home part is written `/Users/example` for the privacy gate (the docs report's `/Users/x`, the ux report's `/Users/u`). In iteration 2 (DA-11), the names of the owner's private worktrees and folders were replaced by placeholders in the ux, docs and data reports («<worktree-a>», «<a second folder>/research-agent» and the like); the wording is otherwise the reviewers', and the receipts carry the new hashes.
 
 | Row | Finding | Severity | Disposition |
 |---|---|---|---|
@@ -160,4 +162,56 @@ echo window, ER-18's cursor moves (console-open) and DA-13's call names.
 | V2-PL-14 | PL-14 | non-blocking | ruled: CO-606 names feat/ceo-session-windows and its amendment 3, and which lands first |
 
 Exit for iteration 2: every finding disposed above. Blocking findings open: none.
+
+## Iteration 3
+
+### Run one, 3dc2eba7 (superseded)
+
+Candidate `3dc2eba711b3ee9a799ecf8559b0256c6d56e71c`. Five reviewers, one per level; their reports and receipts are in
+[`docs/evidence/reviews/0.3.27/iteration-3-3dc2eba7/`](../reviews/0.3.27/iteration-3-3dc2eba7/) (kept as the record; not
+this iteration's receipts). Gate: the local `ci.sh fast` was stopped by the release session while the reviewers read,
+because fixes were being written in the same worktree; it gave no verdict on this candidate (PL-16). Every iteration-2
+fix held, several in part: UX-15 (the project list, UX-26), UX-19 (an ended console, UX-27), UX-21 (a parent folder,
+UX-25), ER-14 (subfolders, ER-24), ER-16 (the echo, ER-25), ER-17 (ER-26), DA-11 (the branch history and one more
+name, DA-19, DA-20). 29 findings, 6 blocking: a parent folder listed no project (UX-25, PL-15), the project list hid a
+worktree match (UX-26), an ended worktree console was offered a resume into the main folder (UX-27), a worktree's last
+word beat a project's own name (ER-23), and a folder inside a project holding another was admitted as a new project
+(ER-24). The docs and data reviewers found none blocking. Names in the reports are written as in iterations 1 and 2
+(placeholders for the owner's private names, `/Users/example` for synthetic homes; one agent project's name in the plan
+report is a placeholder for the privacy gate). Tests watched red with their mechanism removed: UX-25's folder list,
+ER-24's two-project rule, DA-24's link check.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-UX-25 | UX-25 | blocking | fixed in the run-two candidate: a folder that is no one project's lists every project in it, with why too-broad where it applies (ceoTools.ts projects); test «0.3.27 review, iteration 3 run one», red with the list removed |
+| V3-UX-26 | UX-26 | blocking | fixed in the run-two candidate: the project list marks a match through a worktree (worktree, understood_as, next); same test |
+| V3-UX-27 | UX-27 | blocking | fixed in the run-two candidate: an ended console in a worktree is said ended and offered session_open; a resume of a console that ran outside its project's folder is refused with where it would open (ceoTools.ts resume) |
+| V3-UX-28 | UX-28 | non-blocking | fixed in the run-two candidate: the worktree last-words tier runs after the words (findProject); same test («review» finds code-review-bot) |
+| V3-UX-29 | UX-29 | non-blocking | fixed in the run-two candidate: a copy registered as its own project is no worktree of itself (findProject) |
+| V3-UX-30 | UX-30 | non-blocking | fixed in the run-two candidate: an exact name or alias comes first and is named in exact; same test |
+| V3-UX-31 | UX-31 | non-blocking | fixed in the run-two candidate: the start and task descriptions say delivered and resubmitted carry no next step, and name unknown |
+| V3-ER-23 | ER-23 | blocking | fixed in the run-two candidate: as UX-28; the order is the mechanism |
+| V3-ER-24 | ER-24 | blocking | fixed in the run-two candidate: only the home folder, a root, or a folder holding two projects or more is no holder; a folder inside a project holding one other, or right under home, is that project's; same test, red with the rule at one |
+| V3-ER-25 | ER-25 | non-blocking | fixed in the run-two candidate: the echo window starts when the ask's line was written (askWrittenAt) |
+| V3-ER-26 | ER-26 | non-blocking | ruled: CO-605 (11) |
+| V3-ER-27 | ER-27 | non-blocking | fixed in the run-two candidate: an unreadable aliases file is said once per change of the file (ceoProjectAliases.ts) |
+| V3-ER-28 | ER-28 | non-blocking | fixed in the run-two candidate: the home folder or a root never finds a project, even one kept from before (findProject); same test |
+| V3-DO-20 | DO-20 | non-blocking | fixed in the run-two candidate: fixes.md §1, §4, §6-8 and its test count say the rules as released |
+| V3-DO-21 | DO-21 | non-blocking | fixed in the run-two candidate: the ledger names the code fixes with no test; the HANDOFF says findings 1 to 7 watched red, 8 and 10 not planted |
+| V3-DO-22 | DO-22 | non-blocking | fixed in the run-two candidate: as ER-28 |
+| V3-DO-23 | DO-23 | non-blocking | fixed in the run-two candidate: ceo-setup.md names project folders and the computer's state; deliverFirst's docstring and the window-policy test's comment updated |
+| V3-DA-19 | DA-19 | non-blocking | ruled: CO-605 (12), the owner's decision (a rewrite needs a force-push) |
+| V3-DA-20 | DA-20 | non-blocking | fixed in the run-two candidate: the worktree's name is a placeholder in the retro README and a neutral fixture name in the code and tests |
+| V3-DA-21 | DA-21 | non-blocking | fixed in the run-two candidate: the personal project's name is an example in the CHANGELOG, the tool description, comments, tests and fixes.md, a placeholder in the retro README |
+| V3-DA-22 | DA-22 | non-blocking | fixed in the run-two candidate: the row carries a note of the release session saying how its path was rewritten |
+| V3-DA-23 | DA-23 | non-blocking | fixed in the run-two candidate: a voice tool that throws is answered as a redacted refusal and written to the journal (index.ts) |
+| V3-DA-24 | DA-24 | non-blocking | fixed in the run-two candidate: the calls folder is refused when it is a link and set to 0700 when it exists; test «iteration 3 run one», red with the check removed; the DA-13 wording narrowed to «ended» |
+| V3-PL-15 | PL-15 | blocking | fixed in the run-two candidate: as UX-25 |
+| V3-PL-16 | PL-16 | non-blocking | fixed in the run-two candidate: ci.sh fast with both browser variables is run to its end on the run-two candidate before the tag and recorded in this section |
+| V3-PL-17 | PL-17 | non-blocking | ruled: CO-605 (12), as DA-19 |
+| V3-PL-18 | PL-18 | non-blocking | fixed in the run-two candidate: as ER-28 |
+| V3-PL-19 | PL-19 | non-blocking | fixed in the run-two candidate: fixes.md's count; the iteration-1 receipts mark ER-5, ER-7 and DA-8 ruled, re-hashed |
+| V3-PL-20 | PL-20 | non-blocking | fixed in the run-two candidate: CO-606 names who files the board request and when (after the install, from the log's digest) |
+
+Exit for run one: every finding disposed above; superseded by run two.
 

@@ -18,7 +18,7 @@ missing tools ([the retro](README.md)). Session 9cda1c0f.
 | What | Where |
 |---|---|
 | The retro copied from the CEO's inbox, private paths made neutral | `a30f3fff`, [README.md](README.md) |
-| Findings 1 to 8 and 10 fixed with tests, each test watched red with its mechanism removed (6 plants) | `807276b0`, [fixes.md](fixes.md) |
+| Findings 1 to 8 and 10 fixed with tests; findings 1 to 7 watched red (6 plants), 8 and 10 not planted | `807276b0`, [fixes.md](fixes.md) |
 | Design map entry `#iteration-2026-11-20-voice-retro`, the product model and mockup coverage | `cea84623` |
 | 18 project records in caches and temporary folders archived (journal `project.archived@1`, folders untouched) | [fixes.md §5](fixes.md#5-the-project-registry) |
 | Two insights for every agent recorded in the agents base (intake `in-20261120-b7433c`, `in-20261120-43edca`) | the base's branch `records/voice-retro-insights` `902c78bf`, handed to the base by board request `b9f814c1` (its `check.py` fails only on the flaky `test_daily_retry`, flaky on its `main` too) |

@@ -40,7 +40,7 @@
     },
     {
       "id": "ER-5",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
         "fixed in the iteration-2 candidate in part: the transcript's path is found once per CEO session; reading only the appended bytes ruled: CO-605 (6)"
       ]
@@ -54,7 +54,7 @@
     },
     {
       "id": "ER-7",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
         "fixed in the iteration-2 candidate in part: escapes taken out before matching, `esc to (interrupt|stop)`; reading the decoded input line and the written counter ruled: CO-605 (7)"
       ]

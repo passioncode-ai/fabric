@@ -61,7 +61,7 @@
     },
     {
       "id": "DA-8",
-      "status": "fixed",
+      "status": "ruled",
       "evidence": [
         "fixed in the iteration-2 candidate: fixes.md records the method, query, seqs 214331 to 214348 and ids, the open onboarding tasks; the CHANGELOG says on the owner's computer only; a restore door ruled with CO-574"
       ]

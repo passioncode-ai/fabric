@@ -83,11 +83,11 @@ function ops(over = {}) {
   const consoles = new Map([
     ['ceo', { sessionId: 'ceo', projectId: 'p0', cwd: '/c/ceo', optionId: 'claude-code', state: 'running', running: true, startedAt: 'x', lastActivityAt: 'x', tail: '' }],
     ['sh', { sessionId: 'sh', projectId: 'fab', cwd: '/d/fabric', optionId: 'shell', state: 'running', running: true, startedAt: 'x', lastActivityAt: 'x', tail: '%' }],
-    ['ag', { sessionId: 'ag', projectId: 'fab', cwd: '/d/_worktrees/sound-engine-digest-runner', optionId: 'claude-code', state: 'running', running: true, startedAt: 'x', lastActivityAt: 'x', tail: '>' }]
+    ['ag', { sessionId: 'ag', projectId: 'fab', cwd: '/d/_worktrees/sound-engine-task-runner', optionId: 'claude-code', state: 'running', running: true, startedAt: 'x', lastActivityAt: 'x', tail: '>' }]
   ])
   const projects = [
     { id: 'dis', name: 'dissy', repo_path: '/d/dissy', default_agent: null },
-    { id: 'ps', name: 'playsing', repo_path: '/d/playsing', default_agent: null },
+    { id: 'ps', name: 'playtune', repo_path: '/d/playtune', default_agent: null },
     { id: 'se', name: 'sound-engine', repo_path: '/d/sound-engine', default_agent: null },
     { id: 'swarm', name: 'sound-engine-copy-a', repo_path: '/d/_worktrees/sound-engine-copy-a', default_agent: null },
     { id: 'fab', name: 'fabric', repo_path: '/d/fabric', default_agent: null },
@@ -147,7 +147,7 @@ test('finding 4: a name heard by voice is found by sound, Cyrillic or Latin, a s
   const o = ops()
   const all = await (async () => (await o.ops.run('projects', {})).projects)()
   const ps = all.map((p) => ({ id: p.id, name: p.name, repo_path: p.folder }))
-  for (const [heard, id] of [['DC', 'dis'], ['Диззи', 'dis'], ['ПлейСинг', 'ps'], ['Саунд энджин', 'se'], ['фабрик', 'fab'], ['свитчборд', 'fsw']]) {
+  for (const [heard, id] of [['DC', 'dis'], ['Диззи', 'dis'], ['ПлейТюн', 'ps'], ['Саунд энджин', 'se'], ['фабрик', 'fab'], ['свитчборд', 'fsw']]) {
     const r = findProject(ps, heard)
     assert.equal(r.found?.id, id, `${heard} → ${id}: ${JSON.stringify(r)}`)
   }
@@ -170,10 +170,10 @@ test('finding 4: a worktree folder is found through its project, the home folder
     { id: 'db', name: 'fabric-agents-database', repo_path: '/Users/example/DATA/fabric-agents-database' },
     { id: 'dbc', name: 'fabric-agents-database', repo_path: '/Users/example/.cache/fabric-agents-database' }
   ]
-  const folders = [{ path: '/Users/example/DATA/_worktrees/sound-engine-digest-runner', projectId: 'se' }]
-  assert.equal(findProject(ps, 'sound-engine-digest-runner', folders).found.id, 'se')
-  assert.equal(findProject(ps, '_worktrees/sound-engine-digest-runner', folders).found.id, 'se')
-  assert.equal(findProject(ps, '/Users/example/DATA/_worktrees/sound-engine-digest-runner', folders).found.id, 'se')
+  const folders = [{ path: '/Users/example/DATA/_worktrees/sound-engine-task-runner', projectId: 'se' }]
+  assert.equal(findProject(ps, 'sound-engine-task-runner', folders).found.id, 'se')
+  assert.equal(findProject(ps, '_worktrees/sound-engine-task-runner', folders).found.id, 'se')
+  assert.equal(findProject(ps, '/Users/example/DATA/_worktrees/sound-engine-task-runner', folders).found.id, 'se')
   assert.equal(findProject(ps, '/Users/example/DATA/fabric/apps/desktop').found.id, 'fab', 'a folder inside a project is that project')
   const home = findProject(ps, '/Users/example')
   assert.equal(home.missing, true)
@@ -337,11 +337,11 @@ test('UX-1, UX-9: a name matched by sound is asked back; nothing starts and no a
 })
 
 test('UX-2: a folder inside a project or its worktree is not where a start would open: refused, never run elsewhere', async () => {
-  const o = ops({ launches: [{ cwd: '/d/_worktrees/sound-engine-digest-runner', projectId: 'se' }] })
+  const o = ops({ launches: [{ cwd: '/d/_worktrees/sound-engine-task-runner', projectId: 'se' }] })
   const sub = await o.ops.run('start', { project: '/d/fabric/apps', task: 'go', reason: 'the owner asked' }, 'voice')
   assert.equal(sub.ok, false)
   assert.match(sub.reason, /belongs to the project fabric/)
-  const wt = await o.ops.run('start', { project: '/d/_worktrees/sound-engine-digest-runner', task: 'go', reason: 'the owner asked' }, 'voice')
+  const wt = await o.ops.run('start', { project: '/d/_worktrees/sound-engine-task-runner', task: 'go', reason: 'the owner asked' }, 'voice')
   assert.equal(wt.ok, false)
   assert.match(wt.next, /an agent works in that folder|call again with the name/)
 })
@@ -362,8 +362,8 @@ test('UX-4: the project list hides a worktree copy when the project of its name 
 
 test('UX-5, ER-1: a worktree is found by its last words; a far name is never «near»; a launch in home claims no folder', async () => {
   const ps = [{ id: 'se', name: 'sound-engine', repo_path: '/Users/example/DATA/sound-engine' }, { id: 'notes', name: 'notes', repo_path: null }]
-  const folders = [{ path: '/Users/example/DATA/_worktrees/sound-engine-digest-runner', projectId: 'se' }]
-  assert.equal(findProject(ps, 'digest-runner', folders).found.id, 'se')
+  const folders = [{ path: '/Users/example/DATA/_worktrees/sound-engine-task-runner', projectId: 'se' }]
+  assert.equal(findProject(ps, 'task-runner', folders).found.id, 'se')
   assert.deepEqual(findProject(ps, 'Банк').near, [])
   const o = ops({ launches: [{ cwd: '/Users/example', projectId: 'fab' }] })
   const r = await o.ops.run('sessions', { project: '/Users/example/DATA/other' }, 'voice')
@@ -385,7 +385,7 @@ test('UX-7: the voice\'s tool descriptions name its own tools, never the console
 
 test('UX-9: another project\'s name is never an alias; a wrong alias can be forgotten', async () => {
   const o = ops()
-  assert.match((await o.ops.run('alias', { project: 'dissy', alias: 'playsing', reason: 'the owner said so' })).reason, /name of the project playsing/)
+  assert.match((await o.ops.run('alias', { project: 'dissy', alias: 'playtune', reason: 'the owner said so' })).reason, /name of the project playtune/)
   assert.equal((await o.ops.run('alias', { project: 'dissy', alias: 'бэкенд', reason: 'the owner said so' })).ok, true)
 })
 
@@ -534,4 +534,31 @@ test('0.3.27 review ER-16, ER-21, DA-18: the ask\'s echo is no answer; a name ne
   assert.ok(readdirSync(folder).some((n) => n.startsWith('project-aliases.json.bad-')), 'the unreadable file is kept aside, not overwritten')
   assert.deepEqual(store.read(), { dis: ['Диззи'] })
   void existsSync
+})
+
+test('0.3.27 review, iteration 3 run one: a folder lists its projects; a worktree is marked in the list; an exact name comes first; no home project; the calls folder is never a link', async () => {
+  const o = ops({ launches: [{ cwd: '/d/_worktrees/sound-engine-voice-runner', projectId: 'se' }] })
+  const inD = await o.ops.run('projects', { query: '/d' }, 'voice')
+  assert.ok(inD.projects.length >= 5, 'UX-25, PL-15: a parent folder lists the projects in it')
+  const wt = await o.ops.run('projects', { query: 'voice runner' }, 'voice')
+  assert.equal(wt.worktree, '/d/_worktrees/sound-engine-voice-runner', 'UX-26')
+  assert.match(wt.next, /worktree of sound-engine/)
+  const ex = await o.ops.run('projects', { query: 'fabric' }, 'voice')
+  assert.equal(ex.projects[0].id, 'fab', 'UX-30')
+  assert.equal(ex.exact, 'fabric')
+  const review = findProject([{ id: 'f', name: 'fabric', repo_path: '/d/fabric' }, { id: 'rb', name: 'code-review-bot', repo_path: '/d/code-review-bot' }], 'review', [{ path: '/d/_worktrees/fabric-0327-review', projectId: 'f' }])
+  assert.equal(review.found?.id, 'rb', 'ER-23, UX-28: the words win over a worktree\'s last words')
+  const home = findProject([{ id: 'h', name: 'notes', repo_path: '/Users/example' }, { id: 'f', name: 'fabric', repo_path: '/Users/example/DATA/fabric' }], '/Users/example')
+  assert.equal(home.found, undefined, 'ER-28, DO-22: the home folder finds no project')
+  const mono = [{ id: 'm', name: 'mono', repo_path: '/Users/example/DATA/mono' }, { id: 'p', name: 'pkg', repo_path: '/Users/example/DATA/mono/packages/pkg' }, { id: 'my', name: 'myapp', repo_path: '/Users/example/myapp' }]
+  assert.equal(findProject(mono, '/Users/example/DATA/mono/docs').found?.id, 'm', 'ER-24: a folder inside a project holding one other is that project')
+  assert.equal(findProject(mono, '/Users/example/myapp/src').found?.id, 'my', 'ER-24: a folder inside a project right under home')
+  const folder = mkdtempSync(path.join(tmpdir(), 'voice-journal-'))
+  const elsewhere = mkdtempSync(path.join(tmpdir(), 'elsewhere-'))
+  symlinkSync(elsewhere, path.join(folder, 'calls'))
+  const failures = []
+  const j = createVoiceJournal({ folder, failed: (what) => failures.push(what) })
+  j.begin({ voice: 'ara', usdPerMinute: 0.08 })
+  assert.deepEqual(readdirSync(elsewhere), [], 'DA-24: nothing is written through a linked folder')
+  assert.deepEqual(failures, ['folder'])
 })

@@ -5,7 +5,7 @@
   "level": "docs",
   "candidateCommit": "81e2ee85fb27ac36e9f2fa19cdbcbd2919a1b956",
   "report": "docs/evidence/reviews/0.3.27/iteration-2/2026-11-20-docs.md",
-  "reportSha256": "37a2f62251ac2dd24cdc8dca1138f0a889812b37fb29d070e5f3e9c95a6bc7c9",
+  "reportSha256": "8be4c0c5a0854cfcc326c8e88fa199833f086952989eafcbde3783ecb62588ee",
   "reviewerRun": "release-0327-i2-docs-claude-subagent-20261120",
   "status": "closed",
   "blockingFindingsOpen": [],

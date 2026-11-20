@@ -56,6 +56,8 @@ export interface VoiceToolDeps {
   sleep?: (ms: number) => Promise<void>
   /** When ask_ceo last handed the CEO a request in this call; null before one. */
   askedAt(): number | null
+  /** When the ask's line was written into the CEO's console (its echo follows); absent: the ask's own time. */
+  askWrittenAt?(): number | null
   /** The CEO console's Claude Code transcript (its tail), or null when it has none (another runner, not found). */
   ceoTranscript(): Promise<string | null>
   /** The CEO console's screen, redacted, its last lines; '' when it does not run. */
@@ -127,7 +129,7 @@ export function createVoiceTools(deps: VoiceToolDeps) {
       const quiet = last !== null && now() - last >= CEO_QUIET_MS
       // Printed since the ask: on another runner, quiet alone would read a CEO still thinking as answered (ER-6).
       // The ask's own echo prints at once; output only after the echo window counts (ER-16).
-      const printedSinceAsk = last !== null && last > asked + ECHO_MS
+      const printedSinceAsk = last !== null && last > (deps.askWrittenAt?.() ?? asked) + ECHO_MS
       if (jsonl !== null) {
         const r = assistantSince(jsonl, asked)
         if (r.turns > 0 && quiet) return { ok: true, state: 'answered', answer: redact(r.text).text.slice(-3000), turns: r.turns }

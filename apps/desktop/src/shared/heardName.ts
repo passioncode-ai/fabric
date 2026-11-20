@@ -1,7 +1,7 @@
 // #region heard-name — docs: docs/reports/2026-11-20-voice-ceo-retro/fixes.md#4-project-names-heard-by-voice
 /**
  * A name as it is heard, not as it is spelt (voice CEO retro 2026-11-20, finding 4). The voice call's transcription
- * wrote «DC» for «Диззи» (the project dissy), Cyrillic for Latin names («ПлейСинг», «Саунд энджин») and words for a
+ * wrote «DC» for «Диззи» (the project dissy), Cyrillic for Latin names («ПлейТюн», «Саунд энджин») and words for a
  * hyphen. `soundKey` folds a name into a rough sound: Cyrillic to Latin, a spelt acronym to its letters' names, the
  * spellings English writes one sound with to one letter, doubled letters to one. `heardDistance` compares two keys by
  * edit distance over the longer one, so «fabrik» and «fabric» meet while «dissy» and «disk» do not.

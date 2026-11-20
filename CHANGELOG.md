@@ -47,7 +47,7 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
 - **The voice hands work to agents instead of doing it by hand.** Its instructions say new work goes to the project's
   agent with the task in words, a terminal only on the owner's ask; it types into a console only to answer a question
   (three times in three minutes for a shell, six for an agent), and the CEO's own console only through «ask_ceo».
-- **A project is found by how its name sounds.** «DC» and «Диззи» are dissy, «ПлейСинг» playsing, «Саунд энджин»
+- **A project is found by how its name sounds.** «DC» and «Диззи» are dissy, «ПлейТюн» playtune, «Саунд энджин»
   sound-engine; a worktree folder is found through its project; the home folder is no project. Several matches answer
   three names to choose from, none up to three near names when any are close, and the CEO keeps the names the owner uses for a project
   (`shared/heardName.ts`, `fabric_ceo_project_alias`).

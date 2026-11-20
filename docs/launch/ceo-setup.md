@@ -46,8 +46,8 @@ Fabric keeps each call on this computer too (0.3.27, [ADR-0197 amendment 4](../a
 one file a call in `<userData>/ceo/calls/` (owner-only), with what was said, each tool and its answer, the length and the
 price, secrets cut before writing, removed after 30 days or past the newest 200 calls. The CEO's console reads these
 files, so their text reaches the CEO's runner's provider as any file it opens. During a call, xAI receives what the
-voice's tools answer: session screens and turns, the CEO's answer, board snippets and recent launches, all redacted and
-bounded. To remove kept calls, delete the folder; the next call is kept again.
+voice's tools answer: session screens and turns, the CEO's answer, board snippets, recent launches, project names with
+their folders and the computer's state (disk, load, memory), all redacted and bounded. To remove kept calls, delete the folder; the next call is kept again.
 
 ## 4. The microphone
 
