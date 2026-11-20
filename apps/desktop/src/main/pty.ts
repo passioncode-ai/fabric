@@ -20,7 +20,7 @@ import type { LaunchOption, SessionState, TerminalSession } from '../shared/type
 import { AGENTS, mayLaunch, preferredMode, type AgentPermissions, type SurfaceAdapter } from '../shared/agents.ts'
 import { trustsAgentFolders } from '../shared/folderTrust.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
-import { DeliveryQueue, type DeliveryQueueTiming, type DeliveryWriteOptions, type DeliveryWriteResult } from './deliveryQueue.ts'
+import { BUSY_WRITE_AFTER_MS, DeliveryQueue, type DeliveryQueueTiming, type DeliveryWriteOptions, type DeliveryWriteResult } from './deliveryQueue.ts'
 import { LaunchRefusedBeforeSpawn, PtyLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
 import { causeOf } from '../shared/opsLog.ts'
@@ -625,7 +625,9 @@ export class PtyManager {
       delivery: new DeliveryQueue((text) => {
         pty.write(text)
         session.lastActivityAt = Date.now()
-      }, () => session.running && !session.inputHalted, this.deliveryTiming),
+      }, () => session.running && !session.inputHalted,
+      // Claude Code takes a message typed while it works and answers it after the turn (deliveryQueue.ts#busyAfterMs).
+      { busyAfterMs: runnerId === 'claude-code' ? BUSY_WRITE_AFTER_MS : undefined, ...this.deliveryTiming }),
       pty,
       scrollback: createBoundedScrollback(),
       written: 0,
