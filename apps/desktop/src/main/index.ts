@@ -5357,9 +5357,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   const ceoReach = { granted: (real: string) => real, candidates: scanCandidates, home: homedir() }
   // Set once the voice's ask mark exists below: the queue tells it when a waiting ask was typed (run five, DO-46).
-  let ceoLineTyped: (line: string) => void = () => {}
+  let ceoLineTyped: (line: string, outcome: 'written' | 'unknown') => void = () => {}
   ceoAgent = createCeoAgent({
-    typed: (line) => ceoLineTyped(line),
+    typed: (line, outcome) => ceoLineTyped(line, outcome),
     root: path.join(app.getPath('userData'), 'ceo'),
     locale: () => readSettings().locale,
     // DA-7: an archived CEO project is never brought back; a new one is made under a fresh id (`ceoAgent.ts#ceoProjectFor`).
@@ -5482,8 +5482,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   /** When ask_ceo last handed the CEO a request, by call (finding 7; 0.3.27 review, ER-4): ceo_reply reads what came
    *  after it, and a late ask of an earlier call never sets the next call's. */
   /** `wroteAt` null: the ask waits in the CEO's queue, `text` finds its line when the queue types it (run five, DO-46). */
-  let voiceAskedAt: { call: string | null; at: number; wroteAt: number | null; text?: string } | null = null
-  ceoLineTyped = (line) => { if (voiceAskedAt && voiceAskedAt.wroteAt === null && voiceAskedAt.text && line.includes(voiceAskedAt.text)) voiceAskedAt.wroteAt = Date.now() }
+  let voiceAskedAt: { call: string | null; at: number; wroteAt: number | null; text?: string; unknown?: boolean } | null = null
+  // The queue says when it typed a waiting ask, or that its write broke off (run six, UX-56): either ends the wait.
+  ceoLineTyped = (line, outcome) => { if (voiceAskedAt && voiceAskedAt.wroteAt === null && voiceAskedAt.text && line.includes(voiceAskedAt.text)) { voiceAskedAt.wroteAt = Date.now(); if (outcome === 'unknown') voiceAskedAt.unknown = true } }
   let ceoTranscriptFile: { sessionId: string; file: string; at: number } | null = null
   const ceoScreenNow = (lines: number): string => {
     const id = agent.sessionId()
@@ -5494,6 +5495,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     askedAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.at : null),
     askWrittenAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.wroteAt : null),
     askWaiting: () => !!voiceAskedAt && voiceAskedAt.call === voiceJournal.current() && voiceAskedAt.wroteAt === null,
+    askUnknown: () => !!voiceAskedAt && voiceAskedAt.call === voiceJournal.current() && voiceAskedAt.unknown === true,
     // The transcript's path is found once per CEO runner session, not on every poll (0.3.27 review, ER-5).
     ceoTranscript: async () => {
       const id = agent.sessionId()
@@ -5624,7 +5626,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       else if (r.reason === 'delivery-unknown') voiceAskedAt = { call, at: asked, wroteAt: Date.now() }
       const said = r.reason === 'delivery-unknown'
         ? 'the write to the CEO console broke off and may have gone in: do not ask again; read ceo_reply, and tell the owner to check the CEO window'
-        : !r.ok ? undefined : r.queued
+        : !r.ok ? undefined : r.queued && r.reason === 'not-running'
+          // Run six, UX-54: a CEO that is not running types nothing until the owner starts it.
+          ? 'kept for the CEO, but the CEO is not running: nothing is typed until the owner starts it from the CEO window («Запустить», or «Попробовать снова» when it failed); do not ask again; tell the owner'
+          : r.queued
           ? 'queued for the CEO: its console has not taken it yet, and it is typed as soon as it does; do not ask again; tell the owner it waits and the answer will be in the CEO window; ceo_reply says when it was typed'
           : 'typed into the CEO console; read its answer with ceo_reply'
       return { ok: r.ok, ...(r.queued ? { queued: true } : {}), ...(r.reason ? { reason: r.reason } : {}), said }

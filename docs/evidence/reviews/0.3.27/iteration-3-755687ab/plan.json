@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "755687ab0b438a67c0ce26a6d448e3d5150ae8a1",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-755687ab/2026-11-21-plan.md",
+  "reportSha256": "0319664b46bf6545d670d75e94d281999af4abb21c18c0fd5ba4a311bf19befe",
+  "reviewerRun": "release-0327-i3r6-plan-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run five's gate is recorded: last line, browser suites 26 of 26, Claude Code 2.1.330"
+      ]
+    },
+    {
+      "id": "PL-46",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one sentence of the pause, with its source, in the Now line, CO-606, CO-614 and the retro's HANDOFF; the strategist's handoff on `feat/ceo-persona` takes the same sentence"
+      ]
+    },
+    {
+      "id": "PL-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-615 names run five and its folder"
+      ]
+    },
+    {
+      "id": "PL-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-55; Coverage names the run-five and run-six tests"
+      ]
+    }
+  ]
+}

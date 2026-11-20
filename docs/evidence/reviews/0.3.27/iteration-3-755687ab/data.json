@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "755687ab0b438a67c0ce26a6d448e3d5150ae8a1",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-755687ab/2026-11-21-data.md",
+  "reportSha256": "3b3e1b640fe31bb16033fa57ffd83809bcabb237e213789a5d2c29cfb79ef109",
+  "reviewerRun": "release-0327-i3r6-data-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-42",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-56 (test «run six: a kept-aside queue file older than 30 days is removed at the next start…»)"
+      ]
+    },
+    {
+      "id": "DA-43",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-56"
+      ]
+    },
+    {
+      "id": "DA-44",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ceo.agent.queued` is recorded only for a line still waiting after the first drain"
+      ]
+    },
+    {
+      "id": "DA-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed: each removal on its own, plain files only, newest by the time in the name (`ceoAgent.ts#pruneAside`)"
+      ]
+    }
+  ]
+}

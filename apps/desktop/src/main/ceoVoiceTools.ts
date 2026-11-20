@@ -60,6 +60,8 @@ export interface VoiceToolDeps {
   askWrittenAt?(): number | null
   /** The ask still waits in the CEO's queue, not typed yet (run five, DO-46). */
   askWaiting?(): boolean
+  /** The queue's write of the waiting ask broke off: it may have gone in (run six, UX-56). */
+  askUnknown?(): boolean
   /** The CEO console's Claude Code transcript (its tail), or null when it has none (another runner, not found). */
   ceoTranscript(): Promise<string | null>
   /** The CEO console's screen, redacted, its last lines; '' when it does not run. */
@@ -122,10 +124,12 @@ export function createVoiceTools(deps: VoiceToolDeps) {
   async function ceoReply(a: { wait_seconds?: unknown }): Promise<Answer> {
     const asked = deps.askedAt()
     if (asked === null) return { ok: false, reason: 'nothing was handed to the CEO in this call: use ask_ceo first' }
+    // Run six, UX-54: a CEO that is not running is said first; a waiting ask there waits for the owner's start.
+    if (deps.ceoLastActivity() === null) return { ok: false, reason: 'the CEO console is not running: its answer cannot be read now', next: 'tell the owner to start the CEO from its window; do not ask again' }
+    if (deps.askUnknown?.()) return { ok: false, state: 'unknown', reason: 'the write of the ask to the CEO console broke off and may have gone in', next: 'do not ask again; tell the owner to check the CEO window' }
     if (deps.askWaiting?.()) return { ok: false, state: 'queued', reason: 'the ask still waits in the CEO\'s queue: its console has not taken it yet', next: 'do not ask again; tell the owner it waits, and try ceo_reply in a while' }
     const waitS = typeof a.wait_seconds === 'number' && Number.isFinite(a.wait_seconds) ? Math.max(0, Math.min(CEO_REPLY_MAX_S, Math.round(a.wait_seconds))) : CEO_REPLY_WAIT_S
     const until = now() + waitS * 1000
-    if (deps.ceoLastActivity() === null) return { ok: false, reason: 'the CEO console is not running: its answer cannot be read now', next: 'tell the owner; the CEO window starts the console again' }
     for (;;) {
       const jsonl = await deps.ceoTranscript().catch(() => null)
       const last = deps.ceoLastActivity()
@@ -134,7 +138,8 @@ export function createVoiceTools(deps: VoiceToolDeps) {
       // The ask's own echo prints at once; output only after the echo window counts (ER-16).
       const printedSinceAsk = last !== null && last > (deps.askWrittenAt?.() ?? asked) + ECHO_MS
       if (jsonl !== null) {
-        const r = assistantSince(jsonl, asked)
+        // Run six, UX-55: from when the ask was written, so an answer to an earlier line is not read as this one's.
+        const r = assistantSince(jsonl, deps.askWrittenAt?.() ?? asked)
         if (r.turns > 0 && quiet) return { ok: true, state: 'answered', answer: redact(r.text).text.slice(-3000), turns: r.turns }
         if (now() >= until) {
           return r.turns > 0

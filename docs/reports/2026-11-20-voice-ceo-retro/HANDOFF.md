@@ -65,9 +65,8 @@ ledger is the entry point from here: `docs/evidence/plans/2026-11-20-release-032
 
 On 2026-11-20 at 21:37 (the owner's time, as relayed) the owner reported a session's first task and the CEO popup's
 messages lost; the home's session fixed it on `fix/delivery-never-drops`, merged before the tag, which reopened review
-iteration 3 (runs four and more, each in the ledger). On 2026-11-21 (00:30 as relayed) the owner paused new features
-until the strategic plan (fabric-workspace session 2d03ce15): only fixes go ahead. The registry fix held out of 0.3.27
-by that pause goes first in the next release (CO-614); what the review's runs leave is CO-609 and CO-615. The paused
+iteration 3 (runs four and more, each in the ledger). On 2026-11-21 (00:30 as relayed) came
+the owner's pause (fabric-workspace session 2d03ce15, brief `2026-11-21-strategic-plan-fable-brief.md`): new features wait for the strategic plan; in 0.3.27 only the voice retro's fixes and the review's findings on its own code go ahead; whether a fix outside 0.3.27 may start before the plan is the owner's open question, held in CO-614. The registry fix held out of 0.3.27 by that pause is CO-614; what the review's runs leave is CO-609 and CO-615. The paused
 CEO work (access, approval modes, persona, voice, calls) has its own handoff for the strategist on `feat/ceo-persona`:
 `docs/reports/2026-11-21-paused-ceo-work-handoff/README.md`.
 

@@ -49,6 +49,20 @@ describe('the CEO composer', () => {
     expect(line).not.toMatch(/занят/)
   })
 
+  it('the not-running line names the button its state shows (run six, UX-59)', async () => {
+    setup('popup', vi.fn().mockResolvedValue({ ok: true, queued: true, reason: 'not-running', status: { queued: 1, state: 'failed' } }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Напишите CEO' }), { target: { value: 'x' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Отправить' }))
+    expect((await screen.findByRole('status')).textContent).toMatch(/Попробовать снова/)
+  })
+
+  it('a stopped CEO\'s line names «Запустить» (run six, UX-59)', async () => {
+    setup('popup', vi.fn().mockResolvedValue({ ok: true, queued: true, reason: 'not-running', status: { queued: 1, state: 'stopped' } }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Напишите CEO' }), { target: { value: 'x' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Отправить' }))
+    expect((await screen.findByRole('status')).textContent).toMatch(/«Запустить»/)
+  })
+
   it('Enter sends, Shift+Enter does not; the popup does not open another popup', async () => {
     const f = setup('popup')
     const box = screen.getByRole('textbox', { name: 'Напишите CEO' })

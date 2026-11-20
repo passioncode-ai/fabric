@@ -17,7 +17,7 @@
  * popup's head shows.
  */
 import { randomUUID } from 'node:crypto'
-import { mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
+import { lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { TerminalSession } from '../shared/types.ts'
 import type { Walk } from '../shared/runnerRoute.ts'
@@ -46,7 +46,7 @@ export interface CeoAgentDeps {
   /** Raw input to the console (the Enter a pasted image path swallowed); the tests may leave it out. */
   write?(sessionId: string, data: string): void
   /** A line the queue typed into the console, so a voice ask that waited learns when it was written (run five, DO-46). */
-  typed?(line: string): void
+  typed?(line: string, outcome: 'written' | 'unknown'): void
   /** Wait; the tests pass none and wait nothing. */
   sleep?(ms: number): Promise<void>
   /** The person's stop; `force` kills a console the plain stop left running (ER-10). */
@@ -78,7 +78,7 @@ export const INBOX_KEEP_MS = 30 * 24 * 60 * 60_000
 const KEPT_LINES = 10
 
 /** One line the person sent: the console it was typed into, and whether a fallback typed it again (at most once). */
-interface SentLine { line: string; sessionId: string | null; retyped: boolean; retypedOk: boolean }
+interface SentLine { line: string; sessionId: string | null; retyped: boolean; files?: boolean }
 
 /** The CEO's project (DA-7): the known one while it lives, the one that holds the folder, else a new one under a fresh
  *  id. An archived known project is never reused: its id would bring the archived row back. */
@@ -153,14 +153,26 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     let kept = false
     try { renameSync(queueFile, `${queueFile}.corrupt-${Date.now()}`); kept = true } catch (e2) { /* said in the record below as kept_aside: false */ void e2 }
     deps.record('ceo.agent.queue-read-failed', { why, kept_aside: kept, ...detail })
-    try {
-      const aside = readdirSync(deps.root).filter((f) => /^pending\.json\.corrupt-\d+$/.test(f)).sort().reverse()
-      aside.forEach((f, i) => {
-        const at = Number(f.slice('pending.json.corrupt-'.length))
-        if (i >= 3 || Date.now() - at > INBOX_KEEP_MS) unlinkSync(path.join(deps.root, f))
-      })
-    } catch (e3) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.queue-aside-prune-failed', errorClass(e3)) }
+    pruneAside()
   }
+  /** The kept-aside queue files past 30 days or past the newest three are removed: at every start of Fabric and whenever
+   *  one is kept aside (run six, DA-42). Only plain files of that exact name, newest by the time in the name; each removal
+   *  on its own, so one that fails leaves the rest pruned (DA-45). */
+  function pruneAside(): void {
+    let names: string[]
+    try { names = readdirSync(deps.root) } catch (e) { /* no folder yet: nothing kept aside */ void e; return }
+    const aside = names.filter((f) => /^pending\.json\.corrupt-\d+$/.test(f))
+      .map((f) => ({ f, at: Number(f.slice('pending.json.corrupt-'.length)) }))
+      .sort((a, b) => b.at - a.at)
+    aside.forEach(({ f, at }, i) => {
+      if (i < 3 && now() - at <= INBOX_KEEP_MS) return
+      try {
+        const file = path.join(deps.root, f)
+        if (lstatSync(file).isFile()) unlinkSync(file)
+      } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.queue-aside-prune-failed', errorClass(e)) }
+    })
+  }
+  let rewriteAfterLoad = false
   let queued: QueuedLine[] = (() => {
     let text: string
     try { text = readFileSync(queueFile, 'utf8') } catch (e) { /* no file is an empty queue; any other failure is recorded below */
@@ -175,17 +187,20 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     // A file of the wrong shape (an older or newer format) is kept aside like one that does not parse (run five, DA-39).
     if (!Array.isArray(raw)) { keepAside('not-a-list', {}); return [] }
     const all = raw.filter((x): x is QueuedLine => !!x && typeof (x as { line?: unknown }).line === 'string' && typeof (x as { at?: unknown }).at === 'number')
-    if (all.length < raw.length) { keepAside('invalid-entries', { invalid: raw.length - all.length }); }
+    // The good entries are written back at once, so a quit before the next send keeps them (run six, DA-43).
+    if (all.length < raw.length) { keepAside('invalid-entries', { invalid: raw.length - all.length }); rewriteAfterLoad = true }
     if (all.length > CEO_QUEUE_MAX) deps.record('ceo.agent.queue-trimmed', { kept: CEO_QUEUE_MAX, dropped: all.length - CEO_QUEUE_MAX })
     return all.slice(0, CEO_QUEUE_MAX)
   })()
+  pruneAside()
   const saveQueue = (): void => {
     try {
-      mkdirSync(deps.root, { recursive: true })
+      mkdirSync(deps.root, { recursive: true, mode: 0o700 })
       writeFileSync(`${queueFile}.tmp`, JSON.stringify(queued), { mode: 0o600 })
       renameSync(`${queueFile}.tmp`, queueFile)
     } catch (e) { /* the queue still holds in memory; recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.queue-save-failed', errorClass(e)) }
   }
+  if (rewriteAfterLoad) saveQueue()
   /** The drain under way: a second caller waits for it instead of returning early (0.3.27 review, run five). */
   let draining: Promise<void> | null = null
   let drainTimer: ReturnType<typeof setTimeout> | null = null
@@ -194,6 +209,8 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   let drainMisses = 0
   /** Lines the queue typed with an unknown outcome, so the send that waited on them says so (UX-50). */
   const endedUnknown = new WeakSet<QueuedLine>()
+  /** A send waits for its own line to leave the queue, not for every line after it (run six, ER-57). */
+  const leftQueue = new Map<QueuedLine, () => void>()
   const drainLater = (): void => {
     if (drainTimer || queued.length === 0) return
     drainTimer = setTimeout(() => { drainTimer = null; void drain() }, Math.min(CEO_QUEUE_RETRY_MS * 2 ** drainMisses, 5 * 60_000))
@@ -203,8 +220,11 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   function drain(): Promise<void> {
     if (draining) return draining
     if (queued.length === 0) return Promise.resolve()
-    draining = drainOnce()
-    return draining
+    // The marker is cleared by the promise it marks, never inside the call that sets it: a pass that ends before its first
+    // await would otherwise clear it before it is set, and the queue would stop for good (run six, ER-53).
+    const run: Promise<void> = drainOnce().finally(() => { if (draining === run) draining = null; drainLater() })
+    draining = run
+    return run
   }
   async function drainOnce(): Promise<void> {
     try {
@@ -223,23 +243,24 @@ export function createCeoAgent(deps: CeoAgentDeps) {
         drainMisses = 0
         queued.shift()
         saveQueue()
+        leftQueue.get(head)?.(); leftQueue.delete(head)
         // What the queue typed is owed to that console: a limit or sign-in screen in its answer retypes it on the next
         // runner, once (run five, ER-47). An unknown write is not owed: it may have gone in (ER-40).
         if (typed === 'written') {
-          try { deps.typed?.(head.line) } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.typed-hook-failed', errorClass(e)) }
-          sent.push({ line: head.line, sessionId: live.sessionId, retyped: false, retypedOk: false })
+          try { deps.typed?.(head.line, 'written') } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.typed-hook-failed', errorClass(e)) }
+          // A line already typed again after a fallback is not owed a third time.
+          sent.push({ line: head.line, sessionId: live.sessionId, retyped: head.retype === true, ...(head.files ? { files: true } : {}) })
           if (sent.length > KEPT_LINES) sent.splice(0, sent.length - KEPT_LINES)
         }
         // ER-40: a write whose outcome is unknown may have gone in; it is never typed again, only said.
-        if (typed === 'unknown') { endedUnknown.add(head); deps.record('ceo.agent.queue-unknown', { session_id: live.sessionId, left: queued.length }); changed(); continue }
+        if (typed === 'unknown') { endedUnknown.add(head); try { deps.typed?.(head.line, 'unknown') } catch (e) { /* recorded through deps.record */ deps.record('ceo.agent.typed-hook-failed', errorClass(e)) } deps.record('ceo.agent.queue-unknown', { session_id: live.sessionId, left: queued.length }); changed(); continue }
         // UX-43: a line naming files gets the same settled Enter the direct path gives it.
         if (head.files) await enterAfterFiles(live.sessionId)
         deps.record('ceo.agent.queue-delivered', { session_id: live.sessionId, waited_s: Math.round((now() - head.at) / 1000), left: queued.length })
         changed()
       }
     } finally {
-      draining = null
-      drainLater()
+      // The marker and the next try are the caller's (`drain`), once this pass has settled (ER-53).
     }
   }
   // #endregion ceo-queue
@@ -351,6 +372,8 @@ export function createCeoAgent(deps: CeoAgentDeps) {
       // A console that starts types what waited at once, not after the queue's grown retry wait (0.3.27 review, run five,
       // UX-51).
       drainMisses = 0
+      // A long retry wait already armed is dropped: the new console is tried now (run six, ER-59).
+      if (drainTimer) { clearTimeout(drainTimer); drainTimer = null }
       if (queued.length) void drain()
       deps.record('ceo.agent.started', { session_id: sessionId, runner, passed_over: passedOver.map((p) => `${p.runner}:${p.result}`).join(',') })
     } catch (e) { /* recorded through fail(), the host's ops.record */
@@ -425,7 +448,6 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     const item: QueuedLine = { line, at: now(), ...(files ? { files: true } : {}) }
     queued.push(item)
     saveQueue()
-    deps.record('ceo.agent.queued', { reason, waiting: queued.length, chars: line.length })
     return item
   }
 
@@ -455,7 +477,12 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     held = false
     if (pendingFallback) await pendingFallback
     await ensure()
-    await drain()
+    const left = new Promise<void>((resolve) => leftQueue.set(item, resolve))
+    await Promise.race([left, drain()])
+    // A fallback the line itself caused (its console showed a limit while it waited) is waited for, and the queue types
+    // it on the next runner before the send answers (run six, UX-57).
+    if (queued.includes(item) && pendingFallback) { await pendingFallback; await Promise.race([left, drain()]) }
+    if (!queued.includes(item)) leftQueue.delete(item)
     if (!queued.includes(item)) {
       // A line the queue typed with an unknown outcome is said so, never as sent (run four ER-40; run five UX-50).
       return endedUnknown.has(item) ? { ok: false, reason: 'delivery-unknown', status: status() } : { ok: true, status: status() }
@@ -463,7 +490,10 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     drainLater()
     changed()
     // UX-52: a console still starting is said as busy, not as not running.
-    return { ok: true, queued: true, reason: state === 'running' || state === 'starting' ? 'not-delivered' : 'not-running', status: status() }
+    const reason: CeoSendReason = state === 'running' || state === 'starting' ? 'not-delivered' : 'not-running'
+    // `queued` in the operations log keeps its meaning: the console did not take the line at once (run six, DA-44).
+    deps.record('ceo.agent.queued', { reason, waiting: queued.length, chars: line.length })
+    return { ok: true, queued: true, reason, status: status() }
   }
 
   /** ER-10: the person's stop, then, when the console still runs, a forced one; the outcome is recorded. */
@@ -571,27 +601,24 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     deps.record('ceo.agent.fallback', { runner, why })
     const owed = sent.filter((e) => e.sessionId === lost && !e.retyped)
     for (const e of owed) e.retyped = true
-    await restart(why)
-    for (const e of owed) {
-      const id = sessionId
-      if (state !== 'running' || !id) { e.retypedOk = false; continue }
-      e.sessionId = id
-      // An unknown write may have gone in: counted as typed, so it is never queued and typed a third time (ER-40).
-      e.retypedOk = (await typeInto(id, e.line, 'ceo.agent.retyped')) !== 'failed'
+    // The lines the lost console owed go back to the head of the queue, oldest first, ahead of newer ones, so the next
+    // runner gets them in the order they were sent; marked as retypes, they are typed at most once more (run six, DO-53).
+    if (owed.length) {
+      queued.unshift(...owed.map((e) => ({ line: e.line, at: now(), retype: true, ...(e.files ? { files: true } : {}) } as QueuedLine)))
+      saveQueue()
+      deps.record('ceo.agent.retyped', { lines: owed.length })
     }
+    await restart(why)
   }
 
   let fallingBack = false
   /** A fallback under way, so a message sent meanwhile waits for it instead of reporting the console it lost. */
   let pendingFallback: Promise<void> | null = null
-  /** How many fallbacks have started: a send compares it before and after its delivery. */
-  let fallbacks = 0
   /** A start screen or an early end of the NEXT console seen while a fallback still types into it: run after it. */
   let deferred: string | null = null
   const startFallback = (why: string): void => {
     if (held) return
     if (fallingBack) { deferred ??= why; return }
-    fallbacks++
     fallingBack = true
     pendingFallback = fallBack(why).finally(() => {
       fallingBack = false

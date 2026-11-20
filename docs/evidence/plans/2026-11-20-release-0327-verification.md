@@ -369,7 +369,8 @@ Candidate `6a8c9b6730d257bf75e296ab217366bf2a19f5a8`. Reports and receipts in
 The times «21:37» and «00:30» in this ledger are the owner's, as his relayed messages give them; this session's clock
 (CET, UTC+1) had the pause before `824dd2b1` (00:10). The rule applied under the pause: a fix of a review finding on code
 already in the candidate is part of releasing that candidate, while a fix of code outside it (the registry, CO-614)
-waits. Gate: `bash scripts/ci.sh fast` on this candidate. 31 findings, 5 blocking (UX-49, ER-46, DO-45: with a message
+waits. Gate: `bash scripts/ci.sh fast` on this candidate ran to its last line, «fast tier green», browser suites 26 of
+26, with Claude Code 2.1.330 installed, equal to the pin (run six's PL-45). 31 findings, 5 blocking (UX-49, ER-46, DO-45: with a message
 waiting, writing to a stopped CEO no longer started it, a regression of run four's order fix; ER-47: a queued line
 typed into a console that then showed its limit was lost; DO-46: a queued voice ask sent the voice to ask again). The
 fix routes every send through the one queue, which records what it types as owed to that console; tests watched red
@@ -408,6 +409,51 @@ with their mechanism removed. What remains is in CO-615.
 | V3R5-PL-42 | PL-42 | non-blocking | fixed: the rule is stated in this section |
 | V3R5-PL-43 | PL-43 | non-blocking | fixed: as UX-50; the CHANGELOG says a later queue unknown is recorded |
 | V3R5-PL-44 | PL-44 | non-blocking | fixed: the times are named as the owner's, as relayed, in this section and the HANDOFF |
+
+Exit for run five: every finding disposed above; superseded by run six.
+
+### Run six, 755687ab (superseded)
+
+Candidate `755687ab0b438a67c0ce26a6d448e3d5150ae8a1`. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-755687ab/`](../reviews/0.3.27/iteration-3-755687ab/) (kept as the record).
+Gate: `bash scripts/ci.sh fast` on this candidate ran to its last line, «fast tier green», browser suites 26 of 26,
+with Claude Code 2.1.330 installed, equal to the pin. 28 findings, 2 blocking (ER-53: a drain that found the CEO not
+running cleared its in-flight marker before setting it, and the queue stopped for good; DA-42: the 30-day bound of the
+kept-aside queue files AGENTS.md states was applied only when another file was kept aside). The ux, docs and plan
+reviewers found none blocking. The fix also puts the lines a lost console owed back at the head of the queue, so the
+one queue holds the order across a fallback; tests watched red with their mechanism removed (the marker). What
+remains is in CO-615.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3R6-UX-54 | UX-54 | non-blocking | fixed: for a CEO that is not running, `ask_ceo` tells the voice nothing is typed until the owner starts it, and `ceo_reply` says so before the waiting mark (`index.ts#runVoiceTool`, `ceoVoiceTools.ts#ceoReply`; test «run six: ceo_reply says a CEO that is not running first…») |
+| V3R6-UX-55 | UX-55 | non-blocking | fixed: `ceo_reply` reads the transcript from when the ask was written (`askWrittenAt`) |
+| V3R6-UX-56 | UX-56 | non-blocking | fixed: the queue tells the voice side about an unknown write too; `ceo_reply` answers `unknown`, «do not ask again» (same test) |
+| V3R6-UX-57 | UX-57 | non-blocking | fixed: a send waits for the fallback its own line caused, then for the queue to type it on the next runner (`ceoAgent.ts#send`) |
+| V3R6-UX-58 | UX-58 | non-blocking | fixed: as ER-55 |
+| V3R6-UX-59 | UX-59 | non-blocking | fixed: two composer tests assert the button each state names (`CeoComposer.test.tsx`) |
+| V3R6-ER-53 | ER-53 | blocking | fixed: the in-flight marker is cleared by the promise it marks, never inside the call that sets it (`ceoAgent.ts#drain`; test «run six: a drain that finds the CEO not running does not stop the queue…», watched red with the marker never cleared) |
+| V3R6-ER-54 | ER-54 | non-blocking | fixed: the lines a lost console owed go back to the head of the queue, so a failed retype or a walk that ends with every runner set aside keeps them for the next start |
+| V3R6-ER-55 | ER-55 | non-blocking | fixed: as ER-54: the owed lines go in before newer ones (test «run six: after a limit, the line the lost console owed goes in before…») |
+| V3R6-ER-56 | ER-56 | non-blocking | fixed: the valid lines of a file with invalid entries are written back at once (test «run six: a kept-aside queue file older than 30 days…») |
+| V3R6-ER-57 | ER-57 | non-blocking | fixed: a send waits only until its own line leaves the queue or the drain stops (`leftQueue`) |
+| V3R6-ER-58 | ER-58 | non-blocking | fixed: a requeued owed line keeps `files`, so the queue gives it its Enter |
+| V3R6-ER-59 | ER-59 | non-blocking | fixed: a start clears the armed retry timer before it drains |
+| V3R6-ER-60 | ER-60 | non-blocking | fixed: as UX-56 |
+| V3R6-DO-52 | DO-52 | non-blocking | fixed: as ER-56 |
+| V3R6-DO-53 | DO-53 | non-blocking | fixed: as ER-55 |
+| V3R6-DO-54 | DO-54 | non-blocking | fixed: as UX-56 |
+| V3R6-DO-55 | DO-55 | non-blocking | fixed: SCN-189 step 1 ties each line to its state; Errors & recovery and Telemetry describe the one queue, the requeue and the kept-aside bound |
+| V3R6-DO-56 | DO-56 | non-blocking | fixed: the kept-aside files are pruned at every start; CHANGELOG «Upgrading» names them |
+| V3R6-DO-57 | DO-57 | non-blocking | fixed: the unused fallback counter and its comment are removed |
+| V3R6-DA-42 | DA-42 | blocking | fixed: as DO-56 (test «run six: a kept-aside queue file older than 30 days is removed at the next start…») |
+| V3R6-DA-43 | DA-43 | non-blocking | fixed: as ER-56 |
+| V3R6-DA-44 | DA-44 | non-blocking | fixed: `ceo.agent.queued` is recorded only for a line still waiting after the first drain |
+| V3R6-DA-45 | DA-45 | non-blocking | fixed: each removal on its own, plain files only, newest by the time in the name (`ceoAgent.ts#pruneAside`) |
+| V3R6-PL-45 | PL-45 | non-blocking | fixed: run five's gate is recorded: last line, browser suites 26 of 26, Claude Code 2.1.330 |
+| V3R6-PL-46 | PL-46 | non-blocking | fixed: one sentence of the pause, with its source, in the Now line, CO-606, CO-614 and the retro's HANDOFF; the strategist's handoff on `feat/ceo-persona` takes the same sentence |
+| V3R6-PL-47 | PL-47 | non-blocking | fixed: CO-615 names run five and its folder |
+| V3R6-PL-48 | PL-48 | non-blocking | fixed: as DO-55; Coverage names the run-five and run-six tests |
 
 Exit for iteration 3: every finding disposed above. Blocking findings open: none.
 

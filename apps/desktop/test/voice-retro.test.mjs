@@ -608,3 +608,12 @@ test('run five: ceo_reply says a queued ask waits and never asks for it again', 
   assert.equal(r.state, 'queued')
   assert.match(r.next, /do not ask again/)
 })
+
+test('run six: ceo_reply says a CEO that is not running first, and a broken-off write as unknown', async () => {
+  const { createVoiceTools } = await import('../src/main/ceoVoiceTools.ts')
+  const base = { askedAt: () => 1, askWrittenAt: () => null, askWaiting: () => true, ceoTranscript: async () => null, ceoScreen: () => '', machine: async () => ({}), board: async () => ({}), recap: async () => ({}) }
+  const down = await createVoiceTools({ ...base, ceoLastActivity: () => null }).run('ceo_reply', {})
+  assert.match(down.reason, /not running/)
+  const unknown = await createVoiceTools({ ...base, askWaiting: () => false, askUnknown: () => true, ceoLastActivity: () => 1 }).run('ceo_reply', {})
+  assert.equal(unknown.state, 'unknown')
+})

@@ -30,7 +30,7 @@ export const CEO_QUEUE_RETRY_MS = 10_000
  *  run four, DA-32, ER-42). */
 export const CEO_QUEUE_MAX = 50
 /** A message waiting for the CEO: the line as typed, when it was sent, and whether it names files (UX-43). */
-export interface QueuedLine { line: string; at: number; files?: boolean }
+export interface QueuedLine { line: string; at: number; files?: boolean; retype?: boolean }
 
 /** What the popup's head and the home composer read of the CEO's console. */
 export interface CeoStatus {

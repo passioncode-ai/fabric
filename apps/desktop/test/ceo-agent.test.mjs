@@ -1225,3 +1225,43 @@ test('run five: a full queue refuses before saving any file; a file of the wrong
   for (let i = 0; i < 5; i++) { writeFileSync(path.join(k2.root, 'pending.json'), '{'); createCeoAgent({ ...k2.deps }); await new Promise((r) => setTimeout(r, 2)) }
   assert.ok(readdirSync(k2.root).filter((f) => f.startsWith('pending.json.corrupt-')).length <= 3)
 })
+
+// 0.3.27 review, iteration 3, run six.
+test('run six: after a limit, the line the lost console owed goes in before a message sent during the switch', async () => {
+  const k = keeper()
+  await k.agent.send('ONE', [])
+  const first = k.agent.sessionId()
+  k.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  const two = k.agent.send('TWO', [])
+  for (let i = 0; i < 40 && k.agent.status().runner !== 'hermes'; i++) await new Promise((r) => setTimeout(r, 5))
+  await two
+  await k.agent.drain()
+  const onNew = k.delivered.filter(([id, t]) => id === k.agent.sessionId() && (t === 'ONE' || t === 'TWO')).map(([, t]) => t)
+  assert.deepEqual(onNew, ['ONE', 'TWO'])
+})
+
+test('run six: a kept-aside queue file older than 30 days is removed at the next start; good entries of a mixed file are written back', () => {
+  const k = keeper()
+  const old = Date.now() - 40 * 86_400_000
+  writeFileSync(path.join(k.root, `pending.json.corrupt-${old}`), '[]')
+  // The harness's clock starts near zero; this start reads the wall clock the file name was written with.
+  createCeoAgent({ ...k.deps, now: () => Date.now() })
+  assert.ok(!existsSync(path.join(k.root, `pending.json.corrupt-${old}`)))
+  const k2 = keeper()
+  writeFileSync(path.join(k2.root, 'pending.json'), JSON.stringify([{ line: 'a', at: 1 }, { text: 'bad' }, { line: 'b', at: 2 }]))
+  createCeoAgent({ ...k2.deps })
+  assert.equal(createCeoAgent({ ...k2.deps }).status().queued, 2, 'the good entries survive a second start')
+})
+
+test('run six: a drain that finds the CEO not running does not stop the queue; the line is typed once the CEO starts', async () => {
+  const k = keeper()
+  writeFileSync(path.join(k.root, 'pending.json'), JSON.stringify([{ line: 'ждал перезапуска', at: 1 }]))
+  const again = createCeoAgent({ ...k.deps })
+  await again.drain()
+  await again.ensure()
+  await again.drain()
+  assert.ok(k.delivered.some(([, t]) => t === 'ждал перезапуска'))
+  const r = await again.send('новое', [])
+  assert.equal(r.ok, true)
+  assert.equal(r.queued, undefined)
+})

@@ -35838,11 +35838,11 @@
       "screen_refs": [
         "SCR-64"
       ],
-      "coverage": "`apps/desktop/src/main/ceoAgent.ts` (region `ceo-queue`: `drain`, `send`), `apps/desktop/src/shared/ceoAgent.ts#CEO_QUEUE_RETRY_MS`, `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx`; tests `ceo-agent.test.mjs` «a message the working CEO did not take…», «what waited when Fabric quit…», the seven «run four: …» tests, `CeoComposer.test.tsx` «said as queued».",
+      "coverage": "`apps/desktop/src/main/ceoAgent.ts` (region `ceo-queue`: `drain`, `send`), `apps/desktop/src/shared/ceoAgent.ts#CEO_QUEUE_RETRY_MS`, `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx`; tests `ceo-agent.test.mjs` «a message the working CEO did not take…», «what waited when Fabric quit…», the seven «run four: …», five «run five: …» and three «run six: …» tests, `CeoComposer.test.tsx` «said as queued».",
       "registry_status": "implemented (2026-11-20).",
       "product_observation": "unobserved",
       "expected_result": "the operator never has to paste a message into the console by hand; nothing written to the CEO is said as lost while it can still be delivered.",
-      "errors_recovery": "a queue that cannot be written to disk still holds in memory and is recorded (`ceo.agent.queue-save-failed`); a queue file that does not parse is kept aside as `pending.json.corrupt-<time>` and recorded (`ceo.agent.queue-read-failed`); a line queued is owned by the queue alone, so a fallback to the next runner does not type it again; each message typed from the queue is recorded with how long it waited (`ceo.agent.queue-delivered`).",
+      "errors_recovery": "a queue that cannot be written to disk still holds in memory and is recorded (`ceo.agent.queue-save-failed`); a queue file that does not parse, is not a list or holds invalid entries is kept aside as `pending.json.corrupt-<time>` and recorded (`ceo.agent.queue-read-failed`), its valid lines kept in the queue, the kept-aside files removed after 30 days and past the newest three at every start; a line waiting in the queue is typed by the queue alone; once typed, a limit or sign-in answer puts it back at the head of the queue for the next runner, once; each message typed from the queue is recorded with how long it waited (`ceo.agent.queue-delivered`).",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 4732

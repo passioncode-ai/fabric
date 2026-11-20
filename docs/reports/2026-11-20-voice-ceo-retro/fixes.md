@@ -14,7 +14,7 @@ this branch does not touch `consoleOpen.ts#deliverFirst`, the shell refusal in `
 `first_task`.
 
 Every finding below: where it was checked in the code, the test that catches it, and the fix. Tests:
-`apps/desktop/test/voice-retro.test.mjs` (14 tests for the retro and 23 more from the 0.3.27 review, 37 in all; the review's plants are named in its ledger, `docs/evidence/plans/2026-11-20-release-0327-verification.md`) and
+`apps/desktop/test/voice-retro.test.mjs` (14 tests for the retro and 24 more from the 0.3.27 review, 38 in all; the review's plants are named in its ledger, `docs/evidence/plans/2026-11-20-release-0327-verification.md`) and
 `apps/desktop/src/renderer/src/ceo/voiceCall.test.ts` («voice retro finding 1»).
 
 **Watched red (R-006).** Each mechanism below was removed in turn and its test went red (`ℹ fail 1`), then put back:

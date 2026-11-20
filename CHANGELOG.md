@@ -83,7 +83,8 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
 
 **Upgrading.** No schema step. Nothing to set. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
 days and the newest 200 at most), `<userData>/ceo/project-aliases.json` (0600) and `<userData>/ceo/pending.json` (0600, the
-messages waiting for the CEO, at most 50).
+messages waiting for the CEO, at most 50) and, for a queue file Fabric could not read, `pending.json.corrupt-<time>`
+(0600, kept 30 days and at most three).
 
 ## 0.3.26
 
