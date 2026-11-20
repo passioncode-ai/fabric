@@ -21,6 +21,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   Fabric» on Агенты lists the Claude Code sessions running in a terminal or through Switchboard, read from Claude
   Code's own files: their last messages, «Продолжить в Fabric» and «Закрыть». A Switchboard call that timed out or was
   killed is now named instead of «Command failed», and a read is tried once more (`switchboardSessions.ts#switchboardFailure`).
+- **«Завершить сессию» closes a console at once.** The operator, 2026-11-19: the button under a console hung. It sent
+  SIGTERM and waited; Claude Code often outlived it, and even an ended agent read «Остановка не подтверждена», which
+  kept the console on screen with «Проверить остановку». Now the person's press ends a console still running 0.8 s
+  later as Force stop does, and a console whose process is gone leaves with its tab and window in the same press. A
+  task's run keeps its TERM-only stop and its receipts (`shared/stop.ts#processGone`, `main/nativeStopRuntime.ts`).
 
 ## 0.3.25
 

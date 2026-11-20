@@ -35570,7 +35570,7 @@
       "errors_recovery": "a board that cannot be read says so in our words and keeps its last reading marked «как было в {время}».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4369
+        "line": 4370
       }
     },
     {
@@ -35589,7 +35589,7 @@
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4401
+        "line": 4402
       }
     },
     {
@@ -35606,7 +35606,7 @@
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4427
+        "line": 4428
       }
     },
     {
@@ -35623,7 +35623,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4450
+        "line": 4451
       }
     },
     {
@@ -35640,7 +35640,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4473
+        "line": 4474
       }
     },
     {
@@ -35659,7 +35659,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4497
+        "line": 4498
       }
     },
     {
@@ -35677,7 +35677,7 @@
       "errors_recovery": "a refusal keeps the comment and the buttons; a hand-in note that cannot be read leaves the review in the list without its words.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4519
+        "line": 4520
       }
     },
     {
@@ -35694,7 +35694,7 @@
       "errors_recovery": "a read that fails names the part not read.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4543
+        "line": 4544
       }
     },
     {
@@ -35713,7 +35713,7 @@
       "errors_recovery": "tasks and requests are read separately; a failure of one is said on its rows and the other rows stay; a later read replaces an earlier one only when it lands (CO-544's reading).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4566
+        "line": 4567
       }
     },
     {
@@ -35732,7 +35732,7 @@
       "errors_recovery": "a message the CEO did not take («Сообщение не дошло до CEO.» with the reason) keeps the words in the box to send again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4590
+        "line": 4591
       }
     },
     {
@@ -35751,7 +35751,7 @@
       "errors_recovery": "every act needs a reason, is written to the operations log and, for a start or a stop, to История with its undo, or with why it has none (a session Switchboard runs, `shared/acts.ts#WHY_NOT` `outside_fabric`); the CEO never acts on its own console.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4611
+        "line": 4612
       }
     },
     {
@@ -35770,7 +35770,7 @@
       "errors_recovery": "no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4634
+        "line": 4635
       }
     },
     {
@@ -35787,7 +35787,7 @@
       "errors_recovery": "the order and the models are set by hand in settings.json (`ceoRunners`, `ceoModels`); an unknown runner, and a model below Sonnet 5.5, is dropped.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4657
+        "line": 4658
       }
     },
     {
@@ -35805,7 +35805,7 @@
       "errors_recovery": "an unknown stored voice reads as male, never as a broken look; a refused or missing key is said in words (ru and en).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4678
+        "line": 4679
       }
     },
     {
@@ -35824,7 +35824,7 @@
       "errors_recovery": "a failed stop is said and can be pressed again; a forced stop follows a plain one that did not end the console (ER-10).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4700
+        "line": 4701
       }
     }
   ],

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { LinkNotice, LinkRoute } from '../../shared/linkRoute.ts'
 import { receiveLink, releaseLink, type LinkGate } from './linkArrival'
+import { SESSION_DISMISSED } from './SessionStop'
 import type { StringKey } from './i18n/en.ts'
 
 /** What a `fabric://` link's notice says (SCN-142). */
@@ -535,7 +536,10 @@ function Shell({
     // CO-392 (D-3): the window reads no account quota; quotas are Switchboard's, and the main process reads its own only
     // before an unattended start (main/routineTick.ts, main/chainAdvance.ts).
     const off = visibleInterval(() => void refreshSessions(), SESSION_POLL_MS)
-    return () => { off() }
+    // «Завершить сессию» closed one (the operator, 2026-11-19): its tab goes now.
+    const dismissed = (): void => { void refreshSessions() }
+    window.addEventListener(SESSION_DISMISSED, dismissed)
+    return () => { off(); window.removeEventListener(SESSION_DISMISSED, dismissed) }
   }, [sessionWindowId, refreshProjects, refreshSessions])
 
   useEffect(() => {
