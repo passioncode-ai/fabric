@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "81e2ee85fb27ac36e9f2fa19cdbcbd2919a1b956",
+  "report": "docs/evidence/reviews/0.3.27/iteration-2/2026-11-20-ux.md",
+  "reportSha256": "e9961b0631816f764dfdc9d0e8b906660902ed37d46fb9c81b0e2e8e880c28b3",
+  "reviewerRun": "release-0327-i2-ux-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: a match through a worktree, by path or by its folder's name, is refused with where to go (findProject marks worktree; ceoTools.ts start, alias); test «0.3.27 review UX-15, UX-17, UX-21», red with the check removed"
+      ]
+    },
+    {
+      "id": "UX-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: a copy whose name starts with a listed project's name gives way in the project list; same test"
+      ]
+    },
+    {
+      "id": "UX-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: a tool result opens no answer; only the person's words do (assistantSince); same test"
+      ]
+    },
+    {
+      "id": "UX-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the start and task descriptions list the five states; session_task gives next steps"
+      ]
+    },
+    {
+      "id": "UX-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the refusal names the session working in that folder and how to reach it, else only the project's own folder"
+      ]
+    },
+    {
+      "id": "UX-20",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-605 (8); the CHANGELOG and SCN-183 now say «a worktree Fabric has run in»"
+      ]
+    },
+    {
+      "id": "UX-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: understood_as only for a match by sound; a folder query is looked up, never matched as a substring; same test"
+      ]
+    },
+    {
+      "id": "UX-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the resume refusal and the session_id description name both doors' tools"
+      ]
+    },
+    {
+      "id": "UX-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: a folder the same start admitted is its project's own (ceoTools.ts start, admittedNow)"
+      ]
+    },
+    {
+      "id": "UX-24",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-605 (9)"
+      ]
+    }
+  ]
+}

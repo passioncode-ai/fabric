@@ -48,7 +48,8 @@ Fix: main opens a journal when it mints the call's secret and hands the window i
 line the owner said and the voice answered (`voiceLine`), main writes each tool with its arguments, answer and time
 (`IPC.ceoAgentVoiceTool`), and the window writes the end with the length and price it measured (`voiceEnd`), bounded in
 main by the wall clock since the secret. One JSONL file a call in `<userData>/ceo/calls/` (folder 0700, files 0600),
-so the CEO's console reads its calls where it works; the CEO's brief says so. Every text and argument passes
+so the CEO's console reads its calls where it works; the CEO's brief says so. (The rule as released, after the 0.3.27
+review: [ADR-0197 amendment 4](../../adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-4-2026-11-20-the-call-is-kept-on-this-computer-the-voice-delegates-and-finds-a-project-by-sound).) Every text and argument passes
 `shared/redact.ts` before it is written; a call stops at 2 MB with one `cut` line and still gets its end; files older
 than 30 days are removed at start, nothing else in the folder. A person's line opens a turn and the tools after it carry
 its number. A call whose window closed mid-call is closed in its journal by the next call (`end: not-closed`).
@@ -94,18 +95,22 @@ folder with `SCRATCH_FOLDER_MESSAGE`, and the agent's `fabric-mcp` waits longer 
 (`fabricMcp.ts#LASTING_SCRATCH`); the CEO's start refuses it; a lookup prefers the copy outside one. A folder an existing
 project already holds is still answered by that project.
 
-Archived on this computer only, by appending `project.archived@1` through `append_event` (actor: this session, kind
-agent; reason: the owner's order to remove only cache and temporary records; folders on disk not touched). Fabric has
+Archived on this computer only, by appending `project.archived@1` through `append_event` for each row of `select id,
+estate_id, name from projects where status='active' and archived_at is null and (repo_path like '/Users/%/.cache/%' or
+repo_path like '/private/tmp%' or repo_path like '/tmp%' or repo_path like '/private/var/folders/%' or repo_path like
+'/var/folders/%')` (actor: session 9cda1c0f, kind agent; reason: the owner's order to remove only cache and temporary records; folders on disk not touched). Fabric has
 no door that archives a project (CO-574), and nothing in the product brings one back. Receipt: journal seqs 214331 to
 214348, 18 events, projects `5d15ab84`, `aaa422cb`, `82807ce6`, `b997f093`, `873895a0`, `20cfc0c6`, `30360255`,
 `c0107261`, `e6e98108`, `dddbcd1d`, `b37d8b24`, `77eccbb5`, `6ef2ae91`, `62f69abc`, `43799c23`, `57159828`,
 `700d99d5`, `471888e0`. Each had at most its automatic onboarding task open, left as it was under the archived project.
 Afterwards `select count(*) from projects where status='active' and (repo_path like '/Users/%/.cache/%' or repo_path
-like '/private/%' or repo_path like '/tmp%')` printed 0, and 119 projects were active. Another install keeps its own.
+like '/private/%' or repo_path like '/tmp%')` printed 0, and 119 projects were active. That query does not cover
+`~/Library/Caches`, `~/.npm`, `~/.pnpm-store`, `~/.Trash`, `/var/tmp` or `/var/folders` outside `/private`, which
+`isScratchFolder` also counts; no record there was looked for. Another install keeps its own.
 
 For the owner to decide (not touched): 13 projects whose folder is an agent's worktree under `~/DATA/_worktrees/`, and
-one name held by two projects in two folders. The list with names went to the owner privately, not into this public
-repository (CO-605 (1)).
+one name held by two projects in two folders. The list with names went to the owner privately, not into this file (CO-605 (1); the duplicate
+name is CO-497).
 
 ## 6-8. The CEO's console, its answer and refusals
 

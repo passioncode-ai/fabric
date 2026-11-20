@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "81e2ee85fb27ac36e9f2fa19cdbcbd2919a1b956",
+  "report": "docs/evidence/reviews/0.3.27/iteration-2/2026-11-20-errors.md",
+  "reportSha256": "0a34f32f3f33a535ba8f8da90b31a26d100ea8b83f4608dbd0292ca3caf38545",
+  "reviewerRun": "release-0327-i2-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: as PL-9"
+      ]
+    },
+    {
+      "id": "ER-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: as UX-17"
+      ]
+    },
+    {
+      "id": "ER-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: output within 2 s of the ask (its echo) is no answer, and an ended console reads as not running; test «0.3.27 review ER-16, ER-21, DA-18», red with the echo window removed"
+      ]
+    },
+    {
+      "id": "ER-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the transcript's path is found again after 20 s, so a /clear in the CEO's console is followed"
+      ]
+    },
+    {
+      "id": "ER-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: a cursor-forward move becomes spaces, and every other sequence with any parameters goes; console-open's fixture draws the hint with cursor moves and turns red with it removed"
+      ]
+    },
+    {
+      "id": "ER-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: as UX-15"
+      ]
+    },
+    {
+      "id": "ER-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: after the extra Enter a second look for the turn, else written_unconfirmed; logged at warn (PL-10); test «0.3.27 review ER-20, DO-6», which also asserts quietOnly"
+      ]
+    },
+    {
+      "id": "ER-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: forgetting a name never kept is refused, nothing written; same test as ER-16"
+      ]
+    },
+    {
+      "id": "ER-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: an orphan is found from the last 8 KB of each call file; pruning keeps 200 at most (as DA-14)"
+      ]
+    }
+  ]
+}

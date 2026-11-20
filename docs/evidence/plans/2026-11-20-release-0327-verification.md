@@ -36,8 +36,8 @@ the later steps did not run on this candidate. 56 findings, 8 blocking: `first_t
 started (PL-2), the plan gate red (PL-1), a match by sound started work in the wrong project (UX-1), a folder inside a
 project started in the project's main folder (UX-2), a tie could not be chosen (UX-3), a launch in the home folder
 claimed every folder under home (ER-1), a home-folder project would do the same (DO-1), and a secret on a later line of
-a tool argument reached the call journal (DA-1). Every fix carries its test; the new tests were watched red with their
-mechanism removed (fixes.md, «Watched red»). Two reports name synthetic probe folders; their home part is written `/Users/example` for the privacy gate (the docs report's `/Users/x`, the ux report's `/Users/u`), the wording otherwise the reviewers'.
+a tool argument reached the call journal (DA-1). Fixes of code carry a test; the six named in fixes.md «Watched red» were watched red with their mechanism removed,
+the others were not planted; the fixes of documents and of the voice's instructions carry no test. Two reports name synthetic probe folders; their home part is written `/Users/example` for the privacy gate (the docs report's `/Users/x`, the ux report's `/Users/u`). In iteration 2 (DA-11), the names of the owner's private worktrees and folders were replaced by placeholders in the ux, docs and data reports («<worktree-a>», «<a second folder>/research-agent» and the like); the wording is otherwise the reviewers', and the receipts carry the new hashes.
 
 | Row | Finding | Severity | Disposition |
 |---|---|---|---|
@@ -99,3 +99,65 @@ mechanism removed (fixes.md, «Watched red»). Two reports name synthetic probe 
 | V1-PL-8 | PL-8 | non-blocking | ruled: CO-606 (wave C), the ADR when feat/knowledge-graph's ADR-0199 and ADR-0200 land |
 
 Exit for iteration 1: every finding disposed above. Blocking findings open: none.
+
+## Iteration 2
+
+Candidate `81e2ee85fb27ac36e9f2fa19cdbcbd2919a1b956`. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-2/`](../reviews/0.3.27/iteration-2/). Gate: the local `ci.sh fast` with both
+browser variables ran while the reviewers read and stopped red at `ipc-window-policy.test.mjs`: the two new CEO-only
+channels of the call journal (`ceoAgentVoiceLine`, `ceoAgentVoiceEnd`) were not in the test's expectations, so the same
+test was red on iteration 1's candidate too, behind the earlier stop. Fixed in the iteration-3 candidate (the test
+names both channels); the later steps did not run on this candidate. Every iteration-1 fix was checked by the reviewers
+of its level; ER-5, ER-6, ER-7, ER-9 and UX-4, UX-5, UX-14 held in part and their rest is below. 41 findings, 5
+blocking, three in substance: a project was no longer found by its own folder when right under home or holding a
+registered worktree (PL-9, DO-12, ER-14, a regression of the DO-1 fix), a worktree named by its folder's name still
+started work in the project's main folder (UX-15), and the owner's private worktree names were still in the published
+reports (DA-11). Tests watched red with their mechanism removed: PL-9's exact match, UX-15's worktree refusal, ER-16's
+echo window, ER-18's cursor moves (console-open) and DA-13's call names.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V2-UX-15 | UX-15 | blocking | fixed in the iteration-3 candidate: a match through a worktree, by path or by its folder's name, is refused with where to go (findProject marks worktree; ceoTools.ts start, alias); test «0.3.27 review UX-15, UX-17, UX-21», red with the check removed |
+| V2-UX-16 | UX-16 | non-blocking | fixed in the iteration-3 candidate: a copy whose name starts with a listed project's name gives way in the project list; same test |
+| V2-UX-17 | UX-17 | non-blocking | fixed in the iteration-3 candidate: a tool result opens no answer; only the person's words do (assistantSince); same test |
+| V2-UX-18 | UX-18 | non-blocking | fixed in the iteration-3 candidate: the start and task descriptions list the five states; session_task gives next steps |
+| V2-UX-19 | UX-19 | non-blocking | fixed in the iteration-3 candidate: the refusal names the session working in that folder and how to reach it, else only the project's own folder |
+| V2-UX-20 | UX-20 | non-blocking | ruled: CO-605 (8); the CHANGELOG and SCN-183 now say «a worktree Fabric has run in» |
+| V2-UX-21 | UX-21 | non-blocking | fixed in the iteration-3 candidate: understood_as only for a match by sound; a folder query is looked up, never matched as a substring; same test |
+| V2-UX-22 | UX-22 | non-blocking | fixed in the iteration-3 candidate: the resume refusal and the session_id description name both doors' tools |
+| V2-UX-23 | UX-23 | non-blocking | fixed in the iteration-3 candidate: a folder the same start admitted is its project's own (ceoTools.ts start, admittedNow) |
+| V2-UX-24 | UX-24 | non-blocking | ruled: CO-605 (9) |
+| V2-ER-14 | ER-14 | blocking | fixed in the iteration-3 candidate: as PL-9 |
+| V2-ER-15 | ER-15 | non-blocking | fixed in the iteration-3 candidate: as UX-17 |
+| V2-ER-16 | ER-16 | non-blocking | fixed in the iteration-3 candidate: output within 2 s of the ask (its echo) is no answer, and an ended console reads as not running; test «0.3.27 review ER-16, ER-21, DA-18», red with the echo window removed |
+| V2-ER-17 | ER-17 | non-blocking | fixed in the iteration-3 candidate: the transcript's path is found again after 20 s, so a /clear in the CEO's console is followed |
+| V2-ER-18 | ER-18 | non-blocking | fixed in the iteration-3 candidate: a cursor-forward move becomes spaces, and every other sequence with any parameters goes; console-open's fixture draws the hint with cursor moves and turns red with it removed |
+| V2-ER-19 | ER-19 | non-blocking | fixed in the iteration-3 candidate: as UX-15 |
+| V2-ER-20 | ER-20 | non-blocking | fixed in the iteration-3 candidate: after the extra Enter a second look for the turn, else written_unconfirmed; logged at warn (PL-10); test «0.3.27 review ER-20, DO-6», which also asserts quietOnly |
+| V2-ER-21 | ER-21 | non-blocking | fixed in the iteration-3 candidate: forgetting a name never kept is refused, nothing written; same test as ER-16 |
+| V2-ER-22 | ER-22 | non-blocking | fixed in the iteration-3 candidate: an orphan is found from the last 8 KB of each call file; pruning keeps 200 at most (as DA-14) |
+| V2-DO-12 | DO-12 | blocking | fixed in the iteration-3 candidate: as PL-9 |
+| V2-DO-13 | DO-13 | non-blocking | fixed in the iteration-3 candidate: the CHANGELOG says up to three near names when any are close |
+| V2-DO-14 | DO-14 | non-blocking | fixed in the iteration-3 candidate: the CHANGELOG, the journal's header and ceo-setup.md say 30 days and 200 at most, at every call; «To remove kept calls, delete the folder» |
+| V2-DO-15 | DO-15 | non-blocking | fixed in the iteration-3 candidate: the ledger says which tests were watched red and which fixes carry no test |
+| V2-DO-16 | DO-16 | non-blocking | fixed in the iteration-3 candidate: as DA-17 |
+| V2-DO-17 | DO-17 | non-blocking | fixed in the iteration-3 candidate: the three synthetic paths in the docs report are one placeholder; fixes.md says «not into this file» |
+| V2-DO-18 | DO-18 | non-blocking | ruled: as DA-12, CO-605 (10) |
+| V2-DO-19 | DO-19 | non-blocking | fixed in the iteration-3 candidate in part: CO-605 (1) cites CO-497 for the duplicate; the region keeps its one reference (§10), as a region names one heading |
+| V2-DA-11 | DA-11 | blocking | fixed in the iteration-3 candidate: the owner's private worktree and folder names are replaced by placeholders in the iteration-1 and iteration-2 reports, the retro README, the code comment and the tests' fixtures; the ledger says so and the receipts carry the new hashes |
+| V2-DA-12 | DA-12 | non-blocking | ruled: CO-605 (10), kept verbatim by the owner's order of 2026-11-20 to keep his words with the retros |
+| V2-DA-13 | DA-13 | non-blocking | fixed in the iteration-3 candidate: only files named as calls, real files and never links, whose first row is a start, are pruned, listed or ended (callFiles); test «0.3.27 review DA-13, DA-15», red with the name rule removed |
+| V2-DA-14 | DA-14 | non-blocking | fixed in the iteration-3 candidate: pruned to KEEP_CALLS - 1 before a call starts, so 200 at most; age from the start in the file name; test «DA-4» asserts 200 |
+| V2-DA-15 | DA-15 | non-blocking | fixed in the iteration-3 candidate: keys are redacted like values (cleanKeys); test «0.3.27 review DA-13, DA-15» |
+| V2-DA-16 | DA-16 | non-blocking | fixed in the iteration-3 candidate: every voice tool's answer is redacted whole before it goes back to the call (index.ts, redactPayload) |
+| V2-DA-17 | DA-17 | non-blocking | fixed in the iteration-3 candidate: fixes.md §5 has the selecting query, the session id and what the check does not cover; §1 points at ADR-0197 amendment 4 |
+| V2-DA-18 | DA-18 | non-blocking | fixed in the iteration-3 candidate: an unreadable aliases file is kept aside before a write (`.bad-<time>`) and the failure counted; test «0.3.27 review ER-16, ER-21, DA-18» |
+| V2-PL-9 | PL-9 | blocking | fixed in the iteration-3 candidate: a project's own exact folder is matched first, as in 0.3.26; the broad rule applies to holding other folders only and leaves copies out (findProject); test «0.3.27 review PL-9», red with the exact match removed |
+| V2-PL-10 | PL-10 | non-blocking | fixed in the iteration-3 candidate: written_unconfirmed is logged at warn with the screen's last 15 lines, redacted (index.ts, terminal.first-instruction); CO-606 says this is the measurement |
+| V2-PL-11 | PL-11 | non-blocking | fixed in the iteration-3 candidate: the CHANGELOG and SCN-183 say another runner answers delivered when written; the per-runner turn check ruled: CO-606 |
+| V2-PL-12 | PL-12 | non-blocking | fixed in the iteration-3 candidate: CO-605 (1) names other machines' cache and temporary projects and the missing door (CO-574); the hub's second client ruled in CO-606 |
+| V2-PL-13 | PL-13 | non-blocking | fixed in the iteration-3 candidate: the voice's instructions keep the heard word with session_alias when the owner says yes to an understood_as |
+| V2-PL-14 | PL-14 | non-blocking | ruled: CO-606 names feat/ceo-session-windows and its amendment 3, and which lands first |
+
+Exit for iteration 2: every finding disposed above. Blocking findings open: none.
+

@@ -47,7 +47,7 @@ one file a call in `<userData>/ceo/calls/` (owner-only), with what was said, eac
 price, secrets cut before writing, removed after 30 days or past the newest 200 calls. The CEO's console reads these
 files, so their text reaches the CEO's runner's provider as any file it opens. During a call, xAI receives what the
 voice's tools answer: session screens and turns, the CEO's answer, board snippets and recent launches, all redacted and
-bounded. To keep no calls, delete the folder; Fabric makes it again at the next call.
+bounded. To remove kept calls, delete the folder; the next call is kept again.
 
 ## 4. The microphone
 

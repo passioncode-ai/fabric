@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "81e2ee85fb27ac36e9f2fa19cdbcbd2919a1b956",
+  "report": "docs/evidence/reviews/0.3.27/iteration-2/2026-11-20-plan.md",
+  "reportSha256": "7fc52ad26db403c0759c262369e6e7ffddd88bc3d636ad7c6e5d6db1cd9b2dec",
+  "reviewerRun": "release-0327-i2-plan-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: a project's own exact folder is matched first, as in 0.3.26; the broad rule applies to holding other folders only and leaves copies out (findProject); test «0.3.27 review PL-9», red with the exact match removed"
+      ]
+    },
+    {
+      "id": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: written_unconfirmed is logged at warn with the screen's last 15 lines, redacted (index.ts, terminal.first-instruction); CO-606 says this is the measurement"
+      ]
+    },
+    {
+      "id": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the CHANGELOG and SCN-183 say another runner answers delivered when written; the per-runner turn check ruled: CO-606"
+      ]
+    },
+    {
+      "id": "PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: CO-605 (1) names other machines' cache and temporary projects and the missing door (CO-574); the hub's second client ruled in CO-606"
+      ]
+    },
+    {
+      "id": "PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the voice's instructions keep the heard word with session_alias when the owner says yes to an understood_as"
+      ]
+    },
+    {
+      "id": "PL-14",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-606 names feat/ceo-session-windows and its amendment 3, and which lands first"
+      ]
+    }
+  ]
+}

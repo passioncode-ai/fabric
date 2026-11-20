@@ -2,7 +2,7 @@
 // module the voice reaches, never a copy of its rule.
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { mkdtempSync, readFileSync, readdirSync, statSync, utimesSync, writeFileSync, mkdirSync } from 'node:fs'
+import { mkdtempSync, readFileSync, readdirSync, statSync, utimesSync, writeFileSync, mkdirSync, symlinkSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { findProject } from '../src/shared/ceoAgent.ts'
@@ -89,7 +89,7 @@ function ops(over = {}) {
     { id: 'dis', name: 'dissy', repo_path: '/d/dissy', default_agent: null },
     { id: 'ps', name: 'playsing', repo_path: '/d/playsing', default_agent: null },
     { id: 'se', name: 'sound-engine', repo_path: '/d/sound-engine', default_agent: null },
-    { id: 'swarm', name: 'sound-engine-fix-swarm-a', repo_path: '/d/_worktrees/sound-engine-fix-swarm-a', default_agent: null },
+    { id: 'swarm', name: 'sound-engine-copy-a', repo_path: '/d/_worktrees/sound-engine-copy-a', default_agent: null },
     { id: 'fab', name: 'fabric', repo_path: '/d/fabric', default_agent: null },
     { id: 'fsw', name: 'fabric-switchboard', repo_path: '/d/fabric-switchboard', default_agent: null },
     { id: 'db', name: 'fabric-agents-database', repo_path: '/d/fabric-agents-database', default_agent: null },
@@ -343,7 +343,7 @@ test('UX-2: a folder inside a project or its worktree is not where a start would
   assert.match(sub.reason, /belongs to the project fabric/)
   const wt = await o.ops.run('start', { project: '/d/_worktrees/sound-engine-digest-runner', task: 'go', reason: 'the owner asked' }, 'voice')
   assert.equal(wt.ok, false)
-  assert.match(wt.next, /session_resume/)
+  assert.match(wt.next, /an agent works in that folder|call again with the name/)
 })
 
 test('UX-3: a choice read back as offered, «name (folder)», picks that project', () => {
@@ -449,12 +449,12 @@ test('DA-3, ER-2, ER-4: a tool lands in the call that asked; a left call is ende
 test('DA-4: the folder keeps at most KEEP_CALLS calls, the oldest go first, at every new call', () => {
   const folder = mkdtempSync(path.join(tmpdir(), 'voice-journal-'))
   mkdirSync(path.join(folder, 'calls'), { recursive: true })
-  for (let i = 0; i < KEEP_CALLS + 3; i++) writeFileSync(path.join(folder, 'calls', `2026-11-01T00-00-${String(i).padStart(3, '0')}-0000Z-aaaaaaaa.jsonl`), '{}\n')
+  for (let i = 0; i < KEEP_CALLS + 3; i++) writeFileSync(path.join(folder, 'calls', `2026-11-01T00-${String(Math.floor(i / 60)).padStart(2, '0')}-${String(i % 60).padStart(2, '0')}-000Z-aaaaaaaa.jsonl`), '{}\n')
   const j = createVoiceJournal({ folder })
   j.begin({ voice: 'ara', usdPerMinute: 0.08 })
   const left = readdirSync(path.join(folder, 'calls')).filter((n) => n.endsWith('.jsonl'))
-  assert.ok(left.length <= KEEP_CALLS + 1)
-  assert.ok(!left.includes('2026-11-01T00-00-000-0000Z-aaaaaaaa.jsonl'), 'the oldest went first')
+  assert.ok(left.length <= KEEP_CALLS, `${left.length}`)
+  assert.ok(!left.includes('2026-11-01T00-00-00-000Z-aaaaaaaa.jsonl'), 'the oldest went first')
 })
 
 test('DA-7, ER-10: a scratch clone of a known repository is not attached to its project', async () => {
@@ -466,4 +466,72 @@ test('DA-7, ER-10: a scratch clone of a known repository is not attached to its 
   })
   assert.equal(r.ok, false)
   assert.equal(r.message, SCRATCH_FOLDER_MESSAGE)
+})
+
+test('0.3.27 review PL-9: a project\'s own folder finds it, right under home or with a registered worktree below it', () => {
+  const ps = [
+    { id: 'my', name: 'myapp', repo_path: '/Users/example/myapp' },
+    { id: 'fab', name: 'fabric', repo_path: '/Users/example/DATA/fabric' },
+    { id: 'wt', name: 'x', repo_path: '/Users/example/DATA/fabric/.claude/worktrees/x' },
+    { id: 'mono', name: 'mono', repo_path: '/Users/example/DATA/mono' },
+    { id: 'pkg', name: 'pkg', repo_path: '/Users/example/DATA/mono/packages/pkg' }
+  ]
+  for (const [folder, id] of [['/Users/example/myapp', 'my'], ['/Users/example/DATA/fabric', 'fab'], ['/Users/example/DATA/mono', 'mono'], ['/Users/example/DATA/fabric/apps/desktop', 'fab']])
+    assert.equal(findProject(ps, folder).found?.id, id, folder)
+})
+
+test('0.3.27 review UX-15, UX-17, UX-21: a worktree named by its folder name starts nothing; a tool result opens no answer; an exact folder is not «understood»', async () => {
+  const o = ops({ launches: [{ cwd: '/d/_worktrees/sound-engine-voice-runner', projectId: 'se' }] })
+  const r = await o.ops.run('start', { project: 'voice runner', task: 'go', reason: 'the owner asked' }, 'voice')
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /belongs to the project sound-engine/)
+  const asked = Date.parse('2026-11-20T13:00:06Z')
+  const jsonl = [
+    { type: 'assistant', timestamp: '2026-11-20T12:59:59Z', message: { content: [{ type: 'tool_use', name: 'x' }] } },
+    { type: 'user', timestamp: '2026-11-20T13:00:05Z', message: { content: [{ type: 'tool_result', content: 'ok' }] } },
+    { type: 'assistant', timestamp: '2026-11-20T13:00:05.500Z', message: { content: [{ type: 'text', text: 'PREVIOUS answer' }] } },
+    { type: 'user', timestamp: '2026-11-20T13:00:07Z', message: { content: 'how many sessions' } },
+    { type: 'assistant', timestamp: '2026-11-20T13:00:09Z', message: { content: [{ type: 'text', text: 'THIS answer' }] } }
+  ].map((x) => JSON.stringify(x)).join('\n')
+  assert.equal(assistantSince(jsonl, asked).text, 'THIS answer')
+  const p = await o.ops.run('projects', { query: '/d/fabric' }, 'voice')
+  assert.deepEqual(p.projects.map((x) => x.id), ['fab'])
+  assert.equal(p.understood_as, undefined)
+  const sound = await o.ops.run('projects', { query: 'sound engine' }, 'voice')
+  assert.deepEqual(sound.projects.map((x) => x.id), ['se'], 'the swarm worktree copy gives way (UX-16)')
+})
+
+test('0.3.27 review DA-13, DA-15: only call files are touched, links never; a key is redacted like a value', () => {
+  const folder = mkdtempSync(path.join(tmpdir(), 'voice-journal-'))
+  mkdirSync(path.join(folder, 'calls'), { recursive: true })
+  writeFileSync(path.join(folder, 'calls', 'notes.jsonl'), '{"a":1}\n')
+  const outside = path.join(folder, 'outside.jsonl')
+  writeFileSync(outside, '{"kind":"start"}\n')
+  symlinkSync(outside, path.join(folder, 'calls', '2026-11-20T10-00-00-000Z-bbbbbbbb.jsonl'))
+  const j = createVoiceJournal({ folder })
+  assert.equal(j.closeOrphans(), 0)
+  assert.equal(readFileSync(outside, 'utf8'), '{"kind":"start"}\n', 'a linked file is never written')
+  assert.equal(readFileSync(path.join(folder, 'calls', 'notes.jsonl'), 'utf8'), '{"a":1}\n')
+  assert.deepEqual(j.list(10).map((c) => c.file), [], 'a stray .jsonl is no call (recap reads the newest call)')
+  const call = j.begin({ voice: 'ara', usdPerMinute: 0.08 })
+  j.tool(call, 'x', { ['ls\nPASSWORD=hunter2xyz99Q']: 1 }, { ok: true }, 1)
+  j.end(call, { minutes: 0, usd: 0, end: null })
+  const own = readdirSync(path.join(folder, 'calls')).find((n) => n !== 'notes.jsonl' && !n.includes('bbbbbbbb'))
+  assert.ok(!readFileSync(path.join(folder, 'calls', own), 'utf8').includes('hunter2xyz99Q'))
+})
+
+test('0.3.27 review ER-16, ER-21, DA-18: the ask\'s echo is no answer; a name never kept is not «forgotten»; a bad aliases file is kept aside', async () => {
+  const asked = Date.parse('2026-11-20T13:00:00Z')
+  let t = asked + 5000
+  const v = createVoiceTools({ now: () => t, sleep: async (ms) => { t += ms }, askedAt: () => asked, ceoTranscript: async () => null, ceoScreen: () => 'the ask', ceoLastActivity: () => asked + 300, machine: () => ({}), consolesRunning: () => 1, boardSearch: async () => ({ ok: true, hits: [], more: false }), launches: async () => [], previousCallEnd: () => null, projectNames: async () => new Map() })
+  assert.equal((await v.run('ceo_reply', { wait_seconds: 3 })).state, 'still_working')
+  const o = ops()
+  assert.equal((await o.ops.run('alias', { project: 'dissy', alias: 'никогда', remove: true, reason: 'the owner said so' })).ok, false)
+  const folder = mkdtempSync(path.join(tmpdir(), 'aliases-'))
+  writeFileSync(path.join(folder, 'project-aliases.json'), '{broken')
+  const store = createAliasStore(folder)
+  store.add('dis', 'Диззи')
+  assert.ok(readdirSync(folder).some((n) => n.startsWith('project-aliases.json.bad-')), 'the unreadable file is kept aside, not overwritten')
+  assert.deepEqual(store.read(), { dis: ['Диззи'] })
+  void existsSync
 })

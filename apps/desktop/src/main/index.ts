@@ -457,7 +457,7 @@ import { createContinuationDelivery, type ContinuationResult } from './continuat
 import { createPastContext } from './pastContext.ts'
 import { launchPlace } from '../shared/launchPlace.ts'
 import { createConsoleOpen } from './consoleOpen.ts'
-import { redact } from '../shared/redact.ts'
+import { redact, redactPayload } from '../shared/redact.ts'
 import { claudeSessionOf, createLaunchJournal, readGitBranch, type LaunchJournal } from './sessionLaunches.ts'
 import { withLaunchOrigin } from './launchOrigin.ts'
 import { claudeConfigDirs, defaultAlive, liveClaudeSessions } from './diskSessions.ts'
@@ -5106,8 +5106,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       level: op === 'runner.fallback-attached' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } }),
     failed: (op, e) => ops.failed(op, e, { note: 'the first instruction was not delivered' }),
     // 2026-11-20: every first instruction's end is written, so a console that sat on an empty prompt says why.
-    delivered: (d) => ops.record({ op: 'terminal.first-instruction', outcome: d.state === 'not_delivered' ? 'failed' : 'ok',
-      level: d.state === 'not_delivered' ? 'warn' : 'info', detail: d, ctx: { correlationId: ops.correlate() } }),
+    // 0.3.27 review, PL-10: a task written with no turn started is a warning with the screen's last lines, redacted, so the
+    // next empty prompt shows which screen took the text (CO-606's lead).
+    delivered: (d) => {
+      const unconfirmed = d.state === 'written_unconfirmed'
+      let screen: string | undefined
+      if (unconfirmed) {
+        const sb = typeof d.session_id === 'string' ? ptys.scrollbackOf(d.session_id) : null
+        screen = sb ? redact(screenText(decodePty(sb.text), 15)).text.slice(-1500) : undefined
+      }
+      ops.record({ op: 'terminal.first-instruction', outcome: d.state === 'not_delivered' ? 'failed' : 'ok',
+        level: d.state === 'not_delivered' || unconfirmed ? 'warn' : 'info', detail: screen ? { ...d, screen } : d, ctx: { correlationId: ops.correlate() } })
+    },
     syncPower
   })
   handle(
@@ -5397,7 +5407,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   }
   // Voice CEO retro 2026-11-20 (finding 4): the names the owner uses for projects, kept in the CEO's folder.
   const ceoRoot = path.join(app.getPath('userData'), 'ceo')
-  const projectAliases = createAliasStore(ceoRoot)
+  const projectAliases = createAliasStore(ceoRoot, (what, e) => ops.failed('ceo.project-aliases', e, { detail: { what } }))
   ceoOperations = createCeoOperations({
     ptys: { list: () => ptys.list(), get: (id) => ptys.get(id), scrollbackOf: (id) => ptys.scrollbackOf(id), write: (id, data) => ptys.write(id, data) },
     ceoSessionId: () => agent.sessionId(),
@@ -5463,7 +5473,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   /** When ask_ceo last handed the CEO a request, by call (finding 7; 0.3.27 review, ER-4): ceo_reply reads what came
    *  after it, and a late ask of an earlier call never sets the next call's. */
   let voiceAskedAt: { call: string | null; at: number } | null = null
-  let ceoTranscriptFile: { sessionId: string; file: string } | null = null
+  let ceoTranscriptFile: { sessionId: string; file: string; at: number } | null = null
   const ceoScreenNow = (lines: number): string => {
     const id = agent.sessionId()
     const sb = id ? ptys.scrollbackOf(id) : null
@@ -5475,18 +5485,20 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     ceoTranscript: async () => {
       const id = agent.sessionId()
       if (!id || !launchJournal) return null
-      if (ceoTranscriptFile?.sessionId !== id) {
+      // Found again after 20 s: a /clear in the CEO's console starts another transcript (ER-17).
+      if (ceoTranscriptFile?.sessionId !== id || Date.now() - ceoTranscriptFile.at > 20_000) {
         const runnerId = (await launchJournal.read({ sessionId: id })).find((l) => l.sessionId === id)?.runnerSessionId
         const file = runnerId ? findTranscript(defaultTranscriptRoots(), runnerId) : null
-        if (file) ceoTranscriptFile = { sessionId: id, file }
+        if (file) ceoTranscriptFile = { sessionId: id, file, at: Date.now() }
       }
       return ceoTranscriptFile?.sessionId === id ? readTail(ceoTranscriptFile.file, READ_TAIL_BYTES) : null
     },
     ceoScreen: () => ceoScreenNow(60),
+    // A console that ended is not running (ER-16).
     ceoLastActivity: () => {
       const id = agent.sessionId()
-      const at = id ? ptys.get(id)?.lastActivityAt : null
-      return at ? Date.parse(at) : null
+      const s = id ? ptys.get(id) : null
+      return s?.running && s.lastActivityAt ? Date.parse(s.lastActivityAt) : null
     },
     machine: () => {
       let diskFreeGb: number | null = null, diskTotalGb: number | null = null
@@ -5577,7 +5589,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // Finding 1: each tool with its arguments and answer, in the journal of the call that ASKED for it (0.3.27 review,
     // DA-3, ER-4: a tool that ends after a hang-up and a new call stays in its own call).
     const call = voiceJournal.current()
-    const answer = await runVoiceTool(tool, args, call)
+    // What goes back to the call (and on to xAI) is redacted whole, field by field (0.3.27 review, DA-16).
+    const answer = redactPayload(await runVoiceTool(tool, args, call)).payload
     if (call) voiceJournal.tool(call, tool, args, answer, Date.now() - began)
     return answer
   })

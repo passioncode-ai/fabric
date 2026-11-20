@@ -5,7 +5,7 @@
   "level": "data",
   "candidateCommit": "f6990a9aaed3f243d65a40be601e5b519b9af30d",
   "report": "docs/evidence/reviews/0.3.27/iteration-1/2026-11-20-data.md",
-  "reportSha256": "8c96efb11577b39a16c9bd99b1726c77c936bbd9f117517bd497de205bbcb3a7",
+  "reportSha256": "771957e4b61d6697ab3c2fca1df453e51ee6bd593fe04c60cc69a4b96eee2201",
   "reviewerRun": "release-0327-i1-data-claude-subagent-20261120",
   "status": "closed",
   "blockingFindingsOpen": [],

@@ -19,6 +19,8 @@ export const CEO_REPLY_MAX_S = 60
 /** The CEO's console quiet this long after an answer started: the answer is read as finished. */
 export const CEO_QUIET_MS = 4000
 const POLL_MS = 1500
+/** How long the console's echo of the ask itself may print after it. */
+const ECHO_MS = 2000
 
 export const VOICE_TOOLS = [
   {
@@ -90,7 +92,13 @@ export function assistantSince(jsonl: string, since: number): { text: string; tu
     try { row = JSON.parse(line) } catch { continue /* a line cut while being written */ }
     const at = typeof row.timestamp === 'string' ? Date.parse(row.timestamp) : NaN
     if (!Number.isFinite(at) || at < since - ASK_SLACK_MS) continue
-    if (row.type === 'user') { asked = true; continue }
+    // A tool's result is also a «user» row in Claude Code's transcript; only the person's words open the answer (UX-17).
+    if (row.type === 'user') {
+      const c = row.message?.content
+      const words = typeof c === 'string' ? c.trim().length > 0 : Array.isArray(c) && (c as Array<Record<string, unknown>>).some((x) => x?.type === 'text')
+      if (words) asked = true
+      continue
+    }
     if (row.type !== 'assistant' || !asked) continue
     const content = row.message?.content
     const text = typeof content === 'string' ? content
@@ -118,7 +126,8 @@ export function createVoiceTools(deps: VoiceToolDeps) {
       const last = deps.ceoLastActivity()
       const quiet = last !== null && now() - last >= CEO_QUIET_MS
       // Printed since the ask: on another runner, quiet alone would read a CEO still thinking as answered (ER-6).
-      const printedSinceAsk = last !== null && last > asked
+      // The ask's own echo prints at once; output only after the echo window counts (ER-16).
+      const printedSinceAsk = last !== null && last > asked + ECHO_MS
       if (jsonl !== null) {
         const r = assistantSince(jsonl, asked)
         if (r.turns > 0 && quiet) return { ok: true, state: 'answered', answer: redact(r.text).text.slice(-3000), turns: r.turns }

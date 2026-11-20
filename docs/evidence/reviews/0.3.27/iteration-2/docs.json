@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "81e2ee85fb27ac36e9f2fa19cdbcbd2919a1b956",
+  "report": "docs/evidence/reviews/0.3.27/iteration-2/2026-11-20-docs.md",
+  "reportSha256": "37a2f62251ac2dd24cdc8dca1138f0a889812b37fb29d070e5f3e9c95a6bc7c9",
+  "reviewerRun": "release-0327-i2-docs-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: as PL-9"
+      ]
+    },
+    {
+      "id": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the CHANGELOG says up to three near names when any are close"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the CHANGELOG, the journal's header and ceo-setup.md say 30 days and 200 at most, at every call; «To remove kept calls, delete the folder»"
+      ]
+    },
+    {
+      "id": "DO-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the ledger says which tests were watched red and which fixes carry no test"
+      ]
+    },
+    {
+      "id": "DO-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: as DA-17"
+      ]
+    },
+    {
+      "id": "DO-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the three synthetic paths in the docs report are one placeholder; fixes.md says «not into this file»"
+      ]
+    },
+    {
+      "id": "DO-18",
+      "status": "ruled",
+      "evidence": [
+        "ruled: as DA-12, CO-605 (10)"
+      ]
+    },
+    {
+      "id": "DO-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate in part: CO-605 (1) cites CO-497 for the duplicate; the region keeps its one reference (§10), as a region names one heading"
+      ]
+    }
+  ]
+}

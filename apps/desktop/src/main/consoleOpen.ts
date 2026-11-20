@@ -109,13 +109,18 @@ export function createConsoleOpen<S extends { sessionId: string; optionId?: stri
     const printedSince = (): string => {
       const now = deps.ptys.scrollbackOf?.(id)?.text ?? ''
       // Raw PTY output: styling escapes can split a hint (0.3.27 review, ER-7), so they are taken out before matching.
-      return (now.length >= before ? now.slice(before) : now.slice(-8000)).replace(/\x1b\[[0-9;?]*[ -\/]*[@-~]/g, '')
+      // A cursor-forward move draws blank cells: it becomes as many spaces (ER-18), then every other sequence goes.
+      return (now.length >= before ? now.slice(before) : now.slice(-8000))
+        .replace(/\x1b\[(\d*)C/g, (_m, n: string) => ' '.repeat(Math.min(Number(n || 1), 200)))
+        .replace(/\x1b\[[0-9;:<=>?]*[ -\/]*[@-~]/g, '')
     }
     await sleep(FIRST_INSTRUCTION_CHECK_MS)
     let since = printedSince()
     if (PASTE_WAITING.test(since) && !TURN_STARTED.test(since.slice(since.search(PASTE_WAITING)))) {
       try { deps.ptys.write(id, '\r') } catch { return { state: 'not_delivered', reason: 'enter_failed', attempts } }
-      return { state: 'resubmitted', attempts }
+      // The Enter is not the turn (ER-20): a second look for the working line before it is said resubmitted.
+      await sleep(FIRST_INSTRUCTION_CHECK_MS)
+      return TURN_STARTED.test(printedSince()) ? { state: 'resubmitted', attempts } : { state: 'written_unconfirmed', reason: 'no_turn_after_enter', attempts }
     }
     if (TURN_STARTED.test(since)) return { state: 'delivered', attempts }
     // 0.3.27 review, PL-2: written is not taken. A second look for the working line; none means the CEO is told to read

@@ -5,7 +5,7 @@
   "level": "ux",
   "candidateCommit": "f6990a9aaed3f243d65a40be601e5b519b9af30d",
   "report": "docs/evidence/reviews/0.3.27/iteration-1/2026-11-20-ux.md",
-  "reportSha256": "76207acd203afc7a20bfa0484cc818d6926f0a095232f814c189499b86142e82",
+  "reportSha256": "e2cf7c603e1dd7a37576e43e047e16fdf8f6d625803ddfa07f64d551bb4229b5",
   "reviewerRun": "release-0327-i1-ux-claude-subagent-20261120",
   "status": "closed",
   "blockingFindingsOpen": [],

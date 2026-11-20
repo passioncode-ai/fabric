@@ -89,7 +89,7 @@ test('the fallback order spawns past a runner that could not serve', async () =>
 
 // 2026-11-20, the owner's «what blocks work first»: a CEO-started session sat 40 minutes on an empty prompt. The first
 // instruction is now followed to its end, and its end is written.
-function follow({ results, screen = () => '', runner = 'claude-code', echo = '❯ [Pasted text #1 +12 lines]' } = {}) {
+function follow({ results, screen = () => '', runner = 'claude-code', echo = '❯ [Pasted text #1 +12 lines]', enterStarts = true } = {}) {
   const log = []
   let text = ''
   const queue = [...results]
@@ -103,9 +103,10 @@ function follow({ results, screen = () => '', runner = 'claude-code', echo = '�
       get: () => session,
       claimAttach: () => true,
       releaseAttach: () => {},
-      deliverWhenReady: async () => { log.push(['deliver']); const r = queue.shift(); text += echo; return r },
+      deliverWhenReady: async (_id, _text, options) => { log.push(['deliver', options ?? null]); const r = queue.shift(); text += echo; return r },
       scrollbackOf: () => ({ text: text + screen() }),
-      write: (_id, data) => log.push(['write', data])
+      // The extra Enter sends the paste, and Claude Code then starts its turn (unless the test says it does not).
+      write: (_id, data) => { log.push(['write', data]); if (data === '\r' && enterStarts) text += '\n✻ Working… (\x1b[1mesc\x1b[1Cto\x1b[1Cinterrupt\x1b[0m)' }
     },
     walk: async () => ({ state: 'exhausted', passedOver: [] }),
     unavailable: () => false,
@@ -164,4 +165,11 @@ test('a plain shell is never typed a task in words; the end says why (2026-11-20
   assert.equal(h.log.filter((l) => l[0] === 'deliver').length, 0, 'nothing reaches the shell')
   assert.deepEqual(await h.open.firstInstruction(s.sessionId), { state: 'not_delivered', reason: 'shell_takes_no_task', attempts: 0 })
   assert.equal(h.log.find((l) => l[0] === 'delivered')[1].reason, 'shell_takes_no_task')
+})
+
+test('0.3.27 review ER-20, DO-6: an Enter after which no turn starts is unconfirmed; the first task waits for quiet', async () => {
+  const lost = follow({ results: [{ state: 'written' }], enterStarts: false })
+  await lost.open('p1', 'claude-code', 'Long task')
+  assert.deepEqual(await lost.open.firstInstruction('s1'), { state: 'written_unconfirmed', reason: 'no_turn_after_enter', attempts: 1 })
+  assert.deepEqual(lost.log.find((l) => l[0] === 'deliver')[1], { quietOnly: true }, 'a first instruction never takes the busy path')
 })

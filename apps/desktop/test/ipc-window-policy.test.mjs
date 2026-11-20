@@ -38,7 +38,7 @@ const SESSION_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'ter
  *  own channels; the voice call's two are its alone. */
 const CEO_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalData', 'terminalExit',
   'windowsOpenSession', 'ceoAgentStatus', 'ceoAgentEnsure', 'ceoAgentSend', 'ceoAgentRestart', 'ceoAgentStop', 'ceoAgentOpen', 'ceoAgentTakeDraft',
-  'ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceKeySet', 'ceoAgentTakeCall', 'ceoAgentChanged', 'ceoAgentDraft']
+  'ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceLine', 'ceoAgentVoiceEnd', 'ceoAgentVoiceKeySet', 'ceoAgentTakeCall', 'ceoAgentChanged', 'ceoAgentDraft']
 const EDITOR_USES = [...EVERY_WINDOW, 'filesRead', 'filesWrite', 'filesRequestOverwrite', 'filesOpenExternally', 'filesRecoveryKeep', 'filesRecoveryFlush', 'filesRecoveryRead']
 
 test('every channel declares at least one window kind, and only known kinds', () => {
@@ -72,7 +72,7 @@ test('ADR-0197: the CEO popup reaches only its own console, and its subject foll
 
 test('the main window keeps the whole bridge; detached windows get exactly what they use', () => {
   // The voice call's channels are the CEO popup's alone (ADR-0197 §4): the main window has the rest.
-  assert.deepEqual(channelsFor('main').sort(), Object.keys(IPC).filter((k) => k !== 'ceoAgentVoice' && k !== 'ceoAgentVoiceTool').sort())
+  assert.deepEqual(channelsFor('main').sort(), Object.keys(IPC).filter((k) => !['ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceLine', 'ceoAgentVoiceEnd'].includes(k)).sort())
   assert.deepEqual(channelsFor('ceo').sort(), [...CEO_USES].sort())
   assert.deepEqual(channelsFor('session').sort(), [...SESSION_USES].sort())
   assert.deepEqual(channelsFor('editor').sort(), [...EDITOR_USES].sort())

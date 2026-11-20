@@ -9,11 +9,12 @@
  * pass Fabric's redaction (`shared/redact.ts`) before they are written, and Fabric sends none of it anywhere; the CEO's
  * console reads the folder like any file in its own, so what it reads reaches its runner's provider (ADR-0197 amendment 4). Each line carries the
  * turn it belongs to (a person's line opens a turn; the tools called after it carry its number), so a reply and the
- * tools behind it are read together. Bounded: a line at most LINE_CHARS, a call at most CALL_BYTES (past it one
- * `cut` line, then only the end), files older than KEEP_DAYS removed at start. A write that fails is counted, never
+ * tools behind it are read together. Bounded: a line at most LINE_CHARS, a call at most CALL_BYTES bytes (past it one
+ * `cut` line, then only the end), calls older than KEEP_DAYS and past the newest KEEP_CALLS removed at every call and at
+ * start. A write that fails is counted, never
  * thrown into the call.
  */
-import { appendFileSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
+import { appendFileSync, closeSync, fstatSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, readSync, rmSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { redact, redactPayload } from '../shared/redact.ts'
@@ -24,6 +25,35 @@ export const CALL_BYTES = 2 * 1024 * 1024
 export const CALLS_FOLDER = 'calls'
 /** At most this many call files are kept, the oldest removed first (0.3.27 review, DA-4): with CALL_BYTES, 400 MB at most. */
 export const KEEP_CALLS = 200
+/** A call file's name: its UTC start and its id's first eight hex characters. Nothing else in the folder is touched
+ *  (0.3.27 review, DA-13: a stray or linked `.jsonl` there is not a call). */
+const CALL_FILE = /^(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z)-[0-9a-f]{8}\.jsonl$/
+/** A call's start, read from its file name (DA-14: the file's mtime moves when a late row or an orphan's end lands). */
+const startOf = (name: string): number => {
+  const m = CALL_FILE.exec(name)
+  return m ? Date.parse(m[1]!.replace(/T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z/, 'T$1:$2:$3.$4Z')) : NaN
+}
+/** The call files of the folder, oldest first: real files with a call's name, never a link. */
+function callFiles(dir: string): string[] {
+  let names: string[]
+  try { names = readdirSync(dir) } catch { return [] /* no calls kept yet */ }
+  return names.filter((n) => {
+    if (!CALL_FILE.test(n)) return false
+    try { return lstatSync(path.join(dir, n)).isFile() } catch { return false /* gone meanwhile */ }
+  }).sort()
+}
+/** The last bytes of a file, for its last rows (ER-22: a whole call is never read to find its end). */
+function tailOf(file: string, bytes = 8192): string {
+  let fd: number | null = null
+  try {
+    fd = openSync(file, 'r')
+    const size = fstatSync(fd).size
+    const len = Math.min(size, bytes)
+    const buf = Buffer.alloc(len)
+    readSync(fd, buf, 0, len, size - len)
+    return buf.toString('utf8')
+  } catch { return '' /* unreadable: treated as no rows */ } finally { if (fd !== null) closeSync(fd) }
+}
 
 export type JournalEntry =
   | { t: string; kind: 'start'; call: string; voice: string; usd_per_minute: number }
@@ -46,7 +76,15 @@ const clean = (text: string): string => redact(String(text ?? '')).text.slice(0,
  *  turns a newline into «\n», after which «NAME=value» on a later line has no boundary the text rules can see. */
 const cleanValue = (value: unknown): string => {
   const obj = value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : { value }
-  return clean(JSON.stringify(redactPayload(obj).payload))
+  return clean(JSON.stringify(cleanKeys(redactPayload(obj).payload)))
+}
+/** Keys are text too (0.3.27 review, DA-15): each is redacted like a value. */
+function cleanKeys(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(cleanKeys)
+  if (!v || typeof v !== 'object') return v
+  const out: Record<string, unknown> = {}
+  for (const [k, x] of Object.entries(v as Record<string, unknown>)) out[redact(k).text] = cleanKeys(x)
+  return out
 }
 
 export function createVoiceJournal(deps: VoiceJournalDeps) {
@@ -74,8 +112,8 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
 
   /** A new call: its file is created with its first line; answers the call's id. */
   function begin(meta: { voice: string; usdPerMinute: number }): string {
-    // Pruned at every call, not only at start (0.3.27 review, DA-4): Fabric can run for weeks under launchd.
-    prune()
+    // Pruned at every call, not only at start (0.3.27 review, DA-4), with room for this one (DA-14): KEEP_CALLS at most.
+    prune(KEEP_CALLS - 1)
     const call = randomUUID()
     const startedAt = now()
     const stamp = new Date(startedAt).toISOString().replace(/[:.]/g, '-')
@@ -138,23 +176,22 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
     return last
   }
 
-  /** Files older than KEEP_DAYS removed, then the oldest past KEEP_CALLS; answers how many. Nothing else in the folder is
-   *  touched, and an open call's file is never removed. */
-  function prune(): number {
+  /** Calls older than KEEP_DAYS (by the start in their name) removed, then the oldest past `keep`; answers how many. Only
+   *  call files are touched, and an open call's file is never removed. */
+  function prune(keep = KEEP_CALLS): number {
     let removed = 0
-    let names: string[]
-    try { names = readdirSync(dir).filter((n) => n.endsWith('.jsonl')).sort() } catch { return 0 /* no calls kept yet */ }
+    const names = callFiles(dir)
     const openFiles = new Set([...open.values()].map((o) => path.basename(o.file)))
     const kept: string[] = []
     for (const n of names) {
-      const f = path.join(dir, n)
+      const at = startOf(n)
       try {
-        if (!openFiles.has(n) && now() - statSync(f).mtimeMs > KEEP_DAYS * 86_400_000) { rmSync(f, { force: true }); removed++ }
+        if (!openFiles.has(n) && Number.isFinite(at) && now() - at > KEEP_DAYS * 86_400_000) { rmSync(path.join(dir, n), { force: true }); removed++ }
         else kept.push(n)
       } catch (e) { /* counted by the host (ops.failed); the file is tried again at the next prune */ deps.failed?.('prune', e) }
     }
     // Names start with the call's UTC start, so the sorted list is oldest first.
-    for (const n of kept.filter((k) => !openFiles.has(k)).slice(0, Math.max(0, kept.length - KEEP_CALLS))) {
+    for (const n of kept.filter((k) => !openFiles.has(k)).slice(0, Math.max(0, kept.length - keep))) {
       try { rmSync(path.join(dir, n), { force: true }); removed++ } catch (e) { /* counted by the host (ops.failed); tried again at the next prune */ deps.failed?.('prune', e) }
     }
     return removed
@@ -163,16 +200,17 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
   /** Calls a previous run of Fabric left without an end (it quit mid-call): each ended with its length from its first to
    *  its last line, priced at its rate (0.3.27 review, ER-2). Answers how many. */
   function closeOrphans(): number {
-    let names: string[]
-    try { names = readdirSync(dir).filter((n) => n.endsWith('.jsonl')) } catch { return 0 /* no calls kept yet */ }
+    const names = callFiles(dir)
     const openFiles = new Set([...open.values()].map((o) => path.basename(o.file)))
     let closed = 0
     for (const n of names) {
       if (openFiles.has(n)) continue
       const f = path.join(dir, n)
+      // The last rows tell whether it ended (ER-22); only a file that is ours, started with a start row, is ended (DA-13).
+      if (parseRows(tailOf(f)).some((r) => r.kind === 'end')) continue
       const rows = readCall(f)
-      if (!rows.length || rows.some((r) => r.kind === 'end')) continue
-      const start = rows.find((r) => r.kind === 'start') as Extract<JournalEntry, { kind: 'start' }> | undefined
+      if (!rows.length || rows[0]!.kind !== 'start' || rows.some((r) => r.kind === 'end')) continue
+      const start = rows[0] as Extract<JournalEntry, { kind: 'start' }>
       const first = Date.parse(rows[0]!.t), last = Date.parse(rows.at(-1)!.t)
       const minutes = Number.isFinite(first) && Number.isFinite(last) ? Math.max(0, last - first) / 60_000 : 0
       const entry: JournalEntry = { t: new Date(now()).toISOString(), kind: 'end', minutes: Math.round(minutes * 100) / 100, usd: Math.round(minutes * (start?.usd_per_minute ?? 0) * 100) / 100, end: 'not-closed', turns: rows.filter((r) => r.kind === 'person').length, tools: rows.filter((r) => r.kind === 'tool').length }
@@ -183,8 +221,7 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
 
   /** The newest calls first, each summed up from its own file. */
   function list(limit = 10): CallSummary[] {
-    let names: string[]
-    try { names = readdirSync(dir).filter((n) => n.endsWith('.jsonl')).sort().reverse().slice(0, Math.max(1, Math.min(limit, 100))) } catch { return [] /* no calls kept yet: the folder is made by the first call */ }
+    const names = callFiles(dir).reverse().slice(0, Math.max(1, Math.min(limit, 100)))
     const out: CallSummary[] = []
     for (const n of names) {
       const rows = readCall(path.join(dir, n))
@@ -205,6 +242,9 @@ export function createVoiceJournal(deps: VoiceJournalDeps) {
 export function readCall(file: string): JournalEntry[] {
   let text: string
   try { text = readFileSync(file, 'utf8') } catch { return [] /* a file pruned or unreadable reads as no lines; list() names it with none */ }
+  return parseRows(text)
+}
+function parseRows(text: string): JournalEntry[] {
   const out: JournalEntry[] = []
   for (const l of text.split('\n')) {
     if (!l.trim()) continue

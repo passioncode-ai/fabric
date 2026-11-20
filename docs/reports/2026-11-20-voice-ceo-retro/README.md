@@ -33,7 +33,7 @@ ADR-0096): домашняя папка владельца записана ка�
 - 12:44 звонок 3. session_start: отказ «no project «DC»» (распознавание «Диззи» = dissy), повтор удался (884aa532,
   dissy, работает), session_open, session_input.
 - 13:56 звонок 4. ask_ceo; session_projects: ««sound engine» names several projects: sound-engine,
-  sound-engine-fix-swarm-a»; session_start: ««~» names several projects: fabric-switchboard, fabric, …»;
+  <a worktree copy of sound-engine>»; session_start: ««~» names several projects: fabric-switchboard, fabric, …»;
   затем три запуска с runner **shell** в проекте fabric с задачами прозой: «Большой клининг…» (b62ca935),
   «Разбор parse error…» (ed5b1667), «Перезапуск клининга…» (2bbea018). В 13:58–14:00 голос 12 раз вводил команды в эти
   шеллы (session_input) и читал экран, то есть сам отлаживал zsh через голый терминал. Итог: текст задачи ушёл в zsh как
@@ -57,7 +57,7 @@ ADR-0096): домашняя папка владельца записана ка�
    «Диззи», «ПлейСинг», «Саунд энджин»), алиасы проекта, при неоднозначности короткий выбор голосом из 2–3 вариантов,
    а не отказ; worktree находятся через основной проект.
 5. **Мусор в реестре проектов.** Дубли с одинаковым именем (`fabric-agents-database` в `~/DATA` и в `~/.cache`),
-   проекты-папки из `~/.cache`, worktree и временные копии (`sound-engine-fix-swarm-a`, `claude-fabric-*`), проект с
+   проекты-папки из `~/.cache`, worktree и временные копии (`<a worktree copy of sound-engine>`, `<probe copies>`), проект с
    папкой = домашняя. Нужно: чистка/архив и правило, что .cache и временные worktree не становятся проектами.
 6. **Голос лезет в консоль CEO.** session_input в собственную консоль: отказ после «not-delivered». Нужно: голос
    знает id консоли CEO и для неё использует только ask_ceo.

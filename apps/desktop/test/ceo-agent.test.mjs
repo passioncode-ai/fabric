@@ -85,7 +85,7 @@ test('a project by id, folder, name or words; two matches ask instead of guessin
   // 2026-11-20, the CEO's voice: «sound engine» is «sound-engine», and a worktree copy of the same name gives way.
   const heard = [
     { id: 'se', name: 'sound-engine', repo_path: '/d/sound-engine' },
-    { id: 'sw', name: 'sound-engine-fix-swarm-a', repo_path: '/d/_worktrees/sound-engine-fix-swarm-a' },
+    { id: 'sw', name: 'sound-engine-copy-a', repo_path: '/d/_worktrees/sound-engine-copy-a' },
     { id: 'db', name: 'fabric-agents-database', repo_path: '/d/fabric-agents-database' },
     { id: 'db2', name: 'fabric-agents-database', repo_path: '/d/_worktrees/fabric-agents-database-x' }
   ]

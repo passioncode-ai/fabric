@@ -5,7 +5,7 @@
  * all (beside, then renamed), read on every lookup so a name kept in the console is heard by the next call. At most
  * MAX_PER_PROJECT names a project, each at most 60 characters; a name already kept is not added twice.
  */
-import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 
@@ -21,11 +21,17 @@ export interface AliasStore {
   remove(projectId: string, alias: string): string[]
 }
 
-export function createAliasStore(folder: string): AliasStore {
+export function createAliasStore(folder: string, failed?: (what: string, e: unknown) => void): AliasStore {
   const file = path.join(folder, ALIAS_FILE)
+  /** A file that exists and does not parse: kept aside before any write, never overwritten (0.3.27 review, DA-18). */
+  let unreadable = false
   function read(): Record<string, string[]> {
     let raw: unknown
-    try { raw = JSON.parse(readFileSync(file, 'utf8')) } catch { return {} /* no names kept yet, or a file being replaced: none */ }
+    unreadable = false
+    try { raw = JSON.parse(readFileSync(file, 'utf8')) } catch (e) {
+      if (existsSync(file)) { unreadable = true; failed?.('read', e) }
+      return {} /* no names kept yet: none */
+    }
     const out: Record<string, string[]> = {}
     const aliases = raw && typeof raw === 'object' ? (raw as { aliases?: unknown }).aliases : null
     if (!aliases || typeof aliases !== 'object') return out
@@ -46,12 +52,15 @@ export function createAliasStore(folder: string): AliasStore {
   function remove(projectId: string, alias: string): string[] {
     const name = alias.trim().replace(/\s+/g, ' ').toLowerCase()
     const all = read()
+    // Nothing to forget: nothing written (ER-21); the caller says no name matched.
+    if (!(all[projectId] ?? []).some((a) => a.toLowerCase() === name)) return all[projectId] ?? []
     all[projectId] = (all[projectId] ?? []).filter((a) => a.toLowerCase() !== name)
     if (!all[projectId]!.length) delete all[projectId]
     return write(all, projectId)
   }
   function write(all: Record<string, string[]>, projectId: string): string[] {
     mkdirSync(folder, { recursive: true, mode: 0o700 })
+    if (unreadable) { try { renameSync(file, `${file}.bad-${Date.now()}`) } catch (e) { /* counted by the host; the write below still replaces it */ failed?.('keep-aside', e) } }
     const tmp = path.join(folder, `.${ALIAS_FILE}.${randomUUID()}.tmp`)
     try {
       writeFileSync(tmp, JSON.stringify({ version: 1, aliases: all }, null, 2), { mode: 0o600 })

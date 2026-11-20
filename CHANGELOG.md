@@ -16,7 +16,8 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
   readiness that lapsed waits one more window (still never a blind write), a long paste left waiting in Claude Code's
   box («[Pasted text #1 …]», no turn started) gets one more Enter, and every end is written to the operations log as
   `terminal.first-instruction`. `fabric_ceo_session_start` waits for it (at most 70 s) and answers `first_task`:
-  delivered (Claude Code started its turn), resubmitted, written but unconfirmed (no turn started within two looks: the
+  delivered (Claude Code started its turn; another runner: the text was written), resubmitted (the turn started after the
+  extra Enter), written but unconfirmed (no turn started within two looks: the
   CEO reads the screen before it relies on it), not delivered with the next step, or pending
   (`main/consoleOpen.ts#deliverFirst`; SCN-183). Why the two sessions of 2026-11-20 sat empty is not proven; a trust or
   update screen taking the text is the lead, carried in CO-606.
@@ -41,28 +42,28 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
 
 - **Every voice call is kept on this computer.** What the owner said, what the voice answered, every tool it called
   with its arguments and answer, the call's length and price: one file a call in the CEO's folder (`ceo/calls/`,
-  owner-only), secrets cut before writing, kept 30 days, read by the CEO's console. Before, the words lived in the
+  owner-only), secrets cut before writing, kept 30 days and the newest 200 at most, read by the CEO's console. Before, the words lived in the
   window only (`main/ceoVoiceJournal.ts`).
 - **The voice hands work to agents instead of doing it by hand.** Its instructions say new work goes to the project's
   agent with the task in words, a terminal only on the owner's ask; it types into a console only to answer a question
   (three times in three minutes for a shell, six for an agent), and the CEO's own console only through «ask_ceo».
 - **A project is found by how its name sounds.** «DC» and «Диззи» are dissy, «ПлейСинг» playsing, «Саунд энджин»
   sound-engine; a worktree folder is found through its project; the home folder is no project. Several matches answer
-  three names to choose from, none the three nearest, and the CEO keeps the names the owner uses for a project
+  three names to choose from, none up to three near names when any are close, and the CEO keeps the names the owner uses for a project
   (`shared/heardName.ts`, `fabric_ceo_project_alias`).
 - **The voice reads the CEO's answer aloud** (`ceo_reply`), and has four tools more: `machine_status`, `board_search`,
   `recap` (what changed since the previous call) and `session_task` (did a started session take its task).
 - **The CEO's console gets the same doors.** `fabric_ceo_session_task`, `fabric_ceo_project_alias` (keep or forget a
   name the owner uses; another project's name is refused) and `fabric_ceo_launches` by `via` (`voice` for the voice's
-  own starts). A name matched by sound is asked back before a start; a folder inside a project or an agent's worktree
-  is refused with where to go, since the console would open in the project's own folder; a tie answers three choices,
+  own starts). A name matched by sound is asked back before a start; a folder inside a project or a worktree Fabric has
+  run in, by path or by its folder's name, is refused with where to go, since the console would open in the project's own folder; a tie answers three choices,
   each read back as offered.
 - **A cache or temporary folder never becomes a project.** An agent started in `~/.cache` or a temporary folder is
   refused. Projects made there before stay until archived by hand: on the owner's Mac, 18 left by probes were archived
   on 2026-11-20 (their folders untouched); other machines keep theirs (CO-605).
 
 **Upgrading.** No schema step. Nothing to set. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
-days) and `<userData>/ceo/project-aliases.json` (0600).
+days and the newest 200 at most) and `<userData>/ceo/project-aliases.json` (0600).
 
 ## 0.3.26
 
