@@ -303,6 +303,8 @@ export const OTHER_CLIENT_LIVE_MS = 5 * 60_000
 const ENDED_REMEMBERED = 256
 /** How many sessions' recorded ends a run remembers (DA-1): far more than the sessions one run of Fabric serves. */
 const END_RECORDS_REMEMBERED = 4096
+/** How often one unknown credential is named in the log (`sayUnknownCredential`). */
+export const UNKNOWN_SAID_EVERY_MS = 10 * 60_000
 const bearerDigest = (token: string): string => createHash('sha256').update(token, 'utf8').digest('hex')
 
 /** A JSON-RPC body that carries a tool call: an agent at work, as a keep-alive ping or a notification is not (CO-565,
@@ -325,6 +327,8 @@ export class AgentSurface {
    * only read as "Fabric restarted". Bounded (ENDED_REMEMBERED, oldest first out); never the bearer itself.
    */
   private endedWhy = new Map<string, string>()
+  /** When each unknown credential was last named in the log (2026-11-20: a client refused every 20 s for hours, unnamed). */
+  private unknownSaid = new Map<string, number>()
   /** Sessions already recorded as oriented, with the protocol hash they were last served. In memory on
    *  purpose: the question the journal is asked is "did this session EVER read its rules", so a restart
    *  appending a second row costs nothing, while a table to prevent it would be state kept for tidiness.
@@ -733,6 +737,24 @@ export class AgentSurface {
     void st?.transport?.close()
   }
 
+  /**
+   * Names, once per 10 minutes per credential, a client this surface refuses as unknown: a short digest of what it sent
+   * (never the credential) and its User-Agent, so a client that keeps knocking with a revoked credential can be found
+   * and told (the 2026-11-20 finding: one every 20 s for two hours, nobody named).
+   */
+  private sayUnknownCredential(token: string, req: IncomingMessage): void {
+    const key = token ? bearerDigest(token).slice(0, 12) : 'none'
+    const now = Date.now()
+    const last = this.unknownSaid.get(key)
+    if (last !== undefined && now - last < UNKNOWN_SAID_EVERY_MS) return
+    this.unknownSaid.set(key, now)
+    if (this.unknownSaid.size > 256) this.unknownSaid.delete(this.unknownSaid.keys().next().value!)
+    const ua = String(req.headers['user-agent'] ?? '').replace(/[^\x20-\x7e]/g, '').slice(0, 80)
+    ops.record({ op: 'hub.unknown-credential', outcome: 'ok', level: 'warn',
+      detail: { credential_digest: key, user_agent: ua || null, repeated_within_ms: last === undefined ? null : now - last },
+      ctx: { correlationId: ops.correlate() } })
+  }
+
   private static refuse(
     res: ServerResponse,
     status: number,
@@ -825,6 +847,7 @@ export class AgentSurface {
       if (token && !leaving && hub && (await this.ingress.handle(token, hub, req, res, ctx, attempt))) return
       // No credential, no scope, no surface. The absence of a token is not a
       // reason to fall back to something broader.
+      this.sayUnknownCredential(token, req)
       AgentSurface.refuse(res, 401, 'unknown or revoked credential', {}, attempt)
       return
     }
