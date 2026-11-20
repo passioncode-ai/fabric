@@ -48,6 +48,7 @@ import { GraphScreen } from './launch/GraphScreen'
 import { CommsScreen } from './launch/CommsScreen'
 import { ContinueSessionAsk } from './launch/ContinueSessionAsk'
 import { PersonaProvider } from './launch/persona'
+import { DockIconFollowsFace } from './launch/dockIcon'
 import { CeoButton } from './ceo/CeoButton'
 import { PlanScreen } from './launch/PlanScreen'
 import { PulseScreen } from './launch/PulseScreen'
@@ -184,6 +185,7 @@ export function App(): React.JSX.Element {
   return (
     <I18nProvider locale={settings.locale as Locale}>
       <PersonaProvider>
+      <DockIconFollowsFace />
       <Shell settings={settings} onSettings={setSettings} />
       </PersonaProvider>
     </I18nProvider>

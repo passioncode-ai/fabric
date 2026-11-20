@@ -20,7 +20,7 @@ import { resolveHealingHalfUp } from './stackHalfUp.ts'
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { createSharedReading } from '../shared/sharedReading'
 import { startBugCapture, type BugCapture } from './bugCapture'
-import { applyAppIcon, windowIcon } from './appIcon'
+import { applyAppIcon, setDockIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
 import { launchOption, launchOptions, PtyManager, setFolderTrust, setLaunchSink, setPermissionPreference } from './pty'
 import { trustFolderForClaude } from './claudeTrust.ts'
@@ -4144,6 +4144,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // #endregion start-paths-ipc
   handle(IPC.personaRead, (): Returns<FabricApi['persona']['read']> => persona())
   handle(IPC.personaSave, (_e, next: unknown): Returns<FabricApi['persona']['save']> => savePersona(next))
+  handle(IPC.personaDockIcon, (_e, png: unknown) => setDockIcon(png))
   handle(
     IPC.favouritesMove,
     (_e, projectId: string, dir: 'up' | 'down', rest: string[]): Returns<FabricApi['favourites']['move']> =>

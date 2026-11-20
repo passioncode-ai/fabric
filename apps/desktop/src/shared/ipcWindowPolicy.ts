@@ -217,6 +217,7 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   startAdapterSkills: MAIN_ONLY,
   personaRead: EVERY_WINDOW,
   personaSave: MAIN_ONLY,
+  personaDockIcon: MAIN_ONLY,
   searchRun: MAIN_ONLY,
   digestRead: MAIN_ONLY,
   digestSeen: MAIN_ONLY,

@@ -11,6 +11,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).
 
+- **An update replaces Fabric in place: one icon in the Dock.** An update moved the old bundle out of `/Applications`, the
+  Dock tile followed it and a second Fabric icon appeared; old copies (`Fabric-0.3.20.app`) and rollout copies stayed in
+  Launchpad and LaunchServices. `scripts/install-mac-update.mjs` swaps only `Contents`, keeps the way back as a zip,
+  removes the other registrations and keeps one Fabric tile in the Dock ([release-mac](docs/launch/release-mac.md#installing-an-update-on-a-mac)).
+- **The Dock icon is the CEO's face.** Picking another face in «Ваш Fabric» changes the Dock icon at once, and the next
+  start shows it before a window draws (plan wave I, mockup 08 option A; `main/appIcon.ts#setDockIcon`).
 - **A board run Switchboard refuses is said, and mail is not starved.** org-index's mail waited six days with no run
   (board request `42c14b72`): every start was refused `no_agent` (no account with room) or `at_capacity`, the wait after
   a refusal doubled to six hours, and the offers lapsed in Observatory with no reason. Now a refusal writes its code

@@ -240,7 +240,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
     },
     persona: {
       read: () => ipc.invoke(IPC.personaRead),
-      save: (next) => ipc.invoke(IPC.personaSave, next)
+      save: (next) => ipc.invoke(IPC.personaSave, next),
+      dockIcon: (png: string) => ipc.invoke(IPC.personaDockIcon, png)
     },
     search: {
       run: (query) => ipc.invoke(IPC.searchRun, query)
