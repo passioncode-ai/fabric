@@ -10,6 +10,7 @@ import type { MemoryChanges, MemoryCheck, MemoryGraph, MemoryIndexOverview, Memo
 import { GraphMap, GraphTable, type GraphData, type GraphNode } from '../graph'
 import { useLocale, useT } from '../i18n'
 import { FailureNote } from '../OperatorError'
+import './memory.css'
 
 /** How often the dashboard reads again while it shows: the index passes every five minutes, freshness ages meanwhile. */
 const REFRESH_MS = 60_000
@@ -109,7 +110,7 @@ export function MemoryScreen({ onError }: { onError(message: string): void }): R
           <dl className="memory-stats" aria-label={t('memoryBase.statsLabel')}>
             <div><dt>{t('memoryBase.stat.docs')}</dt><dd>{num(ov.docs)}</dd></div>
             <div><dt>{t('memoryBase.stat.projects')}</dt><dd>{num(ov.projects)}</dd></div>
-            {KINDS.map((k) => <div key={k}><dt>{t(`everywhere.kind.${k}` as 'everywhere.kind.task')}</dt><dd>{num(ov.byKind[k] ?? 0)}</dd></div>)}
+            {KINDS.map((k) => <div key={k}><dt>{t(`memoryBase.stat.kind.${k}` as 'memoryBase.stat.kind.task')}</dt><dd>{num(ov.byKind[k] ?? 0)}</dd></div>)}
             <div><dt>{t('memoryBase.stat.graph')}</dt><dd>{t('memoryBase.stat.graphValue', { nodes: num(ov.nodes), edges: num(ov.edges) })}</dd></div>
             <div><dt>{t('memoryBase.stat.vectors')}</dt><dd>{t('memoryBase.stat.vectorsValue', { share: vectorsShare.toLocaleString(locale), n: num(ov.vectors.embedded) })}</dd></div>
             {ov.bytes !== null && <div><dt>{t('memoryBase.stat.size')}</dt><dd>{t('memoryBase.stat.mb', { mb: num(Math.round(ov.bytes / 1_048_576)) })}</dd></div>}

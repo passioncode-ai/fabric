@@ -1,0 +1,39 @@
+/* Memory (SCN-190, SCR-92): the app's tokens only. */
+.memory .memory-stats{ display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-2); margin: var(--space-3) 0; }
+.memory .memory-stats > div{ padding: var(--space-2) var(--space-3); border: var(--report-line) solid var(--app-line); border-radius: var(--app-radius-control); background: var(--app-panel); }
+.memory .memory-stats dt{ font-size: var(--app-fs-caption); color: var(--app-muted); }
+.memory .memory-stats dd{ margin: var(--space-1) 0 0; font-size: var(--app-fs-stat); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--app-ink); }
+.memory .memory-sources{ list-style: none; margin: 0 0 var(--space-4); padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.memory .memory-source{ display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); padding: var(--space-1) var(--space-3); border: var(--report-line) solid var(--app-line); border-radius: var(--app-radius-pill); background: var(--app-panel-quiet); font-size: var(--app-fs-caption); }
+.memory .memory-source b{ color: var(--app-ink); font-weight: 600; }
+.memory .memory-source span::before{ content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--state-ended); vertical-align: middle; }
+.memory .memory-source.f-fresh span::before{ background: var(--state-good); }
+.memory .memory-source.f-catching-up span::before{ background: var(--state-running); }
+.memory .memory-source.f-stale span::before{ background: var(--state-idle); }
+.memory .memory-source.f-unread span::before{ background: var(--state-danger); }
+.memory .memory-source small{ color: var(--app-muted); }
+.memory .memory-grid{ display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: var(--space-4); align-items: start; }
+@media (max-width: 1100px){ .memory .memory-grid{ grid-template-columns: minmax(0, 1fr); } }
+.memory .memory-head{ margin: 0 0 var(--space-2); font-size: var(--app-fs-label); font-weight: 600; letter-spacing: var(--app-track-label); text-transform: uppercase; color: var(--app-muted); }
+.memory .memory-main > .lp-meta{ margin: var(--space-2) 0; }
+.memory .memory-side{ display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.memory .memory-side .memory-head:not(:first-child){ margin-top: var(--space-4); }
+.memory .memory-search{ width: 100%; box-sizing: border-box; padding: var(--space-2) var(--space-3); border: var(--report-line) solid var(--app-line-control); border-radius: var(--app-radius-control); background: var(--app-panel); color: var(--app-ink); font: inherit; }
+.memory .memory-search:focus-visible{ outline: 2px solid var(--app-focus); outline-offset: 1px; }
+.memory .memory-hits, .memory .memory-changes{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.memory .memory-hits > li, .memory .memory-changes > li{ display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2) var(--space-3); border: var(--report-line) solid var(--app-line); border-radius: var(--app-radius-control); background: var(--app-panel); min-width: 0; }
+.memory .memory-hit-top{ font-size: var(--app-fs-caption); color: var(--app-muted); }
+.memory .memory-quote{ margin: 0; padding-left: var(--space-2); border-left: 2px solid var(--app-line-strong); color: var(--app-ink); font-size: var(--app-fs-caption); overflow-wrap: anywhere; }
+.memory .memory-cite{ font-size: var(--app-fs-mono); color: var(--app-muted); overflow-wrap: anywhere; }
+.memory .memory-hit-acts{ display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.memory .memory-verdict{ font-size: var(--app-fs-caption); }
+.memory .memory-verdict.ok{ color: var(--state-good); }
+.memory .memory-verdict.no{ color: var(--state-danger); }
+.memory .memory-changes ul{ margin: 0; padding-left: var(--space-3); font-size: var(--app-fs-caption); color: var(--app-ink); }
+.memory .memory-changes time{ color: var(--app-muted); }
+.memory .memory-window{ display: flex; gap: var(--space-2); }
+.memory .memory-window [aria-pressed="true"]{ border-color: var(--app-focus); color: var(--app-ink); }
+.memory .memory-card{ margin: var(--space-3) 0; padding: var(--space-3); border: var(--report-line) solid var(--app-focus); border-radius: var(--app-radius-panel); background: var(--app-panel); }
+.memory .memory-card header{ display: flex; align-items: baseline; gap: var(--space-2); }
+.memory .memory-card header button{ margin-left: auto; }
+.memory .memory-kinds{ display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); list-style: none; margin: var(--space-2) 0; padding: 0; font-size: var(--app-fs-caption); color: var(--app-muted); }
