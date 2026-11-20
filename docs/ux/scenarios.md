@@ -191,6 +191,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-185 | The CEO keeps answering when its first agent cannot | Floating CEO | P-01 | ST-046, FLW-63 | implemented | unobserved |
 | SCN-186 | Choose the CEO's voice | Floating CEO | P-01 | ST-046, SCR-36, SCR-64 | implemented | unobserved |
 | SCN-187 | Stop the CEO, and start it again | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
+| SCN-188 | Read a console's system line | Consoles | P-01 | ST-046 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
