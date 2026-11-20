@@ -72,6 +72,15 @@ const relayedDetail = (relayed?: OperatorDecision): Record<string, unknown> => (
 // CO-506 (ADR-0190): board.respond is no longer immediate for an ask through the hub, which cannot prove whose project
 // it is; a session's own project is granted at its com.enroll (`grantOwnProjectRespond`).
 const IMMEDIATE_LOCAL_LANES: ReadonlySet<string> = new Set([SESSION_ENROLL, PROJECT_RESOLVE])
+/**
+ * The owner's products an agent on the owner's own machine reaches with no question (the owner, 2026-11-20 22:50, through
+ * the CEO window: «с фабрик инбокс не работает … подключение там доступа к агентам, вообще это все должно быть
+ * автоматически, не надо никакой подключать»). Only on a machine marked as the operator's own (`machineTrust` 'mine'); an
+ * organization's machine, or one not marked, asks as before. Recorded like every immediate lane (the request, the decision
+ * with the owner's words as its reason, the revocable grant), and revoked in Agent access like any other.
+ */
+export const OWNER_DEFAULT_PRODUCTS: ReadonlySet<string> = new Set(['fabric-inbox'])
+export const OWNER_DEFAULT_REASON = 'the owner, 2026-11-20 22:50: «не надо никакой подключать»: his agents reach Fabric Inbox with no question on his own machine'
 
 export type HubPrincipal = { kind: 'door' } | { kind: 'binding'; binding: BindingRow }
 
@@ -476,7 +485,9 @@ export class AccessService {
         ops.failed('hub.access.connection-read', e, { request_id: id })
       }
       ops.record({ op: 'hub.access.requested', outcome: 'ok', detail: { request_id: id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources, incremental: bindingId !== null }, ctx: { correlationId: ops.correlate() } })
-      if (this.immediate(ask, own)) {
+      const ownersProduct = OWNER_DEFAULT_PRODUCTS.has(ask.callee) && this.deps.machineTrust?.() === 'mine'
+      if (this.immediate(ask, own) || ownersProduct) {
+        if (ownersProduct) ops.record({ op: 'hub.access.owner-default', outcome: 'ok', detail: { request_id: id, agent_id: entry.key, callee: ask.callee, connected, reason: OWNER_DEFAULT_REASON }, ctx: { correlationId: ops.correlate() } })
         // ADR-0160: only the local lanes are immediate: enrollment, since 0.3.8 the read-only folder attribution, and since CO-494 (the operator's
         // (every step approved, paraphrased), 2026-11-04) answering a project's requests. The request, the agent's own decision and the revocable grant are all
         // journalled; no product connection or cross-machine authority changes.

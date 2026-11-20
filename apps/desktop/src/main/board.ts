@@ -54,6 +54,7 @@ import { readRunHolds } from './workRead.ts'
 import { AGENTS } from '../shared/agents.ts'
 import type { HubDownCode } from '../shared/access.ts'
 import { resolveProject } from '../shared/projectResolve.ts'
+import { createInboxAutoConnect } from './inboxAutoConnect.ts'
 
 type Admission = ReturnType<typeof createProjectAdmission>
 type AdmissionDeps = Parameters<typeof createProjectAdmission>[0]
@@ -131,7 +132,9 @@ export async function startBoardHub(d: BoardHubDeps): Promise<void> {
   const registry = new AgentRegistry({ servicesDir: dirs.services, providersDir: dirs.providers })
   registry.refresh()
   d.onRegistry(registry)
-  const stopWatching = registry.watch()
+  // The registry's one watch also asks the Inbox auto-connect (`autoConnectInbox` below) on every change.
+  let onRegistryChange: (() => void) | null = null
+  const stopWatching = registry.watch(() => onRegistryChange?.())
   quit.onQuit(stopWatching)
   // ADR-0195 W1: what the hub reads from this process (the terminals, the sweep, the settings, the registry), one
   // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
@@ -149,6 +152,21 @@ export async function startBoardHub(d: BoardHubDeps): Promise<void> {
     handlerFor: hubPorts.links.handlerFor,
     actor: () => OPERATOR_ACTOR
   })
+  // The owner, 2026-11-20: Fabric connects itself to Inbox, no button (`inboxAutoConnect.ts`): at the hub's start, on every
+  // change of the registry and every 5 minutes; each try is decided by the module's rules.
+  const autoConnectInbox = createInboxAutoConnect({
+    trust: () => hubPorts.settings.machineTrust(),
+    inRegistry: () => registry.snapshot().entries.some((e) => e.id === FABRIC_INBOX.product),
+    connected: async () => (await accessStore.liveConnection(FABRIC_INBOX.product)) !== null,
+    last: () => connector.lastOutcome(FABRIC_INBOX.product),
+    begin: async () => (hubState.doorToken ? connector.begin(FABRIC_INBOX) : { ok: false }),
+    record: (op, detail) => ops.record({ op, outcome: detail.started ? 'ok' : 'failed', level: detail.started ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  onRegistryChange = () => { void autoConnectInbox() }
+  const autoConnectTimer = setInterval(() => { void autoConnectInbox() }, 5 * 60_000)
+  autoConnectTimer.unref?.()
+  quit.onQuit(() => clearInterval(autoConnectTimer))
+  setTimeout(() => { void autoConnectInbox() }, 15_000).unref?.()
   let access: AccessService | null = null
   // The consent presenter is the window's (a native prompt and a notification); it reads the hub's parts it is given.
   const presenter = d.presenter({ accessStore, connector, access: () => access })

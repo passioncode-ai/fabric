@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `INBOX-AUTOMATIC` · fix/registry-contract → main (0.3.28) · fast-forward after the 0.3.27 tag
+- files: `apps/desktop/src/main/{accessService,inboxAutoConnect,board}.ts`, `docs/adr/0204-*.md`, `AGENTS.md` (lifecycle row), tests `hub-access-service`, `inbox-auto-connect` (new, in `scripts/ci.sh`)
+- conflicts: none expected
+- summary: the owner's «не надо никакой подключать»: on his machine an agent's ask of Fabric Inbox is allowed at once and recorded, and Fabric connects itself to Inbox; elsewhere unchanged
+
 ### 2026-11-20 · `REGISTRY-CONTRACT` · fix/registry-contract → feat/voice-retro (the 0.3.27 candidate) · merge
 - files: `apps/desktop/src/main/agentRegistry.ts`, `apps/desktop/test/agent-registry.test.mjs`
 - conflicts: none expected; CHANGELOG written by the release session

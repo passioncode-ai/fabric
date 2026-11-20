@@ -378,3 +378,30 @@ test('CO-506: a decision and a revocation on the operator\'s relayed words keep 
   const revoked = store.events.find((e) => e.type === 'access.grant.revoked@1')
   assert.equal(revoked.payload.relayed.instruction, 'revoke it')
 })
+
+// The owner, 2026-11-20 22:50 (CEO window): «с фабрик инбокс не работает … подключение там доступа к агентам, вообще это все
+// должно быть автоматически, не надо никакой подключать». On his own machine an agent reaches Fabric Inbox with no
+// question; an organization's machine, or one not marked, asks as before.
+test('the owner\'s machine: an agent\'s ask for Fabric Inbox is allowed at once, recorded and revocable; elsewhere it asks', async () => {
+  for (const [trust, allowed] of [['mine', true], ['organization', false], [null, false]]) {
+    let clock = Date.parse('2026-11-20T22:00:00Z')
+    const store = memStore({ now: () => clock })
+    const shown = []
+    const access = new AccessService({ store, registry: fakeRegistry(['example-agent']), present: (p) => shown.push(p), connected: async () => true, now: () => clock, machineTrust: () => trust })
+    const r = await access.request(DOOR, ask())
+    assert.equal(r.ok, true, JSON.stringify(r))
+    assert.equal(r.status, allowed ? 'allowed' : 'pending', `trust ${trust}`)
+    assert.equal(shown.length, allowed ? 0 : 1, `trust ${trust}: a prompt only where it asks`)
+    if (allowed) {
+      const s = await access.status(DOOR, r.requestId, r.pollSecret)
+      assert.equal(s.ok, true)
+      assert.match(s.credential, /^[A-Za-z0-9_-]{43}$/)
+    }
+  }
+  // Any other product still asks on the owner's machine.
+  const store = memStore({ now: () => Date.parse('2026-11-20T22:00:00Z') })
+  const shown = []
+  const access = new AccessService({ store, registry: fakeRegistry(['example-agent']), present: (p) => shown.push(p), connected: async () => true, machineTrust: () => 'mine' })
+  const other = await access.request(DOOR, ask({ callee: 'some-other-product' }))
+  assert.notEqual(other.status, 'allowed', 'no other product is allowed by default')
+})
