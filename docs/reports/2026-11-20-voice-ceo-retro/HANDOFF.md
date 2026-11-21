@@ -102,7 +102,9 @@ memory (`main/ceoAgent.ts`, `held`), so after any restart of Fabric, the 0.3.27 
 `ceo.task` request starts a CEO the owner stopped; the fix is to keep the stop in the CEO folder's `ceo.json` and test a
 restart, in a new candidate read by run eleven. The plan reviewer also found that `origin/main` moved to `608f5416`
 (ADR-0205, 03:17) after the candidate, so a fast-forward landing is no longer possible (PL-67). The errors and data
-reports were still running. The reports are kept outside the repository in `~/.cache/fabric-88/r10/` until they are
+reviewers found the same blocker (ER-87, DA-62; the wake also restarts a failed CEO after a runner's hour), and the
+data reviewer found the new `xai-key` rule redacting hyphenated folder and branch names in a transcript's saved state
+(DA-64: keep `cwd` and `branch` unredacted, narrow the rule). The reports are kept outside the repository in `~/.cache/fabric-88/r10/` until they are
 stored with the run.
 
 **Next task, only on the CEO's signal with the reconciler's decision.** If 0.3.27 goes ahead: fix UX-81 (above) and decide on `608f5416` (take it into the candidate, as «Выпустить с main»
