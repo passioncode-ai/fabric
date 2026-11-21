@@ -90,6 +90,9 @@ export interface PeopleAskDeps {
   routes(): readonly PeopleRoute[]
   /** The person's choices in Settings by project id (the same file's `projects`): a PM project, or no Telegram. */
   choices?(): Readonly<Record<string, PeopleChoice>>
+  /** The routes file exists but does not read (the 0.3.28 review, iteration 2, ER-12): nothing is sent while it does not,
+   *  since the person's choices in it (a project turned off, a PM project chosen) cannot be honoured unread. */
+  routesUnread?(): boolean
   /** Whether Fabric may allow this access request on relayed words (`relayedAccess.ts#admitAccessAct`). */
   allowAccess(requestId: string): Promise<boolean>
   responders(): Promise<ResponderLike[]>
@@ -325,8 +328,10 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
       let sent = 0
       const routes = deps.routes()
       const choices = deps.choices?.() ?? {}
+      const unread = deps.routesUnread?.() === true
       for (const [item, cur] of current) {
         if (deps.quitting()) return
+        if (unread) { skip('routes-unread'); continue }
         if (sent >= MAX_SUBMITS) { skip('pass-bound'); continue }
         const existing = list.find((r) => r.item === item && r.revision === cur.revision)
         const again = existing?.state === 'closed' && existing.endedUndecided === true && (existing.attempt ?? 1) < ASK_ATTEMPTS

@@ -14,7 +14,7 @@ The owner, 2026-11-21 (relayed by fabric-workspace's reconciler, A-3, d213194e):
 Memory's own projects and the board's operator door, a module nothing starts yet) and what `main` took after the tag:
 the queue's order (ADR-0208, the reconciler's A-3 P0 row 6, with schema 104); and, by the reconciler's A-3 (row 9 of
 P0) with their author's word, the owner's approval modes with the agents' behaviour journal and the CEO's choice of
-account. Not in it, each with its reason in
+account; and the fix of CO-625, which kept a signalled stop from stopping Fabric. Not in it, each with its reason in
 [the release ledger](docs/evidence/plans/2026-11-21-release-0328-verification.md#protocol): the CEO's windows (a
 feature held under the owner's pause of 2026-11-21), CO-622 (the next release) and the paused work in progress.
 
@@ -27,8 +27,9 @@ feature held under the owner's pause of 2026-11-21), CO-622 (the next release) a
   [docs/reports/2026-11-20-owner-hardcode-audit](docs/reports/2026-11-20-owner-hardcode-audit/README.md)). With the
   switch on, a project's questions still go to the one organization agent found by its live responder until the person
   chooses; a machine that relied on 0.3.27's built-in route and has no routes file now relies on that, or on a choice
-  here. A routes file that exists but does not read is said above the table, its routes are not used, and no choice is
-  saved over it, so its hand-written routes are never erased.
+  here. A routes file that exists but does not read is said above the table; while it does not, no question is sent to
+  Telegram (the person's choices in it cannot be honoured unread) and no choice is saved over it, so its hand-written
+  routes are never erased.
 - **The built app is checked for anything of one machine.** `scripts/check-build-private.mjs` reads the built bundles
   (comments included) for a projects-root path, a vault slot, a home path, the organization's private terms and the
   values of this machine's own Fabric settings, and prints only where a finding is. It reads literal strings: a value
@@ -36,7 +37,8 @@ feature held under the owner's pause of 2026-11-21), CO-622 (the next release) a
 - **The Dock icon is the CEO's face.** Once a person has picked a face in «Облик Fabric», the Dock shows it while Fabric
   runs, changes at once with another pick, and the next start shows it before a window draws (plan wave I, mockup 08
   option A; `main/appIcon.ts#setDockIcon`). Until a face is picked, and whenever Fabric is not running (Finder,
-  Launchpad, a kept Dock tile), the bundle's icon stays, since changing a signed bundle breaks its signature.
+  Launchpad, a kept Dock tile), the bundle's icon stays, since changing a signed bundle breaks its signature. On Windows
+  and Linux a picked face becomes the icon of the windows open at that moment, until they close or Fabric restarts.
 - **Memory shows only Fabric's own projects.** A source that writes nodes of kind project (Fabric Inbox's
   `mail:project:…`) no longer shows as a Fabric project in Memory's map or the CEO's catalogue, nor takes a real
   project's counts by its label: Fabric's rows are told by their id prefix (`main/memoryRead.ts#memoryGraph`,
@@ -53,7 +55,9 @@ feature held under the owner's pause of 2026-11-21), CO-622 (the next release) a
 - **A stop by a signal ends Fabric, consoles open or not** (CO-625). Ended by a signal (the lifecycle broker, an
   install, `launchctl`) with live consoles, Fabric aborted while it tore down, and the board's launch agent started it
   again: the 0.3.27 install of 2026-11-21 could not stop it. The quit now waits, bounded, until every console's exit has
-  arrived before it ends, and ends what still runs (`main/ptySettle.ts#settleExits`).
+  arrived before it ends, and ends what still runs (`main/ptySettle.ts#settleExits`); a drain still running 2.5 s before
+  the 10 s deadline is not waited for further, so the settle always runs (`main/quit.ts#QUIT_SETTLE_BUDGET_MS`). Proven
+  by tests; the proof on a packaged build is recorded in the release ledger.
 - **The board has a door of its own for the window** (ADR-0195 wave W2c.2a, board task `8b86adf3`). A new module,
   `main/operatorDoor.ts`, serves named doors on a loopback port of its own, published as `board-door.json` with a 0600
   token beside `hub.json`; it refuses another account's process (CO-514), a wrong token, a browser origin, a wrong
@@ -67,7 +71,8 @@ feature held under the owner's pause of 2026-11-21), CO-622 (the next release) a
   (spending, deleting, publishing) wait for his yes. An act that does not wait gets a one-shot permission Fabric issues
   itself, recorded with the mode that allowed it. Every session reads the mode in `fabric_whoami`, the CEO's brief and the
   voice say it, and a sign-in, a one-time code, a payment, a secret and a consent screen wait for the person in every
-  mode ([ADR-0203](docs/adr/0203-the-owners-approval-mode-says-which-acts-wait-for-him.md)).
+  mode ([ADR-0203](docs/adr/0203-the-owners-approval-mode-says-which-acts-wait-for-him.md)). The owner sees and
+  switches it in Settings, «Что ждёт вашего одобрения»; the switch on the home is still to come.
 - **Who did what, on whose word.** The agents' behaviour journal keeps each act of the CEO, its voice and the sessions'
   floor with whose word it was done on and what was decided, tied to the voice call that asked for it; the CEO and the
   voice read it with `fabric_ceo_journal` (ADR-0203 §6).
@@ -86,7 +91,8 @@ through the CEO, and check that the CEO has every access it needs ([the CEO acce
 0.3.28 takes one schema step, 103 to 104 (migration `20261121000131_task_rank.sql`): the runbook's upgrade, a backup
 first ([the runbook](docs/launch/release-mac.md#upgrading-an-existing-database)); going back needs 0.3.27's bundle with
 the backup taken before the step. A database at 102 (0.3.26) takes 0.3.27's manual step first.
-Going back to 0.3.27 forgets the choices made in «Куда уходят вопросы»: 0.3.27 reads only the routes list and its own
+Going back to 0.3.27 forgets the approval mode (set it again after upgrading again) and the choices made in «Куда уходят
+вопросы»: 0.3.27 reads only the routes list and its own
 built-in route, so a project set to «Не отправлять в Telegram» sends its questions again; before going back, turn
 «Присылать вопросы в Telegram через агента организации» off if that matters.
 

@@ -56,3 +56,12 @@ chooses how much he is asked.
 - The runner's containment check (FA-09) still refuses a floored act from a session whose tools Fabric cannot see:
   a mode decides whether the owner is asked, not whether Fabric can hold the session to its answer.
 - `unusual` reads one row of `grants` per ask; an unreadable read is a first time, the safe side.
+
+## Amendment 1 (2026-11-21): where the owner switches the mode in 0.3.28
+
+Decision 5 puts the switch on Fabric's home, built by the home screen's session. 0.3.28 ships the mode with a switch in
+Settings, «Что ждёт вашего одобрения» (`renderer/src/launch/SettingsScreen.tsx#ApprovalModeSetting`), so the owner
+chooses the mode and sees the one in force from the first release that carries it (the 0.3.28 review, iteration 2,
+UX-12, DO-12, PL-14). The home's one-action switch stays Decision 5's and comes with the home. The behaviour journal
+of Decision 6 ships in the same release; the Consequences' «the next change of this package» meant it (DO-14).
+

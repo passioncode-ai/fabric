@@ -157,6 +157,21 @@ describe('agent permissions and how each agent starts (ADR-0168)', () => {
     expect(onChange).toHaveBeenCalledWith({ agentPermissions: 'manual' })
   })
 
+  // The 0.3.28 review, iteration 2, UX-12 (ADR-0203 §5): the owner sees his approval mode and switches it here.
+  it('shows the five approval modes with the one in force chosen, each saying what waits, and saves another', async () => {
+    fabric()
+    const onChange = vi.fn()
+    const settings = { theme: 'dark', locale: 'en', keepAwake: 'while-working', workspace: { path: null, git: 'unanswered' }, tabs: { tabs: [], active: null },
+      readThroughSeq: 0, commsReadThrough: {}, firstRun: { completedAt: null }, runnerFallback: { order: [] }, agentPermissions: 'fewer-prompts', launchAtLogin: true, agentLanguage: true, machineTrust: null, boardFilters: { project: null, agent: null, cancelled: false }, trustAgentFolders: true, dispatchBoardRequests: true, resumeLeftWork: true, dispatchOnSharedBoard: false, dispatchTarget: null, dispatchTargets: {}, peopleAsk: false, approvalMode: 'critical', ceoRunners: ['claude-code', 'hermes'], ceoModels: ['anthropic/claude-opus-5.5'] } as AppSettings
+    show(<SettingsScreen settings={settings} onChange={onChange} onOpenHistory={() => {}} />)
+    const group = screen.getByRole('radiogroup', { name: en['settings.approval.title'] })
+    const radios = within(group).getAllByRole('radio') as HTMLInputElement[]
+    expect(radios.map((r) => r.value)).toEqual(['important', 'critical', 'spending', 'unusual', 'none'])
+    expect(radios.find((r) => r.checked)?.value).toBe('critical')
+    fireEvent.click(radios[4])
+    expect(onChange).toHaveBeenCalledWith({ approvalMode: 'none' })
+  })
+
 })
 
 describe('the agents\' working language can be switched off (the operator\'s walk OF-38)', () => {

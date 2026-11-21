@@ -39,7 +39,8 @@ export async function settleExits(
   let killed = 0
   for (const c of pending()) {
     try { c.kill('SIGKILL'); killed++ } catch {
-      // Already gone: its exit is on its way and the wait below receives it.
+      // Refused by the platform (a process already gone, or a terminal that takes no signal): not counted as killed;
+      // what it left is in `left` below, which the caller records.
     }
   }
   if (killed > 0) await waitFor(o.killMs ?? SETTLE_KILL_MS)

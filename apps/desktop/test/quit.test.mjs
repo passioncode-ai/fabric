@@ -84,6 +84,27 @@ test('CO-625: the consoles\' exits are settled after the drain and before the la
   }
 })
 
+test('CO-625, ER-13: a drain still running at the deadline minus the settle budget is not waited for; the settle runs then', async () => {
+  const order = []
+  const timers = []
+  const { app } = modelElectron()
+  const q = createQuitCoordinator({
+    app, ready: () => true, hardDeadlineMs: 10_000, settleBudgetMs: 2_500,
+    setTimer: (fn, ms) => { timers.push({ fn, ms }); return {} },
+    shutdown: () => new Promise(() => { order.push('shutdown') }),
+    settle: async () => { order.push('settle') }
+  })
+  app.on('before-quit', (e) => q.beforeQuit(e))
+  app.quit()
+  await settle()
+  assert.deepEqual(order, ['shutdown'])
+  const drainTimer = timers.find((x) => x.ms === 7_500)
+  assert.ok(drainTimer, 'a timer at the deadline minus the budget')
+  drainTimer.fn()
+  await settle()
+  assert.deepEqual(order, ['shutdown', 'settle'])
+})
+
 test('the old pattern is caught by the model: a re-quit from finally never reaches will-quit', async () => {
   const { app, state } = modelElectron()
   let quitting = false

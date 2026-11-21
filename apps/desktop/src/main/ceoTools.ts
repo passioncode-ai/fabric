@@ -33,6 +33,14 @@ const reason = z.string().trim().min(3).max(400).describe('Why: one sentence the
 const sessionId = z.string().trim().min(1).max(128).describe('A session id from fabric_ceo_sessions (session_sessions by voice): a Fabric console\'s or a Switchboard session\'s.')
 
 /** The closed set, in the order the model reads it; each description says when to use it and which neighbour it is not. */
+/** An account as the CEO and its voice say it (the 0.3.28 review, iteration 2, DA-7): Switchboard's labels are mail
+ *  addresses here, and a voice answer reaches xAI and the call journal, so only the name before «@» is said; the account
+ *  is chosen by its id, and a full label typed by the CEO still matches locally (`launchChoice.ts#findAccount`). */
+export function accountName(label: string): string {
+  const at = label.indexOf('@')
+  return at > 0 ? `${label.slice(0, at)}@…` : label
+}
+
 export const CEO_TOOLS = {
   sessions: {
     mcp: 'fabric_ceo_sessions',
@@ -642,7 +650,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       // now waits for the task's delivery (bounded) and says what became of it.
       const firstTask = a.task?.trim() ? await firstTaskOf(s.sessionId, via) : null
       return { ok: true, session_id: s.sessionId, project: project.name, folder: s.cwd, runner: s.optionId, state: s.state,
-        ...heard, ...(account ? { account: account.label, account_left_pct: account.leftPct } : {}), ...(firstTask ? { first_task: firstTask } : {}) }
+        ...heard, ...(account ? { account: accountName(account.label), account_id: account.id, account_left_pct: account.leftPct } : {}), ...(firstTask ? { first_task: firstTask } : {}) }
     } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
       deps.record('ceo.session.start', { project_id: project.id, outcome: 'failed', reason: a.reason })
       return refuse(`the session did not start: ${e instanceof Error ? e.message : String(e)}`)
@@ -921,9 +929,9 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     }
     const runners = a.runner ? [a.runner] : ['claude-code', 'codex']
     const rows = runners.flatMap((r) => (a.project ? accountsFor(r, pool, read.accounts) : read.accounts.filter((x) => x.provider === PROVIDER_OF[r] && x.enabled && !x.elsewhere && !x.assigned))
-      .map((x) => ({ runner: r, account: x.label, id: x.id, group: x.pool, left_pct: x.leftPct, resets_at: x.resetsAt })))
+      .map((x) => ({ runner: r, account: accountName(x.label), id: x.id, group: x.pool, left_pct: x.leftPct, resets_at: x.resetsAt })))
     return { ok: true, ...(projectName ? { project: projectName, group: pool ?? 'none' } : {}), accounts: rows.slice(0, 40),
-      note: 'left_pct is the share of the limiting window left; null is unknown, never empty. An account of a group starts only in that group\'s folders; one of the default group anywhere.' }
+      note: 'To choose an account pass its id. left_pct is the share of the limiting window left; null is unknown, never empty. An account of a group starts only in that group\'s folders; one of the default group anywhere.' }
   }
 
   async function wait(a: z.infer<typeof CEO_TOOLS.wait.input>): Promise<Answer> {

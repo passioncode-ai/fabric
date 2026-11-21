@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { ru } from '../i18n/ru'
-import { KanbanBoard } from './KanbanBoard'
+import { KanbanBoard, orderMoveAllowed } from './KanbanBoard'
 import type { TaskBoardView } from '../../../shared/taskBoard'
 
 const board: TaskBoardView = {
@@ -276,27 +276,35 @@ describe("the queue's order on the kanban", () => {
     show({ projectId: 'p1' })
     await waitFor(() => expect(screen.getByText('Schema')).toBeTruthy())
     expect((screen.getByRole('button', { name: en['launch.kanban.order.upLabel'].replace('{task}', 'Schema') }) as HTMLButtonElement).disabled).toBe(true)
-    fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.order.upLabel'].replace('{task}', 'Screen') }))
-    expect(reorder).toHaveBeenLastCalledWith('c', 'a')
-    await waitFor(() => expect((window.fabric.work.board as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2))
+    // UX-13: «Screen» waits for an open task, so it cannot move above the ready «Reader», nor «Reader» below it; each
+    // button says why.
+    const screenUp = screen.getByRole('button', { name: en['launch.kanban.order.upLabel'].replace('{task}', 'Screen') }) as HTMLButtonElement
+    expect(screenUp.disabled).toBe(true)
+    expect(screenUp.title).toBe(en['launch.kanban.order.waitsFirst'])
+    expect((screen.getByRole('button', { name: en['launch.kanban.order.downLabel'].replace('{task}', 'Reader') }) as HTMLButtonElement).disabled).toBe(true)
     fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.order.downLabel'].replace('{task}', 'Schema') }))
     expect(reorder).toHaveBeenLastCalledWith('a', 'b')
-    await waitFor(() => expect((window.fabric.work.board as ReturnType<typeof vi.fn>).mock.calls.length).toBe(3))
+    await waitFor(() => expect((window.fabric.work.board as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2))
     fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.order.upLabel'].replace('{task}', 'Reader') }))
     await waitFor(() => expect(reorder).toHaveBeenLastCalledWith('b', null))
   })
 
-  it('a card dropped onto another takes its place', async () => {
+  it('a card dropped onto another takes its place, never across the waiting line', async () => {
     const reorder = vi.fn(async () => ({ written: 1 }))
     wire(three, { reorder })
     const { container } = show({ projectId: 'p1' })
     await waitFor(() => expect(screen.getByText('Schema')).toBeTruthy())
     const wraps = [...container.querySelectorAll('.lk-col')[0]!.querySelectorAll('.lk-card-wrap')]
     const dataTransfer = { effectAllowed: '', dropEffect: '', setData: vi.fn() }
+    // UX-13: the waiting «Screen» dropped onto the ready «Schema» is not taken.
     fireEvent.dragStart(wraps[2]!, { dataTransfer })
     fireEvent.dragOver(wraps[0]!, { dataTransfer })
     fireEvent.drop(wraps[0]!, { dataTransfer })
-    expect(reorder).toHaveBeenCalledWith('c', null)
+    expect(reorder).not.toHaveBeenCalled()
+    fireEvent.dragStart(wraps[1]!, { dataTransfer })
+    fireEvent.dragOver(wraps[0]!, { dataTransfer })
+    fireEvent.drop(wraps[0]!, { dataTransfer })
+    expect(reorder).toHaveBeenCalledWith('b', null)
   })
 
   it('with every project shown the queue is read only and says to pick a project', async () => {
@@ -305,6 +313,9 @@ describe("the queue's order on the kanban", () => {
     await waitFor(() => expect(screen.getByText('Schema')).toBeTruthy())
     expect(screen.getByText(en['launch.kanban.order.noteAll'])).toBeTruthy()
     expect(screen.queryByRole('button', { name: en['launch.kanban.order.upLabel'].replace('{task}', 'Screen') })).toBeNull()
+    // UX-15: an agent's proposal is not accepted where nothing can be moved; it can still be declined.
+    expect(screen.queryByRole('button', { name: en['launch.kanban.proposal.acceptLabel'].replace('{task}', 'Screen') })).toBeNull()
+    expect(screen.getByRole('button', { name: en['launch.kanban.proposal.declineLabel'].replace('{task}', 'Screen') })).toBeTruthy()
   })
 
   it("shows an agent's proposed place with its why, and the owner accepts or declines it", async () => {
@@ -339,5 +350,18 @@ describe("the queue's order on the kanban", () => {
     show({ projectId: 'p1' })
     await waitFor(() => expect(screen.getByText(en['launch.kanban.order.unread'])).toBeTruthy())
     expect(screen.queryByRole('button', { name: en['launch.kanban.order.downLabel'].replace('{task}', 'Schema') })).toBeNull()
+  })
+})
+
+describe('orderMoveAllowed (0.3.28 review, iteration 2, UX-13)', () => {
+  const ready = { order: { waits: 0 } }, waiting = { order: { waits: 1 } }, none = { order: null }
+  it('moves within the ready cards and within the waiting cards, never across them', () => {
+    const cards = [ready, none, waiting, waiting]
+    expect(orderMoveAllowed(cards, 1, 0)).toBe(true)
+    expect(orderMoveAllowed(cards, 3, 2)).toBe(true)
+    expect(orderMoveAllowed(cards, 2, 1)).toBe(false)
+    expect(orderMoveAllowed(cards, 1, 2)).toBe(false)
+    expect(orderMoveAllowed(cards, 0, 0)).toBe(false)
+    expect(orderMoveAllowed(cards, 0, 9)).toBe(false)
   })
 })

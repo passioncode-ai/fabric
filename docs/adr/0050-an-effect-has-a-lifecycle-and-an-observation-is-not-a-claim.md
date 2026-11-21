@@ -92,3 +92,7 @@ An execution plane where every effect is performed by an adapter Fabric owns, so
 `outcome_unknown` becomes reachable only by crash rather than by design. At that point
 `effect.claimed@1` would have no callers and could be retired — but the state would stay,
 because the crash window does not close.
+
+## Amended by ADR-0203 (2026-11-20)
+
+[ADR-0203](0203-the-owners-approval-mode-says-which-acts-wait-for-him.md): besides the owner, the owner's approval mode may issue a one-shot grant above the floor (issuer `approval-mode:<mode>`), recorded with the mode that allowed it in the behaviour journal; the human gates (a sign-in, a one-time code, a payment, a typed secret, a consent screen) still wait for the person in every mode.

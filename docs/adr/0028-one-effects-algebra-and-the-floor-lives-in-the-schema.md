@@ -60,3 +60,7 @@ A hosted deployment whose operators cannot run migrations would need a floor-cha
 path that is not DDL; that record must state who signs it and why a bundle becomes
 un-reasonable-around. Until then, minimum-composition plus schema-floor is the algebra
 every module implements.
+
+## Amended by ADR-0203 (2026-11-20)
+
+[ADR-0203](0203-the-owners-approval-mode-says-which-acts-wait-for-him.md): besides the owner, the owner's approval mode may issue a one-shot grant above the floor (issuer `approval-mode:<mode>`), recorded with the mode that allowed it in the behaviour journal; the human gates (a sign-in, a one-time code, a payment, a typed secret, a consent screen) still wait for the person in every mode.

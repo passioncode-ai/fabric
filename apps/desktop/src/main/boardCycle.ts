@@ -8,7 +8,7 @@
  * call (`decisions`, BoardDecisions), the reading of «Нужны вы», and the machine's sleep (`clock`, BoardClock).
  */
 import path from 'node:path'
-import { closeSync, fchmodSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs'
+import { closeSync, fchmodSync, fsyncSync, openSync, readFileSync, renameSync, rmSync, writeSync } from 'node:fs'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Journal } from '@fabric/journal'
 import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readReviewAges, readRunningTasks, readSweepClaims } from './abandonedSweepRun.ts'
@@ -337,6 +337,7 @@ export function startBoardCycle(d: BoardCycleDeps): {
     // The routes this machine holds (they name private organizations, so they never live in this repository).
     routes: () => routesOf(readPeopleRoutesRaw()),
     choices: () => choicesOf(readPeopleRoutesRaw()),
+    routesUnread: () => readPeopleRoutesFile().state === 'unreadable',
     async allowAccess(requestId) {
       const row = await d.accessRequest(requestId)
       if (!row) return false
@@ -411,9 +412,15 @@ export function startBoardCycle(d: BoardCycleDeps): {
     const next = withChoice(file.state === 'read' ? file.raw : undefined, projectId, choice)
     // A fresh name each time, created exclusively and kept 0600, then synced and renamed over (iteration 1, DA-2).
     const tmp = `${peopleRoutesFile}.${process.pid}.${Date.now().toString(36)}.tmp`
-    const fd = openSync(tmp, 'wx', 0o600)
-    try { fchmodSync(fd, 0o600); writeSync(fd, `${JSON.stringify(next, null, 2)}\n`); fsyncSync(fd) } finally { closeSync(fd) }
-    renameSync(tmp, peopleRoutesFile)
+    try {
+      const fd = openSync(tmp, 'wx', 0o600)
+      try { fchmodSync(fd, 0o600); writeSync(fd, `${JSON.stringify(next, null, 2)}\n`); fsyncSync(fd) } finally { closeSync(fd) }
+      renameSync(tmp, peopleRoutesFile)
+    } catch (e) {
+      // The 0.3.28 review, iteration 2, ER-20, DA-13: no copy of the routes is left beside the file; the caller records it.
+      rmSync(tmp, { force: true })
+      throw e
+    }
     ops.record({ op: 'people.ask.choice', outcome: 'ok', level: 'info', detail: { choice: choice === null ? 'found' : 'off' in choice ? 'off' : 'target' }, ctx: { correlationId: ops.correlate() } })
   }
   // #endregion people-ask-settings

@@ -44,6 +44,7 @@ function world(over = {}) {
     projectFacts: async (id) => w.facts?.[id] ?? (id === PM ? { id: PM, name: 'acme-pm', business: null, owner: 'acme-org' } : null),
     routes: () => w.routes ?? ROUTES,
     choices: () => w.choices ?? {},
+    routesUnread: () => w.routesUnread === true,
     allowAccess: async () => true,
     responders: async () => w.responders,
     epoch: async () => 7,
@@ -161,6 +162,13 @@ test('the person\'s choice in Settings comes first: a chosen PM project over the
   await createPeopleAskBridge(off.deps).onPass()
   assert.equal(off.submits.length, 0)
   assert.match(JSON.stringify(off.logs.find((l) => l.op === 'people.ask.skipped').detail), /chosen-off/)
+})
+
+test('0.3.28 review ER-12: while the routes file does not read, nothing is sent, not even to the PM project found live', async () => {
+  const w = world({ routesUnread: true, routes: [], choices: {}, responders: [{ project: PM, capability: 'people.ask', state: 'active' }] })
+  await createPeopleAskBridge(w.deps).onPass()
+  assert.equal(w.submits.length, 0)
+  assert.match(JSON.stringify(w.logs.find((l) => l.op === 'people.ask.skipped').detail), /routes-unread/)
 })
 
 test('the switch off sends nothing new and takes back what is open', async () => {

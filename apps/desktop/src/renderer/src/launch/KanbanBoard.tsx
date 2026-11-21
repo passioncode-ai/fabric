@@ -32,6 +32,17 @@ const DONE_PAGE = 20
 /** The most «Готово» reads: the main process's own bound (`main/index.ts`, `work:board`). */
 export const DONE_MAX = 500
 
+
+/** ADR-0208 (the 0.3.28 review, iteration 2, UX-13): the queue stands ready tasks before those that wait for an open one,
+ *  whatever the owner's rank says, so a waiting card cannot move above a ready one and a ready card cannot move below a
+ *  waiting one: such a move would change nothing on the board and only pin the cards around it. Whether moving the card
+ *  at `from` to the place of the card at `to` is one the board would show. */
+export function orderMoveAllowed(cards: ReadonlyArray<{ order?: { waits: number } | null }>, from: number, to: number): boolean {
+  if (from < 0 || to < 0 || from >= cards.length || to >= cards.length || from === to) return false
+  const waits = (i: number): boolean => (cards[i]?.order?.waits ?? 0) > 0
+  return waits(from) === waits(to)
+}
+
 export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remembered, onRemember }: {
   /** Re-read on the journal's clock. */
   feedMark: number
@@ -113,7 +124,7 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
   const dropOn = (cards: readonly BoardCard[], targetId: string): void => {
     const from = cards.findIndex((x) => x.taskId === dragged), to = cards.findIndex((x) => x.taskId === targetId)
     setDragged(null); setOver(null)
-    if (from < 0 || to < 0 || from === to || !dragged) return
+    if (from < 0 || to < 0 || from === to || !dragged || !orderMoveAllowed(cards, from, to)) return
     move(dragged, from < to ? targetId : (cards[to - 1]?.taskId ?? null))
   }
   const abandoned = view?.abandoned?.length
@@ -208,9 +219,11 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
                       </button>
                       {orderable && cards.length > 1 && (
                         <span className="lk-move">
-                          <button type="button" className="lp-button lh-text-link" disabled={!!busy || at === 0} aria-label={t('launch.kanban.order.upLabel', { task: name })}
+                          <button type="button" className="lp-button lh-text-link" disabled={!!busy || at === 0 || !orderMoveAllowed(cards, at, at - 1)} aria-label={t('launch.kanban.order.upLabel', { task: name })}
+                            title={at > 0 && !orderMoveAllowed(cards, at, at - 1) ? t('launch.kanban.order.waitsFirst') : undefined}
                             onClick={() => move(x.taskId, cards[at - 2]?.taskId ?? null)}>{t('launch.kanban.order.up')}</button>
-                          <button type="button" className="lp-button lh-text-link" disabled={!!busy || at === cards.length - 1} aria-label={t('launch.kanban.order.downLabel', { task: name })}
+                          <button type="button" className="lp-button lh-text-link" disabled={!!busy || at === cards.length - 1 || !orderMoveAllowed(cards, at, at + 1)} aria-label={t('launch.kanban.order.downLabel', { task: name })}
+                            title={at < cards.length - 1 && !orderMoveAllowed(cards, at, at + 1) ? t('launch.kanban.order.waitsFirst') : undefined}
                             onClick={() => move(x.taskId, cards[at + 1]!.taskId)}>{t('launch.kanban.order.down')}</button>
                         </span>
                       )}
@@ -223,7 +236,8 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
                             : t('launch.kanban.proposal.afterGone')}</small>
                           {x.proposal.why && <small className="lp-meta">{x.proposal.why}</small>}
                           <span className="lk-move">
-                            {(x.proposal.afterTaskId === null || anchor) && (
+                            {/* The 0.3.28 review, iteration 2, UX-15: accepted only where the queue can be moved. */}
+                            {mayOrder && (x.proposal.afterTaskId === null || anchor) && (
                               <button type="button" className="lp-button lh-text-link" disabled={!!busy} aria-label={t('launch.kanban.proposal.acceptLabel', { task: name })}
                                 onClick={() => act(x.taskId, 'launch.kanban.proposal.failed', () => window.fabric.tasks.rankProposal(x.taskId, true))}>{t('launch.kanban.proposal.accept')}</button>
                             )}

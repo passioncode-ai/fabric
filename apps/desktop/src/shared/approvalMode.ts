@@ -76,6 +76,11 @@ const WAITS: Record<Locale, Record<ApprovalMode, string>> = {
 }
 
 /** The rule handed to every session, the CEO and its voice: the mode, what waits, delegation, the human gates. */
+/** What a mode makes wait for the owner, in one sentence, for the place the owner switches it (Settings). */
+export function approvalModeWaits(mode: ApprovalMode, locale?: string): string {
+  return WAITS[loc(locale)][mode]
+}
+
 export function approvalRule(mode: ApprovalMode, locale?: string): string {
   const l = loc(locale)
   const gates = HUMAN_GATES[l].join(', ')

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `RELEASE-0328-MAIN` · origin/main (`8cbf93ff`) → release/0.3.28 · merge (`3d60a362`)
+- files: the queue's order (ADR-0208, migration 131, schema 104, `taskRank.ts`, `taskRankWrite.ts`, the kanban's order), CO-620's rulings (`78237d65`), CHANGELOG (main's `## Unreleased` line moved under 0.3.28), the runbook's 0.3.28 paragraph for schema 104, the previews rebuilt
+- conflicts: CHANGELOG, `apps/desktop/package.json` (both test lists), MERGES, the backlog's lane 12 and recount, the map's changelog, the generated reports and previews (rebuilt)
+- summary: the release tag must sit on a commit on `main`, so the train takes what `main` landed after the 0.3.27 tag (the 0.3.28 review, iteration 1, PL-7); two of the train's «not in it» items joined later this way and by `RELEASE-0328-APPROVAL`
+
 ### 2026-11-21 · `RELEASE-0328-APPROVAL` · feat/approval-modes-0328 (feat/approval-modes with feat/ceo-access, `2d689d34`) → release/0.3.28 · merge
 - files: ADR-0203 (`approvalMode.ts`, the behaviour journal, `fabric_ceo_journal`), the CEO's account choice and session wait (`fabric_ceo_session_start` with `account`, `fabric_ceo_accounts`, `fabric_ceo_session_wait`), CHANGELOG lines moved under `## 0.3.28 (unreleased)`, the map
 - conflicts: the map's changelog (both sides kept); CHANGELOG: the branch's `**Upgrading.** No schema step` line dropped, since 0.3.28 carries schema 104

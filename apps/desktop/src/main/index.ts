@@ -668,8 +668,13 @@ const quit = createQuitCoordinator({
   // CO-625: every console's exit delivered before the last app.quit(), else node-pty aborts Fabric during teardown.
   settle: async () => {
     if (!ptys) return
-    const r = await settleExits(() => ptys.pendingExits())
-    if (r.killed || r.left || r.waited) ops.record({ op: 'quit.settle', outcome: r.left ? 'failed' : 'ok', level: r.left ? 'warn' : 'info', detail: { ...r }, ctx: { correlationId: ops.correlate() } })
+    try {
+      const r = await settleExits(() => ptys.pendingExits())
+      if (r.killed || r.left || r.waited) ops.record({ op: 'quit.settle', outcome: r.left ? 'failed' : 'ok', level: r.left ? 'warn' : 'info', detail: { ...r }, ctx: { correlationId: ops.correlate() } })
+    } catch (e) {
+      // The 0.3.28 review, iteration 2, ER-18: recorded here, since the quit only swallows it to go on.
+      ops.failed('quit.settle', e)
+    }
   },
   // ADR-0192: while the board's service is on, the person's quit hides Fabric and the board keeps running; logout,
   // restart and shutdown (powerMonitor's 'shutdown', posted for each on macOS), a signal, «Перезапустить Fabric» and the

@@ -141,4 +141,6 @@ show it. While Fabric runs on macOS, the Dock shows the CEO's face once the pers
 option A; `main/appIcon.ts#setDockIcon`, `renderer/src/launch/dockIcon.ts#dockFollows`), kept in
 `userData/dock-icon.png` for the next start. A face never picked leaves the mark, so a person who did not choose sees
 one icon everywhere. Whether the shipped `.icns` becomes a default character is still open (plan wave I); a signed
-bundle cannot change its own icon. Released in 0.3.28 (the 0.3.28 review, iteration 1, PL-11, DO-5).
+bundle cannot change its own icon. On Windows and Linux a picked face becomes the icon of the windows open at that
+moment, until they close or Fabric restarts (iteration 2, DO-21). Released in 0.3.28 (the 0.3.28 review, iteration 1,
+PL-11, DO-5).

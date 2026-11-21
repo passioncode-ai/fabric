@@ -84,7 +84,9 @@ test('G1: the CEO starts a session on a chosen account, and refuses one of anoth
   const o = ops()
   const r = await o.ops.run('start', { project: 'app', task: 'go', account: 'work', reason: 'the owner asked' }, 'voice')
   assert.equal(r.ok, true)
-  assert.equal(r.account, 'work@example.com')
+  // The 0.3.28 review, iteration 2, DA-7: only the name before «@» is said (the answer reaches the voice and its journal).
+  assert.equal(r.account, 'work@…')
+  assert.equal(r.account_id, 'a1-0000-0000')
   assert.deepEqual(o.opened.at(-1), ['p1', 'claude-code', 'go', 'a1-0000-0000'])
   const wrongGroup = await o.ops.run('start', { project: 'app', task: 'go', account: 'other', reason: 'the owner asked' }, 'voice')
   assert.equal(wrongGroup.ok, false)
@@ -93,7 +95,7 @@ test('G1: the CEO starts a session on a chosen account, and refuses one of anoth
   const wrongAgent = await o.ops.run('start', { project: 'app', runner: 'codex', task: 'go', account: 'work', reason: 'the owner asked' }, 'voice')
   assert.match(wrongAgent.reason, /needs a codex one/)
   const list = await o.ops.run('accounts', { project: 'app' }, 'voice')
-  assert.deepEqual(list.accounts.map((x) => [x.runner, x.account]), [['claude-code', 'home@example.com'], ['claude-code', 'work@example.com'], ['codex', 'codex@example.com']])
+  assert.deepEqual(list.accounts.map((x) => [x.runner, x.account]), [['claude-code', 'home@…'], ['claude-code', 'work@…'], ['codex', 'codex@…']])
 })
 
 test('G2: a wait answers once the console printed and went quiet, and says still working at its bound', async () => {

@@ -411,18 +411,27 @@ private-archive admission with 103 added; no table and no data change). Fabric d
 `schema_migrations`; the 0.3.27 review, run thirteen); going back needs the earlier bundle and a database restored from the
 backup taken before the upgrade, as for every schema step, since no older build opens a schema-103 database.
 
-**0.3.28 admits schema 104** (migration `20261121000131_task_rank.sql`, the queue's order, ADR-0208: the events
-`task.ranked@1`, `task.rank.proposed@1` and `task.rank.declined@1` with their feed sentences, the projector's rank
-function and its table; `private-archive` admission with 104 added). As for 0.3.27, Fabric does not take the step
-itself: a database at 103 is refused at start until this procedure runs (a backup, `supabase migration up --local`,
-`schema_version()` read back as 104), and a database at 102 (0.3.26) takes 0.3.27's step and this one in the same
-`supabase migration up`. Going back needs the 0.3.27 bundle and the database restored from the backup taken before the
-step. On macOS turn «Служба доски» off before the quit and on again once 0.3.28 reads back, as for 0.3.18. Going back
-to 0.3.27 also forgets the choices made in «Куда уходят вопросы»: 0.3.27 reads only the routes list of
-`userData/people-ask-routes.json` and its own built-in route, so a project set to «Не отправлять в Telegram» sends its
-questions to Telegram again; before going back, turn «Присылать вопросы в Telegram через агента организации» off if
-that matters (the 0.3.28 review, iteration 1, DO-1). The Dock keeps the face until 0.3.27 starts, which shows the
-bundle's icon and leaves `userData/dock-icon.png` unread.
+**0.3.28 admits schema 104** (migration `20261121000131_task_rank.sql`, the queue's order, ADR-0208: two columns
+(`rank`, `rank_proposal`) and an index on `project_tasks`, the projector's rank function, the event types
+`task.ranked@1`, `task.rank.proposed@1` and `task.rank.declined@1`, and migration 130's private-archive admission with 104
+added; the feed sentences of the three events are the app's own, in `i18n`). As for 0.3.27, Fabric does not take the
+step itself: a database at 103 is refused at start until this procedure runs (a backup, `supabase migration up --local`,
+`schema_version()` read back as 104); a database at 102 (0.3.26) takes 0.3.27's step and this one in the same
+`supabase migration up`. **Stopping the old build for the step meets CO-625**: 0.3.26 and 0.3.27, ended by a signal with
+consoles open, abort and the board's launch agent starts them again, back on the database in the middle of the step.
+So, before the step: close the consoles or stop Fabric with `launchctl bootout gui/$(id -u)/ai.passioncode.desktop.board`
+(the stand-in job of 2026-11-21's 0.3.27 install keeps launchd from starting it again), hold the lifecycle broker's
+target (`lifecycle.py hold --target-id fabric.desktop`), and check that no Fabric process and no connection to the
+database remain. The release session runs the step on the owner's Mac after the tag; every other machine on an older
+build takes it at its own update. Going back needs the 0.3.27 bundle and the database restored from the backup taken
+before the step. On macOS turn «Служба доски» off before the quit and on again once 0.3.28 reads back, as for 0.3.18.
+Going back to 0.3.27 also forgets, at its first settings write, two choices 0.3.28 keeps: the approval mode (0.3.28
+reads it again as «одобрять важные» after upgrading again, so set it once more in Settings) and the choices made in
+«Куда уходят вопросы» (0.3.27 reads only the routes list of `userData/people-ask-routes.json` and its own built-in
+route, so a project set to «Не отправлять в Telegram» sends its questions to Telegram again; before going back, turn
+«Присылать вопросы в Telegram через агента организации» off if that matters; the 0.3.28 review, iteration 1, DO-1, and
+iteration 2, DO-19, PL-18). The Dock keeps the face until 0.3.27 starts, which shows the bundle's icon and leaves
+`userData/dock-icon.png` unread; the `userData/ceo/behaviour/` files stay, unread.
 
 1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
    on: turn it off and then quit before the bundle is replaced (`launchctl bootout` stops only a copy launchd started;
@@ -506,7 +515,7 @@ bundle's icon and leaves `userData/dock-icon.png` unread.
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12, 98 for 0.3.13 to 0.3.15, 100 for 0.3.16 to 0.3.18, 101 for 0.3.19, 102 for 0.3.20 to 0.3.26, 103 after).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12, 98 for 0.3.13 to 0.3.15, 100 for 0.3.16 to 0.3.18, 101 for 0.3.19, 102 for 0.3.20 to 0.3.26, 103 for 0.3.27, 104 after).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

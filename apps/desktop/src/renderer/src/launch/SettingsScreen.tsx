@@ -12,7 +12,8 @@ import type { ExecutorRow } from '../../../shared/startPaths'
 import type { AppSettings, LaunchOption, SettingsPatch } from '../../../shared/types'
 import { FallbackOrderSetting } from '../FallbackOrderSetting'
 import { UsageCountsSetting } from '../UsageCountsSetting'
-import { useT } from '../i18n'
+import { useLocale, useT } from '../i18n'
+import { APPROVAL_MODES, approvalModeLabel, approvalModeOf, approvalModeWaits, type ApprovalMode } from '../../../shared/approvalMode.ts'
 import { FailureNote, MachineDetail } from '../OperatorError'
 
 /** How an agent starts by default: its mode's environment, the program, the mode's arguments (ADR-0168). */
@@ -158,6 +159,33 @@ export function Saved({ on }: { on: boolean }): React.JSX.Element | null {
 
 /** One permission choice for every agent Fabric starts (CO-305, ADR-0168), and beside it whether the folder a Claude Code
  *  session starts in is marked trusted (CO-348, the operator 2026-10-19: on by default). */
+/** ADR-0203 §5 (the 0.3.28 review, iteration 2, UX-12): the owner sees and switches his approval mode here; every
+ *  session, the CEO and its voice read the same setting. The sign-in, code, payment, secret and consent gates wait in
+ *  every mode (`shared/approvalMode.ts#HUMAN_GATES`). */
+export function ApprovalModeSetting({ value, onChange, saved = null }: {
+  value: ApprovalMode
+  onChange: (next: SettingsPatch) => Promise<void> | void
+  saved?: string | null
+}): React.JSX.Element {
+  const t = useT()
+  const locale = useLocale()
+  return (
+    <section className="lp-panel" aria-labelledby="settings-approval-title">
+      <h4 id="settings-approval-title">{t('settings.approval.title')}</h4>
+      <p className="lp-meta">{t('settings.approval.lede')}</p>
+      <div role="radiogroup" aria-labelledby="settings-approval-title">
+        {APPROVAL_MODES.map((mode) => (
+          <label key={mode} className="lp-choice">
+            <input type="radio" name="approval-mode" value={mode} checked={value === mode} onChange={() => void onChange({ approvalMode: mode })} />
+            <span><b>{approvalModeLabel(mode, locale)}</b><small>{approvalModeWaits(mode, locale)}</small></span>
+          </label>
+        ))}
+      </div>
+      <Saved on={saved === 'approvalMode'} />
+    </section>
+  )
+}
+
 export function AgentPermissionsSetting({ value, onChange, trustFolders = true, dispatch = true, resume = true, peopleAsk = true, saved = null }: {
   value: AppSettings['agentPermissions']
   onChange: (next: SettingsPatch) => Promise<void> | void
@@ -517,6 +545,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpen, agen
           <ReadinessPanel />
         </Section>
         <Section id="settings-launch-group" label={t('settings.launch.group')}>
+          <ApprovalModeSetting value={approvalModeOf(settings.approvalMode)} onChange={change} saved={saved} />
           <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} trustFolders={settings.trustAgentFolders !== false} dispatch={settings.dispatchBoardRequests !== false} resume={settings.resumeLeftWork !== false} peopleAsk={settings.peopleAsk !== false} saved={saved} />
           <AgentCatalogPanel permissions={settings.agentPermissions ?? 'fewer-prompts'} />
           {agentsRoster && (

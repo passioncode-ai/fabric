@@ -55,6 +55,8 @@ export interface QuitOptions {
   /** CO-625: after the drain, waits until every console's exit has reached JavaScript (bounded), so nothing of node-pty
    *  arrives during Node's teardown, where it aborts the process. */
   settle?: () => Promise<unknown>
+  /** How long before the deadline the settle starts at the latest (QUIT_SETTLE_BUDGET_MS). */
+  settleBudgetMs?: number
   /** Upper bound from the first quit request to process exit. */
   hardDeadlineMs?: number
   /** The code the deadline ends the process with, read when it fires (`quitDeadlineExitCode`); 3 when not given. */
@@ -73,6 +75,10 @@ export interface QuitOptions {
 }
 
 export const QUIT_DEADLINE_MS = 10_000
+/** CO-625 (the 0.3.28 review, iteration 2, ER-13): the time the console settle keeps before the deadline. A drain still
+ *  running at the deadline minus this is not waited for further; the settle runs then, so a stop that uses its own 8 s
+ *  bound never leaves the consoles to Node's teardown. */
+export const QUIT_SETTLE_BUDGET_MS = 2_500
 /**
  * A quit that needed the deadline did NOT end cleanly, and says so: exit 0 here let a stalled drain pass
  * a walk as graceful (lifecycle review 2026-10-03, finding 9). Supervisors and walks read this code.
@@ -180,7 +186,11 @@ export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
       }
       begin()
       void Promise.resolve()
-        .then(() => o.shutdown())
+        .then(() => {
+          // The drain is waited for until the settle's budget before the deadline, not past it (ER-13).
+          const until = Math.max(0, hardDeadlineMs - (o.settleBudgetMs ?? QUIT_SETTLE_BUDGET_MS))
+          return Promise.race([o.shutdown(), new Promise<void>((resolve) => { setTimer(() => resolve(), until).unref?.() })])
+        })
         .catch(() => { /* The shutdown records its own outcome; a failure must not keep the process alive. */ })
         .then(() => o.settle?.())
         .catch(() => { /* The settle records its own outcome; a failure must not keep the process alive. */ })

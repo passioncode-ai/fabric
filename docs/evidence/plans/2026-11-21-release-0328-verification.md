@@ -19,12 +19,16 @@ read-only; findings are disposed here and in the receipts under `docs/evidence/r
   release), and the work in progress held by the pause (`feat/ceo-persona`, `feat/ui-kit`, `feat/dispatch-credentials`,
   `feat/record-show`, `feat/pages-wave`, `feat/estate-work-summary`). `feat/ceo-triage` (task a0afb015) is built on
   this train and goes to a later release.
+- Shipped earlier, so not in this train: the Inbox registry fix of A-3 row 9 (in 0.3.27, its CHANGELOG «Agents reach
+  Fabric Inbox again»). Left for a later release: the CEO console pinned first on Агенты (A-3's addendum, board task
+  `2de5eff4`, «the 0.3.28 train if it is small»: not built when the train was cut; iteration 2, PL-20).
 - Taken from `main` before iteration 2 (PL-7): the queue's order (`8cbf93ff`, ADR-0208, migration 131, schema 104),
   which `main` landed after the tag with its own gate run; the release tag must be on `main`, so 0.3.28 carries it.
 - Joined for iteration 2 (merged from `feat/approval-modes-0328`, `2d689d34`): `feat/approval-modes` and `feat/ceo-access`. The reconciler's plan puts them in SD-FAB-01
   (fabric-workspace `docs/plans/2026-11-21-system-design/amendments/A-3-owner-orders-audit.md:167`, row 9 of P0: «the
   hardcode audit wave 1, CEO access, approval modes with the behaviour journal»); their author, session 9cda1c0f,
-  brought them onto `main` after `v0.3.27` (`78237d65`) with 0.3.27's changes, its `ci.sh fast` green with the browser
+  brought them, with 0.3.27's changes, onto a branch cut from `main`'s tip `8cbf93ff` after the tag (they reach `main`
+  for the first time with this release), its `ci.sh fast` green with the browser
   suites 26 of 26 (its messages to this session of 2026-11-21, after iteration 1's PL-2 and at about 09:40). ADR-0207's
   Decision 1 builds on them.
 - The reviewers: Claude Code subagents of the release session (Opus 5.5), each a fresh context given
