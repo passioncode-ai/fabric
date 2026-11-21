@@ -399,8 +399,9 @@ iteration 3, PL-2, DA-1).
 
 **0.3.27 admits schema 103** (migration `20261121000130_board_operator_message_via.sql`: a new function
 `board_message_via`, migration 94's `board_list_operator` with the mark added to each message, and migration 129's
-private-archive admission with 103 added; no table and no data change). A database at 102 takes the one migration at the
-first start (`schema_migrations` gains one row); going back needs the earlier bundle and a database restored from the
+private-archive admission with 103 added; no table and no data change). Fabric does not take it itself: a database at
+102 is refused at start until this procedure runs (`supabase migration up --local` adds one row to
+`schema_migrations`; the 0.3.27 review, run thirteen); going back needs the earlier bundle and a database restored from the
 backup taken before the upgrade, as for every schema step, since no older build opens a schema-103 database.
 
 1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
