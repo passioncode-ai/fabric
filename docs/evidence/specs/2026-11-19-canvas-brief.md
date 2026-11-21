@@ -55,6 +55,22 @@ versions of a canvas; attaching a canvas to a task as context; knowledge-graph n
 | CV-REQ-11 | A command to a canvas that does not answer within 10 s is a refusal, and a late answer is dropped | `test/canvas-host.test.mjs` |
 | CV-REQ-12 | Docs in the same change: ADR-0201, SCN-192/193, the design map, the lifecycle table if anything runs in the background (nothing does) | `bash scripts/ci.sh fast` |
 
+## Browser check of the built page (2026-11-21)
+
+Run on the build of `f0456075` (built on the Mac Studio), the built `out/renderer` served from loopback, the preload
+bridge replaced by a stub that records what the page saves: `node docs/evidence/specs/2026-11-19-canvas-page-check.cjs
+<out/renderer> <playwright-core> <chromium|webkit>` ([the script](2026-11-19-canvas-page-check.cjs)).
+
+| REQ | Result |
+|---|---|
+| CV-REQ-02 | In Chromium and WebKit the editor opens; a rectangle and an arrow drawn with the mouse and a typed text are saved as an Excalidraw scene for canvas `main` (`rectangle`, `arrow`, `text`), and the top bar says «Сохранено». |
+| CV-REQ-05 | No request to another origin is answered. The fonts drawn load from `excalidraw-assets/fonts/`. Excalidraw still attempts its `esm.sh` fallback 230 times per opening; in Chromium every attempt fails with the reason `csp` (230 failed, 0 answered), in WebKit every one is refused by the policy. |
+
+Not covered by this check: the real preload bridge and the window in the running app (the window policy and the host
+are covered by their node tests), and the voice tools against a live call.
+
+Open from it: take the `esm.sh` fallback out of the bundle (230 refused attempts and console errors per opening).
+
 ## Source ledger
 
 | Source | Read | Finding |

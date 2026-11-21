@@ -51,7 +51,8 @@ function contentSecurityPolicy() {
 
 /**
  * Excalidraw's fonts as the app's own files (ADR-0201 §2): the canvas page sets `window.EXCALIDRAW_ASSET_PATH` to
- * `excalidraw-assets/`, so the editor never falls back to `esm.sh`, which the page's policy refuses anyway. Built: the
+ * `excalidraw-assets/`, so the fonts drawn are the app's own. Excalidraw 0.18.1 still names its `esm.sh` fallback for
+ * every font face, and the page's policy refuses each one (measured 2026-11-21, ADR-0201 §2). Built: the
  * package's `dist/prod/fonts` copied beside the pages. Served: the same folder answered by the dev server.
  */
 const EXCALIDRAW_DIST = resolve(import.meta.dirname, 'node_modules/@excalidraw/excalidraw/dist/prod')

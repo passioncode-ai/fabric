@@ -36,7 +36,11 @@ Three questions decide the shape: which editor draws the canvas, where the canva
 2. **The canvas is its own window and its own document** (`canvas.html`, window kind `canvas`, the canvas id as the
    window's subject). The editor is about 4 MB of script and 13 MB of fonts; it loads only in this window, never in the
    main one. The page carries the renderer's policy unchanged (no network); its fonts are the app's own files
-   (`window.EXCALIDRAW_ASSET_PATH`, copied into the build), so Excalidraw's fallback to `esm.sh` is never reached.
+   (`window.EXCALIDRAW_ASSET_PATH`, copied into the build). Excalidraw 0.18.1 still names its `esm.sh` fallback after
+   the app's own file for every font face, and the page's policy refuses each one: measured 2026-11-21 on the built
+   page in Chromium and WebKit, 230 fallback attempts, every one refused by the policy and none answered, while the
+   fonts drawn loaded from `excalidraw-assets/` (the brief's browser check). Nothing leaves the computer; taking the
+   fallback out of the bundle, so the console is quiet, is open work.
 
 3. **A canvas is a file in Fabric's data folder**, `canvases/<id>.excalidraw`, Excalidraw's own format, written atomically
    (a temporary file, then a rename) as the person draws, at most 20 MB, readable by the owner alone (mode 0600). Not
