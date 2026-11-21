@@ -6,6 +6,7 @@
  * main (`ceoAgent.voiceTool`), with the gates the CEO's console has, and its answer is handed back before the model
  * speaks again. Pure of React; the socket and the audio are injected, so the protocol is tested without either.
  */
+import { CEO_ADDRESS_WORDS } from '../../../shared/ceoAddress'
 import type { CeoVoiceProblem, CeoVoiceSession } from '../../../shared/ceoAgent.ts'
 
 export type CallPhase = 'idle' | 'connecting' | 'listening' | 'speaking' | 'ended' | 'failed'
@@ -85,7 +86,9 @@ export function sessionUpdate(s: Extract<CeoVoiceSession, { ok: true }>): Record
       voice: s.voice,
       turn_detection: { type: 'server_vad' },
       audio: {
-        input: { format: { type: 'audio/pcm', rate: 24000 }, transcription: { model: 'grok-transcribe' } },
+        // Recognition hints (xAI `audio.input.transcription.keyterms`, docs.x.ai speech-to-speech, read 2026-11-21): the
+        // owner's words for the CEO, so «шеф» or «SEO» reach the voice as said (the owner, 2026-11-21).
+        input: { format: { type: 'audio/pcm', rate: 24000 }, transcription: { model: 'grok-transcribe', keyterms: [...CEO_ADDRESS_WORDS, 'Fabric'] } },
         output: { format: { type: 'audio/pcm', rate: 24000 } }
       },
       tools: s.tools

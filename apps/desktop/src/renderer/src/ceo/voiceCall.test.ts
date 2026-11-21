@@ -23,6 +23,9 @@ describe('the CEO voice call', () => {
     await Promise.resolve()
     expect(ws.sent[0]).toEqual(sessionUpdate(session))
     expect((ws.sent[0].session as { turn_detection: unknown }).turn_detection).toEqual({ type: 'server_vad' })
+    // The owner, 2026-11-21: «шеф», «SEO» … are recognition hints, so the CEO's address reaches the voice as said.
+    const keyterms = (ws.sent[0].session as { audio: { input: { transcription: { keyterms: string[] } } } }).audio.input.transcription.keyterms
+    for (const w of ['директор', 'шеф', 'босс', 'менеджер', 'главный', 'SEO']) expect(keyterms).toContain(w)
     audio.chunk?.('AAAA')
     expect(ws.sent[1]).toEqual({ type: 'input_audio_buffer.append', audio: 'AAAA' })
     await Promise.resolve()

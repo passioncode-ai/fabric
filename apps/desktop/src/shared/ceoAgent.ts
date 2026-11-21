@@ -10,6 +10,7 @@
  * that failed) the next runner of the order runs it (Hermes on OpenRouter by default), so the CEO answers on any day.
  */
 
+import { isCeoAddress } from './ceoAddress.ts'
 import { heardDistance, heardClose, heardKeys, nameKeys, soundKey } from './heardName.ts'
 import { isScratchFolder } from './scratchFolder.ts'
 
@@ -313,7 +314,7 @@ export interface WorkFolder { path: string; projectId: string }
 export type ProjectLookup<P> =
   | { found: P; heard?: true; worktree?: string }
   | { ambiguous: string[] }
-  | { missing: true; near: string[]; why?: 'too-broad' }
+  | { missing: true; near: string[]; why?: 'too-broad' | 'ceo-itself' }
 
 /**
  * A project by what the CEO called it: its id, its folder (or a folder inside it), its exact name, a name that holds
@@ -324,6 +325,8 @@ export type ProjectLookup<P> =
 export function findProject<P extends NamedProject>(projects: readonly P[], query: string, folders: readonly WorkFolder[] = []): ProjectLookup<P> {
   let q = String(query ?? '').trim()
   if (!q) return { missing: true, near: [] }
+  // The owner's words for the CEO itself («шеф», «SEO» …) are never a project (the owner, 2026-11-21).
+  if (isCeoAddress(q)) return { missing: true, near: [], why: 'ceo-itself' }
   const byId = projects.find((p) => p.id === q)
   if (byId) return { found: byId }
   const label = (p: P): string => p.repo_path ? `${p.name} (${p.repo_path})` : p.name

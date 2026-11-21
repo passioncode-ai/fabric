@@ -9,6 +9,7 @@
  * What is NOT here: a second implementation of any door. A start is the person's console launch (`openConsole`), a
  * stop the person's stop (`stop`), Switchboard's sessions its own CLI. The CEO never acts on its own console.
  */
+import { isCeoAddress } from '../shared/ceoAddress.ts'
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import path from 'node:path'
@@ -319,6 +320,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
         next: `ask the owner which one, reading at most these ${choices.length} aloud, then call again with the chosen choice exactly as written here (its folder decides)`
       })
     }
+    if (found.why === 'ceo-itself') return refuse(`«${query}» is the CEO itself, not a project`, { next: 'ask the owner which project he means' })
     if (found.why === 'too-broad') return refuse(`«${query}» is a folder that holds many projects, not one project: name the project`, { next: `call ${T.projects} once with a word of its name` })
     return refuse(`no project «${query}»${folderHint ? `: name it by ${T.projects}, or give its absolute folder` : ''}`, {
       ...(found.near.length ? { near: found.near } : {}),
@@ -629,6 +631,8 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
 
   async function projects(a: z.infer<typeof CEO_TOOLS.projects.input>): Promise<Answer> {
+    // «SEO», «шеф» … are the CEO itself: never matched against names such as an SEO agent's (the owner, 2026-11-21).
+    if (a.query && isCeoAddress(a.query)) return refuse(`«${a.query}» is the CEO itself, not a project`, { next: 'ask the owner which project he means' })
     const all = await deps.projects()
     const live = deps.ptys.list().filter((s) => s.running)
     const words = (a.query ?? '').toLowerCase().split(/\s+/).filter(Boolean)

@@ -50,6 +50,7 @@ import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoToo
 import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
 import { createVoiceJournal } from './ceoVoiceJournal.ts'
 import { createVoiceTools, VOICE_TOOLS } from './ceoVoiceTools.ts'
+import { createVoiceBoard, VOICE_BOARD_TOOLS, type BoardTask } from './voiceBoard.ts'
 import { createAliasStore } from './ceoProjectAliases.ts'
 import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
@@ -5491,6 +5492,25 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const sb = id ? ptys.scrollbackOf(id) : null
     return sb ? redact(screenText(decodePty(sb.text), lines)).text : ''
   }
+  // #region voice-board-reads — docs: docs/ux/scenarios.md#scn-191-the-ceos-voice-reads-the-board-itself
+  // The board as the voice reads it: the active projects of this estate, a project's newest 200 tasks, their links and
+  // live claims, their goals; every read bounded, a refused read thrown so the tool says it was not read.
+  const must = <T,>(r: { data: T | null; error: { message: string } | null }, what: string): T => { if (r.error) throw new Error(`${what}: ${r.error.message}`); return (r.data ?? []) as T }
+  const rowsOf = <T,>(r: { rows: unknown[]; failed?: string | null }, what: string): T[] => { if (r.failed) throw new Error(`${what}: ${r.failed}`); return r.rows as T[] }
+  const TASK_COLS = 'id,project_id,title,instruction,status,goal_id,started_at,finished_at,assigned_to'
+  const voiceBoard = createVoiceBoard({
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    reads: {
+      projects: async () => must(await store.select('projects', 'id,name,created_at,repo_path').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active').limit(1000), 'the projects'),
+      tasks: async (projectId) => must(await store.select('project_tasks', TASK_COLS).eq('project_id', projectId).order('started_at', { ascending: false }).limit(200), 'the tasks'),
+      tasksByIds: async (ids) => ids.length ? rowsOf<BoardTask>(await store.selectIn('project_tasks', TASK_COLS, 'id', ids.filter((x) => /^[0-9a-f-]{36}$/i.test(x))), 'the tasks') : [],
+      linksFrom: async (ids) => ids.length ? rowsOf(await store.selectIn('task_links', 'task_id,rel,target_kind,target_id', 'task_id', [...ids]), 'the links') : [],
+      linksTo: async (id) => must(await store.select('task_links', 'task_id,rel,target_kind,target_id').eq('target_id', id).limit(200), 'the links'),
+      claims: async (ids) => ids.length ? rowsOf<{ work_id: string; agent: string | null; owner_session: string; claimed_at: string; released_at: string | null }>(await store.selectIn('work_claims', 'work_id,agent,owner_session,claimed_at,released_at', 'work_id', [...ids]), 'the claims').filter((c) => c.released_at === null) : [],
+      goals: async (ids) => ids.length ? rowsOf(await store.selectIn('goals', 'id,title', 'id', [...ids]), 'the goals') : []
+    }
+  })
+  // #endregion voice-board-reads
   const voiceTools = createVoiceTools({
     askedAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.at : null),
     askWrittenAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.wroteAt : null),
@@ -5553,7 +5573,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     voiceAskedAt = null
     const callId = voiceJournal.begin({ voice, usdPerMinute: token.usdPerMinute })
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
-      instructions: voiceInstructions(locale), voice, tools: [...ceoVoiceTools(), ASK_CEO_TOOL, ...VOICE_TOOLS], callId }
+      instructions: voiceInstructions(locale), voice, tools: [...ceoVoiceTools(), ASK_CEO_TOOL, ...VOICE_TOOLS, ...VOICE_BOARD_TOOLS], callId }
   })
   handle(IPC.ceoAgentVoiceLine, (_e, callId: unknown, who: unknown, text: unknown): Returns<FabricApi['ceoAgent']['voiceLine']> => {
     if (typeof callId !== 'string' || (who !== 'person' && who !== 'ceo') || typeof text !== 'string') return
@@ -5634,6 +5654,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           ? 'queued for the CEO: its console has not taken it yet, and it is typed as soon as it does; do not ask again; tell the owner it waits and the answer will be in the CEO window; ceo_reply says when it was typed'
           : 'typed into the CEO console; read its answer with ceo_reply'
       return { ok: r.ok, ...(r.queued ? { queued: true } : {}), ...(r.reason ? { reason: r.reason } : {}), said }
+    }
+    // The owner, 2026-11-21: the voice reads the board itself, read-only (`voiceBoard.ts`); counted by its own op.
+    if (voiceBoard.has(tool)) {
+      const r = await voiceBoard.run(tool, args)
+      ops.record({ op: 'ceo.voice.board', outcome: r.ok === false ? 'failed' : 'ok', level: 'info', detail: { tool }, ctx: { correlationId: ops.correlate() } })
+      return r
     }
     const own = await voiceTools.run(tool, args)
     if (own) return own

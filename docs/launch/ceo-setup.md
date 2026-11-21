@@ -49,6 +49,11 @@ files, so their text reaches the CEO's runner's provider as any file it opens. D
 voice's tools answer: session screens and turns, the CEO's answer, board snippets, recent launches, project names with
 their folders and the computer's state (disk, load, memory), all redacted and bounded. To remove kept calls, delete the folder; the next call is kept again.
 
+The voice reads Fabric's board itself, read-only, without the CEO's console (SCN-191): the newest projects with when each
+was added, a project's tasks with status and holder, a task's goal and graph, the board's messages. During a call xAI
+also receives these answers: project names and folders, task titles and statuses, goal titles. The words «шеф»,
+«директор», «босс», «менеджер», «главный» and «SEO» mean the CEO itself and are sent to xAI as recognition hints.
+
 ## 4. The microphone
 
 macOS asks once for the microphone the first time «Позвонить» is pressed; the release build carries the audio-input

@@ -11,6 +11,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).
 
+- **The CEO's voice reads the board itself.** By voice the owner hears the newest projects with when each was added, a
+  project's tasks with status, holder and what waits for him, and a task's goal and graph (what it grew from and into,
+  what it blocks and follows), read-only and without the CEO's console or a new session. «шеф», «директор», «босс»,
+  «менеджер», «главный» and «SEO» mean the CEO itself, never a project or the SEO agent, and are recognition hints of
+  the call (`main/voiceBoard.ts`, `shared/ceoAddress.ts`; SCN-191). The owner's exception to the pause, 2026-11-21.
 - **A session's first task reaches Claude Code.** On 2026-11-20 four sessions the CEO started sat with no task.
   Measured on this Mac: Claude Code prints a cursor save and restore about 3 s after its start, then nothing while its
   start-up hooks run; Fabric took that quiet for ready and wrote the task before the input box existed, and Claude Code

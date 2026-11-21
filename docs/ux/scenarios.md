@@ -192,6 +192,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-186 | Choose the CEO's voice | Floating CEO | P-01 | ST-046, SCR-36, SCR-64 | implemented | unobserved |
 | SCN-187 | Stop the CEO, and start it again | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
 | SCN-189 | A message to the CEO is never lost | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
+| SCN-191 | The CEO's voice reads the board itself | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -4748,4 +4749,26 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** ops log `ceo.agent.queued`, `ceo.agent.queue-delivered`, `ceo.agent.queue-full`, `ceo.agent.queue-unknown`, `ceo.agent.queue-trimmed`, `ceo.agent.queue-read-failed`, `ceo.agent.requeued`, `ceo.agent.requeued-dropped`, `ceo.agent.queue-aside-prune-failed`, `ceo.agent.typed-hook-failed`.
 - **Status:** implemented (2026-11-20).
 - **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (region `ceo-queue`: `drain`, `send`), `apps/desktop/src/shared/ceoAgent.ts#CEO_QUEUE_RETRY_MS`, `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx`; tests `ceo-agent.test.mjs` «a message the working CEO did not take…», «what waited when Fabric quit…», the seven «run four: …», five «run five: …», three «run six: …» and three «run seven: …» tests, `CeoComposer.test.tsx` «said as queued».
+- **Product:** unobserved
+
+### SCN-191: The CEO's voice reads the board itself
+- **Persona:** P-01
+- **Feature:** Floating CEO
+- **Traces:** ST-046, FLW-63, SCR-64 (JTBD-02)
+- **Entry point:** a voice call with the CEO (SCN-184).
+- **Preconditions:** a call is open; the board's database answers.
+- **Steps:**
+  1. Operator asks «какие последние проекты?» -> the voice reads `board_projects` itself and says the newest ones with the date and time each was added, in the operator's time zone; no request goes to the CEO's console and no session starts.
+  2. Operator asks about a project's tasks -> `board_tasks` says each task's status (backlog, running, review), who holds it now and what waits for the operator (review); closed ones only when asked.
+  3. Operator asks where a task came from or what it is for -> `board_task` says its goal (walked up its `spawned` links to the root), what it grew from and into, what it blocks, what blocks it and what it follows.
+  4. Operator says «шеф», «директор», «босс», «менеджер», «главный» or «SEO» (any spelling: СЕО, сео, CEO) -> the voice takes it as the CEO itself, never as a project and never as the SEO agent, which the operator calls by its full name; the words are also recognition hints of the call.
+- **Expected result:** the operator gets board answers by voice at once, without the CEO's console working on them.
+- **Alt paths:** a project that is not found says the nearest names and asks; several matches read two or three and ask; a task found by several titles asks which; a change on the board still goes to the CEO through `ask_ceo` (the tools only read).
+- **UI elements:** none new: the call's voice; each tool and its answer are kept in the call's journal (`<userData>/ceo/calls/`).
+- **States covered:** answered, not found, several, unread.
+- **Errors & recovery:** a read the database refuses is said as unread («the board could not be read now»), never as an empty board; a holder list that could not be read leaves the tasks shown and says so.
+- **Design rationale:** the owner, 2026-11-21, about 02:10: «чтобы у голосового агента был прямой доступ к доске Fabric. Не дёргать CEO-сессии, а сразу отвечать на вопросы про задачи с доски: последние проекты, навигация по графу задач, статусы»; and «Любое из слов директор, шеф, босс, менеджер, главный, SEO должно сразу пониматься как обращение к CEO-агенту».
+- **Telemetry:** ops log `ceo.voice.board` (the tool, ok or failed), counted by the hourly and daily digests; no new usage count leaves the computer (ADR-0127).
+- **Status:** implemented (2026-11-21).
+- **Coverage:** `apps/desktop/src/main/voiceBoard.ts`, `apps/desktop/src/shared/ceoAddress.ts`, `apps/desktop/src/main/index.ts` (region `voice-board-reads`), `apps/desktop/src/main/ceoVoice.ts#voiceInstructions`, `apps/desktop/src/renderer/src/ceo/voiceCall.ts#sessionUpdate`; tests `voice-board.test.mjs`, `voiceCall.test.ts` «… keyterms».
 - **Product:** unobserved
