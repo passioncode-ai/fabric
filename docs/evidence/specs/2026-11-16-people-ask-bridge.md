@@ -68,6 +68,12 @@ A reply with no such block at all is the responder's note, not an answer: it dec
 writes `people.ask.note` in its log, and the item keeps waiting (`shared/peopleAsk.ts#hasAnswerBlock`; the first live item,
 2026-11-17, got «не применено» for a progress note sent as `com.reply`). A note's place is `com.progress {note}`. Changed by the 0.3.23 review, iteration 1 (ER-6, DA-3): a reply that names `fabric-people-answer/1` or holds a fenced block untagged or tagged `json` (in any case) is an answer attempt even when its block does not parse, and is refused «не применено: …» with its reason; only a reply with neither is a note.
 
+Since migration 130 (schema 103) the board's operator read marks what each responder message is (`via`: `reply`,
+`progress`, `effect`, `checkpoint`; contract DEC-0181), and the bridge judges only an answer, a message with no `via` or
+with `via: reply` (`shared/commsRead.ts#answersRequest`). A progress note, an effect summary and the checkpoint of
+`com.responder_replace` are never judged, whatever their text holds, and nothing is kept or logged for them (task
+`fcb6bb8f`).
+
 **Fabric's result.** A reply to the PM's answer, as the request's sender, idempotency key `people-ask-result:<answer
 message id>`. Its first line is exactly `решено` or `не применено: <причина>`, then a block
 `{"schema":"fabric-people-result/1","item","revision","applied","reason"}` (`resultText`).

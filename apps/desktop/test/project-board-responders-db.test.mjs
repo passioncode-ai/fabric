@@ -350,6 +350,33 @@ await test('com.responder_replace: a live holder is replaced at the generation r
   HB.session_id = HG.session_id; Object.assign(HB, { came_in: 'launched', agent: 'claude-code', binding_id: null })
 })
 
+await test('the operator\'s read says what each responder message is: a takeover\'s checkpoint, a progress note, an effect summary and an answer (DEC-0181, migration 130); an agent\'s read is unchanged', () => {
+  const holder = HB
+  const r = submitRequest()
+  const c = cmd('board_claim', holder, { idempotency: idem(), capability: CAP, request: r.id })
+  const thread = sql(`select thread_id from board_messages where estate_id='${E}' and id='${r.id}'`)
+  assert.equal(cmd('board_accept', holder, { fence: fence(c) }).error, undefined)
+  assert.equal(cmd('board_progress', holder, { fence: fence(c), note: { text: 'Half way.' } }).error, undefined)
+  const gen = Number(slot().split('|')[0])
+  const HN = { session_id: id(342), came_in: 'launched', agent: 'claude-code', binding_id: null, label: 'Claude Code' }
+  const rep = cmd('board_responder_replace', HN, { idempotency: idem(), capability: CAP, expectedGeneration: gen,
+    transfer: { requests: [r.id], checkpoint: { summary: 'Taken over at half way.' } } })
+  assert.equal(rep.slot?.generation, gen + 1, JSON.stringify(rep))
+  const page = call('board_list_operator', q(E), q(thread), '0', '100')
+  assert.equal(page.ok, true, JSON.stringify(page))
+  const by = text => page.messages.find(m => m.body?.text === text)
+  assert.equal(by('Half way.')?.via, 'progress', JSON.stringify(page.messages))
+  assert.equal(by('Taken over at half way.')?.via, 'checkpoint', 'the checkpoint of com.responder_replace is a note, not an answer')
+  assert.equal(by('Taken over at half way.')?.kind, 'reply', 'its stored kind is unchanged')
+  assert.equal('via' in page.messages.find(m => m.id === r.id), false, 'the request itself carries no mark')
+  // The agents' door (com.list through board_list) gives no mark: the board cannot read a reader's pin (VIA-4).
+  const agentPage = call('board_list', q(E), q(REQUESTER), q(thread), '0', '100')
+  assert.equal(agentPage.ok, true, JSON.stringify(agentPage))
+  assert.ok(agentPage.messages.length >= 3 && agentPage.messages.every(m => !('via' in m)), JSON.stringify(agentPage.messages))
+  assert.equal(sql(`set role anon; select has_function_privilege('anon', 'board_message_via(board_messages)', 'execute')`), 'f')
+  HB.session_id = HN.session_id; Object.assign(HB, { came_in: 'launched', agent: 'claude-code', binding_id: null })
+})
+
 await test('com.responder_replace without a transfer takes the slot at the generation read (the hyperframes thread, 2026-11-12: SQLSTATE 22004)', () => {
   const holder = HB
   const r = submitRequest()

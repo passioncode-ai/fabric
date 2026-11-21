@@ -391,6 +391,12 @@ after the upgrade. Before upgrading again, remove `resume-since.json` from the a
 first 0.3.22, and the supervisor would otherwise continue what agents left under 0.3.21 in between (the 0.3.22 review,
 iteration 3, PL-2, DA-1).
 
+**The build after 0.3.26 admits schema 103** (migration `20261121000130_board_operator_message_via.sql`: a new function
+`board_message_via`, migration 94's `board_list_operator` with the mark added to each message, and migration 129's
+private-archive admission with 103 added; no table and no data change). A database at 102 takes the one migration at the
+first start (`schema_migrations` gains one row); going back needs the earlier bundle and a database restored from the
+backup taken before the upgrade, as for every schema step, since no older build opens a schema-103 database.
+
 1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
    on: turn it off and then quit before the bundle is replaced (`launchctl bootout` stops only a copy launchd started;
    the 0.3.18 paragraph above), and turn it on again once the new build runs. A quiet window does not prove the database has
@@ -473,7 +479,7 @@ iteration 3, PL-2, DA-1).
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12, 98 for 0.3.13 to 0.3.15, 100 for 0.3.16 to 0.3.18, 101 for 0.3.19, 102 for 0.3.20 and 0.3.21).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12, 98 for 0.3.13 to 0.3.15, 100 for 0.3.16 to 0.3.18, 101 for 0.3.19, 102 for 0.3.20 to 0.3.26, 103 after).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

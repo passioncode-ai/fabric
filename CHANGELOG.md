@@ -9,6 +9,13 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **A responder's note on a request is no longer read as its answer.** Everything a responder writes on a request's
+  thread (an answer, a progress note, an effect summary, the checkpoint of a takeover) is stored as a reply. The
+  operator's read of a thread now says which each one is (`via`: `reply`, `progress`, `effect`, `checkpoint`; contract
+  DEC-0181, fabric-agent-contract `6ab4d03`), and the bridge to an organization's PM agent judges only an answer: a
+  takeover's checkpoint that quotes an answer block decides nothing. Agents' own reads (`com.list`, `com.get`) are
+  unchanged until the board can read a reader's contract pin. **Upgrading:** one schema step, 102 to 103 (migration
+  `20261121000130_board_operator_message_via.sql`: a new function and one replaced read, no data change).
 - **An agent asks the person only what the person alone can say.** The operator, 2026-11-21: strategy (the vision,
   the concept) is the person's and is always asked; tactics the agent decides itself; what the agent knows better or
   can find it never asks; a question goes only where the agent is unsure or the person knows better, weighed against

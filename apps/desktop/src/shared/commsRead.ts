@@ -55,6 +55,11 @@ export interface CommsRequest {
   revision: number
 }
 
+export const COMMS_VIA = ['reply', 'progress', 'effect', 'checkpoint'] as const
+export type CommsVia = (typeof COMMS_VIA)[number]
+/** Whether a responder's message answers its request: one with no `via`, or `via: reply` (contract DEC-0181). */
+export const answersRequest = (m: { via?: CommsVia }): boolean => m.via === undefined || m.via === 'reply'
+
 export interface CommsMessage {
   id: string
   thread: string
@@ -66,6 +71,10 @@ export interface CommsMessage {
   body?: { text: string; format?: string }
   redacted?: true
   replyTo?: string
+  /** What a responder's message on a request's thread is (contract DEC-0181): the board stores them all as `reply`.
+   *  Absent or `reply` is an answer to the request; `progress`, `effect` and `checkpoint` are notes on the way. Only
+   *  the operator's read (`board_list_operator`, migration 130) carries it. */
+  via?: CommsVia
   request?: CommsRequest
   artifacts?: unknown[]
 }

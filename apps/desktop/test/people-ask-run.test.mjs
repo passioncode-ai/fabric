@@ -70,6 +70,14 @@ function world(over = {}) {
     thread.push({ id, thread: thread[0].thread, kind: 'reply', replyTo: thread[0].id, sender: { project: sender }, at: new Date(now).toISOString(), body: { text: replyText(block) } })
     return id
   }
+  /** A responder message the board marks as not an answer (contract DEC-0181 `via`): a progress note, an effect summary or a takeover's checkpoint. */
+  w.marked = (i, via, text) => {
+    const s = w.submits[i]
+    const thread = [...w.threads.values()].find((t) => t[0].body === s.input.body)
+    const id = `a${++n}`
+    thread.push({ id, thread: thread[0].thread, kind: 'reply', via, replyTo: thread[0].id, sender: { project: KIRA }, at: new Date(now).toISOString(), body: { text } })
+    return id
+  }
   /** A reply with plain text and no block, as a responder's progress note sent as a reply (2026-11-17). */
   w.note = (i, text) => {
     const s = w.submits[i]
@@ -209,6 +217,26 @@ test('a reply with no answer block is a note: nothing is posted back, the item w
   await b.onPass()
   assert.equal(w.applied.length, 1)
   assert.equal(w.replies.length, 1)
+  assert.equal(w.replies[0].input.body.text.split('\n')[0], 'решено')
+})
+
+test('a responder message the board marks as progress, effect or checkpoint is never an answer, even when it carries an answer block (task fcb6bb8f, DEC-0181)', async () => {
+  const w = world()
+  const b = createPeopleAskBridge(w.deps)
+  await b.onPass()
+  // The takeover's checkpoint quotes the previous responder's draft, block included: it must decide nothing.
+  w.marked(0, 'checkpoint', replyText(answerBlock()))
+  w.marked(0, 'progress', replyText(answerBlock({ option: 'mysql' })))
+  w.marked(0, 'effect', 'Начал.')
+  await b.onPass()
+  assert.equal(w.applied.length, 0, 'a checkpoint with an answer block applies nothing')
+  assert.equal(w.replies.length, 0, 'and nothing is posted back, not even «не применено»')
+  assert.equal(b.records()[0].state, 'open')
+  assert.equal(Object.keys(b.records()[0].handled).length, 0, 'a marked note is not kept as a judged answer')
+  // A message marked `reply`, and one with no mark at all, are answers as before.
+  w.marked(0, 'reply', replyText(answerBlock()))
+  await b.onPass()
+  assert.equal(w.applied.length, 1)
   assert.equal(w.replies[0].input.body.text.split('\n')[0], 'решено')
 })
 

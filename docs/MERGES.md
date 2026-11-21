@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `RESPONDER-VIA` · fix/responder-via → main · fast-forward after `ci.sh fast`
+- files: migration 130 `20261121000130_board_operator_message_via.sql` (schema 103), its ledger row, the schema contract, the private-archive source list, `shared/commsRead.ts` (`COMMS_VIA`, `answersRequest`), `main/commsOperatorRead.ts`, `main/peopleAskRun.ts`, their tests and the responders DB test; the contract fixture repinned to fabric-agent-contract `6ab4d03` (DEC-0181) with six `comms-message-via-*` fixtures; the people.ask spec §2, the release runbook, CHANGELOG, the pipeline reservations moved to 131/132, the map
+- conflicts: `docs/reports/map.html` when main was merged into the branch (the iteration log and the stamp); main's entries kept, the branch's contract entry kept above them
+- summary: a responder's progress note, effect summary and takeover checkpoint are stored as replies; the operator's read of a thread now marks each (`via`), and the people.ask bridge judges only an answer, so a checkpoint of `com.responder_replace` no longer reads as the answer to a request (task `fcb6bb8f`). Agents' reads are unchanged until the board can read a reader's contract pin (VIA-4)
+
 ### 2026-11-21 · `DECISION-LEVELS` · feat/decision-levels → main · fast-forward after `ci.sh fast`
 - files: `apps/desktop/src/shared/protocolObligations.ts` (`decisions.by-level`, `intake.spec-first`) and its test, ADR-0205 and the ADR register, SCN-176, the product model and report, `docs/architecture/operating-surfaces.md`, CHANGELOG, the map
 - conflicts: none

@@ -409,6 +409,10 @@
     {
       "file": "20261112000129_responder_replace_no_transfer.sql",
       "sha256": "ebc01afd6dbe223b78fc07f4d55f3e064d91a5134b1473859caf9c4da5e1dc7e"
+    },
+    {
+      "file": "20261121000130_board_operator_message_via.sql",
+      "sha256": "d47a9bbd4bb34e0f9acc7a729fc1d9d4c9d69d207a2788d12443b3f6a301f86b"
     }
   ]
 }

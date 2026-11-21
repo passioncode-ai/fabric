@@ -13,7 +13,7 @@
  */
 import { createHash } from 'node:crypto'
 import type { BoardEntry } from '../shared/board.ts'
-import type { CommsMessage } from '../shared/commsRead.ts'
+import { answersRequest, type CommsMessage } from '../shared/commsRead.ts'
 import {
   DELEGATE_ANSWER, DELEGATE_OPTION, PEOPLE_ASK_CAPABILITY, askBody, askKey, autoRouteOf, decisionOf, hasAnswerBlock, itemOf, judgeAnswer, parseAnswer, prepareAsk, resultText, routeOf, withdrawnText,
   type AskAct, type AskKind, type PeopleAnswer, type PeopleAsk, type PeopleRoute
@@ -198,7 +198,9 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
       }
       const req = messages.find((m) => m.id === r.requestId)
       if (req?.request) requestState.set(r, req.request.state)
-      const answers = messages.filter((m) => m.kind === 'reply' && m.replyTo === r.requestId && m.sender.project === r.target)
+      // A responder's progress note, effect summary or takeover checkpoint is stored as a reply too; the board's
+      // operator read marks it (`via`, contract DEC-0181), and only an answer is judged (task fcb6bb8f).
+      const answers = messages.filter((m) => m.kind === 'reply' && m.replyTo === r.requestId && m.sender.project === r.target && answersRequest(m))
       for (const m of answers) {
         const done = r.handled[m.id]
         if (done) {
