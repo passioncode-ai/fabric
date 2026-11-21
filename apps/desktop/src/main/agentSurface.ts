@@ -71,6 +71,7 @@ import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
 import { BOARD_SESSION_OPERATIONS, createBoard, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
 import { registerBoardTools } from './boardTools.ts'
 import { registerCeoTools } from './ceoTools.ts'
+import { registerKnowledgeTools } from './knowledgeTools.ts'
 import type { HubCeo } from './hubPorts.ts'
 import { type TaskState } from '../shared/ladder.ts'
 import type { AgentAccessDoor as RelayedAccessDoor } from './relayedAccess.ts'
@@ -2037,6 +2038,9 @@ export class AgentSurface {
     // ADR-0197 §3: the CEO's session control is on the CEO's own console's server alone; no other session sees the tools.
     const ceoOps = this.deps.ceo?.isCeo(scope.sessionId) ? this.deps.ceo.operations() : null
     if (ceoOps) registerCeoTools(server, ceoOps)
+    // ADR-0199, ADR-0200: the estate index's two doors, on the CEO's server beside its session tools.
+    const knowledgeOps = ceoOps ? this.deps.ceo?.knowledge?.() ?? null : null
+    if (knowledgeOps) registerKnowledgeTools(server, knowledgeOps)
     // #endregion ceo-surface
 
     return server

@@ -63,8 +63,9 @@ describe('the left column', () => {
     const links = within(foot()).getAllByRole('link')
     // The operator, 2026-11-05: the Comms and Agent access came out of Настройки into the rail.
     // The operator, 2026-11-12: «Доска» first.
-    expect(links.map((a) => a.textContent?.replace(/\d+\+?$/, ''))).toEqual([en['rail.board'], en['rail.comms'], en['rail.access'], en['rail.history'], en['rail.settings']])
-    const placed = ['board', 'comms', 'access', 'history', 'settings']
+    // The owner, 2026-11-20 (SCN-190): «Memory» under Переписка.
+    expect(links.map((a) => a.textContent?.replace(/\d+\+?$/, ''))).toEqual([en['rail.board'], en['rail.comms'], en['rail.memory'], en['rail.access'], en['rail.history'], en['rail.settings']])
+    const placed = ['board', 'comms', 'memory', 'access', 'history', 'settings']
     links.forEach((link, i) => { fireEvent.click(link); expect(props.onPlace).toHaveBeenLastCalledWith(placed[i]) })
     // Агенты is no longer a place of its own: the toggle replaces it.
     expect(within(foot()).queryByRole('link', { name: new RegExp(`^${en['rail.agents']}`) })).toBeNull()

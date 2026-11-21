@@ -27,6 +27,7 @@
 .rail-i-board{border-radius:2px;box-shadow:inset 4px 0 0 -2.5px currentColor}
 .rail-i-comms{border-radius:6px 6px 6px 1px}
 .rail-i-access{border-radius:50% 50% 3px 3px}
+.rail-i-memory{border-radius:50%;box-shadow:inset 0 0 0 3px var(--app-panel),inset 0 0 0 5px currentColor}
 /* The operator, 2026-11-05: the rail's width is the person's, dragged at its edge. */
 .rail{position:relative}
 .rail-resize{position:absolute;top:0;right:-3px;width:6px;height:100%;cursor:col-resize;z-index:2;-webkit-app-region:no-drag}

@@ -238,7 +238,7 @@ function operations(over = {}) {
       write: (id, data) => writes.push([id, data])
     },
     ceoSessionId: () => 'ceo',
-    projects: async () => [{ id: 'p1', name: 'App', repo_path: '/d/app', default_agent: 'codex' }, { id: 'p2', name: 'Site', repo_path: '/d/site', default_agent: null }],
+    projects: async () => over.projects ?? [{ id: 'p1', name: 'App', repo_path: '/d/app', default_agent: 'codex' }, { id: 'p2', name: 'Site', repo_path: '/d/site', default_agent: null }],
     admitFolder: async (folder) => ({ id: 'p9', name: path.basename(folder), repo_path: folder }),
     openConsole: async (projectId, runner, task) => { opened.push([projectId, runner, task]); origins.push(currentLaunchOrigin()); return { sessionId: 'new', projectId, cwd: '/d/app', optionId: runner, state: 'starting', running: true } },
     stop: async (id, force) => { consoles.get(id).running = false; return { state: force ? 'killed' : 'stopped' } },
@@ -260,9 +260,11 @@ function operations(over = {}) {
     ...(over.diskSessions ? { diskSessions: over.diskSessions } : {}),
     ...(over.firstTask ? { firstTask: over.firstTask } : {}),
     ...(over.saveAlias ? { saveAlias: over.saveAlias } : {}),
-    ...(over.projects ? { projects: over.projects } : {}),
+    // A list (main's fixtures) or a reader (the voice retro's): both are the projects read.
+    ...(over.projects ? { projects: typeof over.projects === 'function' ? over.projects : async () => over.projects } : {}),
     // The fixtures' new folders live in the system's temporary folder; the scratch rule is tested on its own below.
-    scratch: over.scratch ?? (() => false)
+    scratch: over.scratch ?? (() => false),
+    ...(over.deps ?? {})
   }
   return { ops: createCeoOperations(deps), writes, records, notes, opened, origins, switchboard, consoles }
 }
@@ -395,6 +397,56 @@ test('resume: an ended console starts again in its project with its runner; a Sw
   const sb = await o.ops.run('resume', { session_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', reason: 'carry on' })
   assert.equal(sb.via, 'switchboard')
   assert.deepEqual(o.switchboard.at(-1), ['sessions', 'continue', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'])
+})
+
+// The CEO's observations of 2026-11-19: one name named several projects; a console's session could not be continued
+// after Fabric restarted («Switchboard has no record of that session»).
+const MEASURED = [
+  { id: 'c1', name: 'fabric-agents-database', repo_path: '/w/.cache/fabric-agents-database', default_agent: null },
+  { id: 'c2', name: 'fabric-agents-database', repo_path: '/w/DATA/fabric-agents-database', default_agent: 'claude-code' },
+  { id: 'c3', name: 'x-app', repo_path: '/w/DATA/x-app', default_agent: null },
+  { id: 'c4', name: 'x-api', repo_path: '/w/DATA/x-api', default_agent: null }
+]
+
+test('start by a folder\'s name: the canonical folder wins over a temporary one, a typo is forgiven, several are one list', async () => {
+  const o = operations({ projects: MEASURED })
+  const r = await o.ops.run('start', { project: 'fabric-agents-database', task: 'go', reason: 'the owner asked' })
+  assert.equal(r.ok, true)
+  assert.equal(o.opened.at(-1)[0], 'c2')
+  assert.equal((await o.ops.run('start', { project: 'fabric-agnets-database', reason: 'a typo' })).ok, true)
+  assert.equal(o.opened.at(-1)[0], 'c2')
+  const two = await o.ops.run('start', { project: 'x-ap', reason: 'which one' })
+  assert.equal(two.ok, false)
+  assert.deepEqual(two.candidates.map((c) => [c.name, c.role]), [['x-app', 'canonical'], ['x-api', 'canonical']])
+  const list = await o.ops.run('projects', {})
+  assert.deepEqual(list.projects.map((x) => [x.id, x.role]), [['c2', 'canonical'], ['c4', 'canonical'], ['c3', 'canonical']], 'temporary folders only when asked')
+  const all = await o.ops.run('projects', { include_temporary: true })
+  assert.deepEqual(all.projects.find((x) => x.id === 'c1'), { id: 'c1', name: 'fabric-agents-database', folder: '/w/.cache/fabric-agents-database', role: 'temporary', of: '/w/DATA/fabric-agents-database', default_runner: null, consoles_running: 0 })
+})
+
+test('resume after a restart: a console Fabric no longer runs continues as its own Claude session, in one call', async () => {
+  const resumed = []
+  const recalled = {
+    'gone-console': { id: 'gone-console', kind: 'console', projectId: 'p1', folder: '/d/app', runner: 'claude-code', runtimeSessionId: 'rt-1', configDir: null, title: null, at: '2026-11-19T10:00:00Z' },
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee': { id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', kind: 'transcript', projectId: null, folder: '/d/site/x', runner: 'claude-code', runtimeSessionId: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', configDir: '/h/acct', title: 't', at: null }
+  }
+  const o = operations({ deps: {
+    recall: async (id) => recalled[id] ?? null,
+    pastConsoles: async () => [recalled['gone-console']],
+    openResumed: async (projectId, runner, rt, cwd, env) => { resumed.push([projectId, runner, rt, cwd, env]); return { sessionId: 'again', projectId, cwd: cwd ?? '/d', optionId: runner, state: 'starting', running: true } }
+  } })
+  const r = await o.ops.run('resume', { session_id: 'gone-console', reason: 'Fabric restarted' })
+  assert.deepEqual([r.ok, r.as_itself, r.continues], [true, true, 'rt-1'])
+  assert.deepEqual(resumed.at(-1), ['p1', 'claude-code', 'rt-1', '/d/app', {}])
+  assert.equal(o.switchboard.filter((a) => a[1] === 'continue').length, 0, 'Switchboard is not asked about a session Fabric ran')
+  const t = await o.ops.run('resume', { session_id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', reason: 'found by search' })
+  assert.equal(t.ok, true)
+  assert.deepEqual(resumed.at(-1), ['p2', 'claude-code', 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', '/d/site/x', { CLAUDE_CONFIG_DIR: '/h/acct' }])
+  const withTask = await o.ops.run('resume', { session_id: 'gone-console', task: 'новая задача', reason: 'a new task' })
+  assert.deepEqual([withTask.ok, withTask.as_itself], [true, false])
+  assert.deepEqual(o.opened.at(-1), ['p1', 'claude-code', 'новая задача'])
+  const listed = await o.ops.run('sessions', { include_ended: true })
+  assert.deepEqual(listed.past_fabric_consoles.map((c) => [c.session_id, c.continues, c.resumable_as_itself]), [['gone-console', 'rt-1', true]])
 })
 
 test('open, projects, an unknown tool and refused arguments', async () => {

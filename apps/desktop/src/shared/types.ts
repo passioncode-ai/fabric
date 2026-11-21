@@ -1617,6 +1617,22 @@ export interface FabricApi {
     /** One field across every project. Grouped by store, never merged: a ranked
      *  hit and a substring hit are different promises (M141). */
     run(query: string): Promise<SearchGroup[]>
+    /** One ranked search over every session, transcript, task, board message and commit (the estate index, ADR-0200). */
+    everywhere(query: string): Promise<import('./estateSearch.ts').EverywhereAnswer>
+    /** A graph node's neighbourhood, N steps both ways (spec 2026-11-19 §4.3). */
+    around(node: string, depth: number): Promise<import('./estateSearch.ts').AroundAnswer>
+    /** Continue a session found here in a Fabric console, as itself when Fabric knows its Claude or Codex session. */
+    resume(sessionId: string): Promise<{ ok: boolean; reason?: string; session_id?: string }>
+  },
+  /** Memory, the dashboard of the estate index (spec 2026-11-20): the same execute operations the CEO's doors run. */
+  memoryIndex: {
+    overview(): Promise<import('./memory.ts').MemoryIndexOverview | import('./memory.ts').MemoryRefusal>
+    graph(context?: string): Promise<(import('./memory.ts').MemoryGraph & { ok: true }) | import('./memory.ts').MemoryRefusal>
+    changes(hours: number, project?: string): Promise<import('./memory.ts').MemoryChanges | import('./memory.ts').MemoryRefusal>
+    /** Keeps a claim only when its quote stands verbatim in the cited hit (`quote.check`). */
+    check(claims: Array<{ quote: string; doc: string; digest?: string }>): Promise<import('./memory.ts').MemoryCheck | import('./memory.ts').MemoryRefusal>
+    /** The hybrid search, narrowed to one project when named. */
+    search(query: string, project?: string): Promise<import('./estateSearch.ts').EverywhereAnswer>
   },
   digest: {
     /** What happened while the operator was away. Composed from stores, never
@@ -2051,6 +2067,14 @@ export const IPC = {
   personaRead: 'persona:read',
   personaSave: 'persona:save',
   searchRun: 'search:run',
+  searchEverywhere: 'search:everywhere',
+  searchAround: 'search:around',
+  searchResume: 'search:resume',
+  memoryIndexOverview: 'memory-index:overview',
+  memoryIndexGraph: 'memory-index:graph',
+  memoryIndexChanges: 'memory-index:changes',
+  memoryIndexCheck: 'memory-index:check',
+  memoryIndexSearch: 'memory-index:search',
   digestRead: 'digest:read',
   digestSeen: 'digest:seen',
   memoryOverview: 'memory:overview',
