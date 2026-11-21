@@ -1,0 +1,84 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 2,
+ "level": "plan",
+ "candidateCommit": "618551f73bd0ca272b3f2884ae33872607b1297d",
+ "report": "docs/evidence/reviews/0.3.28/iteration-2/2026-11-21-plan.md",
+ "reportSha256": "872621dbbd8effdde22d34146dbe011cc666ffddd11a968193bb09ecbbac90d7",
+ "reviewerRun": "release-0328-i2-plan-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "PL-14",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the same as UX-12"
+   ]
+  },
+  {
+   "id": "PL-15",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the main merge before iteration 3 put CO-625 in lane 12, updated its row, ordered the rows, moved the next free id and recounted"
+   ]
+  },
+  {
+   "id": "PL-16",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: docs/system-plan-rows landed on main before the iteration-3 merge of main; the ledger's protocol says main takes nothing outside the allowed list until the tag"
+   ]
+  },
+  {
+   "id": "PL-17",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the ledger's CO-625 section records the packaged proof as a post-tag check on the installed 0.3.28 (three consoles, one ignoring TERM), and CO-625 stays open until it"
+   ]
+  },
+  {
+   "id": "PL-18",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the runbook's 0.3.28 paragraph: stopping the old build with consoles open meets CO-625, bootout with the stand-in job, the broker held, the release session runs the step"
+   ]
+  },
+  {
+   "id": "PL-19",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the SD-FAB-01 report to fabric-workspace is part of the release close; PL-6 taken out of CO-624"
+   ]
+  },
+  {
+   "id": "PL-20",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the ledger's protocol: the Inbox registry fix shipped in 0.3.27; the CEO console pinned first is left for a later release"
+   ]
+  },
+  {
+   "id": "PL-21",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the same as DO-20 and DO-14"
+   ]
+  },
+  {
+   "id": "PL-22",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: CO-623's due column and its held branches with owner and reason; the next free id"
+   ]
+  },
+  {
+   "id": "PL-23",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the ledger gains iteration 1's exit line and the gate runs of 618551f7 and the iteration-3 candidate; the release commit writes version, the gate file and CHANGELOG's heading"
+   ]
+  }
+ ]
+}

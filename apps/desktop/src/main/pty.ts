@@ -31,6 +31,7 @@ import { defaultShell, killPty, launchFor, stopWindowsTree } from './platform.ts
 import { findOnPath } from './executorDetect.ts'
 import { currentLaunchOrigin } from './launchOrigin.ts'
 import { switchboardLaunchArgs } from './launchAccounts.ts'
+import { currentLaunchModel, modelArgs } from './launchModel.ts'
 import type { OpenedLaunch } from './sessionLaunches.ts'
 
 /** How a fallback walk chose the runner a session runs (ADR-0125): the basis is the installation's
@@ -577,7 +578,9 @@ export class PtyManager {
     // the synchronous native spawn below.
     let launch: Awaited<ReturnType<typeof programForPty>>
     try {
-      const agentArgs = [...(bundle?.args ?? []), ...verdict.args, ...(extras?.args ?? [])]
+      // CO-622 item 1: the model and effort a caller asked for, unless the launch's extras carry the console's own flags.
+      const modelFlags = extras?.args?.length ? [] : modelArgs(runnerId, currentLaunchModel()).args
+      const agentArgs = [...(bundle?.args ?? []), ...verdict.args, ...(extras?.args ?? []), ...modelFlags]
       // An agent on a chosen account runs inside Switchboard's launch, which picks the account's home and program.
       // A runner whose command is a bundle's own (a shell of Fabric's) takes no account: refused, never run without it.
       if (extras?.account && bundle?.command) throw new Error('this runner cannot start on a chosen account')

@@ -74,6 +74,7 @@ import { BOARD_SESSION_OPERATIONS, createBoard, isRefusal, PINNED_COMMS_OPERATIO
 import { registerBoardTools } from './boardTools.ts'
 import { registerCeoTools } from './ceoTools.ts'
 import { registerKnowledgeTools } from './knowledgeTools.ts'
+import { registerCeoBoardTools } from './voiceBoard.ts'
 import type { HubCeo } from './hubPorts.ts'
 import { type TaskState } from '../shared/ladder.ts'
 import type { AgentAccessDoor as RelayedAccessDoor } from './relayedAccess.ts'
@@ -2064,6 +2065,9 @@ export class AgentSurface {
     // ADR-0199, ADR-0200: the estate index's two doors, on the CEO's server beside its session tools.
     const knowledgeOps = ceoOps ? this.deps.ceo?.knowledge?.() ?? null : null
     if (knowledgeOps) registerKnowledgeTools(server, knowledgeOps)
+    // CO-622 item 5: the board's reads the voice has, so the CEO reads projects, tasks and the task graph without SQL.
+    const boardOps = ceoOps ? this.deps.ceo?.board?.() ?? null : null
+    if (boardOps) registerCeoBoardTools(server, boardOps)
     // #endregion ceo-surface
 
     return server

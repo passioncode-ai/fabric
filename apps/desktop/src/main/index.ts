@@ -58,7 +58,7 @@ import { findOnPath } from './executorDetect.ts'
 import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
 import { createVoiceJournal } from './ceoVoiceJournal.ts'
 import { createVoiceTools, VOICE_TOOLS } from './ceoVoiceTools.ts'
-import { createVoiceBoard, VOICE_BOARD_TOOLS, TASKS_READ, type BoardTask } from './voiceBoard.ts'
+import { createVoiceBoard, VOICE_BOARD_TOOLS, TASKS_READ, type BoardTask, type CeoBoardOperations, OPEN_READ } from './voiceBoard.ts'
 import { createAliasStore } from './ceoProjectAliases.ts'
 import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
@@ -565,6 +565,8 @@ let ceoAgent: CeoAgent | null = null
 let ceoOperations: CeoOperations | null = null
 /** The estate index's doors (ADR-0200), given to the CEO's console surface beside its session tools. */
 let knowledgeOperations: KnowledgeOperations | null = null
+/** The board's reads as the CEO console's tools (CO-622 item 5): the voice's `createVoiceBoard`, set once the store is up. */
+let ceoBoardReads: CeoBoardOperations | null = null
 let estate: Estate | null = null
 let ceoWindow: BrowserWindow | null = null
 /** A draft the popup takes when it opens (Help's example, the home composer's words not yet sent). */
@@ -1244,7 +1246,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     ports: (registry) => windowHubPorts({
       ptys: () => ptys, sweep: boardState.sweep.get, readSettings: readSettingsState, registry,
       behaviour: createBehaviourJournal({ folder: path.join(app.getPath('userData'), 'ceo'), failed: (what, e) => ops.failed('board.behaviour', e, { detail: { what } }) }),
-      ceo: () => (ceoAgent ? { isCeo: ceoAgent.isCeo, operations: () => ceoOperations, knowledge: () => knowledgeOperations } : null),
+      ceo: () => (ceoAgent ? { isCeo: ceoAgent.isCeo, operations: () => ceoOperations, knowledge: () => knowledgeOperations, board: () => ceoBoardReads } : null),
       desktop: { openExternal: (url) => shell.openExternal(url), applicationInfoForProtocol: (url) => app.getApplicationInfoForProtocol(url) }
     }),
     presenter: ({ accessStore, connector, access }) => new ConsentPresenter({
@@ -5698,9 +5700,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       linksFrom: async (ids) => ids.length ? rowsOf(await store.selectIn('task_links', 'task_id,rel,target_kind,target_id', 'task_id', [...ids]), 'the links') : [],
       linksTo: async (id) => must(await store.select('task_links', 'task_id,rel,target_kind,target_id').eq('target_id', id).limit(200), 'the links'),
       claims: async (ids) => ids.length ? rowsOf<{ work_id: string; agent: string | null; owner_session: string; claimed_at: string; released_at: string | null }>(await store.selectIn('work_claims', 'work_id,agent,owner_session,claimed_at,released_at', 'work_id', [...ids]), 'the claims').filter((c) => c.released_at === null) : [],
-      goals: async (ids) => ids.length ? rowsOf(await store.selectIn('goals', 'id,title', 'id', [...ids]), 'the goals') : []
+      goals: async (ids) => ids.length ? rowsOf(await store.selectIn('goals', 'id,title', 'id', [...ids]), 'the goals') : [],
+      openTasks: async () => must(await store.select('project_tasks', 'project_id,status').in('status', ['backlog', 'running', 'review']).limit(OPEN_READ), 'the open tasks'),
+      waiting: async () => { const r = await waitingReader.read(); if (!r.ok) throw new Error(`the requests: ${String((r as { error?: unknown }).error ?? 'unread')}`); return r }
     }
   })
+  ceoBoardReads = voiceBoard
   // #endregion voice-board-reads
   const voiceTools = createVoiceTools({
     askedAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.at : null),

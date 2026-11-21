@@ -12,6 +12,7 @@ import type { PtyManager } from './pty'
 import type { AbandonedSweep } from './abandonedSweepRun.ts'
 import type { CeoOperations } from './ceoTools.ts'
 import type { KnowledgeOperations } from './knowledgeTools.ts'
+import type { CeoBoardOperations } from './voiceBoard.ts'
 import type { LocalRead } from './localState.ts'
 import type { AppSettings } from '../shared/types'
 import { workingLanguageOfRead } from '../shared/appSettings.ts'
@@ -53,6 +54,8 @@ export interface HubCeo {
   operations(): CeoOperations | null
   /** The estate index's two doors (ADR-0200); absent where no index runs. */
   knowledge?(): KnowledgeOperations | null
+  /** The board's reads the voice has, as the CEO's own tools (CO-622 item 5); absent where no store runs. */
+  board?(): CeoBoardOperations | null
 }
 
 export interface HubPorts {
@@ -75,7 +78,7 @@ export function windowHubPorts(w: {
   sweep: () => AbandonedSweep | null
   readSettings: () => LocalRead<AppSettings>
   /** The CEO agent, read late: null until it exists. */
-  ceo?: () => { isCeo(sessionId: string): boolean; operations(): CeoOperations | null; knowledge?(): KnowledgeOperations | null } | null
+  ceo?: () => { isCeo(sessionId: string): boolean; operations(): CeoOperations | null; knowledge?(): KnowledgeOperations | null; board?(): CeoBoardOperations | null } | null
   registry: { snapshot(): Parameters<typeof machineAgentsOf>[0] }
   /** ADR-0203 §6: the agents' behaviour journal in `userData/ceo`. */
   behaviour?: Pick<BehaviourJournal, 'note'>
@@ -87,7 +90,7 @@ export function windowHubPorts(w: {
 }): HubPorts {
   return {
     ...(w.behaviour ? { behaviour: w.behaviour } : {}),
-    ...(w.ceo ? { ceo: { isCeo: (id: string) => w.ceo?.()?.isCeo(id) ?? false, operations: () => w.ceo?.()?.operations() ?? null, knowledge: () => w.ceo?.()?.knowledge?.() ?? null } } : {}),
+    ...(w.ceo ? { ceo: { isCeo: (id: string) => w.ceo?.()?.isCeo(id) ?? false, operations: () => w.ceo?.()?.operations() ?? null, knowledge: () => w.ceo?.()?.knowledge?.() ?? null, board: () => w.ceo?.()?.board?.() ?? null } } : {}),
     terminals: () => w.ptys(),
     sweep: {
       takeNudges: (sessionId, projectId) => w.sweep()?.takeNudges(sessionId, projectId) ?? [],

@@ -31,6 +31,9 @@ read-only; findings are disposed here and in the receipts under `docs/evidence/r
   for the first time with this release), its `ci.sh fast` green with the browser
   suites 26 of 26 (its messages to this session of 2026-11-21, after iteration 1's PL-2 and at about 09:40). ADR-0207's
   Decision 1 builds on them.
+- From the iteration-3 candidate to the tag, `main` takes nothing outside the files the release gate allows after
+  `verifiedCommit` (iteration 2, PL-16): before tagging, `git diff --name-only <verifiedCommit> origin/main` must name only
+  those.
 - The reviewers: Claude Code subagents of the release session (Opus 5.5), each a fresh context given
   [the brief](../reviews/0.3.28/brief.md) and its level's focus, reading a separate read-only worktree checked out at the
   candidate, recording HEAD and `git status --short | wc -l` before and after. They ran single test files at most; the
@@ -59,8 +62,11 @@ Taken into 0.3.28 before iteration 2's reviewers: the quit coordinator settles t
 its last `app.quit()` (`main/quit.ts`, option `settle`); `main/ptySettle.ts#settleExits` waits up to 1.5 s for every
 exit to reach JavaScript, sends SIGKILL to what still runs and waits 0.7 s more, inside the quit's 10 s deadline, and
 says what it did in the ops log (`quit.settle`). Tests: `pty-settle.test.mjs` (five cases) and `quit.test.mjs`
-«CO-625 …» (watched red with the settle removed). Not yet proven on a packaged build: the repro (a console open, then
-`launchctl kill SIGTERM gui/$UID/ai.passioncode.desktop.board`) runs on the candidate's build before the tag.
+«CO-625 …» (watched red with the settle removed). Iteration 2 bounded the drain so the settle always runs (ER-13). The proof on a packaged build is a post-tag check on the
+installed 0.3.28, since this Mac's disk keeps local builds off (the sentry's line): three consoles (an idle shell, one
+ignoring SIGTERM with `trap '' TERM HUP; sleep 600`, one agent), then `launchctl kill SIGTERM
+gui/$UID/ai.passioncode.desktop.board`; no new `Fabric-*.ips`, no `app.started` within 60 s, `quit.settle` in the ops log.
+CO-625 stays open until it is recorded (iteration 2, PL-17).
 
 ## Iteration 1
 
@@ -129,3 +135,77 @@ organizations or a family example; those words are redacted (ADR-0096).
 | V1-PL-11 | PL-11 | non-blocking | fixed: ADR-0100 amendment 3 |
 | V1-PL-12 | PL-12 | non-blocking | fixed: MERGES says 0.3.27's side was kept at the conflict, then rebuilt for the dock branch's token |
 | V1-PL-13 | PL-13 | non-blocking | fixed: the memory spec's example made neutral; the reports that quoted it redacted (ADR-0096) |
+
+Iteration 1's browser run: `ci.sh fast` with both browser variables (Playwright's Chromium) ran green on the
+iteration-2 candidate's tree (26 browser suites), recorded below.
+
+Exit for iteration 1: 52 findings, 35 fixed, 17 ruled to CO-624. Blocking findings open: none.
+
+## Iteration 2
+
+Candidate `618551f73bd0ca272b3f2884ae33872607b1297d`: iteration 1's fixes, `main` at `8cbf93ff` (the queue's order, schema 104), `feat/approval-modes-0328`
+(`2d689d34`) and CO-625's settle. Reports and receipts in
+[`docs/evidence/reviews/0.3.28/iteration-2/`](../reviews/0.3.28/iteration-2/). Gate: `bash scripts/ci.sh fast` on
+`618551f7` with `FABRIC_PLAYWRIGHT_MODULE` and `FABRIC_CHROME` (Playwright's Chromium) ran to its last step green,
+browser suites 26 of 26 (the run's environment set `LANG`/`LC_ALL=en_US.UTF-8` and Homebrew first on `PATH`: a resumed
+session's empty `LANG` stops `initdb`, and the system `python3` has no `jsonschema`).
+
+49 findings, 6 blocking rows for four defects (several levels found the same one): the approval mode
+could not be switched (UX-12, DO-12, PL-14), a waiting task moved to no effect (UX-13), an unreadable routes file still
+sent questions (ER-12, with UX-16), and the runbook's step 4 read 103 (DO-13). 35 fixed in the iteration-3 candidate,
+14 ruled to CO-627. Fixes of code carry a test except ER-14, ER-18 and ER-20 (a kill path, a catch and a cleanup, read,
+not tested); UX-13's drop, ER-12's skip and ER-13's race were watched red with their mechanism removed.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V2-UX-12 | UX-12 | blocking | fixed: the owner sees and switches the mode in Settings, «Что ждёт вашего одобрения» (SettingsScreen.tsx#ApprovalModeSetting); test «shows the five approval modes…»; ADR-0203 amendment 1 |
+| V2-UX-13 | UX-13 | blocking | fixed: KanbanBoard.tsx#orderMoveAllowed: a waiting card does not move above a ready one, nor a ready one below a waiting one; the buttons are disabled with launch.kanban.order.waitsFirst, a drop across the line is not taken; tests «orderMoveAllowed» and the rewritten move and drop tests, the drop watched red with the guard removed |
+| V2-UX-14 | UX-14 | non-blocking | ruled: the «Место задали вы» pill only on the card the owner moved |
+| V2-UX-15 | UX-15 | non-blocking | fixed: «Принять» shows only where the queue can be moved (mayOrder); «Отклонить» stays; asserted in the every-project test |
+| V2-UX-16 | UX-16 | non-blocking | fixed: the same defect as ER-12: while the routes file does not read nothing is sent, and the Settings line says so |
+| V2-UX-17 | UX-17 | non-blocking | ruled: the first run's look step counts as a pick; say it or store an explicit pick |
+| V2-UX-18 | UX-18 | non-blocking | ruled: the launch menu's choice of account comes later |
+| V2-UX-19 | UX-19 | non-blocking | ruled: the voice's own short approval rule and session_journal in its instructions |
+| V2-UX-20 | UX-20 | non-blocking | ruled: scenarios for the approval mode, the journal and SCN-183/184 amendments |
+| V2-ER-12 | ER-12 | blocking | fixed: peopleAskRun.ts: routesUnread skips every item ('routes-unread'); boardCycle passes the file's state; test «0.3.28 review ER-12…», watched red with the skip removed; CHANGELOG and the Settings line say it |
+| V2-ER-13 | ER-13 | non-blocking | fixed: quit.ts: the drain is raced against hardDeadlineMs minus QUIT_SETTLE_BUDGET_MS (2.5 s), then the settle runs; test «CO-625, ER-13…», watched red with the race removed |
+| V2-ER-14 | ER-14 | non-blocking | fixed: PtyManager#pendingExits ends a console through platform.ts#killPty; the settle's catch says a refused kill is counted in left |
+| V2-ER-15 | ER-15 | non-blocking | ruled: the mode's grant issued before the policy decides; mode grants told apart from the owner's |
+| V2-ER-16 | ER-16 | non-blocking | ruled: rank writes in one batch, capped queues refused, UUIDs checked at the door |
+| V2-ER-17 | ER-17 | non-blocking | ruled: a failed Switchboard group read said as unread, the call shape aligned |
+| V2-ER-18 | ER-18 | non-blocking | fixed: (1) index.ts's settle records a failure as quit.settle; (2) to (5) are in CO-627 |
+| V2-ER-19 | ER-19 | non-blocking | ruled: a caller that hangs up mid-body recorded as a refusal, before W2c.2b starts the door |
+| V2-ER-20 | ER-20 | non-blocking | fixed: setPeopleChoice removes its temp file when the write, sync or rename fails |
+| V2-DO-12 | DO-12 | blocking | fixed: the same as UX-12; CHANGELOG says where the mode is switched |
+| V2-DO-13 | DO-13 | blocking | fixed: release-mac.md step 4: «103 for 0.3.27, 104 after» |
+| V2-DO-14 | DO-14 | non-blocking | fixed: ADR-0203's register row, the next-free text corrected, ADR-0203 amendment 1, pointers appended to ADR-0028 and ADR-0050 |
+| V2-DO-15 | DO-15 | non-blocking | fixed: the settle now always runs (ER-13); CHANGELOG states the bound and that the packaged proof is recorded in the ledger |
+| V2-DO-16 | DO-16 | non-blocking | fixed: CO-625's row (landed on main by 8b9712b3, merged before iteration 3) brought up to date, in lane 12, next free id moved |
+| V2-DO-17 | DO-17 | non-blocking | fixed: AGENTS.md: behaviour/ and dock-icon.png in the userData/ceo row, the settle in the PTY row, the routes file written by Settings in the people-ask row |
+| V2-DO-18 | DO-18 | non-blocking | fixed: the runbook's 0.3.28 paragraph: two columns and an index on project_tasks, the feed sentences the app's own, migration 130's archive admission, one wording for 102 |
+| V2-DO-19 | DO-19 | non-blocking | fixed: the runbook and CHANGELOG say going back drops the approval mode |
+| V2-DO-20 | DO-20 | non-blocking | fixed: the ledger says the approval branch was cut from main's tip 8cbf93ff and reaches main with the release |
+| V2-DO-21 | DO-21 | non-blocking | fixed: ADR-0100 amendment 3 and CHANGELOG: on Windows and Linux the open windows take the face until they close or Fabric restarts |
+| V2-DO-22 | DO-22 | non-blocking | fixed: MERGES: RELEASE-0328-MAIN for 3d60a362, with the note that two «not in it» items joined later |
+| V2-DO-23 | DO-23 | non-blocking | fixed: CHANGELOG's opening names the CO-625 fix; the ledger has iteration 2 with its candidate and gate run |
+| V2-DA-7 | DA-7 | non-blocking | fixed: ceoTools.ts#accountName: the CEO and its voice say the name before «@» and get account_id; the account is chosen by id; ceo-access test updated |
+| V2-DA-8 | DA-8 | non-blocking | fixed: the switch exists in Settings (UX-12); recording each change of mode is in CO-627 |
+| V2-DA-9 | DA-9 | non-blocking | ruled: a byte bound for the behaviour journal |
+| V2-DA-10 | DA-10 | non-blocking | ruled: one drag writing many events, not atomically |
+| V2-DA-11 | DA-11 | non-blocking | ruled: the projector's range check on rank in a later migration |
+| V2-DA-12 | DA-12 | non-blocking | ruled: apply_task_rank matched by project too, in a later migration |
+| V2-DA-13 | DA-13 | non-blocking | fixed: the same as ER-20 |
+| V2-DA-14 | DA-14 | non-blocking | fixed: the landed migration is not edited; the runbook names migration 130's archive admission |
+| V2-DA-15 | DA-15 | non-blocking | ruled: the no-loss way back from 104 measured on a copy |
+| V2-PL-14 | PL-14 | blocking | fixed: the same as UX-12 |
+| V2-PL-15 | PL-15 | non-blocking | fixed: the main merge before iteration 3 put CO-625 in lane 12, updated its row, ordered the rows, moved the next free id and recounted |
+| V2-PL-16 | PL-16 | non-blocking | fixed: docs/system-plan-rows landed on main before the iteration-3 merge of main; the ledger's protocol says main takes nothing outside the allowed list until the tag |
+| V2-PL-17 | PL-17 | non-blocking | fixed: the ledger's CO-625 section records the packaged proof as a post-tag check on the installed 0.3.28 (three consoles, one ignoring TERM), and CO-625 stays open until it |
+| V2-PL-18 | PL-18 | non-blocking | fixed: the runbook's 0.3.28 paragraph: stopping the old build with consoles open meets CO-625, bootout with the stand-in job, the broker held, the release session runs the step |
+| V2-PL-19 | PL-19 | non-blocking | fixed: the SD-FAB-01 report to fabric-workspace is part of the release close; PL-6 taken out of CO-624 |
+| V2-PL-20 | PL-20 | non-blocking | fixed: the ledger's protocol: the Inbox registry fix shipped in 0.3.27; the CEO console pinned first is left for a later release |
+| V2-PL-21 | PL-21 | non-blocking | fixed: the same as DO-20 and DO-14 |
+| V2-PL-22 | PL-22 | non-blocking | fixed: CO-623's due column and its held branches with owner and reason; the next free id |
+| V2-PL-23 | PL-23 | non-blocking | fixed: the ledger gains iteration 1's exit line and the gate runs of 618551f7 and the iteration-3 candidate; the release commit writes version, the gate file and CHANGELOG's heading |
+
+Exit for iteration 2: 49 findings, 35 fixed, 14 ruled to CO-627. Blocking findings open: none.

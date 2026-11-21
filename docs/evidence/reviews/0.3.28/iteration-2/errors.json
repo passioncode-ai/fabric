@@ -1,0 +1,77 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 2,
+ "level": "errors",
+ "candidateCommit": "618551f73bd0ca272b3f2884ae33872607b1297d",
+ "report": "docs/evidence/reviews/0.3.28/iteration-2/2026-11-21-errors.md",
+ "reportSha256": "719c2977ca11a4197d193299c7fe2b24c6744c5e369d4b4e4e578d8787940bec",
+ "reviewerRun": "release-0328-i2-errors-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "ER-12",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: peopleAskRun.ts: routesUnread skips every item ('routes-unread'); boardCycle passes the file's state; test «0.3.28 review ER-12…», watched red with the skip removed; CHANGELOG and the Settings line say it"
+   ]
+  },
+  {
+   "id": "ER-13",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: quit.ts: the drain is raced against hardDeadlineMs minus QUIT_SETTLE_BUDGET_MS (2.5 s), then the settle runs; test «CO-625, ER-13…», watched red with the race removed"
+   ]
+  },
+  {
+   "id": "ER-14",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: PtyManager#pendingExits ends a console through platform.ts#killPty; the settle's catch says a refused kill is counted in left"
+   ]
+  },
+  {
+   "id": "ER-15",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: the mode's grant issued before the policy decides; mode grants told apart from the owner's"
+   ]
+  },
+  {
+   "id": "ER-16",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: rank writes in one batch, capped queues refused, UUIDs checked at the door"
+   ]
+  },
+  {
+   "id": "ER-17",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: a failed Switchboard group read said as unread, the call shape aligned"
+   ]
+  },
+  {
+   "id": "ER-18",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: (1) index.ts's settle records a failure as quit.settle; (2) to (5) are in CO-627"
+   ]
+  },
+  {
+   "id": "ER-19",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: a caller that hangs up mid-body recorded as a refusal, before W2c.2b starts the door"
+   ]
+  },
+  {
+   "id": "ER-20",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: setPeopleChoice removes its temp file when the write, sync or rename fails"
+   ]
+  }
+ ]
+}

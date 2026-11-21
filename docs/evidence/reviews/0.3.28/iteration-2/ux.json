@@ -1,0 +1,77 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 2,
+ "level": "ux",
+ "candidateCommit": "618551f73bd0ca272b3f2884ae33872607b1297d",
+ "report": "docs/evidence/reviews/0.3.28/iteration-2/2026-11-21-ux.md",
+ "reportSha256": "e5368977cbc18828458461dec899152bf4b86f38042c7b047f2d0b6ef79cd88d",
+ "reviewerRun": "release-0328-i2-ux-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "UX-12",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the owner sees and switches the mode in Settings, «Что ждёт вашего одобрения» (SettingsScreen.tsx#ApprovalModeSetting); test «shows the five approval modes…»; ADR-0203 amendment 1"
+   ]
+  },
+  {
+   "id": "UX-13",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: KanbanBoard.tsx#orderMoveAllowed: a waiting card does not move above a ready one, nor a ready one below a waiting one; the buttons are disabled with launch.kanban.order.waitsFirst, a drop across the line is not taken; tests «orderMoveAllowed» and the rewritten move and drop tests, the drop watched red with the guard removed"
+   ]
+  },
+  {
+   "id": "UX-14",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: the «Место задали вы» pill only on the card the owner moved"
+   ]
+  },
+  {
+   "id": "UX-15",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: «Принять» shows only where the queue can be moved (mayOrder); «Отклонить» stays; asserted in the every-project test"
+   ]
+  },
+  {
+   "id": "UX-16",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the same defect as ER-12: while the routes file does not read nothing is sent, and the Settings line says so"
+   ]
+  },
+  {
+   "id": "UX-17",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: the first run's look step counts as a pick; say it or store an explicit pick"
+   ]
+  },
+  {
+   "id": "UX-18",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: the launch menu's choice of account comes later"
+   ]
+  },
+  {
+   "id": "UX-19",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: the voice's own short approval rule and session_journal in its instructions"
+   ]
+  },
+  {
+   "id": "UX-20",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: scenarios for the approval mode, the journal and SCN-183/184 amendments"
+   ]
+  }
+ ]
+}

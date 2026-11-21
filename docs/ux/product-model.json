@@ -36008,7 +36008,7 @@
       "screen_refs": [
         "SCR-64"
       ],
-      "coverage": "`apps/desktop/src/main/voiceBoard.ts`, `apps/desktop/src/shared/ceoAddress.ts`, `apps/desktop/src/main/index.ts` (region `voice-board-reads`), `apps/desktop/src/main/ceoVoice.ts#voiceInstructions`, `apps/desktop/src/renderer/src/ceo/voiceCall.ts#sessionUpdate`; tests `voice-board.test.mjs`, `voiceCall.test.ts` «… keyterms».",
+      "coverage": "`apps/desktop/src/main/voiceBoard.ts` (`registerCeoBoardTools` for the console, test `voice-board.test.mjs`), `apps/desktop/src/main/agentSurface.ts` (region `ceo-surface`), `apps/desktop/src/shared/ceoAddress.ts`, `apps/desktop/src/main/index.ts` (region `voice-board-reads`), `apps/desktop/src/main/ceoVoice.ts#voiceInstructions`, `apps/desktop/src/renderer/src/ceo/voiceCall.ts#sessionUpdate`; tests `voice-board.test.mjs`, `voiceCall.test.ts` «… keyterms».",
       "registry_status": "implemented (2026-11-21).",
       "product_observation": "unobserved",
       "expected_result": "the operator gets board answers by voice at once, without the CEO's console working on them.",

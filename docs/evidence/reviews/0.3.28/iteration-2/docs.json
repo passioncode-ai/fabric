@@ -1,0 +1,98 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 2,
+ "level": "docs",
+ "candidateCommit": "618551f73bd0ca272b3f2884ae33872607b1297d",
+ "report": "docs/evidence/reviews/0.3.28/iteration-2/2026-11-21-docs.md",
+ "reportSha256": "ffe5807b7f51809d7d3a4baf3f3dc1c935485b9094e5f7a958e5d8934094e415",
+ "reviewerRun": "release-0328-i2-docs-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "DO-12",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the same as UX-12; CHANGELOG says where the mode is switched"
+   ]
+  },
+  {
+   "id": "DO-13",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: release-mac.md step 4: «103 for 0.3.27, 104 after»"
+   ]
+  },
+  {
+   "id": "DO-14",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: ADR-0203's register row, the next-free text corrected, ADR-0203 amendment 1, pointers appended to ADR-0028 and ADR-0050"
+   ]
+  },
+  {
+   "id": "DO-15",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the settle now always runs (ER-13); CHANGELOG states the bound and that the packaged proof is recorded in the ledger"
+   ]
+  },
+  {
+   "id": "DO-16",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: CO-625's row (landed on main by 8b9712b3, merged before iteration 3) brought up to date, in lane 12, next free id moved"
+   ]
+  },
+  {
+   "id": "DO-17",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: AGENTS.md: behaviour/ and dock-icon.png in the userData/ceo row, the settle in the PTY row, the routes file written by Settings in the people-ask row"
+   ]
+  },
+  {
+   "id": "DO-18",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the runbook's 0.3.28 paragraph: two columns and an index on project_tasks, the feed sentences the app's own, migration 130's archive admission, one wording for 102"
+   ]
+  },
+  {
+   "id": "DO-19",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the runbook and CHANGELOG say going back drops the approval mode"
+   ]
+  },
+  {
+   "id": "DO-20",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the ledger says the approval branch was cut from main's tip 8cbf93ff and reaches main with the release"
+   ]
+  },
+  {
+   "id": "DO-21",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: ADR-0100 amendment 3 and CHANGELOG: on Windows and Linux the open windows take the face until they close or Fabric restarts"
+   ]
+  },
+  {
+   "id": "DO-22",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: MERGES: RELEASE-0328-MAIN for 3d60a362, with the note that two «not in it» items joined later"
+   ]
+  },
+  {
+   "id": "DO-23",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: CHANGELOG's opening names the CO-625 fix; the ledger has iteration 2 with its candidate and gate run"
+   ]
+  }
+ ]
+}

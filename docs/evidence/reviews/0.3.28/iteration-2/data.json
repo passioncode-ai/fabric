@@ -1,0 +1,77 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 2,
+ "level": "data",
+ "candidateCommit": "618551f73bd0ca272b3f2884ae33872607b1297d",
+ "report": "docs/evidence/reviews/0.3.28/iteration-2/2026-11-21-data.md",
+ "reportSha256": "936ad691ea9f2a58ac5b4562bf5c372db4b32115acf21a0976d95df52fccd13c",
+ "reviewerRun": "release-0328-i2-data-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "DA-7",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: ceoTools.ts#accountName: the CEO and its voice say the name before «@» and get account_id; the account is chosen by id; ceo-access test updated"
+   ]
+  },
+  {
+   "id": "DA-8",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the switch exists in Settings (UX-12); recording each change of mode is in CO-627"
+   ]
+  },
+  {
+   "id": "DA-9",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: a byte bound for the behaviour journal"
+   ]
+  },
+  {
+   "id": "DA-10",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: one drag writing many events, not atomically"
+   ]
+  },
+  {
+   "id": "DA-11",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: the projector's range check on rank in a later migration"
+   ]
+  },
+  {
+   "id": "DA-12",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: apply_task_rank matched by project too, in a later migration"
+   ]
+  },
+  {
+   "id": "DA-13",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the same as ER-20"
+   ]
+  },
+  {
+   "id": "DA-14",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-3 candidate: the landed migration is not edited; the runbook names migration 130's archive admission"
+   ]
+  },
+  {
+   "id": "DA-15",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-627 (the carry-over ledger), not blocking: the no-loss way back from 104 measured on a copy"
+   ]
+  }
+ ]
+}
