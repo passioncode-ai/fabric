@@ -141,3 +141,12 @@ test('a source\'s bundle lines (fabric-inbox) are taken from where the last pass
   assert.deepEqual({ docs: second.docs, refused: second.refused }, { docs: 1, refused: 0 }, 'only the appended line')
   assert.equal(ix.neighbours('mail:t1', 1).nodes.some((n) => n.id === 'project:p1'), true)
 })
+
+test('a source\'s node of kind project (mail:project:…) never becomes one of Fabric\'s projects on the map or in the catalogue', () => {
+  const { ix } = seeded()
+  ix.putGraph([{ id: 'mail:project:alpha', kind: 'project', label: 'alpha', attrs: { source: 'fabric-inbox', context: 'personal' } },
+    { id: 'mail:project:gamma', kind: 'project', label: 'gamma', attrs: { source: 'fabric-inbox', context: 'personal' } }], [])
+  const g = memoryGraph(ix, labels)
+  assert.deepEqual(g.nodes.filter((n) => n.kind === 'project').map((n) => n.id).sort(), ['project:p1', 'project:p2'])
+  assert.equal(g.nodes.find((n) => n.id === 'project:p1').docs, 3, 'the real alpha keeps its counts')
+})

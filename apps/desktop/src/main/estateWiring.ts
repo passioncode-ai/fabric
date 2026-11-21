@@ -129,7 +129,7 @@ export function startEstateIndex(deps: EstateWiringDeps): Estate {
     const all = await projects()
     const known = new Map<string, { role?: CatalogueRow['role']; of?: string | null; context?: string }>()
     const index = open()
-    if (index) for (const n of index.db.prepare("SELECT id, attrs FROM nodes WHERE kind = 'project'").all() as Array<{ id: string; attrs: string | null }>)
+    if (index) for (const n of index.db.prepare("SELECT id, attrs FROM nodes WHERE kind = 'project' AND id LIKE 'project:%'").all() as Array<{ id: string; attrs: string | null }>)
       known.set(n.id.slice('project:'.length), n.attrs ? JSON.parse(n.attrs) : {})
     // The roles the last pass measured (Git's worktrees included); from the folders alone for a project it has not read.
     const fresh = catalogueOf(all)

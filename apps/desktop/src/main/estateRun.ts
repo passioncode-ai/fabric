@@ -96,7 +96,7 @@ export function createEstateRunner(deps: EstateRunDeps) {
     const worktrees = new Map<string, string | null>()
     await Promise.all(projects.map(async (p) => { if (p.repo_path && existsSync(p.repo_path)) worktrees.set(p.repo_path, await mainOfWorktree(p.repo_path)) }))
     const ctx = makeContext(catalogue(projects, (f) => worktrees.get(f) ?? null), orgs.folders, orgs.personal)
-    for (const r of ix.db.prepare("SELECT id, kind FROM nodes WHERE kind IN ('task', 'request')").all() as Array<{ id: string; kind: string }>)
+    for (const r of ix.db.prepare("SELECT id, kind FROM nodes WHERE (kind = 'task' AND id LIKE 'task:%') OR (kind = 'request' AND id LIKE 'message:%')").all() as Array<{ id: string; kind: string }>)
       (r.kind === 'task' ? ctx.tasks : ctx.messages).add(r.id.slice(r.id.indexOf(':') + 1))
     return ctx
   }

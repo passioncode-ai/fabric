@@ -251,3 +251,34 @@ project-observatory (session 5330262a) builds the estate graph (projects, machin
 Fabric's services) on this engine, through the connection point of §10 (`source: observatory`, ids `obs:`); the agents
 database (session 4deaa22b) is the central brain that records how graphs and memories are built (patterns
 `hybrid-retrieval`, `brain-sleep`, the levels) and rolls improvements out to the projects that contributed.
+
+## 15. The owner's people directory (Memory рабочего места)
+
+The owner, 2026-11-21 05:05 (Telegram, relayed by CEO request `467a13ba`), verbatim: «Мне нужно, чтобы это ещё в фабрик
+передавалось в мою личную память, которая там будет, чтобы навигация правильно работала и оттуда тоже, когда я буду
+говорить, кому отправить.»
+
+**What it is.** A directory of the people the owner deals with, kept in his Memory рабочего места (the Оболочка layer of
+§7.5): personal, in his personal cloud and on his main machine, never carried by a bundle, never seen by an
+organization's Memory or by another person's delegation (§11). Each entry holds:
+
+| Field | Meaning |
+|---|---|
+| who | the person as the owner calls them, with every name form he uses (a first name, a diminutive, a role) |
+| relation | why they matter to him (family, a colleague, a contractor, a partner) and in which context (personal or `org:<id>`) |
+| channels | where to reach them (a Telegram id, a chat, mail), with which channel is preferred for what |
+| purpose | what the owner writes to them about, so a request can be matched to the right person |
+| namesakes | the other entries sharing a name form, so an ambiguous name is known as ambiguous |
+
+**Namesakes are the point.** Two people with the same first name (for example the owner's spouse and a marketer) are
+two entries; «отправь <name>» with a name that matches more than one entry is never resolved by guess.
+
+**Who reads it.** CEO Fabric and the voice read the directory whenever the owner says «отправь X», «напиши X», «кому
+отправить». One match: the channel of that entry for that purpose. More than one match, or none: they ask the owner
+which person he means (through the communicator, naming the candidates by relation, never sending first), and the
+answer may add a name form to the entry with his words as the reason.
+
+**Until the Оболочка exists (wave M4, §7.6).** CEO Fabric keeps the directory in its own `ceo/CLAUDE.md` (local to the
+owner's machine, never in a repository). M4 moves it into the Оболочка as `kind = 'person'` nodes of `layer = 'overlay'`
+with the fields above in `attrs`, read through `fabric_knowledge_execute` (`overlay.people.find`), and the CEO's file then
+points to it. Names, ids and channels never enter this repository, its tests or its fixtures (check-private P1).
