@@ -44,8 +44,26 @@ export const WITHHELD_FROM_SESSIONS: readonly string[] = [
 export const LAUNCHED_SESSION_MARKER = 'FABRIC_LAUNCHED_SESSION'
 // #endregion launched-session-marker
 
+// #region session-utf8-ctype — docs: docs/adr/0169-a-console-runs-with-the-operators-own-setup.md#decision
 /**
- * The environment a session gets: the operator's, minus Fabric's own keys.
+ * The encoding a session gets when it has none of its own (the owner, 2026-11-21 02:37: Russian copied from the CEO's
+ * console reached another console as «–î–∞–≤–∞–π», UTF-8 read as Mac Roman). Fabric started by launchd («Служба
+ * доски», ADR-0192) inherits no locale, so neither did its consoles, and macOS's `pbcopy` and `pbpaste`, which Claude
+ * Code copies through, then read the text in `__CF_USER_TEXT_ENCODING`'s Mac Roman. Only LC_CTYPE is set: the
+ * language of messages stays the person's. `en_US.UTF-8` because a locale macOS does not ship (`en_PL.UTF-8` from
+ * the region) breaks `pbcopy` the same way, measured 2026-11-21; it is the one the other spawns already use
+ * (`backendView.ts`, `codexLoopback.ts`).
+ */
+export const UTF8_CTYPE = 'en_US.UTF-8'
+
+/** True when the environment names a locale for its characters: LC_ALL, LC_CTYPE or LANG, non-empty. */
+export function namesCharacterLocale(env: Record<string, string | undefined>): boolean {
+  return Boolean(env.LC_ALL || env.LC_CTYPE || env.LANG)
+}
+// #endregion session-utf8-ctype
+
+/**
+ * The environment a session gets: the operator's, minus Fabric's own keys, with UTF-8 characters when it names none.
  *
  * Pure and exported so it can be tested without spawning anything — the branch
  * that matters is "the key is present and does not survive", and proving that
@@ -73,5 +91,7 @@ export function sessionEnvironment(
     if (overrides?.has(key)) continue
     out[key] = value
   }
+  // A session with no locale of its own gets UTF-8 characters (region session-utf8-ctype above).
+  if (!namesCharacterLocale(out)) out.LC_CTYPE = UTF8_CTYPE
   return out
 }

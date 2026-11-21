@@ -9,6 +9,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Russian copied in one console reaches another whole.** The owner, 2026-11-21: his dictation copied from the CEO's
+  console arrived in another console as «–î–∞–≤–∞–π», UTF-8 read as Mac Roman. Fabric started by «Служба доски» (launchd)
+  has no locale, so its consoles had none either, and macOS's `pbcopy`, which Claude Code copies through, read the text
+  as Mac Roman. A console with no locale of its own now gets `LC_CTYPE=en_US.UTF-8`; one the person set is kept, and
+  the language of messages is not touched (`main/sessionEnv.ts#UTF8_CTYPE`). Text already copied broken stays broken:
+  copy it again after the update.
 - **«Memory»: what Fabric knows about every project, as a place of its own.** The owner, 2026-11-20, in the CEO
   window: the knowledge base should live inside Fabric as «Memory» and render as well as Sound Engine's brain. «Memory»
   in the left column shows what the base holds and how fresh each source is (agent sessions, tasks and the journal, the
