@@ -4,7 +4,7 @@
 // «SEO» and its spellings) are the CEO, never a project or the SEO agent.
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createVoiceBoard, VOICE_BOARD_TOOLS } from '../src/main/voiceBoard.ts'
+import { createVoiceBoard, VOICE_BOARD_TOOLS, CEO_BOARD_TOOLS, registerCeoBoardTools } from '../src/main/voiceBoard.ts'
 import { isCeoAddress, ceoAddressRule } from '../src/shared/ceoAddress.ts'
 
 const P = (id, name, created_at, extra = {}) => ({ id, name, created_at, repo_path: `/d/${name}`, ...extra })
@@ -141,4 +141,25 @@ test('run nine: the voice\'s knowledge tools do not offer index.refresh or index
   const text = JSON.stringify(knowledgeVoiceTools())
   assert.ok(!text.includes('index.rebuild') && !text.includes('index.refresh'))
   assert.ok(!text.includes('fabric_knowledge_'))
+})
+
+// CO-622 item 5: the CEO's console reads the same board through the same code, on its own MCP server, instead of SQL.
+test('the CEO console has every board read the voice has, answering exactly as the voice does', async () => {
+  assert.deepEqual(Object.keys(CEO_BOARD_TOOLS).sort(), VOICE_BOARD_TOOLS.map((t) => t.name).sort(), 'one door per voice tool')
+  const board = createVoiceBoard({ reads: reads(), timeZone: 'Europe/Warsaw' })
+  const registered = new Map()
+  registerCeoBoardTools({ registerTool: (name, meta, fn) => registered.set(name, { meta, fn }) }, board)
+  assert.deepEqual([...registered.keys()].sort(), ['fabric_ceo_board_project'.concat('s'), 'fabric_ceo_board_task', 'fabric_ceo_board_tasks'].sort())
+  for (const [name, tool] of Object.entries(CEO_BOARD_TOOLS)) {
+    const { meta } = registered.get(tool.mcp)
+    assert.ok(meta.description.length > 60 && !/ask the CEO/i.test(meta.description), `${name}: a console description, not the voice's «do not ask the CEO»`)
+    assert.equal(tool.input.safeParse({ bogus: 1, ...(name === 'board_projects' ? {} : { project: 'x', task: 'y' }) }).success, false, `${name} refuses an unknown argument`)
+  }
+  for (const [name, args] of [['board_projects', { limit: 3 }], ['board_tasks', { project: 'dissy' }], ['board_task', { task: 't-a' }]]) {
+    const r = await registered.get(CEO_BOARD_TOOLS[name].mcp).fn(args)
+    assert.deepEqual(JSON.parse(r.content[0].text), await board.run(name, args), `${name}: the console's answer is the voice's`)
+  }
+  const tasks = JSON.parse((await registered.get('fabric_ceo_board_tasks').fn({ project: 'dissy' })).content[0].text)
+  assert.equal(tasks.ok, true)
+  assert.deepEqual(tasks.waits_for_owner.map((t) => t.id), ['t-a'])
 })

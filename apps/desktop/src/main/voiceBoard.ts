@@ -9,7 +9,13 @@
  *   board_task      one task and its graph: its goal, what it grew from and into, what it blocks and follows
  *
  * Every read can fail; a failed read is said as unread, never as an empty board.
+ *
+ * The CEO's console reads the same board through the same code (CO-622 item 5: the CEO read projects, tasks and
+ * statuses with SQL): `registerCeoBoardTools` puts the three reads on the CEO session's MCP server alone, as
+ * `fabric_ceo_board_*`, beside its session tools (`agentSurface.ts`, region ceo-surface).
  */
+import { z } from 'zod'
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { findProject } from '../shared/ceoAgent.ts'
 import { isCeoAddress } from '../shared/ceoAddress.ts'
 
@@ -193,5 +199,42 @@ function countBy(xs: readonly string[]): Record<string, number> {
   const out: Record<string, number> = {}
   for (const x of xs) out[x] = (out[x] ?? 0) + 1
   return out
+}
+/** The CEO console's door to the same reads (CO-622 item 5); the voice's tool is named on the right. */
+export const CEO_BOARD_TOOLS = {
+  board_projects: {
+    mcp: 'fabric_ceo_board_projects',
+    title: 'The newest projects on the board',
+    description: 'The newest projects on Fabric\'s board, newest first, each with the date and time it was added in the owner\'s time zone, and how many projects there are. Use it instead of reading the database; fabric_ceo_projects is the list of projects with their folders and consoles.',
+    input: z.object({ limit: z.number().int().min(1).max(20).optional().describe('How many; 5 by default.') }).strict()
+  },
+  board_tasks: {
+    mcp: 'fabric_ceo_board_tasks',
+    title: 'A project\'s tasks',
+    description: 'A project\'s tasks on Fabric\'s board: running first, then in review (what waits for the owner), then the backlog, each with who holds it now and since when, and the counts by status (of the newest 200 when capped). Name the project by its name, id or alias; the owner\'s words for the CEO itself are never a project. Use it instead of reading the database.',
+    input: z.object({
+      project: z.string().trim().min(1).max(400).describe('The project\'s name, id or alias.'),
+      include_closed: z.boolean().optional().describe('Also the done and cancelled ones.')
+    }).strict()
+  },
+  board_task: {
+    mcp: 'fabric_ceo_board_task',
+    title: 'One task and its graph',
+    description: 'One task on Fabric\'s board and its graph: its goal, the task it grew from and the ones that grew from it, what it blocks, what blocks it, what it follows and what follows it, when it started and finished. Give its id (a prefix of six or more characters with its project) or its words with its project.',
+    input: z.object({
+      task: z.string().trim().min(1).max(400).describe('The task\'s id or words.'),
+      project: z.string().trim().max(400).optional().describe('Its project, needed unless the whole id is given.')
+    }).strict()
+  }
+} as const
+
+/** What the CEO's door runs: `createVoiceBoard`'s answer, the same for the console and the voice. */
+export interface CeoBoardOperations { run(name: string, args: unknown): Promise<Record<string, unknown>> }
+
+/** The MCP door: on the CEO session's server only (`agentSurface.ts`, region ceo-surface). */
+export function registerCeoBoardTools(server: McpServer, ops: CeoBoardOperations): void {
+  for (const [name, tool] of Object.entries(CEO_BOARD_TOOLS))
+    server.registerTool(tool.mcp, { title: tool.title, description: tool.description, inputSchema: tool.input.shape },
+      async (args: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(await ops.run(name, args), null, 2) }] }))
 }
 // #endregion voice-board

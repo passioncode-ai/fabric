@@ -38,3 +38,8 @@ can be decided by voice, quickly. The voice gets the same tools as the CEO's con
 
 **How.** Through `task-pipeline`, with tests, in 0.3.28. The agent architect's consult named the reference templates
 and patterns; it advises and never gates.
+
+## Progress
+
+- **Item 5, done on `feat/ceo-board-tools` (2026-11-21).** The CEO's console gets the voice's three board reads as `fabric_ceo_board_projects`, `fabric_ceo_board_tasks` and `fabric_ceo_board_task` (`apps/desktop/src/main/voiceBoard.ts#registerCeoBoardTools`), on the CEO session's MCP server alone (`apps/desktop/src/main/agentSurface.ts`, region `ceo-surface`), answering exactly as the voice (test `apps/desktop/test/voice-board.test.mjs`, watched failing when one door was removed). The CEO's brief names them (`apps/desktop/src/shared/ceoAgent.ts`). Not yet: the board summary (backlog, running, in review, requests no responder answers), the next slice of item 5.
+- **Items 1 to 3 and 6 to 11:** not started.

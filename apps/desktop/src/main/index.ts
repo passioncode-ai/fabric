@@ -55,7 +55,7 @@ import { knowledgeVoiceTools, VOICE_REFUSED_OPERATIONS, type KnowledgeOperations
 import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
 import { createVoiceJournal } from './ceoVoiceJournal.ts'
 import { createVoiceTools, VOICE_TOOLS } from './ceoVoiceTools.ts'
-import { createVoiceBoard, VOICE_BOARD_TOOLS, TASKS_READ, type BoardTask } from './voiceBoard.ts'
+import { createVoiceBoard, VOICE_BOARD_TOOLS, TASKS_READ, type BoardTask, type CeoBoardOperations } from './voiceBoard.ts'
 import { createAliasStore } from './ceoProjectAliases.ts'
 import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
@@ -561,6 +561,8 @@ let ceoAgent: CeoAgent | null = null
 let ceoOperations: CeoOperations | null = null
 /** The estate index's doors (ADR-0200), given to the CEO's console surface beside its session tools. */
 let knowledgeOperations: KnowledgeOperations | null = null
+/** The board's reads as the CEO console's tools (CO-622 item 5): the voice's `createVoiceBoard`, set once the store is up. */
+let ceoBoardReads: CeoBoardOperations | null = null
 let estate: Estate | null = null
 let ceoWindow: BrowserWindow | null = null
 /** A draft the popup takes when it opens (Help's example, the home composer's words not yet sent). */
@@ -1228,7 +1230,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
     ports: (registry) => windowHubPorts({
       ptys: () => ptys, sweep: boardState.sweep.get, readSettings: readSettingsState, registry,
-      ceo: () => (ceoAgent ? { isCeo: ceoAgent.isCeo, operations: () => ceoOperations, knowledge: () => knowledgeOperations } : null),
+      ceo: () => (ceoAgent ? { isCeo: ceoAgent.isCeo, operations: () => ceoOperations, knowledge: () => knowledgeOperations, board: () => ceoBoardReads } : null),
       desktop: { openExternal: (url) => shell.openExternal(url), applicationInfoForProtocol: (url) => app.getApplicationInfoForProtocol(url) }
     }),
     presenter: ({ accessStore, connector, access }) => new ConsentPresenter({
@@ -5656,6 +5658,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       goals: async (ids) => ids.length ? rowsOf(await store.selectIn('goals', 'id,title', 'id', [...ids]), 'the goals') : []
     }
   })
+  ceoBoardReads = voiceBoard
   // #endregion voice-board-reads
   const voiceTools = createVoiceTools({
     askedAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.at : null),
