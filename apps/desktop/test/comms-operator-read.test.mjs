@@ -144,6 +144,21 @@ test('a thread row without the aggregates is unavailable — never read as zero 
   assert.equal(reply.error.code, 'unavailable')
 })
 
+test('a responder message carries what it is (via: reply, progress, effect, checkpoint); none is no mark; an unknown mark is unavailable (DEC-0181)', async () => {
+  const reply = { ...messageRow, kind: 'reply', replyTo: messageRow.id, body: { text: 'x' } }
+  delete reply.request
+  const rows = [{ ...reply, via: 'checkpoint' }, { ...reply, via: 'progress' }, { ...reply, via: 'effect' }, { ...reply, via: 'reply' }, reply]
+  const read = createCommsOperatorRead(fake({ board_list_operator: { data: { ok: true, messages: rows, last_seq: 9, more: false }, error: null } }))
+  const page = await read.list(ESTATE, THREAD, 0, 50)
+  assert.equal(page.ok, true)
+  assert.deepEqual(page.messages.map((m) => m.via), ['checkpoint', 'progress', 'effect', 'reply', undefined])
+  assert.equal('via' in page.messages[4], false)
+  const odd = createCommsOperatorRead(fake({ board_list_operator: { data: { ok: true, messages: [{ ...reply, via: 'gossip' }], last_seq: 9, more: false }, error: null } }))
+  const refused = await odd.list(ESTATE, THREAD, 0, 50)
+  assert.equal(refused.ok, false)
+  assert.equal(refused.error.code, 'unavailable')
+})
+
 test('a redacted message keeps its place, id and digest, and says its body was removed', async () => {
   const redacted = { ...messageRow, kind: 'message', request: undefined, body: undefined, redacted: true }
   delete redacted.request

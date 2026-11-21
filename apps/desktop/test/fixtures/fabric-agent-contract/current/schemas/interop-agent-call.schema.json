@@ -25,11 +25,11 @@
     },
     "decision": {
       "$ref": "decision.schema.json",
-      "description": "The operator's decision on a relayed action (DEC-0121 AP-2): the hub forwards a T0 or T1 origin's unchanged and drops a T2 origin's; over the relay it rides here, inside the sealed call."
+      "description": "The operator's decision on a relayed action (DEC-0121 AP-2): the hub forwards a T0 or T1 origin's unchanged and drops a T2 origin's; over the relay it rides here, inside the sealed call. A level holder's decision (DEC-0162 LV-3, by: level) is forwarded from any origin with the origin's delegation token, whose mem binds it, and taken at every tier by a service that reads levels."
     },
     "mandate": {
       "$ref": "mandate.schema.json",
-      "description": "The operator's mandate for the task this call serves (DEC-0125 MD-3): the hub forwards a T0 or T1 origin's unchanged and drops a T2 origin's, as it does a decision; over the relay it rides here, inside the sealed call."
+      "description": "The operator's mandate for the task this call serves (DEC-0125 MD-3): the hub forwards a T0 or T1 origin's unchanged and drops a T2 origin's, as it does a decision; over the relay it rides here, inside the sealed call. A level mandate (DEC-0162 LV-6, by: level) is forwarded from any origin with the origin's delegation token, and taken at every tier by a service that reads levels, only at the service its attestation is for. A place's standing mandate (DEC-0166 AU-3) is forwarded from any origin with the origin's token, only to a callee that declares standing, which takes it from T2 only when the token's prof is the mandate's profileDigest."
     }
   },
   "additionalProperties": false

@@ -70,6 +70,12 @@ between consoles, the CEO's board slot).
   the language of messages is not touched (`main/sessionEnv.ts#UTF8_CTYPE`). Text already copied broken stays broken:
   copy it again after the update. A test pastes more than 6 KB of Russian into a real console and copies it back
   through pbcopy, for project consoles and the CEO's alike (`test/console-paste-utf8.test.mjs`).
+- **A responder's note on a request is no longer read as its answer.** Everything a responder writes on a request's
+  thread (an answer, a progress note, an effect summary, the checkpoint of a takeover) is stored as a reply. The
+  operator's read of a thread now says which each one is (`via`: `reply`, `progress`, `effect`, `checkpoint`; contract
+  DEC-0181, fabric-agent-contract `6ab4d03`), and the bridge to an organization's PM agent judges only an answer: a
+  takeover's checkpoint that quotes an answer block decides nothing. Agents' own reads (`com.list`, `com.get`) are
+  unchanged until the board can read a reader's contract pin (the schema step is in «Upgrading» below).
 - **An agent asks the person only what the person alone can say.** The operator, 2026-11-21: strategy (the vision,
   the concept) is the person's and is always asked; tactics the agent decides itself; what the agent knows better or
   can find it never asks; a question goes only where the agent is unsure or the person knows better, weighed against
@@ -180,7 +186,8 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
   refused. Projects made there before stay until archived by hand: on the owner's Mac, 18 left by probes were archived
   on 2026-11-20 (their folders untouched); other machines keep theirs (CO-605).
 
-**Upgrading.** No schema step. Nothing to set. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
+**Upgrading.** One schema step from 0.3.26, 102 to 103 (migration `20261121000130_board_operator_message_via.sql`, a
+new function and one replaced read, no data change); Fabric applies it at start. Nothing to set. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
 days and the newest 200 at most), `<userData>/ceo-window.json` (the CEO window's place and size), `<userData>/estate-index/`
 (the index of sessions, tasks and documents, 0700; an index an earlier build wrote is removed at the first start and built
 again, which takes a few minutes, and longer for meaning when a local model serves vectors), `<userData>/ceo/project-aliases.json` (0600) and `<userData>/ceo/pending.json` (0600, the

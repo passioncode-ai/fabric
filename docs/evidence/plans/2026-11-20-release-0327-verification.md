@@ -31,8 +31,9 @@ this session and that the agreement takes (run ten).
 
 ## What 0.3.27 carries
 
-The `## 0.3.27` section of [`CHANGELOG.md`](../../../CHANGELOG.md). No
-schema step (no migration).
+The `## 0.3.27` section of [`CHANGELOG.md`](../../../CHANGELOG.md). One schema step, 102 to 103
+(`20261121000130_board_operator_message_via.sql`, from `main` at `65423c42`, merged before run thirteen), taken at the
+first start.
 
 ## Iteration 1
 

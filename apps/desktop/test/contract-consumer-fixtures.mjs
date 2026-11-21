@@ -8,7 +8,7 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
 export const fixtureRoot = fileURLToPath(new URL('./fixtures/fabric-agent-contract/', import.meta.url))
-export const CURRENT_COMMIT = '3830a3353923e20f826d466610e1c479f120bec0'
+export const CURRENT_COMMIT = '6ab4d03af21d484becbb58f7010a5f407921bd5f'
 export const LEGACY_COMMIT = '2ce392291c6668598d12cd38327e24696b5ca15c'
 export const schemaPrefix = 'https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/'
 // fabric-project-comms/0.1 (DEC-0022, accepted 2026-10-05) joins at d4c8831: its schemas, and every comms
@@ -18,6 +18,7 @@ export const schemaPrefix = 'https://fabric.passioncode.ai/agent-contract/0.1.0/
 // host hold), DEC-0080 (the structured finding) and DEC-0081 (owner settlement), pinned at a59d04b, add their fixtures and vectors.
 // The repin to 39c8977 (v0.1.0+2026-10-26.3) adds com.read_ack and the host's wait refusal (comms-read-ack, comms-host-wait),
 // the unread filter, the reply's reaction rows and the receipt's noResponder, each with the fixtures the catalogue grades.
+// The repin to 6ab4d03 (DEC-0181, CT-341) adds the responder message's optional `via` (reply, progress, effect, checkpoint).
 export const COMMS_SURFACES = ['comms-cancel', 'comms-claim', 'comms-complete', 'comms-directory', 'comms-directory-args', 'comms-effect-begin',
   'comms-enroll', 'comms-fence', 'comms-fenced', 'comms-host-wait', 'comms-list', 'comms-message', 'comms-message-ref', 'comms-page', 'comms-progress',
   'comms-read-ack', 'comms-receipt', 'comms-reconcile', 'comms-refusal', 'comms-reply', 'comms-responder-replace', 'comms-status', 'comms-status-args',
@@ -37,7 +38,9 @@ const positiveNames = ['comms-cancel', 'comms-claim', 'comms-complete', 'comms-d
   'comms-submit-reply', 'comms-submit-reply-reaction', 'comms-submit-request', 'interop-agent-call', 'manifest-mcp', 'pipeline',
   'service-well-known-capabilities',
   // The repin to 3830a33 (v0.1.0+2026-10-27.6): DEC-0135's reply audience (`deliverTo`), graded by the contract.
-  'comms-message-reply-deliver-thread', 'comms-reply-deliver-list', 'comms-reply-deliver-list-max', 'comms-reply-deliver-sender', 'comms-reply-deliver-thread', 'comms-submit-reply-deliver-thread']
+  'comms-message-reply-deliver-thread', 'comms-reply-deliver-list', 'comms-reply-deliver-list-max', 'comms-reply-deliver-sender', 'comms-reply-deliver-thread', 'comms-submit-reply-deliver-thread',
+  // The repin to 6ab4d03 (DEC-0181, CT-341): the responder message's optional `via`, graded by the contract.
+  'comms-message-via-progress', 'comms-message-via-reply']
 const negativeNames = ['comms-cancel-forged-sender', 'comms-cancel-reason-too-long', 'comms-claim-forged-project', 'comms-claim-without-idempotency',
   'comms-complete-outcome-unknown', 'comms-directory-args-forged-estate', 'comms-directory-args-limit-over-page', 'comms-directory-entry-held',
   'comms-directory-entry-with-content', 'comms-directory-entry-with-generation', 'comms-directory-held-not-boolean', 'comms-directory-over-page',
@@ -70,7 +73,8 @@ const negativeNames = ['comms-cancel-forged-sender', 'comms-cancel-reason-too-lo
   'comms-submit-finding-without-consequence', 'comms-submit-finding-without-dedupe-key', 'comms-submit-finding-without-severity',
   'comms-submit-forged-estate', 'comms-submit-forged-sender', 'comms-submit-reaction-on-message', 'comms-submit-reply-without-target',
   'comms-submit-request-without-details', 'comms-submit-too-many-artifacts',
-  'comms-message-deliver-on-message', 'comms-reply-deliver-duplicate', 'comms-reply-deliver-empty-id', 'comms-reply-deliver-empty-list', 'comms-reply-deliver-too-many', 'comms-reply-deliver-unknown', 'comms-reply-responder-deliver', 'comms-submit-deliver-on-message']
+  'comms-message-deliver-on-message', 'comms-reply-deliver-duplicate', 'comms-reply-deliver-empty-id', 'comms-reply-deliver-empty-list', 'comms-reply-deliver-too-many', 'comms-reply-deliver-unknown', 'comms-reply-responder-deliver', 'comms-submit-deliver-on-message',
+  'comms-message-via-on-message', 'comms-message-via-with-deliver', 'comms-message-via-unknown', 'comms-message-via-without-reply-to']
 export const expectedPaths = [
   ...currentSchemas.map(name => `current/schemas/${name}.schema.json`),
   ...positiveNames.map(name => `current/positive/${name}.json`),

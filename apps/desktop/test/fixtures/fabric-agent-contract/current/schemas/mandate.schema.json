@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/mandate.schema.json",
   "title": "The operator's mandate a task carries down a chain of agents (mandate/1, DEC-0125)",
-  "description": "The operator's instruction for one task, carried by the agent leading it and handed on, narrowed, to the agents it engages (docs/specification/delegation.md#the-operators-mandate). It travels in a request's _meta.mandate, a hub agent.call's or a sealed call's call.mandate, or a project-board request's body. A callee takes a call it covers from a T0 or T1 caller as the operator's decision (MD-3); a T2 caller's mandate changes nothing (MD-5). mandateCovers in src/mandate.ts is the reference; FAC-SEM-144 checks the document.",
+  "description": "The operator's instruction for one task (or, with standing, a place's autonomy profile for one assignment, DEC-0166), carried by the agent leading it and handed on, narrowed, to the agents it engages (docs/specification/delegation.md#the-operators-mandate). It travels in a request's _meta.mandate, a hub agent.call's or a sealed call's call.mandate, or a project-board request's body (an operator's task mandate only: neither a level mandate nor a standing mandate travels over the board, DEC-0162 LV-6, DEC-0166 AU-1). A callee takes a call it covers from a T0 or T1 caller as the operator's decision (MD-3); a T2 caller's mandate changes nothing (MD-5), save a level mandate its delegation token binds (DEC-0162 LV-6) and a standing mandate its token binds by prof (DEC-0166 AU-3). mandateCovers in src/mandate.ts is the reference; FAC-SEM-144 checks the document.",
   "type": "object",
   "required": [
     "kind",
@@ -20,7 +20,82 @@
       "const": "mandate/1"
     },
     "by": {
-      "const": "operator"
+      "enum": [
+        "operator",
+        "level"
+      ],
+      "description": "operator: the operator's words (MD-1), or a place's standing mandate the hub states, whose standing.setLevel names an organization's owner or administrator who set it (DEC-0166 AU-1, AU-2). level: a level holder's words in an organization (DEC-0162 LV-6), with level, org and membership; taken from any tier only when the call's delegation token binds membership by mem (LV-5)."
+    },
+    "level": {
+      "enum": [
+        "owner",
+        "admin",
+        "architect"
+      ],
+      "description": "With by level: the level the holder gives the mandate at, at most the attestation's role; an architect's mandate lists projects in its scope, each among the attestation's (FAC-SEM-170)."
+    },
+    "org": {
+      "type": "string",
+      "maxLength": 132,
+      "pattern": "^org:[A-Za-z0-9][A-Za-z0-9_-]{0,127}$",
+      "description": "With by level: the organization the level is in, the attestation's org."
+    },
+    "membership": {
+      "type": "object",
+      "description": "The holder's org-membership/2 attestation (org-membership-2.schema.json), whose audience is the service that reads it; the service verifies it (verifyOrgMembership, levels: true) rather than this schema, so a consumer that vendors this schema vendors no membership schema (DEC-0162)."
+    },
+    "standing": {
+      "type": "object",
+      "required": [
+        "place",
+        "placeKind",
+        "revision",
+        "context"
+      ],
+      "additionalProperties": false,
+      "description": "DEC-0166 AU-1: present on a place's standing mandate, its autonomy profile, which the place's hub states from the profile at its revision for each assignment it starts there and restates at least once every 24 hours, a standing mandate living at most a day (FAC-SEM-144); task then names the assignment. A callee takes it only when its authority extension (extensions/authority/0.1) declares standing (AU-3) and, from T2, only when the call's delegation token binds it by prof (profileDigest); its scope never names autonomy.profile.set (FAC-SEM-173).",
+      "properties": {
+        "place": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:~-]{0,127}$",
+          "description": "The machine, OS space, VM or cloud the profile is for, by the id its hub records (an estate record's machine id, activity-common opaqueId's form)."
+        },
+        "placeKind": {
+          "enum": [
+            "headless",
+            "person"
+          ],
+          "description": "headless: nobody sits at the place, a watcher is declared (AU-6); person: a person's own computer."
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "The profile's revision the hub stated it at; a profile the hub replaced takes effect at the next mandate and token it states."
+        },
+        "context": {
+          "type": "string",
+          "pattern": "^(?:personal|org:[A-Za-z0-9][A-Za-z0-9_-]{0,127})$",
+          "description": "DEC-0166 AU-1: the context the profile is for, as common.schema.json contextId: personal, or org:<orgId> (org: whenever setLevel is present). A callee takes the standing mandate only for a call in that same context (another organization or the other context: decision-invalid profile-context), the call's context being the service's own knowledge, as DEC-0162 LV-4 reads a level's. Inside the digest, as the rest of standing."
+        },
+        "estateCapabilities": {
+          "const": true,
+          "description": "DEC-0166 AU-4: a headless place's default names every capability of the services registered in the place's estate instead of listing them in scope.capabilities, which the scope then leaves out; it names a call only from T0 or T1, inside the boundary. Inside the digest, as the rest of standing."
+        },
+        "setLevel": {
+          "enum": [
+            "owner",
+            "admin"
+          ],
+          "description": "DEC-0166 AU-2: in an organization's context, the level of the holder who set the profile, the owner or an administrator (an architect records no profile, the operator's answer to DEC-0166 question 4); absent on the operator's own profile and required in an organization's context. Inside the digest, so a token's prof binds it. A callee that declares actionLevels (extensions/authority/0.1) refuses an action declared above it operator-decision-required with level-insufficient, as LV-7 and LV-10 say."
+        }
+      },
+      "allOf": [
+        { "if": { "properties": { "setLevel": true }, "required": ["setLevel"] }, "then": { "properties": { "context": { "type": "string", "pattern": "^org:" } } } },
+        { "if": { "properties": { "context": { "type": "string", "pattern": "^org:" } }, "required": ["context"] }, "then": { "required": ["setLevel"] } }
+      ]
     },
     "task": {
       "type": "string",
@@ -32,7 +107,7 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 500,
-      "description": "The operator's words that gave the task, verbatim, in AP-3's form: their sentence, or the agent's question and their answer."
+      "description": "The operator's words that gave the task, verbatim, in AP-3's form: their sentence, or the agent's question and their answer; for a level mandate, the level holder's words."
     },
     "at": {
       "$ref": "common.schema.json#/$defs/timestamp",
@@ -44,7 +119,7 @@
     },
     "expiresAt": {
       "$ref": "common.schema.json#/$defs/timestamp",
-      "description": "When the mandate ends: after at and at most 7 days after it (FAC-SEM-144)."
+      "description": "When the mandate ends: after at and at most 7 days after it, a standing mandate at most 24 hours (FAC-SEM-144, DEC-0166 AU-1)."
     },
     "scope": {
       "$ref": "#/$defs/scope",
@@ -187,5 +262,69 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "by": {
+            "const": "level"
+          }
+        },
+        "required": [
+          "by"
+        ]
+      },
+      "then": {
+        "required": [
+          "level",
+          "org",
+          "membership"
+        ],
+        "properties": {
+          "level": true,
+          "org": true,
+          "membership": true
+        }
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "level"
+              ],
+              "properties": {
+                "level": true
+              }
+            },
+            {
+              "required": [
+                "org"
+              ],
+              "properties": {
+                "org": true
+              }
+            },
+            {
+              "required": [
+                "membership"
+              ],
+              "properties": {
+                "membership": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": { "required": ["standing"], "properties": { "standing": true } },
+      "then": { "properties": { "by": { "const": "operator" } } }
+    },
+    {
+      "if": { "required": ["standing"], "properties": { "standing": { "type": "object", "required": ["estateCapabilities"], "properties": { "estateCapabilities": true } } } },
+      "then": { "properties": { "scope": { "type": "object", "not": { "required": ["capabilities"], "properties": { "capabilities": true } } } } }
+    }
+  ]
 }

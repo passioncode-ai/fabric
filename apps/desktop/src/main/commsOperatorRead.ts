@@ -22,6 +22,8 @@
 
 import {
   COMMS_KINDS,
+  COMMS_VIA,
+  type CommsVia,
   type CommsArtifact,
   type CommsFactsReply,
   type CommsHead,
@@ -152,6 +154,11 @@ function messageOf(v: unknown): CommsMessage | null {
   }
   if (v.redacted === true) out.redacted = true
   if (typeof v.replyTo === 'string') out.replyTo = v.replyTo
+  if (v.via !== undefined) {
+    // A mark this build does not know is not dropped: without it the message would read as an answer.
+    if (typeof v.via !== 'string' || !(COMMS_VIA as readonly string[]).includes(v.via)) return null
+    out.via = v.via as CommsVia
+  }
   if (v.request !== undefined) {
     const request = requestOf(v.request)
     if (!request) return null
