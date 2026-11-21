@@ -71,11 +71,9 @@ import { RESTART_OUTCOME_FILE, askRestartWindow, restartConfirmation, spawnResta
 import { releaseByOperator } from './workRelease.ts'
 import { createOpsDigestRun, type OpsDigestRun } from './opsDigestRun.ts'
 import { risenRows } from '../shared/opsDigest.ts'
-import { readProjectWork, readSessionTasks, readTaskBoard, readWhereWork, readWork, type HeldSession } from './workRead.ts'
+import type { HeldSession } from './workRead.ts'
 import { readQueueOrder } from './taskOrderRead.ts'
 import { decideRankProposal, reorderTask, type RankWriteDeps } from './taskRankWrite.ts'
-import { launchOverlap } from '../shared/launchOverlap.ts'
-import { OVERLAP_CHOICES, overlapPair, type OverlapChoice } from '../shared/abandonedSweep.ts'
 import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
 import { ConsentPresenter } from './consentPresenter.ts'
 import { pendingFacts, type HubDownCode } from '../shared/access.ts'
@@ -99,7 +97,7 @@ import { createBranchReader } from './agentBranches.ts'
 import { readHomeView as readHomeStages } from './homeView.ts'
 import { createRhythmReader } from './workRhythm.ts'
 import { createWaitingReader } from './commsWaitingList.ts'
-import { readProjectRequests, readProjectSources } from './projectRequests.ts'
+import { readProjectRequests } from './projectRequests.ts'
 import { createDisplayNameReader } from './projectNames.ts'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
@@ -460,6 +458,7 @@ import { createRunOverConsole, createRunOverExecutors, runOverRefusal } from './
 import { createSessionExecutors, sessionStopOutcome, type ConsoleSnapshot } from './actSessionExecutors.ts'
 import { createDraftExecutors } from './actDraftExecutors.ts'
 import { createHubDoors } from './hubDoors.ts'
+import { createWorkDoors } from './workDoors.ts'
 import { actQueryOf, answerOf } from './actIpc.ts'
 import type { PersistedTabs } from '../shared/tabs.ts'
 import { createContinuationDelivery, type ContinuationResult } from './continuationDelivery.ts'
@@ -5215,77 +5214,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   )
 
   // #region work-ipc — docs: docs/ux/scenarios.md#scn-140-agents-ask-fabric-who-is-working-on-what-claim-their-task-are-warned-of-related-work-and-release-it
-  handle(IPC.workProject, async (_e, projectId: string): Promise<Returns<FabricApi['work']['project']>> => {
-    const scoped = createScopedStore(db, { kind: 'project', estateId: ACTIVE_ESTATE, projectId })
-    return readProjectWork(scoped, { now: Date.now(), session: sessionSignOf, sessions: heldSessions(projectId), leases: () => projectLeaseRefs(projectId) })
-  })
-  handle(IPC.workEstate, async (): Promise<Returns<FabricApi['work']['estate']>> =>
-    readWhereWork(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
-  // CO-522 wave A: the live claims a new start would run into, read as fabric_work_claim reads them (`readWork`).
-  handle(IPC.workLaunchCheck, async (_e, input: { projectId: string; taskId?: string | null; text: string }): Promise<Returns<FabricApi['work']['launchCheck']>> => {
-    const projectId = String(input?.projectId ?? ''), taskId = typeof input?.taskId === 'string' && input.taskId ? input.taskId : null
-    const snap = await readWork(store, { now: Date.now(), session: sessionSignOf, projectId })
-    const sources = new Map(snap.claims.filter((c) => c.source).map((c) => [c.work_id, c.source!]))
-    const ids = [...new Set([...(taskId ? [taskId] : []), ...snap.claims.map((c) => c.work_id)])]
-    const [from, to] = await Promise.all([
-      store.selectIn('task_links', 'task_id,rel,target_id,target_kind', 'task_id', ids),
-      store.selectIn('task_links', 'task_id,rel,target_id,target_kind', 'target_id', ids)
-    ])
-    if (from.failed || to.failed) throw new Error(`the task links could not be read: ${from.failed ?? to.failed}`)
-    const edges = [...from.rows, ...to.rows].filter((e) => e.target_kind === 'task')
-      .map((e) => ({ task_id: String(e.task_id), rel: String(e.rel), target_id: String(e.target_id) }))
-    if (taskId && !sources.has(taskId)) {
-      const own = await store.select('task_sources', 'task_id,repository,repo_path,path,row_id').eq('task_id', taskId).maybeSingle()
-      if (own.data) sources.set(taskId, own.data as never)
-    }
-    const found = launchOverlap({ taskId, text: String(input?.text ?? '') }, snap.claims, sources, edges)
-    const console = [...found.overlaps, ...found.alsoWorking].map((h) => h.heldBy).filter((s) => ptys.get(s) !== null)
-    return { ...found, console: [...new Set(console)] }
-  })
-
-  // CO-522 wave B part 2: the person decides two sessions that overlap. Both tasks get the decision as the person's note;
-  // «The other waits» links the later task after the first (`link_tasks`, follows); the sweep tells both sessions.
-  handle(IPC.workOverlapDecide, async (_e, input: { key: string; choice: string }): Promise<Returns<FabricApi['work']['overlapDecide']>> => {
-    const m = /^overlap-unsettled:([0-9a-f-]{36}):([0-9a-f-]{36})$/.exec(String(input?.key ?? ''))
-    const choice = String(input?.choice ?? '') as OverlapChoice
-    if (!m || !OVERLAP_CHOICES.includes(choice)) return { ok: false, reason: 'unknown overlap or choice' }
-    const { data: rows, error } = await store.select('work_claims', 'id,work_id,project_id,owner_session,claimed_at,released_at').in('id', [m[1]!, m[2]!])
-    if (error) return { ok: false, reason: `the claims could not be read: ${error.message}` }
-    const claims = (rows ?? []) as Array<{ id: string; work_id: string; project_id: string; owner_session: string; claimed_at: string; released_at: string | null }>
-    if (claims.length !== 2 || claims.some((c) => c.released_at)) return { ok: false, reason: 'one of the two sessions no longer holds its task' }
-    const [first, second] = [...claims].sort((a, b) => Date.parse(a.claimed_at) - Date.parse(b.claimed_at) || (a.id < b.id ? -1 : 1)) as [typeof claims[0], typeof claims[0]]
-    if (choice === 'wait') {
-      const { data: link, error: linkError } = await db.rpc('link_tasks', { p_estate_id: ACTIVE_ESTATE, p_task_id: second.work_id, p_rel: 'follows',
-        p_target_id: first.work_id, p_actor: OPERATOR_ACTOR, p_project_id: second.project_id })
-      const verdict = linkOutcome(link, linkError)
-      if (!verdict.linked) return { ok: false, reason: linkRefusal(verdict) || 'the tasks could not be linked' }
-    }
-    const said = choice === 'wait' ? `Decided: this task waits for task ${first.work_id} (session ${first.owner_session}), which goes first.`
-      : choice === 'handover' ? `Decided: session ${second.owner_session} hands its task to session ${first.owner_session}.`
-        : 'Decided: both sessions go on, each keeping to its own paths.'
-    for (const c of [first, second])
-      await journal.append({ estateId: ACTIVE_ESTATE, type: 'task.note.added@1', actor: OPERATOR_ACTOR, projectId: c.project_id,
-        payload: { task_id: c.work_id, note_id: randomUUID(), body_md: `${said} (overlap of sessions ${first.owner_session} and ${second.owner_session})` } })
-    boardState.sweep.get()?.decideOverlap(overlapPair(first.id, second.id), choice)
-    return { ok: true }
-  })
-
-  // CO-522 wave C: the person's words to a running session, through the queue its fabric-mcp reads (never typed into a
-  // terminal, where a line's Enter could answer a waiting permission prompt).
-  handle(IPC.workSay, async (_e, input: { sessionId: string; text: string }): Promise<Returns<FabricApi['work']['say']>> => {
-    const sessionId = String(input?.sessionId ?? '').trim(), text = String(input?.text ?? '').trim().slice(0, 4000)
-    if (!sessionId || !text) return { ok: false, reason: 'say what the agent should read' }
-    const sweeper = boardState.sweep.get()
-    if (!sweeper) return { ok: false, reason: 'Fabric is still starting; try again in a moment' }
-    return { ok: true, ...sweeper.say(sessionId, text) }
-  })
-  handle(IPC.workMessages, async (_e, sessionId: string): Promise<Returns<FabricApi['work']['messages']>> =>
-    boardState.sweep.get()?.messages(String(sessionId ?? '')) ?? [])
-
+  /** The doors' bodies are `workDoors.ts#createWorkDoors`: the same functions the board's operator door serves
+   *  (ADR-0195 W2c.2b), so the window and a board process answer alike. What stays here is the window's own: the
+   *  home's shared reading, the coding agents' versions and the rhythm reader, each kept by this process. */
   // W3 of the quality waves (perf PF-2): one reading for every reader, joined in flight and answered again for 2 s
   // (`sharedReading.ts`); the window, the rail and each screen asked for their own, up to 809 times an hour.
   const homeReading = createSharedReading((): Promise<Returns<FabricApi['work']['home']>> => readHomeView(), 2_000)
-  handle(IPC.workHome, (): Promise<Returns<FabricApi['work']['home']>> => homeReading.read())
   // The home's stages in order (`homeView.ts`), over this process's sessions, sweep, dispatcher and names.
   const readHomeView = (): Promise<Returns<FabricApi['work']['home']>> => readHomeStages({
     store, heldSessions, sessionSign: sessionSignOf, branchReader: agentBranchReader, reportedBranch: boardState.branches.get,
@@ -5294,13 +5228,6 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     readNames: () => projectNames.read(namesStale),
     onNamesUnread: (e) => ops.failed('work.display-names-unread', e, { note: 'the screens print the stored names' })
   })
-  handle(IPC.workBoard, async (_e, projectId?: unknown, doneLimit?: unknown): Promise<Returns<FabricApi['work']['board']>> =>
-    readTaskBoard(store, {
-      now: Date.now(), session: sessionSignOf, sessions: heldSessions(), projectId: typeof projectId === 'string' && /^[0-9a-f-]{36}$/.test(projectId) ? projectId : null,
-      // «Готово» pages by 20 up to 500 (0.3.14); anything else reads the first page.
-      doneLimit: typeof doneLimit === 'number' && Number.isInteger(doneLimit) ? Math.min(500, Math.max(20, doneLimit)) : 20
-    }))
-  // 0.3.14: one agent's tasks for its page, newest first; a failed read rejects (`workRead.ts#readSessionTasks`).
   // The mockup parity (agent page): the session's runner and its version (`start.executors`, run at most every 10 min).
   let executorsKept: { at: number; rows: Promise<Awaited<ReturnType<typeof detectExecutors>>> } | null = null
   const executorsCached = (): ReturnType<typeof detectExecutors> => {
@@ -5313,21 +5240,40 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
     return executorsKept.rows
   }
-  handle(IPC.workSession, async (_e, sessionId: unknown, aliases?: unknown): Promise<Returns<FabricApi['work']['session']>> =>
-    readSessionTasks(store, sessionId, { runner: typeof sessionId === 'string' ? heldSessions().find((s) => s.sessionId === sessionId)?.agent ?? null : null, executors: executorsCached, aliases }))
-  // SCN-181 (CO-543): one project's backlog rows for «Из бэклога»; a failed read rejects (`projectRequests.ts`).
-  handle(IPC.workSources, (_e, projectId: unknown): Promise<Returns<FabricApi['work']['sources']>> => readProjectSources(store as never, projectId))
   // «Ритм работы» (the mockup parity, home gaps D1, D2): one bounded count per local day, finished days kept
   // (`workRhythm.ts`); a day not read is unknown, never zero.
   const rhythmReader = createRhythmReader(store as never)
-  handle(IPC.workRhythm, async (): Promise<Returns<FabricApi['work']['rhythm']>> => rhythmReader.read(Date.now()))
-  handle(IPC.workRelease, async (_e, claimId: string): Promise<Returns<FabricApi['work']['release']>> => {
-    if (typeof claimId !== 'string' || !/^[0-9a-f-]{36}$/.test(claimId)) return { released: false, reason: 'not-found' }
-    // One press, no question (ADR-0160 §1); the act is recorded with «take it again» as its inverse.
-    const r = await acts.perform('claim.release', { claim_id: claimId })
-    if (r.ok) return { released: true, claimId }
-    return { released: false, reason: r.reason === 'claim_gone' ? 'not-found' : r.reason === 'already_released' ? 'already-released' : 'unconfirmed' }
+  const workDoors = createWorkDoors({
+    store: () => store,
+    projectStore: (projectId) => createScopedStore(db, { kind: 'project', estateId: ACTIVE_ESTATE, projectId }),
+    rpc: (fn, args) => db.rpc(fn, args),
+    journal: () => journal,
+    estateId: ACTIVE_ESTATE,
+    operator: () => OPERATOR_ACTOR,
+    sessionSign: sessionSignOf,
+    heldSessions,
+    leaseRefs: projectLeaseRefs,
+    consoleOpen: (sessionId) => ptys.get(sessionId) !== null,
+    sweep: () => boardState.sweep.get() ?? null,
+    home: () => homeReading.read(),
+    executors: executorsCached,
+    rhythm: (now) => rhythmReader.read(now),
+    acts: () => acts
   })
+  handle(IPC.workProject, async (_e, projectId: string): Promise<Returns<FabricApi['work']['project']>> => workDoors.project(projectId))
+  handle(IPC.workEstate, async (): Promise<Returns<FabricApi['work']['estate']>> => workDoors.estate())
+  handle(IPC.workLaunchCheck, async (_e, input: { projectId: string; taskId?: string | null; text: string }): Promise<Returns<FabricApi['work']['launchCheck']>> =>
+    workDoors.launchCheck(input))
+  handle(IPC.workOverlapDecide, async (_e, input: { key: string; choice: string }): Promise<Returns<FabricApi['work']['overlapDecide']>> =>
+    workDoors.overlapDecide(input))
+  handle(IPC.workSay, async (_e, input: { sessionId: string; text: string }): Promise<Returns<FabricApi['work']['say']>> => workDoors.say(input))
+  handle(IPC.workMessages, async (_e, sessionId: string): Promise<Returns<FabricApi['work']['messages']>> => workDoors.messages(sessionId))
+  handle(IPC.workHome, (): Promise<Returns<FabricApi['work']['home']>> => workDoors.home())
+  handle(IPC.workBoard, async (_e, projectId?: unknown, doneLimit?: unknown): Promise<Returns<FabricApi['work']['board']>> => workDoors.board(projectId, doneLimit))
+  handle(IPC.workSession, async (_e, sessionId: unknown, aliases?: unknown): Promise<Returns<FabricApi['work']['session']>> => workDoors.session(sessionId, aliases))
+  handle(IPC.workSources, (_e, projectId: unknown): Promise<Returns<FabricApi['work']['sources']>> => workDoors.sources(projectId))
+  handle(IPC.workRhythm, async (): Promise<Returns<FabricApi['work']['rhythm']>> => workDoors.rhythm())
+  handle(IPC.workRelease, async (_e, claimId: string): Promise<Returns<FabricApi['work']['release']>> => workDoors.release(claimId))
   // #endregion work-ipc
 
   handle(IPC.terminalClaims, async (_e, projectId: string): Promise<Returns<FabricApi['terminal']['claims']>> => {

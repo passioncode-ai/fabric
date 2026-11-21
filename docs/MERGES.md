@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `—` · refactor/board-work-doors → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/main/workDoors.ts` (new), `apps/desktop/test/work-doors.test.mjs` (new), `apps/desktop/src/main/index.ts` (region `work-ipc` calls `createWorkDoors`), `apps/desktop/package.json` (the test in `test`), the plan's W2c.2b row, CHANGELOG `Unreleased`, the map
+- conflicts: none
+- summary: ADR-0195 W2c.2b, the second group: the window's twelve work doors are functions the operator door can serve; the answers are unchanged and the board's entry does not serve them yet
+
 ### 2026-11-21 · `—` · refactor/board-hub-doors → main · fast-forward after `ci.sh fast`
 - files: `apps/desktop/src/main/hubDoors.ts` (new), `apps/desktop/test/hub-doors.test.mjs` (new), `apps/desktop/src/main/index.ts` (region `hub-ipc` calls `createHubDoors`), `apps/desktop/package.json` (the test in `test`), the plan's W2c.2b row, CHANGELOG `Unreleased`, the map
 - conflicts: none
