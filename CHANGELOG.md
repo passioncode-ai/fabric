@@ -9,6 +9,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The CEO is reachable on the board while its console runs, and a task for it wakes it.** The owner, 2026-11-21:
+  tasks from his Telegram bot found no live CEO. The CEO's `ceo.task` slot lived 60 s after its own enrol and then read
+  stale for days. Fabric now holds that slot as the CEO's console every 30 s while the console runs, and a `ceo.task`
+  request that waits while the console is not running starts it (at most once per 5 minutes; a CEO the person stopped
+  stays stopped), then types the request into it as before (ADR-0197 Amendment 3, `main/ceoBoardKeeper.ts`).
 - **Russian copied in one console reaches another whole.** The owner, 2026-11-21: his dictation copied from the CEO's
   console arrived in another console as «–î–∞–≤–∞–π», UTF-8 read as Mac Roman. Fabric started by «Служба доски» (launchd)
   has no locale, so its consoles had none either, and macOS's `pbcopy`, which Claude Code copies through, read the text

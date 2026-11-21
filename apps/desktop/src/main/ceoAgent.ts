@@ -539,7 +539,10 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     status, ensure, send, restart, stop, personStopping, personStopEnded, onOutput, onExit, nudgeBoard,
     isCeo: (id: string): boolean => id !== '' && (id === sessionId || opening.has(id)),
     sessionId: (): string | null => sessionId,
-    projectId: (): string | null => projectId
+    projectId: (): string | null => projectId,
+    /** The CEO's project even before this process started its console: the one its folder's meta names (ADR-0197
+     *  Amendment 3: a `ceo.task` request wakes a console that is not running). */
+    knownProjectId: (): string | null => projectId ?? knownProject()
   }
 }
 

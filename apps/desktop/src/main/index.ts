@@ -45,6 +45,7 @@ import { AccessService } from './accessService.ts'
 import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
+import { createCeoBoardKeeper, KEEP_MS as CEO_KEEP_MS } from './ceoBoardKeeper.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
 import { startEstateIndex, type Estate } from './estateWiring.ts'
 import { knowledgeVoiceTools, type KnowledgeOperations } from './knowledgeTools.ts'
@@ -5495,16 +5496,27 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     diskSessions: async () => liveClaudeSessions(await claudeConfigDirs())
   })
   // PM chain (task ff3fe9c3): once a minute, a board request a PM agent gave the CEO (capability `ceo.task`) is typed
-  // into its running console, each once.
+  // into its running console, each once. ADR-0197 Amendment 3: one that waits while the console does not run wakes it,
+  // and while it runs Fabric holds its `ceo.task` slot every CEO_KEEP_MS (`ceoBoardKeeper.ts`).
+  const ceoBoard = createCeoBoardKeeper({
+    state: () => agent.status().state,
+    sessionId: () => agent.sessionId(),
+    projectId: () => agent.knownProjectId(),
+    keepSlot: (id, capability) => surface.keepResponderSlot(id, capability),
+    ensure: () => agent.ensure(),
+    record: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+  })
   const ceoBoardTick = setInterval(() => {
-    const projectId = agent.projectId()
-    if (!projectId || agent.status().state !== 'running') return
+    const projectId = agent.knownProjectId()
+    if (!projectId || quit.quitting) return
     readProjectRequests(store as never, projectId, Date.now())
-      .then((view) => agent.nudgeBoard(view.requests, view.names))
+      .then(async (view): Promise<void> => { if (agent.status().state === 'running') await agent.nudgeBoard(view.requests, view.names); else await ceoBoard.wake(view.requests) })
       .catch((e: unknown) => ops.failed('ceo.board-read', e, { note: 'the CEO is told about board requests at the next minute' }))
   }, 60_000)
   ceoBoardTick.unref?.()
-  quit.onQuit(() => clearInterval(ceoBoardTick))
+  const ceoSlotTick = setInterval(() => { if (!quit.quitting) void ceoBoard.keep() }, CEO_KEEP_MS)
+  ceoSlotTick.unref?.()
+  quit.onQuit(() => { clearInterval(ceoBoardTick); clearInterval(ceoSlotTick) })
   handle(IPC.ceoAgentStatus, (): Returns<FabricApi['ceoAgent']['status']> => agent.status())
   handle(IPC.ceoAgentEnsure, (): Promise<Returns<FabricApi['ceoAgent']['ensure']>> => agent.ensure())
   handle(IPC.ceoAgentSend, (_e, text: unknown, attachments: unknown): Promise<Returns<FabricApi['ceoAgent']['send']>> =>

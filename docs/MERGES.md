@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `PASTE-AND-CEO-SLOT` · fix/paste-and-ceo-slot → main · fast-forward (toward the combined release)
+- files: `apps/desktop/src/main/sessionEnv.ts`, `agentSurface.ts` (`keepResponderSlot`), `ceoBoardKeeper.ts` (new), `ceoAgent.ts` (`knownProjectId`), `index.ts` (the CEO board timers), tests `session-env`, `ceo-board-keeper`, `keep-responder-slot`, ADR-0197 Amendment 3, AGENTS.md lifecycle row, CHANGELOG, the map
+- conflicts: none
+- summary: the owner's two blockers of 2026-11-21: a console with no locale gets `LC_CTYPE=en_US.UTF-8`, so Russian copied in it is not Mac Roman; Fabric holds the CEO's `ceo.task` slot while its console runs and a waiting `ceo.task` request wakes it
+
 ### 2026-11-21 · `SP-A1-ROWS` · docs/sp-a1-backlog-rows → main · fast-forward
 - files: `docs/evidence/specs/2026-08-16-software-fabric-carryover.md` (CO-616 to CO-618, the next id), `docs/evidence/backlog.md` (lane 12, the exposure count), `docs/reports/plan.json`, the map
 - conflicts: none
