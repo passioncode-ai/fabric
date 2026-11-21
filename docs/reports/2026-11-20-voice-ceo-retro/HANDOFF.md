@@ -88,9 +88,23 @@ in CO-620. The home's session then brought two more blockers of the owner (2026-
 between consoles turned to mojibake, and the CEO's board slot lapsed after 60 s (`fix/paste-and-ceo-slot`); this
 session takes them into 0.3.27, merged before run ten.
 
-**Next task.** Merge `fix/paste-and-ceo-slot` once its `ci.sh fast` is green, run `ci.sh fast` on the merge, review run
-ten on it, then the release commit (gate at that candidate, run ten's folder), land on `main` by fast-forward, tag
-`v0.3.27`, watch the release, install and check the DMG.
+`fix/paste-and-ceo-slot` (`ac46691d`) is merged (`e0b2c55c`); the candidate is `33aec0f4`.
+
+**Paused (2026-11-21, about 03:30, the owner's word through the CEO window).** Every session stops while a reconciling
+agent (fabric-workspace session 25879d0f, on Fable 5.2) reconciles the owner's orders of the last hours and sets the
+priorities. At the pause: `33aec0f4` committed and pushed; `ci.sh fast` on it and review run ten (five read-only
+reviewers on the review worktree) were already running and are left to finish as observation; their output lands in
+`~/.cache/fabric-88/ci-33aec0f4.log` and the reviewers' reports, not in the repository. Nothing is released; no tag.
+
+**Next task, only on the CEO's signal with the reconciler's decision.** If 0.3.27 goes ahead: read `ci.sh fast` on
+`33aec0f4` (it must reach its last step, with the browser suites and `claude --version`); store run ten's five reports
+and receipts in `docs/evidence/reviews/0.3.27/iteration-3-33aec0f4/`, dispose every finding in a run-ten section of the
+ledger (fix any blocking one and run again); then the release commit (gate `verifiedCommit` and iteration 3 at the
+final candidate, the one «Exit for iteration 3» line last), land on `main` by fast-forward, tag `v0.3.27`, watch the
+release, install and check the DMG; tell the owner through the communicator, including that Fabric Inbox is now allowed
+at once on his machine and connects itself (revoked in Agent access); tell session 8343a070 (`fabric-8b`), which then
+checks `com.directory` and the bot bridge (thread `69931b6d`). If the decision differs, follow it; the branch stays
+pushed as it is.
 
 ## The exact next task (as written before the merge)
 
