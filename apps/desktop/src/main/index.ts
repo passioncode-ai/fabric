@@ -4168,7 +4168,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // #endregion start-paths-ipc
   handle(IPC.personaRead, (): Returns<FabricApi['persona']['read']> => persona())
   handle(IPC.personaSave, (_e, next: unknown): Returns<FabricApi['persona']['save']> => savePersona(next))
-  handle(IPC.personaDockIcon, (_e, png: unknown): Awaited<Returns<FabricApi['persona']['dockIcon']>> => setDockIcon(png))
+  handle(IPC.personaDockIcon, (_e, png: unknown): Returns<FabricApi['persona']['dockIcon']> => setDockIcon(png))
   handle(
     IPC.favouritesMove,
     (_e, projectId: string, dir: 'up' | 'down', rest: string[]): Returns<FabricApi['favourites']['move']> =>

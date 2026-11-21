@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `RELEASE-0328-TRAIN` · fix/memory-source-kinds, audit/owner-hardcode, feat/dock-icon-face, refactor/board-operator-door → release/0.3.28 · merge
+- files: `main/{memoryRead,estateRun,estateWiring}.ts`, `shared/peopleAsk.ts`, `main/peopleAskRun.ts`, Settings, `scripts/check-build-private.mjs`, `main/appIcon.ts`, `renderer/src/launch/dockIcon.ts`, `shared/avatarSvg.ts`, `main/operatorDoor.ts` (+ their tests), CHANGELOG `## 0.3.28 (unreleased)`, the map
+- conflicts: CHANGELOG (each branch's lines moved under 0.3.28), MERGES and the map's changelog (both sides kept), `main/index.ts` (the Dock icon's import beside 0.3.27's), `apps/desktop/package.json` (0.3.27's list plus `operator-door.test.mjs`), `release-mac.md` (0.3.27's update text kept, the Dock paragraph added); `scripts/install-mac-update.mjs` and its lib and test, the previews, completeness and product reports kept as 0.3.27 has them (0.3.27's installer is the reviewed one)
+- summary: the owner's order of 2026-11-21, relayed by fabric-workspace's reconciler (A-3, d213194e): «ты готовишь 0.3.28 одним поездом из готовых веток». Not in the train: `feat/approval-modes` and `feat/ceo-access` (their author, session 9cda1c0f: unfinished, under the pause), `feat/task-rank` (migration 130 collides with main's, paused feature), `feat/ceo-session-windows` (an earlier candidate line), the paused WIP branches
+
 ### 2026-11-21 · `CEO-TRIAGES-QUESTIONS` · docs/ceo-triages-questions → main · fast-forward
 - files: `docs/adr/0207-the-ceo-triages-every-question-and-the-owner-is-signalled-only-in-his-own-channel.md`, `docs/evidence/specs/2026-11-21-ceo-triages-questions.md`, `docs/adr/README.md` (next free ADR-0211), `docs/evidence/plans/task-pipeline-persistence-contract.md` (pipeline reservation 0206 → 0210), the map
 - conflicts: the reservation row and the map's changelog at the rebase onto `65423c42`; both sides kept
