@@ -1,0 +1,63 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 3,
+ "level": "data",
+ "candidateCommit": "666d0fdd295502d2ed0e2a82569b97f8a372ecf6",
+ "report": "docs/evidence/reviews/0.3.28/iteration-3-666d0fdd/2026-11-21-data.md",
+ "reportSha256": "93cbd24231e265a86fcb7cc2aed5dc2acf62d7723d408e2a1377fad91dbc2b8e",
+ "reviewerRun": "release-0328-i3r1-data-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "DA-16",
+   "status": "fixed",
+   "evidence": [
+    "fixed: every refusal of `accountFor` says «name@…», its choices are `{account, id}`, and the ambiguous list carries accounts, not labels; test G1 asserts no `@example.com` in any of the three refusals by voice, red with the mapping removed"
+   ]
+  },
+  {
+   "id": "DA-17",
+   "status": "fixed",
+   "evidence": [
+    "fixed with UX-21; the transcript reads by voice are named in their bullet"
+   ]
+  },
+  {
+   "id": "DA-18",
+   "status": "fixed",
+   "evidence": [
+    "fixed: a `/model` typed but not read back is journalled `done` with its state, the model, effort and account asked are in the act's reason, and the ops line's outcome follows the state; test «/model types nothing …»"
+   ]
+  },
+  {
+   "id": "DA-19",
+   "status": "fixed",
+   "evidence": [
+    "fixed with ER-22"
+   ]
+  },
+  {
+   "id": "DA-20",
+   "status": "fixed",
+   "evidence": [
+    "fixed with ER-21"
+   ]
+  },
+  {
+   "id": "DA-21",
+   "status": "fixed",
+   "evidence": [
+    "fixed with DO-25"
+   ]
+  },
+  {
+   "id": "DA-22",
+   "status": "fixed",
+   "evidence": [
+    "fixed with UX-31"
+   ]
+  }
+ ]
+}

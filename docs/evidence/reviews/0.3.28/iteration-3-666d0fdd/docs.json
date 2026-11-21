@@ -1,0 +1,84 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 3,
+ "level": "docs",
+ "candidateCommit": "666d0fdd295502d2ed0e2a82569b97f8a372ecf6",
+ "report": "docs/evidence/reviews/0.3.28/iteration-3-666d0fdd/2026-11-21-docs.md",
+ "reportSha256": "695611c34dfea6f9079b3922dd4da27822322491a50629a43879972c47cc8933",
+ "reviewerRun": "release-0328-i3r1-docs-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "DO-24",
+   "status": "fixed",
+   "evidence": [
+    "fixed with UX-21; the CO-625 clause names the defect it fixes, and CO-626 is in the opening"
+   ]
+  },
+  {
+   "id": "DO-25",
+   "status": "fixed",
+   "evidence": [
+    "fixed: `--schedule` refuses at once with the App Management reason; the runbook's example and step 3, the script's header and its refusal hint name `--wait` from Terminal; test «DO-25 …»"
+   ]
+  },
+  {
+   "id": "DO-26",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the protocol's «Joined for iteration 3»; the run-two candidate's gate is recorded in its section"
+   ]
+  },
+  {
+   "id": "DO-27",
+   "status": "fixed",
+   "evidence": [
+    "fixed: CO-622's row says which items ship in 0.3.28 and that the rest follow"
+   ]
+  },
+  {
+   "id": "DO-28",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the runbook's steps follow the code (the running check and the probe, the checked zip, the second check, the swap with its checked undos)"
+   ]
+  },
+  {
+   "id": "DO-29",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the `userData/ceo` row reads «since 0.3.28 `behaviour/` …; since 0.3.27 `calls/`», and `userData/dock-icon.png` has its own row"
+   ]
+  },
+  {
+   "id": "DO-30",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the next-free note says CO-623 and CO-624's rows are above and drops the second CO-621 clause"
+   ]
+  },
+  {
+   "id": "DO-31",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the permissions comment is back above `AgentPermissionsSetting`"
+   ]
+  },
+  {
+   "id": "DO-32",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the schema paragraph uses the runbook's wording, the CO-625 bullet says the proof is checked after the release, and the approval bullets have their lead sentence"
+   ]
+  },
+  {
+   "id": "DO-33",
+   "status": "fixed",
+   "evidence": [
+    "fixed: `RELEASE-0328-MAIN-2` names its merge commit"
+   ]
+  }
+ ]
+}

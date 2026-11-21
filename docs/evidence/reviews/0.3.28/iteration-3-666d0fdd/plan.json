@@ -1,0 +1,70 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 3,
+ "level": "plan",
+ "candidateCommit": "666d0fdd295502d2ed0e2a82569b97f8a372ecf6",
+ "report": "docs/evidence/reviews/0.3.28/iteration-3-666d0fdd/2026-11-21-plan.md",
+ "reportSha256": "235ac66e68a22736570bb009ef0a97f88ebda18b57c9a73b61645f799d133703",
+ "reviewerRun": "release-0328-i3r1-plan-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "PL-24",
+   "status": "fixed",
+   "evidence": [
+    "fixed with UX-21"
+   ]
+  },
+  {
+   "id": "PL-25",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the protocol names both joins and which reviewers read the merge's resolutions and `swapProbe`"
+   ]
+  },
+  {
+   "id": "PL-26",
+   "status": "fixed",
+   "evidence": [
+    "fixed: `docs/co-626`'s author asked on the board to retire the branch (this candidate writes CO-626's row); before tagging, `git log <verifiedCommit>..origin/main` must be empty (the release close)"
+   ]
+  },
+  {
+   "id": "PL-27",
+   "status": "fixed",
+   "evidence": [
+    "fixed with DO-25, in the candidate rather than after the tag"
+   ]
+  },
+  {
+   "id": "PL-28",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the release close below"
+   ]
+  },
+  {
+   "id": "PL-29",
+   "status": "fixed",
+   "evidence": [
+    "fixed with DO-32"
+   ]
+  },
+  {
+   "id": "PL-30",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the CO-625 section asks for the label's own agent before the check"
+   ]
+  },
+  {
+   "id": "PL-31",
+   "status": "not-a-defect",
+   "evidence": [
+    "not a defect for this release: the gate reads the records by hash; said in the protocol, and run two's records are committed on their own"
+   ]
+  }
+ ]
+}

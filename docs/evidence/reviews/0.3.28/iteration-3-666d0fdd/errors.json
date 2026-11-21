@@ -1,0 +1,91 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 3,
+ "level": "errors",
+ "candidateCommit": "666d0fdd295502d2ed0e2a82569b97f8a372ecf6",
+ "report": "docs/evidence/reviews/0.3.28/iteration-3-666d0fdd/2026-11-21-errors.md",
+ "reportSha256": "6e886136b354a3a0ff737e19c9f1071131909fe5ede1ecb5e70581d7532a02a6",
+ "reviewerRun": "release-0328-i3r1-errors-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "ER-21",
+   "status": "fixed",
+   "evidence": [
+    "fixed: Fabric is looked for again right after the zip and before the first rename; source pin «ER-21, ER-22 …» in `install-mac-update.test.mjs`"
+   ]
+  },
+  {
+   "id": "ER-22",
+   "status": "fixed",
+   "evidence": [
+    "fixed (with DA-19): the zip is written to `<zip>.partial`, checked with `unzip -tq`, then renamed; a failure removes it and the stage and says nothing was changed; `--tidy` checks a zip already there before it removes a copy (`install-mac-update.mjs#writeZip`, `zipReads`)"
+   ]
+  },
+  {
+   "id": "ER-23",
+   "status": "fixed",
+   "evidence": [
+    "fixed: a target folder this run created is removed when it stops before the swap, and only the refusal that moved nothing says «nothing was changed» (`swapProbe`); test «ER-23 …»"
+   ]
+  },
+  {
+   "id": "ER-24",
+   "status": "fixed",
+   "evidence": [
+    "fixed: a dry run says the swap probe is not run there"
+   ]
+  },
+  {
+   "id": "ER-25",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the undo after a bundle that does not verify is read back like the first, and a failed one says where both copies are"
+   ]
+  },
+  {
+   "id": "ER-26",
+   "status": "fixed",
+   "evidence": [
+    "fixed: `OPEN_READ` is the gateway's 1 000, so «at least» is said when it is met; the read is ordered and the summary keeps the active projects (with UX-31)"
+   ]
+  },
+  {
+   "id": "ER-27",
+   "status": "fixed",
+   "evidence": [
+    "fixed: a failed requests read is said by its error's message (`index.ts`, region voice-board-reads)"
+   ]
+  },
+  {
+   "id": "ER-28",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the waiting requests' projects are said by name; the test's fixture passes ids"
+   ]
+  },
+  {
+   "id": "ER-29",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the CEO console's board door records `ceo.board` with the tool and outcome, and the catches' comments name both ops"
+   ]
+  },
+  {
+   "id": "ER-30",
+   "status": "fixed",
+   "evidence": [
+    "fixed with DA-16"
+   ]
+  },
+  {
+   "id": "ER-31",
+   "status": "fixed",
+   "evidence": [
+    "fixed: `QUIT_SETTLE_BUDGET_MS` is `SETTLE_GRACE_MS` + `SETTLE_KILL_MS` + 800 ms (3 s); test «ER-31 …»"
+   ]
+  }
+ ]
+}

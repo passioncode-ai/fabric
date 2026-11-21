@@ -1,0 +1,98 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 3,
+ "level": "ux",
+ "candidateCommit": "666d0fdd295502d2ed0e2a82569b97f8a372ecf6",
+ "report": "docs/evidence/reviews/0.3.28/iteration-3-666d0fdd/2026-11-21-ux.md",
+ "reportSha256": "5980a9517b64937a7de89e71a0a278a39bcd9e41b12db725c494e926b40c94ea",
+ "reviewerRun": "release-0328-i3r1-ux-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "UX-21",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the run-two candidate: CHANGELOG names CO-622's items 1, 2 and 5 in its opening and in three bullets (model and effort, answers from the transcript, the board on the CEO's console); the protocol says what joined"
+   ]
+  },
+  {
+   "id": "UX-22",
+   "status": "fixed",
+   "evidence": [
+    "fixed: the refusal on the CEO's own console names `settings.json` (`ceoModels`), not Settings (`ceoTools.ts` `model`)"
+   ]
+  },
+  {
+   "id": "UX-23",
+   "status": "fixed",
+   "evidence": [
+    "fixed: `/model` types nothing while `shared/consolePrompt.ts#promptOnScreen` reads a question on the screen, and the voice's use counts against its inputs into the console (`voiceInputOver`); test «/model types nothing while the console waits at a question», red with the guard removed"
+   ]
+  },
+  {
+   "id": "UX-24",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-628: `applied` means the flag was passed; reading the model back is later work"
+   ]
+  },
+  {
+   "id": "UX-25",
+   "status": "fixed",
+   "evidence": [
+    "fixed in parts 1 and 2 (with DA-16): refusals and their choices say «name@…» with the id, the field asks for the id, and «work@…» finds its account again (`launchChoice.ts#findAccount`); part 3, two accounts with one name, ruled to CO-628"
+   ]
+  },
+  {
+   "id": "UX-26",
+   "status": "fixed",
+   "evidence": [
+    "fixed in part 1: the ready card's «Ниже» has its own reason, `launch.kanban.order.readyFirst` (the text check's reports `317c1448` and `ee1a8ee1`, no findings); part 2, a focusable reason, ruled to CO-628"
+   ]
+  },
+  {
+   "id": "UX-27",
+   "status": "fixed",
+   "evidence": [
+    "fixed: a card across the waiting line takes no drop and shows no drop cursor (`KanbanBoard.tsx` `onDragOver`)"
+   ]
+  },
+  {
+   "id": "UX-28",
+   "status": "fixed",
+   "evidence": [
+    "fixed: «Принять» shows only where the proposed place keeps ready tasks first (`KanbanBoard.tsx#proposalAllowed`); tests «proposalAllowed» and «a proposal that would put a waiting task before a ready one can only be declined», red with the guard removed"
+   ]
+  },
+  {
+   "id": "UX-29",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-628: the routes table while the file does not read"
+   ]
+  },
+  {
+   "id": "UX-30",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-628: the approval panel's wording"
+   ]
+  },
+  {
+   "id": "UX-31",
+   "status": "fixed",
+   "evidence": [
+    "fixed (with ER-26, DA-22): the summary counts the open tasks of the active projects only and says no id; without the projects it is said as unread; test «the board summary counts …», red with the filter removed"
+   ]
+  },
+  {
+   "id": "UX-32",
+   "status": "fixed",
+   "evidence": [
+    "fixed with ER-21"
+   ]
+  }
+ ]
+}
