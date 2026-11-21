@@ -158,7 +158,7 @@ export function Saved({ on }: { on: boolean }): React.JSX.Element | null {
 
 /** One permission choice for every agent Fabric starts (CO-305, ADR-0168), and beside it whether the folder a Claude Code
  *  session starts in is marked trusted (CO-348, the operator 2026-10-19: on by default). */
-export function AgentPermissionsSetting({ value, onChange, trustFolders = true, dispatch = true, resume = true, peopleAsk = true, saved = null }: {
+export function AgentPermissionsSetting({ value, onChange, trustFolders = true, dispatch = true, resume = true, peopleAsk = false, saved = null }: {
   value: AppSettings['agentPermissions']
   onChange: (next: SettingsPatch) => Promise<void> | void
   trustFolders?: boolean
@@ -516,7 +516,7 @@ export function SettingsScreen({ settings, onChange, onOpenHistory, onOpen, agen
           <ReadinessPanel />
         </Section>
         <Section id="settings-launch-group" label={t('settings.launch.group')}>
-          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} trustFolders={settings.trustAgentFolders !== false} dispatch={settings.dispatchBoardRequests !== false} resume={settings.resumeLeftWork !== false} peopleAsk={settings.peopleAsk !== false} saved={saved} />
+          <AgentPermissionsSetting value={settings.agentPermissions ?? 'fewer-prompts'} onChange={change} trustFolders={settings.trustAgentFolders !== false} dispatch={settings.dispatchBoardRequests !== false} resume={settings.resumeLeftWork !== false} peopleAsk={settings.peopleAsk === true} saved={saved} />
           <AgentCatalogPanel permissions={settings.agentPermissions ?? 'fewer-prompts'} />
           {agentsRoster && (
             <section className="lp-panel" aria-labelledby="settings-agents-idle-title">

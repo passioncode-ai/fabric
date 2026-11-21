@@ -173,8 +173,8 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     dispatchTarget: dispatchTargetOf(raw.dispatchTarget),
     // By the owner of the project's repository, before `dispatchTarget` (2026-11-11, a shared machine with one space per organization).
     dispatchTargets: dispatchTargetsOf(raw.dispatchTargets),
-    // Task 11ebbf83: on unless the person turned it off.
-    peopleAsk: raw.peopleAsk !== false,
+    // Task 11ebbf83, ADR-0207 Decision 4: off unless the person turned it on (not the owner's channel since 2026-11-21).
+    peopleAsk: raw.peopleAsk === true,
     // ADR-0197: known runners only, each once; anything else is the default order.
     ceoRunners: ceoRunnersOf(raw.ceoRunners),
     // The operator, 2026-11-18: a model below Sonnet 5.5 is dropped; nothing left is the default list.

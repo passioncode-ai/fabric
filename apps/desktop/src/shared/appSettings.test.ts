@@ -289,9 +289,12 @@ describe('dispatchTarget (CO-551, stage A)', () => {
 })
 
 describe('peopleAsk (task 11ebbf83, the people-ask bridge)', () => {
-  it('is on by default and off only when the file says false; a window may switch it', () => {
-    expect(validateSettings({})?.peopleAsk).toBe(true)
-    expect(validateSettings({ peopleAsk: 'no' })?.peopleAsk).toBe(true)
+  // ADR-0207 Decision 4 (the owner, 2026-11-21 03:14): the PM bridge is not the owner's channel; it is off unless a person
+  // turned it on, and a saved true is kept (R28: what shipped is kept beside the new).
+  it('is off by default and on only when the file says true; a window may switch it', () => {
+    expect(validateSettings({})?.peopleAsk).toBe(false)
+    expect(validateSettings({ peopleAsk: 'yes' })?.peopleAsk).toBe(false)
+    expect(validateSettings({ peopleAsk: true })?.peopleAsk).toBe(true)
     expect(validateSettings({ peopleAsk: false })?.peopleAsk).toBe(false)
     expect(settingsPatch({ peopleAsk: false })).toEqual({ ok: true, patch: { peopleAsk: false } })
     expect(settingsPatch({ peopleAsk: 'off' })).toMatchObject({ ok: false })

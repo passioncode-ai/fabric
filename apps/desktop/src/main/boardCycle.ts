@@ -326,7 +326,7 @@ export function startBoardCycle(d: BoardCycleDeps): {
   const peopleAsk = createPeopleAskBridge({
     now: () => Date.now(),
     // As the dispatcher (C1): on a board another machine's Fabric may also read, only the machine named for it runs.
-    switchOn: () => { const s = readSettings(); return s.peopleAsk !== false && (ownsStack() || s.dispatchOnSharedBoard) },
+    switchOn: () => { const s = readSettings(); return s.peopleAsk === true && (ownsStack() || s.dispatchOnSharedBoard) },
     quitting: () => quit.quitting,
     readItems: d.personItems,
     async projectOf(entry): Promise<ProjectFacts | null> {

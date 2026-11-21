@@ -504,8 +504,9 @@ export interface AppSettings {
   dispatchTargets: Record<string, string>
   /**
    * The people-ask bridge (task 11ebbf83; the operator, 2026-11-16: the questions of «Нужны вы» decided from Telegram
-   * through the organization's PM agent): each item becomes a `people.ask` board request to that agent. On by default;
-   * off, nothing new is sent and what is open is taken back (`main/peopleAskRun.ts`). Its routes are a file of their own,
+   * through the organization's PM agent): each item becomes a `people.ask` board request to that agent. Off by default
+   * since ADR-0207 (the owner's questions reach him in his personal communicator, not through a PM agent); on only when a
+   * person turned it on; off, nothing new is sent and what is open is taken back (`main/peopleAskRun.ts`). Its routes are a file of their own,
    * `userData/people-ask-routes.json` (`shared/peopleAsk.ts#routesOf`), since they name private organizations.
    */
   peopleAsk: boolean
