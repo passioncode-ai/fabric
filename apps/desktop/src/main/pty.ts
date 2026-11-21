@@ -30,6 +30,7 @@ import { createProcessBoundary, type OwnedProcess } from './processBoundary.ts'
 import { defaultShell, killPty, launchFor, stopWindowsTree } from './platform.ts'
 import { findOnPath } from './executorDetect.ts'
 import { currentLaunchOrigin } from './launchOrigin.ts'
+import { currentLaunchModel, modelArgs } from './launchModel.ts'
 import type { OpenedLaunch } from './sessionLaunches.ts'
 
 /** How a fallback walk chose the runner a session runs (ADR-0125): the basis is the installation's
@@ -576,7 +577,7 @@ export class PtyManager {
     // the synchronous native spawn below.
     let launch: Awaited<ReturnType<typeof programForPty>>
     try {
-      launch = await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args, ...(extras?.args ?? [])])
+      launch = await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args, ...(extras?.args ?? []), ...(extras ? [] : modelArgs(runnerId, currentLaunchModel()).args)])
     } catch (e) {
       discardBundle()
       throw new SpawnFailure(program, cwd, e instanceof Error ? e.message : String(e))

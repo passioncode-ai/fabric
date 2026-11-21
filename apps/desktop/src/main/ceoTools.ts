@@ -24,6 +24,7 @@ import { redact } from '../shared/redact.ts'
 import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
 import { chainOf, type Launch, type LaunchVia } from '../shared/sessionLaunches.ts'
 import { withLaunchOrigin } from './launchOrigin.ts'
+import { EFFORTS, MODEL_NAME, modelArgs, withLaunchModel, type LaunchModel } from './launchModel.ts'
 import { SHELL_TAKES_NO_TASK, TAKES_NO_TASK } from './consoleOpen.ts'
 import { switchboardHomeRoots, type DiskSession } from './diskSessions.ts'
 
@@ -67,6 +68,8 @@ export const CEO_TOOLS = {
       project: z.string().trim().min(1).max(400).describe('The project\'s name, id, absolute folder or folder name.'),
       task: z.string().trim().max(8000).optional().describe('The first instruction the session is given.'),
       runner: z.enum(['claude-code', 'codex', 'hermes', 'kimi-code', 'kilo', 'shell']).optional().describe('The coding agent; the project\'s own by default.'),
+      model: z.string().trim().regex(MODEL_NAME).optional().describe('The model to start it on, as the runner names it (claude-fable-5-2, opus, gpt-5.1-codex). Given to the runner at start (claude --model, codex -m), never typed into the console; the answer says whether it was applied.'),
+      effort: z.enum(EFFORTS).optional().describe('Its effort: low, medium, high, xhigh or max (claude --effort; codex takes up to high).'),
       reason
     }).strict()
   },
@@ -592,15 +595,21 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     // 2026-11-20: a task in words typed into zsh is a parse error, never work. Refused before anything starts.
     if (a.task?.trim() && TAKES_NO_TASK.has(runner)) return refuse(`${SHELL_TAKES_NO_TASK}: start it with a coding agent (runner claude-code, codex, hermes, kimi-code or kilo), or without a task and type the command with ${T.input}`)
     try {
+      const choice: LaunchModel = { ...(a.model ? { model: a.model } : {}), ...(a.effort ? { effort: a.effort } : {}) }
       const s = await withLaunchOrigin({ by: 'ceo', via: via ?? 'console', reason: a.reason, parentSessionId: deps.ceoSessionId() ?? undefined },
-        () => deps.openConsole(project.id, runner, a.task))
+        () => withLaunchModel(choice, () => deps.openConsole(project.id, runner, a.task)))
+      // CO-622 item 1: what the runner that started was given; a runner with no such flag is said as not applied.
+      const given = modelArgs(s.optionId, choice)
+      const asked = choice.model || choice.effort
+        ? { ...choice, ...(given.unapplied.length ? { not_applied: given.unapplied, why: `${s.optionId} takes no ${given.unapplied.join(' or ')} at start` } : { applied: true }) }
+        : null
       deps.record('ceo.session.start', { session_id: s.sessionId, project_id: project.id, runner: s.optionId, reason: a.reason })
       deps.note('session.start', { sessionId: s.sessionId, projectId: project.id, label: project.name, runner: s.optionId, reason: a.reason })
       // 2026-11-20: a started session sat 40 minutes on an empty prompt and the CEO believed it had its task. The answer
       // now waits for the task's delivery (bounded) and says what became of it.
       const firstTask = a.task?.trim() ? await firstTaskOf(s.sessionId, via) : null
       return { ok: true, session_id: s.sessionId, project: project.name, folder: s.cwd, runner: s.optionId, state: s.state,
-        ...heard, ...(firstTask ? { first_task: firstTask } : {}) }
+        ...heard, ...(asked ? { model: asked } : {}), ...(firstTask ? { first_task: firstTask } : {}) }
     } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
       deps.record('ceo.session.start', { project_id: project.id, outcome: 'failed', reason: a.reason })
       return refuse(`the session did not start: ${e instanceof Error ? e.message : String(e)}`)
