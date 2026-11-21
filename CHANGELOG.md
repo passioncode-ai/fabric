@@ -9,6 +9,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **An agent asks the person only what the person alone can say.** The operator, 2026-11-21: strategy (the vision,
+  the concept) is the person's and is always asked; tactics the agent decides itself; what the agent knows better or
+  can find it never asks; a question goes only where the agent is unsure or the person knows better, weighed against
+  the person's expertise in that domain. Every session reads it as the rule `decisions.by-level`, and a task's spec is
+  gathered by it: the agent fills what it can and asks only for the rest
+  ([ADR-0205](docs/adr/0205-decisions-split-by-level-strategy-is-the-persons-tactics-the-agents.md), SCN-176).
 - **«Memory»: what Fabric knows about every project, as a place of its own.** The owner, 2026-11-20, in the CEO
   window: the knowledge base should live inside Fabric as «Memory» and render as well as Sound Engine's brain. «Memory»
   in the left column shows what the base holds and how fresh each source is (agent sessions, tasks and the journal, the
