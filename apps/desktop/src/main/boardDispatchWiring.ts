@@ -6,6 +6,7 @@
  * deadline; a door that fails throws, and the dispatcher logs it and tries again on a later pass.
  */
 import { closeSync, existsSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs'
+import { open as openFile } from 'node:fs/promises'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { createHash, randomUUID } from 'node:crypto'
@@ -14,6 +15,7 @@ import type { CommsFactsReply, CommsInboxReply, CommsMessage, CommsRespondersRep
 import type { SweepComms } from './abandonedSweepRun.ts'
 import { mandateOfRequest } from './boardMandate.ts'
 import { readRequestThreadIds } from './boardThreadIds.ts'
+import { DECLARATION_FILE, DECLARATION_MAX_BYTES, declaredSlots } from '../shared/dispatchCredentials.ts'
 import { INBOX_CAPABILITY, isSelfTarget, remoteOwnerOf, targetForOwner, type DispatchAgent, type SettledQuestion } from '../shared/boardDispatch.ts'
 import { normaliseAsk, type NormalisedAsk } from '../shared/questionAsk.ts'
 import { clarityIssues } from '../shared/questionClarity.ts'
@@ -562,6 +564,20 @@ export function wireBoardDispatch(o: {
     },
     sessionLive: o.sessionLive,
     folderOf: (projectId) => primaryFolder(o.repos, projectId),
+    // CO-619: the target's own declaration of the slots a capability's runs need; absent, none.
+    async declaredCredentials(projectId, capability) {
+      const folder = await primaryFolder(o.repos, projectId)
+      if (!folder) return { ok: true, slots: [] }
+      const file = path.join(folder, DECLARATION_FILE)
+      if (!existsSync(file)) return { ok: true, slots: [] }
+      const fd = await openFile(file, 'r')
+      try {
+        const buf = Buffer.alloc(DECLARATION_MAX_BYTES + 1)
+        const { bytesRead } = await fd.read(buf, 0, buf.length, 0)
+        if (bytesRead > DECLARATION_MAX_BYTES) return { ok: false, why: 'too-large' }
+        return declaredSlots(buf.subarray(0, bytesRead).toString('utf8'), capability)
+      } finally { await fd.close() }
+    },
     async defaultProvider() {
       const sb = await bin('switchboard')
       if (!sb) return null

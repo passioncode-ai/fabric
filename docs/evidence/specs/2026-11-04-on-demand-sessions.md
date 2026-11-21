@@ -185,8 +185,24 @@ so `board-request:`, `board-thread:` and `fabric-project:` were scrubbed; since 
 `FABRIC_DISPATCH_REQUEST` and its first line, which Switchboard passes whatever the packet keeps, so the dispatcher
 never depended on them (fabric-agent-adapter's finding, thread `7ae9ac3a`;
 corrected 2026-11-05 on the board, thread `1add3c03`: the earlier «the dispatcher stays off» no longer holds once
-0.3.16 turns it on). In 0.3.16 the dispatcher names no `credentials`; a run that needs a key asks for it as any
-session does. The keys a request needs are named
+0.3.16 turns it on). In 0.3.16 the dispatcher named no `credentials`, so every run that needed a key was refused
+`no-credentials` (board request `8eb58906`, 2026-11-21). Since CO-619 the project a request is
+addressed to declares which of its own slots each capability's runs need, in its primary folder's
+`.fabric/dispatch-credentials.json`:
+
+```json
+{"kind": "dispatch-credentials/1",
+ "capabilities": {"access.client-key": [{"env": "prod", "name": "SERVICE_KEY", "purpose": "update the consumers list"}]}}
+```
+
+The file names no project: Fabric fills in the project Observatory resolves for the target, so a declaration cannot
+reach another project's slot (Observatory would refuse it, `project-mismatch`). The opening write carries the declared
+slots of the request's capability as `credentials` (`shared/dispatchCredentials.ts`,
+`boardDispatchRun.ts#credentialsFor`); an inbox or resume run names none; an absent file names none; a malformed or
+unreadable one names none and is said once in the ops log as `board.dispatch.credentials`, and the run starts as it
+would without it. Since Observatory reads `credentials` from the first revision alone, a declaration added later reaches
+only the requests dispatched after it. A key Observatory hands out still needs the operator's decision for the act it
+serves (the board rule); the packet only says which slots the run may be given. The keys a request needs are named
 in the body's `credentials` block (`[{project, env, name, purpose}]`, names only); Observatory gives only those, only to
 the holder of the workflow's lease, only for the project `fabric-project` resolves to, and only until the deadline;
 without `credentials` it gives none. The run's last checkpoint closes the workflow: `status: done` for `completed`,

@@ -15,6 +15,7 @@ import { ACCEPT_MS, answerPacket, checkRunResult, notesWith, remoteQuestionOf, t
 import { FABRIC_OWNER, type ToolCall } from './observatoryMemory.ts'
 import type { NormalisedAsk } from '../shared/questionAsk.ts'
 import { RESUME_CAPABILITY } from '../shared/boardResume.ts'
+import { packetCredentials, type DeclarationRead } from '../shared/dispatchCredentials.ts'
 
 export interface OpenRequest {
   id: string
@@ -212,6 +213,9 @@ export interface DispatchDeps {
   /** 2026-11-12 (C2): how long this machine slept since `from` (ms), from the power monitor. A run here was frozen with
    *  it, so its liveness and its end are judged on time awake; absent, no sleep is counted. */
   suspendedSince?(from: number): number
+  /** CO-619: the slots the target project declares for a capability's runs (`.fabric/dispatch-credentials.json` in its
+   *  folder, `shared/dispatchCredentials.ts`), named in the opening write's `credentials`; absent, none are named. */
+  declaredCredentials?(projectId: string, capability: string): Promise<DeclarationRead>
   log(op: string, outcome: 'ok' | 'failed' | 'unknown', detail: Record<string, unknown>): void
 }
 
@@ -717,6 +721,20 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     open: [{ step_id: 'continue', next_action: 'Claim the task and continue it from its last next step.' }]
   })
 
+  /** CO-619: the target's declared slots for a request's capability, as the packet's `credentials` (names only). An
+   *  inbox or resume run names none; a declaration that cannot be read names none and is said in the ops log once per
+   *  pass, and the run starts as it would without one. */
+  const credentialsFor = async (req: OpenRequest, projectId: string) => {
+    if (req.inbox || req.resume || !deps.declaredCredentials) return []
+    let read: DeclarationRead
+    try { read = await deps.declaredCredentials(req.target, req.capability) } catch { read = { ok: false, why: 'unreadable' } }
+    if (!read.ok) {
+      deps.log('board.dispatch.credentials', 'failed', { request: req.id, why: read.why })
+      return []
+    }
+    return packetCredentials(projectId, read.slots)
+  }
+
   /** Opens the workflow (first run) or takes it back (a later run), writes run-ends-at and offers it on. */
   const open = async (req: OpenRequest, prior: DispatchRecord | undefined, provider: DispatchAgent, endsAt: string, dispatchId: string, openAt: number, remote: { text: string | null; asked?: { constraint: string; notes: string } } | null = null): Promise<{ workflowId: string; handoffId: string }> => {
     // Observatory freezes a dispatched workflow's board references at its opening write and refuses a later write that
@@ -773,8 +791,11 @@ export function createBoardDispatch(deps: DispatchDeps): { onPass(): Promise<voi
     let leaseId: string
     if (!prior) {
       const projectId = await resolveProject(req.target)
+      // CO-619: Observatory reads `credentials` from the opening write alone, so the slots are named here or never.
+      const credentials = await credentialsFor(req, projectId)
       const w = await deps.observatory('observatory_checkpoint_write', {
-        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-open`, stepId: 'run-ends-at', status: 'in_progress', projectId, body: body(true)
+        owner: FABRIC_OWNER, idempotencyKey: `dispatch-${dispatchId}-open`, stepId: 'run-ends-at', status: 'in_progress', projectId,
+        body: credentials.length ? { ...body(true), credentials } : body(true)
       })
       if (typeof w.workflowId !== 'string' || typeof w.leaseId !== 'string') throw new Error(`the workflow was not opened: ${String(w.error ?? 'no id')}`)
       workflowId = w.workflowId
