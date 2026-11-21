@@ -14,8 +14,8 @@ function rig(over = {}) {
   const calls = { delivered: [], escalated: [], ensure: 0, records: [] }
   const screens = { w1: menu(), ceo: menu('The CEO asks itself?') }
   const consoles = [
-    { sessionId: 'w1', running: true, lastOutputAt: t - QUIET_MS - 1, lastTypedAt: null, name: 'Claude Code', project: 'fabric', task: 'Drafts' },
-    { sessionId: 'ceo', running: true, lastOutputAt: t - QUIET_MS - 1, lastTypedAt: null, name: 'CEO', project: 'Fabric CEO', task: null }
+    { sessionId: 'w1', projectId: 'p1', running: true, lastOutputAt: t - QUIET_MS - 1, lastTypedAt: null, name: 'Claude Code', project: 'fabric', task: 'Drafts' },
+    { sessionId: 'ceo', projectId: 'pc', running: true, lastOutputAt: t - QUIET_MS - 1, lastTypedAt: null, name: 'CEO', project: 'Fabric CEO', task: null }
   ]
   const deps = {
     consoles: () => consoles, screen: (id) => screens[id] ?? '', ceoSessionId: () => 'ceo', ceoState: () => 'running',
@@ -92,7 +92,7 @@ test('a failed delivery is tried again at the next tick', async () => {
 })
 
 test('a typed question tells the CEO to answer with text', () => {
-  const line = consoleHandoffLine({ sessionId: 'w', running: true, lastOutputAt: null, lastTypedAt: null, name: 'Codex', project: null, task: null },
+  const line = consoleHandoffLine({ sessionId: 'w', projectId: null, running: true, lastOutputAt: null, lastTypedAt: null, name: 'Codex', project: null, task: null },
     { kind: 'text', question: 'Land it now?', options: [], selected: null }, 'w')
   assert.match(line, /Ответь текстом и enter/)
   assert.doesNotMatch(line, /Варианты/)

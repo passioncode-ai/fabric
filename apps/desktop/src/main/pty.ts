@@ -359,6 +359,7 @@ export function setFolderTrust(fn: ((folder: string) => Promise<string>) | null,
 
 export class PtyManager {
   private sessions = new Map<string, LiveSession>()
+  private typed = new Map<string, number>()
   private opening = new Set<string>()
   private processBoundary: ReturnType<typeof createProcessBoundary>
   private ownedUnits = new WeakMap<OwnedPtyUnit, OwnedUnitEntry>()
@@ -831,6 +832,13 @@ export class PtyManager {
    * first and holds what arrives can now tell which of those bytes this answer
    * already contains, instead of guessing between losing them and doubling them.
    */
+  /** ADR-0207 R4: when a key was last written into this console directly (the person's window, an agent's
+   *  `session_input`), never by Fabric's own delivery queue; null when never. A console the person types into stays
+   *  theirs (`consoleHandoff.ts#PERSON_IDLE_MS`). */
+  typedAt(sessionId: string): number | null {
+    return this.typed.get(sessionId) ?? null
+  }
+
   scrollbackOf(sessionId: string): { text: string; written: number } | null {
     const s = this.sessions.get(sessionId)
     return s ? { text: s.scrollback.text(), written: s.written } : null
@@ -841,6 +849,7 @@ export class PtyManager {
     if (!s || !s.running || s.inputHalted) return
     s.delivery.noteExternalWrite()
     s.lastActivityAt = Date.now()
+    this.typed.set(sessionId, s.lastActivityAt)
     try {
       s.pty.write(data)
     } catch (error) {
@@ -969,7 +978,7 @@ export class PtyManager {
   dismiss(sessionId: string): void {
     const s = this.sessions.get(sessionId)
     // The operator, 2026-11-19: an ended session leaves at once, also when only the provider's work stays unproved.
-    if (s && !s.running && s.closedRecorded && s.exitFinalized && (!s.termination || processGone(s.termination))) this.sessions.delete(sessionId)
+    if (s && !s.running && s.closedRecorded && s.exitFinalized && (!s.termination || processGone(s.termination))) { this.sessions.delete(sessionId); this.typed.delete(sessionId) }
   }
 
   /**

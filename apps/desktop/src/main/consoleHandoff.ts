@@ -24,6 +24,8 @@ export const WAKE_GAP_MS = 5 * 60_000
 
 export interface WatchedConsole {
   sessionId: string
+  /** The project the console works for; a prompt of a console with none cannot be filed as a question. */
+  projectId: string | null
   running: boolean
   /** When the console last printed (`TerminalSession.lastOutputAt`), ms; null when it never did. */
   lastOutputAt: number | null
@@ -38,7 +40,7 @@ export interface WatchedConsole {
 export type EscalateBy = 'triage-timeout' | 'ceo-cannot-run'
 
 export interface ConsoleHandoffDeps {
-  consoles(): readonly WatchedConsole[]
+  consoles(): readonly WatchedConsole[] | Promise<readonly WatchedConsole[]>
   screen(sessionId: string): string
   ceoSessionId(): string | null
   ceoState(): CeoState
@@ -89,7 +91,7 @@ export function createConsoleHandoff(deps: ConsoleHandoffDeps) {
     try {
       const t = now()
       const ceo = deps.ceoSessionId()
-      const consoles = deps.consoles()
+      const consoles = await deps.consoles()
       for (const id of [...seen.keys()]) if (!consoles.some((c) => c.sessionId === id && c.running)) seen.delete(id)
       for (const c of consoles) {
         if (!c.running || c.sessionId === ceo) continue

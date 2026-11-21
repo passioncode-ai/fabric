@@ -49,6 +49,9 @@ import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoBoardKeeper, KEEP_MS as CEO_KEEP_MS } from './ceoBoardKeeper.ts'
+import { createConsoleHandoff } from './consoleHandoff.ts'
+import { createRemoteQuestions } from './boardDispatchWiring.ts'
+import { promptKey } from '../shared/consolePrompt.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
 import { startEstateIndex, type Estate } from './estateWiring.ts'
 import { knowledgeVoiceTools, VOICE_REFUSED_OPERATIONS, type KnowledgeOperations } from './knowledgeTools.ts'
@@ -5592,7 +5595,53 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   ceoBoardTick.unref?.()
   const ceoSlotTick = setInterval(() => { if (!quit.quitting) void ceoBoard.keep() }, CEO_KEEP_MS)
   ceoSlotTick.unref?.()
-  quit.onQuit(() => { clearInterval(ceoBoardTick); clearInterval(ceoSlotTick) })
+  // #region console-handoff-wiring — docs: docs/evidence/specs/2026-11-21-ceo-triages-questions.md#34-r4-a-console-that-waits-at-a-prompt
+  // ADR-0207 R4: once a minute, a console waiting at a prompt is typed into the CEO's console once per prompt; one the CEO
+  // cannot answer, or that still waits ten minutes later, becomes the owner's question in «Нужны вы», asked as the
+  // waiting session, through the door the board dispatcher's remote runs use (`createRemoteQuestions`).
+  const consoleQuestions = createRemoteQuestions({ store, append: (e) => journal.append(e), estateId: ACTIVE_ESTATE, clean: cleanOriginalText })
+  const consoleHandoff = createConsoleHandoff({
+    consoles: async () => {
+      const live = ptys.list().filter((s) => s.running)
+      // One read per project, not per console; a name that cannot be read is left out of the line, never a failure.
+      const names = new Map<string, string | null>()
+      for (const id of new Set(live.map((s) => s.projectId).filter((x): x is string => !!x))) names.set(id, await projectNameOf(id))
+      return live.map((s) => ({
+        sessionId: s.sessionId, projectId: s.projectId, running: s.running,
+        lastOutputAt: s.lastOutputAt ? Date.parse(s.lastOutputAt) : null, lastTypedAt: ptys.typedAt(s.sessionId),
+        name: AGENTS.find((a) => a.id === s.optionId)?.label ?? s.optionId,
+        project: s.projectId ? names.get(s.projectId) ?? null : null, task: null
+      }))
+    },
+    // The last screen only: the tail of the scrollback is decoded, not the whole buffer, for every quiet console each minute.
+    screen: (id) => { const sb = ptys.scrollbackOf(id); return sb ? redact(screenText(decodePty(sb.text.slice(-32_000)), 40)).text : '' },
+    ceoSessionId: () => agent.sessionId(),
+    ceoState: () => agent.status().state,
+    ceoHeld: () => agent.heldByPerson(),
+    ensure: () => agent.ensure(),
+    deliver: (id, line) => ptys.deliverWhenReady(id, line),
+    escalate: async (c, prompt, by) => {
+      if (!c.projectId) return false
+      const recommended = prompt.selected
+      const r = await consoleQuestions.ask({
+        projectId: c.projectId, requestId: `console:${c.sessionId}`, launchId: `console:${c.sessionId}`, key: `console-prompt:${promptKey(c.sessionId, prompt)}`,
+        ask: {
+          text: prompt.question, kind: 'decision', about: null, topic: null, taskId: null, blocks: [],
+          whyBlocked: `Консоль ${c.name} (${c.sessionId}) ждёт ответа на экране; ${by === 'ceo-cannot-run' ? 'CEO сейчас не может ответить' : 'CEO не ответил за 10 минут'}.`,
+          options: prompt.options.map((o) => ({ id: o.key, label: o.label, ...(o.key === recommended ? { recommended: true as const } : {}) }))
+        }
+      })
+      return 'questionId' in r
+    },
+    record: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  const consoleHandoffTick = setInterval(() => {
+    if (quit.quitting) return
+    consoleHandoff.tick().catch((e: unknown) => ops.failed('ceo.console-handoff', e, { note: 'the waiting consoles are read again at the next minute' }))
+  }, 60_000)
+  consoleHandoffTick.unref?.()
+  // #endregion console-handoff-wiring
+  quit.onQuit(() => { clearInterval(ceoBoardTick); clearInterval(ceoSlotTick); clearInterval(consoleHandoffTick) })
   handle(IPC.ceoAgentStatus, (): Returns<FabricApi['ceoAgent']['status']> => agent.status())
   handle(IPC.ceoAgentEnsure, (): Promise<Returns<FabricApi['ceoAgent']['ensure']>> => agent.ensure())
   handle(IPC.ceoAgentSend, (_e, text: unknown, attachments: unknown): Promise<Returns<FabricApi['ceoAgent']['send']>> =>
