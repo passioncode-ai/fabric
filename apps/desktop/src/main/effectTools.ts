@@ -3,6 +3,9 @@
  * what cannot be recovered or publishes outward, and `fabric_effect_report` says what happened after, as a claim. Moved
  * out of `agentSurface.ts#serverFor` as one group (the screens waves S2, 2026-11-16).
  */
+import type { BehaviourJournal } from './behaviourJournal.ts'
+import { ops } from './opsSink.ts'
+import { waitsForOwner, type ApprovalMode } from '../shared/approvalMode.ts'
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { Policy } from './policy'
@@ -17,6 +20,10 @@ export interface EffectToolsDeps {
   store: ScopedStore
   /** The terminals, to say which runner and permission mode asks (FA-09); undefined before they exist. */
   ptys(): HubTerminals | undefined
+  /** The owner's approval mode (ADR-0203); absent is the default, every act above the floor waits. */
+  approvalMode?(): ApprovalMode
+  /** ADR-0203 §6: each decision on an act above the floor, on whose word; absent: not written. */
+  behaviour?: Pick<BehaviourJournal, 'note'>
 }
 
 export interface EffectToolsScope { estateId: string; projectId: string; sessionId: string }
@@ -90,7 +97,7 @@ export function registerEffectTools(server: McpServer, deps: EffectToolsDeps, sc
     {
       title: 'Ask to do something above the floor',
       description:
-        'Three classes of act need a person: spending money, deleting what cannot be recovered, and publishing outward. Ask here BEFORE doing one. You will be refused the first time — that is not a failure, it is the operator being asked. They see the request with your reason, and if they agree you ask again and it goes through. You never hold the permission yourself.',
+        'Three classes of act need a person: spending money, deleting what cannot be recovered, and publishing outward. Ask here BEFORE doing one. Unless the owner\'s approval mode lets this act through (your fabric_whoami `approval` says which), you will be refused the first time — that is not a failure, it is the operator being asked. They see the request with your reason, and if they agree you ask again and it goes through. You never hold the permission yourself.',
       inputSchema: {
         actionClass: z.string().min(3).max(80).describe('What you want to do, in the effects vocabulary'),
         floorClass: z
@@ -122,6 +129,11 @@ export function registerEffectTools(server: McpServer, deps: EffectToolsDeps, sc
         projectId: scope.projectId,
         actionClass
       })
+      // ADR-0203: the owner's approval mode. When this act does not wait for him under it, Fabric issues the one-shot
+      // grant itself, as the system `approval-mode:<mode>`, scoped to this project, act and target, so the floor's rule
+      // holds (a floored effect names a grant) and the journal says which mode allowed it. The agent still holds nothing.
+      const autoGrant = grantId ? null : await grantByMode(deps, scope, { floorClass, target, actionClass })
+      const grantUsed = grantId ?? autoGrant?.grantId ?? null
       // WHO IS ASKING, and in which mode (FA-09). The floor is voluntary —
       // every runner has native tools Fabric cannot see — so the decision has
       // to know whether the asker could be held to it at all. An unknown
@@ -135,11 +147,22 @@ export function registerEffectTools(server: McpServer, deps: EffectToolsDeps, sc
         floorClass,
         actor: { kind: 'agent' as const, id: scope.sessionId },
         target,
-        grantId,
+        grantId: grantUsed,
         runner: session?.optionId ?? null,
         permissionMode: session?.permissionMode ?? null
       }
       const decision = await policy.decide({ ...request, reason: why } as typeof request)
+      try {
+        deps.behaviour?.note({
+          actor: { kind: 'session', id: scope.sessionId },
+          act: `effect.${floorClass}`,
+          target,
+          word: autoGrant ? { of: 'approval-mode', via: autoGrant.mode } : grantId ? { of: 'owner', via: 'grant', ref: grantId } : { of: 'agent', via: 'request' },
+          // A grant presented and still refused is a refusal; none presented is the owner being asked.
+          decision: decision.verdict === 'allow' ? 'allowed' : grantUsed ? 'refused' : 'waits-for-owner',
+          reason: why
+        })
+      } catch (e) { ops.failed('effect.behaviour-note', e, { note: 'the decision stands; only its line in the behaviour journal is missing' }) }
       if (decision.verdict !== 'allow')
         return json({
           allowed: false,
@@ -147,7 +170,8 @@ export function registerEffectTools(server: McpServer, deps: EffectToolsDeps, sc
           needs: decision.needs,
           // Said plainly, because an agent that reads a refusal as a dead end
           // will invent a way around it instead of waiting.
-          next: 'The operator has been asked. Do the act only after asking again and being allowed.'
+          next: 'The operator has been asked. Do the act only after asking again and being allowed.',
+          approval_mode: autoGrant?.mode ?? deps.approvalMode?.() ?? 'important'
         })
       // ADR-0050 — THE PERMIT IS NOT A RECEIPT. This used to call
       // `recordEffect`, which appended `effect.executed@1` — shown to the
@@ -163,6 +187,7 @@ export function registerEffectTools(server: McpServer, deps: EffectToolsDeps, sc
       const dispatch = await policy.beginDispatch(request, decision)
       return json({
         allowed: true,
+        ...(autoGrant ? { allowed_by: `the owner's approval mode «${autoGrant.mode}»` } : {}),
         effect_id: dispatch.commandId,
         idempotency_key: dispatch.idempotencyKey,
         receipt_seq: dispatch.seq,
@@ -174,3 +199,39 @@ export function registerEffectTools(server: McpServer, deps: EffectToolsDeps, sc
     }
   )
 }
+
+// #region approval-mode-grant — docs: docs/adr/0203-the-owners-approval-mode-says-which-acts-wait-for-him.md#decision
+/** How long a grant the mode issued stays usable: long enough for the ask that follows it, never a standing permission. */
+export const MODE_GRANT_TTL_MS = 10 * 60_000
+
+/** ADR-0203: the grant the owner's approval mode gives an act that does not wait for him; null when it waits. */
+async function grantByMode(
+  deps: EffectToolsDeps,
+  scope: EffectToolsScope,
+  act: { floorClass: 'money' | 'deletion' | 'publication'; target: string; actionClass: string }
+): Promise<{ grantId: string; mode: ApprovalMode } | null> {
+  const policy = deps.policy()
+  const mode = deps.approvalMode?.() ?? 'important'
+  if (!policy || mode === 'important') return null
+  const firstTime = mode === 'unusual'
+    ? await policy.actedBefore({ estateId: scope.estateId, projectId: scope.projectId, floorClass: act.floorClass, target: act.target }).then((b) => (b === null ? null : !b))
+    : null
+  if (waitsForOwner(mode, act.floorClass, { firstTime })) return null
+  try {
+    const issued = await policy.issueGrant({
+      estateId: scope.estateId,
+      projectId: scope.projectId,
+      floorClass: act.floorClass,
+      target: act.target,
+      actionClass: act.actionClass,
+      actor: { kind: 'system', id: `approval-mode:${mode}` },
+      ttlMs: MODE_GRANT_TTL_MS
+    })
+    return { grantId: issued.grantId, mode }
+  } catch (e) {
+    // A grant the mode could not issue is no grant: the act waits for the owner, as in the default mode.
+    ops.failed('effect.mode-grant', e, { note: 'the approval mode could not issue its grant; the act waits for the owner' })
+    return null
+  }
+}
+// #endregion approval-mode-grant

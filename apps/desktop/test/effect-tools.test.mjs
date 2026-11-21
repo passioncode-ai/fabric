@@ -66,3 +66,70 @@ test('without a policy port both tools say so', async () => {
     assert.equal(report.recorded, false)
   })
 })
+
+// ADR-0203: the owner's approval mode. An act that does not wait for the owner under it gets a grant Fabric issues
+// itself, as the system `approval-mode:<mode>`, scoped to this project, act and target; one that waits is asked as before.
+function modal({ actedBefore = false } = {}) {
+  const p = policy('allow')
+  p.seen.issued = []
+  p.actedBefore = async () => actedBefore
+  p.issueGrant = async (g) => { p.seen.issued.push(g); return { grantId: 'g-mode', seq: 3, expiresAt: 'x' } }
+  return p
+}
+const ask = async (p, mode, args = ASK) => {
+  const surface = new AgentSurface({ db, journal, ptys, estateId: ESTATE, policy: p, approvalMode: () => mode })
+  return linked(surface.serverFor(scope), async (client) => parsed(await client.callTool({ name: 'fabric_effect_request', arguments: args })))
+}
+
+test('ADR-0203: under «nothing» and «only spending» a publication gets the mode\'s own grant, named in the journal and the answer', async () => {
+  for (const mode of ['none', 'spending']) {
+    const p = modal()
+    const out = await ask(p, mode)
+    assert.equal(out.allowed, true)
+    assert.match(out.allowed_by, new RegExp(mode))
+    assert.equal(p.seen.issued.length, 1)
+    assert.deepEqual({ ...p.seen.issued[0], ttlMs: undefined }, { estateId: ESTATE, projectId: PROJECT, floorClass: 'publication', target: ASK.target, actionClass: 'publish', actor: { kind: 'system', id: `approval-mode:${mode}` }, ttlMs: undefined })
+    assert.ok(p.seen.issued[0].ttlMs <= 10 * 60_000, 'a mode grant is one-shot and short, never a standing permission')
+    assert.equal(p.seen.decide[0].grantId, 'g-mode', 'the policy still decides, with the grant the mode issued')
+  }
+})
+
+test('ADR-0203: the default, «only critical» for a publication and «only unusual» on a first act wait for the owner', async () => {
+  for (const [mode, before] of [['important', true], ['critical', false], ['unusual', false]]) {
+    const p = modal({ actedBefore: before })
+    await ask(p, mode)
+    assert.deepEqual(p.seen.issued, [], `${mode}: no grant is issued by the mode`)
+    assert.equal(p.seen.decide[0].grantId, null)
+  }
+  const repeat = modal({ actedBefore: true })
+  await ask(repeat, 'unusual')
+  assert.equal(repeat.seen.issued.length, 1, '«only unusual»: a repeat of an act done before goes ahead')
+  const unknown = modal({ actedBefore: null })
+  await ask(unknown, 'unusual')
+  assert.deepEqual(unknown.seen.issued, [], 'an unreadable history is a first time')
+})
+
+test('ADR-0203: a grant the mode cannot issue leaves the act waiting', async () => {
+  const p = modal()
+  p.issueGrant = async () => { throw new Error('the journal is down') }
+  const out = await ask(p, 'none')
+  assert.equal(p.seen.decide[0].grantId, null)
+  assert.equal(out.allowed, true, 'the fake policy allows; what matters is that no grant was presented')
+})
+
+test('ADR-0203 §6: each decision above the floor is written to the behaviour journal with whose word it was', async () => {
+  const lines = []
+  const behaviour = { note: (e) => lines.push(e) }
+  const run = async (p, mode) => {
+    const surface = new AgentSurface({ db, journal, ptys, estateId: ESTATE, policy: p, approvalMode: () => mode, behaviour })
+    await linked(surface.serverFor(scope), async (client) => client.callTool({ name: 'fabric_effect_request', arguments: ASK }))
+  }
+  await run(modal(), 'none')
+  const refused = policy('refuse'); refused.actedBefore = async () => false
+  await run(refused, 'important')
+  assert.deepEqual(lines.map((l) => [l.actor.id, l.act, l.word.of, l.word.via, l.decision]), [
+    ['session-s', 'effect.publication', 'approval-mode', 'none', 'allowed'],
+    ['session-s', 'effect.publication', 'agent', 'request', 'waits-for-owner']
+  ])
+  assert.equal(lines[0].reason, ASK.why)
+})

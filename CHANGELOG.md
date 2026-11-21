@@ -12,7 +12,9 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 The owner, 2026-11-21 (relayed by fabric-workspace's reconciler, A-3, d213194e): «ты готовишь 0.3.28 одним поездом из
 готовых веток». The train merges four branches onto 0.3.27 (the owner-hardcode audit's wave 1, the Dock icon's face,
 Memory's own projects and the board's operator door, a module nothing starts yet) and what `main` took after the tag:
-the queue's order (ADR-0208, the reconciler's A-3 P0 row 6, with schema 104). Not in it, each with its reason in
+the queue's order (ADR-0208, the reconciler's A-3 P0 row 6, with schema 104); and, by the reconciler's A-3 (row 9 of
+P0) with their author's word, the owner's approval modes with the agents' behaviour journal and the CEO's choice of
+account. Not in it, each with its reason in
 [the release ledger](docs/evidence/plans/2026-11-21-release-0328-verification.md#protocol): the CEO's windows (a
 feature held under the owner's pause of 2026-11-21), CO-622 (the next release) and the paused work in progress.
 
@@ -54,6 +56,28 @@ feature held under the owner's pause of 2026-11-21), CO-622 (the next release) a
   Host and a malformed door name before it reads a call. Nothing starts it yet: the doors the window will call through
   it land in W2c.2b, and the window switches to it in W2d. No agent and no screen sees a change
   ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
+
+
+- **The owner chooses how much he is asked.** Five approval modes, «одобрять важные» (the default, as before), «только
+  критичные», «только траты», «только нестандартные» and «ничего, полная автоматика», say which acts above the floor
+  (spending, deleting, publishing) wait for his yes. An act that does not wait gets a one-shot permission Fabric issues
+  itself, recorded with the mode that allowed it. Every session reads the mode in `fabric_whoami`, the CEO's brief and the
+  voice say it, and a sign-in, a one-time code, a payment, a secret and a consent screen wait for the person in every
+  mode ([ADR-0203](docs/adr/0203-the-owners-approval-mode-says-which-acts-wait-for-him.md)).
+- **Who did what, on whose word.** The agents' behaviour journal keeps each act of the CEO, its voice and the sessions'
+  floor with whose word it was done on and what was decided, tied to the voice call that asked for it; the CEO and the
+  voice read it with `fabric_ceo_journal` (ADR-0203 §6).
+
+The owner, 2026-11-20 (paraphrased): start a session with the agent or the subscription he picks, also by voice and
+through the CEO, and check that the CEO has every access it needs ([the CEO access audit](docs/reports/2026-11-20-ceo-access-audit/README.md)).
+
+- **The CEO and its voice start a session on a chosen account.** `fabric_ceo_session_start` (by voice `session_start`)
+  takes `account` beside `runner`: Claude Code on a claude account, Codex on a codex one, an account of a group only in
+  that group's folders and one of the default group anywhere; the console then runs the agent through
+  `switchboard launch <id> --in-place`. `fabric_ceo_accounts` (by voice `session_accounts`) lists the accounts with
+  room, the most quota left first. A refusal names the accounts that can be used.
+- **The CEO waits for a session's answer.** `fabric_ceo_session_wait` (by voice `session_wait`) waits until a console
+  printed and went quiet, bounded, and answers its last turns; before, the CEO read the screen again and again.
 
 0.3.28 takes one schema step, 103 to 104 (migration `20261121000131_task_rank.sql`): the runbook's upgrade, a backup
 first ([the runbook](docs/launch/release-mac.md#upgrading-an-existing-database)); going back needs 0.3.27's bundle with

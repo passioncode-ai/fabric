@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `RELEASE-0328-APPROVAL` · feat/approval-modes-0328 (feat/approval-modes with feat/ceo-access, `2d689d34`) → release/0.3.28 · merge
+- files: ADR-0203 (`approvalMode.ts`, the behaviour journal, `fabric_ceo_journal`), the CEO's account choice and session wait (`fabric_ceo_session_start` with `account`, `fabric_ceo_accounts`, `fabric_ceo_session_wait`), CHANGELOG lines moved under `## 0.3.28 (unreleased)`, the map
+- conflicts: the map's changelog (both sides kept); CHANGELOG: the branch's `**Upgrading.** No schema step` line dropped, since 0.3.28 carries schema 104
+- summary: the reconciler's A-3 (row 9 of P0) puts approval modes and CEO access in SD-FAB-01; their author, session 9cda1c0f, brought them onto `main` after the tag and handed the branch over for iteration 2
+
 ### 2026-11-21 · `RELEASE-0328-TRAIN` · fix/memory-source-kinds, audit/owner-hardcode, feat/dock-icon-face, refactor/board-operator-door → release/0.3.28 · merge
 - files: `main/{memoryRead,estateRun,estateWiring}.ts`, `shared/peopleAsk.ts`, `main/peopleAskRun.ts`, Settings, `scripts/check-build-private.mjs`, `main/appIcon.ts`, `renderer/src/launch/dockIcon.ts`, `shared/avatarSvg.ts`, `main/operatorDoor.ts` (+ their tests), CHANGELOG `## 0.3.28 (unreleased)`, the map
 - conflicts: CHANGELOG (each branch's lines moved under 0.3.28), MERGES and the map's changelog (both sides kept), `main/index.ts` (the Dock icon's import beside 0.3.27's), `apps/desktop/package.json` (0.3.27's list plus `operator-door.test.mjs`), `release-mac.md` (0.3.27's update text kept, the Dock paragraph added); `scripts/install-mac-update.mjs` and its lib and test, the previews, completeness and product reports: 0.3.27's side kept at the conflict, then rebuilt over the merged prototype with the dock branch's new token (0.3.27's installer is the reviewed one)

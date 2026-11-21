@@ -21,11 +21,12 @@ read-only; findings are disposed here and in the receipts under `docs/evidence/r
   this train and goes to a later release.
 - Taken from `main` before iteration 2 (PL-7): the queue's order (`8cbf93ff`, ADR-0208, migration 131, schema 104),
   which `main` landed after the tag with its own gate run; the release tag must be on `main`, so 0.3.28 carries it.
-- Joining in iteration 2: `feat/approval-modes` and `feat/ceo-access`. The reconciler's plan puts them in SD-FAB-01
+- Joined for iteration 2 (merged from `feat/approval-modes-0328`, `2d689d34`): `feat/approval-modes` and `feat/ceo-access`. The reconciler's plan puts them in SD-FAB-01
   (fabric-workspace `docs/plans/2026-11-21-system-design/amendments/A-3-owner-orders-audit.md:167`, row 9 of P0: «the
   hardcode audit wave 1, CEO access, approval modes with the behaviour journal»); their author, session 9cda1c0f,
-  brings them onto `v0.3.27` with 0.3.27's changes and its tests (its message to this session of 2026-11-21, after
-  iteration 1's PL-2). ADR-0207's Decision 1 builds on them.
+  brought them onto `main` after `v0.3.27` (`78237d65`) with 0.3.27's changes, its `ci.sh fast` green with the browser
+  suites 26 of 26 (its messages to this session of 2026-11-21, after iteration 1's PL-2 and at about 09:40). ADR-0207's
+  Decision 1 builds on them.
 - The reviewers: Claude Code subagents of the release session (Opus 5.5), each a fresh context given
   [the brief](../reviews/0.3.28/brief.md) and its level's focus, reading a separate read-only worktree checked out at the
   candidate, recording HEAD and `git status --short | wc -l` before and after. They ran single test files at most; the
