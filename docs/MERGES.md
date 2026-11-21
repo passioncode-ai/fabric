@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `CO-622` · feat/ceo-board-tools-2 → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/main/voiceBoard.ts` (CEO_BOARD_TOOLS, registerCeoBoardTools, board_summary), `main/launchModel.ts`, `main/pty.ts` (the start flags at the spawn), `main/ceoTools.ts` (session_start model and effort, session_model, session_last_reply, session_wait_reply), `main/hubPorts.ts`, `main/agentSurface.ts` (region ceo-surface), `main/index.ts`, `main/ceoVoice.ts`, `shared/ceoAgent.ts`, tests `voice-board`, `launch-model`, `ceo-agent`, `scripts/ci.sh`, SCN-191, the CO-622 plan, the product model and its projections, the map
+- conflicts: none; rebuilt on `ab9ea5e1` from `feat/ceo-board-tools` (cut from `8b9712b3`, retired, never force-pushed)
+- summary: CO-622 items 1, 2 and 5: the CEO's console reads the board without SQL, a session starts on a named model and effort, a running console's model is changed and read back, a session's answer is read and awaited from its transcript. `ci.sh fast` ran on the Mac Studio (the MacBook under its disk line): fast tier green, browser suites 26 of 26; the Darwin-measured pipe-adapter block did not run there (its Node is the MacBook's own build)
+
 ### 2026-11-21 · `PTY-QUIT` · docs/pty-quit-abort → main · fast-forward
 - files: `docs/evidence/specs/2026-08-16-software-fabric-carryover.md` (CO-625, next free CO-626), `docs/evidence/backlog.md` (recount 373 of 607), `docs/reports/map.html`, this log
 - conflicts: none
