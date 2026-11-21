@@ -69,7 +69,21 @@ bridge replaced by a stub that records what the page saves: `node docs/evidence/
 Not covered by this check: the real preload bridge and the window in the running app (the window policy and the host
 are covered by their node tests), and the voice tools against a live call.
 
-Open from it: take the `esm.sh` fallback out of the bundle (230 refused attempts and console errors per opening).
+Opened by it and closed the same day: the `esm.sh` fallback is taken out of the bundle.
+
+### Second run, the fallback removed (2026-11-21)
+
+The same script on the build of this change (built on the Mac Studio, `apps/desktop/electron.vite.config.ts#excalidrawNoFallback`
+applied), Chromium and WebKit:
+
+| REQ | Result |
+|---|---|
+| CV-REQ-02 | As above in both engines: the editor opens, `rectangle`, `arrow` and `text` are saved for canvas `main`, the top bar says «Сохранено». |
+| CV-REQ-05 | 0 requests to `esm.sh` (sent 0, failed 0, answered 0), 0 requests to another origin, 0 console errors, 20 requests in all; the fonts drawn load from `excalidraw-assets/fonts/`. |
+
+The probe in `apps/desktop/test/csp.test.mjs` (no built script names `esm.sh`) was watched failing on the previous build
+(`mount-6_sMqoY5.js` named it) and passes on this one. A build with the transform's pattern changed so that it matches
+nothing ends with exit 1 and the plugin's message (`found 0 push(es) and 1 origin(s)`).
 
 ## Source ledger
 
@@ -80,7 +94,7 @@ Open from it: take the `esm.sh` fallback out of the bundle (230 refused attempts
 | `shared/ipcWindowPolicy.ts`, `main/windowRegistry.ts`, `preload/api.ts` | read | a new window kind needs its rules and every `EVERY_WINDOW` row; the preload narrows by kind |
 | `electron.vite.config.ts` | read | a renderer document is an `input`; the CSP plugin writes the policy into the built page |
 | npm registry, 2026-11-19 | `npm view` | `@excalidraw/excalidraw` 0.18.1 MIT, React 17 to 19; `tldraw` 5.6.1 `SEE LICENSE IN LICENSE.md`; `@xyflow/react` 13.0.2 MIT |
-| Excalidraw 0.18.1 `dist/prod` | grep | fonts load from `window.EXCALIDRAW_ASSET_PATH`, else `esm.sh`; 13 MB of fonts ship in the package |
+| Excalidraw 0.18.1 `dist/prod` | grep | fonts load from `window.EXCALIDRAW_ASSET_PATH`, else `esm.sh` (`ExcalidrawFontFace.ASSETS_FALLBACK_URL`, one use in `chunk-K2UTITRG.js`; the build removes it); 13 MB of fonts ship in the package |
 | OpenRouter models API, 2026-11-19 | `GET /api/v1/models` | `moonshotai/kimi-k3.1-pro` listed |
 | Observatory credentials, project fabric | `observatory_credentials` | `fabric/prod/OPENROUTER_API_KEY` and `fabric/prod/XAI_API_KEY` exist |
 | Retro standing instructions R-001 to R-010 | read in full | R-003 (probe the window boundary by attempting), R-005 (one type per boundary), R-006 (watch each check red), R-010 (a surface checked as its user meets it) bind this run |

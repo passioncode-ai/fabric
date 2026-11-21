@@ -10,7 +10,7 @@
 // rules themselves — which document is the app's, which link leaves — are covered by
 // `navigation-guard.test.mjs`.
 
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 
 const HERE = path.dirname(new URL(import.meta.url).pathname)
@@ -74,7 +74,7 @@ if (/setPermissionRequestHandler/.test(MAIN) && /permission !== 'media'/.test(MA
 else fail('src/main/index.ts does not keep the microphone to the CEO window')
 
 // 5. ADR-0201 §2: the canvas's document carries the renderer's own policy, unchanged (it reaches nothing outside the app),
-//    and Excalidraw's fonts ship beside the pages, so the editor's fallback to esm.sh is never what draws its words.
+//    and Excalidraw's fonts ship beside the pages, and the editor's fallback to esm.sh is taken out of the build.
 const CANVAS_PAGE = path.join(HERE, '..', 'out', 'renderer', 'canvas.html')
 if (!existsSync(CANVAS_PAGE)) fail('no built page at out/renderer/canvas.html — the canvas has no document of its own')
 else {
@@ -85,6 +85,13 @@ else {
   const fonts = path.join(HERE, '..', 'out', 'renderer', 'excalidraw-assets', 'fonts', 'Excalifont')
   if (!existsSync(fonts)) fail('Excalidraw\'s fonts were not copied beside the pages (out/renderer/excalidraw-assets/fonts)')
   else ok('Excalidraw\'s fonts ship as the app\'s own files')
+  // The editor's own fallback origin is taken out of the bundle (ADR-0201 §2, `electron.vite.config.ts#excalidrawNoFallback`):
+  // shipped fonts alone do not stop it, the editor still tried esm.sh for every face and the policy refused each one.
+  const assets = path.join(HERE, '..', 'out', 'renderer', 'assets')
+  const naming = existsSync(assets) ? readdirSync(assets).filter((f) => f.endsWith('.js') && readFileSync(path.join(assets, f), 'utf8').includes('esm.sh')) : null
+  if (naming === null) fail('no built scripts at out/renderer/assets')
+  else if (naming.length) fail(`the built renderer still names esm.sh, Excalidraw's font fallback (${naming.join(', ')})`)
+  else ok('no built script names esm.sh: the editor has no fallback origin to try')
   const index = readFileSync(PAGE, 'utf8')
   if (/canvas|mount-/.test(index.match(/<script[^>]*src="([^"]+)"/)?.[1] ?? '')) fail('the main page loads the canvas\'s entry')
 }

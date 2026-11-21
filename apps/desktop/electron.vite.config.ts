@@ -51,8 +51,8 @@ function contentSecurityPolicy() {
 
 /**
  * Excalidraw's fonts as the app's own files (ADR-0201 §2): the canvas page sets `window.EXCALIDRAW_ASSET_PATH` to
- * `excalidraw-assets/`, so the fonts drawn are the app's own. Excalidraw 0.18.1 still names its `esm.sh` fallback for
- * every font face, and the page's policy refuses each one (measured 2026-11-21, ADR-0201 §2). Built: the
+ * `excalidraw-assets/`, so the fonts drawn are the app's own (the editor's `esm.sh` fallback is removed by
+ * `excalidrawNoFallback` below). Built: the
  * package's `dist/prod/fonts` copied beside the pages. Served: the same folder answered by the dev server.
  */
 const EXCALIDRAW_DIST = resolve(import.meta.dirname, 'node_modules/@excalidraw/excalidraw/dist/prod')
@@ -74,6 +74,44 @@ function excalidrawAssets() {
     },
     closeBundle() {
       cpSync(join(EXCALIDRAW_DIST, 'fonts'), join(outDir, EXCALIDRAW_ASSETS, 'fonts'), { recursive: true })
+    }
+  }
+}
+
+/**
+ * Excalidraw's `esm.sh` font fallback taken out of the bundle (ADR-0201 §2). With the fonts shipped, Excalidraw 0.18.1
+ * still listed `https://esm.sh/…/dist/prod/` as a second source of every font face, and the canvas page tried it 230
+ * times per opening, each attempt refused by the page's policy (measured 2026-11-21). The transform removes the one
+ * place the fallback URL is added to a face's sources and the origin's name itself; the build FAILS unless each was
+ * replaced exactly once, so an Excalidraw upgrade that moves the code cannot bring the fallback back unnoticed
+ * (`csp.test.mjs` reads the built scripts for the name). Build only: the dev page carries no policy and its fonts come
+ * from the dev server's `excalidraw-assets`.
+ */
+const FALLBACK_PUSH = /\b[\w$]+\.push\(\s*new URL\(\s*[\w$]+\s*,\s*[\w$]+\.ASSETS_FALLBACK_URL\s*\)\s*\)/g
+const FALLBACK_ORIGIN = /https:\/\/esm\.sh\//g
+export function withoutExcalidrawFallback(code: string): { code: string; pushes: number; origins: number } {
+  const pushes = code.match(FALLBACK_PUSH)?.length ?? 0
+  const origins = code.match(FALLBACK_ORIGIN)?.length ?? 0
+  return { code: code.replace(FALLBACK_PUSH, 'void 0').replace(FALLBACK_ORIGIN, 'about:invalid/'), pushes, origins }
+}
+function excalidrawNoFallback() {
+  let pushes = 0
+  let origins = 0
+  return {
+    name: 'fabric-excalidraw-no-fallback',
+    apply: 'build' as const,
+    buildStart() { pushes = 0; origins = 0 },
+    transform(code: string, id: string) {
+      if (!/@excalidraw[\\/]excalidraw[\\/]dist[\\/]/.test(id) || !code.includes('ASSETS_FALLBACK_URL')) return null
+      const out = withoutExcalidrawFallback(code)
+      pushes += out.pushes
+      origins += out.origins
+      return { code: out.code, map: null }
+    },
+    buildEnd(error?: Error) {
+      if (error) return
+      if (pushes !== 1 || origins !== 1)
+        throw new Error(`fabric-excalidraw-no-fallback: expected Excalidraw's font fallback once, found ${pushes} push(es) and ${origins} origin(s); read ExcalidrawFontFace in @excalidraw/excalidraw and update the transform (ADR-0201 §2)`)
     }
   }
 }
@@ -123,7 +161,7 @@ export default defineConfig({
     }
   },
   renderer: {
-    plugins: [react(), contentSecurityPolicy(), excalidrawAssets()],
+    plugins: [react(), contentSecurityPolicy(), excalidrawAssets(), excalidrawNoFallback()],
     // ADR-0197: the CEO popup is the renderer's second document, so its policy is its own.
     build: {
       rollupOptions: {

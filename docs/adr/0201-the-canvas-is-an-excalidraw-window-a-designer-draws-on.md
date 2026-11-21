@@ -39,8 +39,11 @@ Three questions decide the shape: which editor draws the canvas, where the canva
    (`window.EXCALIDRAW_ASSET_PATH`, copied into the build). Excalidraw 0.18.1 still names its `esm.sh` fallback after
    the app's own file for every font face, and the page's policy refuses each one: measured 2026-11-21 on the built
    page in Chromium and WebKit, 230 fallback attempts, every one refused by the policy and none answered, while the
-   fonts drawn loaded from `excalidraw-assets/` (the brief's browser check). Nothing leaves the computer; taking the
-   fallback out of the bundle, so the console is quiet, is open work.
+   fonts drawn loaded from `excalidraw-assets/` (the brief's browser check). Nothing left the computer. The fallback is since taken out of the bundle
+   (`electron.vite.config.ts#excalidrawNoFallback`): the build removes the one place the fallback is added to a font
+   face's sources and the origin's name, and fails unless each was found exactly once, so an Excalidraw upgrade cannot
+   bring it back unnoticed; `csp.test.mjs` reads the built scripts for the name. Measured again 2026-11-21 on the
+   rebuilt page in Chromium and WebKit: 0 fallback attempts, 0 console errors (the brief's second browser check).
 
 3. **A canvas is a file in Fabric's data folder**, `canvases/<id>.excalidraw`, Excalidraw's own format, written atomically
    (a temporary file, then a rename) as the person draws, at most 20 MB, readable by the owner alone (mode 0600). Not
