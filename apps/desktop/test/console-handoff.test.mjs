@@ -2,7 +2,7 @@
 // prompt, never the CEO's own; a CEO that cannot run, or ten minutes without an answer, sends it to the owner.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createConsoleHandoff, consoleHandoffLine, ESCALATE_MS, PERSON_IDLE_MS, QUIET_MS } from '../src/main/consoleHandoff.ts'
+import { createConsoleHandoff, consoleHandoffLine, keysFor, ESCALATE_MS, PERSON_IDLE_MS, QUIET_MS } from '../src/main/consoleHandoff.ts'
 
 const menu = (q = 'Where should the drafts be kept?') => [
   q, '❯ 1. In the project folder', '  2. In the app data folder', 'Enter to select · ↑/↓ to navigate · Esc to cancel'
@@ -11,7 +11,8 @@ const idle = ['⏺ Done.', '╭────╮', '│ >  │', '╰────�
 
 function rig(over = {}) {
   let t = 10_000_000
-  const calls = { delivered: [], escalated: [], ensure: 0, records: [] }
+  const calls = { delivered: [], escalated: [], ensure: 0, records: [], typed: [] }
+  const answers = {}
   const screens = { w1: menu(), ceo: menu('The CEO asks itself?') }
   const consoles = [
     { sessionId: 'w1', projectId: 'p1', running: true, lastOutputAt: t - QUIET_MS - 1, lastTypedAt: null, name: 'Claude Code', project: 'fabric', task: 'Drafts' },
@@ -21,11 +22,13 @@ function rig(over = {}) {
     consoles: () => consoles, screen: (id) => screens[id] ?? '', ceoSessionId: () => 'ceo', ceoState: () => 'running',
     ensure: async () => { calls.ensure++ },
     deliver: async (id, line) => { calls.delivered.push([id, line]); return { state: 'written' } },
-    escalate: async (c, p, by) => { calls.escalated.push([c.sessionId, p.question, by]); return true },
+    escalate: async (c, p, by) => { calls.escalated.push([c.sessionId, p.question, by]); return `q-${calls.escalated.length}` },
+    answerOf: async (id) => answers[id] ?? { status: 'open', chosen: null, answer: null },
+    type: (id, data) => calls.typed.push([id, data]),
     record: (op, outcome, detail) => calls.records.push({ op, outcome, detail }),
     now: () => t, ...over
   }
-  return { h: createConsoleHandoff(deps), calls, screens, consoles, tick: (ms) => { t += ms } }
+  return { h: createConsoleHandoff(deps), calls, screens, consoles, answers, tick: (ms) => { t += ms } }
 }
 
 test('a waiting console is typed into the CEO once per distinct prompt, never the CEO\'s own console', async () => {
@@ -96,4 +99,35 @@ test('a typed question tells the CEO to answer with text', () => {
     { kind: 'text', question: 'Land it now?', options: [], selected: null }, 'w')
   assert.match(line, /Ответь текстом и enter/)
   assert.doesNotMatch(line, /Варианты/)
+})
+
+test('the owner\'s answer is typed into the same console once, by the chosen option\'s key, while the prompt is on screen', async () => {
+  const r = rig({ ceoState: () => 'stopped' })
+  await r.h.tick()
+  assert.deepEqual(r.calls.escalated.map((e) => e[2]), ['ceo-cannot-run'])
+  await r.h.tick()
+  assert.equal(r.calls.typed.length, 0, 'nothing is typed while the question is open')
+  r.answers['q-1'] = { status: 'answered', chosen: '2', answer: null }
+  await r.h.tick()
+  await r.h.tick()
+  assert.deepEqual(r.calls.typed, [['w1', '2']])
+})
+
+test('an answer that comes after the prompt went away is not typed', async () => {
+  const r = rig({ ceoState: () => 'stopped' })
+  await r.h.tick()
+  r.screens.w1 = idle
+  r.answers['q-1'] = { status: 'answered', chosen: '1', answer: null }
+  await r.h.tick()
+  assert.equal(r.calls.typed.length, 0)
+})
+
+test('keysFor: a digit for a menu, a letter and Enter for y/n, Enter to continue, words and Enter for a typed question', () => {
+  const menuP = { kind: 'menu', question: 'q?', options: [{ key: '1', label: 'a' }, { key: '2', label: 'b' }], selected: '1' }
+  assert.equal(keysFor(menuP, { chosen: '2', answer: null }), '2')
+  assert.equal(keysFor(menuP, { chosen: null, answer: 'free words' }), null)
+  const yn = { kind: 'confirm', question: 'q?', options: [{ key: 'y', label: 'Yes' }, { key: 'n', label: 'No' }], selected: 'n' }
+  assert.equal(keysFor(yn, { chosen: 'y', answer: null }), 'y\r')
+  assert.equal(keysFor({ kind: 'confirm', question: 'go', options: [{ key: 'enter', label: 'Continue' }], selected: 'enter' }, { chosen: 'enter', answer: null }), '\r')
+  assert.equal(keysFor({ kind: 'text', question: 'q?', options: [], selected: null }, { chosen: null, answer: 'Land it\nnow' }), 'Land it now\r')
 })

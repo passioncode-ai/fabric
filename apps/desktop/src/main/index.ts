@@ -5621,7 +5621,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     ensure: () => agent.ensure(),
     deliver: (id, line) => ptys.deliverWhenReady(id, line),
     escalate: async (c, prompt, by) => {
-      if (!c.projectId) return false
+      if (!c.projectId) return null
       const recommended = prompt.selected
       const r = await consoleQuestions.ask({
         projectId: c.projectId, requestId: `console:${c.sessionId}`, launchId: `console:${c.sessionId}`, key: `console-prompt:${promptKey(c.sessionId, prompt)}`,
@@ -5631,8 +5631,15 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           options: prompt.options.map((o) => ({ id: o.key, label: o.label, ...(o.key === recommended ? { recommended: true as const } : {}) }))
         }
       })
-      return 'questionId' in r
+      return 'questionId' in r ? r.questionId : null
     },
+    answerOf: async (questionId) => {
+      const r = await store.select('questions', 'id,status,answer,chosen_option').eq('id', questionId).maybeSingle()
+      if (r.error) throw new Error(`the question could not be read: ${r.error.message}`)
+      const q = r.data as { status?: unknown; answer?: unknown; chosen_option?: unknown } | null
+      return q ? { status: String(q.status ?? ''), chosen: typeof q.chosen_option === 'string' ? q.chosen_option : null, answer: typeof q.answer === 'string' ? q.answer : null } : null
+    },
+    type: (id, data) => ptys.write(id, data),
     record: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
   })
   const consoleHandoffTick = setInterval(() => {

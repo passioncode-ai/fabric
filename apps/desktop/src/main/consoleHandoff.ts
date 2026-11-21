@@ -12,6 +12,8 @@
  *   cannot answer, so the prompt goes to the owner at once (`escalate`, by `ceo-cannot-run`);
  * - a prompt still on the screen ESCALATE_MS after it was first seen goes to the owner (`escalate`, by `triage-timeout`):
  *   nothing waits on a busy or absent CEO;
+ * - the owner's answer to an escalated prompt is typed into the same console once, by the chosen option's key or the
+ *   typed words and Enter, only while the same prompt is still on the screen;
  * - a prompt that changed or went away is forgotten; the next one is a new prompt.
  */
 import type { CeoState } from '../shared/ceoAgent.ts'
@@ -48,8 +50,12 @@ export interface ConsoleHandoffDeps {
   ensure(): Promise<unknown>
   /** Types a line into the CEO's console; `written` when it was. */
   deliver(sessionId: string, line: string): Promise<{ state: string }>
-  /** Files the prompt as the owner's question (a board question, asker the waiting session); true when filed. */
-  escalate(console: WatchedConsole, prompt: ConsolePrompt, by: EscalateBy): Promise<boolean>
+  /** Files the prompt as the owner's question (a board question, asker the waiting session); its id, or null when not filed. */
+  escalate(console: WatchedConsole, prompt: ConsolePrompt, by: EscalateBy): Promise<string | null>
+  /** The filed question's state: its status, the chosen option's id and the typed answer. */
+  answerOf(questionId: string): Promise<{ status: string; chosen: string | null; answer: string | null } | null>
+  /** Writes keys into a console, as a person's keys are written. */
+  type(sessionId: string, data: string): void
   record(op: string, outcome: 'ok' | 'failed', detail: Record<string, unknown>): void
   now?: () => number
 }
@@ -66,7 +72,18 @@ export function consoleHandoffLine(c: WatchedConsole, p: ConsolePrompt, sessionI
   return `${head}${options}${advice}${how} Если решать владельцу, не отвечай: через 10 минут Fabric сам отправит вопрос владельцу.`
 }
 
-interface Seen { key: string; prompt: ConsolePrompt; firstAt: number; toldAt: number | null; escalated: boolean }
+/** The keys that give a console the owner's answer: the chosen option's key (a digit selects in a menu, a letter and
+ *  Enter answer y/n, Enter continues), or the typed answer and Enter for a typed question; null when the answer cannot
+ *  be typed into this prompt (free words for a menu). */
+export function keysFor(prompt: ConsolePrompt, a: { chosen: string | null; answer: string | null }): string | null {
+  const option = a.chosen ? prompt.options.find((o) => o.key === a.chosen) : undefined
+  if (option) return option.key === 'enter' ? '\r' : /^[yn]$/.test(option.key) ? `${option.key}\r` : option.key
+  const words = (a.answer ?? '').replace(/[\r\n]+/g, ' ').trim()
+  if (prompt.kind === 'text' && words) return `${words.slice(0, 2000)}\r`
+  return null
+}
+
+interface Seen { key: string; prompt: ConsolePrompt; firstAt: number; toldAt: number | null; escalated: boolean; questionId: string | null; answered: boolean }
 
 export function createConsoleHandoff(deps: ConsoleHandoffDeps) {
   const now = deps.now ?? Date.now
@@ -75,13 +92,31 @@ export function createConsoleHandoff(deps: ConsoleHandoffDeps) {
   let running = false
 
   async function escalate(c: WatchedConsole, s: Seen, by: EscalateBy): Promise<void> {
-    let filed = false
+    let filed: string | null = null
     try { filed = await deps.escalate(c, s.prompt, by) } catch (e) { // recorded below through deps.record (the ops log), never silent
       deps.record('ceo.console-escalate', 'failed', { session_id: c.sessionId, by, error_class: e instanceof Error ? e.constructor.name : typeof e })
       return
     }
-    s.escalated = filed
-    deps.record('ceo.console-escalate', filed ? 'ok' : 'failed', { session_id: c.sessionId, by, kind: s.prompt.kind })
+    s.escalated = filed !== null
+    s.questionId = filed
+    deps.record('ceo.console-escalate', filed ? 'ok' : 'failed', { session_id: c.sessionId, by, kind: s.prompt.kind, ...(filed ? { question_id: filed } : {}) })
+  }
+
+  /** The owner's answer to an escalated prompt still on the screen is typed into the console once. */
+  async function answer(c: WatchedConsole, s: Seen): Promise<void> {
+    if (!s.questionId || s.answered) return
+    let a: Awaited<ReturnType<ConsoleHandoffDeps['answerOf']>> = null
+    try { a = await deps.answerOf(s.questionId) } catch (e) { // recorded through deps.record; read again at the next tick
+      deps.record('ceo.console-answer', 'failed', { session_id: c.sessionId, question_id: s.questionId, error_class: e instanceof Error ? e.constructor.name : typeof e })
+      return
+    }
+    if (!a || a.status === 'open') return
+    s.answered = true
+    if (a.status !== 'answered') { deps.record('ceo.console-answer', 'ok', { session_id: c.sessionId, question_id: s.questionId, status: a.status }); return }
+    const keys = keysFor(s.prompt, a)
+    if (!keys) { deps.record('ceo.console-answer', 'failed', { session_id: c.sessionId, question_id: s.questionId, reason: 'answer-not-typable' }); return }
+    deps.type(c.sessionId, keys)
+    deps.record('ceo.console-answer', 'ok', { session_id: c.sessionId, question_id: s.questionId, status: 'typed' })
   }
 
   async function tick(): Promise<number> {
@@ -101,8 +136,8 @@ export function createConsoleHandoff(deps: ConsoleHandoffDeps) {
         if (!prompt) { seen.delete(c.sessionId); continue }
         const key = promptKey(c.sessionId, prompt)
         let s = seen.get(c.sessionId)
-        if (!s || s.key !== key) { s = { key, prompt, firstAt: t, toldAt: null, escalated: false }; seen.set(c.sessionId, s) }
-        if (s.escalated) continue
+        if (!s || s.key !== key) { s = { key, prompt, firstAt: t, toldAt: null, escalated: false, questionId: null, answered: false }; seen.set(c.sessionId, s) }
+        if (s.escalated) { await answer(c, s); continue }
         if (t - s.firstAt >= ESCALATE_MS) { await escalate(c, s, 'triage-timeout'); continue }
         if (s.toldAt !== null) continue
         const state = deps.ceoState()
