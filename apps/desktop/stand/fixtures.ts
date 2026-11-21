@@ -126,6 +126,17 @@ export const fixtures: Fixtures = {
   'terminal.resize': null,
   'terminal.write': null,
   'terminal.get': (id: string) => consoleSessions.find((s) => s.sessionId === id) ?? null,
+  // The CEO's window (stand screen `ceo`): its console is the first console session's.
+  'ceoAgent.ensure': () => ({ state: 'running', sessionId: consoleSessions[0].sessionId, runner: 'claude-code', models: ['anthropic/claude-opus-5.5'], passedOver: [], setAside: [], folder: '/Users/example/Library/Application Support/Fabric/ceo', problem: null }),
+  // SCN-188: a console's system line, as main reads it from the launch journal, Switchboard, git and the transcript.
+  'terminal.meta': (id: string) => ({ sessionId: id, runnerSessionId: '1fc71162-60b8-4271-831a-708a1a6e70f8', runner: 'claude-code', model: 'claude-opus-5-5',
+    folder: '/Users/example/DATA/support-desk', branch: 'feat/queue', account: { label: 'claude13@example.me', short: 'claude13@…', source: 'switchboard-session' },
+    context: 'PassionCode.ai', started: { by: 'switchboard', via: 'fallback', at: new Date(NOW - 50 * 60_000).toISOString(), parentSessionId: null },
+    handedOver: { at: new Date(NOW - 50 * 60_000).toISOString() } }),
+  'terminal.revealFolder': { ok: true },
+  'ceoAgent.takeDraft': null,
+  'ceoAgent.takeCall': false,
+  'persona.read': { persona: { seed: 731, style: 'orbit', name: 'Ника' }, chosen: true, problem: null },
   'terminal.scrollback': () => ({ text: Array.from({ length: 80 }, (_, i) => `строка ${i + 1}: агент читает репозиторий и пишет план`).join('\r\n') + '\r\nПОСЛЕДНЯЯ СТРОКА КОНСОЛИ', written: 4000 }),
   'tasks.detail': (id: string) => ({ task: tasks.find((t) => t.id === id) ?? tasks[0],
     notes: [{ id: 'n1', task_id: id, author_kind: 'agent', author_id: 's1', body_md: 'Попробовал вынести чтение целиком: ломается порядок подписки на журнал. Делаю **по одному чтению**.', promoted_fact_id: null, created_at: at(3) },

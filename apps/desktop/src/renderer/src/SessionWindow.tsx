@@ -26,6 +26,7 @@ import {
 } from '../../shared/sessionReading.ts'
 import { runnerLabel } from './runnerLabel'
 import { shortFolder, useOpenConsole } from './consoles'
+import { SessionMetaLine } from './SessionMetaLine'
 import { LaunchOverlapNote, checkLaunch, type LaunchCheck } from './launch/LaunchOverlapNote'
 
 export function SessionWindow({
@@ -140,7 +141,8 @@ export function SessionWindow({
       <TerminalView session={session} />
       <footer className="session-bar" aria-label={t('session.bar')}>
         {state}
-        <span className="muted mono session-cwd" title={session.cwd}>{shortFolder(session.cwd)}</span>
+        {/* The system line (2026-11-20): until it is read, the folder alone, as before. */}
+        <SessionMetaLine sessionId={session.sessionId} fallback={<span className="muted mono session-cwd" title={session.cwd}>{shortFolder(session.cwd)}</span>} />
         {!session.running && <NewSession session={session} runner={runner} />}
         <span className="session-stop-slot">{stop}</span>
         <button type="button" className="session-detach" aria-label={t('consoles.detach')} title={t('consoles.detach')} onClick={detach}>

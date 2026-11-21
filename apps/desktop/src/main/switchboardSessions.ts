@@ -12,6 +12,7 @@ import path from 'node:path'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 import { mergeSessions, type SbSessionRecord } from '../shared/vendor/dashboardsSessions.ts'
 import type { SwitchboardSessions } from '../shared/switchboardSessions.ts'
+import type { SbSessionLite } from '../shared/sessionMeta.ts'
 export type { SwitchboardSessions }
 
 /** 30 s (Switchboard's measure of 2026-11-19, board thread 3ca40854: under a load average of 120 its slow answers took
@@ -153,10 +154,13 @@ export async function runMachineSwitchboard(env: Record<string, string>, args: s
     : runSwitchboard(sb, args, env, PATH)
 }
 
-/** A `switchboard --json sessions [--rows|--all|show …]` or `--json recovery` read: nothing on the machine changes. */
+/** A `switchboard --json sessions [--rows|--all|show …]` or `--json recovery` read: nothing on the machine changes.
+ *  Since 2026-11-20 also the console line's reads (`accounts list`, `project list`, `shell env --dir <folder>`). */
 export function readOnlySwitchboardCall(args: readonly string[]): boolean {
   if (args[0] !== '--json') return false
   if (args[1] === 'recovery') return args.length === 2
+  if ((args[1] === 'accounts' || args[1] === 'project') && args[2] === 'list') return args.length === 3
+  if (args[1] === 'shell' && args[2] === 'env') return args.length === 5 && args[3] === '--dir' && path.isAbsolute(args[4] ?? '')
   return args[1] === 'sessions' && args.slice(2).every((a) => a === '--rows' || a === '--all' || a === '--tree' || a === '--machine')
 }
 
@@ -208,3 +212,60 @@ export async function withOneRetry<T>(call: (deadlineMs: number) => Promise<T>, 
   }
 }
 // #endregion switchboard-run-failure
+
+// #region session-meta-switchboard — docs: docs/ux/scenarios.md#scn-188-read-a-consoles-system-line
+/** The console line's half of `sessions --all` (2026-11-20): the runner's own session id and who asked Switchboard,
+ *  which `parseSessions` leaves out; the same record, the same checks. */
+export function parseSessionLites(stdout: string): SbSessionLite[] | null {
+  const data = dataOf(stdout)
+  if (!data) return null
+  const out: SbSessionLite[] = []
+  for (const x of Array.isArray(data.sessions) ? (data.sessions as Record<string, unknown>[]) : []) {
+    if (!x || typeof x !== 'object' || typeof x.working_directory !== 'string' || !path.isAbsolute(x.working_directory)) continue
+    const by = x.launched_by && typeof x.launched_by === 'object' ? (x.launched_by as Record<string, unknown>) : null
+    out.push({
+      providerSessionId: typeof x.provider_session_id === 'string' && SESSION.test(x.provider_session_id) ? x.provider_session_id : null,
+      folder: x.working_directory,
+      label: typeof x.label === 'string' ? x.label.slice(0, 200) : '',
+      contextName: typeof x.context_name === 'string' ? x.context_name.slice(0, 120) : null,
+      context: typeof x.context === 'string' ? x.context.slice(0, 120) : null,
+      surface: by && typeof by.surface === 'string' && /^[a-z-]{1,32}$/.test(by.surface) ? by.surface : null,
+      launchedAt: ms(x.launched_at)
+    })
+  }
+  return out
+}
+
+/** `accounts list`: the routes (`provider:pool` → account id) and each account's label. Never a credential. */
+export function parseAccounts(stdout: string): { routes: Record<string, string>; labels: Record<string, string> } | null {
+  const data = dataOf(stdout)
+  if (!data) return null
+  const routes: Record<string, string> = {}
+  if (data.routes && typeof data.routes === 'object')
+    for (const [k, v] of Object.entries(data.routes as Record<string, unknown>)) if (/^[a-z]+:[A-Za-z0-9._-]{1,64}$/.test(k) && typeof v === 'string' && v.length <= 64) routes[k] = v
+  const labels: Record<string, string> = {}
+  for (const a of Array.isArray(data.accounts) ? (data.accounts as Record<string, unknown>[]) : [])
+    if (a && typeof a.id === 'string' && typeof a.label === 'string') labels[a.id] = a.label.slice(0, 200)
+  return { routes, labels }
+}
+
+/** `project list`: each group's organisation name. */
+export function parseGroupOrgs(stdout: string): Record<string, string> | null {
+  const data = dataOf(stdout)
+  if (!data) return null
+  const out: Record<string, string> = {}
+  for (const p of Array.isArray(data.projects) ? (data.projects as Record<string, unknown>[]) : [])
+    if (p && typeof p.pool === 'string' && typeof p.organization_name === 'string' && p.organization_name) out[p.pool] = p.organization_name.slice(0, 120)
+  return out
+}
+
+/** `shell env --dir`: `none`, or the group, its context, the Claude home and the Codex home, tab-separated. */
+export function parseShellEnv(stdout: string): { pool: string; context: string | null; claudeHome: string | null } | null {
+  const line = stdout.trim().split('\n')[0] ?? ''
+  if (!line || line === 'none') return null
+  const [pool, context, claudeHome] = line.split('\t')
+  if (!pool || !/^[A-Za-z0-9._-]{1,64}$/.test(pool)) return null
+  return { pool, context: context && context !== '-' ? context : null, claudeHome: claudeHome && claudeHome !== '-' && path.isAbsolute(claudeHome) ? claudeHome : null }
+}
+// #endregion session-meta-switchboard
+

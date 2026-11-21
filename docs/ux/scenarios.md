@@ -2901,6 +2901,7 @@ Source: the approved [design](../evidence/specs/2026-09-29-agent-registry-design
 - **Design rationale:** the operator, 2026-11-18 (paraphrased): bring the floating button back; a chat over the screen where the CEO answers; ADR-0123 makes that chat the CEO's console (ADR-0197).
 - **Telemetry:** none.
 - **Status:** implemented (2026-11-18, ADR-0197). Amended 2026-11-18: the earlier draft (asking the floating Fabric to change the pipeline on screen, with a context chip and proposals) is not built; the floating CEO answers in its console.
+- **Amended 2026-11-20 (the owner: «чтобы вот это окошко … можно было по экрану возить, менять размеры … кривые кнопки некрасивые, все это попричесывать»):** the CEO's window is no longer the main window's child: it moves to any display by its head, which is its title bar (one 52 px row beside the traffic lights), resizes down to 380 × 420, and opens where it was left at the size it was given, kept in `userData/ceo-window.json` after each move and resize and when it closes; a window whose display is gone, or whose top no display shows, opens at its default, and one half off a screen is pulled wholly onto the display that shows its top (`apps/desktop/src/shared/windowPlacement.ts#placeWindow`, `apps/desktop/src/main/ceoWindowPlacement.ts`; test `windowPlacement.test.ts`). The head is one row of one height: the name with the state beside it, the runner under them; «Позвонить» is the same outlined button as on the home; «Остановить» and «Перезапустить» are quiet signs named on hover and for a screen reader (`CeoPopup.tsx`; test `CeoPopup.test.tsx` «the head is one row»); under 460 px the call keeps only its sign. A primary button that cannot be pressed is a neutral fill everywhere, not a faded accent (`components.css` `.btn`, `launch/launch.css` `.lp-button.primary:disabled`). On the home, the ask card's field takes the card's height, so no empty band hangs under its buttons; the greeting block is unchanged. Captures before and after: `docs/reports/2026-11-20-ceo-window-polish/`.
 - **Coverage:** `apps/desktop/src/renderer/src/App.tsx` (the floating button, `openChat`), `apps/desktop/src/renderer/src/ceo/CeoPopup.tsx#CeoPopup`, `apps/desktop/src/renderer/src/ceo.tsx`, `apps/desktop/src/main/index.ts#openCeoWindow`, `apps/desktop/src/main/ceoAgent.ts#createCeoAgent`; tests `apps/desktop/test/ceo-agent.test.mjs`, `apps/desktop/test/ipc-window-policy.test.mjs` («the CEO popup reaches only its own console»), acceptance `docs/evidence/plans/2026-11-18-ceo-agent/acceptance.md`.
 - **Product:** unobserved
 
@@ -4606,7 +4607,7 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
   3. The CEO answers in its console, in the language of Fabric's interface (Russian or English, `shared/ceoAgent.ts#ceoBrief`).
 - **Expected result:** anything the operator can type or show reaches the CEO from the first screen.
 - **Alt paths:** Shift+Enter breaks the line instead of sending; a file over 25 MB is not attached and the composer says so; more than ten files keep the first ten.
-- **UI elements:** the home card (title with the hint on hover, «Позвонить», which opens the CEO window and starts the call there (SCN-184), a two-line box, «Приложить файл», «Отправить»); the popup's composer; attachment chips.
+- **UI elements:** the home card (title with the hint on hover, «Позвонить», which opens the CEO window and starts the call there (SCN-184), a box that takes the card's height beside the greeting (two lines at least; amended 2026-11-20), «Приложить файл», «Отправить»); the popup's composer; attachment chips.
 - **States covered:** idle, sending, sent, refused
 - **Errors & recovery:** a message the CEO did not take («Сообщение не дошло до CEO.» with the reason) keeps the words in the box to send again.
 - **Design rationale:** the operator, 2026-11-18 (paraphrased): a chat on the home screen where anything can be sent, text or a picture, that opens the CEO's popup over the screen. The review of 2026-11-19 (paraphrased): the header as it was, and the chat with the call as one small block at the top right, beside the header and the statistics; files pasted with ⌘V. The owner, later the same day: the live call is a panel in the CEO's chat, so the card's «Позвонить» opens it there.
@@ -4731,6 +4732,26 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Status:** implemented (2026-11-19).
 - **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `personStopEnded`, `onExit`, `ensure`, `send`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP», «ER-1 (0.3.25)», «ER-2 (0.3.25)», «ER-3 (0.3.25)», «ER-6 (0.3.25)»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.
 - **Product:** unobserved
+
+### SCN-188: Read a console's system line
+- **Persona:** P-01
+- **Feature:** Consoles
+- **Traces:** ST-046 (JTBD-02)
+- **Entry point:** the bottom bar of any console under its tab in the main window.
+- **Preconditions:** a console runs (or ran) in Fabric.
+- **Steps:**
+  1. Operator looks at the console's bottom bar -> one thin line says who started it and when («Вы, 18:02», «CEO голосом, 18:40», «Передана Switchboard, 20:58»), the account it runs on («claude13@…»), the organisation it works for («PassionCode.ai», or «личное»), the model («Opus 5.5»; the agent's name on hover, since the tab already says it), the folder by its own name, the git branch and the session's short id («id 8343a070»), and on a wide window the agent's own id («агент 1fc71162»). The folder and the ids are dotted to say they can be pressed.
+  2. Operator rests the pointer on a part -> it says itself whole: the e-mail, the full folder, the branch, the whole id, and where the account came from (Switchboard's record of the session, or the group's account now, which may change on a switch).
+  3. Operator presses the folder -> it opens in Finder; presses an id -> it is copied, and the part says «Скопировано» for a moment.
+- **Expected result:** without opening another app, the operator sees on which account and for which organisation a console works, who started it and in what folder and branch.
+- **Alt paths:** Switchboard is not installed or did not answer -> the account and the organisation are left out, the rest stays; a console Switchboard launched is matched by the coding agent's own session id, else by its folder and a start within 20 s; the line is read again every 30 s while the window is seen and when it comes back into view, so a switched account shows within half a minute. A narrow window (under 940 px) keeps whole parts only: who started it, the account, the organisation and the folder; the model, the branch and the ids step out and stay on hover and on the agent's page. Amended the same day after the design review (`docs/reports/2026-11-20-console-meta-line/`): at 1280 px the folder, branch and organisation had been cut on the part that tells them apart.
+- **UI elements:** the console's bottom bar (`session-bar`): the state, the system line, «Новая сессия» after an end, the stop, «Открыть в отдельном окне».
+- **States covered:** running, ended; Switchboard read, not read; a long folder, branch or e-mail cut with an ellipsis.
+- **Errors & recovery:** a part that could not be read is left out, never guessed; a failed read keeps the line it had; a folder that cannot be opened says nothing more than the OS does.
+- **Design rationale:** the owner, 2026-11-20, 20:59: «в дашборде типа сессии показываются, когда открываются, видно типа с какого она аккаунта, типа вот кто ее вытащил, короче вот такая мета. Давай ее в фабрике тоже сделаем, типа внизу в строчечке … плюс типа там папка, ветка какая». The account and the organisation come from Switchboard, read the way Fabric Dashboards reads them (its session merge is vendored in `shared/vendor/dashboardsSessions.ts`); once Fabric Dashboards' `sessions-core` (FD-357) and Switchboard's client (SB-586) ship, the reads move onto them.
+- **Telemetry:** none.
+- **Status:** implemented (2026-11-20).
+- **Coverage:** `apps/desktop/src/shared/sessionMeta.ts#sessionMeta`, `apps/desktop/src/main/sessionMetaRead.ts#createSessionMetaReader`, `apps/desktop/src/main/switchboardSessions.ts` (`parseSessionLites`, `parseAccounts`, `parseGroupOrgs`, `parseShellEnv`), `apps/desktop/src/renderer/src/SessionMetaLine.tsx#SessionMetaLine`; tests `sessionMeta.test.ts`, `SessionMetaLine.test.tsx`.
 
 ### SCN-189: A message to the CEO is never lost
 - **Persona:** P-01

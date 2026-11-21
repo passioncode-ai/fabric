@@ -319,6 +319,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       get: (sessionId) => ipc.invoke(IPC.terminalGet, sessionId),
       scrollback: (sessionId) => ipc.invoke(IPC.terminalScrollback, sessionId),
       launch: (sessionId) => ipc.invoke(IPC.terminalLaunch, sessionId),
+      meta: (sessionId) => ipc.invoke(IPC.terminalMeta, sessionId),
+      revealFolder: (sessionId) => ipc.invoke(IPC.terminalRevealFolder, sessionId),
       recent: () => ipc.invoke(IPC.terminalRecent),
       write: (sessionId, data) => ipc.send(IPC.terminalWrite, sessionId, data),
       resize: (sessionId, cols, rows) => ipc.send(IPC.terminalResize, sessionId, cols, rows),

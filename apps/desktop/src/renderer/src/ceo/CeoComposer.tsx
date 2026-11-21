@@ -135,10 +135,10 @@ export function CeoComposer({
         )}
         <div className="ceo-composer-actions">
           <input ref={picker} type="file" multiple hidden aria-label={t('ceoAgent.composer.attach')} onChange={(e) => { void attach(e.target.files); e.target.value = '' }} />
-          <button type="button" className="btn btn-ghost" onClick={() => picker.current?.click()}>{t('ceoAgent.composer.attach')}</button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => picker.current?.click()}>{t('ceoAgent.composer.attach')}</button>
           {tools}
           {sent && <span className="muted" role="status">{t(sent === 'queued' ? 'ceoAgent.composer.queued' : sent === 'queuedStopped' ? 'ceoAgent.composer.queuedStopped' : sent === 'queuedFailed' ? 'ceoAgent.composer.queuedFailed' : 'ceoAgent.composer.sent')}</span>}
-          <button type="submit" className="btn ceo-composer-send" disabled={busy || (!text.trim() && files.length === 0)}>
+          <button type="submit" className="btn btn-sm ceo-composer-send" disabled={busy || (!text.trim() && files.length === 0)}>
             {t(busy ? 'ceoAgent.composer.sending' : 'ceoAgent.composer.send')}
           </button>
         </div>

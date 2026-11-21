@@ -1,4 +1,5 @@
 import type { Launch } from './sessionLaunches.ts'
+import type { SessionMeta } from './sessionMeta.ts'
 import type { ActAnswer, ActHistoryPage, ActHistoryQuery } from './acts.ts'
 import { CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT, type CeoAttachment, type CeoSendResult, type CeoStatus, type CeoVoiceProblem, type CeoVoiceSession } from './ceoAgent.ts'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from './boardResolved.ts'
@@ -1822,6 +1823,11 @@ export interface FabricApi {
     /** Who started this console and from where, from the launch journal on disk (board request eef5abeb); null when
      *  Fabric did not start it or started it before the journal. Throws when the journal could not be read. */
     launch(sessionId: string): Promise<Launch | null>
+    /** A console's system line (2026-11-20): account, context, who started it, runner and model, folder, branch and ids;
+     *  null for a session this process does not hold. Parts that could not be read are absent, never guessed. */
+    meta(sessionId: string): Promise<SessionMeta | null>
+    /** Opens this console's own folder in Finder (no other path is taken); a refusal says why. */
+    revealFolder(sessionId: string): Promise<{ ok: true } | { ok: false; reason: string }>
     /** Sessions that ended, newest first, one per project, from the launch journal (the rail's «Недавние»). */
     recent(): Promise<Array<{ projectId: string; projectName: string | null; runner: string; branch: string | null; endedAt: string | null; startedAt: string }>>
     write(sessionId: string, data: string): void
@@ -2106,6 +2112,8 @@ export const IPC = {
   terminalGet: 'terminal:get',
   terminalScrollback: 'terminal:scrollback',
   terminalLaunch: 'terminal:launch',
+  terminalMeta: 'terminal:meta',
+  terminalRevealFolder: 'terminal:reveal-folder',
   terminalRecent: 'terminal:recent',
   terminalWrite: 'terminal:write',
   terminalResize: 'terminal:resize',

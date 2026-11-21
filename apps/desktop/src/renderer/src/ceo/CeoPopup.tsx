@@ -19,6 +19,18 @@ import { useFabricName } from '../launch/persona'
 
 const WHY_KEYS = new Set(['not-installed', 'not-connected', 'not-responding', 'spawn-failed', 'refused', 'not-catalogued', 'no-held-session', 'limit', 'ended-at-start'])
 
+/** The head's quiet signs: a square for stop, an open circle with its arrow for restart (16 px, the stroke of the text). */
+function StopIcon(): React.JSX.Element {
+  return <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1.5" fill="currentColor" /></svg>
+}
+function RestartIcon(): React.JSX.Element {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 8a5 5 0 1 1-1.6-3.7" /><path d="M13 2.5v3h-3" />
+    </svg>
+  )
+}
+
 /** The model the head names: Claude Code's alias, or the first of the list a Hermes session tries first. */
 function modelOf(status: CeoStatus): string {
   return status.runner === 'claude-code' ? claudeModelFlag(status.models) : (status.models[0] ?? '').replace(/^[^/]+\//, '')
@@ -93,20 +105,28 @@ export function CeoPopup({ composerTools }: { composerTools?: React.ReactNode } 
           <FabricAvatar size="tiny" label={t('launch.avatar.label')} />
         </span>
         <div className="ceo-popup-who">
-          <strong className="ceo-popup-title">{name}</strong>
-          <span className="ceo-popup-sub">
+          <span className="ceo-popup-name">
+            <strong className="ceo-popup-title">{name}</strong>
             <span className={`ceo-popup-state s-${state}`}>{t(`ceoAgent.state.${state}` as 'ceoAgent.state.running')}</span>
-            {status?.runner && state !== 'stopped' && <span className="ceo-popup-runner">{t('ceoAgent.runsOn', { runner: `${runnerLabel(status.runner, t)} · ${modelOf(status)}` })}</span>}
           </span>
+          {status?.runner && state !== 'stopped' && <span className="ceo-popup-sub ceo-popup-runner" title={t('ceoAgent.runsOn', { runner: `${runnerLabel(status.runner, t)} · ${modelOf(status)}` })}>{t('ceoAgent.runsOn', { runner: `${runnerLabel(status.runner, t)} · ${modelOf(status)}` })}</span>}
         </div>
+        {/* One row, one height (the owner, 2026-11-20): the call in words, stop and restart as quiet signs named for a
+            screen reader and on hover; a start, when there is one, in words. */}
         <div className="ceo-popup-head-actions">
           <CallButton call={call} />
           {stopped && state !== 'stopped'
-            ? <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void restart()}>{t('ceoAgent.start')}</button>
-            : (state === 'running' || state === 'starting') && <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void stop()}>{t(busy === 'stop' ? 'ceoAgent.stopping' : 'ceoAgent.stop')}</button>}
+            ? <button type="button" className="btn btn-ghost btn-sm" disabled={busy !== null} onClick={() => void restart()}>{t('ceoAgent.start')}</button>
+            : (state === 'running' || state === 'starting') && (
+              <button type="button" className="btn btn-quiet btn-icon" disabled={busy !== null} onClick={() => void stop()}
+                aria-label={t(busy === 'stop' ? 'ceoAgent.stopping' : 'ceoAgent.stop')} title={t(busy === 'stop' ? 'ceoAgent.stopping' : 'ceoAgent.stop')}>
+                <StopIcon />
+              </button>
+            )}
           {!stopped && (
-            <button type="button" className="btn btn-ghost" disabled={busy !== null} onClick={() => void restart()}>
-              {t(busy === 'restart' ? 'ceoAgent.restarting' : 'ceoAgent.restartShort')}
+            <button type="button" className="btn btn-quiet btn-icon" disabled={busy !== null} onClick={() => void restart()}
+              aria-label={t(busy === 'restart' ? 'ceoAgent.restarting' : 'ceoAgent.restartShort')} title={t(busy === 'restart' ? 'ceoAgent.restarting' : 'ceoAgent.restartShort')}>
+              <RestartIcon />
             </button>
           )}
         </div>
