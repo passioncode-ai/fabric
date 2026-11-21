@@ -68,7 +68,7 @@ import { HUB_TOOLS } from './hubTools.ts'
 import { RESTART_ITEM_ADVICE } from '../shared/loginItem.ts'
 import { stageTaskOf, type LiveClaim } from '../shared/spawnParent.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
-import { BOARD_SESSION_OPERATIONS, createBoard, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
+import { BOARD_SESSION_OPERATIONS, createBoard, isRefusal, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
 import { registerBoardTools } from './boardTools.ts'
 import { registerCeoTools } from './ceoTools.ts'
 import { registerKnowledgeTools } from './knowledgeTools.ts'
@@ -116,6 +116,10 @@ const KNOWN_TOOLS: ReadonlySet<string> = new Set([
 ])
 const isKnownTool = (name: string): boolean => KNOWN_TOOLS.has(name)
 
+
+/** What `AgentSurface#keepResponderSlot` did: renewed or took the slot, found the session gone, found another live holder,
+ *  had no grant, or could not read or write the board. */
+export type KeepSlotAnswer = 'kept' | 'not-live' | 'held-by-other' | 'refused' | 'unavailable'
 
 export interface AgentScope {
   token: string
@@ -356,6 +360,8 @@ export class AgentSurface {
    * liveness signal other sessions' `fabric_work_list` and the operator's screens read. In memory: it is what this
    * process can vouch for, and a restart is exactly the moment those sessions' bearers stop working.
    */
+  /** The sessions whose own project's answering `keepResponderSlot` already granted, by `session:capability`. */
+  private readonly ownRespondGranted = new Set<string>()
   private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null; /** The last call of the session's own client, not a rejoin's (TR-2). */ lastOwnCallAt?: number | null; /** Its last tool call, never a keep-alive ping or a notification: work, as the dispatcher reads it (CO-565, CO-571). */ lastWorkAt?: number | null; /** The agent's process (ER-2, i2). */ agentPid?: number | null; /** Its folder, in memory only (CO-498). */ folder?: string | null }>()
   /** Sessions holding a claim, and when their calls next renew it (REQ-38: "its calls renew the claim"). */
   private claimHolders = new Map<string, number>()
@@ -2065,6 +2071,42 @@ export class AgentSurface {
     }
   }
   // #endregion board-caller
+
+  // #region keep-responder-slot — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-3-2026-11-21-fabric-keeps-the-ceos-board-slot-and-a-ceotask-request-wakes-its-console
+  /**
+   * Fabric holds a capability's slot for a session it keeps (ADR-0197 Amendment 5: the CEO's `ceo.task`). A slot's
+   * lease is 60 s (`board_lease_seconds`) and only a claimed request's `com.renew` or another `com.enroll` lengthens it,
+   * so the CEO's own enroll went stale a minute later and the owner's Telegram bot found no live CEO. This is the
+   * session's own `com.enroll`: the same caller its MCP tools build (`boardCaller`), its own project's answering
+   * granted first as there (ADR-0190), a fresh idempotency key under the epoch com.status names. The same session
+   * holding it only renews (no event, `board_enroll`). A slot another live session holds is left to it: `held-by-other`.
+   */
+  async keepResponderSlot(sessionId: string, capability: string): Promise<KeepSlotAnswer> {
+    const s = this.live.get(sessionId)
+    if (!s || s.surface === 'board') return 'not-live'
+    const scope: AgentScope = {
+      token: '', estateId: this.deps.estateId, projectId: s.projectId, sessionId, taskId: null, cameIn: s.cameIn, agent: s.agent,
+      runtimeSessionId: s.runtimeSessionId, surface: 'session', bindingId: s.bindingId ?? null
+    }
+    const runner = this.deps.ptys()?.runnerOf?.(sessionId) ?? this.deps.ptys()?.get(sessionId)?.optionId ?? null
+    const caller = this.boardCaller(scope, runner)
+    if (!caller.responder) return 'not-live'
+    const grant = this.deps.access?.grantOwnRespond
+    if (grant && !this.ownRespondGranted.has(`${sessionId}:${capability}`)) {
+      const r = await grant({ projectId: s.projectId, capability, bindingId: scope.bindingId, runnerKey: runner })
+      if (r.ok) this.ownRespondGranted.add(`${sessionId}:${capability}`)
+    }
+    const status = await this.board.status(caller)
+    const epoch = (status as { idempotency?: { epoch?: unknown } }).idempotency?.epoch
+    if (typeof epoch !== 'number') return 'unavailable'
+    const key = `fabric-keep-${this.now().toString(36)}-${randomBytes(4).toString('hex')}`
+    const r = await this.board.enroll(caller, { idempotency: { epoch, key }, capability })
+    if (!isRefusal(r)) return 'kept'
+    if (r.error.code === 'fenced') return 'held-by-other'
+    if (r.error.code === 'not_authorized') return 'refused'
+    return 'unavailable'
+  }
+  // #endregion keep-responder-slot
 }
 
 /**

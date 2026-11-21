@@ -204,3 +204,27 @@ Released in 0.3.27. So:
 
 Nothing else in this record changes.
 
+## Amendment 5 (2026-11-21): Fabric keeps the CEO's board slot, and a `ceo.task` request wakes its console
+
+Numbered 5: amendment 3 (the CEO's windows and dashboards) is on `feat/ceo-session-windows`, and amendment 4 is the
+voice retro's above. Released in 0.3.27.
+
+The owner, 2026-11-21, relayed: tasks his Telegram bot gives the CEO (`ceo.ask`, through his personal agent's bridge) found no
+live CEO. Measured the same night: the «Fabric CEO» slot for `ceo.task` read stale from 2026-11-19 19:04, and the CEO's
+own `com.enroll` held it 60 s (generation 4), since a slot's lease is `board_lease_seconds()` = 60 and only a claimed
+request's `com.renew` or another `com.enroll` lengthens it. §6 left both to the CEO, which enrols once at its start.
+
+1. **Fabric holds the slot while the console lives.** Every 30 s while the CEO's console runs, Fabric enrols for
+   `ceo.task` as that console's own session (`agentSurface.ts#keepResponderSlot`): the caller its MCP tools build, its
+   own project's answering granted first as at its own `com.enroll` (ADR-0190), a fresh idempotency key under the epoch
+   `com.status` names. The same session holding the slot only renews its lease (no event); a slot another live session
+   holds is left to it. When the console ends nothing renews it and it goes stale a minute later, as any responder's.
+   About 2 900 keys a day on the CEO's project, well under an epoch's 100 000; the board's tick compacts the receipts.
+2. **A waiting request wakes the console.** Once a minute Fabric reads the CEO project's requests whether or not its
+   console runs (the project known from its folder's meta before the first start, `main/ceoAgent.ts#knownProjectId`). A
+   `ceo.task` request still queued while the console does not run starts it (`ceoBoardKeeper.ts#wake`, `ensure`), at
+   most once per five minutes; the nudge of §6 then types it. A console the person stopped stays stopped: `ensure`
+   starts nothing while the CEO is held.
+3. **Logged when it changes.** `ceo.board-slot` (kept, held-by-other, refused, unavailable) once per change, and
+   `ceo.board-wake` at each wake.
+

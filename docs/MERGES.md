@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `PASTE-AND-CEO-SLOT` · fix/paste-and-ceo-slot → feat/voice-retro (the 0.3.27 candidate) · merge, before review run ten
+- files: `apps/desktop/src/main/sessionEnv.ts`, `agentSurface.ts` (`keepResponderSlot`), `ceoBoardKeeper.ts` (new), `ceoAgent.ts` (`knownProjectId`), `index.ts` (the CEO board timers), tests `session-env`, `ceo-board-keeper`, `keep-responder-slot`, ADR-0197 Amendment 5, AGENTS.md lifecycle row, CHANGELOG, the map
+- conflicts: none
+- summary: the owner's two blockers of 2026-11-21: a console with no locale gets `LC_CTYPE=en_US.UTF-8`, so Russian copied in it is not Mac Roman; Fabric holds the CEO's `ceo.task` slot while its console runs and a waiting `ceo.task` request wakes it
+
 ### 2026-11-21 · `RELEASE-0327-MAIN` · main → feat/voice-retro (the 0.3.27 candidate) · merge `5f4dc15b`
 - files: all of `main`'s 42 commits since the candidate (39 without merges) (Memory, the estate index and graph, the folder-role navigation, the update in place); resolved by hand: `apps/desktop/src/main/ceoTools.ts`, `apps/desktop/src/main/index.ts`, `apps/desktop/test/ceo-agent.test.mjs`, CHANGELOG, the carry-over register, the backlog's lane 12, scenarios, the map; generated projections rebuilt
 - conflicts: the CEO's project lookup: `start` asks the retro's sound-based `findProject` first and main's `matchProject` as a second opinion (a canonical folder over a copy, a typo forgiven), never for the CEO's address words, a folder too broad or a folder path; `resume` is main's resume as itself, with the retro's runner id from the launch journal

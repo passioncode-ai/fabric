@@ -55,6 +55,17 @@ the console line, the dictation tail).
   outcome is unknown is said so to the message's sender (one the queue types later is recorded) and never typed again;
   a line typed into a console that then shows its limit is typed again on the next runner, once (`main/ceoAgent.ts`,
   region `ceo-queue`; SCN-189).
+- **The CEO is reachable on the board while its console runs, and a task for it wakes it.** The owner, 2026-11-21:
+  tasks from his Telegram bot found no live CEO. The CEO's `ceo.task` slot lived 60 s after its own enrol and then read
+  stale for days. Fabric now holds that slot as the CEO's console every 30 s while the console runs, and a `ceo.task`
+  request that waits while the console is not running starts it (at most once per 5 minutes; a CEO the person stopped
+  stays stopped), then types the request into it as before (ADR-0197 Amendment 5, `main/ceoBoardKeeper.ts`).
+- **Russian copied in one console reaches another whole.** The owner, 2026-11-21: his dictation copied from the CEO's
+  console arrived in another console as «–î–∞–≤–∞–π», UTF-8 read as Mac Roman. Fabric started by «Служба доски» (launchd)
+  has no locale, so its consoles had none either, and macOS's `pbcopy`, which Claude Code copies through, read the text
+  as Mac Roman. A console with no locale of its own now gets `LC_CTYPE=en_US.UTF-8`; one the person set is kept, and
+  the language of messages is not touched (`main/sessionEnv.ts#UTF8_CTYPE`). Text already copied broken stays broken:
+  copy it again after the update.
 - **«Memory»: what Fabric knows about every project, as a place of its own.** The owner, 2026-11-20, in the CEO
   window: the knowledge base should live inside Fabric as «Memory» and render as well as Sound Engine's brain. «Memory»
   in the left column shows what the base holds and how fresh each source is (agent sessions, tasks and the journal, the
