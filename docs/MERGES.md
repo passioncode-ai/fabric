@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-20 · `STACK-OUTAGE-BANNER` · fix/stack-outage-banner → main · fast-forward (toward 0.3.27)
+- files: `apps/desktop/src/shared/{errorText,stackWatch}.ts`, `apps/desktop/src/main/{ops,opsSink,stackWatch,index}.ts`, `apps/desktop/src/renderer/src/{App,StackHealthNotice}.tsx`, i18n, tests `stack-watch.test.mjs`, `errorText.test.ts`, `StackHealthNotice.test.tsx`
+- conflicts: none
+- summary: the owner's screen of 2026-11-20: a database outage is said once by the stack watch's notice, the red banner no longer guesses «stack stopped» and goes when the database is back, the log counts the outage's failures into `stack.back`, and the disk is said under 15 GB
+
 ### 2026-11-21 · `INBOX-AUTOMATIC` · fix/registry-contract → main (0.3.28) · fast-forward after the 0.3.27 tag
 - files: `apps/desktop/src/main/{accessService,inboxAutoConnect,board}.ts`, `docs/adr/0204-*.md`, `AGENTS.md` (lifecycle row), tests `hub-access-service`, `inbox-auto-connect` (new, in `scripts/ci.sh`)
 - conflicts: none expected

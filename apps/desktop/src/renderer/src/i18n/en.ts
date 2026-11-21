@@ -273,7 +273,7 @@ export const en = {
   'error.stack-up-but-silent': 'The local stack is running but did not report its connection details.',
   'error.repository-not-found': 'Fabric cannot find its own repository.',
   'error.schema-missing': 'The database is running, but Fabric’s tables are not there.',
-  'error.database-unreachable': 'The database is not answering. The local stack is most likely stopped.',
+  'error.database-unreachable': 'The database did not answer. When it has stopped, the line above says why and when Fabric starts it again.',
   // M106a — the window could not read what it is FOR. Not the ordinary banner:
   // at this point nothing else on the screen can be trusted to be right.
   'boot.failedTitle': 'Fabric could not read its own state.',
@@ -1210,6 +1210,7 @@ export const en = {
   'stack.health.nextTry': "Next try in {seconds} s.",
   'stack.health.nextTryAt': "Next try at {time}.",
   'stack.health.diskCause': "This disk has {free} GB free. A full disk stops Docker, and the database with it: free some space first.",
+  'stack.health.diskSoon': "{free} GB left on this disk. At {floor} GB Fabric stops its database to keep it whole, so free some space before then.",
   'stack.health.diskTitle': "The disk is almost full",
   'stack.health.diskLow': "This disk has {free} GB free. Docker stops when the disk runs out, and Fabric's database with it: free some space soon.",
   'stack.health.diskStopFailed': "Fabric could not stop its database to protect it from the full disk, and the database is still writing. Free some disk space now.",

@@ -94,6 +94,14 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
   every 20 s for two hours and the log named nobody. The refusal now writes `hub.unknown-credential` once per 10 minutes
   per credential, with a short digest of what was sent (never the credential) and the client's User-Agent
   (`main/agentSurface.ts#sayUnknownCredential`).
+- **A database outage is said once, truly, and goes by itself.** On 2026-11-20 Fabric stopped its database for a nearly
+  full disk (0.8 GB) for 175 s; meanwhile a red banner said «the local stack is most likely stopped» under the notice
+  that already said why, stayed after the database came back, and the log took 91 «fetch failed» lines. Now a read that
+  failed only because the database is gone never becomes that banner while the stack watch says it is lost; the banner
+  goes and the journal is read again the moment it is back; the log counts such failures by operation and writes them
+  once, in `stack.back` (`failed_while_down`). Under 15 GB free the window says so quietly, well before the 3 GB
+  warning and the 1 GB stop (`shared/errorText.ts#outageFailure`, `main/ops.ts`, `shared/stackWatch.ts#DISK_SOON_BYTES`;
+  SCN-161).
 
 The owner, the same day (paraphrased): review the calls with the voice, fix every defect and add the missing tools
 ([the voice retro](docs/reports/2026-11-20-voice-ceo-retro/README.md), [its fixes](docs/reports/2026-11-20-voice-ceo-retro/fixes.md)).

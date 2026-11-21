@@ -27,6 +27,7 @@ import {
   DISK_STOP_BACKOFF,
   STACK_READ_DEADLINE_MS,
   diskHoldsRecovery,
+  diskSoonBand,
   diskStopDue,
   diskStoppedState,
   hubRefusalFor,
@@ -82,6 +83,8 @@ export interface StackWatch {
   tick(): Promise<void>
   view(): StackHealthView
   refusal(): StackRefusal | null
+  /** Whether the stack is lost now: the operations log counts the failures this causes instead of writing each one. */
+  isDown(): boolean
 }
 
 function recordEvent(e: StackWatchEvent): void {
@@ -98,9 +101,12 @@ function recordEvent(e: StackWatchEvent): void {
         ctx
       })
       return
-    case 'stack-back':
-      ops.record({ op: 'stack.back', outcome: 'ok', level: 'warn', detail: { down_s: Math.round(e.downMs / 1000), tries: e.recoveries }, ctx })
+    case 'stack-back': {
+      // 2026-11-20: what failed while it was down, counted by operation (`ops.ts` quietWhile), said once here.
+      const quiet = ops.takeQuiet()
+      ops.record({ op: 'stack.back', outcome: 'ok', level: 'warn', detail: { down_s: Math.round(e.downMs / 1000), tries: e.recoveries, ...(quiet ? { failed_while_down: quiet } : {}) }, ctx })
       return
+    }
     case 'disk-low':
       ops.record({ op: 'stack.disk-low', outcome: 'ok', level: 'warn', detail: { free_disk_gb: freeDiskGb(e.freeDiskBytes), note: 'under 3 GB free: Docker stops when the disk runs out, and the stack with it' }, ctx })
       return
@@ -150,6 +156,8 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
   let diskStopping: Promise<void> | null = null
   let diskStopFails = 0
   let diskStopRetryAt: number | null = null
+  /** The whole gigabytes left under the early warning's mark when the window was last told (2026-11-20). */
+  let soonBand: number | null = null
 
   const stopForDisk = (): void => {
     if (!deps.stopForDisk) return
@@ -347,7 +355,10 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
         if (diskHoldsRecovery(state, state.diskStopped)) holdForDisk(t)
         else tryRecover()
       }
-      if (observed.events.length > 0 || state.stack === 'down') publish()
+      const band = diskSoonBand(state.freeDiskBytes)
+      const bandMoved = band !== soonBand
+      soonBand = band
+      if (observed.events.length > 0 || state.stack === 'down' || bandMoved) publish()
     } catch (e) {
       ops.failed('stack.watch.tick', e)
     } finally {
@@ -378,6 +389,7 @@ export function createStackWatch(deps: StackWatchDeps): StackWatch {
       timer = null
     },
     tick,
+    isDown: () => state.stack === 'down',
     view,
     refusal: () => hubRefusalFor(state, now())
   }

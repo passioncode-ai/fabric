@@ -6219,6 +6219,10 @@ function startStackWatch(): void {
     }
   })
   boardState.stackHealth.set(stackWatch.view())
+  // 2026-11-20: while the stack is lost, a read that fails only because the database is gone is counted, not written one
+  // by one; `stack.back` carries the counts (`ops.ts#Ops.quietWhile`).
+  const watch = stackWatch
+  ops.quietWhile(() => watch.isDown())
   stackWatch.start()
   // One reading at once, so a disk already low is said now rather than in 30 s.
   void stackWatch.tick()

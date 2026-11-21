@@ -13,7 +13,7 @@ import type { StackHealthView } from '../../shared/types'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
-const up: StackHealthView = { stack: 'up', why: null, since: '2026-10-21T00:00:00Z', nextTryInS: null, trying: false, attempt: null, hold: null, platform: 'darwin', runtime: null, diskLow: false, freeDiskBytes: 50e9, diskLikelyCause: false, diskStopped: false, diskMarkBytes: null, diskStopFailed: false }
+const up: StackHealthView = { stack: 'up', why: null, since: '2026-10-21T00:00:00Z', nextTryInS: null, trying: false, attempt: null, hold: null, platform: 'darwin', runtime: null, diskLow: false, diskSoon: false, freeDiskBytes: 50e9, diskLikelyCause: false, diskStopped: false, diskMarkBytes: null, diskStopFailed: false }
 
 function mount(view: StackHealthView | null, locale: 'en' | 'ru' = 'en'): { push: (v: StackHealthView) => void } {
   let listener: ((v: StackHealthView) => void) | null = null
@@ -182,5 +182,23 @@ describe('the countdown runs on its own (CO-374)', () => {
       expect(screen.getByTestId('stack-next-try').textContent).toBe('Next try in 17 s.')
       expect(walk(alert), 'the alert said something new on a tick').toBe(before)
     } finally { vi.useRealTimers() }
+  })
+
+  // 2026-11-20, the operator: «заранее предупреждать о диске (<15 ГБ) в окне».
+  it('says the disk is filling under 15 GB, quietly, before anything stops; put away, it comes back two gigabytes later', async () => {
+    const { push } = mount({ ...up, diskSoon: true, freeDiskBytes: 5.2e9 }, 'ru')
+    const line = await screen.findByTestId('stack-disk-soon')
+    expect(line.getAttribute('role')).toBe('status')
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(line.textContent).toContain('осталось 5,2 ГБ')
+    expect(line.textContent).toContain('1,0 ГБ')
+    act(() => { (line.querySelector('button') as HTMLButtonElement).click() })
+    expect(screen.queryByTestId('stack-disk-soon')).toBeNull()
+    push({ ...up, diskSoon: true, freeDiskBytes: 4.1e9 })
+    expect(screen.queryByTestId('stack-disk-soon')).toBeNull()
+    push({ ...up, diskSoon: true, freeDiskBytes: 3.6e9 })
+    expect(screen.getByTestId('stack-disk-soon').textContent).toContain('3,6 ГБ')
+    push({ ...up, diskSoon: false, freeDiskBytes: 40e9 })
+    expect(screen.queryByTestId('stack-disk-soon')).toBeNull()
   })
 })

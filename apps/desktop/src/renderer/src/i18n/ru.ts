@@ -226,7 +226,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'error.stack-up-but-silent': 'Локальный стек работает, но не сообщил параметры подключения.',
   'error.repository-not-found': 'Fabric не находит собственный репозиторий.',
   'error.schema-missing': 'База данных работает, но таблиц Fabric в ней нет.',
-  'error.database-unreachable': 'База данных не отвечает. Скорее всего, локальный стек остановлен.',
+  'error.database-unreachable': 'База данных не ответила. Если она остановилась, строка выше говорит почему и когда Fabric запустит её снова.',
 
   'boot.failedTitle': "Fabric не смог прочитать собственное состояние",
   'boot.failedLede':
@@ -382,6 +382,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'stack.health.nextTry': "Следующая попытка через {seconds} с.",
   'stack.health.nextTryAt': "Следующая попытка в {time}.",
   'stack.health.diskCause': "На этом диске свободно {free} ГБ. Когда диск заполнен, Docker останавливается, а с ним и база данных: сначала освободите место.",
+  'stack.health.diskSoon': "На этом диске осталось {free} ГБ. Когда останется {floor} ГБ, Fabric остановит свою базу данных, чтобы сохранить её целой. Освободите место заранее.",
   'stack.health.diskTitle': "Диск почти заполнен",
   'stack.health.diskLow': "На этом диске свободно {free} ГБ. Когда место кончается, Docker останавливается, а с ним и база данных Fabric: освободите место в ближайшее время.",
   'stack.health.diskStopFailed': "Fabric не смог остановить свою базу данных, чтобы защитить её от переполненного диска, и база продолжает писать. Освободите место на диске сейчас.",

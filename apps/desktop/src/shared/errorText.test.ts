@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { humaniseError } from './errorText.ts'
+import { bannerAfter, bannerWhenBack, humaniseError, outageFailure } from './errorText.ts'
 
 describe('what a failure looks like to the operator', () => {
   it('strips the transport wrapper Electron adds', () => {
@@ -62,5 +62,32 @@ describe('what a failure looks like to the operator', () => {
 
   it('does not let one enormous line become the whole screen', () => {
     expect(humaniseError('Error: ' + 'x'.repeat(5000)).detail.length).toBeLessThan(600)
+  })
+})
+
+// 2026-11-20, the operator's screen: «journal replay failed: TypeError: fetch failed» became a red banner saying the stack
+// «is most likely stopped», beside the watch's notice that knew Fabric had stopped it for the disk; it stayed after the
+// stack came back.
+describe('the banner during and after a stack outage', () => {
+  const replay = "Error: Error invoking remote method 'feed:replay': Error: journal replay failed: TypeError: fetch failed"
+  it('tells the outage from a refusal the database gave', () => {
+    expect(outageFailure(replay)).toBe(true)
+    expect(outageFailure(Object.assign(new TypeError('fetch failed'), { cause: new Error('connect ECONNREFUSED 127.0.0.1:54321') }))).toBe(true)
+    expect(outageFailure({ message: 'stack-unavailable: the database is not answering' })).toBe(true)
+    expect(outageFailure(new Error('permission denied for table tasks'))).toBe(false)
+    expect(outageFailure(null)).toBe(false)
+  })
+  it('keeps an outage failure out of the banner while the watch says the stack is lost', () => {
+    expect(bannerAfter(null, replay, true)).toBeNull()
+    expect(bannerAfter('the draft was not saved: disk', replay, true)).toBe('the draft was not saved: disk')
+    // Any other failure still reaches the person, and so does the outage's when the watch has not said it.
+    expect(bannerAfter(null, 'the draft was not saved: disk', true)).toBe('the draft was not saved: disk')
+    expect(bannerAfter(null, replay, false)).toBe(replay)
+    expect(bannerAfter(replay, null, true)).toBeNull()
+  })
+  it('takes the outage banner away once the database answers, and nothing else', () => {
+    expect(bannerWhenBack(replay)).toBeNull()
+    expect(bannerWhenBack('the draft was not saved: disk')).toBe('the draft was not saved: disk')
+    expect(bannerWhenBack(null)).toBeNull()
   })
 })
