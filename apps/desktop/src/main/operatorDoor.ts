@@ -97,8 +97,10 @@ export async function startOperatorDoor(opts: {
     const route = /^\/door\/([^/?#]+)$/.exec((req.url ?? '').split('?')[0])
     if (req.method !== 'POST' || !route) return refuse(res, 405, 'not-a-door-call', 'a door is called with POST /door/<name>', { allow: 'POST' })
     let name: string
-    // A malformed escape in the door's name is the caller's mistake, refused as such (0.3.28 review, ER-6).
-    try { name = decodeURIComponent(route[1]) } catch { return refuse(res, 400, 'bad-door-name', 'the door\'s name is not a valid URL path segment') }
+    try { name = decodeURIComponent(route[1]) } catch {
+      // A malformed escape in the door's name is the caller's mistake, refused as such (0.3.28 review, ER-6).
+      return refuse(res, 400, 'bad-door-name', 'the door\'s name is not a valid URL path segment')
+    }
     const handler = opts.doors.get(name)
     if (!handler) return refuse(res, 404, 'unknown-door', `the board serves no door named ${JSON.stringify(name)}`)
     const declared = Number(req.headers['content-length'] ?? 0)
@@ -183,6 +185,7 @@ export async function startOperatorDoor(opts: {
         log({ op: 'operatorDoor.stopped' })
       })()
       const ending = stopped
+      // The caller of stop() sees the failure; here a failed stop is only made askable again.
       ending.catch(() => { if (stopped === ending) stopped = null })
       return ending
     }
