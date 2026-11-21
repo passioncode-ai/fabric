@@ -151,6 +151,7 @@ assert.equal(decode(mutate(a => { a.source_schema_version = 100 })).archive.sour
 assert.equal(decode(mutate(a => { a.source_schema_version = 101 })).archive.source_schema_version, 101, 'schema 101 is a qualified source (migration 128, the board inbox read; no archive shape)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 102 })).archive.source_schema_version, 102, 'schema 102 is a qualified source (migration 129, the responder takeover without a transfer; no archive shape)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 103 })).archive.source_schema_version, 103, 'schema 103 is a qualified source (migration 130, the operator\'s read marks a responder message; no archive shape)'); checks++
+assert.equal(decode(mutate(a => { a.source_schema_version = 104 })).archive.source_schema_version, 104, 'schema 104 is a qualified source (migration 131, the queue\'s order; no archive shape)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 88 })).archive.source_schema_version, 88, 'schema 88 is a qualified source (migration 107, the board\'s wave-2 fixes)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 90 })).archive.source_schema_version, 90, 'schema 90 is a qualified source (migration 112, acts and reopened answers)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 89 })).archive.source_schema_version, 89, 'schema 89 is a qualified source (migration 108, the operator\'s reads of the board)'); checks++

@@ -10,11 +10,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 ## 0.3.28 (unreleased)
 
 The owner, 2026-11-21 (relayed by fabric-workspace's reconciler, A-3, d213194e): «ты готовишь 0.3.28 одним поездом из
-готовых веток». The train merges four branches onto 0.3.27: the owner-hardcode audit's wave 1, the Dock icon's face,
-Memory's own projects and the board's operator door (a module nothing starts yet). Not in it, each with its reason in
-[the release ledger](docs/evidence/plans/2026-11-21-release-0328-verification.md#protocol): the CEO's windows and
-the queue's order (features held under the owner's pause of 2026-11-21, the queue's order also needing its own schema
-step), CO-622 (the next release) and the paused work in progress.
+готовых веток». The train merges four branches onto 0.3.27 (the owner-hardcode audit's wave 1, the Dock icon's face,
+Memory's own projects and the board's operator door, a module nothing starts yet) and what `main` took after the tag:
+the queue's order (ADR-0208, the reconciler's A-3 P0 row 6, with schema 104). Not in it, each with its reason in
+[the release ledger](docs/evidence/plans/2026-11-21-release-0328-verification.md#protocol): the CEO's windows (a
+feature held under the owner's pause of 2026-11-21), CO-622 (the next release) and the paused work in progress.
 
 - **Where «Нужны вы» goes in Telegram is shown and chosen in Settings, and Fabric names no organization of its own.**
   The setting «Присылать вопросы в Telegram через агента организации» said neither which organization, which agent nor
@@ -39,6 +39,15 @@ step), CO-622 (the next release) and the paused work in progress.
   `mail:project:…`) no longer shows as a Fabric project in Memory's map or the CEO's catalogue, nor takes a real
   project's counts by its label: Fabric's rows are told by their id prefix (`main/memoryRead.ts#memoryGraph`,
   `main/estateWiring.ts`, `main/estateRun.ts`).
+- **The queue has an order, and it follows the work's dependencies.** The owner, 2026-11-21: prioritisation on the
+  board first, the critical path highest, and a nearly finished task is not switched away from. «Очередь» on the Board
+  now stands in one order: what you placed yourself first, then what other tasks wait for, the longest chain first; a
+  task that waits for an open one stands after the ready ones. Each card says why it stands where it does. On a
+  project's board you drag a card or press «Выше» and «Ниже»; an agent (the CEO among them) can only propose a place,
+  which you accept or decline on the card. Tasks in work and in review are never reordered. Agents get the same order
+  from `fabric_work_list`, and the backlog routine briefs by it. Schema 104 (migration 131: `task.ranked@1`,
+  `task.rank.proposed@1`, `task.rank.declined@1`). [ADR-0208](docs/adr/0208-the-queue-has-one-order-the-owners-rank-over-a-dependency-walk.md),
+  [spec](docs/evidence/specs/2026-11-21-task-rank.md).
 - **The board has a door of its own for the window** (ADR-0195 wave W2c.2a, board task `8b86adf3`). A new module,
   `main/operatorDoor.ts`, serves named doors on a loopback port of its own, published as `board-door.json` with a 0600
   token beside `hub.json`; it refuses another account's process (CO-514), a wrong token, a browser origin, a wrong
@@ -46,8 +55,9 @@ step), CO-622 (the next release) and the paused work in progress.
   it land in W2c.2b, and the window switches to it in W2d. No agent and no screen sees a change
   ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
 
-0.3.28 adds no migration: a database at schema 103 (0.3.27) needs nothing, and going back is the 0.3.27 bundle alone. A
-database at 102 (0.3.26) takes 0.3.27's manual step first ([the runbook](docs/launch/release-mac.md#upgrading-an-existing-database)).
+0.3.28 takes one schema step, 103 to 104 (migration `20261121000131_task_rank.sql`): the runbook's upgrade, a backup
+first ([the runbook](docs/launch/release-mac.md#upgrading-an-existing-database)); going back needs 0.3.27's bundle with
+the backup taken before the step. A database at 102 (0.3.26) takes 0.3.27's manual step first.
 Going back to 0.3.27 forgets the choices made in «Куда уходят вопросы»: 0.3.27 reads only the routes list and its own
 built-in route, so a project set to «Не отправлять в Telegram» sends its questions again; before going back, turn
 «Присылать вопросы в Telegram через агента организации» off if that matters.

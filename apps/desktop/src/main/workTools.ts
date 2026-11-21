@@ -45,12 +45,16 @@ import {
   type SourceRow
 } from '../shared/workClaims.ts'
 import { readRunHolds, readWork, type SessionSign } from './workRead.ts'
+import { readQueueOrder } from './taskOrderRead.ts'
 import type { Nudge } from '../shared/abandonedSweep.ts'
 import { briefNext, specGaps, type BriefParts } from '../shared/taskSpec.ts'
 import type { SourceResolution } from './backlogSource.ts'
 import { currentLeases, type LeaseRefsRead } from './agentSyncLeases.ts'
 import { DEFAULT_DAYS, MAX_DAYS, SEARCH_KINDS, searchBoard } from './boardSearchRead.ts'
 import { similarClaims } from '../shared/boardSearch.ts'
+
+/** How many queued tasks `fabric_work_list` names in the board's order (ADR-0208). */
+const QUEUE_TOP = 15
 
 type Store = ReturnType<typeof createScopedStore>
 
@@ -309,7 +313,7 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
     {
       title: 'Who is working on what here',
       description:
-        'Call this before you start a piece of work. Answers who works on what in this project: every live claim — the agent, how it came in (launched, enrolled, handed off, through the hub), the task and the backlog row it links, what it said it will touch, since when, its last sign of life — the sessions working here, the open tasks nobody holds (one the operator returned from review comes first with operator_said: what to change), work handed over to you, handover requests on your claims, claims the operator released, and agent-sync\'s leases on the repository (read-only). Calling it renews your own claims. When the three-minute sweep of abandoned work has something for you, the answer carries nudges: act on them first. A board that cannot be read is an error, never "nobody is working here".',
+        'Call this before you start a piece of work. Answers who works on what in this project: every live claim — the agent, how it came in (launched, enrolled, handed off, through the hub), the task and the backlog row it links, what it said it will touch, since when, its last sign of life — the sessions working here, the open tasks nobody holds (one the operator returned from review comes first with operator_said: what to change), work handed over to you, handover requests on your claims, claims the operator released, and agent-sync\'s leases on the repository (read-only). Calling it renews your own claims. When the three-minute sweep of abandoned work has something for you, the answer carries nudges: act on them first. The queue comes in the board\'s order (the owner\'s places first, then what other work waits for, the critical path first; queue_order says whether that order was read): each queued task carries order {place, ready, waits_for, unblocks, critical_path, placed_by_owner}; take the first one that is ready, and never one that waits for an open task. A board that cannot be read is an error, never "nobody is working here".',
       inputSchema: {}
     },
     async () => {
@@ -326,6 +330,14 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
           .order('moved_at', { ascending: false }).limit(20)
       ])
       if (open.error) throw new Error(`the board could not be read: ${open.error.message}`)
+      // ADR-0208: the queue in the board's order, read by place so an old task the owner put first is not past the
+      // newest forty. A failed read is said in `queue_order`; the tasks are then listed newest first, as before.
+      const orderRead = await readQueueOrder(store, { projectId: scope.projectId }).then((o) => ({ order: o }), (e: unknown) => ({ failed: e instanceof Error ? e.message : String(e) }))
+      const top = 'order' in orderRead ? (orderRead.order.byProject.get(scope.projectId) ?? []).slice(0, QUEUE_TOP) : []
+      const topRead = top.length ? await store.selectIn('project_tasks', 'id,title,instruction,status,brief_what,brief_why,brief_expected', 'id', top.map((p) => p.id)) : { rows: [], failed: null }
+      const topRows = new Map(((topRead.failed ? [] : topRead.rows) as Array<Record<string, string | null>>).map((t) => [t.id as string, t]))
+      const queued = top.map((p) => topRows.get(p.id)).filter((t): t is Record<string, string | null> => !!t && t.status === 'backlog')
+      const places = 'order' in orderRead ? orderRead.order.byTask : null
       const returned = (returnedRead.error ? [] : (returnedRead.data ?? [])) as Array<Record<string, string | null>>
       const operatorSaid = new Map<string, { said: string; at: string }>()
       if (returned.length) {
@@ -374,13 +386,18 @@ export function registerWorkTools(server: McpServer, deps: WorkToolDeps): void {
           last_sign_at: s.lastSignAt ? new Date(s.lastSignAt).toISOString() : null,
           reads: sessionStale(s.lastSignAt, s.startedAt, now) ? `no sign for ${minutesAgo(now, s.lastSignAt ?? s.startedAt)} min` : 'active'
         })),
-        open_tasks: [...returned.filter((t) => operatorSaid.has(t.id as string)), ...((open.data ?? []) as Array<Record<string, string | null>>)]
+        queue_order: 'order' in orderRead
+          ? { read: true, ...(orderRead.order.capped.length ? { capped: orderRead.order.capped } : {}), ...(topRead.failed ? { tasks_unread: topRead.failed } : {}) }
+          : { read: false, why: orderRead.failed },
+        open_tasks: [...returned.filter((t) => operatorSaid.has(t.id as string)), ...queued, ...((open.data ?? []) as Array<Record<string, string | null>>)]
           .filter((t, i, all) => !held.has(t.id as string) && all.findIndex((u) => u.id === t.id) === i)
-          .slice(0, 20)
+          .slice(0, 25)
           // CO-462: an agent taking a task from the queue sees what its brief lacks before it claims it.
           .map((t) => {
             const gaps = specGaps(t as BriefParts), said = operatorSaid.get(t.id as string)
+            const o = t.status === 'backlog' ? places?.get(t.id as string) : undefined
             return { id: t.id, title: (t.title ?? t.instruction ?? '').slice(0, 200), status: t.status, ...(gaps.length ? { brief_missing: gaps } : {}),
+              ...(o ? { order: { place: o.place, ready: o.ready, ...(o.waitsFor.length ? { waits_for: o.waitsFor } : {}), ...(o.unblocks ? { unblocks: o.unblocks } : {}), ...(o.critical ? { critical_path: true } : {}), placed_by_owner: o.rank !== null } } : {}),
               ...(said ? { operator_said: { returned_from_review: true, said: said.said.slice(0, 2000), at: said.at } } : {}) }
           }),
         waiting_for_you: recent

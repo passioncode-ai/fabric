@@ -406,18 +406,23 @@ iteration 3, PL-2, DA-1).
 
 **0.3.27 admits schema 103** (migration `20261121000130_board_operator_message_via.sql`: a new function
 `board_message_via`, migration 94's `board_list_operator` with the mark added to each message, and migration 129's
-private-archive admission with 103 added; no table and no data change). A database at 102 takes the one migration at the
-first start (`schema_migrations` gains one row); going back needs the earlier bundle and a database restored from the
+private-archive admission with 103 added; no table and no data change). Fabric does not take it itself: a database at
+102 is refused at start until this procedure runs (`supabase migration up --local` adds one row to
+`schema_migrations`; the 0.3.27 review, run thirteen); going back needs the earlier bundle and a database restored from the
 backup taken before the upgrade, as for every schema step, since no older build opens a schema-103 database.
 
-**0.3.28 admits schema 103**, the same as 0.3.27: it adds no migration (`git diff --stat v0.3.27 release/0.3.28 --
-supabase` prints nothing), so upgrading from 0.3.27 is the new bundle alone and going back is the 0.3.27 bundle alone; a
-database at 102 (0.3.26) takes 0.3.27's manual step above first. On macOS turn «Служба доски» off before the quit and on
-again once 0.3.28 reads back, as for 0.3.18. Going back to 0.3.27 forgets the choices made in «Куда уходят вопросы»:
-0.3.27 reads only the routes list of `userData/people-ask-routes.json` and its own built-in route, so a project set to
-«Не отправлять в Telegram» sends its questions to Telegram again; before going back, turn «Присылать вопросы в Telegram
-через агента организации» off if that matters (the 0.3.28 review, iteration 1, DO-1). The Dock keeps the face until
-0.3.27 starts, which shows the bundle's icon and leaves `userData/dock-icon.png` unread.
+**0.3.28 admits schema 104** (migration `20261121000131_task_rank.sql`, the queue's order, ADR-0208: the events
+`task.ranked@1`, `task.rank.proposed@1` and `task.rank.declined@1` with their feed sentences, the projector's rank
+function and its table; `private-archive` admission with 104 added). As for 0.3.27, Fabric does not take the step
+itself: a database at 103 is refused at start until this procedure runs (a backup, `supabase migration up --local`,
+`schema_version()` read back as 104), and a database at 102 (0.3.26) takes 0.3.27's step and this one in the same
+`supabase migration up`. Going back needs the 0.3.27 bundle and the database restored from the backup taken before the
+step. On macOS turn «Служба доски» off before the quit and on again once 0.3.28 reads back, as for 0.3.18. Going back
+to 0.3.27 also forgets the choices made in «Куда уходят вопросы»: 0.3.27 reads only the routes list of
+`userData/people-ask-routes.json` and its own built-in route, so a project set to «Не отправлять в Telegram» sends its
+questions to Telegram again; before going back, turn «Присылать вопросы в Telegram через агента организации» off if
+that matters (the 0.3.28 review, iteration 1, DO-1). The Dock keeps the face until 0.3.27 starts, which shows the
+bundle's icon and leaves `userData/dock-icon.png` unread.
 
 1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
    on: turn it off and then quit before the bundle is replaced (`launchctl bootout` stops only a copy launchd started;

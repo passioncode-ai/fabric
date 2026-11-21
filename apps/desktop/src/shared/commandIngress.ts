@@ -116,6 +116,8 @@ const enumeration = (values: readonly string[]): Rule => v => values.includes(st
 const integer = (min: number): Rule => v => typeof v === 'number' && Number.isSafeInteger(v) && v >= min
   ? v : refuse('invalid_shape')
 const boolean: Rule = v => typeof v === 'boolean' ? v : refuse('invalid_shape')
+/** A rank (ADR-0208): any finite number; the order is its sign and size, never a count. */
+const finite: Rule = v => typeof v === 'number' && Number.isFinite(v) ? v : refuse('invalid_shape')
 const list = (rule: Rule): Rule => (v, c) => Array.isArray(v) ? v.map(x => rule(x, c)) : refuse('invalid_shape')
 const object = (fields: Fields): Rule => (v, c) => {
   if (v === null || typeof v !== 'object' || Array.isArray(v)) return refuse('invalid_shape')
@@ -194,6 +196,10 @@ const EVENT_FIELDS: Record<string, Fields> = {
     category: optional(enumeration(INSIGHT_CATEGORIES)), about: optional(nullable(about)),
     occurrence: optional(nullable(occurrence)), valid_from: optional(nullable(timestamp)), ...metadata },
   // Claims (migration 95, REQ-38/REQ-08; main/workTools.ts). A backlog row's address is references, never text.
+  // The queue's order (migration 131, ADR-0208; main/taskRankWrite.ts and the agents' fabric_task_rank_propose).
+  'task.ranked@1': { task_id: required(uuid), rank: required(finite), ...metadata },
+  'task.rank.proposed@1': { task_id: required(uuid), after_task_id: required(nullable(uuid)), why: required(nonemptyText), ...metadata },
+  'task.rank.declined@1': { task_id: required(uuid), ...metadata },
   'task.source.linked@1': { task_id: required(uuid), repository: required(reference), repo_path: required(reference),
     path: required(reference), row_id: required(reference), ...metadata },
   'work.renewed@1': { work: required(uuid), owner: required(uuid), expires_at: required(timestamp), claim_id: optional(uuid), ...metadata },

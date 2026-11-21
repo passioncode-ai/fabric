@@ -39,6 +39,10 @@ const fixtures: Record<string, Record<string, unknown>> = {
   'task.source.linked@1': { task_id: id, repository: 'https://github.com/o/n', repo_path: '/tmp/synthetic-project', path: 'docs/backlog.md', row_id: 'CO-256' },
   'work.renewed@1': { work: id, owner: other, expires_at: '2026-10-11T10:30:00.000Z', claim_id: other },
   'work.handover.requested@1': { claim_id: other, work: id, requested_by: other, note: secret },
+  // The queue's order (migration 131, ADR-0208): ids and a number; a proposal's why is free text and is scrubbed.
+  'task.ranked@1': { task_id: id, rank: 1.5 },
+  'task.rank.proposed@1': { task_id: id, after_task_id: other, why: secret },
+  'task.rank.declined@1': { task_id: id },
   // The sweep's receipt (0.3.13 review DA-1): counts and read names only, no free text to scrub.
   'work.swept@1': { found: { 'claim-silent': 1 }, told: 1, queued: 1, released: 0, acceptedByDefault: 2, capped: ['claims'] },
   'session.turn.observed@1': { session_id: other, runtime: 'claude-code', runtime_session_id: 'rt-1', observed_at: '2026-10-11T10:00:00.000Z',

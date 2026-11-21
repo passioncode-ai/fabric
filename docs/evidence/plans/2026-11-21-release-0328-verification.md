@@ -15,11 +15,12 @@ read-only; findings are disposed here and in the receipts under `docs/evidence/r
   ([the merge log](../../MERGES.md), `RELEASE-0328-TRAIN`).
 - Left out, each with its reason (iteration 1, PL-1 to PL-5; the rows are CO-623): `feat/ceo-session-windows` (the
   CEO's windows, the owner's order of 2026-11-19: a feature held under the owner's pause of 2026-11-21, 14 commits not in
-  the train), `feat/task-rank` (the queue's order: its migration 130 collides with `main`'s; it needs migration 131 and
-  its own gate run, so it cannot ride a release with no schema step), CO-622 (its author, session 9cda1c0f: the next
+  the train), CO-622 (its author, session 9cda1c0f: the next
   release), and the work in progress held by the pause (`feat/ceo-persona`, `feat/ui-kit`, `feat/dispatch-credentials`,
   `feat/record-show`, `feat/pages-wave`, `feat/estate-work-summary`). `feat/ceo-triage` (task a0afb015) is built on
   this train and goes to a later release.
+- Taken from `main` before iteration 2 (PL-7): the queue's order (`8cbf93ff`, ADR-0208, migration 131, schema 104),
+  which `main` landed after the tag with its own gate run; the release tag must be on `main`, so 0.3.28 carries it.
 - Joining in iteration 2: `feat/approval-modes` and `feat/ceo-access`. The reconciler's plan puts them in SD-FAB-01
   (fabric-workspace `docs/plans/2026-11-21-system-design/amendments/A-3-owner-orders-audit.md:167`, row 9 of P0: «the
   hardcode audit wave 1, CEO access, approval modes with the behaviour journal»); their author, session 9cda1c0f,
@@ -36,8 +37,9 @@ read-only; findings are disposed here and in the receipts under `docs/evidence/r
 
 ## What 0.3.28 carries
 
-The `## 0.3.28 (unreleased)` section of [`CHANGELOG.md`](../../../CHANGELOG.md). No schema step: a database at 103
-(0.3.27) needs nothing, and going back is the 0.3.27 bundle alone.
+The `## 0.3.28 (unreleased)` section of [`CHANGELOG.md`](../../../CHANGELOG.md). One schema step, 103 to 104
+(`20261121000131_task_rank.sql`, from `main` at `8cbf93ff`); Fabric refuses a schema-103 database until the runbook's
+upgrade runs, as 0.3.27 does for 102.
 
 ## Iteration 1
 

@@ -484,9 +484,10 @@ owned_fast_not_run=()
 # run-first-install-db (CO-241, 0.3.4) is here too: the seed a fresh install takes, and the database
 # installs since 0.2.0 made, must open — every fresh install stopped at its identity before it.
 # run-reopen-answer-db (0.3.7 wave 2, migration 90): an answered question taken back, and the act record's registration.
+# run-task-rank-db (migration 131, ADR-0208): the owner's rank and an agent's proposed place, and their rebuild.
 # grants-journal-db.test (0.4.0 wave 1, migration 91) holds the floor's grants to the journal: projected in the
 # append, one writer, the presented grant reserved, the rebuild under the estate lock.
-for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db grants-journal-db.test run-resource-reservation-db run-reopen-answer-db; do
+for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db grants-journal-db.test run-resource-reservation-db run-reopen-answer-db run-task-rank-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"
   code=$?

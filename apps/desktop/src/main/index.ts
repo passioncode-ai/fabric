@@ -72,6 +72,8 @@ import { releaseByOperator } from './workRelease.ts'
 import { createOpsDigestRun, type OpsDigestRun } from './opsDigestRun.ts'
 import { risenRows } from '../shared/opsDigest.ts'
 import { readProjectWork, readSessionTasks, readTaskBoard, readWhereWork, readWork, type HeldSession } from './workRead.ts'
+import { readQueueOrder } from './taskOrderRead.ts'
+import { decideRankProposal, reorderTask, type RankWriteDeps } from './taskRankWrite.ts'
 import { launchOverlap } from '../shared/launchOverlap.ts'
 import { OVERLAP_CHOICES, overlapPair, type OverlapChoice } from '../shared/abandonedSweep.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
@@ -4664,6 +4666,30 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       })
     }
   )
+
+  // #region task-rank-ipc — docs: docs/evidence/specs/2026-11-21-task-rank.md#5-the-writes
+  // ADR-0208: the queue's order is the person's. Both acts append with the operator's actor; the order a move is
+  // judged against is read here, fresh, never taken from the window.
+  const rankDeps: RankWriteDeps = {
+    readTask: async (taskId) => {
+      const { data, error } = await store.select('project_tasks', 'id,project_id,status,rank,rank_proposal').eq('id', taskId).maybeSingle()
+      if (error) throw new Error(`the task could not be read: ${error.message}`)
+      if (!data) return null
+      const proposal = data.rank_proposal as { after_task_id?: string | null } | null
+      return {
+        id: data.id as string, projectId: data.project_id as string, status: data.status as string,
+        rank: data.rank === null || data.rank === undefined ? null : Number(data.rank),
+        proposal: proposal && typeof proposal === 'object' ? { afterTaskId: typeof proposal.after_task_id === 'string' ? proposal.after_task_id : null } : null
+      }
+    },
+    readQueue: async (projectId) => ((await readQueueOrder(store, { projectId })).byProject.get(projectId) ?? []).map((p) => ({ id: p.id, rank: p.rank })),
+    append: async (projectId, type, payload) => { await journal.append({ estateId: ACTIVE_ESTATE, type, actor: OPERATOR_ACTOR, projectId, payload }) }
+  }
+  handle(IPC.tasksReorder, async (_e, taskId: string, afterTaskId: string | null): Promise<Returns<FabricApi['tasks']['reorder']>> =>
+    reorderTask(rankDeps, String(taskId), afterTaskId === null || afterTaskId === undefined ? null : String(afterTaskId)))
+  handle(IPC.tasksRankProposal, async (_e, taskId: string, accept: boolean): Promise<Returns<FabricApi['tasks']['rankProposal']>> =>
+    decideRankProposal(rankDeps, String(taskId), accept === true))
+  // #endregion task-rank-ipc
 
   handle(IPC.filesRead, (event, file: string): Returns<FabricApi['files']['read']> => readFile(file, fileRoots, scopeOf(event)))
   // Editor recovery (ADR-0106 amendment): the unsaved buffer of a file this window may open, keyed by its

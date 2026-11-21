@@ -65,6 +65,9 @@ leases    work.claimed@1        {work: task_id, owner: session_id, idempotency_k
 
 goals     goal.defined@1        {id, title, autonomy}
           task.prioritised@1    {goal_id, task_id, position}   -- order is a FIELD, not a screen's opinion
+          task.ranked@1         {task_id, rank}                -- the queue's order, the person's only (ADR-0208)
+          task.rank.proposed@1  {task_id, after_task_id, why}  -- an agent proposes a place; the person decides
+          task.rank.declined@1  {task_id}                      -- the person declines the proposal
 
 registry  agent.registered@1    {descriptor_id, label, program, args[], env{}, permission_modes[], surface_adapter}
           -- terminal.opened@1 payload GAINS permission_mode (additive, no @2 needed)
@@ -153,6 +156,7 @@ agent can only work its own project's board:
 | `fabric_task_move` | change state; refuses transitions the ladder forbids — and its schema offers an agent only `backlog`, `running`, `review`, so §5.1's rule is not merely enforced but unphraseable | `task.moved@1` |
 | `fabric_task_create` | file adjacent work; **requires `origin`** — a card with no evidence is refused at creation | `task.created@1` + `task.assigned@1` |
 | `fabric_task_note` | append to the task's notes | `task.note.added@1` |
+| `fabric_task_rank_propose` | propose a place for a queued task, after another or first, with why; the person accepts or declines on the board (ADR-0208) | `task.rank.proposed@1` |
 | `fabric_leases_list` | who holds what in my scope — the neighbour visibility M123 exists for | — (read) |
 | `fabric_task_release` | release with an outcome (contract `release`) | `work.released@1` |
 
