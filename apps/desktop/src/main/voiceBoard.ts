@@ -7,9 +7,17 @@
  *   board_projects  the newest projects, with when each was added (the owner's time zone)
  *   board_tasks     a project's tasks: status, who holds each, what waits for the owner
  *   board_task      one task and its graph: its goal, what it grew from and into, what it blocks and follows
+ *   board_summary   the whole board at once: tasks by status across projects, the busiest projects, and the requests
+ *                   between projects that no responder answers (CO-622 item 5)
  *
  * Every read can fail; a failed read is said as unread, never as an empty board.
+ *
+ * The CEO's console reads the same board through the same code (CO-622 item 5: the CEO read projects, tasks and
+ * statuses with SQL): `registerCeoBoardTools` puts the three reads on the CEO session's MCP server alone, as
+ * `fabric_ceo_board_*`, beside its session tools (`agentSurface.ts`, region ceo-surface).
  */
+import { z } from 'zod'
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { findProject } from '../shared/ceoAgent.ts'
 import { isCeoAddress } from '../shared/ceoAddress.ts'
 
@@ -27,6 +35,10 @@ export interface BoardReads {
   linksTo(taskId: string): Promise<BoardLink[]>
   claims(taskIds: readonly string[]): Promise<BoardClaim[]>
   goals(ids: readonly string[]): Promise<Array<{ id: string; title: string }>>
+  /** The open tasks of every active project (backlog, running, review), at most `OPEN_READ`; absent: no summary. */
+  openTasks?(): Promise<Array<{ project_id: string; status: string }>>
+  /** The board's requests no responder answers (`commsWaitingList.ts`); absent: the summary says them unread. */
+  waiting?(): Promise<{ requests: number; oldestRequestAt?: string; list?: Array<{ from: string | null; to: string; subject: string | null; at: string }> }>
 }
 
 const CLOSED = new Set(['done', 'cancelled', 'finished', 'abandoned'])
@@ -36,6 +48,10 @@ const TASKS_SAID = 25
 export const TASKS_READ = 200
 /** Said first: what runs, then what waits for the owner, then the rest (0.3.27 review UX-66). */
 const STATUS_ORDER: Record<string, number> = { running: 0, review: 1, backlog: 2 }
+/** The open tasks the host reads at most for the summary; at that bound the counts are «at least». */
+export const OPEN_READ = 5000
+const BUSIEST_SAID = 5
+const WAITING_SAID = 5
 
 export const VOICE_BOARD_TOOLS = [
   {
@@ -55,6 +71,12 @@ export const VOICE_BOARD_TOOLS = [
     name: 'board_task',
     description: 'One task and its graph on Fabric\'s board: its goal, the task it grew from and the ones that grew from it, what it blocks, what blocks it, what it follows. Read it yourself to walk the task graph; give the task by its words and its project, or by its id.',
     parameters: { type: 'object', properties: { task: { type: 'string', description: 'The task\'s words or id.' }, project: { type: 'string', description: 'Its project, as the owner named it.' } }, required: ['task'], additionalProperties: false }
+  },
+  {
+    type: 'function' as const,
+    name: 'board_summary',
+    description: 'The whole board at once: how many tasks are in the backlog, running and in review across every project, the busiest projects, and the requests between projects that no agent answers, with the oldest. Read it yourself when the owner asks how things stand or what waits; do not ask the CEO.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false }
   }
 ] as const
 
@@ -159,6 +181,30 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
     } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board) */ return unread('the task\'s links', e) }
   }
 
+  async function summary(): Promise<Answer> {
+    if (!deps.reads.openTasks) return { ok: false, reason: 'the board summary is not available here' }
+    const [open, waiting] = await Promise.allSettled([deps.reads.openTasks(), deps.reads.waiting ? deps.reads.waiting() : Promise.reject(new Error('not read here'))])
+    if (open.status === 'rejected') return unread('the open tasks', open.reason)
+    let names = new Map<string, string>()
+    try { names = new Map((await deps.reads.projects()).map((p) => [p.id, p.name])) } catch { /* the counts still answer; the busiest are said by id */ }
+    const per = new Map<string, Record<string, number>>()
+    for (const t of open.value) { const c = per.get(t.project_id) ?? {}; c[t.status] = (c[t.status] ?? 0) + 1; per.set(t.project_id, c) }
+    const busiest = [...per.entries()]
+      .map(([id, c]) => ({ project: names.get(id) ?? `project ${id.slice(0, 8)}`, running: c.running ?? 0, review: c.review ?? 0, backlog: c.backlog ?? 0 }))
+      .sort((x, y) => (y.running + y.review) - (x.running + x.review) || y.backlog - x.backlog).slice(0, BUSIEST_SAID)
+    const w = waiting.status === 'fulfilled' ? waiting.value : null
+    return {
+      ok: true,
+      tasks: countBy(open.value.map((t) => t.status)), projects_with_work: per.size, busiest,
+      ...(open.value.length >= OPEN_READ ? { capped: true, note: `counts are of ${OPEN_READ} open tasks; say «at least»` } : {}),
+      ...(w ? {
+        requests_unanswered: w.requests,
+        ...(w.oldestRequestAt ? { oldest_since: when(w.oldestRequestAt) } : {}),
+        ...(w.list?.length ? { requests: w.list.slice(0, WAITING_SAID).map((r) => ({ from: r.from, to: r.to, subject: (r.subject ?? '').slice(0, 120), since: when(r.at) })) } : {})
+      } : { requests_unread: waiting.status === 'rejected' ? (waiting.reason instanceof Error ? waiting.reason.message.slice(0, 120) : String(waiting.reason)) : 'not read' })
+    }
+  }
+
   /** The goal: walk `spawned` up to the root (at most ten hops, never round a cycle); the root's goal, or a goal the root
    *  was spawned from. */
   async function goalOf(start: BoardTask): Promise<string | null> {
@@ -178,7 +224,7 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
     return cur.goal_id ? (await deps.reads.goals([cur.goal_id]))[0]?.title ?? null : null
   }
 
-  const table: Record<string, (a: Record<string, unknown>) => Promise<Answer>> = { board_projects: projects, board_tasks: tasks, board_task: task }
+  const table: Record<string, (a: Record<string, unknown>) => Promise<Answer>> = { board_projects: projects, board_tasks: tasks, board_task: task, board_summary: summary }
   return {
     has: (name: string): boolean => name in table,
     run: async (name: string, args: unknown): Promise<Answer> => {
@@ -193,5 +239,48 @@ function countBy(xs: readonly string[]): Record<string, number> {
   const out: Record<string, number> = {}
   for (const x of xs) out[x] = (out[x] ?? 0) + 1
   return out
+}
+/** The CEO console's door to the same reads (CO-622 item 5); the voice's tool is named on the right. */
+export const CEO_BOARD_TOOLS = {
+  board_projects: {
+    mcp: 'fabric_ceo_board_projects',
+    title: 'The newest projects on the board',
+    description: 'The newest projects on Fabric\'s board, newest first, each with the date and time it was added in the owner\'s time zone, and how many projects there are. Use it instead of reading the database; fabric_ceo_projects is the list of projects with their folders and consoles.',
+    input: z.object({ limit: z.number().int().min(1).max(20).optional().describe('How many; 5 by default.') }).strict()
+  },
+  board_tasks: {
+    mcp: 'fabric_ceo_board_tasks',
+    title: 'A project\'s tasks',
+    description: 'A project\'s tasks on Fabric\'s board: running first, then in review (what waits for the owner), then the backlog, each with who holds it now and since when, and the counts by status (of the newest 200 when capped). Name the project by its name, id or alias; the owner\'s words for the CEO itself are never a project. Use it instead of reading the database.',
+    input: z.object({
+      project: z.string().trim().min(1).max(400).describe('The project\'s name, id or alias.'),
+      include_closed: z.boolean().optional().describe('Also the done and cancelled ones.')
+    }).strict()
+  },
+  board_task: {
+    mcp: 'fabric_ceo_board_task',
+    title: 'One task and its graph',
+    description: 'One task on Fabric\'s board and its graph: its goal, the task it grew from and the ones that grew from it, what it blocks, what blocks it, what it follows and what follows it, when it started and finished. Give its id (a prefix of six or more characters with its project) or its words with its project.',
+    input: z.object({
+      task: z.string().trim().min(1).max(400).describe('The task\'s id or words.'),
+      project: z.string().trim().max(400).optional().describe('Its project, needed unless the whole id is given.')
+    }).strict()
+  },
+  board_summary: {
+    mcp: 'fabric_ceo_board_summary',
+    title: 'The whole board at once',
+    description: 'The whole board at once: open tasks by status (backlog, running, review) across every project, how many projects have work, the five busiest, and the requests between projects no responder answers with the oldest and the first five. Use it for «how do things stand» and the round instead of reading the database; a part that could not be read is named.',
+    input: z.object({}).strict()
+  }
+} as const
+
+/** What the CEO's door runs: `createVoiceBoard`'s answer, the same for the console and the voice. */
+export interface CeoBoardOperations { run(name: string, args: unknown): Promise<Record<string, unknown>> }
+
+/** The MCP door: on the CEO session's server only (`agentSurface.ts`, region ceo-surface). */
+export function registerCeoBoardTools(server: McpServer, ops: CeoBoardOperations): void {
+  for (const [name, tool] of Object.entries(CEO_BOARD_TOOLS))
+    server.registerTool(tool.mcp, { title: tool.title, description: tool.description, inputSchema: tool.input.shape },
+      async (args: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(await ops.run(name, args), null, 2) }] }))
 }
 // #endregion voice-board
