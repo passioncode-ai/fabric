@@ -7,6 +7,40 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## 0.3.28 (unreleased)
+
+The owner, 2026-11-21 (relayed by fabric-workspace's reconciler, A-3, d213194e): «ты готовишь 0.3.28 одним поездом из
+готовых веток». The train carries the branches finished and checked before the pause of 00:30 that 0.3.27 did not take;
+the approval modes (ADR-0203), the CEO's account choice and the queue's order (migration of its own) wait for their
+owners and are not in it.
+
+- **Where «Нужны вы» goes in Telegram is shown and chosen in Settings, and Fabric names no organization of its own.**
+  The setting «Присылать вопросы в Telegram через агента организации» said neither which organization, which agent nor
+  which Telegram, and its hint named the owner's agent. Fabric now starts with no route; under the switch, «Куда уходят
+  вопросы» lists every project with its organization agent, whether that agent answers now and where the link came
+  from, and lets the person pick an agent or «Не отправлять в Telegram» per project. A machine that already had a routes
+  file keeps every route (`shared/peopleAsk.ts#routeTable`; the owner's audit,
+  [docs/reports/2026-11-20-owner-hardcode-audit](docs/reports/2026-11-20-owner-hardcode-audit/README.md)).
+- **The built app is checked for anything of one machine.** `scripts/check-build-private.mjs` reads the built bundles
+  (comments included) for a projects-root path, a vault slot, a home path, the organization's private terms and the
+  values of this machine's own Fabric settings, and prints only where a finding is.
+- **The Dock icon is the CEO's face.** Picking another face in «Ваш Fabric» changes the Dock icon at once, and the next
+  start shows it before a window draws (plan wave I, mockup 08 option A; `main/appIcon.ts#setDockIcon`). Finder and
+  Launchpad keep the bundle's icon, since changing a signed bundle breaks its signature.
+- **Memory shows only Fabric's own projects.** A source that writes nodes of kind project (Fabric Inbox's
+  `mail:project:…`) no longer shows as a Fabric project in Memory's map or the CEO's catalogue, nor takes a real
+  project's counts by its label: Fabric's rows are told by their id prefix (`main/memoryRead.ts#memoryGraph`,
+  `main/estateWiring.ts`, `main/estateRun.ts`).
+- **The board has a door of its own for the window** (ADR-0195 wave W2c.2a, board task `8b86adf3`). A new module,
+  `main/operatorDoor.ts`, serves named doors on a loopback port of its own, published as `board-door.json` with a 0600
+  token beside `hub.json`; it refuses another account's process (CO-514), a wrong token, a browser origin and a wrong
+  Host before it reads a call. Nothing starts it yet: the doors the window will call through it land in W2c.2b, and the
+  window switches to it in W2d. No agent and no screen sees a change
+  ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
+
+0.3.28 adds no migration: a database at schema 103 (0.3.27) needs nothing, and going back is the 0.3.27 bundle alone.
+
+
 ## 0.3.27
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).

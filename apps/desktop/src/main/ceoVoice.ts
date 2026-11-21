@@ -2,7 +2,7 @@
 /**
  * The voice call's main-process half (ADR-0197, the voice call, board task e7ff5556): the xAI key never leaves this process. It is
  * the person's own key (`ceoVoiceKey.ts`) or else Project Observatory's vault for one call (`observatoryVault.ts`, slot
- * `fabric/prod/XAI_API_KEY`), spent
+ * `XAI_API_KEY` of Fabric's production vault), spent
  * on an ephemeral client secret (`POST /v1/realtime/client_secrets`, five minutes); the CEO window opens the realtime
  * socket with that secret alone. The call's instructions and tools are composed here, so the window holds no prompt
  * of its own, and every tool the call asks for runs here through the CEO's operations (`ceoTools.ts`) with their gates.

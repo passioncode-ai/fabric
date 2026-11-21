@@ -30,7 +30,7 @@ type Rows = Array<Record<string, unknown>>
 export interface EstateRunDeps {
   index: EstateIndex
   projects(): Promise<CatalogueInput[]>
-  /** `~/DATA/<folder>` (absolute) to its organization, from Observatory's registry, and the person's own organization
+  /** A folder under the projects root (absolute) to its organization, from Observatory's registry, and the person's own organization
    *  (Observatory's default); empty when they cannot be read. */
   organizations(): { folders: Map<string, string>; personal: string | null }
   /** One page of a table by its sequence column above `after`, oldest first. */
@@ -59,7 +59,7 @@ export interface PassReport {
   degraded: string[]
 }
 
-/** Folder to organization from Observatory's registry (its projects' `local_folders` are relative to `~/DATA`), and the
+/** Folder to organization from Observatory's registry (its projects' `local_folders` are relative to the projects root), and the
  *  organization its `config/organizations.json` marks as the default, the person's own. */
 export function readOrganizations(dataHome = process.env.OBSERVATORY_DATA ?? path.join(homedir(), '.local/share/project-observatory-full'), base = path.join(homedir(), 'DATA')): { folders: Map<string, string>; personal: string | null; names: Map<string, string> } {
   const out = new Map<string, string>()

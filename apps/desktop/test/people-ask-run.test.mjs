@@ -78,7 +78,7 @@ function world(over = {}) {
     const s = w.submits[i]
     const thread = [...w.threads.values()].find((t) => t[0].body === s.input.body)
     const id = `a${++n}`
-    thread.push({ id, thread: thread[0].thread, kind: 'reply', via, replyTo: thread[0].id, sender: { project: KIRA }, at: new Date(now).toISOString(), body: { text } })
+    thread.push({ id, thread: thread[0].thread, kind: 'reply', via, replyTo: thread[0].id, sender: { project: PM }, at: new Date(now).toISOString(), body: { text } })
     return id
   }
   /** A reply with plain text and no block, as a responder's progress note sent as a reply (2026-11-17). */

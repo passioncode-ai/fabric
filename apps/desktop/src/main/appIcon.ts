@@ -113,6 +113,7 @@ export function setDockIcon(png: unknown): { applied: boolean; reason?: string }
     writeFileSync(`${file}.tmp`, image.toPNG())
     renameSync(`${file}.tmp`, file)
   } catch (e) {
+    // Recorded: refuse() writes `appIcon.face` failed to the ops log, without the image's bytes.
     return refuse(`set, but not kept for the next start: ${e instanceof Error ? e.message : String(e)}`)
   }
   return { applied: true }
