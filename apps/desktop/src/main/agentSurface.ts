@@ -2072,7 +2072,7 @@ export class AgentSurface {
   }
   // #endregion board-caller
 
-  // #region keep-responder-slot — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-3-2026-11-21-fabric-keeps-the-ceos-board-slot-and-a-ceotask-request-wakes-its-console
+  // #region keep-responder-slot — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-5-2026-11-21-fabric-keeps-the-ceos-board-slot-and-a-ceotask-request-wakes-its-console
   /**
    * Fabric holds a capability's slot for a session it keeps (ADR-0197 Amendment 5: the CEO's `ceo.task`). A slot's
    * lease is 60 s (`board_lease_seconds`) and only a claimed request's `com.renew` or another `com.enroll` lengthens it,

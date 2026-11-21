@@ -1,4 +1,4 @@
-// #region ceo-board-keeper — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-3-2026-11-21-fabric-keeps-the-ceos-board-slot-and-a-ceotask-request-wakes-its-console
+// #region ceo-board-keeper — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-5-2026-11-21-fabric-keeps-the-ceos-board-slot-and-a-ceotask-request-wakes-its-console
 /**
  * The CEO on the board while Fabric keeps its console (ADR-0197 Amendment 5; the owner, 2026-11-21: tasks from his
  * Telegram bot found no live CEO). Two acts, each from main's timers:
