@@ -19,6 +19,11 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - conflicts: none
 - summary: the owner's order of 2026-11-21 (board request `a76373fa`): strategy is the person's and always asked, tactics the agent decides, what the agent can find it never asks, and a question goes only where the person knows better; told to every session at `fabric_whoami`, and a spec is gathered by it (amends ADR-0176 Decision 1)
 
+### 2026-11-21 · `VOICE-RETRO-0327` · feat/voice-retro → main · fast-forward, the release of Fabric 0.3.27
+- files: the voice CEO retro, the voice reading the board, session 8343a070's blockers, `main` taken twice, review iteration 3 runs one to thirteen with every fix; gate at `34e5eecd`
+- conflicts: none (fast-forward)
+- summary: the owner's orders of 2026-11-20 and 21, «Выпустить с main», and the reconciler's step 2 (A-3); tag `v0.3.27` on the release commit
+
 ### 2026-11-21 · `RELEASE-0327-MAIN-2` · main → feat/voice-retro (the 0.3.27 candidate) · merge `12ab551f`
 - files: `608f5416` (ADR-0205, decisions split by level, `protocolObligations.ts`); conflicts in CHANGELOG (its bullet into `## 0.3.27`), the ADR index, MERGES, the map and generated projections (rebuilt)
 - conflicts: none in code

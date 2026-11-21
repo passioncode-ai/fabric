@@ -13,7 +13,8 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
 
 By the owner's answer of 2026-11-21 («Выпустить с main», his reply in Fabric to the release's question about `main`
 moving), 0.3.27 also carries what `main` took meanwhile (Memory, the estate index and graph, the CEO's folder-role
-navigation, the update in place, decisions split by level); by his exception to the pause of the same night (about
+navigation, the update in place, decisions split by level, a responder's note no longer read as its answer with
+schema 103); by his exception to the pause of the same night (about
 02:10), the voice reading the board; and, as agreed with the home's session, its blockers (the registry and Inbox, the
 outage banner, the CEO window, the console line, the dictation tail, and the owner's two of about 02:40: Russian copied
 between consoles, the CEO's board slot).
@@ -69,8 +70,8 @@ between consoles, the CEO's board slot).
   as Mac Roman. A console with no locale of its own now gets `LC_CTYPE=en_US.UTF-8`; one the person set is kept, and
   the language of messages is not touched (`main/sessionEnv.ts#UTF8_CTYPE`). Text already copied broken stays broken:
   copy it again after the update. A test copies more than 6 KB of Russian through pbcopy in a console's environment
-  and reads it back as Unicode: whole with the fix, the owner's «–Д…» without it; the CEO's console gets the same
-  environment; a paste of the same text into a real console passes byte for byte, which a locale does not change
+  and reads it back as Unicode: whole with the fix, the owner's «–î…» without it; the CEO's console gets the same
+  environment; a paste of the same text into a PTY with a console's environment passes byte for byte, which a locale does not change
   (`test/console-paste-utf8.test.mjs`).
 - **A responder's note on a request is no longer read as its answer.** Everything a responder writes on a request's
   thread (an answer, a progress note, an effect summary, the checkpoint of a takeover) is stored as a reply. The
@@ -188,8 +189,12 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
   refused. Projects made there before stay until archived by hand: on the owner's Mac, 18 left by probes were archived
   on 2026-11-20 (their folders untouched); other machines keep theirs (CO-605).
 
-**Upgrading.** One schema step from 0.3.26, 102 to 103 (migration `20261121000130_board_operator_message_via.sql`, a
-new function and one replaced read, no data change); Fabric applies it at start. Nothing to set. A stop of the CEO
+**Upgrading.** One schema step from 0.3.26, 102 to 103 (migration `20261121000130_board_operator_message_via.sql`: a
+new function, the operator's board read and the private archive's admission replaced, no data change). Fabric does not
+take it itself: a schema-102 database is refused at start until the step runs. Take a backup first and follow [the
+runbook](docs/launch/release-mac.md#upgrading-an-existing-database) (`supabase migration up --local` in the stack
+folder, then `schema_version()` reads 103). No older build opens a schema-103 database: going back to 0.3.26 needs its
+bundle and that backup. A stop of the CEO
 pressed under 0.3.26 is not kept through the update (0.3.26 did not write it down): stop the CEO again after it. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
 days and the newest 200 at most), `<userData>/ceo-window.json` (the CEO window's place and size), `<userData>/estate-index/`
 (the index of sessions, tasks and documents, 0700; an index an earlier build wrote is removed at the first start and built

@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "34e5eecde4b5abb2b173bc9437ebc100607dfbd2",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-34e5eecd/2026-11-21-errors.md",
+  "reportSha256": "db3c2efc863d80159295764ecf0b05cd9ab6599995c58b13cf6908677fe69e48",
+  "reviewerRun": "release-0327-i3r13-errors-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-105",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: as UX-96"
+      ]
+    },
+    {
+      "id": "ER-106",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "ER-107",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "ER-108",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "34e5eecde4b5abb2b173bc9437ebc100607dfbd2",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-34e5eecd/2026-11-21-data.md",
+  "reportSha256": "d1e7091031db01159bbfb2a4be168f2eebb468316814b91559ceffdeac0bfbe2",
+  "reviewerRun": "release-0327-i3r13-data-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-75",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: as UX-96; the rehearsal of the 102 to 103 step on a copy of the owner's database and the backup's receipt are recorded in the release close"
+      ]
+    },
+    {
+      "id": "DA-76",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "DA-77",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "DA-78",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "DA-79",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    }
+  ]
+}

@@ -32,8 +32,9 @@ this session and that the agreement takes (run ten).
 ## What 0.3.27 carries
 
 The `## 0.3.27` section of [`CHANGELOG.md`](../../../CHANGELOG.md). One schema step, 102 to 103
-(`20261121000130_board_operator_message_via.sql`, from `main` at `65423c42`, merged before run thirteen), taken at the
-first start.
+(`20261121000130_board_operator_message_via.sql`, from `main` at `65423c42`, merged before run thirteen). Fabric refuses a
+schema-102 database until the runbook's upgrade runs (a backup, `supabase migration up --local`, `schema_version()` read
+back as 103); it does not take the step itself (run thirteen, UX-96).
 
 ## Iteration 1
 
@@ -790,8 +791,8 @@ Candidate `4daa946fa3b24ec4e161ff9827a97314459c0ec6`. Reports and receipts in
 **Gate.** `bash scripts/ci.sh fast` on `0e41642f` was stopped when `4daa946f` replaced it. On `4daa946f` it failed the
 migration order: `main` had moved to `65423c42` with migration 130 (schema 102 to 103). This session merged it
 (`6b35da9a`), under run eleven's rule for a move of `main` and the owner's «Выпустить с main»; the CHANGELOG's
-«Upgrading», this ledger's opening and `release-mac.md` name the schema step, which Fabric takes at the first start with
-its own backup (`apps/desktop/src/main/schemaStep.ts`). On `47a566ba` (the merge plus run twelve's first fixes) it
+«Upgrading», this ledger's opening and `release-mac.md` name the schema step (corrected in run thirteen: Fabric does not take it
+itself; `apps/desktop/src/main/schemaStep.ts` only admits and backs up, and nothing calls it yet, CO-364). On `47a566ba` (the merge plus run twelve's first fixes) it
 reached the Electron runs and failed one: `native-view-host.test.mjs` answered `outcome_unknown` for `attached` with the
 machine's load at about 15; three runs of the same suite under Electron then passed (exit 0 each), and the next
 candidate's run is in run thirteen's section.
@@ -841,4 +842,66 @@ schema step; decided as above. The rest is fixed in the next candidate or carrie
 | V3R12-PL-82 | PL-82 | non-blocking | fixed: as DO-105 |
 
 Exit for run twelve: every finding disposed above; superseded by run thirteen.
+
+### Run thirteen, 34e5eecd (the verified candidate)
+
+Candidate `34e5eecde4b5abb2b173bc9437ebc100607dfbd2`. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-34e5eecd/`](../reviews/0.3.27/iteration-3-34e5eecd/).
+
+**What it carries since run twelve.** `47a566ba` and `1c0ccdac`: run twelve's fixes. `de716a0b`: `main` at `cf23801b`,
+documents only (ADR-0207 and its spec, the ADR index, the pipeline reservation, MERGES, the map); ADR-0207 is not built
+in 0.3.27, and the owner's notice says so. `34e5eecd`: the map.
+
+**Gate.** `bash scripts/ci.sh fast` on `47a566ba` failed one Electron run of `native-view-host.test.mjs` under load
+(three reruns passed, run twelve's section). On `34e5eecd` its first run failed `scripts/test/bounded-run.test.mjs`
+(«the step survived a double SIGTERM», load about 12; the file is unchanged since 0.3.26 and four reruns passed, exit 0
+each). The second run on `34e5eecd` reached its last step: «fast tier green», browser suites 26 of 26, Claude Code
+2.1.330 (`claude --version`), log `~/.cache/fabric-88/ci-34e5eecd-2.log` on this Mac. The owner's paste test on this
+candidate, by run thirteen's data and plan reviewers: tests 3, pass 3, fail 0, the Find pasteboard the same before and
+after.
+
+29 findings, 4 blocking: UX-96, ER-105, DO-113, DA-75, one defect in the records, none in the code: the CHANGELOG,
+this ledger, the HANDOFF and the map said Fabric takes the schema step 102 to 103 by itself at start. It does not: a
+schema-102 database is refused until the runbook's upgrade runs. Fixed in the release commit (all release metadata):
+«Upgrading» says so and that going back needs the 0.3.26 zip and the backup; this ledger's lines are corrected; the
+HANDOFF's install runs the upgrade on the owner's Mac before the first start of 0.3.27 (backup, rehearsal from 102,
+`supabase migration up --local`, `schema_version()` 103); the map's top entry says it. `release-mac.md`'s 0.3.27
+paragraph and the findings ruled here go into CO-620 (15) in a register commit on `main` right after the tag, as 0.3.26
+did (`bd8a00ab`), since the gate refuses the register after the verified commit.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3R13-UX-96 | UX-96 | blocking | fixed in the release commit: the CHANGELOG's «Upgrading», this ledger and the HANDOFF say Fabric refuses a schema-102 database until the runbook's upgrade runs (stop the writers, a backup, `supabase migration up --local`, `schema_version()` read back as 103), and the release session runs it on the owner's Mac before the first start of 0.3.27; `release-mac.md`'s 0.3.27 paragraph is not release metadata: ruled: CO-620 (15), written on main right after the tag |
+| V3R13-UX-97 | UX-97 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-UX-98 | UX-98 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-UX-99 | UX-99 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-ER-105 | ER-105 | blocking | fixed in the release commit: as UX-96 |
+| V3R13-ER-106 | ER-106 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-ER-107 | ER-107 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-ER-108 | ER-108 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-DO-113 | DO-113 | blocking | fixed in the release commit: as UX-96; the map's top entry too |
+| V3R13-DO-114 | DO-114 | non-blocking | fixed in the release commit for the CHANGELOG («–î…»); the test's failure message is ruled: CO-620 (15) |
+| V3R13-DO-115 | DO-115 | non-blocking | fixed in the release commit: the CHANGELOG says a PTY with a console's environment |
+| V3R13-DO-116 | DO-116 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-DO-117 | DO-117 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-DO-118 | DO-118 | non-blocking | ruled: CO-620 (15), written on main right after the tag (the clause is dropped there) |
+| V3R13-DO-119 | DO-119 | non-blocking | fixed in the release commit: the CHANGELOG's opening lists the board's responder marks (schema 103) among what `main` brought |
+| V3R13-DO-120 | DO-120 | non-blocking | fixed in the release commit for the HANDOFF (CO-622's repository copy); the code comment is ruled: CO-620 (15) |
+| V3R13-DO-121 | DO-121 | non-blocking | ruled: CO-620 (15), written on main right after the tag (AGENTS.md is not release metadata) |
+| V3R13-DA-75 | DA-75 | blocking | fixed in the release commit: as UX-96; the rehearsal of the 102 to 103 step on a copy of the owner's database and the backup's receipt are recorded in the release close |
+| V3R13-DA-76 | DA-76 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-DA-77 | DA-77 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-DA-78 | DA-78 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-DA-79 | DA-79 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-PL-83 | PL-83 | non-blocking | fixed in the release commit: the HANDOFF lands by fast-forward; a move of `main` by documents only is merged with the map refreshed, by code or schema it makes a new candidate and a new run |
+| V3R13-PL-84 | PL-84 | non-blocking | fixed in the release commit: the HANDOFF and run thirteen's section name the register commit right after the tag (CO-620 (15)), as 0.3.26 did |
+| V3R13-PL-85 | PL-85 | non-blocking | fixed in the release commit: «Upgrading» says no older build opens a schema-103 database and going back needs the 0.3.26 zip and the backup; the HANDOFF's checks read `schema_version()` 103 and the backup; the runbook's step 5 is ruled: CO-620 (15) |
+| V3R13-PL-86 | PL-86 | non-blocking | ruled: CO-620 (15), written on main right after the tag |
+| V3R13-PL-87 | PL-87 | non-blocking | fixed in the release commit: run thirteen's section records `cf23801b` as documents only, ADR-0207 not built in 0.3.27, and the owner's notice says so |
+| V3R13-PL-88 | PL-88 | non-blocking | fixed in the release commit: as DO-119 |
+| V3R13-PL-89 | PL-89 | non-blocking | fixed in the release commit: the HANDOFF names `de716a0b`, CO-622's repository copy and CO-622 among what is left |
+
+Exit for run thirteen: every finding disposed above; run thirteen's candidate is the verified commit.
+
+Exit for iteration 3: thirteen runs, every finding disposed above, the verified candidate `34e5eecd` green on `ci.sh fast` with its browser suites. Blocking findings open: none.
 

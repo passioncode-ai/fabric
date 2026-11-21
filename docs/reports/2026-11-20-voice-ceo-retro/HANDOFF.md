@@ -116,17 +116,29 @@ merged (`12ab551f`); the stop kept in `ceo.json` and honoured by the board's wak
 logged by its outcome; the console bar's folder press does not shrink (a name past 20em still cuts, CO-620 (13)) (the screens stand green at 1616 checks); run ten's cheaper
 findings fixed and the rest in CO-620.
 
-**Next task.** `ci.sh fast` on the newest `feat/voice-retro`; review run thirteen on it (run twelve read `4daa946f`;
-its fixes, `main` at `65423c42` with schema 103, are in the newest candidate); then the release commit (gate at
-that candidate, run thirteen's folder, the one «Exit for iteration 3» line), land on `main` (fast-forward when `main` has
-not moved, else a merge commit with the tag on the release commit), tag `v0.3.27`, watch the release, install with
-`scripts/install-mac-update.mjs`, then one `communicator_notify` to the owner naming the release, Fabric Inbox allowed at
-once on his machine and connecting itself (revoked in Agent access), and the CEO's board slot and wake; tell the CEO and
-session 8343a070 (`fabric-8b`), which checks `com.directory` and the bot bridge. On the installed build, check and record
-in the ledger's close: stop the CEO on 0.3.27, then «Перезапустить Fabric», and see that the window shows it stopped and
-a queued `ceo.task` does not start it (a stop pressed under 0.3.26 is not kept through the update); Russian pasted and copied between two consoles under «Служба доски»; the CEO's
-`ceo.task` slot live on the board past 60 s; a wake on a real queued request. Then the owner's order of 04:20, CO-622 (the CEO's and the voice's missing tools, brief
-`userData/ceo/inbox/2026-11-21-ceo-voice-missing-tools-brief.md` on the owner's Mac, for 0.3.28; item 4 is 8343a070's).
+**Where it stands at the release commit.** Run thirteen read `34e5eecd` (`main` at `65423c42` with schema 103 and its
+documents at `cf23801b`, via `de716a0b`), and `ci.sh fast` on it reached its last step (26 of 26 browser suites). Its
+one blocking finding was in the records (the schema step said to be automatic) and is fixed in the release commit. The
+gate names `34e5eecd` and run thirteen's folder. What the runs leave is CO-609, CO-615, CO-620 and CO-622.
+
+**Next task.**
+1. Land the release commit on `main` by fast-forward. If `main` moved by documents only, merge it with the map refreshed;
+   by code or a schema step, make a new candidate and run fourteen. Fetch just before landing.
+2. Tag `v0.3.27` on the release commit, push it, and watch the release workflow to the published DMG.
+3. On the owner's Mac, before 0.3.27 first starts: «Служба доски» off, Fabric quit, a `pg_dump` backup, the rehearsal
+   from 102 on a copy (`rehearse-upgrade.mjs`), `supabase migration up --local` in the stack folder, `schema_version()`
+   read back as 103; then install with `scripts/install-mac-update.mjs`, start, and turn «Служба доски» on again.
+4. On the installed build, check and record: `schema_version()` 103 and the backup; stop the CEO, then «Перезапустить
+   Fabric», and see it stopped with a queued `ceo.task` not starting it (a stop pressed under 0.3.26 is not kept through
+   the update); Russian pasted and copied between two consoles under «Служба доски»; the CEO's `ceo.task` slot live past
+   60 s; a wake on a real queued request.
+5. A register commit on `main` right after the tag: CO-620 (15) with run thirteen's ruled findings, `release-mac.md`'s
+   0.3.27 paragraph (the schema step is manual) and CO-620 (14)'s stale clause dropped; the map refreshed.
+6. One `communicator_notify` to the owner: the release, the schema step done for him, Fabric Inbox allowed at once on
+   his machine and connecting itself (revoked in Agent access), the CEO's board slot and wake, ADR-0207 not built in
+   0.3.27; tell the CEO and session 8343a070 (`fabric-8b`), which checks `com.directory` and the bot bridge.
+7. Then the owner's order of 04:20, CO-622 (the CEO's and the voice's missing tools,
+   `docs/evidence/plans/2026-11-21-ceo-voice-missing-tools.md`, for 0.3.28; item 4 is 8343a070's).
 
 ## The exact next task (as written before the merge)
 
