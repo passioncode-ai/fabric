@@ -276,6 +276,12 @@ A copy launchd starts in the instant between the last check and the swap is the 
 again right before the renames and refuses rather than half-replace. An updater inside Fabric that restarts into the
 new version itself (CO-246, P-12) closes it.
 
+The Dock icon is the CEO's face (plan wave I, [mockup 08](../evidence/plans/2026-11-20-ceo-board-ux/mockups/08-app-icon.html),
+option A): the main window draws the face the person chose (`shared/avatarSvg.ts`, the same markup as the avatar) as a
+1024 PNG on Apple's icon grid and the main process sets it (`main/appIcon.ts#setDockIcon`), keeping it in
+`userData/dock-icon.png` so the next start shows it before a window draws. Finder and Launchpad keep the bundle's icon,
+since changing a signed bundle breaks its signature.
+
 ## Upgrading an existing database
 
 This section is the upgrade procedure, **not an executed upgrade receipt**. Fabric never migrates
