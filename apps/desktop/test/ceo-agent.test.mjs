@@ -1494,3 +1494,15 @@ test('run twelve: a stop during the lookup opens no console, and a cleared stop 
     assert.equal(agent.heldByPerson(), false)
   } finally { chmodSync(k.root, 0o700) }
 })
+
+// Run twelve, ER-104: the person's message clears the kept stop, as «Запустить» does.
+test('run twelve: a message clears the kept stop for the next restart', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  await k.agent.stop()
+  const { createCeoAgent } = await import('../src/main/ceoAgent.ts')
+  const again = createCeoAgent(k.deps)
+  assert.equal(again.heldByPerson(), true)
+  await again.send('Привет', [])
+  assert.equal(createCeoAgent(k.deps).heldByPerson(), false)
+})

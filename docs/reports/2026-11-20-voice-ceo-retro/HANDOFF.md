@@ -113,18 +113,18 @@ first gate to fix in the next candidate, beside UX-81; log `~/.cache/fabric-88/c
 **The pause lifted for this release (the reconciler's step 2, A-3, relayed by the CEO).** Release 0.3.27 from the
 candidate, the CEO's stop surviving a restart being the blocker before the tag. Done since: `origin/main` (`608f5416`)
 merged (`12ab551f`); the stop kept in `ceo.json` and honoured by the board's wake, a failed CEO not woken, a wake
-logged by its outcome; the console bar's folder never cut (the screens stand green at 1616 checks); run ten's cheaper
+logged by its outcome; the console bar's folder press does not shrink (a name past 20em still cuts, CO-620 (13)) (the screens stand green at 1616 checks); run ten's cheaper
 findings fixed and the rest in CO-620.
 
-**Next task.** `ci.sh fast` on the newest `feat/voice-retro`; review run twelve on it (run eleven read `0e41642f`; its
-fixes and the paste test are in the newest candidate); then the release commit (gate at
-that candidate, run eleven's folder, the one «Exit for iteration 3» line), land on `main` (fast-forward when `main` has
+**Next task.** `ci.sh fast` on the newest `feat/voice-retro`; review run thirteen on it (run twelve read `4daa946f`;
+its fixes, `main` at `65423c42` with schema 103, are in the newest candidate); then the release commit (gate at
+that candidate, run thirteen's folder, the one «Exit for iteration 3» line), land on `main` (fast-forward when `main` has
 not moved, else a merge commit with the tag on the release commit), tag `v0.3.27`, watch the release, install with
 `scripts/install-mac-update.mjs`, then one `communicator_notify` to the owner naming the release, Fabric Inbox allowed at
 once on his machine and connecting itself (revoked in Agent access), and the CEO's board slot and wake; tell the CEO and
 session 8343a070 (`fabric-8b`), which checks `com.directory` and the bot bridge. On the installed build, check and record
-in the ledger's close: stop the CEO, let the update's own restart happen, and see that the window shows it stopped and a
-queued `ceo.task` does not start it; Russian pasted and copied between two consoles under «Служба доски»; the CEO's
+in the ledger's close: stop the CEO on 0.3.27, then «Перезапустить Fabric», and see that the window shows it stopped and
+a queued `ceo.task` does not start it (a stop pressed under 0.3.26 is not kept through the update); Russian pasted and copied between two consoles under «Служба доски»; the CEO's
 `ceo.task` slot live on the board past 60 s; a wake on a real queued request. Then the owner's order of 04:20, CO-622 (the CEO's and the voice's missing tools, brief
 `userData/ceo/inbox/2026-11-21-ceo-voice-missing-tools-brief.md` on the owner's Mac, for 0.3.28; item 4 is 8343a070's).
 

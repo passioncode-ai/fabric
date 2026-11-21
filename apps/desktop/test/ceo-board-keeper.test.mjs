@@ -84,3 +84,10 @@ test('run ten: a CEO the person stopped, in this run or an earlier one, is not w
   assert.equal(await nothing.keeper.wake([req()]), 'failed')
   assert.deepEqual(nothing.calls.records.map((r) => [r.op, r.outcome, r.detail.reached]), [['ceo.board-wake', 'failed', 'failed']])
 })
+
+// Run twelve, ER-104: a stop the person presses during the wake's own start is logged as the person's, not a failure.
+test('run twelve: a wake the person stops mid-start is logged ok, stopped by the person', async () => {
+  const { keeper, calls } = rig({ state: () => 'idle', ensure: async () => ({ state: 'stopped' }) })
+  assert.equal(await keeper.wake([req()]), 'held')
+  assert.deepEqual(calls.records.map((r) => [r.op, r.outcome, r.detail.stopped_by_person]), [['ceo.board-wake', 'ok', true]])
+})

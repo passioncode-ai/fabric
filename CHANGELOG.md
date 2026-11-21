@@ -189,7 +189,8 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
   on 2026-11-20 (their folders untouched); other machines keep theirs (CO-605).
 
 **Upgrading.** One schema step from 0.3.26, 102 to 103 (migration `20261121000130_board_operator_message_via.sql`, a
-new function and one replaced read, no data change); Fabric applies it at start. Nothing to set. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
+new function and one replaced read, no data change); Fabric applies it at start. Nothing to set. A stop of the CEO
+pressed under 0.3.26 is not kept through the update (0.3.26 did not write it down): stop the CEO again after it. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
 days and the newest 200 at most), `<userData>/ceo-window.json` (the CEO window's place and size), `<userData>/estate-index/`
 (the index of sessions, tasks and documents, 0700; an index an earlier build wrote is removed at the first start and built
 again, which takes a few minutes, and longer for meaning when a local model serves vectors), `<userData>/ceo/project-aliases.json` (0600) and `<userData>/ceo/pending.json` (0600, the

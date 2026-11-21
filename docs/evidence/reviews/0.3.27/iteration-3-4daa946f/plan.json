@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "4daa946fa3b24ec4e161ff9827a97314459c0ec6",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-4daa946f/2026-11-21-plan.md",
+  "reportSha256": "2c7c5f0234b972cef9304cc0dbd2cd8859881db32f3b0f30ba2ae594dd3c53b7",
+  "reviewerRun": "release-0327-i3r12-plan-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-78",
+      "status": "fixed",
+      "evidence": [
+        "fixed by decision: `main` at `65423c42` (migration 130, schema 103) is merged into the candidate under the rule run eleven wrote and the owner's «Выпустить с main»; the CHANGELOG's «Upgrading», the ledger and `release-mac.md` name the schema step, which Fabric takes at the first start with its backup; run thirteen reads it; the landing is a fast-forward when `main` has not moved again"
+      ]
+    },
+    {
+      "id": "PL-79",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run twelve's section records the paste test's command and output and what each part covers"
+      ]
+    },
+    {
+      "id": "PL-80",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-92"
+      ]
+    },
+    {
+      "id": "PL-81",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run twelve's section gives the report's time as the CEO relayed it and that the owner ran the installed 0.3.26"
+      ]
+    },
+    {
+      "id": "PL-82",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-105"
+      ]
+    }
+  ]
+}

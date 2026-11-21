@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "4daa946fa3b24ec4e161ff9827a97314459c0ec6",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-4daa946f/2026-11-21-errors.md",
+  "reportSha256": "af3338ae542eadaaa05d9d178ac83ee20fdf6bda01d04c420f0363b3ab3a2aaf",
+  "reviewerRun": "release-0327-i3r12-errors-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-99",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-94; the wake's person-stopped branch reads only what the start reached"
+      ]
+    },
+    {
+      "id": "ER-100",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a failed meta write is recorded as `ceo.agent.meta-write-failed` with `what` (hold or project)"
+      ]
+    },
+    {
+      "id": "ER-101",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a meta read that fails other than a missing file is recorded as `ceo.agent.meta-read-failed`"
+      ]
+    },
+    {
+      "id": "ER-102",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-92"
+      ]
+    },
+    {
+      "id": "ER-103",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the no-locale copy is pinned to Mac Roman (`__CF_USER_TEXT_ENCODING`), so a Mac set to another language sees the same break"
+      ]
+    },
+    {
+      "id": "ER-104",
+      "status": "fixed",
+      "evidence": [
+        "fixed: tests «run twelve: a message clears the kept stop…» and «run twelve: a wake the person stops mid-start is logged ok…»"
+      ]
+    }
+  ]
+}

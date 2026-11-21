@@ -75,7 +75,8 @@ test('text an agent copies in a console (pbcopy) is pasted back whole as Unicode
   try {
     assert.ok(copyThenPaste(consoleEnv).equals(BYTES), 'a copy in a console\'s environment changed the text')
     // The defect itself, so this test sees it return: copied with no locale, the paste is Mac Roman read as UTF-8.
-    const broken = copyThenPaste(launchd)
+    // Pinned to Mac Roman, the encoding of the owner's Mac, so a Mac set to another language reads the same break (ER-103).
+    const broken = copyThenPaste({ ...launchd, __CF_USER_TEXT_ENCODING: `0x${(process.getuid?.() ?? 501).toString(16).toUpperCase()}:0x0:0x0` })
     assert.ok(!broken.equals(BYTES), 'with no locale the copy should break: the check would not see the defect')
     assert.ok(broken.toString('utf8').includes('–î'), 'the break is the owner\'s «–Д…», UTF-8 read as Mac Roman')
   } finally {

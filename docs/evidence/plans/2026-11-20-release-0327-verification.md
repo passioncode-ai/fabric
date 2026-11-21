@@ -729,8 +729,8 @@ pause to this session in its chat. The CEO then relayed the reconciler's step 2 
 установка обновлением на месте». The reconciler's plan lives in the fabric-workspace session; this ledger keeps the
 relayed words. At 05:10 the owner saw broken Russian on paste again; the CEO asked for a test of the paste fix before the
 tag (consoles of projects, the CEO window, pastes of several KB), done in the next candidate
-(`test/console-paste-utf8.test.mjs`: a 6.5 KB Russian paste into a real console in raw mode, and a copy through pbcopy
-read back as Unicode, with the console's environment and with none, the second showing the owner's «–Д…»; watched red
+(`test/console-paste-utf8.test.mjs`: a 6.5 KB Russian paste into a PTY with a console's environment, in raw mode, and a copy through pbcopy
+read back as Unicode, with the console's environment and with none, the second showing the owner's «–î…»; watched red
 with the locale taken out).
 
 **`main` and the owner's answer.** This session applied question `237cdddb`'s answer «Выпустить с main» to `608f5416`
@@ -781,4 +781,64 @@ message. What is carried is CO-620 (13), and the owner's order of 04:20 is CO-62
 | V3R11-PL-77 | PL-77 | non-blocking | fixed: run eleven's section says the ledger's opening supersedes the brief's «What 0.3.27 carries» |
 
 Exit for run eleven: every finding disposed above; superseded by run twelve.
+
+### Run twelve, 4daa946f (superseded)
+
+Candidate `4daa946fa3b24ec4e161ff9827a97314459c0ec6`. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-4daa946f/`](../reviews/0.3.27/iteration-3-4daa946f/) (kept as the record).
+
+**Gate.** `bash scripts/ci.sh fast` on `0e41642f` was stopped when `4daa946f` replaced it. On `4daa946f` it failed the
+migration order: `main` had moved to `65423c42` with migration 130 (schema 102 to 103). This session merged it
+(`6b35da9a`), under run eleven's rule for a move of `main` and the owner's «Выпустить с main»; the CHANGELOG's
+«Upgrading», this ledger's opening and `release-mac.md` name the schema step, which Fabric takes at the first start with
+its own backup (`apps/desktop/src/main/schemaStep.ts`). On `47a566ba` (the merge plus run twelve's first fixes) it
+reached the Electron runs and failed one: `native-view-host.test.mjs` answered `outcome_unknown` for `attached` with the
+machine's load at about 15; three runs of the same suite under Electron then passed (exit 0 each), and the next
+candidate's run is in run thirteen's section.
+
+**The owner's paste report.** The CEO relayed at about 05:10, by the CEO's clock (this Mac's commits read CET and run
+earlier, so the time is the relay's, not a measurement), that the owner again saw broken Russian on paste. He ran the
+installed 0.3.26, which has no fix, so the report matches the known cause. The test asked for before the tag, run on
+the candidate with `node --experimental-strip-types --test --test-force-exit test/console-paste-utf8.test.mjs`:
+✔ a console Fabric opens names UTF-8 for its characters, the CEO's included (0.430833ms); ✔ a long Russian paste reaches a console's program whole, in raw mode as an agent reads it (372.382291ms); ✔ text an agent copies in a console (pbcopy) is pasted back whole as Unicode, and breaks with no locale (50.479958ms); ℹ tests 3; ℹ pass 3; ℹ fail 0. Its three parts: the console's locale and the CEO's launch extras (1); a 6.5 KB Russian paste through a PTY
+with a console's environment, whole whatever the locale (2); the copy through pbcopy read back as Unicode, the owner's
+«–î…» with no locale and whole with the fix, watched red with the locale taken out (3).
+
+29 findings, 2 blocking: UX-92, PL-78. UX-92: the paste test left its broken text on the shared
+Find pasteboard; it now restores it, and what earlier runs left on this Mac was cleared. PL-78: `main` had moved with a
+schema step; decided as above. The rest is fixed in the next candidate or carried in CO-620 (14).
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3R12-UX-92 | UX-92 | blocking | fixed: the paste test reads the Find pasteboard first and writes it back in `finally`, and its comment says the pasteboard is shared; the garble earlier runs left on this Mac's Find pasteboard was cleared |
+| V3R12-UX-93 | UX-93 | non-blocking | fixed in the records: the CHANGELOG and the ledger say the copy half proves the fix and the paste half guards long pastes whatever the locale; a paste through Fabric's own write path is ruled: CO-620 (14) |
+| V3R12-UX-94 | UX-94 | non-blocking | fixed: `heldByPerson` returns the memory the disk was read into (`ceoAgent.ts`; test «run twelve: … a cleared stop the disk would not take is still cleared») |
+| V3R12-UX-95 | UX-95 | non-blocking | ruled: CO-620 (14); SCN-187 names the voice's `ask_ceo` among the acts that clear the stop |
+| V3R12-ER-99 | ER-99 | non-blocking | fixed: as UX-94; the wake's person-stopped branch reads only what the start reached |
+| V3R12-ER-100 | ER-100 | non-blocking | fixed: a failed meta write is recorded as `ceo.agent.meta-write-failed` with `what` (hold or project) |
+| V3R12-ER-101 | ER-101 | non-blocking | fixed: a meta read that fails other than a missing file is recorded as `ceo.agent.meta-read-failed` |
+| V3R12-ER-102 | ER-102 | non-blocking | fixed: as UX-92 |
+| V3R12-ER-103 | ER-103 | non-blocking | fixed: the no-locale copy is pinned to Mac Roman (`__CF_USER_TEXT_ENCODING`), so a Mac set to another language sees the same break |
+| V3R12-ER-104 | ER-104 | non-blocking | fixed: tests «run twelve: a message clears the kept stop…» and «run twelve: a wake the person stops mid-start is logged ok…» |
+| V3R12-DO-103 | DO-103 | non-blocking | fixed: «Upgrading» says a stop pressed under 0.3.26 is not kept through the update, and the HANDOFF's check stops the CEO on 0.3.27, then restarts Fabric |
+| V3R12-DO-104 | DO-104 | non-blocking | fixed: ADR-0197 Amendment 5 §2 and AGENTS.md's CEO console row say what clears the stop and that the window's opening starts nothing while it holds |
+| V3R12-DO-105 | DO-105 | non-blocking | fixed: the HANDOFF's lines on the folder press and the run's folder |
+| V3R12-DO-106 | DO-106 | non-blocking | fixed: the ledger and the map quote «–î…» (U+2013, U+00EE) |
+| V3R12-DO-107 | DO-107 | non-blocking | fixed: the test's header and the ledger say the Find pasteboard is shared and restored, and the paste goes into a PTY with a console's environment |
+| V3R12-DO-108 | DO-108 | non-blocking | fixed: the name's stem in run eleven's stored docs report and the old style mockup are replaced (a redaction under ADR-0096; the receipt's hash refreshed) |
+| V3R12-DO-109 | DO-109 | non-blocking | fixed: the brief, paraphrased, is `docs/evidence/plans/2026-11-21-ceo-voice-missing-tools.md`, and CO-622 cites it |
+| V3R12-DO-110 | DO-110 | non-blocking | fixed: as ER-104 |
+| V3R12-DO-111 | DO-111 | non-blocking | fixed: `xai-key` takes twenty letters or digits, then what Fabric's key check accepts (`redact.ts`; the redact test) |
+| V3R12-DO-112 | DO-112 | non-blocking | fixed: the keeper's header names the wake the person stops |
+| V3R12-DA-71 | DA-71 | non-blocking | fixed: as UX-94 |
+| V3R12-DA-72 | DA-72 | non-blocking | fixed: as UX-92 |
+| V3R12-DA-73 | DA-73 | non-blocking | fixed: a stop during the lookup ends the start before any runner opens (test «run twelve: a stop during the lookup opens no console…») |
+| V3R12-DA-74 | DA-74 | non-blocking | fixed: `ceo.json` is written to a temporary file and renamed; the xAI rule and the key check agree (DO-111) |
+| V3R12-PL-78 | PL-78 | blocking | fixed by decision: `main` at `65423c42` (migration 130, schema 103) is merged into the candidate under the rule run eleven wrote and the owner's «Выпустить с main»; the CHANGELOG's «Upgrading», the ledger and `release-mac.md` name the schema step, which Fabric takes at the first start with its backup; run thirteen reads it; the landing is a fast-forward when `main` has not moved again |
+| V3R12-PL-79 | PL-79 | non-blocking | fixed: run twelve's section records the paste test's command and output and what each part covers |
+| V3R12-PL-80 | PL-80 | non-blocking | fixed: as UX-92 |
+| V3R12-PL-81 | PL-81 | non-blocking | fixed: run twelve's section gives the report's time as the CEO relayed it and that the owner ran the installed 0.3.26 |
+| V3R12-PL-82 | PL-82 | non-blocking | fixed: as DO-105 |
+
+Exit for run twelve: every finding disposed above; superseded by run thirteen.
 

@@ -329,7 +329,11 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** The person's stop, kept in the folder's meta so it outlives a restart of Fabric (0.3.27 review run ten, UX-81,
    *  ER-87, DA-62): the board's wake never starts a CEO the person stopped; the person's own start clears it. */
   function heldOnDisk(): boolean {
-    try { return (JSON.parse(readFileSync(metaFile, 'utf8')) as { heldByPerson?: unknown }).heldByPerson === true } catch { /* no meta yet: never stopped */ return false }
+    try { return (JSON.parse(readFileSync(metaFile, 'utf8')) as { heldByPerson?: unknown }).heldByPerson === true } catch (e) {
+      // No meta yet: never stopped. Any other failure is said once, since a lost stop would let the CEO start (ER-101).
+      if ((e as { code?: string }).code !== 'ENOENT') deps.record('ceo.agent.meta-read-failed', errorClass(e))
+      return false
+    }
   }
   function writeHold(on: boolean): void {
     try {
@@ -339,7 +343,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
       writeFileSync(tmp, JSON.stringify({ ...(known ? { projectId: known } : {}), ...(on ? { heldByPerson: true } : {}) }, null, 2), { encoding: 'utf8', mode: 0o600 })
       renameSync(tmp, metaFile)
     } catch (e) { /* recorded through the host's ops.record; the hold still holds in memory for this run */
-      deps.record('ceo.agent.hold-write-failed', errorClass(e))
+      deps.record('ceo.agent.meta-write-failed', { ...errorClass(e), what: on ? 'hold' : 'project' })
     }
   }
 

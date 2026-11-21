@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "4daa946fa3b24ec4e161ff9827a97314459c0ec6",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-4daa946f/2026-11-21-data.md",
+  "reportSha256": "eb598fb8a3ad741d01e5011a5385a57aa53295508c7b49212aadbada8fedeeee",
+  "reviewerRun": "release-0327-i3r12-data-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-71",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-94"
+      ]
+    },
+    {
+      "id": "DA-72",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-92"
+      ]
+    },
+    {
+      "id": "DA-73",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a stop during the lookup ends the start before any runner opens (test «run twelve: a stop during the lookup opens no console…»)"
+      ]
+    },
+    {
+      "id": "DA-74",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ceo.json` is written to a temporary file and renamed; the xAI rule and the key check agree (DO-111)"
+      ]
+    }
+  ]
+}

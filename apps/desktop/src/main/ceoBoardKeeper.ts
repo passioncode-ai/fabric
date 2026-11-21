@@ -9,7 +9,8 @@
  * - `wake(requests)`, every minute: a `ceo.task` request that waits for the CEO's project while its console does not run
  *   starts it (`CeoAgent#ensure`), as the board dispatcher starts a project's session. A CEO the person stopped (in
  *   memory or kept in `ceo.json`, across a restart) answers `held`, and a failed one answers `failed`: neither is
- *   started, nor logged. At most once per WAKE_GAP_MS; each wake that starts something is logged with the state the
+ *   started, nor logged; a stop pressed during the wake's own start answers `held` and is logged as the person's
+ *   (`stopped_by_person`). At most once per WAKE_GAP_MS; each wake that starts something is logged with the state the
  *   start reached; the console's own nudge then types the request once it runs.
  *
  * The slot's answer is logged when it changes, not on every pass.
@@ -84,7 +85,7 @@ export function createCeoBoardKeeper(deps: CeoBoardKeeperDeps) {
     // The outcome the start reached, not the attempt (UX-82, ER-88).
     const reached = (after as { state?: unknown } | null)?.state
     // The person's stop during the wake's start is the person's act, not a failed wake (run eleven, ER-96).
-    if (reached === 'stopped' || deps.heldByPerson?.()) {
+    if (reached === 'stopped') {
       deps.record('ceo.board-wake', 'ok', { requests: waiting.length, from: state, reached: 'stopped', stopped_by_person: true })
       return 'held'
     }

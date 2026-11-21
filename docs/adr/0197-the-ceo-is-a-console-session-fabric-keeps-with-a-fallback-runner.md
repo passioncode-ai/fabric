@@ -226,8 +226,9 @@ request's `com.renew` or another `com.enroll` lengthens it. §6 left both to the
    console runs (the project known from its folder's meta before the first start, `main/ceoAgent.ts#knownProjectId`). A
    `ceo.task` request still queued while the console does not run starts it (`ceoBoardKeeper.ts#wake`, `ensure`), at
    most once per five minutes; the nudge of §6 then types it. A console the person stopped stays stopped, across a
-   restart of Fabric too: the person's stop is kept in the CEO folder's `ceo.json` and cleared only by the person's own
-   start (the 0.3.27 review, run ten, UX-81); a CEO that failed waits for the person's retry, and the wake is logged by
+   restart of Fabric too: the person's stop is kept in the CEO folder's `ceo.json`, read back when Fabric starts, and
+   cleared only by the person's start, restart or message (the voice's `ask_ceo` included); while it holds, opening
+   the window starts nothing (the 0.3.27 review, runs ten to twelve); a CEO that failed waits for the person's retry, and the wake is logged by
    what the start reached.
 3. **Logged when it changes.** `ceo.board-slot` (kept, held-by-other, refused, unavailable) once per change, and
    `ceo.board-wake` at each wake.

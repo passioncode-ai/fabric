@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "4daa946fa3b24ec4e161ff9827a97314459c0ec6",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-4daa946f/2026-11-21-ux.md",
+  "reportSha256": "ab9b7c78460d8e4f6b84ee7aee3bf8ee8b02a7a1790e8c2156518739366406d4",
+  "reviewerRun": "release-0327-i3r12-ux-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-92",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the paste test reads the Find pasteboard first and writes it back in `finally`, and its comment says the pasteboard is shared; the garble earlier runs left on this Mac's Find pasteboard was cleared"
+      ]
+    },
+    {
+      "id": "UX-93",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the records: the CHANGELOG and the ledger say the copy half proves the fix and the paste half guards long pastes whatever the locale; a paste through Fabric's own write path is ruled: CO-620 (14)"
+      ]
+    },
+    {
+      "id": "UX-94",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `heldByPerson` returns the memory the disk was read into (`ceoAgent.ts`; test «run twelve: … a cleared stop the disk would not take is still cleared»)"
+      ]
+    },
+    {
+      "id": "UX-95",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (14); SCN-187 names the voice's `ask_ceo` among the acts that clear the stop"
+      ]
+    }
+  ]
+}
