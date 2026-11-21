@@ -10,7 +10,7 @@ retro ([the retro](../../reports/2026-11-20-voice-ceo-retro/README.md), [its fix
 branch `feat/voice-retro`, session 9cda1c0f, which runs this release by agreement with 8343a070). Since run eight it
 also carries, each by its own source recorded in run eight's section: what `main` took meanwhile, by the owner's answer
 of 2026-11-21 to the release's question about `main` moving (Fabric question `237cdddb`, «Выпустить с main»), which
-also took `608f5416` (ADR-0205) at run ten; the voice reading the board, by his
+also took `608f5416` (ADR-0205), merged after run ten for run eleven (`12ab551f`); the voice reading the board, by his
 exception of 2026-11-21 at about 02:10; and the home session's blockers, by its agreement with this session, with the
 owner's two of about 02:40 (Russian copied between consoles, the CEO's board slot) that the home session relayed to
 this session and that the agreement takes (run ten).
@@ -714,4 +714,70 @@ next candidate (`12ab551f`, PL-67).
 | V3R10-PL-72 | PL-72 | non-blocking | fixed: run ten's section lists what was not run end to end |
 
 Exit for run ten: every finding disposed above; superseded by run eleven.
+
+### Run eleven, 0e41642f (superseded)
+
+Candidate `0e41642f0b1eb3b6dc40e503d751f5a242d9ec51`. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-0e41642f/`](../reviews/0.3.27/iteration-3-0e41642f/) (kept as the record).
+
+**Sources since run ten.** The owner paused every session at about 03:30 on 2026-11-21, through the CEO window, while his
+reconciler (fabric-workspace session 25879d0f, on Fable 5.2) reconciled his orders of the night; the CEO relayed the
+pause to this session in its chat. The CEO then relayed the reconciler's step 2 (A-3) in the same chat: «Снимаю паузу
+для тебя, шаг 2 по решению сверщика (A-3): выпустить Fabric 0.3.27 с кандидата (33aec0f4 и что влито), блокер перед
+тегом: остановка CEO не переживает перезапуск, его закрыть. Владелец ответил «Выпустить с main». CI, ревью, тег,
+установка обновлением на месте». The reconciler's plan lives in the fabric-workspace session; this ledger keeps the
+relayed words. At 05:10 the owner saw broken Russian on paste again; the CEO asked for a test of the paste fix before the
+tag (consoles of projects, the CEO window, pastes of several KB), done in the next candidate
+(`test/console-paste-utf8.test.mjs`: a 6.5 KB Russian paste into a real console in raw mode, and a copy through pbcopy
+read back as Unicode, with the console's environment and with none, the second showing the owner's «–Д…»; watched red
+with the locale taken out).
+
+**`main` and the owner's answer.** This session applied question `237cdddb`'s answer «Выпустить с main» to `608f5416`
+(ADR-0205, itself the operator's order relayed in board request `a76373fa`), merged after run ten (`12ab551f`): the
+reconciler's words repeat the answer, and the release is cut only from `main`. A further move of `main` before the
+landing is merged the same way, into a new candidate read again, unless it is only documents. The ledger's opening
+supersedes the reviewers' brief's «What 0.3.27 carries», which is kept as what was asked.
+
+**Gate.** `bash scripts/ci.sh fast` on `0e41642f` ran while the reviewers read; its outcome and the next candidate's are
+in run twelve's section.
+
+29 findings, 2 blocking: ER-93, DA-67, one defect: a stop pressed while the first start since
+Fabric opened looked up its project was overwritten on disk by that start. Fixed in the next candidate with a test that
+holds the lookup open (the reviewers' probe), with the CEO's stop read back when the agent is built (after a restart the
+window shows it stopped and nothing starts it until the person does) and cleared at once by the person's restart or
+message. What is carried is CO-620 (13), and the owner's order of 04:20 is CO-622.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3R11-UX-87 | UX-87 | non-blocking | fixed: as ER-93 |
+| V3R11-UX-88 | UX-88 | non-blocking | fixed: the agent reads the kept stop when it is built, so after a restart the status says stopped and neither the window's opening nor the board's wake starts it until «Запустить», «Перезапустить» or a message (test «run ten: the person's stop outlives a restart…», now asserting the window starts nothing) |
+| V3R11-UX-89 | UX-89 | non-blocking | ruled: CO-620 (13) |
+| V3R11-UX-90 | UX-90 | non-blocking | ruled: CO-620 (13); SCN-188 and the stylesheet's comment say the folder press does not shrink and a name past 20em still cuts |
+| V3R11-UX-91 | UX-91 | non-blocking | ruled: CO-620 (13) |
+| V3R11-ER-93 | ER-93 | blocking | fixed: `start` writes the meta through `writeHold(held)`, keeping a stop pressed while the project was looked up (test «run eleven: a stop during the first start's project lookup survives the next restart», watched red as the reviewer's probe) |
+| V3R11-ER-94 | ER-94 | non-blocking | fixed: as UX-88 |
+| V3R11-ER-95 | ER-95 | non-blocking | fixed: the person's restart and message clear the kept stop at once (`writeHold(false)` in `restart('person')` and `send`) |
+| V3R11-ER-96 | ER-96 | non-blocking | fixed: a wake the person stops is logged `ok` with `stopped_by_person`, not as a failed wake (`ceoBoardKeeper.ts#wake`) |
+| V3R11-ER-97 | ER-97 | non-blocking | ruled: CO-620 (13) |
+| V3R11-ER-98 | ER-98 | non-blocking | ruled: CO-620 (13) |
+| V3R11-DO-94 | DO-94 | non-blocking | fixed: as ER-93; the comment says the meta keeps the hold as it stands |
+| V3R11-DO-95 | DO-95 | non-blocking | fixed: as UX-88; SCN-187, the CHANGELOG and AGENTS.md say the window shows the CEO stopped after a restart |
+| V3R11-DO-96 | DO-96 | non-blocking | fixed: `ceoBoardKeeper.ts`'s header describes the held, failed and logged wake |
+| V3R11-DO-97 | DO-97 | non-blocking | fixed: the CHANGELOG limits the project-name exception to the knowledge search |
+| V3R11-DO-98 | DO-98 | non-blocking | fixed: SCN-188's narrow-window rule and the stylesheet's comment name who started it as giving way; the folder's cap is stated, CO-620 (13) |
+| V3R11-DO-99 | DO-99 | non-blocking | fixed: the ADR index and the pipeline contract say ADR-0204 is written here; ADR-0176's row names ADR-0205's amendment |
+| V3R11-DO-100 | DO-100 | non-blocking | fixed: ADR-0205's quote says «[владельца]» for the owner's name (ADR-0096); the verbatim quoting itself is CO-620 (13) |
+| V3R11-DO-101 | DO-101 | non-blocking | fixed: the HANDOFF says run ten's reports are stored with the run, the ledger dates the merge of `608f5416` after run ten, and `release-mac.md`'s `--schedule` example says to turn «Служба доски» on again |
+| V3R11-DO-102 | DO-102 | non-blocking | fixed: the Now line records the pause of about 03:30 and the reconciler's step 2 |
+| V3R11-DA-67 | DA-67 | blocking | fixed: as ER-93 |
+| V3R11-DA-68 | DA-68 | non-blocking | fixed: AGENTS.md names `heldByPerson` in `ceo.json`, SCN-187 is amended, and the status reads stopped after a restart (UX-88) |
+| V3R11-DA-69 | DA-69 | non-blocking | fixed: `xai-key` is letters and digits, 20 or more, so a cut key keeps at most 19 characters and a hyphenated name still does not match (`redact.ts`; the redact test) |
+| V3R11-DA-70 | DA-70 | non-blocking | ruled: CO-620 (13); the owner's name is taken out of the quote (DO-100) |
+| V3R11-PL-73 | PL-73 | non-blocking | fixed: run eleven's section records the pause and the reconciler's step 2 as relayed, with their time and channel |
+| V3R11-PL-74 | PL-74 | non-blocking | fixed: run eleven's section states the release session's decision to apply question `237cdddb` to `608f5416`, and the rule for a further move of `main` |
+| V3R11-PL-75 | PL-75 | non-blocking | fixed: in this candidate, CO-620 (13) carries run eleven's ruled findings and CO-622 the owner's order of 04:20 |
+| V3R11-PL-76 | PL-76 | non-blocking | fixed: the HANDOFF's next task lists the checks on the installed build |
+| V3R11-PL-77 | PL-77 | non-blocking | fixed: run eleven's section says the ledger's opening supersedes the brief's «What 0.3.27 carries» |
+
+Exit for run eleven: every finding disposed above; superseded by run twelve.
 

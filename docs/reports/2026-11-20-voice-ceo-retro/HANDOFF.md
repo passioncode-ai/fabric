@@ -107,8 +107,8 @@ data reviewer found the new `xai-key` rule redacting hyphenated folder and branc
 (DA-64: keep `cwd` and `branch` unredacted, narrow the rule). `ci.sh fast` on `33aec0f4` then ended red: browser suites 25 of
 26, `screens-stand.browser.mjs` fails «console ru 1100: a control of the bar is cut» (the console's bottom bar with the
 system line of SCN-188 at 1100 px in Russian; the merged candidate's first run to reach the browser suites). It is the
-first gate to fix in the next candidate, beside UX-81; log `~/.cache/fabric-88/ci-33aec0f4.log`. The reports are kept outside the repository in `~/.cache/fabric-88/r10/` until they are
-stored with the run.
+first gate to fix in the next candidate, beside UX-81; log `~/.cache/fabric-88/ci-33aec0f4.log`. The reports are stored with the run in
+`docs/evidence/reviews/0.3.27/iteration-3-33aec0f4/`.
 
 **The pause lifted for this release (the reconciler's step 2, A-3, relayed by the CEO).** Release 0.3.27 from the
 candidate, the CEO's stop surviving a restart being the blocker before the tag. Done since: `origin/main` (`608f5416`)
@@ -116,14 +116,17 @@ merged (`12ab551f`); the stop kept in `ceo.json` and honoured by the board's wak
 logged by its outcome; the console bar's folder never cut (the screens stand green at 1616 checks); run ten's cheaper
 findings fixed and the rest in CO-620.
 
-**Next task.** `ci.sh fast` on the newest `feat/voice-retro`; review run eleven on it; then the release commit (gate at
+**Next task.** `ci.sh fast` on the newest `feat/voice-retro`; review run twelve on it (run eleven read `0e41642f`; its
+fixes and the paste test are in the newest candidate); then the release commit (gate at
 that candidate, run eleven's folder, the one «Exit for iteration 3» line), land on `main` (fast-forward when `main` has
 not moved, else a merge commit with the tag on the release commit), tag `v0.3.27`, watch the release, install with
 `scripts/install-mac-update.mjs`, then one `communicator_notify` to the owner naming the release, Fabric Inbox allowed at
 once on his machine and connecting itself (revoked in Agent access), and the CEO's board slot and wake; tell the CEO and
-session 8343a070 (`fabric-8b`), which checks `com.directory` and the bot bridge. Then the owner's order of 04:20 (the
-CEO's and the voice's missing tools, brief `2026-11-21-ceo-voice-missing-tools-brief.md`, for 0.3.28, item 4 is
-8343a070's).
+session 8343a070 (`fabric-8b`), which checks `com.directory` and the bot bridge. On the installed build, check and record
+in the ledger's close: stop the CEO, let the update's own restart happen, and see that the window shows it stopped and a
+queued `ceo.task` does not start it; Russian pasted and copied between two consoles under «Служба доски»; the CEO's
+`ceo.task` slot live on the board past 60 s; a wake on a real queued request. Then the owner's order of 04:20, CO-622 (the CEO's and the voice's missing tools, brief
+`userData/ceo/inbox/2026-11-21-ceo-voice-missing-tools-brief.md` on the owner's Mac, for 0.3.28; item 4 is 8343a070's).
 
 ## The exact next task (as written before the merge)
 

@@ -246,7 +246,7 @@ was measured on his Mac the same evening:
 holds its decisions, `scripts/test/install-mac-update.test.mjs` pins them):
 
 ```sh
-node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg --schedule   # applies once Fabric has ended (with «Служба доски» on: turn it off, then Quit)
+node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg --schedule   # applies once Fabric has ended (with «Служба доски» on: turn it off, then Quit; on again after the update)
 node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg              # now; refused while Fabric runs
 node scripts/install-mac-update.mjs --tidy                                         # one icon again, nothing installed
 ```

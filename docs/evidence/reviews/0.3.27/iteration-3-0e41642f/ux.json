@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "0e41642f0b1eb3b6dc40e503d751f5a242d9ec51",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-0e41642f/2026-11-21-ux.md",
+  "reportSha256": "a49200af8b30a8329a51159f04598988cf4ace1688eb837bc4ce5e56a963cafa",
+  "reviewerRun": "release-0327-i3r11-ux-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-87",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-93"
+      ]
+    },
+    {
+      "id": "UX-88",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the agent reads the kept stop when it is built, so after a restart the status says stopped and neither the window's opening nor the board's wake starts it until «Запустить», «Перезапустить» or a message (test «run ten: the person's stop outlives a restart…», now asserting the window starts nothing)"
+      ]
+    },
+    {
+      "id": "UX-89",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (13)"
+      ]
+    },
+    {
+      "id": "UX-90",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (13); SCN-188 and the stylesheet's comment say the folder press does not shrink and a name past 20em still cuts"
+      ]
+    },
+    {
+      "id": "UX-91",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (13)"
+      ]
+    }
+  ]
+}

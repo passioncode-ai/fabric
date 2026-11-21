@@ -21,8 +21,8 @@ between consoles, the CEO's board slot).
 - **The CEO's voice reads the board itself.** By voice the owner hears the newest projects with when each was added, a
   project's tasks with status, holder and what waits for him, and a task's goal and graph (what it grew from and into,
   what it blocks and follows), read-only and without the CEO's console or a new session. «шеф», «директор», «босс»,
-  «менеджер», «главный» and «SEO» mean the CEO itself, not a project or the SEO agent (a project whose own name is one of
-  them is still that project, and in the CEO's console a word means the CEO only standing alone), and are recognition hints of
+  «менеджер», «главный» and «SEO» mean the CEO itself, not a project or the SEO agent (in the knowledge search a project whose own name
+  is one of them is still that project, and in the CEO's console a word means the CEO only standing alone), and are recognition hints of
   the call (`main/voiceBoard.ts`, `shared/ceoAddress.ts`; SCN-191). The owner's exception to the pause, 2026-11-21.
   During a call the voice also searches the estate index (`knowledge_search`, `knowledge_execute`): its passages from
   sessions, transcripts, documents and commits reach xAI, redacted; the voice cannot refresh or rebuild the index.
@@ -61,13 +61,15 @@ between consoles, the CEO's board slot).
   tasks from his Telegram bot found no live CEO. The CEO's `ceo.task` slot lived 60 s after its own enrol and then read
   stale for days. Fabric now holds that slot as the CEO's console every 30 s while the console runs, and a `ceo.task`
   request that waits while the console is not running starts it (at most once per 5 minutes; a CEO the person stopped
-  stays stopped, across a restart of Fabric too, and a failed one waits for the person), then types the request into it as before (ADR-0197 Amendment 5, `main/ceoBoardKeeper.ts`).
+  stays stopped, across a restart of Fabric too, where its window shows it stopped until «Запустить», and a failed one
+  waits for the person), then types the request into it as before (ADR-0197 Amendment 5, `main/ceoBoardKeeper.ts`).
 - **Russian copied in one console reaches another whole.** The owner, 2026-11-21: his dictation copied from the CEO's
   console arrived in another console as «–î–∞–≤–∞–π», UTF-8 read as Mac Roman. Fabric started by «Служба доски» (launchd)
   has no locale, so its consoles had none either, and macOS's `pbcopy`, which Claude Code copies through, read the text
   as Mac Roman. A console with no locale of its own now gets `LC_CTYPE=en_US.UTF-8`; one the person set is kept, and
   the language of messages is not touched (`main/sessionEnv.ts#UTF8_CTYPE`). Text already copied broken stays broken:
-  copy it again after the update.
+  copy it again after the update. A test pastes more than 6 KB of Russian into a real console and copies it back
+  through pbcopy, for project consoles and the CEO's alike (`test/console-paste-utf8.test.mjs`).
 - **An agent asks the person only what the person alone can say.** The operator, 2026-11-21: strategy (the vision,
   the concept) is the person's and is always asked; tactics the agent decides itself; what the agent knows better or
   can find it never asks; a question goes only where the agent is unsure or the person knows better, weighed against

@@ -7,11 +7,12 @@
  *   (`AgentSurface#keepResponderSlot`), so the slot reads active for as long as the console lives and goes stale a
  *   minute after it ends, as any responder's.
  * - `wake(requests)`, every minute: a `ceo.task` request that waits for the CEO's project while its console does not run
- *   starts it (`CeoAgent#ensure`), as the board dispatcher starts a project's session. A console the person stopped
- *   stays stopped (`ensure` answers without starting while held). At most once per WAKE_GAP_MS, so a start that keeps
- *   failing does not loop; the console's own nudge then types the request once it runs.
+ *   starts it (`CeoAgent#ensure`), as the board dispatcher starts a project's session. A CEO the person stopped (in
+ *   memory or kept in `ceo.json`, across a restart) answers `held`, and a failed one answers `failed`: neither is
+ *   started, nor logged. At most once per WAKE_GAP_MS; each wake that starts something is logged with the state the
+ *   start reached; the console's own nudge then types the request once it runs.
  *
- * Each act's answer is logged when it changes, not on every pass.
+ * The slot's answer is logged when it changes, not on every pass.
  */
 import { CEO_BOARD_CAPABILITY, type CeoBoardRequest, type CeoState } from '../shared/ceoAgent.ts'
 import type { KeepSlotAnswer } from './agentSurface.ts'
@@ -82,6 +83,11 @@ export function createCeoBoardKeeper(deps: CeoBoardKeeperDeps) {
     }
     // The outcome the start reached, not the attempt (UX-82, ER-88).
     const reached = (after as { state?: unknown } | null)?.state
+    // The person's stop during the wake's start is the person's act, not a failed wake (run eleven, ER-96).
+    if (reached === 'stopped' || deps.heldByPerson?.()) {
+      deps.record('ceo.board-wake', 'ok', { requests: waiting.length, from: state, reached: 'stopped', stopped_by_person: true })
+      return 'held'
+    }
     deps.record('ceo.board-wake', reached === 'running' || reached === 'starting' ? 'ok' : 'failed', { requests: waiting.length, from: state, reached: typeof reached === 'string' ? reached : null })
     return reached === 'running' || reached === 'starting' ? 'woken' : 'failed'
   }

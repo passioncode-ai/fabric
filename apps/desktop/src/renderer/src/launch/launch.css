@@ -1209,8 +1209,8 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 @media(hover:hover){.session-detach:hover{color:var(--app-ink);border-color:var(--app-line);background:var(--app-panel-quiet)}}
 .session-detach:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
 /* SCN-188 (the owner, 2026-11-20): the console's system line, one quiet row in the bar's free width. Short facts keep
-   their few characters; who started it and the branch give way first, and a press (the folder, the ids) is never cut
-   (0.3.27 release, the screens stand); each says itself whole on hover. The
+   their few characters; who started it and the branch give way first, and the folder press does not shrink (0.3.27 release, the
+   screens stand; a folder past 20em still cuts, CO-620 (13)); each says itself whole on hover. The
    folder and the ids are presses, dotted at rest so they read as such (design review F1 to F8). */
 .session-meta{flex:1 1 0;min-width:0;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:11.5px;color:var(--app-muted)}
 .session-meta-item{flex:0 0 auto;min-width:0;max-width:20em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1223,8 +1223,8 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 .session-meta-icon{width:12px;height:12px;margin-right:3px;vertical-align:-2px}
 .session-meta-copied{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 @media(max-width:1440px){.session-meta-item.is-extra{display:none}}
-/* A narrow window keeps whole parts only: who started it, the account, the organisation and the folder; the model, the
-   branch and the ids step out (the agent's page shows them all). */
+/* A narrow window keeps the account, the organisation and the folder whole, who started it giving way first; the model,
+   the branch and the ids step out (the agent's page shows them all). */
 @media(max-width:940px){.session-meta-item.is-branch,.session-meta-item.is-id,.session-meta-item.is-model{display:none}}
 .session-meta-item+.session-meta-item::before{content:"·";padding:0 6px;color:var(--app-line-strong)}
 .session-meta-press{font:inherit;font-size:11.5px;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}

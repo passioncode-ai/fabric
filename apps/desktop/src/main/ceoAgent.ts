@@ -340,6 +340,10 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     }
   }
 
+  // A restart behaves like the same run (run eleven, ER-94): the person's kept stop is read back, so the status says
+  // stopped and neither the window's opening nor the board's wake starts the CEO until the person starts it.
+  held = heldOnDisk()
+
   function knownProject(): string | null {
     try {
       const j = JSON.parse(readFileSync(metaFile, 'utf8')) as { projectId?: unknown }
@@ -369,8 +373,9 @@ export function createCeoAgent(deps: CeoAgentDeps) {
         fail('project', errorClass(e))
         return finish()
       }
-      // A start is never under the person's hold, so the meta keeps no hold from an earlier run (UX-81).
-      writeFileSync(metaFile, JSON.stringify({ projectId }, null, 2), { encoding: 'utf8', mode: 0o600 })
+      // The meta keeps the hold as it stands now: a stop pressed while the project was looked up is not overwritten
+      // (run eleven, ER-93).
+      writeHold(held)
       const t = now()
       const order = deps.runners().filter((r) => (setAside.get(r)?.until ?? 0) <= t)
       // ER-1: every runner set aside. None is walked again until its time passes or the person retries.
@@ -515,6 +520,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     await waitPersonStop()
     if (stopping) await stopping.catch(() => undefined /* recorded by stopConsole */)
     held = false
+    writeHold(false)
     if (pendingFallback) await pendingFallback
     await ensure()
     const left = new Promise<void>((resolve) => leftQueue.set(item, resolve))
@@ -550,7 +556,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
 
   /** Stop the console and start another. A person's restart (or retry) also brings back every runner set aside (UX-4). */
   async function restart(why = 'restart'): Promise<CeoStatus> {
-    if (why === 'person') { await waitPersonStop(); setAside.clear(); held = false }
+    if (why === 'person') { await waitPersonStop(); setAside.clear(); held = false; writeHold(false) }
     if (held) return status()
     const id = sessionId
     // ER-3: the console is no longer the CEO's before its stop is awaited, so its exit is never read as an early end.

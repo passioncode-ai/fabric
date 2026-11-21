@@ -224,8 +224,9 @@ const RULES: Rule[] = [
   // 0.3.27 review run nine, DA-57: the shapes the estate index met unredacted. xAI's is the key Fabric itself asks for
   // (`main/ceoVoiceKey.ts`); Stripe's secret and restricted keys; Hugging Face and Supabase personal tokens; a Telegram
   // bot token (the bot's number, a colon, then «AA» and the secret).
-  // xAI's keys are letters and digits only, long; a hyphenated name such as a folder or an anchor is not one (DA-64).
-  { name: 'xai-key', re: /\bxai-[A-Za-z0-9]{40,}/g },
+  // xAI's keys are letters and digits only; a hyphenated name such as a folder or an anchor is not one (DA-64), and a
+  // key cut at a text's bound still loses all but 19 characters of what remains (run eleven, DA-69).
+  { name: 'xai-key', re: /\bxai-[A-Za-z0-9]{20,}/g },
   { name: 'stripe-key', re: /\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}/g },
   { name: 'huggingface-token', re: /\bhf_[A-Za-z0-9]{30,}/g },
   { name: 'supabase-pat', re: /\bsbp_[A-Za-z0-9]{30,}/g },

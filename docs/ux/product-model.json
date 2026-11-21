@@ -35939,7 +35939,7 @@
       "coverage": "`apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `personStopEnded`, `onExit`, `ensure`, `send`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP», «ER-1 (0.3.25)», «ER-2 (0.3.25)», «ER-3 (0.3.25)», «ER-6 (0.3.25)»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.",
       "registry_status": "implemented (2026-11-19).",
       "product_observation": "unobserved",
-      "expected_result": "a stopped CEO stays stopped until the operator starts it, for as long as Fabric runs; a restart of Fabric starts the CEO with its window, as before.",
+      "expected_result": "a stopped CEO stays stopped until the operator starts it («Запустить», «Перезапустить» or a message). Since 0.3.27 the stop is kept in the CEO folder's `ceo.json`, so it holds across a restart of Fabric too: after a restart the window shows the CEO stopped, and neither its opening nor a `ceo.task` request on the board starts it (ADR-0197 Amendment 5; the 0.3.27 review, runs ten and eleven). Before 0.3.27 a restart of Fabric started the CEO with its window.",
       "errors_recovery": "a failed stop is said and can be pressed again; a forced stop follows a plain one that did not end the console (ER-10).",
       "source": {
         "file": "docs/ux/scenarios.md",

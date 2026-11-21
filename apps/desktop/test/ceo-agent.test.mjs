@@ -1443,6 +1443,28 @@ test('run ten: the person\'s stop outlives a restart, and the person\'s own star
   const r = await board.wake([{ requestId: 'r1', to: again.knownProjectId(), capability: 'ceo.task', subject: 'x', state: 'queued', from: 'p2' }])
   assert.equal(r, 'held')
   assert.equal([...k.consoles.values()].filter((s) => s.running).length, before, 'nothing started')
+  assert.equal(again.status().state, 'stopped', 'after a restart the status says stopped (run eleven, ER-94)')
   await again.ensure()
-  assert.equal(again.heldByPerson(), false, 'the person opening the CEO starts it and clears the stop')
+  assert.equal(again.heldByPerson(), true, 'opening the window starts nothing while the person\'s stop holds')
+  await again.restart('person')
+  assert.equal(again.heldByPerson(), false, 'the person\'s «Запустить» clears the stop')
+  assert.equal(createCeoAgent(k.deps).heldByPerson(), false, 'and the cleared stop is what a later restart reads')
+})
+
+// Run eleven, ER-93: a stop pressed while the first start looks up its project is kept on disk, not overwritten.
+test('run eleven: a stop during the first start\'s project lookup survives the next restart', async () => {
+  let release
+  const k = keeper()
+  const lookup = k.deps.ensureProject
+  k.deps.ensureProject = (...a) => new Promise((ok) => { release = () => ok(lookup(...a)) })
+  const { createCeoAgent } = await import('../src/main/ceoAgent.ts')
+  const agent = createCeoAgent(k.deps)
+  const starting = agent.ensure()
+  await new Promise((r) => setTimeout(r, 5))
+  const stopped = agent.stop()
+  await new Promise((r) => setTimeout(r, 5))
+  release()
+  await starting; await stopped
+  k.deps.ensureProject = lookup
+  assert.equal(createCeoAgent(k.deps).heldByPerson(), true)
 })
