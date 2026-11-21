@@ -1387,3 +1387,26 @@ test('run seven: names dated in the future never evict the file just kept aside;
   await new Promise((r) => setTimeout(r, 10))
   assert.ok(!JSON.parse(readFileSync(path.join(k2.root, 'pending.json'), 'utf8')).some((q) => q.retype), 'the stop drops the owed line')
 })
+
+// 0.3.27 review run eight, UX-63 and UX-65: the second matcher (main's) never overrides the CEO's address words, nor
+// makes a new folder «belong» to a project whose folder only begins the same way.
+test('run eight: «SEO» and «CEO» start nothing, by console or by voice, even beside the SEO agent and a CEO-named project', async () => {
+  const projects = [{ id: 'p1', name: 'seo-content-agent', repo_path: '/d/seo-content-agent' }, { id: 'p2', name: 'Fabric CEO', repo_path: '/d/fabric-ceo' }]
+  for (const word of ['SEO', 'CEO', 'сео', 'шеф'])
+    for (const via of [undefined, 'voice']) {
+      const o = operations({ projects })
+      const r = await o.ops.run('start', { project: word, task: 'go', reason: 'the owner asked' }, via)
+      assert.equal(r.ok, false, `${word} ${via ?? 'console'}`)
+      assert.equal(o.opened.length, 0, `${word} ${via ?? 'console'}`)
+    }
+})
+
+test('run eight: a new folder beside a longer-named project\'s folder becomes its own project', async () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'dirs-'))
+  const mine = path.join(root, 'myapp'), longer = path.join(root, 'myapp-legacy')
+  mkdirSync(mine); mkdirSync(longer)
+  const o = operations({ projects: [{ id: 'p1', name: 'myapp-legacy', repo_path: longer }] })
+  const r = await o.ops.run('start', { project: mine, task: 'go', reason: 'the owner asked' })
+  assert.equal(r.ok, true, JSON.stringify(r))
+  assert.equal(o.opened[0][0], 'p9')
+})

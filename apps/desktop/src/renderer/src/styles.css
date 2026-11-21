@@ -400,7 +400,7 @@ button:disabled { opacity: .4; cursor: default; }
    button included. */
 .ceo-popup, .ceo-popup-head, .ceo-popup-head *, .ceo-popup-chat, .ceo-composer-popup, .ceo-composer-popup .ceo-composer-form, .ceo-composer-popup .ceo-composer-actions { -webkit-app-region: drag; }
 .ceo-popup button, .ceo-popup button *, .ceo-popup input, .ceo-popup textarea, .ceo-popup a, .ceo-popup select, .ceo-popup label,
-.ceo-popup-console, .ceo-call-panel, .ceo-popup-notes, .ceo-composer-files, .ceo-popup .banner, .ceo-popup [role="dialog"], .ceo-popup [role="menu"] { -webkit-app-region: no-drag; }
+.ceo-popup-runner, .ceo-popup-state, .ceo-popup-console, .ceo-call-panel, .ceo-popup-notes, .ceo-composer-files, .ceo-popup .banner, .ceo-popup [role="dialog"], .ceo-popup [role="menu"] { -webkit-app-region: no-drag; }
 /* The CEO window loads no launch stylesheet, so the face is sized here. */
 .ceo-presence svg { display: block; width: 32px; height: 32px; }
 .ceo-presence { flex: none; display: inline-flex; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--ceo-ring, var(--app-line-strong)); }

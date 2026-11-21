@@ -26,7 +26,10 @@ export function isCeoAddress(text: string): boolean {
 }
 
 /** The rule as the voice reads it, in the call's language. */
-export function ceoAddressRule(locale: string): string {
+export function ceoAddressRule(locale: string, reader: 'voice' | 'ceo' = 'voice'): string {
+  if (reader === 'ceo') return locale === 'en'
+    ? `The words ${CEO_ADDRESS_WORDS.map((w) => `«${w}»`).join(', ')} (and «директор», «шеф» in any case) in the owner's message mean you, the CEO of Fabric: never look them up as a project and never take them for the SEO agent, which the owner calls by its full name.`
+    : `Слова ${CEO_ADDRESS_WORDS.map((w) => `«${w}»`).join(', ')} (в любом падеже) в сообщении владельца означают тебя, CEO Fabric: никогда не ищи их как проект и не путай с SEO-агентом, его владелец называет полным именем.`
   return locale === 'en'
     ? `The words ${CEO_ADDRESS_WORDS.map((w) => `«${w}»`).join(', ')} (and «директор», «шеф» in any case) mean the CEO agent of Fabric, the one you are the voice of: never look them up as a project and never take them for the SEO agent, which the owner calls by its full name.`
     : `Слова ${CEO_ADDRESS_WORDS.map((w) => `«${w}»`).join(', ')} (в любом падеже) означают CEO-агента Fabric, голос которого ты: никогда не ищи их как проект и не путай с SEO-агентом, его владелец называет полным именем.`

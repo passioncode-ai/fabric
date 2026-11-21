@@ -66,27 +66,24 @@ ledger is the entry point from here: `docs/evidence/plans/2026-11-20-release-032
 On 2026-11-20 at 21:37 (the owner's time, as relayed) the owner reported a session's first task and the CEO popup's
 messages lost; the home's session fixed it on `fix/delivery-never-drops`, merged before the tag, which reopened review
 iteration 3 (runs four and more, each in the ledger). On 2026-11-21 (00:30 as relayed) came
-the owner's pause (fabric-workspace session 2d03ce15, brief `2026-11-21-strategic-plan-fable-brief.md`): new features wait for the strategic plan; in 0.3.27 only the voice retro's fixes and the review's findings on its own code go ahead; whether a fix outside 0.3.27 may start before the plan is the owner's open question, held in CO-614. The registry fix held out of 0.3.27 by that pause is CO-614; what the review's runs leave is CO-609 and CO-615. The paused
+the owner's pause (fabric-workspace session 2d03ce15, brief `2026-11-21-strategic-plan-fable-brief.md`): new features wait for the strategic plan; 0.3.27 carries the voice retro's fixes and, by the owner's later words, what `main` took meanwhile (his answer of 2026-11-21, «Выпустить с main»), the voice reading the board (his exception of about 02:10) and the home's blockers agreed to ride it, Inbox's connection among them (CO-614, closed); the ledger `docs/evidence/plans/2026-11-20-release-0327-verification.md` records the sources. The registry fix and Inbox's connection, first held out by that pause, ship in 0.3.27 (CO-614, closed); what the review's runs leave is CO-609, CO-615 and CO-620. The paused
 CEO work (access, approval modes, persona, voice, calls) has its own handoff for the strategist on `feat/ceo-persona`:
 `docs/reports/2026-11-21-paused-ceo-work-handoff/README.md`.
 
 ## Where the release stands (2026-11-21)
 
-The candidate is `251ee68e` on `feat/voice-retro`: review iteration 3 ran seven times (the ledger's runs one to
-seven), and run seven's code findings are fixed in it with their tests. `ci.sh fast` was green on every run's candidate
-from run five on (browser suites 26 of 26, Claude Code 2.1.330 equal to its pin). One decision is the owner's
-(run seven, PL-49): `main` took 41 commits of other sessions during the review (Memory, the estate graph, an update in
-place), and a release is cut only from `main`, so 0.3.27 would carry them. The question is in Fabric («Нужны вы»,
-subject `fabric.release-0327.main-moved`) and was told through the communicator; no tag before the answer.
+The owner answered run seven's question (PL-49) on 2026-11-21: «Выпустить с main». The candidate on `feat/voice-retro`
+merges `main` (`5f4dc15b`), the voice reading the board (his exception of about 02:10, `feat/voice-board`) and the
+home's blockers agreed to ride this release (`fix/registry-contract` with Inbox's connection, `fix/stack-outage-banner`,
+`feat/ceo-window-place`, `fix/ceo-dictation-tail`). `ci.sh fast` on the merge found design-gate, prototype and journey
+gaps in the merged branches, fixed before review run eight. Run eight (the ledger's run eight) found blocking findings
+in what the merge brought: the estate index kept and served text unredacted (DA-49), the CEO's address words still
+reached a project and a new folder was refused beside a longer-named one (UX-63, UX-65), the voice could not open a task
+by the id it gave (UX-64), and the records did not say what 0.3.27 now carries (PL-53, DO-63 to DO-66). All are fixed in
+the next candidate with their tests; run nine reads it.
 
-**Next task, by the owner's answer.**
-- «Выпустить с main»: merge `origin/main` into `feat/voice-retro` (a trial merge conflicts in 19 files, three of them
-  code: `main/ceoTools.ts`, `main/index.ts`, `test/ceo-agent.test.mjs`; the rest are documents and generated
-  projections, rebuilt), move `main`'s `## Unreleased` entries into `## 0.3.27`, run `ci.sh fast`, then review run eight
-  on the merged candidate, then the release commit (gate at that candidate, run eight's folder), land on `main` by
-  fast-forward, tag `v0.3.27`.
-- «Ждать стратегический план»: nothing more here; `feat/voice-retro` stays pushed with the fixes, CO-609, CO-614 and
-  CO-615 record what is left.
+**Next task.** Review run nine on the newest `feat/voice-retro`, then the release commit (gate at that candidate, run
+nine's folder), land on `main` by fast-forward, tag `v0.3.27`, watch the release, install and check the DMG.
 
 ## The exact next task (as written before the merge)
 

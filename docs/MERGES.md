@@ -4,24 +4,29 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `RELEASE-0327-MAIN` · main → feat/voice-retro (the 0.3.27 candidate) · merge `5f4dc15b`
+- files: all of `main`'s 41 commits since the candidate (Memory, the estate index and graph, the folder-role navigation, the update in place); resolved by hand: `apps/desktop/src/main/ceoTools.ts`, `apps/desktop/src/main/index.ts`, `apps/desktop/test/ceo-agent.test.mjs`, CHANGELOG, the carry-over register, the backlog's lane 12, scenarios, the map; generated projections rebuilt
+- conflicts: the CEO's project lookup: `start` asks the retro's sound-based `findProject` first and main's `matchProject` as a second opinion (a canonical folder over a copy, a typo forgiven), never for the CEO's address words, a folder too broad or a folder path; `resume` is main's resume as itself, with the retro's runner id from the launch journal
+- summary: the owner's answer of 2026-11-21, «Выпустить с main»; review run eight read the merged candidate
+
 ### 2026-11-21 · `CEO-WINDOW-PLACE`, `CEO-DICTATION-TAIL` · feat/ceo-window-place, fix/ceo-dictation-tail → feat/voice-retro (the 0.3.27 candidate) · merge
 - files: `apps/desktop/src/main/{ceoWindowPlacement,sessionMetaRead,switchboardSessions,ceoVoice,index}.ts`, `apps/desktop/src/shared/{windowPlacement,sessionMeta,ceoAgent}.ts`, `renderer/src/ceo/{CeoPopup,CeoComposer,CeoCall}.tsx`, styles, stand, tests `windowPlacement`, `CeoPopup`, `ceoDrag`, `ceo-agent`, `voice-retro`; SCN-188; `docs/reports/2026-11-20-ceo-window-polish/`, `docs/reports/2026-11-20-console-meta-line/`
 - conflicts: `main/index.ts` (imports, both kept), `CeoComposer.tsx` (the state-aware status kept, the `btn-sm` buttons taken), `ceoVoice.ts` (the board rule, the CEO address rule and the dictation tail all kept), `scenarios.md` (SCN-188 before SCN-189), generated files rebuilt
 - summary: session 8343a070's blockers ride the one 0.3.27 release, as agreed: the CEO's window keeps its place, a console's system line, the dictation tail is no order
 
-### 2026-11-20 · `STACK-OUTAGE-BANNER` · fix/stack-outage-banner → main · fast-forward (toward 0.3.27)
+### 2026-11-20 · `STACK-OUTAGE-BANNER` · fix/stack-outage-banner → feat/voice-retro (the 0.3.27 candidate) · merge (wave 0's last fix)
 - files: `apps/desktop/src/shared/{errorText,stackWatch}.ts`, `apps/desktop/src/main/{ops,opsSink,stackWatch,index}.ts`, `apps/desktop/src/renderer/src/{App,StackHealthNotice}.tsx`, i18n, tests `stack-watch.test.mjs`, `errorText.test.ts`, `StackHealthNotice.test.tsx`
 - conflicts: none
 - summary: the owner's screen of 2026-11-20: a database outage is said once by the stack watch's notice, the red banner no longer guesses «stack stopped» and goes when the database is back, the log counts the outage's failures into `stack.back`, and the disk is said under 15 GB
 
-### 2026-11-21 · `INBOX-AUTOMATIC` · fix/registry-contract → main (0.3.28) · fast-forward after the 0.3.27 tag
+### 2026-11-21 · `INBOX-AUTOMATIC` · fix/registry-contract → feat/voice-retro (the 0.3.27 candidate) · merge, with the registry fix
 - files: `apps/desktop/src/main/{accessService,inboxAutoConnect,board}.ts`, `docs/adr/0204-*.md`, `AGENTS.md` (lifecycle row), tests `hub-access-service`, `inbox-auto-connect` (new, in `scripts/ci.sh`)
 - conflicts: none expected
 - summary: the owner's «не надо никакой подключать»: on his machine an agent's ask of Fabric Inbox is allowed at once and recorded, and Fabric connects itself to Inbox; elsewhere unchanged
 
 ### 2026-11-20 · `REGISTRY-CONTRACT` · fix/registry-contract → feat/voice-retro (the 0.3.27 candidate) · merge
 - files: `apps/desktop/src/main/agentRegistry.ts`, `apps/desktop/test/agent-registry.test.mjs`
-- conflicts: none expected; CHANGELOG written by the release session
+- conflicts: none expected; CHANGELOG written by the release session (the 0.3.27 bullet on Inbox, after review run eight's PL-53 and DO-63)
 - summary: Fabric Inbox's session found that the registry refused descriptors valid by the contract (runner, peer, channels; manager person without an origin), so Inbox was absent and agents could not reach it; the validator now follows the contract
 
 ### 2026-11-21 · `SP-A1-ROWS` · docs/sp-a1-backlog-rows → main · fast-forward

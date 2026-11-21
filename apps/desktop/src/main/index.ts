@@ -50,11 +50,11 @@ import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
 import { startEstateIndex, type Estate } from './estateWiring.ts'
-import { knowledgeVoiceTools, type KnowledgeOperations } from './knowledgeTools.ts'
+import { knowledgeVoiceTools, VOICE_REFUSED_OPERATIONS, type KnowledgeOperations } from './knowledgeTools.ts'
 import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
 import { createVoiceJournal } from './ceoVoiceJournal.ts'
 import { createVoiceTools, VOICE_TOOLS } from './ceoVoiceTools.ts'
-import { createVoiceBoard, VOICE_BOARD_TOOLS, type BoardTask } from './voiceBoard.ts'
+import { createVoiceBoard, VOICE_BOARD_TOOLS, TASKS_READ, type BoardTask } from './voiceBoard.ts'
 import { createAliasStore } from './ceoProjectAliases.ts'
 import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
@@ -5609,7 +5609,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     reads: {
       projects: async () => must(await store.select('projects', 'id,name,created_at,repo_path').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active').limit(1000), 'the projects'),
-      tasks: async (projectId) => must(await store.select('project_tasks', TASK_COLS).eq('project_id', projectId).order('started_at', { ascending: false }).limit(200), 'the tasks'),
+      tasks: async (projectId) => must(await store.select('project_tasks', TASK_COLS).eq('project_id', projectId).order('started_at', { ascending: false }).limit(TASKS_READ), 'the tasks'),
       tasksByIds: async (ids) => ids.length ? rowsOf<BoardTask>(await store.selectIn('project_tasks', TASK_COLS, 'id', ids.filter((x) => /^[0-9a-f-]{36}$/i.test(x))), 'the tasks') : [],
       linksFrom: async (ids) => ids.length ? rowsOf(await store.selectIn('task_links', 'task_id,rel,target_kind,target_id', 'task_id', [...ids]), 'the links') : [],
       linksTo: async (id) => must(await store.select('task_links', 'task_id,rel,target_kind,target_id').eq('target_id', id).limit(200), 'the links'),
@@ -5762,7 +5762,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           : 'typed into the CEO console; read its answer with ceo_reply'
       return { ok: r.ok, ...(r.queued ? { queued: true } : {}), ...(r.reason ? { reason: r.reason } : {}), said }
     }
-    if (tool.startsWith('knowledge_') && knowledgeOperations) return knowledgeOperations.run(tool.slice('knowledge_'.length), args)
+    if (tool.startsWith('knowledge_') && knowledgeOperations) {
+      const op = (args as { operation?: unknown } | null)?.operation
+      if (tool === 'knowledge_execute' && typeof op === 'string' && VOICE_REFUSED_OPERATIONS.has(op))
+        return { ok: false, error: `${op} is not the voice's: the voice reads the index; ask the CEO to refresh or rebuild it` }
+      return knowledgeOperations.run(tool.slice('knowledge_'.length), args)
+    }
     // The owner, 2026-11-21: the voice reads the board itself, read-only (`voiceBoard.ts`); counted by its own op.
     if (voiceBoard.has(tool)) {
       const r = await voiceBoard.run(tool, args)

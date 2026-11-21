@@ -105,3 +105,32 @@ test('the voice is told to read the board itself and that the CEO words are the 
   assert.equal(findProject(projects, 'SEO').why, 'ceo-itself')
   assert.equal(findProject(projects, 'seo-content-agent').found.id, 'p1', 'the SEO agent by its full name is still found')
 })
+
+// 0.3.27 review UX-71: the owner dictates into the CEO's composer too; its brief says the address words mean the CEO.
+test('the CEO brief carries the address words as meaning the CEO itself, in both languages', async () => {
+  const { ceoBrief } = await import('../src/shared/ceoAgent.ts')
+  for (const locale of ['ru', 'en']) {
+    const brief = ceoBrief({ locale })
+    assert.ok(brief.includes('«SEO»'), locale)
+    assert.ok(/означают тебя|mean you/.test(brief), locale)
+  }
+})
+
+// 0.3.27 review run eight, UX-64 and UX-66: real ids through the host's own filter (`tasksByIds` keeps 36-character ids
+// only), a walk from board_tasks to board_task by the id it gave; running tasks said before the backlog.
+test('run eight: the voice opens a task by the id board_tasks gave, and by its first characters within the project', async () => {
+  const U = (n) => `${String(n).repeat(8)}-${String(n).repeat(4)}-4${String(n).repeat(3)}-8${String(n).repeat(3)}-${String(n).repeat(12)}`
+  const tasks = [T(U(1), 'p4', 'Write the listing copy', 'running'), T(U(2), 'p4', 'Make the screenshots', 'review'),
+    ...Array.from({ length: 30 }, (_, i) => T(`${String(i).padStart(8, '0')}-0000-4000-8000-000000000000`, 'p4', `Backlog idea ${i}`, 'backlog', { started_at: null }))]
+  const b = board({
+    tasks: async () => tasks,
+    tasksByIds: async (ids) => tasks.filter((t) => ids.filter((i) => /^[0-9a-f-]{36}$/.test(i)).includes(t.id)),
+    linksFrom: async () => [], linksTo: async () => [], claims: async () => []
+  })
+  const list = await b.run('board_tasks', { project: 'dissy' })
+  assert.deepEqual(list.tasks.slice(0, 2).map((t) => t.status), ['running', 'review'])
+  const one = await b.run('board_task', { task: list.tasks[0].id })
+  assert.equal(one.ok, true, JSON.stringify(one))
+  const byPrefix = await b.run('board_task', { task: U(2).slice(0, 8), project: 'dissy' })
+  assert.equal(byPrefix.ok, true, JSON.stringify(byPrefix))
+})

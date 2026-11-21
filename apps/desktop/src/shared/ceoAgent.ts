@@ -10,7 +10,7 @@
  * that failed) the next runner of the order runs it (Hermes on OpenRouter by default), so the CEO answers on any day.
  */
 
-import { isCeoAddress } from './ceoAddress.ts'
+import { ceoAddressRule, isCeoAddress } from './ceoAddress.ts'
 import { heardDistance, heardClose, heardKeys, nameKeys, soundKey } from './heardName.ts'
 import { isScratchFolder } from './scratchFolder.ts'
 
@@ -186,6 +186,8 @@ export function ceoBrief(opts: { locale: string }): string {
     '## Слова владельца, которые не поручение',
     '',
     DICTATION_TAIL.ru,
+    // The owner dictates into the composer too (0.3.27 review UX-71): the address words mean the CEO here as in the call.
+    ceoAddressRule('ru', 'ceo'),
     '',
     '## Задачи от PM-агентов',
     '',
@@ -225,6 +227,7 @@ export function ceoBrief(opts: { locale: string }): string {
     '## Words of the owner that are no order',
     '',
     DICTATION_TAIL.en,
+    ceoAddressRule('en', 'ceo'),
     '',
     '## Tasks from PM agents',
     '',

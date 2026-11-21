@@ -14,7 +14,7 @@ one index; this record checks it against a measurement.
 
 ## Measurement
 
-The CEO's own transcript of 2026-11-19 (`~/.claude/projects/-Users-sshlg-Library-Application-Support--fabric-desktop-ceo/e6675d55-8924-4129-935c-f78d52680842.jsonl`,
+The CEO's own transcript of 2026-11-19 (`~/.claude/projects/<the CEO folder's slug>/<session>.jsonl`,
 each tool call paired with its result by `tool_use_id`, times from the lines' timestamps) holds one whole navigation
 task: after a reload, find the sessions it had started and continue them.
 

@@ -6,7 +6,8 @@
  * signed Fabric.app of the same team in without its dialog (Fabric Inbox 1.9.1, PR #602).
  *
  * The rules, each a reason not to start: not the operator's own machine; Inbox not in the registry; a connection lives; a
- * connect is waiting; the person said no (a denial is never overridden); a failed try less than RETRY_MS ago.
+ * connect is waiting; the person said no (a denial is never overridden, and their Disconnect or Deny holds across a
+ * restart until they connect again, 0.3.27 review ER-69); a failed try less than RETRY_MS ago.
  */
 import type { ConnectOutcome } from './productConnect.ts'
 
@@ -18,6 +19,9 @@ export interface InboxAutoConnectDeps {
   inRegistry(): boolean
   connected(): Promise<boolean>
   last(): ConnectOutcome | null
+  /** Whether the person said no in a way that outlives the process (0.3.27 review ER-69): their newest Inbox connection
+   *  was disconnected, or the newest answer since it was a Deny, read from the database. A read that fails is a no. */
+  saidNo?(): Promise<boolean>
   begin(): Promise<{ ok: boolean }>
   record(op: string, detail: Record<string, unknown>): void
   now?: () => number
@@ -39,6 +43,7 @@ export function createInboxAutoConnect(deps: InboxAutoConnectDeps): () => Promis
       const last = deps.last()
       if (last?.outcome === 'waiting') return 'waiting'
       if (last?.outcome === 'denied') return 'denied'
+      if (deps.saidNo && await deps.saidNo().catch(() => true)) return 'denied'
       if (lastTry && now() - lastTry < INBOX_RETRY_MS) return 'too-soon'
       lastTry = now()
       const r = await deps.begin()

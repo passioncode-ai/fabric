@@ -159,6 +159,18 @@ export async function startBoardHub(d: BoardHubDeps): Promise<void> {
     inRegistry: () => registry.snapshot().entries.some((e) => e.id === FABRIC_INBOX.product),
     connected: async () => (await accessStore.liveConnection(FABRIC_INBOX.product)) !== null,
     last: () => connector.lastOutcome(FABRIC_INBOX.product),
+    // The person's Disconnect (the newest connection removed) or Deny (the newest answer since it), from the database,
+    // so neither is undone by the next tick nor forgotten at a restart (0.3.27 review ER-69).
+    saidNo: async () => {
+      const c = await store.select('product_connections', 'connected_at,removed_at').eq('product', FABRIC_INBOX.product).order('connected_at', { ascending: false }).limit(1)
+      if (c.error) throw new Error(c.error.message)
+      const newest = (c.data as Array<{ connected_at: string; removed_at: string | null }> | null)?.[0] ?? null
+      if (newest?.removed_at) return true
+      const r = await store.select('journal', 'occurred_at,payload').eq('type', 'product.connect.refused@1').eq('payload->>product', FABRIC_INBOX.product).order('seq', { ascending: false }).limit(1)
+      if (r.error) throw new Error(r.error.message)
+      const refused = (r.data as Array<{ occurred_at: string; payload: { outcome?: string } }> | null)?.[0] ?? null
+      return refused?.payload?.outcome === 'denied' && (!newest || Date.parse(refused.occurred_at) > Date.parse(newest.connected_at))
+    },
     begin: async () => (hubState.doorToken ? connector.begin(FABRIC_INBOX) : { ok: false }),
     record: (op, detail) => ops.record({ op, outcome: detail.started ? 'ok' : 'failed', level: detail.started ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
   })

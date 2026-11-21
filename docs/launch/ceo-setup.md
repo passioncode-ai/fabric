@@ -51,7 +51,10 @@ their folders and the computer's state (disk, load, memory), all redacted and bo
 
 The voice reads Fabric's board itself, read-only, without the CEO's console (SCN-191): the newest projects with when each
 was added, a project's tasks with status and holder, a task's goal and graph, the board's messages. During a call xAI
-also receives these answers: project names and folders, task titles and statuses, goal titles. The words «шеф»,
+also receives these answers: project names and folders, task titles and statuses, who holds a task (an agent's name or
+a session), goal titles. The voice also searches the estate index (`knowledge_search`, `knowledge_execute`), so during a
+call xAI receives search passages from the sessions, transcripts, documents and commits of every project, redacted as
+the index writes them and again on the way out. The words «шеф»,
 «директор», «босс», «менеджер», «главный» and «SEO» mean the CEO itself and are sent to xAI as recognition hints.
 
 ## 4. The microphone

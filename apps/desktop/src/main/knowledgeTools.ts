@@ -8,6 +8,8 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { checkClaims, matchProject, type CatalogueRow } from '../shared/estateSearch.ts'
+import { redactPayload } from '../shared/redact.ts'
+import { isCeoAddress } from '../shared/ceoAddress.ts'
 import type { Embedder, EstateIndex } from './estateIndex.ts'
 import type { PassReport } from './estateRun.ts'
 import { memoryChanges, memoryGraph, memoryOverview, type MemoryLabels } from './memoryRead.ts'
@@ -87,6 +89,8 @@ export function createKnowledgeOperations(deps: KnowledgeDeps) {
     if ('refused' in o) return o.refused
     const ix = o.ix
     let project = a.project
+    // «SEO», «шеф» and the like mean the CEO itself, never a project to narrow to (0.3.27 review UX-63).
+    if (project && isCeoAddress(project)) return refuse(`«${project}» means the CEO itself, not a project: search without a project, or name the project by its own name`)
     if (project) {
       const m = matchProject(await deps.catalogue(), project)
       if ('found' in m) project = m.found.name
@@ -113,6 +117,7 @@ export function createKnowledgeOperations(deps: KnowledgeDeps) {
     if (op === 'index.rebuild') return { ok: true, pass: await deps.rebuild() }
     if (op === 'projects.list') {
       const q = typeof args.query === 'string' ? args.query : ''
+      if (q && isCeoAddress(q)) return { ok: true, projects: [], note: `«${q}» means the CEO itself, not a project` }
       const rows = (await deps.catalogue()).filter((r) => args.include_temporary === true || r.role !== 'temporary')
       const picked = (q ? (() => { const m = matchProject(rows, q); return 'found' in m ? [m.found] : 'ambiguous' in m ? m.ambiguous : m.near })() : rows) as Array<CatalogueRow & { context?: string }>
       return { ok: true, projects: picked.slice(0, 300).map((r) => ({ id: r.id, name: r.name, folder: r.repo_path, role: r.role, of: r.of, context: r.context ?? null })) }
@@ -165,7 +170,8 @@ export function createKnowledgeOperations(deps: KnowledgeDeps) {
     try {
       const answer = name === 'search' ? await search(parsed.data as z.infer<typeof KNOWLEDGE_TOOLS.search.input>) : await execute(parsed.data as z.infer<typeof KNOWLEDGE_TOOLS.execute.input>)
       deps.record(`knowledge.${name}`, { outcome: answer.ok === false ? 'refused' : 'ok', ms: Date.now() - started, ...(name === 'execute' ? { operation: (parsed.data as { operation?: string }).operation ?? 'list' } : { hits: Array.isArray(answer.hits) ? answer.hits.length : 0 }) })
-      return answer
+      // A second guard (0.3.27 review DA-49): the index is redacted as written; what leaves for a model is again.
+      return redactPayload(answer).payload as Answer
     } catch (e) { /* a door that threw refused the act: said, never an answer that looks like success */
       deps.record(`knowledge.${name}`, { outcome: 'failed', error: e instanceof Error ? e.message.slice(0, 200) : String(e) })
       return refuse(e instanceof Error ? e.message.slice(0, 300) : String(e))
@@ -243,8 +249,13 @@ export function registerKnowledgeTools(server: McpServer, ops: KnowledgeOperatio
     server.registerTool(tool.mcp, { title: tool.title, description: tool.description, inputSchema: tool.input.shape }, async (args: unknown) => json(await ops.run(name, args)))
 }
 
+/** What the voice may not run (0.3.27 review DA-52): it reads; one misheard request must not rebuild the index. */
+export const VOICE_REFUSED_OPERATIONS: ReadonlySet<string> = new Set(['index.refresh', 'index.rebuild'])
+
 /** The voice door: the same two tools as function definitions for the realtime session. */
 export function knowledgeVoiceTools(): Array<{ type: 'function'; name: string; description: string; parameters: unknown }> {
-  return Object.entries(KNOWLEDGE_TOOLS).map(([name, tool]) => ({ type: 'function' as const, name: `knowledge_${name}`, description: tool.description, parameters: z.toJSONSchema(tool.input) }))
+  // The voice's names (0.3.27 review UX-70): its tools are knowledge_* and session_*, never the CEO console's fabric_* names.
+  const voiced = (t: string): string => t.replace(/fabric_knowledge_(search|execute)/g, 'knowledge_$1').replace(/fabric_ceo_session_resume/g, 'session_resume')
+  return Object.entries(KNOWLEDGE_TOOLS).map(([name, tool]) => ({ type: 'function' as const, name: `knowledge_${name}`, description: voiced(tool.description), parameters: z.toJSONSchema(tool.input) }))
 }
 // #endregion knowledge-tools

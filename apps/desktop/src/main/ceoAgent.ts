@@ -145,8 +145,9 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** The person's messages the console has not taken yet, oldest first, kept on disk so a restart of Fabric keeps them
    *  (the owner, 2026-11-20, 21:37: «не отправляется сообщение из поп-апа … Я руками вставил»). */
   const queueFile = path.join(deps.root, 'pending.json')
-  // One bound for the queue in memory and on disk (0.3.27 review, run four, DA-32, ER-42): a send past it is refused and
-  // said, never dropped; a file holding more at a start keeps the oldest and records the cut.
+  // The queue's bound (0.3.27 review, run four, DA-32, ER-42; run seven, DA-46): 50 of the person's lines, plus up to 10
+  // a lost console owed; a send past it is refused and said, never dropped; a file holding more at a start is kept
+  // aside whole, then cut.
   /** A queue file Fabric could not use is moved aside, never overwritten without a trace (run four ER-41); the moved files
    *  are kept 30 days and at most three, since each holds the owner's words (run five, DA-38). */
   const keepAside = (why: string, detail: Record<string, unknown>): void => {

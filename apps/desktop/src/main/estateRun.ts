@@ -212,7 +212,13 @@ export function createEstateRunner(deps: EstateRunDeps) {
           ix.setMeta(`commits:${p.id}`, head)
         }
         // The project's documents at this HEAD; a repository read past the budget waits for the next pass.
-        if (deps.now() - started <= budgetMs * 2) { const d = await documentBatch(ctx, p); docs += put(d); documents += d.nodes.length }
+        if (deps.now() - started <= budgetMs * 2) {
+          const d = await documentBatch(ctx, p)
+          docs += put(d)
+          documents += d.nodes.length
+          // What this HEAD no longer holds leaves the index: moved sections and removed files (0.3.27 review ER-68).
+          ix.pruneDocs(`doc:${p.id}/`, new Set(d.docs.map((x) => x.id)))
+        }
         else { degraded.push(`documents-deferred: ${p.name}`); continue }
         ix.setMeta(`head:${p.id}`, head)
       } catch (e) { /* named in the pass's degraded; the other sources still land */ degraded.push(`git-unread: ${p.name}: ${e instanceof Error ? e.message.slice(0, 100) : String(e)}`) }

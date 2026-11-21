@@ -32,6 +32,10 @@ export interface BoardReads {
 const CLOSED = new Set(['done', 'cancelled', 'finished', 'abandoned'])
 const GOAL_HOPS = 10
 const TASKS_SAID = 25
+/** The newest tasks of a project the host reads at most (`main/index.ts`, region voice-board-reads); counts past it are capped. */
+export const TASKS_READ = 200
+/** Said first: what runs, then what waits for the owner, then the rest (0.3.27 review UX-66). */
+const STATUS_ORDER: Record<string, number> = { running: 0, review: 1, backlog: 2 }
 
 export const VOICE_BOARD_TOOLS = [
   {
@@ -61,7 +65,8 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
   const when = (iso: string | null | undefined): string | null => (iso ? fmt.format(new Date(iso)) : null)
   const unread = (what: string, e: unknown): Answer => ({ ok: false, reason: `${what} could not be read: ${e instanceof Error ? e.message.slice(0, 160) : String(e)}`, next: 'tell the owner the board could not be read now' })
   const titleOf = (t: BoardTask): string => (t.title || t.instruction || '').trim().slice(0, 140)
-  const brief = (t: BoardTask): Answer => ({ id: t.id.slice(0, 8), title: titleOf(t), status: t.status })
+  // The whole id: it goes only to the model, never to a screen, and board_task opens a task by it (0.3.27 review UX-64).
+  const brief = (t: BoardTask): Answer => ({ id: t.id, title: titleOf(t), status: t.status })
 
   async function project(name: unknown): Promise<{ ok: true; p: BoardProject } | { ok: false; a: Answer }> {
     const q = typeof name === 'string' ? name.trim() : ''
@@ -90,7 +95,8 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
     let rows: BoardTask[]
     try { rows = await deps.reads.tasks(found.p.id) } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board) */ return unread('the tasks', e) }
     const shown = rows.filter((t) => a.include_closed === true || !CLOSED.has(t.status))
-      .sort((x, y) => Date.parse(y.started_at ?? '') - Date.parse(x.started_at ?? ''))
+      .sort((x, y) => (STATUS_ORDER[x.status] ?? 3) - (STATUS_ORDER[y.status] ?? 3)
+        || (Date.parse(y.started_at ?? '') || 0) - (Date.parse(x.started_at ?? '') || 0))
     let claims: BoardClaim[] = []
     let claimsUnread: string | null = null
     try { claims = await deps.reads.claims(shown.map((t) => t.id)) } catch (e) { /* the tasks still answer; said as holders_unread */ claimsUnread = e instanceof Error ? e.message.slice(0, 120) : String(e) }
@@ -103,6 +109,8 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
       ok: true, project: found.p.name, tasks: said, ...(shown.length > TASKS_SAID ? { more: shown.length - TASKS_SAID } : {}),
       waits_for_owner: shown.filter((t) => t.status === 'review').map(brief),
       counts: countBy(rows.map((t) => t.status)),
+      // The host reads the newest TASKS_READ; at that bound the counts are of those, not the project's (DA-52).
+      ...(rows.length >= TASKS_READ ? { capped: true, note: `counts are of the newest ${TASKS_READ} tasks; say «at least»` } : {}),
       ...(claimsUnread ? { holders_unread: claimsUnread } : {})
     }
   }
@@ -121,7 +129,10 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
         const found = await project(a.project)
         if (!found.ok) return found.a
         const words = q.toLowerCase().split(/\s+/).filter(Boolean)
-        const rows = (await deps.reads.tasks(found.p.id)).filter((r) => words.every((w) => titleOf(r).toLowerCase().includes(w)))
+        const all = await deps.reads.tasks(found.p.id)
+        // An id's first characters, as an older answer or the owner may give them, open the task too (UX-64).
+        const byPrefix = /^[0-9a-f-]{6,35}$/i.test(q) ? all.filter((r) => r.id.toLowerCase().startsWith(q.toLowerCase())) : []
+        const rows = byPrefix.length ? byPrefix : all.filter((r) => words.every((w) => titleOf(r).toLowerCase().includes(w)))
         if (rows.length > 1) return { ok: false, reason: 'several tasks match', choices: rows.slice(0, 3).map(brief), next: 'read the owner two or three and ask' }
         t = rows[0] ?? null
       }

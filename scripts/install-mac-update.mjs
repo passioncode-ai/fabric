@@ -76,7 +76,7 @@ if (opts.schedule) {
     const loaded = spawnSync('launchctl', ['bootstrap', `gui/${process.getuid()}`, plist], { encoding: 'utf8' })
     if (loaded.status !== 0) fail(`launchd refused the job: ${loaded.stderr.trim()}`)
   })
-  say(`scheduled: the update applies once Fabric has ended (a quit, a restart, logout); log ${logFile}`)
+  say(`scheduled: the update applies once Fabric has ended (logout, a restart of the Mac, or a Quit with «Служба доски» off; with it on, as by default, Quit keeps Fabric running and the update waits); log ${logFile}`)
   process.exit(0)
 }
 const unschedule = () => {
@@ -117,8 +117,10 @@ if (!opts.tidy) {
 
   if (running(opts.target)) {
     if (!opts.wait) { act(`remove ${stage}`, () => rmSync(stage, { recursive: true, force: true })); fail('Fabric is running: quit it first, or pass --wait (or --schedule) to apply the update once it has ended') }
-    say('waiting until Fabric has ended (a quit, a restart, logout); nothing is stopped by this installer')
-    if (!opts.dryRun) while (running(opts.target)) sleep(500)
+    say('waiting until Fabric has ended (logout, a restart of the Mac, or a Quit with «Служба доски» off); nothing is stopped by this installer')
+    // «Перезапустить Fabric» starts it again about 200 ms after it ends (0.3.27 review ER-70): an end counts only when Fabric
+    // is still gone 2 s later, so a restart is waited out rather than met by the swap's own check and dropped.
+    if (!opts.dryRun) do { while (running(opts.target)) sleep(500); sleep(2000) } while (running(opts.target))
   }
 
   act(`swap ${opts.target}/Contents for the staged one, keeping the folder`, () => {

@@ -233,3 +233,57 @@ test('a console Fabric no longer runs is recalled with the newest session it ran
   assert.equal(recallSession(ix, 'nothing'), null)
   assert.deepEqual(pastConsoles(ix, 10).map((r) => r.id), ['f1'])
 })
+
+// 0.3.27 review DA-49: a key typed into any session never reaches the index's file or an answer of its doors.
+test('a key typed into a transcript is redacted as the index writes it, and no door answers it', async () => {
+  const { createKnowledgeOperations } = await import(path.resolve(import.meta.dirname, '../src/main/knowledgeTools.ts'))
+  const { readFileSync } = await import('node:fs')
+  const KEY = 'sk-ant-api03-' + 'Q'.repeat(90) + 'AA'
+  const dir = tmp(), file = path.join(dir, 'index.sqlite'), ix = new EstateIndex(file)
+  const proj = path.join(dir, 'projects', '-p')
+  mkdirSync(proj, { recursive: true })
+  const sid = '22222222-2222-4222-8222-222222222222'
+  writeFileSync(path.join(proj, `${sid}.jsonl`), `${JSON.stringify({ type: 'user', sessionId: sid, cwd: '/w/fabric', timestamp: '2026-11-21T10:00:00Z', message: { content: `deploy with key ${KEY} please` } })}\n`)
+  const ctx = makeContext(catalogue([{ id: 'p1', name: 'fabric', repo_path: '/w/fabric' }]), new Map())
+  const [f] = listTranscripts([{ runtime: 'claude', dir: path.join(dir, 'projects'), configDir: null }])
+  assert.equal(readTranscript(ix, ctx, f).turns, 1)
+  ix.putGraph([{ id: 'task:k', kind: 'task', label: `rotate ${KEY}`, attrs: { note: KEY } }], [])
+  const ops = createKnowledgeOperations({ index: () => ix, embedder: async () => null, catalogue: async () => [], refresh: async () => ({}), rebuild: async () => ({}), record: () => {}, file, labels: () => ({}) })
+  const answers = [
+    await ops.run('search', { query: 'deploy key' }),
+    await ops.run('execute', { operation: 'node.get', arguments: { id: `session:${sid}` } }),
+    await ops.run('execute', { operation: 'node.get', arguments: { id: 'task:k' } }),
+    await ops.run('execute', { operation: 'graph.neighbours', arguments: { node: `session:${sid}` } })
+  ]
+  assert.ok(answers[0].hits.length > 0, 'the turn is still found by its other words')
+  for (const a of answers) assert.ok(!JSON.stringify(a).includes(KEY), 'no answer carries the key')
+  ix.close()
+  for (const ext of ['', '-wal', '-shm']) { try { assert.ok(!readFileSync(file + ext).includes(KEY), `the file${ext} holds no key`) } catch (e) { if (e.code !== 'ENOENT') throw e } }
+})
+
+test('an index of an earlier schema, which may hold text as typed, is refused so the host removes and rebuilds it', () => {
+  const file = path.join(tmp(), 'index.sqlite')
+  const ix = new EstateIndex(file)
+  ix.setMeta('schema', '2')
+  ix.close()
+  assert.throws(() => new EstateIndex(file), /schema 2/)
+})
+
+// 0.3.27 review ER-68: a section that moved or a file that went leaves the index, so its old text is neither found nor confirmed.
+test('a document read again leaves no stale section behind, and quote.check no longer keeps the old text', async () => {
+  const { createKnowledgeOperations } = await import(path.resolve(import.meta.dirname, '../src/main/knowledgeTools.ts'))
+  const file = path.join(tmp(), 'index.sqlite'), ix = new EstateIndex(file)
+  const sec = (line, body) => ({ id: `doc:p1/docs/a.md#${line}`, kind: 'document', source: 'git', node: 'doc:p1/docs/a.md', title: 'A', body, context: 'personal', path: '/w/docs/a.md', lineStart: line, lineEnd: line + 1 })
+  ix.putDocs([sec(3, 'the start takes forty seconds'), { ...sec(1, 'other file'), id: 'doc:p1/docs/b.md#1', node: 'doc:p1/docs/b.md' }])
+  // The next read of this HEAD: a line inserted above, the text changed, b.md removed.
+  const next = [sec(5, 'the start takes ten seconds')]
+  ix.putDocs(next)
+  assert.equal(ix.pruneDocs('doc:p1/', new Set(next.map((d) => d.id))), 2)
+  assert.equal(ix.doc('doc:p1/docs/a.md#3'), null)
+  assert.equal(ix.doc('doc:p1/docs/b.md#1'), null)
+  const ops = createKnowledgeOperations({ index: () => ix, embedder: async () => null, catalogue: async () => [], refresh: async () => ({}), rebuild: async () => ({}), record: () => {}, file, labels: () => ({}) })
+  const found = await ops.run('search', { query: 'start seconds' })
+  assert.deepEqual(found.hits.map((h) => h.id), ['doc:p1/docs/a.md#5'])
+  const checked = await ops.run('execute', { operation: 'quote.check', arguments: { claims: [{ quote: 'forty seconds', doc: 'doc:p1/docs/a.md#3' }] } })
+  assert.equal(checked.kept ?? 0, 0)
+})

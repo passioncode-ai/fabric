@@ -493,5 +493,97 @@ for this run's start only.
 | V3R7-PL-51 | PL-51 | non-blocking | fixed: as DO-62; the strategist's handoff points at this ledger |
 | V3R7-PL-52 | PL-52 | non-blocking | fixed: as DA-46 |
 
-Exit for iteration 3: every finding disposed above. Blocking findings open: none.
+Exit for run seven: every finding disposed above; superseded by run eight.
+
+### Run eight, 777e96f4 (superseded)
+
+Candidate `777e96f49c90770f25c21803d46b34c6074ff922`. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-777e96f4/`](../reviews/0.3.27/iteration-3-777e96f4/) (kept as the record).
+
+**What the candidate carries, and by whose word.** (1) The owner's answer to run seven's PL-49, given in Fabric on
+2026-11-21 to the release's question about `main` moving: «Выпустить с main»; merged as `5f4dc15b` (MERGES
+`RELEASE-0327-MAIN`). (2) The owner's exception to his pause, said in the CEO window on 2026-11-21 at about 02:10 and
+relayed by the CEO with its brief (`userData/ceo/inbox/2026-11-21-voice-direct-board-access-brief.md` on the owner's
+Mac): the voice reads the board itself, and «директор», «шеф», «босс», «менеджер», «главный», «SEO» mean the CEO;
+`feat/voice-board`, SCN-191. (3) The agreement with the home's session (8343a070) on the board, its request
+`85e5af41`: one release of `main`, the voice retro, the voice board and its blockers; merged: `fix/registry-contract`
+with Inbox's connection (ADR-0204, the owner's own words of 2026-11-20, «вообще это все должно быть автоматически, не
+надо никакой подключать»), `fix/stack-outage-banner` (wave 0's last fix, plan part 5), `feat/ceo-window-place` and
+`fix/ceo-dictation-tail` (owner-words part 5).
+
+**Gate.** `bash scripts/ci.sh fast` on run seven's candidate `f10fa4b8` was not run before the merge; it ran on the
+merged candidates instead: `a825cbf9` failed 9 design-gate checks in the merged blockers (raw line-height, four classes
+outside the registry, short ids on the console line against SP-2), fixed in `777e96f4`; `777e96f4` failed the
+prototype check of `launch.css` (a rule written inside the ported block), fixed in `ec06a616`; `ec06a616` failed the
+product model's journey coverage (SCN-188, SCN-189, SCN-191 lost when the merge took one side's model), fixed in
+`3dfc6778`; `3dfc6778` failed the adoption report's bytes, rebuilt in the next candidate. Its outcome on the next
+candidate is in run nine's section. Run eight read `777e96f4`; the commits after it to `3dfc6778` change only styles,
+the product model and map entries, and the next candidate carries run eight's fixes, which run nine reads.
+
+53 findings, 14 blocking: UX-63 to UX-65, ER-66 to ER-70, DO-63 to DO-66, DA-49, PL-53. All are in what the merge
+brought: the estate index kept and served text as typed (DA-49), the CEO's address words still reached a project and a
+new folder was refused beside a longer-named one (UX-63, ER-66, UX-65), the voice could not open a task by the id it
+gave (UX-64, ER-67), stale document sections were found and confirmed (ER-68), Inbox's connection undid the person's
+Disconnect (ER-69), a scheduled update named an end that does not come (ER-70), and the records did not say what 0.3.27
+carries (DO-63 to DO-66, PL-53). Each is fixed in the next candidate, the code ones with a test watched red with the
+fix taken out. Not run end to end here: the update's wait loop (ER-70), and the voice's refusal of `index.refresh` and
+`index.rebuild`, which lives in `main/index.ts`'s call handler. What is carried is CO-620.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3R8-UX-63 | UX-63 | blocking | fixed: `start` asks main's matcher only when the CEO's address words, a folder too broad and a folder path are not in play; `knowledge_search` refuses an address word as its project (`ceoTools.ts#start`, `knowledgeTools.ts#search`; test «run eight: «SEO» and «CEO» start nothing…», watched red with the old condition) |
+| V3R8-UX-64 | UX-64 | blocking | fixed: the voice board gives whole ids and opens a task by an id's first characters within its project (`voiceBoard.ts#brief`, `#task`; test «run eight: the voice opens a task by the id board_tasks gave…» through the host's own filter, watched red with the 8-character id) |
+| V3R8-UX-65 | UX-65 | blocking | fixed: a folder path never goes to the second matcher, so a new folder beside a longer-named one becomes its own project (test «run eight: a new folder beside a longer-named project's folder…», watched red) |
+| V3R8-UX-66 | UX-66 | non-blocking | fixed: running, then review, then the backlog, each newest first, null dates last (`voiceBoard.ts#STATUS_ORDER`; the run-eight voice-board test) |
+| V3R8-UX-67 | UX-67 | non-blocking | carried: CO-620 (4) |
+| V3R8-UX-68 | UX-68 | non-blocking | fixed: SCN-110 step 3 says the window is no longer the main window's child and the button brings it forward |
+| V3R8-UX-69 | UX-69 | non-blocking | fixed: `.ceo-popup-runner` and `.ceo-popup-state` are no-drag, so their hover text shows (`styles.css`) |
+| V3R8-UX-70 | UX-70 | non-blocking | fixed in the tool descriptions: the voice's tools name `knowledge_*` and `session_resume` (`ceoTools.ts#ceoVoiceTools`, `knowledgeTools.ts#knowledgeVoiceTools`); the search answer's note is CO-620 (6) |
+| V3R8-UX-71 | UX-71 | non-blocking | fixed: the CEO brief carries the address rule, phrased for the CEO itself (`ceoAgent.ts#ceoBrief`, `ceoAddress.ts#ceoAddressRule`; test «the CEO brief carries the address words…») |
+| V3R8-UX-72 | UX-72 | non-blocking | carried: CO-620 (5) |
+| V3R8-UX-73 | UX-73 | non-blocking | fixed: `session_resume`'s description says a task always starts a new conversation and no task continues it as itself |
+| V3R8-ER-66 | ER-66 | blocking | fixed: as UX-63 |
+| V3R8-ER-67 | ER-67 | blocking | fixed: as UX-64 |
+| V3R8-ER-68 | ER-68 | blocking | fixed: each read of a project's documents removes the sections and files this HEAD no longer holds (`estateIndex.ts#pruneDocs`, `estateRun.ts`); test «a document read again leaves no stale section behind…», watched red with the prune a no-op |
+| V3R8-ER-69 | ER-69 | blocking | fixed: the person's Disconnect (the newest connection removed) or Deny (the newest answer since it), read from the database, stops the auto-connect across ticks and restarts; a read that fails stops it too (`inboxAutoConnect.ts`, `board.ts` `saidNo`; test watched red without the check) |
+| V3R8-ER-70 | ER-70 | blocking | fixed: the installer and `release-mac.md` name the real ends (logout, a restart of the Mac, a Quit with «Служба доски» off), and an end counts only when Fabric is still gone 2 s later, so a restart is waited out rather than dropped (`install-mac-update.mjs`); the wait loop is not run end to end here |
+| V3R8-ER-71 | ER-71 | non-blocking | carried: CO-620 (3) |
+| V3R8-ER-72 | ER-72 | non-blocking | fixed in part: `board_tasks` says `capped` at the read's bound (`voiceBoard.ts#TASKS_READ`); the rest is CO-620 (4) |
+| V3R8-ER-73 | ER-73 | non-blocking | carried: CO-620 (5) |
+| V3R8-ER-74 | ER-74 | non-blocking | fixed: resuming as itself never admits a cache or temporary folder (`ceoTools.ts#resumeAsItself`, `scratch`) |
+| V3R8-ER-75 | ER-75 | non-blocking | fixed: a failed catalogue read is recorded as `ceo.projects.catalogue-failed` (`ceoTools.ts#rolesOf`) |
+| V3R8-ER-76 | ER-76 | non-blocking | carried: CO-620 (1) |
+| V3R8-ER-77 | ER-77 | non-blocking | carried: CO-620 (1) |
+| V3R8-ER-78 | ER-78 | non-blocking | carried: CO-620 (1) |
+| V3R8-ER-79 | ER-79 | non-blocking | carried: CO-620 (1) |
+| V3R8-ER-80 | ER-80 | non-blocking | carried: CO-620 (1) |
+| V3R8-DO-63 | DO-63 | blocking | fixed: a `## 0.3.27` bullet for the registry fix and ADR-0204, CO-614 closed as shipped, the MERGES entries corrected, the HANDOFF sentence |
+| V3R8-DO-64 | DO-64 | blocking | fixed: the CHANGELOG says the index stays on the machine and its hits reach the CEO's model and xAI redacted; `ceo-setup.md` §3 lists search passages and task holders; the index is now redacted as written (DA-49) |
+| V3R8-DO-65 | DO-65 | blocking | fixed: AGENTS.md has lifecycle rows for the estate index and the console line (Inbox's row was there), and the Windows and Linux paragraph names them |
+| V3R8-DO-66 | DO-66 | blocking | fixed: the pause's one sentence, in the Now line, CO-606, CO-614 and the HANDOFF, says what 0.3.27 carries and by whose words; CO-606's ADR clause is past; the HANDOFF names run eight and the next task |
+| V3R8-DO-67 | DO-67 | non-blocking | fixed: CO-615 says DO-58 and DA-46 are fixed and PL-49 was the owner's decision |
+| V3R8-DO-68 | DO-68 | non-blocking | fixed: SCN-189 drops `queue-trimmed` and names the over-bound cause; the comment above the bound says 50 plus 10, kept aside whole |
+| V3R8-DO-69 | DO-69 | non-blocking | fixed: as UX-64 |
+| V3R8-DO-70 | DO-70 | non-blocking | fixed: fixes.md says 40 with the dictation tail's test |
+| V3R8-DO-71 | DO-71 | non-blocking | fixed: «Upgrading» names `ceo-window.json` and `estate-index/` |
+| V3R8-DO-72 | DO-72 | non-blocking | fixed: a paragraph under `## 0.3.27` says what rides by the owner's answer, his exception and the agreement; MERGES has `RELEASE-0327-MAIN` for `5f4dc15b` |
+| V3R8-DO-73 | DO-73 | non-blocking | fixed: ADR-0199 cites a neutral transcript path (privacy, ADR-0096) |
+| V3R8-DO-74 | DO-74 | non-blocking | fixed: SCN-188 says the hidden parts are on the agent's page |
+| V3R8-DA-49 | DA-49 | blocking | fixed: every document, label, attribute, edge evidence and transcript state is redacted as the index writes it (`estateIndex.ts#putDocs`, `#putGraph`, `#setFileState`), the knowledge doors redact their answers again (`knowledgeTools.ts#run`), and schema 3 removes an index an earlier build wrote, and any copy kept aside; test «a key typed into a transcript is redacted…» (search, node.get, graph.neighbours and the file bytes), watched red with the body unredacted |
+| V3R8-DA-50 | DA-50 | non-blocking | fixed: the folder is created 0700 and the files set 0600 (`estateWiring.ts#open`) |
+| V3R8-DA-51 | DA-51 | non-blocking | carried: CO-620 (1); the `.unreadable` copy is no longer made and an old one is removed (DA-49) |
+| V3R8-DA-52 | DA-52 | non-blocking | fixed: the voice cannot run `index.refresh` or `index.rebuild` (`knowledgeTools.ts#VOICE_REFUSED_OPERATIONS`, `index.ts`), and `board_tasks` says `capped` at its bound |
+| V3R8-DA-53 | DA-53 | non-blocking | fixed: as DO-65 |
+| V3R8-DA-54 | DA-54 | non-blocking | carried: CO-620 (2) |
+| V3R8-DA-55 | DA-55 | non-blocking | carried: CO-620 (3) |
+| V3R8-PL-53 | PL-53 | blocking | fixed by the owner's recorded words: ADR-0204 rides 0.3.27 as one of the home's blockers agreed for this release, by his order of 2026-11-20 («вообще это все должно быть автоматически, не надо никакой подключать»); its CHANGELOG bullet, MERGES and CO-614 (closed) say so; run eight's section records the sources |
+| V3R8-PL-54 | PL-54 | non-blocking | fixed: the MERGES entry says it merged into the candidate as wave 0's last fix |
+| V3R8-PL-55 | PL-55 | non-blocking | fixed: as DO-66; run eight's section records the owner's answer, his exception and the agreement with their sources |
+| V3R8-PL-56 | PL-56 | non-blocking | fixed: as DO-67 |
+| V3R8-PL-57 | PL-57 | non-blocking | fixed: as DO-71 |
+| V3R8-PL-58 | PL-58 | non-blocking | SCN-188's amendments answer F1, F4 and F5; F6 and what remains are carried: CO-620 (5) |
+| V3R8-PL-59 | PL-59 | non-blocking | fixed: as DO-70 |
+| V3R8-PL-60 | PL-60 | non-blocking | fixed: as DO-65, in this candidate |
+
+Exit for run eight: every finding disposed above; superseded by run nine.
 

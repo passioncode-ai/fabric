@@ -11,11 +11,26 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).
 
+By the owner's answer of 2026-11-21 («Выпустить с main», his reply in Fabric to the release's question about `main`
+moving), 0.3.27 also carries what `main` took meanwhile (Memory, the estate index and graph, the CEO's folder-role
+navigation, the update in place); by his exception to the pause of the same night (about 02:10), the voice reading the
+board; and, as agreed with the home's session, its blockers (the registry and Inbox, the outage banner, the CEO window,
+the console line, the dictation tail).
+
 - **The CEO's voice reads the board itself.** By voice the owner hears the newest projects with when each was added, a
   project's tasks with status, holder and what waits for him, and a task's goal and graph (what it grew from and into,
   what it blocks and follows), read-only and without the CEO's console or a new session. «шеф», «директор», «босс»,
   «менеджер», «главный» and «SEO» mean the CEO itself, never a project or the SEO agent, and are recognition hints of
   the call (`main/voiceBoard.ts`, `shared/ceoAddress.ts`; SCN-191). The owner's exception to the pause, 2026-11-21.
+  During a call the voice also searches the estate index (`knowledge_search`, `knowledge_execute`): its passages from
+  sessions, transcripts, documents and commits reach xAI, redacted; the voice cannot refresh or rebuild the index.
+- **Agents reach Fabric Inbox again, and on the owner's own machine with no question.** The agent registry takes the
+  descriptors the contract allows (`runner`, `peer`, `channels`, an app a person runs without an address;
+  `main/agentRegistry.ts#validateServiceDescriptor`), so Inbox is found again. On a machine marked the owner's, an
+  agent's ask of Fabric Inbox is allowed at once and recorded with his words as the reason, and Fabric connects itself
+  to Inbox at the hub's start, when the registry changes and every 5 minutes, never after a person refused it; Agent
+  access revokes it (ADR-0204, `main/accessService.ts#OWNER_DEFAULT_PRODUCTS`, `main/inboxAutoConnect.ts`). The owner,
+  2026-11-20: «вообще это все должно быть автоматически, не надо никакой подключать».
 - **The CEO's window stays where it was left.** It moves by its whole head and free areas, resizes, and opens on the
   display and at the place it was closed, pulled wholly onto a screen that still shows it (`main/ceoWindowPlacement.ts`,
   `shared/windowPlacement.ts`, kept in `userData/ceo-window.json`). Its head is one row beside the window buttons; the
@@ -55,7 +70,9 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
   Code and Codex transcripts, its own consoles, every project's tasks, notes and board messages, the repositories'
   documents and decisions (ADRs first, cut at headings with their lines), the project memory's facts, and the commits, and
   searches it by words in Russian and English, by parts of identifiers and, when a local Ollama model is installed, by
-  meaning; nothing leaves the machine. Every hit names its project, context (personal or an organization), the
+  meaning. The index itself stays on the machine (a folder 0700, files 0600), and every text it keeps is redacted as it
+  is written, so a key typed into any session is neither in the file nor in a hit; its hits do reach the CEO's model
+  through the CEO's doors and the voice, redacted again on the way out (0.3.27 review DA-49). Every hit names its project, context (personal or an organization), the
   file and lines it stands at, its session id and the command that continues it. The CEO gets two tools,
   `fabric_knowledge_search` and `fabric_knowledge_execute` (what relates to a task, a session or a commit, N steps out,
   and the shortest chain between two of them); the search panel gets the group «Везде» with «Связи», «Продолжить» and
@@ -141,7 +158,9 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
   on 2026-11-20 (their folders untouched); other machines keep theirs (CO-605).
 
 **Upgrading.** No schema step. Nothing to set. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
-days and the newest 200 at most), `<userData>/ceo/project-aliases.json` (0600) and `<userData>/ceo/pending.json` (0600, the
+days and the newest 200 at most), `<userData>/ceo-window.json` (the CEO window's place and size), `<userData>/estate-index/`
+(the index of sessions, tasks and documents, 0700; an index an earlier build wrote is removed at the first start and built
+again, which takes a few minutes, and longer for meaning when a local model serves vectors), `<userData>/ceo/project-aliases.json` (0600) and `<userData>/ceo/pending.json` (0600, the
 messages waiting for the CEO, at most 50 of the person's plus up to 10 a lost console owed) and, for a queue file Fabric could not read, `pending.json.corrupt-<time>`
 (0600, kept 30 days and at most three).
 

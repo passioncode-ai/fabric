@@ -10,9 +10,12 @@
 import { createHash } from 'node:crypto'
 import { DatabaseSync, type StatementSync } from 'node:sqlite'
 import { terms } from '../shared/boardSearch.ts'
+import { redact, redactPayload } from '../shared/redact.ts'
 import { fuse, passage, trigramQuery, wordsQuery, type DocKind, type Ranking } from '../shared/estateSearch.ts'
 
-export const SCHEMA_VERSION = '2'
+/** 3 (0.3.27 review DA-49): every document, label and attribute is redacted as it is written; an index of an earlier
+ *  schema may hold a secret as typed, so it is removed and built again, never read. */
+export const SCHEMA_VERSION = '3'
 /** The text the trigram half reads of one document: its identifiers and phrases sit near the start. */
 export const TRI_CHARS = 1200
 /** How many candidates each ranking contributes before fusion. */
@@ -155,27 +158,51 @@ export class EstateIndex {
     let changed = 0
     this.tx(() => {
       for (const d of docs) {
-        const body = d.body.slice(0, 20_000)
-        const digest = sha(`${d.title}\n${body}`)
+        // Redacted as written (0.3.27 review DA-49): the index serves the CEO's model through its doors, and a key a
+        // person typed into any session must not reach it, nor stay in the file.
+        const title = redact(d.title).text
+        const body = redact(d.body.slice(0, 20_000)).text
+        const tri = d.tri === undefined ? undefined : redact(d.tri).text
+        const digest = sha(`${title}\n${body}`)
         const before = this.st.rowOf!.get(d.id) as { rowid: number; digest: string } | undefined
-        const r = this.st.upsert!.get(d.id, d.kind, d.source, d.node, d.title.slice(0, 400), body, d.at ?? null, d.folder ?? null,
+        const r = this.st.upsert!.get(d.id, d.kind, d.source, d.node, title.slice(0, 400), body, d.at ?? null, d.folder ?? null,
           d.project ?? null, d.context ?? 'personal', d.sessionId ?? null, d.runtime ?? null, d.resume ?? null, d.path ?? null,
           d.lineStart ?? null, d.lineEnd ?? null, digest) as { rowid: number }
         if (before && before.digest === digest) continue
         changed++
         this.st.wordsDel!.run(r.rowid)
         this.st.triDel!.run(r.rowid)
-        this.st.wordsIns!.run(r.rowid, terms(`${d.title}\n${body}`.slice(0, 6000)).join(' '))
-        this.st.triIns!.run(r.rowid, (d.tri ?? `${d.title}\n${body}`).slice(0, TRI_CHARS))
+        this.st.wordsIns!.run(r.rowid, terms(`${title}\n${body}`.slice(0, 6000)).join(' '))
+        this.st.triIns!.run(r.rowid, (tri ?? `${title}\n${body}`).slice(0, TRI_CHARS))
       }
     })
     return changed
   }
 
+  /**
+   * Removes the documents under a node prefix that the newest read did not write (0.3.27 review ER-68): a section's id
+   * carries its first line, so a line inserted above it, or a file removed, would otherwise leave the old text to be
+   * found, cited at lines that now say something else, and confirmed by `quote.check`. Returns how many went.
+   */
+  pruneDocs(prefix: string, keep: ReadonlySet<string>): number {
+    let gone = 0
+    this.tx(() => {
+      const rows = this.db.prepare('SELECT rowid, id FROM docs WHERE substr(node, 1, ?) = ?').all(prefix.length, prefix) as Array<{ rowid: number; id: string }>
+      for (const r of rows) {
+        if (keep.has(r.id)) continue
+        this.st.wordsDel!.run(r.rowid)
+        this.st.triDel!.run(r.rowid)
+        this.db.prepare('DELETE FROM docs WHERE rowid = ?').run(r.rowid)
+        gone++
+      }
+    })
+    return gone
+  }
+
   putGraph(nodes: readonly IndexNode[], edges: readonly IndexEdge[]): void {
     this.tx(() => {
-      for (const n of nodes) this.st.node!.run(n.id, n.kind, n.label.slice(0, 300), n.at ?? null, n.attrs ? JSON.stringify(n.attrs) : null)
-      for (const e of edges) if (e.src !== e.dst) this.st.edge!.run(e.src, e.rel, e.dst, e.at ?? null, e.evidence?.slice(0, 300) ?? null)
+      for (const n of nodes) this.st.node!.run(n.id, n.kind, redact(n.label).text.slice(0, 300), n.at ?? null, n.attrs ? JSON.stringify(redactPayload(n.attrs).payload) : null)
+      for (const e of edges) if (e.src !== e.dst) this.st.edge!.run(e.src, e.rel, e.dst, e.at ?? null, (e.evidence ? redact(e.evidence).text.slice(0, 300) : null))
     })
   }
 
@@ -184,7 +211,8 @@ export class EstateIndex {
   }
 
   setFileState(path: string, s: { size: number; mtime: number; offset: number; lines: number; state: string | null }): void {
-    this.st.fileSet!.run(path, s.size, s.mtime, s.offset, s.lines, s.state)
+    // A transcript's state carries its first prompts: redacted as written too (0.3.27 review DA-49).
+    this.st.fileSet!.run(path, s.size, s.mtime, s.offset, s.lines, s.state === null ? null : redact(s.state).text)
   }
 
   private tx(fn: () => void): void {

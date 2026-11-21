@@ -255,7 +255,9 @@ node scripts/install-mac-update.mjs --tidy                                      
    (`codesign --verify --deep --strict`), that another team signed, or that is not newer (`--force` for a way back).
 2. It stages the new `Contents` in `/Applications/.Fabric-update/` (same volume, no `.app`, so nothing registers it).
 3. With `--wait` (`--schedule` runs the same from a one-shot launch agent that outlives the terminal) it waits until
-   Fabric has ended: a quit, «Перезапустить Fabric», logout or a restart. It stops nothing.
+   Fabric has ended: logout, a restart of the Mac, or a Quit with «Служба доски» off. With «Служба доски» on (the
+   default on macOS) Quit keeps Fabric running and «Перезапустить Fabric» starts it again at once, so neither applies
+   the update; an end counts only when Fabric is still gone 2 s later (0.3.27 review ER-70). It stops nothing.
 4. It swaps `Contents` by two renames, checks the signature and version of the result and swaps back on any failure.
 5. The previous `Contents` becomes `~/Library/Application Support/ai.passioncode.fabric/previous/Fabric-<version>.zip`,
    which LaunchServices does not see. Way back: `mkdir -p /tmp/back/Fabric.app && ditto -x -k <zip> /tmp/back/Fabric.app`,

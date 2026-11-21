@@ -5,7 +5,7 @@
  * the window read of it. A file this Fabric cannot open (another schema, a broken file) is moved aside and built again;
  * one that still cannot be opened leaves the doors answering why.
  */
-import { mkdirSync, renameSync, rmSync } from 'node:fs'
+import { chmodSync, mkdirSync, rmSync } from 'node:fs'
 import path from 'node:path'
 import { catalogue as catalogueOf, type CatalogueInput, type CatalogueRow } from '../shared/estateSearch.ts'
 import { EstateIndex, type Embedder } from './estateIndex.ts'
@@ -74,13 +74,19 @@ export function startEstateIndex(deps: EstateWiringDeps): Estate {
   function open(): EstateIndex | null {
     if (ix) return ix
     try {
-      mkdirSync(dir, { recursive: true })
+      // The owner's words across every session: the folder 0700, the files 0600 (0.3.27 review DA-50).
+      mkdirSync(dir, { recursive: true, mode: 0o700 })
+      try { chmodSync(dir, 0o700) } catch { /* the open below says what is wrong with the folder */ }
+      // A copy an earlier Fabric kept aside may hold a secret as typed (0.3.27 review DA-49): removed, never kept.
+      for (const ext of ['', '-wal', '-shm']) rmSync(`${file}${ext}.unreadable`, { force: true })
       try { ix = new EstateIndex(file) } catch (e) {
-        // Derived and deletable (ADR-0200): a file this Fabric cannot read is moved aside and built again.
+        // Derived and deletable (ADR-0200): a file this Fabric cannot read, or of an earlier schema that may hold
+        // unredacted text, is removed and built again.
         deps.record('estate.index.reset', 'ok', { reason: e instanceof Error ? e.message.slice(0, 200) : String(e) })
-        for (const ext of ['', '-wal', '-shm']) { try { renameSync(file + ext, `${file}${ext}.unreadable`) } catch { /* not there */ } }
+        for (const ext of ['', '-wal', '-shm']) rmSync(file + ext, { force: true })
         ix = new EstateIndex(file)
       }
+      for (const ext of ['', '-wal', '-shm']) { try { chmodSync(file + ext, 0o600) } catch { /* WAL and SHM come and go */ } }
       unavailable = ''
       runner = createEstateRunner({
         index: ix, projects, organizations: () => readOrganizations(),

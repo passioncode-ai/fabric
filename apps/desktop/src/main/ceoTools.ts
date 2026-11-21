@@ -79,7 +79,7 @@ export const CEO_TOOLS = {
   resume: {
     mcp: 'fabric_ceo_session_resume',
     title: 'Continue a session that ended',
-    description: 'Continue a session that ended, as itself, in a Fabric console: give a Fabric console\'s id (also one from before Fabric restarted: fabric_ceo_sessions with include_ended lists them) or a Claude Code or Codex session id (fabric_knowledge_search answers it). Fabric reads which Claude or Codex session the console ran as and opens a console with claude --resume (codex resume) in its project. A console that never recorded its session starts again with the task you give, or one that says to carry on. Switchboard is asked only for a session Fabric never saw.',
+    description: 'Continue a session that ended, as itself, in a Fabric console: give a Fabric console\'s id (also one from before Fabric restarted: fabric_ceo_sessions with include_ended lists them) or a Claude Code or Codex session id (fabric_knowledge_search answers it). Fabric reads which Claude or Codex session the console ran as and opens a console with claude --resume (codex resume) in its project. Give no task to continue it as itself: a task always starts a new conversation in the project with that task, as does a console that never recorded its session (it gets one that says to carry on when no task is given). Switchboard is asked only for a session Fabric never saw.',
     input: z.object({ session_id: sessionId, task: z.string().trim().max(8000).optional(), reason }).strict()
   },
   open: {
@@ -376,7 +376,8 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
   const rolesOf = async (): Promise<Array<CatalogueRow & NamedProject & { default_agent?: string | null }>> => {
     const all = await deps.projects()
-    const rows = deps.catalogue ? await deps.catalogue().catch(() => null) : null
+    // A catalogue that fails is recorded; the roles are then read from the folders alone (0.3.27 review ER-75).
+    const rows = deps.catalogue ? await deps.catalogue().catch((e: unknown) => { deps.record('ceo.projects.catalogue-failed', { error_class: e instanceof Error ? e.constructor.name : typeof e }); return null }) : null
     const byId = new Map((rows ?? catalogueOf(all)).map((r) => [r.id, r]))
     return all.map((p) => ({ ...p, ...(byId.get(p.id) ?? { role: 'canonical' as const, of: null }) }))
   }
@@ -538,7 +539,11 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     let found: ProjectLookup<NamedProject> = await lookup(projects, a.project)
     // Main's matcher as a second opinion (the estate index, 2026-11-19): a canonical folder wins over a temporary or
     // duplicate one of the same name, and a typo in a typed name is forgiven; one heard by voice is asked back.
-    if (!('found' in found)) {
+    // The second opinion never overrides the address words («SEO», «шеф» mean the CEO itself, 0.3.27 review UX-63),
+    // a folder too broad to be one project, or a folder path: a path is its own project, never a near name's whose
+    // folder merely begins the same way (UX-65).
+    const typedPath = path.isAbsolute(a.project.trim())
+    if (!('found' in found) && !('missing' in found && (found.why === 'ceo-itself' || found.why === 'too-broad')) && !typedPath) {
       const m = matchProject(projects, a.project)
       if ('found' in m) found = { found: projects.find((p) => p.id === m.found.id) ?? projects[0]!, ...(via === 'voice' && m.via !== 'id' && m.via !== 'folder' && m.found.name.toLowerCase() !== a.project.trim().toLowerCase() ? { heard: true as const } : {}) }
       else if ('ambiguous' in m && 'ambiguous' in found) return { ...notOne(a.project, found, true), candidates: listOf(m.ambiguous) }
@@ -653,7 +658,8 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     if (!projectId && r.folder) {
       const all = await deps.projects()
       projectId = holder(new Map(all.filter((p) => p.repo_path).map((p) => [p.repo_path!, p.id])), r.folder)?.value ?? null
-      if (!projectId && path.isAbsolute(r.folder) && existsSync(r.folder)) projectId = (await deps.admitFolder(r.folder)).id
+      // A cache or temporary folder never becomes a project, here as in start (0.3.27 review ER-74).
+      if (!projectId && path.isAbsolute(r.folder) && existsSync(r.folder) && !scratch(r.folder)) projectId = (await deps.admitFolder(r.folder)).id
     }
     if (!projectId) return null
     const env: Record<string, string> = r.configDir ? { CLAUDE_CONFIG_DIR: r.configDir } : {}
@@ -914,7 +920,8 @@ export function registerCeoTools(server: McpServer, ops: CeoOperations): void {
 export function ceoVoiceTools(): Array<{ type: 'function'; name: string; description: string; parameters: unknown }> {
   // The voice knows its tools by their function names (0.3.27 review, UX-7): each MCP name in a description is said so.
   const byVoice = new Map(Object.entries(CEO_TOOLS).map(([name, tool]) => [tool.mcp as string, `session_${name}`]))
-  const voiced = (text: string): string => text.replace(/fabric_ceo_[a-z_]+/g, (m) => byVoice.get(m) ?? m)
+  // The voice's own names for the CEO's tools and the knowledge tools (0.3.27 review UX-70).
+  const voiced = (text: string): string => text.replace(/fabric_ceo_[a-z_]+/g, (m) => byVoice.get(m) ?? m).replace(/fabric_knowledge_(search|execute)/g, 'knowledge_$1')
   return Object.entries(CEO_TOOLS).map(([name, tool]) => ({
     type: 'function' as const,
     name: `session_${name}`,

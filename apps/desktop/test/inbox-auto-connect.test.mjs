@@ -8,7 +8,8 @@ function rig(over = {}) {
   const w = { trust: 'mine', present: true, connected: false, last: null, begins: 0, ok: true, t: 1_000_000, log: [], ...over }
   const check = createInboxAutoConnect({
     trust: () => w.trust, inRegistry: () => w.present, connected: async () => w.connected, last: () => w.last,
-    begin: async () => { w.begins++; return { ok: w.ok } }, record: (op, d) => w.log.push([op, d]), now: () => w.t
+    begin: async () => { w.begins++; return { ok: w.ok } }, record: (op, d) => w.log.push([op, d]), now: () => w.t,
+    ...(over.saidNo ? { saidNo: over.saidNo } : {})
   })
   return { w, check }
 }
@@ -40,4 +41,16 @@ test('never on another machine, never without Inbox, never over the person\'s no
   failing.w.t += 2
   assert.equal(await failing.check(), 'failed')
   assert.equal(failing.w.begins, 2)
+})
+
+// 0.3.27 review ER-69: the person's Disconnect or Deny, read from the database, holds across ticks and restarts.
+test('a Disconnect or a Deny the database keeps stops the connect, and a read that fails stops it too', async () => {
+  const said = rig({ saidNo: async () => true })
+  assert.equal(await said.check(), 'denied')
+  assert.equal(said.w.begins, 0)
+  const broken = rig({ saidNo: async () => { throw new Error('database down') } })
+  assert.equal(await broken.check(), 'denied')
+  assert.equal(broken.w.begins, 0)
+  const free = rig({ saidNo: async () => false })
+  assert.equal(await free.check(), 'started')
 })

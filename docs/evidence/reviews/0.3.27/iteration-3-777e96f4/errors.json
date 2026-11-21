@@ -1,0 +1,119 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "777e96f49c90770f25c21803d46b34c6074ff922",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-777e96f4/2026-11-21-errors.md",
+  "reportSha256": "119e7f29f1db278c5e311f2bb048375acd83d7c2079b14a1d95bdcbaa80eee14",
+  "reviewerRun": "release-0327-i3r8-errors-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-66",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-63"
+      ]
+    },
+    {
+      "id": "ER-67",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-64"
+      ]
+    },
+    {
+      "id": "ER-68",
+      "status": "fixed",
+      "evidence": [
+        "fixed: each read of a project's documents removes the sections and files this HEAD no longer holds (`estateIndex.ts#pruneDocs`, `estateRun.ts`); test «a document read again leaves no stale section behind…», watched red with the prune a no-op"
+      ]
+    },
+    {
+      "id": "ER-69",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the person's Disconnect (the newest connection removed) or Deny (the newest answer since it), read from the database, stops the auto-connect across ticks and restarts; a read that fails stops it too (`inboxAutoConnect.ts`, `board.ts` `saidNo`; test watched red without the check)"
+      ]
+    },
+    {
+      "id": "ER-70",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the installer and `release-mac.md` name the real ends (logout, a restart of the Mac, a Quit with «Служба доски» off), and an end counts only when Fabric is still gone 2 s later, so a restart is waited out rather than dropped (`install-mac-update.mjs`); the wait loop is not run end to end here"
+      ]
+    },
+    {
+      "id": "ER-71",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (3)"
+      ]
+    },
+    {
+      "id": "ER-72",
+      "status": "fixed",
+      "evidence": [
+        "fixed in part: `board_tasks` says `capped` at the read's bound (`voiceBoard.ts#TASKS_READ`); the rest is CO-620 (4)"
+      ]
+    },
+    {
+      "id": "ER-73",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (5)"
+      ]
+    },
+    {
+      "id": "ER-74",
+      "status": "fixed",
+      "evidence": [
+        "fixed: resuming as itself never admits a cache or temporary folder (`ceoTools.ts#resumeAsItself`, `scratch`)"
+      ]
+    },
+    {
+      "id": "ER-75",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a failed catalogue read is recorded as `ceo.projects.catalogue-failed` (`ceoTools.ts#rolesOf`)"
+      ]
+    },
+    {
+      "id": "ER-76",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (1)"
+      ]
+    },
+    {
+      "id": "ER-77",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (1)"
+      ]
+    },
+    {
+      "id": "ER-78",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (1)"
+      ]
+    },
+    {
+      "id": "ER-79",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (1)"
+      ]
+    },
+    {
+      "id": "ER-80",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (1)"
+      ]
+    }
+  ]
+}
