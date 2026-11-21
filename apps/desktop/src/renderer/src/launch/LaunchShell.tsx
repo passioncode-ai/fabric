@@ -90,7 +90,7 @@ export function revealSection(anchor: string, deadlineMs = 2000, settleMs = 1500
   requestAnimationFrame(step)
 }
 
-export type RailPlace = 'home' | 'agents' | 'board' | 'comms' | 'access' | 'history' | 'settings' | 'create'
+export type RailPlace = 'home' | 'agents' | 'board' | 'comms' | 'memory' | 'access' | 'history' | 'settings' | 'create'
 
 export interface LaunchShellProps {
   /** Null until the list has been read: an unknown list is not an empty one (M108). */
@@ -158,7 +158,8 @@ export interface LaunchShellProps {
 /** The foot's places: the Comms and Agent access came out of Settings (the operator, 2026-11-05); Главная is the brand,
  *  Агенты the toggle. */
 // The operator, 2026-11-12: «Доска» opens from the rail, first, with what waits for the person.
-const FOOT: ReadonlyArray<'board' | 'comms' | 'access' | 'history' | 'settings'> = ['board', 'comms', 'access', 'history', 'settings']
+// «Memory» under «Переписка» (SCN-190, the owner 2026-11-20): what Fabric knows of every project, one press away.
+const FOOT: ReadonlyArray<'board' | 'comms' | 'memory' | 'access' | 'history' | 'settings'> = ['board', 'comms', 'memory', 'access', 'history', 'settings']
 
 /** The rail's width the person dragged it to (the operator, 2026-11-05: (paraphrased: an adjustable width)), kept on
  *  this computer; within these bounds, 216 px when never set. */

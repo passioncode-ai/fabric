@@ -116,6 +116,29 @@ describe('the project board rule reaches every agent through its rules (COM-12)'
     expect(o.text).toMatch(/fabric_task_brief \(what, why, expected\)/)
   })
 
+  it("splits decisions by level: strategy is the person's, tactics the agent's, and a question goes only where the person knows better (ADR-0205)", () => {
+    const o = byId('decisions.by-level')
+    expect(o.mode).toBe('ADVICE')
+    // Level 1: the vision is asked, never decided by the agent.
+    expect(o.text).toMatch(/Strategy \(the vision, the concept, what the product is for\) is the person's: always ask/)
+    // Level 2: the agent decides how, and records it.
+    expect(o.text).toMatch(/Tactics \(how to reach what was asked\) are yours: decide/)
+    // Level 3: what the agent knows better or can find is never a question.
+    expect(o.text).toMatch(/can find yourself[^.]*never ask/)
+    // Level 4: the bar for a question, and the person's expertise in the domain.
+    expect(o.text).toMatch(/Ask only where you are still unsure after looking, or where the person knows better than you/)
+    expect(o.text).toMatch(/weigh their expertise in that domain/)
+    expect(o.text).toMatch(/do not bury them in questions/)
+  })
+
+  it('gathers the spec by those levels: it asks only for the parts the agent cannot fill itself (ADR-0205 amends ADR-0176 §1)', () => {
+    const o = byId('intake.spec-first')
+    expect(o.text).toMatch(/Fill each missing part by the decision levels/)
+    // The old wording asked the person for every missing part, whatever its level.
+    expect(o.text).not.toMatch(/Ask for each missing part/)
+    expect(o.text).toMatch(/one question at a time: the person with fabric_question_ask/)
+  })
+
   it('sends a cross-project ask only through com.submit to a Project, never a session, a process or a folder', () => {
     const o = byId('board.cross-project')
     expect(o.mode).toBe('ADVICE')

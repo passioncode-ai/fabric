@@ -11,6 +11,35 @@ import { launchPlace } from '../shared/launchPlace.ts'
 import { FOLDER_HELD_SAYS } from './launchFolderLock.ts'
 import { openWithFallback } from './runnerFallback.ts'
 import type { LaunchRoute } from './pty.ts'
+import type { DeliveryWriteResult } from './deliveryQueue.ts'
+
+/**
+ * What became of a console's first instruction (2026-11-20, the owner's «what blocks work»: a CEO-started session sat
+ * 40 minutes on an empty prompt and nothing in the log said why). `delivered`: written, and the runner took it.
+ * `resubmitted`: written, the paste was still waiting in Claude Code's box, and one more Enter sent it. `not_delivered`:
+ * never written (after one more wait for readiness), or written with an unknown outcome; `reason` says which.
+ */
+export type FirstInstructionOutcome = {
+  state: 'delivered' | 'resubmitted' | 'not_delivered'
+  reason?: string
+  attempts: number
+}
+
+/** How long after the write the screen is read for a paste left in the box (Claude Code, measured 2026-11-20). */
+export const FIRST_INSTRUCTION_CHECK_MS = 3000
+/** Claude Code shows a long paste as «[Pasted text #1 +12 lines]» until it is sent. */
+const PASTE_WAITING = /\[Pasted text #\d+/
+/** Claude Code's working line: a turn started, so the instruction was taken (and an Enter now could answer a prompt). */
+const TURN_STARTED = /esc to interrupt/i
+/**
+ * A plain shell takes commands, not a task in words (2026-11-20, the CEO: three sessions started with runner «shell» and a
+ * task printed the task into zsh, which answered «parse error near `)'»). Its first instruction is never typed.
+ */
+export const TAKES_NO_TASK: ReadonlySet<string> = new Set(['shell'])
+export const SHELL_TAKES_NO_TASK = 'a plain shell takes commands, not a task: start an agent for the task, or type a command into the shell'
+
+/** A readiness the queue gave up on may come back: the console printed, then kept printing or stayed silent. */
+const WAIT_AGAIN = new Set(['readiness_timeout', 'readiness_changed'])
 
 export interface ConsoleOpenDeps<S extends { sessionId: string }> {
   readProject(projectId: string): Promise<{ repo_path: string | null }>
@@ -25,7 +54,11 @@ export interface ConsoleOpenDeps<S extends { sessionId: string }> {
     get(sessionId: string): S | null
     claimAttach(sessionId: string): boolean
     releaseAttach(sessionId: string): void
-    deliverWhenReady(sessionId: string, instruction: string): Promise<unknown>
+    deliverWhenReady(sessionId: string, instruction: string): Promise<DeliveryWriteResult | unknown>
+    /** The console's output so far (raw), and how many characters it has written in all; absent in older tests. */
+    scrollbackOf?(sessionId: string): { text: string; written?: number } | null
+    /** Type into the console (the one extra Enter). */
+    write?(sessionId: string, data: string): void
   }
   /** The fallback order's walk for an ad-hoc terminal (`runnerFallback.ts#walk`). */
   walk(projectId: string, permissionMode: string | null, spawnFailed: ReadonlySet<string>, skipSessions: ReadonlySet<string>): Promise<Walk>
@@ -36,10 +69,51 @@ export interface ConsoleOpenDeps<S extends { sessionId: string }> {
   failed(op: string, error: unknown): void
   /** The power blocker follows the running consoles. */
   syncPower(): void
+  /** What became of a first instruction: one line of the operations log, never thrown. */
+  delivered?(detail: { session_id: string; runner: string | null } & FirstInstructionOutcome): void
+  /** Waits; the tests pass their own. */
+  sleep?(ms: number): Promise<void>
 }
 
-export function createConsoleOpen<S extends { sessionId: string }>(deps: ConsoleOpenDeps<S>) {
-  return async (projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null): Promise<S> => {
+export function createConsoleOpen<S extends { sessionId: string; optionId?: string }>(deps: ConsoleOpenDeps<S>) {
+  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((res) => { const t = setTimeout(res, ms); t.unref?.() }))
+  const outcomes = new Map<string, Promise<FirstInstructionOutcome>>()
+
+  const asResult = (r: unknown): DeliveryWriteResult =>
+    r && typeof r === 'object' && 'state' in r ? r as DeliveryWriteResult : { state: 'written' }
+
+  /** The first instruction, followed to its end: delivered, resubmitted or not delivered, and the log says which. */
+  async function deliverFirst(session: S, instruction: string): Promise<FirstInstructionOutcome> {
+    const id = session.sessionId
+    let attempts = 1
+    // Measured before the write: the paste's echo arrives in the output after it, whenever the queue writes.
+    const lengthNow = (): number => deps.ptys.scrollbackOf?.(id)?.text.length ?? 0
+    let before = lengthNow()
+    let r = asResult(await deps.ptys.deliverWhenReady(id, instruction))
+    // One more wait for readiness: never a blind write (the queue's rule), only a second window for fresh output.
+    if (r.state === 'failed_before_write' && r.reason && WAIT_AGAIN.has(r.reason) && deps.ptys.get(id)) {
+      attempts = 2
+      before = lengthNow()
+      r = asResult(await deps.ptys.deliverWhenReady(id, instruction))
+    }
+    if (r.state !== 'written') return { state: 'not_delivered', reason: r.reason ?? r.state, attempts }
+    // Claude Code reads a long paste as «[Pasted text #1 …]», and the Enter written with it can be lost: the
+    // instruction then waits in the box while the console looks idle. One more Enter sends it; it is pressed only
+    // while no turn has started, so it cannot answer a question the agent asks.
+    const runner = deps.ptys.get(id)?.optionId ?? session.optionId ?? null
+    if (runner !== 'claude-code' || !deps.ptys.scrollbackOf || !deps.ptys.write) return { state: 'delivered', attempts }
+    await sleep(FIRST_INSTRUCTION_CHECK_MS)
+    const now = deps.ptys.scrollbackOf(id)?.text ?? ''
+    // What the console printed since the write (the scrollback is bounded: once it was cut, its newest part).
+    const since = now.length >= before ? now.slice(before) : now.slice(-8000)
+    if (PASTE_WAITING.test(since) && !TURN_STARTED.test(since.slice(since.search(PASTE_WAITING)))) {
+      try { deps.ptys.write(id, '\r') } catch { return { state: 'not_delivered', reason: 'enter_failed', attempts } }
+      return { state: 'resubmitted', attempts }
+    }
+    return { state: 'delivered', attempts }
+  }
+
+  const open = async (projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null): Promise<S> => {
     const project = await deps.readProject(projectId)
     // CO-236: no second coding agent in a folder an unresolved launch may still be writing in (a plain shell is no agent).
     if (optionId !== 'shell' && deps.folderHeld(projectId)) throw new Error(FOLDER_HELD_SAYS)
@@ -62,13 +136,27 @@ export function createConsoleOpen<S extends { sessionId: string }>(deps: Console
       : await deps.ptys.open(projectId, cwd, optionId, null, mode)
     deps.syncPower()
     const release = (): void => { if (claimed) deps.ptys.releaseAttach(claimed) }
-    if (firstInstruction?.trim()) {
+    if (firstInstruction?.trim() && TAKES_NO_TASK.has(optionId)) {
+      release()
+      try { deps.delivered?.({ session_id: session.sessionId, runner: optionId, state: 'not_delivered', reason: 'shell_takes_no_task', attempts: 0 }) } catch { /* the log says its own failures */ }
+      outcomes.set(session.sessionId, Promise.resolve({ state: 'not_delivered', reason: 'shell_takes_no_task', attempts: 0 }))
+    } else if (firstInstruction?.trim()) {
       // The same delivery as the task path, and it must be: two ways of handing an agent its first instruction is two
       // behaviours to keep matched (M103). The claim ends when the instruction is written or refused.
-      void deps.ptys.deliverWhenReady(session.sessionId, firstInstruction.trim()).finally(release)
-        .catch((e) => deps.failed('terminal.first-instruction', e))
+      const outcome = deliverFirst(session, firstInstruction.trim())
+        .catch((e): FirstInstructionOutcome => { deps.failed('terminal.first-instruction', e); return { state: 'not_delivered', reason: 'threw', attempts: 1 } })
+        .then((o) => {
+          release()
+          try { deps.delivered?.({ session_id: session.sessionId, runner: deps.ptys.get(session.sessionId)?.optionId ?? session.optionId ?? null, ...o }) } catch { /* the log says its own failures */ }
+          return o
+        })
+      outcomes.set(session.sessionId, outcome)
+      void outcome.finally(() => { setTimeout(() => outcomes.delete(session.sessionId), 10 * 60_000).unref?.() })
     } else release()
     return session
   }
+  /** What became of the first instruction of a console this opened, while it is kept (ten minutes after it settled). */
+  const firstInstruction = (sessionId: string): Promise<FirstInstructionOutcome> | null => outcomes.get(sessionId) ?? null
+  return Object.assign(open, { firstInstruction })
 }
 // #endregion console-open

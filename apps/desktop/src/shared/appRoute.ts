@@ -88,6 +88,8 @@ export type AppRoute =
   | { kind: 'access' }
   /** SCN-175 (W2 S5): how the projects relate; `projectId` centres the graph on one project and its neighbours. */
   | { kind: 'graph'; projectId?: string | null }
+  /** SCN-190: Memory, the dashboard of everything the estate index holds (spec 2026-11-20). */
+  | { kind: 'memory' }
   /** SCR-40. Every project by default; `projectId` opens one project's goals. */
   | { kind: 'plan'; projectId?: string | null }
   /** SCR-42. Every project by default; `projectId` narrows it to one. */

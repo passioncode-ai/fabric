@@ -95,6 +95,9 @@ async function main(): Promise<void> {
   } else if (screen === 'graph') {
     const { GraphScreen } = await import('../src/renderer/src/launch/GraphScreen')
     node = <GraphScreen projectId="p1" feedMark={0} onProject={noop} onWhole={noop} />
+  } else if (screen === 'memory') {
+    const { MemoryScreen } = await import('../src/renderer/src/launch/MemoryScreen')
+    node = <MemoryScreen onError={noop} />
   } else if (screen === 'launch') {
     const { Tasks } = await import('../src/renderer/src/Tasks')
     node = <Tasks project={project as never} feedMark={0} onStarted={noop} onError={noop} />
@@ -115,7 +118,7 @@ async function main(): Promise<void> {
     : screen === 'agent' ? { kind: 'agents' as const, session: agent.sessionId }
       : screen === 'review' ? { kind: 'board' as const }
         : screen === 'pulse' ? { kind: 'elsewhere' as const }
-          : { kind: screen as 'home' | 'board' | 'comms' | 'access' | 'history' | 'settings' }
+          : { kind: screen as 'home' | 'board' | 'comms' | 'memory' | 'access' | 'history' | 'settings' }
   createRoot(document.getElementById('root')!).render(
     <I18nProvider locale={locale}>
       <div className="app launch-root">

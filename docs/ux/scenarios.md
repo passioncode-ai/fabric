@@ -191,6 +191,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-185 | The CEO keeps answering when its first agent cannot | Floating CEO | P-01 | ST-046, FLW-63 | implemented | unobserved |
 | SCN-186 | Choose the CEO's voice | Floating CEO | P-01 | ST-046, SCR-36, SCR-64 | implemented | unobserved |
 | SCN-187 | Stop the CEO, and start it again | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
+| SCN-190 | See what Fabric knows about every project and where each answer comes from | Memory/context | P-01 | ST-028, FLW-31, SCR-92 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -4457,15 +4458,15 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Entry point:** a task set for an agent, by the person in Fabric or by another agent on the board
 - **Preconditions:** an agent takes the task (a claim)
 - **Steps:**
-  1. Agent reads the task -> if what should happen, why, what will be true when done, what is out of scope or a constraint is missing, it asks the person (a question on the board, SCN-164) before anything else.
-  2. Person answers -> the agent asks the next missing part, one question at a time, until the spec is whole; it builds nothing, files nothing and hands nothing on meanwhile.
+  1. Agent reads the task -> if what should happen, why, what will be true when done, what is out of scope or a constraint is missing, it fills the part by its level ([ADR-0205](../adr/0205-decisions-split-by-level-strategy-is-the-persons-tactics-the-agents.md)): what it can find (the code, the documents, the project's decisions) or decide (how to reach what was asked) it writes itself; what is the person's (the vision, what the product is for) or what the person knows better it asks the person (a question on the board, SCN-164) before anything else.
+  2. Person answers -> the agent asks the next part only the person can say, one question at a time, until the spec is whole; it builds nothing, files nothing and hands nothing on meanwhile.
   3. Spec whole -> the agent writes the brief (what, why, expected) and starts; the task page shows it (SCN-174).
-- **Expected result:** no task is built from a one-line instruction; the person sees what was agreed before work starts.
+- **Expected result:** no task is built from a one-line instruction; the person is asked only what they alone can say, and sees what was agreed and what the agent assumed before work starts.
 - **Alt paths:** the person is away -> the task waits as «Спецификация не собрана» with the open question on «Нужны вы»; a task filed by another agent -> the questions go to that agent's project on the board.
 - **UI elements:** «Спецификация не собрана» on the task page, naming the missing parts, and on its card in Очередь and В работе (`shared/taskSpec.ts#specMissing`); the open question on «Нужны вы».
 - **States covered:** asking, waiting for an answer, whole, started.
 - **Errors & recovery:** a question that cannot be posted keeps the task in the queue and says why.
-- **Design rationale:** the operator, 2026-10-23: «при начале и постановке задачи всегда нужно убедиться, что вся спецификация собрана, и не отпускать, пока не собрана грилингом» ([ADR-0176](../adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md)).
+- **Design rationale:** the operator, 2026-10-23: «при начале и постановке задачи всегда нужно убедиться, что вся спецификация собрана, и не отпускать, пока не собрана грилингом» ([ADR-0176](../adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md)); the operator, 2026-11-21: «спрашивать только там, где не уверены или знаем хуже оператора. НЕ задавливать вопросами» ([ADR-0205](../adr/0205-decisions-split-by-level-strategy-is-the-persons-tactics-the-agents.md)).
 - **Telemetry:** planned only.
 - **Amended 2026-10-24 (0.3.12 release review, iteration 1, UX-13):** a task with no brief at all says it in one sentence on its page, «Спецификация не собрана: бриф ещё не написан. Агент спросит вас о нём, прежде чем начать, или напишите его сами ниже.» (`task.specEmpty`); a brief written in part names its missing parts, «Спецификация не собрана, не написано: {части}. Агент спрашивает это, прежде чем начать.» (SCN-174).
 - **Amended 2026-10-26, iterations 2 and 3 (0.3.13 release review, iteration 2, UX-2; iteration 3, UX-3):** a burst of system notifications (two or more things waiting at once) says its sentence in the interface's language, «Вас ждут дела: {count}» in Russian, never the fixed English one. Code: `apps/desktop/src/shared/notify.ts#decideNotification` (its `burst` sentence), `main/index.ts` passes `notify.burst`. Test: `apps/desktop/src/shared/notify.test.ts` (a burst in the interface language).
@@ -4635,6 +4636,8 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Coverage:** `apps/desktop/src/main/ceoTools.ts#createCeoOperations` and `#registerCeoTools`, `apps/desktop/src/main/agentSurface.ts` (region `ceo-surface`), `apps/desktop/src/main/index.ts` (region `ceo-agent-wiring`); tests `apps/desktop/test/ceo-agent.test.mjs` («sessions», «read», «input», «start», «stop», «resume», «open, projects»).
 - **Product:** unobserved
 
+- **Amended 2026-11-20 ([the owner's words](../evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4: fix what blocks work first):** step 4's start says what became of the task: `first_task` is delivered, resubmitted (a paste left in Claude Code's box got one more Enter), not delivered with the next step (type it with the input tool), or pending; a task for a plain shell is refused before anything starts. A message to the CEO while it works is written after 3 s (Claude Code queues it). A project heard as «sound engine» is sound-engine; a worktree copy gives way. Coverage adds `apps/desktop/src/main/consoleOpen.ts#createConsoleOpen`, `apps/desktop/src/main/deliveryQueue.ts#DeliveryQueue`; tests `apps/desktop/test/console-open.test.mjs`, `apps/desktop/test/delivery-queue.test.mjs`, `apps/desktop/test/ceo-agent.test.mjs` («start says what became of the first task», «start refuses a task in words for a plain shell»).
+
 ### SCN-184: Call the CEO and talk
 - **Persona:** P-01
 - **Feature:** Floating CEO
@@ -4720,4 +4723,27 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** ops log `ceo.agent.held`, `ceo.agent.stopped`.
 - **Status:** implemented (2026-11-19).
 - **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`stop`, `personStopping`, `personStopEnded`, `onExit`, `ensure`, `send`); tests `apps/desktop/test/ceo-agent.test.mjs` («THE PERSON'S STOP», «ER-1 (0.3.25)», «ER-2 (0.3.25)», «ER-3 (0.3.25)», «ER-6 (0.3.25)»), `apps/desktop/src/renderer/src/ceo/CeoPopup.test.tsx`.
+- **Product:** unobserved
+### SCN-190: See what Fabric knows about every project and where each answer comes from
+- **Persona:** P-01
+- **Feature:** Memory/context
+- **Traces:** ST-028, FLW-31, SCR-92 (JTBD-02)
+- **Entry point:** «Memory» in the left column, under «Переписка».
+- **Preconditions:** Fabric is running; the estate index has made at least one pass (ADR-0200).
+- **Steps:**
+  1. Operator opens «Memory» -> the head says what the base holds (documents, projects, sessions, transcripts, tasks, board, commits, documents, the graph, the share read by meaning, the file's size) and one chip per source says how fresh it is: fresh, catching up with what is left, not read for a while, cannot be read with its reason on hover.
+  2. Operator looks at «Организации и проекты» -> each organization is a hub in its colour with its projects around it, a project's size is how much the base knows of it, a line between two projects is the board's requests between them; hover lights a node's neighbours.
+  3. Operator presses a project (on the map or in «То же таблицей») -> its card opens with its counts by kind and last activity, and the search and «Что изменилось» narrow to that project.
+  4. Operator types a phrase in «Поиск с цитатами» -> hits come with their kind, project, date, a verbatim passage and its file:lines.
+  5. Operator presses «Проверить цитату» on a hit -> «Цитата дословно есть в источнике», or why not (not verbatim, the source changed, a number the quote lacks).
+  6. Operator switches «Что изменилось» between «Сутки» and «Неделя» -> the newest documents by project and kind for that window.
+- **Expected result:** the operator sees in one place how much Fabric knows, how fresh it is, how projects and organizations connect, and can trust an answer because its quote is checked against its source.
+- **Alt paths:** an agent reads the same through the CEO's doors (`fabric_knowledge_execute` operations `memory.overview`, `memory.graph`, `memory.changes`; `fabric_knowledge_search`; `quote.check`).
+- **UI elements:** «Memory» rail place; stats; source chips; the map with «По размеру окна»; the project card with «Закрыть»; «То же таблицей»; the search field; «Проверить цитату»; «Сутки» / «Неделя».
+- **States covered:** reading, not open (with the reason), first index catching up, source not read, no canvas (the table alone), nothing found, nothing changed, verified, not verified.
+- **Errors & recovery:** a part that cannot be read says so in its own place and the others still show; «Обновить» reads again; a check that fails is said and can be pressed again.
+- **Design rationale:** the owner, 2026-11-20, in the CEO window: «давайте ее называем memory … должна у нас рендерится вот в виде дашборда прям фабрики … так же хорошо как … brain … для sound engine»; spec `docs/evidence/specs/2026-11-20-memory-dashboard.md`.
+- **Telemetry:** ops log `knowledge.execute` with the operation.
+- **Status:** implemented (2026-11-20).
+- **Coverage:** `apps/desktop/src/renderer/src/launch/MemoryScreen.tsx` region `memory-screen`; `apps/desktop/src/main/memoryRead.ts`; tests `apps/desktop/src/renderer/src/launch/MemoryScreen.test.tsx`, `apps/desktop/test/memory-read.test.mjs`, `apps/desktop/src/renderer/src/graph/graph.test.tsx`.
 - **Product:** unobserved

@@ -172,8 +172,9 @@ Settings' «Этот компьютер», read at each call; not chosen, or set
 `shared/protocol.ts#machineStanding`), and the rules carry the cross-project rule for that trust: file the work on the
 owning project's board first; on a trusted computer the owner's agent takes it when online, else the asker may make the
 change itself and records it on the request; elsewhere the asker never edits and the request waits
-(`shared/protocol.ts#crossProjectRule`). Every task starts only once its brief's three parts are written, asked for
-with `fabric_question_ask` (`intake.spec-first` in `shared/protocolObligations.ts`); the task page and its card say
+(`shared/protocol.ts#crossProjectRule`). Every task starts only once its brief's three parts are written: the agent
+fills what it can find or decide and asks with `fabric_question_ask` only for what the person knows better
+(`intake.spec-first` and `decisions.by-level` in `shared/protocolObligations.ts`, ADR-0205); the task page and its card say
 «Спецификация не собрана» until then (`shared/taskSpec.ts#specMissing`). A session served different rules later (the
 language or the trust changed) is journalled again, `session.oriented@1` with `previous_protocol_hash` (CO-399).
 

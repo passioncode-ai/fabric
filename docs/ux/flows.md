@@ -1000,6 +1000,8 @@ flowchart TD
  M -->|source task| T[Screen: SCR-32 Task page]
  T -->|back| M
  M -->|legacy incomplete or read failure| M
+ R[Rail: Memory] -->|every project, SCN-190| K[Screen: SCR-92 Memory]
+ K -->|search hit or project card| T
 ```
 
 ## First-release routing precedence · 2026-09-25

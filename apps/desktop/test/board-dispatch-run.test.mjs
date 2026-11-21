@@ -235,7 +235,7 @@ test('a Switchboard refusal starts nothing and is named; a failure to open the w
   assert.deepEqual(d.records().map((r) => [r.state, r.outcome, r.refused]), [['ended', 'refused', 'no_agent']])
   assert.ok(w.logs.some((l) => l.op === 'board.dispatch.decided' && l.detail.check === 'deferred-no-agent'))
   // ER-1, DA-2: no new workflow, offer or start every minute after a refusal; after the back-off it asks again on the SAME workflow.
-  const opened = w.calls.filter(([n]) => n === 'observatory_checkpoint_write' && !n.workflowId).length
+  const opened = w.calls.filter(([n, a]) => n === 'observatory_checkpoint_write' && !a.workflowId).length
   w.tick(MIN)
   await d.onPass()
   assert.equal(w.launches.length, 1)
@@ -2655,4 +2655,65 @@ test('task 3332191a: a Switchboard that did not answer its owner in time is said
   // Any other text stays out of the note (DA-5: it may carry the command line and a folder).
   const other = JSON.stringify({ ok: false, error: 'No folder /srv/projects/alpha found.' })
   await assert.rejects(run(process.execPath, say(other, 1), process.env), (e) => e.message === 'exited 1' && !e.message.includes('/srv'))
+})
+
+// org-index's board request 42c14b72 (2026-11-20): every run of its inbox from 11-14 to 11-20 was refused `no_agent` or
+// `at_capacity`, the wait doubled to six hours, and the mail missed every moment an account had room.
+test('a passing refusal (no_agent, at_capacity) waits at most thirty minutes however many came in a row; another code keeps doubling', async () => {
+  const { refusalWaitMs, TRANSIENT_BACKOFF_MAX_MS } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  assert.equal(TRANSIENT_BACKOFF_MAX_MS, 30 * MIN)
+  assert.equal(refusalWaitMs(1, 'no_agent'), REFUSAL_BACKOFF_MS)
+  assert.equal(refusalWaitMs(2, 'at_capacity'), 2 * REFUSAL_BACKOFF_MS)
+  assert.equal(refusalWaitMs(7, 'no_agent'), 30 * MIN)
+  assert.equal(refusalWaitMs(7, 'at_capacity'), 30 * MIN)
+  assert.equal(refusalWaitMs(7, 'agent_not_installed'), REFUSAL_BACKOFF_MAX_MS)
+  assert.equal(refusalWaitMs(7, undefined), REFUSAL_BACKOFF_MAX_MS)
+  const w = world({ refuse: 'no_agent' })
+  const d = createBoardDispatch(w.deps)
+  // Ten refusals in a row: past the third the wait is thirty minutes, never more.
+  for (let i = 0; i < 10; i++) { await d.onPass(); w.tick(30 * MIN) }
+  assert.equal(w.launches.length, 10, 'every half hour Switchboard is asked again')
+  const other = world({ refuse: 'agent_not_installed' })
+  const d2 = createBoardDispatch(other.deps)
+  for (let i = 0; i < 10; i++) { await d2.onPass(); other.tick(30 * MIN) }
+  assert.ok(other.launches.length < 6, `a refusal that does not pass still doubles (${other.launches.length} asks)`)
+})
+
+test('an item waiting six hours or more is offered a free place first, an inbox item by its oldest unread message', async () => {
+  const fresh = request({ id: '33333333-3333-4333-8333-333333333333', submittedAt: new Date(T0 - 5 * MIN).toISOString() })
+  const old = request({ id: '44444444-4444-4444-8444-444444444444', submittedAt: new Date(T0 - 3 * DAY).toISOString() })
+  const w = world({ requests: [fresh, old] })
+  const d = createBoardDispatch(w.deps)
+  await d.onPass()
+  // One project holds one run at a time: the starved request takes it.
+  assert.equal(w.launches.length, 1)
+  assert.equal(w.launches[0].request, old.id)
+  // Under six hours the board's own order stands (requests before mail and left tasks, §3.11).
+  const younger = request({ id: '55555555-5555-4555-8555-555555555555', submittedAt: new Date(T0 - 5 * 3600_000).toISOString() })
+  const w2 = world({ requests: [fresh, younger] })
+  await createBoardDispatch(w2.deps).onPass()
+  assert.equal(w2.launches[0].request, fresh.id)
+  const { waitingSince, launchOrder } = await import(path.resolve(import.meta.dirname, '../src/main/boardDispatchRun.ts'))
+  const mail = { submittedAt: new Date(T0 - MIN).toISOString(), inbox: { oldestAt: new Date(T0 - 7 * 3600_000).toISOString() } }
+  assert.deepEqual(launchOrder([fresh, mail, old], T0), [old, mail, fresh])
+  assert.equal(waitingSince({ submittedAt: '2026-11-20T13:00:00Z', inbox: { oldestAt: '2026-11-14T20:56:18Z' } }), Date.parse('2026-11-14T20:56:18Z'))
+  assert.equal(waitingSince({ submittedAt: 'not a date' }), Number.POSITIVE_INFINITY)
+})
+
+test('a refused start writes why into the workflow it holds, so the lapsed offer has a reason; a failed write starts nothing else', async () => {
+  const w = world({ refuse: 'no_agent' })
+  await createBoardDispatch(w.deps).onPass()
+  const note = w.calls.find(([n, a]) => n === 'observatory_checkpoint_write' && a.stepId === 'launch-refused')
+  assert.ok(note, 'no launch-refused checkpoint')
+  assert.equal(note[1].workflowId, w.launches[0].workflow)
+  assert.equal(note[1].leaseId, 'lease-1')
+  assert.match(note[1].body.notes, /no_agent/)
+  assert.match(note[1].body.goal, /Answer the board request/)
+  const broken = world({ refuse: 'at_capacity' })
+  const real = broken.deps.observatory
+  broken.deps.observatory = async (name, args) => (name === 'observatory_checkpoint_write' && args.stepId === 'launch-refused' ? { error: 'WorkflowClosed' } : real(name, args))
+  const d = createBoardDispatch(broken.deps)
+  await d.onPass()
+  assert.deepEqual(d.records().map((r) => [r.outcome, r.refused]), [['refused', 'at_capacity']])
+  assert.ok(broken.logs.some((l) => l.op === 'board.dispatch.refusal-note' && l.outcome === 'failed'))
 })

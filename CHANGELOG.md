@@ -7,6 +7,80 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **An agent asks the person only what the person alone can say.** The operator, 2026-11-21: strategy (the vision,
+  the concept) is the person's and is always asked; tactics the agent decides itself; what the agent knows better or
+  can find it never asks; a question goes only where the agent is unsure or the person knows better, weighed against
+  the person's expertise in that domain. Every session reads it as the rule `decisions.by-level`, and a task's spec is
+  gathered by it: the agent fills what it can and asks only for the rest
+  ([ADR-0205](docs/adr/0205-decisions-split-by-level-strategy-is-the-persons-tactics-the-agents.md), SCN-176).
+- **«Memory»: what Fabric knows about every project, as a place of its own.** The owner, 2026-11-20, in the CEO
+  window: the knowledge base should live inside Fabric as «Memory» and render as well as Sound Engine's brain. «Memory»
+  in the left column shows what the base holds and how fresh each source is (agent sessions, tasks and the journal, the
+  board, commits and documents, the local model's vectors), the organizations and their projects on a map whose lines
+  are the board requests between projects, a project's card, a search whose quotes can be checked word for word against
+  their source, and what changed over a day or a week. The CEO reads the same through `fabric_knowledge_execute`
+  (`memory.overview`, `memory.graph`, `memory.changes`). The graph is one module now, `@fabric/graph`, with a map, a
+  time line and a table. Two index defects found while measuring are fixed: a transcript or a changed document no longer
+  fails to be written, and a repository's commits are no longer read again on every pass while its documents wait.
+- **One search over every session, transcript and task, and the graph of what relates to what.** The operator's backlog
+  of 2026-11-19, relayed by the CEO: search tasks across every session and project, and a knowledge base for all of
+  Fabric, a linked graph of tasks, actions and data. Fabric keeps a local index (`userData/estate-index`) of the Claude
+  Code and Codex transcripts, its own consoles, every project's tasks, notes and board messages, the repositories'
+  documents and decisions (ADRs first, cut at headings with their lines), the project memory's facts, and the commits, and
+  searches it by words in Russian and English, by parts of identifiers and, when a local Ollama model is installed, by
+  meaning; nothing leaves the machine. Every hit names its project, context (personal or an organization), the
+  file and lines it stands at, its session id and the command that continues it. The CEO gets two tools,
+  `fabric_knowledge_search` and `fabric_knowledge_execute` (what relates to a task, a session or a commit, N steps out,
+  and the shortest chain between two of them); the search panel gets the group «Везде» with «Связи», «Продолжить» and
+  «Скопировать команду» (ADR-0200; spec `docs/evidence/specs/2026-11-19-estate-index-and-graph.md`).
+- **The CEO finds a project by its folder's name and continues a console after Fabric restarted.** `fabric_ceo_projects`
+  answers each project with its role (canonical, duplicate, worktree, temporary) and leaves temporary folders out unless
+  asked; `fabric_ceo_session_start` takes a folder's name with a typo forgiven and answers a list when several canonical
+  projects match; `fabric_ceo_session_resume` continues a console from before a restart as the same Claude Code or Codex
+  session (`claude --resume`, `codex resume`) in a Fabric console, instead of answering «Switchboard has no record». No
+  router agent is added: measured on the CEO's own transcript, the same task took 16 calls and 3 min 50 s and now takes 4
+  calls and about 4 s (ADR-0199).
+
+## 0.3.27 (unreleased)
+
+The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).
+
+- **An update replaces Fabric in place: one icon in the Dock.** An update moved the old bundle out of `/Applications`, the
+  Dock tile followed it and a second Fabric icon appeared; old copies (`Fabric-0.3.20.app`) and rollout copies stayed in
+  Launchpad and LaunchServices. `scripts/install-mac-update.mjs` swaps only `Contents`, keeps the way back as a zip,
+  removes the other registrations and keeps one Fabric tile in the Dock ([release-mac](docs/launch/release-mac.md#installing-an-update-on-a-mac)).
+- **A board run Switchboard refuses is said, and mail is not starved.** org-index's mail waited six days with no run
+  (board request `42c14b72`): every start was refused `no_agent` (no account with room) or `at_capacity`, the wait after
+  a refusal doubled to six hours, and the offers lapsed in Observatory with no reason. Now a refusal writes its code
+  into the workflow (step `launch-refused`), `no_agent` and `at_capacity` wait at most 30 minutes, an item waiting six
+  hours or more is offered a free place first, and the inbox packet says what its count leaves out. The signal to the
+  operator after a series of refusals is CO-607 ([on-demand spec §3.8](docs/evidence/specs/2026-11-04-on-demand-sessions.md#38-every-addressee-woken-and-watched-co-559), item 6).
+- **A session the CEO starts gets its task, and the CEO hears whether it did.** A session started with a task sat 40
+  minutes on an empty prompt, and nothing said why: the first instruction's end was dropped unless it threw. Now a
+  readiness that lapsed waits one more window (still never a blind write), a long paste left waiting in Claude Code's
+  box («[Pasted text #1 …]», no turn started) gets one more Enter, and every end is written to the operations log as
+  `terminal.first-instruction`. `fabric_ceo_session_start` waits for it (at most 70 s) and answers `first_task`:
+  delivered, resubmitted, not delivered with the next step, or pending (`main/consoleOpen.ts#deliverFirst`; SCN-183).
+- **A message to the CEO while it works is no longer lost.** 5 of the owner's last 20 messages to the CEO timed out on
+  2026-11-19 and 20: a working Claude Code prints its spinner without the 400 ms quiet the delivery waited for. A
+  message that waited 3 s is now written into a working Claude Code, which queues it and answers after its turn
+  (measured on a live Claude Code the same day). It still needs output since the last write, and an item with a write
+  gate still waits for quiet; other agents keep the quiet rule (`main/deliveryQueue.ts`, `busyAfterMs`).
+- **The CEO finds a project by its spoken name.** «sound engine» is sound-engine (spaces, hyphens and underscores read
+  alike), a worktree copy of the same name gives way to the project, and a real tie is asked about with each folder
+  (`shared/ceoAgent.ts#findProject`). 10 lookups failed on 2026-11-19 and 20.
+- **A task in words is never typed into a plain shell.** A session started with runner «shell» and a task typed the task
+  into zsh («parse error near `)'»). The CEO's start refuses that before anything starts and names the agents to use;
+  the console never types a first instruction into a shell (`main/consoleOpen.ts#TAKES_NO_TASK`).
+- **A client the hub refuses as unknown is named.** After a restart, a client kept knocking with a revoked credential
+  every 20 s for two hours and the log named nobody. The refusal now writes `hub.unknown-credential` once per 10 minutes
+  per credential, with a short digest of what was sent (never the credential) and the client's User-Agent
+  (`main/agentSurface.ts#sayUnknownCredential`).
+
+**Upgrading.** No schema step. Nothing to set.
+
 ## 0.3.26
 
 0.3.25 was not published; its changes are in this release ([the release spec](docs/evidence/specs/2026-11-20-home-agents-sessions.md)).

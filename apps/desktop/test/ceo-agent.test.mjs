@@ -80,8 +80,20 @@ test('a project by id, folder, name or words; two matches ask instead of guessin
   assert.equal(findProject(ps, '/d/alpha/').found.id, '1')
   assert.equal(findProject(ps, 'alpha').found.id, '1')
   assert.equal(findProject(ps, 'beta').found.id, '3')
-  assert.deepEqual(findProject(ps, 'alp').ambiguous, ['Alpha', 'Alpha Web'])
+  assert.deepEqual(findProject(ps, 'alp').ambiguous.map((n) => n.replace(/ \(.*\)$/, '')), ['Alpha', 'Alpha Web'])
   assert.equal(findProject(ps, 'nothing').missing, true)
+  // 2026-11-20, the CEO's voice: «sound engine» is «sound-engine», and a worktree copy of the same name gives way.
+  const heard = [
+    { id: 'se', name: 'sound-engine', repo_path: '/d/sound-engine' },
+    { id: 'sw', name: 'sound-engine-fix-swarm-a', repo_path: '/d/_worktrees/sound-engine-fix-swarm-a' },
+    { id: 'db', name: 'fabric-agents-database', repo_path: '/d/fabric-agents-database' },
+    { id: 'db2', name: 'fabric-agents-database', repo_path: '/d/_worktrees/fabric-agents-database-x' }
+  ]
+  assert.equal(findProject(heard, 'sound engine').found.id, 'se')
+  assert.equal(findProject(heard, 'Sound_Engine').found.id, 'se')
+  assert.equal(findProject(heard, 'fabric-agents-database').found.id, 'db')
+  assert.deepEqual(findProject([heard[2], { ...heard[2], id: 'db3', repo_path: '/e/fabric-agents-database' }], 'fabric-agents-database').ambiguous,
+    ['fabric-agents-database (/d/fabric-agents-database)', 'fabric-agents-database (/e/fabric-agents-database)'], 'two real copies are asked about, by folder')
 })
 
 // ── the keeper ─────────────────────────────────────────────────────────────
@@ -226,7 +238,7 @@ function operations(over = {}) {
       write: (id, data) => writes.push([id, data])
     },
     ceoSessionId: () => 'ceo',
-    projects: async () => [{ id: 'p1', name: 'App', repo_path: '/d/app', default_agent: 'codex' }, { id: 'p2', name: 'Site', repo_path: '/d/site', default_agent: null }],
+    projects: async () => over.projects ?? [{ id: 'p1', name: 'App', repo_path: '/d/app', default_agent: 'codex' }, { id: 'p2', name: 'Site', repo_path: '/d/site', default_agent: null }],
     admitFolder: async (folder) => ({ id: 'p9', name: path.basename(folder), repo_path: folder }),
     openConsole: async (projectId, runner, task) => { opened.push([projectId, runner, task]); origins.push(currentLaunchOrigin()); return { sessionId: 'new', projectId, cwd: '/d/app', optionId: runner, state: 'starting', running: true } },
     stop: async (id, force) => { consoles.get(id).running = false; return { state: force ? 'killed' : 'stopped' } },
@@ -245,7 +257,9 @@ function operations(over = {}) {
     sleep: async () => {},
     transcriptRoots: over.transcriptRoots ?? [],
     ...(over.launches ? { launches: over.launches } : {}),
-    ...(over.diskSessions ? { diskSessions: over.diskSessions } : {})
+    ...(over.diskSessions ? { diskSessions: over.diskSessions } : {}),
+    ...(over.firstTask ? { firstTask: over.firstTask } : {}),
+    ...(over.deps ?? {})
   }
   return { ops: createCeoOperations(deps), writes, records, notes, opened, origins, switchboard, consoles }
 }
@@ -330,6 +344,27 @@ test('start: a project by name with its own runner and the task; a new folder be
   assert.equal((await o.ops.run('start', { project: 'zzz', reason: 'nothing like it' })).ok, false)
 })
 
+test('start says what became of the first task: delivered, or not delivered with the next step (2026-11-20)', async () => {
+  const fine = operations({ firstTask: () => Promise.resolve({ state: 'resubmitted', attempts: 1 }) })
+  assert.deepEqual((await fine.ops.run('start', { project: 'app', task: 'go', reason: 'the owner asked' })).first_task, { state: 'resubmitted', attempts: 1 })
+  const lost = operations({ firstTask: () => Promise.resolve({ state: 'not_delivered', reason: 'readiness_timeout', attempts: 2 }) })
+  const r = await lost.ops.run('start', { project: 'app', task: 'go', reason: 'the owner asked' })
+  assert.equal(r.ok, true, 'the session did start')
+  assert.equal(r.first_task.state, 'not_delivered')
+  assert.match(r.first_task.next, /fabric_ceo_session_input/)
+  const none = operations({ firstTask: () => Promise.resolve({ state: 'delivered', attempts: 1 }) })
+  assert.equal((await none.ops.run('start', { project: 'app', reason: 'no task given' })).first_task, undefined, 'no task, nothing to follow')
+})
+
+test('start refuses a task in words for a plain shell before anything starts; a shell without a task starts', async () => {
+  const o = operations()
+  const r = await o.ops.run('start', { project: 'app', runner: 'shell', task: 'Сделай обзор (кратко)', reason: 'the owner asked' })
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /coding agent/)
+  assert.equal(o.opened.length, 0, 'no empty shell is left behind')
+  assert.equal((await o.ops.run('start', { project: 'app', runner: 'shell', reason: 'a shell to type into' })).ok, true)
+})
+
 test('stop: a console as the person\'s stop, force kills; a Switchboard session ends through Switchboard; its own console never', async () => {
   const o = operations()
   assert.equal((await o.ops.run('stop', { session_id: 'ceo', reason: 'should be refused' })).ok, false)
@@ -357,6 +392,56 @@ test('resume: an ended console starts again in its project with its runner; a Sw
   const sb = await o.ops.run('resume', { session_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', reason: 'carry on' })
   assert.equal(sb.via, 'switchboard')
   assert.deepEqual(o.switchboard.at(-1), ['sessions', 'continue', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'])
+})
+
+// The CEO's observations of 2026-11-19: one name named several projects; a console's session could not be continued
+// after Fabric restarted («Switchboard has no record of that session»).
+const MEASURED = [
+  { id: 'c1', name: 'fabric-agents-database', repo_path: '/w/.cache/fabric-agents-database', default_agent: null },
+  { id: 'c2', name: 'fabric-agents-database', repo_path: '/w/DATA/fabric-agents-database', default_agent: 'claude-code' },
+  { id: 'c3', name: 'x-app', repo_path: '/w/DATA/x-app', default_agent: null },
+  { id: 'c4', name: 'x-api', repo_path: '/w/DATA/x-api', default_agent: null }
+]
+
+test('start by a folder\'s name: the canonical folder wins over a temporary one, a typo is forgiven, several are one list', async () => {
+  const o = operations({ projects: MEASURED })
+  const r = await o.ops.run('start', { project: 'fabric-agents-database', task: 'go', reason: 'the owner asked' })
+  assert.equal(r.ok, true)
+  assert.equal(o.opened.at(-1)[0], 'c2')
+  assert.equal((await o.ops.run('start', { project: 'fabric-agnets-database', reason: 'a typo' })).ok, true)
+  assert.equal(o.opened.at(-1)[0], 'c2')
+  const two = await o.ops.run('start', { project: 'x-ap', reason: 'which one' })
+  assert.equal(two.ok, false)
+  assert.deepEqual(two.candidates.map((c) => [c.name, c.role]), [['x-app', 'canonical'], ['x-api', 'canonical']])
+  const list = await o.ops.run('projects', {})
+  assert.deepEqual(list.projects.map((x) => [x.id, x.role]), [['c2', 'canonical'], ['c4', 'canonical'], ['c3', 'canonical']], 'temporary folders only when asked')
+  const all = await o.ops.run('projects', { include_temporary: true })
+  assert.deepEqual(all.projects.find((x) => x.id === 'c1'), { id: 'c1', name: 'fabric-agents-database', folder: '/w/.cache/fabric-agents-database', role: 'temporary', of: '/w/DATA/fabric-agents-database', default_runner: null, consoles_running: 0 })
+})
+
+test('resume after a restart: a console Fabric no longer runs continues as its own Claude session, in one call', async () => {
+  const resumed = []
+  const recalled = {
+    'gone-console': { id: 'gone-console', kind: 'console', projectId: 'p1', folder: '/d/app', runner: 'claude-code', runtimeSessionId: 'rt-1', configDir: null, title: null, at: '2026-11-19T10:00:00Z' },
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee': { id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', kind: 'transcript', projectId: null, folder: '/d/site/x', runner: 'claude-code', runtimeSessionId: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', configDir: '/h/acct', title: 't', at: null }
+  }
+  const o = operations({ deps: {
+    recall: async (id) => recalled[id] ?? null,
+    pastConsoles: async () => [recalled['gone-console']],
+    openResumed: async (projectId, runner, rt, cwd, env) => { resumed.push([projectId, runner, rt, cwd, env]); return { sessionId: 'again', projectId, cwd: cwd ?? '/d', optionId: runner, state: 'starting', running: true } }
+  } })
+  const r = await o.ops.run('resume', { session_id: 'gone-console', reason: 'Fabric restarted' })
+  assert.deepEqual([r.ok, r.as_itself, r.continues], [true, true, 'rt-1'])
+  assert.deepEqual(resumed.at(-1), ['p1', 'claude-code', 'rt-1', '/d/app', {}])
+  assert.equal(o.switchboard.filter((a) => a[1] === 'continue').length, 0, 'Switchboard is not asked about a session Fabric ran')
+  const t = await o.ops.run('resume', { session_id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', reason: 'found by search' })
+  assert.equal(t.ok, true)
+  assert.deepEqual(resumed.at(-1), ['p2', 'claude-code', 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', '/d/site/x', { CLAUDE_CONFIG_DIR: '/h/acct' }])
+  const withTask = await o.ops.run('resume', { session_id: 'gone-console', task: 'новая задача', reason: 'a new task' })
+  assert.deepEqual([withTask.ok, withTask.as_itself], [true, false])
+  assert.deepEqual(o.opened.at(-1), ['p1', 'claude-code', 'новая задача'])
+  const listed = await o.ops.run('sessions', { include_ended: true })
+  assert.deepEqual(listed.past_fabric_consoles.map((c) => [c.session_id, c.continues, c.resumable_as_itself]), [['gone-console', 'rt-1', true]])
 })
 
 test('open, projects, an unknown tool and refused arguments', async () => {

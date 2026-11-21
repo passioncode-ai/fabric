@@ -88,6 +88,8 @@ node --test scripts/test/windows-test-imports.test.mjs
 # The universal macOS pack (0.3.4): node-pty joined with lipo, and no thin or unreadable Mach-O passes; it skips
 # off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs
+# An update replaces Fabric in place, one icon in the Dock (docs/launch/release-mac.md#installing-an-update-on-a-mac).
+node --test scripts/test/install-mac-update.test.mjs
 # ADR-0192 (0.3.18 review, iteration 1, PL-1, PL-2): the board's launch agent is in the tree, ships at
 # Contents/Library/LaunchAgents under the name the app registers, and afterPack refuses an app without it.
 node --experimental-strip-types --test scripts/test/board-service.test.mjs
@@ -440,7 +442,7 @@ node --experimental-strip-types apps/desktop/test/hub-call-i3.test.mjs
 node --experimental-strip-types --test-force-exit apps/desktop/test/hub-surface.test.mjs
 # 2026-11-16 (the quality waves): these were written and never run by any tier. A test file no tier names is now a
 # failure (scripts/check-test-chains.mjs, below); one that is a manual probe says so in its first lines.
-for t in act-session-words board-reads board-wall-reads bug-capture bug-store ceo-conversation-host-tls console-open task-start cross-project-assign docker-runtime-words effect-tools process-boundary-native project-tools task-tools provider-capability-upgrade question-tools relayed-access-tools relayed-close resumed-claims switchboard-sessions ceo-agent session-resume session-launches; do
+for t in act-session-words board-reads board-wall-reads bug-capture bug-store ceo-conversation-host-tls console-open delivery-queue task-start cross-project-assign docker-runtime-words effect-tools process-boundary-native project-tools task-tools provider-capability-upgrade question-tools relayed-access-tools relayed-close resumed-claims switchboard-sessions ceo-agent session-resume session-launches; do
   node --experimental-strip-types --test "apps/desktop/test/$t.test.mjs"
 done
 node scripts/check-test-chains.mjs

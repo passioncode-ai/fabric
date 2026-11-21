@@ -9,6 +9,7 @@
 import type { PtyManager } from './pty'
 import type { AbandonedSweep } from './abandonedSweepRun.ts'
 import type { CeoOperations } from './ceoTools.ts'
+import type { KnowledgeOperations } from './knowledgeTools.ts'
 import type { LocalRead } from './localState.ts'
 import type { AppSettings } from '../shared/types'
 import { workingLanguageOfRead } from '../shared/appSettings.ts'
@@ -46,6 +47,8 @@ export interface HubLinks {
 export interface HubCeo {
   isCeo(sessionId: string): boolean
   operations(): CeoOperations | null
+  /** The estate index's two doors (ADR-0200); absent where no index runs. */
+  knowledge?(): KnowledgeOperations | null
 }
 
 export interface HubPorts {
@@ -66,7 +69,7 @@ export function windowHubPorts(w: {
   sweep: () => AbandonedSweep | null
   readSettings: () => LocalRead<AppSettings>
   /** The CEO agent, read late: null until it exists. */
-  ceo?: () => { isCeo(sessionId: string): boolean; operations(): CeoOperations | null } | null
+  ceo?: () => { isCeo(sessionId: string): boolean; operations(): CeoOperations | null; knowledge?(): KnowledgeOperations | null } | null
   registry: { snapshot(): Parameters<typeof machineAgentsOf>[0] }
   /** Electron's `shell.openExternal` and `app.getApplicationInfoForProtocol`, handed in so this module imports no Electron. */
   desktop: {
@@ -75,7 +78,7 @@ export function windowHubPorts(w: {
   }
 }): HubPorts {
   return {
-    ...(w.ceo ? { ceo: { isCeo: (id: string) => w.ceo?.()?.isCeo(id) ?? false, operations: () => w.ceo?.()?.operations() ?? null } } : {}),
+    ...(w.ceo ? { ceo: { isCeo: (id: string) => w.ceo?.()?.isCeo(id) ?? false, operations: () => w.ceo?.()?.operations() ?? null, knowledge: () => w.ceo?.()?.knowledge?.() ?? null } } : {}),
     terminals: () => w.ptys(),
     sweep: {
       takeNudges: (sessionId, projectId) => w.sweep()?.takeNudges(sessionId, projectId) ?? [],

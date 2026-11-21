@@ -4,6 +4,36 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `DECISION-LEVELS` · feat/decision-levels → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/shared/protocolObligations.ts` (`decisions.by-level`, `intake.spec-first`) and its test, ADR-0205 and the ADR register, SCN-176, the product model and report, `docs/architecture/operating-surfaces.md`, CHANGELOG, the map
+- conflicts: none
+- summary: the owner's order of 2026-11-21 (board request `a76373fa`): strategy is the person's and always asked, tactics the agent decides, what the agent can find it never asks, and a question goes only where the person knows better; told to every session at `fabric_whoami`, and a spec is gathered by it (amends ADR-0176 Decision 1)
+
+### 2026-11-21 · `SP-A1-ROWS` · docs/sp-a1-backlog-rows → main · fast-forward
+- files: `docs/evidence/specs/2026-08-16-software-fabric-carryover.md` (CO-616 to CO-618, the next id), `docs/evidence/backlog.md` (lane 12, the exposure count), `docs/reports/plan.json`, the map
+- conflicts: none
+- summary: fabric-workspace's board request `344e2405`, amendment A-1 (the owner's order No. 1, the self-learning spec pipeline): one carry-over row per Fabric SP, SP-03 (CO-616, build from 2026-11-28, target 2026-12-19), SP-07 (CO-617, inside SD-FAB-13) and SP-10 (CO-618, inside SD-FAB-07/SD-FAB-11); registers only, no code
+
+### 2026-11-21 · `UPDATE-IN-PLACE` · fix/update-in-place → main · fast-forward (toward 0.3.27)
+- files: `scripts/install-mac-update.mjs`, `scripts/lib/install-mac-update.mjs`, test `install-mac-update` (in `scripts/ci.sh`), `docs/launch/release-mac.md#installing-an-update-on-a-mac`, CHANGELOG, the map, handoff `docs/handoffs/2026-11-21-package-4-paused/`
+- conflicts: none
+- summary: the owner's bug of 2026-11-20, a second Fabric icon after an update: an update swaps only `Contents` of `/Applications/Fabric.app`, keeps the way back as a zip, removes other registrations of the id and keeps one Dock tile; the rest of package 4 waits on `feat/dock-icon-face` and `feat/ui-kit` (paused 2026-11-21 for the strategic plan)
+
+### 2026-11-20 · `DISPATCH-REFUSALS` · fix/dispatch-refusals-escalate → main · fast-forward (toward 0.3.27)
+- files: `apps/desktop/src/main/boardDispatchRun.ts`, tests `board-dispatch-run` and `adapter-skills` (its calls pass an empty `env`, so a session inside a Switchboard home no longer leaks `CLAUDE_CONFIG_DIR` into it), on-demand spec §3.8 item 6, carryover CO-607, CHANGELOG `0.3.27 (unreleased)`, the design map
+- conflicts: none
+- summary: org-index's board request `42c14b72`: a refused board start writes Switchboard's code into its workflow (`launch-refused`), `no_agent` and `at_capacity` wait at most 30 min instead of doubling to 6 h, items waiting 6 h or more are offered a free place first, and the inbox packet says what its count leaves out; the operator's signal after a series of refusals is CO-607
+
+### 2026-11-20 · `CEO-BOARD-UX` · feat/ceo-board-ux → main · fast-forward (toward 0.3.27)
+- files: `apps/desktop/src/main/{consoleOpen,deliveryQueue,pty,ceoTools,agentSurface,index}.ts`, `apps/desktop/src/shared/ceoAgent.ts`, tests `console-open`, `delivery-queue` (new, in `scripts/ci.sh`), `ceo-agent`, `agent-surface`; CHANGELOG `0.3.27 (unreleased)`, SCN-183 amendment, the product model, the map, mockup coverage and previews; `docs/evidence/plans/2026-11-20-ceo-board-ux/` (the owner's words, spec, plan, eight mockups, the modules review, an ADR draft, the research)
+- conflicts: none
+- summary: the owner's order of 2026-11-20, «what blocks work» first: a session's first task followed to its end and said to the CEO (`first_task`), a message to a working Claude Code written after 3 s, a project heard by voice found, no task typed into a plain shell, an unknown hub client named by digest; then the plan in waves and the mockups for the owner to choose from. The voice retro (`feat/voice-retro`, session 9cda1c0f) stacks on this and releases 0.3.27
+
+### 2026-11-20 · `FABRIC-MEMORY-34C42A6E` · feat/knowledge-graph → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/main/{estateIndex,estateRun,estateSources,estateWiring,knowledgeTools,memoryRead,index}.ts`, `apps/desktop/src/shared/{memory,estateSearch,appRoute,types,ipcWindowPolicy}.ts`, the preload, `renderer/src/launch/{MemoryScreen.tsx,memory.css,LaunchShell.tsx,rail.css}`, `renderer/src/graph/*`, `packages/graph`, `apps/desktop/scripts/memory-measure.mts`, the stand, both locales, SCN-190, SCR-92, FLW-31, the product model, the spec `2026-11-20-memory-dashboard.md`, the report `2026-11-20-memory-readiness`, CHANGELOG, the design map
+- conflicts: with main at `c9022c1b` (resolved in `533b38ee`): CHANGELOG, `ceoTools.ts`, `ceo-agent.test.mjs`, the backlog's lane 12 and exposure count, the carry-over's next id, the design map, the product model and the generated reports
+- summary: «Memory», the dashboard of what Fabric knows about every project (the owner, 2026-11-20); the estate index, its graph and the CEO's two doors (ADR-0199, ADR-0200); @fabric/graph, one graph module; other sources through memory-bundle/1; two index defects fixed (FTS tombstone rowids past 2^53, commits read again)
+
 ### 2026-11-20 · `FABRIC-0326` · fix/home-ceo-right → main · fast-forward at the 0.3.26 release
 - files: `EstateHome.tsx`, `launch/{launch.css,rail.css,LaunchShell.tsx,AgentsScreen.tsx,MachineSessions.tsx,ContinueSessionAsk.tsx,continueQueue.ts}`, `apps/desktop/stand/fixtures.ts` (the screens stand), `main/{machineSessions,index,ceoTools,pty,sessionLaunches,diskSessions}.ts`, `shared/{linkRoute,sessionLaunches}.ts`, `shared/contract/{fabricLinks,secretShape}.ts` (DEC-0189 re-vendored at `4c978495`), IPC and preload, both locales, `App.tsx`, tests (`session-resume`, `session-launches`, `ceo-agent`, `Rail`, `MachineSessions`, `ContinueSessionAsk`, `continueQueue`, `linkRoute`), `scripts/ci.sh`, CHANGELOG, the spec `2026-11-20-home-agents-sessions.md`, SCN-142, SCN-166 and SCN-182, the carry-over (CO-601, CO-603, CO-604), the release ledger and reviews, the map; merges of `feat/ceo-popup-redesign`, `feat/session-launch-journal`, `fix/session-end-fast`
 - conflicts: CHANGELOG, MERGES, the map, the product model, `main/index.ts` (the person's stop of the CEO and the launch journal's stop record, both kept), `ceo-agent.test.mjs` (both sides' tests kept)

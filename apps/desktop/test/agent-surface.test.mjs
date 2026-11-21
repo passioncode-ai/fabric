@@ -1199,6 +1199,16 @@ trace.some((r) => r.detail?.refused === 'unknown or revoked credential')
   ? ok('and a request refused for an UNKNOWN CREDENTIAL is traced — the earliest exit of the nine')
   : fail('the first exit leaves no trace: the tap is installed below it')
 
+// 2026-11-20: a client refused every 20 s for two hours was named nowhere. The refusal now names the client by a short
+// digest of what it sent (never the credential itself) and its User-Agent, once per 10 minutes per credential.
+const unknownSaid = trace.filter((r) => r.op === 'hub.unknown-credential')
+unknownSaid.length > 0 && unknownSaid.every((r) => /^([0-9a-f]{12}|none)$/.test(r.detail?.credential_digest ?? ''))
+  ? ok('an unknown credential is named by a 12-character digest, never by itself')
+  : fail('an unknown credential is not named, or named by more than a digest: ' + JSON.stringify(unknownSaid.map((r) => r.detail)))
+new Set(unknownSaid.map((r) => r.detail.credential_digest)).size === unknownSaid.length
+  ? ok('and each credential is named once, however often it knocks')
+  : fail('one credential was named more than once within 10 minutes')
+
 // Every attempt is one attempt. A response that both finished and closed must
 // not produce two records, or a rate of failure computed from this log is wrong.
 const ids = trace.filter((r) => r.detail?.attempt_id).map((r) => r.detail.attempt_id)

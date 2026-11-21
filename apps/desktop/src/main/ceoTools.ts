@@ -16,11 +16,13 @@ import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { TerminalSession } from '../shared/types.ts'
 import { decodePty } from '../shared/pty-decode.ts'
-import { findProject, keyBytes, screenText, typedText, type NamedProject } from '../shared/ceoAgent.ts'
+import { keyBytes, screenText, typedText, type NamedProject } from '../shared/ceoAgent.ts'
+import { catalogue as catalogueOf, holder, matchProject, type CatalogueRow, type ProjectMatch } from '../shared/estateSearch.ts'
 import { redact } from '../shared/redact.ts'
 import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
 import { chainOf, type Launch, type LaunchVia } from '../shared/sessionLaunches.ts'
 import { withLaunchOrigin } from './launchOrigin.ts'
+import { SHELL_TAKES_NO_TASK, TAKES_NO_TASK } from './consoleOpen.ts'
 import { switchboardHomeRoots, type DiskSession } from './diskSessions.ts'
 
 const reason = z.string().trim().min(3).max(400).describe('Why: one sentence the owner reads in History.')
@@ -58,9 +60,9 @@ export const CEO_TOOLS = {
   start: {
     mcp: 'fabric_ceo_session_start',
     title: 'Start a session in a project',
-    description: 'Start a coding session in a project as its own Fabric console, with its first task. Name the project by its name, id or folder (fabric_ceo_projects lists them); a folder Fabric does not know becomes a project. Use it for new work; to steer a running session use fabric_ceo_session_input.',
+    description: 'Start a coding session in a project as its own Fabric console, with its first task (a task in words goes to a coding agent only: with runner shell, give no task, then type commands with fabric_ceo_session_input); first_task in the answer says whether the task reached the session (delivered, resubmitted, not_delivered with the next step, or pending). Name the project by its name, id, folder or the folder\'s name, a typo forgiven: one clear match starts (a canonical folder wins over a worktree, a duplicate or a temporary one), several answer one list with each folder and role (fabric_ceo_projects lists them); a folder Fabric does not know becomes a project. Use it for new work; to steer a running session use fabric_ceo_session_input.',
     input: z.object({
-      project: z.string().trim().min(1).max(400).describe('The project\'s name, id or absolute folder.'),
+      project: z.string().trim().min(1).max(400).describe('The project\'s name, id, absolute folder or folder name.'),
       task: z.string().trim().max(8000).optional().describe('The first instruction the session is given.'),
       runner: z.enum(['claude-code', 'codex', 'hermes', 'kimi-code', 'kilo', 'shell']).optional().describe('The coding agent; the project\'s own by default.'),
       reason
@@ -75,7 +77,7 @@ export const CEO_TOOLS = {
   resume: {
     mcp: 'fabric_ceo_session_resume',
     title: 'Continue a session that ended',
-    description: 'Continue a session that ended: a Fabric console starts again in its project with the same runner (and the task you give, or one that says to carry on); a Switchboard session continues as itself (claude --resume in a Terminal window of its own).',
+    description: 'Continue a session that ended, as itself, in a Fabric console: give a Fabric console\'s id (also one from before Fabric restarted: fabric_ceo_sessions with include_ended lists them) or a Claude Code or Codex session id (fabric_knowledge_search answers it). Fabric reads which Claude or Codex session the console ran as and opens a console with claude --resume (codex resume) in its project. A console that never recorded its session starts again with the task you give, or one that says to carry on. Switchboard is asked only for a session Fabric never saw.',
     input: z.object({ session_id: sessionId, task: z.string().trim().max(8000).optional(), reason }).strict()
   },
   open: {
@@ -98,8 +100,11 @@ export const CEO_TOOLS = {
   projects: {
     mcp: 'fabric_ceo_projects',
     title: 'Fabric\'s projects',
-    description: 'The projects Fabric knows, with their folders, default runner and how many of their consoles run. Use it to find where to start or look; Observatory knows every project of the computer.',
-    input: z.object({ query: z.string().trim().max(200).optional().describe('Only projects whose name or folder holds these words.') }).strict()
+    description: 'The projects Fabric knows, each once with its folder and role: canonical, duplicate (of which folder), worktree (of which repository) or temporary (~/.cache, /tmp); with the default runner and how many of their consoles run. Temporary ones only with include_temporary. A query finds by name, folder or folder name with a typo forgiven, the canonical one first.',
+    input: z.object({
+      query: z.string().trim().max(200).optional().describe('A name, folder or part of one.'),
+      include_temporary: z.boolean().optional().describe('Also the projects in temporary folders.')
+    }).strict()
   }
 } as const
 
@@ -132,6 +137,8 @@ export interface CeoOpsDeps {
   admitFolder(folder: string): Promise<NamedProject>
   /** The person's console launch (`consoleOpen.ts`). */
   openConsole(projectId: string, runner: string, task: string | undefined): Promise<TerminalSession>
+  /** What became of a console's first task (`consoleOpen.ts#firstInstruction`); absent: not followed. */
+  firstTask?(sessionId: string): Promise<{ state: string; reason?: string; attempts: number }> | null
   /** The person's stop (`terminal.end`'s runtime). */
   stop(sessionId: string, force: boolean): Promise<{ state: string }>
   openWindow(sessionId: string): void
@@ -148,13 +155,39 @@ export interface CeoOpsDeps {
   sleep?(ms: number): Promise<void>
   /** Where Claude Code keeps transcripts: the person's home, then Switchboard's runtimes. */
   transcriptRoots?: string[]
+  /** Every project with its role (`estateSearch.ts#catalogue`); absent: the roles from the folders alone. */
+  catalogue?(): Promise<CatalogueRow[]>
+  /** What the journal and the estate index know of a session that does not run in Fabric now (`knowledgeTools.ts#recallSession`). */
+  recall?(id: string): Promise<RecalledSession | null>
+  /** Consoles Fabric ran, newest first, also those from before it restarted. */
+  pastConsoles?(limit: number): Promise<RecalledSession[]>
+  /** A Fabric console that continues a Claude Code or Codex session as itself (`claude --resume`, `codex resume`). */
+  openResumed?(projectId: string, runner: 'claude-code' | 'codex', runtimeSessionId: string, cwd: string | null, env: Record<string, string>): Promise<TerminalSession>
   /** The launch journal (`sessionLaunches.ts`), newest first; absent: no journal on this host. */
   launches?(q: { sessionId?: string; projectId?: string }): Promise<Launch[]>
   /** The Claude Code processes running on this computer, read from Claude Code's own files (`diskSessions.ts`). */
   diskSessions?(): Promise<DiskSession[]>
 }
 
+/** A session that does not run in Fabric now, as the journal and the estate index know it. */
+export interface RecalledSession {
+  id: string
+  kind: 'console' | 'transcript'
+  projectId: string | null
+  folder: string | null
+  /** The console's runner (`claude-code`, `codex`, `shell`...), or the transcript's. */
+  runner: string | null
+  /** The Claude Code or Codex session it ran as. */
+  runtimeSessionId: string | null
+  /** The Claude config home of a Switchboard account, when the transcript is there. */
+  configDir: string | null
+  title: string | null
+  at: string | null
+}
+
 type Answer = Record<string, unknown>
+/** How long fabric_ceo_session_start waits for the first task's end: two readiness windows and the check after. */
+export const FIRST_TASK_WAIT_MS = 70_000
 const refuse = (why: string, extra: Answer = {}): Answer => ({ ok: false, reason: why, ...extra })
 
 export function parseMachineRows(stdout: string): MachineRow[] | null {
@@ -256,6 +289,15 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       return { unread: e instanceof Error ? e.message.slice(0, 200) : String(e) }
     }
   }
+  const rolesOf = async (): Promise<Array<CatalogueRow & { default_agent?: string | null }>> => {
+    const all = await deps.projects()
+    const rows = deps.catalogue ? await deps.catalogue().catch(() => null) : null
+    const byId = new Map((rows ?? catalogueOf(all)).map((r) => [r.id, r]))
+    return all.map((p) => ({ ...p, ...(byId.get(p.id) ?? { role: 'canonical' as const, of: null }) }))
+  }
+  /** «names several projects» as one list a person reads: each folder with its role. */
+  const listOf = (m: Extract<ProjectMatch, { ambiguous: CatalogueRow[] }>['ambiguous']): Array<Record<string, unknown>> =>
+    m.slice(0, 10).map((r) => ({ name: r.name, folder: r.repo_path, role: r.role, ...(r.of ? { of: r.of } : {}) }))
   const screen = (id: string, lines: number): string => {
     const sb = deps.ptys.scrollbackOf(id)
     // DA-6: what the CEO reads goes to its model (and to xAI during a call): Fabric's redaction first.
@@ -279,10 +321,11 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     let consoles = deps.ptys.list().filter((s) => a.include_ended || s.running)
     let folderFilter: string | null = null
     if (a.project) {
-      const found = findProject(await deps.projects(), a.project)
-      if ('ambiguous' in found) return refuse(`«${a.project}» names several projects: ${found.ambiguous.join(', ')}`)
-      if ('missing' in found) return refuse(`no project «${a.project}»`)
-      consoles = consoles.filter((s) => s.projectId === found.found.id)
+      const found = matchProject(await rolesOf(), a.project)
+      if ('ambiguous' in found) return refuse(`«${a.project}» names several projects: name one by its folder`, { candidates: listOf(found.ambiguous) })
+      if ('missing' in found) return refuse(`no project «${a.project}»`, found.near.length ? { near: listOf(found.near) } : {})
+      const id = found.found.id
+      consoles = consoles.filter((s) => s.projectId === id)
       folderFilter = found.found.repo_path
     }
     const [machine, launches] = await Promise.all([machineRows(), launchesOf()])
@@ -296,6 +339,15 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       seen.add(key)
       return true
     }).slice(0, 80).map((r) => ({ ...r, in_fabric: r.session_id ? fabricIds.has(r.session_id) : false })) : null
+    let past: Answer[] | { unread: string } = []
+    if (a.include_ended && deps.pastConsoles) {
+      try {
+        const live = new Set(deps.ptys.list().map((s) => s.sessionId))
+        past = (await deps.pastConsoles(40)).filter((r) => !live.has(r.id) && (!a.project || folderFilter === null || (r.folder ?? '').startsWith(folderFilter)))
+          .map((r) => ({ session_id: r.id, kind: 'fabric-console-ended', project: r.projectId ? names.get(r.projectId) ?? null : null, project_id: r.projectId, folder: r.folder,
+            runner: r.runner, continues: r.runtimeSessionId, last_activity_at: r.at, resumable_as_itself: !!r.runtimeSessionId }))
+      } catch (e) { past = { unread: e instanceof Error ? e.message.slice(0, 200) : String(e) } /* said in the answer, never read as no past consoles */ }
+    }
     // Switchboard unread: the Claude Code processes running here, from Claude Code's own files (board request eef5abeb,
     // point 4), so the machine's sessions are still seen; the Fabric consoles among them are left out.
     let onDisk: Answer[] | undefined
@@ -311,6 +363,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     return {
       ok: true,
       fabric_consoles: consoles.map((s) => consoleRow(s, names, launches)),
+      ...(a.include_ended ? { past_fabric_consoles: past } : {}),
       machine_sessions: rows ?? { unread: (machine as { unread: string }).unread },
       ...(onDisk ? { machine_sessions_on_disk: onDisk } : {}),
       note: 'Fabric consoles can be read, typed into, stopped and opened here; a machine session is read from its transcript, continued or ended through Switchboard. When Switchboard is unread, machine_sessions_on_disk lists the Claude Code processes running here, read from Claude Code\'s own files.'
@@ -363,24 +416,43 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     return { ok: true, sent: { text_chars: text.length, keys: a.keys ?? [], submit }, screen_after: screen(s.sessionId, 30) }
   }
 
+  /** The first task's end, waited for at most FIRST_TASK_WAIT_MS; past it the answer says it is still on its way. */
+  async function firstTaskOf(sessionId: string): Promise<Answer> {
+    const pending = deps.firstTask?.(sessionId)
+    if (!pending) return { state: 'unknown', next: 'read the session with fabric_ceo_session_read before you rely on it' }
+    const timeout = new Promise<null>((res) => { const t = setTimeout(() => res(null), FIRST_TASK_WAIT_MS); (t as { unref?: () => void }).unref?.() })
+    const o = await Promise.race([pending.catch(() => null), timeout])
+    if (!o) return { state: 'pending', next: 'the console is not ready yet: read it with fabric_ceo_session_read in a minute; if the prompt is empty, type the task with fabric_ceo_session_input' }
+    if (o.state === 'not_delivered') return { state: o.state, reason: o.reason ?? null, attempts: o.attempts, next: 'the task did not reach the session: read its screen with fabric_ceo_session_read, then type the task with fabric_ceo_session_input' }
+    return { state: o.state, attempts: o.attempts }
+  }
+
   async function start(a: z.infer<typeof CEO_TOOLS.start.input>, via?: LaunchVia): Promise<Answer> {
-    const projects = await deps.projects()
-    let found = findProject(projects, a.project)
-    if ('missing' in found && path.isAbsolute(a.project) && existsSync(a.project)) {
-      try { found = { found: await deps.admitFolder(a.project) } } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
+    const projects = await rolesOf()
+    const m = matchProject(projects, a.project)
+    let picked: NamedProject | null = 'found' in m ? m.found : null
+    if (!picked && path.isAbsolute(a.project) && existsSync(a.project)) {
+      try { picked = await deps.admitFolder(a.project) } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
         return refuse(`the folder could not become a project: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
-    if ('ambiguous' in found) return refuse(`«${a.project}» names several projects: ${found.ambiguous.join(', ')}; name one`)
-    if ('missing' in found) return refuse(`no project «${a.project}»: name it by fabric_ceo_projects, or give its absolute folder`)
+    if ('ambiguous' in m) return refuse(`«${a.project}» names several projects: name one by its folder`, { candidates: listOf(m.ambiguous) })
+    if (!picked) return refuse(`no project «${a.project}»: name it by fabric_ceo_projects, or give its absolute folder`, 'missing' in m && m.near.length ? { near: listOf(m.near) } : {})
+    const found = { found: picked }
     const project = projects.find((p) => p.id === found.found.id) ?? found.found
     const runner = a.runner ?? ((project as { default_agent?: string | null }).default_agent || 'claude-code')
+    // 2026-11-20: a task in words typed into zsh is a parse error, never work. Refused before anything starts.
+    if (a.task?.trim() && TAKES_NO_TASK.has(runner)) return refuse(`${SHELL_TAKES_NO_TASK}: start it with a coding agent (runner claude-code, codex, hermes, kimi-code or kilo), or without a task and type the command with fabric_ceo_session_input`)
     try {
       const s = await withLaunchOrigin({ by: 'ceo', via: via ?? 'console', reason: a.reason, parentSessionId: deps.ceoSessionId() ?? undefined },
         () => deps.openConsole(project.id, runner, a.task))
       deps.record('ceo.session.start', { session_id: s.sessionId, project_id: project.id, runner: s.optionId, reason: a.reason })
       deps.note('session.start', { sessionId: s.sessionId, projectId: project.id, label: project.name, runner: s.optionId, reason: a.reason })
-      return { ok: true, session_id: s.sessionId, project: project.name, folder: s.cwd, runner: s.optionId, state: s.state }
+      // 2026-11-20: a started session sat 40 minutes on an empty prompt and the CEO believed it had its task. The answer
+      // now waits for the task's delivery (bounded) and says what became of it.
+      const firstTask = a.task?.trim() ? await firstTaskOf(s.sessionId) : null
+      return { ok: true, session_id: s.sessionId, project: project.name, folder: s.cwd, runner: s.optionId, state: s.state,
+        ...(firstTask ? { first_task: firstTask } : {}) }
     } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
       deps.record('ceo.session.start', { project_id: project.id, outcome: 'failed', reason: a.reason })
       return refuse(`the session did not start: ${e instanceof Error ? e.message : String(e)}`)
@@ -428,27 +500,58 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     }
   }
 
+  const CARRY_ON = 'Продолжи работу этой сессии с того места, где она остановилась: прочитай состояние проекта и свои незакрытые задачи.'
+
+  /** A Fabric console that continues `runtimeId` as itself, in `projectId` (or the project that holds `folder`). */
+  async function resumeAsItself(r: RecalledSession, reason: string, from: string): Promise<Answer | null> {
+    const runner = r.runner === 'codex' || r.runner === 'claude-code' ? r.runner : r.kind === 'transcript' ? (r.runner === 'codex' ? 'codex' : 'claude-code') : null
+    if (!r.runtimeSessionId || !runner || !deps.openResumed) return null
+    let projectId = r.projectId
+    if (!projectId && r.folder) {
+      const all = await deps.projects()
+      projectId = holder(new Map(all.filter((p) => p.repo_path).map((p) => [p.repo_path!, p.id])), r.folder)?.value ?? null
+      if (!projectId && path.isAbsolute(r.folder) && existsSync(r.folder)) projectId = (await deps.admitFolder(r.folder)).id
+    }
+    if (!projectId) return null
+    const env: Record<string, string> = r.configDir ? { CLAUDE_CONFIG_DIR: r.configDir } : {}
+    const next = await deps.openResumed(projectId, runner, r.runtimeSessionId, r.folder, env)
+    deps.record('ceo.session.resume', { from_session: from, session_id: next.sessionId, runtime_session_id: r.runtimeSessionId, via: 'resume-as-itself', reason })
+    const names = await projectNames()
+    deps.note('session.start', { sessionId: next.sessionId, projectId, label: names.get(projectId) ?? path.basename(next.cwd), runner: next.optionId, reason })
+    return { ok: true, session_id: next.sessionId, continues: r.runtimeSessionId, runner: next.optionId, folder: next.cwd, as_itself: true }
+  }
+
   async function resume(a: z.infer<typeof CEO_TOOLS.resume.input>): Promise<Answer> {
     const s = deps.ptys.get(a.session_id)
-    if (s) {
-      if (s.running) return refuse('the console is still running: type into it with fabric_ceo_session_input')
-      const task = a.task ?? 'Продолжи работу этой сессии с того места, где она остановилась: прочитай состояние проекта и свои незакрытые задачи.'
+    if (s?.running) return refuse('the console is still running: type into it with fabric_ceo_session_input')
+    // What Fabric itself knows of the session (a console before a restart, a transcript): continued in a Fabric console.
+    let recalled: RecalledSession | null = null
+    try { recalled = deps.recall ? await deps.recall(a.session_id) : null } catch (e) { /* the index not open: the console's own facts and Switchboard still answer */
+      deps.record('ceo.session.recall', { session_id: a.session_id, outcome: 'failed', error: e instanceof Error ? e.message.slice(0, 200) : String(e) })
+    }
+    if (s && !recalled) recalled = { id: s.sessionId, kind: 'console', projectId: s.projectId, folder: s.cwd, runner: s.optionId, runtimeSessionId: null, configDir: null, title: null, at: null }
+    if (recalled) {
       try {
-        const next = await deps.openConsole(s.projectId, s.optionId, task)
-        deps.record('ceo.session.resume', { from_session: s.sessionId, session_id: next.sessionId, reason: a.reason })
-        const names = await projectNames()
-        deps.note('session.start', { sessionId: next.sessionId, projectId: s.projectId, label: names.get(s.projectId) ?? path.basename(s.cwd), runner: next.optionId, reason: a.reason })
-        return { ok: true, session_id: next.sessionId, runner: next.optionId, folder: next.cwd }
+        const itself = !a.task ? await resumeAsItself(recalled, a.reason, a.session_id) : null
+        if (itself) return itself
+        if (recalled.kind === 'console' && recalled.projectId) {
+          const next = await deps.openConsole(recalled.projectId, recalled.runner ?? 'claude-code', a.task ?? CARRY_ON)
+          deps.record('ceo.session.resume', { from_session: a.session_id, session_id: next.sessionId, via: 'new-console', reason: a.reason })
+          const names = await projectNames()
+          deps.note('session.start', { sessionId: next.sessionId, projectId: recalled.projectId, label: names.get(recalled.projectId) ?? path.basename(next.cwd), runner: next.optionId, reason: a.reason })
+          return { ok: true, session_id: next.sessionId, runner: next.optionId, folder: next.cwd, as_itself: false,
+            why: recalled.runtimeSessionId ? 'a task was given, so a new conversation starts with it' : 'the console never recorded which Claude or Codex session it ran as' }
+        }
       } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
         return refuse(`the session did not start again: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
-    if (!/^[0-9a-f-]{36}$/.test(a.session_id)) return refuse('not a session id Switchboard can continue')
+    if (!/^[0-9a-f-]{36}$/.test(a.session_id)) return refuse('no Fabric console, transcript or Switchboard session has this id')
     const r = await deps.switchboard(['sessions', 'continue', a.session_id]).catch((e: unknown) => ({ code: 1, stdout: '', stderr: e instanceof Error ? e.message : String(e) }))
     deps.record('ceo.session.resume', { session_id: a.session_id, via: 'switchboard', code: r?.code ?? null, reason: a.reason })
-    if (!r) return refuse('Switchboard is not installed on this computer')
+    if (!r) return refuse('Fabric knows no such session and Switchboard is not installed on this computer')
     if (r.code === 0) deps.note('session.start', { sessionId: a.session_id, projectId: null, label: 'Switchboard', runner: 'switchboard', reason: a.reason, machine: true })
-    return r.code === 0 ? { ok: true, via: 'switchboard', said: r.stdout.slice(0, 400) } : refuse(`Switchboard did not continue it: ${(r.stderr || r.stdout).slice(0, 300)}`)
+    return r.code === 0 ? { ok: true, via: 'switchboard', said: r.stdout.slice(0, 400) } : refuse(`Fabric knows no such session, and Switchboard did not continue it: ${(r.stderr || r.stdout).slice(0, 300)}`)
   }
 
   async function open(a: z.infer<typeof CEO_TOOLS.open.input>): Promise<Answer> {
@@ -460,15 +563,19 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
 
   async function projects(a: z.infer<typeof CEO_TOOLS.projects.input>): Promise<Answer> {
-    const all = await deps.projects()
+    const all = (await rolesOf()).filter((p) => a.include_temporary === true || p.role !== 'temporary')
     const live = deps.ptys.list().filter((s) => s.running)
-    const words = (a.query ?? '').toLowerCase().split(/\s+/).filter(Boolean)
+    const rank = { canonical: 0, worktree: 1, duplicate: 2, temporary: 3 } as const
+    let picked: typeof all = all
+    if (a.query) {
+      const m = matchProject(all, a.query)
+      picked = 'found' in m ? [m.found as (typeof all)[number]] : 'ambiguous' in m ? m.ambiguous as typeof all : m.near as typeof all
+    }
     return {
       ok: true,
-      projects: all
-        .filter((p) => words.every((w) => `${p.name} ${p.repo_path ?? ''}`.toLowerCase().includes(w)))
-        .slice(0, 200)
-        .map((p) => ({ id: p.id, name: p.name, folder: p.repo_path, default_runner: p.default_agent ?? null, consoles_running: live.filter((s) => s.projectId === p.id).length }))
+      projects: [...picked].sort((x, y) => rank[x.role] - rank[y.role] || x.name.localeCompare(y.name)).slice(0, 200)
+        .map((p) => ({ id: p.id, name: p.name, folder: p.repo_path, role: p.role, ...(p.of ? { of: p.of } : {}), default_runner: p.default_agent ?? null, consoles_running: live.filter((s) => s.projectId === p.id).length })),
+      ...(a.include_temporary ? {} : { note: 'Projects in temporary folders are left out; include_temporary lists them.' })
     }
   }
 
@@ -476,9 +583,9 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     if (!deps.launches) return refuse('this Fabric keeps no launch journal')
     let projectId: string | undefined
     if (a.project) {
-      const found = findProject(await deps.projects(), a.project)
-      if ('ambiguous' in found) return refuse(`«${a.project}» names several projects: ${found.ambiguous.join(', ')}`)
-      if ('missing' in found) return refuse(`no project «${a.project}»`)
+      const found = matchProject(await rolesOf(), a.project)
+      if ('ambiguous' in found) return refuse(`«${a.project}» names several projects: name one by its folder`, { candidates: listOf(found.ambiguous) })
+      if ('missing' in found) return refuse(`no project «${a.project}»`, found.near.length ? { near: listOf(found.near) } : {})
       projectId = found.found.id
     }
     const [names, all] = await Promise.all([projectNames(), deps.launches({})])

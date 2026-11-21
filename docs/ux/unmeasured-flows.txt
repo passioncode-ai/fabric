@@ -32,7 +32,6 @@ FLW-13
 FLW-14
 FLW-20
 FLW-30
-FLW-31
 FLW-34
 FLW-35
 # FLW-36 struck 2026-09-28: SCR-48 now cites apps/desktop/src/main/backup.ts.

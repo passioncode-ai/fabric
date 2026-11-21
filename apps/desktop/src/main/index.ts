@@ -46,6 +46,8 @@ import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
+import { startEstateIndex, type Estate } from './estateWiring.ts'
+import { knowledgeVoiceTools, type KnowledgeOperations } from './knowledgeTools.ts'
 import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
 import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
@@ -544,6 +546,9 @@ let mainWindow: BrowserWindow | null = null
 /** The CEO agent (ADR-0197): its console's keeper, its operations and its popup window; null until registerIpc runs. */
 let ceoAgent: CeoAgent | null = null
 let ceoOperations: CeoOperations | null = null
+/** The estate index's doors (ADR-0200), given to the CEO's console surface beside its session tools. */
+let knowledgeOperations: KnowledgeOperations | null = null
+let estate: Estate | null = null
 let ceoWindow: BrowserWindow | null = null
 /** A draft the popup takes when it opens (Help's example, the home composer's words not yet sent). */
 let ceoDraft: string | null = null
@@ -1208,7 +1213,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
     ports: (registry) => windowHubPorts({
       ptys: () => ptys, sweep: boardState.sweep.get, readSettings: readSettingsState, registry,
-      ceo: () => (ceoAgent ? { isCeo: ceoAgent.isCeo, operations: () => ceoOperations } : null),
+      ceo: () => (ceoAgent ? { isCeo: ceoAgent.isCeo, operations: () => ceoOperations, knowledge: () => knowledgeOperations } : null),
       desktop: { openExternal: (url) => shell.openExternal(url), applicationInfoForProtocol: (url) => app.getApplicationInfoForProtocol(url) }
     }),
     presenter: ({ accessStore, connector, access }) => new ConsentPresenter({
@@ -4150,6 +4155,58 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       moveProject(projectId, dir, rest)
   )
 
+  // #region estate-search-ipc — docs: docs/evidence/specs/2026-11-19-estate-index-and-graph.md#5-the-doors
+  // The window's half of the estate index: the same search and walk the CEO's two doors run (dashboard parity both ways).
+  handle(IPC.searchEverywhere, async (_e, query: unknown): Promise<Returns<FabricApi['search']['everywhere']>> => {
+    if (!knowledgeOperations) return { ok: false, reason: 'the index is not running yet' }
+    const r = await knowledgeOperations.run('search', { query: typeof query === 'string' ? query.slice(0, 400) : '', limit: 25 })
+    if (r.ok === false) return { ok: false, reason: String(r.reason ?? 'refused') }
+    const index = r.index as { docs?: number } | undefined
+    return { ok: true, hits: r.hits as never, degraded: (r.degraded as string[]) ?? [], docs: index?.docs ?? 0 }
+  })
+  handle(IPC.searchAround, async (_e, node: unknown, depth: unknown): Promise<Returns<FabricApi['search']['around']>> => {
+    if (!knowledgeOperations) return { ok: false, reason: 'the index is not running yet' }
+    const r = await knowledgeOperations.run('execute', { operation: 'graph.neighbours', arguments: { node: typeof node === 'string' ? node : '', depth: typeof depth === 'number' ? Math.min(Math.max(Math.round(depth), 1), 3) : 1, limit: 60 } })
+    if (r.ok === false) return { ok: false, reason: String(r.reason ?? 'refused') }
+    const start = r.start as { id: string; kind: string | null; label: string | null } | null
+    const nodes = ((r.nodes as Array<Record<string, unknown>>) ?? []).map((n) => {
+      const via = n.via as { rel: string; direction: 'in' | 'out' }
+      return { id: String(n.id), kind: (n.kind as string | null) ?? null, label: (n.label as string | null) ?? null, known: n.known === true, hop: Number(n.hop), rel: via.rel, direction: via.direction }
+    })
+    return { ok: true, start: start ? { id: start.id, kind: start.kind, label: start.label } : null, nodes, capped: r.capped === true }
+  })
+  handle(IPC.searchResume, async (_e, sessionId: unknown): Promise<Returns<FabricApi['search']['resume']>> => {
+    if (!ceoOperations || typeof sessionId !== 'string') return { ok: false, reason: 'the session tools are not running yet' }
+    const r = await ceoOperations.run('resume', { session_id: sessionId, reason: 'The person continued it from the search' })
+    return r.ok === false ? { ok: false, reason: String(r.reason ?? 'refused') } : { ok: true, session_id: String(r.session_id ?? '') }
+  })
+  // #endregion estate-search-ipc
+  // #region memory-ipc — docs: docs/evidence/specs/2026-11-20-memory-dashboard.md#2-one-module-three-callers
+  // Memory's window half: the execute operations the CEO's doors and the voice run, never a read of its own.
+  const memoryRun = async (operation: string, args: Record<string, unknown>): Promise<Record<string, unknown>> => {
+    if (!knowledgeOperations) return { ok: false, reason: 'the index is not running yet' }
+    const r = await knowledgeOperations.run('execute', { operation, arguments: args })
+    return r.ok === false ? { ok: false, reason: String(r.reason ?? 'refused') } : r
+  }
+  handle(IPC.memoryIndexOverview, async (): Promise<Returns<FabricApi['memoryIndex']['overview']>> => await memoryRun('memory.overview', {}) as never)
+  handle(IPC.memoryIndexGraph, async (_e, context: unknown): Promise<Returns<FabricApi['memoryIndex']['graph']>> =>
+    await memoryRun('memory.graph', typeof context === 'string' && context ? { context: context.slice(0, 80) } : {}) as never)
+  handle(IPC.memoryIndexChanges, async (_e, hours: unknown, project: unknown): Promise<Returns<FabricApi['memoryIndex']['changes']>> =>
+    await memoryRun('memory.changes', { hours: typeof hours === 'number' ? Math.min(Math.max(Math.round(hours), 1), 168) : 24, ...(typeof project === 'string' && project ? { project: project.slice(0, 200) } : {}) }) as never)
+  handle(IPC.memoryIndexCheck, async (_e, claims: unknown): Promise<Returns<FabricApi['memoryIndex']['check']>> => {
+    const list = Array.isArray(claims) ? claims.slice(0, 50).filter((c): c is { quote: string; doc: string; digest?: string } => !!c && typeof (c as { quote?: unknown }).quote === 'string' && typeof (c as { doc?: unknown }).doc === 'string')
+      .map((c) => ({ quote: c.quote.slice(0, 2000), doc: c.doc.slice(0, 300), ...(typeof c.digest === 'string' ? { digest: c.digest.slice(0, 80) } : {}) })) : []
+    if (!list.length) return { ok: false, reason: 'no claim to check' }
+    return await memoryRun('quote.check', { claims: list }) as never
+  })
+  handle(IPC.memoryIndexSearch, async (_e, query: unknown, project: unknown): Promise<Returns<FabricApi['memoryIndex']['search']>> => {
+    if (!knowledgeOperations) return { ok: false, reason: 'the index is not running yet' }
+    const r = await knowledgeOperations.run('search', { query: typeof query === 'string' ? query.slice(0, 400) : '', limit: 25, ...(typeof project === 'string' && project ? { project: project.slice(0, 400) } : {}) })
+    if (r.ok === false) return { ok: false, reason: String(r.reason ?? 'refused') }
+    const index = r.index as { docs?: number } | undefined
+    return { ok: true, hits: r.hits as never, degraded: (r.degraded as string[]) ?? [], docs: index?.docs ?? 0 }
+  })
+  // #endregion memory-ipc
   handle(IPC.searchRun, async (_e, query: string): Promise<Returns<FabricApi['search']['run']>> => {
     // A thin dispatcher. Five queries and their five groups lived here inline,
     // and the one property that matters — that the searched set and the
@@ -5099,6 +5156,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     record: (op, detail) => ops.record({ op, outcome: op === 'runner.fallback-attached' ? 'ok' : 'failed',
       level: op === 'runner.fallback-attached' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } }),
     failed: (op, e) => ops.failed(op, e, { note: 'the first instruction was not delivered' }),
+    // 2026-11-20: every first instruction's end is written, so a console that sat on an empty prompt says why.
+    delivered: (d) => ops.record({ op: 'terminal.first-instruction', outcome: d.state === 'not_delivered' ? 'failed' : 'ok',
+      level: d.state === 'not_delivered' ? 'warn' : 'info', detail: d, ctx: { correlationId: ops.correlate() } }),
     syncPower
   })
   handle(
@@ -5386,6 +5446,20 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         : d.projectId ? { kind: 'session.start', args: { project_id: d.projectId, option_id: d.runner, permission_mode: null, cwd: null, task_id: null, from_session: d.sessionId } } : null
     }, { actor: { kind: 'agent', id: agent.sessionId() ?? 'ceo' } }).catch((e: unknown) => ops.failed('ceo.act-note', e))
   }
+  // #region estate-index-wiring — docs: docs/evidence/specs/2026-11-19-estate-index-and-graph.md#31-where-it-lives-adr-0200
+  // ADR-0200: one local index of every session, transcript, task, board message and commit, and the graph on it.
+  estate = startEstateIndex({
+    userData: app.getPath('userData'), store,
+    boardList: async (after) => {
+      const r = await commsRead.list(ACTIVE_ESTATE, null, after, 100)
+      if (!r.ok) throw new Error(`the board could not be read: ${r.error.code}`)
+      return { messages: r.messages as unknown as Array<Record<string, unknown>>, last: r.lastSeq, more: r.more }
+    },
+    record: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'failed' ? 'warn' : 'info', detail, ctx: { correlationId: ops.correlate() } }),
+    onQuit: (fn) => quit.onQuit(fn)
+  })
+  knowledgeOperations = estate.knowledge
+  // #endregion estate-index-wiring
   ceoOperations = createCeoOperations({
     ptys: { list: () => ptys.list(), get: (id) => ptys.get(id), scrollbackOf: (id) => ptys.scrollbackOf(id), write: (id, data) => ptys.write(id, data) },
     ceoSessionId: () => agent.sessionId(),
@@ -5399,12 +5473,24 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       return { id: row.id, name: row.name, repo_path: row.repo_path }
     },
     openConsole: (projectId, runner, task) => openConsole(projectId, runner, task, null),
+    firstTask: (sessionId) => openConsole.firstInstruction(sessionId),
     stop: async (id, force) => { markPersonEnded(id); void launchJournal?.stopAsked(id, 'ceo'); return stopRuntime.stop(id, 'operator_stop', { force }) },
     openWindow: (id) => openSessionWindow(id),
     switchboard: (args) => runMachineSwitchboard(sessionEnvironment(process.env), args),
     signal: (pid) => { process.kill(pid, 'SIGTERM') },
     record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } }),
     note: ceoNote,
+    catalogue: () => estate!.catalogue(),
+    recall: (id) => estate!.recall(id),
+    pastConsoles: (limit) => estate!.pastConsoles(limit),
+    // A console that continues a Claude Code or Codex session as itself (spec §2): the runner's own resume, through the
+    // same launch extras the CEO's models use (`pty.ts#prepareLaunch`).
+    openResumed: async (projectId, runner, runtimeSessionId, cwd, env) => {
+      const project = await readProject(projectId)
+      const sessionId = randomUUID()
+      ptys.prepareLaunch(sessionId, { args: runner === 'codex' ? ['resume', runtimeSessionId] : ['--resume', runtimeSessionId], env })
+      return ptys.open(projectId, cwd ?? project.repo_path ?? homedir(), runner, null, null, null, sessionId)
+    },
     launches: (q) => launchJournal ? launchJournal.read(q) : Promise.resolve([]),
     diskSessions: async () => liveClaudeSessions(await claudeConfigDirs())
   })
@@ -5445,7 +5531,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (!token.ok) return { ok: false, reason: token.reason }
     const locale = readSettings().locale
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
-      instructions: voiceInstructions(locale), voice: xaiVoiceOf(persona().persona), tools: [...ceoVoiceTools(), ASK_CEO_TOOL] }
+      instructions: voiceInstructions(locale), voice: xaiVoiceOf(persona().persona), tools: [...ceoVoiceTools(), ...knowledgeVoiceTools(), ASK_CEO_TOOL] }
   })
   // The person's own xAI key (the operator, 2026-11-19): set in the CEO window, or dropped by a coding agent.
   const voiceKeys = createVoiceKeyStore(path.join(app.getPath('userData'), 'ceo-voice'), safeStorage) // outside the CEO's own folder: its runner never reads the key (0.3.24 review iteration 2, DA-11)
@@ -5488,6 +5574,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const r = await agent.send(text, [])
       return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console' : undefined }
     }
+    if (tool.startsWith('knowledge_') && knowledgeOperations) return knowledgeOperations.run(tool.slice('knowledge_'.length), args)
     if (!tool.startsWith('session_')) return { ok: false, reason: `unknown tool ${tool}` }
     return ceoOperations!.run(tool.slice('session_'.length), args, 'voice')
   })
