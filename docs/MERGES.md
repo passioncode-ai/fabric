@@ -15,6 +15,7 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - summary: the owner's order of 2026-11-21 (board request `f6537624`, P0 by the reconciliation A-3): a project's queue has one order, the owner's rank over a walk of `blocks` and `follows` with the critical path first; only the person moves, an agent proposes; the kanban, `fabric_work_list` and the backlog routine read it first
 ### 2026-11-21 · `SYSTEM-PLAN-ROWS` · docs/system-plan-rows → main · fast-forward
 - files: `docs/evidence/backlog.md` (section «The system design plan of 2026-11-21», anchor `system-design-2026-11-21`), the map
+- also: `docs/evidence/specs/2026-11-21-session-feed.md`, the schema `fabric-session-feed/1` promised to Fabric Dashboards on thread `3ca40854` for 2026-11-21 21:00 (task adef95e4)
 - summary: fabric-workspace's system design plan asked for a backlog row per Fabric feature with its first date (request `33f3733b`, by 2026-11-24) and per item of amendment A-2 (request `3d7bf548`, by 2026-11-25). Eighteen rows: SD-FAB-01 to SD-FAB-14 and OT-03, OT-07, OT-04, OT-10; A-2's items inside a feature extend that feature's row
 
 ### 2026-11-21 · `CEO-TRIAGES-QUESTIONS` · docs/ceo-triages-questions → main · fast-forward
