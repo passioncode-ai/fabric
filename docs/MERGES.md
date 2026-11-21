@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `CEO-TRIAGES-QUESTIONS` · docs/ceo-triages-questions → main · fast-forward
+- files: `docs/adr/0207-the-ceo-triages-every-question-and-the-owner-is-signalled-only-in-his-own-channel.md`, `docs/evidence/specs/2026-11-21-ceo-triages-questions.md`, `docs/adr/README.md` (next free ADR-0211), `docs/evidence/plans/task-pipeline-persistence-contract.md` (pipeline reservation 0206 → 0210), the map
+- conflicts: the reservation row and the map's changelog at the rebase onto `65423c42`; both sides kept
+- summary: the owner's decision of 2026-11-21 03:14 and 04:32 (board request 05c2f2bd, task a0afb015): every question and every console waiting at a prompt goes to the CEO first, it settles with a cited basis or escalates (ten-minute fallback), the owner is signalled only in his personal communicator, the people-ask bridge is off by default, and `publication` gets a one-shot grant from the owner's rule. Docs only; the build follows the spec's order after 0.3.27 and the 0.3.28 train
+
 ### 2026-11-21 · `RESPONDER-VIA` · fix/responder-via → main · fast-forward after `ci.sh fast`
 - files: migration 130 `20261121000130_board_operator_message_via.sql` (schema 103), its ledger row, the schema contract, the private-archive source list, `shared/commsRead.ts` (`COMMS_VIA`, `answersRequest`), `main/commsOperatorRead.ts`, `main/peopleAskRun.ts`, their tests and the responders DB test; the contract fixture repinned to fabric-agent-contract `6ab4d03` (DEC-0181) with six `comms-message-via-*` fixtures; the people.ask spec §2, the release runbook, CHANGELOG, the pipeline reservations moved to 131/132, the map
 - conflicts: `docs/reports/map.html` when main was merged into the branch (the iteration log and the stamp); main's entries kept, the branch's contract entry kept above them
