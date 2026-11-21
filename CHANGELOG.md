@@ -9,6 +9,12 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **Agent access answers from one place** (ADR-0195 wave W2c.2b, the first group; board task `8b86adf3`). The nine
+  doors behind «Доступ агентов» (the overview, a decision, the revocations, disconnect and let in, connect and
+  disconnect of a product) moved out of the window's main file into `main/hubDoors.ts`, and the same functions are
+  named for the board's operator door. The window still calls them in its own process, so no screen and no agent
+  sees a change; the other door groups follow
+  ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
 - **The board has a door of its own for the window** (ADR-0195 wave W2c.2a, board task `8b86adf3`). A new module,
   `main/operatorDoor.ts`, serves named doors on a loopback port of its own, published as `board-door.json` with a 0600
   token beside `hub.json`; it refuses another account's process (CO-514), a wrong token, a browser origin and a wrong

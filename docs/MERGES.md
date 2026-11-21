@@ -4,6 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `—` · refactor/board-hub-doors → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/main/hubDoors.ts` (new), `apps/desktop/test/hub-doors.test.mjs` (new), `apps/desktop/src/main/index.ts` (region `hub-ipc` calls `createHubDoors`), `apps/desktop/package.json` (the test in `test`), the plan's W2c.2b row, CHANGELOG `Unreleased`, the map
+- conflicts: none
+- summary: ADR-0195 W2c.2b, the first group: the window's nine Agent access doors are functions the operator door can serve; the answers are unchanged and the board's entry does not serve them yet
 ### 2026-11-21 · `—` · refactor/board-operator-door-land → main · fast-forward after `ci.sh fast`
 - files: `apps/desktop/src/main/operatorDoor.ts` (new), `apps/desktop/test/operator-door.test.mjs` (new), `apps/desktop/package.json` (the test in `test`), the plan's W2c.2a, W2c.2b and W2c.1b rows, CHANGELOG `Unreleased`, the map
 - conflicts: with main at `fe8961f1` (the commit `fe7971f0` of `refactor/board-operator-door` replayed on it): CHANGELOG, `apps/desktop/package.json` (the `test` list), this log and the design map, each kept from both sides

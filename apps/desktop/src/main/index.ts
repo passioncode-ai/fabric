@@ -76,10 +76,9 @@ import { readQueueOrder } from './taskOrderRead.ts'
 import { decideRankProposal, reorderTask, type RankWriteDeps } from './taskRankWrite.ts'
 import { launchOverlap } from '../shared/launchOverlap.ts'
 import { OVERLAP_CHOICES, overlapPair, type OverlapChoice } from '../shared/abandonedSweep.ts'
-import { FABRIC_SELF } from '../shared/access.ts'
 import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
 import { ConsentPresenter } from './consentPresenter.ts'
-import { CONNECTABLE_PRODUCTS, agentFacts, askLines, pendingFacts, productName, type ConnectProblem, type HubActResult, type HubDownCode, type HubOverview } from '../shared/access.ts'
+import { pendingFacts, type HubDownCode } from '../shared/access.ts'
 import { translator, type Locale, type Translate } from '../renderer/src/i18n/translate.ts'
 import { notifyLineOf } from '../renderer/src/attentionTitle.ts'
 import type { StringKey } from '../renderer/src/i18n/en.ts'
@@ -460,6 +459,7 @@ import { createWorldExecutors } from './actExecutors.ts'
 import { createRunOverConsole, createRunOverExecutors, runOverRefusal } from './actRunExecutors.ts'
 import { createSessionExecutors, sessionStopOutcome, type ConsoleSnapshot } from './actSessionExecutors.ts'
 import { createDraftExecutors } from './actDraftExecutors.ts'
+import { createHubDoors } from './hubDoors.ts'
 import { actQueryOf, answerOf } from './actIpc.ts'
 import type { PersistedTabs } from '../shared/tabs.ts'
 import { createContinuationDelivery, type ContinuationResult } from './continuationDelivery.ts'
@@ -3805,97 +3805,30 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (!hub) throw new Error('agent access is not ready yet')
     return hub
   }
-  handle(IPC.hubOverview, async (): Promise<Returns<FabricApi['hub']['overview']>> => {
-    const h = hubReady()
-    const ov = await h.access.overview()
-    const products: HubOverview['products'] = []
-    const connected = new Map<string, boolean>()
-    for (const product of CONNECTABLE_PRODUCTS) {
-      const c = await h.accessStore.liveConnection(product)
-      connected.set(product, c !== null)
-      const last = h.connector.lastOutcome(product)
-      products.push({
-        product,
-        name: productName(product),
-        connection: c ? { server: c.server, level: c.level, connectedAt: c.connected_at, keyExpiresAt: c.key_expires_at } : null,
-        lastAttempt: !last ? null
-          : last.outcome === 'waiting' ? { outcome: 'waiting', at: last.since, reconnect: last.reconnect }
-          : last.outcome === 'connected' ? { outcome: 'connected', at: last.at, reconnect: last.reconnect }
-          : last.outcome === 'failed' ? { outcome: 'failed', at: last.at, problem: last.problem }
-          : { outcome: 'denied', at: last.at }
-      })
-    }
-    // FACTS, never sentences (UX-2): the renderer phrases every line in the operator's language.
-    return {
-      hub: h.doorToken ? { listening: true, origin: surface.origin } : { listening: false, reason: h.down ?? 'the hub is not listening', code: h.downCode, fact: h.downFact },
-      products,
-      pending: ov.pending.map((r) => pendingFacts(r, connected.get(r.callee) ?? false, homedir())),
-      agents: ov.bindings.map((b) => ({
-        bindingId: b.id,
-        agent: agentFacts(b.agent_id, b.registry),
-        since: b.created_at,
-        grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: askLines({ capabilities: [g.capability], resources: [g.resource], registry: g.registry ?? b.registry })[0], expiresAt: g.expires_at }))
-      })),
-      denials: ov.denials.map((r) => ({ requestId: r.id, agent: agentFacts(r.agent_id, r.registry), callee: r.callee, ask: askLines(r), deniedAt: r.decided_at })),
-      keptOut: { readable: keptOutAgents.readable(), agents: keptOutAgents.list() }
-    }
+  /** The doors' bodies are `hubDoors.ts#createHubDoors`: the same functions the board's operator door serves
+   *  (ADR-0195 W2c.2b), so the window and a board process answer alike. */
+  const hubDoors = createHubDoors({
+    hub: () => hub,
+    origin: () => surface.origin,
+    operator: () => OPERATOR_ACTOR,
+    keptOut: keptOutAgents,
+    personEnded: { markGrant: markGrantPersonEnded, markBinding: markBindingPersonEnded },
+    acts: () => acts,
+    ops
   })
-  /** The product's connect flow, by name; a product without one is a code, not a sentence. */
-  const beginConnect = async (h: NonNullable<typeof hub>, product: string, reconnect = false): Promise<{ ok: true } | { ok: false; problem: ConnectProblem; reason: string }> => {
-    if (product !== FABRIC_INBOX.product) return { ok: false, problem: { code: 'no-flow' }, reason: `${product} has no connect flow` }
-    const r = await h.connector.begin(FABRIC_INBOX, { reconnect })
-    return r.ok ? { ok: true } : r
-  }
-  handle(IPC.hubDecide, async (_e, requestId: string, decision: 'allowed' | 'denied'): Promise<Returns<FabricApi['hub']['decide']>> => {
-    const h = hubReady()
-    if (decision !== 'allowed' && decision !== 'denied') return { ok: false, reason: 'a decision is allowed or denied' }
-    const row = await h.accessStore.request(String(requestId))
-    const done: HubActResult = await h.access.decide(String(requestId), decision, OPERATOR_ACTOR)
-    // Fabric itself (ADR-0134, a coding agent's enrollment) is not a product: there is nothing to connect.
-    if (done.ok && decision === 'allowed' && row && row.callee !== FABRIC_SELF && !(await h.accessStore.liveConnection(row.callee))) {
-      // The Allow is recorded either way; a product that could not be opened is said beside it (UX-5).
-      const started = await beginConnect(h, row.callee)
-      if (!started.ok) return { ok: true, connect: { problem: started.problem } }
-    }
-    return done
-  })
-  handle(IPC.hubRevokeGrant, async (_e, grantId: string): Promise<Returns<FabricApi['hub']['revokeGrant']>> =>
-    (markGrantPersonEnded(String(grantId)), hubReady().access.revokeGrant(String(grantId), OPERATOR_ACTOR)))
-  handle(IPC.hubRevokeAgent, async (_e, bindingId: string): Promise<Returns<FabricApi['hub']['revokeAgent']>> => {
-    const h = hubReady()
-    // The agent's name, read before the revocation, so История can say which agent it was (CO-353): the name its
-    // request was registered under, else the catalogue's, else its id; an unreadable binding leaves the act unnamed.
-    const named = await (async (): Promise<string | null> => {
-      try {
-        const b = await h.accessStore.binding(String(bindingId))
-        if (!b) return null
-        const asked = await h.accessStore.request(b.request_id)
-        return asked?.registry?.name ?? AGENTS.find((a) => a.id === b.agent_id)?.label ?? b.agent_id
-      } catch (e) {
-        ops.failed('hub.access.revoke-name-unreadable', e, { binding_id: String(bindingId) })
-        return null
-      }
-    })()
-    markBindingPersonEnded(String(bindingId)) // PL-1 run two, UX-1: the person revoked it; its tasks are not continued
-    const done = await h.access.revokeBinding(String(bindingId), OPERATOR_ACTOR)
-    // The credential is gone and cannot be revived: the agent asks again and gets a new one (ADR-0160 §2: said, not hidden).
-    if (done.ok) await acts.note({ kind: 'agent.disconnect', projectId: null, subject: { type: 'agent', id: String(bindingId), label: named },
-      said: { key: 'act.agent.disconnect', params: { agent: named } }, inverse: null, whyNot: 'credential_gone' })
-    return done
-  })
+  handle(IPC.hubOverview, async (): Promise<Returns<FabricApi['hub']['overview']>> => hubDoors.overview())
+  handle(IPC.hubDecide, async (_e, requestId: string, decision: 'allowed' | 'denied'): Promise<Returns<FabricApi['hub']['decide']>> =>
+    hubDoors.decide(requestId, decision))
+  handle(IPC.hubRevokeGrant, async (_e, grantId: string): Promise<Returns<FabricApi['hub']['revokeGrant']>> => hubDoors.revokeGrant(grantId))
+  handle(IPC.hubRevokeAgent, async (_e, bindingId: string): Promise<Returns<FabricApi['hub']['revokeAgent']>> => hubDoors.revokeAgent(bindingId))
   // #region kept-out-ipc — docs: docs/ux/scenarios.md#scn-167-a-coding-agent-opened-outside-fabric-is-let-in-and-the-person-disconnects-it-with-one-press
-  handle(IPC.hubDisconnectAgent, async (_e, agentId: unknown): Promise<Returns<FabricApi['hub']['disconnectAgent']>> =>
-    answerOf(await acts.perform('agent.disconnect', { agent_id: typeof agentId === 'string' ? agentId : '' })))
-  handle(IPC.hubLetAgentIn, async (_e, agentId: unknown): Promise<Returns<FabricApi['hub']['letAgentIn']>> =>
-    answerOf(await acts.perform('agent.let_in', { agent_id: typeof agentId === 'string' ? agentId : '' })))
+  handle(IPC.hubDisconnectAgent, async (_e, agentId: unknown): Promise<Returns<FabricApi['hub']['disconnectAgent']>> => hubDoors.disconnectAgent(agentId))
+  handle(IPC.hubLetAgentIn, async (_e, agentId: unknown): Promise<Returns<FabricApi['hub']['letAgentIn']>> => hubDoors.letAgentIn(agentId))
   // #endregion kept-out-ipc
-  handle(IPC.hubClearDenial, async (_e, requestId: string): Promise<Returns<FabricApi['hub']['clearDenial']>> =>
-    hubReady().access.clearDenial(String(requestId), OPERATOR_ACTOR))
+  handle(IPC.hubClearDenial, async (_e, requestId: string): Promise<Returns<FabricApi['hub']['clearDenial']>> => hubDoors.clearDenial(requestId))
   handle(IPC.hubConnect, async (_e, product: string, opts?: { reconnect?: unknown }): Promise<Returns<FabricApi['hub']['connect']>> =>
-    // Replacing a live connection's key is the operator's explicit Reconnect, never a side effect of Connect.
-    beginConnect(hubReady(), String(product), opts?.reconnect === true))
-  handle(IPC.hubDisconnect, async (_e, product: string): Promise<Returns<FabricApi['hub']['disconnect']>> =>
-    hubReady().connector.disconnect(String(product)))
+    hubDoors.connect(product, opts))
+  handle(IPC.hubDisconnect, async (_e, product: string): Promise<Returns<FabricApi['hub']['disconnect']>> => hubDoors.disconnect(product))
   // #endregion hub-ipc
 
   /**
