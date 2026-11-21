@@ -6,8 +6,9 @@
 //   1. a real PTY, spawned with the environment `pty.ts` gives every console (project consoles and the CEO's alike: the
 //      CEO window opens its console through the same `ptys.open`, adding only `ceoLaunchExtras`), takes a paste of more
 //      than 6 KB of Russian in raw mode, as Claude Code reads it, byte for byte;
-//   2. pbcopy then pbpaste in that environment returns the same bytes, on a private pasteboard (`-pboard find`) so the
-//      person's own clipboard is never touched; the same round trip with no locale is shown to break, so the test
+//   2. pbcopy then pbpaste in that environment returns the same bytes, on the Find pasteboard (`-pboard find`, which
+//      Safari, Terminal and TextEdit share for Cmd+E), never the clipboard; what it held is restored after (run twelve,
+//      DA-72); the same round trip with no locale is shown to break, so the test
 //      would see the defect come back;
 //   3. the CEO's launch extras, for every runner, set no locale that could override the console's.
 import assert from 'node:assert/strict'
@@ -64,14 +65,21 @@ test('a long Russian paste reaches a console\'s program whole, in raw mode as an
 test('text an agent copies in a console (pbcopy) is pasted back whole as Unicode, and breaks with no locale', { skip: !darwin && 'macOS only' }, () => {
   // Claude Code copies through pbcopy in the console's environment; Fabric, the terminal and every other app read the
   // pasteboard as Unicode. The reader here is a UTF-8 pbpaste, standing for them.
+  const utf8 = { ...launchd, LANG: 'en_US.UTF-8' }
+  const before = spawnSync('/usr/bin/pbpaste', ['-pboard', 'find'], { env: utf8 }).stdout
   const copyThenPaste = (copyEnv) => {
     const put = spawnSync('/usr/bin/pbcopy', ['-pboard', 'find'], { env: copyEnv, input: BYTES })
     assert.equal(put.status, 0, String(put.stderr))
-    return spawnSync('/usr/bin/pbpaste', ['-pboard', 'find'], { env: { ...launchd, LANG: 'en_US.UTF-8' } }).stdout
+    return spawnSync('/usr/bin/pbpaste', ['-pboard', 'find'], { env: utf8 }).stdout
   }
-  assert.ok(copyThenPaste(consoleEnv).equals(BYTES), 'a copy in a console\'s environment changed the text')
-  // The defect itself, so this test sees it return: copied with no locale, the paste is Mac Roman read as UTF-8.
-  const broken = copyThenPaste(launchd)
-  assert.ok(!broken.equals(BYTES), 'with no locale the copy should break: the check would not see the defect')
-  assert.ok(broken.toString('utf8').includes('–î'), 'the break is the owner\'s «–î…», UTF-8 read as Mac Roman')
+  try {
+    assert.ok(copyThenPaste(consoleEnv).equals(BYTES), 'a copy in a console\'s environment changed the text')
+    // The defect itself, so this test sees it return: copied with no locale, the paste is Mac Roman read as UTF-8.
+    const broken = copyThenPaste(launchd)
+    assert.ok(!broken.equals(BYTES), 'with no locale the copy should break: the check would not see the defect')
+    assert.ok(broken.toString('utf8').includes('–î'), 'the break is the owner\'s «–Д…», UTF-8 read as Mac Roman')
+  } finally {
+    // The person's Find text back as it was (run twelve, DA-72).
+    spawnSync('/usr/bin/pbcopy', ['-pboard', 'find'], { env: utf8, input: before })
+  }
 })

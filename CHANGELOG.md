@@ -68,8 +68,10 @@ between consoles, the CEO's board slot).
   has no locale, so its consoles had none either, and macOS's `pbcopy`, which Claude Code copies through, read the text
   as Mac Roman. A console with no locale of its own now gets `LC_CTYPE=en_US.UTF-8`; one the person set is kept, and
   the language of messages is not touched (`main/sessionEnv.ts#UTF8_CTYPE`). Text already copied broken stays broken:
-  copy it again after the update. A test pastes more than 6 KB of Russian into a real console and copies it back
-  through pbcopy, for project consoles and the CEO's alike (`test/console-paste-utf8.test.mjs`).
+  copy it again after the update. A test copies more than 6 KB of Russian through pbcopy in a console's environment
+  and reads it back as Unicode: whole with the fix, the owner's «–Д…» without it; the CEO's console gets the same
+  environment; a paste of the same text into a real console passes byte for byte, which a locale does not change
+  (`test/console-paste-utf8.test.mjs`).
 - **A responder's note on a request is no longer read as its answer.** Everything a responder writes on a request's
   thread (an answer, a progress note, an effect summary, the checkpoint of a takeover) is stored as a reply. The
   operator's read of a thread now says which each one is (`via`: `reply`, `progress`, `effect`, `checkpoint`; contract

@@ -382,6 +382,7 @@ describe('iteration 3: one value test for the quoted credential fields', () => {
     const k = (n: number): string => 'Q7'.repeat(n)
     for (const [line, rule] of [
       [`voice key ${'xai'}-${k(20)}`, 'xai-key'],
+      [`voice key ${'xai'}-${k(10)}_with-${k(10)}`, 'xai-key'],
       [`secret ${'sb'}_secret_${k(12)}`, 'supabase-secret'],
       [`pay with ${'sk'}_live_${k(12)}`, 'stripe-key'],
       [`restricted ${'rk'}_test_${k(12)}`, 'stripe-key'],

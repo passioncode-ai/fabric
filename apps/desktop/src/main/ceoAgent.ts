@@ -334,7 +334,10 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   function writeHold(on: boolean): void {
     try {
       const known = projectId ?? knownProject()
-      writeFileSync(metaFile, JSON.stringify({ ...(known ? { projectId: known } : {}), ...(on ? { heldByPerson: true } : {}) }, null, 2), { encoding: 'utf8', mode: 0o600 })
+      // Written beside and renamed over, so a full disk never leaves the stop or the project id half written (DA-74).
+      const tmp = `${metaFile}.tmp`
+      writeFileSync(tmp, JSON.stringify({ ...(known ? { projectId: known } : {}), ...(on ? { heldByPerson: true } : {}) }, null, 2), { encoding: 'utf8', mode: 0o600 })
+      renameSync(tmp, metaFile)
     } catch (e) { /* recorded through the host's ops.record; the hold still holds in memory for this run */
       deps.record('ceo.agent.hold-write-failed', errorClass(e))
     }
@@ -376,6 +379,8 @@ export function createCeoAgent(deps: CeoAgentDeps) {
       // The meta keeps the hold as it stands now: a stop pressed while the project was looked up is not overwritten
       // (run eleven, ER-93).
       writeHold(held)
+      // A stop pressed during the lookup: no runner is opened for a moment and then killed (run twelve, DA-73).
+      if (held) { state = 'idle'; return finish() }
       const t = now()
       const order = deps.runners().filter((r) => (setAside.get(r)?.until ?? 0) <= t)
       // ER-1: every runner set aside. None is walked again until its time passes or the person retries.
@@ -755,8 +760,9 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     /** The CEO's project even before this process started its console: the one its folder's meta names (ADR-0197
      *  Amendment 5: a `ceo.task` request wakes a console that is not running). */
     knownProjectId: (): string | null => projectId ?? knownProject(),
-    /** The person's stop, in memory or kept from an earlier run (UX-81). */
-    heldByPerson: (): boolean => held || heldOnDisk()
+    /** The person's stop, read back from `ceo.json` when the agent is built (UX-81, ER-94). */
+    // Memory is loaded from the disk when the agent is built, so memory alone is the truth from then on (run twelve, DA-71).
+    heldByPerson: (): boolean => held
   }
 }
 

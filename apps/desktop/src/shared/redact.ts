@@ -226,7 +226,8 @@ const RULES: Rule[] = [
   // bot token (the bot's number, a colon, then «AA» and the secret).
   // xAI's keys are letters and digits only; a hyphenated name such as a folder or an anchor is not one (DA-64), and a
   // key cut at a text's bound still loses all but 19 characters of what remains (run eleven, DA-69).
-  { name: 'xai-key', re: /\bxai-[A-Za-z0-9]{20,}/g },
+  // Twenty letters or digits first, then anything a key Fabric accepts may hold (`ceoVoiceKey.ts`), run twelve DA-74.
+  { name: 'xai-key', re: /\bxai-[A-Za-z0-9]{20}[A-Za-z0-9_-]*/g },
   { name: 'stripe-key', re: /\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}/g },
   { name: 'huggingface-token', re: /\bhf_[A-Za-z0-9]{30,}/g },
   { name: 'supabase-pat', re: /\bsbp_[A-Za-z0-9]{30,}/g },

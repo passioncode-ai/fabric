@@ -1468,3 +1468,29 @@ test('run eleven: a stop during the first start\'s project lookup survives the n
   k.deps.ensureProject = lookup
   assert.equal(createCeoAgent(k.deps).heldByPerson(), true)
 })
+
+// Run twelve, DA-73: a stop during the first start's lookup opens no runner console at all. DA-71: the stop's truth is
+// memory once the agent is built, so a person's start that could not be written to disk is still a start.
+test('run twelve: a stop during the lookup opens no console, and a cleared stop the disk would not take is still cleared', async () => {
+  let release
+  const k = keeper()
+  const lookup = k.deps.ensureProject
+  k.deps.ensureProject = (...a) => new Promise((ok) => { release = () => ok(lookup(...a)) })
+  const { createCeoAgent } = await import('../src/main/ceoAgent.ts')
+  const agent = createCeoAgent(k.deps)
+  const opened = k.consoles.size
+  const starting = agent.ensure()
+  await new Promise((r) => setTimeout(r, 5))
+  const stopped = agent.stop()
+  await new Promise((r) => setTimeout(r, 5))
+  release()
+  await starting; await stopped
+  assert.equal(k.consoles.size, opened, 'no runner console was opened after the stop')
+  k.deps.ensureProject = lookup
+  const { chmodSync } = await import('node:fs')
+  chmodSync(k.root, 0o500)
+  try {
+    await agent.restart('person')
+    assert.equal(agent.heldByPerson(), false)
+  } finally { chmodSync(k.root, 0o700) }
+})
