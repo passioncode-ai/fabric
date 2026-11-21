@@ -4,6 +4,19 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `—` · refactor/board-work-doors → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/main/workDoors.ts` (new), `apps/desktop/test/work-doors.test.mjs` (new), `apps/desktop/src/main/index.ts` (region `work-ipc` calls `createWorkDoors`), `apps/desktop/package.json` (the test in `test`), the plan's W2c.2b row, CHANGELOG `Unreleased`, the map
+- conflicts: none
+- summary: ADR-0195 W2c.2b, the second group: the window's twelve work doors are functions the operator door can serve; the answers are unchanged and the board's entry does not serve them yet
+
+### 2026-11-21 · `—` · refactor/board-hub-doors → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/main/hubDoors.ts` (new), `apps/desktop/test/hub-doors.test.mjs` (new), `apps/desktop/src/main/index.ts` (region `hub-ipc` calls `createHubDoors`), `apps/desktop/package.json` (the test in `test`), the plan's W2c.2b row, CHANGELOG `Unreleased`, the map
+- conflicts: none
+- summary: ADR-0195 W2c.2b, the first group: the window's nine Agent access doors are functions the operator door can serve; the answers are unchanged and the board's entry does not serve them yet
+### 2026-11-21 · `—` · refactor/board-operator-door-land → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/main/operatorDoor.ts` (new), `apps/desktop/test/operator-door.test.mjs` (new), `apps/desktop/package.json` (the test in `test`), the plan's W2c.2a, W2c.2b and W2c.1b rows, CHANGELOG `Unreleased`, the map
+- conflicts: with main at `fe8961f1` (the commit `fe7971f0` of `refactor/board-operator-door` replayed on it): CHANGELOG, `apps/desktop/package.json` (the `test` list), this log and the design map, each kept from both sides
+- summary: ADR-0195 W2c.2a, the board's operator door as a transport (loopback, owner check, 0600 token, the window's client); nothing starts it until W2c.2b and W2d
 ### 2026-11-21 · `CO-622` · feat/ceo-board-tools-2 → main · fast-forward after `ci.sh fast`
 - files: `apps/desktop/src/main/voiceBoard.ts` (CEO_BOARD_TOOLS, registerCeoBoardTools, board_summary), `main/launchModel.ts`, `main/pty.ts` (the start flags at the spawn), `main/ceoTools.ts` (session_start model and effort, session_model, session_last_reply, session_wait_reply), `main/hubPorts.ts`, `main/agentSurface.ts` (region ceo-surface), `main/index.ts`, `main/ceoVoice.ts`, `shared/ceoAgent.ts`, tests `voice-board`, `launch-model`, `ceo-agent`, `scripts/ci.sh`, SCN-191, the CO-622 plan, the product model and its projections, the map
 - conflicts: none; rebuilt on `ab9ea5e1` from `feat/ceo-board-tools` (cut from `8b9712b3`, retired, never force-pushed)

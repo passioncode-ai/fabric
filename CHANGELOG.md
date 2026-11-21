@@ -9,6 +9,24 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **The work screens answer from one place** (ADR-0195 wave W2c.2b, the second group; board task `8b86adf3`). The
+  twelve doors behind the home, the board, an agent's page and a project's work (the readings, the launch check, a
+  decision on two overlapping sessions, «Написать агенту» and the release of a claim) moved out of the window's main
+  file into `main/workDoors.ts`, and the same functions are named for the board's operator door. The window still
+  calls them in its own process, so no screen and no agent sees a change; the remaining door groups follow
+  ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
+- **Agent access answers from one place** (ADR-0195 wave W2c.2b, the first group; board task `8b86adf3`). The nine
+  doors behind «Доступ агентов» (the overview, a decision, the revocations, disconnect and let in, connect and
+  disconnect of a product) moved out of the window's main file into `main/hubDoors.ts`, and the same functions are
+  named for the board's operator door. The window still calls them in its own process, so no screen and no agent
+  sees a change; the other door groups follow
+  ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
+- **The board has a door of its own for the window** (ADR-0195 wave W2c.2a, board task `8b86adf3`). A new module,
+  `main/operatorDoor.ts`, serves named doors on a loopback port of its own, published as `board-door.json` with a 0600
+  token beside `hub.json`; it refuses another account's process (CO-514), a wrong token, a browser origin and a wrong
+  Host before it reads a call. Nothing starts it yet: the doors the window will call through it land in W2c.2b, and the
+  window switches to it in W2d. No agent and no screen sees a change
+  ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
 - **The queue has an order, and it follows the work's dependencies.** The owner, 2026-11-21: prioritisation on the
   board first, the critical path highest, and a nearly finished task is not switched away from. «Очередь» on the Board
   now stands in one order: what you placed yourself first, then what other tasks wait for, the longest chain first; a
