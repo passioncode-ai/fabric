@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `CO-626` · docs/co-626 → main · fast-forward
+- files: `docs/evidence/specs/2026-08-16-software-fabric-carryover.md` (CO-626, next free CO-627), `docs/evidence/backlog.md` (lane 12 cites CO-626, recount 374 of 608), the mockup receipt SRC-02 re-pinned, `docs/reports/completeness.html`, `docs/reports/plan.json`, the map, this log
+- conflicts: none
+- summary: the in-place installer left `/Applications/Fabric.app` empty when run from a launchd job (EPERM on the swap and on its undo); recorded for 0.3.28, whose release session took the fix; no code changed here
+
 ### 2026-11-21 · `CO-622` · feat/ceo-board-tools-2 → main · fast-forward after `ci.sh fast`
 - files: `apps/desktop/src/main/voiceBoard.ts` (CEO_BOARD_TOOLS, registerCeoBoardTools, board_summary), `main/launchModel.ts`, `main/pty.ts` (the start flags at the spawn), `main/ceoTools.ts` (session_start model and effort, session_model, session_last_reply, session_wait_reply), `main/hubPorts.ts`, `main/agentSurface.ts` (region ceo-surface), `main/index.ts`, `main/ceoVoice.ts`, `shared/ceoAgent.ts`, tests `voice-board`, `launch-model`, `ceo-agent`, `scripts/ci.sh`, SCN-191, the CO-622 plan, the product model and its projections, the map
 - conflicts: none; rebuilt on `ab9ea5e1` from `feat/ceo-board-tools` (cut from `8b9712b3`, retired, never force-pushed)
