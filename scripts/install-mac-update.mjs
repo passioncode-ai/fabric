@@ -17,7 +17,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import path from 'node:path'
-import { BUNDLE_ID, DEFAULT_TARGET, LSREGISTER, dedupeDock, fabricRunning, installProblems, rollbackZip, sideCopies, staleRegistrations, stagingDir } from './lib/install-mac-update.mjs'
+import { BUNDLE_ID, DEFAULT_TARGET, LSREGISTER, dedupeDock, fabricRunning, installProblems, rollbackZip, sideCopies, staleRegistrations, stagingDir, swapProbe } from './lib/install-mac-update.mjs'
 
 const say = (m) => console.log(`install: ${m}`)
 const fail = (m) => { console.error(`install: ${m}`); process.exit(1) }
@@ -131,24 +131,33 @@ if (!opts.tidy) {
     const had = existsSync(path.join(opts.target, 'Contents'))
     // A copy launchd started in the last instant is caught here rather than half-replaced.
     if (running(opts.target)) fail('Fabric started again before the swap; nothing was changed, run the install again')
+    // CO-626: macOS may refuse a change inside an app bundle (App Management, a launchd job): probed before anything moves.
+    const refused = swapProbe(opts.target, stage, {
+      mkdir: (p) => mkdirSync(p, { recursive: true }), rename: (a, b) => renameSync(a, b), rm: (p) => rmSync(p, { recursive: true, force: true })
+    })
+    if (refused) { rmSync(stage, { recursive: true, force: true }); fail(`${refused}; nothing was changed`) }
+    // The way back is written before the swap (CO-626: a failed swap used to leave no zip to go back to).
+    const zip = had && installed?.version ? rollbackZip(home, installed.version) : null
+    if (zip) {
+      mkdirSync(path.dirname(zip), { recursive: true })
+      execFileSync('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', path.join(opts.target, 'Contents'), zip])
+      say(`the way back, written before the swap: ${zip}`)
+    }
     if (had) renameSync(path.join(opts.target, 'Contents'), path.join(outgoing, 'Contents'))
     try {
       renameSync(path.join(stage, 'Contents'), path.join(opts.target, 'Contents'))
     } catch (e) {
-      if (had) renameSync(path.join(outgoing, 'Contents'), path.join(opts.target, 'Contents'))
-      fail(`the swap failed and was undone: ${e.message}`)
+      // The undo is checked, never assumed (CO-626): when it fails too, say where both copies are and how to go back.
+      let undone = !had
+      if (had) { try { renameSync(path.join(outgoing, 'Contents'), path.join(opts.target, 'Contents')); undone = existsSync(path.join(opts.target, 'Contents', 'Info.plist')) } catch { undone = false } }
+      if (undone) fail(`the swap failed and was undone: ${e.message}`)
+      fail(`the swap failed (${e.message}) and so did its undo: ${opts.target} has no Contents now. The previous Contents is in ${path.join(outgoing, 'Contents')}, the new one in ${path.join(stage, 'Contents')}${zip ? `, and the zip of the previous one in ${zip}` : ''}. From a Terminal session with App Management permission: mv "${path.join(outgoing, 'Contents')}" "${path.join(opts.target, 'Contents')}"`)
     }
     const after = bundleInfo(opts.target)
     if (!after?.signatureOk || after.version !== incoming.version) {
       renameSync(path.join(opts.target, 'Contents'), path.join(stage, 'failed-Contents'))
       if (had) renameSync(path.join(outgoing, 'Contents'), path.join(opts.target, 'Contents'))
       fail(`the swapped bundle did not verify (${after?.version ?? 'unreadable'}); the previous Fabric is back`)
-    }
-    if (had && installed?.version) {
-      const zip = rollbackZip(home, installed.version)
-      mkdirSync(path.dirname(zip), { recursive: true })
-      execFileSync('ditto', ['-c', '-k', '--sequesterRsrc', outgoing, zip])
-      say(`the way back: ${zip}`)
     }
     rmSync(stage, { recursive: true, force: true })
     // The folder's date moves so Finder and the Dock read its icon again.

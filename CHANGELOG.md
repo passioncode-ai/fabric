@@ -58,6 +58,11 @@ feature held under the owner's pause of 2026-11-21), CO-622 (the next release) a
   arrived before it ends, and ends what still runs (`main/ptySettle.ts#settleExits`); a drain still running 2.5 s before
   the 10 s deadline is not waited for further, so the settle always runs (`main/quit.ts#QUIT_SETTLE_BUDGET_MS`). Proven
   by tests; the proof on a packaged build is recorded in the release ledger.
+- **An update never leaves Fabric's folder empty** (CO-626). Run from a launchd job, the in-place installer's swap was
+  refused by macOS and its undo too, and `/Applications/Fabric.app` was left empty (the 0.3.27 install of 2026-11-21).
+  It now tries a rename inside the bundle before moving anything and stops with nothing changed when macOS forbids it,
+  keeps the way back (a zip of the previous version) before the swap, and checks its undo
+  (`scripts/lib/install-mac-update.mjs#swapProbe`). It runs from a Terminal session with App Management permission.
 - **The board has a door of its own for the window** (ADR-0195 wave W2c.2a, board task `8b86adf3`). A new module,
   `main/operatorDoor.ts`, serves named doors on a loopback port of its own, published as `board-door.json` with a 0600
   token beside `hub.json`; it refuses another account's process (CO-514), a wrong token, a browser origin, a wrong

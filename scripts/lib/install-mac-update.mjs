@@ -127,3 +127,26 @@ export function fabricRunning({ args = '', lsof = '' }, target = DEFAULT_TARGET)
   if (args.split('\n').some((l) => l === exe || l.startsWith(`${exe} `))) return true
   return lsof.split('\n').some((l) => l === `n${exe}`)
 }
+
+/**
+ * CO-626 (the 0.3.27 install of 2026-11-21): from a launchd job, macOS App Management refused the rename of the staged
+ * `Contents` into the bundle (EPERM), and the undo was the same forbidden rename, which left `/Applications/Fabric.app`
+ * empty. Before anything moves, a scratch folder is renamed into the bundle and out again: a refusal ends the install
+ * with nothing changed. Answers null when the bundle takes a rename, else why not. `fs` is injected for the tests.
+ */
+export function swapProbe(target, stage, fs) {
+  const scratch = path.join(stage, 'probe')
+  const inside = path.join(target, '.fabric-update-probe')
+  try {
+    fs.rm(inside)
+    fs.mkdir(scratch)
+    fs.rename(scratch, inside)
+  } catch (e) {
+    try { fs.rm(scratch) } catch { /* the probe's own folder; the stage is removed by the caller */ }
+    return `macOS refused a change inside ${target} (${e?.code ?? e?.message ?? 'error'}): run the install from a Terminal session that has App Management permission (System Settings → Privacy & Security → App Management), never from a launchd job`
+  }
+  try { fs.rename(inside, scratch); fs.rm(scratch) } catch (e) {
+    return `a probe folder could be moved into ${target} but not out again (${e?.code ?? e?.message ?? 'error'}); remove ${inside} by hand and run the install from a Terminal session`
+  }
+  return null
+}

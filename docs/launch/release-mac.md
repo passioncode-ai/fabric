@@ -228,6 +228,14 @@ offered on [passioncode.ai/fabric](https://passioncode.ai/fabric/#download) (sit
 
 ## Installing an update on a Mac
 
+**Run the installer from a Terminal session that has App Management permission (System Settings → Privacy & Security →
+App Management), never from a launchd job** (CO-626). On 2026-11-21 the 0.3.27 install ran from a launchd job: macOS
+refused the rename of the new `Contents` into the bundle (EPERM), the undo was the same rename, and
+`/Applications/Fabric.app` was left empty. Since 0.3.28 the installer first renames a probe folder into the bundle and
+out again and refuses with nothing changed when macOS does not allow it (`scripts/lib/install-mac-update.mjs#swapProbe`),
+writes the zip of the previous `Contents` before the swap, and checks its undo: when the undo fails too, it says where
+both copies are and the one `mv` that puts the previous one back.
+
 An update replaces Fabric **in place**: the folder `/Applications/Fabric.app` stays, only its `Contents` changes, so the
 Dock, Launchpad and Finder keep one Fabric icon. The operator saw the opposite on 2026-11-20 («после обновления
 приложения у меня фабрик постоянно новая иконка появляется, старая куда-то что-то остаётся, пропадает»), and the cause
