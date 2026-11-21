@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { ceoBoardNudge, ceoBrief, ceoLaunchExtras, ceoLine, ceoModelAllowed, ceoModelsOf, ceoRunnersOf, claudeModelFlag, findProject, inboxName, keyBytes, screenText, typedText, CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT } from '../src/shared/ceoAgent.ts'
 import { createCeoAgent, LIMIT_SAID } from '../src/main/ceoAgent.ts'
-import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, CEO_TOOLS } from '../src/main/ceoTools.ts'
+import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, CEO_TOOLS, readBackModel } from '../src/main/ceoTools.ts'
 import { mintVoiceToken, sampleText, voiceSample, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
 import { createVoiceKeyStore, voiceKeyShapeOk } from '../src/main/ceoVoiceKey.ts'
 import { validateSettings } from '../src/shared/appSettings.ts'
@@ -1505,4 +1505,20 @@ test('run twelve: a message clears the kept stop for the next restart', async ()
   assert.equal(again.heldByPerson(), true)
   await again.send('Привет', [])
   assert.equal(createCeoAgent(k.deps).heldByPerson(), false)
+})
+
+// CO-622 item 1: a running console's model is changed by its own /model and read back from its own confirmation.
+test('a running Claude Code console takes /model and the answer reads its confirmation back', async () => {
+  const applied = await readBackModel(() => 'old line\n  ⎿  Set model to Fable 5.2 (claude-fable-5-2)\n> ', 'claude-fable-5-2', 50, 10)
+  assert.deepEqual(applied, { state: 'applied', line: '⎿  Set model to Fable 5.2 (claude-fable-5-2)' })
+  const refused = await readBackModel(() => '> /model claude-nope\n  ⎿  Invalid model: claude-nope', 'claude-nope', 50, 10)
+  assert.equal(refused.state, 'refused')
+  assert.equal((await readBackModel(() => '> /model opus\n', 'opus', 30, 10)).state, 'unconfirmed', 'no confirmation is never said as applied')
+  const { ops, writes } = operations()
+  const r = await ops.run('model', { session_id: 's1', model: 'claude-fable-5-2', reason: 'the owner asked for Fable' })
+  assert.deepEqual(writes.filter(([id]) => id === 's1').map(([, d]) => d), ['/model claude-fable-5-2', '\r'], 'typed as the console\'s own command, then Enter')
+  assert.equal(r.state, 'unconfirmed', 'the fixture\'s screen holds no confirmation')
+  assert.equal((await ops.run('model', { session_id: 'ceo', model: 'opus', reason: 'x x x' })).ok, false, 'never the CEO\'s own console')
+  assert.equal((await ops.run('model', { session_id: 's1', model: 'opus --dangerously-skip-permissions', reason: 'x x x' })).ok, false, 'a flag is not a model')
+  assert.ok(ceoVoiceTools().some((t) => t.name === 'session_model'), 'the voice has it too')
 })

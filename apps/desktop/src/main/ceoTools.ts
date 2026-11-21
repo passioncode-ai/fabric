@@ -73,6 +73,16 @@ export const CEO_TOOLS = {
       reason
     }).strict()
   },
+  model: {
+    mcp: 'fabric_ceo_session_model',
+    title: 'Change a running session\'s model',
+    description: 'Change the model of a running Claude Code console and read it back: Fabric types /model with the name and reads the console\'s own confirmation (applied, refused, or not confirmed, with the last lines of its screen). Use it instead of typing /model with fabric_ceo_session_input. A new session takes its model at the start with fabric_ceo_session_start model. Codex and other runners are refused: their model is set at start.',
+    input: z.object({
+      session_id: sessionId,
+      model: z.string().trim().regex(MODEL_NAME).describe('The model as Claude Code names it (claude-fable-5-2, opus, sonnet).'),
+      reason
+    }).strict()
+  },
   stop: {
     mcp: 'fabric_ceo_session_stop',
     title: 'Stop or kill a session',
@@ -524,6 +534,29 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     return { ok: true, sent: { text_chars: text.length, keys: a.keys ?? [], submit }, screen_after: screen(s.sessionId, 30) }
   }
 
+  // #region ceo-session-model — docs: docs/evidence/plans/2026-11-21-ceo-voice-missing-tools.md#progress
+  /** CO-622 item 1: a live console's model, changed by its own /model and read back from its own confirmation. */
+  async function model(a: z.infer<typeof CEO_TOOLS.model.input>): Promise<Answer> {
+    if (a.session_id === deps.ceoSessionId()) return refuse('this is your own console: the owner sets the CEO\'s models in Settings')
+    const s = deps.ptys.get(a.session_id)
+    if (!s) return refuse('not a Fabric console: a Switchboard session\'s model is set when it starts')
+    if (!s.running) return refuse(`the console has ended: continue it with ${T.resume}`)
+    if (s.optionId !== 'claude-code') return refuse(`${s.optionId} takes its model at the start: stop it and start it again with fabric_ceo_session_start (session_start by voice) and model`)
+    const before = screen(s.sessionId, 400).length
+    try {
+      deps.ptys.write(s.sessionId, typedText(`/model ${a.model}`))
+      await sleep(150)
+      deps.ptys.write(s.sessionId, '\r')
+    } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
+      deps.record('ceo.session.model', { session_id: s.sessionId, model: a.model, outcome: 'failed', reason: a.reason })
+      return refuse(`the console did not take /model: ${e instanceof Error ? e.message : String(e)}`)
+    }
+    const r = await readBackModel(() => screen(s.sessionId, 400).slice(Math.max(0, before - 200)), a.model)
+    deps.record('ceo.session.model', { session_id: s.sessionId, model: a.model, state: r.state, reason: a.reason })
+    return { ok: r.state === 'applied', state: r.state, ...(r.line ? { said: r.line } : {}), ...(r.state === 'applied' ? {} : { screen_after: screen(s.sessionId, 15), next: r.state === 'refused' ? 'check the model name and try again' : `read the console with ${T.read} before you rely on the change` }) }
+  }
+  // #endregion ceo-session-model
+
   /** The first task's end, waited for at most FIRST_TASK_WAIT_MS; past it the answer says it is still on its way. */
   async function firstTaskOf(sessionId: string, via?: LaunchVia): Promise<Answer> {
     const pending = deps.firstTask?.(sessionId)
@@ -894,7 +927,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
 
   const table: { [K in CeoToolName]: (a: z.infer<(typeof CEO_TOOLS)[K]['input']>, via?: LaunchVia) => Promise<Answer> } = {
-    sessions, read, input, start, stop, resume, open, launches, projects, task, alias
+    sessions, read, input, start, model, stop, resume, open, launches, projects, task, alias
   }
 
   /** Run one tool by its short name with unchecked arguments: checked here, refused with the first problem. `via`:
@@ -933,6 +966,20 @@ function json(value: unknown): { content: Array<{ type: 'text'; text: string }> 
 }
 
 /** The MCP door: every tool on the CEO session's server, nowhere else (`agentSurface.ts#serverFor`). */
+/** Claude Code's answer to /model on its screen: «Set model to …» applied, an error refused; read for at most `ms`. */
+export async function readBackModel(screenNow: () => string, asked: string, ms = 8_000, step = 250): Promise<{ state: 'applied' | 'refused' | 'unconfirmed'; line?: string }> {
+  const deadline = Date.now() + ms
+  for (;;) {
+    const lines = screenNow().split('\n').map((l) => l.trim()).filter(Boolean)
+    const set = [...lines].reverse().find((l) => /\bset model to\b/i.test(l))
+    if (set) return { state: 'applied', line: set.slice(0, 200) }
+    const bad = [...lines].reverse().find((l) => /(invalid|unknown|not (found|available|supported)|no such)[^\n]{0,40}model|model[^\n]{0,80}(invalid|not (found|available|supported)|unknown)/i.test(l) && l.toLowerCase().includes(asked.toLowerCase().slice(0, 40)))
+    if (bad) return { state: 'refused', line: bad.slice(0, 200) }
+    if (Date.now() >= deadline) return { state: 'unconfirmed' }
+    await new Promise((r) => setTimeout(r, step))
+  }
+}
+
 export function registerCeoTools(server: McpServer, ops: CeoOperations): void {
   for (const [name, tool] of Object.entries(CEO_TOOLS)) {
     server.registerTool(
