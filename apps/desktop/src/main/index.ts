@@ -96,7 +96,7 @@ import { createRepoStateReader } from './repoState'
 import { createBranchReader } from './agentBranches.ts'
 import { readHomeView as readHomeStages } from './homeView.ts'
 import { createRhythmReader } from './workRhythm.ts'
-import { createWaitingReader } from './commsWaitingList.ts'
+import { createCommsDoors } from './commsDoors.ts'
 import { readProjectRequests } from './projectRequests.ts'
 import { createDisplayNameReader } from './projectNames.ts'
 import { createCodeStatsReader } from './codeStats'
@@ -3580,31 +3580,28 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // `comms:open-artifact`: the read module refuses every scheme but https before this is reached.
     openExternal: (url) => shell.openExternal(url)
   })
-  handle(IPC.commsThreads, (): Promise<Returns<FabricApi['comms']['threads']>> => commsRead.threads(ACTIVE_ESTATE))
+  /** The doors' bodies are `commsDoors.ts#createCommsDoors`: the same functions the board's operator door serves
+   *  (ADR-0195 W2c.2b), so the window and a board process answer alike. The waiting list's reader (CO-477) is kept
+   *  by those doors. */
+  const commsDoors = createCommsDoors({ read: commsRead, estateId: ACTIVE_ESTATE, store: () => store as never })
+  handle(IPC.commsThreads, (): Promise<Returns<FabricApi['comms']['threads']>> => commsDoors.threads())
   handle(IPC.commsList, (_e, threadId: string | null, afterSeq: number, limit?: number): Promise<Returns<FabricApi['comms']['list']>> =>
-    commsRead.list(ACTIVE_ESTATE, threadId ?? null, afterSeq, limit))
+    commsDoors.list(threadId, afterSeq, limit))
   // Wave 4's reads (migration 89). The renderer's arguments are unknown here: each method checks them before the door.
   handle(IPC.commsThreadPage, (_e, filter: unknown, before: unknown, limit?: number): Promise<Returns<FabricApi['comms']['threadPage']>> =>
-    commsRead.threadPage(ACTIVE_ESTATE, filter, before, typeof limit === 'number' ? limit : 50))
-  handle(IPC.commsHeads, (): Promise<Returns<FabricApi['comms']['heads']>> => commsRead.heads(ACTIVE_ESTATE))
-  handle(IPC.commsResponders, (): Promise<Returns<FabricApi['comms']['responders']>> => commsRead.responders(ACTIVE_ESTATE))
-  handle(IPC.commsFacts, (_e, messages: unknown): Promise<Returns<FabricApi['comms']['facts']>> => commsRead.facts(ACTIVE_ESTATE, messages))
-  handle(IPC.commsTimeline, (_e, requestId: unknown): Promise<Returns<FabricApi['comms']['timeline']>> => commsRead.timeline(ACTIVE_ESTATE, requestId))
-  handle(IPC.commsRelated, (_e, threadId: unknown): Promise<Returns<FabricApi['comms']['related']>> => commsRead.related(ACTIVE_ESTATE, threadId))
-  handle(IPC.commsSearch, (_e, query: unknown, before: unknown): Promise<Returns<FabricApi['comms']['search']>> => commsRead.search(ACTIVE_ESTATE, query, before))
-  handle(IPC.commsPending, (): Promise<Returns<FabricApi['comms']['pending']>> => commsRead.pending(ACTIVE_ESTATE))
+    commsDoors.threadPage(filter, before, limit))
+  handle(IPC.commsHeads, (): Promise<Returns<FabricApi['comms']['heads']>> => commsDoors.heads())
+  handle(IPC.commsResponders, (): Promise<Returns<FabricApi['comms']['responders']>> => commsDoors.responders())
+  handle(IPC.commsFacts, (_e, messages: unknown): Promise<Returns<FabricApi['comms']['facts']>> => commsDoors.facts(messages))
+  handle(IPC.commsTimeline, (_e, requestId: unknown): Promise<Returns<FabricApi['comms']['timeline']>> => commsDoors.timeline(requestId))
+  handle(IPC.commsRelated, (_e, threadId: unknown): Promise<Returns<FabricApi['comms']['related']>> => commsDoors.related(threadId))
+  handle(IPC.commsSearch, (_e, query: unknown, before: unknown): Promise<Returns<FabricApi['comms']['search']>> => commsDoors.search(query, before))
+  handle(IPC.commsPending, (): Promise<Returns<FabricApi['comms']['pending']>> => commsDoors.pending())
   // The mockup parity (home gap D11): the waiting requests themselves beside the count (`commsWaitingList.ts`).
-  // CO-477: one reading at a time, and the list read again only when the count moved or after 15 s.
-  const waitingReader = createWaitingReader(() => commsRead.waiting(ACTIVE_ESTATE), {
-    store: store as never, now: Date.now,
-    responders: () => commsRead.responders(ACTIVE_ESTATE),
-    threads: () => commsRead.threadPage(ACTIVE_ESTATE, { kind: 'request', openOnly: true }, null, 50)
-  })
-  handle(IPC.commsWaiting, (): Promise<Returns<FabricApi['comms']['waiting']>> => waitingReader.read())
+  handle(IPC.commsWaiting, (): Promise<Returns<FabricApi['comms']['waiting']>> => commsDoors.waiting())
   // SCN-181 (CO-543): one project's requests both ways, through the waiting list's door (`projectRequests.ts`).
-  handle(IPC.commsProjectRequests, (_e, projectId: unknown): Promise<Returns<FabricApi['comms']['projectRequests']>> =>
-    readProjectRequests(store as never, projectId, Date.now()))
-  handle(IPC.commsOpenArtifact, (_e, url: unknown): Promise<Returns<FabricApi['comms']['openArtifact']>> => commsRead.openArtifact(url))
+  handle(IPC.commsProjectRequests, (_e, projectId: unknown): Promise<Returns<FabricApi['comms']['projectRequests']>> => commsDoors.projectRequests(projectId))
+  handle(IPC.commsOpenArtifact, (_e, url: unknown): Promise<Returns<FabricApi['comms']['openArtifact']>> => commsDoors.openArtifact(url))
   // #endregion comms-screen
 
   /** Releases with their basis (ADR-0084): the releases, then the tasks and decisions they name,
@@ -5536,7 +5533,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       claims: async (ids) => ids.length ? rowsOf<{ work_id: string; agent: string | null; owner_session: string; claimed_at: string; released_at: string | null }>(await store.selectIn('work_claims', 'work_id,agent,owner_session,claimed_at,released_at', 'work_id', [...ids]), 'the claims').filter((c) => c.released_at === null) : [],
       goals: async (ids) => ids.length ? rowsOf(await store.selectIn('goals', 'id,title', 'id', [...ids]), 'the goals') : [],
       openTasks: async () => must(await store.select('project_tasks', 'project_id,status').in('status', ['backlog', 'running', 'review']).limit(OPEN_READ), 'the open tasks'),
-      waiting: async () => { const r = await waitingReader.read(); if (!r.ok) throw new Error(`the requests: ${String((r as { error?: unknown }).error ?? 'unread')}`); return r }
+      waiting: async () => { const r = await commsDoors.waiting(); if (!r.ok) throw new Error(`the requests: ${String((r as { error?: unknown }).error ?? 'unread')}`); return r }
     }
   })
   ceoBoardReads = voiceBoard

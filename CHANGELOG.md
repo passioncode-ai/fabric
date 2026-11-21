@@ -9,6 +9,13 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
+- **«Переписка» answers from one place** (ADR-0195 wave W2c.2b, the third group; board task `8b86adf3`). The thirteen
+  doors behind Comms (the threads and their pages, the messages, the responders, the read marks, a request's
+  timeline, related threads, search, what waits for each project and for the person, one project's requests and an
+  artifact's link) moved out of the window's main file into `main/commsDoors.ts`, and the same functions are named
+  for the board's operator door. The window still calls them in its own process, so no screen and no agent sees a
+  change; the remaining door groups follow
+  ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
 - **The work screens answer from one place** (ADR-0195 wave W2c.2b, the second group; board task `8b86adf3`). The
   twelve doors behind the home, the board, an agent's page and a project's work (the readings, the launch check, a
   decision on two overlapping sessions, «Написать агенту» and the release of a claim) moved out of the window's main

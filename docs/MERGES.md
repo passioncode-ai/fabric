@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `—` · refactor/board-comms-doors → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/main/commsDoors.ts` (new), `apps/desktop/test/comms-doors.test.mjs` (new), `apps/desktop/src/main/index.ts` (region `comms-screen` and the voice's board reads call `createCommsDoors`), `apps/desktop/package.json` (the test in `test`), the plan's W2c.2b row, CHANGELOG `Unreleased`, the map
+- conflicts: none
+- summary: ADR-0195 W2c.2b, the third group: the window's thirteen Comms doors are functions the operator door can serve; the answers are unchanged and the board's entry does not serve them yet
+
 ### 2026-11-21 · `—` · refactor/board-work-doors → main · fast-forward after `ci.sh fast`
 - files: `apps/desktop/src/main/workDoors.ts` (new), `apps/desktop/test/work-doors.test.mjs` (new), `apps/desktop/src/main/index.ts` (region `work-ipc` calls `createWorkDoors`), `apps/desktop/package.json` (the test in `test`), the plan's W2c.2b row, CHANGELOG `Unreleased`, the map
 - conflicts: none
