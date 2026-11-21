@@ -193,6 +193,30 @@ test('remote placement: an https origin with lifecycle none is valid; an IP lite
   assert.deepEqual(validateProviderEntry(provider('ok-provider')), [])
 })
 
+// 2026-11-20 (the Inbox session's finding, operations log: «manifest-invalid unknown field runner» and «missing origin»,
+// 13 times): descriptors valid by the contract (fabric-agent-contract schemas/service-descriptor.schema.json) were refused,
+// so Inbox and a remote research service were absent from the registry and agents could not reach them.
+test('the contract\'s descriptors are taken: runner, peer and channels; an app a person runs has no origin; every supervisor', () => {
+  const server = { ...service('fabric-inbox', 'default', 47601), runner: { credentialKind: 'api-key' }, channels: { mail: true } }
+  assert.deepEqual(validateServiceDescriptor(server), [])
+  const app = service('fabric-inbox', 'desktop', 47602, { lifecycle: { manager: 'person', app: '/Applications/Fabric Inbox.app' }, installedBy: { by: 'person', role: 'operator', tool: 'Fabric Inbox 0.4.0' } })
+  delete app.origin
+  assert.deepEqual(validateServiceDescriptor(app), [])
+  const peer = service('online', 'cloud', 47602, { placement: 'remote', origin: 'https://online.example.com', peer: { offered: true }, runner: { credentialKind: 'api-key' } })
+  delete peer.paths
+  assert.deepEqual(validateServiceDescriptor(peer), [])
+  for (const lifecycle of [{ manager: 'node' }, { manager: 'systemd', unit: 'example-agent.service' }, { manager: 'task-scheduler', task: '\\PassionCode\\example' }])
+    assert.deepEqual(validateServiceDescriptor(service('sup', 'default', 47602, { lifecycle })), [], lifecycle.manager)
+  // Still refused: no origin for a service that is not an app a person runs, a launchd plist beside another supervisor,
+  // an app path for anything but a person's app, and a field the contract does not have.
+  const noOrigin = service('x', 'default', 47601)
+  delete noOrigin.origin
+  assert.deepEqual(validateServiceDescriptor(noOrigin), ['missing origin'])
+  assert.notDeepEqual(validateServiceDescriptor(service('x', 'default', 47602, { lifecycle: { manager: 'node', plist: '/x.plist' } })), [])
+  assert.notDeepEqual(validateServiceDescriptor(service('x', 'default', 47602, { lifecycle: { manager: 'none', app: '/Applications/X.app' } })), [])
+  assert.notDeepEqual(validateServiceDescriptor({ ...service('x', 'default', 47601), surprise: 1 }), [])
+})
+
 test('the poll refreshes even with no listener — the app watches without a callback', async () => {
   const h = home()
   const reg = new AgentRegistry({ servicesDir: path.join(h.root, 'absent'), providersDir: h.providers, pollMs: 2000 })
