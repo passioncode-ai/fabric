@@ -141,6 +141,10 @@ test('findings 2, 3, 6, 7, 8: the voice is told to delegate, never a shell for w
   assert.match(ASK_CEO_TOOL.description, /ceo_reply/)
 })
 
+test('the owner\'s rule on «Продолжение следует» reaches the voice too (2026-11-20)', () => {
+  for (const locale of ['ru', 'en']) assert.ok(voiceInstructions(locale).includes('«Продолжение следует»'), `${locale} voice names the phrase`)
+})
+
 // ── finding 4: names heard by voice ──────────────────────────────────────────
 
 test('finding 4: a name heard by voice is found by sound, Cyrillic or Latin, a spelt acronym, and an alias', async () => {
