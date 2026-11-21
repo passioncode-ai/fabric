@@ -13,7 +13,13 @@ merged onto `v0.3.27`: `fix/memory-source-kinds` (Memory shows only Fabric's own
 (where «Нужны вы» goes in Telegram is chosen in Settings, Fabric names no organization of its own, the built app is
 checked for anything of one machine), `feat/dock-icon-face` (the Dock icon is the CEO's face; the update installer stays
 0.3.27's), `refactor/board-operator-door` (a module nothing starts yet). The last commit fixes what the merges broke.
-The changed code: `git diff v0.3.27 <candidate> -- apps scripts`. No schema step: a database at 103 needs nothing.
+Since iteration 2 it also carries what `main` took after the tag, the queue's order (`8cbf93ff`, ADR-0208, migration
+131, schema 104: a database at 103 is refused until the runbook's manual step), iteration 1's fixes (the release ledger
+`docs/evidence/plans/2026-11-21-release-0328-verification.md`), and, once their author hands them over,
+`feat/approval-modes` and `feat/ceo-access` (ADR-0203, the CEO's account choice). The changed code:
+`git diff v0.3.27 <candidate> -- apps scripts supabase`. Iteration 1's findings and their dispositions are in the ledger;
+a reviewer of iteration 2 or 3 reads them first and does not report a finding already ruled there unless it is still
+true on the new candidate.
 
 **Rules.** Do not write in the checkout: record `git rev-parse HEAD` and `git status --short | wc -l` before and after
 and put both in the report's header line. You may run single test files (`node --experimental-strip-types --test
@@ -51,3 +57,8 @@ dash.
   Memory's node selection, `board-door.json` and its token (0600), nothing private in the bundle or the tracked tree.
 - `plan` (PL-): the train against the owner's order and the system plan's SD-FAB-01; what was left out and why; the
   merges' conflict choices (`docs/MERGES.md`, `RELEASE-0328-TRAIN`); the gate and release receipts this release needs.
+
+**Since iteration 2, each level also reads:** the queue's order (ux: «Очередь» on the Board, drag, «Выше», «Ниже», an
+agent's proposed place; errors and data: migration 131, `task.ranked@1`, `task.rank.proposed@1`, `task.rank.declined@1`,
+the projector's rank, `fabric_work_list`'s order; docs: ADR-0208, its spec, SCN-173, the runbook's schema-104 step), and
+the approval modes and the CEO's account choice once merged (ADR-0203, `approvalMode.ts`, the behaviour journal).
