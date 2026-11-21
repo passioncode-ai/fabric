@@ -96,7 +96,17 @@ priorities. At the pause: `33aec0f4` committed and pushed; `ci.sh fast` on it an
 reviewers on the review worktree) were already running and are left to finish as observation; their output lands in
 `~/.cache/fabric-88/ci-33aec0f4.log` and the reviewers' reports, not in the repository. Nothing is released; no tag.
 
-**Next task, only on the CEO's signal with the reconciler's decision.** If 0.3.27 goes ahead: read `ci.sh fast` on
+**What run ten found before the pause took hold (observed, not acted on).** The ux, docs and plan reviewers each found
+one blocking finding, the same one (UX-81, DO-85, PL-66): the merged CEO wake keeps the person's stop of the CEO only in
+memory (`main/ceoAgent.ts`, `held`), so after any restart of Fabric, the 0.3.27 update's own included, a queued
+`ceo.task` request starts a CEO the owner stopped; the fix is to keep the stop in the CEO folder's `ceo.json` and test a
+restart, in a new candidate read by run eleven. The plan reviewer also found that `origin/main` moved to `608f5416`
+(ADR-0205, 03:17) after the candidate, so a fast-forward landing is no longer possible (PL-67). The errors and data
+reports were still running. The reports are kept outside the repository in `~/.cache/fabric-88/r10/` until they are
+stored with the run.
+
+**Next task, only on the CEO's signal with the reconciler's decision.** If 0.3.27 goes ahead: fix UX-81 (above) and decide on `608f5416` (take it into the candidate, as «Выпустить с main»
+says); read `ci.sh fast` on
 `33aec0f4` (it must reach its last step, with the browser suites and `claude --version`); store run ten's five reports
 and receipts in `docs/evidence/reviews/0.3.27/iteration-3-33aec0f4/`, dispose every finding in a run-ten section of the
 ledger (fix any blocking one and run again); then the release commit (gate `verifiedCommit` and iteration 3 at the
