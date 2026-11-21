@@ -149,11 +149,12 @@ test('the CEO console has every board read the voice has, answering exactly as t
   const board = createVoiceBoard({ reads: reads(), timeZone: 'Europe/Warsaw' })
   const registered = new Map()
   registerCeoBoardTools({ registerTool: (name, meta, fn) => registered.set(name, { meta, fn }) }, board)
-  assert.deepEqual([...registered.keys()].sort(), ['fabric_ceo_board_project'.concat('s'), 'fabric_ceo_board_task', 'fabric_ceo_board_tasks'].sort())
+  assert.deepEqual([...registered.keys()].sort(), Object.values(CEO_BOARD_TOOLS).map((t) => t.mcp).sort())
+  assert.ok(registered.has('fabric_ceo_board_summary'), 'the summary is the console\'s too')
   for (const [name, tool] of Object.entries(CEO_BOARD_TOOLS)) {
     const { meta } = registered.get(tool.mcp)
     assert.ok(meta.description.length > 60 && !/ask the CEO/i.test(meta.description), `${name}: a console description, not the voice's «do not ask the CEO»`)
-    assert.equal(tool.input.safeParse({ bogus: 1, ...(name === 'board_projects' ? {} : { project: 'x', task: 'y' }) }).success, false, `${name} refuses an unknown argument`)
+    assert.equal(tool.input.safeParse({ bogus: 1, ...(name === 'board_projects' || name === 'board_summary' ? {} : { project: 'x', task: 'y' }) }).success, false, `${name} refuses an unknown argument`)
   }
   for (const [name, args] of [['board_projects', { limit: 3 }], ['board_tasks', { project: 'dissy' }], ['board_task', { task: 't-a' }]]) {
     const r = await registered.get(CEO_BOARD_TOOLS[name].mcp).fn(args)
@@ -162,4 +163,27 @@ test('the CEO console has every board read the voice has, answering exactly as t
   const tasks = JSON.parse((await registered.get('fabric_ceo_board_tasks').fn({ project: 'dissy' })).content[0].text)
   assert.equal(tasks.ok, true)
   assert.deepEqual(tasks.waits_for_owner.map((t) => t.id), ['t-a'])
+})
+
+test('the board summary counts open tasks across projects, names the busiest and the requests no one answers', async () => {
+  const open = [['p4', 'running'], ['p4', 'running'], ['p4', 'review'], ['p4', 'backlog'], ['p1', 'backlog'], ['p2', 'review']].map(([project_id, status]) => ({ project_id, status }))
+  const waiting = { requests: 2, oldestRequestAt: '2026-11-21T08:00:00Z', list: [{ from: 'alpha-agent', to: 'dissy', subject: 'store copy', at: '2026-11-21T08:00:00Z' }, { from: null, to: 'beta-app', subject: null, at: '2026-11-21T09:00:00Z' }] }
+  const board = createVoiceBoard({ reads: { ...reads(), openTasks: async () => open, waiting: async () => waiting }, timeZone: 'Europe/Warsaw' })
+  const r = await board.run('board_summary', {})
+  assert.equal(r.ok, true)
+  assert.deepEqual(r.tasks, { running: 2, review: 2, backlog: 2 })
+  assert.equal(r.projects_with_work, 3)
+  assert.deepEqual(r.busiest[0], { project: 'dissy', running: 2, review: 1, backlog: 1 }, 'running and review first')
+  assert.equal(r.requests_unanswered, 2)
+  assert.equal(r.oldest_since, '2026-11-21 09:00', 'in the owner\'s time zone')
+  assert.equal(r.requests[0].to, 'dissy')
+  // A requests read that fails leaves the counts and says the requests unread, never zero.
+  const half = await createVoiceBoard({ reads: { ...reads(), openTasks: async () => open, waiting: async () => { throw new Error('board down') } } }).run('board_summary', {})
+  assert.equal(half.ok, true)
+  assert.equal(half.requests_unanswered, undefined)
+  assert.match(half.requests_unread, /board down/)
+  // The open tasks unread: said as unread, never an empty board.
+  const none = await createVoiceBoard({ reads: { ...reads(), openTasks: async () => { throw new Error('refused') } } }).run('board_summary', {})
+  assert.equal(none.ok, false)
+  assert.match(none.reason, /could not be read/)
 })

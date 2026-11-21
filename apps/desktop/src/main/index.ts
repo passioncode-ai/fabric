@@ -55,7 +55,7 @@ import { knowledgeVoiceTools, VOICE_REFUSED_OPERATIONS, type KnowledgeOperations
 import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
 import { createVoiceJournal } from './ceoVoiceJournal.ts'
 import { createVoiceTools, VOICE_TOOLS } from './ceoVoiceTools.ts'
-import { createVoiceBoard, VOICE_BOARD_TOOLS, TASKS_READ, type BoardTask, type CeoBoardOperations } from './voiceBoard.ts'
+import { createVoiceBoard, VOICE_BOARD_TOOLS, TASKS_READ, type BoardTask, type CeoBoardOperations, OPEN_READ } from './voiceBoard.ts'
 import { createAliasStore } from './ceoProjectAliases.ts'
 import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
@@ -5655,7 +5655,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       linksFrom: async (ids) => ids.length ? rowsOf(await store.selectIn('task_links', 'task_id,rel,target_kind,target_id', 'task_id', [...ids]), 'the links') : [],
       linksTo: async (id) => must(await store.select('task_links', 'task_id,rel,target_kind,target_id').eq('target_id', id).limit(200), 'the links'),
       claims: async (ids) => ids.length ? rowsOf<{ work_id: string; agent: string | null; owner_session: string; claimed_at: string; released_at: string | null }>(await store.selectIn('work_claims', 'work_id,agent,owner_session,claimed_at,released_at', 'work_id', [...ids]), 'the claims').filter((c) => c.released_at === null) : [],
-      goals: async (ids) => ids.length ? rowsOf(await store.selectIn('goals', 'id,title', 'id', [...ids]), 'the goals') : []
+      goals: async (ids) => ids.length ? rowsOf(await store.selectIn('goals', 'id,title', 'id', [...ids]), 'the goals') : [],
+      openTasks: async () => must(await store.select('project_tasks', 'project_id,status').in('status', ['backlog', 'running', 'review']).limit(OPEN_READ), 'the open tasks'),
+      waiting: async () => { const r = await waitingReader.read(); if (!r.ok) throw new Error(`the requests: ${String((r as { error?: unknown }).error ?? 'unread')}`); return r }
     }
   })
   ceoBoardReads = voiceBoard
