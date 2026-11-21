@@ -50,6 +50,7 @@ import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoBoardKeeper, KEEP_MS as CEO_KEEP_MS } from './ceoBoardKeeper.ts'
 import { createConsoleHandoff } from './consoleHandoff.ts'
+import { createQuestionSignal, sendNotice } from './questionSignal.ts'
 import { createRemoteQuestions } from './boardDispatchWiring.ts'
 import { promptKey } from '../shared/consolePrompt.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
@@ -5648,7 +5649,56 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   }, 60_000)
   consoleHandoffTick.unref?.()
   // #endregion console-handoff-wiring
-  quit.onQuit(() => { clearInterval(ceoBoardTick); clearInterval(ceoSlotTick); clearInterval(consoleHandoffTick) })
+  // #region question-signal-wiring — docs: docs/evidence/specs/2026-11-21-ceo-triages-questions.md#3-design
+  // ADR-0207 R3: once a minute, an open question of «Нужны вы» not signalled yet reaches the owner in his personal
+  // communicator, on the operator's own machine and the board this Fabric owns only. The key (allowed `question` only) and
+  // the gateway's address are read from the vault for one pass; what was sent is kept in userData so a restart sends
+  // nothing twice (the communicator also keys each notice by its eventId).
+  const signalledFile = path.join(app.getPath('userData'), 'questions-signalled.json')
+  const signalled = new Set<string>()
+  const signalFirstRun = !existsSync(signalledFile)
+  try { if (existsSync(signalledFile)) for (const id of JSON.parse(readFileSync(signalledFile, 'utf8')) as unknown[]) if (typeof id === 'string') signalled.add(id) }
+  catch (e) { ops.failed('question.signal-file', e, { note: 'read as empty: a notice already sent is not sent twice, the communicator keys it by its eventId' }) }
+  const questionSignal = createQuestionSignal({
+    open: async () => {
+      const r = await store.select('questions', 'id,project_id,text,why_blocked,options,asked_at,revision').eq('status', 'open').order('asked_at', { ascending: false }).limit(200)
+      if (r.error) throw new Error(`the questions could not be read: ${r.error.message}`)
+      const rows = (r.data ?? []) as Array<{ id: string; project_id: string; text: string; why_blocked: string | null; options: unknown; asked_at: string; revision: number | null }>
+      const names = new Map<string, string | null>()
+      for (const id of new Set(rows.map((q) => q.project_id))) names.set(id, await projectNameOf(id))
+      return rows.map((q) => ({
+        id: q.id, text: q.text, whyBlocked: q.why_blocked, project: names.get(q.project_id) ?? null, askedAt: Date.parse(q.asked_at), revision: q.revision ?? 1,
+        options: (Array.isArray(q.options) ? q.options : []).filter((o): o is { id: string; label: string; recommended?: boolean } => !!o && typeof (o as { id?: unknown }).id === 'string' && typeof (o as { label?: unknown }).label === 'string')
+      }))
+    },
+    key: async () => {
+      const slot = (name: string) => ({ project: 'fabric', env: 'prod' as const, name })
+      const [key, url] = await Promise.all([ceoVault.read(slot('COMMUNICATOR_QUESTION_KEY')), ceoVault.read(slot('COMMUNICATOR_URL'))])
+      if (!key.ok) return { reason: `the question key could not be read: ${key.reason}` }
+      if (!url.ok) return { reason: `the communicator's address could not be read: ${url.reason}` }
+      return { key: key.value, url: url.value }
+    },
+    notify: (access, notice) => sendNotice(access, notice),
+    sent: {
+      has: (id) => signalled.has(id),
+      add: (id) => {
+        signalled.add(id)
+        // The newest 2000 are kept; an older question is out of the signal's window anyway.
+        const keep = [...signalled].slice(-2000)
+        try { writeFileSync(`${signalledFile}.tmp`, JSON.stringify(keep), { mode: 0o600 }); renameSync(`${signalledFile}.tmp`, signalledFile) }
+        catch (e) { ops.failed('question.signal-file', e, { note: 'kept in memory for this run; the communicator keys each notice by its eventId' }) }
+      }
+    },
+    firstRun: signalFirstRun,
+    record: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  const questionSignalTick = setInterval(() => {
+    if (quit.quitting || readSettings().machineTrust !== 'mine' || !ownsStack()) return
+    questionSignal.tick().catch((e: unknown) => ops.failed('question.signal', e, { note: 'the open questions are read again at the next minute' }))
+  }, 60_000)
+  questionSignalTick.unref?.()
+  // #endregion question-signal-wiring
+  quit.onQuit(() => { clearInterval(ceoBoardTick); clearInterval(ceoSlotTick); clearInterval(consoleHandoffTick); clearInterval(questionSignalTick) })
   handle(IPC.ceoAgentStatus, (): Returns<FabricApi['ceoAgent']['status']> => agent.status())
   handle(IPC.ceoAgentEnsure, (): Promise<Returns<FabricApi['ceoAgent']['ensure']>> => agent.ensure())
   handle(IPC.ceoAgentSend, (_e, text: unknown, attachments: unknown): Promise<Returns<FabricApi['ceoAgent']['send']>> =>
