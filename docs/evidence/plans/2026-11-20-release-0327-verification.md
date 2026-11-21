@@ -9,8 +9,11 @@ read-only; findings are disposed here and in the receipts under `docs/evidence/r
 retro ([the retro](../../reports/2026-11-20-voice-ceo-retro/README.md), [its fixes](../../reports/2026-11-20-voice-ceo-retro/fixes.md),
 branch `feat/voice-retro`, session 9cda1c0f, which runs this release by agreement with 8343a070). Since run eight it
 also carries, each by its own source recorded in run eight's section: what `main` took meanwhile, by the owner's answer
-of 2026-11-21 to the release's question about `main` moving («Выпустить с main»); the voice reading the board, by his
-exception of 2026-11-21 at about 02:10; and the home session's blockers, by its agreement with this session.
+of 2026-11-21 to the release's question about `main` moving (Fabric question `237cdddb`, «Выпустить с main»), which
+also took `608f5416` (ADR-0205) at run ten; the voice reading the board, by his
+exception of 2026-11-21 at about 02:10; and the home session's blockers, by its agreement with this session, with the
+owner's two of about 02:40 (Russian copied between consoles, the CEO's board slot) that the home session relayed to
+this session and that the agreement takes (run ten).
 
 ## Protocol
 
@@ -505,7 +508,7 @@ Candidate `777e96f49c90770f25c21803d46b34c6074ff922`. Reports and receipts in
 [`docs/evidence/reviews/0.3.27/iteration-3-777e96f4/`](../reviews/0.3.27/iteration-3-777e96f4/) (kept as the record).
 
 **What the candidate carries, and by whose word.** (1) The owner's answer to run seven's PL-49, given in Fabric on
-2026-11-21 to the release's question about `main` moving: «Выпустить с main»; merged as `5f4dc15b` (MERGES
+2026-11-21 to the release's question about `main` moving (Fabric question `237cdddb`): «Выпустить с main»; merged as `5f4dc15b` (MERGES
 `RELEASE-0327-MAIN`). (2) The owner's exception to his pause, said in the CEO window on 2026-11-21 at about 02:10 and
 relayed by the CEO with its brief (`userData/ceo/inbox/2026-11-21-voice-direct-board-access-brief.md` on the owner's
 Mac): the voice reads the board itself, and «директор», «шеф», «босс», «менеджер», «главный», «SEO» mean the CEO;
@@ -647,4 +650,68 @@ installer's predicate by its unit test; its wait loop is not run end to end here
 | V3R9-PL-65 | PL-65 | non-blocking | fixed: V3R8-PL-58 disposes F2, F3 and F9, and CO-620 (5) names F7 and F8 |
 
 Exit for run nine: every finding disposed above; superseded by run ten.
+
+### Run ten, 33aec0f4 (superseded)
+
+Candidate `33aec0f496592d6b8d5a44c3f008ae031b310d9e`. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-33aec0f4/`](../reviews/0.3.27/iteration-3-33aec0f4/) (kept as the record).
+It merged `fix/paste-and-ceo-slot` (`e0b2c55c`): the owner's two blockers of about 02:40 on 2026-11-21, relayed by the
+home's session (8343a070) to this session in Claude Code's messages between sessions and taken into 0.3.27 under the
+same agreement as its other blockers. The review ran into the owner's pause of about 03:30 (the reconciler, session
+25879d0f); it was finished as observation, and the release went on when the CEO relayed the reconciler's step 2 (A-3):
+release 0.3.27 from the candidate, the CEO's stop surviving a restart being the blocker before the tag.
+
+**Gate.** `bash scripts/ci.sh fast` on `0d7eefb2` (run nine's candidate plus comments) stopped on a test that read the
+merge's conflict markers in the working tree, the merge having begun while it ran; on `33aec0f4` it reached the browser
+suites and failed one of 26: `screens-stand.browser.mjs`, «console ru 1100: a control of the bar is cut» (the console
+line's folder press cut by its ellipsis, and a hidden press counted as cut). Fixed in the next candidate: the folder
+never shrinks, who started the console and the branch give way, and the check skips a press the narrow window hides; the
+stand passes 1616 checks, and a planted shrinking folder fails it. Its outcome on the next candidate is in run eleven's
+section.
+
+33 findings, 5 blocking: UX-81, ER-87, DO-85, DA-62, PL-66, one defect seen by all five: the person's stop of the CEO
+lived in memory only, so after a restart of Fabric a waiting `ceo.task` request started a CEO the owner had stopped.
+Fixed in the next candidate with tests watched red (the stop is kept in `ceo.json`, the wake reads it, a failed CEO is
+not woken). Not run end to end here: the slot on a real board past 60 s, a `ceo.ask` from the owner's Telegram bridge,
+a wake on a real queued request, and Russian pasted between two consoles under launchd; the bridge check is CO-620 (11),
+the rest is checked on the installed build after the tag. `origin/main`'s `608f5416` (ADR-0205) is merged into the
+next candidate (`12ab551f`, PL-67).
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3R10-UX-81 | UX-81 | blocking | fixed: the person's stop is kept in the CEO folder's `ceo.json` and the board's wake reads it (`CeoAgent#heldByPerson`, `ceoBoardKeeper.ts#wake`), so a restart does not start a CEO the person stopped; the person's own start clears it (tests «run ten: the person's stop outlives a restart…» on the real agent, watched red with the stop kept in memory only, and «run ten: a CEO the person stopped…» in the keeper) |
+| V3R10-UX-82 | UX-82 | non-blocking | fixed in part: a wake is logged by the state the start reached and a held or failed CEO is not «woken»; telling the owner of a wake is ruled: CO-620 (11) |
+| V3R10-UX-83 | UX-83 | non-blocking | fixed: the installer's messages and `release-mac.md` say to turn «Служба доски» on again after the update |
+| V3R10-UX-84 | UX-84 | non-blocking | fixed: `session_resume`'s description says when a task starts a new conversation and that the answer says what to do otherwise |
+| V3R10-UX-85 | UX-85 | non-blocking | fixed: the voice's operation list is filtered when it is an array too (`index.ts`) |
+| V3R10-UX-86 | UX-86 | non-blocking | fixed: the English rule says «in any case» once (`ceoAddress.ts#ceoAddressRule`) |
+| V3R10-ER-87 | ER-87 | blocking | fixed: as UX-81 |
+| V3R10-ER-88 | ER-88 | non-blocking | fixed: as UX-82 |
+| V3R10-ER-89 | ER-89 | non-blocking | ruled: CO-620 (11) |
+| V3R10-ER-90 | ER-90 | non-blocking | ruled: CO-620 (11) |
+| V3R10-ER-91 | ER-91 | non-blocking | ruled: CO-620 (11); ADR-0197 Amendment 5 §1 now states the receipts and the rotation by count |
+| V3R10-ER-92 | ER-92 | non-blocking | ruled: CO-620 (12) |
+| V3R10-DO-85 | DO-85 | blocking | fixed: as UX-81; the CHANGELOG, ADR-0197 Amendment 5 §2 and AGENTS.md say the stop holds across a restart and a failed CEO waits for the person |
+| V3R10-DO-86 | DO-86 | non-blocking | fixed: the wake no longer starts a failed CEO, and the CEO console row names the board request under «Started by» |
+| V3R10-DO-87 | DO-87 | non-blocking | ruled: CO-620 (11) |
+| V3R10-DO-88 | DO-88 | non-blocking | fixed: as UX-82 |
+| V3R10-DO-89 | DO-89 | non-blocking | ruled: CO-620 (11) |
+| V3R10-DO-90 | DO-90 | non-blocking | ruled: CO-620 (12) |
+| V3R10-DO-91 | DO-91 | non-blocking | fixed: as UX-83 |
+| V3R10-DO-92 | DO-92 | non-blocking | fixed: the CHANGELOG's opening and the ledger's opening name the owner's two blockers of about 02:40, the HANDOFF's next task is current, MERGES names `e0b2c55c`, CO-620 is retitled for runs eight to ten |
+| V3R10-DO-93 | DO-93 | non-blocking | fixed: the CHANGELOG and SCN-191 state the two exceptions (a project's own name, a word inside a phrase in the CEO's console) |
+| V3R10-DA-62 | DA-62 | blocking | fixed: as UX-81; a failed CEO is not woken |
+| V3R10-DA-63 | DA-63 | non-blocking | ruled: CO-620 (11); AGENTS.md and ADR-0197 now name the receipts |
+| V3R10-DA-64 | DA-64 | non-blocking | fixed: a transcript's saved state keeps `cwd` and `branch` as read, and `xai-key` matches letters and digits only, 40 or more (test «run ten: a hyphenated xai- folder keeps its project…»; the redact test keeps a hyphenated folder and anchor) |
+| V3R10-DA-65 | DA-65 | non-blocking | fixed: `supabase-secret` (`sb_secret_…`) is redacted (`redact.ts`; its test) |
+| V3R10-DA-66 | DA-66 | non-blocking | ruled: CO-620 (11) |
+| V3R10-PL-66 | PL-66 | blocking | fixed: as UX-81 |
+| V3R10-PL-67 | PL-67 | non-blocking | fixed: `origin/main` (`608f5416`, ADR-0205) is merged into the candidate (`12ab551f`) by the owner's «Выпустить с main» |
+| V3R10-PL-68 | PL-68 | non-blocking | fixed: as DO-92; the agreement takes the owner's two blockers the home session relayed |
+| V3R10-PL-69 | PL-69 | non-blocking | fixed: the ledger names question `237cdddb` |
+| V3R10-PL-70 | PL-70 | non-blocking | fixed: the HANDOFF's next task includes the `communicator_notify` naming Inbox's access and the CEO's board slot and wake |
+| V3R10-PL-71 | PL-71 | non-blocking | fixed: CO-620 says runs eight to ten |
+| V3R10-PL-72 | PL-72 | non-blocking | fixed: run ten's section lists what was not run end to end |
+
+Exit for run ten: every finding disposed above; superseded by run eleven.
 

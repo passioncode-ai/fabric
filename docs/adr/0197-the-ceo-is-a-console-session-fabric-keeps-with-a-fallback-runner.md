@@ -219,12 +219,16 @@ request's `com.renew` or another `com.enroll` lengthens it. §6 left both to the
    own project's answering granted first as at its own `com.enroll` (ADR-0190), a fresh idempotency key under the epoch
    `com.status` names. The same session holding the slot only renews its lease (no event); a slot another live session
    holds is left to it. When the console ends nothing renews it and it goes stale a minute later, as any responder's.
-   About 2 900 keys a day on the CEO's project, well under an epoch's 100 000; the board's tick compacts the receipts.
+   About 2 900 keys a day on the CEO's project; each `com.enroll` stores a receipt kept 30 days, so the CEO's epoch
+   reaches the 90 % rotation share in about a month and rotates by count rather than by age (the 0.3.27 review, run ten,
+   DA-63); a keyless renewal is carried in CO-620.
 2. **A waiting request wakes the console.** Once a minute Fabric reads the CEO project's requests whether or not its
    console runs (the project known from its folder's meta before the first start, `main/ceoAgent.ts#knownProjectId`). A
    `ceo.task` request still queued while the console does not run starts it (`ceoBoardKeeper.ts#wake`, `ensure`), at
-   most once per five minutes; the nudge of §6 then types it. A console the person stopped stays stopped: `ensure`
-   starts nothing while the CEO is held.
+   most once per five minutes; the nudge of §6 then types it. A console the person stopped stays stopped, across a
+   restart of Fabric too: the person's stop is kept in the CEO folder's `ceo.json` and cleared only by the person's own
+   start (the 0.3.27 review, run ten, UX-81); a CEO that failed waits for the person's retry, and the wake is logged by
+   what the start reached.
 3. **Logged when it changes.** `ceo.board-slot` (kept, held-by-other, refused, unavailable) once per change, and
    `ceo.board-wake` at each wake.
 

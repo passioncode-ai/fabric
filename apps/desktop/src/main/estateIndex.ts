@@ -85,7 +85,11 @@ function cosine(a: Float32Array, b: Float32Array): number {
 function redactState(state: string): string {
   let parsed: unknown
   try { parsed = JSON.parse(state) } catch { /* not JSON: redacted as text */ return redact(state).text }
-  return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? JSON.stringify(redactPayload(parsed as Record<string, unknown>).payload) : redact(state).text
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return redact(state).text
+  // The folder and the branch are kept as read: they name where the session ran and never hold a secret the index needs
+  // to hide, while a rule that matched a folder's name would cut the session from its project (run ten, DA-64).
+  const { cwd, branch, ...rest } = parsed as Record<string, unknown>
+  return JSON.stringify({ ...redactPayload(rest).payload, ...(cwd !== undefined ? { cwd } : {}), ...(branch !== undefined ? { branch } : {}) })
 }
 
 function bigRowids(st: StatementSync): StatementSync { st.setReadBigInts(true); return st }

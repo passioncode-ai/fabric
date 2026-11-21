@@ -257,7 +257,8 @@ node scripts/install-mac-update.mjs --tidy                                      
 3. With `--wait` (`--schedule` runs the same from a one-shot launch agent that outlives the terminal) it waits until
    Fabric has ended. With «Служба доски» off, a Quit ends it. With «Служба доски» on (the default on macOS) Fabric
    keeps running through a Quit, «Перезапустить Fabric» starts it again at once, and launchd starts it again at login,
-   so a logout or a restart of the Mac does not apply the update either: turn «Служба доски» off in Settings, then Quit.
+   so a logout or a restart of the Mac does not apply the update either: turn «Служба доски» off in Settings, then Quit,
+   and turn it on again once the new Fabric has started.
    An end counts only when Fabric is still gone 2 s later (0.3.27 review ER-70, ER-82). Fabric is found by its
    executable as well as by its command line, since the copy launchd starts runs as `Fabric --background` (DO-75). It
    stops nothing.

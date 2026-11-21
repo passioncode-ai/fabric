@@ -13,7 +13,7 @@ function rig(over = {}) {
   const deps = {
     state: () => 'running', sessionId: () => 's1', projectId: () => P,
     keepSlot: async (id, cap) => { calls.keep.push([id, cap]); return 'kept' },
-    ensure: async () => { calls.ensure++ },
+    ensure: async () => { calls.ensure++; return { state: 'running' } },
     record: (op, outcome, detail) => calls.records.push({ op, outcome, detail }),
     now: () => t,
     ...over
@@ -66,4 +66,21 @@ test('nothing wakes it without a waiting request for its own project and capabil
 
 test('waitingForCeo takes queued and never-moved requests only', () => {
   assert.deepEqual(waitingForCeo([req(), req({ requestId: 'r2', state: null }), req({ requestId: 'r3', state: 'answered' })], P).map((r) => r.requestId), ['r1', 'r2'])
+})
+
+// 0.3.27 review run ten (UX-81, ER-87, DA-62, UX-82, ER-88): the person's stop holds across a restart, a failed CEO
+// waits for the person's retry, and a wake is logged by what the start reached.
+test('run ten: a CEO the person stopped, in this run or an earlier one, is not woken; nor a failed one', async () => {
+  const held = rig({ state: () => 'idle', heldByPerson: () => true })
+  assert.equal(await held.keeper.wake([req()]), 'held')
+  assert.equal(held.calls.ensure, 0)
+  assert.equal(held.calls.records.filter((r) => r.op === 'ceo.board-wake').length, 0)
+  const stopped = rig({ state: () => 'stopped' })
+  assert.equal(await stopped.keeper.wake([req()]), 'held')
+  const failed = rig({ state: () => 'failed' })
+  assert.equal(await failed.keeper.wake([req()]), 'failed')
+  assert.equal(failed.calls.ensure, 0)
+  const nothing = rig({ state: () => 'idle', ensure: async () => ({ state: 'failed' }) })
+  assert.equal(await nothing.keeper.wake([req()]), 'failed')
+  assert.deepEqual(nothing.calls.records.map((r) => [r.op, r.outcome, r.detail.reached]), [['ceo.board-wake', 'failed', 'failed']])
 })

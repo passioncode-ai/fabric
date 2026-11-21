@@ -9,7 +9,12 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - conflicts: none
 - summary: the owner's order of 2026-11-21 (board request `a76373fa`): strategy is the person's and always asked, tactics the agent decides, what the agent can find it never asks, and a question goes only where the person knows better; told to every session at `fabric_whoami`, and a spec is gathered by it (amends ADR-0176 Decision 1)
 
-### 2026-11-21 · `PASTE-AND-CEO-SLOT` · fix/paste-and-ceo-slot → feat/voice-retro (the 0.3.27 candidate) · merge, before review run ten
+### 2026-11-21 · `RELEASE-0327-MAIN-2` · main → feat/voice-retro (the 0.3.27 candidate) · merge `12ab551f`
+- files: `608f5416` (ADR-0205, decisions split by level, `protocolObligations.ts`); conflicts in CHANGELOG (its bullet into `## 0.3.27`), the ADR index, MERGES, the map and generated projections (rebuilt)
+- conflicts: none in code
+- summary: the owner's «Выпустить с main» again, after the pause was lifted for the release (the reconciler's A-3)
+
+### 2026-11-21 · `PASTE-AND-CEO-SLOT` · fix/paste-and-ceo-slot → feat/voice-retro (the 0.3.27 candidate) · merge `e0b2c55c`, before review run ten
 - files: `apps/desktop/src/main/sessionEnv.ts`, `agentSurface.ts` (`keepResponderSlot`), `ceoBoardKeeper.ts` (new), `ceoAgent.ts` (`knownProjectId`), `index.ts` (the CEO board timers), tests `session-env`, `ceo-board-keeper`, `keep-responder-slot`, ADR-0197 Amendment 5, AGENTS.md lifecycle row, CHANGELOG, the map
 - conflicts: none
 - summary: the owner's two blockers of 2026-11-21: a console with no locale gets `LC_CTYPE=en_US.UTF-8`, so Russian copied in it is not Mac Roman; Fabric holds the CEO's `ceo.task` slot while its console runs and a waiting `ceo.task` request wakes it

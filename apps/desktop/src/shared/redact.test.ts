@@ -382,6 +382,7 @@ describe('iteration 3: one value test for the quoted credential fields', () => {
     const k = (n: number): string => 'Q7'.repeat(n)
     for (const [line, rule] of [
       [`voice key ${'xai'}-${k(20)}`, 'xai-key'],
+      [`secret ${'sb'}_secret_${k(12)}`, 'supabase-secret'],
       [`pay with ${'sk'}_live_${k(12)}`, 'stripe-key'],
       [`restricted ${'rk'}_test_${k(12)}`, 'stripe-key'],
       [`model token ${'hf'}_${k(18)}`, 'huggingface-token'],
@@ -389,6 +390,6 @@ describe('iteration 3: one value test for the quoted credential fields', () => {
       [`bot 123456789:AA${k(18)}`, 'telegram-bot-token']
     ]) expect(redact(line).text, line).toContain(`[redacted: ${rule}]`)
     // Ordinary words that begin the same way stay.
-    for (const line of ['the xai-voice setting', 'hf_hub is a library', 'at 10:30 we met']) expect(redact(line).text).toBe(line)
+    for (const line of ['the xai-voice setting', 'hf_hub is a library', 'at 10:30 we met', '/w/xai-realtime-voice-retro-fixes', '#xai-realtime-voice-the-ceos-call-adr-0197-decision-5']) expect(redact(line).text).toBe(line)
   })
 })

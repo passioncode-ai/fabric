@@ -101,7 +101,8 @@ try {
         margin: Math.max(Math.abs(host.left - pr.left), Math.abs(pr.right - host.right)),
         lastSeen: !!lr && lr.top >= fit.top - 1 && lr.bottom <= fit.bottom + 1 && lr.bottom <= br.top + 1,
         barInWindow: br.top >= 0 && br.bottom <= innerHeight + 1 && br.top >= host.bottom - 1,
-        barCut: [...bar.querySelectorAll('button')].filter((b) => { const r = b.getBoundingClientRect(); return r.right > br.right + 1 || r.left < br.left - 1 || b.scrollWidth > b.clientWidth + 1 }).map((b) => b.textContent.trim()),
+        // A control the narrow window hides (display none, SCN-188) is not cut; a shown one must be whole.
+        barCut: [...bar.querySelectorAll('button')].filter((b) => b.getClientRects().length > 0).filter((b) => { const r = b.getBoundingClientRect(); return r.right > br.right + 1 || r.left < br.left - 1 || b.scrollWidth > b.clientWidth + 1 }).map((b) => b.textContent.trim()),
         tabs: [...document.querySelectorAll('.fab-console-name')].map((e) => e.textContent),
         ended: !!document.querySelector('.session-new button'),
         wide: document.documentElement.scrollWidth > innerWidth

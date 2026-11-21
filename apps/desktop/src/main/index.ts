@@ -5562,6 +5562,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     projectId: () => agent.knownProjectId(),
     keepSlot: (id, capability) => surface.keepResponderSlot(id, capability),
     ensure: () => agent.ensure(),
+    heldByPerson: () => agent.heldByPerson(),
     record: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
   })
   const ceoBoardTick = setInterval(() => {
@@ -5782,7 +5783,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const answer = await knowledgeOperations.run(tool.slice('knowledge_'.length), args)
       // The list of operations the voice may run leaves out the two it is refused (run nine, UX-78).
       const ops = (answer as { operations?: unknown }).operations
-      return ops && typeof ops === 'object' && !Array.isArray(ops) ? { ...answer, operations: Object.fromEntries(Object.entries(ops as Record<string, unknown>).filter(([k]) => !VOICE_REFUSED_OPERATIONS.has(k))) } : answer
+      if (Array.isArray(ops)) return { ...answer, operations: ops.filter((k) => !VOICE_REFUSED_OPERATIONS.has(String(k))) }
+      return ops && typeof ops === 'object' ? { ...answer, operations: Object.fromEntries(Object.entries(ops as Record<string, unknown>).filter(([k]) => !VOICE_REFUSED_OPERATIONS.has(k))) } : answer
     }
     // The owner, 2026-11-21: the voice reads the board itself, read-only (`voiceBoard.ts`); counted by its own op.
     if (voiceBoard.has(tool)) {

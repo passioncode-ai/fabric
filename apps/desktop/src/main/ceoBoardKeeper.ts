@@ -25,6 +25,8 @@ export interface CeoBoardKeeperDeps {
   projectId(): string | null
   keepSlot(sessionId: string, capability: string): Promise<KeepSlotAnswer>
   ensure(): Promise<unknown>
+  /** The person stopped the CEO, in this run or an earlier one (`CeoAgent#heldByPerson`): the wake starts nothing. */
+  heldByPerson?(): boolean
   record(op: string, outcome: 'ok' | 'failed', detail: Record<string, unknown>): void
   now?: () => number
 }
@@ -60,20 +62,28 @@ export function createCeoBoardKeeper(deps: CeoBoardKeeperDeps) {
     } finally { keeping = false }
   }
 
-  async function wake(requests: readonly CeoBoardRequest[]): Promise<'woken' | 'running' | 'nothing-waits' | 'too-soon' | 'no-project'> {
+  async function wake(requests: readonly CeoBoardRequest[]): Promise<'woken' | 'running' | 'held' | 'failed' | 'nothing-waits' | 'too-soon' | 'no-project'> {
     const projectId = deps.projectId()
     if (!projectId) return 'no-project'
     const state = deps.state()
     if (state === 'running' || state === 'starting') return 'running'
+    // A CEO the person stopped stays stopped, across a restart of Fabric too; a failed one waits for the person's retry
+    // (0.3.27 review run ten, UX-81, ER-87, DA-62). Neither is logged as a wake.
+    if (deps.heldByPerson?.() || state === 'stopped') return 'held'
+    if (state === 'failed') return 'failed'
     const waiting = waitingForCeo(requests, projectId)
     if (!waiting.length) return 'nothing-waits'
     if (lastWake && now() - lastWake < WAKE_GAP_MS) return 'too-soon'
     lastWake = now()
-    deps.record('ceo.board-wake', 'ok', { requests: waiting.length, state })
-    try { await deps.ensure() } catch (e) { // recorded through deps.record (the ops log), never silent
-      deps.record('ceo.board-wake', 'failed', { error_class: e instanceof Error ? e.constructor.name : typeof e })
+    let after: unknown
+    try { after = await deps.ensure() } catch (e) { // recorded through deps.record (the ops log), never silent
+      deps.record('ceo.board-wake', 'failed', { requests: waiting.length, from: state, error_class: e instanceof Error ? e.constructor.name : typeof e })
+      return 'failed'
     }
-    return 'woken'
+    // The outcome the start reached, not the attempt (UX-82, ER-88).
+    const reached = (after as { state?: unknown } | null)?.state
+    deps.record('ceo.board-wake', reached === 'running' || reached === 'starting' ? 'ok' : 'failed', { requests: waiting.length, from: state, reached: typeof reached === 'string' ? reached : null })
+    return reached === 'running' || reached === 'starting' ? 'woken' : 'failed'
   }
 
   return { keep, wake }

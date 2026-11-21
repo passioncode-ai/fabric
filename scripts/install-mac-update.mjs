@@ -77,7 +77,7 @@ if (opts.schedule) {
     const loaded = spawnSync('launchctl', ['bootstrap', `gui/${process.getuid()}`, plist], { encoding: 'utf8' })
     if (loaded.status !== 0) fail(`launchd refused the job: ${loaded.stderr.trim()}`)
   })
-  say(`scheduled: the update applies once Fabric has ended: with «Служба доски» off, a Quit; with it on, as by default, Fabric keeps running through a Quit, a logout and a restart of the Mac (launchd starts it again at login), so turn it off in Settings and Quit; log ${logFile}`)
+  say(`scheduled: the update applies once Fabric has ended: with «Служба доски» off, a Quit; with it on, as by default, Fabric keeps running through a Quit, a logout and a restart of the Mac (launchd starts it again at login), so turn it off in Settings and Quit, and turn it on again after the update; log ${logFile}`)
   process.exit(0)
 }
 const unschedule = () => {
@@ -118,7 +118,7 @@ if (!opts.tidy) {
 
   if (running(opts.target)) {
     if (!opts.wait) { act(`remove ${stage}`, () => rmSync(stage, { recursive: true, force: true })); fail('Fabric is running: quit it first, or pass --wait (or --schedule) to apply the update once it has ended') }
-    say('waiting until Fabric has ended (with «Служба доски» on, turn it off in Settings and Quit); nothing is stopped by this installer')
+    say('waiting until Fabric has ended (with «Служба доски» on, turn it off in Settings and Quit; turn it on again after the update); nothing is stopped by this installer')
     // «Перезапустить Fabric» starts it again about 200 ms after it ends (0.3.27 review ER-70): an end counts only when Fabric
     // is still gone 2 s later, so a restart is waited out rather than met by the swap's own check and dropped.
     if (!opts.dryRun) do { while (running(opts.target)) sleep(500); sleep(2000) } while (running(opts.target))

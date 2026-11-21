@@ -13,14 +13,16 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
 
 By the owner's answer of 2026-11-21 («Выпустить с main», his reply in Fabric to the release's question about `main`
 moving), 0.3.27 also carries what `main` took meanwhile (Memory, the estate index and graph, the CEO's folder-role
-navigation, the update in place); by his exception to the pause of the same night (about 02:10), the voice reading the
-board; and, as agreed with the home's session, its blockers (the registry and Inbox, the outage banner, the CEO window,
-the console line, the dictation tail).
+navigation, the update in place, decisions split by level); by his exception to the pause of the same night (about
+02:10), the voice reading the board; and, as agreed with the home's session, its blockers (the registry and Inbox, the
+outage banner, the CEO window, the console line, the dictation tail, and the owner's two of about 02:40: Russian copied
+between consoles, the CEO's board slot).
 
 - **The CEO's voice reads the board itself.** By voice the owner hears the newest projects with when each was added, a
   project's tasks with status, holder and what waits for him, and a task's goal and graph (what it grew from and into,
   what it blocks and follows), read-only and without the CEO's console or a new session. «шеф», «директор», «босс»,
-  «менеджер», «главный» and «SEO» mean the CEO itself, never a project or the SEO agent, and are recognition hints of
+  «менеджер», «главный» and «SEO» mean the CEO itself, not a project or the SEO agent (a project whose own name is one of
+  them is still that project, and in the CEO's console a word means the CEO only standing alone), and are recognition hints of
   the call (`main/voiceBoard.ts`, `shared/ceoAddress.ts`; SCN-191). The owner's exception to the pause, 2026-11-21.
   During a call the voice also searches the estate index (`knowledge_search`, `knowledge_execute`): its passages from
   sessions, transcripts, documents and commits reach xAI, redacted; the voice cannot refresh or rebuild the index.
@@ -59,7 +61,7 @@ the console line, the dictation tail).
   tasks from his Telegram bot found no live CEO. The CEO's `ceo.task` slot lived 60 s after its own enrol and then read
   stale for days. Fabric now holds that slot as the CEO's console every 30 s while the console runs, and a `ceo.task`
   request that waits while the console is not running starts it (at most once per 5 minutes; a CEO the person stopped
-  stays stopped), then types the request into it as before (ADR-0197 Amendment 5, `main/ceoBoardKeeper.ts`).
+  stays stopped, across a restart of Fabric too, and a failed one waits for the person), then types the request into it as before (ADR-0197 Amendment 5, `main/ceoBoardKeeper.ts`).
 - **Russian copied in one console reaches another whole.** The owner, 2026-11-21: his dictation copied from the CEO's
   console arrived in another console as «–î–∞–≤–∞–π», UTF-8 read as Mac Roman. Fabric started by «Служба доски» (launchd)
   has no locale, so its consoles had none either, and macOS's `pbcopy`, which Claude Code copies through, read the text

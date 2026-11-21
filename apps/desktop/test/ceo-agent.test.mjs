@@ -1423,3 +1423,26 @@ test('run nine: a found session with a task opens a new console in its project w
   assert.equal(unknown.ok, false)
   assert.equal(o.switchboard.filter((a) => a[1] === 'continue').length, 0, 'a task is refused before Switchboard')
 })
+
+// 0.3.27 review run ten, UX-81 / ER-87 / DA-62: the person's stop is kept in the folder's meta, so a restart of Fabric
+// (a new agent over the same folder) does not let the board's wake start a CEO the person stopped; the person's start
+// clears it.
+test('run ten: the person\'s stop outlives a restart, and the person\'s own start clears it', async () => {
+  const { createCeoBoardKeeper } = await import('../src/main/ceoBoardKeeper.ts')
+  const k = keeper()
+  await k.agent.ensure()
+  await k.agent.stop()
+  assert.equal(k.agent.heldByPerson(), true)
+  const { createCeoAgent } = await import('../src/main/ceoAgent.ts')
+  const again = createCeoAgent(k.deps)
+  assert.equal(again.heldByPerson(), true, 'the stop is read back from ceo.json')
+  assert.ok(again.knownProjectId())
+  const before = [...k.consoles.values()].filter((s) => s.running).length
+  const board = createCeoBoardKeeper({ state: () => again.status().state, sessionId: () => again.sessionId(), projectId: () => again.knownProjectId(),
+    keepSlot: async () => 'kept', ensure: () => again.ensure(), heldByPerson: () => again.heldByPerson(), record: () => {} })
+  const r = await board.wake([{ requestId: 'r1', to: again.knownProjectId(), capability: 'ceo.task', subject: 'x', state: 'queued', from: 'p2' }])
+  assert.equal(r, 'held')
+  assert.equal([...k.consoles.values()].filter((s) => s.running).length, before, 'nothing started')
+  await again.ensure()
+  assert.equal(again.heldByPerson(), false, 'the person opening the CEO starts it and clears the stop')
+})

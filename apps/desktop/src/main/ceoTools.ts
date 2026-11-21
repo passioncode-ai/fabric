@@ -79,7 +79,7 @@ export const CEO_TOOLS = {
   resume: {
     mcp: 'fabric_ceo_session_resume',
     title: 'Continue a session that ended',
-    description: 'Continue a session that ended, as itself, in a Fabric console: give a Fabric console\'s id (also one from before Fabric restarted: fabric_ceo_sessions with include_ended lists them) or a Claude Code or Codex session id (fabric_knowledge_search answers it). Fabric reads which Claude or Codex session the console ran as and opens a console with claude --resume (codex resume) in its project. Give no task to continue it as itself: a task always starts a new conversation in the project with that task, as does a console that never recorded its session (it gets one that says to carry on when no task is given). Switchboard is asked only for a session Fabric never saw.',
+    description: 'Continue a session that ended, as itself, in a Fabric console: give a Fabric console\'s id (also one from before Fabric restarted: fabric_ceo_sessions with include_ended lists them) or a Claude Code or Codex session id (fabric_knowledge_search answers it). Fabric reads which Claude or Codex session the console ran as and opens a console with claude --resume (codex resume) in its project. Give no task to continue it as itself. With a task, a new conversation starts in the session\'s project with that task when Fabric knows the project; otherwise the answer says what to do instead (a session only Switchboard knows takes no task). A console that never recorded its session starts again with one that says to carry on when no task is given. Switchboard is asked only for a session Fabric never saw.',
     input: z.object({ session_id: sessionId, task: z.string().trim().max(8000).optional(), reason }).strict()
   },
   open: {

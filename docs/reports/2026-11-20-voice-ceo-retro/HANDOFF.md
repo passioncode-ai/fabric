@@ -110,16 +110,20 @@ system line of SCN-188 at 1100 px in Russian; the merged candidate's first run t
 first gate to fix in the next candidate, beside UX-81; log `~/.cache/fabric-88/ci-33aec0f4.log`. The reports are kept outside the repository in `~/.cache/fabric-88/r10/` until they are
 stored with the run.
 
-**Next task, only on the CEO's signal with the reconciler's decision.** If 0.3.27 goes ahead: fix UX-81 (above) and decide on `608f5416` (take it into the candidate, as «Выпустить с main»
-says); read `ci.sh fast` on
-`33aec0f4` (it must reach its last step, with the browser suites and `claude --version`); store run ten's five reports
-and receipts in `docs/evidence/reviews/0.3.27/iteration-3-33aec0f4/`, dispose every finding in a run-ten section of the
-ledger (fix any blocking one and run again); then the release commit (gate `verifiedCommit` and iteration 3 at the
-final candidate, the one «Exit for iteration 3» line last), land on `main` by fast-forward, tag `v0.3.27`, watch the
-release, install and check the DMG; tell the owner through the communicator, including that Fabric Inbox is now allowed
-at once on his machine and connects itself (revoked in Agent access); tell session 8343a070 (`fabric-8b`), which then
-checks `com.directory` and the bot bridge (thread `69931b6d`). If the decision differs, follow it; the branch stays
-pushed as it is.
+**The pause lifted for this release (the reconciler's step 2, A-3, relayed by the CEO).** Release 0.3.27 from the
+candidate, the CEO's stop surviving a restart being the blocker before the tag. Done since: `origin/main` (`608f5416`)
+merged (`12ab551f`); the stop kept in `ceo.json` and honoured by the board's wake, a failed CEO not woken, a wake
+logged by its outcome; the console bar's folder never cut (the screens stand green at 1616 checks); run ten's cheaper
+findings fixed and the rest in CO-620.
+
+**Next task.** `ci.sh fast` on the newest `feat/voice-retro`; review run eleven on it; then the release commit (gate at
+that candidate, run eleven's folder, the one «Exit for iteration 3» line), land on `main` (fast-forward when `main` has
+not moved, else a merge commit with the tag on the release commit), tag `v0.3.27`, watch the release, install with
+`scripts/install-mac-update.mjs`, then one `communicator_notify` to the owner naming the release, Fabric Inbox allowed at
+once on his machine and connecting itself (revoked in Agent access), and the CEO's board slot and wake; tell the CEO and
+session 8343a070 (`fabric-8b`), which checks `com.directory` and the bot bridge. Then the owner's order of 04:20 (the
+CEO's and the voice's missing tools, brief `2026-11-21-ceo-voice-missing-tools-brief.md`, for 0.3.28, item 4 is
+8343a070's).
 
 ## The exact next task (as written before the merge)
 

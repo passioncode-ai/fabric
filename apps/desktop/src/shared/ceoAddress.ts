@@ -28,10 +28,10 @@ export function isCeoAddress(text: string): boolean {
 /** The rule as the voice reads it, in the call's language. */
 export function ceoAddressRule(locale: string, reader: 'voice' | 'ceo' = 'voice'): string {
   if (reader === 'ceo') return locale === 'en'
-    ? `The words ${CEO_ADDRESS_WORDS.map((w) => `«${w}»`).join(', ')} (and «директор», «шеф» in any case) mean you, the CEO of Fabric, when one stands alone as an address (the message begins with it, or it is the whole message): never look it up as a project and never take it for the SEO agent, which the owner calls by its full name. Inside a phrase («SEO-аудит», «главный экран», «менеджер проекта») a word keeps its ordinary meaning.`
+    ? `The words ${CEO_ADDRESS_WORDS.map((w) => `«${w}»`).join(', ')} (in any case) mean you, the CEO of Fabric, when one stands alone as an address (the message begins with it, or it is the whole message): never look it up as a project and never take it for the SEO agent, which the owner calls by its full name. Inside a phrase («SEO-аудит», «главный экран», «менеджер проекта») a word keeps its ordinary meaning.`
     : `Слова ${CEO_ADDRESS_WORDS.map((w) => `«${w}»`).join(', ')} (в любом падеже) означают тебя, CEO Fabric, когда слово стоит отдельным обращением (с него начинается сообщение или оно и есть всё сообщение): не ищи его как проект и не путай с SEO-агентом, его владелец называет полным именем. Внутри фразы («SEO-аудит», «главный экран», «менеджер проекта») слово значит то, что обычно.`
   return locale === 'en'
-    ? `The words ${CEO_ADDRESS_WORDS.map((w) => `«${w}»`).join(', ')} (and «директор», «шеф» in any case) mean the CEO agent of Fabric, the one you are the voice of: never look them up as a project and never take them for the SEO agent, which the owner calls by its full name.`
+    ? `The words ${CEO_ADDRESS_WORDS.map((w) => `«${w}»`).join(', ')} (in any case) mean the CEO agent of Fabric, the one you are the voice of: never look them up as a project and never take them for the SEO agent, which the owner calls by its full name.`
     : `Слова ${CEO_ADDRESS_WORDS.map((w) => `«${w}»`).join(', ')} (в любом падеже) означают CEO-агента Fabric, голос которого ты: никогда не ищи их как проект и не путай с SEO-агентом, его владелец называет полным именем.`
 }
 // #endregion ceo-address

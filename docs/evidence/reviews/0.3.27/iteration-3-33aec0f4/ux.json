@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "33aec0f496592d6b8d5a44c3f008ae031b310d9e",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-33aec0f4/2026-11-21-ux.md",
+  "reportSha256": "e9b71e84633eb3a81832487ee82b7184a3dedb4812a34edfe2a8fb9562aa7d5a",
+  "reviewerRun": "release-0327-i3r10-ux-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-81",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the person's stop is kept in the CEO folder's `ceo.json` and the board's wake reads it (`CeoAgent#heldByPerson`, `ceoBoardKeeper.ts#wake`), so a restart does not start a CEO the person stopped; the person's own start clears it (tests «run ten: the person's stop outlives a restart…» on the real agent, watched red with the stop kept in memory only, and «run ten: a CEO the person stopped…» in the keeper)"
+      ]
+    },
+    {
+      "id": "UX-82",
+      "status": "fixed",
+      "evidence": [
+        "fixed in part: a wake is logged by the state the start reached and a held or failed CEO is not «woken»; telling the owner of a wake is ruled: CO-620 (11)"
+      ]
+    },
+    {
+      "id": "UX-83",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the installer's messages and `release-mac.md` say to turn «Служба доски» on again after the update"
+      ]
+    },
+    {
+      "id": "UX-84",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `session_resume`'s description says when a task starts a new conversation and that the answer says what to do otherwise"
+      ]
+    },
+    {
+      "id": "UX-85",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the voice's operation list is filtered when it is an array too (`index.ts`)"
+      ]
+    },
+    {
+      "id": "UX-86",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the English rule says «in any case» once (`ceoAddress.ts#ceoAddressRule`)"
+      ]
+    }
+  ]
+}

@@ -1209,11 +1209,12 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 @media(hover:hover){.session-detach:hover{color:var(--app-ink);border-color:var(--app-line);background:var(--app-panel-quiet)}}
 .session-detach:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
 /* SCN-188 (the owner, 2026-11-20): the console's system line, one quiet row in the bar's free width. Short facts keep
-   their few characters; the folder (by its own name) and the branch give way first; each says itself whole on hover. The
+   their few characters; who started it and the branch give way first, and a press (the folder, the ids) is never cut
+   (0.3.27 release, the screens stand); each says itself whole on hover. The
    folder and the ids are presses, dotted at rest so they read as such (design review F1 to F8). */
 .session-meta{flex:1 1 0;min-width:0;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:11.5px;color:var(--app-muted)}
 .session-meta-item{flex:0 0 auto;min-width:0;max-width:20em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.session-meta-item.is-folder{flex-shrink:4;min-width:6em}.session-meta-item.is-branch{flex-shrink:2;min-width:6em}.session-meta-item.is-soft{flex-shrink:0}
+.session-meta-item.is-folder{flex-shrink:0}.session-meta-item.is-branch{flex-shrink:2;min-width:6em}.session-meta-item.is-started{flex-shrink:3;min-width:6em}.session-meta-item.is-soft{flex-shrink:0}
 .session-meta-item+.session-meta-item::before{content:"·";display:inline-block;padding:0 6px;color:var(--app-muted);text-decoration:none}
 .session-meta-press{font:inherit;font-size:11.5px;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left;text-decoration:underline dotted;text-underline-offset:3px;text-decoration-color:var(--app-line-strong)}
 .session-meta-press.mono{font-family:var(--font-mono)}

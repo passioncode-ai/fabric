@@ -307,3 +307,21 @@ test('run nine: a prompt ending in NAME_KEY=… keeps the transcript readable, a
   appendFileSync(file, line({ type: 'user', sessionId: sid, timestamp: '2026-11-21T10:02:00Z', message: { content: 'третье' } }))
   assert.doesNotThrow(() => readTranscript(ix, ctx, listTranscripts([root])[0]))
 })
+
+// 0.3.27 review run ten, DA-64: a session's folder and branch stay as read in its saved state, so a folder whose name
+// looks like a key's prefix keeps its project when the transcript is read again.
+test('run ten: a hyphenated xai- folder keeps its project across a second read', () => {
+  const dir = tmp(), ix = new EstateIndex(path.join(dir, 'index.sqlite'))
+  const proj = path.join(dir, 'projects', '-p'); mkdirSync(proj, { recursive: true })
+  const sid = '44444444-4444-4444-8444-444444444444', file = path.join(proj, `${sid}.jsonl`)
+  const line = (o) => `${JSON.stringify(o)}\n`
+  const cwd = '/w/xai-realtime-voice-retro-fixes'
+  writeFileSync(file, line({ type: 'user', sessionId: sid, cwd, gitBranch: 'xai-realtime-voice-branch-name', timestamp: '2026-11-21T10:00:00Z', message: { content: 'первое' } }))
+  const ctx = makeContext(catalogue([{ id: 'p1', name: 'voice', repo_path: cwd }]), new Map())
+  const root = { runtime: 'claude', dir: path.join(dir, 'projects'), configDir: null }
+  readTranscript(ix, ctx, listTranscripts([root])[0])
+  appendFileSync(file, line({ type: 'user', sessionId: sid, timestamp: '2026-11-21T10:01:00Z', message: { content: 'второе' } }))
+  readTranscript(ix, ctx, listTranscripts([root])[0])
+  assert.equal(JSON.parse(ix.fileState(file).state).cwd, cwd)
+  assert.equal(ix.doc(`claude:${sid}`).project, 'voice')
+})

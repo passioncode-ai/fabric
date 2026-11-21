@@ -326,6 +326,20 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     for (const name of ['CLAUDE.md', 'AGENTS.md']) writeFileSync(path.join(deps.root, name), brief, { encoding: 'utf8', mode: 0o600 })
   }
 
+  /** The person's stop, kept in the folder's meta so it outlives a restart of Fabric (0.3.27 review run ten, UX-81,
+   *  ER-87, DA-62): the board's wake never starts a CEO the person stopped; the person's own start clears it. */
+  function heldOnDisk(): boolean {
+    try { return (JSON.parse(readFileSync(metaFile, 'utf8')) as { heldByPerson?: unknown }).heldByPerson === true } catch { /* no meta yet: never stopped */ return false }
+  }
+  function writeHold(on: boolean): void {
+    try {
+      const known = projectId ?? knownProject()
+      writeFileSync(metaFile, JSON.stringify({ ...(known ? { projectId: known } : {}), ...(on ? { heldByPerson: true } : {}) }, null, 2), { encoding: 'utf8', mode: 0o600 })
+    } catch (e) { /* recorded through the host's ops.record; the hold still holds in memory for this run */
+      deps.record('ceo.agent.hold-write-failed', errorClass(e))
+    }
+  }
+
   function knownProject(): string | null {
     try {
       const j = JSON.parse(readFileSync(metaFile, 'utf8')) as { projectId?: unknown }
@@ -355,6 +369,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
         fail('project', errorClass(e))
         return finish()
       }
+      // A start is never under the person's hold, so the meta keeps no hold from an earlier run (UX-81).
       writeFileSync(metaFile, JSON.stringify({ projectId }, null, 2), { encoding: 'utf8', mode: 0o600 })
       const t = now()
       const order = deps.runners().filter((r) => (setAside.get(r)?.until ?? 0) <= t)
@@ -564,6 +579,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   }
   async function stopNow(): Promise<{ ok: boolean; reason?: 'still-running'; status: CeoStatus }> {
     held = true
+    writeHold(true)
     // Lines a lost console owed were said as sent; the person's stop means they are not typed again later, after a
     // restart or the next day (run seven, UX-62). The person's own waiting lines stay.
     if (queued.some((q) => q.retype)) {
@@ -587,6 +603,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     }
     if (id && deps.get(id)?.running) {
       held = false
+      writeHold(false)
       changed()
       return { ok: false, reason: 'still-running', status: status() }
     }
@@ -603,6 +620,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     doors++
     if (held) return
     held = true
+    writeHold(true)
     doorHold = true
     stopDoorId = id
     deferred = null
@@ -621,6 +639,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     personStop?.end()
     if (!stillRunning) return
     held = false
+    writeHold(false)
     deps.record('ceo.agent.hold-released', { session_id: id, why: 'still-running' })
     changed()
   }
@@ -729,7 +748,9 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     projectId: (): string | null => projectId,
     /** The CEO's project even before this process started its console: the one its folder's meta names (ADR-0197
      *  Amendment 5: a `ceo.task` request wakes a console that is not running). */
-    knownProjectId: (): string | null => projectId ?? knownProject()
+    knownProjectId: (): string | null => projectId ?? knownProject(),
+    /** The person's stop, in memory or kept from an earlier run (UX-81). */
+    heldByPerson: (): boolean => held || heldOnDisk()
   }
 }
 
