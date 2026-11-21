@@ -1146,6 +1146,11 @@ export interface FabricApi {
     /** Put a task under a goal at a position. Order is a FIELD, not a screen's
      *  opinion — two surfaces reading the same plan must agree on it. */
     prioritise(taskId: string, goalId: string, position: number): Promise<void>
+    /** ADR-0208: the person moves a queued task to stand right after another of its project (null: first). Answers
+     *  how many ranks were written: unplaced tasks above the drop point are pinned with it. */
+    reorder(taskId: string, afterTaskId: string | null): Promise<{ written: number }>
+    /** ADR-0208: the person's decision on an agent's proposed place for a queued task. */
+    rankProposal(taskId: string, accept: boolean): Promise<{ accepted: boolean; written: number }>
     /**
      * File an idea into the backlog (M134). Its origin is the PERSON who had
      * it — a real answer at this door and an unverifiable one at an agent's,
@@ -1979,6 +1984,8 @@ export const IPC = {
   goalsList: 'goals:list',
   goalsDefine: 'goals:define',
   tasksPrioritise: 'tasks:prioritise',
+  tasksReorder: 'tasks:reorder',
+  tasksRankProposal: 'tasks:rank-proposal',
   /** M134 — an idea is a card a person filed before it was work. */
   /** M127 — what the machine gateway offers. Never its key. */
   gatewayOffer: 'gateway:offer',

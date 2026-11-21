@@ -650,6 +650,43 @@ export function registerTaskTools(server: McpServer, deps: TaskToolsDeps, scope:
     }
   )
 
+  // #region task-rank-propose — docs: docs/evidence/specs/2026-11-21-task-rank.md#5-the-writes
+  // ADR-0208: the queue's order is the owner's. An agent (the CEO first of all) proposes a place and says why; the
+  // person accepts or declines it on the board. Nothing here writes a rank.
+  server.registerTool(
+    'fabric_task_rank_propose',
+    {
+      title: 'Propose a place for a task in the queue',
+      description:
+        "Propose where a queued task of this project should stand in its queue: right after afterTaskId, or first when you leave it out. The owner decides: the proposal shows on the task's card on the board with your why, and he accepts it with one press or declines it. You cannot place a task yourself, and proposing changes no order. Say why in one or two plain sentences the owner understands without context, in the working language (what it unblocks, what waits for it, what deadline it serves). One open proposal per task: a new one replaces yours. Fabric already orders the queue by dependencies (a task that others wait for comes before them, the longest chain first), so propose only what the links do not say; when one task must come before another, link them with fabric_task_link instead.",
+      inputSchema: {
+        taskId: z.string().uuid(),
+        afterTaskId: z.string().uuid().optional().describe('The queued task of the same project it should stand right after; leave out to propose the first place'),
+        why: z.string().min(10).max(500).describe('Why this place, in plain words for the owner')
+      }
+    },
+    async ({ taskId, afterTaskId, why }) => {
+      const task = await ownTask(taskId)
+      if (!task) return json({ proposed: false, reason: 'no such task in this project' })
+      if (task.status !== 'backlog') return json({ proposed: false, reason: `the task is ${task.status}, not in the queue: only a queued task is placed, and one in work or in review keeps its place` })
+      if (afterTaskId !== undefined) {
+        if (afterTaskId === taskId) return json({ proposed: false, reason: 'a task cannot stand after itself' })
+        const after = await ownTask(afterTaskId)
+        if (!after) return json({ proposed: false, reason: 'afterTaskId is not a task of this project' })
+        if (after.status !== 'backlog') return json({ proposed: false, reason: `afterTaskId is ${after.status}, not in the queue` })
+      }
+      const event = await deps.append({
+        estateId: scope.estateId,
+        type: 'task.rank.proposed@1',
+        actor: { kind: 'agent', id: scope.sessionId },
+        projectId: scope.projectId,
+        payload: { task_id: taskId, after_task_id: afterTaskId ?? null, why: why.trim() }
+      })
+      return json({ proposed: true, seq: event.seq, decides: 'the owner, on the board: the task keeps its place until he accepts' })
+    }
+  )
+  // #endregion task-rank-propose
+
   server.registerTool(
     'fabric_task_link',
     {

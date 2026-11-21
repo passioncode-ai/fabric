@@ -74,6 +74,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       brief: (taskId, section, body) => ipc.invoke(IPC.tasksBrief, taskId, section, body),
       prioritise: (taskId, goalId, position) =>
         ipc.invoke(IPC.tasksPrioritise, taskId, goalId, position),
+      reorder: (taskId, afterTaskId) => ipc.invoke(IPC.tasksReorder, taskId, afterTaskId),
+      rankProposal: (taskId, accept) => ipc.invoke(IPC.tasksRankProposal, taskId, accept),
       fileIdea: (projectId, text) => ipc.invoke(IPC.tasksFileIdea, projectId, text),
       assignAcross: (input) => ipc.invoke(IPC.tasksAssignAcross, input),
       research: (taskId, optionId) => ipc.invoke(IPC.tasksResearch, taskId, optionId)

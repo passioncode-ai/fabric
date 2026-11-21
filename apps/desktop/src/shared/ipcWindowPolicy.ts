@@ -128,6 +128,8 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   goalsList: MAIN_ONLY,
   goalsDefine: MAIN_ONLY,
   tasksPrioritise: MAIN_ONLY,
+  tasksReorder: MAIN_ONLY,
+  tasksRankProposal: MAIN_ONLY,
   gatewayOffer: MAIN_ONLY,
   workspaceState: MAIN_ONLY,
   workspaceChoose: MAIN_ONLY,

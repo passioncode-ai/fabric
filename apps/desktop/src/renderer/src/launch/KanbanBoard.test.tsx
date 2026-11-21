@@ -241,3 +241,103 @@ describe('the board\'s agents, abandoned work and finished pages (0.3.14)', () =
     expect(screen.getByText(en['launch.kanban.doneBound'].replace('{count}', '500'))).toBeTruthy()
   })
 })
+
+// ADR-0208: the queue in the board's order, the owner's move and an agent's proposed place.
+describe("the queue's order on the kanban", () => {
+  const card = (taskId: string, summary: string, over: Record<string, unknown> = {}) => ({ taskId, projectId: 'p1', projectName: 'Fabric', summary, agent: null, since: null, ...over })
+  const order = (place: number, over: Record<string, unknown> = {}) => ({ place, ranked: false, inherited: false, waits: 0, unblocks: 0, critical: false, ...over })
+  const queue = (cards: unknown[], over: Partial<TaskBoardView> = {}): TaskBoardView => ({
+    columns: [{ stage: 'backlog', capped: false, cards: cards as TaskBoardView['columns'][number]['cards'] }, { stage: 'running', capped: false, cards: [] }, { stage: 'review', capped: false, cards: [] }, { stage: 'done', capped: false, cards: [] }],
+    projects: [{ id: 'p1', name: 'Fabric' }], readAt: '2026-11-21T00:00:00Z', ...over
+  })
+  const three = queue([
+    card('a', 'Schema', { order: order(1, { critical: true, unblocks: 2, ranked: true }) }),
+    card('b', 'Reader', { order: order(2, { inherited: true }) }),
+    card('c', 'Screen', { order: order(3, { waits: 1 }), proposal: { afterTaskId: null, why: 'It is what the release waits for' } })
+  ])
+  const wire = (view: TaskBoardView, tasks: Record<string, unknown>) =>
+    vi.stubGlobal('window', Object.assign(window, { fabric: { work: { board: vi.fn(async () => view) }, tasks } }))
+
+  it('says why each queued task stands where it does', async () => {
+    wire(three, {})
+    show({ projectId: 'p1' })
+    await waitFor(() => expect(screen.getByText('Schema')).toBeTruthy())
+    expect(screen.getByText(en['launch.kanban.order.note'])).toBeTruthy()
+    expect(screen.getByText(en['launch.kanban.order.critical'])).toBeTruthy()
+    expect(screen.getByText(en['launch.kanban.order.unblocks'].replace('{count}', '2'))).toBeTruthy()
+    expect(screen.getByText(en['launch.kanban.order.ranked'])).toBeTruthy()
+    expect(screen.getByText(en['launch.kanban.order.inherited'])).toBeTruthy()
+    expect(screen.getByText(en['launch.kanban.order.waits'].replace('{count}', '1'))).toBeTruthy()
+  })
+
+  it('moves a task up or down in one project, after the right neighbour, and reads the board again', async () => {
+    const reorder = vi.fn(async () => ({ written: 1 }))
+    wire(three, { reorder })
+    show({ projectId: 'p1' })
+    await waitFor(() => expect(screen.getByText('Schema')).toBeTruthy())
+    expect((screen.getByRole('button', { name: en['launch.kanban.order.upLabel'].replace('{task}', 'Schema') }) as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.order.upLabel'].replace('{task}', 'Screen') }))
+    expect(reorder).toHaveBeenLastCalledWith('c', 'a')
+    await waitFor(() => expect((window.fabric.work.board as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2))
+    fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.order.downLabel'].replace('{task}', 'Schema') }))
+    expect(reorder).toHaveBeenLastCalledWith('a', 'b')
+    await waitFor(() => expect((window.fabric.work.board as ReturnType<typeof vi.fn>).mock.calls.length).toBe(3))
+    fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.order.upLabel'].replace('{task}', 'Reader') }))
+    await waitFor(() => expect(reorder).toHaveBeenLastCalledWith('b', null))
+  })
+
+  it('a card dropped onto another takes its place', async () => {
+    const reorder = vi.fn(async () => ({ written: 1 }))
+    wire(three, { reorder })
+    const { container } = show({ projectId: 'p1' })
+    await waitFor(() => expect(screen.getByText('Schema')).toBeTruthy())
+    const wraps = [...container.querySelectorAll('.lk-col')[0]!.querySelectorAll('.lk-card-wrap')]
+    const dataTransfer = { effectAllowed: '', dropEffect: '', setData: vi.fn() }
+    fireEvent.dragStart(wraps[2]!, { dataTransfer })
+    fireEvent.dragOver(wraps[0]!, { dataTransfer })
+    fireEvent.drop(wraps[0]!, { dataTransfer })
+    expect(reorder).toHaveBeenCalledWith('c', null)
+  })
+
+  it('with every project shown the queue is read only and says to pick a project', async () => {
+    wire(three, { reorder: vi.fn() })
+    show()
+    await waitFor(() => expect(screen.getByText('Schema')).toBeTruthy())
+    expect(screen.getByText(en['launch.kanban.order.noteAll'])).toBeTruthy()
+    expect(screen.queryByRole('button', { name: en['launch.kanban.order.upLabel'].replace('{task}', 'Screen') })).toBeNull()
+  })
+
+  it("shows an agent's proposed place with its why, and the owner accepts or declines it", async () => {
+    const rankProposal = vi.fn(async () => ({ accepted: true, written: 1 }))
+    wire(three, { rankProposal })
+    show({ projectId: 'p1' })
+    await waitFor(() => expect(screen.getByText(en['launch.kanban.proposal.first'])).toBeTruthy())
+    expect(screen.getByText('It is what the release waits for')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.proposal.acceptLabel'].replace('{task}', 'Screen') }))
+    expect(rankProposal).toHaveBeenCalledWith('c', true)
+    await waitFor(() => expect((screen.getByRole('button', { name: en['launch.kanban.proposal.declineLabel'].replace('{task}', 'Screen') }) as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.proposal.declineLabel'].replace('{task}', 'Screen') }))
+    expect(rankProposal).toHaveBeenLastCalledWith('c', false)
+  })
+
+  it('a proposal after a task that left the queue can only be declined', async () => {
+    wire(queue([card('c', 'Screen', { order: order(1), proposal: { afterTaskId: 'gone', why: '' } })]), { rankProposal: vi.fn() })
+    show({ projectId: 'p1' })
+    await waitFor(() => expect(screen.getByText(en['launch.kanban.proposal.afterGone'])).toBeTruthy())
+    expect(screen.queryByRole('button', { name: en['launch.kanban.proposal.acceptLabel'].replace('{task}', 'Screen') })).toBeNull()
+    expect(screen.getByRole('button', { name: en['launch.kanban.proposal.declineLabel'].replace('{task}', 'Screen') })).toBeTruthy()
+  })
+
+  it('a move that fails is said, and an order that could not be read is said with no move offered', async () => {
+    wire(three, { reorder: vi.fn(async () => { throw new Error('the queue changed') }) })
+    show({ projectId: 'p1' })
+    await waitFor(() => expect(screen.getByText('Schema')).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.order.downLabel'].replace('{task}', 'Schema') }))
+    await waitFor(() => expect(screen.getByText(en['launch.kanban.order.failed'])).toBeTruthy())
+    cleanup()
+    wire({ ...three, orderUnread: 'refused' }, { reorder: vi.fn() })
+    show({ projectId: 'p1' })
+    await waitFor(() => expect(screen.getByText(en['launch.kanban.order.unread'])).toBeTruthy())
+    expect(screen.queryByRole('button', { name: en['launch.kanban.order.downLabel'].replace('{task}', 'Schema') })).toBeNull()
+  })
+})

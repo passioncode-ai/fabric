@@ -35708,7 +35708,7 @@
       "errors_recovery": "a task that cannot be read says so and keeps the way back.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4409
+        "line": 4410
       }
     },
     {
@@ -35725,7 +35725,7 @@
       "errors_recovery": "an organization that cannot be read is drawn without its uncloned repositories and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4435
+        "line": 4436
       }
     },
     {
@@ -35742,7 +35742,7 @@
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4458
+        "line": 4459
       }
     },
     {
@@ -35759,7 +35759,7 @@
       "errors_recovery": "a request the board refuses stays with the asking agent, which says so on its task.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4481
+        "line": 4482
       }
     },
     {
@@ -35778,7 +35778,7 @@
       "errors_recovery": "a board that does not answer is said with «Попробовать снова», never shown as «nobody owes an answer».",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4505
+        "line": 4506
       }
     },
     {
@@ -35796,7 +35796,7 @@
       "errors_recovery": "a refusal keeps the comment and the buttons; a hand-in note that cannot be read leaves the review in the list without its words.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4527
+        "line": 4528
       }
     },
     {
@@ -35813,7 +35813,7 @@
       "errors_recovery": "a read that fails names the part not read.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4551
+        "line": 4552
       }
     },
     {
@@ -35832,7 +35832,7 @@
       "errors_recovery": "tasks and requests are read separately; a failure of one is said on its rows and the other rows stay; a later read replaces an earlier one only when it lands (CO-544's reading).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4574
+        "line": 4575
       }
     },
     {
@@ -35851,7 +35851,7 @@
       "errors_recovery": "a message the CEO did not take («Сообщение не дошло до CEO.» with the reason) keeps the words in the box to send again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4598
+        "line": 4599
       }
     },
     {
@@ -35870,7 +35870,7 @@
       "errors_recovery": "every act needs a reason, is written to the operations log and, for a start or a stop, to История with its undo, or with why it has none (a session Switchboard runs, `shared/acts.ts#WHY_NOT` `outside_fabric`); the CEO never acts on its own console.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4620
+        "line": 4621
       }
     },
     {
@@ -35889,7 +35889,7 @@
       "errors_recovery": "no key, a refused key or a microphone that did not open ends the call with the reason in words (ru and en); the key itself never reaches the window.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4648
+        "line": 4649
       }
     },
     {
@@ -35906,7 +35906,7 @@
       "errors_recovery": "the order and the models are set by hand in settings.json (`ceoRunners`, `ceoModels`); an unknown runner, and a model below Sonnet 5.5, is dropped.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4672
+        "line": 4673
       }
     },
     {
@@ -35924,7 +35924,7 @@
       "errors_recovery": "an unknown stored voice reads as male, never as a broken look; a refused or missing key is said in words (ru and en).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4693
+        "line": 4694
       }
     },
     {
@@ -35943,7 +35943,7 @@
       "errors_recovery": "a failed stop is said and can be pressed again; a forced stop follows a plain one that did not end the console (ER-10).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4715
+        "line": 4716
       }
     },
     {
@@ -35958,7 +35958,7 @@
       "errors_recovery": "a part that could not be read is left out, never guessed; a failed read keeps the line it had; a folder that cannot be opened says nothing more than the OS does.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4736
+        "line": 4737
       }
     },
     {
@@ -35977,7 +35977,7 @@
       "errors_recovery": "a queue that cannot be written to disk still holds in memory and is recorded (`ceo.agent.queue-save-failed`); a queue file that does not parse, is not a list, holds invalid entries or holds more than 60 lines is kept aside as `pending.json.corrupt-<time>` and recorded (`ceo.agent.queue-read-failed`), its valid lines kept in the queue, the kept-aside files removed after 30 days and past the newest three at every start; a line waiting in the queue is typed by the queue alone; once typed, a limit or sign-in answer puts it back at the head of the queue for the next runner, once, and the person's stop during the switch drops it (it was said as sent); at most 50 of the person's lines wait, plus up to 10 a lost console owed; each message typed from the queue is recorded with how long it waited (`ceo.agent.queue-delivered`).",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4756
+        "line": 4757
       }
     },
     {
@@ -35996,7 +35996,7 @@
       "errors_recovery": "a part that cannot be read says so in its own place and the others still show; «Обновить» reads again; a check that fails is said and can be pressed again.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4777
+        "line": 4778
       }
     },
     {
@@ -36015,7 +36015,7 @@
       "errors_recovery": "a read the database refuses is said as unread («the board could not be read now»), never as an empty board; a holder list that could not be read leaves the tasks shown and says so.",
       "source": {
         "file": "docs/ux/scenarios.md",
-        "line": 4800
+        "line": 4801
       }
     }
   ],

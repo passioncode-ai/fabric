@@ -33,6 +33,7 @@ import {
 } from '../shared/workClaims.ts'
 import { composeHome, type HomeView, type StageRow, type TaskBrief } from '../shared/homeLive.ts'
 import { composeTaskBoard, type TaskBoardView } from '../shared/taskBoard.ts'
+import { readQueueOrder, type QueueOrder } from './taskOrderRead.ts'
 import { agentQuestions, composeSessionTasks, runnerOf, SESSION_TASKS_LIMIT, type SessionClaimRow, type SessionTaskRow, type SessionTasksView } from '../shared/sessionTasks.ts'
 
 type Store = ReturnType<typeof createScopedStore>
@@ -351,22 +352,34 @@ export async function readTaskBoard(store: Store, opts: { now: number; session: 
   // ago and cancelled today is the newest here, and the order agrees with the date each card shows (0.3.12 review DA-6).
   const CANCELLED = 50
   const columns = 'id,project_id,title,brief_what,brief_why,brief_expected,status,moved_at,started_at'
-  const queue = store.select('project_tasks', columns).eq('status', 'backlog')
+  const queueColumns = `${columns},rank_proposal`
+  const queue = store.select('project_tasks', queueColumns).eq('status', 'backlog')
+  // ADR-0208: the tasks the owner placed are read on their own, lowest rank first, so the cap never hides one.
+  const ranked = store.select('project_tasks', queueColumns).eq('status', 'backlog').not('rank', 'is', null)
   const cancelled = store.select('project_tasks', columns).eq('status', 'cancelled')
-  const [home, projects, queued, cancelledRead] = await Promise.all([
+  const [home, projects, queued, rankedRead, order, cancelledRead] = await Promise.all([
     readHome(store, opts),
     store.select('projects', 'id,name').eq('status', 'active').order('name', { ascending: true }).limit(500),
     // Newest filed first: a task never moved has no `moved_at`, and ordering by it dropped the newest at the cap (DA-7).
     (opts.projectId ? queue.eq('project_id', opts.projectId) : queue).order('seq', { ascending: false }).limit(QUEUE),
+    (opts.projectId ? ranked.eq('project_id', opts.projectId) : ranked).order('rank', { ascending: true }).limit(QUEUE),
+    // A failed read of the order is said on the board; the queue is then shown newest first, as before ADR-0208.
+    readQueueOrder(store, { projectId: opts.projectId ?? null }).then((o): QueueOrder | { unread: string } => o, (e: unknown) => ({ unread: e instanceof Error ? e.message : String(e) })),
     (opts.projectId ? cancelled.eq('project_id', opts.projectId) : cancelled).order('moved_at', { ascending: false, nullsFirst: false }).order('seq', { ascending: false }).limit(CANCELLED)
   ])
   const projectRows = must(projects as never, 'the projects') as Array<{ id: string; name: string }>
   const withWhen = (rows: Array<TaskBrief & { moved_at: string | null; started_at: string | null }>) => rows.map((t) => ({ ...t, updated_at: t.moved_at ?? t.started_at }))
-  const queuedRows = withWhen(must(queued as never, 'the queue') as Array<TaskBrief & { moved_at: string | null; started_at: string | null }>)
+  type QueueRow = TaskBrief & { moved_at: string | null; started_at: string | null }
+  const newest = must(queued as never, 'the queue') as QueueRow[]
+  const placedRows = must(rankedRead as never, 'the placed tasks') as QueueRow[]
+  const seen = new Set(placedRows.map((t) => t.id))
+  const queuedRows = withWhen([...placedRows, ...newest.filter((t) => !seen.has(t.id))])
   // A failed read of the cancelled tasks is said in their column; the four columns still stand.
   const { data: cancelledRows, error: cancelledError } = cancelledRead as { data: Array<TaskBrief & { moved_at: string | null; started_at: string | null }> | null; error: { message: string } | null }
   return composeTaskBoard({
     home, queued: queuedRows, projects: projectRows, queuedLimit: QUEUE,
+    queuedCapped: newest.length >= QUEUE || placedRows.length >= QUEUE,
+    order: 'unread' in order ? order : { byTask: order.byTask, capped: order.capped.length > 0 },
     cancelled: cancelledError ? { unread: cancelledError.message } : { rows: withWhen(cancelledRows ?? []), limit: CANCELLED }
   })
 }

@@ -7,6 +7,18 @@ that section as the notes of the `vX.Y.Z` release
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
 
+## Unreleased
+
+- **The queue has an order, and it follows the work's dependencies.** The owner, 2026-11-21: prioritisation on the
+  board first, the critical path highest, and a nearly finished task is not switched away from. «Очередь» on the Board
+  now stands in one order: what you placed yourself first, then what other tasks wait for, the longest chain first; a
+  task that waits for an open one stands after the ready ones. Each card says why it stands where it does. On a
+  project's board you drag a card or press «Выше» and «Ниже»; an agent (the CEO among them) can only propose a place,
+  which you accept or decline on the card. Tasks in work and in review are never reordered. Agents get the same order
+  from `fabric_work_list`, and the backlog routine briefs by it. Schema 104 (migration 131: `task.ranked@1`,
+  `task.rank.proposed@1`, `task.rank.declined@1`). [ADR-0208](docs/adr/0208-the-queue-has-one-order-the-owners-rank-over-a-dependency-walk.md),
+  [spec](docs/evidence/specs/2026-11-21-task-rank.md).
+
 ## 0.3.27
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).

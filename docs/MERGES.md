@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `TASK-RANK` · feat/task-rank → main · fast-forward after `ci.sh fast`
+- files: migration `20261121000131_task_rank.sql` (schema 104) and the ledger, `apps/desktop/src/shared/taskRank.ts`, `main/taskOrderRead.ts`, `main/taskRankWrite.ts`, the readers (`workRead.ts`, `workTools.ts`, `routineTick.ts`, `backlogBrief.ts`, `taskBoard.ts`), `taskTools.ts` (`fabric_task_rank_propose`), `KanbanBoard.tsx` with both locales, their tests, ADR-0208 and the register, the spec, SCN-173, CO-621, the pipeline reservation moved to 131/132 and ADR-0209, `AGENTS.md`, CHANGELOG, the map
+- conflicts: none
+- summary: the owner's order of 2026-11-21 (board request `f6537624`, P0 by the reconciliation A-3): a project's queue has one order, the owner's rank over a walk of `blocks` and `follows` with the critical path first; only the person moves, an agent proposes; the kanban, `fabric_work_list` and the backlog routine read it first
+
 ### 2026-11-21 · `CEO-TRIAGES-QUESTIONS` · docs/ceo-triages-questions → main · fast-forward
 - files: `docs/adr/0207-the-ceo-triages-every-question-and-the-owner-is-signalled-only-in-his-own-channel.md`, `docs/evidence/specs/2026-11-21-ceo-triages-questions.md`, `docs/adr/README.md` (next free ADR-0211), `docs/evidence/plans/task-pipeline-persistence-contract.md` (pipeline reservation 0206 → 0210), the map
 - conflicts: the reservation row and the map's changelog at the rebase onto `65423c42`; both sides kept
