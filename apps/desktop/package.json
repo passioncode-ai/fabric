@@ -45,6 +45,7 @@
     "test:recovery-db": "node test/run-transcript-recovery-db.mjs",
     "test:codex-loopback": "node test/codex-loopback-native.test.mjs",
     "test:chat-native": "node test/chat-activation-native.test.mjs",
+    "test:canvas-native": "node test/canvas-native.test.mjs",
     "release:mac": "node ../../scripts/release-mac.mjs",
     "test:codex-loopback-thread": "node --experimental-strip-types test/codex-loopback-thread-native.test.mjs"
   },

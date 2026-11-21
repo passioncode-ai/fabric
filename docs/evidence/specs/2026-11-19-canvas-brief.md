@@ -85,6 +85,36 @@ The probe in `apps/desktop/test/csp.test.mjs` (no built script names `esm.sh`) w
 (`mount-6_sMqoY5.js` named it) and passes on this one. A build with the transform's pattern changed so that it matches
 nothing ends with exit 1 and the plugin's message (`found 0 push(es) and 1 origin(s)`).
 
+## The canvas window in the running app (2026-11-21)
+
+`apps/desktop/test/canvas-native.test.mjs` (`pnpm --dir apps/desktop test:canvas-native` under
+`node scripts/test-stack.mjs run --`): the built app of `f1dd779f` in a real Electron run on the Mac Studio, on a
+disposable stack and a fresh data folder, driven through its DevTools port with the real preload bridge.
+
+| REQ | Result |
+|---|---|
+| CV-REQ-02 | `window.fabric.canvas.open('main')` from the main window opens the canvas's own window (`canvas.html?canvas=main`); the editor loads; a rectangle drawn with the mouse is written to `canvases/main.excalidraw` with mode 600; after a quit and a cold start the same drawing is read back through `window.fabric.canvas.load`. |
+| CV-REQ-05 | The page's own resource timing names no address outside the app's files, and the console holds no error. No text was drawn in this run, so no font was requested (the fonts are covered by the browser check above). |
+
+Result line: `status PASS, foreignRequests 0, consoleErrors 0, mode 600, coldRestart drawing read back`. The probe was
+seen passing only; no planted defect was run against it. Not covered: the call's voice tools drawing on the canvas
+(they need a live call).
+
+## One whole `ci.sh fast` on the Mac Studio (2026-11-21)
+
+Run at the clean `f1dd779f`, after the Studio got what the script needs (ripgrep, Python `jsonschema` and `PyYAML`).
+It stops at the first of these; a second pass that continued past failures listed the rest:
+
+| Step | Result | What it is |
+|---|---|---|
+| `scripts/check-no-hidden-model-call.mjs` | **fails, blocks landing** | `canvasDesigner.ts` calls OpenRouter directly. The gate (UX28-12) asks for a model call behind a ModelPort with usage accounting (backlog M167, M169, M171, all proposed) and for the gate to be rewritten in the same change to check the routing. Decided: no allow-list entry; the designer's call goes behind a port that records usage and the gate checks routing, as the next unit of this work, with its ADR. |
+| `scripts/check-ipc-contract.mjs` | failed, fixed here | The gate counted window kinds from a list written by hand that did not know `canvas` (5 preload windows, 4 kinds). It now reads the policy's own `WINDOW_KINDS`; with the canvas window's kind made unrecognisable it fails again. |
+| `scripts/test/build-unified-plan.test.mjs` | not run there | The Studio's checkout has no `workspace` submodule. |
+| owned-database runners | not run there | The Studio has no PostgreSQL binaries (`FABRIC_PG_BIN`). |
+| `runtime-admission` and the suites after it | not run there | The Studio's Node 26.12.0 is not in the measured list. |
+
+Everything before the first row passed, the design map and documentation gates included.
+
 ## Source ledger
 
 | Source | Read | Finding |
