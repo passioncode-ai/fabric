@@ -38,7 +38,12 @@ const SESSION_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'ter
  *  own channels; the voice call's two are its alone. */
 const CEO_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalData', 'terminalExit',
   'windowsOpenSession', 'ceoAgentStatus', 'ceoAgentEnsure', 'ceoAgentSend', 'ceoAgentRestart', 'ceoAgentOpen', 'ceoAgentTakeDraft',
-  'ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceKeySet', 'ceoAgentChanged', 'ceoAgentDraft']
+  'ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceKeySet', 'ceoAgentChanged', 'ceoAgentDraft',
+  // ADR-0201: the popup may open the canvas the call draws on.
+  'canvasOpen']
+/** ADR-0201: the canvas window reads, writes and answers for its own canvas, and may open a canvas. */
+const CANVAS_USES = [...EVERY_WINDOW, 'canvasOpen', 'canvasLoad', 'canvasSave', 'canvasReady', 'canvasAnswer', 'canvasCommand']
+const CANVAS_OWN = ['canvasLoad', 'canvasSave', 'canvasReady', 'canvasAnswer', 'canvasCommand']
 const EDITOR_USES = [...EVERY_WINDOW, 'filesRead', 'filesWrite', 'filesRequestOverwrite', 'filesOpenExternally', 'filesRecoveryKeep', 'filesRecoveryFlush', 'filesRecoveryRead']
 
 test('every channel declares at least one window kind, and only known kinds', () => {
@@ -72,10 +77,32 @@ test('ADR-0197: the CEO popup reaches only its own console, and its subject foll
 
 test('the main window keeps the whole bridge; detached windows get exactly what they use', () => {
   // The voice call's channels are the CEO popup's alone (ADR-0197 §4): the main window has the rest.
-  assert.deepEqual(channelsFor('main').sort(), Object.keys(IPC).filter((k) => k !== 'ceoAgentVoice' && k !== 'ceoAgentVoiceTool').sort())
+  // The canvas's own channels are its window's alone (ADR-0201): the main window opens a canvas and nothing more.
+  assert.deepEqual(channelsFor('main').sort(), Object.keys(IPC).filter((k) => k !== 'ceoAgentVoice' && k !== 'ceoAgentVoiceTool' && !CANVAS_OWN.includes(k)).sort())
+  assert.deepEqual(channelsFor('canvas').sort(), [...CANVAS_USES].sort())
   assert.deepEqual(channelsFor('ceo').sort(), [...CEO_USES].sort())
   assert.deepEqual(channelsFor('session').sort(), [...SESSION_USES].sort())
   assert.deepEqual(channelsFor('editor').sort(), [...EDITOR_USES].sort())
+})
+
+test('ADR-0201: a canvas window reads, writes and answers for its own canvas alone; no other window writes a canvas', () => {
+  const reg = createWindowRegistry()
+  reg.register(9, { kind: 'canvas', subject: 'main' })
+  assert.equal(reg.check(9, IPC.canvasSave, ['main', '{}']), null)
+  assert.equal(reg.check(9, IPC.canvasSave, ['other', '{}'])?.reason, 'subject', 'another canvas is not its own')
+  assert.equal(reg.check(9, IPC.canvasLoad, ['../../etc'])?.reason, 'subject')
+  assert.equal(reg.check(9, IPC.terminalWrite, ['sess-a', 'x'])?.reason, 'kind')
+  assert.equal(reg.check(9, IPC.ceoAgentVoiceTool, ['canvas_add', {}])?.reason, 'kind', 'the canvas does not run the voice tools')
+  assert.equal(reg.check(9, IPC.feedReplay, [0])?.reason, 'kind')
+  for (const kind of ['main', 'session', 'editor', 'ceo']) {
+    assert.equal(authorise({ kind, subject: 'main' }, IPC.canvasSave, ['main', '{}']).reason, 'kind', `${kind} may not write a canvas`)
+    assert.equal(authorise({ kind, subject: 'main' }, IPC.canvasAnswer, ['main', 'r1', {}]).reason, 'kind', `${kind} may not answer for a canvas`)
+  }
+  assert.equal(authorise({ kind: 'ceo', subject: 'ceo-1' }, IPC.canvasOpen, ['main']).ok, true, 'the CEO popup may open the canvas')
+  // A command reaches only the window of its canvas.
+  assert.equal(mayReceive({ kind: 'canvas', subject: 'main' }, IPC.canvasCommand, ['main', 'r1', { op: 'read' }]), true)
+  assert.equal(mayReceive({ kind: 'canvas', subject: 'idea' }, IPC.canvasCommand, ['main', 'r1', { op: 'read' }]), false)
+  assert.equal(mayReceive({ kind: 'main' }, IPC.canvasCommand, ['main', 'r1', { op: 'read' }]), false)
 })
 
 test('feed.replay across projects is the main window\'s alone', () => {
@@ -224,7 +251,7 @@ test('the menu\'s Cmd+W reaches the focused window only through the registry: th
 test('every window Fabric gives the preload is created with its kind', () => {
   const main = readFileSync(path.join(HERE, '..', 'src', 'main', 'index.ts'), 'utf8')
   const preloads = [...main.matchAll(/preload:\s*path\.join/g)].length
-  const kinded = [...main.matchAll(/additionalArguments:\s*\[windowKindArg\('(main|session|editor|ceo)'\)\]/g)].length
+  const kinded = [...main.matchAll(/additionalArguments:\s*\[windowKindArg\('(main|session|editor|ceo|canvas)'\)\]/g)].length
   assert.ok(preloads > 0)
   assert.equal(kinded, preloads, 'a window with the preload but no kind argument')
   const registered = [...main.matchAll(/windowKinds\.register\(/g)].length

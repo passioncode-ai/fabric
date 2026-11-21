@@ -526,6 +526,14 @@ answer.commit → decision + delivery obligation
    return title('Начать рабочую сессию','Проект Atlas. Сессия получит ваш разговор с Fabric.',link('Назад','session'))
     +panel('Где и кем',row('Папка','/Users/atlas/DATA/atlas',action('Изменить…','choose'))+row('☑ Изолированная сессия','в папке работает другой агент — сессия начнётся в своём worktree',badge('заблокировано'))+row('Агент для кода','Claude Code · выбран по вашей очерёдности агентов',''),action('Начать','start',true)+action('Отмена','cancel'))
   }
+  case 'canvas': {
+   // SCR-91 · SCN-190/191 (ADR-0201): the canvas window, Excalidraw over the whole window; the save state top right.
+   const said={error:['Канвас не сохранился','error'],saving:['Сохраняю…',''],drawn:['Сохраняю…',''],loading:['Открываю…','']}[s.state]||['Сохранено','']
+   return title('Канвас','Своё окно поверх Fabric: заметки, блоки и стрелки мышью, а в звонке CEO «нарисуй ...» рисует проектировщик.',badge(said[0],said[1]))
+    +(s.state==='empty'?note('Пустой канвас','Нарисуйте блок мышью или скажите в звонке «нарисуй схему ...».')
+     :panel('Схема из звонка',row('Звонок владельца','→ Голосовой ассистент','')+row('Голосовой ассистент','работа → CEO: задачи в проектах · нарисуй → Проектировщик',s.state==='drawn'?badge('подсвечено','attention'):'')+row('Проектировщик рисует схему','→ Канвас','')+row('Открытый вопрос: цена?','заметка',badge('заметка'))))
+    +(s.state==='error'?note('Канвас не сохранился','Fabric не смог записать в его папку. Попробую снова при следующем изменении.','','warning'):'')
+  }
   default:
    throw new Error('Missing visual renderer: '+view)
  }

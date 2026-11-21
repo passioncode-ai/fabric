@@ -748,3 +748,15 @@ Fabric and observes; these stories keep every agent replaceable and every call r
 - **Priority:** should
 - **Status:** proposed
 - **Product:** unobserved
+
+### ST-052: Think on a canvas with the CEO and its designer
+- **Story:** As P-01, I want a canvas like an investigator's wall, where I draw with the mouse and an agent sketches my idea while I speak and walks me through it, so that what I think aloud lands somewhere we both can point at.
+- **Traces:** JTBD-02, JRN-02
+- **Acceptance criteria:**
+  - Given the canvas is open, when I draw notes, blocks and arrows with the mouse, then they stay there when I open the canvas again.
+  - Given a call with the CEO, when I say «нарисуй схему ...», then a scheme appears on the canvas within seconds and the voice walks me through it, looking at each part as it speaks.
+  - Given a call, when I say «добавь заметку», «соедини», «покажи ...», then it is done at once, and a name that matches nothing is said back.
+- **Priority:** should
+- **Status:** validated (2026-11-19, the owner's order, board request 979d8f84)
+- **Product:** unobserved
+

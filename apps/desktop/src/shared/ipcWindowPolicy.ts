@@ -23,8 +23,9 @@
  */
 import { IPC } from './types.ts'
 
-export const WINDOW_KINDS = ['main', 'session', 'editor', 'ceo'] as const
-/** The Fabric window kinds: the main shell, a detached session terminal, a detached file editor, and the CEO's popup
+export const WINDOW_KINDS = ['main', 'session', 'editor', 'ceo', 'canvas'] as const
+/** The Fabric window kinds: the main shell, a detached session terminal, a detached file editor, the canvas (ADR-0201),
+ *  and the CEO's popup
  *  (ADR-0197: the CEO's console, its composer and its voice call; its subject is the CEO's console, set again at each
  *  restart). */
 export type WindowKind = (typeof WINDOW_KINDS)[number]
@@ -46,7 +47,7 @@ export type RefusalReason = 'unregistered' | 'undeclared' | 'kind' | 'subject'
 
 const MAIN_ONLY: ChannelRule = { main: 'any' }
 /** The boot every window runs: its settings, the persona provider, which window it is, crash reports. */
-const EVERY_WINDOW: ChannelRule = { main: 'any', session: 'any', editor: 'any', ceo: 'any' }
+const EVERY_WINDOW: ChannelRule = { main: 'any', session: 'any', editor: 'any', ceo: 'any', canvas: 'any' }
 const MAIN_AND_OWN_SESSION: ChannelRule = { main: 'any', session: 'own' }
 /** What a console view reads and types (`TerminalView.tsx`): a session window's subject is its session, the CEO popup's
  *  the CEO's console (ADR-0197). Stopping or dismissing a console stays the session window's and the main window's. */
@@ -56,6 +57,10 @@ const MAIN_AND_CEO: ChannelRule = { main: 'any', ceo: 'any' }
 /** The voice call is the popup's alone: its window is the one given the microphone and the realtime socket. */
 const CEO_ONLY: ChannelRule = { ceo: 'any' }
 const MAIN_AND_OWN_FILE: ChannelRule = { main: 'any', editor: 'own' }
+/** The canvas window (ADR-0201): its subject is its canvas id; it reads, writes and answers for that canvas alone. */
+const OWN_CANVAS: ChannelRule = { canvas: 'own' }
+/** Opening a canvas: the menu's action lives in main, the main window and the CEO's popup may ask for it. */
+const MAIN_AND_CEO_OPEN_CANVAS: ChannelRule = { main: 'any', ceo: 'any', canvas: 'any' }
 
 /**
  * One rule per channel, measured 2026-10-11 against what each window's renderer calls today: a session
@@ -272,7 +277,13 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   ceoAgentVoiceKeySet: MAIN_AND_CEO,
   ceoAgentVoiceKeyClear: MAIN_ONLY,
   ceoAgentChanged: MAIN_AND_CEO,
-  ceoAgentDraft: MAIN_AND_CEO
+  ceoAgentDraft: MAIN_AND_CEO,
+  canvasOpen: MAIN_AND_CEO_OPEN_CANVAS,
+  canvasLoad: OWN_CANVAS,
+  canvasSave: OWN_CANVAS,
+  canvasReady: OWN_CANVAS,
+  canvasAnswer: OWN_CANVAS,
+  canvasCommand: OWN_CANVAS
 }
 
 /** Channel value (`feed:replay`) → its key, so a rule is found from what Electron hands the wrapper. */

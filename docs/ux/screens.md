@@ -104,6 +104,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-88 | История | FLW-93, FLW-95, FLW-97 | none — interactive HTML | built | `apps/desktop/src/renderer/src/launch/HistoryScreen.tsx` |
 | SCR-89 | Настройки | FLW-40, FLW-93 | none — interactive HTML | built | apps/desktop/src/renderer/src/launch/SettingsScreen.tsx |
 | SCR-90 | Создать | FLW-93, FLW-96, FLW-98 | none — interactive HTML | built | `apps/desktop/src/renderer/src/start/StartPaths.tsx` |
+| SCR-91 | Канвас | FLW-101 | none | built | `apps/desktop/src/renderer/src/canvas/CanvasApp.tsx` |
 
 ## Design system
 
@@ -2384,3 +2385,24 @@ place (ADR-0160). The screens they replace carry a dated note.
 - **Resources:** SCR-71…SCR-74 (built today, redrawn here); [onboarding plan](../evidence/plans/2026-10-13-onboarding-036/README.md)
 - **Status:** built
 - **Implementation tasks:** 0.3.7 wave 4
+
+### SCR-91: Канвас
+- **Used by:** FLW-101
+- **Purpose:** A board like an investigator's wall (ADR-0201): the person draws with the mouse, the CEO's designer draws by voice, and the voice looks at and highlights its parts while it speaks. Its own window over the app, one per canvas.
+- **Elements:** the Excalidraw editor (its tool bar: select, rectangle, diamond, ellipse, arrow, line, freehand, text, eraser; its zoom and undo); the canvas's name and its save state in the top bar («Сохранено», «Сохраняю…», «Канвас не сохранился»).
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | the window opened | none | the editor's own loading |
+  | empty | a canvas with nothing on it | none | the editor's welcome hints |
+  | success | a canvas read | none | what it held, where it was left |
+  | saving | the person or the designer changed it | none | «Сохраняю…» |
+  | saved | written to disk | none | «Сохранено» |
+  | error | not read or not written | none | «Канвас не сохранился» or «Канвас не прочитался» with the reason; the drawing stays in the window |
+  | drawn | a command from the call | none | the new elements, the view moved to them, a highlighted part outlined for a few seconds |
+- **Axes:** viewport: 1024, 1440; theme: dark, light; text: default; locale: ru, en
+- **Coverage:** apps/desktop/src/renderer/src/canvas/CanvasApp.tsx region `canvas-window`; apps/desktop/src/renderer/src/canvas/applyCommand.ts
+- **Scenarios:** SCN-190, SCN-191
+- **Resources:** [ADR-0201](../adr/0201-the-canvas-is-an-excalidraw-window-a-designer-draws-on.md)
+- **Status:** built
+- **Implementation tasks:** task 01c3a418

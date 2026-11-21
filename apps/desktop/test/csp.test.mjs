@@ -73,6 +73,24 @@ if (/setPermissionRequestHandler/.test(MAIN) && /permission !== 'media'/.test(MA
   ok('the microphone is granted to the CEO window alone')
 else fail('src/main/index.ts does not keep the microphone to the CEO window')
 
+// 5. ADR-0201 §2: the canvas's document carries the renderer's own policy, unchanged (it reaches nothing outside the app),
+//    and Excalidraw's fonts ship beside the pages, so the editor's fallback to esm.sh is never what draws its words.
+const CANVAS_PAGE = path.join(HERE, '..', 'out', 'renderer', 'canvas.html')
+if (!existsSync(CANVAS_PAGE)) fail('no built page at out/renderer/canvas.html — the canvas has no document of its own')
+else {
+  const canvas = readFileSync(CANVAS_PAGE, 'utf8').match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1] ?? ''
+  const main = existsSync(PAGE) ? (readFileSync(PAGE, 'utf8').match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1] ?? '') : ''
+  if (!canvas || canvas !== main) fail(`the canvas page's policy is not the renderer's: «${canvas}»`)
+  else ok('the canvas page carries the renderer\'s own policy')
+  const fonts = path.join(HERE, '..', 'out', 'renderer', 'excalidraw-assets', 'fonts', 'Excalifont')
+  if (!existsSync(fonts)) fail('Excalidraw\'s fonts were not copied beside the pages (out/renderer/excalidraw-assets/fonts)')
+  else ok('Excalidraw\'s fonts ship as the app\'s own files')
+  const index = readFileSync(PAGE, 'utf8')
+  if (/canvas|mount-/.test(index.match(/<script[^>]*src="([^"]+)"/)?.[1] ?? '')) fail('the main page loads the canvas\'s entry')
+}
+if (/APP_ENTRY[\s\S]{0,900}renderer\/canvas\.html/.test(MAIN)) ok('the canvas page is one of the app\'s own documents for the navigation guard')
+else fail('src/main/index.ts does not name canvas.html among the app\'s documents')
+
 if (failures) {
   console.error(`\ncsp: ${failures} probe(s) failed`)
   process.exit(1)

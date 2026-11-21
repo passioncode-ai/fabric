@@ -22,7 +22,8 @@ const ok = (m) => console.log('  ok   ' + m)
 const fail = (m) => { failures++; console.log('  FAIL ' + m) }
 
 let restarts = 0
-const t = menuTemplate({ closeActiveTab: () => {}, openExternal: () => {}, restart: () => { restarts++ }, label: (k) => 'L:' + k })
+let canvases = 0
+const t = menuTemplate({ closeActiveTab: () => {}, openExternal: () => {}, restart: () => { restarts++ }, openCanvas: () => { canvases++ }, label: (k) => 'L:' + k })
 const roles = new Set()
 const walk = (items) => {
   for (const i of items ?? []) {
@@ -74,6 +75,12 @@ claimants.length === 1
 
 // The 0.3.18 review UX-3: with the board's service on, Quit only hides Fabric, so the advice to restart it names an item
 // that truly restarts: one click that reaches index.ts#restartFabric, beside Quit.
+// ADR-0201: «Окно → Канвас» opens the canvas through the action it was given, on its own shortcut.
+const canvasItem = flat.find((i) => i.label === 'L:menu.canvas')
+if (canvasItem && typeof canvasItem.click === 'function') canvasItem.click()
+canvases === 1 && canvasItem.accelerator === 'CmdOrCtrl+Shift+K' && flat.filter((i) => i.accelerator === 'CmdOrCtrl+Shift+K').length === 1
+  ? ok('the Canvas item opens the canvas, on a shortcut no other item takes')
+  : fail('no Canvas item that calls openCanvas on its own shortcut: ' + JSON.stringify(canvasItem))
 const restartItem = flat.find((i) => i.label === 'L:menu.restart')
 if (restartItem && typeof restartItem.click === 'function') restartItem.click()
 restarts === 1

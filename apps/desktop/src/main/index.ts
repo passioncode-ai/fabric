@@ -48,6 +48,10 @@ import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
 import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
+import { createCanvasStore } from './canvasStore.ts'
+import { createCanvasHost, type CanvasHost } from './canvasHost.ts'
+import { designDiagram } from './canvasDesigner.ts'
+import { DEFAULT_CANVAS_ID, canvasVoiceTools, isCanvasId } from '../shared/canvas.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
 import { CEO_PROJECT_NAME, ceoLaunchExtras, type CeoAttachment } from '../shared/ceoAgent.ts'
 import { writePersonBusiness } from './projectOnboarding.ts'
@@ -73,7 +77,7 @@ import type { StringKey } from '../renderer/src/i18n/en.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { readSessionHistory } from '../shared/sessionHistory.ts'
 import { externalLink, isAppDocument, type AppEntry } from './navigationGuard.ts'
-import { createWindowRegistry, type IpcWindowRefused } from './windowRegistry.ts'
+import { createWindowRegistry, sendIfReceives, type IpcWindowRefused } from './windowRegistry.ts'
 import { windowKindArg } from '../shared/ipcWindowPolicy.ts'
 import { shouldReload } from './rendererRecovery.ts'
 import { createBundleCompiler } from './sessionBundle'
@@ -282,7 +286,8 @@ const APP_ENTRY: AppEntry = {
   devOrigin: devServer(),
   indexFile: path.join(import.meta.dirname, '../renderer/index.html'),
   // ADR-0197: the CEO's popup is the renderer's second document, with a policy of its own (`electron.vite.config.ts`).
-  otherFiles: [path.join(import.meta.dirname, '../renderer/ceo.html')]
+  // ADR-0201: the canvas is its third, so the editor loads in its window alone.
+  otherFiles: [path.join(import.meta.dirname, '../renderer/ceo.html'), path.join(import.meta.dirname, '../renderer/canvas.html')]
 }
 
 // #region ipc-window-authority — docs: docs/adr/0020-provider-views-are-sandboxed-extensions-and-layout-is-host-owned.md#provider-views-are-sandboxed-extensions-workspace-layout-is-host-owned
@@ -538,6 +543,9 @@ let ceoWindow: BrowserWindow | null = null
 /** A draft the popup takes when it opens (Help's example, the home composer's words not yet sent). */
 let ceoDraft: string | null = null
 const ceoVault = createObservatoryVault()
+/** The canvas (ADR-0201): its windows by canvas id, and the host that runs the call's canvas tools; null until registerIpc. */
+const canvasWindows = new Map<string, BrowserWindow>()
+let canvasHost: CanvasHost | null = null
 
 // #region fabric-link-handler — docs: docs/ux/scenarios.md#scn-142-open-fabric-from-a-products-button-in-that-products-project-and-go-on-in-a-coding-agent
 /**
@@ -754,7 +762,7 @@ const sessionWindows = new Map<string, BrowserWindow>()
 const fileWindows = new Map<string, BrowserWindow>()
 
 function allWindows(): BrowserWindow[] {
-  return [mainWindow, ceoWindow, ...sessionWindows.values(), ...fileWindows.values()].filter(
+  return [mainWindow, ceoWindow, ...canvasWindows.values(), ...sessionWindows.values(), ...fileWindows.values()].filter(
     (w): w is BrowserWindow => !!w && !w.isDestroyed()
   )
 }
@@ -4748,7 +4756,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // The menu speaks the language the windows speak, from the moment it is chosen.
     // A menu that fails to rebuild must not fail a write that is already on disk (iteration 2, ER-8).
     if (next.locale !== undefined) {
-      try { installMenu(written.settings.locale, windowKinds, restartFromMenu) } catch (e) { ops.failed('settings.menu', e) }
+      try { installMenu(written.settings.locale, windowKinds, restartFromMenu, () => openCanvasWindow(DEFAULT_CANVAS_ID)) } catch (e) { ops.failed('settings.menu', e) }
     }
     return written
   })
@@ -5126,6 +5134,38 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
 
   handle(IPC.windowsOpenSession, (_e, sessionId: string): Returns<FabricApi['windows']['openSession']> => openSessionWindow(sessionId))
 
+  // #region canvas-wiring — docs: docs/adr/0201-the-canvas-is-an-excalidraw-window-a-designer-draws-on.md#decision
+  // ADR-0201: the canvas's file in `<userData>/canvases`, its window, and the host that runs the call's canvas tools.
+  const canvases = createCanvasStore(path.join(app.getPath('userData'), 'canvases'))
+  const recordCanvas = (op: string, detail: Record<string, unknown>): void =>
+    ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } })
+  canvasHost = createCanvasHost({
+    window: {
+      open: (id) => openCanvasWindow(id),
+      send: (id, requestId, command) => sendIfReceives(windowKinds, canvasWindows.get(id), IPC.canvasCommand, id, requestId, command)
+    },
+    design: (idea, existing) => designDiagram(idea, existing, readSettings().locale, { vault: ceoVault, fetch }),
+    record: recordCanvas,
+    newId: () => randomUUID()
+  })
+  handle(IPC.canvasOpen, (_e, id: unknown): Returns<FabricApi['canvas']['open']> => { openCanvasWindow(isCanvasId(id) ? id : DEFAULT_CANVAS_ID) })
+  handle(IPC.canvasLoad, (_e, id: unknown): Returns<FabricApi['canvas']['load']> => {
+    const r = canvases.read(id)
+    if (!r.ok) recordCanvas('canvas.read', { outcome: 'failed', reason: r.reason })
+    return r
+  })
+  handle(IPC.canvasSave, (_e, id: unknown, scene: unknown): Returns<FabricApi['canvas']['save']> => {
+    const r = canvases.write(id, scene)
+    // A save runs as the person draws: only a failure is a line of its own.
+    if (!r.ok) recordCanvas('canvas.write', { outcome: 'failed', reason: r.reason, ...(r.detail ? { detail: r.detail } : {}) })
+    return r
+  })
+  handle(IPC.canvasReady, (_e, id: string): Returns<FabricApi['canvas']['ready']> => { canvasHost?.ready(id) })
+  handle(IPC.canvasAnswer, (_e, id: string, requestId: unknown, answer: unknown): Returns<FabricApi['canvas']['answer']> => {
+    if (typeof requestId === 'string') canvasHost?.answered(id, requestId, answer)
+  })
+  // #endregion canvas-wiring
+
   // #region ceo-agent-wiring — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#decision
   // ADR-0197: the CEO is one console this process keeps, in `<userData>/ceo`, walked over its own runner order; its
   // session control is the operations below, given to its console's surface (`hubPorts.ts#HubCeo`) and its voice call.
@@ -5246,7 +5286,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (!token.ok) return { ok: false, reason: token.reason }
     const locale = readSettings().locale
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
-      instructions: voiceInstructions(locale), voice: 'eve', tools: [...ceoVoiceTools(), ASK_CEO_TOOL] }
+      instructions: voiceInstructions(locale), voice: 'eve', tools: [...ceoVoiceTools(), ASK_CEO_TOOL, ...canvasVoiceTools()] }
   })
   // The person's own xAI key (the operator, 2026-11-19): set in the CEO window, or dropped by a coding agent.
   const voiceKeys = createVoiceKeyStore(path.join(app.getPath('userData'), 'ceo-voice'), safeStorage) // outside the CEO's own folder: its runner never reads the key (0.3.24 review iteration 2, DA-11)
@@ -5268,6 +5308,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const r = await agent.send(text, [])
       return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console' : undefined }
     }
+    // ADR-0201: the canvas's tools, run by the canvas host; the rest are the sessions'.
+    const drawn = await canvasHost?.runTool(tool, args)
+    if (drawn) return drawn
     if (!tool.startsWith('session_')) return { ok: false, reason: `unknown tool ${tool}` }
     return ceoOperations!.run(tool.slice('session_'.length), args)
   })
@@ -5308,6 +5351,40 @@ function openCeoWindow(): void {
   })
 }
 // #endregion ceo-window
+
+// #region canvas-window — docs: docs/adr/0201-the-canvas-is-an-excalidraw-window-a-designer-draws-on.md#decision
+/** A canvas's window (ADR-0201 §2): one per canvas, its own document (`canvas.html`) with the renderer's policy, its
+ *  kind `canvas` and the canvas id as its subject. Opening an open canvas brings its window to the front. */
+function openCanvasWindow(canvasId: string): void {
+  if (!isCanvasId(canvasId)) return
+  showForService()
+  const open = canvasWindows.get(canvasId)
+  if (open && !open.isDestroyed()) {
+    if (open.isMinimized()) open.restore()
+    open.show()
+    open.focus()
+    return
+  }
+  const w = new BrowserWindow({
+    ...WINDOW_CHROME,
+    width: 1280, height: 860, minWidth: 640, minHeight: 480,
+    title: 'Канвас',
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('canvas')] }
+  })
+  canvasWindows.set(canvasId, w)
+  const contentsId = w.webContents.id
+  windowKinds.register(contentsId, { kind: 'canvas', subject: canvasId })
+  const query = `canvas=${encodeURIComponent(canvasId)}`
+  if (devServer()) void w.loadURL(new URL(`canvas.html?${query}`, devServer()!.endsWith('/') ? devServer()! : `${devServer()}/`).toString())
+  else void w.loadFile(path.join(import.meta.dirname, '../renderer/canvas.html'), { search: query })
+  w.on('closed', () => {
+    windowKinds.forget(contentsId)
+    revokeWindowRoots(contentsId)
+    canvasHost?.closed(canvasId)
+    if (canvasWindows.get(canvasId) === w) canvasWindows.delete(canvasId)
+  })
+}
+// #endregion canvas-window
 
 function rendererTarget(query: string): { url?: string; file?: string; search: string } {
   // A packaged build loads only its own files, whatever it inherited (0.3.2 verification ER-6).
@@ -5488,7 +5565,7 @@ app.whenReady().then(async () => {
   // frame. Built from Electron's roles so copy, paste, quit and the window
   // controls survive: replacing the default with a hand-written minimum takes
   // Cmd+C away from every field in the product.
-  installMenu(readSettings().locale, windowKinds, restartFromMenu)
+  installMenu(readSettings().locale, windowKinds, restartFromMenu, () => openCanvasWindow(DEFAULT_CANVAS_ID))
   // The fabric:// scheme (DEC-0040): a development run registers the electron binary with this app's entry.
   try {
     if (process.defaultApp && process.argv[1]) app.setAsDefaultProtocolClient('fabric', process.execPath, [path.resolve(process.argv[1])])

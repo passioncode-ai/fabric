@@ -1,0 +1,8 @@
+/* The canvas window (ADR-0201): the editor fills it; the save state sits in Excalidraw's top-right slot. */
+html, body, #root { height: 100%; margin: 0; }
+.canvas-root { position: fixed; inset: 0; }
+/* The window has no title bar of its own (WINDOW_CHROME hiddenInset): leave room for the traffic lights. */
+.canvas-root .excalidraw .App-menu_top { padding-top: 18px; }
+.canvas-state { font: 500 12px/1.4 Inter, system-ui, sans-serif; padding: 6px 10px; border-radius: var(--app-radius-control); color: var(--app-muted); background: var(--app-panel); white-space: nowrap; }
+.canvas-state.is-error { color: var(--state-danger); }
+.canvas-problem { position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 10; font: 500 13px/1.4 Inter, system-ui, sans-serif; color: var(--state-danger); background: var(--app-panel); padding: var(--space-2) var(--space-4); border-radius: var(--app-radius-panel); box-shadow: var(--shadow-modal); }

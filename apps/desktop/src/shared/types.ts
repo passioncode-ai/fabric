@@ -1,4 +1,5 @@
 import type { ActAnswer, ActHistoryPage, ActHistoryQuery } from './acts.ts'
+import type { CanvasAnswer, CanvasCommand, CanvasRead, CanvasWrite } from './canvas.ts'
 import { CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT, type CeoAttachment, type CeoSendResult, type CeoStatus, type CeoVoiceSession } from './ceoAgent.ts'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from './boardResolved.ts'
 import type { ReleaseCommandResult, ReleaseEntry } from './releases.ts'
@@ -1827,6 +1828,18 @@ export interface FabricApi {
     onChanged(cb: (status: CeoStatus) => void): () => void
     onDraft(cb: () => void): () => void
   }
+  /**
+   * The canvas (ADR-0201): its own window (`canvas.html`), opened from the menu, the CEO's popup or the voice. The canvas
+   * window reads and writes its own canvas only, says when it can take commands, and answers each command main sends it.
+   */
+  canvas: {
+    open(canvasId?: string | null): Promise<void>
+    load(canvasId: string): Promise<CanvasRead>
+    save(canvasId: string, scene: string): Promise<CanvasWrite>
+    ready(canvasId: string): Promise<void>
+    answer(canvasId: string, requestId: string, answer: CanvasAnswer): Promise<void>
+    onCommand(cb: (canvasId: string, requestId: string, command: CanvasCommand) => void): () => void
+  }
   windows: {
     openSession(sessionId: string): Promise<void>
     openFile(filePath: string): Promise<void>
@@ -2070,5 +2083,11 @@ export const IPC = {
   ceoAgentVoiceKeySet: 'ceo-agent:voice-key-set',
   ceoAgentVoiceKeyClear: 'ceo-agent:voice-key-clear',
   ceoAgentChanged: 'ceo-agent:changed',
-  ceoAgentDraft: 'ceo-agent:draft'
+  ceoAgentDraft: 'ceo-agent:draft',
+  canvasOpen: 'canvas:open',
+  canvasLoad: 'canvas:load',
+  canvasSave: 'canvas:save',
+  canvasReady: 'canvas:ready',
+  canvasAnswer: 'canvas:answer',
+  canvasCommand: 'canvas:command'
 } as const

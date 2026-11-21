@@ -189,6 +189,8 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-183 | The CEO manages the sessions of this computer | Floating CEO | P-01 | ST-037, FLW-63, SCR-64 | implemented | unobserved |
 | SCN-184 | Call the CEO and talk | Floating CEO | P-01 | ST-046, FLW-63, SCR-64 | implemented | unobserved |
 | SCN-185 | The CEO keeps answering when its first agent cannot | Floating CEO | P-01 | ST-046, FLW-63 | implemented | unobserved |
+| SCN-190 | Draw on the canvas with the mouse | Canvas | P-01 | ST-052, FLW-101, SCR-91 | implemented | unobserved |
+| SCN-191 | The canvas is drawn and shown by voice | Canvas | P-01 | ST-052, FLW-101, SCR-91 | implemented | unobserved |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -4669,4 +4671,48 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Telemetry:** ops log `ceo.agent.*`.
 - **Status:** implemented (2026-11-18, ADR-0197).
 - **Coverage:** `apps/desktop/src/main/ceoAgent.ts` (`start`, `onOutput`, `onExit`, `LIMIT_SAID`), `apps/desktop/src/shared/ceoAgent.ts#ceoRunnersOf`, `#ceoModelsOf`, `#ceoLaunchExtras`, `apps/desktop/src/main/acpShell.ts` (region `acp-session-models`); tests `apps/desktop/test/ceo-agent.test.mjs` («MANDATORY FALLBACK», «THE FLOOR», «a usage limit sets the runner aside», «a console that ends at its start»), `apps/desktop/test/acp-shell.test.mjs` («ADR-0197»).
+- **Product:** unobserved
+
+### SCN-190: Draw on the canvas with the mouse
+- **Persona:** P-01
+- **Feature:** Canvas
+- **Traces:** ST-052, FLW-101, SCR-91 (JTBD-02)
+- **Entry point:** «Окно → Канвас» in the app menu (Cmd+Shift+K), or «открой канвас» in the CEO's call.
+- **Preconditions:** Fabric is open.
+- **Steps:**
+  1. Operator opens the canvas -> its window opens over the app with what the canvas held last time, or the editor's empty hints.
+  2. Operator draws a block, a note and an arrow between them with the mouse -> «Сохраняю…», then «Сохранено» in the top bar.
+  3. Operator closes the window and opens the canvas again -> the drawing is there, as it was left.
+- **Expected result:** the canvas keeps what the operator drew, on this computer.
+- **Alt paths:** opening the canvas while it is open brings its window to the front, one window per canvas.
+- **UI elements:** the editor's tool bar; the save state in the top bar.
+- **States covered:** loading, empty, success, saving, saved, error
+- **Errors & recovery:** a canvas that cannot be written says «Канвас не сохранился» with the reason, keeps the drawing in the window and tries again at the next change; a file that is not a canvas opens empty and is not overwritten until the person draws.
+- **Design rationale:** the owner, 2026-11-19 (paraphrased): a board like an investigator's or a journalist's, where the mouse works too. ADR-0201 picks Excalidraw for the editor.
+- **Telemetry:** ops log `canvas.*`.
+- **Status:** implemented (2026-11-19, ADR-0201)
+- **Coverage:** `apps/desktop/src/renderer/src/canvas/CanvasApp.tsx#CanvasApp`, `apps/desktop/src/main/canvasStore.ts#createCanvasStore`, `apps/desktop/src/main/canvasHost.ts#createCanvasHost`; tests `apps/desktop/test/canvas-store.test.mjs`, `apps/desktop/test/canvas-host.test.mjs`, `apps/desktop/test/ipc-window-policy.test.mjs`.
+- **Product:** unobserved
+
+### SCN-191: The canvas is drawn and shown by voice
+- **Persona:** P-01
+- **Feature:** Canvas
+- **Traces:** ST-052, FLW-101, SCR-91 (JTBD-02)
+- **Entry point:** the CEO's call («Позвонить»), SCN-184.
+- **Preconditions:** a call is on; for the designer, Fabric's OpenRouter key is in Observatory's vault.
+- **Steps:**
+  1. Operator says «открой канвас» -> the canvas opens.
+  2. Operator says «нарисуй схему, как заказ доходит от звонка до сессии» -> the voice says it hands it to the designer; within seconds a scheme of blocks and arrows appears, laid out left to right.
+  3. The voice walks through the scheme -> at each part the canvas moves to it and outlines it while the voice says what it is.
+  4. Operator says «добавь заметку: проверить цену» and «соедини её с оплатой» -> the note and the arrow appear at once.
+  5. Operator says «покажи всё» -> the view fits the whole canvas.
+- **Expected result:** the idea is on the canvas, drawn while the operator spoke, and the operator was shown each part; work in projects still goes to the CEO.
+- **Alt paths:** «сделай задачу ...» in the same call goes to the CEO's console (`ask_ceo`), not to the canvas. A short scheme the voice composes itself is drawn without the designer (`canvas_draw`).
+- **UI elements:** the call panel's lines show each canvas tool used («Инструмент: canvas_design»); the canvas.
+- **States covered:** drawn, error
+- **Errors & recovery:** a part named that matches nothing, or several things equally, is said back with the names that exist; no key for the designer, a refusal or an unreadable answer is said aloud and nothing is drawn; a canvas that does not answer within 10 s is said as such.
+- **Design rationale:** the owner, 2026-11-19 (paraphrased): the assistant hands tasks to the CEO and quick drafts to the designer on the canvas, and walks him through it; some voice commands act at once, some go through the editor that draws.
+- **Telemetry:** ops log `ceo.voice.tool`, `canvas.design`, `canvas.command`.
+- **Status:** implemented (2026-11-19, ADR-0201)
+- **Coverage:** `apps/desktop/src/shared/canvas.ts#parseCanvasTool`, `apps/desktop/src/shared/canvas.ts#layoutDiagram`, `apps/desktop/src/shared/canvas.ts#resolveRef`, `apps/desktop/src/main/canvasDesigner.ts#designDiagram`, `apps/desktop/src/renderer/src/canvas/applyCommand.ts#applyCommand`, `apps/desktop/src/main/ceoVoice.ts#voiceInstructions`; tests `apps/desktop/test/canvas-commands.test.mjs`, `apps/desktop/test/canvas-designer.test.mjs`.
 - **Product:** unobserved

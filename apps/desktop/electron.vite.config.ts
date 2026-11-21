@@ -1,6 +1,7 @@
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
-import { resolve } from 'node:path'
+import { resolve, join, normalize, sep } from 'node:path'
+import { cpSync, createReadStream, existsSync, statSync } from 'node:fs'
 
 // Only the native module stays external (packaged as real node_modules,
 // asar-unpacked); pure-JS deps are bundled into out/main so the packaged app
@@ -44,6 +45,34 @@ function contentSecurityPolicy() {
     transformIndexHtml: (html: string, ctx: { filename?: string; path?: string }) => {
       const policy = /ceo\.html$/.test(ctx.filename ?? ctx.path ?? '') ? CEO_CSP : RENDERER_CSP
       return html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="${policy}" />`)
+    }
+  }
+}
+
+/**
+ * Excalidraw's fonts as the app's own files (ADR-0201 §2): the canvas page sets `window.EXCALIDRAW_ASSET_PATH` to
+ * `excalidraw-assets/`, so the editor never falls back to `esm.sh`, which the page's policy refuses anyway. Built: the
+ * package's `dist/prod/fonts` copied beside the pages. Served: the same folder answered by the dev server.
+ */
+const EXCALIDRAW_DIST = resolve(import.meta.dirname, 'node_modules/@excalidraw/excalidraw/dist/prod')
+export const EXCALIDRAW_ASSETS = 'excalidraw-assets'
+function excalidrawAssets() {
+  let outDir = ''
+  return {
+    name: 'fabric-excalidraw-assets',
+    configResolved: (config: { build: { outDir: string } }) => { outDir = config.build.outDir },
+    configureServer(server: { middlewares: { use: (fn: (req: { url?: string }, res: { setHeader: (k: string, v: string) => void; end: () => void; statusCode: number } & NodeJS.WritableStream, next: () => void) => void) => void } }) {
+      server.middlewares.use((req, res, next) => {
+        const prefix = `/${EXCALIDRAW_ASSETS}/`
+        if (!req.url?.startsWith(prefix)) return next()
+        const file = normalize(join(EXCALIDRAW_DIST, decodeURIComponent(req.url.slice(prefix.length).split('?')[0]!)))
+        if (!file.startsWith(EXCALIDRAW_DIST + sep) || !existsSync(file) || !statSync(file).isFile()) { res.statusCode = 404; res.end(); return }
+        res.setHeader('content-type', file.endsWith('.woff2') ? 'font/woff2' : 'application/octet-stream')
+        createReadStream(file).pipe(res)
+      })
+    },
+    closeBundle() {
+      cpSync(join(EXCALIDRAW_DIST, 'fonts'), join(outDir, EXCALIDRAW_ASSETS, 'fonts'), { recursive: true })
     }
   }
 }
@@ -93,13 +122,15 @@ export default defineConfig({
     }
   },
   renderer: {
-    plugins: [react(), contentSecurityPolicy()],
+    plugins: [react(), contentSecurityPolicy(), excalidrawAssets()],
     // ADR-0197: the CEO popup is the renderer's second document, so its policy is its own.
     build: {
       rollupOptions: {
         input: {
           index: resolve(import.meta.dirname, 'src/renderer/index.html'),
-          ceo: resolve(import.meta.dirname, 'src/renderer/ceo.html')
+          ceo: resolve(import.meta.dirname, 'src/renderer/ceo.html'),
+          // ADR-0201: the canvas is the third, so Excalidraw loads in its window alone.
+          canvas: resolve(import.meta.dirname, 'src/renderer/canvas.html')
         }
       }
     }

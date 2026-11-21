@@ -321,6 +321,18 @@ export function createApi(ipc: BridgeIpc): FabricApi {
         return () => ipc.removeListener(IPC.terminalExit, listener)
       }
     },
+    canvas: {
+      open: (canvasId) => ipc.invoke(IPC.canvasOpen, canvasId ?? null),
+      load: (canvasId) => ipc.invoke(IPC.canvasLoad, canvasId),
+      save: (canvasId, scene) => ipc.invoke(IPC.canvasSave, canvasId, scene),
+      ready: (canvasId) => ipc.invoke(IPC.canvasReady, canvasId),
+      answer: (canvasId, requestId, answer) => ipc.invoke(IPC.canvasAnswer, canvasId, requestId, answer),
+      onCommand: (cb) => {
+        const listener = (_e: unknown, canvasId: string, requestId: string, command: Parameters<typeof cb>[2]): void => cb(canvasId, requestId, command)
+        ipc.on(IPC.canvasCommand, listener)
+        return () => ipc.removeListener(IPC.canvasCommand, listener)
+      }
+    },
     ceoAgent: {
       status: () => ipc.invoke(IPC.ceoAgentStatus),
       ensure: () => ipc.invoke(IPC.ceoAgentEnsure),

@@ -9,6 +9,7 @@
  */
 import type { VaultPort } from './observatoryVault.ts'
 import type { CeoVoiceProblem } from '../shared/ceoAgent.ts'
+import { canvasInstructions } from '../shared/canvas.ts'
 
 export const XAI_KEY_SLOT = { project: 'fabric', env: 'prod' as const, name: 'XAI_API_KEY' }
 export const XAI_SECRETS_URL = 'https://api.x.ai/v1/realtime/client_secrets'
@@ -22,8 +23,12 @@ export interface VoiceToken { ok: true; value: string; expiresAt: number; url: s
 /** A refusal: its code for the window, its raw detail for the operations log only (ER-7). */
 export type VoiceTokenAnswer = VoiceToken | { ok: false; reason: CeoVoiceProblem; detail: string }
 
-/** The call's instructions: who speaks, in which language, and which tools it has. */
+/** The call's instructions: who speaks, in which language, and which tools it has; the canvas's part last (ADR-0201 §6). */
 export function voiceInstructions(locale: string): string {
+  return `${sessionsInstructions(locale)} ${canvasInstructions(locale)}`
+}
+
+function sessionsInstructions(locale: string): string {
   return locale === 'en'
     ? 'You are the voice of Fabric\'s CEO agent on the owner\'s computer. Speak English, briefly. You can list, read, type into, start, stop, continue and open the coding sessions of this computer with your tools, and hand a longer request to the CEO console with ask_ceo. Before stopping a session, read it and say why. Never write an em dash in what you say.'
     : 'Ты голос CEO-агента Fabric на компьютере владельца. Говори по-русски, коротко. Своими инструментами ты видишь, читаешь, вводишь текст, запускаешь, останавливаешь, продолжаешь и открываешь сессии разработки этого компьютера, а длинную просьбу передаешь CEO в консоль инструментом ask_ceo. Прежде чем остановить сессию, прочитай ее и скажи почему. Никогда не ставь длинное тире.'

@@ -3104,3 +3104,33 @@ flowchart TD
 - **Scenarios:** SCN-174
 - **Implementation tasks:** 0.3.11 (the template and the way back), 0.3.12 S4c (the scroll kept on return), 0.3.12 S7, CO-401 (what holds the task and how it moved), the 0.3.12 review (one sentence for an empty brief, the kanban's words for its moves)
 - **Amended 2026-10-24 (0.3.12 release review, iteration 1, DO-5):** the failure node is what ships: a banner saying why the task was not read, with the way back; there is no «Повторить», and the node «Задача не прочитана · Повторить» it replaced was never built.
+
+### FLW-101: Draw on the canvas and have it drawn by voice
+- **Traces:** ST-052; SCN-190, SCN-191 (JTBD-02)
+- **Goal:** an idea lands on a canvas the person and the CEO's designer both draw on, and the voice walks the person through it.
+- **Entry points:** «Окно → Канвас» (Cmd+Shift+K); «открой канвас» or «нарисуй ...» in the CEO's call.
+- **Success exit:** the canvas holds the drawing, saved; the person has been shown each part.
+- **Task analysis:** 1. Open the canvas. 2. Draw with the mouse, or say what to draw. 3. Listen while the voice shows each part. 4. Close; open again later with what it held.
+- **Flow:**
+
+```mermaid
+flowchart TD
+  M[Menu: Окно → Канвас] --> C[Screen: SCR-91 Канвас]
+  V[CEO call: «открой канвас», «нарисуй ...»] --> C
+  C -->|mouse| D[Notes, blocks, arrows, freehand]
+  D --> S[Saved to disk as the person draws]
+  V -->|simple act| A[Added, connected, looked at, highlighted at once]
+  V -->|a whole idea| G{Designer answered?}
+  G -->|yes| L[The scheme laid out; the voice walks through it]
+  G -->|no key, refused, unreadable| R[The refusal said aloud; nothing drawn]
+  A --> C
+  L --> C
+  S -->|unwritable| E[«Канвас не сохранился» with the reason; the drawing kept in the window]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-91 Канвас | loading, empty, success, saving, saved, error, drawn |
+- **Scenarios:** SCN-190, SCN-191
+- **Implementation tasks:** task 01c3a418 (first slice, ADR-0201)

@@ -17,6 +17,8 @@ export interface MenuActions {
   /** «Перезапустить Fabric» (the 0.3.18 review UX-3): with the board's service on, Quit only hides Fabric, so this is
    *  the one item that starts it again (index.ts#restartFabric). */
   restart: () => void
+  /** «Окно → Канвас» (ADR-0201): open the canvas's window, or bring it to the front. */
+  openCanvas: () => void
   /** Every label, in the operator's language (0.3.3): `menu.ts` passes the
    *  registry's translator, so this file still imports nothing executable. */
   label: (key: MenuLabel) => string
@@ -28,7 +30,7 @@ export type MenuLabel =
   | 'menu.closeTab' | 'menu.closeWindow'
   | 'menu.undo' | 'menu.redo' | 'menu.cut' | 'menu.copy' | 'menu.paste' | 'menu.pasteAndMatchStyle' | 'menu.delete' | 'menu.selectAll'
   | 'menu.reload' | 'menu.forceReload' | 'menu.toggleDevTools' | 'menu.resetZoom' | 'menu.zoomIn' | 'menu.zoomOut' | 'menu.togglefullscreen'
-  | 'menu.minimize' | 'menu.zoom' | 'menu.front' | 'menu.fabricOnSite'
+  | 'menu.minimize' | 'menu.zoom' | 'menu.front' | 'menu.fabricOnSite' | 'menu.canvas'
   | 'menu.speech' | 'menu.startSpeaking' | 'menu.stopSpeaking'
 
 // WHY THE MENUS ARE SPELLED OUT rather than taken as `fileMenu` / `editMenu` / `viewMenu` roles: a menu
@@ -114,6 +116,8 @@ export function menuTemplate(actions: MenuActions): Electron.MenuItemConstructor
       submenu: [
         item('minimize', 'menu.minimize'),
         item('zoom', 'menu.zoom'),
+        sep,
+        { label: l('menu.canvas'), accelerator: 'CmdOrCtrl+Shift+K', click: actions.openCanvas },
         ...(isMac ? [sep, item('front', 'menu.front')] : [])
       ]
     },

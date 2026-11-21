@@ -1192,6 +1192,7 @@ export const en = {
   'menu.minimize': "Minimize",
   'menu.zoom': "Zoom",
   'menu.front': "Bring All to Front",
+  'menu.canvas': "Canvas",
   'menu.fabricOnSite': "Fabric on PassionCode.ai",
   'menu.speech': "Speech",
   'menu.startSpeaking': "Start Speaking",
@@ -3600,6 +3601,20 @@ export const en = {
   'ceoAgent.openWindow': "Open the console in a window",
   'act.ceo.session.start': "CEO started {agent} in {project}: {reason}",
   'act.ceo.session.stop': "CEO stopped {agent} in {project}: {reason}",
+  'canvas.title': "Canvas",
+  'canvas.state.loading': "Opening…",
+  'canvas.state.saved': "Saved",
+  'canvas.state.saving': "Saving…",
+  'canvas.state.unsaved': "Changes not saved yet",
+  'canvas.state.error': "The canvas was not saved",
+  'canvas.read.bad-id': "This canvas has a name Fabric cannot keep.",
+  'canvas.read.not-a-canvas': "The canvas file is not a canvas. It is opened empty and kept as it is until you draw.",
+  'canvas.read.too-large': "The canvas file is larger than 20 MB, so it was not opened. It is kept as it is until you draw.",
+  'canvas.read.unreadable': "The canvas could not be read. It is opened empty and kept as it is until you draw.",
+  'canvas.write.bad-id': "The canvas was not saved: its name is not one Fabric can keep.",
+  'canvas.write.not-a-canvas': "The canvas was not saved: what was drawn could not be written as a canvas.",
+  'canvas.write.too-large': "The canvas was not saved: it is larger than 20 MB.",
+  'canvas.write.unwritable': "The canvas was not saved: Fabric could not write to its folder. It tries again at your next change.",
 } as const
 
 export type StringKey = keyof typeof en

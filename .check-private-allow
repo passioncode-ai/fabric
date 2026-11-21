@@ -51,3 +51,6 @@ P3:docs/reports/2026-10-13-resource-admission-contract/raw/n021/before-test.mjs:
 P3:docs/reports/2026-10-13-resource-admission-contract/raw/n021/n021.patch:73de225f29dce8dc
 P3:docs/reports/product.html:967070e0538928f8
 P3:scripts/product/renderers.mjs:967070e0538928f8
+# Reviewed 2026-11-19 (ADR-0201): the P2 in pnpm-lock.yaml is npm's deprecation notice of an old glob, quoting
+# its author's public address, in a dependency Excalidraw brings; third-party package metadata, not private text.
+P2:pnpm-lock.yaml:b0373516d594ddd1
