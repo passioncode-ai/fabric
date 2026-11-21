@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `SP-A1-ROWS` · docs/sp-a1-backlog-rows → main · fast-forward
+- files: `docs/evidence/specs/2026-08-16-software-fabric-carryover.md` (CO-616 to CO-618, the next id), `docs/evidence/backlog.md` (lane 12, the exposure count), `docs/reports/plan.json`, the map
+- conflicts: none
+- summary: fabric-workspace's board request `344e2405`, amendment A-1 (the owner's order No. 1, the self-learning spec pipeline): one carry-over row per Fabric SP, SP-03 (CO-616, build from 2026-11-28, target 2026-12-19), SP-07 (CO-617, inside SD-FAB-13) and SP-10 (CO-618, inside SD-FAB-07/SD-FAB-11); registers only, no code
+
 ### 2026-11-21 · `UPDATE-IN-PLACE` · fix/update-in-place → main · fast-forward (toward 0.3.27)
 - files: `scripts/install-mac-update.mjs`, `scripts/lib/install-mac-update.mjs`, test `install-mac-update` (in `scripts/ci.sh`), `docs/launch/release-mac.md#installing-an-update-on-a-mac`, CHANGELOG, the map, handoff `docs/handoffs/2026-11-21-package-4-paused/`
 - conflicts: none
