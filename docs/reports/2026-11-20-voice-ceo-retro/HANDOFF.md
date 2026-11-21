@@ -104,7 +104,10 @@ restart, in a new candidate read by run eleven. The plan reviewer also found tha
 (ADR-0205, 03:17) after the candidate, so a fast-forward landing is no longer possible (PL-67). The errors and data
 reviewers found the same blocker (ER-87, DA-62; the wake also restarts a failed CEO after a runner's hour), and the
 data reviewer found the new `xai-key` rule redacting hyphenated folder and branch names in a transcript's saved state
-(DA-64: keep `cwd` and `branch` unredacted, narrow the rule). The reports are kept outside the repository in `~/.cache/fabric-88/r10/` until they are
+(DA-64: keep `cwd` and `branch` unredacted, narrow the rule). `ci.sh fast` on `33aec0f4` then ended red: browser suites 25 of
+26, `screens-stand.browser.mjs` fails «console ru 1100: a control of the bar is cut» (the console's bottom bar with the
+system line of SCN-188 at 1100 px in Russian; the merged candidate's first run to reach the browser suites). It is the
+first gate to fix in the next candidate, beside UX-81; log `~/.cache/fabric-88/ci-33aec0f4.log`. The reports are kept outside the repository in `~/.cache/fabric-88/r10/` until they are
 stored with the run.
 
 **Next task, only on the CEO's signal with the reconciler's decision.** If 0.3.27 goes ahead: fix UX-81 (above) and decide on `608f5416` (take it into the candidate, as «Выпустить с main»
