@@ -66,6 +66,12 @@ the console line, the dictation tail).
   as Mac Roman. A console with no locale of its own now gets `LC_CTYPE=en_US.UTF-8`; one the person set is kept, and
   the language of messages is not touched (`main/sessionEnv.ts#UTF8_CTYPE`). Text already copied broken stays broken:
   copy it again after the update.
+- **An agent asks the person only what the person alone can say.** The operator, 2026-11-21: strategy (the vision,
+  the concept) is the person's and is always asked; tactics the agent decides itself; what the agent knows better or
+  can find it never asks; a question goes only where the agent is unsure or the person knows better, weighed against
+  the person's expertise in that domain. Every session reads it as the rule `decisions.by-level`, and a task's spec is
+  gathered by it: the agent fills what it can and asks only for the rest
+  ([ADR-0205](docs/adr/0205-decisions-split-by-level-strategy-is-the-persons-tactics-the-agents.md), SCN-176).
 - **«Memory»: what Fabric knows about every project, as a place of its own.** The owner, 2026-11-20, in the CEO
   window: the knowledge base should live inside Fabric as «Memory» and render as well as Sound Engine's brain. «Memory»
   in the left column shows what the base holds and how fresh each source is (agent sessions, tasks and the journal, the

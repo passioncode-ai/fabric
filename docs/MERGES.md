@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `DECISION-LEVELS` · feat/decision-levels → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/shared/protocolObligations.ts` (`decisions.by-level`, `intake.spec-first`) and its test, ADR-0205 and the ADR register, SCN-176, the product model and report, `docs/architecture/operating-surfaces.md`, CHANGELOG, the map
+- conflicts: none
+- summary: the owner's order of 2026-11-21 (board request `a76373fa`): strategy is the person's and always asked, tactics the agent decides, what the agent can find it never asks, and a question goes only where the person knows better; told to every session at `fabric_whoami`, and a spec is gathered by it (amends ADR-0176 Decision 1)
+
 ### 2026-11-21 · `PASTE-AND-CEO-SLOT` · fix/paste-and-ceo-slot → feat/voice-retro (the 0.3.27 candidate) · merge, before review run ten
 - files: `apps/desktop/src/main/sessionEnv.ts`, `agentSurface.ts` (`keepResponderSlot`), `ceoBoardKeeper.ts` (new), `ceoAgent.ts` (`knownProjectId`), `index.ts` (the CEO board timers), tests `session-env`, `ceo-board-keeper`, `keep-responder-slot`, ADR-0197 Amendment 5, AGENTS.md lifecycle row, CHANGELOG, the map
 - conflicts: none

@@ -35738,7 +35738,7 @@
       "coverage": "`apps/desktop/src/shared/taskSpec.test.ts`, `apps/desktop/src/shared/protocolObligations.test.ts`, `apps/desktop/src/renderer/src/TaskPage.test.tsx`, `apps/desktop/src/renderer/src/launch/KanbanBoard.test.tsx`, `apps/desktop/src/shared/taskBoard.test.ts`, `apps/desktop/src/shared/homeLive.test.ts`",
       "registry_status": "implemented (0.3.12, CO-403): the hub's rule `intake.spec-first` at `fabric_whoami`; the spec is whole when the brief's what, why and expected are written (out of scope and constraints belong to expected)",
       "product_observation": "unobserved",
-      "expected_result": "no task is built from a one-line instruction; the person sees what was agreed before work starts.",
+      "expected_result": "no task is built from a one-line instruction; the person is asked only what they alone can say, and sees what was agreed and what the agent assumed before work starts.",
       "errors_recovery": "a question that cannot be posted keeps the task in the queue and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",

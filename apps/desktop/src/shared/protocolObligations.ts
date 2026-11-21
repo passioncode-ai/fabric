@@ -98,15 +98,38 @@ export const OBLIGATIONS: readonly ProtocolObligation[] = [
     scope: 'fabric_mediated',
     enforcementPoint: 'supabase/migrations/20260927000060_continuation_dispatch.sql#acknowledge_delivery'
   },
+  // #region decisions-by-level — docs: docs/adr/0205-decisions-split-by-level-strategy-is-the-persons-tactics-the-agents.md#decision
+  // ADR-0205 (the operator, 2026-11-21: «Стратегия = решение за оператором ... Тактика = умная модель решает сама ...
+  // НЕ задавливать вопросами. Оценивать экспертизу оператора в домене»). ADVICE: nothing refuses a question, and
+  // nothing can tell a strategic question from a tactical one; the rule is what an agent reads before it asks.
+  {
+    id: 'decisions.by-level',
+    text:
+      'The operator is a person, and a decision is settled by its level. Strategy (the vision, the concept, what ' +
+      'the product is for) is the person\'s: always ask, and never settle it yourself. Tactics (how to reach what was ' +
+      'asked) are yours: decide, write the choice and its reason where the work lives, and ask only a concrete ' +
+      'question you cannot settle. A domain where you know better than the person, or can find yourself (the code, ' +
+      'the documents, the project\'s recorded decisions, a measurement, a search), is always yours too: find it and ' +
+      'never ask. Ask only where you are still unsure after looking, or where the person knows better than you; ' +
+      'weigh their expertise in that domain before you ask, and do not bury them in questions. This holds for ' +
+      'every spec you gather and every agent you design. It gives no permission the other rules withhold: money, ' +
+      'deletion, publication and the person\'s own gates stay as they are.',
+    mode: 'ADVICE',
+    scope: 'fabric_mediated'
+  },
+  // #endregion decisions-by-level
   // #region intake-spec-first — docs: docs/adr/0176-a-task-is-grilled-to-a-full-spec-and-crosses-machines-by-trust.md#decision
-  // ADR-0176 §1 (the operator, 2026-10-23: «не отпускать, пока не собрана грилингом»). ADVICE: nothing refuses a
+  // ADR-0176 §1 (the operator, 2026-10-23: «не отпускать, пока не собрана грилингом»), amended by ADR-0205 (2026-11-21:
+  // the agent fills what it can find or decide, and asks only for what the person knows better). ADVICE: nothing refuses a
   // claim on a task whose brief is short; the task page and its card say the spec is not gathered («Спецификация не собрана») until the brief's
   // three parts are written (shared/taskSpec.ts#specGaps), so a person sees it either way.
   {
     id: 'intake.spec-first',
     text:
       'Before you start a task, make sure its spec is whole: what should happen, why, what will be true when it is ' +
-      'done (with what is out of scope and what must not change). Ask for each missing part, one question at a time: ' +
+      'done (with what is out of scope and what must not change). Fill each missing part by the decision levels ' +
+      'above: what you can find or decide yourself you write, and what only the person (or the task\'s author) can ' +
+      'say you ask, one question at a time: ' +
       'the person with fabric_question_ask, or, when another project\'s agent filed the task on ' +
       'the board, that agent on the request\'s thread with com.submit, kind message, the thread\'s id and no replyTo: a ' +
       'com.reply, or a replyTo naming the request, answers the request and closes it. Build nothing, file no sub-task and hand nothing on while a ' +
