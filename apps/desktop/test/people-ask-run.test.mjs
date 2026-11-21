@@ -13,7 +13,9 @@ const T0 = Date.parse('2026-11-16T18:00:00Z')
 const P = '79000000-0000-4000-8000-0000000000a1'
 const Q = '79000000-0000-4000-8000-0000000000b1'
 const TASK = '79000000-0000-4000-8000-0000000000c1'
-const KIRA = 'd6e9657c-6332-87fa-9585-6fe913352680'
+const PM = '79000000-0000-4000-8000-0000000000c1'
+/** A machine's routes file, as Settings or the person writes it: Fabric itself ships none (the owner, 2026-11-20). */
+const ROUTES = [{ organization: 'Acme', target: PM, businesses: ['acme'], owners: ['acme-org'] }]
 
 const question = (over = {}) => ({ id: Q, projectId: P, projectName: 'fabric', text: 'Какую базу берём?', kind: 'decision', askedAt: '2026-11-16T10:00:00Z',
   blocks: 0, revision: 2, servesActiveGoal: false, askedBy: { kind: 'agent', agent: 'claude-code' },
@@ -29,8 +31,8 @@ function world(over = {}) {
   let now = T0
   let n = 0
   const w = {
-    items: entries([question()]), complete: true, on: true, responders: [{ project: KIRA, capability: 'people.ask', state: 'active' }],
-    project: { id: P, name: 'fabric', business: null, owner: 'passioncode-ai' }, threads: new Map(), submits: [], replies: [], cancels: [],
+    items: entries([question()]), complete: true, on: true, responders: [{ project: PM, capability: 'people.ask', state: 'active' }],
+    project: { id: P, name: 'fabric', business: null, owner: 'acme-org' }, threads: new Map(), submits: [], replies: [], cancels: [],
     applied: [], saved: [], logs: [], refuseSubmit: null, applyAnswer: { ok: true }, loaded: [], ...over
   }
   w.deps = {
@@ -39,8 +41,9 @@ function world(over = {}) {
     quitting: () => false,
     readItems: async () => { if (w.readFails) throw new Error('board unreadable'); return { items: w.items, complete: w.complete } },
     projectOf: async () => w.project,
-    projectFacts: async (id) => w.facts?.[id] ?? (id === KIRA ? { id: KIRA, name: 'kira-pm', business: null, owner: 'passioncode-ai' } : null),
-    routes: () => DEFAULT_PEOPLE_ROUTES,
+    projectFacts: async (id) => w.facts?.[id] ?? (id === PM ? { id: PM, name: 'acme-pm', business: null, owner: 'acme-org' } : null),
+    routes: () => w.routes ?? ROUTES,
+    choices: () => w.choices ?? {},
     allowAccess: async () => true,
     responders: async () => w.responders,
     epoch: async () => 7,
@@ -63,7 +66,7 @@ function world(over = {}) {
   }
   w.tick = (ms) => { now += ms }
   /** The PM agent's reply to the n-th request, as the board shows it in the thread. */
-  w.answer = (i, block, sender = KIRA) => {
+  w.answer = (i, block, sender = PM) => {
     const s = w.submits[i]
     const thread = [...w.threads.values()].find((t) => t[0].body === s.input.body)
     const id = `a${++n}`
@@ -83,7 +86,7 @@ function world(over = {}) {
     const s = w.submits[i]
     const thread = [...w.threads.values()].find((t) => t[0].body === s.input.body)
     const id = `a${++n}`
-    thread.push({ id, thread: thread[0].thread, kind: 'reply', replyTo: thread[0].id, sender: { project: KIRA }, at: new Date(now).toISOString(), body: { text } })
+    thread.push({ id, thread: thread[0].thread, kind: 'reply', replyTo: thread[0].id, sender: { project: PM }, at: new Date(now).toISOString(), body: { text } })
     return id
   }
   return w
@@ -96,9 +99,9 @@ test('a «Нужны вы» question goes to its organization\'s PM project as o
   assert.equal(w.submits.length, 1)
   const { project, input } = w.submits[0]
   assert.equal(project, P, 'sent as the item\'s own project')
-  assert.deepEqual(input.request, { target: KIRA, capability: 'people.ask', deadline: new Date(T0 + 7 * 24 * 3600_000).toISOString() })
+  assert.deepEqual(input.request, { target: PM, capability: 'people.ask', deadline: new Date(T0 + 7 * 24 * 3600_000).toISOString() })
   assert.deepEqual(input.idempotency, { epoch: 7, key: askKey(`question:${Q}`, 2) })
-  assert.deepEqual(input.thread.new.participants, [KIRA])
+  assert.deepEqual(input.thread.new.participants, [PM])
   assert.equal(input.kind, 'request')
   assert.equal(parseAsk(input.body.text).item, `question:${Q}`)
   assert.equal(b.records()[0].state, 'open')
@@ -107,14 +110,14 @@ test('a «Нужны вы» question goes to its organization\'s PM project as o
 })
 
 test('nothing is sent where the PM project holds no live people.ask responder, nor without a route; said once', async () => {
-  const w = world({ responders: [{ project: KIRA, capability: 'people.ask', state: 'stale' }] })
+  const w = world({ responders: [{ project: PM, capability: 'people.ask', state: 'stale' }] })
   const b = createPeopleAskBridge(w.deps)
   await b.onPass()
   await b.onPass()
   assert.equal(w.submits.length, 0)
   assert.equal(w.logs.filter((l) => l.op === 'people.ask.skipped').length, 1)
   w.project = { id: P, name: 'fabric', business: null, owner: 'someone-else' }
-  w.responders = [{ project: KIRA, capability: 'people.ask', state: 'active' }]
+  w.responders = [{ project: PM, capability: 'people.ask', state: 'active' }]
   await b.onPass()
   assert.equal(w.submits.length, 0)
   assert.match(JSON.stringify(w.logs.filter((l) => l.op === 'people.ask.skipped').at(-1).detail), /no-route/)
@@ -122,19 +125,42 @@ test('nothing is sent where the PM project holds no live people.ask responder, n
 
 test('a PM project no route names is found by its live responder and the project\'s owner; two candidates are never guessed', async () => {
   const ACME = '79000000-0000-4000-8000-0000000000e1'
-  const w = world({ project: { id: P, name: 'tool', business: null, owner: 'acme-org' },
-    responders: [{ project: KIRA, capability: 'people.ask', state: 'active' }, { project: ACME, capability: 'people.ask', state: 'active' }],
-    facts: { [ACME]: { id: ACME, name: 'acme-pm', business: null, owner: 'acme-org' } } })
+  const w = world({ routes: [], project: { id: P, name: 'tool', business: null, owner: 'acme-org' },
+    responders: [{ project: PM, capability: 'people.ask', state: 'active' }, { project: ACME, capability: 'people.ask', state: 'active' }],
+    facts: { [ACME]: { id: ACME, name: 'acme-pm', business: null, owner: 'acme-org' }, [PM]: { id: PM, name: 'other-pm', business: null, owner: 'other-org' } } })
   const b = createPeopleAskBridge(w.deps)
   await b.onPass()
   assert.equal(w.submits.length, 1)
   assert.equal(w.submits[0].input.request.target, ACME)
-  const w2 = world({ project: { id: P, name: 'tool', business: null, owner: 'acme-org' },
-    responders: [{ project: ACME, capability: 'people.ask', state: 'active' }, { project: KIRA, capability: 'people.ask', state: 'active' }],
-    facts: { [ACME]: { id: ACME, name: 'acme-pm', business: null, owner: 'acme-org' }, [KIRA]: { id: KIRA, name: 'acme-pm-2', business: null, owner: 'acme-org' } } })
+  const w2 = world({ routes: [], project: { id: P, name: 'tool', business: null, owner: 'acme-org' },
+    responders: [{ project: ACME, capability: 'people.ask', state: 'active' }, { project: PM, capability: 'people.ask', state: 'active' }],
+    facts: { [ACME]: { id: ACME, name: 'acme-pm', business: null, owner: 'acme-org' }, [PM]: { id: PM, name: 'acme-pm-2', business: null, owner: 'acme-org' } } })
   await createPeopleAskBridge(w2.deps).onPass()
   assert.equal(w2.submits.length, 0)
   assert.match(JSON.stringify(w2.logs.find((l) => l.op === 'people.ask.skipped').detail), /ambiguous-pm/)
+})
+
+test('the owner, 2026-11-20: a fresh install has no route, so nothing is sent until an organization agent is found or chosen', async () => {
+  assert.deepEqual(DEFAULT_PEOPLE_ROUTES, [])
+  const w = world({ routes: DEFAULT_PEOPLE_ROUTES, responders: [] })
+  await createPeopleAskBridge(w.deps).onPass()
+  assert.equal(w.submits.length, 0)
+  assert.match(JSON.stringify(w.logs.find((l) => l.op === 'people.ask.skipped').detail), /no-route/)
+})
+
+test('the person\'s choice in Settings comes first: a chosen PM project over the routes file, and «off» sends nothing', async () => {
+  const OTHER = '79000000-0000-4000-8000-0000000000b2'
+  const w = world({ choices: { [P]: { target: OTHER } }, responders: [{ project: OTHER, capability: 'people.ask', state: 'active' }, { project: PM, capability: 'people.ask', state: 'active' }],
+    facts: { [OTHER]: { id: OTHER, name: 'chosen-pm', business: null, owner: 'x' } } })
+  const b = createPeopleAskBridge(w.deps)
+  await b.onPass()
+  assert.equal(w.submits.length, 1)
+  assert.equal(w.submits[0].input.request.target, OTHER)
+  assert.equal(b.records()[0].organization, 'chosen-pm')
+  const off = world({ choices: { [P]: { off: true } } })
+  await createPeopleAskBridge(off.deps).onPass()
+  assert.equal(off.submits.length, 0)
+  assert.match(JSON.stringify(off.logs.find((l) => l.op === 'people.ask.skipped').detail), /chosen-off/)
 })
 
 test('the switch off sends nothing new and takes back what is open', async () => {
@@ -163,7 +189,7 @@ test('an answer from the PM project is judged, applied once through the window\'
   assert.equal(decided.words, 'Берём SQLite')
   assert.equal(decided.answerId, id)
   assert.deepEqual(decided.decision, { by: 'operator', via: 'relayed-instruction', action: 'people.question', target: `question:${Q}`,
-    instruction: 'Берём SQLite', at: '2026-11-16T18:01:00Z', source: { project: KIRA, thread: 't1' } })
+    instruction: 'Берём SQLite', at: '2026-11-16T18:01:00Z', source: { project: PM, thread: 't1' } })
   assert.equal(w.replies.length, 1)
   assert.equal(w.replies[0].input.replyTo, id)
   assert.equal(w.replies[0].input.body.text.split('\n')[0], 'решено')
@@ -459,7 +485,7 @@ function doors(over = {}) {
   }
 }
 const decided = (over = {}) => ({ option: null, text: null, words: 'слова', answerId: 'a1',
-  decision: { by: 'operator', via: 'relayed-instruction', action: 'people.x', target: 'x', instruction: 'слова', at: '2026-11-16T18:01:00Z', source: { project: KIRA, thread: 't' } }, ...over })
+  decision: { by: 'operator', via: 'relayed-instruction', action: 'people.x', target: 'x', instruction: 'слова', at: '2026-11-16T18:01:00Z', source: { project: PM, thread: 't' } }, ...over })
 
 test('a question is answered as the window answers it: the same command for the same answer, the words as the answer', async () => {
   const d = doors()

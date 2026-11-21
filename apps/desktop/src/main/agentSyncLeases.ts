@@ -30,7 +30,7 @@ export type LeaseRefsRead =
   | { read: false; code: LeaseReadCode; reason: string; readAt: string }
 
 /** Whether a repository uses agent-sync: its coordination config is committed at `.claude/agent-sync.json`
- *  (`npx @ssheleg/agent-sync install` writes it). Only such a repository's remote is asked for leases. */
+ *  (the agent-sync tool's `install` writes it). Only such a repository's remote is asked for leases. */
 export async function usesAgentSync(repoPath: string): Promise<boolean> {
   try {
     await access(path.join(repoPath, '.claude', 'agent-sync.json'))

@@ -16,7 +16,7 @@ import type { BoardEntry } from '../shared/board.ts'
 import { answersRequest, type CommsMessage } from '../shared/commsRead.ts'
 import {
   DELEGATE_ANSWER, DELEGATE_OPTION, PEOPLE_ASK_CAPABILITY, askBody, askKey, autoRouteOf, decisionOf, hasAnswerBlock, itemOf, judgeAnswer, parseAnswer, prepareAsk, resultText, routeOf, withdrawnText,
-  type AskAct, type AskKind, type PeopleAnswer, type PeopleAsk, type PeopleRoute
+  type AskAct, type AskKind, type PeopleAnswer, type PeopleAsk, type PeopleChoice, type PeopleRoute
 } from '../shared/peopleAsk.ts'
 
 /** How often the bridge runs beside the dispatcher. */
@@ -86,8 +86,10 @@ export interface PeopleAskDeps {
   projectOf(entry: BoardEntry): Promise<ProjectFacts | null>
   /** One project's routing facts by id (a PM project found by its live responder); null when it is not known. */
   projectFacts(projectId: string): Promise<ProjectFacts | null>
-  /** The routes this machine holds (`userData/people-ask-routes.json`, else `DEFAULT_PEOPLE_ROUTES`). */
+  /** The routes this machine holds (`userData/people-ask-routes.json`, else `DEFAULT_PEOPLE_ROUTES`, which is empty). */
   routes(): readonly PeopleRoute[]
+  /** The person's choices in Settings by project id (the same file's `projects`): a PM project, or no Telegram. */
+  choices?(): Readonly<Record<string, PeopleChoice>>
   /** Whether Fabric may allow this access request on relayed words (`relayedAccess.ts#admitAccessAct`). */
   allowAccess(requestId: string): Promise<boolean>
   responders(): Promise<ResponderLike[]>
@@ -322,6 +324,7 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
       const skip = (why: string): void => { skipped[why] = (skipped[why] ?? 0) + 1 }
       let sent = 0
       const routes = deps.routes()
+      const choices = deps.choices?.() ?? {}
       for (const [item, cur] of current) {
         if (deps.quitting()) return
         if (sent >= MAX_SUBMITS) { skip('pass-bound'); continue }
@@ -332,7 +335,12 @@ export function createPeopleAskBridge(deps: PeopleAskDeps): { onPass(): Promise<
         let project: ProjectFacts | null
         try { project = await deps.projectOf(cur.entry) } catch (e) { /* said through deps.log (the operations log) or as the refusal it returns */ skip('project-unread'); deps.log('people.ask.project', 'failed', { item, note: noteOf(e) }); continue }
         if (!project) { skip('no-project'); continue }
-        let route = routeOf(project, routes)
+        // The person's choice in Settings first (the owner, 2026-11-20: the link is seen and chosen, never guessed).
+        const chosen = choices[project.id]
+        if (chosen && 'off' in chosen) { skip('chosen-off'); continue }
+        let route: PeopleRoute | null = chosen
+          ? { organization: (await deps.projectFacts(chosen.target).catch(() => null))?.name ?? chosen.target, target: chosen.target, businesses: [], owners: [] }
+          : routeOf(project, routes)
         if (!route) {
           // No route names it: the one PM project with a live responder whose business or owner is the project's.
           const auto = autoRouteOf(project, await pmCandidates())

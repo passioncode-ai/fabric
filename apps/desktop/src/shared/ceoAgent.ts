@@ -489,6 +489,6 @@ function rankBySound<P extends NamedProject>(query: string, list: readonly P[]):
 function nameKey(name: string): string {
   return name.trim().toLowerCase().replace(/[\s_-]+/g, '-')
 }
-/** An agent's working copy: `~/DATA/_worktrees/<task>` (the operator's rule) or a Claude Code worktree. */
+/** An agent's working copy: a `_worktrees/<task>` folder beside the projects, or a Claude Code or Git worktree. */
 const WORKTREE_FOLDER = /\/(_worktrees|\.claude\/worktrees|\.worktrees)\//
 // #endregion ceo-agent-shared

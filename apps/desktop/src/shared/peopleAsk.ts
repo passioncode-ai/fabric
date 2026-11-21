@@ -298,14 +298,13 @@ export function withdrawnText(r: { item: string; revision: number; reason: strin
 export interface PeopleRoute { organization: string; target: string; businesses: string[]; owners: string[] }
 
 /**
- * The routes this repository may name: PassionCode.ai's own (public). Every other organization's route lives on the
- * machine, in `userData/people-ask-routes.json` (`routesOf`), because its names are private (ADR-0096, CO-520); and a PM
- * project that holds a live `people.ask` responder is found without a route by its own business or repository owner
- * (`autoRouteOf`).
+ * The routes a fresh install starts with: none. Fabric names no organization, PM project or Telegram of its own (the
+ * owner's rule, 2026-11-20: what ships is empty and the person sets it). A machine's routes live in
+ * `userData/people-ask-routes.json` (`routesOf`), written by hand or by Settings (`withChoice`); a PM project that holds a
+ * live `people.ask` responder is found without a route by its own business or repository owner (`autoRouteOf`).
+ * Until 0.3.27 this list held PassionCode.ai's PM project; the owner's machine keeps it in its routes file.
  */
-export const DEFAULT_PEOPLE_ROUTES: readonly PeopleRoute[] = Object.freeze([
-  { organization: 'PassionCode.ai', target: 'd6e9657c-6332-87fa-9585-6fe913352680', businesses: ['passioncode.ai', 'passioncode'], owners: ['passioncode-ai'] }
-])
+export const DEFAULT_PEOPLE_ROUTES: readonly PeopleRoute[] = Object.freeze([])
 
 const norm = (s: string | null | undefined): string => (s ?? '').trim().toLowerCase()
 
@@ -349,6 +348,86 @@ export function routesOf(raw: unknown): PeopleRoute[] {
     out.push({ organization: r.organization as string, target: r.target as string, businesses: words(r.businesses)!, owners: words(r.owners)! })
   }
   return out
+}
+
+/** The person's choice for one project in Settings: a PM project, or no Telegram at all. */
+export type PeopleChoice = { target: string } | { off: true }
+/** The routes file whole: the organizations' routes and the person's choices by project id. */
+export interface PeopleRoutesFile { routes: PeopleRoute[]; projects: Record<string, PeopleChoice> }
+
+/** The choices the routes file holds (`{projects: {<id>: {target} | {off: true}}}`); an entry that does not read is left
+ *  out, never guessed. At most 500. */
+export function choicesOf(raw: unknown): Record<string, PeopleChoice> {
+  const out: Record<string, PeopleChoice> = {}
+  const map = isObject(raw) && isObject(raw.projects) ? raw.projects : null
+  if (!map) return out
+  for (const [id, v] of Object.entries(map).slice(0, 500)) {
+    if (!UUID.test(id) || !isObject(v)) continue
+    if (v.off === true) out[id] = { off: true }
+    else if (typeof v.target === 'string' && UUID.test(v.target) && v.target !== id) out[id] = { target: v.target }
+  }
+  return out
+}
+
+/** The routes file with one project's choice set (`null`: back to what Fabric finds), every other key kept as it was. */
+export function withChoice(raw: unknown, projectId: string, choice: PeopleChoice | null): Record<string, unknown> {
+  if (!UUID.test(projectId)) throw new Error('not a project id')
+  if (choice && 'target' in choice && (!UUID.test(choice.target) || choice.target === projectId)) throw new Error('not a PM project id')
+  const base: Record<string, unknown> = isObject(raw) ? { ...raw } : Array.isArray(raw) ? { routes: raw } : {}
+  const projects: Record<string, PeopleChoice> = { ...choicesOf(base) }
+  if (choice) projects[projectId] = 'off' in choice ? { off: true } : { target: choice.target }
+  else delete projects[projectId]
+  base.projects = projects
+  return base
+}
+
+/** Where a project's questions go and why: the person's choice first, then a route the file names, then the one PM project
+ *  found by its live responder. `names` gives a chosen PM project its name. */
+export type PeopleResolution =
+  | { route: PeopleRoute; source: 'chosen' | 'routes' | 'found' }
+  | { why: 'off' | 'none' | 'ambiguous' }
+export function resolveRoute(facts: { id: string; business: string | null; owner: string | null }, routes: readonly PeopleRoute[],
+  choices: Readonly<Record<string, PeopleChoice>>, candidates: ReadonlyArray<{ id: string; name: string; business: string | null; owner: string | null }>,
+  names: (id: string) => string | null): PeopleResolution {
+  const chosen = choices[facts.id]
+  if (chosen && 'off' in chosen) return { why: 'off' }
+  if (chosen) return { route: { organization: names(chosen.target) ?? chosen.target, target: chosen.target, businesses: [], owners: [] }, source: 'chosen' }
+  const named = routeOf(facts, routes)
+  if (named) return { route: named, source: 'routes' }
+  const auto = autoRouteOf(facts, candidates)
+  return 'why' in auto ? auto : { route: auto.route, source: 'found' }
+}
+
+/** One row of Settings' table: a project, where its questions go, and why. */
+export interface PeopleRouteRow {
+  project: { id: string; name: string }
+  organization: string | null
+  pm: { id: string; name: string; live: boolean } | null
+  source: 'chosen' | 'routes' | 'found' | 'off' | 'none' | 'ambiguous'
+  /** By what the route matched: the project's recorded business, or its repository's owner. */
+  by: { business: string | null; owner: string | null }
+}
+
+/** What Settings shows: the table, and whether the responders were read (when not, no PM project reads as answering). */
+export interface PeopleRoutesView { rows: PeopleRouteRow[]; pms: Array<{ id: string; name: string; live: boolean }>; respondersRead: boolean }
+
+/** Settings' view: every project with its route, and the PM projects a person may pick (each live `people.ask` responder's
+ *  project and each route's target). A project that is itself a PM project is listed too: its own questions stay here. */
+export function routeTable(projects: ReadonlyArray<{ id: string; name: string; business: string | null; owner: string | null }>,
+  routes: readonly PeopleRoute[], choices: Readonly<Record<string, PeopleChoice>>, liveProjects: ReadonlySet<string>,
+  names: ReadonlyMap<string, string>): { rows: PeopleRouteRow[]; pms: Array<{ id: string; name: string; live: boolean }> } {
+  const candidates = projects.filter((p) => liveProjects.has(p.id))
+  const nameOf = (id: string): string | null => names.get(id) ?? null
+  const rows = projects.map((p): PeopleRouteRow => {
+    const r = resolveRoute(p, routes, choices, candidates, nameOf)
+    const by = { business: p.business, owner: p.owner }
+    if ('why' in r) return { project: { id: p.id, name: p.name }, organization: null, pm: null, source: r.why, by }
+    return { project: { id: p.id, name: p.name }, organization: r.route.organization,
+      pm: { id: r.route.target, name: nameOf(r.route.target) ?? r.route.target, live: liveProjects.has(r.route.target) }, source: r.source, by }
+  })
+  const pmIds = [...new Set([...liveProjects, ...routes.map((r) => r.target), ...Object.values(choices).flatMap((c) => ('target' in c ? [c.target] : []))])]
+  const pms = pmIds.map((id) => ({ id, name: nameOf(id) ?? id, live: liveProjects.has(id) })).sort((a, b) => a.name.localeCompare(b.name))
+  return { rows: rows.sort((a, b) => a.project.name.localeCompare(b.project.name)), pms }
 }
 // #endregion people-ask-routes
 // #endregion people-ask

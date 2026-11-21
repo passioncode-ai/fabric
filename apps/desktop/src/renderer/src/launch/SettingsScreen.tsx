@@ -225,9 +225,83 @@ export function AgentPermissionsSetting({ value, onChange, trustFolders = true, 
       </label>
       <small id="settings-people-ask-hint" className="lp-meta">{t('settings.peopleAskHelp')}</small>
       <Saved on={saved === 'peopleAsk'} />
+      <PeopleRoutesSetting />
     </section>
   )
 }
+
+// #region people-ask-settings-view — docs: docs/evidence/specs/2026-11-16-people-ask-bridge.md#3-routing
+/**
+ * The owner, 2026-11-20: which organization agent a project's questions go to, whether it answers now and where the link
+ * came from, each one chosen or changed here. Fabric ships with no route: an empty table says what to connect.
+ */
+export function PeopleRoutesSetting(): React.JSX.Element {
+  const t = useT()
+  const [version, setVersion] = useState(0)
+  const [failed, setFailed] = useState<string | null>(null)
+  const [savedRow, setSavedRow] = useState<string | null>(null)
+  const read = useRead(() => window.fabric.settings.peopleRoutes(), version)
+  const choose = async (projectId: string, value: string): Promise<void> => {
+    const choice = value === '' ? null : value === 'off' ? { off: true as const } : { target: value }
+    const r = await window.fabric.settings.setPeopleRoute(projectId, choice).catch((e: unknown) => ({ ok: false as const, reason: e instanceof Error ? e.message : String(e) }))
+    if (r.ok) { setFailed(null); setSavedRow(projectId) } else setFailed(r.reason)
+    setVersion((v) => v + 1)
+  }
+  const body = (): React.JSX.Element => {
+    if (read === null) return <p className="lp-meta">{t('settings.peopleRoutes.loading')}</p>
+    if ('failed' in read) return <p className="lp-meta" role="status">{t('settings.peopleRoutes.failed', { reason: read.failed })}</p>
+    const view = read.value
+    if ('error' in view) return <p className="lp-meta" role="status">{t('settings.peopleRoutes.failed', { reason: view.error })}</p>
+    return (
+      <>
+        {!view.respondersRead && <p className="lp-meta" role="status">{t('settings.peopleRoutes.respondersUnread')}</p>}
+        {view.pms.length === 0 && <p className="lp-meta">{t('settings.peopleRoutes.noAgent')}</p>}
+        {view.rows.length > 0 && (
+          <table className="settings-people-routes">
+            <thead><tr><th scope="col">{t('settings.peopleRoutes.project')}</th><th scope="col">{t('settings.peopleRoutes.agent')}</th><th scope="col">{t('settings.peopleRoutes.source')}</th></tr></thead>
+            <tbody>
+              {view.rows.map((row) => {
+                const own = row.pm?.id === row.project.id
+                const value = row.source === 'chosen' && row.pm ? row.pm.id : row.source === 'off' ? 'off' : ''
+                const src = own ? 'own' : row.source
+                return (
+                  <tr key={row.project.id}>
+                    <th scope="row">{row.project.name}</th>
+                    <td>
+                      <select value={value} aria-label={`${t('settings.peopleRoutes.agent')}: ${row.project.name}`}
+                        onChange={(e) => void choose(row.project.id, e.target.value)}>
+                        <option value="">{row.source !== 'chosen' && row.source !== 'off' && row.pm ? `${t('settings.peopleRoutes.auto')}: ${row.pm.name}` : t('settings.peopleRoutes.auto')}</option>
+                        {view.pms.filter((pm) => pm.id !== row.project.id).map((pm) => (
+                          <option key={pm.id} value={pm.id}>{pm.live ? pm.name : t('settings.peopleRoutes.notAnswering', { name: pm.name })}</option>
+                        ))}
+                        <option value="off">{t('settings.peopleRoutes.off')}</option>
+                      </select>
+                      {row.pm && !own && !row.pm.live && <small className="lp-meta">{t('settings.peopleRoutes.waits')}</small>}
+                      <Saved on={savedRow === row.project.id} />
+                    </td>
+                    <td>
+                      {t(`settings.peopleRoutes.src.${src}`)}
+                      <small className="lp-meta">{t('settings.peopleRoutes.by', { business: row.by.business ?? t('settings.peopleRoutes.unset'), owner: row.by.owner ?? t('settings.peopleRoutes.unset') })}</small>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
+        {failed && <p className="lp-meta" role="alert">{t('settings.peopleRoutes.saveFailed', { reason: failed })}</p>}
+      </>
+    )
+  }
+  return (
+    <div className="settings-people-routes-block" aria-labelledby="settings-people-routes-title">
+      <h5 id="settings-people-routes-title">{t('settings.peopleRoutes.title')}</h5>
+      <p className="lp-meta">{t('settings.peopleRoutes.telegram')}</p>
+      {body()}
+    </div>
+  )
+}
+// #endregion people-ask-settings-view
 
 /**
  * CO-407: whether Claude Code sessions on this computer may message each other (`crossSessionInbound`). It widens what

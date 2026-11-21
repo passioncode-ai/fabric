@@ -45,7 +45,7 @@ import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRun
 import { dispatcherRuns, remoteOwnerOf, sessionLiveForDispatch, suspendedSince, WATCH_MS } from '../shared/boardDispatch.ts'
 import { advancesWatermark, runCyclePasses } from '../shared/cyclePort.ts'
 import type { HostWindow } from '../shared/harnessBreak.ts'
-import { routesOf } from '../shared/peopleAsk.ts'
+import { choicesOf, PEOPLE_ASK_CAPABILITY, routesOf, routeTable, withChoice, type PeopleChoice, type PeopleRoutesView } from '../shared/peopleAsk.ts'
 import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
 import { SESSION_STALE_MS } from '../shared/workClaims.ts'
 
@@ -93,7 +93,11 @@ export interface BoardCycleDeps {
   onRuns(runs: RunLifecycle): void
 }
 
-export function startBoardCycle(d: BoardCycleDeps): { admitExisting: ReturnType<typeof createAdmitExisting> } {
+export function startBoardCycle(d: BoardCycleDeps): {
+  admitExisting: ReturnType<typeof createAdmitExisting>
+  peopleRoutes: () => Promise<PeopleRoutesView>
+  setPeopleChoice: (projectId: string, choice: PeopleChoice | null) => void
+} {
   const { quit, db, store, journal, estateId: ACTIVE_ESTATE, operator: OPERATOR_ACTOR, state: boardState, surface, terminals: ptys,
     taskBySession, processStartedAt: PROCESS_STARTED_AT, startTask } = d
   const { ownsStack, freeDiskNow, cachedOrigin, heldSessions, sessionSignOf, projectRepos } = d.host
@@ -301,6 +305,16 @@ export function startBoardCycle(d: BoardCycleDeps): { admitExisting: ReturnType<
   }
   const peopleRoutesFile = path.join(d.userData, 'people-ask-routes.json')
   let peopleRoutesUnread = false
+  /** The routes file as it is on disk: undefined when there is none (a fresh install: no route, nothing guessed), and
+   *  undefined, said once in the ops log, when it is not JSON. */
+  const readPeopleRoutesRaw = (): unknown => {
+    let text: string
+    try { text = readFileSync(peopleRoutesFile, 'utf8') } catch { /* no file: no routes, only the PM projects found by their responder */ return undefined }
+    try { return JSON.parse(text) as unknown } catch {
+      if (!peopleRoutesUnread) { peopleRoutesUnread = true; ops.record({ op: 'people.ask.routes-unread', outcome: 'failed', level: 'warn', detail: { note: 'people-ask-routes.json is not JSON; no route is used until it reads' }, ctx: { correlationId: ops.correlate() } }) }
+      return undefined
+    }
+  }
   const peopleFactsOf = async (row: { id: string; name: string; business: string | null }): Promise<ProjectFacts> => {
     const folder = await primaryFolder(projectRepos, row.id).catch(() => null)
     const origin = folder ? await cachedOrigin(folder) : null
@@ -327,17 +341,8 @@ export function startBoardCycle(d: BoardCycleDeps): { admitExisting: ReturnType<
       return row ? peopleFactsOf(row) : null
     },
     // The routes this machine holds (they name private organizations, so they never live in this repository).
-    routes: () => {
-      let text: string
-      try { text = readFileSync(peopleRoutesFile, 'utf8') } catch {
-        // No file: the routes this repository may name, and the PM projects found by their own responder.
-        return routesOf(undefined)
-      }
-      try { return routesOf(JSON.parse(text)) } catch {
-        if (!peopleRoutesUnread) { peopleRoutesUnread = true; ops.record({ op: 'people.ask.routes-unread', outcome: 'failed', level: 'warn', detail: { note: 'people-ask-routes.json is not JSON; the defaults are used' }, ctx: { correlationId: ops.correlate() } }) }
-        return routesOf(undefined)
-      }
-    },
+    routes: () => routesOf(readPeopleRoutesRaw()),
+    choices: () => choicesOf(readPeopleRoutesRaw()),
     async allowAccess(requestId) {
       const row = await d.accessRequest(requestId)
       if (!row) return false
@@ -385,6 +390,35 @@ export function startBoardCycle(d: BoardCycleDeps): { admitExisting: ReturnType<
     },
     log: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
   })
+  // #region people-ask-settings — docs: docs/evidence/specs/2026-11-16-people-ask-bridge.md#3-routing
+  /** Settings' table (the owner, 2026-11-20): every active project, its organization's PM project, whether that one takes
+   *  questions now, and where the link came from. Reads the projects, their folders' owners and the responders. */
+  const peopleRoutesView = async (): Promise<PeopleRoutesView> => {
+    const rows = (await peopleProjectRows()).filter((r) => r.status !== 'archived')
+    const facts = await Promise.all(rows.map((r) => peopleFactsOf(r).catch(() => ({ id: r.id, name: r.name, business: r.business ?? null, owner: null }))))
+    let live = new Set<string>()
+    let respondersRead = true
+    try {
+      const r = await sweepBoard.responders(ACTIVE_ESTATE)
+      if (!r.ok) throw new Error(r.error.message)
+      live = new Set(r.responders.filter((x) => x.capability === PEOPLE_ASK_CAPABILITY && x.state === 'active' && x.held !== true
+        && (!x.leaseExpiresAt || Date.parse(x.leaseExpiresAt) > Date.now())).map((x) => x.project))
+    } catch { /* said on the screen: the table shows every PM project as not answering, and says the responders were not read */ respondersRead = false }
+    const raw = readPeopleRoutesRaw()
+    const names = new Map(rows.map((r) => [r.id, r.name] as const))
+    return { ...routeTable(facts, routesOf(raw), choicesOf(raw), live, names), respondersRead }
+  }
+  /** One project's choice written into the routes file, every other key kept; whole, synced, renamed over (0600). */
+  const setPeopleChoice = (projectId: string, choice: PeopleChoice | null): void => {
+    const next = withChoice(readPeopleRoutesRaw(), projectId, choice)
+    const tmp = `${peopleRoutesFile}.tmp`
+    const fd = openSync(tmp, 'w', 0o600)
+    try { writeSync(fd, `${JSON.stringify(next, null, 2)}\n`); fsyncSync(fd) } finally { closeSync(fd) }
+    renameSync(tmp, peopleRoutesFile)
+    peopleRoutesUnread = false
+    ops.record({ op: 'people.ask.choice', outcome: 'ok', level: 'info', detail: { choice: choice === null ? 'found' : 'off' in choice ? 'off' : 'target' }, ctx: { correlationId: ops.correlate() } })
+  }
+  // #endregion people-ask-settings
   const peopleWatch = setInterval(() => { if (!quit.quitting) void peopleAsk.onPass() }, PEOPLE_ASK_WATCH_MS)
   peopleWatch.unref?.()
   quit.onQuit(() => clearInterval(peopleWatch))
@@ -491,6 +525,6 @@ export function startBoardCycle(d: BoardCycleDeps): { admitExisting: ReturnType<
     void runCycle()
   }, TICK_MS)
   quit.onQuit(() => clearInterval(ticker))
-  return { admitExisting }
+  return { admitExisting, peopleRoutes: peopleRoutesView, setPeopleChoice }
 }
 // #endregion board-cycle

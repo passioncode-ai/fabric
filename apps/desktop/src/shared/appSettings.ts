@@ -171,7 +171,7 @@ export function validateSettings(parsed: unknown): AppSettings | null {
     dispatchOnSharedBoard: raw.dispatchOnSharedBoard === true,
     // CO-551: an ssh host name or none; anything else (an option, `auto`, a number) is none, never a guess.
     dispatchTarget: dispatchTargetOf(raw.dispatchTarget),
-    // By the owner of the project's repository, before `dispatchTarget` (2026-11-11, the Mac Studio's spaces).
+    // By the owner of the project's repository, before `dispatchTarget` (2026-11-11, a shared machine with one space per organization).
     dispatchTargets: dispatchTargetsOf(raw.dispatchTargets),
     // Task 11ebbf83: on unless the person turned it off.
     peopleAsk: raw.peopleAsk !== false,

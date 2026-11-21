@@ -214,6 +214,19 @@ export const fixtures: Fixtures = {
   'settings.loginItem': LOGIN_ITEM,
   'settings.folderTrustLocked': false,
   'settings.claudeInbound': { accepting: false, value: null },
+  // The owner's audit (2026-11-20): where «Нужны вы» goes, with neutral organizations; every source the table can name.
+  'settings.peopleRoutes': {
+    respondersRead: true,
+    pms: [{ id: '79000000-0000-4000-8000-0000000000f1', name: 'acme-pm', live: true }, { id: '79000000-0000-4000-8000-0000000000f2', name: 'globex-pm', live: false }],
+    rows: [
+      { project: { id: '79000000-0000-4000-8000-0000000000f1', name: 'acme-pm' }, organization: 'Acme', pm: { id: '79000000-0000-4000-8000-0000000000f1', name: 'acme-pm', live: true }, source: 'found', by: { business: null, owner: 'acme-org' } },
+      { project: { id: '79000000-0000-4000-8000-0000000000f3', name: 'acme-site' }, organization: 'acme-pm', pm: { id: '79000000-0000-4000-8000-0000000000f1', name: 'acme-pm', live: true }, source: 'found', by: { business: null, owner: 'acme-org' } },
+      { project: { id: '79000000-0000-4000-8000-0000000000f4', name: 'globex-app' }, organization: 'Globex', pm: { id: '79000000-0000-4000-8000-0000000000f2', name: 'globex-pm', live: false }, source: 'routes', by: { business: 'globex', owner: null } },
+      { project: { id: '79000000-0000-4000-8000-0000000000f5', name: 'notes' }, organization: null, pm: null, source: 'none', by: { business: null, owner: null } },
+      { project: { id: '79000000-0000-4000-8000-0000000000f6', name: 'side-project' }, organization: null, pm: null, source: 'off', by: { business: null, owner: 'someone' } }
+    ]
+  },
+  'settings.setPeopleRoute': { ok: true },
   'settings.read': { ...APP_SETTINGS_DEFAULTS, locale: 'ru', runnerFallback: { order: [{ runner: 'claude-code', session: 'spawn' }, { runner: 'codex', session: 'spawn' }] } },
   'terminal.fallback': { configured: true, walk: { state: 'selected', index: 0, runner: 'claude-code', session: 'spawned', sessionId: null, permissionMode: null, passedOver: [] } },
   'terminal.options': [{ id: 'claude-code', label: 'Claude Code', program: 'claude', defaultMode: 'fewer-prompts', permissionModes: [{ id: 'fewer-prompts', args: ['--dangerously-skip-permissions'], env: {} }] },

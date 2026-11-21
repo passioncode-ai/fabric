@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { boardEntries, type BoardEntry, type BoardQuestion } from './board'
 import type { AttentionItem } from './attention'
 import {
-  ANSWER_SCHEMA, ASK_SCHEMA, DEFAULT_PEOPLE_ROUTES, askBody, askKey, autoRouteOf, decisionOf, hasAnswerBlock, itemOf, judgeAnswer, levelAtLeast,
+  ANSWER_SCHEMA, ASK_SCHEMA, choicesOf, DEFAULT_PEOPLE_ROUTES, resolveRoute, routeTable, withChoice, askBody, askKey, autoRouteOf, decisionOf, hasAnswerBlock, itemOf, judgeAnswer, levelAtLeast,
   parseAnswer, parseAsk, prepareAsk, resultText, routeOf, routesOf, type PeopleAnswer
 } from './peopleAsk'
 
@@ -240,16 +240,18 @@ describe('resultText: the first line PM agents read', () => {
 
 describe('routeOf, autoRouteOf and routesOf: the organization\'s PM project, by business first, then by repository owner', () => {
   const ACME_PM = '79000000-0000-4000-8000-0000000000e1'
-  const routes = [...DEFAULT_PEOPLE_ROUTES, { organization: 'Acme', target: ACME_PM, businesses: ['acme', 'acme labs'], owners: ['acme-org', 'acme-apps'] }]
-  it('routes PassionCode.ai to its PM project, and a private organization by the routes file the machine holds', () => {
-    expect(routeOf({ business: ' passioncode.ai ', owner: null }, routes)?.target).toBe('d6e9657c-6332-87fa-9585-6fe913352680')
-    expect(routeOf({ business: null, owner: 'passioncode-ai' }, routes)?.organization).toBe('PassionCode.ai')
-    expect(routeOf({ business: 'Acme Labs', owner: 'passioncode-ai' }, routes)?.target).toBe(ACME_PM)
+  const ROUND = '79000000-0000-4000-8000-0000000000f1'
+  const routes = [{ organization: 'Roundabout', target: ROUND, businesses: ['roundabout.io', 'roundabout'], owners: ['roundabout-io'] },
+    { organization: 'Acme', target: ACME_PM, businesses: ['acme', 'acme labs'], owners: ['acme-org', 'acme-apps'] }]
+  it('routes a project by the routes file the machine holds: its business first, then its repository owner', () => {
+    expect(routeOf({ business: ' roundabout.io ', owner: null }, routes)?.target).toBe(ROUND)
+    expect(routeOf({ business: null, owner: 'roundabout-io' }, routes)?.organization).toBe('Roundabout')
+    expect(routeOf({ business: 'Acme Labs', owner: 'roundabout-io' }, routes)?.target).toBe(ACME_PM)
     expect(routeOf({ business: null, owner: 'Acme-Apps' }, routes)?.organization).toBe('Acme')
     expect(routeOf({ business: null, owner: 'someone-else' }, routes)).toBeNull()
     expect(routeOf({ business: null, owner: null }, routes)).toBeNull()
     // A business no route names is not routed by its owner either: the person recorded where it belongs.
-    expect(routeOf({ business: 'Initech', owner: 'passioncode-ai' }, routes)).toBeNull()
+    expect(routeOf({ business: 'Initech', owner: 'roundabout-io' }, routes)).toBeNull()
   })
   it('finds a PM project no route names by its own business or owner, never a guess between two', () => {
     const pm = (id: string, name: string, business: string | null, owner: string | null) => ({ id, name, business, owner })
@@ -261,6 +263,10 @@ describe('routeOf, autoRouteOf and routesOf: the organization\'s PM project, by 
     expect(autoRouteOf({ id: ACME_PM, business: null, owner: 'acme-org' }, candidates)).toEqual({ why: 'none' })
     expect(autoRouteOf({ id: P, business: null, owner: 'acme-org' }, [...candidates, pm('79000000-0000-4000-8000-0000000000e3', 'acme-pm-2', null, 'acme-org')])).toEqual({ why: 'ambiguous' })
   })
+  it('ships no route of its own (the owner, 2026-11-20): what a fresh install routes is what the person sets', () => {
+    expect(DEFAULT_PEOPLE_ROUTES).toEqual([])
+    expect(routeOf({ business: 'anything', owner: 'anyone' }, DEFAULT_PEOPLE_ROUTES)).toBeNull()
+  })
   it('reads the routes file as a list or {routes}, and anything it cannot read as the defaults', () => {
     const mine = [{ organization: 'Acme', target: P, businesses: ['acme'], owners: ['acme-org'] }]
     expect(routesOf(mine)).toEqual(mine)
@@ -269,5 +275,38 @@ describe('routeOf, autoRouteOf and routesOf: the organization\'s PM project, by 
     expect(routesOf([{ organization: 'Acme', target: 'not-a-uuid', businesses: [], owners: [] }])).toEqual(DEFAULT_PEOPLE_ROUTES)
     expect(routesOf('yes')).toEqual(DEFAULT_PEOPLE_ROUTES)
     expect(routesOf([])).toEqual([])
+  })
+  it('reads and writes the person\'s choices beside the routes, keeping every other key', () => {
+    const OTHER = '79000000-0000-4000-8000-0000000000e9'
+    const file = { routes: [{ organization: 'Acme', target: ACME_PM, businesses: ['acme'], owners: [] }], note: 'kept' }
+    const one = withChoice(file, P, { target: ACME_PM })
+    expect(one).toMatchObject({ note: 'kept', routes: file.routes, projects: { [P]: { target: ACME_PM } } })
+    expect(choicesOf(withChoice(one, OTHER, { off: true }))).toEqual({ [P]: { target: ACME_PM }, [OTHER]: { off: true } })
+    expect(choicesOf(withChoice(one, P, null))).toEqual({})
+    expect(routesOf(withChoice(one, P, null))).toEqual(file.routes)
+    expect(choicesOf(withChoice([{ organization: 'Acme', target: ACME_PM, businesses: [], owners: [] }], P, { off: true }))).toEqual({ [P]: { off: true } })
+    expect(() => withChoice(file, 'nope', null)).toThrow()
+    expect(() => withChoice(file, P, { target: P })).toThrow()
+    expect(choicesOf({ projects: { [P]: { target: 'x' }, nope: { off: true }, [OTHER]: { off: true } } })).toEqual({ [OTHER]: { off: true } })
+  })
+  it('resolves and tables a project\'s route: chosen, then the routes file, then the one PM project found; a PM project keeps its own', () => {
+    const FOUND = '79000000-0000-4000-8000-0000000000e7'
+    const OFF = '79000000-0000-4000-8000-0000000000e8'
+    const projects = [
+      { id: P, name: 'app', business: null, owner: 'acme-org' },
+      { id: FOUND, name: 'found-pm', business: null, owner: 'lone-org' },
+      { id: '79000000-0000-4000-8000-0000000000e6', name: 'lone-tool', business: null, owner: 'lone-org' },
+      { id: OFF, name: 'quiet', business: 'acme', owner: null },
+      { id: ACME_PM, name: 'acme-pm', business: null, owner: 'acme-org' }
+    ]
+    const names = new Map(projects.map((p) => [p.id, p.name] as const))
+    const { rows, pms } = routeTable(projects, routes, { [OFF]: { off: true } }, new Set([FOUND, ACME_PM]), names)
+    const by = (name: string) => rows.find((r) => r.project.name === name)!
+    expect(by('app')).toMatchObject({ source: 'routes', organization: 'Acme', pm: { id: ACME_PM, name: 'acme-pm', live: true } })
+    expect(by('lone-tool')).toMatchObject({ source: 'found', pm: { id: FOUND, name: 'found-pm', live: true } })
+    expect(by('quiet')).toMatchObject({ source: 'off', pm: null })
+    expect(by('acme-pm').pm?.id).toBe(ACME_PM)
+    expect(pms.map((p) => p.name)).toEqual(['acme-pm', 'found-pm', 'Roundabout'.replace('Roundabout', ROUND)].sort((a, b) => a.localeCompare(b)))
+    expect(resolveRoute(projects[0], routes, { [P]: { target: FOUND } }, [], (id) => names.get(id) ?? null)).toEqual({ route: { organization: 'found-pm', target: FOUND, businesses: [], owners: [] }, source: 'chosen' })
   })
 })

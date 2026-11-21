@@ -255,7 +255,7 @@ export async function primaryFolder(repos: (projectId: string) => Promise<Array<
 }
 
 /**
- * The machine a project's request run goes to (2026-11-11, the Mac Studio's spaces): the owner of its primary folder's
+ * The machine a project's request run goes to (2026-11-11, a shared machine with one space per organization): the owner of its primary folder's
  * `origin` in `targets`, else `fallback`. With no owner map the folder is not read at all; a folder whose remote cannot
  * be read (no git, no origin, past the 3 s of `agentSyncLeases.ts#originOf`, which ignores an inherited `GIT_DIR`)
  * takes the fallback.
@@ -276,7 +276,7 @@ export const REQUEST_TEXT_MAX = 3000
 const THREAD_TEXT_PAGES = 10
 
 /**
- * A request and its thread as plain text for a run on another machine (2026-11-11: the first live run on the Mac Studio
+ * A request and its thread as plain text for a run on another machine (2026-11-11: the first live run on another machine
  * had no board and only the request's id). Read through the operator's read door, up to `THREAD_TEXT_PAGES` pages
  * oldest first; the request comes first, cut to `REQUEST_TEXT_MAX`, then the thread's other messages newest first while
  * they fit in `THREAD_TEXT_MAX`. Projects are named in the reference form, which Observatory keeps (it removes a bare
