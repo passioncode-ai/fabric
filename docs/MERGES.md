@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `PTY-QUIT` · docs/pty-quit-abort → main · fast-forward
+- files: `docs/evidence/specs/2026-08-16-software-fabric-carryover.md` (CO-625, next free CO-626), `docs/evidence/backlog.md` (recount 373 of 607), `docs/reports/map.html`, this log
+- conflicts: none
+- summary: the 0.3.27 install's first window aborted because 0.3.26 crashes on SIGTERM with live consoles (SIGABRT in `pty.node`) and launchd's `KeepAlive` starts it again; recorded for 0.3.28, no code changed
+
 ### 2026-11-21 · `TASK-RANK` · feat/task-rank → main · fast-forward after `ci.sh fast`
 - files: migration `20261121000131_task_rank.sql` (schema 104) and the ledger, `apps/desktop/src/shared/taskRank.ts`, `main/taskOrderRead.ts`, `main/taskRankWrite.ts`, the readers (`workRead.ts`, `workTools.ts`, `routineTick.ts`, `backlogBrief.ts`, `taskBoard.ts`), `taskTools.ts` (`fabric_task_rank_propose`), `KanbanBoard.tsx` with both locales, their tests, ADR-0208 and the register, the spec, SCN-173, CO-621, the pipeline reservation moved to 131/132 and ADR-0209, `AGENTS.md`, CHANGELOG, the map
 - conflicts: none
