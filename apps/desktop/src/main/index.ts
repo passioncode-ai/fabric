@@ -5496,6 +5496,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     askWrittenAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.wroteAt : null),
     askWaiting: () => !!voiceAskedAt && voiceAskedAt.call === voiceJournal.current() && voiceAskedAt.wroteAt === null,
     askUnknown: () => !!voiceAskedAt && voiceAskedAt.call === voiceJournal.current() && voiceAskedAt.unknown === true,
+    ceoState: () => agent.status().state,
     // The transcript's path is found once per CEO runner session, not on every poll (0.3.27 review, ER-5).
     ceoTranscript: async () => {
       const id = agent.sessionId()

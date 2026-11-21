@@ -62,6 +62,8 @@ export interface VoiceToolDeps {
   askWaiting?(): boolean
   /** The queue's write of the waiting ask broke off: it may have gone in (run six, UX-56). */
   askUnknown?(): boolean
+  /** The CEO's state, so a console starting or switching runners is not said as one the owner must start (UX-60). */
+  ceoState?(): string
   /** The CEO console's Claude Code transcript (its tail), or null when it has none (another runner, not found). */
   ceoTranscript(): Promise<string | null>
   /** The CEO console's screen, redacted, its last lines; '' when it does not run. */
@@ -125,8 +127,14 @@ export function createVoiceTools(deps: VoiceToolDeps) {
     const asked = deps.askedAt()
     if (asked === null) return { ok: false, reason: 'nothing was handed to the CEO in this call: use ask_ceo first' }
     // Run six, UX-54: a CEO that is not running is said first; a waiting ask there waits for the owner's start.
-    if (deps.ceoLastActivity() === null) return { ok: false, reason: 'the CEO console is not running: its answer cannot be read now', next: 'tell the owner to start the CEO from its window; do not ask again' }
-    if (deps.askUnknown?.()) return { ok: false, state: 'unknown', reason: 'the write of the ask to the CEO console broke off and may have gone in', next: 'do not ask again; tell the owner to check the CEO window' }
+    if (deps.ceoLastActivity() === null) {
+      // Run seven, UX-60: a CEO starting or switching runners is not the owner's to start; it answers once it runs.
+      if (deps.ceoState?.() === 'starting') return { ok: false, state: 'starting', reason: 'the CEO is starting or switching to its next runner', next: 'tell the owner it waits; call ceo_reply again in a while; do not ask again' }
+      return { ok: false, reason: 'the CEO console is not running: its answer cannot be read now', next: 'tell the owner to start the CEO from its window; do not ask again' }
+    }
+    // Run seven, UX-61: a write that broke off may have gone in, so the CEO's answer is still read; the doubt rides along.
+    const unknown = deps.askUnknown?.() === true
+    const doubt = unknown ? { note: 'the write of the ask broke off and may have gone in; do not ask again' } : {}
     if (deps.askWaiting?.()) return { ok: false, state: 'queued', reason: 'the ask still waits in the CEO\'s queue: its console has not taken it yet', next: 'do not ask again; tell the owner it waits, and try ceo_reply in a while' }
     const waitS = typeof a.wait_seconds === 'number' && Number.isFinite(a.wait_seconds) ? Math.max(0, Math.min(CEO_REPLY_MAX_S, Math.round(a.wait_seconds))) : CEO_REPLY_WAIT_S
     const until = now() + waitS * 1000
@@ -140,15 +148,16 @@ export function createVoiceTools(deps: VoiceToolDeps) {
       if (jsonl !== null) {
         // Run six, UX-55: from when the ask was written, so an answer to an earlier line is not read as this one's.
         const r = assistantSince(jsonl, deps.askWrittenAt?.() ?? asked)
-        if (r.turns > 0 && quiet) return { ok: true, state: 'answered', answer: redact(r.text).text.slice(-3000), turns: r.turns }
+        if (r.turns > 0 && quiet) return { ok: true, state: 'answered', answer: redact(r.text).text.slice(-3000), turns: r.turns, ...doubt }
         if (now() >= until) {
+          if (unknown && r.turns === 0) return { ok: false, state: 'unknown', reason: 'the write of the ask to the CEO console broke off and may have gone in, and no answer shows yet', next: 'do not ask again; tell the owner to check the CEO window' }
           return r.turns > 0
             ? { ok: true, state: 'still_working', so_far: redact(r.text).text.slice(-1500), next: 'tell the owner the CEO is still on it; call ceo_reply again in a while' }
             : { ok: true, state: 'still_working', next: 'the CEO has not answered yet: tell the owner it is on it, and call ceo_reply again in a while' }
         }
       } else if (now() >= until || (quiet && printedSinceAsk)) {
         // No transcript (the CEO runs on another runner): its screen is what it said.
-        return { ok: true, state: quiet && printedSinceAsk ? 'answered' : 'still_working', screen: deps.ceoScreen().slice(-3000), note: 'read from the CEO console\'s screen' }
+        return { ok: true, state: quiet && printedSinceAsk ? 'answered' : 'still_working', screen: deps.ceoScreen().slice(-3000), note: unknown ? 'read from the CEO console\'s screen; the write of the ask broke off and may have gone in, do not ask again' : 'read from the CEO console\'s screen' }
       }
       await sleep(POLL_MS)
     }

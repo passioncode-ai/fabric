@@ -455,5 +455,43 @@ remains is in CO-615.
 | V3R6-PL-47 | PL-47 | non-blocking | fixed: CO-615 names run five and its folder |
 | V3R6-PL-48 | PL-48 | non-blocking | fixed: as DO-55; Coverage names the run-five and run-six tests |
 
+Exit for run six: every finding disposed above; superseded by run seven.
+
+### Run seven, f10fa4b8 (superseded)
+
+Candidate `f10fa4b86eabb62672955f58e024cb9c457cb8e4`. Reports and receipts in
+[`docs/evidence/reviews/0.3.27/iteration-3-f10fa4b8/`](../reviews/0.3.27/iteration-3-f10fa4b8/) (kept as the record).
+Gate: `bash scripts/ci.sh fast` on this candidate (outcome in the next run's section). 20 findings, 3 blocking: DO-58 (a
+write that landed after a fallback's requeue removed the owed line, not its own), DA-46 (the requeue pushed the file past
+50 and a restart dropped the person's newest lines), PL-49 (`main` moved 41 commits past the candidate during this run,
+and the gate cuts a release only from `main`). The ux and errors reviewers found none blocking. DO-58 and DA-46 are fixed
+in the next candidate, tests watched red with their mechanism removed. PL-49 is the owner's to decide: whether 0.3.27
+takes what `main` holds (Memory, the estate graph, an update in place, new features under his pause) or waits for the
+strategic plan. No tag before his answer. The ledger's protocol line about `main` (wave 0 inside the candidate) holds
+for this run's start only.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3R7-UX-60 | UX-60 | non-blocking | fixed: while the CEO starts or switches runners, `ceo_reply` says it waits (`ceoState`; test «run seven: while the CEO starts or switches runners…») |
+| V3R7-UX-61 | UX-61 | non-blocking | fixed: after a broken-off queue write, `ceo_reply` still reads the CEO's answer and carries the doubt beside it; it says `unknown` only when no answer shows by the deadline |
+| V3R7-UX-62 | UX-62 | non-blocking | fixed: the person's stop drops the lines a lost console owed, which were said as sent; the person's own waiting lines stay (`stopNow`; test «run seven: … the person's stop drops owed lines») |
+| V3R7-ER-61 | ER-61 | non-blocking | fixed: as DO-58 |
+| V3R7-ER-62 | ER-62 | non-blocking | fixed: as DA-46 |
+| V3R7-ER-63 | ER-63 | non-blocking | fixed: as UX-61 |
+| V3R7-ER-64 | ER-64 | non-blocking | fixed: a folder read failure other than a missing folder is recorded |
+| V3R7-ER-65 | ER-65 | non-blocking | fixed: the record is `ceo.agent.requeued`; a typed retype's `queue-delivered` carries `retype: true` |
+| V3R7-DO-58 | DO-58 | blocking | fixed: the drain removes the line it typed by identity, and a line written into a console a fallback lost meanwhile goes back behind the owed ones, once (test «run seven: a write that lands after a limit…», watched red with `shift()` back) |
+| V3R7-DO-59 | DO-59 | non-blocking | fixed: as DA-46 |
+| V3R7-DO-60 | DO-60 | non-blocking | fixed: as UX-60 |
+| V3R7-DO-61 | DO-61 | non-blocking | fixed: CO-615 names runs four to seven, their folders and their blocking counts |
+| V3R7-DO-62 | DO-62 | non-blocking | fixed: CO-614's source cell points to the one sentence and cites the brief on the owner's Mac; its target waits for the owner's answer |
+| V3R7-DA-46 | DA-46 | blocking | fixed: the bound counts the person's lines (50); on disk up to 10 owed lines ride on top; a file past 60 is kept aside whole before it is cut (test «run seven: a fallback on a full queue, then a restart…», watched red with the old bound) |
+| V3R7-DA-47 | DA-47 | non-blocking | fixed: plain files only count, a name more than a day in the future is old, and the file just kept aside is never removed (test «run seven: names dated in the future…») |
+| V3R7-DA-48 | DA-48 | non-blocking | fixed: a requeued line keeps the time it was sent |
+| V3R7-PL-49 | PL-49 | blocking | ruled: the owner's decision: 0.3.27 is cut from `main`, which took 41 commits of other sessions (Memory, the estate graph, an update in place) during this run; asked on 2026-11-21 in Fabric (question about `fabric.release-0327.main-moved`, recommendation: merge `main` into a new candidate and review it whole) and told through the communicator; no tag before the answer |
+| V3R7-PL-50 | PL-50 | non-blocking | fixed: as DO-61 |
+| V3R7-PL-51 | PL-51 | non-blocking | fixed: as DO-62; the strategist's handoff points at this ledger |
+| V3R7-PL-52 | PL-52 | non-blocking | fixed: as DA-46 |
+
 Exit for iteration 3: every finding disposed above. Blocking findings open: none.
 

@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "f10fa4b86eabb62672955f58e024cb9c457cb8e4",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-f10fa4b8/2026-11-21-docs.md",
+  "reportSha256": "8ba0b42a27e55ec837e8bafd2d5eabb0dfe1cc04e1b01aeb114e3981e8203d81",
+  "reviewerRun": "release-0327-i3r7-docs-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-58",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the drain removes the line it typed by identity, and a line written into a console a fallback lost meanwhile goes back behind the owed ones, once (test «run seven: a write that lands after a limit…», watched red with `shift()` back)"
+      ]
+    },
+    {
+      "id": "DO-59",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DA-46"
+      ]
+    },
+    {
+      "id": "DO-60",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-60"
+      ]
+    },
+    {
+      "id": "DO-61",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-615 names runs four to seven, their folders and their blocking counts"
+      ]
+    },
+    {
+      "id": "DO-62",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-614's source cell points to the one sentence and cites the brief on the owner's Mac; its target waits for the owner's answer"
+      ]
+    }
+  ]
+}

@@ -22,7 +22,7 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
   the owner pasted it into the console by hand. A message the console does not take at once now waits in a queue kept
   on disk, in the order it was sent, the window says it is queued, and it is typed as soon as the console takes it,
   after a restart of Fabric too. A CEO that is not running is said as not running, with its message kept for its start;
-  writing to a stopped CEO still starts it; at most 50 messages wait, and a 51st is refused and said; a write whose
+  writing to a stopped CEO still starts it; at most 50 of the person's messages wait (plus up to 10 a console lost to a limit owed), and a 51st is refused and said; a write whose
   outcome is unknown is said so to the message's sender (one the queue types later is recorded) and never typed again;
   a line typed into a console that then shows its limit is typed again on the next runner, once (`main/ceoAgent.ts`,
   region `ceo-queue`; SCN-189).
@@ -83,7 +83,7 @@ The owner, the same day (paraphrased): review the calls with the voice, fix ever
 
 **Upgrading.** No schema step. Nothing to set. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
 days and the newest 200 at most), `<userData>/ceo/project-aliases.json` (0600) and `<userData>/ceo/pending.json` (0600, the
-messages waiting for the CEO, at most 50) and, for a queue file Fabric could not read, `pending.json.corrupt-<time>`
+messages waiting for the CEO, at most 50 of the person's plus up to 10 a lost console owed) and, for a queue file Fabric could not read, `pending.json.corrupt-<time>`
 (0600, kept 30 days and at most three).
 
 ## 0.3.26

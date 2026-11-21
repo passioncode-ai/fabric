@@ -1122,10 +1122,12 @@ test('run four: one bound in memory and on disk; a send past it is refused, a fi
   assert.equal(over.ok, false)
   assert.equal(over.reason, 'queue-full')
   const k2 = keeper()
-  writeFileSync(path.join(k2.root, 'pending.json'), JSON.stringify(Array.from({ length: 60 }, (_, i) => ({ line: `x${i}`, at: 1 }))))
+  // Run seven (DA-46): the bound on disk is the person's 50 plus the 10 lines a lost console may owe; a file past it is
+  // kept aside whole before it is cut.
+  writeFileSync(path.join(k2.root, 'pending.json'), JSON.stringify(Array.from({ length: 70 }, (_, i) => ({ line: `x${i}`, at: 1 }))))
   const again = createCeoAgent({ ...k2.deps })
-  assert.equal(again.status().queued, 50)
-  assert.ok(k2.log.some(([op, d]) => op === 'ceo.agent.queue-trimmed' && d.dropped === 10))
+  assert.equal(again.status().queued, 60)
+  assert.ok(k2.log.some(([op, d]) => op === 'ceo.agent.queue-read-failed' && d.why === 'over-bound' && d.dropped === 10 && d.kept_aside === true))
 })
 
 test('run four: a queued message naming files gets its settled Enter when the queue types it', async () => {
@@ -1264,4 +1266,61 @@ test('run six: a drain that finds the CEO not running does not stop the queue; t
   const r = await again.send('новое', [])
   assert.equal(r.ok, true)
   assert.equal(r.queued, undefined)
+})
+
+// 0.3.27 review, iteration 3, run seven.
+test('run seven: a write that lands after a limit removes its own line; the owed line and the newer one each go in once', async () => {
+  const k = keeper()
+  await k.agent.send('X', [])
+  const first = k.agent.sessionId()
+  let release
+  k.deps.deliver = async (id, text) => {
+    if (id === first && text === 'Y') { await new Promise((r) => { release = r }); k.delivered.push([id, text]); return { state: 'written' } }
+    k.delivered.push([id, text]); return { state: 'written' }
+  }
+  const y = k.agent.send('Y', [])
+  for (let i = 0; i < 20 && !release; i++) await new Promise((r) => setTimeout(r, 2))
+  k.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  await new Promise((r) => setTimeout(r, 5))
+  release()
+  await y
+  for (let i = 0; i < 40 && k.agent.status().runner !== 'hermes'; i++) await new Promise((r) => setTimeout(r, 5))
+  await k.agent.drain()
+  const second = k.agent.sessionId()
+  const onNew = k.delivered.filter(([id]) => id === second).map(([, t]) => t)
+  assert.deepEqual(onNew, ['X', 'Y'], 'the owed X first, then Y, each once on the next runner')
+})
+
+test('run seven: a fallback on a full queue, then a restart of Fabric, keeps every line', async () => {
+  const k = keeper()
+  for (let i = 0; i < 5; i++) await k.agent.send(`typed${i}`, [])
+  const first = k.agent.sessionId()
+  k.deps.deliver = async () => ({ state: 'failed_before_write', reason: 'readiness_timeout' })
+  for (let i = 0; i < 50; i++) await k.agent.send(`wait${i}`, [])
+  k.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  for (let i = 0; i < 40 && k.agent.status().state !== 'running'; i++) await new Promise((r) => setTimeout(r, 5))
+  await new Promise((r) => setTimeout(r, 20))
+  const onDisk = JSON.parse(readFileSync(path.join(k.root, 'pending.json'), 'utf8'))
+  assert.equal(onDisk.length, 55)
+  const again = createCeoAgent({ ...k.deps })
+  assert.equal(again.status().queued, 55, 'no line dropped at the next start')
+})
+
+test('run seven: names dated in the future never evict the file just kept aside; the person\'s stop drops owed lines', async () => {
+  const k = keeper()
+  for (let i = 0; i < 3; i++) writeFileSync(path.join(k.root, `pending.json.corrupt-9999999999999${i}`), '[]')
+  writeFileSync(path.join(k.root, 'pending.json'), '{')
+  createCeoAgent({ ...k.deps, now: () => Date.now() })
+  const kept = readdirSync(k.root).filter((f) => f.startsWith('pending.json.corrupt-') && !f.startsWith('pending.json.corrupt-9999999999999'))
+  assert.equal(kept.length, 1, 'the owner\'s broken file is kept')
+  const k2 = keeper()
+  await k2.agent.send('ONE', [])
+  const first = k2.agent.sessionId()
+  k2.deps.open = async () => { await new Promise(() => {}) }
+  k2.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  await new Promise((r) => setTimeout(r, 10))
+  assert.ok(JSON.parse(readFileSync(path.join(k2.root, 'pending.json'), 'utf8')).some((q) => q.retype))
+  void k2.agent.stop()
+  await new Promise((r) => setTimeout(r, 10))
+  assert.ok(!JSON.parse(readFileSync(path.join(k2.root, 'pending.json'), 'utf8')).some((q) => q.retype), 'the stop drops the owed line')
 })

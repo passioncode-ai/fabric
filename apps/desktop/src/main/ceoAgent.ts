@@ -78,7 +78,7 @@ export const INBOX_KEEP_MS = 30 * 24 * 60 * 60_000
 const KEPT_LINES = 10
 
 /** One line the person sent: the console it was typed into, and whether a fallback typed it again (at most once). */
-interface SentLine { line: string; sessionId: string | null; retyped: boolean; files?: boolean }
+interface SentLine { line: string; sessionId: string | null; retyped: boolean; files?: boolean; at?: number }
 
 /** The CEO's project (DA-7): the known one while it lives, the one that holds the folder, else a new one under a fresh
  *  id. An archived known project is never reused: its id would bring the archived row back. */
@@ -150,26 +150,34 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** A queue file Fabric could not use is moved aside, never overwritten without a trace (run four ER-41); the moved files
    *  are kept 30 days and at most three, since each holds the owner's words (run five, DA-38). */
   const keepAside = (why: string, detail: Record<string, unknown>): void => {
-    let kept = false
-    try { renameSync(queueFile, `${queueFile}.corrupt-${Date.now()}`); kept = true } catch (e2) { /* said in the record below as kept_aside: false */ void e2 }
-    deps.record('ceo.agent.queue-read-failed', { why, kept_aside: kept, ...detail })
-    pruneAside()
+    let kept: string | null = null
+    const name = `pending.json.corrupt-${Date.now()}`
+    try { renameSync(queueFile, path.join(deps.root, name)); kept = name } catch (e2) { /* said in the record below as kept_aside: false */ void e2 }
+    deps.record('ceo.agent.queue-read-failed', { why, kept_aside: kept !== null, ...detail })
+    pruneAside(kept)
   }
   /** The kept-aside queue files past 30 days or past the newest three are removed: at every start of Fabric and whenever
    *  one is kept aside (run six, DA-42). Only plain files of that exact name, newest by the time in the name; each removal
    *  on its own, so one that fails leaves the rest pruned (DA-45). */
-  function pruneAside(): void {
+  function pruneAside(justKept: string | null = null): void {
     let names: string[]
-    try { names = readdirSync(deps.root) } catch (e) { /* no folder yet: nothing kept aside */ void e; return }
-    const aside = names.filter((f) => /^pending\.json\.corrupt-\d+$/.test(f))
+    try { names = readdirSync(deps.root) } catch (e) {
+      // No folder yet is nothing kept aside; any other failure is recorded, since these files hold the owner's words
+      // (run seven, ER-64).
+      if ((e as NodeJS.ErrnoException).code !== 'ENOENT') deps.record('ceo.agent.queue-aside-prune-failed', errorClass(e))
+      return
+    }
+    const plain = (f: string): boolean => { try { return lstatSync(path.join(deps.root, f)).isFile() } catch (e) { /* gone meanwhile: not counted */ void e; return false } }
+    // Plain files only count toward the three; a name more than a day in the future is old, not newest; the file just
+    // kept aside is never the one removed (run seven, DA-47).
+    const aside = names.filter((f) => /^pending\.json\.corrupt-\d+$/.test(f) && plain(f))
       .map((f) => ({ f, at: Number(f.slice('pending.json.corrupt-'.length)) }))
-      .sort((a, b) => b.at - a.at)
+      .map((x) => ({ ...x, at: x.at > now() + 86_400_000 ? 0 : x.at }))
+      .sort((a, b) => (b.f === justKept ? 1 : 0) - (a.f === justKept ? 1 : 0) || b.at - a.at)
     aside.forEach(({ f, at }, i) => {
+      if (f === justKept) return
       if (i < 3 && now() - at <= INBOX_KEEP_MS) return
-      try {
-        const file = path.join(deps.root, f)
-        if (lstatSync(file).isFile()) unlinkSync(file)
-      } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.queue-aside-prune-failed', errorClass(e)) }
+      try { unlinkSync(path.join(deps.root, f)) } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.queue-aside-prune-failed', errorClass(e)) }
     })
   }
   let rewriteAfterLoad = false
@@ -189,10 +197,15 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     const all = raw.filter((x): x is QueuedLine => !!x && typeof (x as { line?: unknown }).line === 'string' && typeof (x as { at?: unknown }).at === 'number')
     // The good entries are written back at once, so a quit before the next send keeps them (run six, DA-43).
     if (all.length < raw.length) { keepAside('invalid-entries', { invalid: raw.length - all.length }); rewriteAfterLoad = true }
-    if (all.length > CEO_QUEUE_MAX) deps.record('ceo.agent.queue-trimmed', { kept: CEO_QUEUE_MAX, dropped: all.length - CEO_QUEUE_MAX })
-    return all.slice(0, CEO_QUEUE_MAX)
+    // The bound on disk is the person's 50 plus up to the lines a lost console owed (run seven, DA-46): a file past it is
+    // kept aside whole before it is cut, so no line is dropped without its copy.
+    const bound = CEO_QUEUE_MAX + KEPT_LINES
+    if (all.length > bound) { keepAside('over-bound', { kept: bound, dropped: all.length - bound }); rewriteAfterLoad = true }
+    return all.slice(0, bound)
   })()
   pruneAside()
+  /** The person's own waiting lines; lines a lost console owed ride on top, at most `KEPT_LINES` (run seven, DA-46). */
+  const personLines = (): number => queued.filter((q) => !q.retype).length
   const saveQueue = (): void => {
     try {
       mkdirSync(deps.root, { recursive: true, mode: 0o700 })
@@ -241,7 +254,18 @@ export function createCeoAgent(deps: CeoAgentDeps) {
           break
         }
         drainMisses = 0
-        queued.shift()
+        // By identity: a fallback may have put owed lines ahead of it meanwhile (run seven, DO-58, ER-61).
+        const at = queued.indexOf(head)
+        if (at >= 0) queued.splice(at, 1)
+        // A line written into a console a fallback lost while the write waited is owed to it: it goes back behind the
+        // other owed lines, once (run seven, DO-58).
+        if (typed === 'written' && !head.retype && sessionId !== live.sessionId) {
+          const after = queued.findIndex((q) => !q.retype)
+          queued.splice(after < 0 ? queued.length : after, 0, { ...head, retype: true })
+          saveQueue()
+          deps.record('ceo.agent.requeued', { lines: 1, written_to_lost: true })
+          continue
+        }
         saveQueue()
         leftQueue.get(head)?.(); leftQueue.delete(head)
         // What the queue typed is owed to that console: a limit or sign-in screen in its answer retypes it on the next
@@ -249,14 +273,14 @@ export function createCeoAgent(deps: CeoAgentDeps) {
         if (typed === 'written') {
           try { deps.typed?.(head.line, 'written') } catch (e) { /* recorded through deps.record, the host's ops.record */ deps.record('ceo.agent.typed-hook-failed', errorClass(e)) }
           // A line already typed again after a fallback is not owed a third time.
-          sent.push({ line: head.line, sessionId: live.sessionId, retyped: head.retype === true, ...(head.files ? { files: true } : {}) })
+          sent.push({ line: head.line, sessionId: live.sessionId, retyped: head.retype === true, at: head.at, ...(head.files ? { files: true } : {}) })
           if (sent.length > KEPT_LINES) sent.splice(0, sent.length - KEPT_LINES)
         }
         // ER-40: a write whose outcome is unknown may have gone in; it is never typed again, only said.
         if (typed === 'unknown') { endedUnknown.add(head); try { deps.typed?.(head.line, 'unknown') } catch (e) { /* recorded through deps.record */ deps.record('ceo.agent.typed-hook-failed', errorClass(e)) } deps.record('ceo.agent.queue-unknown', { session_id: live.sessionId, left: queued.length }); changed(); continue }
         // UX-43: a line naming files gets the same settled Enter the direct path gives it.
         if (head.files) await enterAfterFiles(live.sessionId)
-        deps.record('ceo.agent.queue-delivered', { session_id: live.sessionId, waited_s: Math.round((now() - head.at) / 1000), left: queued.length })
+        deps.record('ceo.agent.queue-delivered', { session_id: live.sessionId, waited_s: Math.round((now() - head.at) / 1000), left: queued.length, ...(head.retype ? { retype: true } : {}) })
         changed()
       }
     } finally {
@@ -444,7 +468,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
 
   /** Puts a line behind the waiting ones (oldest first); false when the queue is full. */
   function enqueue(line: string, files: boolean, reason: CeoSendReason): QueuedLine | null {
-    if (queued.length >= CEO_QUEUE_MAX) { deps.record('ceo.agent.queue-full', { waiting: queued.length, chars: line.length }); return null }
+    if (personLines() >= CEO_QUEUE_MAX) { deps.record('ceo.agent.queue-full', { waiting: queued.length, chars: line.length }); return null }
     const item: QueuedLine = { line, at: now(), ...(files ? { files: true } : {}) }
     queued.push(item)
     saveQueue()
@@ -454,7 +478,7 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   /** A message from the person: typed into the console, its attachments named by path. */
   async function send(text: string, attachments: readonly CeoAttachment[] = []): Promise<{ ok: boolean; reason?: CeoSendReason; name?: string; status: CeoStatus; queued?: boolean }> {
     // A full queue refuses before any file is saved, so a refused message leaves nothing in the inbox (run five, DA-40).
-    if (queued.length >= CEO_QUEUE_MAX) { deps.record('ceo.agent.queue-full', { waiting: queued.length }); return { ok: false, reason: 'queue-full', status: status() } }
+    if (personLines() >= CEO_QUEUE_MAX) { deps.record('ceo.agent.queue-full', { waiting: queued.length }); return { ok: false, reason: 'queue-full', status: status() } }
     let paths: string[]
     try { paths = saveAttachments(attachments) } catch (e) {
       const x = e as { ceo?: CeoSendReason; file?: string }
@@ -539,6 +563,14 @@ export function createCeoAgent(deps: CeoAgentDeps) {
   }
   async function stopNow(): Promise<{ ok: boolean; reason?: 'still-running'; status: CeoStatus }> {
     held = true
+    // Lines a lost console owed were said as sent; the person's stop means they are not typed again later, after a
+    // restart or the next day (run seven, UX-62). The person's own waiting lines stay.
+    if (queued.some((q) => q.retype)) {
+      const n = queued.filter((q) => q.retype).length
+      queued = queued.filter((q) => !q.retype)
+      saveQueue()
+      deps.record('ceo.agent.requeued-dropped', { lines: n })
+    }
     doorHold = false
     // ER-3 (0.3.25): a fallback waiting to run after this one is dropped.
     deferred = null
@@ -604,9 +636,9 @@ export function createCeoAgent(deps: CeoAgentDeps) {
     // The lines the lost console owed go back to the head of the queue, oldest first, ahead of newer ones, so the next
     // runner gets them in the order they were sent; marked as retypes, they are typed at most once more (run six, DO-53).
     if (owed.length) {
-      queued.unshift(...owed.map((e) => ({ line: e.line, at: now(), retype: true, ...(e.files ? { files: true } : {}) } as QueuedLine)))
+      queued.unshift(...owed.map((e) => ({ line: e.line, at: e.at ?? now(), retype: true, ...(e.files ? { files: true } : {}) } as QueuedLine)))
       saveQueue()
-      deps.record('ceo.agent.retyped', { lines: owed.length })
+      deps.record('ceo.agent.requeued', { lines: owed.length })
     }
     await restart(why)
   }

@@ -614,6 +614,14 @@ test('run six: ceo_reply says a CEO that is not running first, and a broken-off 
   const base = { askedAt: () => 1, askWrittenAt: () => null, askWaiting: () => true, ceoTranscript: async () => null, ceoScreen: () => '', machine: async () => ({}), board: async () => ({}), recap: async () => ({}) }
   const down = await createVoiceTools({ ...base, ceoLastActivity: () => null }).run('ceo_reply', {})
   assert.match(down.reason, /not running/)
-  const unknown = await createVoiceTools({ ...base, askWaiting: () => false, askUnknown: () => true, ceoLastActivity: () => 1 }).run('ceo_reply', {})
+  // Run seven (UX-61): the transcript is still read; with no answer by the deadline the doubt is said.
+  const unknown = await createVoiceTools({ ...base, ceoTranscript: async () => '', askWaiting: () => false, askUnknown: () => true, ceoLastActivity: () => 1 }).run('ceo_reply', { wait_seconds: 0 })
   assert.equal(unknown.state, 'unknown')
+})
+
+test('run seven: while the CEO starts or switches runners, ceo_reply says it waits, never «start it»', async () => {
+  const { createVoiceTools } = await import('../src/main/ceoVoiceTools.ts')
+  const r = await createVoiceTools({ askedAt: () => 1, askWrittenAt: () => 2, ceoState: () => 'starting', ceoTranscript: async () => null, ceoLastActivity: () => null, ceoScreen: () => '', machine: async () => ({}), board: async () => ({}), recap: async () => ({}) }).run('ceo_reply', {})
+  assert.equal(r.state, 'starting')
+  assert.doesNotMatch(r.next, /start the CEO/)
 })
