@@ -4,7 +4,7 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-11-21 · `RELEASE-0328-MAIN-2` · origin/main (`fe8961f1`) → release/0.3.28 · merge, before iteration 3
+### 2026-11-21 · `RELEASE-0328-MAIN-2` · origin/main (`fe8961f1`) → release/0.3.28 · merge (`01d3a2d5`), before iteration 3
 - files: CO-622 items 1, 2 and 5 (the CEO's model and effort at start, `launchModel.ts`; the CEO console's board reads through `createVoiceBoard`), the system plan's rows and the session feed spec (`ab9ea5e1`), CO-625's row
 - conflicts: `ceoTools.ts` (the session start takes both an account and a model; the answer carries both; the tool list keeps `accounts`, `wait`, `journal` beside `model`, `last_reply`, `wait_reply`; `model` is an act of the behaviour journal), `hubPorts.ts` and `index.ts` (the behaviour journal beside the CEO's board reads), `pty.ts` (model flags unless the launch's extras carry the console's own; an account's launch through Switchboard keeps them), `scripts/ci.sh` (both test lists), the carry-over rows (CO-623, CO-624, CO-625 in order, then CO-627), lane 12 and the recount (610 rows, 376 open), the generated reports rebuilt and the 124 previews rendered on the Mac Studio (this Mac's disk under the sentry's line)
 - summary: the release tag must sit on a commit on `main`; from this candidate to the tag `main` takes nothing outside the gate's allowed files (iteration 2, PL-16)

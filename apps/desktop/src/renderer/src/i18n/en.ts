@@ -342,6 +342,7 @@ export const en = {
   'launch.kanban.order.ranked': "Placed by you",
   'launch.kanban.order.inherited': "Raised: a task you placed waits for it",
   'launch.kanban.order.waitsFirst': "Tasks that wait for another task stand after the ready ones: this one moves up once what it waits for is done",
+  'launch.kanban.order.readyFirst': "Ready tasks stand before those that wait: this one cannot go below a waiting one",
   'launch.kanban.order.up': "Up",
   'launch.kanban.order.down': "Down",
   'launch.kanban.order.upLabel': "Move up: {task}",

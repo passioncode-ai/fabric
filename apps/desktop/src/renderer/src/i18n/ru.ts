@@ -2303,6 +2303,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.kanban.order.ranked': "Место задали вы",
   'launch.kanban.order.inherited': "Поднята: её ждёт задача, которую поставили вы",
   'launch.kanban.order.waitsFirst': "Задачи, которые ждут другую задачу, стоят после готовых: эта встанет выше, когда закончится то, чего она ждёт",
+  'launch.kanban.order.readyFirst': "Готовые задачи стоят перед теми, что ждут: эту нельзя поставить ниже ждущей",
   'launch.kanban.order.up': "Выше",
   'launch.kanban.order.down': "Ниже",
   'launch.kanban.order.upLabel': "Поднять выше: {task}",

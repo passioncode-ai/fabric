@@ -5701,11 +5701,19 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       linksTo: async (id) => must(await store.select('task_links', 'task_id,rel,target_kind,target_id').eq('target_id', id).limit(200), 'the links'),
       claims: async (ids) => ids.length ? rowsOf<{ work_id: string; agent: string | null; owner_session: string; claimed_at: string; released_at: string | null }>(await store.selectIn('work_claims', 'work_id,agent,owner_session,claimed_at,released_at', 'work_id', [...ids]), 'the claims').filter((c) => c.released_at === null) : [],
       goals: async (ids) => ids.length ? rowsOf(await store.selectIn('goals', 'id,title', 'id', [...ids]), 'the goals') : [],
-      openTasks: async () => must(await store.select('project_tasks', 'project_id,status').in('status', ['backlog', 'running', 'review']).limit(OPEN_READ), 'the open tasks'),
-      waiting: async () => { const r = await waitingReader.read(); if (!r.ok) throw new Error(`the requests: ${String((r as { error?: unknown }).error ?? 'unread')}`); return r }
+      openTasks: async () => must(await store.select('project_tasks', 'project_id,status').in('status', ['backlog', 'running', 'review']).order('started_at', { ascending: false }).limit(OPEN_READ), 'the open tasks'),
+      // Iteration 3, ER-27: the read's error is a {code, message}, said by its message.
+      waiting: async () => { const r = await waitingReader.read(); if (!r.ok) { const e = (r as { error?: { code?: string; message?: string } }).error; throw new Error(`the requests: ${e?.message ?? e?.code ?? 'unread'}`) } return r }
     }
   })
-  ceoBoardReads = voiceBoard
+  // The 0.3.28 review, iteration 3, ER-29: the CEO console's board door is counted by its own op, as the voice's is.
+  ceoBoardReads = {
+    run: async (tool, args) => {
+      const r = await voiceBoard.run(tool, args)
+      ops.record({ op: 'ceo.board', outcome: r.ok === false ? 'failed' : 'ok', level: 'info', detail: { tool }, ctx: { correlationId: ops.correlate() } })
+      return r
+    }
+  }
   // #endregion voice-board-reads
   const voiceTools = createVoiceTools({
     askedAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.at : null),

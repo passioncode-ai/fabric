@@ -143,10 +143,12 @@ export function swapProbe(target, stage, fs) {
     fs.rename(scratch, inside)
   } catch (e) {
     try { fs.rm(scratch) } catch { /* the probe's own folder; the stage is removed by the caller */ }
-    return `macOS refused a change inside ${target} (${e?.code ?? e?.message ?? 'error'}): run the install from a Terminal session that has App Management permission (System Settings → Privacy & Security → App Management), never from a launchd job`
+    return `macOS refused a change inside ${target} (${e?.code ?? e?.message ?? 'error'}): run the install from a Terminal session that has App Management permission (System Settings → Privacy & Security → App Management), never from a launchd job; nothing was changed`
   }
+  // The 0.3.28 review, iteration 3, ER-23: this outcome changed the bundle (an unsealed folder at its root), so it never
+  // says «nothing was changed».
   try { fs.rename(inside, scratch); fs.rm(scratch) } catch (e) {
-    return `a probe folder could be moved into ${target} but not out again (${e?.code ?? e?.message ?? 'error'}); remove ${inside} by hand and run the install from a Terminal session`
+    return `a probe folder could be moved into ${target} but not out again (${e?.code ?? e?.message ?? 'error'}); the bundle now holds ${inside}, which its signature check refuses: remove it by hand from a Terminal session with App Management permission, then run the install again`
   }
   return null
 }

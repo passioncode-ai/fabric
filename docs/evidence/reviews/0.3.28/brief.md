@@ -62,3 +62,15 @@ dash.
 agent's proposed place; errors and data: migration 131, `task.ranked@1`, `task.rank.proposed@1`, `task.rank.declined@1`,
 the projector's rank, `fabric_work_list`'s order; docs: ADR-0208, its spec, SCN-173, the runbook's schema-104 step), and
 the approval modes and the CEO's account choice once merged (ADR-0203, `approvalMode.ts`, the behaviour journal).
+
+**Iteration 3, run two.** Read the ledger's «Iteration 3, run one» first: its 48 findings and their dispositions; do
+not report again what it rules unless it is still true. Number from UX-33, ER-32, DO-34, DA-23 and PL-32. What changed
+since run one (`666d0fdd`): the CEO's account refusals by name and id (`launchChoice.ts#findAccount`,
+`ceoTools.ts#accountFor`); `/model` guarded at a prompt (`shared/consolePrompt.ts`, ported from `feat/ceo-triage`) and
+counted for the voice; the behaviour journal's `done` for a typed act and the asked model, effort and account in its
+reason; the board summary over the active projects (`voiceBoard.ts#createVoiceBoard`, `OPEN_READ`) and the CEO
+console's `ceo.board` op; the installer's second running check, its checked partial zip, its checked undos and the
+refused `--schedule` (`scripts/install-mac-update.mjs`, `swapProbe`); the settle budget tied to the settle
+(`quit.ts#QUIT_SETTLE_BUDGET_MS`); the queue's drop, hint and proposal rules (`KanbanBoard.tsx#proposalAllowed`); and
+the docs: CHANGELOG's CO-622 and CO-626, the runbook's install section, AGENTS.md's rows, CO-622 and CO-628, the release
+close. The plan level also judges whether this candidate can stand as `verifiedCommit`.

@@ -4,8 +4,8 @@
 //
 //   node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg          now; refused while Fabric runs
 //   node scripts/install-mac-update.mjs --dmg … --wait                             waits until Fabric has ended
-//   node scripts/install-mac-update.mjs --dmg … --schedule                         the same --wait, from launchd, so it
-//                                                                                  outlives this terminal; starts nothing
+// Run it from a Terminal session that has App Management permission (CO-626): macOS refuses a launchd job a change
+// inside an app bundle, so the --schedule of 0.3.27 refuses at once since 0.3.28 (the review's iteration 3, DO-25).
 //   node scripts/install-mac-update.mjs --tidy                                     no install: other copies, stale
 //                                                                                  registrations and the Dock only
 // Options: --app <Fabric.app> instead of --dmg, --target <path> (default /Applications/Fabric.app), --force (the same
@@ -14,7 +14,7 @@
 // `mkdir -p /tmp/back/Fabric.app && ditto -x -k <zip> /tmp/back/Fabric.app`, then `--app /tmp/back/Fabric.app --force`.
 
 import { execFileSync, spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import path from 'node:path'
 import { BUNDLE_ID, DEFAULT_TARGET, LSREGISTER, dedupeDock, fabricRunning, installProblems, rollbackZip, sideCopies, staleRegistrations, stagingDir, swapProbe } from './lib/install-mac-update.mjs'
@@ -48,38 +48,34 @@ function bundleInfo(app) {
   return { id: read('CFBundleIdentifier'), version: read('CFBundleShortVersionString'), team: team && team !== 'not' ? team : null, signatureOk: verified }
 }
 
+/** True when the zip's directory reads whole (`unzip -tq`). */
+function zipReads(zip) {
+  return existsSync(zip) && spawnSync('unzip', ['-tq', zip], { stdio: 'ignore', timeout: 300_000 }).status === 0
+}
+
+/** A zip written to `<zip>.partial`, checked, then renamed onto its name; the reason when it was not, the partial file
+ *  removed (the 0.3.28 review, iteration 3, ER-22, DA-19). */
+function writeZip(source, zip, keepParent) {
+  const partial = `${zip}.partial`
+  try {
+    mkdirSync(path.dirname(zip), { recursive: true })
+    rmSync(partial, { force: true })
+    execFileSync('ditto', ['-c', '-k', '--sequesterRsrc', ...(keepParent ? ['--keepParent'] : []), source, partial], { stdio: ['ignore', 'ignore', 'pipe'] })
+    if (!zipReads(partial)) throw new Error('the written zip does not read back')
+    renameSync(partial, zip)
+    return null
+  } catch (e) {
+    rmSync(partial, { force: true })
+    return String(e?.stderr ?? '').trim().slice(0, 200) || e?.message || 'error'
+  }
+}
+
 // By argv and by the executable itself: launchd's copy runs as `Fabric --background` (0.3.27 review DO-75).
 const running = (target) => fabricRunning({ args: tryOut('ps', ['-axo', 'args=']) ?? '', lsof: tryOut('lsof', ['-a', '-d', 'txt', '-Fn', '-c', 'Fabric']) ?? '' }, target)
 
-// ---- --schedule: hand the same command to launchd, with --wait, and return. --------------------------------------
-if (opts.schedule) {
-  const label = `ai.passioncode.fabric-update-apply`
-  const plist = path.join(home, 'Library', 'LaunchAgents', `${label}.plist`)
-  const logFile = path.join(home, 'Library', 'Logs', 'Fabric', 'update-apply.log')
-  const source = opts.dmg ? ['--dmg', path.resolve(opts.dmg)] : opts.app ? ['--app', path.resolve(opts.app)] : fail('--schedule needs --dmg or --app')
-  const args = [process.execPath, path.resolve(process.argv[1]), ...source, '--target', opts.target, '--wait', '--unschedule', label,
-    ...(opts.force ? ['--force'] : []), ...(opts.dock ? [] : ['--no-dock'])]
-  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>Label</key><string>${label}</string>
-  <key>ProgramArguments</key><array>${args.map((a) => `<string>${esc(a)}</string>`).join('')}</array>
-  <key>RunAtLoad</key><true/>
-  <key>StandardOutPath</key><string>${esc(logFile)}</string>
-  <key>StandardErrorPath</key><string>${esc(logFile)}</string>
-</dict></plist>
-`
-  act(`write ${plist} and load it`, () => {
-    mkdirSync(path.dirname(logFile), { recursive: true })
-    spawnSync('launchctl', ['bootout', `gui/${process.getuid()}/${label}`], { stdio: 'ignore' })
-    writeFileSync(plist, xml)
-    const loaded = spawnSync('launchctl', ['bootstrap', `gui/${process.getuid()}`, plist], { encoding: 'utf8' })
-    if (loaded.status !== 0) fail(`launchd refused the job: ${loaded.stderr.trim()}`)
-  })
-  say(`scheduled: the update applies once Fabric has ended: with «Служба доски» off, a Quit; with it on, as by default, Fabric keeps running through a Quit, a logout and a restart of the Mac (launchd starts it again at login), so turn it off in Settings and Quit, and turn it on again after the update; log ${logFile}`)
-  process.exit(0)
-}
+// ---- --schedule: refused since 0.3.28 (CO-626; the review's iteration 3, DO-25). A launchd job lacks App Management,
+// so its swap was the one macOS refused on 2026-11-21; --unschedule below still removes a job an older run left.
+if (opts.schedule) fail('--schedule is not offered since 0.3.28: macOS refuses a launchd job a change inside an app bundle (CO-626). Run the install with --wait from a Terminal session that has App Management permission (System Settings → Privacy & Security → App Management): it waits until Fabric has ended')
 const unschedule = () => {
   if (!opts.unschedule) return
   rmSync(path.join(home, 'Library', 'LaunchAgents', `${opts.unschedule}.plist`), { force: true })
@@ -117,47 +113,61 @@ if (!opts.tidy) {
   cleanup()
 
   if (running(opts.target)) {
-    if (!opts.wait) { act(`remove ${stage}`, () => rmSync(stage, { recursive: true, force: true })); fail('Fabric is running: quit it first, or pass --wait (or --schedule) to apply the update once it has ended') }
+    if (!opts.wait) { act(`remove ${stage}`, () => rmSync(stage, { recursive: true, force: true })); fail('Fabric is running: quit it first, or pass --wait to apply the update once it has ended') }
     say('waiting until Fabric has ended (with «Служба доски» on, turn it off in Settings and Quit; turn it on again after the update); nothing is stopped by this installer')
     // «Перезапустить Fabric» starts it again about 200 ms after it ends (0.3.27 review ER-70): an end counts only when Fabric
     // is still gone 2 s later, so a restart is waited out rather than met by the swap's own check and dropped.
     if (!opts.dryRun) do { while (running(opts.target)) sleep(500); sleep(2000) } while (running(opts.target))
   }
 
+  if (opts.dryRun) say('the swap probe (CO-626) moves a folder inside the bundle, so a dry run does not run it: a run from launchd or without App Management is refused there, with nothing changed')
   act(`swap ${opts.target}/Contents for the staged one, keeping the folder`, () => {
     const outgoing = path.join(stage, 'previous')
     mkdirSync(outgoing, { recursive: true })
-    if (!existsSync(opts.target)) mkdirSync(opts.target)
+    // A folder this run creates is removed again when the run stops before the swap (iteration 3, ER-23).
+    const created = !existsSync(opts.target)
+    if (created) mkdirSync(opts.target)
+    const stop = (why) => { rmSync(stage, { recursive: true, force: true }); if (created) rmSync(opts.target, { recursive: true, force: true }); fail(why) }
     const had = existsSync(path.join(opts.target, 'Contents'))
     // A copy launchd started in the last instant is caught here rather than half-replaced.
-    if (running(opts.target)) fail('Fabric started again before the swap; nothing was changed, run the install again')
+    if (running(opts.target)) stop('Fabric started again before the swap; nothing was changed, run the install again')
     // CO-626: macOS may refuse a change inside an app bundle (App Management, a launchd job): probed before anything moves.
     const refused = swapProbe(opts.target, stage, {
       mkdir: (p) => mkdirSync(p, { recursive: true }), rename: (a, b) => renameSync(a, b), rm: (p) => rmSync(p, { recursive: true, force: true })
     })
-    if (refused) { rmSync(stage, { recursive: true, force: true }); fail(`${refused}; nothing was changed`) }
-    // The way back is written before the swap (CO-626: a failed swap used to leave no zip to go back to).
+    if (refused) stop(refused)
+    // The way back is written before the swap (CO-626: a failed swap used to leave no zip to go back to), to a partial
+    // file checked and then renamed, so the way-back name never holds a cut zip (iteration 3, ER-22, DA-19).
     const zip = had && installed?.version ? rollbackZip(home, installed.version) : null
     if (zip) {
-      mkdirSync(path.dirname(zip), { recursive: true })
-      execFileSync('ditto', ['-c', '-k', '--sequesterRsrc', '--keepParent', path.join(opts.target, 'Contents'), zip])
+      const why = writeZip(path.join(opts.target, 'Contents'), zip, true)
+      if (why) stop(`the way back could not be written (${why}); nothing was changed`)
       say(`the way back, written before the swap: ${zip}`)
+      // The zip takes seconds (25 s measured for 0.3.27's bundle): a Fabric started meanwhile is checked for again here,
+      // right before anything moves (iteration 3, ER-21, DA-20, UX-32).
+      if (running(opts.target)) stop('Fabric started again while the way back was written; nothing was changed, run the install again')
     }
     if (had) renameSync(path.join(opts.target, 'Contents'), path.join(outgoing, 'Contents'))
+    // The undo is checked, never assumed (CO-626; both undos since the review's iteration 3, ER-25): when it fails too,
+    // say where both copies are and how to go back.
+    const undo = () => {
+      if (!had) return true
+      try { renameSync(path.join(outgoing, 'Contents'), path.join(opts.target, 'Contents')); return existsSync(path.join(opts.target, 'Contents', 'Info.plist')) } catch { return false }
+    }
+    const lost = (what, newAt) => `${what}: ${opts.target} has no Contents now. The previous Contents is in ${path.join(outgoing, 'Contents')}, the new one in ${newAt}${zip ? `, and the zip of the previous one in ${zip}` : ''}. From a Terminal session with App Management permission: mv "${path.join(outgoing, 'Contents')}" "${path.join(opts.target, 'Contents')}"`
     try {
       renameSync(path.join(stage, 'Contents'), path.join(opts.target, 'Contents'))
     } catch (e) {
-      // The undo is checked, never assumed (CO-626): when it fails too, say where both copies are and how to go back.
-      let undone = !had
-      if (had) { try { renameSync(path.join(outgoing, 'Contents'), path.join(opts.target, 'Contents')); undone = existsSync(path.join(opts.target, 'Contents', 'Info.plist')) } catch { undone = false } }
-      if (undone) fail(`the swap failed and was undone: ${e.message}`)
-      fail(`the swap failed (${e.message}) and so did its undo: ${opts.target} has no Contents now. The previous Contents is in ${path.join(outgoing, 'Contents')}, the new one in ${path.join(stage, 'Contents')}${zip ? `, and the zip of the previous one in ${zip}` : ''}. From a Terminal session with App Management permission: mv "${path.join(outgoing, 'Contents')}" "${path.join(opts.target, 'Contents')}"`)
+      if (undo()) fail(`the swap failed and was undone: ${e.message}`)
+      fail(lost(`the swap failed (${e.message}) and so did its undo`, path.join(stage, 'Contents')))
     }
     const after = bundleInfo(opts.target)
     if (!after?.signatureOk || after.version !== incoming.version) {
-      renameSync(path.join(opts.target, 'Contents'), path.join(stage, 'failed-Contents'))
-      if (had) renameSync(path.join(outgoing, 'Contents'), path.join(opts.target, 'Contents'))
-      fail(`the swapped bundle did not verify (${after?.version ?? 'unreadable'}); the previous Fabric is back`)
+      try { renameSync(path.join(opts.target, 'Contents'), path.join(stage, 'failed-Contents')) } catch (e) {
+        fail(`the swapped bundle did not verify (${after?.version ?? 'unreadable'}) and could not be moved aside (${e.message}); ${opts.target} holds it, the previous Contents is in ${path.join(outgoing, 'Contents')}${zip ? `, its zip in ${zip}` : ''}`)
+      }
+      if (undo()) fail(`the swapped bundle did not verify (${after?.version ?? 'unreadable'}); the previous Fabric is back, read back from ${path.join(opts.target, 'Contents', 'Info.plist')}`)
+      fail(lost(`the swapped bundle did not verify (${after?.version ?? 'unreadable'}) and the undo failed`, path.join(stage, 'failed-Contents')))
     }
     rmSync(stage, { recursive: true, force: true })
     // The folder's date moves so Finder and the Dock read its icon again.
@@ -176,7 +186,8 @@ for (const name of sideCopies(readdirSync(folder), { target: opts.target })) {
   act(`zip ${copy} away (it shows as another Fabric in Launchpad and Spotlight)`, () => {
     const zip = rollbackZip(home, info.version ?? name.replace(/\.app$/, '').replace(/^\.?Fabric-/, ''))
     mkdirSync(path.dirname(zip), { recursive: true })
-    if (!existsSync(zip)) execFileSync('ditto', ['-c', '-k', '--sequesterRsrc', copy, zip])
+    // A zip already there is checked before the copy goes (iteration 3, ER-22): a cut one is written again first.
+    if (!zipReads(zip)) { const why = writeZip(copy, zip, false); if (why) fail(`${copy} was kept: its zip could not be written (${why})`) }
     spawnSync(LSREGISTER, ['-u', copy], { stdio: 'ignore', timeout: 30_000 })
     rmSync(copy, { recursive: true, force: true })
     say(`moved ${name} into ${zip}`)

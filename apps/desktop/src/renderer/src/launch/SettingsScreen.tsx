@@ -157,8 +157,6 @@ export function Saved({ on }: { on: boolean }): React.JSX.Element | null {
   return on ? <p className="settings-note settings-saved" role="status">{t('settings.saved')}</p> : null
 }
 
-/** One permission choice for every agent Fabric starts (CO-305, ADR-0168), and beside it whether the folder a Claude Code
- *  session starts in is marked trusted (CO-348, the operator 2026-10-19: on by default). */
 /** ADR-0203 §5 (the 0.3.28 review, iteration 2, UX-12): the owner sees and switches his approval mode here; every
  *  session, the CEO and its voice read the same setting. The sign-in, code, payment, secret and consent gates wait in
  *  every mode (`shared/approvalMode.ts#HUMAN_GATES`). */
@@ -186,6 +184,8 @@ export function ApprovalModeSetting({ value, onChange, saved = null }: {
   )
 }
 
+/** One permission choice for every agent Fabric starts (CO-305, ADR-0168), and beside it whether the folder a Claude Code
+ *  session starts in is marked trusted (CO-348, the operator 2026-10-19: on by default). */
 export function AgentPermissionsSetting({ value, onChange, trustFolders = true, dispatch = true, resume = true, peopleAsk = true, saved = null }: {
   value: AppSettings['agentPermissions']
   onChange: (next: SettingsPatch) => Promise<void> | void

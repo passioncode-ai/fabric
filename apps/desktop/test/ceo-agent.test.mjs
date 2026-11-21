@@ -1523,6 +1523,24 @@ test('a running Claude Code console takes /model and the answer reads its confir
   assert.ok(ceoVoiceTools().some((t) => t.name === 'session_model'), 'the voice has it too')
 })
 
+// The 0.3.28 review, iteration 3, UX-23: Enter after /model would answer a permission prompt's highlighted «Yes».
+test('/model types nothing while the console waits at a question, and counts against the voice\'s inputs', async () => {
+  const permission = 'Bash command\r\n  rm -rf build\r\nDo you want to proceed?\r\n\u276f 1. Yes\r\n  2. No, and tell Claude what to do differently\r\n'
+  const asking = operations({ deps: { ptys: { list: () => [], get: () => ({ sessionId: 's1', optionId: 'claude-code', running: true }), scrollbackOf: () => ({ text: permission }), write: () => { throw new Error('typed into a waiting console') } } } })
+  const r = await asking.ops.run('model', { session_id: 's1', model: 'opus', reason: 'the owner asked' })
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /waits for an answer/)
+  const { ops } = operations()
+  const voice = []
+  for (let i = 0; i < 7; i++) voice.push(await ops.run('model', { session_id: 's1', model: 'opus', reason: 'the owner asked' }, 'voice'))
+  assert.match(voice.at(-1).reason ?? '', /inputs into this console/, 'the voice\'s /model is one more keystroke into the console')
+  const journal = []
+  const unconfirmed = operations({ deps: { behaviour: { note: (e) => journal.push(e), read: () => ({ entries: [] }) } } })
+  await unconfirmed.ops.run('model', { session_id: 's1', model: 'opus', reason: 'the owner asked' })
+  assert.equal(journal.at(-1).decision, 'done', 'typed but not read back is done, not refused (DA-18)')
+  assert.match(journal.at(-1).reason, /model opus, unconfirmed/)
+})
+
 // CO-622 item 2: a session's last answer, and the next one waited for, read from its own transcript, never its screen.
 test('the last answer and the next one come from the transcript, as text with time and model', async () => {
   const { mkdtempSync, mkdirSync, writeFileSync, appendFileSync, rmSync } = await import('node:fs')

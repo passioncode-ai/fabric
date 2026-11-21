@@ -233,8 +233,10 @@ App Management), never from a launchd job** (CO-626). On 2026-11-21 the 0.3.27 i
 refused the rename of the new `Contents` into the bundle (EPERM), the undo was the same rename, and
 `/Applications/Fabric.app` was left empty. Since 0.3.28 the installer first renames a probe folder into the bundle and
 out again and refuses with nothing changed when macOS does not allow it (`scripts/lib/install-mac-update.mjs#swapProbe`),
-writes the zip of the previous `Contents` before the swap, and checks its undo: when the undo fails too, it says where
-both copies are and the one `mv` that puts the previous one back.
+writes the zip of the previous `Contents` before the swap, looks for a Fabric started meanwhile again right before the
+swap, and checks its undos: when an undo fails too, it says where both copies are and the one `mv` that puts the
+previous one back. `--schedule`, which handed the install to a one-shot launch agent, refuses at once since 0.3.28 (the
+0.3.28 review, iteration 3, DO-25): run `--wait` from Terminal instead.
 
 An update replaces Fabric **in place**: the folder `/Applications/Fabric.app` stays, only its `Contents` changes, so the
 Dock, Launchpad and Finder keep one Fabric icon. The operator saw the opposite on 2026-11-20 («после обновления
@@ -254,29 +256,34 @@ was measured on his Mac the same evening:
 holds its decisions, `scripts/test/install-mac-update.test.mjs` pins them):
 
 ```sh
-node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg --schedule   # applies once Fabric has ended (with «Служба доски» on: turn it off, then Quit; on again after the update)
-node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg              # now; refused while Fabric runs
+node scripts/install-mac-update.mjs --dmg Fabric-0.3.28-universal.dmg --wait   # applies once Fabric has ended (with «Служба доски» on: turn it off, then Quit; on again after the update)
+node scripts/install-mac-update.mjs --dmg Fabric-0.3.28-universal.dmg          # now; refused while Fabric runs
 node scripts/install-mac-update.mjs --tidy                                         # one icon again, nothing installed
 ```
 
 1. It refuses an update that is not `ai.passioncode.desktop`, whose signature does not verify
    (`codesign --verify --deep --strict`), that another team signed, or that is not newer (`--force` for a way back).
 2. It stages the new `Contents` in `/Applications/.Fabric-update/` (same volume, no `.app`, so nothing registers it).
-3. With `--wait` (`--schedule` runs the same from a one-shot launch agent that outlives the terminal) it waits until
-   Fabric has ended. With «Служба доски» off, a Quit ends it. With «Служба доски» on (the default on macOS) Fabric
+3. With `--wait` it waits until Fabric has ended, so the Terminal session stays open until then (`--schedule`, a
+   one-shot launch agent, is refused since 0.3.28: a launchd job lacks App Management, CO-626). With «Служба доски» off, a Quit ends it. With «Служба доски» on (the default on macOS) Fabric
    keeps running through a Quit, «Перезапустить Fabric» starts it again at once, and launchd starts it again at login,
    so a logout or a restart of the Mac does not apply the update either: turn «Служба доски» off in Settings, then Quit,
    and turn it on again once the new Fabric has started.
    An end counts only when Fabric is still gone 2 s later (0.3.27 review ER-70, ER-82). Fabric is found by its
    executable as well as by its command line, since the copy launchd starts runs as `Fabric --background` (DO-75). It
    stops nothing.
-4. It swaps `Contents` by two renames, checks the signature and version of the result and swaps back on any failure.
-5. The previous `Contents` becomes `~/Library/Application Support/ai.passioncode.fabric/previous/Fabric-<version>.zip`,
-   which LaunchServices does not see. Way back: `mkdir -p /tmp/back/Fabric.app && ditto -x -k <zip> /tmp/back/Fabric.app`,
+4. Right before the swap it checks that Fabric has not started again, then renames a probe folder into the bundle and
+   out again (`swapProbe`): when macOS refuses, it stops with nothing changed (CO-626).
+5. It writes the previous `Contents` to `~/Library/Application Support/ai.passioncode.fabric/previous/Fabric-<version>.zip`,
+   which LaunchServices does not see: to a `.partial` file first, checked with `unzip -t`, then renamed, so the zip's
+   name never holds a cut one; a zip that cannot be written stops the install with nothing changed. Then it checks
+   again that Fabric has not started (the zip takes about 25 s).
+6. It swaps `Contents` by two renames, checks the signature and version of the result and swaps back on any failure;
+   each undo is read back, and one that fails says where both copies are. Way back: `mkdir -p /tmp/back/Fabric.app && ditto -x -k <zip> /tmp/back/Fabric.app`,
    then `--app /tmp/back/Fabric.app --force`. (`Fabric-0.3.20.zip`, moved by the first `--tidy`, holds the whole bundle.)
-6. It re-registers the bundle (`lsregister -f`) and touches its folder, so Finder and the Dock read the icon again.
-7. Every time, also with `--tidy` alone: other `Fabric-<version>.app` copies beside the target are zipped into the
-   same folder and removed; every other LaunchServices registration of the id is removed (the files of other tasks stay
+7. It re-registers the bundle (`lsregister -f`) and touches its folder, so Finder and the Dock read the icon again.
+8. Every time, also with `--tidy` alone: other `Fabric-<version>.app` copies beside the target are zipped into the
+   same folder (a zip already there is checked first) and removed; every other LaunchServices registration of the id is removed (the files of other tasks stay
    where they are); the Dock keeps exactly one Fabric tile, at the bundle's path, its stale bookmark dropped, and the
    Dock restarts only when it changed (`--no-dock` leaves it alone).
 

@@ -59,17 +59,20 @@ export function launchChoices(input: { defaultRunner: string; runners: readonly 
   return { default: { runner: input.defaultRunner, account: null }, options }
 }
 
-/** An account named as the owner said it: its id, its whole label, or a word of the label (one match only). */
-export function findAccount(name: string, accounts: readonly LaunchAccount[]): { found: LaunchAccount } | { ambiguous: string[] } | { missing: true } {
+/** An account named as the owner said it: its id, its whole label, the name the CEO says («work@…», ceoTools.ts#accountName),
+ *  or a word of the label (one match only). Several matches come back as the accounts, so the caller says them by name
+ *  and id, never by the whole label (the 0.3.28 review, iteration 3, DA-16). */
+export function findAccount(name: string, accounts: readonly LaunchAccount[]): { found: LaunchAccount } | { ambiguous: LaunchAccount[] } | { missing: true } {
   const q = String(name ?? '').trim().toLowerCase()
   if (!q) return { missing: true }
   const byId = accounts.find((a) => a.id.toLowerCase() === q || a.id.toLowerCase().startsWith(q) && q.length >= 8)
   if (byId) return { found: byId }
-  const exact = accounts.filter((a) => a.label.toLowerCase() === q)
+  const said = q.endsWith('@…') || q.endsWith('@...') ? q.slice(0, q.indexOf('@') + 1) : null
+  const exact = accounts.filter((a) => said ? a.label.toLowerCase().startsWith(said) : a.label.toLowerCase() === q)
   if (exact.length === 1) return { found: exact[0]! }
-  const part = accounts.filter((a) => a.label.toLowerCase().includes(q))
+  const part = said ? exact : accounts.filter((a) => a.label.toLowerCase().includes(q))
   if (part.length === 1) return { found: part[0]! }
-  if (part.length > 1 || exact.length > 1) return { ambiguous: (exact.length > 1 ? exact : part).slice(0, 3).map((a) => a.label) }
+  if (part.length > 1 || exact.length > 1) return { ambiguous: (exact.length > 1 ? exact : part).slice(0, 3) }
   return { missing: true }
 }
 

@@ -20,6 +20,7 @@
 import { spawn } from 'node:child_process'
 import { quitReaperInvocation, spawnHelper } from './platform.ts'
 import { ops } from './opsSink.ts'
+import { SETTLE_GRACE_MS, SETTLE_KILL_MS } from './ptySettle.ts'
 
 export interface QuitApp {
   quit(): void
@@ -78,7 +79,10 @@ export const QUIT_DEADLINE_MS = 10_000
 /** CO-625 (the 0.3.28 review, iteration 2, ER-13): the time the console settle keeps before the deadline. A drain still
  *  running at the deadline minus this is not waited for further; the settle runs then, so a stop that uses its own 8 s
  *  bound never leaves the consoles to Node's teardown. */
-export const QUIT_SETTLE_BUDGET_MS = 2_500
+export const QUIT_SETTLE_BUDGET_MS = SETTLE_GRACE_MS + SETTLE_KILL_MS + 800
+/** What the budget keeps past the settle's own bounds for its 25 ms steps, `app.quit()` and Electron's teardown (the
+ *  0.3.28 review, iteration 3, ER-31: tied to the settle's constants, so a change there moves the budget with it). */
+export const QUIT_TEARDOWN_MARGIN_MS = QUIT_SETTLE_BUDGET_MS - SETTLE_GRACE_MS - SETTLE_KILL_MS
 /**
  * A quit that needed the deadline did NOT end cleanly, and says so: exit 0 here let a stalled drain pass
  * a walk as graceful (lifecycle review 2026-10-03, finding 9). Supervisors and walks read this code.

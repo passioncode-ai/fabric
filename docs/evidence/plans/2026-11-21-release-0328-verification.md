@@ -15,8 +15,8 @@ read-only; findings are disposed here and in the receipts under `docs/evidence/r
   ([the merge log](../../MERGES.md), `RELEASE-0328-TRAIN`).
 - Left out, each with its reason (iteration 1, PL-1 to PL-5; the rows are CO-623): `feat/ceo-session-windows` (the
   CEO's windows, the owner's order of 2026-11-19: a feature held under the owner's pause of 2026-11-21, 14 commits not in
-  the train), CO-622 (its author, session 9cda1c0f: the next
-  release), and the work in progress held by the pause (`feat/ceo-persona`, `feat/ui-kit`, `feat/dispatch-credentials`,
+  the train), CO-622's items 3, 4 and 6 to 11 (its author, session 9cda1c0f: after 0.3.28;
+  items 1, 2 and 5 came with `main`, below), and the work in progress held by the pause (`feat/ceo-persona`, `feat/ui-kit`, `feat/dispatch-credentials`,
   `feat/record-show`, `feat/pages-wave`, `feat/estate-work-summary`). `feat/ceo-triage` (task a0afb015) is built on
   this train and goes to a later release.
 - Shipped earlier, so not in this train: the Inbox registry fix of A-3 row 9 (in 0.3.27, its CHANGELOG «Agents reach
@@ -31,6 +31,17 @@ read-only; findings are disposed here and in the receipts under `docs/evidence/r
   for the first time with this release), its `ci.sh fast` green with the browser
   suites 26 of 26 (its messages to this session of 2026-11-21, after iteration 1's PL-2 and at about 09:40). ADR-0207's
   Decision 1 builds on them.
+- Joined for iteration 3 (iteration 3, PL-25, DO-26): CO-626's fix (`63b58ef5`, `scripts/install-mac-update.mjs` and
+  `scripts/lib/install-mac-update.mjs#swapProbe`, `install-mac-update.test.mjs` 11 of 11), from the 0.3.27 install of
+  2026-11-21, whose row the 0.3.27 release session (fabric-9e) asked to have written in this candidate; and `main` at
+  `fe8961f1` by the merge `01d3a2d5` (`RELEASE-0328-MAIN-2`), which brought CO-622's items 1, 2 and 5 (`0140eb8b`: the
+  CEO's model and effort at a start, `fabric_ceo_session_model`, `fabric_ceo_session_last_reply` and `_wait_reply`, the
+  board on the CEO's console), the system plan's rows and the session feed spec (`ab9ea5e1`). The release tag must sit
+  on `main`, so the train carries what `main` took. The merge's conflict resolutions in `ceoTools.ts`, `pty.ts`,
+  `hubPorts.ts` and `index.ts` were read by iteration 3's ux, errors and data reviewers (their reports name the start's
+  account and model, the model flags with extras, and the board wiring), and `swapProbe` by its errors and data
+  reviewers. Iteration 2's reports went into the CO-626 commit and its receipts and dispositions into the merge
+  (PL-31): the gate reads them by hash; from iteration 3 on, review records are committed in their own commit.
 - From the iteration-3 candidate to the tag, `main` takes nothing outside the files the release gate allows after
   `verifiedCommit` (iteration 2, PL-16): before tagging, `git diff --name-only <verifiedCommit> origin/main` must name only
   those.
@@ -66,7 +77,11 @@ says what it did in the ops log (`quit.settle`). Tests: `pty-settle.test.mjs` (f
 installed 0.3.28, since this Mac's disk keeps local builds off (the sentry's line): three consoles (an idle shell, one
 ignoring SIGTERM with `trap '' TERM HUP; sleep 600`, one agent), then `launchctl kill SIGTERM
 gui/$UID/ai.passioncode.desktop.board`; no new `Fabric-*.ips`, no `app.started` within 60 s, `quit.settle` in the ops log.
-CO-625 stays open until it is recorded (iteration 2, PL-17).
+Before the check, `launchctl print gui/$UID/ai.passioncode.desktop.board` must show the bundle's own agent (its
+`BundleProgram`, `KeepAlive` with `SuccessfulExit` false), not the stand-in job of the 0.3.27 install, which would keep
+launchd from starting Fabric again whether or not it aborted; the exit status is recorded with the result (iteration 3,
+PL-30). Iteration 3 tied the drain's bound to the settle's (`QUIT_SETTLE_BUDGET_MS` is 1.5 s, 0.7 s and 0.8 s to end,
+3 s; ER-31). CO-625 stays open until it is recorded (iteration 2, PL-17).
 
 ## Iteration 1
 
@@ -209,3 +224,97 @@ not tested); UX-13's drop, ER-12's skip and ER-13's race were watched red with t
 | V2-PL-23 | PL-23 | non-blocking | fixed: the ledger gains iteration 1's exit line and the gate runs of 618551f7 and the iteration-3 candidate; the release commit writes version, the gate file and CHANGELOG's heading |
 
 Exit for iteration 2: 49 findings, 35 fixed, 14 ruled to CO-627. Blocking findings open: none.
+
+## Iteration 3
+
+### Run one, 666d0fdd (superseded)
+
+Candidate `666d0fdd295502d2ed0e2a82569b97f8a372ecf6`: iteration 2's fixes, CO-626's fix and `main` at `fe8961f1`.
+Five reviewers, one per level; their reports and receipts are in
+[`docs/evidence/reviews/0.3.28/iteration-3-666d0fdd/`](../reviews/0.3.28/iteration-3-666d0fdd/) (kept as the record; not
+this iteration's receipts). They read `~/DATA/_worktrees/fabric-0328` itself at `666d0fdd`, read-only (HEAD and dirty
+count the same before and after in all five), since the disk sentry refused the packages a separate checkout needs.
+Gate: `ci.sh fast` with the browser variables ran green through its pure tests while the reviewers read; the release
+session stopped it when the findings came in, because the fixes were written in the same worktree, so it gave no
+verdict on this candidate.
+
+48 findings, 6 blocking rows for three defects: CO-622's items 1, 2 and 5 ship and the notes said they did not (UX-21,
+DO-24, PL-24, DA-17); account labels, mail addresses, still reached the voice in three refusals (DA-16, with ER-30 and
+UX-25); the runbook forbade a launchd install and recommended one (DO-25, with PL-27 and DA-21). Also fixed: the
+installer's zip moved between its last running check and the swap (ER-21, UX-32, DA-20), a cut zip could take the way
+back's name (ER-22, DA-19), and `/model` could press Enter on a permission prompt (UX-23). 44 fixed in the run-two
+candidate (UX-25 and UX-26 in part, their other parts ruled), 3 ruled to CO-628 (UX-24, UX-29, UX-30), 1 not a defect
+for this release (PL-31). Tests watched red with their mechanism removed: DA-16's refusals, UX-23's prompt guard,
+UX-31's active-project filter, UX-28's proposal guard.
+
+| Row | Finding | Severity | Disposition |
+|---|---|---|---|
+| V3-UX-21 | UX-21 | blocking | fixed in the run-two candidate: CHANGELOG names CO-622's items 1, 2 and 5 in its opening and in three bullets (model and effort, answers from the transcript, the board on the CEO's console); the protocol says what joined |
+| V3-UX-22 | UX-22 | non-blocking | fixed: the refusal on the CEO's own console names `settings.json` (`ceoModels`), not Settings (`ceoTools.ts` `model`) |
+| V3-UX-23 | UX-23 | non-blocking | fixed: `/model` types nothing while `shared/consolePrompt.ts#promptOnScreen` reads a question on the screen, and the voice's use counts against its inputs into the console (`voiceInputOver`); test «/model types nothing while the console waits at a question», red with the guard removed |
+| V3-UX-24 | UX-24 | non-blocking | ruled to CO-628: `applied` means the flag was passed; reading the model back is later work |
+| V3-UX-25 | UX-25 | non-blocking | fixed in parts 1 and 2 (with DA-16): refusals and their choices say «name@…» with the id, the field asks for the id, and «work@…» finds its account again (`launchChoice.ts#findAccount`); part 3, two accounts with one name, ruled to CO-628 |
+| V3-UX-26 | UX-26 | non-blocking | fixed in part 1: the ready card's «Ниже» has its own reason, `launch.kanban.order.readyFirst` (the text check's reports `317c1448` and `ee1a8ee1`, no findings); part 2, a focusable reason, ruled to CO-628 |
+| V3-UX-27 | UX-27 | non-blocking | fixed: a card across the waiting line takes no drop and shows no drop cursor (`KanbanBoard.tsx` `onDragOver`) |
+| V3-UX-28 | UX-28 | non-blocking | fixed: «Принять» shows only where the proposed place keeps ready tasks first (`KanbanBoard.tsx#proposalAllowed`); tests «proposalAllowed» and «a proposal that would put a waiting task before a ready one can only be declined», red with the guard removed |
+| V3-UX-29 | UX-29 | non-blocking | ruled to CO-628: the routes table while the file does not read |
+| V3-UX-30 | UX-30 | non-blocking | ruled to CO-628: the approval panel's wording |
+| V3-UX-31 | UX-31 | non-blocking | fixed (with ER-26, DA-22): the summary counts the open tasks of the active projects only and says no id; without the projects it is said as unread; test «the board summary counts …», red with the filter removed |
+| V3-UX-32 | UX-32 | non-blocking | fixed with ER-21 |
+| V3-ER-21 | ER-21 | non-blocking | fixed: Fabric is looked for again right after the zip and before the first rename; source pin «ER-21, ER-22 …» in `install-mac-update.test.mjs` |
+| V3-ER-22 | ER-22 | non-blocking | fixed (with DA-19): the zip is written to `<zip>.partial`, checked with `unzip -tq`, then renamed; a failure removes it and the stage and says nothing was changed; `--tidy` checks a zip already there before it removes a copy (`install-mac-update.mjs#writeZip`, `zipReads`) |
+| V3-ER-23 | ER-23 | non-blocking | fixed: a target folder this run created is removed when it stops before the swap, and only the refusal that moved nothing says «nothing was changed» (`swapProbe`); test «ER-23 …» |
+| V3-ER-24 | ER-24 | non-blocking | fixed: a dry run says the swap probe is not run there |
+| V3-ER-25 | ER-25 | non-blocking | fixed: the undo after a bundle that does not verify is read back like the first, and a failed one says where both copies are |
+| V3-ER-26 | ER-26 | non-blocking | fixed: `OPEN_READ` is the gateway's 1 000, so «at least» is said when it is met; the read is ordered and the summary keeps the active projects (with UX-31) |
+| V3-ER-27 | ER-27 | non-blocking | fixed: a failed requests read is said by its error's message (`index.ts`, region voice-board-reads) |
+| V3-ER-28 | ER-28 | non-blocking | fixed: the waiting requests' projects are said by name; the test's fixture passes ids |
+| V3-ER-29 | ER-29 | non-blocking | fixed: the CEO console's board door records `ceo.board` with the tool and outcome, and the catches' comments name both ops |
+| V3-ER-30 | ER-30 | non-blocking | fixed with DA-16 |
+| V3-ER-31 | ER-31 | non-blocking | fixed: `QUIT_SETTLE_BUDGET_MS` is `SETTLE_GRACE_MS` + `SETTLE_KILL_MS` + 800 ms (3 s); test «ER-31 …» |
+| V3-DO-24 | DO-24 | blocking | fixed with UX-21; the CO-625 clause names the defect it fixes, and CO-626 is in the opening |
+| V3-DO-25 | DO-25 | blocking | fixed: `--schedule` refuses at once with the App Management reason; the runbook's example and step 3, the script's header and its refusal hint name `--wait` from Terminal; test «DO-25 …» |
+| V3-DO-26 | DO-26 | non-blocking | fixed: the protocol's «Joined for iteration 3»; the run-two candidate's gate is recorded in its section |
+| V3-DO-27 | DO-27 | non-blocking | fixed: CO-622's row says which items ship in 0.3.28 and that the rest follow |
+| V3-DO-28 | DO-28 | non-blocking | fixed: the runbook's steps follow the code (the running check and the probe, the checked zip, the second check, the swap with its checked undos) |
+| V3-DO-29 | DO-29 | non-blocking | fixed: the `userData/ceo` row reads «since 0.3.28 `behaviour/` …; since 0.3.27 `calls/`», and `userData/dock-icon.png` has its own row |
+| V3-DO-30 | DO-30 | non-blocking | fixed: the next-free note says CO-623 and CO-624's rows are above and drops the second CO-621 clause |
+| V3-DO-31 | DO-31 | non-blocking | fixed: the permissions comment is back above `AgentPermissionsSetting` |
+| V3-DO-32 | DO-32 | non-blocking | fixed: the schema paragraph uses the runbook's wording, the CO-625 bullet says the proof is checked after the release, and the approval bullets have their lead sentence |
+| V3-DO-33 | DO-33 | non-blocking | fixed: `RELEASE-0328-MAIN-2` names its merge commit |
+| V3-DA-16 | DA-16 | blocking | fixed: every refusal of `accountFor` says «name@…», its choices are `{account, id}`, and the ambiguous list carries accounts, not labels; test G1 asserts no `@example.com` in any of the three refusals by voice, red with the mapping removed |
+| V3-DA-17 | DA-17 | blocking | fixed with UX-21; the transcript reads by voice are named in their bullet |
+| V3-DA-18 | DA-18 | non-blocking | fixed: a `/model` typed but not read back is journalled `done` with its state, the model, effort and account asked are in the act's reason, and the ops line's outcome follows the state; test «/model types nothing …» |
+| V3-DA-19 | DA-19 | non-blocking | fixed with ER-22 |
+| V3-DA-20 | DA-20 | non-blocking | fixed with ER-21 |
+| V3-DA-21 | DA-21 | non-blocking | fixed with DO-25 |
+| V3-DA-22 | DA-22 | non-blocking | fixed with UX-31 |
+| V3-PL-24 | PL-24 | blocking | fixed with UX-21 |
+| V3-PL-25 | PL-25 | non-blocking | fixed: the protocol names both joins and which reviewers read the merge's resolutions and `swapProbe` |
+| V3-PL-26 | PL-26 | non-blocking | fixed: `docs/co-626`'s author (fabric-9e) retired the branch on this session's ask: deleted from origin, archived as `refs/archive/2026-11-21/docs-co-626` = `9b4a1d80`, no force (this candidate writes CO-626's row); before tagging, `git log <verifiedCommit>..origin/main` must be empty (the release close) |
+| V3-PL-27 | PL-27 | non-blocking | fixed with DO-25, in the candidate rather than after the tag |
+| V3-PL-28 | PL-28 | non-blocking | fixed: the release close below |
+| V3-PL-29 | PL-29 | non-blocking | fixed with DO-32 |
+| V3-PL-30 | PL-30 | non-blocking | fixed: the CO-625 section asks for the label's own agent before the check |
+| V3-PL-31 | PL-31 | non-blocking | not a defect for this release: the gate reads the records by hash; said in the protocol, and run two's records are committed on their own |
+
+## Release close
+
+Done by the release session (fabric-dd) after the tag, each step with its receipt here (iteration 3, PL-28):
+
+1. Before tagging: `git fetch`, then `git log <verifiedCommit>..origin/main` empty and `git diff --name-only
+   <verifiedCommit> origin/main` naming only the files the gate allows (PL-16, PL-26). Then the tag `v0.3.28`, the
+   release run watched to success, the published DMG's guard read back.
+2. Install on the owner's Mac from a Terminal session outside Fabric that has App Management permission, with `--wait`
+   (CO-626). When no agent session holds that permission, that is a human gate: say it with the exact command.
+3. The schema step 103 to 104, before 0.3.28 starts: a backup, 0.3.27 stopped as the runbook's 0.3.28 paragraph says
+   (`launchctl bootout`, the lifecycle broker's target held, no Fabric process and no connection to the database left),
+   `supabase migration up --local`, `schema_version()` read back as 104.
+4. CO-625's proof on the installed 0.3.28 (the section above), with the label's own agent checked first (PL-30).
+5. CO-626's proof: the install of step 2 completes, and `/Applications/Fabric.app` holds 0.3.28 with a signature that
+   verifies.
+6. SD-FAB-01's report on the board to fabric-workspace (iteration 2, PL-19): each acceptance item of
+   `docs/plans/2026-11-21-system-design/specs/fabric.md` in fabric-workspace mapped to 0.3.27's or 0.3.28's evidence,
+   naming that the four branches the item lists shipped in 0.3.27.
+7. On `main` after the tag: the CO-622, CO-625 and CO-626 rows' states, SD-FAB-01 and the Now line, the workspace
+   publication (`node scripts/workspace.mjs sync`) and the knowledge base's product page.

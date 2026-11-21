@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { ru } from '../i18n/ru'
-import { KanbanBoard, orderMoveAllowed } from './KanbanBoard'
+import { KanbanBoard, orderMoveAllowed, proposalAllowed } from './KanbanBoard'
 import type { TaskBoardView } from '../../../shared/taskBoard'
 
 const board: TaskBoardView = {
@@ -281,7 +281,10 @@ describe("the queue's order on the kanban", () => {
     const screenUp = screen.getByRole('button', { name: en['launch.kanban.order.upLabel'].replace('{task}', 'Screen') }) as HTMLButtonElement
     expect(screenUp.disabled).toBe(true)
     expect(screenUp.title).toBe(en['launch.kanban.order.waitsFirst'])
-    expect((screen.getByRole('button', { name: en['launch.kanban.order.downLabel'].replace('{task}', 'Reader') }) as HTMLButtonElement).disabled).toBe(true)
+    const readerDown = screen.getByRole('button', { name: en['launch.kanban.order.downLabel'].replace('{task}', 'Reader') }) as HTMLButtonElement
+    expect(readerDown.disabled).toBe(true)
+    // Iteration 3, UX-26: the ready card's hint is its own, not the waiting card's.
+    expect(readerDown.title).toBe(en['launch.kanban.order.readyFirst'])
     fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.order.downLabel'].replace('{task}', 'Schema') }))
     expect(reorder).toHaveBeenLastCalledWith('a', 'b')
     await waitFor(() => expect((window.fabric.work.board as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2))
@@ -320,15 +323,26 @@ describe("the queue's order on the kanban", () => {
 
   it("shows an agent's proposed place with its why, and the owner accepts or declines it", async () => {
     const rankProposal = vi.fn(async () => ({ accepted: true, written: 1 }))
-    wire(three, { rankProposal })
+    // Iteration 3, UX-28: «Screen» waits for an open task, so it may be proposed right after the last ready card, and
+    // its proposal to stand first (the fixture's) can only be declined.
+    const afterReader = queue([three.columns[0]!.cards[0]!, three.columns[0]!.cards[1]!, { ...three.columns[0]!.cards[2]!, proposal: { afterTaskId: 'b', why: 'It is what the release waits for' } }])
+    wire(afterReader, { rankProposal })
     show({ projectId: 'p1' })
-    await waitFor(() => expect(screen.getByText(en['launch.kanban.proposal.first'])).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(en['launch.kanban.proposal.after'].replace('{task}', 'Reader'))).toBeTruthy())
     expect(screen.getByText('It is what the release waits for')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.proposal.acceptLabel'].replace('{task}', 'Screen') }))
     expect(rankProposal).toHaveBeenCalledWith('c', true)
     await waitFor(() => expect((screen.getByRole('button', { name: en['launch.kanban.proposal.declineLabel'].replace('{task}', 'Screen') }) as HTMLButtonElement).disabled).toBe(false))
     fireEvent.click(screen.getByRole('button', { name: en['launch.kanban.proposal.declineLabel'].replace('{task}', 'Screen') }))
     expect(rankProposal).toHaveBeenLastCalledWith('c', false)
+  })
+
+  it('a proposal that would put a waiting task before a ready one can only be declined (iteration 3, UX-28)', async () => {
+    wire(three, { rankProposal: vi.fn() })
+    show({ projectId: 'p1' })
+    await waitFor(() => expect(screen.getByText(en['launch.kanban.proposal.first'])).toBeTruthy())
+    expect(screen.queryByRole('button', { name: en['launch.kanban.proposal.acceptLabel'].replace('{task}', 'Screen') })).toBeNull()
+    expect(screen.getByRole('button', { name: en['launch.kanban.proposal.declineLabel'].replace('{task}', 'Screen') })).toBeTruthy()
   })
 
   it('a proposal after a task that left the queue can only be declined', async () => {
@@ -363,5 +377,19 @@ describe('orderMoveAllowed (0.3.28 review, iteration 2, UX-13)', () => {
     expect(orderMoveAllowed(cards, 1, 2)).toBe(false)
     expect(orderMoveAllowed(cards, 0, 0)).toBe(false)
     expect(orderMoveAllowed(cards, 0, 9)).toBe(false)
+  })
+})
+
+describe('proposalAllowed (0.3.28 review, iteration 3, UX-28)', () => {
+  const r = (taskId: string) => ({ taskId, order: { waits: 0 } }), w = (taskId: string) => ({ taskId, order: { waits: 1 } })
+  it('accepts a proposed place only where ready tasks still stand first', () => {
+    const cards = [r('a'), r('b'), w('c'), w('d')]
+    expect(proposalAllowed(cards, 1, null)).toBe(true)
+    expect(proposalAllowed(cards, 3, null)).toBe(false)
+    expect(proposalAllowed(cards, 3, 'b')).toBe(true)
+    expect(proposalAllowed(cards, 3, 'a')).toBe(false)
+    expect(proposalAllowed(cards, 0, 'c')).toBe(false)
+    expect(proposalAllowed(cards, 0, 'b')).toBe(true)
+    expect(proposalAllowed(cards, 0, 'gone')).toBe(false)
   })
 })

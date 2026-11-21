@@ -14,9 +14,12 @@ The owner, 2026-11-21 (relayed by fabric-workspace's reconciler, A-3, d213194e):
 Memory's own projects and the board's operator door, a module nothing starts yet) and what `main` took after the tag:
 the queue's order (ADR-0208, the reconciler's A-3 P0 row 6, with schema 104); and, by the reconciler's A-3 (row 9 of
 P0) with their author's word, the owner's approval modes with the agents' behaviour journal and the CEO's choice of
-account; and the fix of CO-625, which kept a signalled stop from stopping Fabric. Not in it, each with its reason in
-[the release ledger](docs/evidence/plans/2026-11-21-release-0328-verification.md#protocol): the CEO's windows (a
-feature held under the owner's pause of 2026-11-21), CO-622 (the next release) and the paused work in progress.
+account; CO-622's items 1, 2 and 5, which came with `main` (the CEO's model and effort at a start, a session's answer
+read from its transcript, the board on the CEO's console); and two fixes from the 0.3.27 install of 2026-11-21: a stop
+by a signal now ends Fabric (CO-625), and an update no longer leaves Fabric's folder empty (CO-626). Not in it, each with
+its reason in [the release ledger](docs/evidence/plans/2026-11-21-release-0328-verification.md#protocol): the CEO's
+windows (a feature held under the owner's pause of 2026-11-21), CO-622's other items (3, 4 and 6 to 11, after 0.3.28)
+and the paused work in progress.
 
 - **Where «Нужны вы» goes in Telegram is shown and chosen in Settings, and Fabric names no organization of its own.**
   The setting «Присылать вопросы в Telegram через агента организации» said neither which organization, which agent nor
@@ -55,14 +58,18 @@ feature held under the owner's pause of 2026-11-21), CO-622 (the next release) a
 - **A stop by a signal ends Fabric, consoles open or not** (CO-625). Ended by a signal (the lifecycle broker, an
   install, `launchctl`) with live consoles, Fabric aborted while it tore down, and the board's launch agent started it
   again: the 0.3.27 install of 2026-11-21 could not stop it. The quit now waits, bounded, until every console's exit has
-  arrived before it ends, and ends what still runs (`main/ptySettle.ts#settleExits`); a drain still running 2.5 s before
+  arrived before it ends, and ends what still runs (`main/ptySettle.ts#settleExits`); a drain still running 3 s before
   the 10 s deadline is not waited for further, so the settle always runs (`main/quit.ts#QUIT_SETTLE_BUDGET_MS`). Proven
-  by tests; the proof on a packaged build is recorded in the release ledger.
+  by tests; the proof on a packaged build is checked on the installed 0.3.28 after the release, and CO-625 stays open
+  until it is recorded in the release ledger.
 - **An update never leaves Fabric's folder empty** (CO-626). Run from a launchd job, the in-place installer's swap was
   refused by macOS and its undo too, and `/Applications/Fabric.app` was left empty (the 0.3.27 install of 2026-11-21).
   It now tries a rename inside the bundle before moving anything and stops with nothing changed when macOS forbids it,
-  keeps the way back (a zip of the previous version) before the swap, and checks its undo
-  (`scripts/lib/install-mac-update.mjs#swapProbe`). It runs from a Terminal session with App Management permission.
+  writes the way back (a zip of the previous version, checked before it takes its name) before the swap, looks for a
+  Fabric started meanwhile again right before anything moves, and checks both of its undos
+  (`scripts/lib/install-mac-update.mjs#swapProbe`). It runs from a Terminal session with App Management permission,
+  with `--wait` to apply the update once Fabric has ended; `--schedule`, which handed the install to a launchd job,
+  now refuses at once.
 - **The board has a door of its own for the window** (ADR-0195 wave W2c.2a, board task `8b86adf3`). A new module,
   `main/operatorDoor.ts`, serves named doors on a loopback port of its own, published as `board-door.json` with a 0600
   token beside `hub.json`; it refuses another account's process (CO-514), a wrong token, a browser origin, a wrong
@@ -70,6 +77,7 @@ feature held under the owner's pause of 2026-11-21), CO-622 (the next release) a
   it land in W2c.2b, and the window switches to it in W2d. No agent and no screen sees a change
   ([the plan](docs/evidence/plans/2026-11-17-board-apart-waves.md#3-the-waves)).
 
+By the reconciler's A-3 (row 9 of P0), with their author's word ([ADR-0203](docs/adr/0203-the-owners-approval-mode-says-which-acts-wait-for-him.md)):
 
 - **The owner chooses how much he is asked.** Five approval modes, «одобрять важные» (the default, as before), «только
   критичные», «только траты», «только нестандартные» and «ничего, полная автоматика», say which acts above the floor
@@ -89,13 +97,33 @@ through the CEO, and check that the CEO has every access it needs ([the CEO acce
   takes `account` beside `runner`: Claude Code on a claude account, Codex on a codex one, an account of a group only in
   that group's folders and one of the default group anywhere; the console then runs the agent through
   `switchboard launch <id> --in-place`. `fabric_ceo_accounts` (by voice `session_accounts`) lists the accounts with
-  room, the most quota left first. A refusal names the accounts that can be used.
+  room, the most quota left first. An account is said by its name before «@» and chosen by its id, so no mail address
+  reaches the voice or its journal; a refusal names the accounts that can be used the same way.
 - **The CEO waits for a session's answer.** `fabric_ceo_session_wait` (by voice `session_wait`) waits until a console
   printed and went quiet, bounded, and answers its last turns; before, the CEO read the screen again and again.
 
+The owner, 2026-11-21, about 04:20, in the CEO window (CO-622, items 1, 2 and 5; [the plan](docs/evidence/plans/2026-11-21-ceo-voice-missing-tools.md)):
+everything decided by voice, quickly.
+
+- **A session starts on the model and effort asked, and a running one changes its model.** `fabric_ceo_session_start`
+  (by voice `session_start`) takes `model` and `effort`, given to the runner at its start (`claude --model`, `codex
+  -m`), never typed into the console; the answer says which were given and which the runner takes no flag for.
+  `fabric_ceo_session_model` (by voice `session_model`) types `/model` into a running Claude Code console and reads its
+  confirmation back. It types nothing while the console waits at a question, since its Enter would answer it, and the
+  voice's use counts against its inputs into one console.
+- **A session's answer is read from its transcript.** `fabric_ceo_session_last_reply` and
+  `fabric_ceo_session_wait_reply` (by voice `session_last_reply`, `session_wait_reply`) give a Claude Code session's
+  last answer, or wait for the next, as text from its own transcript, redacted and at most 4 000 characters, with when
+  and on which model. By voice, that text reaches the voice's provider and the call journal, as a screen read does.
+- **The CEO's console reads the board.** `fabric_ceo_board_projects`, `fabric_ceo_board_tasks`, `fabric_ceo_board_task`
+  and `fabric_ceo_board_summary`, the voice's board reads, are on the CEO's console too. The summary (by voice
+  `board_summary`) counts the open tasks of the active projects, names the busiest and the requests no one answers, all
+  by name; a part that did not read is said as unread, never as zero.
+
 0.3.28 takes one schema step, 103 to 104 (migration `20261121000131_task_rank.sql`): the runbook's upgrade, a backup
 first ([the runbook](docs/launch/release-mac.md#upgrading-an-existing-database)); going back needs 0.3.27's bundle with
-the backup taken before the step. A database at 102 (0.3.26) takes 0.3.27's manual step first.
+the backup taken before the step. A database at 102 (0.3.26) takes 0.3.27's step and this one in the same
+`supabase migration up`.
 Going back to 0.3.27 forgets the approval mode (set it again after upgrading again) and the choices made in «Куда уходят
 вопросы»: 0.3.27 reads only the routes list and its own
 built-in route, so a project set to «Не отправлять в Telegram» sends its questions again; before going back, turn

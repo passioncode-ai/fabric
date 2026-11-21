@@ -48,8 +48,9 @@ const TASKS_SAID = 25
 export const TASKS_READ = 200
 /** Said first: what runs, then what waits for the owner, then the rest (0.3.27 review UX-66). */
 const STATUS_ORDER: Record<string, number> = { running: 0, review: 1, backlog: 2 }
-/** The open tasks the host reads at most for the summary; at that bound the counts are «at least». */
-export const OPEN_READ = 5000
+/** The open tasks the host reads at most for the summary; at that bound the counts are «at least». The gateway answers
+ *  at most 1 000 rows (`supabase/config.toml` max_rows), so a larger bound could never be met (iteration 3, ER-26). */
+export const OPEN_READ = 1000
 const BUSIEST_SAID = 5
 const WAITING_SAID = 5
 
@@ -96,7 +97,7 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
     // The owner's words for the CEO itself are never a project (the owner, 2026-11-21).
     if (isCeoAddress(q)) return { ok: false, a: { ok: false, reason: `«${q}» is the CEO itself, not a project`, next: 'ask the owner which project he means' } }
     let list: BoardProject[]
-    try { list = await deps.reads.projects() } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board) */ return { ok: false, a: unread('the projects', e) } }
+    try { list = await deps.reads.projects() } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board by voice, ceo.board on the CEO's console) */ return { ok: false, a: unread('the projects', e) } }
     const r = findProject(list, q)
     if ('found' in r) return { ok: true, p: r.found }
     if ('ambiguous' in r) return { ok: false, a: { ok: false, reason: 'several projects match', choices: r.ambiguous.slice(0, 3), next: 'read the owner two or three and ask' } }
@@ -106,7 +107,7 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
   async function projects(a: { limit?: unknown }): Promise<Answer> {
     const n = typeof a.limit === 'number' && Number.isFinite(a.limit) ? Math.max(1, Math.min(20, Math.round(a.limit))) : 5
     let list: BoardProject[]
-    try { list = await deps.reads.projects() } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board) */ return unread('the projects', e) }
+    try { list = await deps.reads.projects() } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board by voice, ceo.board on the CEO's console) */ return unread('the projects', e) }
     const newest = [...list].sort((x, y) => Date.parse(y.created_at) - Date.parse(x.created_at)).slice(0, n)
     return { ok: true, projects: newest.map((p) => ({ name: p.name, created: when(p.created_at) })), of: list.length }
   }
@@ -115,7 +116,7 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
     const found = await project(a.project)
     if (!found.ok) return found.a
     let rows: BoardTask[]
-    try { rows = await deps.reads.tasks(found.p.id) } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board) */ return unread('the tasks', e) }
+    try { rows = await deps.reads.tasks(found.p.id) } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board by voice, ceo.board on the CEO's console) */ return unread('the tasks', e) }
     const shown = rows.filter((t) => a.include_closed === true || !CLOSED.has(t.status))
       .sort((x, y) => (STATUS_ORDER[x.status] ?? 3) - (STATUS_ORDER[y.status] ?? 3)
         || (Date.parse(y.started_at ?? '') || 0) - (Date.parse(x.started_at ?? '') || 0))
@@ -158,7 +159,7 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
         if (rows.length > 1) return { ok: false, reason: 'several tasks match', choices: rows.slice(0, 3).map(brief), next: 'read the owner two or three and ask' }
         t = rows[0] ?? null
       }
-    } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board) */ return unread('the task', e) }
+    } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board by voice, ceo.board on the CEO's console) */ return unread('the task', e) }
     if (!t) return { ok: false, reason: `no task «${q}»`, next: 'ask the owner for the task\'s words or its project' }
     try {
       const [from, to] = await Promise.all([deps.reads.linksFrom([t.id]), deps.reads.linksTo(t.id)])
@@ -178,29 +179,32 @@ export function createVoiceBoard(deps: { reads: BoardReads; timeZone?: string })
         follows: pick('follows', 'from'), followed_by: pick('follows', 'to'),
         started: when(t.started_at), ...(t.finished_at ? { finished: when(t.finished_at) } : {})
       }
-    } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board) */ return unread('the task\'s links', e) }
+    } catch (e) { /* said to the voice as unread; the host logs the tool's failure (ceo.voice.board by voice, ceo.board on the CEO's console) */ return unread('the task\'s links', e) }
   }
 
   async function summary(): Promise<Answer> {
     if (!deps.reads.openTasks) return { ok: false, reason: 'the board summary is not available here' }
     const [open, waiting] = await Promise.allSettled([deps.reads.openTasks(), deps.reads.waiting ? deps.reads.waiting() : Promise.reject(new Error('not read here'))])
     if (open.status === 'rejected') return unread('the open tasks', open.reason)
-    let names = new Map<string, string>()
-    try { names = new Map((await deps.reads.projects()).map((p) => [p.id, p.name])) } catch { /* the counts still answer; the busiest are said by id */ }
+    // Iteration 3, UX-31, ER-26, DA-22: the summary is of the active projects; their names are what is said, never an id,
+    // so a summary whose projects did not read is said as unread rather than counted over archived ones.
+    let names: Map<string, string>
+    try { names = new Map((await deps.reads.projects()).map((p) => [p.id, p.name])) } catch (e) { /* said to the caller as unread; the host logs the tool's failure (ceo.voice.board by voice, ceo.board on the CEO's console) */ return unread('the projects', e) }
+    const active = open.value.filter((t) => names.has(t.project_id))
     const per = new Map<string, Record<string, number>>()
-    for (const t of open.value) { const c = per.get(t.project_id) ?? {}; c[t.status] = (c[t.status] ?? 0) + 1; per.set(t.project_id, c) }
+    for (const t of active) { const c = per.get(t.project_id) ?? {}; c[t.status] = (c[t.status] ?? 0) + 1; per.set(t.project_id, c) }
     const busiest = [...per.entries()]
-      .map(([id, c]) => ({ project: names.get(id) ?? `project ${id.slice(0, 8)}`, running: c.running ?? 0, review: c.review ?? 0, backlog: c.backlog ?? 0 }))
+      .map(([id, c]) => ({ project: names.get(id)!, running: c.running ?? 0, review: c.review ?? 0, backlog: c.backlog ?? 0 }))
       .sort((x, y) => (y.running + y.review) - (x.running + x.review) || y.backlog - x.backlog).slice(0, BUSIEST_SAID)
     const w = waiting.status === 'fulfilled' ? waiting.value : null
     return {
       ok: true,
-      tasks: countBy(open.value.map((t) => t.status)), projects_with_work: per.size, busiest,
+      tasks: countBy(active.map((t) => t.status)), projects_with_work: per.size, busiest,
       ...(open.value.length >= OPEN_READ ? { capped: true, note: `counts are of ${OPEN_READ} open tasks; say «at least»` } : {}),
       ...(w ? {
         requests_unanswered: w.requests,
         ...(w.oldestRequestAt ? { oldest_since: when(w.oldestRequestAt) } : {}),
-        ...(w.list?.length ? { requests: w.list.slice(0, WAITING_SAID).map((r) => ({ from: r.from, to: r.to, subject: (r.subject ?? '').slice(0, 120), since: when(r.at) })) } : {})
+        ...(w.list?.length ? { requests: w.list.slice(0, WAITING_SAID).map((r) => ({ from: r.from ? names.get(r.from) ?? 'another project' : null, to: names.get(r.to) ?? 'another project', subject: (r.subject ?? '').slice(0, 120), since: when(r.at) })) } : {})
       } : { requests_unread: waiting.status === 'rejected' ? (waiting.reason instanceof Error ? waiting.reason.message.slice(0, 120) : String(waiting.reason)) : 'not read' })
     }
   }

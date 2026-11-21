@@ -464,3 +464,12 @@ test('PL-3: a signal after a held quit ends Fabric within the drain, though the 
   assert.equal(q.quitting, true)
   assert.equal(state.exited, 0)
 })
+
+// The 0.3.28 review, iteration 3, ER-31: the settle's budget covers the settle's own bounds and leaves room to end.
+test('ER-31: the settle budget is the settle\'s grace and kill wait plus a teardown margin, inside the deadline', async () => {
+  const { QUIT_SETTLE_BUDGET_MS, QUIT_TEARDOWN_MARGIN_MS, QUIT_DEADLINE_MS } = await import('../src/main/quit.ts')
+  const { SETTLE_GRACE_MS, SETTLE_KILL_MS } = await import('../src/main/ptySettle.ts')
+  assert.ok(QUIT_SETTLE_BUDGET_MS >= SETTLE_GRACE_MS + SETTLE_KILL_MS + 500, 'at least half a second for app.quit() and teardown')
+  assert.equal(QUIT_TEARDOWN_MARGIN_MS, QUIT_SETTLE_BUDGET_MS - SETTLE_GRACE_MS - SETTLE_KILL_MS)
+  assert.ok(QUIT_SETTLE_BUDGET_MS < QUIT_DEADLINE_MS / 2, 'the drain keeps most of the deadline')
+})

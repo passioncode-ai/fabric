@@ -3,6 +3,8 @@
 // the Dock tile followed it, and a second Fabric icon appeared (the operator, 2026-11-20).
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { spawnSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { compareVersions, dedupeDock, fabricRunning, installProblems, rollbackZip, sideCopies, staleRegistrations, stagingDir, swapProbe } from '../lib/install-mac-update.mjs'
 
 const fab = (over = {}) => ({ id: 'ai.passioncode.desktop', version: '0.3.27', team: 'TEAM1', signatureOk: true, ...over })
@@ -99,4 +101,31 @@ test('the swap probe passes a bundle that takes a rename and refuses one macOS p
   assert.match(why, /EPERM/)
   assert.match(why, /App Management/)
   assert.match(why, /never from a launchd job/)
+})
+
+// The 0.3.28 review, iteration 3.
+test('ER-23: only the refusal that moved nothing says «nothing was changed»; a probe left inside says it is there', () => {
+  const eperm = Object.assign(new Error('operation not permitted'), { code: 'EPERM' })
+  assert.match(swapProbe('/A/Fabric.app', '/A/.stage', { mkdir: () => {}, rm: () => {}, rename: () => { throw eperm } }), /nothing was changed$/)
+  let moves = 0
+  const stuck = swapProbe('/A/Fabric.app', '/A/.stage', { mkdir: () => {}, rm: () => {}, rename: () => { if (moves++ > 0) throw eperm } })
+  assert.doesNotMatch(stuck, /nothing was changed/)
+  assert.match(stuck, /the bundle now holds \/A\/Fabric\.app\/\.fabric-update-probe/)
+})
+
+test('DO-25: --schedule refuses at once, naming --wait from Terminal; nothing is written', { skip: process.platform !== 'darwin' }, () => {
+  const r = spawnSync(process.execPath, [new URL('../install-mac-update.mjs', import.meta.url).pathname, '--schedule', '--dmg', '/nonexistent.dmg'], { encoding: 'utf8' })
+  assert.equal(r.status, 1)
+  assert.match(r.stderr, /--schedule is not offered since 0\.3\.28/)
+  assert.match(r.stderr, /--wait from a Terminal session/)
+})
+
+test('ER-21, ER-22: the way back goes through a checked partial zip, and Fabric is looked for again after it, before the swap', () => {
+  const src = readFileSync(new URL('../install-mac-update.mjs', import.meta.url), 'utf8')
+  const zipAt = src.indexOf("const why = writeZip(path.join(opts.target, 'Contents'), zip, true)")
+  const againAt = src.indexOf('Fabric started again while the way back was written')
+  const swapAt = src.indexOf("if (had) renameSync(path.join(opts.target, 'Contents'), path.join(outgoing, 'Contents'))")
+  assert.ok(zipAt > 0 && zipAt < againAt && againAt < swapAt, 'zip, then the running check, then the first rename')
+  assert.match(src, /const partial = `\$\{zip\}\.partial`/)
+  assert.match(src, /if \(!zipReads\(partial\)\) throw/)
 })

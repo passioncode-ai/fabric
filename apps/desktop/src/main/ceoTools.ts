@@ -22,6 +22,7 @@ import { findProject, isCopyFolder, keyBytes, screenText, typedText, type NamedP
 import { isScratchFolder } from '../shared/scratchFolder.ts'
 import { catalogue as catalogueOf, holder, matchProject, type CatalogueRow, type ProjectMatch } from '../shared/estateSearch.ts'
 import { accountsFor, findAccount, PROVIDER_OF, type LaunchAccount } from '../shared/launchChoice.ts'
+import { promptOnScreen } from '../shared/consolePrompt.ts'
 import { redact } from '../shared/redact.ts'
 import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
 import { chainOf, type Launch, type LaunchVia } from '../shared/sessionLaunches.ts'
@@ -78,7 +79,7 @@ export const CEO_TOOLS = {
       project: z.string().trim().min(1).max(400).describe('The project\'s name, id, absolute folder or folder name.'),
       task: z.string().trim().max(8000).optional().describe('The first instruction the session is given.'),
       runner: z.enum(['claude-code', 'codex', 'hermes', 'kimi-code', 'kilo', 'shell']).optional().describe('The coding agent; the project\'s own by default.'),
-      account: z.string().trim().min(2).max(200).optional().describe('The Switchboard account or subscription to run it on (its label, a word of it, or its id; fabric_ceo_accounts lists them with their quota left): Claude Code on a claude account, Codex on a codex one. Switchboard\'s own choice by default.'),
+      account: z.string().trim().min(2).max(200).optional().describe('The Switchboard account or subscription to run it on (its id from fabric_ceo_accounts, which lists them with their quota left; the name it says, «work@…», also matches when only one account has it): Claude Code on a claude account, Codex on a codex one. Switchboard\'s own choice by default.'),
       model: z.string().trim().regex(MODEL_NAME).optional().describe('The model to start it on, as the runner names it (claude-fable-5-2, opus, gpt-5.1-codex). Given to the runner at start (claude --model, codex -m), never typed into the console; the answer says whether it was applied.'),
       effort: z.enum(EFFORTS).optional().describe('Its effort: low, medium, high, xhigh or max (claude --effort; codex takes up to high).'),
       reason
@@ -544,6 +545,26 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     return { ok: true, kind: 'transcript', session_id: a.session_id, folder: path.basename(path.dirname(file)), turns: redactedTurns(text) }
   }
 
+  /** Finding 3: the voice answers a question or picks an option; it does not do a session's work by hand. Every keystroke
+   *  the voice sends into one console counts, `/model` too (the 0.3.28 review, iteration 3, UX-23). A refusal, or null
+   *  and the input counted. */
+  function voiceInputOver(s: { sessionId: string; optionId: string }): Answer | null {
+    const shell = s.optionId === 'shell'
+    const limit = shell ? VOICE_INPUTS.shell : VOICE_INPUTS.agent
+    const recent = (voiceInputs.get(s.sessionId) ?? []).filter((t) => now() - t < VOICE_INPUT_WINDOW_MS)
+    if (recent.length >= limit) {
+      return refuse(`${recent.length} inputs into this console in ${Math.round(VOICE_INPUT_WINDOW_MS / 60_000)} minutes: that is doing the work by hand`, {
+        next: shell
+          ? 'start the project\'s coding agent with session_start and the task in words, hand it to the CEO with ask_ceo, or open the console for the owner to type in with session_open'
+          : 'let the session work, read it later with session_read, hand the request to the CEO with ask_ceo, or open the console for the owner with session_open'
+      })
+    }
+    voiceInputs.set(s.sessionId, [...recent, now()])
+    // Consoles that ended leave the map (0.3.27 review, ER-12).
+    for (const id of voiceInputs.keys()) if (!deps.ptys.get(id)?.running) voiceInputs.delete(id)
+    return null
+  }
+
   async function input(a: z.infer<typeof CEO_TOOLS.input.input>, via?: LaunchVia): Promise<Answer> {
     if (a.session_id === deps.ceoSessionId()) {
       // Finding 6: the voice typed into the CEO's own console; the CEO takes a request through ask_ceo.
@@ -555,20 +576,8 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     if (!s) return refuse('not a Fabric console: only consoles Fabric runs can be typed into; write to a Switchboard session through its own tools')
     if (!s.running) return refuse(`the console has ended: continue it with ${T.resume}`)
     if (via === 'voice') {
-      // Finding 3: the voice answers a question or picks an option; it does not do a session's work by hand.
-      const shell = s.optionId === 'shell'
-      const limit = shell ? VOICE_INPUTS.shell : VOICE_INPUTS.agent
-      const recent = (voiceInputs.get(s.sessionId) ?? []).filter((t) => now() - t < VOICE_INPUT_WINDOW_MS)
-      if (recent.length >= limit) {
-        return refuse(`${recent.length} inputs into this console in ${Math.round(VOICE_INPUT_WINDOW_MS / 60_000)} minutes: that is doing the work by hand`, {
-          next: shell
-            ? 'start the project\'s coding agent with session_start and the task in words, hand it to the CEO with ask_ceo, or open the console for the owner to type in with session_open'
-            : 'let the session work, read it later with session_read, hand the request to the CEO with ask_ceo, or open the console for the owner with session_open'
-        })
-      }
-      voiceInputs.set(s.sessionId, [...recent, now()])
-      // Consoles that ended leave the map (0.3.27 review, ER-12).
-      for (const id of voiceInputs.keys()) if (!deps.ptys.get(id)?.running) voiceInputs.delete(id)
+      const over = voiceInputOver(s)
+      if (over) return over
     }
     const keys: string[] = []
     for (const k of a.keys ?? []) {
@@ -595,12 +604,21 @@ export function createCeoOperations(deps: CeoOpsDeps) {
 
   // #region ceo-session-model — docs: docs/evidence/plans/2026-11-21-ceo-voice-missing-tools.md#progress
   /** CO-622 item 1: a live console's model, changed by its own /model and read back from its own confirmation. */
-  async function model(a: z.infer<typeof CEO_TOOLS.model.input>): Promise<Answer> {
-    if (a.session_id === deps.ceoSessionId()) return refuse('this is your own console: the owner sets the CEO\'s models in Settings')
+  async function model(a: z.infer<typeof CEO_TOOLS.model.input>, via?: LaunchVia): Promise<Answer> {
+    // Iteration 3, UX-22: there is no Settings row for the CEO's models (CO-597); they are in settings.json.
+    if (a.session_id === deps.ceoSessionId()) return refuse('this is your own console: the CEO\'s models are set in Fabric\'s settings.json (ceoModels) and take effect at its next start')
     const s = deps.ptys.get(a.session_id)
     if (!s) return refuse('not a Fabric console: a Switchboard session\'s model is set when it starts')
     if (!s.running) return refuse(`the console has ended: continue it with ${T.resume}`)
     if (s.optionId !== 'claude-code') return refuse(`${s.optionId} takes its model at the start: stop it and start it again with fabric_ceo_session_start (session_start by voice) and model`)
+    // Iteration 3, UX-23: the Enter after /model would answer a question the console waits on (a permission prompt's
+    // highlighted «Yes»), so nothing is typed while one shows.
+    const waiting = promptOnScreen(screen(s.sessionId, 40))
+    if (waiting) return refuse(`the console waits for an answer («${waiting.question.slice(0, 200)}»): Enter would answer it, so nothing was typed`, { screen_after: screen(s.sessionId, 15), next: `answer it first (the owner, or ${T.input} on the owner's word), then change the model` })
+    if (via === 'voice') {
+      const over = voiceInputOver(s)
+      if (over) return over
+    }
     const before = screen(s.sessionId, 400).length
     try {
       deps.ptys.write(s.sessionId, typedText(`/model ${a.model}`))
@@ -611,8 +629,9 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       return refuse(`the console did not take /model: ${e instanceof Error ? e.message : String(e)}`)
     }
     const r = await readBackModel(() => screen(s.sessionId, 400).slice(Math.max(0, before - 200)), a.model)
-    deps.record('ceo.session.model', { session_id: s.sessionId, model: a.model, state: r.state, reason: a.reason })
-    return { ok: r.state === 'applied', state: r.state, ...(r.line ? { said: r.line } : {}), ...(r.state === 'applied' ? {} : { screen_after: screen(s.sessionId, 15), next: r.state === 'refused' ? 'check the model name and try again' : `read the console with ${T.read} before you rely on the change` }) }
+    deps.record('ceo.session.model', { session_id: s.sessionId, model: a.model, state: r.state, outcome: r.state === 'refused' ? 'failed' : 'ok', reason: a.reason })
+    // Iteration 3, DA-18: /model was typed even when its confirmation was not read; the journal says so (`typed`).
+    return { ok: r.state === 'applied', state: r.state, model: a.model, typed: true, ...(r.line ? { said: r.line } : {}), ...(r.state === 'applied' ? {} : { screen_after: screen(s.sessionId, 15), next: r.state === 'refused' ? 'check the model name and try again' : `read the console with ${T.read} before you rely on the change` }) }
   }
   // #endregion ceo-session-model
 
@@ -982,6 +1001,9 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     }
   }
 
+  /** Accounts as a refusal offers them: the name the CEO says and the id it passes back (iteration 3, DA-16: never a label). */
+  const said = (list: readonly LaunchAccount[]): Array<{ account: string; id: string }> => list.map((x) => ({ account: accountName(x.label), id: x.id }))
+
   /** An account named for a start, checked against the agent and the project's folder (`launchChoice.ts`). */
   async function accountFor(name: string, runner: string, folder: string | null): Promise<{ account: LaunchAccount } | { refusal: Answer }> {
     if (!deps.launchAccounts) return { refusal: refuse('this Fabric cannot start a session on a chosen account') }
@@ -999,10 +1021,10 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       const why = a.provider !== PROVIDER_OF[runner] ? `it is a ${a.provider} account, and ${runner} needs a ${PROVIDER_OF[runner]} one`
         : !a.enabled ? 'it is turned off' : a.elsewhere ? 'it is used on another machine' : a.assigned ? 'it is given to an agent'
         : `it belongs to the group ${a.pool}, and this project's folder is in ${pool.pool ?? 'no group'}`
-      return { refusal: refuse(`the account ${a.label} cannot start ${runner} here: ${why}`, { choices: usable.slice(0, 3).map((x) => x.label), next: `name one of these, or start without an account` }) }
+      return { refusal: refuse(`the account ${accountName(a.label)} cannot start ${runner} here: ${why}`, { choices: said(usable.slice(0, 3)), next: `pass one of these ids, or start without an account` }) }
     }
-    if ('ambiguous' in hit) return { refusal: refuse(`«${name}» names several accounts: ${hit.ambiguous.join(', ')}`, { choices: hit.ambiguous, next: 'ask the owner which one' }) }
-    return { refusal: refuse(`no account «${name}»`, { choices: usable.slice(0, 3).map((x) => x.label), next: `the accounts with room here are listed in choices; ask the owner` }) }
+    if ('ambiguous' in hit) return { refusal: refuse(`«${accountName(name)}» names several accounts: ${hit.ambiguous.map((x) => accountName(x.label)).join(', ')}`, { choices: said(hit.ambiguous), next: 'ask the owner which one, then pass its id' }) }
+    return { refusal: refuse(`no account «${accountName(name)}»`, { choices: said(usable.slice(0, 3)), next: `the accounts with room here are listed in choices; ask the owner, then pass its id` }) }
   }
 
   async function accounts(a: z.infer<typeof CEO_TOOLS.accounts.input>): Promise<Answer> {
@@ -1106,6 +1128,17 @@ export function createCeoOperations(deps: CeoOpsDeps) {
 
   /** ADR-0203 §6: every act of the CEO and its voice in the behaviour journal, on whose word and what came of it.
    *  Reads (sessions, read, projects, …) are not acts and are not written. */
+  /** The reason as given, and for a model or a start what was asked of it (iteration 3, DA-18: which model a session was
+   *  put on is the question CO-622 asks of the journal). */
+  function actReason(name: string, a: Record<string, unknown>, answer: Answer): string | null {
+    const given = typeof a.reason === 'string' ? a.reason : null
+    const asked = [typeof a.model === 'string' ? `model ${a.model}` : null, typeof a.effort === 'string' ? `effort ${a.effort}` : null,
+      name === 'model' && typeof (answer as { state?: unknown }).state === 'string' ? (answer as { state: string }).state : null,
+      name === 'start' && typeof (answer as { account_id?: unknown }).account_id === 'string' ? `account ${(answer as { account_id: string }).account_id}` : null]
+      .filter((x): x is string => x !== null)
+    return asked.length ? `${given ?? ''} [${asked.join(', ')}]`.trim() : given
+  }
+
   function noteAct(name: string, a: Record<string, unknown>, answer: Answer, via: LaunchVia | undefined, call: string | null | undefined, threw = false): void {
     if (!deps.behaviour || !ACTS.has(name)) return
     const byVoice = via === 'voice'
@@ -1116,8 +1149,9 @@ export function createCeoOperations(deps: CeoOpsDeps) {
         act: name === 'alias' ? 'project.alias' : `session.${name}`,
         target: typeof target === 'string' ? target : null,
         word: byVoice ? { of: 'owner', via: 'voice', ref: call ?? null } : { of: 'ceo', via: via ?? 'console' },
-        decision: threw ? 'failed' : answer.ok === false ? 'refused' : 'done',
-        reason: typeof a.reason === 'string' ? a.reason : null
+        // Iteration 3, DA-18: an act typed into a console whose result was not read back is done, with its state said.
+        decision: threw ? 'failed' : answer.ok === false && (answer as { typed?: unknown }).typed !== true ? 'refused' : 'done',
+        reason: actReason(name, a, answer)
       })
     } catch (e) { /* the journal is a record of the act, never a reason to fail it */ deps.record('ceo.behaviour.note', { outcome: 'failed', error: e instanceof Error ? e.message.slice(0, 200) : String(e) }) }
   }

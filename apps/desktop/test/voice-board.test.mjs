@@ -166,8 +166,10 @@ test('the CEO console has every board read the voice has, answering exactly as t
 })
 
 test('the board summary counts open tasks across projects, names the busiest and the requests no one answers', async () => {
-  const open = [['p4', 'running'], ['p4', 'running'], ['p4', 'review'], ['p4', 'backlog'], ['p1', 'backlog'], ['p2', 'review']].map(([project_id, status]) => ({ project_id, status }))
-  const waiting = { requests: 2, oldestRequestAt: '2026-11-21T08:00:00Z', list: [{ from: 'alpha-agent', to: 'dissy', subject: 'store copy', at: '2026-11-21T08:00:00Z' }, { from: null, to: 'beta-app', subject: null, at: '2026-11-21T09:00:00Z' }] }
+  // Iteration 3: a task of an archived project (p9, not among the active projects) is not counted (UX-31, DA-22), and
+  // the requests' projects come as ids, said by name (ER-28).
+  const open = [['p4', 'running'], ['p4', 'running'], ['p4', 'review'], ['p4', 'backlog'], ['p1', 'backlog'], ['p2', 'review'], ['p9', 'running']].map(([project_id, status]) => ({ project_id, status }))
+  const waiting = { requests: 2, oldestRequestAt: '2026-11-21T08:00:00Z', list: [{ from: 'p1', to: 'p4', subject: 'store copy', at: '2026-11-21T08:00:00Z' }, { from: null, to: 'p2', subject: null, at: '2026-11-21T09:00:00Z' }] }
   const board = createVoiceBoard({ reads: { ...reads(), openTasks: async () => open, waiting: async () => waiting }, timeZone: 'Europe/Warsaw' })
   const r = await board.run('board_summary', {})
   assert.equal(r.ok, true)
@@ -177,6 +179,10 @@ test('the board summary counts open tasks across projects, names the busiest and
   assert.equal(r.requests_unanswered, 2)
   assert.equal(r.oldest_since, '2026-11-21 09:00', 'in the owner\'s time zone')
   assert.equal(r.requests[0].to, 'dissy')
+  assert.equal(r.requests[0].from, 'alpha-agent')
+  assert.doesNotMatch(JSON.stringify(r), /project p9|"p9"/, 'an archived project is neither counted nor said by id')
+  const noNames = await createVoiceBoard({ reads: { ...reads(), projects: async () => { throw new Error('db down') }, openTasks: async () => open, waiting: async () => waiting } }).run('board_summary', {})
+  assert.equal(noNames.ok, false, 'without the projects the summary is said as unread, never counted by id')
   // A requests read that fails leaves the counts and says the requests unread, never zero.
   const half = await createVoiceBoard({ reads: { ...reads(), openTasks: async () => open, waiting: async () => { throw new Error('board down') } } }).run('board_summary', {})
   assert.equal(half.ok, true)

@@ -43,6 +43,20 @@ export function orderMoveAllowed(cards: ReadonlyArray<{ order?: { waits: number 
   return waits(from) === waits(to)
 }
 
+/** The 0.3.28 review, iteration 3, UX-28: whether an agent's proposed place (right after `afterTaskId`, or first when it
+ *  is null) keeps ready tasks before waiting ones, so «Принять» never writes a place the board would not show. */
+export function proposalAllowed(cards: ReadonlyArray<{ taskId: string; order?: { waits: number } | null }>, at: number, afterTaskId: string | null): boolean {
+  const self = cards[at]
+  if (!self) return false
+  const rest = cards.filter((_, i) => i !== at)
+  const waits = (c: { order?: { waits: number } | null } | undefined): boolean => (c?.order?.waits ?? 0) > 0
+  const prevAt = afterTaskId === null ? -1 : rest.findIndex((c) => c.taskId === afterTaskId)
+  if (afterTaskId !== null && prevAt < 0) return false
+  const prev = prevAt >= 0 ? rest[prevAt] : undefined
+  const next = rest[prevAt + 1]
+  return waits(self) ? next === undefined || waits(next) : prev === undefined || !waits(prev)
+}
+
 export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remembered, onRemember }: {
   /** Re-read on the journal's clock. */
   feedMark: number
@@ -199,7 +213,11 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
                       draggable={orderable && !busy ? true : undefined}
                       onDragStart={orderable ? (e) => { setDragged(x.taskId); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', x.taskId) } : undefined}
                       onDragEnd={orderable ? () => { setDragged(null); setOver(null) } : undefined}
-                      onDragOver={orderable && dragged ? (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (over !== x.taskId) setOver(x.taskId) } : undefined}
+                      onDragOver={orderable && dragged ? (e) => {
+                        // Iteration 3, UX-27: a place across the waiting line takes no drop, so the cursor shows none.
+                        if (!orderMoveAllowed(cards, cards.findIndex((y) => y.taskId === dragged), at)) { if (over === x.taskId) setOver(null); return }
+                        e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (over !== x.taskId) setOver(x.taskId)
+                      } : undefined}
                       onDrop={orderable && dragged ? (e) => { e.preventDefault(); dropOn(cards, x.taskId) } : undefined}>
                       <button type="button" className="lk-card" onClick={() => onOpen(x.projectId, x.taskId)}>
                         <b>{x.summary || t('launch.home.work.untitled')}</b>
@@ -223,7 +241,7 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
                             title={at > 0 && !orderMoveAllowed(cards, at, at - 1) ? t('launch.kanban.order.waitsFirst') : undefined}
                             onClick={() => move(x.taskId, cards[at - 2]?.taskId ?? null)}>{t('launch.kanban.order.up')}</button>
                           <button type="button" className="lp-button lh-text-link" disabled={!!busy || at === cards.length - 1 || !orderMoveAllowed(cards, at, at + 1)} aria-label={t('launch.kanban.order.downLabel', { task: name })}
-                            title={at < cards.length - 1 && !orderMoveAllowed(cards, at, at + 1) ? t('launch.kanban.order.waitsFirst') : undefined}
+                            title={at < cards.length - 1 && !orderMoveAllowed(cards, at, at + 1) ? t('launch.kanban.order.readyFirst') : undefined}
                             onClick={() => move(x.taskId, cards[at + 1]!.taskId)}>{t('launch.kanban.order.down')}</button>
                         </span>
                       )}
@@ -237,7 +255,8 @@ export function KanbanBoard({ feedMark, projectId = null, onOpen, onAgent, remem
                           {x.proposal.why && <small className="lp-meta">{x.proposal.why}</small>}
                           <span className="lk-move">
                             {/* The 0.3.28 review, iteration 2, UX-15: accepted only where the queue can be moved. */}
-                            {mayOrder && (x.proposal.afterTaskId === null || anchor) && (
+                            {/* Iteration 3, UX-28: and only where the proposed place keeps ready tasks first. */}
+                            {mayOrder && (x.proposal.afterTaskId === null || anchor) && proposalAllowed(cards, at, x.proposal.afterTaskId) && (
                               <button type="button" className="lp-button lh-text-link" disabled={!!busy} aria-label={t('launch.kanban.proposal.acceptLabel', { task: name })}
                                 onClick={() => act(x.taskId, 'launch.kanban.proposal.failed', () => window.fabric.tasks.rankProposal(x.taskId, true))}>{t('launch.kanban.proposal.accept')}</button>
                             )}
