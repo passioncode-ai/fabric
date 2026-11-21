@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { ceoBoardNudge, ceoBrief, ceoLaunchExtras, ceoLine, ceoModelAllowed, ceoModelsOf, ceoRunnersOf, claudeModelFlag, findProject, inboxName, keyBytes, screenText, typedText, CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT } from '../src/shared/ceoAgent.ts'
 import { createCeoAgent, LIMIT_SAID } from '../src/main/ceoAgent.ts'
-import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, CEO_TOOLS, readBackModel } from '../src/main/ceoTools.ts'
+import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, CEO_TOOLS, readBackModel, lastAssistantReply } from '../src/main/ceoTools.ts'
 import { mintVoiceToken, sampleText, voiceSample, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
 import { createVoiceKeyStore, voiceKeyShapeOk } from '../src/main/ceoVoiceKey.ts'
 import { validateSettings } from '../src/shared/appSettings.ts'
@@ -1521,4 +1521,45 @@ test('a running Claude Code console takes /model and the answer reads its confir
   assert.equal((await ops.run('model', { session_id: 'ceo', model: 'opus', reason: 'x x x' })).ok, false, 'never the CEO\'s own console')
   assert.equal((await ops.run('model', { session_id: 's1', model: 'opus --dangerously-skip-permissions', reason: 'x x x' })).ok, false, 'a flag is not a model')
   assert.ok(ceoVoiceTools().some((t) => t.name === 'session_model'), 'the voice has it too')
+})
+
+// CO-622 item 2: a session's last answer, and the next one waited for, read from its own transcript, never its screen.
+test('the last answer and the next one come from the transcript, as text with time and model', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, appendFileSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const pathMod = await import('node:path')
+  const row = (type, at, content, extra = {}) => JSON.stringify({ type, timestamp: at, message: { role: type, content, ...extra } })
+  const jsonl = [
+    row('user', '2026-11-21T10:00:00Z', 'do the thing'),
+    row('assistant', '2026-11-21T10:00:05Z', [{ type: 'text', text: 'Working on it.' }, { type: 'tool_use', name: 'Bash' }], { model: 'claude-fable-5-2', stop_reason: 'tool_use' }),
+    row('assistant', '2026-11-21T10:01:00Z', [{ type: 'text', text: 'Done: 3 files changed.' }], { model: 'claude-fable-5-2', stop_reason: 'end_turn' }),
+    '{"type":"assistant","cut'
+  ].join('\n')
+  assert.deepEqual(lastAssistantReply(jsonl), { text: 'Done: 3 files changed.', at: '2026-11-21T10:01:00Z', model: 'claude-fable-5-2', finished: true })
+  assert.equal(lastAssistantReply(jsonl.split('\n').slice(0, 2).join('\n')).finished, false, 'a turn still calling tools is not finished')
+  assert.equal(lastAssistantReply(row('user', 'x', 'hi')), null)
+
+  const root = mkdtempSync(pathMod.join(tmpdir(), 'ceo-reply-'))
+  const rid = '11111111-2222-4333-8444-555555555555'
+  try {
+    mkdirSync(pathMod.join(root, 'projects', '-d-app'), { recursive: true })
+    const file = pathMod.join(root, 'projects', '-d-app', `${rid}.jsonl`)
+    writeFileSync(file, jsonl + '\n')
+    const { ops } = operations({ launches: async () => [{ sessionId: 's1', runnerSessionId: rid, runner: 'claude-code' }], deps: { transcriptRoots: [root] } })
+    const last = await ops.run('last_reply', { session_id: 's1' })
+    assert.equal(last.ok, true)
+    assert.equal(last.text, 'Done: 3 files changed.')
+    assert.equal(last.model, 'claude-fable-5-2')
+    // Nothing newer than now: no reply yet, with the last one.
+    const none = await ops.run('wait_reply', { session_id: 's1', timeout_s: 1 })
+    assert.equal(none.state, 'no_reply_yet')
+    // A reply written while it waits is the answer.
+    const waiting = ops.run('wait_reply', { session_id: 's1', timeout_s: 5 })
+    setTimeout(() => appendFileSync(file, row('assistant', new Date(Date.now() + 1000).toISOString(), [{ type: 'text', text: 'Next answer.' }], { model: 'opus', stop_reason: 'end_turn' }) + '\n'), 300)
+    const got = await waiting
+    assert.equal(got.state, 'replied')
+    assert.equal(got.text, 'Next answer.')
+    assert.equal((await ops.run('last_reply', { session_id: 's2' })).ok, false, 'a shell keeps no transcript')
+    assert.ok(ceoVoiceTools().some((t) => t.name === 'session_wait_reply'), 'the voice has it too')
+  } finally { rmSync(root, { recursive: true, force: true }) }
 })

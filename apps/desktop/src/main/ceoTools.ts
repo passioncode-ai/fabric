@@ -83,6 +83,22 @@ export const CEO_TOOLS = {
       reason
     }).strict()
   },
+  last_reply: {
+    mcp: 'fabric_ceo_session_last_reply',
+    title: 'A session\'s last answer',
+    description: 'The last answer a Claude Code session wrote, as text from its own transcript (no screen noise), with when, on which model, and whether its turn ended. Give a Fabric console\'s id or a Claude Code session id. Use it to know what a session said instead of reading its screen; fabric_ceo_session_wait_reply waits for the next one.',
+    input: z.object({ session_id: sessionId }).strict()
+  },
+  wait_reply: {
+    mcp: 'fabric_ceo_session_wait_reply',
+    title: 'Wait for a session\'s next answer',
+    description: 'Wait for the next finished answer of a Claude Code session after a moment (now by default, or after: the time an input was sent), at most timeout_s seconds (60 by default, 120 at most): its text from the transcript, when and on which model; or no_reply_yet with the session\'s last turn. Use it after fabric_ceo_session_input when the owner waits for the answer.',
+    input: z.object({
+      session_id: sessionId,
+      after: z.string().datetime({ offset: true }).optional().describe('Only an answer written after this time (ISO 8601); now by default.'),
+      timeout_s: z.number().int().min(1).max(120).optional().describe('How long to wait; 60 by default.')
+    }).strict()
+  },
   stop: {
     mcp: 'fabric_ceo_session_stop',
     title: 'Stop or kill a session',
@@ -557,6 +573,42 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
   // #endregion ceo-session-model
 
+  // #region ceo-session-reply — docs: docs/evidence/plans/2026-11-21-ceo-voice-missing-tools.md#progress
+  /** CO-622 item 2: the transcript of a Fabric console (through its runner's session id) or of a Claude Code session id. */
+  async function transcriptOf(id: string): Promise<{ file: string } | { refused: string }> {
+    const s = deps.ptys.get(id)
+    if (s && s.optionId !== 'claude-code') return { refused: `${s.optionId} keeps no Claude Code transcript: read its screen with ${T.read}` }
+    const runnerId = s ? await runnerIdOf(id) : id
+    if (!runnerId) return { refused: `the console has not recorded its Claude Code session yet: read its screen with ${T.read}` }
+    const file = findTranscript(deps.transcriptRoots ?? defaultTranscriptRoots(), runnerId)
+    return file ? { file } : { refused: `no Claude Code transcript has the id ${runnerId}` }
+  }
+  async function lastReplyIn(file: string): Promise<LastReply | null> {
+    return lastAssistantReply(await readTail(file, READ_TAIL_BYTES), (x) => redact(x).text)
+  }
+  async function last_reply(a: z.infer<typeof CEO_TOOLS.last_reply.input>): Promise<Answer> {
+    const t = await transcriptOf(a.session_id)
+    if ('refused' in t) return refuse(t.refused)
+    let r: LastReply | null
+    try { r = await lastReplyIn(t.file) } catch (e) { /* said to the caller as the tool's refusal, never as success */ return refuse(`the transcript could not be read: ${e instanceof Error ? e.message : String(e)}`) }
+    return r ? { ok: true, ...r } : { ok: true, state: 'no_reply_yet', note: 'the session has written no answer yet' }
+  }
+  async function wait_reply(a: z.infer<typeof CEO_TOOLS.wait_reply.input>): Promise<Answer> {
+    const t = await transcriptOf(a.session_id)
+    if ('refused' in t) return refuse(t.refused)
+    const after = a.after ? Date.parse(a.after) : now()
+    const deadline = now() + (a.timeout_s ?? 60) * 1000
+    let r: LastReply | null = null
+    for (;;) {
+      try { r = await lastReplyIn(t.file) } catch (e) { /* said to the caller as the tool's refusal, never as success */ return refuse(`the transcript could not be read: ${e instanceof Error ? e.message : String(e)}`) }
+      if (r && r.finished && Date.parse(r.at) > after) return { ok: true, state: 'replied', ...r }
+      if (now() >= deadline) break
+      await sleep(REPLY_POLL_MS)
+    }
+    return { ok: true, state: 'no_reply_yet', waited_s: a.timeout_s ?? 60, ...(r ? { last: r } : {}), next: `wait again, or read the screen with ${T.read}` }
+  }
+  // #endregion ceo-session-reply
+
   /** The first task's end, waited for at most FIRST_TASK_WAIT_MS; past it the answer says it is still on its way. */
   async function firstTaskOf(sessionId: string, via?: LaunchVia): Promise<Answer> {
     const pending = deps.firstTask?.(sessionId)
@@ -927,7 +979,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
 
   const table: { [K in CeoToolName]: (a: z.infer<(typeof CEO_TOOLS)[K]['input']>, via?: LaunchVia) => Promise<Answer> } = {
-    sessions, read, input, start, model, stop, resume, open, launches, projects, task, alias
+    sessions, read, input, start, model, last_reply, wait_reply, stop, resume, open, launches, projects, task, alias
   }
 
   /** Run one tool by its short name with unchecked arguments: checked here, refused with the first problem. `via`:
@@ -966,6 +1018,32 @@ function json(value: unknown): { content: Array<{ type: 'text'; text: string }> 
 }
 
 /** The MCP door: every tool on the CEO session's server, nowhere else (`agentSurface.ts#serverFor`). */
+/** How often wait_reply reads the transcript again. */
+export const REPLY_POLL_MS = 1_000
+export interface LastReply { text: string; at: string; model: string | null; finished: boolean }
+
+/** The newest assistant answer with text in a Claude Code transcript's tail: its text (cut to 4 000 characters), time,
+ *  model, and whether its turn ended (`stop_reason` other than tool use). A line cut while written is skipped. */
+export function lastAssistantReply(jsonl: string, clean: (text: string) => string = (x) => x): LastReply | null {
+  const lines = jsonl.split('\n')
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim()
+    if (!line) continue
+    let row: { type?: unknown; timestamp?: unknown; message?: { role?: unknown; model?: unknown; stop_reason?: unknown; content?: unknown } }
+    try { row = JSON.parse(line) } catch { continue /* a line cut while being written */ }
+    if (row.type !== 'assistant' || !row.message) continue
+    const content = Array.isArray(row.message.content) ? row.message.content : typeof row.message.content === 'string' ? [{ type: 'text', text: row.message.content }] : []
+    const text = content.filter((c: { type?: unknown; text?: unknown }) => c?.type === 'text' && typeof c.text === 'string').map((c: { text: string }) => c.text).join('\n').trim()
+    if (!text) continue
+    return {
+      text: clean(text).slice(0, 4000), at: typeof row.timestamp === 'string' ? row.timestamp : new Date(0).toISOString(),
+      model: typeof row.message.model === 'string' ? row.message.model : null,
+      finished: row.message.stop_reason !== 'tool_use'
+    }
+  }
+  return null
+}
+
 /** Claude Code's answer to /model on its screen: «Set model to …» applied, an error refused; read for at most `ms`. */
 export async function readBackModel(screenNow: () => string, asked: string, ms = 8_000, step = 250): Promise<{ state: 'applied' | 'refused' | 'unconfirmed'; line?: string }> {
   const deadline = Date.now() + ms
