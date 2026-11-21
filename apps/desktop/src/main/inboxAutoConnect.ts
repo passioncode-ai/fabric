@@ -43,13 +43,13 @@ export function createInboxAutoConnect(deps: InboxAutoConnectDeps): () => Promis
       const last = deps.last()
       if (last?.outcome === 'waiting') return 'waiting'
       if (last?.outcome === 'denied') return 'denied'
-      if (deps.saidNo && await deps.saidNo().catch(() => true)) return 'denied'
+      if (deps.saidNo && await deps.saidNo().catch(() => true /* an unread no is a no: never connect over a refusal we could not read */)) return 'denied'
       if (lastTry && now() - lastTry < INBOX_RETRY_MS) return 'too-soon'
       lastTry = now()
       const r = await deps.begin()
       deps.record('hub.inbox.auto-connect', { started: r.ok })
       return r.ok ? 'started' : 'failed'
-    } catch (e) {
+    } catch (e) { /* recorded through the hub's ops record (deps.record), with the error's class; the next tick tries again */
       deps.record('hub.inbox.auto-connect', { started: false, error_class: e instanceof Error ? e.constructor.name : typeof e })
       return 'failed'
     } finally {
