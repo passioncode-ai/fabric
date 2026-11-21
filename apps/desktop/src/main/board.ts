@@ -332,6 +332,9 @@ export async function startBoardHub(d: BoardHubDeps): Promise<void> {
     // An unreadable settings file names no language and reads as not trusted (`hubPorts.ts#windowHubPorts`).
     language: hubPorts.settings.language,
     machineTrust: hubPorts.settings.machineTrust,
+    // ADR-0203: the owner's approval mode, for fabric_whoami and the floor's own grant.
+    approvalMode: hubPorts.settings.approvalMode,
+    ...(hubPorts.behaviour ? { behaviour: hubPorts.behaviour } : {}),
     // The operator, 2026-11-07: the agents of this machine for every session's fabric_whoami (`machine.agents-first`).
     machineAgents: hubPorts.registry.machineAgents,
     // CO-514 (DEC-0154 HA-2 (b), HA-3): another account's process is refused before its request is read.

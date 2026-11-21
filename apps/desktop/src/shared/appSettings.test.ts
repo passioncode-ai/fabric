@@ -29,11 +29,19 @@ describe('validateSettings', () => {
       dispatchTarget: 'studio',
       dispatchTargets: { 'owner-a': 'node-a' },
       peopleAsk: false,
+      approvalMode: 'unusual',
       // ADR-0197: the CEO's order, kept as written when every runner is known.
       ceoRunners: ['hermes', 'claude-code'],
       ceoModels: ['openai/gpt-6.2-sol', 'anthropic/claude-sonnet-5.5']
     }
     expect(validateSettings(file)).toEqual(file)
+  })
+
+  it('reads an unknown approval mode as the default, never a looser one, and a window may write a known one (ADR-0203)', () => {
+    expect(validateSettings({ ...APP_SETTINGS_DEFAULTS, approvalMode: 'auto' })?.approvalMode).toBe('important')
+    expect(validateSettings({ ...APP_SETTINGS_DEFAULTS, approvalMode: undefined })?.approvalMode).toBe('important')
+    expect(settingsPatch({ approvalMode: 'none' })).toEqual({ ok: true, patch: { approvalMode: 'none' } })
+    expect(settingsPatch({ approvalMode: 'everything' }).ok).toBe(false)
   })
 
   it('and MIGRATES a file written before drafts were durable (AX-05)', () => {

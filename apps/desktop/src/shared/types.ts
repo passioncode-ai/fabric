@@ -1,3 +1,4 @@
+import type { ApprovalMode } from './approvalMode.ts'
 import type { Launch } from './sessionLaunches.ts'
 import type { SessionMeta } from './sessionMeta.ts'
 import type { ActAnswer, ActHistoryPage, ActHistoryQuery } from './acts.ts'
@@ -510,6 +511,11 @@ export interface AppSettings {
    */
   peopleAsk: boolean
   /**
+   * The owner's approval mode (ADR-0203, `shared/approvalMode.ts`): which acts above the floor wait for the owner's yes.
+   * `important` by default; the human gates (sign-in, one-time code, payment, typed secret, consent) wait in every mode.
+   */
+  approvalMode: ApprovalMode
+  /**
    * ADR-0197 (the operator, 2026-11-18: «не только на подписке Claude, обязательный fallback»): the runners the CEO's console
    * walks, in order; one that is not installed, is signed out, cannot start or reports a limit is passed over. Set by hand
    * in settings.json; anything not a known runner is dropped, an empty or broken list is the default order.
@@ -532,7 +538,7 @@ export type MachineTrust = 'mine' | 'organization' | null
  * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
  * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
  */
-export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders' | 'dispatchBoardRequests' | 'resumeLeftWork' | 'dispatchTarget' | 'peopleAsk'>>
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'commsReadThrough' | 'firstRun' | 'runnerFallback' | 'agentPermissions' | 'launchAtLogin' | 'agentLanguage' | 'machineTrust' | 'boardFilters' | 'trustAgentFolders' | 'dispatchBoardRequests' | 'resumeLeftWork' | 'dispatchTarget' | 'peopleAsk' | 'approvalMode'>>
 // #endregion settings-patch
 
 /**
@@ -573,6 +579,7 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   dispatchTargets: {},
   // Task 11ebbf83: the operator's word (2026-11-16); the person turns it off in Settings.
   peopleAsk: true,
+  approvalMode: 'important',
   // ADR-0197: Claude Code first, then Hermes on OpenRouter, then the rest.
   ceoRunners: [...CEO_RUNNERS_DEFAULT],
   // The operator, 2026-11-18: Opus, then GPT Sol, never below Sonnet 5.5.

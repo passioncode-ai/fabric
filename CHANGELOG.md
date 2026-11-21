@@ -19,6 +19,29 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   `task.rank.proposed@1`, `task.rank.declined@1`). [ADR-0208](docs/adr/0208-the-queue-has-one-order-the-owners-rank-over-a-dependency-walk.md),
   [spec](docs/evidence/specs/2026-11-21-task-rank.md).
 
+- **The owner chooses how much he is asked.** Five approval modes, «одобрять важные» (the default, as before), «только
+  критичные», «только траты», «только нестандартные» and «ничего, полная автоматика», say which acts above the floor
+  (spending, deleting, publishing) wait for his yes. An act that does not wait gets a one-shot permission Fabric issues
+  itself, recorded with the mode that allowed it. Every session reads the mode in `fabric_whoami`, the CEO's brief and the
+  voice say it, and a sign-in, a one-time code, a payment, a secret and a consent screen wait for the person in every
+  mode ([ADR-0203](docs/adr/0203-the-owners-approval-mode-says-which-acts-wait-for-him.md)).
+- **Who did what, on whose word.** The agents' behaviour journal keeps each act of the CEO, its voice and the sessions'
+  floor with whose word it was done on and what was decided, tied to the voice call that asked for it; the CEO and the
+  voice read it with `fabric_ceo_journal` (ADR-0203 §6).
+
+The owner, 2026-11-20 (paraphrased): start a session with the agent or the subscription he picks, also by voice and
+through the CEO, and check that the CEO has every access it needs ([the CEO access audit](docs/reports/2026-11-20-ceo-access-audit/README.md)).
+
+- **The CEO and its voice start a session on a chosen account.** `fabric_ceo_session_start` (by voice `session_start`)
+  takes `account` beside `runner`: Claude Code on a claude account, Codex on a codex one, an account of a group only in
+  that group's folders and one of the default group anywhere; the console then runs the agent through
+  `switchboard launch <id> --in-place`. `fabric_ceo_accounts` (by voice `session_accounts`) lists the accounts with
+  room, the most quota left first. A refusal names the accounts that can be used.
+- **The CEO waits for a session's answer.** `fabric_ceo_session_wait` (by voice `session_wait`) waits until a console
+  printed and went quiet, bounded, and answers its last turns; before, the CEO read the screen again and again.
+
+**Upgrading.** No schema step. Nothing to set.
+
 ## 0.3.27
 
 The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).

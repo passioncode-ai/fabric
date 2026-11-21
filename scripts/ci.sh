@@ -442,7 +442,7 @@ node --experimental-strip-types apps/desktop/test/hub-call-i3.test.mjs
 node --experimental-strip-types --test-force-exit apps/desktop/test/hub-surface.test.mjs
 # 2026-11-16 (the quality waves): these were written and never run by any tier. A test file no tier names is now a
 # failure (scripts/check-test-chains.mjs, below); one that is a manual probe says so in its first lines.
-for t in act-session-words board-reads board-wall-reads bug-capture bug-store ceo-conversation-host-tls console-open delivery-queue inbox-auto-connect claude-transcript task-start cross-project-assign docker-runtime-words effect-tools process-boundary-native project-tools task-tools provider-capability-upgrade question-tools relayed-access-tools relayed-close resumed-claims switchboard-sessions ceo-agent voice-retro voice-board session-resume session-launches; do
+for t in act-session-words board-reads board-wall-reads bug-capture bug-store ceo-conversation-host-tls console-open delivery-queue inbox-auto-connect claude-transcript task-start cross-project-assign docker-runtime-words effect-tools process-boundary-native project-tools task-tools provider-capability-upgrade question-tools relayed-access-tools relayed-close resumed-claims switchboard-sessions ceo-agent voice-retro ceo-access approval-mode behaviour-journal voice-board session-resume session-launches; do
   node --experimental-strip-types --test "apps/desktop/test/$t.test.mjs"
 done
 node scripts/check-test-chains.mjs

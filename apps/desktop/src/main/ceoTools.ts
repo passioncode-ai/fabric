@@ -10,6 +10,7 @@
  * stop the person's stop (`stop`), Switchboard's sessions its own CLI. The CEO never acts on its own console.
  */
 import { isCeoAddress } from '../shared/ceoAddress.ts'
+import type { BehaviourJournal } from './behaviourJournal.ts'
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import path from 'node:path'
@@ -20,6 +21,7 @@ import { decodePty } from '../shared/pty-decode.ts'
 import { findProject, isCopyFolder, keyBytes, screenText, typedText, type NamedProject, type ProjectLookup, type WorkFolder } from '../shared/ceoAgent.ts'
 import { isScratchFolder } from '../shared/scratchFolder.ts'
 import { catalogue as catalogueOf, holder, matchProject, type CatalogueRow, type ProjectMatch } from '../shared/estateSearch.ts'
+import { accountsFor, findAccount, PROVIDER_OF, type LaunchAccount } from '../shared/launchChoice.ts'
 import { redact } from '../shared/redact.ts'
 import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
 import { chainOf, type Launch, type LaunchVia } from '../shared/sessionLaunches.ts'
@@ -67,6 +69,7 @@ export const CEO_TOOLS = {
       project: z.string().trim().min(1).max(400).describe('The project\'s name, id, absolute folder or folder name.'),
       task: z.string().trim().max(8000).optional().describe('The first instruction the session is given.'),
       runner: z.enum(['claude-code', 'codex', 'hermes', 'kimi-code', 'kilo', 'shell']).optional().describe('The coding agent; the project\'s own by default.'),
+      account: z.string().trim().min(2).max(200).optional().describe('The Switchboard account or subscription to run it on (its label, a word of it, or its id; fabric_ceo_accounts lists them with their quota left): Claude Code on a claude account, Codex on a codex one. Switchboard\'s own choice by default.'),
       reason
     }).strict()
   },
@@ -109,6 +112,21 @@ export const CEO_TOOLS = {
       include_temporary: z.boolean().optional().describe('Also the projects in temporary folders.')
     }).strict()
   },
+  accounts: {
+    mcp: 'fabric_ceo_accounts',
+    title: 'Accounts a session can start on',
+    description: 'The Switchboard accounts (subscriptions) a coding session can start on in a project, with the share of quota left and when it resets, the most left first: Claude Code on claude accounts, Codex on codex ones; an account of a group only in that group\'s folders. Use it before fabric_ceo_session_start with an account, or when the owner asks which subscriptions have room.',
+    input: z.object({
+      project: z.string().trim().max(400).optional().describe('Only the accounts usable in this project (name, id or folder).'),
+      runner: z.enum(['claude-code', 'codex']).optional().describe('Only this agent\'s accounts.')
+    }).strict()
+  },
+  wait: {
+    mcp: 'fabric_ceo_session_wait',
+    title: 'Wait for a session to answer',
+    description: 'Wait until a Fabric console has printed and then stayed quiet (its turn ended), at most the seconds given, and answer what it shows: its last turns when it is Claude Code, else its screen. Use it after typing into a session or starting one, instead of reading its screen again and again.',
+    input: z.object({ session_id: sessionId, seconds: z.number().int().min(5).max(120).optional().describe('At most this long; 60 by default.'), quiet_seconds: z.number().int().min(2).max(30).optional().describe('Quiet this long counts as done; 6 by default.') }).strict()
+  },
   task: {
     mcp: 'fabric_ceo_session_task',
     title: 'Did a session take its task',
@@ -125,10 +143,23 @@ export const CEO_TOOLS = {
       remove: z.boolean().optional().describe('Forget this name instead (it was kept for the wrong project).'),
       reason
     }).strict()
+  },
+  journal: {
+    mcp: 'fabric_ceo_journal',
+    title: 'What agents did, on whose word',
+    description: 'The agents\' behaviour journal (ADR-0203): what the CEO, its voice and the sessions did, newest first, each with whose word it was done on (the owner by voice, naming the call; the CEO; the owner\'s approval mode; an owner\'s grant; the agent\'s own ask) and what was decided. Use it when the owner asks who did something or why, or what was done in a call.',
+    input: z.object({
+      days: z.number().int().min(1).max(30).optional().describe('How many days back; 1 by default.'),
+      call: z.string().trim().max(80).optional().describe('Only the acts asked for in this voice call (its id).'),
+      limit: z.number().int().min(1).max(200).optional().describe('At most this many; 30 by default.')
+    }).strict()
   }
 } as const
 
 export type CeoToolName = keyof typeof CEO_TOOLS
+
+/** The tools that act (ADR-0203 §6): written to the behaviour journal. */
+const ACTS: ReadonlySet<string> = new Set(['input', 'start', 'stop', 'resume', 'open', 'alias'])
 
 /** One row of `switchboard --json sessions --rows`, as far as this module reads it. */
 export interface MachineRow {
@@ -155,8 +186,12 @@ export interface CeoOpsDeps {
   projects(): Promise<Array<NamedProject & { default_agent?: string | null }>>
   /** A folder Fabric does not know, admitted as a project (the person's own admission). */
   admitFolder(folder: string): Promise<NamedProject>
-  /** The person's console launch (`consoleOpen.ts`). */
-  openConsole(projectId: string, runner: string, task: string | undefined): Promise<TerminalSession>
+  /** The person's console launch (`consoleOpen.ts`); `account`: the Switchboard account it runs on. */
+  openConsole(projectId: string, runner: string, task: string | undefined, account?: string | null): Promise<TerminalSession>
+  /** Switchboard's accounts and a folder's group (`launchAccounts.ts`); absent: no account can be chosen here. */
+  /** The agents' behaviour journal (ADR-0203 §6); absent: acts are not written there and `journal` says so. */
+  behaviour?: Pick<BehaviourJournal, 'note' | 'read'>
+  launchAccounts?: { accounts(): Promise<import('./launchAccounts.ts').AccountsRead>; folderPool(folder: string): Promise<{ ok: true; pool: string | null } | { ok: false; reason: string }> }
   /** What became of a console's first task (`consoleOpen.ts#firstInstruction`); absent: not followed. */
   firstTask?(sessionId: string): Promise<{ state: string; reason?: string; attempts: number }> | null
   /** The person's stop (`terminal.end`'s runtime). */
@@ -591,16 +626,23 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     const runner = a.runner ?? ((project as { default_agent?: string | null }).default_agent || 'claude-code')
     // 2026-11-20: a task in words typed into zsh is a parse error, never work. Refused before anything starts.
     if (a.task?.trim() && TAKES_NO_TASK.has(runner)) return refuse(`${SHELL_TAKES_NO_TASK}: start it with a coding agent (runner claude-code, codex, hermes, kimi-code or kilo), or without a task and type the command with ${T.input}`)
+    // The owner, 2026-11-20: «на аккаунте Y». The account must serve this agent and be usable in this project's folder.
+    let account: LaunchAccount | null = null
+    if (a.account) {
+      const picked = await accountFor(a.account, runner, project.repo_path)
+      if ('refusal' in picked) return picked.refusal
+      account = picked.account
+    }
     try {
       const s = await withLaunchOrigin({ by: 'ceo', via: via ?? 'console', reason: a.reason, parentSessionId: deps.ceoSessionId() ?? undefined },
-        () => deps.openConsole(project.id, runner, a.task))
-      deps.record('ceo.session.start', { session_id: s.sessionId, project_id: project.id, runner: s.optionId, reason: a.reason })
+        () => deps.openConsole(project.id, runner, a.task, account?.id ?? null))
+      deps.record('ceo.session.start', { session_id: s.sessionId, project_id: project.id, runner: s.optionId, reason: a.reason, ...(account ? { account: account.id } : {}) })
       deps.note('session.start', { sessionId: s.sessionId, projectId: project.id, label: project.name, runner: s.optionId, reason: a.reason })
       // 2026-11-20: a started session sat 40 minutes on an empty prompt and the CEO believed it had its task. The answer
       // now waits for the task's delivery (bounded) and says what became of it.
       const firstTask = a.task?.trim() ? await firstTaskOf(s.sessionId, via) : null
       return { ok: true, session_id: s.sessionId, project: project.name, folder: s.cwd, runner: s.optionId, state: s.state,
-        ...heard, ...(firstTask ? { first_task: firstTask } : {}) }
+        ...heard, ...(account ? { account: account.label, account_left_pct: account.leftPct } : {}), ...(firstTask ? { first_task: firstTask } : {}) }
     } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
       deps.record('ceo.session.start', { project_id: project.id, outcome: 'failed', reason: a.reason })
       return refuse(`the session did not start: ${e instanceof Error ? e.message : String(e)}`)
@@ -838,6 +880,78 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     }
   }
 
+  /** An account named for a start, checked against the agent and the project's folder (`launchChoice.ts`). */
+  async function accountFor(name: string, runner: string, folder: string | null): Promise<{ account: LaunchAccount } | { refusal: Answer }> {
+    if (!deps.launchAccounts) return { refusal: refuse('this Fabric cannot start a session on a chosen account') }
+    if (!PROVIDER_OF[runner]) return { refusal: refuse(`${runner} takes no Switchboard account: Claude Code runs on a claude account, Codex on a codex one`) }
+    const read = await deps.launchAccounts.accounts()
+    if (!read.ok) return { refusal: refuse(`Switchboard's accounts were not read: ${read.reason}`) }
+    const pool = folder ? await deps.launchAccounts.folderPool(folder) : { ok: true as const, pool: null }
+    if (!pool.ok) return { refusal: refuse(`the project's Switchboard group was not read: ${pool.reason}`) }
+    const usable = accountsFor(runner, pool.pool, read.accounts)
+    const hit = findAccount(name, usable)
+    if ('found' in hit) return { account: hit.found }
+    const anywhere = findAccount(name, read.accounts)
+    if ('found' in anywhere) {
+      const a = anywhere.found
+      const why = a.provider !== PROVIDER_OF[runner] ? `it is a ${a.provider} account, and ${runner} needs a ${PROVIDER_OF[runner]} one`
+        : !a.enabled ? 'it is turned off' : a.elsewhere ? 'it is used on another machine' : a.assigned ? 'it is given to an agent'
+        : `it belongs to the group ${a.pool}, and this project's folder is in ${pool.pool ?? 'no group'}`
+      return { refusal: refuse(`the account ${a.label} cannot start ${runner} here: ${why}`, { choices: usable.slice(0, 3).map((x) => x.label), next: `name one of these, or start without an account` }) }
+    }
+    if ('ambiguous' in hit) return { refusal: refuse(`«${name}» names several accounts: ${hit.ambiguous.join(', ')}`, { choices: hit.ambiguous, next: 'ask the owner which one' }) }
+    return { refusal: refuse(`no account «${name}»`, { choices: usable.slice(0, 3).map((x) => x.label), next: `the accounts with room here are listed in choices; ask the owner` }) }
+  }
+
+  async function accounts(a: z.infer<typeof CEO_TOOLS.accounts.input>): Promise<Answer> {
+    if (!deps.launchAccounts) return refuse('this Fabric reads no Switchboard accounts')
+    const read = await deps.launchAccounts.accounts()
+    if (!read.ok) return refuse(`Switchboard's accounts were not read: ${read.reason}`)
+    let pool: string | null = null
+    let projectName: string | undefined
+    if (a.project) {
+      const found = await lookup(await deps.projects(), a.project)
+      if (!('found' in found)) return notOne(a.project, found)
+      projectName = found.found.name
+      if (found.found.repo_path) {
+        const p = await deps.launchAccounts.folderPool(found.found.repo_path)
+        if (!p.ok) return refuse(`the project's Switchboard group was not read: ${p.reason}`)
+        pool = p.pool
+      }
+    }
+    const runners = a.runner ? [a.runner] : ['claude-code', 'codex']
+    const rows = runners.flatMap((r) => (a.project ? accountsFor(r, pool, read.accounts) : read.accounts.filter((x) => x.provider === PROVIDER_OF[r] && x.enabled && !x.elsewhere && !x.assigned))
+      .map((x) => ({ runner: r, account: x.label, id: x.id, group: x.pool, left_pct: x.leftPct, resets_at: x.resetsAt })))
+    return { ok: true, ...(projectName ? { project: projectName, group: pool ?? 'none' } : {}), accounts: rows.slice(0, 40),
+      note: 'left_pct is the share of the limiting window left; null is unknown, never empty. An account of a group starts only in that group\'s folders; one of the default group anywhere.' }
+  }
+
+  async function wait(a: z.infer<typeof CEO_TOOLS.wait.input>): Promise<Answer> {
+    const s = deps.ptys.get(a.session_id)
+    if (!s) return refuse(`only a Fabric console can be waited on; read another session with ${T.read}`)
+    const until = now() + (a.seconds ?? 60) * 1000
+    const quietMs = (a.quiet_seconds ?? 6) * 1000
+    const startedAt = now()
+    const lastOf = (): number => { const x = deps.ptys.get(s.sessionId); return x?.lastActivityAt ? Date.parse(x.lastActivityAt) : 0 }
+    let printed = false
+    const before = lastOf()
+    for (;;) {
+      const live = deps.ptys.get(s.sessionId)
+      const last = lastOf()
+      if (last > before) printed = true
+      if (!live?.running) return { ok: true, state: 'ended', screen: screen(s.sessionId, 40) }
+      if (printed && now() - last >= quietMs) break
+      if (now() >= until) return { ok: true, state: 'still_working', waited_s: Math.round((now() - startedAt) / 1000), screen: screen(s.sessionId, 20), next: 'wait again with fabric_ceo_session_wait (session_wait by voice), or read it later' }
+      await sleep(1000)
+    }
+    const rid = await runnerIdOf(s.sessionId)
+    const file = rid ? findTranscript(deps.transcriptRoots ?? defaultTranscriptRoots(), rid) : null
+    if (file) {
+      try { return { ok: true, state: 'answered', turns: redactedTurns(await readTail(file, READ_TAIL_BYTES), 6) } } catch { /* the screen answers instead */ }
+    }
+    return { ok: true, state: 'answered', screen: screen(s.sessionId, 40) }
+  }
+
   async function task(a: z.infer<typeof CEO_TOOLS.task.input>): Promise<Answer> {
     const s = deps.ptys.get(a.session_id)
     if (!s) return refuse(`only a console Fabric started has a first task to check; read another session with ${T.read}`)
@@ -885,12 +999,36 @@ export function createCeoOperations(deps: CeoOpsDeps) {
   }
 
   const table: { [K in CeoToolName]: (a: z.infer<(typeof CEO_TOOLS)[K]['input']>, via?: LaunchVia) => Promise<Answer> } = {
-    sessions, read, input, start, stop, resume, open, launches, projects, task, alias
+    sessions, read, input, start, stop, resume, open, launches, projects, task, alias, accounts, wait, journal
+  }
+
+  /** ADR-0203 §6: every act of the CEO and its voice in the behaviour journal, on whose word and what came of it.
+   *  Reads (sessions, read, projects, …) are not acts and are not written. */
+  function noteAct(name: string, a: Record<string, unknown>, answer: Answer, via: LaunchVia | undefined, call: string | null | undefined, threw = false): void {
+    if (!deps.behaviour || !ACTS.has(name)) return
+    const byVoice = via === 'voice'
+    const target = (answer as { session_id?: unknown }).session_id ?? a.session_id ?? a.project ?? null
+    try {
+      deps.behaviour.note({
+        actor: byVoice ? { kind: 'voice', id: call ?? 'call' } : { kind: 'ceo', id: 'console' },
+        act: name === 'alias' ? 'project.alias' : `session.${name}`,
+        target: typeof target === 'string' ? target : null,
+        word: byVoice ? { of: 'owner', via: 'voice', ref: call ?? null } : { of: 'ceo', via: via ?? 'console' },
+        decision: threw ? 'failed' : answer.ok === false ? 'refused' : 'done',
+        reason: typeof a.reason === 'string' ? a.reason : null
+      })
+    } catch (e) { /* the journal is a record of the act, never a reason to fail it */ deps.record('ceo.behaviour.note', { outcome: 'failed', error: e instanceof Error ? e.message.slice(0, 200) : String(e) }) }
+  }
+
+  async function journal(a: z.infer<typeof CEO_TOOLS.journal.input>): Promise<Answer> {
+    if (!deps.behaviour) return refuse('the behaviour journal is not kept in this process')
+    const r = deps.behaviour.read({ daysBack: a.days ?? 1, call: a.call ?? null, limit: a.limit ?? 30 })
+    return { ok: true, entries: r.entries, ...(r.unreadable ? { unreadable_lines: r.unreadable } : {}) }
   }
 
   /** Run one tool by its short name with unchecked arguments: checked here, refused with the first problem. `via`:
    *  the door it came through (the CEO's console over MCP, or the voice call), written with a launch it makes. */
-  async function run(name: string, args: unknown, via?: LaunchVia): Promise<Answer> {
+  async function run(name: string, args: unknown, via?: LaunchVia, call?: string | null): Promise<Answer> {
     if (!(name in CEO_TOOLS)) return refuse(`unknown tool ${name}`)
     const tool = CEO_TOOLS[name as CeoToolName]
     const parsed = tool.input.safeParse(args ?? {})
@@ -899,6 +1037,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
       const answer = await (table[name as CeoToolName] as (a: unknown, via?: LaunchVia) => Promise<Answer>)(parsed.data, via)
       // Every call, its name and whether it was refused: what the CEO looked at is as visible as what it did.
       deps.record(`ceo.tool.${name}`, { outcome: answer.ok === false ? 'refused' : 'ok', ...(via ? { via } : {}) })
+      noteAct(name, parsed.data as Record<string, unknown>, answer, via, call)
       // A tie that asks the owner to choose is a question, not a failed guess (0.3.27 review, PL-5): it does not count.
       if (via === 'voice' && answer.ok === false && !Array.isArray(answer.choices)) {
         // Finding 8: seven refused lookups in seven seconds. The third refusal in a row says stop and ask.
@@ -910,6 +1049,7 @@ export function createCeoOperations(deps: CeoOpsDeps) {
     } catch (e) {
       // A door that threw refused the act: said, never an answer that looks like success.
       deps.record(`ceo.tool.${name}`, { outcome: 'failed', error: e instanceof Error ? e.message.slice(0, 200) : String(e) })
+      noteAct(name, parsed.data as Record<string, unknown>, { ok: false }, via, call, true)
       return refuse(e instanceof Error ? e.message.slice(0, 300) : String(e))
     }
   }
