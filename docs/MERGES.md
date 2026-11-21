@@ -13,6 +13,9 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - files: migration `20261121000131_task_rank.sql` (schema 104) and the ledger, `apps/desktop/src/shared/taskRank.ts`, `main/taskOrderRead.ts`, `main/taskRankWrite.ts`, the readers (`workRead.ts`, `workTools.ts`, `routineTick.ts`, `backlogBrief.ts`, `taskBoard.ts`), `taskTools.ts` (`fabric_task_rank_propose`), `KanbanBoard.tsx` with both locales, their tests, ADR-0208 and the register, the spec, SCN-173, CO-621, the pipeline reservation moved to 131/132 and ADR-0209, `AGENTS.md`, CHANGELOG, the map
 - conflicts: none
 - summary: the owner's order of 2026-11-21 (board request `f6537624`, P0 by the reconciliation A-3): a project's queue has one order, the owner's rank over a walk of `blocks` and `follows` with the critical path first; only the person moves, an agent proposes; the kanban, `fabric_work_list` and the backlog routine read it first
+### 2026-11-21 · `SYSTEM-PLAN-ROWS` · docs/system-plan-rows → main · fast-forward
+- files: `docs/evidence/backlog.md` (section «The system design plan of 2026-11-21», anchor `system-design-2026-11-21`), the map
+- summary: fabric-workspace's system design plan asked for a backlog row per Fabric feature with its first date (request `33f3733b`, by 2026-11-24) and per item of amendment A-2 (request `3d7bf548`, by 2026-11-25). Eighteen rows: SD-FAB-01 to SD-FAB-14 and OT-03, OT-07, OT-04, OT-10; A-2's items inside a feature extend that feature's row
 
 ### 2026-11-21 · `CEO-TRIAGES-QUESTIONS` · docs/ceo-triages-questions → main · fast-forward
 - files: `docs/adr/0207-the-ceo-triages-every-question-and-the-owner-is-signalled-only-in-his-own-channel.md`, `docs/evidence/specs/2026-11-21-ceo-triages-questions.md`, `docs/adr/README.md` (next free ADR-0211), `docs/evidence/plans/task-pipeline-persistence-contract.md` (pipeline reservation 0206 → 0210), the map
