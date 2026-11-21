@@ -162,10 +162,11 @@ export async function startBoardHub(d: BoardHubDeps): Promise<void> {
     // The person's Disconnect (the newest connection removed) or Deny (the newest answer since it), from the database,
     // so neither is undone by the next tick nor forgotten at a restart (0.3.27 review ER-69).
     saidNo: async () => {
-      const c = await store.select('product_connections', 'connected_at,removed_at').eq('product', FABRIC_INBOX.product).order('connected_at', { ascending: false }).limit(1)
+      const c = await store.select('product_connections', 'connected_at,removed_at,removed_by').eq('product', FABRIC_INBOX.product).order('connected_at', { ascending: false }).limit(1)
       if (c.error) throw new Error(c.error.message)
-      const newest = (c.data as Array<{ connected_at: string; removed_at: string | null }> | null)?.[0] ?? null
-      if (newest?.removed_at) return true
+      const newest = (c.data as Array<{ connected_at: string; removed_at: string | null; removed_by: string | null }> | null)?.[0] ?? null
+      // A restore re-inserts the connection already removed (`removed_by` 'restore-boundary'): no one said no (run nine, ER-84).
+      if (newest?.removed_at && newest.removed_by !== 'restore-boundary') return true
       const r = await store.select('journal', 'occurred_at,payload').eq('type', 'product.connect.refused@1').eq('payload->>product', FABRIC_INBOX.product).order('seq', { ascending: false }).limit(1)
       if (r.error) throw new Error(r.error.message)
       const refused = (r.data as Array<{ occurred_at: string; payload: { outcome?: string } }> | null)?.[0] ?? null

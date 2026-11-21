@@ -1410,3 +1410,16 @@ test('run eight: a new folder beside a longer-named project\'s folder becomes it
   assert.equal(r.ok, true, JSON.stringify(r))
   assert.equal(o.opened[0][0], 'p9')
 })
+
+// 0.3.27 review run nine, UX-75: a task given with a session id the knowledge search found is never dropped.
+test('run nine: a found session with a task opens a new console in its project with that task; Switchboard never takes a task', async () => {
+  const recalled = { 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee': { id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', kind: 'transcript', projectId: null, folder: '/d/site/x', runner: 'claude-code', runtimeSessionId: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', configDir: null, title: 't', at: null } }
+  const o = operations({ deps: { recall: async (id) => recalled[id] ?? null, openResumed: async () => { throw new Error('not as itself with a task') } } })
+  const r = await o.ops.run('resume', { session_id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', task: 'допиши витрину', reason: 'the owner asked' })
+  assert.deepEqual([r.ok, r.as_itself], [true, false])
+  assert.deepEqual(o.opened.at(-1), ['p2', 'claude-code', 'допиши витрину'])
+  assert.equal(o.switchboard.filter((a) => a[1] === 'continue').length, 0)
+  const unknown = await o.ops.run('resume', { session_id: 'ffffffff-ffff-4fff-8fff-ffffffffffff', task: 'x', reason: 'the owner asked' })
+  assert.equal(unknown.ok, false)
+  assert.equal(o.switchboard.filter((a) => a[1] === 'continue').length, 0, 'a task is refused before Switchboard')
+})

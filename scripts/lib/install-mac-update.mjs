@@ -116,3 +116,14 @@ export function stagingDir(target = DEFAULT_TARGET) {
   return path.join(path.dirname(target), `.${path.basename(target, '.app')}-update`)
 }
 // #endregion install-mac-update
+
+/**
+ * Whether the Fabric at `target` runs, from `ps -axo args=` and `lsof -a -d txt -Fn -c Fabric` (0.3.27 review DO-75).
+ * The copy launchd starts runs as `Fabric --background`: its argv names no path, so only the executable `lsof` reports
+ * (`n<path>` lines) tells it. Either source naming the target's executable is enough.
+ */
+export function fabricRunning({ args = '', lsof = '' }, target = DEFAULT_TARGET) {
+  const exe = `${target}/Contents/MacOS/Fabric`
+  if (args.split('\n').some((l) => l === exe || l.startsWith(`${exe} `))) return true
+  return lsof.split('\n').some((l) => l === `n${exe}`)
+}

@@ -29,7 +29,7 @@ the console line, the dictation tail).
   `main/agentRegistry.ts#validateServiceDescriptor`), so Inbox is found again. On a machine marked the owner's, an
   agent's ask of Fabric Inbox is allowed at once and recorded with his words as the reason, and Fabric connects itself
   to Inbox at the hub's start, when the registry changes and every 5 minutes, never after a person refused it; Agent
-  access revokes it (ADR-0204, `main/accessService.ts#OWNER_DEFAULT_PRODUCTS`, `main/inboxAutoConnect.ts`). The owner,
+  access revokes it, and the person's Disconnect or Deny stops it until they connect it again (ADR-0204, `main/accessService.ts#OWNER_DEFAULT_PRODUCTS`, `main/inboxAutoConnect.ts`). The owner,
   2026-11-20: «вообще это все должно быть автоматически, не надо никакой подключать».
 - **The CEO's window stays where it was left.** It moves by its whole head and free areas, resizes, and opens on the
   display and at the place it was closed, pulled wholly onto a screen that still shows it (`main/ceoWindowPlacement.ts`,
@@ -71,7 +71,9 @@ the console line, the dictation tail).
   documents and decisions (ADRs first, cut at headings with their lines), the project memory's facts, and the commits, and
   searches it by words in Russian and English, by parts of identifiers and, when a local Ollama model is installed, by
   meaning. The index itself stays on the machine (a folder 0700, files 0600), and every text it keeps is redacted as it
-  is written, so a key typed into any session is neither in the file nor in a hit; its hits do reach the CEO's model
+  is written, so a key of a known shape (Anthropic, OpenAI and OpenRouter, xAI, GitHub, Slack, AWS, Google, Stripe,
+  Hugging Face, Supabase, Telegram bot tokens, JWTs, named assignments, private keys) typed into any session is neither
+  in the file nor in a hit; a secret with no known shape is not caught. Its hits do reach the CEO's model
   through the CEO's doors and the voice, redacted again on the way out (0.3.27 review DA-49). Every hit names its project, context (personal or an organization), the
   file and lines it stands at, its session id and the command that continues it. The CEO gets two tools,
   `fabric_knowledge_search` and `fabric_knowledge_execute` (what relates to a task, a session or a commit, N steps out,

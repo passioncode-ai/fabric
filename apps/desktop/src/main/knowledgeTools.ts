@@ -90,9 +90,12 @@ export function createKnowledgeOperations(deps: KnowledgeDeps) {
     const ix = o.ix
     let project = a.project
     // «SEO», «шеф» and the like mean the CEO itself, never a project to narrow to (0.3.27 review UX-63).
-    if (project && isCeoAddress(project)) return refuse(`«${project}» means the CEO itself, not a project: search without a project, or name the project by its own name`)
+    // A project whose own name is one of the words (Memory passes the picked project's name) is that project (run nine, UX-77).
+    const rows = project ? await deps.catalogue() : []
+    if (project && isCeoAddress(project) && !rows.some((r) => r.name.trim().toLowerCase() === project!.trim().toLowerCase()))
+      return refuse(`«${project}» means the CEO itself, not a project: search without a project, or name the project by its own name`)
     if (project) {
-      const m = matchProject(await deps.catalogue(), project)
+      const m = matchProject(rows, project)
       if ('found' in m) project = m.found.name
     }
     const emb = await deps.embedder().catch(() => null)
@@ -255,7 +258,8 @@ export const VOICE_REFUSED_OPERATIONS: ReadonlySet<string> = new Set(['index.ref
 /** The voice door: the same two tools as function definitions for the realtime session. */
 export function knowledgeVoiceTools(): Array<{ type: 'function'; name: string; description: string; parameters: unknown }> {
   // The voice's names (0.3.27 review UX-70): its tools are knowledge_* and session_*, never the CEO console's fabric_* names.
-  const voiced = (t: string): string => t.replace(/fabric_knowledge_(search|execute)/g, 'knowledge_$1').replace(/fabric_ceo_session_resume/g, 'session_resume')
+  // The voice reads the index and never refreshes or rebuilds it (run nine, UX-78), so it is not offered those two.
+  const voiced = (t: string): string => t.replace(/fabric_knowledge_(search|execute)/g, 'knowledge_$1').replace(/fabric_ceo_session_resume/g, 'session_resume').replace(', index.refresh, index.rebuild', '')
   return Object.entries(KNOWLEDGE_TOOLS).map(([name, tool]) => ({ type: 'function' as const, name: `knowledge_${name}`, description: voiced(tool.description), parameters: z.toJSONSchema(tool.input) }))
 }
 // #endregion knowledge-tools

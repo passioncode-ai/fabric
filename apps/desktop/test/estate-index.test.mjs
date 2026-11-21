@@ -287,3 +287,23 @@ test('a document read again leaves no stale section behind, and quote.check no l
   const checked = await ops.run('execute', { operation: 'quote.check', arguments: { claims: [{ quote: 'forty seconds', doc: 'doc:p1/docs/a.md#3' }] } })
   assert.equal(checked.kept ?? 0, 0)
 })
+
+// 0.3.27 review run nine, ER-81 and DA-56: a prompt ending in a named key keeps the saved state whole, so the session's
+// later turns are still read; and a state that does not parse is read again from the start, never a throw.
+test('run nine: a prompt ending in NAME_KEY=… keeps the transcript readable, and a broken state reads the file again', () => {
+  const dir = tmp(), ix = new EstateIndex(path.join(dir, 'index.sqlite'))
+  const proj = path.join(dir, 'projects', '-p'); mkdirSync(proj, { recursive: true })
+  const sid = '33333333-3333-4333-8333-333333333333', file = path.join(proj, `${sid}.jsonl`)
+  const line = (o) => `${JSON.stringify(o)}\n`
+  writeFileSync(file, line({ type: 'user', sessionId: sid, cwd: '/w/fabric', timestamp: '2026-11-21T10:00:00Z', message: { content: 'export ANTHROPIC_API_KEY=sk-ant-api03-' + 'Z'.repeat(90) + 'AA' } }))
+  const ctx = makeContext(catalogue([{ id: 'p1', name: 'fabric', repo_path: '/w/fabric' }]), new Map())
+  const root = { runtime: 'claude', dir: path.join(dir, 'projects'), configDir: null }
+  assert.equal(readTranscript(ix, ctx, listTranscripts([root])[0]).turns, 1)
+  JSON.parse(ix.fileState(file).state)
+  assert.ok(!ix.fileState(file).state.includes('ZZZZZZZZ'))
+  appendFileSync(file, line({ type: 'user', sessionId: sid, timestamp: '2026-11-21T10:01:00Z', message: { content: 'второе задание про витрину' } }))
+  assert.equal(readTranscript(ix, ctx, listTranscripts([root])[0]).turns, 1)
+  ix.setFileState(file, { ...ix.fileState(file), size: 1, state: '{"prompts":["cut' })
+  appendFileSync(file, line({ type: 'user', sessionId: sid, timestamp: '2026-11-21T10:02:00Z', message: { content: 'третье' } }))
+  assert.doesNotThrow(() => readTranscript(ix, ctx, listTranscripts([root])[0]))
+})

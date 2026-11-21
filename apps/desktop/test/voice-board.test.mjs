@@ -11,7 +11,7 @@ const P = (id, name, created_at, extra = {}) => ({ id, name, created_at, repo_pa
 const T = (id, project_id, title, status, extra = {}) => ({ id, project_id, title, instruction: `${title} in full`, status, goal_id: null, started_at: '2026-11-20T10:00:00Z', finished_at: null, assigned_to: null, ...extra })
 
 function reads(over = {}) {
-  const projects = [P('p1', 'kira-agent', '2026-11-20T16:59:00Z'), P('p2', 'ai-image-maker-app', '2026-11-20T18:20:00Z'), P('p3', 'SSHLG MacBook Agent', '2026-11-20T18:51:00Z'), P('p4', 'dissy', '2026-11-01T09:00:00Z')]
+  const projects = [P('p1', 'alpha-agent', '2026-11-20T16:59:00Z'), P('p2', 'beta-app', '2026-11-20T18:20:00Z'), P('p3', 'gamma-agent', '2026-11-20T18:51:00Z'), P('p4', 'dissy', '2026-11-01T09:00:00Z')]
   const tasks = [
     T('t-root', 'p4', 'Ship the store page', 'running', { goal_id: 'g1' }),
     T('t-a', 'p4', 'Write the listing copy', 'review'),
@@ -41,7 +41,7 @@ const board = (over) => createVoiceBoard({ reads: reads(over), timeZone: 'Europe
 test('the newest projects, newest first, with the local date and time', async () => {
   const r = await board().run('board_projects', { limit: 3 })
   assert.equal(r.ok, true)
-  assert.deepEqual(r.projects.map((p) => [p.name, p.created]), [['SSHLG MacBook Agent', '2026-11-20 19:51'], ['ai-image-maker-app', '2026-11-20 19:20'], ['kira-agent', '2026-11-20 17:59']])
+  assert.deepEqual(r.projects.map((p) => [p.name, p.created]), [['gamma-agent', '2026-11-20 19:51'], ['beta-app', '2026-11-20 19:20'], ['alpha-agent', '2026-11-20 17:59']])
 })
 
 test('a project\'s tasks with status and who holds them; what waits for the owner is named', async () => {
@@ -133,4 +133,12 @@ test('run eight: the voice opens a task by the id board_tasks gave, and by its f
   assert.equal(one.ok, true, JSON.stringify(one))
   const byPrefix = await b.run('board_task', { task: U(2).slice(0, 8), project: 'dissy' })
   assert.equal(byPrefix.ok, true, JSON.stringify(byPrefix))
+})
+
+// 0.3.27 review run nine, UX-78: the voice is not offered the index's refresh or rebuild.
+test('run nine: the voice\'s knowledge tools do not offer index.refresh or index.rebuild, and name the voice\'s own tools', async () => {
+  const { knowledgeVoiceTools } = await import('../src/main/knowledgeTools.ts')
+  const text = JSON.stringify(knowledgeVoiceTools())
+  assert.ok(!text.includes('index.rebuild') && !text.includes('index.refresh'))
+  assert.ok(!text.includes('fabric_knowledge_'))
 })

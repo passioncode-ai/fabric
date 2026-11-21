@@ -1,9 +1,9 @@
 // #region estate-wiring — docs: docs/evidence/specs/2026-11-19-estate-index-and-graph.md#31-where-it-lives-adr-0200
 /**
  * The estate index in the main process (ADR-0200): its file in `userData/estate-index`, its passes (the first a minute
- * after start, then every five minutes, back to back while transcripts are left to read), and what the CEO's doors and
- * the window read of it. A file this Fabric cannot open (another schema, a broken file) is moved aside and built again;
- * one that still cannot be opened leaves the doors answering why.
+ * after start, then every five minutes, 5 s apart while transcripts are left to read), and what the CEO's doors and the
+ * window read of it. A file this Fabric cannot open (another schema, which may hold unredacted text, or a broken file) is
+ * removed and built again (0.3.27 review DA-49); one that still cannot be opened leaves the doors answering why.
  */
 import { chmodSync, mkdirSync, rmSync } from 'node:fs'
 import path from 'node:path'

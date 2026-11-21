@@ -66,7 +66,7 @@ ledger is the entry point from here: `docs/evidence/plans/2026-11-20-release-032
 On 2026-11-20 at 21:37 (the owner's time, as relayed) the owner reported a session's first task and the CEO popup's
 messages lost; the home's session fixed it on `fix/delivery-never-drops`, merged before the tag, which reopened review
 iteration 3 (runs four and more, each in the ledger). On 2026-11-21 (00:30 as relayed) came
-the owner's pause (fabric-workspace session 2d03ce15, brief `2026-11-21-strategic-plan-fable-brief.md`): new features wait for the strategic plan; 0.3.27 carries the voice retro's fixes and, by the owner's later words, what `main` took meanwhile (his answer of 2026-11-21, «Выпустить с main»), the voice reading the board (his exception of about 02:10) and the home's blockers agreed to ride it, Inbox's connection among them (CO-614, closed); the ledger `docs/evidence/plans/2026-11-20-release-0327-verification.md` records the sources. The registry fix and Inbox's connection, first held out by that pause, ship in 0.3.27 (CO-614, closed); what the review's runs leave is CO-609, CO-615 and CO-620. The paused
+the owner's pause (fabric-workspace session 2d03ce15, brief `2026-11-21-strategic-plan-fable-brief.md`): new features wait for the strategic plan; 0.3.27 carries the voice retro's fixes; by the owner's later words, what `main` took meanwhile (his answer of 2026-11-21, «Выпустить с main») and the voice reading the board (his exception of about 02:10); and, by the agreement between this release's session and the home's, the home's blockers, Inbox's connection among them (CO-614, closed); the ledger `docs/evidence/plans/2026-11-20-release-0327-verification.md` records the sources. The registry fix and Inbox's connection, first held out by that pause, ship in 0.3.27 (CO-614, closed); what the review's runs leave is CO-609, CO-615 and CO-620. The paused
 CEO work (access, approval modes, persona, voice, calls) has its own handoff for the strategist on `feat/ceo-persona`:
 `docs/reports/2026-11-21-paused-ceo-work-handoff/README.md`.
 
@@ -75,15 +75,22 @@ CEO work (access, approval modes, persona, voice, calls) has its own handoff for
 The owner answered run seven's question (PL-49) on 2026-11-21: «Выпустить с main». The candidate on `feat/voice-retro`
 merges `main` (`5f4dc15b`), the voice reading the board (his exception of about 02:10, `feat/voice-board`) and the
 home's blockers agreed to ride this release (`fix/registry-contract` with Inbox's connection, `fix/stack-outage-banner`,
-`feat/ceo-window-place`, `fix/ceo-dictation-tail`). `ci.sh fast` on the merge found design-gate, prototype and journey
-gaps in the merged branches, fixed before review run eight. Run eight (the ledger's run eight) found blocking findings
+`feat/ceo-window-place`, `fix/ceo-dictation-tail`). `ci.sh fast` on the merge found design-gate gaps in the merged
+branches, fixed before review run eight, and prototype and journey gaps fixed after it (`ec06a616`, `3dfc6778`). Run eight (the ledger's run eight) found blocking findings
 in what the merge brought: the estate index kept and served text unredacted (DA-49), the CEO's address words still
 reached a project and a new folder was refused beside a longer-named one (UX-63, UX-65), the voice could not open a task
 by the id it gave (UX-64), and the records did not say what 0.3.27 now carries (PL-53, DO-63 to DO-66). All are fixed in
 the next candidate with their tests; run nine reads it.
 
-**Next task.** Review run nine on the newest `feat/voice-retro`, then the release commit (gate at that candidate, run
-nine's folder), land on `main` by fast-forward, tag `v0.3.27`, watch the release, install and check the DMG.
+Run nine (on `ee544e2a`) found 34 findings, 7 blocking, two of them this release's own fixes going wrong (the
+redaction of a transcript's saved state, the CEO head's drag); all are fixed with tests in the next candidate, the rest
+in CO-620. The home's session then brought two more blockers of the owner (2026-11-21, about 02:40): text copied
+between consoles turned to mojibake, and the CEO's board slot lapsed after 60 s (`fix/paste-and-ceo-slot`); this
+session takes them into 0.3.27, merged before run ten.
+
+**Next task.** Merge `fix/paste-and-ceo-slot` once its `ci.sh fast` is green, run `ci.sh fast` on the merge, review run
+ten on it, then the release commit (gate at that candidate, run ten's folder), land on `main` by fast-forward, tag
+`v0.3.27`, watch the release, install and check the DMG.
 
 ## The exact next task (as written before the merge)
 

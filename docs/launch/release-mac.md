@@ -246,7 +246,7 @@ was measured on his Mac the same evening:
 holds its decisions, `scripts/test/install-mac-update.test.mjs` pins them):
 
 ```sh
-node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg --schedule   # applies once Fabric has ended
+node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg --schedule   # applies once Fabric has ended (with «Служба доски» on: turn it off, then Quit)
 node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg              # now; refused while Fabric runs
 node scripts/install-mac-update.mjs --tidy                                         # one icon again, nothing installed
 ```
@@ -255,9 +255,12 @@ node scripts/install-mac-update.mjs --tidy                                      
    (`codesign --verify --deep --strict`), that another team signed, or that is not newer (`--force` for a way back).
 2. It stages the new `Contents` in `/Applications/.Fabric-update/` (same volume, no `.app`, so nothing registers it).
 3. With `--wait` (`--schedule` runs the same from a one-shot launch agent that outlives the terminal) it waits until
-   Fabric has ended: logout, a restart of the Mac, or a Quit with «Служба доски» off. With «Служба доски» on (the
-   default on macOS) Quit keeps Fabric running and «Перезапустить Fabric» starts it again at once, so neither applies
-   the update; an end counts only when Fabric is still gone 2 s later (0.3.27 review ER-70). It stops nothing.
+   Fabric has ended. With «Служба доски» off, a Quit ends it. With «Служба доски» on (the default on macOS) Fabric
+   keeps running through a Quit, «Перезапустить Fabric» starts it again at once, and launchd starts it again at login,
+   so a logout or a restart of the Mac does not apply the update either: turn «Служба доски» off in Settings, then Quit.
+   An end counts only when Fabric is still gone 2 s later (0.3.27 review ER-70, ER-82). Fabric is found by its
+   executable as well as by its command line, since the copy launchd starts runs as `Fabric --background` (DO-75). It
+   stops nothing.
 4. It swaps `Contents` by two renames, checks the signature and version of the result and swaps back on any failure.
 5. The previous `Contents` becomes `~/Library/Application Support/ai.passioncode.fabric/previous/Fabric-<version>.zip`,
    which LaunchServices does not see. Way back: `mkdir -p /tmp/back/Fabric.app && ditto -x -k <zip> /tmp/back/Fabric.app`,

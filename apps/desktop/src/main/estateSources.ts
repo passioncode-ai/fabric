@@ -264,9 +264,15 @@ export const CHUNK = 4 * 1024 * 1024
 export function readTranscript(index: EstateIndex, ctx: SourceContext, t: { file: string; root: TranscriptRoot; size: number; mtime: number }): { turns: number; done: boolean } {
   const prev = index.fileState(t.file)
   if (prev && prev.size === t.size && prev.mtime === t.mtime && prev.offset >= t.size) return { turns: 0, done: true }
-  let offset = prev && prev.offset <= t.size ? prev.offset : 0
+  // A saved state that does not parse is no state: the file is read again from its start (0.3.27 review ER-81), never a
+  // throw that would keep the session out of the index on every pass.
+  const saved = ((): FileFacts | null => {
+    if (!prev?.state) return null
+    try { return JSON.parse(prev.state) as FileFacts } catch { /* unreadable: read the file again from its start */ return null }
+  })()
+  let offset = prev && prev.offset <= t.size && saved ? prev.offset : 0
   let lines = prev && offset > 0 ? prev.lines : 0
-  const kept: FileFacts = offset > 0 && prev?.state ? JSON.parse(prev.state) as FileFacts : { sessionId: null, cwd: null, title: null, branch: null, firstAt: null, lastAt: null, prompts: [] }
+  const kept: FileFacts = offset > 0 && saved ? saved : { sessionId: null, cwd: null, title: null, branch: null, firstAt: null, lastAt: null, prompts: [] }
   const fd = openSync(t.file, 'r')
   let turnsWritten = 0
   try {

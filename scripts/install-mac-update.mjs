@@ -17,7 +17,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import path from 'node:path'
-import { BUNDLE_ID, DEFAULT_TARGET, LSREGISTER, dedupeDock, installProblems, rollbackZip, sideCopies, staleRegistrations, stagingDir } from './lib/install-mac-update.mjs'
+import { BUNDLE_ID, DEFAULT_TARGET, LSREGISTER, dedupeDock, fabricRunning, installProblems, rollbackZip, sideCopies, staleRegistrations, stagingDir } from './lib/install-mac-update.mjs'
 
 const say = (m) => console.log(`install: ${m}`)
 const fail = (m) => { console.error(`install: ${m}`); process.exit(1) }
@@ -48,7 +48,8 @@ function bundleInfo(app) {
   return { id: read('CFBundleIdentifier'), version: read('CFBundleShortVersionString'), team: team && team !== 'not' ? team : null, signatureOk: verified }
 }
 
-const running = (target) => (tryOut('ps', ['-axo', 'args=']) ?? '').split('\n').some((l) => l === `${target}/Contents/MacOS/Fabric` || l.startsWith(`${target}/Contents/MacOS/Fabric `))
+// By argv and by the executable itself: launchd's copy runs as `Fabric --background` (0.3.27 review DO-75).
+const running = (target) => fabricRunning({ args: tryOut('ps', ['-axo', 'args=']) ?? '', lsof: tryOut('lsof', ['-a', '-d', 'txt', '-Fn', '-c', 'Fabric']) ?? '' }, target)
 
 // ---- --schedule: hand the same command to launchd, with --wait, and return. --------------------------------------
 if (opts.schedule) {
@@ -76,7 +77,7 @@ if (opts.schedule) {
     const loaded = spawnSync('launchctl', ['bootstrap', `gui/${process.getuid()}`, plist], { encoding: 'utf8' })
     if (loaded.status !== 0) fail(`launchd refused the job: ${loaded.stderr.trim()}`)
   })
-  say(`scheduled: the update applies once Fabric has ended (logout, a restart of the Mac, or a Quit with «Служба доски» off; with it on, as by default, Quit keeps Fabric running and the update waits); log ${logFile}`)
+  say(`scheduled: the update applies once Fabric has ended: with «Служба доски» off, a Quit; with it on, as by default, Fabric keeps running through a Quit, a logout and a restart of the Mac (launchd starts it again at login), so turn it off in Settings and Quit; log ${logFile}`)
   process.exit(0)
 }
 const unschedule = () => {
@@ -117,7 +118,7 @@ if (!opts.tidy) {
 
   if (running(opts.target)) {
     if (!opts.wait) { act(`remove ${stage}`, () => rmSync(stage, { recursive: true, force: true })); fail('Fabric is running: quit it first, or pass --wait (or --schedule) to apply the update once it has ended') }
-    say('waiting until Fabric has ended (logout, a restart of the Mac, or a Quit with «Служба доски» off); nothing is stopped by this installer')
+    say('waiting until Fabric has ended (with «Служба доски» on, turn it off in Settings and Quit); nothing is stopped by this installer')
     // «Перезапустить Fabric» starts it again about 200 ms after it ends (0.3.27 review ER-70): an end counts only when Fabric
     // is still gone 2 s later, so a restart is waited out rather than met by the swap's own check and dropped.
     if (!opts.dryRun) do { while (running(opts.target)) sleep(500); sleep(2000) } while (running(opts.target))

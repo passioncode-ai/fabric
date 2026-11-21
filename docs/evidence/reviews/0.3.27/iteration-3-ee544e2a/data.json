@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "ee544e2a2f4cfcc4da4681b368b59ed63cb960f6",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-ee544e2a/2026-11-21-data.md",
+  "reportSha256": "e8222bfcdcf1fd34682cdc86c93058733d8d8eda2a18b5e8f01608a7e871415c",
+  "reviewerRun": "release-0327-i3r9-data-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-56",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-81"
+      ]
+    },
+    {
+      "id": "DA-57",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the redactor knows xAI, Stripe, Hugging Face, Supabase and Telegram bot keys (`redact.ts`; test «removes an xAI, Stripe…»), and the CHANGELOG and `ceo-setup.md` §3 say only keys of a known shape are caught; schema 3 is first released in 0.3.27, so no second bump is needed"
+      ]
+    },
+    {
+      "id": "DA-58",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-83 and UX-78"
+      ]
+    },
+    {
+      "id": "DA-59",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (10), the owner's to say"
+      ]
+    },
+    {
+      "id": "DA-60",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ceo-setup.md` §3 names tasks, notes, board messages, memory facts, other sources' records and every context"
+      ]
+    },
+    {
+      "id": "DA-61",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (8)"
+      ]
+    }
+  ]
+}

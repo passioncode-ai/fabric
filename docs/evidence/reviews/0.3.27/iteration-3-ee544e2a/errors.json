@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "ee544e2a2f4cfcc4da4681b368b59ed63cb960f6",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-ee544e2a/2026-11-21-errors.md",
+  "reportSha256": "e72c79767c0322c4148ad039fe116fb7ae142906b0a9d0cbbeb8c9848c63e6c6",
+  "reviewerRun": "release-0327-i3r9-errors-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-81",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a transcript's state is redacted value by value, so its JSON stays whole, and a state that does not parse is read again from the start (`estateIndex.ts#redactState`, `estateSources.ts#readTranscript`; test «run nine: a prompt ending in NAME_KEY=…», watched red as run nine's probe)"
+      ]
+    },
+    {
+      "id": "ER-82",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the promise: the installer and `release-mac.md` say that with «Служба доски» on Fabric runs through a Quit, a logout and a restart, so it is turned off and then Quit; staging before the check and the silent drop are ruled: CO-620 (9)"
+      ]
+    },
+    {
+      "id": "ER-83",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the guard compares the operation trimmed and lowercased (`index.ts`)"
+      ]
+    },
+    {
+      "id": "ER-84",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (7); a restore's removal is fixed as UX-80"
+      ]
+    },
+    {
+      "id": "ER-85",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (8)"
+      ]
+    },
+    {
+      "id": "ER-86",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run nine's rows say what of ER-69 and ER-70 is left and CO-620 (7) and (9) carry it"
+      ]
+    }
+  ]
+}

@@ -705,16 +705,34 @@ export function createCeoOperations(deps: CeoOpsDeps) {
           return { ok: true, session_id: next.sessionId, runner: next.optionId, folder: next.cwd, as_itself: false,
             why: recalled.runtimeSessionId ? 'a task was given, so a new conversation starts with it' : 'the console never recorded which Claude or Codex session it ran as' }
         }
+        // A transcript (an id the knowledge search gives) with a task: a new conversation in the session's project, with
+        // that task; never a task dropped on the way to Switchboard (0.3.27 review run nine, UX-75).
+        if (recalled.kind !== 'console' && a.task) {
+          let pid = recalled.projectId
+          if (!pid && recalled.folder) {
+            const all = await deps.projects()
+            pid = holder(new Map(all.filter((p) => p.repo_path).map((p) => [p.repo_path!, p.id])), recalled.folder)?.value ?? null
+          }
+          if (!pid) return refuse(`this session ran in ${recalled.folder ?? 'a folder Fabric does not know'}, which is no project here; nothing was started`, { next: 'start the task in a project by its name, or resume the session without a task to continue it as itself' })
+          const next = await deps.openConsole(pid, recalled.runner === 'codex' ? 'codex' : 'claude-code', a.task)
+          deps.record('ceo.session.resume', { from_session: a.session_id, session_id: next.sessionId, via: 'new-console', reason: a.reason })
+          const names = await projectNames()
+          deps.note('session.start', { sessionId: next.sessionId, projectId: pid, label: names.get(pid) ?? path.basename(next.cwd), runner: next.optionId, reason: a.reason })
+          return { ok: true, session_id: next.sessionId, runner: next.optionId, folder: next.cwd, as_itself: false, why: 'a task was given, so a new conversation starts with it in the session\'s project' }
+        }
       } catch (e) { /* said to the caller as the tool's refusal, never as success; the act's record says it failed */
         return refuse(`the session did not start again: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
     if (!/^[0-9a-f-]{36}$/.test(a.session_id)) return refuse('no Fabric console, transcript or Switchboard session has this id')
+    // Switchboard continues a session and takes no task: a task is refused, never dropped (UX-75).
+    if (a.task) return refuse('Switchboard continues this session as it was and cannot pass it a task; nothing was started', { next: 'resume it without a task, then type the task into it, or start the task in a project by its name' })
     const r = await deps.switchboard(['sessions', 'continue', a.session_id]).catch((e: unknown) => ({ code: 1, stdout: '', stderr: e instanceof Error ? e.message : String(e) }))
     deps.record('ceo.session.resume', { session_id: a.session_id, via: 'switchboard', code: r?.code ?? null, reason: a.reason })
-    if (!r) return refuse('Fabric knows no such session and Switchboard is not installed on this computer')
+    if (!r) return refuse(`${recalled ? 'Fabric found this session but could not continue it in a project here' : 'Fabric knows no such session'}, and Switchboard is not installed on this computer`)
     if (r.code === 0) deps.note('session.start', { sessionId: a.session_id, projectId: null, label: 'Switchboard', runner: 'switchboard', reason: a.reason, machine: true })
-    return r.code === 0 ? { ok: true, via: 'switchboard', said: r.stdout.slice(0, 400) } : refuse(`Fabric knows no such session, and Switchboard did not continue it: ${(r.stderr || r.stdout).slice(0, 300)}`)
+    const why = recalled ? 'Fabric found this session but could not continue it in a project here' : 'Fabric knows no such session'
+    return r.code === 0 ? { ok: true, via: 'switchboard', said: r.stdout.slice(0, 400) } : refuse(`${why}, and Switchboard did not continue it: ${(r.stderr || r.stdout).slice(0, 300)}`)
   }
 
   async function open(a: z.infer<typeof CEO_TOOLS.open.input>): Promise<Answer> {

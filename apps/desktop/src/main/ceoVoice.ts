@@ -39,6 +39,7 @@ export function voiceInstructions(locale: string): string {
       'Before stopping a session, read it and say why. Never write an em dash in what you say.',
       'Questions about the board you answer yourself, read-only, without ask_ceo and without starting a session: board_projects for the newest projects and when each was added, board_tasks for a project\'s tasks, their statuses, who holds them and what waits for the owner, board_task for one task\'s goal and graph (what it grew from and into, what it blocks and follows), board_search for the board\'s messages. Say the answer briefly; a change on the board still goes to the CEO through ask_ceo.',
       ceoAddressRule('en'),
+      'Ids in tool answers are for the tools: say a task or a session by its title or project, never its id.',
       DICTATION_TAIL.en
     ].join(' ')
     : [
@@ -52,6 +53,7 @@ export function voiceInstructions(locale: string): string {
       'Прежде чем остановить сессию, прочитай её и скажи почему. Никогда не ставь длинное тире.',
       'На вопросы о доске отвечаешь сам, только чтение, без ask_ceo и без запуска сессий: board_projects про последние проекты и когда каждый добавлен, board_tasks про задачи проекта, их статусы, кто их держит и что ждёт владельца, board_task про цель и граф одной задачи (из чего выросла, что из неё выросло, что блокирует и за чем следует), board_search по сообщениям доски. Отвечай коротко; изменения на доске по-прежнему отдаёшь CEO через ask_ceo.',
       ceoAddressRule('ru'),
+      'Идентификаторы в ответах инструментов для инструментов: называй задачу или сессию по названию или проекту, никогда по id.',
       DICTATION_TAIL.ru
     ].join(' ')
 }

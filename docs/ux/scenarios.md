@@ -4805,13 +4805,13 @@ Wave 1 of the 0.3.7 plan: the target behaviour of the five places on the rail �
 - **Preconditions:** a call is open; the board's database answers.
 - **Steps:**
   1. Operator asks «какие последние проекты?» -> the voice reads `board_projects` itself and says the newest ones with the date and time each was added, in the operator's time zone; no request goes to the CEO's console and no session starts.
-  2. Operator asks about a project's tasks -> `board_tasks` says each task's status (backlog, running, review), who holds it now and what waits for the operator (review); closed ones only when asked.
-  3. Operator asks where a task came from or what it is for -> `board_task` says its goal (walked up its `spawned` links to the root), what it grew from and into, what it blocks, what blocks it and what it follows.
+  2. Operator asks about a project's tasks -> `board_tasks` says each task's status (backlog, running, review), who holds it now and what waits for the operator (review); closed ones only when asked. Tasks are said running first, then in review, then the backlog, each newest first; at the read's bound (200) the counts are said as «at least».
+  3. Operator asks where a task came from or what it is for -> `board_task` says its goal (walked up its `spawned` links to the root), what it grew from and into, what it blocks, what blocks it and what it follows. A task is opened by its title, its id, or the id's first characters within its project; the voice names it by its title, never reads an id aloud.
   4. Operator says «шеф», «директор», «босс», «менеджер», «главный» or «SEO» (any spelling: СЕО, сео, CEO) -> the voice takes it as the CEO itself, never as a project and never as the SEO agent, which the operator calls by its full name; the words are also recognition hints of the call.
 - **Expected result:** the operator gets board answers by voice at once, without the CEO's console working on them.
 - **Alt paths:** a project that is not found says the nearest names and asks; several matches read two or three and ask; a task found by several titles asks which; a change on the board still goes to the CEO through `ask_ceo` (the tools only read).
 - **UI elements:** none new: the call's voice; each tool and its answer are kept in the call's journal (`<userData>/ceo/calls/`).
-- **States covered:** answered, not found, several, unread.
+- **States covered:** answered, not found, several, unread. Capped (the counts of the newest 200).
 - **Errors & recovery:** a read the database refuses is said as unread («the board could not be read now»), never as an empty board; a holder list that could not be read leaves the tasks shown and says so.
 - **Design rationale:** the owner, 2026-11-21, about 02:10: «чтобы у голосового агента был прямой доступ к доске Fabric. Не дёргать CEO-сессии, а сразу отвечать на вопросы про задачи с доски: последние проекты, навигация по графу задач, статусы»; and «Любое из слов директор, шеф, босс, менеджер, главный, SEO должно сразу пониматься как обращение к CEO-агенту».
 - **Telemetry:** ops log `ceo.voice.board` (the tool, ok or failed), counted by the hourly and daily digests; no new usage count leaves the computer (ADR-0127).

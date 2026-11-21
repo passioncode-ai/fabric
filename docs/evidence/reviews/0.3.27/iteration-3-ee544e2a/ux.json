@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "ee544e2a2f4cfcc4da4681b368b59ed63cb960f6",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-ee544e2a/2026-11-21-ux.md",
+  "reportSha256": "4c36b5b4d15acca40d0c38cf25a74dd3323a3c8728b97fd0fae1f11145b2f78d",
+  "reviewerRun": "release-0327-i3r9-ux-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-74",
+      "status": "fixed",
+      "evidence": [
+        "fixed: UX-69's no-drag on the head's runner line and state is taken back, so the whole head drags again; the runner's hover is ruled into CO-620 (5) (test «the head's name, runner line and state are never held out of the drag», watched red with the rule back)"
+      ]
+    },
+    {
+      "id": "UX-75",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a found session with a task opens a new console in its project with that task; a task is never passed to Switchboard (refused); a refusal for a found session says Fabric found it (`ceoTools.ts#resume`; test «run nine: a found session with a task…», watched red)"
+      ]
+    },
+    {
+      "id": "UX-76",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the brief's rule holds only when a word stands alone as an address; inside a phrase a word keeps its meaning (`ceoAddress.ts#ceoAddressRule`, reader `ceo`)"
+      ]
+    },
+    {
+      "id": "UX-77",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a project whose own name is an address word is searched as that project (`knowledgeTools.ts#search`)"
+      ]
+    },
+    {
+      "id": "UX-78",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the voice's descriptions and operation list leave out `index.refresh` and `index.rebuild`; the refusal answers `reason` (test «run nine: the voice's knowledge tools do not offer…»)"
+      ]
+    },
+    {
+      "id": "UX-79",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the voice instructions say ids are for the tools and a task is named by its title (`ceoVoice.ts#voiceInstructions`)"
+      ]
+    },
+    {
+      "id": "UX-80",
+      "status": "fixed",
+      "evidence": [
+        "fixed in part: a restore's removal no longer counts as a no (`board.ts` `saidNo`, `removed_by`); Fabric's own late withdrawal is ruled: CO-620 (7)"
+      ]
+    }
+  ]
+}

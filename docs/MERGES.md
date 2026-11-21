@@ -5,7 +5,7 @@
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
 ### 2026-11-21 · `RELEASE-0327-MAIN` · main → feat/voice-retro (the 0.3.27 candidate) · merge `5f4dc15b`
-- files: all of `main`'s 41 commits since the candidate (Memory, the estate index and graph, the folder-role navigation, the update in place); resolved by hand: `apps/desktop/src/main/ceoTools.ts`, `apps/desktop/src/main/index.ts`, `apps/desktop/test/ceo-agent.test.mjs`, CHANGELOG, the carry-over register, the backlog's lane 12, scenarios, the map; generated projections rebuilt
+- files: all of `main`'s 42 commits since the candidate (39 without merges) (Memory, the estate index and graph, the folder-role navigation, the update in place); resolved by hand: `apps/desktop/src/main/ceoTools.ts`, `apps/desktop/src/main/index.ts`, `apps/desktop/test/ceo-agent.test.mjs`, CHANGELOG, the carry-over register, the backlog's lane 12, scenarios, the map; generated projections rebuilt
 - conflicts: the CEO's project lookup: `start` asks the retro's sound-based `findProject` first and main's `matchProject` as a second opinion (a canonical folder over a copy, a typo forgiven), never for the CEO's address words, a folder too broad or a folder path; `resume` is main's resume as itself, with the retro's runner id from the launch journal
 - summary: the owner's answer of 2026-11-21, «Выпустить с main»; review run eight read the merged candidate
 

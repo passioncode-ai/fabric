@@ -81,6 +81,13 @@ function cosine(a: Float32Array, b: Float32Array): number {
 }
 
 /** A statement whose `run()` answers its last insert's rowid as a BigInt, so a rowid past 2^53 never throws. */
+/** A file's saved state redacted value by value when it is JSON; its text otherwise. */
+function redactState(state: string): string {
+  let parsed: unknown
+  try { parsed = JSON.parse(state) } catch { /* not JSON: redacted as text */ return redact(state).text }
+  return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? JSON.stringify(redactPayload(parsed as Record<string, unknown>).payload) : redact(state).text
+}
+
 function bigRowids(st: StatementSync): StatementSync { st.setReadBigInts(true); return st }
 
 export class EstateIndex {
@@ -211,8 +218,9 @@ export class EstateIndex {
   }
 
   setFileState(path: string, s: { size: number; mtime: number; offset: number; lines: number; state: string | null }): void {
-    // A transcript's state carries its first prompts: redacted as written too (0.3.27 review DA-49).
-    this.st.fileSet!.run(path, s.size, s.mtime, s.offset, s.lines, s.state === null ? null : redact(s.state).text)
+    // A transcript's state carries its first prompts: redacted as written too (0.3.27 review DA-49), value by value, so
+    // the JSON stays whole (ER-81: a redaction over the text ate its closing quote and brackets).
+    this.st.fileSet!.run(path, s.size, s.mtime, s.offset, s.lines, s.state === null ? null : redactState(s.state))
   }
 
   private tx(fn: () => void): void {

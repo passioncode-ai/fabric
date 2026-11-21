@@ -18,6 +18,10 @@ describe('where the CEO window is grabbed', () => {
   it('by its whole head, every part of it, and its free areas', () => {
     for (const s of ['.ceo-popup', '.ceo-popup-head', '.ceo-popup-head *', '.ceo-popup-chat', '.ceo-composer-popup']) expect(regionOf(s), s).toBe('drag')
   })
+  // 0.3.27 review run nine, UX-74: the head's own words stay in the drag region; a no-drag rule on them cut its second row.
+  it('the head\'s name, runner line and state are never held out of the drag', () => {
+    for (const s of ['.ceo-popup-title', '.ceo-popup-runner', '.ceo-popup-state', '.ceo-popup-who', '.ceo-popup-name']) expect(regionOf(s), s).not.toBe('no-drag')
+  })
   it('never by what takes a press or typed keys, nor by a sign inside a button', () => {
     for (const s of ['.ceo-popup button', '.ceo-popup button *', '.ceo-popup textarea', '.ceo-popup input', '.ceo-popup-console', '.ceo-call-panel'])
       expect(regionOf(s), s).toBe('no-drag')

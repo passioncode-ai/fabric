@@ -3,7 +3,7 @@
 // the Dock tile followed it, and a second Fabric icon appeared (the operator, 2026-11-20).
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { compareVersions, dedupeDock, installProblems, rollbackZip, sideCopies, staleRegistrations, stagingDir } from '../lib/install-mac-update.mjs'
+import { compareVersions, dedupeDock, fabricRunning, installProblems, rollbackZip, sideCopies, staleRegistrations, stagingDir } from '../lib/install-mac-update.mjs'
 
 const fab = (over = {}) => ({ id: 'ai.passioncode.desktop', version: '0.3.27', team: 'TEAM1', signatureOk: true, ...over })
 
@@ -76,4 +76,13 @@ test('the Dock: one tile pointing elsewhere is pointed back; one tile at the bun
   const fine = [ours('file:///Applications/Fabric.app/')]
   assert.deepEqual(dedupeDock(fine), { apps: fine, changed: false, removed: 0 })
   assert.deepEqual(dedupeDock([]), { apps: [], changed: false, removed: 0 })
+})
+
+// 0.3.27 review DO-75: launchd's copy runs as `Fabric --background`, and only its executable says which Fabric it is.
+test('a Fabric launchd started is seen by its executable, and another app named Fabric is not', () => {
+  const T = '/Applications/Fabric.app'
+  assert.equal(fabricRunning({ args: '79911 Fabric --background\n', lsof: 'p79911\nftxt\nn/Applications/Fabric.app/Contents/MacOS/Fabric\n' }, T), true)
+  assert.equal(fabricRunning({ args: '/Applications/Fabric.app/Contents/MacOS/Fabric\n', lsof: '' }, T), true)
+  assert.equal(fabricRunning({ args: '79911 Fabric --background\n', lsof: 'p936\nftxt\nn/Applications/Fabric Inbox.app/Contents/MacOS/Fabric Inbox\n' }, T), false)
+  assert.equal(fabricRunning({ args: '', lsof: 'p1\nftxt\nn/Volumes/x/Fabric.app/Contents/MacOS/Fabric\n' }, T), false)
 })
