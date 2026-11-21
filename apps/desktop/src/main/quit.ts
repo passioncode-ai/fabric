@@ -52,6 +52,9 @@ export interface QuitOptions {
   holds?: () => boolean
   /** Hides Fabric when a quit is held: closes its windows and its Dock icon (index.ts). */
   onHold?: () => void
+  /** CO-625: after the drain, waits until every console's exit has reached JavaScript (bounded), so nothing of node-pty
+   *  arrives during Node's teardown, where it aborts the process. */
+  settle?: () => Promise<unknown>
   /** Upper bound from the first quit request to process exit. */
   hardDeadlineMs?: number
   /** The code the deadline ends the process with, read when it fires (`quitDeadlineExitCode`); 3 when not given. */
@@ -179,6 +182,8 @@ export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
       void Promise.resolve()
         .then(() => o.shutdown())
         .catch(() => { /* The shutdown records its own outcome; a failure must not keep the process alive. */ })
+        .then(() => o.settle?.())
+        .catch(() => { /* The settle records its own outcome; a failure must not keep the process alive. */ })
         .finally(() => {
           drained = true
           schedule(() => o.app.quit())

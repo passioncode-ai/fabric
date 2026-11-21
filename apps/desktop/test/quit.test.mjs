@@ -66,6 +66,24 @@ test('an idle quit whose shutdown settles at once reaches will-quit (the CO-191 
   assert.equal(state.exited, 0)
 })
 
+test('CO-625: the consoles\' exits are settled after the drain and before the last quit; a failed settle still quits', async () => {
+  for (const failing of [false, true]) {
+    const order = []
+    const { app, state } = modelElectron()
+    const q = createQuitCoordinator({
+      app, ready: () => true, setTimer: () => ({}),
+      shutdown: async () => { order.push('shutdown') },
+      settle: async () => { order.push('settle'); if (failing) throw new Error('settle failed') }
+    })
+    app.on('before-quit', (e) => { if (state.willQuit === false && order.length >= 2) order.push('quit'); q.beforeQuit(e) })
+    app.on('window-all-closed', () => q.windowAllClosed('darwin'))
+    app.quit()
+    await settle()
+    assert.deepEqual(order.slice(0, 3), ['shutdown', 'settle', 'quit'])
+    assert.equal(state.willQuit, true)
+  }
+})
+
 test('the old pattern is caught by the model: a re-quit from finally never reaches will-quit', async () => {
   const { app, state } = modelElectron()
   let quitting = false

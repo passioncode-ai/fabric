@@ -50,6 +50,10 @@ feature held under the owner's pause of 2026-11-21), CO-622 (the next release) a
   from `fabric_work_list`, and the backlog routine briefs by it. Schema 104 (migration 131: `task.ranked@1`,
   `task.rank.proposed@1`, `task.rank.declined@1`). [ADR-0208](docs/adr/0208-the-queue-has-one-order-the-owners-rank-over-a-dependency-walk.md),
   [spec](docs/evidence/specs/2026-11-21-task-rank.md).
+- **A stop by a signal ends Fabric, consoles open or not** (CO-625). Ended by a signal (the lifecycle broker, an
+  install, `launchctl`) with live consoles, Fabric aborted while it tore down, and the board's launch agent started it
+  again: the 0.3.27 install of 2026-11-21 could not stop it. The quit now waits, bounded, until every console's exit has
+  arrived before it ends, and ends what still runs (`main/ptySettle.ts#settleExits`).
 - **The board has a door of its own for the window** (ADR-0195 wave W2c.2a, board task `8b86adf3`). A new module,
   `main/operatorDoor.ts`, serves named doors on a loopback port of its own, published as `board-door.json` with a 0600
   token beside `hub.json`; it refuses another account's process (CO-514), a wrong token, a browser origin, a wrong

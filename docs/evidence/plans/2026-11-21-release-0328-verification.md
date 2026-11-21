@@ -42,6 +42,22 @@ The `## 0.3.28 (unreleased)` section of [`CHANGELOG.md`](../../../CHANGELOG.md).
 (`20261121000131_task_rank.sql`, from `main` at `8cbf93ff`); Fabric refuses a schema-103 database until the runbook's
 upgrade runs, as 0.3.27 does for 102.
 
+## CO-625: a signalled stop with live consoles
+
+Found by the 0.3.27 release session (9cda1c0f) when the 0.3.27 install aborted at 08:50 UTC on 2026-11-21: Fabric 0.3.26
+ended by SIGTERM with live consoles aborted with SIGABRT on the main thread in `pty.node`
+(`Napi::ThreadSafeFunction::CallJS` → `Napi::Error::ThrowAsJavaScriptException` → `std::terminate`, under
+`node::FreeEnvironment` → `Environment::RunCleanup` → `CleanupHandles` → `uv_run`; crash reports of 2026-11-21 09:50 and
+2026-11-20 13:08 on the owner's Mac), and the board's launch agent started it again six seconds later. A console's exit
+reached node-pty's thread-safe function while Node tore its environment down, where JavaScript can no longer run.
+
+Taken into 0.3.28 before iteration 2's reviewers: the quit coordinator settles the consoles after the drain and before
+its last `app.quit()` (`main/quit.ts`, option `settle`); `main/ptySettle.ts#settleExits` waits up to 1.5 s for every
+exit to reach JavaScript, sends SIGKILL to what still runs and waits 0.7 s more, inside the quit's 10 s deadline, and
+says what it did in the ops log (`quit.settle`). Tests: `pty-settle.test.mjs` (five cases) and `quit.test.mjs`
+«CO-625 …» (watched red with the settle removed). Not yet proven on a packaged build: the repro (a console open, then
+`launchctl kill SIGTERM gui/$UID/ai.passioncode.desktop.board`) runs on the candidate's build before the tag.
+
 ## Iteration 1
 
 Candidate `acbff40cab29096a292efd5771aba40a8906af10`. Reports and receipts in

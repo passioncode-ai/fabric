@@ -840,6 +840,12 @@ export class PtyManager {
    * first and holds what arrives can now tell which of those bytes this answer
    * already contains, instead of guessing between losing them and doubling them.
    */
+  /** CO-625: the consoles whose exit node-pty has not delivered yet, each with a way to end its process; the quit waits
+   *  for these before its last `app.quit()` (`ptySettle.ts#settleExits`), so no exit arrives during Node's teardown. */
+  pendingExits(): Array<{ sessionId: string; kill(signal: 'SIGKILL'): void }> {
+    return [...this.sessions.values()].filter((s) => s.running).map((s) => ({ sessionId: s.sessionId, kill: (signal) => s.pty.kill(signal) }))
+  }
+
   scrollbackOf(sessionId: string): { text: string; written: number } | null {
     const s = this.sessions.get(sessionId)
     return s ? { text: s.scrollback.text(), written: s.written } : null
