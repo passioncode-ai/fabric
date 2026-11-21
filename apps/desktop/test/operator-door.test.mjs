@@ -101,6 +101,10 @@ test('a door call is POST /door/<name> with a JSON object; unknown, failing and 
   const unknown = await raw(door.port, { url: '/door/none', headers: auth, body: '{}' })
   assert.equal(unknown.status, 404)
   assert.equal(unknown.body.error, 'unknown-door')
+  // 0.3.28 review, ER-6: a malformed escape in the name is the caller's mistake, 400, not the board's failure.
+  const badName = await raw(door.port, { url: '/door/%E0%A4%A', headers: auth, body: '{}' })
+  assert.equal(badName.status, 400)
+  assert.equal(badName.body.error, 'bad-door-name')
   assert.equal((await raw(door.port, { headers: auth, body: '[1]' })).status, 400)
   assert.equal((await raw(door.port, { headers: auth, body: 'not json' })).status, 400)
   assert.equal((await raw(door.port, { headers: auth, body: JSON.stringify({ args: 'x'.repeat(100) }) })).status, 413)

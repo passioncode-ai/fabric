@@ -11,21 +11,23 @@ interface PersonaState {
   persona: Persona
   chosen: boolean
   problem: string | null
+  /** The look was read from its store (the 0.3.28 review, UX-1): until then the default look is a placeholder, not a choice. */
+  read: boolean
   save: (next: Persona) => Promise<PersonaWrite>
 }
 
 const PersonaContext = createContext<PersonaState>({
-  persona: DEFAULT_PERSONA, chosen: false, problem: null,
+  persona: DEFAULT_PERSONA, chosen: false, problem: null, read: false,
   save: async (next) => ({ persona: next, saved: false, reason: 'no persona store in this window' })
 })
 
 export function PersonaProvider({ children }: { children: React.ReactNode }): React.JSX.Element {
-  const [state, setState] = useState<{ persona: Persona; chosen: boolean; problem: string | null }>({ persona: DEFAULT_PERSONA, chosen: false, problem: null })
+  const [state, setState] = useState<{ persona: Persona; chosen: boolean; problem: string | null; read: boolean }>({ persona: DEFAULT_PERSONA, chosen: false, problem: null, read: false })
   useEffect(() => {
     let alive = true
     try {
       window.fabric.persona?.read().then(
-        (r) => alive && setState({ persona: r.persona, chosen: r.chosen, problem: r.problem ?? null }),
+        (r) => alive && setState({ persona: r.persona, chosen: r.chosen, problem: r.problem ?? null, read: true }),
         (e: unknown) => alive && setState((s) => ({ ...s, problem: e instanceof Error ? e.message : String(e) }))
       )
     } catch (e) {
@@ -37,7 +39,7 @@ export function PersonaProvider({ children }: { children: React.ReactNode }): Re
     const r = await window.fabric.persona.save(next)
     // What is on disk is what the window shows, saved or not. A refused save is the caller's to say;
     // it is not a problem READING the look, which is what `problem` reports.
-    setState((s) => ({ persona: r.persona, chosen: r.saved || s.chosen, problem: r.saved ? null : s.problem }))
+    setState((s) => ({ persona: r.persona, chosen: r.saved || s.chosen, problem: r.saved ? null : s.problem, read: s.read || r.saved }))
     return r
   }, [])
   return <PersonaContext.Provider value={{ ...state, save }}>{children}</PersonaContext.Provider>

@@ -1,0 +1,56 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 1,
+ "level": "data",
+ "candidateCommit": "acbff40cab29096a292efd5771aba40a8906af10",
+ "report": "docs/evidence/reviews/0.3.28/iteration-1/2026-11-21-data.md",
+ "reportSha256": "ac0f4b1fafe4abbfdace02b4bc90f375c0e616cea3bca70947351ee51c6ed237",
+ "reviewerRun": "release-0328-i1-data-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "DA-1",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: the same defect as ER-1"
+   ]
+  },
+  {
+   "id": "DA-2",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: withChoice keeps every project entry the file had (test «a choice keeps every project entry…», red with choicesOf restored); the write uses a fresh exclusive temp file, fchmod 0600, fsync, rename"
+   ]
+  },
+  {
+   "id": "DA-3",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the decoded size bounded and the write synced"
+   ]
+  },
+  {
+   "id": "DA-4",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: a failed start never removing another board's token, before W2c.2b starts the door"
+   ]
+  },
+  {
+   "id": "DA-5",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the slot and projects-root defaults read from settings; CHANGELOG now says the check reads literal strings"
+   ]
+  },
+  {
+   "id": "DA-6",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: neutral names in test fixtures; the gate's own comment made neutral in this candidate"
+   ]
+  }
+ ]
+}

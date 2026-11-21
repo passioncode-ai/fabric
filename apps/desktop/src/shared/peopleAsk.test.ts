@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { boardEntries, type BoardEntry, type BoardQuestion } from './board'
 import type { AttentionItem } from './attention'
 import {
-  ANSWER_SCHEMA, ASK_SCHEMA, choicesOf, DEFAULT_PEOPLE_ROUTES, resolveRoute, routeTable, withChoice, askBody, askKey, autoRouteOf, decisionOf, hasAnswerBlock, itemOf, judgeAnswer, levelAtLeast,
+  ANSWER_SCHEMA, ASK_SCHEMA, choicesOf, DEFAULT_PEOPLE_ROUTES, readRoutesFile, resolveRoute, routeTable, withChoice, askBody, askKey, autoRouteOf, decisionOf, hasAnswerBlock, itemOf, judgeAnswer, levelAtLeast,
   parseAnswer, parseAsk, prepareAsk, resultText, routeOf, routesOf, type PeopleAnswer
 } from './peopleAsk'
 
@@ -275,6 +275,25 @@ describe('routeOf, autoRouteOf and routesOf: the organization\'s PM project, by 
     expect(routesOf([{ organization: 'Acme', target: 'not-a-uuid', businesses: [], owners: [] }])).toEqual(DEFAULT_PEOPLE_ROUTES)
     expect(routesOf('yes')).toEqual(DEFAULT_PEOPLE_ROUTES)
     expect(routesOf([])).toEqual([])
+  })
+  // 0.3.28 review, iteration 1 (ER-1, ER-2, DA-1, UX-6): a routes file that exists and does not read is never taken for
+  // an absent one, so no choice is written over its hand-written routes.
+  it('tells an absent routes file from one that cannot be read or is not JSON', () => {
+    const said: string[] = []
+    const enoent = () => { throw Object.assign(new Error('no file'), { code: 'ENOENT' }) }
+    const eacces = () => { throw Object.assign(new Error('denied'), { code: 'EACCES' }) }
+    expect(readRoutesFile('f', enoent, (r) => said.push(r))).toEqual({ state: 'absent' })
+    expect(readRoutesFile('f', eacces, (r) => said.push(r))).toEqual({ state: 'unreadable', reason: 'cannot be read (EACCES)' })
+    expect(readRoutesFile('f', () => '{"routes": [1,],}', (r) => said.push(r))).toEqual({ state: 'unreadable', reason: 'not JSON' })
+    expect(readRoutesFile('f', () => '{"routes": []}', (r) => said.push(r))).toEqual({ state: 'read', raw: { routes: [] } })
+    expect(said).toEqual(['cannot be read (EACCES)', 'not JSON'])
+  })
+  it('a choice keeps every project entry the file had, those this version does not read too (DA-2)', () => {
+    const odd = { projects: { [P]: { target: ACME_PM }, 'not-a-uuid': { off: true }, [ACME_PM]: { future: 1 } } }
+    const next = withChoice(odd, '79000000-0000-4000-8000-0000000000e8', { off: true }) as { projects: Record<string, unknown> }
+    expect(next.projects['not-a-uuid']).toEqual({ off: true })
+    expect(next.projects[ACME_PM]).toEqual({ future: 1 })
+    expect(next.projects[P]).toEqual({ target: ACME_PM })
   })
   it('reads and writes the person\'s choices beside the routes, keeping every other key', () => {
     const OTHER = '79000000-0000-4000-8000-0000000000e9'

@@ -270,7 +270,7 @@ organization's Memory or by another person's delegation (§11). Each entry holds
 | purpose | what the owner writes to them about, so a request can be matched to the right person |
 | namesakes | the other entries sharing a name form, so an ambiguous name is known as ambiguous |
 
-**Namesakes are the point.** Two people with the same first name (for example the owner's spouse and a marketer) are
+**Namesakes are the point.** Two people with the same first name (for example two colleagues both called Alex) are
 two entries; «отправь <name>» with a name that matches more than one entry is never resolved by guess.
 
 **Who reads it.** CEO Fabric and the voice read the directory whenever the owner says «отправь X», «напиши X», «кому
@@ -278,7 +278,8 @@ two entries; «отправь <name>» with a name that matches more than one en
 which person he means (through the communicator, naming the candidates by relation, never sending first), and the
 answer may add a name form to the entry with his words as the reason.
 
-**Until the Оболочка exists (wave M4, §7.6).** CEO Fabric keeps the directory in its own `ceo/CLAUDE.md` (local to the
-owner's machine, never in a repository). M4 moves it into the Оболочка as `kind = 'person'` nodes of `layer = 'overlay'`
+**Until the Оболочка exists (wave M4, §7.6).** CEO Fabric keeps the directory in `ceo/people.md`, a file in its own folder
+that Fabric never rewrites (local to the owner's machine, never in a repository); `ceo/CLAUDE.md` is rewritten from the
+brief at every start, so a directory kept there would be erased (the 0.3.28 review, DO-8). M4 moves it into the Оболочка as `kind = 'person'` nodes of `layer = 'overlay'`
 with the fields above in `attrs`, read through `fabric_knowledge_execute` (`overlay.people.find`), and the CEO's file then
 points to it. Names, ids and channels never enter this repository, its tests or its fixtures (check-private P1).

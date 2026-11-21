@@ -1149,6 +1149,7 @@ export const en = {
   'settings.peopleRoutes.loading': "Reading the projects…",
   'settings.peopleRoutes.failed': "The projects could not be read: {reason}",
   'settings.peopleRoutes.respondersUnread': "The board did not say which agents take questions now, so every one shows as not answering.",
+  'settings.peopleRoutes.routesUnread': "The routes file people-ask-routes.json in Fabric's data folder does not read. Its routes are not used now, and a choice here is not saved, so they are not erased. Fix the file and the table works again.",
   'settings.peopleRoutes.noAgent': "No organization agent takes questions, so they stay here, in Needs you. To get them in Telegram, connect an organization agent that takes questions to the board and choose it for your projects.",
   'settings.peopleRoutes.project': "Project",
   'settings.peopleRoutes.agent': "Organization agent",

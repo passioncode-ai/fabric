@@ -1,0 +1,105 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 1,
+ "level": "plan",
+ "candidateCommit": "acbff40cab29096a292efd5771aba40a8906af10",
+ "report": "docs/evidence/reviews/0.3.28/iteration-1/2026-11-21-plan.md",
+ "reportSha256": "77354e38605c12cdf394f41e192c8995955eaa4c49fcd4ab24bc9a2e321f97ce",
+ "reviewerRun": "release-0328-i1-plan-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "PL-1",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: CHANGELOG's opening names what the train carries and what it leaves out, each reason in the ledger's protocol"
+   ]
+  },
+  {
+   "id": "PL-2",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: session 9cda1c0f brings feat/approval-modes and feat/ceo-access into iteration 2 by A-3:167 (row 9 of P0); the ledger's protocol cites both sources"
+   ]
+  },
+  {
+   "id": "PL-3",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: feat/ceo-session-windows is named as a feature held under the pause (ledger, CO-623 part 1)"
+   ]
+  },
+  {
+   "id": "PL-4",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: feat/task-rank's reason is its migration 130 and the gate run it needs (ledger, CO-623 part 2)"
+   ]
+  },
+  {
+   "id": "PL-5",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: the ledger's protocol names every unmerged branch with its reason; feat/ceo-triage is this session's and is rebased onto the final train"
+   ]
+  },
+  {
+   "id": "PL-6",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the SD-FAB-01 report to fabric-workspace on the board"
+   ]
+  },
+  {
+   "id": "PL-7",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: origin/main merged into release/0.3.28 before the iteration-2 candidate"
+   ]
+  },
+  {
+   "id": "PL-8",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: the brief and docs/evidence/plans/2026-11-21-release-0328-verification.md committed; the gate's inputs are written at the release commit"
+   ]
+  },
+  {
+   "id": "PL-9",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: CO-623 (what 0.3.28 leaves out, CO-606's target) and CO-624 (iteration 1's ruled findings) in lane 12; the general plan's Now line names 0.3.28"
+   ]
+  },
+  {
+   "id": "PL-10",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the build check in the release procedure"
+   ]
+  },
+  {
+   "id": "PL-11",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: ADR-0100 amendment 3"
+   ]
+  },
+  {
+   "id": "PL-12",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: MERGES says 0.3.27's side was kept at the conflict, then rebuilt for the dock branch's token"
+   ]
+  },
+  {
+   "id": "PL-13",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: the memory spec's example made neutral; the reports that quoted it redacted (ADR-0096)"
+   ]
+  }
+ ]
+}

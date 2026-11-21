@@ -1,0 +1,91 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 1,
+ "level": "errors",
+ "candidateCommit": "acbff40cab29096a292efd5771aba40a8906af10",
+ "report": "docs/evidence/reviews/0.3.28/iteration-1/2026-11-21-errors.md",
+ "reportSha256": "2e8eee677194afd834a6bb29b504a7622987df132ca8256191189063f2f7682a",
+ "reviewerRun": "release-0328-i1-errors-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "ER-1",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: shared/peopleAsk.ts#readRoutesFile tells absent from unreadable; boardCycle.ts setPeopleChoice refuses `routes-file-unreadable`; the view's routesUnread is said in Settings with the selects disabled; tests «tells an absent routes file from one that cannot be read or is not JSON» (red with the ENOENT check removed) and board-cycle «0.3.28 review ER-1»"
+   ]
+  },
+  {
+   "id": "ER-2",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: only ENOENT is absent; any other read error is unreadable and recorded once (people.ask.routes-unread with its code)"
+   ]
+  },
+  {
+   "id": "ER-3",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: one bad route entry dropping every route"
+   ]
+  },
+  {
+   "id": "ER-4",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: dockIcon.ts's catch says a drawing failure in the window is not recorded; recording it is in CO-624"
+   ]
+  },
+  {
+   "id": "ER-5",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: (a) the half-written dock-icon.png.tmp is removed on a failed write (appIcon.ts#setDockIcon); (b) and (c) are in CO-624"
+   ]
+  },
+  {
+   "id": "ER-6",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: a malformed escape in the door's name answers 400 bad-door-name (operatorDoor.ts); asserted in operator-door.test.mjs"
+   ]
+  },
+  {
+   "id": "ER-7",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: stop() closes the listener in a finally, logs operatorDoor.withdraw-skipped with the reason, and a failed stop may be asked again (operatorDoor.ts)"
+   ]
+  },
+  {
+   "id": "ER-8",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the door's default log"
+   ]
+  },
+  {
+   "id": "ER-9",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the client's timeout naming and Retry-After"
+   ]
+  },
+  {
+   "id": "ER-10",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: check-build-private's unreadable files, --require over reading 3, skipped files"
+   ]
+  },
+  {
+   "id": "ER-11",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: an unreadable PM project's facts said as unread, a wider home-path pattern"
+   ]
+  }
+ ]
+}

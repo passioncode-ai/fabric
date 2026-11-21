@@ -1,0 +1,91 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 1,
+ "level": "ux",
+ "candidateCommit": "acbff40cab29096a292efd5771aba40a8906af10",
+ "report": "docs/evidence/reviews/0.3.28/iteration-1/2026-11-21-ux.md",
+ "reportSha256": "202ba11319a5779dfa7b38c825f1e528a287ac138eda0ac6759df9a4a88d59df",
+ "reviewerRun": "release-0328-i1-ux-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "UX-1",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: the Dock follows the face only once the look was read without a problem and the person chose a face (renderer/src/launch/dockIcon.ts#dockFollows, persona.tsx `read`); test «dockFollows (0.3.28 review, UX-1, UX-7)»"
+   ]
+  },
+  {
+   "id": "UX-2",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: SCN-126, SCN-170 and SCN-190 amended 2026-11-21 (docs/ux/scenarios.md) for the Dock face, «Куда уходят вопросы» and Memory's own projects"
+   ]
+  },
+  {
+   "id": "UX-3",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the table dimmed or one line while the switch is off or the stack is shared"
+   ]
+  },
+  {
+   "id": "UX-4",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: an unknown source when the responders were not read"
+   ]
+  },
+  {
+   "id": "UX-5",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the table's styles and a design pass"
+   ]
+  },
+  {
+   "id": "UX-6",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: the same defect as ER-1: an unreadable routes file is said above the table, its selects disabled, and no choice is saved over it"
+   ]
+  },
+  {
+   "id": "UX-7",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: a face never chosen leaves the bundle's mark in the Dock (dockFollows needs chosen); CHANGELOG and ADR-0100 amendment 3 say it"
+   ]
+  },
+  {
+   "id": "UX-8",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the corner radius on the macOS grid"
+   ]
+  },
+  {
+   "id": "UX-9",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the own-row label and the held value"
+   ]
+  },
+  {
+   "id": "UX-10",
+   "status": "ruled",
+   "evidence": [
+    "ruled to CO-624 (the carry-over ledger), not blocking: the English strings through the copy check"
+   ]
+  },
+  {
+   "id": "UX-11",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: (a) appIcon.ts#setDockIcon's comment claims only the windows open now on Windows and Linux; (b) CHANGELOG says what a machine without a routes file relies on"
+   ]
+  }
+ ]
+}

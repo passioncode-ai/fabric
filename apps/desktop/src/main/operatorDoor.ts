@@ -96,7 +96,9 @@ export async function startOperatorDoor(opts: {
     if (given.length !== expected.length || !timingSafeEqual(given, expected)) return refuse(res, 401, 'bad-token', 'the operator door\'s token is missing or wrong')
     const route = /^\/door\/([^/?#]+)$/.exec((req.url ?? '').split('?')[0])
     if (req.method !== 'POST' || !route) return refuse(res, 405, 'not-a-door-call', 'a door is called with POST /door/<name>', { allow: 'POST' })
-    const name = decodeURIComponent(route[1])
+    let name: string
+    // A malformed escape in the door's name is the caller's mistake, refused as such (0.3.28 review, ER-6).
+    try { name = decodeURIComponent(route[1]) } catch { return refuse(res, 400, 'bad-door-name', 'the door\'s name is not a valid URL path segment') }
     const handler = opts.doors.get(name)
     if (!handler) return refuse(res, 404, 'unknown-door', `the board serves no door named ${JSON.stringify(name)}`)
     const declared = Number(req.headers['content-length'] ?? 0)
@@ -168,13 +170,21 @@ export async function startOperatorDoor(opts: {
     origin: document.origin,
     document,
     stop() {
+      // The listener closes even when the files cannot be withdrawn, and a stop that failed may be asked again
+      // (0.3.28 review, ER-7).
       stopped ??= (async () => {
-        withdrawOperatorDoor(opts.root, pid)
-        server.closeAllConnections?.()
-        await new Promise<void>((r) => server.close(() => r()))
+        try {
+          const left = withdrawOperatorDoor(opts.root, pid)
+          if (!left.removed) log({ op: 'operatorDoor.withdraw-skipped', message: left.reason ?? 'not removed' })
+        } finally {
+          server.closeAllConnections?.()
+          await new Promise<void>((r) => server.close(() => r()))
+        }
         log({ op: 'operatorDoor.stopped' })
       })()
-      return stopped
+      const ending = stopped
+      ending.catch(() => { if (stopped === ending) stopped = null })
+      return ending
     }
   }
 }

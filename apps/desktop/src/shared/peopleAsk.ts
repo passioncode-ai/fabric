@@ -370,11 +370,31 @@ export function choicesOf(raw: unknown): Record<string, PeopleChoice> {
 }
 
 /** The routes file with one project's choice set (`null`: back to what Fabric finds), every other key kept as it was. */
+/** The routes file as it is on disk (0.3.28 review, iteration 1, ER-1, ER-2, DA-1, UX-6): absent only when there is no
+ *  file (a fresh install: no route, nothing guessed); unreadable when it exists and cannot be read or is not JSON, said
+ *  through `unreadable`; then its routes are not used and no choice is written over it. */
+export function readRoutesFile(file: string, read: (file: string, enc: 'utf8') => string, unreadable: (reason: string) => void, readOk: () => void = () => {}):
+  { state: 'absent' } | { state: 'unreadable'; reason: string } | { state: 'read'; raw: unknown } {
+  let text: string
+  try { text = read(file, 'utf8') } catch (e) {
+    if ((e as { code?: string })?.code === 'ENOENT') return { state: 'absent' }
+    const reason = `cannot be read (${(e as { code?: string })?.code ?? 'error'})`
+    unreadable(reason)
+    return { state: 'unreadable', reason }
+  }
+  try { const raw = JSON.parse(text) as unknown; readOk(); return { state: 'read', raw } } catch {
+    // Said through unreadable(), which the caller records once.
+    unreadable('not JSON')
+    return { state: 'unreadable', reason: 'not JSON' }
+  }
+}
+
 export function withChoice(raw: unknown, projectId: string, choice: PeopleChoice | null): Record<string, unknown> {
   if (!UUID.test(projectId)) throw new Error('not a project id')
   if (choice && 'target' in choice && (!UUID.test(choice.target) || choice.target === projectId)) throw new Error('not a PM project id')
   const base: Record<string, unknown> = isObject(raw) ? { ...raw } : Array.isArray(raw) ? { routes: raw } : {}
-  const projects: Record<string, PeopleChoice> = { ...choicesOf(base) }
+  // Every entry the file had is kept as written, those this version does not read too (0.3.28 review, DA-2).
+  const projects: Record<string, unknown> = isObject(base.projects) ? { ...base.projects } : {}
   if (choice) projects[projectId] = 'off' in choice ? { off: true } : { target: choice.target }
   else delete projects[projectId]
   base.projects = projects
@@ -409,7 +429,11 @@ export interface PeopleRouteRow {
 }
 
 /** What Settings shows: the table, and whether the responders were read (when not, no PM project reads as answering). */
-export interface PeopleRoutesView { rows: PeopleRouteRow[]; pms: Array<{ id: string; name: string; live: boolean }>; respondersRead: boolean }
+export interface PeopleRoutesView {
+  rows: PeopleRouteRow[]; pms: Array<{ id: string; name: string; live: boolean }>; respondersRead: boolean
+  /** The routes file exists but does not read: its routes are not used and no choice is saved over it (0.3.28, ER-1). */
+  routesUnread?: boolean
+}
 
 /** Settings' view: every project with its route, and the PM projects a person may pick (each live `people.ask` responder's
  *  project and each route's target). A project that is itself a PM project is listed too: its own questions stay here. */

@@ -55,8 +55,9 @@ export async function drawIconPng(svg: string, shadow: string, under: string): P
 }
 
 /** Keep the Dock icon on the face shown: on start and whenever the person picks another face. Main window only. */
-export function useDockIcon(persona: Pick<Persona, 'seed' | 'style'>): void {
+export function useDockIcon(persona: Pick<Persona, 'seed' | 'style'>, follow = true): void {
   useEffect(() => {
+    if (!follow) return
     const set = window.fabric?.persona?.dockIcon
     if (typeof set !== 'function' || typeof document === 'undefined') return
     let alive = true
@@ -68,14 +69,22 @@ export function useDockIcon(persona: Pick<Persona, 'seed' | 'style'>): void {
     // Under the face: its own tile colour, so the shadow is cast by the tile and nothing pale shows at the clip's edge.
     drawIconPng(svg, shadow, read(avatarTokens(avatarStyle(persona.style))[0]))
       .then((png) => (alive && png ? set(png) : undefined))
-      // A face that cannot be drawn leaves the bundle's icon; the main process logs what it was given.
+      // A face that cannot be drawn leaves the icon the Dock shows; nothing is recorded for a drawing that failed in the
+      // window (the 0.3.28 review, ER-4: the main process logs only what it was given).
       .catch(() => undefined)
     return () => { alive = false }
-  }, [persona.seed, persona.style])
+  }, [persona.seed, persona.style, follow])
+}
+/** Whether the Dock follows the face now (the 0.3.28 review, UX-1, UX-7): only once the look was read without a problem
+ *  and the person chose a face. Before the read the default look is a placeholder; a face never chosen leaves the
+ *  bundle's mark, as Finder and Launchpad show it. */
+export function dockFollows(p: { read: boolean; problem: string | null; chosen: boolean }): boolean {
+  return p.read && p.problem === null && p.chosen
 }
 /** Mounted once inside the main window's persona provider: draws nothing, keeps the Dock on the face. */
 export function DockIconFollowsFace(): null {
-  useDockIcon(usePersona().persona)
+  const p = usePersona()
+  useDockIcon(p.persona, dockFollows(p))
   return null
 }
 // #endregion dock-icon

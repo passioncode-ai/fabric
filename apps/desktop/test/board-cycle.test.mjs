@@ -34,3 +34,9 @@ test('the window starts the cycle once, from registerIpc, with every door an ans
   assert.match(call, /clock: \{ hostWindow, suspendedSince: \(from\) => suspendedSince\(suspendedIntervals, suspendedAt, from, Date\.now\(\)\) \}/)
   assert.match(call, /personItems\(\)/)
 })
+
+test('0.3.28 review ER-1: a routes file that does not read is never written over by a choice from Settings', () => {
+  assert.match(cycle, /if \(file\.state === 'unreadable'\) throw new Error\('routes-file-unreadable'\)/)
+  assert.match(cycle, /routesUnread: file\.state === 'unreadable'/)
+  assert.match(cycle, /openSync\(tmp, 'wx', 0o600\)/)
+})

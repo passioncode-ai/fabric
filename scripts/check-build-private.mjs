@@ -3,7 +3,7 @@
 // пустые вещи»). check-private.mjs reads the tracked files; this gate reads the BUILT app, which the tracked-file scan
 // never sees: `apps/desktop/out` by default, or a folder given (an unpacked app.asar).
 //
-// Two readings, values never printed (only the rule, file:line and how many):
+// Three readings, values never printed (only the rule, file:line and how many):
 //   1. the organization's checker (org-index `scripts/check_private.py`) over a copy of the folder outside Git: the
 //      operator's local denylist (P1), e-mail addresses (P2), home paths (P3), account ids (P4);
 //   2. this product's own patterns, which hold no private word: the projects-root convention (`~/DATA`, `/DATA/<repo>`),
@@ -121,7 +121,7 @@ if (existsSync(ownerTermsFile)) for (const l of readFileSync(ownerTermsFile, 'ut
 for (const k of ['passioncode.ai', 'passioncode-ai', 'passioncode']) values.delete(k)
 // A route's key that is an ordinary word (an organization called «personal») is not one person's value.
 for (const k of ['personal', 'private', 'default', 'team', 'home', 'work']) values.delete(k)
-// Whole words only, Unicode-aware: «Киру» is a name, «фиксирую» is not.
+// Whole words only, Unicode-aware: «Миру» as a name is matched, «примирую» is not.
 const wordOf = (v) => new RegExp(`(?<![\\p{L}\\p{N}_])${v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}_])`, 'u')
 const patterns = [...values].map(([v, source]) => ({ re: wordOf(v), source }))
 if (!values.size) {

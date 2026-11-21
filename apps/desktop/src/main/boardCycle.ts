@@ -8,7 +8,7 @@
  * call (`decisions`, BoardDecisions), the reading of «Нужны вы», and the machine's sleep (`clock`, BoardClock).
  */
 import path from 'node:path'
-import { closeSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs'
+import { closeSync, fchmodSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Journal } from '@fabric/journal'
 import { createAbandonedSweep, readBoardRequests, readBriefGaps, readRecentTurns, readReviewAges, readRunningTasks, readSweepClaims } from './abandonedSweepRun.ts'
@@ -45,7 +45,7 @@ import { acceptReviewByDefault, moveDoneLeftRunningToReview, moveReleasedLeftRun
 import { dispatcherRuns, remoteOwnerOf, sessionLiveForDispatch, suspendedSince, WATCH_MS } from '../shared/boardDispatch.ts'
 import { advancesWatermark, runCyclePasses } from '../shared/cyclePort.ts'
 import type { HostWindow } from '../shared/harnessBreak.ts'
-import { choicesOf, PEOPLE_ASK_CAPABILITY, routesOf, routeTable, withChoice, type PeopleChoice, type PeopleRoutesView } from '../shared/peopleAsk.ts'
+import { choicesOf, PEOPLE_ASK_CAPABILITY, readRoutesFile, routesOf, routeTable, withChoice, type PeopleChoice, type PeopleRoutesView } from '../shared/peopleAsk.ts'
 import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
 import { SESSION_STALE_MS } from '../shared/workClaims.ts'
 
@@ -305,16 +305,10 @@ export function startBoardCycle(d: BoardCycleDeps): {
   }
   const peopleRoutesFile = path.join(d.userData, 'people-ask-routes.json')
   let peopleRoutesUnread = false
-  /** The routes file as it is on disk: undefined when there is none (a fresh install: no route, nothing guessed), and
-   *  undefined, said once in the ops log, when it is not JSON. */
-  const readPeopleRoutesRaw = (): unknown => {
-    let text: string
-    try { text = readFileSync(peopleRoutesFile, 'utf8') } catch { /* no file: no routes, only the PM projects found by their responder */ return undefined }
-    try { return JSON.parse(text) as unknown } catch {
-      if (!peopleRoutesUnread) { peopleRoutesUnread = true; ops.record({ op: 'people.ask.routes-unread', outcome: 'failed', level: 'warn', detail: { note: 'people-ask-routes.json is not JSON; no route is used until it reads' }, ctx: { correlationId: ops.correlate() } }) }
-      return undefined
-    }
-  }
+  const readPeopleRoutesFile = () => readRoutesFile(peopleRoutesFile, readFileSync, (reason) => {
+    if (!peopleRoutesUnread) { peopleRoutesUnread = true; ops.record({ op: 'people.ask.routes-unread', outcome: 'failed', level: 'warn', detail: { reason, note: 'no route from the file is used and no choice is written over it until it reads' }, ctx: { correlationId: ops.correlate() } }) }
+  }, () => { peopleRoutesUnread = false })
+  const readPeopleRoutesRaw = (): unknown => { const f = readPeopleRoutesFile(); return f.state === 'read' ? f.raw : undefined }
   const peopleFactsOf = async (row: { id: string; name: string; business: string | null }): Promise<ProjectFacts> => {
     const folder = await primaryFolder(projectRepos, row.id).catch(() => null)
     const origin = folder ? await cachedOrigin(folder) : null
@@ -404,18 +398,22 @@ export function startBoardCycle(d: BoardCycleDeps): {
       live = new Set(r.responders.filter((x) => x.capability === PEOPLE_ASK_CAPABILITY && x.state === 'active' && x.held !== true
         && (!x.leaseExpiresAt || Date.parse(x.leaseExpiresAt) > Date.now())).map((x) => x.project))
     } catch { /* said on the screen: the table shows every PM project as not answering, and says the responders were not read */ respondersRead = false }
-    const raw = readPeopleRoutesRaw()
+    const file = readPeopleRoutesFile()
+    const raw = file.state === 'read' ? file.raw : undefined
     const names = new Map(rows.map((r) => [r.id, r.name] as const))
-    return { ...routeTable(facts, routesOf(raw), choicesOf(raw), live, names), respondersRead }
+    return { ...routeTable(facts, routesOf(raw), choicesOf(raw), live, names), respondersRead, routesUnread: file.state === 'unreadable' }
   }
   /** One project's choice written into the routes file, every other key kept; whole, synced, renamed over (0600). */
   const setPeopleChoice = (projectId: string, choice: PeopleChoice | null): void => {
-    const next = withChoice(readPeopleRoutesRaw(), projectId, choice)
-    const tmp = `${peopleRoutesFile}.tmp`
-    const fd = openSync(tmp, 'w', 0o600)
-    try { writeSync(fd, `${JSON.stringify(next, null, 2)}\n`); fsyncSync(fd) } finally { closeSync(fd) }
+    const file = readPeopleRoutesFile()
+    // Never written over a file that does not read: its hand-written routes would be lost (iteration 1, ER-1).
+    if (file.state === 'unreadable') throw new Error('routes-file-unreadable')
+    const next = withChoice(file.state === 'read' ? file.raw : undefined, projectId, choice)
+    // A fresh name each time, created exclusively and kept 0600, then synced and renamed over (iteration 1, DA-2).
+    const tmp = `${peopleRoutesFile}.${process.pid}.${Date.now().toString(36)}.tmp`
+    const fd = openSync(tmp, 'wx', 0o600)
+    try { fchmodSync(fd, 0o600); writeSync(fd, `${JSON.stringify(next, null, 2)}\n`); fsyncSync(fd) } finally { closeSync(fd) }
     renameSync(tmp, peopleRoutesFile)
-    peopleRoutesUnread = false
     ops.record({ op: 'people.ask.choice', outcome: 'ok', level: 'info', detail: { choice: choice === null ? 'found' : 'off' in choice ? 'off' : 'target' }, ctx: { correlationId: ops.correlate() } })
   }
   // #endregion people-ask-settings

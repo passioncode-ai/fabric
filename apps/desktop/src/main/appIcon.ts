@@ -9,7 +9,8 @@
 //     as the avatar), kept in `userData/dock-icon.png` so the next start shows it
 //     before any window draws; without that file the bundle's icon stays;
 //   * `electron-vite dev` has no bundle, so the dock shows Electron's own icon
-//     until something sets it — that is the only place this runs on macOS;
+//     until something sets it (the packaged build also sets the kept face at
+//     start, `applyAppIcon`);
 //   * Windows and Linux read `BrowserWindow({ icon })` instead, so the window
 //     options carry it there and nowhere else.
 //
@@ -19,7 +20,7 @@
 // `scripts/stage-app-icon.mjs` still shows the right mark instead of failing.
 
 import { app, BrowserWindow, nativeImage, type NativeImage } from 'electron'
-import { existsSync, renameSync, writeFileSync } from 'node:fs'
+import { existsSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { isDockIconPng } from '../shared/avatarSvg.ts'
 import path from 'node:path'
 import { ops } from './opsSink.ts'
@@ -94,8 +95,10 @@ export function windowIcon(): { icon?: NativeImage } {
 const facePath = (): string => path.join(app.getPath('userData'), 'dock-icon.png')
 
 /**
- * The CEO's face, drawn by the main window as a PNG data URL, becomes the app icon: the Dock on macOS, every window's
- * icon on Windows and Linux. Kept for the next start (written beside, then renamed, so a crash leaves the old one).
+ * The CEO's face, drawn by the main window as a PNG data URL, becomes the app icon: the Dock on macOS while Fabric runs,
+ * and on Windows and Linux the icon of the windows open now (a window opened later and the next start take the brand
+ * mark, `windowIcon`; the 0.3.28 review, DO-7, UX-11). Kept for the next start on macOS (written beside, then renamed,
+ * so a crash leaves the old one).
  * Anything but a bounded PNG is refused and logged without its bytes.
  */
 export function setDockIcon(png: unknown): { applied: boolean; reason?: string } {
@@ -108,11 +111,13 @@ export function setDockIcon(png: unknown): { applied: boolean; reason?: string }
   if (image.isEmpty()) return refuse('the PNG did not decode')
   if (process.platform === 'darwin') app.dock?.setIcon(image)
   else for (const w of BrowserWindow.getAllWindows()) w.setIcon(image)
+  const file = facePath()
   try {
-    const file = facePath()
     writeFileSync(`${file}.tmp`, image.toPNG())
     renameSync(`${file}.tmp`, file)
   } catch (e) {
+    // A half-written copy is not left in the data folder (the 0.3.28 review, ER-5).
+    try { rmSync(`${file}.tmp`, { force: true }) } catch { /* nothing more to do; the failure is recorded below */ }
     // Recorded: refuse() writes `appIcon.face` failed to the ops log, without the image's bytes.
     return refuse(`set, but not kept for the next start: ${e instanceof Error ? e.message : String(e)}`)
   }

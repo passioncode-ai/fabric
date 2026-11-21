@@ -255,6 +255,7 @@ export function PeopleRoutesSetting(): React.JSX.Element {
     return (
       <>
         {!view.respondersRead && <p className="lp-meta" role="status">{t('settings.peopleRoutes.respondersUnread')}</p>}
+        {view.routesUnread && <p className="lp-meta" role="status">{t('settings.peopleRoutes.routesUnread')}</p>}
         {view.pms.length === 0 && <p className="lp-meta">{t('settings.peopleRoutes.noAgent')}</p>}
         {view.rows.length > 0 && (
           <table className="settings-people-routes">
@@ -268,7 +269,7 @@ export function PeopleRoutesSetting(): React.JSX.Element {
                   <tr key={row.project.id}>
                     <th scope="row">{row.project.name}</th>
                     <td>
-                      <select value={value} aria-label={`${t('settings.peopleRoutes.agent')}: ${row.project.name}`}
+                      <select value={value} aria-label={`${t('settings.peopleRoutes.agent')}: ${row.project.name}`} disabled={view.routesUnread === true}
                         onChange={(e) => void choose(row.project.id, e.target.value)}>
                         <option value="">{row.source !== 'chosen' && row.source !== 'off' && row.pm ? `${t('settings.peopleRoutes.auto')}: ${row.pm.name}` : t('settings.peopleRoutes.auto')}</option>
                         {view.pms.filter((pm) => pm.id !== row.project.id).map((pm) => (

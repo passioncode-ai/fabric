@@ -132,3 +132,13 @@ Found by the 0.3.3 verification, iteration 2 (DO-5).
 [ADR-0136](0136-a-folder-joins-a-project-by-a-pick-or-by-consent.md): besides a folder chosen in a picker and the
 scan's own candidates, Fabric reads a folder the operator admitted when an agent first reported from it — asked once,
 admitted exactly as a pick would be. Silence admits nothing. 0.4.0 plan, resolution R-05.
+
+### Amendment 3 (2026-11-21): §8, the running Dock follows the face the person picked
+
+The bundle keeps the mark of §8: Finder, Launchpad, a kept Dock tile while Fabric is not running and the window icons
+show it. While Fabric runs on macOS, the Dock shows the CEO's face once the person has picked one in «Облик Fabric»
+(the owner's order of 2026-11-20, plan wave I, [mockup 08](../evidence/plans/2026-11-20-ceo-board-ux/mockups/08-app-icon.html)
+option A; `main/appIcon.ts#setDockIcon`, `renderer/src/launch/dockIcon.ts#dockFollows`), kept in
+`userData/dock-icon.png` for the next start. A face never picked leaves the mark, so a person who did not choose sees
+one icon everywhere. Whether the shipped `.icns` becomes a default character is still open (plan wave I); a signed
+bundle cannot change its own icon. Released in 0.3.28 (the 0.3.28 review, iteration 1, PL-11, DO-5).

@@ -1,7 +1,7 @@
 // Wave I: the Dock icon is drawn from the same markup as the CEO's face, with the token colours resolved.
 import { describe, expect, it } from 'vitest'
 import { avatarSvg, isDockIconPng } from '../../../shared/avatarSvg.ts'
-import { resolvedAvatarSvg, TILE } from './dockIcon'
+import { dockFollows, resolvedAvatarSvg, TILE } from './dockIcon'
 
 const tokens: Record<string, string> = {
   '--avatar-wave-0': '#D8EDEB', '--avatar-wave-1': '#438EA3', '--avatar-wave-2': '#BCD78C', '--avatar-wave-3': '#204451'
@@ -39,5 +39,14 @@ describe('the app icon is the CEO face', () => {
     expect(isDockIconPng('file:///etc/passwd')).toBe(false)
     expect(isDockIconPng(`data:image/png;base64,${'A'.repeat(4 * 1024 * 1024)}`)).toBe(false)
     expect(isDockIconPng(42)).toBe(false)
+  })
+})
+
+describe('dockFollows (0.3.28 review, UX-1, UX-7)', () => {
+  it('follows only a face read without a problem and chosen by the person', () => {
+    expect(dockFollows({ read: false, problem: null, chosen: false })).toBe(false)
+    expect(dockFollows({ read: true, problem: 'unreadable', chosen: true })).toBe(false)
+    expect(dockFollows({ read: true, problem: null, chosen: false })).toBe(false)
+    expect(dockFollows({ read: true, problem: null, chosen: true })).toBe(true)
   })
 })

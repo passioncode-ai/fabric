@@ -1,0 +1,91 @@
+{
+ "schema": "fabric-release-reviews/1",
+ "version": "0.3.28",
+ "iteration": 1,
+ "level": "docs",
+ "candidateCommit": "acbff40cab29096a292efd5771aba40a8906af10",
+ "report": "docs/evidence/reviews/0.3.28/iteration-1/2026-11-21-docs.md",
+ "reportSha256": "6b6930d309f90b371f5b93f4ebc2d1fbe55f3216a30d05efbb551cd8e5cf4f52",
+ "reviewerRun": "release-0328-i1-docs-claude-subagent-20261121",
+ "status": "closed",
+ "blockingFindingsOpen": [],
+ "findings": [
+  {
+   "id": "DO-1",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: CHANGELOG and the runbook's 0.3.28 paragraph say what going back to 0.3.27 does to the Settings choices"
+   ]
+  },
+  {
+   "id": "DO-2",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: CHANGELOG says a PM agent found by its responder still gets questions until a choice, and what a machine without a routes file relies on"
+   ]
+  },
+  {
+   "id": "DO-3",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: docs/launch/release-mac.md: «0.3.28 admits schema 103» with the no-migration receipt, bundle-only both ways, «Служба доски», DO-1's warning"
+   ]
+  },
+  {
+   "id": "DO-4",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: docs/MERGES.md: the two entries say branch only, reached a release through RELEASE-0328-TRAIN"
+   ]
+  },
+  {
+   "id": "DO-5",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: ADR-0100 amendment 3: the running Dock follows the face the person picked; the bundle keeps the mark"
+   ]
+  },
+  {
+   "id": "DO-6",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: the runbook's Dock paragraph and CHANGELOG say: while Fabric runs; a kept tile of a Fabric not running shows the bundle's icon"
+   ]
+  },
+  {
+   "id": "DO-7",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: appIcon.ts header and setDockIcon comments corrected; check-build-private.mjs says three readings"
+   ]
+  },
+  {
+   "id": "DO-8",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: memory spec §15: the directory lives in ceo/people.md, which Fabric never rewrites; the example made neutral"
+   ]
+  },
+  {
+   "id": "DO-9",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: the map's iteration-1 entry links the four branch entries and says the installer part is 0.3.27's"
+   ]
+  },
+  {
+   "id": "DO-10",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: the board-apart plan's W2c.2a row names fe7971f0 and the 0.3.28 train"
+   ]
+  },
+  {
+   "id": "DO-11",
+   "status": "fixed",
+   "evidence": [
+    "fixed in the iteration-2 candidate: CHANGELOG names the screen «Облик Fabric», as the interface does"
+   ]
+  }
+ ]
+}

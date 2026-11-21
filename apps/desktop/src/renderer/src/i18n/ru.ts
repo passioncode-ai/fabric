@@ -305,6 +305,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'settings.peopleRoutes.loading': "Читаю проекты…",
   'settings.peopleRoutes.failed': "Не удалось прочитать проекты: {reason}",
   'settings.peopleRoutes.respondersUnread': "Доска не ответила, какие агенты сейчас принимают вопросы, поэтому все показаны как недоступные.",
+  'settings.peopleRoutes.routesUnread': "Файл маршрутов people-ask-routes.json в папке данных Fabric не читается. Маршруты из него сейчас не используются, а выбор здесь не сохраняется, чтобы не стереть их. Исправьте файл, и таблица снова станет доступна.",
   'settings.peopleRoutes.noAgent': "Ни один агент организации не принимает вопросы, поэтому они остаются здесь, в «Нужны вы». Чтобы получать их в Telegram, подключите к доске агента организации, который принимает вопросы, и выберите его для проектов.",
   'settings.peopleRoutes.project': "Проект",
   'settings.peopleRoutes.agent': "Агент организации",
