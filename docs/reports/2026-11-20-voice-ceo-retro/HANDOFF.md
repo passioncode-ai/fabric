@@ -70,6 +70,24 @@ the owner's pause (fabric-workspace session 2d03ce15, brief `2026-11-21-strategi
 CEO work (access, approval modes, persona, voice, calls) has its own handoff for the strategist on `feat/ceo-persona`:
 `docs/reports/2026-11-21-paused-ceo-work-handoff/README.md`.
 
+## Where the release stands (2026-11-21)
+
+The candidate is `251ee68e` on `feat/voice-retro`: review iteration 3 ran seven times (the ledger's runs one to
+seven), and run seven's code findings are fixed in it with their tests. `ci.sh fast` was green on every run's candidate
+from run five on (browser suites 26 of 26, Claude Code 2.1.330 equal to its pin). One decision is the owner's
+(run seven, PL-49): `main` took 41 commits of other sessions during the review (Memory, the estate graph, an update in
+place), and a release is cut only from `main`, so 0.3.27 would carry them. The question is in Fabric («Нужны вы»,
+subject `fabric.release-0327.main-moved`) and was told through the communicator; no tag before the answer.
+
+**Next task, by the owner's answer.**
+- «Выпустить с main»: merge `origin/main` into `feat/voice-retro` (a trial merge conflicts in 19 files, three of them
+  code: `main/ceoTools.ts`, `main/index.ts`, `test/ceo-agent.test.mjs`; the rest are documents and generated
+  projections, rebuilt), move `main`'s `## Unreleased` entries into `## 0.3.27`, run `ci.sh fast`, then review run eight
+  on the merged candidate, then the release commit (gate at that candidate, run eight's folder), land on `main` by
+  fast-forward, tag `v0.3.27`.
+- «Ждать стратегический план»: nothing more here; `feat/voice-retro` stays pushed with the fixes, CO-609, CO-614 and
+  CO-615 record what is left.
+
 ## The exact next task (as written before the merge)
 
 When `feat/ceo-board-ux` is on `main`: `git merge origin/main` in the worktree, `bash scripts/ci.sh fast`, then open
