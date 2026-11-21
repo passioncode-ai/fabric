@@ -65,10 +65,9 @@ export function SessionMetaLine({ sessionId, fallback = null }: { sessionId: str
   const model = modelLabel(meta.model) ?? runnerLabel(meta.runner, t)
   // The folder by its own name (the part that tells two apart), its whole path on hover (design review F1).
   const folderName = meta.folder.replace(/\/+$/, '').split('/').pop() || shortFolder(meta.folder)
-  const short = (id: string): string => id.slice(0, 8)
   return (
     <span className="session-meta" aria-label={t('session.meta.label')}>
-      {startedWords && <span className="session-meta-item is-started" title={meta.started?.parentSessionId ? `${startedWords}. ${t('session.meta.parent', { id: meta.started.parentSessionId })}` : startedWords}>{startedWords}</span>}
+      {startedWords && <span className="session-meta-item is-started" title={meta.started?.parentSessionId ? `${startedWords}. ${t('session.meta.parent')}` : startedWords}>{startedWords}</span>}
       {meta.account && (
         <span className="session-meta-item" title={t(meta.account.source === 'group-route' ? 'session.meta.accountRoute' : 'session.meta.account', { label: meta.account.label })}>{meta.account.short}</span>
       )}
@@ -77,11 +76,11 @@ export function SessionMetaLine({ sessionId, fallback = null }: { sessionId: str
       <button type="button" className="session-meta-item session-meta-press mono is-folder" title={t('session.meta.folder', { path: meta.folder })}
         onClick={() => { void window.fabric.terminal.revealFolder(sessionId).catch(() => undefined) }}>{folderName}</button>
       {meta.branch && <span className="session-meta-item mono is-branch" title={t('session.meta.branch', { branch: meta.branch })}><BranchIcon />{meta.branch}</span>}
-      <button type="button" className="session-meta-item session-meta-press mono is-id" title={t('session.meta.id', { id: meta.sessionId })}
-        onClick={() => copy(meta.sessionId)}>{t('session.meta.idShort', { id: short(meta.sessionId) })}</button>
+      <button type="button" className="session-meta-item session-meta-press mono is-id" title={t('session.meta.id')}
+        onClick={() => copy(meta.sessionId)}>{t('session.meta.idShort')}</button>
       {meta.runnerSessionId && meta.runnerSessionId !== meta.sessionId && (
-        <button type="button" className="session-meta-item session-meta-press mono is-id is-extra" title={t('session.meta.runnerId', { id: meta.runnerSessionId })}
-          onClick={() => copy(meta.runnerSessionId!)}>{t('session.meta.runnerIdShort', { id: short(meta.runnerSessionId) })}</button>
+        <button type="button" className="session-meta-item session-meta-press mono is-id is-extra" title={t('session.meta.runnerId')}
+          onClick={() => copy(meta.runnerSessionId!)}>{t('session.meta.runnerIdShort')}</button>
       )}
       {/* The copy is said here, so the id keeps its width and a screen reader hears it (design review F8). */}
       <span className="session-meta-copied" role="status" aria-live="polite">{copied ? t('session.meta.copied') : ''}</span>

@@ -25,29 +25,33 @@ function mount(m: SessionMeta | null, extra: Record<string, unknown> = {}) {
 }
 
 describe('the console\'s system line', () => {
-  it('says who started it, the account, the organisation, runner and model, folder, branch and the ids, each whole on hover', async () => {
+  it('says who started it, the account, the organisation, runner and model, folder and branch, each whole on hover; the ids are copied, never shown', async () => {
     mount(meta)
     const line = await screen.findByLabelText('Сведения о сессии')
     const text = line.textContent ?? ''
-    for (const part of ['CEO голосом', 'claude13@…', 'PassionCode.ai', 'Opus 5.5', 'fabric', 'feat/ceo-window-place', 'id 8343a070', 'агент 1fc71162'])
+    for (const part of ['CEO голосом', 'claude13@…', 'PassionCode.ai', 'Opus 5.5', 'fabric', 'feat/ceo-window-place', 'id сессии', 'id агента'])
       expect(text).toContain(part)
+    // SP-2: no machine id is shown; the buttons copy them.
+    for (const id of ['8343a070', '1fc71162'])
+      expect(text).not.toContain(id)
     // The agent's name and the folder's whole path say themselves on hover (design review F1).
     expect(screen.getByText('Opus 5.5').getAttribute('title')).toBe('Claude Code · Opus 5.5')
     expect(line.querySelector('.is-branch svg')).toBeTruthy()
     expect(screen.getByText('claude13@…').getAttribute('title')).toContain('claude13@example.me')
-    expect(screen.getByText('id 8343a070').getAttribute('title')).toContain(meta.sessionId)
-    expect(screen.getByText(/CEO голосом/).getAttribute('title')).toContain('ceo-1')
+    expect(screen.getByText('id сессии').getAttribute('title')).not.toContain(meta.sessionId)
+    expect(screen.getByText(/CEO голосом/).getAttribute('title')).toContain('Запустила другая сессия')
+    expect(screen.getByText(/CEO голосом/).getAttribute('title')).not.toContain('ceo-1')
   })
 
   it('opens the folder in Finder and copies an id on a press', async () => {
     const f = mount(meta)
     fireEvent.click(await screen.findByTitle(/Папка: \/Users\/example\/DATA\/fabric/))
     expect(f.revealFolder).toHaveBeenCalledWith(meta.sessionId)
-    await act(async () => { fireEvent.click(screen.getByText('id 8343a070')) })
+    await act(async () => { fireEvent.click(screen.getByText('id сессии')) })
     expect(f.writeText).toHaveBeenCalledWith(meta.sessionId)
     // Said in a live region, so the id keeps its width (design review F8).
     expect((await screen.findByRole('status')).textContent).toBe('Скопировано')
-    expect(screen.getByText('id 8343a070')).toBeTruthy()
+    expect(screen.getByText('id сессии')).toBeTruthy()
   })
 
   it('a session Switchboard handed over says so; an account from the group\'s route says it may change', async () => {

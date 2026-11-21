@@ -88,7 +88,7 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   },
   {
     component: 'Button',
-    classes: ['btn', 'btn-ghost', 'btn-quiet', 'btn-danger', 'disclosure'],
+    classes: ['btn', 'btn-ghost', 'btn-quiet', 'btn-danger', 'btn-sm', 'btn-icon', 'disclosure'],
     purpose:
       'Interactive controls stay monochrome (ui.md): the brand mark identifies the product and never becomes a button state.'
   },
@@ -146,12 +146,12 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   },
   {
     component: 'CeoPopup',
-    classes: ['ceo-popup', 'ceo-popup-head', 'ceo-presence', 'ceo-popup-who', 'ceo-popup-title', 'ceo-popup-sub', 'ceo-popup-state', 'ceo-popup-runner', 'ceo-popup-head-actions', 'ceo-popup-notes', 'ceo-popup-chat', 'ceo-popup-console', 'ceo-popup-wait', 'ceo-popup-stopped', 's-running', 's-starting', 's-stopped', 's-ended', 's-idle', 's-failed'],
+    classes: ['ceo-popup', 'ceo-popup-head', 'ceo-presence', 'ceo-popup-who', 'ceo-popup-name', 'ceo-popup-title', 'ceo-popup-sub', 'ceo-popup-state', 'ceo-popup-runner', 'ceo-popup-head-actions', 'ceo-popup-notes', 'ceo-popup-chat', 'ceo-popup-console', 'ceo-popup-wait', 'ceo-popup-stopped', 's-running', 's-starting', 's-stopped', 's-ended', 's-idle', 's-failed'],
     purpose: 'The CEO\'s popup window (ADR-0197, SCN-110, SCN-184): its head (the character\'s face and state, runner, call, stop or start, restart), its chat (the console, the call panel) and its composer.'
   },
   {
     component: 'CeoCall',
-    classes: ['ceo-call-button', 'ceo-icon', 'ceo-call-panel', 'ceo-call-live', 'ceo-call-head', 'ceo-call-state', 'ceo-call-meta', 'ceo-call-time', 'ceo-call-price', 'ceo-meter', 'ceo-meter-bar', 'p-connecting', 'p-listening', 'p-speaking', 'p-ended', 'p-failed', 'p-idle', 'ceo-call-lines', 'ceo-call-who', 'ceo-call-hint', 'ceo-call-say-form', 'ceo-call-say', 'ceo-call-mute', 'ceo-call-history', 'ceo-call-record', 'ceo-voice-key', 'who-person', 'who-ceo', 'who-tool'],
+    classes: ['ceo-call-button', 'ceo-call-label', 'ceo-icon', 'ceo-call-panel', 'ceo-call-live', 'ceo-call-head', 'ceo-call-state', 'ceo-call-meta', 'ceo-call-time', 'ceo-call-price', 'ceo-meter', 'ceo-meter-bar', 'p-connecting', 'p-listening', 'p-speaking', 'p-ended', 'p-failed', 'p-idle', 'ceo-call-lines', 'ceo-call-who', 'ceo-call-hint', 'ceo-call-say-form', 'ceo-call-say', 'ceo-call-mute', 'ceo-call-history', 'ceo-call-record', 'ceo-voice-key', 'who-person', 'who-ceo', 'who-tool'],
     purpose: 'The voice call with the CEO (SCN-184): a panel inside the CEO\'s chat (state, a live meter, time out of five minutes, price, who said what, typed words, the CEO\'s voice on or off) and the past calls kept under it; its button in the popup\'s head and on the home card.'
   },
   {

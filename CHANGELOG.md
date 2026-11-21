@@ -21,7 +21,7 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
   `shared/windowPlacement.ts`, kept in `userData/ceo-window.json`). Its head is one row beside the window buttons; the
   small buttons share one size (SCN-110 and SCN-182 amended).
 - **A console's bottom line says where it runs.** Who started it and when, the account, the organisation, the model,
-  the folder (opens in Finder), the live branch and the ids, read from Fabric's launch journal and Switchboard
+  the folder (opens in Finder) and the live branch, and copies the session's ids without showing them, read from Fabric's launch journal and Switchboard
   (`shared/sessionMeta.ts`, `main/sessionMetaRead.ts`; SCN-188).
 - **«Продолжение следует» at the end of a dictated message is no order.** The CEO's brief and the voice both carry it
   as the tail of the owner's dictation (`shared/ceoAgent.ts#DICTATION_TAIL`).
