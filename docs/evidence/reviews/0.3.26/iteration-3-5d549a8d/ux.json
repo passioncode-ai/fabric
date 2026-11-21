@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "5d549a8dc93396a096fef8998e37d50fe3aa0a2a",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-5d549a8d/2026-11-20-ux.md",
+  "reportSha256": "95b79ec1fabf25780efb314a2c57f2e356dad4bea5d39526f3a06e51eb4a9124",
+  "reviewerRun": "release-0326-i3r2-ux-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: only a Switchboard-only row whose process runs (live) is read-only; one no process runs is ended and continued from its history (ContinueSessionAsk.tsx elsewhere, ended); test «an ended session only Switchboard names is continued from its history», red before"
+      ]
+    },
+    {
+      "id": "UX-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: a queued continue link is said in the ask (links.continue.queued) and dropped when another link replaces the ask (App.tsx continueQueued state); test «says when another continue link waits behind this one»"
+      ]
+    },
+    {
+      "id": "UX-35",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: the app is said as the link's own claim, «Ссылка называет себя: …» (links.continue.from)"
+      ]
+    },
+    {
+      "id": "UX-36",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: a read-only session shows its sentence instead of the question and no primary press, only Cancel; test «a running session only Switchboard names is read-only here»"
+      ]
+    }
+  ]
+}

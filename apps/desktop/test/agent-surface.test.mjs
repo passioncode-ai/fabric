@@ -137,7 +137,7 @@ const tools = (await client.listTools()).tools.map((t) => t.name).sort()
 // below; this one is friction: adding a tool to a credentialed security surface
 // should require acknowledging it somewhere a reviewer looks, and two copies
 // that drift together would pass a check comparing only those two.
-const expected = ['com.accept','com.cancel','com.claim','com.complete','com.directory','com.effect_begin','com.enroll','com.get','com.list','com.progress','com.read_ack','com.reconcile','com.renew','com.reply','com.responder_replace','com.status','com.submit','fabric_access_decide','fabric_access_list','fabric_access_revoke','fabric_agents_list','fabric_board_search','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_project_folder_attach','fabric_project_folder_detach','fabric_project_profile','fabric_question_ask','fabric_question_check','fabric_session_observe','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_close','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami','fabric_work_claim','fabric_work_list','fabric_work_release']
+const expected = ['com.accept','com.cancel','com.claim','com.complete','com.directory','com.effect_begin','com.enroll','com.get','com.list','com.progress','com.read_ack','com.reconcile','com.renew','com.reply','com.responder_replace','com.status','com.submit','fabric_access_decide','fabric_access_list','fabric_access_revoke','fabric_agents_list','fabric_board_search','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_project_folder_attach','fabric_project_folder_detach','fabric_project_profile','fabric_question_ask','fabric_question_check','fabric_session_observe','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_close','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_rank_propose','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami','fabric_work_claim','fabric_work_list','fabric_work_release']
 // The count is COMPUTED from the list. Written beside it as a word, it is one
 // more number that can disagree with the thing it counts.
 if (JSON.stringify(tools) === JSON.stringify(expected))
@@ -1198,6 +1198,16 @@ bearerRefusals.length > 0 && bearerRefusals.every((r) => typeof r.detail?.refuse
 trace.some((r) => r.detail?.refused === 'unknown or revoked credential')
   ? ok('and a request refused for an UNKNOWN CREDENTIAL is traced — the earliest exit of the nine')
   : fail('the first exit leaves no trace: the tap is installed below it')
+
+// 2026-11-20: a client refused every 20 s for two hours was named nowhere. The refusal now names the client by a short
+// digest of what it sent (never the credential itself) and its User-Agent, once per 10 minutes per credential.
+const unknownSaid = trace.filter((r) => r.op === 'hub.unknown-credential')
+unknownSaid.length > 0 && unknownSaid.every((r) => /^([0-9a-f]{12}|none)$/.test(r.detail?.credential_digest ?? ''))
+  ? ok('an unknown credential is named by a 12-character digest, never by itself')
+  : fail('an unknown credential is not named, or named by more than a digest: ' + JSON.stringify(unknownSaid.map((r) => r.detail)))
+new Set(unknownSaid.map((r) => r.detail.credential_digest)).size === unknownSaid.length
+  ? ok('and each credential is named once, however often it knocks')
+  : fail('one credential was named more than once within 10 minutes')
 
 // Every attempt is one attempt. A response that both finished and closed must
 // not produce two records, or a rate of failure computed from this log is wrong.

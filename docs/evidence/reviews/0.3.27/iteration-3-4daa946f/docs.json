@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "4daa946fa3b24ec4e161ff9827a97314459c0ec6",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-4daa946f/2026-11-21-docs.md",
+  "reportSha256": "137cd7e6015e6198ed9cdfb0136766df0472f08dcaa0e52bd4fed6d9c80b2a58",
+  "reviewerRun": "release-0327-i3r12-docs-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-103",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Upgrading» says a stop pressed under 0.3.26 is not kept through the update, and the HANDOFF's check stops the CEO on 0.3.27, then restarts Fabric"
+      ]
+    },
+    {
+      "id": "DO-104",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0197 Amendment 5 §2 and AGENTS.md's CEO console row say what clears the stop and that the window's opening starts nothing while it holds"
+      ]
+    },
+    {
+      "id": "DO-105",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the HANDOFF's lines on the folder press and the run's folder"
+      ]
+    },
+    {
+      "id": "DO-106",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ledger and the map quote «–î…» (U+2013, U+00EE)"
+      ]
+    },
+    {
+      "id": "DO-107",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the test's header and the ledger say the Find pasteboard is shared and restored, and the paste goes into a PTY with a console's environment"
+      ]
+    },
+    {
+      "id": "DO-108",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the name's stem in run eleven's stored docs report and the old style mockup are replaced (a redaction under ADR-0096; the receipt's hash refreshed)"
+      ]
+    },
+    {
+      "id": "DO-109",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the brief, paraphrased, is `docs/evidence/plans/2026-11-21-ceo-voice-missing-tools.md`, and CO-622 cites it"
+      ]
+    },
+    {
+      "id": "DO-110",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-104"
+      ]
+    },
+    {
+      "id": "DO-111",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `xai-key` takes twenty letters or digits, then what Fabric's key check accepts (`redact.ts`; the redact test)"
+      ]
+    },
+    {
+      "id": "DO-112",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the keeper's header names the wake the person stops"
+      ]
+    }
+  ]
+}

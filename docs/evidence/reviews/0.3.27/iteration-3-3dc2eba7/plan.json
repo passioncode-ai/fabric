@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "3dc2eba711b3ee9a799ecf8559b0256c6d56e71c",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-3dc2eba7/2026-11-20-plan.md",
+  "reportSha256": "7934570e92848dfbf59ebeda6cbc66d3299801f1a45677408220dff31da69eea",
+  "reviewerRun": "release-0327-i3r1-plan-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: as UX-25"
+      ]
+    },
+    {
+      "id": "PL-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed by run three: ci.sh fast with both browser variables reached its last step on the verified candidate cbc57ae3 before the tag (iteration 3, run three's gate, carried from run two under DO-28)"
+      ]
+    },
+    {
+      "id": "PL-17",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-605 (12), as DA-19"
+      ]
+    },
+    {
+      "id": "PL-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: as ER-28"
+      ]
+    },
+    {
+      "id": "PL-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: fixes.md's count; the iteration-1 receipts mark ER-5, ER-7 and DA-8 ruled, re-hashed"
+      ]
+    },
+    {
+      "id": "PL-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: CO-606 names who files the board request and when (after the install, from the log's digest)"
+      ]
+    }
+  ]
+}

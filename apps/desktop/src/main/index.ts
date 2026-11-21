@@ -6,14 +6,14 @@ import { BrowserWindow, Notification, app, clipboard, crashReporter, dialog, ipc
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { existsSync, realpathSync, statfsSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, statfsSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
 import { createBoardReads } from './boardReads.ts'
 import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitReleaseCommand } from './commandIngressAdapters.ts'
 import { createHash, randomUUID } from 'node:crypto'
-import { execFileSync } from 'node:child_process'
+import { execFile, execFileSync } from 'node:child_process'
 import { dockerRuntimeFor } from './dockerLaunch'
 import { fixPath, halfUpDeps, recoverStack, resolveSupabaseEnv, stackDatabaseContainer, stackStatusEnv, startStack, stopStackKeepingData, stopStartingStack } from './env'
 import { resolveHealingHalfUp } from './stackHalfUp.ts'
@@ -21,8 +21,11 @@ import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } fro
 import { createSharedReading } from '../shared/sharedReading'
 import { startBugCapture, type BugCapture } from './bugCapture'
 import { applyAppIcon, windowIcon } from './appIcon'
+import { claudeTurnTaken } from './claudeTranscript.ts'
+import { ceoWindowBounds, rememberCeoWindow } from './ceoWindowPlacement.ts'
+import { createSessionMetaReader } from './sessionMetaRead.ts'
 import { isFloorClass, Policy } from './policy'
-import { launchOption, launchOptions, PtyManager, setFolderTrust, setPermissionPreference } from './pty'
+import { launchOption, launchOptions, PtyManager, setFolderTrust, setLaunchSink, setPermissionPreference } from './pty'
 import { trustFolderForClaude } from './claudeTrust.ts'
 import { classifyFailure } from '../shared/failure.ts'
 import { createPreparedLaunchInputs } from './preparedLaunchInput.ts'
@@ -45,8 +48,16 @@ import { AccessService } from './accessService.ts'
 import { startHub } from './hub.ts'
 import { createProjectAdmission } from './projectAdmission.ts'
 import { ceoProjectFor, createCeoAgent, type CeoAgent } from './ceoAgent.ts'
+import { createCeoBoardKeeper, KEEP_MS as CEO_KEEP_MS } from './ceoBoardKeeper.ts'
 import { createCeoOperations, ceoVoiceTools, type CeoOperations } from './ceoTools.ts'
-import { ASK_CEO_TOOL, mintVoiceToken, voiceInstructions } from './ceoVoice.ts'
+import { startEstateIndex, type Estate } from './estateWiring.ts'
+import { knowledgeVoiceTools, VOICE_REFUSED_OPERATIONS, type KnowledgeOperations } from './knowledgeTools.ts'
+import { ASK_CEO_TOOL, XAI_KEY_SLOT, mintVoiceToken, voiceInstructions, voiceSample } from './ceoVoice.ts'
+import { createVoiceJournal } from './ceoVoiceJournal.ts'
+import { createVoiceTools, VOICE_TOOLS } from './ceoVoiceTools.ts'
+import { createVoiceBoard, VOICE_BOARD_TOOLS, TASKS_READ, type BoardTask, type CeoBoardOperations, OPEN_READ } from './voiceBoard.ts'
+import { createAliasStore } from './ceoProjectAliases.ts'
+import { xaiVoiceOf } from '../shared/persona.ts'
 import { createVoiceKeyStore } from './ceoVoiceKey.ts'
 import { createCanvasStore } from './canvasStore.ts'
 import { createCanvasHost, type CanvasHost } from './canvasHost.ts'
@@ -65,6 +76,8 @@ import { releaseByOperator } from './workRelease.ts'
 import { createOpsDigestRun, type OpsDigestRun } from './opsDigestRun.ts'
 import { risenRows } from '../shared/opsDigest.ts'
 import { readProjectWork, readSessionTasks, readTaskBoard, readWhereWork, readWork, type HeldSession } from './workRead.ts'
+import { readQueueOrder } from './taskOrderRead.ts'
+import { decideRankProposal, reorderTask, type RankWriteDeps } from './taskRankWrite.ts'
 import { launchOverlap } from '../shared/launchOverlap.ts'
 import { OVERLAP_CHOICES, overlapPair, type OverlapChoice } from '../shared/abandonedSweep.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
@@ -205,7 +218,7 @@ import { toOperatorMarks } from './boardDispatchRun.ts'
 import { suspendedSince } from '../shared/boardDispatch.ts'
 import { createIpcOutcomeLog } from './ipcOutcome.ts'
 import { agentCounts, createAnalytics, installationPath, type Analytics } from './analytics'
-import { homedir } from 'node:os'
+import { cpus, freemem, homedir, hostname, loadavg, totalmem, uptime } from 'node:os'
 import { decideProposal } from './commands/proposalCommands.ts'
 import { withDeliveryHeader } from '../shared/deliveryState.ts'
 import { continuationText, routeContinuation, type ContinuationState } from '../shared/continuation.ts'
@@ -458,6 +471,16 @@ import { createContinuationDelivery, type ContinuationResult } from './continuat
 import { createPastContext } from './pastContext.ts'
 import { launchPlace } from '../shared/launchPlace.ts'
 import { createConsoleOpen } from './consoleOpen.ts'
+import { redact, redactPayload } from '../shared/redact.ts'
+import { claudeSessionOf, createLaunchJournal, readGitBranch, type LaunchJournal } from './sessionLaunches.ts'
+import { withLaunchOrigin } from './launchOrigin.ts'
+import { claudeConfigDirs, defaultAlive, liveClaudeSessions } from './diskSessions.ts'
+import { continueOrigin, createMachineSessions, linkOriginOf, readHead, transcriptCwd } from './machineSessions.ts'
+import { gitWorktrees, lastSessionOf, projectForFolder } from './projectResume.ts'
+import { findTranscript, defaultTranscriptRoots, parseMachineRows, redactedTurns } from './ceoTools.ts'
+import { readTail, READ_TAIL_BYTES } from './machineSessions.ts'
+import { decodePty } from '../shared/pty-decode.ts'
+import { screenText } from '../shared/ceoAgent.ts'
 import { createTaskStart } from './taskStart.ts'
 
 // ADR-0195 W2b: this process's data folder for every local store (settings, kept-out agents, digest marks), named
@@ -495,6 +518,8 @@ let OPERATOR_ACTOR: { kind: 'person'; id: string }
 /** ADR-0195 W2a.2: the board's memory both the window's doors and the board's own code use (`boardState.ts`). */
 const boardState = createBoardState()
 const markPersonEnded = boardState.personEnded.mark
+/** The launch journal on disk (`sessionLaunches.ts`, board request eef5abeb); set once the data folder is known. */
+let launchJournal: LaunchJournal | null = null
 const markBindingPersonEnded = boardState.personEnded.markBinding
 const markGrantPersonEnded = boardState.personEnded.markGrant
 let admission: ReturnType<typeof createProjectAdmission>
@@ -539,9 +564,16 @@ let mainWindow: BrowserWindow | null = null
 /** The CEO agent (ADR-0197): its console's keeper, its operations and its popup window; null until registerIpc runs. */
 let ceoAgent: CeoAgent | null = null
 let ceoOperations: CeoOperations | null = null
+/** The estate index's doors (ADR-0200), given to the CEO's console surface beside its session tools. */
+let knowledgeOperations: KnowledgeOperations | null = null
+/** The board's reads as the CEO console's tools (CO-622 item 5): the voice's `createVoiceBoard`, set once the store is up. */
+let ceoBoardReads: CeoBoardOperations | null = null
+let estate: Estate | null = null
 let ceoWindow: BrowserWindow | null = null
 /** A draft the popup takes when it opens (Help's example, the home composer's words not yet sent). */
 let ceoDraft: string | null = null
+/** The home card asked for a call; the popup starts it and takes the ask once (SCN-184). */
+let ceoCallWanted = false
 const ceoVault = createObservatoryVault()
 /** The canvas (ADR-0201): its windows by canvas id, and the host that runs the call's canvas tools; null until registerIpc. */
 const canvasWindows = new Map<string, BrowserWindow>()
@@ -581,20 +613,29 @@ function linksStartupDone(): void {
   linkStartupDone = true
 }
 async function openLink(url: string, dropped = 0): Promise<void> {
+  // DEC-0189 SL-4: a session id is a console's own, or the runner session one of Fabric's running consoles runs.
+  const running = ptys ? ptys.list().filter((s) => s.running).map((s) => s.sessionId) : []
+  const runnerToConsole = new Map<string, string>()
+  try {
+    const live = new Set(running)
+    for (const l of (await launchJournal?.read()) ?? []) if (l.runnerSessionId && live.has(l.sessionId)) runnerToConsole.set(l.runnerSessionId.toLowerCase(), l.sessionId)
+  } catch (e) { ops.failed('link.open', e, { note: 'the launch journal was not read: a runner session id opens Агенты' }) }
   // A failed read is `link-unreadable`, said in the window — never routed against an empty list (ER-1, UX-14).
   const result = await resolveLink(url, {
+    consoleOf: (id) => running.find((s) => s.toLowerCase() === id) ?? runnerToConsole.get(id) ?? null,
     projects: async () => {
       const { data, error } = await store.select('projects', 'id,name').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
       if (error) throw new Error(`the projects could not be read: ${error.message}`)
       return (data ?? []) as Array<{ id: string; name: string }>
     },
     remotes: async (projectId) => (await projectReposWithRemotes(projectId)).map((r) => r.remote),
+    folders: async (projectId) => (await projectReposWithRemotes(projectId)).map((r) => r.path),
     services: () => (linkRegistry?.snapshot().entries ?? [])
       .filter((e) => e.kind === 'service')
       .map((e) => ({ key: e.key, id: e.id, repository: e.repository })),
     failed: (e) => ops.failed('link.open', e, { note: 'the link was answered with link-unreadable' })
   })
-  ops.record({ op: 'link.open', outcome: 'ok', level: result.notice === 'link-refused' || result.notice === 'link-unreadable' ? 'warn' : 'info', detail: { notice: result.notice }, ctx: { correlationId: ops.correlate() } })
+  ops.record({ op: 'link.open', outcome: 'ok', level: result.notice === 'link-refused' || result.notice === 'link-unreadable' ? 'warn' : 'info', detail: { notice: result.notice, ...(result.from ? { from: result.from } : {}) }, ctx: { correlationId: ops.correlate() } })
   // The window closed while the link was read: it waits for the one acceptLink opens.
   if (!mainWindow) { acceptLink(url); return }
   if (mainWindow.isMinimized()) mainWindow.restore()
@@ -628,7 +669,8 @@ const quit = createQuitCoordinator({
   starting: () => !windowReady,
   // Quit requests scoped termination. A deadline leaves unresolved ownership
   // durable; closing the host does not manufacture a successful Stop receipt.
-  shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
+  // The launch journal's last ends are written before the surface goes (`sessionLaunches.ts#flush`).
+  shutdown: () => stopRuntime.shutdown().then(() => launchJournal?.flush()).then(() => surface?.stop()),
   // ADR-0192: while the board's service is on, the person's quit hides Fabric and the board keeps running; logout,
   // restart and shutdown (powerMonitor's 'shutdown', posted for each on macOS), a signal, «Перезапустить Fabric» and the
   // Quit of a failed start still end it (the 0.3.18 review, iteration 1: PL-3, PL-4, PL-5, ER-2, ER-4, UX-3).
@@ -785,6 +827,8 @@ function broadcast(channel: string, ...args: unknown[]): void {
  * from a token; it is the one place the dark ground is a literal, and it is
  * written here once rather than in three places.
  */
+/** The CEO window's traffic lights on the middle of its 52 px head (`.ceo-popup-head`): 26 px down, the lights 12 px tall. */
+const CEO_LIGHTS = { x: 16, y: 20 }
 const WINDOW_CHROME = {
   titleBarStyle: 'hiddenInset' as const,
   trafficLightPosition: { x: 14, y: 14 },
@@ -1194,7 +1238,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
     ports: (registry) => windowHubPorts({
       ptys: () => ptys, sweep: boardState.sweep.get, readSettings: readSettingsState, registry,
-      ceo: () => (ceoAgent ? { isCeo: ceoAgent.isCeo, operations: () => ceoOperations } : null),
+      ceo: () => (ceoAgent ? { isCeo: ceoAgent.isCeo, operations: () => ceoOperations, knowledge: () => knowledgeOperations, board: () => ceoBoardReads } : null),
       desktop: { openExternal: (url) => shell.openExternal(url), applicationInfoForProtocol: (url) => app.getApplicationInfoForProtocol(url) }
     }),
     presenter: ({ accessStore, connector, access }) => new ConsentPresenter({
@@ -1393,6 +1437,22 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   setFolderTrust((folder) => trustFolderForClaude(folder), () => trustsAgentFolders(readSettings(), process.env))
   // One permission choice for every agent this machine starts (CO-305, ADR-0168), read at each launch.
   setPermissionPreference(() => readSettings().agentPermissions)
+  // #region launch-journal-wiring — docs: docs/evidence/specs/2026-11-19-session-launch-journal.md#4-on-disk
+  launchJournal = createLaunchJournal({
+    dir: path.join(app.getPath('userData'), 'launches'),
+    machine: hostname(),
+    appVersion: app.getVersion(),
+    appPid: process.pid,
+    redact: (text) => redact(text).text,
+    readBranch: readGitBranch,
+    readRunnerSession: claudeSessionOf,
+    quitting: () => quit.quitting,
+    failed: (kind, e) => ops.failed(`launches.${kind}`, e, { note: 'the launch journal missed a line; the console runs on' })
+  })
+  setLaunchSink(launchJournal)
+  void launchJournal.prune().then((removed) => { if (removed.length) ops.record({ op: 'launches.pruned', outcome: 'ok', level: 'info', detail: { files: removed.length }, ctx: { correlationId: ops.correlate() } }) })
+  quit.onQuit(() => { launchJournal?.markQuitting(); launchJournal?.dispose() })
+  // #endregion launch-journal-wiring
   ptys = new PtyManager(journal, ACTIVE_ESTATE, {
     onData: (sessionId, data, written) => { broadcast(IPC.terminalData, sessionId, data, written); ceoAgent?.onOutput(sessionId, data) },
     onExit: async (sessionId, exitCode) => {
@@ -1597,6 +1657,12 @@ function toTranscript(row: Record<string, unknown>): SessionTranscript {
 const repoStates = createRepoStateReader()
 /** The branch of each console Fabric holds, for the home's reading (0.3.14, the simple Fabric). */
 const agentBranchReader = createBranchReader()
+/** The consoles' system line (2026-11-20): one reader, so every console shares its Switchboard reads. */
+const sessionMetaReader = createSessionMetaReader({
+  switchboard: (args) => runMachineSwitchboard(sessionEnvironment(process.env), args),
+  branch: agentBranchReader,
+  launch: async (sessionId) => (await launchJournal?.read({ sessionId }))?.find((l) => l.sessionId === sessionId) ?? null
+})
 /** CO-459: the branches sessions report on their turns, held here for this machine's screens only (DEC-0140 PR-3). */
 /**
  * M57, reopened by M113 — what the code is doing, as opposed to what our own
@@ -1694,6 +1760,13 @@ async function readAdmissionProject(id: string): Promise<ProjectRow | null> {
 
 async function readRepoRemovals() {
   return projectReads.listRemovals()
+}
+
+/** The active projects, as the rail lists them. */
+async function activeProjectsRead(): Promise<ProjectRow[]> {
+  const { data, error } = await store.select('projects', '*').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
+  if (error) throw new Error(`projects list failed: ${error.message}`)
+  return (data ?? []) as ProjectRow[]
 }
 
 async function readProject(id: string): Promise<ProjectRow> {
@@ -3441,9 +3514,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         // instead of reading the journal back (release review iteration 2, memory finding 7).
         launchTriggerBySession.set(sessionId, input.trigger)
         try {
-          const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
+          // The launch journal's origin: the person's start of a task, or a routine's, a chain's, an answer's.
+          const origin = { by: input.trigger === 'operator' ? 'person' as const : input.trigger, via: 'task' as const, ...(input.taskId ? { taskId: input.taskId } : {}) }
+          const session = await withLaunchOrigin(origin, () => ptys.open(receipt.project_id!, project.repo_path!, optionId,
             input.taskId, input.permissionMode ?? null, agent, sessionId,
-            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared, unit)
+            async () => (await identity.guard()).ok && await validateLaunch(), route, prepared, unit))
           syncPower()
           return session
         } finally {
@@ -3875,7 +3950,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         runnerAvailable: async (id) => (UUID.test(id) ? true : (await launchOption(id))?.available === true),
         stop: async (sessionId) => {
           markPersonEnded(sessionId) // PL-1 run two: History's act stops it for the person
-          const r = await stopRuntime.stop(sessionId, 'operator_stop')
+          ceoAgent?.personStopping(sessionId)
+          let r: Awaited<ReturnType<typeof stopRuntime.stop>>
+          try { r = await stopRuntime.stop(sessionId, 'operator_stop') } finally { ceoAgent?.personStopEnded(sessionId) }
           return { sessionId, state: r.state, reasonCode: r.reasonCode, ...(r.taskId ? { taskId: r.taskId } : {}) }
         },
         snapshot: (id) => { const s = ptys.get(id); return s?.running ? consoleOf(s) : null },
@@ -3889,7 +3966,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           const project = await readProject(a.project_id)
           const place = launchPlace(project.repo_path)
           const cwd = a.cwd && existsSync(a.cwd) ? a.cwd : place.place === 'repository' ? place.path : app.getPath('home')
-          const opened = await ptys.open(a.project_id, cwd, a.option_id, null, a.permission_mode)
+          const opened = await withLaunchOrigin({ by: 'person', via: 'restart' },
+            () => ptys.open(a.project_id, cwd, a.option_id, null, a.permission_mode))
           syncPower()
           return { sessionId: opened.sessionId, label: labelOf(a.option_id) }
         }
@@ -4108,6 +4186,58 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       moveProject(projectId, dir, rest)
   )
 
+  // #region estate-search-ipc — docs: docs/evidence/specs/2026-11-19-estate-index-and-graph.md#5-the-doors
+  // The window's half of the estate index: the same search and walk the CEO's two doors run (dashboard parity both ways).
+  handle(IPC.searchEverywhere, async (_e, query: unknown): Promise<Returns<FabricApi['search']['everywhere']>> => {
+    if (!knowledgeOperations) return { ok: false, reason: 'the index is not running yet' }
+    const r = await knowledgeOperations.run('search', { query: typeof query === 'string' ? query.slice(0, 400) : '', limit: 25 })
+    if (r.ok === false) return { ok: false, reason: String(r.reason ?? 'refused') }
+    const index = r.index as { docs?: number } | undefined
+    return { ok: true, hits: r.hits as never, degraded: (r.degraded as string[]) ?? [], docs: index?.docs ?? 0 }
+  })
+  handle(IPC.searchAround, async (_e, node: unknown, depth: unknown): Promise<Returns<FabricApi['search']['around']>> => {
+    if (!knowledgeOperations) return { ok: false, reason: 'the index is not running yet' }
+    const r = await knowledgeOperations.run('execute', { operation: 'graph.neighbours', arguments: { node: typeof node === 'string' ? node : '', depth: typeof depth === 'number' ? Math.min(Math.max(Math.round(depth), 1), 3) : 1, limit: 60 } })
+    if (r.ok === false) return { ok: false, reason: String(r.reason ?? 'refused') }
+    const start = r.start as { id: string; kind: string | null; label: string | null } | null
+    const nodes = ((r.nodes as Array<Record<string, unknown>>) ?? []).map((n) => {
+      const via = n.via as { rel: string; direction: 'in' | 'out' }
+      return { id: String(n.id), kind: (n.kind as string | null) ?? null, label: (n.label as string | null) ?? null, known: n.known === true, hop: Number(n.hop), rel: via.rel, direction: via.direction }
+    })
+    return { ok: true, start: start ? { id: start.id, kind: start.kind, label: start.label } : null, nodes, capped: r.capped === true }
+  })
+  handle(IPC.searchResume, async (_e, sessionId: unknown): Promise<Returns<FabricApi['search']['resume']>> => {
+    if (!ceoOperations || typeof sessionId !== 'string') return { ok: false, reason: 'the session tools are not running yet' }
+    const r = await ceoOperations.run('resume', { session_id: sessionId, reason: 'The person continued it from the search' })
+    return r.ok === false ? { ok: false, reason: String(r.reason ?? 'refused') } : { ok: true, session_id: String(r.session_id ?? '') }
+  })
+  // #endregion estate-search-ipc
+  // #region memory-ipc — docs: docs/evidence/specs/2026-11-20-memory-dashboard.md#2-one-module-three-callers
+  // Memory's window half: the execute operations the CEO's doors and the voice run, never a read of its own.
+  const memoryRun = async (operation: string, args: Record<string, unknown>): Promise<Record<string, unknown>> => {
+    if (!knowledgeOperations) return { ok: false, reason: 'the index is not running yet' }
+    const r = await knowledgeOperations.run('execute', { operation, arguments: args })
+    return r.ok === false ? { ok: false, reason: String(r.reason ?? 'refused') } : r
+  }
+  handle(IPC.memoryIndexOverview, async (): Promise<Returns<FabricApi['memoryIndex']['overview']>> => await memoryRun('memory.overview', {}) as never)
+  handle(IPC.memoryIndexGraph, async (_e, context: unknown): Promise<Returns<FabricApi['memoryIndex']['graph']>> =>
+    await memoryRun('memory.graph', typeof context === 'string' && context ? { context: context.slice(0, 80) } : {}) as never)
+  handle(IPC.memoryIndexChanges, async (_e, hours: unknown, project: unknown): Promise<Returns<FabricApi['memoryIndex']['changes']>> =>
+    await memoryRun('memory.changes', { hours: typeof hours === 'number' ? Math.min(Math.max(Math.round(hours), 1), 168) : 24, ...(typeof project === 'string' && project ? { project: project.slice(0, 200) } : {}) }) as never)
+  handle(IPC.memoryIndexCheck, async (_e, claims: unknown): Promise<Returns<FabricApi['memoryIndex']['check']>> => {
+    const list = Array.isArray(claims) ? claims.slice(0, 50).filter((c): c is { quote: string; doc: string; digest?: string } => !!c && typeof (c as { quote?: unknown }).quote === 'string' && typeof (c as { doc?: unknown }).doc === 'string')
+      .map((c) => ({ quote: c.quote.slice(0, 2000), doc: c.doc.slice(0, 300), ...(typeof c.digest === 'string' ? { digest: c.digest.slice(0, 80) } : {}) })) : []
+    if (!list.length) return { ok: false, reason: 'no claim to check' }
+    return await memoryRun('quote.check', { claims: list }) as never
+  })
+  handle(IPC.memoryIndexSearch, async (_e, query: unknown, project: unknown): Promise<Returns<FabricApi['memoryIndex']['search']>> => {
+    if (!knowledgeOperations) return { ok: false, reason: 'the index is not running yet' }
+    const r = await knowledgeOperations.run('search', { query: typeof query === 'string' ? query.slice(0, 400) : '', limit: 25, ...(typeof project === 'string' && project ? { project: project.slice(0, 400) } : {}) })
+    if (r.ok === false) return { ok: false, reason: String(r.reason ?? 'refused') }
+    const index = r.index as { docs?: number } | undefined
+    return { ok: true, hits: r.hits as never, degraded: (r.degraded as string[]) ?? [], docs: index?.docs ?? 0 }
+  })
+  // #endregion memory-ipc
   handle(IPC.searchRun, async (_e, query: string): Promise<Returns<FabricApi['search']['run']>> => {
     // A thin dispatcher. Five queries and their five groups lived here inline,
     // and the one property that matters — that the searched set and the
@@ -4546,6 +4676,30 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
   )
 
+  // #region task-rank-ipc — docs: docs/evidence/specs/2026-11-21-task-rank.md#5-the-writes
+  // ADR-0208: the queue's order is the person's. Both acts append with the operator's actor; the order a move is
+  // judged against is read here, fresh, never taken from the window.
+  const rankDeps: RankWriteDeps = {
+    readTask: async (taskId) => {
+      const { data, error } = await store.select('project_tasks', 'id,project_id,status,rank,rank_proposal').eq('id', taskId).maybeSingle()
+      if (error) throw new Error(`the task could not be read: ${error.message}`)
+      if (!data) return null
+      const proposal = data.rank_proposal as { after_task_id?: string | null } | null
+      return {
+        id: data.id as string, projectId: data.project_id as string, status: data.status as string,
+        rank: data.rank === null || data.rank === undefined ? null : Number(data.rank),
+        proposal: proposal && typeof proposal === 'object' ? { afterTaskId: typeof proposal.after_task_id === 'string' ? proposal.after_task_id : null } : null
+      }
+    },
+    readQueue: async (projectId) => ((await readQueueOrder(store, { projectId })).byProject.get(projectId) ?? []).map((p) => ({ id: p.id, rank: p.rank })),
+    append: async (projectId, type, payload) => { await journal.append({ estateId: ACTIVE_ESTATE, type, actor: OPERATOR_ACTOR, projectId, payload }) }
+  }
+  handle(IPC.tasksReorder, async (_e, taskId: string, afterTaskId: string | null): Promise<Returns<FabricApi['tasks']['reorder']>> =>
+    reorderTask(rankDeps, String(taskId), afterTaskId === null || afterTaskId === undefined ? null : String(afterTaskId)))
+  handle(IPC.tasksRankProposal, async (_e, taskId: string, accept: boolean): Promise<Returns<FabricApi['tasks']['rankProposal']>> =>
+    decideRankProposal(rankDeps, String(taskId), accept === true))
+  // #endregion task-rank-ipc
+
   handle(IPC.filesRead, (event, file: string): Returns<FabricApi['files']['read']> => readFile(file, fileRoots, scopeOf(event)))
   // Editor recovery (ADR-0106 amendment): the unsaved buffer of a file this window may open, keyed by its
   // resolved path. A path outside the window's roots is refused exactly as a read would be.
@@ -4700,6 +4854,126 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // CO-457: read-only, Switchboard's sessions and limit stops merged as Fabric Dashboards merges them.
   handle(IPC.agentsSwitchboardSessions, (): Promise<Returns<FabricApi['agents']['switchboardSessions']>> =>
     readMachineSwitchboardSessions(sessionEnvironment(process.env), Date.now()))
+  // #region resume-in-fabric — docs: docs/ux/scenarios.md#scn-166-see-every-agent-and-open-its-console-in-one-press
+  // The owner, 2026-11-19 (eef5abeb, and «либо новую, либо последнюю»): a Claude Code session, wherever it was started,
+  // continued in a Fabric console with `claude --resume <id>` in its folder and the Claude home it ran in.
+  const runningClaudeIds = async (): Promise<Set<string>> => {
+    const ids = new Set((await liveClaudeSessions(await claudeConfigDirs())).map((s) => s.sessionId))
+    const live = new Set(ptys.list().filter((s) => s.running).map((s) => s.sessionId))
+    for (const l of (await launchJournal?.read()) ?? []) if (l.runnerSessionId && live.has(l.sessionId)) ids.add(l.runnerSessionId)
+    return ids
+  }
+  const resumeInFabric = async (projectId: string, cwd: string, claudeId: string, config: string, reason: string, via: 'screen' | 'link' = 'screen'): Promise<{ sessionId: string }> => {
+    const sessionId = randomUUID()
+    const own = path.join(homedir(), '.claude')
+    ptys.prepareLaunch(sessionId, { args: ['--resume', claudeId], env: config === own ? {} : { CLAUDE_CONFIG_DIR: config } })
+    const opened = await withLaunchOrigin({ by: 'person', via, reason }, () => ptys.open(projectId, cwd, 'claude-code', null, null, null, sessionId))
+    syncPower()
+    return { sessionId: opened.sessionId }
+  }
+  handle(IPC.projectsResumeLast, async (_e, projectId: unknown): Promise<Returns<FabricApi['projects']['resumeLast']>> => {
+    if (typeof projectId !== 'string' || !UUID.test(projectId)) throw new Error('Invalid project identity')
+    const project = await readProject(projectId)
+    if (!project.repo_path) return { ok: false, why: 'no-folder' }
+    const folders = [...await gitWorktrees(project.repo_path), ...((await launchJournal?.read({ projectId })) ?? []).map((l) => l.cwd)]
+    const last = await lastSessionOf(folders, await claudeConfigDirs(), await runningClaudeIds())
+    if (!last) return { ok: false, why: 'none' }
+    try {
+      const opened = await resumeInFabric(projectId, last.cwd, last.sessionId, last.config, 'Продолжить последнюю сессию проекта')
+      ops.record({ op: 'projects.resume-last', outcome: 'ok', level: 'info', detail: { project_id: projectId, runner_session_id: last.sessionId, console: opened.sessionId }, ctx: { correlationId: ops.correlate() } })
+      return { ok: true, sessionId: opened.sessionId }
+    } catch (e) {
+      ops.failed('projects.resume-last', e, { project_id: projectId })
+      return { ok: false, why: 'failed', says: e instanceof Error ? e.message.slice(0, 300) : String(e) }
+    }
+  })
+  // The operator, 2026-11-20: Агенты must show the sessions Fabric Dashboards shows. Switchboard's rows: one read in
+  // flight at a time, fresh for 20 s counted from when it settled; a listing never waits for a read in flight past
+  // ROWS_WAIT_MS and takes the last settled rows instead (0.3.26 review, iteration 1, ER-5, DA-6, UX-11).
+  const ROWS_FRESH_MS = 20_000, ROWS_WAIT_MS = 3_000
+  let sbSettled: { at: number; rows: ReturnType<typeof parseMachineRows> } | null = null
+  let sbInFlight: Promise<ReturnType<typeof parseMachineRows>> | null = null
+  // ER-30 (iteration 3, run four): an act starts a new generation; a read begun before it is never fresh after it, and a
+  // listing after the act does not join it.
+  let sbGen = 0
+  let sbInFlightGen = -1
+  const switchboardRows = async (): Promise<ReturnType<typeof parseMachineRows>> => {
+    if (sbSettled && Date.now() - sbSettled.at < ROWS_FRESH_MS) return sbSettled.rows
+    if (!sbInFlight || sbInFlightGen !== sbGen) {
+      const gen = sbGen
+      const read: Promise<ReturnType<typeof parseMachineRows>> = runMachineSwitchboard(sessionEnvironment(process.env), ['--json', 'sessions', '--rows'])
+        .then((r) => (r && r.code === 0 ? parseMachineRows(r.stdout) : null), () => null)
+        .then((rows) => { sbSettled = { at: gen === sbGen ? Date.now() : 0, rows: rows ?? sbSettled?.rows ?? null }; return rows })
+        .finally(() => { if (sbInFlight === read) sbInFlight = null })
+      sbInFlight = read
+      sbInFlightGen = gen
+    }
+    const waited = await Promise.race([sbInFlight, new Promise<'late'>((r) => setTimeout(() => r('late'), ROWS_WAIT_MS).unref())])
+    return waited === 'late' ? (sbSettled?.rows ?? null) : waited
+  }
+  const processParents = (): Promise<Map<number, number> | null> => new Promise((resolve) => {
+    execFile('/bin/ps', ['-A', '-o', 'pid=,ppid='], { timeout: 3_000, maxBuffer: 4 * 1024 * 1024 }, (err, out) => {
+      if (err) { resolve(null); return }
+      const map = new Map<number, number>()
+      for (const line of out.split('\n')) { const [pid, ppid] = line.trim().split(/\s+/).map(Number); if (pid > 1 && ppid >= 0) map.set(pid, ppid) }
+      resolve(map)
+    })
+  })
+  const machineSessions = createMachineSessions({
+    live: async () => liveClaudeSessions(await claudeConfigDirs()),
+    switchboardRows,
+    fabricRunnerIds: async () => {
+      const live = new Set(ptys.list().filter((s) => s.running).map((s) => s.sessionId))
+      return new Set(((await launchJournal?.read()) ?? []).filter((l) => l.runnerSessionId && live.has(l.sessionId)).map((l) => l.runnerSessionId!))
+    },
+    fabricPids: async () => ptys.runningPids(),
+    parents: processParents,
+    alive: defaultAlive,
+    signal: (pid) => { process.kill(pid, 'SIGTERM') },
+    stillNames: async (s) => (await liveClaudeSessions([s.config])).some((x) => x.pid === s.pid && x.sessionId === s.sessionId),
+    transcript: (id) => findTranscript(defaultTranscriptRoots(), id),
+    // DA-1 (0.3.26 review, iteration 1): another session's words are redacted before they reach the screen, as the CEO's read does.
+    turns: redactedTurns,
+    projectFor: async (s) => (await projectForFolder(s.cwd, await activeProjectsRead()))?.id ?? null,
+    // DEC-0189 SL-5: a session that no longer runs is continued from its transcript: its folder is the transcript's
+    // own `cwd`, its Claude home the folder above its projects folder.
+    resumeEnded: async (id, link) => {
+      // UX-21: running and not «outside» means a Fabric console (or one under it) holds it: said as such, nothing stopped.
+      if ((await runningClaudeIds()).has(id)) return { ok: false, why: 'not-outside' }
+      const file = findTranscript(defaultTranscriptRoots(), id)
+      if (!file) return { ok: false, why: 'gone' }
+      const cwd = transcriptCwd(await readHead(file, 256 * 1024))
+      // DA-18: a history whose first record is too long to read its folder is not «gone».
+      if (!cwd) return { ok: false, why: 'unreadable' }
+      const project = await projectForFolder(cwd, await activeProjectsRead())
+      if (!project) return { ok: false, why: 'no-project' }
+      // DA-20: a link is said by the link itself, `from` or not; a press on a screen is a press on a screen.
+      const origin = continueOrigin('resumed', link)
+      const opened = await resumeInFabric(project.id, cwd, id, path.resolve(file, '..', '..', '..'), origin.reason, origin.via)
+      return { ok: true, sessionId: opened.sessionId }
+    },
+    continueInFabric: async (s, projectId, link) => {
+      const id = projectId ?? (await projectForFolder(s.cwd, await activeProjectsRead()))?.id
+      if (!id) throw new Error(`the folder ${s.cwd} is not in a Fabric project`)
+      const origin = continueOrigin('moved', link)
+      return resumeInFabric(id, s.cwd, s.sessionId, s.config, origin.reason, origin.via)
+    },
+    // DA-11: every outcome but ok is a failure in the operations log.
+    record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'ok' || detail.outcome === undefined ? 'ok' : 'failed', level: detail.outcome === 'ok' || detail.outcome === undefined ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  const sessionArg = (v: unknown): string => {
+    if (typeof v !== 'string' || !/^[0-9a-f-]{36}$/i.test(v)) throw new Error('Invalid session identity')
+    return v
+  }
+  handle(IPC.agentsMachineSessions, (): Promise<Returns<FabricApi['agents']['machineSessions']>> => machineSessions.list())
+  handle(IPC.agentsMachineRead, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineRead']>> => machineSessions.read(sessionArg(id)))
+  // UX-37 (iteration 3, run three): an act changes what Switchboard sees, so the next listing asks it again instead of the
+  // rows read before the act (the old rows stay only as the fallback of a read that does not answer in time).
+  const rowsChanged = <T,>(p: Promise<T>): Promise<T> => p.finally(() => { sbGen++; if (sbSettled) sbSettled = { ...sbSettled, at: 0 } })
+  handle(IPC.agentsMachineClose, (_e, id: unknown): Promise<Returns<FabricApi['agents']['machineClose']>> => rowsChanged(machineSessions.close(sessionArg(id))))
+  handle(IPC.agentsMachineContinue, (_e, id: unknown, link: unknown): Promise<Returns<FabricApi['agents']['machineContinue']>> =>
+    rowsChanged(machineSessions.continueInFabric(sessionArg(id), linkOriginOf(link))))
+  // #endregion resume-in-fabric
   // CO-407: Claude Code's cross-session messages, only by the person's switch; and the launcher doctor, only on asking.
   const inboundAnswer = (r: ReturnType<typeof readInbound>) =>
     'unreadable' in r ? { unreadable: true as const } : { accepting: r.accepting, value: r.value, ...(r.notSaved ? { notSaved: r.notSaved } : {}) }
@@ -4937,15 +5211,66 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     record: (op, detail) => ops.record({ op, outcome: op === 'runner.fallback-attached' ? 'ok' : 'failed',
       level: op === 'runner.fallback-attached' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } }),
     failed: (op, e) => ops.failed(op, e, { note: 'the first instruction was not delivered' }),
+    // 2026-11-20: the transcript says whether the task became a turn (`main/claudeTranscript.ts#claudeTurnTaken`).
+    turnTaken: async (sessionId) => {
+      const l = (await launchJournal?.read({ sessionId }))?.find((x) => x.sessionId === sessionId)
+      return l && l.runner === 'claude-code' && l.runnerSessionId ? claudeTurnTaken(l.cwd, l.runnerSessionId) : null
+    },
+    // 2026-11-20: every first instruction's end is written, so a console that sat on an empty prompt says why.
+    // 0.3.27 review, PL-10: a task written with no turn started is a warning with the screen's last lines, redacted, so the
+    // next empty prompt shows which screen took the text (CO-606's lead).
+    delivered: (d) => {
+      const unconfirmed = d.state === 'written_unconfirmed'
+      let screen: string | undefined
+      if (unconfirmed) {
+        const sb = typeof d.session_id === 'string' ? ptys.scrollbackOf(d.session_id) : null
+        screen = sb ? redact(screenText(decodePty(sb.text), 15)).text.slice(-1500) : undefined
+      }
+      ops.record({ op: 'terminal.first-instruction', outcome: d.state === 'not_delivered' ? 'failed' : 'ok',
+        level: d.state === 'not_delivered' || unconfirmed ? 'warn' : 'info', detail: screen ? { ...d, screen } : d, ctx: { correlationId: ops.correlate() } })
+    },
     syncPower
   })
   handle(
     IPC.terminalOpen,
     (_e, projectId: string, optionId: string, firstInstruction?: string, permissionMode?: string | null): Promise<Returns<FabricApi['terminal']['open']>> =>
-      openConsole(projectId, optionId, firstInstruction, permissionMode)
+      withLaunchOrigin({ by: 'person', via: 'screen' }, () => openConsole(projectId, optionId, firstInstruction, permissionMode))
   )
 
   handle(IPC.terminalList, (_e, projectId?: string): Returns<FabricApi['terminal']['list']> => ptys.list(projectId))
+  // «Недавние» in the rail: the newest ended launch of each project, not running now, eight at most.
+  handle(IPC.terminalRecent, async (): Promise<Returns<FabricApi['terminal']['recent']>> => {
+    const running = new Set(ptys.list().filter((s) => s.running).map((s) => s.projectId))
+    const names = new Map((await activeProjectsRead()).map((p) => [p.id, p.name]))
+    const out: Returns<FabricApi['terminal']['recent']> = []
+    for (const l of (await launchJournal?.read()) ?? []) {
+      if (l.end === null && ptys.get(l.sessionId)?.running) continue
+      if (running.has(l.projectId) || !names.has(l.projectId) || out.some((o) => o.projectId === l.projectId)) continue
+      out.push({ projectId: l.projectId, projectName: names.get(l.projectId) ?? null, runner: l.optionId, branch: l.branch, endedAt: l.endedAt, startedAt: l.startedAt })
+      if (out.length >= 8) break
+    }
+    return out
+  })
+  // A console's system line (the owner, 2026-11-20): `main/sessionMetaRead.ts`, its reads cached and bounded.
+  handle(IPC.terminalMeta, async (_e, sessionId: unknown): Promise<Returns<FabricApi['terminal']['meta']>> => {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 128) throw new Error('Invalid session identity')
+    const s = ptys.get(sessionId)
+    if (!s) return null
+    return sessionMetaReader.read({ sessionId, cwd: s.cwd, runner: s.optionId, startedAt: s.startedAt })
+  })
+  // The line's folder, opened in Finder: only the console's own folder, which Fabric started it in.
+  handle(IPC.terminalRevealFolder, async (_e, sessionId: unknown): Promise<Returns<FabricApi['terminal']['revealFolder']>> => {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 128) throw new Error('Invalid session identity')
+    const s = ptys.get(sessionId)
+    if (!s) return { ok: false, reason: 'no such console' }
+    const reason = await shell.openPath(s.cwd)
+    return reason ? { ok: false, reason } : { ok: true }
+  })
+  // Who started a console and from where (the launch journal, board request eef5abeb): read for the agent's page.
+  handle(IPC.terminalLaunch, async (_e, sessionId: unknown): Promise<Returns<FabricApi['terminal']['launch']>> => {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 128) throw new Error('Invalid session identity')
+    return (await launchJournal?.read({ sessionId }))?.find((l) => l.sessionId === sessionId) ?? null
+  })
   handle(
     IPC.terminalScrollback,
     (_e, sessionId: string): Returns<FabricApi['terminal']['scrollback']> => ptys.scrollbackOf(sessionId)
@@ -5106,7 +5431,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const stood = consoleOf(ptys.get(sessionId))
     // PL-1: marked before the stop, so the end it causes releases the session's claims as the person's (`onSessionEnded`).
     markPersonEnded(sessionId)
-    const result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true })
+    // The CEO's console stopped from its own window stays stopped (the owner, 2026-11-19), never read as an early end.
+    ceoAgent?.personStopping(sessionId)
+    void launchJournal?.stopAsked(sessionId, 'person')
+    // ER-6 (0.3.25): the CEO's hold is settled however the stop ends.
+    let result: Awaited<ReturnType<typeof stopRuntime.stop>>
+    try { result = await stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true }) } finally { ceoAgent?.personStopEnded(sessionId) }
     if (stood) {
       const outcome = sessionStopOutcome(stood, result, await projectNameOf(stood.projectId))
       if (outcome) await acts.note(outcome)
@@ -5178,7 +5508,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     attachable: () => null
   })
   const ceoReach = { granted: (real: string) => real, candidates: scanCandidates, home: homedir() }
+  // Set once the voice's ask mark exists below: the queue tells it when a waiting ask was typed (run five, DO-46).
+  let ceoLineTyped: (line: string, outcome: 'written' | 'unknown') => void = () => {}
   ceoAgent = createCeoAgent({
+    typed: (line, outcome) => ceoLineTyped(line, outcome),
     root: path.join(app.getPath('userData'), 'ceo'),
     locale: () => readSettings().locale,
     // DA-7: an archived CEO project is never brought back; a new one is made under a fresh id (`ceoAgent.ts#ceoProjectFor`).
@@ -5233,37 +5566,84 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         : d.projectId ? { kind: 'session.start', args: { project_id: d.projectId, option_id: d.runner, permission_mode: null, cwd: null, task_id: null, from_session: d.sessionId } } : null
     }, { actor: { kind: 'agent', id: agent.sessionId() ?? 'ceo' } }).catch((e: unknown) => ops.failed('ceo.act-note', e))
   }
+  // Voice CEO retro 2026-11-20 (finding 4): the names the owner uses for projects, kept in the CEO's folder.
+  const ceoRoot = path.join(app.getPath('userData'), 'ceo')
+  const projectAliases = createAliasStore(ceoRoot, (what, e) => ops.failed('ceo.project-aliases', e, { detail: { what } }))
+  // #region estate-index-wiring — docs: docs/evidence/specs/2026-11-19-estate-index-and-graph.md#31-where-it-lives-adr-0200
+  // ADR-0200: one local index of every session, transcript, task, board message and commit, and the graph on it.
+  estate = startEstateIndex({
+    userData: app.getPath('userData'), store,
+    boardList: async (after) => {
+      const r = await commsRead.list(ACTIVE_ESTATE, null, after, 100)
+      if (!r.ok) throw new Error(`the board could not be read: ${r.error.code}`)
+      return { messages: r.messages as unknown as Array<Record<string, unknown>>, last: r.lastSeq, more: r.more }
+    },
+    record: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'failed' ? 'warn' : 'info', detail, ctx: { correlationId: ops.correlate() } }),
+    onQuit: (fn) => quit.onQuit(fn)
+  })
+  knowledgeOperations = estate.knowledge
+  // #endregion estate-index-wiring
   ceoOperations = createCeoOperations({
     ptys: { list: () => ptys.list(), get: (id) => ptys.get(id), scrollbackOf: (id) => ptys.scrollbackOf(id), write: (id, data) => ptys.write(id, data) },
     ceoSessionId: () => agent.sessionId(),
     projects: async () => {
       const { data, error } = await store.select('projects', 'id,name,repo_path,default_agent').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')
       if (error) throw new Error(`the projects could not be read: ${error.message}`)
-      return (data ?? []) as Array<{ id: string; name: string; repo_path: string | null; default_agent: string | null }>
+      const aliases = projectAliases.read()
+      return ((data ?? []) as Array<{ id: string; name: string; repo_path: string | null; default_agent: string | null }>)
+        .map((p) => (aliases[p.id]?.length ? { ...p, aliases: aliases[p.id] } : p))
     },
+    saveAlias: async (projectId, alias) => projectAliases.add(projectId, alias),
+    removeAlias: async (projectId, alias) => projectAliases.remove(projectId, alias),
     admitFolder: async (folder) => {
       const row = await admission.create({ id: randomUUID(), name: path.basename(folder), repoPaths: [folder] }, { kind: 'agent', id: agent.sessionId() ?? 'ceo' }, ceoReach)
       return { id: row.id, name: row.name, repo_path: row.repo_path }
     },
     openConsole: (projectId, runner, task) => openConsole(projectId, runner, task, null),
-    stop: async (id, force) => { markPersonEnded(id); return stopRuntime.stop(id, 'operator_stop', { force }) },
+    firstTask: (sessionId) => openConsole.firstInstruction(sessionId),
+    stop: async (id, force) => { markPersonEnded(id); void launchJournal?.stopAsked(id, 'ceo'); return stopRuntime.stop(id, 'operator_stop', { force }) },
     openWindow: (id) => openSessionWindow(id),
     switchboard: (args) => runMachineSwitchboard(sessionEnvironment(process.env), args),
     signal: (pid) => { process.kill(pid, 'SIGTERM') },
     record: (op, detail) => ops.record({ op, outcome: detail.outcome === 'failed' ? 'failed' : 'ok', level: 'info', detail, ctx: { correlationId: ops.correlate() } }),
-    note: ceoNote
+    note: ceoNote,
+    catalogue: () => estate!.catalogue(),
+    recall: (id) => estate!.recall(id),
+    pastConsoles: (limit) => estate!.pastConsoles(limit),
+    // A console that continues a Claude Code or Codex session as itself (spec §2): the runner's own resume, through the
+    // same launch extras the CEO's models use (`pty.ts#prepareLaunch`).
+    openResumed: async (projectId, runner, runtimeSessionId, cwd, env) => {
+      const project = await readProject(projectId)
+      const sessionId = randomUUID()
+      ptys.prepareLaunch(sessionId, { args: runner === 'codex' ? ['resume', runtimeSessionId] : ['--resume', runtimeSessionId], env })
+      return ptys.open(projectId, cwd ?? project.repo_path ?? homedir(), runner, null, null, null, sessionId)
+    },
+    launches: (q) => launchJournal ? launchJournal.read(q) : Promise.resolve([]),
+    diskSessions: async () => liveClaudeSessions(await claudeConfigDirs())
   })
   // PM chain (task ff3fe9c3): once a minute, a board request a PM agent gave the CEO (capability `ceo.task`) is typed
-  // into its running console, each once.
+  // into its running console, each once. ADR-0197 Amendment 5: one that waits while the console does not run wakes it,
+  // and while it runs Fabric holds its `ceo.task` slot every CEO_KEEP_MS (`ceoBoardKeeper.ts`).
+  const ceoBoard = createCeoBoardKeeper({
+    state: () => agent.status().state,
+    sessionId: () => agent.sessionId(),
+    projectId: () => agent.knownProjectId(),
+    keepSlot: (id, capability) => surface.keepResponderSlot(id, capability),
+    ensure: () => agent.ensure(),
+    heldByPerson: () => agent.heldByPerson(),
+    record: (op, outcome, detail) => ops.record({ op, outcome, level: outcome === 'ok' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+  })
   const ceoBoardTick = setInterval(() => {
-    const projectId = agent.projectId()
-    if (!projectId || agent.status().state !== 'running') return
+    const projectId = agent.knownProjectId()
+    if (!projectId || quit.quitting) return
     readProjectRequests(store as never, projectId, Date.now())
-      .then((view) => agent.nudgeBoard(view.requests, view.names))
+      .then(async (view): Promise<void> => { if (agent.status().state === 'running') await agent.nudgeBoard(view.requests, view.names); else await ceoBoard.wake(view.requests) })
       .catch((e: unknown) => ops.failed('ceo.board-read', e, { note: 'the CEO is told about board requests at the next minute' }))
   }, 60_000)
   ceoBoardTick.unref?.()
-  quit.onQuit(() => clearInterval(ceoBoardTick))
+  const ceoSlotTick = setInterval(() => { if (!quit.quitting) void ceoBoard.keep() }, CEO_KEEP_MS)
+  ceoSlotTick.unref?.()
+  quit.onQuit(() => { clearInterval(ceoBoardTick); clearInterval(ceoSlotTick) })
   handle(IPC.ceoAgentStatus, (): Returns<FabricApi['ceoAgent']['status']> => agent.status())
   handle(IPC.ceoAgentEnsure, (): Promise<Returns<FabricApi['ceoAgent']['ensure']>> => agent.ensure())
   handle(IPC.ceoAgentSend, (_e, text: unknown, attachments: unknown): Promise<Returns<FabricApi['ceoAgent']['send']>> =>
@@ -5271,26 +5651,155 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       ? attachments.filter((a): a is CeoAttachment => !!a && typeof a === 'object' && typeof (a as CeoAttachment).name === 'string' && typeof (a as CeoAttachment).data === 'string')
       : []))
   handle(IPC.ceoAgentRestart, (): Promise<Returns<FabricApi['ceoAgent']['restart']>> => agent.restart('person'))
-  handle(IPC.ceoAgentOpen, (_e, draft: unknown): Returns<FabricApi['ceoAgent']['open']> => {
+  handle(IPC.ceoAgentStop, (): Promise<Returns<FabricApi['ceoAgent']['stop']>> => agent.stop())
+  handle(IPC.ceoAgentOpen, (_e, draft: unknown, options: unknown): Returns<FabricApi['ceoAgent']['open']> => {
     ceoDraft = typeof draft === 'string' && draft.trim() ? draft.slice(0, 8000) : ceoDraft
+    // The home card's «Позвонить» (SCN-184): the call runs in the popup, beside the chat; the popup takes the ask once.
+    if (options && typeof options === 'object' && (options as { call?: unknown }).call === true) ceoCallWanted = true
     openCeoWindow()
-    if (ceoDraft) broadcast(IPC.ceoAgentDraft)
+    if (ceoDraft || ceoCallWanted) broadcast(IPC.ceoAgentDraft)
     // The console starts with the window: by the time the person has typed, it is up.
     void agent.ensure()
   })
   handle(IPC.ceoAgentTakeDraft, (): Returns<FabricApi['ceoAgent']['takeDraft']> => { const d = ceoDraft; ceoDraft = null; return d })
+  handle(IPC.ceoAgentTakeCall, (): Returns<FabricApi['ceoAgent']['takeCall']> => { const c = ceoCallWanted; ceoCallWanted = false; return c })
+  // #region ceo-voice-journal-wiring — docs: docs/reports/2026-11-20-voice-ceo-retro/fixes.md#1-the-call-journal
+  // Voice CEO retro 2026-11-20 (finding 1): every call kept on this computer, in the CEO's folder, redacted.
+  const voiceJournal = createVoiceJournal({ folder: ceoRoot, failed: (what, e) => ops.failed('ceo.voice.journal', e, { detail: { what } }) })
+  try { const n = voiceJournal.prune(); if (n) ops.record({ op: 'ceo.voice.journal-pruned', outcome: 'ok', level: 'info', detail: { removed: n }, ctx: { correlationId: ops.correlate() } }) } catch (e) { ops.failed('ceo.voice.journal-prune', e) }
+  try { const n = voiceJournal.closeOrphans(); if (n) ops.record({ op: 'ceo.voice.journal-orphans', outcome: 'ok', level: 'info', detail: { closed: n }, ctx: { correlationId: ops.correlate() } }) } catch (e) { ops.failed('ceo.voice.journal-orphans', e) }
+  /** When ask_ceo last handed the CEO a request, by call (finding 7; 0.3.27 review, ER-4): ceo_reply reads what came
+   *  after it, and a late ask of an earlier call never sets the next call's. */
+  /** `wroteAt` null: the ask waits in the CEO's queue, `text` finds its line when the queue types it (run five, DO-46). */
+  let voiceAskedAt: { call: string | null; at: number; wroteAt: number | null; text?: string; unknown?: boolean } | null = null
+  // The queue says when it typed a waiting ask, or that its write broke off (run six, UX-56): either ends the wait.
+  ceoLineTyped = (line, outcome) => { if (voiceAskedAt && voiceAskedAt.wroteAt === null && voiceAskedAt.text && line.includes(voiceAskedAt.text)) { voiceAskedAt.wroteAt = Date.now(); if (outcome === 'unknown') voiceAskedAt.unknown = true } }
+  let ceoTranscriptFile: { sessionId: string; file: string; at: number } | null = null
+  const ceoScreenNow = (lines: number): string => {
+    const id = agent.sessionId()
+    const sb = id ? ptys.scrollbackOf(id) : null
+    return sb ? redact(screenText(decodePty(sb.text), lines)).text : ''
+  }
+  // #region voice-board-reads — docs: docs/ux/scenarios.md#scn-191-the-ceos-voice-reads-the-board-itself
+  // The board as the voice reads it: the active projects of this estate, a project's newest 200 tasks, their links and
+  // live claims, their goals; every read bounded, a refused read thrown so the tool says it was not read.
+  const must = <T,>(r: { data: T | null; error: { message: string } | null }, what: string): T => { if (r.error) throw new Error(`${what}: ${r.error.message}`); return (r.data ?? []) as T }
+  const rowsOf = <T,>(r: { rows: unknown[]; failed?: string | null }, what: string): T[] => { if (r.failed) throw new Error(`${what}: ${r.failed}`); return r.rows as T[] }
+  const TASK_COLS = 'id,project_id,title,instruction,status,goal_id,started_at,finished_at,assigned_to'
+  const voiceBoard = createVoiceBoard({
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    reads: {
+      projects: async () => must(await store.select('projects', 'id,name,created_at,repo_path').eq('estate_id', ACTIVE_ESTATE).eq('status', 'active').limit(1000), 'the projects'),
+      tasks: async (projectId) => must(await store.select('project_tasks', TASK_COLS).eq('project_id', projectId).order('started_at', { ascending: false }).limit(TASKS_READ), 'the tasks'),
+      tasksByIds: async (ids) => ids.length ? rowsOf<BoardTask>(await store.selectIn('project_tasks', TASK_COLS, 'id', ids.filter((x) => /^[0-9a-f-]{36}$/i.test(x))), 'the tasks') : [],
+      linksFrom: async (ids) => ids.length ? rowsOf(await store.selectIn('task_links', 'task_id,rel,target_kind,target_id', 'task_id', [...ids]), 'the links') : [],
+      linksTo: async (id) => must(await store.select('task_links', 'task_id,rel,target_kind,target_id').eq('target_id', id).limit(200), 'the links'),
+      claims: async (ids) => ids.length ? rowsOf<{ work_id: string; agent: string | null; owner_session: string; claimed_at: string; released_at: string | null }>(await store.selectIn('work_claims', 'work_id,agent,owner_session,claimed_at,released_at', 'work_id', [...ids]), 'the claims').filter((c) => c.released_at === null) : [],
+      goals: async (ids) => ids.length ? rowsOf(await store.selectIn('goals', 'id,title', 'id', [...ids]), 'the goals') : [],
+      openTasks: async () => must(await store.select('project_tasks', 'project_id,status').in('status', ['backlog', 'running', 'review']).limit(OPEN_READ), 'the open tasks'),
+      waiting: async () => { const r = await waitingReader.read(); if (!r.ok) throw new Error(`the requests: ${String((r as { error?: unknown }).error ?? 'unread')}`); return r }
+    }
+  })
+  ceoBoardReads = voiceBoard
+  // #endregion voice-board-reads
+  const voiceTools = createVoiceTools({
+    askedAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.at : null),
+    askWrittenAt: () => (voiceAskedAt && voiceAskedAt.call === voiceJournal.current() ? voiceAskedAt.wroteAt : null),
+    askWaiting: () => !!voiceAskedAt && voiceAskedAt.call === voiceJournal.current() && voiceAskedAt.wroteAt === null,
+    askUnknown: () => !!voiceAskedAt && voiceAskedAt.call === voiceJournal.current() && voiceAskedAt.unknown === true,
+    ceoState: () => agent.status().state,
+    // The transcript's path is found once per CEO runner session, not on every poll (0.3.27 review, ER-5).
+    ceoTranscript: async () => {
+      const id = agent.sessionId()
+      if (!id || !launchJournal) return null
+      // Found again after 20 s: a /clear in the CEO's console starts another transcript (ER-17).
+      if (ceoTranscriptFile?.sessionId !== id || Date.now() - ceoTranscriptFile.at > 20_000) {
+        const runnerId = (await launchJournal.read({ sessionId: id })).find((l) => l.sessionId === id)?.runnerSessionId
+        const file = runnerId ? findTranscript(defaultTranscriptRoots(), runnerId) : null
+        if (file) ceoTranscriptFile = { sessionId: id, file, at: Date.now() }
+      }
+      return ceoTranscriptFile?.sessionId === id ? readTail(ceoTranscriptFile.file, READ_TAIL_BYTES) : null
+    },
+    ceoScreen: () => ceoScreenNow(60),
+    // A console that ended is not running (ER-16).
+    ceoLastActivity: () => {
+      const id = agent.sessionId()
+      const s = id ? ptys.get(id) : null
+      return s?.running && s.lastActivityAt ? Date.parse(s.lastActivityAt) : null
+    },
+    machine: () => {
+      let diskFreeGb: number | null = null, diskTotalGb: number | null = null
+      try { const st = statfsSync(homedir()); diskFreeGb = Math.round(st.bavail * st.bsize / 1e8) / 10; diskTotalGb = Math.round(st.blocks * st.bsize / 1e8) / 10 } catch { /* unreadable: said as null */ }
+      return { diskFreeGb, diskTotalGb, load1: loadavg()[0] ?? 0, cpus: cpus().length, memFreeGb: Math.round(freemem() / 1e8) / 10, memTotalGb: Math.round(totalmem() / 1e8) / 10, uptimeHours: Math.round(uptime() / 360) / 10 }
+    },
+    consolesRunning: () => ptys.list().filter((x) => x.running).length,
+    claudeSessions: async () => (await liveClaudeSessions(await claudeConfigDirs())).length,
+    boardSearch: async (q) => {
+      const r = await commsRead.search(ACTIVE_ESTATE, q, null)
+      return r.ok ? { ok: true as const, hits: r.hits, more: r.more } : { ok: false as const, reason: 'reason' in r ? String((r as { reason?: unknown }).reason ?? '') : undefined, message: 'message' in r ? String((r as { message?: unknown }).message ?? '') : undefined }
+    },
+    launches: () => launchJournal ? launchJournal.read({}) : Promise.resolve([]),
+    previousCallEnd: () => {
+      const open = voiceJournal.current()
+      const prev = voiceJournal.list(5).find((c) => c.call !== open && c.minutes !== null)
+      return prev?.startedAt ? new Date(Date.parse(prev.startedAt) + (prev.minutes ?? 0) * 60_000).toISOString() : null
+    },
+    projectNames: async () => {
+      const { data, error } = await store.select('projects', 'id,name').eq('estate_id', ACTIVE_ESTATE)
+      if (error) throw new Error(error.message)
+      return new Map(((data ?? []) as Array<{ id: string; name: string }>).map((p) => [p.id, p.name]))
+    }
+  })
   handle(IPC.ceoAgentVoice, async (): Promise<Returns<FabricApi['ceoAgent']['voice']>> => {
     const token = await mintVoiceToken({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch })
     ops.record({ op: 'ceo.voice.token', outcome: token.ok ? 'ok' : 'failed', level: token.ok ? 'info' : 'warn', detail: token.ok ? {} : { reason: token.reason, detail: token.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
     // ER-7: the window gets the code; the raw detail stays in the operations log.
     if (!token.ok) return { ok: false, reason: token.reason }
     const locale = readSettings().locale
+    const voice = xaiVoiceOf(persona().persona)
+    // A call left open (the window closed mid-call) is closed by the next one, its length measured to its last line
+    // (0.3.27 review, ER-2).
+    const left = voiceJournal.current()
+    if (left) voiceJournal.closeLeft(left)
+    voiceAskedAt = null
+    const callId = voiceJournal.begin({ voice, usdPerMinute: token.usdPerMinute })
     return { ok: true, token: token.value, expiresAt: token.expiresAt, url: token.url, usdPerMinute: token.usdPerMinute,
-      instructions: voiceInstructions(locale), voice: 'eve', tools: [...ceoVoiceTools(), ASK_CEO_TOOL, ...canvasVoiceTools()] }
+      instructions: voiceInstructions(locale), voice, tools: [...ceoVoiceTools(), ...knowledgeVoiceTools(), ASK_CEO_TOOL, ...VOICE_TOOLS, ...VOICE_BOARD_TOOLS, ...canvasVoiceTools()], callId }
   })
+  handle(IPC.ceoAgentVoiceLine, (_e, callId: unknown, who: unknown, text: unknown): Returns<FabricApi['ceoAgent']['voiceLine']> => {
+    if (typeof callId !== 'string' || (who !== 'person' && who !== 'ceo') || typeof text !== 'string') return
+    voiceJournal.line(callId, who, text)
+  })
+  handle(IPC.ceoAgentVoiceEnd, (_e, callId: unknown, spent: unknown): Returns<FabricApi['ceoAgent']['voiceEnd']> => {
+    if (typeof callId !== 'string' || !spent || typeof spent !== 'object') return
+    const m = spent as { minutes?: unknown; usd?: unknown; end?: unknown }
+    voiceJournal.end(callId, { minutes: m.minutes, usd: m.usd, end: m.end })
+  })
+  // #endregion ceo-voice-journal-wiring
   // The person's own xAI key (the operator, 2026-11-19): set in the CEO window, or dropped by a coding agent.
   const voiceKeys = createVoiceKeyStore(path.join(app.getPath('userData'), 'ceo-voice'), safeStorage) // outside the CEO's own folder: its runner never reads the key (0.3.24 review iteration 2, DA-11)
   handle(IPC.ceoAgentVoiceKey, (): Returns<FabricApi['ceoAgent']['voiceKey']> => ({ own: voiceKeys.source() === 'own' }))
+  // Whether a call can be made at all (onboarding's voice step, the owner 2026-11-19): the person's key, or Observatory's
+  // slot read once and dropped; the value never leaves this handler.
+  handle(IPC.ceoAgentVoiceReady, async (): Promise<Returns<FabricApi['ceoAgent']['voiceReady']>> => {
+    if (voiceKeys.source() === 'own') return { ready: true }
+    try { return { ready: (await ceoVault.read(XAI_KEY_SLOT)).ok } } catch (e) { ops.failed('ceo.voice.ready', e); return { ready: false } }
+  })
+  // One sample of a voice, kept per voice and language in the voice's own folder (never the CEO's).
+  const samples = path.join(app.getPath('userData'), 'ceo-voice', 'samples')
+  handle(IPC.ceoAgentVoiceSample, async (_e, voice: unknown): Promise<Returns<FabricApi['ceoAgent']['voiceSample']>> => {
+    const r = await voiceSample({ ownKey: () => voiceKeys.read(), vault: ceoVault, fetch, cache: {
+      read: (name) => { try { return readFileSync(path.join(samples, name)) } catch { return null /* not kept yet: the sample is fetched */ } },
+      // Owner-only folders (DA-3), and a whole file or none (DA-4): written beside, then renamed into place.
+      write: (name, bytes) => {
+        mkdirSync(samples, { recursive: true, mode: 0o700 })
+        const tmp = path.join(samples, `.${name}.${randomUUID()}.tmp`)
+        try { writeFileSync(tmp, bytes, { mode: 0o600 }); renameSync(tmp, path.join(samples, name)) } finally { rmSync(tmp, { force: true }) }
+      }
+    } }, typeof voice === 'string' ? voice : '', readSettings().locale)
+    ops.record({ op: 'ceo.voice.sample', outcome: r.ok ? 'ok' : 'failed', level: r.ok ? 'info' : 'warn', detail: r.ok ? {} : { reason: r.reason, detail: r.detail.slice(0, 200) }, ctx: { correlationId: ops.correlate() } })
+    return r.ok ? r : { ok: false, reason: r.reason }
+  })
   handle(IPC.ceoAgentVoiceKeySet, (_e, value: unknown): Returns<FabricApi['ceoAgent']['setVoiceKey']> => {
     const r = voiceKeys.set(typeof value === 'string' ? value : '')
     ops.record({ op: 'ceo.voice.key-set', outcome: r.ok ? 'ok' : 'failed', level: 'info', detail: r.ok ? {} : { reason: r.reason }, ctx: { correlationId: ops.correlate() } })
@@ -5303,17 +5812,65 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.ceoAgentVoiceTool, async (_e, name: unknown, args: unknown): Promise<Returns<FabricApi['ceoAgent']['voiceTool']>> => {
     const tool = typeof name === 'string' ? name : ''
     ops.record({ op: 'ceo.voice.tool', outcome: 'ok', level: 'info', detail: { tool: tool.slice(0, 40) }, ctx: { correlationId: ops.correlate() } })
+    const began = Date.now()
+    // Finding 1: each tool with its arguments and answer, in the journal of the call that ASKED for it (0.3.27 review,
+    // DA-3, ER-4: a tool that ends after a hang-up and a new call stays in its own call).
+    const call = voiceJournal.current()
+    // What goes back to the call (and on to xAI) is redacted whole, field by field (0.3.27 review, DA-16).
+    // A tool that throws is answered as a refusal, redacted and written like any other (0.3.27 review, DA-23).
+    let raw: Record<string, unknown>
+    try { raw = await runVoiceTool(tool, args, call) } catch (e) { /* said to the call as a refusal and written to its journal below; logged too (DA-29) */ ops.failed('ceo.voice.tool', e, { detail: { tool: tool.slice(0, 40) } }); raw = { ok: false, reason: redact(e instanceof Error ? e.message : String(e)).text.slice(0, 300) } }
+    const answer = redactPayload(raw).payload
+    if (call) voiceJournal.tool(call, tool, args, answer, Date.now() - began)
+    return answer
+  })
+  async function runVoiceTool(tool: string, args: unknown, call: string | null): Promise<Record<string, unknown>> {
     if (tool === 'ask_ceo') {
       const text = typeof (args as { text?: unknown } | null)?.text === 'string' ? (args as { text: string }).text : ''
+      const asked = Date.now()
       const r = await agent.send(text, [])
-      return { ok: r.ok, ...(r.reason ? { reason: r.reason } : {}), said: r.ok ? 'typed into the CEO console' : undefined }
+      // The echo window starts when the line was written, not when it was asked (0.3.27 review, ER-25). A queued line was
+      // not written: the voice is told it waits, and no echo window starts (0.3.27 review, run four, DO-37).
+      // A queued ask keeps its mark with no write time; ceo_reply then says it waits instead of «ask again» (run five,
+      // DO-46, UX-53). An unknown write may have gone in: marked as written, never asked again (ER-52).
+      if (r.ok && !r.queued) voiceAskedAt = { call, at: asked, wroteAt: Date.now() }
+      else if (r.ok && r.queued) voiceAskedAt = { call, at: asked, wroteAt: null, text: text.trim().slice(0, 200) }
+      else if (r.reason === 'delivery-unknown') voiceAskedAt = { call, at: asked, wroteAt: Date.now() }
+      const said = r.reason === 'delivery-unknown'
+        ? 'the write to the CEO console broke off and may have gone in: do not ask again; read ceo_reply, and tell the owner to check the CEO window'
+        : !r.ok ? undefined : r.queued && r.reason === 'not-running'
+          // Run six, UX-54: a CEO that is not running types nothing until the owner starts it.
+          ? 'kept for the CEO, but the CEO is not running: nothing is typed until the owner starts it from the CEO window («Запустить», or «Попробовать снова» when it failed); do not ask again; tell the owner'
+          : r.queued
+          ? 'queued for the CEO: its console has not taken it yet, and it is typed as soon as it does; do not ask again; tell the owner it waits and the answer will be in the CEO window; ceo_reply says when it was typed'
+          : 'typed into the CEO console; read its answer with ceo_reply'
+      return { ok: r.ok, ...(r.queued ? { queued: true } : {}), ...(r.reason ? { reason: r.reason } : {}), said }
     }
     // ADR-0201: the canvas's tools, run by the canvas host; the rest are the sessions'.
     const drawn = await canvasHost?.runTool(tool, args)
     if (drawn) return drawn
+    if (tool.startsWith('knowledge_') && knowledgeOperations) {
+      const op = (args as { operation?: unknown } | null)?.operation
+      // Compared as the door will read it, trimmed (0.3.27 review ER-83).
+      if (tool === 'knowledge_execute' && typeof op === 'string' && VOICE_REFUSED_OPERATIONS.has(op.trim().toLowerCase()))
+        return { ok: false, reason: `${op.trim()} is not the voice's: the voice reads the index; ask the CEO to refresh or rebuild it` }
+      const answer = await knowledgeOperations.run(tool.slice('knowledge_'.length), args)
+      // The list of operations the voice may run leaves out the two it is refused (run nine, UX-78).
+      const ops = (answer as { operations?: unknown }).operations
+      if (Array.isArray(ops)) return { ...answer, operations: ops.filter((k) => !VOICE_REFUSED_OPERATIONS.has(String(k))) }
+      return ops && typeof ops === 'object' ? { ...answer, operations: Object.fromEntries(Object.entries(ops as Record<string, unknown>).filter(([k]) => !VOICE_REFUSED_OPERATIONS.has(k))) } : answer
+    }
+    // The owner, 2026-11-21: the voice reads the board itself, read-only (`voiceBoard.ts`); counted by its own op.
+    if (voiceBoard.has(tool)) {
+      const r = await voiceBoard.run(tool, args)
+      ops.record({ op: 'ceo.voice.board', outcome: r.ok === false ? 'failed' : 'ok', level: 'info', detail: { tool }, ctx: { correlationId: ops.correlate() } })
+      return r
+    }
+    const own = await voiceTools.run(tool, args)
+    if (own) return own
     if (!tool.startsWith('session_')) return { ok: false, reason: `unknown tool ${tool}` }
-    return ceoOperations!.run(tool.slice('session_'.length), args)
-  })
+    return ceoOperations!.run(tool.slice('session_'.length), args, 'voice')
+  }
   // #endregion ceo-agent-wiring
 }
 
@@ -5328,18 +5885,26 @@ function openCeoWindow(): void {
     ceoWindow.focus()
     return
   }
-  const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : null
-  const bounds = parent?.getBounds()
+  // The owner, 2026-11-20: the window moves and resizes freely and opens where it was left, on any display. It is no
+  // longer the main window's child: a child follows its parent and cannot stay on another screen by itself.
+  const main = mainWindow && !mainWindow.isDestroyed() ? mainWindow.getBounds() : null
   const width = 520, height = 720
+  const min = { width: 380, height: 420 }
+  const fallback = main
+    ? { x: Math.max(main.x, main.x + main.width - width - 24), y: Math.max(main.y, main.y + main.height - height - 24), width, height }
+    : { x: 120, y: 120, width, height }
+  const place = ceoWindowBounds(fallback, min)
   const w = new BrowserWindow({
     ...WINDOW_CHROME,
-    width, height, minWidth: 380, minHeight: 420,
-    ...(bounds ? { x: Math.max(bounds.x, bounds.x + bounds.width - width - 24), y: Math.max(bounds.y, bounds.y + bounds.height - height - 24) } : {}),
-    ...(parent ? { parent } : {}),
+    // The popup's head is its title bar, 52 px tall: the lights sit on its middle line (CEO_LIGHTS, styles.css).
+    trafficLightPosition: CEO_LIGHTS,
+    ...place, minWidth: min.width, minHeight: min.height,
     title: 'CEO',
-    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('ceo')] }
+    // A call the home card started plays its first answer before any click in this window (SCN-184).
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('ceo')], autoplayPolicy: 'no-user-gesture-required' }
   })
   ceoWindow = w
+  rememberCeoWindow(w)
   const contentsId = w.webContents.id
   windowKinds.register(contentsId, { kind: 'ceo', subject: ceoAgent?.sessionId() ?? '' })
   if (devServer()) void w.loadURL(new URL('ceo.html', devServer()!.endsWith('/') ? devServer()! : `${devServer()}/`).toString())
@@ -5348,6 +5913,8 @@ function openCeoWindow(): void {
     windowKinds.forget(contentsId)
     revokeWindowRoots(contentsId)
     if (ceoWindow === w) ceoWindow = null
+    // PL-7 (0.3.25): a call asked for a window that closed is not started by the next opening.
+    ceoCallWanted = false
   })
 }
 // #endregion ceo-window
@@ -5815,6 +6382,10 @@ function startStackWatch(): void {
     }
   })
   boardState.stackHealth.set(stackWatch.view())
+  // 2026-11-20: while the stack is lost, a read that fails only because the database is gone is counted, not written one
+  // by one; `stack.back` carries the counts (`ops.ts#Ops.quietWhile`).
+  const watch = stackWatch
+  ops.quietWhile(() => watch.isDown())
   stackWatch.start()
   // One reading at once, so a disk already low is said now rather than in 30 s.
   void stackWatch.tick()

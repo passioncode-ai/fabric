@@ -10,7 +10,12 @@
  * that failed) the next runner of the order runs it (Hermes on OpenRouter by default), so the CEO answers on any day.
  */
 
-export type CeoState = 'idle' | 'starting' | 'running' | 'ended' | 'failed'
+import { ceoAddressRule, isCeoAddress } from './ceoAddress.ts'
+import { heardDistance, heardClose, heardKeys, nameKeys, soundKey } from './heardName.ts'
+import { isScratchFolder } from './scratchFolder.ts'
+
+/** `stopped`: the person stopped it, and it stays stopped until the person starts it again (the owner, 2026-11-19). */
+export type CeoState = 'idle' | 'starting' | 'running' | 'ended' | 'stopped' | 'failed'
 
 /** Why the CEO did not start, as a code the window words (0.3.24 review, ER-7): every runner set aside, none of the
  *  order could start (`passedOver` says why for each), the CEO's project could not be read or made, or another failure
@@ -18,7 +23,15 @@ export type CeoState = 'idle' | 'starting' | 'running' | 'ended' | 'failed'
 export type CeoProblem = 'all-set-aside' | 'none-could-start' | 'project' | 'start-failed'
 
 /** Why a message did not reach the CEO, as a code the window words (ER-7). */
-export type CeoSendReason = 'empty-file' | 'too-big' | 'not-saved' | 'nothing-to-send' | 'not-running' | 'not-delivered'
+export type CeoSendReason = 'empty-file' | 'too-big' | 'not-saved' | 'nothing-to-send' | 'not-running' | 'not-delivered' | 'queue-full' | 'delivery-unknown'
+/** 2026-11-20 (the owner: «не отправляется сообщение из поп-апа … пишется, что сообщение не дошло»): a message the console
+ *  did not take at once is kept, on disk, and typed when it can be; the window says it waits, never that it was lost. */
+export const CEO_QUEUE_RETRY_MS = 10_000
+/** At most this many messages wait for the CEO, in memory and on disk; a send past it is refused and said (0.3.27 review,
+ *  run four, DA-32, ER-42). */
+export const CEO_QUEUE_MAX = 50
+/** A message waiting for the CEO: the line as typed, when it was sent, and whether it names files (UX-43). */
+export interface QueuedLine { line: string; at: number; files?: boolean; retype?: boolean }
 
 /** What the popup's head and the home composer read of the CEO's console. */
 export interface CeoStatus {
@@ -35,17 +48,20 @@ export interface CeoStatus {
   folder: string
   /** Why it is `failed`; its raw detail is in the operations log only. */
   problem: CeoProblem | null
+  /** Messages from the person kept for the console, not typed yet (CEO_QUEUE_RETRY_MS); absent or 0 when none wait. */
+  queued?: number
 }
 
 /** A file the person attached: its name and its bytes as base64 (the window reads them; main keeps them in the inbox). */
 export interface CeoAttachment { name: string; data: string }
 
 /** `name` is the file an `empty-file` or `too-big` refusal is about. */
-export interface CeoSendResult { ok: boolean; reason?: CeoSendReason; name?: string; status: CeoStatus }
+export interface CeoSendResult { ok: boolean; reason?: CeoSendReason; name?: string; status: CeoStatus; queued?: boolean }
 
 /** One voice call's setup, as main hands it to the CEO window: an ephemeral secret, never the key. */
 export type CeoVoiceSession =
-  | { ok: true; token: string; expiresAt: number; url: string; usdPerMinute: number; instructions: string; voice: string; tools: unknown[] }
+  /** `callId`: the call's journal (`main/ceoVoiceJournal.ts`, voice CEO retro finding 1); the window writes its lines to it. */
+  | { ok: true; token: string; expiresAt: number; url: string; usdPerMinute: number; instructions: string; voice: string; tools: unknown[]; callId?: string }
   | { ok: false; reason: CeoVoiceProblem }
 
 /** Why main could not set a call up, as a code the window words (ER-7): no xAI key in Observatory's vault, xAI refused
@@ -118,6 +134,19 @@ export function ceoRunnersOf(raw: unknown): string[] {
 /** The name the CEO's project carries in the estate (a project is what a console runs in). */
 export const CEO_PROJECT_NAME = 'Fabric CEO'
 
+// #region dictation-tail — docs: docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md#часть-5-2026-11-20-вечер-то-же-окно-ceo
+/**
+ * The owner, 2026-11-20 (relayed from the CEO window): «фраза «Продолжение следует» в конце его сообщений это хвост
+ * диктовки, не обещание продолжения; CEO её игнорирует и выполняет сказанное как полное поручение». It was written by hand
+ * into the CEO folder's CLAUDE.md, which Fabric writes again from `ceoBrief`; here it survives that, and the voice says the
+ * same (`main/ceoVoice.ts#voiceInstructions`).
+ */
+export const DICTATION_TAIL = {
+  ru: 'Владелец часто заканчивает голосовое сообщение фразой «Продолжение следует» (или похожей). Это хвост его диктовки, а не обещание продолжения: не жди продолжения, не упоминай фразу и не передавай её сессиям, выполняй сказанное до неё как полное поручение.',
+  en: 'The owner often ends a dictated message with «Продолжение следует» ("to be continued") or the like. It is the tail of his dictation, not a promise of more: do not wait for more, do not mention it or pass it on to sessions, and carry out what came before it as the whole order.'
+} as const
+// #endregion dictation-tail
+
 /** The folder's brief: CLAUDE.md for Claude Code, AGENTS.md for Hermes; the same words in both. */
 export function ceoBrief(opts: { locale: string }): string {
   const ru = opts.locale !== 'en'
@@ -133,11 +162,17 @@ export function ceoBrief(opts: { locale: string }): string {
     '- `fabric_ceo_sessions`: все сессии компьютера, консоли Fabric и сессии Switchboard, с проектом, папкой и состоянием.',
     '- `fabric_ceo_session_read`: что сейчас на экране сессии или последние реплики ее агента.',
     '- `fabric_ceo_session_input`: ввести текст или нажать клавиши в консоли Fabric (ответ на вопрос, выбор пункта, Enter).',
-    '- `fabric_ceo_session_start`: запустить сессию в проекте (по имени, id или папке) с первой задачей.',
+    '- `fabric_ceo_session_start`: запустить сессию в проекте (по имени, id или папке) с первой задачей; модель и усилие задаются полями `model` и `effort` при запуске, никогда текстом `/model` в консоль, и ответ говорит, применились ли они.',
+    '- `fabric_ceo_session_model`: сменить модель идущей консоли Claude Code и прочитать её подтверждение (применилась, отказ или не подтверждена).',
+    '- `fabric_ceo_session_last_reply`, `fabric_ceo_session_wait_reply`: последний ответ сессии текстом из её расшифровки и ожидание следующего ответа (до 120 с), без мусора экрана.',
     '- `fabric_ceo_session_stop`: остановить сессию; `force: true` убивает ее.',
     '- `fabric_ceo_session_resume`: продолжить законченную сессию.',
     '- `fabric_ceo_session_open`: открыть консоль сессии владельцу в окне Fabric.',
-    '- `fabric_ceo_projects`: проекты Fabric с папками.',
+    '- `fabric_ceo_launches`: журнал запусков на диске: кто и откуда запустил сессию, цепочка, ветка, id для `claude --resume` и чем она закончилась (так находятся сессии, оборванные перезапуском).',
+    '- `fabric_ceo_projects`: проекты Fabric с папками; имя ищется и на слух (кириллица, латиница, «DC» вместо «Диззи»).',
+    '- `fabric_ceo_session_task`: дошла ли до запущенной сессии ее первая задача, и последние строки экрана.',
+    '- `fabric_ceo_project_alias`: запомнить, как владелец называет проект, чтобы находить его по этому имени.',
+    '- `fabric_ceo_board_projects`, `fabric_ceo_board_tasks`, `fabric_ceo_board_task`, `fabric_ceo_board_summary`: доска без SQL: новые проекты с датой, задачи проекта со статусом и держателем, задача и её граф (цель, откуда выросла, что блокирует), вся доска сразу (задачи по статусам, самые занятые проекты, запросы без ответчика).',
     'Кроме них у тебя все серверы MCP этого компьютера: Observatory (проекты, папки, ключи по именам), Switchboard (аккаунты и сессии), Fabric Dashboards и другие.',
     '',
     '## Как работать',
@@ -149,6 +184,13 @@ export function ceoBrief(opts: { locale: string }): string {
     '5. Прежде чем остановить или убить сессию, прочитай ее и назови причину в поле `reason`.',
     '',
     'Вложения владельца лежат в папке `inbox/` рядом; путь приходит в сообщении. Картинку открой инструментом чтения файла.',
+    'Каждый голосовой звонок записан в `calls/` рядом (файл JSONL на звонок: реплики, вызовы инструментов, длительность и цена, секреты вырезаны). Просьба из звонка приходит тебе через ask_ceo; голос читает твой ответ, так что отвечай коротко и первым предложением по сути.',
+    '',
+    '## Слова владельца, которые не поручение',
+    '',
+    DICTATION_TAIL.ru,
+    // The owner dictates into the composer too (0.3.27 review UX-71): the address words mean the CEO here as in the call.
+    ceoAddressRule('ru', 'ceo'),
     '',
     '## Задачи от PM-агентов',
     '',
@@ -166,11 +208,17 @@ export function ceoBrief(opts: { locale: string }): string {
     '- `fabric_ceo_sessions`: every session here, Fabric consoles and Switchboard sessions, with project, folder and state.',
     '- `fabric_ceo_session_read`: what a session\'s screen shows now, or its agent\'s last turns.',
     '- `fabric_ceo_session_input`: type text or press keys in a Fabric console (answer a question, pick an option, Enter).',
-    '- `fabric_ceo_session_start`: start a session in a project (by name, id or folder) with a first task.',
+    '- `fabric_ceo_session_start`: start a session in a project (by name, id or folder) with a first task; its model and effort go in `model` and `effort` at the start, never as `/model` typed into the console, and the answer says whether they were applied.',
+    '- `fabric_ceo_session_model`: change a running Claude Code console\'s model and read its confirmation back (applied, refused or not confirmed).',
+    '- `fabric_ceo_session_last_reply`, `fabric_ceo_session_wait_reply`: a session\'s last answer as text from its transcript, and waiting for its next one (up to 120 s), without screen noise.',
     '- `fabric_ceo_session_stop`: stop a session; `force: true` kills it.',
     '- `fabric_ceo_session_resume`: continue a session that ended.',
     '- `fabric_ceo_session_open`: open a session\'s console for the owner in a Fabric window.',
-    '- `fabric_ceo_projects`: Fabric\'s projects with their folders.',
+    '- `fabric_ceo_launches`: the launch journal on disk: who started a session and from where, the chain, branch, the id for `claude --resume` and how it ended (this is how sessions cut by a restart are found).',
+    '- `fabric_ceo_projects`: Fabric\'s projects with their folders; a name is also found by sound (Cyrillic, Latin, «DC» for «Диззи»).',
+    '- `fabric_ceo_session_task`: whether a started session took its first task, and the last lines of its screen.',
+    '- `fabric_ceo_project_alias`: remember what the owner calls a project, so it is found by that name.',
+    '- `fabric_ceo_board_projects`, `fabric_ceo_board_tasks`, `fabric_ceo_board_task`, `fabric_ceo_board_summary`: the board without SQL: the newest projects with their dates, a project\'s tasks with status and holder, one task and its graph (goal, what it grew from, what it blocks), the whole board at once (tasks by status, the busiest projects, requests no responder answers).',
     'You also have every MCP server of this computer: Observatory (projects, folders, keys by name), Switchboard, Fabric Dashboards and others.',
     '',
     '## How to work',
@@ -180,6 +228,12 @@ export function ceoBrief(opts: { locale: string }): string {
     '5. Before you stop or kill a session, read it and give the reason in `reason`.',
     '',
     'The owner\'s attachments are in `inbox/` next to you; the message names the path. Open an image with your file reading tool.',
+    'Every voice call is kept in `calls/` next to you (one JSONL file a call: lines, tool calls, length and price, secrets cut). A request from a call reaches you through ask_ceo; the voice reads your answer aloud, so answer briefly, the point in the first sentence.',
+    '',
+    '## Words of the owner that are no order',
+    '',
+    DICTATION_TAIL.en,
+    ceoAddressRule('en', 'ceo'),
     '',
     '## Tasks from PM agents',
     '',
@@ -279,35 +333,168 @@ export function screenText(decoded: string, lines = 60): string {
   return out.slice(-Math.max(1, Math.min(400, lines))).join('\n')
 }
 
-export interface NamedProject { id: string; name: string; repo_path: string | null }
+export interface NamedProject { id: string; name: string; repo_path: string | null; aliases?: readonly string[] }
+
+/** A folder a session works in and the project that holds it (a running console's, a launch's): an agent's worktree
+ *  copy, which is no project of its own, is found through the project it belongs to (voice retro 2026-11-20, finding 4). */
+export interface WorkFolder { path: string; projectId: string }
+
+/** What `findProject` answers. `heard`: found by how the name sounds, not by its spelling, so the voice says which
+ *  project it understood. `near`: the closest names to offer when nothing matched (finding 8). */
+export type ProjectLookup<P> =
+  | { found: P; heard?: true; worktree?: string }
+  | { ambiguous: string[] }
+  | { missing: true; near: string[]; why?: 'too-broad' | 'ceo-itself' }
 
 /**
- * A project by what the CEO called it: its id, its folder, its exact name, then a name that contains the words (one
- * match only). Two matches answer `ambiguous` with their names, so the CEO asks rather than guesses.
+ * A project by what the CEO called it: its id, its folder (or a folder inside it), its exact name, a name that holds
+ * the words, then, for a name heard by voice, by sound (`heardName.ts`: Cyrillic or Latin, «DC» for «Диззи», an alias
+ * the owner gave). One match is found; several answer `ambiguous` with the closest first, so the CEO asks rather than
+ * guesses; none answers `missing` with the nearest names.
  */
-export function findProject<P extends NamedProject>(projects: readonly P[], query: string):
-  | { found: P }
-  | { ambiguous: string[] }
-  | { missing: true } {
-  const q = String(query ?? '').trim()
-  if (!q) return { missing: true }
+export function findProject<P extends NamedProject>(projects: readonly P[], query: string, folders: readonly WorkFolder[] = []): ProjectLookup<P> {
+  let q = String(query ?? '').trim()
+  if (!q) return { missing: true, near: [] }
+  // The owner's words for the CEO itself («шеф», «SEO» …) are never a project (the owner, 2026-11-21).
+  if (isCeoAddress(q)) return { missing: true, near: [], why: 'ceo-itself' }
   const byId = projects.find((p) => p.id === q)
   if (byId) return { found: byId }
-  const folder = q.replace(/\/+$/, '')
-  const byFolder = projects.find((p) => p.repo_path && p.repo_path.replace(/\/+$/, '') === folder)
-  if (byFolder) return { found: byFolder }
-  const low = q.toLowerCase()
-  const exact = projects.filter((p) => p.name.toLowerCase() === low)
+  const label = (p: P): string => p.repo_path ? `${p.name} (${p.repo_path})` : p.name
+  // A choice read back as offered, «name (folder)» (0.3.27 review, UX-3): the folder in it decides.
+  const offered = /^(.+?)\s+\((\/[^()]+)\)$/.exec(q)
+  if (offered) {
+    const folder = offered[2]!.replace(/\/+$/, '')
+    const one = projects.find((p) => p.repo_path && p.repo_path.replace(/\/+$/, '') === folder)
+    if (one) return { found: one }
+    q = offered[1]!.trim()
+  }
+  if (q.startsWith('/') || q.startsWith('~')) {
+    // A folder: the project that holds it, the deepest first (a subfolder or a worktree under the project's own folder).
+    // Never a match by words: every project's folder starts with the home folder (2026-11-20: «/Users/…» named 30).
+    const folder = q.replace(/\/+$/, '')
+    const holds = (root: string): boolean => folder === root || folder.startsWith(root + '/')
+    // A project whose folder is the home folder or a root holds no folder for the CEO (0.3.27 review, DO-1, DO-29): it would
+    // take every new folder under home.
+    // A project's own folder is that project, whatever is below it (0.3.26's rule; 0.3.27 review, PL-9).
+    // The home folder or a root is never a project's folder, even for a project kept from before (ER-28).
+    const homeOrRoot = (root: string): boolean => root === '' || root === '/' || /^\/(Users|home)\/[^/]+$/.test(root)
+    const exactFolder = homeOrRoot(folder) ? undefined : projects.find((p) => p.repo_path && p.repo_path.replace(/\/+$/, '') === folder)
+    if (exactFolder) return { found: exactFolder }
+    // Only the home folder or a root is no holder; otherwise the deepest registered project holding the folder is its project,
+    // whatever else it holds (0.3.27 review, ER-24, ER-30): a folder inside a project is that project's.
+    const broad = (root: string): boolean => homeOrRoot(root)
+    const byFolder = projects.filter((p) => p.repo_path && !broad(p.repo_path.replace(/\/+$/, '')) && holds(p.repo_path.replace(/\/+$/, '')))
+      .sort((a, b) => b.repo_path!.length - a.repo_path!.length)
+    if (byFolder.length) return { found: byFolder[0]! }
+    const worked = folders.filter((f) => holds(f.path.replace(/\/+$/, ''))).sort((a, b) => b.path.length - a.path.length)
+    const owner = worked.length ? projects.find((p) => p.id === worked[0]!.projectId) : undefined
+    if (owner) return { found: owner, worktree: worked[0]!.path }
+    // Too broad: the home folder or a root, or a folder holding two projects or more (0.3.27 review, ER-9: one registered
+    // worktree under a folder does not make that folder too broad).
+    const below = projects.filter((p) => p.repo_path && !isCopyFolder(p.repo_path) && p.repo_path.startsWith(folder + '/')).length
+    const tooBroad = /^\/(Users|home)\/[^/]+$/.test(folder) || folder === '' || below >= 2 ? 'too-broad' as const : undefined
+    return { missing: true, near: [], ...(tooBroad ? { why: tooBroad } : {}) }
+  }
+  // 2026-11-20: a name heard by voice is «sound engine» for «sound-engine»; spaces, hyphens and underscores read alike.
+  const low = nameKey(q)
+  // Of several with the same name, the one outside an agent's worktree and outside a cache or temporary folder is the
+  // project the person means (the estate holds such copies under the same name until they are cleaned away).
+  const settle = (list: P[]): P[] => {
+    if (list.length < 2) return list
+    const main = list.filter((p) => !p.repo_path || (!WORKTREE_FOLDER.test(p.repo_path) && !isScratchFolder(p.repo_path)))
+    return main.length >= 1 ? main : list
+  }
+  const exact = settle(projects.filter((p) => nameKey(p.name) === low || (p.aliases ?? []).some((a) => nameKey(a) === low)))
   if (exact.length === 1) return { found: exact[0]! }
-  const folderName = projects.filter((p) => p.repo_path && p.repo_path.replace(/\/+$/, '').split('/').pop()?.toLowerCase() === low)
+  const folderName = settle(projects.filter((p) => p.repo_path && nameKey(p.repo_path.replace(/\/+$/, '').split('/').pop() ?? '') === low))
   if (exact.length === 0 && folderName.length === 1) return { found: folderName[0]! }
-  const words = low.split(/[\s_-]+/).filter(Boolean)
-  const partial = projects.filter((p) => {
+  // A worktree named in full by its folder (0.3.27 review, ER-29): before the words, which a project's path could match.
+  if (exact.length === 0 && folderName.length === 0) {
+    const tail = nameKey(q.replace(/\/+$/, '').split('/').pop() ?? '')
+    const tailOf = (f: WorkFolder): string => nameKey(f.path.replace(/\/+$/, '').split('/').pop() ?? '')
+    const owners = new Set(folders.filter((f) => tailOf(f) === tail).map((f) => f.projectId))
+    if (owners.size === 1) {
+      const owner = projects.find((p) => p.id === [...owners][0])
+      const wt = folders.find((f) => f.projectId === owner?.id && tailOf(f) === tail)
+      if (owner) return { found: owner, ...(wt && wt.path.replace(/\/+$/, '') !== owner.repo_path?.replace(/\/+$/, '') ? { worktree: wt.path } : {}) }
+    }
+  }
+  const words = q.toLowerCase().split(/[\s_-]+/).filter(Boolean)
+  const partial = settle(projects.filter((p) => {
     const hay = `${p.name} ${p.repo_path ?? ''}`.toLowerCase()
     return words.every((w) => hay.includes(w))
-  })
-  if (partial.length === 1) return { found: partial[0]! }
-  if (partial.length > 1 || exact.length > 1) return { ambiguous: (exact.length > 1 ? exact : partial).slice(0, 10).map((p) => p.name) }
-  return { missing: true }
+  }))
+  if (exact.length === 0 && partial.length === 1) return { found: partial[0]! }
+  if (partial.length > 1 || exact.length > 1) return { ambiguous: (exact.length > 1 ? exact : rankBySound(q, partial)).slice(0, 10).map(label) }
+  // An agent's worktree folder named by its last part («sound-engine-task-runner»): the project that works there.
+  // After the words (0.3.27 review, UX-28): a project the words find wins over a worktree's last words.
+  if (exact.length === 0 && folderName.length === 0 && partial.length === 0) {
+    const tail = nameKey(q.replace(/\/+$/, '').split('/').pop() ?? '')
+    const tailOf = (f: WorkFolder): string => nameKey(f.path.replace(/\/+$/, '').split('/').pop() ?? '')
+    let owners = new Set(folders.filter((f) => tailOf(f) === tail).map((f) => f.projectId))
+    // «task-runner» for the worktree folder «sound-engine-task-runner» (0.3.27 review, UX-5): its last words.
+    if (owners.size === 0 && tail.length >= 4) owners = new Set(folders.filter((f) => tailOf(f).endsWith(`-${tail}`)).map((f) => f.projectId))
+    // Found through an agent's worktree: said, so a start refuses rather than opening the main folder (0.3.27 review, UX-15).
+    if (owners.size === 1) {
+      const owner = projects.find((p) => p.id === [...owners][0])
+      const wt = folders.find((f) => f.projectId === owner?.id && (tailOf(f) === tail || tailOf(f).endsWith(`-${tail}`)))
+      // A copy registered as its own project is its own folder, no worktree of itself (UX-29).
+      if (owner) return { found: owner, ...(wt && wt.path.replace(/\/+$/, '') !== owner.repo_path?.replace(/\/+$/, '') ? { worktree: wt.path } : {}) }
+    }
+  }
+  // By sound: the name as transcription wrote it. The best tier wins: a whole name or alias before a run of its words.
+  const ranked = soundCandidates(q, projects)
+  const close = ranked.filter((r) => r.close)
+  if (close.length) {
+    const best = close[0]!
+    const tier = settle(close.filter((r) => r.tier === best.tier && r.distance <= best.distance + 0.05).map((r) => r.project))
+    if (tier.length === 1) return { found: tier[0]!, heard: true }
+    return { ambiguous: tier.slice(0, 10).map(label) }
+  }
+  // Only names near enough to be what was meant, each once (0.3.27 review, UX-5): a far name invites a guess.
+  const near = [...new Set(ranked.filter((r) => r.distance <= NEAR_DISTANCE).map((r) => r.project.name))].slice(0, 3)
+  return { missing: true, near }
 }
+
+/** How far a name may sound from the query and still be offered as near. */
+const NEAR_DISTANCE = 0.5
+
+/** A copy of a project (an agent's worktree, a cache or temporary folder): another project of the same name wins. */
+export function isCopyFolder(folder: string | null): boolean {
+  return !!folder && (WORKTREE_FOLDER.test(folder) || isScratchFolder(folder))
+}
+
+/** Projects ranked by how close each sounds to the query: tier 0 its whole name, folder or alias, tier 1 a run of its words. */
+function soundCandidates<P extends NamedProject>(query: string, projects: readonly P[]): Array<{ project: P; distance: number; tier: number; close: boolean }> {
+  const heard = heardKeys(query)
+  const out: Array<{ project: P; distance: number; tier: number; close: boolean }> = []
+  for (const p of projects) {
+    const whole = nameKeys(p.name, p.repo_path, p.aliases)
+    const full = new Set([soundKey(p.name), soundKey(p.repo_path?.replace(/\/+$/, '').split('/').pop() ?? ''), ...(p.aliases ?? []).map(soundKey)])
+    let best = { distance: 1, tier: 2, close: false }
+    for (const h of heard) {
+      for (const k of whole) {
+        const tier = full.has(k) ? 0 : 1
+        const distance = heardDistance(h, k)
+        const close = heardClose(h, k)
+        if (close && (!best.close || tier < best.tier || (tier === best.tier && distance < best.distance))) best = { distance, tier, close }
+        else if (!best.close && distance < best.distance) best = { distance, tier, close }
+      }
+    }
+    out.push({ project: p, ...best })
+  }
+  return out.sort((a, b) => Number(b.close) - Number(a.close) || a.tier - b.tier || a.distance - b.distance)
+}
+
+/** Several matches by words, the closest by sound first. */
+function rankBySound<P extends NamedProject>(query: string, list: readonly P[]): P[] {
+  return soundCandidates(query, list).map((r) => r.project)
+}
+
+/** A project's name as the CEO compares it: lower case, runs of spaces, hyphens and underscores as one hyphen. */
+function nameKey(name: string): string {
+  return name.trim().toLowerCase().replace(/[\s_-]+/g, '-')
+}
+/** An agent's working copy: `~/DATA/_worktrees/<task>` (the operator's rule) or a Claude Code worktree. */
+const WORKTREE_FOLDER = /\/(_worktrees|\.claude\/worktrees|\.worktrees)\//
 // #endregion ceo-agent-shared

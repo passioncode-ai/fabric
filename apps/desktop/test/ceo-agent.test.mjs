@@ -7,10 +7,11 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { ceoBoardNudge, ceoBrief, ceoLaunchExtras, ceoLine, ceoModelAllowed, ceoModelsOf, ceoRunnersOf, claudeModelFlag, findProject, inboxName, keyBytes, screenText, typedText, CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT } from '../src/shared/ceoAgent.ts'
 import { createCeoAgent, LIMIT_SAID } from '../src/main/ceoAgent.ts'
-import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, CEO_TOOLS } from '../src/main/ceoTools.ts'
-import { mintVoiceToken, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
+import { createCeoOperations, ceoVoiceTools, parseMachineRows, transcriptTurns, CEO_TOOLS, readBackModel, lastAssistantReply } from '../src/main/ceoTools.ts'
+import { mintVoiceToken, sampleText, voiceSample, XAI_KEY_SLOT } from '../src/main/ceoVoice.ts'
 import { createVoiceKeyStore, voiceKeyShapeOk } from '../src/main/ceoVoiceKey.ts'
 import { validateSettings } from '../src/shared/appSettings.ts'
+import { currentLaunchOrigin } from '../src/main/launchOrigin.ts'
 
 const EM_DASH = String.fromCodePoint(0x2014)
 
@@ -51,6 +52,17 @@ test('the brief names every tool, the board capability, and carries no em dash i
   }
 })
 
+// The owner, 2026-11-20: «Продолжение следует» at the end of a dictated message is the dictation's tail, not a promise;
+// written by hand into the CEO's CLAUDE.md it was lost each time Fabric wrote the brief again.
+test('the brief carries the owner\'s rule on «Продолжение следует», in both languages', () => {
+  for (const locale of ['ru', 'en']) {
+    const b = ceoBrief({ locale })
+    assert.ok(b.includes('«Продолжение следует»'), `${locale} brief names the phrase`)
+    assert.match(b, locale === 'ru' ? /не обещание продолжения/ : /not a promise of more/)
+    assert.match(b, locale === 'ru' ? /полное поручение/ : /whole order/)
+  }
+})
+
 test('a message line: words, then the attachments by path; nothing for nothing', () => {
   assert.equal(ceoLine('  hi  ', [], 'ru'), 'hi')
   assert.equal(ceoLine('look', ['/a/b.png'], 'ru'), 'look\n\nВложения: /a/b.png')
@@ -79,8 +91,20 @@ test('a project by id, folder, name or words; two matches ask instead of guessin
   assert.equal(findProject(ps, '/d/alpha/').found.id, '1')
   assert.equal(findProject(ps, 'alpha').found.id, '1')
   assert.equal(findProject(ps, 'beta').found.id, '3')
-  assert.deepEqual(findProject(ps, 'alp').ambiguous, ['Alpha', 'Alpha Web'])
+  assert.deepEqual(findProject(ps, 'alp').ambiguous.map((n) => n.replace(/ \(.*\)$/, '')), ['Alpha', 'Alpha Web'])
   assert.equal(findProject(ps, 'nothing').missing, true)
+  // 2026-11-20, the CEO's voice: «sound engine» is «sound-engine», and a worktree copy of the same name gives way.
+  const heard = [
+    { id: 'se', name: 'sound-engine', repo_path: '/d/sound-engine' },
+    { id: 'sw', name: 'sound-engine-copy-a', repo_path: '/d/_worktrees/sound-engine-copy-a' },
+    { id: 'db', name: 'fabric-agents-database', repo_path: '/d/fabric-agents-database' },
+    { id: 'db2', name: 'fabric-agents-database', repo_path: '/d/_worktrees/fabric-agents-database-x' }
+  ]
+  assert.equal(findProject(heard, 'sound engine').found.id, 'se')
+  assert.equal(findProject(heard, 'Sound_Engine').found.id, 'se')
+  assert.equal(findProject(heard, 'fabric-agents-database').found.id, 'db')
+  assert.deepEqual(findProject([heard[2], { ...heard[2], id: 'db3', repo_path: '/e/fabric-agents-database' }], 'fabric-agents-database').ambiguous,
+    ['fabric-agents-database (/d/fabric-agents-database)', 'fabric-agents-database (/e/fabric-agents-database)'], 'two real copies are asked about, by folder')
 })
 
 // ── the keeper ─────────────────────────────────────────────────────────────
@@ -215,6 +239,7 @@ function operations(over = {}) {
     ['s2', { sessionId: 's2', projectId: 'p1', cwd: '/d/app', optionId: 'shell', state: 'exited', running: false, startedAt: 'x', lastActivityAt: 'x', tail: '' }]
   ])
   const opened = []
+  const origins = []
   const switchboard = []
   const deps = {
     ptys: {
@@ -224,9 +249,9 @@ function operations(over = {}) {
       write: (id, data) => writes.push([id, data])
     },
     ceoSessionId: () => 'ceo',
-    projects: async () => [{ id: 'p1', name: 'App', repo_path: '/d/app', default_agent: 'codex' }, { id: 'p2', name: 'Site', repo_path: '/d/site', default_agent: null }],
+    projects: async () => over.projects ?? [{ id: 'p1', name: 'App', repo_path: '/d/app', default_agent: 'codex' }, { id: 'p2', name: 'Site', repo_path: '/d/site', default_agent: null }],
     admitFolder: async (folder) => ({ id: 'p9', name: path.basename(folder), repo_path: folder }),
-    openConsole: async (projectId, runner, task) => { opened.push([projectId, runner, task]); return { sessionId: 'new', projectId, cwd: '/d/app', optionId: runner, state: 'starting', running: true } },
+    openConsole: async (projectId, runner, task) => { opened.push([projectId, runner, task]); origins.push(currentLaunchOrigin()); return { sessionId: 'new', projectId, cwd: '/d/app', optionId: runner, state: 'starting', running: true } },
     stop: async (id, force) => { consoles.get(id).running = false; return { state: force ? 'killed' : 'stopped' } },
     openWindow: (id) => opened.push(['window', id]),
     switchboard: async (args) => {
@@ -241,9 +266,18 @@ function operations(over = {}) {
     record: (op, d) => records.push([op, d]),
     note: (kind, d) => notes.push([kind, d]),
     sleep: async () => {},
-    transcriptRoots: over.transcriptRoots ?? []
+    transcriptRoots: over.transcriptRoots ?? [],
+    ...(over.launches ? { launches: over.launches } : {}),
+    ...(over.diskSessions ? { diskSessions: over.diskSessions } : {}),
+    ...(over.firstTask ? { firstTask: over.firstTask } : {}),
+    ...(over.saveAlias ? { saveAlias: over.saveAlias } : {}),
+    // A list (main's fixtures) or a reader (the voice retro's): both are the projects read.
+    ...(over.projects ? { projects: typeof over.projects === 'function' ? over.projects : async () => over.projects } : {}),
+    // The fixtures' new folders live in the system's temporary folder; the scratch rule is tested on its own below.
+    scratch: over.scratch ?? (() => false),
+    ...(over.deps ?? {})
   }
-  return { ops: createCeoOperations(deps), writes, records, notes, opened, switchboard, consoles }
+  return { ops: createCeoOperations(deps), writes, records, notes, opened, origins, switchboard, consoles }
 }
 
 test('sessions: the Fabric consoles and the machine\'s, the CEO marked, ended ones only when asked', async () => {
@@ -326,6 +360,27 @@ test('start: a project by name with its own runner and the task; a new folder be
   assert.equal((await o.ops.run('start', { project: 'zzz', reason: 'nothing like it' })).ok, false)
 })
 
+test('start says what became of the first task: delivered, or not delivered with the next step (2026-11-20)', async () => {
+  const fine = operations({ firstTask: () => Promise.resolve({ state: 'resubmitted', attempts: 1 }) })
+  assert.deepEqual((await fine.ops.run('start', { project: 'app', task: 'go', reason: 'the owner asked' })).first_task, { state: 'resubmitted', attempts: 1 })
+  const lost = operations({ firstTask: () => Promise.resolve({ state: 'not_delivered', reason: 'readiness_timeout', attempts: 2 }) })
+  const r = await lost.ops.run('start', { project: 'app', task: 'go', reason: 'the owner asked' })
+  assert.equal(r.ok, true, 'the session did start')
+  assert.equal(r.first_task.state, 'not_delivered')
+  assert.match(r.first_task.next, /fabric_ceo_session_input/)
+  const none = operations({ firstTask: () => Promise.resolve({ state: 'delivered', attempts: 1 }) })
+  assert.equal((await none.ops.run('start', { project: 'app', reason: 'no task given' })).first_task, undefined, 'no task, nothing to follow')
+})
+
+test('start refuses a task in words for a plain shell before anything starts; a shell without a task starts', async () => {
+  const o = operations()
+  const r = await o.ops.run('start', { project: 'app', runner: 'shell', task: 'Сделай обзор (кратко)', reason: 'the owner asked' })
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /coding agent/)
+  assert.equal(o.opened.length, 0, 'no empty shell is left behind')
+  assert.equal((await o.ops.run('start', { project: 'app', runner: 'shell', reason: 'a shell to type into' })).ok, true)
+})
+
 test('stop: a console as the person\'s stop, force kills; a Switchboard session ends through Switchboard; its own console never', async () => {
   const o = operations()
   assert.equal((await o.ops.run('stop', { session_id: 'ceo', reason: 'should be refused' })).ok, false)
@@ -353,6 +408,56 @@ test('resume: an ended console starts again in its project with its runner; a Sw
   const sb = await o.ops.run('resume', { session_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', reason: 'carry on' })
   assert.equal(sb.via, 'switchboard')
   assert.deepEqual(o.switchboard.at(-1), ['sessions', 'continue', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'])
+})
+
+// The CEO's observations of 2026-11-19: one name named several projects; a console's session could not be continued
+// after Fabric restarted («Switchboard has no record of that session»).
+const MEASURED = [
+  { id: 'c1', name: 'fabric-agents-database', repo_path: '/w/.cache/fabric-agents-database', default_agent: null },
+  { id: 'c2', name: 'fabric-agents-database', repo_path: '/w/DATA/fabric-agents-database', default_agent: 'claude-code' },
+  { id: 'c3', name: 'x-app', repo_path: '/w/DATA/x-app', default_agent: null },
+  { id: 'c4', name: 'x-api', repo_path: '/w/DATA/x-api', default_agent: null }
+]
+
+test('start by a folder\'s name: the canonical folder wins over a temporary one, a typo is forgiven, several are one list', async () => {
+  const o = operations({ projects: MEASURED })
+  const r = await o.ops.run('start', { project: 'fabric-agents-database', task: 'go', reason: 'the owner asked' })
+  assert.equal(r.ok, true)
+  assert.equal(o.opened.at(-1)[0], 'c2')
+  assert.equal((await o.ops.run('start', { project: 'fabric-agnets-database', reason: 'a typo' })).ok, true)
+  assert.equal(o.opened.at(-1)[0], 'c2')
+  const two = await o.ops.run('start', { project: 'x-ap', reason: 'which one' })
+  assert.equal(two.ok, false)
+  assert.deepEqual(two.candidates.map((c) => [c.name, c.role]), [['x-app', 'canonical'], ['x-api', 'canonical']])
+  const list = await o.ops.run('projects', {})
+  assert.deepEqual(list.projects.map((x) => [x.id, x.role]), [['c2', 'canonical'], ['c4', 'canonical'], ['c3', 'canonical']], 'temporary folders only when asked')
+  const all = await o.ops.run('projects', { include_temporary: true })
+  assert.deepEqual(all.projects.find((x) => x.id === 'c1'), { id: 'c1', name: 'fabric-agents-database', folder: '/w/.cache/fabric-agents-database', role: 'temporary', of: '/w/DATA/fabric-agents-database', default_runner: null, consoles_running: 0 })
+})
+
+test('resume after a restart: a console Fabric no longer runs continues as its own Claude session, in one call', async () => {
+  const resumed = []
+  const recalled = {
+    'gone-console': { id: 'gone-console', kind: 'console', projectId: 'p1', folder: '/d/app', runner: 'claude-code', runtimeSessionId: 'rt-1', configDir: null, title: null, at: '2026-11-19T10:00:00Z' },
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee': { id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', kind: 'transcript', projectId: null, folder: '/d/site/x', runner: 'claude-code', runtimeSessionId: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', configDir: '/h/acct', title: 't', at: null }
+  }
+  const o = operations({ deps: {
+    recall: async (id) => recalled[id] ?? null,
+    pastConsoles: async () => [recalled['gone-console']],
+    openResumed: async (projectId, runner, rt, cwd, env) => { resumed.push([projectId, runner, rt, cwd, env]); return { sessionId: 'again', projectId, cwd: cwd ?? '/d', optionId: runner, state: 'starting', running: true } }
+  } })
+  const r = await o.ops.run('resume', { session_id: 'gone-console', reason: 'Fabric restarted' })
+  assert.deepEqual([r.ok, r.as_itself, r.continues], [true, true, 'rt-1'])
+  assert.deepEqual(resumed.at(-1), ['p1', 'claude-code', 'rt-1', '/d/app', {}])
+  assert.equal(o.switchboard.filter((a) => a[1] === 'continue').length, 0, 'Switchboard is not asked about a session Fabric ran')
+  const t = await o.ops.run('resume', { session_id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', reason: 'found by search' })
+  assert.equal(t.ok, true)
+  assert.deepEqual(resumed.at(-1), ['p2', 'claude-code', 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', '/d/site/x', { CLAUDE_CONFIG_DIR: '/h/acct' }])
+  const withTask = await o.ops.run('resume', { session_id: 'gone-console', task: 'новая задача', reason: 'a new task' })
+  assert.deepEqual([withTask.ok, withTask.as_itself], [true, false])
+  assert.deepEqual(o.opened.at(-1), ['p1', 'claude-code', 'новая задача'])
+  const listed = await o.ops.run('sessions', { include_ended: true })
+  assert.deepEqual(listed.past_fabric_consoles.map((c) => [c.session_id, c.continues, c.resumable_as_itself]), [['gone-console', 'rt-1', true]])
 })
 
 test('open, projects, an unknown tool and refused arguments', async () => {
@@ -505,8 +610,11 @@ test('ER-1: when every runner ends at its start the CEO stops as failed, walks n
   // Nothing walks the set-aside runners again by itself, and a send does not either.
   await settle(30)
   const again = await k.agent.send('again', [])
-  assert.equal(again.ok, false)
+  // 2026-11-20: never lost: kept for the console, said as waiting, with why it could not be typed now.
+  assert.equal(again.ok, true)
+  assert.equal(again.queued, true)
   assert.equal(again.reason, 'not-running')
+  assert.equal(again.status.queued, 1)
   assert.equal(k.log.filter((l) => l[0] === 'open').length, opens)
   // The set-aside time passing lets the walk try them.
   k.tick(60 * 60_000 + 1)
@@ -674,4 +782,784 @@ test('DA-7: an archived known CEO project gets a fresh id', async () => {
   assert.equal(await ceoProjectFor(d('archived'), '/ceo', known), '33333333-3333-4333-8333-333333333333')
   assert.deepEqual(created, ['33333333-3333-4333-8333-333333333333'])
   assert.equal(await ceoProjectFor(d('active'), '/ceo', null), '33333333-3333-4333-8333-333333333333')
+})
+
+// The owner, 2026-11-19: «пытался остановить эту консоль (CEO), но не смог». The CEO had no stop of its own: a stop from
+// the console's window was read as an early end and the next runner started at once, and any later open of the popup
+// started a console again. The person's stop now holds until the person starts it.
+test('THE PERSON\'S STOP: a stop of the CEO console holds; no fallback, no start on the popup\'s ensure; Start brings it back', async () => {
+  const k = keeper()
+  // As pty.ts does: the exit callback runs before the stop resolves.
+  k.deps.stop = async (id) => { const s = k.consoles.get(id); if (s) { s.running = false; k.agent.onExit(id) } }
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  k.tick(2_000) // inside the start window: an exit here used to be read as «ended at start»
+  const r = await k.agent.stop()
+  assert.equal(r.ok, true)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  assert.equal(k.consoles.get(first).running, false)
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1, 'no runner started after the person\'s stop')
+  assert.deepEqual(k.agent.status().setAside, [], 'the stopped runner is not set aside')
+  // The popup opening again asks ensure(): it does not start a stopped CEO.
+  const again = await k.agent.ensure()
+  assert.equal(again.state, 'stopped')
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1)
+  // Start (the person's restart) brings it back on the first runner.
+  const back = await k.agent.restart('person')
+  assert.equal(back.state, 'running')
+  assert.equal(back.runner, 'claude-code')
+  assert.notEqual(back.sessionId, first)
+})
+
+test('THE PERSON\'S STOP from another door: a console stopped from its own window holds the CEO too', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  k.tick(2_000)
+  // terminal.end marks the CEO's console as the person's stop before it stops it (index.ts).
+  k.agent.personStopping(first)
+  k.consoles.get(first).running = false
+  k.agent.onExit(first)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1, 'no fallback start')
+  // A message from the composer is the person asking again: it starts the CEO.
+  const sent = await k.agent.send('ты тут?', [])
+  assert.equal(sent.ok, true)
+  assert.equal(k.agent.status().state, 'running')
+})
+
+test('THE PERSON\'S STOP that leaves the console running says so', async () => {
+  const k = keeper()
+  k.deps.stop = async () => {}
+  await k.agent.ensure()
+  const r = await k.agent.stop()
+  assert.equal(r.ok, false)
+  assert.equal(r.reason, 'still-running')
+  assert.equal(r.status.state, 'running')
+})
+
+test('a voice sample: fetched once per voice and language with the key held for the request, kept, never the key', async () => {
+  const kept = new Map()
+  const cache = { read: (n) => kept.get(n) ?? null, write: (n, b) => kept.set(n, b) }
+  const sent = []
+  const fetch = async (url, init) => { sent.push([url, init]); return new Response(new Uint8Array([1, 2, 3]), { status: 200 }) }
+  const vault = { read: async () => ({ ok: true, value: 'xai-SECRET' }) }
+  const r = await voiceSample({ vault, fetch, cache }, 'rex', 'ru')
+  assert.deepEqual(r, { ok: true, data: Buffer.from([1, 2, 3]).toString('base64') })
+  assert.equal(sent[0][0], 'https://api.x.ai/v1/tts')
+  assert.deepEqual(JSON.parse(sent[0][1].body), { text: sampleText('ru'), voice_id: 'rex', language: 'ru' })
+  assert.ok(!sampleText('ru').includes(EM_DASH) && !sampleText('en').includes(EM_DASH))
+  await voiceSample({ vault, fetch, cache }, 'rex', 'ru')
+  assert.equal(sent.length, 1, 'the second hearing is the kept file')
+  await voiceSample({ vault, fetch, cache }, 'rex', 'en')
+  assert.equal(sent.length, 2, 'another language is another sample')
+  const unknown = await voiceSample({ vault, fetch, cache }, '../../etc', 'ru')
+  assert.equal(unknown.reason, 'unknown-voice')
+  const refused = await voiceSample({ vault, fetch: async () => new Response('', { status: 401 }), cache: { read: () => null, write: () => {} } }, 'eve', 'ru')
+  assert.equal(refused.reason, 'refused')
+  assert.ok(!JSON.stringify(refused).includes('xai-SECRET'))
+  const noKey = await voiceSample({ vault: { read: async () => ({ ok: false, reason: 'none' }) }, fetch, cache: { read: () => null, write: () => {} } }, 'eve', 'ru')
+  assert.equal(noKey.reason, 'no-key')
+})
+
+// 0.3.25 review iteration 1, ER-1: a stop during a start in flight is not acknowledged and then undone by that start.
+test('ER-1 (0.3.25): a stop while the console is still opening stops what the start opens', async () => {
+  const k = keeper()
+  let release
+  const gate = new Promise((r) => { release = r })
+  const open = k.deps.open
+  k.deps.open = async (...a) => { await gate; return open(...a) }
+  const starting = k.agent.ensure()
+  await settle()
+  const stopped = k.agent.stop()
+  release()
+  await starting
+  const r = await stopped
+  assert.equal(r.ok, true)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  const opened = [...k.consoles.values()]
+  assert.equal(opened.length, 1)
+  assert.equal(opened[0].running, false, 'the console the start opened was stopped')
+})
+
+// ER-2: a message sent while the person's stop is still running waits for that stop; its exit is the person's.
+test('ER-2 (0.3.25): a message sent during the person\'s stop does not set the runner aside', async () => {
+  const k = keeper()
+  let finish
+  k.deps.stop = (id) => new Promise((r) => { finish = () => { const s = k.consoles.get(id); s.running = false; k.agent.onExit(id); r() } })
+  await k.agent.ensure()
+  k.tick(2_000)
+  const stopping = k.agent.stop()
+  await settle()
+  const sending = k.agent.send('снова ты', [])
+  await settle()
+  finish()
+  await stopping
+  const sent = await sending
+  assert.equal(sent.ok, true)
+  assert.deepEqual(k.agent.status().setAside, [], 'the stopped runner is not set aside')
+  assert.equal(k.agent.status().runner, 'claude-code')
+})
+
+// ER-3: a fallback deferred before the person's stop does not run after it.
+test('ER-3 (0.3.25): a deferred fallback does not run after the person\'s stop', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  k.agent.onOutput(first, 'usage limit reached')
+  k.agent.onOutput(k.agent.sessionId(), 'usage limit reached')
+  await k.agent.stop()
+  await settle(30)
+  assert.equal(k.agent.status().state, 'stopped')
+  const running = [...k.consoles.values()].filter((s) => s.running)
+  assert.deepEqual(running, [], 'nothing runs after the stop')
+})
+
+// ER-6: a stop from the console's own window that leaves it running does not leave the CEO held.
+test('ER-6 (0.3.25): a console-window stop that fails releases the hold', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const id = k.agent.sessionId()
+  k.agent.personStopping(id)
+  k.agent.personStopEnded(id)
+  assert.equal(k.agent.status().state, 'running')
+})
+
+// 0.3.25 review iteration 2, ER-7: a message while stop() still waits for a start in flight is answered after the stop.
+test('ER-7 (0.3.25): a message sent while the stop waits for a start revives the CEO after the stop', async () => {
+  const k = keeper()
+  let release
+  const gate = new Promise((r) => { release = r })
+  const open = k.deps.open
+  k.deps.open = async (...a) => { await gate; return open(...a) }
+  const starting = k.agent.ensure()
+  await settle()
+  const stopping = k.agent.stop()
+  await settle()
+  const sending = k.agent.send('вернись', [])
+  release()
+  await starting
+  await stopping
+  const sent = await sending
+  assert.equal(sent.ok, true)
+  assert.equal(k.agent.status().state, 'running', 'the message, sent after the stop was pressed, starts it again')
+})
+
+// ER-8: a message during a console-window stop waits for that stop; its exit is the person's.
+test('ER-8 (0.3.25): a message during a console-window stop does not set the runner aside', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const id = k.agent.sessionId()
+  k.tick(2_000)
+  k.agent.personStopping(id)
+  const sending = k.agent.send('ещё раз', [])
+  await settle()
+  k.consoles.get(id).running = false
+  k.agent.onExit(id)
+  k.agent.personStopEnded(id)
+  const sent = await sending
+  assert.equal(sent.ok, true)
+  assert.deepEqual(k.agent.status().setAside, [])
+  assert.equal(k.agent.status().runner, 'claude-code')
+})
+
+// ER-9: a stop during a start that cannot stop the opened console says so and keeps it tracked.
+test('ER-9 (0.3.25): a stop during a start that leaves the opened console running answers still-running', async () => {
+  const k = keeper()
+  k.deps.stop = async () => {}
+  let release
+  const gate = new Promise((r) => { release = r })
+  const open = k.deps.open
+  k.deps.open = async (...a) => { await gate; return open(...a) }
+  const starting = k.agent.ensure()
+  await settle()
+  const stopping = k.agent.stop()
+  release()
+  await starting
+  const r = await stopping
+  assert.equal(r.ok, false)
+  assert.equal(r.reason, 'still-running')
+  assert.ok(k.agent.sessionId(), 'the running console is the CEO\'s again')
+})
+
+// 0.3.25 review iteration 3, ER-10: a console-window stop of a console still opening ends, and a message is answered.
+test('ER-10 (0.3.25): a console-window stop of the console still opening does not leave a message waiting forever', async () => {
+  const k = keeper()
+  let release
+  const gate = new Promise((r) => { release = r })
+  let openedId = null
+  k.deps.open = async (projectId, cwd, runner, _route, sessionId) => {
+    openedId = sessionId
+    k.agent.personStopping(sessionId)
+    await gate
+    const s = { sessionId, projectId, cwd, optionId: runner, running: false, state: 'ended' }
+    k.consoles.set(sessionId, s)
+    return s
+  }
+  const starting = k.agent.ensure().catch(() => null)
+  await settle()
+  k.agent.onExit(openedId)
+  k.agent.personStopEnded(openedId)
+  release()
+  await starting
+  k.deps.open = async (projectId, cwd, runner, _route, sessionId) => { const s = { sessionId, projectId, cwd, optionId: runner, running: true }; k.consoles.set(sessionId, s); return s }
+  const sent = await Promise.race([k.agent.send('ты тут', []), new Promise((r) => setTimeout(() => r('hung'), 2000))])
+  assert.notEqual(sent, 'hung', 'the message is answered')
+})
+
+// ER-11: a second stop door does not release the hold the first door set.
+test('ER-11 (0.3.25): a second stop door that leaves the console running does not release the first door\'s hold', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const id = k.agent.sessionId()
+  k.tick(2_000)
+  k.agent.personStopping(id) // the console's own window
+  k.agent.personStopping(id) // History, the same moment
+  k.agent.personStopEnded(id) // History's stop returned, console still running
+  assert.equal(k.agent.status().state === 'stopped' || k.agent.status().state === 'running', true)
+  k.consoles.get(id).running = false
+  k.agent.onExit(id) // the first door's stop ends the console
+  k.agent.personStopEnded(id)
+  await settle()
+  assert.equal(k.agent.status().state, 'stopped')
+  assert.equal(k.log.filter((l) => l[0] === 'open').length, 1, 'no early-end fallback')
+})
+
+// Board request eef5abeb: the launch journal read by the CEO, its starts written as the CEO's, and the machine's
+// sessions still seen when Switchboard does not answer.
+const launch = (over) => ({ sessionId: 's1', projectId: 'p1', cwd: '/d/app', branch: 'main', runner: 'claude-code', optionId: 'claude-code', program: 'claude',
+  by: 'person', via: 'screen', reason: null, parentSessionId: null, taskId: null, requestId: null, machine: 'mac', appPid: 1, appVersion: 'v', pid: 9,
+  startedAt: '2026-11-19T19:00:00Z', runnerSessionId: null, stopAskedBy: null, stopReason: null, endedAt: null, end: null, exitCode: null, signal: null, ...over })
+
+test('a start by the CEO is written as the CEO\'s, with its reason, its console as the parent and the door it came through', async () => {
+  const o = operations()
+  await o.ops.run('start', { project: 'App', task: 'go', reason: 'the owner asked for it' }, 'voice')
+  const origin = o.origins[0]
+  assert.deepEqual(origin, { by: 'ceo', via: 'voice', reason: 'the owner asked for it', parentSessionId: 'ceo' })
+  await o.ops.run('start', { project: 'App', reason: 'again from the console' })
+  assert.equal(o.origins[1].via, 'console', 'no door named: the console')
+})
+
+test('launches: who started what, the chain, the resume command, the open ones; refused without a journal', async () => {
+  const rows = [
+    launch({ sessionId: 'b', by: 'ceo', via: 'voice', parentSessionId: 'ceo', runnerSessionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', startedAt: '2026-11-19T19:02:00Z' }),
+    launch({ sessionId: 'old', end: 'app-quit', endedAt: '2026-11-19T19:05:00Z', startedAt: '2026-11-19T19:01:00Z' }),
+    launch({ sessionId: 'ceo', projectId: 'p0', by: 'fabric', startedAt: '2026-11-19T19:00:00Z' })
+  ]
+  const o = operations({ launches: async () => rows })
+  const r = await o.ops.run('launches', {})
+  assert.equal(r.ok, true)
+  const b = r.launches.find((l) => l.session_id === 'b')
+  assert.equal(b.launched_by, 'ceo')
+  assert.equal(b.resume, 'claude --resume aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+  assert.deepEqual(b.chain.map((c) => c.session_id), ['ceo'])
+  assert.equal(r.launches.find((l) => l.session_id === 'ceo').running_now, true)
+  assert.deepEqual((await o.ops.run('launches', { open_only: true })).launches.map((l) => l.session_id), ['b', 'ceo'])
+  assert.deepEqual((await o.ops.run('launches', { session_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' })).launches.map((l) => l.session_id), ['b'], 'found by the runner\'s own id too')
+  assert.deepEqual((await o.ops.run('launches', { project: 'App', limit: 1 })).launches.map((l) => l.session_id), ['b'])
+  assert.equal((await operations().ops.run('launches', {})).ok, false)
+})
+
+test('sessions: each console says who started it and in which branch; Switchboard unread, the machine is read from disk', async () => {
+  const disk = [
+    { pid: 501, sessionId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', cwd: '/d/site/x', name: 'site', status: 'busy', kind: 'interactive', entrypoint: 'cli', startedAt: null, updatedAt: null, config: '/h' },
+    { pid: 502, sessionId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', cwd: '/d/app', name: null, status: null, kind: null, entrypoint: null, startedAt: null, updatedAt: null, config: '/h' }
+  ]
+  const o = operations({
+    launches: async () => [launch({ runnerSessionId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', branch: 'feat/x' })],
+    diskSessions: async () => disk,
+    switchboard: async () => { throw new Error('switchboard did not answer within 10 s') }
+  })
+  const r = await o.ops.run('sessions', {})
+  const s1 = r.fabric_consoles.find((c) => c.session_id === 's1')
+  assert.equal(s1.launched_by, 'person')
+  assert.equal(s1.branch, 'feat/x')
+  assert.match(r.machine_sessions.unread, /within 10 s/, 'the reason is named, never «Command failed»')
+  assert.deepEqual(r.machine_sessions_on_disk.map((d) => d.pid), [501], 'a Fabric console\'s own Claude process is not listed twice')
+  const site = await o.ops.run('sessions', { project: 'Site' })
+  assert.deepEqual(site.machine_sessions_on_disk.map((d) => d.pid), [501])
+  const read = await operations({ diskSessions: async () => disk }).ops.run('sessions', {})
+  assert.equal(read.machine_sessions_on_disk, undefined, 'Switchboard read: its rows, not the disk')
+})
+
+// The owner, 2026-11-20, 21:37: «не отправляется сообщение из поп-апа разговора с CEO. Пишется, что сообщение не дошло до
+// CEO. Я руками вставил выше в консоль». The operations log: ceo.agent.delivered failed_before_write readiness_timeout,
+// then ipc.ceo-agent:send not-delivered after 30 s, while the CEO was working. A message is never lost now.
+test('a message the working CEO did not take is kept on disk, said as waiting, and typed when the console takes it, after a restart too', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  const r = await k.agent.send('сделай отчёт', [])
+  assert.equal(r.ok, true, 'never said as lost')
+  assert.equal(r.queued, true)
+  assert.equal(r.reason, 'not-delivered')
+  assert.equal(r.status.queued, 1)
+  const kept = JSON.parse(readFileSync(path.join(k.root, 'pending.json'), 'utf8'))
+  assert.equal(kept.length, 1)
+  assert.match(kept[0].line, /сделай отчёт/)
+  // A second message waits behind the first, in order.
+  await k.agent.send('и ещё одно', [])
+  assert.equal(k.agent.status().queued, 2)
+  // The console takes input again: both are typed, oldest first, and the queue is emptied on disk.
+  busy = false
+  await k.agent.drain()
+  assert.deepEqual(k.delivered.filter(([, t]) => /сделай отчёт|и ещё одно/.test(t)).map(([, t]) => t.includes('сделай') ? 1 : 2), [1, 2])
+  assert.equal(k.agent.status().queued, undefined)
+  assert.deepEqual(JSON.parse(readFileSync(path.join(k.root, 'pending.json'), 'utf8')), [])
+  assert.ok(k.log.some(([op]) => op === 'ceo.agent.queued'))
+  assert.ok(k.log.some(([op, d]) => op === 'ceo.agent.queue-delivered' && d.left === 0))
+})
+
+test('what waited when Fabric quit is still waiting at the next start, and is typed then', async () => {
+  const k = keeper()
+  writeFileSync(path.join(k.root, 'pending.json'), JSON.stringify([{ line: 'до перезапуска', at: 1 }]))
+  const again = createCeoAgent({ ...k.deps })
+  assert.equal(again.status().queued, 1)
+  await again.ensure()
+  await again.drain()
+  assert.ok(k.delivered.some(([, t]) => t === 'до перезапуска'))
+  assert.equal(again.status().queued, undefined)
+})
+
+// 0.3.27 review, iteration 3, run four: the queue keeps order, has one owner per line, never retypes an unknown write,
+// says a stopped CEO as stopped, has one bound, presses the files' Enter, and keeps a broken file aside.
+test('run four: a message sent while others wait goes behind them, and they are typed in the order they were sent', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  assert.equal((await k.agent.send('FIRST', [])).queued, true)
+  busy = false
+  const second = await k.agent.send('SECOND', [])
+  assert.equal(second.ok, true)
+  assert.equal(second.queued, undefined, 'both went in, so the second is not said as waiting')
+  assert.deepEqual(k.delivered.filter(([, t]) => /FIRST|SECOND/.test(t)).map(([, t]) => t), ['FIRST', 'SECOND'])
+})
+
+test('run four: a queued line belongs to the queue, so a fallback after it does not type it a second time', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  assert.equal((await k.agent.send('сделай отчёт', [])).queued, true)
+  busy = false
+  k.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  for (let i = 0; i < 20 && k.agent.status().runner !== 'hermes'; i++) await new Promise((r) => setTimeout(r, 5))
+  await k.agent.drain()
+  assert.equal(k.delivered.filter(([, t]) => t === 'сделай отчёт').length, 1)
+})
+
+test('run four: a write whose outcome is unknown is said so and never typed again', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let calls = 0
+  k.deps.deliver = async () => { calls++; return { state: 'outcome_unknown', reason: 'pty_write_failed' } }
+  const r = await k.agent.send('одно', [])
+  assert.equal(r.ok, false)
+  assert.equal(r.reason, 'delivery-unknown')
+  assert.equal(k.agent.status().queued, undefined, 'not queued')
+  await k.agent.drain()
+  assert.equal(calls, 1)
+})
+
+test('run four: a CEO that is not running keeps the message and says not-running, never busy', async () => {
+  const k = keeper({ refuse: ['claude-code', 'hermes'] })
+  const r = await k.agent.send('hello', [])
+  assert.equal(r.ok, true)
+  assert.equal(r.queued, true)
+  assert.equal(r.reason, 'not-running')
+})
+
+test('run four: one bound in memory and on disk; a send past it is refused, a file past it is cut and the cut recorded', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  k.deps.deliver = async () => ({ state: 'failed_before_write', reason: 'readiness_timeout' })
+  for (let i = 0; i < 50; i++) await k.agent.send(`m${i}`, [])
+  assert.equal(k.agent.status().queued, 50)
+  const over = await k.agent.send('m50', [])
+  assert.equal(over.ok, false)
+  assert.equal(over.reason, 'queue-full')
+  const k2 = keeper()
+  // Run seven (DA-46): the bound on disk is the person's 50 plus the 10 lines a lost console may owe; a file past it is
+  // kept aside whole before it is cut.
+  writeFileSync(path.join(k2.root, 'pending.json'), JSON.stringify(Array.from({ length: 70 }, (_, i) => ({ line: `x${i}`, at: 1 }))))
+  const again = createCeoAgent({ ...k2.deps })
+  assert.equal(again.status().queued, 60)
+  assert.ok(k2.log.some(([op, d]) => op === 'ceo.agent.queue-read-failed' && d.why === 'over-bound' && d.dropped === 10 && d.kept_aside === true))
+})
+
+test('run four: a queued message naming files gets its settled Enter when the queue types it', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  const png = Buffer.from('89504e470d0a1a0a', 'hex').toString('base64')
+  assert.equal((await k.agent.send('see', [{ name: 'shot.png', data: png }])).queued, true)
+  busy = false
+  await k.agent.drain()
+  const i = k.delivered.findIndex(([, t]) => t.startsWith('see'))
+  assert.ok(i >= 0)
+  assert.equal(k.delivered[i + 1]?.[1], 'raw:"\\r"')
+})
+
+test('run four: a pending file that does not parse is kept aside and recorded, never overwritten silently', () => {
+  const k = keeper()
+  writeFileSync(path.join(k.root, 'pending.json'), '[{"line":"x","at":')
+  const again = createCeoAgent({ ...k.deps })
+  assert.equal(again.status().queued, undefined)
+  assert.ok(k.log.some(([op]) => op === 'ceo.agent.queue-read-failed'))
+  assert.ok(readdirSync(k.root).some((f) => f.startsWith('pending.json.corrupt-')))
+})
+
+// 0.3.27 review, iteration 3, run five: every send goes through the one queue.
+test('run five: with a message waiting, writing to a CEO the person stopped starts it, and both go in order', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  assert.equal((await k.agent.send('A', [])).queued, true)
+  await k.agent.stop()
+  busy = false
+  const r = await k.agent.send('B', [])
+  assert.equal(r.ok, true)
+  assert.equal(k.agent.status().state, 'running')
+  assert.deepEqual(k.delivered.filter(([, t]) => t === 'A' || t === 'B').map(([, t]) => t), ['A', 'B'])
+})
+
+test('run five: a line the queue typed into a console that answers with a limit is typed again on the next runner', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  const first = k.agent.sessionId()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; k.delivered.push([id, text]); return { state: 'written' } }
+  assert.equal((await k.agent.send('отчёт', [])).queued, true)
+  busy = false
+  await k.agent.drain()
+  k.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  for (let i = 0; i < 40 && k.agent.status().runner !== 'hermes'; i++) await new Promise((r) => setTimeout(r, 5))
+  await new Promise((r) => setTimeout(r, 20))
+  const typed = k.delivered.filter(([, t]) => t === 'отчёт')
+  assert.equal(typed.length, 2, 'once into each console')
+  assert.equal(typed[1][0], k.agent.sessionId())
+})
+
+test('run five: two sends that overlap are typed in the order they were sent', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let n = 0
+  k.deps.deliver = async (id, text) => { n++; if (n === 1) { await new Promise((r) => setTimeout(r, 20)); return { state: 'failed_before_write', reason: 'readiness_timeout' } } k.delivered.push([id, text]); return { state: 'written' } }
+  const a = k.agent.send('FIRST', [])
+  await new Promise((r) => setTimeout(r, 2))
+  const b = k.agent.send('SECOND', [])
+  await Promise.all([a, b])
+  await k.agent.drain()
+  assert.deepEqual(k.delivered.filter(([, t]) => /FIRST|SECOND/.test(t)).map(([, t]) => t), ['FIRST', 'SECOND'])
+})
+
+test('run five: a line the queue typed with an unknown outcome is said so to its sender', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  let busy = true
+  k.deps.deliver = async (id, text) => { if (busy) return { state: 'failed_before_write', reason: 'readiness_timeout' }; if (text === 'B') return { state: 'outcome_unknown', reason: 'pty_write_failed' }; k.delivered.push([id, text]); return { state: 'written' } }
+  await k.agent.send('A', [])
+  busy = false
+  const r = await k.agent.send('B', [])
+  assert.equal(r.ok, false)
+  assert.equal(r.reason, 'delivery-unknown')
+})
+
+test('run five: a full queue refuses before saving any file; a file of the wrong shape is kept aside; kept-aside files are bounded', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  k.deps.deliver = async () => ({ state: 'failed_before_write', reason: 'readiness_timeout' })
+  for (let i = 0; i < 50; i++) await k.agent.send(`m${i}`, [])
+  const png = Buffer.from('89504e470d0a1a0a', 'hex').toString('base64')
+  const before = existsSync(path.join(k.root, 'inbox')) ? readdirSync(path.join(k.root, 'inbox')).length : 0
+  assert.equal((await k.agent.send('with file', [{ name: 'a.png', data: png }])).reason, 'queue-full')
+  const after = existsSync(path.join(k.root, 'inbox')) ? readdirSync(path.join(k.root, 'inbox')).length : 0
+  assert.equal(after, before, 'no file saved for a refused message')
+  const k2 = keeper()
+  writeFileSync(path.join(k2.root, 'pending.json'), JSON.stringify({ line: 'one order', at: 1 }))
+  createCeoAgent({ ...k2.deps })
+  assert.ok(k2.log.some(([op, d]) => op === 'ceo.agent.queue-read-failed' && d.why === 'not-a-list' && d.kept_aside === true))
+  for (let i = 0; i < 5; i++) { writeFileSync(path.join(k2.root, 'pending.json'), '{'); createCeoAgent({ ...k2.deps }); await new Promise((r) => setTimeout(r, 2)) }
+  assert.ok(readdirSync(k2.root).filter((f) => f.startsWith('pending.json.corrupt-')).length <= 3)
+})
+
+// 0.3.27 review, iteration 3, run six.
+test('run six: after a limit, the line the lost console owed goes in before a message sent during the switch', async () => {
+  const k = keeper()
+  await k.agent.send('ONE', [])
+  const first = k.agent.sessionId()
+  k.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  const two = k.agent.send('TWO', [])
+  for (let i = 0; i < 40 && k.agent.status().runner !== 'hermes'; i++) await new Promise((r) => setTimeout(r, 5))
+  await two
+  await k.agent.drain()
+  const onNew = k.delivered.filter(([id, t]) => id === k.agent.sessionId() && (t === 'ONE' || t === 'TWO')).map(([, t]) => t)
+  assert.deepEqual(onNew, ['ONE', 'TWO'])
+})
+
+test('run six: a kept-aside queue file older than 30 days is removed at the next start; good entries of a mixed file are written back', () => {
+  const k = keeper()
+  const old = Date.now() - 40 * 86_400_000
+  writeFileSync(path.join(k.root, `pending.json.corrupt-${old}`), '[]')
+  // The harness's clock starts near zero; this start reads the wall clock the file name was written with.
+  createCeoAgent({ ...k.deps, now: () => Date.now() })
+  assert.ok(!existsSync(path.join(k.root, `pending.json.corrupt-${old}`)))
+  const k2 = keeper()
+  writeFileSync(path.join(k2.root, 'pending.json'), JSON.stringify([{ line: 'a', at: 1 }, { text: 'bad' }, { line: 'b', at: 2 }]))
+  createCeoAgent({ ...k2.deps })
+  assert.equal(createCeoAgent({ ...k2.deps }).status().queued, 2, 'the good entries survive a second start')
+})
+
+test('run six: a drain that finds the CEO not running does not stop the queue; the line is typed once the CEO starts', async () => {
+  const k = keeper()
+  writeFileSync(path.join(k.root, 'pending.json'), JSON.stringify([{ line: 'ждал перезапуска', at: 1 }]))
+  const again = createCeoAgent({ ...k.deps })
+  await again.drain()
+  await again.ensure()
+  await again.drain()
+  assert.ok(k.delivered.some(([, t]) => t === 'ждал перезапуска'))
+  const r = await again.send('новое', [])
+  assert.equal(r.ok, true)
+  assert.equal(r.queued, undefined)
+})
+
+// 0.3.27 review, iteration 3, run seven.
+test('run seven: a write that lands after a limit removes its own line; the owed line and the newer one each go in once', async () => {
+  const k = keeper()
+  await k.agent.send('X', [])
+  const first = k.agent.sessionId()
+  let release
+  k.deps.deliver = async (id, text) => {
+    if (id === first && text === 'Y') { await new Promise((r) => { release = r }); k.delivered.push([id, text]); return { state: 'written' } }
+    k.delivered.push([id, text]); return { state: 'written' }
+  }
+  const y = k.agent.send('Y', [])
+  for (let i = 0; i < 20 && !release; i++) await new Promise((r) => setTimeout(r, 2))
+  k.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  await new Promise((r) => setTimeout(r, 5))
+  release()
+  await y
+  for (let i = 0; i < 40 && k.agent.status().runner !== 'hermes'; i++) await new Promise((r) => setTimeout(r, 5))
+  await k.agent.drain()
+  const second = k.agent.sessionId()
+  const onNew = k.delivered.filter(([id]) => id === second).map(([, t]) => t)
+  assert.deepEqual(onNew, ['X', 'Y'], 'the owed X first, then Y, each once on the next runner')
+})
+
+test('run seven: a fallback on a full queue, then a restart of Fabric, keeps every line', async () => {
+  const k = keeper()
+  for (let i = 0; i < 5; i++) await k.agent.send(`typed${i}`, [])
+  const first = k.agent.sessionId()
+  k.deps.deliver = async () => ({ state: 'failed_before_write', reason: 'readiness_timeout' })
+  for (let i = 0; i < 50; i++) await k.agent.send(`wait${i}`, [])
+  k.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  for (let i = 0; i < 40 && k.agent.status().state !== 'running'; i++) await new Promise((r) => setTimeout(r, 5))
+  await new Promise((r) => setTimeout(r, 20))
+  const onDisk = JSON.parse(readFileSync(path.join(k.root, 'pending.json'), 'utf8'))
+  assert.equal(onDisk.length, 55)
+  const again = createCeoAgent({ ...k.deps })
+  assert.equal(again.status().queued, 55, 'no line dropped at the next start')
+})
+
+test('run seven: names dated in the future never evict the file just kept aside; the person\'s stop drops owed lines', async () => {
+  const k = keeper()
+  for (let i = 0; i < 3; i++) writeFileSync(path.join(k.root, `pending.json.corrupt-9999999999999${i}`), '[]')
+  writeFileSync(path.join(k.root, 'pending.json'), '{')
+  createCeoAgent({ ...k.deps, now: () => Date.now() })
+  const kept = readdirSync(k.root).filter((f) => f.startsWith('pending.json.corrupt-') && !f.startsWith('pending.json.corrupt-9999999999999'))
+  assert.equal(kept.length, 1, 'the owner\'s broken file is kept')
+  const k2 = keeper()
+  await k2.agent.send('ONE', [])
+  const first = k2.agent.sessionId()
+  k2.deps.open = async () => { await new Promise(() => {}) }
+  k2.agent.onOutput(first, "You've hit your limit · resets 5pm")
+  await new Promise((r) => setTimeout(r, 10))
+  assert.ok(JSON.parse(readFileSync(path.join(k2.root, 'pending.json'), 'utf8')).some((q) => q.retype))
+  void k2.agent.stop()
+  await new Promise((r) => setTimeout(r, 10))
+  assert.ok(!JSON.parse(readFileSync(path.join(k2.root, 'pending.json'), 'utf8')).some((q) => q.retype), 'the stop drops the owed line')
+})
+
+// 0.3.27 review run eight, UX-63 and UX-65: the second matcher (main's) never overrides the CEO's address words, nor
+// makes a new folder «belong» to a project whose folder only begins the same way.
+test('run eight: «SEO» and «CEO» start nothing, by console or by voice, even beside the SEO agent and a CEO-named project', async () => {
+  const projects = [{ id: 'p1', name: 'seo-content-agent', repo_path: '/d/seo-content-agent' }, { id: 'p2', name: 'Fabric CEO', repo_path: '/d/fabric-ceo' }]
+  for (const word of ['SEO', 'CEO', 'сео', 'шеф'])
+    for (const via of [undefined, 'voice']) {
+      const o = operations({ projects })
+      const r = await o.ops.run('start', { project: word, task: 'go', reason: 'the owner asked' }, via)
+      assert.equal(r.ok, false, `${word} ${via ?? 'console'}`)
+      assert.equal(o.opened.length, 0, `${word} ${via ?? 'console'}`)
+    }
+})
+
+test('run eight: a new folder beside a longer-named project\'s folder becomes its own project', async () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'dirs-'))
+  const mine = path.join(root, 'myapp'), longer = path.join(root, 'myapp-legacy')
+  mkdirSync(mine); mkdirSync(longer)
+  const o = operations({ projects: [{ id: 'p1', name: 'myapp-legacy', repo_path: longer }] })
+  const r = await o.ops.run('start', { project: mine, task: 'go', reason: 'the owner asked' })
+  assert.equal(r.ok, true, JSON.stringify(r))
+  assert.equal(o.opened[0][0], 'p9')
+})
+
+// 0.3.27 review run nine, UX-75: a task given with a session id the knowledge search found is never dropped.
+test('run nine: a found session with a task opens a new console in its project with that task; Switchboard never takes a task', async () => {
+  const recalled = { 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee': { id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', kind: 'transcript', projectId: null, folder: '/d/site/x', runner: 'claude-code', runtimeSessionId: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', configDir: null, title: 't', at: null } }
+  const o = operations({ deps: { recall: async (id) => recalled[id] ?? null, openResumed: async () => { throw new Error('not as itself with a task') } } })
+  const r = await o.ops.run('resume', { session_id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', task: 'допиши витрину', reason: 'the owner asked' })
+  assert.deepEqual([r.ok, r.as_itself], [true, false])
+  assert.deepEqual(o.opened.at(-1), ['p2', 'claude-code', 'допиши витрину'])
+  assert.equal(o.switchboard.filter((a) => a[1] === 'continue').length, 0)
+  const unknown = await o.ops.run('resume', { session_id: 'ffffffff-ffff-4fff-8fff-ffffffffffff', task: 'x', reason: 'the owner asked' })
+  assert.equal(unknown.ok, false)
+  assert.equal(o.switchboard.filter((a) => a[1] === 'continue').length, 0, 'a task is refused before Switchboard')
+})
+
+// 0.3.27 review run ten, UX-81 / ER-87 / DA-62: the person's stop is kept in the folder's meta, so a restart of Fabric
+// (a new agent over the same folder) does not let the board's wake start a CEO the person stopped; the person's start
+// clears it.
+test('run ten: the person\'s stop outlives a restart, and the person\'s own start clears it', async () => {
+  const { createCeoBoardKeeper } = await import('../src/main/ceoBoardKeeper.ts')
+  const k = keeper()
+  await k.agent.ensure()
+  await k.agent.stop()
+  assert.equal(k.agent.heldByPerson(), true)
+  const { createCeoAgent } = await import('../src/main/ceoAgent.ts')
+  const again = createCeoAgent(k.deps)
+  assert.equal(again.heldByPerson(), true, 'the stop is read back from ceo.json')
+  assert.ok(again.knownProjectId())
+  const before = [...k.consoles.values()].filter((s) => s.running).length
+  const board = createCeoBoardKeeper({ state: () => again.status().state, sessionId: () => again.sessionId(), projectId: () => again.knownProjectId(),
+    keepSlot: async () => 'kept', ensure: () => again.ensure(), heldByPerson: () => again.heldByPerson(), record: () => {} })
+  const r = await board.wake([{ requestId: 'r1', to: again.knownProjectId(), capability: 'ceo.task', subject: 'x', state: 'queued', from: 'p2' }])
+  assert.equal(r, 'held')
+  assert.equal([...k.consoles.values()].filter((s) => s.running).length, before, 'nothing started')
+  assert.equal(again.status().state, 'stopped', 'after a restart the status says stopped (run eleven, ER-94)')
+  await again.ensure()
+  assert.equal(again.heldByPerson(), true, 'opening the window starts nothing while the person\'s stop holds')
+  await again.restart('person')
+  assert.equal(again.heldByPerson(), false, 'the person\'s «Запустить» clears the stop')
+  assert.equal(createCeoAgent(k.deps).heldByPerson(), false, 'and the cleared stop is what a later restart reads')
+})
+
+// Run eleven, ER-93: a stop pressed while the first start looks up its project is kept on disk, not overwritten.
+test('run eleven: a stop during the first start\'s project lookup survives the next restart', async () => {
+  let release
+  const k = keeper()
+  const lookup = k.deps.ensureProject
+  k.deps.ensureProject = (...a) => new Promise((ok) => { release = () => ok(lookup(...a)) })
+  const { createCeoAgent } = await import('../src/main/ceoAgent.ts')
+  const agent = createCeoAgent(k.deps)
+  const starting = agent.ensure()
+  await new Promise((r) => setTimeout(r, 5))
+  const stopped = agent.stop()
+  await new Promise((r) => setTimeout(r, 5))
+  release()
+  await starting; await stopped
+  k.deps.ensureProject = lookup
+  assert.equal(createCeoAgent(k.deps).heldByPerson(), true)
+})
+
+// Run twelve, DA-73: a stop during the first start's lookup opens no runner console at all. DA-71: the stop's truth is
+// memory once the agent is built, so a person's start that could not be written to disk is still a start.
+test('run twelve: a stop during the lookup opens no console, and a cleared stop the disk would not take is still cleared', async () => {
+  let release
+  const k = keeper()
+  const lookup = k.deps.ensureProject
+  k.deps.ensureProject = (...a) => new Promise((ok) => { release = () => ok(lookup(...a)) })
+  const { createCeoAgent } = await import('../src/main/ceoAgent.ts')
+  const agent = createCeoAgent(k.deps)
+  const opened = k.consoles.size
+  const starting = agent.ensure()
+  await new Promise((r) => setTimeout(r, 5))
+  const stopped = agent.stop()
+  await new Promise((r) => setTimeout(r, 5))
+  release()
+  await starting; await stopped
+  assert.equal(k.consoles.size, opened, 'no runner console was opened after the stop')
+  k.deps.ensureProject = lookup
+  const { chmodSync } = await import('node:fs')
+  chmodSync(k.root, 0o500)
+  try {
+    await agent.restart('person')
+    assert.equal(agent.heldByPerson(), false)
+  } finally { chmodSync(k.root, 0o700) }
+})
+
+// Run twelve, ER-104: the person's message clears the kept stop, as «Запустить» does.
+test('run twelve: a message clears the kept stop for the next restart', async () => {
+  const k = keeper()
+  await k.agent.ensure()
+  await k.agent.stop()
+  const { createCeoAgent } = await import('../src/main/ceoAgent.ts')
+  const again = createCeoAgent(k.deps)
+  assert.equal(again.heldByPerson(), true)
+  await again.send('Привет', [])
+  assert.equal(createCeoAgent(k.deps).heldByPerson(), false)
+})
+
+// CO-622 item 1: a running console's model is changed by its own /model and read back from its own confirmation.
+test('a running Claude Code console takes /model and the answer reads its confirmation back', async () => {
+  const applied = await readBackModel(() => 'old line\n  ⎿  Set model to Fable 5.2 (claude-fable-5-2)\n> ', 'claude-fable-5-2', 50, 10)
+  assert.deepEqual(applied, { state: 'applied', line: '⎿  Set model to Fable 5.2 (claude-fable-5-2)' })
+  const refused = await readBackModel(() => '> /model claude-nope\n  ⎿  Invalid model: claude-nope', 'claude-nope', 50, 10)
+  assert.equal(refused.state, 'refused')
+  assert.equal((await readBackModel(() => '> /model opus\n', 'opus', 30, 10)).state, 'unconfirmed', 'no confirmation is never said as applied')
+  const { ops, writes } = operations()
+  const r = await ops.run('model', { session_id: 's1', model: 'claude-fable-5-2', reason: 'the owner asked for Fable' })
+  assert.deepEqual(writes.filter(([id]) => id === 's1').map(([, d]) => d), ['/model claude-fable-5-2', '\r'], 'typed as the console\'s own command, then Enter')
+  assert.equal(r.state, 'unconfirmed', 'the fixture\'s screen holds no confirmation')
+  assert.equal((await ops.run('model', { session_id: 'ceo', model: 'opus', reason: 'x x x' })).ok, false, 'never the CEO\'s own console')
+  assert.equal((await ops.run('model', { session_id: 's1', model: 'opus --dangerously-skip-permissions', reason: 'x x x' })).ok, false, 'a flag is not a model')
+  assert.ok(ceoVoiceTools().some((t) => t.name === 'session_model'), 'the voice has it too')
+})
+
+// CO-622 item 2: a session's last answer, and the next one waited for, read from its own transcript, never its screen.
+test('the last answer and the next one come from the transcript, as text with time and model', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, appendFileSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const pathMod = await import('node:path')
+  const row = (type, at, content, extra = {}) => JSON.stringify({ type, timestamp: at, message: { role: type, content, ...extra } })
+  const jsonl = [
+    row('user', '2026-11-21T10:00:00Z', 'do the thing'),
+    row('assistant', '2026-11-21T10:00:05Z', [{ type: 'text', text: 'Working on it.' }, { type: 'tool_use', name: 'Bash' }], { model: 'claude-fable-5-2', stop_reason: 'tool_use' }),
+    row('assistant', '2026-11-21T10:01:00Z', [{ type: 'text', text: 'Done: 3 files changed.' }], { model: 'claude-fable-5-2', stop_reason: 'end_turn' }),
+    '{"type":"assistant","cut'
+  ].join('\n')
+  assert.deepEqual(lastAssistantReply(jsonl), { text: 'Done: 3 files changed.', at: '2026-11-21T10:01:00Z', model: 'claude-fable-5-2', finished: true })
+  assert.equal(lastAssistantReply(jsonl.split('\n').slice(0, 2).join('\n')).finished, false, 'a turn still calling tools is not finished')
+  assert.equal(lastAssistantReply(row('user', 'x', 'hi')), null)
+
+  const root = mkdtempSync(pathMod.join(tmpdir(), 'ceo-reply-'))
+  const rid = '11111111-2222-4333-8444-555555555555'
+  try {
+    mkdirSync(pathMod.join(root, 'projects', '-d-app'), { recursive: true })
+    const file = pathMod.join(root, 'projects', '-d-app', `${rid}.jsonl`)
+    writeFileSync(file, jsonl + '\n')
+    const { ops } = operations({ launches: async () => [{ sessionId: 's1', runnerSessionId: rid, runner: 'claude-code' }], deps: { transcriptRoots: [root] } })
+    const last = await ops.run('last_reply', { session_id: 's1' })
+    assert.equal(last.ok, true)
+    assert.equal(last.text, 'Done: 3 files changed.')
+    assert.equal(last.model, 'claude-fable-5-2')
+    // Nothing newer than now: no reply yet, with the last one.
+    const none = await ops.run('wait_reply', { session_id: 's1', timeout_s: 1 })
+    assert.equal(none.state, 'no_reply_yet')
+    // A reply written while it waits is the answer.
+    const waiting = ops.run('wait_reply', { session_id: 's1', timeout_s: 5 })
+    setTimeout(() => appendFileSync(file, row('assistant', new Date(Date.now() + 1000).toISOString(), [{ type: 'text', text: 'Next answer.' }], { model: 'opus', stop_reason: 'end_turn' }) + '\n'), 300)
+    const got = await waiting
+    assert.equal(got.state, 'replied')
+    assert.equal(got.text, 'Next answer.')
+    assert.equal((await ops.run('last_reply', { session_id: 's2' })).ok, false, 'a shell keeps no transcript')
+    assert.ok(ceoVoiceTools().some((t) => t.name === 'session_wait_reply'), 'the voice has it too')
+  } finally { rmSync(root, { recursive: true, force: true }) }
 })

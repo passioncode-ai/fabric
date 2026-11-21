@@ -1000,6 +1000,8 @@ flowchart TD
  M -->|source task| T[Screen: SCR-32 Task page]
  T -->|back| M
  M -->|legacy incomplete or read failure| M
+ R[Rail: Memory] -->|every project, SCN-190| K[Screen: SCR-92 Memory]
+ K -->|search hit or project card| T
 ```
 
 ## First-release routing precedence · 2026-09-25
@@ -3106,7 +3108,7 @@ flowchart TD
 - **Amended 2026-10-24 (0.3.12 release review, iteration 1, DO-5):** the failure node is what ships: a banner saying why the task was not read, with the way back; there is no «Повторить», and the node «Задача не прочитана · Повторить» it replaced was never built.
 
 ### FLW-101: Draw on the canvas and have it drawn by voice
-- **Traces:** ST-052; SCN-190, SCN-191 (JTBD-02)
+- **Traces:** ST-052; SCN-192, SCN-193 (JTBD-02)
 - **Goal:** an idea lands on a canvas the person and the CEO's designer both draw on, and the voice walks the person through it.
 - **Entry points:** «Окно → Канвас» (Cmd+Shift+K); «открой канвас» or «нарисуй ...» in the CEO's call.
 - **Success exit:** the canvas holds the drawing, saved; the person has been shown each part.
@@ -3132,5 +3134,5 @@ flowchart TD
   | Screen | States used here |
   |---|---|
   | SCR-91 Канвас | loading, empty, success, saving, saved, error, drawn |
-- **Scenarios:** SCN-190, SCN-191
+- **Scenarios:** SCN-192, SCN-193
 - **Implementation tasks:** task 01c3a418 (first slice, ADR-0201)

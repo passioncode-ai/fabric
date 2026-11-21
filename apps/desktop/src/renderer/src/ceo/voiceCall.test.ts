@@ -23,6 +23,9 @@ describe('the CEO voice call', () => {
     await Promise.resolve()
     expect(ws.sent[0]).toEqual(sessionUpdate(session))
     expect((ws.sent[0].session as { turn_detection: unknown }).turn_detection).toEqual({ type: 'server_vad' })
+    // The owner, 2026-11-21: «шеф», «SEO» … are recognition hints, so the CEO's address reaches the voice as said.
+    const keyterms = (ws.sent[0].session as { audio: { input: { transcription: { keyterms: string[] } } } }).audio.input.transcription.keyterms
+    for (const w of ['директор', 'шеф', 'босс', 'менеджер', 'главный', 'SEO']) expect(keyterms).toContain(w)
     audio.chunk?.('AAAA')
     expect(ws.sent[1]).toEqual({ type: 'input_audio_buffer.append', audio: 'AAAA' })
     await Promise.resolve()
@@ -62,6 +65,26 @@ describe('the CEO voice call', () => {
     await failing.start(); ws.onopen?.({}); ws.sent.length = 0
     await failing.receive(JSON.stringify({ type: 'response.function_call_arguments.done', name: 'x', call_id: 'c2', arguments: 'not json' }))
     expect(JSON.parse((ws.sent[0].item as { output: string }).output)).toEqual({ ok: false, reason: 'boom' })
+  })
+
+  it('voice retro finding 1: the owner\'s and the voice\'s lines and the call\'s end reach main\'s journal, tools stay main\'s', async () => {
+    const ws = fakeSocket(), lines: Array<[string, string, string]> = [], ends: Array<[string, { end: string | null }]> = []
+    let t = 1_000_000
+    const call = createCall({
+      session: async () => ({ ...session, callId: 'call-1' }), runTool: async () => ({ ok: true }), socket: () => ws, audio: fakeAudio(), onPhase: () => {}, onLine: () => {},
+      journal: { line: (id, who, text) => lines.push([id, who, text]), end: (id, spent) => ends.push([id, spent]) }, now: () => t
+    })
+    await call.start(); ws.onopen?.({})
+    await call.receive(JSON.stringify({ type: 'conversation.item.input_audio_transcription.completed', transcript: 'запусти диззи' }))
+    await call.receive(JSON.stringify({ type: 'response.function_call_arguments.done', name: 'session_start', call_id: 'c1', arguments: '{}' }))
+    await call.receive(JSON.stringify({ type: 'response.output_audio_transcript.delta', delta: 'Запустил' }))
+    await call.receive(JSON.stringify({ type: 'response.done' }))
+    call.say('спасибо')
+    t += 120_000
+    call.hangUp()
+    call.hangUp()
+    expect(lines).toEqual([['call-1', 'person', 'запусти диззи'], ['call-1', 'ceo', 'Запустил'], ['call-1', 'person', 'спасибо']])
+    expect(ends).toEqual([['call-1', { minutes: 2, usd: 0.16, end: 'hung-up' }]])
   })
 
   it('a refused session says why and opens no socket; hanging up stops the microphone and the socket', async () => {
@@ -175,5 +198,15 @@ describe('the CEO voice call', () => {
   it('PCM16 both ways', () => {
     const back = pcm16Base64ToFloat(floatToPcm16Base64(new Float32Array([0, 0.5, -0.5, 1, -1])))
     expect(Array.from(back).map((v) => Math.round(v * 100) / 100)).toEqual([0, 0.5, -0.5, 1, -1])
+  })
+})
+
+describe('the voice meter\'s levels', () => {
+  it('a chunk\'s level is its loudness, 0 for silence, capped at 1', async () => {
+    const { levelOf } = await import('./voiceCall')
+    expect(levelOf(new Float32Array(0))).toBe(0)
+    expect(levelOf(new Float32Array(480))).toBe(0)
+    expect(levelOf(new Float32Array(480).fill(0.1))).toBeCloseTo(0.4, 5)
+    expect(levelOf(new Float32Array(480).fill(0.9))).toBe(1)
   })
 })

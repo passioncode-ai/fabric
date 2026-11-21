@@ -796,6 +796,12 @@ button.lg-node{ cursor: pointer; }
 /* The Board's cards: the session line under the card, and «Брошено» drawn as the other columns, its note quiet. */
 .lk-card-wrap{display:grid;justify-items:start}
 .lk-session{margin-top:var(--space-1);font-size:11.5px}
+/* ADR-0208: the queue's order on a card: why it stands there, the owner's move, an agent's proposed place. */
+.lk-order{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.lk-move{display:flex;gap:var(--space-3);margin-top:var(--space-1);font-size:11.5px}
+.lk-proposal{display:grid;grid-template-columns:minmax(0,1fr);overflow-wrap:anywhere;gap:2px;margin-top:var(--space-1);padding-left:var(--space-2);border-left:2px solid var(--app-line-strong);font-size:11.5px}
+.lk-card-wrap[draggable='true']{cursor:grab}
+.lk-card-wrap.lk-drop{outline:2px solid var(--app-line-strong);outline-offset:2px;border-radius:var(--app-radius-control)}
 .lk-col.lk-abandoned>.lp-meta{margin:0 0 var(--space-2);font-size:11.5px}
 /* ── 0.3.14, the simple Fabric (docs/ux/2026-10-26-simple-fabric.md §1): the left column ── */
 /* The brand is Главная: a button that looks as the brand did, the count of what waits beside it. */
@@ -819,6 +825,9 @@ button.lg-node{ cursor: pointer; }
 .rail-branch.unknown{font-family:inherit;color:var(--app-muted)}
 /* CO-498: the folder an agent works in, before its branch. */
 .rail-folder{font-family:var(--font-mono);font-size:11px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin-right:4px}
+/* The owner, 2026-11-19 (eef5abeb): where the session runs leads the line, the branch (or folder) ends it. */
+.rail-source{flex:none}
+.rail-branch-word{font-family:var(--font-mono);font-size:11px;color:var(--app-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin-right:4px}
 /* История and Настройки at the column's foot. */
 .rail-foot{margin-top:auto;padding-top:6px;border-top:1px solid var(--app-line)}
 @media(max-width:900px){
@@ -890,7 +899,12 @@ button.lg-node{ cursor: pointer; }
    block of the home. One column when the main column is narrow. */
 .estate-home .lh-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);gap:var(--space-3);align-items:stretch;margin:0 0 var(--space-3)}
 .estate-home .lh-top>.lh-hero{margin:0}
-@container (max-width:900px){.estate-home .lh-top{grid-template-columns:minmax(0,1fr)}}
+/* The operator, 2026-11-20: «чат должен быть справа, а не снизу». The top row now spans the home above both columns
+   (EstateHome.tsx), so its container is the content area (`main.content`): the card stays at the right down to a 640 px
+   content area, and under 1100 px the hero's chart moves under the face and the words so both fit beside the card. */
+@container (max-width:1100px){.estate-home .lh-top .lh-hero{grid-template-columns:auto minmax(0,1fr)}.estate-home .lh-top .lh-hero .lh-rhythm{grid-column:1/-1;border-left:0;padding-left:0}}
+@container (max-width:640px){.estate-home .lh-top{grid-template-columns:minmax(0,1fr)}}
+.estate-home>.lh-top{padding-bottom:0;border-bottom:0}
 /* The hero: one framed card, face | words | chart (B1 to B5, B8). */
 .estate-home .lh-hero{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(260px,360px);gap:var(--space-5);align-items:center;padding:var(--space-4) var(--space-5);border:1px solid var(--app-line);border-radius:var(--app-radius-panel);background:linear-gradient(135deg,color-mix(in srgb,var(--app-accent) 7%,var(--app-panel)),var(--app-panel) 55%);margin:0 0 var(--space-3)}
 .estate-home .lh-hero>.fp-face{width:72px;height:72px;min-width:72px;border-radius:24px;overflow:hidden;box-shadow:0 6px 18px color-mix(in srgb,var(--app-ink) 12%,transparent)}
@@ -1200,6 +1214,29 @@ ul.ap-summary.as-ending{padding-left:28px;display:grid;gap:2px}
 .session-detach{flex:none;display:grid;place-items:center;width:28px;height:28px;border:1px solid transparent;border-radius:7px;background:none;color:var(--app-muted);cursor:pointer}
 @media(hover:hover){.session-detach:hover{color:var(--app-ink);border-color:var(--app-line);background:var(--app-panel-quiet)}}
 .session-detach:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px}
+/* SCN-188 (the owner, 2026-11-20): the console's system line, one quiet row in the bar's free width. Short facts keep
+   their few characters; who started it and the branch give way first, and the folder press does not shrink (0.3.27 release, the
+   screens stand; a folder past 20em still cuts, CO-620 (13)); each says itself whole on hover. The
+   folder and the ids are presses, dotted at rest so they read as such (design review F1 to F8). */
+.session-meta{flex:1 1 0;min-width:0;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:11.5px;color:var(--app-muted)}
+.session-meta-item{flex:0 0 auto;min-width:0;max-width:20em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.session-meta-item.is-folder{flex-shrink:0}.session-meta-item.is-branch{flex-shrink:2;min-width:6em}.session-meta-item.is-started{flex-shrink:3;min-width:6em}.session-meta-item.is-soft{flex-shrink:0}
+.session-meta-item+.session-meta-item::before{content:"·";display:inline-block;padding:0 6px;color:var(--app-muted);text-decoration:none}
+.session-meta-press{font:inherit;font-size:11.5px;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left;text-decoration:underline dotted;text-underline-offset:3px;text-decoration-color:var(--app-line-strong)}
+.session-meta-press.mono{font-family:var(--font-mono)}
+@media(hover:hover){.session-meta-press:hover{color:var(--app-ink);text-decoration-style:solid;text-decoration-color:currentColor}}
+.session-meta-press:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px;border-radius:3px}
+.session-meta-icon{width:12px;height:12px;margin-right:3px;vertical-align:-2px}
+.session-meta-copied{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(max-width:1440px){.session-meta-item.is-extra{display:none}}
+/* A narrow window keeps the account, the organisation and the folder whole, who started it giving way first; the model,
+   the branch and the ids step out (the agent's page shows them all). */
+@media(max-width:940px){.session-meta-item.is-branch,.session-meta-item.is-id,.session-meta-item.is-model{display:none}}
+.session-meta-item+.session-meta-item::before{content:"·";padding:0 6px;color:var(--app-line-strong)}
+.session-meta-press{font:inherit;font-size:11.5px;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.session-meta-press.mono{font-family:var(--font-mono)}
+@media(hover:hover){.session-meta-press:hover{color:var(--app-ink);text-decoration:underline;text-underline-offset:2px}}
+.session-meta-press:focus-visible{outline:2px solid var(--app-focus);outline-offset:1px;border-radius:3px}
 /* SCN-179 (CO-521): a task in review asks one decision. The agent's words on the left, the three answers and the
    comment on the right; one column when narrow. */
 .rd{display:flex;flex-wrap:wrap;gap:var(--space-4);padding:var(--space-4);margin:0 0 var(--space-4);border:1px solid var(--app-line);border-radius:12px;text-align:left}
@@ -1246,7 +1283,7 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
    path or link pushed a column, then the page, sideways. Each grid a 600 px stress finds growing
    (scripts/test/layout-stress.browser.mjs) lets its items shrink; a grid that sizes its items to their content
    (`justify-items:start`) also caps them at its width. */
-:is(.rail-places,.act-line-refused,.hx,.hx-refused,.hx-problem,.ja,.ja-refused,.calm-help-nav,.calm-filter,.lp-progress,.lp-mini,.lp-task-brief,.fp-chart,.lp-message,.lh-need-body,.lc-posts,.ag,.ag-centre,.ag-chosen,.ag-list,.ag-note,.ag-rows,.ag-row,.ag-joined,.ag-console,.hx-grid,.hx-main,.hx-detail,.lk-card-wrap,.rail-view,.rail-agent-words,.lh-inwork,.as,.as-now,.ap-tasks,.ap-task-words,.ap-task-body,.ap-brief,.as-side,.as-session,.as-facts,.as-questions-list,.xp,.xp-form,.rd-answer,.rd-buttons,.rd-comment,.lo,.ov,.as-say,.st-builder-reasons,.cr,.cr-choice,.transcript-list,.transcript-body,.banner-remedy)>*{min-width:0}
+:is(.rail-places,.act-line-refused,.hx,.hx-refused,.hx-problem,.ja,.ja-refused,.calm-help-nav,.calm-filter,.lp-progress,.lp-mini,.lp-task-brief,.fp-chart,.lp-message,.lh-need-body,.lc-posts,.ag,.ag-centre,.ag-chosen,.ag-list,.ag-note,.ag-rows,.ag-row,.ag-joined,.ag-console,.hx-grid,.hx-main,.hx-detail,.lk-card-wrap,.lk-proposal,.rail-view,.rail-agent-words,.lh-inwork,.as,.as-now,.ap-tasks,.ap-task-words,.ap-task-body,.ap-brief,.as-side,.as-session,.as-facts,.as-questions-list,.xp,.xp-form,.rd-answer,.rd-buttons,.rd-comment,.lo,.ov,.as-say,.st-builder-reasons,.cr,.cr-choice,.transcript-list,.transcript-body,.banner-remedy)>*{min-width:0}
 :is(.lh-need-body,.ag-note,.lk-card-wrap,.hx-problem)>*{max-width:100%}
 /* W1 (ui UI-7): a row of cards that scrolls says so. macOS hides the scrollbar, so a card cut at the edge read as a stray
    border; the right edge fades while more cards wait past it. The fade is driven by the row's own scroll: a row that
@@ -1387,3 +1424,25 @@ blockquote.rd-said{padding-left:var(--space-3);border-left:2px solid var(--app-l
 .lp-detail>h3+.lp-comms-disclosure{margin-top:var(--space-3)}
 .lp-message .lp-message-body,.lp-message p.lp-message-body{font-size:13px;line-height:1.55;color:var(--app-ink)}
 .lp-message .lp-message-body.md p{font-size:inherit;color:inherit}
+/* The search panel's «Везде» group (spec 2026-11-19 §2): a hit's acts on one line, the neighbourhood drawing below. */
+.everywhere-acts{ display: flex; gap: var(--space-1); flex-wrap: wrap; margin-top: var(--space-1); }
+.everywhere-passage{ overflow-wrap: anywhere; }
+.everywhere-around .lg-scroll{ max-width: 100%; }
+.everywhere-around{ margin-top: var(--space-3); }
+/* eef5abeb point 3: the sessions outside Fabric on Агенты. */
+.ag-machine{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.ag-machine>li{min-width:0;overflow-wrap:anywhere}
+.ag-machine-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.ag-machine-state{display:inline-block;padding:1px 6px;border-radius:999px;font-size:11.5px;border:1px solid var(--app-line);color:var(--app-muted)}
+.ag-machine-state.is-working{color:var(--state-ok,var(--app-accent));border-color:currentColor}
+.ag-machine-state.is-needs_you{color:var(--state-danger);border-color:currentColor}
+.ag-machine-fold{margin-top:var(--space-4)}
+.ag-machine-fold>summary{cursor:pointer;font-weight:600}
+.ag-machine-turns{margin:6px 0 0;padding-left:18px;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;font-size:12.5px;max-height:260px;overflow:auto;overflow-wrap:anywhere}
+.as-launch-ask{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.as-launch-ask .lp-meta{flex-basis:100%;margin:0}
+.as-launch-reason{display:block}
+.as-launch-resume{font-family:var(--font-mono);font-size:11px;word-break:break-all}
+/* 2026-11-20: a primary that cannot be pressed reads as the app's other disabled primaries (components.css .btn), not a grey fill. */
+.lp-button.primary:disabled{opacity:1;background:var(--app-panel-quiet);border-color:var(--app-line-strong);color:var(--app-muted);font-weight:600;cursor:default}
+.lp-button.primary:disabled:hover{color:var(--app-muted)}

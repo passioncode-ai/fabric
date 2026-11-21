@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "33aec0f496592d6b8d5a44c3f008ae031b310d9e",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-33aec0f4/2026-11-21-docs.md",
+  "reportSha256": "ffe70dde1aafb599e4ebcfecfa554d1fa611f80548f8eb4f04903f82b68197bf",
+  "reviewerRun": "release-0327-i3r10-docs-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-85",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-81; the CHANGELOG, ADR-0197 Amendment 5 §2 and AGENTS.md say the stop holds across a restart and a failed CEO waits for the person"
+      ]
+    },
+    {
+      "id": "DO-86",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the wake no longer starts a failed CEO, and the CEO console row names the board request under «Started by»"
+      ]
+    },
+    {
+      "id": "DO-87",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (11)"
+      ]
+    },
+    {
+      "id": "DO-88",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-82"
+      ]
+    },
+    {
+      "id": "DO-89",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (11)"
+      ]
+    },
+    {
+      "id": "DO-90",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (12)"
+      ]
+    },
+    {
+      "id": "DO-91",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-83"
+      ]
+    },
+    {
+      "id": "DO-92",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG's opening and the ledger's opening name the owner's two blockers of about 02:40, the HANDOFF's next task is current, MERGES names `e0b2c55c`, CO-620 is retitled for runs eight to ten"
+      ]
+    },
+    {
+      "id": "DO-93",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG and SCN-191 state the two exceptions (a project's own name, a word inside a phrase in the CEO's console)"
+      ]
+    }
+  ]
+}

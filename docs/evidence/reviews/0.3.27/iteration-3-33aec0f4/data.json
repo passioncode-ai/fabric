@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "33aec0f496592d6b8d5a44c3f008ae031b310d9e",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-33aec0f4/2026-11-21-data.md",
+  "reportSha256": "f8d63847d9655f496f71625138f15ab0c63830f2f9b7acd5f4eb01111ab64982",
+  "reviewerRun": "release-0327-i3r10-data-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-62",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-81; a failed CEO is not woken"
+      ]
+    },
+    {
+      "id": "DA-63",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (11); AGENTS.md and ADR-0197 now name the receipts"
+      ]
+    },
+    {
+      "id": "DA-64",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a transcript's saved state keeps `cwd` and `branch` as read, and `xai-key` matches letters and digits only, 40 or more (test «run ten: a hyphenated xai- folder keeps its project…»; the redact test keeps a hyphenated folder and anchor)"
+      ]
+    },
+    {
+      "id": "DA-65",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `supabase-secret` (`sb_secret_…`) is redacted (`redact.ts`; its test)"
+      ]
+    },
+    {
+      "id": "DA-66",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (11)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "4ba9fd6214dd80526eeba127b5c2fcb0a962647c",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-4ba9fd62/2026-11-20-ux.md",
+  "reportSha256": "464b91e0177a4205b596110f44150eece5a9c375106fa63059d07253596a4150",
+  "reviewerRun": "release-0326-i3r1-ux-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: the agent by runnerLabel, the app by its product name (ContinueSessionAsk.tsx appName); test «names the app by its product»"
+      ]
+    },
+    {
+      "id": "UX-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: a code with a sentence is not printed under it; only a message with no sentence is (MachineSessions.tsx FailureNote detail)"
+      ]
+    },
+    {
+      "id": "UX-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate for (a) and (b): an unread list is said as unread, the session is read again after every answer (ContinueSessionAsk.tsx); test «a list read that failed is said as unread»; (c) ruled: CO-604 (24)"
+      ]
+    },
+    {
+      "id": "UX-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate for the ask: a session only Switchboard names is read-only there, with where to act; test «a session only Switchboard names is read-only here»; the main side ruled: CO-604 (25)"
+      ]
+    },
+    {
+      "id": "UX-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: the SCN-142 amendment names every refusal, its states and its coverage"
+      ]
+    },
+    {
+      "id": "UX-32",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (26)"
+      ]
+    }
+  ]
+}

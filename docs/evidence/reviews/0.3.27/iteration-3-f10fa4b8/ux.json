@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "f10fa4b86eabb62672955f58e024cb9c457cb8e4",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-f10fa4b8/2026-11-21-ux.md",
+  "reportSha256": "e1ca471a6410c8e5690607c66e624da40ac2c2d5b47e087aa01d1f91f36a3fab",
+  "reviewerRun": "release-0327-i3r7-ux-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-60",
+      "status": "fixed",
+      "evidence": [
+        "fixed: while the CEO starts or switches runners, `ceo_reply` says it waits (`ceoState`; test «run seven: while the CEO starts or switches runners…»)"
+      ]
+    },
+    {
+      "id": "UX-61",
+      "status": "fixed",
+      "evidence": [
+        "fixed: after a broken-off queue write, `ceo_reply` still reads the CEO's answer and carries the doubt beside it; it says `unknown` only when no answer shows by the deadline"
+      ]
+    },
+    {
+      "id": "UX-62",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the person's stop drops the lines a lost console owed, which were said as sent; the person's own waiting lines stay (`stopNow`; test «run seven: … the person's stop drops owed lines»)"
+      ]
+    }
+  ]
+}

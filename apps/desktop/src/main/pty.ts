@@ -8,7 +8,7 @@ import { preparedLaunchMatches, type PreparedLaunchPacket } from './preparedLaun
 
 import { spawn as ptySpawn, type IPty } from 'node-pty'
 import type { TranscriptStore } from './transcripts'
-import type { TerminalTermination } from '../shared/stop.ts'
+import { processGone, type TerminalTermination } from '../shared/stop.ts'
 import { randomUUID } from 'node:crypto'
 import { checkAuthorityTarget } from '../shared/authorityIngress.ts'
 import { execFile } from 'node:child_process'
@@ -20,7 +20,8 @@ import type { LaunchOption, SessionState, TerminalSession } from '../shared/type
 import { AGENTS, mayLaunch, preferredMode, type AgentPermissions, type SurfaceAdapter } from '../shared/agents.ts'
 import { trustsAgentFolders } from '../shared/folderTrust.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
-import { DeliveryQueue, type DeliveryQueueTiming, type DeliveryWriteOptions, type DeliveryWriteResult } from './deliveryQueue.ts'
+import { claudePromptDrawn } from '../shared/delivery.ts'
+import { BUSY_WRITE_AFTER_MS, DeliveryQueue, type DeliveryQueueTiming, type DeliveryWriteOptions, type DeliveryWriteResult } from './deliveryQueue.ts'
 import { LaunchRefusedBeforeSpawn, PtyLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
 import { causeOf } from '../shared/opsLog.ts'
@@ -28,6 +29,9 @@ import { createBoundedScrollback, type BoundedScrollback } from './scrollback.ts
 import { createProcessBoundary, type OwnedProcess } from './processBoundary.ts'
 import { defaultShell, killPty, launchFor, stopWindowsTree } from './platform.ts'
 import { findOnPath } from './executorDetect.ts'
+import { currentLaunchOrigin } from './launchOrigin.ts'
+import { currentLaunchModel, modelArgs } from './launchModel.ts'
+import type { OpenedLaunch } from './sessionLaunches.ts'
 
 /** How a fallback walk chose the runner a session runs (ADR-0125): the basis is the installation's
  *  order, never a contract route revision (DEC-0029); `passed_over` is every entry above the choice. */
@@ -332,6 +336,19 @@ export function setPermissionPreference(fn: (() => AgentPermissions) | null): vo
   permissionPreference = fn
 }
 
+// #region launch-sink — docs: docs/evidence/specs/2026-11-19-session-launch-journal.md#3-who-started-it
+/** Where a console's start and end are written (`sessionLaunches.ts`): one sink for every path that opens a console,
+ *  so a launch no caller annotated is still written (as Fabric's own). Unset in tests and probes: nothing is written. */
+export interface LaunchSink {
+  opened(o: OpenedLaunch): Promise<void>
+  ended(sessionId: string, e: { exitCode: number | null; signal: number | null; stopRequested: boolean }): Promise<void>
+}
+let launchSink: LaunchSink | null = null
+export function setLaunchSink(sink: LaunchSink | null): void {
+  launchSink = sink
+}
+// #endregion launch-sink
+
 let folderTrust: ((folder: string) => Promise<string>) | null = null
 /** CO-348: whether the person wants folders trusted, read at each Claude Code start (`appSettings.ts#trustsAgentFolders`).
  *  Unset (tests, a build that has not wired it) keeps the environment's word alone, as before. */
@@ -560,7 +577,7 @@ export class PtyManager {
     // the synchronous native spawn below.
     let launch: Awaited<ReturnType<typeof programForPty>>
     try {
-      launch = await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args, ...(extras?.args ?? [])])
+      launch = await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args, ...(extras?.args ?? []), ...(extras ? [] : modelArgs(runnerId, currentLaunchModel()).args)])
     } catch (e) {
       discardBundle()
       throw new SpawnFailure(program, cwd, e instanceof Error ? e.message : String(e))
@@ -610,7 +627,10 @@ export class PtyManager {
       delivery: new DeliveryQueue((text) => {
         pty.write(text)
         session.lastActivityAt = Date.now()
-      }, () => session.running && !session.inputHalted, this.deliveryTiming),
+      }, () => session.running && !session.inputHalted,
+      // Claude Code takes a message typed while it works and answers it after the turn (deliveryQueue.ts#busyAfterMs).
+      // 2026-11-20: and nothing is typed into it before its input box is drawn (deliveryQueue.ts#promptDrawn).
+      { busyAfterMs: runnerId === 'claude-code' ? BUSY_WRITE_AFTER_MS : undefined, promptDrawn: runnerId === 'claude-code' ? claudePromptDrawn : undefined, ...this.deliveryTiming }),
       pty,
       scrollback: createBoundedScrollback(),
       written: 0,
@@ -634,7 +654,7 @@ export class PtyManager {
       // and must remain observable until an actual exit arrives.
       pty.onData((data) => {
         this.transcripts?.write(sessionId, data)
-        session.delivery.noteOutput()
+        session.delivery.noteOutput(data)
         session.scrollback.push(data)
         session.written += data.length
         session.lastActivityAt = Date.now()
@@ -648,6 +668,7 @@ export class PtyManager {
         session.exitCode = exitCode
         session.exitSignal = signal ?? null
         session.lastActivityAt = Date.now()
+        if (launchSink) void launchSink.ended(sessionId, { exitCode, signal: signal ?? null, stopRequested: session.stopRequested }).catch(() => { /* the sink says its own failures */ })
         // Notify local exit immediately, so credential revocation is not held
         // behind a slow journal. Stop independently awaits ensureClosedReceipt;
         // neither port may await this callback's completion.
@@ -694,6 +715,12 @@ export class PtyManager {
           process_identity: session.process ? { pid: session.process.pid, group: session.process.group, start: session.process.start } : null
         }
       })
+      // The launch journal (board request eef5abeb): who asked, from where, in which branch; written beside the event
+      // journal and never awaited, so a slow disk or git never holds a console's start.
+      if (launchSink) void launchSink.opened({
+        sessionId, projectId, cwd, runner: runnerId, optionId, program, pid: session.process?.pid ?? pty.pid ?? null,
+        origin: currentLaunchOrigin(), env: { CLAUDE_CONFIG_DIR: (extras?.env ?? {}).CLAUDE_CONFIG_DIR ?? process.env.CLAUDE_CONFIG_DIR }
+      }).catch(() => { /* the sink says its own failures */ })
     } catch {
       // Close mediated access immediately, but retain native liveness until
       // the exit callback observes it. kill() returning is not that evidence.
@@ -771,6 +798,16 @@ export class PtyManager {
       .filter((s) => !projectId || s.projectId === projectId)
       .sort((a, b) => a.startedAt - b.startedAt)
       .map((s) => this.toPublic(s))
+  }
+
+  /** The root process of every console that runs now: what «вне Fabric» must never list (0.3.26 review, iteration 1, ER-3). */
+  runningPids(): Set<number> {
+    const out = new Set<number>()
+    for (const s of this.sessions.values()) {
+      const pid = s.process?.pid ?? s.pty?.pid
+      if (s.running && typeof pid === 'number' && pid > 1) out.add(pid)
+    }
+    return out
   }
 
   get(sessionId: string): TerminalSession | null {
@@ -932,7 +969,8 @@ export class PtyManager {
   /** Remove an already-ended session from the board. */
   dismiss(sessionId: string): void {
     const s = this.sessions.get(sessionId)
-    if (s && !s.running && s.closedRecorded && s.exitFinalized && (!s.termination || s.termination.state === 'stopped')) this.sessions.delete(sessionId)
+    // The operator, 2026-11-19: an ended session leaves at once, also when only the provider's work stays unproved.
+    if (s && !s.running && s.closedRecorded && s.exitFinalized && (!s.termination || processGone(s.termination))) this.sessions.delete(sessionId)
   }
 
   /**

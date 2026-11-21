@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "5d549a8dc93396a096fef8998e37d50fe3aa0a2a",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-5d549a8d/2026-11-20-errors.md",
+  "reportSha256": "d5cc6d1b2f329336edc2e6d8055647efc59e3bcd5a4b9ea1d4a2891f4e74f3c4",
+  "reviewerRun": "release-0326-i3r2-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: the queue is React state, cleared when a link replaces the ask, said in the ask, shown after the answer; the App-level test ruled: CO-604 (31)"
+      ]
+    },
+    {
+      "id": "ER-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: as UX-33"
+      ]
+    },
+    {
+      "id": "ER-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-three candidate: the IPC origin filter and the reason-and-via choice are pure, exported and tested (machineSessions.ts linkOriginOf, continueOrigin); test «a continue's origin: a link is a link with its app in the contract's grammar, a press is a screen»"
+      ]
+    }
+  ]
+}

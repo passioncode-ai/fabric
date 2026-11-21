@@ -501,3 +501,57 @@ test('0.3.23 review, iteration 1, ER-4: a start waits for a stop for the disk st
   assert.equal(world.recovers, 1, 'started once the stop ended and the disk is above the mark')
 })
 // #endregion stack-watch
+
+test('2026-11-20: while the stack is lost, reads that failed only for that are counted and said once, with its return', async () => {
+  const { tick, records, world, watch } = rig()
+  const { ops } = await import(path.join(SRC, 'opsSink.ts'))
+  ops.quietWhile(() => watch.isDown())
+  world.database = false
+  world.docker = true
+  await tick()
+  await tick()
+  assert.equal(watch.isDown(), true)
+  // What every screen and the board's upkeep met during the operator's 175 s outage: undici's words, many times.
+  for (let i = 0; i < 40; i++) ops.failed('ipc.feed:replay', new TypeError('fetch failed'))
+  for (let i = 0; i < 5; i++) ops.failed('board.tick', { message: 'TypeError: fetch failed' })
+  // A refusal the database itself gave is not the outage: it is written as before.
+  ops.failed('ipc.tasks:start', new Error('permission denied for table tasks'))
+  assert.equal(records('ipc.feed:replay').length, 0)
+  assert.equal(records('board.tick').length, 0)
+  assert.equal(records('ipc.tasks:start').length, 1)
+  world.database = true
+  await tick()
+  assert.equal(watch.isDown(), false)
+  const back = records('stack.back')
+  assert.equal(back.length, 1)
+  assert.deepEqual(back[0].detail.failed_while_down, { 'ipc.feed:replay': 40, 'board.tick': 5 })
+  // Up again: the same failure is written, one line each, as before the outage.
+  ops.failed('ipc.feed:replay', new TypeError('fetch failed'))
+  assert.equal(records('ipc.feed:replay').length, 1)
+  ops.quietWhile(null)
+})
+
+test('2026-11-20: the window hears the disk under 15 GB once per whole gigabyte, not once per reading', async () => {
+  const { tick, world } = rig()
+  world.free = 20e9
+  await tick()
+  const before = world.changes.length
+  assert.equal(before, 0, 'room on the disk: nothing to tell')
+  world.free = 14.6e9
+  await tick()
+  assert.equal(world.changes.length, 1)
+  assert.equal(world.changes.at(-1).view.diskSoon, true)
+  world.free = 14.2e9
+  await tick()
+  assert.equal(world.changes.length, 1, 'the same gigabyte: told nothing new')
+  world.free = 13.9e9
+  await tick()
+  assert.equal(world.changes.length, 2)
+  world.free = 2.5e9
+  await tick()
+  assert.equal(world.changes.at(-1).view.diskSoon, false, 'under 3 GB the louder warning speaks instead')
+  assert.equal(world.changes.at(-1).view.diskLow, true)
+  world.free = 40e9
+  await tick()
+  assert.equal(world.changes.at(-1).view.diskSoon, false)
+})

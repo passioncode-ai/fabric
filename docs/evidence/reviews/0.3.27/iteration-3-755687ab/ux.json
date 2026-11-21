@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "755687ab0b438a67c0ce26a6d448e3d5150ae8a1",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-755687ab/2026-11-21-ux.md",
+  "reportSha256": "afc86e0a8318ea93164205713789cd310cfe66862eb1bfad1a8d93e178b5685b",
+  "reviewerRun": "release-0327-i3r6-ux-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-54",
+      "status": "fixed",
+      "evidence": [
+        "fixed: for a CEO that is not running, `ask_ceo` tells the voice nothing is typed until the owner starts it, and `ceo_reply` says so before the waiting mark (`index.ts#runVoiceTool`, `ceoVoiceTools.ts#ceoReply`; test «run six: ceo_reply says a CEO that is not running first…»)"
+      ]
+    },
+    {
+      "id": "UX-55",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ceo_reply` reads the transcript from when the ask was written (`askWrittenAt`)"
+      ]
+    },
+    {
+      "id": "UX-56",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the queue tells the voice side about an unknown write too; `ceo_reply` answers `unknown`, «do not ask again» (same test)"
+      ]
+    },
+    {
+      "id": "UX-57",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a send waits for the fallback its own line caused, then for the queue to type it on the next runner (`ceoAgent.ts#send`)"
+      ]
+    },
+    {
+      "id": "UX-58",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-55"
+      ]
+    },
+    {
+      "id": "UX-59",
+      "status": "fixed",
+      "evidence": [
+        "fixed: two composer tests assert the button each state names (`CeoComposer.test.tsx`)"
+      ]
+    }
+  ]
+}

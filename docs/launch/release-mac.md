@@ -226,6 +226,56 @@ because this repository was private then.
 offered on [passioncode.ai/fabric](https://passioncode.ai/fabric/#download) (site PRs #7 and #8, Worker version
 `3726c08e-4a39-4d3b-8678-2edcb58c3716`).
 
+## Installing an update on a Mac
+
+An update replaces Fabric **in place**: the folder `/Applications/Fabric.app` stays, only its `Contents` changes, so the
+Dock, Launchpad and Finder keep one Fabric icon. The operator saw the opposite on 2026-11-20 («после обновления
+приложения у меня фабрик постоянно новая иконка появляется, старая куда-то что-то остаётся, пропадает»), and the cause
+was measured on his Mac the same evening:
+
+- the 0.3.26 apply renamed the bundle folder away (`mv /Applications/Fabric.app <worktree>/Fabric-0.3.24.app`) and
+  renamed a staged one in. A Dock tile is a bookmark to the folder, so it followed the old copy out of `/Applications`
+  and the new Fabric appeared as a second icon: `defaults read com.apple.dock persistent-apps` held two
+  `ai.passioncode.desktop` tiles. A deleted old copy then leaves a question mark, or a tile that vanishes;
+- an earlier way back stayed as `/Applications/Fabric-0.3.20.app` and the next update was staged as
+  `/Applications/.Fabric-0.3.26.app`: Launchpad and Spotlight show every bundle with the id as another Fabric;
+- rollout copies in worktrees and the scratchpad (`Fabric-0.3.14.app`, `Fabric-0.3.23.app`, `Fabric-0.3.24.app`) stayed
+  registered with LaunchServices under the same id.
+
+`scripts/install-mac-update.mjs` is the one way to install an update on a Mac (`scripts/lib/install-mac-update.mjs`
+holds its decisions, `scripts/test/install-mac-update.test.mjs` pins them):
+
+```sh
+node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg --schedule   # applies once Fabric has ended (with «Служба доски» on: turn it off, then Quit; on again after the update)
+node scripts/install-mac-update.mjs --dmg Fabric-0.3.27-universal.dmg              # now; refused while Fabric runs
+node scripts/install-mac-update.mjs --tidy                                         # one icon again, nothing installed
+```
+
+1. It refuses an update that is not `ai.passioncode.desktop`, whose signature does not verify
+   (`codesign --verify --deep --strict`), that another team signed, or that is not newer (`--force` for a way back).
+2. It stages the new `Contents` in `/Applications/.Fabric-update/` (same volume, no `.app`, so nothing registers it).
+3. With `--wait` (`--schedule` runs the same from a one-shot launch agent that outlives the terminal) it waits until
+   Fabric has ended. With «Служба доски» off, a Quit ends it. With «Служба доски» on (the default on macOS) Fabric
+   keeps running through a Quit, «Перезапустить Fabric» starts it again at once, and launchd starts it again at login,
+   so a logout or a restart of the Mac does not apply the update either: turn «Служба доски» off in Settings, then Quit,
+   and turn it on again once the new Fabric has started.
+   An end counts only when Fabric is still gone 2 s later (0.3.27 review ER-70, ER-82). Fabric is found by its
+   executable as well as by its command line, since the copy launchd starts runs as `Fabric --background` (DO-75). It
+   stops nothing.
+4. It swaps `Contents` by two renames, checks the signature and version of the result and swaps back on any failure.
+5. The previous `Contents` becomes `~/Library/Application Support/ai.passioncode.fabric/previous/Fabric-<version>.zip`,
+   which LaunchServices does not see. Way back: `mkdir -p /tmp/back/Fabric.app && ditto -x -k <zip> /tmp/back/Fabric.app`,
+   then `--app /tmp/back/Fabric.app --force`. (`Fabric-0.3.20.zip`, moved by the first `--tidy`, holds the whole bundle.)
+6. It re-registers the bundle (`lsregister -f`) and touches its folder, so Finder and the Dock read the icon again.
+7. Every time, also with `--tidy` alone: other `Fabric-<version>.app` copies beside the target are zipped into the
+   same folder and removed; every other LaunchServices registration of the id is removed (the files of other tasks stay
+   where they are); the Dock keeps exactly one Fabric tile, at the bundle's path, its stale bookmark dropped, and the
+   Dock restarts only when it changed (`--no-dock` leaves it alone).
+
+A copy launchd starts in the instant between the last check and the swap is the one window left: the installer checks
+again right before the renames and refuses rather than half-replace. An updater inside Fabric that restarts into the
+new version itself (CO-246, P-12) closes it.
+
 ## Upgrading an existing database
 
 This section is the upgrade procedure, **not an executed upgrade receipt**. Fabric never migrates
@@ -347,6 +397,13 @@ after the upgrade. Before upgrading again, remove `resume-since.json` from the a
 first 0.3.22, and the supervisor would otherwise continue what agents left under 0.3.21 in between (the 0.3.22 review,
 iteration 3, PL-2, DA-1).
 
+**0.3.27 admits schema 103** (migration `20261121000130_board_operator_message_via.sql`: a new function
+`board_message_via`, migration 94's `board_list_operator` with the mark added to each message, and migration 129's
+private-archive admission with 103 added; no table and no data change). Fabric does not take it itself: a database at
+102 is refused at start until this procedure runs (`supabase migration up --local` adds one row to
+`schema_migrations`; the 0.3.27 review, run thirteen); going back needs the earlier bundle and a database restored from the
+backup taken before the upgrade, as for every schema step, since no older build opens a schema-103 database.
+
 1. Stop Fabric and every enrolled writer/adapter. From 0.3.18 on macOS, Quit only hides Fabric while «Служба доски» is
    on: turn it off and then quit before the bundle is replaced (`launchctl bootout` stops only a copy launchd started;
    the 0.3.18 paragraph above), and turn it on again once the new build runs. A quiet window does not prove the database has
@@ -429,7 +486,7 @@ iteration 3, PL-2, DA-1).
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12, 98 for 0.3.13 to 0.3.15, 100 for 0.3.16 to 0.3.18, 101 for 0.3.19, 102 for 0.3.20 and 0.3.21).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 to 0.3.4, 84 for 0.3.5, 89 for 0.3.6, 94 for 0.3.7 and 0.3.8, 95 for 0.3.9 to 0.3.11, 96 for 0.3.12, 98 for 0.3.13 to 0.3.15, 100 for 0.3.16 to 0.3.18, 101 for 0.3.19, 102 for 0.3.20 to 0.3.26, 103 after).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

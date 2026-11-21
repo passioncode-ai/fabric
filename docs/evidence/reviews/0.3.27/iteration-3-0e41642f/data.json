@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "0e41642f0b1eb3b6dc40e503d751f5a242d9ec51",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-0e41642f/2026-11-21-data.md",
+  "reportSha256": "c4356cd421f6077ea6b7c4334caf8e59954981f9de6a5959b750eb0c5daf2de2",
+  "reviewerRun": "release-0327-i3r11-data-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-67",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-93"
+      ]
+    },
+    {
+      "id": "DA-68",
+      "status": "fixed",
+      "evidence": [
+        "fixed: AGENTS.md names `heldByPerson` in `ceo.json`, SCN-187 is amended, and the status reads stopped after a restart (UX-88)"
+      ]
+    },
+    {
+      "id": "DA-69",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `xai-key` is letters and digits, 20 or more, so a cut key keeps at most 19 characters and a hyphenated name still does not match (`redact.ts`; the redact test)"
+      ]
+    },
+    {
+      "id": "DA-70",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (13); the owner's name is taken out of the quote (DO-100)"
+      ]
+    }
+  ]
+}

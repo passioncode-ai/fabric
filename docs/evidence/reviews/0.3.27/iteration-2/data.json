@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "81e2ee85fb27ac36e9f2fa19cdbcbd2919a1b956",
+  "report": "docs/evidence/reviews/0.3.27/iteration-2/2026-11-20-data.md",
+  "reportSha256": "8a6ea07373dd9c91f428dfe668877d8404eaaf26734c26fc3a9d7f27f76668c9",
+  "reviewerRun": "release-0327-i2-data-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: the owner's private worktree and folder names are replaced by placeholders in the iteration-1 and iteration-2 reports, the retro README, the code comment and the tests' fixtures; the ledger says so and the receipts carry the new hashes"
+      ]
+    },
+    {
+      "id": "DA-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-605 (10), kept verbatim by the owner's order of 2026-11-20 to keep his words with the retros"
+      ]
+    },
+    {
+      "id": "DA-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: only files named as calls, real files and never links, are pruned or listed, and a call whose first row is a start is ended (callFiles, closeOrphans); test «0.3.27 review DA-13, DA-15», red with the name rule removed"
+      ]
+    },
+    {
+      "id": "DA-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: pruned to KEEP_CALLS - 1 before a call starts, so 200 at most; age from the start in the file name; test «DA-4» asserts 200"
+      ]
+    },
+    {
+      "id": "DA-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: keys are redacted like values (cleanKeys); test «0.3.27 review DA-13, DA-15»"
+      ]
+    },
+    {
+      "id": "DA-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: every voice tool's answer is redacted whole before it goes back to the call (index.ts, redactPayload)"
+      ]
+    },
+    {
+      "id": "DA-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: fixes.md §5 has the selecting query, the session id and what the check does not cover; §1 points at ADR-0197 amendment 4"
+      ]
+    },
+    {
+      "id": "DA-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 candidate: an unreadable aliases file is kept aside before a write (`.bad-<time>`) and the failure counted; test «0.3.27 review ER-16, ER-21, DA-18»"
+      ]
+    }
+  ]
+}

@@ -12,9 +12,12 @@ import path from 'node:path'
 import { findOnPath, widenProbePath } from './executorDetect.ts'
 import { mergeSessions, type SbSessionRecord } from '../shared/vendor/dashboardsSessions.ts'
 import type { SwitchboardSessions } from '../shared/switchboardSessions.ts'
+import type { SbSessionLite } from '../shared/sessionMeta.ts'
 export type { SwitchboardSessions }
 
-export const SWITCHBOARD_SESSIONS_DEADLINE_MS = 10_000
+/** 30 s (Switchboard's measure of 2026-11-19, board thread 3ca40854: under a load average of 120 its slow answers took
+ *  28 s at the median, so 10 s killed calls that would have answered). */
+export const SWITCHBOARD_SESSIONS_DEADLINE_MS = 30_000
 
 type Run = (file: string, args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>
 
@@ -123,7 +126,7 @@ export async function readLimitStops(deps: { find(): Promise<string | null>; run
 /** In the app, as `readMachineSwitchboardSessions` asks. */
 export async function readMachineLimitStops(env: Record<string, string>): Promise<ReadonlySet<string> | null> {
   const PATH = await widenProbePath(env.PATH ?? '', env)
-  return readLimitStops({ find: () => findOnPath('switchboard', PATH), run: (file, args) => runSwitchboard(file, args, env, PATH) })
+  return readLimitStops({ find: () => findOnPath('switchboard', PATH), run: (file, args) => withOneRetry((d) => runSwitchboard(file, args, env, PATH, d), SWITCHBOARD_SESSIONS_DEADLINE_MS) })
 }
 // #endregion switchboard-limit-stops
 
@@ -133,7 +136,7 @@ export async function readMachineSwitchboardSessions(env: Record<string, string>
   return readSwitchboardSessions({
     find: () => findOnPath('switchboard', PATH),
     now,
-    run: (file, args) => runSwitchboard(file, args, env, PATH)
+    run: (file, args) => withOneRetry((d) => runSwitchboard(file, args, env, PATH, d), SWITCHBOARD_SESSIONS_DEADLINE_MS)
   })
 }
 // #endregion switchboard-sessions
@@ -143,16 +146,126 @@ export async function readMachineSwitchboardSessions(env: Record<string, string>
 export async function runMachineSwitchboard(env: Record<string, string>, args: string[]): Promise<{ code: number; stdout: string; stderr: string } | null> {
   const PATH = await widenProbePath(env.PATH ?? '', env)
   const sb = await findOnPath('switchboard', PATH)
-  return sb ? runSwitchboard(sb, args, env, PATH) : null
+  if (!sb) return null
+  // Only a read is tried twice: a `sessions end` or `continue` that timed out may have acted, and acting twice is not
+  // the person's ask.
+  return readOnlySwitchboardCall(args)
+    ? withOneRetry((deadline) => runSwitchboard(sb, args, env, PATH, deadline), SWITCHBOARD_SESSIONS_DEADLINE_MS)
+    : runSwitchboard(sb, args, env, PATH)
 }
 
-/** `execFile` with a deadline and no shell. */
-function runSwitchboard(file: string, args: string[], env: Record<string, string>, PATH: string): Promise<{ code: number; stdout: string; stderr: string }> {
+/** A `switchboard --json sessions [--rows|--all|show …]` or `--json recovery` read: nothing on the machine changes.
+ *  Since 2026-11-20 also the console line's reads (`accounts list`, `project list`, `shell env --dir <folder>`). */
+export function readOnlySwitchboardCall(args: readonly string[]): boolean {
+  if (args[0] !== '--json') return false
+  if (args[1] === 'recovery') return args.length === 2
+  if ((args[1] === 'accounts' || args[1] === 'project') && args[2] === 'list') return args.length === 3
+  if (args[1] === 'shell' && args[2] === 'env') return args.length === 5 && args[3] === '--dir' && path.isAbsolute(args[4] ?? '')
+  return args[1] === 'sessions' && args.slice(2).every((a) => a === '--rows' || a === '--all' || a === '--tree' || a === '--machine')
+}
+
+// #region switchboard-run-failure — docs: docs/evidence/specs/2026-11-19-session-launch-journal.md#5-when-switchboard-does-not-answer
+/** Switchboard's output may be large (184 KB for 445 rows, measured 2026-11-19); 16 MB keeps a busy machine readable. */
+export const SWITCHBOARD_MAX_OUTPUT = 16 * 1024 * 1024
+
+/**
+ * Why a `switchboard` call gave no exit code, in words a person reads (board request eef5abeb: the CEO saw only
+ * «Command failed: …/switchboard --json sessions --rows», `execFile`'s message for a child that was killed, which says
+ * neither the deadline nor the signal). `retry` is true for what a second try can cure: the deadline, a signal (the
+ * app's binary being replaced by its own update), an output over the buffer is not.
+ */
+export function switchboardFailure(err: unknown, deadlineMs: number): { reason: string; retry: boolean } {
+  const e = (err ?? {}) as { code?: unknown; signal?: unknown; killed?: unknown; message?: unknown }
+  const tail = typeof e.message === 'string' ? e.message.split('\n').slice(1).join(' ').trim().slice(0, 160) : ''
+  const said = (s: string): string => (tail ? `${s} (${tail})` : s)
+  if (e.code === 'ENOENT') return { reason: 'the switchboard program is not where it was found (being updated or removed)', retry: true }
+  if (e.code === 'EACCES') return { reason: 'the switchboard program may not be run (permission denied)', retry: false }
+  if (e.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER') return { reason: 'switchboard answered more than Fabric reads at once', retry: false }
+  if (e.killed === true && (e.signal === 'SIGTERM' || e.signal === null || e.signal === undefined))
+    return { reason: said(`switchboard did not answer within ${Math.round(deadlineMs / 1000)} s`), retry: true }
+  if (typeof e.signal === 'string') return { reason: said(`switchboard was ended by ${e.signal}`), retry: true }
+  return { reason: said(typeof e.message === 'string' ? e.message.split('\n')[0]!.slice(0, 200) : String(err)), retry: false }
+}
+
+/** `execFile` with a deadline and no shell. A call that gave no exit code throws an Error naming why
+ *  (`switchboardFailure`), with `retry` on it. */
+function runSwitchboard(file: string, args: string[], env: Record<string, string>, PATH: string, deadlineMs = SWITCHBOARD_SESSIONS_DEADLINE_MS): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    execFile(file, [...args], { env: { ...env, PATH }, timeout: SWITCHBOARD_SESSIONS_DEADLINE_MS, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) => {
+    execFile(file, [...args], { env: { ...env, PATH }, timeout: deadlineMs, maxBuffer: SWITCHBOARD_MAX_OUTPUT }, (err, stdout, stderr) => {
       const exit = (err as { code?: unknown } | null)?.code
-      if (err && typeof exit !== 'number') return reject(err)
+      if (err && typeof exit !== 'number') {
+        const f = switchboardFailure(err, deadlineMs)
+        return reject(Object.assign(new Error(f.reason), { retry: f.retry }))
+      }
       resolve({ code: err ? (exit as number) : 0, stdout: String(stdout), stderr: String(stderr) })
     })
   })
 }
+
+/** One call with one more try, a second later and with the same deadline, for a failure a second try can cure
+ *  (Switchboard's advice, board thread 3ca40854: 30 s and one retry; it joins concurrent calls itself, SB-580). */
+export async function withOneRetry<T>(call: (deadlineMs: number) => Promise<T>, deadlineMs: number, sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))): Promise<T> {
+  try { return await call(deadlineMs) } catch (e) {
+    if (!(e as { retry?: unknown })?.retry) throw e
+    await sleep(1000)
+    return call(deadlineMs)
+  }
+}
+// #endregion switchboard-run-failure
+
+// #region session-meta-switchboard — docs: docs/ux/scenarios.md#scn-188-read-a-consoles-system-line
+/** The console line's half of `sessions --all` (2026-11-20): the runner's own session id and who asked Switchboard,
+ *  which `parseSessions` leaves out; the same record, the same checks. */
+export function parseSessionLites(stdout: string): SbSessionLite[] | null {
+  const data = dataOf(stdout)
+  if (!data) return null
+  const out: SbSessionLite[] = []
+  for (const x of Array.isArray(data.sessions) ? (data.sessions as Record<string, unknown>[]) : []) {
+    if (!x || typeof x !== 'object' || typeof x.working_directory !== 'string' || !path.isAbsolute(x.working_directory)) continue
+    const by = x.launched_by && typeof x.launched_by === 'object' ? (x.launched_by as Record<string, unknown>) : null
+    out.push({
+      providerSessionId: typeof x.provider_session_id === 'string' && SESSION.test(x.provider_session_id) ? x.provider_session_id : null,
+      folder: x.working_directory,
+      label: typeof x.label === 'string' ? x.label.slice(0, 200) : '',
+      contextName: typeof x.context_name === 'string' ? x.context_name.slice(0, 120) : null,
+      context: typeof x.context === 'string' ? x.context.slice(0, 120) : null,
+      surface: by && typeof by.surface === 'string' && /^[a-z-]{1,32}$/.test(by.surface) ? by.surface : null,
+      launchedAt: ms(x.launched_at)
+    })
+  }
+  return out
+}
+
+/** `accounts list`: the routes (`provider:pool` → account id) and each account's label. Never a credential. */
+export function parseAccounts(stdout: string): { routes: Record<string, string>; labels: Record<string, string> } | null {
+  const data = dataOf(stdout)
+  if (!data) return null
+  const routes: Record<string, string> = {}
+  if (data.routes && typeof data.routes === 'object')
+    for (const [k, v] of Object.entries(data.routes as Record<string, unknown>)) if (/^[a-z]+:[A-Za-z0-9._-]{1,64}$/.test(k) && typeof v === 'string' && v.length <= 64) routes[k] = v
+  const labels: Record<string, string> = {}
+  for (const a of Array.isArray(data.accounts) ? (data.accounts as Record<string, unknown>[]) : [])
+    if (a && typeof a.id === 'string' && typeof a.label === 'string') labels[a.id] = a.label.slice(0, 200)
+  return { routes, labels }
+}
+
+/** `project list`: each group's organisation name. */
+export function parseGroupOrgs(stdout: string): Record<string, string> | null {
+  const data = dataOf(stdout)
+  if (!data) return null
+  const out: Record<string, string> = {}
+  for (const p of Array.isArray(data.projects) ? (data.projects as Record<string, unknown>[]) : [])
+    if (p && typeof p.pool === 'string' && typeof p.organization_name === 'string' && p.organization_name) out[p.pool] = p.organization_name.slice(0, 120)
+  return out
+}
+
+/** `shell env --dir`: `none`, or the group, its context, the Claude home and the Codex home, tab-separated. */
+export function parseShellEnv(stdout: string): { pool: string; context: string | null; claudeHome: string | null } | null {
+  const line = stdout.trim().split('\n')[0] ?? ''
+  if (!line || line === 'none') return null
+  const [pool, context, claudeHome] = line.split('\t')
+  if (!pool || !/^[A-Za-z0-9._-]{1,64}$/.test(pool)) return null
+  return { pool, context: context && context !== '-' ? context : null, claudeHome: claudeHome && claudeHome !== '-' && path.isAbsolute(claudeHome) ? claudeHome : null }
+}
+// #endregion session-meta-switchboard
+

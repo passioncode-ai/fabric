@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "f6990a9aaed3f243d65a40be601e5b519b9af30d",
+  "report": "docs/evidence/reviews/0.3.27/iteration-1/2026-11-20-plan.md",
+  "reportSha256": "4e4c35cc14ea92d6c55613155d46104fc7595048424606ef83dfae82f296f259",
+  "reviewerRun": "release-0327-i1-plan-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: CO-605 and CO-606 in lane 12; check-plan-ids PASS"
+      ]
+    },
+    {
+      "id": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: delivered only when Claude Code started its turn, else written_unconfirmed with the next step (consoleOpen.ts deliverFirst); test «0.3.27 review PL-2» in console-open.test.mjs, red with the old answer; CHANGELOG and SCN-183 say so; the cause carried in CO-606"
+      ]
+    },
+    {
+      "id": "PL-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-606, the waves A to I with their board tasks and wave 0's found rows"
+      ]
+    },
+    {
+      "id": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the general plan's Now line names the 2026-11-20 order and its sequence"
+      ]
+    },
+    {
+      "id": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: fixes.md rows 1, 4 and 10 say what was narrowed and where it is carried; a tie is not counted as a failed guess; test «finding 8» extended"
+      ]
+    },
+    {
+      "id": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the CHANGELOG says the archive was on the owner's computer only, other installs keep theirs (CO-605)"
+      ]
+    },
+    {
+      "id": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the retro's header status says fixed on the 0.3.27 candidate except CO-605"
+      ]
+    },
+    {
+      "id": "PL-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-606 (wave C), the ADR when feat/knowledge-graph's ADR-0199 and ADR-0200 land"
+      ]
+    }
+  ]
+}

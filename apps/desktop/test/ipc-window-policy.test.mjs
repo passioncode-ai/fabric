@@ -35,10 +35,10 @@ const EVERY_WINDOW = ['settingsRead', 'personaRead', 'metaInfo', 'opsRendererErr
   'stackHealth', 'stackHealthChanged']
 const SESSION_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalEnd', 'terminalAttestOver', 'terminalDismiss', 'terminalData', 'terminalExit']
 /** ADR-0197: the CEO popup reads and types its console (`TerminalView.tsx`), opens it in a window, and speaks the CEO's
- *  own channels; the voice call's two are its alone. */
+ *  own channels; the voice call's four are its alone. */
 const CEO_USES = [...EVERY_WINDOW, 'terminalGet', 'terminalScrollback', 'terminalWrite', 'terminalResize', 'terminalData', 'terminalExit',
-  'windowsOpenSession', 'ceoAgentStatus', 'ceoAgentEnsure', 'ceoAgentSend', 'ceoAgentRestart', 'ceoAgentOpen', 'ceoAgentTakeDraft',
-  'ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceKeySet', 'ceoAgentChanged', 'ceoAgentDraft',
+  'windowsOpenSession', 'ceoAgentStatus', 'ceoAgentEnsure', 'ceoAgentSend', 'ceoAgentRestart', 'ceoAgentStop', 'ceoAgentOpen', 'ceoAgentTakeDraft',
+  'ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceLine', 'ceoAgentVoiceEnd', 'ceoAgentVoiceKeySet', 'ceoAgentTakeCall', 'ceoAgentChanged', 'ceoAgentDraft',
   // ADR-0201: the popup may open the canvas the call draws on.
   'canvasOpen']
 /** ADR-0201: the canvas window reads, writes and answers for its own canvas, and may open a canvas. */
@@ -78,7 +78,7 @@ test('ADR-0197: the CEO popup reaches only its own console, and its subject foll
 test('the main window keeps the whole bridge; detached windows get exactly what they use', () => {
   // The voice call's channels are the CEO popup's alone (ADR-0197 §4): the main window has the rest.
   // The canvas's own channels are its window's alone (ADR-0201): the main window opens a canvas and nothing more.
-  assert.deepEqual(channelsFor('main').sort(), Object.keys(IPC).filter((k) => k !== 'ceoAgentVoice' && k !== 'ceoAgentVoiceTool' && !CANVAS_OWN.includes(k)).sort())
+  assert.deepEqual(channelsFor('main').sort(), Object.keys(IPC).filter((k) => !['ceoAgentVoice', 'ceoAgentVoiceTool', 'ceoAgentVoiceLine', 'ceoAgentVoiceEnd'].includes(k) && !CANVAS_OWN.includes(k)).sort())
   assert.deepEqual(channelsFor('canvas').sort(), [...CANVAS_USES].sort())
   assert.deepEqual(channelsFor('ceo').sort(), [...CEO_USES].sort())
   assert.deepEqual(channelsFor('session').sort(), [...SESSION_USES].sort())

@@ -27,6 +27,14 @@ export const STACK_READ_DEADLINE_MS = 6_000
 export const STACK_DOWN_AFTER = 2
 /** Consecutive reads that only ran out of time before the stack counts as lost: a slow database is given longer. */
 export const STACK_DOWN_AFTER_SLOW = 3
+/** 2026-11-20, the operator: «заранее предупреждать о диске (<15 ГБ) в окне». Under this much free space the window says
+ *  so, quietly, well before the 3 GB warning and the 1 GB stop: six outages in two days were all the disk. */
+export const DISK_SOON_BYTES = 15e9
+/** The whole gigabytes left under `DISK_SOON_BYTES`, or null above it or unread: the watch tells the window again each
+ *  time this changes, so the figure it shows follows the disk without a message per tick. */
+export function diskSoonBand(freeDiskBytes: number | null): number | null {
+  return freeDiskBytes === null || freeDiskBytes >= DISK_SOON_BYTES ? null : Math.floor(Math.max(0, freeDiskBytes) / 1e9)
+}
 /** A low disk counts as recovered only above this, so a disk hovering at 3 GB is not recorded every tick. */
 export const DISK_RECOVERED_BYTES = LOW_DISK_BYTES + 5e8
 
@@ -351,6 +359,8 @@ export interface StackHealthView {
    *  a Mac on Colima is told about Colima (CO-492). */
   runtime: string | null
   diskLow: boolean
+  /** Under `DISK_SOON_BYTES` and not yet low: the window says the disk is filling, before anything stops. */
+  diskSoon: boolean
   freeDiskBytes: number | null
   /** The stack is down on a low disk: the disk is the likely cause, and freeing space comes first. */
   diskLikelyCause: boolean
@@ -381,6 +391,7 @@ export function stackHealthView(state: StackWatchState, now: number, platform: s
     platform,
     runtime,
     diskLow,
+    diskSoon: !diskLow && diskSoonBand(state.freeDiskBytes) !== null,
     freeDiskBytes: state.freeDiskBytes,
     diskLikelyCause: down && diskLow,
     diskStopped: down && state.hold === 'disk' && state.diskStopped,

@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "0e41642f0b1eb3b6dc40e503d751f5a242d9ec51",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-0e41642f/2026-11-21-errors.md",
+  "reportSha256": "6f1ec387af7944eaabf2c5223f534767735e6ea9797987ec7144554a9d36d2bc",
+  "reviewerRun": "release-0327-i3r11-errors-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-93",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `start` writes the meta through `writeHold(held)`, keeping a stop pressed while the project was looked up (test «run eleven: a stop during the first start's project lookup survives the next restart», watched red as the reviewer's probe)"
+      ]
+    },
+    {
+      "id": "ER-94",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-88"
+      ]
+    },
+    {
+      "id": "ER-95",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the person's restart and message clear the kept stop at once (`writeHold(false)` in `restart('person')` and `send`)"
+      ]
+    },
+    {
+      "id": "ER-96",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a wake the person stops is logged `ok` with `stopped_by_person`, not as a failed wake (`ceoBoardKeeper.ts#wake`)"
+      ]
+    },
+    {
+      "id": "ER-97",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (13)"
+      ]
+    },
+    {
+      "id": "ER-98",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (13)"
+      ]
+    }
+  ]
+}

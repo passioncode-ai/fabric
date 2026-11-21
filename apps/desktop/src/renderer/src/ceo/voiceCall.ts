@@ -6,6 +6,7 @@
  * main (`ceoAgent.voiceTool`), with the gates the CEO's console has, and its answer is handed back before the model
  * speaks again. Pure of React; the socket and the audio are injected, so the protocol is tested without either.
  */
+import { CEO_ADDRESS_WORDS } from '../../../shared/ceoAddress'
 import type { CeoVoiceProblem, CeoVoiceSession } from '../../../shared/ceoAgent.ts'
 
 export type CallPhase = 'idle' | 'connecting' | 'listening' | 'speaking' | 'ended' | 'failed'
@@ -18,7 +19,7 @@ export type CallEnd = 'limit' | 'idle'
 /** How long the socket may take to open before the call fails (ER-4). */
 export const CONNECT_DEADLINE_MS = 15_000
 /** The longest call: xAI bills the open session and its secret does not bound the session's length (measured by the
- *  Dissy and PlaySing sessions, 2026-11-19), so the call bounds itself. Five minutes, then the person calls again (the
+ *  two projects' sessions, 2026-11-19), so the call bounds itself. Five minutes, then the person calls again (the
  *  operator, 2026-11-19: «максимально длительность звонка 5 минут»). */
 export const MAX_CALL_MS = 5 * 60_000
 /** A call nobody spoke in, and that is not answering or running a tool, for this long ends: silence is billed too (the
@@ -46,6 +47,18 @@ export interface CallAudio {
   /** Cut what is playing and queued (the person spoke over it). */
   interrupt(): void
   stop(): void
+  /** Silence the CEO's voice (text only) or bring it back; the answers still arrive as lines. */
+  mute?(on: boolean): void
+  /** How loud the person (`input`) and the CEO (`output`) are now, each 0..1; read per frame by the voice meter. */
+  levels?(): { input: number; output: number }
+}
+
+/** The loudness of a chunk as 0..1: its RMS, lifted so speech fills the meter (speech RMS sits near 0.05..0.3). */
+export function levelOf(samples: Float32Array): number {
+  if (!samples.length) return 0
+  let sum = 0
+  for (let i = 0; i < samples.length; i++) sum += samples[i]! * samples[i]!
+  return Math.min(1, Math.sqrt(sum / samples.length) * 4)
 }
 
 export interface CallDeps {
@@ -55,6 +68,12 @@ export interface CallDeps {
   audio: CallAudio
   onPhase(phase: CallPhase, problem?: CallProblem | CallEnd): void
   onLine(line: CallLine): void
+  /** The call's journal in main (voice CEO retro 2026-11-20, finding 1): the owner's and the voice's lines and the
+   *  call's end, under the id main gave with the session. Absent: nothing is kept beyond the window. */
+  journal?: {
+    line(callId: string, who: 'person' | 'ceo', text: string): void
+    end(callId: string, spent: { minutes: number; usd: number; end: string | null }): void
+  }
   now?: () => number
 }
 
@@ -67,7 +86,9 @@ export function sessionUpdate(s: Extract<CeoVoiceSession, { ok: true }>): Record
       voice: s.voice,
       turn_detection: { type: 'server_vad' },
       audio: {
-        input: { format: { type: 'audio/pcm', rate: 24000 }, transcription: { model: 'grok-transcribe' } },
+        // Recognition hints (xAI `audio.input.transcription.keyterms`, docs.x.ai speech-to-speech, read 2026-11-21): the
+        // owner's words for the CEO, so «шеф» or «SEO» reach the voice as said (the owner, 2026-11-21).
+        input: { format: { type: 'audio/pcm', rate: 24000 }, transcription: { model: 'grok-transcribe', keyterms: [...CEO_ADDRESS_WORDS, 'Fabric'] } },
         output: { format: { type: 'audio/pcm', rate: 24000 } }
       },
       tools: s.tools
@@ -82,6 +103,13 @@ export function createCall(deps: CallDeps) {
   let startedAt = 0
   let usdPerMinute = 0
   let ceoLine = ''
+  /** The journal's id for this call, from main's session; null when main keeps none. */
+  let callId: string | null = null
+  /** A line for the window and, for the owner's and the voice's words, for the journal. */
+  const line = (l: CallLine): void => {
+    deps.onLine(l)
+    if (callId && l.who !== 'tool') { try { deps.journal?.line(callId, l.who, l.text) } catch { /* the window still shows it */ } }
+  }
   /** The person's words so far, as the cumulative transcript reports them; said once the answer starts. */
   let personLine = ''
   /** Function calls of the current response not answered yet; the next response waits for all of them. */
@@ -101,6 +129,12 @@ export function createCall(deps: CallDeps) {
 
   /** End the call: the microphone, the socket and the deadline; `failed` with its code, else `ended`. */
   function end(problem?: CallProblem, ended?: CallEnd): void {
+    if (callId) {
+      const id = callId
+      callId = null
+      const minutes = startedAt ? (now() - startedAt) / 60_000 : 0
+      try { deps.journal?.end(id, { minutes, usd: Math.round(minutes * usdPerMinute * 100) / 100, end: problem ?? ended ?? 'hung-up' }) } catch { /* the call ends either way */ }
+    }
     generation++
     clearDeadline()
     if (watch) { clearInterval(watch); watch = null }
@@ -122,6 +156,7 @@ export function createCall(deps: CallDeps) {
     if (gen !== generation) return
     if (!s.ok) { end(s.reason); return }
     usdPerMinute = s.usdPerMinute
+    callId = typeof s.callId === 'string' ? s.callId : null
     const ready = s
     let socket: SocketLike
     try {
@@ -153,7 +188,8 @@ export function createCall(deps: CallDeps) {
     }
     socket.onerror = () => { if (gen === generation && phase !== 'ended') end('connection') }
     socket.onclose = () => { if (gen === generation) end() }
-    socket.onmessage = (ev) => { if (gen === generation) void receive(typeof ev.data === 'string' ? ev.data : '') }
+    // ER-12 (0.3.25): an event that cannot be played is dropped, never an unhandled rejection.
+    socket.onmessage = (ev) => { if (gen === generation) receive(typeof ev.data === 'string' ? ev.data : '').catch(() => undefined) }
   }
 
   async function receive(raw: string): Promise<void> {
@@ -172,7 +208,7 @@ export function createCall(deps: CallDeps) {
       case 'response.output_audio_transcript.done':
       case 'response.audio_transcript.done':
       case 'response.done':
-        if (ceoLine.trim()) deps.onLine({ who: 'ceo', text: ceoLine.trim() })
+        if (ceoLine.trim()) line({ who: 'ceo', text: ceoLine.trim() })
         ceoLine = ''
         if (type === 'response.done' && phase === 'speaking') set('listening')
         return
@@ -186,12 +222,12 @@ export function createCall(deps: CallDeps) {
         return
       case 'conversation.item.input_audio_transcription.completed':
         if (typeof m.transcript === 'string') personLine = m.transcript
-        if (personLine.trim()) deps.onLine({ who: 'person', text: personLine.trim() })
+        if (personLine.trim()) line({ who: 'person', text: personLine.trim() })
         personLine = ''
         return
       case 'response.created':
         touch()
-        if (personLine.trim()) deps.onLine({ who: 'person', text: personLine.trim() })
+        if (personLine.trim()) line({ who: 'person', text: personLine.trim() })
         personLine = ''
         return
       case 'response.function_call_arguments.done':
@@ -222,11 +258,14 @@ export function createCall(deps: CallDeps) {
     if (pending.size === 0 && respondAfterTools) { respondAfterTools = false; send({ type: 'response.create' }) }
   }
 
+  /** The CEO's voice off or on for the rest of the call (the owner, 2026-11-19: a voice reading the screen aloud). */
+  function mute(on: boolean): void { deps.audio.mute?.(on) }
+
   /** Words typed instead of spoken: the same conversation, answered aloud. */
   function say(text: string): void {
     if (!text.trim()) return
     touch()
-    deps.onLine({ who: 'person', text: text.trim() })
+    line({ who: 'person', text: text.trim() })
     send({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: text.trim() }] } })
     send({ type: 'response.create' })
   }
@@ -234,8 +273,10 @@ export function createCall(deps: CallDeps) {
   function hangUp(): void { end() }
 
   return {
-    start, say, hangUp, receive,
+    start, say, hangUp, receive, mute,
     phase: (): CallPhase => phase,
+    /** The audio's levels now; silence when the call has no audio or the audio keeps none. */
+    levels: (): { input: number; output: number } => (ws ? deps.audio.levels?.() ?? { input: 0, output: 0 } : { input: 0, output: 0 }),
     /** Minutes on the call and their price at xAI's list rate. */
     spent: (): { minutes: number; usd: number } => {
       const minutes = startedAt ? (now() - startedAt) / 60_000 : 0
@@ -273,12 +314,17 @@ export function pcm16Base64ToFloat(b64: string): Float32Array {
 }
 
 /** The browser's audio: the microphone through a ScriptProcessor (no worklet module to load under the page's policy). */
-export function browserAudio(): CallAudio {
+export function browserAudio(startMuted = false): CallAudio {
+  let muted = startMuted
   let ctx: AudioContext | null = null
   let stream: MediaStream | null = null
   let proc: ScriptProcessorNode | null = null
   let next = 0
   const playing = new Set<AudioBufferSourceNode>()
+  /** The last microphone chunk's level, and the played chunks' levels with the time each starts and ends. */
+  let input = 0
+  let inputAt = 0
+  const outLevels: Array<{ from: number; to: number; level: number }> = []
   const ensure = (): AudioContext => (ctx ??= new AudioContext({ sampleRate: 24000 }))
   return {
     async start(onChunk) {
@@ -286,12 +332,18 @@ export function browserAudio(): CallAudio {
       stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
       const src = c.createMediaStreamSource(stream)
       proc = c.createScriptProcessor(4096, 1, 1)
-      proc.onaudioprocess = (ev) => onChunk(floatToPcm16Base64(ev.inputBuffer.getChannelData(0)))
+      proc.onaudioprocess = (ev) => {
+        const samples = ev.inputBuffer.getChannelData(0)
+        input = levelOf(samples)
+        inputAt = c.currentTime
+        onChunk(floatToPcm16Base64(samples))
+      }
       src.connect(proc)
       // A ScriptProcessor runs only while it is connected to the destination; it writes silence there.
       proc.connect(c.destination)
     },
     play(b64) {
+      if (muted) return
       const c = ensure()
       const samples = pcm16Base64ToFloat(b64)
       if (!samples.length) return
@@ -302,6 +354,8 @@ export function browserAudio(): CallAudio {
       node.connect(c.destination)
       next = Math.max(next, c.currentTime + 0.02)
       node.start(next)
+      outLevels.push({ from: next, to: next + buf.duration, level: levelOf(samples) })
+      if (outLevels.length > 64) outLevels.splice(0, outLevels.length - 64)
       next += buf.duration
       playing.add(node)
       node.onended = () => playing.delete(node)
@@ -310,6 +364,18 @@ export function browserAudio(): CallAudio {
       for (const n of playing) { try { n.stop() } catch { /* ended already */ } }
       playing.clear()
       next = 0
+      outLevels.length = 0
+    },
+    mute(on) {
+      muted = on
+      if (on) this.interrupt()
+    },
+    levels() {
+      if (!ctx) return { input: 0, output: 0 }
+      const now = ctx.currentTime
+      const out = outLevels.find((l) => l.from <= now && now < l.to)?.level ?? 0
+      // A microphone chunk is about 170 ms; an older reading is silence.
+      return { input: now - inputAt < 0.3 ? input : 0, output: out }
     },
     stop() {
       this.interrupt()

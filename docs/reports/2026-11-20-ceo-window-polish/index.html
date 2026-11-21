@@ -1,0 +1,40 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Окно CEO: причёсывание, снимки до и после</title>
+<style>body{font:14px/1.5 -apple-system,system-ui,sans-serif;margin:24px;background:#111;color:#eee}h1{font-size:20px}h2{font-size:16px;margin-top:32px}figure{display:inline-block;margin:0 16px 16px 0;vertical-align:top}img{max-width:420px;border:1px solid #333;display:block}figcaption{font-size:12px;color:#aaa;margin-top:4px}p{max-width:900px}</style></head><body>
+<!-- report: fabric/2026-11-20-ceo-window-polish; owner fabric; date 2026-11-20; source docs/ux/scenarios.md SCN-110 amendment 2026-11-20 -->
+<h1>Окно CEO и приветственный блок: три итерации причёсывания</h1>
+<p>Заказ владельца 2026-11-20: окно CEO перемещается и меняет размер, кривые кнопки привести к одной системе, приветственный блок оставить лёгким. Снимки сделаны со стенда экранов (<code>apps/desktop/stand</code>, экран <code>ceo</code> и <code>home</code>) с одинаковыми данными; в настоящем окне слева в шапке стоит светофор macOS. Перемещение, размер и запоминание места проверены тестами (<code>windowPlacement.test.ts</code>), не снимками.</p>
+<h2>До</h2>
+<figure><img src="shots/before-ceo-dark-520.jpg" alt="До: Окно CEO, тёмная тема, 520 × 720"><figcaption>Окно CEO, тёмная тема, 520 × 720</figcaption></figure>
+<figure><img src="shots/before-ceo-light-520.jpg" alt="До: Окно CEO, светлая тема"><figcaption>Окно CEO, светлая тема</figcaption></figure>
+<figure><img src="shots/before-ceo-dark-380.jpg" alt="До: Окно CEO на минимальной ширине 380"><figcaption>Окно CEO на минимальной ширине 380</figcaption></figure>
+<figure><img src="shots/before-home-dark-1280.jpg" alt="До: Главная, тёмная тема"><figcaption>Главная, тёмная тема</figcaption></figure>
+<figure><img src="shots/before-home-light-1280.jpg" alt="До: Главная, светлая тема"><figcaption>Главная, светлая тема</figcaption></figure>
+<h2>Итерация 1</h2>
+<p>Шапка стала заголовком окна: одна строка 52 px рядом со светофором, за неё окно перетаскивается. «Позвонить» контурная, как на главной; «Остановить» и «Перезапустить» тихие значки с названием при наведении. Неактивная основная кнопка нейтральная, а не бледно-жёлтая.</p>
+<figure><img src="shots/it1-ceo-dark-520.jpg" alt="Итерация 1: Окно CEO, тёмная тема, 520 × 720"><figcaption>Окно CEO, тёмная тема, 520 × 720</figcaption></figure>
+<figure><img src="shots/it1-ceo-light-520.jpg" alt="Итерация 1: Окно CEO, светлая тема"><figcaption>Окно CEO, светлая тема</figcaption></figure>
+<figure><img src="shots/it1-ceo-dark-380.jpg" alt="Итерация 1: Окно CEO на минимальной ширине 380"><figcaption>Окно CEO на минимальной ширине 380</figcaption></figure>
+<figure><img src="shots/it1-home-dark-1280.jpg" alt="Итерация 1: Главная, тёмная тема"><figcaption>Главная, тёмная тема</figcaption></figure>
+<figure><img src="shots/it1-home-light-1280.jpg" alt="Итерация 1: Главная, светлая тема"><figcaption>Главная, светлая тема</figcaption></figure>
+<h2>Итерация 2</h2>
+<p>В узком окне имя остаётся видно, «Позвонить» сжимается до значка. Кнопки формы того же размера 28 px, что в шапке.</p>
+<figure><img src="shots/it2-ceo-dark-520.jpg" alt="Итерация 2: Окно CEO, тёмная тема, 520 × 720"><figcaption>Окно CEO, тёмная тема, 520 × 720</figcaption></figure>
+<figure><img src="shots/it2-ceo-light-520.jpg" alt="Итерация 2: Окно CEO, светлая тема"><figcaption>Окно CEO, светлая тема</figcaption></figure>
+<figure><img src="shots/it2-ceo-dark-380.jpg" alt="Итерация 2: Окно CEO на минимальной ширине 380"><figcaption>Окно CEO на минимальной ширине 380</figcaption></figure>
+<figure><img src="shots/it2-home-dark-1280.jpg" alt="Итерация 2: Главная, тёмная тема"><figcaption>Главная, тёмная тема</figcaption></figure>
+<figure><img src="shots/it2-home-light-1280.jpg" alt="Итерация 2: Главная, светлая тема"><figcaption>Главная, светлая тема</figcaption></figure>
+<h2>Итерация 3, итог</h2>
+<p>На главной поле «Спросить CEO» занимает высоту карточки, пустой полосы под кнопками нет. «Записать решение» в неактивном виде как остальные неактивные кнопки. Приветственный блок не тронут: он остаётся лёгким.</p>
+<figure><img src="shots/it3-ceo-dark-520.jpg" alt="Итерация 3, итог: Окно CEO, тёмная тема, 520 × 720"><figcaption>Окно CEO, тёмная тема, 520 × 720</figcaption></figure>
+<figure><img src="shots/it3-ceo-light-520.jpg" alt="Итерация 3, итог: Окно CEO, светлая тема"><figcaption>Окно CEO, светлая тема</figcaption></figure>
+<figure><img src="shots/it3-ceo-dark-380.jpg" alt="Итерация 3, итог: Окно CEO на минимальной ширине 380"><figcaption>Окно CEO на минимальной ширине 380</figcaption></figure>
+<figure><img src="shots/it3-home-dark-1280.jpg" alt="Итерация 3, итог: Главная, тёмная тема"><figcaption>Главная, тёмная тема</figcaption></figure>
+<figure><img src="shots/it3-home-light-1280.jpg" alt="Итерация 3, итог: Главная, светлая тема"><figcaption>Главная, светлая тема</figcaption></figure>
+<h2>После независимой проверки</h2>
+<p>Проверка нашла одну регрессию итерации 3: неактивная «Записать решение» на карточках «Нужны вы» почти исчезла (старое правило <code>opacity: .4</code> гасило новую нейтральную заливку). Исправлено: заливка без прозрачности и видимый контур. Ещё: значки «Остановить» и «Перезапустить» отодвинуты от «Позвонить», чтобы квадрат не читался как «положить трубку»; строка «работает на …» показывает полный текст при наведении; сценарий SCN-182 описывает поле так, как оно теперь выглядит.</p>
+<figure><img src="shots/it4-ceo-dark-520.jpg" alt="После проверки: Окно CEO, тёмная тема, 520 × 720"><figcaption>Окно CEO, тёмная тема, 520 × 720</figcaption></figure>
+<figure><img src="shots/it4-ceo-light-520.jpg" alt="После проверки: Окно CEO, светлая тема"><figcaption>Окно CEO, светлая тема</figcaption></figure>
+<figure><img src="shots/it4-ceo-dark-380.jpg" alt="После проверки: Окно CEO на минимальной ширине 380"><figcaption>Окно CEO на минимальной ширине 380</figcaption></figure>
+<figure><img src="shots/it4-home-dark-1280.jpg" alt="После проверки: Главная, тёмная тема"><figcaption>Главная, тёмная тема</figcaption></figure>
+<figure><img src="shots/it4-home-light-1280.jpg" alt="После проверки: Главная, светлая тема"><figcaption>Главная, светлая тема</figcaption></figure>
+<h2>Независимая проверка</h2><p><a href="design-review.md">design-review.md</a> (design-tester по этим снимкам).</p></body></html>

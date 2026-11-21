@@ -1,6 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState, type SetStateAction } from 'react'
+import { bannerAfter, bannerWhenBack, outageFailure } from '../../shared/errorText'
 import type { LinkNotice, LinkRoute } from '../../shared/linkRoute.ts'
+import { consoleToOpen } from '../../shared/linkRoute.ts'
+import { continueQueue, NO_CONTINUE } from './launch/continueQueue'
 import { receiveLink, releaseLink, type LinkGate } from './linkArrival'
+import { SESSION_DISMISSED } from './SessionStop'
 import type { StringKey } from './i18n/en.ts'
 
 /** What a `fabric://` link's notice says (SCN-142). */
@@ -12,7 +16,10 @@ const LINK_NOTICE_KEY: Record<LinkNotice, StringKey> = {
   'service-unknown': 'links.notice.service-unknown',
   'service-in-no-project': 'links.notice.service-in-no-project',
   'service-in-many-projects': 'links.notice.service-in-many-projects',
-  'link-unreadable': 'links.notice.link-unreadable'
+  'link-unreadable': 'links.notice.link-unreadable',
+  'open-session': 'links.notice.open-session',
+  'session-outside': 'links.notice.session-outside',
+  'continue-session': 'links.notice.continue-session'
 }
 import { NO_MARKS, advance, type FeedMarks } from '../../shared/feedMarks.ts'
 import { APP_SETTINGS_DEFAULTS } from '../../shared/types'
@@ -40,7 +47,9 @@ import { mergeDraft, type TaskDraft } from '../../shared/taskDraft.ts'
 import { BoardScreen } from './launch/BoardScreen'
 import { GraphScreen } from './launch/GraphScreen'
 import { CommsScreen } from './launch/CommsScreen'
+import { ContinueSessionAsk } from './launch/ContinueSessionAsk'
 import { PersonaProvider } from './launch/persona'
+import { CeoButton } from './ceo/CeoButton'
 import { PlanScreen } from './launch/PlanScreen'
 import { PulseScreen } from './launch/PulseScreen'
 import { ReleasesScreen } from './launch/ReleasesScreen'
@@ -58,6 +67,7 @@ import { WhereWorkScreen } from './launch/WhereWorkScreen'
 import { Banner, Button } from './components'
 import { StackHealthNotice } from './StackHealthNotice'
 import { I18nProvider, useT, type Locale, type Translate } from './i18n'
+import { MemoryScreen } from './launch/MemoryScreen'
 import { LaunchShell, machineOf, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, type RailPlace } from './launch/LaunchShell'
 import { ActLine, latestPersonAct } from './launch/ActLine'
 import { HistoryScreen } from './launch/HistoryScreen'
@@ -131,6 +141,11 @@ function backLabel(from: AppRoute['kind'], t: Translate): string {
     : from === 'history' ? t('task.backTo.history')
     : t('task.backTo.back')
 }
+
+/** «Недавние» in the rail, a stable function so the rail asks once per showing (`LaunchShell.tsx#loadRecent`). */
+const loadRecentSessions = (): ReturnType<typeof window.fabric.terminal.recent> => window.fabric.terminal.recent()
+const loadMachineSessions = (): ReturnType<typeof window.fabric.agents.machineSessions> =>
+  typeof window.fabric.agents?.machineSessions === 'function' ? window.fabric.agents.machineSessions() : Promise.resolve([])
 
 export function App(): React.JSX.Element {
   const [settings, setSettings] = useState<AppSettings | null>(null)
@@ -244,7 +259,37 @@ function Shell({
    * the first sentence for both, diagnosing the operator's machine on its very
    * first paint. A failed read joined them through the catch below.
    */
-  const [error, setError] = useState<string | null>(null)
+  const [error, setErrorState] = useState<string | null>(null)
+  // #region outage-banner — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
+  /** 2026-11-20, the operator's screen: during a stack outage the journal's replay failed with «fetch failed», and the
+   *  banner said «the local stack is most likely stopped» beside the watch's own notice, which knew Fabric had stopped it
+   *  for the disk and when it would start it; the banner stayed after the stack came back. While the watch says the stack
+   *  is lost a failure that is only that never becomes this banner, and one already shown goes when it is back. */
+  const stackDown = useRef(false)
+  const setError = useCallback((next: SetStateAction<string | null>) => {
+    setErrorState((prev) => {
+      return bannerAfter(prev, typeof next === 'function' ? next(prev) : next, stackDown.current)
+    })
+  }, [])
+  /** Counts the stack's returns, so the journal is read again at once rather than at its next poll. */
+  const [stackBack, setStackBack] = useState(0)
+  useEffect(() => {
+    const stack = window.fabric?.stack
+    if (typeof stack?.onHealth !== 'function') return
+    const take = (down: boolean): void => {
+      const was = stackDown.current
+      stackDown.current = down
+      if (was && !down) {
+        setErrorState(bannerWhenBack)
+        setStackBack((n) => n + 1)
+      }
+    }
+    let alive = true
+    if (typeof stack.health === 'function') void stack.health().then((v) => alive && v && take(v.stack === 'down'), () => {})
+    const off = stack.onHealth((v) => alive && take(v.stack === 'down'))
+    return () => { alive = false; off() }
+  }, [])
+  // #endregion outage-banner
   /** How many saved places of the last session were not reopened (M111): said once, quietly, never as a failure (the
    *  mockup parity, 2026-10-27, home A5 and rail gap 26). */
   const [notReopened, setNotReopened] = useState(0)
@@ -456,6 +501,8 @@ function Shell({
         // A successful read of an empty journal is a reading — the estate has nothing yet — not "not read":
         // leaving the feed null kept every freshness line on "Reading…" for an estate with no events.
         setJournalFailed(false)
+        // The journal answers again: a banner its outage left is no longer true (2026-11-20).
+        setErrorState(bannerWhenBack)
         if (events.length === 0) { setFeed((old) => old ?? []); return }
         lastSeq.current = events[events.length - 1].seq
         setMarks((prev) => advance(prev, events))
@@ -469,6 +516,9 @@ function Shell({
         // dismiss; raise it once and keep quiet until something changes.
         const message = String(e)
         setJournalFailed(true)
+        // 2026-11-20: a database that is not reachable is the stack watch's to say (`StackHealthNotice`, with why and the
+        // next try), never this banner's; the rail's foot line still says the journal is not read.
+        if (outageFailure(message)) return
         setError((prev) => (prev === message ? prev : message))
       } finally {
         ticking.current = false
@@ -481,7 +531,7 @@ function Shell({
       stop = true
       off()
     }
-  }, [sessionWindowId, refreshProjects, refreshSessions])
+  }, [sessionWindowId, refreshProjects, refreshSessions, stackBack])
 
   // #region comms-unread — docs: docs/ux/screens.md#scr-81-project-comms
   // The Comms rail badge: one bounded read on its own clock, whether or not the screen
@@ -531,7 +581,10 @@ function Shell({
     // CO-392 (D-3): the window reads no account quota; quotas are Switchboard's, and the main process reads its own only
     // before an unattended start (main/routineTick.ts, main/chainAdvance.ts).
     const off = visibleInterval(() => void refreshSessions(), SESSION_POLL_MS)
-    return () => { off() }
+    // «Завершить сессию» closed one (the operator, 2026-11-19): its tab goes now.
+    const dismissed = (): void => { void refreshSessions() }
+    window.addEventListener(SESSION_DISMISSED, dismissed)
+    return () => { off(); window.removeEventListener(SESSION_DISMISSED, dismissed) }
   }, [sessionWindowId, refreshProjects, refreshSessions])
 
   useEffect(() => {
@@ -564,12 +617,24 @@ function Shell({
   const linkDecided = useRef(false)
   const activeKind = useRef(active.kind)
   activeKind.current = active.kind
+  // DEC-0189 SL-5: a `session/continue` link asks here; the move happens only on the person's press.
+  const [continueState, dispatchContinue] = useReducer(continueQueue, NO_CONTINUE)
+  const continueAsk = continueState.ask
   const applyLink = (r: LinkRoute): void => {
-    goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId) : { kind: 'home' })
-    setLinkNotice(r.notice)
+    // UX-17 (0.3.26 review, iteration 2): a link to a console Fabric holds opens that console, as the rail's press does.
+    const console = consoleToOpen(r)
+    if (console) void openConsoleRef.current(console)
+    else goTo(r.route.kind === 'project' ? routeToProject(r.route.projectId)
+      : r.route.kind === 'agents' ? { kind: 'agents', ...(r.route.session ? { session: r.route.session } : {}) } : { kind: 'home' })
+    // DA-16, ER-18, ER-23, ER-26: one continue ask at a time (launch/continueQueue.ts).
+    dispatchContinue({ type: 'link', next: r.continueSession ? { session: r.continueSession, from: r.from } : null })
+    // UX-20: a continue is said once, by its ask; the notice would be a second banner for the same thing.
+    setLinkNotice(r.continueSession ? null : r.notice)
     setLinksDropped(r.dropped ?? 0)
   }
   const applyLinkRef = useRef(applyLink)
+  // openConsole is defined further down; a link arriving before then has nothing to open yet.
+  const openConsoleRef = useRef<(sessionId: string) => Promise<void>>(async () => {})
   applyLinkRef.current = applyLink
   const releaseHeld = (how: Parameters<typeof releaseLink>[1]): void => {
     const { apply, offer } = releaseLink(heldLink.current, how)
@@ -920,6 +985,7 @@ function Shell({
     setHonoured(null)
     return Promise.resolve()
   }, [])
+  openConsoleRef.current = openConsole
   /** Where the person was before the consoles: the newest place in the way back that is not a console. */
   const placeBeforeConsoles = (): AppRoute => {
     for (let i = past.current.length - 1; i >= 0; i--) {
@@ -1015,6 +1081,7 @@ function Shell({
     : active.kind === 'comms' ? t('launch.nav.comms')
     : active.kind === 'access' ? t('access.title')
     : active.kind === 'graph' ? t('graph.title')
+    : active.kind === 'memory' ? t('memoryBase.title')
     : active.kind === 'plan' ? projectPlaceTitle('plan', projectNameOf(active.projectId), t)
     : active.kind === 'help' ? t('launch.nav.help')
     : active.kind === 'where' ? t('launch.nav.where')
@@ -1054,6 +1121,24 @@ function Shell({
         agents={{ rows: railAgentRows, problem: homeReading.problem, retry: homeReading.retry }}
         onAgent={(session) => { setShowSettings(false); setWorkspaceFor(null); goTo({ kind: 'agents', session }) }}
         onAgentConsole={(session) => void openConsole(session)}
+        loadRecent={loadRecentSessions}
+        loadMachine={loadMachineSessions}
+        onAllSessions={() => { setShowSettings(false); setWorkspaceFor(null); goTo({ kind: 'agents' }) }}
+        // The owner, 2026-11-19: «либо новую, либо последнюю, две кнопочки в списке проектов».
+        onNewSession={async (projectId) => {
+          const project = (projects ?? []).find((p) => p.id === projectId)
+          try {
+            const s = await window.fabric.terminal.open(projectId, project?.default_agent || 'claude-code')
+            await openConsole(s.sessionId)
+          } catch (e) { setError(t('rail.session.startFailed', { why: e instanceof Error ? e.message : String(e) })) }
+        }}
+        onResumeLast={async (projectId) => {
+          try {
+            const r = await window.fabric.projects.resumeLast(projectId)
+            if (r.ok) { await openConsole(r.sessionId); return }
+            setError(r.why === 'none' ? t('rail.session.noneToResume') : r.why === 'no-folder' ? t('rail.session.noFolder') : t('rail.session.resumeFailed', { why: r.says ?? '' }))
+          } catch (e) { setError(t('rail.session.resumeFailed', { why: e instanceof Error ? e.message : String(e) })) }
+        }}
         waiting={waiting}
         machine={machineOf({ read: feed !== null, failed: journalFailed }, error)}
         commsUnread={commsUnread}
@@ -1086,6 +1171,12 @@ function Shell({
           {t(LINK_NOTICE_KEY[linkNotice])}
           {linksDropped > 0 && ` ${t('links.notice.dropped', { count: linksDropped })}`}
         </Banner>
+      )}
+      {continueAsk && (
+        <ContinueSessionAsk key={continueAsk.session} session={continueAsk.session} from={continueAsk.from}
+          onOpened={(id) => void openConsole(id)}
+          onBusy={(b) => dispatchContinue({ type: 'busy', session: b ? continueAsk.session : null })} waiting={continueState.queued !== null}
+          onDone={() => dispatchContinue({ type: 'done' })} />
       )}
 
       {notReopened > 0 && (
@@ -1180,6 +1271,9 @@ function Shell({
               void window.fabric.settings.write({ boardFilters }).then((w) => { if (w?.saved) onSettings(w.settings) }, () => undefined)
             }}
           />
+        )}
+        {active.kind === 'memory' && (
+          <MemoryScreen onError={setError} />
         )}
         {active.kind === 'graph' && (
           <GraphScreen projectId={active.projectId ?? null} feedMark={markOf(marks, ['project'])}
@@ -1442,10 +1536,7 @@ function Shell({
         )}
         {chatOpen && <CeoChat key={chatSuggestion ?? 'chat'} suggestion={chatSuggestion} onClose={() => setPanel((p) => closePanel(p, 'chat'))} projects={projects} />}
         {/* ADR-0197, SCN-110: the floating button over every screen of the main window opens the CEO's popup. */}
-        <button type="button" className="ceo-floating" title={t('ceoAgent.floating')} aria-label={t('ceoAgent.floating')}
-          onClick={() => window.fabric.ceoAgent.open(null).catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))}>
-          {t('ceoAgent.title')}
-        </button>
+        <CeoButton onError={setError} />
         {historyOpen && <PrivateHistoryPanel onClose={() => setPanel((p) => closePanel(p, 'history'))} />}
         {accessOpen && <AgentAccessPanel onClose={() => setPanel((p) => closePanel(p, 'access'))} />}
       </div>
@@ -1457,7 +1548,7 @@ function Shell({
 
 /** The route as a tab, where it is one. The agents view and the board are not. */
 function tabOf(route: AppRoute): Tab | null {
-  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'access' || route.kind === 'graph' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
+  return route.kind === 'agents' || route.kind === 'history' || route.kind === 'where' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'access' || route.kind === 'graph' || route.kind === 'memory' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'welcome' || route.kind === 'start' || route.kind === 'console' ? null : route
 }
 
 function keyOf(tab: Tab): string {

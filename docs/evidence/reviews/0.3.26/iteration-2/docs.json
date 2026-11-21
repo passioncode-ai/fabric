@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "30552b73e58571047945ef0eafb6c63d44fcb42a",
+  "report": "docs/evidence/reviews/0.3.26/iteration-2/2026-11-20-docs.md",
+  "reportSha256": "2b1a734d1cc6ba341f0e6f5382c27ec292bac7c5699ac6660963448a3261f3e1",
+  "reviewerRun": "release-0326-i2-docs-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: both bullets rewritten against 0.3.24 (the full-width card, no sessions list in 0.3.24)"
+      ]
+    },
+    {
+      "id": "DO-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: CO-603 and CO-604 in lane 12; check-plan-ids.mjs PASS"
+      ]
+    },
+    {
+      "id": "DO-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: the CHANGELOG, spec row 8 and SCN-142 quote the button and say a console Fabric runs is opened, not moved; the dated map entry stays as its record, the iteration-2 entry says it"
+      ]
+    },
+    {
+      "id": "DO-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: spec row 3, SCN-166 and the test name say «компьютер» / this computer"
+      ]
+    },
+    {
+      "id": "DO-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: SCN-142 amended; UX-1 and ER-3 added to the SCN-166 amendment"
+      ]
+    },
+    {
+      "id": "DO-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: the synchronous transcript lookup is CO-604 (17)"
+      ]
+    },
+    {
+      "id": "DO-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: PRs #66 and #68 closed as superseded on 2026-11-20 (gh pr close, both heads in the candidate); the version and the gate move in the release commit"
+      ]
+    },
+    {
+      "id": "DO-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: «0.3.25 was not published; its changes are in this release»"
+      ]
+    },
+    {
+      "id": "DO-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: the ledger intro drops the CEO button clause; the protocol says windows of 1280, 1440 and 1680 px, screenshots at 1440 and 1280"
+      ]
+    }
+  ]
+}

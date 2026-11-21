@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "6a8c9b6730d257bf75e296ab217366bf2a19f5a8",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-6a8c9b67/2026-11-21-docs.md",
+  "reportSha256": "346f803e5d821edbdef123a09707e6d3542108312cc3318b037fe86c297bccd7",
+  "reviewerRun": "release-0327-i3r5-docs-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-45",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-49"
+      ]
+    },
+    {
+      "id": "DO-46",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-53"
+      ]
+    },
+    {
+      "id": "DO-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-48"
+      ]
+    },
+    {
+      "id": "DO-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-51 and UX-52"
+      ]
+    },
+    {
+      "id": "DO-49",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-189 lists the new lines and states"
+      ]
+    },
+    {
+      "id": "DO-50",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-615 says eight blocking findings (four defects)"
+      ]
+    },
+    {
+      "id": "DO-51",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the map entry says the matrix data changes, behaviour does not"
+      ]
+    }
+  ]
+}

@@ -23,6 +23,7 @@ import { dueRoutines } from '../shared/routine.ts'
 import type { UnattendedAdmission } from '../shared/unattendedAdmission.ts'
 import { planCycle, worstOf, type WindowState } from '../shared/cyclePort.ts'
 import { backlogBrief } from '../shared/backlogBrief.ts'
+import { readQueueOrder } from './taskOrderRead.ts'
 import type { Journal } from '@fabric/journal'
 import type { Quota, TaskRow } from '../shared/types'
 import type { ScopedStore } from './scopedStore.ts'
@@ -182,6 +183,8 @@ export function createRoutineTick(deps: RoutineTickDeps): RoutineTick {
             .select('project_tasks', 'id,title,instruction,position,goal_id')
             .eq('project_id', d.routine.projectId)
             .eq('status', 'backlog')
+          // ADR-0208: the brief follows the board's order; a night the order cannot be read falls back and says so.
+          const places = await readQueueOrder(deps.store, { projectId: d.routine.projectId }).then((o) => o.byTask, () => null)
           instruction = backlogBrief(
             (backlog ?? []).map((t) => ({
               id: t.id as string,
@@ -189,7 +192,8 @@ export function createRoutineTick(deps: RoutineTickDeps): RoutineTick {
               instruction: t.instruction as string,
               position: (t.position as number | null) ?? null,
               goalId: (t.goal_id as string | null) ?? null
-            }))
+            })),
+            places
           )
         }
         // ASKED PER START, AND LAST (FA-03). One `mayStart` used to stand

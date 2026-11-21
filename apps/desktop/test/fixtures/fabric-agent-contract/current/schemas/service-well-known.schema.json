@@ -32,7 +32,7 @@
       "properties": {
         "id": {
           "$ref": "service-common.schema.json#/$defs/serviceId",
-          "description": "The service's id; it equals the descriptor's, or a host reports the port's holder as foreign (FAC-SEM-009, docs/specification/service.md#well-known-document)."
+          "description": "The service's id; it equals the descriptor's, or a host reports the port's holder as foreign (FAC-SEM-009, docs/specification/service.md#well-known-document); a listener of another OS account, or one whose owner cannot be told, is foreign-user whatever it answers (DEC-0154 HA-2)."
         },
         "instance": {
           "$ref": "service-common.schema.json#/$defs/instance",
@@ -238,7 +238,7 @@
               "items": {
                 "$ref": "common.schema.json#/$defs/capabilityName"
               },
-              "description": "The capability names the surface serves, so a host shows them without the token; the manifest remains the authority (docs/specification/service.md#well-known-document)."
+              "description": "The capability names the surface serves, so a host shows them without the token; the manifest remains the authority (docs/specification/service.md#well-known-document). A present list names at least one (FAC-SEM-176, DEC-0169)."
             },
             "auth": {
               "description": "DEC-0024, DEC-0039. descriptor (default): the MCP surface takes the descriptor's token in its header. own: it authenticates its callers with credentials of its own (a token per agent, a gateway's caller identity); the descriptor's token is the host's and is not an MCP credential. delegation: it takes only the estate's delegation tokens (auth.delegation), and the descriptor's token is not an MCP credential.",
@@ -247,10 +247,38 @@
                 "own",
                 "delegation"
               ]
+            },
+            "compact": {
+              "type": "object",
+              "required": [
+                "search",
+                "execute"
+              ],
+              "properties": {
+                "search": {
+                  "$ref": "common.schema.json#/$defs/capabilityName",
+                  "description": "The tool that answers every capability of the surface, compact-mcp-search/1 (DEC-0180 CM-3)."
+                },
+                "execute": {
+                  "$ref": "common.schema.json#/$defs/capabilityName",
+                  "description": "The tool that runs one capability by name, its input compact-mcp-execute.schema.json (DEC-0180 CM-4)."
+                },
+                "direct": {
+                  "type": "array",
+                  "maxItems": 3,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/capabilityName"
+                  },
+                  "description": "The capabilities tools/list names directly, at most three; absent is none (DEC-0180 CM-1)."
+                }
+              },
+              "additionalProperties": false,
+              "description": "DEC-0180, the compact mode: tools/list names at most five tools, the direct capabilities, search and execute; capabilities keeps naming every capability the surface serves, and FAC-SEM-182 requires it beside compact (docs/specification/service.md#compact-mcp-surface-dec-0180)."
             }
           },
           "additionalProperties": false,
-          "description": "The MCP surface: its path, its transport, the capabilities it serves and the credential it takes (docs/specification/service.md#surfaces, docs/specification/service.md#mcp-credentials)."
+          "description": "The MCP surface: its path, its transport, the capabilities it serves, the credential it takes and, compact, where its full list is (DEC-0180) (docs/specification/service.md#surfaces, docs/specification/service.md#mcp-credentials)."
         },
         "events": {
           "type": "object",

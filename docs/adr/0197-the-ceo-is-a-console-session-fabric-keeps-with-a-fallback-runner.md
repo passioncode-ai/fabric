@@ -141,6 +141,95 @@ The operator's review of the home screen (2026-11-19, paraphrased): the header a
 one small block at the top right; a call that hears nobody for a minute hangs up, and a call lasts five minutes at most,
 then is called again. So decision 5's bounds change: `MAX_CALL_MS` is 5 minutes and `IDLE_CALL_MS` one minute
 (`apps/desktop/src/renderer/src/ceo/voiceCall.ts`), each still ending the call with its reason said («прошло 5 минут»,
-«минуту никто не говорил»). The call's controls are one component, `CeoCall.tsx#VoiceCall`, shown in the popup's head as
-before and in place on the home card (`CeoComposer.tsx`, SCN-182, SCN-184), with the call's time out of five minutes.
+«минуту никто не говорил»). The call's controls were then one component (in `CeoCall.tsx`, the call component of that day, replaced by
+amendment 2), shown in the popup's head as before and in place on the home card (`CeoComposer.tsx`, SCN-182, SCN-184),
+with the call's time out of five minutes.
 Nothing else in this record changes.
+
+## Amendment 2 (2026-11-19): the call is a panel in the chat, the CEO speaks in the character's voice, and stops when stopped
+
+The owner, 2026-11-19: the popup looked worn; the live call should be a panel inside the CEO's chat, not a block in a
+card; the voice is male by default, male or female in the settings and at the first run, depending on the character; and
+the CEO's console could not be stopped. So:
+
+1. The popup's body is the chat: the CEO's console with the call as a panel under it (`CeoCall.tsx#CallPanel`), its
+   lines kept after the call as the window's past calls. The home card's «Позвонить» opens the popup and starts the call
+   there (`CeoCall.tsx#CallLauncher`, IPC `ceo-agent:take-call`); the CEO window may play audio before a click in it.
+   «CEO отвечает вслух» silences the CEO's voice (answers arrive as lines), a choice kept for the next calls; the last ten
+   calls are kept on this computer in the CEO window's own storage.
+2. Decision 5's voice (`eve`) becomes the character's: `shared/persona.ts#xaiVoiceOf`, male by default
+   (orbit `rex`, spark `sal`, wave `leo`; female `eve`, `ara`, `eve`), the person's choice kept as `voice` in
+   `persona.json`; gender measured from xAI's samples (`docs/architecture/external-contracts.md#xai-voices`). A sample
+   of a voice is one text-to-speech request of under 90 characters, kept per voice and language (`ceoVoice.ts#voiceSample`).
+3. The CEO has a stop (`ceoAgent.ts` `stop`, IPC `ceo-agent:stop`): a stopped CEO is held, its console's end is never read
+   as an early end, and nothing starts it again (no fallback, no opening of its window) until the person starts or
+   restarts it or writes to it; a console stopped from its own window or from History holds it the same way
+   (`personStopping`, released by `personStopEnded` when that stop leaves the console running). A stop pressed while the
+   CEO is starting stops what the start opens, and a message sent during a stop waits for it. The tool
+   `fabric_ceo_session_stop` still refuses the CEO's own console.
+
+Nothing else in this record changes.
+
+## Amendment 4 (2026-11-20): the call is kept on this computer, the voice delegates, and finds a project by sound
+
+Numbered 4: amendment 3 (the CEO's windows and dashboards) is on `feat/ceo-session-windows`, not yet on `main`. The
+owner, 2026-11-20 (paraphrased): review the calls with the voice, fix every defect and add the missing tools
+([the voice retro](../reports/2026-11-20-voice-ceo-retro/README.md), [its fixes](../reports/2026-11-20-voice-ceo-retro/fixes.md)).
+Released in 0.3.27. So:
+
+1. **Every call is kept on this computer** (`main/ceoVoiceJournal.ts`): one JSONL file a call in `<userData>/ceo/calls/`
+   (folder 0700, files 0600): the owner's lines, the voice's lines, each tool with its arguments and answer tied to the
+   turn that asked for it, the call's length and price. Each text, and each tool's arguments and answer field by field,
+   passes Fabric's redaction before it is written; a call is cut at 2 MB (bytes); files older than 30 days and past the
+   newest 200 are removed at every call and at start; a call a window or a run left open is ended with its measured
+   length. Fabric sends none of it anywhere. It lives in the CEO's folder on purpose: the CEO's console reads its
+   calls, and what it reads goes to its runner's provider (Anthropic, or OpenRouter under the Hermes fallback) as any
+   file it opens; the voice key stays apart (`ceo-voice/`). The window writes its lines through two more CEO-only
+   channels, `ceo-agent:voice-line` and `ceo-agent:voice-end` (four in all with decision 4's two).
+2. **The voice delegates.** Its instructions send work to the project's agent with the task in words, a shell only when
+   the owner asks for a terminal, and the CEO's own console only through `ask_ceo`; the voice door types into a console
+   at most 3 times in 3 minutes for a shell, 6 for an agent.
+3. **A project by sound** (`shared/heardName.ts`, `shared/ceoAgent.ts#findProject`): Cyrillic or Latin, a spelt acronym,
+   an alias the owner gave (`fabric_ceo_project_alias`, kept in `<userData>/ceo/project-aliases.json`). A match by sound
+   is asked back before anything starts or is kept; a tie answers at most three choices; nothing found answers the
+   near names. A folder inside a project, or an agent's worktree, is not where a start would open, so it is refused
+   with where to go instead. A cache or temporary folder is never made a project (enrollment and the CEO's start).
+4. **Tools added.** On both doors: `fabric_ceo_session_task` (did a started session take its first task) and
+   `fabric_ceo_project_alias`; `fabric_ceo_launches` takes `via`. For the voice only: `ceo_reply` (the CEO's answer to
+   what `ask_ceo` handed it, read from its transcript after its own record of the request), `machine_status`,
+   `board_search` (the board's messages through the operator's read door) and `recap` (launches since the previous
+   call). What reaches xAI during a call grows with them: the CEO's answer (3000 characters at most), 10 board hits of
+   300 characters, the launches since the previous call with their reasons, project names with their folders, and the
+   computer's disk, load, memory and session counts, all redacted and bounded.
+
+Nothing else in this record changes.
+
+## Amendment 5 (2026-11-21): Fabric keeps the CEO's board slot, and a `ceo.task` request wakes its console
+
+Numbered 5: amendment 3 (the CEO's windows and dashboards) is on `feat/ceo-session-windows`, and amendment 4 is the
+voice retro's above. Released in 0.3.27.
+
+The owner, 2026-11-21, relayed: tasks his Telegram bot gives the CEO (`ceo.ask`, through his personal agent's bridge) found no
+live CEO. Measured the same night: the «Fabric CEO» slot for `ceo.task` read stale from 2026-11-19 19:04, and the CEO's
+own `com.enroll` held it 60 s (generation 4), since a slot's lease is `board_lease_seconds()` = 60 and only a claimed
+request's `com.renew` or another `com.enroll` lengthens it. §6 left both to the CEO, which enrols once at its start.
+
+1. **Fabric holds the slot while the console lives.** Every 30 s while the CEO's console runs, Fabric enrols for
+   `ceo.task` as that console's own session (`agentSurface.ts#keepResponderSlot`): the caller its MCP tools build, its
+   own project's answering granted first as at its own `com.enroll` (ADR-0190), a fresh idempotency key under the epoch
+   `com.status` names. The same session holding the slot only renews its lease (no event); a slot another live session
+   holds is left to it. When the console ends nothing renews it and it goes stale a minute later, as any responder's.
+   About 2 900 keys a day on the CEO's project; each `com.enroll` stores a receipt kept 30 days, so the CEO's epoch
+   reaches the 90 % rotation share in about a month and rotates by count rather than by age (the 0.3.27 review, run ten,
+   DA-63); a keyless renewal is carried in CO-620.
+2. **A waiting request wakes the console.** Once a minute Fabric reads the CEO project's requests whether or not its
+   console runs (the project known from its folder's meta before the first start, `main/ceoAgent.ts#knownProjectId`). A
+   `ceo.task` request still queued while the console does not run starts it (`ceoBoardKeeper.ts#wake`, `ensure`), at
+   most once per five minutes; the nudge of §6 then types it. A console the person stopped stays stopped, across a
+   restart of Fabric too: the person's stop is kept in the CEO folder's `ceo.json`, read back when Fabric starts, and
+   cleared only by the person's start, restart or message (the voice's `ask_ceo` included); while it holds, opening
+   the window starts nothing (the 0.3.27 review, runs ten to twelve); a CEO that failed waits for the person's retry, and the wake is logged by
+   what the start reached.
+3. **Logged when it changes.** `ceo.board-slot` (kept, held-by-other, refused, unavailable) once per change, and
+   `ceo.board-wake` at each wake.
+

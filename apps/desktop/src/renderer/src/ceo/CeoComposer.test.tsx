@@ -29,6 +29,40 @@ describe('the CEO composer', () => {
     expect(box.value).toBe('')
   })
 
+  // The owner, 2026-11-20: «Пишется, что сообщение не дошло до CEO»; a message to a busy CEO waits, and is said so.
+  it('a message the busy CEO did not take yet is said as queued, never as lost, and the box is cleared', async () => {
+    setup('popup', vi.fn().mockResolvedValue({ ok: true, queued: true, reason: 'not-delivered', status: { queued: 1 } }))
+    const box = screen.getByRole('textbox', { name: 'Напишите CEO' }) as HTMLTextAreaElement
+    fireEvent.change(box, { target: { value: 'сделай отчёт' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Отправить' }))
+    expect((await screen.findByRole('status')).textContent).toMatch(/в очереди/)
+    expect(screen.queryByText(/не дошло/)).toBeNull()
+    expect(box.value).toBe('')
+  })
+
+  it('a CEO that is not running is said as not running, never as busy (run four, UX-41)', async () => {
+    setup('popup', vi.fn().mockResolvedValue({ ok: true, queued: true, reason: 'not-running', status: { queued: 1 } }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Напишите CEO' }), { target: { value: 'сделай отчёт' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Отправить' }))
+    const line = (await screen.findByRole('status')).textContent ?? ''
+    expect(line).toMatch(/не запущен/)
+    expect(line).not.toMatch(/занят/)
+  })
+
+  it('the not-running line names the button its state shows (run six, UX-59)', async () => {
+    setup('popup', vi.fn().mockResolvedValue({ ok: true, queued: true, reason: 'not-running', status: { queued: 1, state: 'failed' } }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Напишите CEO' }), { target: { value: 'x' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Отправить' }))
+    expect((await screen.findByRole('status')).textContent).toMatch(/Попробовать снова/)
+  })
+
+  it('a stopped CEO\'s line names «Запустить» (run six, UX-59)', async () => {
+    setup('popup', vi.fn().mockResolvedValue({ ok: true, queued: true, reason: 'not-running', status: { queued: 1, state: 'stopped' } }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Напишите CEO' }), { target: { value: 'x' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Отправить' }))
+    expect((await screen.findByRole('status')).textContent).toMatch(/«Запустить»/)
+  })
+
   it('Enter sends, Shift+Enter does not; the popup does not open another popup', async () => {
     const f = setup('popup')
     const box = screen.getByRole('textbox', { name: 'Напишите CEO' })

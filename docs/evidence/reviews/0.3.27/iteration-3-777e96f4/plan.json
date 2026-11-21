@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "777e96f49c90770f25c21803d46b34c6074ff922",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-777e96f4/2026-11-21-plan.md",
+  "reportSha256": "3f804225396f8a923013072efb6556b754a14ef786d284a0620fe988b1c58a1e",
+  "reviewerRun": "release-0327-i3r8-plan-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-53",
+      "status": "fixed",
+      "evidence": [
+        "fixed by the owner's recorded words: ADR-0204 rides 0.3.27 as one of the home's blockers agreed for this release, by his order of 2026-11-20 («вообще это все должно быть автоматически, не надо никакой подключать»); its CHANGELOG bullet, MERGES and CO-614 (closed) say so; run eight's section records the sources"
+      ]
+    },
+    {
+      "id": "PL-54",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the MERGES entry says it merged into the candidate as wave 0's last fix"
+      ]
+    },
+    {
+      "id": "PL-55",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-66; run eight's section records the owner's answer, his exception and the agreement with their sources"
+      ]
+    },
+    {
+      "id": "PL-56",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-67"
+      ]
+    },
+    {
+      "id": "PL-57",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-71"
+      ]
+    },
+    {
+      "id": "PL-58",
+      "status": "ruled",
+      "evidence": [
+        "SCN-188's amendments answer F1, F4 and F5; F6 and what remains are carried: CO-620 (5)"
+      ]
+    },
+    {
+      "id": "PL-59",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-70"
+      ]
+    },
+    {
+      "id": "PL-60",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-65, in this candidate"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "777e96f49c90770f25c21803d46b34c6074ff922",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-777e96f4/2026-11-21-data.md",
+  "reportSha256": "a78a95584458e0b1f47425b501bd7de801274cc678a0b9c166567e7467e2ef6f",
+  "reviewerRun": "release-0327-i3r8-data-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-49",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every document, label, attribute, edge evidence and transcript state is redacted as the index writes it (`estateIndex.ts#putDocs`, `#putGraph`, `#setFileState`), the knowledge doors redact their answers again (`knowledgeTools.ts#run`), and schema 3 removes an index an earlier build wrote, and any copy kept aside; test «a key typed into a transcript is redacted…» (search, node.get, graph.neighbours and the file bytes), watched red with the body unredacted"
+      ]
+    },
+    {
+      "id": "DA-50",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the folder is created 0700 and the files set 0600 (`estateWiring.ts#open`)"
+      ]
+    },
+    {
+      "id": "DA-51",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (1); the `.unreadable` copy is no longer made and an old one is removed (DA-49)"
+      ]
+    },
+    {
+      "id": "DA-52",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the voice cannot run `index.refresh` or `index.rebuild` (`knowledgeTools.ts#VOICE_REFUSED_OPERATIONS`, `index.ts`), and `board_tasks` says `capped` at its bound"
+      ]
+    },
+    {
+      "id": "DA-53",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-65"
+      ]
+    },
+    {
+      "id": "DA-54",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (2)"
+      ]
+    },
+    {
+      "id": "DA-55",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (3)"
+      ]
+    }
+  ]
+}

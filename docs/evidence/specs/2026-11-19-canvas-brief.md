@@ -10,8 +10,8 @@ verbatim by the CEO: «нужен канвас на котором агент с
 **Model:** Claude Opus 5.5, the session's model; the operator's standing rule (full delegation) records the choice
 instead of a question.
 **Decision record:** [ADR-0201](../../adr/0201-the-canvas-is-an-excalidraw-window-a-designer-draws-on.md).
-**Scenarios:** [SCN-190](../../ux/scenarios.md#scn-190-draw-on-the-canvas-with-the-mouse),
-[SCN-191](../../ux/scenarios.md#scn-191-the-canvas-is-drawn-and-shown-by-voice).
+**Scenarios:** [SCN-192](../../ux/scenarios.md#scn-192-draw-on-the-canvas-with-the-mouse),
+[SCN-193](../../ux/scenarios.md#scn-193-the-canvas-is-drawn-and-shown-by-voice).
 
 ## Vision check
 
@@ -51,9 +51,9 @@ versions of a canvas; attaching a canvas to a task as context; knowledge-graph n
 | CV-REQ-07 | An element is found by the id the agent gave it or by its words; an unknown one is named back, never guessed | `test/canvas-commands.test.mjs` (`resolveRef`) |
 | CV-REQ-08 | A diagram is laid out without overlaps, left to right by its links | `test/canvas-commands.test.mjs` (`layoutDiagram`) |
 | CV-REQ-09 | The designer answers a diagram and a tour from one model call, bounded in tokens and time; a missing key, a refusal or an unreadable answer is a refusal in words, and nothing is drawn | `test/canvas-designer.test.mjs` |
-| CV-REQ-10 | The call's instructions route: work in projects to the CEO (`ask_ceo`), drawing and showing to the canvas tools, a whole idea to the designer | `test/canvas-commands.test.mjs` (instructions name the tools); scenario SCN-191 |
+| CV-REQ-10 | The call's instructions route: work in projects to the CEO (`ask_ceo`), drawing and showing to the canvas tools, a whole idea to the designer | `test/canvas-commands.test.mjs` (instructions name the tools); scenario SCN-193 |
 | CV-REQ-11 | A command to a canvas that does not answer within 10 s is a refusal, and a late answer is dropped | `test/canvas-host.test.mjs` |
-| CV-REQ-12 | Docs in the same change: ADR-0201, SCN-190/191, the design map, the lifecycle table if anything runs in the background (nothing does) | `bash scripts/ci.sh fast` |
+| CV-REQ-12 | Docs in the same change: ADR-0201, SCN-192/193, the design map, the lifecycle table if anything runs in the background (nothing does) | `bash scripts/ci.sh fast` |
 
 ## Source ledger
 

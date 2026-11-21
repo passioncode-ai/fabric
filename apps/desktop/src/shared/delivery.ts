@@ -44,3 +44,12 @@ export function asOnePaste(instruction: string): string {
   const clean = instruction.replaceAll(PASTE_START, '').replaceAll(PASTE_END, '')
   return `${PASTE_START}${clean}${PASTE_END}\r`
 }
+
+/**
+ * Whether Claude Code has drawn its input box (2026-11-20, Claude Code 2.1.329, measured on this Mac): the line under the
+ * box names the mode switch («(shift+tab to cycle)») or, in the default mode, the shortcuts help («? for shortcuts»).
+ * Before it, a paste is dropped (`main/deliveryQueue.ts#promptDrawn`). The text is the recent output with ANSI removed.
+ */
+export function claudePromptDrawn(recent: string): boolean {
+  return /shift\+tab to cycle|\? for shortcuts/.test(recent)
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.25",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "6da674bdc092ed36a34521198dd0f5d472d0d531",
+  "report": "docs/evidence/reviews/0.3.25/iteration-3/2026-11-19-data.md",
+  "reportSha256": "ef9b847739e1bf0af3c9ef360b37b2b785a53dca1d4f03a8e84e09836c67f1b0",
+  "reviewerRun": "release-0325-i3-data-openrouter-20261119",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-6",
+      "status": "ruled",
+      "evidence": [
+        "(a, b) fixed in 6da674bd: the temporary file is removed on failure and named uniquely",
+        "(c) ruled: CO-601 (its row gains this item after the release, on main): a non-audio 200 answer cached as a sample"
+      ]
+    },
+    {
+      "id": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 6da674bd: a kept call holds at most 40 000 characters"
+      ]
+    }
+  ]
+}

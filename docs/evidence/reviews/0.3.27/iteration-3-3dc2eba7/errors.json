@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "3dc2eba711b3ee9a799ecf8559b0256c6d56e71c",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-3dc2eba7/2026-11-20-errors.md",
+  "reportSha256": "03336c80d1fae25bb5907b57ecfdaf442edac33f2fa60a324802b831ca0f2f5c",
+  "reviewerRun": "release-0327-i3r1-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: as UX-28; the order is the mechanism"
+      ]
+    },
+    {
+      "id": "ER-24",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: only the home folder, a root, or a folder holding two projects or more is no holder; a folder inside a project holding one other, or right under home, is that project's; same test, red with the rule at one"
+      ]
+    },
+    {
+      "id": "ER-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: the echo window starts when the ask's line was written (askWrittenAt)"
+      ]
+    },
+    {
+      "id": "ER-26",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-605 (11)"
+      ]
+    },
+    {
+      "id": "ER-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: an unreadable aliases file is said once per change of the file (ceoProjectAliases.ts)"
+      ]
+    },
+    {
+      "id": "ER-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: the home folder or a root never finds a project, even one kept from before (findProject); same test"
+      ]
+    }
+  ]
+}

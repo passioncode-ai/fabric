@@ -1,0 +1,98 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "777e96f49c90770f25c21803d46b34c6074ff922",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-777e96f4/2026-11-21-docs.md",
+  "reportSha256": "f818ec4bd69c1d0f50f83a9e344013d330fe9732d7082270a134c6f37c5086a0",
+  "reviewerRun": "release-0327-i3r8-docs-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-63",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a `## 0.3.27` bullet for the registry fix and ADR-0204, CO-614 closed as shipped, the MERGES entries corrected, the HANDOFF sentence"
+      ]
+    },
+    {
+      "id": "DO-64",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG says the index stays on the machine and its hits reach the CEO's model and xAI redacted; `ceo-setup.md` §3 lists search passages and task holders; the index is now redacted as written (DA-49)"
+      ]
+    },
+    {
+      "id": "DO-65",
+      "status": "fixed",
+      "evidence": [
+        "fixed: AGENTS.md has lifecycle rows for the estate index and the console line (Inbox's row was there), and the Windows and Linux paragraph names them"
+      ]
+    },
+    {
+      "id": "DO-66",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the pause's one sentence, in the Now line, CO-606, CO-614 and the HANDOFF, says what 0.3.27 carries and by whose words; CO-606's ADR clause is past; the HANDOFF names run eight and the next task"
+      ]
+    },
+    {
+      "id": "DO-67",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-615 says DO-58 and DA-46 are fixed and PL-49 was the owner's decision"
+      ]
+    },
+    {
+      "id": "DO-68",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-189 drops `queue-trimmed` and names the over-bound cause; the comment above the bound says 50 plus 10, kept aside whole"
+      ]
+    },
+    {
+      "id": "DO-69",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-64"
+      ]
+    },
+    {
+      "id": "DO-70",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fixes.md says 40 with the dictation tail's test"
+      ]
+    },
+    {
+      "id": "DO-71",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Upgrading» names `ceo-window.json` and `estate-index/`"
+      ]
+    },
+    {
+      "id": "DO-72",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a paragraph under `## 0.3.27` says what rides by the owner's answer, his exception and the agreement; MERGES has `RELEASE-0327-MAIN` for `5f4dc15b`"
+      ]
+    },
+    {
+      "id": "DO-73",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0199 cites a neutral transcript path (privacy, ADR-0096)"
+      ]
+    },
+    {
+      "id": "DO-74",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-188 says the hidden parts are on the agent's page"
+      ]
+    }
+  ]
+}

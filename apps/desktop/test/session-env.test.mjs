@@ -10,7 +10,7 @@
 // REAL environment this machine is running, so a key that is genuinely set here
 // is genuinely gone from what a session would receive.
 
-import { sessionEnvironment, WITHHELD_FROM_SESSIONS, LAUNCHED_SESSION_MARKER } from '../src/main/sessionEnv.ts'
+import { sessionEnvironment, WITHHELD_FROM_SESSIONS, LAUNCHED_SESSION_MARKER, UTF8_CTYPE } from '../src/main/sessionEnv.ts'
 
 let failures = 0
 const ok = (m) => console.log('  ok   ' + m)
@@ -65,6 +65,38 @@ LAUNCHED_SESSION_MARKER === 'FABRIC_LAUNCHED_SESSION'
 sessionEnvironment({ ...parent, [LAUNCHED_SESSION_MARKER]: '1' })[LAUNCHED_SESSION_MARKER] === undefined
   ? ok('an inherited launched-session marker does not reach a session: only the bundle sets it')
   : fail('an inherited FABRIC_LAUNCHED_SESSION reached a session Fabric did not brief')
+
+// The owner, 2026-11-21 02:37: Russian copied from the CEO's console reached another console as «–î–∞–≤–∞–π», UTF-8
+// read as Mac Roman. Fabric started by launchd («Служба доски») has no locale at all, so a console had none, and
+// macOS's pbcopy (which Claude Code copies through) then reads the bytes in __CF_USER_TEXT_ENCODING's Mac Roman. A
+// session with no encoding of its own gets LC_CTYPE=en_US.UTF-8; a locale the person set is never replaced.
+import { spawnSync } from 'node:child_process'
+const bare = { PATH: '/usr/bin:/bin', HOME: '/Users/someone', __CF_USER_TEXT_ENCODING: '0x1F5:0x0:0x0' }
+const fromLaunchd = sessionEnvironment(bare)
+fromLaunchd.LC_CTYPE === UTF8_CTYPE && UTF8_CTYPE === 'en_US.UTF-8'
+  ? ok('a session started with no locale gets LC_CTYPE=en_US.UTF-8, so pbcopy keeps Russian whole')
+  : fail(`a session with no locale got LC_CTYPE=${fromLaunchd.LC_CTYPE}: Russian copied in it turns into Mac Roman`)
+fromLaunchd.LANG === undefined
+  ? ok('the messages language is left alone: only the encoding is set')
+  : fail('LANG was invented for a session that had none')
+for (const [name, value] of [['LANG', 'ru_RU.UTF-8'], ['LC_CTYPE', 'UTF-8'], ['LC_ALL', 'C']]) {
+  const kept = sessionEnvironment({ ...bare, [name]: value })
+  kept[name] === value && (name === 'LC_CTYPE' || kept.LC_CTYPE === undefined)
+    ? ok(`a locale the person set (${name}=${value}) is kept as it is`)
+    : fail(`${name}=${value} was overridden: LC_CTYPE=${kept.LC_CTYPE}`)
+}
+sessionEnvironment({ ...bare, LANG: '' }).LC_CTYPE === UTF8_CTYPE
+  ? ok('an empty LANG counts as none')
+  : fail('an empty LANG was taken for a locale')
+// The real system, not the rule: under that environment macOS's own locale reads UTF-8 (no clipboard touched).
+if (process.platform === 'darwin') {
+  const charmap = (env) => spawnSync('/usr/bin/locale', ['charmap'], { env, encoding: 'utf8' }).stdout.trim()
+  const before = charmap(bare)
+  const after = charmap(fromLaunchd)
+  after === 'UTF-8' && before !== 'UTF-8'
+    ? ok(`macOS reads the session's charset as UTF-8 (it read ${before || 'nothing'} before the fix)`)
+    : fail(`macOS reads the session's charset as ${after} (without the fix: ${before})`)
+}
 
 // Against the REAL environment of this process — the one the app actually runs
 // in. On a machine where the key is set, this is the assertion that matters.

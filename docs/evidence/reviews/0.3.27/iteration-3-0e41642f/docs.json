@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "0e41642f0b1eb3b6dc40e503d751f5a242d9ec51",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-0e41642f/2026-11-21-docs.md",
+  "reportSha256": "458b37549096375a10553ef135452066e0e4accb0d282e69c4c6242937c26e07",
+  "reviewerRun": "release-0327-i3r11-docs-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-94",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-93; the comment says the meta keeps the hold as it stands"
+      ]
+    },
+    {
+      "id": "DO-95",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-88; SCN-187, the CHANGELOG and AGENTS.md say the window shows the CEO stopped after a restart"
+      ]
+    },
+    {
+      "id": "DO-96",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ceoBoardKeeper.ts`'s header describes the held, failed and logged wake"
+      ]
+    },
+    {
+      "id": "DO-97",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CHANGELOG limits the project-name exception to the knowledge search"
+      ]
+    },
+    {
+      "id": "DO-98",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-188's narrow-window rule and the stylesheet's comment name who started it as giving way; the folder's cap is stated, CO-620 (13)"
+      ]
+    },
+    {
+      "id": "DO-99",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ADR index and the pipeline contract say ADR-0204 is written here; ADR-0176's row names ADR-0205's amendment"
+      ]
+    },
+    {
+      "id": "DO-100",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0205's quote says «[владельца]» for the owner's name (ADR-0096); the verbatim quoting itself is CO-620 (13)"
+      ]
+    },
+    {
+      "id": "DO-101",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the HANDOFF says run ten's reports are stored with the run, the ledger dates the merge of `608f5416` after run ten, and `release-mac.md`'s `--schedule` example says to turn «Служба доски» on again"
+      ]
+    },
+    {
+      "id": "DO-102",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Now line records the pause of about 03:30 and the reconciler's step 2"
+      ]
+    }
+  ]
+}

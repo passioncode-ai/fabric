@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "67c15053480dfbe75b8692b4cb448d1dd26a5785",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-67c15053/2026-11-20-data.md",
+  "reportSha256": "4a36131d67a6c6e7fe73350f4f45a441a1890e579074555c02d5c6fe4ea84796",
+  "reviewerRun": "release-0327-i3r2-data-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: as DO-26"
+      ]
+    },
+    {
+      "id": "DA-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: as DO-26 for the reports and ER-32 for the comment; the name is no secret and stays in published history, CO-605 (12)"
+      ]
+    },
+    {
+      "id": "DA-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: as ER-31"
+      ]
+    },
+    {
+      "id": "DA-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: ADR-0197 amendment 4 lists project names with folders and the computer's state, as ceo-setup §3 does"
+      ]
+    },
+    {
+      "id": "DA-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-three candidate: a voice tool that throws is also logged with ops.failed"
+      ]
+    }
+  ]
+}

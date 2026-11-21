@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "19b422264b26d1dbed6b380574978d2f9cc0d25f",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-19b42226/2026-11-20-docs.md",
+  "reportSha256": "cdad94112d29e558f18aafb9fc69292e9266200aeaf8c1624c7938202f44d361",
+  "reviewerRun": "release-0326-i3r4-docs-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: as UX-47"
+      ]
+    },
+    {
+      "id": "DO-32",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: the run-three paragraph names ER-18's regression and the three in-part fixes with their gaps"
+      ]
+    },
+    {
+      "id": "DO-33",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: the AGENTS.md row names rowsChanged and the homes folder"
+      ]
+    },
+    {
+      "id": "DO-34",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-five candidate: continueQueue.ts and its test in the FABRIC-0326 entry and in SCN-142's coverage"
+      ]
+    }
+  ]
+}

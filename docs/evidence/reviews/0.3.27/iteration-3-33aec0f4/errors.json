@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "33aec0f496592d6b8d5a44c3f008ae031b310d9e",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-33aec0f4/2026-11-21-errors.md",
+  "reportSha256": "9acde9615535df989b47092b24d19835064c3f18d38bf09f49dfd8b8e71e7c91",
+  "reviewerRun": "release-0327-i3r10-errors-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-87",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-81"
+      ]
+    },
+    {
+      "id": "ER-88",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-82"
+      ]
+    },
+    {
+      "id": "ER-89",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (11)"
+      ]
+    },
+    {
+      "id": "ER-90",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (11)"
+      ]
+    },
+    {
+      "id": "ER-91",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (11); ADR-0197 Amendment 5 §1 now states the receipts and the rotation by count"
+      ]
+    },
+    {
+      "id": "ER-92",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (12)"
+      ]
+    }
+  ]
+}

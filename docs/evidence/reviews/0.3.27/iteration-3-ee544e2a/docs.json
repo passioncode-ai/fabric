@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "ee544e2a2f4cfcc4da4681b368b59ed63cb960f6",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-ee544e2a/2026-11-21-docs.md",
+  "reportSha256": "b27fadf66b4a3039b03313b37730876e9f41d1b1031b88efdc6898b804ff9a6f",
+  "reviewerRun": "release-0327-i3r9-docs-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-75",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the installer finds Fabric by its executable as well as its command line, so launchd's `Fabric --background` copy is seen (`scripts/lib/install-mac-update.mjs#fabricRunning`; test «a Fabric launchd started is seen by its executable…»)"
+      ]
+    },
+    {
+      "id": "DO-76",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-80; AGENTS.md says a restore's removal does not count"
+      ]
+    },
+    {
+      "id": "DO-77",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Inbox lifecycle row and the CHANGELOG bullet say a Disconnect stops it until the person connects again"
+      ]
+    },
+    {
+      "id": "DO-78",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-78"
+      ]
+    },
+    {
+      "id": "DO-79",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the HANDOFF says the prototype and journey gaps were fixed after run eight"
+      ]
+    },
+    {
+      "id": "DO-80",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DA-57"
+      ]
+    },
+    {
+      "id": "DO-81",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `estateWiring.ts`'s header says removed and built again, 5 s apart"
+      ]
+    },
+    {
+      "id": "DO-82",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-191 states the order, the ids and the capped count"
+      ]
+    },
+    {
+      "id": "DO-83",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the voice-board test's projects have neutral names"
+      ]
+    },
+    {
+      "id": "DO-84",
+      "status": "fixed",
+      "evidence": [
+        "fixed: MERGES says 42 commits, 39 without merges"
+      ]
+    }
+  ]
+}

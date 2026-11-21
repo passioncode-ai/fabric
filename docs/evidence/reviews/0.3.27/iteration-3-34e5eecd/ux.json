@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "34e5eecde4b5abb2b173bc9437ebc100607dfbd2",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-34e5eecd/2026-11-21-ux.md",
+  "reportSha256": "d356288241959c54beb773b5e70409eaa74617c26100180038f242d6b163b335",
+  "reviewerRun": "release-0327-i3r13-ux-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-96",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG's «Upgrading», this ledger and the HANDOFF say Fabric refuses a schema-102 database until the runbook's upgrade runs (stop the writers, a backup, `supabase migration up --local`, `schema_version()` read back as 103), and the release session runs it on the owner's Mac before the first start of 0.3.27; `release-mac.md`'s 0.3.27 paragraph is not release metadata: ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "UX-97",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "UX-98",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "UX-99",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    }
+  ]
+}

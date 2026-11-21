@@ -15,6 +15,7 @@ import { SEARCH_SUBJECT, outcomeOf } from '../../shared/search.ts'
 import { destinationOf, type EntityRef } from '../../shared/entityRef.ts'
 import { Banner, Button, EmptyState, Field, Panel, Row, Toolbar } from './components'
 import { useT } from './i18n'
+import { EverywhereSearch } from './EverywhereSearch'
 
 export function SearchPanel({
   onClose,
@@ -183,6 +184,8 @@ export function SearchPanel({
             )}
           </div>
         ))}
+        {/* The estate index's ranked group (spec 2026-11-19 §2): after the stores, never merged with them. */}
+        <EverywhereSearch query={query} onError={onError} />
       </Panel>
     </aside>
   )

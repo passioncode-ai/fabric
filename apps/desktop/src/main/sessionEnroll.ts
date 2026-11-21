@@ -44,6 +44,10 @@ export interface FolderDeps {
   /** Stable id for the proposed project root; the operator's estate scopes it. */
   projectIdForFolder?: (root: string) => string
   home?: string
+  /** A cache or temporary folder, never made a project (voice CEO retro 2026-11-20, finding 5). The host passes
+   *  `scratchFolder.ts#isScratchFolder` with its home and temporary folders; tests whose fixtures live in a temporary
+   *  folder pass none. */
+  scratch?: (folder: string) => boolean
 }
 
 export interface EnrollDeps extends FolderDeps {
@@ -91,6 +95,9 @@ export const DETACHED_PROJECT_MESSAGE =
   'This repository was detached from its Project in Fabric, and Fabric does not attach it again on its own. Undoing that detach in Fabric brings it back.'
 export const TOO_BROAD_MESSAGE =
   'This folder is too broad for a Project: a filesystem root, the home folder, a folder right under it, or one that holds other projects. Start the agent inside the folder you work in.'
+/** Voice CEO retro 2026-11-20, finding 5: a probe in `~/.cache` or a temporary folder became a project of its own. */
+export const SCRATCH_FOLDER_MESSAGE =
+  'This folder is a cache or temporary folder, never a Project\'s: start the agent in the project\'s own folder, and enroll again.'
 
 export type FolderFact =
   | {
@@ -123,10 +130,14 @@ export async function resolveAgentFolder(folder: unknown, deps: FolderDeps): Pro
   const detachedPaths = new Set((await (deps.detachedFolders?.() ?? Promise.resolve([]))).map((row) => row.path).filter(Boolean))
   if (match.projectId) {
     if (detachedPaths.has(base) || detachedPaths.has(real)) return { ok: false, code: 'no-project', message: DETACHED_PROJECT_MESSAGE }
+    // A scratch clone of a known repository is not attached to its project either (0.3.27 review, DA-7, ER-10).
+    if (deps.scratch?.(base)) return { ok: false, code: 'no-project', message: SCRATCH_FOLDER_MESSAGE }
     return { ok: true, real: base, projectId: match.projectId, how: 'remote', root: match.root, candidate: 'attach', remoteKey: match.remoteKey ?? null }
   }
   if (!deps.inspectFolder || !deps.projectIdForFolder) return { ok: false, code: 'no-project', message: NO_PROJECT_MESSAGE }
   if (tooBroad(base, deps.home)) return { ok: false, code: 'no-project', message: TOO_BROAD_MESSAGE }
+  // A new project is never made in a cache or temporary folder; a folder an existing project holds was answered above.
+  if (deps.scratch?.(base)) return { ok: false, code: 'no-project', message: SCRATCH_FOLDER_MESSAGE }
   let facts: import('../shared/startPaths.ts').FolderFacts
   try {
     facts = await deps.inspectFolder(base)

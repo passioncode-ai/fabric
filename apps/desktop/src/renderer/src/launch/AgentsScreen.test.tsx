@@ -57,7 +57,7 @@ function stub(o: { home?: () => Promise<HomeView>; overview?: () => Promise<HubO
     },
     start: { executors: vi.fn(o.exec ?? (async () => executors)) },
     settings: { agentCatalog: vi.fn(async () => ({ source: 'absent', reason: 'not-installed', detail: null })) },
-    terminal: { history: vi.fn(async () => []) },
+    terminal: { history: vi.fn(async () => []), launch: vi.fn(async () => null) },
     windows: { openSession: vi.fn(async () => {}) }
   }
   vi.stubGlobal('window', Object.assign(window, { fabric: api }))

@@ -1,0 +1,35 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "f10fa4b86eabb62672955f58e024cb9c457cb8e4",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-f10fa4b8/2026-11-21-data.md",
+  "reportSha256": "d0c261243b1a73b31c538af4c2e92939273be09893a55891a49f043eb92a103b",
+  "reviewerRun": "release-0327-i3r7-data-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DA-46",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the bound counts the person's lines (50); on disk up to 10 owed lines ride on top; a file past 60 is kept aside whole before it is cut (test «run seven: a fallback on a full queue, then a restart…», watched red with the old bound)"
+      ]
+    },
+    {
+      "id": "DA-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed: plain files only count, a name more than a day in the future is old, and the file just kept aside is never removed (test «run seven: names dated in the future…»)"
+      ]
+    },
+    {
+      "id": "DA-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a requeued line keeps the time it was sent"
+      ]
+    }
+  ]
+}

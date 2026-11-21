@@ -95,6 +95,9 @@ async function main(): Promise<void> {
   } else if (screen === 'graph') {
     const { GraphScreen } = await import('../src/renderer/src/launch/GraphScreen')
     node = <GraphScreen projectId="p1" feedMark={0} onProject={noop} onWhole={noop} />
+  } else if (screen === 'memory') {
+    const { MemoryScreen } = await import('../src/renderer/src/launch/MemoryScreen')
+    node = <MemoryScreen onError={noop} />
   } else if (screen === 'launch') {
     const { Tasks } = await import('../src/renderer/src/Tasks')
     node = <Tasks project={project as never} feedMark={0} onStarted={noop} onError={noop} />
@@ -104,6 +107,16 @@ async function main(): Promise<void> {
   } else if (screen === 'settings') {
     const { SettingsScreen } = await import('../src/renderer/src/launch/SettingsScreen')
     node = <SettingsScreen settings={{ ...APP_SETTINGS_DEFAULTS, locale, machineTrust: 'mine' } as never} onChange={async () => null} onOpenHistory={noop} onOpen={noop} />
+  } else if (screen === 'ceo') {
+    // The CEO's own window (the owner, 2026-11-20: polish it in two or three iterations with captures before and after):
+    // its document renders the popup alone, without the shell, at the window's size.
+    const { CeoPopup } = await import('../src/renderer/src/ceo/CeoPopup')
+    const { PersonaProvider } = await import('../src/renderer/src/launch/persona')
+    createRoot(document.getElementById('root')!).render(
+      <I18nProvider locale={locale}><PersonaProvider><CeoPopup /></PersonaProvider></I18nProvider>
+    )
+    document.body.dataset.mounted = screen
+    return
   } else {
     node = <p>unknown screen {screen}</p>
   }
@@ -115,7 +128,7 @@ async function main(): Promise<void> {
     : screen === 'agent' ? { kind: 'agents' as const, session: agent.sessionId }
       : screen === 'review' ? { kind: 'board' as const }
         : screen === 'pulse' ? { kind: 'elsewhere' as const }
-          : { kind: screen as 'home' | 'board' | 'comms' | 'access' | 'history' | 'settings' }
+          : { kind: screen as 'home' | 'board' | 'comms' | 'memory' | 'access' | 'history' | 'settings' }
   createRoot(document.getElementById('root')!).render(
     <I18nProvider locale={locale}>
       <div className="app launch-root">

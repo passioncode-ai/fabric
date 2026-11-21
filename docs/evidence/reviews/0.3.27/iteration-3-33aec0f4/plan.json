@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "33aec0f496592d6b8d5a44c3f008ae031b310d9e",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-33aec0f4/2026-11-21-plan.md",
+  "reportSha256": "14aa9abde8cc06ab0e165e5642885252b29ec31a9db2b942dc655167906276df",
+  "reviewerRun": "release-0327-i3r10-plan-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-66",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-81"
+      ]
+    },
+    {
+      "id": "PL-67",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `origin/main` (`608f5416`, ADR-0205) is merged into the candidate (`12ab551f`) by the owner's «Выпустить с main»"
+      ]
+    },
+    {
+      "id": "PL-68",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-92; the agreement takes the owner's two blockers the home session relayed"
+      ]
+    },
+    {
+      "id": "PL-69",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ledger names question `237cdddb`"
+      ]
+    },
+    {
+      "id": "PL-70",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the HANDOFF's next task includes the `communicator_notify` naming Inbox's access and the CEO's board slot and wake"
+      ]
+    },
+    {
+      "id": "PL-71",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-620 says runs eight to ten"
+      ]
+    },
+    {
+      "id": "PL-72",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run ten's section lists what was not run end to end"
+      ]
+    }
+  ]
+}

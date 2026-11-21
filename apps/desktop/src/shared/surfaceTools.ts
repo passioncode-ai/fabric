@@ -78,6 +78,7 @@ export const SURFACE_TOOLS: readonly SurfaceTool[] = [
     records: false
   },
   { name: 'fabric_task_link', purpose: 'Say one task blocks, follows or spawned another', records: true },
+  { name: 'fabric_task_rank_propose', purpose: 'Propose a place for a queued task; the owner accepts or declines', records: true },
   { name: 'fabric_leases_list', purpose: 'Who is holding what in this project right now', records: false },
   { name: 'fabric_effect_request', purpose: 'Ask to spend, delete or publish — refused until a person agrees', records: true },
   { name: 'fabric_task_accept', purpose: 'Confirm you hold the instruction that was sent, by its digest (M103)', records: true },

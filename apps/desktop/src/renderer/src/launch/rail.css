@@ -27,6 +27,7 @@
 .rail-i-board{border-radius:2px;box-shadow:inset 4px 0 0 -2.5px currentColor}
 .rail-i-comms{border-radius:6px 6px 6px 1px}
 .rail-i-access{border-radius:50% 50% 3px 3px}
+.rail-i-memory{border-radius:50%;box-shadow:inset 0 0 0 3px var(--app-panel),inset 0 0 0 5px currentColor}
 /* The operator, 2026-11-05: the rail's width is the person's, dragged at its edge. */
 .rail{position:relative}
 .rail-resize{position:absolute;top:0;right:-3px;width:6px;height:100%;cursor:col-resize;z-index:2;-webkit-app-region:no-drag}
@@ -186,3 +187,17 @@ html:has(.app.launch-root),html:has(.app.launch-root)>body{overflow:hidden}
 /* At least 24 px to aim at (0.3.12 review UX-11). */
 .rail-graph{ flex: 0 0 auto; border: 0; background: none; color: var(--app-muted); cursor: pointer; padding: 0; min-width: 24px; min-height: 24px; display: inline-flex; align-items: center; justify-content: center; }
 @media(hover:hover) {.rail-graph:hover{ color: var(--app-link); }}
+/* The owner, 2026-11-19: «Новая» and «Продолжить последнюю» on each project's row, quiet until the row is pointed at. */
+.rail-session-acts{display:flex;gap:2px;flex:none;margin-left:2px;opacity:.55;transition:opacity .12s}
+.rail-projects li:hover .rail-session-acts,.rail-projects li:focus-within .rail-session-acts{opacity:1}
+.rail-session-acts .rail-console{margin-top:0}
+.rail-console:disabled{cursor:progress;opacity:.6}
+/* «Агенты»: a new session in a chosen project, and the sessions that ended under the running ones. */
+.rail-new-session{align-self:flex-start}
+.rail-pick{list-style:none;margin:0 0 6px;padding:0 0 0 10px;display:grid;grid-template-columns:minmax(0,1fr);gap:2px}
+.rail-pick .rail-small{margin:0;width:100%;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rail-sub{margin-top:10px;text-transform:none;font-size:11.5px}
+button.rail-recent{width:100%;text-align:left;background:transparent;border:0;font:inherit;color:inherit;cursor:pointer;padding:6px 10px;border-radius:8px;display:flex;gap:8px;align-items:flex-start}
+button.rail-recent:hover{background:var(--app-panel-quiet)}
+button.rail-recent:disabled{cursor:progress;opacity:.6}
+@media (prefers-reduced-motion: reduce){.rail-session-acts{transition:none}}

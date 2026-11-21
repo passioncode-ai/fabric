@@ -105,6 +105,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-89 | Настройки | FLW-40, FLW-93 | none — interactive HTML | built | apps/desktop/src/renderer/src/launch/SettingsScreen.tsx |
 | SCR-90 | Создать | FLW-93, FLW-96, FLW-98 | none — interactive HTML | built | `apps/desktop/src/renderer/src/start/StartPaths.tsx` |
 | SCR-91 | Канвас | FLW-101 | none | built | `apps/desktop/src/renderer/src/canvas/CanvasApp.tsx` |
+| SCR-92 | Memory | FLW-31 | none: the running app | built | `apps/desktop/src/renderer/src/launch/MemoryScreen.tsx` |
 
 ## Design system
 
@@ -2402,7 +2403,28 @@ place (ADR-0160). The screens they replace carry a dated note.
   | drawn | a command from the call | none | the new elements, the view moved to them, a highlighted part outlined for a few seconds |
 - **Axes:** viewport: 1024, 1440; theme: dark, light; text: default; locale: ru, en
 - **Coverage:** apps/desktop/src/renderer/src/canvas/CanvasApp.tsx region `canvas-window`; apps/desktop/src/renderer/src/canvas/applyCommand.ts
-- **Scenarios:** SCN-190, SCN-191
+- **Scenarios:** SCN-192, SCN-193
 - **Resources:** [ADR-0201](../adr/0201-the-canvas-is-an-excalidraw-window-a-designer-draws-on.md)
 - **Status:** built
 - **Implementation tasks:** task 01c3a418
+
+### SCR-92: Memory
+- **Used by:** FLW-31
+- **Purpose:** The dashboard of Fabric's knowledge base of every project (SCN-190; spec `docs/evidence/specs/2026-11-20-memory-dashboard.md`).
+- **Elements:** the heading and its lead; «Обновить»; the stats (documents, projects, sessions, transcripts, tasks, board, commits, documents, graph, by meaning, file); the source chips; «Организации и проекты»: the map (`@fabric/graph` `GraphMap`), «По размеру окна», the project card, «То же таблицей» (`GraphTable`); the side column: «Поиск с цитатами» with its hits and «Проверить цитату», «Что изменилось» with «Сутки» and «Неделя».
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | opened | none | «Читаю…» |
+  | not open | the index is not running | none | «База знаний сейчас не открыта.» with the reason |
+  | catching up | transcripts left after a pass | none | «Первый индекс ещё читается: осталось транскриптов N.» |
+  | source unread | a source failed its last pass | none | its chip says «не читается», the reason on hover |
+  | no canvas | no 2D canvas | none | the map's note; the table holds the same |
+  | picked | a project pressed | none | its card; search and changes narrow to it |
+  | found | a search answered | none | the hits with passage and file:lines |
+  | nothing found | no hit | none | «Среди N документов индекса совпадений нет…» |
+  | verified | a check kept the quote | none | «Цитата дословно есть в источнике.» |
+  | not verified | a check refused it | none | «Не подтверждена: {причина}» |
+  | nothing changed | no document in the window | none | «За этот срок в базу ничего не пришло.» |
+- **Axes:** viewport: 1024, 1440; theme: dark, light; text: default, 200%; locale: ru, en
+- **Coverage:** `apps/desktop/src/renderer/src/launch/MemoryScreen.tsx` region `memory-screen`, `apps/desktop/src/renderer/src/graph/` regions `graph-map`, `graph-table`, `graph-timeline`

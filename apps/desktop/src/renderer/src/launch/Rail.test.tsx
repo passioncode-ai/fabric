@@ -3,7 +3,7 @@
 // count where something waits for the person, or every agent at work with its project and branch; История and
 // Настройки at the foot. No tab strip, no back button of Fabric's own, no scope bar.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { ru } from '../i18n/ru'
@@ -63,8 +63,9 @@ describe('the left column', () => {
     const links = within(foot()).getAllByRole('link')
     // The operator, 2026-11-05: the Comms and Agent access came out of Настройки into the rail.
     // The operator, 2026-11-12: «Доска» first.
-    expect(links.map((a) => a.textContent?.replace(/\d+\+?$/, ''))).toEqual([en['rail.board'], en['rail.comms'], en['rail.access'], en['rail.history'], en['rail.settings']])
-    const placed = ['board', 'comms', 'access', 'history', 'settings']
+    // The owner, 2026-11-20 (SCN-190): «Memory» under Переписка.
+    expect(links.map((a) => a.textContent?.replace(/\d+\+?$/, ''))).toEqual([en['rail.board'], en['rail.comms'], en['rail.memory'], en['rail.access'], en['rail.history'], en['rail.settings']])
+    const placed = ['board', 'comms', 'memory', 'access', 'history', 'settings']
     links.forEach((link, i) => { fireEvent.click(link); expect(props.onPlace).toHaveBeenLastCalledWith(placed[i]) })
     // Агенты is no longer a place of its own: the toggle replaces it.
     expect(within(foot()).queryByRole('link', { name: new RegExp(`^${en['rail.agents']}`) })).toBeNull()
@@ -159,37 +160,102 @@ describe('the left column', () => {
     expect(screen.queryByRole('list', { name: en['rail.projects'] })).toBeNull()
     const list = screen.getByRole('list', { name: en['rail.agents.list'] })
     const rows = within(list).getAllByRole('link')
-    // The operator, 2026-11-05: the agent's own name leads; the small line says what runs it and its folder, no branch.
+    // The operator, 2026-11-05: the agent's own name leads; the small line says what runs it. The owner, 2026-11-19
+    // (eef5abeb): the line starts with where the session runs and ends with its branch, else its folder.
     expect(rows[0].querySelector('.rail-name')?.textContent).toBe('Fabric')
     expect(rows[0].querySelector('.rail-agent-line')?.textContent).toContain('Claude Code')
-    expect(rows[0].textContent).not.toContain('release/0.3.14')
-    // CO-498: the folder by its last segment, the whole path on hover; none when Fabric knows no folder.
-    expect(rows[0].textContent).toContain('fabric-co409')
-    expect(rows[0].querySelector('.rail-folder')?.getAttribute('title')).toBe('/Users/example/DATA/_worktrees/fabric-co409')
+    expect(rows[0].querySelector('.rail-source')?.textContent).toBe(en['rail.agents.inFabric'])
+    expect(rows[0].textContent).toContain('release/0.3.14')
+    // The whole folder on hover; the folder's last segment only when no branch is known.
+    expect(rows[0].querySelector('.rail-branch-word')?.getAttribute('title')).toBe('/Users/example/DATA/_worktrees/fabric-co409')
     expect(rows[1].querySelector('.rail-folder')).toBeNull()
     expect(rows[1].textContent).not.toContain(en['rail.agents.branchUnknown'])
-    // The status in a word beside its colour, never the colour alone (R-19).
-    expect(rows[1].textContent).toContain(en['status.idle'])
+    // The status is the dot's, named for every reader (R-19, UX-17); no word «Working» beside it (the owner, 2026-11-19).
     expect(rows[1].querySelector('.rail-dot')?.className).toContain('s-idle')
-    // Every status keeps its word, «Работает» included (0.3.14's UX-26; the 0.3.15 review, iteration 1, UX-1).
-    expect(rows[0].textContent).toContain(en['status.working'])
+    expect(within(rows[1]).getByRole('img', { name: en['status.idle'] })).toBeTruthy()
+    expect(rows[0].textContent).not.toContain(en['status.working'])
     expect(within(rows[0]).getByRole('img', { name: en['status.working'] })).toBeTruthy()
+    // No console handler: a press opens the agent's page, as before.
     fireEvent.click(rows[0])
     expect(props.onAgent).toHaveBeenCalledWith('s1')
   })
 
-  // The operator's second review, 2026-10-26 (v2 §4.3, R-5, R-6): a row opens the agent's screen; the console icon
-  // beside a console Fabric holds opens its session as a tab at once; an agent elsewhere says where, with no button.
-  it('opens an agent\'s session from the console icon beside its row; one outside Fabric says where it runs', () => {
+  // The owner, 2026-11-19 (board request eef5abeb): a press on an agent whose console Fabric holds opens that console at
+  // once; the small button beside opens its page; an agent elsewhere opens its page and says where it runs.
+  it('opens an agent\'s console with one press on its row; its page from the button beside; one outside Fabric says where it runs', () => {
     const onAgentConsole = vi.fn()
-    shell({ onAgentConsole, agents: { rows: [agent('s1', 'Fabric'), agent('s2', 'Kimi', { console: false })], problem: null } })
+    const props = shell({ onAgentConsole, agents: { rows: [agent('s1', 'Fabric'), agent('s2', 'Kimi', { console: false })], problem: null } })
     fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))
     const list = screen.getByRole('list', { name: en['rail.agents.list'] })
-    const icon = within(list).getByRole('button', { name: en['rail.agents.openSession'].replace('{name}', 'Fabric · Claude Code') })
-    fireEvent.click(icon)
+    const rows = within(list).getAllByRole('link')
+    fireEvent.click(rows[0])
     expect(onAgentConsole).toHaveBeenCalledWith('s1')
+    expect(props.onAgent).not.toHaveBeenCalled()
+    fireEvent.click(within(list).getByRole('button', { name: en['rail.agents.details'].replace('{name}', 'Fabric · Claude Code') }))
+    expect(props.onAgent).toHaveBeenCalledWith('s1')
     expect(within(list).getAllByRole('button')).toHaveLength(1)
     expect(within(list).getByLabelText(en['rail.agents.elsewhere'])).toBeTruthy()
+    expect(rows[1].querySelector('.rail-source')?.textContent).toBe(en['rail.agents.outside'])
+    fireEvent.click(rows[1])
+    expect(props.onAgent).toHaveBeenCalledWith('s2')
+    expect(onAgentConsole).toHaveBeenCalledTimes(1)
+  })
+
+  // The owner, 2026-11-19: «либо новую, либо последнюю, две кнопочки в списке проектов»; in «Агенты» a new session in a
+  // project chosen from the list, and the running agents first, then the sessions that ended.
+  it('starts a new session or continues the last one from a project\'s row, one press at a time', async () => {
+    let finish: () => void = () => {}
+    const onNewSession = vi.fn(() => new Promise<void>((r) => { finish = r }))
+    const onResumeLast = vi.fn(async () => {})
+    shell({ onNewSession, onResumeLast })
+    const list = screen.getByRole('list', { name: en['rail.projects'] })
+    const start = within(list).getByRole('button', { name: en['rail.session.new'].replace('{name}', 'Maple') })
+    fireEvent.click(start)
+    expect(onNewSession).toHaveBeenCalledWith('p1')
+    await waitFor(() => expect((start as HTMLButtonElement).disabled).toBe(true))
+    fireEvent.click(within(list).getByRole('button', { name: en['rail.session.resume'].replace('{name}', 'Maple') }))
+    expect(onResumeLast, 'a second press while one start is in flight starts nothing').not.toHaveBeenCalled()
+    finish()
+    await waitFor(() => expect((start as HTMLButtonElement).disabled).toBe(false))
+    fireEvent.click(within(list).getByRole('button', { name: en['rail.session.resume'].replace('{name}', 'atlas') }))
+    expect(onResumeLast).toHaveBeenCalledWith('p2')
+  })
+
+  it('in «Агенты»: a new session in a project chosen from the list; the sessions that ended under the running ones', async () => {
+    const onNewSession = vi.fn(async () => {})
+    const onResumeLast = vi.fn(async () => {})
+    const loadRecent = vi.fn(async () => [{ projectId: 'p2', projectName: 'atlas', runner: 'codex', branch: 'main', endedAt: null, startedAt: '2026-11-19T10:00:00Z' }])
+    shell({ onNewSession, onResumeLast, loadRecent })
+    fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))
+    const recent = await screen.findByRole('list', { name: en['rail.agents.recent'] })
+    const lists = screen.getAllByRole('list').map((l) => l.getAttribute('aria-label'))
+    expect(lists.indexOf(en['rail.agents.list'])).toBeLessThan(lists.indexOf(en['rail.agents.recent']))
+    fireEvent.click(within(recent).getByRole('button'))
+    await waitFor(() => expect(onResumeLast).toHaveBeenCalledWith('p2'))
+    fireEvent.click(screen.getByRole('button', { name: en['rail.session.newAny'] }))
+    fireEvent.click(within(screen.getByRole('list', { name: en['rail.session.pickProject'] })).getByRole('button', { name: 'Fabric' }))
+    await waitFor(() => expect(onNewSession).toHaveBeenCalledWith('p3'))
+    expect(screen.queryByRole('list', { name: en['rail.session.pickProject'] })).toBeNull()
+  })
+
+  // The operator, 2026-11-20: «в дашборде вот вижу сессии а в фабрике не вижу».
+  it('«Агенты» lists every session of this computer outside Fabric, its state said, and a press opens Агенты', async () => {
+    const onAllSessions = vi.fn()
+    const loadMachine = vi.fn(async () => [
+      { pid: 0, live: true, sessionId: '11111111-1111-4111-8111-111111111111', cwd: '/w/alpha-agent', name: null, status: null, kind: null, entrypoint: null, startedAt: null, updatedAt: null, source: 'switchboard' as const, state: 'working' as const, agent: 'claude-code' },
+      { pid: 7, live: true, sessionId: '22222222-2222-4222-8222-222222222222', cwd: '/w/beta-agent', name: null, status: 'idle', kind: null, entrypoint: null, startedAt: null, updatedAt: null, source: 'claude' as const, state: 'waiting' as const, agent: 'claude-code' }
+    ])
+    shell({ loadMachine, onAllSessions })
+    expect(loadMachine).not.toHaveBeenCalled()
+    fireEvent.click(within(toggle()).getByRole('button', { name: en['rail.agents'] }))
+    const list = await screen.findByRole('list', { name: en['rail.agents.machine'].replace('{count}', '2') })
+    expect(within(list).getByText('alpha-agent')).toBeTruthy()
+    expect(within(list).getByText('beta-agent')).toBeTruthy()
+    // UX-10: the state is said once, as a word (the dot is hidden from a screen reader).
+    expect(within(list).getByText(en['machineSessions.state.working'])).toBeTruthy()
+    expect(within(list).queryAllByRole('img')).toHaveLength(0)
+    fireEvent.click(within(list).getAllByRole('button')[0])
+    expect(onAllSessions).toHaveBeenCalledTimes(1)
   })
 
   it('moves between Проекты and Агенты with the arrow keys, focus following', () => {

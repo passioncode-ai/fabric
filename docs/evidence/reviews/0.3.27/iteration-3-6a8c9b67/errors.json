@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "6a8c9b6730d257bf75e296ab217366bf2a19f5a8",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-6a8c9b67/2026-11-21-errors.md",
+  "reportSha256": "e9f854f3b87d57521295042be0a040b5bc0c05aac71ad28b0218200090b91fe1",
+  "reviewerRun": "release-0327-i3r5-errors-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-46",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-49"
+      ]
+    },
+    {
+      "id": "ER-47",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the queue records what it typed as owed to that console, so a limit or sign-in answer retypes it on the next runner, once; a failed write moves on to a console a fallback brought (`ceoAgent.ts#drainOnce`; test «run five: a line the queue typed into a console that answers with a limit…», watched red with the record removed)"
+      ]
+    },
+    {
+      "id": "ER-48",
+      "status": "fixed",
+      "evidence": [
+        "fixed: every send goes through the one queue (test «run five: two sends that overlap…»)"
+      ]
+    },
+    {
+      "id": "ER-49",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an unknown write in the queue is never queued again nor owed"
+      ]
+    },
+    {
+      "id": "ER-50",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-51"
+      ]
+    },
+    {
+      "id": "ER-51",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a send waits for the drain in flight, which holds until a files line's Enter is written"
+      ]
+    },
+    {
+      "id": "ER-52",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `ask_ceo` answers an unknown write with «do not ask again; read ceo_reply» and starts the echo window"
+      ]
+    }
+  ]
+}

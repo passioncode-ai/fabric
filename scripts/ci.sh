@@ -88,6 +88,8 @@ node --test scripts/test/windows-test-imports.test.mjs
 # The universal macOS pack (0.3.4): node-pty joined with lipo, and no thin or unreadable Mach-O passes; it skips
 # off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs
+# An update replaces Fabric in place, one icon in the Dock (docs/launch/release-mac.md#installing-an-update-on-a-mac).
+node --test scripts/test/install-mac-update.test.mjs
 # ADR-0192 (0.3.18 review, iteration 1, PL-1, PL-2): the board's launch agent is in the tree, ships at
 # Contents/Library/LaunchAgents under the name the app registers, and afterPack refuses an app without it.
 node --experimental-strip-types --test scripts/test/board-service.test.mjs
@@ -241,6 +243,9 @@ step "pure tests — no database"
 # Named one by one rather than by a wildcard: a test that quietly starts needing
 # the stack must FAIL here rather than be silently promoted to the full tier.
 pnpm --filter @fabric/desktop exec vitest run
+# The 0.3.26 review, iteration 1, ER-1: a merge left ceo-agent.test.mjs unparsable and no fast step noticed, so every
+# node test file must at least parse here, whichever tier runs it.
+for f in apps/desktop/test/*.test.mjs; do node --check "$f"; done
 node apps/desktop/test/app-icon.test.mjs
 # ADR-0100 D5: the icon PNG is the render of fabric-icon.svg, never a hand edit.
 node scripts/build-app-icon.mjs --check
@@ -437,7 +442,7 @@ node --experimental-strip-types apps/desktop/test/hub-call-i3.test.mjs
 node --experimental-strip-types --test-force-exit apps/desktop/test/hub-surface.test.mjs
 # 2026-11-16 (the quality waves): these were written and never run by any tier. A test file no tier names is now a
 # failure (scripts/check-test-chains.mjs, below); one that is a manual probe says so in its first lines.
-for t in act-session-words board-reads board-wall-reads bug-capture bug-store ceo-conversation-host-tls console-open task-start cross-project-assign docker-runtime-words effect-tools process-boundary-native project-tools task-tools provider-capability-upgrade question-tools relayed-access-tools relayed-close resumed-claims switchboard-sessions; do
+for t in act-session-words board-reads board-wall-reads bug-capture bug-store ceo-conversation-host-tls console-open delivery-queue inbox-auto-connect claude-transcript task-start cross-project-assign docker-runtime-words effect-tools process-boundary-native project-tools task-tools provider-capability-upgrade question-tools relayed-access-tools relayed-close resumed-claims switchboard-sessions ceo-agent voice-retro voice-board launch-model session-resume session-launches; do
   node --experimental-strip-types --test "apps/desktop/test/$t.test.mjs"
 done
 node scripts/check-test-chains.mjs
@@ -472,9 +477,10 @@ owned_fast_not_run=()
 # run-first-install-db (CO-241, 0.3.4) is here too: the seed a fresh install takes, and the database
 # installs since 0.2.0 made, must open — every fresh install stopped at its identity before it.
 # run-reopen-answer-db (0.3.7 wave 2, migration 90): an answered question taken back, and the act record's registration.
+# run-task-rank-db (migration 131, ADR-0208): the owner's rank and an agent's proposed place, and their rebuild.
 # grants-journal-db.test (0.4.0 wave 1, migration 91) holds the floor's grants to the journal: projected in the
 # append, one writer, the presented grant reserved, the rebuild under the estate lock.
-for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db grants-journal-db.test run-resource-reservation-db run-reopen-answer-db; do
+for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db grants-journal-db.test run-resource-reservation-db run-reopen-answer-db run-task-rank-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"
   code=$?

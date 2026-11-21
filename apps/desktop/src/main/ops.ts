@@ -18,6 +18,7 @@ import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renam
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { atLeast, opsRecord, type OpsLevel, type OpsOutcome, type OpsRecord } from '../shared/opsLog.ts'
+import { outageFailure } from '../shared/errorText.ts'
 
 // #region ops-retention — docs: docs/evidence/plans/2026-10-21-core-reliability/README.md#stability
 // ST-4 of the 0.3.9 stability audit: a 20 000-line cap held 12 hours at the measured 1 770 lines an hour, so the
@@ -99,6 +100,15 @@ export interface Ops {
    *  a total. The number is not decoration: it is the difference between
    *  "nothing went wrong" and "we cannot see whether anything did". */
   lost(): number
+  /**
+   * 2026-11-20 (the operator's screen, 91 «fetch failed» in one 175 s outage): while `down` answers true, a failure that
+   * is only the database not being reachable (`shared/errorText.ts#outageFailure`) is counted by operation instead of
+   * written; the stack watch says the outage once, and `takeQuiet` gives the counts to its `stack.back`. Records of the
+   * stack itself (`stack.*`) are always written. Null turns it off.
+   */
+  quietWhile?(down: (() => boolean) | null): void
+  /** The counts since the last take, by operation, or null when nothing was counted; taking empties them. */
+  takeQuiet?(): Record<string, number> | null
 }
 
 export function createOps(opts: {
@@ -372,8 +382,30 @@ export function createOps(opts: {
     )
   }
 
+  /** 2026-11-20 (`Ops.quietWhile`): whether the stack is lost now, and what was counted rather than written meanwhile. */
+  let quietDown: (() => boolean) | null = null
+  let quiet: Record<string, number> = {}
+  const quietNow = (input: { op: string; outcome: OpsOutcome; error?: unknown }): boolean => {
+    if (!quietDown || input.outcome !== 'failed' || input.op.startsWith('stack.') || !outageFailure(input.error)) return false
+    try {
+      return quietDown()
+    } catch {
+      // A predicate that throws quiets nothing: the failure is written as before.
+      return false
+    }
+  }
   return {
     correlate: () => randomUUID(),
+
+    quietWhile(down) {
+      quietDown = down
+    },
+
+    takeQuiet() {
+      const taken = quiet
+      quiet = {}
+      return Object.keys(taken).length > 0 ? taken : null
+    },
 
     lost: () => lost,
 
@@ -383,6 +415,10 @@ export function createOps(opts: {
         const t = at.getTime()
         opts.observe?.(input.op, input.outcome, t, input.error !== undefined ? { error: input.error, correlationId: input.ctx.correlationId } : undefined)
         closeWindow(t)
+        if (quietNow(input)) {
+          quiet[input.op] = (quiet[input.op] ?? 0) + 1
+          return
+        }
         if (sampled(input)) {
           if (windowStart === null) windowStart = t
           if (written.has(input.op)) {

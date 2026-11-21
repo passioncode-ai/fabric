@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "34e5eecde4b5abb2b173bc9437ebc100607dfbd2",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-34e5eecd/2026-11-21-plan.md",
+  "reportSha256": "ee58ef9b3d62f1590f0ce0593a8f990bd59d420f71075602e6054c0b8d033f92",
+  "reviewerRun": "release-0327-i3r13-plan-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-83",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the HANDOFF lands by fast-forward; a move of `main` by documents only is merged with the map refreshed, by code or schema it makes a new candidate and a new run"
+      ]
+    },
+    {
+      "id": "PL-84",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the HANDOFF and run thirteen's section name the register commit right after the tag (CO-620 (15)), as 0.3.26 did"
+      ]
+    },
+    {
+      "id": "PL-85",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: «Upgrading» says no older build opens a schema-103 database and going back needs the 0.3.26 zip and the backup; the HANDOFF's checks read `schema_version()` 103 and the backup; the runbook's step 5 is ruled: CO-620 (15)"
+      ]
+    },
+    {
+      "id": "PL-86",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "PL-87",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: run thirteen's section records `cf23801b` as documents only, ADR-0207 not built in 0.3.27, and the owner's notice says so"
+      ]
+    },
+    {
+      "id": "PL-88",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: as DO-119"
+      ]
+    },
+    {
+      "id": "PL-89",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the HANDOFF names `de716a0b`, CO-622's repository copy and CO-622 among what is left"
+      ]
+    }
+  ]
+}

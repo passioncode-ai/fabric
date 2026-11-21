@@ -1,0 +1,91 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "777e96f49c90770f25c21803d46b34c6074ff922",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-777e96f4/2026-11-21-ux.md",
+  "reportSha256": "c980623c423f190ef24195f9c3ae7fdcc77db001668e1dbf48decb3baeff6aa1",
+  "reviewerRun": "release-0327-i3r8-ux-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-63",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `start` asks main's matcher only when the CEO's address words, a folder too broad and a folder path are not in play; `knowledge_search` refuses an address word as its project (`ceoTools.ts#start`, `knowledgeTools.ts#search`; test «run eight: «SEO» and «CEO» start nothing…», watched red with the old condition)"
+      ]
+    },
+    {
+      "id": "UX-64",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the voice board gives whole ids and opens a task by an id's first characters within its project (`voiceBoard.ts#brief`, `#task`; test «run eight: the voice opens a task by the id board_tasks gave…» through the host's own filter, watched red with the 8-character id)"
+      ]
+    },
+    {
+      "id": "UX-65",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a folder path never goes to the second matcher, so a new folder beside a longer-named one becomes its own project (test «run eight: a new folder beside a longer-named project's folder…», watched red)"
+      ]
+    },
+    {
+      "id": "UX-66",
+      "status": "fixed",
+      "evidence": [
+        "fixed: running, then review, then the backlog, each newest first, null dates last (`voiceBoard.ts#STATUS_ORDER`; the run-eight voice-board test)"
+      ]
+    },
+    {
+      "id": "UX-67",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (4)"
+      ]
+    },
+    {
+      "id": "UX-68",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-110 step 3 says the window is no longer the main window's child and the button brings it forward"
+      ]
+    },
+    {
+      "id": "UX-69",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `.ceo-popup-runner` and `.ceo-popup-state` are no-drag, so their hover text shows (`styles.css`)"
+      ]
+    },
+    {
+      "id": "UX-70",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the tool descriptions: the voice's tools name `knowledge_*` and `session_resume` (`ceoTools.ts#ceoVoiceTools`, `knowledgeTools.ts#knowledgeVoiceTools`); the search answer's note is CO-620 (6)"
+      ]
+    },
+    {
+      "id": "UX-71",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the CEO brief carries the address rule, phrased for the CEO itself (`ceoAgent.ts#ceoBrief`, `ceoAddress.ts#ceoAddressRule`; test «the CEO brief carries the address words…»)"
+      ]
+    },
+    {
+      "id": "UX-72",
+      "status": "ruled",
+      "evidence": [
+        "carried: CO-620 (5)"
+      ]
+    },
+    {
+      "id": "UX-73",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `session_resume`'s description says a task always starts a new conversation and no task continues it as itself"
+      ]
+    }
+  ]
+}

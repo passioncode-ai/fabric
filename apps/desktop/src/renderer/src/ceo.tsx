@@ -16,6 +16,7 @@ import '@xterm/xterm/css/xterm.css'
 import { ErrorBoundary, installWindowErrorReporting, reportRendererError } from './CrashBoundary'
 import { I18nProvider, type Locale } from './i18n'
 import { CeoPopup } from './ceo/CeoPopup'
+import { PersonaProvider } from './launch/persona'
 import { APP_SETTINGS_DEFAULTS, type AppSettings } from '../../shared/types'
 
 installWindowErrorReporting()
@@ -32,7 +33,7 @@ function CeoWindow(): React.JSX.Element {
     document.documentElement.lang = settings.locale
   }, [settings])
   if (!settings) return <div className="booting" />
-  return <I18nProvider locale={settings.locale as Locale}><CeoPopup /></I18nProvider>
+  return <I18nProvider locale={settings.locale as Locale}><PersonaProvider><CeoPopup /></PersonaProvider></I18nProvider>
 }
 
 createRoot(document.getElementById('root')!, {

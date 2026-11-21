@@ -9,14 +9,295 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## Unreleased
 
-- **The CEO on the home screen is one small block at the top right, with the call in it.** The operator's review of
-  2026-11-19: «Спросить CEO» filled the width under the header in large type. The header (greeting and rhythm) is back
-  as it was, and the CEO card stands at its right: a two-line box (files pasted with ⌘V or Ctrl+V, dropped or picked),
-  «Приложить файл», «Отправить» and «Позвонить». The call's state, its time out of five minutes, its price and its
-  last lines show in the card, and «Положить трубку» ends it (`ceo/CeoCall.tsx#VoiceCall`, the same component the CEO
-  window's head uses; SCN-182, SCN-184). A call now ends by itself after a minute in which nobody speaks and at five
-  minutes, and says why; the person calls again to go on (`voiceCall.ts#MAX_CALL_MS`, `IDLE_CALL_MS`; ADR-0197
-  amendment 1).
+- **The queue has an order, and it follows the work's dependencies.** The owner, 2026-11-21: prioritisation on the
+  board first, the critical path highest, and a nearly finished task is not switched away from. «Очередь» on the Board
+  now stands in one order: what you placed yourself first, then what other tasks wait for, the longest chain first; a
+  task that waits for an open one stands after the ready ones. Each card says why it stands where it does. On a
+  project's board you drag a card or press «Выше» and «Ниже»; an agent (the CEO among them) can only propose a place,
+  which you accept or decline on the card. Tasks in work and in review are never reordered. Agents get the same order
+  from `fabric_work_list`, and the backlog routine briefs by it. Schema 104 (migration 131: `task.ranked@1`,
+  `task.rank.proposed@1`, `task.rank.declined@1`). [ADR-0208](docs/adr/0208-the-queue-has-one-order-the-owners-rank-over-a-dependency-walk.md),
+  [spec](docs/evidence/specs/2026-11-21-task-rank.md).
+
+## 0.3.27
+
+The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's words](docs/evidence/plans/2026-11-20-ceo-board-ux/owner-words.md), part 4).
+
+By the owner's answer of 2026-11-21 («Выпустить с main», his reply in Fabric to the release's question about `main`
+moving), 0.3.27 also carries what `main` took meanwhile (Memory, the estate index and graph, the CEO's folder-role
+navigation, the update in place, decisions split by level, a responder's note no longer read as its answer with
+schema 103); by his exception to the pause of the same night (about
+02:10), the voice reading the board; and, as agreed with the home's session, its blockers (the registry and Inbox, the
+outage banner, the CEO window, the console line, the dictation tail, and the owner's two of about 02:40: Russian copied
+between consoles, the CEO's board slot).
+
+- **The CEO's voice reads the board itself.** By voice the owner hears the newest projects with when each was added, a
+  project's tasks with status, holder and what waits for him, and a task's goal and graph (what it grew from and into,
+  what it blocks and follows), read-only and without the CEO's console or a new session. «шеф», «директор», «босс»,
+  «менеджер», «главный» and «SEO» mean the CEO itself, not a project or the SEO agent (in the knowledge search a project whose own name
+  is one of them is still that project, and in the CEO's console a word means the CEO only standing alone), and are recognition hints of
+  the call (`main/voiceBoard.ts`, `shared/ceoAddress.ts`; SCN-191). The owner's exception to the pause, 2026-11-21.
+  During a call the voice also searches the estate index (`knowledge_search`, `knowledge_execute`): its passages from
+  sessions, transcripts, documents and commits reach xAI, redacted; the voice cannot refresh or rebuild the index.
+- **Agents reach Fabric Inbox again, and on the owner's own machine with no question.** The agent registry takes the
+  descriptors the contract allows (`runner`, `peer`, `channels`, an app a person runs without an address;
+  `main/agentRegistry.ts#validateServiceDescriptor`), so Inbox is found again. On a machine marked the owner's, an
+  agent's ask of Fabric Inbox is allowed at once and recorded with his words as the reason, and Fabric connects itself
+  to Inbox at the hub's start, when the registry changes and every 5 minutes, never after a person refused it; Agent
+  access revokes it, and the person's Disconnect or Deny stops it until they connect it again (ADR-0204, `main/accessService.ts#OWNER_DEFAULT_PRODUCTS`, `main/inboxAutoConnect.ts`). The owner,
+  2026-11-20: «вообще это все должно быть автоматически, не надо никакой подключать».
+- **The CEO's window stays where it was left.** It moves by its whole head and free areas, resizes, and opens on the
+  display and at the place it was closed, pulled wholly onto a screen that still shows it (`main/ceoWindowPlacement.ts`,
+  `shared/windowPlacement.ts`, kept in `userData/ceo-window.json`). Its head is one row beside the window buttons; the
+  small buttons share one size (SCN-110 and SCN-182 amended).
+- **A console's bottom line says where it runs.** Who started it and when, the account, the organisation, the model,
+  the folder (opens in Finder) and the live branch, and copies the session's ids without showing them, read from Fabric's launch journal and Switchboard
+  (`shared/sessionMeta.ts`, `main/sessionMetaRead.ts`; SCN-188).
+- **«Продолжение следует» at the end of a dictated message is no order.** The CEO's brief and the voice both carry it
+  as the tail of the owner's dictation (`shared/ceoAgent.ts#DICTATION_TAIL`).
+- **A session's first task reaches Claude Code.** On 2026-11-20 four sessions the CEO started sat with no task.
+  Measured on this Mac: Claude Code prints a cursor save and restore about 3 s after its start, then nothing while its
+  start-up hooks run; Fabric took that quiet for ready and wrote the task before the input box existed, and Claude Code
+  dropped it without a trace. Now nothing is typed into Claude Code before its box is drawn (for at most a minute, then
+  the old rule), and a task that left no turn in Claude Code's own transcript (no message of the person's, no message
+  taken into its queue) is typed once more; a transcript Fabric cannot find is an unknown and is never retyped (`main/deliveryQueue.ts#promptDrawn`, `main/consoleOpen.ts`,
+  `main/claudeTranscript.ts`; SCN-183).
+- **A message to the CEO is never lost.** The CEO window said «Сообщение не дошло до CEO» when the CEO was working, and
+  the owner pasted it into the console by hand. A message the console does not take at once now waits in a queue kept
+  on disk, in the order it was sent, the window says it is queued, and it is typed as soon as the console takes it,
+  after a restart of Fabric too. A CEO that is not running is said as not running, with its message kept for its start;
+  writing to a stopped CEO still starts it; at most 50 of the person's messages wait (plus up to 10 a console lost to a limit owed), and a 51st is refused and said; a write whose
+  outcome is unknown is said so to the message's sender (one the queue types later is recorded) and never typed again;
+  a line typed into a console that then shows its limit is typed again on the next runner, once (`main/ceoAgent.ts`,
+  region `ceo-queue`; SCN-189).
+- **The CEO is reachable on the board while its console runs, and a task for it wakes it.** The owner, 2026-11-21:
+  tasks from his Telegram bot found no live CEO. The CEO's `ceo.task` slot lived 60 s after its own enrol and then read
+  stale for days. Fabric now holds that slot as the CEO's console every 30 s while the console runs, and a `ceo.task`
+  request that waits while the console is not running starts it (at most once per 5 minutes; a CEO the person stopped
+  stays stopped, across a restart of Fabric too, where its window shows it stopped until «Запустить», and a failed one
+  waits for the person), then types the request into it as before (ADR-0197 Amendment 5, `main/ceoBoardKeeper.ts`).
+- **Russian copied in one console reaches another whole.** The owner, 2026-11-21: his dictation copied from the CEO's
+  console arrived in another console as «–î–∞–≤–∞–π», UTF-8 read as Mac Roman. Fabric started by «Служба доски» (launchd)
+  has no locale, so its consoles had none either, and macOS's `pbcopy`, which Claude Code copies through, read the text
+  as Mac Roman. A console with no locale of its own now gets `LC_CTYPE=en_US.UTF-8`; one the person set is kept, and
+  the language of messages is not touched (`main/sessionEnv.ts#UTF8_CTYPE`). Text already copied broken stays broken:
+  copy it again after the update. A test copies more than 6 KB of Russian through pbcopy in a console's environment
+  and reads it back as Unicode: whole with the fix, the owner's «–î…» without it; the CEO's console gets the same
+  environment; a paste of the same text into a PTY with a console's environment passes byte for byte, which a locale does not change
+  (`test/console-paste-utf8.test.mjs`).
+- **A responder's note on a request is no longer read as its answer.** Everything a responder writes on a request's
+  thread (an answer, a progress note, an effect summary, the checkpoint of a takeover) is stored as a reply. The
+  operator's read of a thread now says which each one is (`via`: `reply`, `progress`, `effect`, `checkpoint`; contract
+  DEC-0181, fabric-agent-contract `6ab4d03`), and the bridge to an organization's PM agent judges only an answer: a
+  takeover's checkpoint that quotes an answer block decides nothing. Agents' own reads (`com.list`, `com.get`) are
+  unchanged until the board can read a reader's contract pin (the schema step is in «Upgrading» below).
+- **An agent asks the person only what the person alone can say.** The operator, 2026-11-21: strategy (the vision,
+  the concept) is the person's and is always asked; tactics the agent decides itself; what the agent knows better or
+  can find it never asks; a question goes only where the agent is unsure or the person knows better, weighed against
+  the person's expertise in that domain. Every session reads it as the rule `decisions.by-level`, and a task's spec is
+  gathered by it: the agent fills what it can and asks only for the rest
+  ([ADR-0205](docs/adr/0205-decisions-split-by-level-strategy-is-the-persons-tactics-the-agents.md), SCN-176).
+- **«Memory»: what Fabric knows about every project, as a place of its own.** The owner, 2026-11-20, in the CEO
+  window: the knowledge base should live inside Fabric as «Memory» and render as well as Sound Engine's brain. «Memory»
+  in the left column shows what the base holds and how fresh each source is (agent sessions, tasks and the journal, the
+  board, commits and documents, the local model's vectors), the organizations and their projects on a map whose lines
+  are the board requests between projects, a project's card, a search whose quotes can be checked word for word against
+  their source, and what changed over a day or a week. The CEO reads the same through `fabric_knowledge_execute`
+  (`memory.overview`, `memory.graph`, `memory.changes`). The graph is one module now, `@fabric/graph`, with a map, a
+  time line and a table. Two index defects found while measuring are fixed: a transcript or a changed document no longer
+  fails to be written, and a repository's commits are no longer read again on every pass while its documents wait.
+- **One search over every session, transcript and task, and the graph of what relates to what.** The operator's backlog
+  of 2026-11-19, relayed by the CEO: search tasks across every session and project, and a knowledge base for all of
+  Fabric, a linked graph of tasks, actions and data. Fabric keeps a local index (`userData/estate-index`) of the Claude
+  Code and Codex transcripts, its own consoles, every project's tasks, notes and board messages, the repositories'
+  documents and decisions (ADRs first, cut at headings with their lines), the project memory's facts, and the commits, and
+  searches it by words in Russian and English, by parts of identifiers and, when a local Ollama model is installed, by
+  meaning. The index itself stays on the machine (a folder 0700, files 0600), and every text it keeps is redacted as it
+  is written, so a key of a known shape (Anthropic, OpenAI and OpenRouter, xAI, GitHub, Slack, AWS, Google, Stripe,
+  Hugging Face, Supabase, Telegram bot tokens, JWTs, named assignments, private keys) typed into any session is neither
+  in the file nor in a hit; a secret with no known shape is not caught. Its hits do reach the CEO's model
+  through the CEO's doors and the voice, redacted again on the way out (0.3.27 review DA-49). Every hit names its project, context (personal or an organization), the
+  file and lines it stands at, its session id and the command that continues it. The CEO gets two tools,
+  `fabric_knowledge_search` and `fabric_knowledge_execute` (what relates to a task, a session or a commit, N steps out,
+  and the shortest chain between two of them); the search panel gets the group «Везде» with «Связи», «Продолжить» and
+  «Скопировать команду» (ADR-0200; spec `docs/evidence/specs/2026-11-19-estate-index-and-graph.md`).
+- **The CEO finds a project by its folder's name and continues a console after Fabric restarted.** `fabric_ceo_projects`
+  answers each project with its role (canonical, duplicate, worktree, temporary) and leaves temporary folders out unless
+  asked; `fabric_ceo_session_start` takes a folder's name with a typo forgiven and answers a list when several canonical
+  projects match; `fabric_ceo_session_resume` continues a console from before a restart as the same Claude Code or Codex
+  session (`claude --resume`, `codex resume`) in a Fabric console, instead of answering «Switchboard has no record». No
+  router agent is added: measured on the CEO's own transcript, the same task took 16 calls and 3 min 50 s and now takes 4
+  calls and about 4 s (ADR-0199).
+- **An update replaces Fabric in place: one icon in the Dock.** An update moved the old bundle out of `/Applications`, the
+  Dock tile followed it and a second Fabric icon appeared; old copies (`Fabric-0.3.20.app`) and rollout copies stayed in
+  Launchpad and LaunchServices. `scripts/install-mac-update.mjs` swaps only `Contents`, keeps the way back as a zip,
+  removes the other registrations and keeps one Fabric tile in the Dock ([release-mac](docs/launch/release-mac.md#installing-an-update-on-a-mac)).
+- **A board run Switchboard refuses is said, and mail is not starved.** org-index's mail waited six days with no run
+  (board request `42c14b72`): every start was refused `no_agent` (no account with room) or `at_capacity`, the wait after
+  a refusal doubled to six hours, and the offers lapsed in Observatory with no reason. Now a refusal writes its code
+  into the workflow (step `launch-refused`), `no_agent` and `at_capacity` wait at most 30 minutes, an item waiting six
+  hours or more is offered a free place first, and the inbox packet says what its count leaves out. The signal to the
+  operator after a series of refusals is CO-607 ([on-demand spec §3.8](docs/evidence/specs/2026-11-04-on-demand-sessions.md#38-every-addressee-woken-and-watched-co-559), item 6).
+- **A session the CEO starts gets its task, and the CEO hears whether it did.** A session started with a task sat 40
+  minutes on an empty prompt, and nothing said why: the first instruction's end was dropped unless it threw. Now a
+  readiness that lapsed waits one more window (still never a blind write), a long paste left waiting in Claude Code's
+  box («[Pasted text #1 …]», no turn started) gets one more Enter, and every end is written to the operations log as
+  `terminal.first-instruction`. `fabric_ceo_session_start` waits for it (at most 70 s) and answers `first_task`:
+  delivered (Claude Code started its turn, or its transcript shows the task taken; another runner: the text was
+  written), resubmitted (the turn started after the extra Enter, or the task was typed once more), written but unconfirmed (no turn started within two looks: the
+  CEO reads the screen before it relies on it), not delivered with the next step, or pending
+  (`main/consoleOpen.ts#deliverFirst`; SCN-183). The measured cause of sessions sitting empty is the first bullet's
+  (a paste written before Claude Code's box); whether the two sessions noted earlier that day were among the four measured
+  was not checked, and a trust or update screen taking the text stays a lead, carried in CO-606.
+- **A message to the CEO while it works is no longer lost.** 5 of the owner's last 20 messages to the CEO timed out on
+  2026-11-19 and 20: a working Claude Code prints its spinner without the 400 ms quiet the delivery waited for. A
+  message that waited 3 s is now written into a working Claude Code, which queues it and answers after its turn
+  (measured on a live Claude Code the same day). It still needs output since the last write, and an item with a write
+  gate still waits for quiet; other agents keep the quiet rule (`main/deliveryQueue.ts`, `busyAfterMs`).
+- **The CEO finds a project by its spoken name.** «sound engine» is sound-engine (spaces, hyphens and underscores read
+  alike), a worktree copy of the same name gives way to the project, and a real tie is asked about with each folder
+  (`shared/ceoAgent.ts#findProject`). 10 lookups failed on 2026-11-19 and 20.
+- **A task in words is never typed into a plain shell.** A session started with runner «shell» and a task typed the task
+  into zsh («parse error near `)'»). The CEO's start refuses that before anything starts and names the agents to use;
+  the console never types a first instruction into a shell (`main/consoleOpen.ts#TAKES_NO_TASK`).
+- **A client the hub refuses as unknown is named.** After a restart, a client kept knocking with a revoked credential
+  every 20 s for two hours and the log named nobody. The refusal now writes `hub.unknown-credential` once per 10 minutes
+  per credential, with a short digest of what was sent (never the credential) and the client's User-Agent
+  (`main/agentSurface.ts#sayUnknownCredential`).
+- **A database outage is said once, truly, and goes by itself.** On 2026-11-20 Fabric stopped its database for a nearly
+  full disk (0.8 GB) for 175 s; meanwhile a red banner said «the local stack is most likely stopped» under the notice
+  that already said why, stayed after the database came back, and the log took 91 «fetch failed» lines. Now a read that
+  failed only because the database is gone never becomes that banner while the stack watch says it is lost; the banner
+  goes and the journal is read again the moment it is back; the log counts such failures by operation and writes them
+  once, in `stack.back` (`failed_while_down`). Under 15 GB free the window says so quietly, well before the 3 GB
+  warning and the 1 GB stop (`shared/errorText.ts#outageFailure`, `main/ops.ts`, `shared/stackWatch.ts#DISK_SOON_BYTES`;
+  SCN-161).
+
+The owner, the same day (paraphrased): review the calls with the voice, fix every defect and add the missing tools
+([the voice retro](docs/reports/2026-11-20-voice-ceo-retro/README.md), [its fixes](docs/reports/2026-11-20-voice-ceo-retro/fixes.md)).
+
+- **Every voice call is kept on this computer.** What the owner said, what the voice answered, every tool it called
+  with its arguments and answer, the call's length and price: one file a call in the CEO's folder (`ceo/calls/`,
+  owner-only), secrets cut before writing, kept 30 days and the newest 200 at most, read by the CEO's console. Before, the words lived in the
+  window only (`main/ceoVoiceJournal.ts`).
+- **The voice hands work to agents instead of doing it by hand.** Its instructions say new work goes to the project's
+  agent with the task in words, a terminal only on the owner's ask; it types into a console only to answer a question
+  (three times in three minutes for a shell, six for an agent), and the CEO's own console only through «ask_ceo».
+- **A project is found by how its name sounds.** «DC» and «Диззи» are dissy, «ПлейТюн» playtune, «Саунд энджин»
+  sound-engine; a worktree folder is found through its project; the home folder is no project. Several matches answer
+  three names to choose from, none up to three near names when any are close, and the CEO keeps the names the owner uses for a project
+  (`shared/heardName.ts`, `fabric_ceo_project_alias`).
+- **The voice reads the CEO's answer aloud** (`ceo_reply`), and has five tools more: `machine_status`, `board_search`,
+  `recap` (what changed since the previous call), `session_task` (did a started session take its task) and
+  `session_alias`.
+- **The CEO's console gets the same doors.** `fabric_ceo_session_task`, `fabric_ceo_project_alias` (keep or forget a
+  name the owner uses; another project's name is refused) and `fabric_ceo_launches` by `via` (`voice` for the voice's
+  own starts). A name matched by sound is asked back before a start; a folder inside a project or a worktree Fabric has
+  run in, by path or by its folder's name, is refused with where to go, since the console would open in the project's own folder; a tie answers three choices,
+  each read back as offered. A console that ran outside its project's folder (an agent's worktree) is no longer
+  resumed in the project's folder: for a Claude Code console the answer names its session id to continue where it ran. Only the home
+  folder or a root holds no folder: a folder inside a project is that project's, whatever else it holds.
+- **A cache or temporary folder never becomes a project.** An agent started in `~/.cache` or a temporary folder is
+  refused. Projects made there before stay until archived by hand: on the owner's Mac, 18 left by probes were archived
+  on 2026-11-20 (their folders untouched); other machines keep theirs (CO-605).
+
+**Upgrading.** One schema step from 0.3.26, 102 to 103 (migration `20261121000130_board_operator_message_via.sql`: a
+new function, the operator's board read and the private archive's admission replaced, no data change). Fabric does not
+take it itself: a schema-102 database is refused at start until the step runs. Take a backup first and follow [the
+runbook](docs/launch/release-mac.md#upgrading-an-existing-database) (`supabase migration up --local` in the stack
+folder, then `schema_version()` reads 103). No older build opens a schema-103 database: going back to 0.3.26 needs its
+bundle and that backup. A stop of the CEO
+pressed under 0.3.26 is not kept through the update (0.3.26 did not write it down): stop the CEO again after it. New on disk: `<userData>/ceo/calls/` (folder 0700, files 0600, kept 30
+days and the newest 200 at most), `<userData>/ceo-window.json` (the CEO window's place and size), `<userData>/estate-index/`
+(the index of sessions, tasks and documents, 0700; an index an earlier build wrote is removed at the first start and built
+again, which takes a few minutes, and longer for meaning when a local model serves vectors), `<userData>/ceo/project-aliases.json` (0600) and `<userData>/ceo/pending.json` (0600, the
+messages waiting for the CEO, at most 50 of the person's plus up to 10 a lost console owed) and, for a queue file Fabric could not read, `pending.json.corrupt-<time>`
+(0600, kept 30 days and at most three).
+
+## 0.3.26
+
+0.3.25 was not published; its changes are in this release ([the release spec](docs/evidence/specs/2026-11-20-home-agents-sessions.md)).
+
+**Upgrading.** No schema step from 0.3.24 (schema 102, no migration). New on disk: the launch journal,
+`<userData>/launches/` (folder 0700, files 0600, kept 13 months). The CEO's voice is a new optional field of
+`persona.json`; going back to 0.3.24 forgets that choice and keeps everything else. After Fabric restarts, its
+consoles are not opened again: «↻» on a project continues its newest Claude Code session with its history, and
+bringing sessions back by themselves is planned work (CO-603).
+
+- **«Спросить CEO» is a card at the top right of Главная.** In 0.3.24 it filled the width under the header in large
+  type. It is now a small card beside the greeting and the rhythm, in one row above both columns, at the right (the
+  operator, 2026-11-20: «чат должен быть справа, а не снизу»); it goes under the greeting only in a content area under
+  640 px (`EstateHome.tsx`, `launch/launch.css`).
+- **Fabric lists the sessions Fabric Dashboards lists.** The operator, 2026-11-20: «в дашборде вот вижу сессии а в
+  фабрике не вижу». In 0.3.24 Агенты and the left column listed the sessions Fabric holds (its consoles and the
+  terminals enrolled through fabric-mcp) and Switchboard's own launches (`sessions --all`); only the CEO could read the
+  others. Агенты and the left column now list them, read from Claude Code's own
+  files and from Switchboard's `sessions --rows`, the source Fabric Dashboards reads, so a session started in a
+  terminal, by Fabric Dashboards or under another Claude home shows too, counted by Switchboard's groups (идёт, ждёт,
+  нужны вы) and by the live processes among them (Switchboard's groups also hold sessions whose process is gone);
+  Fabric Dashboards still groups its own way, and one definition for both is asked of Switchboard and Dashboards
+  (CO-603). «На этом компьютере вне Fabric · N» is in the left column's
+  «Агенты»; a press opens Агенты, where «Сессии этого компьютера вне Fabric» comes first with its counts. Each session's
+  last messages are read in place, with keys and tokens redacted. A session whose process Fabric knows can be continued
+  in a Fabric console or closed; «Продолжить в Fabric» asks for the folder's project before it stops anything, and says
+  so when the session was stopped but not continued. A session only Switchboard names is read here; one no process runs
+  can be continued from its history, and a running one is not acted on.
+  Fabric's own consoles are never listed there, by their process (`main/machineSessions.ts`).
+- **Other apps open and continue sessions in Fabric** (the contract's DEC-0189, `fabric-session-links/1`, board thread
+  `3ca40854`). `fabric://session/open?session=<id>` opens the console of a session Fabric holds, by its own id or the
+  runner session it runs, and otherwise Агенты with this computer's sessions. `fabric://session/continue?session=<id>`
+  of a session a Fabric console already runs opens that console; for any other it asks first with «Продолжить в Fabric»,
+  naming a running session by its folder, agent and state (an ended one is said as ended), and the app the link names
+  itself; a running session seen only through Switchboard is not acted on from there. On the press a running
+  session is stopped where it runs and continued in a Fabric console with its history, and one that ended is continued
+  from its transcript; one continue of a session runs at a time. A link opens a view and acts on nothing by itself; the
+  link and the app it names itself (`from`, as `name` or `name.instance`) are recorded in the launch journal; a continue
+  link that arrives while another is being answered waits and is shown after it (`shared/linkRoute.ts`, `launch/ContinueSessionAsk.tsx`).
+  Links are now checked for secret-shaped values by the contract's detector of DEC-0151 and DEC-0177, for every
+  `fabric://` link (`shared/contract/secretShape.ts`).
+- **Every console Fabric starts is in a launch journal, a press on an agent opens its console, and a project's last
+  session continues with one press.** The owner's order of 2026-11-19 (board request `eef5abeb`). Each console is a
+  line in `<userData>/launches/launches-YYYY-MM.jsonl`: who started it (you, the CEO, a routine, a chain), through what
+  (a screen, the CEO's console, its voice call), the reason, the session above it, project, folder, branch, runner,
+  Claude Code's own session id for `claude --resume`, and how it ended (`sessionLaunches.ts`). The CEO reads it with
+  `fabric_ceo_launches`. In the left column a press on an agent opens its console; its line says «Fabric · терминал»
+  and its branch instead of «Работает»; its page (the small button beside) says who started it and has «Закрыть
+  сессию». Each project's row has «＋» for a new session and «↻» to continue its newest Claude Code session that is not
+  running, wherever it was started; «Агенты» has «+ Новая сессия» and the recent sessions under the running ones. A
+  Switchboard call that timed out or was killed is now named instead of «Command failed», and a read is tried once more
+  (`switchboardSessions.ts#switchboardFailure`).
+- **«Завершить сессию» closes a console at once.** The operator, 2026-11-19: the button under a console hung. It sent
+  SIGTERM and waited; Claude Code often outlived it, and even an ended agent read «Остановка не подтверждена», which
+  kept the console on screen with «Проверить остановку». Now the person's press ends a console still running 0.8 s
+  later as Force stop does, and a console whose process is gone leaves with its tab and window in the same press. A
+  task's run keeps its TERM-only stop and its receipts (`shared/stop.ts#processGone`, `main/nativeStopRuntime.ts`).
+- **The CEO's window is new, and the call is a panel inside its chat.** The owner, 2026-11-19: the popup looked worn,
+  and the call should sit in the chat, not in a card. The window's head is the CEO itself: the character's face with a
+  ring for its state (on, starting, stopped, failed), its name, the agent it runs on, and «Позвонить», «Остановить» or
+  «Запустить», «Перезапустить». Under the CEO's console, a call is a panel: a meter that moves with whoever speaks, the
+  state («Соединяем…», «Слушаю», «Говорит»), the time out of five minutes, the price, who said what, «Сказать текстом»,
+  and «CEO отвечает вслух», which turns the CEO's voice off so its answers arrive as lines (the voice that reads answers
+  and session screens on a call is the CEO). A call that ended stays in the chat, folded, with its lines; the last ten
+  are kept on this computer. The home card's «Позвонить» opens the CEO window and starts the call there. Under reduced
+  motion the meter and the rings hold still and their colour says the state
+  (`ceo/CeoPopup.tsx`, `ceo/CeoCall.tsx`; SCN-182, SCN-184). A call ends by itself after a minute in which nobody speaks
+  and at five minutes; the call's record in the history says why (`voiceCall.ts#MAX_CALL_MS`, `IDLE_CALL_MS`;
+  ADR-0197 amendment 1).
+- **The CEO button has the character's face.** The floating button at the bottom right of every screen shows Fabric's
+  character with a ring for the CEO's state, and the word «CEO» (`ceo/CeoButton.tsx`, SCN-110).
+- **The CEO's voice: male by default, male or female in the settings and at the first run.** The CEO now speaks in a
+  male voice unless the person chooses otherwise in Your Fabric («Голос CEO»), where each option says its tone and
+  «Послушать» plays a short sample. The character decides which of xAI's voices that is (orbit Rex or Eve, spark Sal or
+  Ara, wave Leo or Eve); xAI documents no gender, so it was measured from xAI's published samples
+  ([external contracts](docs/architecture/external-contracts.md#xai-voices)). The first run's character step offers the
+  choice when this computer can call the CEO (an xAI key). A sample costs under a cent and is fetched once per voice and
+  language. A look saved before this reads as male (SCN-186).
+- **The CEO can be stopped.** The owner tried to stop the CEO's console and could not: the CEO had no stop, a stop from
+  its console's window in its first 20 seconds was read as an early end and the next agent started at once, and any later
+  opening of its window started it again. «Остановить» now stops it, and it stays stopped (also when stopped from the
+  console's own window, and also when pressed while the CEO is still starting) until «Запустить», «Перезапустить» or a
+  message (for as long as Fabric runs); a stop that leaves the console running says so
+  (`main/ceoAgent.ts` `stop`, `personStopping`; SCN-187).
 - **Unattended runs can mark board messages read and reply again.** Claude Code 2.1.327 leaves out of a session any
   MCP tool whose input schema has `anyOf`, `oneOf` or `allOf` at its top (the Anthropic API refuses such a tool), and
   `com.read_ack` and `com.reply` published their forms that way. On the Mac Studio a run the board dispatcher started

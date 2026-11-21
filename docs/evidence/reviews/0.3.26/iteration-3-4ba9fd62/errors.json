@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "4ba9fd6214dd80526eeba127b5c2fcb0a962647c",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-4ba9fd62/2026-11-20-errors.md",
+  "reportSha256": "ff74842d7be63e2e3306d64cae752f123063011785b2a6cee1410bd989462861",
+  "reviewerRun": "release-0326-i3r1-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: an ask whose press is being answered stays until its answer; a newer continue link waits behind it and is shown after (App.tsx applyLink, continueBusy, continueQueued; ContinueSessionAsk onBusy)"
+      ]
+    },
+    {
+      "id": "ER-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: sessionLaunch.via.link in both locales; test «every LAUNCH_BY and LAUNCH_VIA value has a sentence in en and ru», red before"
+      ]
+    },
+    {
+      "id": "ER-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: as DA-19 and DA-20"
+      ]
+    },
+    {
+      "id": "ER-21",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (23)"
+      ]
+    },
+    {
+      "id": "ER-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-two candidate: as UX-29 (a)"
+      ]
+    }
+  ]
+}

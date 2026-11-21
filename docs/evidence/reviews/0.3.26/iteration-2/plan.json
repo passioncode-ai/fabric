@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "30552b73e58571047945ef0eafb6c63d44fcb42a",
+  "report": "docs/evidence/reviews/0.3.26/iteration-2/2026-11-20-plan.md",
+  "reportSha256": "08996127d11ceccd238438c5b3fa3439fdd7b99cf6324e727da5af86f91eee6f",
+  "reviewerRun": "release-0326-i2-plan-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: no id on screen (check-design SP-2 passes), the ask names folder, agent, state and app, every refusal a sentence, and the ask has five tests (ContinueSessionAsk.test.tsx); the gate on the iteration-3 candidate is recorded below"
+      ]
+    },
+    {
+      "id": "PL-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: the CHANGELOG says links are checked by the DEC-0151 and DEC-0177 detector; the folder-attribution twin ruled: CO-604 (20)"
+      ]
+    },
+    {
+      "id": "PL-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: SCN-142 amended, the FABRIC-0326 merge entry lists the links and the contract files; the product model state ruled: CO-604 (21)"
+      ]
+    },
+    {
+      "id": "PL-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: the Upgrading paragraph says consoles are not opened again after a restart, «↻» continues, CO-603"
+      ]
+    },
+    {
+      "id": "PL-19",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-19"
+      ]
+    },
+    {
+      "id": "PL-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: spec §3 marks its count as a reading on 314c9566; the release close records the reading on the verified candidate"
+      ]
+    },
+    {
+      "id": "PL-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the plan: the iteration-3 candidate is a new commit descending from both, it becomes verifiedCommit, and nothing but metadata and the version changes after it; no new scope after iteration 2 (the live-process count of iteration 2 answers the operator's count ask with Switchboard's reply of 2026-11-20)"
+      ]
+    },
+    {
+      "id": "PL-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 commit: spec §4 lists the moved promise with CO-603 (6) and cites CO-603 in its tracking column; thread 3ca40854 is told at the release"
+      ]
+    }
+  ]
+}

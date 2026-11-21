@@ -1,0 +1,77 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "34e5eecde4b5abb2b173bc9437ebc100607dfbd2",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-34e5eecd/2026-11-21-docs.md",
+  "reportSha256": "7eafa02ce38347df064550d568b69647bc978e1aefdfcd3580731ba5d2c991d1",
+  "reviewerRun": "release-0327-i3r13-docs-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-113",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: as UX-96; the map's top entry too"
+      ]
+    },
+    {
+      "id": "DO-114",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit for the CHANGELOG («–î…»); the test's failure message is ruled: CO-620 (15)"
+      ]
+    },
+    {
+      "id": "DO-115",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG says a PTY with a console's environment"
+      ]
+    },
+    {
+      "id": "DO-116",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "DO-117",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag"
+      ]
+    },
+    {
+      "id": "DO-118",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag (the clause is dropped there)"
+      ]
+    },
+    {
+      "id": "DO-119",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: the CHANGELOG's opening lists the board's responder marks (schema 103) among what `main` brought"
+      ]
+    },
+    {
+      "id": "DO-120",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit for the HANDOFF (CO-622's repository copy); the code comment is ruled: CO-620 (15)"
+      ]
+    },
+    {
+      "id": "DO-121",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-620 (15), written on main right after the tag (AGENTS.md is not release metadata)"
+      ]
+    }
+  ]
+}

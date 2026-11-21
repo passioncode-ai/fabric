@@ -150,8 +150,11 @@ for(const optionId of ['claude-code','codex']) {
  assert.deepEqual(f.signals,['SIGTERM']);assert.equal(f.commands.length,0)
 }
 {
+ // A console the app ends on its own (quit) gets TERM only; the person's «Завершить сессию» ends it fast (the operator,
+ // 2026-11-19: «быстро закрыл и все»): a process still there at the escalation sample is killed, as Force stop does.
  const f=fixture('shell');f.running=true;const runtime=createNativeStopRuntime(f.deps)
- assert.equal((await runtime.stop('session')).state,'outcome_unknown');assert.deepEqual(f.signals,['SIGTERM'])
+ assert.equal((await runtime.stop('session','app_shutdown')).state,'outcome_unknown');assert.deepEqual(f.signals,['SIGTERM'])
+ assert.equal((await runtime.stop('session')).state,'outcome_unknown');assert.deepEqual(f.signals,['SIGTERM','SIGTERM','SIGKILL'])
  assert.equal((await runtime.stop('session','operator_stop',{force:true})).state,'outcome_unknown');assert(f.signals.includes('SIGKILL'))
 }
 // Expiry depends on monotonic elapsed time, even when the event loop cannot

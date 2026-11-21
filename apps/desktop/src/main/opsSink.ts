@@ -71,6 +71,10 @@ export const ops = {
     return sink?.read(query) ?? []
   },
   file: (): string | null => sink?.file() ?? null,
+  /** `ops.ts#Ops.quietWhile`: failures that are only the database being unreachable are counted while `down` says so. */
+  quietWhile: (down: (() => boolean) | null): void => sink?.quietWhile?.(down),
+  /** `ops.ts#Ops.takeQuiet`. */
+  takeQuiet: (): Record<string, number> | null => sink?.takeQuiet?.() ?? null,
   /** Null before bootstrap: no sink means nothing was even attempted, which is
    *  a different statement from "zero records were lost" (S05). */
   lost: (): number | null => sink?.lost() ?? null

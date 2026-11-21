@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "3dc2eba711b3ee9a799ecf8559b0256c6d56e71c",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-3dc2eba7/2026-11-20-docs.md",
+  "reportSha256": "a0b1edbf4b32b02df8c7adcd3e05fd971651658927af58742056d6c89050af64",
+  "reviewerRun": "release-0327-i3r1-docs-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-20",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: fixes.md §1, §4, §6-8 and its test count say the rules as released"
+      ]
+    },
+    {
+      "id": "DO-21",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: the ledger names the code fixes with no test; the HANDOFF says findings 1 to 7 watched red, 8 and 10 not planted"
+      ]
+    },
+    {
+      "id": "DO-22",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: as ER-28"
+      ]
+    },
+    {
+      "id": "DO-23",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: ceo-setup.md names project folders and the computer's state; deliverFirst's docstring and the window-policy test's comment updated"
+      ]
+    }
+  ]
+}

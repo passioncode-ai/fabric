@@ -9,7 +9,8 @@
  * it, so a call that arrives while the hub starts finds what it found before.
  */
 import { realpathSync, promises as fsPromises } from 'node:fs'
-import { homedir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
+import { isScratchFolder } from '../shared/scratchFolder.ts'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Journal } from '@fabric/journal'
 import { AccessService } from './accessService.ts'
@@ -53,6 +54,7 @@ import { readRunHolds } from './workRead.ts'
 import { AGENTS } from '../shared/agents.ts'
 import type { HubDownCode } from '../shared/access.ts'
 import { resolveProject } from '../shared/projectResolve.ts'
+import { createInboxAutoConnect } from './inboxAutoConnect.ts'
 
 type Admission = ReturnType<typeof createProjectAdmission>
 type AdmissionDeps = Parameters<typeof createProjectAdmission>[0]
@@ -130,7 +132,9 @@ export async function startBoardHub(d: BoardHubDeps): Promise<void> {
   const registry = new AgentRegistry({ servicesDir: dirs.services, providersDir: dirs.providers })
   registry.refresh()
   d.onRegistry(registry)
-  const stopWatching = registry.watch()
+  // The registry's one watch also asks the Inbox auto-connect (`autoConnectInbox` below) on every change.
+  let onRegistryChange: (() => void) | null = null
+  const stopWatching = registry.watch(() => onRegistryChange?.())
   quit.onQuit(stopWatching)
   // ADR-0195 W1: what the hub reads from this process (the terminals, the sweep, the settings, the registry), one
   // implementation of each port (`hubPorts.ts`); `fabric-board` gives its own in W2.
@@ -148,6 +152,34 @@ export async function startBoardHub(d: BoardHubDeps): Promise<void> {
     handlerFor: hubPorts.links.handlerFor,
     actor: () => OPERATOR_ACTOR
   })
+  // The owner, 2026-11-20: Fabric connects itself to Inbox, no button (`inboxAutoConnect.ts`): at the hub's start, on every
+  // change of the registry and every 5 minutes; each try is decided by the module's rules.
+  const autoConnectInbox = createInboxAutoConnect({
+    trust: () => hubPorts.settings.machineTrust(),
+    inRegistry: () => registry.snapshot().entries.some((e) => e.id === FABRIC_INBOX.product),
+    connected: async () => (await accessStore.liveConnection(FABRIC_INBOX.product)) !== null,
+    last: () => connector.lastOutcome(FABRIC_INBOX.product),
+    // The person's Disconnect (the newest connection removed) or Deny (the newest answer since it), from the database,
+    // so neither is undone by the next tick nor forgotten at a restart (0.3.27 review ER-69).
+    saidNo: async () => {
+      const c = await store.select('product_connections', 'connected_at,removed_at,removed_by').eq('product', FABRIC_INBOX.product).order('connected_at', { ascending: false }).limit(1)
+      if (c.error) throw new Error(c.error.message)
+      const newest = (c.data as Array<{ connected_at: string; removed_at: string | null; removed_by: string | null }> | null)?.[0] ?? null
+      // A restore re-inserts the connection already removed (`removed_by` 'restore-boundary'): no one said no (run nine, ER-84).
+      if (newest?.removed_at && newest.removed_by !== 'restore-boundary') return true
+      const r = await store.select('journal', 'occurred_at,payload').eq('type', 'product.connect.refused@1').eq('payload->>product', FABRIC_INBOX.product).order('seq', { ascending: false }).limit(1)
+      if (r.error) throw new Error(r.error.message)
+      const refused = (r.data as Array<{ occurred_at: string; payload: { outcome?: string } }> | null)?.[0] ?? null
+      return refused?.payload?.outcome === 'denied' && (!newest || Date.parse(refused.occurred_at) > Date.parse(newest.connected_at))
+    },
+    begin: async () => (hubState.doorToken ? connector.begin(FABRIC_INBOX) : { ok: false }),
+    record: (op, detail) => ops.record({ op, outcome: detail.started ? 'ok' : 'failed', level: detail.started ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+  })
+  onRegistryChange = () => { void autoConnectInbox() }
+  const autoConnectTimer = setInterval(() => { void autoConnectInbox() }, 5 * 60_000)
+  autoConnectTimer.unref?.()
+  quit.onQuit(() => clearInterval(autoConnectTimer))
+  setTimeout(() => { void autoConnectInbox() }, 15_000).unref?.()
   let access: AccessService | null = null
   // The consent presenter is the window's (a native prompt and a notification); it reads the hub's parts it is given.
   const presenter = d.presenter({ accessStore, connector, access: () => access })
@@ -185,6 +217,7 @@ export async function startBoardHub(d: BoardHubDeps): Promise<void> {
   })
   d.onAdmission(admission)
   const enrollFolders: FolderDeps = {
+    scratch: (folder) => isScratchFolder(folder, homedir(), tmpdir()),
     admittedFolders: async () => {
       const repos = await store.selectAll('project_repos', 'path,project_id,remote_key,kind', { orderBy: ['project_id', 'path'] })
       if (repos.failed) throw new Error(`repositories read failed: ${repos.failed}`)

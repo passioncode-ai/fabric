@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "ee544e2a2f4cfcc4da4681b368b59ed63cb960f6",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-ee544e2a/2026-11-21-plan.md",
+  "reportSha256": "fea6a255492832e0b56c6ac8c160e545d72eca6622a5e16a5110ad58f372b81c",
+  "reviewerRun": "release-0327-i3r9-plan-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-61",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run eight's section says the agreement was made between the two sessions in Claude Code's messages, and that `85e5af41` is Inbox's ask"
+      ]
+    },
+    {
+      "id": "PL-62",
+      "status": "fixed",
+      "evidence": [
+        "fixed: V3R8-PL-53 says the release session decided under the agreement and the owner did not answer CO-614 himself; the pause's sentence separates the owner's words from the agreement; the release close tells him the access change"
+      ]
+    },
+    {
+      "id": "PL-63",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the ledger's opening names the later sources, the protocol names `4884bd84`, and «What 0.3.27 carries» points to `## 0.3.27`"
+      ]
+    },
+    {
+      "id": "PL-64",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run eight's carried rows say «ruled: CO-620 (n)»"
+      ]
+    },
+    {
+      "id": "PL-65",
+      "status": "fixed",
+      "evidence": [
+        "fixed: V3R8-PL-58 disposes F2, F3 and F9, and CO-620 (5) names F7 and F8"
+      ]
+    }
+  ]
+}

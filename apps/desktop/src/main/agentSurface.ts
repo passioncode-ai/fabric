@@ -68,9 +68,11 @@ import { HUB_TOOLS } from './hubTools.ts'
 import { RESTART_ITEM_ADVICE } from '../shared/loginItem.ts'
 import { stageTaskOf, type LiveClaim } from '../shared/spawnParent.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
-import { BOARD_SESSION_OPERATIONS, createBoard, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
+import { BOARD_SESSION_OPERATIONS, createBoard, isRefusal, PINNED_COMMS_OPERATIONS, type Board, type BoardCaller } from './boardService.ts'
 import { registerBoardTools } from './boardTools.ts'
 import { registerCeoTools } from './ceoTools.ts'
+import { registerKnowledgeTools } from './knowledgeTools.ts'
+import { registerCeoBoardTools } from './voiceBoard.ts'
 import type { HubCeo } from './hubPorts.ts'
 import { type TaskState } from '../shared/ladder.ts'
 import type { AgentAccessDoor as RelayedAccessDoor } from './relayedAccess.ts'
@@ -115,6 +117,10 @@ const KNOWN_TOOLS: ReadonlySet<string> = new Set([
 ])
 const isKnownTool = (name: string): boolean => KNOWN_TOOLS.has(name)
 
+
+/** What `AgentSurface#keepResponderSlot` did: renewed or took the slot, found the session gone, found another live holder,
+ *  had no grant, or could not read or write the board. */
+export type KeepSlotAnswer = 'kept' | 'not-live' | 'held-by-other' | 'refused' | 'unavailable'
 
 export interface AgentScope {
   token: string
@@ -303,6 +309,8 @@ export const OTHER_CLIENT_LIVE_MS = 5 * 60_000
 const ENDED_REMEMBERED = 256
 /** How many sessions' recorded ends a run remembers (DA-1): far more than the sessions one run of Fabric serves. */
 const END_RECORDS_REMEMBERED = 4096
+/** How often one unknown credential is named in the log (`sayUnknownCredential`). */
+export const UNKNOWN_SAID_EVERY_MS = 10 * 60_000
 const bearerDigest = (token: string): string => createHash('sha256').update(token, 'utf8').digest('hex')
 
 /** A JSON-RPC body that carries a tool call: an agent at work, as a keep-alive ping or a notification is not (CO-565,
@@ -325,6 +333,8 @@ export class AgentSurface {
    * only read as "Fabric restarted". Bounded (ENDED_REMEMBERED, oldest first out); never the bearer itself.
    */
   private endedWhy = new Map<string, string>()
+  /** When each unknown credential was last named in the log (2026-11-20: a client refused every 20 s for hours, unnamed). */
+  private unknownSaid = new Map<string, number>()
   /** Sessions already recorded as oriented, with the protocol hash they were last served. In memory on
    *  purpose: the question the journal is asked is "did this session EVER read its rules", so a restart
    *  appending a second row costs nothing, while a table to prevent it would be state kept for tidiness.
@@ -351,6 +361,8 @@ export class AgentSurface {
    * liveness signal other sessions' `fabric_work_list` and the operator's screens read. In memory: it is what this
    * process can vouch for, and a restart is exactly the moment those sessions' bearers stop working.
    */
+  /** The sessions whose own project's answering `keepResponderSlot` already granted, by `session:capability`. */
+  private readonly ownRespondGranted = new Set<string>()
   private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null; surface?: 'session' | 'board'; bindingId?: string | null; /** The last call of the session's own client, not a rejoin's (TR-2). */ lastOwnCallAt?: number | null; /** Its last tool call, never a keep-alive ping or a notification: work, as the dispatcher reads it (CO-565, CO-571). */ lastWorkAt?: number | null; /** The agent's process (ER-2, i2). */ agentPid?: number | null; /** Its folder, in memory only (CO-498). */ folder?: string | null }>()
   /** Sessions holding a claim, and when their calls next renew it (REQ-38: "its calls renew the claim"). */
   private claimHolders = new Map<string, number>()
@@ -733,6 +745,26 @@ export class AgentSurface {
     void st?.transport?.close()
   }
 
+  /**
+   * Names, once per 10 minutes per credential, a client this surface refuses as unknown: a short digest of what it sent
+   * (never the credential) and its User-Agent, so a client that keeps knocking with a revoked credential can be found
+   * and told (the 2026-11-20 finding: one every 20 s for two hours, nobody named).
+   */
+  private sayUnknownCredential(token: string, req: IncomingMessage): void {
+    const key = token ? bearerDigest(token).slice(0, 12) : 'none'
+    const now = Date.now()
+    const last = this.unknownSaid.get(key)
+    if (last !== undefined && now - last < UNKNOWN_SAID_EVERY_MS) return
+    // Evicted by last use, not first insertion (0.3.27 review, ER-13).
+    this.unknownSaid.delete(key)
+    this.unknownSaid.set(key, now)
+    if (this.unknownSaid.size > 256) this.unknownSaid.delete(this.unknownSaid.keys().next().value!)
+    const ua = String(req.headers['user-agent'] ?? '').replace(/[^\x20-\x7e]/g, '').slice(0, 80)
+    ops.record({ op: 'hub.unknown-credential', outcome: 'ok', level: 'warn',
+      detail: { credential_digest: key, user_agent: ua || null, repeated_within_ms: last === undefined ? null : now - last },
+      ctx: { correlationId: ops.correlate() } })
+  }
+
   private static refuse(
     res: ServerResponse,
     status: number,
@@ -825,6 +857,8 @@ export class AgentSurface {
       if (token && !leaving && hub && (await this.ingress.handle(token, hub, req, res, ctx, attempt))) return
       // No credential, no scope, no surface. The absence of a token is not a
       // reason to fall back to something broader.
+      // A leave (DELETE) skips the hub's door, so its credential is not known to be unknown (0.3.27 review, ER-13).
+      if (!leaving) this.sayUnknownCredential(token, req)
       AgentSurface.refuse(res, 401, 'unknown or revoked credential', {}, attempt)
       return
     }
@@ -2011,6 +2045,12 @@ export class AgentSurface {
     // ADR-0197 §3: the CEO's session control is on the CEO's own console's server alone; no other session sees the tools.
     const ceoOps = this.deps.ceo?.isCeo(scope.sessionId) ? this.deps.ceo.operations() : null
     if (ceoOps) registerCeoTools(server, ceoOps)
+    // ADR-0199, ADR-0200: the estate index's two doors, on the CEO's server beside its session tools.
+    const knowledgeOps = ceoOps ? this.deps.ceo?.knowledge?.() ?? null : null
+    if (knowledgeOps) registerKnowledgeTools(server, knowledgeOps)
+    // CO-622 item 5: the board's reads the voice has, so the CEO reads projects, tasks and the task graph without SQL.
+    const boardOps = ceoOps ? this.deps.ceo?.board?.() ?? null : null
+    if (boardOps) registerCeoBoardTools(server, boardOps)
     // #endregion ceo-surface
 
     return server
@@ -2035,6 +2075,42 @@ export class AgentSurface {
     }
   }
   // #endregion board-caller
+
+  // #region keep-responder-slot — docs: docs/adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-5-2026-11-21-fabric-keeps-the-ceos-board-slot-and-a-ceotask-request-wakes-its-console
+  /**
+   * Fabric holds a capability's slot for a session it keeps (ADR-0197 Amendment 5: the CEO's `ceo.task`). A slot's
+   * lease is 60 s (`board_lease_seconds`) and only a claimed request's `com.renew` or another `com.enroll` lengthens it,
+   * so the CEO's own enroll went stale a minute later and the owner's Telegram bot found no live CEO. This is the
+   * session's own `com.enroll`: the same caller its MCP tools build (`boardCaller`), its own project's answering
+   * granted first as there (ADR-0190), a fresh idempotency key under the epoch com.status names. The same session
+   * holding it only renews (no event, `board_enroll`). A slot another live session holds is left to it: `held-by-other`.
+   */
+  async keepResponderSlot(sessionId: string, capability: string): Promise<KeepSlotAnswer> {
+    const s = this.live.get(sessionId)
+    if (!s || s.surface === 'board') return 'not-live'
+    const scope: AgentScope = {
+      token: '', estateId: this.deps.estateId, projectId: s.projectId, sessionId, taskId: null, cameIn: s.cameIn, agent: s.agent,
+      runtimeSessionId: s.runtimeSessionId, surface: 'session', bindingId: s.bindingId ?? null
+    }
+    const runner = this.deps.ptys()?.runnerOf?.(sessionId) ?? this.deps.ptys()?.get(sessionId)?.optionId ?? null
+    const caller = this.boardCaller(scope, runner)
+    if (!caller.responder) return 'not-live'
+    const grant = this.deps.access?.grantOwnRespond
+    if (grant && !this.ownRespondGranted.has(`${sessionId}:${capability}`)) {
+      const r = await grant({ projectId: s.projectId, capability, bindingId: scope.bindingId, runnerKey: runner })
+      if (r.ok) this.ownRespondGranted.add(`${sessionId}:${capability}`)
+    }
+    const status = await this.board.status(caller)
+    const epoch = (status as { idempotency?: { epoch?: unknown } }).idempotency?.epoch
+    if (typeof epoch !== 'number') return 'unavailable'
+    const key = `fabric-keep-${this.now().toString(36)}-${randomBytes(4).toString('hex')}`
+    const r = await this.board.enroll(caller, { idempotency: { epoch, key }, capability })
+    if (!isRefusal(r)) return 'kept'
+    if (r.error.code === 'fenced') return 'held-by-other'
+    if (r.error.code === 'not_authorized') return 'refused'
+    return 'unavailable'
+  }
+  // #endregion keep-responder-slot
 }
 
 /**

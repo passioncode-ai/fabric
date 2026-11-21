@@ -1,0 +1,84 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "314c956660b35a25b4b71e3ba97cbd8b548914a4",
+  "report": "docs/evidence/reviews/0.3.26/iteration-1/2026-11-20-errors.md",
+  "reportSha256": "a3e18ccec4efa0be003b9e198b309833a1138d2339a10914b781d618bc953342",
+  "reviewerRun": "release-0326-i1-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 527ca936: the closing of the ER-11 test restored (ceo-agent.test.mjs, 54 pass); ci.sh fast parses every test file and runs ceo-agent, session-resume, session-launches"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 527ca936: the rail calls the bridge through Promise.resolve and App guards a missing method; «Mac» became «компьютер»; the fixture carries source (platformWords, consoleTabsShell, MachineSessions pass)"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 527ca936: Fabric consoles excluded by process and parents; close refuses them (session-resume «a Fabric console is never «outside»», red before)"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (2)"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 527ca936 in part: one read in flight, fresh 20 s from settle, a listing waits at most 3 s, one reading at a time in both pollers; the process group and the double journal read ruled: CO-604 (5)"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (6)"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (7)"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in 527ca936: the last 2 MB read through a file handle (machineSessions.ts readTail); test «the tail read starts at a whole line»"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (8)"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-604 (9); (a) fixed with DA-9"
+      ]
+    }
+  ]
+}

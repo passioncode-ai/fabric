@@ -221,6 +221,19 @@ const RULES: Rule[] = [
   { name: 'slack-token', re: /\bxox[baprs]-[A-Za-z0-9-]{10,}/g },
   { name: 'aws-key-id', re: /\bAKIA[0-9A-Z]{16}\b/g },
   { name: 'google-key', re: /\bAIza[A-Za-z0-9_-]{35}\b/g },
+  // 0.3.27 review run nine, DA-57: the shapes the estate index met unredacted. xAI's is the key Fabric itself asks for
+  // (`main/ceoVoiceKey.ts`); Stripe's secret and restricted keys; Hugging Face and Supabase personal tokens; a Telegram
+  // bot token (the bot's number, a colon, then «AA» and the secret).
+  // xAI's keys are letters and digits only; a hyphenated name such as a folder or an anchor is not one (DA-64), and a
+  // key cut at a text's bound still loses all but 19 characters of what remains (run eleven, DA-69).
+  // Twenty letters or digits first, then anything a key Fabric accepts may hold (`ceoVoiceKey.ts`), run twelve DA-74.
+  { name: 'xai-key', re: /\bxai-[A-Za-z0-9]{20}[A-Za-z0-9_-]*/g },
+  { name: 'stripe-key', re: /\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}/g },
+  { name: 'huggingface-token', re: /\bhf_[A-Za-z0-9]{30,}/g },
+  { name: 'supabase-pat', re: /\bsbp_[A-Za-z0-9]{30,}/g },
+  // Supabase's secret API keys (run ten, DA-65); the publishable ones are public by design and stay.
+  { name: 'supabase-secret', re: /\bsb_secret_[A-Za-z0-9_-]{20,}/g },
+  { name: 'telegram-bot-token', re: /\b\d{8,10}:AA[A-Za-z0-9_-]{30,}/g },
   {
     name: 'jwt',
     // Three base64url segments — the shape of a Supabase key, a session token,

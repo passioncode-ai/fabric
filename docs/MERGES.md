@@ -4,6 +4,135 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `CO-622` · feat/ceo-board-tools-2 → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/main/voiceBoard.ts` (CEO_BOARD_TOOLS, registerCeoBoardTools, board_summary), `main/launchModel.ts`, `main/pty.ts` (the start flags at the spawn), `main/ceoTools.ts` (session_start model and effort, session_model, session_last_reply, session_wait_reply), `main/hubPorts.ts`, `main/agentSurface.ts` (region ceo-surface), `main/index.ts`, `main/ceoVoice.ts`, `shared/ceoAgent.ts`, tests `voice-board`, `launch-model`, `ceo-agent`, `scripts/ci.sh`, SCN-191, the CO-622 plan, the product model and its projections, the map
+- conflicts: none; rebuilt on `ab9ea5e1` from `feat/ceo-board-tools` (cut from `8b9712b3`, retired, never force-pushed)
+- summary: CO-622 items 1, 2 and 5: the CEO's console reads the board without SQL, a session starts on a named model and effort, a running console's model is changed and read back, a session's answer is read and awaited from its transcript. `ci.sh fast` ran on the Mac Studio (the MacBook under its disk line): fast tier green, browser suites 26 of 26; the Darwin-measured pipe-adapter block did not run there (its Node is the MacBook's own build)
+
+### 2026-11-21 · `PTY-QUIT` · docs/pty-quit-abort → main · fast-forward
+- files: `docs/evidence/specs/2026-08-16-software-fabric-carryover.md` (CO-625, next free CO-626), `docs/evidence/backlog.md` (recount 373 of 607), `docs/reports/map.html`, this log
+- conflicts: none
+- summary: the 0.3.27 install's first window aborted because 0.3.26 crashes on SIGTERM with live consoles (SIGABRT in `pty.node`) and launchd's `KeepAlive` starts it again; recorded for 0.3.28, no code changed
+
+### 2026-11-21 · `TASK-RANK` · feat/task-rank → main · fast-forward after `ci.sh fast`
+- files: migration `20261121000131_task_rank.sql` (schema 104) and the ledger, `apps/desktop/src/shared/taskRank.ts`, `main/taskOrderRead.ts`, `main/taskRankWrite.ts`, the readers (`workRead.ts`, `workTools.ts`, `routineTick.ts`, `backlogBrief.ts`, `taskBoard.ts`), `taskTools.ts` (`fabric_task_rank_propose`), `KanbanBoard.tsx` with both locales, their tests, ADR-0208 and the register, the spec, SCN-173, CO-621, the pipeline reservation moved to 131/132 and ADR-0209, `AGENTS.md`, CHANGELOG, the map
+- conflicts: none
+- summary: the owner's order of 2026-11-21 (board request `f6537624`, P0 by the reconciliation A-3): a project's queue has one order, the owner's rank over a walk of `blocks` and `follows` with the critical path first; only the person moves, an agent proposes; the kanban, `fabric_work_list` and the backlog routine read it first
+### 2026-11-21 · `SYSTEM-PLAN-ROWS` · docs/system-plan-rows → main · fast-forward
+- files: `docs/evidence/backlog.md` (section «The system design plan of 2026-11-21», anchor `system-design-2026-11-21`), the map
+- also: `docs/evidence/specs/2026-11-21-session-feed.md`, the schema `fabric-session-feed/1` promised to Fabric Dashboards on thread `3ca40854` for 2026-11-21 21:00 (task adef95e4)
+- summary: fabric-workspace's system design plan asked for a backlog row per Fabric feature with its first date (request `33f3733b`, by 2026-11-24) and per item of amendment A-2 (request `3d7bf548`, by 2026-11-25). Eighteen rows: SD-FAB-01 to SD-FAB-14 and OT-03, OT-07, OT-04, OT-10; A-2's items inside a feature extend that feature's row
+
+### 2026-11-21 · `CEO-TRIAGES-QUESTIONS` · docs/ceo-triages-questions → main · fast-forward
+- files: `docs/adr/0207-the-ceo-triages-every-question-and-the-owner-is-signalled-only-in-his-own-channel.md`, `docs/evidence/specs/2026-11-21-ceo-triages-questions.md`, `docs/adr/README.md` (next free ADR-0211), `docs/evidence/plans/task-pipeline-persistence-contract.md` (pipeline reservation 0206 → 0210), the map
+- conflicts: the reservation row and the map's changelog at the rebase onto `65423c42`; both sides kept
+- summary: the owner's decision of 2026-11-21 03:14 and 04:32 (board request 05c2f2bd, task a0afb015): every question and every console waiting at a prompt goes to the CEO first, it settles with a cited basis or escalates (ten-minute fallback), the owner is signalled only in his personal communicator, the people-ask bridge is off by default, and `publication` gets a one-shot grant from the owner's rule. Docs only; the build follows the spec's order after 0.3.27 and the 0.3.28 train
+
+### 2026-11-21 · `RESPONDER-VIA` · fix/responder-via → main · fast-forward after `ci.sh fast`
+- files: migration 130 `20261121000130_board_operator_message_via.sql` (schema 103), its ledger row, the schema contract, the private-archive source list, `shared/commsRead.ts` (`COMMS_VIA`, `answersRequest`), `main/commsOperatorRead.ts`, `main/peopleAskRun.ts`, their tests and the responders DB test; the contract fixture repinned to fabric-agent-contract `6ab4d03` (DEC-0181) with six `comms-message-via-*` fixtures; the people.ask spec §2, the release runbook, CHANGELOG, the pipeline reservations moved to 131/132, the map
+- conflicts: `docs/reports/map.html` when main was merged into the branch (the iteration log and the stamp); main's entries kept, the branch's contract entry kept above them
+- summary: a responder's progress note, effect summary and takeover checkpoint are stored as replies; the operator's read of a thread now marks each (`via`), and the people.ask bridge judges only an answer, so a checkpoint of `com.responder_replace` no longer reads as the answer to a request (task `fcb6bb8f`). Agents' reads are unchanged until the board can read a reader's contract pin (VIA-4)
+
+### 2026-11-21 · `DECISION-LEVELS` · feat/decision-levels → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/shared/protocolObligations.ts` (`decisions.by-level`, `intake.spec-first`) and its test, ADR-0205 and the ADR register, SCN-176, the product model and report, `docs/architecture/operating-surfaces.md`, CHANGELOG, the map
+- conflicts: none
+- summary: the owner's order of 2026-11-21 (board request `a76373fa`): strategy is the person's and always asked, tactics the agent decides, what the agent can find it never asks, and a question goes only where the person knows better; told to every session at `fabric_whoami`, and a spec is gathered by it (amends ADR-0176 Decision 1)
+
+### 2026-11-21 · `VOICE-RETRO-0327` · feat/voice-retro → main · fast-forward, the release of Fabric 0.3.27
+- files: the voice CEO retro, the voice reading the board, session 8343a070's blockers, `main` taken twice, review iteration 3 runs one to thirteen with every fix; gate at `34e5eecd`
+- conflicts: none (fast-forward)
+- summary: the owner's orders of 2026-11-20 and 21, «Выпустить с main», and the reconciler's step 2 (A-3); tag `v0.3.27` on the release commit
+
+### 2026-11-21 · `RELEASE-0327-MAIN-2` · main → feat/voice-retro (the 0.3.27 candidate) · merge `12ab551f`
+- files: `608f5416` (ADR-0205, decisions split by level, `protocolObligations.ts`); conflicts in CHANGELOG (its bullet into `## 0.3.27`), the ADR index, MERGES, the map and generated projections (rebuilt)
+- conflicts: none in code
+- summary: the owner's «Выпустить с main» again, after the pause was lifted for the release (the reconciler's A-3)
+
+### 2026-11-21 · `PASTE-AND-CEO-SLOT` · fix/paste-and-ceo-slot → feat/voice-retro (the 0.3.27 candidate) · merge `e0b2c55c`, before review run ten
+- files: `apps/desktop/src/main/sessionEnv.ts`, `agentSurface.ts` (`keepResponderSlot`), `ceoBoardKeeper.ts` (new), `ceoAgent.ts` (`knownProjectId`), `index.ts` (the CEO board timers), tests `session-env`, `ceo-board-keeper`, `keep-responder-slot`, ADR-0197 Amendment 5, AGENTS.md lifecycle row, CHANGELOG, the map
+- conflicts: none
+- summary: the owner's two blockers of 2026-11-21: a console with no locale gets `LC_CTYPE=en_US.UTF-8`, so Russian copied in it is not Mac Roman; Fabric holds the CEO's `ceo.task` slot while its console runs and a waiting `ceo.task` request wakes it
+
+### 2026-11-21 · `RELEASE-0327-MAIN` · main → feat/voice-retro (the 0.3.27 candidate) · merge `5f4dc15b`
+- files: all of `main`'s 42 commits since the candidate (39 without merges) (Memory, the estate index and graph, the folder-role navigation, the update in place); resolved by hand: `apps/desktop/src/main/ceoTools.ts`, `apps/desktop/src/main/index.ts`, `apps/desktop/test/ceo-agent.test.mjs`, CHANGELOG, the carry-over register, the backlog's lane 12, scenarios, the map; generated projections rebuilt
+- conflicts: the CEO's project lookup: `start` asks the retro's sound-based `findProject` first and main's `matchProject` as a second opinion (a canonical folder over a copy, a typo forgiven), never for the CEO's address words, a folder too broad or a folder path; `resume` is main's resume as itself, with the retro's runner id from the launch journal
+- summary: the owner's answer of 2026-11-21, «Выпустить с main»; review run eight read the merged candidate
+
+### 2026-11-21 · `CEO-WINDOW-PLACE`, `CEO-DICTATION-TAIL` · feat/ceo-window-place, fix/ceo-dictation-tail → feat/voice-retro (the 0.3.27 candidate) · merge
+- files: `apps/desktop/src/main/{ceoWindowPlacement,sessionMetaRead,switchboardSessions,ceoVoice,index}.ts`, `apps/desktop/src/shared/{windowPlacement,sessionMeta,ceoAgent}.ts`, `renderer/src/ceo/{CeoPopup,CeoComposer,CeoCall}.tsx`, styles, stand, tests `windowPlacement`, `CeoPopup`, `ceoDrag`, `ceo-agent`, `voice-retro`; SCN-188; `docs/reports/2026-11-20-ceo-window-polish/`, `docs/reports/2026-11-20-console-meta-line/`
+- conflicts: `main/index.ts` (imports, both kept), `CeoComposer.tsx` (the state-aware status kept, the `btn-sm` buttons taken), `ceoVoice.ts` (the board rule, the CEO address rule and the dictation tail all kept), `scenarios.md` (SCN-188 before SCN-189), generated files rebuilt
+- summary: session 8343a070's blockers ride the one 0.3.27 release, as agreed: the CEO's window keeps its place, a console's system line, the dictation tail is no order
+
+### 2026-11-20 · `STACK-OUTAGE-BANNER` · fix/stack-outage-banner → feat/voice-retro (the 0.3.27 candidate) · merge (wave 0's last fix)
+- files: `apps/desktop/src/shared/{errorText,stackWatch}.ts`, `apps/desktop/src/main/{ops,opsSink,stackWatch,index}.ts`, `apps/desktop/src/renderer/src/{App,StackHealthNotice}.tsx`, i18n, tests `stack-watch.test.mjs`, `errorText.test.ts`, `StackHealthNotice.test.tsx`
+- conflicts: none
+- summary: the owner's screen of 2026-11-20: a database outage is said once by the stack watch's notice, the red banner no longer guesses «stack stopped» and goes when the database is back, the log counts the outage's failures into `stack.back`, and the disk is said under 15 GB
+
+### 2026-11-21 · `INBOX-AUTOMATIC` · fix/registry-contract → feat/voice-retro (the 0.3.27 candidate) · merge, with the registry fix
+- files: `apps/desktop/src/main/{accessService,inboxAutoConnect,board}.ts`, `docs/adr/0204-*.md`, `AGENTS.md` (lifecycle row), tests `hub-access-service`, `inbox-auto-connect` (new, in `scripts/ci.sh`)
+- conflicts: none expected
+- summary: the owner's «не надо никакой подключать»: on his machine an agent's ask of Fabric Inbox is allowed at once and recorded, and Fabric connects itself to Inbox; elsewhere unchanged
+
+### 2026-11-20 · `REGISTRY-CONTRACT` · fix/registry-contract → feat/voice-retro (the 0.3.27 candidate) · merge
+- files: `apps/desktop/src/main/agentRegistry.ts`, `apps/desktop/test/agent-registry.test.mjs`
+- conflicts: none expected; CHANGELOG written by the release session (the 0.3.27 bullet on Inbox, after review run eight's PL-53 and DO-63)
+- summary: Fabric Inbox's session found that the registry refused descriptors valid by the contract (runner, peer, channels; manager person without an origin), so Inbox was absent and agents could not reach it; the validator now follows the contract
+
+### 2026-11-21 · `SP-A1-ROWS` · docs/sp-a1-backlog-rows → main · fast-forward
+- files: `docs/evidence/specs/2026-08-16-software-fabric-carryover.md` (CO-616 to CO-618, the next id), `docs/evidence/backlog.md` (lane 12, the exposure count), `docs/reports/plan.json`, the map
+- conflicts: none
+- summary: fabric-workspace's board request `344e2405`, amendment A-1 (the owner's order No. 1, the self-learning spec pipeline): one carry-over row per Fabric SP, SP-03 (CO-616, build from 2026-11-28, target 2026-12-19), SP-07 (CO-617, inside SD-FAB-13) and SP-10 (CO-618, inside SD-FAB-07/SD-FAB-11); registers only, no code
+
+### 2026-11-21 · `UPDATE-IN-PLACE` · fix/update-in-place → main · fast-forward (toward 0.3.27)
+- files: `scripts/install-mac-update.mjs`, `scripts/lib/install-mac-update.mjs`, test `install-mac-update` (in `scripts/ci.sh`), `docs/launch/release-mac.md#installing-an-update-on-a-mac`, CHANGELOG, the map, handoff `docs/handoffs/2026-11-21-package-4-paused/`
+- conflicts: none
+- summary: the owner's bug of 2026-11-20, a second Fabric icon after an update: an update swaps only `Contents` of `/Applications/Fabric.app`, keeps the way back as a zip, removes other registrations of the id and keeps one Dock tile; the rest of package 4 waits on `feat/dock-icon-face` and `feat/ui-kit` (paused 2026-11-21 for the strategic plan)
+
+### 2026-11-20 · `DISPATCH-REFUSALS` · fix/dispatch-refusals-escalate → main · fast-forward (toward 0.3.27)
+- files: `apps/desktop/src/main/boardDispatchRun.ts`, tests `board-dispatch-run` and `adapter-skills` (its calls pass an empty `env`, so a session inside a Switchboard home no longer leaks `CLAUDE_CONFIG_DIR` into it), on-demand spec §3.8 item 6, carryover CO-607, CHANGELOG `0.3.27 (unreleased)`, the design map
+- conflicts: none
+- summary: org-index's board request `42c14b72`: a refused board start writes Switchboard's code into its workflow (`launch-refused`), `no_agent` and `at_capacity` wait at most 30 min instead of doubling to 6 h, items waiting 6 h or more are offered a free place first, and the inbox packet says what its count leaves out; the operator's signal after a series of refusals is CO-607
+
+### 2026-11-20 · `DELIVERY-NEVER-DROPS` · fix/delivery-never-drops → feat/voice-retro (the 0.3.27 candidate) · merge
+- files: `apps/desktop/src/main/{deliveryQueue,pty,consoleOpen,claudeTranscript,ceoAgent,index}.ts`, `apps/desktop/src/shared/{delivery,ceoAgent}.ts`, `apps/desktop/src/renderer/src/ceo/CeoComposer.tsx`, i18n, tests `delivery-queue`, `console-open`, `claude-transcript` (new, in `scripts/ci.sh`), `ceo-agent`, `CeoComposer.test.tsx`
+- conflicts: none expected; CHANGELOG written by the release session
+- summary: the owner's blocker of 2026-11-20 evening: nothing is typed into Claude Code before its input box is drawn, a first task with no turn in the transcript is typed once more, a message to the CEO waits in a queue on disk instead of being said as lost
+
+### 2026-11-20 · `VOICE-RETRO` · feat/voice-retro → main (the 0.3.27 candidate, on top of CEO-BOARD-UX)
+- files: `apps/desktop/src/main/{ceoVoice,ceoVoiceJournal,ceoVoiceTools,ceoProjectAliases,ceoTools,sessionEnroll,fabricMcp,board,index}.ts`, `apps/desktop/src/shared/{heardName,scratchFolder,ceoAgent,types,ipcWindowPolicy}.ts`, the preload, `renderer/src/ceo/{voiceCall,CeoCall}.ts(x)`, tests `voice-retro` (new, in `scripts/ci.sh`), `ceo-agent`, `voiceCall`; CHANGELOG `0.3.27`, SCN-184, `docs/reports/2026-11-20-voice-ceo-retro/`
+- conflicts: the map and mockup coverage (both sides' entries kept, regenerated)
+- summary: the voice CEO retro of 2026-11-20: every call kept on disk, redacted; the voice hands work to agents and the CEO through ask_ceo and reads its answer (ceo_reply); projects found by sound and alias; machine_status, board_search, recap, session_task; a cache or temporary folder never a project (18 such records archived)
+
+### 2026-11-20 · `CEO-BOARD-UX` · feat/ceo-board-ux → main · fast-forward (toward 0.3.27)
+- files: `apps/desktop/src/main/{consoleOpen,deliveryQueue,pty,ceoTools,agentSurface,index}.ts`, `apps/desktop/src/shared/ceoAgent.ts`, tests `console-open`, `delivery-queue` (new, in `scripts/ci.sh`), `ceo-agent`, `agent-surface`; CHANGELOG `0.3.27 (unreleased)`, SCN-183 amendment, the product model, the map, mockup coverage and previews; `docs/evidence/plans/2026-11-20-ceo-board-ux/` (the owner's words, spec, plan, eight mockups, the modules review, an ADR draft, the research)
+- conflicts: none
+- summary: the owner's order of 2026-11-20, «what blocks work» first: a session's first task followed to its end and said to the CEO (`first_task`), a message to a working Claude Code written after 3 s, a project heard by voice found, no task typed into a plain shell, an unknown hub client named by digest; then the plan in waves and the mockups for the owner to choose from. The voice retro (`feat/voice-retro`, session 9cda1c0f) stacks on this and releases 0.3.27
+
+### 2026-11-20 · `FABRIC-MEMORY-34C42A6E` · feat/knowledge-graph → main · fast-forward after `ci.sh fast`
+- files: `apps/desktop/src/main/{estateIndex,estateRun,estateSources,estateWiring,knowledgeTools,memoryRead,index}.ts`, `apps/desktop/src/shared/{memory,estateSearch,appRoute,types,ipcWindowPolicy}.ts`, the preload, `renderer/src/launch/{MemoryScreen.tsx,memory.css,LaunchShell.tsx,rail.css}`, `renderer/src/graph/*`, `packages/graph`, `apps/desktop/scripts/memory-measure.mts`, the stand, both locales, SCN-190, SCR-92, FLW-31, the product model, the spec `2026-11-20-memory-dashboard.md`, the report `2026-11-20-memory-readiness`, CHANGELOG, the design map
+- conflicts: with main at `c9022c1b` (resolved in `533b38ee`): CHANGELOG, `ceoTools.ts`, `ceo-agent.test.mjs`, the backlog's lane 12 and exposure count, the carry-over's next id, the design map, the product model and the generated reports
+- summary: «Memory», the dashboard of what Fabric knows about every project (the owner, 2026-11-20); the estate index, its graph and the CEO's two doors (ADR-0199, ADR-0200); @fabric/graph, one graph module; other sources through memory-bundle/1; two index defects fixed (FTS tombstone rowids past 2^53, commits read again)
+
+### 2026-11-20 · `FABRIC-0326` · fix/home-ceo-right → main · fast-forward at the 0.3.26 release
+- files: `EstateHome.tsx`, `launch/{launch.css,rail.css,LaunchShell.tsx,AgentsScreen.tsx,MachineSessions.tsx,ContinueSessionAsk.tsx,continueQueue.ts}`, `apps/desktop/stand/fixtures.ts` (the screens stand), `main/{machineSessions,index,ceoTools,pty,sessionLaunches,diskSessions}.ts`, `shared/{linkRoute,sessionLaunches}.ts`, `shared/contract/{fabricLinks,secretShape}.ts` (DEC-0189 re-vendored at `4c978495`), IPC and preload, both locales, `App.tsx`, tests (`session-resume`, `session-launches`, `ceo-agent`, `Rail`, `MachineSessions`, `ContinueSessionAsk`, `continueQueue`, `linkRoute`), `scripts/ci.sh`, CHANGELOG, the spec `2026-11-20-home-agents-sessions.md`, SCN-142, SCN-166 and SCN-182, the carry-over (CO-601, CO-603, CO-604), the release ledger and reviews, the map; merges of `feat/ceo-popup-redesign`, `feat/session-launch-journal`, `fix/session-end-fast`
+- conflicts: CHANGELOG, MERGES, the map, the product model, `main/index.ts` (the person's stop of the CEO and the launch journal's stop record, both kept), `ceo-agent.test.mjs` (both sides' tests kept)
+- summary: the 0.3.26 candidate: the CEO card at the top right of Главная; every session of this computer in Агенты and the rail from Claude Code's files and Switchboard's rows; `fabric://session/open` and `continue` (DEC-0189); the unpublished 0.3.25, the launch journal and the fast session end in one release
+
+### 2026-11-20 · `FABRIC-SESSION-END` · fix/session-end-fast → fix/home-ceo-right (the 0.3.26 candidate) · merge `454ac20e`
+- files: `apps/desktop/src/shared/stop.ts` (+ test), `apps/desktop/src/main/{nativeStopRuntime,pty}.ts`, `apps/desktop/src/renderer/src/{SessionStop,App}.tsx`, `SessionWindow.test.tsx`, `native-stop-runtime.test.mjs`, SCN of the console, CHANGELOG, the design map
+- conflicts: CHANGELOG, MERGES, the map, the product model (resolved in the merge; see FABRIC-0326)
+- summary: «Завершить сессию» closes a console at once: the person's press kills a console still running after 0.8 s, and an ended console leaves with its tab (the operator, 2026-11-19)
+
+### 2026-11-20 · `FABRIC-LAUNCH-JOURNAL` · feat/session-launch-journal → fix/home-ceo-right (the 0.3.26 candidate) · merge `beebcc06`
+- files: `apps/desktop/src/{shared,main}/sessionLaunches.ts`, `main/{launchOrigin,diskSessions,machineSessions,projectResume}.ts`, `main/{pty,ceoTools,switchboardSessions,index}.ts`, `renderer/src/launch/{LaunchShell,SessionLaunch,MachineSessions,AgentsScreen}.tsx`, IPC and preload, both locales, CSS, tests, SCN-166, the spec, CHANGELOG, the design map
+- conflicts: CHANGELOG, MERGES, the map, the product model, `main/index.ts`, `ceo-agent.test.mjs` (resolved in the merge; the test file lost a closing brace there, found by the 0.3.26 review ER-1 and restored in `527ca936`)
+- summary: the launch journal on disk read by the CEO; Switchboard failures named and a read retried; a press on an agent opens its console; «новая / последняя» on each project; sessions outside Fabric read, continued in Fabric and closed (board request eef5abeb)
+
+### 2026-11-20 · `FABRIC-0325` · feat/ceo-popup-redesign → fix/home-ceo-right (the 0.3.26 candidate, branched from its tip `886e555e`); 0.3.25 never tagged
+- files: `apps/desktop/src/main/{ceoAgent,ceoTools,ceoVoice}.ts`, the CEO wiring in `main/index.ts`, `apps/desktop/src/shared/{ceoAgent,persona,types,ipcWindowPolicy}.ts`, the preload, `renderer/src/ceo/{CeoPopup,CeoCall,CeoButton,CeoComposer,VoicePicker,voiceCall}.ts(x)`, `PersonaScreen.tsx`, `FirstRun.tsx`, `App.tsx`, `ceo.tsx`, `styles.css`, the component registry, both locales, tests, SCN-110, SCN-182, SCN-184, SCN-186, SCN-187, ADR-0197 amendment 2, the xAI voices in `external-contracts.md`, CO-601, the product model, the 0.3.25 review receipts and ledger, `docs/launch/release-gate.json`, the version, CHANGELOG `## 0.3.25`
+- conflicts: none
+- summary: the 0.3.25 release: the CEO popup redesigned with the call as a panel in the chat and its history kept, the CEO button with the character's face, the CEO's voice (male by default, male or female per character, a sample in Your Fabric and the first run), and the person's stop of the CEO that holds; three review iterations closed on `6da674bd`
+
 ### 2026-11-19 · `FABRIC-HOME-CEO` · fix/home-ceo-panel → main · fast-forward
 - files: `apps/desktop/src/renderer/src/ceo/{CeoCall,CeoComposer,CeoPopup,voiceCall}.ts(x)`, `EstateHome.tsx`, `styles.css`, `launch/launch.css`, the component registry, both locales, tests, SCN-182 and SCN-184, ADR-0197 amendment 1, CHANGELOG, the product model, the design map
 - conflicts: none

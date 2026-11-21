@@ -8,7 +8,37 @@ export type PersonaStyle = (typeof PERSONA_STYLES)[number]
  * `name` is what the operator calls their Fabric (ADR-0100, SCN-126 step 1). Optional so a look saved
  * before names existed reads unchanged; shown as "Fabric" when absent.
  */
-export interface Persona { seed: number; style: PersonaStyle; name?: string }
+export interface Persona { seed: number; style: PersonaStyle; name?: string; voice?: VoiceGender }
+
+// #region persona-voice — docs: docs/architecture/external-contracts.md#xai-voices
+/**
+ * The voice the CEO speaks with on a call (the owner, 2026-11-19: «по умолчанию мужской, в настройках выбор мужской или
+ * женский, в зависимости от выбранного персонажа»). The person picks male or female; the character picks which of xAI's
+ * voices that is. A look saved before voices existed has no field and reads as male.
+ */
+export const VOICE_GENDERS = ['male', 'female'] as const
+export type VoiceGender = (typeof VOICE_GENDERS)[number]
+export const DEFAULT_VOICE: VoiceGender = 'male'
+
+/** xAI's built-in voices by character and gender. Gender is measured, not documented: xAI's table gives only a tone, so
+ *  the median pitch of each published sample was read on 2026-11-19 (ara 222 Hz, eve 193 Hz, leo 113 Hz, rex 108 Hz,
+ *  sal 125 Hz; docs/architecture/external-contracts.md, xAI voices). */
+export const PERSONA_VOICES: Readonly<Record<PersonaStyle, Readonly<Record<VoiceGender, string>>>> = Object.freeze({
+  orbit: Object.freeze({ male: 'rex', female: 'eve' }),
+  spark: Object.freeze({ male: 'sal', female: 'ara' }),
+  wave: Object.freeze({ male: 'leo', female: 'eve' })
+})
+
+export function voiceGenderOf(p: Pick<Persona, 'voice'> | null | undefined): VoiceGender {
+  return p?.voice === 'female' ? 'female' : DEFAULT_VOICE
+}
+
+/** The xAI voice id a call opens with. */
+export function xaiVoiceOf(p: Pick<Persona, 'style' | 'voice'> | null | undefined): string {
+  const style = p && (PERSONA_STYLES as readonly string[]).includes(p.style) ? p.style : DEFAULT_PERSONA.style
+  return PERSONA_VOICES[style][voiceGenderOf(p)]
+}
+// #endregion persona-voice
 
 export const PERSONA_NAME_MAX = 40
 
@@ -29,7 +59,12 @@ export function validatePersona(v: unknown): Persona | null {
   if (!Number.isSafeInteger(seed) || (seed as number) <= 0 || (seed as number) > 1_000_000) return null
   if (!(PERSONA_STYLES as readonly unknown[]).includes(style)) return null
   const name = personaName((v as Record<string, unknown>).name)
-  return name ? { seed: seed as number, style: style as PersonaStyle, name } : { seed: seed as number, style: style as PersonaStyle }
+  const voice = (v as Record<string, unknown>).voice
+  // An unknown voice costs the voice (it reads as male), never the look.
+  const out: Persona = { seed: seed as number, style: style as PersonaStyle }
+  if (name) out.name = name
+  if ((VOICE_GENDERS as readonly unknown[]).includes(voice)) out.voice = voice as VoiceGender
+  return out
 }
 
 /** Three variants of a generation: the same arithmetic the design uses, so a variant is reproducible. */

@@ -1,0 +1,56 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "755687ab0b438a67c0ce26a6d448e3d5150ae8a1",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-755687ab/2026-11-21-docs.md",
+  "reportSha256": "cde8f789c54a462b21ce370b29cc727359f01fd6abb1e358792505aac6c959d4",
+  "reviewerRun": "release-0327-i3r6-docs-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "DO-52",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-56"
+      ]
+    },
+    {
+      "id": "DO-53",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as ER-55"
+      ]
+    },
+    {
+      "id": "DO-54",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-56"
+      ]
+    },
+    {
+      "id": "DO-55",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-189 step 1 ties each line to its state; Errors & recovery and Telemetry describe the one queue, the requeue and the kept-aside bound"
+      ]
+    },
+    {
+      "id": "DO-56",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the kept-aside files are pruned at every start; CHANGELOG «Upgrading» names them"
+      ]
+    },
+    {
+      "id": "DO-57",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the unused fallback counter and its comment are removed"
+      ]
+    }
+  ]
+}

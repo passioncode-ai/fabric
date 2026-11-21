@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "cbc57ae3bc5271f3b21280c0415e8e873a0d9b2f",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-cbc57ae3/2026-11-20-plan.md",
+  "reportSha256": "95c7aff6d2b4624f97522f4e998f4588fcdb6ba344d51ac246a2adad784c5d77",
+  "reviewerRun": "release-0327-i3-plan-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-25",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (5), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as ER-33)"
+      ]
+    },
+    {
+      "id": "PL-26",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (2), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit) (as UX-38)"
+      ]
+    },
+    {
+      "id": "PL-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the release commit: V3-PL-16 names the verified candidate and this section records its gate; fixes.md's count is 36; CO-605 (12)'s range (to 67c15053, the comment already on main) ruled: CO-609 (8), written on main after the tag"
+      ]
+    },
+    {
+      "id": "PL-28",
+      "status": "ruled",
+      "evidence": [
+        "ruled: CO-609 (9), written on main in the first commit after the tag (code and the carry-over register may not change after verifiedCommit): the release gate's row rule takes the V1-UX-1 form, with a test watched red"
+      ]
+    }
+  ]
+}

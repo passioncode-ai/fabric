@@ -56,7 +56,12 @@ const MAX_FILE_BYTES = 64 * 1024
  */
 export const MAX_ENTRIES_PER_DIR = 256
 
-const SERVICE_FIELDS = new Set(['protocol', 'id', 'instance', 'name', 'summary', 'placement', 'origin', 'auth', 'lifecycle', 'paths', 'commands', 'source', 'fabricManifest', 'installedAt', 'installedBy', 'extensions'])
+// 2026-11-20 (Inbox could not be found by agents: «unknown field runner», «missing origin», 13 times in the operations
+// log): the contract's descriptor (fabric-agent-contract schemas/service-descriptor.schema.json) also carries `runner` and
+// `peer` (DEC-0061) and `channels`; Fabric refused them, and the services that declared them were absent from the registry.
+const SERVICE_FIELDS = new Set(['protocol', 'id', 'instance', 'name', 'summary', 'placement', 'origin', 'auth', 'lifecycle', 'paths', 'commands', 'source', 'fabricManifest', 'installedAt', 'installedBy', 'extensions', 'runner', 'peer', 'channels'])
+/** The one supervisor a descriptor names (the contract's enum, DEC-0032, DEC-0057, DEC-0061, DEC-0069). */
+const MANAGERS = new Set(['launchd', 'systemd', 'task-scheduler', 'node', 'person', 'none'])
 const PROVIDER_FIELDS = new Set(['protocol', 'id', 'providerId', 'name', 'summary', 'manifest', 'run', 'source', 'installedAt', 'installedBy', 'extensions'])
 
 export type RegistryMcp =
@@ -187,7 +192,9 @@ export function validateServiceDescriptor(raw: unknown): string[] {
   if (!isObj(raw)) return ['the file is not a JSON object']
   const d = raw
   const remote = d.placement === 'remote'
-  const required = ['protocol', 'id', 'instance', 'name', 'origin', 'auth', 'lifecycle', 'installedAt', 'installedBy', ...(remote ? [] : ['paths'])]
+  // DEC-0069: an app a person installs and starts names no live origin here (its liveness file does).
+  const byPerson = isObj(d.lifecycle) && d.lifecycle.manager === 'person'
+  const required = ['protocol', 'id', 'instance', 'name', ...(byPerson ? [] : ['origin']), 'auth', 'lifecycle', 'installedAt', 'installedBy', ...(remote ? [] : ['paths'])]
   const missing = required.filter((k) => !(k in d)).map((k) => `missing ${k}`)
   if (missing.length) return missing
   const problems = unknownFields(d, SERVICE_FIELDS)
@@ -195,7 +202,7 @@ export function validateServiceDescriptor(raw: unknown): string[] {
   if (!isStr(d.id) || !ID.test(d.id)) problems.push('id must be lowercase letters, digits and dashes')
   if (!isStr(d.instance) || !INSTANCE.test(d.instance)) problems.push('instance must be lowercase letters, digits and dashes')
   if (d.placement !== undefined && d.placement !== 'local' && d.placement !== 'remote') problems.push('placement must be local or remote')
-  if (!isStr(d.origin) || !(remote ? REMOTE_ORIGIN : LOCAL_ORIGIN).test(d.origin))
+  if ((d.origin !== undefined || !byPerson) && (!isStr(d.origin) || !(remote ? REMOTE_ORIGIN : LOCAL_ORIGIN).test(d.origin)))
     problems.push(remote ? 'a remote origin must be https://<dns-name>[:<port>]' : 'origin must be http://127.0.0.1:<port>')
   const auth = d.auth
   if (!isObj(auth) || !isStr(auth.tokenFile) || !LOCAL_PATH.test(auth.tokenFile)) problems.push('auth.tokenFile must be an absolute or ~/ path')
@@ -207,11 +214,17 @@ export function validateServiceDescriptor(raw: unknown): string[] {
     if (header !== 'Authorization' && scheme !== 'none') problems.push('a custom auth header carries the raw token: auth.scheme must be none')
   }
   const life = d.lifecycle
-  if (!isObj(life) || (life.manager !== 'launchd' && life.manager !== 'none')) problems.push('lifecycle.manager must be launchd or none')
+  if (!isObj(life) || !isStr(life.manager) || !MANAGERS.has(life.manager)) problems.push(`lifecycle.manager must be one of ${[...MANAGERS].join(', ')}`)
   else if (remote && life.manager !== 'none') problems.push('a remote service is supervised by its platform: lifecycle.manager must be none')
-  else if (life.manager === 'launchd') {
-    if (!isStr(life.label) || !LABEL.test(life.label)) problems.push('a launchd service declares lifecycle.label')
-    if (!isStr(life.plist) || !LOCAL_PATH.test(life.plist) || !life.plist.endsWith('.plist')) problems.push('a launchd service declares lifecycle.plist')
+  else {
+    if (life.manager === 'launchd') {
+      if (!isStr(life.label) || !LABEL.test(life.label)) problems.push('a launchd service declares lifecycle.label')
+      if (!isStr(life.plist) || !LOCAL_PATH.test(life.plist) || !life.plist.endsWith('.plist')) problems.push('a launchd service declares lifecycle.plist')
+    } else if (life.label !== undefined || life.plist !== undefined) problems.push(`a ${life.manager} service names no launchd label or plist`)
+    if (life.manager === 'systemd' && (!isStr(life.unit) || !/^[A-Za-z0-9][A-Za-z0-9:_.@-]{0,250}\.service$/.test(life.unit))) problems.push('a systemd service declares lifecycle.unit')
+    if (life.manager === 'task-scheduler' && !isStr(life.task)) problems.push('a task-scheduler service declares lifecycle.task')
+    if (life.app !== undefined && (life.manager !== 'person' || !isStr(life.app) || !LOCAL_PATH.test(life.app))) problems.push('lifecycle.app is an absolute or ~/ path, for manager person only')
+    for (const k of Object.keys(life)) if (!['manager', 'label', 'plist', 'unit', 'task', 'app'].includes(k)) problems.push(`unknown field lifecycle.${k}`)
   }
   if (d.paths !== undefined) {
     const paths = d.paths
@@ -414,11 +427,11 @@ function readEntryFile(file: string, name: string, kind: 'service' | 'provider',
   const source = isObj(d.source) && isStr(d.source.repository) ? shown(d.source.repository, 300) || null : null
   if (kind === 'service') {
     const placement = d.placement === 'remote' ? 'remote' : 'local'
-    const m = LOCAL_ORIGIN.exec(d.origin as string)
+    const m = isStr(d.origin) ? LOCAL_ORIGIN.exec(d.origin) : null
     return { candidate: {
       entry: {
         key, kind, id: d.id as string, instance: d.instance as string, name: shown(d.name as string, 80) || (d.id as string),
-        summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement, origin: d.origin as string, mcp: null,
+        summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement, origin: isStr(d.origin) ? d.origin : null, mcp: null,
         installedBy: shown(installerOf(d.installedBy), 200), installedAt: d.installedAt as string, repository: source, file
       },
       port: placement === 'local' && m ? Number(m[1]) : null

@@ -3,13 +3,14 @@
  * Where the person writes to the CEO (ADR-0197 §2, SCN-182): on the home screen and at the foot of the CEO popup. Words,
  * and files pasted (⌘V / Ctrl+V), dropped or picked (each at most 25 MB, ten at most); Enter sends, Shift+Enter breaks
  * the line. On the home screen a send opens the popup first, so the person watches the CEO take it. The home card is
- * the top right block beside the greeting and the rhythm, and carries the voice call too (the operator's review of
- * 2026-11-19: chat, call and its time in one small block, the header as it was).
+ * the top right block beside the greeting and the rhythm; its «Позвонить» opens the popup and starts the call there,
+ * as a panel in the chat (the owner, 2026-11-19). `tools` is where another control joins the composer's row (the screen
+ * recording of fabric-screen-notes, «Записать показ») without this file knowing it.
  */
 import { useEffect, useRef, useState } from 'react'
 import type { CeoAttachment } from '../../../shared/ceoAgent.ts'
 import { useT } from '../i18n'
-import { VoiceCall } from './CeoCall'
+import { CallLauncher } from './CeoCall'
 
 const MAX_BYTES = 25 * 1024 * 1024
 const MAX_FILES = 10
@@ -29,20 +30,24 @@ function readAsBase64(file: File): Promise<string> {
 export function CeoComposer({
   where,
   draft,
-  onDraftTaken
+  onDraftTaken,
+  tools
 }: {
   /** `home`: the card on the home screen, which opens the popup on send; `popup`: the popup's own foot. */
   where: 'home' | 'popup'
   /** Words to put in the composer once (Help's example handed to the popup). */
   draft?: string | null
   onDraftTaken?: () => void
+  /** Extra controls in the composer's row, beside «Приложить файл». */
+  tools?: React.ReactNode
 }): React.JSX.Element {
   const t = useT()
   const [text, setText] = useState('')
   const [files, setFiles] = useState<Array<CeoAttachment & { size: number }>>([])
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState<string | null>(null)
-  const [sent, setSent] = useState(false)
+  /** `queued`: the console was busy and the message waits for it (2026-11-20: never said as lost). */
+  const [sent, setSent] = useState<false | 'sent' | 'queued' | 'queuedStopped' | 'queuedFailed'>(false)
   const box = useRef<HTMLTextAreaElement>(null)
   const picker = useRef<HTMLInputElement>(null)
 
@@ -78,8 +83,12 @@ export function CeoComposer({
       if (r.ok) {
         setText('')
         setFiles([])
-        setSent(true)
-      } else setProblem(`${t('ceoAgent.composer.failed')} ${r.reason ?? ''}`.trim())
+        // 0.3.27 review, run four (UX-41, ER-39): a CEO that is not running is never called busy; its message waits for it.
+        // Run five (UX-49): the button the line names is the one the popup shows for that state.
+        setSent(r.queued ? (r.reason === 'not-running' ? (r.status?.state === 'failed' ? 'queuedFailed' : 'queuedStopped') : 'queued') : 'sent')
+      } else if (r.reason === 'queue-full') setProblem(t('ceoAgent.composer.queueFull'))
+      else if (r.reason === 'delivery-unknown') setProblem(t('ceoAgent.composer.unknown'))
+      else setProblem(`${t('ceoAgent.composer.failed')} ${r.reason ?? ''}`.trim())
     } catch (e) {
       setProblem(`${t('ceoAgent.composer.failed')} ${e instanceof Error ? e.message : String(e)}`)
     } finally {
@@ -96,7 +105,7 @@ export function CeoComposer({
       {where === 'home' && (
         <div className="ceo-composer-head">
           <h2 className="ceo-composer-title" title={t('ceoAgent.composer.hint')}>{t('ceoAgent.composer.title')}</h2>
-          <VoiceCall variant="inline" />
+          <CallLauncher onError={setProblem} />
         </div>
       )}
       <form className="ceo-composer-form" aria-label={t('ceoAgent.composer.title')} onSubmit={(e) => { e.preventDefault(); void send() }}>
@@ -126,9 +135,10 @@ export function CeoComposer({
         )}
         <div className="ceo-composer-actions">
           <input ref={picker} type="file" multiple hidden aria-label={t('ceoAgent.composer.attach')} onChange={(e) => { void attach(e.target.files); e.target.value = '' }} />
-          <button type="button" className="btn btn-ghost" onClick={() => picker.current?.click()}>{t('ceoAgent.composer.attach')}</button>
-          {sent && <span className="muted" role="status">{t('ceoAgent.composer.sent')}</span>}
-          <button type="submit" className="btn ceo-composer-send" disabled={busy || (!text.trim() && files.length === 0)}>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => picker.current?.click()}>{t('ceoAgent.composer.attach')}</button>
+          {tools}
+          {sent && <span className="muted" role="status">{t(sent === 'queued' ? 'ceoAgent.composer.queued' : sent === 'queuedStopped' ? 'ceoAgent.composer.queuedStopped' : sent === 'queuedFailed' ? 'ceoAgent.composer.queuedFailed' : 'ceoAgent.composer.sent')}</span>}
+          <button type="submit" className="btn btn-sm ceo-composer-send" disabled={busy || (!text.trim() && files.length === 0)}>
             {t(busy ? 'ceoAgent.composer.sending' : 'ceoAgent.composer.send')}
           </button>
         </div>

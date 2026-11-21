@@ -1,0 +1,28 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.26",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "b83bed27ec8fe80ada818372290fd78d18b66a57",
+  "report": "docs/evidence/reviews/0.3.26/iteration-3-b83bed27/2026-11-20-errors.md",
+  "reportSha256": "bb1c4577f2a0cdbe088da592e355d120222bd83aa4de3af7a61d18591324bc07",
+  "reviewerRun": "release-0326-i3r3-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: the asks App shows are a reducer (launch/continueQueue.ts, 7 tests), dispatched from the ask, and the ask calls the newest render's callbacks (ContinueSessionAsk.tsx latest); tests «a link that arrived during a press is shown after the press succeeds» and «the answer calls the callbacks of the newest render», red before"
+      ]
+    },
+    {
+      "id": "ER-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-3 run-four candidate: gone for a session Switchboard lists says its history is not in a Claude folder Fabric reads (links.continue.goneHome); test «a Switchboard session whose history Fabric cannot read is not said as «not on this computer»»"
+      ]
+    }
+  ]
+}

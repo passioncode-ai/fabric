@@ -1,6 +1,8 @@
+import type { Launch } from './sessionLaunches.ts'
+import type { SessionMeta } from './sessionMeta.ts'
 import type { ActAnswer, ActHistoryPage, ActHistoryQuery } from './acts.ts'
 import type { CanvasAnswer, CanvasCommand, CanvasRead, CanvasWrite } from './canvas.ts'
-import { CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT, type CeoAttachment, type CeoSendResult, type CeoStatus, type CeoVoiceSession } from './ceoAgent.ts'
+import { CEO_MODELS_DEFAULT, CEO_RUNNERS_DEFAULT, type CeoAttachment, type CeoSendResult, type CeoStatus, type CeoVoiceProblem, type CeoVoiceSession } from './ceoAgent.ts'
 import type { BoardCommandResult, DeferredEntry, ResolvedEntry } from './boardResolved.ts'
 import type { ReleaseCommandResult, ReleaseEntry } from './releases.ts'
 import type { TerminalStopResult, TerminalTermination } from './stop.ts'
@@ -1041,6 +1043,9 @@ export interface FabricApi {
      */
     saveSettings(input: SaveSettingsInput): Promise<ProjectSettingsWrite>
     list(): Promise<ProjectRow[]>
+    /** «Продолжить последнюю» (the owner, 2026-11-19): the project's newest Claude Code session that is not running,
+     *  wherever it was started, continued in a Fabric console with `claude --resume` (`main/projectResume.ts`). */
+    resumeLast(projectId: string): Promise<{ ok: true; sessionId: string } | { ok: false; why: 'none' | 'no-folder' | 'failed'; says?: string }>
     stats(projectId: string): Promise<ProjectStats>
     /** M56 — the state of every repository attached to this project. */
     repoStates(projectId: string): Promise<RepoState[]>
@@ -1142,6 +1147,11 @@ export interface FabricApi {
     /** Put a task under a goal at a position. Order is a FIELD, not a screen's
      *  opinion — two surfaces reading the same plan must agree on it. */
     prioritise(taskId: string, goalId: string, position: number): Promise<void>
+    /** ADR-0208: the person moves a queued task to stand right after another of its project (null: first). Answers
+     *  how many ranks were written: unplaced tasks above the drop point are pinned with it. */
+    reorder(taskId: string, afterTaskId: string | null): Promise<{ written: number }>
+    /** ADR-0208: the person's decision on an agent's proposed place for a queued task. */
+    rankProposal(taskId: string, accept: boolean): Promise<{ accepted: boolean; written: number }>
     /**
      * File an idea into the backlog (M134). Its origin is the PERSON who had
      * it — a real answer at this door and an unverifiable one at an agent's,
@@ -1196,6 +1206,16 @@ export interface FabricApi {
     /** CO-457: the sessions Switchboard launched and the ones it holds on a usage limit, merged as Fabric Dashboards
      *  merges them (read-only; `main/switchboardSessions.ts`). */
     switchboardSessions(): Promise<import('./switchboardSessions.ts').SwitchboardSessions>
+    /** The Claude Code sessions running outside Fabric, from Claude Code's own files (eef5abeb, `main/machineSessions.ts`). */
+    machineSessions(): Promise<import('../main/machineSessions.ts').MachineSession[]>
+    /** Its last turns from its transcript; null when its transcript is not on this computer. */
+    machineRead(sessionId: string): Promise<{ turns: Array<{ role: string; text: string }> } | null>
+    /** SIGTERM to it, only while its process still names it. */
+    machineClose(sessionId: string): Promise<import('../main/machineSessions.ts').MachineAct>
+    /** Stop it outside, then continue it in a Fabric console (`claude --resume`). */
+    /** `link`: present when a `fabric://session/continue` link asked (DEC-0189 SL-5), with the linking app (`from`, SL-1);
+     *  both kept in the launch journal. */
+    machineContinue(sessionId: string, link?: import('../main/machineSessions.ts').LinkOrigin): Promise<import('../main/machineSessions.ts').MachineAct>
     /**
      * Create one. The servers it asks for are checked against what the project
      * grants: a request outside that ceiling is REFUSED here rather than trimmed,
@@ -1604,6 +1624,22 @@ export interface FabricApi {
     /** One field across every project. Grouped by store, never merged: a ranked
      *  hit and a substring hit are different promises (M141). */
     run(query: string): Promise<SearchGroup[]>
+    /** One ranked search over every session, transcript, task, board message and commit (the estate index, ADR-0200). */
+    everywhere(query: string): Promise<import('./estateSearch.ts').EverywhereAnswer>
+    /** A graph node's neighbourhood, N steps both ways (spec 2026-11-19 §4.3). */
+    around(node: string, depth: number): Promise<import('./estateSearch.ts').AroundAnswer>
+    /** Continue a session found here in a Fabric console, as itself when Fabric knows its Claude or Codex session. */
+    resume(sessionId: string): Promise<{ ok: boolean; reason?: string; session_id?: string }>
+  },
+  /** Memory, the dashboard of the estate index (spec 2026-11-20): the same execute operations the CEO's doors run. */
+  memoryIndex: {
+    overview(): Promise<import('./memory.ts').MemoryIndexOverview | import('./memory.ts').MemoryRefusal>
+    graph(context?: string): Promise<(import('./memory.ts').MemoryGraph & { ok: true }) | import('./memory.ts').MemoryRefusal>
+    changes(hours: number, project?: string): Promise<import('./memory.ts').MemoryChanges | import('./memory.ts').MemoryRefusal>
+    /** Keeps a claim only when its quote stands verbatim in the cited hit (`quote.check`). */
+    check(claims: Array<{ quote: string; doc: string; digest?: string }>): Promise<import('./memory.ts').MemoryCheck | import('./memory.ts').MemoryRefusal>
+    /** The hybrid search, narrowed to one project when named. */
+    search(query: string, project?: string): Promise<import('./estateSearch.ts').EverywhereAnswer>
   },
   digest: {
     /** What happened while the operator was away. Composed from stores, never
@@ -1790,6 +1826,16 @@ export interface FabricApi {
      *  that started first can drop what this answer already contains rather
      *  than losing those bytes or writing them twice (FA-08). */
     scrollback(sessionId: string): Promise<{ text: string; written: number } | null>
+    /** Who started this console and from where, from the launch journal on disk (board request eef5abeb); null when
+     *  Fabric did not start it or started it before the journal. Throws when the journal could not be read. */
+    launch(sessionId: string): Promise<Launch | null>
+    /** A console's system line (2026-11-20): account, context, who started it, runner and model, folder, branch and ids;
+     *  null for a session this process does not hold. Parts that could not be read are absent, never guessed. */
+    meta(sessionId: string): Promise<SessionMeta | null>
+    /** Opens this console's own folder in Finder (no other path is taken); a refusal says why. */
+    revealFolder(sessionId: string): Promise<{ ok: true } | { ok: false; reason: string }>
+    /** Sessions that ended, newest first, one per project, from the launch journal (the rail's «Недавние»). */
+    recent(): Promise<Array<{ projectId: string; projectName: string | null; runner: string; branch: string | null; endedAt: string | null; startedAt: string }>>
     write(sessionId: string, data: string): void
     resize(sessionId: string, cols: number, rows: number): void
     /** Ends a running session; the record stays on the board with its exit code. */
@@ -1814,14 +1860,26 @@ export interface FabricApi {
     ensure(): Promise<CeoStatus>
     send(text: string, attachments: CeoAttachment[]): Promise<CeoSendResult>
     restart(): Promise<CeoStatus>
+    /** The person's stop (the owner, 2026-11-19): the CEO stays stopped until `restart`, or a message, starts it. */
+    stop(): Promise<{ ok: boolean; reason?: 'still-running'; status: CeoStatus }>
     /** Open the popup window over the app, with `draft` put in its composer. */
-    open(draft?: string | null): Promise<void>
+    open(draft?: string | null, options?: { call?: boolean } | null): Promise<void>
+    /** Whether the last `open` asked for a call (the home card's «Позвонить»); taken once. */
+    takeCall(): Promise<boolean>
     /** The draft the last `open` left for the popup; null when none. */
     takeDraft(): Promise<string | null>
     voice(): Promise<CeoVoiceSession>
     voiceTool(name: string, args: unknown): Promise<Record<string, unknown>>
+    /** One line of the call for its journal (voice CEO retro, finding 1): what the owner said or the voice answered. */
+    voiceLine(callId: string, who: 'person' | 'ceo', text: string): Promise<void>
+    /** The call's end for its journal: its length and price as the window measured them, and why it ended. */
+    voiceEnd(callId: string, spent: { minutes: number; usd: number; end: string | null }): Promise<void>
     /** Whether the person's own xAI key is set (`main/ceoVoiceKey.ts`); never the key. */
     voiceKey(): Promise<{ own: boolean }>
+    /** Whether a call can be made: the person's key or Observatory's (onboarding asks before it offers the voice step). */
+    voiceReady(): Promise<{ ready: boolean }>
+    /** One short sample of an xAI voice (`persona.ts#xaiVoiceOf`) as base64 MP3, kept after the first fetch. */
+    voiceSample(voice: string): Promise<{ ok: true; data: string } | { ok: false; reason: CeoVoiceProblem | 'unknown-voice' }>
     /** Keep the person's own xAI key for the call; refused when empty or not shaped like an xAI key. */
     setVoiceKey(value: string): Promise<{ ok: true } | { ok: false; reason: 'empty' | 'malformed' | 'unwritable' }>
     clearVoiceKey(): Promise<void>
@@ -1939,6 +1997,8 @@ export const IPC = {
   goalsList: 'goals:list',
   goalsDefine: 'goals:define',
   tasksPrioritise: 'tasks:prioritise',
+  tasksReorder: 'tasks:reorder',
+  tasksRankProposal: 'tasks:rank-proposal',
   /** M134 — an idea is a card a person filed before it was work. */
   /** M127 — what the machine gateway offers. Never its key. */
   gatewayOffer: 'gateway:offer',
@@ -1980,6 +2040,11 @@ export const IPC = {
   settingsWrite: 'settings:write',
   settingsAgentCatalog: 'settings:agentCatalog',
   agentsSwitchboardSessions: 'agents:switchboardSessions',
+  agentsMachineSessions: 'agents:machineSessions',
+  agentsMachineRead: 'agents:machineRead',
+  agentsMachineClose: 'agents:machineClose',
+  agentsMachineContinue: 'agents:machineContinue',
+  projectsResumeLast: 'projects:resumeLast',
   settingsLoginItem: 'settings:loginItem',
   settingsFolderTrustLocked: 'settings:folderTrustLocked',
   settingsClaudeInbound: 'settings:claudeInbound',
@@ -2028,6 +2093,14 @@ export const IPC = {
   personaRead: 'persona:read',
   personaSave: 'persona:save',
   searchRun: 'search:run',
+  searchEverywhere: 'search:everywhere',
+  searchAround: 'search:around',
+  searchResume: 'search:resume',
+  memoryIndexOverview: 'memory-index:overview',
+  memoryIndexGraph: 'memory-index:graph',
+  memoryIndexChanges: 'memory-index:changes',
+  memoryIndexCheck: 'memory-index:check',
+  memoryIndexSearch: 'memory-index:search',
   digestRead: 'digest:read',
   digestSeen: 'digest:seen',
   memoryOverview: 'memory:overview',
@@ -2058,6 +2131,10 @@ export const IPC = {
   workRelease: 'work:release',
   terminalGet: 'terminal:get',
   terminalScrollback: 'terminal:scrollback',
+  terminalLaunch: 'terminal:launch',
+  terminalMeta: 'terminal:meta',
+  terminalRevealFolder: 'terminal:reveal-folder',
+  terminalRecent: 'terminal:recent',
   terminalWrite: 'terminal:write',
   terminalResize: 'terminal:resize',
   terminalEnd: 'terminal:end',
@@ -2075,11 +2152,17 @@ export const IPC = {
   ceoAgentEnsure: 'ceo-agent:ensure',
   ceoAgentSend: 'ceo-agent:send',
   ceoAgentRestart: 'ceo-agent:restart',
+  ceoAgentStop: 'ceo-agent:stop',
+  ceoAgentTakeCall: 'ceo-agent:take-call',
   ceoAgentOpen: 'ceo-agent:open',
   ceoAgentTakeDraft: 'ceo-agent:take-draft',
   ceoAgentVoice: 'ceo-agent:voice',
   ceoAgentVoiceTool: 'ceo-agent:voice-tool',
+  ceoAgentVoiceLine: 'ceo-agent:voice-line',
+  ceoAgentVoiceEnd: 'ceo-agent:voice-end',
   ceoAgentVoiceKey: 'ceo-agent:voice-key',
+  ceoAgentVoiceReady: 'ceo-agent:voice-ready',
+  ceoAgentVoiceSample: 'ceo-agent:voice-sample',
   ceoAgentVoiceKeySet: 'ceo-agent:voice-key-set',
   ceoAgentVoiceKeyClear: 'ceo-agent:voice-key-clear',
   ceoAgentChanged: 'ceo-agent:changed',

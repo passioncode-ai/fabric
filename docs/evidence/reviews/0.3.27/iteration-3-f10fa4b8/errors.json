@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "f10fa4b86eabb62672955f58e024cb9c457cb8e4",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-f10fa4b8/2026-11-21-errors.md",
+  "reportSha256": "982efc863a355e477a3b71ce9b8316cccf977b5d8b1e25caa0c3a0d3cfc51d82",
+  "reviewerRun": "release-0327-i3r7-errors-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-61",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-58"
+      ]
+    },
+    {
+      "id": "ER-62",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DA-46"
+      ]
+    },
+    {
+      "id": "ER-63",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as UX-61"
+      ]
+    },
+    {
+      "id": "ER-64",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a folder read failure other than a missing folder is recorded"
+      ]
+    },
+    {
+      "id": "ER-65",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the record is `ceo.agent.requeued`; a typed retype's `queue-delivered` carries `retype: true`"
+      ]
+    }
+  ]
+}

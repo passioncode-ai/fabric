@@ -1,0 +1,42 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "f10fa4b86eabb62672955f58e024cb9c457cb8e4",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-f10fa4b8/2026-11-21-plan.md",
+  "reportSha256": "6e92fb087688963f705871d4a281a942d963a3c4f2ea76dbf30d11114646d6b7",
+  "reviewerRun": "release-0327-i3r7-plan-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-49",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the owner's decision: 0.3.27 is cut from `main`, which took 41 commits of other sessions (Memory, the estate graph, an update in place) during this run; asked on 2026-11-21 in Fabric (question about `fabric.release-0327.main-moved`, recommendation: merge `main` into a new candidate and review it whole) and told through the communicator; no tag before the answer"
+      ]
+    },
+    {
+      "id": "PL-50",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-61"
+      ]
+    },
+    {
+      "id": "PL-51",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DO-62; the strategist's handoff points at this ledger"
+      ]
+    },
+    {
+      "id": "PL-52",
+      "status": "fixed",
+      "evidence": [
+        "fixed: as DA-46"
+      ]
+    }
+  ]
+}

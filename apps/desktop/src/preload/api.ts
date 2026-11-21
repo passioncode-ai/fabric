@@ -25,6 +25,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       updateSettings: (input) => ipc.invoke(IPC.projectsUpdateSettings, input),
       saveSettings: (input) => ipc.invoke(IPC.projectsSaveSettings, input),
       list: () => ipc.invoke(IPC.projectsList),
+      resumeLast: (projectId) => ipc.invoke(IPC.projectsResumeLast, projectId),
       stats: (projectId) => ipc.invoke(IPC.projectsStats, projectId),
       repoStates: (projectId) => ipc.invoke(IPC.projectsRepoStates, projectId),
       relations: (projectId) => ipc.invoke(IPC.projectsRelations, projectId),
@@ -73,6 +74,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       brief: (taskId, section, body) => ipc.invoke(IPC.tasksBrief, taskId, section, body),
       prioritise: (taskId, goalId, position) =>
         ipc.invoke(IPC.tasksPrioritise, taskId, goalId, position),
+      reorder: (taskId, afterTaskId) => ipc.invoke(IPC.tasksReorder, taskId, afterTaskId),
+      rankProposal: (taskId, accept) => ipc.invoke(IPC.tasksRankProposal, taskId, accept),
       fileIdea: (projectId, text) => ipc.invoke(IPC.tasksFileIdea, projectId, text),
       assignAcross: (input) => ipc.invoke(IPC.tasksAssignAcross, input),
       research: (taskId, optionId) => ipc.invoke(IPC.tasksResearch, taskId, optionId)
@@ -88,7 +91,11 @@ export function createApi(ipc: BridgeIpc): FabricApi {
     agents: {
       list: (projectId) => ipc.invoke(IPC.agentsList, projectId),
       create: (input) => ipc.invoke(IPC.agentsCreate, input),
-      switchboardSessions: () => ipc.invoke(IPC.agentsSwitchboardSessions)
+      switchboardSessions: () => ipc.invoke(IPC.agentsSwitchboardSessions),
+      machineSessions: () => ipc.invoke(IPC.agentsMachineSessions),
+      machineRead: (sessionId) => ipc.invoke(IPC.agentsMachineRead, sessionId),
+      machineClose: (sessionId) => ipc.invoke(IPC.agentsMachineClose, sessionId),
+      machineContinue: (sessionId, link) => ipc.invoke(IPC.agentsMachineContinue, sessionId, link)
     },
     tabs: {
       read: () => ipc.invoke(IPC.tabsRead),
@@ -238,7 +245,17 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       save: (next) => ipc.invoke(IPC.personaSave, next)
     },
     search: {
-      run: (query) => ipc.invoke(IPC.searchRun, query)
+      run: (query) => ipc.invoke(IPC.searchRun, query),
+      everywhere: (query) => ipc.invoke(IPC.searchEverywhere, query),
+      around: (node, depth) => ipc.invoke(IPC.searchAround, node, depth),
+      resume: (sessionId) => ipc.invoke(IPC.searchResume, sessionId)
+    },
+    memoryIndex: {
+      overview: () => ipc.invoke(IPC.memoryIndexOverview),
+      graph: (context) => ipc.invoke(IPC.memoryIndexGraph, context),
+      changes: (hours, project) => ipc.invoke(IPC.memoryIndexChanges, hours, project),
+      check: (claims) => ipc.invoke(IPC.memoryIndexCheck, claims),
+      search: (query, project) => ipc.invoke(IPC.memoryIndexSearch, query, project)
     },
     digest: {
       read: (projectId) => ipc.invoke(IPC.digestRead, projectId),
@@ -303,6 +320,10 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       history: (sessionId) => ipc.invoke(IPC.terminalHistory, sessionId),
       get: (sessionId) => ipc.invoke(IPC.terminalGet, sessionId),
       scrollback: (sessionId) => ipc.invoke(IPC.terminalScrollback, sessionId),
+      launch: (sessionId) => ipc.invoke(IPC.terminalLaunch, sessionId),
+      meta: (sessionId) => ipc.invoke(IPC.terminalMeta, sessionId),
+      revealFolder: (sessionId) => ipc.invoke(IPC.terminalRevealFolder, sessionId),
+      recent: () => ipc.invoke(IPC.terminalRecent),
       write: (sessionId, data) => ipc.send(IPC.terminalWrite, sessionId, data),
       resize: (sessionId, cols, rows) => ipc.send(IPC.terminalResize, sessionId, cols, rows),
       end: (sessionId, options) => ipc.invoke(IPC.terminalEnd, sessionId, options),
@@ -338,11 +359,17 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       ensure: () => ipc.invoke(IPC.ceoAgentEnsure),
       send: (text, attachments) => ipc.invoke(IPC.ceoAgentSend, text, attachments),
       restart: () => ipc.invoke(IPC.ceoAgentRestart),
-      open: (draft) => ipc.invoke(IPC.ceoAgentOpen, draft ?? null),
+      stop: () => ipc.invoke(IPC.ceoAgentStop),
+      open: (draft, options) => ipc.invoke(IPC.ceoAgentOpen, draft ?? null, options ?? null),
+      takeCall: () => ipc.invoke(IPC.ceoAgentTakeCall),
       takeDraft: () => ipc.invoke(IPC.ceoAgentTakeDraft),
       voice: () => ipc.invoke(IPC.ceoAgentVoice),
       voiceTool: (name, args) => ipc.invoke(IPC.ceoAgentVoiceTool, name, args),
+      voiceLine: (callId, who, text) => ipc.invoke(IPC.ceoAgentVoiceLine, callId, who, text),
+      voiceEnd: (callId, spent) => ipc.invoke(IPC.ceoAgentVoiceEnd, callId, spent),
       voiceKey: () => ipc.invoke(IPC.ceoAgentVoiceKey),
+      voiceReady: () => ipc.invoke(IPC.ceoAgentVoiceReady),
+      voiceSample: (voice) => ipc.invoke(IPC.ceoAgentVoiceSample, voice),
       setVoiceKey: (value) => ipc.invoke(IPC.ceoAgentVoiceKeySet, value),
       clearVoiceKey: () => ipc.invoke(IPC.ceoAgentVoiceKeyClear),
       onChanged: (cb) => {

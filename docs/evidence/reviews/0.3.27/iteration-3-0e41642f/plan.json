@@ -1,0 +1,49 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "0e41642f0b1eb3b6dc40e503d751f5a242d9ec51",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-0e41642f/2026-11-21-plan.md",
+  "reportSha256": "0911a70972cab6a2dc65f074108f132050a8c6823f51db08d896850b2def2fc4",
+  "reviewerRun": "release-0327-i3r11-plan-claude-subagent-20261121",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "PL-73",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run eleven's section records the pause and the reconciler's step 2 as relayed, with their time and channel"
+      ]
+    },
+    {
+      "id": "PL-74",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run eleven's section states the release session's decision to apply question `237cdddb` to `608f5416`, and the rule for a further move of `main`"
+      ]
+    },
+    {
+      "id": "PL-75",
+      "status": "fixed",
+      "evidence": [
+        "fixed: in this candidate, CO-620 (13) carries run eleven's ruled findings and CO-622 the owner's order of 04:20"
+      ]
+    },
+    {
+      "id": "PL-76",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the HANDOFF's next task lists the checks on the installed build"
+      ]
+    },
+    {
+      "id": "PL-77",
+      "status": "fixed",
+      "evidence": [
+        "fixed: run eleven's section says the ledger's opening supersedes the brief's «What 0.3.27 carries»"
+      ]
+    }
+  ]
+}

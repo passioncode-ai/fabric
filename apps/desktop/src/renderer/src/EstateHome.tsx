@@ -379,30 +379,33 @@ export function EstateHome({
       )}
 
       {consoleProblem && <FailureNote said={t('launch.home.agents.consoleFailed')} detail={consoleProblem} />}
-      {/* The approved mockup (2026-10-26, `.cols`): ONE grid for the whole home. The left column holds the hero, the strip
-          and «В работе»; the right column holds «Нужны вы» and the unanswered requests from the very top (gap map A3). */}
+      {/* The operator's review, 2026-10-26: the CEO's face and greeting, then the activity chart, as one framed card
+          laid out face | words | chart (gap map B1, B2). The review of 2026-11-19: that header as it was, and the CEO's
+          chat and call as one small block at its right, the top right of the home (SCN-182). The operator, 2026-11-20: «чат
+          должен быть справа, а не снизу». Inside the main column the card fell under the hero whenever «В работе» took the
+          right column (595 to 835 px left for both, measured on the built app at 1280 to 1680 px windows), so the top row
+          spans the whole home, above both columns, and the CEO stands over the right one. */}
+      <div className="lh-top">
+        <header className="lh-hero">
+        <FabricAvatar size="small" label={t('launch.avatar.label')} />
+        <div className="lh-hero-words">
+          {/* SP-1 (2026-11-12): the top bar names the place; the heading stays for focus and a screen reader. */}
+          <h2 className="visually-hidden" tabIndex={-1}>{t('launch.brand.product')}</h2>
+          {/* SCN-163 step 1 (CO-391): the state in one sentence, counted from what only the person resolves. */}
+          <p className="lh-greeting" data-testid="home-greeting">
+            {[t(`launch.home.greet.${dayPart(now)}` as 'launch.home.greet.day'),
+              personWaiting === null ? null : personWaiting > 0 ? t(`launch.home.greet.waiting.${pluralForm(locale, personWaiting)}`, { count: personWaiting }) : t('launch.home.greet.clear')].filter(Boolean).join(' ')}
+          </p>
+        </div>
+        <HomeRhythm feed={feed} now={now} onPulse={onPulse} rhythm={rhythm} />
+      </header>
+      {/* ADR-0197, SCN-182: the CEO answers here; a send opens its popup over the app. */}
+      <CeoComposer where="home" />
+      </div>
+      {/* The approved mockup (2026-10-26, `.cols`): ONE grid for the whole home, under the top row (the hero and the CEO).
+          The left column holds the strip and «В работе»; the right column holds «Нужны вы» and the unanswered requests from the very top (gap map A3). */}
       <div className={`lh-layout lh-home ${inWorkAside ? 'is-needs' : 'is-clear'}`} data-home-layout={inWorkAside ? 'needs' : 'clear'}>
         <div className="lh-main-column">
-          {/* The operator's review, 2026-10-26: the CEO's face and greeting, then the activity chart, as one framed card
-              laid out face | words | chart (gap map B1, B2). The review of 2026-11-19: that header as it was, and the CEO's
-              chat and call as one small block at its right, the top right of the home (SCN-182). */}
-          <div className="lh-top">
-          <header className="lh-hero">
-            <FabricAvatar size="small" label={t('launch.avatar.label')} />
-            <div className="lh-hero-words">
-              {/* SP-1 (2026-11-12): the top bar names the place; the heading stays for focus and a screen reader. */}
-              <h2 className="visually-hidden" tabIndex={-1}>{t('launch.brand.product')}</h2>
-              {/* SCN-163 step 1 (CO-391): the state in one sentence, counted from what only the person resolves. */}
-              <p className="lh-greeting" data-testid="home-greeting">
-                {[t(`launch.home.greet.${dayPart(now)}` as 'launch.home.greet.day'),
-                  personWaiting === null ? null : personWaiting > 0 ? t(`launch.home.greet.waiting.${pluralForm(locale, personWaiting)}`, { count: personWaiting }) : t('launch.home.greet.clear')].filter(Boolean).join(' ')}
-              </p>
-            </div>
-            <HomeRhythm feed={feed} now={now} onPulse={onPulse} rhythm={rhythm} />
-          </header>
-          {/* ADR-0197, SCN-182: the CEO answers here; a send opens its popup over the app. */}
-          <CeoComposer where="home" />
-          </div>
           {/* 0.3.14, the simple Fabric §2a: the statistics strip, six numbers, each opening where it is counted. */}
           <HomeStats reading={home} waiting={waitingForYou === undefined ? (counts ? Object.values(counts).reduce((n, c) => n + c.total, 0) : null) : personWaiting}
             toReview={toReview === undefined ? undefined : (toReview?.total ?? null)}

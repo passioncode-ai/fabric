@@ -83,7 +83,36 @@ export const homeReading = { view: homeView, problem: null, readAt: at(0) }
 
 const LOGIN_ITEM = { supported: true, platform: 'darwin', system: 'on' }
 
+
+// Memory (SCN-190): the measured shape of 2026-11-20 (counts from docs/reports/2026-11-20-memory-readiness), with
+// neutral names for the organizations and projects.
+const memOrgs = [['personal', 'Личное', 9], ['org:north', 'North', 7], ['org:harbor', 'Harbor', 4]] as const
+const memProjects = memOrgs.flatMap(([ctx, , n], oi) => Array.from({ length: n }, (_, i) => ({
+  id: `project:m${oi}${i}`, kind: 'project', label: ['Atlas', 'Beacon', 'Comet', 'Delta', 'Ember', 'Fable', 'Gale', 'Harbor app', 'Iris'][i]! + (oi ? ` ${oi}` : ''),
+  context: ctx, docs: Math.round(6000 / (i + 1) / (oi + 1)), byKind: { turn: 900 - i * 40, commit: 400 - i * 20, document: 1200 - i * 60, task: 40 }, lastAt: at(5 + i * 30), role: 'canonical', folder: null })))
+const memGraph = {
+  ok: true,
+  nodes: [...memOrgs.map(([ctx, label, n]) => ({ id: `ctx:${ctx}`, kind: 'organization', label, context: ctx, docs: memProjects.filter((p) => p.context === ctx).reduce((a, p) => a + p.docs, 0), projects: n })), ...memProjects],
+  edges: [...memProjects.map((p) => ({ source: p.id, target: `ctx:${p.context}`, kind: 'in', weight: 1 })),
+    ...[['m00', 'm10', 12], ['m00', 'm01', 30], ['m01', 'm02', 4], ['m10', 'm11', 9], ['m00', 'm20', 3], ['m02', 'm21', 2], ['m03', 'm00', 7]].map(([a, b, w]) => ({ source: `project:${a}`, target: `project:${b}`, kind: 'board', weight: w }))],
+  organizations: memOrgs.map(([ctx, label, n]) => ({ context: ctx, label, projects: n, docs: 0 }))
+}
+
 export const fixtures: Fixtures = {
+  'memoryIndex.overview': { ok: true, at: at(0), docs: 194897, nodes: 76528, edges: 135552, bytes: 1008730112, projects: 121, sessions: 867,
+    byKind: { session: 867, turn: 12317, task: 1602, message: 37948, commit: 24209, document: 117019 }, byContext: [{ context: 'personal', label: 'Личное', docs: 108340 }, { context: 'org:north', label: 'North', docs: 55510 }, { context: 'org:harbor', label: 'Harbor', docs: 31047 }], vectors: { model: 'embeddinggemma', embedded: 5600, of: 194897 },
+    sources: [{ source: 'transcripts', state: 'fresh', readAt: at(0.05), left: 0, unread: 0, error: null }, { source: 'fabric', state: 'fresh', readAt: at(0.05), left: 0, unread: 0, error: null },
+      { source: 'board', state: 'catching-up', readAt: at(0.05), left: 1, unread: 0, error: null }, { source: 'git', state: 'fresh', readAt: at(0.05), left: 0, unread: 0, error: null },
+      { source: 'vectors', state: 'fresh', readAt: at(0.05), left: 0, unread: 0, error: null }], lastPass: null },
+  'memoryIndex.graph': memGraph,
+  'memoryIndex.changes': { ok: true, since: at(24), hours: 24, total: 64, capped: false, changes: [
+    { project: 'Atlas', kind: 'commit', count: 18, newest: [{ id: 'commit:a1', title: 'feat(memory): the dashboard of everything Fabric knows', at: at(0.2), node: 'commit:a1' }, { id: 'commit:a2', title: 'fix(estate): FTS tombstone rowids past 2^53', at: at(0.7), node: 'commit:a2' }] },
+    { project: 'Atlas', kind: 'turn', count: 31, newest: [{ id: 'claude:s1#9', title: 'Граф знаний и поиск сессий', at: at(0.25), node: 'session:s1' }] },
+    { project: 'Beacon', kind: 'message', count: 15, newest: [{ id: 'message:m1', title: 'Запрос: методика базы знаний', at: at(1.5), node: 'message:m1' }] }] },
+  'memoryIndex.search': { ok: true, docs: 194897, degraded: [], hits: [
+    { id: 'task:t9', kind: 'task', title: 'Доска запускает агента, когда проекту пишут', passage: '… смотритель доски сам продолжает работу и ведёт сессии вместе со Switchboard …', at: at(5), node: 'task:t9', project: 'Atlas', folder: null, context: 'personal', session_id: null, resume: null, cite: null, digest: 'd1', via: ['words', 'vector'] },
+    { id: 'commit:c7', kind: 'commit', title: 'fix(dispatch): a crashed run is taken back', passage: 'a run that exited with a failure is taken back as crash and started again …', at: at(13), node: 'commit:c7', project: 'Atlas', folder: null, context: 'personal', session_id: null, resume: null, cite: 'docs/CHANGELOG.md:68-72', digest: 'd2', via: ['words', 'trigram'] }] },
+  'memoryIndex.check': { ok: true, outcome: 'answer', kept: 1, verdicts: [{ doc: 'task:t9', kept: true }] },
   'work.session': { tasks: [sessionTask(tasks[0], 5), sessionTask(tasks[1], 30), sessionTask(tasks[3], 70)], capped: false,
     questions: [{ id: 'q1', projectId: 'p1', taskId: 't1', text: 'Куда положить чтение доски: в main/boardRead.ts или в общий модуль чтений?', why: 'От этого зависит, где будет тест.', kind: 'decision',
       options: [{ id: 'a', label: 'main/boardRead.ts', consequence: 'Один файл на один экран.', recommended: true }, { id: 'b', label: 'Общий модуль', consequence: 'Меньше файлов.' }], askedAt: at(2), revision: 1 }],
@@ -97,6 +126,17 @@ export const fixtures: Fixtures = {
   'terminal.resize': null,
   'terminal.write': null,
   'terminal.get': (id: string) => consoleSessions.find((s) => s.sessionId === id) ?? null,
+  // The CEO's window (stand screen `ceo`): its console is the first console session's.
+  'ceoAgent.ensure': () => ({ state: 'running', sessionId: consoleSessions[0].sessionId, runner: 'claude-code', models: ['anthropic/claude-opus-5.5'], passedOver: [], setAside: [], folder: '/Users/example/Library/Application Support/Fabric/ceo', problem: null }),
+  // SCN-188: a console's system line, as main reads it from the launch journal, Switchboard, git and the transcript.
+  'terminal.meta': (id: string) => ({ sessionId: id, runnerSessionId: '1fc71162-60b8-4271-831a-708a1a6e70f8', runner: 'claude-code', model: 'claude-opus-5-5',
+    folder: '/Users/example/DATA/support-desk', branch: 'feat/queue', account: { label: 'claude13@example.me', short: 'claude13@…', source: 'switchboard-session' },
+    context: 'PassionCode.ai', started: { by: 'switchboard', via: 'fallback', at: new Date(NOW - 50 * 60_000).toISOString(), parentSessionId: null },
+    handedOver: { at: new Date(NOW - 50 * 60_000).toISOString() } }),
+  'terminal.revealFolder': { ok: true },
+  'ceoAgent.takeDraft': null,
+  'ceoAgent.takeCall': false,
+  'persona.read': { persona: { seed: 731, style: 'orbit', name: 'Ника' }, chosen: true, problem: null },
   'terminal.scrollback': () => ({ text: Array.from({ length: 80 }, (_, i) => `строка ${i + 1}: агент читает репозиторий и пишет план`).join('\r\n') + '\r\nПОСЛЕДНЯЯ СТРОКА КОНСОЛИ', written: 4000 }),
   'tasks.detail': (id: string) => ({ task: tasks.find((t) => t.id === id) ?? tasks[0],
     notes: [{ id: 'n1', task_id: id, author_kind: 'agent', author_id: 's1', body_md: 'Попробовал вынести чтение целиком: ломается порядок подписки на журнал. Делаю **по одному чтению**.', promoted_fact_id: null, created_at: at(3) },
@@ -109,6 +149,15 @@ export const fixtures: Fixtures = {
   'board.resolved': envelope({ data: [], sources: [{ name: 'board', status: 'ok' as const, asOf: at(0) }], asOf: at(0), freshness: 'fresh' as const }),
   'goals.list': [{ id: 'g1', project_id: 'p1', title: 'Выпустить командный доступ к концу месяца', autonomy: 'safe', created_at: at(500) }],
   'agents.list': [],
+  // 0.3.26 (the operator, 2026-11-20): this computer's sessions outside Fabric, one with a long folder name, and an agent's
+  // launch line on its page.
+  'agents.machineSessions': [
+    { pid: 4101, live: true, sessionId: 'aaaaaaaa-0000-4000-8000-000000000001', cwd: '/Users/example/DATA/_worktrees/support-desk-a-very-long-worktree-name-for-a-feature-branch', name: null, status: 'busy', kind: 'interactive', entrypoint: 'cli', startedAt: at(1), updatedAt: at(0), source: 'claude', state: 'working', agent: 'claude-code' },
+    { pid: 0, live: false, sessionId: 'aaaaaaaa-0000-4000-8000-000000000002', cwd: '/Users/example/DATA/atlas', name: null, status: null, kind: null, entrypoint: null, startedAt: null, updatedAt: null, source: 'switchboard', state: 'needs_you', agent: 'codex' }
+  ],
+  'terminal.launch': (id: string) => ({ sessionId: id, projectId: 'p1', cwd: '/Users/example/DATA/support-desk', branch: 'feat/queue', runner: 'claude-code', optionId: 'claude-code',
+    program: 'claude', by: 'person', via: 'screen', reason: 'Продолжить последнюю сессию проекта', parentSessionId: null, taskId: null, requestId: null, machine: 'stand',
+    appPid: 1, appVersion: '0.3.26', pid: 4100, startedAt: at(2), runnerSessionId: null, stopAskedBy: null, stopReason: null, endedAt: null, end: null, exitCode: null, signal: null }),
   'comms.projectRequests': { requests: [], names: {}, capped: false, windowDays: 30 },
   'projects.analytics': { donePerWeek: [1, 3, 2, 5, 4, 6, 2, 7], leadHours: 26, reviewHours: 9, reopenedShare: 0.1, questionsWaiting: 3, oldestQuestionAt: at(40), weeks: 8 },
   'projects.relations': [],

@@ -42,6 +42,23 @@ USD 0.08 a minute of open session, shown during the call
 xAI keeps conversation data for 30 days unless the key's team has zero data retention turned on in its console; a
 person who needs that turns it on there.
 
+Fabric keeps each call on this computer too (0.3.27, [ADR-0197 amendment 4](../adr/0197-the-ceo-is-a-console-session-fabric-keeps-with-a-fallback-runner.md#amendment-4-2026-11-20-the-call-is-kept-on-this-computer-the-voice-delegates-and-finds-a-project-by-sound)):
+one file a call in `<userData>/ceo/calls/` (owner-only), with what was said, each tool and its answer, the length and the
+price, secrets cut before writing, removed after 30 days or past the newest 200 calls. The CEO's console reads these
+files, so their text reaches the CEO's runner's provider as any file it opens. During a call, xAI receives what the
+voice's tools answer: session screens and turns, the CEO's answer, board snippets, recent launches, project names with
+their folders and the computer's state (disk, load, memory), all redacted and bounded. To remove kept calls, delete the folder; the next call is kept again.
+
+The voice reads Fabric's board itself, read-only, without the CEO's console (SCN-191): the newest projects with when each
+was added, a project's tasks with status and holder, a task's goal and graph, the board's messages. During a call xAI
+also receives these answers: project names and folders, task titles and statuses, who holds a task (an agent's name or
+a session), goal titles. The voice also searches the estate index (`knowledge_search`, `knowledge_execute`), so during a
+call xAI receives search passages from the sessions and transcripts, tasks, notes, board messages, memory facts,
+documents and commits of every project and every context (personal and each organization's), and from other sources'
+records the index holds (mail from Fabric Inbox once it writes them), redacted as the index writes them and again on
+the way out. Redaction catches keys of a known shape only; a secret with no known shape is not caught. The words «шеф»,
+«директор», «босс», «менеджер», «главный» and «SEO» mean the CEO itself and are sent to xAI as recognition hints.
+
 ## 4. The microphone
 
 macOS asks once for the microphone the first time «Позвонить» is pressed; the release build carries the audio-input

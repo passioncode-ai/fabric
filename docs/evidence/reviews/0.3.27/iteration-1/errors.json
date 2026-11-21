@@ -1,0 +1,105 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "f6990a9aaed3f243d65a40be601e5b519b9af30d",
+  "report": "docs/evidence/reviews/0.3.27/iteration-1/2026-11-20-errors.md",
+  "reportSha256": "8f0f893181c00a6b2bb7c85c612872f2845a0c81cce9b3916692c69c47841c90",
+  "reviewerRun": "release-0327-i1-errors-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: only an agent's worktree copy is a work folder (ceoTools.ts workFolders); test «UX-5, ER-1», red with the filter removed"
+      ]
+    },
+    {
+      "id": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: a call left open is ended with its measured length and price (closeLeft), and a run's orphans at start (closeOrphans); test «DA-3, ER-2, ER-4»"
+      ]
+    },
+    {
+      "id": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: as DA-2"
+      ]
+    },
+    {
+      "id": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: the call is read before the tool runs, ask_ceo's time is kept per call; test «DA-3, ER-2, ER-4»"
+      ]
+    },
+    {
+      "id": "ER-5",
+      "status": "ruled",
+      "evidence": [
+        "fixed in the iteration-2 candidate in part: the transcript's path is found once per CEO session; reading only the appended bytes ruled: CO-605 (6)"
+      ]
+    },
+    {
+      "id": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: a CEO console that does not run is said; on another runner answered needs output after the ask; test «UX-14, ER-6»"
+      ]
+    },
+    {
+      "id": "ER-7",
+      "status": "ruled",
+      "evidence": [
+        "fixed in the iteration-2 candidate in part: escapes taken out before matching, `esc to (interrupt|stop)`; reading the decoded input line and the written counter ruled: CO-605 (7)"
+      ]
+    },
+    {
+      "id": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: as UX-6"
+      ]
+    },
+    {
+      "id": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: too broad is a home folder, a root or a folder holding two projects or more; test «UX-13, ER-9»"
+      ]
+    },
+    {
+      "id": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: as DA-7"
+      ]
+    },
+    {
+      "id": "ER-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: as DA-4"
+      ]
+    },
+    {
+      "id": "ER-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: recap names projects; voiceInputs drops consoles that ended"
+      ]
+    },
+    {
+      "id": "ER-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the iteration-2 candidate: a leave is not named as an unknown credential, and the map evicts by last use (agentSurface.ts)"
+      ]
+    }
+  ]
+}

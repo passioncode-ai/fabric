@@ -1,4 +1,4 @@
-// #region canvas-window — docs: docs/ux/scenarios.md#scn-190-draw-on-the-canvas-with-the-mouse
+// #region canvas-window — docs: docs/ux/scenarios.md#scn-192-draw-on-the-canvas-with-the-mouse
 /**
  * The canvas window (ADR-0201, SCR-91): Excalidraw over the whole window, the canvas read from disk when it opens,
  * saved as the person or the designer changes it (`SAVE_AFTER_MS` after the last change, only when the scene changed),

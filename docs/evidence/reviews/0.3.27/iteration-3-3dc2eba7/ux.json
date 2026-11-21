@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.27",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "3dc2eba711b3ee9a799ecf8559b0256c6d56e71c",
+  "report": "docs/evidence/reviews/0.3.27/iteration-3-3dc2eba7/2026-11-20-ux.md",
+  "reportSha256": "cc01b25ccd4954e18526684d2a3e882117de0ec88e63e504471075ba08fecc86",
+  "reviewerRun": "release-0327-i3r1-ux-claude-subagent-20261120",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "UX-25",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: a folder that is no one project's lists every project in it, with why too-broad where it applies (ceoTools.ts projects); test «0.3.27 review, iteration 3 run one», red with the list removed"
+      ]
+    },
+    {
+      "id": "UX-26",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: the project list marks a match through a worktree (worktree, understood_as, next); same test"
+      ]
+    },
+    {
+      "id": "UX-27",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: an ended console in a worktree is said ended and offered session_open; a resume of a console that ran outside its project's folder is refused with where it would open (ceoTools.ts resume)"
+      ]
+    },
+    {
+      "id": "UX-28",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: the worktree last-words tier runs after the words (findProject); same test («review» finds code-review-bot)"
+      ]
+    },
+    {
+      "id": "UX-29",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: a copy registered as its own project is no worktree of itself (findProject)"
+      ]
+    },
+    {
+      "id": "UX-30",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: an exact name or alias comes first and is named in exact; same test"
+      ]
+    },
+    {
+      "id": "UX-31",
+      "status": "fixed",
+      "evidence": [
+        "fixed in the run-two candidate: the start and task descriptions say delivered and resubmitted carry no next step, and name unknown"
+      ]
+    }
+  ]
+}
