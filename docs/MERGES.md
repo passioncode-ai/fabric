@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-11-21 · `CEO-WINDOW-PLACE`, `CEO-DICTATION-TAIL` · feat/ceo-window-place, fix/ceo-dictation-tail → feat/voice-retro (the 0.3.27 candidate) · merge
+- files: `apps/desktop/src/main/{ceoWindowPlacement,sessionMetaRead,switchboardSessions,ceoVoice,index}.ts`, `apps/desktop/src/shared/{windowPlacement,sessionMeta,ceoAgent}.ts`, `renderer/src/ceo/{CeoPopup,CeoComposer,CeoCall}.tsx`, styles, stand, tests `windowPlacement`, `CeoPopup`, `ceoDrag`, `ceo-agent`, `voice-retro`; SCN-188; `docs/reports/2026-11-20-ceo-window-polish/`, `docs/reports/2026-11-20-console-meta-line/`
+- conflicts: `main/index.ts` (imports, both kept), `CeoComposer.tsx` (the state-aware status kept, the `btn-sm` buttons taken), `ceoVoice.ts` (the board rule, the CEO address rule and the dictation tail all kept), `scenarios.md` (SCN-188 before SCN-189), generated files rebuilt
+- summary: session 8343a070's blockers ride the one 0.3.27 release, as agreed: the CEO's window keeps its place, a console's system line, the dictation tail is no order
+
 ### 2026-11-20 · `STACK-OUTAGE-BANNER` · fix/stack-outage-banner → main · fast-forward (toward 0.3.27)
 - files: `apps/desktop/src/shared/{errorText,stackWatch}.ts`, `apps/desktop/src/main/{ops,opsSink,stackWatch,index}.ts`, `apps/desktop/src/renderer/src/{App,StackHealthNotice}.tsx`, i18n, tests `stack-watch.test.mjs`, `errorText.test.ts`, `StackHealthNotice.test.tsx`
 - conflicts: none

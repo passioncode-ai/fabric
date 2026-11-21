@@ -16,6 +16,15 @@ The owner, 2026-11-20: first fix what gets in the way of work now ([the owner's 
   what it blocks and follows), read-only and without the CEO's console or a new session. «шеф», «директор», «босс»,
   «менеджер», «главный» and «SEO» mean the CEO itself, never a project or the SEO agent, and are recognition hints of
   the call (`main/voiceBoard.ts`, `shared/ceoAddress.ts`; SCN-191). The owner's exception to the pause, 2026-11-21.
+- **The CEO's window stays where it was left.** It moves by its whole head and free areas, resizes, and opens on the
+  display and at the place it was closed, pulled wholly onto a screen that still shows it (`main/ceoWindowPlacement.ts`,
+  `shared/windowPlacement.ts`, kept in `userData/ceo-window.json`). Its head is one row beside the window buttons; the
+  small buttons share one size (SCN-110 and SCN-182 amended).
+- **A console's bottom line says where it runs.** Who started it and when, the account, the organisation, the model,
+  the folder (opens in Finder), the live branch and the ids, read from Fabric's launch journal and Switchboard
+  (`shared/sessionMeta.ts`, `main/sessionMetaRead.ts`; SCN-188).
+- **«Продолжение следует» at the end of a dictated message is no order.** The CEO's brief and the voice both carry it
+  as the tail of the owner's dictation (`shared/ceoAgent.ts#DICTATION_TAIL`).
 - **A session's first task reaches Claude Code.** On 2026-11-20 four sessions the CEO started sat with no task.
   Measured on this Mac: Claude Code prints a cursor save and restore about 3 s after its start, then nothing while its
   start-up hooks run; Fabric took that quiet for ready and wrote the task before the input box existed, and Claude Code
